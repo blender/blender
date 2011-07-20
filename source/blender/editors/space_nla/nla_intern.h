@@ -94,6 +94,9 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot);
 
 /* --- */
 
+void NLA_OT_view_all(wmOperatorType *ot);
+void NLA_OT_view_selected(wmOperatorType *ot);
+
 void NLA_OT_actionclip_add(wmOperatorType *ot);
 void NLA_OT_transition_add(wmOperatorType *ot);
 

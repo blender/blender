@@ -72,7 +72,11 @@ class NLA_MT_view(bpy.types.Menu):
         layout.separator()
         layout.operator("anim.previewrange_set")
         layout.operator("anim.previewrange_clear")
-
+        
+        layout.separator()
+        layout.operator("nla.view_all")
+        layout.operator("nla.view_selected")
+        
         layout.separator()
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")

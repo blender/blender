@@ -234,6 +234,7 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max, cons
 	int filter;
 	
 	/* get data to filter, from Action or Dopesheet */
+	// XXX: what is sel doing here?!
 	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	

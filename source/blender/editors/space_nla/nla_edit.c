@@ -68,6 +68,7 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "nla_intern.h"	// own include
 #include "nla_private.h" // FIXME... maybe this shouldn't be included?
@@ -230,6 +231,136 @@ void NLA_OT_tweakmode_exit (wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= nlaedit_disable_tweakmode_exec;
 	ot->poll= nlaop_poll_tweakmode_on;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* *********************************************** */
+/* NLA Strips Range Stuff */
+
+/* *************************** Calculate Range ************************** */
+
+/* Get the min/max strip extents */
+static void get_nlastrip_extents (bAnimContext *ac, float *min, float *max, const short onlySel)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get data to filter */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* set large values to try to override */
+	*min= 999999999.0f;
+	*max= -999999999.0f;
+	
+	/* check if any channels to set range with */
+	if (anim_data.first) {
+		/* go through channels, finding max extents */
+		for (ale= anim_data.first; ale; ale= ale->next) {
+			NlaTrack *nlt = (NlaTrack *)ale->data;
+			NlaStrip *strip;
+			
+			for (strip = nlt->strips.first; strip; strip = strip->next) {
+				/* only consider selected strips? */
+				if ((onlySel == 0) || (strip->flag & NLASTRIP_FLAG_SELECT)) {
+					/* extend range if appropriate */
+					*min = MIN2(*min, strip->start);
+					*max = MAX2(*max, strip->end);
+				}
+			}
+		}
+		
+		/* free memory */
+		BLI_freelistN(&anim_data);
+	}
+	else {
+		/* set default range */
+		if (ac->scene) {
+			*min= (float)ac->scene->r.sfra;
+			*max= (float)ac->scene->r.efra;
+		}
+		else {
+			*min= -5;
+			*max= 100;
+		}
+	}
+}
+
+/* ****************** View-All Operator ****************** */
+
+static int nlaedit_viewall(bContext *C, const short onlySel)
+{
+	bAnimContext ac;
+	View2D *v2d;
+	float extra;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	v2d= &ac.ar->v2d;
+	
+	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
+	get_nlastrip_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, onlySel);
+	
+	extra= 0.1f * (v2d->cur.xmax - v2d->cur.xmin);
+	v2d->cur.xmin -= extra;
+	v2d->cur.xmax += extra;
+	
+	/* set vertical range */
+	v2d->cur.ymax= 0.0f;
+	v2d->cur.ymin= (float)-(v2d->mask.ymax - v2d->mask.ymin);
+	
+	/* do View2D syncing */
+	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
+	
+	/* just redraw this view */
+	ED_area_tag_redraw(CTX_wm_area(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+/* ......... */
+
+static int nlaedit_viewall_exec(bContext *C, wmOperator *UNUSED(op))
+{	
+	/* whole range */
+	return nlaedit_viewall(C, FALSE);
+}
+
+static int nlaedit_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	/* only selected */
+	return nlaedit_viewall(C, TRUE);
+}
+ 
+void NLA_OT_view_all (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View All";
+	ot->idname= "NLA_OT_view_all";
+	ot->description= "Reset viewable area to show full strips range";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_viewall_exec;
+	ot->poll= ED_operator_nla_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+void NLA_OT_view_selected (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Selected";
+	ot->idname= "NLA_OT_view_selected";
+	ot->description= "Reset viewable area to show selected strips range";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_viewsel_exec;
+	ot->poll= ED_operator_nla_active;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

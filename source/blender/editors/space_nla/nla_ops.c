@@ -130,6 +130,10 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_select_all_toggle);
 	WM_operatortype_append(NLA_OT_select_leftright);
 	
+	/* view */
+	WM_operatortype_append(NLA_OT_view_all);
+	WM_operatortype_append(NLA_OT_view_selected);
+	
 	/* edit */
 	WM_operatortype_append(NLA_OT_tweakmode_enter);
 	WM_operatortype_append(NLA_OT_tweakmode_exit);
@@ -212,6 +216,11 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
 	
+	/* view*/
+		/* auto-set range */
+	//WM_keymap_add_item(keymap, "NLA_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	
 	/* editing */
 		/* tweakmode 
