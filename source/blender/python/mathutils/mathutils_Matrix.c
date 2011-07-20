@@ -1594,20 +1594,14 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 			return NULL;
 		}
 		else {
-			float mat[16]= {0.0f, 0.0f, 0.0f, 0.0f,
-							0.0f, 0.0f, 0.0f, 0.0f,
-							0.0f, 0.0f, 0.0f, 0.0f,
-							0.0f, 0.0f, 0.0f, 1.0f};
-			double dot = 0.0f;
+			float mat[16]= {0.0f};
 			int x, y, z;
 
-			for(x = 0; x < mat2->row_size; x++) {
-				for(y = 0; y < mat1->col_size; y++) {
-					for(z = 0; z < mat1->row_size; z++) {
-						dot += (mat1->matrix[z][y] * mat2->matrix[x][z]);
+			for(x = 0; x < mat1->row_size; x++) {
+				for(y = 0; y < mat2->col_size; y++) {
+					for(z = 0; z < mat2->row_size; z++) {
+						mat[x * mat1->col_size + y] += (mat1->matrix[x][z] * mat2->matrix[z][y]);
 					}
-					mat[((x * mat1->col_size) + y)] = (float)dot;
-					dot = 0.0f;
 				}
 			}
 
