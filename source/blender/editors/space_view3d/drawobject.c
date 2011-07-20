@@ -1401,37 +1401,6 @@ static void draw_bundle_sphere(void)
 	glCallList(displist);
 }
 
-static void draw_bundle_outline(void)
-{
-	static GLuint displist=0;
-
-	if (displist == 0) {
-		GLUquadricObj	*qobj;
-
-		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE);
-
-		glPushMatrix();
-
-		qobj= gluNewQuadric();
-		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE);
-		gluDisk(qobj, 0.0,  0.05, 8, 1);
-
-		glRotatef(90, 0, 1, 0);
-		gluDisk(qobj, 0.0,  0.05, 8, 1);
-
-		glRotatef(90, 1, 0, 0);
-		gluDisk(qobj, 0.0,  0.05, 8, 1);
-
-		gluDeleteQuadric(qobj);
-
-		glPopMatrix();
-		glEndList();
-	}
-
-	glCallList(displist);
-}
-
 static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, MovieClip *clip, int flag)
 {
 	MovieTracking *tracking= &clip->tracking;
@@ -1487,31 +1456,46 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 					else UI_ThemeColor(TH_SELECT);
 				} else UI_ThemeColor(TH_WIRE);
 
-				draw_bundle_outline();
+				drawaxes(0.05f, v3d->bundle_drawtype);
 
 				glDepthMask(1);
 				glEnable(GL_LIGHTING);
 			} else if(v3d->drawtype>OB_WIRE) {
-				/* selection outline */
-				if(TRACK_SELECTED(track)) {
-					if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
-					else UI_ThemeColor(TH_SELECT);
+				if(v3d->bundle_drawtype==OB_EMPTY_SPHERE) {
+					/* selection outline */
+					if(TRACK_SELECTED(track)) {
+						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
+						else UI_ThemeColor(TH_SELECT);
 
-					glDepthMask(0);
-					glLineWidth(2.f);
-					glDisable(GL_LIGHTING);
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+						glDepthMask(0);
+						glLineWidth(2.f);
+						glDisable(GL_LIGHTING);
+						glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+						draw_bundle_sphere();
+
+						glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+						glEnable(GL_LIGHTING);
+						glLineWidth(1.f);
+						glDepthMask(1);
+					}
+
+					UI_ThemeColor(TH_BUNDLE_SOLID);
 					draw_bundle_sphere();
+				} else {
+					glDisable(GL_LIGHTING);
+					glDepthMask(0);
 
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-					glEnable(GL_LIGHTING);
-					glLineWidth(1.f);
+					if(TRACK_SELECTED(track)) {
+						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
+						else UI_ThemeColor(TH_SELECT);
+					} else UI_ThemeColor(TH_WIRE);
+
+					drawaxes(0.05f, v3d->bundle_drawtype);
+
 					glDepthMask(1);
+					glEnable(GL_LIGHTING);
 				}
-
-				UI_ThemeColor(TH_BUNDLE_SOLID);
-				draw_bundle_sphere();
 			}
 
 		glPopMatrix();

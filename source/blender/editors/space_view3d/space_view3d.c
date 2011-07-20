@@ -262,6 +262,7 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->around= V3D_CENTROID;
 	
 	v3d->bundle_size= 0.1f;
+	v3d->bundle_drawtype= OB_EMPTY_SPHERE;
 	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for view3d");

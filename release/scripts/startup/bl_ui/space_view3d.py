@@ -2181,11 +2181,12 @@ class VIEW3D_PT_view3d_display(bpy.types.Panel):
         layout.separator()
 
         layout.prop(view, "show_reconstruction")
-        sub = layout.column()
-        sub.active = view.show_reconstruction
-        sub.prop(view, "bundle_size")
-        sub.prop(view, "show_bundle_name")
-        sub.prop(view, "show_camera_path")
+        if view.show_reconstruction:
+            layout.label(text="Bundle type:")
+            layout.prop(view, "bundle_draw_type", text="")
+            layout.prop(view, "bundle_draw_size")
+            layout.prop(view, "show_bundle_name")
+            layout.prop(view, "show_camera_path")
 
         layout.separator()
 

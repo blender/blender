@@ -1208,6 +1208,16 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{RV3D_CAMOB, "CAMERA", 0, "Camera", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
+	static EnumPropertyItem bundle_drawtype_items[] = {
+		{OB_PLAINAXES, "PLAIN_AXES", 0, "Plain Axes", ""},
+		{OB_ARROWS, "ARROWS", 0, "Arrows", ""},
+		{OB_SINGLE_ARROW, "SINGLE_ARROW", 0, "Single Arrow", ""},
+		{OB_CIRCLE, "CIRCLE", 0, "Circle", ""},
+		{OB_CUBE, "CUBE", 0, "Cube", ""},
+		{OB_EMPTY_SPHERE, "SPHERE", 0, "Sphere", ""},
+		{OB_EMPTY_CONE, "CONE", 0, "Cone", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
 	srna= RNA_def_struct(brna, "SpaceView3D", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
@@ -1437,10 +1447,16 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Reconstruction", "Display reconstruction data from active movie clip");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
-	prop= RNA_def_property(srna, "bundle_size", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "bundle_draw_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_float_sdna(prop, NULL, "bundle_size");
 	RNA_def_property_ui_text(prop, "Bundle Size", "Display size of bundles from reconstructed data");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+	prop= RNA_def_property(srna, "bundle_draw_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "bundle_drawtype");
+	RNA_def_property_enum_items(prop, bundle_drawtype_items);
+	RNA_def_property_ui_text(prop, "Bundle Display Type", "Viewport display style for bundles");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 	prop= RNA_def_property(srna, "show_camera_path", PROP_BOOLEAN, PROP_NONE);

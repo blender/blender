@@ -148,7 +148,11 @@ typedef struct View3D {
 	short blockhandler[8];
 	
 	float viewquat[4], dist;	/* XXX depricated */
+
 	float bundle_size;			/* size of bundles in reconstructed data */
+	short bundle_drawtype;		/* display style for bundle */
+
+	char pad[6];
 	
 	unsigned int lay_used; /* used while drawing */
 	
