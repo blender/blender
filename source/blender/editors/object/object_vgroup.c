@@ -701,6 +701,10 @@ static void vgroup_normalize(Object *ob)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
+	// Jason
+	Mesh *me = ob->data;
+	MVert *mv = me->mvert;
+	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -712,6 +716,11 @@ static void vgroup_normalize(Object *ob)
 		def_nr= ob->actdef-1;
 
 		for(i = 0; i < dvert_tot; i++) {
+			// Jason
+			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+				continue;
+			}
+
 			dvert = dvert_array[i];
 			dw = defvert_find_index(dvert, def_nr);
 			if(dw) {
@@ -721,6 +730,11 @@ static void vgroup_normalize(Object *ob)
 
 		if(weight_max > 0.0f) {
 			for(i = 0; i < dvert_tot; i++) {
+				// Jason
+				if(selectedVerts && !((mv+i)->flag & SELECT)) {
+					continue;
+				}
+
 				dvert = dvert_array[i];
 				dw = defvert_find_index(dvert, def_nr);
 				if(dw) {
@@ -742,7 +756,11 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
-	
+	// Jason
+	Mesh *me = ob->data;
+	MVert *mv = me->mvert;
+	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 	
 	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
@@ -751,6 +769,11 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 		def_nr= ob->actdef-1;
 		
 		for(i = 0; i < dvert_tot; i++) {
+			// Jason
+			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+				continue;
+			}
+
 			dvert = dvert_array[i];
 			dw = defvert_find_index(dvert, def_nr);
 			if(dw) {
@@ -772,6 +795,11 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	int i, dvert_tot=0;
 	float tot_weight;
 
+	// Jason
+	Mesh *me = ob->data;
+	MVert *mv = me->mvert;
+	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
 	if(dvert_array) {
@@ -781,6 +809,10 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 			for(i = 0; i < dvert_tot; i++) {
 				float lock_iweight= 1.0f;
 				int j;
+				// Jason
+				if(selectedVerts && !((mv+i)->flag & SELECT)) {
+					continue;
+				}
 
 				tot_weight= 0.0f;
 				dw_act= NULL;
@@ -821,6 +853,11 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 		else {
 			for(i = 0; i < dvert_tot; i++) {
 				int j;
+				// Jason
+				if(selectedVerts && !((mv+i)->flag & SELECT)) {
+					continue;
+				}
+
 				tot_weight= 0.0f;
 				dvert = dvert_array[i];
 
@@ -880,6 +917,10 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
+	// Jason
+	Mesh *me = ob->data;
+	MVert *mv = me->mvert;
+	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -890,6 +931,10 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 
 
 		for(i = 0; i < dvert_tot; i++) {
+			// Jason
+			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+				continue;
+			}
 			dvert = dvert_array[i];
 
 			if(auto_assign) {
@@ -1002,6 +1047,10 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
+	// Jason
+	Mesh *me = ob->data;
+	MVert *mv = me->mvert;
+	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -1011,6 +1060,10 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 		def_nr= ob->actdef-1;
 
 		for(i = 0; i < dvert_tot; i++) {
+			// Jason
+			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+				continue;
+			}
 			dvert = dvert_array[i];
 
 			dw= defvert_find_index(dvert, def_nr);
@@ -1032,12 +1085,21 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, dvert_tot=0;
+	// Jason
+	Mesh *me = ob->data;
+	MVert *mv = me->mvert;
+	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
 	if(dvert_array) {
 		for(i = 0; i < dvert_tot; i++) {
 			int j;
+			// Jason
+			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+				continue;
+			}
+
 			dvert = dvert_array[i];
 			j= dvert->totweight;
 

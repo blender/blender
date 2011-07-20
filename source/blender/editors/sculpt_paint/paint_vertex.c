@@ -361,8 +361,10 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	Mesh *me;
 	MFace *mf;
 	unsigned int *mcol;
-	int i, selected;
-
+	int i, selected, selectedVerts;//Jason
+	// Jason
+	MVert *mv;
+	
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return;
 
@@ -370,15 +372,29 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 		make_vertexcol(ob);
 
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
+	// Jason
+	selectedVerts = (me->editflag & ME_EDIT_VERT_SEL);
+	mv = me->mvert;
 
 	mf = me->mface;
 	mcol = (unsigned int*)me->mcol;
 	for (i = 0; i < me->totface; i++, mf++, mcol+=4) {
-		if (!selected || mf->flag & ME_FACE_SEL) {
-			mcol[0] = paintcol;
-			mcol[1] = paintcol;
-			mcol[2] = paintcol;
-			mcol[3] = paintcol;
+		if (!selected || mf->flag & ME_FACE_SEL || selectedVerts) {
+			if(selectedVerts) {
+				if(((mv+mf->v1)->flag & SELECT))
+					mcol[0] = paintcol;
+				if(((mv+mf->v2)->flag & SELECT))
+					mcol[1] = paintcol;
+				if(((mv+mf->v3)->flag & SELECT))
+					mcol[2] = paintcol;
+				if(mf->v4 && ((mv+mf->v4)->flag & SELECT))
+					mcol[3] = paintcol;
+			} else {
+				mcol[0] = paintcol;
+				mcol[1] = paintcol;
+				mcol[2] = paintcol;
+				mcol[3] = paintcol;
+			}
 		}
 	}
 	
@@ -443,7 +459,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			for (i=0; i<3 || faceverts[i]; i++) {
 				if(!((me->dvert+faceverts[i])->flag)) {
 					// Jason
-					if(selectedVerts && !((me->mvert+faceverts[i])->flag & 1)) {
+					if(selectedVerts && !((me->mvert+faceverts[i])->flag & SELECT)) {
 						continue;
 					}
 
@@ -1972,10 +1988,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		if(indexar[index] && indexar[index]<=me->totface) {
 			MFace *mface= me->mface + (indexar[index]-1);
 					
-			(me->dvert+mface->v1)->flag= selectedVerts ? ((me->mvert+mface->v1)->flag & 1): 1;
-			(me->dvert+mface->v2)->flag= selectedVerts ? ((me->mvert+mface->v2)->flag & 1): 1;
-			(me->dvert+mface->v3)->flag= selectedVerts ? ((me->mvert+mface->v3)->flag & 1): 1;
-			if(mface->v4) (me->dvert+mface->v4)->flag= selectedVerts ? ((me->mvert+mface->v4)->flag & 1): 1;
+			(me->dvert+mface->v1)->flag= selectedVerts ? ((me->mvert+mface->v1)->flag & SELECT): 1;
+			(me->dvert+mface->v2)->flag= selectedVerts ? ((me->mvert+mface->v2)->flag & SELECT): 1;
+			(me->dvert+mface->v3)->flag= selectedVerts ? ((me->mvert+mface->v3)->flag & SELECT): 1;
+			if(mface->v4) (me->dvert+mface->v4)->flag= selectedVerts ? ((me->mvert+mface->v4)->flag & SELECT): 1;
 					
 			if(brush->vertexpaint_tool==VP_BLUR) {
 				MDeformWeight *dw, *(*dw_func)(MDeformVert *, const int);
@@ -2298,14 +2314,33 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index
 	Brush *brush = paint_brush(&vp->paint);
 	Mesh *me = get_mesh(ob);
 	MFace *mface= ((MFace*)me->mface) + index;
+	// Jason
+	MVert *mv = me->mvert;
+	int selectedVerts = (me->editflag & ME_EDIT_VERT_SEL);
+	char *m;
+
 	unsigned int *mcol= ((unsigned int*)me->mcol) + 4*index;
 	unsigned int *mcolorig= ((unsigned int*)vp->vpaint_prev) + 4*index;
 	float alpha;
 	int i;
 	
+	// Jason
+	if(selectedVerts) {
+		m = MEM_mallocN(sizeof(char)*4, "selectedVerts");
+		m[0] = ((mv+mface->v1)->flag & SELECT);
+		m[1] = ((mv+mface->v2)->flag & SELECT);
+		m[2] = ((mv+mface->v3)->flag & SELECT);
+		m[3] = (mface->v4 && ((mv+mface->v4)->flag & SELECT));
+	}
+
 	if((vp->flag & VP_COLINDEX && mface->mat_nr!=ob->actcol-1) ||
-	   ((me->editflag & ME_EDIT_PAINT_MASK) && !(mface->flag & ME_FACE_SEL)))
-		return;
+	   ((me->editflag & ME_EDIT_PAINT_MASK) && !(mface->flag & ME_FACE_SEL))
+	   || (selectedVerts && !(m[0] || m[1] || m[2] || m[3]))) {// Jason
+		if(selectedVerts) {
+			MEM_freeN(m);
+		}
+		   return;
+	}
 
 	if(brush->vertexpaint_tool==VP_BLUR) {
 		unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);
@@ -2320,9 +2355,15 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index
 	}
 
 	for(i = 0; i < (mface->v4 ? 4 : 3); ++i) {
-		alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i], mval, pressure);
-		if(alpha)
-			vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
+		if(!selectedVerts || m[i]) {
+			alpha= calc_vp_alpha_dl(vp, vc, vpd->vpimat, vpd->vertexcosnos+6*(&mface->v1)[i], mval, pressure);
+			if(alpha)
+				vpaint_blend(vp, mcol+i, mcolorig+i, vpd->paintcol, (int)(alpha*255.0f));
+		}
+	}
+	// Jason
+	if(selectedVerts) {
+		MEM_freeN(m);
 	}
 }
 

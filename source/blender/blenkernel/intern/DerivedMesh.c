@@ -2333,7 +2333,7 @@ static void clear_mesh_caches(Object *ob)
 static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Object *obact = scene->basact?scene->basact->object:NULL;
-	int editing = paint_facesel_test(ob);
+	int editing = paint_facesel_test(ob) || paint_vertsel_test(ob);// Jason: paint_vertsel_test
 	/* weight paint and face select need original indices because of selection buffer drawing */
 	int needMapping = (ob==obact) && (editing || (ob->mode & (OB_MODE_WEIGHT_PAINT|OB_MODE_VERTEX_PAINT)));
 
