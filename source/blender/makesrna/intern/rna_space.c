@@ -2727,6 +2727,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_NAMES);
 	RNA_def_property_ui_text(prop, "Show Names", "Show track names and status");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show grid */
+	prop= RNA_def_property(srna, "show_grid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRID);
+	RNA_def_property_ui_text(prop, "Show Grid", "Show grid showing lens distortion");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 
 

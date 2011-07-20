@@ -971,6 +971,7 @@ enum {
 #define SC_MUTE_FOOTAGE			(1<<6)
 #define SC_HIDE_DISABLED		(1<<7)
 #define SC_SHOW_NAMES			(1<<8)
+#define SC_SHOW_GRID			(1<<9)
 
 
 /* space types, moved from DNA_screen_types.h */

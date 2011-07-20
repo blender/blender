@@ -450,3 +450,19 @@ void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double
 		intrinsics.ApplyIntrinsics(x, y, x1, y1);
 	}
 }
+
+void libmv_InvertIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			double x, double y, double *x1, double *y1)
+{
+	libmv::CameraIntrinsics intrinsics;
+
+	intrinsics.SetFocalLength(focal_length, focal_length);
+	intrinsics.SetPrincipalPoint(principal_x, principal_y);
+	intrinsics.SetRadialDistortion(k1, k2, k3);
+
+	if(focal_length) {
+		/* do a lens distortion if focal length is non-zero only */
+
+		intrinsics.InvertIntrinsics(x, y, x1, y1);
+	}
+}

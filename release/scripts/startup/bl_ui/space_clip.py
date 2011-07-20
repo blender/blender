@@ -332,7 +332,10 @@ class CLIP_PT_display(bpy.types.Panel):
         row.prop(sc, "show_disabled", text="Disabled")
         row.prop(sc, "show_bundles", text="Bundles")
 
-        layout.prop(sc, "show_names", text="Names")
+        row = layout.row()
+        row.prop(sc, "show_names", text="Names")
+        row.prop(sc, "show_grid", text="Grid")
+
         layout.prop(sc, "show_tiny_markers", text="Tiny Markers")
 
         layout.prop(sc, "lock_selection")

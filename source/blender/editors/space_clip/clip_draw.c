@@ -579,6 +579,51 @@ static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx
 	*regiony= v2d->mask.ymin + y*(v2d->mask.ymax-v2d->mask.ymin);
 }
 
+static void draw_distorion_grid(MovieTracking *tracking, int width, int height)
+{
+	const int n= 9;
+	int x, y;
+	float pos[2], grid[10][10][2];
+	float dx= (float)width/n, dy= (float)height/n;
+
+	if(!tracking->camera.focal)
+		return;
+
+	zero_v2(pos);
+
+	for(y= 0; y<=n; y++) {
+		for(x= 0; x<=n; x++) {
+			BKE_tracking_invert_intrinsics(tracking, pos, width, height, grid[y][x]);
+
+			grid[y][x][0]/= width;
+			grid[y][x][1]/= height;
+
+			pos[0]+= dx;
+		}
+
+		pos[0]= 0.f;
+		pos[1]+= dy;
+	}
+
+	glColor3f(1.f, 0.f, 0.f);
+
+	for(y= 0; y<=n; y++) {
+		glBegin(GL_LINE_STRIP);
+			for(x= 0; x<=n; x++) {
+				glVertex2fv(grid[y][x]);
+			}
+		glEnd();
+	}
+
+	for(x= 0; x<=n; x++) {
+		glBegin(GL_LINE_STRIP);
+			for(y= 0; y<=n; y++) {
+				glVertex2fv(grid[y][x]);
+			}
+		glEnd();
+	}
+}
+
 static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			int width, int height, float zoomx, float zoomy)
 {
@@ -708,6 +753,9 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		glPointSize(1.0f);
 		glDisable(GL_POINT_SMOOTH);
 	}
+
+	if(sc->flag&SC_SHOW_GRID)
+		draw_distorion_grid(tracking, width, height);
 
 	glPopMatrix();
 

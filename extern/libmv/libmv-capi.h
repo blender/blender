@@ -72,6 +72,8 @@ void libmv_destroyCorners(struct libmv_Corners *corners);
 /* utils */
 void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
 			double x, double y, double *x1, double *y1);
+void libmv_InvertIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			double x, double y, double *x1, double *y1);
 
 #ifdef __cplusplus
 }

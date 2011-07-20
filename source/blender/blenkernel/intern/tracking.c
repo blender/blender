@@ -216,7 +216,7 @@ void BKE_tracking_insert_marker(MovieTrackingTrack *track, MovieTrackingMarker *
 
 void BKE_tracking_delete_marker(MovieTrackingTrack *track, int framenr)
 {
-	int a= 1;
+	int a= 0;
 
 	while(a<track->markersnr) {
 		if(track->markers[a].framenr==framenr) {
@@ -234,7 +234,8 @@ void BKE_tracking_delete_marker(MovieTrackingTrack *track, int framenr)
 		}
 
 		a++;
-	}}
+	}
+}
 
 MovieTrackingMarker *BKE_tracking_get_marker(MovieTrackingTrack *track, int framenr)
 {
@@ -472,11 +473,20 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
 	for(y= 0; y<ibuf->y; y++) {
 		for (x= 0; x<ibuf->x; x++) {
 			int pixel= ibuf->x*y + x;
-			char *rrgb= (char*)ibuf->rect + pixel*4;
 
-			if(track->flag&TRACK_DISABLE_RED)	rrgb[0]= 0;
-			if(track->flag&TRACK_DISABLE_GREEN)	rrgb[1]= 0;
-			if(track->flag&TRACK_DISABLE_BLUE)	rrgb[2]= 0;
+			if(ibuf->rect_float) {
+				float *rrgbf= ibuf->rect_float + pixel*4;
+
+				if(track->flag&TRACK_DISABLE_RED)	rrgbf[0]= 0;
+				if(track->flag&TRACK_DISABLE_GREEN)	rrgbf[1]= 0;
+				if(track->flag&TRACK_DISABLE_BLUE)	rrgbf[2]= 0;
+			} else {
+				char *rrgb= (char*)ibuf->rect + pixel*4;
+
+				if(track->flag&TRACK_DISABLE_RED)	rrgb[0]= 0;
+				if(track->flag&TRACK_DISABLE_GREEN)	rrgb[1]= 0;
+				if(track->flag&TRACK_DISABLE_BLUE)	rrgb[2]= 0;
+			}
 		}
 	}
 }
@@ -554,9 +564,17 @@ static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 	for(y= 0; y<(int)height; y++) {
 		for (x= 0; x<(int)width; x++) {
 			int pixel= tmpibuf->x*y + x;
-			char *rrgb= (char*)tmpibuf->rect + pixel*4;
 
-			*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255;
+			if(tmpibuf->rect_float) {
+				float *rrgbf= ibuf->rect_float + pixel*4;
+
+				*fp= (0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2])/255;
+			} else {
+				char *rrgb= (char*)tmpibuf->rect + pixel*4;
+
+				*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2])/255;
+			}
+
 			fp++;
 		}
 	}
@@ -964,7 +982,7 @@ void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float w
 	MovieTrackingCamera *camera= &tracking->camera;
 
 #ifdef WITH_LIBMV
-	double x= nco[0], y= nco[1];
+	double x, y;
 
 	/* normalize coords */
 	x= (co[0]-camera->principal[0]) / camera->focal;
@@ -979,6 +997,21 @@ void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float w
 #endif
 }
 
+void BKE_tracking_invert_intrinsics(MovieTracking *tracking, float co[2], float width, float height, float nco[2])
+{
+	MovieTrackingCamera *camera= &tracking->camera;
+
+#ifdef WITH_LIBMV
+	double x= co[0], y= co[1];
+
+	libmv_InvertIntrinsics(camera->focal, camera->principal[0], camera->principal[1],
+				camera->k1, camera->k2, camera->k3, x, y, &x, &y);
+
+	nco[0]= x * camera->focal + camera->principal[0];
+	nco[1]= y * camera->focal + camera->principal[1];
+#endif
+}
+
 #ifdef WITH_LIBMV
 /* flips upside-down */
 static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
@@ -990,10 +1023,18 @@ static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
 	for(y= 0; y<ibuf->y; y++) {
 		for (x= 0; x<ibuf->x; x++) {
 			int pixel= ibuf->x*(ibuf->y-y-1) + x;
-			char *rrgb= (char*)ibuf->rect + pixel*4;
 
-			//*fp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
-			*fp= (11*rrgb[0]+16*rrgb[1]+5*rrgb[2])/32;
+			if(ibuf->rect_float) {
+				float *rrgbf= ibuf->rect_float + pixel*4;
+
+				//*fp= 0.2126f*rrgbf[0] + 0.7152f*rrgbf[1] + 0.0722f*rrgbf[2];
+				*fp= (11*rrgbf[0]+16*rrgbf[1]+5*rrgbf[2])/32;
+			} else {
+				char *rrgb= (char*)ibuf->rect + pixel*4;
+
+				//*fp= 0.2126f*rrgb[0] + 0.7152f*rrgb[1] + 0.0722f*rrgb[2];
+				*fp= (11*rrgb[0]+16*rrgb[1]+5*rrgb[2])/32;
+			}
 
 			fp++;
 		}
