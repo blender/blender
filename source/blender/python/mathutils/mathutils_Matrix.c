@@ -1587,7 +1587,7 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 
 	if(mat1 && mat2) {
 		/*MATRIX * MATRIX*/
-		if(mat1->row_size != mat2->col_size){
+		if(mat2->row_size != mat1->col_size){
 			PyErr_SetString(PyExc_ValueError,
 			                "Matrix multiplication: "
 			                "matrix A rowsize must equal matrix B colsize");
@@ -1597,15 +1597,15 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 			float mat[16]= {0.0f};
 			int x, y, z;
 
-			for(x = 0; x < mat1->row_size; x++) {
-				for(y = 0; y < mat2->col_size; y++) {
-					for(z = 0; z < mat2->row_size; z++) {
-						mat[x * mat1->col_size + y] += (mat1->matrix[x][z] * mat2->matrix[z][y]);
+			for(x = 0; x < mat2->row_size; x++) {
+				for(y = 0; y < mat1->col_size; y++) {
+					for(z = 0; z < mat1->row_size; z++) {
+						mat[x * mat2->col_size + y] += (mat2->matrix[x][z] * mat1->matrix[z][y]);
 					}
 				}
 			}
 
-			return newMatrixObject(mat, mat2->row_size, mat1->col_size, Py_NEW, Py_TYPE(mat1));
+			return newMatrixObject(mat, mat1->row_size, mat2->col_size, Py_NEW, Py_TYPE(mat1));
 		}
 	}
 	else if(mat2) {
