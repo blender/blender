@@ -196,16 +196,17 @@ class MocapPanel(bpy.types.Panel):
         row2.operator("mocap.looper", text='Loop animation')
         row2.operator("mocap.limitdof", text='Constrain Rig')
         self.layout.label("Retargeting")
-        row3 = self.layout.row(align=True)
-        column1 = row3.column(align=True)
-        column1.label("Performer Rig")
-        column2 = row3.column(align=True)
-        column2.label("Enduser Rig")
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj]
         if enduser_obj is None or len(performer_obj) != 1:
             self.layout.label("Select performer rig and target rig (as active)")
         else:
+            self.layout.operator("mocap.guessmapping", text="Guess Hiearchy Mapping")
+            row3 = self.layout.row(align=True)
+            column1 = row3.column(align=True)
+            column1.label("Performer Rig")
+            column2 = row3.column(align=True)
+            column2.label("Enduser Rig")
             performer_obj = performer_obj[0]
             if performer_obj.data and enduser_obj.data:
                 if performer_obj.data.name in bpy.data.armatures and enduser_obj.data.name in bpy.data.armatures:
@@ -530,6 +531,28 @@ class OBJECT_OT_UnbakeMocapConstraints(bpy.types.Operator):
     def poll(cls, context):
         if context.active_object:
             return isinstance(context.active_object.data, bpy.types.Armature)
+
+
+class OBJECT_OT_GuessHierachyMapping(bpy.types.Operator):
+    '''Attemps to auto figure out hierarchy mapping'''
+    bl_idname = "mocap.guessmapping"
+    bl_label = "Attemps to auto figure out hierarchy mapping"
+
+    def execute(self, context):
+        enduser_obj = bpy.context.active_object
+        performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
+        mocap_tools.guessMapping(performer_obj, enduser_obj)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+        performer_obj = [obj for obj in context.selected_objects if obj != context.active_object]
+        if performer_obj:
+            return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
+        else:
+            return False
 
 
 def register():

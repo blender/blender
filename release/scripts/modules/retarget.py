@@ -143,7 +143,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
 
     for t in range(s_frame, e_frame):
         if (t - s_frame) % 10 == 0:
-            print("First pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))      
+            print("First pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))
         scene.frame_set(t)
         for bone in inter_bones:
             retargetPerfToInter(bone)
@@ -202,7 +202,7 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
 
     for t in range(s_frame, e_frame):
         if (t - s_frame) % 10 == 0:
-            print("Second pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))   
+            print("Second pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))
         scene.frame_set(t)
         end_bone = end_bones[root]
         end_bone.location = Vector((0, 0, 0))
