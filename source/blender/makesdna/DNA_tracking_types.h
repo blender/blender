@@ -96,8 +96,8 @@ typedef struct MovieTrackingTrack {
 	/* ** UI editing ** */
 	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
 	short transflag;					/* transform flags */
-
-	char pad3[6];
+	char pad3[2];
+	float color[3];						/* custom color for track */
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingSettings {
@@ -132,6 +132,7 @@ enum {
 #define TRACK_DISABLE_BLUE	(1<<4)
 #define TRACK_HIDDEN		(1<<5)
 #define TRACK_LOCKED		(1<<6)
+#define TRACK_CUSTOMCOLOR	(1<<7)
 
 /* MovieTrackingSettings->speed */
 #define TRACKING_SPEED_FASTEST		0

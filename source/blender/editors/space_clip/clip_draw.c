@@ -320,11 +320,28 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 	if(!tiny) glLineWidth(1.0f);
 }
 
+static void track_colors(MovieTrackingTrack *track, int act, float col[3], float scol[3])
+{
+	if(track->flag&TRACK_CUSTOMCOLOR) {
+		if(act) UI_GetThemeColor3fv(TH_ACT_MARKER, scol);
+		else copy_v3_v3(scol, track->color);
+
+		mul_v3_v3fl(col, track->color, 0.5f);
+	} else {
+		UI_GetThemeColor3fv(TH_MARKER, col);
+
+		if(act) UI_GetThemeColor3fv(TH_ACT_MARKER, scol);
+		else UI_GetThemeColor3fv(TH_SEL_MARKER, scol);
+	}
+}
+
 static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker, int act, int sel)
 {
-	int color= act?TH_ACT_MARKER:TH_SEL_MARKER;
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
 	int show_pat= 0;
+	float col[3], scol[3];
+
+	track_colors(track, act, col, scol);
 
 	/* marker position */
 	if((track->flag&SELECT)==sel && (marker->flag&MARKER_DISABLED)==0) {
@@ -333,8 +350,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			else if(track->flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);
 			else UI_ThemeColor(TH_LOCK_MARKER);
 		} else
-		if(track->flag&SELECT) UI_ThemeColor(color);
-		else UI_ThemeColor(TH_MARKER);
+		if(track->flag&SELECT) glColor3fv(scol);
+		else glColor3fv(col);
 
 		if(!tiny) glPointSize(2.0f);
 		glBegin(GL_POINTS);
@@ -364,8 +381,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			else if(track->pat_flag&SELECT) UI_ThemeColorShade(TH_DIS_MARKER, 128);
 			else UI_ThemeColor(TH_DIS_MARKER);
 		} else {
-			if(track->pat_flag&SELECT) UI_ThemeColor(color);
-			else UI_ThemeColor(TH_MARKER);
+			if(track->pat_flag&SELECT) glColor3fv(scol);
+			else glColor3fv(col);
 		}
 
 		if(sc->flag&SC_SHOW_MARKER_PATTERN) {
@@ -390,8 +407,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			else if(track->search_flag&SELECT) UI_ThemeColorShade(TH_DIS_MARKER, 128);
 			else UI_ThemeColor(TH_DIS_MARKER);
 		} else {
-			if(track->search_flag&SELECT) UI_ThemeColor(color);
-			else UI_ThemeColor(TH_MARKER);
+			if(track->search_flag&SELECT) glColor3fv(scol);
+			else glColor3fv(col);
 		}
 
 		if(sc->flag&SC_SHOW_MARKER_SEARCH) {
@@ -412,9 +429,9 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker, int outline, int act, int width, int height)
 {
-	int color= act?TH_ACT_MARKER:TH_SEL_MARKER;
 	float x, y, dx, dy, tdx, tdy;
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
+	float col[3], scol[3];
 
 	if((tiny && outline) || (marker->flag&MARKER_DISABLED))
 		return;
@@ -422,12 +439,14 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	if(!TRACK_SELECTED(track) || track->flag&TRACK_LOCKED)
 		return;
 
+	track_colors(track, act, col, scol);
+
 	if(outline) {
 		glLineWidth(3.0f);
 		UI_ThemeColor(TH_MARKER_OUTLINE);
 	} else {
-		if(track->search_flag&SELECT) UI_ThemeColor(color);
-		else UI_ThemeColor(TH_MARKER);
+		if(track->search_flag&SELECT) glColor3fv(scol);
+		else glColor3fv(col);
 	}
 
 	glPushMatrix();
@@ -476,8 +495,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		dy= 10.0f/height/sc->zoom;
 
 		if(!outline) {
-			if(track->pat_flag&SELECT) UI_ThemeColor(color);
-			else UI_ThemeColor(TH_MARKER);
+			if(track->pat_flag&SELECT) glColor3fv(scol);
+			else glColor3fv(col);
 		}
 
 		x= track->pat_max[0];

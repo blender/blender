@@ -214,6 +214,18 @@ class CLIP_PT_track(bpy.types.Panel):
         layout.prop(act_track, "name")
         layout.prop(act_track, "locked")
 
+        row = layout.row(align=True)
+        label = bpy.types.CLIP_MT_track_color_presets.bl_label
+        row.menu('CLIP_MT_track_color_presets', text=label)
+        row.operator("clip.track_color_preset_add", text="", icon="ZOOMIN")
+        op = row.operator("clip.track_color_preset_add", text="", icon="ZOOMOUT")
+        op.remove_active = True
+
+        row = layout.row()
+        row.prop(act_track, "use_custom_color")
+        if act_track.use_custom_color:
+            row.prop(act_track, "color", text="")
+
         layout.template_track(sc, "scopes")
 
         row = layout.row()
@@ -517,6 +529,13 @@ class CLIP_MT_tracking_specials(bpy.types.Menu):
 class CLIP_MT_camera_presets(bpy.types.Menu):
     bl_label = "Camera Presets"
     preset_subdir = "tracking_camera"
+    preset_operator = "script.execute_preset"
+    draw = bpy.types.Menu.draw_preset
+
+
+class CLIP_MT_track_color_presets(bpy.types.Menu):
+    bl_label = "Color Presets"
+    preset_subdir = "tracking_track_color"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 

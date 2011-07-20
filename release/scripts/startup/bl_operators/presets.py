@@ -318,6 +318,24 @@ class AddPresetTrackingCamera(AddPresetBase, bpy.types.Operator):
     preset_subdir = "tracking_camera"
 
 
+class AddPresetTrackingTrackColor(AddPresetBase, bpy.types.Operator):
+    '''Add a Clip Track Color Preset'''
+    bl_idname = "clip.track_color_preset_add"
+    bl_label = "Add Track Color Preset"
+    preset_menu = "CLIP_MT_track_color_presets"
+
+    preset_defines = [
+        "track = bpy.context.edit_movieclip.tracking.active_track"
+    ]
+
+    preset_values = [
+        "track.color",
+        "track.use_custom_color"
+    ]
+
+    preset_subdir = "tracking_track_color"
+
+
 class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
     '''Add a Keyconfig Preset'''
     bl_idname = "wm.keyconfig_preset_add"

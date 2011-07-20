@@ -382,6 +382,19 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACK_LOCKED);
 	RNA_def_property_ui_text(prop, "Locked", "Track is locked and all changes to it are disabled");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* custom color */
+	prop= RNA_def_property(srna, "use_custom_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACK_CUSTOMCOLOR);
+	RNA_def_property_ui_text(prop, "Custom Color", "Use custom color instead of theme-defined");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* color */
+	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Color", "Color of the track in the Clip Editor");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	
 }
 
 static void rna_def_tracking(BlenderRNA *brna)
