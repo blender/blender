@@ -430,6 +430,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->path_after; break;
 			case TH_CAMERA_PATH:
 				cp= ts->camera_path; break;
+			case TH_LOCK_MARKER:
+				cp= ts->lock_marker; break;
 			}
 		}
 	}
@@ -824,6 +826,7 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
 	SETCOL(btheme->tclip.sel_marker, 0xff, 0xff, 0x00, 255);
 	SETCOL(btheme->tclip.dis_marker, 0x7f, 0x00, 0x00, 255);
+	SETCOL(btheme->tclip.lock_marker, 0x7f, 0x7f, 0x7f, 255);
 	SETCOL(btheme->tclip.path_before, 0xff, 0x00, 0x00, 255);
 	SETCOL(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
 }
@@ -1604,6 +1607,7 @@ void init_userdef_do_versions(void)
 				SETCOL(btheme->tclip.act_marker, 0xff, 0xff, 0xff, 255);
 				SETCOL(btheme->tclip.sel_marker, 0xff, 0xff, 0x00, 255);
 				SETCOL(btheme->tclip.dis_marker, 0x7f, 0x00, 0x00, 255);
+				SETCOL(btheme->tclip.lock_marker, 0x7f, 0x7f, 0x7f, 255);
 				SETCOL(btheme->tclip.path_before, 0xff, 0x00, 0x00, 255);
 				SETCOL(btheme->tclip.path_after, 0x00, 0x00, 0xff, 255);
 			}

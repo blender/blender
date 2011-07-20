@@ -422,7 +422,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 
 	track= tracking->tracks.first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(track) && TRACK_VISIBLE(track)) {
+		if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
 			if((marker->flag&MARKER_DISABLED)==0) {

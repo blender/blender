@@ -219,7 +219,7 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 	while(track) {
 		next= track->next;
 
-		if(TRACK_VIEW_SELECTED(track)) {
+		if(TRACK_SELECTED(track)) {
 			if(track->flag&TRACK_HAS_BUNDLE)
 				has_bundle= 1;
 
@@ -270,7 +270,7 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 	while(track) {
 		next= track->next;
 
-		if(TRACK_VIEW_SELECTED(track)) {
+		if(TRACK_SELECTED(track)) {
 			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, framenr);
 
 			if(marker) {
@@ -384,7 +384,7 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, MovieClip *clip, fl
 	while(cur) {
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(cur, sc->user.framenr);
 
-		if(TRACK_VISIBLE(cur) && MARKER_VISIBLE(sc, marker)) {
+		if(((cur->flag&TRACK_HIDDEN)==0) && MARKER_VISIBLE(sc, marker)) {
 			float dist, d1, d2, d3;
 
 			d1= sqrtf((co[0]-marker->pos[0])*(co[0]-marker->pos[0])+
@@ -511,7 +511,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	/* do actual selection */
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_VISIBLE(track)) {
+		if((track->flag&TRACK_HIDDEN)==0) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
 			if(MARKER_VISIBLE(sc, marker) && BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
@@ -596,7 +596,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	/* do selection */
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_VISIBLE(track)) {
+		if((track->flag&TRACK_HIDDEN)==0) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
 			if(MARKER_VISIBLE(sc, marker) && marker_inside_ellipse(marker, offset, ellipse)) {
@@ -658,7 +658,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		action= SEL_SELECT;
 		track= clip->tracking.tracks.first;
 		while(track) {
-			if(TRACK_VIEW_SELECTED(track)) {
+			if(TRACK_SELECTED(track)) {
 				action= SEL_DESELECT;
 				break;
 			}
@@ -669,7 +669,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_VISIBLE(track)) {
+		if((track->flag&TRACK_HIDDEN)==0) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
 
 			if(marker && MARKER_VISIBLE(sc, marker)) {
@@ -749,7 +749,7 @@ static void track_init_markers(SpaceClip *sc, MovieClip *clip)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_VISIBLE(track))
+		if((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0)
 			BKE_tracking_ensure_marker(track, framenr);
 
 		track= track->next;
@@ -1172,7 +1172,7 @@ static int disable_markers_exec(bContext *C, wmOperator *op)
 	int action= RNA_enum_get(op->ptr, "action");
 
 	while(track) {
-		if(TRACK_VIEW_SELECTED(track)) {
+		if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
 			MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
 
 			if(action==0) marker->flag|= MARKER_DISABLED;
@@ -1709,7 +1709,7 @@ static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(track)) {
+		if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
 			if(marker && (marker->flag&MARKER_DISABLED)==0) {
@@ -1878,7 +1878,7 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
 	if(sel_type==MCLIP_SEL_TRACK) {
 		track= (MovieTrackingTrack *)sel;
 
-		if(!TRACK_VISIBLE(track))
+		if(track->flag&TRACK_HIDDEN)
 			BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 	}
 
@@ -1981,4 +1981,54 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** lock tracks operator *********************/
+
+static int lock_tracks_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track= tracking->tracks.first;
+	int action= RNA_enum_get(op->ptr, "action");
+
+	while(track) {
+		if(TRACK_SELECTED(track)) {
+			if(action==0) track->flag|= TRACK_LOCKED;
+			else if(action==1) track->flag&= ~TRACK_LOCKED;
+			else track->flag^= TRACK_LOCKED;
+		}
+
+		track= track->next;
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_lock_tracks(wmOperatorType *ot)
+{
+	static EnumPropertyItem actions_items[] = {
+			{0, "LOCK", 0, "Lock", "Lock selected tracks"},
+			{1, "UNLOCK", 0, "Unlock", "Unlock selected tracks"},
+			{2, "TOGGLE", 0, "Toggle", "Toggle locked flag for selected tracks"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Lock Tracks";
+	ot->description= "Lock/unlock selected tracks";
+	ot->idname= "CLIP_OT_lock_tracks";
+
+	/* api callbacks */
+	ot->exec= lock_tracks_exec;
+	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Lock action to execute");
 }

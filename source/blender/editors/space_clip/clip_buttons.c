@@ -260,6 +260,9 @@ static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
 	if(type!=MCLIP_SEL_TRACK)
 		return 0;
 
+	if(track->flag&TRACK_LOCKED)
+		return 0;
+
 	return 1;
 }
 

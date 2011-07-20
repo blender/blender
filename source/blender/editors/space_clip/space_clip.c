@@ -242,6 +242,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_disable_markers);
 	WM_operatortype_append(CLIP_OT_hide_tracks);
 	WM_operatortype_append(CLIP_OT_hide_tracks_clear);
+	WM_operatortype_append(CLIP_OT_lock_tracks);
 
 	WM_operatortype_append(CLIP_OT_set_origin);
 	WM_operatortype_append(CLIP_OT_set_floor);
@@ -337,6 +338,9 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_hide_tracks_clear", HKEY, KM_PRESS, KM_ALT, 0);
 
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_disable_markers", DKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", 2);
+
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_lock_tracks", LKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", 2);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);

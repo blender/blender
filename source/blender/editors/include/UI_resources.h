@@ -252,7 +252,8 @@ enum {
 	TH_DIS_MARKER,
 	TH_PATH_BEFORE,
 	TH_PATH_AFTER,
-	TH_CAMERA_PATH
+	TH_CAMERA_PATH,
+	TH_LOCK_MARKER
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

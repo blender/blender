@@ -487,10 +487,12 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				IMB_freeImBuf(ibuf);
 			}
 
-			scopes->marker= marker;
-			scopes->track= track;
-			scopes->slide_scale[0]= track->pat_max[0]-track->pat_min[0];
-			scopes->slide_scale[1]= track->pat_max[1]-track->pat_min[1];
+			if((track->flag&TRACK_LOCKED)==0) {
+				scopes->marker= marker;
+				scopes->track= track;
+				scopes->slide_scale[0]= track->pat_max[0]-track->pat_min[0];
+				scopes->slide_scale[1]= track->pat_max[1]-track->pat_min[1];
+			}
 		}
 	}
 

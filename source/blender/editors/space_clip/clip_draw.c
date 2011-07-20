@@ -328,6 +328,11 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	/* marker position */
 	if((track->flag&SELECT)==sel && (marker->flag&MARKER_DISABLED)==0) {
+		if(track->flag&TRACK_LOCKED) {
+			if(act) UI_ThemeColor(TH_ACT_MARKER);
+			else if(track->flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);
+			else UI_ThemeColor(TH_LOCK_MARKER);
+		} else
 		if(track->flag&SELECT) UI_ThemeColor(color);
 		else UI_ThemeColor(TH_MARKER);
 
@@ -349,9 +354,14 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	show_pat= ((marker->flag&MARKER_DISABLED)==0 || (sc->flag&SC_SHOW_MARKER_SEARCH)==0);
 	if((track->pat_flag&SELECT)==sel && show_pat) {
-		if(marker->flag&MARKER_DISABLED) {
+		if(track->flag&TRACK_LOCKED) {
 			if(act) UI_ThemeColor(TH_ACT_MARKER);
-			else if(track->search_flag&SELECT) UI_ThemeColorShade(TH_DIS_MARKER, 128);
+			else if(track->pat_flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);
+			else UI_ThemeColor(TH_LOCK_MARKER);
+		}
+		else if(marker->flag&MARKER_DISABLED) {
+			if(act) UI_ThemeColor(TH_ACT_MARKER);
+			else if(track->pat_flag&SELECT) UI_ThemeColorShade(TH_DIS_MARKER, 128);
 			else UI_ThemeColor(TH_DIS_MARKER);
 		} else {
 			if(track->pat_flag&SELECT) UI_ThemeColor(color);
@@ -370,7 +380,12 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	/* search */
 	if((track->search_flag&SELECT)==sel) {
-		if(marker->flag&MARKER_DISABLED) {
+		if(track->flag&TRACK_LOCKED) {
+			if(act) UI_ThemeColor(TH_ACT_MARKER);
+			else if(track->search_flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);
+			else UI_ThemeColor(TH_LOCK_MARKER);
+		}
+		else if(marker->flag&MARKER_DISABLED) {
 			if(act) UI_ThemeColor(TH_ACT_MARKER);
 			else if(track->search_flag&SELECT) UI_ThemeColorShade(TH_DIS_MARKER, 128);
 			else UI_ThemeColor(TH_DIS_MARKER);
@@ -401,7 +416,10 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	float x, y, dx, dy, tdx, tdy;
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
 
-	if(!TRACK_SELECTED(track) || (tiny && outline) || (marker->flag&MARKER_DISABLED))
+	if((tiny && outline) || (marker->flag&MARKER_DISABLED))
+		return;
+
+	if(!TRACK_SELECTED(track) || track->flag&TRACK_LOCKED)
 		return;
 
 	if(outline) {
@@ -525,6 +543,10 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		BLI_snprintf(str, sizeof(str), "%s", track->name);
 
 	UI_DrawString(x, y, str);
+
+	if(track->flag&TRACK_LOCKED) {
+		UI_DrawString(x, y-12.f*UI_DPI_FAC, "locked");
+	}
 }
 
 static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx, float *regiony)
@@ -569,7 +591,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	if(sc->flag&SC_SHOW_TRACK_PATH) {
 		track= tracking->tracks.first;
 		while(track) {
-			if(TRACK_VISIBLE(track))
+			if((track->flag&TRACK_HIDDEN)==0)
 				draw_track_path(sc, clip, track);
 
 			track= track->next;
@@ -579,7 +601,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	/* markers outline and non-selected areas */
 	track= tracking->tracks.first;
 	while(track) {
-		if(TRACK_VISIBLE(track)) {
+		if((track->flag&TRACK_HIDDEN)==0) {
 			marker= BKE_tracking_get_marker(track, framenr);
 
 			if(MARKER_VISIBLE(sc, marker)) {
@@ -596,7 +618,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	   non-selected areas */
 	track= tracking->tracks.first;
 	while(track) {
-		if(TRACK_VISIBLE(track)) {
+		if((track->flag&TRACK_HIDDEN)==0) {
 			int act= sel_type==MCLIP_SEL_TRACK && sel==track;
 
 			if(!act) {
@@ -614,7 +636,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 	/* active marker would be displayed on top of everything else */
 	if(sel_type==MCLIP_SEL_TRACK) {
-		if(TRACK_VISIBLE((MovieTrackingTrack *)sel)) {
+		if((((MovieTrackingTrack *)sel)->flag&TRACK_HIDDEN)==0) {
 			marker= BKE_tracking_get_marker(sel, framenr);
 
 			if(MARKER_VISIBLE(sc, marker)) {
@@ -634,7 +656,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 		track= tracking->tracks.first;
 		while(track) {
-			if(TRACK_VISIBLE(track) && track->flag&TRACK_HAS_BUNDLE) {
+			if((track->flag&TRACK_HIDDEN)==0 && track->flag&TRACK_HAS_BUNDLE) {
 				marker= BKE_tracking_get_marker(track, framenr);
 
 				if(MARKER_VISIBLE(sc, marker)) {
@@ -674,11 +696,14 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		/* scaling should be cleared before drawing texts, otherwise font would also be scaled */
 		track= tracking->tracks.first;
 		while(track) {
-			if(TRACK_VISIBLE(track)) {
-				int act= sel_type==MCLIP_SEL_TRACK && sel==track;
-
+			if((track->flag&TRACK_HIDDEN)==0) {
 				marker= BKE_tracking_get_marker(track, framenr);
-				draw_marker_texts(sc, track, marker, act, width, height, zoomx, zoomy);
+
+				if(MARKER_VISIBLE(sc, marker)) {
+					int act= sel_type==MCLIP_SEL_TRACK && sel==track;
+
+					draw_marker_texts(sc, track, marker, act, width, height, zoomx, zoomy);
+				}
 			}
 
 			track= track->next;

@@ -84,10 +84,9 @@ void BKE_tracking_detect(struct MovieTracking *tracking, struct ImBuf *imbuf, in
 
 struct MovieTrackingTrack *BKE_tracking_indexed_bundle(struct MovieTracking *tracking, int bundlenr);
 
-#define TRACK_SELECTED(track)				((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
-#define TRACK_AREA_SELECTED(track, area)	((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT))
-#define TRACK_VIEW_SELECTED(track)			((track->flag&TRACK_HIDDEN)==0 && TRACK_SELECTED(track))
-#define TRACK_VISIBLE(track)				(((track)->flag&TRACK_HIDDEN)==0)
+#define TRACK_SELECTED(track)				(((track->flag&TRACK_HIDDEN)==0) && ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT))
+#define TRACK_AREA_SELECTED(track, area)	(((track->flag&TRACK_HIDDEN)==0) && ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT)))
+
 #define MARKER_VISIBLE(sc, marker)			(((marker)->flag&MARKER_DISABLED)==0 || ((sc)->flag&SC_HIDE_DISABLED)==0)
 
 #define CLAMP_PAT_DIM		1

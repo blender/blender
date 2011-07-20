@@ -131,6 +131,7 @@ enum {
 #define TRACK_DISABLE_GREEN	(1<<3)
 #define TRACK_DISABLE_BLUE	(1<<4)
 #define TRACK_HIDDEN		(1<<5)
+#define TRACK_LOCKED		(1<<6)
 
 /* MovieTrackingSettings->speed */
 #define TRACKING_SPEED_FASTEST		0

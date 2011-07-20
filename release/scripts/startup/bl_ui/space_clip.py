@@ -212,14 +212,15 @@ class CLIP_PT_track(bpy.types.Panel):
         act_track = clip.tracking.active_track
 
         layout.prop(act_track, "name")
+        layout.prop(act_track, "locked")
 
         layout.template_track(sc, "scopes")
 
-        if act_track:
-            row = layout.row()
-            row.prop(act_track, "use_red_channel", text="Red")
-            row.prop(act_track, "use_green_channel", text="Green")
-            row.prop(act_track, "use_blue_channel", text="Blue")
+        row = layout.row()
+        row.prop(act_track, "use_red_channel", text="Red")
+        row.prop(act_track, "use_green_channel", text="Green")
+        row.prop(act_track, "use_blue_channel", text="Blue")
+
 
 
 class CLIP_PT_track_settings(bpy.types.Panel):
@@ -498,11 +499,19 @@ class CLIP_MT_tracking_specials(bpy.types.Menu):
         op = layout.operator("clip.disable_markers", text="Disable markers")
         op.action = 'DISABLE'
 
+        layout.separator()
         layout.operator("clip.set_origin")
 
         layout.separator()
         layout.operator("clip.hide_tracks")
         layout.operator("clip.hide_tracks_clear", text="Show Tracks")
+
+        layout.separator()
+        op = layout.operator("clip.lock_tracks", text="Lock Tracks")
+        op.action = 'LOCK'
+
+        op = layout.operator("clip.lock_tracks", text="Unlock Tracks")
+        op.action = 'UNLOCK'
 
 
 class CLIP_MT_camera_presets(bpy.types.Menu):

@@ -370,6 +370,18 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "bundle_pos");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Bundle", "Position of bundle reconstructed from this tarck");
+
+	/* hidden */
+	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACK_HIDDEN);
+	RNA_def_property_ui_text(prop, "Hidden", "Track is hidden");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* locked */
+	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACK_LOCKED);
+	RNA_def_property_ui_text(prop, "Locked", "Track is locked and all changes to it are disabled");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 }
 
 static void rna_def_tracking(BlenderRNA *brna)
