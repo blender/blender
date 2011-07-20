@@ -341,7 +341,10 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "action", 2);
 
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_lock_tracks", LKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "action", 2);
+	RNA_enum_set(kmi->ptr, "action", 0);
+
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_lock_tracks", LKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "action", 1);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }
