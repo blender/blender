@@ -1282,33 +1282,37 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 			}
 			
 			if(has_bones && basact) {
-				int is_cam= basact->object->type==OB_CAMERA;
+				if(basact->object->type==OB_CAMERA) {
+					if(BASACT==basact) {
+						int i, hitresult;
+						MovieTrackingTrack *track;
 
-				if(is_cam) {
-					int i, hitresult;
-					MovieTrackingTrack *track;
+						for (i=0; i< hits; i++) {
+							hitresult= buffer[3+(i*4)];
 
-					for (i=0; i< hits; i++) {
-						hitresult= buffer[3+(i*4)];
+							/* if there's bundles in buffer select bundles first,
+							   so non-camera elements should be ignored in buffer */
+							if(basact->selcol != (hitresult & 0xFFFF))
+								continue;
 
-						/* if there's bundles in buffer select bundles first,
-						   so non-camera elements should be ignored in buffer */
-						if(basact->selcol != (hitresult & 0xFFFF))
-							continue;
+							/* index of bundle is 1<<16-based. if there's no "bone" index
+							   in hight word, this buffer value belongs to camera,. not to bundle */
+							if(buffer[4*i+3] & 0xFFFF0000) {
+								track= BKE_tracking_indexed_bundle(&scene->clip->tracking, hitresult >> 16);
 
-						/* index of bundle is 1<<16-based. if there's no "bone" index
-						   in hight word, this buffer value belongs to camera,. not to bundle */
-						if(buffer[4*i+3] & 0xFFFF0000) {
-							track= BKE_tracking_indexed_bundle(&scene->clip->tracking, hitresult >> 16);
-							BKE_movieclip_select_track(scene->clip, track, TRACK_AREA_ALL, extend);
+								if(TRACK_SELECTED(track) && extend) BKE_movieclip_deselect_track(scene->clip, track, TRACK_AREA_ALL);
+								else BKE_movieclip_select_track(scene->clip, track, TRACK_AREA_ALL, extend);
 
-							basact->flag|= SELECT;
-							basact->object->flag= basact->flag;
+								basact->flag|= SELECT;
+								basact->object->flag= basact->flag;
 
-							retval= 1;
-							WM_event_add_notifier(C, NC_MOVIECLIP|ND_SELECT, basact->object);
+								retval= 1;
 
-							break;
+								WM_event_add_notifier(C, NC_MOVIECLIP|ND_SELECT, track);
+								WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+
+								break;
+							}
 						}
 					}
 				}
@@ -1331,7 +1335,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 
 				}
 				/* prevent bone selecting to pass on to object selecting */
-				if(!is_cam && basact==BASACT)
+				if(basact==BASACT)
 					basact= NULL;
 			}
 		}

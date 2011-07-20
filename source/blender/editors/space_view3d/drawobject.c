@@ -1391,7 +1391,7 @@ static void draw_bundle_sphere(void)
 		qobj= gluNewQuadric();
 		gluQuadricDrawStyle(qobj, GLU_FILL);
 		glShadeModel(GL_SMOOTH);
-		gluSphere(qobj, 0.05, 16, 16);
+		gluSphere(qobj, 0.05, 8, 8);
 		glShadeModel(GL_FLAT);
 		gluDeleteQuadric(qobj);
 
@@ -1415,13 +1415,13 @@ static void draw_bundle_outline(void)
 
 		qobj= gluNewQuadric();
 		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE);
-		gluDisk(qobj, 0.0,  0.05, 16, 1);
+		gluDisk(qobj, 0.0,  0.05, 8, 1);
 
 		glRotatef(90, 0, 1, 0);
-		gluDisk(qobj, 0.0,  0.05, 16, 1);
+		gluDisk(qobj, 0.0,  0.05, 8, 1);
 
 		glRotatef(90, 1, 0, 0);
-		gluDisk(qobj, 0.0,  0.05, 16, 1);
+		gluDisk(qobj, 0.0,  0.05, 8, 1);
 
 		gluDeleteQuadric(qobj);
 
@@ -1482,8 +1482,11 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 				glDisable(GL_LIGHTING);
 				glDepthMask(0);
 
-				if(TRACK_SELECTED(track)) UI_ThemeColor(TH_SELECT);
-				else UI_ThemeColor(TH_WIRE);
+				if(TRACK_SELECTED(track)) {
+					if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
+					else UI_ThemeColor(TH_SELECT);
+				} else UI_ThemeColor(TH_WIRE);
+
 				draw_bundle_outline();
 
 				glDepthMask(1);
@@ -1491,7 +1494,8 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 			} else if(v3d->drawtype>OB_WIRE) {
 				/* selection outline */
 				if(TRACK_SELECTED(track)) {
-					UI_ThemeColor(TH_SELECT);
+					if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
+					else UI_ThemeColor(TH_SELECT);
 
 					glDepthMask(0);
 					glLineWidth(2.f);
@@ -1555,6 +1559,9 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	glDisable(GL_LIGHTING);
 
 	glColor4fv(curcol);
+
+	if(flag&DRAW_PICKING)
+		glLoadName(base->selcol);
 }
 
 /* flag similar to draw_object() */
