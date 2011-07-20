@@ -241,9 +241,18 @@ extern "C" {
 //We need to subclass it in order to give Cocoa the feeling key events are trapped
 @interface CocoaOpenGLView : NSOpenGLView
 {
+	GHOST_SystemCocoa *systemCocoa;
+	GHOST_WindowCocoa *associatedWindow;
 }
+- (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
 @end
 @implementation CocoaOpenGLView
+
+- (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
+{
+	systemCocoa = sysCocoa;
+	associatedWindow = winCocoa;
+}
 
 - (BOOL)acceptsFirstResponder
 {
@@ -294,6 +303,7 @@ extern "C" {
     else
     {
         [super drawRect:rect];
+        systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
     }
 }
 
@@ -424,6 +434,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	//Creates the OpenGL View inside the window
 	m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect
 												 pixelFormat:pixelFormat];
+
+	[m_openGLView setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 	
 	[pixelFormat release];
 	
@@ -691,17 +703,8 @@ GHOST_TWindowState GHOST_WindowCocoa::getState() const
 void GHOST_WindowCocoa::screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::screenToClient(): window invalid")
-	
-	NSPoint screenCoord;
-	NSPoint baseCoord;
-	
-	screenCoord.x = inX;
-	screenCoord.y = inY;
-	
-	baseCoord = [m_window convertScreenToBase:screenCoord];
-	
-	outX = baseCoord.x;
-	outY = baseCoord.y;
+
+	screenToClientIntern(inX, inY, outX, outY);
 
 	/* switch y to match ghost convention */
 	GHOST_Rect cBnds;
@@ -718,7 +721,26 @@ void GHOST_WindowCocoa::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST
 	GHOST_Rect cBnds;
 	getClientBounds(cBnds);
 	inY = (cBnds.getHeight() - 1) - inY;
+
+	clientToScreenIntern(inX, inY, outX, outY);
+}
+
+void GHOST_WindowCocoa::screenToClientIntern(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
+{
+	NSPoint screenCoord;
+	NSPoint baseCoord;
 	
+	screenCoord.x = inX;
+	screenCoord.y = inY;
+	
+	baseCoord = [m_window convertScreenToBase:screenCoord];
+	
+	outX = baseCoord.x;
+	outY = baseCoord.y;
+}
+
+void GHOST_WindowCocoa::clientToScreenIntern(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
+{
 	NSPoint screenCoord;
 	NSPoint baseCoord;
 	
@@ -1220,7 +1242,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 			m_systemCocoa->getCursorPosition(x_old,y_old);
-			screenToClient(x_old, y_old, m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
+			screenToClientIntern(x_old, y_old, m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
 			//Warp position is stored in client (window base) coordinates
 			setCursorGrabAccum(0, 0);
 			

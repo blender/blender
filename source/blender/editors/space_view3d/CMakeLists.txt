@@ -23,14 +23,14 @@ set(INC
 	../include
 	../../blenfont
 	../../blenkernel
-	../../blenloader
 	../../blenlib
+	../../blenloader
 	../../gpu
 	../../imbuf
 	../../makesdna
 	../../makesrna
-	../../windowmanager
 	../../render/extern/include
+	../../windowmanager
 	../../../../intern/guardedalloc
 	../../../../intern/smoke/extern
 )
@@ -61,7 +61,9 @@ set(SRC
 )
 
 if(WITH_GAMEENGINE)
-	list(APPEND INC ../../../../source/gameengine/BlenderRoutines)
+	list(APPEND INC
+		../../../gameengine/BlenderRoutines
+	)
 	add_definitions(-DWITH_GAMEENGINE)
 endif()
 

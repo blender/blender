@@ -70,6 +70,7 @@ struct Mesh;
 struct ModifierData;
 struct MultiresModifierData;
 struct NodeBlurData;
+struct Nurb;
 struct Object;
 struct PBVHNode;
 struct Render;
@@ -295,7 +296,8 @@ float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
 
 struct ListBase *ED_curve_editnurbs(struct Curve *cu){return NULL;}
-void free_curve_editNurb (struct Curve *cu){};
+void free_curve_editNurb (struct Curve *cu){}
+void ED_nurb_set_spline_type(struct Nurb *nu, int type){}
 
 void EM_selectmode_set(struct EditMesh *em){}
 int EM_texFaceCheck(struct EditMesh *em){return 0;}
@@ -380,6 +382,7 @@ void RE_AcquireResultImage(struct Render *re, struct RenderResult *rr){}
 void RE_ReleaseResult(struct Render *re){}
 void RE_ReleaseResultImage(struct Render *re){}
 int RE_engine_test_break(struct RenderEngine *engine){return 0;}
+void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) {}
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet){return (struct wmOperatorType *) NULL;}

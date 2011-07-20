@@ -773,26 +773,6 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
     return window;
 }
 
-GHOST_TSuccess GHOST_SystemCocoa::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window, const bool stereoVisual)
-{	
-	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
-	*window = currentWindow;
-	
-	if(!currentWindow) return GHOST_kFailure;
-	
-	return currentWindow->setState(GHOST_kWindowStateFullScreen);
-}
-
-GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
-{	
-	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
-	if(!currentWindow) return GHOST_kFailure;
-	
-	return currentWindow->setState(GHOST_kWindowStateNormal);
-}
-
-
-	
 /**
  * @note : returns coordinates in Cocoa screen coordinates
  */
@@ -806,37 +786,11 @@ GHOST_TSuccess GHOST_SystemCocoa::getCursorPosition(GHOST_TInt32& x, GHOST_TInt3
     return GHOST_kSuccess;
 }
 
-void GHOST_SystemCocoa::pushEventCursor(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, GHOST_TInt32 x, GHOST_TInt32 y)
-{
-	GHOST_Rect cBnds;
-	window->getClientBounds(cBnds);
-	y = (cBnds.getHeight() - 1) - y;
-
-	GHOST_TInt32 screen_x, screen_y;
-	window->clientToScreen(x, y, screen_x, screen_y);
-
-	pushEvent(new GHOST_EventCursor(msec, type, window, screen_x, screen_y));
-}
-
-void GHOST_SystemCocoa::pushEventTrackpad(GHOST_TUns64 msec, GHOST_IWindow* window, GHOST_TTrackpadEventSubTypes subtype, GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 deltaX, GHOST_TInt32 deltaY)
-{
-	GHOST_Rect cBnds;
-	window->getClientBounds(cBnds);
-	y = (cBnds.getHeight() - 1) - y;
-	deltaY = -deltaY;
-
-	GHOST_TInt32 screen_x, screen_y;
-	window->clientToScreen(x, y, screen_x, screen_y);
-
-	pushEvent(new GHOST_EventTrackpad(msec, window, subtype, screen_x, screen_y, deltaX, deltaY));
-}
-
 /**
  * @note : expect Cocoa screen coordinates
  */
 GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
 {
-	GHOST_TInt32 wx,wy;
 	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
 	if (!window) return GHOST_kFailure;
 
@@ -847,8 +801,7 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 	CGAssociateMouseAndMouseCursorPosition(true);
 	
 	//Force mouse move event (not pushed by Cocoa)
-	window->screenToClient(x, y, wx, wy);
-	pushEventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, wx,wy);
+	pushEvent(new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, x, y));
 	m_outsideLoopEventProcessed = true;
 	
 	return GHOST_kSuccess;
@@ -1460,9 +1413,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
-    GHOST_Window* window;
+    GHOST_WindowCocoa* window;
 	
-	window = (GHOST_Window*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
+	window = (GHOST_WindowCocoa*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
 	if (!window) {
 		//printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
@@ -1526,7 +1479,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				switch (window->getCursorGrabMode()) {
 					case GHOST_kGrabHide: //Cursor hidden grab operation : no cursor move
 					{
-						GHOST_TInt32 x_warp, y_warp, x_accum, y_accum;
+						GHOST_TInt32 x_warp, y_warp, x_accum, y_accum, x, y;
 						
 						window->getCursorGrabInitPos(x_warp, y_warp);
 						
@@ -1535,7 +1488,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						y_accum += -[event deltaY]; //Strange Apple implementation (inverted coordinates for the deltaY) ...
 						window->setCursorGrabAccum(x_accum, y_accum);
 						
-						pushEventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_warp+x_accum, y_warp+y_accum);
+						window->clientToScreenIntern(x_warp+x_accum, y_warp+y_accum, x, y);
+						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x, y));
 					}
 						break;
 					case GHOST_kGrabWrap: //Wrap cursor at area/window boundaries
@@ -1543,7 +1497,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						NSPoint mousePos = [event locationInWindow];
 						GHOST_TInt32 x_mouse= mousePos.x;
 						GHOST_TInt32 y_mouse= mousePos.y;
-						GHOST_TInt32 x_accum, y_accum, x_cur, y_cur;
+						GHOST_TInt32 x_accum, y_accum, x_cur, y_cur, x, y;
 						GHOST_Rect bounds, windowBounds, correctedBounds;
 						
 						/* fallback to window bounds */
@@ -1552,7 +1506,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						
 						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
 						window->getClientBounds(windowBounds);
-						window->screenToClient(bounds.m_l,bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
+						window->screenToClient(bounds.m_l, bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
 						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
 						correctedBounds.m_b = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_b;
 						correctedBounds.m_t = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_t;
@@ -1574,19 +1528,24 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						m_cursorDelta_y = y_mouse-mousePos.y;
 						
 						//Set new cursor position
-						window->clientToScreen(x_mouse, y_mouse, x_cur, y_cur);
+						window->clientToScreenIntern(x_mouse, y_mouse, x_cur, y_cur);
 						setMouseCursorPosition(x_cur, y_cur); /* wrap */
 						
 						//Post event
 						window->getCursorGrabInitPos(x_cur, y_cur);
-						pushEventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x_cur + x_accum, y_cur + y_accum);
+						window->clientToScreenIntern(x_cur + x_accum, y_cur + y_accum, x, y);
+						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x, y));
 					}
 						break;
 					default:
 					{
 						//Normal cursor operation: send mouse position in window
 						NSPoint mousePos = [event locationInWindow];
-						pushEventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, mousePos.x, mousePos.y);
+						GHOST_TInt32 x, y;
+
+						window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
+						pushEvent(new GHOST_EventCursor([event timestamp]*1000, GHOST_kEventCursorMove, window, x, y));
+
 						m_cursorDelta_x=0;
 						m_cursorDelta_y=0; //Mouse motion occurred between two cursor warps, so we can reset the delta counter
 					}
@@ -1608,6 +1567,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				}
 				else {
 					NSPoint mousePos = [event locationInWindow];
+					GHOST_TInt32 x, y;
 					double dx = [event deltaX];
 					double dy = -[event deltaY];
 					
@@ -1624,7 +1584,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					if (dy<0.0) dy-=0.5; else dy+=0.5;
 					if (dy< -deltaMax) dy= -deltaMax; else if (dy>deltaMax) dy=deltaMax;
 
-					pushEventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventScroll, mousePos.x, mousePos.y, dx, dy);
+					window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
+					dy = -dy;
+
+					pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventScroll, x, y, dx, dy));
 				}
 			}
 			break;
@@ -1632,16 +1595,20 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSEventTypeMagnify:
 			{
 				NSPoint mousePos = [event locationInWindow];
-				pushEventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, mousePos.x, mousePos.y,
-												  [event magnification]*250.0 + 0.1, 0);
+				GHOST_TInt32 x, y;
+				window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
+				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, x, y,
+												  [event magnification]*250.0 + 0.1, 0));
 			}
 			break;
 
 		case NSEventTypeRotate:
 			{
 				NSPoint mousePos = [event locationInWindow];
-				pushEventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y,
-												  -[event rotation] * 5.0, 0);
+				GHOST_TInt32 x, y;
+				window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
+				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, x, y,
+												  -[event rotation] * 5.0, 0));
 			}
 		case NSEventTypeBeginGesture:
 			m_isGestureInProgress = true;

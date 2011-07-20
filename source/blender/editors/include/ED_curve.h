@@ -71,6 +71,7 @@ int 	mouse_nurb		(struct bContext *C, const int mval[2], int extend);
 struct Nurb *add_nurbs_primitive(struct bContext *C, float mat[4][4], int type, int newob);
 
 int		isNurbsel		(struct Nurb *nu);
+void	ED_nurb_set_spline_type(struct Nurb *nu, int type);
 
 int		join_curve_exec	(struct bContext *C, struct wmOperator *op);
 

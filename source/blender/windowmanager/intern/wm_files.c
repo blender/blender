@@ -635,8 +635,9 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	char err_out[256]= "unknown";
 
 	*thumb_pt= NULL;
-	
-	if(G.background || scene->camera==NULL)
+
+	/* scene can be NULL if running a script at startup and calling the save operator */
+	if(G.background || scene==NULL || scene->camera==NULL)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
@@ -722,6 +723,12 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 		}
 	}
 
+	/* blend file thumbnail */
+	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
+	if(U.flag & USER_SAVE_PREVIEWS) {
+		ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
+	}
+
 	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
 
 	/* operator now handles overwrite checks */
@@ -736,9 +743,6 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	/* don't forget not to return without! */
 	WM_cursor_wait(1);
 	
-	/* blend file thumbnail */
-	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
-
 	fileflags |= G_FILE_HISTORY; /* write file history */
 
 	if (BLO_write_file(CTX_data_main(C), filepath, fileflags, reports, thumb)) {

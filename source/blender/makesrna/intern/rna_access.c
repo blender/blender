@@ -2839,7 +2839,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 				}
 
 				/* editable check */
-				if(RNA_property_editable(&itemptr, iprop)) {
+				if(!set || RNA_property_editable(&itemptr, iprop)) {
 					if(a+itemlen > in.len) {
 						BKE_reportf(reports, RPT_ERROR, "Array length mismatch (got %d, expected more).", in.len);
 						err= 1;

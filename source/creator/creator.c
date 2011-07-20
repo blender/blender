@@ -770,7 +770,9 @@ static int render_frame(int argc, const char **argv, void *data)
 
 			frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 
-			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step, &reports);
+			RE_SetReports(re, &reports);
+			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step);
+			RE_SetReports(re, NULL);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-f / --render-frame'.\n");
@@ -791,7 +793,9 @@ static int render_animation(int UNUSED(argc), const char **UNUSED(argv), void *d
 		Render *re= RE_NewRender(scene->id.name);
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
-		RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
+		RE_SetReports(re, &reports);
+		RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
+		RE_SetReports(re, NULL);
 	} else {
 		printf("\nError: no blend loaded. cannot use '-a'.\n");
 	}
@@ -1132,7 +1136,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 #ifdef WITH_PYTHON_MODULE
 /* allow python module to call main */
-#define main main_python
+#define main main_python_enter
+static void *evil_C= NULL;
 #endif
 
 int main(int argc, const char **argv)
@@ -1143,6 +1148,7 @@ int main(int argc, const char **argv)
 
 #ifdef WITH_PYTHON_MODULE
 #undef main
+	evil_C= C;
 #endif
 
 #ifdef WITH_BINRELOC
@@ -1314,6 +1320,14 @@ int main(int argc, const char **argv)
 
 	return 0;
 } /* end of int main(argc,argv)	*/
+
+#ifdef WITH_PYTHON_MODULE
+void main_python_exit(void)
+{
+	WM_exit((bContext *)evil_C);
+	evil_C= NULL;
+}
+#endif
 
 static void error_cb(const char *err)
 {

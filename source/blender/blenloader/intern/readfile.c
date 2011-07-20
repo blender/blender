@@ -76,6 +76,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_fluidsim.h" // NT
 #include "DNA_packedFile_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
@@ -3162,9 +3163,37 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			if(part->effector_weights)
 				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
 
-			dw = part->dupliweights.first;
-			for(; dw; dw=dw->next)
-				dw->ob = newlibadr(fd, part->id.lib, dw->ob);
+			if(part->dupliweights.first) {
+				int index_ok = 0;
+				/* check for old files without indices (all indexes 0) */
+				dw = part->dupliweights.first;
+				if(part->dupliweights.first == part->dupliweights.last) {
+					/* special case for only one object in the group */
+					index_ok = 1;
+				}
+				else { 
+					for(; dw; dw=dw->next) {
+						if(dw->index > 0) {
+							index_ok = 1;
+							break;
+						}
+					}
+				}
+
+				if(index_ok) {
+					/* if we have indexes, let's use them */
+					dw = part->dupliweights.first;
+					for(; dw; dw=dw->next) {
+						GroupObject *go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
+						dw->ob = go ? go->ob : NULL;
+					}
+				}
+				else {
+					/* otherwise try to get objects from own library (won't work on library linked groups) */
+					for(; dw; dw=dw->next)
+						dw->ob = newlibadr(fd, part->id.lib, dw->ob);
+				}
+			}
 
 			if(part->boids) {
 				BoidState *state = part->boids->states.first;
@@ -3539,6 +3568,18 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		mesh->mr->edge_creases= newdataadr(fd, mesh->mr->edge_creases);
 
 		mesh->mr->verts = newdataadr(fd, mesh->mr->verts);
+		
+		/* If mesh has the same number of vertices as the
+		   highest multires level, load the current mesh verts
+		   into multires and discard the old data. Needed
+		   because some saved files either do not have a verts
+		   array, or the verts array contains out-of-date
+		   data. */
+		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert) {
+			if(mesh->mr->verts)
+				MEM_freeN(mesh->mr->verts);
+			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
+		}
 			
 		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);
@@ -3548,16 +3589,11 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		}
 	}
 
-	/* Gracefully handle corrupted mesh */
+	/* if multires is present but has no valid vertex data,
+	   there's no way to recover it; silently remove multires */
 	if(mesh->mr && !mesh->mr->verts) {
-		/* If totals match, simply load the current mesh verts into multires */
-		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert)
-			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
-		else {
-			/* Otherwise, we can't recover the data, silently remove multires */
-			multires_free(mesh->mr);
-			mesh->mr = NULL;
-		}
+		multires_free(mesh->mr);
+		mesh->mr = NULL;
 	}
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
@@ -4843,7 +4879,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if(sl->spacetype==SPACE_FILE) {
 						SpaceFile *sfile= (SpaceFile *)sl;
 						sfile->files= NULL;
-						sfile->params= NULL;
 						sfile->op= NULL;
 						sfile->layout= NULL;
 						sfile->folders_prev= NULL;
@@ -5456,7 +5491,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				sfile->files= NULL;
 				sfile->layout= NULL;
 				sfile->op= NULL;
-				sfile->params= NULL;
+				sfile->params= newdataadr(fd, sfile->params);
 			}
 		}
 		
@@ -10396,8 +10431,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.attrib = sce->r.attrib;
 
 			//Stereo
-			sce->gm.xsch = sce->r.xsch;
-			sce->gm.ysch = sce->r.ysch;
 			sce->gm.stereomode = sce->r.stereomode;
 			/* reassigning stereomode NO_STEREO and DOME to a separeted flag*/
 			if (sce->gm.stereomode == 1){ //1 = STEREO_NOSTEREO

@@ -22,7 +22,6 @@ __all__ = (
     "region_2d_to_vector_3d",
     "region_2d_to_location_3d",
     "location_3d_to_region_2d",
-    "location_3d_to_region_2d",
 )
 
 

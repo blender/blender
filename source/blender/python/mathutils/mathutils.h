@@ -67,7 +67,7 @@ int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg);
 int BaseMathObject_clear(BaseMathObject *self);
 void BaseMathObject_dealloc(BaseMathObject * self);
 
-PyMODINIT_FUNC BPyInit_mathutils(void);
+PyMODINIT_FUNC PyInit_mathutils(void);
 
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);

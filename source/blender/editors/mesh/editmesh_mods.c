@@ -867,7 +867,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	Mesh *me= obedit->data;
 	EditMesh *em= BKE_mesh_get_editmesh(me); 
 
-	int selcount = similar_face_select__internal(em, RNA_int_get(op->ptr, "type"), RNA_float_get(op->ptr, "threshold"));
+	int selcount = similar_face_select__internal(em, RNA_enum_get(op->ptr, "type"), RNA_float_get(op->ptr, "threshold"));
 	
 	if (selcount) {
 		/* here was an edge-mode only select flush case, has to be generalized */

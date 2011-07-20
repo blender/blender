@@ -31,6 +31,8 @@ __all__ = (
 import bpy as _bpy
 
 
+error_duplicates = False
+
 def paths():
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     paths = _bpy.utils.script_paths("addons")
@@ -47,9 +49,10 @@ def paths():
 
 
 def modules(module_cache):
+    global error_duplicates
     import os
-    import sys
-    import time
+
+    error_duplicates = False
 
     path_list = paths()
 
@@ -119,7 +122,12 @@ def modules(module_cache):
             modules_stale -= {mod_name}
             mod = module_cache.get(mod_name)
             if mod:
-                if mod.__time__ != os.path.getmtime(mod_path):
+                if mod.__file__ != mod_path:
+                    print("multiple addons with the same name:\n  %r\n  %r" %
+                          (mod.__file__, mod_path))
+                    error_duplicates = True
+
+                elif mod.__time__ != os.path.getmtime(mod_path):
                     print("reloading addon:", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
                     del module_cache[mod_name]
                     mod = None
@@ -173,11 +181,9 @@ def enable(module_name, default_set=True):
     :return: the loaded module or None on failier.
     :rtype: module
     """
-    # note, this still gets added to _bpy_types.TypeMap
 
     import os
     import sys
-    import bpy_types as _bpy_types
     import imp
 
     def handle_error():
@@ -246,8 +252,6 @@ def disable(module_name, default_set=True):
     :type module_name: string
     """
     import sys
-    import bpy_types as _bpy_types
-
     mod = sys.modules.get(module_name)
 
     # possible this addon is from a previous session and didnt load a module this time.

@@ -298,11 +298,18 @@ _presets = _os.path.join(_scripts[0], "presets")  # FIXME - multiple paths
 def preset_paths(subdir):
     """
     Returns a list of paths for a specific preset.
+
+    :arg subdir: preset subdirectory (must not be an absolute path).
+    :type subdir: string
+    :return: script paths.
+    :rtype: list
     """
     dirs = []
     for path in script_paths("presets", all=True):
         directory = _os.path.join(path, subdir)
-        if _os.path.isdir(directory):
+        if not directory.startswith(path):
+            raise Exception("invalid subdir given %r" % subdir)
+        elif _os.path.isdir(directory):
             dirs.append(directory)
     return dirs
 

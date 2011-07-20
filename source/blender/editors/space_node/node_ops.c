@@ -70,12 +70,13 @@ void node_operatortypes(void)
 	
 	WM_operatortype_append(NODE_OT_duplicate);
 	WM_operatortype_append(NODE_OT_delete);
+	WM_operatortype_append(NODE_OT_delete_reconnect);
 	WM_operatortype_append(NODE_OT_resize);
 	
 	WM_operatortype_append(NODE_OT_link);
 	WM_operatortype_append(NODE_OT_link_make);
 	WM_operatortype_append(NODE_OT_links_cut);
-	
+
 	WM_operatortype_append(NODE_OT_group_make);
 	WM_operatortype_append(NODE_OT_group_ungroup);
 	WM_operatortype_append(NODE_OT_group_edit);
@@ -100,16 +101,22 @@ void node_operatortypes(void)
 void ED_operatormacros_node(void)
 {
 	wmOperatorType *ot;
+	wmOperatorTypeMacro *mot;
 	
 	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
+	/* modified operator call for duplicating with input links */
+	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
+		RNA_boolean_set(mot->ptr, "keep_inputs", 1);
+	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+
 	ot= WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer", OPTYPE_UNDO);
 	WM_operatortype_macro_define(ot, "NODE_OT_select");
 	WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
-	
-}
+	}
 
 void node_keymap(struct wmKeyConfig *keyconf)
 {
@@ -155,6 +162,8 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	
 	WM_keymap_add_menu(keymap, "NODE_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
+	/* modified operator call for duplicating with input links */
+	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move_keep_inputs", DKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_hide_toggle", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_mute_toggle", MKEY, KM_PRESS, 0, 0);
@@ -167,6 +176,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_delete_reconnect", XKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "NODE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_linked_to", LKEY, KM_PRESS, KM_SHIFT, 0);

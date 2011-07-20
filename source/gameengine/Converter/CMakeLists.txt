@@ -26,36 +26,35 @@
 
 set(INC
 	.
-	../../../intern/string
-	../../../intern/guardedalloc
-	../../../intern/container
-	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-	../../../source/gameengine/Converter
-	../../../source/gameengine/BlenderRoutines
-	../../../source/blender/imbuf
-	../../../intern/moto/include
-	../../../source/gameengine/Ketsji
-	../../../source/gameengine/Ketsji/KXNetwork
-	../../../source/blender/blenlib
-	../../../source/blender/blenkernel
-	../../../source/blender/windowmanager
-	../../../source/blender
-	../../../source/blender/makesdna
-	../../../source/blender/makesrna
-	../../../source/gameengine/Rasterizer
-	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-	../../../source/gameengine/GameLogic
-	../../../source/gameengine/Expressions
-	../../../source/gameengine/Network
-	../../../source/gameengine/SceneGraph
-	../../../source/gameengine/Physics/common
-	../../../source/gameengine/Physics/Bullet
-	../../../source/gameengine/Physics/Dummy
-	../../../source/gameengine/Network/LoopBackNetwork
-	../../../source/blender/blenloader
-	../../../source/blender/gpu
-	../../../source/blender/ikplugin
+	../BlenderRoutines
+	../Expressions
+	../GameLogic
+	../Ketsji
+	../Ketsji/KXNetwork
+	../Network
+	../Network/LoopBackNetwork
+	../Physics/Bullet
+	../Physics/Dummy
+	../Physics/common
+	../Rasterizer
+	../Rasterizer/RAS_OpenGLRasterizer
+	../Rasterizer/RAS_OpenGLRasterizer
+	../SceneGraph
+	../../blender
+	../../blender/blenkernel
+	../../blender/blenlib
+	../../blender/blenloader
+	../../blender/gpu
+	../../blender/ikplugin
+	../../blender/imbuf
+	../../blender/makesdna
+	../../blender/makesrna
+	../../blender/windowmanager
 	../../../extern/bullet2/src
+	../../../intern/container
+	../../../intern/guardedalloc
+	../../../intern/moto/include
+	../../../intern/string
 )
 
 set(INC_SYS

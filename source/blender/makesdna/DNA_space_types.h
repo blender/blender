@@ -754,7 +754,7 @@ enum FileSortTypeE {
 #define SI_EDITTILE		(1<<1)
 #define SI_CLIP_UV		(1<<2)
 #define SI_DRAWTOOL		(1<<3)
-#define SI_DEPRECATED1  (1<<4)	/* stick UVs to others in the same location */
+#define SI_NO_DRAWFACES	(1<<4)
 #define SI_DRAWSHADOW   (1<<5)
 #define SI_SELACTFACE   (1<<6)	/* deprecated */
 #define SI_DEPRECATED2	(1<<7)

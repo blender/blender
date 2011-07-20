@@ -25,13 +25,13 @@
 
 set(INC 
 	..
+	../../blenkernel
 	../../blenlib
+	../../blenloader
+	../../editors/include
 	../../makesdna
 	../../makesrna
-	../../blenkernel
-	../../blenloader
 	../../windowmanager
-	../../editors/include
 	../../freestyle/intern/python
 	../../../../intern/guardedalloc
 )
@@ -89,9 +89,6 @@ if(WITH_PYTHON_SAFETY)
 endif()
 
 if(WITH_AUDASPACE)
-	list(APPEND INC
-		../../../intern/audaspace/intern
-	)
 	add_definitions(-DWITH_AUDASPACE)
 endif()
 

@@ -910,7 +910,7 @@ static void drawscredge_area(ScrArea *sa, int sizex, int sizey, int center)
 	short y2= sa->v3->vec.y;
 	short a, rt;
 	
-	rt= CLAMPIS(G.rt, 0, 16);
+	rt= 0; // CLAMPIS(G.rt, 0, 16);
 	
 	if(center==0) {
 		cpack(0x505050);

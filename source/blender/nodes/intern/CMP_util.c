@@ -132,7 +132,7 @@ void compbuf_set_node(CompBuf *cbuf, bNode *node)
 	if (cbuf) cbuf->node = node;
 }
 
-/* used for disabling node  (similar code in drawnode.c for disable line) */
+/* used for disabling node  (similar code in node_draw.c for disable line and node_edit for untangling nodes) */
 void node_compo_pass_on(bNode *node, bNodeStack **nsin, bNodeStack **nsout)
 {
 	CompBuf *valbuf= NULL, *colbuf= NULL, *vecbuf= NULL;

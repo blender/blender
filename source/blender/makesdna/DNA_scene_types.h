@@ -206,6 +206,7 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_RAYHITS		(1<<15)
 #define SCE_PASS_EMIT			(1<<16)
 #define SCE_PASS_ENVIRONMENT	(1<<17)
+#define SCE_PASS_INDEXMA	(1<<18)
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
@@ -434,7 +435,8 @@ typedef struct GameData {
 	/*
 	 * Radius of the activity bubble, in Manhattan length. Objects
 	 * outside the box are activity-culled. */
-	float activityBoxRadius; //it's not being used ANYWHERE !!!!!!!!!!!!!!
+	float activityBoxRadius;
+
 	/*
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
@@ -451,7 +453,8 @@ typedef struct GameData {
 
 	/* stereo/dome mode */
 	struct GameDome dome;
-	short stereoflag, stereomode, xsch, ysch; //xsch and ysch used for backwards compat.
+	short stereoflag, stereomode;
+	short pad2, pad3;
 	float eyeseparation, pad1;
 } GameData;
 

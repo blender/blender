@@ -28,9 +28,8 @@ set(INC
 	.
 	..
 	../..
-	intern/include
-	../../../blenlib
 	../../../blenkernel
+	../../../blenlib
 	../../../makesdna
 	../../../../../intern/guardedalloc
 )

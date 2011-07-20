@@ -746,13 +746,9 @@ def packIslands(islandList):
                 uv.y= (uv.y+yoffset) * yfactor
 
 
-
 def VectoQuat(vec):
     vec = vec.normalized()
-    if abs(vec.x) > 0.5:
-        return vec.to_track_quat('Z', 'X')
-    else:
-        return vec.to_track_quat('Z', 'Y')
+    return vec.to_track_quat('Z', 'X' if abs(vec.x) > 0.5 else 'Y').inverted()
 
 
 class thickface(object):
@@ -791,7 +787,11 @@ def main_consts():
 
 global ob
 ob = None
-def main(context, island_margin, projection_limit):
+def main(context,
+         island_margin,
+         projection_limit,
+         user_area_weight,
+         ):
     global USER_FILL_HOLES
     global USER_FILL_HOLES_QUALITY
     global USER_STRETCH_ASPECT
@@ -844,7 +844,6 @@ def main(context, island_margin, projection_limit):
     USER_FILL_HOLES = (0)
     USER_FILL_HOLES_QUALITY = (50) # Only for hole filling.
     USER_VIEW_INIT = (0) # Only for hole filling.
-    USER_AREA_WEIGHT = (1) # Only for hole filling.
 
     # Reuse variable
     if len(obList) == 1:
@@ -970,12 +969,15 @@ def main(context, island_margin, projection_limit):
 
             # Add the average of all these faces normals as a projectionVec
             averageVec = Vector((0.0, 0.0, 0.0))
-            if USER_AREA_WEIGHT:
-                for fprop in newProjectMeshFaces:
-                    averageVec += (fprop.no * fprop.area)
-            else:
+            if user_area_weight == 0.0:
                 for fprop in newProjectMeshFaces:
                     averageVec += fprop.no
+            elif user_area_weight == 1.0:
+                for fprop in newProjectMeshFaces:
+                    averageVec += fprop.no * fprop.area
+            else:
+                for fprop in newProjectMeshFaces:
+                    averageVec += fprop.no * ((fprop.area * user_area_weight) + (1.0 - user_area_weight))
 
             if averageVec.x != 0 or averageVec.y != 0 or averageVec.z != 0: # Avoid NAN
                 projectVecs.append(averageVec.normalized())
@@ -1062,7 +1064,7 @@ def main(context, island_margin, projection_limit):
                 f_uv = f.uv
                 for j, v in enumerate(f.v):
                     # XXX - note, between mathutils in 2.4 and 2.5 the order changed.
-                    f_uv[j][:] = (v.co * MatQuat)[:2]
+                    f_uv[j][:] = (v.co * MatQuat).xy
 
 
         if USER_SHARE_SPACE:
@@ -1098,12 +1100,8 @@ def main(context, island_margin, projection_limit):
 """
     pup_block = [\
     'Projection',\
-*	('Angle Limit:', USER_PROJECTION_LIMIT, 1, 89, ''),\
     ('Selected Faces Only', USER_ONLY_SELECTED_FACES, 'Use only selected faces from all selected meshes.'),\
     ('Init from view', USER_VIEW_INIT, 'The first projection will be from the view vector.'),\
-    ('Area Weight', USER_AREA_WEIGHT, 'Weight projections vector by face area.'),\
-    '',\
-    '',\
     '',\
     'UV Layout',\
     ('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
@@ -1125,11 +1123,15 @@ class SmartProject(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     angle_limit = FloatProperty(name="Angle Limit",
-            description="lower for more projection groups, higher for less distortion.",
+            description="lower for more projection groups, higher for less distortion",
             default=66.0, min=1.0, max=89.0)
 
     island_margin = FloatProperty(name="Island Margin",
-            description="Margin to reduce bleed from adjacent islands.",
+            description="Margin to reduce bleed from adjacent islands",
+            default=0.0, min=0.0, max=1.0)
+
+    user_area_weight = FloatProperty(name="Area Weight",
+            description="Weight projections vector by faces with larger areas",
             default=0.0, min=0.0, max=1.0)
 
     @classmethod
@@ -1137,7 +1139,11 @@ class SmartProject(bpy.types.Operator):
         return context.active_object != None
 
     def execute(self, context):
-        main(context, self.island_margin, self.angle_limit)
+        main(context,
+             self.island_margin,
+             self.angle_limit,
+             self.user_area_weight,
+             )
         return {'FINISHED'}
 
     def invoke(self, context, event):

@@ -1,5 +1,5 @@
 
-Game Engine bge.events module
+Game Engine bge.events Module
 =============================
 
 *****

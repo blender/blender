@@ -69,7 +69,7 @@ public:
 	void print();
 #endif
 
-	void getUV(int uv_index[2], float *uv);
+	void getUV(int uv_index, float *uv);
 };
 
 class MeshImporter : public MeshImporterBase

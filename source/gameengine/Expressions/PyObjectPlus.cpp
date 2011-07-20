@@ -1147,7 +1147,7 @@ PyObject *PyObjectPlus::NewProxyPlus_Ext(PyObjectPlus *self, PyTypeObject *tp, v
 		BGE_PROXY_REF(proxy) = NULL; 
 		BGE_PROXY_PTR(proxy) = ptr;
 #ifdef USE_WEAKREFS
-		BGE_PROXY_WKREF(self->m_proxy) = NULL;
+		BGE_PROXY_WKREF(proxy) = NULL;
 #endif
 		return proxy;
 	}

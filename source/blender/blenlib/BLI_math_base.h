@@ -39,6 +39,10 @@
 #include <math.h>
 #include "BLI_math_inline.h"
 
+#ifdef __sun__
+#include <ieeefp.h> /* for finite() */
+#endif
+
 #ifndef M_PI
 #define M_PI        3.14159265358979323846
 #endif
