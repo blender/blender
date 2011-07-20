@@ -155,7 +155,7 @@ bool BL_Action::Play(const char* name,
 		BL_DeformableGameObject *obj = (BL_DeformableGameObject*)m_obj;
 		BL_ShapeDeformer *shape_deformer = dynamic_cast<BL_ShapeDeformer*>(obj->GetDeformer());
 		
-		if (shape_deformer)
+		if (shape_deformer && shape_deformer->GetKey())
 		{
 			obj->GetShape(m_blendinshape);
 
@@ -363,7 +363,7 @@ void BL_Action::Update(float curtime)
 		BL_ShapeDeformer *shape_deformer = dynamic_cast<BL_ShapeDeformer*>(obj->GetDeformer());
 
 		// Handle shape actions if we have any
-		if (shape_deformer)
+		if (shape_deformer && shape_deformer->GetKey())
 		{
 			Key *key = shape_deformer->GetKey();
 
