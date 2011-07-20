@@ -1320,12 +1320,12 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	/* Boolean values */
 	prop= RNA_def_property(srna, "select_left_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
-	RNA_def_property_ui_text(prop, "Handle 1 selected", "Handle 1 selection status");
+	RNA_def_property_ui_text(prop, "Handle 1 selected", "Left handle selection status");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	prop= RNA_def_property(srna, "select_right_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "f3", 0);
-	RNA_def_property_ui_text(prop, "Handle 2 selected", "Handle 2 selection status");
+	RNA_def_property_ui_text(prop, "Handle 2 selected", "Right handle selection status");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_SELECTED, NULL);
 	
 	prop= RNA_def_property(srna, "select_control_point", PROP_BOOLEAN, PROP_NONE);
@@ -1337,13 +1337,13 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "handle_left_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h1");
 	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
-	RNA_def_property_ui_text(prop, "Handle 1 Type", "Handle types");
+	RNA_def_property_ui_text(prop, "Left Handle Type", "Handle types");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	prop= RNA_def_property(srna, "handle_right_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h2");
 	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
-	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle types");
+	RNA_def_property_ui_text(prop, "Right Handle Type", "Handle types");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
@@ -1355,14 +1355,14 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "hide");
 	RNA_def_property_enum_items(prop, beztriple_keyframe_type_items);
-	RNA_def_property_ui_text(prop, "Type", "The type of keyframe");
+	RNA_def_property_ui_text(prop, "Type", "The type of keyframe (for visual purposes only");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	/* Vector values */
 	prop= RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_COORDS); /* keyframes are dimensionless */
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_FKeyframe_handle1_get", "rna_FKeyframe_handle1_set", NULL);
-	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
+	RNA_def_property_ui_text(prop, "Left Handle", "Coordinates of the left handle (before the control point)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 	
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_COORDS); /* keyframes are dimensionless */
@@ -1374,7 +1374,7 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "handle_right", PROP_FLOAT, PROP_COORDS); /* keyframes are dimensionless */
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_FKeyframe_handle2_get", "rna_FKeyframe_handle2_set", NULL);
-	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
+	RNA_def_property_ui_text(prop, "Right Handle", "Coordinates of the right handle (after the control point)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME|NA_EDITED, NULL);
 }
 
