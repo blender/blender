@@ -66,6 +66,7 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_blendinpose(NULL),
 	m_sg_contr(NULL),
 	m_ptrrna(NULL),
+	m_action(NULL),
 	m_done(true)
 {
 	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
