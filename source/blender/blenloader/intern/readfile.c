@@ -11815,6 +11815,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		bScreen *sc;
 		Camera *cam;
+		MovieClip *clip;
 
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
@@ -11841,8 +11842,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
+		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
+			if(clip->aspx<1.0f) {
+				clip->aspx= 1.0f;
+				clip->aspy= 1.0f;
+			}
+		}
+
 		for(cam= main->camera.first; cam; cam= cam->id.next) {
-			if (cam->sensor_x < 0.01) {
+			if (cam->sensor_x < 0.01f) {
 				cam->sensor_x = 32.f;
 				cam->sensor_y = 18.f;
 			}

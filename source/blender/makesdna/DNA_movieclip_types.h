@@ -59,6 +59,8 @@ typedef struct MovieClip {
 	int lastframe;		/* last accessed frame number */
 	int lastsize[2];	/* size of last accessed frame */
 
+	float aspx, aspy;	/* display aspect */
+
 	struct anim *anim;	/* movie source data */
 	void *ibuf_cache;	/* cache of ibufs, not in file */
 

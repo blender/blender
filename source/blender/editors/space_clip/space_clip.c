@@ -379,6 +379,7 @@ static void clip_refresh(const bContext *C, ScrArea *UNUSED(sa))
 /* sets up the fields of the View2D from zoom and offset */
 static void movieclip_main_area_set_view2d(SpaceClip *sc, ARegion *ar)
 {
+	MovieClip *clip= ED_space_clip(sc);
 	float x1, y1, w, h;
 	int width, height, winx, winy;
 
@@ -386,6 +387,9 @@ static void movieclip_main_area_set_view2d(SpaceClip *sc, ARegion *ar)
 
 	w= width;
 	h= height;
+
+	if(clip)
+		h*= clip->aspy/clip->aspx;
 
 	winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	winy= ar->winrct.ymax - ar->winrct.ymin + 1;

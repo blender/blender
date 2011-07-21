@@ -162,10 +162,14 @@ static void mouse_pos(bContext *C, wmEvent *event, float co[2])
 	ARegion *ar= CTX_wm_region(C);
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	int sx, sy;
+	float zoomx, zoomy;
+
+	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
-	co[0]= ((float)event->mval[0]-sx)/sc->zoom;
-	co[1]= ((float)event->mval[1]-sy)/sc->zoom;
+
+	co[0]= ((float)event->mval[0]-sx)/zoomx;
+	co[1]= ((float)event->mval[1]-sy)/zoomy;
 }
 
 static int add_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -676,18 +680,18 @@ static int select_all_exec(bContext *C, wmOperator *op)
 				switch (action) {
 					case SEL_SELECT:
 						track->flag|= SELECT;
-						track->pat_flag|= SELECT;
-						track->search_flag|= SELECT;
+						if(sc->flag&SC_SHOW_MARKER_PATTERN) track->pat_flag|= SELECT;
+						if(sc->flag&SC_SHOW_MARKER_SEARCH) track->search_flag|= SELECT;
 						break;
 					case SEL_DESELECT:
 						track->flag&= ~SELECT;
-						track->pat_flag&= ~SELECT;
-						track->search_flag&= ~SELECT;
+						if(sc->flag&SC_SHOW_MARKER_PATTERN) track->pat_flag&= ~SELECT;
+						if(sc->flag&SC_SHOW_MARKER_SEARCH) track->search_flag&= ~SELECT;
 						break;
 					case SEL_INVERT:
 						track->flag^= SELECT;
-						track->pat_flag^= SELECT;
-						track->search_flag^= SELECT;
+						if(sc->flag&SC_SHOW_MARKER_PATTERN) track->pat_flag^= SELECT;
+						if(sc->flag&SC_SHOW_MARKER_SEARCH) track->search_flag^= SELECT;
 						break;
 				}
 			}

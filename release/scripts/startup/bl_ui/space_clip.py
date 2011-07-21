@@ -341,6 +341,11 @@ class CLIP_PT_display(bpy.types.Panel):
         layout.prop(sc, "lock_selection")
         layout.prop(sc, "use_mute_footage")
 
+        clip = sc.clip
+        if clip:
+            layout.label(text="Display Aspect:")
+            layout.prop(clip, "display_aspect", text="")
+
 
 class CLIP_PT_footage(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'

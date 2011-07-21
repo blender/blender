@@ -5291,17 +5291,9 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 			marker= BKE_tracking_get_marker(track, framenr);
 
 			if(marker) {
-				if((marker->flag&MARKER_DISABLED)==0) {
-					if(track->flag&SELECT) t->total++;
-					if(track->pat_flag&SELECT) t->total+= 2;
-				}
-
-				if(track->search_flag&SELECT) {
-					t->total+= 2;
-
-					if(marker->flag&MARKER_DISABLED)
-						t->total+= 3;
-				}
+				if(track->flag&SELECT) t->total++;
+				if(track->pat_flag&SELECT) t->total+= 2;
+				if(track->search_flag&SELECT) t->total+= 2;
 			}
 		}
 

@@ -102,6 +102,22 @@ void ED_space_clip_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy)
 	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin + 1)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
 }
 
+void ED_clip_aspect(MovieClip *clip, float *aspx, float *aspy)
+{
+	*aspx= *aspy= 1.0;
+
+	if(clip == NULL || clip->aspx==0.0f || clip->aspy==0.0f)
+		return;
+
+	/* x is always 1 */
+	*aspy = clip->aspy/clip->aspx;
+}
+
+void ED_space_clip_aspect(SpaceClip *sc, float *aspx, float *aspy)
+{
+	ED_clip_aspect(ED_space_clip(sc), aspx, aspy);
+}
+
 void ED_clip_update_frame(const Main *mainp, int cfra)
 {
 	wmWindowManager *wm;
@@ -158,9 +174,10 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 void ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 {
 	int w, h, width, height, frame_width, frame_height;
-	float min[2], max[2];
+	float min[2], max[2], aspx, aspy;
 
 	ED_space_clip_size(sc, &frame_width, &frame_height);
+	ED_space_clip_aspect(sc, &aspx, &aspy);
 
 	if(frame_width==0 || frame_height==0) return;
 
@@ -173,8 +190,8 @@ void ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 	h= max[1]-min[1];
 
 	/* center view */
-	sc->xof= ((float)(max[0]+min[0]-frame_width))/2;
-	sc->yof= ((float)(max[1]+min[1]-frame_height))/2;
+	sc->xof= ((float)(max[0]+min[0]-frame_width))/2*aspx;
+	sc->yof= ((float)(max[1]+min[1]-frame_height))/2*aspy;
 
 	/* set zoom to see all selection */
 	if(w>0 && h>0) {

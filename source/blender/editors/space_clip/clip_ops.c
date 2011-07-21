@@ -632,12 +632,17 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc;
 	ARegion *ar;
 	int w, h, width, height;
+	float aspx, aspy;
 
 	/* retrieve state */
 	sc= CTX_wm_space_clip(C);
 	ar= CTX_wm_region(C);
 
 	ED_space_clip_size(sc, &w, &h);
+	ED_space_clip_aspect(sc, &aspx, &aspy);
+
+	w= w*aspx;
+	h= h*aspy;
 
 	/* check if the image will fit in the image with zoom==1 */
 	width= ar->winrct.xmax - ar->winrct.xmin + 1;

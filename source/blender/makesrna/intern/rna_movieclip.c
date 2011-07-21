@@ -135,6 +135,13 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	prop= RNA_def_float_vector(srna, "resolution" , 2 , NULL , 0, 0, "Resolution" , "X/Y pixels per meter" , 0 , 0);
 	RNA_def_property_float_funcs(prop, "rna_MovieClip_resolution_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "display_aspect", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "aspx");
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_range(prop, 0.1f, 5000.0f);
+	RNA_def_property_ui_text(prop, "Display Aspect", "Display Aspect for this clip, does not affect rendering");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 }
 
 void RNA_def_movieclip(BlenderRNA *brna)
