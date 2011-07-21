@@ -387,7 +387,7 @@ static void bokeh_single_image(bNode *node, CompBuf *new, CompBuf *img, float fa
 			float dist= sqrt(fj*fj + fi*fi);
 			
 		//*dgauss= hexagon_filter(fi, fj);
-			*dgauss= RE_filter_value(nbd->filtertype, 2.0f*dist - 1.0f);
+			*dgauss= RE_filter_value(nbd->filtertype, dist);
 
 			val+= *dgauss;
 		}

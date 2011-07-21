@@ -26,7 +26,29 @@
 
 set(INC
 	.
-	../../../intern/string
+	KXNetwork
+	../BlenderRoutines
+	../Converter
+	../Expressions
+	../GameLogic
+	../Network
+	../Network/LoopBackNetwork
+	../Physics/common
+	../Rasterizer
+	../Rasterizer/RAS_OpenGLRasterizer
+	../SceneGraph
+	../../blender
+	../../blender/blenfont
+	../../blender/blenkernel
+	../../blender/blenlib
+	../../blender/blenloader
+	../../blender/gpu
+	../../blender/imbuf
+	../../blender/makesdna
+	../../blender/python
+	../../blender/python/generic
+	../../blender/python/mathutils
+	../../../intern/container
 	../../../intern/guardedalloc
 	../../../intern/container
 	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
@@ -34,6 +56,7 @@ set(INC
 	../../../source/gameengine/BlenderRoutines
 	../../../source/blender/imbuf
 	../../../intern/moto/include
+	../../../intern/string
 	../../../source/gameengine/Ketsji
 	../../../source/blender/blenlib
 	../../../source/blender/blenfont
@@ -133,6 +156,10 @@ set(SRC
 
 	BL_Action.h
 	BL_ActionManager.h
+	BL_BlenderShader.h
+	BL_Material.h
+	BL_Shader.h
+	BL_Texture.h
 	KX_ArmatureSensor.h
 	KX_BlenderMaterial.h
 	KX_BulletPhysicsController.h
@@ -205,16 +232,14 @@ set(SRC
 	KX_VisibilityActuator.h
 	KX_WorldInfo.h
 	KX_WorldIpoController.h
-	BL_BlenderShader.h
-	BL_Material.h
-	BL_Shader.h
-	BL_Texture.h
 )
 
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_SDL)
-	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})  
+	list(APPEND INC_SYS
+		${SDL_INCLUDE_DIR}
+	)
 else()
 	add_definitions(-DDISABLE_SDL)
 endif()
@@ -233,7 +258,7 @@ endif()
 if(WITH_BULLET)
 	list(APPEND INC
 		../../../extern/bullet2/src
-		../../../source/gameengine/Physics/Bullet
+		../Physics/Bullet
 	)
 	add_definitions(-DUSE_BULLET)
 endif()

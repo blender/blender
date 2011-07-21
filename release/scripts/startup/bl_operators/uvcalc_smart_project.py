@@ -747,14 +747,8 @@ def packIslands(islandList):
 
 
 def VectoQuat(vec):
-    a3 = vec.normalized()
-    up = Vector((0.0, 0.0, 1.0))
-    if abs(a3.dot(up)) == 1.0:
-        up = Vector((0.0, 1.0, 0.0))
-
-    a1 = a3.cross(up).normalized()
-    a2 = a3.cross(a1)
-    return Matrix((a1, a2, a3)).to_quaternion()
+    vec = vec.normalized()
+    return vec.to_track_quat('Z', 'X' if abs(vec.x) > 0.5 else 'Y').inverted()
 
 
 class thickface(object):

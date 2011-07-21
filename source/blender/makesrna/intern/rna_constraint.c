@@ -357,6 +357,7 @@ static void rna_def_constrainttarget(BlenderRNA *brna)
 
 static void rna_def_constraint_childof(BlenderRNA *brna)
 {
+	static int rna_matrix_dimsize_4x4[]= {4, 4};
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -419,6 +420,13 @@ static void rna_def_constraint_childof(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CHILDOF_SIZEZ);
 	RNA_def_property_ui_text(prop, "Scale Z", "Use Z Scale of Parent");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "inverse_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "invmat");
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Inverse Matrix", "Transformation matrix to apply before");
+	
 }
 
 static void rna_def_constraint_python(BlenderRNA *brna)

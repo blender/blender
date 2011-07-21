@@ -35,6 +35,21 @@ global_c = set()
 global_refs = {}
 
 
+def replace_line(f, i, text, keep_indent=True):
+    file_handle = open(f, 'r')
+    data = file_handle.readlines()
+    file_handle.close()
+    
+    l = data[i]
+    ws = l[:len(l) - len(l.lstrip())]
+    
+    data[i] = "%s%s\n" % (ws, text)
+    
+    file_handle = open(f, 'w')
+    file_handle.writelines(data)
+    file_handle.close()
+
+
 def source_list(path, filename_check=None):
     for dirpath, dirnames, filenames in os.walk(path):
 
@@ -77,7 +92,20 @@ def cmake_get_src(f):
     found = False
     i = 0
     # print(f)
+
+    def is_definition(l, f, i, name):
+        if ('set(%s' % name) in l or ('set(' in l and l.endswith(name)):
+            if len(l.split()) > 1:
+                raise Exception("strict formatting not kept 'set(%s*' %s:%d" % (name, f, i))
+            return True
+
+        if ("list(APPEND %s" % name) in l or ('list(APPEND ' in l and l.endswith(name)):
+            if l.endswith(")"):
+                raise Exception("strict formatting not kept 'list(APPEND %s...)' on 1 line %s:%d" % (name, f, i))
+            return True
+
     while it is not None:
+        context_name = ""
         while it is not None:
             i += 1
             try:
@@ -87,16 +115,13 @@ def cmake_get_src(f):
                 break
             l = l.strip()
             if not l.startswith("#"):
-                if 'set(SRC' in l or ('set(' in l and l.endswith("SRC")):
-                    if len(l.split()) > 1:
-                        raise Exception("strict formatting not kept 'set(SRC*' %s:%d" % (f, i))
-                    found = True
+                found = is_definition(l, f, i, "SRC")
+                if found:
+                    context_name = "SRC"
                     break
-
-                if "list(APPEND SRC" in l or ('list(APPEND ' in l and l.endswith("SRC")):
-                    if l.endswith(")"):
-                        raise Exception("strict formatting not kept 'list(APPEND SRC...)' on 1 line %s:%d" % (f, i))
-                    found = True
+                found = is_definition(l, f, i, "INC")
+                if found:
+                    context_name = "INC"
                     break
 
         if found:
@@ -125,30 +150,45 @@ def cmake_get_src(f):
                     if not l:
                         pass
                     elif l.startswith("$"):
-                        # assume if it ends with SRC we know about it
-                        if not l.split("}")[0].endswith("SRC"):
-                            print("Can't use var '%s' %s:%d" % (l, f, i))
+                        if context_name == "SRC":
+                            # assume if it ends with context_name we know about it
+                            if not l.split("}")[0].endswith(context_name):
+                                print("Can't use var '%s' %s:%d" % (l, f, i))
                     elif len(l.split()) > 1:
                         raise Exception("Multi-line define '%s' %s:%d" % (l, f, i))
                     else:
                         new_file = normpath(join(cmake_base, l))
 
-                        if is_c_header(new_file):
-                            sources_h.append(new_file)
-                            global_refs.setdefault(new_file, []).append((f, i))
-                        elif is_c(new_file):
-                            sources_c.append(new_file)
-                            global_refs.setdefault(new_file, []).append((f, i))
-                        elif l in ("PARENT_SCOPE", ):
-                            # cmake var, ignore
-                            pass
-                        elif new_file.endswith(".list"):
-                            pass
-                        elif new_file.endswith(".def"):
-                            pass
-                        else:
-                            raise Exception("unknown file type - not c or h %s -> %s" % (f, new_file))
+                        if context_name == "SRC":
+                            if is_c_header(new_file):
+                                sources_h.append(new_file)
+                                global_refs.setdefault(new_file, []).append((f, i))
+                            elif is_c(new_file):
+                                sources_c.append(new_file)
+                                global_refs.setdefault(new_file, []).append((f, i))
+                            elif l in ("PARENT_SCOPE", ):
+                                # cmake var, ignore
+                                pass
+                            elif new_file.endswith(".list"):
+                                pass
+                            elif new_file.endswith(".def"):
+                                pass
+                            else:
+                                raise Exception("unknown file type - not c or h %s -> %s" % (f, new_file))
 
+                        elif context_name == "INC":
+                            if os.path.isdir(new_file):
+                                new_path_rel = os.path.relpath(new_file, cmake_base)
+
+                                if new_path_rel != l:
+                                    print("overly relative path:\n  %s:%d\n  %s\n  %s" % (f, i, l, new_path_rel))
+                                    
+                                    ## Save time. just replace the line
+                                    # replace_line(f, i - 1, new_path_rel)
+                                    
+                            else:
+                                raise Exception("non existant include %s:%d -> %s" % (f, i, new_file))
+                            
                         # print(new_file)
 
             global_h.update(set(sources_h))
@@ -166,6 +206,10 @@ def cmake_get_src(f):
                 if ff not in sources_c:
                     print("  missing: " + ff)
             '''
+            
+            # reset
+            sources_h[:] = []
+            sources_c[:] = []
 
     filen.close()
 

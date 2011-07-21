@@ -26,8 +26,8 @@
 
 set(INC
 	.
-	../blenlib
 	../blenkernel
+	../blenlib
 	../blenloader
 	../imbuf
 	../makesdna
@@ -55,6 +55,10 @@ set(SRC
 	GPU_material.h
 	intern/gpu_codegen.h
 )
+
+if(WITH_MOD_SMOKE)
+	add_definitions(-DWITH_SMOKE)
+endif()
 
 add_definitions(-DGLEW_STATIC)
 

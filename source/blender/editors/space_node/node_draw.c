@@ -461,6 +461,7 @@ static void node_update_group(const bContext *C, bNodeTree *UNUSED(ntree), bNode
 }
 
 /* note: in cmp_util.c is similar code, for node_compo_pass_on() */
+/* note: in node_edit.c is similar code, for untangle node */
 static void node_draw_mute_line(View2D *v2d, SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *valsock= NULL, *colsock= NULL, *vecsock= NULL;

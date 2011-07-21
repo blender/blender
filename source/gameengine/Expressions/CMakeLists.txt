@@ -26,11 +26,11 @@
 
 set(INC
 	.
-	../../../intern/string
+	../SceneGraph
+	../../blender/blenloader
 	../../../intern/guardedalloc
 	../../../intern/moto/include
-	../../../source/gameengine/SceneGraph
-	../../../source/blender/blenloader
+	../../../intern/string
 )
 
 set(INC_SYS

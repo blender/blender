@@ -220,6 +220,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 
 static void init_frame_smoke(VoxelData *vd, float cfra)
 {
+#ifdef WITH_SMOKE
 	Object *ob;
 	ModifierData *md;
 	
@@ -300,7 +301,13 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 	}
 	
 	vd->ok = 1;
-	return;
+
+#else // WITH_SMOKE
+	(void)vd;
+	(void)cfra;
+
+	vd->dataset= NULL;
+#endif
 }
 
 static void cache_voxeldata(struct Render *re, Tex *tex)

@@ -90,6 +90,9 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
 get_blender_version()
 
 # Blender internal features
+option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
+mark_as_advanced(WITH_BLENDER)
+
 option(WITH_INTERNATIONAL "Enable I18N (International fonts and text)" ON)
 
 option(WITH_PYTHON        "Enable Embedded Python API  (only disable for development)" ON)
@@ -106,11 +109,20 @@ option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
 
-option(WITH_AUDASPACE    "Build with blenders audio library" ON)
-mark_as_advanced(WITH_AUDASPACE)
+# GHOST Windowing Library Options
+option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
+mark_as_advanced(WITH_GHOST_DEBUG)
 
+option(WITH_GHOST_SDL    "Enable building blender against SDL for windowing rather then the native APIs" OFF)
+mark_as_advanced(WITH_GHOST_SDL)
+
+# Misc...
 option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
 mark_as_advanced(WITH_HEADLESS)
+
+option(WITH_AUDASPACE    "Build with blenders audio library (only disable if you know what you're doing!)" ON)
+mark_as_advanced(WITH_AUDASPACE)
+
 
 # (unix defaults to OpenMP On)
 if(UNIX AND NOT APPLE)
@@ -129,6 +141,7 @@ endif()
 
 # Modifiers
 option(WITH_MOD_FLUID        	"Enable Elbeem Modifier (Fluid Simulation)" ON)
+option(WITH_MOD_SMOKE        	"Enable Smoke Modifier (Smoke Simulation)" ON)
 option(WITH_MOD_DECIMATE       	"Enable Decimate Modifier" ON)
 option(WITH_MOD_BOOLEAN        	"Enable Boolean Modifier" ON)
 option(WITH_MOD_CLOTH_ELTOPO   	"Enable Experemental cloth solver" OFF)
@@ -201,12 +214,20 @@ endif()
 #-----------------------------------------------------------------------------
 # Check for conflicting/unsupported configurations
 
+if(NOT WITH_BLENDER AND NOT WITH_PLAYER)
+	message(FATAL_ERROR "At least one of WITH_BLENDER or WITH_PLAYER must be enabled, nothing to do!")
+endif()
+
 if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
 
 if(NOT WITH_AUDASPACE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
 	message(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK/WITH_CODEC_FFMPEG require WITH_AUDASPACE")
+endif()
+
+if(NOT WITH_SDL AND WITH_GHOST_SDL)
+	message(FATAL_ERROR "WITH_GHOST_SDL requires WITH_SDL to be ON")
 endif()
 
 if(NOT WITH_IMAGE_OPENJPEG AND WITH_IMAGE_REDCODE)
@@ -433,7 +454,7 @@ if(UNIX AND NOT APPLE)
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
 	set(PLATFORM_LINKLIBS "-lutil -lc -lm -lpthread -lstdc++")
 
-	if(NOT WITH_HEADLESS)
+	if((NOT WITH_HEADLESS) AND (NOT WITH_GHOST_SDL))
 		find_package(X11 REQUIRED)
 		find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
 		mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
@@ -708,10 +729,14 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_PYTHON)
-			set(PYTHON_VERSION 3.2)
-			set(PYTHON_INCLUDE_DIRS "${LIBDIR}/python/include/python${PYTHON_VERSION}")
-			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARIES ${LIBDIR}/python/lib/python32.lib)
+			# normally cached but not since we include them with blender
+			set(PYTHON_VERSION 3.2) # CACHE STRING)
+			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}") # CACHE PATH)
+			set(PYTHON_LIBRARY "${LIBDIR}/python/lib/python32.lib") #CACHE FILEPATH)
+
+			# uncached vars
+			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
+			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 		endif()
 
 		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
@@ -811,12 +836,14 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_PYTHON)
-			set(PYTHON ${LIBDIR}/python)
-			set(PYTHON_VERSION 3.2)
-			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
-			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARIES ${PYTHON}/lib/python32mw.lib)
-			set(PYTHON_LIBPATH ${PYTHON}/lib)
+			# normally cached but not since we include them with blender
+			set(PYTHON_VERSION 3.2) #  CACHE STRING)
+			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")  # CACHE PATH)
+			set(PYTHON_LIBRARY "${LIBDIR}/python/lib/python32mw.lib")  # CACHE FILEPATH)
+
+			# uncached vars
+			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
+			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 		endif()
 
 		set(PLATFORM_LINKFLAGS "--stack,2097152")
@@ -867,27 +894,33 @@ elseif(APPLE)
 		set(SNDFILE_LIBPATH ${SNDFILE}/lib ${FFMPEG}/lib)  # TODO, deprecate
 	endif()
 
-	set(PYTHON_VERSION 3.2)
-
-	if(PYTHON_VERSION MATCHES 3.2)
-		# we use precompiled libraries for py 3.2 and up by default
-
-		set(PYTHON ${LIBDIR}/python)
-		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
-		# set(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}") # not used yet
-		set(PYTHON_LIBRARIES python${PYTHON_VERSION})
-		set(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}")
-		# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
-	else()
-		# otherwise, use custom system framework
-
-		set(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
+	if(WITH_PYTHON)
 		set(PYTHON_VERSION 3.2)
-		set(PYTHON_INCLUDE_DIRS "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
-		# set(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
-		set(PYTHON_LIBRARIES "")
-		set(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config)
-		set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python")
+		if(PYTHON_VERSION MATCHES 3.2)
+			# we use precompiled libraries for py 3.2 and up by default
+
+			# normally cached but not since we include them with blender
+			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
+			# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
+			set(PYTHON_LIBRARY python${PYTHON_VERSION})
+			set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
+			# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
+		else()
+			# otherwise, use custom system framework
+			# *not used but maintained incase some dev wants to*
+
+			set(PYTHON "/System/Library/Frameworks/Python.framework/Versions/" CACHE PATH)
+			set(PYTHON_INCLUDE_DIR "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}" CACHE PATH)
+			# set(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
+			set(PYTHON_LIBRARY "" CACHE FILEPATH)
+			set(PYTHON_LIBPATH "${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config" CACHE PATH)
+			set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python" CACHE STRING)
+			unset(PYTHON)
+		endif()
+
+		# uncached vars
+		set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
+		set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 	endif()
 
 	if(WITH_INTERNATIONAL)
@@ -1182,6 +1215,20 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 	endif()
 endif()
 
+
+# ensure python header is found since detection can fail, this could happen
+# with _any_ library but since we used a fixed python version this tends to
+# be most problematic.
+if(WITH_PYTHON)
+	if(NOT EXISTS "${PYTHON_INCLUDE_DIR}/Python.h")
+		message(FATAL_ERROR "Missing: \"${PYTHON_INCLUDE_DIR}/Python.h\",\n"
+							"Set the cache entry 'PYTHON_INCLUDE_DIR' to point "
+							"to a valid python include path. Containing "
+							"Python.h for python version \"${PYTHON_VERSION}\"")
+	endif()
+endif()
+
+
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")
 
@@ -1210,7 +1257,9 @@ add_subdirectory(extern)
 
 #-----------------------------------------------------------------------------
 # Blender Application
-add_subdirectory(source/creator)
+if(WITH_BLENDER)
+	add_subdirectory(source/creator)
+endif()
 
 
 #-----------------------------------------------------------------------------

@@ -822,12 +822,18 @@ void GPU_free_smoke(SmokeModifierData *smd)
 
 void GPU_create_smoke(SmokeModifierData *smd, int highres)
 {
+#ifdef WITH_SMOKE
 	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && !smd->domain->tex && !highres)
 		smd->domain->tex = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smoke_get_density(smd->domain->fluid));
 	else if(smd->type & MOD_SMOKE_TYPE_DOMAIN && !smd->domain->tex && highres)
 		smd->domain->tex = GPU_texture_create_3D(smd->domain->res_wt[0], smd->domain->res_wt[1], smd->domain->res_wt[2], smoke_turbulence_get_density(smd->domain->wt));
 
 	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
+#else // WITH_SMOKE
+	(void)highres;
+	smd->domain->tex= NULL;
+	smd->domain->tex_shadow= NULL;
+#endif // WITH_SMOKE
 }
 
 static ListBase image_free_queue = {NULL, NULL};
