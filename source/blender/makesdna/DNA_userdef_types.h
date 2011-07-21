@@ -365,7 +365,6 @@ typedef struct UserDef {
 	short recent_files;		/* maximum number of recently used files to remember  */
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
-/*	short ndof_pan, ndof_rotate; */
 	short curssize;
 	short color_picker_type;
 	short ipo_new;			/* interpolation mode for newly added F-Curves */
@@ -586,11 +585,11 @@ extern UserDef U; /* from blenkernel blender.c */
 #define NDOF_FLY_HELICOPTER (1 << 1)
 #define NDOF_LOCK_HORIZON   (1 << 2)
 /* the following might not need to be saved between sessions,
-   but they do need to live somewhere accessible...
+   but they do need to live somewhere accessible... */
 #define NDOF_SHOULD_PAN     (1 << 3)
 #define NDOF_SHOULD_ZOOM    (1 << 4)
 #define NDOF_SHOULD_ROTATE  (1 << 5)
-*/
+
 
 #ifdef __cplusplus
 }

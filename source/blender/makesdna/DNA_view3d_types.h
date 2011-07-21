@@ -190,11 +190,10 @@ typedef struct View3D {
 	/* drawflags, denoting state */
 	short zbuf, transp, xray;
 
-	char ndofmode;			/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
-	char ndoffilter;		/* filter for 6DOF devices 0 normal, 1 dominant */
-	
+	char pad3[2];
+
 	void *properties_storage;	/* Nkey panel stores stuff here (runtime only!) */
-	
+
 	/* XXX depricated? */
 	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
 

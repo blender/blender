@@ -929,8 +929,15 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	wmNDOFMotionData* ndof = fly->ndof;
 	const float dt = ndof->dt;
 	RegionView3D* rv3d = fly->rv3d;
+	const int flag = U.ndof_flag;
 
-	const int shouldRotate = 1, shouldTranslate = 1;
+	const int shouldRotate = TRUE,
+	          shouldTranslate = TRUE;
+
+	// const int shouldRotate = flag & NDOF_SHOULD_ROTATE,
+	//          shouldTranslate = flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM);
+	// might also be something in FlyInfo that restricts motion
+	// if so, change these ^^
 
 	float view_inv[4];
 	invert_qt_qt(view_inv, rv3d->viewquat);
@@ -955,7 +962,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		// transform motion from view to world coordinates
 		mul_qt_v3(view_inv, trans);
 
-		if (U.ndof_flag & NDOF_FLY_HELICOPTER)
+		if (flag & NDOF_FLY_HELICOPTER)
 			// could also use RNA to get a simple boolean value
 			{
 			// replace world z component with device y (yes it makes sense)
@@ -981,9 +988,9 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 
 		// apply rotation to view
 		axis_angle_to_quat(rotation, axis, angle);
-		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);		
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
 
-		if (U.ndof_flag & NDOF_LOCK_HORIZON)
+		if (flag & NDOF_LOCK_HORIZON)
 			// force an upright viewpoint
 			// TODO: make this less... sudden
 			{
@@ -992,6 +999,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 
 			// find new inverse since viewquat has changed
 			invert_qt_qt(view_inv, rv3d->viewquat);
+			// could apply reverse rotation to existing view_inv to save a few cycles
 
 			// transform view vectors to world coordinates
 			mul_qt_v3(view_inv, view_horizon);
@@ -1007,7 +1015,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 
 			// rotate view so view horizon = world horizon
 			axis_angle_to_quat(rotation, view_direction, angle);
-			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);		
+			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
 			}
 
 		rv3d->view = RV3D_VIEW_USER;

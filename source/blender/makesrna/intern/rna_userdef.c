@@ -2739,24 +2739,14 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Drag Threshold", "Amount of pixels you have to drag before dragging UI items happens");
 
   	/* 3D mouse settings */
-/*	
-	prop= RNA_def_property(srna, "ndof_pan_speed", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ndof_pan");
-	RNA_def_property_range(prop, 0, 200);
-	RNA_def_property_ui_text(prop, "NDof Pan Speed", "The overall panning speed of an NDOF device, as percent of standard");
-
-	prop= RNA_def_property(srna, "ndof_rotate_speed", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ndof_rotate");
-	RNA_def_property_range(prop, 0, 200);
-	RNA_def_property_ui_text(prop, "NDof Rotation Speed", "The overall rotation speed of an NDOF device, as percent of standard");
-*/
 	prop= RNA_def_property(srna, "ndof_sensitivity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.25f, 4.0f);
-	RNA_def_property_ui_text(prop, "3D Mouse Sensitivity", "Baseline sensitivity of the 3D Mouse");
+	RNA_def_property_ui_text(prop, "Sensitivity", "Overall sensitivity of the 3D Mouse");
 
 	prop= RNA_def_property(srna, "ndof_show_guide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_SHOW_GUIDE);
-	RNA_def_property_ui_text(prop, "Show 3D Mouse Guide", "Visualize the center and axis of rotation (or projected position in fly mode)");
+	RNA_def_property_ui_text(prop, "Show Navigation Guide", "Display the center and axis during rotation");
+	/* TODO: update description when fly-mode visuals are in place  ("projected position in fly mode")*/
 
 	prop= RNA_def_property(srna, "ndof_lock_horizon", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_LOCK_HORIZON);
