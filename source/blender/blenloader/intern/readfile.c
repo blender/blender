@@ -10281,8 +10281,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.attrib = sce->r.attrib;
 
 			//Stereo
-			sce->gm.xsch = sce->r.xsch;
-			sce->gm.ysch = sce->r.ysch;
 			sce->gm.stereomode = sce->r.stereomode;
 			/* reassigning stereomode NO_STEREO and DOME to a separeted flag*/
 			if (sce->gm.stereomode == 1){ //1 = STEREO_NOSTEREO

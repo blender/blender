@@ -194,6 +194,16 @@ extern const char *view3d_context_dir[]; /* doc access */
 /* draw_volume.c */
 void draw_volume(struct ARegion *ar, struct GPUTexture *tex, float *min, float *max, int res[3], float dx, struct GPUTexture *tex_shadow);
 
+/* workaround for trivial but noticable camera bug caused by imprecision
+ * between view border calculation in 2D/3D space, workaround for bug [#28037].
+ * without this deifne we get the old behavior which is to try and align them
+ * both which _mostly_ works fine, but when the camera moves beyond ~1000 in
+ * any direction it starts to fail */
+#define VIEW3D_CAMERA_BORDER_HACK
+#ifdef VIEW3D_CAMERA_BORDER_HACK
+extern float view3d_camera_border_hack_col[4];
+extern short view3d_camera_border_hack_test;
+#endif
 
 #endif /* ED_VIEW3D_INTERN_H */
 

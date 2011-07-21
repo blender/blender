@@ -1335,6 +1335,11 @@ static void draw_focus_cross(float dist, float size)
 	glEnd();
 }
 
+#ifdef VIEW3D_CAMERA_BORDER_HACK
+float view3d_camera_border_hack_col[4];
+short view3d_camera_border_hack_test= FALSE;
+#endif
+
 /* flag similar to draw_object() */
 static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int flag)
 {
@@ -1348,7 +1353,15 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	const float scax= 1.0f / len_v3(ob->obmat[0]);
 	const float scay= 1.0f / len_v3(ob->obmat[1]);
 	const float scaz= 1.0f / len_v3(ob->obmat[2]);
-	
+
+#ifdef VIEW3D_CAMERA_BORDER_HACK
+	if(is_view && !(G.f & G_PICKSEL)) {
+		glGetFloatv(GL_CURRENT_COLOR, view3d_camera_border_hack_col);
+		view3d_camera_border_hack_test= TRUE;
+		return;
+	}
+#endif
+
 	cam= ob->data;
 	aspx= (float) scene->r.xsch*scene->r.xasp;
 	aspy= (float) scene->r.ysch*scene->r.yasp;
