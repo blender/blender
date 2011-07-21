@@ -26,7 +26,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* define this to generate PNg images with content of search areas
+/* define this to generate PNG images with content of search areas
   tracking between which failed */
 #undef DUMP_FAILURE
 

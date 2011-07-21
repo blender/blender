@@ -389,12 +389,18 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, MovieClip *clip, fl
 		MovieTrackingMarker *marker= BKE_tracking_get_marker(cur, sc->user.framenr);
 
 		if(((cur->flag&TRACK_HIDDEN)==0) && MARKER_VISIBLE(sc, marker)) {
-			float dist, d1, d2, d3;
+			float dist, d1, d2=FLT_MAX, d3=FLT_MAX;
 
 			d1= sqrtf((co[0]-marker->pos[0])*(co[0]-marker->pos[0])+
 					  (co[1]-marker->pos[1])*(co[1]-marker->pos[1])); /* distance to marker point */
-			d2= dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max); /* distance to search boundbox */
-			d3= dist_to_rect(co, marker->pos, cur->search_min, cur->search_max); /* distance to search boundbox */
+
+			/* distance to pattern boundbox */
+			if(sc->flag&SC_SHOW_MARKER_PATTERN)
+				d2= dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max);
+
+			/* distance to search boundbox */
+			if(sc->flag&SC_SHOW_MARKER_SEARCH)
+				d3= dist_to_rect(co, marker->pos, cur->search_min, cur->search_max);
 
 			/* choose minimal distance. useful for cases of overlapped markers. */
 			dist= MIN3(d1, d2, d3);
@@ -809,6 +815,7 @@ static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_upd
 {
 	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
 	int framenr= tmj->sfra;
+	//double t= PIL_check_seconds_timer();
 
 	while(framenr != tmj->efra) {
 		if(tmj->delay>0) {
@@ -840,6 +847,8 @@ static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_upd
 		if(track_markers_testbreak())
 			break;
 	}
+
+	//printf("Tracking time: %lf\n", PIL_check_seconds_timer()-t);
 }
 
 static void track_markers_updatejob(void *tmv)
