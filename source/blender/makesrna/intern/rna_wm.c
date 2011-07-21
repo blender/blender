@@ -106,6 +106,46 @@ EnumPropertyItem event_timer_type_items[]= {
 	{TIMER2, "TIMER2", 0, "Timer 2", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem event_ndof_type_items[]= {
+	/* buttons on all 3dconnexion devices */
+	{NDOF_BUTTON_MENU, "NDOF_BUTTON_MENU", 0, "Menu", ""},
+	{NDOF_BUTTON_FIT, "NDOF_BUTTON_FIT", 0, "Fit", ""},
+	/* view buttons */
+	{NDOF_BUTTON_TOP, "NDOF_BUTTON_TOP", 0, "Top", ""},
+	{NDOF_BUTTON_BOTTOM, "NDOF_BUTTON_BOTTOM", 0, "Bottom", ""},
+	{NDOF_BUTTON_LEFT, "NDOF_BUTTON_LEFT", 0, "Left", ""},
+	{NDOF_BUTTON_RIGHT, "NDOF_BUTTON_RIGHT", 0, "Right", ""},
+	{NDOF_BUTTON_FRONT, "NDOF_BUTTON_FRONT", 0, "Front", ""},
+	{NDOF_BUTTON_BACK, "NDOF_BUTTON_BACK", 0, "Back", ""},
+	/* more views */
+	{NDOF_BUTTON_ISO1, "NDOF_BUTTON_ISO1", 0, "ISO 1", ""},
+	{NDOF_BUTTON_ISO2, "NDOF_BUTTON_ISO2", 0, "ISO 2", ""},
+	/* 90 degree rotations */
+	{NDOF_BUTTON_ROLL_CW, "NDOF_BUTTON_ROLL_CW", 0, "Roll CW", ""},
+	{NDOF_BUTTON_ROLL_CCW, "NDOF_BUTTON_ROLL_CCW", 0, "Roll CCW", ""},
+	{NDOF_BUTTON_SPIN_CW, "NDOF_BUTTON_SPIN_CW", 0, "Spin CW", ""},
+	{NDOF_BUTTON_SPIN_CCW, "NDOF_BUTTON_SPIN_CCW", 0, "Spin CCW", ""},
+	{NDOF_BUTTON_TILT_CW, "NDOF_BUTTON_TILT_CW", 0, "Tilt CW", ""},
+	{NDOF_BUTTON_TILT_CCW, "NDOF_BUTTON_TILT_CCW", 0, "Tilt CCW", ""},
+	/* device control */
+	{NDOF_BUTTON_ROTATE, "NDOF_BUTTON_ROTATE", 0, "Rotate", ""},
+	{NDOF_BUTTON_PANZOOM, "NDOF_BUTTON_PANZOOM", 0, "Pan/Zoom", ""},
+	{NDOF_BUTTON_DOMINANT, "NDOF_BUTTON_DOMINANT", 0, "Dominant", ""},
+	{NDOF_BUTTON_PLUS, "NDOF_BUTTON_PLUS", 0, "Plus", ""},
+	{NDOF_BUTTON_MINUS, "NDOF_BUTTON_MINUS", 0, "Minus", ""},
+	/* general-purpose buttons */
+	{NDOF_BUTTON_1, "NDOF_BUTTON_1", 0, "Button 1", ""},
+	{NDOF_BUTTON_2, "NDOF_BUTTON_2", 0, "Button 2", ""},
+	{NDOF_BUTTON_3, "NDOF_BUTTON_3", 0, "Button 3", ""},
+	{NDOF_BUTTON_4, "NDOF_BUTTON_4", 0, "Button 4", ""},
+	{NDOF_BUTTON_5, "NDOF_BUTTON_5", 0, "Button 5", ""},
+	{NDOF_BUTTON_6, "NDOF_BUTTON_6", 0, "Button 6", ""},
+	{NDOF_BUTTON_7, "NDOF_BUTTON_7", 0, "Button 7", ""},
+	{NDOF_BUTTON_8, "NDOF_BUTTON_8", 0, "Button 8", ""},
+	{NDOF_BUTTON_9, "NDOF_BUTTON_9", 0, "Button 9", ""},
+	{NDOF_BUTTON_10, "NDOF_BUTTON_10", 0, "Button 10", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 /* not returned: CAPSLOCKKEY, UNKNOWNKEY */
 EnumPropertyItem event_type_items[] = {
 
@@ -256,6 +296,44 @@ EnumPropertyItem event_type_items[] = {
 	{TIMER0, "TIMER0", 0, "Timer 0", ""},
 	{TIMER1, "TIMER1", 0, "Timer 1", ""},
 	{TIMER2, "TIMER2", 0, "Timer 2", ""},
+	{0, "", 0, NULL, NULL},
+	/* buttons on all 3dconnexion devices */
+	{NDOF_BUTTON_MENU, "NDOF_BUTTON_MENU", 0, "Menu", ""},
+	{NDOF_BUTTON_FIT, "NDOF_BUTTON_FIT", 0, "Fit", ""},
+	/* view buttons */
+	{NDOF_BUTTON_TOP, "NDOF_BUTTON_TOP", 0, "Top", ""},
+	{NDOF_BUTTON_BOTTOM, "NDOF_BUTTON_BOTTOM", 0, "Bottom", ""},
+	{NDOF_BUTTON_LEFT, "NDOF_BUTTON_LEFT", 0, "Left", ""},
+	{NDOF_BUTTON_RIGHT, "NDOF_BUTTON_RIGHT", 0, "Right", ""},
+	{NDOF_BUTTON_FRONT, "NDOF_BUTTON_FRONT", 0, "Front", ""},
+	{NDOF_BUTTON_BACK, "NDOF_BUTTON_BACK", 0, "Back", ""},
+	/* more views */
+	{NDOF_BUTTON_ISO1, "NDOF_BUTTON_ISO1", 0, "ISO 1", ""},
+	{NDOF_BUTTON_ISO2, "NDOF_BUTTON_ISO2", 0, "ISO 2", ""},
+	/* 90 degree rotations */
+	{NDOF_BUTTON_ROLL_CW, "NDOF_BUTTON_ROLL_CW", 0, "Roll CW", ""},
+	{NDOF_BUTTON_ROLL_CCW, "NDOF_BUTTON_ROLL_CCW", 0, "Roll CCW", ""},
+	{NDOF_BUTTON_SPIN_CW, "NDOF_BUTTON_SPIN_CW", 0, "Spin CW", ""},
+	{NDOF_BUTTON_SPIN_CCW, "NDOF_BUTTON_SPIN_CCW", 0, "Spin CCW", ""},
+	{NDOF_BUTTON_TILT_CW, "NDOF_BUTTON_TILT_CW", 0, "Tilt CW", ""},
+	{NDOF_BUTTON_TILT_CCW, "NDOF_BUTTON_TILT_CCW", 0, "Tilt CCW", ""},
+	/* device control */
+	{NDOF_BUTTON_ROTATE, "NDOF_BUTTON_ROTATE", 0, "Rotate", ""},
+	{NDOF_BUTTON_PANZOOM, "NDOF_BUTTON_PANZOOM", 0, "Pan/Zoom", ""},
+	{NDOF_BUTTON_DOMINANT, "NDOF_BUTTON_DOMINANT", 0, "Dominant", ""},
+	{NDOF_BUTTON_PLUS, "NDOF_BUTTON_PLUS", 0, "Plus", ""},
+	{NDOF_BUTTON_MINUS, "NDOF_BUTTON_MINUS", 0, "Minus", ""},
+	/* general-purpose buttons */
+	{NDOF_BUTTON_1, "NDOF_BUTTON_1", 0, "Button 1", ""},
+	{NDOF_BUTTON_2, "NDOF_BUTTON_2", 0, "Button 2", ""},
+	{NDOF_BUTTON_3, "NDOF_BUTTON_3", 0, "Button 3", ""},
+	{NDOF_BUTTON_4, "NDOF_BUTTON_4", 0, "Button 4", ""},
+	{NDOF_BUTTON_5, "NDOF_BUTTON_5", 0, "Button 5", ""},
+	{NDOF_BUTTON_6, "NDOF_BUTTON_6", 0, "Button 6", ""},
+	{NDOF_BUTTON_7, "NDOF_BUTTON_7", 0, "Button 7", ""},
+	{NDOF_BUTTON_8, "NDOF_BUTTON_8", 0, "Button 8", ""},
+	{NDOF_BUTTON_9, "NDOF_BUTTON_9", 0, "Button 9", ""},
+	{NDOF_BUTTON_10, "NDOF_BUTTON_10", 0, "Button 10", ""},
 	{0, NULL, 0, NULL, NULL}};	
 
 EnumPropertyItem keymap_propvalue_items[] = {
@@ -303,6 +381,7 @@ EnumPropertyItem wm_report_items[] = {
 #define KMI_TYPE_TWEAK		2
 #define KMI_TYPE_TEXTINPUT	3
 #define KMI_TYPE_TIMER		4
+#define KMI_TYPE_NDOF		5
 
 #ifdef RNA_RUNTIME
 
@@ -433,6 +512,7 @@ static int rna_wmKeyMapItem_map_type_get(PointerRNA *ptr)
 	if(ISKEYBOARD(kmi->type)) return KMI_TYPE_KEYBOARD;
 	if(ISTWEAK(kmi->type)) return KMI_TYPE_TWEAK;
 	if(ISMOUSE(kmi->type)) return KMI_TYPE_MOUSE;
+	if(ISNDOF(kmi->type)) return KMI_TYPE_NDOF;
 	if(kmi->type == KM_TEXTINPUT) return KMI_TYPE_TEXTINPUT;
 	return KMI_TYPE_KEYBOARD;
 }
@@ -464,6 +544,10 @@ static void rna_wmKeyMapItem_map_type_set(PointerRNA *ptr, int value)
 			kmi->type= TIMER;
 			kmi->val= KM_NOTHING;
 			break;
+		case KMI_TYPE_NDOF:
+			kmi->type = NDOF_BUTTON_MENU;
+			kmi->val = KM_NOTHING;
+			break;
 		}
 	}
 }
@@ -475,6 +559,7 @@ static EnumPropertyItem *rna_KeyMapItem_type_itemf(bContext *UNUSED(C), PointerR
 	if(map_type == KMI_TYPE_MOUSE) return event_mouse_type_items;
 	if(map_type == KMI_TYPE_TWEAK) return event_tweak_type_items;
 	if(map_type == KMI_TYPE_TIMER) return event_timer_type_items;
+	if(map_type == KMI_TYPE_NDOF) return event_ndof_type_items;
 	else return event_type_items;
 }
 
@@ -482,7 +567,7 @@ static EnumPropertyItem *rna_KeyMapItem_value_itemf(bContext *UNUSED(C), Pointer
 {
 	int map_type= rna_wmKeyMapItem_map_type_get(ptr);
 
-	if(map_type == KMI_TYPE_MOUSE || map_type == KMI_TYPE_KEYBOARD) return event_keymouse_value_items;
+	if(map_type == KMI_TYPE_MOUSE || map_type == KMI_TYPE_KEYBOARD || map_type == KMI_TYPE_NDOF) return event_keymouse_value_items;
 	if(map_type == KMI_TYPE_TWEAK) return event_tweak_value_items;
 	else return event_value_items;
 }
@@ -1653,6 +1738,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 		{KMI_TYPE_KEYBOARD, "KEYBOARD", 0, "Keyboard", ""},
 		{KMI_TYPE_TWEAK, "TWEAK", 0, "Tweak", ""},
 		{KMI_TYPE_MOUSE, "MOUSE", 0, "Mouse", ""},
+		{KMI_TYPE_NDOF, "NDOF", 0, "NDOF", ""},
 		{KMI_TYPE_TEXTINPUT, "TEXTINPUT", 0, "Text Input", ""},
 		{KMI_TYPE_TIMER, "TIMER", 0, "Timer", ""},
 		{0, NULL, 0, NULL, NULL}};
