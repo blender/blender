@@ -216,6 +216,8 @@ static MovieClip *movieclip_alloc(const char *name)
 
 	clip= alloc_libblock(&G.main->movieclip, ID_MC, name);
 
+	clip->aspx= clip->aspy= 1.0f;
+
 	clip->tracking.camera.sensor_width= 35.0f;
 	clip->tracking.camera.sensor_height= 18.0f;
 	clip->tracking.camera.units= CAMERA_UNITS_MM;
