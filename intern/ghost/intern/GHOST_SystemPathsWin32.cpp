@@ -32,7 +32,9 @@
 
 #include "GHOST_SystemPathsWin32.h"
 
+#ifndef _WIN32_IE
 #define _WIN32_IE 0x0501
+#endif
 #include <shlobj.h>
 
 #if defined(__MINGW32__) || defined(__CYGWIN__)

@@ -48,7 +48,9 @@
 #include "GHOST_SystemWin32.h"
 #include "GHOST_EventDragnDrop.h"
 
+#ifndef _WIN32_IE
 #define _WIN32_IE 0x0501 /* shipped before XP, so doesn't impose additional requirements */
+#endif
 #include <shlobj.h>
 
 // win64 doesn't define GWL_USERDATA
