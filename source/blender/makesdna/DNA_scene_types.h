@@ -1107,7 +1107,8 @@ typedef struct Scene {
 #define PROP_SHARP             3
 #define PROP_LIN               4
 #define PROP_CONST             5
-#define PROP_RANDOM		6
+#define PROP_RANDOM            6
+#define PROP_MODE_MAX          7
 
 /* toolsettings->proportional */
 #define PROP_EDIT_OFF			0
