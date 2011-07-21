@@ -78,12 +78,12 @@ bool EffectsExporter::hasEffects(Scene *sce)
 	return false;
 }
 
-void EffectsExporter::exportEffects(Scene *sce)
+void EffectsExporter::exportEffects(Scene *sce, bool export_selected)
 {
 	if(hasEffects(sce)) {
 		openLibrary();
 		MaterialFunctor mf;
-		mf.forEachMaterialInScene<EffectsExporter>(sce, *this);
+		mf.forEachMaterialInScene<EffectsExporter>(sce, *this, export_selected);
 
 		closeLibrary();
 	}
@@ -273,7 +273,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
 
 		// color
-		if (t->mapto & MAP_COL) {
+		if (t->mapto & (MAP_COL | MAP_COLSPEC)) {
 			ep.setDiffuse(createTexture(ima, uvname, sampler));
 		}
 		// ambient

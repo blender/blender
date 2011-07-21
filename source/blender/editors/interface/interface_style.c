@@ -83,7 +83,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name)
 	BLI_addtail(styles, style);
 	BLI_strncpy(style->name, name, MAX_STYLE_NAME);
 	
-	style->panelzoom= 1.0;
+	style->panelzoom= 1.0; /* unused */
 
 	style->paneltitle.uifont_id= UIFONT_DEFAULT;
 	style->paneltitle.points= 12;

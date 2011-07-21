@@ -1,26 +1,85 @@
 # -*- mode: cmake; indent-tabs-mode: t; -*-
 # $Id$
 
+
+# foo_bar.spam --> foo_barMySuffix.spam
+macro(file_suffix
+	file_name_new file_name file_suffix
+	)
+
+	get_filename_component(_file_name_PATH ${file_name} PATH)
+	get_filename_component(_file_name_NAME_WE ${file_name} NAME_WE)
+	get_filename_component(_file_name_EXT ${file_name} EXT)
+	set(${file_name_new} "${_file_name_PATH}/${_file_name_NAME_WE}${file_suffix}${_file_name_EXT}")
+
+	unset(_file_name_PATH)
+	unset(_file_name_NAME_WE)
+	unset(_file_name_EXT)
+endmacro()
+
+# usefil for adding debug suffix to library lists:
+# /somepath/foo.lib --> /somepath/foo_d.lib
+macro(file_list_suffix
+	fp_list_new fp_list fn_suffix
+	)
+
+	# incase of empty list
+	set(_fp)
+	set(_fp_suffixed)
+
+	set(fp_list_new)
+
+	foreach(_fp ${fp_list})
+		file_suffix(_fp_suffixed "${_fp}" "${fn_suffix}")
+		list(APPEND "${fp_list_new}" "${_fp_suffixed}")
+	endforeach()
+
+	unset(_fp)
+	unset(_fp_suffixed)
+
+endmacro()
+
+
+macro(target_link_libraries_optimized TARGET LIBS)
+	foreach(_LIB ${LIBS})
+		target_link_libraries(${TARGET} optimized "${_LIB}")
+	endforeach()
+	unset(_LIB)
+endmacro()
+
+macro(target_link_libraries_debug TARGET LIBS)
+	foreach(_LIB ${LIBS})
+		target_link_libraries(${TARGET} debug "${_LIB}")
+	endforeach()
+	unset(_LIB)
+endmacro()
+
 # Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
 # use it instead of include_directories()
 macro(blender_include_dirs
 	includes)
-
-	foreach(inc ${ARGV})
-		get_filename_component(abs_inc ${inc} ABSOLUTE)
-		list(APPEND all_incs ${abs_inc})
+	set(_ALL_INCS "")
+	foreach(_INC ${ARGV})
+		get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
+		list(APPEND _ALL_INCS ${_ABS_INC})
 	endforeach()
-	include_directories(${all_incs})
+	include_directories(${_ALL_INCS})
+	unset(_INC)
+	unset(_ABS_INC)
+	unset(_ALL_INCS)
 endmacro()
 
 macro(blender_include_dirs_sys
 	includes)
-
-	foreach(inc ${ARGV})
-		get_filename_component(abs_inc ${inc} ABSOLUTE)
-		list(APPEND all_incs ${abs_inc})
+	set(_ALL_INCS "")
+	foreach(_INC ${ARGV})
+		get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
+		list(APPEND _ALL_INCS ${_ABS_INC})
 	endforeach()
-	include_directories(SYSTEM ${all_incs})
+	include_directories(SYSTEM ${_ALL_INCS})
+	unset(_INC)
+	unset(_ABS_INC)
+	unset(_ALL_INCS)
 endmacro()
 
 macro(blender_source_group
@@ -29,14 +88,17 @@ macro(blender_source_group
 	# Group by location on disk
 	source_group("Source Files" FILES CMakeLists.txt)
 
-	foreach(SRC ${sources})
-		get_filename_component(SRC_EXT ${SRC} EXT)
-		if(${SRC_EXT} MATCHES ".h" OR ${SRC_EXT} MATCHES ".hpp")
-			source_group("Header Files" FILES ${SRC})
+	foreach(_SRC ${sources})
+		get_filename_component(_SRC_EXT ${_SRC} EXT)
+		if((${_SRC_EXT} MATCHES ".h") OR (${_SRC_EXT} MATCHES ".hpp"))
+			source_group("Header Files" FILES ${_SRC})
 		else()
-			source_group("Source Files" FILES ${SRC})
+			source_group("Source Files" FILES ${_SRC})
 		endif()
 	endforeach()
+
+	unset(_SRC)
+	unset(_SRC_EXT)
 endmacro()
 
 
@@ -118,7 +180,7 @@ macro(SETUP_LIBDIRS)
 		link_directories(${SNDFILE_LIBPATH})
 	endif()
 	if(WITH_SAMPLERATE)
-		link_directories(${LIBSAMPLERATE_LIBPATH})
+		link_directories(${SAMPLERATE_LIBPATH})
 	endif()
 	if(WITH_FFTW3)
 		link_directories(${FFTW3_LIBPATH})
@@ -139,19 +201,29 @@ endmacro()
 
 macro(setup_liblinks
 	target)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS} ")
 
-	target_link_libraries(${target} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES} ${LLIBS})
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${PLATFORM_LINKFLAGS}")
+	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} ${PLATFORM_LINKFLAGS_DEBUG}")
+
+	target_link_libraries(${target}
+			${OPENGL_gl_LIBRARY}
+			${OPENGL_glu_LIBRARY}
+			${JPEG_LIBRARIES}
+			${PNG_LIBRARIES}
+			${ZLIB_LIBRARIES}
+			${PLATFORM_LINKLIBS})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
 	if(WITH_PYTHON)  # AND NOT WITH_PYTHON_MODULE  # WIN32 needs
 		target_link_libraries(${target} ${PYTHON_LINKFLAGS})
 
 		if(WIN32 AND NOT UNIX)
-			target_link_libraries(${target} debug ${PYTHON_LIBRARY}_d)
-			target_link_libraries(${target} optimized ${PYTHON_LIBRARY})
+			file_list_suffix(PYTHON_LIBRARIES_DEBUG "${PYTHON_LIBRARIES}" "_d")
+			target_link_libraries_debug(${target} "${PYTHON_LIBRARIES_DEBUG}")
+			target_link_libraries_optimized(${target} "${PYTHON_LIBRARIES}")
+			unset(PYTHON_LIBRARIES_DEBUG)
 		else()
-			target_link_libraries(${target} ${PYTHON_LIBRARY})
+			target_link_libraries(${target} ${PYTHON_LIBRARIES})
 		endif()
 	endif()
 
@@ -159,14 +231,18 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${GLEW_LIBRARY})
 	endif()
 
-	target_link_libraries(${target} ${OPENGL_glu_LIBRARY} ${JPEG_LIBRARIES} ${PNG_LIBRARIES} ${ZLIB_LIBRARIES})
-	target_link_libraries(${target} ${FREETYPE_LIBRARY})
+	target_link_libraries(${target}
+			${OPENGL_glu_LIBRARY}
+			${JPEG_LIBRARIES}
+			${PNG_LIBRARIES}
+			${ZLIB_LIBRARIES}
+			${FREETYPE_LIBRARY})
 
 	if(WITH_INTERNATIONAL)
 		target_link_libraries(${target} ${GETTEXT_LIB})
 
 		if(WIN32 AND NOT UNIX)
-			target_link_libraries(${target} ${ICONV_LIB})
+			target_link_libraries(${target} ${ICONV_LIBRARIES})
 		endif()
 	endif()
 
@@ -174,65 +250,72 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${OPENAL_LIBRARY})
 	endif()
 	if(WITH_FFTW3)
-		target_link_libraries(${target} ${FFTW3_LIB})
+		target_link_libraries(${target} ${FFTW3_LIBRARIES})
 	endif()
 	if(WITH_JACK)
-		target_link_libraries(${target} ${JACK_LIB})
+		target_link_libraries(${target} ${JACK_LIBRARIES})
 	endif()
 	if(WITH_CODEC_SNDFILE)
-		target_link_libraries(${target} ${SNDFILE_LIB})
+		target_link_libraries(${target} ${SNDFILE_LIBRARIES})
 	endif()
 	if(WITH_SAMPLERATE)
-		target_link_libraries(${target} ${LIBSAMPLERATE_LIB})
+		target_link_libraries(${target} ${SAMPLERATE_LIBRARIES})
 	endif()
 	if(WITH_SDL)
 		target_link_libraries(${target} ${SDL_LIBRARY})
 	endif()
 	if(WITH_CODEC_QUICKTIME)
-		target_link_libraries(${target} ${QUICKTIME_LIB})
+		target_link_libraries(${target} ${QUICKTIME_LIBRARIES})
 	endif()
 	if(WITH_IMAGE_TIFF)
 		target_link_libraries(${target} ${TIFF_LIBRARY})
 	endif()
 	if(WITH_IMAGE_OPENEXR)
 		if(WIN32 AND NOT UNIX)
-			foreach(loop_var ${OPENEXR_LIB})
-				target_link_libraries(${target} debug ${loop_var}_d)
-				target_link_libraries(${target} optimized ${loop_var})
-			endforeach()
+			file_list_suffix(OPENEXR_LIBRARIES_DEBUG "${OPENEXR_LIBRARIES}" "_d")
+			target_link_libraries_debug(${target} "${OPENEXR_LIBRARIES_DEBUG}")
+			target_link_libraries_optimized(${target} "${OPENEXR_LIBRARIES}")
+			unset(OPENEXR_LIBRARIES_DEBUG)
 		else()
-			target_link_libraries(${target} ${OPENEXR_LIB})
+			target_link_libraries(${target} ${OPENEXR_LIBRARIES})
 		endif()
 	endif()
 	if(WITH_IMAGE_OPENJPEG AND UNIX AND NOT APPLE)
-		target_link_libraries(${target} ${OPENJPEG_LIB})
+		target_link_libraries(${target} ${OPENJPEG_LIBRARIES})
 	endif()
 	if(WITH_CODEC_FFMPEG)
-		target_link_libraries(${target} ${FFMPEG_LIB})
+		target_link_libraries(${target} ${FFMPEG_LIBRARIES})
 	endif()
 	if(WITH_OPENCOLLADA)
 		if(WIN32 AND NOT UNIX)
-			foreach(loop_var ${OPENCOLLADA_LIB})
-				target_link_libraries(${target} debug ${loop_var}_d)
-				target_link_libraries(${target} optimized ${loop_var})
-			endforeach()
-			target_link_libraries(${target} debug ${PCRE_LIB}_d)
-			target_link_libraries(${target} optimized ${PCRE_LIB})
+			file_list_suffix(OPENCOLLADA_LIBRARIES_DEBUG "${OPENCOLLADA_LIBRARIES}" "_d")
+			target_link_libraries_debug(${target} "${OPENCOLLADA_LIBRARIES_DEBUG}")
+			target_link_libraries_optimized(${target} "${OPENCOLLADA_LIBRARIES}")
+			unset(OPENCOLLADA_LIBRARIES_DEBUG)
+
+			file_list_suffix(PCRE_LIB_DEBUG "${PCRE_LIB}" "_d")
+			target_link_libraries_debug(${target} "${PCRE_LIB_DEBUG}")
+			target_link_libraries_optimized(${target} "${PCRE_LIB}")
+			unset(PCRE_LIB_DEBUG)
+
 			if(EXPAT_LIB)
-				target_link_libraries(${target} debug ${EXPAT_LIB}_d)
-				target_link_libraries(${target} optimized ${EXPAT_LIB})
+				file_list_suffix(EXPAT_LIB_DEBUG "${EXPAT_LIB}" "_d")
+				target_link_libraries_debug(${target} "${EXPAT_LIB_DEBUG}")
+				target_link_libraries_optimized(${target} "${EXPAT_LIB}")
+				unset(EXPAT_LIB_DEBUG)
 			endif()
 		else()
-			target_link_libraries(${target} ${OPENCOLLADA_LIB})
-			target_link_libraries(${target} ${PCRE_LIB})
-			target_link_libraries(${target} ${EXPAT_LIB})
+			target_link_libraries(${target}
+					${OPENCOLLADA_LIBRARIES}
+					${PCRE_LIB}
+					${EXPAT_LIB})
 		endif()
 	endif()
 	if(WITH_MEM_JEMALLOC)
-		target_link_libraries(${target} ${JEMALLOC_LIBRARY})
+		target_link_libraries(${target} ${JEMALLOC_LIBRARIES})
 	endif()
 	if(WIN32 AND NOT UNIX)
-		target_link_libraries(${target} ${PTHREADS_LIB})
+		target_link_libraries(${target} ${PTHREADS_LIBRARIES})
 	endif()
 endmacro()
 
@@ -472,4 +555,13 @@ macro(blender_project_hack_post)
 
 	unset(_reset_standard_cflags_rel)
 	unset(_reset_standard_cxxflags_rel)
+
+	# ------------------------------------------------------------------
+	# workaround for omission in cmake 2.8.4's GNU.cmake, fixed in 2.8.5
+	if(CMAKE_COMPILER_IS_GNUCC)
+		if(NOT DARWIN)
+			set(CMAKE_INCLUDE_SYSTEM_FLAG_C "-isystem ")
+		endif()
+	endif()
+
 endmacro()

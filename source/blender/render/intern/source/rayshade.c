@@ -1231,7 +1231,7 @@ static QMCSampler *get_thread_qmcsampler(Render *re, int thread, int type, int t
 	return qsa;
 }
 
-static void release_thread_qmcsampler(Render *re, int thread, QMCSampler *qsa)
+static void release_thread_qmcsampler(Render *UNUSED(re), int UNUSED(thread), QMCSampler *qsa)
 {
 	qsa->used= 0;
 }

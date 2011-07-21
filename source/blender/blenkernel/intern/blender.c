@@ -64,6 +64,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
+#include "BLI_callbacks.h"
 
 #include "IMB_imbuf.h"
 
@@ -96,7 +97,7 @@ UserDef U;
 /* ListBase = {NULL, NULL}; */
 short ENDIAN_ORDER;
 
-static char versionstr[48]= "";
+char versionstr[48]= "";
 
 /* ********** free ********** */
 
@@ -110,6 +111,9 @@ void free_blender(void)
 	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
 	
 	IMB_exit();
+
+	BLI_cb_finalize();
+
 	seq_stripelem_cache_destruct();
 	
 	free_nodesystem();	
@@ -129,9 +133,9 @@ void initglobals(void)
 	ENDIAN_ORDER= (((char*)&ENDIAN_ORDER)[0])? L_ENDIAN: B_ENDIAN;
 
 	if(BLENDER_SUBVERSION)
-		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
 	else
-		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d", BLENDER_VERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "blender.org %d", BLENDER_VERSION);
 
 #ifdef _WIN32	// FULLSCREEN
 	G.windowstate = G_WINDOWSTATE_USERDEF;
@@ -154,7 +158,6 @@ static void clear_global(void)
 {
 //	extern short winqueue_break;	/* screen.c */
 
-	fastshade_free_render();	/* lamps hang otherwise */
 	free_main(G.main);			/* free all lib data */
 	
 //	free_vertexpaint();
@@ -180,7 +183,6 @@ static void clean_paths(Main *main)
 	BLI_bpathIterator_free(bpi);
 
 	for(scene= main->scene.first; scene; scene= scene->id.next) {
-		BLI_clean(scene->r.backbuf);
 		BLI_clean(scene->r.pic);
 	}
 }

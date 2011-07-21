@@ -75,6 +75,7 @@
 #include "DNA_node_types.h"
 #include "DNA_object_fluidsim.h" // NT
 #include "DNA_packedFile_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
@@ -3161,9 +3162,37 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			if(part->effector_weights)
 				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
 
-			dw = part->dupliweights.first;
-			for(; dw; dw=dw->next)
-				dw->ob = newlibadr(fd, part->id.lib, dw->ob);
+			if(part->dupliweights.first) {
+				int index_ok = 0;
+				/* check for old files without indices (all indexes 0) */
+				dw = part->dupliweights.first;
+				if(part->dupliweights.first == part->dupliweights.last) {
+					/* special case for only one object in the group */
+					index_ok = 1;
+				}
+				else { 
+					for(; dw; dw=dw->next) {
+						if(dw->index > 0) {
+							index_ok = 1;
+							break;
+						}
+					}
+				}
+
+				if(index_ok) {
+					/* if we have indexes, let's use them */
+					dw = part->dupliweights.first;
+					for(; dw; dw=dw->next) {
+						GroupObject *go = (GroupObject *)BLI_findlink(&part->dup_group->gobject, dw->index);
+						dw->ob = go ? go->ob : NULL;
+					}
+				}
+				else {
+					/* otherwise try to get objects from own library (won't work on library linked groups) */
+					for(; dw; dw=dw->next)
+						dw->ob = newlibadr(fd, part->id.lib, dw->ob);
+				}
+			}
 
 			if(part->boids) {
 				BoidState *state = part->boids->states.first;
@@ -3538,6 +3567,18 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		mesh->mr->edge_creases= newdataadr(fd, mesh->mr->edge_creases);
 
 		mesh->mr->verts = newdataadr(fd, mesh->mr->verts);
+		
+		/* If mesh has the same number of vertices as the
+		   highest multires level, load the current mesh verts
+		   into multires and discard the old data. Needed
+		   because some saved files either do not have a verts
+		   array, or the verts array contains out-of-date
+		   data. */
+		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert) {
+			if(mesh->mr->verts)
+				MEM_freeN(mesh->mr->verts);
+			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
+		}
 			
 		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);
@@ -3547,16 +3588,11 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 		}
 	}
 
-	/* Gracefully handle corrupted mesh */
+	/* if multires is present but has no valid vertex data,
+	   there's no way to recover it; silently remove multires */
 	if(mesh->mr && !mesh->mr->verts) {
-		/* If totals match, simply load the current mesh verts into multires */
-		if(mesh->totvert == ((MultiresLevel*)mesh->mr->levels.last)->totvert)
-			mesh->mr->verts = MEM_dupallocN(mesh->mvert);
-		else {
-			/* Otherwise, we can't recover the data, silently remove multires */
-			multires_free(mesh->mr);
-			mesh->mr = NULL;
-		}
+		multires_free(mesh->mr);
+		mesh->mr = NULL;
 	}
 	
 	if((fd->flags & FD_FLAGS_SWITCH_ENDIAN) && mesh->tface) {
@@ -3843,26 +3879,10 @@ static void lib_link_object(FileData *fd, Main *main)
 				
 				if(smd && smd->type == MOD_SMOKE_TYPE_DOMAIN && smd->domain) 
 				{
-					smd->domain->coll_group = newlibadr_us(fd, ob->id.lib, smd->domain->coll_group);
-					smd->domain->eff_group = newlibadr_us(fd, ob->id.lib, smd->domain->eff_group);
-					smd->domain->fluid_group = newlibadr_us(fd, ob->id.lib, smd->domain->fluid_group);
-
-					smd->domain->effector_weights->group = newlibadr(fd, ob->id.lib, smd->domain->effector_weights->group);
-
 					smd->domain->flags |= MOD_SMOKE_FILE_LOAD; /* flag for refreshing the simulation after loading */
 				}
 			}
 
-			{
-				ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-				
-				if(clmd) 
-				{
-					clmd->sim_parms->effector_weights->group = newlibadr(fd, ob->id.lib, clmd->sim_parms->effector_weights->group);
-					clmd->coll_parms->group= newlibadr(fd, ob->id.lib, clmd->coll_parms->group);
-				}
-			}
-			
 			/* texture field */
 			if(ob->pd)
 				lib_link_partdeflect(fd, &ob->id, ob->pd);
@@ -4337,6 +4357,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		MEM_freeN(hook);
 	}
 	
+	ob->customdata_mask= 0;
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
 	ob->derivedFinal= NULL;
@@ -4844,7 +4865,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 					else if(sl->spacetype==SPACE_FILE) {
 						SpaceFile *sfile= (SpaceFile *)sl;
 						sfile->files= NULL;
-						sfile->params= NULL;
 						sfile->op= NULL;
 						sfile->layout= NULL;
 						sfile->folders_prev= NULL;
@@ -5457,7 +5477,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				sfile->files= NULL;
 				sfile->layout= NULL;
 				sfile->op= NULL;
-				sfile->params= NULL;
+				sfile->params= newdataadr(fd, sfile->params);
 			}
 		}
 		
@@ -5658,11 +5678,10 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, const char *a
 	while(bhead && bhead->code==DATA) {
 		void *data;
 #if 0
-		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
+		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */
 		short *sp= fd->filesdna->structs[bhead->SDNAnr];
-		char *allocname = fd->filesdna->types[ sp[0] ];
 		char *tmp= malloc(100);
-		
+		allocname = fd->filesdna->types[ sp[0] ];
 		strcpy(tmp, allocname);
 		data= read_struct(fd, bhead, tmp);
 #else
@@ -10262,8 +10281,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.attrib = sce->r.attrib;
 
 			//Stereo
-			sce->gm.xsch = sce->r.xsch;
-			sce->gm.ysch = sce->r.ysch;
 			sce->gm.stereomode = sce->r.stereomode;
 			/* reassigning stereomode NO_STEREO and DOME to a separeted flag*/
 			if (sce->gm.stereomode == 1){ //1 = STEREO_NOSTEREO
@@ -11610,9 +11627,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 	}
 
-	/* put compatibility code here until next subversion bump */
-
-	{
+	if (main->versionfile < 258 || (main->versionfile == 258 && main->subversionfile < 1)){
 		/* screen view2d settings were not properly initialized [#27164]
 		 * v2d->scroll caused the bug but best reset other values too which are in old blend files only.
 		 * need to make less ugly - possibly an iterator? */
@@ -11664,6 +11679,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		{
+			/* add default value for behind strength of camera actuator */
+			Object *ob;
+			bActuator *act;
+			for(ob = main->object.first; ob; ob= ob->id.next) {
+				for(act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_CAMERA) {
+						bCameraActuator *ba= act->data;
+
+						ba->damping = 1.0/32.0;
+					}
+				}
+			}
+		}
+
+		{
+			ParticleSettings *part;
+			for(part = main->particle.first; part; part = part->id.next) {
+				/* Initialize particle billboard scale */
+				part->bb_size[0] = part->bb_size[1] = 1.0f;
+			}
+		}
+	}
+	
+	/* put compatibility code here until next subversion bump */
+
+	{
+	
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -11746,7 +11790,8 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	// XXX
 	user->uifonts.first= user->uifonts.last= NULL;
-	user->uistyles.first= user->uistyles.last= NULL;
+	
+	link_list(fd, &user->uistyles);
 
 	/* free fd->datamap again */
 	oldnewmap_free_unused(fd->datamap);
@@ -12723,7 +12768,6 @@ static int object_in_any_scene(Main *mainvar, Object *ob)
 	return 0;
 }
 
-/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const short idcode, const short is_link)
 {
 	Object *ob;
@@ -12758,8 +12802,14 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 					/* when appending, make sure any indirectly loaded objects
 					 * get a base else they cant be accessed at all [#27437] */
 					if(ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
-						if(object_in_any_scene(mainvar, ob)==0) {
-							do_it= 1;
+
+						/* we may be appending from a scene where we already
+						 *  have a linked object which is not in any scene [#27616] */
+						if((ob->id.flag & LIB_PRE_EXISTING)==0) {
+
+							if(object_in_any_scene(mainvar, ob)==0) {
+								do_it= 1;
+							}
 						}
 					}
 				}
@@ -12780,7 +12830,6 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 	}
 }
 
-/* when *lib set, it also does objects that were in the appended group */
 static void give_base_to_groups(Main *mainvar, Scene *scene)
 {
 	Group *group;

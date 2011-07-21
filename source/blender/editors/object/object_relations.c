@@ -446,6 +446,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1127,8 +1128,6 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-
-	if(islamp) reshadeall_displist(scene);	/* only frees */
 	
 	/* warning, active object may be hidden now */
 	
@@ -1320,7 +1319,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Link Objects to Scene";
-	ot->description = "Make linked data local to each object";
+	ot->description = "Link selection to another scene";
 	ot->idname= "OBJECT_OT_make_links_scene";
 
 	/* api callbacks */
@@ -1661,6 +1660,7 @@ void ED_object_single_users(Main *bmain, Scene *scene, int full)
 
 	if(full) {
 		single_obdata_users(bmain, scene, 0);
+		single_object_action_users(scene, 0);
 		single_mat_users_expand(bmain);
 		single_tex_users_expand(bmain);
 	}

@@ -85,9 +85,9 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 /* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 #include "../../collada/collada.h"
 
-static void rna_Scene_collada_export(Scene *scene, const char *filepath)
+static void rna_Scene_collada_export(Scene *scene, const char *filepath, int selected)
 {
-	collada_export(scene, filepath);
+	collada_export(scene, filepath, selected);
 }
 
 #endif
@@ -112,6 +112,7 @@ void RNA_api_scene(StructRNA *srna)
 	/* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 	func= RNA_def_function(srna, "collada_export", "rna_Scene_collada_export");
 	parm= RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file.");
+	parm= RNA_def_boolean(func, "selected", 0, "Export only selected", "Export only selected elements.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
 	RNA_def_function_ui_description(func, "Export to collada file.");

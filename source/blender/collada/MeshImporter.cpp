@@ -62,7 +62,7 @@ extern "C" {
 #include "MeshImporter.h"
 #include "collada_utils.h"
 
-// works for COLLADAFW::Node, COLLADAFW::Geometry
+// get node name, or fall back to original id if not present (name is optional)
 template<class T>
 static const char *bc_get_dae_name(T *node)
 {
@@ -144,15 +144,18 @@ void WVDataWrapper::print()
 }
 #endif
 
-void UVDataWrapper::getUV(int uv_index[2], float *uv)
+void UVDataWrapper::getUV(int uv_index, float *uv)
 {
+	int stride = mVData->getStride(0);
+	if(stride==0) stride = 2;
+
 	switch(mVData->getType()) {
 	case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
 			COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
 			if (values->empty()) return;
-			uv[0] = (*values)[uv_index[0]];
-			uv[1] = (*values)[uv_index[1]];
+			uv[0] = (*values)[uv_index*stride];
+			uv[1] = (*values)[uv_index*stride + 1];
 			
 		}
 		break;
@@ -160,8 +163,8 @@ void UVDataWrapper::getUV(int uv_index[2], float *uv)
 		{
 			COLLADAFW::ArrayPrimitiveType<double>* values = mVData->getDoubleValues();
 			if (values->empty()) return;
-			uv[0] = (float)(*values)[uv_index[0]];
-			uv[1] = (float)(*values)[uv_index[1]];
+			uv[0] = (float)(*values)[uv_index*stride];
+			uv[1] = (float)(*values)[uv_index*stride + 1];
 			
 		}
 		break;
@@ -197,54 +200,36 @@ void MeshImporter::rotate_face_indices(MFace *mface) {
 void MeshImporter::set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
 				 COLLADAFW::IndexList& index_list, unsigned int *tris_indices)
 {
-	int uv_indices[4][2];
-
 	// per face vertex indices, this means for quad we have 4 indices, not 8
 	COLLADAFW::UIntValuesArray& indices = index_list.getIndices();
 
-	// make indices into FloatOrDoubleArray
-	for (int i = 0; i < 3; i++) {
-		int uv_index = indices[tris_indices[i]];
-		uv_indices[i][0] = uv_index * 2;
-		uv_indices[i][1] = uv_index * 2 + 1;
-	}
-
-	uvs.getUV(uv_indices[0], mtface->uv[0]);
-	uvs.getUV(uv_indices[1], mtface->uv[1]);
-	uvs.getUV(uv_indices[2], mtface->uv[2]);
+	uvs.getUV(indices[tris_indices[0]], mtface->uv[0]);
+	uvs.getUV(indices[tris_indices[1]], mtface->uv[1]);
+	uvs.getUV(indices[tris_indices[2]], mtface->uv[2]);
 }
 
 void MeshImporter::set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
 				COLLADAFW::IndexList& index_list, int index, bool quad)
 {
-	int uv_indices[4][2];
-
 	// per face vertex indices, this means for quad we have 4 indices, not 8
 	COLLADAFW::UIntValuesArray& indices = index_list.getIndices();
 
-	// make indices into FloatOrDoubleArray
-	for (int i = 0; i < (quad ? 4 : 3); i++) {
-		int uv_index = indices[index + i];
-		uv_indices[i][0] = uv_index * 2;
-		uv_indices[i][1] = uv_index * 2 + 1;
-	}
+	uvs.getUV(indices[index + 0], mtface->uv[0]);
+	uvs.getUV(indices[index + 1], mtface->uv[1]);
+	uvs.getUV(indices[index + 2], mtface->uv[2]);
 
-	uvs.getUV(uv_indices[0], mtface->uv[0]);
-	uvs.getUV(uv_indices[1], mtface->uv[1]);
-	uvs.getUV(uv_indices[2], mtface->uv[2]);
-
-	if (quad) uvs.getUV(uv_indices[3], mtface->uv[3]);
+	if (quad) uvs.getUV(indices[index + 3], mtface->uv[3]);
 
 #ifdef COLLADA_DEBUG
 	/*if (quad) {
 		fprintf(stderr, "face uv:\n"
-				"((%d, %d), (%d, %d), (%d, %d), (%d, %d))\n"
+				"((%d, %d, %d, %d))\n"
 				"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
 
-				uv_indices[0][0], uv_indices[0][1],
-				uv_indices[1][0], uv_indices[1][1],
-				uv_indices[2][0], uv_indices[2][1],
-				uv_indices[3][0], uv_indices[3][1],
+				indices[index + 0],
+				indices[index + 1],
+				indices[index + 2],
+				indices[index + 3],
 
 				mtface->uv[0][0], mtface->uv[0][1],
 				mtface->uv[1][0], mtface->uv[1][1],
@@ -253,12 +238,12 @@ void MeshImporter::set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
 	}
 	else {
 		fprintf(stderr, "face uv:\n"
-				"((%d, %d), (%d, %d), (%d, %d))\n"
+				"((%d, %d, %d))\n"
 				"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
 
-				uv_indices[0][0], uv_indices[0][1],
-				uv_indices[1][0], uv_indices[1][1],
-				uv_indices[2][0], uv_indices[2][1],
+				indices[index + 0],
+				indices[index + 1],
+				indices[index + 2],
 
 				mtface->uv[0][0], mtface->uv[0][1],
 				mtface->uv[1][0], mtface->uv[1][1],
@@ -755,8 +740,10 @@ MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBindi
 								 MTex *color_texture)
 {
 	const COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
-	const size_t setindex = ctexture.getSetIndex();
+	size_t setindex = ctexture.getSetIndex();
 	std::string uvname = ctexture.getSemantic();
+	
+	if(setindex==-1) return NULL;
 	
 	const CustomData *data = &me->fdata;
 	int layer_index = CustomData_get_layer_index(data, CD_MTFACE);
@@ -833,7 +820,6 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	if (*color_texture &&
 		strlen((*color_texture)->uvname) &&
 		strcmp(layername, (*color_texture)->uvname) != 0) {
-		
 		texture_face = (MTFace*)CustomData_get_layer_named(&me->fdata, CD_MTFACE,
 														   (*color_texture)->uvname);
 		strcpy(layername, (*color_texture)->uvname);
@@ -903,7 +889,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	uid_object_map[*geom_uid] = ob;
 	
 	// name Object
-	const std::string& id = node->getOriginalId();
+	const std::string& id = node->getName().size() ? node->getName() : node->getOriginalId();
 	if (id.length())
 		rename_id(&ob->id, (char*)id.c_str());
 	
@@ -915,6 +901,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
 	
 	char layername[100];
+	layername[0] = '\0';
 	MTFace *texture_face = NULL;
 	MTex *color_texture = NULL;
 	
@@ -957,7 +944,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 		return true;
 	}
 	
-	const std::string& str_geom_id = mesh->getOriginalId();
+	const std::string& str_geom_id = mesh->getName().size() ? mesh->getName() : mesh->getOriginalId();
 	Mesh *me = add_mesh((char*)str_geom_id.c_str());
 
 	// store the Mesh pointer to link it later with an Object

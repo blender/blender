@@ -60,7 +60,7 @@ class EditExternally(bpy.types.Operator):
         filepath = bpy.path.abspath(self.filepath)
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, "Image path %r not found." % filepath)
+            self.report({'ERROR'}, "Image path %r not found, image may be packed or unsaved." % filepath)
             return {'CANCELLED'}
 
         cmd = self._editor_guess(context) + [filepath]
@@ -121,7 +121,6 @@ class ProjectEdit(bpy.types.Operator):
 
     def execute(self, context):
         import os
-        import subprocess
 
         EXT = "png"  # could be made an option but for now ok
 
@@ -164,7 +163,7 @@ class ProjectEdit(bpy.types.Operator):
             filepath_final = filepath + ("%.3d.%s" % (i, EXT))
             i += 1
 
-        image_new.name = os.path.basename(filepath_final)
+        image_new.name = bpy.path.basename(filepath_final)
         ProjectEdit._proj_hack[0] = image_new.name
 
         image_new.filepath_raw = filepath_final  # TODO, filepath raw is crummy

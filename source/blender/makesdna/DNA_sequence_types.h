@@ -253,27 +253,30 @@ typedef struct SpeedControlVars {
 #define SEQ_NAME_MAXSTR			24
 
 /* seq->flag */
-#define SEQ_LEFTSEL				2
-#define SEQ_RIGHTSEL			4
-#define SEQ_OVERLAP				8
-#define SEQ_FILTERY				16
-#define SEQ_MUTE				32
-#define SEQ_MAKE_PREMUL			64
-#define SEQ_REVERSE_FRAMES		128
-#define SEQ_IPO_FRAME_LOCKED	256
-#define SEQ_EFFECT_NOT_LOADED	512
-#define SEQ_FLAG_DELETE			1024
-#define SEQ_FLIPX				2048
-#define SEQ_FLIPY				4096
-#define SEQ_MAKE_FLOAT				8192
-#define SEQ_LOCK				16384
-#define SEQ_USE_PROXY                           32768
-#define SEQ_USE_TRANSFORM                       65536
-#define SEQ_USE_CROP                           131072
-#define SEQ_USE_COLOR_BALANCE                  262144
-#define SEQ_USE_PROXY_CUSTOM_DIR               524288
-#define SEQ_USE_PROXY_CUSTOM_FILE             2097152
-#define SEQ_USE_EFFECT_DEFAULT_FADE           4194304
+#define SEQ_LEFTSEL                 (1<<1)
+#define SEQ_RIGHTSEL                (1<<2)
+#define SEQ_OVERLAP                 (1<<3)
+#define SEQ_FILTERY                 (1<<4)
+#define SEQ_MUTE                    (1<<5)
+#define SEQ_MAKE_PREMUL             (1<<6)
+#define SEQ_REVERSE_FRAMES          (1<<7)
+#define SEQ_IPO_FRAME_LOCKED        (1<<8)
+#define SEQ_EFFECT_NOT_LOADED       (1<<9)
+#define SEQ_FLAG_DELETE             (1<<10)
+#define SEQ_FLIPX                   (1<<11)
+#define SEQ_FLIPY                   (1<<12)
+#define SEQ_MAKE_FLOAT              (1<<13)
+#define SEQ_LOCK                    (1<<14)
+#define SEQ_USE_PROXY               (1<<15)
+#define SEQ_USE_TRANSFORM           (1<<16)
+#define SEQ_USE_CROP                (1<<17)
+#define SEQ_USE_COLOR_BALANCE       (1<<18)
+#define SEQ_USE_PROXY_CUSTOM_DIR    (1<<19)
+
+#define SEQ_USE_PROXY_CUSTOM_FILE   (1<<21)
+#define SEQ_USE_EFFECT_DEFAULT_FADE (1<<22)
+
+#define SEQ_INVALID_EFFECT          (1<<31)
 
 /* convenience define for all selection flags */
 #define SEQ_ALLSEL	(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)

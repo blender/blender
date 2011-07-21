@@ -200,6 +200,9 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 				else if(wmn->data==ND_SHADING_DRAW)
 					ED_area_tag_refresh(sa);
+				else if(wmn->action==NA_ADDED && snode->edittree)
+					nodeSetActiveID(snode->edittree, ID_MA, wmn->reference);
+					
 			}
 			break;
 		case NC_TEXTURE:
@@ -224,6 +227,13 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_refresh(sa);
 			else if (wmn->action == NA_SELECTED)
 				ED_area_tag_redraw(sa);
+			break;
+		case NC_SCREEN:
+			switch(wmn->data) {
+				case ND_ANIMPLAY:
+					ED_area_tag_refresh(sa);
+					break;
+			}
 			break;
 
 		case NC_IMAGE:

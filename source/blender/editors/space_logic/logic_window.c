@@ -3786,6 +3786,8 @@ static void draw_actuator_camera(uiLayout *layout, PointerRNA *ptr)
 	row = uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "min", 0, NULL, ICON_NONE);
 	uiItemR(row, ptr, "max", 0, NULL, ICON_NONE);
+
+	uiItemR(layout, ptr, "damping", 0, NULL, ICON_NONE);
 }
 
 static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr, bContext *C)

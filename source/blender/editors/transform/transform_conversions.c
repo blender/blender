@@ -690,7 +690,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
 		if (PBONE_VISIBLE(arm, bone)) {
-			if ((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
+			if ((bone->flag & BONE_SELECTED))
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
@@ -3725,27 +3725,8 @@ void flushTransGraphData(TransInfo *t)
  * seq->depth must be set before running this function so we know if the strips
  * are root level or not
  */
-#define XXX_DURIAN_ANIM_TX_HACK
 static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count, int *flag)
 {
- 
-#ifdef XXX_DURIAN_ANIM_TX_HACK
-	/* hack */
-	if((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
-		Sequence *seq_t[3];
-		int i;
-
-		seq_t[0]= seq->seq1;
-		seq_t[1]= seq->seq2;
-		seq_t[2]= seq->seq3;
-
-		for(i=0; i<3; i++) {
-			if (seq_t[i] && ((seq_t[i])->flag & SELECT) && !(seq_t[i]->flag & SEQ_LOCK) && !(seq_t[i]->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
-				seq->flag |= SELECT;
-		}
-	}
-#endif
-
 	/* for extend we need to do some tricks */
 	if (t->mode == TFM_TIME_EXTEND) {
 
@@ -4016,6 +3997,7 @@ static void freeSeqData(TransInfo *t)
 				}
 
 				if(overlap) {
+					int has_effect= 0;
 					for(seq= seqbasep->first; seq; seq= seq->next)
 						seq->tmp= NULL;
 
@@ -4024,12 +4006,47 @@ static void freeSeqData(TransInfo *t)
 					for(a=0; a<t->total; a++, td++) {
 						seq= ((TransDataSeq *)td->extra)->seq;
 						if ((seq != seq_prev)) {
-							/* Tag seq with a non zero value, used by shuffle_seq_time to identify the ones to shuffle */
-							seq->tmp= (void*)1;
+							/* check effects strips, we cant change their time */
+							if((seq->type & SEQ_EFFECT) && seq->seq1) {
+								has_effect= TRUE;
+							}
+							else {
+								/* Tag seq with a non zero value, used by shuffle_seq_time to identify the ones to shuffle */
+								seq->tmp= (void*)1;
+							}
 						}
 					}
 
 					shuffle_seq_time(seqbasep, t->scene);
+
+					if(has_effect) {
+						/* update effects strips based on strips just moved in time */
+						td= t->data;
+						seq_prev= NULL;
+						for(a=0; a<t->total; a++, td++) {
+							seq= ((TransDataSeq *)td->extra)->seq;
+							if ((seq != seq_prev)) {
+								if((seq->type & SEQ_EFFECT) && seq->seq1) {
+									calc_sequence(t->scene, seq);
+								}
+							}
+						}
+
+						/* now if any effects _still_ overlap, we need to move them up */
+						td= t->data;
+						seq_prev= NULL;
+						for(a=0; a<t->total; a++, td++) {
+							seq= ((TransDataSeq *)td->extra)->seq;
+							if ((seq != seq_prev)) {
+								if((seq->type & SEQ_EFFECT) && seq->seq1) {
+									if(seq_test_overlap(seqbasep, seq)) {
+										shuffle_seq(seqbasep, seq, t->scene);
+									}
+								}
+							}
+						}
+						/* done with effects */
+					}
 				}
 			}
 #endif
@@ -4069,6 +4086,7 @@ static void freeSeqData(TransInfo *t)
 
 static void createTransSeqData(bContext *C, TransInfo *t)
 {
+#define XXX_DURIAN_ANIM_TX_HACK
 
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= t->scene;
@@ -4099,6 +4117,24 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 		t->frame_side = 'B';
 	}
 
+#ifdef XXX_DURIAN_ANIM_TX_HACK
+	{
+		Sequence *seq;
+		for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+			/* hack */
+			if((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
+				Sequence *seq_user;
+				int i;
+				for(i=0; i<3; i++) {
+					seq_user= *((&seq->seq1) + i);
+					if (seq_user && (seq_user->flag & SELECT) && !(seq_user->flag & SEQ_LOCK) && !(seq_user->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL))) {
+						seq->flag |= SELECT;
+					}
+				}
+			}
+		}
+	}
+#endif
 
 	count = SeqTransCount(t, ed->seqbasep, 0);
 
@@ -4118,6 +4154,8 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 	/* loop 2: build transdata array */
 	SeqToTransData_Recursive(t, ed->seqbasep, td, td2d, tdsq);
+
+#undef XXX_DURIAN_ANIM_TX_HACK
 }
 
 
@@ -4941,6 +4979,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			where_is_pose(t->scene, pose_ob);
 		}
 
+		/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
+		if (!cancelled && (t->mode != TFM_DUMMY))
+			count_set_pose_transflags(&t->mode, t->around, ob);
+
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if (!cancelled && t->mode==TFM_TRANSLATION)
 			targetless_ik= apply_targetless_ik(ob);
@@ -5041,10 +5083,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 #if 0 // TRANSFORM_FIX_ME
 	if(resetslowpar)
 		reset_slowparents();
-
-	/* note; should actually only be done for all objects when a lamp is moved... (ton) */
-	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
-		reshadeall_displist();
 #endif
 }
 

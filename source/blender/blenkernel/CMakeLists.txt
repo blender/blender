@@ -32,8 +32,10 @@ endif()
 set(INC 
 	.
 	../avi
+	../blenfont
 	../blenlib
 	../blenloader
+	../editors/include
 	../gpu
 	../ikplugin
 	../imbuf
@@ -41,20 +43,19 @@ set(INC
 	../makesrna
 	../modifiers
 	../nodes
-	../editors/include
 	../render/extern/include
-	../../../intern/audaspace/intern
-	../../../intern/ffmpeg
-	../../../intern/bsp/extern ../blenfont
+	../../../intern/bsp/extern
 	../../../intern/decimation/extern
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
 	../../../intern/iksolver/extern
 	../../../intern/memutil
+	../../../intern/mikktspace
 	../../../intern/opennl/extern
 	../../../intern/smoke/extern
-	../../../intern/mikktspace
-	../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
+
+	# XXX - BAD LEVEL CALL WM_api.h
+	../windowmanager
 )
 
 set(INC_SYS
@@ -237,13 +238,24 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
+
 if(WITH_BULLET)
-	list(APPEND INC ../../../extern/bullet2/src)
+	list(APPEND INC
+		../../../extern/bullet2/src
+	)
 	add_definitions(-DUSE_BULLET)
 endif()
 
 if(WITH_MOD_CLOTH_ELTOPO)
-	list(APPEND INC ../../../extern/eltopo)
+	list(APPEND INC
+		../../../extern/eltopo
+	)
 	add_definitions(-DWITH_ELTOPO)
 endif()
 
@@ -272,19 +284,32 @@ if(WITH_IMAGE_HDR)
 endif()
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../quicktime)
-	list(APPEND INC_SYS ${QUICKTIME_INC})
+	list(APPEND INC
+		../quicktime
+	)
+	list(APPEND INC_SYS
+		${QUICKTIME_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-	list(APPEND INC_SYS ${FFMPEG_INC})
+	list(APPEND INC
+		../../../intern/ffmpeg
+	)
+	list(APPEND INC_SYS
+		${FFMPEG_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
 if(WITH_PYTHON)
-	list(APPEND INC ../python)
-	list(APPEND INC_SYS ${PYTHON_INCLUDE_DIRS})
+	list(APPEND INC
+		../python
+	)
+	list(APPEND INC_SYS
+		${PYTHON_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_PYTHON)
 
 	if(WITH_PYTHON_SECURITY)
@@ -300,17 +325,25 @@ if(NOT WITH_MOD_FLUID)
 	add_definitions(-DDISABLE_ELBEEM)
 endif()
 
+if(WITH_MOD_SMOKE)
+	add_definitions(-DWITH_SMOKE)
+endif()
+
 if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
 endif()
 
 if(WITH_LZO)
-	list(APPEND INC_SYS ../../../extern/lzo/minilzo)
+	list(APPEND INC_SYS
+		../../../extern/lzo/minilzo
+	)
 	add_definitions(-DWITH_LZO)
 endif()
 
 if(WITH_LZMA)
-	list(APPEND INC_SYS ../../../extern/lzma)
+	list(APPEND INC_SYS
+		../../../extern/lzma
+	)
 	add_definitions(-DWITH_LZMA)
 endif()
 

@@ -922,6 +922,13 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Max", "");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
+	prop= RNA_def_property(srna, "damping", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "damping");
+	RNA_def_property_range(prop, 0, 10.0);
+	RNA_def_property_ui_range(prop, 0, 5.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Damping", "Specify the strength of the constraint that drive the camera behind the target");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
 	/* x/y */
 	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "axis");

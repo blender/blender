@@ -723,7 +723,8 @@ static void write_userdef(WriteData *wd)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	bAddon *bext;
-
+	uiStyle *style;
+	
 	writestruct(wd, USER, "UserDef", 1, &U);
 
 	for(btheme= U.themes.first; btheme; btheme=btheme->next)
@@ -742,6 +743,10 @@ static void write_userdef(WriteData *wd)
 
 	for(bext= U.addons.first; bext; bext=bext->next)
 		writestruct(wd, DATA, "bAddon", 1, bext);
+	
+	for(style= U.uistyles.first; style; style= style->next) {
+		writestruct(wd, DATA, "uiStyle", 1, style);
+	}
 }
 
 static void write_boid_state(WriteData *wd, BoidState *state)
@@ -832,6 +837,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 {
 	ParticleSettings *part;
 	ParticleDupliWeight *dw;
+	GroupObject *go;
 	int a;
 
 	part= idbase->first;
@@ -846,8 +852,16 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, "EffectorWeights", 1, part->effector_weights);
 
 			dw = part->dupliweights.first;
-			for(; dw; dw=dw->next)
+			for(; dw; dw=dw->next) {
+				/* update indices */
+				dw->index = 0;
+				go = part->dup_group->gobject.first;
+				while(go && go->ob != dw->ob) {
+					go=go->next;
+					dw->index++;
+				}
 				writestruct(wd, DATA, "ParticleDupliWeight", 1, dw);
+			}
 
 			if(part->boids && part->phystype == PART_PHYS_BOIDS) {
 				BoidState *state = part->boids->states.first;
@@ -2098,7 +2112,11 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceButs", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_FILE) {
+					SpaceFile *sfile= (SpaceFile *)sl;
+
 					writestruct(wd, DATA, "SpaceFile", 1, sl);
+					if(sfile->params)
+						writestruct(wd, DATA, "FileSelectParams", 1, sfile->params);
 				}
 				else if(sl->spacetype==SPACE_SEQ) {
 					writestruct(wd, DATA, "SpaceSeq", 1, sl);

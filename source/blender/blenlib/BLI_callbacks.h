@@ -1,4 +1,4 @@
-/* 
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -20,24 +20,53 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
+ * The Original Code is: all of this file.
  *
- * Contributor(s): Joseph Gilbert
+ * Contributor(s): mar 2001 Nzc
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
-
-/** \file blender/python/generic/mathutils_geometry.h
- *  \ingroup pygen
  */
 
-/*Include this file for access to vector, quat, matrix, euler, etc...*/
+/** \file blender/blenlib/BLI_callbacks.h
+ *  \ingroup bli
+ */
 
-#ifndef MATHUTILS_GEOMETRY_H
-#define MATHUTILS_GEOMETRY_H
 
-#include "mathutils.h"
+#ifndef BLI_CALLBACKS_H
+#define BLI_CALLBACKS_H
 
-PyMODINIT_FUNC BPyInit_mathutils_geometry(void);
+struct bContext;
+struct Main;
+struct ID;
 
-#endif /* MATHUTILS_GEOMETRY_H */
+typedef enum {
+	BLI_CB_EVT_RENDER_PRE,
+	BLI_CB_EVT_RENDER_POST,
+	BLI_CB_EVT_LOAD_PRE,
+	BLI_CB_EVT_LOAD_POST,
+	BLI_CB_EVT_SAVE_PRE,
+	BLI_CB_EVT_SAVE_POST,
+	BLI_CB_EVT_TOT
+} eCbEvent;
+
+
+typedef struct {
+	struct bCallbackFuncStore *next, *prev;
+	void (* func)(struct Main *, struct ID *, void *arg);
+	void *arg;
+	short alloc;
+} bCallbackFuncStore;
+
+
+void BLI_exec_cb(struct Main *main, struct ID *self, eCbEvent evt);
+void BLI_add_cb(bCallbackFuncStore *funcstore, eCbEvent evt);
+
+#endif
+
+
+void BLI_cb_init(void);
+void BLI_cb_finalize(void);
+
+
+/* This is blenlib internal only, unrelated to above */
+void callLocalErrorCallBack(const char* msg);

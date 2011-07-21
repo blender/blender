@@ -41,7 +41,7 @@ class LightsExporter: COLLADASW::LibraryLights
 {
 public:
 	LightsExporter(COLLADASW::StreamWriter *sw);
-	void exportLights(Scene *sce);
+	void exportLights(Scene *sce, bool export_selected);
 	void operator()(Object *ob);
 private:
 	bool exportBlenderProfile(COLLADASW::Light &cla, Lamp *la);

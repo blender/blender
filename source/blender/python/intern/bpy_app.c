@@ -30,6 +30,7 @@
 #include <Python.h>
 
 #include "bpy_app.h"
+#include "bpy_app_handlers.h"
 #include "bpy_driver.h"
 
 #include "BLI_path_util.h"
@@ -74,6 +75,9 @@ static PyStructSequence_Field app_info_fields[]= {
 	{(char *)"build_cxxflags", (char *)"C++ compiler flags"},
 	{(char *)"build_linkflags", (char *)"Binary linking flags"},
 	{(char *)"build_system", (char *)"Build system used"},
+
+	/* submodules */
+	{(char *)"handlers", (char *)"Application handler callbacks"},
 	{NULL}
 };
 
@@ -139,6 +143,8 @@ static PyObject *make_app_info(void)
 	SetStrItem("Unknown");
 	SetStrItem("Unknown");
 #endif
+
+	SetObjItem(BPY_app_handlers_struct());
 
 #undef SetIntItem
 #undef SetStrItem

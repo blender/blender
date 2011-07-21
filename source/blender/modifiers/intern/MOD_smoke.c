@@ -43,6 +43,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
+#include "DNA_object_force.h"
 
 #include "BLI_utildefines.h"
 
@@ -156,6 +157,10 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 		walk(userData, ob, (ID **)&smd->domain->coll_group);
 		walk(userData, ob, (ID **)&smd->domain->fluid_group);
 		walk(userData, ob, (ID **)&smd->domain->eff_group);
+
+		if(smd->domain->effector_weights) {
+			walk(userData, ob, (ID **)&smd->domain->effector_weights->group);
+		}
 	}
 }
 

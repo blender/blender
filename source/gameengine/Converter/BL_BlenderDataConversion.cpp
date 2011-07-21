@@ -1840,7 +1840,6 @@ static KX_GameObject *gameobject_from_blenderobject(
 	{
 		gameobj->SetLayer(ob->lay);
 		gameobj->SetBlenderObject(ob);
-		gameobj->SetObjectColor(ob->col);
 		/* set the visibility state based on the objects render option in the outliner */
 		if(ob->restrictflag & OB_RESTRICT_RENDER) gameobj->SetVisible(0, 0);
 	}
@@ -1977,8 +1976,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			frame_type = RAS_FrameSettings::e_frame_scale;
 		}
 		
-		aspect_width = blenderscene->gm.xsch;
-		aspect_height = blenderscene->gm.ysch;
+		aspect_width = blenderscene->r.xsch*blenderscene->r.xasp;
+		aspect_height = blenderscene->r.ysch*blenderscene->r.yasp;
 	}
 	
 	RAS_FrameSettings frame_settings(

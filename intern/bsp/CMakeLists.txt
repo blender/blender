@@ -25,11 +25,11 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	./intern
+	intern
 	../container
 	../guardedalloc
-	../moto/include
 	../memutil
+	../moto/include
 )
 
 set(INC_SYS

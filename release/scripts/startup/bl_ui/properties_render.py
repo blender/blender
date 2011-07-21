@@ -141,6 +141,7 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rl, "use_pass_uv")
         col.prop(rl, "use_pass_mist")
         col.prop(rl, "use_pass_object_index")
+        col.prop(rl, "use_pass_material_index")
         col.prop(rl, "use_pass_color")
 
         col = split.column()
@@ -376,8 +377,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "use_compositing")
         col.prop(rd, "use_sequencer")
 
-        col = split.column()
-        col.prop(rd, "dither_intensity", text="Dither", slider=True)
+        split.prop(rd, "dither_intensity", text="Dither", slider=True)
 
         layout.separator()
 

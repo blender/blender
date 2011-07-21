@@ -119,14 +119,6 @@ public:
 		const GHOST_TEmbedderWindowID parentWindow = 0 
 	);
 	
-	virtual GHOST_TSuccess beginFullScreen(
-		const GHOST_DisplaySetting& setting, 
-		GHOST_IWindow** window,
-		const bool stereoVisual
-	);
-	
-	virtual GHOST_TSuccess endFullScreen( void );
-	
 	/***************************************************************************************
 	 ** Event management functionality
 	 ***************************************************************************************/

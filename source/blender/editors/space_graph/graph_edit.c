@@ -37,7 +37,9 @@
 #include <string.h>
 #include <float.h>
 
-#include "AUD_C-API.h"
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 #include "MEM_guardedalloc.h"
 
@@ -1079,6 +1081,7 @@ static float fcurve_samplingcb_sound (FCurve *UNUSED(fcu), void *data, float eva
 
 /* ------------------- */
 
+#ifdef WITH_AUDASPACE
 static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
@@ -1148,6 +1151,17 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
+
+#else //WITH_AUDASPACE
+
+static int graphkeys_sound_bake_exec(bContext *UNUSED(C), wmOperator *op)
+{
+	BKE_report(op->reports, RPT_ERROR, "Compiled without sound support");
+
+	return OPERATOR_CANCELLED;
+}
+
+#endif //WITH_AUDASPACE
 
 static int graphkeys_sound_bake_invoke (bContext *C, wmOperator *op, wmEvent *event)
 {

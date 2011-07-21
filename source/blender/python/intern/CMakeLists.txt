@@ -25,15 +25,14 @@
 
 set(INC 
 	..
+	../../blenkernel
 	../../blenlib
+	../../blenloader
+	../../editors/include
 	../../makesdna
 	../../makesrna
-	../../blenkernel
-	../../blenloader
 	../../windowmanager
-	../../editors/include
 	../../../../intern/guardedalloc
-	../../../../intern/audaspace/intern
 )
 
 set(INC_SYS
@@ -43,8 +42,10 @@ set(INC_SYS
 set(SRC
 	bpy.c
 	bpy_app.c
+	bpy_app_handlers.c
 	bpy_driver.c
 	bpy_interface.c
+	bpy_intern_string.c
 	bpy_library.c
 	bpy_operator.c
 	bpy_operator_wrap.c
@@ -59,7 +60,9 @@ set(SRC
 
 	bpy.h
 	bpy_app.h
+	bpy_app_handlers.h
 	bpy_driver.h
+	bpy_intern_string.h
 	bpy_operator.h
 	bpy_operator_wrap.h
 	bpy_props.h
@@ -82,6 +85,10 @@ endif()
 
 if(WITH_PYTHON_SAFETY)
 	add_definitions(-DWITH_PYTHON_SAFETY)
+endif()
+
+if(WITH_AUDASPACE)
+	add_definitions(-DWITH_AUDASPACE)
 endif()
 
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}")

@@ -19,7 +19,7 @@
 #
 
 set(INC
-	./include
+	include
 )
 
 set(INC_SYS

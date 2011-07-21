@@ -174,6 +174,7 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, bpy.types.Panel):
         row.prop(mat, "use_transparency")
         sub = row.column()
         sub.prop(mat, "offset_z")
+
         sub.active = mat_type and mat.use_transparency and mat.transparency_method == 'Z_TRANSPARENCY'
 
         row = layout.row()
@@ -199,6 +200,7 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
         col.prop(mat, "use_cast_buffer_shadows")
         col.prop(mat, "use_cast_approximate")
+        col.prop(mat, "pass_index")
 
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
@@ -729,6 +731,8 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "use_vertex_color_paint")
         col.prop(mat, "use_vertex_color_light")
         col.prop(mat, "use_object_color")
+        if simple_material(base_mat):
+            col.prop(mat, "pass_index")
 
 
 class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
@@ -883,7 +887,7 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
             sub = col.column()
             sub.enabled = True
             sub.active = False
-            sub.prop(vol, "use_light_cache")
+            sub.label("Light Cache Enabled")
             col.prop(vol, "cache_resolution")
 
             sub = col.column(align=True)

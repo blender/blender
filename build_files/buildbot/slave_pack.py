@@ -36,7 +36,7 @@ builder = sys.argv[1]
 branch = ''
 
 if len(sys.argv) >= 3:
-	branch = sys.argv[2]
+    branch = sys.argv[2]
 
 # scons does own packaging
 if builder.find('scons') != -1:

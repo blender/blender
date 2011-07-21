@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 __all__ = (
     "mesh_linked_faces",
@@ -25,7 +25,9 @@ __all__ = (
     "edge_loops_from_faces",
     "edge_loops_from_edges",
     "ngon_tesselate",
+    "face_random_points",
 )
+
 
 def mesh_linked_faces(mesh):
     """
@@ -66,7 +68,8 @@ def mesh_linked_faces(mesh):
                         if mapped_index != nxt_mapped_index:
                             ok = True
 
-                            # Assign mapping to this group so they all map to this group
+                            # Assign mapping to this group so they
+                            # all map to this group
                             for grp_f in face_groups[nxt_mapped_index]:
                                 face_mapping[grp_f.index] = mapped_index
 
@@ -104,9 +107,9 @@ def edge_face_count(mesh):
     :return: list face users for each item in mesh.edges.
     :rtype: list
     """
-    edge_face_count_dict = edge_face_count_dict(mesh)
+    edge_face_count = edge_face_count_dict(mesh)
     get = dict.get
-    return [get(edge_face_count_dict, ed.key, 0) for ed in mesh.edges]
+    return [get(edge_face_count, ed.key, 0) for ed in mesh.edges]
 
 
 def edge_loops_from_faces(mesh, faces=None, seams=()):
@@ -211,8 +214,6 @@ def edge_loops_from_edges(mesh, edges=None):
     if not hasattr(edges, "pop"):
         edges = edges[:]
 
-    edge_dict = {ed.key: ed for ed in mesh.edges if ed.select}
-
     while edges:
         current_edge = edges.pop()
         vert_end, vert_start = current_edge.vertices[:]
@@ -267,6 +268,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
     fix_loops: If this is enabled polylines that use loops to make multiple polylines are delt with correctly.
     '''
 
+    from mathutils.geometry import tesselate_polygon
     from mathutils import Vector
     vector_to_tuple = Vector.to_tuple
 
@@ -285,7 +287,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
         else:
             return v1[1], v2[1]
 
-    if not PREF_FIX_LOOPS:
+    if not fix_loops:
         '''
         Normal single concave loop filling
         '''
@@ -298,7 +300,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
             if verts[i][1] == verts[i - 1][0]:
                 verts.pop(i - 1)
 
-        fill = fill_polygon([verts])
+        fill = tesselate_polygon([verts])
 
     else:
         '''
@@ -433,3 +435,70 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
                 fill[i] = tuple([ii for ii in reversed(fi)])
 
     return fill
+
+
+def face_random_points(num_points, faces):
+    """
+    Generates a list of random points over mesh faces.
+
+    :arg num_points: the number of random points to generate on each face.
+    :type int:
+    :arg faces: list of the faces to generate points on.
+    :type faces: :class:`MeshFaces`, sequence
+    :return: list of random points over all faces.
+    :rtype: list
+    """
+
+    from random import random
+    from mathutils.geometry import area_tri
+
+    # Split all quads into 2 tris, tris remain unchanged
+    tri_faces = []
+    for f in faces:
+        tris = []
+        verts = f.id_data.vertices
+        fv = f.vertices[:]
+        tris.append((verts[fv[0]].co,
+                     verts[fv[1]].co,
+                     verts[fv[2]].co,
+                    ))
+        if len(fv) == 4:
+            tris.append((verts[fv[0]].co,
+                         verts[fv[3]].co,
+                         verts[fv[2]].co,
+                        ))
+        tri_faces.append(tris)
+
+    # For each face, generate the required number of random points
+    sampled_points = [None] * (num_points * len(faces))
+    for i, tf in enumerate(tri_faces):
+        for k in range(num_points):
+            # If this is a quad, we need to weight its 2 tris by their area
+            if len(tf) != 1:
+                area1 = area_tri(*tf[0])
+                area2 = area_tri(*tf[1])
+                area_tot = area1 + area2
+
+                area1 = area1 / area_tot
+                area2 = area2 / area_tot
+
+                vecs = tf[0 if (random() < area1) else 1]
+            else:
+                vecs = tf[0]
+
+            u1 = random()
+            u2 = random()
+            u_tot = u1 + u2
+
+            if u_tot > 1:
+                u1 = 1.0 - u1
+                u2 = 1.0 - u2
+
+            side1 = vecs[1] - vecs[0]
+            side2 = vecs[2] - vecs[0]
+
+            p = vecs[0] + u1 * side1 + u2 * side2
+
+            sampled_points[num_points * i + k] = p
+
+    return sampled_points

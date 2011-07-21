@@ -197,8 +197,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	case PCHAN_COLOR_CONSTS:
 	{
 		if ( (bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS) ) {
-			if (constflag & PCHAN_HAS_STRIDE) glColor4ub(0, 0, 200, 80);
-			else if (constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
+			if (constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
 			else if (constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
 			else if (constflag & PCHAN_HAS_SPLINEIK) glColor4ub(200, 255, 0, 80);
 			else if (constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
@@ -269,8 +268,7 @@ static short set_pchan_glColor (short colCode, int boneflag, int constflag)
 	{
 		/* inner part in background color or constraint */
 		if ( (constflag) && ((bcolor==NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) ) {
-			if (constflag & PCHAN_HAS_STRIDE) glColor3ub(0, 0, 200);
-			else if (constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
+			if (constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
 			else if (constflag & PCHAN_HAS_IK) glColor3ub(255, 255, 0);
 			else if (constflag & PCHAN_HAS_SPLINEIK) glColor3ub(200, 255, 0);
 			else if (constflag & PCHAN_HAS_CONST) glColor3ub(0, 255, 120);
@@ -1577,7 +1575,7 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 }
 
 /* assumes object is Armature with pose */
-static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, short ghost)
+static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, const short is_ghost, const short is_outline)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Object *ob= base->object;
@@ -1737,7 +1735,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 							}
 							
 							/* prepare colors */
-							if(ghost) {
+							if(is_ghost) {
 								/* 13 October 2009, Disabled this to make ghosting show the right colors (Aligorith) */
 							}
 							else if (arm->flag & ARM_POSEMODE)	
@@ -1865,9 +1863,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					constflag= pchan->constflag;
 					if (pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
 						constflag |= PCHAN_HAS_ACTION;
-					if (pchan->flag & POSE_STRIDE)
-						constflag |= PCHAN_HAS_STRIDE;
-						
+
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
 					
@@ -1905,7 +1901,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 		draw_pose_dofs(ob);
 
 	/* finally names and axes */
-	if (arm->flag & (ARM_DRAWNAMES|ARM_DRAWAXES)) {
+	if (arm->flag & (ARM_DRAWNAMES|ARM_DRAWAXES) && is_outline == 0) {
 		/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
@@ -2259,7 +2255,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 		
 		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
-		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE);
+		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE, FALSE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2338,7 +2334,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 		
 		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
-		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE);
+		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE, FALSE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2408,7 +2404,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
-				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE);
+				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE, FALSE);
 			}
 		}
 		
@@ -2423,7 +2419,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
-				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE);
+				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE, FALSE);
 			}
 		}
 	}
@@ -2444,7 +2440,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 /* ********************************** Armature Drawing - Main ************************* */
 
 /* called from drawobject.c, return 1 if nothing was drawn */
-int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag)
+int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag, const short is_outline)
 {
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
@@ -2510,7 +2506,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 					}
 				}	
 			}
-			draw_pose_bones(scene, v3d, ar, base, dt, FALSE);
+			draw_pose_bones(scene, v3d, ar, base, dt, FALSE, is_outline);
 			arm->flag &= ~ARM_POSEMODE; 
 			
 			if(ob->mode & OB_MODE_POSE)

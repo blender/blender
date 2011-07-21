@@ -1020,7 +1020,7 @@ static void old_mdisps_rotate(int S, int UNUSED(newside), int oldside, int x, in
 
 static void old_mdisps_convert(MFace *mface, MDisps *mdisp)
 {
-	int newlvl = log(sqrt(mdisp->totdisp)-1)/log(2);
+	int newlvl = log(sqrt(mdisp->totdisp)-1)/M_LN2;
 	int oldlvl = newlvl+1;
 	int oldside = multires_side_tot[oldlvl];
 	int newside = multires_side_tot[newlvl];

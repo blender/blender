@@ -113,6 +113,7 @@ const char *imb_ext_movie[] = {
 	".m4v",
 	".m2v",
 	".m2t",
+	".m2ts",
 	".mts",
 	".mv",
 	".avs",
@@ -142,6 +143,9 @@ const char *imb_ext_audio[] = {
 	".flac",
 	".wma",
 	".eac3",
+	".aif",
+	".aiff",
+	".m4a",
 	NULL};
 
 static int IMB_ispic_name(const char *name)

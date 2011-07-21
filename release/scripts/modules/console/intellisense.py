@@ -53,7 +53,7 @@ RE_UNQUOTED_WORD = re.compile(
     re.UNICODE)
 
 
-def complete(line, cursor, namespace, private=True):
+def complete(line, cursor, namespace, private):
     """Returns a list of possible completions:
 
     * name completion
@@ -82,6 +82,9 @@ def complete(line, cursor, namespace, private=True):
         if RE_MODULE.match(line):
             from . import complete_import
             matches = complete_import.complete(line)
+            if not private:
+                matches[:] = [m for m in matches if m[:1] != "_"]
+            matches.sort()
         else:
             from . import complete_namespace
             matches = complete_namespace.complete(word, namespace, private)
@@ -120,15 +123,29 @@ def expand(line, cursor, namespace, private=True):
         from . import complete_calltip
         matches, word, scrollback = complete_calltip.complete(line,
             cursor, namespace)
+        prefix = os.path.commonprefix(matches)[len(word):]
         no_calltip = False
     else:
         matches, word = complete(line, cursor, namespace, private)
+        prefix = os.path.commonprefix(matches)[len(word):]
         if len(matches) == 1:
             scrollback = ''
         else:
-            scrollback = '  '.join([m.split('.')[-1] for m in matches])
+            # causes blender bug [#27495] since string keys may contain '.'
+            # scrollback = '  '.join([m.split('.')[-1] for m in matches])
+
+            # add white space to align with the cursor
+            white_space = "    " + (" " * (cursor + len(prefix)))
+            word_prefix = word + prefix
+            scrollback = '\n'.join(
+                    [white_space + m[len(word_prefix):]
+                     if (word_prefix and m.startswith(word_prefix))
+                     else
+                     white_space + m.split('.')[-1]
+                     for m in matches])
+
         no_calltip = True
-    prefix = os.path.commonprefix(matches)[len(word):]
+
     if prefix:
         line = line[:cursor] + prefix + line[cursor:]
         cursor += len(prefix)

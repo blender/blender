@@ -60,6 +60,7 @@ struct RenderBuckets;
 struct ObjectInstanceRen;
 struct RayObject;
 struct RayFace;
+struct ReportList;
 struct Main;
 
 #define TABLEINITSIZE 1024
@@ -214,7 +215,7 @@ struct Render
 	ListBase instancetable;
 	int totinstance;
 
-	struct Image *backbuf, *bakebuf;
+	struct Image *bakebuf;
 	
 	struct GHash *orco_hash;
 
@@ -252,10 +253,9 @@ struct Render
 	int (*test_break)(void *handle);
 	void *tbh;
 	
-	void (*error)(void *handle, const char *str);
-	void *erh;
-	
 	RenderStats i;
+
+	struct ReportList *reports;
 };
 
 /* ------------------------------------------------------------------------- */

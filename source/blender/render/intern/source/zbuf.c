@@ -715,7 +715,7 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 	}
 }
 
-static void zbufline_onlyZ(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
+static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), float *vec1, float *vec2)
 {
 	int *rectz, *rectz1= NULL;
 	int start, end, x, y, oldx, oldy, ofs;
@@ -1287,7 +1287,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
  */
 
 /* now: filling two Z values, the closest and 2nd closest */
-static void zbuffillGL_onlyZ(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
+static void zbuffillGL_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), float *v1, float *v2, float *v3, float *v4)
 {
 	double zxd, zyd, zy0, zverg;
 	float x0,y0,z0;
@@ -3236,7 +3236,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
  * Do accumulation z buffering.
  */
 
-static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int samples, float (*jit)[2], float clipcrop, int shadow)
+static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int samples, float (*jit)[2], float UNUSED(clipcrop), int shadow)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
 	ZSpan zspans[16], *zspan;	/* MAX_OSA */
@@ -3497,7 +3497,7 @@ static void add_transp_obindex(RenderLayer *rl, int offset, Object *ob)
 	RenderPass *rpass;
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		if(rpass->passtype == SCE_PASS_INDEXOB) {
+		if(rpass->passtype == SCE_PASS_INDEXOB||rpass->passtype == SCE_PASS_INDEXMA) {
 			float *fp= rpass->rect + offset;
 			*fp= (float)ob->index;
 			break;
@@ -3692,7 +3692,7 @@ static int vergzvlak(const void *a1, const void *a2)
 	return 0;
 }
 
-static void shade_strand_samples(StrandShadeCache *cache, ShadeSample *ssamp, int x, int y, ZTranspRow *row, int addpassflag)
+static void shade_strand_samples(StrandShadeCache *cache, ShadeSample *ssamp, int UNUSED(x), int UNUSED(y), ZTranspRow *row, int addpassflag)
 {
 	StrandSegment sseg;
 	StrandVert *svert;
@@ -3820,7 +3820,7 @@ static int shade_tra_samples(ShadeSample *ssamp, StrandShadeCache *cache, int x,
 		shade_samples_do_AO(ssamp);
 		
 		/* if shade (all shadepinputs have same passflag) */
-		if(shi->passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB)) {
+		if(shi->passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB|SCE_PASS_INDEXMA)) {
 			for(samp=0; samp<ssamp->tot; samp++, shi++, shr++) {
 				shade_input_set_shade_texco(shi);
 				shade_input_do_shade(shi, shr);
@@ -3941,7 +3941,7 @@ static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf
 
 /* main render call to do the z-transparent layer */
 /* returns a mask, only if a) transp rendered and b) solid was rendered */
-unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass, ListBase *psmlist)
+unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass, ListBase *UNUSED(psmlist))
 {
 	RenderResult *rr= pa->result;
 	ShadeSample ssamp;
@@ -4115,7 +4115,14 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 							add_transp_obindex(rlpp[a], od, obr->ob);
 					}
 				}
-				
+                                if(addpassflag & SCE_PASS_INDEXMA) {
+                                        ObjectRen *obr= R.objectinstance[zrow[totface-1].obi].obr;
+                                        if(obr->ob) {
+                                                for(a= 0; a<totfullsample; a++)
+                                                        add_transp_obindex(rlpp[a], od, obr->ob);
+                                        }
+                                }
+
 				/* for each mask-sample we alpha-under colors. then in end it's added using filter */
 				memset(samp_shr, 0, sizeof(ShadeResult)*osa);
 				for(a=0; a<osa; a++) {

@@ -206,7 +206,7 @@ struct bDeformGroup		*ED_vgroup_add(struct Object *ob);
 struct bDeformGroup		*ED_vgroup_add_name(struct Object *ob, const char *name);
 void 					ED_vgroup_delete(struct Object *ob, struct bDeformGroup *defgroup);
 void					ED_vgroup_select_by_name(struct Object *ob, const char *name);
-void					ED_vgroup_data_create(struct ID *id);
+int						ED_vgroup_data_create(struct ID *id);
 int						ED_vgroup_give_array(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
 int						ED_vgroup_copy_array(struct Object *ob, struct Object *ob_from);
 void					ED_vgroup_mirror(struct Object *ob, const short mirror_weights, const short flip_vgroups);

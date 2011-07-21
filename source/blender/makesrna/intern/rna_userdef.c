@@ -117,6 +117,12 @@ static void rna_userdef_mipmap_update(Main *bmain, Scene *scene, PointerRNA *ptr
 	rna_userdef_update(bmain, scene, ptr);
 }
 
+static void rna_userdef_anisotropic_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	GPU_set_anisotropic(U.anisotropic_filter);
+	rna_userdef_update(bmain, scene, ptr);
+}
+
 static void rna_userdef_gl_texture_limit_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	GPU_free_images();
@@ -245,6 +251,13 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 
 static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
+	/* if all lights are off gpu_draw resets them all, [#27627]
+	 * so disallow them all to be disabled */
+	if(U.light[0].flag==0 && U.light[1].flag==0 && U.light[2].flag==0) {
+		SolidLight *light= ptr->data;
+		light->flag |= 1;
+	}
+
 	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D|NS_VIEW3D_GPU, NULL);
 	rna_userdef_update(bmain, scene, ptr);
 }
@@ -348,36 +361,37 @@ static void rna_def_userdef_theme_ui_style(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "uiStyle");
 	RNA_def_struct_ui_text(srna, "Style", "Theme settings for style sets");
 	
+	/* (not used yet)
 	prop= RNA_def_property(srna, "panelzoom", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.5, 2.0);
 	RNA_def_property_ui_text(prop, "Panel Zoom", "Default zoom level for panel areas");
-	
+	*/
 	prop= RNA_def_property(srna, "panel_title", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "paneltitle");
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
-	RNA_def_property_ui_text(prop, "Panel Font", "");
+	RNA_def_property_ui_text(prop, "Panel Style", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-	
+/*	(not used yet)
 	prop= RNA_def_property(srna, "group_label", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "grouplabel");
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
 	RNA_def_property_ui_text(prop, "Group Label Font", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-	
+*/	
 	prop= RNA_def_property(srna, "widget_label", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "widgetlabel");
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
-	RNA_def_property_ui_text(prop, "Widget Label Font", "");
+	RNA_def_property_ui_text(prop, "Widget Label Style", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "widget", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "widget");
 	RNA_def_property_struct_type(prop, "ThemeFontStyle");
-	RNA_def_property_ui_text(prop, "Widget Font", "");
+	RNA_def_property_ui_text(prop, "Widget Style", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 }	
@@ -2102,19 +2116,22 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "manipulator_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_size");
 	RNA_def_property_range(prop, 2, 40);
+	RNA_def_property_int_default(prop, 15);
 	RNA_def_property_ui_text(prop, "Manipulator Size", "Diameter of widget, in 10 pixel units");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "manipulator_handle_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_handlesize");
 	RNA_def_property_range(prop, 2, 40);
+	RNA_def_property_int_default(prop, 25);
 	RNA_def_property_ui_text(prop, "Manipulator Handle Size", "Size of widget handles as percentage of widget radius");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "manipulator_hotspot", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_hotspot");
 	RNA_def_property_range(prop, 4, 40);
-	RNA_def_property_ui_text(prop, "Manipulator Hotspot", "Hotspot in pixels for clicking widget handles");
+	RNA_def_property_int_default(prop, 14);
+	RNA_def_property_ui_text(prop, "Manipulator Hotspot", "Pixel distance around the handles to accept mouse clicks");
 
 	prop= RNA_def_property(srna, "object_origin_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "obcenter_dia");
@@ -2339,6 +2356,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{128, "CLAMP_128", 0, "128", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem anisotropic_items[]  ={
+		{1, "FILTER_0", 0, "Off", ""},
+		{2, "FILTER_2", 0, "2x", ""},
+		{4, "FILTER_4", 0, "4x", ""},
+		{8, "FILTER_8", 0, "8x", ""},
+		{16, "FILTER_16", 0, "16x", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem audio_mixing_samples_items[] = {
 		{256, "SAMPLES_256", 0, "256", "Set audio mixing buffer size to 256 samples"},
 		{512, "SAMPLES_512", 0, "512", "Set audio mixing buffer size to 512 samples"},
@@ -2561,6 +2586,13 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_AA);
 	RNA_def_property_ui_text(prop, "Anti-aliasing", "Use anti-aliasing for the 3D view (may impact redraw performance)");
+
+	prop= RNA_def_property(srna, "anisotropic_filter", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "anisotropic_filter");
+	RNA_def_property_enum_items(prop, anisotropic_items);
+	RNA_def_property_enum_default(prop, 1);
+	RNA_def_property_ui_text(prop, "Anisotropic Filter", "The quality of the anisotropic filtering (values greater than 1.0 enable anisotropic filtering)");
+	RNA_def_property_update(prop, 0, "rna_userdef_anisotropic_update");
 	
 	prop= RNA_def_property(srna, "gl_texture_limit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "glreslimit");

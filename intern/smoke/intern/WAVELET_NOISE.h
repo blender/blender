@@ -45,6 +45,11 @@
 
 #include <MERSENNETWISTER.h>
 
+#ifdef WIN32
+#include <float.h>
+#define isnan _isnan
+#endif
+
 // Tile file header, update revision upon any change done to the noise generator
 static const char tilefile_headerstring[] = "Noise Tile File rev. ";
 static const char tilefile_revision[] =  "001";
@@ -69,7 +74,7 @@ static void downsampleX(float *from, float *to, int n){
 	const float *a = &downCoeffs[16];
 	for (int i = 0; i < n / 2; i++) {
 		to[i] = 0;
-		for (int k = 2 * i - 16; k <= 2 * i + 16; k++)
+		for (int k = 2 * i - 16; k < 2 * i + 16; k++)
 			to[i] += a[k - 2 * i] * from[modFast128(k)];
 	}
 }
@@ -79,7 +84,7 @@ static void downsampleY(float *from, float *to, int n){
 	const float *a = &downCoeffs[16];
 	for (int i = 0; i < n / 2; i++) {
 		to[i * n] = 0;
-		for (int k = 2 * i - 16; k <= 2 * i + 16; k++)
+		for (int k = 2 * i - 16; k < 2 * i + 16; k++)
 			to[i * n] += a[k - 2 * i] * from[modFast128(k) * n];
 	}
 }
@@ -89,7 +94,7 @@ static void downsampleZ(float *from, float *to, int n){
 	const float *a = &downCoeffs[16];
 	for (int i = 0; i < n / 2; i++) {
 		to[i * n * n] = 0;
-		for (int k = 2 * i - 16; k <= 2 * i + 16; k++)
+		for (int k = 2 * i - 16; k < 2 * i + 16; k++)
 			to[i * n * n] += a[k - 2 * i] * from[modFast128(k) * n * n];
 	}
 }
@@ -262,6 +267,14 @@ static bool loadTile(float* const noiseTileData, std::string filename)
 		printf("loadTile: Noise tile '%s' is wrong size %d.\n", filename.c_str(), (int)bread);
 		return false;
 	} 
+
+	// check for invalid nan tile data that could be generated. bug is now
+	// fixed, but invalid files may still hang around
+	if (isnan(noiseTileData[0])) {
+		printf("loadTile: Noise tile '%s' contains nan values.\n", filename.c_str());
+		return false;
+	}
+
 	return true;
 }
 

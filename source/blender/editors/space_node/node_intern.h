@@ -114,6 +114,7 @@ int node_render_changed_exec(bContext *, wmOperator *);
 
 void NODE_OT_duplicate(struct wmOperatorType *ot);
 void NODE_OT_delete(struct wmOperatorType *ot);
+void NODE_OT_delete_reconnect(struct wmOperatorType *ot);
 void NODE_OT_resize(struct wmOperatorType *ot);
 
 void NODE_OT_link(struct wmOperatorType *ot);
@@ -152,8 +153,8 @@ extern const char *node_context_dir[];
 // XXX from BSE_node.h
 #define HIDDEN_RAD		15.0f
 #define BASIS_RAD		8.0f
-#define NODE_DYS		10
-#define NODE_DY			20
+#define NODE_DYS		(U.widget_unit/2)
+#define NODE_DY			U.widget_unit
 #define NODE_SOCKSIZE	5
 
 // XXX button events (butspace)

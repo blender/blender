@@ -64,6 +64,7 @@ extern "C"
 #include "BKE_node.h"	
 #include "BKE_report.h"
 #include "BKE_library.h"
+#include "BLI_threads.h"
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -399,7 +400,11 @@ int main(int argc, char** argv)
 		  ::DisposeNibReference(nibRef);
     */
 #endif // __APPLE__
-
+	
+	// We don't use threads directly in the BGE, but we need to call this so things like
+	// freeing up GPU_Textures works correctly.
+	BLI_threadapi_init();
+	
 	RNA_init();
 
 	init_nodesystem();
@@ -408,6 +413,7 @@ int main(int argc, char** argv)
 
 	// We load our own G.main, so free the one that initglobals() gives us
 	free_main(G.main);
+	G.main = NULL;
 
 	IMB_init();
 
@@ -449,6 +455,9 @@ int main(int argc, char** argv)
 	U.audiorate = 44100;
 	U.audioformat = 0x24;
 	U.audiochannels = 2;
+
+	// XXX this one too
+	U.anisotropic_filter = 2;
 
 	sound_init_once();
 
@@ -705,6 +714,8 @@ int main(int argc, char** argv)
 		{
 			GPU_set_mipmap(0);
 		}
+
+		GPU_set_anisotropic(U.anisotropic_filter);
 		
 		// Create the system
 		if (GHOST_ISystem::createSystem() == GHOST_kSuccess)

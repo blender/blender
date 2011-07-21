@@ -17,7 +17,7 @@ Module to access logic functions, imported automatically into the python control
    # To get the game object this controller is on:
    obj = cont.owner
 
-:class:`~bge.types.KX_GameObject` and :class:`~bge.types.KX_Camera` or :class:`bge.types.~KX_LightObject` methods are available depending on the type of object
+:class:`~bge.types.KX_GameObject` and :class:`~bge.types.KX_Camera` or :class:`~bge.types.KX_LightObject` methods are available depending on the type of object
 
 .. code-block:: python
 
@@ -345,9 +345,9 @@ Utility functions
 
 .. function:: getAverageFrameRate()
 
-   Gets the estimated average framerate
-   
-   :return: The estimed average framerate in frames per second
+   Gets the estimated/average framerate for all the active scenes, not only the current scene.
+
+   :return: The estimated average framerate in frames per second
    :rtype: float
 
 .. function:: getBlendFileList(path = "//")

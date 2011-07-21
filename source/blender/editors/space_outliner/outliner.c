@@ -57,6 +57,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #if defined WIN32 && !defined _LIBC
 # include "BLI_fnmatch.h" /* use fnmatch included in blenlib */
@@ -436,7 +437,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index);
 
-#define LOG2I(x) (int)(log(x)/log(2.0))
+#define LOG2I(x) (int)(log(x)/M_LN2)
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
 {
@@ -479,6 +480,10 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->name= "Index Object";
 	te->directdata= &srl->passflag;
 	
+	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_INDEXMA));
+	te->name= "Index Material";
+	te->directdata= &srl->passflag;
+
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, LOG2I(SCE_PASS_RGBA));
 	te->name= "Color";
 	te->directdata= &srl->passflag;
@@ -1762,7 +1767,7 @@ void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 	ot->exec= outliner_toggle_expanded_exec;
 	ot->poll= ED_operator_outliner_active;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* no undo or registry, UI option */
 }
 
 /* --- */
@@ -1797,7 +1802,7 @@ void OUTLINER_OT_selected_toggle(wmOperatorType *ot)
 	ot->exec= outliner_toggle_selected_exec;
 	ot->poll= ED_operator_outliner_active;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* no undo or registry, UI option */
 }
 
 /* --- */
@@ -1854,7 +1859,7 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 	ot->exec= outliner_one_level_exec;
 	ot->poll= ED_operator_outliner_active;
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* no undo or registry, UI option */
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep.");
@@ -3049,7 +3054,7 @@ void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 	ot->exec= outliner_show_hierarchy_exec;
 	ot->poll= ED_operator_outliner_active; //  TODO: shouldn't be allowed in RNA views...
 	
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	/* no undo or registry, UI option */
 }
 
 void outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selecting)
@@ -4736,7 +4741,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		
 		if(!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))) {
 			// icons a bit higher
-			tselem_draw_icon(block, xmax, (float)startx+offsx, (float)*starty+2*ufac, tselem, te, 1.0f);
+			tselem_draw_icon(block, xmax, (float)startx+offsx - 0.5f*ufac, (float)*starty+2.0f*ufac, tselem, te, 1.0f);
 			
 			offsx+= UI_UNIT_X;
 		}
@@ -4901,7 +4906,7 @@ static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegio
 	outliner_draw_selection(ar, soops, &soops->tree, &starty);
 	
 	// grey hierarchy lines
-	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.2f);
+	UI_ThemeColorBlend(TH_BACK, TH_TEXT, 0.4f);
 	starty= (int)ar->v2d.tot.ymax-UI_UNIT_Y/2-OL_Y_OFFSET;
 	startx= 6;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);

@@ -295,12 +295,6 @@ private :
 		bool
 	generateWindowExposeEvents(
  	);
- 
-		GHOST_TKey
-	convertXKey(
-		KeySym key
-	);
-
 };
 
 #endif

@@ -56,11 +56,13 @@ extern BPy_StructRNA *bpy_context_module;
 
 static EnumPropertyItem property_flag_items[]= {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
+    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem property_flag_enum_items[]= {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
+    {PROP_SKIP_SAVE, "SKIP_SAVE", 0, "Skip Save", ""},
 	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
 	{PROP_ENUM_FLAG, "ENUM_FLAG", 0, "Enum Flag", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -183,8 +185,13 @@ void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struct Prope
 	PyObject *args;
 	PyObject *self;
 	PyObject *ret;
+	const int is_write_ok= pyrna_write_check();
 
 	BLI_assert(py_data != NULL);
+
+	if(!is_write_ok) {
+		pyrna_write_set(TRUE);
+	}
 
 	bpy_context_set(C, &gilstate);
 
@@ -214,6 +221,10 @@ void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struct Prope
 	}
 
 	bpy_context_clear(C, &gilstate);
+
+	if(!is_write_ok) {
+		pyrna_write_set(FALSE);
+	}
 }
 
 static int bpy_prop_callback_check(PyObject *py_func, int argcount)
@@ -281,11 +292,15 @@ static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_c
  * calls because of static strins passed to pyrna_set_to_enum_bitfield */
 #define BPY_PROPDEF_CHECK(_func, _property_flag_items) \
 	if(id_len >= MAX_IDPROP_NAME) { \
-		PyErr_Format(PyExc_TypeError, #_func"(): '%.200s' too long, max length is %d", id, MAX_IDPROP_NAME-1); \
+		PyErr_Format(PyExc_TypeError, \
+		             #_func"(): '%.200s' too long, max length is %d", \
+		             id, MAX_IDPROP_NAME-1); \
 		return NULL; \
 	} \
 	if(RNA_def_property_free_identifier(srna, id) == -1) { \
-		PyErr_Format(PyExc_TypeError, #_func"(): '%s' is defined as a non-dynamic type", id); \
+		PyErr_Format(PyExc_TypeError, \
+		             #_func"(): '%s' is defined as a non-dynamic type", \
+		             id); \
 		return NULL; \
 	} \
 	if(pyopts && pyrna_set_to_enum_bitfield(_property_flag_items, pyopts, &opts, #_func"(options={...}):")) \
@@ -294,7 +309,9 @@ static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_c
 #define BPY_PROPDEF_SUBTYPE_CHECK(_func, _property_flag_items, _subtype) \
 	BPY_PROPDEF_CHECK(_func, _property_flag_items) \
 	if(pysubtype && RNA_enum_value_from_id(_subtype, pysubtype, &subtype)==0) { \
-		PyErr_Format(PyExc_TypeError, #_func"(subtype='%s'): invalid subtype", pysubtype); \
+		PyErr_Format(PyExc_TypeError, \
+		             #_func"(subtype='%s'): invalid subtype", \
+		             pysubtype); \
 		return NULL; \
 	} \
 
@@ -333,7 +350,7 @@ PyDoc_STRVAR(BPy_BoolProperty_doc,
 "\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string\n"
@@ -397,7 +414,7 @@ BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
 "   :arg default: sequence of booleans the length of *size*.\n"
 "   :type default: sequence\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string\n"
@@ -442,7 +459,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 			return NULL;
 		}
 
-		if(pydef && PyC_AsArray(def, pydef, size, &PyBool_Type, "BoolVectorProperty(default=sequence)") < 0)
+		if(pydef && PyC_AsArray(def, pydef, size, &PyBool_Type, FALSE, "BoolVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		if (bpy_prop_callback_check(update_cb, 2) == -1) {
@@ -473,7 +490,7 @@ PyDoc_STRVAR(BPy_IntProperty_doc,
 "\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string\n"
@@ -539,7 +556,7 @@ BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
 "   :arg default: sequence of ints the length of *size*.\n"
 "   :type default: sequence\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string\n"
@@ -586,7 +603,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 			return NULL;
 		}
 
-		if(pydef && PyC_AsArray(def, pydef, size, &PyLong_Type, "IntVectorProperty(default=sequence)") < 0)
+		if(pydef && PyC_AsArray(def, pydef, size, &PyLong_Type, FALSE, "IntVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		if (bpy_prop_callback_check(update_cb, 2) == -1) {
@@ -618,7 +635,7 @@ PyDoc_STRVAR(BPy_FloatProperty_doc,
 "\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string\n"
@@ -695,7 +712,7 @@ BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
 "   :arg default: sequence of floats the length of *size*.\n"
 "   :type default: sequence\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string\n"
@@ -742,7 +759,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 			return NULL;
 		}
 
-		if(pydef && PyC_AsArray(def, pydef, size, &PyFloat_Type, "FloatVectorProperty(default=sequence)") < 0)
+		if(pydef && PyC_AsArray(def, pydef, size, &PyFloat_Type, FALSE, "FloatVectorProperty(default=sequence)") < 0)
 			return NULL;
 
 		if (bpy_prop_callback_check(update_cb, 2) == -1) {
@@ -773,7 +790,7 @@ PyDoc_STRVAR(BPy_StringProperty_doc,
 "\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILENAME', 'NONE'].\n"
 "   :type subtype: string\n"
@@ -1048,7 +1065,7 @@ BPY_PROPDEF_DESC_DOC
 "      is disabled otherwise a set which may only contain string identifiers\n"
 "      used in *items*.\n"
 "   :type default: string or set\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE', 'ENUM_FLAG'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'ENUM_FLAG'].\n"
 "   :type options: set\n"
 "   :arg items: sequence of enum items formatted:\n"
 "      [(identifier, name, description), ...] where the identifier is used\n"
@@ -1193,7 +1210,7 @@ PyDoc_STRVAR(BPy_PointerProperty_doc,
 "   :type type: class\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 BPY_PROPDEF_UPDATE_DOC
 );
@@ -1254,7 +1271,7 @@ PyDoc_STRVAR(BPy_CollectionProperty_doc,
 "   :type type: class\n"
 BPY_PROPDEF_NAME_DOC
 BPY_PROPDEF_DESC_DOC
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 );
 static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)

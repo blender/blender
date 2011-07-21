@@ -448,6 +448,7 @@ bool GPG_Application::processEvent(GHOST_IEvent* event)
 
 
 		case GHOST_kEventWindowClose:
+		case GHOST_kEventQuit:
 			m_exitRequested = KX_EXIT_REQUEST_OUTSIDE;
 			break;
 

@@ -133,7 +133,7 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "ortho_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ortho_scale");
-	RNA_def_property_range(prop, 0.01f, 1000.0f);
+	RNA_def_property_range(prop, 0.01f, 4000.0f);
 	RNA_def_property_ui_text(prop, "Orthographic Scale", "Orthographic Camera scale (similar to zoom)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 

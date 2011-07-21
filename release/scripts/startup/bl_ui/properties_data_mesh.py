@@ -118,6 +118,7 @@ class DATA_PT_texture_space(MeshButtonsPanel, bpy.types.Panel):
         row.column().prop(mesh, "texspace_location", text="Location")
         row.column().prop(mesh, "texspace_size", text="Size")
 
+
 class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
     bl_label = "Vertex Groups"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -289,9 +290,8 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        ob = context.active_object
-
-        return (context.mode == 'EDIT_MESH') and ob and ob.type == 'MESH'
+        obj = context.object
+        return (context.mode == 'EDIT_MESH') and obj and obj.type == 'MESH'
 
     def draw(self, context):
         layout = self.layout

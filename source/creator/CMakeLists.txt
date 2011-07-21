@@ -97,7 +97,7 @@ endif()
 
 if(WITH_BINRELOC)
 	add_definitions(-DWITH_BINRELOC)
-	blender_include_dirs(${BINRELOC_INC})
+	blender_include_dirs(${BINRELOC_INCLUDE_DIRS})
 endif()
 
 # Setup the exe sources and buildinfo
@@ -231,7 +231,17 @@ else()
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-# install target
+
+# -----------------------------------------------------------------------------
+# Install Targets
+
+set(BLENDER_TEXT_FILES
+	${CMAKE_SOURCE_DIR}/release/text/GPL-license.txt
+	${CMAKE_SOURCE_DIR}/release/text/Python-license.txt
+	${CMAKE_SOURCE_DIR}/release/text/copyright.txt
+	${CMAKE_SOURCE_DIR}/release/text/readme.html
+)
+
 if(UNIX AND NOT APPLE)
 
 	if(WITH_INSTALL_PORTABLE)
@@ -274,9 +284,8 @@ if(UNIX AND NOT APPLE)
 		)
 
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+			FILES ${BLENDER_TEXT_FILES}
 			DESTINATION ${TARGETDIR}
-			PATTERN ".svn" EXCLUDE
 		)
 
 	else()
@@ -332,21 +341,20 @@ if(UNIX AND NOT APPLE)
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 		)
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+			FILES ${BLENDER_TEXT_FILES}
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
-			PATTERN ".svn" EXCLUDE
 		)
 	endif()
 
 	install(
 		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}/config
+		DESTINATION ${TARGETDIR_VER}
 	)
 
 	if(WITH_INTERNATIONAL)
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-			DESTINATION ${TARGETDIR_VER}/config
+			DESTINATION ${TARGETDIR_VER}
 		)
 
 		install(
@@ -409,20 +417,19 @@ elseif(WIN32)
 	)
 
 	install(  # same as linux!, deduplicate
-		DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+		FILES ${BLENDER_TEXT_FILES}
 		DESTINATION ${TARGETDIR}
-		PATTERN ".svn" EXCLUDE
 	)
 
 	install(  # same as linux!, deduplicate
 		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}/config
+		DESTINATION ${TARGETDIR_VER}
 	)
 
 	if(WITH_INTERNATIONAL) # same as linux!, deduplicate
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-			DESTINATION ${TARGETDIR_VER}/config
+			DESTINATION ${TARGETDIR_VER}
 		)
 		install(
 			DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
@@ -630,9 +637,9 @@ elseif(APPLE)
 	endmacro()
 
 	# install release and app files
-	install_dir(
-		${CMAKE_SOURCE_DIR}/release/text/
-		\${TARGETDIR}
+	install(
+		FILES ${BLENDER_TEXT_FILES}
+		DESTINATION ${TARGETDIR}
 	)
 
 	install(
@@ -647,7 +654,7 @@ elseif(APPLE)
 
 	install(
 		FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-		DESTINATION ${TARGETDIR_VER}/datafiles
+		DESTINATION ${TARGETDIR_VER}
 	)
 
 	# localization
@@ -696,6 +703,12 @@ elseif(APPLE)
 		)
 	endif()
 endif()
+
+unset(BLENDER_TEXT_FILES)
+
+
+# -----------------------------------------------------------------------------
+# Setup link libs
 
 add_dependencies(blender makesdna)
 
@@ -755,6 +768,7 @@ endif()
 		bf_intern_opennl
 		bf_python
 		bf_python_ext
+		bf_python_mathutils
 		bf_ikplugin
 		bf_modifiers
 		bf_blenkernel
@@ -851,6 +865,12 @@ endif()
 		message(STATUS "Blender Skipping: (${REM_MSG})")
 	endif()
 	target_link_libraries(blender ${BLENDER_SORTED_LIBS})
+	
+	unset(SEARCHLIB)
+	unset(SORTLIB)
+	unset(REMLIB)
+	unset(REM_MSG)
+	
 #else()
 #	target_link_libraries(blender ${BLENDER_LINK_LIBS})
 #endif()

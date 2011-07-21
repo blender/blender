@@ -81,13 +81,11 @@ class MeshMirrorUV(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        ob = context.active_object
-        return (ob and ob.type == 'MESH')
+        obj = context.active_object
+        return (obj and obj.type == 'MESH' and obj.data.uv_textures.active)
 
     def execute(self, context):
         DIR = (self.direction == 'NEGATIVE')
-
-        from mathutils import Vector
 
         ob = context.active_object
         is_editmode = (ob.mode == 'EDIT')
@@ -120,12 +118,7 @@ class MeshMirrorUV(bpy.types.Operator):
                 if j is not None:
                     vmap[i] = j
 
-        active_uv_layer = None
-        for lay in mesh.uv_textures:
-            if lay.active:
-                active_uv_layer = lay.data
-                break
-
+        active_uv_layer = mesh.uv_textures.active.data
         fuvs = [(uv.uv1, uv.uv2, uv.uv3, uv.uv4) for uv in active_uv_layer]
         fuvs_cpy = [(uv[0].copy(), uv[1].copy(), uv[2].copy(), uv[3].copy()) for uv in fuvs]
 
@@ -152,7 +145,6 @@ class MeshMirrorUV(bpy.types.Operator):
                 if j is not None:
                     fmap[i] = j
 
-        done = [False] * len(faces)
         for i, j in fmap.items():
 
             if not fuvsel[i] or not fuvsel[j]:
@@ -170,10 +162,10 @@ class MeshMirrorUV(bpy.types.Operator):
             v1 = faces[j].vertices[:]
             v2 = [vmap[k] for k in faces[i].vertices[:]]
 
-            for k in range(len(uv1)):
-                k_map = v1.index(v2[k])
-                uv1[k].x = - (uv2[k_map].x - 0.5) + 0.5
-                uv1[k].y = uv2[k_map].y
+            if len(v1) == len(v2):
+                for k in range(len(v1)):
+                    k_map = v1.index(v2[k])
+                    uv1[k].xy = - (uv2[k_map].x - 0.5) + 0.5, uv2[k_map].y
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)

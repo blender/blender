@@ -2461,13 +2461,7 @@ static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 
 static int redo_last_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *lastop;
-	
-	/* only for operators that are registered and did an undo push */
-	for(lastop= wm->operators.last; lastop; lastop= lastop->prev)
-		if((lastop->type->flag & OPTYPE_REGISTER) && (lastop->type->flag & OPTYPE_UNDO))
-			break;
+	wmOperator *lastop= WM_operator_last_redo(C);
 	
 	if(lastop)
 		WM_operator_redo_popup(C, lastop);

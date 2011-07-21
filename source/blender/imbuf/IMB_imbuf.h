@@ -327,12 +327,18 @@ int imb_get_anim_type(const char *name);
  */
 void IMB_de_interlace(struct ImBuf *ibuf);
 void IMB_interlace(struct ImBuf *ibuf);
+
+/* create char buffer, color corrected if necessary, for ImBufs that lack one */ 
 void IMB_rect_from_float(struct ImBuf *ibuf);
+/* create char buffer for part of the image, color corrected if necessary,
+   Changed part will be stored in buffer. This is expected to be used for texture painting updates */ 
+void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h);
 void IMB_float_from_rect(struct ImBuf *ibuf);
 void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */
 void IMB_convert_profile(struct ImBuf *ibuf, int profile);
 float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc);
+void IMB_color_to_bw(struct ImBuf *ibuf);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from
@@ -437,8 +443,9 @@ void IMB_freezbuffloatImBuf(struct ImBuf *ibuf);
  *
  * @attention Defined in rectop.c
  */
-void IMB_rectfill(struct ImBuf *drect, float col[4]);
+void IMB_rectfill(struct ImBuf *drect, const float col[4]);
 void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2);
+void IMB_rectfill_alpha(struct ImBuf *ibuf, const float value);
 
 /* this should not be here, really, we needed it for operating on render data, IMB_rectfill_area calls it */
 void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2);

@@ -673,13 +673,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				
 				GHOST_ScreenToClient(win->ghostwin, wx, wy, &cx, &cy);
 				win->eventstate->x= cx;
-
-#if defined(__APPLE__) && defined(GHOST_COCOA)
-				//Cocoa already uses coordinates with y=0 at bottom
-				win->eventstate->y= cy;
-#else
 				win->eventstate->y= (win->sizey-1) - cy;
-#endif
 				
 				win->addmousemove= 1;	/* enables highlighted buttons */
 				
@@ -796,20 +790,13 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				wmEvent event;
 				GHOST_TEventDragnDropData *ddd= GHOST_GetEventData(evt);
 				int cx, cy, wx, wy;
-
 				
 				/* entering window, update mouse pos */
 				GHOST_GetCursorPosition(g_system, &wx, &wy);
 				
 				GHOST_ScreenToClient(win->ghostwin, wx, wy, &cx, &cy);
 				win->eventstate->x= cx;
-				
-#if defined(__APPLE__) && defined(GHOST_COCOA)
-				//Cocoa already uses coordinates with y=0 at bottom
-				win->eventstate->y= cy;
-#else
 				win->eventstate->y= (win->sizey-1) - cy;
-#endif
 				
 				event= *(win->eventstate);	/* copy last state, like mouse coords */
 				
@@ -1149,12 +1136,7 @@ void wm_get_cursor_position(wmWindow *win, int *x, int *y)
 {
 	GHOST_GetCursorPosition(g_system, x, y);
 	GHOST_ScreenToClient(win->ghostwin, *x, *y, x, y);
-#if defined(__APPLE__) && defined(GHOST_COCOA)
-	//Cocoa has silly exception that should be fixed at the ghost level
-	//(ghost is an allegory for an invisible system specific code)
-#else
 	*y = (win->sizey-1) - *y;
-#endif
 }
 
 /* ******************* exported api ***************** */
@@ -1187,9 +1169,8 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
 	if (win && win->ghostwin) {
 		int oldx=x, oldy=y;
 
-#if !defined(__APPLE__) || !defined(GHOST_COCOA)
 		y= win->sizey -y - 1;
-#endif
+
 		GHOST_ClientToScreen(win->ghostwin, x, y, &x, &y);
 		GHOST_SetCursorPosition(g_system, x, y);
 
