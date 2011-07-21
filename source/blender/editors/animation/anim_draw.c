@@ -38,6 +38,7 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
 
@@ -308,6 +309,9 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 	if (ac == NULL)
 		return NULL;
 	
+	/* abort if rendering - we may get some race condition issues... */
+	if (G.rendering) return NULL;
+	
 	/* handling depends on the type of animation-context we've got */
 	if (ale)
 		return ale->adt;
@@ -446,6 +450,9 @@ void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short fl
 	KeyframeEditData ked;
 	KeyframeEditFunc sel_cb;
 	float fac;
+	
+	/* abort if rendering - we may get some race condition issues... */
+	if (G.rendering) return;
 	
 	/* calculate mapping factor, and abort if nothing to change */
 	fac= ANIM_unit_mapping_get_factor(scene, id, fcu, (flag & ANIM_UNITCONV_RESTORE));

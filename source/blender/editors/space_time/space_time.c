@@ -480,8 +480,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(v2d);
 	
 	/* keyframes */
-	if(!G.rendering) /* ANIM_nla_mapping_apply_fcurve() modifies curve data while rendering, possible race condition */
-		time_draw_keyframes(C, stime, ar);
+	time_draw_keyframes(C, stime, ar);
 	
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
