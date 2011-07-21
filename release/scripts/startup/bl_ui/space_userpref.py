@@ -817,12 +817,9 @@ class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
-        ''' not implemented yet
         sub = col.column()
         sub.label(text="NDOF Device:")
-        sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
-        sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
-        '''
+        sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
 
         row.separator()
 
