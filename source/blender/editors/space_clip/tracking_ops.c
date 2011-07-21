@@ -976,7 +976,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Track Markers";
-	ot->description= "Track sleected markers";
+	ot->description= "Track selected markers";
 	ot->idname= "CLIP_OT_track_markers";
 
 	/* api callbacks */
@@ -1150,7 +1150,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Clear Track Path";
-	ot->description= "Clear path of active track";
+	ot->description= "Clear path of selected tracks";
 	ot->idname= "CLIP_OT_clear_track_path";
 
 	/* api callbacks */

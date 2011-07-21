@@ -197,8 +197,8 @@ void ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 	if(w>0 && h>0) {
 		float zoomx, zoomy, newzoom;
 
-		zoomx= (float)width/w;
-		zoomy= (float)height/h;
+		zoomx= (float)width/w/aspx;
+		zoomy= (float)height/h/aspy;
 
 		newzoom= 1.0f/power_of_2(1/MIN2(zoomx, zoomy));
 
