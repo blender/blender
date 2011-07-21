@@ -117,7 +117,7 @@ def display_name_from_filepath(name):
     """
     Returns the path stripped of directort and extension, ensured to be utf8 compatible.
     """
-    return _os.path.splitext(_os.path.basename(name))[0].encode("utf8", "replace").decode("utf8")
+    return _os.path.splitext(basename(name))[0].encode("utf8", "replace").decode("utf8")
 
 
 def resolve_ncase(path):
@@ -231,3 +231,12 @@ def module_names(path, recursive=False):
                         modules.append(("%s.%s" % (filename, mod_name), mod_path))
 
     return modules
+
+
+def basename(path):
+    """
+    Equivalent to os.path.basename, but skips a "//" suffix.
+
+    Use for Windows compatibility.
+    """
+    return _os.path.basename(path[2:] if path.startswith("//") else path)

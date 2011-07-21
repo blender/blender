@@ -73,7 +73,7 @@ all:
 
 	@echo
 	@echo Building Blender ...
-	make -C $(BUILD_DIR) -s -j $(NPROCS) install
+	$(MAKE) -C $(BUILD_DIR) -s -j $(NPROCS) install
 	@echo
 	@echo edit build configuration with: "$(BUILD_DIR)/CMakeCache.txt" run make again to rebuild.
 	@echo blender installed, run from: "$(BUILD_DIR)/bin/blender"
@@ -112,6 +112,6 @@ test_deprecated:
 	python3 source/tests/check_deprecated.py
 
 clean:
-	make -C $(BUILD_DIR) clean
+	$(MAKE) -C $(BUILD_DIR) clean
 
 .PHONY: all
