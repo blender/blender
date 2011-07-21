@@ -32,6 +32,7 @@
 
 #include <stddef.h>
 #include <limits.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
