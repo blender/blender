@@ -668,7 +668,13 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		action= SEL_SELECT;
 		track= clip->tracking.tracks.first;
 		while(track) {
-			if(TRACK_SELECTED(track)) {
+			int selected= 0;
+
+			selected|= track->flag&SELECT;
+			if(sc->flag&SC_SHOW_MARKER_PATTERN) selected|= track->pat_flag&SELECT;
+			if(sc->flag&SC_SHOW_MARKER_SEARCH) selected|= track->search_flag&SELECT;
+
+			if(selected) {
 				action= SEL_DESELECT;
 				break;
 			}
@@ -691,13 +697,15 @@ static int select_all_exec(bContext *C, wmOperator *op)
 						break;
 					case SEL_DESELECT:
 						track->flag&= ~SELECT;
-						if(sc->flag&SC_SHOW_MARKER_PATTERN) track->pat_flag&= ~SELECT;
-						if(sc->flag&SC_SHOW_MARKER_SEARCH) track->search_flag&= ~SELECT;
+						track->pat_flag&= ~SELECT;
+						track->search_flag&= ~SELECT;
 						break;
 					case SEL_INVERT:
 						track->flag^= SELECT;
-						if(sc->flag&SC_SHOW_MARKER_PATTERN) track->pat_flag^= SELECT;
-						if(sc->flag&SC_SHOW_MARKER_SEARCH) track->search_flag^= SELECT;
+						if(sc->flag&SC_SHOW_MARKER_PATTERN && (track->pat_flag&SELECT))
+							track->pat_flag^= SELECT;
+						if(sc->flag&SC_SHOW_MARKER_SEARCH && (track->search_flag&SELECT))
+							track->search_flag^= SELECT;
 						break;
 				}
 			}
