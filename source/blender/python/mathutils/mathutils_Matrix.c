@@ -1318,21 +1318,20 @@ static PyObject *Matrix_repr(MatrixObject *self)
 		}
 	}
 	switch(self->row_size) {
-	case 2:	return PyUnicode_FromFormat("Matrix(%R,\n"
-										"       %R)", rows[0], rows[1]);
+	case 2:	return PyUnicode_FromFormat("Matrix((%R,\n"
+										"        %R))", rows[0], rows[1]);
 
-	case 3:	return PyUnicode_FromFormat("Matrix(%R,\n"
-										"       %R,\n"
-										"       %R)", rows[0], rows[1], rows[2]);
+	case 3:	return PyUnicode_FromFormat("Matrix((%R,\n"
+										"        %R,\n"
+										"        %R))", rows[0], rows[1], rows[2]);
 
-	case 4:	return PyUnicode_FromFormat("Matrix(%R,\n"
-										"       %R,\n"
-										"       %R,\n"
-										"       %R)", rows[0], rows[1], rows[2], rows[3]);
+	case 4:	return PyUnicode_FromFormat("Matrix((%R,\n"
+										"        %R,\n"
+										"        %R,\n"
+										"        %R))", rows[0], rows[1], rows[2], rows[3]);
 	}
 
-	PyErr_SetString(PyExc_RuntimeError,
-	                "internal error!");
+	Py_FatalError("Matrix(): invalid row size!");
 	return NULL;
 }
 
@@ -1587,26 +1586,24 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 
 	if(mat1 && mat2) {
 		/*MATRIX * MATRIX*/
-		if(mat2->row_size != mat1->col_size){
-			PyErr_SetString(PyExc_ValueError,
-			                "Matrix multiplication: "
-			                "matrix A rowsize must equal matrix B colsize");
-			return NULL;
-		}
-		else {
-			float mat[16]= {0.0f};
-			int x, y, z;
+		float mat[16]= {0.0f, 0.0f, 0.0f, 0.0f,
+						0.0f, 0.0f, 0.0f, 0.0f,
+						0.0f, 0.0f, 0.0f, 0.0f,
+						0.0f, 0.0f, 0.0f, 1.0f};
+		double dot = 0.0f;
+		int x, y, z;
 
-			for(x = 0; x < mat2->row_size; x++) {
-				for(y = 0; y < mat1->col_size; y++) {
-					for(z = 0; z < mat1->row_size; z++) {
-						mat[x * mat2->col_size + y] += (mat2->matrix[x][z] * mat1->matrix[z][y]);
-					}
+		for(x = 0; x < mat2->row_size; x++) {
+			for(y = 0; y < mat1->col_size; y++) {
+				for(z = 0; z < mat1->row_size; z++) {
+					dot += (mat1->matrix[z][y] * mat2->matrix[x][z]);
 				}
+				mat[((x * mat1->col_size) + y)] = (float)dot;
+				dot = 0.0f;
 			}
-
-			return newMatrixObject(mat, mat1->row_size, mat2->col_size, Py_NEW, Py_TYPE(mat1));
 		}
+
+		return newMatrixObject(mat, mat2->row_size, mat1->col_size, Py_NEW, Py_TYPE(mat1));
 	}
 	else if(mat2) {
 		/*FLOAT/INT * MATRIX */
