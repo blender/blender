@@ -457,7 +457,7 @@ if(UNIX AND NOT APPLE)
 			set(NDOF /usr)
 			set(NDOF_INC ${NDOF}/include)
 			set(NDOF_LIB spnav)
-			set(NDOF_LIBPATH ${FFTW3}/lib)
+			set(NDOF_LIBPATH ${NDOF}/lib)
 		endif()
 	endif()
 
