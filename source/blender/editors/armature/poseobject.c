@@ -1107,21 +1107,19 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					}
 				}
 				
-				/* ID properties 
-				 *	- only free the existing properties if the channel we're copying from has them
-				 * 	  NOTE: this means that if the pose depends on some pchan property, the pose may not be ok,
-				 *		    but this is better than loosing all the setting you've painstakingly added...
-				 */
+				/* ID properties */
 				if (chan->prop) {
-					/* free the old properties since we want to replace them now */
 					if (pchan->prop) {
-						IDP_FreeProperty(pchan->prop);
-						MEM_freeN(pchan->prop);
-						pchan->prop= NULL;
+						/* if we have existing properties on a bone, just copy over the values of 
+						 * matching properties (i.e. ones which will have some impact) on to the 
+						 * target instead of just blinding replacing all [
+						 */
+						IDP_SyncGroupValues(pchan->prop, chan->prop);
 					}
-					
-					/* now copy over the new copy of the properties */
-					pchan->prop= IDP_CopyProperty(chan->prop);	
+					else {
+						/* no existing properties, so assume that we want copies too? */
+						pchan->prop= IDP_CopyProperty(chan->prop);	
+					}
 				}
 				
 				/* keyframing tagging */

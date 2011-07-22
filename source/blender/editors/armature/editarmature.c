@@ -2995,7 +2995,7 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	
 	/* step 2a: parent children of in-between bones to newbone */
 	for (chain= chains->first; chain; chain= chain->next) {
-		/* ick: we need to check if parent of each bone in chain is one of the bones in the */
+		/* ick: we need to check if parent of each bone in chain is one of the bones in the chain being merged */
 		short found= 0;
 		for (ebo= chain->data; ebo; ebo= ebo->parent) {
 			
