@@ -77,6 +77,9 @@ class MocapConstraint(bpy.types.PropertyGroup):
         default=True,
         description="Constraint is active",
         update=setConstraint)
+    show_expanded = bpy.props.BoolProperty(name="Show Expanded",
+        default=True,
+        description="Constraint is fully shown")
     targetPoint = bpy.props.FloatVectorProperty(name="Point", size=3,
         subtype="XYZ", default=(0.0, 0.0, 0.0),
         description="Target of Constraint - Point",
@@ -250,41 +253,45 @@ class MocapConstraintsPanel(bpy.types.Panel):
                 if context.active_object.data.name in bpy.data.armatures:
                     enduser_obj = context.active_object
                     enduser_arm = enduser_obj.data
-                    layout.operator("mocap.addconstraint")
-                    layout.operator("mocap.bakeconstraints")
-                    layout.operator("mocap.unbakeconstraints")
+                    layout.operator_menu_enum("mocap.addmocapfix", "type")
+                    bakeRow = layout.row()
+                    bakeRow.operator("mocap.bakeconstraints")
+                    bakeRow.operator("mocap.unbakeconstraints")
                     layout.separator()
                     for i, m_constraint in enumerate(enduser_arm.mocap_constraints):
                         box = layout.box()
-                        box.prop(m_constraint, 'name')
-                        box.prop(m_constraint, 'type')
-                        box.prop_search(m_constraint, 'constrained_bone', enduser_obj.pose, "bones")
-                        if m_constraint.type == "distance" or m_constraint.type == "point":
-                            box.prop_search(m_constraint, 'constrained_boneB', enduser_obj.pose, "bones")
-                        frameRow = box.row()
-                        frameRow.label("Frame Range:")
-                        frameRow.prop(m_constraint, 's_frame')
-                        frameRow.prop(m_constraint, 'e_frame')
-                        smoothRow = box.row()
-                        smoothRow.label("Smoothing:")
-                        smoothRow.prop(m_constraint, 'smooth_in')
-                        smoothRow.prop(m_constraint, 'smooth_out')
-                        targetRow = box.row()
-                        targetLabelCol = targetRow.column()
-                        targetLabelCol.label("Target settings:")
-                        targetPropCol = targetRow.column()
-                        if m_constraint.type == "floor":
-                            targetPropCol.prop_search(m_constraint, 'targetMesh', bpy.data, "objects")
-                        if m_constraint.type == "point" or m_constraint.type == "freeze":
-                            box.prop(m_constraint, 'targetSpace')
-                        if m_constraint.type == "point":
-                            targetPropCol.prop(m_constraint, 'targetPoint')
-                        if m_constraint.type == "distance" or m_constraint.type == "floor":
-                            targetPropCol.prop(m_constraint, 'targetDist')
-                        checkRow = box.row()
-                        checkRow.prop(m_constraint, 'active')
-                        layout.operator("mocap.removeconstraint", text="Remove constraint").constraint = i
-                        layout.separator()
+                        headerRow = box.row()
+                        headerRow.prop(m_constraint, 'show_expanded', text='', icon='TRIA_DOWN' if m_constraint.show_expanded else 'TRIA_RIGHT', emboss=False)
+                        headerRow.prop(m_constraint, 'type', text='')
+                        headerRow.prop(m_constraint, 'name', text='')
+                        headerRow.prop(m_constraint, 'active', icon='MUTE_IPO_ON' if m_constraint.active else'MUTE_IPO_OFF', text='', emboss=False)
+                        headerRow.operator("mocap.removeconstraint", text="", icon='X', emboss=False).constraint = i
+                        if m_constraint.show_expanded:
+                            box.separator()
+                            box.prop_search(m_constraint, 'constrained_bone', enduser_obj.pose, "bones", icon='BONE_DATA')
+                            if m_constraint.type == "distance" or m_constraint.type == "point":
+                                box.prop_search(m_constraint, 'constrained_boneB', enduser_obj.pose, "bones", icon='CONSTRAINT_BONE')
+                            frameRow = box.row()
+                            frameRow.label("Frame Range:")
+                            frameRow.prop(m_constraint, 's_frame')
+                            frameRow.prop(m_constraint, 'e_frame')
+                            smoothRow = box.row()
+                            smoothRow.label("Smoothing:")
+                            smoothRow.prop(m_constraint, 'smooth_in')
+                            smoothRow.prop(m_constraint, 'smooth_out')
+                            targetRow = box.row()
+                            targetLabelCol = targetRow.column()
+                            targetLabelCol.label("Target settings:")
+                            targetPropCol = targetRow.column()
+                            if m_constraint.type == "floor":
+                                targetPropCol.prop_search(m_constraint, 'targetMesh', bpy.data, "objects")
+                            if m_constraint.type == "point" or m_constraint.type == "freeze":
+                                box.prop(m_constraint, 'targetSpace')
+                            if m_constraint.type == "point":
+                                targetPropCol.prop(m_constraint, 'targetPoint')
+                            if m_constraint.type == "distance" or m_constraint.type == "floor":
+                                targetPropCol.prop(m_constraint, 'targetDist')
+                            layout.separator()
 
 
 class OBJECT_OT_RetargetButton(bpy.types.Operator):
@@ -462,15 +469,22 @@ class OBJECT_OT_ScaleFixArmature(bpy.types.Operator):
             return False
 
 
-class OBJECT_OT_AddMocapConstraint(bpy.types.Operator):
+class MOCAP_OT_AddMocapFix(bpy.types.Operator):
     '''Add a post-retarget fix - useful for fixing certain artifacts following the retarget'''
-    bl_idname = "mocap.addconstraint"
+    bl_idname = "mocap.addmocapfix"
     bl_label = "Add constraint to target armature"
+    type = bpy.props.EnumProperty(name="Type of constraint",
+    items=[("point", "Maintain Position", "Bone is at a specific point"),
+        ("freeze", "Maintain Position at frame", "Bone does not move from location specified in target frame"),
+        ("floor", "Stay above", "Bone does not cross specified mesh object eg floor"),
+        ("distance", "Maintain distance", "Target bones maintained specified distance")],
+    description="Type of constraint")
 
     def execute(self, context):
         enduser_obj = bpy.context.active_object
         enduser_arm = enduser_obj.data
         new_mcon = enduser_arm.mocap_constraints.add()
+        new_mcon.type = self.type
         return {"FINISHED"}
 
     @classmethod
