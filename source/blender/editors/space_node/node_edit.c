@@ -2577,7 +2577,7 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 	bNode *select;
 	SpaceNode *snode= ed_node_link_conditions(sa, &select);
 	bNodeLink *link, *selink=NULL;
-	float mcoords[4][2];
+	float mcoords[5][2];
 	
 	if(snode==NULL) return;
 	
@@ -2601,7 +2601,7 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 	/* idea; use header dist when more? */
 	for(link= snode->edittree->links.first; link; link=link->next) {
 		
-		if(cut_links_intersect(link, mcoords, 4)) {
+		if(cut_links_intersect(link, mcoords, 5)) { /* 5 - silly intersect code */
 			if(selink) 
 				break;
 			selink= link;
