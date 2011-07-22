@@ -21,6 +21,7 @@
 import bpy
 from mathutils import *
 from math import radians, acos
+import cProfile
 
 
 def hasIKConstraint(pose_bone):
@@ -44,6 +45,7 @@ def createDictionary(perf_arm, end_arm):
             end_bone = end_arm.bones[perf_bone.map]
             newMap = end_bone.reverseMap.add()
             newMap.name = perf_bone.name
+            end_bone.foot = perf_bone.foot
 
     #root is the root of the enduser
     root = end_arm.bones[0].name
@@ -386,6 +388,12 @@ def NLASystemInitialize(enduser_obj, s_frame):
     constraintAction = bpy.data.actions.new("Mocap constraints")
     constraintStrip = constraintTrack.strips.new("Mocap constraints", s_frame, constraintAction)
     constraintStrip.extrapolation = "NOTHING"
+    userTrack = anim_data.nla_tracks.new()
+    userTrack.name = "Mocap manual fix"
+    userAction = bpy.data.actions.new("Mocap manual fix")
+    userStrip = userTrack.strips.new("Mocap manual fix", s_frame, userAction)
+    userStrip.extrapolation = "HOLD"
+    #userStrip.blend_type = "MULITPLY" - doesn't work due to work, will be activated soon
     anim_data.nla_tracks.active = constraintTrack
     anim_data.action = constraintAction
     anim_data.action_extrapolation = "NOTHING"
@@ -413,7 +421,6 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     bpy.ops.object.delete()
     NLASystemInitialize(enduser_obj, s_frame)
     print("retargeting done!")
-
 
 if __name__ == "__main__":
     totalRetarget()
