@@ -2494,13 +2494,33 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 
 /* *********************  automatic node insert on dragging ******************* */
 
+/* assumes sockets in list */
 static bNodeSocket *socket_best_match(ListBase *sockets, int type)
 {
 	bNodeSocket *sock;
 	
+	/* first, match type */
 	for(sock= sockets->first; sock; sock= sock->next)
-		if(type == sock->type)
+		if(!(sock->flag & SOCK_HIDDEN))
+			if(type == sock->type)
+				return sock;
+	
+	/* then just use first unhidden socket */
+	for(sock= sockets->first; sock; sock= sock->next)
+		if(!(sock->flag & SOCK_HIDDEN))
 			return sock;
+
+	/* OK, let's unhide proper one */
+	for(sock= sockets->first; sock; sock= sock->next) {
+		if(type == sock->type) {
+			sock->flag &= ~SOCK_HIDDEN;
+			return sock;
+		}
+	}
+	
+	/* just the first */
+	sock= sockets->first;
+	sock->flag &= ~SOCK_HIDDEN;
 	
 	return sockets->first;
 }
@@ -2577,7 +2597,7 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 	bNode *select;
 	SpaceNode *snode= ed_node_link_conditions(sa, &select);
 	bNodeLink *link, *selink=NULL;
-	float mcoords[5][2];
+	float mcoords[6][2];
 	
 	if(snode==NULL) return;
 	
@@ -2596,12 +2616,16 @@ void ED_node_link_intersect_test(ScrArea *sa, int test)
 	mcoords[2][1]= select->totr.ymax;
 	mcoords[3][0]= select->totr.xmin;
 	mcoords[3][1]= select->totr.ymax;
+	mcoords[4][0]= select->totr.xmin;
+	mcoords[4][1]= select->totr.ymin;
+	mcoords[5][0]= select->totr.xmax;
+	mcoords[5][1]= select->totr.ymax;
 	
 	/* we only tag a single link for intersect now */
 	/* idea; use header dist when more? */
 	for(link= snode->edittree->links.first; link; link=link->next) {
 		
-		if(cut_links_intersect(link, mcoords, 5)) { /* 5 - silly intersect code */
+		if(cut_links_intersect(link, mcoords, 5)) { /* intersect code wants edges */
 			if(selink) 
 				break;
 			selink= link;
