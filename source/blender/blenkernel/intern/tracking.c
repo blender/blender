@@ -375,6 +375,51 @@ void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int actio
 	}
 }
 
+int BKE_tracking_test_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
+{
+	int i, a= 0, b= 0, tot= dst_track->markersnr+src_track->markersnr;
+
+	for(i= 0; i<tot; i++) {
+		if(b>=dst_track->markersnr || a>=src_track->markersnr)
+			break;
+
+		if(src_track->markers[a].framenr<dst_track->markers[b].framenr)
+			a++;
+		else if(src_track->markers[a].framenr>dst_track->markers[b].framenr)
+			b++;
+		else
+			return 0;
+	}
+
+	return 1;
+}
+
+void BKE_tracking_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
+{
+	int i, a= 0, b= 0, tot= dst_track->markersnr+src_track->markersnr;
+	MovieTrackingMarker *markers;
+
+	markers= MEM_callocN(tot*sizeof(MovieTrackingMarker), "tracking joined tracks");
+
+	for(i= 0; i<tot; i++) {
+		if(b>=dst_track->markersnr) {
+			markers[i]= src_track->markers[a++];
+		}
+		else if(a>=src_track->markersnr) {
+			markers[i]= dst_track->markers[b++];
+		}
+		else if(src_track->markers[a].framenr<dst_track->markers[b].framenr)
+			markers[i]= src_track->markers[a++];
+		else
+			markers[i]= dst_track->markers[b++];
+	}
+
+	MEM_freeN(dst_track->markers);
+
+	dst_track->markers= markers;
+	dst_track->markersnr= tot;
+}
+
 void BKE_tracking_free(MovieTracking *tracking)
 {
 	MovieTrackingTrack *track;

@@ -49,6 +49,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_sound.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -127,17 +128,17 @@ static void add_marker(SpaceClip *sc, float x, float y)
 {
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	int width, height, select= 0;
+	int width, height, sel= 0;
 
 	ED_space_clip_size(sc, &width, &height);
 
 	track= BKE_tracking_add_track(&clip->tracking, x, y, sc->user.framenr, width, height);
 
-	select= TRACK_AREA_POINT;
-	if(sc->flag&SC_SHOW_MARKER_PATTERN) select|= TRACK_AREA_PAT;
-	if(sc->flag&SC_SHOW_MARKER_SEARCH) select|= TRACK_AREA_SEARCH;
+	sel= TRACK_AREA_POINT;
+	if(sc->flag&SC_SHOW_MARKER_PATTERN) sel|= TRACK_AREA_PAT;
+	if(sc->flag&SC_SHOW_MARKER_SEARCH) sel|= TRACK_AREA_SEARCH;
 
-	BKE_movieclip_select_track(clip, track, select, 0);
+	BKE_movieclip_select_track(clip, track, sel, 0);
 	BKE_movieclip_set_selection(clip, MCLIP_SEL_TRACK, track);
 }
 
@@ -743,6 +744,91 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
+/********************** select grouped opertaotr *********************/
+
+static int select_groped_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track, *sel;
+	MovieTrackingMarker *marker;
+	int group= RNA_enum_get(op->ptr, "group");
+	int sel_type;
+
+	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		int ok= 0;
+
+		marker= BKE_tracking_get_marker(track, sc->user.framenr);
+
+		if(group==0) { /* Keyframed */
+			ok= marker->framenr==sc->user.framenr && (marker->flag&MARKER_TRACKED)==0;
+		}
+		else if(group==1) { /* Estimated */
+			ok= marker->framenr!=sc->user.framenr;
+		}
+		else if(group==2) { /* tracked */
+			ok= marker->framenr==sc->user.framenr && (marker->flag&MARKER_TRACKED);
+		}
+		else if(group==3) { /* locked */
+			ok= track->flag&TRACK_LOCKED;
+		}
+		else if(group==4) { /* disabled */
+			ok= marker->flag&MARKER_DISABLED;
+		}
+		else if(group==5) { /* color */
+			if(sel_type==MCLIP_SEL_TRACK) {
+				ok= (track->flag&TRACK_CUSTOMCOLOR) == (sel->flag&TRACK_CUSTOMCOLOR);
+
+				if(ok && track->flag&TRACK_CUSTOMCOLOR)
+					ok= equals_v3v3(track->color, sel->color);
+			}
+		}
+
+		if(ok) {
+			track->flag|= SELECT;
+			if(sc->flag&SC_SHOW_MARKER_PATTERN) track->pat_flag|= SELECT;;
+			if(sc->flag&SC_SHOW_MARKER_SEARCH) track->search_flag|= SELECT;;
+		}
+
+		track= track->next;
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_select_grouped(wmOperatorType *ot)
+{
+	static EnumPropertyItem select_group_items[] = {
+			{0, "KEYFRAMED", 0, "Keyframed tracks", "Select all keyframed tracks"},
+			{1, "ESTIMATED", 0, "Estimated tracks", "Select all estimated tracks"},
+			{2, "TRACKED", 0, "Tracked tracks", "Select all tracked tracks"},
+			{3, "LOCKED", 0, "Locked tracks", "Select all locked tracks"},
+			{4, "DISABLED", 0, "Disabled tracks", "Select all disabled tracks"},
+			{5, "COLOR", 0, "Tracks with same color", "Select all tracks with same color as actiev track"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Join Tracks";
+	ot->description= "Joint Selected Tracks";
+	ot->idname= "CLIP_OT_select_grouped";
+
+	/* api callbacks */
+	ot->exec= select_groped_exec;
+	ot->poll= space_clip_frame_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* proeprties */
+	RNA_def_enum(ot->srna, "group", select_group_items, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
+}
+
 /********************** track operator *********************/
 
 typedef struct TrackMarkersJob {
@@ -1181,7 +1267,6 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
 
 	/* proeprties */
 	RNA_def_enum(ot->srna, "action", clear_path_actions, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
-
 }
 
 /********************** disable markers operator *********************/
@@ -1695,6 +1780,7 @@ static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, float size,
 {
 	int inside= 0;
 	float nco[2], crn[2], dx, dy;
+	float odx, ody;
 
 	nco[0]= co[0]/width;
 	nco[1]= co[1]/height;
@@ -1702,24 +1788,27 @@ static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, float size,
 	dx= size/width/sc->zoom;
 	dy= size/height/sc->zoom;
 
-	dx=MIN2(dx, (track->search_max[0]-track->search_min[0])/5);
-	dy=MIN2(dy, (track->search_max[1]-track->search_min[1])/5);
+	odx= 5.0f/width/sc->zoom;
+	ody= 5.0f/height/sc->zoom;
+
+	dx=MIN2(dx, (track->search_max[0]-track->search_min[0])/3);
+	dy=MIN2(dy, (track->search_max[1]-track->search_min[1])/3);
 
 	if(corner==0) {
 		crn[0]= pos[0]+max[0];
 		crn[1]= pos[1]+min[1];
 
-		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0] && nco[1]>=crn[1] && nco[1]<=crn[1]+dy;
+		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0]+odx && nco[1]>=crn[1]-ody && nco[1]<=crn[1]+dy;
 	} else if(corner==1) {
 		crn[0]= pos[0]+min[0];
 		crn[1]= pos[1]+max[1];
 
-		inside= nco[0]>=crn[0] && nco[0]<=crn[0]+dx && nco[1]>=crn[1]-dy && nco[1]<=crn[1];
+		inside= nco[0]>=crn[0]-odx && nco[0]<=crn[0]+dx && nco[1]>=crn[1]-dy && nco[1]<=crn[1]+ody;
 	} else {
 		crn[0]= pos[0]+min[0];
 		crn[1]= pos[1]+max[1];
 
-		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0] && nco[1]>=crn[1] && nco[1]<=crn[1]+dy;
+		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0]+odx && nco[1]>=crn[1]-ody && nco[1]<=crn[1]+dy;
 	}
 
 	return inside;
@@ -1788,9 +1877,9 @@ static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				}
 
 				if(!op->customdata && sc->flag&SC_SHOW_MARKER_PATTERN) {
-					if(mouse_on_corner(sc, track, 10.0f, co, 2, marker->pos, track->pat_min, track->pat_max, width, height))
+					if(mouse_on_corner(sc, track, 15.0f, co, 2, marker->pos, track->pat_min, track->pat_max, width, height))
 						op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_POS, width, height);
-					else if(mouse_on_corner(sc, track, 10.0f, co, 0, marker->pos, track->pat_min, track->pat_max, width, height))
+					else if(mouse_on_corner(sc, track, 15.0f, co, 0, marker->pos, track->pat_min, track->pat_max, width, height))
 						op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_SIZE, width, height);
 				}
 
@@ -2070,6 +2159,118 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/********************** frame jump opertaotr *********************/
+
+static int frame_jump_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	int end= RNA_boolean_get(op->ptr, "end");
+	int sel_type, delta= end ? 1 : -1;
+
+	BKE_movieclip_last_selection(clip, &sel_type, (void**)&track);
+
+	if(sel_type!=MCLIP_SEL_TRACK)
+		return OPERATOR_CANCELLED;
+
+	while(BKE_tracking_has_marker(track, sc->user.framenr+delta)) {
+		sc->user.framenr+= delta;
+	}
+
+	if(CFRA!=sc->user.framenr) {
+		CFRA= sc->user.framenr;
+		sound_seek_scene(C);
+
+		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_frame_jump(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Jump to Frame";
+	ot->description= "Jump to special frame";
+	ot->idname= "CLIP_OT_frame_jump";
+
+	/* api callbacks */
+	ot->exec= frame_jump_exec;
+	ot->poll= space_clip_frame_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "end", 0, "Last Frame", "Jump to the last frame of current track.");
+}
+
+/********************** join tracks opertaotr *********************/
+
+static int join_tracks_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *act_track, *track, *next;
+	int sel_type;
+
+	BKE_movieclip_last_selection(clip, &sel_type, (void**)&act_track);
+
+	if(sel_type!=MCLIP_SEL_TRACK) {
+		BKE_report(op->reports, RPT_ERROR, "No active track to join to");
+		return OPERATOR_CANCELLED;
+	}
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track) && track!=act_track) {
+			if(!BKE_tracking_test_join_tracks(act_track, track)) {
+				BKE_report(op->reports, RPT_ERROR, "Some selected tracks have got keyframed markers to the same frame");
+				return OPERATOR_CANCELLED;
+			}
+		}
+
+		track= track->next;
+	}
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		next= track->next;
+
+		if(TRACK_SELECTED(track) && track!=act_track) {
+			BKE_tracking_join_tracks(act_track, track);
+
+			BKE_tracking_free_track(track);
+			BLI_freelinkN(&clip->tracking.tracks, track);
+		}
+
+		track= next;
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_join_tracks(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Join Tracks";
+	ot->description= "Joint Selected Tracks";
+	ot->idname= "CLIP_OT_join_tracks";
+
+	/* api callbacks */
+	ot->exec= join_tracks_exec;
+	ot->poll= space_clip_frame_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /********************** lock tracks operator *********************/
 
 static int lock_tracks_exec(bContext *C, wmOperator *op)
@@ -2118,4 +2319,52 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Lock action to execute");
+}
+
+/********************** track copy color operator *********************/
+
+static int track_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track, *sel;
+	int sel_type;
+
+	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
+
+	if(sel_type!=MCLIP_SEL_TRACK)
+		return OPERATOR_CANCELLED;
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track)) {
+			track->flag&= ~TRACK_CUSTOMCOLOR;
+
+			if(sel->flag&TRACK_CUSTOMCOLOR) {
+				copy_v3_v3(track->color, sel->color);
+				track->flag|= TRACK_CUSTOMCOLOR;
+			}
+		}
+
+		track= track->next;
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_track_copy_color(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Color";
+	ot->description= "Copy color to all selected tracks";
+	ot->idname= "CLIP_OT_track_copy_color";
+
+	/* api callbacks */
+	ot->exec= track_copy_color_exec;
+	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

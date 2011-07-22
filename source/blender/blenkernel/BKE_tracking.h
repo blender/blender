@@ -56,6 +56,8 @@ int BKE_tracking_has_marker(struct MovieTrackingTrack *track, int framenr);
 void BKE_tracking_free_track(struct MovieTrackingTrack *track);
 struct MovieTrackingTrack *BKE_tracking_copy_track(struct MovieTrackingTrack *track);
 void BKE_tracking_clear_path(struct MovieTrackingTrack *track, int ref_frame, int action);
+int BKE_tracking_test_join_tracks(struct MovieTrackingTrack *dst_track, struct MovieTrackingTrack *src_track);
+void BKE_tracking_join_tracks(struct MovieTrackingTrack *dst_track, struct MovieTrackingTrack *src_track);
 void BKE_tracking_free(struct MovieTracking *tracking);
 
 struct ImBuf *BKE_tracking_acquire_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,

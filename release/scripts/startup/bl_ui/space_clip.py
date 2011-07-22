@@ -161,6 +161,7 @@ class CLIP_PT_tools(bpy.types.Panel):
             op = col.operator("clip.clear_track_path", text="Clear Track Path")
             op.action = 'ALL'
 
+            layout.operator("clip.join_tracks")
             layout.operator("clip.detect_features")
             layout.operator("clip.apply_follow_track")
 
@@ -217,8 +218,10 @@ class CLIP_PT_track(bpy.types.Panel):
         row = layout.row(align=True)
         label = bpy.types.CLIP_MT_track_color_presets.bl_label
         row.menu('CLIP_MT_track_color_presets', text=label)
+        row.menu('CLIP_MT_track_color_specials', text="", icon="DOWNARROW_HLT")
         row.operator("clip.track_color_preset_add", text="", icon="ZOOMIN")
-        op = row.operator("clip.track_color_preset_add", text="", icon="ZOOMOUT")
+        op = row.operator("clip.track_color_preset_add", \
+            text="", icon="ZOOMOUT")
         op.remove_active = True
 
         row = layout.row()
@@ -232,7 +235,6 @@ class CLIP_PT_track(bpy.types.Panel):
         row.prop(act_track, "use_red_channel", text="Red")
         row.prop(act_track, "use_green_channel", text="Green")
         row.prop(act_track, "use_blue_channel", text="Blue")
-
 
 
 class CLIP_PT_track_settings(bpy.types.Panel):
@@ -497,10 +499,38 @@ class CLIP_MT_select(bpy.types.Menu):
 
         sc = context.space_data
 
+        layout.menu("CLIP_MT_select_grouped")
         layout.operator("clip.select_border")
         layout.operator("clip.select_circle")
         layout.operator("clip.select_all", text="Select/Deselect all")
         layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
+
+
+class CLIP_MT_select_grouped(bpy.types.Menu):
+    bl_label = "Select Grouped"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+
+        op = layout.operator("clip.select_grouped", text="Select Keyframed")
+        op.group = 'KEYFRAMED'
+
+        op = layout.operator("clip.select_grouped", text="Select Estimated")
+        op.group = 'ESTIMATED'
+
+        op = layout.operator("clip.select_grouped", text="Select Tracked")
+        op.group = 'TRACKED'
+
+        op = layout.operator("clip.select_grouped", text="Select Locked")
+        op.group = 'LOCKED'
+
+        op = layout.operator("clip.select_grouped", text="Select Disabled")
+        op.group = 'DISABLED'
+
+        op = layout.operator("clip.select_grouped", text="Select by Color")
+        op.group = 'COLOR'
 
 
 class CLIP_MT_tracking_specials(bpy.types.Menu):
@@ -546,6 +576,15 @@ class CLIP_MT_track_color_presets(bpy.types.Menu):
     preset_subdir = "tracking_track_color"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
+
+
+class CLIP_MT_track_color_specials(bpy.types.Menu):
+    bl_label = "Track Color Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator('clip.track_copy_color', icon='COPY_ID')
 
 
 if __name__ == "__main__":  # only for live edit.

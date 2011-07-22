@@ -230,6 +230,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_select_all);
 	WM_operatortype_append(CLIP_OT_select_border);
 	WM_operatortype_append(CLIP_OT_select_circle);
+	WM_operatortype_append(CLIP_OT_select_grouped);
 
 	WM_operatortype_append(CLIP_OT_add_marker);
 	WM_operatortype_append(CLIP_OT_delete_track);
@@ -252,8 +253,12 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_set_center_principal);
 
 	WM_operatortype_append(CLIP_OT_clear_track_path);
+	WM_operatortype_append(CLIP_OT_join_tracks);
+	WM_operatortype_append(CLIP_OT_track_copy_color);
 
 	WM_operatortype_append(CLIP_OT_slide_marker);
+
+	WM_operatortype_append(CLIP_OT_frame_jump);
 
 	WM_operatortype_append(CLIP_OT_detect_features);
 }
@@ -301,6 +306,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "CLIP_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "action", SEL_INVERT);
 	WM_keymap_add_item(keymap, "CLIP_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_select_circle", CKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "CLIP_MT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_add_marker_slide", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 
@@ -345,6 +351,12 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_lock_tracks", LKEY, KM_PRESS, KM_ALT, 0);
 	RNA_enum_set(kmi->ptr, "action", 1);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "end", 1);
+
+	WM_keymap_add_item(keymap, "CLIP_OT_join_tracks", JKEY, KM_PRESS, KM_CTRL, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }

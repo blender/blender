@@ -62,6 +62,7 @@ void CLIP_OT_select(struct wmOperatorType *ot);
 void CLIP_OT_select_all(struct wmOperatorType *ot);
 void CLIP_OT_select_border(struct wmOperatorType *ot);
 void CLIP_OT_select_circle(struct wmOperatorType *ot);
+void CLIP_OT_select_grouped(struct wmOperatorType *ot);
 
 void CLIP_OT_add_marker(struct wmOperatorType *ot);
 void CLIP_OT_delete_track(struct wmOperatorType *ot);
@@ -72,6 +73,7 @@ void CLIP_OT_solve_camera(struct wmOperatorType *ot);
 void CLIP_OT_clear_reconstruction(struct wmOperatorType *ot);
 
 void CLIP_OT_clear_track_path(struct wmOperatorType *ot);
+void CLIP_OT_join_tracks(struct wmOperatorType *ot);
 
 void CLIP_OT_disable_markers(struct wmOperatorType *ot);
 void CLIP_OT_hide_tracks(struct wmOperatorType *ot);
@@ -86,6 +88,9 @@ void CLIP_OT_set_scale(struct wmOperatorType *ot);
 void CLIP_OT_set_center_principal(struct wmOperatorType *ot);
 
 void CLIP_OT_slide_marker(struct wmOperatorType *ot);
+
+void CLIP_OT_frame_jump(struct wmOperatorType *ot);
+void CLIP_OT_track_copy_color(struct wmOperatorType *ot);
 
 void CLIP_OT_detect_features(struct wmOperatorType *ot);
 
