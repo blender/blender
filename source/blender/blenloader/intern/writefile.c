@@ -1278,7 +1278,6 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			if(pmd->brush)
 			{
 				writestruct(wd, DATA, "DynamicPaintBrushSettings", 1, pmd->brush);
-				writestruct(wd, DATA, "Material", 1, pmd->brush->mat);
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->paint_ramp);
 			}
 		} 

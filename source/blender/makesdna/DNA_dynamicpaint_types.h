@@ -43,10 +43,6 @@ struct PaintSurfaceData;
 #define MOD_DPAINT_OUT1 (1<<10) /* output primary surface */
 #define MOD_DPAINT_OUT2 (1<<11) /* output secondary surface */
 
-/* canvas flags */
-#define MOD_DPAINT_PREVIEW_READY (1<<0) /* if viewport preview is ready */
-#define MOD_DPAINT_BAKING (1<<1) /* baking an image sequence */
-
 /* image_fileformat */
 #define MOD_DPAINT_IMGFORMAT_PNG 0
 #define MOD_DPAINT_IMGFORMAT_OPENEXR 1
@@ -100,6 +96,10 @@ typedef struct DynamicPaintSurface {
 	char output_name2[40]; /* some surfaces have 2 outputs */
 
 } DynamicPaintSurface;
+
+/* canvas flags */
+#define MOD_DPAINT_PREVIEW_READY (1<<0) /* if viewport preview is ready */
+#define MOD_DPAINT_BAKING (1<<1) /* surface is already baking, so it wont get updated (loop) */
 
 /* Canvas settings */
 typedef struct DynamicPaintCanvasSettings {

@@ -126,6 +126,9 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 			walk(userData, ob, (ID **)&surface->brush_group);
 		}
 	}
+	if (pmd->brush) {
+		walk(userData, ob, (ID **)&pmd->brush->mat);
+	}
 }
 
 ModifierTypeInfo modifierType_DynamicPaint = {

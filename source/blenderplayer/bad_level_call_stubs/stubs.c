@@ -148,6 +148,7 @@ struct Render *RE_NewRender(const char *name){return (struct Render*) NULL;}
 void RE_SwapResult(struct Render *re, struct RenderResult **rr){}
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame){}
 void cache_voxeldata(struct Tex *tex, int scene_frame){}
+void cache_pointdensity(struct Render *re, struct Tex *tex){}
 
 /* rna */
 float *give_cursor(struct Scene *scene, struct View3D *v3d){return (float *) NULL;}

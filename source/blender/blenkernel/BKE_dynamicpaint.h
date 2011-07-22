@@ -17,6 +17,7 @@
 #include "DNA_dynamicpaint_types.h"
 
 struct PaintEffectData;
+struct PaintBakeData;
 
 /* Actual surface point	*/
 typedef struct PaintSurfaceData {
@@ -27,6 +28,7 @@ typedef struct PaintSurfaceData {
 	/* point neighbor data */
 	struct PaintAdjData *adj_data;
 
+	struct PaintBakeData *bData;
 	unsigned int total_points;
 
 } PaintSurfaceData;
