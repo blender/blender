@@ -31,6 +31,8 @@ __all__ = (
 import bpy as _bpy
 
 
+error_duplicates = False
+
 def paths():
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     paths = _bpy.utils.script_paths("addons")
@@ -47,7 +49,10 @@ def paths():
 
 
 def modules(module_cache):
+    global error_duplicates
     import os
+
+    error_duplicates = False
 
     path_list = paths()
 
@@ -117,7 +122,12 @@ def modules(module_cache):
             modules_stale -= {mod_name}
             mod = module_cache.get(mod_name)
             if mod:
-                if mod.__time__ != os.path.getmtime(mod_path):
+                if mod.__file__ != mod_path:
+                    print("multiple addons with the same name:\n  %r\n  %r" %
+                          (mod.__file__, mod_path))
+                    error_duplicates = True
+
+                elif mod.__time__ != os.path.getmtime(mod_path):
                     print("reloading addon:", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
                     del module_cache[mod_name]
                     mod = None

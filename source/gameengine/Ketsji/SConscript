@@ -6,7 +6,8 @@ Import ('env')
 sources = env.Glob('*.cpp')
 defs = [ 'GLEW_STATIC' ]
 
-incs = '. #source/blender/python/generic' # Only for Mathutils! and bpy_internal_import.h, be very careful
+incs = '. #source/blender/python/generic' # Only for bpy_internal_import.h, be very careful
+incs += ' #source/blender/python/mathutils' # Only for mathutils, be very careful
 
 incs += ' #intern/string #intern/guardedalloc #intern/container'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'

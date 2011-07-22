@@ -169,7 +169,7 @@ static void displaceModifier_do(
 {
 	int i;
 	MVert *mvert;
-	MDeformVert *dvert = NULL;
+	MDeformVert *dvert;
 	int defgrp_index;
 	float (*tex_co)[3];
 	float weight= 1.0f; /* init value unused but some compilers may complain */
@@ -177,11 +177,8 @@ static void displaceModifier_do(
 	if(!dmd->texture) return;
 	if(dmd->strength == 0.0f) return;
 
-	defgrp_index = defgroup_name_index(ob, dmd->defgrp_name);
-
 	mvert = CDDM_get_verts(dm);
-	if(defgrp_index >= 0)
-		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
 
 	tex_co = MEM_callocN(sizeof(*tex_co) * numVerts,
 				 "displaceModifier_do tex_co");

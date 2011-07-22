@@ -34,7 +34,6 @@ class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         space = context.space_data
-        ob = context.object
 
         if space.use_pin_id:
             layout.template_ID(space, "pin_id")

@@ -1007,6 +1007,8 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	/* note: quite un-scientific but without this bit extra
 	 * 0.0001 on the lower left the 2D border sometimes
 	 * obscures the 3D camera border */
+	/* note: with VIEW3D_CAMERA_BORDER_HACK defined this error isn't noticable
+	 * but keep it here incase we need to remove the workaround */
 	x1i= (int)(x1 - 1.0001f);
 	y1i= (int)(y1 - 1.0001f);
 	x2i= (int)(x2 + (1.0f-0.0001f));
@@ -1039,7 +1041,17 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	setlinestyle(0);
 	UI_ThemeColor(TH_BACK);
 	glRectf(x1i, y1i, x2i, y2i);
-	
+
+#ifdef VIEW3D_CAMERA_BORDER_HACK
+	{
+		if(view3d_camera_border_hack_test == TRUE) {
+			glColor4fv(view3d_camera_border_hack_col);
+			glRectf(x1i+1, y1i+1, x2i-1, y2i-1);
+			view3d_camera_border_hack_test= FALSE;
+		}
+	}
+#endif
+
 	setlinestyle(3);
 	UI_ThemeColor(TH_WIRE);
 	glRectf(x1i, y1i, x2i, y2i);

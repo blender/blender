@@ -13,4 +13,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
 
 incs += ' ' + env['BF_OPENGL_INC']
 
+defs.append('WITH_SMOKE')  # TODO, make optional
+
 env.BlenderLib ( 'bf_gpu', sources, Split(incs), defines = defs, libtype=['core','player'], priority=[160,110] )

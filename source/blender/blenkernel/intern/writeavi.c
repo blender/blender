@@ -105,13 +105,18 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 		mh.get_movie_path = filepath_ffmpeg;
 	}
 #endif
+#ifdef WITH_FRAMESERVER
 	if (imtype == R_FRAMESERVER) {
 		mh.start_movie = start_frameserver;
 		mh.append_movie = append_frameserver;
 		mh.end_movie = end_frameserver;
 		mh.get_next_frame = frameserver_loop;
 	}
-	
+#endif
+
+	/* incase all above are disabled */
+	(void)imtype;
+
 	return &mh;
 }
 

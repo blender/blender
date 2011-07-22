@@ -768,6 +768,7 @@ endif()
 		bf_intern_opennl
 		bf_python
 		bf_python_ext
+		bf_python_mathutils
 		bf_ikplugin
 		bf_modifiers
 		bf_blenkernel

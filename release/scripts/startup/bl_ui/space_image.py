@@ -198,6 +198,10 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
 
+        layout.separator()
+
+        layout.operator("transform.shear")
+
 
 class IMAGE_MT_uvs_snap(bpy.types.Menu):
     bl_label = "Snap"
@@ -434,7 +438,6 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
         sima = context.space_data
         # display even when not in game mode because these settings effect the 3d view
         return (sima and sima.image)  # and (rd.engine == 'BLENDER_GAME')

@@ -22,8 +22,8 @@
 set(INC
 	../include
 	../../blenkernel
-	../../blenloader
 	../../blenlib
+	../../blenloader
 	../../makesdna
 	../../makesrna
 	../../windowmanager
@@ -44,8 +44,12 @@ set(SRC
 )
 
 if(WITH_PYTHON)
-	list(APPEND INC ../../python)
-	list(APPEND INC_SYS ${PYTHON_INCLUDE_DIRS})
+	list(APPEND INC
+		../../python
+	)
+	list(APPEND INC_SYS
+		${PYTHON_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_PYTHON)
 endif()
 

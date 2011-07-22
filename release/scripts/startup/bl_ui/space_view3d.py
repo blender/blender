@@ -2410,7 +2410,7 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
 
     def draw(self, context):
         import rna_prop_ui
-        member = __class__._active_context_member(context)
+        member = VIEW3D_PT_context_properties._active_context_member(context)
 
         if member:
             # Draw with no edit button
