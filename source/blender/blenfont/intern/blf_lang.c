@@ -41,6 +41,7 @@
 #include <locale.h>
 #include "libintl.h"
 
+#include "DNA_userdef_types.h"
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
@@ -65,6 +66,40 @@ static char global_messagepath[1024];
 static char global_language[32];
 static char global_encoding_name[32];
 
+/* map from the rna_userdef.c:rna_def_userdef_system(BlenderRNA *brna):language_items */
+static char locale_default[] = "";
+static char locale_english[] = "en_US";
+static char locale_japanese[] = "ja_JP";
+static char locale_sim_chinese[] = "zh_CN";
+static char locale_tra_chinese[] = "zh_TW";
+
+static char *lang_to_locale[] = {
+		locale_default,
+		locale_english, /* us english is the default language of blender */
+		locale_japanese,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_sim_chinese,
+		locale_tra_chinese,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+		locale_default,
+};
 
 void BLF_lang_init(void)
 {
@@ -82,16 +117,16 @@ void BLF_lang_init(void)
 /* XXX WARNING!!! IN osx somehow the previous function call jumps in this one??? (ton, ppc) */
 void BLF_lang_set(const char *str)
 {
+	char *locreturn;
 	if(str==NULL) {
-		return;
+		if( U.language==1 )
+			return;
+		str = lang_to_locale[U.language];
 	}
-	else {
-	
 #if defined (_WIN32) || defined(__APPLE__)
 		BLI_setenv("LANG", str);
-		BLI_strncpy(global_language, BLI_getenv("LANG"), sizeof(global_language));
 #else
-		char *locreturn= setlocale(LC_ALL, str);
+		locreturn= setlocale(LC_ALL, str);
 		if (locreturn == NULL) {
 			char *lang= BLI_sprintfN("%s.UTF-8", str);
 
@@ -102,13 +137,15 @@ void BLF_lang_set(const char *str)
 
 			MEM_freeN(lang);
 		}
-		BLI_strncpy(global_language, locreturn, sizeof(global_language));
+
 		setlocale(LC_NUMERIC, "C");
 #endif
 		textdomain(DOMAIN_NAME);
 		bindtextdomain(DOMAIN_NAME, global_messagepath);
 		/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
-	}
+		BLI_strncpy(global_language, str, sizeof(global_language));
+		
+
 }
 
 void BLF_lang_encoding(const char *str)

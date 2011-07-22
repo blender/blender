@@ -76,7 +76,7 @@
 
 /* ********************************************** */
 
-static uiStyle *ui_style_new(ListBase *styles, const char *name, short fontid)
+static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id)
 {
 	uiStyle *style= MEM_callocN(sizeof(uiStyle), "new style");
 	
@@ -85,7 +85,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short fontid)
 	
 	style->panelzoom= 1.0; /* unused */
 
-	style->paneltitle.uifont_id= fontid;
+	style->paneltitle.uifont_id= uifont_id;
 	style->paneltitle.points= 12;
 	style->paneltitle.kerning= 1;
 	style->paneltitle.shadow= 1;
@@ -94,7 +94,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short fontid)
 	style->paneltitle.shadowalpha= 0.15f;
 	style->paneltitle.shadowcolor= 1.0f;
 	
-	style->grouplabel.uifont_id= fontid;
+	style->grouplabel.uifont_id= uifont_id;
 	style->grouplabel.points= 12;
 	style->grouplabel.kerning= 1;
 	style->grouplabel.shadow= 3;
@@ -102,7 +102,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short fontid)
 	style->grouplabel.shady= -1;
 	style->grouplabel.shadowalpha= 0.25f;
 	
-	style->widgetlabel.uifont_id= fontid;
+	style->widgetlabel.uifont_id= uifont_id;
 	style->widgetlabel.points= 11;
 	style->widgetlabel.kerning= 1;
 	style->widgetlabel.shadow= 3;
@@ -111,7 +111,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short fontid)
 	style->widgetlabel.shadowalpha= 0.15f;
 	style->widgetlabel.shadowcolor= 1.0f;
 	
-	style->widget.uifont_id= fontid;
+	style->widget.uifont_id= uifont_id;
 	style->widget.points= 11;
 	style->widget.kerning= 1;
 	style->widget.shadowalpha= 0.25f;
@@ -254,8 +254,10 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
 
 uiStyle* UI_GetStyle(void)
 {
-	uiStyle *style = BLI_findstring( &U.uistyles, U.myuistyle, sizeof(style)*2 );
-	return (style != NULL) ? style : U.uifonts.first;
+	uiStyle *style = NULL;
+	/* offset is two struct uiStyle pointers */
+	/* style = BLI_findstring( &U.uistyles, "Unifont Style", sizeof(style)*2 ) */;
+	return (style != NULL) ? style : U.uistyles.first;
 }
 
 /* temporarily, does widget font */
@@ -319,7 +321,7 @@ void uiStyleInit(void)
 	for(font= U.uifonts.first; font; font= font->next) {
 		
 		if(font->uifont_id==UIFONT_DEFAULT) {
-			font->blf_id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+			font->blf_id= BLF_load_mem_unique("default", (unsigned char *)get_datatoc_bunifont_ttf(), datatoc_bunifont_ttf_size);
 		}		
 		else {
 			font->blf_id= BLF_load(font->filename);
@@ -357,21 +359,6 @@ void uiStyleInit(void)
 		blf_mono_font_render= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 
 	BLF_size(blf_mono_font_render, 12, 72);
-
-	/* offset is two struct uiStyle pointers */
-	if( BLI_findstring( &U.uistyles, "Unifont Style", sizeof(style)*2 )==NULL )
-	{
-		if( blf_unifont == -1 )
-			blf_unifont= BLF_load_mem_unique("unifont", (unsigned char *)get_datatoc_bunifont_ttf(), datatoc_bunifont_ttf_size);
-		if( blf_unifont != -1 )
-		{
-			BLF_size(blf_unifont, 12, 72);
-			ui_style_new(&U.uistyles, "Unifont Style", blf_unifont );
-		}
-	}
-	/* init style setting */
-	if( U.myuistyle[0]==0 )
-		strcpy( U.myuistyle, "Unifont Style" );
 }
 
 void uiStyleFontSet(uiFontStyle *fs)

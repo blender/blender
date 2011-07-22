@@ -481,14 +481,13 @@ class USERPREF_PT_system(bpy.types.Panel):
         opengl_lamp_buttons(column, lamp)
 
         column.separator()
-        column.separator()
-        column.separator()
 
         column.label(text=_("Color Picker Type:"))
         column.row().prop(system, "color_picker_type", text="")
 
-        column.separator()
-        column.separator()
+        column.label(text=_("Select Language:"))
+        column.row().prop(system, "language", text="")
+
         column.separator()
 
         column.prop(system, "use_weight_color_range", text=_("Custom Weight Paint Range"))

@@ -29,7 +29,8 @@ LANGS = (
   "sr",
   "sv",
   "uk",
-  "zh_CN"
+  "zh_CN",
+  "zh_TW"
 )
 
 #-o %s.new.po

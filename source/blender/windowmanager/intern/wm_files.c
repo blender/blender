@@ -444,9 +444,8 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
-int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
+int WM_read_homefile(bContext *C, ReportList *reports, short from_memory, ListBase *wmbase)
 {
-	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
 	int success= 0;
 	
@@ -468,7 +467,7 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	G.fileflags &= ~G_FILE_NO_UI;
 	
 	/* put aside screens to match with persistant windows later */
-	wm_window_match_init(C, &wmbase); 
+	wm_window_match_init(C, wmbase);
 	
 	if (!from_memory && BLI_exists(tstr)) {
 		success = (BKE_read_file(C, tstr, NULL) != BKE_READ_FILE_FAIL);
@@ -480,7 +479,7 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	}
 	if(success==0) {
 		success = BKE_read_file_from_memory(C, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
-		if (wmbase.first == NULL) wm_clear_default_size(C);
+		if (wmbase->first == NULL) wm_clear_default_size(C);
 
 #ifdef WITH_PYTHON_SECURITY /* not default */
 		/* use alternative setting for security nuts
@@ -488,7 +487,12 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
 #endif
 	}
-	
+	return TRUE;
+}
+
+/* split from the old WM_read_homefile */
+int WM_read_homefile_proc(bContext *C, ListBase *wmbase)
+{
 	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
 	 * can remove this eventually, only in a 2.53 and older, now its not written */
 	G.fileflags &= ~G_FILE_RELATIVE_REMAP;
@@ -497,7 +501,7 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 	wm_init_userdef(C);
 	
 	/* match the read WM with current WM */
-	wm_window_match_do(C, &wmbase); 
+	wm_window_match_do(C, wmbase);
 	WM_check(C); /* opens window(s), checks keymaps */
 
 	G.main->name[0]= '\0';
@@ -542,8 +546,9 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 
 int WM_read_homefile_exec(bContext *C, wmOperator *op)
 {
+	ListBase wmbase;
 	int from_memory= strcmp(op->type->idname, "WM_OT_read_factory_settings") == 0;
-	return WM_read_homefile(C, op->reports, from_memory) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return WM_read_homefile(C, op->reports, from_memory, &wmbase) && WM_read_homefile_proc(C, &wmbase) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void WM_read_history(void)
