@@ -75,6 +75,9 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
+static GHOST_TKey
+convertXKey(KeySym key);
+
 //these are for copy and select copy
 static char *txt_cut_buffer= NULL;
 static char *txt_select_buffer= NULL;
