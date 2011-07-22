@@ -954,6 +954,8 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 
 			WM_keymap_add_item(keymap, OP_RESIZE, SKEY, KM_PRESS, 0, 0);
 
+			WM_keymap_add_item(keymap, OP_SHEAR, SKEY, KM_PRESS, KM_ALT|KM_CTRL|KM_SHIFT, 0);
+
 			WM_keymap_add_item(keymap, "TRANSFORM_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 
 			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);

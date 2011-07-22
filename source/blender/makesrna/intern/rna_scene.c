@@ -135,7 +135,9 @@ EnumPropertyItem image_type_items[] = {
 #endif
 	{R_AVIJPEG, "AVI_JPEG", ICON_FILE_MOVIE, "AVI JPEG", "Output video in AVI JPEG format"},
 	{R_AVIRAW, "AVI_RAW", ICON_FILE_MOVIE, "AVI Raw", "Output video in AVI Raw format"},
+#ifdef WITH_FRAMESERVER
 	{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", "Output image to a frameserver"},
+#endif
 #ifdef WITH_FFMPEG
 	{R_H264, "H264", ICON_FILE_MOVIE, "H.264", "Output video in H.264 format"},
 	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "MPEG", "Output video in MPEG format"},

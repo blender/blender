@@ -1184,46 +1184,10 @@ void PyObjectPlus::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
 	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
 }
 
-void PyDebugLine()
-{
-	// import sys; print '\t%s:%d' % (sys._getframe(0).f_code.co_filename, sys._getframe(0).f_lineno)
-
-	PyObject *getframe, *frame;
-	PyObject *f_lineno, *f_code, *co_filename;
-
-	getframe = PySys_GetObject((char *)"_getframe"); // borrowed
-	if (getframe) {
-		frame = PyObject_CallObject(getframe, NULL);
-		if (frame) {
-			f_lineno= PyObject_GetAttrString(frame, "f_lineno");
-			f_code= PyObject_GetAttrString(frame, "f_code");
-			if (f_lineno && f_code) {
-				co_filename= ((PyCodeObject *)f_code)->co_filename; /* borrow */
-				if (co_filename) {
-
-					printf("\t%s:%d\n", _PyUnicode_AsString(co_filename), (int)PyLong_AsSsize_t(f_lineno));
-
-					Py_DECREF(f_lineno);
-					Py_DECREF(f_code);
-					Py_DECREF(frame);
-					return;
-				}
-			}
-			
-			Py_XDECREF(f_lineno);
-			Py_XDECREF(f_code);
-			Py_DECREF(frame);
-		}
-
-	}
-	PyErr_Clear();
-	printf("\tERROR - Could not access sys._getframe(0).f_lineno or sys._getframe().f_code.co_filename\n");
-}
-
 void PyObjectPlus::ShowDeprecationWarning_func(const char* old_way,const char* new_way)
 {
 	printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
-	PyDebugLine();
+	PyC_LineSpit();
 }
 
 void PyObjectPlus::ClearDeprecationWarning()
