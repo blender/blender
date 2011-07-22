@@ -396,6 +396,9 @@ typedef struct TransInfo {
 
 #define T_RELEASE_CONFIRM	(1 << 23)
 
+	/* relative position changes. used to add offset to tracking markers */
+#define T_RELATIVE_POSITION	(1 << 24)
+
 /* TransInfo->modifiers */
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02

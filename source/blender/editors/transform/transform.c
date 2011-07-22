@@ -806,6 +806,15 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			t->redraw |= TREDRAW_HARD;
 			break;
 
+		case LEFTALTKEY:
+			if(t->options&CTX_MOVIECLIP) {
+				restoreTransObjects(t);
+
+				t->flag|= T_RELATIVE_POSITION;
+				t->redraw |= TREDRAW_HARD;
+			}
+			break;
+
 		case SPACEKEY:
 			if ((t->spacetype==SPACE_VIEW3D) && event->alt) {
 #if 0 // TRANSFORM_FIX_ME
@@ -1095,6 +1104,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
 				t->modifiers &= ~MOD_CONSTRAINT_SELECT;
 				postSelectConstraint(t);
+				t->redraw |= TREDRAW_HARD;
+			}
+			break;
+		case LEFTALTKEY:
+			if(t->options&CTX_MOVIECLIP) {
+				restoreTransObjects(t);
+
+				t->flag&= ~T_RELATIVE_POSITION;
 				t->redraw |= TREDRAW_HARD;
 			}
 			break;

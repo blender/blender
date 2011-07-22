@@ -490,6 +490,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	}
 
 	if(sc->flag&SC_SHOW_MARKER_PATTERN) {
+		float tdx2= 0, tdy2= 0;
 		/* use smaller slider for pattern area */
 		dx= 10.0f/width/sc->zoom;
 		dy= 10.0f/height/sc->zoom;
@@ -499,15 +500,33 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 			else glColor3fv(col);
 		}
 
+		tdx=MIN2(dx, (track->pat_max[0]-track->pat_min[0])/5);
+		tdy=MIN2(dy, (track->pat_max[1]-track->pat_min[1])/5);
+
+		if(outline) {
+			tdx+= 1.0f/sc->zoom/width;
+			tdy+= 1.0f/sc->zoom/height;
+
+			tdx2+= 1.0f/sc->zoom/width;
+			tdy2+= 1.0f/sc->zoom/height;
+		}
+
+		x= track->pat_min[0];
+		y= track->pat_max[1];
+
+		glBegin(GL_QUADS);
+			glVertex3f(x+tdx2, y-tdy2, 0);
+			glVertex3f(x-tdx, y-tdy2, 0);
+			glVertex3f(x-tdx, y+tdy, 0);
+			glVertex3f(x+tdx2, y+tdy, 0);
+		glEnd();
+
 		x= track->pat_max[0];
 		y= track->pat_min[1];
 
-		tdx=MIN2(dx, track->pat_max[0]-track->pat_min[0]);
-		tdy=MIN2(dy, track->pat_max[1]-track->pat_min[1]);
-
 		if(outline) {
-			tdx+= 2.0f/sc->zoom/width;
-			tdy+= 2.0f/sc->zoom/height;
+			tdx+= 1.0f/sc->zoom/width;
+			tdy+= 1.0f/sc->zoom/height;
 		}
 
 		glBegin(GL_TRIANGLES);

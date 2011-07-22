@@ -5341,6 +5341,9 @@ void flushTransTracking(TransInfo *t)
 
 	/* flush to 2d vector from internally used 3d vector */
 	for(a=0, td= t->data, td2d= t->data2d; a<t->total; a++, td2d++, td++) {
+		if(t->flag&T_RELATIVE_POSITION && !td->extra)
+			continue;
+
 		td2d->loc2d[0] = td2d->loc[0];
 		td2d->loc2d[1] = td2d->loc[1];
 
