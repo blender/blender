@@ -1024,8 +1024,8 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	SpaceSeq *sseq= CTX_wm_space_seq(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
+	short unit=0, flag=0;
 	float col[3];
-	int flag=0;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -1047,9 +1047,10 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	/* draw backdrop */
 	draw_seq_backdrop(v2d);
 	
-	/* regular grid-pattern over the rest of the view (i.e. frame grid lines) */
+	/* regular grid-pattern over the rest of the view (i.e. 25-frame grid lines) */
+	// NOTE: the gridlines are currently spaced every 25 frames, which is only fine for 25 fps, but maybe not for 30...
 	UI_view2d_constant_grid_draw(v2d);
-
+	
 	seq_draw_sfra_efra(scene, v2d);	
 
 	/* sequence strips (if there is data available to be drawn) */
@@ -1092,7 +1093,8 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 
 	/* scrollers */
-	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_UNIT_SECONDSSEQ, V2D_GRID_CLAMP, V2D_UNIT_VALUES, V2D_GRID_CLAMP);
+	unit= (sseq->flag & SEQ_DRAWFRAMES)? V2D_UNIT_FRAMES : V2D_UNIT_SECONDSSEQ;
+	scrollers= UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_UNIT_VALUES, V2D_GRID_CLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 }

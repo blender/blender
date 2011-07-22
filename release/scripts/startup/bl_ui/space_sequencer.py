@@ -114,7 +114,11 @@ class SEQUENCER_MT_view(bpy.types.Menu):
 
         layout.operator("sequencer.view_selected")
 
-        layout.prop(st, "show_frames")
+        if st.show_frames:
+            layout.operator("anim.time_toggle", text="Show Seconds")
+        else:
+            layout.operator("anim.time_toggle", text="Show Frames")
+
         layout.prop(st, "show_frame_indicator")
         if st.display_mode == 'IMAGE':
             layout.prop(st, "show_safe_margin")
