@@ -70,35 +70,55 @@ static char global_encoding_name[32];
 static char locale_default[] = "";
 static char locale_english[] = "en_US";
 static char locale_japanese[] = "ja_JP";
+static char locale_dutch[] = "nl_NL";
+static char locale_italian[] = "it_IT";
+static char locale_german[] = "de_DE";
+static char locale_finnish[] = "fi_FI";
+static char locale_swedish[] = "sv_SE";
+static char locale_french[] = "fr_FR";
+static char locale_spanish[] = "es_ES";
+static char locale_catalan[] = "ca_AD";
+static char locale_czech[] = "cs_CZ";
+static char locale_bra_portuguese[] = "pt_BR";
 static char locale_sim_chinese[] = "zh_CN";
 static char locale_tra_chinese[] = "zh_TW";
+static char locale_russian[] = "ru_RU";
+static char locale_croatian[] = "hr_HR";
+static char locale_serbian[] = "sr_RS";
+static char locale_ukrainian[] = "uk_UA";
+static char locale_polish[] = "pl_PL";
+static char locale_romanian[] = "ro_RO";
+static char locale_arabic[] = "ar_SA";
+static char locale_bulgarian[] = "bg_BG";
+static char locale_greek[] = "el_GR";
+static char locale_korean[] = "ko_KR";
 
 static char *lang_to_locale[] = {
 		locale_default,
 		locale_english, /* us english is the default language of blender */
 		locale_japanese,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
+		locale_dutch,
+		locale_italian,
+		locale_german,
+		locale_finnish,
+		locale_swedish,
+		locale_french,
+		locale_spanish,
+		locale_catalan,
+		locale_czech,
+		locale_bra_portuguese,
 		locale_sim_chinese,
 		locale_tra_chinese,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
-		locale_default,
+		locale_russian,
+		locale_croatian,
+		locale_serbian,
+		locale_ukrainian,
+		locale_polish,
+		locale_romanian,
+		locale_arabic,
+		locale_bulgarian,
+		locale_greek,
+		locale_korean,
 };
 
 void BLF_lang_init(void)
