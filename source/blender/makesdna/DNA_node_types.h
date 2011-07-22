@@ -179,6 +179,10 @@ typedef struct bNodeLink {
 	
 } bNodeLink;
 
+
+/* link->flag */
+#define NODE_LINKFLAG_HILITE	1
+
 /* the basis for a Node tree, all links and nodes reside internal here */
 /* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
 typedef struct bNodeTree {

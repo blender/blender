@@ -2492,6 +2492,127 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
 
+/* *********************  automatic node insert on dragging ******************* */
+
+static bNodeSocket *socket_best_match(ListBase *sockets, int type)
+{
+	bNodeSocket *sock;
+	
+	for(sock= sockets->first; sock; sock= sock->next)
+		if(type == sock->type)
+			return sock;
+	
+	return sockets->first;
+}
+
+/* prevent duplicate testing code below */
+static SpaceNode *ed_node_link_conditions(ScrArea *sa, bNode **select)
+{
+	SpaceNode *snode= sa?sa->spacedata.first:NULL;
+	bNode *node;
+	bNodeLink *link;
+	
+	/* no unlucky accidents */
+	if(sa==NULL || sa->spacetype!=SPACE_NODE) return NULL;
+	
+	*select= NULL;
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			if(*select)
+				break;
+			else
+				*select= node;
+		}
+	}
+	/* only one selected */
+	if(node || *select==NULL) return NULL;
+	
+	/* correct node */
+	if((*select)->inputs.first==NULL || (*select)->outputs.first==NULL) return NULL;
+	
+	/* test node for links */
+	for(link= snode->edittree->links.first; link; link=link->next) {
+		if(link->tonode == *select || link->fromnode == *select)
+			return NULL;
+	}
+	
+	return snode;
+}
+
+/* assumes link with NODE_LINKFLAG_HILITE set */
+void ED_node_link_insert(ScrArea *sa)
+{
+	bNode *node, *select;
+	SpaceNode *snode= ed_node_link_conditions(sa, &select);
+	bNodeLink *link;
+	bNodeSocket *sockto;
+	
+	if(snode==NULL) return;
+	
+	/* get the link */
+	for(link= snode->edittree->links.first; link; link=link->next)
+		if(link->flag & NODE_LINKFLAG_HILITE)
+			break;
+	
+	if(link) {
+		node= link->tonode;
+		sockto= link->tosock;
+		
+		link->tonode= select;
+		link->tosock= socket_best_match(&select->inputs, link->fromsock->type);
+		link->flag &= ~NODE_LINKFLAG_HILITE;
+		
+		nodeAddLink(snode->edittree, select, socket_best_match(&select->outputs, sockto->type), node, sockto);
+		ntreeSolveOrder(snode->edittree);	/* needed for pointers */
+		snode_tag_changed(snode, select);
+		ED_node_changed_update(snode->id, select);
+	}
+}
+
+
+/* test == 0, clear all intersect flags */
+void ED_node_link_intersect_test(ScrArea *sa, int test)
+{
+	bNode *select;
+	SpaceNode *snode= ed_node_link_conditions(sa, &select);
+	bNodeLink *link, *selink=NULL;
+	float mcoords[4][2];
+	
+	if(snode==NULL) return;
+	
+	/* clear flags */
+	for(link= snode->edittree->links.first; link; link=link->next)
+		link->flag &= ~NODE_LINKFLAG_HILITE;
+	
+	if(test==0) return;
+	
+	/* okay, there's 1 node, without links, now intersect */
+	mcoords[0][0]= select->totr.xmin;
+	mcoords[0][1]= select->totr.ymin;
+	mcoords[1][0]= select->totr.xmax;
+	mcoords[1][1]= select->totr.ymin;
+	mcoords[2][0]= select->totr.xmax;
+	mcoords[2][1]= select->totr.ymax;
+	mcoords[3][0]= select->totr.xmin;
+	mcoords[3][1]= select->totr.ymax;
+	
+	/* we only tag a single link for intersect now */
+	/* idea; use header dist when more? */
+	for(link= snode->edittree->links.first; link; link=link->next) {
+		
+		if(cut_links_intersect(link, mcoords, 4)) {
+			if(selink) 
+				break;
+			selink= link;
+		}
+	}
+		
+	if(link==NULL && selink)
+		selink->flag |= NODE_LINKFLAG_HILITE;
+}
+
+
 /* ******************************** */
 // XXX some code needing updating to operators...
 
@@ -2914,7 +3035,8 @@ void NODE_OT_delete(wmOperatorType *ot)
 
 /* note: in cmp_util.c is similar code, for node_compo_pass_on() */
 /* used for disabling node  (similar code in node_draw.c for disable line) */
-static void node_delete_reconnect(bNodeTree* tree, bNode* node) {
+static void node_delete_reconnect(bNodeTree* tree, bNode* node) 
+{
 	bNodeLink *link, *next;
 	bNodeSocket *valsocket= NULL, *colsocket= NULL, *vecsocket= NULL;
 	bNodeSocket *deliveringvalsocket= NULL, *deliveringcolsocket= NULL, *deliveringvecsocket= NULL;
@@ -3141,4 +3263,6 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
 	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign.");
 }
+
+
 
