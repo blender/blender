@@ -378,26 +378,42 @@ void BKE_tracking_clear_path(MovieTrackingTrack *track, int ref_frame, int actio
 int BKE_tracking_test_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
 {
 	int i, a= 0, b= 0, tot= dst_track->markersnr+src_track->markersnr;
+	int count= 0;
 
 	for(i= 0; i<tot; i++) {
-		if(b>=dst_track->markersnr || a>=src_track->markersnr)
-			break;
-
-		if(src_track->markers[a].framenr<dst_track->markers[b].framenr)
-			a++;
-		else if(src_track->markers[a].framenr>dst_track->markers[b].framenr)
+		if(a>=src_track->markersnr) {
 			b++;
-		else
-			return 0;
+			count++;
+		}
+		else if(b>=dst_track->markersnr) {
+			a++;
+			count++;
+		}
+		else if(src_track->markers[a].framenr<dst_track->markers[b].framenr) {
+			a++;
+			count++;
+		} else if(src_track->markers[a].framenr>dst_track->markers[b].framenr) {
+			b++;
+			count++;
+		} else {
+			if((src_track->markers[a].flag&MARKER_DISABLED)==0 && (dst_track->markers[b].flag&MARKER_DISABLED)==0)
+				return 0;
+
+			a++;
+			b++;
+			count++;
+		}
 	}
 
-	return 1;
+	return count;
 }
 
 void BKE_tracking_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack *src_track)
 {
-	int i, a= 0, b= 0, tot= dst_track->markersnr+src_track->markersnr;
+	int i, a= 0, b= 0, tot;
 	MovieTrackingMarker *markers;
+
+	tot= BKE_tracking_test_join_tracks(dst_track, src_track);
 
 	markers= MEM_callocN(tot*sizeof(MovieTrackingMarker), "tracking joined tracks");
 
@@ -408,10 +424,17 @@ void BKE_tracking_join_tracks(MovieTrackingTrack *dst_track, MovieTrackingTrack 
 		else if(a>=src_track->markersnr) {
 			markers[i]= dst_track->markers[b++];
 		}
-		else if(src_track->markers[a].framenr<dst_track->markers[b].framenr)
+		else if(src_track->markers[a].framenr<dst_track->markers[b].framenr) {
 			markers[i]= src_track->markers[a++];
-		else
+		} else if(src_track->markers[a].framenr>dst_track->markers[b].framenr) {
 			markers[i]= dst_track->markers[b++];
+		} else {
+			if((src_track->markers[a].flag&MARKER_DISABLED)) markers[i]= dst_track->markers[b];
+			else markers[i]= src_track->markers[a++];
+
+			a++;
+			b++;
+		}
 	}
 
 	MEM_freeN(dst_track->markers);
