@@ -340,7 +340,7 @@ class AlignObjects(bpy.types.Operator):
     bb_quality = BoolProperty(
             name="High Quality",
             description="Enables high quality calculation of the bounding box for perfect results on complex shape meshes with rotation/scale (Slow)",
-            default=False)
+            default=True)
 
     align_mode = EnumProperty(items=(
             ('OPT_1', "Negative Sides", ""),
