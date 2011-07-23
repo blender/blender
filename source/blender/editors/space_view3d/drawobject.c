@@ -1568,6 +1568,10 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	const float scay= 1.0f / len_v3(ob->obmat[1]);
 	const float scaz= 1.0f / len_v3(ob->obmat[2]);
 
+	/* draw data for movie clip set as active for scene */
+	if(scene->clip)
+		draw_viewport_reconstruction(scene, base, v3d, scene->clip, flag);
+
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 	if(is_view && !(G.f & G_PICKSEL)) {
 		glGetFloatv(GL_CURRENT_COLOR, view3d_camera_border_hack_col);
@@ -1636,10 +1640,6 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 		glVertex3fv(vec[3]); 
 		glVertex3fv(vec[4]);
 	glEnd();
-
-	/* draw data for movie clip set as active for scene */
-	if(scene->clip)
-		draw_viewport_reconstruction(scene, base, v3d, scene->clip, flag);
 
 	if(is_view)
 		return;
