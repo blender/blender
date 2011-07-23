@@ -459,8 +459,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	dy= 12.0f/height/sc->zoom;
 
 	if(sc->flag&SC_SHOW_MARKER_SEARCH) {
-		tdx=MIN2(dx, (track->search_max[0]-track->search_min[0])/5);
-		tdy=MIN2(dy, (track->search_max[1]-track->search_min[1])/5);
+		tdx=MIN2(dx, (track->search_max[0]-track->search_min[0])/3);
+		tdy=MIN2(dy, (track->search_max[1]-track->search_min[1])/3);
 
 		if(outline) {
 			tdx+= 1.0f/sc->zoom/width;
@@ -492,16 +492,16 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	if(sc->flag&SC_SHOW_MARKER_PATTERN) {
 		float tdx2= 0, tdy2= 0;
 		/* use smaller slider for pattern area */
-		dx= 10.0f/width/sc->zoom;
-		dy= 10.0f/height/sc->zoom;
+		dx= 12.0f/width/sc->zoom;
+		dy= 12.0f/height/sc->zoom;
 
 		if(!outline) {
 			if(track->pat_flag&SELECT) glColor3fv(scol);
 			else glColor3fv(col);
 		}
 
-		tdx=MIN2(dx, (track->pat_max[0]-track->pat_min[0])/5);
-		tdy=MIN2(dy, (track->pat_max[1]-track->pat_min[1])/5);
+		tdx=MIN2(dx, (track->pat_max[0]-track->pat_min[0])/3);
+		tdy=MIN2(dy, (track->pat_max[1]-track->pat_min[1])/3);
 
 		if(outline) {
 			tdx+= 1.0f/sc->zoom/width;

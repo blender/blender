@@ -254,7 +254,7 @@ static uiBut *ui_but_last(uiBlock *block)
 static int ui_is_a_warp_but(uiBut *but)
 {
 	if(U.uiflag & USER_CONTINUOUS_MOUSE)
-		if(ELEM3(but->type, NUM, NUMABS, HSVCIRCLE))
+		if(ELEM4(but->type, NUM, NUMABS, HSVCIRCLE, TRACKPREVIEW))
 			return TRUE;
 
 	return FALSE;
@@ -4068,7 +4068,7 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data, int mx, int my)
+static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data, int mx, int my, int shift)
 {
 	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
 	/* rcti rect; */
@@ -4077,6 +4077,11 @@ static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonDa
 
 	dx = mx - data->draglastx;
 	dy = my - data->draglasty;
+
+	if(shift) {
+		dx /= 5.0f;
+		dy /= 5.0f;
+	}
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		 /* resize preview widget itself */
@@ -4119,7 +4124,7 @@ static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHan
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 			/* also do drag the first time */
-			if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my))
+			if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift))
 				ui_numedit_apply(C, block, but, data);
 
 			return WM_UI_HANDLER_BREAK;
@@ -4133,7 +4138,7 @@ static int ui_do_but_TRACKPREVIEW(bContext *C, uiBlock *block, uiBut *but, uiHan
 		}
 		else if(event->type == MOUSEMOVE) {
 			if(mx!=data->draglastx || my!=data->draglasty) {
-				if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my))
+				if(ui_numedit_but_TRACKPREVIEW(C, but, data, mx, my, event->shift))
 					ui_numedit_apply(C, block, but, data);
 			}
 		}

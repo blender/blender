@@ -2337,7 +2337,7 @@ static int track_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_SELECTED(track)) {
+		if(TRACK_SELECTED(track) && track!=sel) {
 			track->flag&= ~TRACK_CUSTOMCOLOR;
 
 			if(sel->flag&TRACK_CUSTOMCOLOR) {
