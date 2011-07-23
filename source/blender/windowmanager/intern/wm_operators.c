@@ -1411,112 +1411,21 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 	ot->poll= wm_search_menu_poll;
 }
 
-// BEGIN ndof menu -- experimental!
-
-#if 0
-static uiBlock* wm_block_ndof_menu_1st(bContext* C, ARegion* ar, void* UNUSED(arg_op))
-{
-	uiBlock* block;
-	uiBut* but;
-
-	block = uiBeginBlock(C, ar, "ndof_popup_menu", UI_EMBOSS);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
-//	uiBlockSetDirection(block, UI_DOWN);
-//	uiBlockBeginAlign(block);
-
-	// uiItemBooleanO(block->curlayout, "enable pan/zoom", ICON_NDOF_TRANS, "toggle_ndof_pan_zoom_enabled", "ndof_pan_zoom_enabled", 1);
-	// uiBlock is used as an opaque type in this file, so can't use members...
-
-	int foo = 333;
-	uiDefButI(block, TOG, 0, "foo", 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, &foo, 0.f, 1.f, 0.1f, 0.9f, "15%");
-	// uiDefBut(block, TOG, 0, "enable pan/zoom", 0, 0, 10, 10, NULL, 0.f, 1.f, 0.f, 1.f, "don't talk to strangers");
-
-//	uiBlockEndAlign(block);
-//	uiBoundsBlock(block, 6);
-	uiEndBlock(C, block);
-
-	return block;
-}
-
-static int wm_ndof_menu_poll(bContext *C)
-{
-	if(CTX_wm_window(C)==NULL)
-		return 0;
-
-	// if menu is already pulled up, another button press should dismiss it
-	// not sure if that behavior should go here or elsewhere...
-
-	puts("ndof: menu poll");
-	return 1;
-}
-
-static int wm_ndof_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
-{
-	puts("ndof: menu exec");
-	return OPERATOR_FINISHED;	
-}
-#endif
-
 static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	uiPupMenuInvoke(C,"VIEW3D_MT_ndof_settings");
 
+	return OPERATOR_FINISHED; // <-- correct?
 	return OPERATOR_CANCELLED; // <-- correct?
-
-/*
-//	uiPupMenuNotice(C, "Hello!"); // <-- this works
-//	uiPupBlock(C, wm_block_ndof_menu, op); // <-- no luck!
-//	ui_popup_menu_create(C, NULL, NULL, NULL, NULL, "Hello!"); // <-- this works
-
-	uiPopupMenu* pup = uiPupMenuBegin(C,"3D mouse settings",ICON_NDOF_TURN);
-	uiLayout* layout = uiPupMenuLayout(pup);
-
-	uiItemS(layout); // separator
-	uiItemFloatO(layout, "sensitivity", 0, 0, "ndof_sensitivity", 1.f);
-	// do I have to look specifically in "UserPreferences" for ndof_sensitivity property?
-
-	// trial & error -- ok, mostly error
-//	uiItemBooleanO(layout, "enable pan/zoom", ICON_NDOF_TRANS, "ndof_toggle_pan_zoom_enabled", "ndof_pan_zoom_enabled", 1);
-//	uiItemBooleanO(layout, "enable rotation", ICON_NDOF_TURN, "ndof_toggle_rotation_enabled", "ndof_rotation_enabled", 1);
-//	uiItemV(layout,"sensitivity",ICON_NDOF_TRANS, 1);
-
-	printf("ndof: menu invoked in ");
-
-	switch (CTX_wm_area(C)->spacetype) // diff spaces can have diff 3d mouse options
-		{
-		case SPACE_VIEW3D:
-			puts("3D area");
-			uiItemS(layout);
-			uiItemL(layout, "3D navigation mode", 0);
-			uiItemBooleanO(layout, "helicopter", ICON_NDOF_FLY, 0, "ndof_fly_helicopter", 1);
-			uiItemBooleanO(layout, "lock horizon", ICON_NDOF_DOM, 0, "ndof_lock_horizon", 1);
-			break;
-		case SPACE_IMAGE:
-			puts("image area");
-			break;
-		default:
-			puts("some iNDOFferent area");
-		}
-
-	//uiBlock* block = uiLayoutGetBlock(layout);
-	//int foo = 1;
-	//uiDefButI(block, TOG, 0, "foo", 10, 10, 9*UI_UNIT_X, UI_UNIT_Y, &foo, 0.f, 1.f, 0.1f, 0.9f, "15%");
-
-	uiPupMenuEnd(C,pup);
-*/
 }
 
 static void WM_OT_ndof_menu(wmOperatorType *ot)
 {
-	puts("ndof: registering menu operator");
-
 	ot->name = "NDOF Menu";
 	ot->idname = "WM_OT_ndof_menu";
 	
 	ot->invoke = wm_ndof_menu_invoke;
 }
-
-// END ndof menu
 
 static int wm_call_menu_exec(bContext *C, wmOperator *op)
 {
@@ -3782,13 +3691,12 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 
+	/* menus that can be accessed anywhere in blender */
+	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_ndof_menu", NDOF_BUTTON_MENU, KM_PRESS, 0, 0);
 
 	/* Space switching */
-
-
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
 	RNA_string_set(kmi->ptr, "data_path", "area.type");
 	RNA_string_set(kmi->ptr, "value", "LOGIC_EDITOR");
