@@ -68,7 +68,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         if obj:
             # Particle edit
             if obj.mode == 'PARTICLE_EDIT':
-                row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True, toggle=True)
+                row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
             if view.viewport_shade in {'SOLID', 'SHADED', 'TEXTURED'} and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
