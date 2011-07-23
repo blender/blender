@@ -38,6 +38,8 @@ public:
 	bool processEvents();
 
 private:
+//	bool identifyDevice();
+
 	bool m_available;
 	};
 

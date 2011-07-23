@@ -157,7 +157,7 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	memset(m_rotation, 0, sizeof(m_rotation));
 	}
 
-void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short product_id)
+bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short product_id)
 	{
 	switch (vendor_id)
 		{
@@ -198,18 +198,26 @@ void GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					m_buttonCount = 21;
 					break;
 
-				default: printf("ndof: unknown Logitech product %04hx\n", product_id);
+				default:
+					printf("ndof: unknown Logitech product %04hx\n", product_id);
 				}
 			break;
 		default:
 			printf("ndof: unknown device %04hx:%04hx\n", vendor_id, product_id);
 		}
 
-	m_buttonMask = ~(-1 << m_buttonCount);
+	if (m_deviceType == NDOF_UnknownDevice)
+		return false;
+	else
+		{
+		m_buttonMask = ~(-1 << m_buttonCount);
 
-	#ifdef DEBUG_NDOF_BUTTONS
-	printf("ndof: %d buttons -> hex:%X\n", m_buttonCount, m_buttonMask);
-	#endif
+		#ifdef DEBUG_NDOF_BUTTONS
+		printf("ndof: %d buttons -> hex:%X\n", m_buttonCount, m_buttonMask);
+		#endif
+
+		return true;
+		}
 	}
 
 void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)

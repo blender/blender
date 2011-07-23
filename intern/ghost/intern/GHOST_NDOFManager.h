@@ -95,7 +95,7 @@ public:
 
 	// each platform's device detection should call this
 	// use standard USB/HID identifiers
-	void setDevice(unsigned short vendor_id, unsigned short product_id);
+	bool setDevice(unsigned short vendor_id, unsigned short product_id);
 
 	// filter out small/accidental/uncalibrated motions by
 	// setting up a "dead zone" around home position
