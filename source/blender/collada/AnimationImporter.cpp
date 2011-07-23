@@ -906,32 +906,29 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 
 		}
 	}
-		if ( animType->material != 0){
-			 Material *ma = give_current_material(ob, 1);
-			 if (!ma->adt || !ma->adt->action) act = verify_adt_action((ID*)&ma->id, 1);
-					else act = ma->adt->action;
-	
-			ListBase *AnimCurves = &(act->curves);
-			
-			const COLLADAFW::InstanceGeometryPointerArray& nodeGeoms = node->getInstanceGeometries();
-			for (unsigned int i = 0; i < nodeGeoms.getCount(); i++) {
-				const COLLADAFW::MaterialBindingArray& matBinds = nodeGeoms[i]->getMaterialBindings();
-				for (unsigned int j = 0; j < matBinds.getCount(); j++) {
-					const COLLADAFW::Material *mat = (COLLADAFW::Material *) FW_object_map[matBinds[j].getReferencedMaterial()];
-					const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) FW_object_map[mat->getInstantiatedEffect()];
-					COLLADAFW::CommonEffectPointerArray commonEffects  =  ef->getCommonEffects();
-					for (unsigned int k = 0; k < commonEffects.getCount(); k++) {
-						COLLADAFW::EffectCommon *efc = commonEffects[k];
-						if((animType->material & MATERIAL_SHININESS) != 0){
-							const COLLADAFW::FloatOrParam *shin = &(efc->getShininess());
-							const COLLADAFW::UniqueId& listid =  shin->getAnimationList();
-							Assign_float_animations( listid, AnimCurves , "specular_hardness" );
-						}
-					}
-				}	
-			}
-		}
+	if ( animType->material != 0){
+		 Material *ma = give_current_material(ob, 1);
+		 if (!ma->adt || !ma->adt->action) act = verify_adt_action((ID*)&ma->id, 1);
+				else act = ma->adt->action;
+
+		ListBase *AnimCurves = &(act->curves);
 		
+		const COLLADAFW::InstanceGeometryPointerArray& nodeGeoms = node->getInstanceGeometries();
+		for (unsigned int i = 0; i < nodeGeoms.getCount(); i++) {
+			const COLLADAFW::MaterialBindingArray& matBinds = nodeGeoms[i]->getMaterialBindings();
+			for (unsigned int j = 0; j < matBinds.getCount(); j++) {
+				const COLLADAFW::UniqueId & matuid = matBinds[j].getReferencedMaterial();
+				const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
+				const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
+				COLLADAFW::EffectCommon *efc = commonEffects[0];
+				if((animType->material & MATERIAL_SHININESS) != 0){
+					const COLLADAFW::FloatOrParam *shin = &(efc->getShininess());
+					const COLLADAFW::UniqueId& listid =  shin->getAnimationList();
+					Assign_float_animations( listid, AnimCurves , "specular_hardness" );
+				}
+			}
+		}	
+	}
 }
 
 
@@ -940,11 +937,6 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 											std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map) 
 {
 	AnimMix *types = new AnimMix();
-	//types->transform = INANIMATE ;
-	//types->light = INANIMATE;
-	//types->camera = INANIMATE;
-	//types->material = INANIMATE;
-	//types->texture = INANIMATE;
 	
 	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
 	
@@ -999,15 +991,12 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 	for (unsigned int i = 0; i < nodeGeoms.getCount(); i++) {
 		const COLLADAFW::MaterialBindingArray& matBinds = nodeGeoms[i]->getMaterialBindings();
 		for (unsigned int j = 0; j < matBinds.getCount(); j++) {
-			const COLLADAFW::Material *mat = (COLLADAFW::Material *) FW_object_map[matBinds[j].getReferencedMaterial()];
-			const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) FW_object_map[mat->getInstantiatedEffect()];
-		    COLLADAFW::CommonEffectPointerArray commonEffects  =  ef->getCommonEffects();
-			for (unsigned int k = 0; k < commonEffects.getCount(); k++) {
-				COLLADAFW::EffectCommon *efc = commonEffects[k];
-				types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
-			}
+			const COLLADAFW::UniqueId & matuid = matBinds[j].getReferencedMaterial();
+			const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
+			const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
+			COLLADAFW::EffectCommon *efc = commonEffects[0];
+			types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
 		}
-		
 	}
 	return types;
 }

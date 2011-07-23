@@ -537,7 +537,10 @@ bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat )
 	
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
 	this->uid_material_map[cmat->getUniqueId()] = ma;
-	this->FW_object_map[cmat->getUniqueId()] = cmat;
+	this->matUidforEffect = &(cmat->getUniqueId());
+	/*COLLADAFW::Material * matCopy = new COLLADAFW::Material(&cmat);
+	this->FW_object_map[cmat->getUniqueId()] = matCopy;
+	*///matForEff = cmat;
 	return true;
 }
 
@@ -722,13 +725,21 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 		return true;
 	
 	const COLLADAFW::UniqueId& uid = effect->getUniqueId();
+	
 	if (uid_effect_map.find(uid) == uid_effect_map.end()) {
 		fprintf(stderr, "Couldn't find a material by UID.\n");
 		return true;
 	}
 	
 	Material *ma = uid_effect_map[uid];
-	
+	std::map<COLLADAFW::UniqueId, Material*>::iterator  iter;
+	for(iter = uid_material_map.begin(); iter != uid_material_map.end() ; iter++ )
+	{
+		if ( iter->second == ma ) {
+			this->FW_object_map[iter->first] = effect;
+			break;
+		}
+	}
 	COLLADAFW::CommonEffectPointerArray common_efs = effect->getCommonEffects();
 	if (common_efs.getCount() < 1) {
 		fprintf(stderr, "Couldn't find <profile_COMMON>.\n");
@@ -739,6 +750,7 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 	COLLADAFW::EffectCommon *ef = common_efs[0];
 	write_profile_COMMON(ef, ma);
 	this->FW_object_map[effect->getUniqueId()] = effect;
+		
 	return true;
 }
 
