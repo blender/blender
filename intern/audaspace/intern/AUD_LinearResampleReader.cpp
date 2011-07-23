@@ -63,7 +63,7 @@ int AUD_LinearResampleReader::getLength() const
 
 int AUD_LinearResampleReader::getPosition() const
 {
-	return floor((m_reader->getPosition() + (m_cache_ok ? m_cache_pos - 2 : 0))
+	return floor((m_reader->getPosition() + (m_cache_ok ? m_cache_pos - 1 : 0))
 				 * m_rate / m_reader->getSpecs().rate);
 }
 
@@ -76,6 +76,9 @@ AUD_Specs AUD_LinearResampleReader::getSpecs() const
 
 void AUD_LinearResampleReader::read(int& length, bool& eos, sample_t* buffer)
 {
+	if(length == 0)
+		return;
+
 	AUD_Specs specs = m_reader->getSpecs();
 
 	int samplesize = AUD_SAMPLE_SIZE(specs);
@@ -84,13 +87,6 @@ void AUD_LinearResampleReader::read(int& length, bool& eos, sample_t* buffer)
 	float spos;
 	sample_t low, high;
 	eos = false;
-
-	if(factor == 1 && (!m_cache_ok || m_cache_pos == 0))
-	{
-		// can read directly!
-		m_reader->read(length, eos, buffer);
-		return;
-	}
 
 	// check for channels changed
 
@@ -101,47 +97,65 @@ void AUD_LinearResampleReader::read(int& length, bool& eos, sample_t* buffer)
 		m_cache_ok = false;
 	}
 
+	if(factor == 1 && (!m_cache_ok || m_cache_pos == 1))
+	{
+		// can read directly!
+		m_reader->read(length, eos, buffer);
+
+		if(length > 0)
+		{
+			memcpy(m_cache.getBuffer() + m_channels, buffer + m_channels * (length - 1), samplesize);
+			m_cache_pos = 1;
+			m_cache_ok = true;
+		}
+
+		return;
+	}
+
 	int len;
 	sample_t* buf;
 
 	if(m_cache_ok)
 	{
-		int need = ceil(length / factor - (1 - m_cache_pos));
+		int need = ceil(length / factor + m_cache_pos) - 1;
 
 		len = need;
 
-		m_buffer.assureSize((len + 3) * samplesize);
+		m_buffer.assureSize((len + 2) * samplesize);
 		buf = m_buffer.getBuffer();
 
 		memcpy(buf, m_cache.getBuffer(), 2 * samplesize);
 		m_reader->read(len, eos, buf + 2 * m_channels);
 
 		if(len < need)
-			length = floor((len + (1 - m_cache_pos)) * factor);
+			length = floor((len + 1 - m_cache_pos) * factor);
 	}
 	else
 	{
-		int need = ceil(length / factor) + 1;
+		m_cache_pos = 1 - 1 / factor;
+
+		int need = ceil(length / factor + m_cache_pos);
 
 		len = need;
 
 		m_buffer.assureSize((len + 1) * samplesize);
 		buf = m_buffer.getBuffer();
 
-		m_reader->read(len, eos, buf);
+		memset(buf, 0, samplesize);
+		m_reader->read(len, eos, buf + m_channels);
+
+		if(len == 0)
+		{
+			length = 0;
+			return;
+		}
 
 		if(len < need)
 		{
-			if(eos)
-			{
-				length = floor(len * factor);
-				memset(buf + len * m_channels, 0, samplesize);
-			}
-			else
-				length = ceil((len - 1) * factor);
+			length = floor((len - m_cache_pos) * factor);
 		}
+
 		m_cache_ok = true;
-		m_cache_pos = 0;
 	}
 
 	for(int channel = 0; channel < m_channels; channel++)
@@ -159,7 +173,7 @@ void AUD_LinearResampleReader::read(int& length, bool& eos, sample_t* buffer)
 
 	if(floor(spos) == spos)
 	{
-		memcpy(m_cache.getBuffer(), buf + int(floor(spos - 1)) * m_channels, 2 * samplesize);
+		memcpy(m_cache.getBuffer() + m_channels, buf + int(floor(spos)) * m_channels, samplesize);
 		m_cache_pos = 1;
 	}
 	else

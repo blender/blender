@@ -57,7 +57,10 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 								   KX_SOUNDACT_TYPE type)//,
 								   : SCA_IActuator(gameobj, KX_ACT_SOUND)
 {
-	m_sound = AUD_copy(sound);
+	if(sound)
+		m_sound = AUD_copy(sound);
+	else
+		m_sound = NULL;
 	m_volume = volume;
 	m_pitch = pitch;
 	m_is3d = is3d;
@@ -73,7 +76,8 @@ KX_SoundActuator::~KX_SoundActuator()
 {
 	if(m_handle)
 		AUD_stop(m_handle);
-	AUD_unload(m_sound);
+	if(m_sound)
+		AUD_unload(m_sound);
 }
 
 void KX_SoundActuator::play()
@@ -421,7 +425,10 @@ PyObject* KX_SoundActuator::pyattr_get_pitch(void *self, const struct KX_PYATTRI
 PyObject* KX_SoundActuator::pyattr_get_sound(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
-	return AUD_getPythonFactory(actuator->m_sound);
+	if(actuator->m_sound)
+		return AUD_getPythonFactory(actuator->m_sound);
+	else
+		Py_RETURN_NONE;
 }
 
 int KX_SoundActuator::pyattr_set_3d_property(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -535,7 +542,8 @@ int KX_SoundActuator::pyattr_set_sound(void *self, const struct KX_PYATTRIBUTE_D
 	AUD_Sound* snd = AUD_getPythonSound(sound);
 	if(snd)
 	{
-		AUD_unload(actuator->m_sound);
+		if(actuator->m_sound)
+			AUD_unload(actuator->m_sound);
 		actuator->m_sound = snd;
 		return PY_SET_ATTR_SUCCESS;
 	}

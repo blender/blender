@@ -207,7 +207,7 @@ private:
 	/**
 	 * Starts the streaming thread.
 	 */
-	void start();
+	void start(bool join = true);
 
 	/**
 	 * Gets the format according to the specs.
