@@ -702,6 +702,10 @@ void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 void RNA_property_update_main(struct Main *bmain, struct Scene *scene, PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_update_check(struct PropertyRNA *prop);
 
+void RNA_property_update_cache_add(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_update_cache_flush(struct Main *bmain, struct Scene *scene);
+void RNA_property_update_cache_free(void);
+
 /* Property Data */
 
 int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop);

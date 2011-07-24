@@ -140,10 +140,10 @@ void BKE_animdata_main_cb(struct Main *main, ID_AnimData_Edit_Callback func, voi
 /* In general, these ones should be called to do all animation evaluation */
 
 /* Evaluation loop for evaluating animation data  */
-void BKE_animsys_evaluate_animdata(struct ID *id, struct AnimData *adt, float ctime, short recalc);
+void BKE_animsys_evaluate_animdata(struct Scene *scene, struct ID *id, struct AnimData *adt, float ctime, short recalc);
 
 /* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only */
-void BKE_animsys_evaluate_all_animation(struct Main *main, float ctime);
+void BKE_animsys_evaluate_all_animation(struct Main *main, struct Scene *scene, float ctime);
 
 
 /* ------------ Specialised API --------------- */

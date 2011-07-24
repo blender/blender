@@ -2084,7 +2084,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	if(ob==NULL) return;
 	
 	/* execute drivers only, as animation has already been done */
-	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
+	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
 	
 	if(ob->parent) {
 		Object *par= ob->parent;
@@ -2623,7 +2623,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			if(adt) {
 				/* evaluate drivers */
 				// XXX: for mesh types, should we push this to derivedmesh instead?
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
+				BKE_animsys_evaluate_animdata(scene, data_id, adt, ctime, ADT_RECALC_DRIVERS);
 			}
 
 			/* includes all keys and modifiers */

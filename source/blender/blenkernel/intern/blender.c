@@ -90,6 +90,8 @@
 
 #include "BKE_utildefines.h"
 
+#include "RNA_access.h"
+
 #include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
 
 Global G;
@@ -238,6 +240,9 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	/* free G.main Main database */
 //	CTX_wm_manager_set(C, NULL);
 	clear_global();	
+	
+	/* clear old property update cache, in case some old references are left dangling */
+	RNA_property_update_cache_free();
 	
 	G.main= bfd->main;
 

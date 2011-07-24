@@ -2123,7 +2123,7 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 			ibuf = seq_render_scene_strip_impl(context, seq, nr);
 
 			/* Scene strips update all animation, so we need to restore original state.*/
-			BKE_animsys_evaluate_all_animation(context.bmain, cfra);
+			BKE_animsys_evaluate_all_animation(context.bmain, context.scene, cfra);
 
 			copy_to_ibuf_still(context, seq, nr, ibuf);
 			break;
@@ -2200,7 +2200,7 @@ static ImBuf* seq_render_strip_stack(
 	if(scene->r.cfra != cfra) {
 		// XXX for prefetch and overlay offset!..., very bad!!!
 		AnimData *adt= BKE_animdata_from_id(&scene->id);
-		BKE_animsys_evaluate_animdata(&scene->id, adt, cfra, ADT_RECALC_ANIM);
+		BKE_animsys_evaluate_animdata(scene, &scene->id, adt, cfra, ADT_RECALC_ANIM);
 	}
 #endif
 

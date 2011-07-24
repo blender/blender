@@ -915,7 +915,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 	
 	/* scene itself */
 	if (scene->adt && scene->adt->drivers.first) {
-		BKE_animsys_evaluate_animdata(&scene->id, scene->adt, ctime, ADT_RECALC_DRIVERS);
+		BKE_animsys_evaluate_animdata(scene, &scene->id, scene->adt, ctime, ADT_RECALC_DRIVERS);
 	}
 	
 	/* world */
@@ -925,7 +925,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 		AnimData *adt= BKE_animdata_from_id(wid);
 		
 		if (adt && adt->drivers.first)
-			BKE_animsys_evaluate_animdata(wid, adt, ctime, ADT_RECALC_DRIVERS);
+			BKE_animsys_evaluate_animdata(scene, wid, adt, ctime, ADT_RECALC_DRIVERS);
 	}
 	
 	/* nodes */
@@ -934,7 +934,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 		AnimData *adt= BKE_animdata_from_id(nid);
 		
 		if (adt && adt->drivers.first)
-			BKE_animsys_evaluate_animdata(nid, adt, ctime, ADT_RECALC_DRIVERS);
+			BKE_animsys_evaluate_animdata(scene, nid, adt, ctime, ADT_RECALC_DRIVERS);
 	}
 }
 
@@ -985,7 +985,7 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 		float ctime = BKE_curframe(scene);
 		
 		if (adt && (adt->recalc & ADT_RECALC_ANIM))
-			BKE_animsys_evaluate_animdata(&scene->id, adt, ctime, 0);
+			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
 	
 	if (scene->physics_settings.quick_cache_step)
@@ -1020,7 +1020,7 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	 * can be overridden by settings from Scene, which owns the Texture through a hierarchy
 	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
 	 */
-	BKE_animsys_evaluate_all_animation(bmain, ctime);
+	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
 	/*...done with recusrive funcs */
 
 	/* object_handle_update() on all objects, groups and sets */

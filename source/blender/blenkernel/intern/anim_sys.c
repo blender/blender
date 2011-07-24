@@ -1116,7 +1116,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		{
 			int array_len= RNA_property_array_length(&new_ptr, prop);
 			
-			if(array_len && array_index >= array_len)
+			if (array_len && array_index >= array_len)
 			{
 				if (G.f & G_DEBUG) {
 					printf("Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d \n",
@@ -1153,6 +1153,23 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 				default:
 					/* nothing can be done here... so it is unsuccessful? */
 					return 0;
+			}
+			
+			/* buffer property update for later flushing */
+			if (RNA_property_update_check(prop)) {
+				short skip_updates_hack = 0;
+				
+				/* optimisation hacks: skip property updates for those properties
+				 * for we know that which the updates in RNA were really just for
+				 * flushing property editing via UI/Py
+				 */
+				if (RNA_struct_is_a(new_ptr.type, &RNA_PoseBone)) {
+					/* bone transforms - update pose (i.e. tag depsgraph) */
+					skip_updates_hack = 1;
+				}				
+				
+				if (skip_updates_hack == 0)
+					RNA_property_update_cache_add(&new_ptr, prop);
 			}
 		}
 		
@@ -2132,8 +2149,9 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
  * and that the flags for which parts of the anim-data settings need to be recalculated 
  * have been set already by the depsgraph. Now, we use the recalc 
  */
-void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short recalc)
+void BKE_animsys_evaluate_animdata (Scene *scene, ID *id, AnimData *adt, float ctime, short recalc)
 {
+	Main *bmain = G.main; // xxx - to get passed in!
 	PointerRNA id_ptr;
 	
 	/* sanity checks */
@@ -2184,6 +2202,10 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 */
 	animsys_evaluate_overrides(&id_ptr, adt);
 	
+	/* execute and clear all cached property update functions */
+	RNA_property_update_cache_flush(bmain, scene);
+	RNA_property_update_cache_free();
+	
 	/* clear recalc flag now */
 	adt->recalc= 0;
 }
@@ -2195,7 +2217,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
+void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 {
 	ID *id;
 
@@ -2211,7 +2233,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	for (id= first; id; id= id->next) { \
 		if (ID_REAL_USERS(id) > 0) { \
 			AnimData *adt= BKE_animdata_from_id(id); \
-			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
+			BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag); \
 		} \
 	}
 	/* another macro for the "embedded" nodetree cases 
@@ -2227,9 +2249,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 			NtId_Type *ntp= (NtId_Type *)id; \
 			if (ntp->nodetree) { \
 				AnimData *adt2= BKE_animdata_from_id((ID *)ntp->nodetree); \
-				BKE_animsys_evaluate_animdata((ID *)ntp->nodetree, adt2, ctime, ADT_RECALC_ANIM); \
+				BKE_animsys_evaluate_animdata(scene, (ID *)ntp->nodetree, adt2, ctime, ADT_RECALC_ANIM); \
 			} \
-			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
+			BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag); \
 		} \
 	}
 	
