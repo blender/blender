@@ -537,10 +537,7 @@ bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat )
 	
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
 	this->uid_material_map[cmat->getUniqueId()] = ma;
-	this->matUidforEffect = &(cmat->getUniqueId());
-	/*COLLADAFW::Material * matCopy = new COLLADAFW::Material(&cmat);
-	this->FW_object_map[cmat->getUniqueId()] = matCopy;
-	*///matForEff = cmat;
+	
 	return true;
 }
 

@@ -415,7 +415,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 			float ctime = bsystem_time(scene, ob_arm, *it, 0.0f);
 
-			BKE_animsys_evaluate_animdata(&ob_arm->id, ob_arm->adt, *it, ADT_RECALC_ANIM);
+			//BKE_animsys_evaluate_animdata(&ob_arm->id, ob_arm->adt, *it, ADT_RECALC_ANIM);
+			//BKE_animsys_evaluate_animdata(scene , &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);
 			where_is_pose_bone(scene, ob_arm, pchan, ctime, 1);
 
 			// compute bone local mat

@@ -177,6 +177,9 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 	node.setNodeName(node_name);
 	node.setNodeSid(node_sid);
 
+	if ( bone->childbase.first == NULL )
+		add_blender_leaf_bone( bone, ob_arm , node );
+	else{
 	node.start();
 
 	add_bone_transform(ob_arm, bone, node);
@@ -186,8 +189,22 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 	}
 
 	node.end();
+	}
 }
 
+void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node)
+{
+	node.start();
+    
+	add_bone_transform(ob_arm, bone, node);
+    
+	node.addExtraTechniqueParameter("blender", "tip_x", bone->tail[0] );
+	node.addExtraTechniqueParameter("blender", "tip_y", bone->tail[1] );
+	node.addExtraTechniqueParameter("blender", "tip_z", bone->tail[2] );
+	
+	node.end();
+	
+}
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node)
 {
 	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
