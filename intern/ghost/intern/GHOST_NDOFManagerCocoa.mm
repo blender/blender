@@ -41,7 +41,7 @@ static void NDOF_DeviceAdded(io_connect_t connection)
 	{
 	printf("ndof: device added\n"); // change these: printf --> informational reports
 
-#if 0 // device preferences will be useful soon
+#if 0 // device preferences will be useful some day
 	ConnexionDevicePrefs p;
 	ConnexionGetCurrentDevicePrefs(kDevID_AnyDevice, &p);
 #endif
@@ -74,10 +74,13 @@ static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, voi
 				{
 				case kConnexionCmdHandleAxis:
 					{
+					// convert to blender view coordinates
 					short t[3] = {s->axis[0], -(s->axis[2]), s->axis[1]};
 					short r[3] = {-(s->axis[3]), s->axis[5], -(s->axis[4])};
+
 					ndof_manager->updateTranslation(t, now);
 					ndof_manager->updateRotation(r, now);
+
 					ghost_system->notifyExternalEventProcessed();
 					break;
 					}
@@ -98,7 +101,8 @@ static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, voi
 			break;
 			}
 		case kConnexionMsgPrefsChanged:
-			printf("ndof: prefs changed\n"); // this includes app switches
+			// printf("ndof: prefs changed\n"); // this includes app switches
+			// TODO: look through updated prefs for things blender cares about
 			break;
 		case kConnexionMsgCalibrateDevice:
 			printf("ndof: calibrate\n"); // but what should blender do?
@@ -134,7 +138,7 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 		m_clientID = RegisterConnexionClient('blnd', (UInt8*) "\007blender",
 			kConnexionClientModeTakeOver, kConnexionMaskAll);
 
-		printf("ndof: client id = %d\n", m_clientID);
+		// printf("ndof: client id = %d\n", m_clientID);
 
 		if (SetConnexionClientButtonMask != NULL)
 			{
@@ -161,7 +165,8 @@ GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 
 bool GHOST_NDOFManagerCocoa::available()
 	{
-//	extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
-// ^-- not needed since the entire framework is weak-linked
+	// extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
+	// ^^ not needed since the entire framework is weak-linked
 	return InstallConnexionHandlers != NULL;
+	// this means that the driver is installed and dynamically linked to blender
 	}
