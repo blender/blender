@@ -51,7 +51,8 @@ static char *modifier_name[LS_MODIFIER_NUM] = {
 	NULL,
 	"Along Stroke",
 	"Distance from Camera",
-	"Distance from Object"};
+	"Distance from Object",
+	"Material"};
 
 static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 {
@@ -120,7 +121,8 @@ int FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type)
 		0,
 		sizeof(LineStyleColorModifier_AlongStroke),
 		sizeof(LineStyleColorModifier_DistanceFromCamera),
-		sizeof(LineStyleColorModifier_DistanceFromObject)
+		sizeof(LineStyleColorModifier_DistanceFromObject),
+		sizeof(LineStyleColorModifier_Material)
 	};
 	LineStyleModifier *m;
 
@@ -147,6 +149,11 @@ int FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type)
 		((LineStyleColorModifier_DistanceFromObject *)m)->range_min = 0.0f;
 		((LineStyleColorModifier_DistanceFromObject *)m)->range_max = 10000.0f;
 		break;
+	case LS_MODIFIER_MATERIAL:
+		((LineStyleColorModifier_Material *)m)->blend = MA_RAMP_BLEND;
+		((LineStyleColorModifier_Material *)m)->color_ramp = add_colorband(1);
+		((LineStyleColorModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
+		break;
 	default:
 		return -1; /* unknown modifier type */
 	}
@@ -167,6 +174,9 @@ void FRS_remove_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyl
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		MEM_freeN(((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp);
 		break;
+	case LS_MODIFIER_MATERIAL:
+		MEM_freeN(((LineStyleColorModifier_Material *)m)->color_ramp);
+		break;
 	}
 	BLI_freelinkN(&linestyle->color_modifiers, m);
 }
@@ -177,7 +187,8 @@ int FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type)
 		0,
 		sizeof(LineStyleAlphaModifier_AlongStroke),
 		sizeof(LineStyleAlphaModifier_DistanceFromCamera),
-		sizeof(LineStyleAlphaModifier_DistanceFromObject)
+		sizeof(LineStyleAlphaModifier_DistanceFromObject),
+		sizeof(LineStyleAlphaModifier_Material)
 	};
 	LineStyleModifier *m;
 
@@ -204,6 +215,11 @@ int FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type)
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->range_min = 0.0f;
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->range_max = 10000.0f;
 		break;
+	case LS_MODIFIER_MATERIAL:
+		((LineStyleAlphaModifier_Material *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+		((LineStyleAlphaModifier_Material *)m)->blend = LS_VALUE_BLEND;
+		((LineStyleAlphaModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
+		break;
 	default:
 		return -1; /* unknown modifier type */
 	}
@@ -224,6 +240,9 @@ void FRS_remove_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyl
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		curvemapping_free(((LineStyleAlphaModifier_DistanceFromObject *)m)->curve);
 		break;
+	case LS_MODIFIER_MATERIAL:
+		curvemapping_free(((LineStyleAlphaModifier_Material *)m)->curve);
+		break;
 	}
 	BLI_freelinkN(&linestyle->alpha_modifiers, m);
 }
@@ -234,7 +253,8 @@ int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type
 		0,
 		sizeof(LineStyleThicknessModifier_AlongStroke),
 		sizeof(LineStyleThicknessModifier_DistanceFromCamera),
-		sizeof(LineStyleThicknessModifier_DistanceFromObject)
+		sizeof(LineStyleThicknessModifier_DistanceFromObject),
+		sizeof(LineStyleThicknessModifier_Material)
 	};
 	LineStyleModifier *m;
 
@@ -267,6 +287,13 @@ int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->value_min = 0.0f;
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->value_max = 1.0f;
 		break;
+	case LS_MODIFIER_MATERIAL:
+		((LineStyleThicknessModifier_Material *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+		((LineStyleThicknessModifier_Material *)m)->blend = LS_VALUE_BLEND;
+		((LineStyleThicknessModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
+		((LineStyleThicknessModifier_Material *)m)->value_min = 0.0f;
+		((LineStyleThicknessModifier_Material *)m)->value_max = 1.0f;
+		break;
 	default:
 		return -1; /* unknown modifier type */
 	}
@@ -286,6 +313,9 @@ void FRS_remove_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, Line
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		curvemapping_free(((LineStyleThicknessModifier_DistanceFromObject *)m)->curve);
+		break;
+	case LS_MODIFIER_MATERIAL:
+		curvemapping_free(((LineStyleThicknessModifier_Material *)m)->curve);
 		break;
 	}
 	BLI_freelinkN(&linestyle->thickness_modifiers, m);
@@ -333,6 +363,9 @@ void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *list
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			color_ramp = ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp;
 			break;
+		case LS_MODIFIER_MATERIAL:
+			color_ramp = ((LineStyleColorModifier_Material *)m)->color_ramp;
+			break;
 		default:
 			continue;
 		}
@@ -358,6 +391,10 @@ char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *c
 			break;
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			if (color_ramp == ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp)
+				goto found;
+			break;
+		case LS_MODIFIER_MATERIAL:
+			if (color_ramp == ((LineStyleColorModifier_Material *)m)->color_ramp)
 				goto found;
 			break;
 		}

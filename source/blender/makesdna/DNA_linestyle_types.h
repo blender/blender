@@ -47,15 +47,19 @@ typedef struct LineStyleModifier {
 	int pad;
 } LineStyleModifier;
 
-/* LineStyleColorModifier::type */
+/* LineStyleModifier::type */
 #define LS_MODIFIER_ALONG_STROKE            1
 #define LS_MODIFIER_DISTANCE_FROM_CAMERA    2
 #define LS_MODIFIER_DISTANCE_FROM_OBJECT    3
-#define LS_MODIFIER_NUM                     4
+#define LS_MODIFIER_MATERIAL                4
+#define LS_MODIFIER_NUM                     5
 
-/* LineStyleColorModifier::flags */
+/* LineStyleModifier::flags */
 #define LS_MODIFIER_ENABLED     1
 #define LS_MODIFIER_EXPANDED    2
+
+/* flags (for color) */
+#define LS_MODIFIER_USE_RAMP  1
 
 /* flags (for alpha & thickness) */
 #define LS_MODIFIER_USE_CURVE    1
@@ -169,6 +173,54 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 	float value_min, value_max;
 
 } LineStyleThicknessModifier_DistanceFromObject;
+
+/* Material modifiers */
+
+/* mat_attr */
+#define LS_MODIFIER_MATERIAL_DIFF       1
+#define LS_MODIFIER_MATERIAL_DIFF_R     2
+#define LS_MODIFIER_MATERIAL_DIFF_G     3
+#define LS_MODIFIER_MATERIAL_DIFF_B     4
+#define LS_MODIFIER_MATERIAL_SPEC       5
+#define LS_MODIFIER_MATERIAL_SPEC_R     6
+#define LS_MODIFIER_MATERIAL_SPEC_G     7
+#define LS_MODIFIER_MATERIAL_SPEC_B     8
+#define LS_MODIFIER_MATERIAL_SPEC_HARD  9
+#define LS_MODIFIER_MATERIAL_ALPHA      10
+
+typedef struct LineStyleColorModifier_Material {
+	struct LineStyleModifier modifier;
+
+	struct ColorBand *color_ramp;
+	int blend;
+	int flags;
+	int mat_attr;
+	int pad;
+
+} LineStyleColorModifier_Material;
+
+typedef struct LineStyleAlphaModifier_Material {
+	struct LineStyleModifier modifier;
+
+	struct CurveMapping	*curve;
+	int blend;
+	int flags;
+	int mat_attr;
+	int pad;
+
+} LineStyleAlphaModifier_Material;
+
+typedef struct LineStyleThicknessModifier_Material {
+	struct LineStyleModifier modifier;
+
+	struct CurveMapping	*curve;
+	int blend;
+	int flags;
+	float value_min, value_max;
+	int mat_attr;
+	int pad;
+
+} LineStyleThicknessModifier_Material;
 
 /* FreestyleLineStyle::panel */
 #define LS_PANEL_COLOR        1

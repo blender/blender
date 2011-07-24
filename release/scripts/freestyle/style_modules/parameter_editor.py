@@ -278,6 +278,115 @@ class ThicknessDistanceFromObjectShader(CurveMappingModifier):
             c = self.blend_curve(a, b)
             attr.setThickness(c/2, c/2)
 
+# Material modifiers
+
+def iter_material_color(stroke, material_attr):
+    func = MaterialF0D()
+    it = stroke.strokeVerticesBegin()
+    while not it.isEnd():
+        material = func(it.castToInterface0DIterator())
+        if material_attr == "DIFF":
+            color = (material.diffuseR(),
+                     material.diffuseG(),
+                     material.diffuseB())
+        elif material_attr == "SPEC":
+            color = (material.specularR(),
+                     material.specularG(),
+                     material.specularB())
+        else:
+            raise ValueError("unexpected material attribute: " + material_attr)
+        yield it, color
+        it.increment()
+
+def iter_material_value(stroke, material_attr):
+    func = MaterialF0D()
+    it = stroke.strokeVerticesBegin()
+    while not it.isEnd():
+        material = func(it.castToInterface0DIterator())
+        if material_attr == "DIFF":
+            r = material.diffuseR()
+            g = material.diffuseG()
+            b = material.diffuseB()
+            t = 0.35 * r + 0.45 * r + 0.2 * b
+        elif material_attr == "DIFF_R":
+            t = material.diffuseR()
+        elif material_attr == "DIFF_G":
+            t = material.diffuseG()
+        elif material_attr == "DIFF_B":
+            t = material.diffuseB()
+        elif material_attr == "SPEC":
+            r = material.specularR()
+            g = material.specularG()
+            b = material.specularB()
+            t = 0.35 * r + 0.45 * r + 0.2 * b
+        elif material_attr == "SPEC_R":
+            t = material.specularR()
+        elif material_attr == "SPEC_G":
+            t = material.specularG()
+        elif material_attr == "SPEC_B":
+            t = material.specularB()
+        elif material_attr == "SPEC_HARDNESS":
+            t = material.shininess()
+        elif material_attr == "ALPHA":
+            t = material.diffuseA()
+        else:
+            raise ValueError("unexpected material attribute: " + material_attr)
+        yield it, t
+        it.increment()
+
+class ColorMaterialShader(ColorRampModifier):
+    def __init__(self, blend, influence, ramp, material_attr, use_ramp):
+        ColorRampModifier.__init__(self, blend, influence, ramp)
+        self.__material_attr = material_attr
+        self.__use_ramp = use_ramp
+    def getName(self):
+        return "ColorMaterialShader"
+    def shade(self, stroke):
+        if self.__material_attr in ["DIFF", "SPEC"] and not self.__use_ramp:
+            for it, b in iter_material_color(stroke, self.__material_attr):
+                attr = it.getObject().attribute()
+                a = attr.getColorRGB()
+                c = self.blend_ramp(a, b)
+                attr.setColor(c)
+        else:
+            for it, t in iter_material_value(stroke, self.__material_attr):
+                attr = it.getObject().attribute()
+                a = attr.getColorRGB()
+                b = self.evaluate(t)
+                c = self.blend_ramp(a, b)
+                attr.setColor(c)
+
+class AlphaMaterialShader(CurveMappingModifier):
+    def __init__(self, blend, influence, mapping, invert, curve, material_attr):
+        CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
+        self.__material_attr = material_attr
+    def getName(self):
+        return "AlphaMaterialShader"
+    def shade(self, stroke):
+        for it, t in iter_material_value(stroke, self.__material_attr):
+            attr = it.getObject().attribute()
+            a = attr.getAlpha()
+            b = self.evaluate(t)
+            c = self.blend_curve(a, b)
+            attr.setAlpha(c)
+
+class ThicknessMaterialShader(CurveMappingModifier):
+    def __init__(self, blend, influence, mapping, invert, curve, material_attr, value_min, value_max):
+        CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
+        self.__material_attr = material_attr
+        self.__value_min = value_min
+        self.__value_max = value_max
+    def getName(self):
+        return "ThicknessMaterialShader"
+    def shade(self, stroke):
+        for it, t in iter_material_value(stroke, self.__material_attr):
+            attr = it.getObject().attribute()
+            a = attr.getThicknessRL()
+            a = a[0] + a[1]
+            b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
+            c = self.blend_curve(a, b)
+            attr.setThickness(c/2, c/2)
+
 # Predicates and helper functions
 
 class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
@@ -660,6 +769,10 @@ def process(layer_name, lineset_name):
             shaders_list.append(ColorDistanceFromObjectShader(
                 m.blend, m.influence, m.color_ramp, m.target,
                 m.range_min, m.range_max))
+        elif m.type == "MATERIAL":
+            shaders_list.append(ColorMaterialShader(
+                m.blend, m.influence, m.color_ramp, m.material_attr,
+                m.use_ramp))
     for m in linestyle.alpha_modifiers:
         if not m.use:
             continue
@@ -674,6 +787,10 @@ def process(layer_name, lineset_name):
             shaders_list.append(AlphaDistanceFromObjectShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
                 m.range_min, m.range_max))
+        elif m.type == "MATERIAL":
+            shaders_list.append(AlphaMaterialShader(
+                m.blend, m.influence, m.mapping, m.invert, m.curve,
+                m.material_attr))
     for m in linestyle.thickness_modifiers:
         if not m.use:
             continue
@@ -689,6 +806,10 @@ def process(layer_name, lineset_name):
             shaders_list.append(ThicknessDistanceFromObjectShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve, m.target,
                 m.range_min, m.range_max, m.value_min, m.value_max))
+        elif m.type == "MATERIAL":
+            shaders_list.append(ThicknessMaterialShader(
+                m.blend, m.influence, m.mapping, m.invert, m.curve,
+                m.material_attr, m.value_min, m.value_max))
     if linestyle.caps == "ROUND":
         shaders_list.append(RoundCapShader())
     elif linestyle.caps == "SQUARE":

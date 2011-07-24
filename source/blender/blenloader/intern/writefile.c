@@ -2450,6 +2450,9 @@ static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			struct_name = "LineStyleColorModifier_DistanceFromObject";
 			break;
+		case LS_MODIFIER_MATERIAL:
+			struct_name = "LineStyleColorModifier_Material";
+			break;
 		default:
 			struct_name = "LineStyleColorModifier"; // this should not happen
 		}
@@ -2465,6 +2468,9 @@ static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
 			break;
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			writestruct(wd, DATA, "ColorBand", 1, ((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp);
+			break;
+		case LS_MODIFIER_MATERIAL:
+			writestruct(wd, DATA, "ColorBand", 1, ((LineStyleColorModifier_Material *)m)->color_ramp);
 			break;
 		}
 	}
@@ -2486,6 +2492,9 @@ static void write_linestyle_alpha_modifiers(WriteData *wd, ListBase *modifiers)
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			struct_name = "LineStyleAlphaModifier_DistanceFromObject";
 			break;
+		case LS_MODIFIER_MATERIAL:
+			struct_name = "LineStyleAlphaModifier_Material";
+			break;
 		default:
 			struct_name = "LineStyleAlphaModifier"; // this should not happen
 		}
@@ -2501,6 +2510,9 @@ static void write_linestyle_alpha_modifiers(WriteData *wd, ListBase *modifiers)
 			break;
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			write_curvemapping(wd, ((LineStyleAlphaModifier_DistanceFromObject *)m)->curve);
+			break;
+		case LS_MODIFIER_MATERIAL:
+			write_curvemapping(wd, ((LineStyleAlphaModifier_Material *)m)->curve);
 			break;
 		}
 	}
@@ -2522,6 +2534,9 @@ static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifie
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			struct_name = "LineStyleThicknessModifier_DistanceFromObject";
 			break;
+		case LS_MODIFIER_MATERIAL:
+			struct_name = "LineStyleThicknessModifier_Material";
+			break;
 		default:
 			struct_name = "LineStyleThicknessModifier"; // this should not happen
 		}
@@ -2537,6 +2552,9 @@ static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifie
 			break;
 		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 			write_curvemapping(wd, ((LineStyleThicknessModifier_DistanceFromObject *)m)->curve);
+			break;
+		case LS_MODIFIER_MATERIAL:
+			write_curvemapping(wd, ((LineStyleThicknessModifier_Material *)m)->curve);
 			break;
 		}
 	}

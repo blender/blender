@@ -319,6 +319,35 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
         sub.operator("scene.freestyle_modifier_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
         row.operator("scene.freestyle_modifier_remove", icon='X', text="")
 
+    def draw_modifier_common(self, box, modifier):
+        row = box.row()
+        row.prop(modifier, "blend", text="")
+        row.prop(modifier, "influence")
+
+    def draw_modifier_color_ramp_common(self, box, modifier, has_range):
+        box.template_color_ramp(modifier, "color_ramp", expand=True)
+        if has_range:
+            row = box.row(align=True)
+            row.prop(modifier, "range_min")
+            row.prop(modifier, "range_max")
+
+    def draw_modifier_curve_common(self, box, modifier, has_range, has_value):
+        row = box.row()
+        row.prop(modifier, "mapping", text="")
+        sub = row.column()
+        sub.prop(modifier, "invert")
+        if modifier.mapping == "CURVE":
+            sub.enabled = False
+            box.template_curve_mapping(modifier, "curve")
+        if has_range:
+            row = box.row(align=True)
+            row.prop(modifier, "range_min")
+            row.prop(modifier, "range_max")
+        if has_value:
+            row = box.row(align=True)
+            row.prop(modifier, "value_min")
+            row.prop(modifier, "value_max")
+
     def draw_color_modifier(self, context, modifier):
         layout = self.layout
 
@@ -326,16 +355,31 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
         self.draw_modifier_box_header(col.box(), modifier)
         if modifier.expanded:
             box = col.box()
-            row = box.row()
-            row.prop(modifier, "blend", text="")
-            row.prop(modifier, "influence")
-            if modifier.type == "DISTANCE_FROM_OBJECT":
+            self.draw_modifier_common(box, modifier)
+
+            if modifier.type == "ALONG_STROKE":
+                self.draw_modifier_color_ramp_common(box, modifier, False)
+
+            elif modifier.type == "DISTANCE_FROM_OBJECT":
                 box.prop(modifier, "target")
-            box.template_color_ramp(modifier, "color_ramp", expand=True)
-            if modifier.type not in ["ALONG_STROKE"]:
-                row = box.row(align=True)
-                row.prop(modifier, "range_min")
-                row.prop(modifier, "range_max")
+                self.draw_modifier_color_ramp_common(box, modifier, True)
+
+            elif modifier.type == "DISTANCE_FROM_CAMERA":
+                self.draw_modifier_color_ramp_common(box, modifier, True)
+
+            elif modifier.type == "MATERIAL":
+                row = box.row()
+                row.prop(modifier, "material_attr", text="")
+                sub = row.column()
+                sub.prop(modifier, "use_ramp")
+                if modifier.material_attr in ["DIFF", "SPEC"]:
+                    sub.enabled = True
+                    show_ramp = modifier.use_ramp
+                else:
+                    sub.enabled = False
+                    show_ramp = True
+                if show_ramp:
+                    self.draw_modifier_color_ramp_common(box, modifier, False)
 
     def draw_alpha_modifier(self, context, modifier):
         layout = self.layout
@@ -344,22 +388,21 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
         self.draw_modifier_box_header(col.box(), modifier)
         if modifier.expanded:
             box = col.box()
-            row = box.row()
-            row.prop(modifier, "blend", text="")
-            row.prop(modifier, "influence")
-            if modifier.type == "DISTANCE_FROM_OBJECT":
+            self.draw_modifier_common(box, modifier)
+
+            if modifier.type == "ALONG_STROKE":
+                self.draw_modifier_curve_common(box, modifier, False, False)
+
+            elif modifier.type == "DISTANCE_FROM_OBJECT":
                 box.prop(modifier, "target")
-            row = box.row()
-            row.prop(modifier, "mapping", text="")
-            sub = row.column()
-            sub.prop(modifier, "invert")
-            if modifier.mapping == "CURVE":
-                sub.enabled = False
-                box.template_curve_mapping(modifier, "curve")
-            if modifier.type not in ["ALONG_STROKE"]:
-                row = box.row(align=True)
-                row.prop(modifier, "range_min")
-                row.prop(modifier, "range_max")
+                self.draw_modifier_curve_common(box, modifier, True, False)
+
+            elif modifier.type == "DISTANCE_FROM_CAMERA":
+                self.draw_modifier_curve_common(box, modifier, True, False)
+
+            elif modifier.type == "MATERIAL":
+                box.prop(modifier, "material_attr", text="")
+                self.draw_modifier_curve_common(box, modifier, False, False)
 
     def draw_thickness_modifier(self, context, modifier):
         layout = self.layout
@@ -368,25 +411,21 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, bpy.types.Panel):
         self.draw_modifier_box_header(col.box(), modifier)
         if modifier.expanded:
             box = col.box()
-            row = box.row()
-            row.prop(modifier, "blend", text="")
-            row.prop(modifier, "influence")
-            if modifier.type == "DISTANCE_FROM_OBJECT":
+            self.draw_modifier_common(box, modifier)
+
+            if modifier.type == "ALONG_STROKE":
+                self.draw_modifier_curve_common(box, modifier, False, True)
+
+            elif modifier.type == "DISTANCE_FROM_OBJECT":
                 box.prop(modifier, "target")
-            row = box.row()
-            row.prop(modifier, "mapping", text="")
-            sub = row.column()
-            sub.prop(modifier, "invert")
-            if modifier.mapping == "CURVE":
-                sub.enabled = False
-                box.template_curve_mapping(modifier, "curve")
-            if modifier.type not in ["ALONG_STROKE"]:
-                row = box.row(align=True)
-                row.prop(modifier, "range_min")
-                row.prop(modifier, "range_max")
-            row = box.row(align=True)
-            row.prop(modifier, "value_min")
-            row.prop(modifier, "value_max")
+                self.draw_modifier_curve_common(box, modifier, True, True)
+
+            elif modifier.type == "DISTANCE_FROM_CAMERA":
+                self.draw_modifier_curve_common(box, modifier, True, True)
+
+            elif modifier.type == "MATERIAL":
+                box.prop(modifier, "material_attr", text="")
+                self.draw_modifier_curve_common(box, modifier, False, True)
 
     def draw(self, context):
         layout = self.layout
