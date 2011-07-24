@@ -1767,7 +1767,8 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 	data->width= width;
 	data->height= height;
 
-	data->lock= 1;
+	if(act==SLIDE_ACTION_SIZE)
+		data->lock= 1;
 
 	return data;
 }
@@ -1909,7 +1910,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case RIGHTCTRLKEY:
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
-			if(data->area != TRACK_AREA_POINT)
+			if(data->action == SLIDE_ACTION_SIZE)
 				if(ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
 					data->lock= event->val==KM_RELEASE;
 
@@ -1923,7 +1924,9 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 			mdelta[1]= event->mval[1]-data->mval[1];
 
 			dx= mdelta[0]/data->width/sc->zoom;
-			dy= mdelta[1]/data->height/sc->zoom;
+
+			if(data->lock) dy= -dx/data->height*data->width;
+			else dy= mdelta[1]/data->height/sc->zoom;
 
 			if(data->accurate) {
 				dx/= 5;
@@ -1942,13 +1945,6 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 					data->min[1]= data->smin[1]+dy;
 					data->max[1]= data->smax[1]-dy;
-
-					if(data->lock) {
-						float h= (data->max[0]-data->min[0])*data->width/data->height;
-
-						data->min[1]= data->spos[1]-h/2;
-						data->max[1]= data->spos[1]+h/2;
-					}
 
 
 					if(data->area==TRACK_AREA_SEARCH) BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_DIM);
