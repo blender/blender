@@ -2192,6 +2192,7 @@ void do_material_tex(ShadeInput *shi)
 				}
 			}
 			else if(mtex->texco==TEXCO_REFL) {
+				calc_R_ref(shi);
 				co= shi->ref; dx= shi->dxref; dy= shi->dyref;
 			}
 			else if(mtex->texco==TEXCO_NORM) {
@@ -2509,9 +2510,6 @@ void do_material_tex(ShadeInput *shi)
 					shi->orn[0]= -shi->vn[0];
 					shi->orn[1]= -shi->vn[1];
 					shi->orn[2]= -shi->vn[2];
-					
-					/* reflection vector */
-					calc_R_ref(shi);
 				}
 			}
 

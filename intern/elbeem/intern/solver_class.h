@@ -308,6 +308,9 @@ class LbmFsgrSolver :
 		//! for raytracing, preprocess
 		void prepareVisualization( void );
 
+		/* surface generation settings */
+		virtual void setSurfGenSettings(short value);
+
 	protected:
 
 		//! internal quick print function (for debugging) 

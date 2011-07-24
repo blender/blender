@@ -710,6 +710,12 @@ Game Engine  bge.types Module
 
    Applies changes to a camera.
 
+   .. attribute:: damping
+
+      strength of of the camera following movement.
+
+      :type: float
+   
    .. attribute:: min
 
       minimum distance to the target object maintained by the actuator.

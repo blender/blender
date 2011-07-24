@@ -77,6 +77,7 @@
 /* This little block needed for linking to Blender... */
 #include "BKE_text.h"
 #include "BLI_blenlib.h"
+#include "BLI_math_base.h"
 
 #define FILE_MAX 240 // repeated here to avoid dependency from BKE_utildefines.h
 
@@ -286,7 +287,8 @@ void BL_ConvertActuators(char* maggiename,
 						camact->height,
 						camact->min,
 						camact->max,
-						camact->axis=='x');
+						camact->axis=='x',
+						camact->damping);
 					baseact = tmpcamact;
 				}
 				break;
@@ -397,7 +399,7 @@ void BL_ConvertActuators(char* maggiename,
 						new KX_SoundActuator(gameobj,
 						snd_sound,
 						soundact->volume,
-						(float)(exp((soundact->pitch / 12.0) * log(2.0))),
+						(float)(exp((soundact->pitch / 12.0) * M_LN2)),
 						is3d,
 						settings,
 						soundActuatorType);

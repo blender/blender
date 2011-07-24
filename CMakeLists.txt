@@ -223,9 +223,6 @@ if(WITH_PYTHON_MODULE)
 	set(WITH_HEADLESS ON)
 endif()
 
-# remove old vars
-unset(WITH_INSTALL CACHE)
-
 TEST_SSE_SUPPORT()
 
 #-----------------------------------------------------------------------------
@@ -233,6 +230,9 @@ TEST_SSE_SUPPORT()
 
 # linux only, not cached
 set(WITH_BINRELOC OFF)
+
+# MAXOSX only, set to avoid uninitialized 
+set(EXETYPE "")
 
 # these are added to later on.
 set(C_WARNINGS "")

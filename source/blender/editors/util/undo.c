@@ -156,11 +156,11 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		int do_glob_undo= 0;
 		
 		if(obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
-			if(!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname)
+			if(!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname))
 				do_glob_undo= 1;
 		}
 		else if(obact && obact->mode & OB_MODE_SCULPT) {
-			if(!ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname) && undoname)
+			if(!ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname))
 				do_glob_undo= 1;
 		}
 		else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT) {

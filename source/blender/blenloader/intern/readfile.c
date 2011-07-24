@@ -11713,6 +11713,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+
+		{
+			/* add default value for behind strength of camera actuator */
+			Object *ob;
+			bActuator *act;
+			for(ob = main->object.first; ob; ob= ob->id.next) {
+				for(act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_CAMERA) {
+						bCameraActuator *ba= act->data;
+
+						ba->damping = 1.0/32.0;
+					}
+				}
+			}
+		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

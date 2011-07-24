@@ -54,14 +54,16 @@ KX_CameraActuator::KX_CameraActuator(
 	float hght,
 	float minhght,
 	float maxhght,
-	bool  xytog
+	bool  xytog,
+	float damping
 ): 
 	SCA_IActuator(gameobj, KX_ACT_CAMERA),
 	m_ob (obj),
 	m_height (hght),
 	m_minHeight (minhght),
 	m_maxHeight (maxhght),
-	m_x (xytog)
+	m_x (xytog),
+	m_damping (damping)
 {
 	if (m_ob)
 		m_ob->RegisterActuator(this);
@@ -283,7 +285,7 @@ bool KX_CameraActuator::Update(double curtime, bool frame)
 	}
 	
 	inp= fp1[0]*fp2[0] + fp1[1]*fp2[1] + fp1[2]*fp2[2];
-	fac= (-1.0 + inp)/32.0;
+	fac= (-1.0 + inp) * m_damping;
 
 	from[0]+= fac*fp1[0];
 	from[1]+= fac*fp1[1];
@@ -390,6 +392,7 @@ PyAttributeDef KX_CameraActuator::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_RW("height",-FLT_MAX,FLT_MAX,KX_CameraActuator,m_height),
 	KX_PYATTRIBUTE_BOOL_RW("useXY",KX_CameraActuator,m_x),
 	KX_PYATTRIBUTE_RW_FUNCTION("object", KX_CameraActuator, pyattr_get_object,	pyattr_set_object),
+	KX_PYATTRIBUTE_FLOAT_RW("damping",0.f,10.f,KX_CameraActuator,m_damping),
 	{NULL}
 };
 

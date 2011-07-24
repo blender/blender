@@ -921,7 +921,16 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	if(ED_undo_valid(C, op->type->name)==0)
 		uiLayoutSetEnabled(layout, 0);
 
-	uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
+	if(op->type->flag & OPTYPE_MACRO) {
+		for(op= op->macro.first; op; op= op->next) {
+			uiItemL(layout, op->type->name, ICON_NONE);
+			uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
+		}
+	}
+	else {
+		uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
+	}
+	
 
 	uiPopupBoundsBlock(block, 4, 0, 0);
 	uiEndBlock(C, block);
@@ -1476,6 +1485,14 @@ static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 {
 	const char *openname= G.main->name;
 
+	if(CTX_wm_window(C) == NULL) {
+		/* in rare cases this could happen, when trying to invoke in background
+		 * mode on load for example. Don't use poll for this because exec()
+		 * can still run without a window */
+		BKE_report(op->reports, RPT_ERROR, "Context window not set");
+		return OPERATOR_CANCELLED;
+	}
+
 	/* if possible, get the name of the most recently used .blend file */
 	if (G.recent_files.first) {
 		struct RecentFile *recent = G.recent_files.first;
@@ -1526,7 +1543,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	
 	ot->invoke= wm_open_mainfile_invoke;
 	ot->exec= wm_open_mainfile_exec;
-	ot->poll= WM_operator_winactive;
+	/* ommit window poll so this can work in background mode */
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH);
 
@@ -1945,7 +1962,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->check= blend_save_check;
-	ot->poll= NULL;
+	/* ommit window poll so this can work in background mode */
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
@@ -3125,7 +3142,6 @@ static int radial_control_cancel(bContext *C, wmOperator *op)
 static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RadialControl *rc = op->customdata;
-	wmWindowManager *wm;
 	float new_value, dist, zoom[2];
 	float delta[2], snap, ret = OPERATOR_RUNNING_MODAL;
 

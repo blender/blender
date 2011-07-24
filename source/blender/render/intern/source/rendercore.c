@@ -2464,7 +2464,8 @@ static int get_next_bake_face(BakeShade *bs)
 				if(tface && tface->tpage) {
 					Image *ima= tface->tpage;
 					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-					float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+					const float vec_alpha[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+					const float vec_solid[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 					
 					if(ibuf==NULL)
 						continue;
@@ -2484,7 +2485,7 @@ static int get_next_bake_face(BakeShade *bs)
 							imb_freerectImBuf(ibuf);
 						/* clear image */
 						if(R.r.bake_flag & R_BAKE_CLEAR)
-							IMB_rectfill(ibuf, vec);
+							IMB_rectfill(ibuf, (ibuf->depth == 32) ? vec_alpha : vec_solid);
 					
 						/* might be read by UI to set active image for display */
 						R.bakebuf= ima;
@@ -2589,6 +2590,48 @@ static void *do_bake_thread(void *bs_v)
 	return NULL;
 }
 
+void RE_bake_ibuf_filter(ImBuf *ibuf, unsigned char *mask, const int filter)
+{
+	/* must check before filtering */
+	const short is_new_alpha= (ibuf->depth != 32) && BKE_alphatest_ibuf(ibuf);
+
+	/* Margin */
+	if(filter) {
+		char *temprect;
+		int i;
+
+		/* extend the mask +2 pixels from the image,
+		 * this is so colors dont blend in from outside */
+
+		for(i=0; i< filter; i++)
+			IMB_mask_filter_extend((char *)ibuf->userdata, ibuf->x, ibuf->y);
+
+		temprect = MEM_dupallocN(ibuf->userdata);
+
+		/* expand twice to clear this many pixels, so they blend back in */
+		IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
+		IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
+
+		/* clear all pixels in the margin */
+		IMB_mask_clear(ibuf, temprect, FILTER_MASK_MARGIN);
+		MEM_freeN(temprect);
+
+		for(i= 0; i < filter; i++)
+			IMB_filter_extend(ibuf, (char *)ibuf->userdata);
+	}
+
+	/* if the bake results in new alpha then change the image setting */
+	if(is_new_alpha) {
+		ibuf->depth= 32;
+	}
+	else {
+		if(filter && ibuf->depth != 32) {
+			/* clear alpha added by filtering */
+			IMB_rectfill_alpha(ibuf, 1.0f);
+		}
+	}
+}
+
 /* using object selection tags, the faces with UV maps get baked */
 /* render should have been setup */
 /* returns 0 if nothing was handled */
@@ -2675,36 +2718,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 			if(!ibuf)
 				continue;
 
-			if(re->r.bake_filter) {
-				if (usemask) {
-					/* extend the mask +2 pixels from the image,
-					 * this is so colors dont blend in from outside */
-					char *temprect;
-					
-					for(a=0; a<re->r.bake_filter; a++)
-						IMB_mask_filter_extend((char *)ibuf->userdata, ibuf->x, ibuf->y);
-					
-					temprect = MEM_dupallocN(ibuf->userdata);
-					
-					/* expand twice to clear this many pixels, so they blend back in */
-					IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-					IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-					
-					/* clear all pixels in the margin*/
-					IMB_mask_clear(ibuf, temprect, FILTER_MASK_MARGIN);
-					MEM_freeN(temprect);
-				}
-				
-				for(a=0; a<re->r.bake_filter; a++) {
-					/*the mask, ibuf->userdata - can be null, in this case only zero alpha is used */
-					IMB_filter_extend(ibuf, (char *)ibuf->userdata);
-				}
-				
-				if (ibuf->userdata) {
-					MEM_freeN(ibuf->userdata);
-					ibuf->userdata= NULL;
-				}
-			}
+			RE_bake_ibuf_filter(ibuf, (unsigned char *)ibuf->userdata, re->r.bake_filter);
 
 			ibuf->userflags |= IB_BITMAPDIRTY;
 			if (ibuf->rect_float) IMB_rect_from_float(ibuf);

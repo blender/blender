@@ -305,7 +305,7 @@ typedef struct UserDef {
 	int savetime;
 	char tempdir[160];	// FILE_MAXDIR length
 	char fontdir[160];
-	char renderdir[160];
+	char renderdir[240]; // FILE_MAX length
 	char textudir[160];
 	char plugtexdir[160];
 	char plugseqdir[160];
