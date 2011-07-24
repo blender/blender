@@ -1272,7 +1272,7 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 						/* save layer data to output layer */
 
 						/* paint layer */
-						col = CustomData_get_layer_named(&dm->faceData, CD_MCOL, surface->output_name);
+						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name);
 						if (col) {
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
@@ -1288,10 +1288,11 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 								}
 							}
 						}
+						
 						MEM_freeN(fcolor);
 
 						/* wet layer */
-						col = CustomData_get_layer_named(&dm->faceData, CD_MCOL, surface->output_name2);
+						col = CustomData_get_layer_named(&result->faceData, CD_MCOL, surface->output_name2);
 						if (col) {
 							#pragma omp parallel for schedule(static)
 							for (i=0; i<numOfFaces; i++) {
