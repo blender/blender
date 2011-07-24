@@ -3822,18 +3822,14 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 				w_factor = (1.0f - ePoint->wetness)/8 * (pPoint->wetness - ePoint->wetness) * speed_scale;
 				if (w_factor < 0.0f) w_factor = 0.0f;
 
-				if (a_factor) {
-					pPoint->alpha -= a_factor;
-					if (pPoint->alpha < 0.0f) pPoint->alpha = 0.0f;
-					pPoint->wetness -= a_factor;
+				pPoint->alpha -= a_factor;
+				if (pPoint->alpha < 0.0f) pPoint->alpha = 0.0f;
 
-				}
-				else {
-					pPoint->e_alpha -= ea_factor;
-					if (pPoint->e_alpha < 0.0f) pPoint->e_alpha = 0.0f;
-					pPoint->wetness -= w_factor;
-					if (pPoint->wetness < 0.0f) pPoint->wetness = 0.0f;
-				}
+				pPoint->e_alpha -= ea_factor;
+				if (pPoint->e_alpha < 0.0f) pPoint->e_alpha = 0.0f;
+
+				pPoint->wetness -= w_factor;
+				if (pPoint->wetness < 0.0f) pPoint->wetness = 0.0f;
 			}
 		}
 	}
