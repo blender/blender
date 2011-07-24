@@ -2815,7 +2815,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "bake_margin", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "bake_filter");
-	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_range(prop, 0, 64);
 	RNA_def_property_ui_text(prop, "Margin", "Amount of pixels to extend the baked result with, as post process filter");
 
 	prop= RNA_def_property(srna, "bake_distance", PROP_FLOAT, PROP_NONE);
