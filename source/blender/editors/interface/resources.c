@@ -1583,6 +1583,9 @@ void init_userdef_do_versions(void)
 	if (U.anisotropic_filter <= 0)
 		U.anisotropic_filter = 1;
 
+	if (U.ndof_sensitivity == 0.0)
+		U.ndof_sensitivity = 1.0f;
+
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();
 	/* this timer uses U */
