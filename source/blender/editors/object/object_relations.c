@@ -1124,8 +1124,6 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-
-	if(islamp) reshadeall_displist(scene);	/* only frees */
 	
 	/* warning, active object may be hidden now */
 	

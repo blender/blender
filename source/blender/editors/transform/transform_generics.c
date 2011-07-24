@@ -842,9 +842,6 @@ void recalcData(TransInfo *t)
 				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 		}
-		
-		if(((View3D*)t->view)->drawtype == OB_SHADED)
-			reshadeall_displist(t->scene);
 	}
 }
 

@@ -938,13 +938,28 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	return block;
 }
 
-/* Only invoked by OK button in popups created with wm_block_create_dialog() */
+typedef struct wmOpPopUp
+{
+	wmOperator *op;
+	int width;
+	int height;
+	int free_op;
+} wmOpPopUp;
+
+/* Only invoked by OK button in popups created with wm_block_dialog_create() */
 static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 {
-	wmOperator *op= arg1;
+	wmOpPopUp *data= arg1;
 	uiBlock *block= arg2;
 
-	WM_operator_call(C, op);
+	WM_operator_call(C, data->op);
+
+	/* let execute handle freeing it */
+	//data->free_op= FALSE;
+	//data->op= NULL;
+
+	/* in this case, wm_operator_ui_popup_cancel wont run */
+	MEM_freeN(data);
 
 	uiPupBlockClose(C, block);
 }
@@ -960,9 +975,9 @@ static void dialog_check_cb(bContext *C, void *op_ptr, void *UNUSED(arg))
 }
 
 /* Dialogs are popups that require user verification (click OK) before exec */
-static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
+static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 {
-	struct { wmOperator *op; int width; int height; } * data = userData;
+	wmOpPopUp *data= userData;
 	wmOperator *op= data->op;
 	uiBlock *block;
 	uiLayout *layout;
@@ -991,7 +1006,7 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 		col_block= uiLayoutGetBlock(col);
 		/* Create OK button, the callback of which will execute op */
 		btn= uiDefBut(col_block, BUT, 0, "OK", 0, -30, 0, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-		uiButSetFunc(btn, dialog_exec_cb, op, col_block);
+		uiButSetFunc(btn, dialog_exec_cb, data, col_block);
 	}
 
 	/* center around the mouse */
@@ -1001,9 +1016,9 @@ static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
 	return block;
 }
 
-static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
+static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 {
-	struct { wmOperator *op; int width; int height; } * data = userData;
+	wmOpPopUp *data= userData;
 	wmOperator *op= data->op;
 	uiBlock *block;
 	uiLayout *layout;
@@ -1022,6 +1037,28 @@ static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 	uiEndBlock(C, block);
 
 	return block;
+}
+
+static void wm_operator_ui_popup_cancel(void *userData)
+{
+	wmOpPopUp *data= userData;
+	if(data->free_op && data->op) {
+		wmOperator *op= data->op;
+		WM_operator_free(op);
+	}
+
+	MEM_freeN(data);
+}
+
+int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
+{
+	wmOpPopUp *data= MEM_callocN(sizeof(wmOpPopUp), "WM_operator_ui_popup");
+	data->op= op;
+	data->width= width;
+	data->height= height;
+	data->free_op= TRUE; /* if this runs and gets registered we may want not to free it */
+	uiPupBlockEx(C, wm_operator_ui_create, wm_operator_ui_popup_cancel, data);
+	return OPERATOR_RUNNING_MODAL;
 }
 
 /* operator menu needs undo, for redo callback */
@@ -1043,25 +1080,16 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 
 int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int height)
 {
-	struct { wmOperator *op; int width; int height; } data;
+	wmOpPopUp *data= MEM_callocN(sizeof(wmOpPopUp), "WM_operator_props_dialog_popup");
 	
-	data.op= op;
-	data.width= width;
-	data.height= height;
+	data->op= op;
+	data->width= width;
+	data->height= height;
+	data->free_op= TRUE; /* if this runs and gets registered we may want not to free it */
 
 	/* op is not executed until popup OK but is clicked */
-	uiPupBlock(C, wm_block_create_dialog, &data);
+	uiPupBlockEx(C, wm_block_dialog_create, wm_operator_ui_popup_cancel, data);
 
-	return OPERATOR_RUNNING_MODAL;
-}
-
-int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
-{
-	struct { wmOperator *op; int width; int height; } data;
-	data.op = op;
-	data.width = width;
-	data.height = height;
-	uiPupBlock(C, wm_operator_create_ui, &data);
 	return OPERATOR_RUNNING_MODAL;
 }
 

@@ -1580,6 +1580,8 @@ void init_userdef_do_versions(void)
 		U.dragthreshold= 5;
 	if (U.widget_unit==0)
 		U.widget_unit= (U.dpi * 20 + 36)/72;
+	if (U.anisotropic_filter <= 0)
+		U.anisotropic_filter = 1;
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

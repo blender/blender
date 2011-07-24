@@ -86,7 +86,6 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
-#include "BKE_tessmesh.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -969,7 +968,7 @@ void free_lamp(Lamp *la)
 	
 	BKE_free_animdata((ID *)la);
 
-	curvemapping_free(la->curfalloff); 
+	curvemapping_free(la->curfalloff);
 	
 	BKE_previewimg_free(&la->preview);
 	BKE_icon_delete(&la->id);
@@ -1926,7 +1925,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 
 static void give_parvert(Object *par, int nr, float *vec)
 {
-	BMEditMesh *em;
+	EditMesh *em;
 	int a, count;
 	
 	vec[0]=vec[1]=vec[2]= 0.0f;
@@ -1935,22 +1934,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		Mesh *me= par->data;
 		DerivedMesh *dm;
 
-		em = me->edit_btmesh;
-
-		if(em) {
-			BMVert *eve;
-			BMIter iter;
-
-			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-				int *keyindex = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-				
-				if(keyindex && *keyindex==nr) {
-					memcpy(vec, eve->co, sizeof(float)*3);
-					break;
-				}
-			}
-		}
-
+		em = BKE_mesh_get_editmesh(me);
 		dm = (em)? em->derivedFinal: par->derivedFinal;
 			
 		if(dm) {
@@ -1978,6 +1962,9 @@ static void give_parvert(Object *par, int nr, float *vec)
 				dm->getVertCo(dm, 0, vec);
 			}
 		}
+
+		if(em)
+			BKE_mesh_end_editmesh(me, em);
 	}
 	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
 		Nurb *nu;
@@ -2632,14 +2619,11 @@ void object_handle_update(Scene *scene, Object *ob)
 			
 			if (G.f & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name+2);
-			
 
 			if(adt) {
 				/* evaluate drivers */
 				// XXX: for mesh types, should we push this to derivedmesh instead?
 				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
-
-				
 			}
 
 			/* includes all keys and modifiers */
@@ -2647,19 +2631,22 @@ void object_handle_update(Scene *scene, Object *ob)
 			case OB_MESH:
 				{
 #if 0				// XXX, comment for 2.56a release, background wont set 'scene->customdata_mask'
-					BMEditMesh *em = (ob == scene->obedit)? ((Mesh*)ob->data)->edit_btmesh : NULL;
+					EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
 					BLI_assert((scene->customdata_mask & CD_MASK_BAREMESH) == CD_MASK_BAREMESH);
 					if(em) {
-						makeDerivedMesh(scene, ob, em,  scene->customdata_mask, 0); /* was CD_MASK_BAREMESH */
+						makeDerivedMesh(scene, ob, em,  scene->customdata_mask); /* was CD_MASK_BAREMESH */
+						BKE_mesh_end_editmesh(ob->data, em);
 					} else
-						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask, 0);
+						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask);
 
 #else				/* ensure CD_MASK_BAREMESH for now */
-					BMEditMesh *em = (ob == scene->obedit)? ((Mesh*)ob->data)->edit_btmesh : NULL;
+					EditMesh *em = (ob == scene->obedit)? BKE_mesh_get_editmesh(ob->data): NULL;
+					unsigned int data_mask= scene->customdata_mask | ob->customdata_mask | CD_MASK_BAREMESH;
 					if(em) {
-						makeDerivedMesh(scene, ob, em,  scene->customdata_mask | CD_MASK_BAREMESH, 0); /* was CD_MASK_BAREMESH */
+						makeDerivedMesh(scene, ob, em,  data_mask); /* was CD_MASK_BAREMESH */
+						BKE_mesh_end_editmesh(ob->data, em);
 					} else
-						makeDerivedMesh(scene, ob, NULL, scene->customdata_mask | CD_MASK_BAREMESH, 0);
+						makeDerivedMesh(scene, ob, NULL, data_mask);
 #endif
 
 				}

@@ -118,8 +118,10 @@ def bake(frame_start,
     # -------------------------------------------------------------------------
     # Create action
 
+    # incase animation data hassnt been created
+    atd = obj.animation_data_create()
     action = bpy.data.actions.new("Action")
-    obj.animation_data.action = action
+    atd.action = action
 
     if do_pose:
         pose_items = pose.bones.items()

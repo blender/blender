@@ -208,7 +208,6 @@ struct Render;
 struct Image;
 struct Object;
 
-void RE_shade_external(struct Render *re, struct ShadeInput *shi, struct ShadeResult *shr);
 int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob, short *do_update, float *progress);
 struct Image *RE_bake_shade_get_image(void);
 void RE_bake_ibuf_filter(struct ImBuf *ibuf, unsigned char *mask, const int filter);

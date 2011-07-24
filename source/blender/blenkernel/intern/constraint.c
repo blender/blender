@@ -426,7 +426,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 /* ------------ General Target Matrix Tools ---------- */
 
 /* function that sets the given matrix based on given vertex group in mesh */
-static void contarget_get_mesh_mat (Scene *scene, Object *ob, const char *substring, float mat[][4])
+static void contarget_get_mesh_mat (Object *ob, const char *substring, float mat[][4])
 {
 	DerivedMesh *dm = NULL;
 	Mesh *me= ob->data;
@@ -451,16 +451,9 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, const char *substr
 		freeDM= 1;
 	}
 	else {
-		/* when not in EditMode, use the 'final' derived mesh 
-		 *	- check if the custom data masks for derivedFinal mean that we can just use that
-		 *	  (this is more effficient + sufficient for most cases)
-		 */
-		if (!(ob->lastDataMask & CD_MASK_MDEFORMVERT)) {
-			dm = mesh_get_derived_final(scene, ob, CD_MASK_MDEFORMVERT);
-			freeDM= 1;
-		}
-		else 
-			dm = (DerivedMesh *)ob->derivedFinal;
+		/* when not in EditMode, use the 'final' derived mesh, depsgraph
+		 * ensures we build with CD_MDEFORMVERT layer */
+		dm = (DerivedMesh *)ob->derivedFinal;
 	}
 	
 	/* only continue if there's a valid DerivedMesh */
@@ -587,7 +580,7 @@ static void contarget_get_lattice_mat (Object *ob, const char *substring, float 
 
 /* generic function to get the appropriate matrix for most target cases */
 /* The cases where the target can be object data have not been implemented */
-static void constraint_target_to_mat4 (Scene *scene, Object *ob, const char *substring, float mat[][4], short from, short to, float headtail)
+static void constraint_target_to_mat4 (Object *ob, const char *substring, float mat[][4], short from, short to, float headtail)
 {
 	/*	Case OBJECT */
 	if (!strlen(substring)) {
@@ -604,7 +597,7 @@ static void constraint_target_to_mat4 (Scene *scene, Object *ob, const char *sub
 	 *		way as constraints can only really affect things on object/bone level.
 	 */
 	else if (ob->type == OB_MESH) {
-		contarget_get_mesh_mat(scene, ob, substring, mat);
+		contarget_get_mesh_mat(ob, substring, mat);
 		constraint_mat_convertspace(ob, NULL, mat, from, to);
 	}
 	else if (ob->type == OB_LATTICE) {
@@ -684,10 +677,10 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 /* This function should be used for the get_target_matrix member of all 
  * constraints that are not picky about what happens to their target matrix.
  */
-static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void default_get_tarmat (bConstraint *con, bConstraintOb *UNUSED(cob), bConstraintTarget *ct, float UNUSED(ctime))
 {
 	if (VALID_CONS_TARGET(ct))
-		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 	else if (ct)
 		unit_m4(ct->matrix);
 }
@@ -1159,7 +1152,7 @@ static void kinematic_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstra
 	bKinematicConstraint *data= con->data;
 	
 	if (VALID_CONS_TARGET(ct)) 
-		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 	else if (ct) {
 		if (data->flag & CONSTRAINT_IK_AUTO) {
 			Object *ob= cob->ob;
@@ -2046,7 +2039,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 		/* firstly calculate the matrix the normal way, then let the py-function override
 		 * this matrix if it needs to do so
 		 */
-		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 		
 		/* only execute target calculation if allowed */
 #ifdef WITH_PYTHON
@@ -2165,7 +2158,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		unit_m4(ct->matrix);
 		
 		/* get the transform matrix of the target */
-		constraint_target_to_mat4(cob->scene, ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 		
 		/* determine where in transform range target is */
 		/* data->type is mapped as follows for backwards compatability:
@@ -2216,7 +2209,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			tchan->rotmode= pchan->rotmode;
 			
 			/* evaluate action using workob (it will only set the PoseChannel in question) */
-			what_does_obaction(cob->scene, cob->ob, &workob, pose, data->act, pchan->name, t);
+			what_does_obaction(cob->ob, &workob, pose, data->act, pchan->name, t);
 			
 			/* convert animation to matrices for use here */
 			pchan_calc_mat(tchan);
@@ -2230,7 +2223,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 			
 			/* evaluate using workob */
 			// FIXME: we don't have any consistent standards on limiting effects on object...
-			what_does_obaction(cob->scene, cob->ob, &workob, NULL, data->act, NULL, t);
+			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
 			object_to_mat4(&workob, ct->matrix);
 		}
 		else {
