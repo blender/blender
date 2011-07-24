@@ -252,7 +252,7 @@ void IMB_filter(struct ImBuf *ibuf);
 void IMB_filterN(struct ImBuf *out, struct ImBuf *in);
 void IMB_mask_filter_extend(char *mask, int width, int height);
 void IMB_mask_clear(struct ImBuf *ibuf, char *mask, int val);
-void IMB_filter_extend(struct ImBuf *ibuf, char *mask);
+void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter);
 void IMB_makemipmap(struct ImBuf *ibuf, int use_filter);
 void IMB_remakemipmap(struct ImBuf *ibuf, int use_filter);
 struct ImBuf *IMB_getmipmap(struct ImBuf *ibuf, int level);

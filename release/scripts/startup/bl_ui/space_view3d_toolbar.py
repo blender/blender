@@ -116,7 +116,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
-        col.operator("transform.shrink_fatten", text="Along Normal")
+        col.operator("transform.shrink_fatten", text="Shrink/Fatten")
+        col.operator("transform.push_pull", text="Push/Pull")
 
         col = layout.column(align=True)
         col.label(text="Deform:")
