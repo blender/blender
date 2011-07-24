@@ -2314,13 +2314,15 @@ static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* g
 {
 	wmNDOFMotionData* data = MEM_mallocN(sizeof(wmNDOFMotionData), "customdata NDOF");
 
-	data->tx = ghost->tx;
-	data->ty = ghost->ty;
-	data->tz = ghost->tz;
+	const float s = U.ndof_sensitivity;
 
-	data->rx = ghost->rx;
-	data->ry = ghost->ry;
-	data->rz = ghost->rz;
+	data->tx = s * ghost->tx;
+	data->ty = s * ghost->ty;
+	data->tz = s * ghost->tz;
+
+	data->rx = s * ghost->rx;
+	data->ry = s * ghost->ry;
+	data->rz = s * ghost->rz;
 
 	data->dt = ghost->dt;
 
