@@ -832,6 +832,9 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	float mouse[2];
 	int first= 0;
 
+	if (event->type == NDOF_MOTION)
+		return OPERATOR_PASS_THROUGH;
+
 	if(!stroke->stroke_started) {
 		stroke->last_mouse_position[0] = event->x;
 		stroke->last_mouse_position[1] = event->y;
