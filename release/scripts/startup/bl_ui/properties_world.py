@@ -20,8 +20,6 @@
 import bpy
 from rna_prop_ui import PropertyPanel
 
-# TODO, "color_range" not in the UI
-
 
 class WorldButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -95,6 +93,10 @@ class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
         col.prop(world, "zenith_color")
         col.active = world.use_sky_blend
         row.column().prop(world, "ambient_color")
+        
+        row = layout.row()
+        row.prop(world, "exposure")
+        row.prop(world, "color_range")
 
 
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel, bpy.types.Panel):

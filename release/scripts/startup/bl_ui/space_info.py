@@ -60,8 +60,10 @@ class INFO_HT_header(bpy.types.Header):
         layout.template_running_jobs()
 
         layout.template_reports_banner()
-
-        layout.label(text=scene.statistics())
+        
+        row = layout.row(align=True)
+        row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
+        row.label(text=scene.statistics())
 
         # XXX: this should be right-aligned to the RHS of the region
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER', text="")

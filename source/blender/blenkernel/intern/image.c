@@ -432,6 +432,7 @@ Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *n
 		ima->gen_x= width;
 		ima->gen_y= height;
 		ima->gen_type= uvtestgrid;
+		ima->gen_flag |= (floatbuf ? IMA_GEN_FLOAT : 0);
 		
 		ibuf= add_ibuf_size(width, height, name, depth, floatbuf, uvtestgrid, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
@@ -2172,7 +2173,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 				/* UV testgrid or black or solid etc */
 				if(ima->gen_x==0) ima->gen_x= 1024;
 				if(ima->gen_y==0) ima->gen_y= 1024;
-				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, 0, ima->gen_type, color);
+				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 24, (ima->gen_flag & IMA_GEN_FLOAT) != 0, ima->gen_type, color);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok= IMA_OK_LOADED;
 			}

@@ -2162,16 +2162,20 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 			} CTX_DATA_END;
 		}
 	}
-	else if (ELEM(type, COPY_PROPERTIES_REPLACE, COPY_PROPERTIES_MERGE)) {
+
+	else {
 		CTX_DATA_BEGIN(C, Object*, ob_iter, selected_editable_objects) {
 			if (ob != ob_iter) {
 				if (ob->data != ob_iter->data){
-					if (type == 2) {/* merge */
+					if (type == COPY_PROPERTIES_REPLACE)
+						copy_properties( &ob_iter->prop, &ob->prop );
+
+					/* merge - the default when calling with no argument */
+					else {
 						for(prop = ob->prop.first; prop; prop= prop->next ) {
 							set_ob_property(ob_iter, prop);
 						}
-					} else /* replace */
-						copy_properties( &ob_iter->prop, &ob->prop );
+					}
 				}
 			}
 		}

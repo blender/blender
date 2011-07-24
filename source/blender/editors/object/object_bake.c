@@ -860,6 +860,10 @@ static void finish_images(MultiresBakeRender *bkr)
 		RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, bkr->bake_filter);
 
 		ibuf->userflags|= IB_BITMAPDIRTY;
+
+		if(ibuf->rect_float)
+			ibuf->userflags|= IB_RECT_INVALID;
+
 		if(ibuf->mipmap[0]) {
 			ibuf->userflags|= IB_MIPMAP_INVALID;
 			imb_freemipmapImBuf(ibuf);

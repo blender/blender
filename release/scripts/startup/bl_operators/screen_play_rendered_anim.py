@@ -59,6 +59,9 @@ def guess_player_path(preset):
 
     elif preset == 'MPLAYER':
         player_path = "mplayer"
+    
+    else:
+        player_path = ""
 
     return player_path
 
@@ -131,12 +134,14 @@ class PlayRenderedAnim(bpy.types.Operator):
             cmd.extend(opts)
         else:  # 'CUSTOM'
             cmd.append(file)
-
-        # launch it
-        try:
-            process = subprocess.Popen(cmd)
-        except:
-            pass
-            #raise OSError("Couldn't find an external animation player.")
+            
+        if (player_path == "") or (os.path.exists(player_path)==False):
+            self.report({'ERROR'}, "Couldn't find an external animation player")
+        else:
+            # launch it
+            try:
+                process = subprocess.Popen(cmd)
+            except:
+                pass
 
         return {'FINISHED'}

@@ -1057,6 +1057,134 @@ static void weld_align_uv(bContext *C, int tool)
 		}
 	}
 
+	if(tool == 's' || tool == 't' || tool == 'u') {
+		 /* pass 1&2 variables */
+		int i, j;
+		int starttmpl= -1, connectedtostarttmpl, startcorner;
+		int endtmpl= -1,   connectedtoendtmpl,   endcorner;
+		MTFace *startface, *endface;
+		int itmpl, jtmpl;
+		EditVert *eve;
+		int pass; /* first 2 passes find endpoints, 3rd pass moves middle points, 4th pass is fail-on-face-selected */
+		EditFace *startefa, *endefa;
+
+		 /* pass 3 variables */
+		float startx, starty, firstm,  firstb,  midx,      midy;
+		float endx,   endy,   secondm, secondb, midmovedx, midmovedy;
+		float IsVertical_check= -1;
+		float IsHorizontal_check= -1;
+
+		for(i= 0, eve= em->verts.first; eve; eve= eve->next, i++) /* give each point a unique name */
+			eve->tmp.l= i;
+		for(pass= 1; pass <= 3; pass++) { /* do this for each endpoint */
+			if(pass == 3){ /* calculate */
+				startx= startface->uv[startcorner][0];
+				starty= startface->uv[startcorner][1];
+				endx= endface->uv[endcorner][0];
+				endy= endface->uv[endcorner][1];
+				firstm= (endy-starty)/(endx-startx);
+				firstb= starty-(firstm*startx);
+				secondm= -1.0f/firstm;
+				if(startx == endx) IsVertical_check= startx;
+				if(starty == endy) IsHorizontal_check= starty;
+			}
+			for(efa= em->faces.first; efa; efa= efa->next) { /* for each face */
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE); /* get face */
+				if(uvedit_face_visible(scene, ima, efa, tf)) { /* if you can see it */
+					if(uvedit_face_selected(scene, efa, tf)) { /* if the face is selected, get out now! */
+						pass= 4;
+						break;
+					}
+					for(i= 0; (i < 3 || (i == 3 && efa->v4)); i++) { /* for each point of the face */
+						itmpl= (*(&efa->v1 + i))->tmp.l; /* get unique name for points */
+						if(pass == 3) { /* move */
+							if(uvedit_uv_selected(scene, efa, tf, i)) {
+								if(!(itmpl == starttmpl || itmpl == endtmpl)) {
+									if(IsVertical_check != -1) tf->uv[i][0]= IsVertical_check;
+									if(IsHorizontal_check != -1) tf->uv[i][1]= IsHorizontal_check;
+									if((IsVertical_check == -1) && (IsHorizontal_check == -1)) {
+										midx= tf->uv[i][0];
+										midy= tf->uv[i][1];
+										if(tool == 's') {
+											secondb= midy-(secondm*midx);
+											midmovedx= (secondb-firstb)/(firstm-secondm);
+											midmovedy= (secondm*midmovedx)+secondb;
+											tf->uv[i][0]= midmovedx;
+											tf->uv[i][1]= midmovedy;
+										}
+										else if(tool == 't') {
+											tf->uv[i][0]= (midy-firstb)/firstm; /* midmovedx */
+										}
+										else if(tool == 'u') {
+											tf->uv[i][1]= (firstm*midx)+firstb; /* midmovedy */
+										}
+									}
+								}
+							}
+						}
+						else {
+							for(j= 0; (j < 3 || (j == 3 && efa->v4)); j++) { /* also for each point on the face */
+								jtmpl= (*(&efa->v1 + j))->tmp.l;
+								if(i != j && (!efa->v4 || ABS(i-j) !=  2)) { /* if the points are connected */
+									/* quad   (0,1,2,3) 0,1 0,3 1,0 1,2 2,1 2,3 3,0 3,2
+									 * triangle (0,1,2) 0,1 0,2 1,0 1,2 2,0 2,1 */
+									if(uvedit_uv_selected(scene, efa, tf, i) && uvedit_uv_selected(scene, efa, tf, j)) {
+										 /* if the edge is selected */
+										if(pass == 1) { /* if finding first endpoint */
+											if(starttmpl == -1) { /* if the first endpoint isn't found yet */
+												starttmpl= itmpl; /* set unique name for endpoint */
+												connectedtostarttmpl= jtmpl;
+												 /* get point that endpoint is connected to */
+												startface= tf; /* get face it's on */
+												startcorner= i; /* what corner of the face? */
+												startefa= efa;
+												efa= em->faces.first;
+												tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+												i= -1;
+												break;
+											}
+											if(starttmpl == itmpl && jtmpl != connectedtostarttmpl) {
+												starttmpl= -1; /* not an endpoint */
+												efa= startefa;
+												tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+												i= startcorner;
+												break;
+											}
+										}
+										else if(pass == 2) { /* if finding second endpoint */
+											if(endtmpl == -1 && itmpl != starttmpl) {
+												endtmpl= itmpl;
+												connectedtoendtmpl= jtmpl;
+												endface= tf;
+												endcorner= i;
+												endefa= efa;
+												efa= em->faces.first;
+												tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+												i= -1;
+												break;
+											}
+											if(endtmpl == itmpl && jtmpl != connectedtoendtmpl) {
+												endtmpl= -1;
+												efa= endefa;
+												tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+												i= endcorner;
+												break;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			if(pass == 2 && (starttmpl == -1 || endtmpl == -1)) {
+				/* if endpoints aren't found */
+				pass=4;
+			}
+		}
+	}
+
 	uvedit_live_unwrap_update(sima, scene, obedit);
 	DAG_id_tag_update(obedit->data, 0);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -1074,6 +1202,9 @@ static int align_exec(bContext *C, wmOperator *op)
 static void UV_OT_align(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[] = {
+		{'s', "ALIGN_S", 0, "Straighten", "Align UVs along the line defined by the endpoints"},
+		{'t', "ALIGN_T", 0, "Straighten X", "Align UVs along the line defined by the endpoints along the X axis"},
+		{'u', "ALIGN_U", 0, "Straighten Y", "Align UVs along the line defined by the endpoints along the Y axis"},
 		{'a', "ALIGN_AUTO", 0, "Align Auto", "Automatically choose the axis on which there is most alignment already"},
 		{'x', "ALIGN_X", 0, "Align X", "Align UVs on X axis"},
 		{'y', "ALIGN_Y", 0, "Align Y", "Align UVs on Y axis"},

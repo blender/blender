@@ -851,7 +851,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 	/* verify we have valid data */
 	if(!RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
-		RNA_warning("uiTemplateModifier: expected modifier on object.\n");
+		RNA_warning("uiTemplateModifier: Expected modifier on object.\n");
 		return NULL;
 	}
 
@@ -859,7 +859,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	md= ptr->data;
 
 	if(!ob || !(GS(ob->id.name) == ID_OB)) {
-		RNA_warning("uiTemplateModifier: expected modifier on object.\n");
+		RNA_warning("uiTemplateModifier: Expected modifier on object.\n");
 		return NULL;
 	}
 	
@@ -976,9 +976,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	block= uiLayoutGetBlock(box);
 
 	/* Draw constraint header */
-	
-	/* rounded header */
-	// rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20; // UNUSED
 
 	/* open/close */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -1083,7 +1080,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 
 	/* verify we have valid data */
 	if(!RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
-		RNA_warning("uiTemplateConstraint: expected constraint on object.\n");
+		RNA_warning("uiTemplateConstraint: Expected constraint on object.\n");
 		return NULL;
 	}
 
@@ -1091,7 +1088,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 	con= ptr->data;
 
 	if(!ob || !(GS(ob->id.name) == ID_OB)) {
-		RNA_warning("uiTemplateConstraint: expected constraint on object.\n");
+		RNA_warning("uiTemplateConstraint: Expected constraint on object.\n");
 		return NULL;
 	}
 	
@@ -1137,7 +1134,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 	PointerRNA texture_ptr;
 
 	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
-		RNA_warning("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
+		RNA_warning("uiTemplatePreview: Expected ID of type material, texture, lamp or world.\n");
 		return;
 	}
 
@@ -2171,14 +2168,14 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 	if(prop) {
 		type= RNA_property_type(prop);
 		if(type != PROP_COLLECTION) {
-			RNA_warning("uiTemplateList: expected collection property.\n");
+			RNA_warning("uiTemplateList: Expected collection property.\n");
 			return;
 		}
 	}
 
 	activetype= RNA_property_type(activeprop);
 	if(activetype != PROP_INT) {
-		RNA_warning("uiTemplateList: expected integer property.\n");
+		RNA_warning("uiTemplateList: Expected integer property.\n");
 		return;
 	}
 
