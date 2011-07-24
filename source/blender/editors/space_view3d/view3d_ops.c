@@ -221,6 +221,17 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
 	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
 
+	/* 3D mouse align */
+	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_FRONT, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_RIGHT, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	kmi= WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_TOP, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+
 	WM_keymap_add_item(keymap, "VIEW3D_OT_localview", PADSLASHKEY, KM_PRESS, 0, 0);
 	
 	/* layers, shift + alt are properties set in invoke() */
