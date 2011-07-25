@@ -369,6 +369,11 @@ class VIEW3D_MT_ndof_settings(bpy.types.Menu):
             layout.prop(input_prefs, "ndof_show_guide")
 
             layout.separator()
+            layout.label(text="orbit options")
+            layout.prop(input_prefs, "ndof_orbit_invert_axes")
+
+            layout.separator()
+            layout.label(text="fly options")
             layout.prop(input_prefs, "ndof_fly_helicopter", icon='NDOF_FLY')
             layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
 
