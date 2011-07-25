@@ -1,9 +1,5 @@
 /*
- * blenlib/BLI_editVert.h    mar 2001 Nzc
- *
- * These callbacks are needed in the lib
- *
- * $Id$
+ * $Id: bpy_app_handlers.h 37799 2011-06-24 23:14:26Z gsrb3d $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -21,26 +17,19 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/BLI_callbacks.h
- *  \ingroup bli
+/** \file blender/python/intern/bpy_app_handlers.h
+ *  \ingroup pythonintern
  */
 
+#ifndef BPY_APP_HANDLERS_H
+#define BPY_APP_HANDLERS_H
 
-#ifndef BLI_CALLBACKS_H
-#define BLI_CALLBACKS_H
+PyObject *BPY_app_handlers_struct(void);
+void BPY_app_handlers_clear(void);
 
-// This is blenlib internal only
-void callLocalErrorCallBack(const char* msg);
-
-#endif
-
+#endif // BPY_APP_HANDLERS_H

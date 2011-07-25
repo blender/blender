@@ -2365,18 +2365,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
 				wmEvent *lastevent= win->queue.last;
-				
-#if defined(__APPLE__) && defined(GHOST_COCOA)
-				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
-				evt->x= cd->x;
-				evt->y= cd->y;
-#else
 				int cx, cy;
 				
 				GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
 				evt->x= cx;
 				evt->y= (win->sizey-1) - cy;
-#endif
 				
 				event.x= evt->x;
 				event.y= evt->y;
@@ -2423,21 +2416,17 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 					event.type= MOUSEPAN;
 					break;
 			}
-#if defined(__APPLE__) && defined(GHOST_COCOA)
-			//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
-			event.x= evt->x = pd->x;
-			event.y = evt->y = pd->y;
-#else
+
 			{
-			int cx, cy;
-			GHOST_ScreenToClient(win->ghostwin, pd->x, pd->y, &cx, &cy);
-			event.x= evt->x= cx;
-			event.y= evt->y= (win->sizey-1) - cy;
+				int cx, cy;
+				GHOST_ScreenToClient(win->ghostwin, pd->x, pd->y, &cx, &cy);
+				event.x= evt->x= cx;
+				event.y= evt->y= (win->sizey-1) - cy;
 			}
-#endif
+
 			// Use prevx/prevy so we can calculate the delta later
 			event.prevx= event.x - pd->deltaX;
-			event.prevy= event.y - pd->deltaY;
+			event.prevy= event.y - (-pd->deltaY);
 			
 			update_tablet_data(win, &event);
 			wm_event_add(win, &event);

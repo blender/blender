@@ -27,6 +27,7 @@ __all__ = (
     "ngon_tesselate",
 )
 
+
 def mesh_linked_faces(mesh):
     """
     Splits the mesh into connected faces, use this for seperating cubes from

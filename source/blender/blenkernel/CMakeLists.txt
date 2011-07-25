@@ -44,8 +44,6 @@ set(INC
 	../nodes
 	../editors/include
 	../render/extern/include
-	../../../intern/audaspace/intern
-	../../../intern/ffmpeg
 	../../../intern/bsp/extern ../blenfont
 	../../../intern/decimation/extern
 	../../../intern/elbeem/extern
@@ -240,6 +238,13 @@ set(SRC
 
 add_definitions(-DGLEW_STATIC)
 
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
+
 if(WITH_BULLET)
 	list(APPEND INC ../../../extern/bullet2/src)
 	add_definitions(-DUSE_BULLET)
@@ -281,6 +286,7 @@ if(WITH_CODEC_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
+	list(APPEND INC ../../../intern/ffmpeg)
 	list(APPEND INC_SYS ${FFMPEG_INCLUDE_DIRS})
 	add_definitions(-DWITH_FFMPEG)
 endif()

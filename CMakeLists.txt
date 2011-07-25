@@ -104,6 +104,9 @@ option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
 
+option(WITH_AUDASPACE    "Build with blenders audio library" ON)
+mark_as_advanced(WITH_AUDASPACE)
+
 option(WITH_HEADLESS      "Build without graphical support (renderfarm, server mode only)" OFF)
 mark_as_advanced(WITH_HEADLESS)
 
@@ -200,8 +203,8 @@ if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
 	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
 
-if(NOT WITH_SAMPLERATE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
-	message(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK require WITH_SAMPLERATE")
+if(NOT WITH_AUDASPACE AND (WITH_OPENAL OR WITH_SDL OR WITH_JACK))
+	message(FATAL_ERROR "WITH_OPENAL/WITH_SDL/WITH_JACK/WITH_CODEC_FFMPEG require WITH_AUDASPACE")
 endif()
 
 if(NOT WITH_IMAGE_OPENJPEG AND WITH_IMAGE_REDCODE)
@@ -793,7 +796,7 @@ elseif(WIN32)
 			set(PYTHON_VERSION 3.2)
 			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
 			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARIES python32mw)
+			set(PYTHON_LIBRARIES ${PYTHON}/lib/python32mw.lib)
 			set(PYTHON_LIBPATH ${PYTHON}/lib)
 		endif()
 

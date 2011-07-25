@@ -70,6 +70,7 @@ unsigned int rgb_to_cpack(float r, float g, float b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 
 float rgb_to_grayscale(float rgb[3]);
+unsigned char rgb_to_grayscale_byte(unsigned char rgb[3]);
 
 /***************** Profile Transformations ********************/
 

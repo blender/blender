@@ -171,6 +171,10 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
+if(WITH_AUDASPACE)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
+
 if(WITH_CODEC_QUICKTIME)
 	list(APPEND INC ../../quicktime)
 	add_definitions(-DWITH_QUICKTIME)

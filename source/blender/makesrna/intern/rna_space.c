@@ -700,7 +700,7 @@ static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *m
 	ConsoleLine *ci= (ConsoleLine*)ptr->data;
 
 	*min= 0;
-	*max= ci->len;
+	*max= ci->len; /* intentionally _not_ -1 */
 }
 
 /* Space Dopesheet */

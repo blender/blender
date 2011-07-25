@@ -490,3 +490,23 @@ float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc)
 		return fbuf;
 	}
 }
+
+
+/* no profile conversion */
+void IMB_color_to_bw(struct ImBuf *ibuf)
+{
+	float *rctf= ibuf->rect_float;
+	unsigned char *rct= (unsigned char *)ibuf->rect;
+	int i;
+	if(rctf) {
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf+=4) {
+			rctf[0]= rctf[1]= rctf[2]= rgb_to_grayscale(rctf);
+		}
+	}
+
+	if(rct) {
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
+			rct[0]= rct[1]= rct[2]= rgb_to_grayscale_byte(rct);
+		}
+	}
+}

@@ -1279,7 +1279,7 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 	ot->poll= ED_operator_file_active; /* <- important, handler is on window level */
 
 	/* props */
-	RNA_def_int(ot->srna, "increment", 1, 0, 100, "Increment", "", 0,100);
+	RNA_def_int(ot->srna, "increment", 1, -100, 100, "Increment", "", -100,100);
 }
 
 static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))

@@ -849,7 +849,7 @@ class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
 
 
 class USERPREF_MT_addons_dev_guides(bpy.types.Menu):
-    bl_label = "Develoment Guides"
+    bl_label = "Development Guides"
 
     # menu to open webpages with addons development guides
     def draw(self, context):
