@@ -3943,37 +3943,41 @@ void MESH_OT_spin(wmOperatorType *ot)
 
 }
 
-static int screw_mesh_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int screw_mesh_exec(bContext *C, wmOperator *op)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	EditVert *eve,*v1=0,*v2=0;
-	EditEdge *eed;
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMEdge *eed;
+	BMVert *eve, *v1, *v2;
+	BMIter iter, eiter;
 	float dvec[3], nor[3];
 	int steps, turns;
+	int valence;
+
 
 	turns= RNA_int_get(op->ptr, "turns");
 	steps= RNA_int_get(op->ptr, "steps");
 
-	/* clear flags */
-	for(eve= em->verts.first; eve; eve= eve->next)
-		eve->f1= 0;
 
-	/* edges set flags in verts */
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->v1->f & SELECT) {
-			if(eed->v2->f & SELECT) {
-				/* watch: f1 is a byte */
-				if(eed->v1->f1<2) eed->v1->f1++;
-				if(eed->v2->f1<2) eed->v2->f1++;
+	/* find two vertices with valence count==1, more or less is wrong */
+	v1 = NULL;
+	v2 = NULL;
+	for(eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+	    eve; eve = BMIter_Step(&iter)){
+
+		valence = 0;
+
+		for(eed = BMIter_New(&eiter, em->bm, BM_EDGES_OF_VERT, eve);
+		    eed; eed = BMIter_Step(&eiter)){
+
+			if(BM_TestHFlag(eed, BM_SELECT)){
+				valence++;
 			}
+
 		}
-	}
-	/* find two vertices with eve->f1==1, more or less is wrong */
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f1==1) {
-			if(v1==NULL) v1= eve;
+
+		if(valence == 1){
+			if(v1==NULL) v1 = eve;
 			else if(v2==NULL) v2= eve;
 			else {
 				v1= NULL;
@@ -3981,9 +3985,9 @@ static int screw_mesh_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 			}
 		}
 	}
+
 	if(v1==NULL || v2==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "You have to select a string of connected vertices too");
-		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -4004,29 +4008,26 @@ static int screw_mesh_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
-		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_FINISHED;
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
-		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
-#endif
-	return OPERATOR_CANCELLED;
+
+	return OPERATOR_FINISHED;
 }
 
 /* get center and axis, in global coords */
 static int screw_mesh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-#if 0
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 
 	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
 	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[1]);
-#endif
+
 	return screw_mesh_exec(C, op);
 }
 
