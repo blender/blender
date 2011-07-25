@@ -4131,7 +4131,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", type_items, 1, "Type", "Type of comparison to make");
 }
 
-static int select_loose_verts_exec(bContext *C, wmOperator *op)
+static int select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;

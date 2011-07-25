@@ -78,7 +78,7 @@ void paintface_flush_flags(Object *ob)
 	MPoly *mf_orig, *mp;
 	int *index = NULL;
 	int totface;
-	int i, j;
+	int i;
 	
 	if(me==NULL || dm==NULL)
 		return;

@@ -59,7 +59,6 @@
 #include "DNA_ipo_types.h" // XXX old animation system stuff... to be removed!
 #include "DNA_listBase.h"
 
-#include "BLI_edgehash.h"
 #include "BLI_rand.h"
 #include "BLI_jitter.h"
 #include "BLI_math.h"
@@ -70,6 +69,7 @@
 #include "BLI_threads.h"
 #include "BLI_storage.h" /* For _LARGEFILE64_SOURCE;  zlib needs this on some systems */
 #include "BLI_utildefines.h"
+#include "BLI_edgehash.h"
 
 #include "BKE_main.h"
 #include "BKE_animsys.h"
@@ -356,9 +356,9 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 			origindex= dm->getVertDataArray(dm, CD_ORIGINDEX);
 		}
 		else { /* FROM_FACE/FROM_VOLUME */
-			totdmelem= dm->getNumFaces(dm);
+			totdmelem= dm->getNumTessFaces(dm);
 			totelem= me->totface;
-			origindex= dm->getFaceDataArray(dm, CD_ORIGINDEX);
+			origindex= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		}
 	
 		nodedmelem= MEM_callocN(sizeof(LinkNode)*totdmelem, "psys node elems");
@@ -527,8 +527,8 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 		int a, a1, a2, a0mul, a1mul, a2mul, totface;
 		int amax= from==PART_FROM_FACE ? 3 : 1;
 
-		totface=dm->getNumFaces(dm);
-		mface_array= dm->getFaceDataArray(dm,CD_MFACE);
+		totface=dm->getNumTessFaces(dm);
+		mface=mface_array=dm->getTessFaceDataArray(dm,CD_MFACE);
 		
 		for(a=0; a<amax; a++){
 			if(a==0){ a0mul=res*res; a1mul=res; a2mul=1; }
@@ -787,7 +787,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 		MFace *mface;
 
 		pa->num = i = ctx->index[p];
-		mface = dm->getFaceData(dm,i,CD_MFACE);
+		mface = dm->getTessFaceData(dm,i,CD_MFACE);
 		
 		switch(distr){
 		case PART_DISTR_JIT:
@@ -817,7 +817,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 		if(from==PART_FROM_VOLUME){
 			MVert *mvert=dm->getVertDataArray(dm,CD_MVERT);
 
-			tot=dm->getNumFaces(dm);
+			tot=dm->getNumTessFaces(dm);
 
 			psys_interpolate_face(mvert,mface,0,0,pa->fuv,co1,nor,0,0,0,0);
 
@@ -829,7 +829,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			min_d=2.0;
 			intersect=0;
 
-			for(i=0,mface=dm->getFaceDataArray(dm,CD_MFACE); i<tot; i++,mface++){
+			for(i=0,mface=dm->getTessFaceDataArray(dm,CD_MFACE); i<tot; i++,mface++){
 				if(i==pa->num) continue;
 
 				v1=mvert[mface->v1].co;
@@ -877,7 +877,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 			return;
 		}
 
-		mf= dm->getFaceData(dm, ctx->index[p], CD_MFACE);
+		mf= dm->getTessFaceData(dm, ctx->index[p], CD_MFACE);
 
 		randu= rng_getFloat(thread->rng);
 		randv= rng_getFloat(thread->rng);
@@ -1044,7 +1044,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	if(totpart==0)
 		return 0;
 
-	if (!finaldm->deformedOnly && !finaldm->getFaceDataArray(finaldm, CD_ORIGINDEX)) {
+	if (!finaldm->deformedOnly && !finaldm->getTessFaceDataArray(finaldm, CD_ORIGINDEX)) {
 		printf("Can't create particles with the current modifier stack, disable destructive modifiers\n");
 // XXX		error("Can't paint with the current modifier stack, disable destructive modifiers");
 		return 0;
@@ -1121,7 +1121,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 	}
 
 	/* Get total number of emission elements and allocate needed arrays */
-	totelem = (from == PART_FROM_VERT) ? dm->getNumVerts(dm) : dm->getNumFaces(dm);
+	totelem = (from == PART_FROM_VERT) ? dm->getNumVerts(dm) : dm->getNumTessFaces(dm);
 
 	if(totelem == 0){
 		distribute_invalid(scene, psys, children ? PART_FROM_CHILD : 0);
@@ -1147,7 +1147,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		orcodata= dm->getVertDataArray(dm, CD_ORCO);
 
 		for(i=0; i<totelem; i++){
-			MFace *mf=dm->getFaceData(dm,i,CD_MFACE);
+			MFace *mf=dm->getTessFaceData(dm,i,CD_MFACE);
 
 			if(orcodata) {
 				VECCOPY(co1, orcodata[mf->v1]);
@@ -1205,7 +1205,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		}
 		else { /* PART_FROM_FACE / PART_FROM_VOLUME */
 			for(i=0;i<totelem; i++){
-				MFace *mf=dm->getFaceData(dm,i,CD_MFACE);
+				MFace *mf=dm->getTessFaceData(dm,i,CD_MFACE);
 				tweight = vweight[mf->v1] + vweight[mf->v2] + vweight[mf->v3];
 				
 				if(mf->v4) {
@@ -1280,7 +1280,7 @@ static int distribute_threads_init_data(ParticleThread *threads, Scene *scene, D
 		}
 		else {
 			if(dm->numFaceData)
-				COMPARE_ORIG_INDEX= dm->getFaceDataArray(dm, CD_ORIGINDEX);
+				COMPARE_ORIG_INDEX= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		}
 
 		if(COMPARE_ORIG_INDEX) {
@@ -3431,7 +3431,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	}
 
 	if(!dm) {
-		dm = psys->hair_in_dm = CDDM_new(totpoint, totedge, 0);
+		dm = psys->hair_in_dm = CDDM_new(totpoint, totedge, 0, 0, 0);
 		DM_add_vert_layer(dm, CD_MDEFORMVERT, CD_CALLOC, NULL);
 	}
 
