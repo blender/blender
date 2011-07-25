@@ -1019,6 +1019,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (has_rotation) {
 
+		const int invert = U.ndof_flag & NDOF_ORBIT_INVERT_AXES;
+
 		rv3d->view = RV3D_VIEW_USER;
 
 		if (U.flag & USER_TRACKBALL) {
@@ -1027,8 +1029,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			float view_inv[4], view_inv_conj[4];
 
 			ndof_to_quat(ndof, rot);
-			// scale by rot_sensitivity?
-			// mul_qt_fl(rot, rot_sensitivity);
+			// mul_qt_fl(rot, rot_sensitivity * (invert ? -1.f : 1.f));
+			// ^^ no apparent effect
 
 			invert_qt_qt(view_inv, rv3d->viewquat);
 			copy_qt_qt(view_inv_conj, view_inv);
@@ -1037,6 +1039,10 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			// transform rotation from view to world coordinates
 			mul_qt_qtqt(rot, view_inv, rot);
 			mul_qt_qtqt(rot, rot, view_inv_conj);
+
+			// if (invert)
+			//	invert_qt(rot);
+			// ^^ argh!! this does something crazy
 
 			// apply rotation
 			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
@@ -1053,12 +1059,16 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			/* Perform the up/down rotation */
 			angle = rot_sensitivity * dt * ndof->rx;
+			if (invert)
+				angle = -angle;
 			rot[0] = cos(angle);
 			mul_v3_v3fl(rot+1, xvec, sin(angle));
 			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
 
 			/* Perform the orbital rotation */
 			angle = rot_sensitivity * dt * ndof->ry;
+			if (invert)
+				angle = -angle;
 			rot[0] = cos(angle);
 			rot[1] = rot[2] = 0.0;
 			rot[3] = sin(angle);

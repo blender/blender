@@ -589,6 +589,17 @@ extern UserDef U; /* from blenkernel blender.c */
 #define NDOF_SHOULD_PAN     (1 << 3)
 #define NDOF_SHOULD_ZOOM    (1 << 4)
 #define NDOF_SHOULD_ROTATE  (1 << 5)
+/* orbit navigation modes
+   only two options, so it's sort of a hyrbrid bool/enum
+   if ((U.ndof_flag & NDOF_ORBIT_MODE) == NDOF_OM_OBJECT)... */
+/*
+#define NDOF_ORBIT_MODE     (1 << 6)
+#define NDOF_OM_TARGETCAMERA 0
+#define NDOF_OM_OBJECT      NDOF_ORBIT_MODE
+*/
+/* actually... users probably don't care about what the mode
+   is called, just that it feels right */
+#define NDOF_ORBIT_INVERT_AXES (1 << 6)
 
 
 #ifdef __cplusplus
