@@ -542,7 +542,7 @@ class MakeDupliFace(bpy.types.Operator):
             trans = matrix.to_translation()
             rot = matrix.to_3x3()  # also contains scale
 
-            return [(b * rot) + trans for b in base_tri]
+            return [(rot * b) + trans for b in base_tri]
         scene = bpy.context.scene
         linked = {}
         for obj in bpy.context.selected_objects:

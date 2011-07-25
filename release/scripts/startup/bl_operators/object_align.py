@@ -69,7 +69,7 @@ def GlobalBB_HQ(obj):
 
     verts = obj.data.vertices
 
-    val = verts[-1].co * matrix_world
+    val = matrix_world * verts[-1].co
 
     left, right, front, back, down, up = (val[0],
                                           val[0],
@@ -82,7 +82,7 @@ def GlobalBB_HQ(obj):
     # Test against all other verts
     for i in range (len(verts)-1):
 
-        vco = verts[i].co * matrix_world
+        vco = matrix_world * verts[i].co
 
         # X Range
         val = vco[0]
@@ -128,8 +128,8 @@ def align_objects(align_x,
     objs = []
 
     for obj in bpy.context.selected_objects:
-        matrix_world = obj.matrix_world
-        bb_world = [Vector(v[:]) * matrix_world for v in obj.bound_box]
+        matrix_world = obj.matrix_world.copy()
+        bb_world = [matrix_world * Vector(v[:]) for v in obj.bound_box]
         objs.append((obj, bb_world))
 
     if not objs:
@@ -198,7 +198,8 @@ def align_objects(align_x,
     # Main Loop
 
     for obj, bb_world in objs:
-        bb_world = [Vector(v[:]) * obj.matrix_world for v in obj.bound_box]
+        matrix_world = obj.matrix_world.copy()
+        bb_world = [matrix_world * Vector(v[:]) for v in obj.bound_box]
 
         if bb_quality:
             GBB = GlobalBB_HQ(obj)
