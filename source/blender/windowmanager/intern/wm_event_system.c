@@ -1815,7 +1815,10 @@ void wm_event_do_handlers(bContext *C)
 					/* for regions having custom cursors */
 					wm_paintcursor_test(C, event);
 				}
-				
+				else if (event->type==NDOF_MOTION) {
+					win->addmousemove = TRUE;
+				}
+
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
@@ -1879,7 +1882,10 @@ void wm_event_do_handlers(bContext *C)
 				if(doit && win->screen && win->screen->subwinactive != win->screen->mainwin) {
 					win->eventstate->prevx= event->x;
 					win->eventstate->prevy= event->y;
+					//printf("win->eventstate->prev = %d %d\n", event->x, event->y);
 				}
+				else
+					;//printf("not setting prev to %d %d\n", event->x, event->y);
 			}
 			
 			/* store last event for this window */
@@ -1922,6 +1928,7 @@ void wm_event_do_handlers(bContext *C)
 		/* only add mousemove when queue was read entirely */
 		if(win->addmousemove && win->eventstate) {
 			wmEvent tevent= *(win->eventstate);
+			//printf("adding MOUSEMOVE %d %d\n", tevent.x, tevent.y);
 			tevent.type= MOUSEMOVE;
 			tevent.prevx= tevent.x;
 			tevent.prevy= tevent.y;
@@ -2408,6 +2415,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
+
+				//printf("sending MOUSEMOVE %d %d\n", event.x, event.y);
 				
 				/* also add to other window if event is there, this makes overdraws disappear nicely */
 				/* it remaps mousecoord to other window in event */
@@ -2585,6 +2594,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.type = NDOF_MOTION;
 			attach_ndof_data(&event, customdata);
 			wm_event_add(win, &event);
+
+			//printf("sending NDOF_MOTION, prev = %d %d\n", event.x, event.y);
 
 			break;
 		}
