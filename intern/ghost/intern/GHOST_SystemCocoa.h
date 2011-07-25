@@ -119,14 +119,6 @@ public:
 		const GHOST_TEmbedderWindowID parentWindow = 0 
 	);
 	
-	virtual GHOST_TSuccess beginFullScreen(
-		const GHOST_DisplaySetting& setting, 
-		GHOST_IWindow** window,
-		const bool stereoVisual
-	);
-	
-	virtual GHOST_TSuccess endFullScreen( void );
-	
 	/***************************************************************************************
 	 ** Event management functionality
 	 ***************************************************************************************/
@@ -271,17 +263,6 @@ protected:
 	 * @return			Indication of success.
 	 */
 	GHOST_TSuccess setMouseCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y);
-
-	/**
-	 * Push cursor event, with coordinate conversion to follow GHOST convention.
-	 */
-	void pushEventCursor(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, GHOST_TInt32 x, GHOST_TInt32 y);
-
-	/**
-	 * Push trackpad event, with coordinate conversion to follow GHOST convention.
-	 */
-	void pushEventTrackpad(GHOST_TUns64 msec, GHOST_IWindow* window, GHOST_TTrackpadEventSubTypes subtype,
-		GHOST_TInt32 x, GHOST_TInt32 y, GHOST_TInt32 deltaX, GHOST_TInt32 deltaY);
 
 	/** Start time at initialization. */
 	GHOST_TUns64 m_start_time;

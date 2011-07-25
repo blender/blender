@@ -19,7 +19,9 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty
+from bpy.props import StringProperty, BoolProperty, IntProperty, \
+                      FloatProperty, EnumProperty
+
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
 
@@ -457,6 +459,66 @@ doc_id = StringProperty(name="Doc ID",
 doc_new = StringProperty(name="Edit Description",
         description="", maxlen=1024, default="")
 
+data_path_iter = StringProperty(
+        description="The data path relative to the context, must point to an iterable.")
+
+data_path_item = StringProperty(
+        description="The data path from each iterable to the value (int or float)")
+
+
+class WM_OT_context_collection_boolean_set(bpy.types.Operator):
+    '''Set boolean values for a collection of items'''
+    bl_idname = "wm.context_collection_boolean_set"
+    bl_label = "Context Collection Boolean Set"
+    bl_options = {'UNDO', 'REGISTER', 'INTERNAL'}
+
+    data_path_iter = data_path_iter
+    data_path_item = data_path_item
+
+    type = EnumProperty(items=(
+            ('TOGGLE', "Toggle", ""),
+            ('ENABLE', "Enable", ""),
+            ('DISABLE', "Disable", ""),
+            ),
+        name="Type")
+
+    def execute(self, context):
+        data_path_iter = self.data_path_iter
+        data_path_item = self.data_path_item
+
+        items = list(getattr(context, data_path_iter))
+        items_ok = []
+        is_set = False
+        for item in items:
+            try:
+                value_orig = eval("item." + data_path_item)
+            except:
+                continue
+
+            if value_orig == True:
+                is_set = True
+            elif value_orig == False:
+                pass
+            else:
+                self.report({'WARNING'}, "Non boolean value found: %s[ ].%s" %
+                            (data_path_iter, data_path_item))
+                return {'CANCELLED'}
+
+            items_ok.append(item)
+
+        if self.type == 'ENABLE':
+            is_set = True
+        elif self.type == 'DISABLE':
+            is_set = False
+        else:
+            is_set = not is_set
+
+        exec_str = "item.%s = %s" % (data_path_item, is_set)
+        for item in items_ok:
+            exec(exec_str)
+
+        return {'FINISHED'}
+
 
 class WM_OT_context_modal_mouse(bpy.types.Operator):
     '''Adjust arbitrary values with mouse input'''
@@ -464,8 +526,9 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
     bl_label = "Context Modal Mouse"
     bl_options = {'GRAB_POINTER', 'BLOCKING', 'INTERNAL'}
 
-    data_path_iter = StringProperty(description="The data path relative to the context, must point to an iterable.")
-    data_path_item = StringProperty(description="The data path from each iterable to the value (int or float)")
+    data_path_iter = data_path_iter
+    data_path_item = data_path_item
+
     input_scale = FloatProperty(default=0.01, description="Scale the mouse movement by this value before applying the delta")
     invert = BoolProperty(default=False, description="Invert the mouse input")
     initial_x = IntProperty(options={'HIDDEN'})

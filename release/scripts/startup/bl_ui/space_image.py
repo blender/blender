@@ -616,10 +616,9 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
 
             split = layout.split()
             col = split.column()
+            col.prop(uvedit, "show_faces")
             col.prop(uvedit, "show_smooth_edges", text="Smooth")
             col.prop(uvedit, "show_modified_edges", text="Modified")
-            #col.prop(uvedit, "show_edges")
-            #col.prop(uvedit, "show_faces")
 
             col = split.column()
             col.prop(uvedit, "show_stretch", text="Stretch")

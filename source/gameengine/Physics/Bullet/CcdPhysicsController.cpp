@@ -2142,6 +2142,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 			}
 			collisionShape = compoundShape;
 		}
+		break;
 	}
 	return collisionShape;
 }

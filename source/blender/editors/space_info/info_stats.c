@@ -348,13 +348,14 @@ static void stats_update(Scene *scene)
 	}
 
 	if(!scene->stats)
-		scene->stats= MEM_mallocN(sizeof(SceneStats), "SceneStats");
+		scene->stats= MEM_callocN(sizeof(SceneStats), "SceneStats");
 
 	*(scene->stats)= stats;
 }
 
 static void stats_string(Scene *scene)
 {
+	extern char versionstr[]; /* from blender.c */
 	SceneStats *stats= scene->stats;
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
 	uintptr_t mem_in_use, mmap_in_use;
@@ -370,6 +371,8 @@ static void stats_string(Scene *scene)
 		sprintf(s, " (%.2fM)", (double)((mmap_in_use)>>10)/1024.0);
 
 	s= stats->infostr;
+	
+	s+= sprintf(s, "%s | ", versionstr);
 
 	if(scene->obedit) {
 		if(ob_get_keyblock(scene->obedit))

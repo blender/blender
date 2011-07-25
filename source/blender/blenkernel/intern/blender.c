@@ -97,7 +97,7 @@ UserDef U;
 /* ListBase = {NULL, NULL}; */
 short ENDIAN_ORDER;
 
-static char versionstr[48]= "";
+char versionstr[48]= "";
 
 /* ********** free ********** */
 
@@ -133,9 +133,9 @@ void initglobals(void)
 	ENDIAN_ORDER= (((char*)&ENDIAN_ORDER)[0])? L_ENDIAN: B_ENDIAN;
 
 	if(BLENDER_SUBVERSION)
-		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
 	else
-		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d", BLENDER_VERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "blender.org %d", BLENDER_VERSION);
 
 #ifdef _WIN32	// FULLSCREEN
 	G.windowstate = G_WINDOWSTATE_USERDEF;

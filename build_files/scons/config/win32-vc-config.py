@@ -170,7 +170,7 @@ BGE_CXXFLAGS = ['/O2', '/EHsc', '/GR', '/fp:fast', '/arch:SSE']
 
 BF_DEBUG_CCFLAGS = ['/Zi', '/FR${TARGET}.sbr']
 
-CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
+CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-D_CRT_SECURE_NO_DEPRECATE']
 REL_CFLAGS = ['-O2', '-DNDEBUG']
 REL_CCFLAGS = ['-O2', '-DNDEBUG']
 REL_CXXFLAGS = ['-O2', '-DNDEBUG']
@@ -181,7 +181,7 @@ CXX_WARN = []
 
 LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
 
-PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/STACK:2097152','/INCREMENTAL:NO', '/LARGEADDRESSAWARE', '/NODEFAULTLIB:"msvcrt.lib"', '/NODEFAULTLIB:"msvcmrt.lib"', '/NODEFAULTLIB:"msvcurt.lib"', '/NODEFAULTLIB:"msvcrtd.lib"']
+PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/STACK:2097152','/INCREMENTAL:NO', '/LARGEADDRESSAWARE', '/NODEFAULTLIB:msvcrt.lib;msvcmrt.lib;msvcurt.lib;msvcrtd.lib']
 
 # # Todo
 # BF_PROFILE_CCFLAGS = ['-pg', '-g ']

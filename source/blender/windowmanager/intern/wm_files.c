@@ -722,6 +722,10 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 		}
 	}
 
+	/* blend file thumbnail */
+	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
+	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
+	
 	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
 
 	/* operator now handles overwrite checks */
@@ -736,9 +740,6 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	/* don't forget not to return without! */
 	WM_cursor_wait(1);
 	
-	/* blend file thumbnail */
-	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
-
 	fileflags |= G_FILE_HISTORY; /* write file history */
 
 	if (BLO_write_file(CTX_data_main(C), filepath, fileflags, reports, thumb)) {

@@ -76,7 +76,7 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float maxy, TexResult *texres, int imaprepeat, int imapextend);
+static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float maxy, TexResult *texres, const short imaprepeat, const short imapextend);
 
 /* *********** IMAGEWRAPPING ****************** */
 
@@ -115,6 +115,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 {
 	float fx, fy, val1, val2, val3;
 	int x, y, retval;
+	int xi, yi; /* original values */
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
 	
@@ -166,8 +167,8 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 		}
 	}
 
-	x = (int)floorf(fx*ibuf->x);
-	y = (int)floorf(fy*ibuf->y);
+	x= xi= (int)floorf(fx*ibuf->x);
+	y= yi= (int)floorf(fy*ibuf->y);
 
 	if(tex->extend == TEX_CLIPCUBE) {
 		if(x<0 || y<0 || x>=ibuf->x || y>=ibuf->y || texvec[2]<-1.0f || texvec[2]>1.0f) {
@@ -209,10 +210,17 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 		filterx = (0.5f * tex->filtersize) / ibuf->x;
 		filtery = (0.5f * tex->filtersize) / ibuf->y;
 
+		/* important that this value is wrapped [#27782]
+		 * this applies the modifications made by the checks above,
+		 * back to the floating point values */
+		fx -= (float)(xi - x) / (float)ibuf->x;
+		fy -= (float)(yi - y) / (float)ibuf->y;
+
 		boxsample(ibuf, fx-filterx, fy-filtery, fx+filterx, fy+filtery, texres, (tex->extend==TEX_REPEAT), (tex->extend==TEX_EXTEND));
 	}
-	else /* no filtering */
+	else { /* no filtering */
 		ibuf_get_color(&texres->tr, ibuf, x, y);
+	}
 	
 	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) ) {
 		ibuf->rect-= (ibuf->x*ibuf->y);
@@ -524,15 +532,17 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 	}
 }
 
-static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float maxy, TexResult *texres, int imaprepeat, int imapextend)
+static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float maxy, TexResult *texres, const short imaprepeat, const short imapextend)
 {
 	/* Sample box, performs clip. minx etc are in range 0.0 - 1.0 .
-   * Enlarge with antialiased edges of pixels.
-   * If variable 'imaprepeat' has been set, the
-   * clipped-away parts are sampled as well.
-   */
+	 * Enlarge with antialiased edges of pixels.
+	 * If variable 'imaprepeat' has been set, the
+	 * clipped-away parts are sampled as well.
+	 */
 	/* note: actually minx etc isnt in the proper range... this due to filter size and offset vectors for bump */
 	/* note: talpha must be initialized */
+	/* note: even when 'imaprepeat' is set, this can only repeate once in any direction.
+	 * the point which min/max is derived from is assumed to be wrapped */
 	TexResult texr;
 	rctf *rf, stack[8];
 	float opp, tot, alphaclip= 1.0;
