@@ -28,9 +28,22 @@ class SelectPattern(bpy.types.Operator):
     bl_label = "Select Pattern"
     bl_options = {'REGISTER', 'UNDO'}
 
-    pattern = StringProperty(name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen=32, default="*")
-    case_sensitive = BoolProperty(name="Case Sensitive", description="Do a case sensitive compare", default=False)
-    extend = BoolProperty(name="Extend", description="Extend the existing selection", default=True)
+    pattern = StringProperty(
+            name="Pattern",
+            description="Name filter using '*' and '?' wildcard chars",
+            maxlen=32,
+            default="*",
+            )
+    case_sensitive = BoolProperty(
+            name="Case Sensitive",
+            description="Do a case sensitive compare",
+            default=False,
+            )
+    extend = BoolProperty(
+            name="Extend",
+            description="Extend the existing selection",
+            default=True,
+            )
 
     def execute(self, context):
 
@@ -39,7 +52,8 @@ class SelectPattern(bpy.types.Operator):
         if self.case_sensitive:
             pattern_match = fnmatch.fnmatchcase
         else:
-            pattern_match = lambda a, b: fnmatch.fnmatchcase(a.upper(), b.upper())
+            pattern_match = (lambda a, b:
+                                 fnmatch.fnmatchcase(a.upper(), b.upper()))
 
         obj = context.object
         if obj and obj.mode == 'POSE':
@@ -98,14 +112,19 @@ class SelectHierarchy(bpy.types.Operator):
     bl_label = "Select Hierarchy"
     bl_options = {'REGISTER', 'UNDO'}
 
-    direction = EnumProperty(items=(
-                        ('PARENT', "Parent", ""),
-                        ('CHILD', "Child", "")),
-                name="Direction",
-                description="Direction to select in the hierarchy",
-                default='PARENT')
+    direction = EnumProperty(
+            items=(('PARENT', "Parent", ""),
+                   ('CHILD', "Child", ""),
+                   ),
+            name="Direction",
+            description="Direction to select in the hierarchy",
+            default='PARENT')
 
-    extend = BoolProperty(name="Extend", description="Extend the existing selection", default=False)
+    extend = BoolProperty(
+            name="Extend",
+            description="Extend the existing selection",
+            default=False,
+            )
 
     @classmethod
     def poll(cls, context):
@@ -163,7 +182,12 @@ class SubdivisionSet(bpy.types.Operator):
     level = IntProperty(name="Level",
             default=1, min=-100, max=100, soft_min=-6, soft_max=6)
 
-    relative = BoolProperty(name="Relative", description="Apply the subsurf level as an offset relative to the current level", default=False)
+    relative = BoolProperty(
+            name="Relative",
+            description=("Apply the subsurf level as an offset "
+                         "relative to the current level"),
+            default=False,
+            )
 
     @classmethod
     def poll(cls, context):
@@ -215,7 +239,8 @@ class SubdivisionSet(bpy.types.Operator):
                 mod = obj.modifiers.new("Subsurf", 'SUBSURF')
                 mod.levels = level
             except:
-                self.report({'WARNING'}, "Modifiers cannot be added to object: " + obj.name)
+                self.report({'WARNING'},
+                            "Modifiers cannot be added to object: " + obj.name)
 
         for obj in context.selected_editable_objects:
             set_object_subd(obj)
@@ -224,23 +249,37 @@ class SubdivisionSet(bpy.types.Operator):
 
 
 class ShapeTransfer(bpy.types.Operator):
-    '''Copy another selected objects active shape to this one by applying the relative offsets'''
+    '''Copy another selected objects active shape to this one by ''' \
+    '''applying the relative offsets'''
 
     bl_idname = "object.shape_key_transfer"
     bl_label = "Transfer Shape Key"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = EnumProperty(items=(
-                        ('OFFSET', "Offset", "Apply the relative positional offset"),
-                        ('RELATIVE_FACE', "Relative Face", "Calculate the geometricly relative position (using faces)."),
-                        ('RELATIVE_EDGE', "Relative Edge", "Calculate the geometricly relative position (using edges).")),
-                name="Transformation Mode",
-                description="Method to apply relative shape positions to the new shape",
-                default='OFFSET')
-
-    use_clamp = BoolProperty(name="Clamp Offset",
-                description="Clamp the transformation to the distance each vertex moves in the original shape.",
-                default=False)
+    mode = EnumProperty(
+            items=(('OFFSET',
+                    "Offset",
+                    "Apply the relative positional offset",
+                    ),
+                   ('RELATIVE_FACE',
+                    "Relative Face",
+                    "Calculate relative position (using faces).",
+                    ),
+                   ('RELATIVE_EDGE',
+                   "Relative Edge",
+                   "Calculate relative position (using edges).",
+                   ),
+                   ),
+            name="Transformation Mode",
+            description="Relative shape positions to the new shape method",
+            default='OFFSET',
+            )
+    use_clamp = BoolProperty(
+            name="Clamp Offset",
+            description=("Clamp the transformation to the distance each "
+                         "vertex moves in the original shape."),
+            default=False,
+            )
 
     def _main(self, ob_act, objects, mode='OFFSET', use_clamp=False):
 
@@ -272,13 +311,16 @@ class ShapeTransfer(bpy.types.Operator):
         orig_shape_coords = me_cos(ob_act.active_shape_key.data)
 
         orig_normals = me_nos(me.vertices)
-        # orig_coords = me_cos(me.vertices) # the actual mverts location isnt as relyable as the base shape :S
+        # the actual mverts location isnt as relyable as the base shape :S
+        # orig_coords = me_cos(me.vertices)
         orig_coords = me_cos(me.shape_keys.key_blocks[0].data)
 
         for ob_other in objects:
             me_other = ob_other.data
             if len(me_other.vertices) != len(me.vertices):
-                self.report({'WARNING'}, "Skipping '%s', vertex count differs" % ob_other.name)
+                self.report({'WARNING'},
+                            ("Skipping '%s', "
+                             "vertex count differs") % ob_other.name)
                 continue
 
             target_normals = me_nos(me_other.vertices)
@@ -395,7 +437,10 @@ class ShapeTransfer(bpy.types.Operator):
 
         if 1:  # swap from/to, means we cant copy to many at once.
             if len(objects) != 1:
-                self.report({'ERROR'}, "Expected one other selected mesh object to copy from")
+                self.report({'ERROR'},
+                            ("Expected one other selected "
+                             "mesh object to copy from"))
+
                 return {'CANCELLED'}
             ob_act, objects = objects[0], [ob_act]
 
@@ -429,11 +474,14 @@ class JoinUVs(bpy.types.Operator):
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         if not mesh.uv_textures:
-            self.report({'WARNING'}, "Object: %s, Mesh: '%s' has no UVs\n" % (obj.name, mesh.name))
+            self.report({'WARNING'},
+                        "Object: %s, Mesh: '%s' has no UVs"
+                        % (obj.name, mesh.name))
         else:
             len_faces = len(mesh.faces)
 
-            uv_array = array.array('f', [0.0] * 8) * len_faces  # seems to be the fastest way to create an array
+            # seems to be the fastest way to create an array
+            uv_array = array.array('f', [0.0] * 8) * len_faces
             mesh.uv_textures.active.data.foreach_get("uv_raw", uv_array)
 
             objects = context.selected_editable_objects[:]
@@ -454,7 +502,8 @@ class JoinUVs(bpy.types.Operator):
                             else:
                                 uv_other = mesh_other.uv_textures.active
                                 if not uv_other:
-                                    uv_other = mesh_other.uv_textures.new()  # should return the texture it adds
+                                    # should return the texture it adds
+                                    uv_other = mesh_other.uv_textures.new()
 
                                 # finally do the copy
                                 uv_other.data.foreach_set("uv_raw", uv_array)
@@ -482,7 +531,11 @@ class MakeDupliFace(bpy.types.Operator):
 
         SCALE_FAC = 0.01
         offset = 0.5 * SCALE_FAC
-        base_tri = Vector((-offset, -offset, 0.0)), Vector((offset, -offset, 0.0)), Vector((offset, offset, 0.0)), Vector((-offset, offset, 0.0))
+        base_tri = (Vector((-offset, -offset, 0.0)),
+                    Vector((+offset, -offset, 0.0)),
+                    Vector((+offset, +offset, 0.0)),
+                    Vector((-offset, +offset, 0.0)),
+                    )
 
         def matrix_to_quat(matrix):
             # scale = matrix.median_scale
@@ -498,7 +551,10 @@ class MakeDupliFace(bpy.types.Operator):
                 linked.setdefault(data, []).append(obj)
 
         for data, objects in linked.items():
-            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix_world) for axis in v]
+            face_verts = [axis for obj in objects
+                          for v in matrix_to_quat(obj.matrix_world)
+                          for axis in v]
+
             faces = list(range(len(face_verts) // 3))
 
             mesh = bpy.data.meshes.new(data.name + "_dupli")
@@ -535,7 +591,8 @@ class MakeDupliFace(bpy.types.Operator):
 
 
 class IsolateTypeRender(bpy.types.Operator):
-    '''Hide unselected render objects of same type as active by setting the hide render flag'''
+    '''Hide unselected render objects of same type as active ''' \
+    '''by setting the hide render flag'''
     bl_idname = "object.isolate_type_render"
     bl_label = "Restrict Render Unselected"
     bl_options = {'REGISTER', 'UNDO'}
