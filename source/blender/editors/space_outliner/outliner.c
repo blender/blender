@@ -4424,6 +4424,10 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_SOLIDIFY); break;
 					case eModifierType_Screw:
 						UI_icon_draw(x, y, ICON_MOD_SCREW); break;
+					case eModifierType_WeightVGEdit:
+					case eModifierType_WeightVGMix:
+					case eModifierType_WeightVGProximity:
+						UI_icon_draw(x, y, ICON_MOD_WEIGHTVG); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}

@@ -4154,6 +4154,13 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if(tmd->curfalloff)
 				direct_link_curvemapping(fd, tmd->curfalloff);
 		}
+		else if (md->type==eModifierType_WeightVGEdit) {
+			WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
+
+			wmd->cmap_curve = newdataadr(fd, wmd->cmap_curve);
+			if(wmd->cmap_curve)
+				direct_link_curvemapping(fd, wmd->cmap_curve);
+		}
 	}
 }
 
@@ -11707,7 +11714,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 
 	{
-	
+		Object *ob;
+		ModifierData *md;
+
+		/* WeightVGEdit modifier: CurveMapping pointer… */
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			for(md = ob->modifiers.first; md; md = md->next) {
+				if(md->type == eModifierType_WeightVGEdit) {
+					WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
+					if (wmd->cmap_curve == NULL) {
+						wmd->cmap_curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+						curvemapping_initialize(wmd->cmap_curve);
+					}
+				}
+			}
+		}
+
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -735,5 +735,134 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "width", slider=True)
         col.prop(md, "narrowness", slider=True)
 
+    @staticmethod
+    def weight_vg_mask(layout, ob, md):
+        layout.label(text="Influence/Mask Options:")
+        split = layout.split()
+        col1 = split.column()
+        col2 = split.column()
+
+        col1.label(text="Global Influence:")
+        col2.prop(md, "mask_constant", text="")
+
+        if not md.mask_texture:
+            col1.label(text="Vertex Group Mask:")
+            col2.prop_search(md, "mask_vertex_group", ob, "vertex_groups", text="")
+
+        if not md.mask_vertex_group:
+            col1.label(text="Texture Mask:")
+            col2.template_ID(md, "mask_texture", new="texture.new")
+            if md.mask_texture:
+                split = layout.split()
+                col = split.column()
+                col.label(text="Texture Coordinates:")
+                col.prop(md, "mask_tex_mapping", text="")
+                col = split.column()
+                col.label(text="Use Channel:")
+                col.prop(md, "mask_tex_use_channel", text="")
+
+                if md.mask_tex_mapping == 'OBJECT':
+                    layout.prop(md, "mask_tex_map_obj", text="Object")
+                elif md.mask_tex_mapping == 'UV' and ob.type == 'MESH':
+                    layout.prop_search(md, "mask_tex_uv_layer", ob.data, "uv_textures")
+
+    def WEIGHT_VGEDIT(self, layout, ob, md):
+        if ob.type == 'MESH':
+            split = layout.split()
+            col = split.column()
+            col.label(text="Vertex Group:")
+            col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+
+            col = split.column()
+            col.label(text="Default Weight:")
+            col.prop(md, "default_weight", text="")
+
+            layout.prop(md, "flag_map")
+            if md.flag_map:
+                split = layout.split()
+                col = split.column()
+                col.label("Input:")
+                col.label("Output:")
+                col = split.column()
+                col.prop(md, "map_input_low", text="Min")
+                col.prop(md, "map_output_low", text="Min")
+                col = split.column()
+                col.prop(md, "map_input_high", text="Max")
+                col.prop(md, "map_output_high", text="Max")
+
+            layout.prop(md, "flag_curve_map")
+            if md.flag_curve_map:
+                row = layout.row()
+                row.template_curve_mapping(md, "cmap_curve")
+
+            layout.prop(md, "flag_reverse")
+
+            layout.prop(md, "flag_clamp")
+            if md.flag_clamp:
+                row = layout.row()
+                row.prop(md, "clamp_min_weight")
+                row.prop(md, "clamp_max_weight")
+
+            row = layout.row()
+            row.prop(md, "flag_add2vg")
+            row.prop(md, "flag_remfvg")
+            row = layout.row()
+            if md.flag_add2vg:
+                row.prop(md, "add_threshold")
+            if md.flag_remfvg:
+                row.prop(md, "rem_threshold")
+
+            # Common mask options…
+            layout.separator()
+            self.weight_vg_mask(layout, ob, md)
+
+    def WEIGHT_VGMIX(self, layout, ob, md):
+        if ob.type == 'MESH':
+            split = layout.split()
+            col = split.column()
+            col.label(text="Vertex Group 1:")
+            col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+            col.label(text="Default Weight 1:")
+            col.prop(md, "default_weight", text="")
+
+            col.label(text="Mix Mode:")
+            col.prop(md, "mix_mode", text="")
+
+            col = split.column()
+            col.label(text="Vertex Group 2:")
+            col.prop_search(md, "vertex_group2", ob, "vertex_groups", text="")
+            col.label(text="Default Weight 2:")
+            col.prop(md, "default_weight2", text="")
+
+            col.label(text="Mix Set:")
+            col.prop(md, "mix_set", text="")
+
+            # Common mask options…
+            layout.separator()
+            self.weight_vg_mask(layout, ob, md)
+
+    def WEIGHT_VGPROXIMITY(self, layout, ob, md):
+        if ob.type == 'MESH':
+            split = layout.split()
+            col = split.column()
+            col.label(text="Vertex Group:")
+            col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+
+            col = split.column()
+            col.label(text="Target Object:")
+            col.prop(md, "ob_target", text="")
+
+            row = layout.row()
+            row.prop(md, "proximity_mode", expand=True)
+            if md.proximity_mode == 'OBJ2VERTDIST':
+                row = layout.row()
+                row.prop(md, "obj2vert_verts")
+                row.prop(md, "obj2vert_edges")
+                row.prop(md, "obj2vert_faces")
+
+            # Common mask options…
+            layout.separator()
+            self.weight_vg_mask(layout, ob, md)
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
