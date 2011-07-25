@@ -67,6 +67,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_softbody.h"
+#include "BKE_tessmesh.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -216,15 +217,15 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 			}
 
 		if(ok) {
-			if(me->edit_mesh) {
-				EditMesh *em= me->edit_mesh;
+			if(me->edit_btmesh) {
+				BMEditMesh *em= me->edit_btmesh;
 				/* CustomData_external_remove is used here only to mark layer as non-external
 				   for further free-ing, so zero element count looks safer than em->totface */
-				CustomData_external_remove(&em->fdata, &me->id, CD_MDISPS, 0);
-				EM_free_data_layer(em, &em->fdata, CD_MDISPS);
+				CustomData_external_remove(&em->bm->ldata, &me->id, CD_MDISPS, 0);
+				BM_free_data_layer(em->bm, &em->bm->ldata, CD_MDISPS);
 			} else {
-				CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
-				CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+				CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
+				CustomData_free_layer_active(&me->ldata, CD_MDISPS, me->totloop);
 			}
 		}
 	}
@@ -406,6 +407,17 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		return 0;
 	}
 
+	/*
+	  It should be ridiculously easy to extract the original verts that we want
+	  and form the shape data.  We can probably use the CD KEYINDEX layer (or
+	  whatever I ended up calling it, too tired to check now), though this would
+	  by necassity have to make some potentially ugly assumptions about the order
+	  of the mesh data :-/  you can probably assume in 99% of cases that the first
+	  element of a given index is the original, and any subsequent duplicates are
+	  copies/interpolates, but that's an assumption that would need to be tested
+	  and then predominantly stated in comments in a half dozen headers.
+	*/
+
 	if (ob->type==OB_MESH) {
 		DerivedMesh *dm;
 		Mesh *me= ob->data;
@@ -418,7 +430,7 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 		}
 		mesh_pmv_off(me);
 		
-		dm = mesh_create_derived_for_modifier(scene, ob, md);
+		dm = mesh_create_derived_for_modifier(scene, ob, md, 0);
 		if (!dm) {
 			BKE_report(reports, RPT_ERROR, "Modifier is disabled or returned error, skipping apply");
 			return 0;
@@ -458,12 +470,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		DerivedMesh *dm;
 		Mesh *me = ob->data;
 		MultiresModifierData *mmd= find_multires_modifier_before(scene, md);
-
-		if( me->key) {
-			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
-			return 0;
-		}
-
+		
 		mesh_pmv_off(me);
 
 		/* Multires: ensure that recent sculpting is applied */
@@ -476,22 +483,22 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 				return 0;
 			}
 		} else {
-			dm = mesh_create_derived_for_modifier(scene, ob, md);
+			dm = mesh_create_derived_for_modifier(scene, ob, md, 1);
 			if (!dm) {
 				BKE_report(reports, RPT_ERROR, "Modifier returned error, skipping apply");
 				return 0;
 			}
 
-			DM_to_mesh(dm, me);
+			DM_to_mesh(dm, me, ob);
 
 			dm->release(dm);
 
 			if(md->type == eModifierType_Multires) {
-				CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
-				CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
+				CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
+				CustomData_free_layer_active(&me->ldata, CD_MDISPS, me->totloop);
 			}
 		}
-	}
+	} 
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu;
 		int numVerts;
@@ -1110,6 +1117,66 @@ void OBJECT_OT_multires_reshape(wmOperatorType *ot)
 	edit_modifier_properties(ot);
 }
 
+static int multires_test_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= ED_object_active_context(C);
+	Mesh *me = ob->data;
+	MPoly *mp;
+	MDisps *mdisps;
+	int i, x = RNA_int_get(op->ptr, "x"), y = RNA_int_get(op->ptr, "y");
+	
+	if (ob->type != OB_MESH || !me)
+		return OPERATOR_CANCELLED;
+	
+	mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
+	if (!mdisps)
+		return OPERATOR_CANCELLED;
+	
+	mp = me->mpoly;
+	for (i=0; i<me->totpoly; i++, mp++) {
+		MLoop *ml;
+		int j;
+		
+		ml = me->mloop + mp->loopstart;
+		for (j=0; j<mp->totloop; j++, ml++) {
+			MLoop *ml2 = me->mloop + mp->loopstart + (j+mp->totloop-1)%mp->totloop;
+			MLoop *ml3 = me->mloop + mp->loopstart + (j+1)%mp->totloop;
+			
+			if ((me->mvert[ml->v].flag&SELECT) && (me->mvert[ml2->v].flag&SELECT) && (me->mvert[ml3->v].flag&SELECT)) {
+				MDisps *md = mdisps + mp->loopstart + j;
+				int res = sqrt(md->totdisp);
+				
+				if (x >= res) x = res-1;
+				if (y >= res) y = res-1;
+				
+				md->disps[y*res + x][2] += 1.0;
+			}
+		}
+	}
+		
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_test_multires(wmOperatorType *ot)
+{
+	ot->name= "Multires Object Mode Test";
+	ot->description= "";
+	ot->idname= "OBJECT_OT_test_multires";
+
+	ot->poll= multires_poll;
+	ot->exec= multires_test_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	RNA_def_int(ot->srna, "x", 0, 0, 100, "x", "x", 0, 100);
+	RNA_def_int(ot->srna, "y", 0, 0, 100, "y", "y", 0, 100);
+}
+
+
+		
 /****************** multires save external operator *********************/
 
 static int multires_external_save_exec(bContext *C, wmOperator *op)
@@ -1122,7 +1189,7 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
 	if(!me)
 		return OPERATOR_CANCELLED;
 
-	if(CustomData_external_test(&me->fdata, CD_MDISPS))
+	if(CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "filepath", path);
@@ -1130,8 +1197,8 @@ static int multires_external_save_exec(bContext *C, wmOperator *op)
 	if(relative)
 		BLI_path_rel(path, G.main->name);
 
-	CustomData_external_add(&me->fdata, &me->id, CD_MDISPS, me->totface, path);
-	CustomData_external_write(&me->fdata, &me->id, CD_MASK_MESH, me->totface, 0);
+	CustomData_external_add(&me->ldata, &me->id, CD_MDISPS, me->totloop, path);
+	CustomData_external_write(&me->ldata, &me->id, CD_MASK_MESH, me->totloop, 0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1151,7 +1218,7 @@ static int multires_external_save_invoke(bContext *C, wmOperator *op, wmEvent *U
 	if (!mmd)
 		return OPERATOR_CANCELLED;
 	
-	if(CustomData_external_test(&me->fdata, CD_MDISPS))
+	if(CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
 	if(!RNA_property_is_set(op->ptr, "relative_path"))
@@ -1195,11 +1262,11 @@ static int multires_external_pack_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *ob = ED_object_active_context(C);
 	Mesh *me= ob->data;
 
-	if(!CustomData_external_test(&me->fdata, CD_MDISPS))
+	if(!CustomData_external_test(&me->ldata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 
 	// XXX don't remove..
-	CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
+	CustomData_external_remove(&me->ldata, &me->id, CD_MDISPS, me->totloop);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1399,4 +1466,3 @@ void OBJECT_OT_explode_refresh(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
-
