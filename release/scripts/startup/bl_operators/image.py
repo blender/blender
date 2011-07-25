@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import bpy
 from bpy.props import StringProperty
@@ -28,7 +28,11 @@ class EditExternally(bpy.types.Operator):
     bl_label = "Image Edit Externally"
     bl_options = {'REGISTER'}
 
-    filepath = StringProperty(name="File Path", description="Path to an image file", maxlen=1024, default="")
+    filepath = StringProperty(
+            name="File Path",
+            description="Path to an image file",
+            maxlen=1024,
+            )
 
     def _editor_guess(self, context):
         import sys
@@ -57,10 +61,13 @@ class EditExternally(bpy.types.Operator):
     def execute(self, context):
         import os
         import subprocess
-        filepath = bpy.path.abspath(self.filepath)
+        filepath = os.path.normpath(bpy.path.abspath(self.filepath))
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, "Image path %r not found, image may be packed or unsaved." % filepath)
+            self.report({'ERROR'},
+                        "Image path %r not found, image may be packed or "
+                        "unsaved." % filepath)
+
             return {'CANCELLED'}
 
         cmd = self._editor_guess(context) + [filepath]
@@ -70,7 +77,10 @@ class EditExternally(bpy.types.Operator):
         except:
             import traceback
             traceback.print_exc()
-            self.report({'ERROR'}, "Image editor not found, please specify in User Preferences > File")
+            self.report({'ERROR'},
+                        "Image editor not found, "
+                        "please specify in User Preferences > File")
+
             return {'CANCELLED'}
 
         return {'FINISHED'}
@@ -104,7 +114,9 @@ class SaveDirty(bpy.types.Operator):
                 if "\\" not in filepath and "/" not in filepath:
                     self.report({'WARNING'}, "Invalid path: " + filepath)
                 elif filepath in unique_paths:
-                    self.report({'WARNING'}, "Path used by more then one image: " + filepath)
+                    self.report({'WARNING'},
+                                "Path used by more then one image: %r" %
+                                filepath)
                 else:
                     unique_paths.add(filepath)
                     image.save()
@@ -142,14 +154,14 @@ class ProjectEdit(bpy.types.Operator):
 
         filepath = os.path.basename(bpy.data.filepath)
         filepath = os.path.splitext(filepath)[0]
-        # filepath = bpy.path.clean_name(filepath) # fixes <memory> rubbish, needs checking
+        # fixes <memory> rubbish, needs checking
+        # filepath = bpy.path.clean_name(filepath)
 
-        if filepath.startswith(".") or filepath == "":
-            # TODO, have a way to check if the file is saved, assume startup.blend
+        if bpy.data.is_saved:
+            filepath = "//" + filepath
+        else:
             tmpdir = context.user_preferences.filepaths.temporary_directory
             filepath = os.path.join(tmpdir, "project_edit")
-        else:
-            filepath = "//" + filepath
 
         obj = context.object
 

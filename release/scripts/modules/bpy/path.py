@@ -239,4 +239,4 @@ def basename(path):
 
     Use for Windows compatibility.
     """
-    return _os.path.basename(path[2:] if path.startswith("//") else path)
+    return _os.path.basename(path[2:] if path[:2] in {"//", b"//"} else path)

@@ -241,6 +241,16 @@ static void precalculate_effector(EffectorCache *eff)
 	}
 	else if(eff->psys)
 		psys_update_particle_tree(eff->psys, eff->scene->r.cfra);
+
+	/* Store object velocity */
+	if(eff->ob) {
+		float old_vel[3];
+
+		where_is_object_time(eff->scene, eff->ob, cfra - 1.0f);
+		copy_v3_v3(old_vel, eff->ob->obmat[3]);	
+		where_is_object_time(eff->scene, eff->ob, cfra);
+		sub_v3_v3v3(eff->velocity, eff->ob->obmat[3], old_vel);
+	}
 }
 static EffectorCache *new_effector_cache(Scene *scene, Object *ob, ParticleSystem *psys, PartDeflect *pd)
 {
@@ -680,10 +690,6 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		Object *ob = eff->ob;
 		Object obcopy = *ob;
 
-		/* XXX this is not thread-safe, but used from multiple threads by
-		   particle system */
-		where_is_object_time(eff->scene, ob, cfra);
-
 		/* use z-axis as normal*/
 		normalize_v3_v3(efd->nor, ob->obmat[2]);
 
@@ -702,13 +708,8 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 			VECCOPY(efd->loc, ob->obmat[3]);
 		}
 
-		if(real_velocity) {
-			VECCOPY(efd->vel, ob->obmat[3]);
-
-			where_is_object_time(eff->scene, ob, cfra - 1.0f);
-
-			sub_v3_v3v3(efd->vel, efd->vel, ob->obmat[3]);
-		}
+		if(real_velocity)
+			copy_v3_v3(efd->vel, eff->velocity);
 
 		*eff->ob = obcopy;
 
