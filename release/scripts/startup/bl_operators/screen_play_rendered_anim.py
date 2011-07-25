@@ -1,27 +1,23 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# Script copyright (C) Campbell J Barton
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
 
 # <pep8-80 compliant>
 
-# History
-#
 # Originally written by Matt Ebb
 
 import bpy
@@ -100,7 +96,6 @@ class PlayRenderedAnim(bpy.types.Operator):
 
             while len(file_a) == len(file_b):
                 frame_tmp = (frame_tmp * 10) + 9
-                print(frame_tmp)
                 file_b = rd.frame_path(frame=frame_tmp)
             file_b = rd.frame_path(frame=int(frame_tmp / 10))
 
@@ -118,7 +113,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             opts = ["-a", "-f", str(rd.fps), str(rd.fps_base), file]
             cmd.extend(opts)
         elif preset == 'DJV':
-            opts = [file, "-playback_speed", str(rd.fps)]
+            opts = [file, "-playback_speed", "%d" % int(rd.fps / rd.fps_base)]
             cmd.extend(opts)
         elif preset == 'FRAMECYCLER':
             opts = [file, "%d-%d" % (scene.frame_start, scene.frame_end)]
@@ -131,14 +126,19 @@ class PlayRenderedAnim(bpy.types.Operator):
             if is_movie:
                 opts.append(file)
             else:
-                opts.append("mf://%s" % file.replace("#", "?"))
-                opts += ["-mf", "fps=%.4f" % (rd.fps / rd.fps_base)]
+                opts += [("mf://%s" % file.replace("#", "?")),
+                         "-mf",
+                         "fps=%.4f" % (rd.fps / rd.fps_base),
+                         ]
+
             opts += ["-loop", "0", "-really-quiet", "-fs"]
             cmd.extend(opts)
         else:  # 'CUSTOM'
             cmd.append(file)
 
         # launch it
+        print("Executing command:\n  %r" % " ".join(cmd))
+
         try:
             process = subprocess.Popen(cmd)
         except Exception as e:
