@@ -265,7 +265,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* set flags */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_enable", WKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_enable", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_disable", WKEY, KM_PRESS, KM_ALT, 0);
 		
 		/* armature/bone layers */
@@ -343,7 +343,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* set flags */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_enable", WKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_enable", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_disable", WKEY, KM_PRESS, KM_ALT, 0);
 
 		/* armature/bone layers */
