@@ -3821,18 +3821,17 @@ void MESH_OT_split(wmOperatorType *ot)
 }
 
 
-static int spin_mesh(bContext *UNUSED(C), wmOperator *UNUSED(op), float *UNUSED(dvec), int UNUSED(steps), float UNUSED(degr), int UNUSED(dupli) )
+static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float degr, int dupli)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	EditVert *eve,*nextve;
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	float nor[3]= {0.0f, 0.0f, 0.0f};
 	float si, n[3], q[4], cmat[3][3], imat[3][3], tmat[3][3];
-	float cent[3], bmat[3][3];
+	float cent[3], bmat[3][3], rmat[4][4];
 	float phi;
 	short a, ok= 1;
+	BMOperator bmop;
 
 	RNA_float_get_array(op->ptr, "center", cent);
 
@@ -3861,54 +3860,37 @@ static int spin_mesh(bContext *UNUSED(C), wmOperator *UNUSED(op), float *UNUSED(
 
 	mul_m3_m3m3(tmat,cmat,bmat);
 	mul_m3_m3m3(bmat,imat,tmat);
-
-	if(dupli==0)
-		if(ts->editbutflag & B_KEEPORIG)
-			adduplicateflag(em, 1);
+	copy_m4_m3(rmat, bmat);
 
 	for(a=0; a<steps; a++) {
-		if(dupli==0) ok= extrudeflag(obedit, em, SELECT, nor, 0);
-		else adduplicateflag(em, SELECT);
+		if(dupli==0) {
+			EDBM_Extrude_edge(obedit, em, BM_SELECT, nor);
+			BMO_CallOpf(em->bm, "rotate cent=%v mat=%m4 verts=%hv", cent, rmat, BM_SELECT);
+			ok = 1;
+		} else {
+			EDBM_InitOpf(em, &bmop, op, "dupe geom=%hvef", BM_SELECT);
+			BMO_Exec_Op(em->bm, &bmop);
+			BMO_CallOpf(em->bm, "rotate cent=%v mat=%m4 verts=%s", cent, rmat, &bmop, "newout");
+			EDBM_clear_flag_all(em, BM_SELECT);
+			BMO_HeaderFlag_Buffer(em->bm, &bmop, "newout", BM_SELECT, BM_ALL);
+			ok = EDBM_FinishOp(em, &bmop, op, 1);
+		}
 
-		if(ok==0)
+		if(!ok)
 			break;
 
-		rotateflag(em, SELECT, cent, bmat);
 		if(dvec) {
-			mul_m3_v3(bmat,dvec);
-			translateflag(em, SELECT, dvec);
+			mul_m3_v3(bmat, dvec);
+			BMO_CallOpf(em->bm, "translate vec=%v verts=%hv", (float*)dvec, BM_SELECT);
 		}
 	}
 
-	if(ok==0) {
-		/* no vertices or only loose ones selected, remove duplicates */
-		eve= em->verts.first;
-		while(eve) {
-			nextve= eve->next;
-			if(eve->f & SELECT) {
-				BLI_remlink(&em->verts,eve);
-				free_editvert(em, eve);
-			}
-			eve= nextve;
-		}
-	}
-	else {
-		recalc_editnormals(em);
 
-		EM_fgon_flags(em);
-
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	}
-
-	BKE_mesh_end_editmesh(obedit->data, em);
 	return ok;
-#endif
-	return OPERATOR_CANCELLED;
 }
 
-static int spin_mesh_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int spin_mesh_exec(bContext *C, wmOperator *op)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
 	int ok;
 
@@ -3920,14 +3902,13 @@ static int spin_mesh_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-#endif
+
 	return OPERATOR_FINISHED;
 }
 
 /* get center and axis, in global coords */
 static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-#if 0
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
@@ -3935,7 +3916,6 @@ static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
 	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[2]);
 
-#endif
 	return spin_mesh_exec(C, op);
 }
 
