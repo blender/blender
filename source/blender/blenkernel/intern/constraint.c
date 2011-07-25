@@ -4010,8 +4010,13 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 			len= len_v3(disp);
 
 			if(len>FLT_EPSILON) {
-				float rmat[4][4];
+				float pos[2], rmat[4][4];
 				int is_ortho= 0;
+
+				user.framenr= scene->r.cfra;
+				marker= BKE_tracking_get_marker(track, user.framenr);
+
+				add_v2_v2v2(pos, marker->pos, track->offset);
 
 				/* calculate lens and sensor size depends on object type */
 				if(camob->type==OB_CAMERA) {
@@ -4035,12 +4040,9 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 					ortho_scale= 0.f;
 				}
 
-				user.framenr= scene->r.cfra;
-				marker= BKE_tracking_get_marker(track, user.framenr);
-
 				if(is_ortho) {
-					vec[0]= ortho_scale * (marker->pos[0]-0.5f);
-					vec[1]= ortho_scale * (marker->pos[1]-0.5f);
+					vec[0]= ortho_scale * (pos[0]-0.5f);
+					vec[1]= ortho_scale * (pos[1]-0.5f);
 					vec[2]= -len;
 
 					if(aspect>1.f) vec[1]/= aspect;
@@ -4057,8 +4059,8 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 				else {
 					d= (len*sensor_x) / (2.f*lens);
 
-					vec[0]= d*(2.f*marker->pos[0]-1.f);
-					vec[1]= d*(2.f*marker->pos[1]-1.f);
+					vec[0]= d*(2.f*pos[0]-1.f);
+					vec[1]= d*(2.f*pos[1]-1.f);
 					vec[2]= -len;
 
 					if(aspect>1.f) vec[1]/= aspect;

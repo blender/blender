@@ -77,11 +77,11 @@ static void clip_scopes_tag_refresh(ScrArea *sa)
 
 	/* only while proeprties are visible */
 	for (ar=sa->regionbase.first; ar; ar=ar->next) {
-		if (ar->regiontype == RGN_TYPE_PREVIEW && ar->flag & RGN_FLAG_HIDDEN)
+		if (ar->regiontype == RGN_TYPE_UI && ar->flag & RGN_FLAG_HIDDEN)
 			return;
 	}
 
-	sc->scopes.ok=0;
+	sc->scopes.ok= 0;
 }
 
 /* ******************** default callbacks for clip space ***************** */
@@ -268,14 +268,29 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 
-	keymap= WM_keymap_find(keyconf, "Clip", SPACE_CLIP, 0);
+	/* ******** Global hotkeys avalaible for all regions ******** */
+
+	keymap= WM_keymap_find(keyconf, "Clip Globals", SPACE_CLIP, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_tools", TKEY, KM_PRESS, 0, 0);
-	 WM_keymap_add_item(keymap, "CLIP_OT_properties", NKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_properties", NKEY, KM_PRESS, 0, 0);
 
-	/* ********* View/navigation ******** */
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "backwards", 1);
+	WM_keymap_add_item(keymap, "CLIP_OT_track_markers", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "sequence", 1);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "backwards", 1);
+	RNA_boolean_set(kmi->ptr, "sequence", 1);
+
+	/* ******** Hotkeys avalaible for main region only ******** */
+
+	keymap= WM_keymap_find(keyconf, "Clip Editor", SPACE_CLIP, 0);
+
+	/* View/navigation */
 
 	WM_keymap_add_item(keymap, "CLIP_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_view_pan", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
@@ -309,15 +324,6 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "CLIP_MT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_add_marker_slide", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", LEFTARROWKEY, KM_PRESS, KM_ALT, 0);
-	RNA_boolean_set(kmi->ptr, "backwards", 1);
-	WM_keymap_add_item(keymap, "CLIP_OT_track_markers", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "sequence", 1);
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "backwards", 1);
-	RNA_boolean_set(kmi->ptr, "sequence", 1);
 
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_REMAINED);
@@ -445,7 +451,10 @@ static void clip_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Clip Globals", SPACE_CLIP, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Clip Editor", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -507,7 +516,12 @@ static void clip_tools_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void clip_properties_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	wmKeyMap *keymap;
+
 	ED_region_panels_init(wm, ar);
+
+	keymap= WM_keymap_find(wm->defaultconf, "Clip Globals", SPACE_CLIP, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
 static void clip_properties_area_draw(const bContext *C, ARegion *ar)

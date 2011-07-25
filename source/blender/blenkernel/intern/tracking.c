@@ -120,20 +120,14 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 		}
 	}
 
-	/* marker's center should be inside pattern */
+	/* marker's center should be in center of pattern */
 	if(event==CLAMP_PAT_DIM || event==CLAMP_PAT_POS) {
 		float dim[2];
 		sub_v2_v2v2(dim, track->pat_max, track->pat_min);
 
 		for(a= 0; a<2; a++) {
-			if(track->pat_min[a] > 0.0f) {
-				track->pat_min[a]= 0.0f;
-				track->pat_max[a]= dim[a];
-			}
-			if(track->pat_max[a] < 0.0f) {
-				track->pat_max[a]= 0.0f;
-				track->pat_min[a]= -dim[a];
-			}
+			track->pat_min[a]= -dim[a]/2.f;
+			track->pat_max[a]= dim[a]/2.f;
 		}
 	}
 }

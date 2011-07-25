@@ -319,6 +319,342 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/********************** slide marker operator *********************/
+
+#define SLIDE_ACTION_POS	0
+#define SLIDE_ACTION_SIZE	1
+#define SLIDE_ACTION_OFFSET	2
+
+typedef struct {
+	int area, action;
+	MovieTrackingTrack *track;
+	MovieTrackingMarker *marker;
+
+	int mval[2];
+	int width, height;
+	float *min, *max, *pos, *offset;
+	float smin[2], smax[2], spos[2], soff[2];
+
+	int lock, accurate;
+} SlideMarkerData;
+
+static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTrack *track,
+			MovieTrackingMarker *marker, wmEvent *event, int area, int action, int width, int height)
+{
+	SlideMarkerData *data= MEM_callocN(sizeof(SlideMarkerData), "slide marker data");
+
+	marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
+
+	data->area= area;
+	data->action= action;
+	data->track= track;
+	data->marker= marker;
+
+	if(area==TRACK_AREA_POINT) {
+		data->pos= marker->pos;
+		data->offset= track->offset;
+		copy_v2_v2(data->spos, marker->pos);
+		copy_v2_v2(data->soff, track->offset);
+	} else if(area==TRACK_AREA_PAT) {
+		data->min= track->pat_min;
+		data->max= track->pat_max;
+	} else if(area==TRACK_AREA_SEARCH) {
+		data->min= track->search_min;
+		data->max= track->search_max;
+	}
+
+	if(ELEM(area, TRACK_AREA_PAT, TRACK_AREA_SEARCH)) {
+		copy_v2_v2(data->smin, data->min);
+		copy_v2_v2(data->smax, data->max);
+	}
+
+	data->mval[0]= event->mval[0];
+	data->mval[1]= event->mval[1];
+
+	data->width= width;
+	data->height= height;
+
+	if(area!=TRACK_AREA_POINT)
+		data->lock= 1;
+
+	return data;
+}
+
+/* corner = 0: right-bottom corner,
+   corner = 1: left-top corner */
+static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+			int area, float co[2], int corner, int width, int height)
+{
+	int inside= 0;
+	float size= 12.f;
+	float min[2], max[2];
+	float nco[2], crn[2], dx, dy, tdx, tdy;
+
+	if(area==TRACK_AREA_SEARCH) {
+		copy_v2_v2(min, track->search_min);
+		copy_v2_v2(max, track->search_max);
+	} else {
+		copy_v2_v2(min, track->pat_min);
+		copy_v2_v2(max, track->pat_max);
+	}
+
+	nco[0]= co[0]/width;
+	nco[1]= co[1]/height;
+
+	dx= size/width/sc->zoom;
+	dy= size/height/sc->zoom;
+
+	tdx= 5.0f/width/sc->zoom;
+	tdy= 5.0f/height/sc->zoom;
+
+	dx= MIN2(dx, (max[0]-min[0])/6.f) + tdx;
+	dy= MIN2(dy, (max[1]-min[1])/6.f) + tdy;
+
+	if(corner==0) {
+		crn[0]= marker->pos[0]+max[0];
+		crn[1]= marker->pos[1]+min[1];
+
+		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0]+tdx && nco[1]>=crn[1]-tdy && nco[1]<=crn[1]+dy;
+	} else {
+		crn[0]= marker->pos[0]+min[0];
+		crn[1]= marker->pos[1]+max[1];
+
+		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0]+dx && nco[1]>=crn[1]-dy && nco[1]<=crn[1]+dy;
+	}
+
+	return inside;
+}
+
+static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+			float co[2], int width, int height)
+{
+	float pos[2], nco[2], dx, dy;
+
+	add_v2_v2v2(pos, marker->pos, track->offset);
+
+	nco[0]= co[0]/width;
+	nco[1]= co[1]/height;
+
+	dx= 12.f/width/sc->zoom;
+	dy= 12.f/height/sc->zoom;
+
+	dx=MIN2(dx, (track->pat_max[0]-track->pat_min[0])/3);
+	dy=MIN2(dy, (track->pat_max[1]-track->pat_min[1])/3);
+
+	return nco[0]>=pos[0]-dx && nco[0]<=pos[0]+dx && nco[1]>=pos[1]-dy && nco[1]<=pos[1]+dy;
+}
+
+static void hide_cursor(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+
+	WM_cursor_set(win, CURSOR_NONE);
+}
+
+static void show_cursor(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+
+	WM_cursor_set(win, CURSOR_STD);
+}
+
+static void *slide_marker_customdata(bContext *C, wmEvent *event)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	int width, height;
+	float co[2];
+	void *customdata= NULL;
+
+	ED_space_clip_size(sc, &width, &height);
+
+	if(width==0 || height==0)
+		return NULL;
+
+	mouse_pos(C, event, co);
+
+	track= clip->tracking.tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
+			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
+
+			if((marker->flag&MARKER_DISABLED)==0) {
+				if(sc->flag&SC_SHOW_MARKER_SEARCH) {
+					if(mouse_on_corner(sc, track, marker, TRACK_AREA_SEARCH, co, 1, width, height))
+						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, SLIDE_ACTION_POS, width, height);
+					else if(mouse_on_corner(sc, track, marker, TRACK_AREA_SEARCH, co, 0, width, height))
+						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, SLIDE_ACTION_SIZE, width, height);
+				}
+
+				if(!customdata && sc->flag&SC_SHOW_MARKER_PATTERN) {
+					if((sc->flag&SC_SHOW_MARKER_SEARCH)==0)
+						if(mouse_on_corner(sc, track, marker, TRACK_AREA_PAT, co, 1,  width, height))
+							customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, SLIDE_ACTION_POS, width, height);
+
+					if(!customdata && mouse_on_corner(sc, track, marker, TRACK_AREA_PAT, co, 0, width, height))
+						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_SIZE, width, height);
+				}
+
+				if(!customdata)
+					if(mouse_on_offset(sc, track, marker, co, width, height))
+						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, SLIDE_ACTION_OFFSET, width, height);
+
+				if(customdata)
+					break;
+			}
+		}
+
+		track= track->next;
+	}
+
+	return customdata;
+}
+
+static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	op->customdata= slide_marker_customdata(C, event);
+
+	if(op->customdata) {
+		hide_cursor(C);
+		WM_event_add_modal_handler(C, op);
+
+		return OPERATOR_RUNNING_MODAL;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+static void cancel_mouse_slide(SlideMarkerData *data)
+{
+	/* cancel sliding */
+	if(data->area == TRACK_AREA_POINT) {
+		if(data->action==SLIDE_ACTION_OFFSET) {
+			data->offset[0]= data->soff[0];
+			data->offset[1]= data->soff[1];
+		} else {
+			data->pos[0]= data->spos[0];
+			data->pos[1]= data->spos[1];
+		}
+	} else {
+		data->min[0]= data->smin[0];
+		data->max[0]= data->smax[0];
+
+		data->min[1]= data->smin[1];
+		data->max[1]= data->smax[1];
+	}
+
+}
+
+static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	SlideMarkerData *data= (SlideMarkerData *)op->customdata;
+	float dx, dy, mdelta[2];
+
+	switch(event->type) {
+		case LEFTCTRLKEY:
+		case RIGHTCTRLKEY:
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
+			if(data->area!=TRACK_AREA_POINT)
+				if(ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
+					data->lock= event->val==KM_RELEASE;
+
+			if(ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
+				data->accurate= event->val==KM_PRESS;
+
+			/* no break! update area size */
+
+		case MOUSEMOVE:
+			mdelta[0]= event->mval[0]-data->mval[0];
+			mdelta[1]= event->mval[1]-data->mval[1];
+
+			dx= mdelta[0]/data->width/sc->zoom;
+
+			if(data->lock) dy= -dx/data->height*data->width;
+			else dy= mdelta[1]/data->height/sc->zoom;
+
+			if(data->accurate) {
+				dx/= 5;
+				dy/= 5;
+			}
+
+			if(data->area==TRACK_AREA_POINT) {
+				if(data->action==SLIDE_ACTION_OFFSET) {
+					data->offset[0]= data->soff[0]+dx;
+					data->offset[1]= data->soff[1]+dy;
+				} else {
+					data->pos[0]= data->spos[0]+dx;
+					data->pos[1]= data->spos[1]+dy;
+
+					data->marker->flag&= ~MARKER_TRACKED;
+				}
+
+				WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+				DAG_id_tag_update(&sc->clip->id, 0);
+			} else {
+				data->min[0]= data->smin[0]-dx;
+				data->max[0]= data->smax[0]+dx;
+
+				data->min[1]= data->smin[1]+dy;
+				data->max[1]= data->smax[1]-dy;
+
+				if(data->area==TRACK_AREA_SEARCH) BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_DIM);
+				else BKE_tracking_clamp_track(data->track, CLAMP_PAT_DIM);
+			}
+
+			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
+
+			break;
+
+		case LEFTMOUSE:
+			if(event->val==KM_RELEASE) {
+				MEM_freeN(op->customdata);
+
+				show_cursor(C);
+
+				return OPERATOR_FINISHED;
+			}
+
+			break;
+
+		case ESCKEY:
+			cancel_mouse_slide(op->customdata);
+
+			MEM_freeN(op->customdata);
+
+			show_cursor(C);
+
+			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
+
+			return OPERATOR_CANCELLED;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void CLIP_OT_slide_marker(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Slide Marker";
+	ot->description= "Slide marker areas";
+	ot->idname= "CLIP_OT_slide_marker";
+
+	/* api callbacks */
+	//ot->exec= slide_marker_exec;
+	ot->poll= space_clip_frame_poll;
+	ot->invoke= slide_marker_invoke;
+	ot->modal= slide_marker_modal;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
+		"Offset", "Offset in floating point units, 1.0 is the width and height of the image.", -FLT_MAX, FLT_MAX);
+}
+
 /********************** mouse select operator *********************/
 
 static int mouse_on_side(float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
@@ -470,7 +806,14 @@ static int select_exec(bContext *C, wmOperator *op)
 static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	ARegion *ar= CTX_wm_region(C);
+	void *customdata;
 	float co[2];
+
+	customdata= slide_marker_customdata(C, event);
+	if(customdata) {
+		MEM_freeN(customdata);
+		return OPERATOR_PASS_THROUGH;
+	}
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 	RNA_float_set_array(op->ptr, "location", co);
@@ -744,7 +1087,7 @@ void CLIP_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-/********************** select grouped opertaotr *********************/
+/********************** select grouped operator *********************/
 
 static int select_groped_exec(bContext *C, wmOperator *op)
 {
@@ -1715,314 +2058,8 @@ void CLIP_OT_set_center_principal(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
-/********************** slide marker opertaotr *********************/
 
-#define SLIDE_ACTION_POS	0
-#define SLIDE_ACTION_SIZE	1
-
-typedef struct {
-	int area, action;
-	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
-
-	int mval[2];
-	int width, height;
-	float *min, *max, *pos;
-	float smin[2], smax[2], spos[2];
-
-	int lock, accurate;
-} SlideMarkerData;
-
-static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTrack *track,
-			MovieTrackingMarker *marker, wmEvent *event, int area, int act, int width, int height)
-{
-	SlideMarkerData *data= MEM_callocN(sizeof(SlideMarkerData), "slide marker data");
-
-	marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
-
-	data->area= area;
-	data->action= act;
-	data->track= track;
-	data->marker= marker;
-
-	if(area==TRACK_AREA_POINT) {
-		data->pos= marker->pos;
-		copy_v2_v2(data->spos, marker->pos);
-	} else if(area==TRACK_AREA_PAT) {
-		data->min= track->pat_min;
-		data->max= track->pat_max;
-	} else if(area==TRACK_AREA_SEARCH) {
-		data->min= track->search_min;
-		data->max= track->search_max;
-	}
-
-	if(ELEM(area, TRACK_AREA_PAT, TRACK_AREA_SEARCH)) {
-		copy_v2_v2(data->smin, data->min);
-		copy_v2_v2(data->smax, data->max);
-	}
-
-	data->mval[0]= event->mval[0];
-	data->mval[1]= event->mval[1];
-
-	data->width= width;
-	data->height= height;
-
-	if(act==SLIDE_ACTION_SIZE)
-		data->lock= 1;
-
-	return data;
-}
-
-/* corner = 0: right-bottom corner,
-   corner = 1: left-top inside corner
-   corner = 2: left top outside corder*/
-static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, float size, float co[2], int corner,
-			float *pos, float *min, float *max, int width, int height)
-{
-	int inside= 0;
-	float nco[2], crn[2], dx, dy;
-	float odx, ody;
-
-	nco[0]= co[0]/width;
-	nco[1]= co[1]/height;
-
-	dx= size/width/sc->zoom;
-	dy= size/height/sc->zoom;
-
-	odx= 5.0f/width/sc->zoom;
-	ody= 5.0f/height/sc->zoom;
-
-	dx=MIN2(dx, (track->search_max[0]-track->search_min[0])/3);
-	dy=MIN2(dy, (track->search_max[1]-track->search_min[1])/3);
-
-	if(corner==0) {
-		crn[0]= pos[0]+max[0];
-		crn[1]= pos[1]+min[1];
-
-		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0]+odx && nco[1]>=crn[1]-ody && nco[1]<=crn[1]+dy;
-	} else if(corner==1) {
-		crn[0]= pos[0]+min[0];
-		crn[1]= pos[1]+max[1];
-
-		inside= nco[0]>=crn[0]-odx && nco[0]<=crn[0]+dx && nco[1]>=crn[1]-dy && nco[1]<=crn[1]+ody;
-	} else {
-		crn[0]= pos[0]+min[0];
-		crn[1]= pos[1]+max[1];
-
-		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0]+odx && nco[1]>=crn[1]-ody && nco[1]<=crn[1]+dy;
-	}
-
-	return inside;
-}
-
-static int mouse_on_center(SpaceClip *sc, MovieTrackingTrack *track, float size,
-                           float co[2], float *pos, int width, int height)
-{
-	float nco[2], dx, dy;
-
-	nco[0]= co[0]/width;
-	nco[1]= co[1]/height;
-
-	dx= size/width/sc->zoom;
-	dy= size/height/sc->zoom;
-
-	dx=MIN2(dx, (track->pat_max[0]-track->pat_min[0])/3);
-	dy=MIN2(dy, (track->pat_max[1]-track->pat_min[1])/3);
-
-	return nco[0]>=pos[0]-dx && nco[0]<=pos[0]+dx && nco[1]>=pos[1]-dy && nco[1]<=pos[1]+dy;
-}
-
-static void hide_cursor(bContext *C)
-{
-	wmWindow *win= CTX_wm_window(C);
-
-	WM_cursor_set(win, CURSOR_NONE);
-}
-
-static void show_cursor(bContext *C)
-{
-	wmWindow *win= CTX_wm_window(C);
-
-	WM_cursor_set(win, CURSOR_STD);
-}
-
-static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTrackingTrack *track;
-	int width, height;
-	float co[2];
-
-	ED_space_clip_size(sc, &width, &height);
-
-	if(width==0 || height==0)
-		return OPERATOR_PASS_THROUGH;
-
-	mouse_pos(C, event, co);
-
-	track= clip->tracking.tracks.first;
-	while(track) {
-		if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
-			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
-
-			if(marker && (marker->flag&MARKER_DISABLED)==0) {
-				if(mouse_on_center(sc, track, 15.0f, co, marker->pos, width, height))
-					op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, SLIDE_ACTION_POS, width, height);
-
-				if(!op->customdata && sc->flag&SC_SHOW_MARKER_SEARCH) {
-					if(mouse_on_corner(sc, track, 15.0f, co, 1, marker->pos, track->search_min, track->search_max, width, height))
-						op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, SLIDE_ACTION_POS, width, height);
-					else if(mouse_on_corner(sc, track, 15.0f, co, 0, marker->pos, track->search_min, track->search_max, width, height))
-						op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, SLIDE_ACTION_SIZE, width, height);
-				}
-
-				if(!op->customdata && sc->flag&SC_SHOW_MARKER_PATTERN) {
-					if(mouse_on_corner(sc, track, 15.0f, co, 2, marker->pos, track->pat_min, track->pat_max, width, height))
-						op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_POS, width, height);
-					else if(mouse_on_corner(sc, track, 15.0f, co, 0, marker->pos, track->pat_min, track->pat_max, width, height))
-						op->customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_SIZE, width, height);
-				}
-
-				if(op->customdata) {
-					hide_cursor(C);
-					WM_event_add_modal_handler(C, op);
-
-					return OPERATOR_RUNNING_MODAL;
-				}
-			}
-		}
-
-		track= track->next;
-	}
-
-	return OPERATOR_CANCELLED;
-}
-
-static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	SlideMarkerData *data= (SlideMarkerData *)op->customdata;
-	float dx, dy, mdelta[2];
-
-	switch(event->type) {
-		case LEFTCTRLKEY:
-		case RIGHTCTRLKEY:
-		case LEFTSHIFTKEY:
-		case RIGHTSHIFTKEY:
-			if(data->action == SLIDE_ACTION_SIZE)
-				if(ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
-					data->lock= event->val==KM_RELEASE;
-
-			if(ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
-				data->accurate= event->val==KM_PRESS;
-
-			/* no break! update area size */
-
-		case MOUSEMOVE:
-			mdelta[0]= event->mval[0]-data->mval[0];
-			mdelta[1]= event->mval[1]-data->mval[1];
-
-			dx= mdelta[0]/data->width/sc->zoom;
-
-			if(data->lock) dy= -dx/data->height*data->width;
-			else dy= mdelta[1]/data->height/sc->zoom;
-
-			if(data->accurate) {
-				dx/= 5;
-				dy/= 5;
-			}
-
-			if(data->area == TRACK_AREA_POINT) {
-				data->pos[0]= data->spos[0]+dx;
-				data->pos[1]= data->spos[1]+dy;
-
-				data->marker->flag&= ~MARKER_TRACKED;
-			} else {
-				if(data->action==SLIDE_ACTION_SIZE) {
-					data->min[0]= data->smin[0]-dx;
-					data->max[0]= data->smax[0]+dx;
-
-					data->min[1]= data->smin[1]+dy;
-					data->max[1]= data->smax[1]-dy;
-
-
-					if(data->area==TRACK_AREA_SEARCH) BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_DIM);
-					else BKE_tracking_clamp_track(data->track, CLAMP_PAT_DIM);
-				} else {
-					data->min[0]= data->smin[0]+dx;
-					data->max[0]= data->smax[0]+dx;
-
-					data->min[1]= data->smin[1]+dy;
-					data->max[1]= data->smax[1]+dy;
-
-					if(data->area==TRACK_AREA_SEARCH) BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_POS);
-					else BKE_tracking_clamp_track(data->track, CLAMP_PAT_POS);
-				}
-			}
-
-			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
-
-			break;
-
-		case LEFTMOUSE:
-			if(event->val==KM_RELEASE) {
-				MEM_freeN(op->customdata);
-
-				show_cursor(C);
-
-				return OPERATOR_FINISHED;
-			}
-
-			break;
-
-		case ESCKEY:
-			/* cancel sliding */
-			if(data->area == TRACK_AREA_POINT) {
-				data->pos[0]= data->spos[0];
-				data->pos[1]= data->spos[1];
-			} else {
-				data->min[0]= data->smin[0];
-				data->max[0]= data->smax[0];
-
-				data->min[1]= data->smin[1];
-				data->max[1]= data->smax[1];
-			}
-
-			MEM_freeN(op->customdata);
-
-			show_cursor(C);
-
-			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
-
-			return OPERATOR_CANCELLED;
-	}
-
-	return OPERATOR_PASS_THROUGH;
-}
-
-void CLIP_OT_slide_marker(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Slide Marker";
-	ot->description= "Slide marker areas";
-	ot->idname= "CLIP_OT_slide_marker";
-
-	/* api callbacks */
-	//ot->exec= slide_marker_exec;
-	ot->poll= space_clip_frame_poll;
-	ot->invoke= slide_marker_invoke;
-	ot->modal= slide_marker_modal;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Offset", "Offset in floating point units, 1.0 is the width and height of the image.", -FLT_MAX, FLT_MAX);
-}
-
-/********************** hide tracks opertaotr *********************/
+/********************** hide tracks operator *********************/
 
 static int hide_tracks_exec(bContext *C, wmOperator *op)
 {
@@ -2077,7 +2114,7 @@ void CLIP_OT_hide_tracks(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected tracks");
 }
 
-/********************** hide tracks clear opertaotr *********************/
+/********************** hide tracks clear operator *********************/
 
 static int hide_tracks_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2112,7 +2149,7 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/********************** detect features opertaotr *********************/
+/********************** detect features operator *********************/
 
 static int detect_features_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2155,7 +2192,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/********************** frame jump opertaotr *********************/
+/********************** frame jump operator *********************/
 
 static int frame_jump_exec(bContext *C, wmOperator *op)
 {
@@ -2205,7 +2242,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "end", 0, "Last Frame", "Jump to the last frame of current track.");
 }
 
-/********************** join tracks opertaotr *********************/
+/********************** join tracks operator *********************/
 
 static int join_tracks_exec(bContext *C, wmOperator *op)
 {

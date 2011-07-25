@@ -81,6 +81,7 @@ typedef struct MovieTrackingTrack {
 	/* ** setings ** */
 	float pat_min[2], pat_max[2];		/* positions of left-bottom and right-top corners of pattern (in unified 0..1 space) */
 	float search_min[2], search_max[2];	/* positions of left-bottom and right-top corners of search area (in unified 0..1 space) */
+	float offset[2];					/* offset to "parenting" point */
 
 	int pad;
 

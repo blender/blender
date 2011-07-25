@@ -62,7 +62,7 @@
 #include "clip_intern.h"	// own include
 
 #define B_MARKER_POS			3
-#define B_MARKER_PAT_POS		4
+#define B_MARKER_OFFSET			4
 #define B_MARKER_PAT_DIM		5
 #define B_MARKER_SEARCH_POS		6
 #define B_MARKER_SEARCH_DIM		7
@@ -105,9 +105,9 @@ static void trackingMarker_buttons(const bContext *C, uiLayout *layout)
 
 	to_pixel_space(sc->marker_pos, marker->pos, width, height);
 	to_pixel_space(sc->track_pat, pat_dim, width, height);
-	to_pixel_space(sc->track_pat_pos, pat_pos, width, height);
 	to_pixel_space(sc->track_search, search_dim, width, height);
 	to_pixel_space(sc->track_search_pos, search_pos, width, height);
+	to_pixel_space(sc->track_offset, track->offset, width, height);
 
 	sc->marker_flag= marker->flag;
 
@@ -122,17 +122,19 @@ static void trackingMarker_buttons(const bContext *C, uiLayout *layout)
 	block= uiLayoutAbsoluteBlock(col);
 	uiBlockBeginAlign(block);
 
-	uiDefBut(block, LABEL, 0, "Position:", 0, 171, 300, 19, NULL, 0, 0, 0, 0, "");
-	uiDefButF(block, NUM, B_MARKER_POS, "X:", 10, 152, 145, 19, &sc->marker_pos[0],
+	uiDefBut(block, LABEL, 0, "Position:", 0, 190, 300, 19, NULL, 0, 0, 0, 0, "");
+	uiDefButF(block, NUM, B_MARKER_POS, "X:", 10, 171, 145, 19, &sc->marker_pos[0],
 		-10*width, 10.0*width, step, digits, "X-position of marker at frame in screen coordinates.");
-	uiDefButF(block, NUM, B_MARKER_POS, "Y:", 165, 152, 145, 19, &sc->marker_pos[1],
+	uiDefButF(block, NUM, B_MARKER_POS, "Y:", 165, 171, 145, 19, &sc->marker_pos[1],
 		-10*height, 10.0*height, step, digits, "Y-position of marker at frame in screen coordinates.");
 
-	uiDefBut(block, LABEL, 0, "Pattern Area:", 0, 133, 300, 19, NULL, 0, 0, 0, 0, "");
-	uiDefButF(block, NUM, B_MARKER_PAT_POS, "X:", 10, 114, 145, 19, &sc->track_pat_pos[0],
-		-width, width, step, digits, "X-position of pattern at frame in screen coordinates relative to marker's position.");
-	uiDefButF(block, NUM, B_MARKER_PAT_POS, "Y:", 165, 114, 145, 19, &sc->track_pat_pos[1],
-		-height, height, step, digits, "Y-position of pattern at frame in screen coordinates relative to marker's position.");
+	uiDefBut(block, LABEL, 0, "Offset:", 0, 152, 300, 19, NULL, 0, 0, 0, 0, "");
+	uiDefButF(block, NUM, B_MARKER_OFFSET, "X:", 10, 133, 145, 19, &sc->track_offset[0],
+		-10*width, 10.0*width, step, digits, "X-offset to parenting point.");
+	uiDefButF(block, NUM, B_MARKER_OFFSET, "Y:", 165, 133, 145, 19, &sc->track_offset[1],
+		-10*height, 10.0*height, step, digits, "Y-offset to parenting point.");
+
+	uiDefBut(block, LABEL, 0, "Pattern Area:", 0, 114, 300, 19, NULL, 0, 0, 0, 0, "");
 	uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Width:", 10, 95, 300, 19, &sc->track_pat[0], 3.0f,
 		10.0*width, step, digits, "Width of marker's pattern in screen soordinates.");
 	uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Height:", 10, 76, 300, 19, &sc->track_pat[1], 3.0f,
@@ -171,30 +173,22 @@ static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
 
 		ok= 1;
 	}
-	else if(event==B_MARKER_PAT_POS) {
-		float delta[2], side[2];
-
-		sub_v2_v2v2(side, track->pat_max, track->pat_min);
-		mul_v2_fl(side, 0.5f);
-
-		delta[0]= sc->track_pat_pos[0]/width;
-		delta[1]= sc->track_pat_pos[1]/height;
-
-		sub_v2_v2v2(track->pat_min, delta, side);
-		add_v2_v2v2(track->pat_max, delta, side);
-
-		BKE_tracking_clamp_track(track, CLAMP_PAT_POS);
-
-		ok= 1;
-	}
 	else if(event==B_MARKER_PAT_DIM) {
-		float dim[2];
+		float dim[2], pat_dim[2];
+
+		sub_v2_v2v2(pat_dim, track->pat_max, track->pat_min);
 
 		dim[0]= sc->track_pat[0]/width;
 		dim[1]= sc->track_pat[1]/height;
 
-		mul_v2_v2fl(track->pat_min, dim, -0.5);
-		mul_v2_v2fl(track->pat_max, dim, 0.5);
+		sub_v2_v2(dim, pat_dim);
+		mul_v2_fl(dim, 0.5f);
+
+		track->pat_min[0]-= dim[0];
+		track->pat_min[1]-= dim[1];
+
+		track->pat_max[0]+= dim[0];
+		track->pat_max[1]+= dim[1];
 
 		BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
 
@@ -217,19 +211,32 @@ static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
 		ok= 1;
 	}
 	else if(event==B_MARKER_SEARCH_DIM) {
-		float dim[2];
+		float dim[2], search_dim[2];
+
+		sub_v2_v2v2(search_dim, track->search_max, track->search_min);
 
 		dim[0]= sc->track_search[0]/width;
 		dim[1]= sc->track_search[1]/height;
 
-		mul_v2_v2fl(track->search_min, dim, -0.5);
-		mul_v2_v2fl(track->search_max, dim, 0.5);
+		sub_v2_v2(dim, search_dim);
+		mul_v2_fl(dim, 0.5f);
+
+		track->search_min[0]-= dim[0];
+		track->search_min[1]-= dim[1];
+
+		track->search_max[0]+= dim[0];
+		track->search_max[1]+= dim[1];
 
 		BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 
 		ok= 1;
 	} else if(event==B_MARKER_FLAG) {
 		marker->flag= sc->marker_flag;
+
+		ok= 1;
+	} else if(event==B_MARKER_OFFSET) {
+		track->offset[0]= sc->track_offset[0]/width;
+		track->offset[1]= sc->track_offset[1]/height;
 
 		ok= 1;
 	}

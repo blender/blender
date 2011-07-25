@@ -1437,6 +1437,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	glMultMatrixf(mat);
 
 	for ( track= tracking->tracks.first; track; track= track->next) {
+		int selected= track->flag&SELECT || track->pat_flag&SELECT || track->search_flag&SELECT;
 		if((track->flag&TRACK_HAS_BUNDLE)==0)
 			continue;
 
@@ -1451,7 +1452,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 				glDisable(GL_LIGHTING);
 				glDepthMask(0);
 
-				if(TRACK_SELECTED(track)) {
+				if(selected) {
 					if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
 					else UI_ThemeColor(TH_SELECT);
 				} else UI_ThemeColor(TH_WIRE);
@@ -1463,7 +1464,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 			} else if(v3d->drawtype>OB_WIRE) {
 				if(v3d->bundle_drawtype==OB_EMPTY_SPHERE) {
 					/* selection outline */
-					if(TRACK_SELECTED(track)) {
+					if(selected) {
 						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
 						else UI_ThemeColor(TH_SELECT);
 
@@ -1486,7 +1487,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 					glDisable(GL_LIGHTING);
 					glDepthMask(0);
 
-					if(TRACK_SELECTED(track)) {
+					if(selected) {
 						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
 						else UI_ThemeColor(TH_SELECT);
 					} else UI_ThemeColor(TH_WIRE);
@@ -1504,7 +1505,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 			float pos[3];
 			unsigned char tcol[4];
 
-			if(TRACK_SELECTED(track)) memcpy(tcol, scol, sizeof(tcol));
+			if(selected) memcpy(tcol, scol, sizeof(tcol));
 			else memcpy(tcol, col, sizeof(tcol));
 
 			mul_v3_m4v3(pos, mat, track->bundle_pos);
