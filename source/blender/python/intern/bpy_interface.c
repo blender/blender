@@ -43,6 +43,7 @@
 #include "bpy_rna.h"
 #include "bpy_util.h"
 #include "bpy_traceback.h"
+#include "bpy_intern_string.h"
 
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
@@ -205,7 +206,9 @@ void BPY_python_start(int argc, const char **argv)
 	Py_NoSiteFlag= 1;
 
 	Py_Initialize();
-	
+
+	bpy_intern_string_init();
+
 	// PySys_SetArgv(argc, argv); // broken in py3, not a huge deal
 	/* sigh, why do python guys not have a char** version anymore? :( */
 	{
@@ -251,7 +254,9 @@ void BPY_python_end(void)
 	pyrna_free_types();
 
 	/* clear all python data from structs */
-	
+
+	bpy_intern_string_exit();
+
 	Py_Finalize();
 	
 #ifdef TIME_PY_RUN

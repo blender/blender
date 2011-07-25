@@ -341,7 +341,7 @@ u	|     |  F1 |  F2 |
 
 /* ------------------------------------------------------------------------- */
 
-static void split_v_renderfaces(ObjectRen *obr, int startvlak, int startvert, int usize, int vsize, int uIndex, int UNUSED(cyclu), int cyclv)
+static void split_v_renderfaces(ObjectRen *obr, int startvlak, int UNUSED(startvert), int UNUSED(usize), int vsize, int uIndex, int UNUSED(cyclu), int cyclv)
 {
 	int vLen = vsize-1+(!!cyclv);
 	int v;
@@ -393,7 +393,7 @@ static void calc_edge_stress_add(float *accum, VertRen *v1, VertRen *v2)
 	acc[1]+= 1.0f;
 }
 
-static void calc_edge_stress(Render *re, ObjectRen *obr, Mesh *me)
+static void calc_edge_stress(Render *UNUSED(re), ObjectRen *obr, Mesh *me)
 {
 	float loc[3], size[3], *accum, *acc, *accumoffs, *stress;
 	int a;
@@ -590,7 +590,7 @@ static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent
 	}
 }
 
-static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent, int do_nmap_tangent)
+static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangent, int do_nmap_tangent)
 {
 	MemArena *arena= NULL;
 	VertexTangent **vtangents= NULL;
@@ -759,7 +759,7 @@ static void as_addvert(ASvert *asv, VertRen *v1, VlakRen *vlr)
 	}
 }
 
-static int as_testvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh) 
+static int as_testvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, float thresh)
 {
 	/* return 1: vertex needs a copy */
 	ASface *asf;
@@ -782,7 +782,7 @@ static int as_testvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh)
 	return 0;
 }
 
-static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thresh) 
+static VertRen *as_findvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, float thresh)
 {
 	/* return when new vertex already was made */
 	ASface *asf;
@@ -810,7 +810,7 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thr
 
 /* note; autosmooth happens in object space still, after applying autosmooth we rotate */
 /* note2; actually, when original mesh and displist are equal sized, face normals are from original mesh */
-static void autosmooth(Render *re, ObjectRen *obr, float mat[][4], int degr)
+static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[][4], int degr)
 {
 	ASvert *asv, *asverts;
 	ASface *asf;
@@ -2100,7 +2100,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 /* Halo's   																 */
 /* ------------------------------------------------------------------------- */
 
-static void make_render_halos(Render *re, ObjectRen *obr, Mesh *me, int totvert, MVert *mvert, Material *ma, float *orco)
+static void make_render_halos(Render *re, ObjectRen *obr, Mesh *UNUSED(me), int totvert, MVert *mvert, Material *ma, float *orco)
 {
 	Object *ob= obr->ob;
 	HaloRen *har;
@@ -4699,7 +4699,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 	return 1;
 }
 
-static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd)
+static int allow_render_dupli_instance(Render *UNUSED(re), DupliObject *dob, Object *obd)
 {
 	ParticleSystem *psys;
 	Material *ma;

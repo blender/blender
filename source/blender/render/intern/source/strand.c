@@ -594,7 +594,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 }
 
 /* width is calculated in hoco space, to ensure strands are visible */
-static int strand_test_clip(float winmat[][4], ZSpan *zspan, float *bounds, float *co, float *zcomp, float widthx, float widthy)
+static int strand_test_clip(float winmat[][4], ZSpan *UNUSED(zspan), float *bounds, float *co, float *zcomp, float widthx, float widthy)
 {
 	float hoco[4];
 	int clipflag= 0;
@@ -615,7 +615,7 @@ static int strand_test_clip(float winmat[][4], ZSpan *zspan, float *bounds, floa
 	return clipflag;
 }
 
-static void do_scanconvert_strand(Render *re, StrandPart *spart, ZSpan *zspan, float t, float dt, float *co1, float *co2, float *co3, float *co4, int sample)
+static void do_scanconvert_strand(Render *UNUSED(re), StrandPart *spart, ZSpan *zspan, float t, float dt, float *co1, float *co2, float *co3, float *co4, int sample)
 {
 	float jco1[3], jco2[3], jco3[3], jco4[3], jx, jy;
 
@@ -778,7 +778,7 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 }
 
 /* render call to fill in strands */
-int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int sample, float (*jit)[2], float clipcrop, int shadow, StrandShadeCache *cache)
+int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBase *apsmbase, unsigned int lay, int UNUSED(negzmask), float winmat[][4], int winx, int winy, int UNUSED(sample), float (*jit)[2], float clipcrop, int shadow, StrandShadeCache *cache)
 {
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;

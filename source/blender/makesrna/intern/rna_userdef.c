@@ -2115,19 +2115,22 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "manipulator_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_size");
 	RNA_def_property_range(prop, 2, 40);
+	RNA_def_property_int_default(prop, 15);
 	RNA_def_property_ui_text(prop, "Manipulator Size", "Diameter of widget, in 10 pixel units");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "manipulator_handle_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_handlesize");
 	RNA_def_property_range(prop, 2, 40);
+	RNA_def_property_int_default(prop, 25);
 	RNA_def_property_ui_text(prop, "Manipulator Handle Size", "Size of widget handles as percentage of widget radius");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "manipulator_hotspot", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tw_hotspot");
 	RNA_def_property_range(prop, 4, 40);
-	RNA_def_property_ui_text(prop, "Manipulator Hotspot", "Hotspot in pixels for clicking widget handles");
+	RNA_def_property_int_default(prop, 14);
+	RNA_def_property_ui_text(prop, "Manipulator Hotspot", "Pixel distance around the handles to accept mouse clicks");
 
 	prop= RNA_def_property(srna, "object_origin_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "obcenter_dia");

@@ -117,7 +117,11 @@ void draw_motion_path_instance(Scene *scene,
 		len = mpath->length;
 		mpv_start= mpath->points;
 	}
-	
+
+	if(len <= 0) {
+		return;
+	}
+
 	/* draw curve-line of path */
 	glShadeModel(GL_SMOOTH);
 	

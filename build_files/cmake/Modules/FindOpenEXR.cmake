@@ -19,7 +19,7 @@
 #  OPENEXR_LIBRARY, where to find the OpenEXR library.
 
 #=============================================================================
-# Copyright 2002-2009 Kitware, Inc.
+# Copyright 2011 Blender Foundation.
 #
 # Distributed under the OSI-approved BSD License (the "License");
 # see accompanying file Copyright.txt for details.
@@ -28,8 +28,6 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # See the License for more information.
 #=============================================================================
-# (To distribute this file outside of CMake, substitute the full
-#  License text for the above reference.)
 
 # If OPENEXR_ROOT_DIR was defined in the environment, use it.
 IF(NOT OPENEXR_ROOT_DIR AND NOT $ENV{OPENEXR_ROOT_DIR} STREQUAL "")
@@ -52,7 +50,9 @@ SET(_openexr_SEARCH_DIRS
   /opt/csw # Blastwave
 )
 
-FIND_PATH(OPENEXR_INCLUDE_DIR ImfXdr.h
+FIND_PATH(OPENEXR_INCLUDE_DIR
+  NAMES
+    ImfXdr.h
   HINTS
     ${_openexr_SEARCH_DIRS}
   PATH_SUFFIXES
@@ -63,10 +63,14 @@ SET(_openexr_LIBRARIES)
 FOREACH(COMPONENT ${_openexr_FIND_COMPONENTS})
   STRING(TOUPPER ${COMPONENT} UPPERCOMPONENT)
 
-  FIND_LIBRARY(OPENEXR_${UPPERCOMPONENT}_LIBRARY NAMES ${COMPONENT}
-      HINTS ${_openexr_SEARCH_DIRS}
-      PATH_SUFFIXES lib64 lib
-      )
+  FIND_LIBRARY(OPENEXR_${UPPERCOMPONENT}_LIBRARY
+    NAMES
+      ${COMPONENT}
+    HINTS
+      ${_openexr_SEARCH_DIRS}
+    PATH_SUFFIXES
+      lib64 lib
+    )
   LIST(APPEND _openexr_LIBRARIES "${OPENEXR_${UPPERCOMPONENT}_LIBRARY}")
 ENDFOREACH()
 
@@ -79,7 +83,7 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenEXR  DEFAULT_MSG
 IF(OPENEXR_FOUND)
   SET(OPENEXR_LIBRARIES ${_openexr_LIBRARIES})
   SET(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR})
-ENDIF(OPENEXR_FOUND)
+ENDIF()
 
 MARK_AS_ADVANCED(OPENEXR_INCLUDE_DIR)
 FOREACH(COMPONENT ${_openexr_FIND_COMPONENTS})
