@@ -18,7 +18,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 # History
 #
@@ -46,8 +46,10 @@ def guess_player_path(preset):
         player_path = "djv_view"
 
         if sys.platform == "darwin":
-            # TODO, crummy supporting only 1 version, could find the newest installed version
-            test_path = '/Applications/djv-0.8.2.app/Contents/Resources/bin/djv_view'
+            # TODO, crummy supporting only 1 version,
+            # could find the newest installed version
+            test_path = ("/Applications/djv-0.8.2.app"
+                         "/Contents/Resources/bin/djv_view")
             if os.path.exists(test_path):
                 player_path = test_path
 
@@ -59,7 +61,7 @@ def guess_player_path(preset):
 
     elif preset == 'MPLAYER':
         player_path = "mplayer"
-    
+
     else:
         player_path = ""
 
@@ -85,10 +87,10 @@ class PlayRenderedAnim(bpy.types.Operator):
         is_movie = rd.is_movie_format
 
         # try and guess a command line if it doesn't exist
-        if player_path == '':
+        if player_path == "":
             player_path = guess_player_path(preset)
 
-        if is_movie == False and preset in ('FRAMECYCLER', 'RV', 'MPLAYER'):
+        if is_movie == False and preset in {'FRAMECYCLER', 'RV', 'MPLAYER'}:
             # replace the number with '#'
             file_a = rd.frame_path(frame=0)
 
@@ -102,7 +104,8 @@ class PlayRenderedAnim(bpy.types.Operator):
                 file_b = rd.frame_path(frame=frame_tmp)
             file_b = rd.frame_path(frame=int(frame_tmp / 10))
 
-            file = "".join((c if file_b[i] == c else "#") for i, c in enumerate(file_a))
+            file = ("".join((c if file_b[i] == c else "#")
+                    for i, c in enumerate(file_a)))
         else:
             # works for movies and images
             file = rd.frame_path(frame=scene.frame_start)
@@ -134,14 +137,14 @@ class PlayRenderedAnim(bpy.types.Operator):
             cmd.extend(opts)
         else:  # 'CUSTOM'
             cmd.append(file)
-            
-        if (player_path == "") or (os.path.exists(player_path)==False):
-            self.report({'ERROR'}, "Couldn't find an external animation player")
-        else:
-            # launch it
-            try:
-                process = subprocess.Popen(cmd)
-            except:
-                pass
+
+        # launch it
+        try:
+            process = subprocess.Popen(cmd)
+        except Exception as e:
+            import traceback
+            self.report({'ERROR'},
+                        "Couldn't run external animation player with command "
+                        "%r\n%s" % (" ".join(cmd), str(e)))
 
         return {'FINISHED'}
