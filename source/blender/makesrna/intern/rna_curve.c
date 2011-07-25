@@ -281,8 +281,7 @@ static int rna_Nurb_length(PointerRNA *ptr)
 static void rna_Nurb_type_set(PointerRNA *ptr, int value)
 {
 	Nurb *nu= (Nurb*)ptr->data;
-	nu->type = value;
-	// XXX - TODO change datatypes
+	ED_nurb_set_spline_type(nu, value);
 }
 
 static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -1448,7 +1447,6 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Radius Interpolation", "The type of radius interpolation for Bezier curves");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	// XXX - switching type probably needs comprehensive recalc of data like in 2.4x
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, curve_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Nurb_type_set", NULL);

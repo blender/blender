@@ -50,6 +50,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1416,7 +1417,9 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 
 static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	bScreen *sc= CTX_wm_screen(C);
 	Scene *scene= CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
 	ListBase *markers= ED_context_get_markers(C);
 	TimeMarker *marker;
 
@@ -1424,10 +1427,15 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 	if(marker == NULL)
 		return OPERATOR_CANCELLED;
 
-	marker->camera= scene->camera;
+	marker->camera= ob;
+
+	/* camera may have changes */
+	scene_camera_switch_update(scene);
+	BKE_screen_view3d_scene_sync(sc);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 	WM_event_add_notifier(C, NC_ANIMATION|ND_MARKERS, NULL);
+	WM_event_add_notifier(C, NC_SCENE|NA_EDITED, scene); /* so we get view3d redraws */
 
 	return OPERATOR_FINISHED;
 }

@@ -1175,7 +1175,9 @@ convertXKey(
 			GXMAP(type,XF86XK_AudioPrev,    GHOST_kKeyMediaFirst);
 			GXMAP(type,XF86XK_AudioRewind,  GHOST_kKeyMediaFirst);
 			GXMAP(type,XF86XK_AudioNext,    GHOST_kKeyMediaLast);
+#ifdef XF86XK_AudioForward /* Debian lenny's XF86keysym.h has no XF86XK_AudioForward define */
 			GXMAP(type,XF86XK_AudioForward, GHOST_kKeyMediaLast);
+#endif
 #endif
 
 				/* some extra sun cruft (NICE KEYBOARD!) */

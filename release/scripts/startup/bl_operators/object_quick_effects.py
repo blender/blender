@@ -132,7 +132,7 @@ class QuickExplode(bpy.types.Operator):
         fake_context = bpy.context.copy()
         obj_act = context.active_object
 
-        if obj_act.type != 'MESH':
+        if obj_act is None or obj_act.type != 'MESH':
             self.report({'ERROR'}, "Active object is not a mesh")
             return {'CANCELLED'}
 

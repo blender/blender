@@ -1024,26 +1024,6 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	}
 }
 
-#if defined(WIN32) && BLENDER_VERSION < 258
-
-static int path_have_257_script_install(void)
-{
-	const int ver= BLENDER_VERSION;
-	char path[FILE_MAX] = "";
-	char system_pyfile[FILE_MAX];
-
-	if (get_path_user(path, "scripts", NULL, "BLENDER_USER_SCRIPTS", ver)) {
-		BLI_join_dirfile(system_pyfile, sizeof(system_pyfile), path, "modules/bpy_types.py");
-
-		if (BLI_exists(system_pyfile))
-			return 1;
-	}
-
-	return 0;
-}
-
-#endif
-
 /* get a folder out of the 'folder_id' presets for paths */
 /* returns the path if found, NULL string if not */
 char *BLI_get_folder(int folder_id, const char *subfolder)
@@ -1076,20 +1056,7 @@ char *BLI_get_folder(int folder_id, const char *subfolder)
 			return NULL;
 			
 		case BLENDER_USER_SCRIPTS:
-#if defined(WIN32) && BLENDER_VERSION < 258
-			/* if we have a 2.57 installation, then we may have system script
-			 * files in the user configuration folder. avoid using that folder
-			 * if they are there, until the version gets bumped to 2.58, so
-			 * we can be sure that folder only has addons etc. */
-			if (path_have_257_script_install()) {
-				if (get_path_local(path, "scripts", subfolder, ver)) break;
-			}
-			else
-#endif
-			{
-				if (get_path_user(path, "scripts", subfolder, "BLENDER_USER_SCRIPTS", ver)) break;
-			}
-
+			if (get_path_user(path, "scripts", subfolder, "BLENDER_USER_SCRIPTS", ver)) break;
 			return NULL;
 			
 		case BLENDER_SYSTEM_SCRIPTS:

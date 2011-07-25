@@ -3535,6 +3535,11 @@ static int convertspline(short type, Nurb *nu)
 	return 0;
 }
 
+void ED_nurb_set_spline_type(Nurb *nu, int type)
+{
+	convertspline(type, nu);
+}
+
 static int set_spline_type_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);

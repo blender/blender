@@ -428,7 +428,7 @@ Application::Application(GHOST_ISystem* system)
 	// Create the main window
 	STR_String title1 ("gears - main window");
 	m_mainWindow = system->createWindow(title1, 10, 64, 320, 200, GHOST_kWindowStateNormal,
-		GHOST_kDrawingContextTypeOpenGL, true /* stereo flag */);
+		GHOST_kDrawingContextTypeOpenGL, false, false);
 
     if (!m_mainWindow) {
 		std::cout << "could not create main window\n";
@@ -438,7 +438,7 @@ Application::Application(GHOST_ISystem* system)
 	// Create a secondary window
 	STR_String title2 ("gears - secondary window");
 	m_secondaryWindow = system->createWindow(title2, 340, 64, 320, 200, GHOST_kWindowStateNormal,
-		GHOST_kDrawingContextTypeOpenGL, false /* stereo flag */);
+		GHOST_kDrawingContextTypeOpenGL, false, false);
 	if (!m_secondaryWindow) {
 		cout << "could not create secondary window\n";
 		exit(-1);
