@@ -88,7 +88,7 @@ static char locale_serbian[] = "sr_RS";
 static char locale_ukrainian[] = "uk_UA";
 static char locale_polish[] = "pl_PL";
 static char locale_romanian[] = "ro_RO";
-static char locale_arabic[] = "ar_SA";
+static char locale_arabic[] = "ar_EG";
 static char locale_bulgarian[] = "bg_BG";
 static char locale_greek[] = "el_GR";
 static char locale_korean[] = "ko_KR";
@@ -138,33 +138,31 @@ void BLF_lang_init(void)
 void BLF_lang_set(const char *str)
 {
 	char *locreturn;
-	if(str==NULL) {
-		if( U.language==1 )
-			return;
+	if(str==NULL)
 		str = lang_to_locale[U.language];
-	}
-#if defined (_WIN32) || defined(__APPLE__)
-		BLI_setenv("LANG", str);
-#else
-		locreturn= setlocale(LC_ALL, str);
+	BLI_setenv("LANG", str);
+	BLI_setenv("LANGUAGE", str);
+
+	locreturn= setlocale(LC_ALL, str);
+	if (locreturn == NULL) {
+		char *lang= BLI_sprintfN("%s.UTF-8", str);
+
+		locreturn= setlocale(LC_ALL, lang);
 		if (locreturn == NULL) {
-			char *lang= BLI_sprintfN("%s.UTF-8", str);
-
-			locreturn= setlocale(LC_ALL, lang);
-			if (locreturn == NULL) {
-				printf("could not change language to %s nor %s\n", str, lang);
-			}
-
-			MEM_freeN(lang);
+			printf("could not change language to %s nor %s\n", str, lang);
 		}
 
-		setlocale(LC_NUMERIC, "C");
-#endif
-		textdomain(DOMAIN_NAME);
-		bindtextdomain(DOMAIN_NAME, global_messagepath);
-		/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
-		BLI_strncpy(global_language, str, sizeof(global_language));
-		
+		MEM_freeN(lang);
+	}
+
+	setlocale(LC_NUMERIC, "C");
+
+	textdomain(DOMAIN_NAME);
+	bindtextdomain(DOMAIN_NAME, global_messagepath);
+	/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
+	BLI_strncpy(global_language, str, sizeof(global_language));
+
+//	printf( "<<< %s %s %s \n", setlocale(LC_MESSAGES,NULL), getenv("LANG"), getenv("LANGUAGE") );
 
 }
 

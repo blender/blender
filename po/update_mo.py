@@ -5,36 +5,12 @@
 import os
 
 LOCALE_DIR="../release/bin/.blender/locale"
+PO_DIR = "."
 DOMAIN = "blender"
-LANGS = (
-  "ar",
-  "bg",
-  "ca",
-  "cs",
-  "de",
-  "el",
-  "es",
-  "fi",
-  "fr",
-  "hr",
-  "it",
-  "ja",
-  "ko",
-  "nl",
-  "pl",
-  "pt_BR",
-  "ro",
-  "ru",
-  "sr@Latn",
-  "sr",
-  "sv",
-  "uk",
-  "zh_CN",
-  "zh_TW"
-)
 
-#-o %s.new.po
-for lang in LANGS:
+for po in os.listdir( PO_DIR ):
+  if po.endswith(".po"):
+    lang = po[:-3]
     # show stats
     cmd = "msgfmt --statistics %s.po -o %s/%s/LC_MESSAGES/%s.mo" % ( lang, LOCALE_DIR, lang, DOMAIN )
     print cmd

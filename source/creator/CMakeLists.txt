@@ -456,7 +456,7 @@ elseif(WIN32)
 
 	install( # same as linux!, deduplicate
 		DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-		DESTINATION ${TARGETDIR_VER}/datafiles/locale
+		DESTINATION ${TARGETDIR_VER}/datafiles
 		PATTERN ".svn" EXCLUDE
 	)
 
@@ -670,9 +670,14 @@ elseif(APPLE)
 
 		install_dir(
 			DIRECTORY
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
 					${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
-			\${TARGETDIR_VER}/datafiles/locale
+			\${TARGETDIR_VER}/datafiles/
+		)
+
+		install_dir(
+			DIRECTORY
+					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			\${TARGETDIR_VER}/datafiles/
 		)
 	endif()
 
