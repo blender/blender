@@ -1029,8 +1029,11 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			float view_inv[4], view_inv_conj[4];
 
 			ndof_to_quat(ndof, rot);
-			// mul_qt_fl(rot, rot_sensitivity * (invert ? -1.f : 1.f));
+			// mul_qt_fl(rot, rot_sensitivity);
 			// ^^ no apparent effect
+
+			if (invert)
+				invert_qt(rot);
 
 			invert_qt_qt(view_inv, rv3d->viewquat);
 			copy_qt_qt(view_inv_conj, view_inv);
@@ -1039,10 +1042,6 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			// transform rotation from view to world coordinates
 			mul_qt_qtqt(rot, view_inv, rot);
 			mul_qt_qtqt(rot, rot, view_inv_conj);
-
-			// if (invert)
-			//	invert_qt(rot);
-			// ^^ argh!! this does something crazy
 
 			// apply rotation
 			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
