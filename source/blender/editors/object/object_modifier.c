@@ -470,7 +470,12 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		DerivedMesh *dm;
 		Mesh *me = ob->data;
 		MultiresModifierData *mmd= find_multires_modifier_before(scene, md);
-		
+
+		if( me->key) {
+			BKE_report(reports, RPT_ERROR, "Modifier cannot be applied to Mesh with Shape Keys");
+			return 0;
+		}
+
 		mesh_pmv_off(me);
 
 		/* Multires: ensure that recent sculpting is applied */
@@ -498,7 +503,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 				CustomData_free_layer_active(&me->ldata, CD_MDISPS, me->totloop);
 			}
 		}
-	} 
+	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu;
 		int numVerts;
