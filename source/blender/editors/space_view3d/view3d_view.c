@@ -468,8 +468,9 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 
 void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rcti *rect)
 {
+	float modelview[4][4];
 	double xs, ys, p[3];
-	short val;
+	int val, flip_sign, a;
 
 	/* near zero floating point values can give issues with gluUnProject
 		in side view on some implementations */
@@ -493,10 +494,20 @@ void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rc
 		VECCOPY(bb->vec[4+val], p);
 	}
 
+	/* verify if we have negative scale. doing the transform before cross
+	   product flips the sign of the vector compared to doing cross product
+	   before transform then, so we correct for that. */
+	for(a=0; a<16; a++)
+		((float*)modelview)[a] = mats->modelview[a];
+	flip_sign = is_negative_m4(modelview);
+
 	/* then plane equations */
 	for(val=0; val<4; val++) {
 
 		normal_tri_v3(planes[val], bb->vec[val], bb->vec[val==3?0:val+1], bb->vec[val+4]);
+
+		if(flip_sign)
+			negate_v3(planes[val]);
 
 		planes[val][3]= - planes[val][0]*bb->vec[val][0]
 			- planes[val][1]*bb->vec[val][1]

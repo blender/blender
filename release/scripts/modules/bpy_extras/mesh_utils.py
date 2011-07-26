@@ -212,8 +212,6 @@ def edge_loops_from_edges(mesh, edges=None):
     if not hasattr(edges, "pop"):
         edges = edges[:]
 
-    edge_dict = {ed.key: ed for ed in mesh.edges if ed.select}
-
     while edges:
         current_edge = edges.pop()
         vert_end, vert_start = current_edge.vertices[:]
@@ -300,7 +298,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
             if verts[i][1] == verts[i - 1][0]:
                 verts.pop(i - 1)
 
-        fill = fill_polygon([verts])
+        fill = tesselate_polygon([verts])
 
     else:
         '''

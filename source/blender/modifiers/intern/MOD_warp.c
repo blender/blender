@@ -85,8 +85,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(wmd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
-	dataMask |= (1 << CD_MDEFORMVERT);
+	if(wmd->defgrp_name[0]) dataMask |= (CD_MASK_MDEFORMVERT);
+	dataMask |= (CD_MASK_MDEFORMVERT);
 
 	/* ask for UV coordinates if we need them */
 	if(wmd->texmapping == MOD_DISP_MAP_UV) dataMask |= (1 << CD_MTFACE);
@@ -174,13 +174,15 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 	float strength = wmd->strength;
 	float fac = 1.0f, weight;
 	int i;
-	int defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
-	MDeformVert *dv= NULL;
+	int defgrp_index;
+	MDeformVert *dvert, *dv= NULL;
 
 	float (*tex_co)[3]= NULL;
 
 	if(!(wmd->object_from && wmd->object_to))
 		return;
+
+	modifier_get_vgroup(ob, dm, wmd->defgrp_name, &dvert, &defgrp_index);
 
 	if(wmd->curfalloff==NULL) /* should never happen, but bad lib linking could cause it */
 		wmd->curfalloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -221,8 +223,8 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 		        ((fac=len_v3v3(co, mat_from[3])) < wmd->falloff_radius && (fac=(wmd->falloff_radius-fac)/wmd->falloff_radius)) ) {
 
 			/* skip if no vert group found */
-			if(defgrp_index >= 0) {
-				dv = dm->getVertData(dm, i, CD_MDEFORMVERT);
+			if(dvert && defgrp_index >= 0) {
+				dv = &dvert[i];
 
 				if(dv) {
 					weight = defvert_find_weight(dv, defgrp_index) * wmd->strength;

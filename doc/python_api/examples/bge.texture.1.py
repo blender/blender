@@ -5,7 +5,6 @@ Example of how to replace a texture in game with an external image.
 createTexture() and removeTexture() are to be called from a module Python
 Controller.
 """
-import bge
 from bge import logic
 from bge import texture	
 
@@ -14,7 +13,7 @@ def createTexture(cont):
     object = cont.owner
 	
     # get the reference pointer (ID) of the internal texture
-    ID = VT.materialID(obj, 'IMoriginal.png')
+    ID = texture.materialID(obj, 'IMoriginal.png')
 	
     # create a texture object 
     object_texture = texture.Texture(object, ID)

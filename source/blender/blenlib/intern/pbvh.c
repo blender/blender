@@ -1189,8 +1189,9 @@ void BLI_pbvh_node_get_verts(PBVH *bvh, PBVHNode *node, int **vert_indices, MVer
 void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *totvert)
 {
 	if(bvh->grids) {
-		if(totvert) *totvert= node->totprim*bvh->gridsize*bvh->gridsize;
-		if(uniquevert) *uniquevert= *totvert;
+		const int tot= node->totprim*bvh->gridsize*bvh->gridsize;
+		if(totvert) *totvert= tot;
+		if(uniquevert) *uniquevert= tot;
 	}
 	else {
 		if(totvert) *totvert= node->uniq_verts + node->face_verts;

@@ -789,11 +789,8 @@ elseif(WIN32)
 		if(WITH_IMAGE_OPENEXR)
 			set(OPENEXR ${LIBDIR}/gcc/openexr)
 			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
-			set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread)
+			set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread Iex)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
-
-			# TODO, gives linking errors, force off
-			set(WITH_IMAGE_OPENEXR OFF)
 		endif()
 
 		if(WITH_IMAGE_TIFF)
