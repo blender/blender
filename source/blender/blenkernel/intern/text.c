@@ -400,7 +400,13 @@ Text *add_text(const char *file, const char *relpath)
 		llen++;
 	}
 
-	if (llen!=0 || ta->nlines==0) {
+	/* create new line in cases:
+	   - rest of line (if last line in file hasn't got \n terminator).
+	     in this case content of such line would be used to fill text line buffer
+	   - file is empty. in this case new line is needed to start editing from.
+	   - last characted in buffer is \n. in this case new line is needed to
+	     deal with newline at end of file. (see [#28087]) (sergey) */
+	if (llen!=0 || ta->nlines==0 || buffer[len-1]=='\n') {
 		tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 		tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
 		tmp->format= NULL;
