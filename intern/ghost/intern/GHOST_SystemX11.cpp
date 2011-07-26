@@ -150,8 +150,9 @@ GHOST_SystemX11(
 	if (gettimeofday(&tv,NULL) == -1) {
 		GHOST_ASSERT(false,"Could not instantiate timer!");
 	}
-
-	m_start_time = GHOST_TUns64(tv.tv_sec*1000 + tv.tv_usec/1000);
+	
+	// Taking care not to overflow the tv.tv_sec*1000
+	m_start_time = GHOST_TUns64(tv.tv_sec)*1000 + tv.tv_usec/1000;
 	
 	
 	/* use detectable autorepeate, mac and windows also do this */
@@ -199,7 +200,8 @@ getMilliSeconds(
 		GHOST_ASSERT(false,"Could not compute time!");
 	}
 
-	return  GHOST_TUns64(tv.tv_sec*1000 + tv.tv_usec/1000) - m_start_time;
+	// Taking care not to overflow the tv.tv_sec*1000
+	return  GHOST_TUns64(tv.tv_sec)*1000 + tv.tv_usec/1000 - m_start_time;
 }
 	
 	GHOST_TUns8 

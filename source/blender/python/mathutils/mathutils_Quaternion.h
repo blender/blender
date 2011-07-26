@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: mathutils_Quaternion.h 38409 2011-07-15 04:01:47Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,24 +20,36 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
+ * The Original Code is: all of this file.
  *
  * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
-*/
+ *
+ */
 
-/** \file blender/python/generic/mathutils_geometry.h
+/** \file blender/python/generic/mathutils_Quaternion.h
  *  \ingroup pygen
  */
 
-/*Include this file for access to vector, quat, matrix, euler, etc...*/
 
-#ifndef MATHUTILS_GEOMETRY_H
-#define MATHUTILS_GEOMETRY_H
+#ifndef MATHUTILS_QUAT_H
+#define MATHUTILS_QUAT_H
 
-#include "mathutils.h"
+extern PyTypeObject quaternion_Type;
+#define QuaternionObject_Check(_v) PyObject_TypeCheck((_v), &quaternion_Type)
 
-PyMODINIT_FUNC BPyInit_mathutils_geometry(void);
+typedef struct {
+	BASE_MATH_MEMBERS(quat)
+} QuaternionObject;
 
-#endif /* MATHUTILS_GEOMETRY_H */
+/*struct data contains a pointer to the actual data that the
+object uses. It can use either PyMem allocated data (which will
+be stored in py_data) or be a wrapper for data allocated through
+blender (stored in blend_data). This is an either/or struct not both*/
+
+//prototypes
+PyObject *newQuaternionObject( float *quat, int type, PyTypeObject *base_type);
+PyObject *newQuaternionObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+
+#endif /* MATHUTILS_QUAT_H */

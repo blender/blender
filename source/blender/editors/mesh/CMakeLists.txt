@@ -23,14 +23,14 @@ set(INC
 	../include
 	../uvedit
 	../../blenkernel
-	../../blenloader
 	../../blenlib
+	../../blenloader
 	../../bmesh
 	../../imbuf
 	../../makesdna
 	../../makesrna
-	../../windowmanager
 	../../render/extern/include
+	../../windowmanager
 	../../../../intern/guardedalloc
 )
 

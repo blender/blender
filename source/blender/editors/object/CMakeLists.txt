@@ -22,8 +22,8 @@
 set(INC
 	../include
 	../../blenkernel
-	../../blenloader
 	../../blenlib
+	../../blenloader
 	../../bmesh
 	../../gpu
 	../../ikplugin
@@ -31,8 +31,8 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../python
-	../../windowmanager
 	../../render/extern/include
+	../../windowmanager
 	../../../../intern/guardedalloc
 )
 

@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: mathutils_Vector.c 38409 2011-07-15 04:01:47Z campbellbarton $
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,6 @@
 
 #include "mathutils.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 

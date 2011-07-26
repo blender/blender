@@ -89,7 +89,8 @@ typedef struct ParticleDupliWeight {
 	struct ParticleDupliWeight *next, *prev;
 	struct Object *ob;
 	short count;
-	short flag, rt[2];
+	short flag;
+	short index, rt; /* only updated on file save and used on file load */
 } ParticleDupliWeight;
 
 typedef struct ParticleData {

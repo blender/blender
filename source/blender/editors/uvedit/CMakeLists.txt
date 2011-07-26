@@ -22,8 +22,8 @@
 set(INC
 	../include
 	../../blenkernel
-	../../blenloader
 	../../blenlib
+	../../blenloader
 	../../bmesh
 	../../makesdna
 	../../makesrna

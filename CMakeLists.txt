@@ -729,10 +729,14 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_PYTHON)
-			set(PYTHON_VERSION 3.2)
-			set(PYTHON_INCLUDE_DIRS "${LIBDIR}/python/include/python${PYTHON_VERSION}")
-			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARIES ${LIBDIR}/python/lib/python32.lib)
+			# normally cached but not since we include them with blender
+			set(PYTHON_VERSION 3.2) # CACHE STRING)
+			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}") # CACHE PATH)
+			set(PYTHON_LIBRARY "${LIBDIR}/python/lib/python32.lib") #CACHE FILEPATH)
+
+			# uncached vars
+			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
+			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 		endif()
 
 		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
@@ -832,12 +836,14 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_PYTHON)
-			set(PYTHON ${LIBDIR}/python)
-			set(PYTHON_VERSION 3.2)
-			set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
-			# set(PYTHON_BINARY python) # not used yet
-			set(PYTHON_LIBRARIES ${PYTHON}/lib/python32mw.lib)
-			set(PYTHON_LIBPATH ${PYTHON}/lib)
+			# normally cached but not since we include them with blender
+			set(PYTHON_VERSION 3.2) #  CACHE STRING)
+			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")  # CACHE PATH)
+			set(PYTHON_LIBRARY "${LIBDIR}/python/lib/python32mw.lib")  # CACHE FILEPATH)
+
+			# uncached vars
+			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
+			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 		endif()
 
 		set(PLATFORM_LINKFLAGS "--stack,2097152")
@@ -888,27 +894,33 @@ elseif(APPLE)
 		set(SNDFILE_LIBPATH ${SNDFILE}/lib ${FFMPEG}/lib)  # TODO, deprecate
 	endif()
 
-	set(PYTHON_VERSION 3.2)
-
-	if(PYTHON_VERSION MATCHES 3.2)
-		# we use precompiled libraries for py 3.2 and up by default
-
-		set(PYTHON ${LIBDIR}/python)
-		set(PYTHON_INCLUDE_DIRS "${PYTHON}/include/python${PYTHON_VERSION}")
-		# set(PYTHON_BINARY "${PYTHON}/bin/python${PYTHON_VERSION}") # not used yet
-		set(PYTHON_LIBRARIES python${PYTHON_VERSION})
-		set(PYTHON_LIBPATH "${PYTHON}/lib/python${PYTHON_VERSION}")
-		# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
-	else()
-		# otherwise, use custom system framework
-
-		set(PYTHON /System/Library/Frameworks/Python.framework/Versions/)
+	if(WITH_PYTHON)
 		set(PYTHON_VERSION 3.2)
-		set(PYTHON_INCLUDE_DIRS "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}")
-		# set(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
-		set(PYTHON_LIBRARIES "")
-		set(PYTHON_LIBPATH ${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config)
-		set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python")
+		if(PYTHON_VERSION MATCHES 3.2)
+			# we use precompiled libraries for py 3.2 and up by default
+
+			# normally cached but not since we include them with blender
+			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
+			# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
+			set(PYTHON_LIBRARY python${PYTHON_VERSION})
+			set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
+			# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
+		else()
+			# otherwise, use custom system framework
+			# *not used but maintained incase some dev wants to*
+
+			set(PYTHON "/System/Library/Frameworks/Python.framework/Versions/" CACHE PATH)
+			set(PYTHON_INCLUDE_DIR "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}" CACHE PATH)
+			# set(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
+			set(PYTHON_LIBRARY "" CACHE FILEPATH)
+			set(PYTHON_LIBPATH "${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config" CACHE PATH)
+			set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python" CACHE STRING)
+			unset(PYTHON)
+		endif()
+
+		# uncached vars
+		set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
+		set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 	endif()
 
 	if(WITH_INTERNATIONAL)
@@ -1202,6 +1214,20 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 		set(WITH_MOD_FLUID OFF)
 	endif()
 endif()
+
+
+# ensure python header is found since detection can fail, this could happen
+# with _any_ library but since we used a fixed python version this tends to
+# be most problematic.
+if(WITH_PYTHON)
+	if(NOT EXISTS "${PYTHON_INCLUDE_DIR}/Python.h")
+		message(FATAL_ERROR "Missing: \"${PYTHON_INCLUDE_DIR}/Python.h\",\n"
+							"Set the cache entry 'PYTHON_INCLUDE_DIR' to point "
+							"to a valid python include path. Containing "
+							"Python.h for python version \"${PYTHON_VERSION}\"")
+	endif()
+endif()
+
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${PLATFORM_CFLAGS} ${C_WARNINGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PLATFORM_CFLAGS} ${CXX_WARNINGS}")

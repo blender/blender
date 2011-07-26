@@ -22,6 +22,7 @@ __all__ = (
     "ExportHelper",
     "ImportHelper",
     "axis_conversion",
+    "axis_conversion_ensure",
     "create_derived_objects",
     "free_derived_objects",
     "unpack_list",
@@ -154,12 +155,50 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
     if from_forward == to_forward and from_up == to_up:
         return Matrix().to_3x3()
 
+    if from_forward[-1] == from_up[-1] or to_forward[-1] == to_up[-1]:
+        raise Exception("invalid axis arguments passed, "
+                        "can't use up/forward on the same axis.")
+
     value = reduce(int.__or__, (_axis_convert_num[a] << (i * 3) for i, a in enumerate((from_forward, from_up, to_forward, to_up))))
 
     for i, axis_lut in enumerate(_axis_convert_lut):
         if value in axis_lut:
             return Matrix(_axis_convert_matrix[i])
-    assert("internal error")
+    assert(0)
+
+    
+def axis_conversion_ensure(operator, forward_attr, up_attr):
+    """
+    Function to ensure an operator has valid axis conversion settings, intended
+    to be used from :class:`Operator.check`.
+
+    :arg operator: the operator to access axis attributes from.
+    :type operator: :class:`Operator`
+    :arg forward_attr: 
+    :type forward_attr: string
+    :arg up_attr: the directory the *filepath* will be referenced from (normally the export path).
+    :type up_attr: string
+    :return: True if the value was modified.
+    :rtype: boolean
+    """
+    def validate(axis_forward, axis_up):
+        if axis_forward[-1] == axis_up[-1]:
+            axis_up = axis_up[0:-1] + 'XYZ'[('XYZ'.index(axis_up[-1]) + 1) % 3]
+        
+        return axis_forward, axis_up
+    
+    change = False
+
+    axis = getattr(operator, forward_attr), getattr(operator, up_attr)
+    axis_new = validate(*axis)
+
+    if axis != axis_new:
+        setattr(operator, forward_attr, axis_new[0])
+        setattr(operator, up_attr, axis_new[1])
+
+        return True
+    else:
+        return False
 
 
 # return a tuple (free, object list), free is True if memory should be freed later with free_derived_objects()

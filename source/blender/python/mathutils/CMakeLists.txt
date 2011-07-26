@@ -1,4 +1,3 @@
-# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -15,40 +14,39 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-#
-# The Original Code is: all of this file.
-#
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): Campbell Barton
 #
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC 
 	.
-	../blenlib
-	../../../intern/guardedalloc
+	../../blenlib
+	../../blenkernel
+	../../makesdna
+	../../../../intern/guardedalloc
 )
 
 set(INC_SYS
-	${JPEG_INCLUDE_DIR}
+	${PYTHON_INCLUDE_DIRS}
 )
 
 set(SRC
-	intern/avi.c
-	intern/avirgb.c
-	intern/codecs.c
-	intern/endian.c
-	intern/mjpeg.c
-	intern/options.c
-	intern/rgb32.c
+	mathutils.c
+	mathutils_Color.c
+	mathutils_Euler.c
+	mathutils_Matrix.c
+	mathutils_Quaternion.c
+	mathutils_Vector.c
+	mathutils_geometry.c
 
-	AVI_avi.h
-	intern/avi_intern.h
-	intern/avirgb.h
-	intern/endian.h
-	intern/mjpeg.h
-	intern/rgb32.h
+	mathutils.h
+	mathutils_Color.h
+	mathutils_Euler.h
+	mathutils_Matrix.h
+	mathutils_Quaternion.h
+	mathutils_Vector.h
+	mathutils_geometry.h
 )
 
-blender_add_lib(bf_avi "${SRC}" "${INC}" "${INC_SYS}")
+
+blender_add_lib(bf_python_mathutils "${SRC}" "${INC}" "${INC_SYS}")

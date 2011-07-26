@@ -26,14 +26,14 @@
 
 set(INC
 	.
-	../../../../intern/string
+	..
+	../../Expressions
+	../../GameLogic
+	../../Network
+	../../SceneGraph
 	../../../../intern/container
 	../../../../intern/moto/include
-	../../../../source/gameengine/Ketsji
-	../../../../source/gameengine/GameLogic
-	../../../../source/gameengine/Expressions
-	../../../../source/gameengine/SceneGraph
-	../../../../source/gameengine/Network
+	../../../../intern/string
 )
 
 set(INC_SYS

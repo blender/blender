@@ -243,7 +243,7 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 	int iNrActiveGroups = 0, index = 0;
 	const int iNrFaces = pContext->m_pInterface->m_getNumFaces(pContext);
 	tbool bRes = TFALSE;
-	const float fThresCos = (const float) cos((fAngularThreshold*(float)M_PI)/180.0f);
+	const float fThresCos = (float) cos((fAngularThreshold*(float)M_PI)/180.0f);
 
 	// verify all call-backs have been set
 	if( pContext->m_pInterface->m_getNumFaces==NULL ||
@@ -1411,7 +1411,7 @@ STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriListIn[]
 			// weight contribution by the angle
 			// between the two edge vectors
 			fCos = vdot(v1,v2); fCos=fCos>1?1:(fCos<(-1) ? (-1) : fCos);
-			fAngle = (const float) acos(fCos);
+			fAngle = (float) acos(fCos);
 			fMagS = pTriInfos[f].fMagS;
 			fMagT = pTriInfos[f].fMagT;
 

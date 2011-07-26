@@ -228,6 +228,13 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 			else if (wmn->action == NA_SELECTED)
 				ED_area_tag_redraw(sa);
 			break;
+		case NC_SCREEN:
+			switch(wmn->data) {
+				case ND_ANIMPLAY:
+					ED_area_tag_refresh(sa);
+					break;
+			}
+			break;
 
 		case NC_IMAGE:
 			if (wmn->action == NA_EDITED) {
