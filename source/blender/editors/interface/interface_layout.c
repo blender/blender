@@ -1615,7 +1615,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 	int x, y, w, tot, totw, neww, itemw, minw, itemh, offset;
 	int fixedw, freew, fixedx, freex, flag= 0, lastw= 0;
 
-	x= litem->x;
+	/* x= litem->x; */ /* UNUSED */
 	y= litem->y;
 	w= litem->w;
 	totw= 0;
