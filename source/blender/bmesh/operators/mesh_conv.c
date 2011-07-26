@@ -274,14 +274,19 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 			face_array[i] = face;
 		}
 
-		for(i = 0; i < me->totselect; i++){
-			if(me->mselect[i].type == ME_VSEL){
-				BM_store_selection(bm, vertex_array[me->mselect[i].index]);
-			}else if(me->mselect[i].type == ME_ESEL){
-				BM_store_selection(bm, edge_array[me->mselect[i].index]);
-			}else if(me->mselect[i].type == ME_FSEL){
-				BM_store_selection(bm, face_array[me->mselect[i].index]);
+		if(me->mselect) {
+			for(i = 0; i < me->totselect; i++){
+				if(me->mselect[i].type == ME_VSEL){
+					BM_store_selection(bm, vertex_array[me->mselect[i].index]);
+				}else if(me->mselect[i].type == ME_ESEL){
+					BM_store_selection(bm, edge_array[me->mselect[i].index]);
+				}else if(me->mselect[i].type == ME_FSEL){
+					BM_store_selection(bm, face_array[me->mselect[i].index]);
+				}
 			}
+		}
+		else {
+			me->totselect= 0;
 		}
 
 		MEM_freeN(vertex_array);

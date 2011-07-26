@@ -500,7 +500,7 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene;
 	Object *obedit;
 	Image *ima;
-	float size, min[2], max[2], d[2];
+	float size, min[2], max[2], d[2], aspx, aspy;
 	int width, height;
 
 	/* retrieve state */
@@ -511,6 +511,10 @@ static int view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ima= ED_space_image(sima);
 	ED_space_image_size(sima, &width, &height);
+	ED_image_aspect(ima, &aspx, &aspy);
+
+	width= width*aspx;
+	height= height*aspy;
 
 	/* get bounds */
 	if(!ED_uvedit_minmax(scene, ima, obedit, min, max))

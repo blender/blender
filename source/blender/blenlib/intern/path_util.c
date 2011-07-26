@@ -1680,7 +1680,7 @@ void BLI_where_am_i(char *fullname, const size_t maxlen, const char *name)
 	if(GetModuleFileName(0, fullname, maxlen)) {
 		if(!BLI_exists(fullname)) {
 			printf("path can't be found: \"%.*s\"\n", maxlen, fullname);
-			MessageBox(NULL, "path constains invalid characters or is too long (see console)", "Error", MB_OK);
+			MessageBox(NULL, "path contains invalid characters or is too long (see console)", "Error", MB_OK);
 		}
 		return;
 	}
