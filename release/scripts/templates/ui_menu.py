@@ -33,7 +33,7 @@ def draw_item(self, context):
 def register():
     bpy.utils.register_class(CustomMenu)
 
-    # lets add ourselves to the file menu
+    # lets add ourselves to the main header
     bpy.types.INFO_HT_header.append(draw_item)
 
 
