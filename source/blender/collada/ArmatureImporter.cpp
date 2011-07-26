@@ -145,7 +145,7 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 
 		// treat zero-sized bone like a leaf bone
 		if (length <= epsilon) {
-			add_leaf_bone(parent_mat, parent);
+			add_leaf_bone(parent_mat, parent, node);
 		}
 
 	}
@@ -157,7 +157,8 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 
 	// in second case it's not a leaf bone, but we handle it the same way
 	if (!children.getCount() || children.getCount() > 1) {
-		add_leaf_bone(mat, bone);
+
+		add_leaf_bone(mat, bone, node);
 	}
 
 }
@@ -220,7 +221,7 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 
 		// treat zero-sized bone like a leaf bone
 		if (length <= epsilon) {
-			add_leaf_bone(parent_mat, parent);
+			add_leaf_bone(parent_mat, parent, node);
 		}
 
 		/*
@@ -258,22 +259,35 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 
 	// in second case it's not a leaf bone, but we handle it the same way
 	if (!children.getCount() || children.getCount() > 1) {
-		add_leaf_bone(mat, bone);
+		add_leaf_bone(mat, bone , node);
 	}
 }
 
-void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone)
+void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW::Node * node)
 {
 	LeafBone leaf;
 
 	leaf.bone = bone;
 	copy_m4_m4(leaf.mat, mat);
 	BLI_strncpy(leaf.name, bone->name, sizeof(leaf.name));
-
+    
+ 	TagsMap::iterator etit;
+	ExtraTags *et = 0;
+	etit = uid_tags_map.find(node->getUniqueId().toAscii());
+	if(etit !=  uid_tags_map.end())
+	et = etit->second;
+    
+	float x,y,z;
+	et->setData("tip_x",&x);
+	et->setData("tip_y",&y);
+	et->setData("tip_z",&z);
+	float vec[3] = {x,y,z};
+    copy_v3_v3(leaf.bone->tail, leaf.bone->head);
+	add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
 	leaf_bones.push_back(leaf);
 }
 
-void ArmatureImporter::fix_leaf_bones()
+void ArmatureImporter::fix_leaf_bones( )
 {
 	// just setting tail for leaf bones here
 
@@ -283,7 +297,7 @@ void ArmatureImporter::fix_leaf_bones()
 
 		// pointing up
 		float vec[3] = {0.0f, 0.0f, 1.0f};
-
+        
 		mul_v3_fl(vec, leaf_bone_length);
 
 		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
@@ -407,7 +421,7 @@ void ArmatureImporter::create_armature_bones( )
      leaf_bone_length = FLT_MAX;
 		create_unskinned_bone(*ri, NULL, (*ri)->getChildNodes().getCount(), NULL, ob_arm);
 
-		fix_leaf_bones();
+		//fix_leaf_bones();
 
 	// exit armature edit mode
 	
@@ -750,6 +764,11 @@ Object *ArmatureImporter::get_armature_for_joint(COLLADAFW::Node *node)
 	return NULL;
 }
 
+void ArmatureImporter::set_tags_map(TagsMap & tagsMap)
+{
+    this->uid_tags_map = tagsMap;
+}
+
 void ArmatureImporter::get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t count)
 {
 	BLI_snprintf(joint_path, count, "pose.bones[\"%s\"]", bc_get_joint_name(node));
@@ -770,4 +789,6 @@ bool ArmatureImporter::get_joint_bind_mat(float m[][4], COLLADAFW::Node *joint)
 
 	return found;
 }
+
+
 

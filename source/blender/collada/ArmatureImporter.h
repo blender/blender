@@ -46,6 +46,7 @@ extern "C" {
 #include "MeshImporter.h"
 #include "SkinInfo.h"
 #include "TransformReader.h"
+#include "ExtraTags.h"
 
 #include <map>
 #include <vector>
@@ -109,7 +110,7 @@ private:
 	void create_unskinned_bone(COLLADAFW::Node *node, EditBone *parent, int totchild,
 				 float parent_mat[][4], Object * ob_arm);
 
-	void add_leaf_bone(float mat[][4], EditBone *bone);
+	void add_leaf_bone(float mat[][4], EditBone *bone, COLLADAFW::Node * node);
 
 	void fix_leaf_bones();
 	
@@ -132,6 +133,9 @@ private:
 	void create_armature_bones(SkinInfo& skin);
 	void create_armature_bones( );
 
+	/** TagsMap typedef for uid_tags_map. */
+	typedef std::map<std::string, ExtraTags*> TagsMap;
+	TagsMap uid_tags_map;
 public:
 
 	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, AnimationImporterBase *anim, Scene *sce);
@@ -166,7 +170,8 @@ public:
 	
 	// gives a world-space mat
 	bool get_joint_bind_mat(float m[][4], COLLADAFW::Node *joint);
-
+    
+	void set_tags_map( TagsMap& tags_map);
 	
 };
 

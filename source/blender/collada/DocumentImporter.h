@@ -47,7 +47,7 @@
 #include "AnimationImporter.h"
 #include "ArmatureImporter.h"
 #include "MeshImporter.h"
-#include "ExtraTags.h"
+
 
 
 struct Main;

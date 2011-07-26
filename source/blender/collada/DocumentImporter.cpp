@@ -190,7 +190,7 @@ void DocumentImporter::finish()
 			write_node(roots[i], NULL, sce, NULL, false);
 		}
 	}
-
+	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext);
 
 #if 0
