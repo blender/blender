@@ -197,20 +197,7 @@ static void get_vert2ob_distance(int numVerts, float (*v_cos)[3], float *dist,
  */
 static float get_ob2ob_distance(const Object* ob, const Object* obr)
 {
-	/* Both objects coordinates. */
-	float o_wco[3],
-	      o_wro[3][3], /*unused*/
-	      o_wsz[3],    /*unused*/
-	      or_wco[3],
-	      or_wro[3][3],/*unused*/
-	      or_wsz[3];   /*unused*/
-	/* Get world-coordinates of both objects (constraints and anim included).
-	 * We also get rotation and scale, even though we do not want them…
-	 */
-	mat4_to_loc_rot_size(o_wco, o_wro, o_wsz, (float (*)[4])ob->obmat);
-	mat4_to_loc_rot_size(or_wco, or_wro, or_wsz, (float (*)[4])obr->obmat);
-	/* Return distance between both coordinates. */
-	return len_v3v3(o_wco, or_wco);
+	return len_v3v3(ob->obmat[3], obr->obmat[3]); 
 }
 
 /**************************************

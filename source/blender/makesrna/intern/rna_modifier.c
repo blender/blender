@@ -2728,8 +2728,10 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 {
 	static EnumPropertyItem weightvg_proximity_modes_items[] = {
-		{MOD_WVG_PROXIMITY_OBJ2OBJDIST, "OBJ2OBJDIST", 0, "O2O Distance", ""},
-		{MOD_WVG_PROXIMITY_OBJ2VERTDIST, "OBJ2VERTDIST", 0, "O2V Distance", ""},
+		{MOD_WVG_PROXIMITY_OBJ2OBJDIST, "OBJ2OBJDIST", 0, "Object Distance",
+		 "Use distance between affected and target objects."},
+		{MOD_WVG_PROXIMITY_OBJ2VERTDIST, "OBJ2VERTDIST", 0, "Verts Distance",
+		 "Use distance between affected object’s vertices and target object, or target object’s geometry."},
 		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;
@@ -2755,19 +2757,19 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "obj2vert_verts", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "proximity_flags", MOD_WVG_PROXIMITY_O2VD_VERTS);
-	RNA_def_property_ui_text(prop, "Use Target Vertices",
+	RNA_def_property_ui_text(prop, "Verts as Target",
 	                         "Use shortest distance to target object’s vertices as weight.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "obj2vert_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "proximity_flags", MOD_WVG_PROXIMITY_O2VD_EDGES);
-	RNA_def_property_ui_text(prop, "Use Target Edges",
+	RNA_def_property_ui_text(prop, "Edges as Target",
 	                         "Use shortest distance to target object’s edges as weight.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "obj2vert_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "proximity_flags", MOD_WVG_PROXIMITY_O2VD_FACES);
-	RNA_def_property_ui_text(prop, "Use Target Faces",
+	RNA_def_property_ui_text(prop, "Faces as Target",
 	                         "Use shortest distance to target object’s faces as weight.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

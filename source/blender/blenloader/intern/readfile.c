@@ -11714,24 +11714,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 
 	{
-		Object *ob;
-		ModifierData *md;
-
-		/* WeightVGEdit modifier: CurveMapping pointer… */
-		for(ob = main->object.first; ob; ob = ob->id.next) {
-			for(md = ob->modifiers.first; md; md = md->next) {
-				if(md->type == eModifierType_WeightVGEdit) {
-					WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
-					if (wmd->cmap_curve == NULL) {
-						wmd->cmap_curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-						curvemapping_initialize(wmd->cmap_curve);
-					}
-				}
-			}
-		}
-
 	}
-	
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
