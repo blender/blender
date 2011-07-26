@@ -374,7 +374,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 	data->width= width;
 	data->height= height;
 
-	if(area!=TRACK_AREA_POINT)
+	if(action==SLIDE_ACTION_SIZE)
 		data->lock= 1;
 
 	return data;
@@ -543,7 +543,6 @@ static void cancel_mouse_slide(SlideMarkerData *data)
 		data->min[1]= data->smin[1];
 		data->max[1]= data->smax[1];
 	}
-
 }
 
 static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -557,7 +556,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case RIGHTCTRLKEY:
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
-			if(data->area!=TRACK_AREA_POINT)
+			if(data->action==SLIDE_ACTION_SIZE)
 				if(ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
 					data->lock= event->val==KM_RELEASE;
 
@@ -686,21 +685,24 @@ static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *trac
 	epsy= MIN4(track->pat_min[1]-track->search_min[1], track->search_max[1]-track->pat_max[1],
 	           fabsf(track->pat_min[1]), fabsf(track->pat_max[1])) / 2;
 
-	epsx= MAX2(epsy, 2.0 / width);
-	epsy= MAX2(epsy, 2.0 / height);
-
-	if((marker->flag&MARKER_DISABLED)==0) {
-		if(fabsf(co[0]-marker->pos[0])< epsx && fabsf(co[1]-marker->pos[1])<=epsy)
-			return TRACK_AREA_POINT;
-
-		if(sc->flag&SC_SHOW_MARKER_PATTERN)
-			if(mouse_on_rect(co, marker->pos, track->pat_min, track->pat_max, epsx, epsy))
-				return TRACK_AREA_PAT;
-	}
+	epsx= MAX2(epsy, 2.f / width);
+	epsy= MAX2(epsy, 2.f / height);
 
 	if(sc->flag&SC_SHOW_MARKER_SEARCH)
 		if(mouse_on_rect(co, marker->pos, track->search_min, track->search_max, epsx, epsy))
 			return TRACK_AREA_SEARCH;
+
+	if((marker->flag&MARKER_DISABLED)==0) {
+		if(sc->flag&SC_SHOW_MARKER_PATTERN)
+			if(mouse_on_rect(co, marker->pos, track->pat_min, track->pat_max, epsx, epsy))
+				return TRACK_AREA_PAT;
+
+		epsx= 12.f/width;
+		epsy= 12.f/height;
+
+		if(fabsf(co[0]-marker->pos[0]-track->offset[0])< epsx && fabsf(co[1]-marker->pos[1]-track->offset[1])<=epsy)
+			return TRACK_AREA_POINT;
+	}
 
 	return TRACK_AREA_NONE;
 }
@@ -732,8 +734,8 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, MovieClip *clip, fl
 		if(((cur->flag&TRACK_HIDDEN)==0) && MARKER_VISIBLE(sc, marker)) {
 			float dist, d1, d2=FLT_MAX, d3=FLT_MAX;
 
-			d1= sqrtf((co[0]-marker->pos[0])*(co[0]-marker->pos[0])+
-					  (co[1]-marker->pos[1])*(co[1]-marker->pos[1])); /* distance to marker point */
+			d1= sqrtf((co[0]-marker->pos[0]-cur->offset[0])*(co[0]-marker->pos[0]-cur->offset[0])+
+					  (co[1]-marker->pos[1]-cur->offset[1])*(co[1]-marker->pos[1]-cur->offset[1])); /* distance to marker point */
 
 			/* distance to pattern boundbox */
 			if(sc->flag&SC_SHOW_MARKER_PATTERN)
@@ -808,11 +810,14 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar= CTX_wm_region(C);
 	void *customdata;
 	float co[2];
+	int extend= RNA_boolean_get(op->ptr, "extend");
 
-	customdata= slide_marker_customdata(C, event);
-	if(customdata) {
-		MEM_freeN(customdata);
-		return OPERATOR_PASS_THROUGH;
+	if(!extend) {
+		customdata= slide_marker_customdata(C, event);
+		if(customdata) {
+			MEM_freeN(customdata);
+			return OPERATOR_PASS_THROUGH;
+		}
 	}
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
@@ -1250,7 +1255,7 @@ static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwar
 	tmj->screen= CTX_wm_screen(C);
 }
 
-static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_update, float *progress)
+static void track_markers_startjob(void *tmv, short *stop, short *do_update, float *progress)
 {
 	TrackMarkersJob *tmj= (TrackMarkersJob *)tmv;
 	int framenr= tmj->sfra;
@@ -1283,7 +1288,7 @@ static void track_markers_startjob(void *tmv, short *UNUSED(stop), short *do_upd
 
 		tmj->lastfra= framenr;
 
-		if(track_markers_testbreak())
+		if(*stop || track_markers_testbreak())
 			break;
 	}
 
@@ -1364,10 +1369,10 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	TrackMarkersJob *tmj;
+	ScrArea *sa= CTX_wm_area(C);
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	wmJob *steve;
-	Scene *scene= CTX_data_scene(C);
 	int backwards= RNA_boolean_get(op->ptr, "backwards");
 	int sequence= RNA_boolean_get(op->ptr, "sequence");
 
@@ -1381,7 +1386,7 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 	track_markers_initjob(C, tmj, backwards);
 
 	/* setup job */
-	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Track Markers", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Track Markers", WM_JOB_EXCL_RENDER|WM_JOB_PRIORITY|WM_JOB_PROGRESS);
 	WM_jobs_customdata(steve, tmj, track_markers_freejob);
 
 	/* if there's delay set in tracking job, tracking should happen

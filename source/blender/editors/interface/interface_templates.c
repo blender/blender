@@ -2359,6 +2359,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 #define B_STOPCAST		2
 #define B_STOPANIM		3
 #define B_STOPCOMPO		4
+#define B_STOPCLIP		5
 
 static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 {
@@ -2373,6 +2374,9 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
 		case B_STOPCOMPO:
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+			break;
+		case B_STOPCLIP:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
 			break;
 	}
@@ -2397,6 +2401,11 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		   owner = sa;
 		handle_event= B_STOPCOMPO;
 	} 
+	if(sa->spacetype==SPACE_CLIP) {
+		if(WM_jobs_test(wm, sa))
+		   owner = sa;
+		handle_event= B_STOPCLIP;
+	}
 	else {
 		Scene *scene;
 		/* another scene can be rendering too, for example via compositor */

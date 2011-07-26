@@ -414,6 +414,20 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 				glVertex2f(pos[0], pos[1] + px[1]*3);
 				glVertex2f(pos[0], pos[1] + px[1]*7);
 			glEnd();
+
+			glColor3f(0.f, 0.f, 0.f);
+			glLineStipple(3, 0xaaaa);
+			glEnable(GL_LINE_STIPPLE);
+			glEnable(GL_COLOR_LOGIC_OP);
+			glLogicOp(GL_NOR);
+
+			glBegin(GL_LINES);
+				glVertex2fv(pos);
+				glVertex2fv(marker->pos);
+			glEnd();
+
+			glDisable(GL_COLOR_LOGIC_OP);
+			glDisable(GL_LINE_STIPPLE);
 		}
 	}
 

@@ -111,6 +111,7 @@ class CLIP_HT_header(bpy.types.Header):
                 sub.menu("CLIP_MT_track")
 
         layout.template_ID(sc, "clip")
+        layout.template_running_jobs()
 
 
 class CLIP_PT_tools(bpy.types.Panel):
