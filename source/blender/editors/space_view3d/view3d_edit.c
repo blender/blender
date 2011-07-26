@@ -1053,12 +1053,12 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				if (invert)
 					angle = -angle;
 	
+				// transform rotation axis from view to world coordinates
+				mul_qt_v3(view_inv, axis);
+	
 				// update the onscreen doo-dad
 				rv3d->rot_angle = angle;
 				copy_v3_v3(rv3d->rot_axis, axis);
-	
-				// transform rotation axis from view to world coordinates
-				mul_qt_v3(view_inv, axis);
 	
 				axis_angle_to_quat(rot, axis, angle);
 	#endif	// --------------------------------------------

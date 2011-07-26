@@ -690,10 +690,13 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glShadeModel(GL_SMOOTH);
 	glPointSize(5);
 	glEnable(GL_POINT_SMOOTH);
+	glDepthMask(0); // don't overwrite zbuf
 
 	if (rv3d->rot_angle != 0.f) {
+		// -- draw rotation axis --
 		float scaled_axis[3];
-		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, 3.f);
+		const float scale = rv3d->dist;
+		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
 	
 		glBegin(GL_LINE_STRIP);
 			color[3] = 0; // more transparent toward the ends
@@ -701,7 +704,10 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 			add_v3_v3v3(end, o, scaled_axis);
 			glVertex3fv(end);
 	
-			color[3] = 0.2f + rv3d->rot_angle; // more opaque toward the center
+			// color[3] = 0.2f + fabsf(rv3d->rot_angle); // modulate opacity with angle
+			// ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2
+
+			color[3] = 0.5f; // more opaque toward the center
 			glColor4fv(color);
 			glVertex3fv(o);
 	
@@ -716,6 +722,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	else
 		color[3] = 0.5; // see-through dot
 
+	// -- draw rotation center --
 	glColor4fv(color);
 	glBegin(GL_POINTS);
 		glVertex3fv(o);
@@ -728,6 +735,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 
 	glDisable(GL_BLEND);
 	glDisable(GL_POINT_SMOOTH);
+	glDepthMask(1);
 }
 
 static void draw_view_icon(RegionView3D *rv3d)
@@ -2672,10 +2680,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		BDR_drawSketch(C);
 	}
 
-#if 0 // not yet...
+//#if 0 // not yet...
 	if (U.ndof_flag & NDOF_SHOW_GUIDE)
 		draw_rotation_guide(rv3d);
-#endif
+//#endif
 
 	ED_region_pixelspace(ar);
 	
