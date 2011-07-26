@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 import bpy
 
 
@@ -36,9 +36,12 @@ class TEXT_HT_header(bpy.types.Header):
             sub = row.row(align=True)
             sub.menu("TEXT_MT_view")
             sub.menu("TEXT_MT_text")
+
             if text:
                 sub.menu("TEXT_MT_edit")
                 sub.menu("TEXT_MT_format")
+
+            sub.menu("TEXT_MT_templates")
 
         if text and text.is_modified:
             row = layout.row()
@@ -63,11 +66,13 @@ class TEXT_HT_header(bpy.types.Header):
             row = layout.row()
             if text.filepath:
                 if text.is_dirty:
-                    row.label(text="File: *%s (unsaved)" % text.filepath)
+                    row.label(text="File: *%r (unsaved)" % text.filepath)
                 else:
-                    row.label(text="File: %s" % text.filepath)
+                    row.label(text="File: %r" % text.filepath)
             else:
-                row.label(text="Text: External" if text.library else "Text: Internal")
+                row.label(text="Text: External"
+                          if text.library
+                          else "Text: Internal")
 
 
 class TEXT_PT_properties(bpy.types.Panel):
@@ -150,8 +155,12 @@ class TEXT_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("text.move", text="Top of File").type = 'FILE_TOP'
-        layout.operator("text.move", text="Bottom of File").type = 'FILE_BOTTOM'
+        layout.operator("text.move",
+                        text="Top of File",
+                        ).type = 'FILE_TOP'
+        layout.operator("text.move",
+                        text="Bottom of File",
+                        ).type = 'FILE_BOTTOM'
 
 
 class TEXT_MT_text(bpy.types.Menu):
@@ -185,19 +194,15 @@ class TEXT_MT_text(bpy.types.Menu):
             # XXX   uiMenuItemO(head, 0, "text.refresh_pyconstraints");
             #endif
 
-        layout.separator()
-
-        layout.menu("TEXT_MT_templates")
-
 
 class TEXT_MT_templates(bpy.types.Menu):
-    '''
-    Creates the menu items by scanning scripts/templates
-    '''
-    bl_label = "Script Templates"
+    bl_label = "Templates"
 
     def draw(self, context):
-        self.path_menu(bpy.utils.script_paths("templates"), "text.open", {"internal": True})
+        self.path_menu(bpy.utils.script_paths("templates"),
+                       "text.open",
+                       {"internal": True},
+                       )
 
 
 class TEXT_MT_edit_select(bpy.types.Menu):
@@ -246,8 +251,12 @@ class TEXT_MT_edit_to3d(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("text.to_3d_object", text="One Object").split_lines = False
-        layout.operator("text.to_3d_object", text="One Object Per Line").split_lines = True
+        layout.operator("text.to_3d_object",
+                        text="One Object",
+                        ).split_lines = False
+        layout.operator("text.to_3d_object",
+                        text="One Object Per Line",
+                        ).split_lines = True
 
 
 class TEXT_MT_edit(bpy.types.Menu):
