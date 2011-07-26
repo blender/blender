@@ -2906,6 +2906,117 @@ void NODE_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ****************** Delete with reconnect ******************* */
+
+/* note: in cmp_util.c is similar code, for node_compo_pass_on() */
+/* used for disabling node  (similar code in node_draw.c for disable line) */
+static void node_delete_reconnect(bNodeTree* tree, bNode* node) {
+	bNodeLink *link, *next;
+	bNodeSocket *valsocket= NULL, *colsocket= NULL, *vecsocket= NULL;
+	bNodeSocket *deliveringvalsocket= NULL, *deliveringcolsocket= NULL, *deliveringvecsocket= NULL;
+	bNode *deliveringvalnode= NULL, *deliveringcolnode= NULL, *deliveringvecnode= NULL;
+	bNodeSocket *sock;
+
+	/* test the inputs */
+	for(sock= node->inputs.first; sock; sock= sock->next) {
+		int type = sock->type;
+		if(type==SOCK_VALUE && valsocket==NULL) valsocket = sock;
+		if(type==SOCK_VECTOR && vecsocket==NULL) vecsocket = sock;
+		if(type==SOCK_RGBA && colsocket==NULL) colsocket = sock;
+	}
+	// we now have the input sockets for the 'data types'
+	// now find the output sockets (and nodes) in the tree that delivers data to these input sockets
+	for(link= tree->links.first; link; link=link->next) {
+		if (valsocket != NULL) {
+			if (link->tosock == valsocket) {
+				deliveringvalnode = link->fromnode;
+				deliveringvalsocket = link->fromsock;
+			}
+		}
+		if (vecsocket != NULL) {
+			if (link->tosock == vecsocket) {
+				deliveringvecnode = link->fromnode;
+				deliveringvecsocket = link->fromsock;
+			}
+		}
+		if (colsocket != NULL) {
+			if (link->tosock == colsocket) {
+				deliveringcolnode = link->fromnode;
+				deliveringcolsocket = link->fromsock;
+			}
+		}
+	}
+	// we now have the sockets+nodes that fill the inputsockets be aware for group nodes these can be NULL
+	// now make the links for all outputlinks of the node to be reconnected
+	for(link= tree->links.first; link; link=next) {
+		next= link->next;
+		if (link->fromnode == node) {
+			sock = link->fromsock;
+			switch(sock->type) {
+			case SOCK_VALUE:
+				if (deliveringvalsocket) {
+					link->fromnode = deliveringvalnode;
+					link->fromsock = deliveringvalsocket;
+				}
+				break;
+			case SOCK_VECTOR:
+				if (deliveringvecsocket) {
+					link->fromnode = deliveringvecnode;
+					link->fromsock = deliveringvecsocket;
+				}
+				break;
+			case SOCK_RGBA:
+				if (deliveringcolsocket) {
+					link->fromnode = deliveringcolnode;
+					link->fromsock = deliveringcolsocket;
+				}
+				break;
+			}
+		}
+	}
+	if(node->id)
+		node->id->us--;
+	nodeFreeNode(tree, node);
+
+}
+
+static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	bNode *node, *next;
+
+	ED_preview_kill_jobs(C);
+
+	for(node= snode->edittree->nodes.first; node; node= next) {
+		next= node->next;
+		if(node->flag & SELECT) {
+			node_delete_reconnect(snode->edittree, node);
+		}
+	}
+
+	node_tree_verify_groups(snode->nodetree);
+
+	snode_notify(C, snode);
+	snode_dag_update(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_delete_reconnect(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Delete with reconnect";
+	ot->description = "Delete nodes; will reconnect nodes as if deletion was muted";
+	ot->idname= "NODE_OT_delete_reconnect";
+
+	/* api callbacks */
+	ot->exec= node_delete_reconnect_exec;
+	ot->poll= ED_operator_node_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /* ****************** Show Cyclic Dependencies Operator  ******************* */
 
 static int node_show_cycles_exec(bContext *C, wmOperator *UNUSED(op))

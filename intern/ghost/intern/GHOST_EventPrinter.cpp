@@ -37,6 +37,7 @@
 #include "GHOST_EventDragnDrop.h"
 #include "GHOST_Debug.h"
 
+#include <stdio.h>
 
 bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 {
@@ -82,17 +83,17 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 	case GHOST_kEventKeyUp:
 		{
 		GHOST_TEventKeyData* keyData = (GHOST_TEventKeyData*)((GHOST_IEvent*)event)->getData();
-		STR_String str;
+		char str[32]= {'\0'};
 		getKeyString(keyData->key, str);
-		std::cout << "GHOST_kEventKeyUp, key: " << str.Ptr();
+		std::cout << "GHOST_kEventKeyUp, key: " << str;
 		}
 		break;
 	case GHOST_kEventKeyDown:
 		{
 		GHOST_TEventKeyData* keyData = (GHOST_TEventKeyData*)((GHOST_IEvent*)event)->getData();
-		STR_String str;
+		char str[32]= {'\0'};
 		getKeyString(keyData->key, str);
-		std::cout << "GHOST_kEventKeyDown, key: " << str.Ptr();
+		std::cout << "GHOST_kEventKeyDown, key: " << str;
 		}
 		break;
 			
@@ -183,165 +184,161 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 }
 
 
-void GHOST_EventPrinter::getKeyString(GHOST_TKey key, STR_String& str) const
+void GHOST_EventPrinter::getKeyString(GHOST_TKey key, char str[32]) const
 {
 	if ((key >= GHOST_kKeyComma) && (key <= GHOST_kKeyRightBracket)) {
-		str = ((char)key);
+		sprintf(str, "%c", (char)key);
 	} else if ((key >= GHOST_kKeyNumpad0) && (key <= GHOST_kKeyNumpad9)) {
-		int number = key - GHOST_kKeyNumpad0;
-		STR_String numberStr (number);
-		str = "Numpad";
-		str += numberStr;
+		sprintf(str, "Numpad %d", (key - GHOST_kKeyNumpad0));
 #if defined(__sun__) || defined(__sun)
 	} else if (key == 268828432) { /* solaris keyboards are messed up */
 		 /* This should really test XK_F11 but that doesn't work */
-		str = "F11";
+		strcpy(str, "F11");
 	} else if (key == 268828433) { /* solaris keyboards are messed up */
 		 /* This should really test XK_F12 but that doesn't work */
-		str = "F12";
+		strcpy(str, "F12");
 #endif
 	} else if ((key >= GHOST_kKeyF1) && (key <= GHOST_kKeyF24)) {
-		int number = key - GHOST_kKeyF1 + 1;
-		STR_String numberStr (number);
-		str = "F";
-		str += numberStr;
+		sprintf(str, "F%d", key - GHOST_kKeyF1 + 1);
 	} else {
-		switch (key)
-		{
+		const char *tstr= NULL;
+		switch (key) {
 		case GHOST_kKeyBackSpace:
-			str = "BackSpace";
+			tstr = "BackSpace";
 			break;
 		case GHOST_kKeyTab:
-			str = "Tab";
+			tstr = "Tab";
 			break;
 		case GHOST_kKeyLinefeed:
-			str = "Linefeed";
+			tstr = "Linefeed";
 			break;
 		case GHOST_kKeyClear:
-			str = "Clear";
+			tstr = "Clear";
 			break;
 		case GHOST_kKeyEnter:
-			str = "Enter";
+			tstr = "Enter";
 			break;
 		case GHOST_kKeyEsc:
-			str = "Esc";
+			tstr = "Esc";
 			break;
 		case GHOST_kKeySpace:
-			str = "Space";
+			tstr = "Space";
 			break;
 		case GHOST_kKeyQuote:
-			str = "Quote";
+			tstr = "Quote";
 			break;
 		case GHOST_kKeyBackslash:
-			str = "\\";
+			tstr = "\\";
 			break;
 		case GHOST_kKeyAccentGrave:
-			str = "`";
+			tstr = "`";
 			break;
 		case GHOST_kKeyLeftShift:
-			str = "LeftShift";
+			tstr = "LeftShift";
 			break;
 		case GHOST_kKeyRightShift:
-			str = "RightShift";
+			tstr = "RightShift";
 			break;
 		case GHOST_kKeyLeftControl:
-			str = "LeftControl";
+			tstr = "LeftControl";
 			break;
 		case GHOST_kKeyRightControl:
-			str = "RightControl";
+			tstr = "RightControl";
 			break;
 		case GHOST_kKeyLeftAlt:
-			str = "LeftAlt";
+			tstr = "LeftAlt";
 			break;
 		case GHOST_kKeyRightAlt:
-			str = "RightAlt";
+			tstr = "RightAlt";
 			break;
 		case GHOST_kKeyOS:
-			str = "OS";
+			tstr = "OS";
 			break;
 		case GHOST_kKeyGrLess:
             // PC german!
-			str = "GrLess";
+			tstr = "GrLess";
 			break;
 		case GHOST_kKeyCapsLock:
-			str = "CapsLock";
+			tstr = "CapsLock";
 			break;
 		case GHOST_kKeyNumLock:
-			str = "NumLock";
+			tstr = "NumLock";
 			break;
 		case GHOST_kKeyScrollLock:
-			str = "ScrollLock";
+			tstr = "ScrollLock";
 			break;
 		case GHOST_kKeyLeftArrow:
-			str = "LeftArrow";
+			tstr = "LeftArrow";
 			break;
 		case GHOST_kKeyRightArrow:
-			str = "RightArrow";
+			tstr = "RightArrow";
 			break;
 		case GHOST_kKeyUpArrow:
-			str = "UpArrow";
+			tstr = "UpArrow";
 			break;
 		case GHOST_kKeyDownArrow:
-			str = "DownArrow";
+			tstr = "DownArrow";
 			break;
 		case GHOST_kKeyPrintScreen:
-			str = "PrintScreen";
+			tstr = "PrintScreen";
 			break;
 		case GHOST_kKeyPause:
-			str = "Pause";
+			tstr = "Pause";
 			break;
 		case GHOST_kKeyInsert:
-			str = "Insert";
+			tstr = "Insert";
 			break;
 		case GHOST_kKeyDelete:
-			str = "Delete";
+			tstr = "Delete";
 			break;
 		case GHOST_kKeyHome:
-			str = "Home";
+			tstr = "Home";
 			break;
 		case GHOST_kKeyEnd:
-			str = "End";
+			tstr = "End";
 			break;
 		case GHOST_kKeyUpPage:
-			str = "UpPage";
+			tstr = "UpPage";
 			break;
 		case GHOST_kKeyDownPage:
-			str = "DownPage";
+			tstr = "DownPage";
 			break;
 		case GHOST_kKeyNumpadPeriod:
-			str = "NumpadPeriod";
+			tstr = "NumpadPeriod";
 			break;
 		case GHOST_kKeyNumpadEnter:
-			str = "NumpadEnter";
+			tstr = "NumpadEnter";
 			break;
 		case GHOST_kKeyNumpadPlus:
-			str = "NumpadPlus";
+			tstr = "NumpadPlus";
 			break;
 		case GHOST_kKeyNumpadMinus:
-			str = "NumpadMinus";
+			tstr = "NumpadMinus";
 			break;
 		case GHOST_kKeyNumpadAsterisk:
-			str = "NumpadAsterisk";
+			tstr = "NumpadAsterisk";
 			break;
 		case GHOST_kKeyNumpadSlash:
-			str = "NumpadSlash";
+			tstr = "NumpadSlash";
 			break;
 		case GHOST_kKeyMediaPlay:
-			str = "MediaPlayPause";
+			tstr = "MediaPlayPause";
 			break;
 		case GHOST_kKeyMediaStop:
-			str = "MediaStop";
+			tstr = "MediaStop";
 			break;
 		case GHOST_kKeyMediaFirst:
-			str = "MediaFirst";
+			tstr = "MediaFirst";
 			break;
 		case GHOST_kKeyMediaLast:
-			str = "MediaLast";
+			tstr = "MediaLast";
 			break;
 		default:
-			str = "unknown";
+			tstr = "unknown";
 			break;
 		}
+
+		sprintf(str, "%s", tstr);
 	}
 }
 

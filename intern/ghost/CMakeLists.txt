@@ -42,7 +42,6 @@ set(SRC
 	intern/GHOST_Path-api.cpp
 	intern/GHOST_DisplayManager.cpp
 	intern/GHOST_EventManager.cpp
-	intern/GHOST_EventPrinter.cpp
 	intern/GHOST_ISystem.cpp
 	intern/GHOST_ISystemPaths.cpp
 	intern/GHOST_ModifierKeys.cpp
@@ -75,7 +74,6 @@ set(SRC
 	intern/GHOST_EventKey.h
 	intern/GHOST_EventManager.h
 	intern/GHOST_EventNDOF.h
-	intern/GHOST_EventPrinter.h
 	intern/GHOST_EventString.h
 	intern/GHOST_EventTrackpad.h
 	intern/GHOST_EventWheel.h
@@ -89,13 +87,37 @@ set(SRC
 	intern/GHOST_WindowManager.h
 )
 
-if(WITH_HEADLESS)
+if(WITH_GHOST_DEBUG)
 	list(APPEND SRC
-		intern/GHOST_DisplayManagerNULL.h
-		intern/GHOST_SystemNULL.h
-		intern/GHOST_WindowNULL.h
+		intern/GHOST_EventPrinter.cpp
+
+		intern/GHOST_EventPrinter.h
 	)
-	add_definitions(-DWITH_HEADLESS)
+	add_definitions(-DWITH_GHOST_DEBUG)
+endif()
+
+
+if(WITH_HEADLESS OR WITH_GHOST_SDL)
+	if(WITH_HEADLESS)
+		list(APPEND SRC
+			intern/GHOST_DisplayManagerNULL.h
+			intern/GHOST_SystemNULL.h
+			intern/GHOST_WindowNULL.h
+		)
+		add_definitions(-DWITH_HEADLESS)
+	else()
+		list(APPEND SRC
+			intern/GHOST_DisplayManagerSDL.cpp
+			intern/GHOST_SystemSDL.cpp
+			intern/GHOST_WindowSDL.cpp
+
+			intern/GHOST_DisplayManagerSDL.h
+			intern/GHOST_SystemSDL.h
+			intern/GHOST_WindowSDL.h
+		)
+		add_definitions(-DWITH_GHOST_SDL)
+	endif()
+
 
 	# ack, this is still system dependant
 	if(APPLE)
@@ -123,6 +145,8 @@ if(WITH_HEADLESS)
 			intern/GHOST_SystemPathsWin32.h
 		)
 	endif()
+
+	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})
 
 elseif(APPLE)
 	if(WITH_COCOA)

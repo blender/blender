@@ -218,8 +218,9 @@ typedef enum {
 	GHOST_kStandardCursorBottomLeftCorner,
 	GHOST_kStandardCursorCopy,
 	GHOST_kStandardCursorCustom, 
-	GHOST_kStandardCursorNumCursors, 
-	GHOST_kStandardCursorPencil
+	GHOST_kStandardCursorPencil,
+
+	GHOST_kStandardCursorNumCursors
 } GHOST_TStandardCursor;
 
 
