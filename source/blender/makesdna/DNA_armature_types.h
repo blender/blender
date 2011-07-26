@@ -96,7 +96,9 @@ typedef struct bArmature {
 	void		*sketch;				/* sketch struct for etch-a-ton */
 	
 	int			flag;
-	int			drawtype;			
+	int			drawtype;
+	int			gevertdeformer;			/* how vertex deformation is handled in the ge */
+	int			pad;
 	short		deformflag; 
 	short		pathflag;
 	
@@ -139,6 +141,12 @@ typedef enum eArmature_Drawtype {
 	ARM_ENVELOPE,
 	ARM_WIRE
 } eArmature_Drawtype;
+
+/* armature->gevertdeformer */
+typedef enum eArmature_VertDeformer {
+	ARM_VDEF_BLENDER,
+	ARM_VDEF_BGE_CPU
+} eArmature_VertDeformer;
 
 /* armature->deformflag */
 typedef enum eArmature_DeformFlag {

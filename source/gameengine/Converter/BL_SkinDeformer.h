@@ -110,6 +110,9 @@ protected:
 	bool					m_poseApplied;
 	bool					m_recalcNormal;
 
+	void BlenderDeformVerts();
+	void BGEDeformVerts();
+
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:

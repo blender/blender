@@ -70,6 +70,9 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, bpy.types.Panel):
         flow.prop(arm, "use_deform_envelopes", text="Envelopes")
         flow.prop(arm, "use_deform_preserve_volume", text="Quaternion")
 
+        if context.scene.render.engine == "BLENDER_GAME":
+            col = layout.column()
+            col.prop(arm, "vert_deformer")
 
 class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
     bl_label = "Display"

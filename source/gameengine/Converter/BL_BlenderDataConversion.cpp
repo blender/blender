@@ -1807,11 +1807,13 @@ static KX_GameObject *gameobject_from_blenderobject(
 	
 	case OB_ARMATURE:
 	{
+		bArmature *arm = (bArmature*)ob->data;
 		gameobj = new BL_ArmatureObject(
 			kxscene,
 			KX_Scene::m_callbacks,
 			ob,
-			kxscene->GetBlenderScene() // handle
+			kxscene->GetBlenderScene(), // handle
+			arm->gevertdeformer
 		);
 		/* Get the current pose from the armature object and apply it as the rest pose */
 		break;

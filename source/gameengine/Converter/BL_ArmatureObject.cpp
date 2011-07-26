@@ -215,7 +215,8 @@ BL_ArmatureObject::BL_ArmatureObject(
 				void* sgReplicationInfo, 
 				SG_Callbacks callbacks, 
 				Object *armature,
-				Scene *scene)
+				Scene *scene,
+				int vert_deform_type)
 
 :	KX_GameObject(sgReplicationInfo,callbacks),
 	m_controlledConstraints(),
@@ -229,7 +230,8 @@ BL_ArmatureObject::BL_ArmatureObject(
 	m_activePriority(999),
 	m_constraintNumber(0),
 	m_channelNumber(0),
-	m_lastapplyframe(0.0)
+	m_lastapplyframe(0.0),
+	m_vert_deform_type(vert_deform_type)
 {
 	m_armature = (bArmature *)armature->data;
 

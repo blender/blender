@@ -36,6 +36,10 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+// Eigen2 stuff used for BGEDeformVerts
+#include <Eigen/Core>
+#include <Eigen/LU>
+
 #include "BL_SkinDeformer.h"
 #include "CTR_Map.h"
 #include "STR_HashedString.h"
@@ -54,6 +58,7 @@
 
 extern "C"{
 	#include "BKE_lattice.h"
+	#include "BKE_deform.h"
 }
  
 
@@ -176,17 +181,105 @@ void BL_SkinDeformer::ProcessReplica()
 	m_releaseobject = false;
 }
 
-//void where_is_pose (Object *ob);
-//void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts, int deformflag); 
+void BL_SkinDeformer::BlenderDeformVerts()
+{
+	float obmat[4][4];	// the original object matrix
+	Object* par_arma = m_armobj->GetArmatureObject();
+
+	// save matrix first
+	copy_m4_m4(obmat, m_objMesh->obmat);
+	// set reference matrix
+	copy_m4_m4(m_objMesh->obmat, m_obmat);
+
+	armature_deform_verts( par_arma, m_objMesh, NULL, m_transverts, NULL, m_bmesh->totvert, ARM_DEF_VGROUP, NULL, NULL );
+		
+	// restore matrix 
+	copy_m4_m4(m_objMesh->obmat, obmat);
+}
+
+void BL_SkinDeformer::BGEDeformVerts()
+{
+	Object *par_arma = m_armobj->GetArmatureObject();
+	MDeformVert *dverts = m_bmesh->dvert;
+	MDeformVert *dvert;
+	bDeformGroup *dg;
+	bPoseChannel *pchan=NULL;
+	bPoseChannel **dfnrToPC;
+	int numGroups = BLI_countlist(&m_objMesh->defbase);
+
+	if (!dverts)
+		return;
+
+	dfnrToPC = new bPoseChannel*[numGroups];
+	int i;
+	for (i=0, dg=(bDeformGroup*)m_objMesh->defbase.first;
+		dg;
+		++i, dg=(bDeformGroup*)dg->next)
+	{
+		dfnrToPC[i] = get_pose_channel(par_arma->pose, dg->name);
+
+		if (dfnrToPC[i] && dfnrToPC[i]->bone->flag & BONE_NO_DEFORM)
+			dfnrToPC[i] = NULL;
+	}
+
+
+	for (int i=0; i<m_bmesh->totvert; ++i)
+	{
+		float contrib = 0.f, weight;
+		Bone *bone;
+		Eigen::Vector4f co(0.f, 0.f, 0.f, 1.f);
+		Eigen::Vector4f vec(0, 0, 0, 1);
+		co[0] = m_transverts[i][0];
+		co[1] = m_transverts[i][1];
+		co[2] = m_transverts[i][2];
+
+		dvert = dverts+i;
+
+		if (!dvert->totweight)
+			continue;
+
+		for (int j=0; j<dvert->totweight; ++j)
+		{
+			int index = dvert->dw[j].def_nr;
+
+			if (index < numGroups && (pchan=dfnrToPC[index]))
+			{
+				weight = dvert->dw[j].weight;
+				bone = pchan->bone;
+
+				if (weight)
+				{
+					Eigen::Vector4f cop(co);
+					Eigen::Matrix4f chan_mat = Eigen::Matrix4f::Map((float*)pchan->chan_mat);
+
+					cop = chan_mat*cop;
+					vec += (cop - co)*weight;
+
+					contrib += weight;
+				}
+			}
+		}
+
+
+		if (contrib > 0.0001f)
+		{
+			vec *= 1.f/contrib;
+			co += vec;
+		}
+
+		m_transverts[i][0] = co[0];
+		m_transverts[i][1] = co[1];
+		m_transverts[i][2] = co[2];
+	}
+
+	if (dfnrToPC)
+		delete [] dfnrToPC;
+}
+
 bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 {
 	/* See if the armature has been updated for this frame */
 	if (PoseUpdated()){	
-		float obmat[4][4];	// the original object matrice 
-
-		/* XXX note: where_is_pose() (from BKE_armature.h) calculates all matrices needed to start deforming */
-		/* but it requires the blender object pointer... */
-		Object* par_arma = m_armobj->GetArmatureObject();
 
 		if(!shape_applied) {
 			/* store verts locally */
@@ -199,15 +292,15 @@ bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 
 		m_armobj->ApplyPose();
 
-		// save matrix first
-		copy_m4_m4(obmat, m_objMesh->obmat);
-		// set reference matrix
-		copy_m4_m4(m_objMesh->obmat, m_obmat);
-
-		armature_deform_verts( par_arma, m_objMesh, NULL, m_transverts, NULL, m_bmesh->totvert, ARM_DEF_VGROUP, NULL, NULL );
-		
-		// restore matrix 
-		copy_m4_m4(m_objMesh->obmat, obmat);
+		switch (m_armobj->GetVertDeformType())
+		{
+			case ARM_VDEF_BGE_CPU:
+				BGEDeformVerts();
+				break;
+			case ARM_VDEF_BLENDER:
+			default:
+				BlenderDeformVerts();
+		}
 
 #ifdef __NLA_DEFNORMALS
 		if (m_recalcNormal)
