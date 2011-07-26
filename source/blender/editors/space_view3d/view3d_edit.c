@@ -1104,15 +1104,88 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_ndof(struct wmOperatorType *ot)
+void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Navigate view";
-	ot->description = "Navigate the view using a 3D mouse.";
-	ot->idname = "VIEW3D_OT_ndof";
+	ot->name = "NDOF Orbit View";
+	ot->description = "Explore every angle of an object using the 3D mouse.";
+	ot->idname = "VIEW3D_OT_ndof_orbit";
 
 	/* api callbacks */
 	ot->invoke = ndof_orbit_invoke;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}
+
+static int ndof_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
+// -- "pan" navigation
+// -- zoom or dolly?
+{
+	RegionView3D* rv3d = CTX_wm_region_view3d(C);
+	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+
+	rv3d->rot_angle = 0.f; // we're panning here! so erase any leftover rotation from other operators
+
+	if (ndof->progress != P_FINISHING) {
+		const float dt = ndof->dt;
+		float view_inv[4];
+#if 0 // ------------------------------------------- zoom with Z
+		// tune these until everything feels right
+		const float zoom_sensitivity = 1.f;
+		const float pan_sensitivity = 1.f;
+
+		float pan_vec[3] = {
+			ndof->tx, ndof->ty, 0
+			};
+
+		// "zoom in" or "translate"? depends on zoom mode in user settings?
+		if (ndof->tz) {
+			float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
+			rv3d->dist += zoom_distance;
+		}
+	
+		mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
+#else // ------------------------------------------------------- dolly with Z
+		float speed = 10.f; // blender units per second
+		// ^^ this is ok for default cube scene, but should scale with.. something
+
+		// tune these until everything feels right
+		const float forward_sensitivity = 1.f;
+		const float vertical_sensitivity = 0.4f;
+		const float lateral_sensitivity = 0.6f;
+
+		float pan_vec[3] = {
+			lateral_sensitivity * ndof->tx,
+			vertical_sensitivity * ndof->ty,
+			forward_sensitivity * ndof->tz
+			};
+
+		mul_v3_fl(pan_vec, speed * dt);
+#endif
+		/* transform motion from view to world coordinates */
+		invert_qt_qt(view_inv, rv3d->viewquat);
+		mul_qt_v3(view_inv, pan_vec);
+
+		/* move center of view opposite of hand motion (this is camera mode, not object mode) */
+		sub_v3_v3(rv3d->ofs, pan_vec);
+	}
+
+	ED_region_tag_redraw(CTX_wm_region(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "NDOF Pan View";
+	ot->description = "Position your viewpoint with the 3D mouse.";
+	ot->idname = "VIEW3D_OT_ndof_pan";
+
+	/* api callbacks */
+	ot->invoke = ndof_pan_invoke;
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
