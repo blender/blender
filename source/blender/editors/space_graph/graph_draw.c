@@ -877,6 +877,11 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], drawFCurveFade(fcu));
 			}
 			
+			/* draw active F-Curve thicker than the rest to make it stand out */
+			if (fcu->flag & FCURVE_ACTIVE) {
+				glLineWidth(2.0);
+			}
+			
 			/* anti-aliased lines for less jagged appearance */
 			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glEnable(GL_LINE_SMOOTH);
 			glEnable(GL_BLEND);
@@ -898,6 +903,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 			
 			/* restore settings */
 			setlinestyle(0);
+			glLineWidth(1.0);
 			
 			if ((sipo->flag & SIPO_BEAUTYDRAW_OFF)==0) glDisable(GL_LINE_SMOOTH);
 			glDisable(GL_BLEND);
