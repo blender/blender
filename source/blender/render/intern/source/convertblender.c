@@ -5778,6 +5778,14 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		if(re->r.mode & R_RAYTRACE)
 			makeraytree(re);
 	
+	/* point density texture */
+	if(!re->test_break(re->tbh))
+		make_pointdensities(re);
+
+	/* voxel data texture */
+	if(!re->test_break(re->tbh))
+		make_voxeldata(re);
+
 	/* occlusion */
 	if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 		if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)

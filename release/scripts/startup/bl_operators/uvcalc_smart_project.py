@@ -243,7 +243,7 @@ def testNewVecLs2DRotIsBetter(vecs, mat=-1, bestAreaSoFar = -1):
 
         # Do this allong the way
         if mat != -1:
-            v = vecs[i] = v*mat
+            v = vecs[i] = mat * v
             x= v.x
             y= v.y
             if x<minx: minx= x
@@ -1064,7 +1064,7 @@ def main(context,
                 f_uv = f.uv
                 for j, v in enumerate(f.v):
                     # XXX - note, between mathutils in 2.4 and 2.5 the order changed.
-                    f_uv[j][:] = (v.co * MatQuat).xy
+                    f_uv[j][:] = (MatQuat * v.co).xy
 
 
         if USER_SHARE_SPACE:

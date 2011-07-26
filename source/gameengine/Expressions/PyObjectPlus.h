@@ -55,6 +55,7 @@
 #ifdef USE_MATHUTILS
 extern "C" {
 #include "../../blender/python/mathutils/mathutils.h" /* so we can have mathutils callbacks */
+#include "../../blender/python/generic/py_capi_utils.h" /* for PyC_LineSpit only */
 }
 #endif
 
