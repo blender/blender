@@ -68,6 +68,8 @@ set(SRC
 	FX/AUD_SuperposeReader.cpp
 	FX/AUD_VolumeFactory.cpp
 	intern/AUD_3DMath.h
+	intern/AUD_AnimateableProperty.cpp
+	intern/AUD_AnimateableProperty.h
 	intern/AUD_Buffer.cpp
 	intern/AUD_Buffer.h
 	intern/AUD_BufferReader.cpp
@@ -109,8 +111,12 @@ set(SRC
 	intern/AUD_ReferenceHandler.cpp
 	intern/AUD_ResampleReader.cpp
 	intern/AUD_ResampleReader.h
+	intern/AUD_SequencerEntry.cpp
+	intern/AUD_SequencerEntry.h
 	intern/AUD_SequencerFactory.cpp
 	intern/AUD_SequencerFactory.h
+	intern/AUD_SequencerHandle.cpp
+	intern/AUD_SequencerHandle.h
 	intern/AUD_SequencerReader.cpp
 	intern/AUD_SequencerReader.h
 	intern/AUD_SilenceFactory.cpp

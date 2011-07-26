@@ -33,6 +33,8 @@
 
 #include <map>
 
+// #define MEM_DEBUG
+
 #ifdef MEM_DEBUG
 #include <iostream>
 #include <typeinfo>
@@ -89,14 +91,22 @@ public:
 	 * Creates a new reference counter.
 	 * \param reference The reference.
 	 */
-	AUD_Reference(T* reference = 0)
+	template <class U>
+	AUD_Reference(U* reference)
 	{
-		m_original = m_reference = reference;
-		AUD_ReferenceHandler::incref(reference);
+		m_original = reference;
+		m_reference = dynamic_cast<T*>(reference);
+		AUD_ReferenceHandler::incref(m_original);
 #ifdef MEM_DEBUG
 		if(m_reference != 0)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
 #endif
+	}
+
+	AUD_Reference()
+	{
+		m_original = 0;
+		m_reference = 0;
 	}
 
 	/**
@@ -105,8 +115,9 @@ public:
 	 */
 	AUD_Reference(const AUD_Reference& ref)
 	{
-		m_original = m_reference = ref.m_reference;
-		AUD_ReferenceHandler::incref(m_reference);
+		m_original = ref.m_original;
+		m_reference = ref.m_reference;
+		AUD_ReferenceHandler::incref(m_original);
 #ifdef MEM_DEBUG
 		if(m_reference != 0)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;

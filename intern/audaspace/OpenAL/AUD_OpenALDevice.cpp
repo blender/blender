@@ -1168,7 +1168,7 @@ AUD_Reference<AUD_IHandle> AUD_OpenALDevice::play(AUD_Reference<AUD_IReader> rea
 
 	// check format
 	if(specs.channels == AUD_CHANNELS_INVALID)
-		return NULL;
+		return AUD_Reference<AUD_IHandle>();
 
 	if(m_specs.format != AUD_FORMAT_FLOAT32)
 		reader = new AUD_ConverterReader(reader, m_specs);
@@ -1176,7 +1176,7 @@ AUD_Reference<AUD_IHandle> AUD_OpenALDevice::play(AUD_Reference<AUD_IReader> rea
 	ALenum format;
 
 	if(!getFormat(format, specs))
-		return NULL;
+		return AUD_Reference<AUD_IHandle>();
 
 	lock();
 	alcSuspendContext(m_context);

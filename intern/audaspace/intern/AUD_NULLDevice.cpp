@@ -51,12 +51,12 @@ AUD_DeviceSpecs AUD_NULLDevice::getSpecs() const
 
 AUD_Reference<AUD_IHandle> AUD_NULLDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 {
-	return 0;
+	return AUD_Reference<AUD_IHandle>();
 }
 
 AUD_Reference<AUD_IHandle> AUD_NULLDevice::play(AUD_Reference<AUD_IFactory> factory, bool keep)
 {
-	return 0;
+	return AUD_Reference<AUD_IHandle>();
 }
 
 void AUD_NULLDevice::lock()

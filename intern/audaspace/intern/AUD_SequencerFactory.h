@@ -33,60 +33,70 @@
 #define AUD_SEQUENCERFACTORY
 
 #include "AUD_IFactory.h"
+#include "AUD_AnimateableProperty.h"
 
 #include <list>
 
-typedef float (*AUD_volumeFunction)(void*, void*, float);
+class AUD_SequencerEntry;
 
-struct AUD_SequencerEntry
-{
-	AUD_Reference<AUD_IFactory>** sound;
-	float begin;
-	float end;
-	float skip;
-	bool muted;
-	void* data;
-};
-
-class AUD_SequencerReader;
-
+// AUD_XXX TODO: This class is not thread safe yet!
 /**
  * This factory creates a resampling reader that does simple linear resampling.
  */
 class AUD_SequencerFactory : public AUD_IFactory
 {
+	friend class AUD_SequencerReader;
 private:
 	/**
 	 * The target specification.
 	 */
 	AUD_Specs m_specs;
 
+	int m_status;
+	int m_entry_status;
+	int m_id;
 	std::list<AUD_Reference<AUD_SequencerEntry> > m_entries;
-	std::list<AUD_Reference<AUD_SequencerReader> > m_readers;
 	bool m_muted;
-	void* m_data;
-	AUD_volumeFunction m_volume;
+
+	float m_fps;
+
+	float m_speed_of_sound;
+	float m_doppler_factor;
+	AUD_DistanceModel m_distance_model;
+
+	AUD_AnimateableProperty m_volume;
+	AUD_AnimateableProperty m_location;
+	AUD_AnimateableProperty m_orientation;
 
 	// hide copy constructor and operator=
 	AUD_SequencerFactory(const AUD_SequencerFactory&);
 	AUD_SequencerFactory& operator=(const AUD_SequencerFactory&);
 
 public:
-	AUD_SequencerFactory(AUD_Specs specs, bool muted, void* data, AUD_volumeFunction volume);
+	AUD_SequencerFactory(AUD_Specs specs, float fps, bool muted);
 	~AUD_SequencerFactory();
 
 	void setSpecs(AUD_Specs specs);
+	void setFPS(float fps);
 
 	void mute(bool muted);
 	bool getMute() const;
-	AUD_Reference<AUD_SequencerEntry> add(AUD_Reference<AUD_IFactory>** sound, float begin, float end, float skip, void* data);
+
+	void setSpeedOfSound(float speed);
+	float getSpeedOfSound() const;
+
+	void setDopplerFactor(float factor);
+	float getDopplerFactor() const;
+
+	void setDistanceModel(AUD_DistanceModel model);
+	AUD_DistanceModel getDistanceModel() const;
+
+	AUD_AnimateableProperty* getAnimProperty(AUD_AnimateablePropertyType type);
+
+	AUD_Reference<AUD_SequencerEntry> add(AUD_Reference<AUD_IFactory> sound, float begin, float end, float skip);
 	void remove(AUD_Reference<AUD_SequencerEntry> entry);
-	void move(AUD_Reference<AUD_SequencerEntry> entry, float begin, float end, float skip);
-	void mute(AUD_Reference<AUD_SequencerEntry> entry, bool mute);
 
 	virtual AUD_Reference<AUD_IReader> createReader();
-
-	void removeReader(AUD_Reference<AUD_SequencerReader> reader);
 };
 
 #endif //AUD_SEQUENCERFACTORY

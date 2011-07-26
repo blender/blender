@@ -41,7 +41,7 @@
 #include "BKE_sound.h"
 #include "BKE_context.h"
 
-static void rna_Sound_filepath_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sound_filepath_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	sound_load(bmain, (bSound*)ptr->data);
 }
@@ -59,6 +59,11 @@ static void rna_Sound_caching_set(PointerRNA *ptr, const int value)
 		sound_cache(sound, 0);
 	else
 		sound_delete_cache(sound);
+}
+
+static void rna_Sound_caching_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	sound_update_sequencer(bmain, (bSound*)(ptr->data));
 }
 
 #else
@@ -87,7 +92,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_memory_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Sound_caching_get", "rna_Sound_caching_set");
 	RNA_def_property_ui_text(prop, "Caching", "The sound file is decoded and loaded into RAM");
-	RNA_def_property_update(prop, 0, "rna_Sound_filepath_update");
+	RNA_def_property_update(prop, 0, "rna_Sound_caching_update");
 }
 
 void RNA_def_sound(BlenderRNA *brna)

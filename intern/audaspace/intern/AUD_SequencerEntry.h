@@ -24,74 +24,64 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_I3DHandle.h
+/** \file audaspace/intern/AUD_SequencerEntry.h
  *  \ingroup audaspaceintern
  */
 
 
-#ifndef AUD_I3DHANDLE
-#define AUD_I3DHANDLE
+#ifndef AUD_SEQUENCERENTRY
+#define AUD_SEQUENCERENTRY
 
-#include "AUD_Space.h"
-#include "AUD_3DMath.h"
+#include "AUD_Reference.h"
+#include "AUD_AnimateableProperty.h"
+#include "AUD_IFactory.h"
 
-/**
- * This class represents an output device for 3D sound.
- */
-class AUD_I3DHandle
+class AUD_SequencerEntry
 {
+	friend class AUD_SequencerHandle;
+private:
+	int m_status;
+	int m_pos_status;
+	int m_sound_status;
+	int m_id;
+
+	AUD_Reference<AUD_IFactory> m_sound;
+	float m_begin;
+	float m_end;
+	float m_skip;
+	bool m_muted;
+	bool m_relative;
+	float m_volume_max;
+	float m_volume_min;
+	float m_distance_max;
+	float m_distance_reference;
+	float m_attenuation;
+	float m_cone_angle_outer;
+	float m_cone_angle_inner;
+	float m_cone_volume_outer;
+
+	AUD_AnimateableProperty m_volume;
+	AUD_AnimateableProperty m_panning;
+	AUD_AnimateableProperty m_pitch;
+	AUD_AnimateableProperty m_location;
+	AUD_AnimateableProperty m_orientation;
+
 public:
-	/**
-	 * Destroys the handle.
-	 */
-	virtual ~AUD_I3DHandle() {}
+	AUD_SequencerEntry(AUD_Reference<AUD_IFactory> sound, float begin, float end, float skip, int id);
 
-	/**
-	 * Retrieves the location of a source.
-	 * \return The location.
-	 */
-	virtual AUD_Vector3 getSourceLocation()=0;
+	void setSound(AUD_Reference<AUD_IFactory> sound);
 
-	/**
-	 * Sets the location of a source.
-	 * \param location The new location.
-	 * \return Whether the action succeeded.
-	 */
-	virtual bool setSourceLocation(const AUD_Vector3& location)=0;
+	void move(float begin, float end, float skip);
+	void mute(bool mute);
 
-	/**
-	 * Retrieves the velocity of a source.
-	 * \return The velocity.
-	 */
-	virtual AUD_Vector3 getSourceVelocity()=0;
-
-	/**
-	 * Sets the velocity of a source.
-	 * \param velocity The new velocity.
-	 * \return Whether the action succeeded.
-	 */
-	virtual bool setSourceVelocity(const AUD_Vector3& velocity)=0;
-
-	/**
-	 * Retrieves the orientation of a source.
-	 * \return The orientation as quaternion.
-	 */
-	virtual AUD_Quaternion getSourceOrientation()=0;
-
-	/**
-	 * Sets the orientation of a source.
-	 * \param orientation The new orientation as quaternion.
-	 * \return Whether the action succeeded.
-	 */
-	virtual bool setSourceOrientation(const AUD_Quaternion& orientation)=0;
-
+	int getID() const;
 
 	/**
 	 * Checks whether the source location, velocity and orientation are relative
 	 * to the listener.
 	 * \return Whether the source is relative.
 	 */
-	virtual bool isRelative()=0;
+	bool isRelative();
 
 	/**
 	 * Sets whether the source location, velocity and orientation are relative
@@ -99,33 +89,33 @@ public:
 	 * \param relative Whether the source is relative.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setRelative(bool relative)=0;
+	void setRelative(bool relative);
 
 	/**
 	 * Retrieves the maximum volume of a source.
 	 * \return The maximum volume.
 	 */
-	virtual float getVolumeMaximum()=0;
+	float getVolumeMaximum();
 
 	/**
 	 * Sets the maximum volume of a source.
 	 * \param volume The new maximum volume.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setVolumeMaximum(float volume)=0;
+	void setVolumeMaximum(float volume);
 
 	/**
 	 * Retrieves the minimum volume of a source.
 	 * \return The minimum volume.
 	 */
-	virtual float getVolumeMinimum()=0;
+	float getVolumeMinimum();
 
 	/**
 	 * Sets the minimum volume of a source.
 	 * \param volume The new minimum volume.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setVolumeMinimum(float volume)=0;
+	void setVolumeMinimum(float volume);
 
 	/**
 	 * Retrieves the maximum distance of a source.
@@ -133,7 +123,7 @@ public:
 	 * volume will automatically be set to 0.
 	 * \return The maximum distance.
 	 */
-	virtual float getDistanceMaximum()=0;
+	float getDistanceMaximum();
 
 	/**
 	 * Sets the maximum distance of a source.
@@ -142,26 +132,26 @@ public:
 	 * \param distance The new maximum distance.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setDistanceMaximum(float distance)=0;
+	void setDistanceMaximum(float distance);
 
 	/**
 	 * Retrieves the reference distance of a source.
 	 * \return The reference distance.
 	 */
-	virtual float getDistanceReference()=0;
+	float getDistanceReference();
 
 	/**
 	 * Sets the reference distance of a source.
 	 * \param distance The new reference distance.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setDistanceReference(float distance)=0;
+	void setDistanceReference(float distance);
 
 	/**
 	 * Retrieves the attenuation of a source.
 	 * \return The attenuation.
 	 */
-	virtual float getAttenuation()=0;
+	float getAttenuation();
 
 	/**
 	 * Sets the attenuation of a source.
@@ -169,33 +159,33 @@ public:
 	 * \param factor The new attenuation.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setAttenuation(float factor)=0;
+	void setAttenuation(float factor);
 
 	/**
 	 * Retrieves the outer angle of the cone of a source.
 	 * \return The outer angle of the cone.
 	 */
-	virtual float getConeAngleOuter()=0;
+	float getConeAngleOuter();
 
 	/**
 	 * Sets the outer angle of the cone of a source.
 	 * \param angle The new outer angle of the cone.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setConeAngleOuter(float angle)=0;
+	void setConeAngleOuter(float angle);
 
 	/**
 	 * Retrieves the inner angle of the cone of a source.
 	 * \return The inner angle of the cone.
 	 */
-	virtual float getConeAngleInner()=0;
+	float getConeAngleInner();
 
 	/**
 	 * Sets the inner angle of the cone of a source.
 	 * \param angle The new inner angle of the cone.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setConeAngleInner(float angle)=0;
+	void setConeAngleInner(float angle);
 
 	/**
 	 * Retrieves the outer volume of the cone of a source.
@@ -203,7 +193,7 @@ public:
 	 * volume and this value.
 	 * \return The outer volume of the cone.
 	 */
-	virtual float getConeVolumeOuter()=0;
+	float getConeVolumeOuter();
 
 	/**
 	 * Sets the outer volume of the cone of a source.
@@ -212,7 +202,7 @@ public:
 	 * \param volume The new outer volume of the cone.
 	 * \return Whether the action succeeded.
 	 */
-	virtual bool setConeVolumeOuter(float volume)=0;
+	void setConeVolumeOuter(float volume);
 };
 
-#endif //AUD_I3DHANDLE
+#endif //AUD_SEQUENCERENTRY

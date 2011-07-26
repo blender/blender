@@ -61,8 +61,8 @@ typedef enum
 /********************** AUD_SoftwareHandle Handle Code ************************/
 /******************************************************************************/
 
-AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, AUD_Reference<AUD_ChannelMapperReader> mapper, bool keep) :
-	m_reader(reader), m_pitch(pitch), m_mapper(mapper), m_keep(keep), m_user_pitch(1.0f), m_user_volume(1.0f), m_volume(1.0f), m_loopcount(0),
+AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, AUD_Reference<AUD_ResampleReader> resampler, AUD_Reference<AUD_ChannelMapperReader> mapper, bool keep) :
+	m_reader(reader), m_pitch(pitch), m_resampler(resampler), m_mapper(mapper), m_keep(keep), m_user_pitch(1.0f), m_user_volume(1.0f), m_volume(1.0f), m_loopcount(0),
 	m_relative(false), m_volume_max(1.0f), m_volume_min(0), m_distance_max(std::numeric_limits<float>::max()),
 	m_distance_reference(1.0f), m_attenuation(1.0f), m_cone_angle_outer(M_PI), m_cone_angle_inner(M_PI), m_cone_volume_outer(0),
 	m_flags(AUD_RENDER_CONE), m_stop(NULL), m_stop_data(NULL), m_status(AUD_STATUS_PLAYING), m_device(device)
@@ -212,6 +212,12 @@ void AUD_SoftwareDevice::AUD_SoftwareHandle::update()
 	}
 	else
 		m_mapper->setMonoAngle(0);
+}
+
+void AUD_SoftwareDevice::AUD_SoftwareHandle::setSpecs(AUD_Specs specs)
+{
+	m_mapper->setChannels(specs.channels);
+	m_resampler->setRate(specs.rate);
 }
 
 bool AUD_SoftwareDevice::AUD_SoftwareHandle::pause()
@@ -762,6 +768,17 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 	unlock();
 }
 
+void AUD_SoftwareDevice::setSpecs(AUD_Specs specs)
+{
+	m_specs.specs = specs;
+	m_mixer->setSpecs(specs);
+
+	for(AUD_HandleIterator it = m_playingSounds.begin(); it != m_playingSounds.end(); it++)
+	{
+		(*it)->setSpecs(specs);
+	}
+}
+
 AUD_DeviceSpecs AUD_SoftwareDevice::getSpecs() const
 {
 	return m_specs;
@@ -775,22 +792,25 @@ AUD_Reference<AUD_IHandle> AUD_SoftwareDevice::play(AUD_Reference<AUD_IReader> r
 	AUD_Reference<AUD_PitchReader> pitch = new AUD_PitchReader(reader, 1);
 	reader = AUD_Reference<AUD_IReader>(pitch);
 
+	AUD_Reference<AUD_ResampleReader> resampler;
+
 	// resample
 	#ifdef WITH_SAMPLERATE
-		reader = new AUD_SRCResampleReader(reader, m_specs.specs);
+		resampler = new AUD_SRCResampleReader(reader, m_specs.specs);
 	#else
-		reader = new AUD_LinearResampleReader(reader, m_specs.specs);
+		resampler = new AUD_LinearResampleReader(reader, m_specs.specs);
 	#endif
+	reader = AUD_Reference<AUD_IReader>(resampler);
 
 	// rechannel
 	AUD_Reference<AUD_ChannelMapperReader> mapper = new AUD_ChannelMapperReader(reader, m_specs.channels);
 	reader = AUD_Reference<AUD_IReader>(mapper);
 
 	if(reader.isNull())
-		return NULL;
+		return AUD_Reference<AUD_IHandle>();
 
 	// play sound
-	AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> sound = new AUD_SoftwareDevice::AUD_SoftwareHandle(this, reader, pitch, mapper, keep);
+	AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> sound = new AUD_SoftwareDevice::AUD_SoftwareHandle(this, reader, pitch, resampler, mapper, keep);
 
 	lock();
 	m_playingSounds.push_back(sound);

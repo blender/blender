@@ -5590,7 +5590,7 @@ static void lib_link_sound(FileData *fd, Main *main)
 			sound_load(main, sound);
 
 			if(sound->cache)
-				sound_cache(sound, 1);
+				sound_cache_notifying(main, sound, 1);
 		}
 		sound= sound->id.next;
 	}

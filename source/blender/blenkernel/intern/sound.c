@@ -34,6 +34,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
+#include "BKE_sequencer.h"
 
 
 struct bSound* sound_new_file(struct Main *bmain, const char *filename)
@@ -257,6 +258,12 @@ void sound_cache(struct bSound* sound, int ignore)
 	sound->playback_handle = sound->cache;
 }
 
+void sound_cache_notifying(struct Main* main, struct bSound* sound, int ignore)
+{
+	sound_cache(sound, ignore);
+	sound_update_sequencer(main, sound);
+}
+
 void sound_delete_cache(struct bSound* sound)
 {
 	if(sound->cache)
@@ -326,24 +333,9 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			sound->playback_handle = sound->cache;
 		else
 			sound->playback_handle = sound->handle;
-	}
-}
 
-static float sound_get_volume(Scene* scene, Sequence* sequence, float time)
-{
-	AnimData *adt= BKE_animdata_from_id(&scene->id);
-	FCurve *fcu = NULL;
-	char buf[64];
-	
-	/* NOTE: this manually constructed path needs to be used here to avoid problems with RNA crashes */
-	sprintf(buf, "sequence_editor.sequences_all[\"%s\"].volume", sequence->name+2);
-	if (adt && adt->action && adt->action->curves.first)
-		fcu= list_find_fcurve(&adt->action->curves, buf, 0);
-	
-	if(fcu)
-		return evaluate_fcurve(fcu, time * (float)FPS);
-	else
-		return sequence->volume;
+		sound_update_sequencer(bmain, sound);
+	}
 }
 
 AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
@@ -360,7 +352,7 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start,
 
 void sound_create_scene(struct Scene *scene)
 {
-	scene->sound_scene = AUD_createSequencer(scene->audio.flag & AUDIO_MUTE, scene, (AUD_volumeFunction)&sound_get_volume);
+	scene->sound_scene = AUD_createSequencer(FPS, scene->audio.flag & AUDIO_MUTE);
 	scene->sound_scene_handle = NULL;
 	scene->sound_scrub_handle = NULL;
 }
@@ -381,31 +373,50 @@ void sound_mute_scene(struct Scene *scene, int muted)
 		AUD_setSequencerMuted(scene->sound_scene, muted);
 }
 
+void sound_update_fps(struct Scene *scene)
+{
+	if(scene->sound_scene)
+		AUD_setSequencerFPS(scene->sound_scene, FPS);
+}
+
 void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)
 {
 	if(scene != sequence->scene)
-		return AUD_addSequencer(scene->sound_scene, &(sequence->scene->sound_scene), startframe / FPS, endframe / FPS, frameskip / FPS, sequence);
+		return AUD_addSequence(scene->sound_scene, sequence->scene->sound_scene, startframe / FPS, endframe / FPS, frameskip / FPS);
 	return NULL;
 }
 
 void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)
 {
-	return AUD_addSequencer(scene->sound_scene, &(sequence->sound->playback_handle), startframe / FPS, endframe / FPS, frameskip / FPS, sequence);
+	return AUD_addSequence(scene->sound_scene, sequence->sound->playback_handle, startframe / FPS, endframe / FPS, frameskip / FPS);
 }
 
 void sound_remove_scene_sound(struct Scene *scene, void* handle)
 {
-	AUD_removeSequencer(scene->sound_scene, handle);
+	AUD_removeSequence(scene->sound_scene, handle);
 }
 
 void sound_mute_scene_sound(struct Scene *scene, void* handle, char mute)
 {
-	AUD_muteSequencer(scene->sound_scene, handle, mute);
+	AUD_muteSequence(handle, mute);
 }
 
 void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, int endframe, int frameskip)
 {
-	AUD_moveSequencer(scene->sound_scene, handle, startframe / FPS, endframe / FPS, frameskip / FPS);
+	AUD_moveSequence(handle, startframe / FPS, endframe / FPS, frameskip / FPS);
+}
+
+void sound_update_scene_sound(void* handle, struct bSound* sound)
+{
+	AUD_updateSequenceSound(handle, sound->playback_handle);
+}
+
+void sound_update_sequencer(struct Main* main, struct bSound* sound)
+{
+	struct Scene* scene;
+
+	for(scene = main->scene.first; scene; scene = scene->id.next)
+		seq_update_sound(scene, sound);
 }
 
 static void sound_start_play_scene(struct Scene *scene)

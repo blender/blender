@@ -65,6 +65,7 @@
 #include "AUD_ReadDevice.h"
 #include "AUD_IReader.h"
 #include "AUD_SequencerFactory.h"
+#include "AUD_SequencerEntry.h"
 #include "AUD_SilenceFactory.h"
 
 #ifdef WITH_SDL
@@ -112,7 +113,7 @@ void AUD_initOnce()
 
 int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 {
-	AUD_Reference<AUD_IDevice> dev = NULL;
+	AUD_Reference<AUD_IDevice> dev;
 
 	if(!AUD_device.isNull())
 		AUD_exit();
@@ -156,7 +157,7 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 
 void AUD_exit()
 {
-	AUD_device = NULL;
+	AUD_device = AUD_Reference<AUD_IDevice>();
 	AUD_3ddevice = NULL;
 }
 
@@ -880,14 +881,14 @@ AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, float seconds)
 	return NULL;
 }
 
-AUD_Sound* AUD_createSequencer(int muted, void* data, AUD_volumeFunction volume)
+AUD_Sound* AUD_createSequencer(float fps, int muted)
 {
 	// specs are changed at a later point!
 	AUD_Specs specs;
 	specs.channels = AUD_CHANNELS_STEREO;
 	specs.rate = AUD_RATE_44100;
-	AUD_Reference<AUD_SequencerFactory>* sequencer = new AUD_Reference<AUD_SequencerFactory>(new AUD_SequencerFactory(specs, muted, data, volume));
-	return reinterpret_cast<AUD_Sound*>(sequencer);
+	AUD_Sound* sequencer = new AUD_Sound(AUD_Reference<AUD_SequencerFactory>(new AUD_SequencerFactory(specs, fps, muted)));
+	return sequencer;
 }
 
 void AUD_destroySequencer(AUD_Sound* sequencer)
@@ -900,27 +901,41 @@ void AUD_setSequencerMuted(AUD_Sound* sequencer, int muted)
 	((AUD_SequencerFactory*)sequencer->get())->mute(muted);
 }
 
-AUD_Reference<AUD_SequencerEntry>* AUD_addSequencer(AUD_Sound* sequencer, AUD_Sound** sound,
-								 float begin, float end, float skip, void* data)
+void AUD_setSequencerFPS(AUD_Sound* sequencer, float fps)
 {
-	return new AUD_Reference<AUD_SequencerEntry>(((AUD_SequencerFactory*)sequencer->get())->add(sound, begin, end, skip, data));
+	((AUD_SequencerFactory*)sequencer->get())->setFPS(fps);
 }
 
-void AUD_removeSequencer(AUD_Sound* sequencer, AUD_Reference<AUD_SequencerEntry>* entry)
+AUD_SEntry* AUD_addSequence(AUD_Sound* sequencer, AUD_Sound* sound,
+							 float begin, float end, float skip)
+{
+	if(!sound)
+		return new AUD_SEntry(((AUD_SequencerFactory*)sequencer->get())->add(AUD_Sound(), begin, end, skip));
+	return new AUD_SEntry(((AUD_SequencerFactory*)sequencer->get())->add(*sound, begin, end, skip));
+}
+
+void AUD_removeSequence(AUD_Sound* sequencer, AUD_SEntry* entry)
 {
 	((AUD_SequencerFactory*)sequencer->get())->remove(*entry);
 	delete entry;
 }
 
-void AUD_moveSequencer(AUD_Sound* sequencer, AUD_Reference<AUD_SequencerEntry>* entry,
-				   float begin, float end, float skip)
+void AUD_moveSequence(AUD_SEntry* entry, float begin, float end, float skip)
 {
-	((AUD_SequencerFactory*)sequencer->get())->move(*entry, begin, end, skip);
+	(*entry)->move(begin, end, skip);
 }
 
-void AUD_muteSequencer(AUD_Sound* sequencer, AUD_Reference<AUD_SequencerEntry>* entry, char mute)
+void AUD_muteSequence(AUD_SEntry* entry, char mute)
 {
-	((AUD_SequencerFactory*)sequencer->get())->mute(*entry, mute);
+	(*entry)->mute(mute);
+}
+
+void AUD_updateSequenceSound(AUD_SEntry* entry, AUD_Sound* sound)
+{
+	if(sound)
+		(*entry)->setSound(*sound);
+	else
+		(*entry)->setSound(AUD_Sound());
 }
 
 void AUD_setSequencerDeviceSpecs(AUD_Sound* sequencer)
@@ -931,6 +946,71 @@ void AUD_setSequencerDeviceSpecs(AUD_Sound* sequencer)
 void AUD_setSequencerSpecs(AUD_Sound* sequencer, AUD_Specs specs)
 {
 	((AUD_SequencerFactory*)sequencer->get())->setSpecs(specs);
+}
+
+void AUD_seekSequencer(AUD_Handle* handle, float time)
+{
+#ifdef WITH_JACK
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
+	if(device)
+		device->seekPlayback(time);
+	else
+#endif
+	{
+		assert(handle);
+		(*handle)->seek(time);
+	}
+}
+
+float AUD_getSequencerPosition(AUD_Handle* handle)
+{
+#ifdef WITH_JACK
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
+	if(device)
+		return device->getPlaybackPosition();
+	else
+#endif
+	{
+		assert(handle);
+		return (*handle)->getPosition();
+	}
+}
+
+void AUD_startPlayback()
+{
+#ifdef WITH_JACK
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
+	if(device)
+		device->startPlayback();
+#endif
+}
+
+void AUD_stopPlayback()
+{
+#ifdef WITH_JACK
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
+	if(device)
+		device->stopPlayback();
+#endif
+}
+
+#ifdef WITH_JACK
+void AUD_setSyncCallback(AUD_syncFunction function, void* data)
+{
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
+	if(device)
+		device->setSyncCallback(function, data);
+}
+#endif
+
+int AUD_doesPlayback()
+{
+#ifdef WITH_JACK
+	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
+	if(device)
+		return device->doesPlayback();
+#endif
+	return -1;
 }
 
 int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
@@ -981,71 +1061,6 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 	}
 
 	return length;
-}
-
-void AUD_startPlayback()
-{
-#ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
-	if(device)
-		device->startPlayback();
-#endif
-}
-
-void AUD_stopPlayback()
-{
-#ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
-	if(device)
-		device->stopPlayback();
-#endif
-}
-
-void AUD_seekSequencer(AUD_Handle* handle, float time)
-{
-#ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
-	if(device)
-		device->seekPlayback(time);
-	else
-#endif
-	{
-		assert(handle);
-		(*handle)->seek(time);
-	}
-}
-
-float AUD_getSequencerPosition(AUD_Handle* handle)
-{
-#ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
-	if(device)
-		return device->getPlaybackPosition();
-	else
-#endif
-	{
-		assert(handle);
-		return (*handle)->getPosition();
-	}
-}
-
-#ifdef WITH_JACK
-void AUD_setSyncCallback(AUD_syncFunction function, void* data)
-{
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
-	if(device)
-		device->setSyncCallback(function, data);
-}
-#endif
-
-int AUD_doesPlayback()
-{
-#ifdef WITH_JACK
-	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device.get());
-	if(device)
-		return device->doesPlayback();
-#endif
-	return -1;
 }
 
 AUD_Sound* AUD_copy(AUD_Sound* sound)

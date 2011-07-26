@@ -452,42 +452,44 @@ extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
  */
 extern AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, float seconds);
 
-extern AUD_Sound* AUD_createSequencer(int muted, void* data, AUD_volumeFunction volume);
+extern AUD_Sound* AUD_createSequencer(float fps, int muted);
 
 extern void AUD_destroySequencer(AUD_Sound* sequencer);
 
 extern void AUD_setSequencerMuted(AUD_Sound* sequencer, int muted);
 
-extern AUD_SEntry* AUD_addSequencer(AUD_Sound* sequencer, AUD_Sound** sound,
-										float begin, float end, float skip, void* data);
+extern void AUD_setSequencerFPS(AUD_Sound* sequencer, float fps);
 
-extern void AUD_removeSequencer(AUD_Sound* sequencer, AUD_SEntry* entry);
+extern AUD_SEntry* AUD_addSequence(AUD_Sound* sequencer, AUD_Sound* sound,
+								   float begin, float end, float skip);
 
-extern void AUD_moveSequencer(AUD_Sound* sequencer, AUD_SEntry* entry,
-						  float begin, float end, float skip);
+extern void AUD_removeSequence(AUD_Sound* sequencer, AUD_SEntry* entry);
 
-extern void AUD_muteSequencer(AUD_Sound* sequencer, AUD_SEntry* entry,
-						  char mute);
+extern void AUD_moveSequence(AUD_SEntry* entry, float begin, float end, float skip);
+
+extern void AUD_muteSequence(AUD_SEntry* entry, char mute);
+
+extern void AUD_updateSequenceSound(AUD_SEntry* entry, AUD_Sound* sound);
 
 extern void AUD_setSequencerDeviceSpecs(AUD_Sound* sequencer);
 
 extern void AUD_setSequencerSpecs(AUD_Sound* sequencer, AUD_Specs specs);
 
-extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length);
+extern void AUD_seekSequencer(AUD_Handle* handle, float time);
+
+extern float AUD_getSequencerPosition(AUD_Handle* handle);
 
 extern void AUD_startPlayback(void);
 
 extern void AUD_stopPlayback(void);
-
-extern void AUD_seekSequencer(AUD_Handle* handle, float time);
-
-extern float AUD_getSequencerPosition(AUD_Handle* handle);
 
 #ifdef WITH_JACK
 extern void AUD_setSyncCallback(AUD_syncFunction function, void* data);
 #endif
 
 extern int AUD_doesPlayback(void);
+
+extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length);
 
 extern AUD_Sound* AUD_copy(AUD_Sound* sound);
 

@@ -33,20 +33,9 @@
 #define AUD_SEQUENCERREADER
 
 #include "AUD_IReader.h"
+#include "AUD_ReadDevice.h"
 #include "AUD_SequencerFactory.h"
-#include "AUD_Buffer.h"
-#include "AUD_Mixer.h"
-#include "AUD_ResampleReader.h"
-#include "AUD_ChannelMapperReader.h"
-
-struct AUD_SequencerStrip
-{
-	AUD_Reference<AUD_IReader> reader;
-	AUD_Reference<AUD_ResampleReader> resampler;
-	AUD_Reference<AUD_ChannelMapperReader> mapper;
-	AUD_Reference<AUD_SequencerEntry> entry;
-	AUD_Reference<AUD_IFactory>* old_sound;
-};
+#include "AUD_SequencerHandle.h"
 
 /**
  * This resampling reader uses libsamplerate for resampling.
@@ -60,24 +49,19 @@ private:
 	int m_position;
 
 	/**
-	 * The reading buffer.
+	 * The read device used to mix the sounds correctly.
 	 */
-	AUD_Buffer m_buffer;
-
-	/**
-	 * The target specification.
-	 */
-	AUD_Reference<AUD_Mixer> m_mixer;
+	AUD_ReadDevice m_device;
 
 	/**
 	 * Saves the SequencerFactory the reader belongs to.
 	 */
 	AUD_Reference<AUD_SequencerFactory> m_factory;
 
-	std::list<AUD_Reference<AUD_SequencerStrip> > m_strips;
+	std::list<AUD_Reference<AUD_SequencerHandle> > m_handles;
 
-	void* m_data;
-	AUD_volumeFunction m_volume;
+	int m_status;
+	int m_entry_status;
 
 	// hide copy constructor and operator=
 	AUD_SequencerReader(const AUD_SequencerReader&);
@@ -89,16 +73,12 @@ public:
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 */
-	AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory, std::list<AUD_Reference<AUD_SequencerEntry> > &entries, const AUD_Specs specs, void* data, AUD_volumeFunction volume);
+	AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory);
 
 	/**
 	 * Destroys the reader.
 	 */
 	~AUD_SequencerReader();
-
-	void add(AUD_Reference<AUD_SequencerEntry> entry);
-	void remove(AUD_Reference<AUD_SequencerEntry> entry);
-	void setSpecs(AUD_Specs specs);
 
 	virtual bool isSeekable() const;
 	virtual void seek(int position);

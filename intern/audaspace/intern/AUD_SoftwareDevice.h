@@ -39,6 +39,7 @@
 #include "AUD_Mixer.h"
 #include "AUD_Buffer.h"
 #include "AUD_PitchReader.h"
+#include "AUD_ResampleReader.h"
 #include "AUD_ChannelMapperReader.h"
 
 #include <list>
@@ -64,6 +65,9 @@ protected:
 
 		/// The pitch reader in between.
 		AUD_Reference<AUD_PitchReader> m_pitch;
+
+		/// The resample reader in between.
+		AUD_Reference<AUD_ResampleReader> m_resampler;
 
 		/// The channel mapper reader in between.
 		AUD_Reference<AUD_ChannelMapperReader> m_mapper;
@@ -136,9 +140,10 @@ protected:
 
 	public:
 
-		AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, AUD_Reference<AUD_ChannelMapperReader> mapper, bool keep);
+		AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, AUD_Reference<AUD_ResampleReader> resampler, AUD_Reference<AUD_ChannelMapperReader> mapper, bool keep);
 
 		void update();
+		void setSpecs(AUD_Specs specs);
 
 		virtual ~AUD_SoftwareHandle() {}
 		virtual bool pause();
@@ -217,6 +222,8 @@ protected:
 	 * \param playing True if device should playback.
 	 */
 	virtual void playing(bool playing)=0;
+
+	void setSpecs(AUD_Specs specs);
 
 private:
 	/**

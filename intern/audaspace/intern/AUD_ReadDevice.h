@@ -60,6 +60,12 @@ public:
 	AUD_ReadDevice(AUD_DeviceSpecs specs);
 
 	/**
+	 * Creates a new read device.
+	 * \param specs The wanted audio specification.
+	 */
+	AUD_ReadDevice(AUD_Specs specs);
+
+	/**
 	 * Closes the device.
 	 */
 	virtual ~AUD_ReadDevice();
@@ -73,6 +79,8 @@ public:
 	 *         silence.
 	 */
 	bool read(data_t* buffer, int length);
+
+	void changeSpecs(AUD_Specs specs);
 };
 
 #endif //AUD_READDEVICE

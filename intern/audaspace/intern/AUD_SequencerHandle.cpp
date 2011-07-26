@@ -1,0 +1,141 @@
+/*
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * Copyright 2009-2011 Jörg Hermann Müller
+ *
+ * This file is part of AudaSpace.
+ *
+ * Audaspace is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * AudaSpace is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Audaspace; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file audaspace/intern/AUD_SequencerHandle.cpp
+ *  \ingroup audaspaceintern
+ */
+
+
+#include "AUD_SequencerHandle.h"
+#include "AUD_ReadDevice.h"
+
+AUD_SequencerHandle::AUD_SequencerHandle(AUD_Reference<AUD_SequencerEntry> entry, AUD_ReadDevice& device) :
+	m_entry(entry),
+	m_status(0),
+	m_pos_status(0),
+	m_sound_status(0),
+	m_device(device)
+{
+	if(!entry->m_sound.isNull())
+	{
+		m_handle = device.play(entry->m_sound, true);
+		m_3dhandle = AUD_Reference<AUD_I3DHandle>(m_handle);
+	}
+}
+
+AUD_SequencerHandle::~AUD_SequencerHandle()
+{
+	stop();
+}
+
+int AUD_SequencerHandle::compare(AUD_Reference<AUD_SequencerEntry> entry) const
+{
+	if(m_entry->getID() < entry->getID())
+		return -1;
+	else if(m_entry->getID() == entry->getID())
+		return 0;
+	return 1;
+}
+
+void AUD_SequencerHandle::stop()
+{
+	if(!m_handle.isNull())
+		m_handle->stop();
+}
+
+void AUD_SequencerHandle::update(float position)
+{
+	if(!m_handle.isNull())
+	{
+		if(position >= m_entry->m_end)
+			m_handle->pause();
+		else if(position >= m_entry->m_begin)
+			m_handle->resume();
+
+		if(m_sound_status != m_entry->m_sound_status)
+		{
+			if(!m_handle.isNull())
+				m_handle->stop();
+
+			if(!m_entry->m_sound.isNull())
+			{
+				m_handle = m_device.play(m_entry->m_sound, true);
+				m_3dhandle = AUD_Reference<AUD_I3DHandle>(m_handle);
+			}
+
+			m_sound_status = m_entry->m_sound_status;
+		}
+
+		if(m_pos_status != m_entry->m_pos_status)
+		{
+			seek(position);
+
+			m_pos_status = m_entry->m_pos_status;
+		}
+
+		if(m_status != m_entry->m_status)
+		{
+			m_3dhandle->setRelative(m_entry->m_relative);
+			m_3dhandle->setVolumeMaximum(m_entry->m_volume_max);
+			m_3dhandle->setVolumeMinimum(m_entry->m_volume_min);
+			m_3dhandle->setDistanceMaximum(m_entry->m_distance_max);
+			m_3dhandle->setDistanceReference(m_entry->m_distance_reference);
+			m_3dhandle->setAttenuation(m_entry->m_attenuation);
+			m_3dhandle->setConeAngleOuter(m_entry->m_cone_angle_outer);
+			m_3dhandle->setConeAngleInner(m_entry->m_cone_angle_inner);
+			m_3dhandle->setConeVolumeOuter(m_entry->m_cone_volume_outer);
+
+			m_status = m_entry->m_status;
+		}
+
+		// AUD_XXX TODO: Animation data
+
+		if(m_entry->m_muted)
+			m_handle->setVolume(0);
+	}
+}
+
+void AUD_SequencerHandle::seek(float position)
+{
+	if(!m_handle.isNull())
+	{
+		if(position >= m_entry->m_end)
+		{
+			m_handle->pause();
+			return;
+		}
+
+		float seekpos = position - m_entry->m_begin;
+		if(seekpos < 0)
+			seekpos = 0;
+		seekpos += m_entry->m_skip;
+		m_handle->seek(seekpos);
+		if(position < m_entry->m_begin)
+			m_handle->pause();
+		else
+			m_handle->resume();
+	}
+}

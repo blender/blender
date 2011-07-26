@@ -533,7 +533,7 @@ void calc_sequence_disp(Scene *scene, Sequence *seq)
 		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
 	}
 
-	seq_update_sound(scene, seq);
+	seq_update_sound_bounds(scene, seq);
 }
 
 static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
@@ -3145,7 +3145,7 @@ int shuffle_seq_time(ListBase * seqbasep, Scene *evil_scene)
 	return offset? 0:1;
 }
 
-void seq_update_sound(Scene* scene, Sequence *seq)
+void seq_update_sound_bounds(Scene* scene, Sequence *seq)
 {
 	if(seq->scene_sound)
 	{
@@ -3190,6 +3190,29 @@ void seq_update_muting(Scene *scene, Editing *ed)
 			seq_update_muting_recursive(scene, &ed->seqbase, ms->parseq, 1);
 		else
 			seq_update_muting_recursive(scene, &ed->seqbase, NULL, 0);
+	}
+}
+
+static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
+{
+	Sequence *seq;
+
+	for(seq=seqbasep->first; seq; seq=seq->next) {
+		if(seq->type == SEQ_META) {
+			seq_update_sound_recursive(scene, &seq->seqbase, sound);
+		}
+		else if(seq->type == SEQ_SOUND) {
+			if(seq->scene_sound && sound == seq->sound) {
+				sound_update_scene_sound(seq->scene_sound, sound);
+			}
+		}
+	}
+}
+
+void seq_update_sound(struct Scene *scene, struct bSound *sound)
+{
+	if(scene->ed) {
+		seq_update_sound_recursive(scene, &scene->ed->seqbase, sound);
 	}
 }
 

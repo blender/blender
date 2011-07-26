@@ -43,7 +43,7 @@ class AUD_IHandle
 {
 public:
 	/**
-	 * Destroys the device.
+	 * Destroys the handle.
 	 */
 	virtual ~AUD_IHandle() {}
 

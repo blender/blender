@@ -560,7 +560,7 @@ static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 	free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
 
 	if(RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
-		seq_update_sound(scene, ptr->data);
+		seq_update_sound_bounds(scene, ptr->data);
 }
 
 static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
@@ -570,7 +570,7 @@ static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *scene, 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
 
 	if(RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
-		seq_update_sound(scene, ptr->data);
+		seq_update_sound_bounds(scene, ptr->data);
 }
 
 static void rna_Sequence_mute_update(Main *bmain, Scene *scene, PointerRNA *ptr)

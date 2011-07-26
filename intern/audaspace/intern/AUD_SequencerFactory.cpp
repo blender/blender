@@ -31,17 +31,23 @@
 
 #include "AUD_SequencerFactory.h"
 #include "AUD_SequencerReader.h"
+#include "AUD_3DMath.h"
 
-typedef std::list<AUD_Reference<AUD_SequencerReader> >::iterator AUD_ReaderIterator;
-
-AUD_SequencerFactory::AUD_SequencerFactory(AUD_Specs specs, bool muted,
-										   void* data,
-										   AUD_volumeFunction volume) :
+AUD_SequencerFactory::AUD_SequencerFactory(AUD_Specs specs, float fps, bool muted) :
 	m_specs(specs),
+	m_status(0),
+	m_entry_status(0),
+	m_id(0),
 	m_muted(muted),
-	m_data(data),
-	m_volume(volume)
+	m_fps(fps),
+	m_speed_of_sound(434),
+	m_doppler_factor(1),
+	m_distance_model(AUD_DISTANCE_MODEL_INVERSE_CLAMPED),
+	m_location(3),
+	m_orientation(4)
 {
+	AUD_Quaternion q;
+	m_orientation.write(q.get());
 }
 
 AUD_SequencerFactory::~AUD_SequencerFactory()
@@ -51,9 +57,12 @@ AUD_SequencerFactory::~AUD_SequencerFactory()
 void AUD_SequencerFactory::setSpecs(AUD_Specs specs)
 {
 	m_specs = specs;
+	m_status++;
+}
 
-	for(AUD_ReaderIterator i = m_readers.begin(); i != m_readers.end(); i++)
-		(*i)->setSpecs(m_specs);
+void AUD_SequencerFactory::setFPS(float fps)
+{
+	m_fps = fps;
 }
 
 void AUD_SequencerFactory::mute(bool muted)
@@ -66,55 +75,71 @@ bool AUD_SequencerFactory::getMute() const
 	return m_muted;
 }
 
-AUD_Reference<AUD_SequencerEntry> AUD_SequencerFactory::add(AUD_Reference<AUD_IFactory>** sound, float begin, float end, float skip, void* data)
+float AUD_SequencerFactory::getSpeedOfSound() const
 {
-	AUD_Reference<AUD_SequencerEntry> entry = new AUD_SequencerEntry;
-	entry->sound = sound;
-	entry->begin = begin;
-	entry->skip = skip;
-	entry->end = end;
-	entry->muted = false;
-	entry->data = data;
+	return m_speed_of_sound;
+}
+
+void AUD_SequencerFactory::setSpeedOfSound(float speed)
+{
+	m_speed_of_sound = speed;
+	m_status++;
+}
+
+float AUD_SequencerFactory::getDopplerFactor() const
+{
+	return m_doppler_factor;
+}
+
+void AUD_SequencerFactory::setDopplerFactor(float factor)
+{
+	m_doppler_factor = factor;
+	m_status++;
+}
+
+AUD_DistanceModel AUD_SequencerFactory::getDistanceModel() const
+{
+	return m_distance_model;
+}
+
+void AUD_SequencerFactory::setDistanceModel(AUD_DistanceModel model)
+{
+	m_distance_model = model;
+	m_status++;
+}
+
+AUD_AnimateableProperty* AUD_SequencerFactory::getAnimProperty(AUD_AnimateablePropertyType type)
+{
+	switch(type)
+	{
+	case AUD_AP_VOLUME:
+		return &m_volume;
+	case AUD_AP_LOCATION:
+		return &m_location;
+	case AUD_AP_ORIENTATION:
+		return &m_orientation;
+	default:
+		return NULL;
+	}
+}
+
+AUD_Reference<AUD_SequencerEntry> AUD_SequencerFactory::add(AUD_Reference<AUD_IFactory> sound, float begin, float end, float skip)
+{
+	AUD_Reference<AUD_SequencerEntry> entry = new AUD_SequencerEntry(sound, begin, end, skip, m_id++);
 
 	m_entries.push_front(entry);
-
-	for(AUD_ReaderIterator i = m_readers.begin(); i != m_readers.end(); i++)
-		(*i)->add(entry);
+	m_entry_status++;
 
 	return entry;
 }
 
 void AUD_SequencerFactory::remove(AUD_Reference<AUD_SequencerEntry> entry)
 {
-	for(AUD_ReaderIterator i = m_readers.begin(); i != m_readers.end(); i++)
-		(*i)->remove(entry);
-
 	m_entries.remove(entry);
-}
-
-void AUD_SequencerFactory::move(AUD_Reference<AUD_SequencerEntry> entry, float begin, float end, float skip)
-{
-	entry->begin = begin;
-	entry->skip = skip;
-	entry->end = end;
-}
-
-void AUD_SequencerFactory::mute(AUD_Reference<AUD_SequencerEntry> entry, bool mute)
-{
-	entry->muted = mute;
+	m_entry_status++;
 }
 
 AUD_Reference<AUD_IReader> AUD_SequencerFactory::createReader()
 {
-	AUD_Reference<AUD_SequencerReader> reader = new AUD_SequencerReader(this, m_entries,
-														  m_specs, m_data,
-														  m_volume);
-	m_readers.push_front(reader);
-
-	return AUD_Reference<AUD_IReader>(reader);
-}
-
-void AUD_SequencerFactory::removeReader(AUD_Reference<AUD_SequencerReader> reader)
-{
-	m_readers.remove(reader);
+	return new AUD_SequencerReader(this);
 }

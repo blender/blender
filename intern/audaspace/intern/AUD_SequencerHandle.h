@@ -24,57 +24,38 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_ReadDevice.cpp
+/** \file audaspace/intern/AUD_SequencerHandle.h
  *  \ingroup audaspaceintern
  */
 
 
-#include "AUD_ReadDevice.h"
-#include "AUD_IReader.h"
+#ifndef AUD_SEQUENCERHANDLE
+#define AUD_SEQUENCERHANDLE
 
-#include <cstring>
+#include "AUD_SequencerEntry.h"
+#include "AUD_IHandle.h"
+#include "AUD_I3DHandle.h"
 
-AUD_ReadDevice::AUD_ReadDevice(AUD_DeviceSpecs specs) :
-	m_playing(false)
+class AUD_ReadDevice;
+
+class AUD_SequencerHandle
 {
-	m_specs = specs;
+private:
+	AUD_Reference<AUD_SequencerEntry> m_entry;
+	AUD_Reference<AUD_IHandle> m_handle;
+	AUD_Reference<AUD_I3DHandle> m_3dhandle;
+	int m_status;
+	int m_pos_status;
+	int m_sound_status;
+	AUD_ReadDevice& m_device;
 
-	create();
-}
+public:
+	AUD_SequencerHandle(AUD_Reference<AUD_SequencerEntry> entry, AUD_ReadDevice& device);
+	~AUD_SequencerHandle();
+	int compare(AUD_Reference<AUD_SequencerEntry> entry) const;
+	void stop();
+	void update(float position);
+	void seek(float position);
+};
 
-AUD_ReadDevice::AUD_ReadDevice(AUD_Specs specs) :
-	m_playing(false)
-{
-	m_specs.specs = specs;
-	m_specs.format = AUD_FORMAT_FLOAT32;
-
-	create();
-}
-
-AUD_ReadDevice::~AUD_ReadDevice()
-{
-	destroy();
-}
-
-bool AUD_ReadDevice::read(data_t* buffer, int length)
-{
-	if(m_playing)
-		mix(buffer, length);
-	else
-		if(m_specs.format == AUD_FORMAT_U8)
-			memset(buffer, 0x80, length * AUD_DEVICE_SAMPLE_SIZE(m_specs));
-		else
-			memset(buffer, 0, length * AUD_DEVICE_SAMPLE_SIZE(m_specs));
-	return m_playing;
-}
-
-void AUD_ReadDevice::changeSpecs(AUD_Specs specs)
-{
-	if(memcmp(&specs, &m_specs.specs, sizeof(specs)))
-		setSpecs(specs);
-}
-
-void AUD_ReadDevice::playing(bool playing)
-{
-	m_playing = playing;
-}
+#endif //AUD_SEQUENCERHANDLE

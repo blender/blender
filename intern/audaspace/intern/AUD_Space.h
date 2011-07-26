@@ -138,7 +138,7 @@ typedef enum
 	AUD_ERROR_FFMPEG,
 	AUD_ERROR_OPENAL,
 	AUD_ERROR_SDL,
-	AUD_ERROR_JACK,
+	AUD_ERROR_JACK
 } AUD_Error;
 
 /// Fading types.
@@ -157,8 +157,17 @@ typedef enum
 	AUD_DISTANCE_MODEL_LINEAR,
 	AUD_DISTANCE_MODEL_LINEAR_CLAMPED,
 	AUD_DISTANCE_MODEL_EXPONENT,
-	AUD_DISTANCE_MODEL_EXPONENT_CLAMPED,
+	AUD_DISTANCE_MODEL_EXPONENT_CLAMPED
 } AUD_DistanceModel;
+
+typedef enum
+{
+	AUD_AP_VOLUME,
+	AUD_AP_PANNING,
+	AUD_AP_PITCH,
+	AUD_AP_LOCATION,
+	AUD_AP_ORIENTATION
+} AUD_AnimateablePropertyType;
 
 /// Sample type.(float samples)
 typedef float sample_t;

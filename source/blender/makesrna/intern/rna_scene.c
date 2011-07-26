@@ -100,14 +100,6 @@ EnumPropertyItem snap_element_items[] = {
 	{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume"},
 	{0, NULL, 0, NULL, NULL}};
 
-static EnumPropertyItem audio_channel_items[] = {
-	{1, "MONO", 0, "Mono", "Set audio channels to mono"},
-	{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
-	{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
-	{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
-	{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
-	{0, NULL, 0, NULL, NULL}};
-
 EnumPropertyItem image_type_items[] = {
 	{0, "", 0, "Image", NULL},
 	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", "Output image in bitmap format"},
@@ -338,6 +330,11 @@ static void rna_Scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_Scene_view3d_update(bmain, scene, ptr);
 	DAG_on_visible_update(bmain, FALSE);
+}
+
+static void rna_Scene_fps_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	sound_update_fps(scene);
 }
 
 static void rna_Scene_framelen_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
@@ -2153,6 +2150,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 #endif
 
 #ifdef WITH_FFMPEG
+	static EnumPropertyItem audio_channel_items[] = {
+		{1, "MONO", 0, "Mono", "Set audio channels to mono"},
+		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
+		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
+		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
+		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem ffmpeg_format_items[] = {
 		{FFMPEG_MPEG1, "MPEG1", 0, "MPEG-1", ""},
 		{FFMPEG_MPEG2, "MPEG2", 0, "MPEG-2", ""},
@@ -2497,14 +2502,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, 120);
 	RNA_def_property_ui_text(prop, "FPS", "Framerate, expressed in frames per second");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_fps_update");
 	
 	prop= RNA_def_property(srna, "fps_base", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "frs_sec_base");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.1f, 120.0f);
 	RNA_def_property_ui_text(prop, "FPS Base", "Framerate base");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_fps_update");
 	
 	/* frame mapping */
 	prop= RNA_def_property(srna, "frame_map_old", PROP_INT, PROP_NONE);
