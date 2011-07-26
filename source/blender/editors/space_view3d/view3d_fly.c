@@ -942,6 +942,8 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	float view_inv[4];
 	invert_qt_qt(view_inv, rv3d->viewquat);
 
+	rv3d->rot_angle = 0; // disable onscreen rotation doo-dad
+
 	if (shouldTranslate)
 		{
 		const float forward_sensitivity = 1.f;

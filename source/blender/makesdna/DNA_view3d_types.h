@@ -130,7 +130,11 @@ typedef struct RegionView3D {
 	
 	float twangle[3];
 
-	float padf;
+	/* active rotation from NDOF or elsewhere */
+	float rot_angle;
+	float rot_axis[3];
+	
+	char pad2[4];
 
 } RegionView3D;
 

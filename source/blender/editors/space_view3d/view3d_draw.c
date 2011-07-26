@@ -675,6 +675,60 @@ static void draw_view_axis(RegionView3D *rv3d)
 	glDisable(GL_BLEND);
 }
 
+/* draw center and axis of rotation for ongoing 3D mouse navigation */
+static void draw_rotation_guide(RegionView3D *rv3d)
+{
+	float o[3]; // center of rotation
+	float end[3]; // endpoints for drawing
+
+	float color[4] = {1,1,0,1}; // bright yellow so it stands out during development
+
+	negate_v3_v3(o, rv3d->ofs);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glShadeModel(GL_SMOOTH);
+	glPointSize(5);
+	glEnable(GL_POINT_SMOOTH);
+
+	if (rv3d->rot_angle != 0.f) {
+		float scaled_axis[3];
+		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, 3.f);
+	
+		glBegin(GL_LINE_STRIP);
+			color[3] = 0; // more transparent toward the ends
+			glColor4fv(color);
+			add_v3_v3v3(end, o, scaled_axis);
+			glVertex3fv(end);
+	
+			color[3] = 0.2f + rv3d->rot_angle; // more opaque toward the center
+			glColor4fv(color);
+			glVertex3fv(o);
+	
+			color[3] = 0;
+			glColor4fv(color);
+			sub_v3_v3v3(end, o, scaled_axis);
+			glVertex3fv(end);
+		glEnd();
+		
+		color[3] = 1; // solid dot
+	}
+	else
+		color[3] = 0.5; // see-through dot
+
+	glColor4fv(color);
+	glBegin(GL_POINTS);
+		glVertex3fv(o);
+	glEnd();
+
+	// find screen coordinates for rotation center, then draw pretty icon
+	// mul_m4_v3(rv3d->persinv, rot_center);
+	// UI_icon_draw(rot_center[0], rot_center[1], ICON_NDOF_TURN);
+	// ^^ just playing around, does not work
+
+	glDisable(GL_BLEND);
+	glDisable(GL_POINT_SMOOTH);
+}
 
 static void draw_view_icon(RegionView3D *rv3d)
 {
@@ -2617,6 +2671,11 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		BDR_drawSketch(C);
 	}
+
+#if 0 // not yet...
+	if (U.ndof_flag & NDOF_SHOW_GUIDE)
+		draw_rotation_guide(rv3d);
+#endif
 
 	ED_region_pixelspace(ar);
 	
