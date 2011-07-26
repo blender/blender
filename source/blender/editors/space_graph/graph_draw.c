@@ -706,12 +706,11 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 			 *	- resol determines number of points to sample in between keyframes
 			 */
 			
-			/* resol not depending on horizontal resolution anymore, drivers for example... */
-			// TODO: would be nice to make this depend on the scale of the graph too...
+			/* resol depends on distance between points (not just horizontal) OR is a fixed high res */
 			if (fcu->driver) 
 				resol= 32;
 			else 
-				resol= (int)(3.0*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]));
+				resol= (int)(5.0*len_v2v2(bezt->vec[1], prevbezt->vec[1]));
 			
 			if (resol < 2) {
 				/* only draw one */
@@ -721,6 +720,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 			}
 			else {
 				/* clamp resolution to max of 32 */
+				// NOTE: higher values will crash
 				if (resol > 32) resol= 32;
 				
 				v1[0]= prevbezt->vec[1][0];
