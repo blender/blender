@@ -684,6 +684,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 	}
 	
 	/* draw curve between first and last keyframe (if there are enough to do so) */
+	// TODO: optimise this to not have to calc stuff out of view too?
 	while (b--) {
 		if (prevbezt->ipo==BEZT_IPO_CONST) {
 			/* Constant-Interpolation: draw segment between previous keyframe and next, but holding same value */
@@ -707,6 +708,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 			 */
 			
 			/* resol depends on distance between points (not just horizontal) OR is a fixed high res */
+			// TODO: view scale should factor into this someday too...
 			if (fcu->driver) 
 				resol= 32;
 			else 
