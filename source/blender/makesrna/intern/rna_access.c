@@ -4407,15 +4407,15 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *UNUSE
 		if(!(parm->flag & PROP_REQUIRED) && !(parm->flag & PROP_DYNAMIC)) {
 			switch(parm->type) {
 				case PROP_BOOLEAN:
-					if(parm->arraydimension) memcpy(data, &((BooleanPropertyRNA*)parm)->defaultarray, size);
+					if(parm->arraydimension) memcpy(data, ((BooleanPropertyRNA*)parm)->defaultarray, size);
 					else memcpy(data, &((BooleanPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_INT:
-					if(parm->arraydimension) memcpy(data, &((IntPropertyRNA*)parm)->defaultarray, size);
+					if(parm->arraydimension) memcpy(data, ((IntPropertyRNA*)parm)->defaultarray, size);
 					else memcpy(data, &((IntPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_FLOAT:
-					if(parm->arraydimension) memcpy(data, &((FloatPropertyRNA*)parm)->defaultarray, size);
+					if(parm->arraydimension) memcpy(data, ((FloatPropertyRNA*)parm)->defaultarray, size);
 					else memcpy(data, &((FloatPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_ENUM:
