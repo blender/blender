@@ -33,22 +33,21 @@ class TEXT_HT_header(bpy.types.Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("TEXT_MT_view")
-            sub.menu("TEXT_MT_text")
+            row.menu("TEXT_MT_view")
+            row.menu("TEXT_MT_text")
 
             if text:
-                sub.menu("TEXT_MT_edit")
-                sub.menu("TEXT_MT_format")
+                row.menu("TEXT_MT_edit")
+                row.menu("TEXT_MT_format")
 
-            sub.menu("TEXT_MT_templates")
+            row.menu("TEXT_MT_templates")
 
         if text and text.is_modified:
-            row = layout.row()
-            row.alert = True
-            row.operator("text.resolve_conflict", text="", icon='HELP')
+            sub = row.row()
+            sub.alert = True
+            sub.operator("text.resolve_conflict", text="", icon='HELP')
 
-        layout.template_ID(st, "text", new="text.new", unlink="text.unlink")
+        row.template_ID(st, "text", new="text.new", unlink="text.unlink")
 
         row = layout.row(align=True)
         row.prop(st, "show_line_numbers", text="")

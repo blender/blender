@@ -1423,6 +1423,8 @@ void txt_insert_buf(Text *text, const char *in_buffer)
 	}
 
 	undoing= u;
+
+	(void)count;
 }
 
 /******************/

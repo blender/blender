@@ -303,7 +303,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	Scene *scene= CTX_data_scene(C); /* only for sound */
 	Editing *ed= seq_give_editing(scene, TRUE);
 	SeqLoadInfo seq_load;
-	Sequence *seq;
+	/* Sequence *seq; */ /* UNUSED */
 	int tot_files;
 
 	seq_load_operator_info(&seq_load, op);
@@ -324,13 +324,13 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 			RNA_string_get(&itemptr, "name", file_only);
 			BLI_join_dirfile(seq_load.path, sizeof(seq_load.path), dir_only, file_only);
 
-			seq= seq_load_func(C, ed->seqbasep, &seq_load);
+			/* seq= */ seq_load_func(C, ed->seqbasep, &seq_load);
 		}
 		RNA_END;
 	}
 	else {
 		/* single file */
-		seq= seq_load_func(C, ed->seqbasep, &seq_load);
+		/* seq= */ seq_load_func(C, ed->seqbasep, &seq_load);
 	}
 
 	if (seq_load.tot_success==0) {
