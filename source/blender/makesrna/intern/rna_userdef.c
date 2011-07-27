@@ -2436,34 +2436,34 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	
 		/* hardcoded here, could become dynamic somehow */
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
+	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
 	static EnumPropertyItem language_items[] = {
-		{0, "DEFAULT", 0, N_("Default"), ""},
-		{1, "ENGLISH", 0, "English (English)", "en_US"},
-		{2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
-		{3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
-		{4, "ITALIAN", 0, "Italian (Italiano)", "it_IT"},
-		{5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
-		{6, "FINNISH", 0, "Finnish (Suomalainen)", "fi_FI"},
-		{7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
-		{8, "FRENCH", 0, "French (Française)", "fr_FR"},
-		{9, "SPANISH", 0, "Spanish (Español)", "es_ES"},
-		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
-		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
-		{12, "BRAZILIAN_PORTUGUESE", 0, "Brazilian Portuguese (Português do Brasil)", "pt_BR"},
-		{13, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese (简体中文)", "zh_CN"},
-		{14, "TRADITIONAL_CHINESE", 0, "Traditional Chinese (繁體中文)", "zh_TW"},
-		{15, "RUSSIAN", 0, "Russian (Русский)", "ru_RU"},
-		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
-		{17, "SERBIAN", 0, "Serbian (Српском језику)", "sr_RS"},
-		{18, "UKRAINIAN", 0, "Ukrainian (Український)", "uk_UA"},
-		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
-		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},
-		{21, "ARABIC", 0, "Arabic (العربية)", "ar_EG"},
-		{22, "BULGARIAN", 0, "Bulgarian (Български)", "bg_BG"},
-		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
-		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},
-		{0, NULL, 0, NULL, NULL}};
-
+		{0, "DEFAULT", 0, N_("Default (Default)"), ""},
+		{1, "ENGLISH", 0, N_("English (English)"), "en_US"},
+		{2, "JAPANESE", 0, N_("Japanese (日本語)"), "ja_JP"},
+		{3, "DUTCH", 0, N_("Dutch (Nederlandse taal)"), "nl_NL"},
+		{4, "ITALIAN", 0, N_("Italian (Italiano)"), "it_IT"},
+		{5, "GERMAN", 0, N_("German (Deutsch)"), "de_DE"},
+		{6, "FINNISH", 0, N_("Finnish (Suomalainen)"), "fi_FI"},
+		{7, "SWEDISH", 0, N_("Swedish (Svenska)"), "sv_SE"},
+		{8, "FRENCH", 0, N_("French (Française)"), "fr_FR"},
+		{9, "SPANISH", 0, N_("Spanish (Español)"), "es_ES"},
+		{10, "CATALAN", 0, N_("Catalan (Català)"), "ca_AD"},
+		{11, "CZECH", 0, N_("Czech (Český)"), "cs_CZ"},
+		{12, "BRAZILIAN_PORTUGUESE", 0, N_("Brazilian Portuguese (Português do Brasil)"), "pt_BR"},
+		{13, "SIMPLIFIED_CHINESE", 0, N_("Simplified Chinese (简体中文)"), "zh_CN"},
+		{14, "TRADITIONAL_CHINESE", 0, N_("Traditional Chinese (繁體中文)"), "zh_TW"},
+		{15, "RUSSIAN", 0, N_("Russian (Русский)"), "ru_RU"},
+		{16, "CROATIAN", 0, N_("Croatian (Hrvatski)"), "hr_HR"},
+		{17, "SERBIAN", 0, N_("Serbian (Српском језику)"), "sr_RS"},
+		{18, "UKRAINIAN", 0, N_("Ukrainian (Український)"), "uk_UA"},
+		{19, "POLISH", 0, N_("Polish (Polski)"), "pl_PL"},
+		{20, "ROMANIAN", 0, N_("Romanian (Român)"), "ro_RO"},
+		{21, "ARABIC", 0, N_("Arabic (العربية)"), "ar_EG"},
+		{22, "BULGARIAN", 0, N_("Bulgarian (Български)"), "bg_BG"},
+		{23, "GREEK", 0, N_("Greek (Ελληνικά)"), "el_GR"},
+		{24, "KOREAN", 0, N_("Korean (한국 언어)"), "ko_KR"},
+		{0, NULL, 0, NULL, NULL}};*/
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
