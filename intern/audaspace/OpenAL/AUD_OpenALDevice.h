@@ -106,7 +106,7 @@ private:
 	/**
 	 * Starts the streaming thread.
 	 */
-	void start();
+	void start(bool join = true);
 
 	/**
 	 * Checks if a handle is valid.

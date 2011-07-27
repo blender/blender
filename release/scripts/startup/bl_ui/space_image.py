@@ -198,6 +198,10 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
 
+        layout.separator()
+
+        layout.operator("transform.shear")
+
 
 class IMAGE_MT_uvs_snap(bpy.types.Menu):
     bl_label = "Snap"

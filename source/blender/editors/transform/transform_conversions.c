@@ -87,6 +87,7 @@
 #include "ED_object.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_curve.h" /* for ED_curve_editnurbs */
@@ -2182,6 +2183,12 @@ void flushTransNodes(TransInfo *t)
 		td->loc2d[0]= td->loc[0];
 		td->loc2d[1]= td->loc[1];
 	}
+	
+	/* handle intersection with noodles */
+	if(t->total==1) {
+		ED_node_link_intersect_test(t->sa, 1);
+	}
+	
 }
 
 /* *** SEQUENCE EDITOR *** */
@@ -4756,7 +4763,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 	}
 	else if (t->spacetype == SPACE_NODE) {
-		/* pass */
+		if(cancelled == 0)
+			ED_node_link_insert(t->sa);
+		
+		/* clear link line */
+		ED_node_link_intersect_test(t->sa, 0);
+		
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;

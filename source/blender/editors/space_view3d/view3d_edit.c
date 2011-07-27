@@ -129,7 +129,6 @@ void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 		}
 		else {
 			ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-			root_parent= v3d->camera;
 			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 			WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, v3d->camera);
 		}
