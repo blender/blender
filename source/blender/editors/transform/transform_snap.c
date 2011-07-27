@@ -1944,9 +1944,9 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 	int i;
 	float asp[3] = {1.0f, 1.0f, 1.0f}; // TODO: Remove hard coded limit here (3)
 
-	if(max_index > 3) {
+	if(max_index > 2) {
 		printf("applyGrid: invalid index %d, clamping\n", max_index);
-		max_index= 3;
+		max_index= 2;
 	}
 
 	// Early bailing out if no need to snap
