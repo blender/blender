@@ -1178,9 +1178,9 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
-	prop= RNA_def_property(srna, "use_snap_project_self", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT_NO_SELF);
-	RNA_def_property_ui_text(prop, "Project to Self", "Project into its self (editmode)");
+	prop= RNA_def_property(srna, "use_snap_self", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_flag", SCE_SNAP_NO_SELF);
+	RNA_def_property_ui_text(prop, "Project to Self", "Snap onto its self (editmode)");
 	RNA_def_property_ui_icon(prop, ICON_ORTHO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 	
