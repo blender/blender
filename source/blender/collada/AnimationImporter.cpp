@@ -934,6 +934,12 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 					const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
 					Assign_color_animations( listid, AnimCurves , "specular_color" );
 				}
+				
+				if((animType->material & MATERIAL_DIFF_COLOR) != 0){
+					const COLLADAFW::ColorOrTexture *cot = &(efc->getDiffuse());
+					const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
+					Assign_color_animations( listid, AnimCurves , "diffuse_color" );
+				}
 			}
 		}	
 	}
@@ -1002,6 +1008,7 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 			COLLADAFW::EffectCommon *efc = commonEffects[0];
 			types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
 			types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
+			types->material =  setAnimType(&(efc->getDiffuse().getColor()),(types->material), MATERIAL_DIFF_COLOR);
 		
 		}
 	}

@@ -109,7 +109,8 @@ private:
 	enum matAnim
 	{
 		MATERIAL_SHININESS = 2,
-		MATERIAL_SPEC_COLOR = 4
+		MATERIAL_SPEC_COLOR = 4,
+		MATERIAL_DIFF_COLOR = 1 << 3
 	};
 	
 	enum AnimationType

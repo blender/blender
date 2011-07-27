@@ -112,7 +112,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 					transformName = extract_transform_name( fcu->rna_path );
 					
 					if ((!strcmp(transformName, "specular_hardness"))||(!strcmp(transformName, "specular_color"))
-						||(!strcmp(transformName, "diffuse"))) 
+						||(!strcmp(transformName, "diffuse_color"))) 
 						dae_animation(ob ,fcu, transformName, true, ma );
 					fcu = fcu->next;
 				}
