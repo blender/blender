@@ -314,12 +314,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
                                   int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData*) md;
-	DerivedMesh *dm = derivedData;
-	DerivedMesh *ret;
+	DerivedMesh *dm = derivedData, *ret = NULL;
+	Mesh *ob_m = NULL;
 	MDeformVert *dvert = NULL;
 	int numVerts;
 	float (*v_cos)[3] = NULL; /* The vertices coordinates. */
-	Object *obr; /* Our target object. */
+	Object *obr = NULL; /* Our target object. */
 	int defgrp_idx;
 	float *tw = NULL;
 	float *org_w = NULL;
@@ -338,32 +338,59 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	if ((numVerts == 0) || (ob->defbase.first == NULL))
 		return dm;
 
-	/* Create a copy of our dmesh.
-	 * TODO: This should be done only if needed !
+	/* Get our target object. */
+	obr = wmd->proximity_ob_target;
+	if (obr == NULL)
+		return dm;
+
+	/* Get vgroup idx from its name. */
+	defgrp_idx = defgroup_name_index(ob, wmd->defgrp_name);
+	if (defgrp_idx < 0)
+		return dm;
+
+	/* XXX All this to avoid copying dm when not needed… However, it nearly doubles compute
+	 *     time! See scene 5 of the WeighVG test file…
 	 */
-	if (1) {
-		/* XXX Seems to create problems with weightpaint mode... */
+#if 0
+	/* Get actual dverts (ie vertex group data). */
+	dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	/* If no dverts, return unmodified data… */
+	if (dvert == NULL)
+		return dm;
+
+	/* Get org mesh, only to test whether affected cdata layer has already been copied
+	 * somewhere up in the modifiers stack.
+	 */
+	ob_m = get_mesh(ob);
+	if (ob_m == NULL)
+		return dm;
+
+	/* Create a copy of our dmesh, only if our affected cdata layer is the same as org mesh. */
+	if (dvert == CustomData_get_layer(&ob_m->vdata, CD_MDEFORMVERT)) {
+		/* XXX Seems to create problems with weightpaint mode???
+		 *     I’m missing something here, I guess…
+		 */
 //		DM_set_only_copy(dm, CD_MASK_MDEFORMVERT); /* Only copy defgroup layer. */
 		ret = CDDM_copy(dm);
+		dvert = ret->getVertDataArray(ret, CD_MDEFORMVERT);
+		if (dvert == NULL) {
+			ret->release(ret);
+			return dm;
+		}
 		rel_ret = 1;
 	}
 	else
 		ret = dm;
-
-	/* Get vgroup idx from its name. */
-	defgrp_idx = defgroup_name_index(ob, wmd->defgrp_name);
-
-	/* Get actual dverts (ie vertex group data). */
-	if (defgrp_idx >= 0)
-		dvert = ret->getVertDataArray(ret, CD_MDEFORMVERT);
-	/* Get our target object. */
-	obr = wmd->proximity_ob_target;
-	/* If no dverts or target object, return unmodified data… */
-	if ((defgrp_idx < 0) || (dvert == NULL) || (!obr)) {
+#else
+	ret = CDDM_copy(dm);
+	rel_ret = 1;
+	dvert = ret->getVertDataArray(ret, CD_MDEFORMVERT);
+	if (dvert == NULL) {
 		if (rel_ret)
 			ret->release(ret);
 		return dm;
 	}
+#endif
 
 	/* Find out which vertices to work on (all vertices in vgroup), and get their relevant weight.
 	 */
