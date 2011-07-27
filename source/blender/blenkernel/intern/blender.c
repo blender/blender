@@ -82,6 +82,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_moviecache.h"
 
 
 #include "BLO_undofile.h"
@@ -115,6 +116,7 @@ void free_blender(void)
 	BLI_cb_finalize();
 
 	seq_stripelem_cache_destruct();
+	BKE_moviecache_destruct();
 	
 	free_nodesystem();	
 }

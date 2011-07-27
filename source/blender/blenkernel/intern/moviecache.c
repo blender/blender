@@ -32,6 +32,7 @@
  */
 
 #include "MEM_guardedalloc.h"
+#include "MEM_CacheLimiterC-Api.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -41,6 +42,8 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+
+static MEM_CacheLimiterC *limitor= NULL;
 
 typedef struct MovieCache {
 	GHash *hash;
@@ -66,6 +69,7 @@ typedef struct MovieCacheKey {
 typedef struct MovieCacheItem {
 	MovieCache *cache_owner;
 	ImBuf *ibuf;
+	MEM_CacheLimiterHandleC * c_handle;
 	unsigned long last_access;
 } MovieCacheItem;
 
@@ -95,33 +99,30 @@ static void moviecache_valfree(void *val)
 {
 	MovieCacheItem *item= (MovieCacheItem*)val;
 
-	IMB_freeImBuf(item->ibuf);
+	if (item->ibuf) {
+		MEM_CacheLimiter_unmanage(item->c_handle);
+		IMB_freeImBuf(item->ibuf);
+	}
 
 	BLI_mempool_free(item->cache_owner->items_pool, item);
 }
 
-static MovieCacheKey *get_lru_key(MovieCache *cache)
+static void check_unused_keys(MovieCache *cache)
 {
 	GHashIterator *iter;
-	MovieCacheKey *lru_key= NULL;
-	MovieCacheItem *lru_item= NULL;
 
 	iter= BLI_ghashIterator_new(cache->hash);
 	while(!BLI_ghashIterator_isDone(iter)) {
 		MovieCacheKey *key= BLI_ghashIterator_getKey(iter);
 		MovieCacheItem *item= BLI_ghashIterator_getValue(iter);
 
-		if(lru_item==NULL || item->last_access<lru_item->last_access) {
-			lru_key= key;
-			lru_item= item;
-		}
-
 		BLI_ghashIterator_step(iter);
+
+		if(!item->ibuf)
+			BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
 	}
 
 	BLI_ghashIterator_free(iter);
-
-	return lru_key;
 }
 
 static int compare_int(const void *av, const void *bv)
@@ -129,6 +130,70 @@ static int compare_int(const void *av, const void *bv)
 	const int *a= (int *)av;
 	const int *b= (int *)bv;
 	return *a-*b;
+}
+
+static void IMB_moviecache_destructor(void *p)
+{
+	MovieCacheItem *item= (MovieCacheItem *) p;
+
+	if (item && item->ibuf) {
+		IMB_freeImBuf(item->ibuf);
+
+		item->ibuf= NULL;
+		item->c_handle= NULL;
+	}
+}
+
+/* approximate size of ImBuf in memory */
+static intptr_t IMB_get_size_in_memory(ImBuf *ibuf)
+{
+	int a;
+	intptr_t size= 0, channel_size= 0;
+
+	size+= sizeof(ImBuf);
+
+	if(ibuf->rect)
+		channel_size+= sizeof(char);
+
+	if(ibuf->rect_float)
+		channel_size= sizeof(float);
+
+	size+= channel_size*ibuf->x*ibuf->y*ibuf->channels;
+
+	if(ibuf->miptot) {
+		for(a= 0; a<ibuf->miptot; a++) {
+			if(ibuf->mipmap[a])
+				size+= IMB_get_size_in_memory(ibuf->mipmap[a]);
+		}
+	}
+
+	if(ibuf->tiles) {
+		size+= sizeof(unsigned int)*ibuf->ytiles*ibuf->xtiles;
+	}
+
+	return size;
+}
+
+static intptr_t get_item_size (void *p)
+{
+	intptr_t size= sizeof(MovieCacheItem);
+	MovieCacheItem *item= (MovieCacheItem *) p;
+
+	if(item->ibuf)
+		size+= IMB_get_size_in_memory(item->ibuf);
+
+	return size;
+}
+
+void BKE_moviecache_init(void)
+{
+	limitor= new_MEM_CacheLimiter(IMB_moviecache_destructor, get_item_size);
+}
+
+void BKE_moviecache_destruct(void)
+{
+	if(limitor)
+		delete_MEM_CacheLimiter(limitor);
 }
 
 struct MovieCache *BKE_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp,
@@ -155,11 +220,8 @@ void BKE_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 	MovieCacheKey *key;
 	MovieCacheItem *item;
 
-	/* TODO: implement better limiters */
-	if(BLI_ghash_size(cache->hash) > 250) {
-		MovieCacheKey *lru_key= get_lru_key(cache);
-		BLI_ghash_remove(cache->hash, lru_key, moviecache_keyfree, moviecache_valfree);
-	}
+	if(!limitor)
+		BKE_moviecache_init();
 
 	IMB_refImBuf(ibuf);
 
@@ -172,9 +234,19 @@ void BKE_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 	item->ibuf= ibuf;
 	item->cache_owner= cache;
 	item->last_access= cache->curtime++;
+	item->c_handle= NULL;
 
 	BLI_ghash_remove(cache->hash, key, moviecache_keyfree, moviecache_valfree);
 	BLI_ghash_insert(cache->hash, key, item);
+
+	item->c_handle= MEM_CacheLimiter_insert(limitor, item);
+
+	MEM_CacheLimiter_ref(item->c_handle);
+	MEM_CacheLimiter_enforce_limits(limitor);
+	MEM_CacheLimiter_unref(item->c_handle);
+
+	/* cache limiter can't remove unused keys which points to destoryed values */
+	check_unused_keys(cache);
 
 	if(cache->points) {
 		MEM_freeN(cache->points);
@@ -195,6 +267,7 @@ ImBuf* BKE_moviecache_get(MovieCache *cache, void *userkey)
 		item->last_access= cache->curtime++;
 
 		if(item->ibuf) {
+			MEM_CacheLimiter_touch(item->c_handle);
 			IMB_refImBuf(item->ibuf);
 			return item->ibuf;
 		}
@@ -239,11 +312,14 @@ void BKE_moviecache_get_cache_segments(MovieCache *cache, int *totseg_r, int **p
 		a= 0;
 		while(!BLI_ghashIterator_isDone(iter)) {
 			MovieCacheKey *key= BLI_ghashIterator_getKey(iter);
+			MovieCacheItem *item= BLI_ghashIterator_getValue(iter);
 			int framenr;
 
-			cache->getdatafp(key->userkey, &framenr);
+			if(item->ibuf) {
+				cache->getdatafp(key->userkey, &framenr);
 
-			frames[a++]= framenr;
+				frames[a++]= framenr;
+			}
 
 			BLI_ghashIterator_step(iter);
 		}

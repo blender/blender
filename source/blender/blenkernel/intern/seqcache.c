@@ -148,7 +148,7 @@ static void IMB_seq_cache_destructor(void * p)
 void seq_stripelem_cache_init(void)
 {
 	hash = BLI_ghash_new(HashHash, HashCmp, "seq stripelem cache hash");
-	limitor = new_MEM_CacheLimiter( IMB_seq_cache_destructor );
+	limitor = new_MEM_CacheLimiter( IMB_seq_cache_destructor, NULL );
 
 	entrypool = BLI_mempool_create(sizeof(seqCacheEntry), 64, 64, 0);
 	keypool = BLI_mempool_create(sizeof(seqCacheKey), 64, 64, 0);
