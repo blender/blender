@@ -844,33 +844,21 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 			{
 				const COLLADAFW::Color *col =  &(light->getColor());
 				const COLLADAFW::UniqueId& listid = col->getAnimationList();
-				//transformation has animations
-				//const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-				//const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
-				////all the curves belonging to the current binding
-				//std::vector<FCurve*> animcurves;    
-				//for (unsigned int j = 0; j < bindings.getCount(); j++) {
-				//	 animcurves = curve_map[bindings[j].animation];
-				//	//calculate rnapaths and array index of fcurves according to transformation and animation class
+				
 				Assign_color_animations(listid, AnimCurves, "color"); 
-					
-				 //std::vector<FCurve*>::iterator iter;
-					////Add the curves of the current animation to the object
-					//for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-					//	FCurve * fcu = *iter;
-					//	BLI_addtail(AnimCurves, fcu);	
-					//}	 			
 			}
 			if ((animType->light & LIGHT_FOA) != 0 )
 			{
 				const COLLADAFW::AnimatableFloat *foa =  &(light->getFallOffAngle());
 				const COLLADAFW::UniqueId& listid = foa->getAnimationList();
+				
 				Assign_float_animations( listid ,AnimCurves, "spot_size"); 
 			}
 			if ( (animType->light & LIGHT_FOE) != 0 )
 			{
 				const COLLADAFW::AnimatableFloat *foe =  &(light->getFallOffExponent());
 				const COLLADAFW::UniqueId& listid = foe->getAnimationList();
+				
 				Assign_float_animations( listid ,AnimCurves, "spot_blend"); 
 			
 			}
