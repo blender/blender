@@ -156,8 +156,8 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 			if(marker) {
 				float pos[2];
 
-				pos[0]= marker->pos[0]*width;
-				pos[1]= marker->pos[1]*height;
+				pos[0]= (marker->pos[0]+track->offset[0])*width;
+				pos[1]= (marker->pos[1]+track->offset[1])*height;
 
 				DO_MINMAX2(pos, min, max);
 

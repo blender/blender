@@ -45,6 +45,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_screen.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
@@ -171,6 +172,10 @@ static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
 		marker->pos[0]= sc->marker_pos[0]/width;
 		marker->pos[1]= sc->marker_pos[1]/height;
 
+		/* to update position of "parented" objects */
+		DAG_id_tag_update(&clip->id, 0);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
 		ok= 1;
 	}
 	else if(event==B_MARKER_PAT_DIM) {
@@ -237,6 +242,10 @@ static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
 	} else if(event==B_MARKER_OFFSET) {
 		track->offset[0]= sc->track_offset[0]/width;
 		track->offset[1]= sc->track_offset[1]/height;
+
+		/* to update position of "parented" objects */
+		DAG_id_tag_update(&clip->id, 0);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 		ok= 1;
 	}

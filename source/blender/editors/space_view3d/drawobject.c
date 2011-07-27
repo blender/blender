@@ -1455,7 +1455,10 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 				if(selected) {
 					if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
 					else UI_ThemeColor(TH_SELECT);
-				} else UI_ThemeColor(TH_WIRE);
+				} else {
+					if(track->flag&TRACK_CUSTOMCOLOR) glColor3fv(track->color);
+					else UI_ThemeColor(TH_WIRE);
+				}
 
 				drawaxes(0.05f, v3d->bundle_drawtype);
 
@@ -1481,7 +1484,9 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 						glDepthMask(1);
 					}
 
-					UI_ThemeColor(TH_BUNDLE_SOLID);
+					if(track->flag&TRACK_CUSTOMCOLOR) glColor3fv(track->color);
+					else UI_ThemeColor(TH_BUNDLE_SOLID);
+
 					draw_bundle_sphere();
 				} else {
 					glDisable(GL_LIGHTING);
@@ -1490,7 +1495,10 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 					if(selected) {
 						if(base==BASACT) UI_ThemeColor(TH_ACTIVE);
 						else UI_ThemeColor(TH_SELECT);
-					} else UI_ThemeColor(TH_WIRE);
+					} else {
+						if(track->flag&TRACK_CUSTOMCOLOR) glColor3fv(track->color);
+						else UI_ThemeColor(TH_WIRE);
+					}
 
 					drawaxes(0.05f, v3d->bundle_drawtype);
 

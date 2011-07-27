@@ -70,9 +70,10 @@ typedef struct libmv_RegionTracker {
 void libmv_initLogging(const char *argv0)
 {
 	google::InitGoogleLogging(argv0);
-	google::SetCommandLineOption("logtostderr", "0");
+	google::SetCommandLineOption("logtostderr", "1");
 	google::SetCommandLineOption("v", "0");
 	google::SetCommandLineOption("stderrthreshold", "7");
+	google::SetCommandLineOption("minloglevel", "7");
 	V3D::optimizerVerbosenessLevel = 0;
 }
 
@@ -80,7 +81,8 @@ void libmv_startDebugLogging(void)
 {
 	google::SetCommandLineOption("logtostderr", "1");
 	google::SetCommandLineOption("v", "0");
-	google::SetCommandLineOption("stderrthreshold", "2");
+	google::SetCommandLineOption("stderrthreshold", "1");
+	google::SetCommandLineOption("minloglevel", "0");
 	V3D::optimizerVerbosenessLevel = 1;
 }
 
