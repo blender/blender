@@ -472,12 +472,12 @@ if  env['OURPLATFORM']!='darwin':
                 
                 if 'locale' in dp:
                     datafileslist.append(os.path.join(dp,f))
-                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[1:]))    # skip bin
+                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[2:]))    # skip bin/.blender
                     datafilestargetlist.append(dir + os.sep + f)
 
                 else:
                     dotblendlist.append(os.path.join(dp, f))
-                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[1:]))    # skip bin
+                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[2:]))    # skip bin/.blender
                     dottargetlist.append(dir + os.sep + f)
                     
         dotblenderinstall = []
