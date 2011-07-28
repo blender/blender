@@ -5225,20 +5225,47 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 
 /* *** CLIP EDITOR *** */
 
-static void markerToTransDataInit(TransData *td, TransData2D *td2d, float *loc, float *rel)
+typedef struct TransDataTracking {
+	int area;
+	float *relative, *loc;
+	float soffset[2], srelative[2];
+	float offset[2];
+} TransDataTracking;
+
+static void markerToTransDataInit(TransData *td, TransData2D *td2d,
+			TransDataTracking *tdt, int area, float *loc, float *rel, float *off)
 {
-	td2d->loc[0] = loc[0]; /* hold original location */
-	td2d->loc[1] = loc[1];
+	int anchor = area==TRACK_AREA_POINT && off;
+
+	if(anchor) {
+		td2d->loc[0] = rel[0]; /* hold original location */
+		td2d->loc[1] = rel[1];
+
+		tdt->loc= loc;
+		copy_v2_v2(tdt->offset, rel);
+		td2d->loc2d = tdt->offset; /* current location */
+	} else {
+		td2d->loc[0] = loc[0]; /* hold original location */
+		td2d->loc[1] = loc[1];
+
+		td2d->loc2d = loc; /* current location */
+	}
 	td2d->loc[2] = 0.0f;
 
-	if(rel) {	/* XXX: could it be nicer? */
-		td2d->loc[0]+= rel[0];
-		td2d->loc[1]+= rel[1];
+	tdt->relative= rel;
+	tdt->area= area;
 
-		td->extra= rel;
+	if(rel) {
+		if(!anchor) {
+			td2d->loc[0]+= rel[0];
+			td2d->loc[1]+= rel[1];
+		}
+
+		copy_v2_v2(tdt->srelative, rel);
 	}
 
-	td2d->loc2d = loc; /* current location */
+	if(off)
+		copy_v2_v2(tdt->soffset, off);
 
 	td->flag = 0;
 	td->loc = td2d->loc;
@@ -5257,7 +5284,8 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, float *loc, 
 	unit_m3(td->smtx);
 }
 
-static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d, MovieTrackingTrack *track)
+static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
+			TransDataTracking *tdt, MovieTrackingTrack *track)
 {
 	MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
 
@@ -5265,17 +5293,19 @@ static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d, Mo
 
 	marker->flag&= ~(MARKER_DISABLED|MARKER_TRACKED);
 
+	markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_POINT, track->offset, marker->pos, track->offset);
+
 	if(track->flag&SELECT)
-		markerToTransDataInit(td++, td2d++, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_POINT, marker->pos, NULL, NULL);
 
 	if(track->pat_flag&SELECT) {
-		markerToTransDataInit(td++, td2d++, track->pat_min, marker->pos);
-		markerToTransDataInit(td++, td2d++, track->pat_max, marker->pos);
+		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_PAT, track->pat_min, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_PAT, track->pat_max, marker->pos, NULL);
 	}
 
 	if(track->search_flag&SELECT) {
-		markerToTransDataInit(td++, td2d++, track->search_min, marker->pos);
-		markerToTransDataInit(td++, td2d++, track->search_max, marker->pos);
+		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_SEARCH, track->search_min, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_SEARCH, track->search_max, marker->pos, NULL);
 	}
 }
 
@@ -5287,6 +5317,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
+	TransDataTracking *tdt;
 	int framenr = sc->user.framenr;
 
 	if(clip && !BKE_movieclip_has_frame(clip, &sc->user)) {
@@ -5303,6 +5334,8 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 			marker= BKE_tracking_get_marker(track, framenr);
 
 			if(marker) {
+				t->total++;	/* offset */
+
 				if(track->flag&SELECT) t->total++;
 				if(track->pat_flag&SELECT) t->total+= 2;
 				if(track->search_flag&SELECT) t->total+= 2;
@@ -5312,8 +5345,12 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 		track = track->next;
 	}
 
+	if(t->total==0)
+		return;
+
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransTracking TransData");
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransTracking TransData2D");
+	tdt = t->customData = MEM_callocN(t->total*sizeof(TransDataTracking), "TransTracking TransDataTracking");
 
 	/* create actual data */
 	track = clip->tracking.tracks.first;
@@ -5322,20 +5359,26 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 			marker= BKE_tracking_get_marker(track, framenr);
 
 			if(marker) {
-				trackToTransData(sc, td, td2d, track);
+				trackToTransData(sc, td, td2d, tdt, track);
+
+				td++;
+				td2d++;
+				tdt++;
 
 				if((marker->flag&MARKER_DISABLED)==0) {
-					if(track->flag&SELECT) {td++; td2d++;}
-					if(track->pat_flag&SELECT) {td+= 2; td2d+= 2;}
+					if(track->flag&SELECT) {td++; td2d++; tdt+=2;}
+					if(track->pat_flag&SELECT) {td+= 2; td2d+= 2;tdt+=2;}
 				}
 
 				if(track->search_flag&SELECT) {
 					td+= 2;
 					td2d+= 2;
+					tdt+= 2;
 
 					if(marker->flag&MARKER_DISABLED) {
 						td+= 3;
 						td2d+= 3;
+						tdt+= 3;
 					}
 				};
 			}
@@ -5349,18 +5392,29 @@ void flushTransTracking(TransInfo *t)
 {
 	TransData *td;
 	TransData2D *td2d;
+	TransDataTracking *tdt;
 	int a;
 
 	/* flush to 2d vector from internally used 3d vector */
-	for(a=0, td= t->data, td2d= t->data2d; a<t->total; a++, td2d++, td++) {
-		if(t->flag&T_RELATIVE_POSITION && !td->extra)
-			continue;
+	for(a=0, td= t->data, td2d= t->data2d, tdt= t->customData; a<t->total; a++, td2d++, td++, tdt++) {
+		if(t->flag&T_RELATIVE_POSITION) {
+			if(tdt->area==TRACK_AREA_POINT && tdt->relative) {
+				float d[2];
 
-		td2d->loc2d[0] = td2d->loc[0];
-		td2d->loc2d[1] = td2d->loc[1];
+				sub_v2_v2v2(d, td2d->loc, tdt->soffset);
+				sub_v2_v2(d, tdt->srelative);
+				sub_v2_v2v2(td2d->loc2d, tdt->soffset, d);
+				negate_v2_v2(tdt->loc, d);
+			}
+		}
 
-		if(td->extra)
-			sub_v2_v2(td2d->loc2d, td->extra);
+		if(tdt->area!=TRACK_AREA_POINT || tdt->relative==0) {
+			td2d->loc2d[0] = td2d->loc[0];
+			td2d->loc2d[1] = td2d->loc[1];
+
+			if(tdt->relative)
+				sub_v2_v2(td2d->loc2d, tdt->relative);
+		}
 	}
 }
 

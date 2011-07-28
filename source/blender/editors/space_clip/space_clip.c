@@ -158,10 +158,6 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 
 static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 {
-	SpaceClip *sc= sa->spacedata.first;
-
-	(void)sc;
-
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
@@ -200,6 +196,11 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_redraw(sa);
 					clip_scopes_tag_refresh(sa);
 					break;
+			}
+			break;
+		 case NC_SCREEN:
+			if(wmn->data==ND_ANIMPLAY) {
+				ED_area_tag_redraw(sa);
 			}
 			break;
 		case NC_SPACE:

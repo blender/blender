@@ -835,8 +835,8 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 					BKE_tracking_apply_intrinsics(tracking, pos, width, height, pos);
 
-					vec[0]= marker->pos[0]*width;
-					vec[1]= marker->pos[1]*height;
+					vec[0]= (marker->pos[0]+track->offset[0])*width;
+					vec[1]= (marker->pos[1]+track->offset[1])*height;
 					sub_v2_v2(vec, pos);
 
 					if(len_v2(vec)<3) glColor3f(0.0f, 1.0f, 0.0f);
