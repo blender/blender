@@ -155,7 +155,7 @@ typedef struct Sequence {
 	void *scene_sound;
 	float volume;
 
-	float level, pan;	/* level in dB (0=full), pan -1..1 */
+	float pitch, pan;	/* pitch (-0.1..10), pan -2..2 */
 	int scenenr;          /* for scene selection */
 	int multicam_source;  /* for multicam source selection */
 	float strobe;
@@ -283,6 +283,11 @@ typedef struct SpeedControlVars {
 
 #define SEQ_USE_PROXY_CUSTOM_FILE   (1<<21)
 #define SEQ_USE_EFFECT_DEFAULT_FADE (1<<22)
+
+// flags for whether those properties are animated or not
+#define SEQ_AUDIO_VOLUME_ANIMATED   (1<<24)
+#define SEQ_AUDIO_PITCH_ANIMATED    (1<<25)
+#define SEQ_AUDIO_PAN_ANIMATED      (1<<26)
 
 #define SEQ_INVALID_EFFECT          (1<<31)
 

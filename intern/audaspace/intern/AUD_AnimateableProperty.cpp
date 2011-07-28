@@ -32,6 +32,7 @@
 #include "AUD_AnimateableProperty.h"
 
 #include <cstring>
+#include <cmath>
 
 AUD_AnimateableProperty::AUD_AnimateableProperty(int count) :
 	AUD_Buffer(count * sizeof(float)), m_count(count), m_isAnimated(false), m_changed(false)
@@ -78,16 +79,85 @@ void AUD_AnimateableProperty::write(const float* data, int position, int count)
 	lock();
 
 	m_isAnimated = true;
-	m_changed = true;
+
+	int pos = getSize() / (sizeof(float) * m_count);
+
 	assureSize((count + position) * m_count * sizeof(float), true);
-	memcpy(getBuffer() + position * m_count, data, count * m_count * sizeof(float));
+
+	float* buf = getBuffer();
+
+	memcpy(buf + position * m_count, data, count * m_count * sizeof(float));
+
+	for(int i = pos; i < position; i++)
+		memcpy(buf + i * m_count, buf + (pos - 1) * m_count, m_count * sizeof(float));
 
 	unlock();
 }
 
-const float* AUD_AnimateableProperty::read(int position) const
+void AUD_AnimateableProperty::read(float position, float* out)
 {
-	return getBuffer() + position * m_count;
+	lock();
+
+	if(!m_isAnimated)
+	{
+		memcpy(out, getBuffer(), m_count * sizeof(float));
+		unlock();
+		return;
+	}
+
+	float last = (getSize() / (sizeof(float) * m_count) - 1);
+	float t = position - floor(position);
+
+	if(position > last)
+	{
+		position = last;
+		t = 0;
+	}
+
+	if(t == 0)
+	{
+		memcpy(out, getBuffer() + int(floor(position)) * m_count, m_count * sizeof(float));
+	}
+	else
+	{
+		int pos = int(floor(position)) * m_count;
+		float t2 = t * t;
+		float t3 = t2 * t;
+		float m0, m1;
+		float* p0;
+		float* p1 = getBuffer() + pos;
+		float* p2;
+		float* p3;
+
+		if(pos == 0)
+			p0 = p1;
+		else
+			p0 = p1 - m_count;
+
+		if(pos > last)
+		{
+			p3 = p2 = p1;
+		}
+		else
+		{
+			p2 = p1 + m_count;
+			if(pos + m_count > last)
+				p3 = p2;
+			else
+				p3 = p2 + m_count;
+		}
+
+		for(int i = 0; i < m_count; i++)
+		{
+			m0 = (p2[i] - p0[i]) / 2.0f;
+			m1 = (p3[i] - p1[i]) / 2.0f;
+
+			out[i] = (2 * t3 - 3 * t2 + 1) * p0[i] + (-2 * t3 + 3 * t2) * p1[i] +
+					 (t3 - 2 * t2 + t) * m0 + (t3 - t2) * m1;
+		}
+	}
+
+	unlock();
 }
 
 bool AUD_AnimateableProperty::isAnimated() const
@@ -97,6 +167,9 @@ bool AUD_AnimateableProperty::isAnimated() const
 
 bool AUD_AnimateableProperty::hasChanged()
 {
+	if(m_isAnimated)
+		return true;
+
 	bool result = m_changed;
 	m_changed = false;
 	return result;

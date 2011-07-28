@@ -471,6 +471,10 @@ extern void AUD_muteSequence(AUD_SEntry* entry, char mute);
 
 extern void AUD_updateSequenceSound(AUD_SEntry* entry, AUD_Sound* sound);
 
+extern void AUD_setSequenceAnimData(AUD_SEntry* entry, AUD_AnimateablePropertyType type, int frame, float* data, char animated);
+
+extern void AUD_setSequencerAnimData(AUD_Sound* sequencer, AUD_AnimateablePropertyType type, int frame, float* data, char animated);
+
 extern void AUD_setSequencerDeviceSpecs(AUD_Sound* sequencer);
 
 extern void AUD_setSequencerSpecs(AUD_Sound* sequencer, AUD_Specs specs);

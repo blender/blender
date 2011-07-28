@@ -473,9 +473,10 @@ Scene *add_scene(const char *name)
 
 	BLI_strncpy(sce->r.engine, "BLENDER_RENDER", sizeof(sce->r.engine));
 
-	sce->audio.distance_model = 2.0;
-	sce->audio.doppler_factor = 1.0;
-	sce->audio.speed_of_sound = 343.3;
+	sce->audio.distance_model = 2.0f;
+	sce->audio.doppler_factor = 1.0f;
+	sce->audio.speed_of_sound = 343.3f;
+	sce->audio.volume = 1.0f;
 
 	BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
 
@@ -1000,6 +1001,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 {
 	float ctime = BKE_curframe(sce);
 	Scene *sce_iter;
+
+	sound_set_cfra(sce->r.cfra);
 	
 	/* clear animation overrides */
 	// XXX TODO...

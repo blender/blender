@@ -43,6 +43,7 @@
 #include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_sequencer.h"
+#include "BKE_sound.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -527,6 +528,33 @@ static void rna_Sequence_attenuation_set(PointerRNA *ptr, float value)
 	seq->volume = from_dB(value);
 }
 
+static void rna_Sequence_volume_set(PointerRNA *ptr, float value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+
+	seq->volume = value;
+	if(seq->scene_sound)
+		sound_set_scene_sound_volume(seq->scene_sound, value, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
+}
+
+static void rna_Sequence_pitch_set(PointerRNA *ptr, float value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+
+	seq->pitch = value;
+	if(seq->scene_sound)
+		sound_set_scene_sound_pitch(seq->scene_sound, value, (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
+}
+
+static void rna_Sequence_pan_set(PointerRNA *ptr, float value)
+{
+	Sequence *seq= (Sequence*)(ptr->data);
+
+	seq->pan = value;
+	if(seq->scene_sound)
+		sound_set_scene_sound_pan(seq->scene_sound, value, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
+}
+
 
 static int rna_Sequence_input_count_get(PointerRNA *ptr)
 {
@@ -558,9 +586,6 @@ static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 	Editing *ed= seq_give_editing(scene, FALSE);
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
-
-	if(RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
-		seq_update_sound_bounds(scene, ptr->data);
 }
 
 static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
@@ -1368,13 +1393,27 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "volume");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
+	RNA_def_property_float_funcs(prop, NULL, "rna_Sequence_volume_set", NULL);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "attenuation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -100.0f, +40.0f);
 	RNA_def_property_ui_text(prop, "Attenuation/dB", "Attenuation in decibel");
 	RNA_def_property_float_funcs(prop, "rna_Sequence_attenuation_get", "rna_Sequence_attenuation_set", NULL); 
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
+	prop= RNA_def_property(srna, "pitch", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "pitch");
+	RNA_def_property_range(prop, 0.1f, 10.0f);
+	RNA_def_property_ui_text(prop, "Pitch", "Playback pitch of the sound");
+	RNA_def_property_float_funcs(prop, NULL, "rna_Sequence_pitch_set", NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "pan", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "pan");
+	RNA_def_property_range(prop, -2.0f, 2.0f);
+	RNA_def_property_ui_text(prop, "Pan", "Playback panning of the sound (only for Mono sources)");
+	RNA_def_property_float_funcs(prop, NULL, "rna_Sequence_pan_set", NULL);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);

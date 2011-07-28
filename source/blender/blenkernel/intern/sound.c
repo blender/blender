@@ -32,10 +32,11 @@
 #include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_packedFile.h"
-#include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 #include "BKE_sequencer.h"
 
+// evil global ;-)
+static int sound_cfra;
 
 struct bSound* sound_new_file(struct Main *bmain, const char *filename)
 {
@@ -409,6 +410,31 @@ void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, i
 void sound_update_scene_sound(void* handle, struct bSound* sound)
 {
 	AUD_updateSequenceSound(handle, sound->playback_handle);
+}
+
+void sound_set_cfra(int cfra)
+{
+	sound_cfra = cfra;
+}
+
+void sound_set_scene_volume(struct Scene *scene, float volume)
+{
+	AUD_setSequencerAnimData(scene->sound_scene, AUD_AP_VOLUME, CFRA, &volume, (scene->audio.flag & AUDIO_VOLUME_ANIMATED) != 0);
+}
+
+void sound_set_scene_sound_volume(void* handle, float volume, char animated)
+{
+	AUD_setSequenceAnimData(handle, AUD_AP_VOLUME, sound_cfra, &volume, animated);
+}
+
+void sound_set_scene_sound_pitch(void* handle, float pitch, char animated)
+{
+	AUD_setSequenceAnimData(handle, AUD_AP_PITCH, sound_cfra, &pitch, animated);
+}
+
+void sound_set_scene_sound_pan(void* handle, float pan, char animated)
+{
+	AUD_setSequenceAnimData(handle, AUD_AP_PANNING, sound_cfra, &pan, animated);
 }
 
 void sound_update_sequencer(struct Main* main, struct bSound* sound)

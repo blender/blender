@@ -174,7 +174,7 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 /* ----------------- Finding F-Curves -------------------------- */
 
 /* high level function to get an fcurve from C without having the rna */
-FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *prop_name, int index)
+FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *prop_name, int index, char *driven)
 {
 	/* anim vars */
 	AnimData *adt= BKE_animdata_from_id(id);
@@ -184,6 +184,9 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	char *path;
+
+	if(driven)
+		*driven = 0;
 	
 	/* only use the current action ??? */
 	if (ELEM(NULL, adt, adt->action))
@@ -201,11 +204,12 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 				fcu= list_find_fcurve(&adt->action->curves, path, index);
 			
 			/* if not animated, check if driven */
-#if 0
 			if ((fcu == NULL) && (adt->drivers.first)) {
-				fcu= list_find_fcurve(&adt->drivers, path, but->rnaindex);
+				fcu= list_find_fcurve(&adt->drivers, path, index);
+				if(fcu && driven)
+					*driven = 1;
+				fcu = NULL;
 			}
-#endif
 			
 			MEM_freeN(path);
 		}

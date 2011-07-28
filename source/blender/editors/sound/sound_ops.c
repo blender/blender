@@ -41,6 +41,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -49,11 +50,14 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_packedFile.h"
+#include "BKE_scene.h"
 #include "BKE_sound.h"
+#include "BKE_sequencer.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -295,9 +299,102 @@ static void SOUND_OT_unpack(wmOperatorType *ot)
 
 /* ******************************************************* */
 
+static int update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Sequence* seq;
+	Scene* scene = CTX_data_scene(C);
+	struct FCurve* fcu;
+	char driven;
+
+	SEQ_BEGIN(scene->ed, seq) {
+		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, &driven);
+		if(fcu || driven)
+			seq->flag |= SEQ_AUDIO_VOLUME_ANIMATED;
+		else
+			seq->flag &= ~SEQ_AUDIO_VOLUME_ANIMATED;
+
+		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pitch", 0, &driven);
+		if(fcu || driven)
+			seq->flag |= SEQ_AUDIO_PITCH_ANIMATED;
+		else
+			seq->flag &= ~SEQ_AUDIO_PITCH_ANIMATED;
+
+		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pan", 0, &driven);
+		if(fcu || driven)
+			seq->flag |= SEQ_AUDIO_PAN_ANIMATED;
+		else
+			seq->flag &= ~SEQ_AUDIO_PAN_ANIMATED;
+	}
+	SEQ_END
+
+	fcu = id_data_find_fcurve(&scene->id, scene, &RNA_Scene, "audio_volume", 0, &driven);
+	if(fcu || driven)
+		scene->audio.flag |= AUDIO_VOLUME_ANIMATED;
+	else
+		scene->audio.flag &= ~AUDIO_VOLUME_ANIMATED;
+
+	return OPERATOR_FINISHED;
+}
+
+void SOUND_OT_update_animation_flags(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Update animation";
+	ot->description= "Update animation flags";
+	ot->idname= "SOUND_OT_update_animation_flags";
+
+	/* api callbacks */
+	ot->exec= update_animation_flags_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+/* ******************************************************* */
+
+static int bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main* bmain = CTX_data_main(C);
+	Scene* scene = CTX_data_scene(C);
+	int oldfra = scene->r.cfra;
+	int cfra;
+
+	update_animation_flags_exec(C, NULL);
+
+	for(cfra = scene->r.sfra; cfra <= scene->r.efra; cfra++)
+	{
+		scene->r.cfra = cfra;
+		scene_update_for_newframe(bmain, scene, scene->lay);
+	}
+
+	scene->r.cfra = oldfra;
+	scene_update_for_newframe(bmain, scene, scene->lay);
+
+	return OPERATOR_FINISHED;
+}
+
+void SOUND_OT_bake_animation(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bake animation";
+	ot->description= "Bakes the animation cache so that it's up to date";
+	ot->idname= "SOUND_OT_bake_animation";
+
+	/* api callbacks */
+	ot->exec= bake_animation_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
+
+
+/* ******************************************************* */
+
 void ED_operatortypes_sound(void)
 {
 	WM_operatortype_append(SOUND_OT_open);
 	WM_operatortype_append(SOUND_OT_pack);
 	WM_operatortype_append(SOUND_OT_unpack);
+	WM_operatortype_append(SOUND_OT_update_animation_flags);
+	WM_operatortype_append(SOUND_OT_bake_animation);
 }

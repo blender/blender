@@ -48,6 +48,8 @@ AUD_SequencerFactory::AUD_SequencerFactory(AUD_Specs specs, float fps, bool mute
 {
 	AUD_Quaternion q;
 	m_orientation.write(q.get());
+	float f = 1;
+	m_volume.write(&f);
 }
 
 AUD_SequencerFactory::~AUD_SequencerFactory()

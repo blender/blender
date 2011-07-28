@@ -66,7 +66,7 @@ void AUD_SequencerHandle::stop()
 		m_handle->stop();
 }
 
-void AUD_SequencerHandle::update(float position)
+void AUD_SequencerHandle::update(float position, float frame)
 {
 	if(!m_handle.isNull())
 	{
@@ -111,7 +111,16 @@ void AUD_SequencerHandle::update(float position)
 			m_status = m_entry->m_status;
 		}
 
-		// AUD_XXX TODO: Animation data
+		float value;
+
+		m_entry->m_volume.read(frame, &value);
+		m_handle->setVolume(value);
+		m_entry->m_pitch.read(frame, &value);
+		m_handle->setPitch(value);
+		m_entry->m_panning.read(frame, &value);
+		AUD_SoftwareDevice::setPanning(m_handle.get(), value);
+
+		// AUD_XXX: TODO: animation data
 
 		if(m_entry->m_muted)
 			m_handle->setVolume(0);

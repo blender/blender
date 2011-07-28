@@ -84,7 +84,7 @@ public:
 
 	void write(const float* data, int position, int count);
 
-	const float* read(int position) const;
+	void read(float position, float* out);
 
 	bool isAnimated() const;
 

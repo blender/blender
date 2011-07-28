@@ -938,6 +938,24 @@ void AUD_updateSequenceSound(AUD_SEntry* entry, AUD_Sound* sound)
 		(*entry)->setSound(AUD_Sound());
 }
 
+void AUD_setSequenceAnimData(AUD_SEntry* entry, AUD_AnimateablePropertyType type, int frame, float* data, char animated)
+{
+	AUD_AnimateableProperty* prop = (*entry)->getAnimProperty(type);
+	if(animated)
+		prop->write(data, frame, 1);
+	else
+		prop->write(data);
+}
+
+void AUD_setSequencerAnimData(AUD_Sound* sequencer, AUD_AnimateablePropertyType type, int frame, float* data, char animated)
+{
+	AUD_AnimateableProperty* prop = ((AUD_SequencerFactory*)sequencer->get())->getAnimProperty(type);
+	if(animated)
+		prop->write(data, frame, 1);
+	else
+		prop->write(data);
+}
+
 void AUD_setSequencerDeviceSpecs(AUD_Sound* sequencer)
 {
 	((AUD_SequencerFactory*)sequencer->get())->setSpecs(AUD_device->getSpecs().specs);

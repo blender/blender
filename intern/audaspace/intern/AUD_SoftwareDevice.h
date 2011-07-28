@@ -81,6 +81,9 @@ protected:
 		/// The user set volume of the source.
 		float m_user_volume;
 
+		/// The user set panning for non-3D sources
+		float m_user_pan;
+
 		/// The calculated final volume of the source.
 		float m_volume;
 
@@ -278,6 +281,9 @@ private:
 	int m_flags;
 
 public:
+
+	static void setPanning(AUD_IHandle* handle, float pan);
+
 	virtual AUD_DeviceSpecs getSpecs() const;
 	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
 	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);

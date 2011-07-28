@@ -54,7 +54,7 @@ public:
 	~AUD_SequencerHandle();
 	int compare(AUD_Reference<AUD_SequencerEntry> entry) const;
 	void stop();
-	void update(float position);
+	void update(float position, float frame);
 	void seek(float position);
 };
 

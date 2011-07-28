@@ -62,8 +62,8 @@ typedef enum
 /******************************************************************************/
 
 AUD_SoftwareDevice::AUD_SoftwareHandle::AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, AUD_Reference<AUD_ResampleReader> resampler, AUD_Reference<AUD_ChannelMapperReader> mapper, bool keep) :
-	m_reader(reader), m_pitch(pitch), m_resampler(resampler), m_mapper(mapper), m_keep(keep), m_user_pitch(1.0f), m_user_volume(1.0f), m_volume(1.0f), m_loopcount(0),
-	m_relative(false), m_volume_max(1.0f), m_volume_min(0), m_distance_max(std::numeric_limits<float>::max()),
+	m_reader(reader), m_pitch(pitch), m_resampler(resampler), m_mapper(mapper), m_keep(keep), m_user_pitch(1.0f), m_user_volume(1.0f), m_user_pan(0.0f), m_volume(1.0f), m_loopcount(0),
+	m_relative(true), m_volume_max(1.0f), m_volume_min(0), m_distance_max(std::numeric_limits<float>::max()),
 	m_distance_reference(1.0f), m_attenuation(1.0f), m_cone_angle_outer(M_PI), m_cone_angle_inner(M_PI), m_cone_volume_outer(0),
 	m_flags(AUD_RENDER_CONE), m_stop(NULL), m_stop_data(NULL), m_status(AUD_STATUS_PLAYING), m_device(device)
 {
@@ -211,7 +211,7 @@ void AUD_SoftwareDevice::AUD_SoftwareHandle::update()
 		m_mapper->setMonoAngle(phi);
 	}
 	else
-		m_mapper->setMonoAngle(0);
+		m_mapper->setMonoAngle(m_relative ? m_user_pan * M_PI / 2.0 : 0);
 }
 
 void AUD_SoftwareDevice::AUD_SoftwareHandle::setSpecs(AUD_Specs specs)
@@ -766,6 +766,12 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 	}
 
 	unlock();
+}
+
+void AUD_SoftwareDevice::setPanning(AUD_IHandle* handle, float pan)
+{
+	AUD_SoftwareDevice::AUD_SoftwareHandle* h = dynamic_cast<AUD_SoftwareDevice::AUD_SoftwareHandle*>(handle);
+	h->m_user_pan = pan;
 }
 
 void AUD_SoftwareDevice::setSpecs(AUD_Specs specs)

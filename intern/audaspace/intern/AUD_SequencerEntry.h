@@ -76,6 +76,8 @@ public:
 
 	int getID() const;
 
+	AUD_AnimateableProperty* getAnimProperty(AUD_AnimateablePropertyType type);
+
 	/**
 	 * Checks whether the source location, velocity and orientation are relative
 	 * to the listener.

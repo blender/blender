@@ -640,6 +640,8 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
 
         layout.prop(strip, "volume")
         layout.prop(strip, "attenuation")
+        layout.prop(strip, "pitch")
+        layout.prop(strip, "pan")
 
         col = layout.column(align=True)
         col.label(text="Trim Duration:")

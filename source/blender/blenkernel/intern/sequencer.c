@@ -1775,7 +1775,7 @@ static ImBuf* seq_render_effect_strip_impl(
 			facf= fac;
 	}
 	else {
-		fcu = id_data_find_fcurve(&context.scene->id, seq, &RNA_Sequence, "effect_fader", 0);
+		fcu = id_data_find_fcurve(&context.scene->id, seq, &RNA_Sequence, "effect_fader", 0, NULL);
 		if (fcu) {
 			fac = facf = evaluate_fcurve(fcu, cfra);
 			if( context.scene->r.mode & R_FIELDS ) {
@@ -3496,6 +3496,7 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	seq->mul= 1.0;
 	seq->blend_opacity = 100.0;
 	seq->volume = 1.0f;
+	seq->pitch = 1.0f;
 	seq->scene_sound = NULL;
 
 	return seq;

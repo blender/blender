@@ -149,6 +149,8 @@ typedef struct AudioData {
 	int distance_model;
 	short flag;
 	short pad;
+	float volume;
+	float pad2;
 } AudioData;
 
 typedef struct SceneRenderLayer {
@@ -1131,9 +1133,10 @@ typedef struct Scene {
 #define F_DUPLI			3
 
 /* audio->flag */
-#define AUDIO_MUTE		1
-#define AUDIO_SYNC		2
-#define AUDIO_SCRUB		4
+#define AUDIO_MUTE                (1<<0)
+#define AUDIO_SYNC                (1<<1)
+#define AUDIO_SCRUB		          (1<<2)
+#define AUDIO_VOLUME_ANIMATED     (1<<3)
 
 #define FFMPEG_MULTIPLEX_AUDIO  1 /* deprecated, you can choose none as audiocodec now */
 #define FFMPEG_AUTOSPLIT_OUTPUT 2

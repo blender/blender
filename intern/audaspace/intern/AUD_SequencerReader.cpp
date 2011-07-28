@@ -144,18 +144,26 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 	AUD_Specs specs = m_factory->m_specs;
 	int pos = 0;
 	float time = float(m_position) / float(specs.rate);
-	int len;
+	float value, frame;
+	int len, cfra;
 
 	while(pos < length)
 	{
-		len = int(ceil((int(floor(time * m_factory->m_fps)) + 1) / m_factory->m_fps * specs.rate)) - m_position;
+		frame = time * m_factory->m_fps;
+		cfra = int(floor(frame));
+
+		len = int(ceil((cfra + 1) / m_factory->m_fps * specs.rate)) - m_position;
 		len = AUD_MIN(length - pos, len);
 		len = AUD_MAX(len, 1);
 
 		for(AUD_HandleIterator it = m_handles.begin(); it != m_handles.end(); it++)
 		{
-			(*it)->update(time);
+			(*it)->update(time, frame);
 		}
+
+		m_factory->m_volume.read(frame, &value);
+
+		m_device.setVolume(value);
 
 		m_device.read(reinterpret_cast<data_t*>(buffer + specs.channels * pos), len);
 

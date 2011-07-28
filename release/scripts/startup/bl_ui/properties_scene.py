@@ -43,6 +43,32 @@ class SCENE_PT_scene(SceneButtonsPanel, bpy.types.Panel):
         layout.prop(scene, "background_set", text="Background")
 
 
+class SCENE_PT_audio(SceneButtonsPanel, bpy.types.Panel):
+    bl_label = "Audio"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        rd = context.scene.render
+        
+        layout.prop(scene, "audio_distance_model")
+
+        layout.prop(scene, "audio_doppler_speed", text="Speed")
+        layout.prop(scene, "audio_doppler_factor")
+
+        layout.prop(scene, "audio_volume")
+        layout.operator("sound.update_animation_flags")
+        layout.operator("sound.bake_animation")
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "ffmpeg_audio_mixrate", text="Rate")
+        col = split.column()
+        col.prop(rd, "ffmpeg_audio_channels", text="")
+
+
 class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Units"
     COMPAT_ENGINES = {'BLENDER_RENDER'}

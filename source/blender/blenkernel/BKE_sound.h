@@ -96,6 +96,16 @@ void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, i
 
 void sound_update_scene_sound(void* handle, struct bSound* sound);
 
+void sound_set_cfra(int cfra);
+
+void sound_set_scene_volume(struct Scene *scene, float volume);
+
+void sound_set_scene_sound_volume(void* handle, float volume, char animated);
+
+void sound_set_scene_sound_pitch(void* handle, float pitch, char animated);
+
+void sound_set_scene_sound_pan(void* handle, float pan, char animated);
+
 void sound_update_sequencer(struct Main* main, struct bSound* sound);
 
 void sound_play_scene(struct Scene *scene);

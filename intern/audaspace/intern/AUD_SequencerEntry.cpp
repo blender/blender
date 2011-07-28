@@ -45,7 +45,7 @@ AUD_SequencerEntry::AUD_SequencerEntry(AUD_Reference<AUD_IFactory> sound, float 
 	m_end(end),
 	m_skip(skip),
 	m_muted(false),
-	m_relative(false),
+	m_relative(true),
 	m_volume_max(1.0f),
 	m_volume_min(0),
 	m_distance_max(std::numeric_limits<float>::max()),
@@ -72,10 +72,13 @@ void AUD_SequencerEntry::setSound(AUD_Reference<AUD_IFactory> sound)
 
 void AUD_SequencerEntry::move(float begin, float end, float skip)
 {
-	m_begin = begin;
-	m_skip = skip;
-	m_end = end;
-	m_pos_status++;
+	if(m_begin != begin || m_skip != skip || m_end != end)
+	{
+		m_begin = begin;
+		m_skip = skip;
+		m_end = end;
+		m_pos_status++;
+	}
 }
 
 void AUD_SequencerEntry::mute(bool mute)
@@ -86,6 +89,25 @@ void AUD_SequencerEntry::mute(bool mute)
 int AUD_SequencerEntry::getID() const
 {
 	return m_id;
+}
+
+AUD_AnimateableProperty* AUD_SequencerEntry::getAnimProperty(AUD_AnimateablePropertyType type)
+{
+	switch(type)
+	{
+	case AUD_AP_VOLUME:
+		return &m_volume;
+	case AUD_AP_PITCH:
+		return &m_pitch;
+	case AUD_AP_PANNING:
+		return &m_panning;
+	case AUD_AP_LOCATION:
+		return &m_location;
+	case AUD_AP_ORIENTATION:
+		return &m_orientation;
+	default:
+		return NULL;
+	}
 }
 
 bool AUD_SequencerEntry::isRelative()
