@@ -101,6 +101,8 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 	
 	RNA_def_boolean(ot->srna, "replace_sel", 1, "Replace Selection", "replace the current selection");
 
+	RNA_def_boolean(ot->srna, "overlap", 0, "Allow Overlap", "Don't correct overlap on new sequence strips");
+
 	if(flag & SEQPROP_FILES)
 		RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }
@@ -250,7 +252,11 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 		seq_active_set(scene, seq);
 		seq->flag |= SELECT;
 	}
-	
+
+	if(RNA_boolean_get(op->ptr, "overlap") == FALSE) {
+		if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+	}
+
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -303,8 +309,9 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	Scene *scene= CTX_data_scene(C); /* only for sound */
 	Editing *ed= seq_give_editing(scene, TRUE);
 	SeqLoadInfo seq_load;
-	/* Sequence *seq; */ /* UNUSED */
+	Sequence *seq;
 	int tot_files;
+	const short overlap= RNA_boolean_get(op->ptr, "overlap");
 
 	seq_load_operator_info(&seq_load, op);
 
@@ -324,13 +331,21 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 			RNA_string_get(&itemptr, "name", file_only);
 			BLI_join_dirfile(seq_load.path, sizeof(seq_load.path), dir_only, file_only);
 
-			/* seq= */ seq_load_func(C, ed->seqbasep, &seq_load);
+			seq= seq_load_func(C, ed->seqbasep, &seq_load);
+
+			if(overlap == FALSE) {
+				if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+			}
 		}
 		RNA_END;
 	}
 	else {
 		/* single file */
-		/* seq= */ seq_load_func(C, ed->seqbasep, &seq_load);
+		seq= seq_load_func(C, ed->seqbasep, &seq_load);
+
+		if(overlap == FALSE) {
+			if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+		}
 	}
 
 	if (seq_load.tot_success==0) {
@@ -506,7 +521,11 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 	/* last active name */
 	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR-1);
-	
+
+	if(RNA_boolean_get(op->ptr, "overlap") == FALSE) {
+		if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+	}
+
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
@@ -656,7 +675,9 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+	if(RNA_boolean_get(op->ptr, "overlap") == FALSE) {
+		if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+	}
 
 	update_changed_seq_and_deps(scene, seq, 1, 1); /* runs calc_sequence */
 
