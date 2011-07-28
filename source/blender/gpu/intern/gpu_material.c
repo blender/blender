@@ -1371,9 +1371,6 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 		mat->obcolalpha = 1;
 		GPU_link(mat, "shade_alpha_obcolor", shr->combined, GPU_builtin(GPU_OBCOLOR), &shr->combined);
 	}
-
-	if(gpu_do_color_management(mat))
-		GPU_link(mat, "linearrgb_to_srgb", shr->combined, &shr->combined);
 }
 
 static GPUNodeLink *GPU_blender_material(GPUMaterial *mat, Material *ma)
@@ -1407,6 +1404,10 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		outlink = GPU_blender_material(mat, ma);
 		GPU_material_output_link(mat, outlink);
 	}
+
+	if(gpu_do_color_management(mat))
+		if(mat->outlink)
+			GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);
 
 	/*if(!GPU_material_construct_end(mat)) {
 		GPU_material_free(mat);
