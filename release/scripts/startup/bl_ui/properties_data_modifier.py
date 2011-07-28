@@ -777,8 +777,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
             col.label(text="Default Weight:")
             col.prop(md, "default_weight", text="")
 
-            layout.prop(md, "flag_map")
-            if md.flag_map:
+            layout.prop(md, "use_map")
+            if md.use_map:
                 split = layout.split()
                 col = split.column()
                 col.label("Input:")
@@ -790,27 +790,27 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
                 col.prop(md, "map_input_high", text="Max")
                 col.prop(md, "map_output_high", text="Max")
 
-            layout.prop(md, "flag_curve_map")
-            if md.flag_curve_map:
-                row = layout.row()
-                row.template_curve_mapping(md, "cmap_curve")
+            layout.prop(md, "use_map_curve")
+            if md.use_map_curve:
+                col = layout.column()
+                col.template_curve_mapping(md, "map_curve")
 
-            layout.prop(md, "flag_reverse")
+            layout.prop(md, "use_reverse")
 
-            layout.prop(md, "flag_clamp")
-            if md.flag_clamp:
+            layout.prop(md, "use_clamp")
+            if md.use_clamp:
                 row = layout.row()
-                row.prop(md, "clamp_min_weight")
-                row.prop(md, "clamp_max_weight")
+                row.prop(md, "clamp_weight_min")
+                row.prop(md, "clamp_weight_max")
 
             row = layout.row()
-            row.prop(md, "flag_add2vg")
-            row.prop(md, "flag_remfvg")
+            row.prop(md, "use_add")
+            row.prop(md, "use_remove")
             row = layout.row()
-            if md.flag_add2vg:
+            if md.use_add:
                 row.prop(md, "add_threshold")
-            if md.flag_remfvg:
-                row.prop(md, "rem_threshold")
+            if md.use_remove:
+                row.prop(md, "remove_threshold")
 
             # Common mask options…
             layout.separator()
@@ -850,15 +850,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             col.label(text="Target Object:")
-            col.prop(md, "ob_target", text="")
+            col.prop(md, "target", text="")
 
             row = layout.row()
             row.prop(md, "proximity_mode", expand=True)
-            if md.proximity_mode == 'OBJ2VERTDIST':
+            if md.proximity_mode == 'GEOMETRY':
                 row = layout.row()
-                row.prop(md, "obj2vert_verts")
-                row.prop(md, "obj2vert_edges")
-                row.prop(md, "obj2vert_faces")
+                row.prop(md, "proximity_geometry", expand=True)
 
             # Common mask options…
             layout.separator()

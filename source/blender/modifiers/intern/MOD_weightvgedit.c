@@ -71,8 +71,8 @@ static void initData(ModifierData *md)
 	wmd->cmap_curve             = curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
 	curvemapping_initialize(wmd->cmap_curve);
 
-	wmd->clamp_min_weight       = 0.0f;
-	wmd->clamp_max_weight       = 1.0f;
+	wmd->clamp_weight_min       = 0.0f;
+	wmd->clamp_weight_max       = 1.0f;
 
 	wmd->add_threshold          = 0.01f;
 	wmd->rem_threshold          = 0.01f;
@@ -104,8 +104,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->map_new_max            = wmd->map_new_max;
 	twmd->cmap_curve             = curvemapping_copy(wmd->cmap_curve);
 
-	twmd->clamp_min_weight       = wmd->clamp_min_weight;
-	twmd->clamp_max_weight       = wmd->clamp_max_weight;
+	twmd->clamp_weight_min       = wmd->clamp_weight_min;
+	twmd->clamp_weight_max       = wmd->clamp_weight_max;
 
 	twmd->add_threshold          = wmd->add_threshold;
 	twmd->rem_threshold          = wmd->rem_threshold;
@@ -311,7 +311,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Do clamping. */
 	if (do_clamp) {
 		for (i = 0; i < numVerts; i++)
-			CLAMP(org_w[i], wmd->clamp_min_weight, wmd->clamp_max_weight);
+			CLAMP(org_w[i], wmd->clamp_weight_min, wmd->clamp_weight_max);
 	}
 
 	/* Update/add/remove from vgroup. */

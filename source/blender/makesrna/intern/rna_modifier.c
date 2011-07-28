@@ -2553,34 +2553,34 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeightVGModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "flag_map", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_map", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_MAP);
 	RNA_def_property_ui_text(prop, "Map", "Map vertex group weights.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "flag_curve_map", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_map_curve", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_CMAP);
 	RNA_def_property_ui_text(prop, "Curve Map", "Map vertex group weights with a curve.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "flag_reverse", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_reverse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_REVERSE_WEIGHTS);
 	RNA_def_property_ui_text(prop, "Reverse", "Reverse vertex group weights.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "flag_add2vg", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_add", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_ADD2VG);
 	RNA_def_property_ui_text(prop, "Add to VG", "Add vertices with weight over threshold "
 	                                            "to vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "flag_remfvg", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_remove", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_REMFVG);
 	RNA_def_property_ui_text(prop, "Rem from VG", "Remove vertices with weight below threshold "
 	                                              "from vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "flag_clamp", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_CLAMP);
 	RNA_def_property_ui_text(prop, "Clamp", "Clamp vertex group weights.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -2620,32 +2620,34 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Output High Weight", "High output mapping value.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "cmap_curve", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "map_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "cmap_curve");
 	RNA_def_property_ui_text(prop, "Mapping Curve", "Custom mapping curve.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "add_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "add_threshold");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Add Threshold", "Lower bound for a vertex’s weight "
 	                                                "to be added to the vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "rem_threshold", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "remove_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "rem_threshold");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Rem Threshold", "Upper bound for a vertex’s weight "
 	                                                "to be removed from the vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "clamp_min_weight", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clamp_weight_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Min Weight", "Lowest weight a vertex can get.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "clamp_max_weight", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clamp_weight_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Max Weight", "Highest weight a vertex can get.");
@@ -2728,10 +2730,16 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 {
 	static EnumPropertyItem weightvg_proximity_modes_items[] = {
-		{MOD_WVG_PROXIMITY_OBJ2OBJDIST, "OBJ2OBJDIST", 0, "Object Distance",
+		{MOD_WVG_PROXIMITY_OBJECT, "OBJECT", 0, "Object Distance",
 		 "Use distance between affected and target objects."},
-		{MOD_WVG_PROXIMITY_OBJ2VERTDIST, "OBJ2VERTDIST", 0, "Verts Distance",
+		{MOD_WVG_PROXIMITY_GEOMETRY, "GEOMETRY", 0, "Geometry Distance",
 		 "Use distance between affected object’s vertices and target object, or target object’s geometry."},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem proximity_geometry_items[] = {
+		{MOD_WVG_PROXIMITY_GEOM_VERTS, "VERTEX", ICON_VERTEXSEL, "Vertex", ""},
+		{MOD_WVG_PROXIMITY_GEOM_EDGES, "EDGE", ICON_EDGESEL, "Edge", ""},
+		{MOD_WVG_PROXIMITY_GEOM_FACES, "FACE", ICON_FACESEL, "Face", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;
@@ -2755,25 +2763,14 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Proximity Mode", "Which distances to target object to use.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "obj2vert_verts", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "proximity_flags", MOD_WVG_PROXIMITY_O2VD_VERTS);
-	RNA_def_property_ui_text(prop, "Verts as Target",
-	                         "Use shortest distance to target object’s vertices as weight.");
+	prop= RNA_def_property(srna, "proximity_geometry", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "proximity_flags");
+	RNA_def_property_enum_items(prop, proximity_geometry_items);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG); /* important to run before default set */
+	RNA_def_property_ui_text(prop, "Proximity Geometry", "Use shortest distance to target object’s geometry as weight");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "obj2vert_edges", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "proximity_flags", MOD_WVG_PROXIMITY_O2VD_EDGES);
-	RNA_def_property_ui_text(prop, "Edges as Target",
-	                         "Use shortest distance to target object’s edges as weight.");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop= RNA_def_property(srna, "obj2vert_faces", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "proximity_flags", MOD_WVG_PROXIMITY_O2VD_FACES);
-	RNA_def_property_ui_text(prop, "Faces as Target",
-	                         "Use shortest distance to target object’s faces as weight.");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop= RNA_def_property(srna, "ob_target", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "proximity_ob_target");
 	RNA_def_property_ui_text(prop, "Target Object", "Object to calculate vertices’ distances from.");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);

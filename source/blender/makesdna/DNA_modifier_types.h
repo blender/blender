@@ -810,7 +810,7 @@ typedef struct WeightVGEditModifierData {
 	float	add_threshold, rem_threshold;
 
 	/* Clamping options. */
-	float	clamp_min_weight, clamp_max_weight;
+	float	clamp_weight_min, clamp_weight_max;
 
 	/* Masking options. */
 	float	mask_constant; /* The global “influence”, if no vgroup nor tex is used as mask. */
@@ -846,7 +846,7 @@ typedef struct WeightVGEditModifierData {
 typedef struct WeightVGMixModifierData {
 	ModifierData modifier;
 
-	/* XXX Note: I tried to keep everything logically ordered – provided the
+	/* XXX Note: I tried to keep everything logically ordered – provided the
 	 *           alignment constraints…
 	 */
 
@@ -926,17 +926,17 @@ typedef struct WeightVGProximityModifierData {
 
 /* Modes of proximity weighting. */
 /* Dist from target object to affected object. */
-#define MOD_WVG_PROXIMITY_OBJ2OBJDIST		1
+#define MOD_WVG_PROXIMITY_OBJECT			1 /* source vertex to other location */
 /* Dist from target object to vertex. */
-#define MOD_WVG_PROXIMITY_OBJ2VERTDIST		2
+#define MOD_WVG_PROXIMITY_GEOMETRY			2 /* source vertex to other geometry */
 
 /* Flags options for proximity weighting. */
-/* Use nearest vertices of target obj, in OVJ2VERTDIST mode. */
-#define MOD_WVG_PROXIMITY_O2VD_VERTS		(1 << 0)
-/* Use nearest edges of target obj, in OVJ2VERTDIST mode. */
-#define MOD_WVG_PROXIMITY_O2VD_EDGES		(1 << 1)
-/* Use nearest faces of target obj, in OVJ2VERTDIST mode. */
-#define MOD_WVG_PROXIMITY_O2VD_FACES		(1 << 2)
+/* Use nearest vertices of target obj, in MOD_WVG_PROXIMITY_GEOMETRY mode. */
+#define MOD_WVG_PROXIMITY_GEOM_VERTS		(1 << 0)
+/* Use nearest edges of target obj, in MOD_WVG_PROXIMITY_GEOMETRY mode. */
+#define MOD_WVG_PROXIMITY_GEOM_EDGES		(1 << 1)
+/* Use nearest faces of target obj, in MOD_WVG_PROXIMITY_GEOMETRY mode. */
+#define MOD_WVG_PROXIMITY_GEOM_FACES		(1 << 2)
 
 /* Defines common to all WeightVG modifiers. */
 /* Tex channel to be used as mask. */

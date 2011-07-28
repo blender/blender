@@ -207,8 +207,8 @@ static void initData(ModifierData *md)
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData*) md;
 
-	wmd->proximity_mode       = MOD_WVG_PROXIMITY_OBJ2OBJDIST;
-	wmd->proximity_flags      = MOD_WVG_PROXIMITY_O2VD_VERTS;
+	wmd->proximity_mode       = MOD_WVG_PROXIMITY_OBJECT;
+	wmd->proximity_flags      = MOD_WVG_PROXIMITY_GEOM_VERTS;
 
 	wmd->mask_constant        = 1.0f;
 	wmd->mask_tex_use_channel = MOD_WVG_MASK_TEX_USE_INT; /* Use intensity by default. */
@@ -315,7 +315,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData*) md;
 	DerivedMesh *dm = derivedData, *ret = NULL;
+#if 0
 	Mesh *ob_m = NULL;
+#endif
 	MDeformVert *dvert = NULL;
 	int numVerts;
 	float (*v_cos)[3] = NULL; /* The vertices coordinates. */
@@ -419,15 +421,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		ret->getVertCo(ret, indices[i], v_cos[i]);
 
 	/* Compute wanted distances. */
-	if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJ2OBJDIST) {
+	if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJECT) {
 		float dist = get_ob2ob_distance(ob, obr);
 		for(i = 0; i < numIdx; i++)
 			new_w[i] = dist;
 	}
-	else if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJ2VERTDIST) {
-		char use_trgt_verts = (wmd->proximity_flags & MOD_WVG_PROXIMITY_O2VD_VERTS);
-		char use_trgt_edges = (wmd->proximity_flags & MOD_WVG_PROXIMITY_O2VD_EDGES);
-		char use_trgt_faces = (wmd->proximity_flags & MOD_WVG_PROXIMITY_O2VD_FACES);
+	else if (wmd->proximity_mode == MOD_WVG_PROXIMITY_GEOMETRY) {
+		const short use_trgt_verts = (wmd->proximity_flags & MOD_WVG_PROXIMITY_GEOM_VERTS);
+		const short use_trgt_edges = (wmd->proximity_flags & MOD_WVG_PROXIMITY_GEOM_EDGES);
+		const short use_trgt_faces = (wmd->proximity_flags & MOD_WVG_PROXIMITY_GEOM_FACES);
 
 		if (use_trgt_verts || use_trgt_edges || use_trgt_faces) {
 			DerivedMesh *target_dm = obr->derivedFinal;
@@ -460,11 +462,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 				}
 			}
 			/* Else, fall back to default obj2vert behavior. */
-			else
+			else {
 				get_vert2ob_distance(numIdx, v_cos, new_w, ob, obr);
+			}
 		}
-		else
+		else {
 			get_vert2ob_distance(numIdx, v_cos, new_w, ob, obr);
+		}
 	}
 
 	/* Do masking. */
