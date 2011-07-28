@@ -139,7 +139,7 @@ bool BL_ShapeDeformer::ExecuteShapeDrivers(void)
 		m_armobj->ApplyPose();
 
 		// We don't need an actual time, just use 0
-		BKE_animsys_evaluate_animdata(&GetKey()->id, GetKey()->adt, 0.f, ADT_RECALC_DRIVERS);
+		BKE_animsys_evaluate_animdata(NULL, &GetKey()->id, GetKey()->adt, 0.f, ADT_RECALC_DRIVERS);
 
 		ForceUpdate();
 		m_armobj->RestorePose();

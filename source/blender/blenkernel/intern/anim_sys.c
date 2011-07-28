@@ -2151,7 +2151,6 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
  */
 void BKE_animsys_evaluate_animdata (Scene *scene, ID *id, AnimData *adt, float ctime, short recalc)
 {
-	Main *bmain = G.main; // xxx - to get passed in!
 	PointerRNA id_ptr;
 	
 	/* sanity checks */
@@ -2203,8 +2202,12 @@ void BKE_animsys_evaluate_animdata (Scene *scene, ID *id, AnimData *adt, float c
 	animsys_evaluate_overrides(&id_ptr, adt);
 	
 	/* execute and clear all cached property update functions */
-	RNA_property_update_cache_flush(bmain, scene);
-	RNA_property_update_cache_free();
+	if (scene)
+	{
+		Main *bmain = G.main; // xxx - to get passed in!
+		RNA_property_update_cache_flush(bmain, scene);
+		RNA_property_update_cache_free();
+	}
 	
 	/* clear recalc flag now */
 	adt->recalc= 0;
