@@ -149,10 +149,10 @@ typedef struct uiLayoutItemBx {
 	uiBut *roundbox;
 } uiLayoutItemBx;
 
-typedef struct uiLayoutItemSplt {
+typedef struct uiLayoutItemSplit {
 	uiLayout litem;
 	float percentage;
-} uiLayoutItemSplt;
+} uiLayoutItemSplit;
 
 typedef struct uiLayoutItemRoot {
 	uiLayout litem;
@@ -1615,7 +1615,7 @@ static void ui_litem_layout_row(uiLayout *litem)
 	int x, y, w, tot, totw, neww, itemw, minw, itemh, offset;
 	int fixedw, freew, fixedx, freex, flag= 0, lastw= 0;
 
-	x= litem->x;
+	/* x= litem->x; */ /* UNUSED */
 	y= litem->y;
 	w= litem->w;
 	totw= 0;
@@ -2020,7 +2020,7 @@ static void ui_litem_estimate_split(uiLayout *litem)
 
 static void ui_litem_layout_split(uiLayout *litem)
 {
-	uiLayoutItemSplt *split= (uiLayoutItemSplt*)litem;
+	uiLayoutItemSplit *split= (uiLayoutItemSplit*)litem;
 	uiItem *item;
 	float percentage;
 	const int tot= BLI_countlist(&litem->items);
@@ -2242,9 +2242,9 @@ uiLayout *uiLayoutOverlap(uiLayout *layout)
 
 uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
 {
-	uiLayoutItemSplt *split;
+	uiLayoutItemSplit *split;
 
-	split= MEM_callocN(sizeof(uiLayoutItemSplt), "uiLayoutItemSplt");
+	split= MEM_callocN(sizeof(uiLayoutItemSplit), "uiLayoutItemSplit");
 	split->litem.item.type= ITEM_LAYOUT_SPLIT;
 	split->litem.root= layout->root;
 	split->litem.align= align;

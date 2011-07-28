@@ -575,8 +575,8 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		ui_draw_tria_rect(&itemrect, 'h');
 	else
 		ui_draw_tria_rect(&itemrect, 'v');
-	
-	
+
+	(void)ofsx;
 }
 
 /************************** panel alignment *************************/
