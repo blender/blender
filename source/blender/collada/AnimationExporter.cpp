@@ -112,7 +112,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 					transformName = extract_transform_name( fcu->rna_path );
 					
 					if ((!strcmp(transformName, "specular_hardness"))||(!strcmp(transformName, "specular_color"))
-						||(!strcmp(transformName, "diffuse_color"))) 
+						||(!strcmp(transformName, "diffuse_color"))||(!strcmp(transformName, "alpha"))) 
 						dae_animation(ob ,fcu, transformName, true, ma );
 					fcu = fcu->next;
 				}
@@ -205,7 +205,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			axis_name = axis_names[fcu->array_index];*/
 		}
 		//maybe a list or a vector of float animations
-		else if ( !strcmp(transformName, "color")||!strcmp(transformName, "specular_color")||!strcmp(transformName, "diffuse_color"))
+		else if ( !strcmp(transformName, "color")||!strcmp(transformName, "specular_color")||!strcmp(transformName, "diffuse_color")||
+			      (!strcmp(transformName, "alpha")))
 		{
 			const char *axis_names[] = {"R", "G", "B"};
 			if (fcu->array_index < 3)
@@ -845,6 +846,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				tm_type = 12;
 			else if (!strcmp(name, "diffuse_color"))
 				tm_type = 13;
+			else if (!strcmp(name, "alpha"))
+				tm_type = 14;
 			
 			else
 				tm_type = -1;
@@ -892,6 +895,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		case 13:
 			tm_name = "diffuse";
 			break;	
+		case 14:
+			tm_name = "transparency";
+			break;	
+		
 		default:
 			tm_name = "";
 			break;
