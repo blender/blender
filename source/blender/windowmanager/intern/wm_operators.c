@@ -3435,16 +3435,36 @@ static void WM_OT_memory_statistics(wmOperatorType *ot)
 
 static int wm_ndof_sensitivity_exec(bContext *UNUSED(C), wmOperator *op)
 {
-	float change = 0.1f;
-	int dir = 1;
-	if(RNA_boolean_get(op->ptr, "decrease"))
-		dir = -1;
+	const float min = 0.25f, max = 4.f; // TODO: get these from RNA property
+	float change;
+	float sensitivity = U.ndof_sensitivity;
+
 	if(RNA_boolean_get(op->ptr, "fast"))
-		change = 1.0f;
+		change = 0.5f; // 50% change
+	else
+		change = 0.1f; // 10%
 
+	if(RNA_boolean_get(op->ptr, "decrease"))
+		{
+		sensitivity -= sensitivity * change; 
+		if (sensitivity < min)
+			sensitivity = min;
+		}
+	else
+		{
+		sensitivity += sensitivity * change; 
+		if (sensitivity > max)
+			sensitivity = max;
+		}
 
-	U.ndof_sensitivity += (dir * change);
-	printf("new sensitivity: %f\n", U.ndof_sensitivity);
+	if (sensitivity != U.ndof_sensitivity)
+		{
+		U.ndof_sensitivity = sensitivity;
+		printf("new sensitivity: %f\n", U.ndof_sensitivity);
+		}
+	else
+		printf("same sensitivity: %f\n", U.ndof_sensitivity);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -3457,8 +3477,9 @@ static void WM_OT_ndof_sensitivity_change(wmOperatorType *ot)
 	ot->exec= wm_ndof_sensitivity_exec;
 
 	RNA_def_boolean(ot->srna, "decrease", 1, "Decrease NDOF sensitivity", "If true then action decreases NDOF sensitivity instead of increasing");
-	RNA_def_boolean(ot->srna, "fast", 0, "Fast NDOF sensitivity change", "If true then action change with factor 1.0, otherwise 0.1");
+	RNA_def_boolean(ot->srna, "fast", 0, "Fast NDOF sensitivity change", "If true then sensitivity changes 50%, otherwise 10%");
 } 
+
 /* ******************************************************* */
 /* called on initialize WM_exit() */
 void wm_operatortype_free(void)
