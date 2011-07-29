@@ -518,7 +518,7 @@ static const char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "alpha";
 			
 		case MA_REF:
-			return "diffuse_reflection";
+			return "diffuse_intensity";
 		
 		case MA_EMIT:
 			return "emit";
