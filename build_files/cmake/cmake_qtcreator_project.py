@@ -31,7 +31,17 @@ example linux usage
  python .~/blenderSVN/blender/build_files/cmake/cmake_qtcreator_project.py ~/blenderSVN/cmake
 """
 
-from project_info import *
+from project_info import (SIMPLE_PROJECTFILE,
+                          SOURCE_DIR,
+                          CMAKE_DIR,
+                          PROJECT_DIR,
+                          source_list,
+                          is_project_file,
+                          is_c_header,
+                          is_py,
+                          cmake_advanced_info,
+                          cmake_compiler_defines,
+                          )
 
 import os
 import sys
