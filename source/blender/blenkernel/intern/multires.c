@@ -482,7 +482,7 @@ static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl
 	if(optimal)
 		smd.flags |= eSubsurfModifierFlag_ControlEdges;
 
-		return subsurf_make_derived_from_derived(dm, &smd, 0, NULL, 0, 0, (ob->mode & OB_MODE_EDIT));
+	return subsurf_make_derived_from_derived(dm, &smd, 0, NULL, 0, 0, (ob->mode & OB_MODE_EDIT));
 }
 
 
@@ -941,7 +941,7 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 	ccgdm = multires_dm_create_local(ob, dm, totlvl, totlvl, mmd->simple);
 	
 	subsurf = subsurf_dm_create_local(ob, dm, totlvl,
-		mmd->simple, mmd->flags & eMultiresModifierFlag_ControlEdges);
+		mmd->simple, mmd->flags & eMultiresModifierFlag_ControlEdges, mmd->flags & eMultiresModifierFlag_PlainUv);
 
 	numGrids = subsurf->getNumGrids(subsurf);
 	gridSize = subsurf->getGridSize(subsurf);
