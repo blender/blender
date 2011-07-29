@@ -589,6 +589,9 @@ typedef struct SpaceClip {
 	float track_offset[2];						/* offset of "parenting" point */
 	float track_search_pos[2], track_search[2];	/* position and dimensions of marker search in pixel coords */
 	int marker_flag;							/* marker's flags */
+
+	float stabmat[4][4];	/* current stabilization matrix, defined when drawing
+							   and used for mouse position calculation */
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */

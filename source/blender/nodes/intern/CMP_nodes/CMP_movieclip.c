@@ -35,7 +35,6 @@
 
 #include "../CMP_util.h"
 
-
 static bNodeSocketType cmp_node_rlayers_out[]= {
 	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
@@ -50,14 +49,16 @@ static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, Mov
 	float *rect;
 	int alloc= FALSE;
 
-	ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+	ibuf= BKE_movieclip_acquire_stable_ibuf(clip, user, NULL);
+
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 		IMB_freeImBuf(ibuf);
 		return NULL;
 	}
 
-	if (ibuf->rect_float == NULL) {
+	if (ibuf->rect_float == NULL || ibuf->userflags&IB_RECT_INVALID) {
 		IMB_float_from_rect(ibuf);
+		ibuf->userflags&= ~IB_RECT_INVALID;
 	}
 
 	/* now we need a float buffer from the image with matching color management */

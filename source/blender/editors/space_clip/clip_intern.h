@@ -94,6 +94,10 @@ void CLIP_OT_track_copy_color(struct wmOperatorType *ot);
 
 void CLIP_OT_detect_features(struct wmOperatorType *ot);
 
+void CLIP_OT_stabilize_2d_add(struct wmOperatorType *ot);
+void CLIP_OT_stabilize_2d_remove(struct wmOperatorType *ot);
+void CLIP_OT_stabilize_2d_select(struct wmOperatorType *ot);
+
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 void draw_clip_track_widget(const bContext *C, void *poin, void *arg1, void *arg2, rcti *rect);

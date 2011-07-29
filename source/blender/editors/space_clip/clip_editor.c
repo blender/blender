@@ -78,6 +78,26 @@ ImBuf *ED_space_clip_acquire_buffer(SpaceClip *sc)
 
 		if(ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
+
+		if(ibuf)
+			IMB_freeImBuf(ibuf);
+	}
+
+	return NULL;
+}
+
+ImBuf *ED_space_clip_acquire_stable_buffer(SpaceClip *sc, float mat[4][4])
+{
+	if(sc->clip) {
+		ImBuf *ibuf;
+
+		ibuf= BKE_movieclip_acquire_stable_ibuf(sc->clip, &sc->user, mat);
+
+		if(ibuf && (ibuf->rect || ibuf->rect_float))
+			return ibuf;
+
+		if(ibuf)
+			IMB_freeImBuf(ibuf);
 	}
 
 	return NULL;
@@ -130,7 +150,12 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 				if(sa->spacetype==SPACE_CLIP) {
 					SpaceClip *sc= sa->spacedata.first;
+					MovieClip *clip= ED_space_clip(sc);
+					MovieTrackingStabilization *stab= &clip->tracking.stabilization;
+
 					sc->scopes.ok= 0;
+					stab->ibufok= 0;
+
 					BKE_movieclip_user_set_frame(&sc->user, cfra);
 				}
 			}
@@ -154,10 +179,13 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
 			if(marker) {
-				float pos[2];
+				float pos[3];
 
 				pos[0]= (marker->pos[0]+track->offset[0])*width;
 				pos[1]= (marker->pos[1]+track->offset[1])*height;
+				pos[2]= 0.f;
+
+				mul_v3_m4v3(pos, sc->stabmat, pos);
 
 				DO_MINMAX2(pos, min, max);
 

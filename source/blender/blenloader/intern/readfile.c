@@ -5720,6 +5720,11 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 
 	clip->anim= NULL;
 	clip->tracking_context= NULL;
+
+	clip->tracking.stabilization.ok= 0;
+	clip->tracking.stabilization.ibufok= 0;
+	clip->tracking.stabilization.ibuf= NULL;
+	clip->tracking.stabilization.scaleibuf= NULL;
 }
 
 static void lib_link_movieclip(FileData *UNUSED(fd), Main *main)
@@ -11834,9 +11839,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							v3d->bundle_drawtype= OB_EMPTY_SPHERE;
 					}
 					else if(sl->spacetype==SPACE_CLIP) {
-						SpaceClip *sc= (SpaceClip *)sl;
-						if(sc->scopes.track_preview_height==0)
-							sc->scopes.track_preview_height= 120;
+						SpaceClip *sclip= (SpaceClip *)sl;
+						if(sclip->scopes.track_preview_height==0)
+							sclip->scopes.track_preview_height= 120;
 					}
 				}
 			}

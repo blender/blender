@@ -48,6 +48,11 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_depsgraph.h"
+#include "BKE_node.h"
+
+#include "IMB_imbuf.h"
+
+#include "WM_api.h"
 
 static void rna_tracking_tracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -141,6 +146,57 @@ static void rna_trackingCamera_focal_set(PointerRNA *ptr, float value)
 	}
 
 	camera->focal= value;
+}
+
+static int rna_track_2d_stabilization(CollectionPropertyIterator *UNUSED(iter), void *data)
+{
+	MovieTrackingTrack *track= (MovieTrackingTrack*)data;
+
+	if((track->flag&TRACK_USE_2D_STAB)==0)
+		return 1;
+
+	return 0;
+}
+
+static void rna_tracking_stabTracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+	rna_iterator_listbase_begin(iter, &clip->tracking.tracks, rna_track_2d_stabilization);
+}
+
+static int rna_tracking_stabTracks_active_index_get(PointerRNA *ptr)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+	return clip->tracking.stabilization.act_track;
+}
+
+static void rna_tracking_stabTracks_active_index_set(PointerRNA *ptr, int value)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+	clip->tracking.stabilization.act_track= value;
+}
+
+static void rna_tracking_stabTracks_active_index_range(PointerRNA *ptr, int *min, int *max)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+
+	*min= 0;
+	*max= clip->tracking.stabilization.tot_track-1;
+	*max= MAX2(0, *max);
+}
+
+static void rna_tracking_flushUpdate(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+	MovieTrackingStabilization *stab= &clip->tracking.stabilization;
+
+	stab->ok= 0;
+	stab->ibufok= 0;
+
+	NodeTagIDChanged(scene->nodetree, &clip->id);
+
+	WM_main_add_notifier(NC_SCENE|ND_NODES, NULL);
+	DAG_id_tag_update(&clip->id, 0);
 }
 
 #else
@@ -400,6 +456,40 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 }
 
+static void rna_def_trackingStabilization(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MovieTrackingStabilization", NULL);
+	RNA_def_struct_ui_text(srna, "Movie tracking stabilization data", "Match-moving stabilization data for tracking");
+
+	/* tracks */
+	prop= RNA_def_property(srna, "tracks", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_funcs(prop, "rna_tracking_stabTracks_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
+	RNA_def_property_ui_text(prop, "Tracks", "Collection of tracks used for stabilization");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
+
+	/* 2d stabilization */
+	prop= RNA_def_property(srna, "use_2d_stabilization", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_2D_STABILIZATION);
+	RNA_def_property_ui_text(prop, "Use 2D stabilization", "Use 2D stabilization for footage");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
+
+	/* active track index */
+	prop= RNA_def_property(srna, "active_track_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "act_track");
+	RNA_def_property_int_funcs(prop, "rna_tracking_stabTracks_active_index_get", "rna_tracking_stabTracks_active_index_set", "rna_tracking_stabTracks_active_index_range");
+	RNA_def_property_ui_text(prop, "Active Track Index", "Index of active track in stabilization tracks list");
+
+	/* autoscale */
+	prop= RNA_def_property(srna, "use_autoscale", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_AUTOSCALE);
+	RNA_def_property_ui_text(prop, "Autoscale", "Automatically scale footage to cover unfilled areas when stabilizating");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
+}
+
 static void rna_def_tracking(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -408,6 +498,7 @@ static void rna_def_tracking(BlenderRNA *brna)
 	rna_def_trackingSettings(brna);
 	rna_def_trackingCamera(brna);
 	rna_def_trackingTrack(brna);
+	rna_def_trackingStabilization(brna);
 
 	srna= RNA_def_struct(brna, "MovieTracking", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking data", "Match-moving data for tracking");
@@ -426,11 +517,15 @@ static void rna_def_tracking(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
 	RNA_def_property_ui_text(prop, "Tracks", "Collection of tracks in this tracking data object");
 
-	/* active tracks */
+	/* active track */
 	prop= RNA_def_property(srna, "active_track", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
 	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_track_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
+
+	/* stabilization*/
+	prop= RNA_def_property(srna, "stabilization", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MovieTrackingStabilization");
 }
 
 void RNA_def_tracking(BlenderRNA *brna)

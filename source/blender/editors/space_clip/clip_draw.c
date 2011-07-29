@@ -161,8 +161,34 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf, float
 			IMB_rect_from_float(ibuf);
 		}
 
-		if(ibuf->rect)
+		if(ibuf->rect) {
+			MovieClip *clip= ED_space_clip(sc);
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+
+			glColor3f(0.f, 0.f, 0.f);
+			glLineStipple(3, 0xaaaa);
+			glEnable(GL_LINE_STIPPLE);
+			glEnable(GL_COLOR_LOGIC_OP);
+			glLogicOp(GL_NOR);
+
+			glPushMatrix();
+			glTranslatef(x, y, 0);
+
+			glScalef(zoomx, zoomy, 0);
+			glMultMatrixf(sc->stabmat);
+
+			glBegin(GL_LINE_LOOP);
+				glVertex2f(-1.f, -1.f);
+				glVertex2f(ibuf->x+1.f, -1.f);
+				glVertex2f(ibuf->x+1.f, ibuf->y+1.f);
+				glVertex2f(-1.f, ibuf->y+1.f);
+			glEnd();
+
+			glPopMatrix();
+
+			glDisable(GL_COLOR_LOGIC_OP);
+			glDisable(GL_LINE_STIPPLE);
+		}
 	}
 
 	/* reset zoom */
@@ -502,7 +528,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 {
 	float x, y, dx, dy, patdx, patdy, searchdx, searchdy, tdx, tdy;
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
-	float col[3], scol[3];
+	float col[3], scol[3], px[2];
 
 	if((tiny && outline) || (marker->flag&MARKER_DISABLED))
 		return;
@@ -529,6 +555,9 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	searchdx= MIN2(dx, (track->search_max[0]-track->search_min[0])/6.f);
 	searchdy= MIN2(dy, (track->search_max[1]-track->search_min[1])/6.f);
 
+	px[0]= 1.0f/sc->zoom/width/sc->stabmat[0][0];
+	px[1]= 1.0f/sc->zoom/height/sc->stabmat[1][1];
+
 	if((sc->flag&SC_SHOW_MARKER_SEARCH) && ((track->search_flag&SELECT)==sel || outline)) {
 		if(!outline) {
 			if(track->search_flag&SELECT) glColor3fv(scol);
@@ -543,8 +572,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		tdy= searchdy;
 
 		if(outline) {
-			tdx+= 1.0f/sc->zoom/width;
-			tdy+= 1.0f/sc->zoom/height;
+			tdx+= px[0];
+			tdy+= px[1];
 		}
 
 		glBegin(GL_QUADS);
@@ -562,8 +591,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		tdy= searchdy*2.f;
 
 		if(outline) {
-			tdx+= 1.0f/sc->zoom/width;
-			tdy+= 1.0f/sc->zoom/height;
+			tdx+= px[0];
+			tdy+= px[1];
 		}
 
 		glBegin(GL_TRIANGLES);
@@ -587,8 +616,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		tdy= patdy;
 
 		if(outline) {
-			tdx+= 1.0f/sc->zoom/width;
-			tdy+= 1.0f/sc->zoom/height;
+			tdx+= px[0];
+			tdy+= px[1];
 		}
 
 		glBegin(GL_QUADS);
@@ -606,8 +635,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		tdy= patdy*2.f;
 
 		if(outline) {
-			tdx+= 1.0f/sc->zoom/width;
-			tdy+= 1.0f/sc->zoom/height;
+			tdx+= px[0];
+			tdy+= px[1];
 		}
 
 		glBegin(GL_TRIANGLES);
@@ -648,8 +677,8 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		dy= track->pat_min[1];
 	}
 
-	x= (marker->pos[0]+dx)*width*zoomx;
-	y= (marker->pos[1]+dy)*height*zoomy-14.f*UI_DPI_FAC;
+	x= (marker->pos[0]+dx)*width*sc->stabmat[0][0]*zoomx+sc->stabmat[3][0]*zoomx;
+	y= (marker->pos[1]+dy)*height*sc->stabmat[1][1]*zoomy-14.f*UI_DPI_FAC+sc->stabmat[3][1]*zoomy;
 
 	if(marker->flag&MARKER_DISABLED) strcpy(state, "disabled");
 	else if(marker->framenr!=sc->user.framenr) strcpy(state, "estimated");
@@ -748,6 +777,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 	glPushMatrix();
 	glScalef(zoomx, zoomy, 0);
+	glMultMatrixf(sc->stabmat);
 	glScalef(width, height, 0);
 
 	BKE_movieclip_last_selection(clip, &sel_type, &sel);
@@ -899,7 +929,7 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
-	ibuf= ED_space_clip_acquire_buffer(sc);
+	ibuf= ED_space_clip_acquire_stable_buffer(sc, sc->stabmat);
 
 	if(ibuf) {
 		draw_movieclip_buffer(sc, ar, ibuf, zoomx, zoomy);

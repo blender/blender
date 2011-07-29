@@ -41,6 +41,7 @@
 
 /* match-moving data */
 
+struct ImBuf;
 struct MovieReconstructedCamera;
 struct MovieTrackingCamera;
 struct MovieTrackingBundle;
@@ -110,10 +111,26 @@ typedef struct MovieTrackingSettings {
 	float pad;
 } MovieTrackingSettings;
 
+typedef struct MovieTrackingStabilization {
+	int flag;
+	int tot_track, act_track;		/* total number and index of active track in list */
+
+	/* some pre-computing run-time variables */
+	int ok, ibufok;				/* are precomputed values and scaled buf relevant? */
+	float scale;				/* autoscale factor */
+
+	int pad;
+
+	int framenr;				/* number of frame image is stabilized for */
+	struct ImBuf *ibuf;			/* currently stabelized ibuf */
+	struct ImBuf *scaleibuf;	/* currently scaled ibuf */
+} MovieTrackingStabilization;
+
 typedef struct MovieTracking {
-	MovieTrackingSettings settings;
-	MovieTrackingCamera camera;
-	ListBase tracks;
+	MovieTrackingSettings settings;	/* different tracking-related settings */
+	MovieTrackingCamera camera;		/* camera intrinsics */
+	ListBase tracks;				/* all tracks */
+	MovieTrackingStabilization stabilization;	/* stabilization data */
 } MovieTracking;
 
 /* MovieTrackingCamera->units */
@@ -134,6 +151,7 @@ enum {
 #define TRACK_HIDDEN		(1<<5)
 #define TRACK_LOCKED		(1<<6)
 #define TRACK_CUSTOMCOLOR	(1<<7)
+#define TRACK_USE_2D_STAB	(1<<8)
 
 /* MovieTrackingSettings->speed */
 #define TRACKING_SPEED_FASTEST		0
@@ -142,6 +160,10 @@ enum {
 #define TRACKING_SPEED_QUARTER		4
 
 /* MovieTrackingSettings->flag */
-#define TRACKING_FRAMES_LIMIT		1
+#define TRACKING_FRAMES_LIMIT		(1<<0)
+
+/* MovieTrackingStrabilization->flag */
+#define TRACKING_2D_STABILIZATION	(1<<0)
+#define TRACKING_AUTOSCALE			(1<<1)
 
 #endif

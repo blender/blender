@@ -84,6 +84,19 @@ static void clip_scopes_tag_refresh(ScrArea *sa)
 	sc->scopes.ok= 0;
 }
 
+static void clip_stabilization_tag_refresh(ScrArea *sa, int edited)
+{
+	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTrackingStabilization *stab= &clip->tracking.stabilization;
+
+	if(edited) {
+		stab->ok= 0;
+	} else {
+		stab->ibufok= 0;
+	}
+}
+
 /* ******************** default callbacks for clip space ***************** */
 
 static SpaceLink *clip_new(const bContext *UNUSED(C))
@@ -164,6 +177,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_FRAME:
 					clip_scopes_tag_refresh(sa);
+					clip_stabilization_tag_refresh(sa, 0);
 					/* no break! */
 
 				case ND_FRAME_RANGE:
@@ -186,6 +200,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 				case NA_EDITED:
 				case NA_EVALUATED:
 					clip_scopes_tag_refresh(sa);
+					clip_stabilization_tag_refresh(sa, 1);
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -193,19 +208,21 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_GEOM:
 			switch(wmn->data) {
 				case ND_SELECT:
-					ED_area_tag_redraw(sa);
 					clip_scopes_tag_refresh(sa);
+					ED_area_tag_redraw(sa);
 					break;
 			}
 			break;
 		 case NC_SCREEN:
 			if(wmn->data==ND_ANIMPLAY) {
+				clip_stabilization_tag_refresh(sa, 0);
 				ED_area_tag_redraw(sa);
 			}
 			break;
 		case NC_SPACE:
 			if(wmn->data==ND_SPACE_CLIP) {
 				clip_scopes_tag_refresh(sa);
+				clip_stabilization_tag_refresh(sa, 0);
 				ED_area_tag_redraw(sa);
 			}
 			break;
@@ -262,6 +279,10 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_frame_jump);
 
 	WM_operatortype_append(CLIP_OT_detect_features);
+
+	WM_operatortype_append(CLIP_OT_stabilize_2d_add);
+	WM_operatortype_append(CLIP_OT_stabilize_2d_remove);
+	WM_operatortype_append(CLIP_OT_stabilize_2d_select);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)
@@ -471,8 +492,18 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	if(clip && clip->tracking_context)
 		BKE_tracking_sync_user(&sc->user, clip->tracking_context);
 
-	if(sc->flag&SC_LOCK_SELECTION)
+	if(sc->flag&SC_LOCK_SELECTION) {
+		ImBuf *tmpibuf= NULL;
+
+		if(clip && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
+			tmpibuf= ED_space_clip_acquire_stable_buffer(sc, sc->stabmat);
+		}
+
 		ED_clip_view_selection(sc, ar, 0);
+
+		if(tmpibuf)
+			IMB_freeImBuf(tmpibuf);
+	}
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);

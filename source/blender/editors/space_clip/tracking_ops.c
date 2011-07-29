@@ -162,34 +162,38 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void mouse_pos(bContext *C, wmEvent *event, float co[2])
+static void point_stable_pos(bContext *C, float x, float y, float *xr, float *yr)
 {
 	ARegion *ar= CTX_wm_region(C);
 	SpaceClip *sc= CTX_wm_space_clip(C);
-	int sx, sy;
-	float zoomx, zoomy;
+	int sx, sy, width, height;
+	float zoomx, zoomy, pos[3]={0.f, 0.f, 0.f}, imat[4][4];
 
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
+	ED_space_clip_size(sc, &width, &height);
 
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
 
-	co[0]= ((float)event->mval[0]-sx)/zoomx;
-	co[1]= ((float)event->mval[1]-sy)/zoomy;
+	pos[0]= (x-sx)/zoomx;
+	pos[1]= (y-sy)/zoomy;
+
+	invert_m4_m4(imat, sc->stabmat);
+	mul_v3_m4v3(pos, imat, pos);
+
+	*xr= pos[0]/width;
+	*yr= pos[1]/height;
+}
+
+static void mouse_pos(bContext *C, wmEvent *event, float co[2])
+{
+	point_stable_pos(C, event->mval[0], event->mval[1], &co[0], &co[1]);
 }
 
 static int add_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	int width, height;
 	float co[2];
 
-	ED_space_clip_size(sc, &width, &height);
-	if(!width || !height)
-		return OPERATOR_CANCELLED;
-
 	mouse_pos(C, event, co);
-	co[0]/= width;
-	co[1]/= height;
 
 	RNA_float_set_array(op->ptr, "location", co);
 
@@ -206,7 +210,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= add_marker_invoke;
 	ot->exec= add_marker_exec;
-	ot->poll= space_clip_tracking_poll;
+	ot->poll= space_clip_frame_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -395,7 +399,7 @@ static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 	int inside= 0;
 	float size= 12.f;
 	float min[2], max[2];
-	float nco[2], crn[2], dx, dy, tdx, tdy;
+	float crn[2], dx, dy, tdx, tdy;
 
 	if(area==TRACK_AREA_SEARCH) {
 		copy_v2_v2(min, track->search_min);
@@ -404,9 +408,6 @@ static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 		copy_v2_v2(min, track->pat_min);
 		copy_v2_v2(max, track->pat_max);
 	}
-
-	nco[0]= co[0]/width;
-	nco[1]= co[1]/height;
 
 	dx= size/width/sc->zoom;
 	dy= size/height/sc->zoom;
@@ -421,12 +422,12 @@ static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 		crn[0]= marker->pos[0]+max[0];
 		crn[1]= marker->pos[1]+min[1];
 
-		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0]+tdx && nco[1]>=crn[1]-tdy && nco[1]<=crn[1]+dy;
+		inside= co[0]>=crn[0]-dx && co[0]<=crn[0]+tdx && co[1]>=crn[1]-tdy && co[1]<=crn[1]+dy;
 	} else {
 		crn[0]= marker->pos[0]+min[0];
 		crn[1]= marker->pos[1]+max[1];
 
-		inside= nco[0]>=crn[0]-dx && nco[0]<=crn[0]+dx && nco[1]>=crn[1]-dy && nco[1]<=crn[1]+dy;
+		inside= co[0]>=crn[0]-dx && co[0]<=crn[0]+dx && co[1]>=crn[1]-dy && co[1]<=crn[1]+dy;
 	}
 
 	return inside;
@@ -435,12 +436,9 @@ static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
 			float co[2], int width, int height)
 {
-	float pos[2], nco[2], dx, dy;
+	float pos[2], dx, dy;
 
 	add_v2_v2v2(pos, marker->pos, track->offset);
-
-	nco[0]= co[0]/width;
-	nco[1]= co[1]/height;
 
 	dx= 12.f/width/sc->zoom;
 	dy= 12.f/height/sc->zoom;
@@ -448,7 +446,7 @@ static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 	dx=MIN2(dx, (track->pat_max[0]-track->pat_min[0])/3);
 	dy=MIN2(dy, (track->pat_max[1]-track->pat_min[1])/3);
 
-	return nco[0]>=pos[0]-dx && nco[0]<=pos[0]+dx && nco[1]>=pos[1]-dy && nco[1]<=pos[1]+dy;
+	return co[0]>=pos[0]-dx && co[0]<=pos[0]+dx && co[1]>=pos[1]-dy && co[1]<=pos[1]+dy;
 }
 
 static void hide_cursor(bContext *C)
@@ -826,7 +824,6 @@ static int select_exec(bContext *C, wmOperator *op)
 
 static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar= CTX_wm_region(C);
 	void *customdata;
 	float co[2];
 	int extend= RNA_boolean_get(op->ptr, "extend");
@@ -839,7 +836,7 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
+	mouse_pos(C, event, co);
 	RNA_float_set_array(op->ptr, "location", co);
 
 	return select_exec(C, op);
@@ -874,7 +871,6 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	ARegion *ar= CTX_wm_region(C);
 	rcti rect;
 	rctf rectf;
 	int change= 0, mode;
@@ -885,8 +881,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
-	UI_view2d_region_to_view(&ar->v2d, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
-	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
+	point_stable_pos(C, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
+	point_stable_pos(C, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
 	mode= RNA_int_get(op->ptr, "gesture_mode");
 
@@ -973,7 +969,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	ellipse[0]= width*zoomx/radius;
 	ellipse[1]= height*zoomy/radius;
 
-	UI_view2d_region_to_view(&ar->v2d, x, y, &offset[0], &offset[1]);
+	point_stable_pos(C, x, y, &offset[0], &offset[1]);
 
 	/* do selection */
 	track= clip->tracking.tracks.first;
@@ -2420,6 +2416,149 @@ void CLIP_OT_track_copy_color(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= track_copy_color_exec;
+	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** add 2d stabilization tracks operator *********************/
+
+static int stabilize_2d_add_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track;
+	MovieTrackingStabilization *stab= &tracking->stabilization;
+
+	track= tracking->tracks.first;
+	while(track) {
+		if(TRACK_SELECTED(track)) {
+			track->flag|= TRACK_USE_2D_STAB;
+			stab->tot_track++;
+		}
+
+		track= track->next;
+	}
+
+	stab->ok= 0;
+
+	DAG_id_tag_update(&clip->id, 0);
+	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_stabilize_2d_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Stabilization Tracks";
+	ot->description= "Add selected tracks to 2D stabilization tool";
+	ot->idname= "CLIP_OT_stabilize_2d_add";
+
+	/* api callbacks */
+	ot->exec= stabilize_2d_add_exec;
+	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** remove 2d stabilization tracks operator *********************/
+
+static int stabilize_2d_remove_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingStabilization *stab= &tracking->stabilization;
+	MovieTrackingTrack *track;
+	int a= 0;
+
+	track= tracking->tracks.first;
+	while(track) {
+		if(track->flag&TRACK_USE_2D_STAB) {
+			if(a==stab->act_track) {
+				track->flag&= ~TRACK_USE_2D_STAB;
+
+				stab->act_track--;
+				stab->tot_track--;
+
+				if(stab->act_track<0)
+					stab->act_track= 0;
+
+				break;
+			}
+
+			a++;
+		}
+
+		track= track->next;
+	}
+
+	stab->ok= 0;
+
+	DAG_id_tag_update(&clip->id, 0);
+	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_stabilize_2d_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Remove Stabilization Track";
+	ot->description= "Remove selected track from stabilization";
+	ot->idname= "CLIP_OT_stabilize_2d_remove";
+
+	/* api callbacks */
+	ot->exec= stabilize_2d_remove_exec;
+	ot->poll= space_clip_tracking_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** select 2d stabilization tracks operator *********************/
+
+static int stabilize_2d_select_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track;
+	int a= 0, area;
+
+	area= TRACK_AREA_POINT;
+	if(sc->flag&SC_SHOW_MARKER_PATTERN) area|= TRACK_AREA_PAT;
+	if(sc->flag&SC_SHOW_MARKER_SEARCH) area|= TRACK_AREA_SEARCH;
+
+	track= tracking->tracks.first;
+	while(track) {
+		if(track->flag&TRACK_USE_2D_STAB) {
+			BKE_tracking_track_flag(track, area, SELECT, 0);
+
+			a++;
+		}
+
+		track= track->next;
+	}
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|ND_SELECT, clip);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_stabilize_2d_select(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Stabilization Tracks";
+	ot->description= "Select track whic hare used for stabilization";
+	ot->idname= "CLIP_OT_stabilize_2d_select";
+
+	/* api callbacks */
+	ot->exec= stabilize_2d_select_exec;
 	ot->poll= space_clip_tracking_poll;
 
 	/* flags */

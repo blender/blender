@@ -321,6 +321,42 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 	return ibuf;
 }
 
+ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, float mat[4][4])
+{
+	ImBuf *ibuf, *stableibuf;
+	int framenr= user?user->framenr:clip->lastframe;
+
+	ibuf= BKE_movieclip_acquire_ibuf(clip, user);
+
+	if(clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
+		MovieTrackingStabilization *stab= &clip->tracking.stabilization;
+
+		BLI_lock_thread(LOCK_MOVIECLIP);
+
+		if(user->framenr!=stab->framenr)
+			stab->ibufok= 0;
+
+		stableibuf= BKE_tracking_stabelize_shot(&clip->tracking, framenr, ibuf, mat);
+
+		stab->framenr= user->framenr;
+
+		BLI_unlock_thread(LOCK_MOVIECLIP);
+	} else {
+		if(mat)
+			unit_m4(mat);
+
+		stableibuf= ibuf;
+	}
+
+	if(stableibuf!=ibuf) {
+		IMB_freeImBuf(ibuf);
+		ibuf= stableibuf;
+	}
+
+	return ibuf;
+
+}
+
 int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
@@ -388,6 +424,9 @@ void BKE_movieclip_reload(MovieClip *clip)
 {
 	/* clear cache */
 	free_buffers(clip);
+
+	clip->tracking.stabilization.ok= 0;
+	clip->tracking.stabilization.ibufok= 0;
 
 	/* update clip source */
 	if(BLI_testextensie_array(clip->name, imb_ext_movie)) clip->source= MCLIP_SRC_MOVIE;

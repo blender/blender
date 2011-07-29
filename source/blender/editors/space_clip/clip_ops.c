@@ -223,10 +223,15 @@ void CLIP_OT_open(wmOperatorType *ot)
 
 static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= CTX_data_edit_movieclip(C);
 
 	if(!clip)
 		return OPERATOR_CANCELLED;
+
+	sc->scopes.ok= 0;
+	clip->tracking.stabilization.ok= 0;
+	clip->tracking.stabilization.ibufok= 0;
 
 	BKE_movieclip_reload(clip);
 

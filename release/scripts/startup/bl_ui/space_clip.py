@@ -350,6 +350,44 @@ class CLIP_PT_display(bpy.types.Panel):
             layout.prop(clip, "display_aspect", text="")
 
 
+class CLIP_PT_stabilization(bpy.types.Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "2D Stabilization"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.clip
+
+    def draw_header(self, context):
+        sc = context.space_data
+        tracking = sc.clip.tracking
+        stab = tracking.stabilization
+
+        self.layout.prop(stab, "use_2d_stabilization", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+        tracking = sc.clip.tracking
+        stab = tracking.stabilization
+
+        layout.active = stab.use_2d_stabilization
+
+        layout.prop(stab, "use_autoscale")
+
+        row = layout.row()
+        row.template_list(stab, "tracks", stab, "active_track_index", rows=3)
+
+        sub = row.column(align=True)
+        sub.operator("clip.stabilize_2d_add", icon='ZOOMIN', text="")
+        sub.operator("clip.stabilize_2d_remove", icon='ZOOMOUT', text="")
+        sub.menu('CLIP_MT_stabilize_2d_specials', text="", icon="DOWNARROW_HLT")
+
+
 class CLIP_PT_footage(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
@@ -586,6 +624,15 @@ class CLIP_MT_track_color_specials(bpy.types.Menu):
         layout = self.layout
 
         layout.operator('clip.track_copy_color', icon='COPY_ID')
+
+
+class CLIP_MT_stabilize_2d_specials(bpy.types.Menu):
+    bl_label = "Track Color Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator('clip.stabilize_2d_select')
 
 
 if __name__ == "__main__":  # only for live edit.

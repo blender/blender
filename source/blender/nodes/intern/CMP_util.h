@@ -68,6 +68,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
+#include "BKE_tracking.h"
 
 #include "BKE_library.h"
 #include "BKE_object.h"

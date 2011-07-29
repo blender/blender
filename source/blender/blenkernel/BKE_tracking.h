@@ -87,6 +87,8 @@ void BKE_tracking_detect(struct MovieTracking *tracking, struct ImBuf *imbuf, in
 
 struct MovieTrackingTrack *BKE_tracking_indexed_bundle(struct MovieTracking *tracking, int bundlenr);
 
+struct ImBuf *BKE_tracking_stabelize_shot(struct MovieTracking *tracking, int framenr, struct ImBuf *ibuf, float mat[4][4]);
+
 #define TRACK_SELECTED(track)				(((track->flag&TRACK_HIDDEN)==0) && ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT))
 #define TRACK_AREA_SELECTED(track, area)	(((track->flag&TRACK_HIDDEN)==0) && ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT)))
 

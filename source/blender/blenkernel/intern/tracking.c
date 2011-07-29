@@ -33,6 +33,7 @@
 #include <stddef.h>
 #include <limits.h>
 #include <math.h>
+#include <memory.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -449,6 +450,12 @@ void BKE_tracking_free(MovieTracking *tracking)
 
 	if(tracking->camera.reconstructed)
 		MEM_freeN(tracking->camera.reconstructed);
+
+	if(tracking->stabilization.ibuf)
+		IMB_freeImBuf(tracking->stabilization.ibuf);
+
+	if(tracking->stabilization.scaleibuf)
+		IMB_freeImBuf(tracking->stabilization.scaleibuf);
 }
 
 /*********************** tracking *************************/
@@ -1210,4 +1217,228 @@ MovieTrackingTrack *BKE_tracking_indexed_bundle(MovieTracking *tracking, int bun
 	}
 
 	return NULL;
+}
+
+static int stabilization_median_point(MovieTracking *tracking, int framenr, float median[2])
+{
+	int ok= 0;
+	float min[2], max[2];
+	MovieTrackingTrack *track;
+
+	INIT_MINMAX2(min, max);
+
+	track= tracking->tracks.first;
+	while(track) {
+		if(track->flag&TRACK_USE_2D_STAB) {
+			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, framenr);
+
+			DO_MINMAX2(marker->pos, min, max);
+
+			ok= 1;
+		}
+
+		track= track->next;
+	}
+
+	median[0]= (max[0]+min[0])/2.f;
+	median[1]= (max[1]+min[1])/2.f;
+
+	return ok;
+}
+
+static float stabilization_auto_scale_factor(MovieTracking *tracking)
+{
+	float firstmedian[2];
+	MovieTrackingStabilization *stab= &tracking->stabilization;
+
+	if(stab->ok)
+		return stab->scale;
+
+	if(stabilization_median_point(tracking, 1, firstmedian)) {
+		int sfra= INT_MAX, efra= INT_MIN, cfra;
+		float delta[2]= {0.f, 0.f}, scalex, scaley, near[2]={1.f, 1.f};
+		MovieTrackingTrack *track;
+
+		track= tracking->tracks.first;
+		while(track) {
+			if(track->flag&TRACK_USE_2D_STAB) {
+				if(track->markersnr) {
+					sfra= MIN2(sfra, track->markers[0].framenr);
+					efra= MAX2(efra, track->markers[track->markersnr-1].framenr);
+				}
+			}
+
+			track= track->next;
+		}
+
+		for(cfra=sfra; cfra<=efra; cfra++) {
+			float median[2], d[2];
+
+			stabilization_median_point(tracking, cfra, median);
+
+			sub_v2_v2v2(d, firstmedian, median);
+			d[0]= fabsf(d[0]);
+			d[1]= fabsf(d[1]);
+
+			delta[0]= MAX2(delta[0], d[0]);
+			delta[1]= MAX2(delta[1], d[1]);
+
+			near[0]= MIN3(near[0], median[0], 1.f-median[0]);
+			near[1]= MIN3(near[1], median[1], 1.f-median[1]);
+		}
+
+		near[0]= MAX2(near[0], 0.05);
+		near[1]= MAX2(near[1], 0.05);
+
+		scalex= 1.f+delta[0]/near[0];
+		scaley= 1.f+delta[1]/near[1];
+
+		stab->scale= MAX2(scalex, scaley);
+	} else {
+		stab->scale= 1.f;
+	}
+
+	stab->ok= 1;
+
+	return stab->scale;
+}
+
+static void calculate_stabmat(MovieTrackingStabilization *stab, float width, float height,
+			float firstmedian[2], float curmedian[2], float mat[4][4])
+{
+	unit_m4(mat);
+
+	mat[0][0]= stab->scale;
+	mat[1][1]= stab->scale;
+	mat[3][0]= (firstmedian[0]-curmedian[0])*width*stab->scale;
+	mat[3][1]= (firstmedian[1]-curmedian[1])*height*stab->scale;
+
+	mat[3][0]-= (firstmedian[0]*stab->scale-firstmedian[0])*width;
+	mat[3][1]-= (firstmedian[1]*stab->scale-firstmedian[1])*height;
+	/*mat[3][0]-= (width*stab->scale-width)/2.0f;
+	mat[3][1]-= (height*stab->scale-height)/2.0f;*/
+
+}
+
+static int stabelize_need_recalc(MovieTracking *tracking, float width, float height,
+			float firstmedian[2], float curmedian[2], float mat[4][4])
+{
+	float stabmat[4][4];
+	MovieTrackingStabilization *stab= &tracking->stabilization;
+
+	if(!mat)
+		return 1;
+
+	if(stab->flag&TRACKING_AUTOSCALE)
+		stabilization_auto_scale_factor(tracking);
+
+	calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
+
+	return memcmp(mat, stabmat, sizeof(float)*16);
+}
+
+static ImBuf* stabelize_acquire_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
+{
+	int flags;
+
+	if(cacheibuf && (cacheibuf->x != srcibuf->x || cacheibuf->y != srcibuf->y)) {
+		IMB_freeImBuf(cacheibuf);
+		cacheibuf= NULL;
+	}
+
+	flags= IB_rect;
+
+	if(srcibuf->rect_float)
+		flags|= IB_rectfloat;
+
+	if(cacheibuf) {
+		if(fill) {
+			float col[4]= {0.f, 0.f, 0.f, 0.f};
+			IMB_rectfill(cacheibuf, col);
+		}
+	}
+	else {
+		cacheibuf= IMB_allocImBuf(srcibuf->x, srcibuf->y, srcibuf->depth, flags);
+		cacheibuf->profile= srcibuf->profile;
+	}
+
+	return cacheibuf;
+}
+
+ImBuf *BKE_tracking_stabelize_shot(MovieTracking *tracking, int framenr, ImBuf *ibuf, float mat[4][4])
+{
+	float firstmedian[2], curmedian[2], stabmat[4][4];
+	MovieTrackingStabilization *stab= &tracking->stabilization;
+
+	if(mat)
+		copy_m4_m4(stabmat, mat);
+
+	if((stab->flag&TRACKING_2D_STABILIZATION)==0) {
+		if(mat)
+			unit_m4(mat);
+
+		return ibuf;
+	}
+
+	if(stabilization_median_point(tracking, 1, firstmedian)) {
+		ImBuf *tmpibuf;
+		float width= ibuf->x, height= ibuf->y;
+
+		stabilization_median_point(tracking, framenr, curmedian);
+
+		if((stab->flag&TRACKING_AUTOSCALE)==0)
+				stab->scale= 1.f;
+
+		if(!stab->ok && stab->ibufok && stab->ibuf)
+			stab->ibufok= stabelize_need_recalc(tracking, width, height, firstmedian, curmedian, mat) == 0;
+
+		if(!stab->ibuf || !stab->ibufok) {
+			tmpibuf= stabelize_acquire_ibuf(stab->ibuf, ibuf, 1);
+			stab->ibuf= tmpibuf;
+
+			if(stab->flag&TRACKING_AUTOSCALE) {
+				ImBuf *scaleibuf;
+
+				stabilization_auto_scale_factor(tracking);
+
+				scaleibuf= stabelize_acquire_ibuf(stab->scaleibuf, ibuf, 0);
+				stab->scaleibuf= scaleibuf;
+
+				IMB_rectcpy(scaleibuf, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
+				IMB_scalefastImBuf(scaleibuf, ibuf->x*stab->scale, ibuf->y*stab->scale);
+
+				ibuf= scaleibuf;
+			}
+
+			calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
+
+			IMB_rectcpy(tmpibuf, ibuf, stabmat[3][0], stabmat[3][1], 0, 0, ibuf->x, ibuf->y);
+
+			tmpibuf->userflags|= IB_MIPMAP_INVALID;
+
+			if(tmpibuf->rect_float)
+				tmpibuf->userflags|= IB_RECT_INVALID;
+		} else {
+			calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
+			tmpibuf= stab->ibuf;
+		}
+
+		stab->ibuf= tmpibuf;
+		IMB_refImBuf(stab->ibuf);
+
+		if(mat)
+			copy_m4_m4(mat, stabmat);
+
+		stab->ibufok= 1;
+		stab->ok= 1;
+
+		return stab->ibuf;
+	} else {
+		unit_m4(stabmat);
+	}
+
+	if(mat)
+		copy_m4_m4(mat, stabmat);
+
+	return ibuf;
 }
