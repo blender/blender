@@ -122,7 +122,7 @@ typedef struct MovieTrackingStabilization {
 	int pad;
 
 	int framenr;				/* number of frame image is stabilized for */
-	struct ImBuf *ibuf;			/* currently stabelized ibuf */
+	struct ImBuf *ibuf;			/* currently stabilized ibuf */
 	struct ImBuf *scaleibuf;	/* currently scaled ibuf */
 } MovieTrackingStabilization;
 

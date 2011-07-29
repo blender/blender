@@ -210,7 +210,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 		{0, "FASTEST", 0, "Fastest", "Track as fast as it's possible"},
 		{TRACKING_SPEED_REALTIME, "REALTIME", 0, "Realtime", "Track with realtime speed"},
 		{TRACKING_SPEED_HALF, "HALF", 0, "Half", "Track with half of realtime speed"},
-		{TRACKING_SPEED_HALF, "QUARTER", 0, "Quarter", "Track with quarter of realtime speed"},
+		{TRACKING_SPEED_QUARTER, "QUARTER", 0, "Quarter", "Track with quarter of realtime speed"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MovieTrackingSettings", NULL);
