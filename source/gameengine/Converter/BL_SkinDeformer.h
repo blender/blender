@@ -109,6 +109,7 @@ protected:
 	bool					m_releaseobject;
 	bool					m_poseApplied;
 	bool					m_recalcNormal;
+	struct bPoseChannel**	m_dfnrToPC;
 
 	void BlenderDeformVerts();
 	void BGEDeformVerts();

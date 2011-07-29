@@ -79,7 +79,8 @@ BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 							//m_defbase(&bmeshobj->defbase),
 							m_releaseobject(false),
 							m_poseApplied(false),
-							m_recalcNormal(true)
+							m_recalcNormal(true),
+							m_dfnrToPC(NULL)
 {
 	copy_m4_m4(m_obmat, bmeshobj->obmat);
 };
@@ -97,7 +98,8 @@ BL_SkinDeformer::BL_SkinDeformer(
 		m_lastArmaUpdate(-1),
 		//m_defbase(&bmeshobj_old->defbase),
 		m_releaseobject(release_object),
-		m_recalcNormal(recalc_normal)
+		m_recalcNormal(recalc_normal),
+		m_dfnrToPC(NULL)
 	{
 		// this is needed to ensure correct deformation of mesh:
 		// the deformation is done with Blender's armature_deform_verts() function
@@ -111,6 +113,8 @@ BL_SkinDeformer::~BL_SkinDeformer()
 {
 	if(m_releaseobject && m_armobj)
 		m_armobj->Release();
+	if(m_dfnrToPC)
+		delete [] m_dfnrToPC;
 }
 
 void BL_SkinDeformer::Relink(CTR_Map<class CTR_HashedPtr, void*>*map)
@@ -179,6 +183,7 @@ void BL_SkinDeformer::ProcessReplica()
 	BL_MeshDeformer::ProcessReplica();
 	m_lastArmaUpdate = -1;
 	m_releaseobject = false;
+	m_dfnrToPC = NULL;
 }
 
 void BL_SkinDeformer::BlenderDeformVerts()
@@ -201,25 +206,25 @@ void BL_SkinDeformer::BGEDeformVerts()
 {
 	Object *par_arma = m_armobj->GetArmatureObject();
 	MDeformVert *dverts = m_bmesh->dvert;
-	MDeformVert *dvert;
 	bDeformGroup *dg;
-	bPoseChannel *pchan=NULL;
-	bPoseChannel **dfnrToPC;
 	int numGroups = BLI_countlist(&m_objMesh->defbase);
 
 	if (!dverts)
 		return;
 
-	dfnrToPC = new bPoseChannel*[numGroups];
-	int i;
-	for (i=0, dg=(bDeformGroup*)m_objMesh->defbase.first;
-		dg;
-		++i, dg=(bDeformGroup*)dg->next)
+	if (m_dfnrToPC == NULL)
 	{
-		dfnrToPC[i] = get_pose_channel(par_arma->pose, dg->name);
+		m_dfnrToPC = new bPoseChannel*[numGroups];
+		int i;
+		for (i=0, dg=(bDeformGroup*)m_objMesh->defbase.first;
+			dg;
+			++i, dg=(bDeformGroup*)dg->next)
+		{
+			m_dfnrToPC[i] = get_pose_channel(par_arma->pose, dg->name);
 
-		if (dfnrToPC[i] && dfnrToPC[i]->bone->flag & BONE_NO_DEFORM)
-			dfnrToPC[i] = NULL;
+			if (m_dfnrToPC[i] && m_dfnrToPC[i]->bone->flag & BONE_NO_DEFORM)
+				m_dfnrToPC[i] = NULL;
+		}
 	}
 
 
@@ -227,6 +232,8 @@ void BL_SkinDeformer::BGEDeformVerts()
 	{
 		float contrib = 0.f, weight;
 		Bone *bone;
+		bPoseChannel *pchan=NULL;
+		MDeformVert *dvert;
 		Eigen::Vector4f co(0.f, 0.f, 0.f, 1.f);
 		Eigen::Vector4f vec(0, 0, 0, 1);
 		co[0] = m_transverts[i][0];
@@ -242,7 +249,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 		{
 			int index = dvert->dw[j].def_nr;
 
-			if (index < numGroups && (pchan=dfnrToPC[index]))
+			if (index < numGroups && (pchan=m_dfnrToPC[index]))
 			{
 				weight = dvert->dw[j].weight;
 				bone = pchan->bone;
@@ -271,9 +278,6 @@ void BL_SkinDeformer::BGEDeformVerts()
 		m_transverts[i][1] = co[1];
 		m_transverts[i][2] = co[2];
 	}
-
-	if (dfnrToPC)
-		delete [] dfnrToPC;
 }
 
 bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
