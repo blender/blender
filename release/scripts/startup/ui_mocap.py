@@ -40,8 +40,8 @@ from mocap_constraints import *
 
 class MocapConstraint(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty(name="Name",
-        default="Mocap Constraint",
-        description="Name of Mocap Constraint",
+        default="Mocap Fix",
+        description="Name of Mocap Fix",
         update=setConstraint)
     constrained_bone = bpy.props.StringProperty(name="Bone",
         default="",
@@ -53,11 +53,11 @@ class MocapConstraint(bpy.types.PropertyGroup):
         update=setConstraint)
     s_frame = bpy.props.IntProperty(name="S",
         default=1,
-        description="Start frame of constraint",
+        description="Start frame of Fix",
         update=setConstraint)
     e_frame = bpy.props.IntProperty(name="E",
         default=500,
-        description="End frame of constrain",
+        description="End frame of Fix",
         update=setConstraint)
     smooth_in = bpy.props.IntProperty(name="In",
         default=10,
@@ -71,22 +71,22 @@ class MocapConstraint(bpy.types.PropertyGroup):
         min=0)
     targetMesh = bpy.props.StringProperty(name="Mesh",
         default="",
-        description="Target of Constraint - Mesh (optional, depends on type)",
+        description="Target of Fix - Mesh (optional, depends on type)",
         update=setConstraint)
     active = bpy.props.BoolProperty(name="Active",
         default=True,
-        description="Constraint is active",
+        description="Fix is active",
         update=setConstraint)
     show_expanded = bpy.props.BoolProperty(name="Show Expanded",
         default=True,
-        description="Constraint is fully shown")
+        description="Fix is fully shown")
     targetPoint = bpy.props.FloatVectorProperty(name="Point", size=3,
         subtype="XYZ", default=(0.0, 0.0, 0.0),
-        description="Target of Constraint - Point",
+        description="Target of Fix - Point",
         update=setConstraint)
     targetDist = bpy.props.FloatProperty(name="Offset",
         default=0.0,
-        description="Distance and Floor Constraints - Desired offset",
+        description="Distance and Floor Fixes - Desired offset",
         update=setConstraint)
     targetSpace = bpy.props.EnumProperty(
         items=[("WORLD", "World Space", "Evaluate target in global space"),
@@ -100,7 +100,7 @@ class MocapConstraint(bpy.types.PropertyGroup):
             ("freeze", "Maintain Position at frame", "Bone does not move from location specified in target frame"),
             ("floor", "Stay above", "Bone does not cross specified mesh object eg floor"),
             ("distance", "Maintain distance", "Target bones maintained specified distance")],
-        description="Type of constraint",
+        description="Type of Fix",
         update=updateConstraintBoneType)
     real_constraint = bpy.props.StringProperty()
     real_constraint_bone = bpy.props.StringProperty()
@@ -241,7 +241,7 @@ class MocapPanel(bpy.types.Panel):
 
 class MocapConstraintsPanel(bpy.types.Panel):
     #Motion capture constraints panel
-    bl_label = "Mocap constraints"
+    bl_label = "Mocap Fixes"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "object"
@@ -472,13 +472,13 @@ class OBJECT_OT_ScaleFixArmature(bpy.types.Operator):
 class MOCAP_OT_AddMocapFix(bpy.types.Operator):
     '''Add a post-retarget fix - useful for fixing certain artifacts following the retarget'''
     bl_idname = "mocap.addmocapfix"
-    bl_label = "Add constraint to target armature"
-    type = bpy.props.EnumProperty(name="Type of constraint",
+    bl_label = "Add Mocap Fix to target armature"
+    type = bpy.props.EnumProperty(name="Type of Fix",
     items=[("point", "Maintain Position", "Bone is at a specific point"),
         ("freeze", "Maintain Position at frame", "Bone does not move from location specified in target frame"),
         ("floor", "Stay above", "Bone does not cross specified mesh object eg floor"),
         ("distance", "Maintain distance", "Target bones maintained specified distance")],
-    description="Type of constraint")
+    description="Type of fix")
 
     def execute(self, context):
         enduser_obj = bpy.context.active_object
@@ -496,7 +496,7 @@ class MOCAP_OT_AddMocapFix(bpy.types.Operator):
 class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
     '''Remove this post-retarget fix'''
     bl_idname = "mocap.removeconstraint"
-    bl_label = "Removes constraints from target armature"
+    bl_label = "Removes fixes from target armature"
     constraint = bpy.props.IntProperty()
 
     def execute(self, context):
@@ -520,7 +520,7 @@ class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
 class OBJECT_OT_BakeMocapConstraints(bpy.types.Operator):
     '''Bake all post-retarget fixes to the Retarget Fixes NLA Track'''
     bl_idname = "mocap.bakeconstraints"
-    bl_label = "Bake all constraints to target armature"
+    bl_label = "Bake all fixes to target armature"
 
     def execute(self, context):
         bakeConstraints(context)
@@ -535,7 +535,7 @@ class OBJECT_OT_BakeMocapConstraints(bpy.types.Operator):
 class OBJECT_OT_UnbakeMocapConstraints(bpy.types.Operator):
     '''Unbake all post-retarget fixes - removes the baked data from the Retarget Fixes NLA Track'''
     bl_idname = "mocap.unbakeconstraints"
-    bl_label = "Unbake all constraints to target armature"
+    bl_label = "Unbake all fixes to target armature"
 
     def execute(self, context):
         unbakeConstraints(context)

@@ -384,9 +384,9 @@ def NLASystemInitialize(enduser_obj, s_frame):
     mocapTrack.name = "Base Mocap Track"
     mocapStrip = mocapTrack.strips.new("Base Mocap", s_frame, mocapAction)
     constraintTrack = anim_data.nla_tracks.new()
-    constraintTrack.name = "Mocap constraints"
-    constraintAction = bpy.data.actions.new("Mocap constraints")
-    constraintStrip = constraintTrack.strips.new("Mocap constraints", s_frame, constraintAction)
+    constraintTrack.name = "Mocap fixes"
+    constraintAction = bpy.data.actions.new("Mocap fixes")
+    constraintStrip = constraintTrack.strips.new("Mocap fixes", s_frame, constraintAction)
     constraintStrip.extrapolation = "NOTHING"
     userTrack = anim_data.nla_tracks.new()
     userTrack.name = "Mocap manual fix"

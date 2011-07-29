@@ -59,7 +59,7 @@ def addNewConstraint(m_constraint, cons_obj):
         c_type = "LIMIT_LOCATION"
         #create and store the new constraint within m_constraint
     real_constraint = cons_obj.constraints.new(c_type)
-    real_constraint.name = "Mocap constraint " + str(len(cons_obj.constraints))
+    real_constraint.name = "Mocap fix " + str(len(cons_obj.constraints))
     m_constraint.real_constraint_bone = consObjToBone(cons_obj)
     m_constraint.real_constraint = real_constraint.name
     #set the rest of the constraint properties
@@ -336,7 +336,7 @@ def bakeAllConstraints(obj, s_frame, e_frame, bones):
                 simpleBake += [end_bone]
     for bone in selectedBones:
         bone.bone.select = True
-    constraintTrack = obj.animation_data.nla_tracks["Mocap constraints"]
+    constraintTrack = obj.animation_data.nla_tracks["Mocap fixes"]
     constraintStrip = constraintTrack.strips[0]
     constraintStrip.action_frame_start = s_frame
     constraintStrip.action_frame_end = e_frame
@@ -375,7 +375,7 @@ def unbakeConstraints(context):
     obj = context.active_object
     bones = obj.pose.bones
     scene = bpy.context.scene
-    constraintTrack = obj.animation_data.nla_tracks["Mocap constraints"]
+    constraintTrack = obj.animation_data.nla_tracks["Mocap fixes"]
     constraintStrip = constraintTrack.strips[0]
     action = constraintStrip.action
     # delete the fcurves on the strip
