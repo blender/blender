@@ -1080,6 +1080,11 @@ static void node_composit_buts_movieclip(uiLayout *layout, bContext *C, PointerR
 	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
 }
 
+static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1232,6 +1237,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MOVIECLIP:
 			ntype->uifunc= node_composit_buts_movieclip;
+			break;
+		case CMP_NODE_STABILIZE2D:
+			ntype->uifunc= node_composit_buts_stabilize2d;
 			break;
 		default:
 			ntype->uifunc= NULL;

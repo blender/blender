@@ -1310,17 +1310,15 @@ static void calculate_stabmat(MovieTrackingStabilization *stab, float width, flo
 
 	mat[0][0]= stab->scale;
 	mat[1][1]= stab->scale;
+	mat[2][2]= stab->scale;
 	mat[3][0]= (firstmedian[0]-curmedian[0])*width*stab->scale;
 	mat[3][1]= (firstmedian[1]-curmedian[1])*height*stab->scale;
 
 	mat[3][0]-= (firstmedian[0]*stab->scale-firstmedian[0])*width;
 	mat[3][1]-= (firstmedian[1]*stab->scale-firstmedian[1])*height;
-	/*mat[3][0]-= (width*stab->scale-width)/2.0f;
-	mat[3][1]-= (height*stab->scale-height)/2.0f;*/
-
 }
 
-static int stabelize_need_recalc(MovieTracking *tracking, float width, float height,
+static int stabilize_need_recalc(MovieTracking *tracking, float width, float height,
 			float firstmedian[2], float curmedian[2], float mat[4][4])
 {
 	float stabmat[4][4];
@@ -1337,7 +1335,7 @@ static int stabelize_need_recalc(MovieTracking *tracking, float width, float hei
 	return memcmp(mat, stabmat, sizeof(float)*16);
 }
 
-static ImBuf* stabelize_acquire_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
+static ImBuf* stabilize_acquire_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
 {
 	int flags;
 
@@ -1365,7 +1363,47 @@ static ImBuf* stabelize_acquire_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
 	return cacheibuf;
 }
 
-ImBuf *BKE_tracking_stabelize_shot(MovieTracking *tracking, int framenr, ImBuf *ibuf, float mat[4][4])
+void BKE_tracking_stabilization_matrix(MovieTracking *tracking, int framenr, int width, int height, float mat[4][4])
+{
+	float firstmedian[2], curmedian[2], stabmat[4][4];
+	MovieTrackingStabilization *stab= &tracking->stabilization;
+
+	copy_m4_m4(stabmat, mat);
+
+	if((stab->flag&TRACKING_2D_STABILIZATION)==0) {
+		unit_m4(mat);
+
+		return;
+	}
+
+	if(stabilization_median_point(tracking, 1, firstmedian)) {
+		stabilization_median_point(tracking, framenr, curmedian);
+
+		if((stab->flag&TRACKING_AUTOSCALE)==0)
+				stab->scale= 1.f;
+
+		if(!stab->ok && stab->ibufok && stab->ibuf)
+			stab->ibufok= stabilize_need_recalc(tracking, width, height, firstmedian, curmedian, mat) == 0;
+
+		if(!stab->ibuf || !stab->ibufok) {
+			if(stab->flag&TRACKING_AUTOSCALE)
+				stabilization_auto_scale_factor(tracking);
+
+			calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
+
+			stab->ok= 1;
+		} else {
+			calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
+		}
+	} else {
+		unit_m4(stabmat);
+	}
+
+	if(mat)
+		copy_m4_m4(mat, stabmat);
+}
+
+ImBuf *BKE_tracking_stabilize_shot(MovieTracking *tracking, int framenr, ImBuf *ibuf, float mat[4][4])
 {
 	float firstmedian[2], curmedian[2], stabmat[4][4];
 	MovieTrackingStabilization *stab= &tracking->stabilization;
@@ -1390,10 +1428,10 @@ ImBuf *BKE_tracking_stabelize_shot(MovieTracking *tracking, int framenr, ImBuf *
 				stab->scale= 1.f;
 
 		if(!stab->ok && stab->ibufok && stab->ibuf)
-			stab->ibufok= stabelize_need_recalc(tracking, width, height, firstmedian, curmedian, mat) == 0;
+			stab->ibufok= stabilize_need_recalc(tracking, width, height, firstmedian, curmedian, mat) == 0;
 
 		if(!stab->ibuf || !stab->ibufok) {
-			tmpibuf= stabelize_acquire_ibuf(stab->ibuf, ibuf, 1);
+			tmpibuf= stabilize_acquire_ibuf(stab->ibuf, ibuf, 1);
 			stab->ibuf= tmpibuf;
 
 			if(stab->flag&TRACKING_AUTOSCALE) {
@@ -1401,7 +1439,7 @@ ImBuf *BKE_tracking_stabelize_shot(MovieTracking *tracking, int framenr, ImBuf *
 
 				stabilization_auto_scale_factor(tracking);
 
-				scaleibuf= stabelize_acquire_ibuf(stab->scaleibuf, ibuf, 0);
+				scaleibuf= stabilize_acquire_ibuf(stab->scaleibuf, ibuf, 0);
 				stab->scaleibuf= scaleibuf;
 
 				IMB_rectcpy(scaleibuf, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);

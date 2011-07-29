@@ -89,6 +89,7 @@ set(SRC
 	intern/CMP_nodes/CMP_sepcombYUVA.c
 	intern/CMP_nodes/CMP_setalpha.c
 	intern/CMP_nodes/CMP_splitViewer.c
+	intern/CMP_nodes/CMP_stabilize2d.c
 	intern/CMP_nodes/CMP_texture.c
 	intern/CMP_nodes/CMP_tonemap.c
 	intern/CMP_nodes/CMP_translate.c

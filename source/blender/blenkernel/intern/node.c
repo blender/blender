@@ -3305,7 +3305,7 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 				NodeTagChanged(ntree, node);
 			}
 		}
-		else if(node->type==CMP_NODE_MOVIECLIP) {
+		else if(ELEM(node->type, CMP_NODE_MOVIECLIP, CMP_NODE_STABILIZE2D)) {
 			NodeTagChanged(ntree, node);
 			tagged= 1;
 		}
@@ -3520,6 +3520,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	register_node_type_cmp_glare(ntypelist);
 	register_node_type_cmp_tonemap(ntypelist);
 	register_node_type_cmp_lensdist(ntypelist);
+	register_node_type_cmp_stabilize2d(ntypelist);
 }
 
 static void registerShaderNodes(ListBase *ntypelist) 

@@ -2282,6 +2282,18 @@ static void def_cmp_movieclip(StructRNA *srna)
 	RNA_def_struct_sdna_from(srna, "MovieClipUser", "storage");
 }
 
+static void def_cmp_stabilize2d(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "MovieClip");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Movie Clip", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
 
 /* -- Texture Nodes --------------------------------------------------------- */
 

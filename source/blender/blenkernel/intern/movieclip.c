@@ -331,16 +331,12 @@ ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, f
 	if(clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
 		MovieTrackingStabilization *stab= &clip->tracking.stabilization;
 
-		BLI_lock_thread(LOCK_MOVIECLIP);
-
 		if(user->framenr!=stab->framenr)
 			stab->ibufok= 0;
 
-		stableibuf= BKE_tracking_stabelize_shot(&clip->tracking, framenr, ibuf, mat);
+		stableibuf= BKE_tracking_stabilize_shot(&clip->tracking, framenr, ibuf, mat);
 
 		stab->framenr= user->framenr;
-
-		BLI_unlock_thread(LOCK_MOVIECLIP);
 	} else {
 		if(mat)
 			unit_m4(mat);
