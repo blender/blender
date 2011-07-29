@@ -2463,7 +2463,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{22, "BULGARIAN", 0, N_("Bulgarian (Български)"), "bg_BG"},
 		{23, "GREEK", 0, N_("Greek (Ελληνικά)"), "el_GR"},
 		{24, "KOREAN", 0, N_("Korean (한국 언어)"), "ko_KR"},
-		{0, NULL, 0, NULL, NULL}};*/
+		{0, NULL, 0, NULL, NULL}};
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
