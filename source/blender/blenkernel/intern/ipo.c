@@ -527,7 +527,7 @@ static const char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "ambient";
 		
 		case MA_SPEC:
-			return "specular_reflection";
+			return "specular_intensity";
 		
 		case MA_HARD:
 			return "specular_hardness";
@@ -551,13 +551,13 @@ static const char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "raytrace_mirror.fresnel";
 			
 		case MA_FRESMIRI:
-			return "raytrace_mirror.fresnel_fac";
+			return "raytrace_mirror.fresnel_factor";
 			
 		case MA_FRESTRA:
 			return "raytrace_transparency.fresnel";
 			
 		case MA_FRESTRAI:
-			return "raytrace_transparency.fresnel_fac";
+			return "raytrace_transparency.fresnel_factor";
 			
 		case MA_ADD:
 			return "halo.add";
