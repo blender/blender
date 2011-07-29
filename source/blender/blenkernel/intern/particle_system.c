@@ -3987,7 +3987,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 		BKE_ptcache_id_time(pid, sim->scene, 0.0f, &startframe, &endframe, NULL);
 
 		/* clear everythin on start frame */
-		if((int)cfra == startframe) {
+		if(cfra == startframe) {
 			BKE_ptcache_id_reset(sim->scene, pid, PTCACHE_RESET_OUTDATED);
 			BKE_ptcache_validate(cache, startframe);
 			cache->flag &= ~PTCACHE_REDO_NEEDED;

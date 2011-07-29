@@ -243,7 +243,7 @@ def testNewVecLs2DRotIsBetter(vecs, mat=-1, bestAreaSoFar = -1):
 
         # Do this allong the way
         if mat != -1:
-            v = vecs[i] = v*mat
+            v = vecs[i] = mat * v
             x= v.x
             y= v.y
             if x<minx: minx= x
@@ -747,14 +747,8 @@ def packIslands(islandList):
 
 
 def VectoQuat(vec):
-    a3 = vec.normalized()
-    up = Vector((0.0, 0.0, 1.0))
-    if abs(a3.dot(up)) == 1.0:
-        up = Vector((0.0, 1.0, 0.0))
-
-    a1 = a3.cross(up).normalized()
-    a2 = a3.cross(a1)
-    return Matrix((a1, a2, a3)).to_quaternion()
+    vec = vec.normalized()
+    return vec.to_track_quat('Z', 'X' if abs(vec.x) > 0.5 else 'Y').inverted()
 
 
 class thickface(object):
@@ -1070,7 +1064,7 @@ def main(context,
                 f_uv = f.uv
                 for j, v in enumerate(f.v):
                     # XXX - note, between mathutils in 2.4 and 2.5 the order changed.
-                    f_uv[j][:] = (v.co * MatQuat).xy
+                    f_uv[j][:] = (MatQuat * v.co).xy
 
 
         if USER_SHARE_SPACE:

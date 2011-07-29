@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: mathutils_Color.h 38409 2011-07-15 04:01:47Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -22,31 +22,34 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Willian P. Germano & Joseph Gilbert
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
  *
  */
 
-/** \file blender/python/generic/mathutils_Vector.h
+/** \file blender/python/generic/mathutils_Color.h
  *  \ingroup pygen
  */
 
 
-#ifndef MATHUTILS_VECTOR_H
-#define MATHUTILS_VECTOR_H
+#ifndef MATHUTILS_COLOR_H
+#define MATHUTILS_COLOR_H
 
-extern PyTypeObject vector_Type;
-#define VectorObject_Check(_v) PyObject_TypeCheck((_v), &vector_Type)
+extern PyTypeObject color_Type;
+#define ColorObject_Check(_v) PyObject_TypeCheck((_v), &color_Type)
 
 typedef struct {
-	BASE_MATH_MEMBERS(vec)
+	BASE_MATH_MEMBERS(col)
+} ColorObject;
 
-	unsigned char size;			/* vec size 2,3 or 4 */
-} VectorObject;
+/*struct data contains a pointer to the actual data that the
+object uses. It can use either PyMem allocated data (which will
+be stored in py_data) or be a wrapper for data allocated through
+blender (stored in blend_data). This is an either/or struct not both*/
 
-/*prototypes*/
-PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObject *base_type);
-PyObject *newVectorObject_cb(PyObject *user, int size, int callback_type, int subtype);
+//prototypes
+PyObject *newColorObject( float *col, int type, PyTypeObject *base_type);
+PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
 
-#endif				/* MATHUTILS_VECTOR_H */
+#endif /* MATHUTILS_COLOR_H */

@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: mathutils_Euler.c 38409 2011-07-15 04:01:47Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -37,10 +37,6 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-
-#ifndef int32_t
-#include "BLO_sys_types.h"
-#endif
 
 #define EULER_SIZE 3
 
@@ -89,7 +85,7 @@ static const char *euler_order_str(EulerObject *self)
 short euler_order_from_string(const char *str, const char *error_prefix)
 {
 	if((str[0] && str[1] && str[2] && str[3]=='\0')) {
-		switch(*((int32_t *)str)) {
+		switch(*((PY_INT32_T *)str)) {
 			case 'X'|'Y'<<8|'Z'<<16:	return EULER_ORDER_XYZ;
 			case 'X'|'Z'<<8|'Y'<<16:	return EULER_ORDER_XZY;
 			case 'Y'|'X'<<8|'Z'<<16:	return EULER_ORDER_YXZ;
@@ -99,7 +95,7 @@ short euler_order_from_string(const char *str, const char *error_prefix)
 		}
 	}
 
-	PyErr_Format(PyExc_TypeError,
+	PyErr_Format(PyExc_ValueError,
 	             "%s: invalid euler order '%s'",
 	             error_prefix, str);
 	return -1;
@@ -209,7 +205,7 @@ static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 		return NULL;
 	}
 	if(!(ELEM3(*axis, 'X', 'Y', 'Z') && axis[1]=='\0')){
-		PyErr_SetString(PyExc_TypeError, "euler.rotate(): "
+		PyErr_SetString(PyExc_ValueError, "euler.rotate(): "
 		                "expected axis to be 'X', 'Y' or 'Z'");
 		return NULL;
 	}
@@ -449,7 +445,7 @@ static int Euler_ass_slice(EulerObject *self, int begin, int end, PyObject *seq)
 		return -1;
 
 	if(size != (end - begin)){
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "euler[begin:end] = []: "
 		                "size mismatch in slice assignment");
 		return -1;
@@ -486,7 +482,7 @@ static PyObject *Euler_subscript(EulerObject *self, PyObject *item)
 			return Euler_slice(self, start, stop);
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with eulers");
 			return NULL;
 		}
@@ -519,7 +515,7 @@ static int Euler_ass_subscript(EulerObject *self, PyObject *item, PyObject *valu
 		if (step == 1)
 			return Euler_ass_slice(self, start, stop, value);
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with euler");
 			return -1;
 		}
@@ -701,9 +697,7 @@ PyObject *newEulerObject(float *eul, short order, int type, PyTypeObject *base_t
 			self->wrapped = Py_NEW;
 		}
 		else {
-			PyErr_SetString(PyExc_RuntimeError,
-			                "Euler(): invalid type, internal error");
-			return NULL;
+			Py_FatalError("Euler(): invalid type!");
 		}
 
 		self->order= order;

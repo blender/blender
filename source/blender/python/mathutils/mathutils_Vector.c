@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: mathutils_Vector.c 38674 2011-07-25 01:44:19Z campbellbarton $
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -34,9 +34,10 @@
 
 #include "mathutils.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+
+extern void PyC_LineSpit(void);
 
 #define MAX_DIMENSIONS 4
 
@@ -442,8 +443,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 			}
 		}
 		else {
-			PyErr_SetString(PyExc_ValueError,
-			                axis_err_msg);
+			PyErr_SetString(PyExc_ValueError, axis_err_msg);
 			return NULL;
 		}
 	}
@@ -667,7 +667,7 @@ static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 	float quat[4], vec_a[3], vec_b[3];
 
 	if(self->size < 3) {
-		PyErr_SetString(PyExc_AttributeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "vec.difference(value): "
 		                "expects both vectors to be size 3 or 4");
 		return NULL;
@@ -1083,7 +1083,7 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
  * note: vector/matrix multiplication IS NOT COMMUTATIVE!!!!
  * note: assume read callbacks have been done first.
  */
-static int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, MatrixObject * mat)
+int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, MatrixObject * mat)
 {
 	float vec_cpy[MAX_DIMENSIONS];
 	double dot = 0.0f;
@@ -1094,7 +1094,7 @@ static int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject
 			vec_cpy[3] = 1.0f;
 		}
 		else {
-			PyErr_SetString(PyExc_AttributeError,
+			PyErr_SetString(PyExc_TypeError,
 			                "matrix * vector: "
 			                "matrix.row_size and len(vector) must be the same, "
 			                "except for 3D vector * 4x4 matrix.");
@@ -1147,7 +1147,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 		double dot = 0.0f;
 
 		if(vec1->size != vec2->size) {
-			PyErr_SetString(PyExc_AttributeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "Vector multiplication: "
 			                "vectors must have the same dimensions for this operation");
 			return NULL;
@@ -1161,8 +1161,29 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 	}
 	else if (vec1) {
 		if (MatrixObject_Check(v2)) {
+			extern void PyC_LineSpit(void);
+
 			/* VEC * MATRIX */
+			/* this is deprecated!, use the reverse instead */
 			float tvec[MAX_DIMENSIONS];
+
+
+/* ------ to be removed ------*/
+#ifndef MATH_STANDALONE
+#ifdef WITH_ASSERT_ABORT
+			PyErr_SetString(PyExc_ValueError,
+			                "(Vector * Matrix) is now removed, reverse the "
+			                "order (promoted to an Error for Debug builds)");
+			return NULL;
+#else
+			printf("Warning: (Vector * Matrix) is now deprecated, "
+			       "reverse the multiplication order in the script.\n");
+			PyC_LineSpit();
+#endif
+#endif		/* ifndef MATH_STANDALONE */
+/* ------ to be removed ------*/
+
+
 			if(BaseMath_ReadCallback((MatrixObject *)v2) == -1)
 				return NULL;
 			if(column_vector_multiplication(tvec, vec1, (MatrixObject*)v2) == -1) {
@@ -1177,7 +1198,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 			float tvec[3];
 
 			if(vec1->size != 3) {
-				PyErr_SetString(PyExc_TypeError,
+				PyErr_SetString(PyExc_ValueError,
 				                "Vector multiplication: "
 				                "only 3D vector rotations (with quats) currently supported");
 				return NULL;
@@ -1185,6 +1206,24 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 			if(BaseMath_ReadCallback(quat2) == -1) {
 				return NULL;
 			}
+
+
+/* ------ to be removed ------*/
+#ifndef MATH_STANDALONE
+#ifdef WITH_ASSERT_ABORT
+			PyErr_SetString(PyExc_ValueError,
+			                "(Vector * Quat) is now removed, reverse the "
+			                "order (promoted to an Error for Debug builds)");
+			return NULL;
+#else
+			printf("Warning: (Vector * Quat) is now deprecated, "
+			       "reverse the multiplication order in the script.\n");
+			PyC_LineSpit();
+#endif
+#endif		/* ifndef MATH_STANDALONE */
+/* ------ to be removed ------*/
+
+
 			copy_v3_v3(tvec, vec1->vec);
 			mul_qt_v3(quat2->quat, tvec);
 			return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec1));
@@ -1228,6 +1267,24 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		if(column_vector_multiplication(rvec, vec, (MatrixObject*)v2) == -1)
 			return NULL;
 
+
+/* ------ to be removed ------*/
+#ifndef MATH_STANDALONE
+#ifdef WITH_ASSERT_ABORT
+			PyErr_SetString(PyExc_ValueError,
+							"(Vector *= Matrix) is now removed, reverse the "
+							"order (promoted to an Error for Debug builds) "
+			                "and uses the non in-place multiplication.");
+			return NULL;
+#else
+			printf("Warning: (Vector *= Matrix) is now deprecated, "
+				   "reverse the (non in-place) multiplication order in the script.\n");
+			PyC_LineSpit();
+#endif
+#endif		/* ifndef MATH_STANDALONE */
+/* ------ to be removed ------*/
+
+
 		memcpy(vec->vec, rvec, sizeof(float) * vec->size);
 	}
 	else if (QuaternionObject_Check(v2)) {
@@ -1235,7 +1292,7 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		QuaternionObject *quat2 = (QuaternionObject*)v2;
 
 		if(vec->size != 3) {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "Vector multiplication: "
 			                "only 3D vector rotations (with quats) currently supported");
 			return NULL;
@@ -1244,6 +1301,25 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		if(BaseMath_ReadCallback(quat2) == -1) {
 			return NULL;
 		}
+
+
+/* ------ to be removed ------*/
+#ifndef MATH_STANDALONE
+#ifdef WITH_ASSERT_ABORT
+			PyErr_SetString(PyExc_ValueError,
+							"(Vector *= Quat) is now removed, reverse the "
+							"order (promoted to an Error for Debug builds) "
+			                "and uses the non in-place multiplication.");
+			return NULL;
+#else
+			printf("Warning: (Vector *= Quat) is now deprecated, "
+				   "reverse the (non in-place) multiplication order in the script.\n");
+			PyC_LineSpit();
+#endif
+#endif		/* ifndef MATH_STANDALONE */
+/* ------ to be removed ------*/
+
+
 		mul_qt_v3(quat2->quat, vec->vec);
 	}
 	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC *= FLOAT */
@@ -1485,7 +1561,7 @@ static PyObject *Vector_subscript(VectorObject* self, PyObject* item)
 			return Vector_slice(self, start, stop);
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with vectors");
 			return NULL;
 		}
@@ -1517,7 +1593,7 @@ static int Vector_ass_subscript(VectorObject* self, PyObject* item, PyObject* va
 		if (step == 1)
 			return Vector_ass_slice(self, start, stop, value);
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with vectors");
 			return -1;
 		}
@@ -1620,7 +1696,7 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 	}
 
 	if (param < 0.0) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "cannot set a vectors length to a negative value");
 		return -1;
 	}
@@ -2174,7 +2250,7 @@ static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObj
 
 	if(mat->colSize != vec_size){
 		if(mat->colSize == 4 && vec_size != 3){
-			PyErr_SetString(PyExc_AttributeError,
+			PyErr_SetString(PyExc_ValueError,
 			                "vector * matrix: matrix column size "
 			                "and the vector size must be the same");
 			return -1;
@@ -2390,9 +2466,7 @@ PyObject *newVectorObject(float *vec, const int size, const int type, PyTypeObje
 			self->wrapped = Py_NEW;
 		}
 		else {
-			PyErr_SetString(PyExc_RuntimeError,
-			                "Vector(): invalid type, internal error");
-			return NULL;
+			Py_FatalError("Vector(): invalid type!");
 		}
 	}
 	return (PyObject *) self;

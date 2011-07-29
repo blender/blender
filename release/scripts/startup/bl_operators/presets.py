@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import bpy
 from blf import gettext as _
@@ -31,8 +31,15 @@ class AddPresetBase():
     # bl_label = "Add a Python Preset"
     bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
-    name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen=64, default="")
-    remove_active = bpy.props.BoolProperty(default=False, options={'HIDDEN'})
+    name = bpy.props.StringProperty(
+            name=_("Name"),
+            description=_("Name of the preset, used to make the path name"),
+            maxlen=64,
+            )
+    remove_active = bpy.props.BoolProperty(
+            default=False,
+            options={'HIDDEN'},
+            )
 
     @staticmethod
     def as_filename(name):  # could reuse for other presets
@@ -55,7 +62,10 @@ class AddPresetBase():
 
             filename = self.as_filename(name)
 
-            target_path = bpy.utils.user_resource('SCRIPTS', os.path.join("presets", self.preset_subdir), create=True)
+            target_path = os.path.join("presets", self.preset_subdir)
+            target_path = bpy.utils.user_resource('SCRIPTS',
+                                                  target_path,
+                                                  create=True)
 
             if not target_path:
                 self.report({'WARNING'}, "Failed to create presets path")
@@ -96,7 +106,9 @@ class AddPresetBase():
             filepath = bpy.utils.preset_find(preset_active, self.preset_subdir)
 
             if not filepath:
-                filepath = bpy.utils.preset_find(preset_active, self.preset_subdir, display_name=True)
+                filepath = bpy.utils.preset_find(preset_active,
+                                                 self.preset_subdir,
+                                                 display_name=True)
 
             if not filepath:
                 return {'CANCELLED'}
@@ -132,10 +144,17 @@ class AddPresetBase():
 class ExecutePreset(bpy.types.Operator):
     ''' Executes a preset '''
     bl_idname = "script.execute_preset"
-    bl_label = "Execute a Python Preset"
+    bl_label = _("Execute a Python Preset")
 
-    filepath = bpy.props.StringProperty(name="Path", description="Path of the Python file to execute", maxlen=512, default="")
-    menu_idname = bpy.props.StringProperty(name="Menu ID Name", description="ID name of the menu this was called from", default="")
+    filepath = bpy.props.StringProperty(
+            name=_("Path"),
+            description=_("Path of the Python file to execute"),
+            maxlen=512,
+            )
+    menu_idname = bpy.props.StringProperty(
+            name=_("Menu ID Name"),
+            description=_("ID name of the menu this was called from"),
+            )
 
     def execute(self, context):
         from os.path import basename
@@ -153,7 +172,7 @@ class ExecutePreset(bpy.types.Operator):
 class AddPresetRender(AddPresetBase, bpy.types.Operator):
     '''Add a Render Preset'''
     bl_idname = "render.preset_add"
-    bl_label = "Add Render Preset"
+    bl_label = _("Add Render Preset")
     preset_menu = "RENDER_MT_presets"
 
     preset_defines = [
@@ -179,11 +198,14 @@ class AddPresetRender(AddPresetBase, bpy.types.Operator):
 class AddPresetSSS(AddPresetBase, bpy.types.Operator):
     '''Add a Subsurface Scattering Preset'''
     bl_idname = "material.sss_preset_add"
-    bl_label = "Add SSS Preset"
+    bl_label = _("Add SSS Preset")
     preset_menu = "MATERIAL_MT_sss_presets"
 
     preset_defines = [
-        "material = (bpy.context.material.active_node_material if bpy.context.material.active_node_material else bpy.context.material)"
+        ("material = "
+         "bpy.context.material.active_node_material "
+         "if bpy.context.material.active_node_material "
+         "else bpy.context.material")
     ]
 
     preset_values = [
@@ -204,7 +226,7 @@ class AddPresetSSS(AddPresetBase, bpy.types.Operator):
 class AddPresetCloth(AddPresetBase, bpy.types.Operator):
     '''Add a Cloth Preset'''
     bl_idname = "cloth.preset_add"
-    bl_label = "Add Cloth Preset"
+    bl_label = _("Add Cloth Preset")
     preset_menu = "CLOTH_MT_presets"
 
     preset_defines = [
@@ -226,7 +248,7 @@ class AddPresetCloth(AddPresetBase, bpy.types.Operator):
 class AddPresetSunSky(AddPresetBase, bpy.types.Operator):
     '''Add a Sky & Atmosphere Preset'''
     bl_idname = "lamp.sunsky_preset_add"
-    bl_label = "Add Sunsky Preset"
+    bl_label = _("Add Sunsky Preset")
     preset_menu = "LAMP_MT_sunsky_presets"
 
     preset_defines = [
@@ -282,7 +304,7 @@ class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
 class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
     '''Add a Keyconfig Preset'''
     bl_idname = "wm.keyconfig_preset_add"
-    bl_label = "Add Keyconfig Preset"
+    bl_label = _("Add Keyconfig Preset")
     preset_menu = "USERPREF_MT_keyconfigs"
     preset_subdir = "keyconfig"
     __doc__ = _('Add a Keyconfig Preset')
@@ -310,7 +332,11 @@ class AddPresetOperator(AddPresetBase, bpy.types.Operator):
     preset_menu = "WM_MT_operator_presets"
     __doc__ = _("Add an Application Interaction Preset")
 
-    operator = bpy.props.StringProperty(name="Operator", maxlen=64, options={'HIDDEN'})
+    operator = bpy.props.StringProperty(
+            name=_("Operator"),
+            maxlen=64,
+            options={'HIDDEN'},
+            )
 
     # XXX, not ideal
     preset_defines = [
@@ -326,12 +352,15 @@ class AddPresetOperator(AddPresetBase, bpy.types.Operator):
         properties_blacklist = bpy.types.Operator.bl_rna.properties.keys()
 
         prefix, suffix = self.operator.split("_OT_", 1)
-        operator_rna = getattr(getattr(bpy.ops, prefix.lower()), suffix).get_rna().bl_rna
+        op = getattr(getattr(bpy.ops, prefix.lower()), suffix)
+        operator_rna = op.get_rna().bl_rna
+        del op
 
         ret = []
         for prop_id, prop in operator_rna.properties.items():
-            if (not (prop.is_hidden or prop.is_skip_save)) and prop_id not in properties_blacklist:
-                ret.append("op.%s" % prop_id)
+            if not (prop.is_hidden or prop.is_skip_save):
+                if prop_id not in properties_blacklist:
+                    ret.append("op.%s" % prop_id)
 
         return ret
 
@@ -343,7 +372,7 @@ class AddPresetOperator(AddPresetBase, bpy.types.Operator):
 
 
 class WM_MT_operator_presets(bpy.types.Menu):
-    bl_label = "Operator Presets"
+    bl_label = _("Operator Presets")
 
     def draw(self, context):
         self.operator = context.space_data.operator.bl_idname

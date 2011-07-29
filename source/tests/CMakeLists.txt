@@ -196,7 +196,7 @@ add_test(export_x3d_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_cube.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_cube.x3d
-	--md5=6ae36be272d6f84c697e84a8b6463273 --md5_method=FILE
+	--md5=5e804c689896116331fa190a9fabbad4 --md5_method=FILE
 )
 
 add_test(export_x3d_nurbs ${TEST_BLENDER_EXE}
@@ -212,7 +212,7 @@ add_test(export_x3d_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.x3d\(filepath='${TEST_OUT_DIR}/export_x3d_all_objects.x3d',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_x3d_all_objects.x3d
-	--md5=bba48ca191e8891adb27c59ed4ce4735 --md5_method=FILE
+	--md5=2809ec13a4cab55d265ce7525c5db1b7 --md5_method=FILE
 )
 
 
@@ -261,7 +261,7 @@ add_test(export_3ds_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.autodesk_3ds\(filepath='${TEST_OUT_DIR}/export_3ds_all_objects.3ds',use_selection=False\)
 	--md5_source=${TEST_OUT_DIR}/export_3ds_all_objects.3ds
-	--md5=cdf8fa8475fda0b9ef565ac09339254b --md5_method=FILE
+	--md5=0940ea889498cd437d503670738639ae --md5_method=FILE
 )
 
 
@@ -273,7 +273,7 @@ add_test(export_fbx_cube ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_cube.fbx',use_selection=False,use_metadata=False\)
 	--md5_source=${TEST_OUT_DIR}/export_fbx_cube.fbx
-	--md5=642a5a1fa199d5b9bbf1643519ae974d --md5_method=FILE
+	--md5=83dca99a0cb338852b8c85951a44c68a --md5_method=FILE
 )
 
 add_test(export_fbx_nurbs ${TEST_BLENDER_EXE}
@@ -281,7 +281,7 @@ add_test(export_fbx_nurbs ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_nurbs.fbx',use_selection=False,use_metadata=False\)
 	--md5_source=${TEST_OUT_DIR}/export_fbx_nurbs.fbx
-	--md5=ec1e8965bdbc3bf70707d77f82c2cb9c --md5_method=FILE
+	--md5=c7d9491ffa6264e820ed1e12df63f871 --md5_method=FILE
 )
 
 add_test(export_fbx_all_objects ${TEST_BLENDER_EXE}
@@ -289,5 +289,5 @@ add_test(export_fbx_all_objects ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
 	--run={'FINISHED'}&bpy.ops.export_scene.fbx\(filepath='${TEST_OUT_DIR}/export_fbx_all_objects.fbx',use_selection=False,use_metadata=False\)
 	--md5_source=${TEST_OUT_DIR}/export_fbx_all_objects.fbx
-	--md5=af3b65665687ac92e4aba07b017d87fe --md5_method=FILE
+	--md5=22867f82e1615fd1eae18cfaac8ba035 --md5_method=FILE
 )

@@ -722,15 +722,17 @@ typedef struct FluidBakeJob {
 
 static void fluidbake_free(void *customdata)
 {
-	FluidBakeJob *fb= customdata;
+	FluidBakeJob *fb= (FluidBakeJob *)customdata;
 	MEM_freeN(fb);
 }
 
 /* called by fluidbake, only to check job 'stop' value */
-static int fluidbake_breakjob(void *UNUSED(customdata))
+static int fluidbake_breakjob(void *customdata)
 {
-	//FluidBakeJob *fb= (FluidBakeJob *)customdata;
-	//return *(fb->stop);
+	FluidBakeJob *fb= (FluidBakeJob *)customdata;
+
+	if(fb->stop && *(fb->stop))
+		return 1;
 	
 	/* this is not nice yet, need to make the jobs list template better 
 	 * for identifying/acting upon various different jobs */
@@ -741,7 +743,7 @@ static int fluidbake_breakjob(void *UNUSED(customdata))
 /* called by fluidbake, wmJob sends notifier */
 static void fluidbake_updatejob(void *customdata, float progress)
 {
-	FluidBakeJob *fb= customdata;
+	FluidBakeJob *fb= (FluidBakeJob *)customdata;
 	
 	*(fb->do_update)= 1;
 	*(fb->progress)= progress;
@@ -749,7 +751,7 @@ static void fluidbake_updatejob(void *customdata, float progress)
 
 static void fluidbake_startjob(void *customdata, short *stop, short *do_update, float *progress)
 {
-	FluidBakeJob *fb= customdata;
+	FluidBakeJob *fb= (FluidBakeJob *)customdata;
 	
 	fb->stop= stop;
 	fb->do_update = do_update;
@@ -764,7 +766,7 @@ static void fluidbake_startjob(void *customdata, short *stop, short *do_update, 
 
 static void fluidbake_endjob(void *customdata)
 {
-	FluidBakeJob *fb= customdata;
+	FluidBakeJob *fb= (FluidBakeJob *)customdata;
 	
 	if (fb->settings) {
 		MEM_freeN(fb->settings);

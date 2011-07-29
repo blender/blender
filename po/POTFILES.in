@@ -1,6 +1,7 @@
 release/scripts/startup/bl_operators/animsys_update.py
 release/scripts/startup/bl_operators/object.py
 release/scripts/startup/bl_operators/object_align.py
+release/scripts/startup/bl_operators/object_quick_effects.py
 release/scripts/startup/bl_operators/object_randomize_transform.py
 release/scripts/startup/bl_operators/presets.py
 release/scripts/startup/bl_operators/screen_play_rendered_anim.py
@@ -9,6 +10,7 @@ release/scripts/startup/bl_operators/wm.py
 
 release/scripts/startup/bl_ui/properties_render.py
 release/scripts/startup/bl_ui/properties_texture.py
+release/scripts/startup/bl_ui/properties_world.py
 
 release/scripts/startup/bl_ui/space_console.py
 release/scripts/startup/bl_ui/space_dopesheet.py

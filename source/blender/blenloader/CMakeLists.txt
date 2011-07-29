@@ -26,8 +26,8 @@
 
 set(INC 
 	.
-	../blenlib
 	../blenkernel
+	../blenlib
 	../makesdna
 	../makesrna
 	../render/extern/include

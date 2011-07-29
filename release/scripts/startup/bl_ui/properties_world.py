@@ -19,8 +19,7 @@
 # <pep8 compliant>
 import bpy
 from rna_prop_ui import PropertyPanel
-
-# TODO, "color_range" not in the UI
+from blf import gettext as _
 
 
 class WorldButtonsPanel():
@@ -64,7 +63,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, bpy.types.Panel):
 
 
 class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Preview"
+    bl_label = _("Preview")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -77,7 +76,7 @@ class WORLD_PT_preview(WorldButtonsPanel, bpy.types.Panel):
 
 
 class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "World"
+    bl_label = _("World")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -95,10 +94,14 @@ class WORLD_PT_world(WorldButtonsPanel, bpy.types.Panel):
         col.prop(world, "zenith_color")
         col.active = world.use_sky_blend
         row.column().prop(world, "ambient_color")
+        
+        row = layout.row()
+        row.prop(world, "exposure")
+        row.prop(world, "color_range")
 
 
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Ambient Occlusion"
+    bl_label = _("Ambient Occlusion")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -112,12 +115,12 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel, bpy.types.Panel):
         layout.active = light.use_ambient_occlusion
 
         split = layout.split()
-        split.prop(light, "ao_factor", text="Factor")
+        split.prop(light, "ao_factor", text=_("Factor"))
         split.prop(light, "ao_blend_type", text="")
 
 
 class WORLD_PT_environment_lighting(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Environment Lighting"
+    bl_label = _("Environment Lighting")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -131,12 +134,12 @@ class WORLD_PT_environment_lighting(WorldButtonsPanel, bpy.types.Panel):
         layout.active = light.use_environment_light
 
         split = layout.split()
-        split.prop(light, "environment_energy", text="Energy")
+        split.prop(light, "environment_energy", text=_("Energy"))
         split.prop(light, "environment_color", text="")
 
 
 class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Indirect Lighting"
+    bl_label = _("Indirect Lighting")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -150,15 +153,15 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, bpy.types.Panel):
         layout.active = light.use_indirect_light and light.gather_method == 'APPROXIMATE'
 
         split = layout.split()
-        split.prop(light, "indirect_factor", text="Factor")
-        split.prop(light, "indirect_bounces", text="Bounces")
+        split.prop(light, "indirect_factor", text=_("Factor"))
+        split.prop(light, "indirect_bounces", text=_("Bounces"))
 
         if light.gather_method == 'RAYTRACE':
-            layout.label(text="Only works with Approximate gather method")
+            layout.label(text=_("Only works with Approximate gather method"))
 
 
 class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Gather"
+    bl_label = _("Gather")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -172,18 +175,18 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Attenuation:")
+        col.label(text=_("Attenuation:"))
         if light.gather_method == 'RAYTRACE':
             col.prop(light, "distance")
         col.prop(light, "use_falloff")
         sub = col.row()
         sub.active = light.use_falloff
-        sub.prop(light, "falloff_strength", text="Strength")
+        sub.prop(light, "falloff_strength", text=_("Strength"))
 
         if light.gather_method == 'RAYTRACE':
             col = split.column()
 
-            col.label(text="Sampling:")
+            col.label(text=_("Sampling:"))
             col.prop(light, "sample_method", text="")
 
             sub = col.column()
@@ -198,15 +201,15 @@ class WORLD_PT_gather(WorldButtonsPanel, bpy.types.Panel):
         if light.gather_method == 'APPROXIMATE':
             col = split.column()
 
-            col.label(text="Sampling:")
+            col.label(text=_("Sampling:"))
             col.prop(light, "passes")
-            col.prop(light, "error_threshold", text="Error")
+            col.prop(light, "error_threshold", text=_("Error"))
             col.prop(light, "use_cache")
             col.prop(light, "correction")
 
 
 class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Mist"
+    bl_label = _("Mist")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -235,7 +238,7 @@ class WORLD_PT_mist(WorldButtonsPanel, bpy.types.Panel):
 
 
 class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
-    bl_label = "Stars"
+    bl_label = _("Stars")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -254,11 +257,11 @@ class WORLD_PT_stars(WorldButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(world.star_settings, "size")
-        col.prop(world.star_settings, "color_random", text="Colors")
+        col.prop(world.star_settings, "color_random", text=_("Colors"))
 
         col = split.column()
-        col.prop(world.star_settings, "distance_min", text="Min. Dist")
-        col.prop(world.star_settings, "average_separation", text="Separation")
+        col.prop(world.star_settings, "distance_min", text=_("Min. Dist"))
+        col.prop(world.star_settings, "average_separation", text=_("Separation"))
 
 
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, bpy.types.Panel):

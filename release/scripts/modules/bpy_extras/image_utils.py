@@ -86,7 +86,9 @@ def load_image(imagepath,
     variants = [imagepath]
 
     if dirname:
-        variants += [os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
+        variants += [os.path.join(dirname, imagepath),
+                     os.path.join(dirname, bpy.path.basename(imagepath)),
+                     ]
 
     for filepath_test in variants:
         if ncase_cmp:
@@ -99,7 +101,7 @@ def load_image(imagepath,
                 return _image_load(nfilepath)
 
     if place_holder:
-        image = bpy.data.images.new(os.path.basename(imagepath), 128, 128)
+        image = bpy.data.images.new(bpy.path.basename(imagepath), 128, 128)
         # allow the path to be resolved later
         image.filepath = imagepath
         return image

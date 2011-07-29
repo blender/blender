@@ -64,7 +64,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         ratios = [[1, 8], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1]]
 
         for a, b in ratios:
-            text = _("Zoom %d:%d") % (a, b)
+            text = _("Zoom") + " %d:%d" % (a, b)
             layout.operator("image.view_zoom_ratio", text=text).ratio = a / b
 
         layout.separator()
@@ -198,6 +198,10 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
         layout.operator("transform.translate")
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
+
+        layout.separator()
+
+        layout.operator("transform.shear")
 
 
 class IMAGE_MT_uvs_snap(bpy.types.Menu):

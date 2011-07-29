@@ -26,11 +26,11 @@
 
 set(INC	
 	.
-	./intern
-	./extern
-	../memutil
+	extern
+	intern
 	../container
 	../guardedalloc
+	../memutil
 	../moto/include
 	../../source/blender/blenlib
 	../../source/blender/makesdna

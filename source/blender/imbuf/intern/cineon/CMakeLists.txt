@@ -29,8 +29,8 @@ set(INC
 	..
 	../..
 	../../../blenkernel
-	../../../blenloader
 	../../../blenlib
+	../../../blenloader
 	../../../makesdna
 	../../../../../intern/guardedalloc
 )

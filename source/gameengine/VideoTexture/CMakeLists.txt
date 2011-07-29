@@ -26,26 +26,26 @@
 
 set(INC
 	.
-	../../../source/gameengine/Ketsji
-	../../../source/gameengine/Expressions
-	../../../source/gameengine/GameLogic
-	../../../source/gameengine/SceneGraph
-	../../../source/gameengine/Rasterizer
-	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-	../../../source/gameengine/BlenderRoutines
-	../../../source/blender/blenlib
-	../../../source/blender/blenkernel
-	../../../source/blender/makesdna
-	../../../source/blender/editors/include
-	../../../source/blender/imbuf
-	../../../source/blender/python
-	../../../source/blender/python/generic
-	../../../source/blender/gpu
+	../BlenderRoutines
+	../Expressions
+	../GameLogic
+	../Ketsji
+	../Rasterizer
+	../Rasterizer/RAS_OpenGLRasterizer
+	../SceneGraph
+	../../blender/blenkernel
+	../../blender/blenlib
+	../../blender/editors/include
+	../../blender/gpu
+	../../blender/imbuf
+	../../blender/makesdna
+	../../blender/python
+	../../blender/python/generic
 	../../../intern/container
-	../../../intern/string
-	../../../intern/moto/include
-	../../../intern/guardedalloc
 	../../../intern/ffmpeg
+	../../../intern/guardedalloc
+	../../../intern/moto/include
+	../../../intern/string
 )
 
 set(INC_SYS

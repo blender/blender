@@ -3375,7 +3375,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				
 				/* test for 100% transparant */
 				ok= 1;
-				if(ma->alpha==0.0f && ma->spectra==0.0f && ma->filter==0.0f && (ma->mode & MA_TRANSP)) { 
+				if(ma->alpha==0.0f && ma->spectra==0.0f && ma->filter==0.0f && (ma->mode & MA_TRANSP) && (ma->mode & MA_RAYMIRROR)==0) { 
 					ok= 0;
 					/* texture on transparency? */
 					for(a=0; a<MAX_MTEX; a++) {
@@ -5685,7 +5685,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	Object *camera;
 	float mat[4][4];
 	float amb[3];
-	const short onlyselected= !ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW);
+	const short onlyselected= !ELEM4(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW, RE_BAKE_AO);
 	const short nolamps= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);
 
 	re->main= bmain;
@@ -5778,6 +5778,14 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		if(re->r.mode & R_RAYTRACE)
 			makeraytree(re);
 	
+	/* point density texture */
+	if(!re->test_break(re->tbh))
+		make_pointdensities(re);
+
+	/* voxel data texture */
+	if(!re->test_break(re->tbh))
+		make_voxeldata(re);
+
 	/* occlusion */
 	if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 		if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)

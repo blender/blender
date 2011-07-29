@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import bpy
 from blf import gettext as _
@@ -94,40 +94,67 @@ class RandomizeLocRotSize(bpy.types.Operator):
     bl_label = _("Randomize Transform")
     bl_options = {'REGISTER', 'UNDO'}
 
-    random_seed = IntProperty(name="Random Seed",
-        description="Seed value for the random generator",
-        default=0, min=0, max=1000)
-
-    use_delta = BoolProperty(name="Transform Delta",
-        description="Randomize delta transform values instead of regular transform", default=False)
-
-    use_loc = BoolProperty(name="Randomize Location",
-        description="Randomize the location values", default=True)
-
-    loc = FloatVectorProperty(name="Location",
-        description="Maximun distance the objects can spread over each axis",
-        default=(0.0, 0.0, 0.0), min=-100.0, max=100.0, subtype='TRANSLATION')
-
-    use_rot = BoolProperty(name="Randomize Rotation",
-        description="Randomize the rotation values", default=True)
-
-    rot = FloatVectorProperty(name="Rotation",
-        description="Maximun rotation over each axis",
-        default=(0.0, 0.0, 0.0), min=-180.0, max=180.0, subtype='TRANSLATION')
-
-    use_scale = BoolProperty(name="Randomize Scale",
-        description="Randomize the scale values", default=True)
-
-    scale_even = BoolProperty(name="Scale Even",
-        description="Use the same scale value for all axis", default=False)
+    random_seed = IntProperty(
+            name=_("Random Seed"),
+            description=_("Seed value for the random generator"),
+            min=0,
+            max=1000,
+            default=0,
+            )
+    use_delta = BoolProperty(
+            name=_("Transform Delta"),
+            description=_("Randomize delta transform values instead of regular transform"),
+            default=False,
+            )
+    use_loc = BoolProperty(
+            name=_("Randomize Location"),
+            description=_("Randomize the location values"),
+            default=True,
+            )
+    loc = FloatVectorProperty(
+            name=_("Location"),
+            description=_("Maximun distance the objects can spread over each axis"),
+            min=-100.0,
+            max=100.0,
+            default=(0.0, 0.0, 0.0),
+            subtype='TRANSLATION',
+            )
+    use_rot = BoolProperty(
+            name=_("Randomize Rotation"),
+            description=_("Randomize the rotation values"),
+            default=True,
+            )
+    rot = FloatVectorProperty(
+            name=_("Rotation"),
+            description=_("Maximun rotation over each axis"),
+            min=-180.0,
+            max=180.0,
+            default=(0.0, 0.0, 0.0),
+            subtype='TRANSLATION',
+            )
+    use_scale = BoolProperty(
+            name=_("Randomize Scale"),
+            description=_("Randomize the scale values"),
+            default=True,
+            )
+    scale_even = BoolProperty(
+            name=_("Scale Even"),
+            description=_("Use the same scale value for all axis"),
+            default=False,
+            )
 
     '''scale_min = FloatProperty(name="Minimun Scale Factor",
         description="Lowest scale percentage possible",
         default=0.15, min=-1.0, max=1.0, precision=3)'''
 
-    scale = FloatVectorProperty(name="Scale",
-        description="Maximum scale randomization over each axis",
-        default=(0.0, 0.0, 0.0), min=-100.0, max=100.0, subtype='TRANSLATION')
+    scale = FloatVectorProperty(
+            name=_("Scale"),
+            description=_("Maximum scale randomization over each axis"),
+            min=-100.0,
+            max=100.0,
+            default=(0.0, 0.0, 0.0),
+            subtype='TRANSLATION',
+            )
 
     def execute(self, context):
         from math import radians

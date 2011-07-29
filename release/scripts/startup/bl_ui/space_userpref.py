@@ -355,7 +355,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "use_duplicate_lamp", text=_("Lamp"))
         col.prop(edit, "use_duplicate_material", text=_("Material"))
         col.prop(edit, "use_duplicate_texture", text=_("Texture"))
-        #col.prop(edit, "use_duplicate_fcurve", text="F-Curve")
+        #col.prop(edit, "use_duplicate_fcurve", text=_("F-Curve"))
         col.prop(edit, "use_duplicate_action", text=_("Action"))
         col.prop(edit, "use_duplicate_particle", text=_("Particle"))
 
@@ -656,7 +656,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
 
             for i, ui in enumerate(theme.bone_color_sets):
-                col.label(text=_("Color Set %d:") % (i + 1))  # i starts from 0
+                col.label(text=_("Color Set")+" %d:" % (i + 1))  # i starts from 0
 
                 row = col.row()
 
@@ -889,6 +889,16 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 return True
         return False
 
+    @staticmethod
+    def draw_error(layout, message):
+        lines = message.split("\n")
+        box = layout.box()
+        rowsub = box.row()
+        rowsub.label(lines[0])
+        rowsub.label(icon='ERROR')
+        for l in lines[1:]:
+            box.label(l)
+
     def draw(self, context):
         layout = self.layout
 
@@ -908,6 +918,14 @@ class USERPREF_PT_addons(bpy.types.Panel):
         col.prop(context.window_manager, "addon_support", expand=True)
 
         col = split.column()
+
+        # set in addon_utils.modules(...)
+        if addon_utils.error_duplicates:
+            self.draw_error(col,
+                            "Multiple addons using the same name found!\n"
+                            "likely a problem with the script search path.\n"
+                            "(see console for details)",
+                            )
 
         filter = context.window_manager.addon_filter
         search = context.window_manager.addon_search.lower()

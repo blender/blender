@@ -26,9 +26,9 @@
 
 set(INC
 	.
-	../../../intern/string
 	../../../intern/container
 	../../../intern/moto/include
+	../../../intern/string
 )
 
 set(INC_SYS

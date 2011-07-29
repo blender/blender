@@ -455,8 +455,10 @@ elseif(WIN32)
 	endif()
 
 	install( # same as linux!, deduplicate
-		DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-		DESTINATION ${TARGETDIR_VER}/datafiles
+		DIRECTORY
+          ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+          ${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+		DESTINATION ${TARGETDIR_VER}/datafiles/locale
 		PATTERN ".svn" EXCLUDE
 	)
 
@@ -676,8 +678,8 @@ elseif(APPLE)
 
 		install_dir(
 			DIRECTORY
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-			\${TARGETDIR_VER}/datafiles/
+					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
+			\${TARGETDIR_VER}/datafiles/locale
 		)
 	endif()
 
@@ -779,6 +781,7 @@ endif()
 		bf_intern_opennl
 		bf_python
 		bf_python_ext
+		bf_python_mathutils
 		bf_ikplugin
 		bf_modifiers
 		bf_blenkernel

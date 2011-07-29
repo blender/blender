@@ -23,12 +23,12 @@ set(INC
 	../include
 	../../blenfont
 	../../blenkernel
-	../../blenloader
 	../../blenlib
+	../../blenloader
+	../../editors/interface
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	../../editors/interface
 	../../../../intern/guardedalloc
 )
 

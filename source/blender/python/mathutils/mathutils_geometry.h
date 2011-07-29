@@ -1,5 +1,5 @@
-/*
- * $Id$
+/* 
+ * $Id: mathutils_geometry.h 38409 2011-07-15 04:01:47Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -20,36 +20,24 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * This is a new part of Blender.
  *
  * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL LICENSE BLOCK *****
- *
- */
+*/
 
-/** \file blender/python/generic/mathutils_Color.h
+/** \file blender/python/generic/mathutils_geometry.h
  *  \ingroup pygen
  */
 
+/*Include this file for access to vector, quat, matrix, euler, etc...*/
 
-#ifndef MATHUTILS_COLOR_H
-#define MATHUTILS_COLOR_H
+#ifndef MATHUTILS_GEOMETRY_H
+#define MATHUTILS_GEOMETRY_H
 
-extern PyTypeObject color_Type;
-#define ColorObject_Check(_v) PyObject_TypeCheck((_v), &color_Type)
+#include "mathutils.h"
 
-typedef struct {
-	BASE_MATH_MEMBERS(col)
-} ColorObject;
+PyMODINIT_FUNC PyInit_mathutils_geometry(void);
 
-/*struct data contains a pointer to the actual data that the
-object uses. It can use either PyMem allocated data (which will
-be stored in py_data) or be a wrapper for data allocated through
-blender (stored in blend_data). This is an either/or struct not both*/
-
-//prototypes
-PyObject *newColorObject( float *col, int type, PyTypeObject *base_type);
-PyObject *newColorObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
-
-#endif /* MATHUTILS_COLOR_H */
+#endif /* MATHUTILS_GEOMETRY_H */

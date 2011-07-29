@@ -23,16 +23,16 @@ set(INC
 	../include
 	../../blenfont
 	../../blenkernel
-	../../blenloader
 	../../blenlib
+	../../blenloader
 	../../gpu
 	../../ikplugin
 	../../imbuf
 	../../makesdna
 	../../makesrna
 	../../python
-	../../windowmanager
 	../../render/extern/include
+	../../windowmanager
 	../../../../intern/guardedalloc
 )
 

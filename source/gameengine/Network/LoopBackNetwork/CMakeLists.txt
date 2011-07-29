@@ -26,9 +26,9 @@
 
 set(INC
 	.
-	../../../../intern/string
+	..
 	../../../../intern/container
-	../../../../source/gameengine/Network
+	../../../../intern/string
 )
 
 set(INC_SYS

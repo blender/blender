@@ -251,7 +251,7 @@ void uiStyleFontDrawRotated(uiFontStyle *fs, rcti *rect, const char *str)
 }
 
 /* ************** helpers ************************ */
-
+/* XXX: read a style configure */
 uiStyle* UI_GetStyle(void)
 {
 	uiStyle *style = NULL;

@@ -30,8 +30,10 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
-#include "BLF_api.h"
+
 #include "rna_internal.h"
+
+#include "BLF_api.h"
 
 #include "DNA_cloth_types.h"
 #include "DNA_object_types.h"

@@ -24,10 +24,10 @@
 
 set(INC
 	.
-	../blenlib
-	../makesdna
-	../editors/include
 	../blenkernel
+	../blenlib
+	../editors/include
+	../makesdna
 	../../../intern/guardedalloc
 )
 
@@ -51,7 +51,9 @@ set(SRC
 )
 
 if(WITH_INTERNATIONAL)
-	list(APPEND INC_SYS ${GETTEXT_INC})
+	list(APPEND INC_SYS
+		${GETTEXT_INC}
+	)
 	add_definitions(-DINTERNATIONAL)
 endif()
 

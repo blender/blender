@@ -466,7 +466,6 @@ static void layerInterp_mdisps(void **sources, float *UNUSED(weights),
 			MDisps tris[2];
 			int vindex[4] = {0};
 
-			S = 0;
 			for(i = 0; i < 2; i++)
 				for(y = 0; y < 4; y++)
 					for(x = 0; x < 4; x++)

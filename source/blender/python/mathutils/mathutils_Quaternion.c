@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: mathutils_Quaternion.c 38674 2011-07-25 01:44:19Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -248,7 +248,7 @@ static PyObject *Quaternion_slerp(QuaternionObject *self, PyObject *args)
 		return NULL;
 
 	if(fac > 1.0f || fac < 0.0f) {
-		PyErr_SetString(PyExc_AttributeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "quat.slerp(): "
 		                "interpolation factor must be between 0.0 and 1.0");
 		return NULL;
@@ -582,7 +582,7 @@ static int Quaternion_ass_slice(QuaternionObject *self, int begin, int end, PyOb
 		return -1;
 
 	if(size != (end - begin)){
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "quaternion[begin:end] = []: "
 		                "size mismatch in slice assignment");
 		return -1;
@@ -620,7 +620,7 @@ static PyObject *Quaternion_subscript(QuaternionObject *self, PyObject *item)
 			return Quaternion_slice(self, start, stop);
 		}
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with quaternions");
 			return NULL;
 		}
@@ -653,7 +653,7 @@ static int Quaternion_ass_subscript(QuaternionObject *self, PyObject *item, PyOb
 		if (step == 1)
 			return Quaternion_ass_slice(self, start, stop, value);
 		else {
-			PyErr_SetString(PyExc_TypeError,
+			PyErr_SetString(PyExc_IndexError,
 			                "slice steps not supported with quaternion");
 			return -1;
 		}
@@ -675,7 +675,7 @@ static PyObject *Quaternion_add(PyObject *q1, PyObject *q2)
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
 	if(!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
-		PyErr_SetString(PyExc_AttributeError,
+		PyErr_SetString(PyExc_TypeError,
 		                "Quaternion addition: "
 		                "arguments not valid for this operation");
 		return NULL;
@@ -698,7 +698,7 @@ static PyObject *Quaternion_sub(PyObject *q1, PyObject *q2)
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
 	if(!QuaternionObject_Check(q1) || !QuaternionObject_Check(q2)) {
-		PyErr_SetString(PyExc_AttributeError,
+		PyErr_SetString(PyExc_TypeError,
 		                "Quaternion addition: "
 		                "arguments not valid for this operation");
 		return NULL;
@@ -753,8 +753,30 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
 			return quat_mul_float(quat2, scalar);
 		}
 	}
-	else if (quat1) { /* QUAT*FLOAT */
-		if((((scalar= PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred())==0)) {
+	else if (quat1) {
+		/* QUAT * VEC */
+		if (VectorObject_Check(q2)) {
+			VectorObject *vec2 = (VectorObject *)q2;
+			float tvec[3];
+
+			if(vec2->size != 3) {
+				PyErr_SetString(PyExc_ValueError,
+								"Vector multiplication: "
+								"only 3D vector rotations (with quats) "
+				                "currently supported");
+				return NULL;
+			}
+			if(BaseMath_ReadCallback(vec2) == -1) {
+				return NULL;
+			}
+
+			copy_v3_v3(tvec, vec2->vec);
+			mul_qt_v3(quat1->quat, tvec);
+
+			return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec2));
+		}
+		/* QUAT * FLOAT */
+		else if((((scalar= PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred())==0)) {
 			return quat_mul_float(quat1, scalar);
 		}
 	}
@@ -1142,9 +1164,7 @@ PyObject *newQuaternionObject(float *quat, int type, PyTypeObject *base_type)
 			self->wrapped = Py_NEW;
 		}
 		else {
-			PyErr_SetString(PyExc_RuntimeError,
-			                "Quaternion(): invalid type, internal error");
-			return NULL;
+			Py_FatalError("Quaternion(): invalid type!");
 		}
 	}
 	return (PyObject *) self;

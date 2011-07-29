@@ -361,6 +361,23 @@ if not quickie and do_clean:
         print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC
     Exit()
 
+
+# ensure python header is found since detection can fail, this could happen
+# with _any_ library but since we used a fixed python version this tends to
+# be most problematic.
+if env['WITH_BF_PYTHON']:
+	py_h = os.path.join(Dir(env.subst('${BF_PYTHON_INC}')).abspath, "Python.h")
+
+	if not os.path.exists(py_h):
+		print("\nMissing: \"" + env.subst('${BF_PYTHON_INC}') + os.sep + "Python.h\",\n"
+			  "  Set 'BF_PYTHON_INC' to point "
+			  "to a valid python include path.\n  Containing "
+			  "Python.h for python version \"" + env.subst('${BF_PYTHON_VERSION}') + "\"")
+
+		Exit()
+	del py_h
+
+
 if not os.path.isdir ( B.root_build_dir):
     os.makedirs ( B.root_build_dir )
     os.makedirs ( B.root_build_dir + 'source' )
@@ -470,7 +487,7 @@ if  env['OURPLATFORM']!='darwin':
                     if f.endswith('.ttf'):
                         continue
                 
-                if 'locale' in dp:
+                if 'locale' in dp or 'fonts' in dp:
                     datafileslist.append(os.path.join(dp,f))
                     dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[2:]))    # skip bin/.blender
                     datafilestargetlist.append(dir + os.sep + f)

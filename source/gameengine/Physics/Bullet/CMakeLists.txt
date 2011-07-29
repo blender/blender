@@ -30,19 +30,19 @@ remove_strict_flags()
 set(INC
 	.
 	../common
-	../../../../extern/bullet2/src
-	../../../../intern/moto/include
-	../../../../intern/guardedalloc
-	../../../../intern/container
-	../../../../intern/string
-	../../Rasterizer
-	../../Ketsji
 	../../Expressions
 	../../GameLogic
+	../../Ketsji
+	../../Rasterizer
 	../../SceneGraph
-	../../../../source/blender/makesdna
-	../../../../source/blender/blenlib
-	../../../../source/blender/blenkernel
+	../../../blender/blenkernel
+	../../../blender/blenlib
+	../../../blender/makesdna
+	../../../../extern/bullet2/src
+	../../../../intern/container
+	../../../../intern/guardedalloc
+	../../../../intern/moto/include
+	../../../../intern/string
 )
 
 set(INC_SYS

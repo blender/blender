@@ -773,7 +773,7 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text=_("Descriptor ID: '%s'") % self.doc_id)
+        layout.label(text=_("Descriptor ID")+": '%s'" % self.doc_id)
         layout.prop(self, "doc_new", text="")
 
     def invoke(self, context, event):

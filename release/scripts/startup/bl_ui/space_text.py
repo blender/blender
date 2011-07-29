@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 import bpy
 from blf import gettext as _
 
@@ -34,19 +34,21 @@ class TEXT_HT_header(bpy.types.Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("TEXT_MT_view")
-            sub.menu("TEXT_MT_text")
+            row.menu("TEXT_MT_view")
+            row.menu("TEXT_MT_text")
+
             if text:
-                sub.menu("TEXT_MT_edit")
-                sub.menu("TEXT_MT_format")
+                row.menu("TEXT_MT_edit")
+                row.menu("TEXT_MT_format")
+
+            row.menu("TEXT_MT_templates")
 
         if text and text.is_modified:
-            row = layout.row()
-            row.alert = True
-            row.operator("text.resolve_conflict", text="", icon='HELP')
+            sub = row.row()
+            sub.alert = True
+            sub.operator("text.resolve_conflict", text="", icon='HELP')
 
-        layout.template_ID(st, "text", new="text.new", unlink="text.unlink")
+        row.template_ID(st, "text", new="text.new", unlink="text.unlink")
 
         row = layout.row(align=True)
         row.prop(st, "show_line_numbers", text="")
@@ -64,11 +66,13 @@ class TEXT_HT_header(bpy.types.Header):
             row = layout.row()
             if text.filepath:
                 if text.is_dirty:
-                    row.label(text="File: *%s (unsaved)" % text.filepath)
+                    row.label(text=_("File")+": *%r " % text.filepath+_("(unsaved)"))
                 else:
-                    row.label(text="File: %s" % text.filepath)
+                    row.label(text=_("File")+": %r" % text.filepath)
             else:
-                row.label(text="Text: External" if text.library else "Text: Internal")
+                row.label(text=_("Text: External")
+                          if text.library
+                          else _("Text: Internal"))
 
 
 class TEXT_PT_properties(bpy.types.Panel):
@@ -151,8 +155,12 @@ class TEXT_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("text.move", text=_("Top of File")).type = 'FILE_TOP'
-        layout.operator("text.move", text=_("Bottom of File")).type = 'FILE_BOTTOM'
+        layout.operator("text.move",
+                        text=_("Top of File"),
+                        ).type = 'FILE_TOP'
+        layout.operator("text.move",
+                        text=_("Bottom of File"),
+                        ).type = 'FILE_BOTTOM'
 
 
 class TEXT_MT_text(bpy.types.Menu):
@@ -186,19 +194,15 @@ class TEXT_MT_text(bpy.types.Menu):
             # XXX   uiMenuItemO(head, 0, "text.refresh_pyconstraints");
             #endif
 
-        layout.separator()
-
-        layout.menu("TEXT_MT_templates")
-
 
 class TEXT_MT_templates(bpy.types.Menu):
-    '''
-    Creates the menu items by scanning scripts/templates
-    '''
-    bl_label = _("Script Templates")
+    bl_label = _("Templates")
 
     def draw(self, context):
-        self.path_menu(bpy.utils.script_paths("templates"), "text.open", {"internal": True})
+        self.path_menu(bpy.utils.script_paths("templates"),
+                       "text.open",
+                       {"internal": True},
+                       )
 
 
 class TEXT_MT_edit_select(bpy.types.Menu):
@@ -247,8 +251,12 @@ class TEXT_MT_edit_to3d(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("text.to_3d_object", text=_("One Object")).split_lines = False
-        layout.operator("text.to_3d_object", text=_("One Object Per Line")).split_lines = True
+        layout.operator("text.to_3d_object",
+                        text=_("One Object"),
+                        ).split_lines = False
+        layout.operator("text.to_3d_object",
+                        text=_("One Object Per Line"),
+                        ).split_lines = True
 
 
 class TEXT_MT_edit(bpy.types.Menu):
