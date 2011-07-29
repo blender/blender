@@ -144,21 +144,21 @@ class _GenericBone:
         """ Vector pointing down the x-axis of the bone.
         """
         from mathutils import Vector
-        return Vector((1.0, 0.0, 0.0)) * self.matrix.to_3x3()
+        return self.matrix.to_3x3() * Vector((1.0, 0.0, 0.0))
 
     @property
     def y_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
         from mathutils import Vector
-        return Vector((0.0, 1.0, 0.0)) * self.matrix.to_3x3()
+        return self.matrix.to_3x3() * Vector((0.0, 1.0, 0.0))
 
     @property
     def z_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
         from mathutils import Vector
-        return Vector((0.0, 0.0, 1.0)) * self.matrix.to_3x3()
+        return self.matrix.to_3x3() * Vector((0.0, 0.0, 1.0))
 
     @property
     def basename(self):
@@ -294,9 +294,9 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
         :type roll: bool
         """
         from mathutils import Vector
-        z_vec = Vector((0.0, 0.0, 1.0)) * self.matrix.to_3x3()
-        self.tail = self.tail * matrix
-        self.head = self.head * matrix
+        z_vec = self.matrix.to_3x3() * Vector((0.0, 0.0, 1.0))
+        self.tail = matrix * self.tail
+        self.head = matrix * self.head
 
         if scale:
             scalar = matrix.median_scale
@@ -304,7 +304,7 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
             self.tail_radius *= scalar
 
         if roll:
-            self.align_roll(z_vec * matrix)
+            self.align_roll(matrix * z_vec)
 
 
 def ord_ind(i1, i2):

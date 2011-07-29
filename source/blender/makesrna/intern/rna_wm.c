@@ -940,7 +940,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 			rna_Operator_unregister(bmain, ot->ext.srna);
 	}
 
-	/* create a new menu type */
+	/* create a new operator type */
 	dummyot.ext.srna= RNA_def_struct(&BLENDER_RNA, dummyot.idname, "Operator");
 	RNA_def_struct_flag(dummyot.ext.srna, STRUCT_NO_IDPROPERTIES); /* operator properties are registered separately */
 	dummyot.ext.data= data;

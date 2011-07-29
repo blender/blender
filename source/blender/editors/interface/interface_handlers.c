@@ -1879,7 +1879,6 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				if(but->autocomplete_func || data->searchbox) {
 					changed= ui_textedit_autocomplete(C, but, data);
 					update= 1; /* do live update for tab key */
-					retval= WM_UI_HANDLER_BREAK;
 				}
 				/* the hotkey here is not well defined, was G.qual so we check all */
 				else if(event->shift || event->ctrl || event->alt || event->oskey) {
@@ -2325,8 +2324,8 @@ static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, floa
 		if(fac != 1.0f) {
 			/* snap in unit-space */
 			tempf /= fac;
-			softmin /= fac;
-			softmax /= fac;
+			/* softmin /= fac; */ /* UNUSED */
+			/* softmax /= fac; */ /* UNUSED */
 			softrange /= fac;
 		}
 
@@ -3469,13 +3468,13 @@ static int ui_numedit_but_CURVE(uiBut *but, uiHandleButtonData *data, int snap, 
 	CurveMapping *cumap= (CurveMapping*)but->poin;
 	CurveMap *cuma= cumap->cm+cumap->cur;
 	CurveMapPoint *cmp= cuma->curve;
-	float fx, fy, zoomx, zoomy, offsx, offsy;
+	float fx, fy, zoomx, zoomy /*, offsx, offsy */ /* UNUSED */;
 	int a, changed= 0;
 
 	zoomx= (but->x2-but->x1)/(cumap->curr.xmax-cumap->curr.xmin);
 	zoomy= (but->y2-but->y1)/(cumap->curr.ymax-cumap->curr.ymin);
-	offsx= cumap->curr.xmin;
-	offsy= cumap->curr.ymin;
+	/* offsx= cumap->curr.xmin; */
+	/* offsy= cumap->curr.ymin; */
 
 	if(snap) {
 		float d[2];

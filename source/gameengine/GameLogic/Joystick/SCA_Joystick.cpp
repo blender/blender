@@ -89,7 +89,7 @@ SCA_Joystick *SCA_Joystick::GetInstance( short int joyindex )
 	{
 		int i;
 		// do this once only
-		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) == -1 ){
+		if(SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO) == -1 ){
 			echo("Error-Initializing-SDL: " << SDL_GetError());
 			return NULL;
 		}
@@ -124,7 +124,7 @@ void SCA_Joystick::ReleaseInstance()
 			m_instance[i]= NULL;
 		}
 
-		SDL_QuitSubSystem(SDL_INIT_JOYSTICK);
+		SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
 #endif
 	}
 }

@@ -170,8 +170,8 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
                 # from knowing the last 2, look for th next.
                 ed_adj = edges[context_loop[-1]]
                 if len(ed_adj) != 2:
-
-                    if other_dir and flipped == False:  # the original edge had 2 other edges
+                    # the original edge had 2 other edges
+                    if other_dir and flipped == False:
                         flipped = True  # only flip the list once
                         context_loop.reverse()
                         ed_adj[:] = []
@@ -259,13 +259,15 @@ def edge_loops_from_edges(mesh, edges=None):
 
 def ngon_tesselate(from_data, indices, fix_loops=True):
     '''
-    Takes a polyline of indices (fgon)
-    and returns a list of face indicie lists.
-    Designed to be used for importers that need indices for an fgon to create from existing verts.
+    Takes a polyline of indices (fgon) and returns a list of face
+    indicie lists. Designed to be used for importers that need indices for an
+    fgon to create from existing verts.
 
     from_data: either a mesh, or a list/tuple of vectors.
-    indices: a list of indices to use this list is the ordered closed polyline to fill, and can be a subset of the data given.
-    fix_loops: If this is enabled polylines that use loops to make multiple polylines are delt with correctly.
+    indices: a list of indices to use this list is the ordered closed polyline
+       to fill, and can be a subset of the data given.
+    fix_loops: If this is enabled polylines that use loops to make multiple
+       polylines are delt with correctly.
     '''
 
     from mathutils.geometry import tesselate_polygon
@@ -276,7 +278,8 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
         return []
 
     def mlen(co):
-        return abs(co[0]) + abs(co[1]) + abs(co[2])  # manhatten length of a vector, faster then length
+        # manhatten length of a vector, faster then length
+        return abs(co[0]) + abs(co[1]) + abs(co[2])
 
     def vert_treplet(v, i):
         return v, vector_to_tuple(v, 6), i, mlen(v)
@@ -296,7 +299,8 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
         else:
             verts = [from_data.vertices[i].co for ii, i in enumerate(indices)]
 
-        for i in range(len(verts) - 1, 0, -1):  # same as reversed(xrange(1, len(verts))):
+        # same as reversed(range(1, len(verts))):
+        for i in range(len(verts) - 1, 0, -1):
             if verts[i][1] == verts[i - 1][0]:
                 verts.pop(i - 1)
 
@@ -304,14 +308,16 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
 
     else:
         '''
-        Seperate this loop into multiple loops be finding edges that are used twice
-        This is used by lightwave LWO files a lot
+        Seperate this loop into multiple loops be finding edges that are
+        used twice. This is used by lightwave LWO files a lot
         '''
 
         if type(from_data) in (tuple, list):
-            verts = [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
+            verts = [vert_treplet(Vector(from_data[i]), ii)
+                     for ii, i in enumerate(indices)]
         else:
-            verts = [vert_treplet(from_data.vertices[i].co, ii) for ii, i in enumerate(indices)]
+            verts = [vert_treplet(from_data.vertices[i].co, ii)
+                     for ii, i in enumerate(indices)]
 
         edges = [(i, i - 1) for i in range(len(verts))]
         if edges:

@@ -753,8 +753,30 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
 			return quat_mul_float(quat2, scalar);
 		}
 	}
-	else if (quat1) { /* QUAT*FLOAT */
-		if((((scalar= PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred())==0)) {
+	else if (quat1) {
+		/* QUAT * VEC */
+		if (VectorObject_Check(q2)) {
+			VectorObject *vec2 = (VectorObject *)q2;
+			float tvec[3];
+
+			if(vec2->size != 3) {
+				PyErr_SetString(PyExc_ValueError,
+								"Vector multiplication: "
+								"only 3D vector rotations (with quats) "
+				                "currently supported");
+				return NULL;
+			}
+			if(BaseMath_ReadCallback(vec2) == -1) {
+				return NULL;
+			}
+
+			copy_v3_v3(tvec, vec2->vec);
+			mul_qt_v3(quat1->quat, tvec);
+
+			return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec2));
+		}
+		/* QUAT * FLOAT */
+		else if((((scalar= PyFloat_AsDouble(q2)) == -1.0f && PyErr_Occurred())==0)) {
 			return quat_mul_float(quat1, scalar);
 		}
 	}

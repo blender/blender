@@ -136,7 +136,6 @@ int RE_RenderInProgress(struct Render *re){return 0;}
 struct Scene *RE_GetScene(struct Render *re){return (struct Scene *) NULL;}
 void RE_Database_Free(struct Render *re){}
 void RE_FreeRender(struct Render *re){}
-void RE_shade_external(struct Render *re, struct ShadeInput *shi, struct ShadeResult *shr){}
 void RE_DataBase_GetView(struct Render *re, float mat[][4]){}
 int externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta){return 0;}
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip){return 0.0f;}

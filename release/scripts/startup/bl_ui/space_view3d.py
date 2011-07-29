@@ -54,16 +54,8 @@ class VIEW3D_HT_header(bpy.types.Header):
                 sub.menu("VIEW3D_MT_object")
 
         row = layout.row()
+        # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
         row.template_header_3D()
-
-        # do in C for now since these buttons cant be both toggle AND exclusive.
-        '''
-        if obj and obj.mode == 'EDIT' and obj.type == 'MESH':
-            row_sub = row.row(align=True)
-            row_sub.prop(toolsettings, "mesh_select_mode", text="", index=0, icon='VERTEXSEL')
-            row_sub.prop(toolsettings, "mesh_select_mode", text="", index=1, icon='EDGESEL')
-            row_sub.prop(toolsettings, "mesh_select_mode", text="", index=2, icon='FACESEL')
-        '''
 
         if obj:
             # Particle edit
@@ -87,19 +79,22 @@ class VIEW3D_HT_header(bpy.types.Header):
                     row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         # Snap
+        snap_element = toolsettings.snap_element
         row = layout.row(align=True)
         row.prop(toolsettings, "use_snap", text="")
         row.prop(toolsettings, "snap_element", text="", icon_only=True)
-        if toolsettings.snap_element != 'INCREMENT':
+        if snap_element != 'INCREMENT':
             row.prop(toolsettings, "snap_target", text="")
-            if obj and obj.mode == 'OBJECT':
-                row.prop(toolsettings, "use_snap_align_rotation", text="")
-        if toolsettings.snap_element == 'VOLUME':
+            if obj:
+                if obj.mode == 'OBJECT':
+                    row.prop(toolsettings, "use_snap_align_rotation", text="")
+                elif obj.mode == 'EDIT':
+                    row.prop(toolsettings, "use_snap_self", text="")
+
+        if snap_element == 'VOLUME':
             row.prop(toolsettings, "use_snap_peel_object", text="")
-        elif toolsettings.snap_element == 'FACE':
+        elif snap_element == 'FACE':
             row.prop(toolsettings, "use_snap_project", text="")
-            if toolsettings.use_snap_project and obj.mode == 'EDIT':
-                row.prop(toolsettings, "use_snap_project_self", text="")
 
         # OpenGL render
         row = layout.row(align=True)

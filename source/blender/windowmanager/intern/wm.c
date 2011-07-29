@@ -175,6 +175,12 @@ int WM_menutype_add(MenuType* mt)
 	return 1;
 }
 
+/* inefficient but only used for tooltip code */
+int WM_menutype_contains(MenuType* mt)
+{
+	return (mt != NULL && BLI_findindex(&menutypes, mt) != -1);
+}
+
 void WM_menutype_freelink(MenuType* mt)
 {
 	BLI_freelinkN(&menutypes, mt);
