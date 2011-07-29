@@ -484,6 +484,17 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			}
 		}
 	}
+	else if (ELEM(but->type, MENU, PULLDOWN)) {
+		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
+			if(but->menu_create_func && WM_menutype_contains((MenuType *)but->poin)) {
+				MenuType *mt= (MenuType *)but->poin;
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s", mt->idname);
+				data->color[data->totline]= 0x888888;
+				data->totline++;
+			}
+		}
+
+	}
 
 	assert(data->totline < MAX_TOOLTIP_LINES);
 	

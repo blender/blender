@@ -1115,10 +1115,11 @@ void init_userdef_do_versions(void)
 	}
 	if(U.pad_rot_angle==0)
 		U.pad_rot_angle= 15;
-	
-	if(U.flag & USER_CUSTOM_RANGE) 
-		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
-	
+
+	/* signal for derivedmesh to use colorband */
+	/* run incase this was on and is now off in the user prefs [#28096] */
+	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight):NULL);
+
 	if (bmain->versionfile <= 191) {
 		strcpy(U.plugtexdir, U.textudir);
 		strcpy(U.sounddir, "/");

@@ -2577,27 +2577,7 @@ void RE_bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
 
 	/* Margin */
 	if(filter) {
-		char *temprect;
-		int i;
-
-		/* extend the mask +2 pixels from the image,
-		 * this is so colors dont blend in from outside */
-
-		for(i=0; i< filter; i++)
-			IMB_mask_filter_extend(mask, ibuf->x, ibuf->y);
-
-		temprect = MEM_dupallocN(mask);
-
-		/* expand twice to clear this many pixels, so they blend back in */
-		IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-		IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-
-		/* clear all pixels in the margin */
-		IMB_mask_clear(ibuf, temprect, FILTER_MASK_MARGIN);
-		MEM_freeN(temprect);
-
-		for(i= 0; i < filter; i++)
-			IMB_filter_extend(ibuf, mask);
+		IMB_filter_extend(ibuf, mask, filter);
 	}
 
 	/* if the bake results in new alpha then change the image setting */

@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 import bpy
 import mathutils
 
@@ -40,8 +40,10 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
         for minor_index in range(minor_seg):
             angle = 2 * pi * minor_index / minor_seg
 
-            vec = Vector((major_rad + (cos(angle) * minor_rad), 0.0,
-                        (sin(angle) * minor_rad))) * quat
+            vec = quat * Vector((major_rad + (cos(angle) * minor_rad),
+                                0.0,
+                                (sin(angle) * minor_rad),
+                                ))
 
             verts.extend(vec[:])
 
@@ -72,7 +74,11 @@ def add_torus(major_rad, minor_rad, major_seg, minor_seg):
 
     return verts, faces
 
-from bpy.props import FloatProperty, IntProperty, BoolProperty, FloatVectorProperty
+from bpy.props import (FloatProperty,
+                       IntProperty,
+                       BoolProperty,
+                       FloatVectorProperty,
+                       )
 
 
 class AddTorus(bpy.types.Operator):
@@ -82,7 +88,8 @@ class AddTorus(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     major_radius = FloatProperty(name="Major Radius",
-            description="Radius from the origin to the center of the cross sections",
+            description=("Radius from the origin to the "
+                         "center of the cross sections"),
             default=1.0, min=0.01, max=100.0)
     minor_radius = FloatProperty(name="Minor Radius",
             description="Radius of the torus' cross section",

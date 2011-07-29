@@ -969,7 +969,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case OKEY:
 			if (t->flag & T_PROP_EDIT && event->shift) {
-				t->prop_mode = (t->prop_mode + 1) % 6;
+				t->prop_mode = (t->prop_mode + 1) % PROP_MODE_MAX;
 				calculatePropRatio(t);
 				t->redraw |= TREDRAW_HARD;
 			}

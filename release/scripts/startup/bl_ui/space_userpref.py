@@ -1020,7 +1020,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         for i in range(4 - tot_row):
                             split.separator()
 
-
         # Append missing scripts
         # First collect scripts that are used but have no script file.
         module_names = {mod.__name__ for mod, info in addons}

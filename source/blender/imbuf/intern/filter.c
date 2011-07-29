@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Morten Mikkelsen.
  *
  * ***** END GPL LICENSE BLOCK *****
  * filter.c
@@ -326,121 +326,132 @@ void IMB_mask_clear(ImBuf *ibuf, char *mask, int val)
 	}
 }
 
-#define EXTEND_PIXEL(color, w) if((color)[3]) {r+= w*(color)[0]; g+= w*(color)[1]; b+= w*(color)[2]; a+= w*(color)[3]; tot+=w;}
+static int filter_make_index(const int x, const int y, const int w, const int h)
+{
+	if(x<0 || x>=w || y<0 || y>=h) return -1;	/* return bad index */
+	else return y*w+x;
+}
+
+static int check_pixel_assigned(const void *buffer, const char *mask, const int index, const int depth, const int is_float)
+{
+	int res = 0;
+
+	if(index>=0) {
+		const int alpha_index = depth*index+(depth-1);
+
+		if(mask!=NULL) {
+			res = mask[index]!=0 ? 1 : 0;
+		}
+		else if( (is_float && ((const float *) buffer)[alpha_index]!=0.0f) ||
+				(!is_float && ((const unsigned char *) buffer)[alpha_index]!=0) ) {
+			res=1;
+		}
+	}
+
+	return res;
+}
 
 /* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0
  * 
  * When a mask is given, only effect pixels with a mask value of 1, defined as BAKE_MASK_MARGIN in rendercore.c
  * */
-void IMB_filter_extend(struct ImBuf *ibuf, char *mask)
+void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 {
-	register char *row1, *row2, *row3;
-	register char *cp; 
-	int rowlen, x, y;
-	
-	rowlen= ibuf->x;
-	
-	
-	if (ibuf->rect_float) {
-		float *temprect;
-		float *row1f, *row2f, *row3f;
-		float *fp;
-		temprect= MEM_dupallocN(ibuf->rect_float);
-		
-		for(y=1; y<=ibuf->y; y++) {
-			/* setup rows */
-			row1f= (float *)(temprect + (y-2)*rowlen*4);
-			row2f= row1f + 4*rowlen;
-			row3f= row2f + 4*rowlen;
-			if(y==1)
-				row1f= row2f;
-			else if(y==ibuf->y)
-				row3f= row2f;
-			
-			fp= (float *)(ibuf->rect_float + (y-1)*rowlen*4);
-				
-			for(x=0; x<rowlen; x++) {
-				if((mask==NULL && fp[3]==0.0f) || (mask && mask[((y-1)*rowlen)+x]==1)) {
-					int tot= 0;
-					float r=0.0f, g=0.0f, b=0.0f, a=0.0f;
-					
-					EXTEND_PIXEL(row1f, 1);
-					EXTEND_PIXEL(row2f, 2);
-					EXTEND_PIXEL(row3f, 1);
-					EXTEND_PIXEL(row1f+4, 2);
-					EXTEND_PIXEL(row3f+4, 2);
-					if(x!=rowlen-1) {
-						EXTEND_PIXEL(row1f+8, 1);
-						EXTEND_PIXEL(row2f+8, 2);
-						EXTEND_PIXEL(row3f+8, 1);
-					}					
-					if(tot) {
-						fp[0]= r/tot;
-						fp[1]= g/tot;
-						fp[2]= b/tot;
-						fp[3]= a/tot;
+	const int width= ibuf->x;
+	const int height= ibuf->y;
+	const int depth= 4;		/* always 4 channels */
+	const int chsize= ibuf->rect_float ? sizeof(float) : sizeof(unsigned char);
+	const int bsize= width*height*depth*chsize;
+	const int is_float= ibuf->rect_float!=NULL;
+	void *dstbuf= (void *) MEM_dupallocN(ibuf->rect_float ? (void *) ibuf->rect_float : (void *) ibuf->rect);
+	char *dstmask= mask==NULL ? NULL : (char *) MEM_dupallocN(mask);
+	void *srcbuf= ibuf->rect_float ? (void *) ibuf->rect_float : (void *) ibuf->rect;
+	char *srcmask= mask;
+	int cannot_early_out= 1, r, n, k, i, j, c;
+	float weight[25];
+
+	/* build a weights buffer */
+	n= 2;
+	k= 0;
+	for(i = -n; i <= n; i++)
+		for(j = -n; j <= n; j++)
+			weight[k++] = sqrt((float) i * i + j * j);
+
+	/* run passes */
+	for(r = 0; cannot_early_out == 1 && r < filter; r++) {
+		int x, y;
+		cannot_early_out = 0;
+
+		for(y= 0; y<height; y++) {
+			for(x= 0; x<width; x++) {
+				const int index= filter_make_index(x, y, width, height);
+
+				/* only update unassigned pixels */
+				if(!check_pixel_assigned(srcbuf, srcmask, index, depth, is_float)) {
+					float tmp[4];
+					float wsum=0;
+					float acc[4]={0,0,0,0};
+					k = 0;
+
+					if (check_pixel_assigned(srcbuf, srcmask, filter_make_index(x-1, y, width, height), depth, is_float) ||
+						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x+1, y, width, height), depth, is_float) ||
+						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x, y-1, width, height), depth, is_float) ||
+						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x, y+1, width, height), depth, is_float)) {
+						for(i= -n; i<=n; i++) {
+							for(j=-n; j<=n; j++) {
+								if(i != 0 || j != 0) {
+									const int tmpindex= filter_make_index(x+i, y+j, width, height);
+
+									if(check_pixel_assigned(srcbuf, srcmask, tmpindex, depth, is_float))	{ 
+										if(is_float) {
+											for(c=0; c<depth; c++)
+												tmp[c] = ((const float *) srcbuf)[depth*tmpindex+c];
+										}
+										else {
+											for(c=0; c<depth; c++)
+												tmp[c] = (float) ((const unsigned char *) srcbuf)[depth*tmpindex+c];
+										}
+
+										wsum+= weight[k];
+
+										for(c=0; c<depth; c++)
+											acc[c]+= weight[k] * tmp[c];
+									}
+								}
+								k++;
+							}
+						}
+
+						if(wsum!=0) {
+							for(c=0; c<depth; c++)
+								acc[c]/= wsum;
+
+							if(is_float) {
+								for(c=0; c<depth; c++)
+									((float *) dstbuf)[depth*index+c] = acc[c];
+							}
+							else {
+								for(c=0; c<depth; c++) {
+									((unsigned char *) dstbuf)[depth*index+c]= acc[c] > 255 ? 255 : (acc[c] < 0 ? 0 : ((unsigned char) (acc[c]+0.5f)));
+								}
+							}
+
+							if(dstmask!=NULL) dstmask[index]=FILTER_MASK_MARGIN;	/* assigned */
+							cannot_early_out = 1;
+						}
 					}
-				}
-				fp+=4; 
-				
-				if(x!=0) {
-					row1f+=4; row2f+=4; row3f+=4;
 				}
 			}
 		}
 
-		MEM_freeN(temprect);
+		/* keep the original buffer up to date. */
+		memcpy(srcbuf, dstbuf, bsize);
+		if(dstmask!=NULL) memcpy(srcmask, dstmask, width*height);
 	}
-	else if(ibuf->rect) {
-		int *temprect;
-		
-		/* make a copy, to prevent flooding */
-		temprect= MEM_dupallocN(ibuf->rect);
-		
-		for(y=1; y<=ibuf->y; y++) {
-			/* setup rows */
-			row1= (char *)(temprect + (y-2)*rowlen);
-			row2= row1 + 4*rowlen;
-			row3= row2 + 4*rowlen;
-			if(y==1)
-				row1= row2;
-			else if(y==ibuf->y)
-				row3= row2;
-			
-			cp= (char *)(ibuf->rect + (y-1)*rowlen);
-			
-			for(x=0; x<rowlen; x++) {
-				/*if(cp[3]==0) {*/
-				if((mask==NULL && cp[3]==0) || (mask && mask[((y-1)*rowlen)+x]==1)) {
-					int tot= 0, r=0, g=0, b=0, a=0;
-					
-					EXTEND_PIXEL(row1, 1);
-					EXTEND_PIXEL(row2, 2);
-					EXTEND_PIXEL(row3, 1);
-					EXTEND_PIXEL(row1+4, 2);
-					EXTEND_PIXEL(row3+4, 2);
-					if(x!=rowlen-1) {
-						EXTEND_PIXEL(row1+8, 1);
-						EXTEND_PIXEL(row2+8, 2);
-						EXTEND_PIXEL(row3+8, 1);
-					}					
-					if(tot) {
-						cp[0]= r/tot;
-						cp[1]= g/tot;
-						cp[2]= b/tot;
-						cp[3]= a/tot;
-					}
-				}
-				cp+=4;
-				
-				if(x!=0) {
-					row1+=4; row2+=4; row3+=4;
-				}
-			}
-		}
-		
-		MEM_freeN(temprect);
-	}
+
+	/* free memory */
+	MEM_freeN(dstbuf);
+	if(dstmask!=NULL) MEM_freeN(dstmask);
 }
 
 /* threadsafe version, only recreates existing maps */

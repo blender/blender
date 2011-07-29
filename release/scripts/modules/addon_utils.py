@@ -33,6 +33,7 @@ import bpy as _bpy
 
 error_duplicates = False
 
+
 def paths():
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
     paths = _bpy.utils.script_paths("addons")

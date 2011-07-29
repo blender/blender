@@ -37,6 +37,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+extern void PyC_LineSpit(void);
+
 #define MAX_DIMENSIONS 4
 
 /* Swizzle axes get packed into a single value that is used as a closure. Each
@@ -1081,7 +1083,7 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
  * note: vector/matrix multiplication IS NOT COMMUTATIVE!!!!
  * note: assume read callbacks have been done first.
  */
-static int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, MatrixObject * mat)
+int column_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject* vec, MatrixObject * mat)
 {
 	float vec_cpy[MAX_DIMENSIONS];
 	double dot = 0.0f;
@@ -1159,8 +1161,29 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 	}
 	else if (vec1) {
 		if (MatrixObject_Check(v2)) {
+			extern void PyC_LineSpit(void);
+
 			/* VEC * MATRIX */
+			/* this is deprecated!, use the reverse instead */
 			float tvec[MAX_DIMENSIONS];
+
+
+/* ------ to be removed ------*/
+#ifndef MATH_STANDALONE
+#ifdef WITH_ASSERT_ABORT
+			PyErr_SetString(PyExc_ValueError,
+			                "(Vector * Matrix) is now removed, reverse the "
+			                "order (promoted to an Error for Debug builds)");
+			return NULL;
+#else
+			printf("Warning: (Vector * Matrix) is now deprecated, "
+			       "reverse the multiplication order in the script.\n");
+			PyC_LineSpit();
+#endif
+#endif		/* ifndef MATH_STANDALONE */
+/* ------ to be removed ------*/
+
+
 			if(BaseMath_ReadCallback((MatrixObject *)v2) == -1)
 				return NULL;
 			if(column_vector_multiplication(tvec, vec1, (MatrixObject*)v2) == -1) {
@@ -1183,6 +1206,24 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 			if(BaseMath_ReadCallback(quat2) == -1) {
 				return NULL;
 			}
+
+
+/* ------ to be removed ------*/
+#ifndef MATH_STANDALONE
+#ifdef WITH_ASSERT_ABORT
+			PyErr_SetString(PyExc_ValueError,
+			                "(Vector * Quat) is now removed, reverse the "
+			                "order (promoted to an Error for Debug builds)");
+			return NULL;
+#else
+			printf("Warning: (Vector * Quat) is now deprecated, "
+			       "reverse the multiplication order in the script.\n");
+			PyC_LineSpit();
+#endif
+#endif		/* ifndef MATH_STANDALONE */
+/* ------ to be removed ------*/
+
+
 			copy_v3_v3(tvec, vec1->vec);
 			mul_qt_v3(quat2->quat, tvec);
 			return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec1));
@@ -1226,6 +1267,24 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		if(column_vector_multiplication(rvec, vec, (MatrixObject*)v2) == -1)
 			return NULL;
 
+
+/* ------ to be removed ------*/
+#ifndef MATH_STANDALONE
+#ifdef WITH_ASSERT_ABORT
+			PyErr_SetString(PyExc_ValueError,
+							"(Vector *= Matrix) is now removed, reverse the "
+							"order (promoted to an Error for Debug builds) "
+			                "and uses the non in-place multiplication.");
+			return NULL;
+#else
+			printf("Warning: (Vector *= Matrix) is now deprecated, "
+				   "reverse the (non in-place) multiplication order in the script.\n");
+			PyC_LineSpit();
+#endif
+#endif		/* ifndef MATH_STANDALONE */
+/* ------ to be removed ------*/
+
+
 		memcpy(vec->vec, rvec, sizeof(float) * vec->size);
 	}
 	else if (QuaternionObject_Check(v2)) {
@@ -1242,6 +1301,25 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		if(BaseMath_ReadCallback(quat2) == -1) {
 			return NULL;
 		}
+
+
+/* ------ to be removed ------*/
+#ifndef MATH_STANDALONE
+#ifdef WITH_ASSERT_ABORT
+			PyErr_SetString(PyExc_ValueError,
+							"(Vector *= Quat) is now removed, reverse the "
+							"order (promoted to an Error for Debug builds) "
+			                "and uses the non in-place multiplication.");
+			return NULL;
+#else
+			printf("Warning: (Vector *= Quat) is now deprecated, "
+				   "reverse the (non in-place) multiplication order in the script.\n");
+			PyC_LineSpit();
+#endif
+#endif		/* ifndef MATH_STANDALONE */
+/* ------ to be removed ------*/
+
+
 		mul_qt_v3(quat2->quat, vec->vec);
 	}
 	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC *= FLOAT */
