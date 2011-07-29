@@ -60,6 +60,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
+#include "BKE_DerivedMesh.h"//Jason
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -748,6 +749,369 @@ static void vgroup_normalize(Object *ob)
 	}
 
 	if (dvert_array) MEM_freeN(dvert_array);
+}
+// Jason
+static int tryToAddVerts(int *verts, int length, int a, int b) {
+	char containsA = FALSE;
+	char containsB = FALSE;
+	int added = 0;
+	int i;
+	for(i = 0; i < length && (!containsA || !containsB); i++) {
+		if(verts[i] == a) {
+			containsA = TRUE;
+		} else if(verts[i] == b) {
+			containsB = TRUE;
+		} else if(verts[i] == -1) {
+			if(!containsA) {
+				verts[i] = a;
+				containsA = TRUE;
+				added++;
+			} else if(!containsB){
+				verts[i] = b;
+				containsB = TRUE;
+				added++;
+			}
+		}
+	}
+	return added;
+}
+//Jason
+static int* getSurroundingVerts(Mesh *me, int vert, int *count) {
+	int length = 0;
+	int *tverts;
+	int *verts = NULL;
+	MFace *mf = me->mface;
+	int totface = me->totface;
+	int found = 0;
+	int i;
+	for(i = 0; i < totface; i++, mf++) {
+		if(vert == mf->v1 || vert == mf->v2 || vert == mf->v3 || (mf->v4 &&vert == mf->v4)) {
+			length+=2;
+		}
+	}
+	if(!length) {
+		return 0;
+	}
+	tverts = MEM_mallocN(sizeof(int)*length, "tempSurroundingVerts");
+	mf = me->mface;
+	for(i = 0; i < length; i++) {
+		tverts[i] = -1;
+	}
+	for(i = 0; i < totface; i++, mf++) {
+		int a=-1, b=-1;
+		//printf("face %d verts: %d %d %d %d\n", i, mf->v1, mf->v2, mf->v3, mf->v4);
+		if(mf->v1 == vert) {
+			a = mf->v2;
+			if(mf->v4) {
+				b = mf->v4;
+			} else {
+				b = mf->v3;
+			}
+		} else if(mf->v2 == vert) {
+			a = mf->v1;
+			b = mf->v3;
+		} else if(mf->v3 == vert) {
+			a = mf->v2;
+			if(mf->v4) {
+				b = mf->v4;
+			} else {
+				b = mf->v1;
+			}
+		} else if (mf->v4 && mf->v4 == vert){
+			a = mf->v1;
+			b = mf->v3;
+		} else {
+			continue;
+		}
+		found += tryToAddVerts(tverts, length, a, b);
+	}
+	if(found) {
+		verts = MEM_mallocN(sizeof(int)* found, "surroundingVerts");
+		for(i = 0; i < found; i++) {
+			verts[i] = tverts[i];
+		}
+		count[0] = found;
+	}
+	MEM_freeN(tverts);
+	return verts;
+}
+static void getSingleCoordinate(MVert **points, int count, float *coord) {
+	int i, k;
+	for(k = 0; k < 3; k++) {
+		coord[k] = 0;
+	}
+	for(i = 0; i < count; i++) {
+		for(k = 0; k < 3; k++) {
+			coord[k] += points[i]->co[k];
+		}
+	}
+	for(k = 0; k < 3; k++) {
+		coord[k] /= count;
+	}
+}
+static void getNearestPointOnPlane(float *norm, float d, float *coord, float *point, float *dst) {
+	float *temp = MEM_callocN(sizeof(float)*3, "temp");
+	int i;
+	float dotprod = 0;
+	for(i = 0; i < 3; i++) {
+		temp[i] = point[i]-coord[i];
+	}
+	for(i = 0; i < 3; i++) {
+		dotprod += temp[i]*norm[i];
+	}
+	MEM_freeN(temp);
+	for(i = 0; i < 3; i++) {
+		dst[i] = point[i] - dotprod*norm[i];
+	}
+}
+static float distance(float* a, float *b, int length) {
+	int i;
+	float sum = 0;
+	for(i = 0; i < length; i++) {
+		sum += (b[i]-a[i])*(b[i]-a[i]);
+	}
+	return sqrt(sum);
+}
+static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, float *start, float distToStart, float *end, float **changes, int index) {
+	// A=Q-((Q-P).N)N
+	// D = (a*x0 + b*y0 +c*z0 +d)
+	float *projA, *projB;
+	projA = MEM_callocN(sizeof(float)*3, "projectedA");
+	projB = MEM_callocN(sizeof(float)*3, "projectedB");
+	getNearestPointOnPlane(norm, d, coord, start, projA);
+	getNearestPointOnPlane(norm, d, coord, end, projB);
+	// vertical change
+	changes[index][0] = norm[0]*end[0] + norm[1]*end[1] + norm[2]*end[2] + d - distToStart;
+	//printf("vc %f %f\n", distance(end, projB, 3)-distance(start, projA, 3), changes[index][0]);
+	// horizontal change
+	changes[index][1] = distance(projA, projB, 3);
+	MEM_freeN(projA);
+	MEM_freeN(projB);
+}
+static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float *norm, float *coord, float d, float distToBe, float strength, float cp) {
+	DerivedMesh *dm;
+	MDeformWeight *dw;
+	MVert m;
+	MDeformVert *dvert = me->dvert+index;
+	int totweight = dvert->totweight;
+	float oldw = 0;
+	float *oldPos = MEM_callocN(sizeof(float)*3, "oldPosition");
+	float vc, hc;
+	int i, k;
+	float **changes = MEM_mallocN(sizeof(float)*totweight, "vertHorzChange");
+	int *upDown = MEM_callocN(sizeof(int)*totweight, "upDownTracker");// track if up or down moved it closer for each bone
+	int *dwIndices = MEM_callocN(sizeof(int)*totweight, "dwIndexTracker");
+	float distToStart;
+	float bestChange = 0;
+	int bestIndex = 0;
+	char wasChange;
+	char wasUp;
+	int lastIndex = -1;
+	float originalDistToBe = distToBe;
+	for(i = 0; i < totweight; i++) {
+		changes[i] = MEM_callocN(sizeof(float)*2, "vertHorzChange_"+i);
+	}
+	do {
+		wasChange = FALSE;
+		dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+		dm->getVert(dm, index, &m);
+		oldPos[0] = m.co[0];
+		oldPos[1] = m.co[1];
+		oldPos[2] = m.co[2];
+		distToStart = norm[0]*oldPos[0] + norm[1]*oldPos[1] + norm[2]*oldPos[2] + d;
+		//printf("dist %f \n",distToStart);
+		//printf("mesh point %f %f %f dpoint %f %f %f \n", (me->mvert+index)->co[0], (me->mvert+index)->co[1], (me->mvert+index)->co[3], oldPos[0], oldPos[1], oldPos[2]);
+		if(distToBe == originalDistToBe) {
+			distToBe += distToStart - distToStart*strength;
+		}
+		for(i = 0; i < totweight; i++) {
+			dwIndices[i] = i;
+			dw = (dvert->dw+i);
+			vc = hc = 0;
+			if(!dw->weight) {
+				changes[i][0] = 0;
+				changes[i][1] = 0;
+				continue;
+			}
+			for(k = 0; k < 2; k++) {
+				if(dm) {
+					dm->needsFree = 1;
+					dm->release(dm);
+					dm = NULL;
+					ob->derivedDeform=NULL;
+				}
+				oldw = dw->weight;
+				if(k) {
+					dw->weight *= 1+cp;
+				} else {
+					dw->weight /= 1+cp;
+				}
+				if(dw->weight == oldw) {
+					changes[i][0] = 0;
+					changes[i][1] = 0;
+					break;
+				}
+				if(dw->weight > 1) {
+					dw->weight = 1;
+				}
+				dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+				dm->getVert(dm, index, &m);
+				getVerticalAndHorizontalChange(norm, d, coord, oldPos, distToStart, m.co, changes, i);
+				dw->weight = oldw;
+				if(!k) {
+					vc = changes[i][0];
+					hc = changes[i][1];
+				} else {
+					if(fabs(distToStart+vc - distToBe) < fabs(distToStart+changes[i][0] - distToBe)) {
+						upDown[i] = 0;
+						changes[i][0] = vc;
+						changes[i][1] = hc;
+					} else {
+						upDown[i] = 1;
+					}
+					if(fabs(distToStart+changes[i][0] - distToBe) > fabs(distToStart - distToBe)) {
+						changes[i][0] = 0;
+						changes[i][1] = 0;
+					}
+				}
+			}
+			//printf("final vc: %f\n", changes[i][0]);
+		}
+		// sort the changes by the vertical change
+		for(k = 0; k < totweight; k++) {
+			float tf;
+			int ti;
+			bestChange = changes[k][0];
+			bestIndex = k;
+			for(i = k+1; i < totweight; i++) {
+				vc = changes[i][0];
+
+				if(fabs(vc) > fabs(bestChange)) {
+					bestIndex = i;
+					bestChange = vc;
+				}
+			}
+			// switch with k
+			if(bestIndex != k) {
+				ti = upDown[k];
+				upDown[k] = upDown[bestIndex];
+				upDown[bestIndex] = ti;
+
+				ti = dwIndices[k];
+				dwIndices[k] = dwIndices[bestIndex];
+				dwIndices[bestIndex] = ti;
+
+				tf = changes[k][0];
+				changes[k][0] = changes[bestIndex][0];
+				changes[bestIndex][0] = tf;
+
+				tf = changes[k][1];
+				changes[k][1] = changes[bestIndex][1];
+				changes[bestIndex][1] = tf;
+			}
+		}
+		bestIndex = -1;
+		// find the best change with an acceptable horizontal change
+		for(i = 0; i < totweight; i++) {
+			if(fabs(changes[i][0]) > fabs(changes[i][1]*2.0f)) {
+				bestIndex = i;
+				break;
+			}
+		}
+		if(bestIndex != -1) {
+			//printf("changing %d\n", bestIndex);
+			wasChange = TRUE;
+			if(lastIndex != -1) {
+				if(wasUp != upDown[bestIndex]) {
+					wasChange = FALSE;
+				}
+			}
+			lastIndex = bestIndex;
+			wasUp = upDown[bestIndex];
+			dw = (dvert->dw+dwIndices[bestIndex]);
+			oldw = dw->weight;
+			if(upDown[bestIndex]) {
+				dw->weight *= 1+cp;
+			} else {
+				dw->weight /= 1+cp;
+			}
+			if(dw->weight > 1) {
+				dw->weight = 1;
+			}
+			if(oldw == dw->weight) {
+				wasChange = FALSE;
+			}
+			if(dm) {
+				dm->needsFree = 1;
+				dm->release(dm);
+				dm = NULL;
+				ob->derivedDeform=NULL;
+			}
+		}
+		//printf("best vc=%f hc=%f \n", changes[bestIndex][0], changes[bestIndex][1]);
+	}while(wasChange && (distToStart-distToBe)/fabs(distToStart-distToBe) == (distToStart+changes[bestIndex][0]-distToBe)/fabs(distToStart+changes[bestIndex][0]-distToBe));
+	MEM_freeN(upDown);
+	for(i = 0; i < totweight; i++) {
+		MEM_freeN(changes[i]);
+	}
+	MEM_freeN(changes);
+	MEM_freeN(dwIndices);
+	MEM_freeN(oldPos);
+}
+// Jason
+static void vgroup_fix(Scene *scene, Object *ob, float strength, float cp)
+{
+	int i;
+
+	Mesh *me = ob->data;
+	MVert *mv = me->mvert;
+	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+	int *verts = NULL;	
+
+	for(i = 0; i < me->totvert && mv; i++, mv++) {
+		// Jason
+		if(selectedVerts && (mv->flag & SELECT)) {
+			int *pcount = MEM_callocN(sizeof(int), "intPointer");
+			int count;
+			if((verts = getSurroundingVerts(me, i, pcount))) {
+				MVert m;
+				MVert **p = MEM_callocN(sizeof(MVert*)*(count = pcount[0]), "deformedPoints");
+				int k;
+
+				DerivedMesh *dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+				for(k = 0; k < count; k++) {
+					dm->getVert(dm, verts[k], &m);
+					p[k] = &m;
+					//printf("deformed coords %f %f %f\n", p[k]->co[0], p[k]->co[1], p[k]->co[2]);
+				}
+				
+				if(count >= 3) {
+					float d, dist, mag;
+					float *coord = MEM_callocN(sizeof(float)*3, "deformedCoord");
+					float *norm = MEM_callocN(sizeof(float)*3, "planeNorm");
+					getSingleCoordinate(p, count, coord);
+					dm->getVert(dm, i, &m);
+					norm[0] = m.co[0]-coord[0];
+					norm[1] = m.co[1]-coord[1];
+					norm[2] = m.co[2]-coord[2];
+					mag = sqrt(norm[0]*norm[0] + norm[1]*norm[1] + norm[2]*norm[2]);
+					for(k = 0; k < 3; k++) {
+						norm[k]/=mag;
+					}
+					d = -norm[0]*coord[0] -norm[1]*coord[1] -norm[2]*coord[2];
+					dist = (norm[0]*m.co[0] + norm[1]*m.co[1] + norm[2]*m.co[2] + d);
+					//printf("status plane: (%f %f %f) %f dist: %f\n", norm[0], norm[1], norm[2], d, dist);
+					moveCloserToDistanceFromPlane(scene, ob, me, i, norm, coord, d, 0, strength, cp);
+					MEM_freeN(coord);
+					MEM_freeN(norm);
+				}
+
+				MEM_freeN(verts);
+				MEM_freeN(p);
+			}
+			MEM_freeN(pcount);
+		}
+	}
 }
 
 static void vgroup_levels(Object *ob, float offset, float gain)
@@ -1918,6 +2282,40 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active", "Keep the values of the active group while normalizing others.");
+}
+/* Jason */
+static int vertex_group_fix_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	Scene *scene= CTX_data_scene(C);
+	
+	float strength= RNA_float_get(op->ptr,"strength");
+	float cp= RNA_float_get(op->ptr,"cp");
+	
+	vgroup_fix(scene, ob, strength, cp);
+	
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Fix Vertex Group Deform";
+	ot->idname= "OBJECT_OT_vertex_group_fix";
+	
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_fix_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength", "The distance to be moved can be changed by this.", -2.0f, 2.0f);
+	RNA_def_float(ot->srna, "cp", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower.", 0.05f, 1.f);
 }
 /* Jason was here */
 static int vertex_group_invert_locks_exec(bContext *C, wmOperator *op)

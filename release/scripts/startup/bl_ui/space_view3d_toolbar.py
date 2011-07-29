@@ -1052,6 +1052,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, bpy.types.Panel):
         col.operator("object.vertex_group_invert", text="Invert")
         col.operator("object.vertex_group_clean", text="Clean")
         col.operator("object.vertex_group_levels", text="Levels")
+        col.operator("object.vertex_group_fix", text="Fix Deforms")
 
 
 class VIEW3D_PT_tools_weightpaint_options(View3DPanel, bpy.types.Panel):

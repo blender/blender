@@ -2098,7 +2098,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	/* Jason */
 	prop= RNA_def_property(srna, "wp_vert_sel", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_VERT_SEL);
-	RNA_def_property_ui_text(prop, "Vertex Selection", "Vertex Selection for auto brushes");
+	RNA_def_property_ui_text(prop, "Vertex Selection", "Vertex selection masking for painting");
 	RNA_def_property_ui_icon(prop, ICON_VERTEXSEL, 0);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_vertmask");
 
