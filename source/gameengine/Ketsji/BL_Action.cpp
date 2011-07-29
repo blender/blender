@@ -49,24 +49,24 @@ extern "C" {
 
 BL_Action::BL_Action(class KX_GameObject* gameobj)
 :
+	m_action(NULL),
+	m_pose(NULL),
+	m_blendpose(NULL),
+	m_blendinpose(NULL),
+	m_ptrrna(NULL),
+	m_sg_contr(NULL),
 	m_obj(gameobj),
 	m_startframe(0.f),
 	m_endframe(0.f),
-	m_blendin(0.f),
-	m_playmode(0),
 	m_endtime(0.f),
 	m_localtime(0.f),
+	m_blendin(0.f),
 	m_blendframe(0.f),
 	m_blendstart(0.f),
 	m_speed(0.f),
 	m_priority(0),
+	m_playmode(0),
 	m_ipo_flags(0),
-	m_pose(NULL),
-	m_blendpose(NULL),
-	m_blendinpose(NULL),
-	m_sg_contr(NULL),
-	m_ptrrna(NULL),
-	m_action(NULL),
 	m_done(true)
 {
 	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
