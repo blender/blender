@@ -221,7 +221,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
 	DerivedMesh *dm = derivedData, *ret = NULL;
+#if 0
 	Mesh *ob_m = NULL;
+#endif
 	MDeformVert *dvert = NULL;
 	int numVerts;
 	int defgrp_idx, defgrp_idx2 = -1;
@@ -436,7 +438,7 @@ ModifierTypeInfo modifierType_WeightVGMix = {
 	/* structSize */        sizeof(WeightVGMixModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
-	                       |eModifierTypeFlag_SupportsMapping
+/*	                       |eModifierTypeFlag_SupportsMapping*/
 	                       |eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,

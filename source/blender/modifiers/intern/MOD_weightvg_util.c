@@ -187,6 +187,7 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num, int *indice
 
 	for (i = 0; i < num; i++) {
 		int j;
+		char add2vg = do_add;
 		float w = weights[i];
 		MDeformVert *dv = &dvert[indices ? indices[i] : i];
 		MDeformWeight *newdw;
@@ -221,16 +222,17 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num, int *indice
 					}
 				}
 				/* Else, just set the new computed weight. */
-				else
+				else {
 					dv->dw[j].weight = w;
+				}
+				add2vg = 0;
 				break;
 			}
-			continue;
 		}
 
 		/* If the vert wasn’t in the deform group, add it if needed!
 		 */
-		if (do_add && w > add_thresh) {
+		if (add2vg && w > add_thresh) {
 			newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), "WeightVGEdit Modifier, deformWeight");
 			if(dv->dw) {
 				memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);

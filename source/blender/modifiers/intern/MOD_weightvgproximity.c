@@ -507,7 +507,7 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
 	/* structSize */        sizeof(WeightVGProximityModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
-	                       |eModifierTypeFlag_SupportsMapping
+/*	                       |eModifierTypeFlag_SupportsMapping*/
 	                       |eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,

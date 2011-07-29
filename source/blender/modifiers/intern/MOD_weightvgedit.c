@@ -191,7 +191,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
 	DerivedMesh *dm = derivedData, *ret = NULL;
+#if 0
 	Mesh *ob_m = NULL;
+#endif
 	MDeformVert *dvert = NULL;
 	float *org_w = NULL; /* Array original weights. */
 	float *new_w = NULL; /* Array new weights. */
@@ -344,7 +346,7 @@ ModifierTypeInfo modifierType_WeightVGEdit = {
 	/* structSize */        sizeof(WeightVGEditModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh
-	                       |eModifierTypeFlag_SupportsMapping
+/*	                       |eModifierTypeFlag_SupportsMapping*/
 	                       |eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
