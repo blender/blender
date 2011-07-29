@@ -2482,8 +2482,6 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 		}
 
 		if(idtype == ID_MC) {
-			bNode *node;
-
 			for(obt=bmain->object.first; obt; obt= obt->id.next){
 				bConstraint *con;
 				for (con = obt->constraints.first; con; con=con->next) {
@@ -2495,9 +2493,13 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 				}
 			}
 
-			for(node= sce->nodetree->nodes.first; node; node= node->next) {
-				if(node->id==id) {
-					NodeTagChanged(sce->nodetree, node);
+			if(sce->nodetree) {
+				bNode *node;
+
+				for(node= sce->nodetree->nodes.first; node; node= node->next) {
+					if(node->id==id) {
+						NodeTagChanged(sce->nodetree, node);
+					}
 				}
 			}
 		}
