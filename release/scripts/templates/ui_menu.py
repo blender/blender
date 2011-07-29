@@ -26,8 +26,8 @@ class CustomMenu(bpy.types.Menu):
 
 
 def draw_item(self, context):
-	layout = self.layout
-	layout.menu(CustomMenu.bl_idname)
+    layout = self.layout
+    layout.menu(CustomMenu.bl_idname)
 
 
 def register():
