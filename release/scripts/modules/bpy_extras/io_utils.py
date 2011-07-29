@@ -159,14 +159,19 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
         raise Exception("invalid axis arguments passed, "
                         "can't use up/forward on the same axis.")
 
-    value = reduce(int.__or__, (_axis_convert_num[a] << (i * 3) for i, a in enumerate((from_forward, from_up, to_forward, to_up))))
+    value = reduce(int.__or__, (_axis_convert_num[a] << (i * 3)
+                   for i, a in enumerate((from_forward,
+                                          from_up,
+                                          to_forward,
+                                          to_up,
+                                          ))))
 
     for i, axis_lut in enumerate(_axis_convert_lut):
         if value in axis_lut:
             return Matrix(_axis_convert_matrix[i])
     assert(0)
 
-    
+
 def axis_conversion_ensure(operator, forward_attr, up_attr):
     """
     Function to ensure an operator has valid axis conversion settings, intended
@@ -174,9 +179,9 @@ def axis_conversion_ensure(operator, forward_attr, up_attr):
 
     :arg operator: the operator to access axis attributes from.
     :type operator: :class:`Operator`
-    :arg forward_attr: 
+    :arg forward_attr: attribute storing the forward axis
     :type forward_attr: string
-    :arg up_attr: the directory the *filepath* will be referenced from (normally the export path).
+    :arg up_attr: attribute storing the up axis
     :type up_attr: string
     :return: True if the value was modified.
     :rtype: boolean
@@ -184,9 +189,9 @@ def axis_conversion_ensure(operator, forward_attr, up_attr):
     def validate(axis_forward, axis_up):
         if axis_forward[-1] == axis_up[-1]:
             axis_up = axis_up[0:-1] + 'XYZ'[('XYZ'.index(axis_up[-1]) + 1) % 3]
-        
+
         return axis_forward, axis_up
-    
+
     change = False
 
     axis = getattr(operator, forward_attr), getattr(operator, up_attr)
