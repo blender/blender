@@ -55,7 +55,7 @@ class VIEW3D_HT_header(bpy.types.Header):
 
         row = layout.row()
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
-        row.template_header_3D() 
+        row.template_header_3D()
 
         if obj:
             # Particle edit

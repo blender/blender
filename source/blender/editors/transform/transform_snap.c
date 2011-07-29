@@ -467,14 +467,17 @@ void initSnapping(TransInfo *t, wmOperator *op)
 	/* use scene defaults only when transform is modal */
 	else if (t->flag & T_MODAL)
 	{
-		if (ts->snap_flag & SCE_SNAP) {
-			t->modifiers |= MOD_SNAP;
-		}
+		if(ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE))
+		{
+			if (ts->snap_flag & SCE_SNAP) {
+				t->modifiers |= MOD_SNAP;
+			}
 
-		t->tsnap.align = ((t->settings->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
-		t->tsnap.project = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
-		t->tsnap.snap_self = !((t->settings->snap_flag & SCE_SNAP_NO_SELF) == SCE_SNAP_NO_SELF);
-		t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
+			t->tsnap.align = ((t->settings->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
+			t->tsnap.project = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
+			t->tsnap.snap_self = !((t->settings->snap_flag & SCE_SNAP_NO_SELF) == SCE_SNAP_NO_SELF);
+			t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
+		}
 	}
 	
 	t->tsnap.target = snap_target;
@@ -1944,9 +1947,9 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 	int i;
 	float asp[3] = {1.0f, 1.0f, 1.0f}; // TODO: Remove hard coded limit here (3)
 
-	if(max_index > 3) {
+	if(max_index > 2) {
 		printf("applyGrid: invalid index %d, clamping\n", max_index);
-		max_index= 3;
+		max_index= 2;
 	}
 
 	// Early bailing out if no need to snap
