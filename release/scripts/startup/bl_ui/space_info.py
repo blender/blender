@@ -60,7 +60,7 @@ class INFO_HT_header(bpy.types.Header):
         layout.template_running_jobs()
 
         layout.template_reports_banner()
-        
+
         row = layout.row(align=True)
         row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
         row.label(text=scene.statistics())

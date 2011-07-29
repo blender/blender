@@ -2373,7 +2373,7 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 	/*	Blancmange (bmange@airdmhor.gen.nz) */
 
 	k = -1.0f/(2.0f*(float)M_PI*blur*blur);
-	fval=0;
+
 	for (ix = 0;ix< halfWidth;ix++){
 		weight = (float)exp(k*(ix*ix));
 		filter[halfWidth - ix] = weight;

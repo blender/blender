@@ -51,6 +51,9 @@ public:
 	MaterialsExporter(COLLADASW::StreamWriter *sw);
 	void exportMaterials(Scene *sce, bool export_selected);
 	void operator()(Material *ma, Object *ob);
+
+private:
+	bool hasMaterials(Scene *sce);
 };
 
 // used in forEachMaterialInScene

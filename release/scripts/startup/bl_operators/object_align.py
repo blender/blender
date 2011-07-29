@@ -21,6 +21,7 @@
 import bpy
 from mathutils import Vector
 
+
 def GlobalBB_LQ(bb_world):
 
     # Initialize the variables with the 8th vertex
@@ -33,7 +34,7 @@ def GlobalBB_LQ(bb_world):
                                           )
 
     # Test against the other 7 verts
-    for i in range (7):
+    for i in range(7):
 
         # X Range
         val = bb_world[i][0]
@@ -61,6 +62,7 @@ def GlobalBB_LQ(bb_world):
 
     return (Vector((left, front, up)), Vector((right, back, down)))
 
+
 def GlobalBB_HQ(obj):
 
     matrix_world = obj.matrix_world.copy()
@@ -80,7 +82,7 @@ def GlobalBB_HQ(obj):
                                           )
 
     # Test against all other verts
-    for i in range (len(verts)-1):
+    for i in range(len(verts) - 1):
 
         vco = matrix_world * verts[i].co
 

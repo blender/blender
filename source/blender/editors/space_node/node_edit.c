@@ -1101,7 +1101,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 	ot->cancel= snode_bg_viewmove_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
 static int backimage_zoom(bContext *C, wmOperator *op)

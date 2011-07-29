@@ -42,9 +42,9 @@ def replace_line(f, i, text, keep_indent=True):
     
     l = data[i]
     ws = l[:len(l) - len(l.lstrip())]
-    
+
     data[i] = "%s%s\n" % (ws, text)
-    
+
     file_handle = open(f, 'w')
     file_handle.writelines(data)
     file_handle.close()
@@ -182,13 +182,13 @@ def cmake_get_src(f):
 
                                 if new_path_rel != l:
                                     print("overly relative path:\n  %s:%d\n  %s\n  %s" % (f, i, l, new_path_rel))
-                                    
+
                                     ## Save time. just replace the line
                                     # replace_line(f, i - 1, new_path_rel)
-                                    
+
                             else:
                                 raise Exception("non existant include %s:%d -> %s" % (f, i, new_file))
-                            
+
                         # print(new_file)
 
             global_h.update(set(sources_h))
@@ -206,7 +206,7 @@ def cmake_get_src(f):
                 if ff not in sources_c:
                     print("  missing: " + ff)
             '''
-            
+
             # reset
             sources_h[:] = []
             sources_c[:] = []

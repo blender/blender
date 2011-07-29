@@ -110,6 +110,31 @@ class PlayRenderedAnim(bpy.types.Operator):
         cmd = [player_path]
         # extra options, fps controls etc.
         if preset == 'BLENDER24':
+            # -----------------------------------------------------------------
+            # Check blender is not 2.5x until it supports playback again
+            try:
+                process = subprocess.Popen([player_path, '--version'],
+                                           stdout=subprocess.PIPE,
+                                           )
+            except:
+                # ignore and allow the main execution to catch the problem.
+                process = None
+
+            if process is not None:
+                process.wait()
+                out = process.stdout.read()
+                process.stdout.close()
+                out_split = out.strip().split()
+                if out_split[0] == b'Blender':
+                    if not out_split[1].startswith(b'2.4'):
+                        self.report({'ERROR'},
+                                    "Blender %s doesn't support playback: %r" %
+                                    (out_split[1].decode(), player_path))
+                        return {'CANCELLED'}
+                del out, out_split
+            del process
+            # -----------------------------------------------------------------
+
             opts = ["-a", "-f", str(rd.fps), str(rd.fps_base), file]
             cmd.extend(opts)
         elif preset == 'DJV':
@@ -146,5 +171,6 @@ class PlayRenderedAnim(bpy.types.Operator):
             self.report({'ERROR'},
                         "Couldn't run external animation player with command "
                         "%r\n%s" % (" ".join(cmd), str(e)))
+            return {'CANCELLED'}
 
         return {'FINISHED'}

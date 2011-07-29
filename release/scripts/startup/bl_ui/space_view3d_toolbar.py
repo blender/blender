@@ -58,6 +58,7 @@ def draw_gpencil_tools(context, layout):
     row = col.row()
     row.prop(context.tool_settings, "use_grease_pencil_sessions")
 
+
 # ********** default tools for objectmode ****************
 
 class VIEW3D_PT_tools_objectmode(View3DPanel, bpy.types.Panel):

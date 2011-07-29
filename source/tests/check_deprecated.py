@@ -28,6 +28,7 @@ SKIP_DIRS = ("extern",
              os.path.join("source", "tests"),  # not this dir
              )
 
+
 def is_c_header(filename):
     ext = splitext(filename)[1]
     return (ext in (".h", ".hpp", ".hxx"))
@@ -41,12 +42,15 @@ def is_c(filename):
 def is_c_any(filename):
     return is_c(filename) or is_c_header(filename)
 
+
 def is_py(filename):
     ext = splitext(filename)[1]
     return (ext == ".py")
 
+
 def is_source_any(filename):
     return is_c_any(filename) or is_py(filename)
+
 
 def source_list(path, filename_check=None):
     for dirpath, dirnames, filenames in os.walk(path):
@@ -67,7 +71,7 @@ def deprecations():
     /* *DEPRECATED* 2011/7/17 bgl.Buffer.list info text */
 
     Or...
-    
+
     # *DEPRECATED* 2010/12/22 some.py.func more info */
 
     """
@@ -105,12 +109,12 @@ def deprecations():
                     if len(data) != 3:
                         print("    poorly formatting line:\n"
                               "    %r:%d\n"
-                              "    %s"%
+                              "    %s" %
                               (fn, i + 1, l)
                               )
                     else:
                         data = datetime.datetime(*tuple([int(w) for w in data]))
-                        
+
                         deprecations_ls.append((data, (fn, i + 1), info))
                 except:
                     print("Error file - %r:%d" % (fn, i + 1))
@@ -123,10 +127,11 @@ def deprecations():
 
     return deprecations_ls
 
+
 def main():
     import datetime
     now = datetime.datetime.now()\
-    
+
     deps = deprecations()
 
     print("\nAll deprecations...")
