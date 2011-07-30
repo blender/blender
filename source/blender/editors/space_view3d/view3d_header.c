@@ -280,7 +280,8 @@ static char *view3d_modeselect_pup(Scene *scene)
 	
 	str += sprintf(str, formatstr, "Object Mode", OB_MODE_OBJECT, ICON_OBJECT_DATA);
 	
-	if(ob==NULL) return string;
+	if(ob==NULL || ob->data==NULL) return string;
+	if(ob->id.lib || ((ID *)ob->data)->lib) return string;
 	
 	/* if active object is editable */
 	if ( ((ob->type == OB_MESH)
