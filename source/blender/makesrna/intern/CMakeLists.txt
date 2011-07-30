@@ -218,6 +218,13 @@ if(WITH_OPENCOLLADA)
 	add_definitions(-DWITH_COLLADA)
 endif()
 
+if(WITH_INTERNATIONAL)
+        list(APPEND INC_SYS ${GETTEXT_INC})
+        add_definitions(-DINTERNATIONAL)
+	link_directories(${GETTEXT_LIBPATH})
+	link_directories(${ICONV_LIBPATH})
+endif()
+
 # Build makesrna executable
 blender_include_dirs(
 	.
@@ -243,7 +250,11 @@ blender_include_dirs_sys(
 )
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
-target_link_libraries(makesrna bf_dna)
+if (WITH_INTERNATIONAL) 
+	target_link_libraries(makesrna bf_dna ${GETTEXT_LIB} ${PLATFORM_LINKFLAGS})
+else()
+	target_link_libraries(makesrna bf_dna)
+endif()
 
 # Output rna_*_gen.c
 # note (linux only): with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes

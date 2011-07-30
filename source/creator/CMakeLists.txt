@@ -352,6 +352,7 @@ if(UNIX AND NOT APPLE)
 	)
 
 	if(WITH_INTERNATIONAL)
+		
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
 			DESTINATION ${TARGETDIR_VER}
