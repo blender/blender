@@ -39,7 +39,7 @@ AUD_SequencerEntry::AUD_SequencerEntry(AUD_Reference<AUD_IFactory> sound, float 
 	m_status(0),
 	m_pos_status(1),
 	m_sound_status(0),
-	m_id(0),
+	m_id(id),
 	m_sound(sound),
 	m_begin(begin),
 	m_end(end),

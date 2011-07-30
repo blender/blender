@@ -144,9 +144,9 @@ static PyObject *
 Factory_sine(PyTypeObject* type, PyObject* args)
 {
 	float frequency;
-	int rate = 44100;
+	double rate = 44100;
 
-	if(!PyArg_ParseTuple(args, "f|i:sine", &frequency, &rate))
+	if(!PyArg_ParseTuple(args, "f|d:sine", &frequency, &rate))
 		return NULL;
 
 	Factory *self;
@@ -2313,7 +2313,7 @@ Device_get_rate(Device *self, void* nothing)
 	try
 	{
 		AUD_DeviceSpecs specs = (*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->getSpecs();
-		return Py_BuildValue("i", specs.rate);
+		return Py_BuildValue("d", specs.rate);
 	}
 	catch(AUD_Exception& e)
 	{

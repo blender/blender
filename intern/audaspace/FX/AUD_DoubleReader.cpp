@@ -88,7 +88,24 @@ void AUD_DoubleReader::read(int& length, bool& eos, sample_t* buffer)
 
 	if(!m_finished1)
 	{
-		m_reader1->read(length, m_finished1, buffer);
+		int len = length;
+
+		m_reader1->read(len, m_finished1, buffer);
+
+		if(len < length)
+		{
+			AUD_Specs specs1, specs2;
+			specs1 = m_reader1->getSpecs();
+			specs2 = m_reader2->getSpecs();
+			if(memcmp(&specs1, &specs2, sizeof(AUD_Specs)))
+				length = len;
+			else
+			{
+				int len2 = length - len;
+				m_reader2->read(len2, eos, buffer + specs1.channels * len);
+				length = len + len2;
+			}
+		}
 	}
 	else
 	{
