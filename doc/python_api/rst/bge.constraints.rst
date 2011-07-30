@@ -1,28 +1,47 @@
 
-Game Engine bge.constraints Module
+Physics Constraints (bge.constraints)
 ==================================
 
-.. note::
-   This documentation is still very weak, and needs some help!
-
-.. function:: createConstraint([obj1, [obj2, [restLength, [restitution, [damping]]]]])
+.. function:: createConstraint(physicsid, physicsid2, constrainttype, [pivotX, pivotY, pivotZ, [axisX, axisY, axisZ, [flag]]]])
 
    Creates a constraint.
 
-   :arg obj1: first object on Constraint
-   :type obj1: :class:'bge.types.KX_GameObject' #I think, there is no error when I use one
+   :arg physicsid: the physics id of the first object in constraint
+   :type physicsid: int
 
-   :arg obj2: second object on Constraint
-   :type obj2: :class:'bge.types.KX_GameObject' #too
+   :arg physicsid2: the physics id of the second object in constraint
+   :type physicsid2: int
 
-   :arg restLength: #to be filled
-   :type restLength: float
+   :arg constrainttype: the type of the constraint. The constraint types are:
 
-   :arg restitution: #to be filled
-   :type restitution: float
+   - :class:`POINTTOPOINT_CONSTRAINT`
+   - :class:`LINEHINGE_CONSTRAINT`
+   - :class:`ANGULAR_CONSTRAINT`
+   - :class:`CONETWIST_CONSTRAINT`
+   - :class:`VEHICLE_CONSTRAINT`
 
-   :arg damping: #to be filled
-   :type damping: float
+   :type constrainttype: int
+
+   :arg pivotX: pivot X position
+   :type pivotX: float
+
+   :arg pivotY: pivot Y position
+   :type pivotY: float
+
+   :arg pivotZ: pivot Z position
+   :type pivotZ: float
+
+   :arg axisX: X axis
+   :type axisX: float
+
+   :arg axisY: Y axis
+   :type axisY: float
+
+   :arg axisZ: Z axis
+   :type axisZ: float
+
+   :arg flag: .. to do
+   :type flag: int
 
 .. attribute:: error
 
@@ -49,7 +68,7 @@ Game Engine bge.constraints Module
    :type constraintId: int
 
    :return: a vehicle constraint object.
-   :rtype: :class:'KX_VehicleWrapper'
+   :rtype: :class:`bge.types.KX_VehicleWrapper`
 
 .. function:: removeConstraint(constraintId)
 
@@ -60,10 +79,10 @@ Game Engine bge.constraints Module
 
 .. function:: setCcdMode(ccdMode)
 
-   ..note::
+   .. note::
       Very experimental, not recommended
 
-   Sets the CCD mode in the Physics Environment.
+   Sets the CCD (Continous Colision Detection) mode in the Physics Environment.
 
    :arg ccdMode: The new CCD mode.
    :type ccdMode: int
@@ -73,21 +92,21 @@ Game Engine bge.constraints Module
    .. note::
       Reasonable default is 0.02 (if units are meters)
 
-   Sets the contact breaking treshold in the Physics Environment.
+   Sets tresholds to do with contact point management.
 
    :arg breakingTreshold: The new contact breaking treshold.
    :type breakingTreshold: float
 
 .. function:: setDeactivationAngularTreshold(angularTreshold)
 
-   Sets the deactivation angular treshold.
+   Sets the angular velocity treshold.
 
    :arg angularTreshold: New deactivation angular treshold.
    :type angularTreshold: float
 
 .. function:: setDeactivationLinearTreshold(linearTreshold)
 
-   Sets the deactivation linear treshold.
+   Sets the linear velocity treshold.
 
    :arg linearTreshold: New deactivation linear treshold.
    :type linearTreshold: float
@@ -104,21 +123,20 @@ Game Engine bge.constraints Module
    Sets the debug mode.
 
    Debug modes:
-      - No debug: 0
-      - Draw wireframe: 1
-      - Draw Aabb: 2 #What's Aabb?
-      - Draw freatures text: 4
-      - Draw contact points: 8
-      - No deactivation: 16
-      - No help text: 32
-      - Draw text: 64
-      - Profile timings: 128
-      - Enable sat comparision: 256
-      - Disable Bullet LCP: 512
-      - Enable CCD: 1024
-      - Draw Constraints: #(1 << 11) = ?
-      - Draw Constraint Limits: #(1 << 12) = ?
-      - Fast Wireframe: #(1 << 13) = ?
+      - :class:`DBG_NODEBUG`
+      - :class:`DBG_DRAWWIREFRAME`
+      - :class:`DBG_DRAWAABB`
+      - :class:`DBG_DRAWFREATURESTEXT`
+      - :class:`DBG_DRAWCONTACTPOINTS`
+      - :class:`DBG_NOHELPTEXT`
+      - :class:`DBG_DRAWTEXT`
+      - :class:`DBG_PROFILETIMINGS`
+      - :class:`DBG_ENABLESATCOMPARISION`
+      - :class:`DBG_DISABLEBULLETLCP`
+      - :class:`DBG_ENABLECCD`
+      - :class:`DBG_DRAWCONSTRAINTS`
+      - :class:`DBG_DRAWCONSTRAINTLIMITS`
+      - :class:`DBG_FASTWIREFRAME`
 
    :arg mode: The new debug mode.
    :type mode: int
@@ -138,7 +156,10 @@ Game Engine bge.constraints Module
 
 .. function:: setLinearAirDamping(damping)
 
-   Not implemented.
+   .. note::
+      Not implemented.
+
+   Sets the linear air damping for rigidbodies.
 
 .. function:: setNumIterations(numiter)
 
@@ -156,10 +177,10 @@ Game Engine bge.constraints Module
 
 .. function:: setSolverDamping(damping)
 
-   ..note::
+   .. note::
       Very experimental, not recommended
 
-   Sets the solver damping.
+   Sets the damper constant of a penalty based solver.
 
    :arg damping: New damping for the solver.
    :type damping: float
@@ -169,7 +190,7 @@ Game Engine bge.constraints Module
    .. note::
       Very experimental, not recommended
 
-   Sets the solver tau.
+   Sets the spring constant of a penalty based solver.
 
    :arg tau: New tau for the solver.
    :type tau: float
@@ -189,7 +210,7 @@ Game Engine bge.constraints Module
    .. note::
       Very experimental, not recommended
 
-   Sets the sor constant.
+   Sets the successive overrelaxation constant.
 
    :arg sor: New sor value.
    :type sor: float
@@ -197,3 +218,136 @@ Game Engine bge.constraints Module
 .. function:: setUseEpa(epa)
 
    Not implemented.
+
+.. data:: DBG_NODEBUG
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   No debug.
+
+.. data:: DBG_DRAWWIREFRAME
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Draw wireframe in debug.
+
+.. data:: DBG_DRAWAABB
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Draw Axis Aligned Bounding Box in debug.
+
+.. data:: DBG_DRAWFREATURESTEXT
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Draw freatures text in debug.
+
+.. data:: DBG_DRAWCONTACTPOINTS
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Draw contact points in debug.
+
+.. data:: DBG_NOHELPTEXT
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Debug without help text.
+
+.. data:: DBG_DRAWTEXT
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Draw text in debug.
+
+.. data:: DBG_PROFILETIMINGS
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Draw profile timings in debug.
+
+.. data:: DBG_ENABLESATCOMPARISION
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Enable sat comparision in debug.
+
+.. data:: DBG_DISABLEBULLETLCP
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Disable Bullet LCP.
+
+.. data:: DBG_ENABLECCD
+
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Enable Continous Colision Detection in debug.
+
+.. data:: DBG_DRAWCONSTRAINTS
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Draw constraints in debug.
+
+.. data:: DBG_DRAWCONSTRAINTLIMITS
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Draw constraint limits in debug.
+
+.. data:: DBG_FASTWIREFRAME
+   
+   .. note::
+      Debug mode to be used with function :class:`setDebugMode`
+   
+   Draw a fast wireframe in debug.
+
+.. data:: POINTTOPOINT_CONSTRAINT
+
+   .. note::
+      Constraint type to be used with function :class:`createConstraint`
+
+   .. to do
+
+.. data:: LINEHINGE_CONSTRAINT
+
+   .. note::
+      Constraint type to be used with function :class:`createConstraint`
+
+   .. to do
+
+.. data:: ANGULAR_CONSTRAINT
+
+   .. note::
+      Constraint type to be used with function :class:`createConstraint`
+
+   .. to do
+
+.. data:: CONETWIST_CONSTRAINT
+
+   .. note::
+       Constraint type to be used with function :class:`createConstraint`
+
+   .. to do
+
+.. data:: VEHICLE_CONSTRAINT
+
+   .. note::
+      Constraint type to be used with function :class:`createConstraint`
+
+   .. to do

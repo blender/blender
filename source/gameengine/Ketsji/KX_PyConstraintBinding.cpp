@@ -38,11 +38,17 @@
 #include "KX_PhysicsObjectWrapper.h"
 #include "PHY_IPhysicsController.h"
 #include "PHY_IVehicle.h"
+#include "PHY_DynamicTypes.h"
 #include "MT_Matrix3x3.h"
 
 #include "PyObjectPlus.h" 
 
+#include "LinearMath/btIDebugDraw.h"
+
 #ifdef WITH_PYTHON
+
+// macro copied from KX_PythonInit.cpp
+#define KX_MACRO_addTypesToDict(dict, name, name2) PyDict_SetItemString(dict, #name, item=PyLong_FromSsize_t(name2)); Py_DECREF(item)
 
 // nasty glob variable to connect scripting language
 // if there is a better way (without global), please do so!
@@ -662,6 +668,7 @@ PyObject*	initPythonConstraintBinding()
   PyObject* ErrorObject;
   PyObject* m;
   PyObject* d;
+  PyObject* item;
 
 	/* Use existing module where possible
 	 * be careful not to init any runtime vars after this */
@@ -683,7 +690,28 @@ PyObject*	initPythonConstraintBinding()
   PyDict_SetItemString(d, "error", ErrorObject);
   Py_DECREF(ErrorObject);
 
-  // XXXX Add constants here
+  //Debug Modes constants to be used with setDebugMode() python function
+  KX_MACRO_addTypesToDict(d, DBG_NODEBUG, btIDebugDraw::DBG_NoDebug);
+  KX_MACRO_addTypesToDict(d, DBG_DRAWWIREFRAME, btIDebugDraw::DBG_DrawWireframe);
+  KX_MACRO_addTypesToDict(d, DBG_DRAWAABB, btIDebugDraw::DBG_DrawAabb);
+  KX_MACRO_addTypesToDict(d, DBG_DRAWFREATURESTEXT, btIDebugDraw::DBG_DrawFeaturesText);
+  KX_MACRO_addTypesToDict(d, DBG_DRAWCONTACTPOINTS, btIDebugDraw::DBG_DrawContactPoints);
+  KX_MACRO_addTypesToDict(d, DBG_NOHELPTEXT, btIDebugDraw::DBG_NoHelpText);
+  KX_MACRO_addTypesToDict(d, DBG_DRAWTEXT, btIDebugDraw::DBG_DrawText);
+  KX_MACRO_addTypesToDict(d, DBG_PROFILETIMINGS, btIDebugDraw::DBG_ProfileTimings);
+  KX_MACRO_addTypesToDict(d, DBG_ENABLESATCOMPARISION, btIDebugDraw::DBG_EnableSatComparison);
+  KX_MACRO_addTypesToDict(d, DBG_DISABLEBULLETLCP, btIDebugDraw::DBG_DisableBulletLCP);
+  KX_MACRO_addTypesToDict(d, DBG_ENABLECDD, btIDebugDraw::DBG_EnableCCD);
+  KX_MACRO_addTypesToDict(d, DBG_DRAWCONSTRAINTS, btIDebugDraw::DBG_DrawConstraints);
+  KX_MACRO_addTypesToDict(d, DBG_DRAWCONSTRAINTLIMITS, btIDebugDraw::DBG_DrawConstraintLimits);
+  KX_MACRO_addTypesToDict(d, DBG_FASTWIREFRAME, btIDebugDraw::DBG_FastWireframe);
+
+  //Constraint types to be used with createConstraint() python function
+  KX_MACRO_addTypesToDict(d, POINTTOPOINT_CONSTRAINT, PHY_POINT2POINT_CONSTRAINT);
+  KX_MACRO_addTypesToDict(d, LINEHINGE_CONSTRAINT, PHY_LINEHINGE_CONSTRAINT);
+  KX_MACRO_addTypesToDict(d, ANGULAR_CONSTRAINT, PHY_ANGULAR_CONSTRAINT);
+  KX_MACRO_addTypesToDict(d, CONETWIST_CONSTRAINT, PHY_CONE_TWIST_CONSTRAINT);
+  KX_MACRO_addTypesToDict(d, VEHICLE_CONSTRAINT, PHY_VEHICLE_CONSTRAINT);
 
   // Check for errors
   if (PyErr_Occurred())

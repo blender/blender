@@ -1,5 +1,5 @@
 
-bgl module (OpenGL wrapper)
+OpenGL Wrapper (bgl)
 ===========================
 
 .. module:: bgl

@@ -1,5 +1,5 @@
 
-Game Engine bge.logic Module
+Game Logic (bge.logic)
 ============================
 *****
 Intro

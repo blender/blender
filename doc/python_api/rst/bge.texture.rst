@@ -1,10 +1,6 @@
 
-Game Engine bge.texture Module
+Video Texture (bge.texture)
 ==============================
-
-.. note::
-   This documentation is still very weak, and needs some help! Right now they are mostly a collection
-   of the docstrings found in the bge.texture source code + some random places filled with text.
 
 *****
 Intro

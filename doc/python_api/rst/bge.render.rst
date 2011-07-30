@@ -1,5 +1,5 @@
 
-Game Engine bge.render Module
+Rasterizer (bge.render)
 =============================
 
 *****
