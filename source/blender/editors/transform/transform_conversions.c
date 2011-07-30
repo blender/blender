@@ -5358,28 +5358,26 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 		if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
 			marker= BKE_tracking_get_marker(track, framenr);
 
-			if(marker) {
-				trackToTransData(sc, td, td2d, tdt, track);
+			trackToTransData(sc, td, td2d, tdt, track);
 
-				td++;
-				td2d++;
-				tdt++;
+			td++;
+			td2d++;
+			tdt++;
 
-				if((marker->flag&MARKER_DISABLED)==0) {
-					if(track->flag&SELECT) {td++; td2d++; tdt+=2;}
-					if(track->pat_flag&SELECT) {td+= 2; td2d+= 2;tdt+=2;}
-				}
+			if((marker->flag&MARKER_DISABLED)==0) {
+				if(track->flag&SELECT) {td++; td2d++; tdt++;}
+				if(track->pat_flag&SELECT) {td+= 2; td2d+= 2;tdt+=2;}
+			}
 
-				if(track->search_flag&SELECT) {
-					td+= 2;
-					td2d+= 2;
-					tdt+= 2;
+			if(track->search_flag&SELECT) {
+				td+= 2;
+				td2d+= 2;
+				tdt+= 2;
 
-					if(marker->flag&MARKER_DISABLED) {
-						td+= 3;
-						td2d+= 3;
-						tdt+= 3;
-					}
+				if(marker->flag&MARKER_DISABLED) {
+					td+= 3;
+					td2d+= 3;
+					tdt+= 3;
 				};
 			}
 		}
