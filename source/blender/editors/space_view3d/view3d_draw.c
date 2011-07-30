@@ -681,7 +681,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	float o[3]; // center of rotation
 	float end[3]; // endpoints for drawing
 
-	float color[4] = {1,1,0,1}; // bright yellow so it stands out during development
+	float color[4] = {0.f ,0.4235f, 1.f, 1.f}; // bright blue so it matches device LEDs
 
 	negate_v3_v3(o, rv3d->ofs);
 
@@ -699,7 +699,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
 	
 		glBegin(GL_LINE_STRIP);
-			color[3] = 0; // more transparent toward the ends
+			color[3] = 0.f; // more transparent toward the ends
 			glColor4fv(color);
 			add_v3_v3v3(end, o, scaled_axis);
 			glVertex3fv(end);
@@ -711,16 +711,52 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 			glColor4fv(color);
 			glVertex3fv(o);
 	
-			color[3] = 0;
+			color[3] = 0.f;
 			glColor4fv(color);
 			sub_v3_v3v3(end, o, scaled_axis);
 			glVertex3fv(end);
 		glEnd();
 		
-		color[3] = 1; // solid dot
+		// -- draw ring around rotation center --
+		{
+		#define ROT_AXIS_DETAIL 13
+		const float s = 0.05f * scale;
+		const float step = 2.f * M_PI / ROT_AXIS_DETAIL;
+		float angle;
+		int i;
+
+		float q[4]; // rotate ring so it's perpendicular to axis
+		const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
+		if (!upright)
+			{
+			const float up[3] = {0.f, 0.f, 1.f};
+			float vis_angle, vis_axis[3];
+
+			cross_v3_v3v3(vis_axis, up, rv3d->rot_axis);
+			vis_angle = acosf(dot_v3v3(up, rv3d->rot_axis));
+			axis_angle_to_quat(q, vis_axis, vis_angle);
+			}
+
+		color[3] = 0.25f; // somewhat faint
+		glColor4fv(color);
+		glBegin(GL_LINE_LOOP);
+		for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step)
+			{
+			float p[3] = { s * cosf(angle), s * sinf(angle), 0.f };
+
+			if (!upright)
+				mul_qt_v3(q, p);
+
+			add_v3_v3(p, o);
+			glVertex3fv(p);
+			}
+		glEnd();
+		}
+
+		color[3] = 1.f; // solid dot
 	}
 	else
-		color[3] = 0.5; // see-through dot
+		color[3] = 0.5f; // see-through dot
 
 	// -- draw rotation center --
 	glColor4fv(color);
@@ -2680,10 +2716,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		BDR_drawSketch(C);
 	}
 
-//#if 0 // not yet...
-	if (U.ndof_flag & NDOF_SHOW_GUIDE)
+	if ((U.ndof_flag & NDOF_SHOW_GUIDE) && (rv3d->viewlock != RV3D_LOCKED) && (rv3d->persp != RV3D_CAMOB))
+		// TODO: draw something else (but not this) during fly mode
 		draw_rotation_guide(rv3d);
-//#endif
 
 	ED_region_pixelspace(ar);
 	
