@@ -58,9 +58,10 @@ void libmv_tracksDestroy(struct libmv_Tracks *tracks);
 /* Reconstruction solver */
 struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *tracks, int keyframe1, int keyframe2,
 			double focal_length, double principal_x, double principal_y, double k1, double k2, double k3);
-int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *reconstruction, int track, double pos[3]);
-int libmv_reporojectionCameraForImage(struct libmv_Reconstruction *reconstruction, int image, double mat[4][4]);
-void libmv_destroyReconstruction(struct libmv_Reconstruction *reconstruction);
+int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track, double pos[3]);
+int libmv_reporojectionCameraForImage(struct libmv_Reconstruction *libmv_reconstruction, int image, double mat[4][4]);
+float libmv_reprojectionError(struct libmv_Reconstruction *libmv_reconstruction);
+void libmv_destroyReconstruction(struct libmv_Reconstruction *libmv_reconstruction);
 
 /* feature detector */
 

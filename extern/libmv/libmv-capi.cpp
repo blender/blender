@@ -65,6 +65,11 @@ typedef struct libmv_RegionTracker {
 	libmv::RegionTracker *region_tracker;
 } libmv_RegionTracker;
 
+typedef struct libmv_Reconstruction {
+	libmv::Reconstruction reconstruction;
+	double error;
+} libmv_Reconstruction;
+
 /* ************ Logging ************ */
 
 void libmv_initLogging(const char *argv0)
@@ -316,13 +321,14 @@ void libmv_tracksDestroy(libmv_Tracks *tracks)
 
 /* ************ Reconstruction solver ************ */
 
-struct libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyframe1, int keyframe2,
+libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyframe1, int keyframe2,
 			double focal_length, double principal_x, double principal_y, double k1, double k2, double k3)
 {
 	/* Invert the camera intrinsics. */
 	libmv::vector<libmv::Marker> markers = ((libmv::Tracks*)tracks)->AllMarkers();
 	libmv::CameraIntrinsics intrinsics;
-	libmv::Reconstruction *reconstruction = new libmv::Reconstruction();
+	libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
+	libmv::Reconstruction *reconstruction = &libmv_reconstruction->reconstruction;
 
 	intrinsics.SetFocalLength(focal_length, focal_length);
 	intrinsics.SetPrincipalPoint(principal_x, principal_y);
@@ -346,14 +352,15 @@ struct libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int
 	libmv::ReconstructTwoFrames(keyframe_markers, reconstruction);
 	libmv::Bundle(normalized_tracks, reconstruction);
 	libmv::CompleteReconstruction(normalized_tracks, reconstruction);
-	libmv::ReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, intrinsics);
+	libmv_reconstruction->error = libmv::ReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, intrinsics);
 
-	return (libmv_Reconstruction *)reconstruction;
+	return (libmv_Reconstruction *)libmv_reconstruction;
 }
 
-int libmv_reporojectionPointForTrack(libmv_Reconstruction *reconstruction, int track, double pos[3])
+int libmv_reporojectionPointForTrack(libmv_Reconstruction *libmv_reconstruction, int track, double pos[3])
 {
-	libmv::Point *point = ((libmv::Reconstruction *)reconstruction)->PointForTrack(track);
+	libmv::Reconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::Point *point = reconstruction->PointForTrack(track);
 
 	if(point) {
 		pos[0] = point->X[0];
@@ -366,9 +373,10 @@ int libmv_reporojectionPointForTrack(libmv_Reconstruction *reconstruction, int t
 	return 0;
 }
 
-int libmv_reporojectionCameraForImage(libmv_Reconstruction *reconstruction, int image, double mat[4][4])
+int libmv_reporojectionCameraForImage(libmv_Reconstruction *libmv_reconstruction, int image, double mat[4][4])
 {
-	libmv::Camera *camera = ((libmv::Reconstruction *)reconstruction)->CameraForImage(image);
+	libmv::Reconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::Camera *camera = reconstruction->CameraForImage(image);
 
 	if(camera) {
 		for (int j = 0; j < 3; ++j) {
@@ -398,9 +406,14 @@ int libmv_reporojectionCameraForImage(libmv_Reconstruction *reconstruction, int 
 	return 0;
 }
 
-void libmv_destroyReconstruction(libmv_Reconstruction *reconstruction)
+float libmv_reprojectionError(libmv_Reconstruction *libmv_reconstruction)
 {
-	delete (libmv::Reconstruction *)reconstruction;
+	return libmv_reconstruction->error;
+}
+
+void libmv_destroyReconstruction(libmv_Reconstruction *libmv_reconstruction)
+{
+	delete libmv_reconstruction;
 }
 
 /* ************ feature detector ************ */

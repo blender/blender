@@ -1486,13 +1486,19 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	Scene *scene= CTX_data_scene(C);
+	float error;
 
 	if(!check_solve_tarck_count(&clip->tracking)) {
 		BKE_report(op->reports, RPT_ERROR, "At least 10 tracks on both of keyframes are needed for reconstruction");
 		return OPERATOR_CANCELLED;
 	}
 
-	BKE_tracking_solve_reconstruction(clip);
+	error = BKE_tracking_solve_reconstruction(clip);
+
+	if(error<0)
+		BKE_report(op->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
+	else
+		BKE_reportf(op->reports, RPT_INFO, "Average reprojection error %.3f", error);
 
 	scene->clip= clip;
 

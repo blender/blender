@@ -269,6 +269,7 @@ ImBuf* BKE_moviecache_get(MovieCache *cache, void *userkey)
 		if(item->ibuf) {
 			MEM_CacheLimiter_touch(item->c_handle);
 			IMB_refImBuf(item->ibuf);
+
 			return item->ibuf;
 		}
 	}

@@ -902,7 +902,7 @@ static struct libmv_Tracks *create_libmv_tracks(MovieClip *clip)
 	return tracks;
 }
 
-static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstruction *reconstruction)
+static int retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstruction *reconstruction)
 {
 	int tracknr= 0;
 	int sfra= INT_MAX, efra= INT_MIN, a, origin_set= 0;
@@ -911,6 +911,7 @@ static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructi
 	MovieTrackingCamera *camera;
 	MovieReconstructedCamera *reconstructed;
 	float origin[3]= {0.0f, 0.f, 0.0f};
+	int ok= 1;
 
 	track= tracking->tracks.first;
 	while(track) {
@@ -924,9 +925,9 @@ static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructi
 			track->flag|= TRACK_HAS_BUNDLE;
 		} else {
 			track->flag&= ~TRACK_HAS_BUNDLE;
+			ok= 0;
 
-			if (G.f & G_DEBUG)
-				printf("No bundle for track #%d '%s'\n", tracknr, track->name);
+			printf("No bundle for track #%d '%s'\n", tracknr, track->name);
 		}
 
 		if(track->markersnr) {
@@ -969,8 +970,9 @@ static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructi
 			copy_m4_m4(reconstructed[camera->reconnr].mat, mat);
 			reconstructed[camera->reconnr].framenr= a;
 			camera->reconnr++;
-		} else if (G.f & G_DEBUG) {
-			printf("No camera for image %d\n", a);
+		} else {
+			ok= 0;
+			printf("No camera for frame %d\n", a);
 		}
 	}
 
@@ -990,11 +992,13 @@ static void retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructi
 	}
 
 	MEM_freeN(reconstructed);
+
+	return ok;
 }
 
 #endif
 
-void BKE_tracking_solve_reconstruction(MovieClip *clip)
+float BKE_tracking_solve_reconstruction(MovieClip *clip)
 {
 #if WITH_LIBMV
 	{
@@ -1005,11 +1009,15 @@ void BKE_tracking_solve_reconstruction(MovieClip *clip)
 		        tracking->settings.keyframe1, tracking->settings.keyframe2,
 		        camera->focal, camera->principal[0], camera->principal[1],
 		        camera->k1, camera->k2, camera->k3);
+		float error= libmv_reprojectionError(reconstruction);
 
-		retrive_libmv_reconstruct(clip, reconstruction);
+		if(!retrive_libmv_reconstruct(clip, reconstruction))
+			error= -1.f;
 
 		libmv_destroyReconstruction(reconstruction);
 		libmv_tracksDestroy(tracks);
+
+		return error;
 	}
 #endif
 }
