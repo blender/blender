@@ -1096,7 +1096,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	unsigned int lay, local;
-	int islamp= 0;
+	/* int islamp= 0; */ /* UNUSED */
 	
 	lay= move_to_layer_init(C, op);
 	lay &= 0xFFFFFF;
@@ -1112,7 +1112,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			base->object->lay= lay;
 			base->object->flag &= ~SELECT;
 			base->flag &= ~SELECT;
-			if(base->object->type==OB_LAMP) islamp= 1;
+			/* if(base->object->type==OB_LAMP) islamp= 1; */
 		}
 		CTX_DATA_END;
 	}
@@ -1124,7 +1124,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			local= base->lay & 0xFF000000;  
 			base->lay= lay + local;
 			base->object->lay= lay;
-			if(base->object->type==OB_LAMP) islamp= 1;
+			/* if(base->object->type==OB_LAMP) islamp= 1; */
 		}
 		CTX_DATA_END;
 	}

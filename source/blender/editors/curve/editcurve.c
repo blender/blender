@@ -6544,12 +6544,15 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 		BLI_assert(!"invalid nurbs type");
 		return NULL;
 	}
-	
-	/* always do: */
-	nu->flag |= CU_SMOOTH;
-	
-	test2DNurb(nu);
-	
+
+	BLI_assert(nu != NULL);
+
+	if(nu) { /* should always be set */
+		nu->flag |= CU_SMOOTH;
+
+		test2DNurb(nu);
+	}
+
 	return nu;
 }
 
