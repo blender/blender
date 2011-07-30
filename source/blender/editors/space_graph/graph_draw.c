@@ -356,10 +356,6 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 		float *fp;
 		unsigned char col[4];
 		
-		/* if only selected keyframes have handles shown, skip the first round */
-		if ((sel == 0) && (sipo->flag & SIPO_SELVHANDLESONLY))
-			continue;
-		
 		for (b= 0; b < fcu->totvert; b++, prevbezt=bezt, bezt++) {
 			/* if only selected keyframes can get their handles shown, 
 			 * check that keyframe is selected
@@ -372,7 +368,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 			/* draw handle with appropriate set of colors if selection is ok */
 			if ((bezt->f2 & SELECT)==sel) {
 				fp= bezt->vec[0];
-
+				
 				/* only draw first handle if previous segment had handles */
 				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) 
 				{
@@ -382,14 +378,14 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
-
+				
 				/* only draw second handle if this segment is bezier */
 				if (bezt->ipo == BEZT_IPO_BEZ) 
 				{
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
 					col[3]= drawFCurveFade(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
-
+					
 					glVertex2fv(fp+3); glVertex2fv(fp+6); 
 				}
 			}
@@ -402,7 +398,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, FCurve *fcu)
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
 					col[3]= drawFCurveFade(fcu) * 255;
 					glColor4ubv((GLubyte *)col);
-
+					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 				
