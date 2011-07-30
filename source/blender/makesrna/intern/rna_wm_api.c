@@ -205,7 +205,7 @@ void RNA_api_operator(StructRNA *srna)
 
 	/* check */
 	func= RNA_def_function(srna, "check", NULL);
-	RNA_def_function_ui_description(func, "Check the operator settings.");
+	RNA_def_function_ui_description(func, "Check the operator settings, return True to signal a change to redraw.");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
