@@ -209,54 +209,6 @@ void borderselect_gplayer_frames (bGPDlayer *gpl, float min, float max, short se
 	}
 }
 
-#if 0 // XXX disabled until grease pencil code stabilises again
-
-/* De-selects or inverts the selection of Layers for a grease-pencil block
- *	mode: 0 = default behaviour (select all), 1 = test if (de)select all, 2 = invert all 
- */
-void deselect_gpencil_layers (void *data, short mode)
-{
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale;
-	int filter, sel=1;
-	
-	/* filter data */
-	filter= ACTFILTER_VISIBLE;
-	actdata_filter(&act_data, filter, data, ACTCONT_GPENCIL);
-	
-	/* See if we should be selecting or deselecting */
-	if (mode == 1) {
-		for (ale= act_data.first; ale; ale= ale->next) {
-			if (sel == 0) 
-				break;
-			
-			if (ale->flag & GP_LAYER_SELECT)
-				sel= 0;
-		}
-	}
-	else
-		sel= 0;
-		
-	/* Now set the flags */
-	for (ale= act_data.first; ale; ale= ale->next) {
-		bGPDlayer *gpl= (bGPDlayer *)ale->data;
-		
-		if (mode == 2)
-			gpl->flag ^= GP_LAYER_SELECT;
-		else if (sel)
-			gpl->flag |= GP_LAYER_SELECT;
-		else
-			gpl->flag &= ~GP_LAYER_SELECT;
-			
-		gpl->flag &= ~GP_LAYER_ACTIVE;
-	}
-	
-	/* Cleanup */
-	BLI_freelistN(&act_data);
-}
-
-#endif // XXX disabled until Grease Pencil code stabilises again...
-
 /* ***************************************** */
 /* Frame Editing Tools */
 
