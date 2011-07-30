@@ -60,7 +60,7 @@ struct bAction *BL_ActionManager::GetCurrentAction(short layer)
 	if (m_layers[layer])
 		return m_layers[layer]->GetAction();
 	
-	return NULL;
+	return 0;
 }
 
 bool BL_ActionManager::PlayAction(const char* name,
