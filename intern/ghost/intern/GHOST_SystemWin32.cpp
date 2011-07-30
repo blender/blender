@@ -55,6 +55,7 @@
 #define _WIN32_IE 0x0501
 #include <windows.h>
 #include <shlobj.h>
+#include <tlhelp32.h>
 
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
@@ -1242,8 +1243,32 @@ int GHOST_SystemWin32::toggleConsole(int action)
 	{
 		case 3: //hide if no console
 			{
-			CONSOLE_SCREEN_BUFFER_INFO csbi = {{0}};
-			if(!GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi) || csbi.dwCursorPosition.X || csbi.dwCursorPosition.Y>1)
+				DWORD sp = GetCurrentProcessId();
+				HANDLE ptree = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+				PROCESSENTRY32 e = {0}; e.dwSize = sizeof(PROCESSENTRY32);
+				
+				if( Process32First(ptree, &e)) {
+					do { //Searches for Blender's PROCESSENTRY32
+							if (e.th32ProcessID == sp) {
+								sp = e.th32ParentProcessID;
+								Process32First(ptree, &e);
+									do { //Got parent id, searches for its PROCESSENTRY32
+										if (e.th32ProcessID == sp) {
+											if(strcmp("explorer.exe",e.szExeFile)==0)
+											{ //If explorer, hide cmd
+												ShowWindow(GetConsoleWindow(),SW_HIDE);
+												m_consoleStatus = 0;
+											}
+											break;
+										}
+
+									} while( Process32Next(ptree, &e));
+								break;
+							}
+					} while( Process32Next(ptree, &e));
+				}
+
+				CloseHandle(ptree);
 				break;
 			}
 		case 0: //hide
