@@ -6411,7 +6411,9 @@ PyDoc_STRVAR(pyrna_register_class_doc,
 "   If the class has a *register* class method it will be called\n"
 "   before registration.\n"
 "\n"
-"   .. note:: :exc:`ValueError` exception is raised if the class is not a\n"
+"   .. note::\n"
+"\n"
+"      :exc:`ValueError` exception is raised if the class is not a\n"
 "      subclass of a registerable blender class.\n"
 "\n"
 );

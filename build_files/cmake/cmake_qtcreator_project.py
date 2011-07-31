@@ -33,7 +33,7 @@ example linux usage
 
 from project_info import (SIMPLE_PROJECTFILE,
                           SOURCE_DIR,
-                          CMAKE_DIR,
+                          # CMAKE_DIR,
                           PROJECT_DIR,
                           source_list,
                           is_project_file,

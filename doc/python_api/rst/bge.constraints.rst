@@ -1,6 +1,6 @@
 
 Physics Constraints (bge.constraints)
-==================================
+=====================================
 
 .. function:: createConstraint(physicsid, physicsid2, constrainttype, [pivotX, pivotY, pivotZ, [axisX, axisY, axisZ, [flag]]]])
 

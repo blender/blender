@@ -1,6 +1,6 @@
 
 OpenGL Wrapper (bgl)
-===========================
+====================
 
 .. module:: bgl
 
@@ -71,8 +71,8 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    .. seealso:: `OpenGL Docs <http://www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/begin.html>`_
 
    :type mode: Enumerated constant
-   :arg mode: Specifies the primitive that will be create from vertices between glBegin and
-      glEnd.
+   :arg mode: Specifies the primitive that will be create from vertices between
+      glBegin and glEnd.
 
 
 .. function:: glBindTexture(target, texture):
@@ -1886,4 +1886,3 @@ class Buffer:
          the Buffer. If a template is not passed in all fields will be initialized to 0.
       :rtype: Buffer object
       :return: The newly created buffer as a PyObject.
-
