@@ -896,14 +896,14 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 			{
 				const COLLADAFW::AnimatableFloat *zfar =  &(camera->getFarClippingPlane());
 				const COLLADAFW::UniqueId& listid = zfar->getAnimationList();
-				Assign_float_animations( listid ,AnimCurves, "clipend"); 
+				Assign_float_animations( listid ,AnimCurves, "clip_end"); 
 			}
 
 			if ((animType->camera & CAMERA_ZNEAR) != 0 )
 			{
 				const COLLADAFW::AnimatableFloat *znear =  &(camera->getNearClippingPlane());
 				const COLLADAFW::UniqueId& listid = znear->getAnimationList();
-				Assign_float_animations( listid ,AnimCurves, "clipsta"); 
+				Assign_float_animations( listid ,AnimCurves, "clip_start"); 
 			}
 
 		}
@@ -1009,7 +1009,7 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 			types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
 			types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
 			types->material =  setAnimType(&(efc->getDiffuse().getColor()),(types->material), MATERIAL_DIFF_COLOR);
-		
+		   // types->material =  setAnimType(&(efc->get()),(types->material), MATERIAL_TRANSPARENCY);
 		}
 	}
 	return types;

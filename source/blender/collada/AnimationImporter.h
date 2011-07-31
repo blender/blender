@@ -110,7 +110,8 @@ private:
 	{
 		MATERIAL_SHININESS = 2,
 		MATERIAL_SPEC_COLOR = 4,
-		MATERIAL_DIFF_COLOR = 1 << 3
+		MATERIAL_DIFF_COLOR = 1 << 3,
+		MATERIAL_TRANSPARENCY = 1 << 4
 	};
 	
 	enum AnimationType

@@ -94,7 +94,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				
 				if ((!strcmp(transformName, "lens"))||
 					(!strcmp(transformName, "ortho_scale"))||
-					(!strcmp(transformName, "clipend"))||(!strcmp(transformName, "clipsta"))) 
+					(!strcmp(transformName, "clip_end"))||(!strcmp(transformName, "clip_start"))) 
 					dae_animation(ob , fcu, transformName, true );
 				fcu = fcu->next;
 			}
@@ -836,9 +836,9 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				tm_type = 7;
             else if (!strcmp(name, "ortho_scale"))
 				tm_type = 8;
-			else if (!strcmp(name, "clipend"))
+			else if (!strcmp(name, "clip_end"))
 				tm_type = 9;
-			else if (!strcmp(name, "clipsta"))
+			else if (!strcmp(name, "clip_start"))
 				tm_type = 10;
 			else if (!strcmp(name, "specular_hardness"))
 				tm_type = 11;
