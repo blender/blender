@@ -139,6 +139,33 @@ static const NDOF_ButtonT SpacePilotPro_HID_map[] =
 	NDOF_BUTTON_MINUS
 	};
 
+static const NDOF_ButtonT SpacePilot_HID_map[] =
+// this is the older SpacePilot (sans Pro)
+// thanks to polosson for the info in this table
+	{
+	NDOF_BUTTON_1,
+	NDOF_BUTTON_2,
+	NDOF_BUTTON_3,
+	NDOF_BUTTON_4,
+	NDOF_BUTTON_5,
+	NDOF_BUTTON_6,
+	NDOF_BUTTON_TOP,
+	NDOF_BUTTON_LEFT,
+	NDOF_BUTTON_RIGHT,
+	NDOF_BUTTON_FRONT,
+	NDOF_BUTTON_NONE, // esc key
+	NDOF_BUTTON_NONE, // alt key
+	NDOF_BUTTON_NONE, // shift key
+	NDOF_BUTTON_NONE, // ctrl key
+	NDOF_BUTTON_FIT,
+	NDOF_BUTTON_MENU,
+	NDOF_BUTTON_PLUS,
+	NDOF_BUTTON_MINUS,
+	NDOF_BUTTON_DOMINANT,
+	NDOF_BUTTON_ROTATE,
+	NDOF_BUTTON_NONE // the CONFIG button -- what does it do?
+	};
+
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	: m_system(sys)
 	, m_deviceType(NDOF_UnknownDevice) // each platform has its own device detection code
@@ -159,6 +186,9 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 
 bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short product_id)
 	{
+	// default to NDOF_UnknownDevice so rogue button events will get discarded
+	// "mystery device" owners can help build a HID_map for their hardware
+
 	switch (vendor_id)
 		{
 		case 0x046D: // Logitech (3Dconnexion)
@@ -187,15 +217,15 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					break;
 
 				// -- older devices --
-				// keep unknown device type so rogue button events will get discarded
-				// "mystery device" owners can help build another HID_map for their hardware
+				case 0xC625:
+					puts("ndof: using SpacePilot");
+					m_deviceType = NDOF_SpacePilot;
+					m_buttonCount = 21;
+					break;
+
 				case 0xC623:
 					puts("ndof: SpaceTraveler not supported, please file a bug report");
 					m_buttonCount = 8;
-					break;
-				case 0xC625:
-					puts("ndof: SpacePilot not supported, please file a bug report");
-					m_buttonCount = 21;
 					break;
 
 				default:
@@ -295,6 +325,17 @@ void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64
 				default: sendButtonEvent(SpacePilotPro_HID_map[button_number], press, time, window);
 				}
 			break;
+		case NDOF_SpacePilot:
+			switch (button_number)
+				{
+				case 10: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
+				case 11: sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window); break;
+				case 12: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
+				case 13: sendKeyEvent(GHOST_kKeyLeftControl, press, time, window); break;
+				case 20: puts("ndof: ignoring CONFIG button"); break;
+				default: sendButtonEvent(SpacePilot_HID_map[button_number], press, time, window);
+				}
+			break;
 		case NDOF_UnknownDevice:
 			printf("ndof: button %d on unknown device (ignoring)\n", button_number);
 		}
@@ -369,10 +410,10 @@ bool GHOST_NDOFManager::sendMotionEvent()
 	GHOST_EventNDOFMotion* event = new GHOST_EventNDOFMotion(m_motionTime, window);
 	GHOST_TEventNDOFMotionData* data = (GHOST_TEventNDOFMotionData*) event->getData();
 
-	const float scale = 1.f / 350.f; // 3Dconnexion devices send +/- 350 usually
+	// scale axis values here to normalize them to around +/- 1
+	// they are scaled again for overall sensitivity in the WM based on user prefs
 
-	// probable future enhancement
-	// scale *= U.ndof_sensitivity;
+	const float scale = 1.f / 350.f; // 3Dconnexion devices send +/- 350 usually
 
 	data->tx = scale * m_translation[0];
 	data->ty = scale * m_translation[1];

@@ -32,9 +32,15 @@
 
 typedef enum {
 	NDOF_UnknownDevice, // <-- motion will work fine, buttons are ignored
+
+	// current devices
 	NDOF_SpaceNavigator,
 	NDOF_SpaceExplorer,
-	NDOF_SpacePilotPro
+	NDOF_SpacePilotPro,
+
+	// older devices
+	NDOF_SpacePilot
+
 	} NDOF_DeviceT;
 
 // NDOF device button event types
@@ -69,7 +75,7 @@ typedef enum {
 	NDOF_BUTTON_PLUS,
 	NDOF_BUTTON_MINUS,
 	// general-purpose buttons
-	// TODO: expose these to keymap editor so users can assign functions
+	// users can assign functions via keymap editor
 	NDOF_BUTTON_1,
 	NDOF_BUTTON_2,
 	NDOF_BUTTON_3,
@@ -80,6 +86,7 @@ typedef enum {
 	NDOF_BUTTON_8,
 	NDOF_BUTTON_9,
 	NDOF_BUTTON_10,
+
 	} NDOF_ButtonT;
 
 class GHOST_NDOFManager
