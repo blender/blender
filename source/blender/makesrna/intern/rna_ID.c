@@ -35,6 +35,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_vfont_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 
 #include "WM_types.h"
@@ -416,9 +417,9 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	
 	func= RNA_def_function(srna, "pop", "material_pop_id");
 	RNA_def_function_ui_description(func, "Remove a material from the data block.");
-	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of material to remove.", 0, INT_MAX);
+	parm= RNA_def_int(func, "index", 0, 0, MAXMAT, "", "Index of material to remove.", 0, MAXMAT);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "remove_material_slot", 1, "", "Remove the material slot and assign 1st material to old faces.");
+	RNA_def_boolean(func, "update_data", 0, "", "Update data by re-adjusting the material slots assigned.");
 	parm= RNA_def_pointer(func, "material", "Material", "", "Material to remove.");
 	RNA_def_function_return(func, parm);
 }

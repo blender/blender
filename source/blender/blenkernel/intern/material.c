@@ -517,31 +517,15 @@ short *give_totcolp_id(ID *id)
 
 void data_delete_material_index_id(ID *id, int index)
 {
-	Mesh *me;
-	Curve *cu;
-	Nurb *nu;
-	int curvetype;
-
 	switch(GS(id->name)) {
 	case ID_ME:
-		me=(Mesh *)id;
-		mesh_delete_material_index(me, index);
+		mesh_delete_material_index((Mesh *)id, index);
 		break;
 	case ID_CU:
-		cu= (Curve *)id;
-		nu= cu->nurb.first;
-
-		curvetype=curve_type(cu);
-		if (!ELEM(curvetype, OB_CURVE, OB_SURF))
-			return;
-		
-		while (nu) {
-			if(nu->mat_nr && nu->mat_nr>=index) {
-				nu->mat_nr--;
-				if (curvetype == OB_CURVE) nu->charidx--;
-			}
-			nu= nu->next;
-		}
+		curve_delete_material_index((Curve *)id, index);
+		break;
+	case ID_MB:
+		/* meta-elems dont have materials atm */
 		break;
 	}
 }
@@ -1124,8 +1108,8 @@ int object_remove_material_slot(Object *ob)
 	}
 
 	/* check indices from mesh */
-	if (ELEM3(ob->type, OB_MESH, OB_CURVE, OB_SURF)) {
-		data_delete_material_index_id(&ob->id, actcol-1);
+	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
+		data_delete_material_index_id((ID *)ob->data, actcol-1);
 		freedisplist(&ob->disp);
 	}
 

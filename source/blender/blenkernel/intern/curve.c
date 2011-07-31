@@ -3259,3 +3259,28 @@ void curve_translate(Curve *cu, float offset[3], int do_keys)
 		}
 	}
 }
+
+void curve_delete_material_index(Curve *cu, int index)
+{
+	const int curvetype= curve_type(cu);
+
+	if(curvetype == OB_FONT) {
+		struct CharInfo *info= cu->strinfo;
+		int i;
+		for(i= cu->len-1; i >= 0; i--, info++) {
+			if (info->mat_nr && info->mat_nr>=index) {
+				info->mat_nr--;
+			}
+		}
+	}
+	else {
+		Nurb *nu;
+
+		for (nu= cu->nurb.first; nu; nu= nu->next) {
+			if(nu->mat_nr && nu->mat_nr>=index) {
+				nu->mat_nr--;
+				if (curvetype == OB_CURVE) nu->charidx--;
+			}
+		}
+	}
+}
