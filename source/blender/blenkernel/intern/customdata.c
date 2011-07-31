@@ -805,15 +805,7 @@ static void layerDefault_mcol(void *data, int count)
 		mcol[i] = default_mcol;
 }
 
-static void layerDefault_skin(void *data, int count)
-{
-	SkinNode *n = data;
-	int i;
-	
-	for(i = 0; i < count; i++) {
-		n[i].radius = 0.25;
-	}
-}
+
 
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
@@ -851,8 +843,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	 layerSwap_mcol, layerDefault_mcol},
 	 {sizeof(MCol)*4, "MCol", 4, "TexturedCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
-	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
-	{sizeof(SkinNode), "SkinNode", 1, "Skin", NULL, NULL, NULL, NULL, layerDefault_skin}
+	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -860,7 +851,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	/*   5-9 */ "CDMTFace", "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags",
 	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco",
 	/* 15-19 */ "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent", "CDMDisps",
-	/* 20-24 */ "CDWeightMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco", "CDSkinNode"
+	/* 20-23 */"CDWeightMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco"
 };
 
 const CustomDataMask CD_MASK_BAREMESH =
@@ -868,12 +859,10 @@ const CustomDataMask CD_MASK_BAREMESH =
 const CustomDataMask CD_MASK_MESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL |
-	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS |
-	CD_MASK_SKIN_NODE;
+	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS;
 const CustomDataMask CD_MASK_EDITMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
-	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS |
-	CD_MASK_SKIN_NODE;
+	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS;
 const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_CLOTH_ORCO |

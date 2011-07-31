@@ -68,7 +68,6 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
-	{eModifierType_Skin, "SKIN", ICON_MOD_ARMATURE, "Skin", ""},
 	{0, "", 0, "Deform", ""},
 	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
 	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
@@ -184,8 +183,6 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_ScrewModifier;
 		case eModifierType_Warp:
 			return &RNA_WarpModifier;
-		case eModifierType_Skin:
-			return &RNA_SkinModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -2415,17 +2412,6 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 }
 
-static void rna_def_modifier_skin(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna= RNA_def_struct(brna, "SkinModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "Skin Modifier", "Generate Skin");
-	RNA_def_struct_sdna(srna, "SkinModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_ARMATURE);
-}
-
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2523,7 +2509,6 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_smoke(brna);
 	rna_def_modifier_solidify(brna);
 	rna_def_modifier_screw(brna);
-	rna_def_modifier_skin(brna);
 }
 
 #endif
