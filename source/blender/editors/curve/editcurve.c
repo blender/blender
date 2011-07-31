@@ -3432,7 +3432,6 @@ static int convertspline(short type, Nurb *nu)
 			nu->type = CU_NURBS;
 			nu->orderu= 4;
 			nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
-			nu->flagu |= CU_NURB_BEZIER;
 			nurbs_knot_calc_u(nu);
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
