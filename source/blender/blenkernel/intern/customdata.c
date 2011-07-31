@@ -811,7 +811,7 @@ static void layerDefault_skin(void *data, int count)
 	int i;
 	
 	for(i = 0; i < count; i++) {
-		n[i].radius = 1;
+		n[i].radius = 0.25;
 	}
 }
 

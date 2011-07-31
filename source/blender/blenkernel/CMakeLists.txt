@@ -81,6 +81,7 @@ set(SRC
 	intern/boids.c
 	intern/booleanops_mesh.c
 	intern/brush.c
+	intern/bsphere.c
 	intern/bullet.c
 	intern/bvhutils.c
 	intern/cdderivedmesh.c
