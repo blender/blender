@@ -418,6 +418,7 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Remove a material from the data block.");
 	parm= RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of material to remove.", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "remove_material_slot", 1, "", "Remove the material slot and assign 1st material to old faces.");
 	parm= RNA_def_pointer(func, "material", "Material", "", "Material to remove.");
 	RNA_def_function_return(func, parm);
 }

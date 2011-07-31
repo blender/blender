@@ -1254,10 +1254,10 @@ void mesh_to_curve(Scene *scene, Object *ob)
 
 void mesh_delete_material_index(Mesh *me, int index)
 {
+	MFace *mf;
 	int i;
 
-	for (i=0; i<me->totface; i++) {
-		MFace *mf = &((MFace*) me->mface)[i];
+	for (i=0, mf=me->mface; i<me->totface; i++, mf++) {
 		if (mf->mat_nr && mf->mat_nr>=index) 
 			mf->mat_nr--;
 	}
