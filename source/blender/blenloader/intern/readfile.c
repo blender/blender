@@ -3162,7 +3162,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			if(part->effector_weights)
 				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
 
-			if(part->dupliweights.first) {
+			if(part->dupliweights.first && part->dup_group) {
 				int index_ok = 0;
 				/* check for old files without indices (all indexes 0) */
 				dw = part->dupliweights.first;
@@ -3192,6 +3192,9 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 					for(; dw; dw=dw->next)
 						dw->ob = newlibadr(fd, part->id.lib, dw->ob);
 				}
+			}
+			else {
+				part->dupliweights.first = part->dupliweights.last = NULL;
 			}
 
 			if(part->boids) {
