@@ -71,6 +71,7 @@ typedef enum ModifierType {
 	eModifierType_Solidify,
 	eModifierType_Screw,
 	eModifierType_Warp,
+	eModifierType_Skin,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -784,5 +785,18 @@ typedef enum {
 	eWarp_Falloff_Sphere =		7, /* PROP_SPHERE */
 	/* PROP_RANDOM not used */
 } WarpModifierFalloff;
+
+typedef enum SkinModifierFlags {
+	MOD_SKIN_DRAW_SKIN = (1<<0),
+	MOD_SKIN_DRAW_NODES = (1<<1),
+} SkinModifierFlags;
+
+typedef struct SkinModifierData {
+	ModifierData modifier;
+	float threshold;
+	int subdiv;
+	int flag;
+	int pad;
+} SkinModifierData;
 
 #endif
