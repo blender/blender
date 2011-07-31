@@ -29,7 +29,7 @@
 
 /* defines VIEW3D_OT_fly modal operator */
 
-// #define NDOF_FLY_DEBUG
+//#define NDOF_FLY_DEBUG
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -145,7 +145,6 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_fly");
-
 }
 
 typedef struct FlyInfo {
@@ -670,7 +669,6 @@ static void move_camera(bContext* C, RegionView3D* rv3d, FlyInfo* fly, int orien
 
 static int flyApply(bContext *C, FlyInfo *fly)
 {
-
 #define FLY_ROTATE_FAC 2.5f /* more is faster */
 #define FLY_ZUP_CORRECT_FAC 0.1f /* amount to correct per step */
 #define FLY_ZUP_CORRECT_ACCEL 0.05f /* increase upright momentum each step */
@@ -934,13 +932,16 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	RegionView3D* rv3d = fly->rv3d;
 	const int flag = U.ndof_flag;
 
-	int shouldRotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == FALSE),
-	    shouldTranslate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM));
+//	int shouldRotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == FALSE),
+//	    shouldTranslate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM));
+
+	int shouldRotate = (fly->pan_view == FALSE),
+	    shouldTranslate = TRUE;
 
 	float view_inv[4];
 	invert_qt_qt(view_inv, rv3d->viewquat);
 
-	rv3d->rot_angle = 0; // disable onscreen rotation doo-dad
+	rv3d->rot_angle = 0.f; // disable onscreen rotation doo-dad
 
 	if (shouldTranslate)
 		{
@@ -974,9 +975,9 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		if (rv3d->persp==RV3D_CAMOB) {
 			// respect camera position locks
 			Object *lock_ob= fly->root_parent ? fly->root_parent : fly->v3d->camera;
-			if (lock_ob->protectflag & OB_LOCK_LOCX) trans[0] = 0.0;
-			if (lock_ob->protectflag & OB_LOCK_LOCY) trans[1] = 0.0;
-			if (lock_ob->protectflag & OB_LOCK_LOCZ) trans[2] = 0.0;
+			if (lock_ob->protectflag & OB_LOCK_LOCX) trans[0] = 0.f;
+			if (lock_ob->protectflag & OB_LOCK_LOCY) trans[1] = 0.f;
+			if (lock_ob->protectflag & OB_LOCK_LOCZ) trans[2] = 0.f;
 		}
 
 		if (trans[0] || trans[1] || trans[2])
@@ -1015,8 +1016,8 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 				// force an upright viewpoint
 				// TODO: make this less... sudden
 				{
-				float view_horizon[3] = {1, 0, 0}; // view +x
-				float view_direction[3] = {0, 0, -1}; // view -z (into screen)
+				float view_horizon[3] = {1.f, 0.f, 0.f}; // view +x
+				float view_direction[3] = {0.f, 0.f, -1.f}; // view -z (into screen)
 
 				// find new inverse since viewquat has changed
 				invert_qt_qt(view_inv, rv3d->viewquat);
@@ -1124,6 +1125,7 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, fly_object);
 		}
 
+		// puts("redraw!"); // too frequent, fix tomorrow.
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
