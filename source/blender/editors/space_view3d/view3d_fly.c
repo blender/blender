@@ -599,6 +599,75 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 	}
 }
 
+
+static void move_camera(bContext* C, RegionView3D* rv3d, FlyInfo* fly, int orientationChanged, int positionChanged)
+{
+	/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
+
+	View3D* v3d = fly->v3d;
+	Scene *scene= fly->scene;
+	ID *id_key;
+
+	/* transform the parent or the camera? */
+	if(fly->root_parent) {
+		Object *ob_update;
+
+		float view_mat[4][4];
+		float prev_view_mat[4][4];
+		float prev_view_imat[4][4];
+		float diff_mat[4][4];
+		float parent_mat[4][4];
+
+		ED_view3d_to_m4(prev_view_mat, fly->rv3d->ofs, fly->rv3d->viewquat, fly->rv3d->dist);
+		invert_m4_m4(prev_view_imat, prev_view_mat);
+		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+		mul_m4_m4m4(diff_mat, prev_view_imat, view_mat);
+		mul_m4_m4m4(parent_mat, fly->root_parent->obmat, diff_mat);
+		object_apply_mat4(fly->root_parent, parent_mat, TRUE, FALSE);
+
+		// where_is_object(scene, fly->root_parent);
+
+		ob_update= v3d->camera->parent;
+		while(ob_update) {
+			DAG_id_tag_update(&ob_update->id, OB_RECALC_OB);
+			ob_update= ob_update->parent;
+		}
+
+		id_key= &fly->root_parent->id;
+	}
+	else {
+		float view_mat[4][4];
+		ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+		object_apply_mat4(v3d->camera, view_mat, TRUE, FALSE);
+		id_key= &v3d->camera->id;
+	}
+
+	/* record the motion */
+	if (autokeyframe_cfra_can_key(scene, id_key)) {
+		ListBase dsources = {NULL, NULL};
+		
+		/* add datasource override for the camera object */
+		ANIM_relative_keyingset_add_source(&dsources, id_key, NULL, NULL); 
+		
+		/* insert keyframes 
+		 *	1) on the first frame
+		 *	2) on each subsequent frame
+		 *		TODO: need to check in future that frame changed before doing this 
+		 */
+		if (orientationChanged) {
+			KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		}
+		if (positionChanged) {
+			KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		}
+		
+		/* free temp data */
+		BLI_freelistN(&dsources);
+	}
+}
+
 static int flyApply(bContext *C, FlyInfo *fly)
 {
 
@@ -611,11 +680,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	a fly loop where the user can move move the view as if they are flying
 	*/
 	RegionView3D *rv3d= fly->rv3d;
-	View3D *v3d = fly->v3d;
 	ARegion *ar = fly->ar;
-	Scene *scene= fly->scene;
-
-	float prev_view_mat[4][4];
 
 	float mat[3][3], /* 3x3 copy of the view matrix so we can move allong the view axis */
 	dvec[3]={0,0,0}, /* this is the direction thast added to the view offset per redraw */
@@ -638,8 +703,6 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	printf("fly timer %d\n", iteration++);
 	#endif
 
-	if(fly->root_parent)
-		ED_view3d_to_m4(prev_view_mat, fly->rv3d->ofs, fly->rv3d->viewquat, fly->rv3d->dist);
 
 	xmargin= ar->winx/20.0f;
 	ymargin= ar->winy/20.0f;
@@ -756,7 +819,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 						mul_m3_v3(mat, upvec);
 					}
 
-					axis_angle_to_quat( tmp_quat, upvec, (float)moffset[0] * time_redraw * FLY_ROTATE_FAC); /* Rotate about the relative up vec */
+					axis_angle_to_quat(tmp_quat, upvec, (float)moffset[0] * time_redraw * FLY_ROTATE_FAC); /* Rotate about the relative up vec */
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, tmp_quat);
 
 					if (fly->xlock) fly->xlock = 2;/*check for rotation*/
@@ -850,69 +913,9 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				ED_area_headerprint(fly->ar, "FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
 #endif
 
-			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
-			if (rv3d->persp==RV3D_CAMOB) {
-				ID *id_key;
-				/* transform the parent or the camera? */
-				if(fly->root_parent) {
-					Object *ob_update;
+			if (rv3d->persp==RV3D_CAMOB)
+				move_camera(C, rv3d, fly, (fly->xlock || fly->zlock || moffset[0] || moffset[1]), fly->speed);
 
-					float view_mat[4][4];
-					float prev_view_imat[4][4];
-					float diff_mat[4][4];
-					float parent_mat[4][4];
-
-					invert_m4_m4(prev_view_imat, prev_view_mat);
-					ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-					mul_m4_m4m4(diff_mat, prev_view_imat, view_mat);
-					mul_m4_m4m4(parent_mat, fly->root_parent->obmat, diff_mat);
-					object_apply_mat4(fly->root_parent, parent_mat, TRUE, FALSE);
-
-					// where_is_object(scene, fly->root_parent);
-
-					ob_update= v3d->camera->parent;
-					while(ob_update) {
-						DAG_id_tag_update(&ob_update->id, OB_RECALC_OB);
-						ob_update= ob_update->parent;
-					}
-
-					copy_m4_m4(prev_view_mat, view_mat);
-
-					id_key= &fly->root_parent->id;
-
-				}
-				else {
-					float view_mat[4][4];
-					ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-					object_apply_mat4(v3d->camera, view_mat, TRUE, FALSE);
-					id_key= &v3d->camera->id;
-				}
-
-				/* record the motion */
-				if (autokeyframe_cfra_can_key(scene, id_key)) {
-					ListBase dsources = {NULL, NULL};
-					
-					/* add datasource override for the camera object */
-					ANIM_relative_keyingset_add_source(&dsources, id_key, NULL, NULL); 
-					
-					/* insert keyframes 
-					 *	1) on the first frame
-					 *	2) on each subsequent frame
-					 *		TODO: need to check in future that frame changed before doing this 
-					 */
-					if (fly->xlock || fly->zlock || moffset[0] || moffset[1]) {
-						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-					}
-					if (fly->speed) {
-						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
-						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-					}
-					
-					/* free temp data */
-					BLI_freelistN(&dsources);
-				}
-			}
 		} else
 			/*were not redrawing but we need to update the time else the view will jump */
 			fly->time_lastdraw= PIL_check_seconds_timer();
@@ -931,13 +934,8 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	RegionView3D* rv3d = fly->rv3d;
 	const int flag = U.ndof_flag;
 
-	const int shouldRotate = TRUE,
-	          shouldTranslate = TRUE;
-
-	// const int shouldRotate = flag & NDOF_SHOULD_ROTATE,
-	//          shouldTranslate = flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM);
-	// might also be something in FlyInfo that restricts motion
-	// if so, change these ^^
+	int shouldRotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == FALSE),
+	    shouldTranslate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM));
 
 	float view_inv[4];
 	invert_qt_qt(view_inv, rv3d->viewquat);
@@ -959,22 +957,36 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 			forward_sensitivity * ndof->tz
 			};
 
+		if (fly->use_precision)
+			speed *= 0.2f;
+
 		mul_v3_fl(trans, speed * dt);
 
 		// transform motion from view to world coordinates
 		mul_qt_v3(view_inv, trans);
 
 		if (flag & NDOF_FLY_HELICOPTER)
-			// could also use RNA to get a simple boolean value
 			{
 			// replace world z component with device y (yes it makes sense)
 			trans[2] = speed * dt * vertical_sensitivity * ndof->ty;
 			}
 
-		// move center of view opposite of hand motion (this is camera mode, not object mode)
-		sub_v3_v3(rv3d->ofs, trans);
+		if (rv3d->persp==RV3D_CAMOB) {
+			// respect camera position locks
+			Object *lock_ob= fly->root_parent ? fly->root_parent : fly->v3d->camera;
+			if (lock_ob->protectflag & OB_LOCK_LOCX) trans[0] = 0.0;
+			if (lock_ob->protectflag & OB_LOCK_LOCY) trans[1] = 0.0;
+			if (lock_ob->protectflag & OB_LOCK_LOCZ) trans[2] = 0.0;
+		}
 
-		fly->redraw = 1;
+		if (trans[0] || trans[1] || trans[2])
+			{
+			// move center of view opposite of hand motion (this is camera mode, not object mode)
+			sub_v3_v3(rv3d->ofs, trans);
+			shouldTranslate = TRUE;
+			}
+		else
+			shouldTranslate = FALSE;
 		}
 
 	if (shouldRotate)
@@ -985,44 +997,60 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		float axis[3];
 		float angle = turn_sensitivity * ndof_to_angle_axis(ndof, axis);
 
-		// transform rotation axis from view to world coordinates
-		mul_qt_v3(view_inv, axis);
-
-		// apply rotation to view
-		axis_angle_to_quat(rotation, axis, angle);
-		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
-
-		if (flag & NDOF_LOCK_HORIZON)
-			// force an upright viewpoint
-			// TODO: make this less... sudden
+		if (fabsf(angle) > 0.0001f)
 			{
-			float view_horizon[3] = {1, 0, 0}; // view +x
-			float view_direction[3] = {0, 0, -1}; // view -z (into screen)
+			shouldRotate = TRUE;
 
-			// find new inverse since viewquat has changed
-			invert_qt_qt(view_inv, rv3d->viewquat);
-			// could apply reverse rotation to existing view_inv to save a few cycles
+			if (fly->use_precision)
+				angle *= 0.2f;
 
-			// transform view vectors to world coordinates
-			mul_qt_v3(view_inv, view_horizon);
-			mul_qt_v3(view_inv, view_direction);
+			// transform rotation axis from view to world coordinates
+			mul_qt_v3(view_inv, axis);
 
-			// find difference between view & world horizons
-			// true horizon lives in world xy plane, so look only at difference in z
-			angle = -asinf(view_horizon[2]);
-
-			#ifdef NDOF_FLY_DEBUG
-			printf("lock horizon: adjusting %.1f degrees\n\n", RAD2DEG(angle));
-			#endif
-
-			// rotate view so view horizon = world horizon
-			axis_angle_to_quat(rotation, view_direction, angle);
+			// apply rotation to view
+			axis_angle_to_quat(rotation, axis, angle);
 			mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
+
+			if (flag & NDOF_LOCK_HORIZON)
+				// force an upright viewpoint
+				// TODO: make this less... sudden
+				{
+				float view_horizon[3] = {1, 0, 0}; // view +x
+				float view_direction[3] = {0, 0, -1}; // view -z (into screen)
+
+				// find new inverse since viewquat has changed
+				invert_qt_qt(view_inv, rv3d->viewquat);
+				// could apply reverse rotation to existing view_inv to save a few cycles
+
+				// transform view vectors to world coordinates
+				mul_qt_v3(view_inv, view_horizon);
+				mul_qt_v3(view_inv, view_direction);
+
+				// find difference between view & world horizons
+				// true horizon lives in world xy plane, so look only at difference in z
+				angle = -asinf(view_horizon[2]);
+
+				#ifdef NDOF_FLY_DEBUG
+				printf("lock horizon: adjusting %.1f degrees\n\n", RAD2DEG(angle));
+				#endif
+
+				// rotate view so view horizon = world horizon
+				axis_angle_to_quat(rotation, view_direction, angle);
+				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rotation);
+				}
+
+			rv3d->view = RV3D_VIEW_USER;
 			}
+		else
+			shouldRotate = FALSE;
+		}
 
-		rv3d->view = RV3D_VIEW_USER;
+	if (shouldTranslate || shouldRotate)
+		{
+		fly->redraw = TRUE;
 
-		fly->redraw = 1;
+		if (rv3d->persp==RV3D_CAMOB)
+			move_camera(C, rv3d, fly, shouldRotate, shouldTranslate);
 		}
 
 	return OPERATOR_FINISHED;
