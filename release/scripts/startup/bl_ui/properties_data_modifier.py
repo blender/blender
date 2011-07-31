@@ -736,5 +736,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         col.prop(md, "width", slider=True)
         col.prop(md, "narrowness", slider=True)
 
+    def SKIN(self, layout, ob, md):
+        pass
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
