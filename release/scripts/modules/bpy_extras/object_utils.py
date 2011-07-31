@@ -41,7 +41,7 @@ def add_object_align_init(context, operator):
     """
 
     from mathutils import Matrix, Vector, Euler
-    properties = operator.properties
+    properties = operator.properties if operator is not None else None
 
     space_data = context.space_data
     if space_data.type != 'VIEW_3D':
