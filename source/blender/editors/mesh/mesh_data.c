@@ -613,6 +613,9 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges)
 	if(calc_edges || (mesh->totface && mesh->totedge == 0))
 		BKE_mesh_calc_edges(mesh, calc_edges);
 
+	if(mesh->totface > 0 && mesh->totpoly == 0)
+		convert_mfaces_to_mpolys(mesh);
+
 	mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL, NULL, 0, NULL, NULL);
 
 	DAG_id_tag_update(&mesh->id, 0);
