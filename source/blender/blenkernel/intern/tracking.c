@@ -451,9 +451,6 @@ void BKE_tracking_free(MovieTracking *tracking)
 	if(tracking->camera.reconstructed)
 		MEM_freeN(tracking->camera.reconstructed);
 
-	if(tracking->stabilization.ibuf)
-		IMB_freeImBuf(tracking->stabilization.ibuf);
-
 	if(tracking->stabilization.scaleibuf)
 		IMB_freeImBuf(tracking->stabilization.scaleibuf);
 }
@@ -1311,36 +1308,17 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking)
 	return stab->scale;
 }
 
-static void calculate_stabmat(MovieTrackingStabilization *stab, float width, float height,
-			float firstmedian[2], float curmedian[2], float mat[4][4])
+static void calculate_stabdata(MovieTrackingStabilization *stab, float width, float height,
+			float firstmedian[2], float curmedian[2], float loc[2], float *scale)
 {
-	unit_m4(mat);
+	mul_v2_fl(loc, stab->locinf);
+	*scale= (stab->scale-1.f)*stab->scaleinf+1.f;
 
-	mat[0][0]= stab->scale;
-	mat[1][1]= stab->scale;
-	mat[2][2]= stab->scale;
-	mat[3][0]= (firstmedian[0]-curmedian[0])*width*stab->scale;
-	mat[3][1]= (firstmedian[1]-curmedian[1])*height*stab->scale;
+	loc[0]= (firstmedian[0]-curmedian[0])*width*(*scale);
+	loc[1]= (firstmedian[1]-curmedian[1])*height*(*scale);
 
-	mat[3][0]-= (firstmedian[0]*stab->scale-firstmedian[0])*width;
-	mat[3][1]-= (firstmedian[1]*stab->scale-firstmedian[1])*height;
-}
-
-static int stabilize_need_recalc(MovieTracking *tracking, float width, float height,
-			float firstmedian[2], float curmedian[2], float mat[4][4])
-{
-	float stabmat[4][4];
-	MovieTrackingStabilization *stab= &tracking->stabilization;
-
-	if(!mat)
-		return 1;
-
-	if(stab->flag&TRACKING_AUTOSCALE)
-		stabilization_auto_scale_factor(tracking);
-
-	calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
-
-	return memcmp(mat, stabmat, sizeof(float)*16);
+	loc[0]-= (firstmedian[0]*(*scale)-firstmedian[0])*width;
+	loc[1]-= (firstmedian[1]*(*scale)-firstmedian[1])*height;
 }
 
 static ImBuf* stabilize_acquire_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
@@ -1371,15 +1349,14 @@ static ImBuf* stabilize_acquire_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
 	return cacheibuf;
 }
 
-void BKE_tracking_stabilization_matrix(MovieTracking *tracking, int framenr, int width, int height, float mat[4][4])
+void BKE_tracking_stabilization_data(MovieTracking *tracking, int framenr, int width, int height, float loc[2], float *scale)
 {
-	float firstmedian[2], curmedian[2], stabmat[4][4];
+	float firstmedian[2], curmedian[2];
 	MovieTrackingStabilization *stab= &tracking->stabilization;
 
-	copy_m4_m4(stabmat, mat);
-
 	if((stab->flag&TRACKING_2D_STABILIZATION)==0) {
-		unit_m4(mat);
+		zero_v2(loc);
+		*scale= 1.f;
 
 		return;
 	}
@@ -1390,101 +1367,78 @@ void BKE_tracking_stabilization_matrix(MovieTracking *tracking, int framenr, int
 		if((stab->flag&TRACKING_AUTOSCALE)==0)
 				stab->scale= 1.f;
 
-		if(!stab->ok && stab->ibufok && stab->ibuf)
-			stab->ibufok= stabilize_need_recalc(tracking, width, height, firstmedian, curmedian, mat) == 0;
-
-		if(!stab->ibuf || !stab->ibufok) {
+		if(!stab->ok) {
 			if(stab->flag&TRACKING_AUTOSCALE)
 				stabilization_auto_scale_factor(tracking);
 
-			calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
+			calculate_stabdata(stab, width, height, firstmedian, curmedian, loc, scale);
 
 			stab->ok= 1;
 		} else {
-			calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
+			calculate_stabdata(stab, width, height, firstmedian, curmedian, loc, scale);
 		}
 	} else {
-		unit_m4(stabmat);
+		zero_v2(loc);
+		*scale= 1.f;
 	}
-
-	if(mat)
-		copy_m4_m4(mat, stabmat);
 }
 
-ImBuf *BKE_tracking_stabilize_shot(MovieTracking *tracking, int framenr, ImBuf *ibuf, float mat[4][4])
+ImBuf *BKE_tracking_stabilize_shot(MovieTracking *tracking, int framenr, ImBuf *ibuf, float loc[2], float *scale)
 {
-	float firstmedian[2], curmedian[2], stabmat[4][4];
+	float tloc[2], tscale;
 	MovieTrackingStabilization *stab= &tracking->stabilization;
+	ImBuf *tmpibuf;
+	float width= ibuf->x, height= ibuf->y;
 
-	if(mat)
-		copy_m4_m4(stabmat, mat);
+	if(loc)		copy_v2_v2(tloc, loc);
+	if(scale)	tscale= *scale;
 
 	if((stab->flag&TRACKING_2D_STABILIZATION)==0) {
-		if(mat)
-			unit_m4(mat);
+		if(loc)		zero_v2(loc);
+		if(scale) 	*scale= 1.f;
 
 		return ibuf;
 	}
 
-	if(stabilization_median_point(tracking, 1, firstmedian)) {
-		ImBuf *tmpibuf;
-		float width= ibuf->x, height= ibuf->y;
+	BKE_tracking_stabilization_data(tracking, framenr, width, height, tloc, &tscale);
 
-		stabilization_median_point(tracking, framenr, curmedian);
+	tmpibuf= stabilize_acquire_ibuf(NULL, ibuf, 1);
 
-		if((stab->flag&TRACKING_AUTOSCALE)==0)
-				stab->scale= 1.f;
+	if(tscale!=1.f) {
+		ImBuf *scaleibuf;
+		float scale= (stab->scale-1.f)*stab->scaleinf+1.f;
 
-		if(!stab->ok && stab->ibufok && stab->ibuf)
-			stab->ibufok= stabilize_need_recalc(tracking, width, height, firstmedian, curmedian, mat) == 0;
+		stabilization_auto_scale_factor(tracking);
 
-		if(!stab->ibuf || !stab->ibufok) {
-			tmpibuf= stabilize_acquire_ibuf(stab->ibuf, ibuf, 1);
-			stab->ibuf= tmpibuf;
+		scaleibuf= stabilize_acquire_ibuf(stab->scaleibuf, ibuf, 0);
+		stab->scaleibuf= scaleibuf;
 
-			if(stab->flag&TRACKING_AUTOSCALE) {
-				ImBuf *scaleibuf;
+		IMB_rectcpy(scaleibuf, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
+		IMB_scalefastImBuf(scaleibuf, ibuf->x*scale, ibuf->y*scale);
 
-				stabilization_auto_scale_factor(tracking);
-
-				scaleibuf= stabilize_acquire_ibuf(stab->scaleibuf, ibuf, 0);
-				stab->scaleibuf= scaleibuf;
-
-				IMB_rectcpy(scaleibuf, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
-				IMB_scalefastImBuf(scaleibuf, ibuf->x*stab->scale, ibuf->y*stab->scale);
-
-				ibuf= scaleibuf;
-			}
-
-			calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
-
-			IMB_rectcpy(tmpibuf, ibuf, stabmat[3][0], stabmat[3][1], 0, 0, ibuf->x, ibuf->y);
-
-			tmpibuf->userflags|= IB_MIPMAP_INVALID;
-
-			if(tmpibuf->rect_float)
-				tmpibuf->userflags|= IB_RECT_INVALID;
-		} else {
-			calculate_stabmat(stab, width, height, firstmedian, curmedian, stabmat);
-			tmpibuf= stab->ibuf;
-		}
-
-		stab->ibuf= tmpibuf;
-		IMB_refImBuf(stab->ibuf);
-
-		if(mat)
-			copy_m4_m4(mat, stabmat);
-
-		stab->ibufok= 1;
-		stab->ok= 1;
-
-		return stab->ibuf;
-	} else {
-		unit_m4(stabmat);
+		ibuf= scaleibuf;
 	}
 
-	if(mat)
-		copy_m4_m4(mat, stabmat);
+	IMB_rectcpy(tmpibuf, ibuf, tloc[0], tloc[1], 0, 0, ibuf->x, ibuf->y);
 
-	return ibuf;
+	tmpibuf->userflags|= IB_MIPMAP_INVALID;
+
+	if(tmpibuf->rect_float)
+		tmpibuf->userflags|= IB_RECT_INVALID;
+
+	if(loc)		copy_v2_v2(loc, tloc);
+	if(scale)	*scale= tscale;
+
+	return tmpibuf;
+}
+
+void BKE_tracking_stabdata_to_mat4(float loc[2], float scale, float mat[4][4])
+{
+	unit_m4(mat);
+
+	mat[0][0]*= scale;
+	mat[1][1]*= scale;
+	mat[2][2]*= scale;
+
+	copy_v2_v2(mat[3], loc);
 }

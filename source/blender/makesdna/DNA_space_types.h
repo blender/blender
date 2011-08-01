@@ -590,6 +590,9 @@ typedef struct SpaceClip {
 	float track_search_pos[2], track_search[2];	/* position and dimensions of marker search in pixel coords */
 	int marker_flag;							/* marker's flags */
 
+	/* current stabilization data */
+	float loc[2], scale;	/* pre-composed stabilization data */
+	float pad2;
 	float stabmat[4][4];	/* current stabilization matrix, defined when drawing
 							   and used for mouse position calculation */
 } SpaceClip;
@@ -976,6 +979,7 @@ enum {
 #define SC_HIDE_DISABLED		(1<<7)
 #define SC_SHOW_NAMES			(1<<8)
 #define SC_SHOW_GRID			(1<<9)
+#define SC_SHOW_STABLE			(1<<10)
 
 
 /* space types, moved from DNA_screen_types.h */

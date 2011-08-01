@@ -62,7 +62,7 @@ typedef struct MovieClip {
 	float aspx, aspy;	/* display aspect */
 
 	struct anim *anim;	/* movie source data */
-	void *ibuf_cache;	/* cache of ibufs, not in file */
+	struct MovieClipCache *cache;		/* cache for different stuff, not in file */
 
 	struct MovieTracking tracking;		/* data for SfM tracking */
 	void *tracking_context;				/* context of tracking job

@@ -3520,6 +3520,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	register_node_type_cmp_glare(ntypelist);
 	register_node_type_cmp_tonemap(ntypelist);
 	register_node_type_cmp_lensdist(ntypelist);
+	register_node_type_cmp_transform(ntypelist);
 	register_node_type_cmp_stabilize2d(ntypelist);
 }
 

@@ -328,8 +328,9 @@ class CLIP_PT_display(bpy.types.Panel):
 
         row = layout.row()
         row.prop(sc, "show_track_path", text="Path")
-        row.active = sc.show_track_path
-        row.prop(sc, "path_length", text="Length")
+        sub = row.column()
+        sub.active = sc.show_track_path
+        sub.prop(sc, "path_length", text="Length")
 
         row = layout.row()
         row.prop(sc, "show_disabled", text="Disabled")
@@ -339,7 +340,9 @@ class CLIP_PT_display(bpy.types.Panel):
         row.prop(sc, "show_names", text="Names")
         row.prop(sc, "show_grid", text="Grid")
 
-        layout.prop(sc, "show_tiny_markers", text="Tiny Markers")
+        row = layout.row()
+        row.prop(sc, "show_tiny_markers", text="Tiny Markers")
+        row.prop(sc, "show_stable", text="Stable")
 
         layout.prop(sc, "lock_selection")
         layout.prop(sc, "use_mute_footage")
@@ -377,7 +380,6 @@ class CLIP_PT_stabilization(bpy.types.Panel):
 
         layout.active = stab.use_2d_stabilization
 
-        layout.prop(stab, "use_autoscale")
 
         row = layout.row()
         row.template_list(stab, "tracks", stab, "active_track_index", rows=3)
@@ -386,6 +388,13 @@ class CLIP_PT_stabilization(bpy.types.Panel):
         sub.operator("clip.stabilize_2d_add", icon='ZOOMIN', text="")
         sub.operator("clip.stabilize_2d_remove", icon='ZOOMOUT', text="")
         sub.menu('CLIP_MT_stabilize_2d_specials', text="", icon="DOWNARROW_HLT")
+
+        layout.prop(stab, "influence_location")
+
+        layout.prop(stab, "use_autoscale")
+        row = layout.row()
+        row.active = stab.use_autoscale
+        row.prop(stab, "influence_scale")
 
 
 class CLIP_PT_footage(bpy.types.Panel):

@@ -163,31 +163,35 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf, float
 
 		if(ibuf->rect) {
 			MovieClip *clip= ED_space_clip(sc);
+
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 
-			glColor3f(0.f, 0.f, 0.f);
-			glLineStipple(3, 0xaaaa);
-			glEnable(GL_LINE_STIPPLE);
-			glEnable(GL_COLOR_LOGIC_OP);
-			glLogicOp(GL_NOR);
+			/* draw boundary border for frame if stabilization is enabled */
+			if(sc->flag&SC_SHOW_STABLE && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
+				glColor3f(0.f, 0.f, 0.f);
+				glLineStipple(3, 0xaaaa);
+				glEnable(GL_LINE_STIPPLE);
+				glEnable(GL_COLOR_LOGIC_OP);
+				glLogicOp(GL_NOR);
 
-			glPushMatrix();
-			glTranslatef(x, y, 0);
+				glPushMatrix();
+				glTranslatef(x, y, 0);
 
-			glScalef(zoomx, zoomy, 0);
-			glMultMatrixf(sc->stabmat);
+				glScalef(zoomx, zoomy, 0);
+				glMultMatrixf(sc->stabmat);
 
-			glBegin(GL_LINE_LOOP);
-				glVertex2f(0.f, 0.f);
-				glVertex2f(ibuf->x, 0.f);
-				glVertex2f(ibuf->x, ibuf->y);
-				glVertex2f(0.f, ibuf->y);
-			glEnd();
+				glBegin(GL_LINE_LOOP);
+					glVertex2f(0.f, 0.f);
+					glVertex2f(ibuf->x, 0.f);
+					glVertex2f(ibuf->x, ibuf->y);
+					glVertex2f(0.f, ibuf->y);
+				glEnd();
 
-			glPopMatrix();
+				glPopMatrix();
 
-			glDisable(GL_COLOR_LOGIC_OP);
-			glDisable(GL_LINE_STIPPLE);
+				glDisable(GL_COLOR_LOGIC_OP);
+				glDisable(GL_LINE_STIPPLE);
+			}
 		}
 	}
 
@@ -555,8 +559,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	searchdx= MIN2(dx, (track->search_max[0]-track->search_min[0])/6.f);
 	searchdy= MIN2(dy, (track->search_max[1]-track->search_min[1])/6.f);
 
-	px[0]= 1.0f/sc->zoom/width/sc->stabmat[0][0];
-	px[1]= 1.0f/sc->zoom/height/sc->stabmat[1][1];
+	px[0]= 1.0f/sc->zoom/width/sc->scale;
+	px[1]= 1.0f/sc->zoom/height/sc->scale;
 
 	if((sc->flag&SC_SHOW_MARKER_SEARCH) && ((track->search_flag&SELECT)==sel || outline)) {
 		if(!outline) {
@@ -677,8 +681,8 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		dy= track->pat_min[1];
 	}
 
-	x= (marker->pos[0]+dx)*width*sc->stabmat[0][0]*zoomx+sc->stabmat[3][0]*zoomx;
-	y= (marker->pos[1]+dy)*height*sc->stabmat[1][1]*zoomy-14.f*UI_DPI_FAC+sc->stabmat[3][1]*zoomy;
+	x= (marker->pos[0]+dx)*width*sc->scale*zoomx+sc->loc[0]*zoomx;
+	y= (marker->pos[1]+dy)*height*sc->scale*zoomy-14.f*UI_DPI_FAC+sc->loc[1]*zoomy;
 
 	if(marker->flag&MARKER_DISABLED) strcpy(state, "disabled");
 	else if(marker->framenr!=sc->user.framenr) strcpy(state, "estimated");
@@ -929,7 +933,16 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
-	ibuf= ED_space_clip_acquire_stable_buffer(sc, sc->stabmat);
+	if(sc->flag&SC_SHOW_STABLE) {
+		ibuf= ED_space_clip_acquire_stable_buffer(sc, sc->loc, &sc->scale);
+		BKE_tracking_stabdata_to_mat4(sc->loc, sc->scale, sc->stabmat);
+	} else {
+		ibuf= ED_space_clip_acquire_buffer(sc);
+
+		zero_v2(sc->loc);
+		sc->scale= 1.f;
+		unit_m4(sc->stabmat);
+	}
 
 	if(ibuf) {
 		draw_movieclip_buffer(sc, ar, ibuf, zoomx, zoomy);

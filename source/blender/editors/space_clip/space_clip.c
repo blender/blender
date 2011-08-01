@@ -84,17 +84,13 @@ static void clip_scopes_tag_refresh(ScrArea *sa)
 	sc->scopes.ok= 0;
 }
 
-static void clip_stabilization_tag_refresh(ScrArea *sa, int edited)
+static void clip_stabilization_tag_refresh(ScrArea *sa)
 {
 	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingStabilization *stab= &clip->tracking.stabilization;
 
-	if(edited) {
-		stab->ok= 0;
-	} else {
-		stab->ibufok= 0;
-	}
+	stab->ok= 0;
 }
 
 /* ******************** default callbacks for clip space ***************** */
@@ -177,7 +173,6 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_FRAME:
 					clip_scopes_tag_refresh(sa);
-					clip_stabilization_tag_refresh(sa, 0);
 					/* no break! */
 
 				case ND_FRAME_RANGE:
@@ -196,11 +191,13 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			switch(wmn->action) {
 				case NA_REMOVED:
-				case NA_SELECTED:
 				case NA_EDITED:
 				case NA_EVALUATED:
+					clip_stabilization_tag_refresh(sa);
+					/* no break! */
+
+				case NA_SELECTED:
 					clip_scopes_tag_refresh(sa);
-					clip_stabilization_tag_refresh(sa, 1);
 					ED_area_tag_redraw(sa);
 					break;
 			}
@@ -215,14 +212,13 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		 case NC_SCREEN:
 			if(wmn->data==ND_ANIMPLAY) {
-				clip_stabilization_tag_refresh(sa, 0);
 				ED_area_tag_redraw(sa);
 			}
 			break;
 		case NC_SPACE:
 			if(wmn->data==ND_SPACE_CLIP) {
 				clip_scopes_tag_refresh(sa);
-				clip_stabilization_tag_refresh(sa, 0);
+				clip_stabilization_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
 			}
 			break;
@@ -496,7 +492,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		ImBuf *tmpibuf= NULL;
 
 		if(clip && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
-			tmpibuf= ED_space_clip_acquire_stable_buffer(sc, sc->stabmat);
+			tmpibuf= ED_space_clip_acquire_stable_buffer(sc, NULL, NULL);
 		}
 
 		ED_clip_view_selection(sc, ar, 0);

@@ -115,14 +115,12 @@ typedef struct MovieTrackingStabilization {
 	int flag;
 	int tot_track, act_track;		/* total number and index of active track in list */
 
+	float locinf, scaleinf;		/* influence on location and scale */
+
 	/* some pre-computing run-time variables */
-	int ok, ibufok;				/* are precomputed values and scaled buf relevant? */
+	int ok, pad;				/* are precomputed values and scaled buf relevant? */
 	float scale;				/* autoscale factor */
 
-	int pad;
-
-	int framenr;				/* number of frame image is stabilized for */
-	struct ImBuf *ibuf;			/* currently stabilized ibuf */
 	struct ImBuf *scaleibuf;	/* currently scaled ibuf */
 } MovieTrackingStabilization;
 

@@ -50,7 +50,7 @@ void ED_clip_aspect(struct MovieClip *clip, float *aspx, float *aspy);
 void ED_space_clip_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 
 struct ImBuf *ED_space_clip_acquire_buffer(struct SpaceClip *sc);
-struct ImBuf *ED_space_clip_acquire_stable_buffer(struct SpaceClip *sc, float mat[4][4]);
+struct ImBuf *ED_space_clip_acquire_stable_buffer(struct SpaceClip *sc, float loc[2], float *scale);
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
 void ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);

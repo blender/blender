@@ -191,7 +191,6 @@ static void rna_tracking_flushUpdate(Main *bmain, Scene *scene, PointerRNA *ptr)
 	MovieTrackingStabilization *stab= &clip->tracking.stabilization;
 
 	stab->ok= 0;
-	stab->ibufok= 0;
 
 	NodeTagIDChanged(scene->nodetree, &clip->id);
 
@@ -488,7 +487,22 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_AUTOSCALE);
 	RNA_def_property_ui_text(prop, "Autoscale", "Automatically scale footage to cover unfilled areas when stabilizating");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
+
+	/* influence_location */
+	prop= RNA_def_property(srna, "influence_location", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "locinf");
+	RNA_def_property_range(prop, 0.f, 1.f);
+	RNA_def_property_ui_text(prop, "Location Influence", "Influence of stabilization algorithm on footage location");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
+
+	/* influence_scale */
+	prop= RNA_def_property(srna, "influence_scale", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "scaleinf");
+	RNA_def_property_range(prop, 0.f, 1.f);
+	RNA_def_property_ui_text(prop, "Scale Influence", "Influence of stabilization algorithm on footage scale");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 }
+
 
 static void rna_def_tracking(BlenderRNA *brna)
 {

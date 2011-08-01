@@ -211,4 +211,10 @@ CompBuf* qd_downScaledCopy(CompBuf* src, int scale);
 void IIR_gauss(CompBuf* src, float sigma, int chan, int xy);
 /* end utility funcs */
 
+/* transformations */
+
+#define CMP_SCALE_MAX	12000
+
+CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float rotate, float scale, int filter_type);
+
 #endif

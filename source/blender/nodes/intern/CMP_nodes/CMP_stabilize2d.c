@@ -52,41 +52,19 @@ static void node_composit_exec_stabilize2d(void *data, bNode *node, bNodeStack *
 	if(in[0]->data && node->id) {
 		RenderData *rd= data;
 		MovieClip *clip= (MovieClip *)node->id;
-		MovieTrackingStabilization *stab= &clip->tracking.stabilization;
-		CompBuf *cbuf= cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
+		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 		CompBuf *stackbuf;
-		float mat[4][4];
-	
-		BKE_tracking_stabilization_matrix(&clip->tracking, rd->cfra, cbuf->x, cbuf->y, mat);
+		float loc[2], scale;
 
-		if(stab->scale) {
-			ImBuf *scaleibuf, *ibuf;
+		BKE_tracking_stabilization_data(&clip->tracking, rd->cfra, cbuf->x, cbuf->y, loc, &scale);
 
-			scaleibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, IB_rectfloat);
-			memcpy(scaleibuf->rect_float, cbuf->rect, sizeof(float)*4*scaleibuf->x*scaleibuf->y);
+		stackbuf= node_composit_transform(cbuf, loc[0], loc[1], 0.f, scale, node->custom1);
 
-			IMB_scaleImBuf(scaleibuf, scaleibuf->x*stab->scale, scaleibuf->y*stab->scale);
-
-			ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, IB_rectfloat);
-			IMB_rectcpy(ibuf, scaleibuf, mat[3][0], mat[3][1], 0, 0, scaleibuf->x, scaleibuf->y);
-
-			stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 0);
-			stackbuf->rect= ibuf->rect_float;
-			stackbuf->malloc= 1;
-
-			ibuf->rect_float= NULL;
-			ibuf->mall &= ~IB_rectfloat;
-
-			IMB_freeImBuf(ibuf);
-			IMB_freeImBuf(scaleibuf);
-		} else {
-			stackbuf= pass_on_compbuf(in[0]->data);
-
-			stackbuf->xof+= mat[3][0];
-			stackbuf->yof+= mat[3][1];
-		}
-
+		/* pass on output and free */
 		out[0]->data= stackbuf;
+
+		if(cbuf!=in[0]->data)
+			free_compbuf(cbuf);
 	}
 }
 
@@ -101,5 +79,3 @@ void register_node_type_cmp_stabilize2d(ListBase *lb)
 
 	nodeRegisterType(lb, &ntype);
 }
-
-

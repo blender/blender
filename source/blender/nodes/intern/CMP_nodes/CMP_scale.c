@@ -36,8 +36,6 @@
 
 /* **************** Scale  ******************** */
 
-#define CMP_SCALE_MAX	12000
-
 static bNodeSocketType cmp_node_scale_in[]= {
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "X",				1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX},

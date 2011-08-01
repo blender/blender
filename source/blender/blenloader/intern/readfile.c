@@ -1253,8 +1253,8 @@ void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain)
 	fd->movieclipmap= oldnewmap_new();
 
 	for(;clip; clip= clip->id.next) {
-		if(clip->ibuf_cache)
-			oldnewmap_insert(fd->movieclipmap, clip->ibuf_cache, clip->ibuf_cache, 0);
+		if(clip->cache)
+			oldnewmap_insert(fd->movieclipmap, clip->cache, clip->cache, 0);
 	}
 }
 
@@ -1273,7 +1273,7 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 	}
 
 	for(;clip; clip= clip->id.next) {
-		clip->ibuf_cache= newmclipadr(fd, clip->ibuf_cache);
+		clip->cache= newmclipadr(fd, clip->cache);
 	}
 }
 
@@ -5703,8 +5703,8 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
 
-	if(fd->movieclipmap) clip->ibuf_cache= newmclipadr(fd, clip->ibuf_cache);
-	else clip->ibuf_cache= NULL;
+	if(fd->movieclipmap) clip->cache= newmclipadr(fd, clip->cache);
+	else clip->cache= NULL;
 
 	tracking->camera.reconstructed= newdataadr(fd, tracking->camera.reconstructed);
 
@@ -5725,8 +5725,6 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	clip->tracking_context= NULL;
 
 	clip->tracking.stabilization.ok= 0;
-	clip->tracking.stabilization.ibufok= 0;
-	clip->tracking.stabilization.ibuf= NULL;
 	clip->tracking.stabilization.scaleibuf= NULL;
 }
 

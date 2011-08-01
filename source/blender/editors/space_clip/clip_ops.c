@@ -230,8 +230,6 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	sc->scopes.ok= 0;
-	clip->tracking.stabilization.ok= 0;
-	clip->tracking.stabilization.ibufok= 0;
 
 	BKE_movieclip_reload(clip);
 

@@ -36,7 +36,10 @@
 #include "../CMP_util.h"
 
 static bNodeSocketType cmp_node_rlayers_out[]= {
-	{	SOCK_RGBA, 0, "Image",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA,		0, "Image",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE,		1,	"Offset X",		0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
+	{	SOCK_VALUE,		1,	"Offset Y",		0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
+	{	SOCK_VALUE,		1,	"Scale",		1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX},
 	{	-1, 0, ""	}
 };
 
@@ -127,8 +130,22 @@ static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **U
 		stackbuf= node_composit_get_movieclip(rd, clip, user);
 
 		if (stackbuf) {
+			MovieTrackingStabilization *stab= &clip->tracking.stabilization;
+
 			/* put image on stack */
 			out[0]->data= stackbuf;
+
+			if(stab->flag&TRACKING_2D_STABILIZATION) {
+				float loc[2], scale;
+
+				BKE_tracking_stabilization_data(&clip->tracking, rd->cfra, stackbuf->x, stackbuf->y,
+							loc, &scale);
+
+				out[1]->vec[0]= loc[0];
+				out[2]->vec[0]= loc[1];
+
+				out[3]->vec[0]= scale;
+			}
 
 			/* generate preview */
 			generate_preview(data, node, stackbuf);

@@ -151,6 +151,16 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr)
 
 /*********************** image buffer cache *************************/
 
+typedef struct MovieClipCache {
+	/* regular moive cache */
+	struct MovieCache *moviecache;
+
+	/* cache for stable shot */
+	int stable_framenr;
+	float stable_loc[2], stable_scale;
+	ImBuf *stableibuf;
+} MovieClipCache;
+
 typedef struct MovieClipImBufCacheKey {
 	int framenr;
 } MovieClipImBufCacheKey;
@@ -183,11 +193,11 @@ static int moviecache_hashcmp(const void *av, const void *bv)
 
 static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user)
 {
-	if(clip->ibuf_cache) {
+	if(clip->cache) {
 		MovieClipImBufCacheKey key;
 
 		key.framenr= user?user->framenr:clip->lastframe;
-		return BKE_moviecache_get(clip->ibuf_cache, &key);
+		return BKE_moviecache_get(clip->cache->moviecache, &key);
 	}
 
 	return NULL;
@@ -197,14 +207,16 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf)
 {
 	MovieClipImBufCacheKey key;
 
-	if(!clip->ibuf_cache) {
-		clip->ibuf_cache= BKE_moviecache_create(sizeof(MovieClipImBufCacheKey), moviecache_hashhash,
+	if(!clip->cache) {
+		clip->cache= MEM_callocN(sizeof(MovieClipCache), "movieClipCache");
+
+		clip->cache->moviecache= BKE_moviecache_create(sizeof(MovieClipImBufCacheKey), moviecache_hashhash,
 				moviecache_hashcmp, moviecache_keydata);
 	}
 
 	key.framenr= user?user->framenr:clip->lastframe;
 
-	BKE_moviecache_put(clip->ibuf_cache, &key, ibuf);
+	BKE_moviecache_put(clip->cache->moviecache, &key, ibuf);
 }
 
 /*********************** common functions *************************/
@@ -226,6 +238,9 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->tracking.settings.keyframe1= 1;
 	clip->tracking.settings.keyframe2= 30;
 	clip->tracking.settings.dist= 1;
+
+	clip->tracking.stabilization.scaleinf= 1.f;
+	clip->tracking.stabilization.locinf= 1.f;
 
 	return clip;
 }
@@ -322,25 +337,45 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 	return ibuf;
 }
 
-ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, float mat[4][4])
+ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale)
 {
-	ImBuf *ibuf, *stableibuf;
+	ImBuf *ibuf, *stableibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
 
 	ibuf= BKE_movieclip_acquire_ibuf(clip, user);
 
 	if(clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
-		MovieTrackingStabilization *stab= &clip->tracking.stabilization;
+		float tloc[2], tscale;
 
-		if(user->framenr!=stab->framenr)
-			stab->ibufok= 0;
+		if(clip->cache->stableibuf && clip->cache->stable_framenr==framenr) {
+			stableibuf= clip->cache->stableibuf;
 
-		stableibuf= BKE_tracking_stabilize_shot(&clip->tracking, framenr, ibuf, mat);
+			BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale);
 
-		stab->framenr= user->framenr;
+			if(!equals_v2v2(tloc, clip->cache->stable_loc) || tscale!=clip->cache->stable_scale) {
+				stableibuf= NULL;
+			}
+		}
+
+		if(!stableibuf) {
+			if(clip->cache->stableibuf)
+				IMB_freeImBuf(clip->cache->stableibuf);
+
+			stableibuf= BKE_tracking_stabilize_shot(&clip->tracking, framenr, ibuf, tloc, &tscale);
+
+			copy_v2_v2(clip->cache->stable_loc, tloc);
+			clip->cache->stable_scale= tscale;
+			clip->cache->stable_framenr= framenr;
+			clip->cache->stableibuf= stableibuf;
+		}
+
+		IMB_refImBuf(stableibuf);
+
+		if(loc)		copy_v2_v2(loc, tloc);
+		if(scale)	*scale= tscale;
 	} else {
-		if(mat)
-			unit_m4(mat);
+		if(loc)		zero_v2(loc);
+		if(scale)	*scale= 1.f;
 
 		stableibuf= ibuf;
 	}
@@ -393,8 +428,8 @@ void BKE_movieclip_get_cache_segments(MovieClip *clip, int *totseg_r, int **poin
 	*totseg_r= 0;
 	*points_r= NULL;
 
-	if(clip->ibuf_cache)
-		BKE_moviecache_get_cache_segments(clip->ibuf_cache, totseg_r, points_r);
+	if(clip->cache)
+		BKE_moviecache_get_cache_segments(clip->cache->moviecache, totseg_r, points_r);
 }
 
 void BKE_movieclip_user_set_frame(MovieClipUser *iuser, int framenr)
@@ -406,9 +441,14 @@ void BKE_movieclip_user_set_frame(MovieClipUser *iuser, int framenr)
 
 static void free_buffers(MovieClip *clip)
 {
-	if(clip->ibuf_cache) {
-		BKE_moviecache_free(clip->ibuf_cache);
-		clip->ibuf_cache= NULL;
+	if(clip->cache) {
+		BKE_moviecache_free(clip->cache->moviecache);
+
+		if(clip->cache->stableibuf)
+			IMB_freeImBuf(clip->cache->stableibuf);
+
+		MEM_freeN(clip->cache);
+		clip->cache= NULL;
 	}
 
 	if(clip->anim) {
@@ -423,7 +463,6 @@ void BKE_movieclip_reload(MovieClip *clip)
 	free_buffers(clip);
 
 	clip->tracking.stabilization.ok= 0;
-	clip->tracking.stabilization.ibufok= 0;
 
 	/* update clip source */
 	if(BLI_testextensie_array(clip->name, imb_ext_movie)) clip->source= MCLIP_SRC_MOVIE;

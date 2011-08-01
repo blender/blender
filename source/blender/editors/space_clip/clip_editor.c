@@ -88,12 +88,12 @@ ImBuf *ED_space_clip_acquire_buffer(SpaceClip *sc)
 	return NULL;
 }
 
-ImBuf *ED_space_clip_acquire_stable_buffer(SpaceClip *sc, float mat[4][4])
+ImBuf *ED_space_clip_acquire_stable_buffer(SpaceClip *sc, float loc[2], float *scale)
 {
 	if(sc->clip) {
 		ImBuf *ibuf;
 
-		ibuf= BKE_movieclip_acquire_stable_ibuf(sc->clip, &sc->user, mat);
+		ibuf= BKE_movieclip_acquire_stable_ibuf(sc->clip, &sc->user, loc, scale);
 
 		if(ibuf && (ibuf->rect || ibuf->rect_float))
 			return ibuf;
@@ -152,11 +152,8 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 				if(sa->spacetype==SPACE_CLIP) {
 					SpaceClip *sc= sa->spacedata.first;
-					MovieClip *clip= ED_space_clip(sc);
-					MovieTrackingStabilization *stab= &clip->tracking.stabilization;
 
 					sc->scopes.ok= 0;
-					stab->ibufok= 0;
 
 					BKE_movieclip_user_set_frame(&sc->user, cfra);
 				}

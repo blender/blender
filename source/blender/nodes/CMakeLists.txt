@@ -92,6 +92,7 @@ set(SRC
 	intern/CMP_nodes/CMP_stabilize2d.c
 	intern/CMP_nodes/CMP_texture.c
 	intern/CMP_nodes/CMP_tonemap.c
+	intern/CMP_nodes/CMP_transform.c
 	intern/CMP_nodes/CMP_translate.c
 	intern/CMP_nodes/CMP_valToRgb.c
 	intern/CMP_nodes/CMP_value.c
