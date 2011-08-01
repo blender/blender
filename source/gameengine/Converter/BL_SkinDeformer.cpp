@@ -80,6 +80,7 @@ BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 							m_releaseobject(false),
 							m_poseApplied(false),
 							m_recalcNormal(true),
+							m_copyNormals(false),
 							m_dfnrToPC(NULL)
 {
 	copy_m4_m4(m_obmat, bmeshobj->obmat);
@@ -99,6 +100,7 @@ BL_SkinDeformer::BL_SkinDeformer(
 		//m_defbase(&bmeshobj_old->defbase),
 		m_releaseobject(release_object),
 		m_recalcNormal(recalc_normal),
+		m_copyNormals(false),
 		m_dfnrToPC(NULL)
 	{
 		// this is needed to ensure correct deformation of mesh:
@@ -161,9 +163,14 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 				for(i=it.startvertex; i<it.endvertex; i++) {
 					RAS_TexVert& v = it.vertex[i];
 					v.SetXYZ(m_transverts[v.getOrigIndex()]);
+					if (m_copyNormals)
+						v.SetNormal(m_transnors[v.getOrigIndex()]);
 				}
 			}
 		}
+
+		if (m_copyNormals)
+			m_copyNormals = false;
 	}
 	return true;
 }
@@ -200,6 +207,11 @@ void BL_SkinDeformer::BlenderDeformVerts()
 		
 	// restore matrix 
 	copy_m4_m4(m_objMesh->obmat, obmat);
+
+#ifdef __NLA_DEFNORMALS
+		if (m_recalcNormal)
+			RecalcNormals();
+#endif
 }
 
 void BL_SkinDeformer::BGEDeformVerts()
@@ -230,15 +242,17 @@ void BL_SkinDeformer::BGEDeformVerts()
 
 	for (int i=0; i<m_bmesh->totvert; ++i)
 	{
-		float contrib = 0.f, weight;
+		float contrib = 0.f, weight, max_weight=0.f;
 		Bone *bone;
 		bPoseChannel *pchan=NULL;
 		MDeformVert *dvert;
-		Eigen::Vector4f co(0.f, 0.f, 0.f, 1.f);
+		Eigen::Map<Eigen::Vector3f> norm(m_transnors[i]);
 		Eigen::Vector4f vec(0, 0, 0, 1);
-		co[0] = m_transverts[i][0];
-		co[1] = m_transverts[i][1];
-		co[2] = m_transverts[i][2];
+		Eigen::Matrix4f norm_chan_mat;
+		Eigen::Vector4f co(m_transverts[i][0],
+							m_transverts[i][1],
+							m_transverts[i][2],
+							1.f);
 
 		dvert = dverts+i;
 
@@ -259,15 +273,26 @@ void BL_SkinDeformer::BGEDeformVerts()
 					Eigen::Vector4f cop(co);
 					Eigen::Matrix4f chan_mat = Eigen::Matrix4f::Map((float*)pchan->chan_mat);
 
+					// Update Vertex Position
 					cop = chan_mat*cop;
 					vec += (cop - co)*weight;
+
+					// Save the most influential channel so we can use it to update the vertex normal
+					if (weight > max_weight)
+					{
+						max_weight = weight;
+						norm_chan_mat = chan_mat;
+					}
 
 					contrib += weight;
 				}
 			}
 		}
 
-
+		
+		// Update Vertex Normal
+		norm = norm_chan_mat.corner<3, 3>(Eigen::TopLeft)*norm;
+				
 		if (contrib > 0.0001f)
 		{
 			vec *= 1.f/contrib;
@@ -278,6 +303,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 		m_transverts[i][1] = co[1];
 		m_transverts[i][2] = co[2];
 	}
+	m_copyNormals = true;
 }
 
 bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
@@ -291,7 +317,10 @@ bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 		
 			/* duplicate */
 			for (int v =0; v<m_bmesh->totvert; v++)
+			{
 				VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
+				VECCOPY(m_transnors[v], m_bmesh->mvert[v].no);
+			}
 		}
 
 		m_armobj->ApplyPose();
@@ -305,11 +334,6 @@ bool BL_SkinDeformer::UpdateInternal(bool shape_applied)
 			default:
 				BlenderDeformVerts();
 		}
-
-#ifdef __NLA_DEFNORMALS
-		if (m_recalcNormal)
-			RecalcNormals();
-#endif
 
 		/* Update the current frame */
 		m_lastArmaUpdate=m_armobj->GetLastFrame();
