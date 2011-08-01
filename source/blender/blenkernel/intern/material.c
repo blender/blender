@@ -61,7 +61,7 @@
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
-
+#include "BKE_curve.h"
 
 #include "GPU_material.h"
 
@@ -516,6 +516,21 @@ short *give_totcolp_id(ID *id)
 	return NULL;
 }
 
+void data_delete_material_index_id(ID *id, int index)
+{
+	switch(GS(id->name)) {
+	case ID_ME:
+		mesh_delete_material_index((Mesh *)id, index);
+		break;
+	case ID_CU:
+		curve_delete_material_index((Curve *)id, index);
+		break;
+	case ID_MB:
+		/* meta-elems dont have materials atm */
+		break;
+	}
+}
+
 void material_append_id(ID *id, Material *ma)
 {
 	Material ***matar;
@@ -533,7 +548,7 @@ void material_append_id(ID *id, Material *ma)
 	}
 }
 
-Material *material_pop_id(ID *id, int index)
+Material *material_pop_id(ID *id, int index, int remove_material_slot)
 {
 	Material *ret= NULL;
 	Material ***matar;
@@ -541,27 +556,36 @@ Material *material_pop_id(ID *id, int index)
 		short *totcol= give_totcolp_id(id);
 		if(index >= 0 && index < (*totcol)) {
 			ret= (*matar)[index];
-			id_us_min((ID *)ret);			
-			if(*totcol <= 1) {
-				*totcol= 0;
-				MEM_freeN(*matar);
-				*matar= NULL;
+			id_us_min((ID *)ret);
+
+			if (remove_material_slot) {
+				if(*totcol <= 1) {
+					*totcol= 0;
+					MEM_freeN(*matar);
+					*matar= NULL;
+				}
+				else {
+					Material **mat;
+					if(index + 1 != (*totcol))
+						memmove((*matar)+index, (*matar)+(index+1), sizeof(void *) * ((*totcol) - (index + 1)));
+
+					(*totcol)--;
+					
+					mat= MEM_callocN(sizeof(void *) * (*totcol), "newmatar");
+					memcpy(mat, *matar, sizeof(void *) * (*totcol));
+					MEM_freeN(*matar);
+
+					*matar= mat;
+					test_object_materials(id);
+				}
+
+				/* decrease mat_nr index */
+				data_delete_material_index_id(id, index);
 			}
-			else {
-				Material **mat;
 
-				if(index + 1 != (*totcol))
-					memmove((*matar), (*matar) + 1, sizeof(void *) * ((*totcol) - (index + 1)));
-
-				(*totcol)--;
-				
-				mat= MEM_callocN(sizeof(void *) * (*totcol), "newmatar");
-				memcpy(mat, *matar, sizeof(void *) * (*totcol));
-				MEM_freeN(*matar);
-
-				*matar= mat;
-				test_object_materials(id);
-			}
+			/* don't remove material slot, only clear it*/
+			else
+				(*matar)[index]= NULL;
 		}
 	}
 	
@@ -1026,8 +1050,6 @@ int object_remove_material_slot(Object *ob)
 {
 	Material *mao, ***matarar;
 	Object *obt;
-	Curve *cu;
-	Nurb *nu;
 	short *totcolp;
 	int a, actcol;
 	
@@ -1087,23 +1109,8 @@ int object_remove_material_slot(Object *ob)
 	}
 
 	/* check indices from mesh */
-
-	if(ob->type==OB_MESH) {
-		Mesh *me= get_mesh(ob);
-		mesh_delete_material_index(me, actcol-1);
-		freedisplist(&ob->disp);
-	}
-	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-		cu= ob->data;
-		nu= cu->nurb.first;
-		
-		while(nu) {
-			if(nu->mat_nr && nu->mat_nr>=actcol-1) {
-				nu->mat_nr--;
-				if (ob->type == OB_CURVE) nu->charidx--;
-			}
-			nu= nu->next;
-		}
+	if (ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
+		data_delete_material_index_id((ID *)ob->data, actcol-1);
 		freedisplist(&ob->disp);
 	}
 

@@ -805,6 +805,11 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eMultiresModifierFlag_ControlEdges);
 	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_subsurf_uv", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flags", eMultiresModifierFlag_PlainUv);
+	RNA_def_property_ui_text(prop, "Subdivide UVs", "Use subsurf to subdivide UVs");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_lattice(BlenderRNA *brna)

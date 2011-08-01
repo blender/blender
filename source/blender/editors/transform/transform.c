@@ -4659,7 +4659,7 @@ static int createSlideVerts(TransInfo *t)
 #define EDGE_SLIDE_MIN 30
 	if (len_squared_v2v2(start, end) < (EDGE_SLIDE_MIN * EDGE_SLIDE_MIN)) {
 		if(ABS(start[0]-end[0]) + ABS(start[1]-end[1]) < 4.0f) {
-			/* even more exceptional case, points are ontop of eachother */
+			/* even more exceptional case, points are ontop of each other */
 			end[0]= start[0];
 			end[1]= start[1] + EDGE_SLIDE_MIN;
 		}

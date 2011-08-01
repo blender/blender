@@ -1060,8 +1060,8 @@ static void weld_align_uv(bContext *C, int tool)
 	if(tool == 's' || tool == 't' || tool == 'u') {
 		 /* pass 1&2 variables */
 		int i, j;
-		int starttmpl= -1, connectedtostarttmpl, startcorner;
-		int endtmpl= -1,   connectedtoendtmpl,   endcorner;
+		int starttmpl= -1, connectedtostarttmpl= -1, startcorner;
+		int endtmpl= -1,   connectedtoendtmpl= -1,   endcorner;
 		MTFace *startface, *endface;
 		int itmpl, jtmpl;
 		EditVert *eve;

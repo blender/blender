@@ -2197,7 +2197,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 			/* create list items */
 			RNA_PROP_BEGIN(ptr, itemptr, prop) {
 				/* create button */
-				if(i == 9)
+				if(!(i % 9))
 					row= uiLayoutRow(col, 0);
 
 				icon= list_item_icon_get(C, &itemptr, rnaicon, 1);
@@ -2212,7 +2212,6 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 	}
 	else if(listtype == 'c') {
 		/* compact layout */
-		found= 0;
 
 		row= uiLayoutRow(layout, 1);
 
