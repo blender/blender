@@ -998,7 +998,10 @@ static BMFace *knife_find_closest_face(knifetool_opdata *kcd, float co[3], int *
 	/*unproject to find view ray*/
 	view3d_unproject(&mats, origin, mval[0], mval[1], 0.0f);
 
-	sub_v3_v3v3(ray, origin, kcd->vc.rv3d->viewinv[3]);
+	if(kcd->is_ortho)
+		negate_v3_v3(ray, kcd->vc.rv3d->viewinv[2]);
+	else
+		sub_v3_v3v3(ray, origin, kcd->vc.rv3d->viewinv[3]);
 	normalize_v3(ray);
 	
 	/*transform into object space*/
