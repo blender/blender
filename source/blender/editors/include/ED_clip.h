@@ -39,6 +39,7 @@ struct ImBuf;
 struct Main;
 struct MovieClip;
 struct SpaceClip;
+struct wmEvent;
 
 /* clip_editor.c */
 void ED_space_clip_set(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip);
@@ -53,6 +54,9 @@ struct ImBuf *ED_space_clip_acquire_stable_buffer(struct SpaceClip *sc, float ma
 
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
 void ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);
+
+void ED_clip_point_stable_pos(struct bContext *C, float x, float y, float *xr, float *yr);
+void ED_clip_mouse_pos(struct bContext *C, struct wmEvent *event, float co[2]);
 
 /* clip_ops.c */
 void ED_operatormacros_clip(void);

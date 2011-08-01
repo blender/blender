@@ -74,8 +74,8 @@ static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom)
 	/* check zoom limits */
 	ED_space_clip_size(sc, &width, &height);
 
-	width *= sc->zoom;
-	height *= sc->zoom;
+	width*= sc->zoom;
+	height*= sc->zoom;
 
 	if((width < 4) && (height < 4))
 		sc->zoom= oldzoom;
@@ -542,7 +542,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	ot->poll= space_clip_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
@@ -563,17 +563,6 @@ static int view_zoom_in_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void CLIP_OT_view_zoom_in(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "View Zoom In";
-	ot->idname= "CLIP_OT_view_zoom_in";
-
-	/* api callbacks */
-	ot->exec= view_zoom_in_exec;
-	ot->poll= space_clip_poll;
-}
-
 static int view_zoom_out_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
@@ -586,6 +575,52 @@ static int view_zoom_out_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
+static int view_zoom_inout_invoke(bContext *C, wmOperator *op, wmEvent *event, int out)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	float co[2], oldzoom= sc->zoom;
+
+	ED_clip_mouse_pos(C, event, co);
+
+	if(out)
+		view_zoom_out_exec(C, op);
+	else
+		view_zoom_in_exec(C, op);
+
+	if(U.uiflag&USER_ZOOM_TO_MOUSEPOS) {
+		int width, height;
+
+		ED_space_clip_size(sc, &width, &height);
+
+		sc->xof+= ((co[0]-0.5)*width-sc->xof)*(sc->zoom-oldzoom)/sc->zoom;
+		sc->yof+= ((co[1]-0.5)*height-sc->yof)*(sc->zoom-oldzoom)/sc->zoom;
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+static int view_zoom_in_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return view_zoom_inout_invoke(C, op, event, 0);
+}
+
+void CLIP_OT_view_zoom_in(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "View Zoom In";
+	ot->idname= "CLIP_OT_view_zoom_in";
+
+	/* api callbacks */
+	ot->exec= view_zoom_in_exec;
+	ot->invoke= view_zoom_in_invoke;
+	ot->poll= space_clip_poll;
+}
+
+static int view_zoom_out_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return view_zoom_inout_invoke(C, op, event, 1);
+}
+
 void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -594,6 +629,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view_zoom_out_exec;
+	ot->invoke= view_zoom_out_invoke;
 	ot->poll= space_clip_poll;
 }
 

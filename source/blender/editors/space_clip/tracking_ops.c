@@ -162,38 +162,11 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void point_stable_pos(bContext *C, float x, float y, float *xr, float *yr)
-{
-	ARegion *ar= CTX_wm_region(C);
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	int sx, sy, width, height;
-	float zoomx, zoomy, pos[3]={0.f, 0.f, 0.f}, imat[4][4];
-
-	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
-	ED_space_clip_size(sc, &width, &height);
-
-	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
-
-	pos[0]= (x-sx)/zoomx;
-	pos[1]= (y-sy)/zoomy;
-
-	invert_m4_m4(imat, sc->stabmat);
-	mul_v3_m4v3(pos, imat, pos);
-
-	*xr= pos[0]/width;
-	*yr= pos[1]/height;
-}
-
-static void mouse_pos(bContext *C, wmEvent *event, float co[2])
-{
-	point_stable_pos(C, event->mval[0], event->mval[1], &co[0], &co[1]);
-}
-
 static int add_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	float co[2];
 
-	mouse_pos(C, event, co);
+	ED_clip_mouse_pos(C, event, co);
 
 	RNA_float_set_array(op->ptr, "location", co);
 
@@ -443,8 +416,8 @@ static int mouse_on_offset(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 	dx= 12.f/width/sc->zoom;
 	dy= 12.f/height/sc->zoom;
 
-	dx=MIN2(dx, (track->pat_max[0]-track->pat_min[0])/3);
-	dy=MIN2(dy, (track->pat_max[1]-track->pat_min[1])/3);
+	dx=MIN2(dx, (track->pat_max[0]-track->pat_min[0])/2.f);
+	dy=MIN2(dy, (track->pat_max[1]-track->pat_min[1])/2.f);
 
 	return co[0]>=pos[0]-dx && co[0]<=pos[0]+dx && co[1]>=pos[1]-dy && co[1]<=pos[1]+dy;
 }
@@ -477,7 +450,7 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 	if(width==0 || height==0)
 		return NULL;
 
-	mouse_pos(C, event, co);
+	ED_clip_mouse_pos(C, event, co);
 
 	track= clip->tracking.tracks.first;
 	while(track) {
@@ -485,6 +458,10 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
 			if((marker->flag&MARKER_DISABLED)==0) {
+				if(!customdata)
+					if(mouse_on_offset(sc, track, marker, co, width, height))
+						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, SLIDE_ACTION_POS, width, height);
+
 				if(sc->flag&SC_SHOW_MARKER_SEARCH) {
 					if(mouse_on_corner(sc, track, marker, TRACK_AREA_SEARCH, co, 1, width, height))
 						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, SLIDE_ACTION_OFFSET, width, height);
@@ -499,10 +476,6 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 					if(!customdata && mouse_on_corner(sc, track, marker, TRACK_AREA_PAT, co, 0, width, height))
 						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, SLIDE_ACTION_SIZE, width, height);
 				}
-
-				if(!customdata)
-					if(mouse_on_offset(sc, track, marker, co, width, height))
-						customdata= create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, SLIDE_ACTION_POS, width, height);
 
 				if(customdata)
 					break;
@@ -664,7 +637,7 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 	ot->modal= slide_marker_modal;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_GRAB_POINTER|OPTYPE_BLOCKING;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
@@ -836,7 +809,7 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 	}
 
-	mouse_pos(C, event, co);
+	ED_clip_mouse_pos(C, event, co);
 	RNA_float_set_array(op->ptr, "location", co);
 
 	return select_exec(C, op);
@@ -881,8 +854,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 
-	point_stable_pos(C, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
-	point_stable_pos(C, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
+	ED_clip_point_stable_pos(C, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
+	ED_clip_point_stable_pos(C, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 
 	mode= RNA_int_get(op->ptr, "gesture_mode");
 
@@ -969,7 +942,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	ellipse[0]= width*zoomx/radius;
 	ellipse[1]= height*zoomy/radius;
 
-	point_stable_pos(C, x, y, &offset[0], &offset[1]);
+	ED_clip_point_stable_pos(C, x, y, &offset[0], &offset[1]);
 
 	/* do selection */
 	track= clip->tracking.tracks.first;
@@ -1579,7 +1552,7 @@ static int clear_reconstruction_exec(bContext *C, wmOperator *UNUSED(op))
 void CLIP_OT_clear_reconstruction(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Reconstruciton";
+	ot->name= "Clear Reconstruction";
 	ot->description= "Clear all reconstruciton data";
 	ot->idname= "CLIP_OT_clear_reconstruction";
 

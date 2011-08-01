@@ -178,10 +178,10 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf, float
 			glMultMatrixf(sc->stabmat);
 
 			glBegin(GL_LINE_LOOP);
-				glVertex2f(-1.f, -1.f);
-				glVertex2f(ibuf->x+1.f, -1.f);
-				glVertex2f(ibuf->x+1.f, ibuf->y+1.f);
-				glVertex2f(-1.f, ibuf->y+1.f);
+				glVertex2f(0.f, 0.f);
+				glVertex2f(ibuf->x, 0.f);
+				glVertex2f(ibuf->x, ibuf->y);
+				glVertex2f(0.f, ibuf->y);
 			glEnd();
 
 			glPopMatrix();

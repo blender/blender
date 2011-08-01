@@ -53,6 +53,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_view2d.h"
+
 void ED_space_clip_set(bContext *C, SpaceClip *sc, MovieClip *clip)
 {
 	sc->clip= clip;
@@ -233,4 +235,31 @@ void ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 		if(fit || sc->zoom>newzoom)
 			sc->zoom= newzoom;
 	}
+}
+
+void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *yr)
+{
+	ARegion *ar= CTX_wm_region(C);
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	int sx, sy, width, height;
+	float zoomx, zoomy, pos[3]={0.f, 0.f, 0.f}, imat[4][4];
+
+	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
+	ED_space_clip_size(sc, &width, &height);
+
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+
+	pos[0]= (x-sx)/zoomx;
+	pos[1]= (y-sy)/zoomy;
+
+	invert_m4_m4(imat, sc->stabmat);
+	mul_v3_m4v3(pos, imat, pos);
+
+	*xr= pos[0]/width;
+	*yr= pos[1]/height;
+}
+
+void ED_clip_mouse_pos(bContext *C, wmEvent *event, float co[2])
+{
+	ED_clip_point_stable_pos(C, event->mval[0], event->mval[1], &co[0], &co[1]);
 }
