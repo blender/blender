@@ -3262,11 +3262,15 @@ static PyObject *pyrna_prop_dir(BPy_PropertyRNA *self)
 	 * */
 	ret= PyList_New(0);
 
-	if (!BPy_PropertyRNA_CheckExact(self))
+	if (!BPy_PropertyRNA_CheckExact(self)) {
 		pyrna_dir_members_py(ret, (PyObject *)self);
+	}
 
-	if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr))
-		pyrna_dir_members_rna(ret, &r_ptr);
+	if(RNA_property_type(self->prop) == PROP_COLLECTION) {
+		if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
+			pyrna_dir_members_rna(ret, &r_ptr);
+		}
+	}
 
 	return ret;
 }
@@ -6407,7 +6411,9 @@ PyDoc_STRVAR(pyrna_register_class_doc,
 "   If the class has a *register* class method it will be called\n"
 "   before registration.\n"
 "\n"
-"   .. note:: :exc:`ValueError` exception is raised if the class is not a\n"
+"   .. note::\n"
+"\n"
+"      :exc:`ValueError` exception is raised if the class is not a\n"
 "      subclass of a registerable blender class.\n"
 "\n"
 );

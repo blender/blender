@@ -16,11 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 __all__ = (
     "load_image",
-)
+    )
 
 
 # limited replacement for BPyImage.comprehensiveImageLoad
@@ -33,8 +33,8 @@ def load_image(imagepath,
                verbose=False,
                ):
     """
-    Return an image from the file path with options to search multiple paths and
-    return a placeholder if its not found.
+    Return an image from the file path with options to search multiple paths
+    and return a placeholder if its not found.
 
     :arg filepath: The image filename
        If a path precedes it, this will be searched as well.
@@ -51,9 +51,10 @@ def load_image(imagepath,
     :type recursive: bool
     :arg ncase_cmp: on non windows systems, find the correct case for the file.
     :type ncase_cmp: bool
-    :arg convert_callback: a function that takes an existing path and returns a new one.
-       Use this when loading image formats blender may not support, the CONVERT_CALLBACK
-       can take the path for a GIF (for example), convert it to a PNG and return the PNG's path.
+    :arg convert_callback: a function that takes an existing path and returns
+       a new one. Use this when loading image formats blender may not support,
+       the CONVERT_CALLBACK can take the path for a GIF (for example),
+       convert it to a PNG and return the PNG's path.
        For formats blender can read, simply return the path that is given.
     :type convert_callback: function
     :return: an image or None
@@ -92,7 +93,9 @@ def load_image(imagepath,
 
     for filepath_test in variants:
         if ncase_cmp:
-            ncase_variants = filepath_test, bpy.path.resolve_ncase(filepath_test)
+            ncase_variants = (filepath_test,
+                              bpy.path.resolve_ncase(filepath_test),
+                              )
         else:
             ncase_variants = (filepath_test, )
 

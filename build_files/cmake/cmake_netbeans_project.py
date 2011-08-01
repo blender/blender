@@ -37,7 +37,7 @@ from project_info import (SIMPLE_PROJECTFILE,
                           source_list,
                           is_project_file,
                           is_c_header,
-                          is_py,
+                          # is_py,
                           cmake_advanced_info,
                           cmake_compiler_defines,
                           )

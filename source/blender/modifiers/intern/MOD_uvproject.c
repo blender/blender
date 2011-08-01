@@ -43,6 +43,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_uvproject.h"
 #include "BLI_utildefines.h"
 
@@ -84,6 +85,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tumd->aspecty = umd->aspecty;
 	tumd->scalex = umd->scalex;
 	tumd->scaley = umd->scaley;
+	BLI_strncpy(tumd->uvlayer_name, umd->uvlayer_name, sizeof(umd->uvlayer_name));
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))

@@ -1,6 +1,3 @@
-/** \file blender/editors/interface/resources.c
- *  \ingroup edinterface
- */
 /*
  * $Id$
  *
@@ -31,6 +28,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+
+/** \file blender/editors/interface/resources.c
+ *  \ingroup edinterface
  */
 
 #include <math.h>

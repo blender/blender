@@ -1560,6 +1560,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
+
+					if (deltaF == 0.0) deltaF = [event deltaX]; // make blender decide if it's horizontal scroll
 					if (deltaF == 0.0) break; //discard trackpad delta=0 events
 					
 					delta = deltaF > 0.0 ? 1 : -1;
