@@ -580,19 +580,19 @@ void addNurbPointsBezier(Nurb *nu, int number)
 /* ~~~~~~~~~~~~~~~~~~~~Non Uniform Rational B Spline calculations ~~~~~~~~~~~ */
 
 
-static void calcknots(float *knots, const short tot, const short order, const short flag)
+static void calcknots(float *knots, const short pnts, const short order, const short flag)
 {
 	/* knots: number of pnts NOT corrected for cyclic */
-	const int tot_order= tot + order;
+	const int pnts_order= pnts + order;
 	float k;
 	int a;
 
 	switch(flag & (CU_NURB_ENDPOINT|CU_NURB_BEZIER)) {
 	case CU_NURB_ENDPOINT:
 		k= 0.0;
-		for(a=1; a <= tot_order; a++) {
+		for(a=1; a <= pnts_order; a++) {
 			knots[a-1]= k;
-			if(a >= order && a <= tot) k+= 1.0f;
+			if(a >= order && a <= pnts) k+= 1.0f;
 		}
 		break;
 	case CU_NURB_BEZIER:
@@ -600,15 +600,15 @@ static void calcknots(float *knots, const short tot, const short order, const sh
 		 * if this is not enforced, the displist will be corrupt */
 		if(order==4) {
 			k= 0.34;
-			for(a=0; a < tot_order; a++) {
+			for(a=0; a < pnts_order; a++) {
 				knots[a]= floorf(k);
 				k+= (1.0f/3.0f);
 			}
 		}
 		else if(order==3) {
 			k= 0.6f;
-			for(a=0; a < tot_order; a++) {
-				if(a >= order && a <= tot) k+= 0.5f;
+			for(a=0; a < pnts_order; a++) {
+				if(a >= order && a <= pnts) k+= 0.5f;
 				knots[a]= floorf(k);
 			}
 		}
@@ -617,7 +617,7 @@ static void calcknots(float *knots, const short tot, const short order, const sh
 		}
 		break;
 	default:
-		for(a=0; a < tot_order; a++) {
+		for(a=0; a < pnts_order; a++) {
 			knots[a]= (float)a;
 		}
 		break;
