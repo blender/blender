@@ -85,6 +85,7 @@ short id_type_can_have_animdata (ID *id)
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
 		case ID_LA: case ID_CA: case ID_WO:
+		case ID_SPK:
 		case ID_SCE:
 		{
 			return 1;
@@ -787,7 +788,10 @@ void BKE_animdata_main_cb (Main *mainptr, ID_AnimData_Edit_Callback func, void *
 	
 	/* particles */
 	ANIMDATA_IDS_CB(mainptr->particle.first);
-	
+
+	/* speakers */
+	ANIMDATA_IDS_CB(mainptr->speaker.first);
+
 	/* objects */
 	ANIMDATA_IDS_CB(mainptr->object.first);
 	
@@ -865,7 +869,10 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 	
 	/* particles */
 	RENAMEFIX_ANIM_IDS(mainptr->particle.first);
-	
+
+	/* speakers */
+	RENAMEFIX_ANIM_IDS(mainptr->speaker.first);
+
 	/* objects */
 	RENAMEFIX_ANIM_IDS(mainptr->object.first); 
 	
@@ -2309,6 +2316,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 	/* particles */
 	EVAL_ANIM_IDS(main->particle.first, ADT_RECALC_ANIM);
 	
+	/* lamps */
+	EVAL_ANIM_IDS(main->speaker.first, ADT_RECALC_ANIM);
+
 	/* objects */
 		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 
 		 * this tagged by Depsgraph on framechange. This optimisation means that objects

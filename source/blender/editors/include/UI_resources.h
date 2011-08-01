@@ -204,6 +204,8 @@ enum {
 	TH_STRIP_SELECT,
 	
 	TH_LAMP,
+
+	TH_SPEAKER,
 	
 	TH_NODE,
 	TH_NODE_IN_OUT,

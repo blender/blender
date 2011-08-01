@@ -85,6 +85,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_smoke_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_vfont_types.h"
@@ -5566,6 +5567,37 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 	}
 }
 
+/* ************ READ SPEAKER ***************** */
+
+static void lib_link_speaker(FileData *fd, Main *main)
+{
+	Speaker *spk;
+
+	spk= main->speaker.first;
+	while(spk) {
+		if(spk->id.flag & LIB_NEEDLINK) {
+			if (spk->adt) lib_link_animdata(fd, &spk->id, spk->adt);
+
+			spk->sound= newlibadr(fd, spk->id.lib, spk->sound);
+			if (spk->sound) {
+				spk->sound->id.us++;
+			}
+
+			spk->id.flag -= LIB_NEEDLINK;
+		}
+		spk= spk->id.next;
+	}
+}
+
+static void direct_link_speaker(FileData *fd, Speaker *spk)
+{
+	spk->adt= newdataadr(fd, spk->adt);
+	direct_link_animdata(fd, spk->adt);
+
+	/*spk->sound= newdataadr(fd, spk->sound);
+	direct_link_sound(fd, spk->sound);*/
+}
+
 /* ************** READ SOUND ******************* */
 
 static void direct_link_sound(FileData *fd, bSound *sound)
@@ -5661,6 +5693,7 @@ static const char *dataname(short id_code)
 		case ID_SCR: return "Data from SCR";
 		case ID_VF: return "Data from VF";
 		case ID_TXT	: return "Data from TXT";
+		case ID_SPK: return "Data from SPK";
 		case ID_SO: return "Data from SO";
 		case ID_NT: return "Data from NT";
 		case ID_BR: return "Data from BR";
@@ -5804,6 +5837,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_CA:
 			direct_link_camera(fd, (Camera *)id);
+			break;
+		case ID_SPK:
+			direct_link_speaker(fd, (Speaker *)id);
 			break;
 		case ID_SO:
 			direct_link_sound(fd, (bSound *)id);
@@ -11796,6 +11832,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_latt(fd, main);
 	lib_link_text(fd, main);
 	lib_link_camera(fd, main);
+	lib_link_speaker(fd, main);
 	lib_link_sound(fd, main);
 	lib_link_group(fd, main);
 	lib_link_armature(fd, main);
@@ -12712,6 +12749,14 @@ static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
 		expand_animdata(fd, mainvar, ca->adt);
 }
 
+static void expand_speaker(FileData *fd, Main *mainvar, Speaker *spk)
+{
+	expand_doit(fd, mainvar, spk->sound);
+
+	if (spk->adt)
+		expand_animdata(fd, mainvar, spk->adt);
+}
+
 static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 {
 	expand_doit(fd, mainvar, snd->ipo); // XXX depreceated - old animation system
@@ -12773,6 +12818,9 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_CA:
 						expand_camera(fd, mainvar, (Camera *)id);
+						break;
+					case ID_SPK:
+						expand_speaker(fd, mainvar,(Speaker *)id);
 						break;
 					case ID_SO:
 						expand_sound(fd, mainvar, (bSound *)id);

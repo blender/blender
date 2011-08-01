@@ -44,6 +44,7 @@
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BLI_math.h"
@@ -762,6 +763,40 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	}
 
 	return OPERATOR_CANCELLED;
+}
+
+static int object_speaker_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob;
+	int enter_editmode;
+	unsigned int layer;
+	float loc[3], rot[3];
+
+	object_add_generic_invoke_options(C, op);
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+		return OPERATOR_CANCELLED;
+
+	ob= ED_object_add_type(C, OB_SPEAKER, loc, rot, FALSE, layer);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_speaker_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Speaker";
+	ot->description = "Add a speaker object to the scene";
+	ot->idname= "OBJECT_OT_speaker_add";
+
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= object_speaker_add_exec;
+	ot->poll= ED_operator_objectmode;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, FALSE);
 }
 
 /* only used as menu */
@@ -1600,6 +1635,18 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					id->us--;
 				}
 				break;
+			case OB_SPEAKER:
+				// AUD_XXX TODO: always duplicate Speakers on speaker object duplication?
+				if(dupflag!=0) {
+					ID_NEW_US2(obn->data )
+					else {
+						obn->data= copy_speaker(obn->data);
+						didit= 1;
+					}
+					id->us--;
+				}
+				break;
+
 		}
 
 		/* check if obdata is copied */

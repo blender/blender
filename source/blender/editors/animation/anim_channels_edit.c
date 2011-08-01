@@ -124,6 +124,7 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
 			case ANIMTYPE_DSMESH:
 			case ANIMTYPE_DSTEX:
 			case ANIMTYPE_DSLAT:
+			case ANIMTYPE_DSSPK:
 			{
 				/* need to verify that this data is valid for now */
 				if (ale->adt) {
@@ -168,6 +169,7 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
 			case ANIMTYPE_DSARM:
 			case ANIMTYPE_DSMESH:
 			case ANIMTYPE_DSLAT:
+			case ANIMTYPE_DSSPK:
 			{
 				/* need to verify that this data is valid for now */
 				if (ale && ale->adt) {
@@ -247,6 +249,7 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 				case ANIMTYPE_DSNTREE:
 				case ANIMTYPE_DSTEX:
 				case ANIMTYPE_DSLAT:
+				case ANIMTYPE_DSSPK:
 				{
 					if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED))
 						sel= ACHANNEL_SETFLAG_CLEAR;
@@ -336,6 +339,7 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 			case ANIMTYPE_DSNTREE:
 			case ANIMTYPE_DSTEX:
 			case ANIMTYPE_DSLAT:
+			case ANIMTYPE_DSSPK:
 			{
 				/* need to verify that this data is valid for now */
 				if (ale->adt) {
@@ -2071,6 +2075,7 @@ static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_i
 		case ANIMTYPE_DSNTREE:
 		case ANIMTYPE_DSTEX:
 		case ANIMTYPE_DSLAT:
+		case ANIMTYPE_DSSPK:
 		{
 			/* sanity checking... */
 			if (ale->adt) {

@@ -55,6 +55,7 @@
 #include "DNA_node_types.h"
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_speaker_types.h"
 
 #include "RNA_access.h"
 
@@ -584,7 +585,9 @@ static int acf_object_icon(bAnimListElem *ale)
 			return ICON_OUTLINER_OB_META;
 		case OB_LATTICE: 
 			return ICON_OUTLINER_OB_LATTICE;
-		case OB_ARMATURE: 
+		case OB_SPEAKER:
+			return ICON_SPEAKER;
+		case OB_ARMATURE:
 			return ICON_OUTLINER_OB_ARMATURE;
 		case OB_FONT: 
 			return ICON_OUTLINER_OB_FONT;
@@ -2088,6 +2091,82 @@ static bAnimChannelType ACF_DSLAT=
 	acf_dslat_setting_ptr					/* pointer for setting */
 };
 
+/* Speaker Expander  ------------------------------------------- */
+
+// TODO: just get this from RNA?
+static int acf_dsspk_icon(bAnimListElem *UNUSED(ale))
+{
+	return ICON_SPEAKER;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return SPK_DS_EXPAND;
+
+		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+			return ADT_NLA_EVAL_OFF;
+
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
+
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_dsspk_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	Speaker *spk= (Speaker *)ale->data;
+
+	/* clear extra return data first */
+	*type= 0;
+
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			GET_ACF_FLAG_PTR(spk->flag);
+
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			if (spk->adt)
+				GET_ACF_FLAG_PTR(spk->adt->flag)
+			else
+				return NULL;
+
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* speaker expander type define */
+static bAnimChannelType ACF_DSSPK=
+{
+	"Speaker Expander",				/* type name */
+
+	acf_generic_dataexpand_color,	/* backdrop color */
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_1,		/* indent level */
+	acf_generic_basic_offset,		/* offset */
+
+	acf_generic_idblock_name,		/* name */
+	acf_dsspk_icon,					/* icon */
+
+	acf_generic_dataexpand_setting_valid,	/* has setting */
+	acf_dsspk_setting_flag,					/* flag for setting */
+	acf_dsspk_setting_ptr					/* pointer for setting */
+};
+
 /* ShapeKey Entry  ------------------------------------------- */
 
 /* name for ShapeKey */
@@ -2370,7 +2449,8 @@ static void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_DSMESH;		/* Mesh Channel */
 		animchannelTypeInfo[type++]= &ACF_DSTEX;		/* Texture Channel */
 		animchannelTypeInfo[type++]= &ACF_DSLAT;		/* Lattice Channel */
-		
+		animchannelTypeInfo[type++]= &ACF_DSSPK;		/* Speaker Channel */
+
 		animchannelTypeInfo[type++]= &ACF_SHAPEKEY;		/* ShapeKey */
 		
 		animchannelTypeInfo[type++]= &ACF_GPD;			/* Grease Pencil Datablock */ 

@@ -249,6 +249,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->wire; break;
 			case TH_LAMP:
 				cp= ts->lamp; break;
+			case TH_SPEAKER:
+				cp= ts->speaker; break;
 			case TH_SELECT:
 				cp= ts->select; break;
 			case TH_ACTIVE:
@@ -584,6 +586,7 @@ void ui_theme_init_default(void)
 	SETCOLF(btheme->tv3d.grid,     0.251, 0.251, 0.251, 1.0);
 	SETCOL(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.lamp,       0, 0, 0, 40);
+	SETCOL(btheme->tv3d.speaker,    0, 0, 0, 255);
 	SETCOL(btheme->tv3d.select, 241, 88, 0, 255);
 	SETCOL(btheme->tv3d.active, 255, 170, 64, 255);
 	SETCOL(btheme->tv3d.group,      8, 48, 8, 255);

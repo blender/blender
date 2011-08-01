@@ -153,6 +153,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSMESH,
 	ANIMTYPE_DSTEX,
 	ANIMTYPE_DSLAT,
+	ANIMTYPE_DSSPK,
 	
 	ANIMTYPE_SHAPEKEY,
 	
@@ -243,6 +244,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
 #define FILTER_MESH_OBJD(me) ((me->flag & ME_DS_EXPAND))
 #define FILTER_LATTICE_OBJD(lt) ((lt->flag & LT_DS_EXPAND))
+#define FILTER_SPK_OBJD(spk) ((spk->flag & SPK_DS_EXPAND))
 	/* Variable use expanders */
 #define FILTER_NTREE_DATA(ntree) ((ntree->flag & NTREE_DS_EXPAND))
 #define FILTER_TEX_DATA(tex) ((tex->flag & TEX_DS_EXPAND))

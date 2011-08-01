@@ -376,8 +376,8 @@ static int bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 void SOUND_OT_bake_animation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Bake animation";
-	ot->description= "Bakes the animation cache so that it's up to date";
+	ot->name= "Update animation cache";
+	ot->description= "Updates the audio animation cache so that it's up to date";
 	ot->idname= "SOUND_OT_bake_animation";
 
 	/* api callbacks */

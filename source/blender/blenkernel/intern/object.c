@@ -54,7 +54,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
 #include "DNA_space_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
@@ -975,6 +977,99 @@ void free_lamp(Lamp *la)
 	la->id.icon_id = 0;
 }
 
+void *add_speaker(const char *name)
+{
+	Speaker *spk;
+
+	spk=  alloc_libblock(&G.main->speaker, ID_SPK, name);
+
+	spk->attenuation = 1.0f;
+	spk->cone_angle_inner = 360.0f;
+	spk->cone_angle_outer = 360.0f;
+	spk->cone_volume_outer = 1.0f;
+	spk->distance_max = FLT_MAX;
+	spk->distance_reference = 1.0f;
+	spk->flag = 0;
+	spk->pitch = 1.0f;
+	spk->sound = NULL;
+	spk->volume = 1.0f;
+	spk->volume_max = 1.0f;
+	spk->volume_min = 0.0f;
+
+	return spk;
+}
+
+Speaker *copy_speaker(Speaker *spk)
+{
+	Speaker *spkn;
+
+	spkn= copy_libblock(spk);
+	if(spkn->sound)
+		spkn->sound->id.us++;
+
+	return spkn;
+}
+
+void make_local_speaker(Speaker *spk)
+{
+	Main *bmain= G.main;
+	Object *ob;
+	int local=0, lib=0;
+
+	/* - only lib users: do nothing
+		* - only local users: set flag
+		* - mixed: make copy
+		*/
+
+	if(spk->id.lib==NULL) return;
+	if(spk->id.us==1) {
+		spk->id.lib= NULL;
+		spk->id.flag= LIB_LOCAL;
+		new_id(&bmain->speaker, (ID *)spk, NULL);
+		return;
+	}
+
+	ob= bmain->object.first;
+	while(ob) {
+		if(ob->data==spk) {
+			if(ob->id.lib) lib= 1;
+			else local= 1;
+		}
+		ob= ob->id.next;
+	}
+
+	if(local && lib==0) {
+		spk->id.lib= NULL;
+		spk->id.flag= LIB_LOCAL;
+		new_id(&bmain->speaker, (ID *)spk, NULL);
+	}
+	else if(local && lib) {
+		Speaker *spkn= copy_speaker(spk);
+		spkn->id.us= 0;
+
+		ob= bmain->object.first;
+		while(ob) {
+			if(ob->data==spk) {
+
+				if(ob->id.lib==NULL) {
+					ob->data= spkn;
+					spkn->id.us++;
+					spk->id.us--;
+				}
+			}
+			ob= ob->id.next;
+		}
+	}
+}
+
+void free_speaker(Speaker *spk)
+{
+	if(spk->sound)
+		spk->sound->id.us--;
+
+	BKE_free_animdata((ID *)spk);
+}
+
 /* *************************************************** */
 
 static void *add_obdata_from_type(int type)
@@ -989,6 +1084,7 @@ static void *add_obdata_from_type(int type)
 	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
 	case OB_ARMATURE: return add_armature("Armature");
+	case OB_SPEAKER: return add_speaker("Speaker");
 	case OB_EMPTY: return NULL;
 	default:
 		printf("add_obdata_from_type: Internal error, bad type: %d\n", type);
@@ -1008,6 +1104,7 @@ static const char *get_obdata_defname(int type)
 	case OB_LAMP: return "Lamp";
 	case OB_LATTICE: return "Lattice";
 	case OB_ARMATURE: return "Armature";
+	case OB_SPEAKER: return "Speaker";
 	case OB_EMPTY: return "Empty";
 	default:
 		printf("get_obdata_defname: Internal error, bad type: %d\n", type);
@@ -1051,7 +1148,7 @@ Object *add_only_object(int type, const char *name)
 	ob->empty_drawtype= OB_PLAINAXES;
 	ob->empty_drawsize= 1.0;
 
-	if(type==OB_CAMERA || type==OB_LAMP) {
+	if(type==OB_CAMERA || type==OB_LAMP || type==OB_SPEAKER) {
 		ob->trackflag= OB_NEGZ;
 		ob->upflag= OB_POSY;
 	}

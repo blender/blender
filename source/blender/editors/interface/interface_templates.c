@@ -298,11 +298,13 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_MA: return "Browse Material to be linked";
 			case ID_TE: return "Browse Texture to be linked";
 			case ID_IM: return "Browse Image to be linked";
-			case ID_LA: return "Browse Lattice Data to be linked";
+			case ID_LT: return "Browse Lattice Data to be linked";
+			case ID_LA: return "Browse Lamp Data to be linked";
 			case ID_CA: return "Browse Camera Data to be linked";
 			case ID_WO: return "Browse World Settings to be linked";
 			case ID_SCR: return "Choose Screen lay-out";
 			case ID_TXT: return "Browse Text to be linked";
+			case ID_SPK: return "Browse Speaker Data to be linked";
 			case ID_SO: return "Browse Sound to be linked";
 			case ID_AR: return "Browse Armature data to be linked";
 			case ID_AC: return "Browse Action to be linked";

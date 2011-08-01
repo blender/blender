@@ -135,7 +135,7 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 						break;
 						
 					case ID_ME: case ID_CU: case ID_MB: case ID_LT:
-					case ID_LA: case ID_AR: case ID_CA:
+					case ID_LA: case ID_AR: case ID_CA: case ID_SPK:
 					case ID_MA: case ID_TE: case ID_IP: case ID_IM:
 					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
 					case ID_NLA: case ID_TXT: case ID_GR:

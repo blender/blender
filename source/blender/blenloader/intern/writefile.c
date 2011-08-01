@@ -123,6 +123,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_smoke_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
@@ -2331,6 +2332,23 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
+static void write_speakers(WriteData *wd, ListBase *idbase)
+{
+	Speaker *spk;
+
+	spk= idbase->first;
+	while(spk) {
+		if(spk->id.us>0 || wd->current) {
+			/* write LibData */
+			writestruct(wd, ID_SPK, "Speaker", 1, spk);
+			if (spk->id.properties) IDP_WriteProperty(spk->id.properties, wd);
+
+			if (spk->adt) write_animdata(wd, spk->adt);
+		}
+		spk= spk->id.next;
+	}
+}
+
 static void write_sounds(WriteData *wd, ListBase *idbase)
 {
 	bSound *sound;
@@ -2509,6 +2527,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_keys     (wd, &mainvar->key);
 	write_worlds   (wd, &mainvar->world);
 	write_texts    (wd, &mainvar->text);
+	write_speakers (wd, &mainvar->speaker);
 	write_sounds   (wd, &mainvar->sound);
 	write_groups   (wd, &mainvar->group);
 	write_armatures(wd, &mainvar->armature);

@@ -463,6 +463,7 @@ extern StructRNA RNA_SpaceTimeline;
 extern StructRNA RNA_SpaceUVEditor;
 extern StructRNA RNA_SpaceUserPreferences;
 extern StructRNA RNA_SpaceView3D;
+extern StructRNA RNA_Speaker;
 extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_Spline;
 extern StructRNA RNA_SplineIKConstraint;

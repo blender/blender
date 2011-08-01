@@ -71,6 +71,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_group_types.h"
@@ -146,6 +147,9 @@ Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const cha
 				break;
 			case ID_LA:
 				type= OB_LAMP;
+				break;
+			case ID_SPK:
+				type= OB_SPEAKER;
 				break;
 			case ID_CA:
 				type= OB_CAMERA;
@@ -406,6 +410,22 @@ void rna_Main_groups_remove(Main *bmain, Group *group)
 	/* XXX python now has invalid pointer? */
 }
 
+Speaker *rna_Main_speakers_new(Main *UNUSED(bmain), const char *name)
+{
+	Speaker *speaker= add_speaker(name);
+	id_us_min(&speaker->id);
+	return speaker;
+}
+void rna_Main_speakers_remove(Main *bmain, ReportList *reports, Speaker *speaker)
+{
+	if(ID_REAL_USERS(speaker) <= 0)
+		free_libblock(&bmain->speaker, speaker);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Speaker \"%s\" must have zero users to be removed, found %d.", speaker->id.name+2, ID_REAL_USERS(speaker));
+
+	/* XXX python now has invalid pointer? */
+}
+
 Text *rna_Main_texts_new(Main *UNUSED(bmain), const char *name)
 {
 	return add_empty_text(name);
@@ -502,6 +522,7 @@ void rna_Main_groups_tag(Main *bmain, int value) { tag_main_lb(&bmain->group, va
 void rna_Main_shape_keys_tag(Main *bmain, int value) { tag_main_lb(&bmain->key, value); }
 void rna_Main_scripts_tag(Main *bmain, int value) { tag_main_lb(&bmain->script, value); }
 void rna_Main_texts_tag(Main *bmain, int value) { tag_main_lb(&bmain->text, value); }
+void rna_Main_speakers_tag(Main *bmain, int value) { tag_main_lb(&bmain->speaker, value); }
 void rna_Main_sounds_tag(Main *bmain, int value) { tag_main_lb(&bmain->sound, value); }
 void rna_Main_armatures_tag(Main *bmain, int value) { tag_main_lb(&bmain->armature, value); }
 void rna_Main_actions_tag(Main *bmain, int value) { tag_main_lb(&bmain->action, value); }
@@ -1076,6 +1097,37 @@ void RNA_def_main_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_boolean(func, "value", 0, "Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
+
+void RNA_def_main_speakers(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "BlendDataSpeakers");
+	srna= RNA_def_struct(brna, "BlendDataSpeakers", NULL);
+	RNA_def_struct_sdna(srna, "Main");
+	RNA_def_struct_ui_text(srna, "Main Speakers", "Collection of speakers");
+
+	func= RNA_def_function(srna, "new", "rna_Main_speakers_new");
+	RNA_def_function_ui_description(func, "Add a new speaker to the main database");
+	parm= RNA_def_string(func, "name", "Speaker", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "speaker", "Speaker", "", "New speaker datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_speakers_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a speaker from the current blendfile.");
+	parm= RNA_def_pointer(func, "speaker", "Speaker", "", "Speaker to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+
+	func= RNA_def_function(srna, "tag", "rna_Main_speakers_tag");
+	parm= RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
 void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;

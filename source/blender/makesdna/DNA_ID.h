@@ -178,6 +178,7 @@ typedef struct PreviewImage {
 #define ID_SCRN		MAKE_ID2('S', 'N') /* (depreciated?) */
 #define ID_VF		MAKE_ID2('V', 'F') /* VectorFont */
 #define ID_TXT		MAKE_ID2('T', 'X') /* Text */
+#define ID_SPK		MAKE_ID2('S', 'K') /* Speaker */
 #define ID_SO		MAKE_ID2('S', 'O') /* Sound */
 #define ID_GR		MAKE_ID2('G', 'R') /* Group */
 #define ID_ID		MAKE_ID2('I', 'D') /* (internal use only) */

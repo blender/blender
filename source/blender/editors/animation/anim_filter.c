@@ -67,6 +67,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
@@ -645,6 +646,19 @@ static bAnimListElem *make_new_animlistelem (void *data, short datatype, ID *own
 				
 				ale->adt= BKE_animdata_from_id(data);
 			}	
+				break;
+			case ANIMTYPE_DSSPK:
+			{
+				Speaker *spk= (Speaker *)data;
+				AnimData *adt= spk->adt;
+
+				ale->flag= FILTER_SPK_OBJD(spk);
+
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+
+				ale->adt= BKE_animdata_from_id(data);
+			}
 				break;
 			case ANIMTYPE_DSSKEY:
 			{
@@ -1606,6 +1620,14 @@ static size_t animdata_filter_ds_obdata (bAnimContext *ac, ListBase *anim_data, 
 			
 			type= ANIMTYPE_DSLAT;
 			expanded= FILTER_LATTICE_OBJD(lt);
+		}
+			break;
+		case OB_SPEAKER: /* ---------- Speaker ----------- */
+		{
+			Speaker *spk= (Speaker *)ob->data;
+
+			type= ANIMTYPE_DSSPK;
+			expanded= FILTER_SPK_OBJD(spk);
 		}
 			break;
 	}

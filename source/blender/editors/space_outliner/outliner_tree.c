@@ -50,6 +50,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
@@ -713,6 +714,13 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 				if(la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, 0, a);
 			}
 		}
+			break;
+		case ID_SPK:
+			{
+				Speaker *spk= (Speaker *)id;
+
+				outliner_add_element(soops, &te->subtree, spk->adt, te, TSE_ANIM_DATA, 0);
+			}
 			break;
 		case ID_WO:
 		{

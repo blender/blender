@@ -51,22 +51,24 @@ class SCENE_PT_audio(SceneButtonsPanel, bpy.types.Panel):
         layout = self.layout
         scene = context.scene
         rd = context.scene.render
-        
-        layout.prop(scene, "audio_distance_model")
-
-        layout.prop(scene, "audio_doppler_speed", text="Speed")
-        layout.prop(scene, "audio_doppler_factor")
 
         layout.prop(scene, "audio_volume")
-        layout.operator("sound.update_animation_flags")
         layout.operator("sound.bake_animation")
 
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "ffmpeg_audio_mixrate", text="Rate")
+
+        col.label("Listener:")
+        col.prop(scene, "audio_distance_model", text="")
+        col.prop(scene, "audio_doppler_speed", text="Speed")
+        col.prop(scene, "audio_doppler_factor", text="Doppler")
+
         col = split.column()
+
+        col.label("Format:")
         col.prop(rd, "ffmpeg_audio_channels", text="")
+        col.prop(rd, "ffmpeg_audio_mixrate", text="Rate")
 
 
 class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
@@ -102,7 +104,6 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
         col = row.column(align=True)
         col.operator("anim.keying_set_add", icon='ZOOMIN', text="")
         col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
-        col.menu("SCENE_MT_keying_set_specials", icon='DOWNARROW_HLT', text="")
 
         ks = scene.keying_sets.active
         if ks and ks.is_path_absolute:
@@ -120,14 +121,6 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
             col.label(text="Keyframing Settings:")
             col.prop(ks, "bl_options")
 
-
-class SCENE_MT_keying_set_specials(bpy.types.Menu):
-    bl_label = "Keying Set Specials"
-
-    def draw(self, context):
-        layout = self.layout
-        
-        layout.operator("anim.keying_set_import", text="Import From File")
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Active Keying Set"
@@ -232,36 +225,6 @@ class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
 
 #  XXX, move operator to op/ dir
 
-
-class ANIM_OT_keying_set_import(bpy.types.Operator):
-    "Import Keying Set from a python script."
-    bl_idname = "anim.keying_set_import"
-    bl_label = "Import Keying Set from File"
-
-    filepath = bpy.props.StringProperty(name="File Path", description="Filepath to read file from.")
-    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
-    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
-    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
-
-    def execute(self, context):
-        if not self.filepath:
-            raise Exception("Filepath not set.")
-        
-        f = open(self.filepath, "r")
-        if not f:
-            raise Exception("Could not open file.")
-        
-        # lazy way of loading and running this file...
-        exec(compile(f.read(), self.filepath, 'exec'))
-        
-        f.close()
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
 
 class ANIM_OT_keying_set_export(bpy.types.Operator):
     "Export Keying Set to a python script."

@@ -65,6 +65,7 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
 #include "DNA_vfont_types.h"
@@ -207,6 +208,9 @@ int id_make_local(ID *id, int test)
 		case ID_CA:
 			if(!test) make_local_camera((Camera*)id);
 			return 1;
+		case ID_SPK:
+			if(!test) make_local_speaker((Speaker*)id);
+			return 1;
 		case ID_IP:
 			return 0; /* deprecated */
 		case ID_KE:
@@ -288,6 +292,9 @@ int id_copy(ID *id, ID **newid, int test)
 			return 1;
 		case ID_LA:
 			if(!test) *newid= (ID*)copy_lamp((Lamp*)id);
+			return 1;
+		case ID_SPK:
+			if(!test) *newid= (ID*)copy_speaker((Speaker*)id);
 			return 1;
 		case ID_CA:
 			if(!test) *newid= (ID*)copy_camera((Camera*)id);
@@ -439,6 +446,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->text);
 		case ID_SCRIPT:
 			return &(mainlib->script);
+		case ID_SPK:
+			return &(mainlib->speaker);
 		case ID_SO:
 			return &(mainlib->sound);
 		case ID_GR:
@@ -523,7 +532,8 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->latt);
 	lb[a++]= &(main->lamp);
 	lb[a++]= &(main->camera);
-	
+	lb[a++]= &(main->speaker);
+
 	lb[a++]= &(main->text);
 	lb[a++]= &(main->sound);
 	lb[a++]= &(main->group);
@@ -614,6 +624,9 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_SCRIPT:
 			//XXX id= MEM_callocN(sizeof(Script), "script");
+			break;
+		case ID_SPK:
+			id= MEM_callocN(sizeof(Speaker), "speaker");
 			break;
 		case ID_SO:
 			id= MEM_callocN(sizeof(bSound), "sound");
@@ -817,6 +830,9 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_SCRIPT:
 			//XXX free_script((Script *)id);
+			break;
+		case ID_SPK:
+			free_speaker((Speaker *)id);
 			break;
 		case ID_SO:
 			sound_free((bSound*)id);

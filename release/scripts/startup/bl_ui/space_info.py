@@ -292,6 +292,9 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator_menu_enum("object.lamp_add", "type", text="Lamp", icon='OUTLINER_OB_LAMP')
         layout.separator()
 
+        layout.operator("object.speaker_add", text="Speaker", icon='SPEAKER')
+        layout.separator()
+
         layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_EMPTY')
         layout.separator()
 

@@ -552,6 +552,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_NOARM			= (1<<18),
 	ADS_FILTER_NONTREE			= (1<<19),
 	ADS_FILTER_NOTEX			= (1<<20),
+	ADS_FILTER_NOSPK			= (1<<21),
 	
 		/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT		= (1<<25),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
@@ -561,7 +562,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_BY_FCU_NAME		= (1<<27),	/* for F-Curves, filter by the displayed name (i.e. to isolate all Location curves only) */
 	
 		/* combination filters (some only used at runtime) */
-	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM)
+	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM|ADS_FILTER_NOSPK)
 } eDopeSheet_FilterFlag;	
 
 /* DopeSheet general flags */
