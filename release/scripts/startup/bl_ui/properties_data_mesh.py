@@ -19,10 +19,10 @@
 # <pep8 compliant>
 import bpy
 from rna_prop_ui import PropertyPanel
-
+from blf import gettext as _
 
 class MESH_MT_vertex_group_specials(bpy.types.Menu):
-    bl_label = "Vertex Group Specials"
+    bl_label = _("Vertex Group Specials")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -33,11 +33,11 @@ class MESH_MT_vertex_group_specials(bpy.types.Menu):
         layout.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA')
         layout.operator("object.vertex_group_copy_to_selected", icon='LINK_AREA')
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT')
-        layout.operator("object.vertex_group_remove", icon='X', text="Delete All").all = True
+        layout.operator("object.vertex_group_remove", icon='X', text=_("Delete All")).all = True
 
 
 class MESH_MT_shape_key_specials(bpy.types.Menu):
-    bl_label = "Shape Key Specials"
+    bl_label = _("Shape Key Specials")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -46,7 +46,7 @@ class MESH_MT_shape_key_specials(bpy.types.Menu):
         layout.operator("object.shape_key_transfer", icon='COPY_ID')  # icon is not ideal
         layout.operator("object.join_shapes", icon='COPY_ID')  # icon is not ideal
         layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT')
-        op = layout.operator("object.shape_key_add", icon='ZOOMIN', text="New Shape From Mix")
+        op = layout.operator("object.shape_key_add", icon='ZOOMIN', text=_("New Shape From Mix"))
         op.from_mix = True
 
 
@@ -80,7 +80,7 @@ class DATA_PT_context_mesh(MeshButtonsPanel, bpy.types.Panel):
 
 
 class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
-    bl_label = "Normals"
+    bl_label = _("Normals")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -94,13 +94,13 @@ class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
         col.prop(mesh, "use_auto_smooth")
         sub = col.column()
         sub.active = mesh.use_auto_smooth
-        sub.prop(mesh, "auto_smooth_angle", text="Angle")
+        sub.prop(mesh, "auto_smooth_angle", text=_("Angle"))
 
         split.prop(mesh, "show_double_sided")
 
 
 class DATA_PT_texture_space(MeshButtonsPanel, bpy.types.Panel):
-    bl_label = "Texture Space"
+    bl_label = _("Texture Space")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -115,12 +115,12 @@ class DATA_PT_texture_space(MeshButtonsPanel, bpy.types.Panel):
 
         layout.prop(mesh, "use_auto_texspace")
         row = layout.row()
-        row.column().prop(mesh, "texspace_location", text="Location")
-        row.column().prop(mesh, "texspace_size", text="Size")
+        row.column().prop(mesh, "texspace_location", text=_("Location"))
+        row.column().prop(mesh, "texspace_size", text=_("Size"))
 
 
 class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
-    bl_label = "Vertex Groups"
+    bl_label = _("Vertex Groups")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -158,18 +158,18 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
             row = layout.row()
 
             sub = row.row(align=True)
-            sub.operator("object.vertex_group_assign", text="Assign")
-            sub.operator("object.vertex_group_remove_from", text="Remove")
+            sub.operator("object.vertex_group_assign", text=_("Assign"))
+            sub.operator("object.vertex_group_remove_from", text=_("Remove"))
 
             sub = row.row(align=True)
-            sub.operator("object.vertex_group_select", text="Select")
-            sub.operator("object.vertex_group_deselect", text="Deselect")
+            sub.operator("object.vertex_group_select", text=_("Select"))
+            sub.operator("object.vertex_group_deselect", text=_("Deselect"))
 
-            layout.prop(context.tool_settings, "vertex_group_weight", text="Weight")
+            layout.prop(context.tool_settings, "vertex_group_weight", text=_("Weight"))
 
 
 class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
-    bl_label = "Shape Keys"
+    bl_label = _("Shape Keys")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -245,13 +245,13 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
 
                     col = split.column(align=True)
                     col.active = enable_edit_value
-                    col.label(text="Range:")
-                    col.prop(kb, "slider_min", text="Min")
-                    col.prop(kb, "slider_max", text="Max")
+                    col.label(text=_("Range:"))
+                    col.prop(kb, "slider_min", text=_("Min"))
+                    col.prop(kb, "slider_max", text=_("Max"))
 
                     col = split.column(align=True)
                     col.active = enable_edit_value
-                    col.label(text="Blend:")
+                    col.label(text=_("Blend:"))
                     col.prop_search(kb, "vertex_group", ob, "vertex_groups", text="")
                     col.prop_search(kb, "relative_key", key, "key_blocks", text="")
 
@@ -262,7 +262,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
 
 
 class DATA_PT_uv_texture(MeshButtonsPanel, bpy.types.Panel):
-    bl_label = "UV Texture"
+    bl_label = _("UV Texture")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -285,7 +285,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, bpy.types.Panel):
 
 
 class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
-    bl_label = "Texture Face"
+    bl_label = _("Texture Face")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -303,7 +303,7 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
 
         if tf:
             if context.scene.render.engine != 'BLENDER_GAME':
-                col.label(text="Options only supported in Game Engine")
+                col.label(text=_("Options only supported in Game Engine"))
 
             split = layout.split()
             col = split.column()
@@ -328,11 +328,11 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
             col = layout.column()
             col.prop(tf, "blend_type")
         else:
-            col.label(text="No UV Texture")
+            col.label(text=_("No UV Texture"))
 
 
 class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
-    bl_label = "Vertex Colors"
+    bl_label = _("Vertex Colors")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):

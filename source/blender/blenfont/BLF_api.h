@@ -34,6 +34,7 @@
 #ifndef BLF_API_H
 #define BLF_API_H
 
+#include <stdlib.h>
 struct rctf;
 
 int BLF_init(int points, int dpi);

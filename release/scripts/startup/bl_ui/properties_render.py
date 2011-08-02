@@ -499,13 +499,13 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
             split.label("FIXME: hard coded Non-Linear, Gamma:1.0")
             '''
             col = split.column()
-            col.prop(rd, "use_cineon_log", text="Convert to Log")
+            col.prop(rd, "use_cineon_log", text=_("Convert to Log"))
 
             col = split.column(align=True)
             col.active = rd.use_cineon_log
-            col.prop(rd, "cineon_black", text="Black")
-            col.prop(rd, "cineon_white", text="White")
-            col.prop(rd, "cineon_gamma", text="Gamma")
+            col.prop(rd, "cineon_black", text=_("Black"))
+            col.prop(rd, "cineon_white", text=_("White"))
+            col.prop(rd, "cineon_gamma", text=_("Gamma"))
             '''
 
         elif file_format == 'TIFF':

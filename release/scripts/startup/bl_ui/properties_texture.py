@@ -23,7 +23,7 @@ from blf import gettext as _
 
 
 class TEXTURE_MT_specials(bpy.types.Menu):
-    bl_label = "Texture Specials"
+    bl_label = _("Texture Specials")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -34,7 +34,7 @@ class TEXTURE_MT_specials(bpy.types.Menu):
 
 
 class TEXTURE_MT_envmap_specials(bpy.types.Menu):
-    bl_label = "Environment Map Specials"
+    bl_label = _("Environment Map Specials")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -143,16 +143,16 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, bpy.types.Panel):
             if tex.use_nodes:
 
                 if slot:
-                    split.label(text="Output:")
+                    split.label(text=_("Output:"))
                     split.prop(slot, "output_node", text="")
 
             else:
-                split.label(text="Type:")
+                split.label(text=_("Type:"))
                 split.prop(tex, "type", text="")
 
 
 class TEXTURE_PT_preview(TextureButtonsPanel, bpy.types.Panel):
-    bl_label = "Preview"
+    bl_label = _("Preview")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -169,7 +169,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel, bpy.types.Panel):
 
 
 class TEXTURE_PT_colors(TextureButtonsPanel, bpy.types.Panel):
-    bl_label = "Colors"
+    bl_label = _("Colors")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -178,21 +178,21 @@ class TEXTURE_PT_colors(TextureButtonsPanel, bpy.types.Panel):
 
         tex = context.texture
 
-        layout.prop(tex, "use_color_ramp", text="Ramp")
+        layout.prop(tex, "use_color_ramp", text=_("Ramp"))
         if tex.use_color_ramp:
             layout.template_color_ramp(tex, "color_ramp", expand=True)
 
         split = layout.split()
 
         col = split.column()
-        col.label(text="RGB Multiply:")
+        col.label(text=_("RGB Multiply:"))
         sub = col.column(align=True)
         sub.prop(tex, "factor_red", text="R")
         sub.prop(tex, "factor_green", text="G")
         sub.prop(tex, "factor_blue", text="B")
 
         col = split.column()
-        col.label(text="Adjust:")
+        col.label(text=_("Adjust:"))
         col.prop(tex, "intensity")
         col.prop(tex, "contrast")
         col.prop(tex, "saturation")
@@ -225,7 +225,7 @@ class TextureTypePanel(TextureButtonsPanel):
 
 
 class TEXTURE_PT_clouds(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Clouds"
+    bl_label = _("Clouds")
     tex_type = 'CLOUDS'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -235,21 +235,21 @@ class TEXTURE_PT_clouds(TextureTypePanel, bpy.types.Panel):
         tex = context.texture
 
         layout.prop(tex, "cloud_type", expand=True)
-        layout.label(text="Noise:")
-        layout.prop(tex, "noise_type", text="Type", expand=True)
-        layout.prop(tex, "noise_basis", text="Basis")
+        layout.label(text=_("Noise:"))
+        layout.prop(tex, "noise_type", text=_("Type"), expand=True)
+        layout.prop(tex, "noise_basis", text=_("Basis"))
 
         split = layout.split()
 
         col = split.column()
-        col.prop(tex, "noise_scale", text="Size")
-        col.prop(tex, "noise_depth", text="Depth")
+        col.prop(tex, "noise_scale", text=_("Size"))
+        col.prop(tex, "noise_depth", text=_("Depth"))
 
-        split.prop(tex, "nabla", text="Nabla")
+        split.prop(tex, "nabla", text=_("Nabla"))
 
 
 class TEXTURE_PT_wood(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Wood"
+    bl_label = _("Wood")
     tex_type = 'WOOD'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -263,22 +263,22 @@ class TEXTURE_PT_wood(TextureTypePanel, bpy.types.Panel):
 
         col = layout.column()
         col.active = tex.wood_type in {'RINGNOISE', 'BANDNOISE'}
-        col.label(text="Noise:")
-        col.row().prop(tex, "noise_type", text="Type", expand=True)
-        layout.prop(tex, "noise_basis", text="Basis")
+        col.label(text=_("Noise:"))
+        col.row().prop(tex, "noise_type", text=_("Type"), expand=True)
+        layout.prop(tex, "noise_basis", text=_("Basis"))
 
         split = layout.split()
         split.active = tex.wood_type in {'RINGNOISE', 'BANDNOISE'}
 
         col = split.column()
-        col.prop(tex, "noise_scale", text="Size")
+        col.prop(tex, "noise_scale", text=_("Size"))
         col.prop(tex, "turbulence")
 
         split.prop(tex, "nabla")
 
 
 class TEXTURE_PT_marble(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Marble"
+    bl_label = _("Marble")
     tex_type = 'MARBLE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -289,15 +289,15 @@ class TEXTURE_PT_marble(TextureTypePanel, bpy.types.Panel):
 
         layout.prop(tex, "marble_type", expand=True)
         layout.prop(tex, "noise_basis_2", expand=True)
-        layout.label(text="Noise:")
-        layout.prop(tex, "noise_type", text="Type", expand=True)
-        layout.prop(tex, "noise_basis", text="Basis")
+        layout.label(text=_("Noise:"))
+        layout.prop(tex, "noise_type", text=_("Type"), expand=True)
+        layout.prop(tex, "noise_basis", text=_("Basis"))
 
         split = layout.split()
 
         col = split.column()
-        col.prop(tex, "noise_scale", text="Size")
-        col.prop(tex, "noise_depth", text="Depth")
+        col.prop(tex, "noise_scale", text=_("Size"))
+        col.prop(tex, "noise_depth", text=_("Depth"))
 
         col = split.column()
         col.prop(tex, "turbulence")
@@ -305,7 +305,7 @@ class TEXTURE_PT_marble(TextureTypePanel, bpy.types.Panel):
 
 
 class TEXTURE_PT_magic(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Magic"
+    bl_label = _("Magic")
     tex_type = 'MAGIC'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -315,12 +315,12 @@ class TEXTURE_PT_magic(TextureTypePanel, bpy.types.Panel):
         tex = context.texture
 
         row = layout.row()
-        row.prop(tex, "noise_depth", text="Depth")
+        row.prop(tex, "noise_depth", text=_("Depth"))
         row.prop(tex, "turbulence")
 
 
 class TEXTURE_PT_blend(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Blend"
+    bl_label = _("Blend")
     tex_type = 'BLEND'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -338,7 +338,7 @@ class TEXTURE_PT_blend(TextureTypePanel, bpy.types.Panel):
 
 
 class TEXTURE_PT_stucci(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Stucci"
+    bl_label = _("Stucci")
     tex_type = 'STUCCI'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -348,17 +348,17 @@ class TEXTURE_PT_stucci(TextureTypePanel, bpy.types.Panel):
         tex = context.texture
 
         layout.prop(tex, "stucci_type", expand=True)
-        layout.label(text="Noise:")
-        layout.prop(tex, "noise_type", text="Type", expand=True)
-        layout.prop(tex, "noise_basis", text="Basis")
+        layout.label(text=_("Noise:"))
+        layout.prop(tex, "noise_type", text=_("Type"), expand=True)
+        layout.prop(tex, "noise_basis", text=_("Basis"))
 
         row = layout.row()
-        row.prop(tex, "noise_scale", text="Size")
+        row.prop(tex, "noise_scale", text=_("Size"))
         row.prop(tex, "turbulence")
 
 
 class TEXTURE_PT_image(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Image"
+    bl_label = _("Image")
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -375,16 +375,16 @@ def texture_filter_common(tex, layout):
     layout.prop(tex, "filter_type", text="")
     if tex.use_mipmap and tex.filter_type in {'AREA', 'EWA', 'FELINE'}:
         if tex.filter_type == 'FELINE':
-            layout.prop(tex, "filter_probes", text="Probes")
+            layout.prop(tex, "filter_probes", text=_("Probes"))
         else:
-            layout.prop(tex, "filter_eccentricity", text="Eccentricity")
+            layout.prop(tex, "filter_eccentricity", text=_("Eccentricity"))
 
     layout.prop(tex, "filter_size")
     layout.prop(tex, "use_filter_size_min")
 
 
 class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Image Sampling"
+    bl_label = _("Image Sampling")
     bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -399,12 +399,12 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Alpha:")
-        col.prop(tex, "use_alpha", text="Use")
-        col.prop(tex, "use_calculate_alpha", text="Calculate")
-        col.prop(tex, "invert_alpha", text="Invert")
+        col.label(text=_("Alpha:"))
+        col.prop(tex, "use_alpha", text=_("Use"))
+        col.prop(tex, "use_calculate_alpha", text=_("Calculate"))
+        col.prop(tex, "invert_alpha", text=_("Invert"))
         col.separator()
-        col.prop(tex, "use_flip_axis", text="Flip X/Y Axis")
+        col.prop(tex, "use_flip_axis", text=_("Flip X/Y Axis"))
 
         col = split.column()
 
@@ -425,7 +425,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, bpy.types.Panel):
 
 
 class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Image Mapping"
+    bl_label = _("Image Mapping")
     bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -441,12 +441,12 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
 
         if tex.extension == 'REPEAT':
             col = split.column(align=True)
-            col.label(text="Repeat:")
+            col.label(text=_("Repeat:"))
             col.prop(tex, "repeat_x", text="X")
             col.prop(tex, "repeat_y", text="Y")
 
             col = split.column(align=True)
-            col.label(text="Mirror:")
+            col.label(text=_("Mirror:"))
             row = col.row()
             row.prop(tex, "use_mirror_x", text="X")
             row.active = (tex.repeat_x > 1)
@@ -458,11 +458,11 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
         elif tex.extension == 'CHECKER':
             col = split.column(align=True)
             row = col.row()
-            row.prop(tex, "use_checker_even", text="Even")
-            row.prop(tex, "use_checker_odd", text="Odd")
+            row.prop(tex, "use_checker_even", text=_("Even"))
+            row.prop(tex, "use_checker_odd", text=_("Odd"))
 
             col = split.column()
-            col.prop(tex, "checker_distance", text="Distance")
+            col.prop(tex, "checker_distance", text=_("Distance"))
 
             layout.separator()
 
@@ -470,18 +470,18 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, bpy.types.Panel):
 
         col = split.column(align=True)
         #col.prop(tex, "crop_rectangle")
-        col.label(text="Crop Minimum:")
+        col.label(text=_("Crop Minimum:"))
         col.prop(tex, "crop_min_x", text="X")
         col.prop(tex, "crop_min_y", text="Y")
 
         col = split.column(align=True)
-        col.label(text="Crop Maximum:")
+        col.label(text=_("Crop Maximum:"))
         col.prop(tex, "crop_max_x", text="X")
         col.prop(tex, "crop_max_y", text="Y")
 
 
 class TEXTURE_PT_envmap(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Environment Map"
+    bl_label = _("Environment Map")
     tex_type = 'ENVIRONMENT_MAP'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -513,13 +513,13 @@ class TEXTURE_PT_envmap(TextureTypePanel, bpy.types.Panel):
 
             col = split.column(align=True)
 
-            col.label(text="Clipping:")
-            col.prop(env, "clip_start", text="Start")
-            col.prop(env, "clip_end", text="End")
+            col.label(text=_("Clipping:"))
+            col.prop(env, "clip_start", text=_("Start"))
+            col.prop(env, "clip_end", text=_("End"))
 
 
 class TEXTURE_PT_envmap_sampling(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Environment Map Sampling"
+    bl_label = _("Environment Map Sampling")
     bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'ENVIRONMENT_MAP'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -533,7 +533,7 @@ class TEXTURE_PT_envmap_sampling(TextureTypePanel, bpy.types.Panel):
 
 
 class TEXTURE_PT_musgrave(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Musgrave"
+    bl_label = _("Musgrave")
     tex_type = 'MUSGRAVE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -547,7 +547,7 @@ class TEXTURE_PT_musgrave(TextureTypePanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(tex, "dimension_max", text="Dimension")
+        col.prop(tex, "dimension_max", text=_("Dimension"))
         col.prop(tex, "lacunarity")
         col.prop(tex, "octaves")
 
@@ -556,21 +556,21 @@ class TEXTURE_PT_musgrave(TextureTypePanel, bpy.types.Panel):
         if musgrave_type in {'HETERO_TERRAIN', 'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'}:
             col.prop(tex, "offset")
         if musgrave_type in {'MULTIFRACTAL', 'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'}:
-            col.prop(tex, "noise_intensity", text="Intensity")
+            col.prop(tex, "noise_intensity", text=_("Intensity"))
         if musgrave_type in {'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'}:
             col.prop(tex, "gain")
 
-        layout.label(text="Noise:")
+        layout.label(text=_("Noise:"))
 
-        layout.prop(tex, "noise_basis", text="Basis")
+        layout.prop(tex, "noise_basis", text=_("Basis"))
 
         row = layout.row()
-        row.prop(tex, "noise_scale", text="Size")
+        row.prop(tex, "noise_scale", text=_("Size"))
         row.prop(tex, "nabla")
 
 
 class TEXTURE_PT_voronoi(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Voronoi"
+    bl_label = _("Voronoi")
     tex_type = 'VORONOI'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -582,31 +582,31 @@ class TEXTURE_PT_voronoi(TextureTypePanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Distance Metric:")
+        col.label(text=_("Distance Metric:"))
         col.prop(tex, "distance_metric", text="")
         sub = col.column()
         sub.active = tex.distance_metric == 'MINKOVSKY'
-        sub.prop(tex, "minkovsky_exponent", text="Exponent")
-        col.label(text="Coloring:")
+        sub.prop(tex, "minkovsky_exponent", text=_("Exponent"))
+        col.label(text=_("Coloring:"))
         col.prop(tex, "color_mode", text="")
-        col.prop(tex, "noise_intensity", text="Intensity")
+        col.prop(tex, "noise_intensity", text=_("Intensity"))
 
         col = split.column()
         sub = col.column(align=True)
-        sub.label(text="Feature Weights:")
+        sub.label(text=_("Feature Weights:"))
         sub.prop(tex, "weight_1", text="1", slider=True)
         sub.prop(tex, "weight_2", text="2", slider=True)
         sub.prop(tex, "weight_3", text="3", slider=True)
         sub.prop(tex, "weight_4", text="4", slider=True)
 
-        layout.label(text="Noise:")
+        layout.label(text=_("Noise:"))
         row = layout.row()
-        row.prop(tex, "noise_scale", text="Size")
+        row.prop(tex, "noise_scale", text=_("Size"))
         row.prop(tex, "nabla")
 
 
 class TEXTURE_PT_distortednoise(TextureTypePanel, bpy.types.Panel):
-    bl_label = "Distorted Noise"
+    bl_label = _("Distorted Noise")
     tex_type = 'DISTORTED_NOISE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -616,19 +616,19 @@ class TEXTURE_PT_distortednoise(TextureTypePanel, bpy.types.Panel):
         tex = context.texture
 
         layout.prop(tex, "noise_distortion")
-        layout.prop(tex, "noise_basis", text="Basis")
+        layout.prop(tex, "noise_basis", text=_("Basis"))
 
         split = layout.split()
 
         col = split.column()
-        col.prop(tex, "distortion", text="Distortion")
-        col.prop(tex, "noise_scale", text="Size")
+        col.prop(tex, "distortion", text=_("Distortion"))
+        col.prop(tex, "noise_scale", text=_("Size"))
 
         split.prop(tex, "nabla")
 
 
 class TEXTURE_PT_voxeldata(TextureButtonsPanel, bpy.types.Panel):
-    bl_label = "Voxel Data"
+    bl_label = _("Voxel Data")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -668,7 +668,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel, bpy.types.Panel):
 
 
 class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
-    bl_label = "Point Density"
+    bl_label = _("Point Density")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -689,26 +689,26 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         if pd.point_source == 'PARTICLE_SYSTEM':
-            col.label(text="Object:")
+            col.label(text=_("Object:"))
             col.prop(pd, "object", text="")
 
             sub = col.column()
             sub.enabled = bool(pd.object)
             if pd.object:
-                sub.label(text="System:")
+                sub.label(text=_("System:"))
                 sub.prop_search(pd, "particle_system", pd.object, "particle_systems", text="")
-            sub.label(text="Cache:")
+            sub.label(text=_("Cache:"))
             sub.prop(pd, "particle_cache_space", text="")
         else:
-            col.label(text="Object:")
+            col.label(text=_("Object:"))
             col.prop(pd, "object", text="")
-            col.label(text="Cache:")
+            col.label(text=_("Cache:"))
             col.prop(pd, "vertex_cache_space", text="")
 
         col.separator()
 
         if pd.point_source == 'PARTICLE_SYSTEM':
-            col.label(text="Color Source:")
+            col.label(text=_("Color Source:"))
             col.prop(pd, "color_source", text="")
             if pd.color_source in {'PARTICLE_SPEED', 'PARTICLE_VELOCITY'}:
                 col.prop(pd, "speed_scale")
@@ -718,7 +718,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label()
         col.prop(pd, "radius")
-        col.label(text="Falloff:")
+        col.label(text=_("Falloff:"))
         col.prop(pd, "falloff", text="")
         if pd.falloff == 'SOFT':
             col.prop(pd, "falloff_soft")
@@ -729,12 +729,12 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, bpy.types.Panel):
 
         if pd.use_falloff_curve:
             col = layout.column()
-            col.label(text="Falloff Curve")
+            col.label(text=_("Falloff Curve"))
             col.template_curve_mapping(pd, "falloff_curve", brush=False)
 
 
 class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
-    bl_label = "Turbulence"
+    bl_label = _("Turbulence")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -758,9 +758,9 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Influence:")
+        col.label(text=_("Influence:"))
         col.prop(pd, "turbulence_influence", text="")
-        col.label(text="Noise Basis:")
+        col.label(text=_("Noise Basis:"))
         col.prop(pd, "noise_basis", text="")
 
         col = split.column()
@@ -771,7 +771,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, bpy.types.Panel):
 
 
 class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
-    bl_label = "Mapping"
+    bl_label = _("Mapping")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -797,7 +797,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
         if not isinstance(idblock, bpy.types.Brush):
             split = layout.split(percentage=0.3)
             col = split.column()
-            col.label(text="Coordinates:")
+            col.label(text=_("Coordinates:"))
             col = split.column()
             col.prop(tex, "texture_coords", text="")
 
@@ -806,12 +806,12 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
                 ob = context.object
                 if ob and ob.type == 'MESH':
                     split = layout.split(percentage=0.3)
-                    split.label(text="Mesh:")
+                    split.label(text=_("Mesh:"))
                     split.prop(ob.data, "texco_mesh", text="")
                 """
             elif tex.texture_coords == 'UV':
                 split = layout.split(percentage=0.3)
-                split.label(text="Layer:")
+                split.label(text=_("Layer:"))
                 ob = context.object
                 if ob and ob.type == 'MESH':
                     split.prop_search(tex, "uv_layer", ob.data, "uv_textures", text="")
@@ -820,12 +820,12 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
 
             elif tex.texture_coords == 'OBJECT':
                 split = layout.split(percentage=0.3)
-                split.label(text="Object:")
+                split.label(text=_("Object:"))
                 split.prop(tex, "object", text="")
 
         if isinstance(idblock, bpy.types.Brush):
             if context.sculpt_object:
-                layout.label(text="Brush Mapping:")
+                layout.label(text=_("Brush Mapping:"))
                 layout.prop(tex, "map_mode", expand=True)
 
                 row = layout.row()
@@ -834,7 +834,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
         else:
             if isinstance(idblock, bpy.types.Material):
                 split = layout.split(percentage=0.3)
-                split.label(text="Projection:")
+                split.label(text=_("Projection:"))
                 split.prop(tex, "mapping", text="")
 
                 split = layout.split()
@@ -859,7 +859,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, bpy.types.Panel):
 
 
 class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
-    bl_label = "Influence"
+    bl_label = _("Influence")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -896,25 +896,25 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
                 split = layout.split()
 
                 col = split.column()
-                col.label(text="Diffuse:")
+                col.label(text=_("Diffuse:"))
                 factor_but(col, "use_map_diffuse", "diffuse_factor", "Intensity")
                 factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
                 factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
                 factor_but(col, "use_map_translucency", "translucency_factor", "Translucency")
 
-                col.label(text="Specular:")
+                col.label(text=_("Specular:"))
                 factor_but(col, "use_map_specular", "specular_factor", "Intensity")
                 factor_but(col, "use_map_color_spec", "specular_color_factor", "Color")
                 factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
 
                 col = split.column()
-                col.label(text="Shading:")
+                col.label(text=_("Shading:"))
                 factor_but(col, "use_map_ambient", "ambient_factor", "Ambient")
                 factor_but(col, "use_map_emit", "emit_factor", "Emit")
                 factor_but(col, "use_map_mirror", "mirror_factor", "Mirror")
                 factor_but(col, "use_map_raymir", "raymir_factor", "Ray Mirror")
 
-                col.label(text="Geometry:")
+                col.label(text=_("Geometry:"))
                 # XXX replace 'or' when displacement is fixed to not rely on normal influence value.
                 sub_tmp = factor_but(col, "use_map_normal", "normal_factor", "Normal")
                 sub_tmp.active = (tex.use_map_normal or tex.use_map_displacement)
@@ -925,9 +925,9 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
 
                 #sub = col.column()
                 #sub.active = tex.use_map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
-                #sub.prop(tex, "default_value", text="Amount", slider=True)
+                #sub.prop(tex, "default_value", text=_("Amount"), slider=True)
             elif idblock.type == 'HALO':
-                layout.label(text="Halo:")
+                layout.label(text=_("Halo:"))
 
                 split = layout.split()
 
@@ -977,20 +977,20 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column()
-            col.label(text="General:")
+            col.label(text=_("General:"))
             factor_but(col, "use_map_time", "time_factor", "Time")
             factor_but(col, "use_map_life", "life_factor", "Lifetime")
             factor_but(col, "use_map_density", "density_factor", "Density")
             factor_but(col, "use_map_size", "size_factor", "Size")
 
             col = split.column()
-            col.label(text="Physics:")
+            col.label(text=_("Physics:"))
             factor_but(col, "use_map_velocity", "velocity_factor", "Velocity")
             factor_but(col, "use_map_damp", "damp_factor", "Damp")
             factor_but(col, "use_map_gravity", "gravity_factor", "Gravity")
             factor_but(col, "use_map_field", "field_factor", "Force Fields")
 
-            layout.label(text="Hair:")
+            layout.label(text=_("Hair:"))
 
             split = layout.split()
 
@@ -1008,30 +1008,30 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column()
-            col.prop(tex, "blend_type", text="Blend")
+            col.prop(tex, "blend_type", text=_("Blend"))
             col.prop(tex, "use_rgb_to_intensity")
             # color is used on grayscale textures even when use_rgb_to_intensity is disabled.
             col.prop(tex, "color", text="")
 
             col = split.column()
-            col.prop(tex, "invert", text="Negative")
+            col.prop(tex, "invert", text=_("Negative"))
             col.prop(tex, "use_stencil")
 
         if isinstance(idblock, bpy.types.Material) or isinstance(idblock, bpy.types.World):
-            col.prop(tex, "default_value", text="DVar", slider=True)
+            col.prop(tex, "default_value", text=_("DVar"), slider=True)
 
         if isinstance(idblock, bpy.types.Material):
-            layout.label(text="Bump Mapping:")
+            layout.label(text=_("Bump Mapping:"))
 
             # only show bump settings if activated but not for normalmap images
             row = layout.row()
             row.active = (tex.use_map_normal or tex.use_map_warp) and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map)
 
-            row.prop(tex, "bump_method", text="Method")
+            row.prop(tex, "bump_method", text=_("Method"))
 
             sub = row.row()
             sub.active = tex.bump_method in {'BUMP_DEFAULT', 'BUMP_BEST_QUALITY'}
-            sub.prop(tex, "bump_objectspace", text="Space")
+            sub.prop(tex, "bump_objectspace", text=_("Space"))
 
 
 class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, bpy.types.Panel):

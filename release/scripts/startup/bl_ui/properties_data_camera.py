@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from rna_prop_ui import PropertyPanel
-
+from blf import gettext as _
 
 class CameraButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -54,7 +54,7 @@ class DATA_PT_context_camera(CameraButtonsPanel, bpy.types.Panel):
 
 
 class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
-    bl_label = "Lens"
+    bl_label = _("Lens")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -90,16 +90,16 @@ class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column(align=True)
-        col.label(text="Shift:")
+        col.label(text=_("Shift:"))
         col.prop(cam, "shift_x", text="X")
         col.prop(cam, "shift_y", text="Y")
 
         col = split.column(align=True)
-        col.label(text="Clipping:")
-        col.prop(cam, "clip_start", text="Start")
-        col.prop(cam, "clip_end", text="End")
+        col.label(text=_("Clipping:"))
+        col.prop(cam, "clip_start", text=_("Start"))
+        col.prop(cam, "clip_end", text=_("End"))
 
-        layout.label(text="Depth of Field:")
+        layout.label(text=_("Depth of Field:"))
 
         split = layout.split()
         split.prop(cam, "dof_object", text="")
@@ -108,11 +108,11 @@ class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
 
         if cam.dof_object != None:
             col.enabled = False
-        col.prop(cam, "dof_distance", text="Distance")
+        col.prop(cam, "dof_distance", text=_("Distance"))
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
-    bl_label = "Display"
+    bl_label = _("Display")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -123,19 +123,19 @@ class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(cam, "show_limits", text="Limits")
-        col.prop(cam, "show_mist", text="Mist")
-        col.prop(cam, "show_title_safe", text="Title Safe")
-        col.prop(cam, "show_name", text="Name")
+        col.prop(cam, "show_limits", text=_("Limits"))
+        col.prop(cam, "show_mist", text=_("Mist"))
+        col.prop(cam, "show_title_safe", text=_("Title Safe"))
+        col.prop(cam, "show_name", text=_("Name"))
         col.prop_menu_enum(cam, "show_guide")
 
         col = split.column()
-        col.prop(cam, "draw_size", text="Size")
+        col.prop(cam, "draw_size", text=_("Size"))
         col.separator()
-        col.prop(cam, "show_passepartout", text="Passepartout")
+        col.prop(cam, "show_passepartout", text=_("Passepartout"))
         sub = col.column()
         sub.active = cam.show_passepartout
-        sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
+        sub.prop(cam, "passepartout_alpha", text=_("Alpha"), slider=True)
 
 
 class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, bpy.types.Panel):

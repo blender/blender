@@ -8,7 +8,30 @@ release/scripts/startup/bl_operators/screen_play_rendered_anim.py
 release/scripts/startup/bl_operators/sequencer.py
 release/scripts/startup/bl_operators/wm.py
 
+release/scripts/startup/bl_ui/properties_animviz.py
+release/scripts/startup/bl_ui/properties_data_armature.py
+release/scripts/startup/bl_ui/properties_data_bone.py
+release/scripts/startup/bl_ui/properties_data_camera.py
+release/scripts/startup/bl_ui/properties_data_curve.py
+release/scripts/startup/bl_ui/properties_data_empty.py
+release/scripts/startup/bl_ui/properties_data_lamp.py
+release/scripts/startup/bl_ui/properties_data_lattice.py
+release/scripts/startup/bl_ui/properties_data_mesh.py
+release/scripts/startup/bl_ui/properties_data_metaball.py
+release/scripts/startup/bl_ui/properties_data_modifier.py
+release/scripts/startup/bl_ui/properties_game.py
+release/scripts/startup/bl_ui/properties_material.py
+release/scripts/startup/bl_ui/properties_object_constraint.py
+release/scripts/startup/bl_ui/properties_object.py
+release/scripts/startup/bl_ui/properties_particle.py
+release/scripts/startup/bl_ui/properties_physics_cloth.py
+release/scripts/startup/bl_ui/properties_physics_common.py
+release/scripts/startup/bl_ui/properties_physics_field.py
+release/scripts/startup/bl_ui/properties_physics_fluid.py
+release/scripts/startup/bl_ui/properties_physics_smoke.py
+release/scripts/startup/bl_ui/properties_physics_softbody.py
 release/scripts/startup/bl_ui/properties_render.py
+release/scripts/startup/bl_ui/properties_scene.py
 release/scripts/startup/bl_ui/properties_texture.py
 release/scripts/startup/bl_ui/properties_world.py
 

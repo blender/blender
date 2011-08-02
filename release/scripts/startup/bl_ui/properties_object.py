@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from rna_prop_ui import PropertyPanel
-
+from blf import gettext as _
 
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -43,7 +43,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
 
 
 class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
-    bl_label = "Transform"
+    bl_label = _("Transform")
 
     def draw(self, context):
         layout = self.layout
@@ -54,14 +54,14 @@ class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
 
         row.column().prop(ob, "location")
         if ob.rotation_mode == 'QUATERNION':
-            row.column().prop(ob, "rotation_quaternion", text="Rotation")
+            row.column().prop(ob, "rotation_quaternion", text=_("Rotation"))
         elif ob.rotation_mode == 'AXIS_ANGLE':
-            #row.column().label(text="Rotation")
-            #row.column().prop(pchan, "rotation_angle", text="Angle")
-            #row.column().prop(pchan, "rotation_axis", text="Axis")
-            row.column().prop(ob, "rotation_axis_angle", text="Rotation")
+            #row.column().label(text=_("Rotation"))
+            #row.column().prop(pchan, "rotation_angle", text=_("Angle"))
+            #row.column().prop(pchan, "rotation_axis", text=_("Axis"))
+            row.column().prop(ob, "rotation_axis_angle", text=_("Rotation"))
         else:
-            row.column().prop(ob, "rotation_euler", text="Rotation")
+            row.column().prop(ob, "rotation_euler", text=_("Rotation"))
 
         row.column().prop(ob, "scale")
 
@@ -69,7 +69,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
 
 
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, bpy.types.Panel):
-    bl_label = "Delta Transform"
+    bl_label = _("Delta Transform")
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -81,21 +81,21 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, bpy.types.Panel):
 
         row.column().prop(ob, "delta_location")
         if ob.rotation_mode == 'QUATERNION':
-            row.column().prop(ob, "delta_rotation_quaternion", text="Rotation")
+            row.column().prop(ob, "delta_rotation_quaternion", text=_("Rotation"))
         elif ob.rotation_mode == 'AXIS_ANGLE':
-            #row.column().label(text="Rotation")
-            #row.column().prop(pchan, "delta_rotation_angle", text="Angle")
-            #row.column().prop(pchan, "delta_rotation_axis", text="Axis")
-            #row.column().prop(ob, "delta_rotation_axis_angle", text="Rotation")
-            row.column().label(text="Not for Axis-Angle")
+            #row.column().label(text=_("Rotation"))
+            #row.column().prop(pchan, "delta_rotation_angle", text=_("Angle"))
+            #row.column().prop(pchan, "delta_rotation_axis", text=_("Axis"))
+            #row.column().prop(ob, "delta_rotation_axis_angle", text=_("Rotation"))
+            row.column().label(text=_("Not for Axis-Angle"))
         else:
-            row.column().prop(ob, "delta_rotation_euler", text="Rotation")
+            row.column().prop(ob, "delta_rotation_euler", text=_("Rotation"))
 
         row.column().prop(ob, "delta_scale")
 
 
 class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
-    bl_label = "Transform Locks"
+    bl_label = _("Transform Locks")
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -106,22 +106,22 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
         row = layout.row()
 
         col = row.column()
-        col.prop(ob, "lock_location", text="Location")
+        col.prop(ob, "lock_location", text=_("Location"))
 
         col = row.column()
         if ob.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
-            col.prop(ob, "lock_rotations_4d", text="Rotation")
+            col.prop(ob, "lock_rotations_4d", text=_("Rotation"))
             if ob.lock_rotations_4d:
                 col.prop(ob, "lock_rotation_w", text="W")
             col.prop(ob, "lock_rotation", text="")
         else:
-            col.prop(ob, "lock_rotation", text="Rotation")
+            col.prop(ob, "lock_rotation", text=_("Rotation"))
 
-        row.column().prop(ob, "lock_scale", text="Scale")
+        row.column().prop(ob, "lock_scale", text=_("Scale"))
 
 
 class OBJECT_PT_relations(ObjectButtonsPanel, bpy.types.Panel):
-    bl_label = "Relations"
+    bl_label = _("Relations")
 
     def draw(self, context):
         layout = self.layout
@@ -136,7 +136,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, bpy.types.Panel):
         col.prop(ob, "pass_index")
 
         col = split.column()
-        col.label(text="Parent:")
+        col.label(text=_("Parent:"))
         col.prop(ob, "parent", text="")
 
         sub = col.column()
@@ -148,7 +148,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, bpy.types.Panel):
 
 
 class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
-    bl_label = "Groups"
+    bl_label = _("Groups")
 
     def draw(self, context):
         layout = self.layout
@@ -156,7 +156,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
         ob = context.object
 
         row = layout.row(align=True)
-        row.operator("object.group_link", text="Add to Group")
+        row.operator("object.group_link", text=_("Add to Group"))
         row.operator("object.group_add", text="", icon='ZOOMIN')
 
         # XXX, this is bad practice, yes, I wrote it :( - campbell
@@ -175,19 +175,19 @@ class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
                 split = col.box().split()
 
                 col = split.column()
-                col.prop(group, "layers", text="Dupli")
+                col.prop(group, "layers", text=_("Dupli"))
 
                 col = split.column()
                 col.prop(group, "dupli_offset", text="")
 
-                prop = col.operator("wm.context_set_value", text="From Cursor")
+                prop = col.operator("wm.context_set_value", text=_("From Cursor"))
                 prop.data_path = "object.users_group[%d].dupli_offset" % index
                 prop.value = value
                 index += 1
 
 
 class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
-    bl_label = "Display"
+    bl_label = _("Display")
 
     def draw(self, context):
         layout = self.layout
@@ -196,11 +196,11 @@ class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
 
         split = layout.split()
         col = split.column()
-        col.prop(ob, "draw_type", text="Type")
+        col.prop(ob, "draw_type", text=_("Type"))
 
         col = split.column()
         row = col.row()
-        row.prop(ob, "show_bounds", text="Bounds")
+        row.prop(ob, "show_bounds", text=_("Bounds"))
         sub = row.row()
         sub.active = ob.show_bounds
         sub.prop(ob, "draw_bounds_type", text="")
@@ -208,20 +208,20 @@ class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(ob, "show_name", text="Name")
-        col.prop(ob, "show_axis", text="Axis")
-        col.prop(ob, "show_wire", text="Wire")
-        col.prop(ob, "color", text="Object Color")
+        col.prop(ob, "show_name", text=_("Name"))
+        col.prop(ob, "show_axis", text=_("Axis"))
+        col.prop(ob, "show_wire", text=_("Wire"))
+        col.prop(ob, "color", text=_("Object Color"))
 
         col = split.column()
-        col.prop(ob, "show_texture_space", text="Texture Space")
-        col.prop(ob, "show_x_ray", text="X-Ray")
+        col.prop(ob, "show_texture_space", text=_("Texture Space"))
+        col.prop(ob, "show_x_ray", text=_("X-Ray"))
         if ob.type == 'MESH':
-            col.prop(ob, "show_transparent", text="Transparency")
+            col.prop(ob, "show_transparent", text=_("Transparency"))
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
-    bl_label = "Duplication"
+    bl_label = _("Duplication")
 
     def draw(self, context):
         layout = self.layout
@@ -234,32 +234,32 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
             split = layout.split()
 
             col = split.column(align=True)
-            col.prop(ob, "dupli_frames_start", text="Start")
-            col.prop(ob, "dupli_frames_end", text="End")
+            col.prop(ob, "dupli_frames_start", text=_("Start"))
+            col.prop(ob, "dupli_frames_end", text=_("End"))
 
             col = split.column(align=True)
-            col.prop(ob, "dupli_frames_on", text="On")
-            col.prop(ob, "dupli_frames_off", text="Off")
+            col.prop(ob, "dupli_frames_on", text=_("On"))
+            col.prop(ob, "dupli_frames_off", text=_("Off"))
 
-            layout.prop(ob, "use_dupli_frames_speed", text="Speed")
+            layout.prop(ob, "use_dupli_frames_speed", text=_("Speed"))
 
         elif ob.dupli_type == 'VERTS':
-            layout.prop(ob, "use_dupli_vertices_rotation", text="Rotation")
+            layout.prop(ob, "use_dupli_vertices_rotation", text=_("Rotation"))
 
         elif ob.dupli_type == 'FACES':
 
             row = layout.row()
-            row.prop(ob, "use_dupli_faces_scale", text="Scale")
-            row.prop(ob, "dupli_faces_scale", text="Inherit Scale")
+            row.prop(ob, "use_dupli_faces_scale", text=_("Scale"))
+            row.prop(ob, "dupli_faces_scale", text=_("Inherit Scale"))
 
         elif ob.dupli_type == 'GROUP':
-            layout.prop(ob, "dupli_group", text="Group")
+            layout.prop(ob, "dupli_group", text=_("Group"))
 
 
 # XXX: the following options are all quite buggy, ancient hacks that should be dropped
 
 class OBJECT_PT_animation(ObjectButtonsPanel, bpy.types.Panel):
-    bl_label = "Animation Hacks"
+    bl_label = _("Animation Hacks")
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -270,21 +270,21 @@ class OBJECT_PT_animation(ObjectButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Time Offset:")
-        col.prop(ob, "use_time_offset_edit", text="Edit")
+        col.label(text=_("Time Offset:"))
+        col.prop(ob, "use_time_offset_edit", text=_("Edit"))
         row = col.row()
-        row.prop(ob, "use_time_offset_parent", text="Parent")
+        row.prop(ob, "use_time_offset_parent", text=_("Parent"))
         row.active = (ob.parent is not None)
         row = col.row()
         row.prop(ob, "use_slow_parent")
         row.active = (ob.parent is not None)
-        col.prop(ob, "time_offset", text="Offset")
+        col.prop(ob, "time_offset", text=_("Offset"))
 
         # XXX: these are still used for a few curve-related tracking features
         col = split.column()
-        col.label(text="Tracking Axes:")
-        col.prop(ob, "track_axis", text="Axis")
-        col.prop(ob, "up_axis", text="Up Axis")
+        col.label(text=_("Tracking Axes:"))
+        col.prop(ob, "track_axis", text=_("Axis"))
+        col.prop(ob, "up_axis", text=_("Up Axis"))
 
 
 from bl_ui.properties_animviz import (
@@ -311,8 +311,8 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
         layout.separator()
 
         row = layout.row()
-        row.operator("object.paths_calculate", text="Calculate Paths")
-        row.operator("object.paths_clear", text="Clear Paths")
+        row.operator("object.paths_calculate", text=_("Calculate Paths"))
+        row.operator("object.paths_clear", text=_("Clear Paths"))
 
 
 class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # inherit from panel when ready

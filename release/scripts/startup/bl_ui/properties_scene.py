@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from rna_prop_ui import PropertyPanel
-
+from blf import gettext as _
 
 class SceneButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -32,7 +32,7 @@ class SceneButtonsPanel():
 
 
 class SCENE_PT_scene(SceneButtonsPanel, bpy.types.Panel):
-    bl_label = "Scene"
+    bl_label = _("Scene")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -40,11 +40,11 @@ class SCENE_PT_scene(SceneButtonsPanel, bpy.types.Panel):
         scene = context.scene
 
         layout.prop(scene, "camera")
-        layout.prop(scene, "background_set", text="Background")
+        layout.prop(scene, "background_set", text=_("Background"))
 
 
 class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
-    bl_label = "Units"
+    bl_label = _("Units")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -57,12 +57,12 @@ class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
 
         row = layout.row()
         row.active = (unit.system != 'NONE')
-        row.prop(unit, "scale_length", text="Scale")
+        row.prop(unit, "scale_length", text=_("Scale"))
         row.prop(unit, "use_separate")
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
-    bl_label = "Keying Sets"
+    bl_label = _("Keying Sets")
 
     def draw(self, context):
         layout = self.layout
@@ -86,16 +86,16 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, bpy.types.Panel):
 
             subcol = col.column()
             subcol.operator_context = 'INVOKE_DEFAULT'
-            op = subcol.operator("anim.keying_set_export", text="Export to File")
+            op = subcol.operator("anim.keying_set_export", text=_("Export to File"))
             op.filepath = "keyingset.py"
 
             col = row.column()
-            col.label(text="Keyframing Settings:")
+            col.label(text=_("Keyframing Settings:"))
             col.prop(ks, "bl_options")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
-    bl_label = "Active Keying Set"
+    bl_label = _("Active Keying Set")
 
     @classmethod
     def poll(cls, context):
@@ -109,7 +109,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
         ks = scene.keying_sets.active
 
         row = layout.row()
-        row.label(text="Paths:")
+        row.label(text=_("Paths:"))
 
         row = layout.row()
 
@@ -123,20 +123,20 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
         ksp = ks.paths.active
         if ksp:
             col = layout.column()
-            col.label(text="Target:")
+            col.label(text=_("Target:"))
             col.template_any_ID(ksp, "id", "id_type")
             col.template_path_builder(ksp, "data_path", ksp.id)
 
             row = layout.row()
 
             col = row.column()
-            col.label(text="Array Target:")
+            col.label(text=_("Array Target:"))
             col.prop(ksp, "use_entire_array")
             if ksp.use_entire_array is False:
                 col.prop(ksp, "array_index")
 
             col = row.column()
-            col.label(text="F-Curve Grouping:")
+            col.label(text=_("F-Curve Grouping:"))
             col.prop(ksp, "group_method")
             if ksp.group_method == 'NAMED':
                 col.prop(ksp, "group")
@@ -145,7 +145,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, bpy.types.Panel):
 
 
 class SCENE_PT_physics(SceneButtonsPanel, bpy.types.Panel):
-    bl_label = "Gravity"
+    bl_label = _("Gravity")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -162,7 +162,7 @@ class SCENE_PT_physics(SceneButtonsPanel, bpy.types.Panel):
 
 
 class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
-    bl_label = "Simplify"
+    bl_label = _("Simplify")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -180,14 +180,14 @@ class SCENE_PT_simplify(SceneButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "simplify_subdivision", text="Subdivision")
-        col.prop(rd, "simplify_child_particles", text="Child Particles")
+        col.prop(rd, "simplify_subdivision", text=_("Subdivision"))
+        col.prop(rd, "simplify_child_particles", text=_("Child Particles"))
 
         col.prop(rd, "use_simplify_triangulate")
 
         col = split.column()
-        col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
-        col.prop(rd, "simplify_ao_sss", text="AO and SSS")
+        col.prop(rd, "simplify_shadow_samples", text=_("Shadow Samples"))
+        col.prop(rd, "simplify_ao_sss", text=_("AO and SSS"))
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
@@ -201,12 +201,12 @@ class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, bpy.types.Panel):
 class ANIM_OT_keying_set_export(bpy.types.Operator):
     "Export Keying Set to a python script."
     bl_idname = "anim.keying_set_export"
-    bl_label = "Export Keying Set..."
+    bl_label = _("Export Keying Set...")
 
-    filepath = bpy.props.StringProperty(name="File Path", description="Filepath to write file to.")
-    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
-    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
-    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+    filepath = bpy.props.StringProperty(name=_("File Path"), description=_("Filepath to write file to."))
+    filter_folder = bpy.props.BoolProperty(name=_("Filter folders"), description="", default=True, options={'HIDDEN'})
+    filter_text = bpy.props.BoolProperty(name=_("Filter text"), description="", default=True, options={'HIDDEN'})
+    filter_python = bpy.props.BoolProperty(name=_("Filter python"), description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         if not self.filepath:
