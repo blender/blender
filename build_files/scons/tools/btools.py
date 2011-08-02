@@ -438,6 +438,12 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 
         (BoolVariable('WITH_BF_3DMOUSE', 'Build blender with support of 3D mouses', False)),
+        (BoolVariable('WITH_BF_STATIC3DMOUSE', 'Staticly link to 3d mouse library', False)),
+        ('BF_3DMOUSE', '3d mouse library base path', ''),
+        ('BF_3DMOUSE_INC', '3d mouse library include path', ''),
+        ('BF_3DMOUSE_LIB', '3d mouse library', ''),
+        ('BF_3DMOUSE_LIBPATH', '3d mouse library path', ''),
+        ('BF_3DMOUSE_LIB_STATIC', '3d mouse static library', ''),
 
         ('CFLAGS', 'C only flags', []),
         ('CCFLAGS', 'Generic C and C++ flags', []),

@@ -194,7 +194,11 @@ BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-pthread']
 
 #SpaceNavigator and friends
 WITH_BF_3DMOUSE = True
+BF_3DMOUSE = '/usr'
+BF_3DMOUSE_INC = '${BF_3DMOUSE}/include'
+BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib'
 BF_3DMOUSE_LIB = 'spnav'
+BF_3DMOUSE_LIB_STATIC = '${BF_3DMOUSE_LIBPATH}/libspnav.a'
 
 ##
 CC = 'gcc'
@@ -227,8 +231,6 @@ CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 ##FIX_STUBS_WARNINGS = -Wno-unused
 
 LLIBS = ['util', 'c', 'm', 'dl', 'pthread', 'stdc++']
-if WITH_BF_3DMOUSE:
-	LLIBS = LLIBS + [BF_3DMOUSE_LIB];
 ##LOPTS = --dynamic
 ##DYNLDFLAGS = -shared $(LDFLAGS)
 
