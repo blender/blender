@@ -185,10 +185,10 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	memset(m_translation, 0, sizeof(m_translation));
 	memset(m_rotation, 0, sizeof(m_rotation));
 
-	#ifdef WITH_BF_3DMOUSE
-	puts("WITH_BF_3DMOUSE is defined!");
+	#ifdef WITH_INPUT_NDOF
+	puts("WITH_INPUT_NDOF is defined!");
 	#else
-	puts("WITH_BF_3DMOUSE is not defined.");
+	puts("WITH_INPUT_NDOF is not defined.");
 	#endif
 	}
 
