@@ -183,8 +183,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 		
 	ED_preview_init_dbase();
 	
-	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
-	
 	WM_read_history();
 
 	/* allow a path of "", this is what happens when making a new file */

@@ -33,7 +33,6 @@
 #ifndef _GHOST_DROP_TARGET_WIN32_H_
 #define _GHOST_DROP_TARGET_WIN32_H_
 
-#include <windows.h>
 #include <string.h>
 #include <GHOST_Types.h>
 #include "GHOST_WindowWin32.h"

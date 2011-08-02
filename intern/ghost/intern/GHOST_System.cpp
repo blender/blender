@@ -46,7 +46,13 @@
 
 
 GHOST_System::GHOST_System()
-: m_displayManager(0), m_timerManager(0), m_windowManager(0), m_eventManager(0), m_ndofManager(0)
+    : m_displayManager(0),
+      m_timerManager(0),
+      m_windowManager(0),
+      m_eventManager(0)
+#ifdef WITH_INPUT_NDOF
+      , m_ndofManager(0)
+#endif
 {
 }
 
@@ -194,12 +200,17 @@ bool GHOST_System::getFullScreen(void)
 
 bool GHOST_System::dispatchEvents()
 {
-	bool handled;
-	if (m_eventManager) {
-		handled = m_eventManager->dispatchEvents();
+	bool handled = false;
+
+#ifdef WITH_INPUT_NDOF
+	// NDOF Motion event is sent only once per dispatch, so do it now:
+	if (m_ndofManager) {
+		handled |= m_ndofManager->sendMotionEvent();
 	}
-	else {
-		handled = false;
+#endif
+
+	if (m_eventManager) {
+		handled |= m_eventManager->dispatchEvents();
 	}
 
 	m_timerManager->fireTimers(getMilliSeconds());
@@ -243,18 +254,6 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
 	return success;
 }
 
-int GHOST_System::openNDOF(GHOST_IWindow* w,
-		GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
-		GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-		GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
-{
- return m_ndofManager->deviceOpen(w,
-		setNdofLibraryInit, 
-		setNdofLibraryShutdown,
-		setNdofDeviceOpen);
-}
-
-
 GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKeyMask mask, bool& isDown) const
 {
 	GHOST_ModifierKeys keys;
@@ -285,12 +284,6 @@ GHOST_TSuccess GHOST_System::init()
 	m_timerManager = new GHOST_TimerManager ();
 	m_windowManager = new GHOST_WindowManager ();
 	m_eventManager = new GHOST_EventManager ();
-	m_ndofManager = new GHOST_NDOFManager();
-
-#if 0
-	if(m_ndofManager)
-		printf("ndof manager \n");
-#endif
 	
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {
@@ -328,10 +321,12 @@ GHOST_TSuccess GHOST_System::exit()
 		delete m_eventManager;
 		m_eventManager = 0;
 	}
+#ifdef WITH_INPUT_NDOF
 	if (m_ndofManager) {
 		delete m_ndofManager;
 		m_ndofManager = 0;
 	}
+#endif
 	return GHOST_kSuccess;
 }
 

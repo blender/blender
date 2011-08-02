@@ -52,7 +52,7 @@
 #include "GHOST_TimerTask.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowCocoa.h"
-#include "GHOST_NDOFManager.h"
+#include "GHOST_NDOFManagerCocoa.h"
 #include "AssertMacros.h"
 
 #pragma mark KeyMap, mouse converters
@@ -596,6 +596,11 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 	
     GHOST_TSuccess success = GHOST_System::init();
     if (success) {
+
+#ifdef WITH_INPUT_NDOF
+		m_ndofManager = new GHOST_NDOFManagerCocoa(*this);
+#endif
+
 		//ProcessSerialNumber psn;
 		
 		//Carbon stuff to move window & menu to foreground
@@ -1005,6 +1010,11 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	
 	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
+}
+
+void GHOST_SystemCocoa::notifyExternalEventProcessed()
+{
+	m_outsideLoopEventProcessed = true;
 }
 
 //Note: called from NSWindow delegate

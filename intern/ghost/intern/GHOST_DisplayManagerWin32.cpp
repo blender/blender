@@ -35,8 +35,11 @@
 #include "GHOST_DisplayManagerWin32.h"
 #include "GHOST_Debug.h"
 
-// We do not support multiple monitors at the moment
+#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+
+// We do not support multiple monitors at the moment
 #define COMPILE_MULTIMON_STUBS
 #ifndef FREE_WINDOWS
 #include <multimon.h>

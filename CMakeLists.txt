@@ -182,6 +182,7 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 option(WITH_LIBMV         "Enable libmv structure from motion library" ON)
 
 # Misc
+option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
@@ -452,6 +453,19 @@ if(UNIX AND NOT APPLE)
 		find_package(JeMalloc)
 		if(NOT JEMALLOC_FOUND)
 			set(WITH_MEM_JEMALLOC OFF)
+		endif()
+	endif()
+
+	if (WITH_INPUT_NDOF)
+		find_package(Spacenav)
+		if(NOT SPACENAV_FOUND)
+			set(WITH_INPUT_NDOF OFF)
+		endif()
+
+		# use generic names within blenders buildsystem.
+		if(SPACENAV_FOUND)
+			set(NDOF_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIRS})
+			set(NDOF_LIBRARIES ${SPACENAV_LIBRARIES})
 		endif()
 	endif()
 
@@ -1032,6 +1046,10 @@ elseif(APPLE)
 		set(TIFF_LIBPATH ${TIFF}/lib)
 	endif()
 
+	if (WITH_INPUT_NDOF)
+		# linker needs "-weak_framework 3DconnexionClient"
+	endif()
+
 	set(EXETYPE MACOSX_BUNDLE)
 
 	set(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
@@ -1323,6 +1341,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_OPENCOLLADA)
 	info_cfg_option(WITH_FFTW3)
 	info_cfg_option(WITH_INTERNATIONAL)
+	info_cfg_option(WITH_INPUT_NDOF)
 
 	info_cfg_text("Compiler Options:")
 	info_cfg_option(WITH_BUILDINFO)

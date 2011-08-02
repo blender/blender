@@ -136,7 +136,7 @@ def validate_arguments(args, bc):
             'BF_NO_ELBEEM',
             'WITH_BF_CXX_GUARDEDALLOC',
             'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC',
-            'BUILDBOT_BRANCH'
+            'BUILDBOT_BRANCH', 'WITH_BF_3DMOUSE'
             ]
     
     # Have options here that scons expects to be lists
@@ -436,6 +436,8 @@ def read_opts(env, cfg, args):
 
         (BoolVariable('WITH_BF_PLAYER', 'Build blenderplayer if true', False)),
         (BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
+
+        (BoolVariable('WITH_BF_3DMOUSE', 'Build blender with support of 3D mouses', False)),
 
         ('CFLAGS', 'C only flags', []),
         ('CCFLAGS', 'Generic C and C++ flags', []),

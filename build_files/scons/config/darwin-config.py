@@ -264,7 +264,9 @@ if MACOSX_ARCHITECTURE == 'i386':
     BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
 elif MACOSX_ARCHITECTURE == 'x86_64':
     BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-msse2']
-    
+
+# SpaceNavigator and related 3D mice
+WITH_BF_3DMOUSE = True
 
 #############################################################################
 ###################  various compile settings and flags    ##################
@@ -293,6 +295,9 @@ if WITH_BF_QUICKTIME == True:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QTKit']
 	else:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
+
+if WITH_BF_3DMOUSE:
+	PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS + ['-weak_framework','3DconnexionClient']
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 LLIBS = ['stdc++', 'SystemStubs']

@@ -314,6 +314,10 @@ macro(setup_liblinks
 	if(WITH_MEM_JEMALLOC)
 		target_link_libraries(${target} ${JEMALLOC_LIBRARIES})
 	endif()
+	if(WITH_INPUT_NDOF)
+		target_link_libraries(${target} ${NDOF_LIBRARIES})
+	endif()
+
 	if(WIN32 AND NOT UNIX)
 		target_link_libraries(${target} ${PTHREADS_LIBRARIES})
 	endif()
