@@ -179,6 +179,7 @@ option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON
 option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 
 # Misc
+option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
@@ -449,6 +450,19 @@ if(UNIX AND NOT APPLE)
 		find_package(JeMalloc)
 		if(NOT JEMALLOC_FOUND)
 			set(WITH_MEM_JEMALLOC OFF)
+		endif()
+	endif()
+
+	if (WITH_INPUT_NDOF)
+		find_package(Spacenav)
+		if(NOT SPACENAV_FOUND)
+			set(WITH_INPUT_NDOF OFF)
+		endif()
+
+		# use generic names within blenders buildsystem.
+		if(SPACENAV_FOUND)
+			set(NDOF_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIRS})
+			set(NDOF_LIBRARIES ${SPACENAV_LIBRARIES})
 		endif()
 	endif()
 
@@ -1029,6 +1043,10 @@ elseif(APPLE)
 		set(TIFF_LIBPATH ${TIFF}/lib)
 	endif()
 
+	if (WITH_INPUT_NDOF)
+		# linker needs "-weak_framework 3DconnexionClient"
+	endif()
+
 	set(EXETYPE MACOSX_BUNDLE)
 
 	set(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
@@ -1054,20 +1072,34 @@ if(APPLE OR WIN32)
 	endif()
 endif()
 
+# See TEST_SSE_SUPPORT() for how this is defined.
+
 if(WITH_RAYOPTIMIZATION)
 	if(CMAKE_COMPILER_IS_GNUCC)
-		if(SUPPORT_SSE_BUILD)
-			set(PLATFORM_CFLAGS " -msse ${PLATFORM_CFLAGS}")
-			add_definitions(-D__SSE__ -D__MMX__)
-		endif()
-		if(SUPPORT_SSE2_BUILD)
-			set(PLATFORM_CFLAGS " -msse2 ${PLATFORM_CFLAGS}")
-			add_definitions(-D__SSE2__)
-			if(NOT SUPPORT_SSE_BUILD) # dont double up
-				add_definitions(-D__MMX__)
-			endif()
+		set(_sse "-msse")
+		set(_sse2 "-msse2")
+	elseif(MSVC)
+		set(_sse "/arch:SSE")
+		set(_sse2 "/arch:SSE2")
+	else()
+		message(WARNING "SSE flags for this compiler not known")
+		set(_sse)
+		set(_sse2)
+	endif()
+
+	if(SUPPORT_SSE_BUILD)
+		set(PLATFORM_CFLAGS " ${_sse} ${PLATFORM_CFLAGS}")
+		add_definitions(-D__SSE__ -D__MMX__)
+	endif()
+	if(SUPPORT_SSE2_BUILD)
+		set(PLATFORM_CFLAGS " ${_sse2} ${PLATFORM_CFLAGS}")
+		add_definitions(-D__SSE2__)
+		if(NOT SUPPORT_SSE_BUILD) # dont double up
+			add_definitions(-D__MMX__)
 		endif()
 	endif()
+	unset(_sse)
+	unset(_sse2)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
@@ -1306,6 +1338,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_OPENCOLLADA)
 	info_cfg_option(WITH_FFTW3)
 	info_cfg_option(WITH_INTERNATIONAL)
+	info_cfg_option(WITH_INPUT_NDOF)
 
 	info_cfg_text("Compiler Options:")
 	info_cfg_option(WITH_BUILDINFO)

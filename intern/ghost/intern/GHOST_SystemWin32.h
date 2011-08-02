@@ -38,101 +38,15 @@
 #error WIN32 only!
 #endif // WIN32
 
+#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <ole2.h> // for drag-n-drop
 
 #include "GHOST_System.h"
 
 #if defined(__CYGWIN32__)
 #	define __int64 long long
-#endif
-
-#ifndef WM_INPUT
-#define WM_INPUT 0x00FF
-#endif 
-#ifndef RID_INPUT
-#define RID_INPUT 0x10000003
-#endif
-#ifndef RIM_INPUTSINK
-#define RIM_INPUTSINK 0x1
-#endif
-#ifndef RI_KEY_BREAK
-#define RI_KEY_BREAK 0x1
-#endif
-#ifndef RI_KEY_E0
-#define RI_KEY_E0 0x2
-#endif
-#ifndef RI_KEY_E1
-#define RI_KEY_E1 0x4
-#endif
-#ifndef RIM_TYPEMOUSE
-#define RIM_TYPEMOUSE		0x0
-#define RIM_TYPEKEYBOARD	0x1
-#define RIM_TYPEHID			0x2
-
-typedef struct tagRAWINPUTDEVICE {
-	USHORT usUsagePage;
-	USHORT usUsage;
-	DWORD dwFlags;
-	HWND hwndTarget;
-} RAWINPUTDEVICE;
-
-
-
-typedef struct tagRAWINPUTHEADER {
-	DWORD dwType;
-	DWORD dwSize;
-	HANDLE hDevice;
-	WPARAM wParam;
-} RAWINPUTHEADER;
-
-typedef struct tagRAWMOUSE {
-	USHORT usFlags;
-	union {
-		ULONG ulButtons;
-		struct	{
-			USHORT	usButtonFlags;
-			USHORT	usButtonData;
-		};
-	};
-	ULONG	ulRawButtons;
-	LONG	lLastX;
-	LONG	lLastY;
-	ULONG	ulExtraInformation;
-} RAWMOUSE;
-
-typedef struct tagRAWKEYBOARD {
-	USHORT	MakeCode;
-	USHORT	Flags;
-	USHORT	Reserved;
-	USHORT	VKey;
-	UINT	Message;
-	ULONG	ExtraInformation;
-} RAWKEYBOARD;
-
-typedef struct tagRAWHID {
-	DWORD	dwSizeHid;
-	DWORD	dwCount;
-	BYTE	bRawData[1];
-} RAWHID;
-
-typedef struct tagRAWINPUT {
-	RAWINPUTHEADER header;
-	union {
-		RAWMOUSE	mouse;
-		RAWKEYBOARD keyboard;
-		RAWHID      hid;
-	} data;
-} RAWINPUT;
-
-DECLARE_HANDLE(HRAWINPUT);
-#endif
-
-#ifdef FREE_WINDOWS
-#define NEED_RAW_PROC
-typedef BOOL (WINAPI * LPFNDLLRRID)(RAWINPUTDEVICE*,UINT, UINT);
-
-typedef UINT (WINAPI * LPFNDLLGRID)(HRAWINPUT, UINT, LPVOID, PUINT, UINT);
-#define GetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader) ((pGetRawInputData)?pGetRawInputData(hRawInput, uiCommand, pData, pcbSize, cbSizeHeader):(UINT)-1)
 #endif
 
 class GHOST_EventButton;
@@ -314,14 +228,13 @@ protected:
 
 	/**
 	 * Catches raw WIN32 key codes from WM_INPUT in the wndproc.
-	 * @param window->	The window for this handling
-	 * @param wParam	The wParam from the wndproc
-	 * @param lParam	The lParam from the wndproc
+	 * @param window	The window for this handling
+	 * @param raw		RawInput structure with detailed info about the key event
 	 * @param keyDown	Pointer flag that specify if a key is down
 	 * @param vk		Pointer to virtual key
 	 * @return The GHOST key (GHOST_kKeyUnknown if no match).
 	 */
-	virtual GHOST_TKey hardKey(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam, int * keyDown, char * vk);
+	virtual GHOST_TKey hardKey(GHOST_IWindow *window, RAWINPUT const& raw, int * keyDown, char * vk);
 
 	/**
 	 * Creates modifier key event(s) and updates the key data stored locally (m_modifierKeys).
@@ -362,10 +275,9 @@ protected:
 	 * In most cases this is a straightforward conversion of key codes.
 	 * For the modifier keys however, we want to distinguish left and right keys.
 	 * @param window	The window receiving the event (the active window).
-	 * @param wParam	The wParam from the wndproc
-	 * @param lParam	The lParam from the wndproc
+	 * @param raw		RawInput structure with detailed info about the key event
 	 */
-	static GHOST_EventKey* processKeyEvent(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam);
+	static GHOST_EventKey* processKeyEvent(GHOST_IWindow *window, RAWINPUT const& raw);
 
 	/**
 	 * Process special keys (VK_OEM_*), to see if current key layout
@@ -383,12 +295,22 @@ protected:
 	 * @return The event created.
 	 */
 	static GHOST_Event* processWindowEvent(GHOST_TEventType type, GHOST_IWindow* window);
-	/** 
+
+	/**
 	 * Handles minimum window size.
 	 * @param minmax	The MINMAXINFO structure.
 	 */
 	static void processMinMaxInfo(MINMAXINFO * minmax);
-	
+
+	/**
+	 * Handles Motion and Button events from a SpaceNavigator or related device.
+	 * Instead of returning an event object, this function communicates directly
+	 * with the GHOST_NDOFManager.
+	 * @param raw		RawInput structure with detailed info about the NDOF event
+	 * @return Whether an event was generated and sent.
+	 */
+	bool processNDOF(RAWINPUT const& raw);
+
 	/**
 	 * Returns the local state of the modifier keys (from the message queue).
 	 * @param keys The state of the keys.
@@ -411,11 +333,6 @@ protected:
 	 * Windows call back routine for our window class.
 	 */
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-	/**
-	 * Initiates WM_INPUT messages from keyboard 
-	 */
-	GHOST_TInt32 initKeyboardRawInput(void);
 
 	/**
  * Toggles console
@@ -445,15 +362,6 @@ protected:
 
 	/** Console status */
 	int m_consoleStatus;
-
-	/** handle for user32.dll*/
-	HMODULE user32;
-	#ifdef NEED_RAW_PROC
-	/* pointer to RegisterRawInputDevices function */
-	LPFNDLLRRID pRegisterRawInputDevices;
-	/* pointer to GetRawInputData function */
-	LPFNDLLGRID pGetRawInputData;
-	#endif
 };
 
 inline void GHOST_SystemWin32::retrieveModifierKeys(GHOST_ModifierKeys& keys) const
@@ -487,4 +395,3 @@ inline void GHOST_SystemWin32::handleKeyboardChange(void)
 	}
 }
 #endif // _GHOST_SYSTEM_WIN32_H_
-

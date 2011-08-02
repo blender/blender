@@ -241,6 +241,7 @@ if 'blenderlite' in B.targets:
     target_env_defs['BF_BUILDINFO'] = False
     target_env_defs['BF_NO_ELBEEM'] = True
     target_env_defs['WITH_BF_PYTHON'] = False
+    target_env_defs['WITH_BF_3DMOUSE'] = False
     
     # Merge blenderlite, let command line to override
     for k,v in target_env_defs.iteritems():

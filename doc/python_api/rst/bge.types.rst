@@ -1,6 +1,6 @@
 
-Game Engine  bge.types Module
-=============================
+Game Types (bge.types)
+======================
 
 .. module:: bge.types
 

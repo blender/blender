@@ -1,6 +1,3 @@
-/** \file blender/editors/interface/resources.c
- *  \ingroup edinterface
- */
 /*
  * $Id$
  *
@@ -31,6 +28,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+
+/** \file blender/editors/interface/resources.c
+ *  \ingroup edinterface
  */
 
 #include <math.h>
@@ -1586,6 +1587,12 @@ void init_userdef_do_versions(void)
 		U.widget_unit= (U.dpi * 20 + 36)/72;
 	if (U.anisotropic_filter <= 0)
 		U.anisotropic_filter = 1;
+
+	if (U.ndof_sensitivity == 0.0f) {
+		U.ndof_sensitivity = 1.0f;
+		U.ndof_flag = NDOF_LOCK_HORIZON |
+			NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE;
+	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();
