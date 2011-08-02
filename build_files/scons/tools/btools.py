@@ -159,7 +159,7 @@ def validate_arguments(args, bc):
             'BF_BSC', 'BF_CONFIG',
             'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
             'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
-            'BF_UNIT_TEST']
+            'BF_UNIT_TEST', 'BF_BITNESS']
 
     okdict = {}
 
