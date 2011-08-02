@@ -452,6 +452,7 @@ static int view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
+	float dt = ndof->dt;
 	/* tune these until it feels right */
 	const float zoom_sensitivity = 0.5f; // 50% per second (I think)
 	const float pan_sensitivity = 300.f; // screen pixels per second
