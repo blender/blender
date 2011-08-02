@@ -189,11 +189,17 @@ def setConstraint(m_constraint, context):
 
     #frame changing section
     setConstraintFraming(m_constraint, context)
-
+    s, e = m_constraint.s_frame, m_constraint.e_frame
+    s_in, s_out = m_constraint.smooth_in, m_constraint.smooth_out
+    s -= s_in
+    e += s_out
     #Set the blender constraint parameters
     if m_constraint.type == "point":
-        constraint_settings = False
-        real_constraint.owner_space = m_constraint.targetSpace
+        constraint_settings = False # are fix settings keyframed?
+        if not m_constraint.targetSpace == "constrained_boneB":
+            real_constraint.owner_space = m_constraint.targetSpace
+        else:
+            real_constraint.owner_space = "LOCAL"
         if obj.data.animation_data:
             if obj.data.animation_data.action:
                 path = m_constraint.path_from_id("targetPoint")
@@ -207,6 +213,27 @@ def setConstraint(m_constraint, context):
                         copyFCurve(curve, m_fcurves[1])
                     for curve in zCurves:
                         copyFCurve(curve, m_fcurves[2])
+        if m_constraint.targetSpace == "constrained_boneB" and m_constraint.constrained_boneB:
+            c_frame = context.scene.frame_current
+            bakedPos = {}
+            src_bone = bones[m_constraint.constrained_boneB]
+            if not constraint_settings:
+                xCurves, yCurves, zCurves = createConstraintFCurves(cons_obj, obj, real_constraint)
+            print("please wait a moment, calculating fix")
+            for t in range(s, e):
+                context.scene.frame_set(t)
+                src_bone_pos = src_bone.matrix.to_translation()
+                bakedPos[t] = src_bone_pos + m_constraint.targetPoint # final position for constrained bone in object space
+            context.scene.frame_set(c_frame)
+            for frame in bakedPos.keys():
+                pos = bakedPos[frame]
+                for xCurve in xCurves:
+                    xCurve.keyframe_points.insert(frame=frame, value=pos.x)
+                for yCurve in yCurves:
+                    yCurve.keyframe_points.insert(frame=frame, value=pos.y)
+                for zCurve in zCurves:
+                    zCurve.keyframe_points.insert(frame=frame, value=pos.z)
+                
         if not constraint_settings:
             x, y, z = m_constraint.targetPoint
             real_constraint.max_x = x
@@ -260,6 +287,7 @@ def setConstraint(m_constraint, context):
         bakedPos = {}
         floor = bpy.data.objects[m_constraint.targetMesh]
         c_frame = context.scene.frame_current
+        print("please wait a moment, calculating fix")
         for t in range(s, e):
             context.scene.frame_set(t)
             axis = Vector((0, 0, 100)) * obj.matrix_world.to_3x3()
