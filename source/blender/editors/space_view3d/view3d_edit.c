@@ -930,7 +930,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 
 // NDOF utility functions
 // (should these functions live in this file?)
-float ndof_to_angle_axis(struct wmNDOFMotionData* ndof, float axis[3])
+float ndof_to_axis_angle(struct wmNDOFMotionData* ndof, float axis[3])
 {
 	return ndof->dt * normalize_v3_v3(axis, ndof->rvec);
 }
@@ -940,7 +940,7 @@ void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
 	float axis[3];
 	float angle;
 
-	angle= ndof_to_angle_axis(ndof, axis);
+	angle= ndof_to_axis_angle(ndof, axis);
 	axis_angle_to_quat(q, axis, angle);
 }
 
@@ -1023,7 +1023,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 				mul_qt_qtqt(rot, rot, view_inv_conj);
 	#else 	// ---------------------------------------- Mike's revised version
 				float axis[3];
-				float angle = rot_sensitivity * ndof_to_angle_axis(ndof, axis);
+				float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
 	
 				if (invert)
 					angle = -angle;
