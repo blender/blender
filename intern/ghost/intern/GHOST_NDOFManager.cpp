@@ -23,6 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include "GHOST_Debug.h"
 #include "GHOST_NDOFManager.h"
 #include "GHOST_EventNDOF.h"
 #include "GHOST_EventKey.h"
@@ -186,9 +187,9 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	memset(m_rotation, 0, sizeof(m_rotation));
 
 	#ifdef WITH_INPUT_NDOF
-	puts("WITH_INPUT_NDOF is defined!");
+	GHOST_PRINT("WITH_INPUT_NDOF is defined!");
 	#else
-	puts("WITH_INPUT_NDOF is not defined.");
+	GHOST_PRINT("WITH_INPUT_NDOF is not defined.");
 	#endif
 	}
 
