@@ -30,6 +30,7 @@
 /* defines VIEW3D_OT_fly modal operator */
 
 //#define NDOF_FLY_DEBUG
+//#define NDOF_FLY_DRAW_TOOMUCH // is this needed for ndof? - commented so redraw doesnt thrash - campbell
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -289,8 +290,10 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	fly->zlock_momentum=0.0f;
 	fly->grid= 1.0f;
 	fly->use_precision= 0;
-	fly->redraw= 1;
 
+#ifdef NDOF_FLY_DRAW_TOOMUCH
+	fly->redraw= 1;
+#endif
 	fly->dvec_prev[0]= fly->dvec_prev[1]= fly->dvec_prev[2]= 0.0f;
 
 	fly->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
@@ -436,7 +439,10 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 
 static void flyEvent(FlyInfo *fly, wmEvent *event)
 {
-	if (event->type == MOUSEMOVE) {
+	if (event->type == TIMER && event->customdata == fly->timer) {
+		fly->redraw = 1;
+	}
+	else if (event->type == MOUSEMOVE) {
 		VECCOPY2D(fly->mval, event->mval);
 	}
 	else if (event->type == NDOF_MOTION) {
@@ -746,9 +752,9 @@ static int flyApply(bContext *C, FlyInfo *fly)
 			double time_current; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
 			float time_redraw;
 			float time_redraw_clamped;
-
+#ifdef NDOF_FLY_DRAW_TOOMUCH
 			fly->redraw= 1;
-
+#endif
 			time_current= PIL_check_seconds_timer();
 			time_redraw= (float)(time_current - fly->time_lastdraw);
 			time_redraw_clamped= MIN2(0.05f, time_redraw); /* clamt the redraw time to avoid jitter in roll correction */
@@ -1125,7 +1131,7 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, fly_object);
 		}
 
-		// puts("redraw!"); // too frequent, fix tomorrow.
+		// puts("redraw!"); // too frequent, commented with NDOF_FLY_DRAW_TOOMUCH for now
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
