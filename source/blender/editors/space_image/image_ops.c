@@ -452,14 +452,9 @@ static int view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 
 	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
-	float dt = ndof->dt > 0.25f ? 0.0125f : ndof->dt;
-	/* this is probably the first event for this motion, so set dt to something reasonable
-	 * TODO: replace such guesswork with a flag or field from the NDOF manager
-	 */
-
 	/* tune these until it feels right */
-	const float zoom_sensitivity = 0.5f;
-	const float pan_sensitivity = 300.f;
+	const float zoom_sensitivity = 0.5f; // 50% per second (I think)
+	const float pan_sensitivity = 300.f; // screen pixels per second
 
 	float pan_x = pan_sensitivity * dt * ndof->tvec[0] / sima->zoom;
 	float pan_y = pan_sensitivity * dt * ndof->tvec[1] / sima->zoom;

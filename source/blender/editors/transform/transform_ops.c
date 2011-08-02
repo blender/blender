@@ -360,11 +360,17 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	TransInfo *t = op->customdata;
 
+	#if 0
+	// stable 2D mouse coords map to different 3D coords while the 3D mouse is active
+	// in other words, 2D deltas are no longer good enough!
+	// disable until individual 'transformers' behave better
+
 	if (event->type == NDOF_MOTION)
 	{
 		/* puts("transform_modal: passing through NDOF_MOTION"); */
 		return OPERATOR_PASS_THROUGH;
 	}
+	#endif
 
 	/* XXX insert keys are called here, and require context */
 	t->context= C;

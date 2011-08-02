@@ -2324,12 +2324,27 @@ static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* g
 	const float s = U.ndof_sensitivity;
 
 	data->tvec[0]= s * ghost->tx;
-	data->tvec[1]= s * ghost->ty;
-	data->tvec[2]= s * ghost->tz;
-
 	data->rvec[0]= s * ghost->rx;
-	data->rvec[1]= s * ghost->ry;
-	data->rvec[2]= s * ghost->rz;
+
+	if (U.ndof_flags & NDOF_ZOOM_UPDOWN)
+		{
+		// swap Y and Z
+		data->tvec[1]= s * ghost->tz;
+		data->tvec[2]= s * ghost->ty;
+
+		// should this affect rotation also?
+		// initial guess is 'yes', but get user feedback immediately!
+		data->rvec[1]= s * ghost->rz;
+		data->rvec[2]= s * ghost->ry;
+		}
+	else
+		{
+		data->tvec[1]= s * ghost->ty;
+		data->tvec[2]= s * ghost->tz;
+
+		data->rvec[1]= s * ghost->ry;
+		data->rvec[2]= s * ghost->rz;
+		}
 
 	data->dt = ghost->dt;
 
