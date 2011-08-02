@@ -913,28 +913,15 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_PYTHON)
-		set(PYTHON_VERSION 3.2)
-		if(PYTHON_VERSION MATCHES 3.2)
-			# we use precompiled libraries for py 3.2 and up by default
+		# we use precompiled libraries for py 3.2 and up by default
 
-			# normally cached but not since we include them with blender
-			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
-			# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
-			set(PYTHON_LIBRARY python${PYTHON_VERSION})
-			set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
-			# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
-		else()
-			# otherwise, use custom system framework
-			# *not used but maintained incase some dev wants to*
-
-			set(PYTHON "/System/Library/Frameworks/Python.framework/Versions/" CACHE PATH)
-			set(PYTHON_INCLUDE_DIR "${PYTHON}${PYTHON_VERSION}/include/python${PYTHON_VERSION}" CACHE PATH)
-			# set(PYTHON_BINARY ${PYTHON}${PYTHON_VERSION}/bin/python${PYTHON_VERSION}) # not used yet
-			set(PYTHON_LIBRARY "" CACHE FILEPATH)
-			set(PYTHON_LIBPATH "${PYTHON}${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config" CACHE PATH)
-			set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework System -framework Python" CACHE STRING)
-			unset(PYTHON)
-		endif()
+		# normally cached but not since we include them with blender
+                set(PYTHON_VERSION 3.2)
+		set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
+		# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
+		set(PYTHON_LIBRARY python${PYTHON_VERSION})
+		set(PYTHON_LIBPATH "${LIBDIR}/python/lib/python${PYTHON_VERSION}")
+		# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 
 		# uncached vars
 		set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
@@ -989,7 +976,17 @@ elseif(APPLE)
 		set(SAMPLERATE_LIBPATH ${SAMPLERATE}/lib)
 	endif()
 
-	set(PLATFORM_LINKLIBS stdc++ SystemStubs)
+	find_library(SYSTEMSTUBS_LIBRARY 
+		NAMES 
+		SystemStubs 
+		PATHS
+	)
+	mark_as_advanced(SYSTEMSTUBS_LIBRARY)
+	if(SYSTEMSTUBS_LIBRARY)
+		set(PLATFORM_LINKLIBS stdc++ SystemStubs)
+ 	else()
+		set(PLATFORM_LINKLIBS stdc++)
+	endif()
 
 	if(WITH_COCOA)
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char -DGHOST_COCOA")

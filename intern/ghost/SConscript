@@ -80,6 +80,9 @@ else:
 
 if env['WITH_BF_3DMOUSE']:
     defs.append('WITH_INPUT_NDOF')
+
+    if env['OURPLATFORM']=='linux2':
+        incs += ' ' + env['BF_3DMOUSE_INC']
 else:
     sources.remove('intern' + os.sep + 'GHOST_NDOFManager.cpp')
     try:
