@@ -11752,7 +11752,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						aa->end = ia->end;
 						strcpy(aa->name, ia->name);
 						strcpy(aa->frameProp, ia->frameProp);
-						aa->act = ob->adt->action;
+						if (ob->adt)
+							aa->act = ob->adt->action;
 
 						// Get rid of the old actuator
 						MEM_freeN(ia);
