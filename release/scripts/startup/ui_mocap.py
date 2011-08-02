@@ -52,11 +52,11 @@ class MocapConstraint(bpy.types.PropertyGroup):
         description="Other Constrained Bone (optional, depends on type)",
         update=setConstraint)
     s_frame = bpy.props.IntProperty(name="S",
-        default=1,
+        default=bpy.context.scene.frame_start,
         description="Start frame of Fix",
         update=setConstraint)
     e_frame = bpy.props.IntProperty(name="E",
-        default=500,
+        default=bpy.context.scene.frame_end,
         description="End frame of Fix",
         update=setConstraint)
     smooth_in = bpy.props.IntProperty(name="In",
@@ -264,7 +264,7 @@ class MocapConstraintsPanel(bpy.types.Panel):
                         headerRow.prop(m_constraint, 'show_expanded', text='', icon='TRIA_DOWN' if m_constraint.show_expanded else 'TRIA_RIGHT', emboss=False)
                         headerRow.prop(m_constraint, 'type', text='')
                         headerRow.prop(m_constraint, 'name', text='')
-                        headerRow.prop(m_constraint, 'active', icon='MUTE_IPO_ON' if m_constraint.active else'MUTE_IPO_OFF', text='', emboss=False)
+                        headerRow.prop(m_constraint, 'active', icon='MUTE_IPO_ON' if not m_constraint.active else'MUTE_IPO_OFF', text='', emboss=False)
                         headerRow.operator("mocap.removeconstraint", text="", icon='X', emboss=False).constraint = i
                         if m_constraint.show_expanded:
                             box.separator()
