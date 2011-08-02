@@ -80,6 +80,17 @@ else:
 
 if env['WITH_BF_3DMOUSE']:
     defs.append('WITH_INPUT_NDOF')
+else:
+    sources.remove('intern' + os.sep + 'GHOST_NDOFManager.cpp')
+    try:
+        if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
+            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerWin32.cpp')
+        elif window_system=='darwin':
+            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerCocoa.mm')
+        else:
+            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerX11.mm')
+    except ValueError:
+        pass
 
 
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
