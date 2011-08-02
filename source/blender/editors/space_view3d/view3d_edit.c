@@ -968,7 +968,7 @@ void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
 	q[3] = scale * z;
 	}
 
-static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 // -- "orbit" navigation (trackball/turntable)
 // -- zooming
 // -- panning in rotationally-locked views
@@ -1118,7 +1118,7 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 	ot->flag = 0;
 }
 
-static int ndof_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 // -- "pan" navigation
 // -- zoom or dolly?
 {

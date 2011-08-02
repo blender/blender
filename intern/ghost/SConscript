@@ -78,6 +78,9 @@ if env['BF_GHOST_DEBUG']:
 else:
 	sources.remove('intern' + os.sep + 'GHOST_EventPrinter.cpp')
 
+if env['WITH_BF_3DMOUSE']:
+	defs.append('WITH_INPUT_NDOF')
+
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
     incs = env['BF_WINTAB_INC'] + ' ' + incs
 

@@ -445,7 +445,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
  * that explains the negative signs in the code below
  */
 
-static int view_ndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	ARegion *ar= CTX_wm_region(C);

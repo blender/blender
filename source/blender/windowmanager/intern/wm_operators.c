@@ -1411,7 +1411,7 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 	ot->poll= wm_search_menu_poll;
 }
 
-static int wm_ndof_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wm_ndof_menu_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	uiPupMenuInvoke(C,"VIEW3D_MT_ndof_settings");
 

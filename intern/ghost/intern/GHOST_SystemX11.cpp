@@ -167,7 +167,9 @@ init(
 	GHOST_TSuccess success = GHOST_System::init();
 
 	if (success) {
+#ifdef WITH_INPUT_NDOF
 		m_ndofManager = new GHOST_NDOFManagerX11(*this);
+#endif
 		m_displayManager = new GHOST_DisplayManagerX11(this);
 
 		if (m_displayManager) {
@@ -414,9 +416,11 @@ processEvents(
 			anyProcessed = true;
 		}
 
+#ifdef WITH_INPUT_NDOF
 		if (dynamic_cast<GHOST_NDOFManagerX11*>(m_ndofManager)->processEvents()) {
 			anyProcessed = true;
 		}
+#endif
 		
 	} while (waitForEvent && !anyProcessed);
 	

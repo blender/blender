@@ -46,7 +46,13 @@
 
 
 GHOST_System::GHOST_System()
-: m_displayManager(0), m_timerManager(0), m_windowManager(0), m_eventManager(0), m_ndofManager(0)
+    : m_displayManager(0),
+      m_timerManager(0),
+      m_windowManager(0),
+      m_eventManager(0)
+#ifdef WITH_INPUT_NDOF
+      , m_ndofManager(0)
+#endif
 {
 }
 

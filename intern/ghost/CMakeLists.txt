@@ -97,6 +97,9 @@ if(WITH_GHOST_DEBUG)
 	add_definitions(-DWITH_GHOST_DEBUG)
 endif()
 
+if(WITH_INPUT_NDOF)
+	add_definitions(-DWITH_INPUT_NDOF)
+endif()
 
 if(WITH_HEADLESS OR WITH_GHOST_SDL)
 	if(WITH_HEADLESS)
@@ -158,14 +161,21 @@ elseif(APPLE)
 			intern/GHOST_SystemCocoa.mm
 			intern/GHOST_SystemPathsCocoa.mm
 			intern/GHOST_WindowCocoa.mm
-			intern/GHOST_NDOFManagerCocoa.mm
 
 			intern/GHOST_DisplayManagerCocoa.h
 			intern/GHOST_SystemCocoa.h
 			intern/GHOST_SystemPathsCocoa.h
 			intern/GHOST_WindowCocoa.h
-			intern/GHOST_NDOFManagerCocoa.h
 		)
+
+		if(WITH_INPUT_NDOF)
+			list(APPEND SRC
+				intern/GHOST_NDOFManagerCocoa.mm
+
+				intern/GHOST_NDOFManagerCocoa.h
+			)
+		endif()
+
 	else()
 		list(APPEND SRC
 			intern/GHOST_DisplayManagerCarbon.cpp
@@ -199,13 +209,11 @@ elseif(UNIX)
 		intern/GHOST_SystemX11.cpp
 		intern/GHOST_SystemPathsX11.cpp
 		intern/GHOST_WindowX11.cpp
-		intern/GHOST_NDOFManagerX11.cpp
 
 		intern/GHOST_DisplayManagerX11.h
 		intern/GHOST_SystemX11.h
 		intern/GHOST_SystemPathsX11.h
 		intern/GHOST_WindowX11.h
-		intern/GHOST_NDOFManagerX11.h
 	)
 
 	if(NOT WITH_INSTALL_PORTABLE)
@@ -216,6 +224,14 @@ elseif(UNIX)
 		add_definitions(-DWITH_XF86KEYSYM)
 		list(APPEND INC_SYS
 			${X11_XF86keysym_INCLUDE_PATH}
+		)
+	endif()
+
+	if(WITH_INPUT_NDOF)
+		list(APPEND SRC
+			intern/GHOST_NDOFManagerX11.cpp
+
+			intern/GHOST_NDOFManagerX11.h
 		)
 	endif()
 
@@ -234,7 +250,6 @@ elseif(WIN32)
 		intern/GHOST_SystemPathsWin32.cpp
 		intern/GHOST_WindowWin32.cpp
 		intern/GHOST_DropTargetWin32.cpp
-		intern/GHOST_NDOFManagerWin32.cpp
 
 		intern/GHOST_DisplayManagerWin32.h
 		intern/GHOST_DropTargetWin32.h
@@ -242,8 +257,16 @@ elseif(WIN32)
 		intern/GHOST_SystemPathsWin32.h
 		intern/GHOST_WindowWin32.h
 		intern/GHOST_TaskbarWin32.h
-		intern/GHOST_NDOFManagerWin32.h
 	)
+
+	if(WITH_INPUT_NDOF)
+		list(APPEND SRC
+			intern/GHOST_NDOFManagerWin32.cpp
+
+			intern/GHOST_NDOFManagerWin32.h
+		)
+	endif()
+
 endif()
 
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")
