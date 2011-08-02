@@ -3428,26 +3428,20 @@ static int wm_ndof_sensitivity_exec(bContext *UNUSED(C), wmOperator *op)
 	else
 		change = 0.1f; // 10%
 
-	if(RNA_boolean_get(op->ptr, "decrease"))
-		{
+	if(RNA_boolean_get(op->ptr, "decrease")) {
 		sensitivity -= sensitivity * change; 
 		if (sensitivity < min)
 			sensitivity = min;
-		}
-	else
-		{
+	}
+	else {
 		sensitivity += sensitivity * change; 
 		if (sensitivity > max)
 			sensitivity = max;
-		}
+	}
 
-	if (sensitivity != U.ndof_sensitivity)
-		{
+	if (sensitivity != U.ndof_sensitivity) {
 		U.ndof_sensitivity = sensitivity;
-		printf("new sensitivity: %f\n", U.ndof_sensitivity);
-		}
-	else
-		printf("same sensitivity: %f\n", U.ndof_sensitivity);
+	}
 
 	return OPERATOR_FINISHED;
 }
