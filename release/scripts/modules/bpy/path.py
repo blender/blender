@@ -136,7 +136,7 @@ def display_name(name):
 
 def display_name_from_filepath(name):
     """
-    Returns the path stripped of directort and extension,
+    Returns the path stripped of directory and extension,
     ensured to be utf8 compatible.
     """
     name = _os.path.splitext(basename(name))[0]
@@ -204,7 +204,7 @@ def resolve_ncase(path):
 
 def ensure_ext(filepath, ext, case_sensitive=False):
     """
-    Return the path with the extension added its its not alredy set.
+    Return the path with the extension added if it is not already set.
 
     :arg ext: The extension to check for.
     :type ext: string
