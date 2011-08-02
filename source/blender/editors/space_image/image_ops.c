@@ -461,8 +461,8 @@ static int view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 	const float zoom_sensitivity = 0.5f;
 	const float pan_sensitivity = 300.f;
 
-	float pan_x = pan_sensitivity * dt * ndof->tx / sima->zoom;
-	float pan_y = pan_sensitivity * dt * ndof->ty / sima->zoom;
+	float pan_x = pan_sensitivity * dt * ndof->tvec[0] / sima->zoom;
+	float pan_y = pan_sensitivity * dt * ndof->tvec[1] / sima->zoom;
 
 	/* "mouse zoom" factor = 1 + (dx + dy) / 300
 	 * what about "ndof zoom" factor? should behave like this:
@@ -470,7 +470,7 @@ static int view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 	 * move forward -> factor > 1
 	 * move backward -> factor < 1
 	 */
-	float zoom_factor = 1.f + zoom_sensitivity * dt * -ndof->tz;
+	float zoom_factor = 1.f + zoom_sensitivity * dt * -ndof->tvec[2];
 
 	sima_zoom_set_factor(sima, ar, zoom_factor);
 	sima->xof += pan_x;

@@ -361,10 +361,10 @@ static int transform_modal(bContext *C, wmOperator *op, wmEvent *event)
 	TransInfo *t = op->customdata;
 
 	if (event->type == NDOF_MOTION)
-		{
-		// puts("transform_modal: passing through NDOF_MOTION");
+	{
+		/* puts("transform_modal: passing through NDOF_MOTION"); */
 		return OPERATOR_PASS_THROUGH;
-		}
+	}
 
 	/* XXX insert keys are called here, and require context */
 	t->context= C;

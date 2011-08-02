@@ -389,8 +389,8 @@ typedef struct wmNDOFMotionData {
 	/* awfully similar to GHOST_TEventNDOFMotionData... */
 	// Each component normally ranges from -1 to +1, but can exceed that.
 	// These use blender standard view coordinates, with positive rotations being CCW about the axis.
-	float tx, ty, tz; // translation
-	float rx, ry, rz; // rotation:
+	float tvec[3]; // translation
+	float rvec[3]; // rotation:
 		// axis = (rx,ry,rz).normalized
 		// amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
 	float dt; // time since previous NDOF Motion event

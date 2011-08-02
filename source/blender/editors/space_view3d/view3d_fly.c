@@ -953,9 +953,9 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		// ^^ this is ok for default cube scene, but should scale with.. something
 
 		float trans[3] = {
-			lateral_sensitivity * ndof->tx,
-			vertical_sensitivity * ndof->ty,
-			forward_sensitivity * ndof->tz
+			lateral_sensitivity * ndof->tvec[0],
+			vertical_sensitivity * ndof->tvec[1],
+			forward_sensitivity * ndof->tvec[2]
 			};
 
 		if (fly->use_precision)
@@ -969,7 +969,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		if (flag & NDOF_FLY_HELICOPTER)
 			{
 			// replace world z component with device y (yes it makes sense)
-			trans[2] = speed * dt * vertical_sensitivity * ndof->ty;
+			trans[2] = speed * dt * vertical_sensitivity * ndof->tvec[1];
 			}
 
 		if (rv3d->persp==RV3D_CAMOB) {

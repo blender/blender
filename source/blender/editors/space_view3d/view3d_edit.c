@@ -931,42 +931,18 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 // NDOF utility functions
 // (should these functions live in this file?)
 float ndof_to_angle_axis(struct wmNDOFMotionData* ndof, float axis[3])
-	{
-	const float x = ndof->rx;
-	const float y = ndof->ry;
-	const float z = ndof->rz;
-
-	float angular_velocity = sqrtf(x*x + y*y + z*z);
-	float angle = ndof->dt * angular_velocity;
-
-	float scale = 1.f / angular_velocity;
-
-	// normalize 
-	axis[0] = scale * x;
-	axis[1] = scale * y;
-	axis[2] = scale * z;
-
-	return angle;
-	}
+{
+	return ndof->dt * normalize_v3_v3(axis, ndof->rvec);
+}
 
 void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
-	{
-	const float x = ndof->rx;
-	const float y = ndof->ry;
-	const float z = ndof->rz;
+{
+	float axis[3];
+	float angle;
 
-	float angular_velocity = sqrtf(x*x + y*y + z*z);
-	float angle = ndof->dt * angular_velocity;
-
-	// combined scaling factor -- normalize axis while converting to quaternion
-	float scale = sin(0.5f * angle) / angular_velocity;
-
-	// convert axis-angle to quaternion
-	q[0] = cos(0.5f * angle);
-	q[1] = scale * x;
-	q[2] = scale * y;
-	q[3] = scale * z;
-	}
+	angle= ndof_to_angle_axis(ndof, axis);
+	axis_angle_to_quat(q, axis, angle);
+}
 
 static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 // -- "orbit" navigation (trackball/turntable)
@@ -987,7 +963,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 		const float pan_sensitivity = 1.f;
 	
 		// rather have bool, but...
-		int has_rotation = rv3d->viewlock != RV3D_LOCKED && (ndof->rx || ndof->ry || ndof->rz);
+		int has_rotation = rv3d->viewlock != RV3D_LOCKED && !is_zero_v3(ndof->rvec);
 	
 		float view_inv[4];
 		invert_qt_qt(view_inv, rv3d->viewquat);
@@ -998,19 +974,19 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 			ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
 		#endif
 	
-		if (ndof->tz) {
+		if (ndof->tvec[2]) {
 			// Zoom!
 			// velocity should be proportional to the linear velocity attained by rotational motion of same strength
 			// [got that?]
 			// proportional to arclength = radius * angle
 	
-			float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tz;
+			float zoom_distance = zoom_sensitivity * rv3d->dist * dt * ndof->tvec[2];
 			rv3d->dist += zoom_distance;
 		}
 	
 		if (rv3d->viewlock == RV3D_LOCKED) {
 			/* rotation not allowed -- explore panning options instead */
-			float pan_vec[3] = {ndof->tx, ndof->ty, 0};
+			float pan_vec[3] = {ndof->tvec[0], ndof->tvec[1], 0.0f};
 			mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
 	
 			/* transform motion from view to world coordinates */
@@ -1072,7 +1048,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 				mul_qt_v3(view_inv, xvec);
 	
 				/* Perform the up/down rotation */
-				angle = rot_sensitivity * dt * ndof->rx;
+				angle = rot_sensitivity * dt * ndof->rvec[0];
 				if (invert)
 					angle = -angle;
 				rot[0] = cos(angle);
@@ -1080,7 +1056,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
 	
 				/* Perform the orbital rotation */
-				angle = rot_sensitivity * dt * ndof->ry;
+				angle = rot_sensitivity * dt * ndof->rvec[1];
 				if (invert)
 					angle = -angle;
 	
@@ -1155,11 +1131,10 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 		const float vertical_sensitivity = 0.4f;
 		const float lateral_sensitivity = 0.6f;
 
-		float pan_vec[3] = {
-			lateral_sensitivity * ndof->tx,
-			vertical_sensitivity * ndof->ty,
-			forward_sensitivity * ndof->tz
-			};
+		float pan_vec[3] = {lateral_sensitivity * ndof->tvec[0],
+		                    vertical_sensitivity * ndof->tvec[1],
+		                    forward_sensitivity * ndof->tvec[2]
+		                   };
 
 		mul_v3_fl(pan_vec, speed * dt);
 #endif
