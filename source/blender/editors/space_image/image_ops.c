@@ -437,6 +437,60 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 		"Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out.", -FLT_MAX, FLT_MAX);
 }
 
+/********************** NDOF operator *********************/
+
+/* Combined pan/zoom from a 3D mouse device.
+ * Z zooms, XY pans
+ * "view" (not "paper") control -- user moves the viewpoint, not the image being viewed
+ * that explains the negative signs in the code below
+ */
+
+static int view_ndof_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceImage *sima= CTX_wm_space_image(C);
+	ARegion *ar= CTX_wm_region(C);
+
+	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+
+	float dt = ndof->dt > 0.25f ? 0.0125f : ndof->dt;
+	/* this is probably the first event for this motion, so set dt to something reasonable
+	 * TODO: replace such guesswork with a flag or field from the NDOF manager
+	 */
+
+	/* tune these until it feels right */
+	const float zoom_sensitivity = 0.5f;
+	const float pan_sensitivity = 300.f;
+
+	float pan_x = pan_sensitivity * dt * ndof->tx / sima->zoom;
+	float pan_y = pan_sensitivity * dt * ndof->ty / sima->zoom;
+
+	/* "mouse zoom" factor = 1 + (dx + dy) / 300
+	 * what about "ndof zoom" factor? should behave like this:
+	 * at rest -> factor = 1
+	 * move forward -> factor > 1
+	 * move backward -> factor < 1
+	 */
+	float zoom_factor = 1.f + zoom_sensitivity * dt * -ndof->tz;
+
+	sima_zoom_set_factor(sima, ar, zoom_factor);
+	sima->xof += pan_x;
+	sima->yof += pan_y;
+
+	ED_region_tag_redraw(ar);	
+
+	return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_view_ndof(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "NDOF Pan/Zoom";
+	ot->idname= "IMAGE_OT_view_ndof";
+	
+	/* api callbacks */
+	ot->invoke= view_ndof_invoke;
+}
+
 /********************** view all operator *********************/
 
 /* Updates the fields of the View2D member of the SpaceImage struct.

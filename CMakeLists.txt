@@ -179,6 +179,7 @@ option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON
 option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 
 # Misc
+option(WITH_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
@@ -449,6 +450,15 @@ if(UNIX AND NOT APPLE)
 		find_package(JeMalloc)
 		if(NOT JEMALLOC_FOUND)
 			set(WITH_MEM_JEMALLOC OFF)
+		endif()
+	endif()
+
+	if (WITH_NDOF)
+		if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+			set(NDOF /usr)
+			set(NDOF_INC ${NDOF}/include)
+			set(NDOF_LIBRARY spnav)
+			set(NDOF_LIBPATH ${NDOF}/lib)
 		endif()
 	endif()
 
@@ -1027,6 +1037,10 @@ elseif(APPLE)
 		set(TIFF_INCLUDE_DIR ${TIFF}/include)
 		set(TIFF_LIBRARY tiff)
 		set(TIFF_LIBPATH ${TIFF}/lib)
+	endif()
+
+	if (WITH_NDOF)
+		# linker needs "-weak_framework 3DconnexionClient"
 	endif()
 
 	set(EXETYPE MACOSX_BUNDLE)

@@ -158,11 +158,13 @@ elseif(APPLE)
 			intern/GHOST_SystemCocoa.mm
 			intern/GHOST_SystemPathsCocoa.mm
 			intern/GHOST_WindowCocoa.mm
-			
+			intern/GHOST_NDOFManagerCocoa.mm
+
 			intern/GHOST_DisplayManagerCocoa.h
 			intern/GHOST_SystemCocoa.h
 			intern/GHOST_SystemPathsCocoa.h
 			intern/GHOST_WindowCocoa.h
+			intern/GHOST_NDOFManagerCocoa.h
 		)
 	else()
 		list(APPEND SRC
@@ -197,11 +199,13 @@ elseif(UNIX)
 		intern/GHOST_SystemX11.cpp
 		intern/GHOST_SystemPathsX11.cpp
 		intern/GHOST_WindowX11.cpp
+		intern/GHOST_NDOFManagerX11.cpp
 
 		intern/GHOST_DisplayManagerX11.h
 		intern/GHOST_SystemX11.h
 		intern/GHOST_SystemPathsX11.h
 		intern/GHOST_WindowX11.h
+		intern/GHOST_NDOFManagerX11.h
 	)
 
 	if(NOT WITH_INSTALL_PORTABLE)
@@ -230,6 +234,7 @@ elseif(WIN32)
 		intern/GHOST_SystemPathsWin32.cpp
 		intern/GHOST_WindowWin32.cpp
 		intern/GHOST_DropTargetWin32.cpp
+		intern/GHOST_NDOFManagerWin32.cpp
 
 		intern/GHOST_DisplayManagerWin32.h
 		intern/GHOST_DropTargetWin32.h
@@ -237,6 +242,7 @@ elseif(WIN32)
 		intern/GHOST_SystemPathsWin32.h
 		intern/GHOST_WindowWin32.h
 		intern/GHOST_TaskbarWin32.h
+		intern/GHOST_NDOFManagerWin32.h
 	)
 endif()
 

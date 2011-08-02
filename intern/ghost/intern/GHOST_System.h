@@ -191,25 +191,6 @@ public:
 	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer* consumer);
 
 	/***************************************************************************************
-	 ** N-degree of freedom devcice management functionality
-	 ***************************************************************************************/
-
-	/** Inherited from GHOST_ISystem
-     *  Opens the N-degree of freedom device manager
-	 * return 0 if device found, 1 otherwise
-     */
-    virtual int openNDOF(GHOST_IWindow* w,        
-        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
-        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen);
-        
-// original patch only        
-//        GHOST_NDOFEventHandler_fp setNdofEventHandler);
-
-
-
-
-	/***************************************************************************************
 	 ** Cursor management functionality
 	 ***************************************************************************************/
 

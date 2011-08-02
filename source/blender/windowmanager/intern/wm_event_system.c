@@ -1815,7 +1815,10 @@ void wm_event_do_handlers(bContext *C)
 					/* for regions having custom cursors */
 					wm_paintcursor_test(C, event);
 				}
-				
+				else if (event->type==NDOF_MOTION) {
+					win->addmousemove = TRUE;
+				}
+
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
@@ -1879,7 +1882,10 @@ void wm_event_do_handlers(bContext *C)
 				if(doit && win->screen && win->screen->subwinactive != win->screen->mainwin) {
 					win->eventstate->prevx= event->x;
 					win->eventstate->prevy= event->y;
+					//printf("win->eventstate->prev = %d %d\n", event->x, event->y);
 				}
+				else
+					;//printf("not setting prev to %d %d\n", event->x, event->y);
 			}
 			
 			/* store last event for this window */
@@ -1922,6 +1928,7 @@ void wm_event_do_handlers(bContext *C)
 		/* only add mousemove when queue was read entirely */
 		if(win->addmousemove && win->eventstate) {
 			wmEvent tevent= *(win->eventstate);
+			//printf("adding MOUSEMOVE %d %d\n", tevent.x, tevent.y);
 			tevent.type= MOUSEMOVE;
 			tevent.prevx= tevent.x;
 			tevent.prevy= tevent.y;
@@ -2309,6 +2316,30 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 	} 
 }
 
+/* adds customdata to event */
+static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* ghost)
+{
+	wmNDOFMotionData* data = MEM_mallocN(sizeof(wmNDOFMotionData), "customdata NDOF");
+
+	const float s = U.ndof_sensitivity;
+
+	data->tx = s * ghost->tx;
+	data->ty = s * ghost->ty;
+	data->tz = s * ghost->tz;
+
+	data->rx = s * ghost->rx;
+	data->ry = s * ghost->ry;
+	data->rz = s * ghost->rz;
+
+	data->dt = ghost->dt;
+
+	data->progress = (wmProgress) ghost->progress;
+
+	event->custom = EVT_DATA_NDOF_MOTION;
+	event->customdata = data;
+	event->customdatafree = 1;
+}
+
 /* imperfect but probably usable... draw/enable drags to other windows */
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *evt)
 {
@@ -2355,7 +2386,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 {
 	wmWindow *owin;
 	wmEvent event, *evt= win->eventstate;
-	
+
 	/* initialize and copy state (only mouse x y and modifiers) */
 	event= *evt;
 	
@@ -2384,6 +2415,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
+
+				//printf("sending MOUSEMOVE %d %d\n", event.x, event.y);
 				
 				/* also add to other window if event is there, this makes overdraws disappear nicely */
 				/* it remaps mousecoord to other window in event */
@@ -2552,6 +2585,38 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.type= TIMER;
 			event.custom= EVT_DATA_TIMER;
 			event.customdata= customdata;
+			wm_event_add(win, &event);
+
+			break;
+		}
+
+		case GHOST_kEventNDOFMotion: {
+			event.type = NDOF_MOTION;
+			attach_ndof_data(&event, customdata);
+			wm_event_add(win, &event);
+
+			//printf("sending NDOF_MOTION, prev = %d %d\n", event.x, event.y);
+
+			break;
+		}
+
+		case GHOST_kEventNDOFButton: {
+			GHOST_TEventNDOFButtonData* e = customdata;
+
+			event.type = NDOF_BUTTON_NONE + e->button;
+
+			switch (e->action) {
+				case GHOST_kPress:
+					event.val = KM_PRESS;
+					break;
+				case GHOST_kRelease:
+					event.val = KM_RELEASE;
+					break;
+				}
+
+			event.custom = 0;
+			event.customdata = NULL;
+
 			wm_event_add(win, &event);
 
 			break;

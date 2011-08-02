@@ -349,6 +349,30 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
         layout.operator("view3d.fly")
 
 
+class VIEW3D_MT_ndof_settings(bpy.types.Menu):
+    bl_label = "3D Mouse Settings"
+
+    def draw(self, context):
+        layout = self.layout
+        input_prefs = context.user_preferences.inputs
+
+        layout.separator()
+        layout.prop(input_prefs, "ndof_sensitivity")
+
+        if context.space_data.type == 'VIEW_3D':
+            layout.separator()
+            layout.prop(input_prefs, "ndof_show_guide")
+
+            layout.separator()
+            layout.label(text="orbit options")
+            layout.prop(input_prefs, "ndof_orbit_invert_axes")
+
+            layout.separator()
+            layout.label(text="fly options")
+            layout.prop(input_prefs, "ndof_fly_helicopter", icon='NDOF_FLY')
+            layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
+
+
 class VIEW3D_MT_view_align(bpy.types.Menu):
     bl_label = "Align View"
 

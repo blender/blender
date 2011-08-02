@@ -51,6 +51,7 @@ struct ARegionType;
 struct bPoseChannel;
 struct bAnimVizSettings;
 struct bMotionPath;
+struct wmNDOFMotionData;
 
 #define BL_NEAR_CLIP 0.001
 
@@ -72,6 +73,8 @@ void VIEW3D_OT_dolly(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_camera_1_to_1(struct wmOperatorType *ot);
 void VIEW3D_OT_move(struct wmOperatorType *ot);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
+void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot);
+void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot);
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
@@ -91,6 +94,8 @@ void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
+void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4]);
+float ndof_to_angle_axis(struct wmNDOFMotionData* ndof, float axis[3]);
 
 /* view3d_fly.c */
 void view3d_keymap(struct wmKeyConfig *keyconf);

@@ -377,6 +377,26 @@ typedef struct wmTabletData {
 	float Ytilt;		/* as above */
 } wmTabletData;
 
+typedef enum { // motion progress, for modal handlers
+	P_NOT_STARTED,
+	P_STARTING,    // <--
+	P_IN_PROGRESS, // <-- only these are sent for NDOF motion
+	P_FINISHING,   // <--
+	P_FINISHED
+	} wmProgress;
+
+typedef struct wmNDOFMotionData {
+	/* awfully similar to GHOST_TEventNDOFMotionData... */
+	// Each component normally ranges from -1 to +1, but can exceed that.
+	// These use blender standard view coordinates, with positive rotations being CCW about the axis.
+	float tx, ty, tz; // translation
+	float rx, ry, rz; // rotation:
+		// axis = (rx,ry,rz).normalized
+		// amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
+	float dt; // time since previous NDOF Motion event
+	wmProgress progress; // is this the first event, the last, or one of many in between?
+} wmNDOFMotionData;
+
 typedef struct wmTimer {
 	struct wmTimer *next, *prev;
 	
