@@ -193,9 +193,6 @@ macro(SETUP_LIBDIRS)
 	if(WITH_MEM_JEMALLOC)
 		link_directories(${JEMALLOC_LIBPATH})
 	endif()
-	if(WITH_INPUT_NDOF)
-		link_directories(${NDOF_LIBPATH})
-	endif()
 
 	if(WIN32 AND NOT UNIX)
 		link_directories(${PTHREADS_LIBPATH})
@@ -318,7 +315,7 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${JEMALLOC_LIBRARIES})
 	endif()
 	if(WITH_INPUT_NDOF)
-		target_link_libraries(${target} ${NDOF_LIBRARY})
+		target_link_libraries(${target} ${NDOF_LIBRARIES})
 	endif()
 
 	if(WIN32 AND NOT UNIX)

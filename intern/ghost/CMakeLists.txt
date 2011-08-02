@@ -99,6 +99,9 @@ endif()
 
 if(WITH_INPUT_NDOF)
 	add_definitions(-DWITH_INPUT_NDOF)
+	list(APPEND INC_SYS
+		${NDOF_INCLUDE_DIRS}
+	)
 endif()
 
 if(WITH_HEADLESS OR WITH_GHOST_SDL)

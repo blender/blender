@@ -454,11 +454,15 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if (WITH_INPUT_NDOF)
-		if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-			set(NDOF /usr)
-			set(NDOF_INC ${NDOF}/include)
-			set(NDOF_LIBRARY spnav)
-			set(NDOF_LIBPATH ${NDOF}/lib)
+		find_package(Spacenav)
+		if(NOT SPACENAV_FOUND)
+			set(WITH_INPUT_NDOF OFF)
+		endif()
+
+		# use generic names within blenders buildsystem.
+		if(SPACENAV_FOUND)
+			set(NDOF_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIRS})
+			set(NDOF_LIBRARIES ${SPACENAV_LIBRARIES})
 		endif()
 	endif()
 
@@ -1334,6 +1338,7 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_OPENCOLLADA)
 	info_cfg_option(WITH_FFTW3)
 	info_cfg_option(WITH_INTERNATIONAL)
+	info_cfg_option(WITH_INPUT_NDOF)
 
 	info_cfg_text("Compiler Options:")
 	info_cfg_option(WITH_BUILDINFO)
