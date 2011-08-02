@@ -318,8 +318,8 @@ protected:
 	/** The event manager. */
 	GHOST_EventManager* m_eventManager;
 
-    /** The N-degree of freedom device manager */
-    GHOST_NDOFManager* m_ndofManager;
+	/** The N-degree of freedom device manager */
+	GHOST_NDOFManager* m_ndofManager;
 	
 	/** Prints all the events. */
 #ifdef GHOST_DEBUG
