@@ -88,7 +88,7 @@ else:
         elif window_system=='darwin':
             sources.remove('intern' + os.sep + 'GHOST_NDOFManagerCocoa.mm')
         else:
-            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerX11.mm')
+            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerX11.cpp')
     except ValueError:
         pass
 
