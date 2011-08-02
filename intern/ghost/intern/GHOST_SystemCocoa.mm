@@ -597,7 +597,9 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
     GHOST_TSuccess success = GHOST_System::init();
     if (success) {
 
+#ifdef WITH_INPUT_NDOF
 		m_ndofManager = new GHOST_NDOFManagerCocoa(*this);
+#endif
 
 		//ProcessSerialNumber psn;
 		

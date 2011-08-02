@@ -249,11 +249,13 @@ public:
 	 */
 	virtual inline GHOST_WindowManager* getWindowManager() const;
 
+#ifdef WITH_INPUT_NDOF
  	/**
 	 * Returns a pointer to our n-degree of freedeom manager.
 	 * @return A pointer to our n-degree of freedeom manager.
 	 */
 	virtual inline GHOST_NDOFManager* getNDOFManager() const;
+#endif
 
 	/**
 	 * Returns the state of all modifier keys.
@@ -318,8 +320,10 @@ protected:
 	/** The event manager. */
 	GHOST_EventManager* m_eventManager;
 
+#ifdef WITH_INPUT_NDOF
 	/** The N-degree of freedom device manager */
 	GHOST_NDOFManager* m_ndofManager;
+#endif
 	
 	/** Prints all the events. */
 #ifdef GHOST_DEBUG
@@ -345,10 +349,12 @@ inline GHOST_WindowManager* GHOST_System::getWindowManager() const
 	return m_windowManager;
 }
 
+#ifdef WITH_INPUT_NDOF
 inline GHOST_NDOFManager* GHOST_System::getNDOFManager() const
 {
 	return m_ndofManager;
 }
+#endif
 
 #endif // _GHOST_SYSTEM_H_
 

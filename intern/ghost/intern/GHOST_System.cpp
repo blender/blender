@@ -202,10 +202,12 @@ bool GHOST_System::dispatchEvents()
 {
 	bool handled = false;
 
+#ifdef WITH_INPUT_NDOF
 	// NDOF Motion event is sent only once per dispatch, so do it now:
 	if (m_ndofManager) {
 		handled |= m_ndofManager->sendMotionEvent();
 	}
+#endif
 
 	if (m_eventManager) {
 		handled |= m_eventManager->dispatchEvents();
@@ -319,10 +321,12 @@ GHOST_TSuccess GHOST_System::exit()
 		delete m_eventManager;
 		m_eventManager = 0;
 	}
+#ifdef WITH_INPUT_NDOF
 	if (m_ndofManager) {
 		delete m_ndofManager;
 		m_ndofManager = 0;
 	}
+#endif
 	return GHOST_kSuccess;
 }
 

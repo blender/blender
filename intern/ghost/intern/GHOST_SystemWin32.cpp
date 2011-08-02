@@ -161,7 +161,9 @@ GHOST_SystemWin32::GHOST_SystemWin32()
 	// Require COM for GHOST_DropTargetWin32 created in GHOST_WindowWin32.
 	OleInitialize(0);
 
+#ifdef WITH_INPUT_NDOF
 	m_ndofManager = new GHOST_NDOFManagerWin32(*this);
+#endif
 }
 
 GHOST_SystemWin32::~GHOST_SystemWin32()
@@ -757,6 +759,7 @@ void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO * minmax)
 	minmax->ptMinTrackSize.y=240;
 }
 
+#ifdef WITH_INPUT_NDOF
 bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 {
 	bool eventSent = false;
@@ -773,7 +776,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 		if (info.dwType == RIM_TYPEHID)
 			m_ndofManager->setDevice(info.hid.dwVendorId, info.hid.dwProductId);
 		else
-            puts("<!> not a HID device... mouse/kb perhaps?");
+		    puts("<!> not a HID device... mouse/kb perhaps?");
 
 		firstEvent = false;
 		}
@@ -846,6 +849,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 		}
 	return eventSent;
 }
+#endif // WITH_INPUT_NDOF
 
 LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -892,8 +896,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						}
 						break;
 					case RIM_TYPEHID:
+#ifdef WITH_INPUT_NDOF
 						if (system->processNDOF(raw))
 							eventHandled = true;
+#endif
 						break;
 					}
 				break;
