@@ -200,6 +200,8 @@ static void rna_tracking_flushUpdate(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 #else
 
+static int rna_matrix_dimsize_4x4[]= {4, 4};
+
 static void rna_def_trackingSettings(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -327,12 +329,19 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MovieTrackingMarker", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking marker data", "Match-moving marker data for tracking");
 
-	/* Position */
+	/* oosition */
 	prop= RNA_def_property(srna, "pos", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 5);
 	RNA_def_property_float_sdna(prop, NULL, "pos");
 	RNA_def_property_ui_text(prop, "Position", "Marker position at frame in unified coordinates");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+
+	/* frame */
+	prop= RNA_def_property(srna, "frame", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);	/* can't be safty edited for now, need to re-sort markers array after change */
+	RNA_def_property_int_sdna(prop, NULL, "framenr");
+	RNA_def_property_ui_text(prop, "Frame", "Frame number marker is keyframed on");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
@@ -503,6 +512,56 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 }
 
+static void rna_def_reconstructedCamera(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MovieReconstructedCamera", NULL);
+	RNA_def_struct_ui_text(srna, "Movie tracking reconstructed camera data", "Match-moving reconstructed camera data from tracker");
+
+	/* frame */
+	prop= RNA_def_property(srna, "frame", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_sdna(prop, NULL, "framenr");
+	RNA_def_property_ui_text(prop, "Frame", "Frame number marker is keyframed on");
+
+	/* matrix */
+	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "mat");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_ui_text(prop, "Matrix", "Worldspace transformation matrix");
+}
+
+static void rna_def_trackingReconstruction(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	rna_def_reconstructedCamera(brna);
+
+	srna= RNA_def_struct(brna, "MovieTrackingReconstruction", NULL);
+	RNA_def_struct_ui_text(srna, "Movie tracking reconstruction data", "Match-moving reconstruction data from tracker");
+
+	/* is_reconstructed */
+	prop= RNA_def_property(srna, "is_reconstructed", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_RECONSTRUCTED);
+	RNA_def_property_ui_text(prop, "Reconstructed", "Is tracking data contsains valid reconstruction information");
+
+	/* average_error */
+	prop= RNA_def_property(srna, "average_error", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "error");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Average Error", "Average error of resonctruction");
+
+	/* cameras */
+	prop= RNA_def_property(srna, "cameras", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MovieReconstructedCamera");
+	RNA_def_property_collection_sdna(prop, NULL, "cameras", "camnr");
+	RNA_def_property_ui_text(prop, "Cameras", "Collection of solved cameras");
+}
 
 static void rna_def_tracking(BlenderRNA *brna)
 {
@@ -513,6 +572,7 @@ static void rna_def_tracking(BlenderRNA *brna)
 	rna_def_trackingCamera(brna);
 	rna_def_trackingTrack(brna);
 	rna_def_trackingStabilization(brna);
+	rna_def_trackingReconstruction(brna);
 
 	srna= RNA_def_struct(brna, "MovieTracking", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking data", "Match-moving data for tracking");
@@ -537,9 +597,13 @@ static void rna_def_tracking(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_track_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
 
-	/* stabilization*/
+	/* stabilization */
 	prop= RNA_def_property(srna, "stabilization", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingStabilization");
+
+	/* reconstruction */
+	prop= RNA_def_property(srna, "reconstruction", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MovieTrackingReconstruction");
 }
 
 void RNA_def_tracking(BlenderRNA *brna)

@@ -448,8 +448,8 @@ void BKE_tracking_free(MovieTracking *tracking)
 
 	BLI_freelistN(&tracking->tracks);
 
-	if(tracking->camera.reconstructed)
-		MEM_freeN(tracking->camera.reconstructed);
+	if(tracking->reconstruction.cameras)
+		MEM_freeN(tracking->reconstruction.cameras);
 
 	if(tracking->stabilization.scaleibuf)
 		IMB_freeImBuf(tracking->stabilization.scaleibuf);
@@ -871,17 +871,13 @@ int BKE_tracking_next(MovieTrackingContext *context)
 }
 
 #if WITH_LIBMV
-static struct libmv_Tracks *create_libmv_tracks(MovieClip *clip)
+static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int width, int height)
 {
-	int width, height;
 	int tracknr= 0;
 	MovieTrackingTrack *track;
 	struct libmv_Tracks *tracks= libmv_tracksNew();;
 
-	/* XXX: could fail if footage uses images with different sizes */
-	BKE_movieclip_acquire_size(clip, NULL, &width, &height);
-
-	track= clip->tracking.tracks.first;
+	track= tracking->tracks.first;
 	while(track) {
 		int a= 0;
 
@@ -899,13 +895,12 @@ static struct libmv_Tracks *create_libmv_tracks(MovieClip *clip)
 	return tracks;
 }
 
-static int retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstruction *reconstruction)
+static int retrive_libmv_reconstruct(MovieTracking *tracking, struct libmv_Reconstruction *libmv_reconstruction)
 {
 	int tracknr= 0;
 	int sfra= INT_MAX, efra= INT_MIN, a, origin_set= 0;
-	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
-	MovieTrackingCamera *camera;
+	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
 	MovieReconstructedCamera *reconstructed;
 	float origin[3]= {0.0f, 0.f, 0.0f};
 	int ok= 1;
@@ -914,7 +909,7 @@ static int retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructio
 	while(track) {
 		double pos[3];
 
-		if(libmv_reporojectionPointForTrack(reconstruction, tracknr, pos)) {
+		if(libmv_reporojectionPointForTrack(libmv_reconstruction, tracknr, pos)) {
 			track->bundle_pos[0]= pos[0];
 			track->bundle_pos[1]= pos[1];
 			track->bundle_pos[2]= pos[2];
@@ -936,19 +931,17 @@ static int retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructio
 		tracknr++;
 	}
 
-	camera= &tracking->camera;
+	if(reconstruction->cameras)
+		MEM_freeN(reconstruction->cameras);
 
-	if(camera->reconstructed)
-		MEM_freeN(camera->reconstructed);
-
-	camera->reconnr= 0;
-	camera->reconstructed= NULL;
+	reconstruction->camnr= 0;
+	reconstruction->cameras= NULL;
 	reconstructed= MEM_callocN((efra-sfra+1)*sizeof(MovieReconstructedCamera), "temp reconstructed camera");
 
 	for(a= sfra; a<=efra; a++) {
 		double matd[4][4];
 
-		if(libmv_reporojectionCameraForImage(reconstruction, a, matd)) {
+		if(libmv_reporojectionCameraForImage(libmv_reconstruction, a, matd)) {
 			int i, j;
 			float mat[4][4];
 
@@ -964,18 +957,18 @@ static int retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructio
 			if(origin_set)
 				sub_v3_v3(mat[3], origin);
 
-			copy_m4_m4(reconstructed[camera->reconnr].mat, mat);
-			reconstructed[camera->reconnr].framenr= a;
-			camera->reconnr++;
+			copy_m4_m4(reconstructed[reconstruction->camnr].mat, mat);
+			reconstructed[reconstruction->camnr].framenr= a;
+			reconstruction->camnr++;
 		} else {
 			ok= 0;
 			printf("No camera for frame %d\n", a);
 		}
 	}
 
-	if(camera->reconnr) {
-		camera->reconstructed= MEM_callocN(camera->reconnr*sizeof(MovieReconstructedCamera), "reconstructed camera");
-		memcpy(camera->reconstructed, reconstructed, camera->reconnr*sizeof(MovieReconstructedCamera));
+	if(reconstruction->camnr) {
+		reconstruction->cameras= MEM_callocN(reconstruction->camnr*sizeof(MovieReconstructedCamera), "reconstructed camera");
+		memcpy(reconstruction->cameras, reconstructed, reconstruction->camnr*sizeof(MovieReconstructedCamera));
 	}
 
 	if(origin_set) {
@@ -995,24 +988,27 @@ static int retrive_libmv_reconstruct(MovieClip *clip, struct libmv_Reconstructio
 
 #endif
 
-float BKE_tracking_solve_reconstruction(MovieClip *clip)
+float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int height)
 {
 #if WITH_LIBMV
 	{
-		MovieTrackingCamera *camera= &clip->tracking.camera;
-		MovieTracking *tracking= &clip->tracking;
-		struct libmv_Tracks *tracks= create_libmv_tracks(clip);
+		MovieTrackingCamera *camera= &tracking->camera;
+		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width, height);
 		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
 		        tracking->settings.keyframe1, tracking->settings.keyframe2,
 		        camera->focal, camera->principal[0], camera->principal[1],
 		        camera->k1, camera->k2, camera->k3);
 		float error= libmv_reprojectionError(reconstruction);
 
-		if(!retrive_libmv_reconstruct(clip, reconstruction))
+		tracking->reconstruction.error= error;
+
+		if(!retrive_libmv_reconstruct(tracking, reconstruction))
 			error= -1.f;
 
 		libmv_destroyReconstruction(reconstruction);
 		libmv_tracksDestroy(tracks);
+
+		tracking->reconstruction.flag|= TRACKING_RECONSTRUCTED;
 
 		return error;
 	}
@@ -1040,22 +1036,22 @@ MovieTrackingTrack *BKE_find_track_by_name(MovieTracking *tracking, const char *
 
 MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(MovieTracking *tracking, int framenr)
 {
-	MovieTrackingCamera *camera= &tracking->camera;
+	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
 	int a= 0, d= 1;
 
-	if(!camera->reconnr)
+	if(!reconstruction->camnr)
 		return NULL;
 
-	if(camera->last_camera<camera->reconnr)
-		a= camera->last_camera;
+	if(reconstruction->last_camera<reconstruction->camnr)
+		a= reconstruction->last_camera;
 
-	if(camera->reconstructed[a].framenr>=framenr)
+	if(reconstruction->cameras[a].framenr>=framenr)
 		d= -1;
 
-	while(a>=0 && a<camera->reconnr) {
-		if(camera->reconstructed[a].framenr==framenr) {
-			camera->last_camera= a;
-			return &camera->reconstructed[a];
+	while(a>=0 && a<reconstruction->camnr) {
+		if(reconstruction->cameras[a].framenr==framenr) {
+			reconstruction->last_camera= a;
+			return &reconstruction->cameras[a];
 
 			break;
 		}

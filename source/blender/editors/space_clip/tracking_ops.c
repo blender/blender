@@ -1122,6 +1122,9 @@ static int select_groped_exec(bContext *C, wmOperator *op)
 					ok= equals_v3v3(track->color, sel->color);
 			}
 		}
+		else if(group==6) { /* failed */
+			ok= (track->flag&TRACK_HAS_BUNDLE) == 0;
+		}
 
 		if(ok) {
 			track->flag|= SELECT;
@@ -1146,6 +1149,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 			{3, "LOCKED", 0, "Locked tracks", "Select all locked tracks"},
 			{4, "DISABLED", 0, "Disabled tracks", "Select all disabled tracks"},
 			{5, "COLOR", 0, "Tracks with same color", "Select all tracks with same color as actiev track"},
+			{6, "FAILED", 0, "Failed Tracks", "Select all tracks which failed to be reconstructed"},
 			{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1436,7 +1440,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 
 /********************** solve camera operator *********************/
 
-static int check_solve_tarck_count(MovieTracking *tracking)
+static int check_solve_track_count(MovieTracking *tracking)
 {
 	int tot= 0;
 	int frame1= tracking->settings.keyframe1, frame2= tracking->settings.keyframe2;
@@ -1459,14 +1463,19 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	Scene *scene= CTX_data_scene(C);
+	MovieTracking *tracking= &clip->tracking;
+	int width, height;
 	float error;
 
-	if(!check_solve_tarck_count(&clip->tracking)) {
+	if(!check_solve_track_count(tracking)) {
 		BKE_report(op->reports, RPT_ERROR, "At least 10 tracks on both of keyframes are needed for reconstruction");
 		return OPERATOR_CANCELLED;
 	}
 
-	error = BKE_tracking_solve_reconstruction(clip);
+	/* could fail if footage uses images with different sizes */
+	BKE_movieclip_acquire_size(clip, NULL, &width, &height);
+
+	error= BKE_tracking_solve_reconstruction(tracking, width, height);
 
 	if(error<0)
 		BKE_report(op->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
@@ -1479,7 +1488,6 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 		scene->camera= scene_find_camera(scene);
 
 	if(scene->camera) {
-		MovieTracking *tracking= &clip->tracking;
 		float focal= tracking->camera.focal;
 
 		/* set blender camera focal length so result would look fine there */
@@ -1535,11 +1543,13 @@ static int clear_reconstruction_exec(bContext *C, wmOperator *UNUSED(op))
 		track= track->next;
 	}
 
-	if(tracking->camera.reconstructed)
-		MEM_freeN(tracking->camera.reconstructed);
+	if(tracking->reconstruction.cameras)
+		MEM_freeN(tracking->reconstruction.cameras);
 
-	tracking->camera.reconstructed= NULL;
-	tracking->camera.reconnr= 0;
+	tracking->reconstruction.cameras= NULL;
+	tracking->reconstruction.camnr= 0;
+
+	tracking->reconstruction.flag&= ~TRACKING_RECONSTRUCTED;
 
 	DAG_id_tag_update(&clip->id, 0);
 
@@ -2199,16 +2209,47 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	int end= RNA_boolean_get(op->ptr, "end");
-	int sel_type, delta= end ? 1 : -1;
+	int pos= RNA_enum_get(op->ptr, "position");
+	int sel_type, delta;
 
-	BKE_movieclip_last_selection(clip, &sel_type, (void**)&track);
+	if(pos<=1) {	/* jump to path */
+		BKE_movieclip_last_selection(clip, &sel_type, (void**)&track);
 
-	if(sel_type!=MCLIP_SEL_TRACK)
-		return OPERATOR_CANCELLED;
+		if(sel_type!=MCLIP_SEL_TRACK)
+			return OPERATOR_CANCELLED;
 
-	while(BKE_tracking_has_marker(track, sc->user.framenr+delta)) {
-		sc->user.framenr+= delta;
+		delta= pos == 1 ? 1 : -1;
+
+		while(sc->user.framenr+delta >= SFRA && sc->user.framenr+delta <= EFRA) {
+			MovieTrackingMarker *marker= BKE_tracking_exact_marker(track, sc->user.framenr+delta);
+
+			if(!marker || marker->flag&MARKER_DISABLED)
+				break;
+
+			sc->user.framenr+= delta;
+		}
+	}
+	else {	/* to to failed frame */
+		if(clip->tracking.reconstruction.flag&TRACKING_RECONSTRUCTED) {
+			int a= sc->user.framenr;
+			MovieTracking *tracking= &clip->tracking;
+
+			delta= pos == 3 ? 1 : -1;
+
+			a+= delta;
+
+			while(a+delta >= SFRA && a+delta <= EFRA) {
+				MovieReconstructedCamera *cam= BKE_tracking_get_reconstructed_camera(tracking, a);
+
+				if(!cam) {
+					sc->user.framenr= a;
+
+					break;
+				}
+
+				a+= delta;
+			}
+		}
 	}
 
 	if(CFRA!=sc->user.framenr) {
@@ -2225,6 +2266,14 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
 void CLIP_OT_frame_jump(wmOperatorType *ot)
 {
+	static EnumPropertyItem position_items[] = {
+			{0, "PATHSTART",	0, "Path Start",		"Jump to start of current path"},
+			{1, "PATHEND",		0, "Path End",			"Jump to end of current path"},
+			{2, "FAILEDPREV",	0, "Previons Failed",	"Jump to previous failed frame"},
+			{2, "FAILNEXT",		0, "Next Failed",		"Jump to next failed frame"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
 	ot->name= "Jump to Frame";
 	ot->description= "Jump to special frame";
@@ -2238,7 +2287,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "end", 0, "Last Frame", "Jump to the last frame of current track.");
+	RNA_def_enum(ot->srna, "position", position_items, 0, "Position", "Position to jumo to");
 }
 
 /********************** join tracks operator *********************/

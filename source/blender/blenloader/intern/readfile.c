@@ -5706,7 +5706,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	if(fd->movieclipmap) clip->cache= newmclipadr(fd, clip->cache);
 	else clip->cache= NULL;
 
-	tracking->camera.reconstructed= newdataadr(fd, tracking->camera.reconstructed);
+	tracking->reconstruction.cameras= newdataadr(fd, tracking->reconstruction.cameras);
 
 	link_list(fd, &tracking->tracks);
 

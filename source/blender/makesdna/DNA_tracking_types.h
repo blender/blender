@@ -63,9 +63,6 @@ typedef struct MovieTrackingCamera {
 	short pad;
 	float principal[2];	/* principal point */
 	float k1, k2, k3;	/* radial distortion */
-	int last_camera;	/* most recently used camera */
-	int reconnr;		/* number of reconstructed cameras */
-	struct MovieReconstructedCamera *reconstructed;	/* reconstructed cameras */
 } MovieTrackingCamera;
 
 typedef struct MovieTrackingMarker {
@@ -124,10 +121,21 @@ typedef struct MovieTrackingStabilization {
 	struct ImBuf *scaleibuf;	/* currently scaled ibuf */
 } MovieTrackingStabilization;
 
+typedef struct MovieTrackingReconstruction {
+	int flag;
+
+	float error;		/* average error of reconstruction */
+
+	int last_camera;		/* most recently used camera */
+	int camnr;				/* number of reconstructed cameras */
+	struct MovieReconstructedCamera *cameras;	/* reconstructed cameras */
+} MovieTrackingReconstruction;
+
 typedef struct MovieTracking {
 	MovieTrackingSettings settings;	/* different tracking-related settings */
 	MovieTrackingCamera camera;		/* camera intrinsics */
 	ListBase tracks;				/* all tracks */
+	MovieTrackingReconstruction reconstruction;	/* reconstruction data */
 	MovieTrackingStabilization stabilization;	/* stabilization data */
 } MovieTracking;
 
@@ -163,5 +171,8 @@ enum {
 /* MovieTrackingStrabilization->flag */
 #define TRACKING_2D_STABILIZATION	(1<<0)
 #define TRACKING_AUTOSCALE			(1<<1)
+
+/* MovieTrackingReconstruction->flag */
+#define TRACKING_RECONSTRUCTED	(1<<0)
 
 #endif

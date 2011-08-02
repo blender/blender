@@ -71,7 +71,7 @@ void BKE_tracking_sync(struct MovieTrackingContext *context);
 void BKE_tracking_sync_user(struct MovieClipUser *user, struct MovieTrackingContext *context);
 int BKE_tracking_next(struct MovieTrackingContext *context);
 
-float BKE_tracking_solve_reconstruction(struct MovieClip *clip);
+float BKE_tracking_solve_reconstruction(struct MovieTracking *tracking, int width, int height);
 
 void BKE_track_unique_name(struct MovieTracking *tracking, struct MovieTrackingTrack *track);
 struct MovieTrackingTrack *BKE_find_track_by_name(struct MovieTracking *tracking, const char *name);

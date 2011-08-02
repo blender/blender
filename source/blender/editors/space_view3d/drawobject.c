@@ -1524,18 +1524,18 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	}
 
 	if((flag & DRAW_PICKING)==0) {
-		if(v3d->flag2&V3D_SHOW_CAMERAPATH && clip->tracking.camera.reconnr) {
+		if(v3d->flag2&V3D_SHOW_CAMERAPATH && clip->tracking.reconstruction.camnr) {
 			int a= 0;
-			MovieTrackingCamera *camera= &clip->tracking.camera;
-			MovieReconstructedCamera *cur= camera->reconstructed;
+			MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
+			MovieReconstructedCamera *camera= tracking->reconstruction.cameras;
 
 			glDisable(GL_LIGHTING);
 			UI_ThemeColor(TH_CAMERA_PATH);
 			glLineWidth(2.0f);
 
 			glBegin(GL_LINE_STRIP);
-				for(a= 0; a<camera->reconnr; a++, cur++) {
-					glVertex3f(cur->mat[3][0], cur->mat[3][1], cur->mat[3][2]);
+				for(a= 0; a<reconstruction->camnr; a++, camera++) {
+					glVertex3f(camera->mat[3][0], camera->mat[3][1], camera->mat[3][2]);
 				}
 			glEnd();
 

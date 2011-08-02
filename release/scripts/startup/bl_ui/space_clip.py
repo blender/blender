@@ -113,6 +113,12 @@ class CLIP_HT_header(bpy.types.Header):
         layout.template_ID(sc, "clip")
         layout.template_running_jobs()
 
+        if clip:
+            r = clip.tracking.reconstruction
+
+            if r.is_reconstructed:
+                layout.label(text="Average solve error: %.4f"  % (r.average_error))
+
 
 class CLIP_PT_tools(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
@@ -576,6 +582,9 @@ class CLIP_MT_select_grouped(bpy.types.Menu):
 
         op = layout.operator("clip.select_grouped", text="Select Disabled")
         op.group = 'DISABLED'
+
+        op = layout.operator("clip.select_grouped", text="Select Failed")
+        op.group = 'FAILED'
 
         op = layout.operator("clip.select_grouped", text="Select by Color")
         op.group = 'COLOR'

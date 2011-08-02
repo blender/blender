@@ -71,7 +71,7 @@
 static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Scene *scene)
 {
 	float x;
-	int *points, totseg, sel_type;
+	int *points, totseg, sel_type, i, a;
 	float sfra= SFRA, efra= EFRA;
 	void *sel;
 	float framelen= ar->winx/(efra-sfra+1);
@@ -87,8 +87,6 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	/* cached segments -- could be usefu lto debug caching strategies */
 	BKE_movieclip_get_cache_segments(clip, &totseg, &points);
 	if(totseg) {
-		int a;
-
 		glColor4ub(128, 128, 255, 128);
 
 		for(a= 0; a<totseg; a++) {
@@ -103,10 +101,9 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 	/* track */
 	if(sel_type==MCLIP_SEL_TRACK) {
-		int i, a= 0;
 		MovieTrackingTrack *track= (MovieTrackingTrack *)sel;
 
-		for(i= sfra; i <= efra; i++) {
+		for(i= sfra, a= 0; i <= efra; i++) {
 			int framenr;
 			MovieTrackingMarker *marker;
 
@@ -131,6 +128,33 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 				glRecti((i-sfra)*framelen, 0, (i-sfra+1)*framelen, 4);
 			}
+		}
+	}
+
+	/* failed frames */
+	if(clip->tracking.reconstruction.flag&TRACKING_RECONSTRUCTED) {
+		int n= clip->tracking.reconstruction.camnr;
+		MovieReconstructedCamera *cameras= clip->tracking.reconstruction.cameras;
+
+		glColor4ub(255, 0, 0, 96);
+
+		for(i= sfra, a= 0; i <= efra; i++) {
+			int ok= 0;
+
+			while(a<n) {
+				if(cameras[a].framenr==i) {
+					ok= 1;
+					break;
+				}
+				else if(cameras[a].framenr>i) {
+					break;
+				}
+
+				a++;
+			}
+
+			if(!ok)
+				glRecti((i-sfra)*framelen, 0, (i-sfra+1)*framelen, 8);
 		}
 	}
 
