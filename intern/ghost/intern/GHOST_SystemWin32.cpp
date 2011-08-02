@@ -766,8 +766,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 	GHOST_TUns64 now = getMilliSeconds();
 
 	static bool firstEvent = true;
-	if (firstEvent)
-		{ // determine exactly which device is plugged in
+	if (firstEvent) { // determine exactly which device is plugged in
 		RID_DEVICE_INFO info;
 		unsigned infoSize = sizeof(RID_DEVICE_INFO);
 		info.cbSize = infoSize;
@@ -776,23 +775,23 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 		if (info.dwType == RIM_TYPEHID)
 			m_ndofManager->setDevice(info.hid.dwVendorId, info.hid.dwProductId);
 		else
-		    puts("<!> not a HID device... mouse/kb perhaps?");
+			puts("<!> not a HID device... mouse/kb perhaps?");
 
 		firstEvent = false;
-		}
+	}
 
 	// The NDOF manager sends button changes immediately, and *pretends* to
 	// send motion. Mark as 'sent' so motion will always get dispatched.
 	eventSent = true;
 
 #ifdef _MSC_VER
-    // using Microsoft compiler & header files
-    // they invented the RawInput API, so this version is (probably) correct
+	// using Microsoft compiler & header files
+	// they invented the RawInput API, so this version is (probably) correct
 	BYTE const* data = raw.data.hid.bRawData;
 	// struct RAWHID {
-  	// DWORD dwSizeHid;
-  	// DWORD dwCount;
-  	// BYTE  bRawData[1];
+	// DWORD dwSizeHid;
+	// DWORD dwCount;
+	// BYTE  bRawData[1];
 	// };
 #else
 	// MinGW's definition (below) doesn't agree, so we need a slight
@@ -807,46 +806,46 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 
 	BYTE packetType = data[0];
 	switch (packetType)
-		{
+	{
 		case 1: // translation
-			{
+		{
 			short* axis = (short*)(data + 1);
 			short t[3] = {axis[0], -axis[2], axis[1]};
 			m_ndofManager->updateTranslation(t, now);
 
 			if (raw.data.hid.dwSizeHid == 13)
-				{ // this report also includes rotation
+			{ // this report also includes rotation
 				short r[3] = {-axis[3], axis[5], -axis[4]};
 				m_ndofManager->updateRotation(r, now);
 
 				// I've never gotten one of these, has anyone else?
 				puts("ndof: combined T + R");
-				}
-			break;
 			}
+			break;
+		}
 		case 2: // rotation
-			{
+		{
 			short* axis = (short*)(data + 1);
 			short r[3] = {-axis[0], axis[2], -axis[1]};
 			m_ndofManager->updateRotation(r, now);
 			break;
-			}
+		}
 		case 3: // buttons
-			{
-			#if 0
+		{
+#if 0
 			// I'm getting garbage bits -- examine whole report:
 			printf("ndof: HID report for buttons [");
 			for (int i = 0; i < raw.data.hid.dwSizeHid; ++i)
 				printf(" %02X", data[i]);
 			printf(" ]\n");
-			#endif
+#endif
 
 			int button_bits;
 			memcpy(&button_bits, data + 1, sizeof(button_bits));
 			m_ndofManager->updateButtons(button_bits, now);
 			break;
-			}
 		}
+	}
 	return eventSent;
 }
 #endif // WITH_INPUT_NDOF
