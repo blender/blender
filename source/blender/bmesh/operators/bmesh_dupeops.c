@@ -543,3 +543,60 @@ static void delete_context(BMesh *bm, int type){
 		BM_remove_tagged_verts(bm, DEL_INPUT);
 	}
 }
+
+/*
+ * Spin Operator
+ *
+ * Extrude or duplicate geometry a number of times,
+ * rotating and possibly translating after each step
+*/
+
+void spinop_exec(BMesh *bm, BMOperator *op)
+{
+    BMOperator dupop, extop;
+	float cent[3], dvec[3];
+	float axis[3] = {0.0f, 0.0f, 1.0f};
+	float q[4];
+	float rmat[3][3];
+	float phi, si;
+	int steps, dupli, a, usedvec;
+
+	BMO_Get_Vec(op, "cent", cent);
+	BMO_Get_Vec(op, "axis", axis);
+	normalize_v3(axis);
+	BMO_Get_Vec(op, "dvec", dvec);
+	usedvec = !is_zero_v3(dvec);
+	steps = BMO_Get_Int(op, "steps");
+	phi = BMO_Get_Float(op, "ang")*M_PI/(360.0*steps);
+	dupli = BMO_Get_Int(op, "dupli");
+
+	si = (float)sin(phi);
+	q[0] = (float)cos(phi);
+	q[1] = axis[0]*si;
+	q[2] = axis[1]*si;
+	q[3] = axis[2]*si;
+	quat_to_mat3(rmat, q);
+
+	BMO_CopySlot(op, op, "geom", "lastout");
+	for(a=0; a<steps; a++) {
+		if(dupli) {
+			BMO_InitOpf(bm, &dupop, "dupe geom=%s", op, "lastout");
+			BMO_Exec_Op(bm, &dupop);
+			BMO_CallOpf(bm, "rotate cent=%v mat=%m3 verts=%s",
+				cent, rmat, &dupop, "newout");
+			BMO_CopySlot(&dupop, op, "newout", "lastout");
+			BMO_Finish_Op(bm, &dupop);
+		} else {
+			BMO_InitOpf(bm, &extop, "extrudefaceregion edgefacein=%s",
+				op, "lastout");
+			BMO_Exec_Op(bm, &extop);
+			BMO_CallOpf(bm, "rotate cent=%v mat=%m3 verts=%s",
+				cent, rmat, &extop, "geomout");
+			BMO_CopySlot(&extop, op, "geomout", "lastout");
+			BMO_Finish_Op(bm, &extop);
+		}
+
+		if(usedvec)
+			BMO_CallOpf(bm, "translate vec=%v verts=%s", dvec, op, "lastout");
+	}
+}

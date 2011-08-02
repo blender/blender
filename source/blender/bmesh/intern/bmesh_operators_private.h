@@ -8,6 +8,7 @@ void BMO_push(BMesh *bm, BMOperator *op);
 void BMO_pop(BMesh *bm);
 
 void splitop_exec(BMesh *bm, BMOperator *op);
+void spinop_exec(BMesh *bm, BMOperator *op);
 void dupeop_exec(BMesh *bm, BMOperator *op);
 void delop_exec(BMesh *bm, BMOperator *op);
 void esubdivide_exec(BMesh *bmesh, BMOperator *op);

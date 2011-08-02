@@ -3821,84 +3821,38 @@ void MESH_OT_split(wmOperatorType *ot)
 }
 
 
-static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float degr, int dupli)
+static int spin_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ToolSettings *ts= CTX_data_tool_settings(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	float nor[3]= {0.0f, 0.0f, 0.0f};
-	float si, n[3], q[4], cmat[3][3], imat[3][3], tmat[3][3];
-	float cent[3], bmat[3][3], rmat[4][4];
-	float phi;
-	short a, ok= 1;
-	BMOperator bmop;
-
+	BMesh *bm= em->bm;
+	BMOperator spinop;
+	float cent[3], axis[3], imat[3][3];
+	float d[3] = {0.0f, 0.0f, 0.0f};
+	int steps, dupli;
+	float degr;
+    
 	RNA_float_get_array(op->ptr, "center", cent);
-
-	/* imat and center and size */
-	copy_m3_m4(bmat, obedit->obmat);
-	invert_m3_m3(imat,bmat);
-
-	cent[0]-= obedit->obmat[3][0];
-	cent[1]-= obedit->obmat[3][1];
-	cent[2]-= obedit->obmat[3][2];
+	RNA_float_get_array(op->ptr, "axis", axis);
+	steps = RNA_int_get(op->ptr, "steps");
+	degr = RNA_float_get(op->ptr, "degrees");
+	if(ts->editbutflag & B_CLOCKWISE) degr= -degr;
+	dupli = RNA_boolean_get(op->ptr, "dupli");
+    
+	/* undo object transformation */
+	copy_m3_m4(imat, obedit->imat);
+	sub_v3_v3(cent, obedit->obmat[3]);
 	mul_m3_v3(imat, cent);
+	mul_m3_v3(imat, axis);
 
-	phi= degr*M_PI/360.0;
-	phi/= steps;
-	if(ts->editbutflag & B_CLOCKWISE) phi= -phi;
-
-	RNA_float_get_array(op->ptr, "axis", n);
-	normalize_v3(n);
-
-	q[0]= (float)cos(phi);
-	si= (float)sin(phi);
-	q[1]= n[0]*si;
-	q[2]= n[1]*si;
-	q[3]= n[2]*si;
-	quat_to_mat3( cmat,q);
-
-	mul_m3_m3m3(tmat,cmat,bmat);
-	mul_m3_m3m3(bmat,imat,tmat);
-	copy_m4_m3(rmat, bmat);
-
-	for(a=0; a<steps; a++) {
-		if(dupli==0) {
-			EDBM_Extrude_edge(obedit, em, BM_SELECT, nor);
-			BMO_CallOpf(em->bm, "rotate cent=%v mat=%m4 verts=%hv", cent, rmat, BM_SELECT);
-			ok = 1;
-		} else {
-			EDBM_InitOpf(em, &bmop, op, "dupe geom=%hvef", BM_SELECT);
-			BMO_Exec_Op(em->bm, &bmop);
-			BMO_CallOpf(em->bm, "rotate cent=%v mat=%m4 verts=%s", cent, rmat, &bmop, "newout");
-			EDBM_clear_flag_all(em, BM_SELECT);
-			BMO_HeaderFlag_Buffer(em->bm, &bmop, "newout", BM_SELECT, BM_ALL);
-			ok = EDBM_FinishOp(em, &bmop, op, 1);
-		}
-
-		if(!ok)
-			break;
-
-		if(dvec) {
-			mul_m3_v3(bmat, dvec);
-			BMO_CallOpf(em->bm, "translate vec=%v verts=%hv", (float*)dvec, BM_SELECT);
-		}
-	}
-
-
-	return ok;
-}
-
-static int spin_mesh_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	int ok;
-
-	ok= spin_mesh(C, op, NULL, RNA_int_get(op->ptr,"steps"), RNA_float_get(op->ptr,"degrees"), RNA_boolean_get(op->ptr,"dupli"));
-	if(ok==0) {
-		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
-		return OPERATOR_CANCELLED;
-	}
+	BMO_InitOpf(bm, &spinop,
+		"spin geom=%hvef cent=%v axis=%v dvec=%v steps=%d ang=%f dupli=%d",
+	BM_SELECT, cent, axis, d, steps, degr, dupli);
+	BMO_Exec_Op(bm, &spinop);
+	EDBM_clear_flag_all(em, BM_SELECT);
+	BMO_HeaderFlag_Buffer(bm, &spinop, "lastout", BM_SELECT, BM_ALL);
+	BMO_Finish_Op(bm, &spinop);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -3947,16 +3901,27 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMesh *bm= em->bm;
 	BMEdge *eed;
 	BMVert *eve, *v1, *v2;
 	BMIter iter, eiter;
-	float dvec[3], nor[3];
+	BMOperator spinop;
+	float dvec[3], nor[3], cent[3], axis[3];
+	float imat[3][3];
 	int steps, turns;
 	int valence;
 
 
 	turns= RNA_int_get(op->ptr, "turns");
 	steps= RNA_int_get(op->ptr, "steps");
+	RNA_float_get_array(op->ptr, "center", cent);
+	RNA_float_get_array(op->ptr, "axis", axis);
+
+	/* undo object transformation */
+	copy_m3_m4(imat, obedit->imat);
+	sub_v3_v3(cent, obedit->obmat[3]);
+	mul_m3_v3(imat, cent);
+	mul_m3_v3(imat, axis);
 
 
 	/* find two vertices with valence count==1, more or less is wrong */
@@ -3992,28 +3957,22 @@ static int screw_mesh_exec(bContext *C, wmOperator *op)
 	}
 
 	/* calculate dvec */
-	dvec[0]= ( v1->co[0]- v2->co[0] )/steps;
-	dvec[1]= ( v1->co[1]- v2->co[1] )/steps;
-	dvec[2]= ( v1->co[2]- v2->co[2] )/steps;
+	sub_v3_v3v3(dvec, v1->co, v2->co);
+	mul_v3_fl(dvec, 1.0f/steps);
 
-	VECCOPY(nor, obedit->obmat[2]);
+	if(dot_v3v3(nor, dvec)>0.000)
+		negate_v3(dvec);
 
-	if(nor[0]*dvec[0]+nor[1]*dvec[1]+nor[2]*dvec[2]>0.000) {
-		dvec[0]= -dvec[0];
-		dvec[1]= -dvec[1];
-		dvec[2]= -dvec[2];
-	}
+	BMO_InitOpf(bm, &spinop,
+		"spin geom=%hvef cent=%v axis=%v dvec=%v steps=%d ang=%f dupli=0",
+	BM_SELECT, cent, axis, dvec, turns*steps, 360.0f*turns);
+	BMO_Exec_Op(bm, &spinop);
+	EDBM_clear_flag_all(em, BM_SELECT);
+	BMO_HeaderFlag_Buffer(bm, &spinop, "lastout", BM_SELECT, BM_ALL);
+	BMO_Finish_Op(bm, &spinop);
 
-	if(spin_mesh(C, op, dvec, turns*steps, 360.0f*turns, 0)) {
-		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-		return OPERATOR_FINISHED;
-	}
-	else {
-		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
-		return OPERATOR_CANCELLED;
-	}
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
 }

@@ -696,6 +696,28 @@ static BMOpDefine def_splitop = {
 };
 
 /*
+  Spin
+
+  Extrude or duplicate geometry a number of times,
+  rotating and possibly translating after each step
+*/
+static BMOpDefine def_spinop = {
+	"spin",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "lastout"}, /* result of last step */
+	{BMOP_OPSLOT_VEC, "cent"}, /* rotation center */
+	{BMOP_OPSLOT_VEC, "axis"}, /* rotation axis */
+	{BMOP_OPSLOT_VEC, "dvec"}, /* translation delta per step */
+	{BMOP_OPSLOT_FLT, "ang"}, /* total rotation angle (degrees) */
+	{BMOP_OPSLOT_INT, "steps"}, /* number of steps */
+	{BMOP_OPSLOT_INT, "dupli"}, /* duplicate or extrude? */
+	{0} /*null-terminating sentinel*/},
+	spinop_exec,
+	0
+};
+
+
+/*
   Similar faces search
 
   Find similar faces (area/material/perimeter....).
@@ -988,6 +1010,7 @@ static BMOpDefine def_triangle_fill = {
 
 BMOpDefine *opdefines[] = {
 	&def_splitop,
+	&def_spinop,
 	&def_dupeop,
 	&def_delop,
 	&def_subdop,
