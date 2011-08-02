@@ -16,14 +16,14 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 # This file defines a set of methods that are useful for various
 # Relative Keying Set (RKS) related operations, such as: callbacks
 # for polling, iterator callbacks, and also generate callbacks.
 # All of these can be used in conjunction with the others.
 
-__all__ = [
+__all__ = (
     "path_add_property",
     "RKS_POLL_selected_objects",
     "RKS_POLL_selected_bones",
@@ -33,7 +33,7 @@ __all__ = [
     "RKS_GEN_location",
     "RKS_GEN_rotation",
     "RKS_GEN_scaling",
-]
+    )
 
 import bpy
 
@@ -75,7 +75,8 @@ def RKS_POLL_selected_bones(ksi, context):
 
 # selected bones or objects
 def RKS_POLL_selected_items(ksi, context):
-    return RKS_POLL_selected_bones(ksi, context) or RKS_POLL_selected_objects(ksi, context)
+    return (RKS_POLL_selected_bones(ksi, context) or
+            RKS_POLL_selected_objects(ksi, context))
 
 ###########################
 # Iterator Callbacks
