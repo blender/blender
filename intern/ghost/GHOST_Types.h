@@ -47,11 +47,6 @@ typedef unsigned short		GHOST_TUns16;
 typedef	int					GHOST_TInt32;
 typedef	unsigned int		GHOST_TUns32;
 
-#ifdef WIN32
-#define WM_BLND_NDOF_AXIS	WM_USER + 1
-#define WM_BLND_NDOF_BTN 	WM_USER + 2
-#endif
-
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef __int64				GHOST_TInt64;
 typedef unsigned __int64	GHOST_TUns64;
@@ -440,37 +435,33 @@ typedef struct {
 	GHOST_TUns8 **strings;
 } GHOST_TStringArray;
 
-
-/* original patch used floats, but the driver return ints and uns. We will calibrate in view, no sense on doing conversions twice */
-/* as all USB device controls are likely to use ints, this is also more future proof */
-//typedef struct {
-//   /** N-degree of freedom device data */
-//   float tx, ty, tz;   /** -x left, +y up, +z forward */
-//   float rx, ry, rz;
-//   float dt;
-//} GHOST_TEventNDOFData;
+typedef enum {
+	GHOST_kNotStarted,
+	GHOST_kStarting,
+	GHOST_kInProgress,
+	GHOST_kFinishing,
+	GHOST_kFinished
+	} GHOST_TProgress;
 
 typedef struct {
-   /** N-degree of freedom device data v2*/
-   int changed;
-   GHOST_TUns64 client;
-   GHOST_TUns64 address;
-   GHOST_TInt16 tx, ty, tz;   /** -x left, +y up, +z forward */
-   GHOST_TInt16 rx, ry, rz;
-   GHOST_TInt16 buttons;
-   GHOST_TUns64 time;
-   GHOST_TUns64 delta;
-} GHOST_TEventNDOFData;
+	/** N-degree of freedom device data v3 [GSoC 2010] */
+	// Each component normally ranges from -1 to +1, but can exceed that.
+	// These use blender standard view coordinates, with positive rotations being CCW about the axis.
+	float tx, ty, tz; // translation
+	float rx, ry, rz; // rotation:
+		// axis = (rx,ry,rz).normalized
+		// amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
+	float dt; // time since previous NDOF Motion event
+	GHOST_TProgress progress; // Starting, InProgress or Finishing (for modal handlers)
+} GHOST_TEventNDOFMotionData;
 
-typedef int     (*GHOST_NDOFLibraryInit_fp)(void);
-typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
-typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
+typedef enum { GHOST_kPress, GHOST_kRelease } GHOST_TButtonAction;
+	// good for mouse or other buttons too, hmmm?
 
-// original patch windows callback. In mac os X version the callback is internal to the plug-in and post an event to main thead.
-// not necessary faster, but better integration with other events. 
-
-//typedef int     (*GHOST_NDOFEventHandler_fp)(float* result7, void* deviceHandle, unsigned int message, unsigned int* wParam, unsigned long* lParam);
-//typedef void     (*GHOST_NDOFCallBack_fp)(GHOST_TEventNDOFDataV2 *VolDatas);
+typedef struct {
+	GHOST_TButtonAction action;
+	short button;
+} GHOST_TEventNDOFButtonData;
 
 typedef struct {
 	/** The key code. */

@@ -625,6 +625,7 @@ typedef struct MultiresModifierData {
 
 typedef enum {
 	eMultiresModifierFlag_ControlEdges = (1<<0),
+	eMultiresModifierFlag_PlainUv = (1<<1),
 } MultiresModifierFlag;
 
 typedef struct FluidsimModifierData {

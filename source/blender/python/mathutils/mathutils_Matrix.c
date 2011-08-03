@@ -1612,8 +1612,20 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 		}
 	}
 	else if(mat1) {
+		/*VEC * MATRIX */
+		if(VectorObject_Check(m2)) {
+			VectorObject *vec2= (VectorObject *)m2;
+			float tvec[4];
+			if(BaseMath_ReadCallback(vec2) == -1)
+				return NULL;
+			if(column_vector_multiplication(tvec, vec2, mat1) == -1) {
+				return NULL;
+			}
+
+			return newVectorObject(tvec, vec2->size, Py_NEW, Py_TYPE(m2));
+		}
 		/*FLOAT/INT * MATRIX */
-		if (((scalar= PyFloat_AsDouble(m2)) == -1.0f && PyErr_Occurred())==0) {
+		else if (((scalar= PyFloat_AsDouble(m2)) == -1.0f && PyErr_Occurred())==0) {
 			return matrix_mul_float(mat1, scalar);
 		}
 	}

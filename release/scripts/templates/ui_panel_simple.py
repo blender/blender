@@ -1,8 +1,9 @@
 import bpy
 
 
-class OBJECT_PT_hello(bpy.types.Panel):
+class HelloWorldPanel(bpy.types.Panel):
     bl_label = "Hello World Panel"
+    bl_idname = "OBJECT_PT_hello"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "object"
@@ -22,11 +23,11 @@ class OBJECT_PT_hello(bpy.types.Panel):
 
 
 def register():
-    bpy.utils.register_class(OBJECT_PT_hello)
+    bpy.utils.register_class(HelloWorldPanel)
 
 
 def unregister():
-    bpy.utils.unregister_class(OBJECT_PT_hello)
+    bpy.utils.unregister_class(HelloWorldPanel)
 
 
 if __name__ == "__main__":

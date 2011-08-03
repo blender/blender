@@ -1101,7 +1101,7 @@ void NODE_OT_backimage_move(wmOperatorType *ot)
 	ot->cancel= snode_bg_viewmove_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_BLOCKING;
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 }
 
 static int backimage_zoom(bContext *C, wmOperator *op)
@@ -2216,6 +2216,12 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* we might need to remove a link */
 				if(in_out==SOCK_OUT)
 					node_remove_extra_links(snode, link->tosock, link);
+				
+				/* when linking to group outputs, update the socket type */
+				/* XXX this should all be part of a generic update system */
+				if (!link->tonode) {
+					link->tosock->type = link->fromsock->type;
+				}
 			}
 			else if (outside_group_rect(snode) && (link->tonode || link->fromnode)) {
 				/* automatically add new group socket */

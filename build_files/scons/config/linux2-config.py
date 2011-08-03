@@ -192,6 +192,14 @@ WITH_BF_OPENMP = True
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-pthread']
 
+#SpaceNavigator and friends
+WITH_BF_3DMOUSE = True
+BF_3DMOUSE = '/usr'
+BF_3DMOUSE_INC = '${BF_3DMOUSE}/include'
+BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib'
+BF_3DMOUSE_LIB = 'spnav'
+BF_3DMOUSE_LIB_STATIC = '${BF_3DMOUSE_LIBPATH}/libspnav.a'
+
 ##
 CC = 'gcc'
 CXX = 'g++'

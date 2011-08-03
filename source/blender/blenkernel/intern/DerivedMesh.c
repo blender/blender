@@ -1883,8 +1883,10 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			
 			/* set the DerivedMesh to only copy needed data */
 			mask= (CustomDataMask)GET_INT_FROM_POINTER(curr->link);
+			/* needMapping check here fixes bug [#28112], otherwise its
+			 * possible that it wont be copied */
 			mask |= append_mask;
-			DM_set_only_copy(dm, mask);
+			DM_set_only_copy(dm, mask | (needMapping ? CD_MASK_ORIGINDEX : 0));
 			
 			/* add cloth rest shape key if need */
 			if(mask & CD_MASK_CLOTH_ORCO)

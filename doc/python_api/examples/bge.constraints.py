@@ -8,11 +8,11 @@ from bge import constraints
 
 # get object list
 objects = logic.getCurrentScene().objects
- 
+
 # get object named Object1 and Object 2
 object_1 = objects["Object1"]
 object_2 = objects["Object2"]
- 
+
 # want to use Edge constraint type
 constraint_type = 2
 
@@ -31,7 +31,7 @@ edge_angle_y = 1.0
 edge_angle_z = 0.0
 
 # create an edge constraint
-constraints.createConstraint( physics_id_1, physics_id_2,
-                              constraint_type,
-                              edge_position_x, edge_position_y, edge_position_z,
-                              edge_angle_x, edge_angle_y, edge_angle_z )
+constraints.createConstraint(physics_id_1, physics_id_2,
+                             constraint_type,
+                             edge_position_x, edge_position_y, edge_position_z,
+                             edge_angle_x, edge_angle_y, edge_angle_z)

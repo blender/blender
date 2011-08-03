@@ -19,11 +19,6 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
-/** \file ghost/intern/GHOST_EventNDOF.h
- *  \ingroup GHOST
- */
-
  
 
 #ifndef _GHOST_EVENT_NDOF_H_
@@ -31,32 +26,33 @@
 
 #include "GHOST_Event.h"
 
-/**
- * N-degree of freedom device event.
- */
-class GHOST_EventNDOF : public GHOST_Event
-{
-public:
-	/**
-	 * Constructor.
-	 * @param msec		The time this event was generated.
-	 * @param type		The type of this event.
-	 * @param x			The x-coordinate of the location the cursor was at at the time of the event.
-	 * @param y			The y-coordinate of the location the cursor was at at the time of the event.
-	 */
-	GHOST_EventNDOF(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, 
-        GHOST_TEventNDOFData data)
-		: GHOST_Event(msec, type, window)
-	{
-		m_ndofEventData = data;
-		m_data = &m_ndofEventData;
-	}
 
-protected:
-	/** translation & rotation from the device. */
-	GHOST_TEventNDOFData m_ndofEventData;
-};
+class GHOST_EventNDOFMotion : public GHOST_Event
+	{
+	protected:
+		GHOST_TEventNDOFMotionData m_axisData;
+	
+	public:
+		GHOST_EventNDOFMotion(GHOST_TUns64 time, GHOST_IWindow* window)
+			: GHOST_Event(time, GHOST_kEventNDOFMotion, window)
+			{
+			m_data = &m_axisData;
+			}
+	};
+
+
+class GHOST_EventNDOFButton : public GHOST_Event
+	{
+	protected:
+		GHOST_TEventNDOFButtonData m_buttonData;
+	
+	public:
+		GHOST_EventNDOFButton(GHOST_TUns64 time, GHOST_IWindow* window)
+			: GHOST_Event(time, GHOST_kEventNDOFButton, window)
+			{
+			m_data = &m_buttonData;
+			}
+	};
 
 
 #endif // _GHOST_EVENT_NDOF_H_
-

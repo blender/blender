@@ -817,12 +817,9 @@ class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
-        ''' not implemented yet
         sub = col.column()
         sub.label(text="NDOF Device:")
-        sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
-        sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
-        '''
+        sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
 
         row.separator()
 
@@ -881,7 +878,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         if not user_addon_paths:
             user_script_path = bpy.utils.user_script_path()
             if user_script_path is not None:
-                user_addon_paths.append(os.path.join(user_script_path(), "addons"))
+                user_addon_paths.append(os.path.join(user_script_path, "addons"))
             user_addon_paths.append(os.path.join(bpy.utils.resource_path('USER'), "scripts", "addons"))
 
         for path in user_addon_paths:
@@ -1019,7 +1016,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
                         for i in range(4 - tot_row):
                             split.separator()
-
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.

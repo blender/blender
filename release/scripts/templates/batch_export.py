@@ -26,7 +26,7 @@ for obj in selection:
     # bpy.ops.export_scene.x3d(filepath=fn + ".x3d", use_selection=True)
 
     obj.select = False
-    
+
     print("written:", fn)
 
 for obj in selection:

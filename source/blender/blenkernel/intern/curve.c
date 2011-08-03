@@ -580,46 +580,47 @@ void addNurbPointsBezier(Nurb *nu, int number)
 /* ~~~~~~~~~~~~~~~~~~~~Non Uniform Rational B Spline calculations ~~~~~~~~~~~ */
 
 
-static void calcknots(float *knots, short aantal, short order, short type)
-/* knots: number of pnts NOT corrected for cyclic */
-/* type;	 0: uniform, 1: endpoints, 2: bezier */
+static void calcknots(float *knots, const short pnts, const short order, const short flag)
 {
+	/* knots: number of pnts NOT corrected for cyclic */
+	const int pnts_order= pnts + order;
 	float k;
-	int a, t;
+	int a;
 
-		t = aantal+order;
-	if(type==0) {
-
-		for(a=0;a<t;a++) {
-			knots[a]= (float)a;
-		}
-	}
-	else if(type==1) {
+	switch(flag & (CU_NURB_ENDPOINT|CU_NURB_BEZIER)) {
+	case CU_NURB_ENDPOINT:
 		k= 0.0;
-		for(a=1;a<=t;a++) {
+		for(a=1; a <= pnts_order; a++) {
 			knots[a-1]= k;
-			if(a>=order && a<=aantal) k+= 1.0f;
+			if(a >= order && a <= pnts) k+= 1.0f;
 		}
-	}
-	else if(type==2) {
-		/* Warning, the order MUST be 2 or 4, if this is not enforced, the displist will be corrupt */
+		break;
+	case CU_NURB_BEZIER:
+		/* Warning, the order MUST be 2 or 4,
+		 * if this is not enforced, the displist will be corrupt */
 		if(order==4) {
 			k= 0.34;
-			for(a=0;a<t;a++) {
+			for(a=0; a < pnts_order; a++) {
 				knots[a]= floorf(k);
 				k+= (1.0f/3.0f);
 			}
 		}
 		else if(order==3) {
 			k= 0.6f;
-			for(a=0;a<t;a++) {
-				if(a>=order && a<=aantal) k+= 0.5f;
+			for(a=0; a < pnts_order; a++) {
+				if(a >= order && a <= pnts) k+= 0.5f;
 				knots[a]= floorf(k);
 			}
 		}
 		else {
 			printf("bez nurb curve order is not 3 or 4, should never happen\n");
 		}
+		break;
+	default:
+		for(a=0; a < pnts_order; a++) {
+			knots[a]= (float)a;
+		}
+		break;
 	}
 }
 
@@ -662,7 +663,7 @@ static void makeknots(Nurb *nu, short uv)
 					calcknots(nu->knotsu, nu->pntsu, nu->orderu, 0);  /* cyclic should be uniform */
 					makecyclicknots(nu->knotsu, nu->pntsu, nu->orderu);
 				} else {
-					calcknots(nu->knotsu, nu->pntsu, nu->orderu, nu->flagu>>1);
+					calcknots(nu->knotsu, nu->pntsu, nu->orderu, nu->flagu);
 				}
 			}
 			else nu->knotsu= NULL;
@@ -675,7 +676,7 @@ static void makeknots(Nurb *nu, short uv)
 					calcknots(nu->knotsv, nu->pntsv, nu->orderv, 0);  /* cyclic should be uniform */
 					makecyclicknots(nu->knotsv, nu->pntsv, nu->orderv);
 				} else {
-					calcknots(nu->knotsv, nu->pntsv, nu->orderv, nu->flagv>>1);
+					calcknots(nu->knotsv, nu->pntsv, nu->orderv, nu->flagv);
 				}
 			}
 			else nu->knotsv= NULL;
@@ -3255,6 +3256,31 @@ void curve_translate(Curve *cu, float offset[3], int do_keys)
 			float *fp= kb->data;
 			for (i= kb->totelem; i--; fp+=3) {
 				add_v3_v3(fp, offset);
+			}
+		}
+	}
+}
+
+void curve_delete_material_index(Curve *cu, int index)
+{
+	const int curvetype= curve_type(cu);
+
+	if(curvetype == OB_FONT) {
+		struct CharInfo *info= cu->strinfo;
+		int i;
+		for(i= cu->len-1; i >= 0; i--, info++) {
+			if (info->mat_nr && info->mat_nr>=index) {
+				info->mat_nr--;
+			}
+		}
+	}
+	else {
+		Nurb *nu;
+
+		for (nu= cu->nurb.first; nu; nu= nu->next) {
+			if(nu->mat_nr && nu->mat_nr>=index) {
+				nu->mat_nr--;
+				if (curvetype == OB_CURVE) nu->charidx--;
 			}
 		}
 	}

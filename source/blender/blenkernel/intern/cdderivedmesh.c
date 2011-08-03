@@ -1289,6 +1289,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 						QUATCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2], tang);
 						offset += sizeof(float)*4;
 					}
+					(void)offset;
 				}
 				curface++;
 				if(mface->v4) {
@@ -1329,6 +1330,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 							QUATCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2], tang);
 							offset += sizeof(float)*4;
 						}
+						(void)offset;
 					}
 					curface++;
 					i++;

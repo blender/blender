@@ -832,6 +832,13 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	float mouse[2];
 	int first= 0;
 
+	// let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!
+	// this isn't perfect... even when an extra MOUSEMOVE is spoofed, the stroke discards it
+	// since the 2D deltas are zero -- code in this file needs to be updated to use the
+	// post-NDOF_MOTION MOUSEMOVE
+	if (event->type == NDOF_MOTION)
+		return OPERATOR_PASS_THROUGH;
+
 	if(!stroke->stroke_started) {
 		stroke->last_mouse_position[0] = event->x;
 		stroke->last_mouse_position[1] = event->y;

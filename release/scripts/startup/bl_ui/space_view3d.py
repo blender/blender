@@ -55,7 +55,7 @@ class VIEW3D_HT_header(bpy.types.Header):
 
         row = layout.row()
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
-        row.template_header_3D() 
+        row.template_header_3D()
 
         if obj:
             # Particle edit
@@ -79,19 +79,22 @@ class VIEW3D_HT_header(bpy.types.Header):
                     row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         # Snap
+        snap_element = toolsettings.snap_element
         row = layout.row(align=True)
         row.prop(toolsettings, "use_snap", text="")
         row.prop(toolsettings, "snap_element", text="", icon_only=True)
-        if toolsettings.snap_element != 'INCREMENT':
+        if snap_element != 'INCREMENT':
             row.prop(toolsettings, "snap_target", text="")
-            if obj and obj.mode == 'OBJECT':
-                row.prop(toolsettings, "use_snap_align_rotation", text="")
-        if toolsettings.snap_element == 'VOLUME':
+            if obj:
+                if obj.mode == 'OBJECT':
+                    row.prop(toolsettings, "use_snap_align_rotation", text="")
+                elif obj.mode == 'EDIT':
+                    row.prop(toolsettings, "use_snap_self", text="")
+
+        if snap_element == 'VOLUME':
             row.prop(toolsettings, "use_snap_peel_object", text="")
-        elif toolsettings.snap_element == 'FACE':
+        elif snap_element == 'FACE':
             row.prop(toolsettings, "use_snap_project", text="")
-            if toolsettings.use_snap_project and obj.mode == 'EDIT':
-                row.prop(toolsettings, "use_snap_project_self", text="")
 
         # OpenGL render
         row = layout.row(align=True)
@@ -344,6 +347,30 @@ class VIEW3D_MT_view_navigation(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.fly")
+
+
+class VIEW3D_MT_ndof_settings(bpy.types.Menu):
+    bl_label = "3D Mouse Settings"
+
+    def draw(self, context):
+        layout = self.layout
+        input_prefs = context.user_preferences.inputs
+
+        layout.separator()
+        layout.prop(input_prefs, "ndof_sensitivity")
+
+        if context.space_data.type == 'VIEW_3D':
+            layout.separator()
+            layout.prop(input_prefs, "ndof_show_guide")
+
+            layout.separator()
+            layout.label(text="orbit options")
+            layout.prop(input_prefs, "ndof_orbit_invert_axes")
+
+            layout.separator()
+            layout.label(text="fly options")
+            layout.prop(input_prefs, "ndof_fly_helicopter", icon='NDOF_FLY')
+            layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
 
 
 class VIEW3D_MT_view_align(bpy.types.Menu):
