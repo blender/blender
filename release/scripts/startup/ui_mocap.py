@@ -52,11 +52,11 @@ class MocapConstraint(bpy.types.PropertyGroup):
         description="Other Constrained Bone (optional, depends on type)",
         update=setConstraint)
     s_frame = bpy.props.IntProperty(name="S",
-        default=bpy.context.scene.frame_start,
+        default=0,
         description="Start frame of Fix",
         update=setConstraint)
     e_frame = bpy.props.IntProperty(name="E",
-        default=bpy.context.scene.frame_end,
+        default=100,
         description="End frame of Fix",
         update=setConstraint)
     smooth_in = bpy.props.IntProperty(name="In",
@@ -125,24 +125,33 @@ def toggleIKBone(self, context):
                 if hasIKConstraint(parent_bone):
                     break
                 deformer_children = [child for child in parent_bone.children if child.bone.use_deform]
-                if len(deformer_children) > 1:
-                    break
+                #~ if len(deformer_children) > 1:
+                    #~ break
             ik.chain_count = chainLen
             for bone in self.parent_recursive:
                 if bone.is_in_ik_chain:
                     bone.IKRetarget = True
     else:
         print(self.name + " IK toggled OFF!")
-        cnstrn_bone = False
+        cnstrn_bones = []
+        newChainLength = []
         if hasIKConstraint(self):
-            cnstrn_bone = self
+            cnstrn_bones = [self]
         elif self.is_in_ik_chain:
-            cnstrn_bone = [child for child in self.children_recursive if hasIKConstraint(child)][0]
-        if cnstrn_bone:
+            cnstrn_bones = [child for child in self.children_recursive if hasIKConstraint(child)]
+            for cnstrn_bone in cnstrn_bones:
+                newChainLength.append(cnstrn_bone.parent_recursive.index(self) + 1)
+        if cnstrn_bones:
             # remove constraint, and update IK retarget for all parents of cnstrn_bone up to chain_len
-            ik = [constraint for constraint in cnstrn_bone.constraints if constraint.type == "IK"][0]
-            cnstrn_bone.constraints.remove(ik)
-            cnstrn_bone.IKRetarget = False
+            for i, cnstrn_bone in enumerate(cnstrn_bones):
+                print(cnstrn_bone.name)
+                if newChainLength:
+                    ik = hasIKConstraint(cnstrn_bone)
+                    ik.chain_count = newChainLength[i]
+                else:
+                    ik = hasIKConstraint(cnstrn_bone)
+                    cnstrn_bone.constraints.remove(ik)
+                    cnstrn_bone.IKRetarget = False
             for bone in cnstrn_bone.parent_recursive:
                 if not bone.is_in_ik_chain:
                     bone.IKRetarget = False
@@ -198,6 +207,7 @@ class MocapPanel(bpy.types.Panel):
         row2 = self.layout.row(align=True)
         row2.operator("mocap.looper", text='Loop animation')
         row2.operator("mocap.limitdof", text='Constrain Rig')
+        row2.operator("mocap.removelimitdof", text='Unconstrain Rig')
         self.layout.label("Retargeting")
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj]
@@ -414,11 +424,13 @@ class OBJECT_OT_DenoiseButton(bpy.types.Operator):
 
 
 class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
-    '''UNIMPLEMENTED: Create limit constraints on the active armature from the selected armature's animation's range of motion'''
+    '''Create limit constraints on the active armature from the selected armature's animation's range of motion'''
     bl_idname = "mocap.limitdof"
     bl_label = "Analyzes animations Max/Min DOF and adds hard/soft constraints"
 
     def execute(self, context):
+        performer_obj = [obj for obj in context.selected_objects if obj != context.active_object][0]
+        mocap_tools.limit_dof(context, performer_obj, context.active_object)
         return {"FINISHED"}
 
     @classmethod
@@ -430,6 +442,23 @@ class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
             return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
         else:
             return False
+
+
+class OBJECT_OT_RemoveLimitDOFButton(bpy.types.Operator):
+    '''Removes previously created limit constraints on the active armature'''
+    bl_idname = "mocap.removelimitdof"
+    bl_label = "Removes previously created limit constraints on the active armature"
+
+    def execute(self, context):
+        mocap_tools.limit_dof_toggle_off(context, context.active_object)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        activeIsArmature = False
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+        return activeIsArmature
 
 
 class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
