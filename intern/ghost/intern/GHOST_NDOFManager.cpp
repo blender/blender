@@ -452,6 +452,8 @@ bool GHOST_NDOFManager::sendMotionEvent()
 				m_motionState = GHOST_kFinished;
 			}
 			break;
+		default:
+			break;
 	}
 
 #ifdef DEBUG_NDOF_MOTION
