@@ -219,7 +219,7 @@ div.sphinxsidebarwrapper.fixed {
 }
 
 {%- if theme_stickysidebar|tobool %}
-/* this is nice, but it it leads to hidden headings when jumping
+/* this is nice, but it leads to hidden headings when jumping
    to an anchor */
 /*
 div.related {
