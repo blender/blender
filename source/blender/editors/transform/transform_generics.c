@@ -1013,6 +1013,22 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 				t->options |= CTX_NO_PET;
 			}
 		}
+
+		/* initialize UV transform from */
+		if (RNA_struct_find_property(op->ptr, "correct_uv")) {
+			if(RNA_property_is_set(op->ptr, "correct_uv")) {
+				if(RNA_boolean_get(op->ptr, "correct_uv")) {
+					t->settings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT;
+				}
+				else {
+					t->settings->uvcalc_flag &= ~UVCALC_TRANSFORM_CORRECT;
+				}
+			}
+			else {
+				RNA_boolean_set(op->ptr, "correct_uv", t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT);
+			}
+		}
+
 	}
 	else if(t->spacetype==SPACE_IMAGE)
 	{

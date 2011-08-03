@@ -4243,7 +4243,7 @@ static int createSlideVerts(TransInfo *t)
 	/* UV correction vars */
 	GHash **uvarray= NULL;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
-	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+	const int  uvlay_tot=  (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) ? CustomData_number_of_layers(&em->fdata, CD_MTFACE) : 0;
 	int uvlay_idx;
 	TransDataSlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;
 	RegionView3D *v3d = t->ar ? t->ar->regiondata : NULL; /* background mode support */
@@ -4615,7 +4615,7 @@ static int createSlideVerts(TransInfo *t)
 	sld->end[0] = (int) end[0];
 	sld->end[1] = (int) end[1];
 	
-	if (uvlay_tot) { // XXX && (scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)) {
+	if (uvlay_tot) {
 		int maxnum = 0;
 
 		uvarray = MEM_callocN( uvlay_tot * sizeof(GHash *), "SlideUVs Array");
@@ -4805,8 +4805,6 @@ void initEdgeSlide(TransInfo *t)
 
 int doEdgeSlide(TransInfo *t, float perc)
 {
-	Mesh *me= t->obedit->data;
-	EditMesh *em = me->edit_mesh;
 	SlideData *sld = t->customData;
 	EditVert *ev, *nearest = sld->nearest;
 	EditVert *centerVert, *upVert, *downVert;
@@ -4817,7 +4815,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 	int prop=1, flip=0;
 	/* UV correction vars */
 	GHash **uvarray= sld->uvhash;
-	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+	const int  uvlay_tot= sld->uvlay_tot;
 	int uvlay_idx;
 	TransDataSlideUv *suv;
 	float uv_tmp[2];
@@ -4843,7 +4841,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 			tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
 			interp_v3_v3v3(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
 
-			if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
+			if (uvlay_tot) {
 				for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 					suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
 					if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
@@ -4873,7 +4871,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 			if(newlen < 0.0f) {newlen = 0.0;}
 			if(flip == 0) {
 				interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));
-				if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
+				if (uvlay_tot) {
 					/* dont do anything if no UVs */
 					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
@@ -4890,7 +4888,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 			} else{
 				interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));
 
-				if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
+				if (uvlay_tot) {
 					/* dont do anything if no UVs */
 					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
