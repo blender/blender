@@ -79,17 +79,15 @@ static const char* ndof_button_names[] = {
 	"NDOF_BUTTON_8",
 	"NDOF_BUTTON_9",
 	"NDOF_BUTTON_10",
-	};
+};
 #endif
 
-static const NDOF_ButtonT SpaceNavigator_HID_map[] =
-	{
+static const NDOF_ButtonT SpaceNavigator_HID_map[] = {
 	NDOF_BUTTON_MENU,
 	NDOF_BUTTON_FIT
-	};
+};
 
-static const NDOF_ButtonT SpaceExplorer_HID_map[] =
-	{
+static const NDOF_ButtonT SpaceExplorer_HID_map[] = {
 	NDOF_BUTTON_1,
 	NDOF_BUTTON_2,
 	NDOF_BUTTON_TOP,
@@ -105,10 +103,9 @@ static const NDOF_ButtonT SpaceExplorer_HID_map[] =
 	NDOF_BUTTON_PLUS,
 	NDOF_BUTTON_MINUS,
 	NDOF_BUTTON_ROTATE
-	};
+};
 
-static const NDOF_ButtonT SpacePilotPro_HID_map[] =
-	{
+static const NDOF_ButtonT SpacePilotPro_HID_map[] = {
 	NDOF_BUTTON_MENU,
 	NDOF_BUTTON_FIT,
 	NDOF_BUTTON_TOP,
@@ -140,12 +137,11 @@ static const NDOF_ButtonT SpacePilotPro_HID_map[] =
 	NDOF_BUTTON_DOMINANT,
 	NDOF_BUTTON_PLUS,
 	NDOF_BUTTON_MINUS
-	};
+};
 
-static const NDOF_ButtonT SpacePilot_HID_map[] =
-// this is the older SpacePilot (sans Pro)
-// thanks to polosson for the info in this table
-	{
+/* this is the older SpacePilot (sans Pro)
+ * thanks to polosson for the info in this table */
+static const NDOF_ButtonT SpacePilot_HID_map[] = {
 	NDOF_BUTTON_1,
 	NDOF_BUTTON_2,
 	NDOF_BUTTON_3,
@@ -167,7 +163,7 @@ static const NDOF_ButtonT SpacePilot_HID_map[] =
 	NDOF_BUTTON_DOMINANT,
 	NDOF_BUTTON_ROTATE,
 	NDOF_BUTTON_NONE // the CONFIG button -- what does it do?
-	};
+};
 
 GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	: m_system(sys)
@@ -180,29 +176,27 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	, m_motionState(GHOST_kNotStarted)
 	, m_motionEventPending(false)
 	, m_deadZone(0.f)
-	{
+{
 	// to avoid the rare situation where one triple is updated and
 	// the other is not, initialize them both here:
 	memset(m_translation, 0, sizeof(m_translation));
 	memset(m_rotation, 0, sizeof(m_rotation));
 
-	#ifdef WITH_INPUT_NDOF
+#ifdef WITH_INPUT_NDOF
 	GHOST_PRINT("WITH_INPUT_NDOF is defined!");
-	#else
+#else
 	GHOST_PRINT("WITH_INPUT_NDOF is not defined.");
-	#endif
-	}
+#endif
+}
 
 bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short product_id)
-	{
+{
 	// default to NDOF_UnknownDevice so rogue button events will get discarded
 	// "mystery device" owners can help build a HID_map for their hardware
 
-	switch (vendor_id)
-		{
+	switch (vendor_id) {
 		case 0x046D: // Logitech (3Dconnexion)
-			switch (product_id)
-				{
+			switch (product_id) {
 				// -- current devices --
 				case 0xC626:
 					puts("ndof: using SpaceNavigator");
@@ -225,7 +219,7 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					m_buttonCount = 31;
 					break;
 
-				// -- older devices --
+					// -- older devices --
 				case 0xC625:
 					puts("ndof: using SpacePilot");
 					m_deviceType = NDOF_SpacePilot;
@@ -239,182 +233,183 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 
 				default:
 					printf("ndof: unknown Logitech product %04hx\n", product_id);
-				}
+			}
 			break;
 		default:
 			printf("ndof: unknown device %04hx:%04hx\n", vendor_id, product_id);
-		}
-
-	if (m_deviceType == NDOF_UnknownDevice)
-		return false;
-	else
-		{
-		m_buttonMask = ~(-1 << m_buttonCount);
-
-		#ifdef DEBUG_NDOF_BUTTONS
-		printf("ndof: %d buttons -> hex:%X\n", m_buttonCount, m_buttonMask);
-		#endif
-
-		return true;
-		}
 	}
 
+	if (m_deviceType == NDOF_UnknownDevice) {
+		return false;
+	}
+	else {
+		m_buttonMask = ~(-1 << m_buttonCount);
+
+#ifdef DEBUG_NDOF_BUTTONS
+		printf("ndof: %d buttons -> hex:%X\n", m_buttonCount, m_buttonMask);
+#endif
+
+		return true;
+	}
+}
+
 void GHOST_NDOFManager::updateTranslation(short t[3], GHOST_TUns64 time)
-	{
+{
 	memcpy(m_translation, t, sizeof(m_translation));
 	m_motionTime = time;
 	m_motionEventPending = true;
-	}
+}
 
 void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
-	{
+{
 	memcpy(m_rotation, r, sizeof(m_rotation));
 	m_motionTime = time;
 	m_motionEventPending = true;
-	}
+}
 
 void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button, bool press, GHOST_TUns64 time, GHOST_IWindow* window)
-	{
+{
 	GHOST_EventNDOFButton* event = new GHOST_EventNDOFButton(time, window);
 	GHOST_TEventNDOFButtonData* data = (GHOST_TEventNDOFButtonData*) event->getData();
 
 	data->action = press ? GHOST_kPress : GHOST_kRelease;
 	data->button = button;
 
-	#ifdef DEBUG_NDOF_BUTTONS
+#ifdef DEBUG_NDOF_BUTTONS
 	printf("%s %s\n", ndof_button_names[button], press ? "pressed" : "released");
-	#endif
+#endif
 
 	m_system.pushEvent(event);
-	}
+}
 
 void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key, bool press, GHOST_TUns64 time, GHOST_IWindow* window)
-	{
+{
 	GHOST_TEventType type = press ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 	GHOST_EventKey* event = new GHOST_EventKey(time, type, window, key);
 
-	#ifdef DEBUG_NDOF_BUTTONS
+#ifdef DEBUG_NDOF_BUTTONS
 	printf("keyboard %s\n", press ? "down" : "up");
-	#endif
+#endif
 
 	m_system.pushEvent(event);
-	}
+}
 
 void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64 time)
-	{
+{
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
 
-	#ifdef DEBUG_NDOF_BUTTONS
+#ifdef DEBUG_NDOF_BUTTONS
 	if (m_deviceType != NDOF_UnknownDevice)
 		printf("ndof: button %d -> ", button_number);
-	#endif
+#endif
 
-	switch (m_deviceType)
-		{
+	switch (m_deviceType) {
 		case NDOF_SpaceNavigator:
 			sendButtonEvent(SpaceNavigator_HID_map[button_number], press, time, window);
 			break;
 		case NDOF_SpaceExplorer:
-			switch (button_number)
-				{
+			switch (button_number) {
 				case 6: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
 				case 7: sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window); break;
 				case 8: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
 				case 9: sendKeyEvent(GHOST_kKeyLeftControl, press, time, window); break;
 				default: sendButtonEvent(SpaceExplorer_HID_map[button_number], press, time, window);
-				}
+			}
 			break;
 		case NDOF_SpacePilotPro:
-			switch (button_number)
-				{
+			switch (button_number) {
 				case 22: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
 				case 23: sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window); break;
 				case 24: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
 				case 25: sendKeyEvent(GHOST_kKeyLeftControl, press, time, window); break;
 				default: sendButtonEvent(SpacePilotPro_HID_map[button_number], press, time, window);
-				}
+			}
 			break;
 		case NDOF_SpacePilot:
-			switch (button_number)
-				{
+			switch (button_number) {
 				case 10: sendKeyEvent(GHOST_kKeyEsc, press, time, window); break;
 				case 11: sendKeyEvent(GHOST_kKeyLeftAlt, press, time, window); break;
 				case 12: sendKeyEvent(GHOST_kKeyLeftShift, press, time, window); break;
 				case 13: sendKeyEvent(GHOST_kKeyLeftControl, press, time, window); break;
 				case 20: puts("ndof: ignoring CONFIG button"); break;
 				default: sendButtonEvent(SpacePilot_HID_map[button_number], press, time, window);
-				}
+			}
 			break;
 		case NDOF_UnknownDevice:
 			printf("ndof: button %d on unknown device (ignoring)\n", button_number);
-		}
-
-	int mask = 1 << button_number;
-	if (press)
-		m_buttons |= mask; // set this button's bit
-	else
-		m_buttons &= ~mask; // clear this button's bit
 	}
 
+	int mask = 1 << button_number;
+	if (press) {
+		m_buttons |= mask; // set this button's bit
+	}
+	else {
+		m_buttons &= ~mask; // clear this button's bit
+	}
+}
+
 void GHOST_NDOFManager::updateButtons(int button_bits, GHOST_TUns64 time)
-	{
+{
 	button_bits &= m_buttonMask; // discard any "garbage" bits
 
 	int diff = m_buttons ^ button_bits;
 
-	for (int button_number = 0; button_number < m_buttonCount; ++button_number)
-		{
+	for (int button_number = 0; button_number < m_buttonCount; ++button_number) {
 		int mask = 1 << button_number;
 
-		if (diff & mask)
-			{
+		if (diff & mask) {
 			bool press = button_bits & mask;
 			updateButton(button_number, press, time);
-			}
 		}
 	}
+}
 
 void GHOST_NDOFManager::setDeadZone(float dz)
-	{
-	if (dz < 0.f)
+{
+	if (dz < 0.f) {
 		// negative values don't make sense, so clamp at zero
 		dz = 0.f;
-	else if (dz > 0.5f)
+	}
+	else if (dz > 0.5f) {
 		// warn the rogue user/programmer, but allow it
 		printf("ndof: dead zone of %.2f is rather high...\n", dz);
-
+	}
 	m_deadZone = dz;
 
 	printf("ndof: dead zone set to %.2f\n", dz);
-	}
+}
 
 static bool atHomePosition(GHOST_TEventNDOFMotionData* ndof)
-	{
-	#define HOME(foo) (ndof->foo == 0)
+{
+#define HOME(foo) (ndof->foo == 0)
 	return HOME(tx) && HOME(ty) && HOME(tz) && HOME(rx) && HOME(ry) && HOME(rz);
-	}
+#undef HOME
+}
 
 static bool nearHomePosition(GHOST_TEventNDOFMotionData* ndof, float threshold)
-	{
-	if (threshold == 0.f)
+{
+	if (threshold == 0.f) {
 		return atHomePosition(ndof);
-	else
-		{
-		#define HOME1(foo) (fabsf(ndof->foo) < threshold)
-		return HOME1(tx) && HOME1(ty) && HOME1(tz) && HOME1(rx) && HOME1(ry) && HOME1(rz);
-		}
 	}
+	else {
+#define HOME1(foo) (fabsf(ndof->foo) < threshold)
+		return HOME1(tx) && HOME1(ty) && HOME1(tz) && HOME1(rx) && HOME1(ry) && HOME1(rz);
+#undef HOME1
+	}
+}
 
 bool GHOST_NDOFManager::sendMotionEvent()
-	{
+{
 	if (!m_motionEventPending)
 		return false;
 
 	m_motionEventPending = false; // any pending motion is handled right now
 
 	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
-	if (window == NULL)
+
+	if (window == NULL) {
 		return false; // delivery will fail, so don't bother sending
+	}
 
 	GHOST_EventNDOFMotion* event = new GHOST_EventNDOFMotion(m_motionTime, window);
 	GHOST_TEventNDOFMotionData* data = (GHOST_TEventNDOFMotionData*) event->getData();
@@ -438,51 +433,46 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
 	// determine what kind of motion event to send (Starting, InProgress, Finishing)
 	// and where that leaves this NDOF manager (NotStarted, InProgress, Finished)
-	switch (m_motionState)
-		{
+	switch (m_motionState) {
 		case GHOST_kNotStarted:
 		case GHOST_kFinished:
-			if (handMotion)
-				{
+			if (handMotion) {
 				data->progress = GHOST_kStarting;
 				m_motionState = GHOST_kInProgress;
 				// prev motion time will be ancient, so just make up something reasonable
 				data->dt = 0.0125f;
-				}
-			else
-				{
+			}
+			else {
 				// send no event and keep current state
 				delete event;
 				return false;
-				}
+			}
 			break;
 		case GHOST_kInProgress:
-			if (handMotion)
-				{
+			if (handMotion) {
 				data->progress = GHOST_kInProgress;
 				// keep InProgress state
-				}
-			else
-				{
+			}
+			else {
 				data->progress = GHOST_kFinishing;
 				m_motionState = GHOST_kFinished;
-				}
+			}
 			break;
-		}
+	}
 
-	#ifdef DEBUG_NDOF_MOTION
+#ifdef DEBUG_NDOF_MOTION
 	printf("ndof motion sent -- %s\n", progress_string[data->progress]);
 
 	// show details about this motion event
 	printf("    T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f\n",
-		data->tx, data->ty, data->tz,
-		data->rx, data->ry, data->rz,
-		data->dt);
-	#endif
+	       data->tx, data->ty, data->tz,
+	       data->rx, data->ry, data->rz,
+	       data->dt);
+#endif
 
 	m_system.pushEvent(event);
 
 	m_prevMotionTime = m_motionTime;
 
 	return true;
-	}
+}
