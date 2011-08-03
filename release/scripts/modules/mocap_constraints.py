@@ -195,7 +195,7 @@ def setConstraint(m_constraint, context):
     e += s_out
     #Set the blender constraint parameters
     if m_constraint.type == "point":
-        constraint_settings = False # are fix settings keyframed?
+        constraint_settings = False  # are fix settings keyframed?
         if not m_constraint.targetSpace == "constrained_boneB":
             real_constraint.owner_space = m_constraint.targetSpace
         else:
@@ -223,7 +223,7 @@ def setConstraint(m_constraint, context):
             for t in range(s, e):
                 context.scene.frame_set(t)
                 src_bone_pos = src_bone.matrix.to_translation()
-                bakedPos[t] = src_bone_pos + m_constraint.targetPoint # final position for constrained bone in object space
+                bakedPos[t] = src_bone_pos + m_constraint.targetPoint  # final position for constrained bone in object space
             context.scene.frame_set(c_frame)
             for frame in bakedPos.keys():
                 pos = bakedPos[frame]
@@ -233,7 +233,7 @@ def setConstraint(m_constraint, context):
                     yCurve.keyframe_points.insert(frame=frame, value=pos.y)
                 for zCurve in zCurves:
                     zCurve.keyframe_points.insert(frame=frame, value=pos.z)
-                
+
         if not constraint_settings:
             x, y, z = m_constraint.targetPoint
             real_constraint.max_x = x
