@@ -87,7 +87,7 @@ def validate_arguments(args, bc):
             'BF_PTHREADS', 'BF_PTHREADS_INC', 'BF_PTHREADS_LIB', 'BF_PTHREADS_LIBPATH',
             'WITH_BF_OPENEXR', 'BF_OPENEXR', 'BF_OPENEXR_INC', 'BF_OPENEXR_LIB', 'BF_OPENEXR_LIBPATH', 'WITH_BF_STATICOPENEXR', 'BF_OPENEXR_LIB_STATIC',
             'WITH_BF_DDS', 'WITH_BF_CINEON', 'WITH_BF_HDR',
-            'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC',
+            'WITH_BF_FFMPEG', 'BF_FFMPEG_LIB','BF_FFMPEG_EXTRA', 'BF_FFMPEG',  'BF_FFMPEG_INC', 'BF_FFMPEG_DLL',
             'WITH_BF_STATICFFMPEG', 'BF_FFMPEG_LIB_STATIC',
             'WITH_BF_OGG', 'BF_OGG', 'BF_OGG_LIB',
             'WITH_BF_JPEG', 'BF_JPEG', 'BF_JPEG_INC', 'BF_JPEG_LIB', 'BF_JPEG_LIBPATH',
@@ -136,7 +136,7 @@ def validate_arguments(args, bc):
             'BF_NO_ELBEEM',
             'WITH_BF_CXX_GUARDEDALLOC',
             'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC',
-            'BUILDBOT_BRANCH', 'WITH_BF_3DMOUSE'
+            'BUILDBOT_BRANCH', 'WITH_BF_3DMOUSE', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC'
             ]
     
     # Have options here that scons expects to be lists
@@ -159,7 +159,7 @@ def validate_arguments(args, bc):
             'BF_BSC', 'BF_CONFIG',
             'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
             'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
-            'BF_UNIT_TEST']
+            'BF_UNIT_TEST', 'BF_BITNESS']
 
     okdict = {}
 
@@ -291,6 +291,7 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_FFMPEG', 'Use FFMPEG if true', False)),
         ('BF_FFMPEG', 'FFMPEG base path', ''),
         ('BF_FFMPEG_LIB', 'FFMPEG library', ''),
+        ('BF_FFMPEG_DLL', 'FFMPEG dll libraries to be installed', ''),
         ('BF_FFMPEG_EXTRA', 'FFMPEG flags that must be preserved', ''),
 
         ('BF_FFMPEG_INC', 'FFMPEG includes', ''),
@@ -438,6 +439,12 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 
         (BoolVariable('WITH_BF_3DMOUSE', 'Build blender with support of 3D mouses', False)),
+        (BoolVariable('WITH_BF_STATIC3DMOUSE', 'Staticly link to 3d mouse library', False)),
+        ('BF_3DMOUSE', '3d mouse library base path', ''),
+        ('BF_3DMOUSE_INC', '3d mouse library include path', ''),
+        ('BF_3DMOUSE_LIB', '3d mouse library', ''),
+        ('BF_3DMOUSE_LIBPATH', '3d mouse library path', ''),
+        ('BF_3DMOUSE_LIB_STATIC', '3d mouse static library', ''),
 
         ('CFLAGS', 'C only flags', []),
         ('CCFLAGS', 'Generic C and C++ flags', []),

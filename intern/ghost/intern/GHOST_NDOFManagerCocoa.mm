@@ -40,7 +40,7 @@ static GHOST_NDOFManager* ndof_manager = NULL;
 static bool has_old_driver = true;
 
 static void NDOF_DeviceAdded(io_connect_t connection)
-	{
+{
 	printf("ndof: device added\n"); // change these: printf --> informational reports
 
 #if 0 // device preferences will be useful some day
@@ -55,27 +55,27 @@ static void NDOF_DeviceAdded(io_connect_t connection)
 	unsigned short productID = result & 0xffff;
 
 	ndof_manager->setDevice(vendorID, productID);
-	}
+}
 
 static void NDOF_DeviceRemoved(io_connect_t connection)
-	{
+{
 	printf("ndof: device removed\n");
-	}
+}
 
 static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, void* messageArgument)
-	{
+{
 	switch (messageType)
-		{
+	{
 		case kConnexionMsgDeviceState:
-			{
+		{
 			ConnexionDeviceState* s = (ConnexionDeviceState*)messageArgument;
 
 			GHOST_TUns64 now = ghost_system->getMilliSeconds();
 
 			switch (s->command)
-				{
+			{
 				case kConnexionCmdHandleAxis:
-					{
+				{
 					// convert to blender view coordinates
 					short t[3] = {s->axis[0], -(s->axis[2]), s->axis[1]};
 					short r[3] = {-(s->axis[3]), s->axis[5], -(s->axis[4])};
@@ -85,23 +85,23 @@ static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, voi
 
 					ghost_system->notifyExternalEventProcessed();
 					break;
-					}
+				}
 				case kConnexionCmdHandleButtons:
-					{
+				{
 					int button_bits = has_old_driver ? s->buttons8 : s->buttons;
 					ndof_manager->updateButtons(button_bits, now);
 					ghost_system->notifyExternalEventProcessed();
 					break;
-					}
+				}
 				case kConnexionCmdAppSpecific:
 					printf("ndof: app-specific command, param = %hd, value = %d\n", s->param, s->value);
 					break;
 
 				default:
 					printf("ndof: mystery device command %d\n", s->command);
-				}
-			break;
 			}
+			break;
+		}
 		case kConnexionMsgPrefsChanged:
 			// printf("ndof: prefs changed\n"); // this includes app switches
 			// TODO: look through updated prefs for things blender cares about
@@ -117,58 +117,56 @@ static void NDOF_DeviceEvent(io_connect_t connection, natural_t messageType, voi
 			break;
 		default:
 			printf("ndof: mystery event %d\n", messageType);
-		}
 	}
+}
 
 GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
-	: GHOST_NDOFManager(sys)
-	{
+    : GHOST_NDOFManager(sys)
+{
 	if (available())
-		{
+	{
 		// give static functions something to talk to:
 		ghost_system = dynamic_cast<GHOST_SystemCocoa*>(&sys);
 		ndof_manager = this;
 
 		OSErr error = InstallConnexionHandlers(NDOF_DeviceEvent, NDOF_DeviceAdded, NDOF_DeviceRemoved);
-		if (error)
-			{
+		if (error) {
 			printf("ndof: error %d while installing handlers\n", error);
 			return;
-			}
+		}
 
 		// Pascal string *and* a four-letter constant. How old-skool.
 		m_clientID = RegisterConnexionClient('blnd', (UInt8*) "\007blender",
-			kConnexionClientModeTakeOver, kConnexionMaskAll);
+		                                     kConnexionClientModeTakeOver, kConnexionMaskAll);
 
 		// printf("ndof: client id = %d\n", m_clientID);
 
-		if (SetConnexionClientButtonMask != NULL)
-			{
+		if (SetConnexionClientButtonMask != NULL) {
 			has_old_driver = false;
 			SetConnexionClientButtonMask(m_clientID, kConnexionMaskAllButtons);
-			}
-		else
+		}
+		else {
 			printf("ndof: old 3Dx driver installed, some buttons may not work\n");
 		}
-	else
-		{
+	}
+	else {
 		printf("ndof: 3Dx driver not found\n");
 		// This isn't a hard error, just means the user doesn't have a 3D mouse.
-		}
 	}
+}
 
 GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
-	{
+{
 	UnregisterConnexionClient(m_clientID);
 	CleanupConnexionHandlers();
 	ghost_system = NULL;
 	ndof_manager = NULL;
-	}
+}
 
 bool GHOST_NDOFManagerCocoa::available()
-	{
+{
 	// extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
 	// ^^ not needed since the entire framework is weak-linked
 	return InstallConnexionHandlers != NULL;
 	// this means that the driver is installed and dynamically linked to blender
-	}
+}

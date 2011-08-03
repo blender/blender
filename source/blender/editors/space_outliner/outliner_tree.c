@@ -719,7 +719,8 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			{
 				Speaker *spk= (Speaker *)id;
 
-				outliner_add_element(soops, &te->subtree, spk->adt, te, TSE_ANIM_DATA, 0);
+				if(spk->adt)
+					outliner_add_element(soops, &te->subtree, spk, te, TSE_ANIM_DATA, 0);
 			}
 			break;
 		case ID_WO:

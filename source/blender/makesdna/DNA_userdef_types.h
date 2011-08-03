@@ -601,6 +601,9 @@ extern UserDef U; /* from blenkernel blender.c */
 /* actually... users probably don't care about what the mode
    is called, just that it feels right */
 #define NDOF_ORBIT_INVERT_AXES (1 << 6)
+/* zoom is up/down if this flag is set (otherwise forward/backward) */
+#define NDOF_ZOOM_UPDOWN (1 << 7)
+#define NDOF_INVERT_ZOOM (1 << 8)
 
 
 #ifdef __cplusplus
