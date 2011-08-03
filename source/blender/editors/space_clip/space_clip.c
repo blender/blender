@@ -88,9 +88,12 @@ static void clip_stabilization_tag_refresh(ScrArea *sa)
 {
 	SpaceClip *sc= (SpaceClip *)sa->spacedata.first;
 	MovieClip *clip= ED_space_clip(sc);
-	MovieTrackingStabilization *stab= &clip->tracking.stabilization;
 
-	stab->ok= 0;
+	if(clip) {
+		MovieTrackingStabilization *stab= &clip->tracking.stabilization;
+
+		stab->ok= 0;
+	}
 }
 
 /* ******************** default callbacks for clip space ***************** */

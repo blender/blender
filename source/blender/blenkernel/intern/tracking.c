@@ -1308,7 +1308,6 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking)
 static void calculate_stabdata(MovieTrackingStabilization *stab, float width, float height,
 			float firstmedian[2], float curmedian[2], float loc[2], float *scale)
 {
-	mul_v2_fl(loc, stab->locinf);
 	*scale= (stab->scale-1.f)*stab->scaleinf+1.f;
 
 	loc[0]= (firstmedian[0]-curmedian[0])*width*(*scale);
@@ -1316,7 +1315,10 @@ static void calculate_stabdata(MovieTrackingStabilization *stab, float width, fl
 
 	loc[0]-= (firstmedian[0]*(*scale)-firstmedian[0])*width;
 	loc[1]-= (firstmedian[1]*(*scale)-firstmedian[1])*height;
+
+	mul_v2_fl(loc, stab->locinf);
 }
+
 
 static ImBuf* stabilize_acquire_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
 {
