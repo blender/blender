@@ -181,12 +181,6 @@ GHOST_NDOFManager::GHOST_NDOFManager(GHOST_System& sys)
 	// the other is not, initialize them both here:
 	memset(m_translation, 0, sizeof(m_translation));
 	memset(m_rotation, 0, sizeof(m_rotation));
-
-#ifdef WITH_INPUT_NDOF
-	GHOST_PRINT("WITH_INPUT_NDOF is defined!");
-#else
-	GHOST_PRINT("WITH_INPUT_NDOF is not defined.");
-#endif
 }
 
 bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short product_id)
@@ -219,7 +213,7 @@ bool GHOST_NDOFManager::setDevice(unsigned short vendor_id, unsigned short produ
 					m_buttonCount = 31;
 					break;
 
-					// -- older devices --
+				// -- older devices --
 				case 0xC625:
 					puts("ndof: using SpacePilot");
 					m_deviceType = NDOF_SpacePilot;
