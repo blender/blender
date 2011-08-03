@@ -930,6 +930,7 @@ void resetTransRestrictions(TransInfo *t)
 	t->flag &= ~T_ALL_RESTRICTIONS;
 }
 
+/* the *op can be NULL */
 int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
@@ -1058,7 +1059,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		}
 
 		/* initialize UV transform from */
-		if (RNA_struct_find_property(op->ptr, "correct_uv")) {
+		if (op && RNA_struct_find_property(op->ptr, "correct_uv")) {
 			if(RNA_property_is_set(op->ptr, "correct_uv")) {
 				if(RNA_boolean_get(op->ptr, "correct_uv")) {
 					t->settings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT;
