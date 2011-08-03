@@ -46,7 +46,6 @@ void ED_space_clip_set(struct bContext *C, struct SpaceClip *sc, struct MovieCli
 struct MovieClip *ED_space_clip(struct SpaceClip *sc);
 void ED_space_clip_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_zoom(struct SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy);
-void ED_clip_aspect(struct MovieClip *clip, float *aspx, float *aspy);
 void ED_space_clip_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 
 struct ImBuf *ED_space_clip_acquire_buffer(struct SpaceClip *sc);

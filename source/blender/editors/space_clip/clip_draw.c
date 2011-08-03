@@ -750,7 +750,7 @@ static void draw_distorion_grid(MovieTracking *tracking, int width, int height)
 
 	for(y= 0; y<=n; y++) {
 		for(x= 0; x<=n; x++) {
-			BKE_tracking_invert_intrinsics(tracking, pos, width, height, grid[y][x]);
+			BKE_tracking_invert_intrinsics(tracking, pos, grid[y][x]);
 
 			grid[y][x][0]/= width;
 			grid[y][x][1]/= height;
@@ -870,12 +870,13 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	}
 
 	if(sc->flag&SC_SHOW_BUNDLES) {
-		float pos[4], vec[4], mat[4][4];
+		float pos[4], vec[4], mat[4][4], aspx, aspy;
 
 		glEnable(GL_POINT_SMOOTH);
 		glPointSize(3.0f);
 
-		BKE_tracking_projection_matrix(tracking, framenr, width, height, mat);
+		BKE_movieclip_aspect(clip, &aspx, &aspy);
+		BKE_tracking_projection_matrix(tracking, framenr, width*aspx, height*aspy, mat);
 
 		track= tracking->tracks.first;
 		while(track) {
@@ -891,7 +892,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 					pos[0]= (pos[0]/(pos[3]*2.0f)+0.5f)*width;
 					pos[1]= (pos[1]/(pos[3]*2.0f)+0.5f)*height;
 
-					BKE_tracking_apply_intrinsics(tracking, pos, width, height, pos);
+					BKE_tracking_apply_intrinsics(tracking, pos, pos);
 
 					vec[0]= (marker->pos[0]+track->offset[0])*width;
 					vec[1]= (marker->pos[1]+track->offset[1])*height;

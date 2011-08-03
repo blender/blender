@@ -422,6 +422,14 @@ void BKE_movieclip_acquire_size(MovieClip *clip, MovieClipUser *user, int *width
 	}
 }
 
+void BKE_movieclip_aspect(MovieClip *clip, float *aspx, float *aspy)
+{
+	*aspx= *aspy= 1.0;
+
+	/* x is always 1 */
+	*aspy = clip->aspy/clip->aspx;
+}
+
 /* get segments of cached frames. useful for debugging cache policies */
 void BKE_movieclip_get_cache_segments(MovieClip *clip, int *totseg_r, int **points_r)
 {

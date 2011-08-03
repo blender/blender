@@ -1465,7 +1465,7 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	MovieTracking *tracking= &clip->tracking;
 	int width, height;
-	float error;
+	float error, aspx, aspy;
 
 	if(!check_solve_track_count(tracking)) {
 		BKE_report(op->reports, RPT_ERROR, "At least 10 tracks on both of keyframes are needed for reconstruction");
@@ -1474,8 +1474,9 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 
 	/* could fail if footage uses images with different sizes */
 	BKE_movieclip_acquire_size(clip, NULL, &width, &height);
+	BKE_movieclip_aspect(clip, &aspx, &aspy);
 
-	error= BKE_tracking_solve_reconstruction(tracking, width, height);
+	error= BKE_tracking_solve_reconstruction(tracking, width, height, aspx, aspy);
 
 	if(error<0)
 		BKE_report(op->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");

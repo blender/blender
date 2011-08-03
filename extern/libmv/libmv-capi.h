@@ -45,30 +45,29 @@ void libmv_setLoggingVerbosity(int verbosity);
 
 /* RegionTracker */
 struct libmv_RegionTracker *libmv_regionTrackerNew(int max_iterations, int pyramid_level, double tolerance);
-int libmv_regionTrackerTrack(struct libmv_RegionTracker *tracker, const float *ima1, const float *ima2,
+int libmv_regionTrackerTrack(struct libmv_RegionTracker *libmv_tracker, const float *ima1, const float *ima2,
 			int width, int height, int half_window_size,
 			double  x1, double  y1, double *x2, double *y2);
-void libmv_regionTrackerDestroy(struct libmv_RegionTracker *tracker);
+void libmv_regionTrackerDestroy(struct libmv_RegionTracker *libmv_tracker);
 
 /* Tracks */
 struct libmv_Tracks *libmv_tracksNew(void);
-void libmv_tracksInsert(struct libmv_Tracks *tracks, int image, int track, double x, double y);
-void libmv_tracksDestroy(struct libmv_Tracks *tracks);
+void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track, double x, double y);
+void libmv_tracksDestroy(struct libmv_Tracks *libmv_tracks);
 
 /* Reconstruction solver */
 struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *tracks, int keyframe1, int keyframe2,
 			double focal_length, double principal_x, double principal_y, double k1, double k2, double k3);
 int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track, double pos[3]);
 int libmv_reporojectionCameraForImage(struct libmv_Reconstruction *libmv_reconstruction, int image, double mat[4][4]);
-float libmv_reprojectionError(struct libmv_Reconstruction *libmv_reconstruction);
+double libmv_reprojectionError(struct libmv_Reconstruction *libmv_reconstruction);
 void libmv_destroyReconstruction(struct libmv_Reconstruction *libmv_reconstruction);
 
 /* feature detector */
-
 struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride);
-int libmv_countCorners(struct libmv_Corners *corners);
-void libmv_getCorner(struct libmv_Corners *corners, int number, float *x, float *y, float *score, float *size);
-void libmv_destroyCorners(struct libmv_Corners *corners);
+int libmv_countCorners(struct libmv_Corners *libmv_corners);
+void libmv_getCorner(struct libmv_Corners *libmv_corners, int number, double *x, double *y, double *score, double *size);
+void libmv_destroyCorners(struct libmv_Corners *libmv_corners);
 
 /* utils */
 void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,

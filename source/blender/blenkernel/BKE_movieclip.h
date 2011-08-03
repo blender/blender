@@ -50,6 +50,7 @@ void BKE_movieclip_reload(struct MovieClip *clip);
 struct ImBuf *BKE_movieclip_acquire_ibuf(struct MovieClip *clip, struct MovieClipUser *user);
 struct ImBuf *BKE_movieclip_acquire_stable_ibuf(struct MovieClip *clip, struct MovieClipUser *user, float loc[2], float *scale);
 void BKE_movieclip_acquire_size(struct MovieClip *clip, struct MovieClipUser *user, int *width, int *height);
+void BKE_movieclip_aspect(struct MovieClip *clip, float *aspx, float *aspy);
 int BKE_movieclip_has_frame(struct MovieClip *clip, struct MovieClipUser *user);
 void BKE_movieclip_user_set_frame(struct MovieClipUser *user, int framenr);
 

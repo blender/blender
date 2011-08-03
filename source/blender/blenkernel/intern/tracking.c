@@ -875,7 +875,7 @@ static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int wid
 {
 	int tracknr= 0;
 	MovieTrackingTrack *track;
-	struct libmv_Tracks *tracks= libmv_tracksNew();;
+	struct libmv_Tracks *tracks= libmv_tracksNew();
 
 	track= tracking->tracks.first;
 	while(track) {
@@ -885,7 +885,8 @@ static struct libmv_Tracks *create_libmv_tracks(MovieTracking *tracking, int wid
 			MovieTrackingMarker *marker= &track->markers[a];
 
 			if((marker->flag&MARKER_DISABLED)==0)
-				libmv_tracksInsert(tracks, marker->framenr, tracknr, marker->pos[0]*width, marker->pos[1]*height);
+				libmv_tracksInsert(tracks, marker->framenr, tracknr,
+							marker->pos[0]*width, marker->pos[1]*height);
 		}
 
 		track= track->next;
@@ -988,15 +989,16 @@ static int retrive_libmv_reconstruct(MovieTracking *tracking, struct libmv_Recon
 
 #endif
 
-float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int height)
+float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int height, float aspx, float aspy)
 {
 #if WITH_LIBMV
 	{
 		MovieTrackingCamera *camera= &tracking->camera;
-		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width, height);
+		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width*aspx, height*aspy);
 		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
 		        tracking->settings.keyframe1, tracking->settings.keyframe2,
-		        camera->focal, camera->principal[0], camera->principal[1],
+		        camera->focal,
+		        camera->principal[0]*aspx, camera->principal[1]*aspy,
 		        camera->k1, camera->k2, camera->k3);
 		float error= libmv_reprojectionError(reconstruction);
 
@@ -1106,7 +1108,7 @@ void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int wi
 	} else copy_m4_m4(mat, winmat);
 }
 
-void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float width, float height, float nco[2])
+void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float nco[2])
 {
 	MovieTrackingCamera *camera= &tracking->camera;
 
@@ -1126,7 +1128,7 @@ void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float w
 #endif
 }
 
-void BKE_tracking_invert_intrinsics(MovieTracking *tracking, float co[2], float width, float height, float nco[2])
+void BKE_tracking_invert_intrinsics(MovieTracking *tracking, float co[2], float nco[2])
 {
 	MovieTrackingCamera *camera= &tracking->camera;
 
@@ -1186,8 +1188,7 @@ void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr)
 	a= libmv_countCorners(corners);
 	while(a--) {
 		MovieTrackingTrack *track;
-
-		float x, y, size, score;
+		double x, y, size, score;
 
 		libmv_getCorner(corners, a, &x, &y, &score, &size);
 

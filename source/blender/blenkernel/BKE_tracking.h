@@ -71,7 +71,7 @@ void BKE_tracking_sync(struct MovieTrackingContext *context);
 void BKE_tracking_sync_user(struct MovieClipUser *user, struct MovieTrackingContext *context);
 int BKE_tracking_next(struct MovieTrackingContext *context);
 
-float BKE_tracking_solve_reconstruction(struct MovieTracking *tracking, int width, int height);
+float BKE_tracking_solve_reconstruction(struct MovieTracking *tracking, int width, int height, float aspx, float aspy);
 
 void BKE_track_unique_name(struct MovieTracking *tracking, struct MovieTrackingTrack *track);
 struct MovieTrackingTrack *BKE_find_track_by_name(struct MovieTracking *tracking, const char *name);
@@ -80,8 +80,8 @@ struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct Mo
 
 void BKE_get_tracking_mat(struct Scene *scene, float mat[4][4]);
 void BKE_tracking_projection_matrix(struct MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4]);
-void BKE_tracking_apply_intrinsics(struct MovieTracking *tracking, float co[2], float width, float height, float nco[2]);
-void BKE_tracking_invert_intrinsics(struct MovieTracking *tracking, float co[2], float width, float height, float nco[2]);
+void BKE_tracking_apply_intrinsics(struct MovieTracking *tracking, float co[2], float nco[2]);
+void BKE_tracking_invert_intrinsics(struct MovieTracking *tracking, float co[2], float nco[2]);
 
 void BKE_tracking_detect(struct MovieTracking *tracking, struct ImBuf *imbuf, int framenr);
 

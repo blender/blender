@@ -261,7 +261,7 @@ static void saveBytesImage(unsigned char *data, int width, int height)
 }
 #endif
 
-int libmv_regionTrackerTrack(libmv_RegionTracker *tracker, const float *ima1, const float *ima2,
+int libmv_regionTrackerTrack(libmv_RegionTracker *libmv_tracker, const float *ima1, const float *ima2,
 			 int width, int height, int half_window_size,
 			 double x1, double y1, double *x2, double *y2)
 {
@@ -269,8 +269,8 @@ int libmv_regionTrackerTrack(libmv_RegionTracker *tracker, const float *ima1, co
 	libmv::TrkltRegionTracker *trklt_region_tracker;
 	libmv::FloatImage old_patch, new_patch;
 
-	trklt_region_tracker = tracker->trklt_region_tracker;
-	region_tracker = tracker->region_tracker;
+	trklt_region_tracker = libmv_tracker->trklt_region_tracker;
+	region_tracker = libmv_tracker->region_tracker;
 
 	trklt_region_tracker->half_window_size = half_window_size;
 
@@ -294,29 +294,29 @@ int libmv_regionTrackerTrack(libmv_RegionTracker *tracker, const float *ima1, co
 #endif
 }
 
-void libmv_regionTrackerDestroy(libmv_RegionTracker *tracker)
+void libmv_regionTrackerDestroy(libmv_RegionTracker *libmv_tracker)
 {
-	delete tracker->region_tracker;
-	delete tracker;
+	delete libmv_tracker->region_tracker;
+	delete libmv_tracker;
 }
 
 /* ************ Tracks ************ */
 
 libmv_Tracks *libmv_tracksNew(void)
 {
-	libmv::Tracks *tracks = new libmv::Tracks();
+	libmv::Tracks *libmv_tracks = new libmv::Tracks();
 
-	return (libmv_Tracks *)tracks;
+	return (libmv_Tracks *)libmv_tracks;
 }
 
-void libmv_tracksInsert(struct libmv_Tracks *tracks, int image, int track, double x, double y)
+void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track, double x, double y)
 {
-	((libmv::Tracks*)tracks)->Insert(image, track, x, y);
+	((libmv::Tracks*)libmv_tracks)->Insert(image, track, x, y);
 }
 
-void libmv_tracksDestroy(libmv_Tracks *tracks)
+void libmv_tracksDestroy(libmv_Tracks *libmv_tracks)
 {
-	delete (libmv::Tracks*)tracks;
+	delete (libmv::Tracks*)libmv_tracks;
 }
 
 /* ************ Reconstruction solver ************ */
@@ -406,7 +406,7 @@ int libmv_reporojectionCameraForImage(libmv_Reconstruction *libmv_reconstruction
 	return 0;
 }
 
-float libmv_reprojectionError(libmv_Reconstruction *libmv_reconstruction)
+double libmv_reprojectionError(libmv_Reconstruction *libmv_reconstruction)
 {
 	return libmv_reconstruction->error;
 }
@@ -421,21 +421,21 @@ void libmv_destroyReconstruction(libmv_Reconstruction *libmv_reconstruction)
 struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride)
 {
 	std::vector<libmv::Corner> detect= libmv::Detect(data, width, height, stride);
-	std::vector<libmv::Corner> *corners= new std::vector<libmv::Corner>();
+	std::vector<libmv::Corner> *libmv_corners= new std::vector<libmv::Corner>();
 
-	corners->insert(corners->begin(), detect.begin(), detect.end());
+	libmv_corners->insert(libmv_corners->begin(), detect.begin(), detect.end());
 
-	return (libmv_Corners *)corners;
+	return (libmv_Corners *)libmv_corners;
 }
 
-int libmv_countCorners(struct libmv_Corners *corners)
+int libmv_countCorners(struct libmv_Corners *libmv_corners)
 {
-	return ((std::vector<libmv::Corner> *)corners)->size();
+	return ((std::vector<libmv::Corner> *)libmv_corners)->size();
 }
 
-void libmv_getCorner(struct libmv_Corners *corners, int number, float *x, float *y, float *score, float *size)
+void libmv_getCorner(struct libmv_Corners *libmv_corners, int number, double *x, double *y, double *score, double *size)
 {
-	libmv::Corner corner = ((std::vector<libmv::Corner> *)corners)->at(number);
+	libmv::Corner corner = ((std::vector<libmv::Corner> *)libmv_corners)->at(number);
 
 	*x = corner.x;
 	*y = corner.y;
@@ -443,9 +443,9 @@ void libmv_getCorner(struct libmv_Corners *corners, int number, float *x, float 
 	*size = corner.size;
 }
 
-void libmv_destroyCorners(struct libmv_Corners *corners)
+void libmv_destroyCorners(struct libmv_Corners *libmv_corners)
 {
-	delete (std::vector<libmv::Corner> *)corners;
+	delete (std::vector<libmv::Corner> *)libmv_corners;
 }
 
 /* ************ utils ************ */

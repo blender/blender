@@ -124,20 +124,14 @@ void ED_space_clip_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy)
 	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin + 1)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
 }
 
-void ED_clip_aspect(MovieClip *clip, float *aspx, float *aspy)
-{
-	*aspx= *aspy= 1.0;
-
-	if(clip == NULL || clip->aspx==0.0f || clip->aspy==0.0f)
-		return;
-
-	/* x is always 1 */
-	*aspy = clip->aspy/clip->aspx;
-}
-
 void ED_space_clip_aspect(SpaceClip *sc, float *aspx, float *aspy)
 {
-	ED_clip_aspect(ED_space_clip(sc), aspx, aspy);
+	MovieClip *clip= ED_space_clip(sc);
+
+	if(clip)
+		BKE_movieclip_aspect(clip, aspx, aspy);
+	else
+		*aspx= *aspy= 1.f;
 }
 
 void ED_clip_update_frame(const Main *mainp, int cfra)
