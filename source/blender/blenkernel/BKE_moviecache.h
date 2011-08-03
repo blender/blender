@@ -34,6 +34,7 @@
  *  \author Sergey Sharybin
  */
 
+#include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
 /* Cache system for movie data - now supports stroting ImBufs only
