@@ -78,6 +78,10 @@ public:
 
 	AUD_AnimateableProperty* getAnimProperty(AUD_AnimateablePropertyType type);
 
+	void updateAll(float volume_max, float volume_min, float distance_max,
+				   float distance_reference, float attenuation, float cone_angle_outer,
+				   float cone_angle_inner, float cone_volume_outer);
+
 	/**
 	 * Checks whether the source location, velocity and orientation are relative
 	 * to the listener.

@@ -806,6 +806,7 @@ typedef struct Scene {
 	void *sound_scene;
 	void *sound_scene_handle;
 	void *sound_scrub_handle;
+	void *speaker_handles;
 	
 	void *fps_info;	 				/* (runtime) info/cache used for presenting playback framerate info to the user */
 	

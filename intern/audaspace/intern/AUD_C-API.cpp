@@ -39,6 +39,7 @@
 #include "AUD_PyAPI.h"
 #endif
 
+#include <set>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
@@ -898,12 +899,12 @@ void AUD_destroySequencer(AUD_Sound* sequencer)
 
 void AUD_setSequencerMuted(AUD_Sound* sequencer, int muted)
 {
-	((AUD_SequencerFactory*)sequencer->get())->mute(muted);
+	dynamic_cast<AUD_SequencerFactory*>(sequencer->get())->mute(muted);
 }
 
 void AUD_setSequencerFPS(AUD_Sound* sequencer, float fps)
 {
-	((AUD_SequencerFactory*)sequencer->get())->setFPS(fps);
+	dynamic_cast<AUD_SequencerFactory*>(sequencer->get())->setFPS(fps);
 }
 
 AUD_SEntry* AUD_addSequence(AUD_Sound* sequencer, AUD_Sound* sound,
@@ -916,7 +917,7 @@ AUD_SEntry* AUD_addSequence(AUD_Sound* sequencer, AUD_Sound* sound,
 
 void AUD_removeSequence(AUD_Sound* sequencer, AUD_SEntry* entry)
 {
-	((AUD_SequencerFactory*)sequencer->get())->remove(*entry);
+	dynamic_cast<AUD_SequencerFactory*>(sequencer->get())->remove(*entry);
 	delete entry;
 }
 
@@ -928,6 +929,11 @@ void AUD_moveSequence(AUD_SEntry* entry, float begin, float end, float skip)
 void AUD_muteSequence(AUD_SEntry* entry, char mute)
 {
 	(*entry)->mute(mute);
+}
+
+void AUD_setRelativeSequence(AUD_SEntry* entry, char relative)
+{
+	(*entry)->setRelative(relative);
 }
 
 void AUD_updateSequenceSound(AUD_SEntry* entry, AUD_Sound* sound)
@@ -949,21 +955,38 @@ void AUD_setSequenceAnimData(AUD_SEntry* entry, AUD_AnimateablePropertyType type
 
 void AUD_setSequencerAnimData(AUD_Sound* sequencer, AUD_AnimateablePropertyType type, int frame, float* data, char animated)
 {
-	AUD_AnimateableProperty* prop = ((AUD_SequencerFactory*)sequencer->get())->getAnimProperty(type);
+	AUD_AnimateableProperty* prop = dynamic_cast<AUD_SequencerFactory*>(sequencer->get())->getAnimProperty(type);
 	if(animated)
 		prop->write(data, frame, 1);
 	else
 		prop->write(data);
 }
 
+void AUD_updateSequenceData(AUD_SEntry* entry, float volume_max, float volume_min,
+							float distance_max, float distance_reference, float attenuation,
+							float cone_angle_outer, float cone_angle_inner, float cone_volume_outer)
+{
+	(*entry)->updateAll(volume_max, volume_min, distance_max, distance_reference, attenuation,
+						cone_angle_outer, cone_angle_inner, cone_volume_outer);
+}
+
+void AUD_updateSequencerData(AUD_Sound* sequencer, float speed_of_sound,
+							 float factor, AUD_DistanceModel model)
+{
+	AUD_SequencerFactory* f = dynamic_cast<AUD_SequencerFactory*>(sequencer->get());
+	f->setSpeedOfSound(speed_of_sound);
+	f->setDopplerFactor(factor);
+	f->setDistanceModel(model);
+}
+
 void AUD_setSequencerDeviceSpecs(AUD_Sound* sequencer)
 {
-	((AUD_SequencerFactory*)sequencer->get())->setSpecs(AUD_device->getSpecs().specs);
+	dynamic_cast<AUD_SequencerFactory*>(sequencer->get())->setSpecs(AUD_device->getSpecs().specs);
 }
 
 void AUD_setSequencerSpecs(AUD_Sound* sequencer, AUD_Specs specs)
 {
-	((AUD_SequencerFactory*)sequencer->get())->setSpecs(specs);
+	dynamic_cast<AUD_SequencerFactory*>(sequencer->get())->setSpecs(specs);
 }
 
 void AUD_seekSequencer(AUD_Handle* handle, float time)
@@ -1089,4 +1112,44 @@ AUD_Sound* AUD_copy(AUD_Sound* sound)
 void AUD_freeHandle(AUD_Handle* handle)
 {
 	delete handle;
+}
+
+void* AUD_createSet()
+{
+	return new std::set<void*>();
+}
+
+void AUD_destroySet(void* set)
+{
+	delete reinterpret_cast<std::set<void*>*>(set);
+}
+
+char AUD_removeSet(void* set, void* entry)
+{
+	if(set)
+		return reinterpret_cast<std::set<void*>*>(set)->erase(entry);
+	return 0;
+}
+
+void AUD_addSet(void* set, void* entry)
+{
+	if(entry)
+		reinterpret_cast<std::set<void*>*>(set)->insert(entry);
+}
+
+void* AUD_getSet(void* set)
+{
+	if(set)
+	{
+		std::set<void*>* rset = reinterpret_cast<std::set<void*>*>(set);
+		if(!rset->empty())
+		{
+			std::set<void*>::iterator it = rset->begin();
+			void* result = *it;
+			rset->erase(it);
+			return result;
+		}
+	}
+
+	return NULL;
 }

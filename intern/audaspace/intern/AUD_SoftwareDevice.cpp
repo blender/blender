@@ -184,6 +184,11 @@ void AUD_SoftwareDevice::AUD_SoftwareHandle::update()
 			}
 		}
 
+		if(m_volume > m_volume_max)
+			m_volume = m_volume_max;
+		else if(m_volume < m_volume_min)
+			m_volume = m_volume_min;
+
 		// Volume
 
 		m_volume *= m_user_volume;

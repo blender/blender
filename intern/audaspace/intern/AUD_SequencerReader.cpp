@@ -139,13 +139,14 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 		m_entry_status = m_factory->m_entry_status;
 	}
 
-	// AUD_XXX: TODO: animation data
-
 	AUD_Specs specs = m_factory->m_specs;
 	int pos = 0;
 	float time = float(m_position) / float(specs.rate);
-	float value, frame;
+	float volume, frame;
 	int len, cfra;
+	AUD_Vector3 v, v2;
+	AUD_Quaternion q;
+
 
 	while(pos < length)
 	{
@@ -161,9 +162,16 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 			(*it)->update(time, frame);
 		}
 
-		m_factory->m_volume.read(frame, &value);
+		m_factory->m_volume.read(frame, &volume);
+		m_device.setVolume(volume);
 
-		m_device.setVolume(value);
+		m_factory->m_orientation.read(frame, q.get());
+		m_device.setListenerOrientation(q);
+		m_factory->m_location.read(frame, v.get());
+		m_device.setListenerLocation(v);
+		m_factory->m_location.read(frame + 1, v2.get());
+		v2 -= v;
+		m_device.setListenerVelocity(v2);
 
 		m_device.read(reinterpret_cast<data_t*>(buffer + specs.channels * pos), len);
 

@@ -469,11 +469,20 @@ extern void AUD_moveSequence(AUD_SEntry* entry, float begin, float end, float sk
 
 extern void AUD_muteSequence(AUD_SEntry* entry, char mute);
 
+extern void AUD_setRelativeSequence(AUD_SEntry* entry, char relative);
+
 extern void AUD_updateSequenceSound(AUD_SEntry* entry, AUD_Sound* sound);
 
 extern void AUD_setSequenceAnimData(AUD_SEntry* entry, AUD_AnimateablePropertyType type, int frame, float* data, char animated);
 
 extern void AUD_setSequencerAnimData(AUD_Sound* sequencer, AUD_AnimateablePropertyType type, int frame, float* data, char animated);
+
+extern void AUD_updateSequenceData(AUD_SEntry* entry, float volume_max, float volume_min,
+								   float distance_max, float distance_reference, float attenuation,
+								   float cone_angle_outer, float cone_angle_inner, float cone_volume_outer);
+
+extern void AUD_updateSequencerData(AUD_Sound* sequencer, float speed_of_sound,
+									float factor, AUD_DistanceModel model);
 
 extern void AUD_setSequencerDeviceSpecs(AUD_Sound* sequencer);
 
@@ -498,6 +507,16 @@ extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length);
 extern AUD_Sound* AUD_copy(AUD_Sound* sound);
 
 extern void AUD_freeHandle(AUD_Handle* channel);
+
+extern void* AUD_createSet();
+
+extern void AUD_destroySet(void* set);
+
+extern char AUD_removeSet(void* set, void* entry);
+
+extern void AUD_addSet(void* set, void* entry);
+
+extern void* AUD_getSet(void* set);
 
 #ifdef WITH_PYTHON
 extern PyObject* AUD_getPythonFactory(AUD_Sound* sound);

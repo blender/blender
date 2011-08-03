@@ -70,7 +70,7 @@ void AUD_SequencerHandle::update(float position, float frame)
 {
 	if(!m_handle.isNull())
 	{
-		if(position >= m_entry->m_end)
+		if(position >= m_entry->m_end && m_entry->m_end >= 0)
 			m_handle->pause();
 		else if(position >= m_entry->m_begin)
 			m_handle->resume();
@@ -120,7 +120,16 @@ void AUD_SequencerHandle::update(float position, float frame)
 		m_entry->m_panning.read(frame, &value);
 		AUD_SoftwareDevice::setPanning(m_handle.get(), value);
 
-		// AUD_XXX: TODO: animation data
+		AUD_Vector3 v, v2;
+		AUD_Quaternion q;
+
+		m_entry->m_orientation.read(frame, q.get());
+		m_3dhandle->setSourceOrientation(q);
+		m_entry->m_location.read(frame, v.get());
+		m_3dhandle->setSourceLocation(v);
+		m_entry->m_location.read(frame + 1, v2.get());
+		v2 -= v;
+		m_3dhandle->setSourceVelocity(v2);
 
 		if(m_entry->m_muted)
 			m_handle->setVolume(0);
@@ -131,7 +140,7 @@ void AUD_SequencerHandle::seek(float position)
 {
 	if(!m_handle.isNull())
 	{
-		if(position >= m_entry->m_end)
+		if(position >= m_entry->m_end && m_entry->m_end >= 0)
 		{
 			m_handle->pause();
 			return;

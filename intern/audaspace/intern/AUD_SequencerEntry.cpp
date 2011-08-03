@@ -66,8 +66,11 @@ AUD_SequencerEntry::AUD_SequencerEntry(AUD_Reference<AUD_IFactory> sound, float 
 
 void AUD_SequencerEntry::setSound(AUD_Reference<AUD_IFactory> sound)
 {
-	m_sound = sound;
-	m_sound_status++;
+	if(m_sound.get() != sound.get())
+	{
+		m_sound = sound;
+		m_sound_status++;
+	}
 }
 
 void AUD_SequencerEntry::move(float begin, float end, float skip)
@@ -110,6 +113,59 @@ AUD_AnimateableProperty* AUD_SequencerEntry::getAnimProperty(AUD_AnimateableProp
 	}
 }
 
+void AUD_SequencerEntry::updateAll(float volume_max, float volume_min, float distance_max,
+								   float distance_reference, float attenuation, float cone_angle_outer,
+								   float cone_angle_inner, float cone_volume_outer)
+{
+	if(volume_max != m_volume_max)
+	{
+		m_volume_max = volume_max;
+		m_status++;
+	}
+
+	if(volume_min != m_volume_min)
+	{
+		m_volume_min = volume_min;
+		m_status++;
+	}
+
+	if(distance_max != m_distance_max)
+	{
+		m_distance_max = distance_max;
+		m_status++;
+	}
+
+	if(distance_reference != m_distance_reference)
+	{
+		m_distance_reference = distance_reference;
+		m_status++;
+	}
+
+	if(attenuation != m_attenuation)
+	{
+		m_attenuation = attenuation;
+		m_status++;
+	}
+
+	if(cone_angle_outer != m_cone_angle_outer)
+	{
+		m_cone_angle_outer = cone_angle_outer;
+		m_status++;
+	}
+
+	if(cone_angle_inner != m_cone_angle_inner)
+	{
+		m_cone_angle_inner = cone_angle_inner;
+		m_status++;
+	}
+
+	if(cone_volume_outer != m_cone_volume_outer)
+	{
+		m_cone_volume_outer = cone_volume_outer;
+		m_status++;
+	}
+}
+
 bool AUD_SequencerEntry::isRelative()
 {
 	return m_relative;
@@ -117,8 +173,11 @@ bool AUD_SequencerEntry::isRelative()
 
 void AUD_SequencerEntry::setRelative(bool relative)
 {
-	m_relative = relative;
-	m_status++;
+	if(m_relative != relative)
+	{
+		m_relative = relative;
+		m_status++;
+	}
 }
 
 float AUD_SequencerEntry::getVolumeMaximum()

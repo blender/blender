@@ -354,8 +354,11 @@ AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start,
 void sound_create_scene(struct Scene *scene)
 {
 	scene->sound_scene = AUD_createSequencer(FPS, scene->audio.flag & AUDIO_MUTE);
+	AUD_updateSequencerData(scene->sound_scene, scene->audio.speed_of_sound,
+							scene->audio.doppler_factor, scene->audio.distance_model);
 	scene->sound_scene_handle = NULL;
 	scene->sound_scrub_handle = NULL;
+	scene->speaker_handles = NULL;
 }
 
 void sound_destroy_scene(struct Scene *scene)
@@ -366,6 +369,8 @@ void sound_destroy_scene(struct Scene *scene)
 		AUD_stop(scene->sound_scrub_handle);
 	if(scene->sound_scene)
 		AUD_destroySequencer(scene->sound_scene);
+	if(scene->speaker_handles)
+		AUD_destroySet(scene->speaker_handles);
 }
 
 void sound_mute_scene(struct Scene *scene, int muted)
@@ -378,6 +383,12 @@ void sound_update_fps(struct Scene *scene)
 {
 	if(scene->sound_scene)
 		AUD_setSequencerFPS(scene->sound_scene, FPS);
+}
+
+void sound_update_scene_listener(struct Scene *scene)
+{
+	AUD_updateSequencerData(scene->sound_scene, scene->audio.speed_of_sound,
+							scene->audio.doppler_factor, scene->audio.distance_model);
 }
 
 void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)

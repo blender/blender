@@ -789,14 +789,13 @@ void OBJECT_OT_speaker_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_speaker_add";
 
 	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
 	ot->exec= object_speaker_add_exec;
 	ot->poll= ED_operator_objectmode;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	ED_object_add_generic_props(ot, FALSE);
+	ED_object_add_generic_props(ot, TRUE);
 }
 
 /* only used as menu */
@@ -1636,7 +1635,6 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				}
 				break;
 			case OB_SPEAKER:
-				// AUD_XXX TODO: always duplicate Speakers on speaker object duplication?
 				if(dupflag!=0) {
 					ID_NEW_US2(obn->data )
 					else {

@@ -102,6 +102,15 @@ public:
 	 * Retrieves the components of the vector.
 	 * \return The components as float[3].
 	 */
+	inline float* get()
+	{
+		return m_v;
+	}
+
+	/**
+	 * Retrieves the components of the vector.
+	 * \return The components as float[3].
+	 */
 	inline const float* get() const
 	{
 		return m_v;
@@ -151,6 +160,14 @@ public:
 	inline AUD_Vector3 operator-() const
 	{
 		return AUD_Vector3(-m_x, -m_y, -m_z);
+	}
+
+	inline AUD_Vector3& operator-=(const AUD_Vector3& op)
+	{
+		m_x -= op.m_x;
+		m_y -= op.m_y;
+		m_z -= op.m_z;
+		return *this;
 	}
 };
 
@@ -228,6 +245,15 @@ public:
 		destination[1] = m_x;
 		destination[2] = m_y;
 		destination[3] = m_z;
+	}
+
+	/**
+	 * Retrieves the components of the vector.
+	 * \return The components as float[4].
+	 */
+	inline float* get()
+	{
+		return m_v;
 	}
 
 	/**

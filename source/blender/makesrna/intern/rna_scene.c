@@ -337,6 +337,11 @@ static void rna_Scene_fps_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *
 	sound_update_fps(scene);
 }
 
+static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	sound_update_scene_listener(scene);
+}
+
 static void rna_Scene_volume_set(PointerRNA *ptr, float value)
 {
 	Scene *scene= (Scene*)(ptr->data);
@@ -3462,21 +3467,24 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "audio_doppler_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "audio.speed_of_sound");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.01f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Speed of Sound", "Speed of sound for Doppler effect calculation");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_SCENE, "rna_Scene_listener_update");
 
 	prop= RNA_def_property(srna, "audio_doppler_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "audio.doppler_factor");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Doppler Factor", "Pitch factor for Doppler effect calculation");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_SCENE, "rna_Scene_listener_update");
 
 	prop= RNA_def_property(srna, "audio_distance_model", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "audio.distance_model");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, audio_distance_model_items);
 	RNA_def_property_ui_text(prop, "Distance Model", "Distance model for distance attenuation calculation");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_SCENE, "rna_Scene_listener_update");
 
 	prop= RNA_def_property(srna, "audio_volume", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "audio.volume");
