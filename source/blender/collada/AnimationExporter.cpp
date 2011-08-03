@@ -61,6 +61,13 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		bool isMatAnim = false;
         if(ob->adt && ob->adt->action)      
 		{
+			if ( ob->type == OB_ARMATURE )
+			{
+				bArmature *arm = (bArmature*)ob->data;
+				for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
+					bake_bone_animation(ob, bone);
+			    
+			}
 			fcu = (FCurve*)ob->adt->action->curves.first;
 		    while (fcu) {
 			transformName = extract_transform_name( fcu->rna_path );
@@ -318,6 +325,17 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		closeAnimation();
 	}
 
+	void AnimationExporter::bake_bone_animation(Object *ob_arm, Bone *bone)
+	{
+		if (!ob_arm->adt)
+			return;
+        
+		sample_and_bake_bone_animation(ob_arm, bone);
+
+        for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next)
+			bake_bone_animation(ob_arm, child);
+	}
+
 	void AnimationExporter::write_bone_animation(Object *ob_arm, Bone *bone)
 	{
 		if (!ob_arm->adt)
@@ -332,6 +350,22 @@ void AnimationExporter::exportAnimations(Scene *sce)
         
 		for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next)
 			write_bone_animation(ob_arm, child);
+	}
+
+	void AnimationExporter::sample_and_bake_bone_animation(Object *ob_arm, Bone *bone)
+	{
+		bArmature *arm = (bArmature*)ob_arm->data;
+		int flag = arm->flag;
+		std::vector<float> fra;
+		char prefix[256];
+
+		BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone->name);
+
+		bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
+		if (!pchan)
+			return;
+    
+		find_all_frames(ob_arm, fra);
 	}
 
 	void AnimationExporter::sample_and_write_bone_animation(Object *ob_arm, Bone *bone, int transform_type)
@@ -920,6 +954,25 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		return dot ? (dot + 1) : rna_path;
 	}
 
+	void AnimationExporter::find_all_frames(Object *ob, std::vector<float> &fra)
+	{
+		FCurve *fcu= (FCurve*)ob->adt->action->curves.first;
+		std::vector<float> keys;
+		for (unsigned int i = 0; i < fcu->totvert; i++) {
+					float f = fcu->bezt[i].vec[1][0];     //
+					if (std::find(keys.begin(), keys.end(), f) == keys.end())   
+						keys.push_back(f);
+		}
+
+		std::sort(keys.begin(), keys.end());
+
+		for ( float fAll = *(keys.begin()) ; fAll != *(keys.end()) ; fAll+=1.0f )
+		{
+			fra.push_back(fAll); 
+		}
+		return;
+
+	}
 	void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name)
 	{
 		FCurve *fcu= (FCurve*)ob->adt->action->curves.first;

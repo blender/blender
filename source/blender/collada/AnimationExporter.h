@@ -96,9 +96,13 @@ protected:
 
 	void dae_animation(Object* ob, FCurve *fcu, char* transformName , bool is_param, Material *ma = NULL);
 
+	void bake_bone_animation(Object *ob_arm, Bone *bone);
+
 	void write_bone_animation(Object *ob_arm, Bone *bone);
 
 	void sample_and_write_bone_animation(Object *ob_arm, Bone *bone, int transform_type);
+
+	void sample_and_bake_bone_animation(Object *ob_arm, Bone *bone);
 
 	void sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pChan);
 
@@ -134,6 +138,8 @@ protected:
 	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	
 	void find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name);
+
+	void find_all_frames(Object *ob, std::vector<float> &fra);
 	
 	void find_rotation_frames(Object *ob, std::vector<float> &fra, const char *prefix, int rotmode);
 	
