@@ -126,7 +126,7 @@ else:
 
             for lib in all_ffmpeg_libs:
                 ffmpeg_lib.append(lib + '.lib')
-                ffmpeg_dll.append('${BF_FFMPEG_LIBPATH}/' + lib + '.lib')
+                ffmpeg_dll.append('${BF_FFMPEG_LIBPATH}/' + lib + '.dll')
 
             scons_options.append('BF_FFMPEG=' + LCGDIR + '/ffmpeg-0.8')
             scons_options.append('BF_FFMPEG_LIB=' + (' '.join(ffmpeg_lib)))
