@@ -1965,6 +1965,107 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, FALSE);
 }
 
+/* ******************* Rename Operator ***************************** */
+/* Allow renaming some channels by clicking on them */
+
+static void rename_anim_channels (bAnimContext *ac, int channel_index)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimChannelType *acf;
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get the channel that was clicked on */
+		/* filter channels */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+		/* get channel from index */
+	ale= BLI_findlink(&anim_data, channel_index);
+	if (ale == NULL) {
+		/* channel not found */
+		if (G.f & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in rename_anim_channels() \n", channel_index);
+		
+		BLI_freelistN(&anim_data);
+		return;
+	}
+	
+	/* check that channel can be renamed */
+	acf = ANIM_channel_get_typeinfo(ale);
+	if (acf && acf->name_prop) {
+		PointerRNA ptr;
+		PropertyRNA *prop;
+		
+		/* ok if we can get name property to edit from this channel */
+		if (acf->name_prop(ale, &ptr, &prop)) {
+			/* actually showing the rename textfield is done on redraw,
+			 * so here we just store the index of this channel in the 
+			 * dopesheet data, which will get utilised when drawing the
+			 * channel...
+			 *
+			 * +1 factor is for backwards compat issues
+			 */
+			if (ac->ads) {
+				ac->ads->renameIndex = channel_index + 1;
+			}
+		}
+	}
+	
+	/* free temp data and tag for refresh */
+	BLI_freelistN(&anim_data);
+	ED_region_tag_redraw(ac->ar);
+}
+
+static int animchannels_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	bAnimContext ac;
+	ARegion *ar;
+	View2D *v2d;
+	int channel_index;
+	float x, y;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get useful pointers from animation context data */
+	ar= ac.ar;
+	v2d= &ar->v2d;
+	
+	/* figure out which channel user clicked in 
+	 * Note: although channels technically start at y= ACHANNEL_FIRST, we need to adjust by half a channel's height
+	 *		so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
+	 *		ACHANNEL_HEIGHT_HALF.
+	 */
+	UI_view2d_region_to_view(v2d, evt->mval[0], evt->mval[1], &x, &y);
+	
+	if (ac.datatype == ANIMCONT_NLA) {
+		SpaceNla *snla = (SpaceNla *)ac.sl;
+		UI_view2d_listview_view_to_cell(v2d, NLACHANNEL_NAMEWIDTH, NLACHANNEL_STEP(snla), 0, (float)NLACHANNEL_HEIGHT_HALF(snla), x, y, NULL, &channel_index);
+	}
+	else {
+		UI_view2d_listview_view_to_cell(v2d, ACHANNEL_NAMEWIDTH, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
+	}
+	
+	/* handle click */
+	rename_anim_channels(&ac, channel_index);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_channels_rename (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rename Channels";
+	ot->idname= "ANIM_OT_channels_rename";
+	ot->description= "Rename animation channel under mouse";
+	
+	/* api callbacks */
+	ot->invoke= animchannels_rename_invoke;
+	ot->poll= animedit_poll_channels_active;
+}
+
 /* ******************** Mouse-Click Operator *********************** */
 /* Handle selection changes due to clicking on channels. Settings will get caught by UI code... */
 
@@ -2288,7 +2389,9 @@ void ED_operatortypes_animchannels(void)
 {
 	WM_operatortype_append(ANIM_OT_channels_select_all_toggle);
 	WM_operatortype_append(ANIM_OT_channels_select_border);
+	
 	WM_operatortype_append(ANIM_OT_channels_click);
+	WM_operatortype_append(ANIM_OT_channels_rename);
 	
 	WM_operatortype_append(ANIM_OT_channels_setting_enable);
 	WM_operatortype_append(ANIM_OT_channels_setting_disable);
@@ -2322,6 +2425,9 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "children_only", 1);
+	
+		/* rename */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", AKEY, KM_PRESS, 0, 0);

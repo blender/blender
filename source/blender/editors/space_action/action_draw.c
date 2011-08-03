@@ -122,6 +122,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	}
 	{	/* second pass: widgets */
 		uiBlock *block= uiBeginBlock(C, ar, "dopesheet channel buttons", UI_EMBOSS);
+		size_t channel_index = 0;
 		
 		y= (float)ACHANNEL_FIRST;
 		
@@ -134,11 +135,12 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
 			{
 				/* draw all channels using standard channel-drawing API */
-				ANIM_channel_draw_widgets(ac, ale, block, yminc, ymaxc);
+				ANIM_channel_draw_widgets(C, ac, ale, block, yminc, ymaxc, channel_index);
 			}
 			
 			/* adjust y-position for next one */
 			y -= ACHANNEL_STEP;
+			channel_index++;
 		}
 		
 		uiEndBlock(C, block);

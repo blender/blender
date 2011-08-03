@@ -325,6 +325,26 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 		BLI_strncpy(name, id->name+2, ANIM_CHAN_NAME_SIZE);
 }
 
+/* name property for ID block entries */
+static short acf_generic_idblock_nameprop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	RNA_id_pointer_create(ale->id, ptr);
+	*prop = RNA_struct_name_property(ptr->type);
+	
+	return (*prop != NULL);
+}
+
+
+/* name property for ID block entries which are just subheading "fillers" */
+static short acf_generic_idfill_nameprop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	/* actual ID we're representing is stored in ale->data not ale->id, as id gives the owner */
+	RNA_id_pointer_create(ale->data, ptr);
+	*prop = RNA_struct_name_property(ptr->type);
+	
+	return (*prop != NULL);
+}
+
 /* Settings ------------------------------------------- */
 
 #if 0
@@ -455,6 +475,7 @@ static bAnimChannelType ACF_SUMMARY =
 	NULL,								/* offset */
 	
 	acf_summary_name,					/* name */
+	NULL,								/* name prop */
 	acf_summary_icon,					/* icon */
 	
 	acf_summary_setting_valid,			/* has setting */
@@ -556,6 +577,7 @@ static bAnimChannelType ACF_SCENE =
 	NULL,							/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_scene_icon,					/* icon */
 	
 	acf_scene_setting_valid,		/* has setting */
@@ -702,6 +724,7 @@ static bAnimChannelType ACF_OBJECT =
 	NULL,							/* offset */
 	
 	acf_object_name,				/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_object_icon,				/* icon */
 	
 	acf_object_setting_valid,		/* has setting */
@@ -747,6 +770,15 @@ static void acf_group_name(bAnimListElem *ale, char *name)
 	/* just copy the name... */
 	if (agrp && name)
 		BLI_strncpy(name, agrp->name, ANIM_CHAN_NAME_SIZE);
+}
+
+/* name property for group entries */
+static short acf_group_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	RNA_pointer_create(ale->id, &RNA_ActionGroup, ale->data, ptr);
+	*prop = RNA_struct_name_property(ptr->type);
+	
+	return (*prop != NULL);
 }
 
 /* check if some setting exists for this channel */
@@ -819,6 +851,7 @@ static bAnimChannelType ACF_GROUP =
 	acf_generic_group_offset,		/* offset */
 	
 	acf_group_name,					/* name */
+	acf_group_name_prop,			/* name prop */
 	NULL,							/* icon */
 	
 	acf_group_setting_valid,		/* has setting */
@@ -905,6 +938,7 @@ static bAnimChannelType ACF_FCURVE =
 	acf_generic_group_offset,		/* offset */
 	
 	acf_fcurve_name,				/* name */
+	NULL,							/* name prop */
 	NULL,							/* icon */
 	
 	acf_fcurve_setting_valid,		/* has setting */
@@ -989,6 +1023,7 @@ static bAnimChannelType ACF_FILLACTD =
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idfill_nameprop,	/* name prop */
 	acf_fillactd_icon,				/* icon */
 	
 	acf_fillactd_setting_valid,		/* has setting */
@@ -1067,6 +1102,7 @@ static bAnimChannelType ACF_FILLDRIVERS =
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_filldrivers_name,			/* name */
+	NULL,							/* name prop */
 	acf_filldrivers_icon,			/* icon */
 	
 	acf_filldrivers_setting_valid,	/* has setting */
@@ -1144,6 +1180,7 @@ static bAnimChannelType ACF_DSMAT=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dsmat_icon,					/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1220,6 +1257,7 @@ static bAnimChannelType ACF_DSLAM=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dslam_icon,					/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1303,6 +1341,7 @@ static bAnimChannelType ACF_DSTEX=
 	acf_dstex_offset,				/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idfill_nameprop,	/* name prop */
 	acf_dstex_icon,					/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1379,6 +1418,7 @@ static bAnimChannelType ACF_DSCAM=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idfill_nameprop,	/* name prop */
 	acf_dscam_icon,					/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1465,6 +1505,7 @@ static bAnimChannelType ACF_DSCUR=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dscur_icon,					/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1541,6 +1582,7 @@ static bAnimChannelType ACF_DSSKEY=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dsskey_icon,				/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1617,6 +1659,7 @@ static bAnimChannelType ACF_DSWOR=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idfill_nameprop,	/* name prop */
 	acf_dswor_icon,					/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1693,6 +1736,7 @@ static bAnimChannelType ACF_DSPART=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dspart_icon,				/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1769,6 +1813,7 @@ static bAnimChannelType ACF_DSMBALL=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dsmball_icon,				/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1845,6 +1890,7 @@ static bAnimChannelType ACF_DSARM=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dsarm_icon,				/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -1932,6 +1978,7 @@ static bAnimChannelType ACF_DSNTREE=
 	acf_dsntree_offset,				/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dsntree_icon,				/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -2008,6 +2055,7 @@ static bAnimChannelType ACF_DSMESH=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dsmesh_icon,				/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -2084,6 +2132,7 @@ static bAnimChannelType ACF_DSLAT=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dslat_icon,					/* icon */
 	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
@@ -2108,17 +2157,17 @@ static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac), int setting, short *
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			return SPK_DS_EXPAND;
-
+		
 		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
 			return ADT_NLA_EVAL_OFF;
-
+		
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
 			*neg= 1;
 			return ADT_CURVES_NOT_VISIBLE;
-
+		
 		case ACHANNEL_SETTING_SELECT: /* selected */
 			return ADT_UI_SELECTED;
-
+		
 		default: /* unsupported */
 			return 0;
 	}
@@ -2135,7 +2184,7 @@ static void *acf_dsspk_setting_ptr(bAnimListElem *ale, int setting, short *type)
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
 			GET_ACF_FLAG_PTR(spk->flag);
-
+		
 		case ACHANNEL_SETTING_SELECT: /* selected */
 		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
 		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
@@ -2143,7 +2192,7 @@ static void *acf_dsspk_setting_ptr(bAnimListElem *ale, int setting, short *type)
 				GET_ACF_FLAG_PTR(spk->adt->flag)
 			else
 				return NULL;
-
+		
 		default: /* unsupported */
 			return NULL;
 	}
@@ -2153,15 +2202,16 @@ static void *acf_dsspk_setting_ptr(bAnimListElem *ale, int setting, short *type)
 static bAnimChannelType ACF_DSSPK=
 {
 	"Speaker Expander",				/* type name */
-
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
-
+	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idblock_nameprop,	/* name prop */
 	acf_dsspk_icon,					/* icon */
-
+	
 	acf_generic_dataexpand_setting_valid,	/* has setting */
 	acf_dsspk_setting_flag,					/* flag for setting */
 	acf_dsspk_setting_ptr					/* pointer for setting */
@@ -2182,6 +2232,22 @@ static void acf_shapekey_name(bAnimListElem *ale, char *name)
 		else
 			BLI_snprintf(name, ANIM_CHAN_NAME_SIZE, "Key %d", ale->index);
 	}
+}
+
+/* name property for ShapeKey entries */
+static short acf_shapekey_nameprop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	KeyBlock *kb= (KeyBlock *)ale->data;
+	
+	/* if the KeyBlock had a name, use it, otherwise use the index */
+	if (kb && kb->name[0]) {
+		RNA_pointer_create(ale->id, &RNA_ShapeKey, kb, ptr);
+		*prop = RNA_struct_name_property(ptr->type);
+		
+		return (*prop != NULL);
+	}
+	
+	return 0;
 }
 
 /* check if some setting exists for this channel */
@@ -2250,6 +2316,7 @@ static bAnimChannelType ACF_SHAPEKEY=
 	acf_generic_basic_offset,		/* offset */
 	
 	acf_shapekey_name,				/* name */
+	acf_shapekey_nameprop,			/* name prop */
 	NULL,							/* icon */
 	
 	acf_shapekey_setting_valid,		/* has setting */
@@ -2324,6 +2391,7 @@ static bAnimChannelType ACF_GPD =
 	acf_generic_group_offset,		/* offset */
 	
 	acf_generic_idblock_name,		/* name */
+	acf_generic_idfill_nameprop,	/* name prop */
 	acf_gpd_icon,					/* icon */
 	
 	acf_gpd_setting_valid,			/* has setting */
@@ -2340,6 +2408,19 @@ static void acf_gpl_name(bAnimListElem *ale, char *name)
 	
 	if (gpl && name)
 		BLI_strncpy(name, gpl->info, ANIM_CHAN_NAME_SIZE);
+}
+
+/* name property for grease pencil layer entries */
+static short acf_gpl_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	if (ale->data) {
+		RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, ptr);
+		*prop = RNA_struct_name_property(ptr->type);
+		
+		return (*prop != NULL);
+	}
+	
+	return 0;
 }
 
 /* check if some setting exists for this channel */
@@ -2399,6 +2480,7 @@ static bAnimChannelType ACF_GPL =
 	acf_generic_group_offset,		/* offset */
 	
 	acf_gpl_name,					/* name */
+	acf_gpl_name_prop,				/* name prop */
 	NULL,							/* icon */
 	
 	acf_gpl_setting_valid,			/* has setting */
@@ -2450,7 +2532,7 @@ static void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_DSTEX;		/* Texture Channel */
 		animchannelTypeInfo[type++]= &ACF_DSLAT;		/* Lattice Channel */
 		animchannelTypeInfo[type++]= &ACF_DSSPK;		/* Speaker Channel */
-
+		
 		animchannelTypeInfo[type++]= &ACF_SHAPEKEY;		/* ShapeKey */
 		
 		animchannelTypeInfo[type++]= &ACF_GPD;			/* Grease Pencil Datablock */ 
@@ -2642,6 +2724,8 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 #define ICON_WIDTH		17
 // XXX hardcoded width of sliders
 #define SLIDER_WIDTH	80
+// XXX hardcoded width of rename textboxes
+#define RENAME_TEXT_WIDTH 100
 
 /* Draw the given channel */
 // TODO: make this use UI controls for the buttons
@@ -2731,6 +2815,7 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 	}
 	
 	/* step 5) draw name ............................................... */
+	// TODO: when renaming, we might not want to draw this, especially if name happens to be longer than channel
 	if (acf->name) {
 		char name[ANIM_CHAN_NAME_SIZE]; /* hopefully this will be enough! */
 		
@@ -2866,6 +2951,19 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	
 	/* free temp data */
 	BLI_freelistN(&anim_data);
+}
+
+/* callback for rename widgets - clear rename-in-progress */
+static void achannel_setting_rename_done_cb(bContext *C, void *ads_poin, void *UNUSED(arg2))
+{
+	bDopeSheet *ads = (bDopeSheet *)ads_poin;
+	
+	/* reset rename index so that edit box disappears now that editing is done */
+	ads->renameIndex = 0;
+	
+	/* send notifiers */
+	// XXX: right notifier?
+	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_RENAME, NULL);
 }
 
 /* callback for widget sliders - insert keyframes */
@@ -3060,12 +3158,11 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 }
 
 /* Draw UI widgets the given channel */
-// TODO: make this use UI controls for the buttons
-void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *block, float yminc, float ymaxc)
+void ANIM_channel_draw_widgets (bContext *C, bAnimContext *ac, bAnimListElem *ale, uiBlock *block, float yminc, float ymaxc, size_t channel_index)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	View2D *v2d= &ac->ar->v2d;
-	float y, ymid /*, ytext*/;
+	float y, ymid/*, ytext*/;
 	short offset;
 	
 	/* sanity checks - don't draw anything */
@@ -3116,11 +3213,31 @@ void ANIM_channel_draw_widgets (bAnimContext *ac, bAnimListElem *ale, uiBlock *b
 			draw_setting_widget(ac, ale, acf, block, offset, ymid, ACHANNEL_SETTING_SOLO);
 			offset += ICON_WIDTH; 
 		}
-		(void)offset;
 	}
 	
-	/* step 4) draw text... */
-	/* NOTE: this is not done here, since nothing to be clicked on... */
+	/* step 4) draw text - check if renaming widget is in use... */
+	if (acf->name_prop && ac->ads) {
+		float channel_height = ymaxc - yminc;
+		
+		/* if rename index matches, add widget for this */
+		if (ac->ads->renameIndex == channel_index+1) {
+			PointerRNA ptr;
+			PropertyRNA *prop;
+			
+			/* draw renaming widget if we can get RNA pointer for it */
+			if (acf->name_prop(ale, &ptr, &prop)) {
+				uiBut *but;
+				
+				uiBlockSetEmboss(block, UI_EMBOSS);
+				
+				but = uiDefButR(block, TEX, 1, "", offset+3, yminc, RENAME_TEXT_WIDTH, channel_height, &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
+				uiButSetFunc(but, achannel_setting_rename_done_cb, ac->ads, NULL);
+				uiButActiveOnly(C, block, but);
+				
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+			}
+		}
+	}
 	
 	/* step 5) draw mute+protection toggles + (sliders) ....................... */
 	/* reset offset - now goes from RHS of panel */

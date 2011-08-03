@@ -57,6 +57,9 @@ struct FModifier;
 struct uiBlock;
 struct uiLayout;
 
+struct PointerRNA;
+struct PropertyRNA;
+
 /* ************************************************ */
 /* ANIMATION CHANNEL FILTERING */
 /* anim_filter.c */
@@ -375,6 +378,8 @@ typedef struct bAnimChannelType {
 	
 	/* get name (for channel lists) */
 	void (*name)(bAnimListElem *ale, char *name);
+	/* get RNA property+pointer for editing the name */
+	short (*name_prop)(bAnimListElem *ale, struct PointerRNA *ptr, struct PropertyRNA **prop);
 	/* get icon (for channel lists) */
 	int (*icon)(bAnimListElem *ale);
 	
@@ -401,7 +406,7 @@ void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level);
 /* Draw the given channel */
 void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
 /* Draw the widgets for the given channel */
-void ANIM_channel_draw_widgets(bAnimContext *ac, bAnimListElem *ale, struct uiBlock *block, float yminc, float ymaxc);
+void ANIM_channel_draw_widgets(struct bContext *C, bAnimContext *ac, bAnimListElem *ale, struct uiBlock *block, float yminc, float ymaxc, size_t channel_index);
 
 
 /* ------------------------ Editing API -------------------------- */

@@ -519,6 +519,9 @@ typedef struct bDopeSheet {
 	
 	int filterflag;				/* flags to use for filtering data */
 	int flag;					/* standard flags */
+	
+	int renameIndex;			/* index+1 of channel to rename - only gets set by renaming operator */
+	int pad;
 } bDopeSheet;
 
 
