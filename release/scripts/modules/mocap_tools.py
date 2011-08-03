@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-from math import hypot, sqrt, isfinite, radians
+from math import hypot, sqrt, isfinite, radians, pi
 import bpy
 import time
 from mathutils import Vector, Matrix
@@ -637,3 +637,72 @@ def guessMapping(performer_obj, enduser_obj):
                 guessSingleMapping(child)
 
         guessSingleMapping(root)
+
+
+def limit_dof(context, performer_obj, enduser_obj):
+    limitDict = {}
+    perf_bones = [bone for bone in performer_obj.pose.bones if bone.bone.map]
+    c_frame = context.scene.frame_current
+    for bone in perf_bones:
+        limitDict[bone.bone.map] = [1000, 1000, 1000, -1000, -1000, -1000]
+    for t in range(context.scene.frame_start, context.scene.frame_end):
+        context.scene.frame_set(t)
+        for bone in perf_bones:
+            end_bone = enduser_obj.pose.bones[bone.bone.map]
+            bake_matrix = bone.matrix
+            rest_matrix = end_bone.bone.matrix_local
+
+            if end_bone.parent and end_bone.bone.use_inherit_rotation:
+                srcParent = bone.parent
+                parent_mat = srcParent.matrix
+                parent_rest = end_bone.parent.bone.matrix_local
+                parent_rest_inv = parent_rest.copy()
+                parent_rest_inv.invert()
+                parent_mat_inv = parent_mat.copy()
+                parent_mat_inv.invert()
+                bake_matrix = parent_mat_inv * bake_matrix
+                rest_matrix = parent_rest_inv * rest_matrix
+
+            rest_matrix_inv = rest_matrix.copy()
+            rest_matrix_inv.invert()
+            bake_matrix = rest_matrix_inv * bake_matrix
+
+            mat = bake_matrix
+            euler = mat.to_euler()
+            limitDict[bone.bone.map][0] = min(limitDict[bone.bone.map][0], euler.x)
+            limitDict[bone.bone.map][1] = min(limitDict[bone.bone.map][1], euler.y)
+            limitDict[bone.bone.map][2] = min(limitDict[bone.bone.map][2], euler.z)
+            limitDict[bone.bone.map][3] = max(limitDict[bone.bone.map][3], euler.x)
+            limitDict[bone.bone.map][4] = max(limitDict[bone.bone.map][4], euler.y)
+            limitDict[bone.bone.map][5] = max(limitDict[bone.bone.map][5], euler.z)
+    for bone in enduser_obj.pose.bones:
+        existingConstraint = [constraint for constraint in bone.constraints if constraint.name == "DOF Limitation"]
+        if existingConstraint:
+            bone.constraints.remove(existingConstraint[0])
+    end_bones = [bone for bone in enduser_obj.pose.bones if bone.name in limitDict.keys()]
+    for bone in end_bones:
+        #~ if not bone.is_in_ik_chain:
+        newCons = bone.constraints.new("LIMIT_ROTATION")
+        newCons.name = "DOF Limitation"
+        newCons.owner_space = "LOCAL"
+        newCons.min_x, newCons.min_y, newCons.min_z, newCons.max_x, newCons.max_y, newCons.max_z = limitDict[bone.name]
+        newCons.use_limit_x = True
+        newCons.use_limit_y = True
+        newCons.use_limit_z = True
+        #~ else:
+            #~ bone.ik_min_x, bone.ik_min_y, bone.ik_min_z, bone.ik_max_x, bone.ik_max_y, bone.ik_max_z = limitDict[bone.name]
+            #~ bone.use_ik_limit_x = True
+            #~ bone.use_ik_limit_y = True
+            #~ bone.use_ik_limit_z= True
+            #~ bone.ik_stiffness_x = 1/((limitDict[bone.name][3] - limitDict[bone.name][0])/(2*pi)))
+            #~ bone.ik_stiffness_y = 1/((limitDict[bone.name][4] - limitDict[bone.name][1])/(2*pi)))
+            #~ bone.ik_stiffness_z = 1/((limitDict[bone.name][5] - limitDict[bone.name][2])/(2*pi)))
+
+    context.scene.frame_set(c_frame)
+
+
+def limit_dof_toggle_off(context, enduser_obj):
+    for bone in enduser_obj.pose.bones:
+        existingConstraint = [constraint for constraint in bone.constraints if constraint.name == "DOF Limitation"]
+        if existingConstraint:
+            bone.constraints.remove(existingConstraint[0])
