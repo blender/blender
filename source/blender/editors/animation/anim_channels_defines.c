@@ -608,7 +608,7 @@ static int acf_object_icon(bAnimListElem *ale)
 		case OB_LATTICE: 
 			return ICON_OUTLINER_OB_LATTICE;
 		case OB_SPEAKER:
-			return ICON_SPEAKER;
+			return ICON_OUTLINER_OB_SPEAKER;
 		case OB_ARMATURE:
 			return ICON_OUTLINER_OB_ARMATURE;
 		case OB_FONT: 

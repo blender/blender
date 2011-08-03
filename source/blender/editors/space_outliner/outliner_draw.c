@@ -1081,7 +1081,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			case OB_SURF: 
 				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SURFACE); break;
 			case OB_SPEAKER:
-				tselem_draw_icon_uibut(&arg, ICON_SPEAKER); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SPEAKER); break;
 			case OB_EMPTY: 
 				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_EMPTY); break;
 		
@@ -1127,7 +1127,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				tselem_draw_icon_uibut(&arg, ICON_IMAGE_DATA); break;
 			case ID_SPK:
 			case ID_SO:
-				tselem_draw_icon_uibut(&arg, ICON_SPEAKER); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_SPEAKER); break;
 			case ID_AR:
 				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_ARMATURE); break;
 			case ID_CA:

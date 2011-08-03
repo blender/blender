@@ -287,7 +287,7 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
         layout.separator()
 
-        layout.operator("object.speaker_add", text="Speaker", icon='SPEAKER')
+        layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
         layout.separator()
 
         layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
