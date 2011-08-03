@@ -58,8 +58,6 @@ typedef struct PaintWavePoint {
 	short state; /* 0 = neutral
 				 *  1 = obstacle
 				 *  2 = reflect only */
-	float foam;
-
 } PaintWavePoint;
 
 struct DerivedMesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm);
@@ -70,6 +68,7 @@ void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
 void dynamicPaint_clearSurface(DynamicPaintSurface *surface);
 int  dynamicPaint_resetSurface(struct DynamicPaintSurface *surface);
 int  dynamicPaint_surfaceHasColorPreview(DynamicPaintSurface *surface);
+int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, struct Object *ob, int index);
 void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
 void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basename);
 

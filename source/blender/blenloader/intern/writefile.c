@@ -1288,6 +1288,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			{
 				writestruct(wd, DATA, "DynamicPaintBrushSettings", 1, pmd->brush);
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->paint_ramp);
+				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->vel_ramp);
 			}
 		} 
 		else if (md->type==eModifierType_Collision) {

@@ -63,26 +63,14 @@ static CustomDataMask requiredDataMask(Object *ob, ModifierData *md)
 	return dataMask;
 }
 
-/*static void deformVerts(
-					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	  float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)*/
-
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
 						DerivedMesh *dm,
 						int useRenderParams,
 						int isFinalCalc)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
-	//DerivedMesh *dm = get_cddm(ob, NULL, derivedData, vertexCos);
-	DerivedMesh *result;
 
-
-	result = dynamicPaint_Modifier_do(pmd, md->scene, ob, dm);
-
-	/*if(dm != derivedData)
-		dm->release(dm);*/
-
-	return result;
+	return dynamicPaint_Modifier_do(pmd, md->scene, ob, dm);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,

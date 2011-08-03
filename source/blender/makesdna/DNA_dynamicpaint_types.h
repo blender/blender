@@ -85,6 +85,7 @@ typedef struct DynamicPaintSurface {
 	float disp_depth;
 
 	float spread_speed, shrink_speed;
+	float drip_vel, drip_acc;
 
 	/* wave settings */
 	float wave_damping, wave_speed, wave_timescale, wave_spring;
@@ -129,6 +130,13 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_INVERSE_PROX (1<<6) /* inverse proximity painting */
 #define MOD_DPAINT_ACCEPT_NONCLOSED (1<<7) /* allows volume brushes to work with non-closed volumes */
 
+#define MOD_DPAINT_DO_SMUDGE (1<<8) /* brush smudges existing paint */
+#define MOD_DPAINT_VELOCITY_ALPHA (1<<9) /* multiply brush influence by velocity */
+#define MOD_DPAINT_VELOCITY_COLOR (1<<10) /* replace brush color by velocity color ramp */
+#define MOD_DPAINT_VELOCITY_DEPTH (1<<11) /* multiply brush intersection depth by velocity */
+
+#define MOD_DPAINT_USES_VELOCITY ((1<<8)|(1<<9)|(1<<10)|(1<<11))
+
 /* collision type */
 #define MOD_DPAINT_COL_VOLUME 0 /* paint with mesh volume */
 #define MOD_DPAINT_COL_DIST 1 /* paint using distance to mesh surface */
@@ -151,7 +159,7 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_RAY_ZPLUS 1
 
 
-/* Painter settings */
+/* Brush settings */
 typedef struct DynamicPaintBrushSettings {
 	struct DynamicPaintModifierData *pmd; /* for fast RNA access */
 	struct DerivedMesh *dm;
@@ -168,8 +176,9 @@ typedef struct DynamicPaintBrushSettings {
 	float paint_distance;
 	float displace_distance, prox_displace_strength;
 
-	// Falloff curves
+	/* color ramps */
 	struct ColorBand *paint_ramp;	/* Proximity paint falloff */
+	struct ColorBand *vel_ramp;		/* Velocity paint ramp */
 
 	short proximity_falloff;
 	short brush_settings_context;	/* ui settings display */
@@ -177,7 +186,8 @@ typedef struct DynamicPaintBrushSettings {
 	short ray_dir;
 
 	float wave_factor;
-	float pad_f;
+	float max_velocity, smudge_strength;
+	float pad;
 } DynamicPaintBrushSettings;
 
 #endif

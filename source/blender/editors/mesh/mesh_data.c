@@ -299,6 +299,25 @@ int ED_mesh_color_remove(bContext *C, Object *ob, Mesh *me)
 	return 1;
 }
 
+int ED_mesh_color_remove_named(bContext *C, Object *ob, Mesh *me, const char *name)
+{
+	CustomData *data= (me->edit_mesh)? &me->edit_mesh->fdata: &me->fdata;
+	CustomDataLayer *cdl;
+	int index;
+
+	 index= CustomData_get_named_layer_index(data, CD_MCOL, name);
+	cdl= (index == -1)? NULL: &data->layers[index];
+
+	if(!cdl)
+		return 0;
+
+	delete_customdata_layer(C, ob, cdl);
+	DAG_id_tag_update(&me->id, 0);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+
+	return 1;
+}
+
 /*********************** UV texture operators ************************/
 
 static int layers_poll(bContext *C)

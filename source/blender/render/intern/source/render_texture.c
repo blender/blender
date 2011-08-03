@@ -1164,7 +1164,7 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *d
 
 /* ************************************** */
 
-static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output)
+int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output)
 {
 	float tmpvec[3];
 	int retval=0; /* return value, int:0, col:1, nor:2, everything:3 */

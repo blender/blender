@@ -100,6 +100,7 @@ void DPAINT_OT_bake(struct wmOperatorType *ot);
 void DPAINT_OT_surface_slot_add(struct wmOperatorType *ot);
 void DPAINT_OT_surface_slot_remove(struct wmOperatorType *ot);
 void DPAINT_OT_type_toggle(struct wmOperatorType *ot);
+void DPAINT_OT_output_toggle(struct wmOperatorType *ot);
 
 /* physics_pointcache.c */
 void PTCACHE_OT_bake_all(struct wmOperatorType *ot);

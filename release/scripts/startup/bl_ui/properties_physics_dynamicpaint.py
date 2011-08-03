@@ -119,6 +119,19 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
                         if (brush.wave_type != "REFLECT"):
                             split = layout.split(percentage=0.6)
                             split.prop(brush, "wave_factor")
+                    elif (brush.brush_settings_context == "VELOCITY"):
+                        col = layout.row().column()
+                        col.prop(brush, "velocity_alpha")
+                        col.prop(brush, "velocity_color")
+                        col.prop(brush, "velocity_depth")
+                        col = layout.row().column()
+                        sub = col.column()
+                        sub.active = (brush.velocity_alpha or brush.velocity_color)
+                        sub.prop(brush, "max_velocity")
+                        sub.template_color_ramp(brush, "velocity_ramp", expand=True)
+                        layout.separator()
+                        layout.prop(brush, "do_smudge")
+                        layout.prop(brush, "smudge_strength")
                     else:
                         layout.label(text="-WIP-")
 
@@ -199,17 +212,31 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
         # vertex format outputs
         if (surface.surface_format == "VERTEX"):
             if (surface.surface_type == "PAINT"):
+                # paintmap output
                 row = layout.row()
                 row.prop_search(surface, "output_name", ob.data, "vertex_colors", text="Paintmap layer: ")
-                #col = row.column(align=True)
-                #col.operator("dpaint.output_add", icon='ZOOMIN', text="")
+                ic = 'ZOOMIN'
+                if (surface.output_exists(object=ob, index=0)):
+                    ic = 'ZOOMOUT'
+                col = row.column(align=True)
+                col.operator("dpaint.output_toggle", icon=ic, text="").index = 0
                 
+                # wetmap output
                 row = layout.row()
                 row.prop_search(surface, "output_name2", ob.data, "vertex_colors", text="Wetmap layer: ")
-                #col = row.column(align=True)
-                #col.operator("dpaint.output_add", icon='ZOOMIN', text="")
+                ic = 'ZOOMIN'
+                if (surface.output_exists(object=ob, index=1)):
+                    ic = 'ZOOMOUT'
+                col = row.column(align=True)
+                col.operator("dpaint.output_toggle", icon=ic, text="").index = 1
             if (surface.surface_type == "WEIGHT"):
-                layout.prop_search(surface, "output_name", ob, "vertex_groups", text="Vertex Group: ")
+                row = layout.row()
+                row.prop_search(surface, "output_name", ob, "vertex_groups", text="Vertex Group: ")
+                ic = 'ZOOMIN'
+                if (surface.output_exists(object=ob, index=0)):
+                    ic = 'ZOOMOUT'
+                col = row.column(align=True)
+                col.operator("dpaint.output_toggle", icon=ic, text="").index = 0
 
         # image format outputs
         if (surface.surface_format == "IMAGE"):
@@ -280,6 +307,14 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
             col = layout.column()
             col.active = surface.use_drip
             effector_weights_ui(self, context, surface.effector_weights)
+            split = layout.split()
+
+            layout.label(text="Surface Movement:")
+            split = layout.split()
+            col = split.column()
+            col.prop(surface, "drip_velocity", slider=True)
+            col = split.column()
+            col.prop(surface, "drip_acceleration", slider=True)
 
         elif surface.effect_ui == "SHRINK":
             layout.prop(surface, "use_shrink")

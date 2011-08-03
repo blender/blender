@@ -195,6 +195,7 @@ struct Tex;
 struct MTex;
 struct ImBuf;
 
+int multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output);
 /* this one uses nodes */
 int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
 /* nodes disabled */

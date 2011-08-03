@@ -118,6 +118,7 @@ void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, 
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result) {}
 
 /* texture.c */
+int multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output) {return 0;}
 int multitex_thread(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output) {return 0;}
 int multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres){return 0;}
 int multitex_ext_safe(struct Tex *tex, float *texvec, struct TexResult *texres){return 0;}
@@ -285,6 +286,7 @@ void ED_mesh_edges_add(struct Mesh *mesh, struct ReportList *reports, int count)
 void ED_mesh_faces_add(struct Mesh *mesh, struct ReportList *reports, int count){}
 void ED_mesh_material_link(struct Mesh *mesh, struct Material *ma){}
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
+int ED_mesh_color_remove_named(struct bContext *C, struct Object *ob, struct Mesh *me, const char *name){return 0;}
 int ED_mesh_uv_texture_add(struct bContext *C, struct Mesh *me){return 0;}
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob){}
 void ED_object_constraint_update(struct Object *ob){}

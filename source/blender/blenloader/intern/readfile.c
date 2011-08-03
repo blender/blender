@@ -4089,6 +4089,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					pmd->brush->pmd = pmd;
 					pmd->brush->psys = newdataadr(fd, pmd->brush->psys);
 					pmd->brush->paint_ramp = newdataadr(fd, pmd->brush->paint_ramp);
+					pmd->brush->vel_ramp = newdataadr(fd, pmd->brush->vel_ramp);
 					pmd->brush->dm = NULL;
 				}
 			}
