@@ -730,11 +730,9 @@ GHOST_Event* GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_
 {
 	GHOST_System* system = (GHOST_System*)getSystem();
 
-	if (type == GHOST_kEventWindowActivate)
-		{
-		puts("activating window");
+	if (type == GHOST_kEventWindowActivate) {
 		system->getWindowManager()->setActiveWindow(window);
-		}
+	}
 
 	return new GHOST_Event(system->getMilliSeconds(), type, window);
 }

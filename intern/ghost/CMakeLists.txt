@@ -44,7 +44,6 @@ set(SRC
 	intern/GHOST_ISystem.cpp
 	intern/GHOST_ISystemPaths.cpp
 	intern/GHOST_ModifierKeys.cpp
-	intern/GHOST_NDOFManager.cpp
 	intern/GHOST_Path-api.cpp
 	intern/GHOST_Path-api.cpp
 	intern/GHOST_Rect.cpp
@@ -74,12 +73,10 @@ set(SRC
 	intern/GHOST_EventDragnDrop.h
 	intern/GHOST_EventKey.h
 	intern/GHOST_EventManager.h
-	intern/GHOST_EventNDOF.h
 	intern/GHOST_EventString.h
 	intern/GHOST_EventTrackpad.h
 	intern/GHOST_EventWheel.h
 	intern/GHOST_ModifierKeys.h
-	intern/GHOST_NDOFManager.h
 	intern/GHOST_System.h
 	intern/GHOST_SystemPaths.h
 	intern/GHOST_TimerManager.h
@@ -99,6 +96,14 @@ endif()
 
 if(WITH_INPUT_NDOF)
 	add_definitions(-DWITH_INPUT_NDOF)
+
+	list(APPEND SRC
+		intern/GHOST_NDOFManager.cpp
+
+		intern/GHOST_EventNDOF.h
+		intern/GHOST_NDOFManager.h
+	)
+
 	list(APPEND INC_SYS
 		${NDOF_INCLUDE_DIRS}
 	)
