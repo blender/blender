@@ -179,7 +179,7 @@ option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON
 option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" ON)
 
 # Misc
-option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
+option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" OFF)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON) 
 if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
