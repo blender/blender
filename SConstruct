@@ -664,11 +664,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         dllsources.append('${LCGDIR}/sndfile/lib/libsndfile-1.dll')
 
     if env['WITH_BF_FFMPEG']:
-        dllsources += ['${BF_FFMPEG_LIBPATH}/avcodec-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avformat-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avdevice-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avutil-50.dll',
-                    '${BF_FFMPEG_LIBPATH}/swscale-0.dll']
+        dllsources += env['BF_FFMPEG_DLL'].split()
 
     # Since the thumb handler is loaded by Explorer, architecture is
     # strict: the x86 build fails on x64 Windows. We need to ship
