@@ -81,6 +81,9 @@ class NdVector:
     def y(self):
         return self.vec[1]
 
+    def resize_2d(self):
+        return Vector((self.x, self.y))
+
     length = property(vecLength)
     lengthSq = property(vecLengthSq)
     x = property(x)
@@ -322,7 +325,10 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
             return 0, None
         for pt in data_pts[s:e + 1]:
             bezVal = bezierEval(bez, pt.u)
-            tmpError = (pt.co - bezVal).length / pt.co.length
+            normalize_error = pt.co.length
+            if normalize_error == 0:
+                normalize_error = 1
+            tmpError = (pt.co - bezVal).length / normalize_error
             if tmpError >= maxError:
                 maxError = tmpError
                 maxErrorPt = pt.index
@@ -471,10 +477,8 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
 #(e.g. a bone's x,y,z rotation)
 
 
-def fcurves_simplify(sel_opt="all", error=0.002, group_mode=True):
+def fcurves_simplify(context, obj, sel_opt="all", error=0.002, group_mode=True):
     # main vars
-    context = bpy.context
-    obj = context.active_object
     fcurves = obj.animation_data.action.fcurves
 
     if sel_opt == "sel":
@@ -706,3 +710,52 @@ def limit_dof_toggle_off(context, enduser_obj):
         existingConstraint = [constraint for constraint in bone.constraints if constraint.name == "DOF Limitation"]
         if existingConstraint:
             bone.constraints.remove(existingConstraint[0])
+
+
+def path_editing(context, stride_obj, path):
+    y_fcurve = [fcurve for fcurve in stride_obj.animation_data.action.fcurves if fcurve.data_path == "location"][1]
+    s, e = context.scene.frame_start, context.scene.frame_end  # y_fcurve.range()
+    s = int(s)
+    e = int(e)
+    y_s = y_fcurve.evaluate(s)
+    y_e = y_fcurve.evaluate(e)
+    direction = (y_e - y_s) / abs(y_e - y_s)
+    existing_cons = [constraint for constraint in stride_obj.constraints if constraint.type == "FOLLOW_PATH"]
+    for cons in existing_cons:
+        stride_obj.constraints.remove(cons)
+    path_cons = stride_obj.constraints.new("FOLLOW_PATH")
+    if direction < 0:
+        path_cons.forward_axis = "TRACK_NEGATIVE_Y"
+    else:
+        path_cons.forward_axis = "FORWARD_Y"
+    path_cons.target = path
+    path_cons.use_curve_follow = True
+    path.data.path_duration = e - s
+    try:
+        path.data.animation_data.action.fcurves
+    except AttributeError:
+        path.data.keyframe_insert("eval_time", frame=0)
+    eval_time_fcurve = [fcurve for fcurve in path.data.animation_data.action.fcurves if fcurve.data_path == "eval_time"]
+    eval_time_fcurve = eval_time_fcurve[0]
+    totalLength = 0
+    parameterization = {}
+    print("evaluating curve")
+    for t in range(s, e - 1):
+        if s == t:
+            chordLength = 0
+        else:
+            chordLength = (y_fcurve.evaluate(t) - y_fcurve.evaluate(t + 1))
+        totalLength += chordLength
+        parameterization[t] = totalLength
+    for t in range(s + 1, e - 1):
+        if totalLength == 0:
+            print("no forward motion")
+        parameterization[t] /= totalLength
+        parameterization[t] *= e - s
+    parameterization[e] = e - s
+    for t in parameterization.keys():
+        eval_time_fcurve.keyframe_points.insert(frame=t, value=parameterization[t])
+    error = 0.01
+    reparaError = error * 32
+    maxIterations = 16
+    print("finished path editing")

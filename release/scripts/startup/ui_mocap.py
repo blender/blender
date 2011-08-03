@@ -304,6 +304,18 @@ class MocapConstraintsPanel(bpy.types.Panel):
                             layout.separator()
 
 
+class ExtraToolsPanel(bpy.types.Panel):
+    # Motion capture retargeting panel
+    bl_label = "Extra Mocap Tools"
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "object"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator('mocap.pathediting', text="Follow Path")
+
+
 class OBJECT_OT_RetargetButton(bpy.types.Operator):
     '''Retarget animation from selected armature to active armature '''
     bl_idname = "mocap.retarget"
@@ -383,7 +395,7 @@ class OBJECT_OT_ConvertSamplesButton(bpy.types.Operator):
     bl_label = "Converts samples / simplifies keyframes to beziers"
 
     def execute(self, context):
-        mocap_tools.fcurves_simplify()
+        mocap_tools.fcurves_simplify(context, context.active_object)
         return {"FINISHED"}
 
     @classmethod
@@ -594,6 +606,25 @@ class OBJECT_OT_GuessHierachyMapping(bpy.types.Operator):
         performer_obj = [obj for obj in context.selected_objects if obj != context.active_object]
         if performer_obj:
             return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
+        else:
+            return False
+
+
+class OBJECT_OT_PathEditing(bpy.types.Operator):
+    '''Sets active object (stride object) to follow the selected curve'''
+    bl_idname = "mocap.pathediting"
+    bl_label = "Sets active object (stride object) to follow the selected curve"
+
+    def execute(self, context):
+        path = [obj for obj in context.selected_objects if obj != context.active_object][0]
+        mocap_tools.path_editing(context, context.active_object, path)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            selected_objs = [obj for obj in context.selected_objects if obj != context.active_object]
+            return selected_objs
         else:
             return False
 
