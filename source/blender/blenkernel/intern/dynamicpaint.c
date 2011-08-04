@@ -170,9 +170,9 @@ typedef struct PaintBakeData {
 	VolumeGrid *grid;	/* space partitioning grid to optimize brush checks */
 
 	/* velocity and movement */
-	Vec3f *velocity;  /* speed vector in global space, if required */
+	Vec3f *velocity;  /* speed vector in global space movement per frame, if required */
 	Vec3f *prev_velocity;
-	float *brush_velocity; /* special temp data for post-p velocity based brushes like smear
+	float *brush_velocity; /* special temp data for post-p velocity based brushes like smudge
 						   *  3 float dir vec + 1 float str */
 	MVert *prev_verts;	/* copy of previous frame vertices. used to observe surface movement */
 	float prev_obmat[4][4]; /* previous frame object matrix */
@@ -3085,6 +3085,9 @@ static void dynamicPaint_updatePointData(DynamicPaintSurface *surface, unsigned 
 		/* Sample velocity colorband if required */
 		if (brush->flags & (MOD_DPAINT_VELOCITY_ALPHA|MOD_DPAINT_VELOCITY_COLOR|MOD_DPAINT_VELOCITY_DEPTH)) {
 			float coba_res[4];
+			vel_factor /= brush->max_velocity;
+			CLAMP(vel_factor, 0.0f, 1.0f);
+
 			if (do_colorband(brush->vel_ramp, vel_factor, coba_res)) {
 				if (brush->flags & MOD_DPAINT_VELOCITY_COLOR) {
 					paint[0] = coba_res[0];
@@ -3538,7 +3541,6 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 
 							/* substract canvas point velocity */
 							VECSUB(velocity, brushPointVelocity, bData->velocity[index].v);
-
 							velocity_val = len_v3(velocity);
 
 							/* */
@@ -3547,9 +3549,6 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 								mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 								bData->brush_velocity[index*4+3] = velocity_val;
 							}
-
-							velocity_val /= brush->max_velocity;
-							CLAMP(velocity_val, 0.0f, 1.0f);
 						}
 
 						/*
@@ -3839,8 +3838,10 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 					{
 						float velocity[3];
 						ParticleData *pa = psys->particles + part_index;
-
 						mul_v3_v3fl(velocity, pa->state.vel, particle_timestep);
+
+						/* substract canvas point velocity */
+						VECSUB(velocity, velocity, bData->velocity[index].v);
 						velocity_val = len_v3(velocity);
 
 						if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
@@ -3848,9 +3849,6 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 							mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 							bData->brush_velocity[index*4+3] = velocity_val;
 						}
-
-						velocity_val /= brush->max_velocity;
-						CLAMP(velocity_val, 0.0f, 1.0f);
 					}
 
 					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
@@ -3890,12 +3888,9 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
 	Vec3f brushVel;
-	float velocity_val = 0.0f;
 
-	if (brush->flags & MOD_DPAINT_USES_VELOCITY) {
+	if (brush->flags & MOD_DPAINT_USES_VELOCITY)
 		dynamicPaint_brushObjectCalculateVelocity(scene, brushOb, brush, &brushVel, timescale);
-		velocity_val = len_v3(brushVel.v);
-	}
 
 	/*
 	*	Loop through every surface point
@@ -3921,6 +3916,7 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 		if (strength >= 0.001f) {
 			float paintColor[3] = {0.0f};
 			float depth = 0.0f;
+			float velocity_val = 0.0f;
 
 			/* material */
 			if (brush->flags & MOD_DPAINT_USE_MATERIAL) {
@@ -3938,8 +3934,14 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 				strength = colorband[3];
 
 			if (brush->flags & MOD_DPAINT_USES_VELOCITY) {
+				float velocity[3];
+
+				/* substract canvas point velocity */
+				VECSUB(velocity, brushVel.v, bData->velocity[index].v);
+				velocity_val = len_v3(velocity);
+
 				if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
-					VECCOPY(&bData->brush_velocity[index*4], brushVel.v);
+					VECCOPY(&bData->brush_velocity[index*4], velocity);
 					mul_v3_fl(&bData->brush_velocity[index*4], 1.0f/velocity_val);
 					bData->brush_velocity[index*4+3] = velocity_val;
 				}
@@ -4031,7 +4033,7 @@ static void dynamicPaint_prepareNeighbourData(DynamicPaintSurface *surface, int 
 	bData->average_dist  /= adj_data->total_targets;
 }
 
-static void dynamicPaint_doSmudge(DynamicPaintSurface *surface, DynamicPaintBrushSettings *brush)
+static void dynamicPaint_doSmudge(DynamicPaintSurface *surface, DynamicPaintBrushSettings *brush, float timescale)
 {
 	PaintSurfaceData *sData = surface->data;
 	PaintBakeData *bData = sData->bData;
@@ -4047,12 +4049,11 @@ static void dynamicPaint_doSmudge(DynamicPaintSurface *surface, DynamicPaintBrus
 		if (vel > max_velocity) max_velocity = vel;
 	}
 
-	steps = (int)ceil(max_velocity / bData->average_dist);
+	steps = (int)ceil(max_velocity / bData->average_dist * timescale);
 	CLAMP(steps, 0, 12);
+	eff_scale = brush->smudge_strength/(float)steps*timescale;
 
 	for (step=0; step<steps; step++) {
-
-		eff_scale = brush->smudge_strength/(float)steps;
 
 		for (index = 0; index < sData->total_points; index++) {
 			int i;
@@ -5018,7 +5019,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					/* process special brush effects, like smudge */
 					if (bData->brush_velocity) {
 						if (brush->flags & MOD_DPAINT_DO_SMUDGE)
-							dynamicPaint_doSmudge(surface, brush);
+							dynamicPaint_doSmudge(surface, brush, timescale);
 						MEM_freeN(bData->brush_velocity);
 						bData->brush_velocity = NULL;
 					}
