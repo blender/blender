@@ -12999,53 +12999,6 @@ Main* BLO_library_append_begin(const bContext *C, BlendHandle** bh, const char *
 	return library_append_begin(C, &fd, filepath);
 }
 
-static void append_do_cursor(Scene *scene, Library *curlib, short flag)
-{
-	Base *centerbase;
-	Object *ob;
-	float *curs, centerloc[3], vec[3], min[3], max[3];
-	int count= 0;
-
-	/* when not linking (appending)... */
-	if(flag & FILE_LINK) 
-		return;
-
-	/* we're not appending at cursor */
-	if((flag & FILE_ATCURSOR) == 0) 
-		return;
-	
-	/* find the center of everything appended */
-	INIT_MINMAX(min, max);
-	centerbase= (scene->base.first);
-	while(centerbase) {
-		if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
-			VECCOPY(vec, centerbase->object->loc);
-			DO_MINMAX(vec, min, max);
-			count++;
-		}
-		centerbase= centerbase->next;
-	}
-	/* we haven't found any objects to move to cursor */
-	if(!count) 
-		return;
-	
-	/* move from the center of the appended objects to cursor */
-	mid_v3_v3v3(centerloc, min, max);
-	curs = scene->cursor;
-	VECSUB(centerloc,curs,centerloc);
-	
-	/* now translate the center of the objects */
-	centerbase= (scene->base.first);
-	while(centerbase) {
-		if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
-			ob= centerbase->object;
-			ob->loc[0] += centerloc[0];
-			ob->loc[1] += centerloc[1];
-			ob->loc[2] += centerloc[2];
-		}
-		centerbase= centerbase->next;
-	}
-}
 
 /* Context == NULL signifies not to do any scene manipulation */
 static void library_append_end(const bContext *C, Main *mainl, FileData **fd, int idcode, short flag)
@@ -13099,8 +13052,6 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 		else {
 			printf("library_append_end, scene is NULL (objects wont get bases)\n");
 		}
-
-		append_do_cursor(scene, curlib, flag);
 	}
 	/* has been removed... erm, why? s..ton) */
 	/* 20040907: looks like they are give base already in append_named_part(); -Nathan L */
