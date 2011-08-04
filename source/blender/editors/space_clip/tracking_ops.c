@@ -1437,7 +1437,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	ot->modal= track_markers_modal;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "backwards", 0, "Backwards", "Do backwards tarcking");
