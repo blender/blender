@@ -284,7 +284,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 	if(!tiny) {
 		UI_ThemeColor(TH_MARKER_OUTLINE);
 
-		if(TRACK_SELECTED(track)) {
+		if(TRACK_VIEW_SELECTED(sc, track)) {
 			glPointSize(5.0f);
 			glBegin(GL_POINTS);
 				for(i= a; i<b; i++) {
@@ -304,7 +304,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *
 
 	UI_ThemeColor(TH_PATH_BEFORE);
 
-	if(TRACK_SELECTED(track)) {
+	if(TRACK_VIEW_SELECTED(sc, track)) {
 		glPointSize(3.0f);
 		glBegin(GL_POINTS);
 			for(i= a; i<b; i++) {
@@ -561,7 +561,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	if((tiny && outline) || (marker->flag&MARKER_DISABLED))
 		return;
 
-	if(!TRACK_SELECTED(track) || track->flag&TRACK_LOCKED)
+	if(!TRACK_VIEW_SELECTED(sc, track) || track->flag&TRACK_LOCKED)
 		return;
 
 	track_colors(track, act, col, scol);
@@ -686,7 +686,7 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	char str[128]= {0}, state[64]= {0};
 	float x, y, dx= 0.f, dy= 0.f;
 
-	if(!TRACK_SELECTED(track))
+	if(!TRACK_VIEW_SELECTED(sc, track))
 		return;
 
 	if(marker->flag&MARKER_DISABLED) {

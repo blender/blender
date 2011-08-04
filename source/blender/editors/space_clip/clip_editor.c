@@ -55,6 +55,16 @@
 
 #include "UI_view2d.h"
 
+int ED_space_clip_poll(bContext *C)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+
+	if(sc && sc->clip)
+		return 1;
+
+	return 0;
+}
+
 void ED_space_clip_set(bContext *C, SpaceClip *sc, MovieClip *clip)
 {
 	sc->clip= clip;
@@ -168,7 +178,7 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_SELECTED(track)) {
+		if(TRACK_VIEW_SELECTED(sc, track)) {
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, sc->user.framenr);
 
 			if(marker) {

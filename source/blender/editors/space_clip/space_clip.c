@@ -124,6 +124,13 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 	ar->regiontype= RGN_TYPE_TOOLS;
 	ar->alignment= RGN_ALIGN_LEFT;
 
+	/* tool properties */
+	ar= MEM_callocN(sizeof(ARegion), "tool properties for clip");
+
+	BLI_addtail(&sc->regionbase, ar);
+	ar->regiontype= RGN_TYPE_TOOL_PROPS;
+	ar->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+
 	/* properties view */
 	ar= MEM_callocN(sizeof(ARegion), "properties for logic");
 
@@ -282,6 +289,8 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_stabilize_2d_add);
 	WM_operatortype_append(CLIP_OT_stabilize_2d_remove);
 	WM_operatortype_append(CLIP_OT_stabilize_2d_select);
+
+	WM_operatortype_append(CLIP_OT_clean_tracks);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)
@@ -554,6 +563,27 @@ static void clip_tools_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
+/****************** tool properties region ******************/
+
+static void clip_props_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_WM:
+			if(wmn->data == ND_HISTORY)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SCENE:
+			if(wmn->data == ND_MODE)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SPACE:
+			if(wmn->data == ND_SPACE_VIEW3D)
+				ED_region_tag_redraw(ar);
+			break;
+	}
+}
+
 /****************** properties region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -623,6 +653,19 @@ void ED_spacetype_clip(void)
 	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
 	art->init= clip_tools_area_init;
 	art->draw= clip_tools_area_draw;
+
+	BLI_addhead(&st->regiontypes, art);
+
+	/* tool properties */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype clip tool properties region");
+	art->regionid = RGN_TYPE_TOOL_PROPS;
+	art->prefsizex= 0;
+	art->prefsizey= 120;
+	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
+	art->listener= clip_props_area_listener;
+	art->init= clip_tools_area_init;
+	art->draw= clip_tools_area_draw;
+	ED_clip_tool_props_register(art);
 
 	BLI_addhead(&st->regiontypes, art);
 

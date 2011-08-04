@@ -42,6 +42,8 @@ struct SpaceClip;
 struct wmEvent;
 
 /* clip_editor.c */
+int ED_space_clip_poll(struct bContext *C);
+
 void ED_space_clip_set(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip);
 struct MovieClip *ED_space_clip(struct SpaceClip *sc);
 void ED_space_clip_size(struct SpaceClip *sc, int *width, int *height);

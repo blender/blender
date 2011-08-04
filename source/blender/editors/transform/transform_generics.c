@@ -852,9 +852,11 @@ void recalcData(TransInfo *t)
 		if(t->state == TRANS_CANCEL) {
 			track= clip->tracking.tracks.first;
 			while(track) {
-				MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
+				if(TRACK_VIEW_SELECTED(sc, track)) {
+					MovieTrackingMarker *marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
 
-				marker->flag= track->transflag;
+					marker->flag= track->transflag;
+				}
 
 				track= track->next;
 			}
@@ -864,7 +866,7 @@ void recalcData(TransInfo *t)
 
 		track= clip->tracking.tracks.first;
 		while(track) {
-			if(TRACK_SELECTED(track)) {
+			if(TRACK_VIEW_SELECTED(sc, track)) {
 				if (t->mode == TFM_TRANSLATION) {
 					if(TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
 						BKE_tracking_clamp_track(track, CLAMP_PAT_POS);

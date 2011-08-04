@@ -91,8 +91,9 @@ void BKE_tracking_stabilization_data(struct MovieTracking *tracking, int framenr
 struct ImBuf *BKE_tracking_stabilize_shot(struct MovieTracking *tracking, int framenr, struct ImBuf *ibuf, float loc[2], float *scale);
 void BKE_tracking_stabdata_to_mat4(float loc[2], float scale, float mat[4][4]);
 
-#define TRACK_SELECTED(track)				(((track->flag&TRACK_HIDDEN)==0) && ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT))
-#define TRACK_AREA_SELECTED(track, area)	(((track->flag&TRACK_HIDDEN)==0) && ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT)))
+#define TRACK_SELECTED(track)				((((track)->flag&TRACK_HIDDEN)==0) && ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT))
+#define TRACK_AREA_SELECTED(track, area)	((((track)->flag&TRACK_HIDDEN)==0) && ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT)))
+#define TRACK_VIEW_SELECTED(sc, track)		((TRACK_AREA_SELECTED(track, TRACK_AREA_POINT) || (((sc)->flag&SC_SHOW_MARKER_PATTERN && TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))) || (((sc)->flag&SC_SHOW_MARKER_SEARCH && TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH)))))
 
 #define MARKER_VISIBLE(sc, marker)			(((marker)->flag&MARKER_DISABLED)==0 || ((sc)->flag&SC_HIDE_DISABLED)==0)
 

@@ -46,8 +46,6 @@ struct wmOperatorType;
 /* clip_ops.c */
 void CLIP_OT_open(struct wmOperatorType *ot);
 void CLIP_OT_reload(struct wmOperatorType *ot);
-void CLIP_OT_tools(struct wmOperatorType *ot);
- void CLIP_OT_properties(struct wmOperatorType *ot);
 // void CLIP_OT_unlink(struct wmOperatorType *ot);
 void CLIP_OT_view_pan(struct wmOperatorType *ot);
 void CLIP_OT_view_zoom(wmOperatorType *ot);
@@ -98,12 +96,19 @@ void CLIP_OT_stabilize_2d_add(struct wmOperatorType *ot);
 void CLIP_OT_stabilize_2d_remove(struct wmOperatorType *ot);
 void CLIP_OT_stabilize_2d_select(struct wmOperatorType *ot);
 
+void CLIP_OT_clean_tracks(wmOperatorType *ot);
+
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 void draw_clip_track_widget(const bContext *C, void *poin, void *arg1, void *arg2, rcti *rect);
 
 /* clip_buttons.c */
 void ED_clip_buttons_register(struct ARegionType *art);
+
+/* clip_toolbar.c */
+void CLIP_OT_tools(struct wmOperatorType *ot);
+void CLIP_OT_properties(struct wmOperatorType *ot);
+void ED_clip_tool_props_register(struct ARegionType *art);
 
 #endif /* ED_CLIP_INTERN_H */
 

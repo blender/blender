@@ -133,11 +133,6 @@ class CLIP_PT_tools(bpy.types.Panel):
             settings = clip.tracking.settings
 
             col = layout.column(align=True)
-            col.label(text="Transform:")
-            col.operator("transform.translate")
-            col.operator("transform.resize")
-
-            col = layout.column(align=True)
             col.label(text="Marker:")
             col.operator("clip.add_marker_move")
             col.operator("clip.delete_track")
@@ -193,10 +188,11 @@ class CLIP_PT_tools(bpy.types.Panel):
             row = col.row()
             row.operator("clip.set_axis", text="Set X Axis").axis = 'X'
             row.operator("clip.set_axis", text="Set Y Axis").axis = 'Y'
-
-            col = layout.column()
-            col.prop(settings, "distance")
             col.operator("clip.set_scale")
+
+            col = layout.column(align=True)
+            col.label(text="Clean-up:")
+            col.operator("clip.clean_tracks")
         else:
             layout.operator('clip.open')
 

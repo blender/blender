@@ -91,16 +91,6 @@ static void sclip_zoom_set_factor(SpaceClip *sc, ARegion *ar, float zoomfac)
 }
 
 
-static int space_clip_poll(bContext *C)
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-
-	if(sc && sc->clip)
-		return 1;
-
-	return 0;
-}
-
 /******************** open clip operator ********************/
 
 static void clip_filesel(bContext *C, wmOperator *op, const char *path)
@@ -415,7 +405,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
 	ot->invoke= view_pan_invoke;
 	ot->modal= view_pan_modal;
 	ot->cancel= view_pan_cancel;
-	ot->poll= space_clip_poll;
+	ot->poll= ED_space_clip_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING;
@@ -537,7 +527,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	ot->invoke= view_zoom_invoke;
 	ot->modal= view_zoom_modal;
 	ot->cancel= view_zoom_cancel;
-	ot->poll= space_clip_poll;
+	ot->poll= ED_space_clip_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
@@ -611,7 +601,7 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view_zoom_in_exec;
 	ot->invoke= view_zoom_in_invoke;
-	ot->poll= space_clip_poll;
+	ot->poll= ED_space_clip_poll;
 }
 
 static int view_zoom_out_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -628,7 +618,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view_zoom_out_exec;
 	ot->invoke= view_zoom_out_invoke;
-	ot->poll= space_clip_poll;
+	ot->poll= ED_space_clip_poll;
 }
 
 /********************** view zoom ratio operator *********************/
@@ -657,7 +647,7 @@ void CLIP_OT_view_zoom_ratio(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view_zoom_ratio_exec;
-	ot->poll= space_clip_poll;
+	ot->poll= ED_space_clip_poll;
 
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
@@ -713,7 +703,7 @@ void CLIP_OT_view_all(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view_all_exec;
-	ot->poll= space_clip_poll;
+	ot->poll= ED_space_clip_poll;
 }
 
 /********************** view selected operator *********************/
@@ -737,7 +727,7 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= view_selected_exec;
-	ot->poll= space_clip_poll;
+	ot->poll= ED_space_clip_poll;
 }
 
 /********************** macroses *********************/

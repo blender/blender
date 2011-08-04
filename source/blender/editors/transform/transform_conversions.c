@@ -5330,7 +5330,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 
 	track = clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
+		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
 			marker= BKE_tracking_get_marker(track, framenr);
 
 			if(marker) {
@@ -5355,7 +5355,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	/* create actual data */
 	track = clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_SELECTED(track) && (track->flag&TRACK_LOCKED)==0) {
+		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0) {
 			marker= BKE_tracking_get_marker(track, framenr);
 
 			trackToTransData(sc, td, td2d, tdt, track);
