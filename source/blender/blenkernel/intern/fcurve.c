@@ -792,13 +792,10 @@ void calchandles_fcurve (FCurve *fcu)
 		if (bezt->vec[2][0] < bezt->vec[1][0]) bezt->vec[2][0]= bezt->vec[1][0];
 		
 		/* calculate auto-handles */
-		if (fcu->flag & FCURVE_AUTO_HANDLES) 
-			calchandleNurb(bezt, prev, next, 2);	/* 2==special autohandle && keep extrema horizontal */
-		else
-			calchandleNurb(bezt, prev, next, 1);	/* 1==special autohandle */
+		calchandleNurb(bezt, prev, next, 1);	/* 1==special autohandle */
 		
 		/* for automatic ease in and out */
-		if ((bezt->h1==HD_AUTO) && (bezt->h2==HD_AUTO)) {
+		if (ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM) && ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {
 			/* only do this on first or last beztriple */
 			if ((a == 0) || (a == fcu->totvert-1)) {
 				/* set both handles to have same horizontal value as keyframe */
@@ -846,9 +843,9 @@ void testhandles_fcurve (FCurve *fcu)
 		/* one or two handles selected only */
 		if (ELEM(flag, 0, 7)==0) {
 			/* auto handles become aligned */
-			if (bezt->h1==HD_AUTO)
+			if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM))
 				bezt->h1= HD_ALIGN;
-			if (bezt->h2==HD_AUTO)
+			if (ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM))
 				bezt->h2= HD_ALIGN;
 			
 			/* vector handles become 'free' when only one half selected */

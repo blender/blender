@@ -174,7 +174,7 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 		/* use default settings to make a F-Curve */
 		fcu= MEM_callocN(sizeof(FCurve), "FCurve");
 		
-		fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+		fcu->flag = (FCURVE_VISIBLE|FCURVE_SELECTED);
 		if (act->curves.first==NULL) 
 			fcu->flag |= FCURVE_ACTIVE;	/* first one added active */
 			

@@ -1336,13 +1336,13 @@ static void rna_def_fkeyframe(BlenderRNA *brna)
 	/* Enums */
 	prop= RNA_def_property(srna, "handle_left_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h1");
-	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_enum_items(prop, keyframe_handle_type_items);
 	RNA_def_property_ui_text(prop, "Left Handle Type", "Handle types");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	prop= RNA_def_property(srna, "handle_right_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "h2");
-	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_enum_items(prop, keyframe_handle_type_items);
 	RNA_def_property_ui_text(prop, "Right Handle Type", "Handle types");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
@@ -1540,11 +1540,6 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_MUTED);
 	RNA_def_property_ui_text(prop, "Muted", "F-Curve is not evaluated");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
-	
-	prop= RNA_def_property(srna, "use_auto_handle_clamp", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCURVE_AUTO_HANDLES);
-	RNA_def_property_ui_text(prop, "Auto Clamped Handles", "All auto-handles for F-Curve are clamped");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
 	
 	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FCURVE_VISIBLE);

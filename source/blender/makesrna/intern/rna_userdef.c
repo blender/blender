@@ -878,6 +878,21 @@ static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurb
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Align handle selected color", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	if (incl_nurbs == 0) {
+		/* assume that when nurbs are off, this is for 2D (i.e. anim) editors */
+		prop= RNA_def_property(srna, "handle_auto_clamped", PROP_FLOAT, PROP_COLOR_GAMMA);
+		RNA_def_property_float_sdna(prop, NULL, "handle_auto_clamped");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Auto-Clamped handle color", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
+		
+		prop= RNA_def_property(srna, "handle_sel_auto_clamped", PROP_FLOAT, PROP_COLOR_GAMMA);
+		RNA_def_property_float_sdna(prop, NULL, "handle_sel_auto_clamped");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Auto-Clamped handle selected color", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
+	}
 
 	prop= RNA_def_property(srna, "lastsel_point", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "lastsel_point");
@@ -2254,7 +2269,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "New Interpolation Type", "");
 	
 	prop= RNA_def_property(srna, "keyframe_new_handle_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_enum_items(prop, keyframe_handle_type_items);
 	RNA_def_property_enum_sdna(prop, NULL, "keyhandles_new");
 	RNA_def_property_ui_text(prop, "New Handles Type", "");
 	

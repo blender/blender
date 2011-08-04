@@ -11799,6 +11799,38 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				SEQ_END
 			}
 		}
+		{
+			/* Make "auto-clamped" handles a per-keyframe setting instead of per-FCurve 
+			 *
+			 * We're only patching F-Curves in Actions here, since it is assumed that most
+			 * drivers out there won't be using this (and if they are, they're in the minority).
+			 * While we should aim to fix everything ideally, in practice it's far too hard
+			 * to get to every animdata block, not to mention the performance hit that'd have
+			 */
+			bAction *act;
+			FCurve *fcu;
+			
+			for (act = main->action.first; act; act = act->id.next) {
+				for (fcu = act->curves.first; fcu; fcu = fcu->next) {
+					BezTriple *bezt;
+					unsigned int i = 0;
+					
+					/* only need to touch curves that had this flag set */
+					if ((fcu->flag & FCURVE_AUTO_HANDLES) == 0)
+						continue;
+					if ((fcu->totvert == 0) || (fcu->bezt == NULL))
+						continue;
+						
+					/* only change auto-handles to auto-clamped */
+					for (bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+						if (bezt->h1 == HD_AUTO) bezt->h1 = HD_AUTO_ANIM;
+						if (bezt->h2 == HD_AUTO) bezt->h2 = HD_AUTO_ANIM;
+					}
+					
+					fcu->flag &= ~FCURVE_AUTO_HANDLES;
+				}
+			}
+		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

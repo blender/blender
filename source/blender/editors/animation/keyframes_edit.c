@@ -756,20 +756,37 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 /* ******************************************* */
 /* Settings */
 
+/* standard validation step for a few of these (implemented as macro for inlining without fn-call overhead):
+ *	"if the handles are not of the same type, set them to type free"
+ */
+#define ENSURE_HANDLES_MATCH(bezt) \
+		if (bezt->h1 != bezt->h2) { \
+			if ELEM3(bezt->h1, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM) bezt->h1= HD_FREE; \
+			if ELEM3(bezt->h2, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM) bezt->h2= HD_FREE; \
+		}
+
 /* Sets the selected bezier handles to type 'auto' */
 static short set_bezier_auto(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
-	if((bezt->f1  & SELECT) || (bezt->f3 & SELECT)) {
-		if (bezt->f1 & SELECT) bezt->h1= HD_AUTO; /* the secret code for auto */
+	if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
+		if (bezt->f1 & SELECT) bezt->h1= HD_AUTO;
 		if (bezt->f3 & SELECT) bezt->h2= HD_AUTO;
 		
-		/* if the handles are not of the same type, set them
-		 * to type free
-		 */
-		if (bezt->h1 != bezt->h2) {
-			if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
-			if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
-		}
+		ENSURE_HANDLES_MATCH(bezt);
+	}
+	return 0;
+}
+
+/* Sets the selected bezier handles to type 'auto-clamped'
+ * NOTE: this is like auto above, but they're handled a bit different
+ */
+static short set_bezier_auto_clamped(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
+{
+	if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
+		if (bezt->f1 & SELECT) bezt->h1= HD_AUTO_ANIM;
+		if (bezt->f3 & SELECT) bezt->h2= HD_AUTO_ANIM;
+		
+		ENSURE_HANDLES_MATCH(bezt);
 	}
 	return 0;
 }
@@ -781,13 +798,7 @@ static short set_bezier_vector(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 		if (bezt->f1 & SELECT) bezt->h1= HD_VECT;
 		if (bezt->f3 & SELECT) bezt->h2= HD_VECT;
 		
-		/* if the handles are not of the same type, set them
-		 * to type free
-		 */
-		if (bezt->h1 != bezt->h2) {
-			if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
-			if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
-		}
+		ENSURE_HANDLES_MATCH(bezt);
 	}
 	return 0;
 }
@@ -824,8 +835,9 @@ KeyframeEditFunc ANIM_editkeyframes_handles(short code)
 {
 	switch (code) {
 		case HD_AUTO: /* auto */
-		case HD_AUTO_ANIM: /* auto clamped */
 			return set_bezier_auto;
+		case HD_AUTO_ANIM: /* auto clamped */
+			return set_bezier_auto_clamped;
 			
 		case HD_VECT: /* vector */
 			return set_bezier_vector;

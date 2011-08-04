@@ -473,7 +473,9 @@ typedef enum eFCurve_Flags {
 	FCURVE_PROTECTED	= (1<<3),
 		/* fcurve will not be evaluated for the next round */
 	FCURVE_MUTED		= (1<<4),
+	
 		/* fcurve uses 'auto-handles', which stay horizontal... */
+		// DEPRECATED
 	FCURVE_AUTO_HANDLES	= (1<<5),
 	
 		/* skip evaluation, as RNA-path cannot be resolved (similar to muting, but cannot be set by user) */

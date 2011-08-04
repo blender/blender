@@ -1103,17 +1103,6 @@ void ACTION_OT_interpolation_type (wmOperatorType *ot)
 
 /* ******************** Set Handle-Type Operator *********************** */
 
-static EnumPropertyItem actkeys_handle_type_items[] = {
-	{HD_FREE, "FREE", 0, "Free", ""},
-	{HD_VECT, "VECTOR", 0, "Vector", ""},
-	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
-	{0, "", 0, "", ""},
-	{HD_AUTO, "AUTO", 0, "Auto", "Handles that are automatically adjusted upon moving the keyframe"},
-	{HD_AUTO_ANIM, "ANIM_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot"},
-	{0, NULL, 0, NULL, NULL}};
-
-/* ------------------- */
-
 /* this function is responsible for setting handle-type of selected keyframes */
 static void sethandles_action_keys(bAnimContext *ac, short mode) 
 {
@@ -1136,12 +1125,6 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
 		
 		/* any selected keyframes for editing? */
 		if (ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, sel_cb, NULL)) {
-			/* for auto/auto-clamped, toggle the auto-handles flag on the F-Curve */
-			if (mode == HD_AUTO_ANIM)
-				fcu->flag |= FCURVE_AUTO_HANDLES;
-			else if (mode == HD_AUTO)
-				fcu->flag &= ~FCURVE_AUTO_HANDLES;
-			
 			/* change type of selected handles */
 			ANIM_fcurve_keyframes_loop(NULL, fcu, NULL, edit_cb, calchandles_fcurve);
 		}
@@ -1195,7 +1178,7 @@ void ACTION_OT_handle_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", actkeys_handle_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", keyframe_handle_type_items, 0, "Type", "");
 }
 
 /* ******************** Set Keyframe-Type Operator *********************** */

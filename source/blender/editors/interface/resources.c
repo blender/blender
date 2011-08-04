@@ -328,6 +328,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->handle_free; break;
 			case TH_HANDLE_AUTO:
 				cp= ts->handle_auto; break;
+			case TH_HANDLE_AUTOCLAMP:
+				cp= ts->handle_auto_clamped; break;
 			case TH_HANDLE_VECT:
 				cp= ts->handle_vect; break;
 			case TH_HANDLE_ALIGN:
@@ -336,11 +338,13 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->handle_sel_free; break;
 			case TH_HANDLE_SEL_AUTO:
 				cp= ts->handle_sel_auto; break;
+			case TH_HANDLE_SEL_AUTOCLAMP:
+				cp= ts->handle_sel_auto_clamped; break;
 			case TH_HANDLE_SEL_VECT:
 				cp= ts->handle_sel_vect; break;
 			case TH_HANDLE_SEL_ALIGN:
 				cp= ts->handle_sel_align; break;
-
+		
 			case TH_SYNTAX_B:
 				cp= ts->syntaxb; break;
 			case TH_SYNTAX_V:
@@ -667,6 +671,8 @@ void ui_theme_init_default(void)
 
 	SETCOL(btheme->tipo.handle_vertex, 		0, 0, 0, 255);
 	SETCOL(btheme->tipo.handle_vertex_select, 255, 133, 0, 255);
+	SETCOL(btheme->tipo.handle_auto_clamped, 0x99, 0x40, 0x30, 255);
+	SETCOL(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
 	btheme->tipo.handle_vertex_size= 4;
 	
 	SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
@@ -1555,6 +1561,21 @@ void init_userdef_do_versions(void)
 	if (bmain->versionfile < 257) {
 		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
+	}
+	
+	if (bmain->versionfile < 258 || (bmain->versionfile == 258 && bmain->subversionfile < 1)) {
+		bTheme *btheme;
+		
+		/* if new keyframes handle default is stuff "auto", make it "auto-clamped" instead */
+		if (U.keyhandles_new == HD_AUTO) 
+			U.keyhandles_new = HD_AUTO_ANIM;
+			
+		/* theme color additions */
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* auto-clamped handles -> based on auto */
+			SETCOL(btheme->tipo.handle_auto_clamped, 0x99, 0x40, 0x30, 255);
+			SETCOL(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
+		}
 	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
