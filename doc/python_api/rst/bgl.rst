@@ -15,7 +15,7 @@ collections of tutorials.
 The "red book": "I{OpenGL Programming Guide: The Official Guide to Learning
 OpenGL}" and the online NeHe tutorials are two of the best resources.
 
-..note::
+.. note::
    You can use the :class:`Image` type to load and set textures.
    See :class:`Image.gl_load` and :class:`Image.gl_load`,
    for example.
@@ -1386,7 +1386,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
         bgl.glGetFloatv(bgl.GL_MODELVIEW_MATRIX, view_matrix)
         f = 1.0 / view_matrix[0]
 
-		# Instead of the usual glRasterPos2i(xval, yval)
+        # Instead of the usual glRasterPos2i(xval, yval)
         bgl.glRasterPos2f(xval * f, yval * f)
 
 
@@ -1848,10 +1848,13 @@ class Buffer:
    .. code-block:: python
 
       import bgl
+
       myByteBuffer = bgl.Buffer(bgl.GL_BYTE, [32, 32])
       bgl.glGetPolygonStipple(myByteBuffer)
+
       print(myByteBuffer.dimensions)
       print(myByteBuffer.to_list())
+
       sliceBuffer = myByteBuffer[0:16]
       print(sliceBuffer)
 

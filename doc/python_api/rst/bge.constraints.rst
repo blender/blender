@@ -2,6 +2,10 @@
 Physics Constraints (bge.constraints)
 =====================================
 
+.. module:: bge.constraints
+
+.. literalinclude:: ../examples/bge.constraints.py
+
 .. function:: createConstraint(physicsid, physicsid2, constrainttype, [pivotX, pivotY, pivotZ, [axisX, axisY, axisZ, [flag]]]])
 
    Creates a constraint.
