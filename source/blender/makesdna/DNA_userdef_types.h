@@ -220,7 +220,7 @@ typedef struct ThemeSpace {
 	char console_cursor[4];
 	
 	char vertex_size, outline_width, facedot_size;
-	char bpad;
+	char noodle_curving;
 
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];

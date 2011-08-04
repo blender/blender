@@ -363,7 +363,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->syntaxv; break;
 			case TH_NODE_GROUP:
 				cp= ts->syntaxc; break;
-				
+			case TH_NODE_CURVING:
+				cp= &ts->noodle_curving; break;
+
 			case TH_SEQ_MOVIE:
 				cp= ts->movie; break;
 			case TH_SEQ_IMAGE:
@@ -814,6 +816,7 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tnode.syntaxb, 108, 105, 111, 255);	/* operator */
 	SETCOL(btheme->tnode.syntaxv, 104, 106, 117, 255);	/* generator */
 	SETCOL(btheme->tnode.syntaxc, 105, 117, 110, 255);	/* group */
+	btheme->tnode.noodle_curving = 5;
 
 	/* space logic */
 	btheme->tlogic= btheme->tv3d;
@@ -1591,7 +1594,14 @@ void init_userdef_do_versions(void)
 		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
-	
+
+	if (bmain->versionfile < 258 || (bmain->versionfile == 258 && bmain->subversionfile < 1)) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			btheme->tnode.noodle_curving = 5;
+		}
+	}
+
 	{
 		bTheme *btheme;
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {

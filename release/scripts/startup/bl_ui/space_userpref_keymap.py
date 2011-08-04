@@ -595,6 +595,9 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         if not self.filepath:
             raise Exception("Filepath not set")
 
+        if not self.filepath.endswith('.py'):
+            self.filepath += '.py'
+
         f = open(self.filepath, "w")
         if not f:
             raise Exception("Could not open file")
