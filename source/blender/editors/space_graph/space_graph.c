@@ -110,6 +110,10 @@ static SpaceLink *graph_new(const bContext *C)
 	sipo->ads= MEM_callocN(sizeof(bDopeSheet), "GraphEdit DopeSheet");
 	sipo->ads->source= (ID *)scene;
 	
+	/* settings for making it easier by default to just see what you're interested in tweaking */
+	sipo->ads->filterflag |= ADS_FILTER_ONLYSEL;
+	sipo->flag |= SIPO_SELVHANDLESONLY;
+	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for graphedit");
 	
@@ -187,10 +191,6 @@ static void graph_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 		sipo->ads->source= (ID *)(G.main->scene.first); // FIXME: this is a really nasty hack here for now...
 	}
 	
-	/* settings for making it easier by default to just see what you're interested in tweaking */
-	sipo->ads->filterflag |= ADS_FILTER_ONLYSEL;
-	sipo->flag |= SIPO_SELVHANDLESONLY;
-
 	ED_area_tag_refresh(sa);
 }
 
