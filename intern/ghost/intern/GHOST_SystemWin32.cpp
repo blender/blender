@@ -62,7 +62,6 @@
 #endif
 #endif
 
-#include "GHOST_Debug.h"
 #include "GHOST_DisplayManagerWin32.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
@@ -72,7 +71,10 @@
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
+
+#ifdef WITH_INPUT_NDOF
 #include "GHOST_NDOFManagerWin32.h"
+#endif
 
 // Key code values not found in winuser.h
 #ifndef VK_MINUS
@@ -127,22 +129,32 @@
 
 static void initRawInput()
 {
-	RAWINPUTDEVICE devices[2];
-	memset(devices, 0, 2 * sizeof(RAWINPUTDEVICE));
+#ifdef WITH_INPUT_NDOF
+#define DEVICE_COUNT 2
+#else
+#define DEVICE_COUNT 1
+#endif
 
-	// multi-axis mouse (SpaceNavigator, etc.)
-	devices[0].usUsagePage = 0x01;
-	devices[0].usUsage = 0x08;
+	RAWINPUTDEVICE devices[DEVICE_COUNT];
+	memset(devices, 0, DEVICE_COUNT * sizeof(RAWINPUTDEVICE));
 
 	// Initiates WM_INPUT messages from keyboard
 	// That way GHOST can retrieve true keys
-	devices[1].usUsagePage = 0x01;
-	devices[1].usUsage = 0x06; /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
+	devices[0].usUsagePage = 0x01;
+	devices[0].usUsage = 0x06; /* http://msdn.microsoft.com/en-us/windows/hardware/gg487473.aspx */
 
-	if (RegisterRawInputDevices(devices, 2, sizeof(RAWINPUTDEVICE)))
-		puts("registered for RawInput (spacenav & keyboard)");
+#ifdef WITH_INPUT_NDOF
+	// multi-axis mouse (SpaceNavigator, etc.)
+	devices[1].usUsagePage = 0x01;
+	devices[1].usUsage = 0x08;
+#endif
+
+	if (RegisterRawInputDevices(devices, DEVICE_COUNT, sizeof(RAWINPUTDEVICE)))
+		; // yay!
 	else
 		printf("could not register for RawInput: %d\n", (int)GetLastError());
+
+#undef DEVICE_COUNT
 }
 
 GHOST_SystemWin32::GHOST_SystemWin32()
@@ -808,6 +820,7 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 		case 1: // translation
 		{
 			short* axis = (short*)(data + 1);
+			// massage into blender view coords (same goes for rotation)
 			short t[3] = {axis[0], -axis[2], axis[1]};
 			m_ndofManager->updateTranslation(t, now);
 
@@ -830,14 +843,6 @@ bool GHOST_SystemWin32::processNDOF(RAWINPUT const& raw)
 		}
 		case 3: // buttons
 		{
-#if 0
-			// I'm getting garbage bits -- examine whole report:
-			printf("ndof: HID report for buttons [");
-			for (int i = 0; i < raw.data.hid.dwSizeHid; ++i)
-				printf(" %02X", data[i]);
-			printf(" ]\n");
-#endif
-
 			int button_bits;
 			memcpy(&button_bits, data + 1, sizeof(button_bits));
 			m_ndofManager->updateButtons(button_bits, now);
@@ -892,12 +897,12 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 							GHOST_PRINT(" key ignored\n")
 						}
 						break;
-					case RIM_TYPEHID:
 #ifdef WITH_INPUT_NDOF
+					case RIM_TYPEHID:
 						if (system->processNDOF(raw))
 							eventHandled = true;
-#endif
 						break;
+#endif
 					}
 				break;
 				}
