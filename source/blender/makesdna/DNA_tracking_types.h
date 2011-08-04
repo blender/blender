@@ -81,16 +81,16 @@ typedef struct MovieTrackingTrack {
 	float search_min[2], search_max[2];	/* positions of left-bottom and right-top corners of search area (in unified 0..1 space) */
 	float offset[2];					/* offset to "parenting" point */
 
-	int pad;
-
 	/* ** track ** */
 	int markersnr;					/* count of markers in track */
 	int last_marker;				/* most recently used marker */
-	int pad2;
 	MovieTrackingMarker *markers;	/* markers in track */
 
-	/* ** bundle ** */
-	float bundle_pos[3];
+	/* ** reconstruction data ** */
+	float bundle_pos[3];			/* reconstructed position */
+	float error;					/* average track reprojection error */
+
+	int pad;
 
 	/* ** UI editing ** */
 	int flag, pat_flag, search_flag;	/* flags (selection, ...) */

@@ -239,6 +239,10 @@ class CLIP_PT_track(bpy.types.Panel):
         row.prop(act_track, "use_green_channel", text="Green")
         row.prop(act_track, "use_blue_channel", text="Blue")
 
+        if act_track.has_bundle:
+            label_text = "Average Error: %.4f" % (act_track.average_error)
+            layout.label(text=label_text)
+
 
 class CLIP_PT_track_settings(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'

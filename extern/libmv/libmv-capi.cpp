@@ -67,6 +67,11 @@ typedef struct libmv_RegionTracker {
 
 typedef struct libmv_Reconstruction {
 	libmv::Reconstruction reconstruction;
+
+	/* used for per-track average error calculation after reconstruction */
+	libmv::Tracks tracks;
+	libmv::CameraIntrinsics intrinsics;
+
 	double error;
 } libmv_Reconstruction;
 
@@ -326,18 +331,18 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 {
 	/* Invert the camera intrinsics. */
 	libmv::vector<libmv::Marker> markers = ((libmv::Tracks*)tracks)->AllMarkers();
-	libmv::CameraIntrinsics intrinsics;
 	libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
 	libmv::Reconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
 
-	intrinsics.SetFocalLength(focal_length, focal_length);
-	intrinsics.SetPrincipalPoint(principal_x, principal_y);
-	intrinsics.SetRadialDistortion(k1, k2, k3);
+	intrinsics->SetFocalLength(focal_length, focal_length);
+	intrinsics->SetPrincipalPoint(principal_x, principal_y);
+	intrinsics->SetRadialDistortion(k1, k2, k3);
 
 	if(focal_length) {
 		/* do a lens undistortion if focal length is non-zero only */
 		for (int i = 0; i < markers.size(); ++i) {
-			intrinsics.InvertIntrinsics(markers[i].x,
+			intrinsics->InvertIntrinsics(markers[i].x,
 				markers[i].y,
 				&(markers[i].x),
 				&(markers[i].y));
@@ -352,7 +357,9 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 	libmv::ReconstructTwoFrames(keyframe_markers, reconstruction);
 	libmv::Bundle(normalized_tracks, reconstruction);
 	libmv::CompleteReconstruction(normalized_tracks, reconstruction);
-	libmv_reconstruction->error = libmv::ReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, intrinsics);
+
+	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;
+	libmv_reconstruction->error = libmv::ReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, *intrinsics);
 
 	return (libmv_Reconstruction *)libmv_reconstruction;
 }
@@ -371,6 +378,49 @@ int libmv_reporojectionPointForTrack(libmv_Reconstruction *libmv_reconstruction,
 	}
 
 	return 0;
+}
+
+static libmv::Marker ProjectMarker(const libmv::Point &point, const libmv::Camera &camera,
+			const libmv::CameraIntrinsics &intrinsics) {
+	libmv::Vec3 projected = camera.R * point.X + camera.t;
+	projected /= projected(2);
+
+	libmv::Marker reprojected_marker;
+	intrinsics.ApplyIntrinsics(projected(0), projected(1), &reprojected_marker.x, &reprojected_marker.y);
+
+	reprojected_marker.image = camera.image;
+	reprojected_marker.track = point.track;
+
+	return reprojected_marker;
+}
+
+double libmv_reporojectionErrorForTrack(libmv_Reconstruction *libmv_reconstruction, int track)
+{
+	libmv::Reconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
+	libmv::vector<libmv::Marker> markers =  libmv_reconstruction->tracks.MarkersForTrack(track);
+
+	int num_reprojected = 0;
+	double total_error = 0.0;
+
+	for (int i = 0; i < markers.size(); ++i) {
+		const libmv::Camera *camera = reconstruction->CameraForImage(markers[i].image);
+		const libmv::Point *point = reconstruction->PointForTrack(markers[i].track);
+
+		if (!camera || !point) {
+			continue;
+		}
+
+		num_reprojected++;
+
+		libmv::Marker reprojected_marker = ProjectMarker(*point, *camera, *intrinsics);
+		double ex = reprojected_marker.x - markers[i].x;
+		double ey = reprojected_marker.y - markers[i].y;
+
+		total_error += sqrt(ex*ex + ey*ey);
+	}
+
+	return total_error / num_reprojected;
 }
 
 int libmv_reporojectionCameraForImage(libmv_Reconstruction *libmv_reconstruction, int image, double mat[4][4])

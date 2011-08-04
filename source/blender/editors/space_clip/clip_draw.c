@@ -719,9 +719,16 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		BLI_snprintf(str, sizeof(str), "%s", track->name);
 
 	UI_DrawString(x, y, str);
+	y-= 12.f*UI_DPI_FAC;
+
+	if(track->flag&TRACK_HAS_BUNDLE) {
+		BLI_snprintf(str, sizeof(str), "Average error: %.3f", track->error);
+		UI_DrawString(x, y, str);
+		y-= 12.f*UI_DPI_FAC;
+	}
 
 	if(track->flag&TRACK_LOCKED) {
-		UI_DrawString(x, y-12.f*UI_DPI_FAC, "locked");
+		UI_DrawString(x, y, "locked");
 	}
 }
 

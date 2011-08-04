@@ -2702,17 +2702,25 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 	MovieTrackingTrack *track, *next, *sel_track;
 	int frames= RNA_int_get(op->ptr, "frames");
 	int action= RNA_enum_get(op->ptr, "action");
+	float error= RNA_float_get(op->ptr, "error");
 	int sel_type;
 
 	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel_track);
 	if(sel_type!=MCLIP_SEL_TRACK)
 		sel_track= NULL;
 
+	if(error && action==2)
+		action= 1;
+
 	track= tracking->tracks.first;
 	while(track) {
+		int ok= 1;
 		next= track->next;
 
-		if(!is_track_clean(track, frames, action==2)) {
+		ok&= is_track_clean(track, frames, action==2);
+		ok&= error == 0.f || (track->flag&TRACK_HAS_BUNDLE)==0  || track->error < error;
+
+		if(!ok) {
 			if(action==0) {			/* select */
 				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, 0);
 			}
@@ -2764,6 +2772,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Affect on tracks which are aracked less than specified amount of frames.", 0, INT_MAX);
+	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Affect on tracks which are tracked less than specified amount of frames.", 0, INT_MAX);
+	RNA_def_float(ot->srna, "error", 0.0f, 0.f, FLT_MAX, "Reprojection Error", "Affect on tracks with have got larger reprojection error.", 0.f, 100.0f);
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
 }

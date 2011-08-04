@@ -456,6 +456,12 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Color", "Color of the track in the Clip Editor");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* average error */
+	prop= RNA_def_property(srna, "average_error", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "error");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Average Error", "Average error of re-projection");
 }
 
 static void rna_def_trackingStabilization(BlenderRNA *brna)

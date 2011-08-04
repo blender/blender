@@ -916,6 +916,7 @@ static int retrive_libmv_reconstruct(MovieTracking *tracking, struct libmv_Recon
 			track->bundle_pos[2]= pos[2];
 
 			track->flag|= TRACK_HAS_BUNDLE;
+			track->error= libmv_reporojectionErrorForTrack(libmv_reconstruction, tracknr);
 		} else {
 			track->flag&= ~TRACK_HAS_BUNDLE;
 			ok= 0;
