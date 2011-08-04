@@ -109,6 +109,7 @@
 #include "BKE_particle.h"
 #include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
+#include "BKE_speaker.h"
 
 #include "RNA_access.h"
 

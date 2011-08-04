@@ -1594,6 +1594,13 @@ void init_userdef_do_versions(void)
 			NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE;
 	}
 
+	{
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			btheme->tv3d.speaker[3] = 255;
+		}
+	}
+
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();
 	/* this timer uses U */

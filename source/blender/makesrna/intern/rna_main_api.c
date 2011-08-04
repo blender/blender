@@ -63,6 +63,7 @@
 #include "BKE_particle.h"
 #include "BKE_font.h"
 #include "BKE_node.h"
+#include "BKE_speaker.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"

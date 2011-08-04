@@ -88,11 +88,6 @@ void make_local_lamp(struct Lamp *la);
 void free_camera(struct Camera *ca);
 void free_lamp(struct Lamp *la);
 
-void *add_speaker(const char *name);
-struct Speaker *copy_speaker(struct Speaker *spk);
-void make_local_speaker(struct Speaker *spk);
-void free_speaker(struct Speaker *spk);
-
 struct Object *add_only_object(int type, const char *name);
 struct Object *add_object(struct Scene *scene, int type);
 

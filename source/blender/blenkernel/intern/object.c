@@ -56,7 +56,6 @@
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
-#include "DNA_speaker_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
@@ -98,6 +97,7 @@
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
+#include "BKE_speaker.h"
 #include "BKE_softbody.h"
 #include "BKE_material.h"
 
@@ -975,99 +975,6 @@ void free_lamp(Lamp *la)
 	BKE_previewimg_free(&la->preview);
 	BKE_icon_delete(&la->id);
 	la->id.icon_id = 0;
-}
-
-void *add_speaker(const char *name)
-{
-	Speaker *spk;
-
-	spk=  alloc_libblock(&G.main->speaker, ID_SPK, name);
-
-	spk->attenuation = 1.0f;
-	spk->cone_angle_inner = 360.0f;
-	spk->cone_angle_outer = 360.0f;
-	spk->cone_volume_outer = 1.0f;
-	spk->distance_max = FLT_MAX;
-	spk->distance_reference = 1.0f;
-	spk->flag = 0;
-	spk->pitch = 1.0f;
-	spk->sound = NULL;
-	spk->volume = 1.0f;
-	spk->volume_max = 1.0f;
-	spk->volume_min = 0.0f;
-
-	return spk;
-}
-
-Speaker *copy_speaker(Speaker *spk)
-{
-	Speaker *spkn;
-
-	spkn= copy_libblock(spk);
-	if(spkn->sound)
-		spkn->sound->id.us++;
-
-	return spkn;
-}
-
-void make_local_speaker(Speaker *spk)
-{
-	Main *bmain= G.main;
-	Object *ob;
-	int local=0, lib=0;
-
-	/* - only lib users: do nothing
-		* - only local users: set flag
-		* - mixed: make copy
-		*/
-
-	if(spk->id.lib==NULL) return;
-	if(spk->id.us==1) {
-		spk->id.lib= NULL;
-		spk->id.flag= LIB_LOCAL;
-		new_id(&bmain->speaker, (ID *)spk, NULL);
-		return;
-	}
-
-	ob= bmain->object.first;
-	while(ob) {
-		if(ob->data==spk) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
-		}
-		ob= ob->id.next;
-	}
-
-	if(local && lib==0) {
-		spk->id.lib= NULL;
-		spk->id.flag= LIB_LOCAL;
-		new_id(&bmain->speaker, (ID *)spk, NULL);
-	}
-	else if(local && lib) {
-		Speaker *spkn= copy_speaker(spk);
-		spkn->id.us= 0;
-
-		ob= bmain->object.first;
-		while(ob) {
-			if(ob->data==spk) {
-
-				if(ob->id.lib==NULL) {
-					ob->data= spkn;
-					spkn->id.us++;
-					spk->id.us--;
-				}
-			}
-			ob= ob->id.next;
-		}
-	}
-}
-
-void free_speaker(Speaker *spk)
-{
-	if(spk->sound)
-		spk->sound->id.us--;
-
-	BKE_free_animdata((ID *)spk);
 }
 
 /* *************************************************** */
