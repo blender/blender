@@ -94,6 +94,10 @@ set(SRC
 	intern/AUD_IFactory.h
 	intern/AUD_IHandle.h
 	intern/AUD_IReader.h
+	intern/AUD_JOSResampleFactory.cpp
+	intern/AUD_JOSResampleFactory.h
+	intern/AUD_JOSResampleReader.cpp
+	intern/AUD_JOSResampleReader.h
 	intern/AUD_LinearResampleFactory.cpp
 	intern/AUD_LinearResampleFactory.h
 	intern/AUD_LinearResampleReader.cpp

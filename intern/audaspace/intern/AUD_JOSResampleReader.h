@@ -24,51 +24,63 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_LinearResampleReader.h
+/** \file audaspace/intern/AUD_JOSResampleReader.h
  *  \ingroup audaspaceintern
  */
 
 
-#ifndef AUD_LINEARRESAMPLEREADER
-#define AUD_LINEARRESAMPLEREADER
+#ifndef AUD_JOSRESAMPLEREADER
+#define AUD_JOSRESAMPLEREADER
 
 #include "AUD_ResampleReader.h"
 #include "AUD_Buffer.h"
 
 /**
- * This resampling reader does simple first-order hold resampling.
+ * This resampling reader uses Julius O. Smith's resampling algorithm.
  */
-class AUD_LinearResampleReader : public AUD_ResampleReader
+class AUD_JOSResampleReader : public AUD_ResampleReader
 {
 private:
+	static const unsigned int m_nL = 9;
+	static const unsigned int m_nN = 23;
+	static const unsigned int m_Nz = 32;
+	static const unsigned int m_L  = 1 << m_nL;
+	static const unsigned int m_NN = 1 << m_nN;
+	static const float m_coeff[];
+	static const float m_diff[];
+
 	/**
 	 * The reader channels.
 	 */
 	AUD_Channels m_channels;
 
 	/**
-	 * The position in the cache.
+	 * The sample position in the cache.
 	 */
-	float m_cache_pos;
+	unsigned int m_n;
 
 	/**
-	 * The sound output buffer.
+	 * The subsample position in the cache.
+	 */
+	unsigned int m_P;
+
+	/**
+	 * The input data buffer.
 	 */
 	AUD_Buffer m_buffer;
 
 	/**
-	 * The input caching buffer.
+	 * How many samples in the cache are valid.
 	 */
-	AUD_Buffer m_cache;
-
-	/**
-	 * Whether the cache contains valid data.
-	 */
-	bool m_cache_ok;
+	int m_cache_valid;
 
 	// hide copy constructor and operator=
-	AUD_LinearResampleReader(const AUD_LinearResampleReader&);
-	AUD_LinearResampleReader& operator=(const AUD_LinearResampleReader&);
+	AUD_JOSResampleReader(const AUD_JOSResampleReader&);
+	AUD_JOSResampleReader& operator=(const AUD_JOSResampleReader&);
+
+	void reset();
+
+	void updateBuffer(int size, float factor, int samplesize);
 
 public:
 	/**
@@ -76,7 +88,7 @@ public:
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 */
-	AUD_LinearResampleReader(AUD_Reference<AUD_IReader> reader, AUD_Specs specs);
+	AUD_JOSResampleReader(AUD_Reference<AUD_IReader> reader, AUD_Specs specs);
 
 	virtual void seek(int position);
 	virtual int getLength() const;
@@ -85,4 +97,4 @@ public:
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
-#endif //AUD_LINEARRESAMPLEREADER
+#endif //AUD_JOSRESAMPLEREADER
