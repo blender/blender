@@ -253,6 +253,15 @@ if 'blenderlite' in B.targets:
         if k not in B.arguments:
             env[k] = v
 
+# detect presence of 3D_CONNEXION_CLIENT_LIBRARY for OSX
+if env['OURPLATFORM']=='darwin':
+    envi = Environment()
+    conf = Configure(envi)
+    if not conf.CheckCHeader('ConnexionClientAPI.h'): # CheckCXXHeader if it is c++ !
+        print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
+        env['WITH_BF_3DMOUSE'] = 0
+    envi = conf.Finish()
+
 
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
