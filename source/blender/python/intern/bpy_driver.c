@@ -41,8 +41,6 @@
 
 #include "bpy_driver.h"
 
-#include "../generic/py_capi_utils.h"
-
 /* for pydrivers (drivers using one-line Python expressions to express relationships between targets) */
 PyObject *bpy_pydriver_Dict= NULL;
 
@@ -89,7 +87,7 @@ int bpy_pydriver_create_dict(void)
 void BPY_driver_reset(void)
 {
 	PyGILState_STATE gilstate;
-	int use_gil= !PYC_INTERPRETER_ACTIVE;
+	int use_gil= 1; /* !PYC_INTERPRETER_ACTIVE; */
 
 	if(use_gil)
 		gilstate= PyGILState_Ensure();
@@ -120,9 +118,14 @@ static void pydriver_error(ChannelDriver *driver)
 /* This evals py driver expressions, 'expr' is a Python expression that
  * should evaluate to a float number, which is returned.
  *
- * note: PyGILState_Ensure() isnt always called because python can call the
- * bake operator which intern starts a thread which calls scene update which
- * does a driver update. to avoid a deadlock check PYC_INTERPRETER_ACTIVE if PyGILState_Ensure() is needed.
+ * (old)note: PyGILState_Ensure() isnt always called because python can call
+ * the bake operator which intern starts a thread which calls scene update
+ * which does a driver update. to avoid a deadlock check PYC_INTERPRETER_ACTIVE
+ * if PyGILState_Ensure() is needed - see [#27683]
+ *
+ * (new)note: checking if python is running is not threadsafe [#28114]
+ * now release the GIL on python operator execution instead, using
+ * PyEval_SaveThread() / PyEval_RestoreThread() so we dont lock up blender.
  */
 float BPY_driver_exec(ChannelDriver *driver)
 {
@@ -149,7 +152,7 @@ float BPY_driver_exec(ChannelDriver *driver)
 		return 0.0f;
 	}
 
-	use_gil= !PYC_INTERPRETER_ACTIVE;
+	use_gil= 1; /* !PYC_INTERPRETER_ACTIVE; */
 
 	if(use_gil)
 		gilstate= PyGILState_Ensure();
