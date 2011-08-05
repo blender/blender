@@ -397,7 +397,9 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 
 	
 	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
+#ifdef PYRNA_FREE_SUPPORT
 	pyrna->freeptr= TRUE;
+#endif
 	return (PyObject *)pyrna;
 }
 

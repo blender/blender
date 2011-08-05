@@ -957,11 +957,13 @@ static int pyrna_struct_clear(BPy_StructRNA *self)
 /* use our own dealloc so we can free a property if we use one */
 static void pyrna_struct_dealloc(BPy_StructRNA *self)
 {
+#ifdef PYRNA_FREE_SUPPORT
 	if (self->freeptr && self->ptr.data) {
 		IDP_FreeProperty(self->ptr.data);
 		MEM_freeN(self->ptr.data);
 		self->ptr.data= NULL;
 	}
+#endif /* PYRNA_FREE_SUPPORT */
 
 #ifdef USE_WEAKREFS
 	if (self->in_weakreflist != NULL) {
@@ -5495,7 +5497,9 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 	}
 
 	pyrna->ptr= *ptr;
+#ifdef PYRNA_FREE_SUPPORT
 	pyrna->freeptr= FALSE;
+#endif
 
 #ifdef USE_PYRNA_STRUCT_REFERENCE
 	pyrna->reference= NULL;
