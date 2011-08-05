@@ -285,7 +285,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
             scene.frame_set(t)
             #calculate the new position, by dividing by the found ratio between performer and enduser
             newTranslation = (tailLoc(perf_bones[perfRoot]) / avg)
-            stride_bone.location = (newTranslation - initialPos) * enduser_obj_mat
+            stride_bone.location = enduser_obj_mat * (newTranslation - initialPos)
             stride_bone.keyframe_insert("location")
     return stride_bone
 
