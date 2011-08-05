@@ -1290,7 +1290,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	else if(ELEM(but->type, TEX, SEARCH_MENU)) {
 		startx += 5;
 		if (but->flag & UI_HAS_ICON)
-			startx += 16;
+			startx += UI_DPI_ICON_SIZE;
 	}
 	
 	/* mouse dragged outside the widget to the left */
