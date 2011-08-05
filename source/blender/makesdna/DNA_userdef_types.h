@@ -341,7 +341,8 @@ typedef struct UserDef {
 	struct ListBase themes;
 	struct ListBase uifonts;
 	struct ListBase uistyles;
-	struct ListBase keymaps;
+	struct ListBase keymaps;		/* deprecated in favor of user_keymaps */
+	struct ListBase user_keymaps;
 	struct ListBase addons;
 	char keyconfigstr[64];
 	

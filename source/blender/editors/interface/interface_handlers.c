@@ -4067,7 +4067,6 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 		
 		/* complex code to change name of button */
 		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
-			wmKeyMap *km= NULL;
 			char *butstr_orig;
 
 			// XXX but->str changed... should not, remove the hotkey from it
@@ -4080,10 +4079,6 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 			but->str= but->strdata;
 
 			ui_check_but(but);
-
-			/* set the keymap editable else the key wont save */
-			WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
-			WM_keymap_copy_to_user(km);
 		}
 		else {
 			/* shortcut was removed */
@@ -4095,6 +4090,7 @@ static void but_shortcut_name_func(bContext *C, void *arg1, int UNUSED(event))
 
 static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	uiBlock *block;
 	uiBut *but = (uiBut *)arg;
 	wmKeyMap *km;
@@ -4107,7 +4103,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 
 	kmi = WM_keymap_item_find_id(km, kmi_id);
 	
-	RNA_pointer_create(NULL, &RNA_KeyMapItem, kmi, &ptr);
+	RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &ptr);
 	
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, but_shortcut_name_func, but);
@@ -4126,6 +4122,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 
 static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	uiBlock *block;
 	uiBut *but = (uiBut *)arg;
 	wmKeyMap *km;
@@ -4134,19 +4131,25 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	uiLayout *layout;
 	uiStyle *style= U.uistyles.first;
 	IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
+	int kmi_id;
 	
 	/* XXX this guess_opname can potentially return a different keymap than being found on adding later... */
 	km = WM_keymap_guess_opname(C, but->optype->idname);		
 	kmi = WM_keymap_add_item(km, but->optype->idname, AKEY, KM_PRESS, 0, 0);
+	kmi_id = kmi->id;
 
-	if (prop) {
+	/* copy properties, prop can be NULL for reset */	
+	if(prop)
 		prop= IDP_CopyProperty(prop);
-	}
-
-	/* prop can be NULL */	
 	WM_keymap_properties_reset(kmi, prop);
 
-	RNA_pointer_create(NULL, &RNA_KeyMapItem, kmi, &ptr);
+	/* update and get pointers again */
+	WM_keyconfig_update(wm);
+
+	km = WM_keymap_guess_opname(C, but->optype->idname);		
+	kmi = WM_keymap_item_find_id(km, kmi_id);
+
+	RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &ptr);
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetHandleFunc(block, but_shortcut_name_func, but);
