@@ -2674,15 +2674,15 @@ void testhandlesNurb(Nurb *nu)
 		if(bezt->f1 & SELECT) flag++;
 		if(bezt->f2 & SELECT) flag += 2;
 		if(bezt->f3 & SELECT) flag += 4;
-
+		
 		if( !(flag==0 || flag==7) ) {
-			if(bezt->h1==HD_AUTO) {   /* auto */
+			if(ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM)) {   /* auto */
 				bezt->h1= HD_ALIGN;
 			}
-			if(bezt->h2==HD_AUTO) {   /* auto */
+			if(ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {   /* auto */
 				bezt->h2= HD_ALIGN;
 			}
-
+			
 			if(bezt->h1==HD_VECT) {   /* vector */
 				if(flag < 4) bezt->h1= 0;
 			}
@@ -2692,7 +2692,7 @@ void testhandlesNurb(Nurb *nu)
 		}
 		bezt++;
 	}
-
+	
 	calchandlesNurb(nu);
 }
 

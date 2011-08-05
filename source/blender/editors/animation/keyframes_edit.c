@@ -634,8 +634,8 @@ static short snap_bezier_horizontal(KeyframeEditData *UNUSED(ked), BezTriple *be
 	if (bezt->f2 & SELECT) {
 		bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
 		
-		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
-		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
+		if (ELEM3(bezt->h1, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) bezt->h1= HD_ALIGN;
+		if (ELEM3(bezt->h2, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) bezt->h2= HD_ALIGN;
 	}
 	return 0;	
 }

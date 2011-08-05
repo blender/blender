@@ -596,15 +596,15 @@ static void rna_FKeyframe_points_add(FCurve *fcu, int tot)
 		else {
 			fcu->bezt= MEM_callocN(sizeof(BezTriple) * tot, "rna_FKeyframe_points_add");
 		}
-
+		
 		bezt= fcu->bezt + fcu->totvert;
 		fcu->totvert += tot;
-
+		
 		while(tot--) {
 			/* defaults, no userprefs gives pradictable results for API */
 			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->ipo= BEZT_IPO_BEZ;
-			bezt->h1= bezt->h2= HD_AUTO;
+			bezt->h1= bezt->h2= HD_AUTO_ANIM;
 			bezt++;
 		}
 	}

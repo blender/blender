@@ -3452,7 +3452,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				 *	  then check if we're using auto-handles.
 				 *	- If so, change them auto-handles to aligned handles so that handles get affected too
 				 */
-				if ((bezt->h1 == HD_AUTO) && (bezt->h2 == HD_AUTO) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+				if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
 					if (hdata && (sel1) && (sel3)) {
 						bezt->h1= HD_ALIGN;
 						bezt->h2= HD_ALIGN;
