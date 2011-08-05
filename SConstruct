@@ -111,6 +111,11 @@ btools.print_targets(B.targets, B.bc)
 
 # handling cmd line arguments & config file
 
+# bitness stuff
+tempbitness = int(B.arguments.get('BF_BITNESS', bitness)) # default to bitness found as per starting python
+if tempbitness in (32, 64): # only set if 32 or 64 has been given
+    bitness = int(tempbitness)
+
 # first check cmdline for toolset and we create env to work on
 quickie = B.arguments.get('BF_QUICK', None)
 quickdebug = B.arguments.get('BF_QUICKDEBUG', None)
@@ -241,6 +246,7 @@ if 'blenderlite' in B.targets:
     target_env_defs['BF_BUILDINFO'] = False
     target_env_defs['BF_NO_ELBEEM'] = True
     target_env_defs['WITH_BF_PYTHON'] = False
+    target_env_defs['WITH_BF_3DMOUSE'] = False
     
     # Merge blenderlite, let command line to override
     for k,v in target_env_defs.iteritems():

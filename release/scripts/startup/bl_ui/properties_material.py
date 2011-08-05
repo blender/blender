@@ -247,15 +247,17 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
             row.prop(mat, "diffuse_fresnel_factor", text="Factor")
 
         if mat.use_diffuse_ramp:
-            layout.separator()
-            layout.template_color_ramp(mat, "diffuse_ramp", expand=True)
-            layout.separator()
+            col = layout.column()
+            col.active = (not mat.use_shadeless)
+            col.separator()
+            col.template_color_ramp(mat, "diffuse_ramp", expand=True)
+            col.separator()
 
-            row = layout.row()
+            row = col.row()
             row.prop(mat, "diffuse_ramp_input", text="Input")
             row.prop(mat, "diffuse_ramp_blend", text="Blend")
 
-            layout.prop(mat, "diffuse_ramp_factor", text="Factor")
+            col.prop(mat, "diffuse_ramp_factor", text="Factor")
 
 
 class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):

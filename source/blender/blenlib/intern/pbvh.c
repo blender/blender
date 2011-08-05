@@ -26,7 +26,6 @@
 
 
 
-
 #include "DNA_meshdata_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -85,25 +84,61 @@ struct PBVHNode {
 	/* Opaque handle for drawing code */
 	void *draw_buffers;
 
-	int *vert_indices;
-
 	/* Voxel bounds */
 	BB vb;
 	BB orig_vb;
 
-	/* For internal nodes */
+	/* For internal nodes, the offset of the children in the PBVH
+	   'nodes' array. */
 	int children_offset;
 
-	/* Pointer into bvh prim_indices */
-	int *prim_indices;
-	int *face_vert_indices;
+	/* Pointer into the PBVH prim_indices array and the number of
+	   primitives used by this leaf node.
 
+	   Used for leaf nodes in both mesh- and multires-based PBVHs.
+	*/
+	int *prim_indices;
 	unsigned int totprim;
+
+	/* Array of indices into the mesh's MVert array. Contains the
+	   indices of all vertices used by faces that are within this
+	   node's bounding box.
+
+	   Note that a vertex might be used by a multiple faces, and
+	   these faces might be in different leaf nodes. Such a vertex
+	   will appear in the vert_indices array of each of those leaf
+	   nodes.
+
+	   In order to support cases where you want access to multiple
+	   nodes' vertices without duplication, the vert_indices array
+	   is ordered such that the first part of the array, up to
+	   index 'uniq_verts', contains "unique" vertex indices. These
+	   vertices might not be truly unique to this node, but if
+	   they appear in another node's vert_indices array, they will
+	   be above that node's 'uniq_verts' value.
+
+	   Used for leaf nodes in a mesh-based PBVH (not multires.)
+	*/
+	int *vert_indices;
 	unsigned int uniq_verts, face_verts;
 
-	char flag;
+	/* An array mapping face corners into the vert_indices
+	   array. The array is sized to match 'totprim', and each of
+	   the face's corners gets an index into the vert_indices
+	   array, in the same order as the corners in the original
+	   MFace. The fourth value should not be used if the original
+	   face is a triangle.
 
-	float tmin; // used for raycasting, is how close bb is to the ray point
+	   Used for leaf nodes in a mesh-based PBVH (not multires.)
+	*/
+	int (*face_vert_indices)[4];
+
+	/* Indicates whether this node is a leaf or not; also used for
+	   marking various updates that need to be applied. */
+	PBVHNodeFlags flag : 8;
+
+	/* Used for raycasting: how close bb is to the ray point. */
+	float tmin;
 
 	int proxy_count;
 	PBVHProxyNode* proxies;
@@ -339,15 +374,15 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	node->uniq_verts = node->face_verts = 0;
 	totface= node->totprim;
 
-	node->face_vert_indices = MEM_callocN(sizeof(int) *
-					 4*totface, "bvh node face vert indices");
+	node->face_vert_indices = MEM_callocN(sizeof(int) * 4*totface,
+					      "bvh node face vert indices");
 
 	for(i = 0; i < totface; ++i) {
 		MFace *f = bvh->faces + node->prim_indices[i];
 		int sides = f->v4 ? 4 : 3;
 
 		for(j = 0; j < sides; ++j) {
-			node->face_vert_indices[i*4 + j]= 
+			node->face_vert_indices[i][j]= 
 				map_insert_vert(bvh, map, &node->face_verts,
 						&node->uniq_verts, (&f->v1)[j]);
 		}
@@ -373,9 +408,17 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 	BLI_ghashIterator_free(iter);
 
-	for(i = 0; i < totface*4; ++i)
-		if(node->face_vert_indices[i] < 0)
-			node->face_vert_indices[i]= -node->face_vert_indices[i] + node->uniq_verts - 1;
+	for(i = 0; i < totface; ++i) {
+		MFace *f = bvh->faces + node->prim_indices[i];
+		int sides = f->v4 ? 4 : 3;
+		
+		for(j = 0; j < sides; ++j) {
+			if(node->face_vert_indices[i][j] < 0)
+				node->face_vert_indices[i][j]=
+					-node->face_vert_indices[i][j] +
+					node->uniq_verts - 1;
+		}
+	}
 
 	if(!G.background) {
 		node->draw_buffers =
@@ -1340,20 +1383,20 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	if(bvh->faces) {
 		MVert *vert = bvh->verts;
 		int *faces= node->prim_indices;
-		int *face_verts= node->face_vert_indices;
 		int totface= node->totprim;
 		int i;
 
 		for(i = 0; i < totface; ++i) {
 			MFace *f = bvh->faces + faces[i];
+			int *face_verts = node->face_vert_indices[i];
 
 			if(origco) {
 				/* intersect with backuped original coordinates */
 				hit |= ray_face_intersection(ray_start, ray_normal,
-							 origco[face_verts[i*4+0]],
-							 origco[face_verts[i*4+1]],
-							 origco[face_verts[i*4+2]],
-							 f->v4? origco[face_verts[i*4+3]]: NULL,
+							 origco[face_verts[0]],
+							 origco[face_verts[1]],
+							 origco[face_verts[2]],
+							 f->v4? origco[face_verts[3]]: NULL,
 							 dist);
 			}
 			else {

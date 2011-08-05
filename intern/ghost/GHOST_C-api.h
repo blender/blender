@@ -288,21 +288,6 @@ extern GHOST_TSuccess GHOST_SetProgressBar(GHOST_WindowHandle windowhandle, floa
  * @param windowhandle The handle to the window
  */
 extern GHOST_TSuccess GHOST_EndProgressBar(GHOST_WindowHandle windowhandle);
-	
-	
-/***************************************************************************************
- ** N-degree of freedom device management functionality
- ***************************************************************************************/
- 
-/**
-* Open N-degree of freedom devices
- */
-extern int GHOST_OpenNDOF(GHOST_SystemHandle systemhandle, 
-                           GHOST_WindowHandle windowhandle,
-                          GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
-                          GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-                          GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen
-                          );
 
 /***************************************************************************************
  ** Cursor management functionality

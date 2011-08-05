@@ -1209,7 +1209,7 @@ int ED_view3d_lock(RegionView3D *rv3d)
 	return TRUE;
 }
 
-/* dont set windows active in in here, is used by renderwin too */
+/* dont set windows active in here, is used by renderwin too */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	if(rv3d->persp==RV3D_CAMOB) {	    /* obs/camera */

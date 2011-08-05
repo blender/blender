@@ -44,7 +44,6 @@ set(SRC
 	intern/GHOST_ISystem.cpp
 	intern/GHOST_ISystemPaths.cpp
 	intern/GHOST_ModifierKeys.cpp
-	intern/GHOST_NDOFManager.cpp
 	intern/GHOST_Path-api.cpp
 	intern/GHOST_Path-api.cpp
 	intern/GHOST_Rect.cpp
@@ -74,12 +73,10 @@ set(SRC
 	intern/GHOST_EventDragnDrop.h
 	intern/GHOST_EventKey.h
 	intern/GHOST_EventManager.h
-	intern/GHOST_EventNDOF.h
 	intern/GHOST_EventString.h
 	intern/GHOST_EventTrackpad.h
 	intern/GHOST_EventWheel.h
 	intern/GHOST_ModifierKeys.h
-	intern/GHOST_NDOFManager.h
 	intern/GHOST_System.h
 	intern/GHOST_SystemPaths.h
 	intern/GHOST_TimerManager.h
@@ -97,6 +94,20 @@ if(WITH_GHOST_DEBUG)
 	add_definitions(-DWITH_GHOST_DEBUG)
 endif()
 
+if(WITH_INPUT_NDOF)
+	add_definitions(-DWITH_INPUT_NDOF)
+
+	list(APPEND SRC
+		intern/GHOST_NDOFManager.cpp
+
+		intern/GHOST_EventNDOF.h
+		intern/GHOST_NDOFManager.h
+	)
+
+	list(APPEND INC_SYS
+		${NDOF_INCLUDE_DIRS}
+	)
+endif()
 
 if(WITH_HEADLESS OR WITH_GHOST_SDL)
 	if(WITH_HEADLESS)
@@ -158,12 +169,21 @@ elseif(APPLE)
 			intern/GHOST_SystemCocoa.mm
 			intern/GHOST_SystemPathsCocoa.mm
 			intern/GHOST_WindowCocoa.mm
-			
+
 			intern/GHOST_DisplayManagerCocoa.h
 			intern/GHOST_SystemCocoa.h
 			intern/GHOST_SystemPathsCocoa.h
 			intern/GHOST_WindowCocoa.h
 		)
+
+		if(WITH_INPUT_NDOF)
+			list(APPEND SRC
+				intern/GHOST_NDOFManagerCocoa.mm
+
+				intern/GHOST_NDOFManagerCocoa.h
+			)
+		endif()
+
 	else()
 		list(APPEND SRC
 			intern/GHOST_DisplayManagerCarbon.cpp
@@ -215,6 +235,14 @@ elseif(UNIX)
 		)
 	endif()
 
+	if(WITH_INPUT_NDOF)
+		list(APPEND SRC
+			intern/GHOST_NDOFManagerX11.cpp
+
+			intern/GHOST_NDOFManagerX11.h
+		)
+	endif()
+
 elseif(WIN32)
 	if(MSVC)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
@@ -238,6 +266,15 @@ elseif(WIN32)
 		intern/GHOST_WindowWin32.h
 		intern/GHOST_TaskbarWin32.h
 	)
+
+	if(WITH_INPUT_NDOF)
+		list(APPEND SRC
+			intern/GHOST_NDOFManagerWin32.cpp
+
+			intern/GHOST_NDOFManagerWin32.h
+		)
+	endif()
+
 endif()
 
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")

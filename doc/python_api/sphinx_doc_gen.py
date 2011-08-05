@@ -416,6 +416,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     del key, descr
 
     classes = []
+    submodules = []
 
     for attribute in module_dir:
         if not attribute.startswith("_"):
@@ -437,6 +438,8 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
                 py_c_func2sphinx("", fw, module_name, None, attribute, value, is_class=False)
             elif value_type == type:
                 classes.append((attribute, value))
+            elif issubclass(value_type, types.ModuleType):
+                submodules.append((attribute, value))
             elif value_type in (bool, int, float, str, tuple):
                 # constant, not much fun we can do here except to list it.
                 # TODO, figure out some way to document these!
@@ -444,11 +447,25 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
                 write_indented_lines("   ", fw, "constant value %s" % repr(value), False)
                 fw("\n")
             else:
-                print("\tnot documenting %s.%s" % (module_name, attribute))
+                print("\tnot documenting %s.%s of %r type" % (module_name, attribute, value_type.__name__))
                 continue
 
             attribute_set.add(attribute)
             # TODO, more types...
+
+    # TODO, bpy_extras does this already, mathutils not.
+    """
+    if submodules:
+        fw("\n"
+           "**********\n"
+           "Submodules\n"
+           "**********\n"
+           "\n"
+           )
+        for attribute, submod in submodules:
+            fw("* :mod:`%s.%s`\n" % (module_name, attribute))
+        fw("\n")
+    """
 
     # write collected classes now
     for (type_name, value) in classes:

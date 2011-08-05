@@ -26,7 +26,7 @@ __all__ = (
     "edge_loops_from_edges",
     "ngon_tesselate",
     "face_random_points",
-)
+    )
 
 
 def mesh_linked_faces(mesh):
