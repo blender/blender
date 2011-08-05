@@ -366,6 +366,17 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			return;
     
 		find_all_frames(ob_arm, fra);
+
+		if (flag & ARM_RESTPOS) {
+			arm->flag &= ~ARM_RESTPOS;
+			where_is_pose(scene, ob_arm);
+		}
+
+		if (fra.size()) {
+			//int total = fra.back() - fra.front();
+			float *values = (float*)MEM_callocN(sizeof(float) * 16 * fra.size(), "temp. anim frames");
+			sample_animation(values, fra, bone, ob_arm, pchan);
+		}
 	}
 
 	void AnimationExporter::sample_and_write_bone_animation(Object *ob_arm, Bone *bone, int transform_type)
@@ -431,6 +442,54 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		where_is_pose(scene, ob_arm);
 	}
 
+	void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, Bone *bone, Object *ob_arm, bPoseChannel *pchan)
+	{
+		bPoseChannel *parchan = NULL;
+		bPose *pose = ob_arm->pose;
+
+		pchan = get_pose_channel(pose, bone->name);
+
+		if (!pchan)
+			return;
+
+		parchan = pchan->parent;
+
+		enable_fcurves(ob_arm->adt->action, bone->name);
+
+		std::vector<float>::iterator it;
+	    int j = 0;
+		for (it = frames.begin(); it != frames.end(); it++) {
+			float mat[4][4], ipar[4][4];
+
+			float ctime = bsystem_time(scene, ob_arm, *it, 0.0f);
+
+			//BKE_animsys_evaluate_animdata(&ob_arm->id, ob_arm->adt, *it, ADT_RECALC_ANIM);
+			//BKE_animsys_evaluate_animdata(scene , &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);
+			where_is_pose_bone(scene, ob_arm, pchan, ctime, 1);
+
+			// compute bone local mat
+			if (bone->parent) {
+				invert_m4_m4(ipar, parchan->pose_mat);
+				mul_m4_m4m4(mat, pchan->pose_mat, ipar);
+			}
+			else
+				copy_m4_m4(mat, pchan->pose_mat);
+            
+			for ( int i = 0; i < 4 ; i++)
+			{
+				for ( int k = 0;  k<4 ; k++ )
+				{
+					v[j*16 + 4*i + k] = mat[i][k];
+				}
+				
+			}  
+		//	copy_m4_m4(v[j*16 + i], mat ) ;
+			
+			j++;
+		}
+
+		enable_fcurves(ob_arm->adt->action, NULL);
+	}
 	void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pchan)
 	{
 		bPoseChannel *parchan = NULL;
@@ -965,10 +1024,14 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		}
 
 		std::sort(keys.begin(), keys.end());
-
-		for ( float fAll = *(keys.begin()) ; fAll != *(keys.end()) ; fAll+=1.0f )
+		float first, last;
+		std::vector<float>::reference ref = keys.front();
+		first = ref;
+		ref = keys.back();
+		last = ref;
+		for (float i = first ; i != last ; i+=1.0f )
 		{
-			fra.push_back(fAll); 
+			fra.push_back(i); 
 		}
 		return;
 

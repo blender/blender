@@ -106,6 +106,8 @@ protected:
 
 	void sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pChan);
 
+	void sample_animation(float *v, std::vector<float> &frames, Bone *bone, Object *ob_arm, bPoseChannel *pChan);
+
 	// dae_bone_animation -> add_bone_animation
 	// (blend this into dae_bone_animation)
 	void dae_bone_animation(std::vector<float> &fra, float *v, int tm_type, int axis, std::string ob_name, std::string bone_name);
