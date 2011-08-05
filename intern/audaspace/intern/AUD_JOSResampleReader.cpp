@@ -190,7 +190,7 @@ void AUD_JOSResampleReader::read(int& length, bool& eos, sample_t* buffer)
 	memset(buffer, 0, length * samplesize);
 
 	unsigned int n_increment = (unsigned int)(floor(1 / factor));
-	unsigned int P_increment = (unsigned int)(round(4294967296.0 * fmod(1 / factor, 1)));
+	unsigned int P_increment = (unsigned int)(floor(4294967296.0 * fmod(1 / factor, 1)));
 
 	unsigned int P, L, l, end_i;
 	float eta, v;
@@ -208,7 +208,7 @@ void AUD_JOSResampleReader::read(int& length, bool& eos, sample_t* buffer)
 				end_i = m_n + 1;
 
 			l = (unsigned int)(floor(float(P) / float(m_NN)));
-			eta = fmod(P, m_NN) / m_NN;
+			eta = float(P % m_NN) / m_NN;
 
 			for(unsigned int i = 0; i < end_i; i++)
 			{
@@ -222,7 +222,7 @@ void AUD_JOSResampleReader::read(int& length, bool& eos, sample_t* buffer)
 			P = ~P;
 
 			l = (unsigned int)(floor(float(P) / float(m_NN)));
-			eta = fmod(P, m_NN) / m_NN;
+			eta = float(P % m_NN) / m_NN;
 
 			end_i = m_cache_valid - m_n - 1;
 			if(m_Nz - 1 < end_i)
@@ -251,14 +251,14 @@ void AUD_JOSResampleReader::read(int& length, bool& eos, sample_t* buffer)
 
 		for(unsigned int t = 0; t < length; t++)
 		{
-			P = (unsigned int)(round(m_P * factor));
+			P = (unsigned int)(floor(m_P * factor));
 
 			end_i = (unsigned int)(floor(m_Nz / factor)) - 1;
 			if(m_n + 1 < end_i)
 				end_i = m_n + 1;
 
 			l = (unsigned int)(floor(float(P) / float(m_NN)));
-			eta = fmod(P, m_NN) / m_NN;
+			eta = float(P % m_NN) / m_NN;
 
 			for(unsigned int i = 0; i < end_i; i++)
 			{
@@ -272,7 +272,7 @@ void AUD_JOSResampleReader::read(int& length, bool& eos, sample_t* buffer)
 			P = (factor * 4294967296.0) - P;
 
 			l = (unsigned int)(floor(float(P) / float(m_NN)));
-			eta = fmod(P, m_NN) / m_NN;
+			eta = float(P % m_NN) / m_NN;
 
 			end_i = (unsigned int)(floor(m_Nz / factor)) - 1;
 			if(m_cache_valid - m_n - 1 < end_i)
