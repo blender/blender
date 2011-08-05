@@ -755,7 +755,5 @@ def path_editing(context, stride_obj, path):
     parameterization[e] = e - s
     for t in parameterization.keys():
         eval_time_fcurve.keyframe_points.insert(frame=t, value=parameterization[t])
-    error = 0.01
-    reparaError = error * 32
-    maxIterations = 16
+    y_fcurve.mute = True
     print("finished path editing")
