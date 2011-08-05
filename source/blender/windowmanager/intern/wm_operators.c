@@ -1621,7 +1621,6 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	int idcode, totfiles=0;
 	short flag;
 
-	name[0] = '\0';
 	RNA_string_get(op->ptr, "filename", name);
 	RNA_string_get(op->ptr, "directory", dir);
 
