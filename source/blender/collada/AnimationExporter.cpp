@@ -376,6 +376,9 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			//int total = fra.back() - fra.front();
 			float *values = (float*)MEM_callocN(sizeof(float) * 16 * fra.size(), "temp. anim frames");
 			sample_animation(values, fra, bone, ob_arm, pchan);
+
+			dae_baked_animation(fra ,values, id_name(ob_arm), bone->name );
+
 		}
 	}
 
@@ -489,6 +492,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		}
 
 		enable_fcurves(ob_arm->adt->action, NULL);
+
+
 	}
 	void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pchan)
 	{
@@ -538,6 +543,47 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		}
 
 		enable_fcurves(ob_arm->adt->action, NULL);
+	}
+
+	void AnimationExporter::dae_baked_animation(std::vector<float> &fra, float *values, std::string ob_name, std::string bone_name)
+	{
+		char anim_id[200];
+		
+		if (!fra.size())
+			return;
+
+		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
+					 (char*)translate_id(bone_name).c_str(), "pose_matrix");
+
+		openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
+
+		// create input source
+		std::string input_id = create_source_from_vector(COLLADASW::InputSemantic::INPUT, fra, false, anim_id, "");
+
+		// create output source
+		std::string output_id;
+		output_id = create_4x4_source( values, fra.size(), anim_id);
+
+		// create interpolations source
+		std::string interpolation_id = fake_interpolation_source(fra.size(), anim_id, "");
+
+		std::string sampler_id = std::string(anim_id) + SAMPLER_ID_SUFFIX;
+		COLLADASW::LibraryAnimations::Sampler sampler(sw, sampler_id);
+		std::string empty;
+		sampler.addInput(COLLADASW::InputSemantic::INPUT, COLLADABU::URI(empty, input_id));
+		sampler.addInput(COLLADASW::InputSemantic::OUTPUT, COLLADABU::URI(empty, output_id));
+
+		// TODO create in/out tangents source
+
+		// this input is required
+		sampler.addInput(COLLADASW::InputSemantic::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
+
+		addSampler(sampler);
+
+		std::string target = translate_id(ob_name + "_" + bone_name) + "/transform";
+		addChannel(COLLADABU::URI(empty, sampler_id), target);
+
+		closeAnimation();
 	}
 
 	// dae_bone_animation -> add_bone_animation
@@ -628,7 +674,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	}
 
 	void AnimationExporter::add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
-							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis)
+							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis, bool transform)
 	{
 		switch(semantic) {
 		case COLLADASW::InputSemantic::INPUT:
@@ -642,7 +688,11 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				if (axis) {
 					param.push_back(axis);
 				}
-				else {                           //assumes if axis isn't specified all axises are added
+				else 
+				if ( transform )
+				{
+					param.push_back("TRANSFORM");  
+				}else{                           //assumes if axis isn't specified all axises are added
 					param.push_back("X");
 					param.push_back("Y");
 					param.push_back("Z");
@@ -739,7 +789,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		
 		
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, is_angle, axis_name);
+		add_source_parameters(param, semantic, is_angle, axis_name, false);
 
 		source.prepareToAppendValues();
 
@@ -768,7 +818,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		source.setAccessorStride(1);
 		
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, is_rot, axis_name);
+		add_source_parameters(param, semantic, is_rot, axis_name,  false);
 
 		source.prepareToAppendValues();
 
@@ -798,7 +848,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		source.setAccessorStride(1);
 		
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, is_rot, axis_name);
+		add_source_parameters(param, semantic, is_rot, axis_name, false);
 
 		source.prepareToAppendValues();
 
@@ -817,6 +867,32 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		return source_id;
 	}
 
+	std::string AnimationExporter::create_4x4_source(float *v, int tot, const std::string& anim_id)
+	{
+		COLLADASW::InputSemantic::Semantics semantic = COLLADASW::InputSemantic::OUTPUT;
+		std::string source_id = anim_id + get_semantic_suffix(semantic);
+
+		COLLADASW::Float4x4Source source(mSW);
+		source.setId(source_id);
+		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(tot);
+		source.setAccessorStride(16);
+		
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		add_source_parameters(param, semantic, false, NULL, false);
+
+		source.prepareToAppendValues();
+
+		for (int i = 0; i < tot; i++) {
+			for ( int j  = 0 ; j < 4 ; j++ )
+				source.appendValues(*(v+j*4), *(v + 4*j +1), *(v + 2 + 4*j), *(v+3 + 4*j));
+			v += 16;
+		}
+
+		source.finish();
+
+		return source_id;
+	}
 	// only used for sources with OUTPUT semantic ( locations and scale)
 	std::string AnimationExporter::create_xyz_source(float *v, int tot, const std::string& anim_id)
 	{
@@ -830,7 +906,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		source.setAccessorStride(3);
 		
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, false, NULL);
+		add_source_parameters(param, semantic, false, NULL, false);
 
 		source.prepareToAppendValues();
 
