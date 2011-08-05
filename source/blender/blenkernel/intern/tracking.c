@@ -702,14 +702,16 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 {
 	TrackContext *track_context;
 	MovieTrackingTrack *track;
-	ListBase tracks= {NULL, NULL};
+	ListBase tracks= {NULL, NULL}, new_tracks= {NULL, NULL};
 	ListBase *old_tracks= &context->clip->tracking.tracks;
 	int a, sel_type, newframe;
 	void *sel;
 
 	BKE_movieclip_last_selection(context->clip, &sel_type, &sel);
 
-	/* duplicate currently tracking tracks to list of displaying tracks */
+	/* duplicate currently tracking tracks to temporary list.
+	   this is needed to keep names in unique state and it's faster to change names
+	   of currently tracking tracks (if needed) */
 	for(a= 0, track_context= context->track_context; a<context->num_tracks; a++, track_context++) {
 		int replace_sel= 0;
 		MovieTrackingTrack *new_track, *old;
@@ -753,18 +755,33 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 		BLI_addtail(&tracks, new_track);
 	}
 
-	/* move tracks, which could be added by user during tracking */
+	/* move all tracks, which aren't tracking */
 	track= old_tracks->first;
 	while(track) {
 		MovieTrackingTrack *next= track->next;
 
 		track->next= track->prev= NULL;
-		BLI_addtail(&tracks, track);
+		BLI_addtail(&new_tracks, track);
 
 		track= next;
 	}
 
-	context->clip->tracking.tracks= tracks;
+	/* now move all tracks which are currently tracking and keep their names unique */
+	track= tracks.first;
+	while(track) {
+		MovieTrackingTrack *next= track->next;
+
+		BLI_remlink(&tracks, track);
+
+		track->next= track->prev= NULL;
+		BLI_addtail(&new_tracks, track);
+
+		BLI_uniquename(&new_tracks, track, "Track", '.', offsetof(MovieTrackingTrack, name), sizeof(track->name));
+
+		track= next;
+	}
+
+	context->clip->tracking.tracks= new_tracks;
 
 	if(context->backwards) newframe= context->user.framenr+1;
 	else newframe= context->user.framenr-1;
