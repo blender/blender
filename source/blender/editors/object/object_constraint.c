@@ -1115,14 +1115,19 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
 	{
 		/* if we're not handling the object we're copying from, copy all constraints over */
-		if (obact != ob)
+		if (obact != ob) {
 			copy_constraints(&ob->constraints, &obact->constraints, TRUE);
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
 	}
 	CTX_DATA_END;
 	
 	/* force depsgraph to get recalculated since new relationships added */
 	DAG_scene_sort(bmain, scene);		/* sort order of objects */
-
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, NULL);
+	
 	return OPERATOR_FINISHED;
 }
 
