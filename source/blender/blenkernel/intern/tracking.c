@@ -1054,32 +1054,89 @@ MovieTrackingTrack *BKE_find_track_by_name(MovieTracking *tracking, const char *
 	return NULL;
 }
 
-MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(MovieTracking *tracking, int framenr)
+static int reconstruction_camera_index(MovieTracking *tracking, int framenr, int nearest)
 {
 	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
+	MovieReconstructedCamera *cameras= reconstruction->cameras;
 	int a= 0, d= 1;
 
 	if(!reconstruction->camnr)
-		return NULL;
+		return -1;
+
+	if(framenr<cameras[0].framenr) {
+		if(nearest) return 0;
+		else return -1;
+	}
+
+	if(framenr>cameras[reconstruction->camnr-1].framenr) {
+		if(nearest) return reconstruction->camnr-1;
+		else return -1;
+	}
 
 	if(reconstruction->last_camera<reconstruction->camnr)
 		a= reconstruction->last_camera;
 
-	if(reconstruction->cameras[a].framenr>=framenr)
+	if(cameras[a].framenr>=framenr)
 		d= -1;
 
 	while(a>=0 && a<reconstruction->camnr) {
-		if(reconstruction->cameras[a].framenr==framenr) {
-			reconstruction->last_camera= a;
-			return &reconstruction->cameras[a];
+		int cfra= cameras[a].framenr;
+		int ok= cfra==framenr;
 
-			break;
+		/* check if needed framenr was "skipped" -- no data for requested frame */
+
+		if(d>0 && cfra>framenr) {
+			/* interpolate with previous position */
+			if(nearest) return a-1;
+			else break;
+		}
+
+		if(d<0 && cfra<framenr) {
+			/* interpolate with next position */
+			if(nearest) return a;
+			else break;
+		}
+
+		if(cfra==framenr) {
+			reconstruction->last_camera= a;
+
+			return a;
 		}
 
 		a+= d;
 	}
 
-	return NULL;
+	return -1;
+}
+
+MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(MovieTracking *tracking, int framenr)
+{
+	int a= reconstruction_camera_index(tracking, framenr, 0);
+
+	if(a==-1)
+		return NULL;
+
+	return &tracking->reconstruction.cameras[a];
+}
+
+void BKE_tracking_get_interpolated_camera(MovieTracking *tracking, int framenr, float mat[4][4])
+{
+	MovieTrackingReconstruction *reconstruction= &tracking->reconstruction;
+	MovieReconstructedCamera *cameras= reconstruction->cameras;
+	int a= reconstruction_camera_index(tracking, framenr, 1);
+
+	if(a==-1) {
+		unit_m4(mat);
+		return;
+	}
+
+	if(cameras[a].framenr!=framenr && a>0 && a<reconstruction->camnr-1) {
+		float t= ((float)framenr-cameras[a].framenr) / (cameras[a+1].framenr-cameras[a].framenr);
+
+		blend_m4_m4m4(mat, cameras[a].mat, cameras[a+1].mat, t);
+	} else {
+		copy_m4_m4(mat, cameras[a].mat);
+	}
 }
 
 void BKE_get_tracking_mat(Scene *scene, float mat[4][4])

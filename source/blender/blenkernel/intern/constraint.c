@@ -4124,14 +4124,12 @@ static void camerasolver_evaluate (bConstraint *con, bConstraintOb *cob, ListBas
 		clip= scene->clip;
 
 	if(clip) {
-		camera= BKE_tracking_get_reconstructed_camera(&clip->tracking, scene->r.cfra);
+		float mat[4][4], obmat[4][4];
 
-		if(camera) {
-			float obmat[4][4];
+		BKE_tracking_get_interpolated_camera(&clip->tracking, scene->r.cfra, mat);
 
-			copy_m4_m4(obmat, cob->matrix);
-			mul_m4_m4m4(cob->matrix, camera->mat, obmat);
-		}
+		copy_m4_m4(obmat, cob->matrix);
+		mul_m4_m4m4(cob->matrix, mat, obmat);
 	}
 }
 

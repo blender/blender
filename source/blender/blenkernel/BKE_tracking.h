@@ -77,6 +77,7 @@ void BKE_track_unique_name(struct MovieTracking *tracking, struct MovieTrackingT
 struct MovieTrackingTrack *BKE_find_track_by_name(struct MovieTracking *tracking, const char *name);
 
 struct MovieReconstructedCamera *BKE_tracking_get_reconstructed_camera(struct MovieTracking *tracking, int framenr);
+void BKE_tracking_get_interpolated_camera(struct MovieTracking *tracking, int framenr, float mat[4][4]);
 
 void BKE_get_tracking_mat(struct Scene *scene, float mat[4][4]);
 void BKE_tracking_projection_matrix(struct MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4]);
