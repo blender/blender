@@ -1010,9 +1010,8 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
 
 static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *marker)
 {
-	/* try to remove the F-Curve from the action */
 	if (!BLI_remlink_safe(&scene->markers, marker)) {
-		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in action '%s'", marker->name, scene->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in scene '%s'", marker->name, scene->id.name+2);
 		return;
 	}
 
@@ -1231,7 +1230,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "use_keyframe_insert_keyingset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_ONLYKEYINGSET);
 	RNA_def_property_ui_text(prop, "Auto Keyframe Insert Keying Set", "Automatic keyframe insertion using active Keying Set only");
-	RNA_def_property_ui_icon(prop, ICON_KEY_HLT, 0); // XXX: we need a dedicated icon
+	RNA_def_property_ui_icon(prop, ICON_KEYINGSET, 0);
 	
 	/* UV */
 	prop= RNA_def_property(srna, "uv_select_mode", PROP_ENUM, PROP_NONE);
