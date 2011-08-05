@@ -36,6 +36,10 @@ When the texture object is deleted, the new texture is deleted and the old textu
 
 .. module:: bge.texture
 
+.. literalinclude:: ../examples/bge.texture.py
+
+.. literalinclude:: ../examples/bge.texture.1.py
+
 .. class:: VideoFFmpeg(file [, capture=-1, rate=25.0, width=0, height=0])
 
    FFmpeg video source

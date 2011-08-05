@@ -1621,7 +1621,6 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	int idcode, totfiles=0;
 	short flag;
 
-	name[0] = '\0';
 	RNA_string_get(op->ptr, "filename", name);
 	RNA_string_get(op->ptr, "directory", dir);
 
@@ -1690,7 +1689,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	flag_all_listbases_ids(LIB_PRE_EXISTING, 1);
 
 	/* here appending/linking starts */
-	mainl = BLO_library_append_begin(C, &bh, libname);
+	mainl = BLO_library_append_begin(bmain, &bh, libname);
 	if(totfiles == 0) {
 		BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 	}
