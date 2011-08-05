@@ -39,6 +39,7 @@
 #include "BKE_library.h"
 #include "BKE_idcode.h"
 #include "BKE_report.h"
+#include "BKE_context.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
@@ -317,7 +318,7 @@ static PyObject *bpy_lib_exit(BPy_Library *self, PyObject *UNUSED(args))
 	flag_all_listbases_ids(LIB_PRE_EXISTING, 1);
 
 	/* here appending/linking starts */
-	mainl= BLO_library_append_begin(BPy_GetContext(), &(self->blo_handle), self->relpath);
+	mainl= BLO_library_append_begin(CTX_data_main(BPy_GetContext()), &(self->blo_handle), self->relpath);
 
 	{
 		int i= 0, code;
