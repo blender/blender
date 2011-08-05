@@ -60,7 +60,7 @@ elif MACOSX_ARCHITECTURE == 'i386' and MAC_CUR_VER == '10.4':
 	CC = 'gcc-4.0'
 	CXX = 'g++-4.0'
 elif MAC_CUR_VER >= '10.6':
-	# OSX 10.6 and 10.7 developer tools don´t come with sdk < 10.6 anymore !
+	# OSX 10.6 and 10.7 developer tools do not come with sdk < 10.6 anymore !
 	MAC_MIN_VERS = '10.6'
 	MACOSX_DEPLOYMENT_TARGET = '10.6'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
