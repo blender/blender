@@ -253,6 +253,15 @@ if 'blenderlite' in B.targets:
         if k not in B.arguments:
             env[k] = v
 
+# detect presence of 3D_CONNEXION_CLIENT_LIBRARY for OSX
+if env['OURPLATFORM']=='darwin':
+    envi = Environment()
+    conf = Configure(envi)
+    if not conf.CheckCHeader('ConnexionClientAPI.h'): # CheckCXXHeader if it is c++ !
+        print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
+        env['WITH_BF_3DMOUSE'] = 0
+    envi = conf.Finish()
+
 
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
@@ -664,11 +673,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         dllsources.append('${LCGDIR}/sndfile/lib/libsndfile-1.dll')
 
     if env['WITH_BF_FFMPEG']:
-        dllsources += ['${BF_FFMPEG_LIBPATH}/avcodec-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avformat-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avdevice-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avutil-50.dll',
-                    '${BF_FFMPEG_LIBPATH}/swscale-0.dll']
+        dllsources += env['BF_FFMPEG_DLL'].split()
 
     # Since the thumb handler is loaded by Explorer, architecture is
     # strict: the x86 build fails on x64 Windows. We need to ship

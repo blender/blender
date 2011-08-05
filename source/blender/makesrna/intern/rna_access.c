@@ -4007,10 +4007,13 @@ void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
 
-	if(prop)
+	if(prop) {
 		RNA_property_string_get(ptr, prop, value);
-	else
+	}
+	else {
 		printf("RNA_string_get: %s.%s not found.\n", ptr->type->identifier, name);
+		value[0]= '\0';
+	}
 }
 
 char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen)

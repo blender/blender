@@ -998,9 +998,24 @@ elseif(APPLE)
 		elseif(WITH_CODEC_QUICKTIME)
 			set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -framework QuickTime")
 		endif()
+
+		# XXX - SOME MAC DEV PLEASE TEST WITH THE SDK INSTALLED! 
+		# ALSO SHOULD BE MOVED INTO OWN MODULE WHEN FUNCTIONAL
+		if(WITH_INPUT_NDOF)
+			# This thread it *should* work and check the framework - campbell
+			# http://www.cmake.org/pipermail/cmake/2005-December/007740.html
+			find_library(3D_CONNEXION_CLIENT_LIBRARY
+				NAMES 3DconnexionClient
+			)
+			if(NOT 3D_CONNEXION_CLIENT_LIBRARY)
+				set(WITH_INPUT_NDOF OFF)
+			endif()
+		endif()
+
 	else()
 		set(PLATFORM_CFLAGS "-pipe -funsigned-char")
 		set(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
+		set(WITH_INPUT_NDOF OFF)  # unsupported
 	endif()
 
 	if(WITH_OPENCOLLADA)

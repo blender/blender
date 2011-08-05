@@ -45,9 +45,9 @@
 
 // #include "ED_mesh.h"
 
-#include "BLI_math.h"
 
 #ifdef RNA_RUNTIME
+#include "BLI_math.h"
 
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -544,7 +544,8 @@ void RNA_api_object(StructRNA *srna)
 	/* location of point for test and max distance */
 	parm= RNA_def_float_vector(func, "point", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_float(func, "max_dist", sqrt(FLT_MAX), 0.0, FLT_MAX, "", "", 0.0, FLT_MAX);
+	/* default is sqrt(FLT_MAX) */
+	RNA_def_float(func, "max_dist", 1.844674352395373e+19, 0.0, FLT_MAX, "", "", 0.0, FLT_MAX);
 
 	/* return location and normal */
 	parm= RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "The location on the object closest to the point", -1e4, 1e4);

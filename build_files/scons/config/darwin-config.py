@@ -266,7 +266,7 @@ elif MACOSX_ARCHITECTURE == 'x86_64':
     BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-msse2']
 
 # SpaceNavigator and related 3D mice
-WITH_BF_3DMOUSE = True
+WITH_BF_3DMOUSE = False
 
 #############################################################################
 ###################  various compile settings and flags    ##################
