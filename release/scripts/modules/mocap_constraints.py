@@ -419,3 +419,10 @@ def unbakeConstraints(context):
             if ik_con:
                 ik_con.mute = False
         m_constraint.active = True
+
+
+def updateConstraints(obj, context):
+    fixes = obj.data.mocap_constraints
+    for fix in fixes:
+        fix.active = False
+        fix.active = True

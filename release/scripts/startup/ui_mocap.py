@@ -264,9 +264,10 @@ class MocapConstraintsPanel(bpy.types.Panel):
                     enduser_obj = context.active_object
                     enduser_arm = enduser_obj.data
                     layout.operator_menu_enum("mocap.addmocapfix", "type")
+                    layout.operator("mocap.updateconstraints", text='Update Fixes')
                     bakeRow = layout.row()
-                    bakeRow.operator("mocap.bakeconstraints")
-                    bakeRow.operator("mocap.unbakeconstraints")
+                    bakeRow.operator("mocap.bakeconstraints", text='Bake Fixes')
+                    bakeRow.operator("mocap.unbakeconstraints", text='Unbake Fixes')
                     layout.separator()
                     for i, m_constraint in enumerate(enduser_arm.mocap_constraints):
                         box = layout.box()
@@ -588,6 +589,21 @@ class OBJECT_OT_UnbakeMocapConstraints(bpy.types.Operator):
             return isinstance(context.active_object.data, bpy.types.Armature)
 
 
+class OBJECT_OT_UpdateMocapConstraints(bpy.types.Operator):
+    '''Updates all post-retarget fixes - needed after changes to armature object or pose'''
+    bl_idname = "mocap.updateconstraints"
+    bl_label = "Updates all fixes to target armature - neccesary to take under consideration changes to armature object or pose"
+
+    def execute(self, context):
+        updateConstraints(context.active_object, context)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            return isinstance(context.active_object.data, bpy.types.Armature)
+
+
 class OBJECT_OT_GuessHierachyMapping(bpy.types.Operator):
     '''Attemps to auto figure out hierarchy mapping'''
     bl_idname = "mocap.guessmapping"
@@ -623,7 +639,7 @@ class OBJECT_OT_PathEditing(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         if context.active_object:
-            selected_objs = [obj for obj in context.selected_objects if obj != context.active_object]
+            selected_objs = [obj for obj in context.selected_objects if obj != context.active_object and isinstance(obj.data, bpy.types.Curve)]
             return selected_objs
         else:
             return False
