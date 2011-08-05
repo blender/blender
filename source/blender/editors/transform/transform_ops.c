@@ -508,6 +508,11 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		RNA_def_boolean(ot->srna, "texture_space", 0, "Edit Object data texture space", "");
 	}
 
+	if (flags & P_CORRECT_UV)
+	{
+		RNA_def_boolean(ot->srna, "correct_uv", 0, "Correct UV coords when transforming", "");
+	}
+
 	// Add confirm method all the time. At the end because it's not really that important and should be hidden only in log, not in keymap edit
 	/*prop =*/ RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "Always confirm operation when releasing button");
 	//RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -755,7 +760,7 @@ void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
 
 	RNA_def_float_factor(ot->srna, "value", 0, -1.0f, 1.0f, "Factor", "", -1.0f, 1.0f);
 
-	Transform_Properties(ot, P_MIRROR|P_SNAP);
+	Transform_Properties(ot, P_MIRROR|P_SNAP|P_CORRECT_UV);
 }
 
 void TRANSFORM_OT_edge_crease(struct wmOperatorType *ot)
