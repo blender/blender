@@ -305,11 +305,13 @@ void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface) {
 		surface->output_name[0]='\0';
 		surface->output_name2[0]='\0';
 		surface->flags |= MOD_DPAINT_ANTIALIAS;
+		surface->disp_clamp = 1.0f;
 	}
 	else {
 		sprintf(surface->output_name, "dp_");
 		strcpy(surface->output_name2,surface->output_name);
 		surface->flags &= ~MOD_DPAINT_ANTIALIAS;
+		surface->disp_clamp = 0.0f;
 	}
 
 	if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
@@ -894,7 +896,7 @@ static DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 
 	surface->diss_speed = 300;
 	surface->dry_speed = 300;
-	surface->disp_depth = 1.0f;
+	surface->disp_clamp = 0.0f;
 	surface->disp_type = MOD_DPAINT_DISP_DISPLACE;
 	surface->image_fileformat = MOD_DPAINT_IMGFORMAT_PNG;
 
@@ -911,6 +913,7 @@ static DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 	}
 
 	surface->spread_speed = 1.0f;
+	surface->color_spread_speed = 1.0f;
 	surface->shrink_speed = 1.0f;
 
 	surface->wave_damping = 0.05f;
@@ -1263,87 +1266,40 @@ static void dynamicPaint_checkSurfaceData(DynamicPaintSurface *surface)
 /***************************** Modifier processing ******************************/
 
 
-/* update cache frame range */
-void dynamicPaint_cacheUpdateFrames(DynamicPaintSurface *surface) {
-	if (surface->pointcache) {
-		surface->pointcache->startframe = surface->start_frame;
-		surface->pointcache->endframe = surface->end_frame;
-	}
-}
-
-/*
-*	Updates derived mesh copy and processes dynamic paint step / caches.
-*/
-static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
+/* apply displacing vertex surface to the derived mesh */
+static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, DerivedMesh *result, int update_normals)
 {
-	if(pmd->canvas) {
-		DynamicPaintCanvasSettings *canvas = pmd->canvas;
-		DynamicPaintSurface *surface = canvas->surfaces.first;
+	PaintSurfaceData *sData = surface->data;
 
-		/* update derived mesh copy */
-		if (canvas->dm) canvas->dm->release(canvas->dm);
-			canvas->dm = CDDM_copy(dm);
+	if (!sData || surface->format != MOD_DPAINT_SURFACE_F_VERTEX) return;
 
-		/* in case image sequence baking, stop here */
-		if (canvas->flags & MOD_DPAINT_BAKING) return;
+	/* displace paint */
+	if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
+		MVert *mvert = result->getVertArray(result);
+		int i;
+		float* value = (float*)sData->type_data;
 
-		/* loop through surfaces */
-		for (; surface; surface=surface->next) {
-			int current_frame = (int)scene->r.cfra;
+		#pragma omp parallel for schedule(static)
+		for (i=0; i<sData->total_points; i++) {
+			float normal[3];
+			normal_short_to_float_v3(normal, mvert[i].no);
+			normalize_v3(normal);
 
-			/* image sequences are handled by bake operator */
-			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) continue;
-			if (!(surface->flags & MOD_DPAINT_ACTIVE)) continue;
-
-			/* make sure surface is valid */
-			dynamicPaint_checkSurfaceData(surface);
-
-			/* limit frame range */
-			CLAMP(current_frame, surface->start_frame, surface->end_frame);
-
-			if (current_frame != surface->current_frame || (int)scene->r.cfra == surface->start_frame) {
-				PointCache *cache = surface->pointcache;
-				PTCacheID pid;
-				surface->current_frame = current_frame;
-
-				/* read point cache */
-				BKE_ptcache_id_from_dynamicpaint(&pid, ob, surface);
-				pid.cache->startframe = surface->start_frame;
-				pid.cache->endframe = surface->end_frame;
-				BKE_ptcache_id_time(&pid, scene, scene->r.cfra, NULL, NULL, NULL);
-
-				/* reset non-baked cache at first frame */
-				if((int)scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED))
-				{
-					cache->flag |= PTCACHE_REDO_NEEDED;
-					BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-					cache->flag &= ~PTCACHE_REDO_NEEDED;
-				}
-
-				/* try to read from cache */
-				if(BKE_ptcache_read(&pid, (float)scene->r.cfra)) {
-					BKE_ptcache_validate(cache, (int)scene->r.cfra);
-				}
-				/* if read failed and we're on surface range do recalculate */
-				else if ((int)scene->r.cfra == current_frame
-					&& !(cache->flag & PTCACHE_BAKED)) {
-					/* calculate surface frame */
-					canvas->flags |= MOD_DPAINT_BAKING;
-					dynamicPaint_calculateFrame(surface, scene, ob, current_frame);
-					canvas->flags &= ~MOD_DPAINT_BAKING;
-
-					BKE_ptcache_validate(cache, surface->current_frame);
-					BKE_ptcache_write(&pid, surface->current_frame);
-				}
-			}
+			mvert[i].co[0] -= normal[0]*value[i];
+			mvert[i].co[1] -= normal[1]*value[i];
+			mvert[i].co[2] -= normal[2]*value[i];
 		}
 	}
+	else return;
+
+	if (update_normals)
+		CDDM_calc_normals(result);
 }
 
 /*
 *	Apply canvas data to the object derived mesh
 */
-struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
+static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
 {	
 	DerivedMesh *result = CDDM_copy(dm);
 
@@ -1471,26 +1427,6 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 							}
 						}
 					}
-					/* displace paint */
-					else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
-						MVert *mvert = result->getVertArray(result);
-						int i;
-						float* value = (float*)sData->type_data;
-
-						#pragma omp parallel for schedule(static)
-						for (i=0; i<sData->total_points; i++) {
-							float normal[3];
-							normal_short_to_float_v3(normal, mvert[i].no);
-							normalize_v3(normal);
-
-							mvert[i].co[0] -= normal[0]*value[i];
-							mvert[i].co[1] -= normal[1]*value[i];
-							mvert[i].co[2] -= normal[2]*value[i];
-						}
-
-						CDDM_calc_normals(result);
-					}
-
 					/* vertex group paint */
 					else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
 						int defgrp_index = defgroup_name_index(ob, surface->output_name);
@@ -1584,9 +1520,10 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 							mvert[i].co[1] += normal[1]*wPoint[i].height;
 							mvert[i].co[2] += normal[2]*wPoint[i].height;
 						}
-
-						CDDM_calc_normals(result);
 					}
+
+					/* displace */
+					dynamicPaint_applySurfaceDisplace(surface, result, 1);
 				}
 			}
 		}
@@ -1598,6 +1535,94 @@ struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, S
 	}
 
 	return result;
+}
+
+/* update cache frame range */
+void dynamicPaint_cacheUpdateFrames(DynamicPaintSurface *surface)
+{
+	if (surface->pointcache) {
+		surface->pointcache->startframe = surface->start_frame;
+		surface->pointcache->endframe = surface->end_frame;
+	}
+}
+
+void canvas_copyDerivedMesh(DynamicPaintCanvasSettings *canvas, DerivedMesh *dm)
+{
+	if (canvas->dm) canvas->dm->release(canvas->dm);
+	canvas->dm = CDDM_copy(dm);
+}
+
+/*
+*	Updates derived mesh copy and processes dynamic paint step / caches.
+*/
+static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
+{
+	if(pmd->canvas) {
+		DynamicPaintCanvasSettings *canvas = pmd->canvas;
+		DynamicPaintSurface *surface = canvas->surfaces.first;
+
+		/* update derived mesh copy */
+		canvas_copyDerivedMesh(canvas, dm);
+
+		/* in case image sequence baking, stop here */
+		if (canvas->flags & MOD_DPAINT_BAKING) return;
+
+		/* loop through surfaces */
+		for (; surface; surface=surface->next) {
+			int current_frame = (int)scene->r.cfra;
+
+			/* image sequences are handled by bake operator */
+			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) continue;
+			if (!(surface->flags & MOD_DPAINT_ACTIVE)) continue;
+
+			/* make sure surface is valid */
+			dynamicPaint_checkSurfaceData(surface);
+
+			/* limit frame range */
+			CLAMP(current_frame, surface->start_frame, surface->end_frame);
+
+			if (current_frame != surface->current_frame || (int)scene->r.cfra == surface->start_frame) {
+				PointCache *cache = surface->pointcache;
+				PTCacheID pid;
+				surface->current_frame = current_frame;
+
+				/* read point cache */
+				BKE_ptcache_id_from_dynamicpaint(&pid, ob, surface);
+				pid.cache->startframe = surface->start_frame;
+				pid.cache->endframe = surface->end_frame;
+				BKE_ptcache_id_time(&pid, scene, scene->r.cfra, NULL, NULL, NULL);
+
+				/* reset non-baked cache at first frame */
+				if((int)scene->r.cfra == surface->start_frame && !(cache->flag & PTCACHE_BAKED))
+				{
+					cache->flag |= PTCACHE_REDO_NEEDED;
+					BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+					cache->flag &= ~PTCACHE_REDO_NEEDED;
+				}
+
+				/* try to read from cache */
+				if(BKE_ptcache_read(&pid, (float)scene->r.cfra)) {
+					BKE_ptcache_validate(cache, (int)scene->r.cfra);
+				}
+				/* if read failed and we're on surface range do recalculate */
+				else if ((int)scene->r.cfra == current_frame
+					&& !(cache->flag & PTCACHE_BAKED)) {
+					/* calculate surface frame */
+					canvas->flags |= MOD_DPAINT_BAKING;
+					dynamicPaint_calculateFrame(surface, scene, ob, current_frame);
+					canvas->flags &= ~MOD_DPAINT_BAKING;
+
+					/* restore canvas derivedmesh if required */
+					if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE &&
+						surface->flags & MOD_DPAINT_DISP_INCREMENTAL && surface->next)
+						canvas_copyDerivedMesh(canvas, dm);
+
+					BKE_ptcache_validate(cache, surface->current_frame);
+					BKE_ptcache_write(&pid, surface->current_frame);
+				}
+			}
+		}
+	}
 }
 
 /* Modifier call. Processes dynamic paint modifier step. */
@@ -2339,9 +2364,10 @@ void dynamicPaint_outputImage(DynamicPaintSurface *surface, char* filename, shor
 			float depth = ((float*)sData->type_data)[index];
 
 			if (surface->disp_type == MOD_DPAINT_DISP_DISPLACE) {
+				if (surface->disp_clamp)
+					depth /= surface->disp_clamp*2.0f;
 				depth = (0.5f - depth);
-				if (depth < 0.0f) depth = 0.0f;
-				if (depth > 1.0f) depth = 1.0f;
+				CLAMP(depth, 0.0f, 1.0f);
 			}
 
 			mhImgB->rect_float[pos]=depth;
@@ -3016,6 +3042,7 @@ static void dynamicPaint_mixPaintColors(DynamicPaintSurface *surface, int index,
 		/* only increase wetness if it's below paint level	*/
 		wetness = (*paintWetness) * pPoint->e_alpha;
 		if (pPoint->wetness < wetness) pPoint->wetness = wetness;
+		pPoint->state = 2;
 	}
 	/* Erase paint	*/
 	else {
@@ -3115,6 +3142,12 @@ static void dynamicPaint_updatePointData(DynamicPaintSurface *surface, unsigned 
 		else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
 			float *value = (float*)sData->type_data;
 
+			if (surface->flags & MOD_DPAINT_DISP_INCREMENTAL)
+				depth = value[index] + depth;
+
+			if (surface->disp_clamp && depth > surface->disp_clamp)
+				depth = surface->disp_clamp;
+
 			if (brush->flags & MOD_DPAINT_ERASE) {
 				value[index] *= (1.0f - strength);
 				if (value[index] < 0.0f) value[index] = 0.0f;
@@ -3138,7 +3171,7 @@ static void dynamicPaint_updatePointData(DynamicPaintSurface *surface, unsigned 
 		/* wave surface */
 		else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
 			dynamicPaint_mixWaveHeight(&((PaintWavePoint*)sData->type_data)[index],
-					brush, 0.0f-depth);
+				brush, 0.0f-depth);
 		}
 
 		/* doing velocity based painting */
@@ -3339,10 +3372,6 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 					float paintColor[3] = {0.0f};
 					int numOfHits = 0;
 
-					//PaintPoint *pPoint = &((PaintPoint*)sData->type_data)[index];
-					//pPoint->color[3] = id / grid->s_num[c_index];
-					//pPoint->alpha = 1.0f;
-
 					/* for image sequence anti-aliasing, use gaussian factors */
 					if (samples > 1 && surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)
 						total_sample = gaussianTotal;
@@ -3511,7 +3540,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 						if (!hit_found) continue;
 
 						/* velocity brush, only do on main sample */
-						if (brush->flags & MOD_DPAINT_USES_VELOCITY && ss==0 && bData->velocity && brushVelocity) {
+						if (brush->flags & MOD_DPAINT_USES_VELOCITY && ss==0 && brushVelocity) {
 							int v1,v2,v3;
 							float weights[4];
 							float brushPointVelocity[3];
@@ -3540,7 +3569,12 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 												brushVelocity[v3].v, weights);
 
 							/* substract canvas point velocity */
-							VECSUB(velocity, brushPointVelocity, bData->velocity[index].v);
+							if (bData->velocity) {
+								VECSUB(velocity, brushPointVelocity, bData->velocity[index].v);
+							}
+							else {
+								VECCOPY(velocity, brushPointVelocity);
+							}
 							velocity_val = len_v3(velocity);
 
 							/* */
@@ -3841,7 +3875,9 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 						mul_v3_v3fl(velocity, pa->state.vel, particle_timestep);
 
 						/* substract canvas point velocity */
-						VECSUB(velocity, velocity, bData->velocity[index].v);
+						if (bData->velocity) {
+							VECSUB(velocity, velocity, bData->velocity[index].v);
+						}
 						velocity_val = len_v3(velocity);
 
 						if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
@@ -3937,7 +3973,12 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 				float velocity[3];
 
 				/* substract canvas point velocity */
-				VECSUB(velocity, brushVel.v, bData->velocity[index].v);
+				if (bData->velocity) {
+					VECSUB(velocity, brushVel.v, bData->velocity[index].v);
+				}
+				else {
+					VECCOPY(velocity, brushVel.v);
+				}
 				velocity_val = len_v3(velocity);
 
 				if (brush->flags & MOD_DPAINT_DO_SMUDGE && bData->brush_velocity) {
@@ -4136,6 +4177,12 @@ static void dynamicPaint_doSmudge(DynamicPaintSurface *surface, DynamicPaintBrus
 					mix = dir_factor*pPoint->alpha;
 					if (mix) mixColors(ePoint->color, ePoint->alpha, pPoint->color, mix);
 					ePoint->alpha = ePoint->alpha*(1.0f-dir_factor) + pPoint->alpha*dir_factor;
+
+					/* smudge "wet layer" depending on user defined factor */
+					mix = dir_factor*pPoint->e_alpha;
+					if (mix) mixColors(ePoint->e_color, ePoint->e_alpha, pPoint->e_color, mix);
+					ePoint->e_alpha = ePoint->e_alpha*(1.0f-dir_factor) + pPoint->e_alpha*dir_factor;
+					pPoint->wetness *= (1.0f-dir_factor);
 				}
 			}
 		}
@@ -4280,7 +4327,7 @@ static void dynamicPaint_doEffectStep(DynamicPaintSurface *surface, float *force
 				float w_factor, alphaAdd = 0.0f;
 				PaintPoint *ePoint = &prevPoint[sData->adj_data->n_target[n_index]];
 				float speed_scale = (bNeighs[n_index].dist<eff_scale) ? 1.0f : eff_scale/bNeighs[n_index].dist;
-				float color_mix = (MIN2(ePoint->wetness, pPoint->wetness))*0.25f;
+				float color_mix = (MIN2(ePoint->wetness, pPoint->wetness))*0.25f*surface->color_spread_speed;
 
 				totalAlpha += ePoint->e_alpha;
 
@@ -4599,7 +4646,7 @@ static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float time
 		if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 			PaintPoint *pPoint = &((PaintPoint*)sData->type_data)[index];
 			/* drying */
-			if (pPoint->wetness > 0.0f) {
+			if (pPoint->wetness > 0.0f || pPoint->state > 0) {
 				/* for every drying step blend wet paint to the background */
 				if (pPoint->e_alpha) mixColors(pPoint->color, pPoint->alpha, pPoint->e_color, pPoint->e_alpha);
 				pPoint->state = 1;
@@ -4670,7 +4717,7 @@ static int dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *ob
 			}
 	}
 
-	return 0;
+	return ret;
 }
 
 static int surface_needsVelocityData(DynamicPaintSurface *surface, Scene *scene, Object *ob)
@@ -5074,6 +5121,10 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 static int dynamicPaint_calculateFrame(DynamicPaintSurface *surface, Scene *scene, Object *cObject, int frame)
 {
 	float timescale = 1.0f;
+
+	/* apply previous displace on derivedmesh if incremental surface */
+	if (surface->flags & MOD_DPAINT_DISP_INCREMENTAL)
+		dynamicPaint_applySurfaceDisplace(surface, surface->canvas->dm, 0);
 
 	/* update bake data */
 	dynamicPaint_generateBakeData(surface, scene, cObject); 

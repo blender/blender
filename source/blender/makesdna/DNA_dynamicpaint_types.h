@@ -39,6 +39,7 @@ struct PaintSurfaceData;
 #define MOD_DPAINT_PREVIEW (1<<6) /* preview this surface on viewport*/
 
 #define MOD_DPAINT_WAVE_OPEN_BORDERS (1<<7) /* passes waves through mesh edges */
+#define MOD_DPAINT_DISP_INCREMENTAL (1<<8) /* builds displace on top of earlier values */
 
 #define MOD_DPAINT_OUT1 (1<<10) /* output primary surface */
 #define MOD_DPAINT_OUT2 (1<<11) /* output secondary surface */
@@ -82,14 +83,13 @@ typedef struct DynamicPaintSurface {
 	int start_frame, end_frame;
 
 	int dry_speed, diss_speed;
-	float disp_depth;
+	float disp_clamp;
 
-	float spread_speed, shrink_speed;
+	float spread_speed, color_spread_speed, shrink_speed;
 	float drip_vel, drip_acc;
 
 	/* wave settings */
 	float wave_damping, wave_speed, wave_timescale, wave_spring;
-	float pad_f;
 	char uvlayer_name[32];
 
 	char image_output_path[240];

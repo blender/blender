@@ -158,6 +158,7 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
         layout.prop(surface, "surface_type", expand=False)
         layout.separator()
 
+        # dissolve
         if (surface.surface_type == "PAINT"):
             layout.label(text="Wetmap drying:")
             split = layout.split(percentage=0.8)
@@ -176,6 +177,11 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
             split = sub.split(percentage=0.8)
             split.prop(surface, "dissolve_speed", text="Time")
             split.prop(surface, "use_dissolve_log", text="Slow")
+        
+        # per type settings
+        if (surface.surface_type == "DISPLACE"):
+            layout.prop(surface, "disp_clamp")
+            layout.prop(surface, "incremental_disp")
             
         if (surface.surface_type == "WAVE"):
             layout.prop(surface, "wave_open_borders")
@@ -304,7 +310,11 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
             layout.prop(surface, "use_spread")
             col = layout.column()
             col.active = surface.use_spread
-            col.prop(surface, "spread_speed")
+            split = col.split()
+            sub = split.column()
+            sub.prop(surface, "spread_speed")
+            sub = split.column()
+            sub.prop(surface, "color_spread_speed")
 
         elif surface.effect_ui == "DRIP":
             layout.prop(surface, "use_drip")

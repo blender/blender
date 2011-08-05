@@ -460,6 +460,12 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.001, 10.0);
 	RNA_def_property_ui_range(prop, 0.01, 5.0, 1, 2);
 	RNA_def_property_ui_text(prop, "Spread Speed", "How fast spread effect moves on the canvas surface.");
+
+	prop= RNA_def_property(srna, "color_spread_speed", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "color_spread_speed");
+	RNA_def_property_range(prop, 0.0, 2.0);
+	RNA_def_property_ui_range(prop, 0.0, 2.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Color Spread", "How fast colors get mixed within wet paint.");
 	
 	prop= RNA_def_property(srna, "use_drip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -537,12 +543,12 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	parm= RNA_def_boolean(func, "exists", 0, "", "");
 	RNA_def_function_return(func, parm);
 	
-	prop= RNA_def_property(srna, "displacement", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "disp_clamp", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_float_sdna(prop, NULL, "disp_depth");
-	RNA_def_property_range(prop, 0.01, 5.0);
-	RNA_def_property_ui_range(prop, 0.01, 5.0, 1, 2);
-	RNA_def_property_ui_text(prop, "Displace Strength", "Maximum level of intersection to store in the texture. Use same value as the displace method strength.");
+	RNA_def_property_float_sdna(prop, NULL, "disp_clamp");
+	RNA_def_property_range(prop, 0.00, 50.0);
+	RNA_def_property_ui_range(prop, 0.00, 5.0, 1, 2);
+	RNA_def_property_ui_text(prop, "Clamp Displace", "Maximum level of displace intersection. Use 0.0 to disable.");
 	
 	prop= RNA_def_property(srna, "image_fileformat", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -555,6 +561,12 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "disp_type");
 	RNA_def_property_enum_items(prop, prop_dynamicpaint_disp_type);
 	RNA_def_property_ui_text(prop, "Data Type", "");
+
+	prop= RNA_def_property(srna, "incremental_disp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_DISP_INCREMENTAL);
+	RNA_def_property_ui_text(prop, "Incremental", "New displace is added cumulatively on top of existing.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 
 	/* wave simulator settings */
 	prop= RNA_def_property(srna, "wave_damping", PROP_FLOAT, PROP_NONE);
