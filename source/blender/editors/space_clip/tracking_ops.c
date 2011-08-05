@@ -2025,6 +2025,18 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int set_scale_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	float dist= RNA_float_get(op->ptr, "distance");
+
+	if(dist==0.f)
+		RNA_float_set(op->ptr, "distance", clip->tracking.settings.dist);
+
+	return set_scale_exec(C, op);
+}
+
 void CLIP_OT_set_scale(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -2034,13 +2046,14 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= set_scale_exec;
+	ot->invoke= set_scale_invoke;
 	ot->poll= space_clip_frame_camera_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float(ot->srna, "distance", 1.0f, -FLT_MAX, FLT_MAX,
+	RNA_def_float(ot->srna, "distance", 0.0f, -FLT_MAX, FLT_MAX,
 		"Distance", "Distance between selected tracks.", -100.0f, 100.0f);
 }
 

@@ -188,6 +188,9 @@ class CLIP_PT_tools(bpy.types.Panel):
             row = col.row()
             row.operator("clip.set_axis", text="Set X Axis").axis = 'X'
             row.operator("clip.set_axis", text="Set Y Axis").axis = 'Y'
+
+            col = layout.column()
+            col.prop(settings, "distance")
             col.operator("clip.set_scale")
 
             col = layout.column(align=True)

@@ -104,6 +104,8 @@ typedef struct MovieTrackingSettings {
 	short speed;	/* speed of tracking */
 	short frames_limit;	/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
+	float dist;					/* distance between two bundles used for scene scaling */
+	float pad;
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {
