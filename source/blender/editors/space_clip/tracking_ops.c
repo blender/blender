@@ -1171,7 +1171,7 @@ static int track_count_markers(SpaceClip *sc, MovieClip *clip)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track))
+		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_LOCKED)==0)
 			tot++;
 
 		track= track->next;
@@ -2714,31 +2714,33 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 
 	track= tracking->tracks.first;
 	while(track) {
-		int ok= 1;
-		next= track->next;
+		if((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0) {
+			int ok= 1;
+			next= track->next;
 
-		ok&= is_track_clean(track, frames, action==2);
-		ok&= error == 0.f || (track->flag&TRACK_HAS_BUNDLE)==0  || track->error < error;
+			ok&= is_track_clean(track, frames, action==2);
+			ok&= error == 0.f || (track->flag&TRACK_HAS_BUNDLE)==0  || track->error < error;
 
-		if(!ok) {
-			if(action==0) {			/* select */
-				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, 0);
-			}
-			else if(action==1) {	/* delete track */
-				if(track==sel_track)
-					BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+			if(!ok) {
+				if(action==0) {			/* select */
+					BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, 0);
+				}
+				else if(action==1) {	/* delete track */
+					if(track==sel_track)
+						BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 
-				BKE_tracking_free_track(track);
-				BLI_freelinkN(&clip->tracking.tracks, track);
-			}
+					BKE_tracking_free_track(track);
+					BLI_freelinkN(&clip->tracking.tracks, track);
+				}
 
-			/* happens when all tracking segments are not long enough */
-			if(track->markersnr==0) {
-				if(track==sel_track)
-					BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+				/* happens when all tracking segments are not long enough */
+				if(track->markersnr==0) {
+					if(track==sel_track)
+						BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 
-				BKE_tracking_free_track(track);
-				BLI_freelinkN(&clip->tracking.tracks, track);
+					BKE_tracking_free_track(track);
+					BLI_freelinkN(&clip->tracking.tracks, track);
+				}
 			}
 		}
 
