@@ -13126,9 +13126,8 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 /* common routine to append/link something from a library */
 
-static Main* library_append_begin(const bContext *C, FileData **fd, const char *filepath)
+static Main* library_append_begin(Main *mainvar, FileData **fd, const char *filepath)
 {
-	Main *mainvar= CTX_data_main(C);
 	Main *mainl;
 
 	/* make mains */
@@ -13144,10 +13143,10 @@ static Main* library_append_begin(const bContext *C, FileData **fd, const char *
 	return mainl;
 }
 
-Main* BLO_library_append_begin(const bContext *C, BlendHandle** bh, const char *filepath)
+Main* BLO_library_append_begin(Main *mainvar, BlendHandle** bh, const char *filepath)
 {
 	FileData *fd= (FileData*)(*bh);
-	return library_append_begin(C, &fd, filepath);
+	return library_append_begin(mainvar, &fd, filepath);
 }
 
 

@@ -1785,7 +1785,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				se = give_stripelem(seq, cfra);
 
 				seq_new= seq_dupli_recursive(scene, scene, seq, SEQ_DUPE_UNIQUE_NAME);
-				BLI_addtail(&ed->seqbase, seq_new);
+				BLI_addtail(ed->seqbasep, seq_new);
 
 				seq_new->start= start_ofs;
 				seq_new->type= SEQ_IMAGE;
@@ -1839,7 +1839,6 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	ot->description="On image sequences strips, it return a strip for each image";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_props_popup;
 	ot->exec= sequencer_separate_images_exec;
 	ot->poll= sequencer_edit_poll;
 	
