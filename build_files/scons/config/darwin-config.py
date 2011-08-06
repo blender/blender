@@ -21,14 +21,16 @@ cmd = 'uname -p'
 MAC_PROC=commands.getoutput(cmd) 
 cmd = 'uname -r'
 cmd_res=commands.getoutput(cmd) 
-if cmd_res[0]=='7':
+if cmd_res[:2]=='7':
 	MAC_CUR_VER='10.3'
-elif cmd_res[0]=='8':
+elif cmd_res[:2]=='8':
 	MAC_CUR_VER='10.4'
-elif cmd_res[0]=='9':
+elif cmd_res[:2]=='9':
 	MAC_CUR_VER='10.5'
-elif cmd_res[0]=='10':
+elif cmd_res[:2]=='10':
 	MAC_CUR_VER='10.6'
+elif cmd_res[:2]=='11':
+	MAC_CUR_VER='10.7'
 
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
 	USE_QTKIT=True # Carbon quicktime is not available for 64bit
@@ -37,8 +39,8 @@ if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
 # Default target OSX settings per architecture
 # Can be customized
 
-if MACOSX_ARCHITECTURE == 'ppc':
-# ppc release are now made for 10.4
+if MACOSX_ARCHITECTURE == 'ppc' and MAC_CUR_VER == '10.4':
+# all releases are now made for 10.5 !
 #	MAC_MIN_VERS = '10.3'
 #	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
 #	LCGDIR = '#../lib/darwin-6.1-powerpc'
@@ -50,13 +52,21 @@ if MACOSX_ARCHITECTURE == 'ppc':
 	LCGDIR = '#../lib/darwin-8.0.0-powerpc'
 	CC = 'gcc-4.0'
 	CXX = 'g++-4.0'
-elif MACOSX_ARCHITECTURE == 'i386':
+elif MACOSX_ARCHITECTURE == 'i386' and MAC_CUR_VER == '10.4':
 	MAC_MIN_VERS = '10.4'
 	MACOSX_DEPLOYMENT_TARGET = '10.4'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
 	LCGDIR = '#../lib/darwin-8.x.i386'
 	CC = 'gcc-4.0'
 	CXX = 'g++-4.0'
+elif MAC_CUR_VER >= '10.6':
+	# OSX 10.6 and 10.7 developer tools do not come with sdk < 10.6 anymore !
+	MAC_MIN_VERS = '10.6'
+	MACOSX_DEPLOYMENT_TARGET = '10.6'
+	MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
+	LCGDIR = '#../lib/darwin-9.x.universal'
+	CC = 'llvm-gcc-4.2'
+	CXX = 'llvm-g++-4.2'
 else :
 	MAC_MIN_VERS = '10.5'
 	MACOSX_DEPLOYMENT_TARGET = '10.5'
@@ -71,8 +81,8 @@ LIBDIR = '${LCGDIR}'
 ###################          Dependency settings           ##################
 #############################################################################
 
-#Defaults openMP to true if compiler (currently only gcc 4.2) handles it
-if CC == 'gcc-4.2':
+#Defaults openMP to true if compiler handles it
+if CC == 'gcc-4.2' or CC == 'llvm-gcc-4.2':
     WITH_BF_OPENMP = True  # multithreading for fluids, cloth and smoke
 else:
     WITH_BF_OPENMP = False

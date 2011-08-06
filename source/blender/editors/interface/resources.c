@@ -1463,7 +1463,7 @@ void init_userdef_do_versions(void)
 	if (bmain->versionfile < 250 || (bmain->versionfile == 250 && bmain->subversionfile < 8)) {
 		wmKeyMap *km;
 		
-		for(km=U.keymaps.first; km; km=km->next) {
+		for(km=U.user_keymaps.first; km; km=km->next) {
 			if (strcmp(km->idname, "Armature_Sketch")==0)
 				strcpy(km->idname, "Armature Sketch");
 			else if (strcmp(km->idname, "View3D")==0)

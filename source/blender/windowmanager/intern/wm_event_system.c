@@ -1735,6 +1735,9 @@ void wm_event_do_handlers(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
 
+	/* update key configuration before handling events */
+	WM_keyconfig_update(wm);
+
 	for(win= wm->windows.first; win; win= win->next) {
 		wmEvent *event;
 		
@@ -1938,6 +1941,9 @@ void wm_event_do_handlers(bContext *C)
 		
 		CTX_wm_window_set(C, NULL);
 	}
+
+	/* update key configuration after handling events */
+	WM_keyconfig_update(wm);
 }
 
 /* ********** filesector handling ************ */

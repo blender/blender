@@ -332,28 +332,45 @@ static int handle_subversion_warning(Main *main)
 	return 1;
 }
 
+static void keymap_item_free(wmKeyMapItem *kmi)
+{
+	if(kmi->properties) {
+		IDP_FreeProperty(kmi->properties);
+		MEM_freeN(kmi->properties);
+	}
+	if(kmi->ptr)
+		MEM_freeN(kmi->ptr);
+}
+
 void BKE_userdef_free(void)
 {
 	wmKeyMap *km;
 	wmKeyMapItem *kmi;
+	wmKeyMapDiffItem *kmdi;
 
-	for(km=U.keymaps.first; km; km=km->next) {
-		for(kmi=km->items.first; kmi; kmi=kmi->next) {
-			if(kmi->properties) {
-				IDP_FreeProperty(kmi->properties);
-				MEM_freeN(kmi->properties);
+	for(km=U.user_keymaps.first; km; km=km->next) {
+		for(kmdi=km->diff_items.first; kmdi; kmdi=kmdi->next) {
+			if(kmdi->add_item) {
+				keymap_item_free(kmdi->add_item);
+				MEM_freeN(kmdi->add_item);
 			}
-			if(kmi->ptr)
-				MEM_freeN(kmi->ptr);
+			if(kmdi->remove_item) {
+				keymap_item_free(kmdi->remove_item);
+				MEM_freeN(kmdi->remove_item);
+			}
 		}
 
+		for(kmi=km->items.first; kmi; kmi=kmi->next)
+			keymap_item_free(kmi);
+
+		BLI_freelistN(&km->diff_items);
 		BLI_freelistN(&km->items);
 	}
 	
 	BLI_freelistN(&U.uistyles);
 	BLI_freelistN(&U.uifonts);
 	BLI_freelistN(&U.themes);
-	BLI_freelistN(&U.keymaps);
+	BLI_freelistN(&U.user_keymaps);
 	BLI_freelistN(&U.addons);
 }
 
