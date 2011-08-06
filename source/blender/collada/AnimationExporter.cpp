@@ -119,11 +119,13 @@ void AnimationExporter::exportAnimations(Scene *sce)
 					transformName = extract_transform_name( fcu->rna_path );
 					
 					if ((!strcmp(transformName, "specular_hardness"))||(!strcmp(transformName, "specular_color"))
-						||(!strcmp(transformName, "diffuse_color"))||(!strcmp(transformName, "alpha"))) 
+						||(!strcmp(transformName, "diffuse_color"))||(!strcmp(transformName, "alpha"))||
+						(!strcmp(transformName, "ior"))) 
 						dae_animation(ob ,fcu, transformName, true, ma );
 					fcu = fcu->next;
 				}
 			}
+			
 		}
 		//if (!ob->adt || !ob->adt->action) 
 		//	fcu = (FCurve*)((Lamp*)ob->data)->adt->action->curves.first;  //this is already checked in hasAnimations()
@@ -318,7 +320,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 			if( ma ) 
 				target = translate_id(id_name(ma)) + "-effect"
-						+"/common/" /* should take dynamically */ + get_transform_sid(fcu->rna_path, -1, axis_name, true);
+						+"/common/" /*profile common is only supported */ + get_transform_sid(fcu->rna_path, -1, axis_name, true);
 		}
 		addChannel(COLLADABU::URI(empty, sampler_id), target);
 
@@ -467,7 +469,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			float ctime = bsystem_time(scene, ob_arm, *it, 0.0f);
 
 			//BKE_animsys_evaluate_animdata(&ob_arm->id, ob_arm->adt, *it, ADT_RECALC_ANIM);
-			//BKE_animsys_evaluate_animdata(scene , &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);
+			BKE_animsys_evaluate_animdata(scene , &ob_arm->id, ob_arm->adt, ctime, ADT_RECALC_ANIM);
 			where_is_pose_bone(scene, ob_arm, pchan, ctime, 1);
 
 			// compute bone local mat
@@ -1017,6 +1019,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				tm_type = 13;
 			else if (!strcmp(name, "alpha"))
 				tm_type = 14;
+			else if (!strcmp(name, "ior"))
+				tm_type = 15;
 			
 			else
 				tm_type = -1;
@@ -1066,6 +1070,9 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			break;	
 		case 14:
 			tm_name = "transparency";
+			break;	
+		case 15:
+			tm_name = "index_of_refraction";
 			break;	
 		
 		default:
