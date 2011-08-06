@@ -2746,19 +2746,32 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Drag Threshold", "Amount of pixels you have to drag before dragging UI items happens");
 
   	/* 3D mouse settings */
+	/* global options */
 	prop= RNA_def_property(srna, "ndof_sensitivity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.25f, 4.0f);
 	RNA_def_property_ui_text(prop, "Sensitivity", "Overall sensitivity of the 3D Mouse");
 
+	prop= RNA_def_property(srna, "ndof_zoom_updown", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ZOOM_UPDOWN);
+	RNA_def_property_ui_text(prop, "Zoom = Up/Down", "Zoom using up/down on the device (otherwise forward/backward)");
+
+	prop= RNA_def_property(srna, "ndof_zoom_invert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ZOOM_INVERT);
+	RNA_def_property_ui_text(prop, "Invert Zoom", "Zoom using opposite direction");	
+
+	/* 3D view */
 	prop= RNA_def_property(srna, "ndof_show_guide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_SHOW_GUIDE);
 	RNA_def_property_ui_text(prop, "Show Navigation Guide", "Display the center and axis during rotation");
 	/* TODO: update description when fly-mode visuals are in place  ("projected position in fly mode")*/
 
+	/* 3D view: orbit */
 	prop= RNA_def_property(srna, "ndof_orbit_invert_axes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ORBIT_INVERT_AXES);
 	RNA_def_property_ui_text(prop, "Invert Axes", "Toggle between moving the viewpoint or moving the scene being viewed");
+	/* in 3Dx docs, this is called 'object mode' vs. 'target camera mode'
 
+	/* 3D view: fly */
 	prop= RNA_def_property(srna, "ndof_lock_horizon", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_LOCK_HORIZON);
 	RNA_def_property_ui_text(prop, "Lock Horizon", "Keep horizon level while flying with 3D Mouse");

@@ -21,6 +21,7 @@ cmd = 'uname -p'
 MAC_PROC=commands.getoutput(cmd) 
 cmd = 'uname -r'
 cmd_res=commands.getoutput(cmd) 
+MAC_CUR_VER='10.5' # by default (test below fails on my 10.5 PowerPC)
 if cmd_res[:2]=='7':
 	MAC_CUR_VER='10.3'
 elif cmd_res[:2]=='8':
