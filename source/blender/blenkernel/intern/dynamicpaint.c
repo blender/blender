@@ -1520,6 +1520,7 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 							mvert[i].co[1] += normal[1]*wPoint[i].height;
 							mvert[i].co[2] += normal[2]*wPoint[i].height;
 						}
+						CDDM_calc_normals(result);
 					}
 
 					/* displace */
