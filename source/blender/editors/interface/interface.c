@@ -2830,6 +2830,16 @@ static void autocomplete_id(bContext *C, char *str, void *arg_v)
 	}
 }
 
+static void ui_check_but_and_iconize(uiBut *but, int icon)
+{
+	if(icon) {
+		but->icon= (BIFIconID) icon;
+		but->flag|= UI_HAS_ICON;
+	}
+
+	ui_check_but(but);
+}
+
 static uiBut *uiDefButBit(uiBlock *block, int type, int bit, int retval, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
 {
 	int bitIdx= findBitIndex(bit);
@@ -2874,31 +2884,29 @@ uiBut *uiDefButBitC(uiBlock *block, int type, int bit, int retval, const char *s
 uiBut *uiDefButR(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but;
-
 	but= ui_def_but_rna_propname(block, type, retval, str, x1, y1, x2, y2, ptr, propname, index, min, max, a1, a2, tip);
-	if(but)
-		ui_check_but(but);
-
+	ui_check_but(but);
+	return but;
+}
+uiBut *uiDefButR_prop(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
+{
+	uiBut *but;
+	but= ui_def_but_rna(block, type, retval, str, x1, y1, x2, y2, ptr, prop, index, min, max, a1, a2, tip);
+	ui_check_but(but);
 	return but;
 }
 uiBut *uiDefButO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-
 	but= ui_def_but_operator(block, type, opname, opcontext, str, x1, y1, x2, y2, tip);
-	if(but)
-		ui_check_but(but);
-
+	ui_check_but(but);
 	return but;
 }
 
 uiBut *uiDefButTextO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but= ui_def_but_operator_text(block, type, opname, opcontext, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
-
-	if(but)
-		ui_check_but(but);
-	
+	ui_check_but(but);
 	return but;
 }
 
@@ -2906,12 +2914,7 @@ uiBut *uiDefButTextO(uiBlock *block, int type, const char *opname, int opcontext
 uiBut *uiDefIconBut(uiBlock *block, int type, int retval, int icon, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but= ui_def_but(block, type, retval, "", x1, y1, x2, y2, poin, min, max, a1, a2, tip);
-	
-	but->icon= (BIFIconID) icon;
-	but->flag|= UI_HAS_ICON;
-
-	ui_check_but(but);
-	
+	ui_check_but_and_iconize(but, icon);
 	return but;
 }
 static uiBut *uiDefIconButBit(uiBlock *block, int type, int bit, int retval, int icon, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
@@ -2959,29 +2962,22 @@ uiBut *uiDefIconButBitC(uiBlock *block, int type, int bit, int retval, int icon,
 uiBut *uiDefIconButR(uiBlock *block, int type, int retval, int icon, int x1, int y1, short x2, short y2, PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but;
-
 	but= ui_def_but_rna_propname(block, type, retval, "", x1, y1, x2, y2, ptr, propname, index, min, max, a1, a2, tip);
-	if(but) {
-		if(icon) {
-			but->icon= (BIFIconID) icon;
-			but->flag|= UI_HAS_ICON;
-		}
-		ui_check_but(but);
-	}
-
+	ui_check_but_and_iconize(but, icon);
+	return but;
+}
+uiBut *uiDefIconButR_prop(uiBlock *block, int type, int retval, int icon, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
+{
+	uiBut *but;
+	but= ui_def_but_rna(block, type, retval, "", x1, y1, x2, y2, ptr, prop, index, min, max, a1, a2, tip);
+	ui_check_but_and_iconize(but, icon);
 	return but;
 }
 uiBut *uiDefIconButO(uiBlock *block, int type, const char *opname, int opcontext, int icon, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-
 	but= ui_def_but_operator(block, type, opname, opcontext, "", x1, y1, x2, y2, tip);
-	if(but) {
-		but->icon= (BIFIconID) icon;
-		but->flag|= UI_HAS_ICON;
-		ui_check_but(but);
-	}
-
+	ui_check_but_and_iconize(but, icon);
 	return but;
 }
 
@@ -2989,14 +2985,8 @@ uiBut *uiDefIconButO(uiBlock *block, int type, const char *opname, int opcontext
 uiBut *uiDefIconTextBut(uiBlock *block, int type, int retval, int icon, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but= ui_def_but(block, type, retval, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
-
-	but->icon= (BIFIconID) icon;
-	but->flag|= UI_HAS_ICON;
-
+	ui_check_but_and_iconize(but, icon);
 	but->flag|= UI_ICON_LEFT;
-
-	ui_check_but(but);
-
 	return but;
 }
 static uiBut *uiDefIconTextButBit(uiBlock *block, int type, int bit, int retval, int icon, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
@@ -3044,31 +3034,25 @@ uiBut *uiDefIconTextButBitC(uiBlock *block, int type, int bit, int retval, int i
 uiBut *uiDefIconTextButR(uiBlock *block, int type, int retval, int icon, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but;
-
 	but= ui_def_but_rna_propname(block, type, retval, str, x1, y1, x2, y2, ptr, propname, index, min, max, a1, a2, tip);
-	if(but) {
-		if(icon) {
-			but->icon= (BIFIconID) icon;
-			but->flag|= UI_HAS_ICON;
-		}
-		but->flag|= UI_ICON_LEFT;
-		ui_check_but(but);
-	}
-
+	ui_check_but_and_iconize(but, icon);
+	but->flag|= UI_ICON_LEFT;
+	return but;
+}
+uiBut *uiDefIconTextButR_prop(uiBlock *block, int type, int retval, int icon, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
+{
+	uiBut *but;
+	but= ui_def_but_rna(block, type, retval, str, x1, y1, x2, y2, ptr, prop, index, min, max, a1, a2, tip);
+	ui_check_but_and_iconize(but, icon);
+	but->flag|= UI_ICON_LEFT;
 	return but;
 }
 uiBut *uiDefIconTextButO(uiBlock *block, int type, const char *opname, int opcontext, int icon, const char *str, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-
 	but= ui_def_but_operator(block, type, opname, opcontext, str, x1, y1, x2, y2, tip);
-	if(but) {
-		but->icon= (BIFIconID) icon;
-		but->flag|= UI_HAS_ICON;
-		but->flag|= UI_ICON_LEFT;
-		ui_check_but(but);
-	}
-
+	ui_check_but_and_iconize(but, icon);
+	but->flag|= UI_ICON_LEFT;
 	return but;
 }
 
