@@ -1049,109 +1049,6 @@ static void copymenu_logicbricks(Scene *scene, View3D *v3d, Object *ob)
 	}
 }
 
-static void copymenu_modifiers(Main *bmain, Scene *scene, View3D *v3d, Object *ob)
-{
-	Base *base;
-	int i, event;
-	char str[512];
-	const char *errorstr= NULL;
-
-	strcpy(str, "Copy Modifiers %t");
-
-	sprintf(str+strlen(str), "|All%%x%d|%%l", NUM_MODIFIER_TYPES);
-
-	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
-		ModifierTypeInfo *mti = modifierType_getInfo(i);
-
-		if(ELEM3(i, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
-		
-		if(i == eModifierType_Collision)
-			continue;
-
-		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
-				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
-			sprintf(str+strlen(str), "|%s%%x%d", mti->name, i);
-		}
-	}
-
-	event = pupmenu(str);
-	if(event<=0) return;
-
-	for (base= FIRSTBASE; base; base= base->next) {
-		if(base->object != ob) {
-			if(TESTBASELIB(v3d, base)) {
-
-				base->object->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
-
-				if (base->object->type==ob->type) {
-					/* copy all */
-					if (event==NUM_MODIFIER_TYPES) {
-						ModifierData *md;
-						object_free_modifiers(base->object);
-
-						for (md=ob->modifiers.first; md; md=md->next) {
-							ModifierData *nmd = NULL;
-							
-							if(ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance)) continue;
-		
-							if(md->type == eModifierType_Collision)
-								continue;
-							
-							nmd = modifier_new(md->type);
-							modifier_copyData(md, nmd);
-							BLI_addtail(&base->object->modifiers, nmd);
-							modifier_unique_name(&base->object->modifiers, nmd);
-						}
-
-						copy_object_particlesystems(base->object, ob);
-						copy_object_softbody(base->object, ob);
-					} else {
-						/* copy specific types */
-						ModifierData *md, *mdn;
-						
-						/* remove all with type 'event' */
-						for (md=base->object->modifiers.first; md; md=mdn) {
-							mdn= md->next;
-							if(md->type==event) {
-								BLI_remlink(&base->object->modifiers, md);
-								modifier_free(md);
-							}
-						}
-						
-						/* copy all with type 'event' */
-						for (md=ob->modifiers.first; md; md=md->next) {
-							if (md->type==event) {
-								
-								mdn = modifier_new(event);
-								BLI_addtail(&base->object->modifiers, mdn);
-								modifier_unique_name(&base->object->modifiers, mdn);
-
-								modifier_copyData(md, mdn);
-							}
-						}
-
-						if(event == eModifierType_ParticleSystem) {
-							object_free_particlesystems(base->object);
-							copy_object_particlesystems(base->object, ob);
-						}
-						else if(event == eModifierType_Softbody) {
-							object_free_softbody(base->object);
-							copy_object_softbody(base->object, ob);
-						}
-					}
-				}
-				else
-					errorstr= "Did not copy modifiers to other Object types";
-			}
-		}
-	}
-	
-//	if(errorstr) notice(errorstr);
-	
-	DAG_scene_sort(bmain, scene);
-	
-}
-
 /* both pointers should exist */
 static void copy_texture_space(Object *to, Object *ob)
 {
@@ -1196,6 +1093,7 @@ static void copy_texture_space(Object *to, Object *ob)
 	
 }
 
+/* UNUSED, keep incase we want to copy functionality for use elsewhere */
 static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 {
 	Object *ob;
@@ -1221,7 +1119,8 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 		return;
 	}
 	else if(event==24) {
-		copymenu_modifiers(bmain, scene, v3d, ob);
+		/* moved to object_link_modifiers */
+		/* copymenu_modifiers(bmain, scene, v3d, ob); */
 		return;
 	}
 
