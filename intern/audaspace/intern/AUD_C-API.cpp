@@ -48,6 +48,7 @@
 #include "AUD_I3DDevice.h"
 #include "AUD_I3DHandle.h"
 #include "AUD_FileFactory.h"
+#include "AUD_FileWriter.h"
 #include "AUD_StreamBufferFactory.h"
 #include "AUD_DelayFactory.h"
 #include "AUD_LimiterFactory.h"
@@ -1152,4 +1153,24 @@ void* AUD_getSet(void* set)
 	}
 
 	return NULL;
+}
+
+const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate)
+{
+	try
+	{
+		AUD_SequencerFactory* f = dynamic_cast<AUD_SequencerFactory*>(sound->get());
+
+		f->setSpecs(specs.specs);
+		AUD_Reference<AUD_IReader> reader = f->createReader();
+		reader->seek(start);
+		AUD_Reference<AUD_IWriter> writer = AUD_FileWriter::createWriter(filename, specs, format, codec, bitrate);
+		AUD_FileWriter::writeReader(reader, writer, length, buffersize);
+
+		return NULL;
+	}
+	catch(AUD_Exception& e)
+	{
+		return e.str;
+	}
 }

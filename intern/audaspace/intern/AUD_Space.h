@@ -169,6 +169,30 @@ typedef enum
 	AUD_AP_ORIENTATION
 } AUD_AnimateablePropertyType;
 
+typedef enum
+{
+	AUD_CONTAINER_INVALID = 0,
+	AUD_CONTAINER_AC3,
+	AUD_CONTAINER_FLAC,
+	AUD_CONTAINER_MATROSKA,
+	AUD_CONTAINER_MP2,
+	AUD_CONTAINER_MP3,
+	AUD_CONTAINER_OGG,
+	AUD_CONTAINER_WAV
+} AUD_Container;
+
+typedef enum
+{
+	AUD_CODEC_INVALID = 0,
+	AUD_CODEC_AAC,
+	AUD_CODEC_AC3,
+	AUD_CODEC_FLAC,
+	AUD_CODEC_MP2,
+	AUD_CODEC_MP3,
+	AUD_CODEC_PCM,
+	AUD_CODEC_VORBIS
+} AUD_Codec;
+
 /// Sample type.(float samples)
 typedef float sample_t;
 

@@ -86,9 +86,9 @@ private:
 	AVCodecContext* m_codecCtx;
 
 	/**
-	 * The ByteIOContext to read the data from.
+	 * The AVIOContext to read the data from.
 	 */
-	ByteIOContext* m_byteiocontext;
+	AVIOContext* m_aviocontext;
 
 	/**
 	 * The stream ID in the file.

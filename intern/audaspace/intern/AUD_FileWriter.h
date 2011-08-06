@@ -24,37 +24,35 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_NULLDevice.h
+/** \file audaspace/intern/AUD_FileWriter.h
  *  \ingroup audaspaceintern
  */
 
 
-#ifndef AUD_NULLDEVICE
-#define AUD_NULLDEVICE
+#ifndef AUD_FILEWRITER
+#define AUD_FILEWRITER
 
+#include <string>
+
+#include "AUD_Reference.h"
+
+#include "AUD_IWriter.h"
 #include "AUD_IReader.h"
-#include "AUD_IDevice.h"
 
 /**
- * This device plays nothing.
+ * This factory tries to read a sound file via all available file readers.
  */
-class AUD_NULLDevice : public AUD_IDevice
+class AUD_FileWriter
 {
+private:
+	// hide default constructor, copy constructor and operator=
+	AUD_FileWriter();
+	AUD_FileWriter(const AUD_FileWriter&);
+	AUD_FileWriter& operator=(const AUD_FileWriter&);
+
 public:
-	/**
-	 * Creates a new NULL device.
-	 */
-	AUD_NULLDevice();
-
-	virtual ~AUD_NULLDevice();
-
-	virtual AUD_DeviceSpecs getSpecs() const;
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
-	virtual void lock();
-	virtual void unlock();
-	virtual float getVolume() const;
-	virtual void setVolume(float volume);
+	static AUD_Reference<AUD_IWriter> createWriter(std::string filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate);
+	static void writeReader(AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_IWriter> writer, unsigned int length, unsigned int buffersize);
 };
 
-#endif //AUD_NULLDEVICE
+#endif //AUD_FILEWRITER

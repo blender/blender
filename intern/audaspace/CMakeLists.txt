@@ -88,12 +88,15 @@ set(SRC
 	intern/AUD_ConverterReader.h
 	intern/AUD_FileFactory.cpp
 	intern/AUD_FileFactory.h
+	intern/AUD_FileWriter.cpp
+	intern/AUD_FileWriter.h
 	intern/AUD_I3DDevice.h
 	intern/AUD_I3DHandle.h
 	intern/AUD_IDevice.h
 	intern/AUD_IFactory.h
 	intern/AUD_IHandle.h
 	intern/AUD_IReader.h
+	intern/AUD_IWriter.h
 	intern/AUD_JOSResampleFactory.cpp
 	intern/AUD_JOSResampleFactory.h
 	intern/AUD_JOSResampleReader.cpp
@@ -184,9 +187,11 @@ if(WITH_CODEC_FFMPEG)
 	list(APPEND SRC
 		ffmpeg/AUD_FFMPEGFactory.cpp
 		ffmpeg/AUD_FFMPEGReader.cpp
+		ffmpeg/AUD_FFMPEGWriter.cpp
 
 		ffmpeg/AUD_FFMPEGFactory.h
 		ffmpeg/AUD_FFMPEGReader.h
+		ffmpeg/AUD_FFMPEGWriter.h
 	)
 endif()
 
@@ -246,9 +251,11 @@ if(WITH_CODEC_SNDFILE)
 	list(APPEND SRC
 		sndfile/AUD_SndFileFactory.cpp
 		sndfile/AUD_SndFileReader.cpp
+		sndfile/AUD_SndFileWriter.cpp
 
 		sndfile/AUD_SndFileFactory.h
 		sndfile/AUD_SndFileReader.h
+		sndfile/AUD_SndFileWriter.h
 	)
 endif()
 

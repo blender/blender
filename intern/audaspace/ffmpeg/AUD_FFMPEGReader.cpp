@@ -176,11 +176,11 @@ static const char* fileopen_error = "AUD_FFMPEGReader: File couldn't be "
 
 AUD_FFMPEGReader::AUD_FFMPEGReader(std::string filename) :
 	m_pkgbuf(AVCODEC_MAX_AUDIO_FRAME_SIZE<<1),
-	m_byteiocontext(NULL),
+	m_aviocontext(NULL),
 	m_membuf(NULL)
 {
 	// open file
-	if(av_open_input_file(&m_formatCtx, filename.c_str(), NULL, 0, NULL)!=0)
+	if(avformat_open_input(&m_formatCtx, filename.c_str(), NULL, NULL)!=0)
 		AUD_THROW(AUD_ERROR_FILE, fileopen_error);
 
 	try
@@ -204,25 +204,20 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer) :
 {
 	m_membuf = reinterpret_cast<data_t*>(av_malloc(FF_MIN_BUFFER_SIZE + FF_INPUT_BUFFER_PADDING_SIZE));
 
-	m_byteiocontext = av_alloc_put_byte(m_membuf, FF_MIN_BUFFER_SIZE, 0, this,
-										read_packet, NULL, seek_packet);
+	m_aviocontext = avio_alloc_context(m_membuf, FF_MIN_BUFFER_SIZE, 0, this,
+									   read_packet, NULL, seek_packet);
 
-	if(!m_byteiocontext)
+	if(!m_aviocontext)
 	{
-		av_free(m_byteiocontext);
+		av_free(m_aviocontext);
 		AUD_THROW(AUD_ERROR_FILE, fileopen_error);
 	}
 
-	AVProbeData probe_data;
-	probe_data.filename = "";
-	probe_data.buf = reinterpret_cast<data_t*>(buffer.get()->getBuffer());
-	probe_data.buf_size = buffer.get()->getSize();
-	AVInputFormat* fmt = av_probe_input_format(&probe_data, 1);
-
-	// open stream
-	if(av_open_input_stream(&m_formatCtx, m_byteiocontext, "", fmt, NULL)!=0)
+	m_formatCtx = avformat_alloc_context();
+	m_formatCtx->pb = m_aviocontext;
+	if(avformat_open_input(&m_formatCtx, "", NULL, NULL)!=0)
 	{
-		av_free(m_byteiocontext);
+		av_free(m_aviocontext);
 		AUD_THROW(AUD_ERROR_FILE, streamopen_error);
 	}
 
@@ -233,7 +228,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer) :
 	catch(AUD_Exception&)
 	{
 		av_close_input_stream(m_formatCtx);
-		av_free(m_byteiocontext);
+		av_free(m_aviocontext);
 		throw;
 	}
 }
@@ -242,10 +237,10 @@ AUD_FFMPEGReader::~AUD_FFMPEGReader()
 {
 	avcodec_close(m_codecCtx);
 
-	if(m_byteiocontext)
+	if(m_aviocontext)
 	{
 		av_close_input_stream(m_formatCtx);
-		av_free(m_byteiocontext);
+		av_free(m_aviocontext);
 	}
 	else
 		av_close_input_file(m_formatCtx);

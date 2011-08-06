@@ -508,7 +508,7 @@ extern AUD_Sound* AUD_copy(AUD_Sound* sound);
 
 extern void AUD_freeHandle(AUD_Handle* channel);
 
-extern void* AUD_createSet();
+extern void* AUD_createSet(void);
 
 extern void AUD_destroySet(void* set);
 
@@ -517,6 +517,8 @@ extern char AUD_removeSet(void* set, void* entry);
 extern void AUD_addSet(void* set, void* entry);
 
 extern void* AUD_getSet(void* set);
+
+extern const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate);
 
 #ifdef WITH_PYTHON
 extern PyObject* AUD_getPythonFactory(AUD_Sound* sound);

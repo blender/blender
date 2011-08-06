@@ -70,6 +70,8 @@ class SCENE_PT_audio(SceneButtonsPanel, bpy.types.Panel):
         col.prop(rd, "ffmpeg_audio_channels", text="")
         col.prop(rd, "ffmpeg_audio_mixrate", text="Rate")
 
+        layout.operator("sound.mixdown")
+
 
 class SCENE_PT_unit(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Units"

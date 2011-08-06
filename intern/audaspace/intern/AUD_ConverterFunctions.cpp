@@ -35,10 +35,10 @@
 #define AUD_U8_0		0x80
 #define AUD_S16_MAX		0x7FFF
 #define AUD_S16_MIN		0x8000
-#define AUD_S16_FLT		32768.0f
+#define AUD_S16_FLT		32767.0f
 #define AUD_S32_MAX		0x7FFFFFFF
 #define AUD_S32_MIN		0x80000000
-#define AUD_S32_FLT		2147483648.0f
+#define AUD_S32_FLT		2147483647.0f
 #define AUD_FLT_MAX		1.0f
 #define AUD_FLT_MIN		-1.0f
 
@@ -379,7 +379,7 @@ void AUD_convert_float_double(data_t* target, data_t* source, int length)
 {
 	float* s = (float*) source;
 	double* t = (double*) target;
-	for(int i = length - 1; i >= 0; i++)
+	for(int i = length - 1; i >= 0; i--)
 		t[i] = s[i];
 }
 

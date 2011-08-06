@@ -24,37 +24,46 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file audaspace/intern/AUD_NULLDevice.h
+/** \file audaspace/intern/AUD_IWriter.h
  *  \ingroup audaspaceintern
  */
 
 
-#ifndef AUD_NULLDEVICE
-#define AUD_NULLDEVICE
+#ifndef AUD_IWRITER
+#define AUD_IWRITER
 
-#include "AUD_IReader.h"
-#include "AUD_IDevice.h"
+#include "AUD_Space.h"
 
 /**
- * This device plays nothing.
+ * This class represents a sound sink where audio data can be written to.
  */
-class AUD_NULLDevice : public AUD_IDevice
+class AUD_IWriter
 {
 public:
 	/**
-	 * Creates a new NULL device.
+	 * Destroys the writer.
 	 */
-	AUD_NULLDevice();
+	virtual ~AUD_IWriter(){}
 
-	virtual ~AUD_NULLDevice();
+	/**
+	 * Returns how many samples have been written so far.
+	 * \return The writing position as sample count. May be negative if unknown.
+	 */
+	virtual int getPosition() const=0;
 
-	virtual AUD_DeviceSpecs getSpecs() const;
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
-	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
-	virtual void lock();
-	virtual void unlock();
-	virtual float getVolume() const;
-	virtual void setVolume(float volume);
+	/**
+	 * Returns the specification of the audio data being written into the sink.
+	 * \return The AUD_DeviceSpecs structure.
+	 * \note Regardless of the format the input still has to be float!
+	 */
+	virtual AUD_DeviceSpecs getSpecs() const=0;
+
+	/**
+	 * Request to write the next length samples out into the sink.
+	 * \param length The count of samples to write.
+	 * \param buffer The pointer to the buffer containing the data.
+	 */
+	virtual void write(unsigned int length, sample_t* buffer)=0;
 };
 
-#endif //AUD_NULLDEVICE
+#endif //AUD_IWRITER

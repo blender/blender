@@ -40,6 +40,10 @@ AUD_NULLDevice::AUD_NULLDevice()
 {
 }
 
+AUD_NULLDevice::~AUD_NULLDevice()
+{
+}
+
 AUD_DeviceSpecs AUD_NULLDevice::getSpecs() const
 {
 	AUD_DeviceSpecs specs;
