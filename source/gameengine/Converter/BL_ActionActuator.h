@@ -151,7 +151,7 @@ protected:
 	STR_String	m_framepropname;
 };
 
-// The first values are not used in BL_ActionActuator anymore,
+// Not all of these values are used in BL_ActionActuator anymore,
 // but BL_ShapeActionActuator still uses them, so we keep them around
 // for now.
 enum {

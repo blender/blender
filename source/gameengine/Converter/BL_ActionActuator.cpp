@@ -153,7 +153,18 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	else if (m_playtype == ACT_ACTION_LOOP_STOP)
 		play_mode = BL_Action::ACT_MODE_LOOP;
 	else if (m_playtype == ACT_ACTION_PINGPONG)
-		play_mode = BL_Action::ACT_MODE_PING_PONG;
+	{
+		// We handle ping pong ourselves to increase compabitility with the pre-Pepper actuator
+		play_mode = BL_Action::ACT_MODE_PLAY;
+		
+		if (m_flag & ACT_FLAG_REVERSE)
+		{
+			float tmp = start;
+			start = end;
+			end = tmp;
+			m_localtime = end;
+		}
+	}
 	else if (m_playtype == ACT_ACTION_FROM_PROP)
 	{
 		CValue* prop = GetParent()->GetProperty(m_propname);
@@ -173,13 +184,14 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	
 	if (bPositiveEvent)
 	{
-		if (m_flag & ACT_FLAG_ACTIVE && m_flag & ACT_FLAG_CONTINUE)
+
+		if (m_playtype != ACT_ACTION_PINGPONG && m_flag & ACT_FLAG_ACTIVE && m_flag & ACT_FLAG_CONTINUE)
 			start = m_localtime = obj->GetActionFrame(m_layer);
 
 		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, play_mode, m_layer_weight, m_ipo_flags))
 		{
 			m_flag |= ACT_FLAG_ACTIVE;
-			if (m_flag & ACT_FLAG_CONTINUE)
+			if (m_playtype != ACT_ACTION_PINGPONG && m_flag & ACT_FLAG_CONTINUE)
 				obj->SetActionFrame(m_layer, m_localtime);
 
 			if (m_playtype == ACT_ACTION_PLAY)
@@ -211,7 +223,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			m_flag &= ~ACT_FLAG_ACTIVE;
 			return false;
 		}
-		else if (m_playtype == ACT_ACTION_LOOP_END)
+		else if (m_playtype == ACT_ACTION_LOOP_END || m_playtype == ACT_ACTION_PINGPONG)
 		{
 			// Convert into a play and let it finish
 			start = obj->GetActionFrame(m_layer);
@@ -219,6 +231,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
 
 			m_flag |= ACT_FLAG_PLAY_END;
+
+			if (m_playtype == ACT_ACTION_PINGPONG)
+				m_flag ^= ACT_FLAG_REVERSE;
 		}
 		else if (m_playtype == ACT_ACTION_FLIPPER)
 		{
