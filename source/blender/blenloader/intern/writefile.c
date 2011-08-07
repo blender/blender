@@ -718,11 +718,19 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 	}
 }
 
+static void write_keymapitem(WriteData *wd, wmKeyMapItem *kmi)
+{
+	writestruct(wd, DATA, "wmKeyMapItem", 1, kmi);
+	if(kmi->properties)
+		IDP_WriteProperty(kmi->properties, wd);
+}
+
 static void write_userdef(WriteData *wd)
 {
 	bTheme *btheme;
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
+	wmKeyMapDiffItem *kmdi;
 	bAddon *bext;
 	uiStyle *style;
 	
@@ -731,15 +739,19 @@ static void write_userdef(WriteData *wd)
 	for(btheme= U.themes.first; btheme; btheme=btheme->next)
 		writestruct(wd, DATA, "bTheme", 1, btheme);
 
-	for(keymap= U.keymaps.first; keymap; keymap=keymap->next) {
+	for(keymap= U.user_keymaps.first; keymap; keymap=keymap->next) {
 		writestruct(wd, DATA, "wmKeyMap", 1, keymap);
 
-		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
-			writestruct(wd, DATA, "wmKeyMapItem", 1, kmi);
-
-			if(kmi->properties)
-				IDP_WriteProperty(kmi->properties, wd);
+		for(kmdi=keymap->diff_items.first; kmdi; kmdi=kmdi->next) {
+			writestruct(wd, DATA, "wmKeyMapDiffItem", 1, kmdi);
+			if(kmdi->remove_item)
+				write_keymapitem(wd, kmdi->remove_item);
+			if(kmdi->add_item)
+				write_keymapitem(wd, kmdi->add_item);
 		}
+
+		for(kmi=keymap->items.first; kmi; kmi=kmi->next)
+			write_keymapitem(wd, kmi);
 	}
 
 	for(bext= U.addons.first; bext; bext=bext->next)

@@ -302,6 +302,7 @@ protected:
 	 */
 	static void processMinMaxInfo(MINMAXINFO * minmax);
 
+#ifdef WITH_INPUT_NDOF
 	/**
 	 * Handles Motion and Button events from a SpaceNavigator or related device.
 	 * Instead of returning an event object, this function communicates directly
@@ -310,6 +311,7 @@ protected:
 	 * @return Whether an event was generated and sent.
 	 */
 	bool processNDOF(RAWINPUT const& raw);
+#endif
 
 	/**
 	 * Returns the local state of the modifier keys (from the message queue).

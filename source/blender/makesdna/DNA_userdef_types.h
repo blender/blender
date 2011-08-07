@@ -223,7 +223,7 @@ typedef struct ThemeSpace {
 	char console_cursor[4];
 	
 	char vertex_size, outline_width, facedot_size;
-	char bpad;
+	char noodle_curving;
 
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
@@ -344,7 +344,8 @@ typedef struct UserDef {
 	struct ListBase themes;
 	struct ListBase uifonts;
 	struct ListBase uistyles;
-	struct ListBase keymaps;
+	struct ListBase keymaps;		/* deprecated in favor of user_keymaps */
+	struct ListBase user_keymaps;
 	struct ListBase addons;
 	char keyconfigstr[64];
 	
@@ -606,7 +607,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define NDOF_ORBIT_INVERT_AXES (1 << 6)
 /* zoom is up/down if this flag is set (otherwise forward/backward) */
 #define NDOF_ZOOM_UPDOWN (1 << 7)
-#define NDOF_INVERT_ZOOM (1 << 8)
+#define NDOF_ZOOM_INVERT (1 << 8)
 
 
 #ifdef __cplusplus

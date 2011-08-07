@@ -246,7 +246,9 @@ enum {
 
 	TH_DRAWEXTRA_EDGELEN,
 	TH_DRAWEXTRA_FACEAREA,
-	TH_DRAWEXTRA_FACEANG
+	TH_DRAWEXTRA_FACEANG,
+
+	TH_NODE_CURVING
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

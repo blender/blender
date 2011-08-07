@@ -447,34 +447,41 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 
 static int view_ndof_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
-	SpaceImage *sima= CTX_wm_space_image(C);
-	ARegion *ar= CTX_wm_region(C);
+	if (event->type != NDOF_MOTION)
+		return OPERATOR_CANCELLED;
+	else {
+		SpaceImage *sima= CTX_wm_space_image(C);
+		ARegion *ar= CTX_wm_region(C);
 
-	wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+		wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
-	float dt = ndof->dt;
-	/* tune these until it feels right */
-	const float zoom_sensitivity = 0.5f; // 50% per second (I think)
-	const float pan_sensitivity = 300.f; // screen pixels per second
+		float dt = ndof->dt;
+		/* tune these until it feels right */
+		const float zoom_sensitivity = 0.5f; // 50% per second (I think)
+		const float pan_sensitivity = 300.f; // screen pixels per second
 
-	float pan_x = pan_sensitivity * dt * ndof->tvec[0] / sima->zoom;
-	float pan_y = pan_sensitivity * dt * ndof->tvec[1] / sima->zoom;
+		float pan_x = pan_sensitivity * dt * ndof->tvec[0] / sima->zoom;
+		float pan_y = pan_sensitivity * dt * ndof->tvec[1] / sima->zoom;
 
-	/* "mouse zoom" factor = 1 + (dx + dy) / 300
-	 * what about "ndof zoom" factor? should behave like this:
-	 * at rest -> factor = 1
-	 * move forward -> factor > 1
-	 * move backward -> factor < 1
-	 */
-	float zoom_factor = 1.f + zoom_sensitivity * dt * -ndof->tvec[2];
+		/* "mouse zoom" factor = 1 + (dx + dy) / 300
+		 * what about "ndof zoom" factor? should behave like this:
+		 * at rest -> factor = 1
+		 * move forward -> factor > 1
+		 * move backward -> factor < 1
+		 */
+		float zoom_factor = 1.f + zoom_sensitivity * dt * -ndof->tvec[2];
 
-	sima_zoom_set_factor(sima, ar, zoom_factor);
-	sima->xof += pan_x;
-	sima->yof += pan_y;
+		if (U.ndof_flag & NDOF_ZOOM_INVERT)
+			zoom_factor = -zoom_factor;
 
-	ED_region_tag_redraw(ar);	
+		sima_zoom_set_factor(sima, ar, zoom_factor);
+		sima->xof += pan_x;
+		sima->yof += pan_y;
 
-	return OPERATOR_FINISHED;
+		ED_region_tag_redraw(ar);	
+
+		return OPERATOR_FINISHED;
+	}
 }
 
 void IMAGE_OT_view_ndof(wmOperatorType *ot)

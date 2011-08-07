@@ -180,6 +180,7 @@ convertSDLKey(SDL_Scancode key)
 		GXMAP(type,SDL_SCANCODE_RCTRL,          GHOST_kKeyRightControl);
 		GXMAP(type,SDL_SCANCODE_LALT,           GHOST_kKeyLeftAlt);
 		GXMAP(type,SDL_SCANCODE_RALT,           GHOST_kKeyRightAlt);
+		GXMAP(type,SDL_SCANCODE_LGUI,           GHOST_kKeyOS);
 		GXMAP(type,SDL_SCANCODE_RGUI,           GHOST_kKeyOS);
 
 		GXMAP(type,SDL_SCANCODE_INSERT,         GHOST_kKeyInsert);
@@ -228,6 +229,7 @@ convertSDLKey(SDL_Scancode key)
         GXMAP(type,SDL_SCANCODE_AUDIONEXT,      GHOST_kKeyMediaLast);
 
 		default:
+			printf("Unknown\n");
 			type= GHOST_kKeyUnknown;
 			break;
 		}
@@ -372,6 +374,7 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 	case SDL_KEYUP:
 		{
 			SDL_KeyboardEvent &sdl_sub_evt= sdl_event->key;
+			SDL_Keycode sym= sdl_sub_evt.keysym.sym;
 			GHOST_TEventType type= (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 
 			GHOST_WindowSDL *window= findGhostWindow(SDL_GetWindowFromID(sdl_sub_evt.windowID));
@@ -379,7 +382,45 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 
 			GHOST_TKey gkey= convertSDLKey(sdl_sub_evt.keysym.scancode);
 			/* note, the sdl_sub_evt.keysym.sym is truncated, for unicode support ghost has to be modified */
-			g_event= new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sdl_sub_evt.keysym.sym);
+			if(sym > 127) {
+				sym= 0;
+			}
+			else {
+				if(sdl_sub_evt.keysym.mod & (KMOD_LSHIFT|KMOD_RSHIFT)) {
+					/* lame US keyboard assumptions */
+					if(sym >= 'a' && sym <= ('a' + 32)) {
+						sym -= 32;
+					}
+					else {
+						switch(sym) {
+							case '`': sym= '~'; break;
+							case '1': sym= '!'; break;
+							case '2': sym= '@'; break;
+							case '3': sym= '#'; break;
+							case '4': sym= '$'; break;
+							case '5': sym= '%'; break;
+							case '6': sym= '^'; break;
+							case '7': sym= '&'; break;
+							case '8': sym= '*'; break;
+							case '9': sym= '('; break;
+							case '0': sym= ')'; break;
+							case '-': sym= '_'; break;
+							case '=': sym= '+'; break;
+							case '[': sym= '{'; break;
+							case ']': sym= '}'; break;
+							case '\\': sym= '|'; break;
+							case ';': sym= ':'; break;
+							case '\'': sym= '"'; break;
+							case ',': sym= '<'; break;
+							case '.': sym= '>'; break;
+							case '/': sym= '?'; break;
+							default:            break;
+						}
+					}
+				}
+			}
+
+			g_event= new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sym);
 		}
 		break;
 	}

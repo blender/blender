@@ -108,12 +108,14 @@ else:
 
         sys.exit(0)
     else:
+        bitness = '32'
         # Switch to new FFmpeg library
         if builder.find('win') != -1:
             if builder.find('win32') != -1:
                 LCGDIR = '#../lib/windows'
             elif builder.find('win64') != -1:
                 LCGDIR = '#../lib/win64'
+                bitness = '64'
 
             all_ffmpeg_libs = ['avcodec-53',
                                'avdevice-53',
@@ -126,11 +128,13 @@ else:
 
             for lib in all_ffmpeg_libs:
                 ffmpeg_lib.append(lib + '.lib')
-                ffmpeg_dll.append('${BF_FFMPEG_LIBPATH}/' + lib + '.lib')
+                ffmpeg_dll.append('${BF_FFMPEG_LIBPATH}/' + lib + '.dll')
 
             scons_options.append('BF_FFMPEG=' + LCGDIR + '/ffmpeg-0.8')
             scons_options.append('BF_FFMPEG_LIB=' + (' '.join(ffmpeg_lib)))
             scons_options.append('BF_FFMPEG_DLL=' + (' '.join(ffmpeg_dll)))
+
+            scons_options.append('BF_BITNESS='+bitness)
 
         retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
         sys.exit(retcode)
