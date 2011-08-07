@@ -532,7 +532,7 @@ static void wm_keymap_patch(wmKeyMap *km, wmKeyMap *diff_km)
 	}
 }
 
-static void wm_keymap_patch_update(ListBase *lb, wmKeyMap *defaultmap, wmKeyMap *addonmap, wmKeyMap *usermap)
+static wmKeyMap *wm_keymap_patch_update(ListBase *lb, wmKeyMap *defaultmap, wmKeyMap *addonmap, wmKeyMap *usermap)
 {
 	wmKeyMap *km;
 	int expanded = 0;
@@ -552,8 +552,6 @@ static void wm_keymap_patch_update(ListBase *lb, wmKeyMap *defaultmap, wmKeyMap 
 		wmKeyMapItem *kmi, *orig_kmi;
 
 		km = wm_keymap_copy(usermap);
-		km->modal_items = defaultmap->modal_items;
-		km->poll = defaultmap->poll;
 
 		/* try to find corresponding id's for items */
 		for(kmi=km->items.first; kmi; kmi=kmi->next) {
@@ -587,6 +585,8 @@ static void wm_keymap_patch_update(ListBase *lb, wmKeyMap *defaultmap, wmKeyMap 
 
 	/* add to list */
 	BLI_addtail(lb, km);
+	
+	return km;
 }
 
 static void wm_keymap_diff_update(ListBase *lb, wmKeyMap *defaultmap, wmKeyMap *addonmap, wmKeyMap *km)
@@ -977,7 +977,7 @@ static wmKeyMap *wm_keymap_preset(wmWindowManager *wm, wmKeyMap *km)
 
 void WM_keyconfig_update(wmWindowManager *wm)
 {
-	wmKeyMap *km, *defaultmap, *addonmap, *usermap;
+	wmKeyMap *km, *defaultmap, *addonmap, *usermap, *kmn;
 	wmKeyMapItem *kmi;
 	wmKeyMapDiffItem *kmdi;
 	int compat_update = 0;
@@ -1021,7 +1021,12 @@ void WM_keyconfig_update(wmWindowManager *wm)
 		usermap= WM_keymap_list_find(&U.user_keymaps, km->idname, km->spaceid, km->regionid);
 
 		/* add */
-		wm_keymap_patch_update(&wm->userconf->keymaps, defaultmap, addonmap, usermap);
+		kmn= wm_keymap_patch_update(&wm->userconf->keymaps, defaultmap, addonmap, usermap);
+
+		if(kmn) {
+			kmn->modal_items= km->modal_items;
+			kmn->poll= km->poll;
+		}
 
 		/* in case of old non-diff keymaps, force extra update to create diffs */
 		compat_update = compat_update || (usermap && !(usermap->flag & KEYMAP_DIFF));
