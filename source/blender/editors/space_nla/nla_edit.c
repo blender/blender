@@ -36,6 +36,7 @@
 #include <math.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -536,11 +537,14 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 			/* check if there's space between the two */
 			if (IS_EQ(s1->end, s2->start))
 				continue;
-			/* make neither one is a transition 
+			/* make sure neither one is a transition 
 			 *	- although this is impossible to create with the standard tools, 
 			 * 	  the user may have altered the settings
 			 */
 			if (ELEM(NLASTRIP_TYPE_TRANSITION, s1->type, s2->type))
+				continue;
+			/* also make sure neither one is a soundclip */
+			if (ELEM(NLASTRIP_TYPE_SOUND, s1->type, s2->type))
 				continue;
 				
 			/* allocate new strip */
@@ -602,6 +606,91 @@ void NLA_OT_transition_add (wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= nlaedit_add_transition_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ******************** Add Sound Clip Operator ***************************** */
+/* Add a new sound clip */
+
+static int nlaedit_add_sound_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	Scene *scene;
+	int cfra;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	scene = ac.scene;
+	cfra = CFRA;
+	
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each track, add sound clips if it belongs to a speaker */
+	// TODO: what happens if there aren't any tracks... well that's a more general problem for later
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		Object *ob = (Object *)ale->id; /* may not be object until we actually check! */
+		
+		AnimData *adt = ale->adt;
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		/* does this belong to speaker - assumed to live on Object level only */
+		if ((GS(ale->id->name) != ID_OB) || (ob->type != OB_SPEAKER))
+			continue;
+			
+		/* create a new strip, and offset it to start on the current frame */
+		strip= add_nla_soundstrip(ac.scene, ob->data); 
+		
+		strip->start	+= cfra;
+		strip->end 		+= cfra;
+		
+		/* firstly try adding strip to our current track, but if that fails, add to a new track */
+		if (BKE_nlatrack_add_strip(nlt, strip) == 0) {
+			/* trying to add to the current failed (no space), 
+			 * so add a new track to the stack, and add to that...
+			 */
+			nlt= add_nlatrack(adt, NULL);
+			BKE_nlatrack_add_strip(nlt, strip);
+		}
+		
+		/* auto-name it */
+		BKE_nlastrip_validate_name(adt, strip);
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* refresh auto strip properties */
+	ED_nla_postop_refresh(&ac);
+	
+	/* set notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_soundclip_add (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Sound Clip";
+	ot->idname= "NLA_OT_soundclip_add";
+	ot->description= "Add a strip for controlling when speaker plays its sound clip";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_add_sound_exec;
 	ot->poll= nlaop_poll_tweakmode_off;
 	
 	/* flags */
@@ -1922,6 +2011,10 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 				if ((strip->flag & NLASTRIP_FLAG_SELECT)==0)
 					continue;
 			}
+			
+			/* sound clips are not affected by FModifiers */
+			if (strip->type == NLASTRIP_TYPE_SOUND)
+				continue;
 			
 			/* add F-Modifier of specified type to selected, and make it the active one */
 			fcm= add_fmodifier(&strip->modifiers, type);

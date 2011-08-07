@@ -397,6 +397,7 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
  *	2A) nla tracks: include animdata block's data as there are NLA tracks+strips there
  *	2B) actions to convert to nla: include animdata block's data as there is an action that can be 
  *		converted to a new NLA strip, and the filtering options allow this
+ *	2C) allow non-animated datablocks to be included so that datablocks can be added
  *	3) drivers: include drivers from animdata block (for Drivers mode in Graph Editor)
  *	4) normal keyframes: only when there is an active action
  */
@@ -1625,7 +1626,7 @@ static size_t animdata_filter_ds_obdata (bAnimContext *ac, ListBase *anim_data, 
 		case OB_SPEAKER: /* ---------- Speaker ----------- */
 		{
 			Speaker *spk= (Speaker *)ob->data;
-
+			
 			type= ANIMTYPE_DSSPK;
 			expanded= FILTER_SPK_OBJD(spk);
 		}

@@ -39,6 +39,8 @@ struct AnimData;
 struct NlaStrip;
 struct NlaTrack;
 struct bAction;
+struct Scene;
+struct Speaker;
 
 /* ----------------------------- */
 /* Data Management */
@@ -54,6 +56,7 @@ void copy_nladata(ListBase *dst, ListBase *src);
 struct NlaTrack *add_nlatrack(struct AnimData *adt, struct NlaTrack *prev);
 struct NlaStrip *add_nlastrip(struct bAction *act);
 struct NlaStrip *add_nlastrip_to_stack(struct AnimData *adt, struct bAction *act);
+struct NlaStrip *add_nla_soundstrip(struct Scene *scene, struct Speaker *spk);
 
 /* ----------------------------- */
 /* API */

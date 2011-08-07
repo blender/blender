@@ -173,6 +173,7 @@ class NLA_MT_add(bpy.types.Menu):
         layout.column()
         layout.operator("nla.actionclip_add")
         layout.operator("nla.transition_add")
+        layout.operator("nla.soundclip_add")
 
         layout.separator()
         layout.operator("nla.meta_add")

@@ -140,6 +140,7 @@ void nla_operatortypes(void)
 	
 	WM_operatortype_append(NLA_OT_actionclip_add);
 	WM_operatortype_append(NLA_OT_transition_add);
+	WM_operatortype_append(NLA_OT_soundclip_add);
 	
 	WM_operatortype_append(NLA_OT_meta_add);
 	WM_operatortype_append(NLA_OT_meta_remove);
@@ -233,6 +234,7 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* add strips */
 	WM_keymap_add_item(keymap, "NLA_OT_actionclip_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_transition_add", TKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_soundclip_add", KKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* meta-strips */
 	WM_keymap_add_item(keymap, "NLA_OT_meta_add", GKEY, KM_PRESS, KM_SHIFT, 0);

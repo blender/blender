@@ -99,6 +99,7 @@ void NLA_OT_view_selected(wmOperatorType *ot);
 
 void NLA_OT_actionclip_add(wmOperatorType *ot);
 void NLA_OT_transition_add(wmOperatorType *ot);
+void NLA_OT_soundclip_add(wmOperatorType *ot);
 
 void NLA_OT_meta_add(wmOperatorType *ot);
 void NLA_OT_meta_remove(wmOperatorType *ot);

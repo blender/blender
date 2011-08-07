@@ -1921,6 +1921,9 @@ void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, ListBase *modifiers
 		case NLASTRIP_TYPE_META: /* meta */
 			nlastrip_evaluate_meta(ptr, channels, modifiers, nes);
 			break;
+			
+		default: /* do nothing */
+			break;
 	}
 	
 	/* clear temp recursion safe-check */

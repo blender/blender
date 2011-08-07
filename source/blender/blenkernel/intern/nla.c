@@ -46,6 +46,8 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_speaker_types.h"
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
@@ -53,6 +55,9 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 #include "RNA_access.h"
 #include "nla_private.h"
@@ -334,6 +339,41 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 	BKE_nlastrip_validate_name(adt, strip);
 	
 	/* returns the strip added */
+	return strip;
+}
+
+/* Add a NLA Strip referencing the given speaker's sound */
+NlaStrip *add_nla_soundstrip (Scene *scene, Speaker *speaker)
+{
+	NlaStrip *strip = MEM_callocN(sizeof(NlaStrip), "NlaSoundStrip");
+	
+	/* if speaker has a sound, set the strip length to the length of the sound,
+	 * otherwise default to length of 10 frames
+	 */
+#ifdef WITH_AUDASPACE
+	if (speaker->sound) 
+	{
+		AUD_SoundInfo info = AUD_getInfo(speaker->sound->playback_handle);
+		
+		strip->end = ceil(info.length * FPS);
+	}
+	else 
+#endif
+	{
+		strip->end = 10.0f;
+	}
+	
+	/* general settings */
+	strip->type = NLASTRIP_TYPE_SOUND;
+	
+	strip->flag = NLASTRIP_FLAG_SELECT;
+	strip->extendmode = NLASTRIP_EXTEND_NOTHING; /* nothing to extend... */
+	
+	/* strip should be referenced as-is */
+	strip->scale= 1.0f;
+	strip->repeat = 1.0f;
+	
+	/* return this strip */
 	return strip;
 }
 

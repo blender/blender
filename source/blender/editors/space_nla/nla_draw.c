@@ -198,7 +198,24 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 			color[1]= 0.15f;
 			color[2]= 0.26f;
 		}
-	}	
+	}
+	else if (strip->type == NLASTRIP_TYPE_SOUND) {
+		/* Sound Clip */
+		if (strip->flag & NLASTRIP_FLAG_SELECT) {
+			/* selected - use a bright teal color */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.12f;
+			color[1]= 0.48f;
+			color[2]= 0.48f;
+		}
+		else {
+			/* normal, unselected strip - use (hardly noticable) teal tinge */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.17f;
+			color[1]= 0.24f;
+			color[2]= 0.24f;
+		}
+	}
 	else {
 		/* Action Clip (default/normal type of strip) */
 		if ((strip->flag & NLASTRIP_FLAG_ACTIVE) && (adt && (adt->flag & ADT_NLA_EDIT_ON))) {
