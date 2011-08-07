@@ -265,9 +265,11 @@ if env['OURPLATFORM']=='darwin':
     # for now, Mac builders must download and install the driver framework from 3Dconnexion
     # necessary header file lives here when installed:
     # /Library/Frameworks/3DconnexionClient.framework/Versions/Current/Headers/ConnexionClientAPI.h
-    if not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
+    if env['WITH_BF_3DMOUSE'] == 1 and not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
         print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
         env['WITH_BF_3DMOUSE'] = 0
+        env['FOUND_NDOF_DRIVERS'] = 0
+
 
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):

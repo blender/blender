@@ -1,7 +1,9 @@
 #
 # Note : if you want to alter this file
-# setup a user-config.py in main directory
-# and set the wanted values there
+# copy it as a whole in the upper folder
+# as user-config.py
+# dont create a new file with only some
+# vars changed.
 
 import commands
 
@@ -313,7 +315,7 @@ if WITH_BF_QUICKTIME:
 	else:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
 
-if WITH_BF_3DMOUSE:
+if FOUND_NDOF_DRIVERS:
 	PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS + ['-weak_framework','3DconnexionClient']
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
