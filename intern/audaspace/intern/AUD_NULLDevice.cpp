@@ -32,9 +32,85 @@
 #include <limits>
 
 #include "AUD_NULLDevice.h"
-#include "AUD_IReader.h"
-#include "AUD_IFactory.h"
-#include "AUD_IHandle.h"
+
+AUD_NULLDevice::AUD_NULLHandle::AUD_NULLHandle()
+{
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::pause()
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::resume()
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::stop()
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::getKeep()
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setKeep(bool keep)
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::seek(float position)
+{
+	return false;
+}
+
+float AUD_NULLDevice::AUD_NULLHandle::getPosition()
+{
+	return 0.0f;
+}
+
+AUD_Status AUD_NULLDevice::AUD_NULLHandle::getStatus()
+{
+	return AUD_STATUS_INVALID;
+}
+
+float AUD_NULLDevice::AUD_NULLHandle::getVolume()
+{
+	return 0.0f;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setVolume(float volume)
+{
+	return false;
+}
+
+float AUD_NULLDevice::AUD_NULLHandle::getPitch()
+{
+	return 0.0f;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setPitch(float pitch)
+{
+	return false;
+}
+
+int AUD_NULLDevice::AUD_NULLHandle::getLoopCount()
+{
+	return 0;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setLoopCount(int count)
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setStopCallback(stopCallback callback, void* data)
+{
+	return false;
+}
 
 AUD_NULLDevice::AUD_NULLDevice()
 {
@@ -55,12 +131,12 @@ AUD_DeviceSpecs AUD_NULLDevice::getSpecs() const
 
 AUD_Reference<AUD_IHandle> AUD_NULLDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 {
-	return AUD_Reference<AUD_IHandle>();
+	return new AUD_NULLHandle();
 }
 
 AUD_Reference<AUD_IHandle> AUD_NULLDevice::play(AUD_Reference<AUD_IFactory> factory, bool keep)
 {
-	return AUD_Reference<AUD_IHandle>();
+	return new AUD_NULLHandle();
 }
 
 void AUD_NULLDevice::lock()

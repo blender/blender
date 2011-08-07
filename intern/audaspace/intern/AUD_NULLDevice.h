@@ -34,12 +34,37 @@
 
 #include "AUD_IReader.h"
 #include "AUD_IDevice.h"
+#include "AUD_IHandle.h"
 
 /**
  * This device plays nothing.
  */
 class AUD_NULLDevice : public AUD_IDevice
 {
+private:
+	class AUD_NULLHandle : public AUD_IHandle
+	{
+	public:
+
+		AUD_NULLHandle();
+
+		virtual ~AUD_NULLHandle() {}
+		virtual bool pause();
+		virtual bool resume();
+		virtual bool stop();
+		virtual bool getKeep();
+		virtual bool setKeep(bool keep);
+		virtual bool seek(float position);
+		virtual float getPosition();
+		virtual AUD_Status getStatus();
+		virtual float getVolume();
+		virtual bool setVolume(float volume);
+		virtual float getPitch();
+		virtual bool setPitch(float pitch);
+		virtual int getLoopCount();
+		virtual bool setLoopCount(int count);
+		virtual bool setStopCallback(stopCallback callback = 0, void* data = 0);
+	};
 public:
 	/**
 	 * Creates a new NULL device.
