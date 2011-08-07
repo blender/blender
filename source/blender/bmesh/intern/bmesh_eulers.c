@@ -86,7 +86,7 @@
    *The term "Euler Operator" is actually a misnomer when referring to a non-manifold 
     data structure. Its use is in keeping with the convention established by others.
 
-	TODO:
+	BMESH_TODO:
 	-Make seperate 'debug levels' of validation
 	-Add in the UnglueFaceRegionMakeVert and GlueFaceRegionKillVert eulers.
 
@@ -835,7 +835,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
  *	This euler is a bit peculiar in compairson to others as it is its
  *	own inverse.
  *
- *	TODO: reinsert validation code.
+ *	BMESH_TODO: reinsert validation code.
  *
  *  Returns -
  *	1 for success, 0 for failure.
@@ -1059,7 +1059,7 @@ BMVert *bmesh_urmv(BMesh *bm, BMFace *sf, BMVert *sv)
     int numloops = 0, numedges = 0, i, maxedges, maxloops;
 
 
-    /*Todo: Validation*/
+    /*BMESH_TODO: Validation*/
     /*validate radial cycle of all collected loops*/
     /*validate the disk cycle of sv, and nv*/
     /*validate the face length of all faces? overkill?*/

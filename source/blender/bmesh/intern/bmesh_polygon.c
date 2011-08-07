@@ -22,7 +22,7 @@
  * with polygons (normal/area calculation,
  * tesselation, ect)
  *
- * TODO:
+ * BMESH_TODO:
  *   -Add in Tesselator frontend that creates
  *     BMTriangles from copied faces
  *  -Add in Function that checks for and flags

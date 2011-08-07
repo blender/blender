@@ -1286,7 +1286,7 @@ static void bmDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 
 		face_r->mat_nr = (unsigned char) ef->mat_nr;
 
-		/*HACK/TODO: need to convert this*/
+		/*HACK/BMESH_TODO: need to convert this*/
 		face_r->flag = ef->head.flag;
 
 		face_r->v1 = BM_GetIndex(l[0]->v);

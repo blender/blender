@@ -269,7 +269,7 @@ static BMVert *bm_subdivide_edge_addvert(BMesh *bm, BMEdge *edge,BMEdge *oedge,
 	/* offset for smooth or sphere or fractal */
 	alter_co(bm, ev, oedge, params, percent2, vsta, vend);
 
-#if 0 //TODO
+#if 0 //BMESH_TODO
 	/* clip if needed by mirror modifier */
 	if (edge->v1->f2) {
 		if ( edge->v1->f2 & edge->v2->f2 & 1) {

@@ -1378,7 +1378,7 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "UV Selected", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
-#if 0
+#if 0 /*BMESH_TODO*/
 	prop= RNA_def_property(srna, "pin_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "unwrap", TF_PIN1);
 	RNA_def_property_array(prop, 4);

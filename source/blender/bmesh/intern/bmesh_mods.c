@@ -338,7 +338,7 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
  *
  *  Note that this is not a general edge collapse function.
  *
- *  TODO:
+ *  BMESH_TODO:
  *    Insert error checking for KV valance.
  *
  *  Returns -

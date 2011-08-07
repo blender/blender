@@ -83,7 +83,7 @@ void BMO_push(BMesh *bm, BMOperator *UNUSED(op))
  *
  * Pops the opstack one level  
  * and frees a flag layer if appropriate
- * TODO: investigate NOT freeing flag
+ * BMESH_TODO: investigate NOT freeing flag
  * layers.
  *
 */
@@ -781,7 +781,7 @@ void BMO_Unflag_Buffer(BMesh *bm, BMOperator *op, const char *slotname, int flag
  *  using a mempool so the allocation/frees
  *  should be quite fast.
  *
- *  TODO:
+ *  BMESH_TODO:
  *	Investigate not freeing flag layers until
  *  all operators have been executed. This would
  *  save a lot of realloc potentially.

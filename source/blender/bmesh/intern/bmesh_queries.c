@@ -395,7 +395,7 @@ int BM_Boundary_Edge(BMEdge *e)
  *
  *  Counts the number of edges two faces share (if any)
  *
- *  TODO:
+ *  BMESH_TODO:
  *    Move this to structure, and wrap.
  * 
  *  Returns -

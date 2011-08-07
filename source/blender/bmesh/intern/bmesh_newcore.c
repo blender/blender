@@ -501,7 +501,7 @@ void BM_Kill_Vert(BMesh *bm, BMVert *v) {
  *	This euler is a bit peculiar in compairson to others as it is its
  *	own inverse.
  *
- *	TODO: reinsert validation code.
+ *	BMESH_TODO: reinsert validation code.
  *
  *  Returns -
  *	1 for success, 0 for failure.

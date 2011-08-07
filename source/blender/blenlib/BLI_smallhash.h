@@ -100,7 +100,7 @@ BM_INLINE void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 {
 	int h, hoff=1;
 
-	/* key = ABS(key); TODO: XXXXX this throws error with MSVC (warning as error) */
+	/* key = ABS(key); BMESH_TODO: XXXXX this throws error with MSVC (warning as error) */
 
 	if (hash->size < hash->used*3) {
 		int newsize = hashsizes[++hash->curhash];
@@ -156,7 +156,7 @@ BM_INLINE void BLI_smallhash_remove(SmallHash *hash, uintptr_t key)
 {
 	int h, hoff=1;
 
-	/* key = ABS(key); TODO: XXXXX this throws error with MSVC (warning as error) */
+	/* key = ABS(key); BMESH_TODO: XXXXX this throws error with MSVC (warning as error) */
 	h = key;
 	
 	while (hash->table[h % hash->size].key != key 
@@ -176,7 +176,7 @@ BM_INLINE void *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)
 {
 	int h, hoff=1;
 
-	/* key = ABS(key); TODO: XXXXX this throws error with MSVC (warning as error) */
+	/* key = ABS(key); BMESH_TODO: XXXXX this throws error with MSVC (warning as error) */
 	h = key;
 	
 	if (!hash->table)
@@ -198,7 +198,7 @@ BM_INLINE int BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
 {
 	int h = key, hoff=1;
 	h = ABS(h);
-	/* key = ABS(key); TODO: XXXXX this throws error with MSVC (warning as error) */
+	/* key = ABS(key); BMESH_TODO: XXXXX this throws error with MSVC (warning as error) */
 	
 	if (!hash->table)
 		return 0;

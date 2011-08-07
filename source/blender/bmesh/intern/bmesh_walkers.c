@@ -148,7 +148,7 @@ void *BMW_Step(BMWalker *walker)
  *
  * Steps a mesh walker forward by one element
  *
- * TODO:
+ * BMESH_TODO:
  *  -add searchmask filtering
  *
 */

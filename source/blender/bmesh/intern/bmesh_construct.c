@@ -434,7 +434,7 @@ static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh, BMFa
 	target_face->mat_nr = source_face->mat_nr;
 }
 
-/*Todo: Special handling for hide flags?*/
+/*BMESH_TODO: Special handling for hide flags?*/
 
 void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, void *source, void *target)
 {

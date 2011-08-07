@@ -3040,7 +3040,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather then blend between shapes.");
 }
 
-/* TODO - some way to select on an arbitrary axis */
+/* BMESH_TODO - some way to select on an arbitrary axis */
 static int select_axis_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);

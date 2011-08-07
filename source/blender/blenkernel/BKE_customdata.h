@@ -96,7 +96,7 @@ void CustomData_data_add(int type, void *data1, void *data2);
 void CustomData_copy(const struct CustomData *source, struct CustomData *dest,
 					 CustomDataMask mask, int alloctype, int totelem);
 
-/* TODO, not really a public function but readfile.c needs it */
+/* BMESH_TODO, not really a public function but readfile.c needs it */
 void CustomData_update_typemap(struct CustomData *data);
 
 /* same as the above, except that this will preserve existing layers, and only
