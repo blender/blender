@@ -73,12 +73,12 @@
 
 #include "STR_HashedString.h"
 
-static BL_InterpolatorList *GetAdtList(struct AnimData *for_adt, KX_BlenderSceneConverter *converter) {
-	BL_InterpolatorList *adtList= converter->FindInterpolatorList(for_adt);
+static BL_InterpolatorList *GetAdtList(struct bAction *for_act, KX_BlenderSceneConverter *converter) {
+	BL_InterpolatorList *adtList= converter->FindInterpolatorList(for_act);
 
 	if (!adtList) {		
-		adtList = new BL_InterpolatorList(for_adt->action);
-		converter->RegisterInterpolatorList(adtList, for_adt);
+		adtList = new BL_InterpolatorList(for_act);
+		converter->RegisterInterpolatorList(adtList, for_act);
 	}
 			
 	return adtList;	
@@ -128,7 +128,7 @@ SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_B
 		drotmode = "delta_rotation_euler";
 	}
 
-	BL_InterpolatorList *adtList= GetAdtList(blenderobject->adt, converter);
+	BL_InterpolatorList *adtList= GetAdtList(action, converter);
 		
 	// For each active channel in the adtList add an
 	// interpolator to the game object.
@@ -222,7 +222,7 @@ void BL_ConvertLampIpos(struct Lamp* blenderlamp, KX_GameObject *lightobj,KX_Ble
 		ipocontr->m_col_rgb[2] = blenderlamp->b;
 		ipocontr->m_dist = blenderlamp->dist;
 
-		BL_InterpolatorList *adtList= GetAdtList(blenderlamp->adt, converter);
+		BL_InterpolatorList *adtList= GetAdtList(blenderlamp->adt->action, converter);
 
 		// For each active channel in the adtList add an
 		// interpolator to the game object.
@@ -268,7 +268,7 @@ void BL_ConvertCameraIpos(struct Camera* blendercamera, KX_GameObject *cameraobj
 		ipocontr->m_clipstart = blendercamera->clipsta;
 		ipocontr->m_clipend = blendercamera->clipend;
 
-		BL_InterpolatorList *adtList= GetAdtList(blendercamera->adt, converter);
+		BL_InterpolatorList *adtList= GetAdtList(blendercamera->adt->action, converter);
 
 		// For each active channel in the adtList add an
 		// interpolator to the game object.
@@ -316,7 +316,7 @@ void BL_ConvertWorldIpos(struct World* blenderworld,KX_BlenderSceneConverter *co
 		ipocontr->m_mist_rgb[1] = blenderworld->horg;
 		ipocontr->m_mist_rgb[2] = blenderworld->horb;
 
-		BL_InterpolatorList *adtList= GetAdtList(blenderworld->adt, converter);
+		BL_InterpolatorList *adtList= GetAdtList(blenderworld->adt->action, converter);
 
 		// For each active channel in the adtList add an
 		// interpolator to the game object.
@@ -358,7 +358,7 @@ static void ConvertMaterialIpos(
 		gameobj->GetSGNode()->AddSGController(ipocontr);
 		ipocontr->SetObject(gameobj->GetSGNode());
 		
-		BL_InterpolatorList *adtList= GetAdtList(blendermaterial->adt, converter);
+		BL_InterpolatorList *adtList= GetAdtList(blendermaterial->adt->action, converter);
 
 
 		ipocontr->m_rgba[0]	= blendermaterial->r;
