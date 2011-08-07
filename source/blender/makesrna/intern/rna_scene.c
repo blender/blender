@@ -138,7 +138,9 @@ EnumPropertyItem image_type_items[] = {
 #endif
 	{R_AVIJPEG, "AVI_JPEG", ICON_FILE_MOVIE, "AVI JPEG", "Output video in AVI JPEG format"},
 	{R_AVIRAW, "AVI_RAW", ICON_FILE_MOVIE, "AVI Raw", "Output video in AVI Raw format"},
+#ifdef WITH_FRAMESERVER
 	{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", "Output image to a frameserver"},
+#endif
 #ifdef WITH_FFMPEG
 	{R_H264, "H264", ICON_FILE_MOVIE, "H.264", "Output video in H.264 format"},
 	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "MPEG", "Output video in MPEG format"},
@@ -1184,9 +1186,9 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
-	prop= RNA_def_property(srna, "use_snap_project_self", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT_NO_SELF);
-	RNA_def_property_ui_text(prop, "Project to Self", "Project into its self (editmode)");
+	prop= RNA_def_property(srna, "use_snap_self", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_flag", SCE_SNAP_NO_SELF);
+	RNA_def_property_ui_text(prop, "Project to Self", "Snap onto its self (editmode)");
 	RNA_def_property_ui_icon(prop, ICON_ORTHO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 	
@@ -1415,7 +1417,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	prop= RNA_def_property(srna, "layers_zmask", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_zmask", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Zmask Layers", "Zmask scene layers");
+	RNA_def_property_ui_text(prop, "Zmask Layers", "Zmask scene layers for solid faces");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -1520,6 +1522,12 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	prop= RNA_def_property(srna, "use_pass_object_index", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_INDEXOB);
 	RNA_def_property_ui_text(prop, "Object Index", "Deliver object index pass");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "use_pass_material_index", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_INDEXMA);
+	RNA_def_property_ui_text(prop, "Material Index", "Deliver material index pass");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -2815,7 +2823,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "bake_margin", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "bake_filter");
-	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_range(prop, 0, 64);
 	RNA_def_property_ui_text(prop, "Margin", "Amount of pixels to extend the baked result with, as post process filter");
 
 	prop= RNA_def_property(srna, "bake_distance", PROP_FLOAT, PROP_NONE);
@@ -3251,7 +3259,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_current_frame_set", NULL);
-	RNA_def_property_ui_text(prop, "Current Frame", "Current Frame");
+	RNA_def_property_ui_text(prop, "Current Frame", "Current Frame, to update animation data from python frame_set() instead");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	

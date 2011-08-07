@@ -2516,6 +2516,11 @@ void ntreeBeginExecTree(bNodeTree *ntree)
 		
 		if(ntree->type==NTREE_COMPOSIT)
 			composit_begin_exec(ntree, ntree->stack);
+		
+		/* ensures only a single output node is enabled, texnode allows multiple though */
+		if(ntree->type!=NTREE_TEXTURE)
+			ntreeSetOutput(ntree);
+		
 	}
 	
 	ntree->init |= NTREE_EXEC_INIT;
@@ -2862,9 +2867,6 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	
 	/* fixed seed, for example noise texture */
 	BLI_srandom(rd->cfra);
-
-	/* ensures only a single output node is enabled */
-	ntreeSetOutput(ntree);
 
 	/* sets need_exec tags in nodes */
 	curnode = totnode= setExecutableNodes(ntree, &thdata);
@@ -3312,6 +3314,8 @@ static void force_hidden_passes(bNode *node, int passflag)
 	if(!(passflag & SCE_PASS_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
 	if(!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
+	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXMA);
+	if(!(passflag & SCE_PASS_INDEXMA)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_MIST);
 	if(!(passflag & SCE_PASS_MIST)) sock->flag |= SOCK_UNAVAIL;
 	sock= BLI_findlink(&node->outputs, RRES_OUT_EMIT);

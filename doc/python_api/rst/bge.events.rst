@@ -1,6 +1,6 @@
 
-Game Engine bge.events module
-=============================
+Game Keys (bge.events)
+======================
 
 *****
 Intro

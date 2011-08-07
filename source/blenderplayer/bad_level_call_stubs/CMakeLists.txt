@@ -29,12 +29,12 @@ remove_strict_flags()
 
 set(INC 
 	.
-	.. 
+	..
+	../../blender/blenkernel
+	../../blender/blenloader
+	../../blender/makesdna
+	../../blender/makesrna
 	../../../intern/guardedalloc
-	../../../source/blender/makesdna
-	../../../source/blender/blenloader
-	../../../source/blender/makesrna
-	../../../source/blender/blenkernel
 )
 
 set(INC_SYS

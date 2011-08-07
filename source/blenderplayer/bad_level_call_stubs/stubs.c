@@ -69,6 +69,7 @@ struct Mesh;
 struct ModifierData;
 struct MultiresModifierData;
 struct NodeBlurData;
+struct Nurb;
 struct Object;
 struct PBVHNode;
 struct Render;
@@ -136,7 +137,6 @@ int RE_RenderInProgress(struct Render *re){return 0;}
 struct Scene *RE_GetScene(struct Render *re){return (struct Scene *) NULL;}
 void RE_Database_Free(struct Render *re){}
 void RE_FreeRender(struct Render *re){}
-void RE_shade_external(struct Render *re, struct ShadeInput *shi, struct ShadeResult *shr){}
 void RE_DataBase_GetView(struct Render *re, float mat[][4]){}
 int externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta){return 0;}
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip){return 0.0f;}
@@ -210,10 +210,12 @@ struct wmKeyMap *WM_keymap_list_find(struct ListBase *lb, char *idname, int spac
 struct wmKeyConfig *WM_keyconfig_new(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
 struct wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
 void WM_keyconfig_remove(struct wmWindowManager *wm, char *idname){}
+void WM_keyconfig_set_active(struct wmWindowManager *wm, const char *idname) {}
 void WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap){}
 void WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_properties_reset(struct wmKeyMapItem *kmi){}
+void WM_keyconfig_update_tag(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi) {}
 int WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap) {return 0;}
 int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2){return 0;}
 
@@ -294,7 +296,8 @@ float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
 
 struct ListBase *ED_curve_editnurbs(struct Curve *cu){return NULL;}
-void free_curve_editNurb (struct Curve *cu){};
+void free_curve_editNurb (struct Curve *cu){}
+void ED_nurb_set_spline_type(struct Nurb *nu, int type){}
 
 void EM_selectmode_set(struct EditMesh *em){}
 int EM_texFaceCheck(struct EditMesh *em){return 0;}

@@ -141,6 +141,7 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.operator("node.duplicate_move")
         layout.operator("node.delete")
+        layout.operator("node.delete_reconnect")
 
         layout.separator()
         layout.operator("node.link_make")

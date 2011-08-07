@@ -105,12 +105,15 @@ void* AUD_openalRunThread(void* device)
 	return NULL;
 }
 
-void AUD_OpenALDevice::start()
+void AUD_OpenALDevice::start(bool join)
 {
 	lock();
 
 	if(!m_playing)
 	{
+		if(join)
+			pthread_join(m_thread, NULL);
+
 		pthread_attr_t attr;
 		pthread_attr_init(&attr);
 		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -271,8 +274,8 @@ void AUD_OpenALDevice::updateStreams()
 		// stop thread
 		if(m_playingSounds->empty() || (cerr != ALC_NO_ERROR))
 		{
-			unlock();
 			m_playing = false;
+			unlock();
 			pthread_exit(NULL);
 		}
 
@@ -366,6 +369,8 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 	pthread_mutex_init(&m_mutex, &attr);
 
 	pthread_mutexattr_destroy(&attr);
+
+	start(false);
 }
 
 AUD_OpenALDevice::~AUD_OpenALDevice()
@@ -414,13 +419,8 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 	alcProcessContext(m_context);
 
 	// wait for the thread to stop
-	if(m_playing)
-	{
-		unlock();
-		pthread_join(m_thread, NULL);
-	}
-	else
-		unlock();
+	unlock();
+	pthread_join(m_thread, NULL);
 
 	delete m_playingSounds;
 	delete m_pausedSounds;

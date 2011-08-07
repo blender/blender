@@ -270,11 +270,16 @@ static void rna_Base_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, Base *base, Object *ob)
 {
 	/* try to avoid scene sort */
-	if((ob->lay & scene->lay) && (base->lay & scene->lay)) {
+	if(scene == NULL) {
+		/* pass - unlikely but when running scripts on startup it happens */
+	}
+	else if((ob->lay & scene->lay) && (base->lay & scene->lay)) {
 		 /* pass */
-	} else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0) {
+	}
+	else if((ob->lay & scene->lay)==0 && (base->lay & scene->lay)==0) {
 		/* pass */
-	} else {
+	}
+	else {
 		DAG_scene_sort(bmain, scene);
 	}
 }
@@ -284,7 +289,7 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Object *ob= (Object*)ptr->id.data;
 	Base *base;
 
-	base= object_in_scene(ob, scene);
+	base= scene ? object_in_scene(ob, scene) : NULL;
 	if(!base)
 		return;
 	
@@ -478,7 +483,7 @@ static PointerRNA rna_Object_active_vertex_group_get(PointerRNA *ptr)
 static int rna_Object_active_vertex_group_index_get(PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
-	return MAX2(ob->actdef-1, 0);
+	return ob->actdef-1;
 }
 
 static void rna_Object_active_vertex_group_index_set(PointerRNA *ptr, int value)
@@ -2269,12 +2274,12 @@ static void rna_def_object(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "show_transparent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWTRANSP);
-	RNA_def_property_ui_text(prop, "Draw Transparent", "Displays material transparency in the object");
+	RNA_def_property_ui_text(prop, "Draw Transparent", "Displays material transparency in the object (unsupported for duplicator drawing)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
 	prop= RNA_def_property(srna, "show_x_ray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWXRAY);
-	RNA_def_property_ui_text(prop, "X-Ray", "Makes the object draw in front of others");
+	RNA_def_property_ui_text(prop, "X-Ray", "Makes the object draw in front of others (unsupported for duplicator drawing)");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
 	/* Grease Pencil */

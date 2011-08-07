@@ -108,7 +108,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_add";
-	ot->description="Add a new material slot or duplicate the selected one";
+	ot->description="Add a new material slot";
 	
 	/* api callbacks */
 	ot->exec= material_slot_add_exec;

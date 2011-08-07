@@ -280,7 +280,8 @@ static char *view3d_modeselect_pup(Scene *scene)
 	
 	str += sprintf(str, formatstr, "Object Mode", OB_MODE_OBJECT, ICON_OBJECT_DATA);
 	
-	if(ob==NULL) return string;
+	if(ob==NULL || ob->data==NULL) return string;
+	if(ob->id.lib || ((ID *)ob->data)->lib) return string;
 	
 	/* if active object is editable */
 	if ( ((ob->type == OB_MESH)
@@ -504,17 +505,6 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		row= uiLayoutRow(layout, 1);
 		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		uiItemR(row, &v3dptr, "use_pivot_point_align", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-
-		/* NDOF */
-		/* Not implemented yet
-		if (G.ndofdevice ==0 ) {
-			uiDefIconTextButC(block, ICONTEXTROW,B_NDOF, ICON_NDOF_TURN, ndof_pup(), 0,0,UI_UNIT_X+10,UI_UNIT_Y, &(v3d->ndofmode), 0, 3.0, 0, 0, "Ndof mode");
-
-			uiDefIconButC(block, TOG, B_NDOF,  ICON_NDOF_DOM,
-					0,0,UI_UNIT_X,UI_UNIT_Y,
-					&v3d->ndoffilter, 0, 1, 0, 0, "dominant axis");
-		}
-		 */
 
 		/* Transform widget / manipulators */
 		row= uiLayoutRow(layout, 1);

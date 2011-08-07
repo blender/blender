@@ -7,6 +7,7 @@ BF_FFMPEG = LIBDIR +'/ffmpeg'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include ${BF_FFMPEG}/include/msvc'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avformat-52.lib avcodec-52.lib avdevice-52.lib avutil-50.lib swscale-0.lib'
+BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-52.dll ${BF_FFMPEG_LIBPATH}/avcodec-52.dll ${BF_FFMPEG_LIBPATH}/avdevice-52.dll ${BF_FFMPEG_LIBPATH}/avutil-50.dll ${BF_FFMPEG_LIBPATH}/swscale-0.dll'
 
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '3.2'
@@ -149,6 +150,8 @@ BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
 BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser MathMLSolver xml2 pcre buffer ftoa UTF'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
+WITH_BF_3DMOUSE = True
+
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['/arch:SSE']
@@ -181,7 +184,7 @@ CXX_WARN = []
 
 LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
 
-PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/STACK:2097152','/INCREMENTAL:NO', '/LARGEADDRESSAWARE', '/NODEFAULTLIB:msvcrt.lib;msvcmrt.lib;msvcurt.lib;msvcrtd.lib']
+PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:IX86','/STACK:2097152','/INCREMENTAL:NO', '/LARGEADDRESSAWARE', '/NODEFAULTLIB:msvcrt.lib', '/NODEFAULTLIB:msvcmrt.lib', '/NODEFAULTLIB:msvcurt.lib', '/NODEFAULTLIB:msvcrtd.lib']
 
 # # Todo
 # BF_PROFILE_CCFLAGS = ['-pg', '-g ']

@@ -172,6 +172,7 @@ static Main *pr_main= NULL;
 
 void ED_preview_init_dbase(void)
 {
+#ifndef WITH_HEADLESS
 	BlendFileData *bfd;
 	extern int datatoc_preview_blend_size;
 	extern char datatoc_preview_blend[];
@@ -185,6 +186,7 @@ void ED_preview_init_dbase(void)
 		MEM_freeN(bfd);
 	}
 	G.fileflags= fileflags;
+#endif
 }
 
 void ED_preview_free_dbase(void)

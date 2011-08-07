@@ -42,7 +42,18 @@
 #include "MEM_guardedalloc.h"
 
 #include "GHOST_C-api.h"
-#include "BMF_Api.h"
+
+#ifdef USE_BMF
+#  include "BMF_Api.h"
+#else
+#  include "BLF_api.h"
+   extern int datatoc_bfont_ttf_size;
+   extern char datatoc_bfont_ttf[];
+
+   // XXX, bad, but BLI uses these
+   char bprogname[160]= "";
+char U[1024]= {0};
+#endif
 
 #include "Util.h"
 #include "Basic.h"
@@ -291,7 +302,7 @@ MainWindow *mainwindow_new(MultiTestApp *app) {
 	
 	win= GHOST_CreateWindow(sys, "MultiTest:Main", 40, 40, 400, 400, 
 		GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL, 
-		FALSE);
+		FALSE, FALSE);
 	
 	if (win) {
 		MainWindow *mw= MEM_callocN(sizeof(*mw), "mainwindow_new");
@@ -324,8 +335,12 @@ struct _LoggerWindow {
 	MultiTestApp		*app;
 
 	GHOST_WindowHandle	win;
-	
+
+#ifdef USE_BMF	
 	BMF_Font	*font;
+#else
+	int			font;
+#endif
 	int			fonttexid;
 	int			fontheight;
 	
@@ -429,18 +444,26 @@ static void loggerwindow_do_draw(LoggerWindow *lw) {
 		char *line= lw->loglines[(lw->nloglines-1)-(i+startline)];
 		int x_pos= lw->textarea[0][0] + 4;
 		int y_pos= lw->textarea[0][1] + 4 + i*lw->fontheight;
-		
+
+#ifdef USE_BMF		
 		if (lw->fonttexid==-1) {
 			glRasterPos2i(x_pos, y_pos);
 			BMF_DrawString(lw->font, line);
 		} else {
 			BMF_DrawStringTexture(lw->font, line, x_pos, y_pos, 0.0);
 		}
+#else
+		BLF_position(lw->font, x_pos, y_pos, 0.0);
+		BLF_draw(lw->font, line, 256); // XXX
+#endif
 	}
+
+#ifdef USE_BMF
 	if (lw->fonttexid!=-1) {
 		glDisable(GL_TEXTURE_2D);		
 		glDisable(GL_BLEND);
 	}
+#endif
 
 	GHOST_SwapWindowBuffers(lw->win);
 }
@@ -531,19 +554,25 @@ LoggerWindow *loggerwindow_new(MultiTestApp *app) {
 	GHOST_GetMainDisplayDimensions(sys, &screensize[0], &screensize[1]);
 	win= GHOST_CreateWindow(sys, "MultiTest:Logger", 40, screensize[1]-432,
 		800, 300, GHOST_kWindowStateNormal, 
-		GHOST_kDrawingContextTypeOpenGL, FALSE);
+		GHOST_kDrawingContextTypeOpenGL, FALSE, FALSE);
 	
 	if (win) {
 		LoggerWindow *lw= MEM_callocN(sizeof(*lw), "loggerwindow_new");
 		int bbox[2][2];
 		lw->app= app;
 		lw->win= win;
-		
+
+#ifdef USE_BMF
 		lw->font= BMF_GetFont(BMF_kScreen12);
 		lw->fonttexid= BMF_GetFontTexture(lw->font);
 
 		BMF_GetBoundingBox(lw->font, &bbox[0][0], &bbox[0][1], &bbox[1][0], &bbox[1][1]);
 		lw->fontheight= rect_height(bbox);
+#else
+		lw->font= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+		BLF_size(lw->font, 11, 72);
+		lw->fontheight= BLF_height(lw->font, "A_");
+#endif
 		
 		lw->nloglines= lw->logsize= 0;
 		lw->loglines= MEM_mallocN(sizeof(*lw->loglines)*lw->nloglines, "loglines");
@@ -711,7 +740,7 @@ ExtraWindow *extrawindow_new(MultiTestApp *app) {
 	
 	win= GHOST_CreateWindow(sys, "MultiTest:Extra", 500, 40, 400, 400, 
 		GHOST_kWindowStateNormal, GHOST_kDrawingContextTypeOpenGL,
-		FALSE);
+		FALSE, FALSE);
 	
 	if (win) {
 		ExtraWindow *ew= MEM_callocN(sizeof(*ew), "mainwindow_new");
@@ -786,7 +815,7 @@ static int multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr dat
 MultiTestApp *multitestapp_new(void) {
 	MultiTestApp *app= MEM_mallocN(sizeof(*app), "multitestapp_new");
 	GHOST_EventConsumerHandle consumer= GHOST_CreateEventConsumer(multitest_event_handler, app);
-	
+
 	app->sys= GHOST_CreateSystem();
 	if (!app->sys)
 		fatal("Unable to create ghost system");
@@ -850,6 +879,10 @@ void multitestapp_free(MultiTestApp *app) {
 	/***/
 	
 int main(int argc, char **argv) {
+#ifndef USE_BMF
+	BLF_init(11, 72);
+#endif
+
 	MultiTestApp *app= multitestapp_new();
 	
 	multitestapp_run(app);

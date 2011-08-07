@@ -78,12 +78,12 @@ bool EffectsExporter::hasEffects(Scene *sce)
 	return false;
 }
 
-void EffectsExporter::exportEffects(Scene *sce)
+void EffectsExporter::exportEffects(Scene *sce, bool export_selected)
 {
 	if(hasEffects(sce)) {
 		openLibrary();
 		MaterialFunctor mf;
-		mf.forEachMaterialInScene<EffectsExporter>(sce, *this);
+		mf.forEachMaterialInScene<EffectsExporter>(sce, *this, export_selected);
 
 		closeLibrary();
 	}

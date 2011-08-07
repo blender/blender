@@ -206,6 +206,12 @@ def setup_staticlibs(lenv):
         if lenv['WITH_BF_STATICJEMALLOC']:
             statlibs += Split(lenv['BF_JEMALLOC_LIB_STATIC'])
 
+    if lenv['OURPLATFORM']=='linux2':
+        if lenv['WITH_BF_3DMOUSE']:
+            libincs += Split(lenv['BF_3DMOUSE_LIBPATH'])
+            if lenv['WITH_BF_STATIC3DMOUSE']:
+                statlibs += Split(lenv['BF_3DMOUSE_LIB_STATIC'])
+
     return statlibs, libincs
 
 def setup_syslibs(lenv):
@@ -271,6 +277,11 @@ def setup_syslibs(lenv):
         if not lenv['WITH_BF_STATICJEMALLOC']:
             syslibs += Split(lenv['BF_JEMALLOC_LIB'])
 
+    if lenv['OURPLATFORM']=='linux2':
+        if lenv['WITH_BF_3DMOUSE']:
+            if not lenv['WITH_BF_STATIC3DMOUSE']:
+                syslibs += Split(lenv['BF_3DMOUSE_LIB'])
+
     syslibs += lenv['LLIBS']
 
     return syslibs
@@ -320,11 +331,7 @@ def creator(env):
         defs.append('WITH_PYTHON')
         if env['BF_DEBUG']:
             defs.append('_DEBUG')
-        
-    if env['BF_BUILDINFO']:
-        defs.append('BUILD_DATE')
-        defs.append('NAN_BUILDINFO')
-        
+
     if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
         incs.append(env['BF_PTHREADS_INC'])
 
@@ -565,13 +572,16 @@ def AppIt(target=None, source=None, env=None):
     cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
     commands.getoutput(cmd)
     cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
-    commands.getoutput(cmd) 
-    cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
     commands.getoutput(cmd)
-    cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
-    commands.getoutput(cmd)
-    cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
-    commands.getoutput(cmd)
+
+    if binary == 'blender':#not copy everything for blenderplayer
+        cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+        cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+        cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(installdir,binary, binary)
     commands.getoutput(cmd)
     cmd = 'find %s/%s.app -name .svn -prune -exec rm -rf {} \;'%(installdir, binary)

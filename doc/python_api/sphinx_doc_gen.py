@@ -67,7 +67,7 @@ if 1:
 else:
     # for testing so doc-builds dont take so long.
     EXCLUDE_MODULES = (
-        # "bpy.context",
+        "bpy.context",
         "bpy.app",
         "bpy.path",
         "bpy.data",
@@ -76,8 +76,8 @@ else:
         "bpy.context",
         "bpy.types",  # supports filtering
         "bpy.ops",  # supports filtering
-        #"bpy_extras",
-        "bge",
+        "bpy_extras",
+        # "bge",
         "aud",
         "bgl",
         "blf",
@@ -416,6 +416,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     del key, descr
 
     classes = []
+    submodules = []
 
     for attribute in module_dir:
         if not attribute.startswith("_"):
@@ -437,6 +438,8 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
                 py_c_func2sphinx("", fw, module_name, None, attribute, value, is_class=False)
             elif value_type == type:
                 classes.append((attribute, value))
+            elif issubclass(value_type, types.ModuleType):
+                submodules.append((attribute, value))
             elif value_type in (bool, int, float, str, tuple):
                 # constant, not much fun we can do here except to list it.
                 # TODO, figure out some way to document these!
@@ -444,11 +447,25 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
                 write_indented_lines("   ", fw, "constant value %s" % repr(value), False)
                 fw("\n")
             else:
-                print("\tnot documenting %s.%s" % (module_name, attribute))
+                print("\tnot documenting %s.%s of %r type" % (module_name, attribute, value_type.__name__))
                 continue
 
             attribute_set.add(attribute)
             # TODO, more types...
+
+    # TODO, bpy_extras does this already, mathutils not.
+    """
+    if submodules:
+        fw("\n"
+           "**********\n"
+           "Submodules\n"
+           "**********\n"
+           "\n"
+           )
+        for attribute, submod in submodules:
+            fw("* :mod:`%s.%s`\n" % (module_name, attribute))
+        fw("\n")
+    """
 
     # write collected classes now
     for (type_name, value) in classes:
@@ -989,6 +1006,7 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("* `Quickstart Intro <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>`_ if you are new to scripting in blender and want to get you're feet wet!\n")
     fw("* `Blender/Python Overview <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Overview>`_ for a more complete explanation of python integration in blender\n")
+    fw("\n")
 
     fw("===================\n")
     fw("Application Modules\n")
@@ -1028,8 +1046,8 @@ def rna2sphinx(BASEPATH):
         fw("   mathutils.rst\n\n")
     if "mathutils.geometry" not in EXCLUDE_MODULES:
         fw("   mathutils.geometry.rst\n\n")
-    # XXX TODO
-    #fw("   bgl.rst\n\n")
+    if "bgl" not in EXCLUDE_MODULES:
+        fw("   bgl.rst\n\n")
     if "blf" not in EXCLUDE_MODULES:
         fw("   blf.rst\n\n")
     if "aud" not in EXCLUDE_MODULES:
@@ -1048,7 +1066,9 @@ def rna2sphinx(BASEPATH):
         fw("   bge.types.rst\n\n")
         fw("   bge.logic.rst\n\n")
         fw("   bge.render.rst\n\n")
+        fw("   bge.texture.rst\n\n")
         fw("   bge.events.rst\n\n")
+        fw("   bge.constraints.rst\n\n")
 
     # rna generated change log
     fw("========\n")
@@ -1159,14 +1179,16 @@ def rna2sphinx(BASEPATH):
         import mathutils.geometry as module
         pymodule2sphinx(BASEPATH, "mathutils.geometry", module, "Geometry Utilities")
 
-    if "mathutils.geometry" not in EXCLUDE_MODULES:
+    if "blf" not in EXCLUDE_MODULES:
         import blf as module
         pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing")
 
-    # XXX TODO
-    #import bgl as module
-    #pymodule2sphinx(BASEPATH, "bgl", module, "Blender OpenGl wrapper")
-    #del module
+    if "bgl" not in EXCLUDE_MODULES:
+        #import bgl as module
+        #pymodule2sphinx(BASEPATH, "bgl", module, "Blender OpenGl wrapper")
+        #del module
+        import shutil
+        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bgl.rst"), BASEPATH)
 
     if "aud" not in EXCLUDE_MODULES:
         import aud as module
@@ -1180,7 +1202,9 @@ def rna2sphinx(BASEPATH):
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.types.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.logic.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.render.rst"), BASEPATH)
+        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.texture.rst"), BASEPATH)
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.events.rst"), BASEPATH)
+        shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.constraints.rst"), BASEPATH)
 
     shutil.copy2(os.path.join(BASEPATH, "..", "rst", "change_log.rst"), BASEPATH)
 

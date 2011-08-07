@@ -231,20 +231,16 @@ else()
 	set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-# headers
-install(
-	FILES
-	${CMAKE_SOURCE_DIR}/source/blender/makesrna/RNA_access.h
-	${CMAKE_SOURCE_DIR}/source/blender/makesrna/RNA_types.h
-	${CMAKE_BINARY_DIR}/source/blender/makesrna/intern/RNA_blender.h
-	${CMAKE_BINARY_DIR}/source/blender/makesrna/intern/RNA_blender_cpp.h
-	${CMAKE_SOURCE_DIR}/intern/guardedalloc/MEM_sys_types.h
-	${CMAKE_SOURCE_DIR}/intern/guardedalloc/MEM_guardedalloc.h
-	${CMAKE_SOURCE_DIR}/source/blender/blenloader/BLO_sys_types.h
-	${CMAKE_SOURCE_DIR}/source/blender/makesdna/DNA_listBase.h
-	DESTINATION ${INCLUDE_OUTPUT_PATH})
+# -----------------------------------------------------------------------------
+# Install Targets
 
-# install target
+set(BLENDER_TEXT_FILES
+	${CMAKE_SOURCE_DIR}/release/text/GPL-license.txt
+	${CMAKE_SOURCE_DIR}/release/text/Python-license.txt
+	${CMAKE_SOURCE_DIR}/release/text/copyright.txt
+	${CMAKE_SOURCE_DIR}/release/text/readme.html
+)
+
 if(UNIX AND NOT APPLE)
 
 	if(WITH_INSTALL_PORTABLE)
@@ -287,9 +283,8 @@ if(UNIX AND NOT APPLE)
 		)
 
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+			FILES ${BLENDER_TEXT_FILES}
 			DESTINATION ${TARGETDIR}
-			PATTERN ".svn" EXCLUDE
 		)
 
 	else()
@@ -345,9 +340,8 @@ if(UNIX AND NOT APPLE)
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
 		)
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+			FILES ${BLENDER_TEXT_FILES}
 			DESTINATION ${CMAKE_INSTALL_PREFIX}/share/doc/blender
-			PATTERN ".svn" EXCLUDE
 		)
 	endif()
 
@@ -422,9 +416,8 @@ elseif(WIN32)
 	)
 
 	install(  # same as linux!, deduplicate
-		DIRECTORY ${CMAKE_SOURCE_DIR}/release/text
+		FILES ${BLENDER_TEXT_FILES}
 		DESTINATION ${TARGETDIR}
-		PATTERN ".svn" EXCLUDE
 	)
 
 	install(  # same as linux!, deduplicate
@@ -643,9 +636,9 @@ elseif(APPLE)
 	endmacro()
 
 	# install release and app files
-	install_dir(
-		${CMAKE_SOURCE_DIR}/release/text/
-		\${TARGETDIR}
+	install(
+		FILES ${BLENDER_TEXT_FILES}
+		DESTINATION ${TARGETDIR}
 	)
 
 	install(
@@ -710,6 +703,12 @@ elseif(APPLE)
 	endif()
 endif()
 
+unset(BLENDER_TEXT_FILES)
+
+
+# -----------------------------------------------------------------------------
+# Setup link libs
+
 add_dependencies(blender makesdna)
 
 get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
@@ -768,6 +767,7 @@ endif()
 		bf_intern_opennl
 		bf_python
 		bf_python_ext
+		bf_python_mathutils
 		bf_ikplugin
 		bf_modifiers
 		bf_blenkernel

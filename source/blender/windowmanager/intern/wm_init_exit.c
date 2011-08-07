@@ -156,7 +156,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BPY_python_start(argc, argv);
 
 	BPY_driver_reset();
-	BPY_app_handlers_reset();
+	BPY_app_handlers_reset(); /* causes addon callbacks to be freed [#28068],
+	                           * but this is actually what we want. */
 	BPY_modules_load_user(C);
 #else
 	(void)argc; /* unused */
@@ -182,8 +183,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 		
 	ED_preview_init_dbase();
-	
-	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
 	
 	WM_read_history();
 
@@ -417,7 +416,7 @@ void WM_exit(bContext *C)
 	BPY_python_end();
 #endif
 
-	GPU_buffer_pool_free(NULL);
+	GPU_global_buffer_pool_free();
 	GPU_free_unused_buffers();
 	GPU_extensions_exit();
 	

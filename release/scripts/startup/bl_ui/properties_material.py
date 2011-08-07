@@ -174,6 +174,7 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, bpy.types.Panel):
         row.prop(mat, "use_transparency")
         sub = row.column()
         sub.prop(mat, "offset_z")
+
         sub.active = mat_type and mat.use_transparency and mat.transparency_method == 'Z_TRANSPARENCY'
 
         row = layout.row()
@@ -199,6 +200,7 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
         col.prop(mat, "use_cast_buffer_shadows")
         col.prop(mat, "use_cast_approximate")
+        col.prop(mat, "pass_index")
 
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
@@ -245,15 +247,17 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
             row.prop(mat, "diffuse_fresnel_factor", text="Factor")
 
         if mat.use_diffuse_ramp:
-            layout.separator()
-            layout.template_color_ramp(mat, "diffuse_ramp", expand=True)
-            layout.separator()
+            col = layout.column()
+            col.active = (not mat.use_shadeless)
+            col.separator()
+            col.template_color_ramp(mat, "diffuse_ramp", expand=True)
+            col.separator()
 
-            row = layout.row()
+            row = col.row()
             row.prop(mat, "diffuse_ramp_input", text="Input")
             row.prop(mat, "diffuse_ramp_blend", text="Blend")
 
-            layout.prop(mat, "diffuse_ramp_factor", text="Factor")
+            col.prop(mat, "diffuse_ramp_factor", text="Factor")
 
 
 class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
@@ -729,6 +733,8 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "use_vertex_color_paint")
         col.prop(mat, "use_vertex_color_light")
         col.prop(mat, "use_object_color")
+        if simple_material(base_mat):
+            col.prop(mat, "pass_index")
 
 
 class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):

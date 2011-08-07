@@ -203,11 +203,6 @@ public:
 		return m_display;
 	}	
 
-		void *
-	prepareNdofInfo(
-		volatile GHOST_TEventNDOFData *current_values
-	);
-
 	/* Helped function for get data from the clipboard. */
 	void getClipboard_xcout(XEvent evt, Atom sel, Atom target,
 			 unsigned char **txt, unsigned long *len,
@@ -300,12 +295,6 @@ private :
 		bool
 	generateWindowExposeEvents(
  	);
- 
-		GHOST_TKey
-	convertXKey(
-		KeySym key
-	);
-
 };
 
 #endif

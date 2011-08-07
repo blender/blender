@@ -1478,10 +1478,8 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 	bArmature *arm;
 	EditBone *bone, *curBone, *next;
 	int extend= RNA_boolean_get(op->ptr, "extend");
-	ARegion *ar;
 	Object *obedit= CTX_data_edit_object(C);
 	arm= obedit->data;
-	ar= CTX_wm_region(C);
 
 	view3d_operator_needs_opengl(C);
 

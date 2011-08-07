@@ -515,6 +515,14 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 						*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_INDEXMA:
+					/* no filter */
+					if(shi->vlr) {
+							fp= rpass->rect + offset;
+							if(*fp==0.0f)
+									*fp= (float)shi->mat->index;
+					}
+					break;
 			case SCE_PASS_MIST:
 				/*  */
 				col= &shr->mist;
@@ -619,6 +627,12 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 					*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_INDEXMA:
+				if(shi->vlr) {
+					fp= rpass->rect + offset;
+					*fp= (float)shi->mat->index;
+				}
+				break;
 			case SCE_PASS_MIST:
 				fp= rpass->rect + offset;
 				*fp= shr->mist;
@@ -716,7 +730,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	
 	if(zpass==NULL) return;
 
-	/* check for at least one sun lamp that its atmosphere flag is is enabled */
+	/* check for at least one sun lamp that its atmosphere flag is enabled */
 	for(go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
 		if(lar->type==LA_SUN && lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_AP))
@@ -2563,27 +2577,7 @@ void RE_bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
 
 	/* Margin */
 	if(filter) {
-		char *temprect;
-		int i;
-
-		/* extend the mask +2 pixels from the image,
-		 * this is so colors dont blend in from outside */
-
-		for(i=0; i< filter; i++)
-			IMB_mask_filter_extend(mask, ibuf->x, ibuf->y);
-
-		temprect = MEM_dupallocN(mask);
-
-		/* expand twice to clear this many pixels, so they blend back in */
-		IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-		IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-
-		/* clear all pixels in the margin */
-		IMB_mask_clear(ibuf, temprect, FILTER_MASK_MARGIN);
-		MEM_freeN(temprect);
-
-		for(i= 0; i < filter; i++)
-			IMB_filter_extend(ibuf, mask);
+		IMB_filter_extend(ibuf, mask, filter);
 	}
 
 	/* if the bake results in new alpha then change the image setting */

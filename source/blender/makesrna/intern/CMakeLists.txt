@@ -171,17 +171,25 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
+if(WITH_IMAGE_FRAMESERVER)
+	add_definitions(-DWITH_FRAMESERVER)
+endif()
+
 if(WITH_AUDASPACE)
 	add_definitions(-DWITH_AUDASPACE)
 endif()
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../../quicktime)
+	list(APPEND INC
+		../../quicktime
+	)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-	list(APPEND INC_SYS ${FFMPEG_INCLUDE_DIRS})
+	list(APPEND INC_SYS
+		${FFMPEG_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 

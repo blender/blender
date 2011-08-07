@@ -1798,10 +1798,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			pa_size = pa->size;
 
-			BLI_srandom(psys->seed+a);
-
-			r_tilt = 2.0f*(BLI_frand() - 0.5f);
-			r_length = BLI_frand();
+			r_tilt = 2.0f*(PSYS_FRAND(a) - 0.5f);
+			r_length = PSYS_FRAND(a+1);
 
 			if(path_nbr) {
 				cache = psys->pathcache[a];
@@ -2047,7 +2045,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 					mul_m4_v3(psys->parent->obmat, state.co);
 
 				if(use_duplimat)
-					mul_m4_v4(duplimat, state.co);
+					mul_m4_v3(duplimat, state.co);
 
 				if(part->ren_as == PART_DRAW_BB) {
 					bb.random = random;
@@ -2932,8 +2930,10 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
 						vlr->v4= NULL;
 
-						normal_tri_v3(tmp, vlr->v3->co, vlr->v2->co, vlr->v1->co);
-						add_v3_v3(n, tmp);
+						if(area_tri_v3(vlr->v3->co, vlr->v2->co, vlr->v1->co)>FLT_EPSILON) {
+							normal_tri_v3(tmp, vlr->v3->co, vlr->v2->co, vlr->v1->co);
+							add_v3_v3(n, tmp);
+						}
 
 						vlr->mat= matar[ dl->col ];
 						vlr->flag= 0;
@@ -3375,7 +3375,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				
 				/* test for 100% transparant */
 				ok= 1;
-				if(ma->alpha==0.0f && ma->spectra==0.0f && ma->filter==0.0f && (ma->mode & MA_TRANSP)) { 
+				if(ma->alpha==0.0f && ma->spectra==0.0f && ma->filter==0.0f && (ma->mode & MA_TRANSP) && (ma->mode & MA_RAYMIRROR)==0) { 
 					ok= 0;
 					/* texture on transparency? */
 					for(a=0; a<MAX_MTEX; a++) {
@@ -5680,13 +5680,14 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
    RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
    RE_BAKE_SHADOW: for baking, only shadows, but all objects
 */
-void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, int type, Object *actob)
+void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, const int type, Object *actob)
 {
 	Object *camera;
 	float mat[4][4];
 	float amb[3];
-	int onlyselected, nolamps;
-	
+	const short onlyselected= !ELEM4(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW, RE_BAKE_AO);
+	const short nolamps= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);
+
 	re->main= bmain;
 	re->scene= scene;
 	re->lay= lay;
@@ -5736,7 +5737,15 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		unit_m4(mat);
 		RE_SetView(re, mat);
 	}
-	
+	copy_m3_m4(re->imat, re->viewinv);
+
+	/* TODO: deep shadow maps + baking + strands */
+	/* strands use the window matrix and view size, there is to correct
+	 * window matrix but at least avoids malloc and crash loop [#27807] */
+	unit_m4(re->winmat);
+	re->winx= re->winy= 256;
+	/* done setting dummy values */
+
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
 	if(re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
@@ -5755,9 +5764,6 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	set_node_shader_lamp_loop(shade_material_loop);
 	
 	/* MAKE RENDER DATA */
-	nolamps= !ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_ALL, RE_BAKE_SHADOW);
-	onlyselected= ELEM3(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE, RE_BAKE_DISPLACEMENT);
-
 	database_init_objects(re, lay, nolamps, onlyselected, actob, 0);
 
 	set_material_lightgroups(re);
@@ -5772,6 +5778,14 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 		if(re->r.mode & R_RAYTRACE)
 			makeraytree(re);
 	
+	/* point density texture */
+	if(!re->test_break(re->tbh))
+		make_pointdensities(re);
+
+	/* voxel data texture */
+	if(!re->test_break(re->tbh))
+		make_voxeldata(re);
+
 	/* occlusion */
 	if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 		if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)

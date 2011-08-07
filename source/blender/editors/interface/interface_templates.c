@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -855,7 +856,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 	/* verify we have valid data */
 	if(!RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
-		RNA_warning("uiTemplateModifier: expected modifier on object.\n");
+		RNA_warning("uiTemplateModifier: Expected modifier on object.\n");
 		return NULL;
 	}
 
@@ -863,7 +864,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	md= ptr->data;
 
 	if(!ob || !(GS(ob->id.name) == ID_OB)) {
-		RNA_warning("uiTemplateModifier: expected modifier on object.\n");
+		RNA_warning("uiTemplateModifier: Expected modifier on object.\n");
 		return NULL;
 	}
 	
@@ -980,9 +981,6 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	block= uiLayoutGetBlock(box);
 
 	/* Draw constraint header */
-	
-	/* rounded header */
-	// rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20; // UNUSED
 
 	/* open/close */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -1087,7 +1085,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 
 	/* verify we have valid data */
 	if(!RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
-		RNA_warning("uiTemplateConstraint: expected constraint on object.\n");
+		RNA_warning("uiTemplateConstraint: Expected constraint on object.\n");
 		return NULL;
 	}
 
@@ -1095,7 +1093,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 	con= ptr->data;
 
 	if(!ob || !(GS(ob->id.name) == ID_OB)) {
-		RNA_warning("uiTemplateConstraint: expected constraint on object.\n");
+		RNA_warning("uiTemplateConstraint: Expected constraint on object.\n");
 		return NULL;
 	}
 	
@@ -1141,7 +1139,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 	PointerRNA texture_ptr;
 
 	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
-		RNA_warning("uiTemplatePreview: expected ID of type material, texture, lamp or world.\n");
+		RNA_warning("uiTemplatePreview: Expected ID of type material, texture, lamp or world.\n");
 		return;
 	}
 
@@ -1891,7 +1889,7 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, const char *propnam
 	col = uiLayoutColumn(layout, 0);
 	row= uiLayoutRow(col, 1);
 	
-	but= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+	but= uiDefButR_prop(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, 0, 0, "");
 
 	if(lock) {
 		but->flag |= UI_BUT_COLOR_LOCK;
@@ -1910,7 +1908,7 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, const char *propnam
 	uiItemS(row);
 	
 	if (value_slider)
-		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
+		uiDefButR_prop(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, prop, -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
 }
 
 /********************* Layer Buttons Template ************************/
@@ -2041,7 +2039,7 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon, int
 	return rnaicon;
 }
 
-static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, const char *activepropname)
+static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, PropertyRNA *activeprop)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
@@ -2055,7 +2053,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	/* list item behind label & other buttons */
 	sub= uiLayoutRow(overlap, 0);
 
-	but= uiDefButR(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+	but= uiDefButR_prop(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activeprop, 0, 0, i, 0, 0, "");
 	uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 
 	sub= uiLayoutRow(overlap, 0);
@@ -2109,6 +2107,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		Object *ob= (Object*)activeptr->data;
+		Key *key= (Key*)itemptr->data;
 
 		split= uiLayoutSplit(sub, 0.75f, 0);
 
@@ -2116,7 +2115,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		row= uiLayoutRow(split, 1);
-		if(i == 0) uiItemL(row, "", ICON_NONE);
+		if(i == 0 || (key->type != KEY_RELATIVE)) uiItemL(row, "", ICON_NONE);
 		else uiItemR(row, itemptr, "value", 0, "", ICON_NONE);
 
 		if(ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH))
@@ -2174,14 +2173,14 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 	if(prop) {
 		type= RNA_property_type(prop);
 		if(type != PROP_COLLECTION) {
-			RNA_warning("uiTemplateList: expected collection property.\n");
+			RNA_warning("uiTemplateList: Expected collection property.\n");
 			return;
 		}
 	}
 
 	activetype= RNA_property_type(activeprop);
 	if(activetype != PROP_INT) {
-		RNA_warning("uiTemplateList: expected integer property.\n");
+		RNA_warning("uiTemplateList: Expected integer property.\n");
 		return;
 	}
 
@@ -2203,11 +2202,11 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 			/* create list items */
 			RNA_PROP_BEGIN(ptr, itemptr, prop) {
 				/* create button */
-				if(i == 9)
+				if(!(i % 9))
 					row= uiLayoutRow(col, 0);
 
 				icon= list_item_icon_get(C, &itemptr, rnaicon, 1);
-				but= uiDefIconButR(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+				but= uiDefIconButR_prop(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activeprop, 0, 0, i, 0, 0, "");
 				uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 				
 
@@ -2218,7 +2217,6 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 	}
 	else if(listtype == 'c') {
 		/* compact layout */
-		found= 0;
 
 		row= uiLayoutRow(layout, 1);
 
@@ -2248,7 +2246,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 
 		/* next/prev button */
 		sprintf(str, "%d :", i);
-		but= uiDefIconTextButR(block, NUM, 0, 0, str, 0,0,UI_UNIT_X*5,UI_UNIT_Y, activeptr, activepropname, 0, 0, 0, 0, 0, "");
+		but= uiDefIconTextButR_prop(block, NUM, 0, 0, str, 0,0,UI_UNIT_X*5,UI_UNIT_Y, activeptr, activeprop, 0, 0, 0, 0, 0, "");
 		if(i == 0)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
@@ -2287,7 +2285,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 			/* create list items */
 			RNA_PROP_BEGIN(ptr, itemptr, prop) {
 				if(i >= pa->list_scroll && i<pa->list_scroll+items)
-					list_item_row(C, col, ptr, &itemptr, i, rnaicon, activeptr, activepropname);
+					list_item_row(C, col, ptr, &itemptr, i, rnaicon, activeptr, activeprop);
 
 				i++;
 			}

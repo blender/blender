@@ -87,6 +87,7 @@
 #include "ED_object.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_curve.h" /* for ED_curve_editnurbs */
@@ -690,7 +691,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
 		if (PBONE_VISIBLE(arm, bone)) {
-			if ((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
+			if ((bone->flag & BONE_SELECTED))
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
@@ -2182,6 +2183,12 @@ void flushTransNodes(TransInfo *t)
 		td->loc2d[0]= td->loc[0];
 		td->loc2d[1]= td->loc[1];
 	}
+	
+	/* handle intersection with noodles */
+	if(t->total==1) {
+		ED_node_link_intersect_test(t->sa, 1);
+	}
+	
 }
 
 /* *** SEQUENCE EDITOR *** */
@@ -4756,7 +4763,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 	}
 	else if (t->spacetype == SPACE_NODE) {
-		/* pass */
+		if(cancelled == 0)
+			ED_node_link_insert(t->sa);
+		
+		/* clear link line */
+		ED_node_link_intersect_test(t->sa, 0);
+		
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -4978,6 +4990,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			struct Object *pose_ob=t->poseobj;
 			where_is_pose(t->scene, pose_ob);
 		}
+
+		/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
+		if (!cancelled && (t->mode != TFM_DUMMY))
+			count_set_pose_transflags(&t->mode, t->around, ob);
 
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if (!cancelled && t->mode==TFM_TRANSLATION)

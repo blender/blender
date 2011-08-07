@@ -22,6 +22,7 @@
  *
  */
 
+#ifdef WITH_FRAMESERVER
 
 #include <string.h>
 #include <stdio.h>
@@ -381,3 +382,4 @@ void end_frameserver(void)
 	shutdown_socket_system();
 }
 
+#endif /* WITH_FRAMESERVER */

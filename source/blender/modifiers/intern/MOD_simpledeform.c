@@ -162,8 +162,8 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	float smd_limit[2], smd_factor;
 	SpaceTransform *transf = NULL, tmp_transf;
 	void (*simpleDeform_callback)(const float factor, const float dcut[3], float *co) = NULL;	//Mode callback
-	int vgroup = defgroup_name_index(ob, smd->vgroup_name);
-	MDeformVert *dvert = NULL;
+	int vgroup;
+	MDeformVert *dvert;
 
 	//Safe-check
 	if(smd->origin == ob) smd->origin = NULL;					//No self references
@@ -216,17 +216,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		smd_factor   = smd->factor / MAX2(FLT_EPSILON, smd_limit[1]-smd_limit[0]);
 	}
 
-
-	if(dm)
-	{
-		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	}
-	else if(ob->type == OB_LATTICE)
-	{
-		dvert = lattice_get_deform_verts(ob);
-	}
-
-
+	modifier_get_vgroup(ob, dm, smd->vgroup_name, &dvert, &vgroup);
 
 	switch(smd->mode)
 	{

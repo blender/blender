@@ -111,6 +111,11 @@ btools.print_targets(B.targets, B.bc)
 
 # handling cmd line arguments & config file
 
+# bitness stuff
+tempbitness = int(B.arguments.get('BF_BITNESS', bitness)) # default to bitness found as per starting python
+if tempbitness in (32, 64): # only set if 32 or 64 has been given
+    bitness = int(tempbitness)
+
 # first check cmdline for toolset and we create env to work on
 quickie = B.arguments.get('BF_QUICK', None)
 quickdebug = B.arguments.get('BF_QUICKDEBUG', None)
@@ -241,11 +246,21 @@ if 'blenderlite' in B.targets:
     target_env_defs['BF_BUILDINFO'] = False
     target_env_defs['BF_NO_ELBEEM'] = True
     target_env_defs['WITH_BF_PYTHON'] = False
+    target_env_defs['WITH_BF_3DMOUSE'] = False
     
     # Merge blenderlite, let command line to override
     for k,v in target_env_defs.iteritems():
         if k not in B.arguments:
             env[k] = v
+
+# detect presence of 3D_CONNEXION_CLIENT_LIBRARY for OSX
+if env['OURPLATFORM']=='darwin':
+    envi = Environment()
+    conf = Configure(envi)
+    if not conf.CheckCHeader('ConnexionClientAPI.h'): # CheckCXXHeader if it is c++ !
+        print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
+        env['WITH_BF_3DMOUSE'] = 0
+    envi = conf.Finish()
 
 
 if env['WITH_BF_OPENMP'] == 1:
@@ -360,6 +375,23 @@ if not quickie and do_clean:
     else:
         print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC
     Exit()
+
+
+# ensure python header is found since detection can fail, this could happen
+# with _any_ library but since we used a fixed python version this tends to
+# be most problematic.
+if env['WITH_BF_PYTHON']:
+	py_h = os.path.join(Dir(env.subst('${BF_PYTHON_INC}')).abspath, "Python.h")
+
+	if not os.path.exists(py_h):
+		print("\nMissing: \"" + env.subst('${BF_PYTHON_INC}') + os.sep + "Python.h\",\n"
+			  "  Set 'BF_PYTHON_INC' to point "
+			  "to a valid python include path.\n  Containing "
+			  "Python.h for python version \"" + env.subst('${BF_PYTHON_VERSION}') + "\"")
+
+		Exit()
+	del py_h
+
 
 if not os.path.isdir ( B.root_build_dir):
     os.makedirs ( B.root_build_dir )
@@ -641,11 +673,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         dllsources.append('${LCGDIR}/sndfile/lib/libsndfile-1.dll')
 
     if env['WITH_BF_FFMPEG']:
-        dllsources += ['${BF_FFMPEG_LIBPATH}/avcodec-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avformat-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avdevice-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avutil-50.dll',
-                    '${BF_FFMPEG_LIBPATH}/swscale-0.dll']
+        dllsources += env['BF_FFMPEG_DLL'].split()
 
     # Since the thumb handler is loaded by Explorer, architecture is
     # strict: the x86 build fails on x64 Windows. We need to ship

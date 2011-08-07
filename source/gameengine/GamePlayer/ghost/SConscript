@@ -40,6 +40,8 @@ incs = ['.',
         '#source/blender/gpu',
         '#extern/glew/include']
 
+incs.append(env['BF_PTHREADS_INC'])
+
 defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:

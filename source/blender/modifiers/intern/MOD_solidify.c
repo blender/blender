@@ -48,6 +48,7 @@
 
 
 #include "MOD_modifiertypes.h"
+#include "MOD_util.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -235,12 +236,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	float const ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
 
 	/* weights */
-	MDeformVert *dvert= NULL, *dv= NULL;
+	MDeformVert *dvert, *dv= NULL;
 	const int defgrp_invert = ((smd->flag & MOD_SOLIDIFY_VGROUP_INV) != 0);
-	const int defgrp_index= defgroup_name_index(ob, smd->defgrp_name);
+	int defgrp_index;
 
-	if (defgrp_index >= 0)
-		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
 
 	orig_mface = dm->getFaceArray(dm);
 	orig_medge = dm->getEdgeArray(dm);

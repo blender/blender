@@ -52,7 +52,7 @@
 #include "GHOST_TimerTask.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowCocoa.h"
-#include "GHOST_NDOFManager.h"
+#include "GHOST_NDOFManagerCocoa.h"
 #include "AssertMacros.h"
 
 #pragma mark KeyMap, mouse converters
@@ -596,6 +596,11 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 	
     GHOST_TSuccess success = GHOST_System::init();
     if (success) {
+
+#ifdef WITH_INPUT_NDOF
+		m_ndofManager = new GHOST_NDOFManagerCocoa(*this);
+#endif
+
 		//ProcessSerialNumber psn;
 		
 		//Carbon stuff to move window & menu to foreground
@@ -1005,6 +1010,11 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	
 	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
+}
+
+void GHOST_SystemCocoa::notifyExternalEventProcessed()
+{
+	m_outsideLoopEventProcessed = true;
 }
 
 //Note: called from NSWindow delegate
@@ -1498,15 +1508,18 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						GHOST_TInt32 x_mouse= mousePos.x;
 						GHOST_TInt32 y_mouse= mousePos.y;
 						GHOST_TInt32 x_accum, y_accum, x_cur, y_cur, x, y;
-						GHOST_Rect bounds, correctedBounds;
+						GHOST_Rect bounds, windowBounds, correctedBounds;
 						
 						/* fallback to window bounds */
 						if(window->getCursorGrabBounds(bounds)==GHOST_kFailure)
 							window->getClientBounds(bounds);
 						
 						//Switch back to Cocoa coordinates orientation (y=0 at botton,the same as blender internal btw!), and to client coordinates
-						window->screenToClient(bounds.m_l, bounds.m_b, correctedBounds.m_l, correctedBounds.m_b);
-						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_t);
+						window->getClientBounds(windowBounds);
+						window->screenToClient(bounds.m_l, bounds.m_b, correctedBounds.m_l, correctedBounds.m_t);
+						window->screenToClient(bounds.m_r, bounds.m_t, correctedBounds.m_r, correctedBounds.m_b);
+						correctedBounds.m_b = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_b;
+						correctedBounds.m_t = (windowBounds.m_b - windowBounds.m_t) - correctedBounds.m_t;
 						
 						//Update accumulation counts
 						window->getCursorGrabAccum(x_accum, y_accum);
@@ -1557,6 +1570,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
+
+					if (deltaF == 0.0) deltaF = [event deltaX]; // make blender decide if it's horizontal scroll
 					if (deltaF == 0.0) break; //discard trackpad delta=0 events
 					
 					delta = deltaF > 0.0 ? 1 : -1;

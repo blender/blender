@@ -175,6 +175,12 @@ int WM_menutype_add(MenuType* mt)
 	return 1;
 }
 
+/* inefficient but only used for tooltip code */
+int WM_menutype_contains(MenuType* mt)
+{
+	return (mt != NULL && BLI_findindex(&menutypes, mt) != -1);
+}
+
 void WM_menutype_freelink(MenuType* mt)
 {
 	BLI_freelinkN(&menutypes, mt);
@@ -204,12 +210,18 @@ void WM_keymap_init(bContext *C)
 
 	if(!wm->defaultconf)
 		wm->defaultconf= WM_keyconfig_new(wm, "Blender");
+	if(!wm->addonconf)
+		wm->addonconf= WM_keyconfig_new(wm, "Blender Addon");
+	if(!wm->userconf)
+		wm->userconf= WM_keyconfig_new(wm, "Blender User");
 	
-	if(wm && CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
+	if(CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
 		/* create default key config */
 		wm_window_keymap(wm->defaultconf);
 		ED_spacetypes_keymap(wm->defaultconf);
-		WM_keyconfig_userdef();
+
+		WM_keyconfig_update_tag(NULL, NULL);
+		WM_keyconfig_update(wm);
 
 		wm->initialized |= WM_INIT_KEYMAP;
 	}

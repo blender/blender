@@ -224,6 +224,14 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			oldwm= oldwmlist->first;
 			wm= G.main->wm.first;
 
+			/* move addon key configuration to new wm, to preserve their keymaps */
+			if(oldwm->addonconf) {
+				wm->addonconf= oldwm->addonconf;
+				BLI_remlink(&oldwm->keyconfigs, oldwm->addonconf);
+				oldwm->addonconf= NULL;
+				BLI_addtail(&wm->keyconfigs, wm->addonconf);
+			}
+
 			/* ensure making new keymaps and set space types */
 			wm->initialized= 0;
 			wm->winactive= NULL;
@@ -635,8 +643,9 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	char err_out[256]= "unknown";
 
 	*thumb_pt= NULL;
-	
-	if(G.background || scene->camera==NULL)
+
+	/* scene can be NULL if running a script at startup and calling the save operator */
+	if(G.background || scene==NULL || scene->camera==NULL)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
@@ -724,8 +733,10 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
-	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
-	
+	if(U.flag & USER_SAVE_PREVIEWS) {
+		ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
+	}
+
 	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
 
 	/* operator now handles overwrite checks */
@@ -791,10 +802,13 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	wmWindow *win= CTX_wm_window(C);
 	char filepath[FILE_MAXDIR+FILE_MAXFILE];
 	int fileflags;
-	
+
 	/* check current window and close it if temp */
 	if(win->screen->temp)
 		wm_window_close(C, wm, win);
+	
+	/* update keymaps in user preferences */
+	WM_keyconfig_update(wm);
 	
 	BLI_make_file_string("/", filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	printf("trying to save homefile at %s ", filepath);

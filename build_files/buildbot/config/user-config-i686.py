@@ -22,7 +22,7 @@ BF_EXPAT_LIB = ''
 WITH_BF_FFMPEG = True
 WITH_BF_STATICFFMPEG = True
 
-BF_FFMPEG = '/home/sources/staticlibs/ffmpeg'
+BF_FFMPEG = '/home/sources/staticlibs/ffmpeg-0.8'
 BF_FFMPEG_LIBPATH = '${BF_FFMPEG}/lib32'
 BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libavformat.a ${BF_FFMPEG_LIBPATH}/libswscale.a ' + \
     '${BF_FFMPEG_LIBPATH}/libavcodec.a ${BF_FFMPEG_LIBPATH}/libavdevice.a ${BF_FFMPEG_LIBPATH}/libavutil.a ' + \
@@ -80,6 +80,12 @@ WITH_BF_JEMALLOC = True
 WITH_BF_STATICJEMALLOC = True
 BF_JEMALLOC = '/home/sources/staticlibs/jemalloc'
 BF_JEMALLOC_LIBPATH = '${BF_JEMALLOC}/lib32'
+
+# Use 3d mouse library
+WITH_BF_3DMOUSE = True
+WITH_BF_STATIC3DMOUSE = True
+BF_3DMOUSE = '/home/sources/staticlibs/spnav'
+BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib32'
 
 # Compilation and optimization
 BF_DEBUG = False

@@ -201,6 +201,7 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_RAYHITS		(1<<15)
 #define SCE_PASS_EMIT			(1<<16)
 #define SCE_PASS_ENVIRONMENT	(1<<17)
+#define SCE_PASS_INDEXMA	(1<<18)
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
@@ -429,7 +430,8 @@ typedef struct GameData {
 	/*
 	 * Radius of the activity bubble, in Manhattan length. Objects
 	 * outside the box are activity-culled. */
-	float activityBoxRadius; //it's not being used ANYWHERE !!!!!!!!!!!!!!
+	float activityBoxRadius;
+
 	/*
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
@@ -446,7 +448,8 @@ typedef struct GameData {
 
 	/* stereo/dome mode */
 	struct GameDome dome;
-	short stereoflag, stereomode, xsch, ysch; //xsch and ysch used for backwards compat.
+	short stereoflag, stereomode;
+	short pad2, pad3;
 	float eyeseparation, pad1;
 } GameData;
 
@@ -1071,7 +1074,7 @@ typedef struct Scene {
 #define SCE_SNAP_ROTATE			2
 #define SCE_SNAP_PEEL_OBJECT	4
 #define SCE_SNAP_PROJECT		8
-#define SCE_SNAP_PROJECT_NO_SELF	16
+#define SCE_SNAP_NO_SELF		16
 /* toolsettings->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
@@ -1104,7 +1107,8 @@ typedef struct Scene {
 #define PROP_SHARP             3
 #define PROP_LIN               4
 #define PROP_CONST             5
-#define PROP_RANDOM		6
+#define PROP_RANDOM            6
+#define PROP_MODE_MAX          7
 
 /* toolsettings->proportional */
 #define PROP_EDIT_OFF			0

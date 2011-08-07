@@ -299,10 +299,7 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # in
         return (context.object) and (context.armature)
 
     def draw(self, context):
-        layout = self.layout
-
         ob = context.object
-
         self.draw_settings(context, ob.pose.animation_visualisation, bones=True)
 
 

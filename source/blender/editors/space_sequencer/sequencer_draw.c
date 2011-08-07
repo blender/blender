@@ -639,14 +639,35 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	/* draw sound wave */
 	if(seq->type == SEQ_SOUND) drawseqwave(scene, seq, x1, y1, x2, y2, (ar->v2d.cur.xmax - ar->v2d.cur.xmin)/ar->winx);
 
+	/* draw lock */
+	if(seq->flag & SEQ_LOCK) {
+		glEnable(GL_POLYGON_STIPPLE);
+		glEnable(GL_BLEND);
+
+		/* light stripes */
+		glColor4ub(255, 255, 255, 32);
+		glPolygonStipple(stipple_diag_stripes_pos);
+		glRectf(x1, y1, x2, y2);
+
+		/* dark stripes */
+		glColor4ub(0, 0, 0, 32);
+		glPolygonStipple(stipple_diag_stripes_neg);
+		glRectf(x1, y1, x2, y2);
+
+		glDisable(GL_POLYGON_STIPPLE);
+		glDisable(GL_BLEND);
+	}
+
 	get_seq_color3ubv(scene, seq, col);
 	if (G.moving && (seq->flag & SELECT)) {
 		if(seq->flag & SEQ_OVERLAP) {
 			col[0]= 255; col[1]= col[2]= 40;
-		} else UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 120);
+		}
+		else
+			UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 120+outline_tint);
 	}
-
-	UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, outline_tint);
+	else
+		UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, outline_tint);
 	
 	glColor3ubv((GLubyte *)col);
 	
@@ -969,7 +990,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 		/* loop through strips, checking for those that are visible */
 		for (seq= ed->seqbasep->first; seq; seq= seq->next) {
 			/* boundbox and selection tests for NOT drawing the strip... */
-			if ((seq->flag & SELECT) == sel) continue;
+			if ((seq->flag & SELECT) != sel) continue;
 			else if (seq == last_seq) continue;
 			else if (MIN2(seq->startdisp, seq->start) > v2d->cur.xmax) continue;
 			else if (MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin) continue;

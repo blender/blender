@@ -220,7 +220,7 @@ typedef struct ThemeSpace {
 	char console_cursor[4];
 	
 	char vertex_size, outline_width, facedot_size;
-	char bpad;
+	char noodle_curving;
 
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
@@ -341,7 +341,8 @@ typedef struct UserDef {
 	struct ListBase themes;
 	struct ListBase uifonts;
 	struct ListBase uistyles;
-	struct ListBase keymaps;
+	struct ListBase keymaps;		/* deprecated in favor of user_keymaps */
+	struct ListBase user_keymaps;
 	struct ListBase addons;
 	char keyconfigstr[64];
 	
@@ -365,7 +366,6 @@ typedef struct UserDef {
 	short recent_files;		/* maximum number of recently used files to remember  */
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
-	short ndof_pan, ndof_rotate;
 	short curssize;
 	short color_picker_type;
 	short ipo_new;			/* interpolation mode for newly added F-Curves */
@@ -376,6 +376,10 @@ typedef struct UserDef {
 	
 	short widget_unit;		/* defaults to 20 for 72 DPI setting */
 	short anisotropic_filter;
+	/*short pad[3];			*/
+
+	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
+	int ndof_flag;			/* flags for 3D mouse */
 
 	char versemaster[160];
 	char verseuser[160];
@@ -384,7 +388,7 @@ typedef struct UserDef {
 	short autokey_mode;		/* autokeying mode */
 	short autokey_flag;		/* flags for autokeying */
 	
-	short text_render, pad9;		/*options for text rendering*/
+	short text_render, pad9[3];		/*options for text rendering*/
 
 	struct ColorBand coba_weight;	/* from texture.h */
 
@@ -576,6 +580,31 @@ extern UserDef U; /* from blenkernel blender.c */
 #define TH_ROUNDED  	2
 #define TH_OLDSKOOL 	3
 #define TH_SHADED   	4
+
+/* ndof_flag (3D mouse options) */
+#define NDOF_SHOW_GUIDE     (1 << 0)
+#define NDOF_FLY_HELICOPTER (1 << 1)
+#define NDOF_LOCK_HORIZON   (1 << 2)
+/* the following might not need to be saved between sessions,
+   but they do need to live somewhere accessible... */
+#define NDOF_SHOULD_PAN     (1 << 3)
+#define NDOF_SHOULD_ZOOM    (1 << 4)
+#define NDOF_SHOULD_ROTATE  (1 << 5)
+/* orbit navigation modes
+   only two options, so it's sort of a hyrbrid bool/enum
+   if ((U.ndof_flag & NDOF_ORBIT_MODE) == NDOF_OM_OBJECT)... */
+/*
+#define NDOF_ORBIT_MODE     (1 << 6)
+#define NDOF_OM_TARGETCAMERA 0
+#define NDOF_OM_OBJECT      NDOF_ORBIT_MODE
+*/
+/* actually... users probably don't care about what the mode
+   is called, just that it feels right */
+#define NDOF_ORBIT_INVERT_AXES (1 << 6)
+/* zoom is up/down if this flag is set (otherwise forward/backward) */
+#define NDOF_ZOOM_UPDOWN (1 << 7)
+#define NDOF_ZOOM_INVERT (1 << 8)
+
 
 #ifdef __cplusplus
 }

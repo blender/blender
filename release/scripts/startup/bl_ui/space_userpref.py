@@ -126,7 +126,7 @@ class USERPREF_MT_appconfigs(bpy.types.Menu):
     preset_operator = "wm.appconfig_activate"
 
     def draw(self, context):
-        props = self.layout.operator("wm.appconfig_default", text="Blender (default)")
+        self.layout.operator("wm.appconfig_default", text="Blender (default)")
 
         # now draw the presets
         bpy.types.Menu.draw_preset(self, context)
@@ -755,6 +755,31 @@ class USERPREF_PT_file(bpy.types.Panel):
 from bl_ui.space_userpref_keymap import InputKeyMapPanel
 
 
+class USERPREF_MT_ndof_settings(bpy.types.Menu):
+    # accessed from the window keybindings in C (only)
+    bl_label = "3D Mouse Settings"
+
+    def draw(self, context):
+        layout = self.layout
+        input_prefs = context.user_preferences.inputs
+
+        layout.separator()
+        layout.prop(input_prefs, "ndof_sensitivity")
+
+        if context.space_data.type == 'VIEW_3D':
+            layout.separator()
+            layout.prop(input_prefs, "ndof_show_guide")
+
+            layout.separator()
+            layout.label(text="orbit options")
+            layout.prop(input_prefs, "ndof_orbit_invert_axes")
+
+            layout.separator()
+            layout.label(text="fly options")
+            layout.prop(input_prefs, "ndof_fly_helicopter", icon='NDOF_FLY')
+            layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
+
+
 class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
@@ -817,12 +842,9 @@ class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
-        ''' not implemented yet
         sub = col.column()
         sub.label(text="NDOF Device:")
-        sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
-        sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
-        '''
+        sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
 
         row.separator()
 
@@ -881,13 +903,23 @@ class USERPREF_PT_addons(bpy.types.Panel):
         if not user_addon_paths:
             user_script_path = bpy.utils.user_script_path()
             if user_script_path is not None:
-                user_addon_paths.append(os.path.join(user_script_path(), "addons"))
+                user_addon_paths.append(os.path.join(user_script_path, "addons"))
             user_addon_paths.append(os.path.join(bpy.utils.resource_path('USER'), "scripts", "addons"))
-        
+
         for path in user_addon_paths:
             if bpy.path.is_subdir(mod.__file__, path):
                 return True
         return False
+
+    @staticmethod
+    def draw_error(layout, message):
+        lines = message.split("\n")
+        box = layout.box()
+        rowsub = box.row()
+        rowsub.label(lines[0])
+        rowsub.label(icon='ERROR')
+        for l in lines[1:]:
+            box.label(l)
 
     def draw(self, context):
         layout = self.layout
@@ -908,6 +940,20 @@ class USERPREF_PT_addons(bpy.types.Panel):
         col.prop(context.window_manager, "addon_support", expand=True)
 
         col = split.column()
+
+        # set in addon_utils.modules(...)
+        if addon_utils.error_duplicates:
+            self.draw_error(col,
+                            "Multiple addons using the same name found!\n"
+                            "likely a problem with the script search path.\n"
+                            "(see console for details)",
+                            )
+
+        if addon_utils.error_encoding:
+            self.draw_error(col,
+                            "One or more addons do not have UTF-8 encoding\n"
+                            "(see console for details)",
+                            )
 
         filter = context.window_manager.addon_filter
         search = context.window_manager.addon_search.lower()
@@ -986,7 +1032,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         split.label(text="Warning:")
                         split.label(text='  ' + info["warning"], icon='ERROR')
 
-                    user_addon = __class__.is_user_addon(mod, user_addon_paths)
+                    user_addon = USERPREF_PT_addons.is_user_addon(mod, user_addon_paths)
                     tot_row = bool(info["wiki_url"]) + bool(info["tracker_url"]) + bool(user_addon)
 
                     if tot_row:
@@ -1001,8 +1047,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
                         for i in range(4 - tot_row):
                             split.separator()
-                        
-                        
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.
@@ -1125,7 +1169,6 @@ class WM_OT_addon_install(bpy.types.Operator):
         del pyfile_dir
         # done checking for exceptional case
 
-        addon_files_old = set(os.listdir(path_addons))
         addons_old = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)}
 
         #check to see if the file is in compressed format (.zip)
@@ -1138,7 +1181,7 @@ class WM_OT_addon_install(bpy.types.Operator):
 
             if self.overwrite:
                 for f in file_to_extract.namelist():
-                    __class__._module_remove(path_addons, f)
+                    WM_OT_addon_install._module_remove(path_addons, f)
             else:
                 for f in file_to_extract.namelist():
                     path_dest = os.path.join(path_addons, os.path.basename(f))
@@ -1162,7 +1205,7 @@ class WM_OT_addon_install(bpy.types.Operator):
             path_dest = os.path.join(path_addons, os.path.basename(pyfile))
 
             if self.overwrite:
-                __class__._module_remove(path_addons, os.path.basename(pyfile))
+                WM_OT_addon_install._module_remove(path_addons, os.path.basename(pyfile))
             elif os.path.exists(path_dest):
                 self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
                 return {'CANCELLED'}
@@ -1227,7 +1270,7 @@ class WM_OT_addon_remove(bpy.types.Operator):
         return None, False
 
     def execute(self, context):
-        path, isdir = __class__.path_from_addon(self.module)
+        path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
         if path is None:
             self.report('WARNING', "Addon path %r could not be found" % path)
             return {'CANCELLED'}
@@ -1247,7 +1290,7 @@ class WM_OT_addon_remove(bpy.types.Operator):
     # lame confirmation check
     def draw(self, context):
         self.layout.label(text="Remove Addon: %r?" % self.module)
-        path, isdir = __class__.path_from_addon(self.module)
+        path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
         self.layout.label(text="Path: %r" % path)
 
     def invoke(self, context, event):

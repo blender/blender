@@ -1369,13 +1369,13 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 		if(prop->noteflag)
 			WM_main_add_notifier(prop->noteflag, ptr->id.data);
 	}
-	else {
+	
+	if(!is_rna || (prop->flag & PROP_IDPROPERTY)) {
 		/* WARNING! This is so property drivers update the display!
 		 * not especially nice  */
 		DAG_id_tag_update(ptr->id.data, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME);
 		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
-
 }
 
 /* must keep in sync with 'rna_property_update'
@@ -2844,7 +2844,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 				}
 
 				/* editable check */
-				if(RNA_property_editable(&itemptr, iprop)) {
+				if(!set || RNA_property_editable(&itemptr, iprop)) {
 					if(a+itemlen > in.len) {
 						BKE_reportf(reports, RPT_ERROR, "Array length mismatch (got %d, expected more).", in.len);
 						err= 1;
@@ -4012,10 +4012,13 @@ void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
 
-	if(prop)
+	if(prop) {
 		RNA_property_string_get(ptr, prop, value);
-	else
+	}
+	else {
 		printf("RNA_string_get: %s.%s not found.\n", ptr->type->identifier, name);
+		value[0]= '\0';
+	}
 }
 
 char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen)
@@ -4412,15 +4415,15 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *UNUSE
 		if(!(parm->flag & PROP_REQUIRED) && !(parm->flag & PROP_DYNAMIC)) {
 			switch(parm->type) {
 				case PROP_BOOLEAN:
-					if(parm->arraydimension) memcpy(data, &((BooleanPropertyRNA*)parm)->defaultarray, size);
+					if(parm->arraydimension) memcpy(data, ((BooleanPropertyRNA*)parm)->defaultarray, size);
 					else memcpy(data, &((BooleanPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_INT:
-					if(parm->arraydimension) memcpy(data, &((IntPropertyRNA*)parm)->defaultarray, size);
+					if(parm->arraydimension) memcpy(data, ((IntPropertyRNA*)parm)->defaultarray, size);
 					else memcpy(data, &((IntPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_FLOAT:
-					if(parm->arraydimension) memcpy(data, &((FloatPropertyRNA*)parm)->defaultarray, size);
+					if(parm->arraydimension) memcpy(data, ((FloatPropertyRNA*)parm)->defaultarray, size);
 					else memcpy(data, &((FloatPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_ENUM:

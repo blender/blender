@@ -67,7 +67,7 @@ int BaseMathObject_traverse(BaseMathObject *self, visitproc visit, void *arg);
 int BaseMathObject_clear(BaseMathObject *self);
 void BaseMathObject_dealloc(BaseMathObject * self);
 
-PyMODINIT_FUNC BPyInit_mathutils(void);
+PyMODINIT_FUNC PyInit_mathutils(void);
 
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
@@ -107,5 +107,7 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index);
 /* utility func */
 int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *value, const char *error_prefix);
 int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error_prefix);
+
+int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject *mat);
 
 #endif /* MATHUTILS_H */

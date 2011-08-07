@@ -26,17 +26,17 @@
 
 
 set(INC 
-	intern/include
 	extern/include
+	intern/include
+	../blenkernel
 	../blenlib
 	../blenloader
+	../imbuf
 	../makesdna
 	../makesrna
-	../blenkernel
-	../imbuf
-	../../../intern/smoke/extern
-	../../../intern/mikktspace
 	../../../intern/guardedalloc
+	../../../intern/mikktspace
+	../../../intern/smoke/extern
 )
 
 set(INC_SYS
@@ -127,9 +127,17 @@ IF(WITH_IMAGE_OPENEXR)
 	ADD_DEFINITIONS(-DWITH_OPENEXR)
 endif()
 
+if(WITH_MOD_SMOKE)
+	add_definitions(-DWITH_SMOKE)
+endif()
+
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../quicktime)
-	list(APPEND INC_SYS ${QUICKTIME_INCLUDE_DIRS})
+	list(APPEND INC
+		../quicktime
+	)
+	list(APPEND INC_SYS
+		${QUICKTIME_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 

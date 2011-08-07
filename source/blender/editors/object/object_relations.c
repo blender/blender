@@ -446,6 +446,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARENT, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1095,7 +1096,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	unsigned int lay, local;
-	int islamp= 0;
+	/* int islamp= 0; */ /* UNUSED */
 	
 	lay= move_to_layer_init(C, op);
 	lay &= 0xFFFFFF;
@@ -1111,7 +1112,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			base->object->lay= lay;
 			base->object->flag &= ~SELECT;
 			base->flag &= ~SELECT;
-			if(base->object->type==OB_LAMP) islamp= 1;
+			/* if(base->object->type==OB_LAMP) islamp= 1; */
 		}
 		CTX_DATA_END;
 	}
@@ -1123,7 +1124,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 			local= base->lay & 0xFF000000;  
 			base->lay= lay + local;
 			base->object->lay= lay;
-			if(base->object->type==OB_LAMP) islamp= 1;
+			/* if(base->object->type==OB_LAMP) islamp= 1; */
 		}
 		CTX_DATA_END;
 	}
@@ -1318,7 +1319,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Link Objects to Scene";
-	ot->description = "Make linked data local to each object";
+	ot->description = "Link selection to another scene";
 	ot->idname= "OBJECT_OT_make_links_scene";
 
 	/* api callbacks */
@@ -1659,6 +1660,7 @@ void ED_object_single_users(Main *bmain, Scene *scene, int full)
 
 	if(full) {
 		single_obdata_users(bmain, scene, 0);
+		single_object_action_users(scene, 0);
 		single_mat_users_expand(bmain);
 		single_tex_users_expand(bmain);
 	}

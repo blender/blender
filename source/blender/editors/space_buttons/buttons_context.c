@@ -210,7 +210,7 @@ static int buttons_context_path_modifier(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_material(ButsContextPath *path)
+static int buttons_context_path_material(ButsContextPath *path, int for_texture)
 {
 	Object *ob;
 	PointerRNA *ptr= &path->ptr[path->len-1];
@@ -228,6 +228,9 @@ static int buttons_context_path_material(ButsContextPath *path)
 			ma= give_current_material(ob, ob->actcol);
 			RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
 			path->len++;
+
+			if(for_texture && give_current_material_texture_node(ma))
+				return 1;
 			
 #if 0
 			ma= give_node_material(ma);
@@ -382,7 +385,7 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 		if(GS(id->name) == ID_BR)
 			buttons_context_path_brush(path);
 		else if(GS(id->name) == ID_MA)
-			buttons_context_path_material(path);
+			buttons_context_path_material(path, 0);
 		else if(GS(id->name) == ID_WO)
 			buttons_context_path_world(path);
 		else if(GS(id->name) == ID_LA)
@@ -462,7 +465,7 @@ static int buttons_context_path_texture(ButsContextPath *path, ButsContextTextur
 		}
 	}
 	/* try material */
-	if(buttons_context_path_material(path)) {
+	if(buttons_context_path_material(path, 1)) {
 		ma= path->ptr[path->len-1].data;
 
 		if(ma) {
@@ -555,7 +558,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_particle(path);
 			break;
 		case BCONTEXT_MATERIAL:
-			found= buttons_context_path_material(path);
+			found= buttons_context_path_material(path, 0);
 			break;
 		case BCONTEXT_TEXTURE:
 			found= buttons_context_path_texture(path, sbuts->texuser);

@@ -25,18 +25,18 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../../../../intern/string
+	..
+	../../BlenderRoutines
+	../../Ketsji
+	../../SceneGraph
+	../../../blender/blenkernel
+	../../../blender/blenlib
+	../../../blender/blenloader
+	../../../blender/gpu
+	../../../blender/makesdna
 	../../../../intern/container
 	../../../../intern/moto/include
-	../../../../source/gameengine/Rasterizer
-	../../../../source/gameengine/Ketsji
-	../../../../source/gameengine/SceneGraph
-	../../../../source/gameengine/BlenderRoutines
-	../../../../source/blender/gpu
-	../../../../source/blender/makesdna
-	../../../../source/blender/blenkernel
-	../../../../source/blender/blenlib
-	../../../../source/blender/blenloader
+	../../../../intern/string
 )
 
 set(INC_SYS

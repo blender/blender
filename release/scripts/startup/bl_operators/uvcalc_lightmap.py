@@ -406,7 +406,7 @@ def lightmap_uvpack(meshes,
             ok = False
 
             # Tall boxes in groups of 2
-            for d, boxes in odd_dict.items():
+            for d, boxes in list(odd_dict.items()):
                 if d[1] < max_int_dimension:
                     #\boxes.sort(key = lambda a: len(a.children))
                     while len(boxes) >= 2:
@@ -427,7 +427,7 @@ def lightmap_uvpack(meshes,
                             odd_dict.setdefault((w, h), []).append(pf_parent)
 
             # Even boxes in groups of 4
-            for d, boxes in even_dict.items():
+            for d, boxes in list(even_dict.items()):
                 if d < max_int_dimension:
                     boxes.sort(key=lambda a: len(a.children))
 
@@ -444,7 +444,7 @@ def lightmap_uvpack(meshes,
         del even_dict
         del odd_dict
 
-        orig = len(pretty_faces)
+        # orig = len(pretty_faces)
 
         pretty_faces = [pf for pf in pretty_faces if not pf.has_parent]
 
@@ -489,7 +489,10 @@ def lightmap_uvpack(meshes,
 
         if PREF_APPLY_IMAGE:
             if not PREF_PACK_IN_ONE:
-                image = Image.New("lightmap", PREF_IMG_PX_SIZE, PREF_IMG_PX_SIZE, 24)
+                image = bpy.data.images.new(name="lightmap",
+                                            width=PREF_IMG_PX_SIZE,
+                                            height=PREF_IMG_PX_SIZE,
+                                            )
 
             for f in face_sel:
                 # f.image = image
@@ -530,7 +533,7 @@ def unwrap(operator, context, **kwargs):
 
     return {'FINISHED'}
 
-from bpy.props import BoolProperty, FloatProperty, IntProperty, EnumProperty
+from bpy.props import BoolProperty, FloatProperty, IntProperty
 
 
 class LightMapPack(bpy.types.Operator):

@@ -177,10 +177,7 @@ static void sphere_do(
 
 	/* 3) if we were given a vertex group name,
 	* only those vertices should be affected */
-	defgrp_index = defgroup_name_index(ob, cmd->defgrp_name);
-
-	if ((ob->type == OB_MESH) && dm && defgrp_index >= 0)
-		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	modifier_get_vgroup(ob, dm, cmd->defgrp_name, &dvert, &defgrp_index);
 
 	if(flag & MOD_CAST_SIZE_FROM_RADIUS) {
 		len = cmd->radius;
@@ -335,10 +332,7 @@ static void cuboid_do(
 
 	/* 3) if we were given a vertex group name,
 	* only those vertices should be affected */
-	defgrp_index = defgroup_name_index(ob, cmd->defgrp_name);
-
-	if ((ob->type == OB_MESH) && dm && defgrp_index >= 0)
-		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	modifier_get_vgroup(ob, dm, cmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (ctrl_ob) {
 		if(flag & MOD_CAST_USE_OB_TRANSFORM) {

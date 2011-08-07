@@ -327,7 +327,7 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 				rootobj->m_pPhysicsController1->RemoveCompoundChild(m_pPhysicsController1);
 			}
 			m_pPhysicsController1->RestoreDynamics();
-			if (m_pPhysicsController1->IsDyna() && rootobj->m_pPhysicsController1)
+			if (m_pPhysicsController1->IsDyna() && (rootobj != NULL && rootobj->m_pPhysicsController1))
 			{
 				// dynamic object should remember the velocity they had while being parented
 				MT_Point3 childPoint = GetSGNode()->GetWorldPosition();

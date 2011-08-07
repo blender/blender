@@ -16,14 +16,13 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 __all__ = (
     "region_2d_to_vector_3d",
     "region_2d_to_location_3d",
     "location_3d_to_region_2d",
-    "location_3d_to_region_2d",
-)
+    )
 
 
 def region_2d_to_vector_3d(region, rv3d, coord):
@@ -51,11 +50,11 @@ def region_2d_to_vector_3d(region, rv3d, coord):
                       -0.5
                     ))
 
-        w = (out[0] * persinv[0][3]) + \
-            (out[1] * persinv[1][3]) + \
-            (out[2] * persinv[2][3]) + persinv[3][3]
+        w = ((out[0] * persinv[0][3]) +
+             (out[1] * persinv[1][3]) +
+             (out[2] * persinv[2][3]) + persinv[3][3])
 
-        return ((out * persinv) / w) - rv3d.view_matrix.inverted()[3].xyz
+        return ((persinv * out) / w) - rv3d.view_matrix.inverted()[3].xyz
     else:
         return rv3d.view_matrix.inverted()[2].xyz.normalized()
 
@@ -91,15 +90,23 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
         origin_start = rv3d.view_matrix.inverted()[3].to_3d()
         origin_end = origin_start + coord_vec
         view_vec = rv3d.view_matrix.inverted()[2]
-        return intersect_line_plane(origin_start, origin_end, depth_location, view_vec, 1)
+        return intersect_line_plane(origin_start,
+                                    origin_end,
+                                    depth_location,
+                                    view_vec, 1,
+                                    )
     else:
         dx = (2.0 * coord[0] / region.width) - 1.0
         dy = (2.0 * coord[1] / region.height) - 1.0
         persinv = persmat.inverted()
         viewinv = rv3d.view_matrix.inverted()
-        origin_start = (persinv[0].xyz * dx) + (persinv[1].xyz * dy) + viewinv[3].xyz
+        origin_start = ((persinv[0].xyz * dx) +
+                        (persinv[1].xyz * dy) + viewinv[3].xyz)
         origin_end = origin_start + coord_vec
-        return intersect_point_line(depth_location, origin_start, origin_end)[0]
+        return intersect_point_line(depth_location,
+                                    origin_start,
+                                    origin_end,
+                                    )[0]
 
 
 def location_3d_to_region_2d(region, rv3d, coord):
@@ -117,7 +124,7 @@ def location_3d_to_region_2d(region, rv3d, coord):
     """
     from mathutils import Vector
 
-    prj = Vector((coord[0], coord[1], coord[2], 1.0)) * rv3d.perspective_matrix
+    prj = rv3d.perspective_matrix * Vector((coord[0], coord[1], coord[2], 1.0))
     if prj.w > 0.0:
         width_half = region.width / 2.0
         height_half = region.height / 2.0

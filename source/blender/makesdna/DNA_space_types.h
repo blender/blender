@@ -712,7 +712,7 @@ enum FileSortTypeE {
 #define FILE_HIDE_DOT		(1<<3)
 #define FILE_AUTOSELECT		(1<<4)
 #define FILE_ACTIVELAY		(1<<5)
-#define FILE_ATCURSOR		(1<<6)
+/* #define FILE_ATCURSOR	(1<<6) */ /* deprecated */
 #define FILE_DIRSEL_ONLY	(1<<7)
 #define FILE_FILTER			(1<<8)
 #define FILE_BOOKMARKS		(1<<9)
