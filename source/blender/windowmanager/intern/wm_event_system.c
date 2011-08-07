@@ -2332,8 +2332,8 @@ static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* g
 	data->tx = s * ghost->tx;
 
 	data->rx = s * ghost->rx;
-	data->rx = s * ghost->ry;
-	data->rx = s * ghost->rz;
+	data->ry = s * ghost->ry;
+	data->rz = s * ghost->rz;
 
 	if (U.ndof_flag & NDOF_ZOOM_UPDOWN)
 		{
