@@ -12,7 +12,6 @@ root_build_dir=normpath(env['BF_BUILDDIR'])
 
 source_files = env.Glob('*.c')
 source_files.remove('rna_access.c')
-source_files.append('../../blenfont/intern/blf_gettext.c')
 
 generated_files = source_files[:]
 generated_files.remove('rna_define.c')
@@ -141,10 +140,12 @@ targetpath = root_build_dir+'/makesrna'
 if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
     targetpath = '#' + targetpath
 
+source_files.append('../../blenfont/intern/blf_gettext.o')
 if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
     makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_intern_guardedalloc', 'bf_dna', 'bf_blenlib'])
 else:
     makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_intern_guardedalloc', 'bf_dna', 'bf_blenlib'])
+source_files.remove('../../blenfont/intern/blf_gettext.o')
 
 rna_dict = rna.Dictionary()
 rna.Depends (generated_files, makesrna)

@@ -668,19 +668,15 @@ elseif(APPLE)
 	if(WITH_INTERNATIONAL)
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-			DESTINATION ${TARGETDIR_VER}/datafiles
+			DESTINATION ${TARGETDIR_VER}/datafiles/
 		)
 
-		install_dir(
+		install(
 			DIRECTORY
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
-			\${TARGETDIR_VER}/datafiles/
-		)
-
-		install_dir(
-			DIRECTORY
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
-			\${TARGETDIR_VER}/datafiles/locale
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			DESTINATION ${TARGETDIR_VER}/datafiles/
+			PATTERN ".svn" EXCLUDE
 		)
 	endif()
 

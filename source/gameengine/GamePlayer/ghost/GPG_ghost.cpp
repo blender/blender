@@ -104,6 +104,7 @@ extern char datatoc_bfont_ttf[];
 #include "BKE_utildefines.h"
 
 #include "RNA_define.h"
+#include "RNA_access.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -412,7 +413,7 @@ int main(int argc, char** argv)
 	BLF_lang_set("");
 
 	RNA_init();
-	RNA_structs_gettexted()
+	RNA_types_init_gettext();
 
 	init_nodesystem();
 	
