@@ -382,6 +382,10 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			dae_baked_animation(fra ,values, id_name(ob_arm), bone->name );
 
 		}
+
+		if (flag & ARM_RESTPOS) 
+			arm->flag = flag;
+		where_is_pose(scene, ob_arm);
 	}
 
 	void AnimationExporter::sample_and_write_bone_animation(Object *ob_arm, Bone *bone, int transform_type)
@@ -458,7 +462,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			return;
 
 		parchan = pchan->parent;
-
+        
 		enable_fcurves(ob_arm->adt->action, bone->name);
 
 		std::vector<float>::iterator it;
