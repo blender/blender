@@ -326,6 +326,11 @@ static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_c
 "   :type description: string\n" \
 
 
+#define BPY_PROPDEF_UNIT_DOC \
+"   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', 'VELOCITY', 'ACCELERATION'].\n" \
+"   :type unit: string\n"	\
+
+
 #define BPY_PROPDEF_UPDATE_DOC \
 "   :arg update: function to be called when this value is modified,\n" \
 "      This function must take 2 values (self, context) and return None.\n" \
@@ -639,8 +644,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string\n"
-"   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', 'VELOCITY', 'ACCELERATION'].\n"
-"   :type unit: string\n"
+BPY_PROPDEF_UNIT_DOC
 BPY_PROPDEF_UPDATE_DOC
 );
 static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -679,7 +683,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatProperty, property_flag_items, property_subtype_number_items)
 
 		if(pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit)==0) {
-			PyErr_Format(PyExc_TypeError, "FloatProperty(unit='%s'): invalid unit");
+			PyErr_Format(PyExc_TypeError, "FloatProperty(unit='%s'): invalid unit", pyunit);
 			return NULL;
 		}
 
@@ -716,6 +720,7 @@ BPY_PROPDEF_DESC_DOC
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string\n"
+BPY_PROPDEF_UNIT_DOC
 "   :arg size: Vector dimensions in [1, and " STRINGIFY(PYRNA_STACK_ARRAY) "].\n"
 "   :type size: int\n"
 BPY_PROPDEF_UPDATE_DOC
@@ -727,7 +732,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 	BPY_PROPDEF_HEAD(FloatVectorProperty)
 
 	if(srna) {
-		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "size", "update", NULL};
+		static const char *kwlist[]= {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", "size", "update", NULL};
 		const char *id=NULL, *name="", *description="";
 		int id_len;
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def[PYRNA_STACK_ARRAY]={0.0f};
@@ -738,21 +743,28 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 		int opts=0;
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
+		char *pyunit= NULL;
+		int unit= PROP_UNIT_NONE;
 		PyObject *update_cb= NULL;
 
 		if (!PyArg_ParseTupleAndKeywords(args, kw,
-		                                 "s#|ssOfffffiO!siO:FloatVectorProperty",
+		                                 "s#|ssOfffffiO!ssiO:FloatVectorProperty",
 		                                 (char **)kwlist, &id, &id_len,
 		                                 &name, &description, &pydef,
 		                                 &min, &max, &soft_min, &soft_max,
 		                                 &step, &precision, &PySet_Type,
-		                                 &pyopts, &pysubtype, &size,
+		                                 &pyopts, &pysubtype, &pyunit, &size,
 		                                 &update_cb))
 		{
 			return NULL;
 		}
 
 		BPY_PROPDEF_SUBTYPE_CHECK(FloatVectorProperty, property_flag_items, property_subtype_array_items)
+
+		if(pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit)==0) {
+			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(unit='%s'): invalid unit", pyunit);
+			return NULL;
+		}
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(size=%d): size must be between 0 and " STRINGIFY(PYRNA_STACK_ARRAY), size);
@@ -766,7 +778,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 			return NULL;
 		}
 
-		prop= RNA_def_property(srna, id, PROP_FLOAT, subtype);
+		prop= RNA_def_property(srna, id, PROP_FLOAT, subtype | unit);
 		RNA_def_property_array(prop, size);
 		if(pydef) RNA_def_property_float_array_default(prop, def);
 		RNA_def_property_range(prop, min, max);

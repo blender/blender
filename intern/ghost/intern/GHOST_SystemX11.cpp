@@ -42,8 +42,7 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
-#include "GHOST_EventNDOF.h"
-#include "GHOST_NDOFManager.h"
+#include "GHOST_NDOFManagerX11.h"
 #include "GHOST_DisplayManagerX11.h"
 
 #include "GHOST_Debug.h"
@@ -78,19 +77,6 @@
 
 static GHOST_TKey
 convertXKey(KeySym key);
-
-typedef struct NDOFPlatformInfo {
-	Display *display;
-	Window window;
-	volatile GHOST_TEventNDOFData *currValues;
-	Atom cmdAtom;
-	Atom motionAtom;
-	Atom btnPressAtom;
-	Atom btnRelAtom;
-} NDOFPlatformInfo;
-
-static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL, 0, 0, 0, 0};
-
 
 //these are for copy and select copy
 static char *txt_cut_buffer= NULL;
@@ -181,6 +167,9 @@ init(
 	GHOST_TSuccess success = GHOST_System::init();
 
 	if (success) {
+#ifdef WITH_INPUT_NDOF
+		m_ndofManager = new GHOST_NDOFManagerX11(*this);
+#endif
 		m_displayManager = new GHOST_DisplayManagerX11(this);
 
 		if (m_displayManager) {
@@ -275,7 +264,7 @@ createWindow(
 		if (window->getValid()) {
 			// Store the pointer to the window 
 			m_windowManager->addWindow(window);
-			
+			m_windowManager->setActiveWindow(window);
 			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
 		}
 		else {
@@ -386,8 +375,6 @@ lastEventTime(Time default_time) {
     return data.timestamp;
 }
 
-
-
 	bool 
 GHOST_SystemX11::
 processEvents(
@@ -428,6 +415,13 @@ processEvents(
 		if (generateWindowExposeEvents()) {
 			anyProcessed = true;
 		}
+
+#ifdef WITH_INPUT_NDOF
+		if (dynamic_cast<GHOST_NDOFManagerX11*>(m_ndofManager)->processEvents()) {
+			anyProcessed = true;
+		}
+#endif
+		
 	} while (waitForEvent && !anyProcessed);
 	
 	return anyProcessed;
@@ -611,6 +605,9 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case FocusOut:
 		{
 			XFocusChangeEvent &xfe = xe->xfocus;
+
+			// TODO: make sure this is the correct place for activate/deactivate
+			// printf("X: focus %s for window %d\n", xfe.type == FocusIn ? "in" : "out", (int) xfe.window);
 		
 			// May have to look at the type of event and filter some
 			// out.
@@ -641,32 +638,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				);
 			} else 
 #endif
-			if (sNdofInfo.currValues) {
-				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
-				if (xcme.message_type == sNdofInfo.motionAtom)
-				{
-					data.changed = 1;
-					data.delta = xcme.data.s[8] - data.time;
-					data.time = xcme.data.s[8];
-					data.tx = xcme.data.s[2] >> 2;
-					data.ty = xcme.data.s[3] >> 2;
-					data.tz = xcme.data.s[4] >> 2;
-					data.rx = xcme.data.s[5];
-					data.ry = xcme.data.s[6];
-					data.rz =-xcme.data.s[7];
-					g_event = new GHOST_EventNDOF(getMilliSeconds(),
-					                              GHOST_kEventNDOFMotion,
-					                              window, data);
-				} else if (xcme.message_type == sNdofInfo.btnPressAtom) {
-					data.changed = 2;
-					data.delta = xcme.data.s[8] - data.time;
-					data.time = xcme.data.s[8];
-					data.buttons = xcme.data.s[2];
-					g_event = new GHOST_EventNDOF(getMilliSeconds(),
-					                              GHOST_kEventNDOFButton,
-					                              window, data);
-				}
-			} else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+
+			if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
 				XWindowAttributes attr;
 				Window fwin;
 				int revert_to;
@@ -723,6 +696,14 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					xce.y_root
 				);
 			}
+
+			// printf("X: %s window %d\n", xce.type == EnterNotify ? "entering" : "leaving", (int) xce.window);
+
+			if (xce.type == EnterNotify)
+				m_windowManager->setActiveWindow(window);
+			else
+				m_windowManager->setWindowInactive(window);
+
 			break;
 		}
 		case MapNotify:
@@ -834,6 +815,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	}
 }
 
+#if 0 // obsolete SpaceNav code
+
 	void *
 GHOST_SystemX11::
 prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
@@ -845,6 +828,8 @@ prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
 	sNdofInfo.currValues = currentNdofValues;
 	return (void*)&sNdofInfo;
 }
+
+#endif
 
 	GHOST_TSuccess 
 GHOST_SystemX11::

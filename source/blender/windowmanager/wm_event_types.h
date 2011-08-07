@@ -45,6 +45,7 @@
 #define EVT_DATA_GESTURE	2
 #define EVT_DATA_TIMER		3
 #define EVT_DATA_LISTBASE	4
+#define EVT_DATA_NDOF_MOTION 5
 
 /* tablet active, matches GHOST_TTabletMode */
 #define EVT_TABLET_NONE		0
@@ -76,6 +77,56 @@
 #define WHEELINMOUSE	12
 #define WHEELOUTMOUSE	13
 #define INBETWEEN_MOUSEMOVE	17
+
+
+/* NDOF (from SpaceNavigator & friends)
+   These should be kept in sync with GHOST_NDOFManager.h
+   Ordering matters, exact values do not. */
+
+#define NDOF_MOTION 400
+
+enum {
+	// used internally, never sent
+	NDOF_BUTTON_NONE = NDOF_MOTION,
+	// these two are available from any 3Dconnexion device
+	NDOF_BUTTON_MENU,
+	NDOF_BUTTON_FIT,
+	// standard views
+	NDOF_BUTTON_TOP,
+	NDOF_BUTTON_BOTTOM,
+	NDOF_BUTTON_LEFT,
+	NDOF_BUTTON_RIGHT,
+	NDOF_BUTTON_FRONT,
+	NDOF_BUTTON_BACK,
+	// more views
+	NDOF_BUTTON_ISO1,
+	NDOF_BUTTON_ISO2,
+	// 90 degree rotations
+	NDOF_BUTTON_ROLL_CW,
+	NDOF_BUTTON_ROLL_CCW,
+	NDOF_BUTTON_SPIN_CW,
+	NDOF_BUTTON_SPIN_CCW,
+	NDOF_BUTTON_TILT_CW,
+	NDOF_BUTTON_TILT_CCW,
+	// device control
+	NDOF_BUTTON_ROTATE,
+	NDOF_BUTTON_PANZOOM,
+	NDOF_BUTTON_DOMINANT,
+	NDOF_BUTTON_PLUS,
+	NDOF_BUTTON_MINUS,
+	// general-purpose buttons
+	NDOF_BUTTON_1,
+	NDOF_BUTTON_2,
+	NDOF_BUTTON_3,
+	NDOF_BUTTON_4,
+	NDOF_BUTTON_5,
+	NDOF_BUTTON_6,
+	NDOF_BUTTON_7,
+	NDOF_BUTTON_8,
+	NDOF_BUTTON_9,
+	NDOF_BUTTON_10,
+	NDOF_LAST
+	};
 
 
 /* SYSTEM : 0x01xx */
@@ -240,8 +291,11 @@
 	/* test whether the event is tweak event */
 #define ISTWEAK(event)	(event >= EVT_TWEAK_L && event <= EVT_GESTURE)
 
+	/* test whether the event is a NDOF event */
+#define ISNDOF(event)	(event >= NDOF_MOTION && event < NDOF_LAST)
+
 /* test whether event type is acceptable as hotkey, excluding modifiers */
-#define ISHOTKEY(event)	((ISKEYBOARD(event) || ISMOUSE(event)) && event!=ESCKEY && !(event>=LEFTCTRLKEY && event<=LEFTSHIFTKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
+#define ISHOTKEY(event)	((ISKEYBOARD(event) || ISMOUSE(event) || ISNDOF(event)) && event!=ESCKEY && !(event>=LEFTCTRLKEY && event<=LEFTSHIFTKEY) && !(event>=UNKNOWNKEY && event<=GRLESSKEY))
 
 /* **************** BLENDER GESTURE EVENTS (0x5000) **************** */
 

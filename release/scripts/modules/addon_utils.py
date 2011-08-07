@@ -32,6 +32,7 @@ import bpy as _bpy
 
 
 error_duplicates = False
+error_encoding = False
 
 
 def paths():
@@ -51,14 +52,18 @@ def paths():
 
 def modules(module_cache):
     global error_duplicates
+    global error_encoding
     import os
 
     error_duplicates = False
+    error_encoding = False
 
     path_list = paths()
 
     # fake module importing
     def fake_module(mod_name, mod_path, speedy=True):
+        global error_encoding
+
         if _bpy.app.debug:
             print("fake_module", mod_path, mod_name)
         import ast
@@ -69,12 +74,28 @@ def modules(module_cache):
             line_iter = iter(file_mod)
             l = ""
             while not l.startswith("bl_info"):
-                l = line_iter.readline()
+                try:
+                    l = line_iter.readline()
+                except UnicodeDecodeError as e:
+                    if not error_encoding:
+                        error_encoding = True
+                        print("Error reading file as UTF-8:", mod_path, e)
+                    file_mod.close()
+                    return None
+
                 if len(l) == 0:
                     break
             while l.rstrip():
                 lines.append(l)
-                l = line_iter.readline()
+                try:
+                    l = line_iter.readline()
+                except UnicodeDecodeError as e:
+                    if not error_encoding:
+                        error_encoding = True
+                        print("Error reading file as UTF-8:", mod_path, e)
+                    file_mod.close()
+                    return None
+
             data = "".join(lines)
 
         else:

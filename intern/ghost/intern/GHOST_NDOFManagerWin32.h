@@ -1,4 +1,6 @@
 /*
+ * $Id$
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -15,44 +17,28 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): none yet.
+ * Contributor(s):
+ *   Mike Erwin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
-
-#ifndef _GHOST_EVENT_NDOF_H_
-#define _GHOST_EVENT_NDOF_H_
-
-#include "GHOST_Event.h"
 
 
-class GHOST_EventNDOFMotion : public GHOST_Event
-	{
-	protected:
-		GHOST_TEventNDOFMotionData m_axisData;
-	
-	public:
-		GHOST_EventNDOFMotion(GHOST_TUns64 time, GHOST_IWindow* window)
-			: GHOST_Event(time, GHOST_kEventNDOFMotion, window)
-			{
-			m_data = &m_axisData;
-			}
-	};
+#ifndef _GHOST_NDOFMANAGERWIN32_H_
+#define _GHOST_NDOFMANAGERWIN32_H_
+
+#ifdef WITH_INPUT_NDOF
+
+#include "GHOST_NDOFManager.h"
 
 
-class GHOST_EventNDOFButton : public GHOST_Event
-	{
-	protected:
-		GHOST_TEventNDOFButtonData m_buttonData;
-	
-	public:
-		GHOST_EventNDOFButton(GHOST_TUns64 time, GHOST_IWindow* window)
-			: GHOST_Event(time, GHOST_kEventNDOFButton, window)
-			{
-			m_data = &m_buttonData;
-			}
-	};
+class GHOST_NDOFManagerWin32 : public GHOST_NDOFManager
+{
+public:
+	GHOST_NDOFManagerWin32(GHOST_System&);
+	bool available();
+};
 
 
-#endif // _GHOST_EVENT_NDOF_H_
+#endif // WITH_INPUT_NDOF
+#endif // #include guard

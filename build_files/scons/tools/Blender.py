@@ -206,6 +206,12 @@ def setup_staticlibs(lenv):
         if lenv['WITH_BF_STATICJEMALLOC']:
             statlibs += Split(lenv['BF_JEMALLOC_LIB_STATIC'])
 
+    if lenv['OURPLATFORM']=='linux2':
+        if lenv['WITH_BF_3DMOUSE']:
+            libincs += Split(lenv['BF_3DMOUSE_LIBPATH'])
+            if lenv['WITH_BF_STATIC3DMOUSE']:
+                statlibs += Split(lenv['BF_3DMOUSE_LIB_STATIC'])
+
     return statlibs, libincs
 
 def setup_syslibs(lenv):
@@ -270,6 +276,11 @@ def setup_syslibs(lenv):
     if lenv['WITH_BF_JEMALLOC']:
         if not lenv['WITH_BF_STATICJEMALLOC']:
             syslibs += Split(lenv['BF_JEMALLOC_LIB'])
+
+    if lenv['OURPLATFORM']=='linux2':
+        if lenv['WITH_BF_3DMOUSE']:
+            if not lenv['WITH_BF_STATIC3DMOUSE']:
+                syslibs += Split(lenv['BF_3DMOUSE_LIB'])
 
     syslibs += lenv['LLIBS']
 

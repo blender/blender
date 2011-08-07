@@ -360,7 +360,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->syntaxv; break;
 			case TH_NODE_GROUP:
 				cp= ts->syntaxc; break;
-				
+			case TH_NODE_CURVING:
+				cp= &ts->noodle_curving; break;
+
 			case TH_SEQ_MOVIE:
 				cp= ts->movie; break;
 			case TH_SEQ_IMAGE:
@@ -787,6 +789,7 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tnode.syntaxb, 108, 105, 111, 255);	/* operator */
 	SETCOL(btheme->tnode.syntaxv, 104, 106, 117, 255);	/* generator */
 	SETCOL(btheme->tnode.syntaxc, 105, 117, 110, 255);	/* group */
+	btheme->tnode.noodle_curving = 5;
 
 	/* space logic */
 	btheme->tlogic= btheme->tv3d;
@@ -1422,7 +1425,7 @@ void init_userdef_do_versions(void)
 	if (bmain->versionfile < 250 || (bmain->versionfile == 250 && bmain->subversionfile < 8)) {
 		wmKeyMap *km;
 		
-		for(km=U.keymaps.first; km; km=km->next) {
+		for(km=U.user_keymaps.first; km; km=km->next) {
 			if (strcmp(km->idname, "Armature_Sketch")==0)
 				strcpy(km->idname, "Armature Sketch");
 			else if (strcmp(km->idname, "View3D")==0)
@@ -1553,7 +1556,14 @@ void init_userdef_do_versions(void)
 		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
-	
+
+	if (bmain->versionfile < 258 || (bmain->versionfile == 258 && bmain->subversionfile < 1)) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			btheme->tnode.noodle_curving = 5;
+		}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;
@@ -1584,6 +1594,12 @@ void init_userdef_do_versions(void)
 		U.widget_unit= (U.dpi * 20 + 36)/72;
 	if (U.anisotropic_filter <= 0)
 		U.anisotropic_filter = 1;
+
+	if (U.ndof_sensitivity == 0.0f) {
+		U.ndof_sensitivity = 1.0f;
+		U.ndof_flag = NDOF_LOCK_HORIZON |
+			NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE;
+	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

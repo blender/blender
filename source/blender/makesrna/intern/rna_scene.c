@@ -1455,7 +1455,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	prop= RNA_def_property(srna, "layers_zmask", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_zmask", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Zmask Layers", "Zmask scene layers");
+	RNA_def_property_ui_text(prop, "Zmask Layers", "Zmask scene layers for solid faces");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -3601,7 +3601,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_current_frame_set", NULL);
-	RNA_def_property_ui_text(prop, "Current Frame", "Current Frame");
+	RNA_def_property_ui_text(prop, "Current Frame", "Current Frame, to update animation data from python frame_set() instead");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	

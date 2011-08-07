@@ -211,10 +211,12 @@ struct wmKeyMap *WM_keymap_list_find(struct ListBase *lb, char *idname, int spac
 struct wmKeyConfig *WM_keyconfig_new(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
 struct wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
 void WM_keyconfig_remove(struct wmWindowManager *wm, char *idname){}
+void WM_keyconfig_set_active(struct wmWindowManager *wm, const char *idname) {}
 void WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap){}
 void WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_properties_reset(struct wmKeyMapItem *kmi){}
+void WM_keyconfig_update_tag(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi) {}
 int WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap) {return 0;}
 int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2){return 0;}
 

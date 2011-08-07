@@ -37,6 +37,15 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 
 
+def _check_axis_conversion(op):
+    if hasattr(op, "axis_forward") and hasattr(op, "axis_up"):
+        return axis_conversion_ensure(op,
+                                      "axis_forward",
+                                      "axis_up",
+                                      )
+    return False
+
+
 class ExportHelper:
     filepath = StringProperty(
             name="File Path",
@@ -70,21 +79,22 @@ class ExportHelper:
         return {'RUNNING_MODAL'}
 
     def check(self, context):
+        change_ext = False
+        change_axis = _check_axis_conversion(self)
+
         check_extension = self.check_extension
 
-        if check_extension is None:
-            return False
+        if check_extension is not None:
+            filepath = bpy.path.ensure_ext(self.filepath,
+                                           self.filename_ext
+                                           if check_extension
+                                           else "")
 
-        filepath = bpy.path.ensure_ext(self.filepath,
-                                       self.filename_ext
-                                       if check_extension
-                                       else "")
+            if filepath != self.filepath:
+                self.filepath = filepath
+                change_ext = True
 
-        if filepath != self.filepath:
-            self.filepath = filepath
-            return True
-
-        return False
+        return (change_ext or change_axis)
 
 
 class ImportHelper:
@@ -98,6 +108,9 @@ class ImportHelper:
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+    def check(self, context):
+        return _check_axis_conversion(self)
 
 
 # Axis conversion function, not pretty LUT

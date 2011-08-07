@@ -419,7 +419,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		}
 	}
 	else if(subtype == PROP_DIRECTION) {
-		uiDefButR(block, BUT_NORMAL, 0, name, x, y, UI_UNIT_X*3, UI_UNIT_Y*3, ptr, RNA_property_identifier(prop), 0, 0, 0, -1, -1, NULL);
+		uiDefButR_prop(block, BUT_NORMAL, 0, name, x, y, UI_UNIT_X*3, UI_UNIT_Y*3, ptr, prop, 0, 0, 0, -1, -1, NULL);
 	}
 	else {
 		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)
@@ -461,11 +461,9 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 {
 	uiBut *but;
 	EnumPropertyItem *item;
-	const char *identifier;
 	const char *name;
 	int a, totitem, itemw, icon, value, free;
 
-	identifier= RNA_property_identifier(prop);
 	RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 
 	uiBlockSetCurLayout(block, ui_item_local_sublayout(layout, layout, 1));
@@ -479,11 +477,11 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 		itemw= ui_text_icon_width(block->curlayout, name, icon, 0);
 
 		if(icon && name[0] && !icon_only)
-			but= uiDefIconTextButR(block, ROW, 0, icon, name, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
+			but= uiDefIconTextButR_prop(block, ROW, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 		else if(icon)
-			but= uiDefIconButR(block, ROW, 0, icon, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
+			but= uiDefIconButR_prop(block, ROW, 0, icon, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 		else
-			but= uiDefButR(block, ROW, 0, name, 0, 0, itemw, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
+			but= uiDefButR_prop(block, ROW, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 
 		if(ui_layout_local_dir(layout) != UI_LAYOUT_HORIZONTAL)
 			but->flag |= UI_TEXT_LEFT;
@@ -540,7 +538,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 		                   WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
 	}
 	else if(flag & UI_ITEM_R_EVENT) {
-		uiDefButR(block, KEYEVT, 0, name, x, y, w, h, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
+		uiDefButR_prop(block, KEYEVT, 0, name, x, y, w, h, ptr, prop, index, 0, 0, -1, -1, NULL);
 	}
 	else if(flag & UI_ITEM_R_FULL_EVENT) {
 		if(RNA_struct_is_a(ptr->type, &RNA_KeyMapItem)) {
@@ -548,7 +546,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 
 			WM_keymap_item_to_string(ptr->data, buf, sizeof(buf));
 
-			but= uiDefButR(block, HOTKEYEVT, 0, buf, x, y, w, h, ptr, RNA_property_identifier(prop), 0, 0, 0, -1, -1, NULL);
+			but= uiDefButR_prop(block, HOTKEYEVT, 0, buf, x, y, w, h, ptr, prop, 0, 0, 0, -1, -1, NULL);
 			uiButSetFunc(but, ui_keymap_but_cb, but, NULL);
 			if (flag & UI_ITEM_R_IMMEDIATE)
 				uiButSetFlag(but, UI_BUT_IMMEDIATE);
@@ -1008,11 +1006,11 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		const char *identifier= RNA_property_identifier(prop);
 
 		if(icon && name[0] && !icon_only)
-			uiDefIconTextButR(block, ROW, 0, icon, name, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
+			uiDefIconTextButR_prop(block, ROW, 0, icon, name, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 		else if(icon)
 			uiDefIconButR(block, ROW, 0, icon, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
 		else
-			uiDefButR(block, ROW, 0, name, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
+			uiDefButR_prop(block, ROW, 0, name, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 	}
 	/* expanded enum */
 	else if(type == PROP_ENUM && (expand || RNA_property_flag(prop) & PROP_ENUM_FLAG))
