@@ -39,6 +39,9 @@
 
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
+#  include "AUD_PingPongFactory.h"
+#  include "AUD_IDevice.h"
+#  include "AUD_I3DHandle.h"
 #endif
 
 #include "KX_GameObject.h"
@@ -49,7 +52,7 @@
 /* Native functions                                                          */
 /* ------------------------------------------------------------------------- */
 KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
-								   AUD_Sound* sound,
+								   AUD_Reference<AUD_IFactory> sound,
 								   float volume,
 								   float pitch,
 								   bool is3d,
@@ -57,15 +60,11 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 								   KX_SOUNDACT_TYPE type)//,
 								   : SCA_IActuator(gameobj, KX_ACT_SOUND)
 {
-	if(sound)
-		m_sound = AUD_copy(sound);
-	else
-		m_sound = NULL;
+	m_sound = sound;
 	m_volume = volume;
 	m_pitch = pitch;
 	m_is3d = is3d;
 	m_3d = settings;
-	m_handle = NULL;
 	m_type = type;
 	m_isplaying = false;
 }
@@ -74,27 +73,20 @@ KX_SoundActuator::KX_SoundActuator(SCA_IObject* gameobj,
 
 KX_SoundActuator::~KX_SoundActuator()
 {
-	if(m_handle)
-		AUD_stop(m_handle);
-	if(m_sound)
-		AUD_unload(m_sound);
+	if(!m_handle.isNull())
+		m_handle->stop();
 }
 
 void KX_SoundActuator::play()
 {
-	if(m_handle)
-	{
-		AUD_stop(m_handle);
-		m_handle = NULL;
-	}
+	if(!m_handle.isNull())
+		m_handle->stop();
 
-	if(!m_sound)
+	if(m_sound.isNull())
 		return;
 
 	// this is the sound that will be played and not deleted afterwards
-	AUD_Sound* sound = m_sound;
-	// this sound is for temporary stacked sounds, will be deleted if not NULL
-	AUD_Sound* sound2 = NULL;
+	AUD_Reference<AUD_IFactory> sound = m_sound;
 
 	bool loop = false;
 
@@ -102,7 +94,7 @@ void KX_SoundActuator::play()
 	{
 	case KX_SOUNDACT_LOOPBIDIRECTIONAL:
 	case KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP:
-		sound = sound2 = AUD_pingpongSound(sound);
+		sound =  new AUD_PingPongFactory(sound);
 		// fall through
 	case KX_SOUNDACT_LOOPEND:
 	case KX_SOUNDACT_LOOPSTOP:
@@ -114,31 +106,27 @@ void KX_SoundActuator::play()
 		break;
 	}
 
-	m_handle = AUD_play(sound, 0);
+	m_handle = AUD_getDevice()->play(sound, 0);
 
-	if(sound2)
-		AUD_unload(sound2);
+	AUD_Reference<AUD_I3DHandle> handle3d = AUD_Reference<AUD_I3DHandle>(m_handle);
 
-	if(!m_handle)
-		return;
-
-	if(m_is3d)
+	if(m_is3d && !handle3d.isNull())
 	{
-		AUD_setRelative(m_handle, false);
-		AUD_setVolumeMaximum(m_handle, m_3d.max_gain);
-		AUD_setVolumeMinimum(m_handle, m_3d.min_gain);
-		AUD_setDistanceReference(m_handle, m_3d.reference_distance);
-		AUD_setDistanceMaximum(m_handle, m_3d.max_distance);
-		AUD_setAttenuation(m_handle, m_3d.rolloff_factor);
-		AUD_setConeAngleInner(m_handle, m_3d.cone_inner_angle);
-		AUD_setConeAngleOuter(m_handle, m_3d.cone_outer_angle);
-		AUD_setConeVolumeOuter(m_handle, m_3d.cone_outer_gain);
+		handle3d->setRelative(false);
+		handle3d->setVolumeMaximum(m_3d.max_gain);
+		handle3d->setVolumeMinimum(m_3d.min_gain);
+		handle3d->setDistanceReference(m_3d.reference_distance);
+		handle3d->setDistanceMaximum(m_3d.max_distance);
+		handle3d->setAttenuation(m_3d.rolloff_factor);
+		handle3d->setConeAngleInner(m_3d.cone_inner_angle);
+		handle3d->setConeAngleOuter(m_3d.cone_outer_angle);
+		handle3d->setConeVolumeOuter(m_3d.cone_outer_gain);
 	}
 
 	if(loop)
-		AUD_setLoop(m_handle, -1);
-	AUD_setSoundPitch(m_handle, m_pitch);
-	AUD_setSoundVolume(m_handle, m_volume);
+		m_handle->setLoopCount(-1);
+	m_handle->setPitch(m_pitch);
+	m_handle->setVolume(m_volume);
 	m_isplaying = true;
 }
 
@@ -152,7 +140,7 @@ CValue* KX_SoundActuator::GetReplica()
 void KX_SoundActuator::ProcessReplica()
 {
 	SCA_IActuator::ProcessReplica();
-	m_handle = 0;
+	m_handle = AUD_Reference<AUD_IHandle>();
 }
 
 bool KX_SoundActuator::Update(double curtime, bool frame)
@@ -167,11 +155,11 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 	
 	RemoveAllEvents();
 
-	if(!m_sound)
+	if(m_sound.isNull())
 		return false;
 
 	// actual audio device playing state
-	bool isplaying = m_handle ? (AUD_getStatus(m_handle) == AUD_STATUS_PLAYING) : false;
+	bool isplaying = m_handle.isNull() ? false : (m_handle->getStatus() == AUD_STATUS_PLAYING);
 
 	if (bNegativeEvent)
 	{
@@ -185,9 +173,9 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 			case KX_SOUNDACT_LOOPBIDIRECTIONAL_STOP:
 				{
 					// stop immediately
-					if(m_handle)
-						AUD_stop(m_handle);
-					m_handle = NULL;
+					if(!m_handle.isNull())
+						m_handle->stop();
+					m_handle = AUD_Reference<AUD_IHandle>();
 					break;
 				}
 			case KX_SOUNDACT_PLAYEND:
@@ -199,8 +187,8 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 			case KX_SOUNDACT_LOOPBIDIRECTIONAL:
 				{
 					// stop the looping so that the sound stops when it finished
-					if(m_handle)
-						AUD_setLoop(m_handle, 0);
+					if(!m_handle.isNull())
+						m_handle->setLoopCount(0);
 					break;
 				}
 			default:
@@ -226,21 +214,24 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 			play();
 	}
 	// verify that the sound is still playing
-	isplaying = m_handle ? (AUD_getStatus(m_handle) == AUD_STATUS_PLAYING) : false;
+	isplaying = m_handle.isNull() ? false : (m_handle->getStatus() == AUD_STATUS_PLAYING);
 
 	if (isplaying)
 	{
-		if(m_is3d)
+		AUD_Reference<AUD_I3DHandle> handle3d = AUD_Reference<AUD_I3DHandle>(m_handle);
+
+		if(m_is3d && !handle3d.isNull())
 		{
 			KX_GameObject* obj = (KX_GameObject*)this->GetParent();
-			float f[4];
+			AUD_Vector3 v;
+			AUD_Quaternion q;
 
-			obj->NodeGetWorldPosition().getValue(f);
-			AUD_setSourceLocation(m_handle, f);
-			obj->GetLinearVelocity().getValue(f);
-			AUD_setSourceVelocity(m_handle, f);
-			obj->NodeGetWorldOrientation().getRotation().getValue(f);
-			AUD_setSourceOrientation(m_handle, f);
+			obj->NodeGetWorldPosition().getValue(v.get());
+			handle3d->setSourceLocation(v);
+			obj->GetLinearVelocity().getValue(v.get());
+			handle3d->setSourceVelocity(v);
+			obj->NodeGetWorldOrientation().getRotation().getValue(q.get());
+			handle3d->setSourceOrientation(q);
 		}
 		result = true;
 	}
@@ -251,7 +242,6 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 	}
 	return result;
 }
-
 
 #ifdef WITH_PYTHON
 
@@ -315,14 +305,14 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, startSound,
 "startSound()\n"
 "\tStarts the sound.\n")
 {
-	if(m_handle)
+	if(!m_handle.isNull())
 	{
-		switch(AUD_getStatus(m_handle))
+		switch(m_handle->getStatus())
 		{
 		case AUD_STATUS_PLAYING:
 			break;
 		case AUD_STATUS_PAUSED:
-			AUD_resume(m_handle);
+			m_handle->resume();
 			break;
 		default:
 			play();
@@ -335,8 +325,8 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, pauseSound,
 "pauseSound()\n"
 "\tPauses the sound.\n")
 {
-	if(m_handle)
-		AUD_pause(m_handle);
+	if(!m_handle.isNull())
+		m_handle->pause();
 	Py_RETURN_NONE;
 }
 
@@ -344,9 +334,9 @@ KX_PYMETHODDEF_DOC_NOARGS(KX_SoundActuator, stopSound,
 "stopSound()\n"
 "\tStops the sound.\n")
 {
-	if(m_handle)
-		AUD_stop(m_handle);
-	m_handle = NULL;
+	if(!m_handle.isNull())
+		m_handle->stop();
+	m_handle = AUD_Reference<AUD_IHandle>();
 	Py_RETURN_NONE;
 }
 
@@ -394,8 +384,8 @@ PyObject* KX_SoundActuator::pyattr_get_audposition(void *self, const struct KX_P
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
 	float position = 0.0;
 
-	if(actuator->m_handle)
-		position = AUD_getPosition(actuator->m_handle);
+	if(!actuator->m_handle.isNull())
+		position = actuator->m_handle->getPosition();
 
 	PyObject* result = PyFloat_FromDouble(position);
 
@@ -425,8 +415,8 @@ PyObject* KX_SoundActuator::pyattr_get_pitch(void *self, const struct KX_PYATTRI
 PyObject* KX_SoundActuator::pyattr_get_sound(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_SoundActuator * actuator = static_cast<KX_SoundActuator *> (self);
-	if(actuator->m_sound)
-		return AUD_getPythonFactory(actuator->m_sound);
+	if(!actuator->m_sound.isNull())
+		return AUD_getPythonFactory(&actuator->m_sound);
 	else
 		Py_RETURN_NONE;
 }
@@ -440,49 +430,50 @@ int KX_SoundActuator::pyattr_set_3d_property(void *self, const struct KX_PYATTRI
 	if (!PyArg_Parse(value, "f", &prop_value))
 		return PY_SET_ATTR_FAIL;
 
+	AUD_Reference<AUD_I3DHandle> handle3d = AUD_Reference<AUD_I3DHandle>(actuator->m_handle);
 	// if sound is working and 3D, set the new setting
 	if(!actuator->m_is3d)
 		return PY_SET_ATTR_FAIL;
 
 	if(!strcmp(prop, "volume_maximum")) {
 		actuator->m_3d.max_gain = prop_value;
-		if(actuator->m_handle)
-			AUD_setVolumeMaximum(actuator->m_handle, prop_value);
+		if(!handle3d.isNull())
+			handle3d->setVolumeMaximum(prop_value);
 
 	} else if (!strcmp(prop, "volume_minimum")) {
 		actuator->m_3d.min_gain = prop_value;
-		if(actuator->m_handle)
-			AUD_setVolumeMinimum(actuator->m_handle, prop_value);
+		if(!handle3d.isNull())
+			handle3d->setVolumeMinimum(prop_value);
 
 	} else if (!strcmp(prop, "distance_reference")) {
 		actuator->m_3d.reference_distance = prop_value;
-		if(actuator->m_handle)
-			AUD_setDistanceReference(actuator->m_handle, prop_value);
+		if(!handle3d.isNull())
+			handle3d->setDistanceReference(prop_value);
 
 	} else if (!strcmp(prop, "distance_maximum")) {
 		actuator->m_3d.max_distance = prop_value;
-		if(actuator->m_handle)
-			AUD_setDistanceMaximum(actuator->m_handle, prop_value);
+		if(!handle3d.isNull())
+			handle3d->setDistanceMaximum(prop_value);
 
 	} else if (!strcmp(prop, "attenuation")) {
 		actuator->m_3d.rolloff_factor = prop_value;
-		if(actuator->m_handle)
-			AUD_setAttenuation(actuator->m_handle, prop_value);
+		if(!handle3d.isNull())
+			handle3d->setAttenuation(prop_value);
 
 	} else if (!!strcmp(prop, "cone_angle_inner")) {
 		actuator->m_3d.cone_inner_angle = prop_value;
-		if(actuator->m_handle)
-			AUD_setConeAngleInner(actuator->m_handle, prop_value);
+		if(!handle3d.isNull())
+			handle3d->setConeAngleInner(prop_value);
 
 	} else if (!strcmp(prop, "cone_angle_outer")) {
 		actuator->m_3d.cone_outer_angle = prop_value;
-		if(actuator->m_handle)
-			AUD_setConeAngleOuter(actuator->m_handle, prop_value);
+		if(!handle3d.isNull())
+			handle3d->setConeAngleOuter(prop_value);
 
 	} else if (!strcmp(prop, "cone_volume_outer")) {
 		actuator->m_3d.cone_outer_gain = prop_value;
-		if(actuator->m_handle)
-			AUD_setConeVolumeOuter(actuator->m_handle, prop_value);
+		if(!handle3d.isNull())
+			handle3d->setConeVolumeOuter(prop_value);
 
 	} else {
 		return PY_SET_ATTR_FAIL;
@@ -499,8 +490,8 @@ int KX_SoundActuator::pyattr_set_audposition(void *self, const struct KX_PYATTRI
 	if (!PyArg_Parse(value, "f", &position))
 		return PY_SET_ATTR_FAIL;
 
-	if(actuator->m_handle)
-		AUD_seek(actuator->m_handle, position);
+	if(!actuator->m_handle.isNull())
+		actuator->m_handle->seek(position);
 	return PY_SET_ATTR_SUCCESS;
 }
 
@@ -512,8 +503,8 @@ int KX_SoundActuator::pyattr_set_gain(void *self, const struct KX_PYATTRIBUTE_DE
 		return PY_SET_ATTR_FAIL;
 
 	actuator->m_volume = gain;
-	if(actuator->m_handle)
-		AUD_setSoundVolume(actuator->m_handle, gain);
+	if(!actuator->m_handle.isNull())
+		actuator->m_handle->setVolume(gain);
 
 	return PY_SET_ATTR_SUCCESS;
 }
@@ -526,8 +517,8 @@ int KX_SoundActuator::pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_D
 		return PY_SET_ATTR_FAIL;
 
 	actuator->m_pitch = pitch;
-	if(actuator->m_handle)
-		AUD_setSoundPitch(actuator->m_handle, pitch);
+	if(!actuator->m_handle.isNull())
+		actuator->m_handle->setPitch(pitch);
 
 	return PY_SET_ATTR_SUCCESS;
 }
@@ -539,12 +530,11 @@ int KX_SoundActuator::pyattr_set_sound(void *self, const struct KX_PYATTRIBUTE_D
 	if (!PyArg_Parse(value, "O", &sound))
 		return PY_SET_ATTR_FAIL;
 
-	AUD_Sound* snd = AUD_getPythonSound(sound);
+	AUD_Reference<AUD_IFactory>* snd = reinterpret_cast<AUD_Reference<AUD_IFactory>*>(AUD_getPythonSound(sound));
 	if(snd)
 	{
-		if(actuator->m_sound)
-			AUD_unload(actuator->m_sound);
-		actuator->m_sound = snd;
+		actuator->m_sound = *snd;
+		delete snd;
 		return PY_SET_ATTR_SUCCESS;
 	}
 

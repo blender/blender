@@ -4473,7 +4473,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 #endif
 
 			if(sce->ed)
-				seq_update_muting(sce, sce->ed);
+				seq_update_muting(sce->ed);
 			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
@@ -5608,6 +5608,13 @@ static void direct_link_sound(FileData *fd, bSound *sound)
 	sound->handle = NULL;
 	sound->playback_handle = NULL;
 
+	// versioning stuff, if there was a cache, then we enable caching:
+	if(sound->cache)
+	{
+		sound->flags |= SOUND_FLAGS_CACHING;
+		sound->cache = NULL;
+	}
+
 	sound->packedfile = direct_link_packedfile(fd, sound->packedfile);
 	sound->newpackedfile = direct_link_packedfile(fd, sound->newpackedfile);
 }
@@ -5623,9 +5630,6 @@ static void lib_link_sound(FileData *fd, Main *main)
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
 			
 			sound_load(main, sound);
-
-			if(sound->cache)
-				sound_cache_notifying(main, sound, 1);
 		}
 		sound= sound->id.next;
 	}

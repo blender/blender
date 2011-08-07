@@ -838,6 +838,19 @@ AUD_Reference<AUD_IHandle> AUD_SoftwareDevice::play(AUD_Reference<AUD_IFactory> 
 	return play(factory->createReader(), keep);
 }
 
+void AUD_SoftwareDevice::stopAll()
+{
+	lock();
+
+	while(!m_playingSounds.empty())
+		m_playingSounds.front()->stop();
+
+	while(!m_pausedSounds.empty())
+		m_pausedSounds.front()->stop();
+
+	unlock();
+}
+
 void AUD_SoftwareDevice::lock()
 {
 	pthread_mutex_lock(&m_mutex);

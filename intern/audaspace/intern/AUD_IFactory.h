@@ -34,7 +34,7 @@
 
 #include "AUD_Space.h"
 #include "AUD_Reference.h"
-class AUD_IReader;
+#include "AUD_IReader.h"
 
 /**
  * This class represents a type of sound source and saves the necessary values

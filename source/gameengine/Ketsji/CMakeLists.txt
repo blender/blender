@@ -251,6 +251,7 @@ endif()
 if(WITH_AUDASPACE)
 	list(APPEND INC
 		../../../intern/audaspace/intern
+		../../../intern/audaspace/FX
 	)
 	add_definitions(-DWITH_AUDASPACE)
 endif()

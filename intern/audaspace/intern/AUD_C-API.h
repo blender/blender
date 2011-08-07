@@ -528,6 +528,14 @@ extern AUD_Sound* AUD_getPythonSound(PyObject* sound);
 
 #ifdef __cplusplus
 }
+
+#include "AUD_Reference.h"
+class AUD_IDevice;
+class AUD_I3DDevice;
+
+AUD_Reference<AUD_IDevice> AUD_getDevice();
+
+AUD_I3DDevice* AUD_get3DDevice();
 #endif
 
 #endif //AUD_CAPI

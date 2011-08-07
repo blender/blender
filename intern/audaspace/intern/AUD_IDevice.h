@@ -84,6 +84,11 @@ public:
 	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false)=0;
 
 	/**
+	 * Stops all playing sounds.
+	 */
+	virtual void stopAll()=0;
+
+	/**
 	 * Locks the device.
 	 * Used to make sure that between lock and unlock, no buffers are read, so
 	 * that it is possible to start, resume, pause, stop or seek several

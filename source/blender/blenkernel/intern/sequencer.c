@@ -3145,6 +3145,28 @@ int shuffle_seq_time(ListBase * seqbasep, Scene *evil_scene)
 	return offset? 0:1;
 }
 
+void seq_update_sound_bounds_all(Scene *scene)
+{
+	Editing *ed = scene->ed;
+
+	if(ed)
+	{
+		Sequence *seq;
+
+		for(seq = ed->seqbase.first; seq; seq = seq->next)
+		{
+			if(seq->type == SEQ_META)
+			{
+				seq_update_sound_bounds_recursive(scene, seq);
+			}
+			else if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE))
+			{
+				seq_update_sound_bounds(scene, seq);
+			}
+		}
+	}
+}
+
 void seq_update_sound_bounds(Scene* scene, Sequence *seq)
 {
 	if(seq->scene_sound)
@@ -3154,7 +3176,7 @@ void seq_update_sound_bounds(Scene* scene, Sequence *seq)
 	}
 }
 
-static void seq_update_muting_recursive(Scene *scene, ListBase *seqbasep, Sequence *metaseq, int mute)
+static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, int mute)
 {
 	Sequence *seq;
 	int seqmute;
@@ -3170,26 +3192,26 @@ static void seq_update_muting_recursive(Scene *scene, ListBase *seqbasep, Sequen
 			if(seq == metaseq)
 				seqmute= 0;
 
-			seq_update_muting_recursive(scene, &seq->seqbase, metaseq, seqmute);
+			seq_update_muting_recursive(&seq->seqbase, metaseq, seqmute);
 		}
 		else if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
 			if(seq->scene_sound) {
-				sound_mute_scene_sound(scene, seq->scene_sound, seqmute);
+				sound_mute_scene_sound(seq->scene_sound, seqmute);
 			}
 		}
 	}
 }
 
-void seq_update_muting(Scene *scene, Editing *ed)
+void seq_update_muting(Editing *ed)
 {
 	if(ed) {
 		/* mute all sounds up to current metastack list */
 		MetaStack *ms= ed->metastack.last;
 
 		if(ms)
-			seq_update_muting_recursive(scene, &ed->seqbase, ms->parseq, 1);
+			seq_update_muting_recursive(&ed->seqbase, ms->parseq, 1);
 		else
-			seq_update_muting_recursive(scene, &ed->seqbase, NULL, 0);
+			seq_update_muting_recursive(&ed->seqbase, NULL, 0);
 	}
 }
 
@@ -3469,7 +3491,7 @@ void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 
 		if(seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
 			if(seq->sound)
-				sound_cache(seq->sound, 0);
+				sound_cache(seq->sound);
 		}
 
 		seq_load->tot_success++;

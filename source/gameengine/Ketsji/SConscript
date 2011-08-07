@@ -11,7 +11,7 @@ incs += ' #source/blender/python/mathutils' # Only for mathutils, be very carefu
 
 incs += ' #intern/string #intern/guardedalloc #intern/container'
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
-incs += ' #intern/audaspace/intern #source/gameengine/Converter'
+incs += ' #intern/audaspace/intern #intern/audaspace/FX #source/gameengine/Converter'
 incs += ' #source/gameengine/BlenderRoutines #source/blender/imbuf #intern/moto/include'
 incs += ' #source/gameengine/Ketsji #source/gameengine/Ketsji/KXNetwork #source/blender/blenlib #source/blender/blenfont'
 incs += ' #source/blender/blenkernel #source/blender #source/blender/editors/include'

@@ -182,6 +182,7 @@ EnumPropertyItem image_type_items[] = {
 #include "BKE_mesh.h"
 #include "BKE_sound.h"
 #include "BKE_screen.h"
+#include "BKE_sequencer.h"
 #include "BKE_animsys.h"
 
 #include "WM_api.h"
@@ -335,6 +336,7 @@ static void rna_Scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Scene_fps_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	sound_update_fps(scene);
+	seq_update_sound_bounds_all(scene);
 }
 
 static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))

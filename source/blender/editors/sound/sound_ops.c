@@ -118,7 +118,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	}
 
 	if (RNA_boolean_get(op->ptr, "cache")) {
-		sound_cache(sound, 0);
+		sound_cache(sound);
 	}
 
 	/* hook into UI */
@@ -356,6 +356,8 @@ static void mixdown_draw(bContext *C, wmOperator *op)
 		case AUD_CODEC_VORBIS:
 			RNA_enum_set(op->ptr, "format", AUD_FORMAT_S16);
 			break;
+		default:
+			break;
 		}
 
 		break;
@@ -381,6 +383,8 @@ static void mixdown_draw(bContext *C, wmOperator *op)
 		RNA_def_property_enum_items(prop_format, pcm_format_items);
 		RNA_def_property_enum_items(prop_codec, all_codec_items);
 		RNA_enum_set(op->ptr, "codec", AUD_CODEC_PCM);
+		break;
+	default:
 		break;
 	}
 

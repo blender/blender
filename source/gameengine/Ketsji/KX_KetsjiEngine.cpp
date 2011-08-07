@@ -70,6 +70,7 @@
 
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
+#  include "AUD_I3DDevice.h"
 #endif
 
 #include "NG_NetworkScene.h"
@@ -995,16 +996,20 @@ void KX_KetsjiEngine::DoSound(KX_Scene* scene)
 	if (!cam)
 		return;
 
-	float f[4];
+	AUD_I3DDevice* dev = AUD_get3DDevice();
+	if(dev)
+	{
+		AUD_Vector3 v;
+		AUD_Quaternion q;
+		cam->NodeGetWorldPosition().getValue(v.get());
+		dev->setListenerLocation(v);
 
-	cam->NodeGetWorldPosition().getValue(f);
-	AUD_setListenerLocation(f);
+		cam->GetLinearVelocity().getValue(v.get());
+		dev->setListenerVelocity(v);
 
-	cam->GetLinearVelocity().getValue(f);
-	AUD_setListenerVelocity(f);
-
-	cam->NodeGetWorldOrientation().getRotation().getValue(f);
-	AUD_setListenerOrientation(f);
+		cam->NodeGetWorldOrientation().getRotation().getValue(q.get());
+		dev->setListenerOrientation(q);
+	}
 }
 
 

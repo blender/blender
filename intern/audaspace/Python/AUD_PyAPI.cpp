@@ -2245,6 +2245,25 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 	return (PyObject *)handle;
 }
 
+PyDoc_STRVAR(M_aud_Device_stopAll_doc,
+			 "stopAll()\n\n"
+			 "Stops all playing and paused sounds.");
+
+static PyObject *
+Device_stopAll(Device *self)
+{
+	try
+	{
+		(*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->stopAll();
+		Py_RETURN_NONE;
+	}
+	catch(AUD_Exception& e)
+	{
+		PyErr_SetString(AUDError, e.str);
+		return NULL;
+	}
+}
+
 PyDoc_STRVAR(M_aud_Device_lock_doc,
 			 "lock()\n\n"
 			 "Locks the device so that it's guaranteed, that no samples are "
@@ -2294,6 +2313,9 @@ Device_unlock(Device *self)
 static PyMethodDef Device_methods[] = {
 	{"play", (PyCFunction)Device_play, METH_VARARGS | METH_KEYWORDS,
 	 M_aud_Device_play_doc
+	},
+	{"stopAll", (PyCFunction)Device_stopAll, METH_NOARGS,
+	 M_aud_Device_stopAll_doc
 	},
 	{"lock", (PyCFunction)Device_lock, METH_NOARGS,
 	 M_aud_Device_lock_doc

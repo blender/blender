@@ -91,6 +91,7 @@ void sound_free(struct bSound* sound)
 	if(sound->cache)
 	{
 		AUD_unload(sound->cache);
+		sound->cache = NULL;
 	}
 #endif // WITH_AUDASPACE
 }
@@ -250,23 +251,25 @@ void sound_delete(struct bContext *C, struct bSound* sound)
 	}
 }
 
-void sound_cache(struct bSound* sound, int ignore)
+void sound_cache(struct bSound* sound)
 {
-	if(sound->cache && !ignore)
+	sound->flags |= SOUND_FLAGS_CACHING;
+	if(sound->cache)
 		AUD_unload(sound->cache);
 
 	sound->cache = AUD_bufferSound(sound->handle);
 	sound->playback_handle = sound->cache;
 }
 
-void sound_cache_notifying(struct Main* main, struct bSound* sound, int ignore)
+void sound_cache_notifying(struct Main* main, struct bSound* sound)
 {
-	sound_cache(sound, ignore);
+	sound_cache(sound);
 	sound_update_sequencer(main, sound);
 }
 
 void sound_delete_cache(struct bSound* sound)
 {
+	sound->flags &= ~SOUND_FLAGS_CACHING;
 	if(sound->cache)
 	{
 		AUD_unload(sound->cache);
@@ -279,6 +282,12 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 {
 	if(sound)
 	{
+		if(sound->cache)
+		{
+			AUD_unload(sound->cache);
+			sound->cache = NULL;
+		}
+
 		if(sound->handle)
 		{
 			AUD_unload(sound->handle);
@@ -330,6 +339,11 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			break;
 		}
 #endif
+		if(sound->flags & SOUND_FLAGS_CACHING)
+		{
+			sound->cache = AUD_bufferSound(sound->handle);
+		}
+
 		if(sound->cache)
 			sound->playback_handle = sound->cache;
 		else
@@ -400,7 +414,12 @@ void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence
 
 void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)
 {
-	return AUD_addSequence(scene->sound_scene, sequence->sound->playback_handle, startframe / FPS, endframe / FPS, frameskip / FPS);
+	void* handle = AUD_addSequence(scene->sound_scene, sequence->sound->playback_handle, startframe / FPS, endframe / FPS, frameskip / FPS);
+	AUD_muteSequence(handle, (sequence->flag & SEQ_MUTE) != 0);
+	AUD_setSequenceAnimData(handle, AUD_AP_VOLUME, CFRA, &sequence->volume, 0);
+	AUD_setSequenceAnimData(handle, AUD_AP_PITCH, CFRA, &sequence->pitch, 0);
+	AUD_setSequenceAnimData(handle, AUD_AP_PANNING, CFRA, &sequence->pan, 0);
+	return handle;
 }
 
 void sound_remove_scene_sound(struct Scene *scene, void* handle)
@@ -408,7 +427,7 @@ void sound_remove_scene_sound(struct Scene *scene, void* handle)
 	AUD_removeSequence(scene->sound_scene, handle);
 }
 
-void sound_mute_scene_sound(struct Scene *scene, void* handle, char mute)
+void sound_mute_scene_sound(void* handle, char mute)
 {
 	AUD_muteSequence(handle, mute);
 }
@@ -612,7 +631,7 @@ void sound_force_device(int UNUSED(device)) {}
 void sound_init_once(void) {}
 void sound_init(struct Main *UNUSED(bmain)) {}
 void sound_exit(void) {}
-void sound_cache(struct bSound* UNUSED(sound), int UNUSED(ignore)) { }
+void sound_cache(struct bSound* UNUSED(sound)) { }
 void sound_delete_cache(struct bSound* UNUSED(sound)) {}
 void sound_load(struct Main *UNUSED(bmain), struct bSound* UNUSED(sound)) {}
 void sound_create_scene(struct Scene *UNUSED(scene)) {}
@@ -621,7 +640,7 @@ void sound_mute_scene(struct Scene *UNUSED(scene), int UNUSED(muted)) {}
 void* sound_scene_add_scene_sound(struct Scene *UNUSED(scene), struct Sequence* UNUSED(sequence), int UNUSED(startframe), int UNUSED(endframe), int UNUSED(frameskip)) { return NULL; }
 void* sound_add_scene_sound(struct Scene *UNUSED(scene), struct Sequence* UNUSED(sequence), int UNUSED(startframe), int UNUSED(endframe), int UNUSED(frameskip)) { return NULL; }
 void sound_remove_scene_sound(struct Scene *UNUSED(scene), void* UNUSED(handle)) {}
-void sound_mute_scene_sound(struct Scene *UNUSED(scene), void* UNUSED(handle), char UNUSED(mute)) {}
+void sound_mute_scene_sound(void* UNUSED(handle), char UNUSED(mute)) {}
 void sound_move_scene_sound(struct Scene *UNUSED(scene), void* UNUSED(handle), int UNUSED(startframe), int UNUSED(endframe), int UNUSED(frameskip)) {}
 static void sound_start_play_scene(struct Scene *UNUSED(scene)) {}
 void sound_play_scene(struct Scene *UNUSED(scene)) {}

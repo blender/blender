@@ -1174,3 +1174,13 @@ const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int lengt
 		return e.str;
 	}
 }
+
+AUD_Reference<AUD_IDevice> AUD_getDevice()
+{
+	return AUD_device;
+}
+
+AUD_I3DDevice* AUD_get3DDevice()
+{
+	return AUD_3ddevice;
+}

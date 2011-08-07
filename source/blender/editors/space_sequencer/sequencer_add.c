@@ -354,7 +354,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	}
 
 	sort_seq(scene);
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 

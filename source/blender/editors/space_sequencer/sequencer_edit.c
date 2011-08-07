@@ -1228,7 +1228,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1275,7 +1275,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1901,7 +1901,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 	}
 
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
@@ -1965,7 +1965,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm, scene);
 
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 
 	seqbase_unique_name_recursive(&scene->ed->seqbase, seqm);
 
@@ -2038,7 +2038,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	sort_seq(scene);
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 

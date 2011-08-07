@@ -687,15 +687,15 @@ elseif(WIN32)
 
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG_INCLUDE_DIRS
-				${LIBDIR}/ffmpeg/include
-				${LIBDIR}/ffmpeg/include/msvc
+				${LIBDIR}/ffmpeg-0.8/include
+				${LIBDIR}/ffmpeg-0.8/include/msvc
 			)
 			set(FFMPEG_LIBRARIES
-				${LIBDIR}/ffmpeg/lib/avcodec-52.lib
-				${LIBDIR}/ffmpeg/lib/avformat-52.lib
-				${LIBDIR}/ffmpeg/lib/avdevice-52.lib
-				${LIBDIR}/ffmpeg/lib/avutil-50.lib
-				${LIBDIR}/ffmpeg/lib/swscale-0.lib
+				${LIBDIR}/ffmpeg-0.8/lib/avcodec-53.lib
+				${LIBDIR}/ffmpeg-0.8/lib/avformat-53.lib
+				${LIBDIR}/ffmpeg-0.8/lib/avdevice-53.lib
+				${LIBDIR}/ffmpeg-0.8/lib/avutil-51.lib
+				${LIBDIR}/ffmpeg-0.8/lib/swscale-2.lib
 			)
 		endif()
 
@@ -820,9 +820,9 @@ elseif(WIN32)
 		endif()
 		
 		if(WITH_CODEC_FFMPEG)
-			set(FFMPEG ${LIBDIR}/ffmpeg)
+			set(FFMPEG ${LIBDIR}/ffmpeg-0.8)
 			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include)
-			set(FFMPEG_LIBRARIES avcodec-52 avformat-52 avdevice-52 avutil-50 swscale-0)
+			set(FFMPEG_LIBRARIES avcodec-53 avformat-53 avdevice-53 avutil-51 swscale-2)
 			set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		endif()
 
@@ -959,7 +959,7 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_CODEC_FFMPEG)
-		set(FFMPEG ${LIBDIR}/ffmpeg)
+		set(FFMPEG ${LIBDIR}/ffmpeg-0.8)
 		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 		set(FFMPEG_LIBRARIES avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)

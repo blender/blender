@@ -49,14 +49,14 @@ static void rna_Sound_filepath_update(Main *bmain, Scene *UNUSED(scene), Pointer
 static int rna_Sound_caching_get(PointerRNA *ptr)
 {
 	bSound *sound = (bSound*)(ptr->data);
-	return sound->cache != NULL;
+	return (sound->flags & SOUND_FLAGS_CACHING) != 0;
 }
 
 static void rna_Sound_caching_set(PointerRNA *ptr, const int value)
 {
 	bSound *sound = (bSound*)(ptr->data);
 	if(value)
-		sound_cache(sound, 0);
+		sound_cache(sound);
 	else
 		sound_delete_cache(sound);
 }

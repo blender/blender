@@ -602,7 +602,7 @@ static void rna_Sequence_mute_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 	rna_Sequence_update(bmain, scene, ptr);
 }
 

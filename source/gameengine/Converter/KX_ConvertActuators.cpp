@@ -388,7 +388,7 @@ void BL_ConvertActuators(char* maggiename,
 				{
 					bSound* sound = soundact->sound;
 					bool is3d = soundact->flag & ACT_SND_3D_SOUND ? true : false;
-					AUD_Sound* snd_sound = NULL;
+					AUD_Reference<AUD_IFactory> snd_sound;
 					KX_3DSoundSettings settings;
 					settings.cone_inner_angle = soundact->sound3D.cone_inner_angle;
 					settings.cone_outer_angle = soundact->sound3D.cone_outer_angle;
@@ -406,7 +406,7 @@ void BL_ConvertActuators(char* maggiename,
 										"\" has no sound datablock." << std::endl;
 					}
 					else
-						snd_sound = sound->playback_handle;
+						snd_sound = *reinterpret_cast<AUD_Reference<AUD_IFactory>*>(sound->playback_handle);
 					KX_SoundActuator* tmpsoundact =
 						new KX_SoundActuator(gameobj,
 						snd_sound,

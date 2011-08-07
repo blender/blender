@@ -36,10 +36,10 @@
 #include "AUD_AnimateableProperty.h"
 
 #include <list>
+#include <pthread.h>
 
 class AUD_SequencerEntry;
 
-// AUD_XXX TODO: This class is not thread safe yet!
 /**
  * This factory creates a resampling reader that does simple linear resampling.
  */
@@ -68,6 +68,9 @@ private:
 	AUD_AnimateableProperty m_location;
 	AUD_AnimateableProperty m_orientation;
 
+	/// The mutex for locking.
+	pthread_mutex_t m_mutex;
+
 	// hide copy constructor and operator=
 	AUD_SequencerFactory(const AUD_SequencerFactory&);
 	AUD_SequencerFactory& operator=(const AUD_SequencerFactory&);
@@ -75,6 +78,16 @@ private:
 public:
 	AUD_SequencerFactory(AUD_Specs specs, float fps, bool muted);
 	~AUD_SequencerFactory();
+
+	/**
+	 * Locks the factory.
+	 */
+	void lock();
+
+	/**
+	 * Unlocks the previously locked factory.
+	 */
+	void unlock();
 
 	void setSpecs(AUD_Specs specs);
 	void setFPS(float fps);

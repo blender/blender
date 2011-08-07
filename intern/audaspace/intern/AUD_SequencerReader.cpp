@@ -75,6 +75,8 @@ AUD_Specs AUD_SequencerReader::getSpecs() const
 
 void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 {
+	m_factory->lock();
+
 	if(m_factory->m_status != m_status)
 	{
 		m_device.changeSpecs(m_factory->m_specs);
@@ -178,6 +180,8 @@ void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 		pos += len;
 		time += float(len) / float(specs.rate);
 	}
+
+	m_factory->unlock();
 
 	m_position += length;
 

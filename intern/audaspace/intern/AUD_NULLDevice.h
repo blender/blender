@@ -76,6 +76,7 @@ public:
 	virtual AUD_DeviceSpecs getSpecs() const;
 	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
 	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
+	virtual void stopAll();
 	virtual void lock();
 	virtual void unlock();
 	virtual float getVolume() const;

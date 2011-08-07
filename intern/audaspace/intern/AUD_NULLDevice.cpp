@@ -139,6 +139,10 @@ AUD_Reference<AUD_IHandle> AUD_NULLDevice::play(AUD_Reference<AUD_IFactory> fact
 	return new AUD_NULLHandle();
 }
 
+void AUD_NULLDevice::stopAll()
+{
+}
+
 void AUD_NULLDevice::lock()
 {
 }

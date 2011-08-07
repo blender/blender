@@ -89,6 +89,9 @@ private:
 		/// Stop callback data.
 		void* m_stop_data;
 
+		/// Orientation.
+		AUD_Quaternion m_orientation;
+
 		/// Current status of the handle
 		AUD_Status m_status;
 
@@ -205,6 +208,11 @@ private:
 	AUD_Buffer m_buffer;
 
 	/**
+	 * Orientation.
+	 */
+	AUD_Quaternion m_orientation;
+
+	/**
 	 * Starts the streaming thread.
 	 */
 	void start(bool join = true);
@@ -243,6 +251,7 @@ public:
 	virtual AUD_DeviceSpecs getSpecs() const;
 	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
 	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
+	virtual void stopAll();
 	virtual void lock();
 	virtual void unlock();
 	virtual float getVolume() const;

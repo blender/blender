@@ -36,6 +36,8 @@
 #include "AUD_AnimateableProperty.h"
 #include "AUD_IFactory.h"
 
+#include <pthread.h>
+
 class AUD_SequencerEntry
 {
 	friend class AUD_SequencerHandle;
@@ -60,6 +62,9 @@ private:
 	float m_cone_angle_inner;
 	float m_cone_volume_outer;
 
+	/// The mutex for locking.
+	pthread_mutex_t m_mutex;
+
 	AUD_AnimateableProperty m_volume;
 	AUD_AnimateableProperty m_panning;
 	AUD_AnimateableProperty m_pitch;
@@ -68,6 +73,17 @@ private:
 
 public:
 	AUD_SequencerEntry(AUD_Reference<AUD_IFactory> sound, float begin, float end, float skip, int id);
+	virtual ~AUD_SequencerEntry();
+
+	/**
+	 * Locks the entry.
+	 */
+	void lock();
+
+	/**
+	 * Unlocks the previously locked entry.
+	 */
+	void unlock();
 
 	void setSound(AUD_Reference<AUD_IFactory> sound);
 

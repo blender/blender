@@ -62,9 +62,9 @@ struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, floa
 
 void sound_delete(struct bContext *C, struct bSound* sound);
 
-void sound_cache(struct bSound* sound, int ignore);
+void sound_cache(struct bSound* sound);
 
-void sound_cache_notifying(struct Main* main, struct bSound* sound, int ignore);
+void sound_cache_notifying(struct Main* main, struct bSound* sound);
 
 void sound_delete_cache(struct bSound* sound);
 
@@ -92,7 +92,7 @@ void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int 
 
 void sound_remove_scene_sound(struct Scene *scene, void* handle);
 
-void sound_mute_scene_sound(struct Scene *scene, void* handle, char mute);
+void sound_mute_scene_sound(void* handle, char mute);
 
 void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, int endframe, int frameskip);
 

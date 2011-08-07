@@ -469,8 +469,7 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::setSourceVelocity(const AUD_Vector3& ve
 
 AUD_Quaternion AUD_OpenALDevice::AUD_OpenALHandle::getSourceOrientation()
 {
-	// AUD_XXX not implemented yet
-	return AUD_Quaternion(0, 0, 0, 0);
+	return m_orientation;
 }
 
 bool AUD_OpenALDevice::AUD_OpenALHandle::setSourceOrientation(const AUD_Quaternion& orientation)
@@ -490,6 +489,8 @@ bool AUD_OpenALDevice::AUD_OpenALHandle::setSourceOrientation(const AUD_Quaterni
 	alSourcefv(m_source, AL_DIRECTION, direction);
 
 	m_device->unlock();
+
+	m_orientation = orientation;
 
 	return true;
 }
@@ -1284,6 +1285,21 @@ AUD_Reference<AUD_IHandle> AUD_OpenALDevice::play(AUD_Reference<AUD_IFactory> fa
 	return play(factory->createReader(), keep);
 }
 
+void AUD_OpenALDevice::stopAll()
+{
+	lock();
+	alcSuspendContext(m_context);
+
+	while(!m_playingSounds.empty())
+		m_playingSounds.front()->stop();
+
+	while(!m_pausedSounds.empty())
+		m_pausedSounds.front()->stop();
+
+	alcProcessContext(m_context);
+	unlock();
+}
+
 void AUD_OpenALDevice::lock()
 {
 	pthread_mutex_lock(&m_mutex);
@@ -1454,8 +1470,7 @@ void AUD_OpenALDevice::setListenerVelocity(const AUD_Vector3& velocity)
 
 AUD_Quaternion AUD_OpenALDevice::getListenerOrientation() const
 {
-	// AUD_XXX not implemented yet
-	return AUD_Quaternion(0, 0, 0, 0);
+	return m_orientation;
 }
 
 void AUD_OpenALDevice::setListenerOrientation(const AUD_Quaternion& orientation)
@@ -1474,6 +1489,7 @@ void AUD_OpenALDevice::setListenerOrientation(const AUD_Quaternion& orientation)
 	direction[5] = 2 * (orientation.w() * orientation.x() +
 						orientation.y() * orientation.z());
 	alListenerfv(AL_ORIENTATION, direction);
+	m_orientation = orientation;
 }
 
 float AUD_OpenALDevice::getSpeedOfSound() const

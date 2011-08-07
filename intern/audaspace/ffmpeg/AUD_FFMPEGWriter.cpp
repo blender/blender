@@ -40,6 +40,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
+#include "ffmpeg_compat.h"
 }
 
 static const char* context_error = "AUD_FFMPEGWriter: Couldn't allocate context.";
@@ -127,7 +128,8 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 		m_codecCtx->bit_rate = bitrate;
 		m_codecCtx->sample_rate = int(m_specs.rate);
 		m_codecCtx->channels = m_specs.channels;
-		m_codecCtx->time_base = (AVRational){1, m_codecCtx->sample_rate};
+		m_codecCtx->time_base.num = 1;
+		m_codecCtx->time_base.den = m_codecCtx->sample_rate;
 
 		switch(m_specs.format)
 		{
@@ -180,7 +182,7 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 
 			try
 			{
-				if(avio_open(&m_formatCtx->pb, filename.c_str(), AVIO_WRONLY))
+				if(avio_open(&m_formatCtx->pb, filename.c_str(), AVIO_FLAG_WRITE))
 					AUD_THROW(AUD_ERROR_FILE, file_error);
 
 				avformat_write_header(m_formatCtx, NULL);

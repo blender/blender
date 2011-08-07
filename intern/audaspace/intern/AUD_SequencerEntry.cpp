@@ -62,19 +62,48 @@ AUD_SequencerEntry::AUD_SequencerEntry(AUD_Reference<AUD_IFactory> sound, float 
 	float f = 1;
 	m_volume.write(&f);
 	m_pitch.write(&f);
+
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+
+	pthread_mutex_init(&m_mutex, &attr);
+
+	pthread_mutexattr_destroy(&attr);
+}
+
+AUD_SequencerEntry::~AUD_SequencerEntry()
+{
+	pthread_mutex_destroy(&m_mutex);
+}
+
+void AUD_SequencerEntry::lock()
+{
+	pthread_mutex_lock(&m_mutex);
+}
+
+void AUD_SequencerEntry::unlock()
+{
+	pthread_mutex_unlock(&m_mutex);
 }
 
 void AUD_SequencerEntry::setSound(AUD_Reference<AUD_IFactory> sound)
 {
+	lock();
+
 	if(m_sound.get() != sound.get())
 	{
 		m_sound = sound;
 		m_sound_status++;
 	}
+
+	unlock();
 }
 
 void AUD_SequencerEntry::move(float begin, float end, float skip)
 {
+	lock();
+
 	if(m_begin != begin || m_skip != skip || m_end != end)
 	{
 		m_begin = begin;
@@ -82,11 +111,17 @@ void AUD_SequencerEntry::move(float begin, float end, float skip)
 		m_end = end;
 		m_pos_status++;
 	}
+
+	unlock();
 }
 
 void AUD_SequencerEntry::mute(bool mute)
 {
+	lock();
+
 	m_muted = mute;
+
+	unlock();
 }
 
 int AUD_SequencerEntry::getID() const
@@ -117,6 +152,8 @@ void AUD_SequencerEntry::updateAll(float volume_max, float volume_min, float dis
 								   float distance_reference, float attenuation, float cone_angle_outer,
 								   float cone_angle_inner, float cone_volume_outer)
 {
+	lock();
+
 	if(volume_max != m_volume_max)
 	{
 		m_volume_max = volume_max;
@@ -164,6 +201,8 @@ void AUD_SequencerEntry::updateAll(float volume_max, float volume_min, float dis
 		m_cone_volume_outer = cone_volume_outer;
 		m_status++;
 	}
+
+	unlock();
 }
 
 bool AUD_SequencerEntry::isRelative()
@@ -173,11 +212,15 @@ bool AUD_SequencerEntry::isRelative()
 
 void AUD_SequencerEntry::setRelative(bool relative)
 {
+	lock();
+
 	if(m_relative != relative)
 	{
 		m_relative = relative;
 		m_status++;
 	}
+
+	unlock();
 }
 
 float AUD_SequencerEntry::getVolumeMaximum()
@@ -187,8 +230,12 @@ float AUD_SequencerEntry::getVolumeMaximum()
 
 void AUD_SequencerEntry::setVolumeMaximum(float volume)
 {
+	lock();
+
 	m_volume_max = volume;
 	m_status++;
+
+	unlock();
 }
 
 float AUD_SequencerEntry::getVolumeMinimum()
@@ -198,8 +245,12 @@ float AUD_SequencerEntry::getVolumeMinimum()
 
 void AUD_SequencerEntry::setVolumeMinimum(float volume)
 {
+	lock();
+
 	m_volume_min = volume;
 	m_status++;
+
+	unlock();
 }
 
 float AUD_SequencerEntry::getDistanceMaximum()
@@ -209,8 +260,12 @@ float AUD_SequencerEntry::getDistanceMaximum()
 
 void AUD_SequencerEntry::setDistanceMaximum(float distance)
 {
+	lock();
+
 	m_distance_max = distance;
 	m_status++;
+
+	unlock();
 }
 
 float AUD_SequencerEntry::getDistanceReference()
@@ -220,8 +275,12 @@ float AUD_SequencerEntry::getDistanceReference()
 
 void AUD_SequencerEntry::setDistanceReference(float distance)
 {
+	lock();
+
 	m_distance_reference = distance;
 	m_status++;
+
+	unlock();
 }
 
 float AUD_SequencerEntry::getAttenuation()
@@ -231,8 +290,12 @@ float AUD_SequencerEntry::getAttenuation()
 
 void AUD_SequencerEntry::setAttenuation(float factor)
 {
+	lock();
+
 	m_attenuation = factor;
 	m_status++;
+
+	unlock();
 }
 
 float AUD_SequencerEntry::getConeAngleOuter()
@@ -242,8 +305,12 @@ float AUD_SequencerEntry::getConeAngleOuter()
 
 void AUD_SequencerEntry::setConeAngleOuter(float angle)
 {
+	lock();
+
 	m_cone_angle_outer = angle;
 	m_status++;
+
+	unlock();
 }
 
 float AUD_SequencerEntry::getConeAngleInner()
@@ -253,8 +320,12 @@ float AUD_SequencerEntry::getConeAngleInner()
 
 void AUD_SequencerEntry::setConeAngleInner(float angle)
 {
+	lock();
+
 	m_cone_angle_inner = angle;
 	m_status++;
+
+	unlock();
 }
 
 float AUD_SequencerEntry::getConeVolumeOuter()
@@ -264,6 +335,10 @@ float AUD_SequencerEntry::getConeVolumeOuter()
 
 void AUD_SequencerEntry::setConeVolumeOuter(float volume)
 {
+	lock();
+
 	m_cone_volume_outer = volume;
 	m_status++;
+
+	unlock();
 }

@@ -50,26 +50,57 @@ AUD_SequencerFactory::AUD_SequencerFactory(AUD_Specs specs, float fps, bool mute
 	m_orientation.write(q.get());
 	float f = 1;
 	m_volume.write(&f);
+
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+
+	pthread_mutex_init(&m_mutex, &attr);
+
+	pthread_mutexattr_destroy(&attr);
 }
 
 AUD_SequencerFactory::~AUD_SequencerFactory()
 {
+	pthread_mutex_destroy(&m_mutex);
+}
+
+void AUD_SequencerFactory::lock()
+{
+	pthread_mutex_lock(&m_mutex);
+}
+
+void AUD_SequencerFactory::unlock()
+{
+	pthread_mutex_unlock(&m_mutex);
 }
 
 void AUD_SequencerFactory::setSpecs(AUD_Specs specs)
 {
+	lock();
+
 	m_specs = specs;
 	m_status++;
+
+	unlock();
 }
 
 void AUD_SequencerFactory::setFPS(float fps)
 {
+	lock();
+
 	m_fps = fps;
+
+	unlock();
 }
 
 void AUD_SequencerFactory::mute(bool muted)
 {
+	lock();
+
 	m_muted = muted;
+
+	unlock();
 }
 
 bool AUD_SequencerFactory::getMute() const
@@ -84,8 +115,12 @@ float AUD_SequencerFactory::getSpeedOfSound() const
 
 void AUD_SequencerFactory::setSpeedOfSound(float speed)
 {
+	lock();
+
 	m_speed_of_sound = speed;
 	m_status++;
+
+	unlock();
 }
 
 float AUD_SequencerFactory::getDopplerFactor() const
@@ -95,8 +130,12 @@ float AUD_SequencerFactory::getDopplerFactor() const
 
 void AUD_SequencerFactory::setDopplerFactor(float factor)
 {
+	lock();
+
 	m_doppler_factor = factor;
 	m_status++;
+
+	unlock();
 }
 
 AUD_DistanceModel AUD_SequencerFactory::getDistanceModel() const
@@ -106,8 +145,12 @@ AUD_DistanceModel AUD_SequencerFactory::getDistanceModel() const
 
 void AUD_SequencerFactory::setDistanceModel(AUD_DistanceModel model)
 {
+	lock();
+
 	m_distance_model = model;
 	m_status++;
+
+	unlock();
 }
 
 AUD_AnimateableProperty* AUD_SequencerFactory::getAnimProperty(AUD_AnimateablePropertyType type)
@@ -127,18 +170,26 @@ AUD_AnimateableProperty* AUD_SequencerFactory::getAnimProperty(AUD_AnimateablePr
 
 AUD_Reference<AUD_SequencerEntry> AUD_SequencerFactory::add(AUD_Reference<AUD_IFactory> sound, float begin, float end, float skip)
 {
+	lock();
+
 	AUD_Reference<AUD_SequencerEntry> entry = new AUD_SequencerEntry(sound, begin, end, skip, m_id++);
 
 	m_entries.push_front(entry);
 	m_entry_status++;
+
+	unlock();
 
 	return entry;
 }
 
 void AUD_SequencerFactory::remove(AUD_Reference<AUD_SequencerEntry> entry)
 {
+	lock();
+
 	m_entries.remove(entry);
 	m_entry_status++;
+
+	unlock();
 }
 
 AUD_Reference<AUD_IReader> AUD_SequencerFactory::createReader()
