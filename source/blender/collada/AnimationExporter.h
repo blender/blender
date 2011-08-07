@@ -144,6 +144,7 @@ protected:
 	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	
 	void find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name);
+	void find_frames(Object *ob, std::vector<float> &fra);
 
 	void find_all_frames(Object *ob, std::vector<float> &fra);
 	

@@ -367,7 +367,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		if (!pchan)
 			return;
     
-		find_all_frames(ob_arm, fra);
+		find_frames(ob_arm, fra);
 
 		if (flag & ARM_RESTPOS) {
 			arm->flag &= ~ARM_RESTPOS;
@@ -1119,6 +1119,25 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		return;
 
 	}
+
+	void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra)
+	{
+		FCurve *fcu= (FCurve*)ob->adt->action->curves.first;
+
+		for (; fcu; fcu = fcu->next) {
+			
+			for (unsigned int i = 0; i < fcu->totvert; i++) {
+				float f = fcu->bezt[i].vec[1][0];     //
+				if (std::find(fra.begin(), fra.end(), f) == fra.end())   
+					fra.push_back(f);
+			}
+		}
+
+		// keep the keys in ascending order
+		std::sort(fra.begin(), fra.end());
+	}
+
+
 	void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name)
 	{
 		FCurve *fcu= (FCurve*)ob->adt->action->curves.first;
