@@ -21,8 +21,8 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s):	Maarten Gribnau 05/2001
- *					Damien Plisson 09/2009
+ * Contributors: Maarten Gribnau 05/2001
+ *               Damien Plisson 09/2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -43,16 +43,17 @@
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventWheel.h"
-#include "GHOST_EventNDOF.h"
 #include "GHOST_EventTrackpad.h"
 #include "GHOST_EventDragnDrop.h"
 #include "GHOST_EventString.h"
-
 #include "GHOST_TimerManager.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowCocoa.h"
+#ifdef WITH_INPUT_NDOF
 #include "GHOST_NDOFManagerCocoa.h"
+#endif
+
 #include "AssertMacros.h"
 
 #pragma mark KeyMap, mouse converters
