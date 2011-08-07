@@ -199,7 +199,7 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_GAMEENGINE=True
+WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = False
 
 WITH_BF_BULLET = True
@@ -277,7 +277,7 @@ elif MACOSX_ARCHITECTURE == 'x86_64':
     BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-msse2']
 
 # SpaceNavigator and related 3D mice
-WITH_BF_3DMOUSE = False
+WITH_BF_3DMOUSE = True
 
 #############################################################################
 ###################  various compile settings and flags    ##################
@@ -296,13 +296,13 @@ CPPFLAGS = []+ARCH_FLAGS
 CCFLAGS = ['-pipe','-funsigned-char']+ARCH_FLAGS
 CXXFLAGS = ['-pipe','-funsigned-char']+ARCH_FLAGS
 
-if WITH_GHOST_COCOA==True:
+if WITH_GHOST_COCOA:
 	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
 else:
 	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
 
-if WITH_BF_QUICKTIME == True:
-	if USE_QTKIT == True:
+if WITH_BF_QUICKTIME:
+	if USE_QTKIT:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QTKit']
 	else:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
@@ -313,14 +313,14 @@ if WITH_BF_3DMOUSE:
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 LLIBS = ['stdc++', 'SystemStubs']
 
-# some flags shuffling for different Os versions
+# some flags shuffling for different OS versions
 if MAC_MIN_VERS == '10.3':
 	CFLAGS = ['-fuse-cxa-atexit']+CFLAGS
 	CXXFLAGS = ['-fuse-cxa-atexit']+CXXFLAGS
 	PLATFORM_LINKFLAGS = ['-fuse-cxa-atexit']+PLATFORM_LINKFLAGS
 	LLIBS.append('crt3.o')
 	
-if USE_SDK==True:
+if USE_SDK:
 	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS,'-arch',MACOSX_ARCHITECTURE]	
 	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-isysroot',MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
 	CCFLAGS=SDK_FLAGS+CCFLAGS
