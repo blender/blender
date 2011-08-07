@@ -892,6 +892,16 @@ static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, f
 	MEM_freeN(projA);
 	MEM_freeN(projB);
 }
+static int dm_deform_clear(DerivedMesh *dm, Object *ob) {
+	dm->needsFree = 1;
+	dm->release(dm);
+	ob->derivedDeform=NULL;
+	// dm = NULL;
+	return NULL;
+}
+static DerivedMesh* dm_deform_recalc(Scene *scene, Object *ob) {
+	return mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+}
 static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float *norm, float *coord, float d, float distToBe, float strength, float cp) {
 	DerivedMesh *dm;
 	MDeformWeight *dw;
@@ -902,7 +912,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 	float *oldPos = MEM_callocN(sizeof(float)*3, "oldPosition");
 	float vc, hc, dist;
 	int i, k;
-	float **changes = MEM_mallocN(sizeof(float)*totweight, "vertHorzChange");
+	float **changes = MEM_mallocN(sizeof(float *)*totweight, "vertHorzChange");
 	float *dists = MEM_mallocN(sizeof(float)*totweight, "distance");
 	int *upDown = MEM_callocN(sizeof(int)*totweight, "upDownTracker");// track if up or down moved it closer for each bone
 	int *dwIndices = MEM_callocN(sizeof(int)*totweight, "dwIndexTracker");
@@ -917,7 +927,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 	}
 	do {
 		wasChange = FALSE;
-		dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+		dm = dm_deform_recalc(scene, ob);
 		dm->getVert(dm, index, &m);
 		oldPos[0] = m.co[0];
 		oldPos[1] = m.co[1];
@@ -940,10 +950,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 			}
 			for(k = 0; k < 2; k++) {
 				if(dm) {
-					dm->needsFree = 1;
-					dm->release(dm);
-					dm = NULL;
-					ob->derivedDeform=NULL;
+					dm = dm_deform_clear(dm, ob);
 				}
 				oldw = dw->weight;
 				if(k) {
@@ -954,12 +961,13 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 				if(dw->weight == oldw) {
 					changes[i][0] = 0;
 					changes[i][1] = 0;
+					dists[i] = distToStart;
 					break;
 				}
 				if(dw->weight > 1) {
 					dw->weight = 1;
 				}
-				dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+				dm = dm_deform_recalc(scene, ob);
 				dm->getVert(dm, index, &m);
 				getVerticalAndHorizontalChange(norm, d, coord, oldPos, distToStart, m.co, changes, dists, i);
 				dw->weight = oldw;
@@ -1052,10 +1060,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 				wasChange = FALSE;
 			}
 			if(dm) {
-				dm->needsFree = 1;
-				dm->release(dm);
-				dm = NULL;
-				ob->derivedDeform=NULL;
+				dm = dm_deform_clear(dm, ob);
 			}
 		}
 		//printf("best vc=%f hc=%f \n", changes[bestIndex][0], changes[bestIndex][1]);
