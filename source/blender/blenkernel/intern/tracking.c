@@ -1250,14 +1250,14 @@ static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
 }
 #endif
 
-void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr)
+void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr, int margin, int min_trackness, int min_distance)
 {
 #ifdef WITH_LIBMV
 	struct libmv_Corners *corners;
 	unsigned char *pixels= acquire_ucharbuf(ibuf);
 	int a;
 
-	corners= libmv_detectCorners(pixels, ibuf->x, ibuf->y, ibuf->x);
+	corners= libmv_detectCorners(pixels, ibuf->x, ibuf->y, ibuf->x, margin, min_trackness, min_distance);
 	MEM_freeN(pixels);
 
 	a= libmv_countCorners(corners);

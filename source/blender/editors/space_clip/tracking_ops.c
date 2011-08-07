@@ -2185,12 +2185,15 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
 
 /********************** detect features operator *********************/
 
-static int detect_features_exec(bContext *C, wmOperator *UNUSED(op))
+static int detect_features_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, &sc->user);
 	MovieTrackingTrack *track= clip->tracking.tracks.first;
+	int margin= RNA_int_get(op->ptr, "margin");
+	int min_trackness= RNA_int_get(op->ptr, "min_trackness");
+	int min_distance= RNA_int_get(op->ptr, "min_distance");
 
 	/* deselect existing tracks */
 	while(track) {
@@ -2201,7 +2204,7 @@ static int detect_features_exec(bContext *C, wmOperator *UNUSED(op))
 		track= track->next;
 	}
 
-	BKE_tracking_detect(&clip->tracking, ibuf, sc->user.framenr);
+	BKE_tracking_detect(&clip->tracking, ibuf, sc->user.framenr, margin, min_trackness, min_distance);
 
 	IMB_freeImBuf(ibuf);
 
@@ -2224,6 +2227,11 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_int(ot->srna, "margin", 16, 0, INT_MAX, "Margin", "Only corners further than margin pixels from the image edges are considered", 0, 300);
+	RNA_def_int(ot->srna, "min_trackness", 16, 0, INT_MAX, "Trackness", "Minimum score to add a corner", 0, 300);
+	RNA_def_int(ot->srna, "min_distance", 120, 0, INT_MAX, "Distance", "Minimal distance accepted between two corners", 0, 300);
 }
 
 /********************** frame jump operator *********************/

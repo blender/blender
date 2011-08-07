@@ -65,7 +65,8 @@ double libmv_reprojectionError(struct libmv_Reconstruction *libmv_reconstruction
 void libmv_destroyReconstruction(struct libmv_Reconstruction *libmv_reconstruction);
 
 /* feature detector */
-struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride);
+struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride,
+			int margin, int min_trackness, int min_distance);
 int libmv_countCorners(struct libmv_Corners *libmv_corners);
 void libmv_getCorner(struct libmv_Corners *libmv_corners, int number, double *x, double *y, double *score, double *size);
 void libmv_destroyCorners(struct libmv_Corners *libmv_corners);

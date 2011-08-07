@@ -468,10 +468,13 @@ void libmv_destroyReconstruction(libmv_Reconstruction *libmv_reconstruction)
 
 /* ************ feature detector ************ */
 
-struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride)
+struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride,
+			int margin, int min_trackness, int min_distance)
 {
-	std::vector<libmv::Corner> detect= libmv::Detect(data, width, height, stride);
+	std::vector<libmv::Corner> detect;
 	std::vector<libmv::Corner> *libmv_corners= new std::vector<libmv::Corner>();
+
+	detect= libmv::Detect(data, width, height, stride, margin, min_trackness, min_distance);
 
 	libmv_corners->insert(libmv_corners->begin(), detect.begin(), detect.end());
 
