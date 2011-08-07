@@ -1,9 +1,7 @@
 #
 # Note : if you want to alter this file
-# copy it as a whole in the upper folder
-# as user-config.py
-# dont create a new file with only some
-# vars changed.
+# setup a user-config.py in main directory
+# and set the wanted values there
 
 import commands
 
@@ -21,17 +19,23 @@ cmd = 'uname -p'
 MAC_PROC=commands.getoutput(cmd) 
 cmd = 'uname -r'
 cmd_res=commands.getoutput(cmd) 
-MAC_CUR_VER='10.5' # by default (test below fails on my 10.5 PowerPC)
-if cmd_res[:2]=='7':
+
+if cmd_res[:1]=='7':
 	MAC_CUR_VER='10.3'
-elif cmd_res[:2]=='8':
+elif cmd_res[:1]=='8':
 	MAC_CUR_VER='10.4'
-elif cmd_res[:2]=='9':
+elif cmd_res[:1]=='9':
 	MAC_CUR_VER='10.5'
 elif cmd_res[:2]=='10':
 	MAC_CUR_VER='10.6'
 elif cmd_res[:2]=='11':
 	MAC_CUR_VER='10.7'
+cmd = 'xcodebuild -version'
+cmd_xcode=commands.getoutput(cmd)
+XCODE_CUR_VER=cmd_xcode
+cmd = 'xcodebuild -showsdks'
+cmd_sdk=commands.getoutput(cmd)
+MACOSX_SDK_CHECK=cmd_sdk
 
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
 	USE_QTKIT=True # Carbon quicktime is not available for 64bit
@@ -60,21 +64,23 @@ elif MACOSX_ARCHITECTURE == 'i386' and MAC_CUR_VER == '10.4':
 	LCGDIR = '#../lib/darwin-8.x.i386'
 	CC = 'gcc-4.0'
 	CXX = 'g++-4.0'
-elif MAC_CUR_VER >= '10.6':
-	# OSX 10.6 and 10.7 developer tools do not come with sdk < 10.6 anymore !
-	MAC_MIN_VERS = '10.6'
-	MACOSX_DEPLOYMENT_TARGET = '10.6'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
-	LCGDIR = '#../lib/darwin-9.x.universal'
-	CC = 'llvm-gcc-4.2'
-	CXX = 'llvm-g++-4.2'
 else :
-	MAC_MIN_VERS = '10.5'
-	MACOSX_DEPLOYMENT_TARGET = '10.5'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
-	LCGDIR = '#../lib/darwin-9.x.universal'
-	CC = 'gcc-4.2'
-	CXX = 'g++-4.2'
+	if 'Mac OS X 10.5' in MACOSX_SDK_CHECK:
+		# OSX 10.5/6 with Xcode 3.x
+		MAC_MIN_VERS = '10.5'
+		MACOSX_DEPLOYMENT_TARGET = '10.5'
+		MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
+		LCGDIR = '#../lib/darwin-9.x.universal'
+		CC = 'gcc-4.2'
+		CXX = 'g++-4.2'
+	else:
+		# OSX 10.6/7 with Xcode 4.x
+		MAC_MIN_VERS = '10.6'
+		MACOSX_DEPLOYMENT_TARGET = '10.6'
+		MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
+		LCGDIR = '#../lib/darwin-9.x.universal'
+		CC = 'gcc-4.2'
+		CXX = 'g++-4.2'
 
 LIBDIR = '${LCGDIR}'
 
@@ -200,7 +206,7 @@ BF_GETTEXT_LIB = 'intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = True
-WITH_BF_PLAYER = False
+WITH_BF_PLAYER = True
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
@@ -251,7 +257,7 @@ BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
 BF_OPENGL_LINKFLAGS = ['-framework', 'OpenGL']
 
 #OpenCollada flags
-WITH_BF_COLLADA = False
+WITH_BF_COLLADA = True
 BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
