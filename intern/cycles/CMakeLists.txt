@@ -12,7 +12,6 @@ OPTION(WITH_CYCLES_BLENDER "Build Blender Python extension" ON)
 OPTION(WITH_CYCLES_PARTIO "Build with Partio point cloud support (unfinished)" OFF)
 OPTION(WITH_CYCLES_NETWORK "Build with network rendering support (unfinished)" OFF)
 OPTION(WITH_CYCLES_MULTI "Build with network rendering support (unfinished)" OFF)
-OPTION(WITH_CYCLES_DOCS "Build html documentation" OFF)
 OPTION(WITH_CYCLES_TEST "Build cycles test application" OFF)
 
 # Flags
