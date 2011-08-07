@@ -58,11 +58,12 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "RNA_access.h"
+
+#include "BLF_api.h"
 
 #include "clip_intern.h"	// own include
 
@@ -684,10 +685,15 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			int width, int height, float zoomx, float zoomy)
 {
 	char str[128]= {0}, state[64]= {0};
-	float x, y, dx= 0.f, dy= 0.f;
+	float x, y, dx= 0.f, dy= 0.f, fontsize;
+	uiStyle *style= U.uistyles.first;
+	int fontid= style->widget.uifont_id;
 
 	if(!TRACK_VIEW_SELECTED(sc, track))
 		return;
+
+	BLF_size(fontid, 11.f, U.dpi);
+	fontsize= BLF_height_max(fontid);
 
 	if(marker->flag&MARKER_DISABLED) {
 		if(act) UI_ThemeColor(TH_ACT_MARKER);
@@ -706,7 +712,7 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	}
 
 	x= (marker->pos[0]+dx)*width*sc->scale*zoomx+sc->loc[0]*zoomx;
-	y= (marker->pos[1]+dy)*height*sc->scale*zoomy-14.f*UI_DPI_FAC+sc->loc[1]*zoomy;
+	y= (marker->pos[1]+dy)*height*sc->scale*zoomy-fontsize+sc->loc[1]*zoomy;
 
 	if(marker->flag&MARKER_DISABLED) strcpy(state, "disabled");
 	else if(marker->framenr!=sc->user.framenr) strcpy(state, "estimated");
@@ -718,17 +724,20 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	else
 		BLI_snprintf(str, sizeof(str), "%s", track->name);
 
-	UI_DrawString(x, y, str);
-	y-= 12.f*UI_DPI_FAC;
+	BLF_position(fontid, x, y, 0.f);
+	BLF_draw(fontid, str, strlen(str));
+	y-= fontsize;
 
 	if(track->flag&TRACK_HAS_BUNDLE) {
 		BLI_snprintf(str, sizeof(str), "Average error: %.3f", track->error);
-		UI_DrawString(x, y, str);
-		y-= 12.f*UI_DPI_FAC;
+		BLF_position(fontid, x, y, 0.f);
+		BLF_draw(fontid, str, strlen(str));
+		y-= fontsize;
 	}
 
 	if(track->flag&TRACK_LOCKED) {
-		UI_DrawString(x, y, "locked");
+		BLF_position(fontid, x, y, 0.f);
+		BLF_draw(fontid, "locked", 6);
 	}
 }
 
