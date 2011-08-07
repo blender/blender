@@ -35,6 +35,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
@@ -69,6 +70,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
@@ -778,6 +780,25 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	ob= ED_object_add_type(C, OB_SPEAKER, loc, rot, FALSE, layer);
+	
+	/* to make it easier to start using this immediately in NLA, a default sound clip is created
+	 * ready to be moved around to retime the sound and/or make new sound clips
+	 */
+	{
+		/* create new data for NLA hierarchy */
+		AnimData *adt = BKE_id_add_animdata(&ob->id);
+		NlaTrack *nlt = add_nlatrack(adt, NULL);
+		NlaStrip *strip = add_nla_soundstrip(CTX_data_scene(C), ob->data);
+		
+		/* hook them up */
+		BKE_nlatrack_add_strip(nlt, strip);
+		
+		/* auto-name the strip, and give the track an interesting name  */
+		strcpy(nlt->name, "SoundTrack");
+		BKE_nlastrip_validate_name(adt, strip);
+		
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
+	}
 
 	return OPERATOR_FINISHED;
 }
