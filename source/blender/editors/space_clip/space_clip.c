@@ -249,6 +249,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_view_zoom_ratio);
 	WM_operatortype_append(CLIP_OT_view_all);
 	WM_operatortype_append(CLIP_OT_view_selected);
+	WM_operatortype_append(CLIP_OT_change_frame);
 
 	WM_operatortype_append(CLIP_OT_select);
 	WM_operatortype_append(CLIP_OT_select_all);
@@ -405,6 +406,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_toggle", MKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.use_mute_footage");
+
+	WM_keymap_add_item(keymap, "CLIP_OT_change_frame", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }

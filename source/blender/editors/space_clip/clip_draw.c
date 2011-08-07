@@ -73,9 +73,11 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 {
 	float x;
 	int *points, totseg, sel_type, i, a;
-	float sfra= SFRA, efra= EFRA;
+	float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1), fontsize, fontwidth;
 	void *sel;
-	float framelen= ar->winx/(efra-sfra+1);
+	uiStyle *style= U.uistyles.first;
+	int fontid= style->widget.uifont_id;
+	char str[32];
 
 	BKE_movieclip_last_selection(clip, &sel_type, &sel);
 
@@ -166,6 +168,26 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 	UI_ThemeColor(TH_CFRAME);
 	glRecti(x, 0, x+framelen, 8);
+
+	/* frame number */
+	BLF_size(fontid, 11.f, U.dpi);
+	BLI_snprintf(str, sizeof(str), "%d", sc->user.framenr);
+	fontsize= BLF_height(fontid, str);
+	fontwidth= BLF_width(fontid, str);
+
+	if(x+fontwidth+6.f<=ar->winx) {
+		glRecti(x, 8.f, x+fontwidth+6.f, 12.f+fontsize);
+
+		glColor3f(0.f, 0.f, 0.f);
+		BLF_position(fontid, x+2.f, 10.f, 0.f);
+		BLF_draw(fontid, str, strlen(str));
+	} else {
+		glRecti(x+framelen, 8.f, x+framelen-fontwidth-6.f, 12.f+fontsize);
+
+		glColor3f(0.f, 0.f, 0.f);
+		BLF_position(fontid, x-2.f-fontwidth+framelen, 10.f, 0.f);
+		BLF_draw(fontid, str, strlen(str));
+	}
 }
 
 static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf, float zoomx, float zoomy)

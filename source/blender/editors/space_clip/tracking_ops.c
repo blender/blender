@@ -485,7 +485,7 @@ static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_RUNNING_MODAL;
 	}
 
-	return OPERATOR_CANCELLED;
+	return OPERATOR_PASS_THROUGH;
 }
 
 static void cancel_mouse_slide(SlideMarkerData *data)

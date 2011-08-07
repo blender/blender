@@ -32,15 +32,18 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
+#include "DNA_scene_types.h"	/* min/max frames */
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_report.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_movieclip.h"
+#include "BKE_sound.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -728,6 +731,104 @@ void CLIP_OT_view_selected(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= view_selected_exec;
 	ot->poll= ED_space_clip_poll;
+}
+
+/********************** change frame operator *********************/
+
+static int change_frame_poll(bContext *C)
+{
+	/* prevent changes during render */
+	if(G.rendering)
+		return 0;
+
+	return ED_space_clip_poll(C);
+}
+
+static void change_frame_apply(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+
+	/* set the new frame number */
+	CFRA= RNA_int_get(op->ptr, "frame");
+	FRAMENUMBER_MIN_CLAMP(CFRA);
+	SUBFRA = 0.f;
+
+	/* do updates */
+	sound_seek_scene(C);
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+}
+
+static int change_frame_exec(bContext *C, wmOperator *op)
+{
+	change_frame_apply(C, op);
+
+	return OPERATOR_FINISHED;
+}
+
+static int frame_from_event(bContext *C, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= CTX_data_scene(C);
+
+	float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1);
+
+	return sfra+event->mval[0]/framelen;
+}
+
+static int change_frame_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if(event->mval[1]>16)
+		return OPERATOR_PASS_THROUGH;
+
+	RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
+
+	change_frame_apply(C, op);
+
+	/* add temp handler */
+	WM_event_add_modal_handler(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	switch (event->type) {
+		case ESCKEY:
+			return OPERATOR_FINISHED;
+
+		case MOUSEMOVE:
+			RNA_int_set(op->ptr, "frame", frame_from_event(C, event));
+			change_frame_apply(C, op);
+			break;
+
+		case LEFTMOUSE:
+		case RIGHTMOUSE:
+			if (event->val==KM_RELEASE)
+				return OPERATOR_FINISHED;
+			break;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void CLIP_OT_change_frame(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Change frame";
+	ot->idname= "CLIP_OT_change_frame";
+	ot->description= "Interactively change the current frame number";
+
+	/* api callbacks */
+	ot->exec= change_frame_exec;
+	ot->invoke= change_frame_invoke;
+	ot->modal= change_frame_modal;
+	ot->poll= change_frame_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
+
+	/* rna */
+	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
 }
 
 /********************** macroses *********************/
