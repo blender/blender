@@ -230,7 +230,6 @@ static MovieClip *movieclip_alloc(const char *name)
 
 	clip->aspx= clip->aspy= 1.0f;
 
-	clip->tracking.camera.focal= 24.f;
 	clip->tracking.camera.sensor_width= 35.0f;
 	clip->tracking.camera.sensor_height= 18.0f;
 	clip->tracking.camera.units= CAMERA_UNITS_MM;
@@ -298,6 +297,8 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 	if(width && height) {
 		clip->tracking.camera.principal[0]= ((float)width)/2;
 		clip->tracking.camera.principal[1]= ((float)height)/2;
+
+		clip->tracking.camera.focal= 24.f*width/clip->tracking.camera.sensor_width;
 	}
 
 	return clip;
