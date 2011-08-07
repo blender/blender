@@ -949,6 +949,12 @@ class USERPREF_PT_addons(bpy.types.Panel):
                             "(see console for details)",
                             )
 
+        if addon_utils.error_encoding:
+            self.draw_error(col,
+                            "One or more addons do not have UTF-8 encoding\n"
+                            "(see console for details)",
+                            )
+
         filter = context.window_manager.addon_filter
         search = context.window_manager.addon_search.lower()
         support = context.window_manager.addon_support

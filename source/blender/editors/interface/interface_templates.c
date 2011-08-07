@@ -1884,7 +1884,7 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, const char *propnam
 	col = uiLayoutColumn(layout, 0);
 	row= uiLayoutRow(col, 1);
 	
-	but= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+	but= uiDefButR_prop(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop, -1, 0.0, 0.0, 0, 0, "");
 
 	if(lock) {
 		but->flag |= UI_BUT_COLOR_LOCK;
@@ -1903,7 +1903,7 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, const char *propnam
 	uiItemS(row);
 	
 	if (value_slider)
-		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
+		uiDefButR_prop(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, prop, -1, softmin, softmax, UI_GRAD_V_ALT, 0, "");
 }
 
 /********************* Layer Buttons Template ************************/
@@ -2034,7 +2034,7 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon, int
 	return rnaicon;
 }
 
-static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, const char *activepropname)
+static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i, int rnaicon, PointerRNA *activeptr, PropertyRNA *activeprop)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
@@ -2048,7 +2048,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	/* list item behind label & other buttons */
 	sub= uiLayoutRow(overlap, 0);
 
-	but= uiDefButR(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+	but= uiDefButR_prop(block, LISTROW, 0, "", 0,0, UI_UNIT_X*10,UI_UNIT_Y, activeptr, activeprop, 0, 0, i, 0, 0, "");
 	uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 
 	sub= uiLayoutRow(overlap, 0);
@@ -2201,7 +2201,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 					row= uiLayoutRow(col, 0);
 
 				icon= list_item_icon_get(C, &itemptr, rnaicon, 1);
-				but= uiDefIconButR(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
+				but= uiDefIconButR_prop(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activeprop, 0, 0, i, 0, 0, "");
 				uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
 				
 
@@ -2241,7 +2241,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 
 		/* next/prev button */
 		sprintf(str, "%d :", i);
-		but= uiDefIconTextButR(block, NUM, 0, 0, str, 0,0,UI_UNIT_X*5,UI_UNIT_Y, activeptr, activepropname, 0, 0, 0, 0, 0, "");
+		but= uiDefIconTextButR_prop(block, NUM, 0, 0, str, 0,0,UI_UNIT_X*5,UI_UNIT_Y, activeptr, activeprop, 0, 0, 0, 0, 0, "");
 		if(i == 0)
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
@@ -2280,7 +2280,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 			/* create list items */
 			RNA_PROP_BEGIN(ptr, itemptr, prop) {
 				if(i >= pa->list_scroll && i<pa->list_scroll+items)
-					list_item_row(C, col, ptr, &itemptr, i, rnaicon, activeptr, activepropname);
+					list_item_row(C, col, ptr, &itemptr, i, rnaicon, activeptr, activeprop);
 
 				i++;
 			}
