@@ -2856,7 +2856,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
-	int mx, my, click= 0;
+	int mx, my /*, click= 0 */;
 	int retval= WM_UI_HANDLER_CONTINUE;
 	int horizontal= (but->x2 - but->x1 > but->y2 - but->y1);
 	
@@ -2878,8 +2878,10 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 				retval= WM_UI_HANDLER_BREAK;
 			}
-			else if(ELEM(event->type, PADENTER, RETKEY) && event->val==KM_PRESS)
+			/* UNUSED - otherwise code is ok, add back if needed */
+			/* else if(ELEM(event->type, PADENTER, RETKEY) && event->val==KM_PRESS)
 				click= 1;
+			*/
 		}
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
@@ -3677,6 +3679,9 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 		return WM_UI_HANDLER_BREAK;
 	}
 
+	/* UNUSED but keep for now */
+	(void)changed;
+
 	return WM_UI_HANDLER_CONTINUE;
 }
 
@@ -3691,12 +3696,12 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 	Histogram *hist = (Histogram *)but->poin;
 	/* rcti rect; */
 	int changed= 1;
-	float dx, dy, yfac=1.f;
+	float /* dx, */ dy, yfac=1.f; /* UNUSED */
 	
 	/* rect.xmin= but->x1; rect.xmax= but->x2; */
 	/* rect.ymin= but->y1; rect.ymax= but->y2; */
 	
-	dx = mx - data->draglastx;
+	/* dx = mx - data->draglastx; */ /* UNUSED */
 	dy = my - data->draglasty;
 	
 	
@@ -3774,12 +3779,12 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 	Scopes *scopes = (Scopes *)but->poin;
 	/* rcti rect; */
 	int changed= 1;
-	float dx, dy, yfac=1.f;
+	float /* dx, */ dy /* , yfac=1.f */; /* UNUSED */
 
 	/* rect.xmin= but->x1; rect.xmax= but->x2; */
 	/* rect.ymin= but->y1; rect.ymax= but->y2; */
 
-	dx = mx - data->draglastx;
+	/* dx = mx - data->draglastx; */ /* UNUSED */
 	dy = my - data->draglasty;
 
 
@@ -3788,7 +3793,7 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 		scopes->wavefrm_height = (but->y2 - but->y1) + (data->dragstarty - my);
 	} else {
 		/* scale waveform values */
-		yfac = scopes->wavefrm_yfac;
+		/* yfac = scopes->wavefrm_yfac; */ /* UNUSED */
 		scopes->wavefrm_yfac += dy/200.0f;
 
 		CLAMP(scopes->wavefrm_yfac, 0.5f, 2.f);
