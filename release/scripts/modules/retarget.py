@@ -272,21 +272,31 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
                 if endV.length != 0:
                     linearAvg.append(hipV.length / endV.length)
 
-    bpy.ops.object.add()
-    stride_bone = bpy.context.active_object
-    stride_bone.name = "stride_bone"
-
+    action_name = performer_obj.animation_data.action.name
+    #if you have a parent, and that parent is a previously created stride bone
+    if enduser_obj.parent:
+        stride_action = bpy.data.actions.new("Stride Bone " + action_name)
+        stride_bone = enduser_obj.parent
+        stride_bone.animation_data.action = stride_action
+    else:
+        bpy.ops.object.add()
+        stride_bone = bpy.context.active_object
+        stride_bone.name = "stride_bone"
+    print(stride_bone)
+    stride_bone.location = Vector((0, 0, 0))
     if linearAvg:
         #determine the average change in scale needed
         avg = sum(linearAvg) / len(linearAvg)
         scene.frame_set(s_frame)
-        initialPos = (tailLoc(perf_bones[perfRoot]) / avg)
+        initialPos = (tailLoc(perf_bones[perfRoot]) / avg) + stride_bone.location
         for t in range(s_frame, e_frame):
             scene.frame_set(t)
             #calculate the new position, by dividing by the found ratio between performer and enduser
             newTranslation = (tailLoc(perf_bones[perfRoot]) / avg)
             stride_bone.location = enduser_obj_mat * (newTranslation - initialPos)
             stride_bone.keyframe_insert("location")
+    stride_bone.animation_data.action.name = ("Stride Bone " + action_name)
+
     return stride_bone
 
 
@@ -299,7 +309,7 @@ def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene):
             # set constraint target to corresponding empty if targetless,
             # if not, keyframe current target to corresponding empty
             perf_bone = pose_bone.bone.reverseMap[-1].name
-            orgLocTrg = originalLocationTarget(pose_bone)
+            orgLocTrg = originalLocationTarget(pose_bone, enduser_obj)
             if not ik_constraint.target:
                 ik_constraint.target = orgLocTrg
                 target = orgLocTrg
@@ -322,6 +332,7 @@ def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene):
                 target.location = final_loc
                 target.keyframe_insert("location")
             ik_constraint.mute = False
+    scene.frame_set(s_frame)
 
 
 def turnOffIK(enduser_obj):
@@ -358,44 +369,59 @@ def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, str
             empty = bpy.data.objects[pose_bone.name + "Org"]
             empty.parent = stride_bone
     performer_obj.matrix_world = perf_obj_mat
-    enduser_obj.matrix_world = enduser_obj_mat
     enduser_obj.parent = stride_bone
+    enduser_obj.matrix_world = enduser_obj_mat
 
 
 #create (or return if exists) the related IK empty to the bone
-def originalLocationTarget(end_bone):
+def originalLocationTarget(end_bone, enduser_obj):
     if not end_bone.name + "Org" in bpy.data.objects:
         bpy.ops.object.add()
         empty = bpy.context.active_object
         empty.name = end_bone.name + "Org"
         empty.empty_draw_size = 0.1
-        #empty.parent = enduser_obj
+        empty.parent = enduser_obj
     empty = bpy.data.objects[end_bone.name + "Org"]
     return empty
 
 
 #create the specified NLA setup for base animation, constraints and tweak layer.
-def NLASystemInitialize(enduser_obj, s_frame):
+def NLASystemInitialize(enduser_obj, s_frame, name):
     anim_data = enduser_obj.animation_data
+    if not name in enduser_obj.data.mocapNLATracks:
+        NLATracks = enduser_obj.data.mocapNLATracks.add()
+        NLATracks.name = name
+    else:
+        NLATracks = enduser_obj.data.mocapNLATracks[name]
+    for track in enduser_obj.data.mocapNLATracks:
+        track.active = False
     mocapAction = anim_data.action
-    mocapAction.name = "Base Mocap"
+    mocapAction.name = "Base " + name
     anim_data.use_nla = True
+    for track in anim_data.nla_tracks:
+        anim_data.nla_tracks.remove(track)
     mocapTrack = anim_data.nla_tracks.new()
-    mocapTrack.name = "Base Mocap Track"
-    mocapStrip = mocapTrack.strips.new("Base Mocap", s_frame, mocapAction)
+    mocapTrack.name = "Base " + name
+    NLATracks.base_track = mocapTrack.name
+    mocapStrip = mocapTrack.strips.new("Base " + name, s_frame, mocapAction)
     constraintTrack = anim_data.nla_tracks.new()
-    constraintTrack.name = "Mocap fixes"
-    constraintAction = bpy.data.actions.new("Mocap fixes")
-    constraintStrip = constraintTrack.strips.new("Mocap fixes", s_frame, constraintAction)
+    constraintTrack.name = "Auto fixes " + name
+    NLATracks.auto_fix_track = constraintTrack.name
+    constraintAction = bpy.data.actions.new("Auto fixes " + name)
+    constraintStrip = constraintTrack.strips.new("Auto fixes " + name, s_frame, constraintAction)
     constraintStrip.extrapolation = "NOTHING"
     userTrack = anim_data.nla_tracks.new()
-    userTrack.name = "Mocap manual fix"
-    userAction = bpy.data.actions.new("Mocap manual fix")
-    userStrip = userTrack.strips.new("Mocap manual fix", s_frame, userAction)
+    userTrack.name = "Manual fixes " + name
+    NLATracks.manual_fix_track = userTrack.name
+    if enduser_obj.parent.animation_data:
+        NLATracks.stride_action = enduser_obj.parent.animation_data.action.name
+    userAction = bpy.data.actions.new("Manual fixes " + name)
+    userStrip = userTrack.strips.new("Manual fixes " + name, s_frame, userAction)
     userStrip.extrapolation = "HOLD"
     #userStrip.blend_type = "MULITPLY" - doesn't work due to work, will be activated soon
     anim_data.nla_tracks.active = constraintTrack
-    anim_data.action = constraintAction
+    NLATracks.active = True
+    #anim_data.action = constraintAction
     anim_data.action_extrapolation = "NOTHING"
 
 
@@ -419,7 +445,7 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_name(name=inter_obj.name, extend=False)
     bpy.ops.object.delete()
-    NLASystemInitialize(enduser_obj, s_frame)
+    NLASystemInitialize(enduser_obj, s_frame, performer_obj.animation_data.action.name)
     print("retargeting done!")
 
 if __name__ == "__main__":

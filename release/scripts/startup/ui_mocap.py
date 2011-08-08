@@ -110,6 +110,35 @@ bpy.utils.register_class(MocapConstraint)
 
 bpy.types.Armature.mocap_constraints = bpy.props.CollectionProperty(type=MocapConstraint)
 
+
+class AnimationStitchSettings(bpy.types.PropertyGroup):
+    first_action = bpy.props.StringProperty(name="Action 1",
+            description="First action in stitch")
+    second_action = bpy.props.StringProperty(name="Action 2",
+            description="Second action in stitch")
+    blend_frame = bpy.props.IntProperty(name="Stitch frame",
+            description="Frame to locate stitch on")
+    blend_amount = bpy.props.IntProperty(name="Blend amount",
+            description="Size of blending transitiion, on both sides of the stitch",
+            default=10)
+
+bpy.utils.register_class(AnimationStitchSettings)
+
+
+class MocapNLATracks(bpy.types.PropertyGroup):
+    name = bpy.props.StringProperty()
+    active = bpy.props.BoolProperty()
+    base_track = bpy.props.StringProperty()
+    auto_fix_track = bpy.props.StringProperty()
+    manual_fix_track = bpy.props.StringProperty()
+    stride_action = bpy.props.StringProperty()
+
+bpy.utils.register_class(MocapNLATracks)
+
+bpy.types.Armature.stitch_settings = bpy.props.PointerProperty(type=AnimationStitchSettings)
+
+bpy.types.Armature.mocapNLATracks = bpy.props.CollectionProperty(type=MocapNLATracks)
+
 #Update function for IK functionality. Is called when IK prop checkboxes are toggled.
 
 
@@ -246,6 +275,7 @@ class MocapPanel(bpy.types.Panel):
                     mapRow = self.layout.row()
                     mapRow.operator("mocap.savemapping", text='Save mapping')
                     mapRow.operator("mocap.loadmapping", text='Load mapping')
+                    self.layout.prop(data=performer_obj.animation_data.action, property='name', text='Action Name')
                     self.layout.operator("mocap.retarget", text='RETARGET!')
 
 
@@ -315,6 +345,16 @@ class ExtraToolsPanel(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.operator('mocap.pathediting', text="Follow Path")
+        layout.label("Animation Stitching")
+        activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+        if activeIsArmature:
+            enduser_arm = context.active_object.data
+            settings = enduser_arm.stitch_settings
+            layout.prop_search(settings, "first_action", enduser_arm, "mocapNLATracks")
+            layout.prop_search(settings, "second_action", enduser_arm, "mocapNLATracks")
+            layout.prop(settings, "blend_frame")
+            layout.prop(settings, "blend_amount")
+            layout.operator('mocap.animstitch', text="Stitch Animations")
 
 
 class OBJECT_OT_RetargetButton(bpy.types.Operator):
@@ -323,15 +363,18 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
     bl_label = "Retargets active action from Performer to Enduser"
 
     def execute(self, context):
+        scene = context.scene
+        s_frame = scene.frame_start
+        e_frame = scene.frame_end
         enduser_obj = context.active_object
         performer_obj = [obj for obj in context.selected_objects if obj != enduser_obj]
         if enduser_obj is None or len(performer_obj) != 1:
             print("Need active and selected armatures")
         else:
             performer_obj = performer_obj[0]
-        scene = context.scene
-        s_frame = scene.frame_start
-        e_frame = scene.frame_end
+            s_frame, e_frame = performer_obj.animation_data.action.frame_range
+            s_frame = int(s_frame)
+            e_frame = int(e_frame)
         retarget.totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame)
         return {"FINISHED"}
 
@@ -643,6 +686,26 @@ class OBJECT_OT_PathEditing(bpy.types.Operator):
             return selected_objs
         else:
             return False
+
+
+class OBJECT_OT_AnimationStitchingButton(bpy.types.Operator):
+    '''Stitches two defined animations into a single one via alignment of NLA Tracks'''
+    bl_idname = "mocap.animstitch"
+    bl_label = "Stitches two defined animations into a single one via alignment of NLA Tracks"
+
+    def execute(self, context):
+        mocap_tools.anim_stitch(context, context.active_object)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        activeIsArmature = False
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+            if activeIsArmature:
+                stitch_settings = context.active_object.data.stitch_settings
+                return (stitch_settings.first_action and stitch_settings.second_action)
+        return False
 
 
 def register():

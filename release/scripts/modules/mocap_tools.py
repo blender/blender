@@ -757,3 +757,11 @@ def path_editing(context, stride_obj, path):
         eval_time_fcurve.keyframe_points.insert(frame=t, value=parameterization[t])
     y_fcurve.mute = True
     print("finished path editing")
+
+
+def anim_stitch(context, enduser_obj):
+    stitch_settings = enduser_obj.data.stitch_settings
+    action_1 = stitch_settings.first_action
+    action_2 = stitch_settings.second_action
+    TrackNamesA = enduser_obj.data.mocapNLATracks[action_1]
+    TrackNamesB = enduser_obj.data.mocapNLATracks[action_2]
