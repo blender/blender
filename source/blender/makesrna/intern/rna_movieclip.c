@@ -52,7 +52,7 @@
 
 #include "BKE_depsgraph.h"
 
-static void rna_MovieClip_reload_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_MovieClip_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->data;
 

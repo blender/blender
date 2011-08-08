@@ -401,7 +401,7 @@ static int round_up(int x, int mod)
 static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 	struct anim * anim,
 	AVStream * st, int proxy_size, int width, int height,
-	int quality)
+	int UNUSED(quality))
 {
 	struct proxy_output_ctx * rv = MEM_callocN(
 		sizeof(struct proxy_output_ctx), "alloc_proxy_output");
@@ -862,7 +862,7 @@ static AviMovie * alloc_proxy_output_avi(
 }
 
 static void index_rebuild_fallback(struct anim * anim,
-				   IMB_Timecode_Type tcs_in_use,
+				   IMB_Timecode_Type UNUSED(tcs_in_use),
 				   IMB_Proxy_Size proxy_sizes_in_use,
 				   int quality,
 				   short *stop, short *do_update, 

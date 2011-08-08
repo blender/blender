@@ -1246,7 +1246,6 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* assume fixed sensor width for now */
-			float sensor_aspect = ca->sensor_x / ca->sensor_y;
 			float sensor_scale = (x2i-x1i) / ca->sensor_x;
 			float sensor_height = sensor_scale * ca->sensor_y;
 

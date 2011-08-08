@@ -81,7 +81,7 @@ void rna_trackingTrack_name_set(PointerRNA *ptr, const char *value)
 	BKE_track_unique_name(&clip->tracking, track);
 }
 
-static void rna_tracking_trackerPattern_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_tracking_trackerPattern_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 	MovieTrackingTrack *track;
@@ -94,7 +94,7 @@ static void rna_tracking_trackerPattern_update(Main *bmain, Scene *scene, Pointe
 	}
 }
 
-static void rna_tracking_trackerSearch_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_tracking_trackerSearch_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 	MovieTrackingTrack *track;
@@ -185,7 +185,7 @@ static void rna_tracking_stabTracks_active_index_range(PointerRNA *ptr, int *min
 	*max= MAX2(0, *max);
 }
 
-static void rna_tracking_flushUpdate(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_tracking_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
 	MovieClip *clip= (MovieClip*)ptr->id.data;
 	MovieTrackingStabilization *stab= &clip->tracking.stabilization;

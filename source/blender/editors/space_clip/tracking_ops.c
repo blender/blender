@@ -2734,9 +2734,10 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 
 	track= tracking->tracks.first;
 	while(track) {
+		next= track->next;
+
 		if((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0) {
 			int ok= 1;
-			next= track->next;
 
 			ok&= is_track_clean(track, frames, action==2);
 			ok&= error == 0.f || (track->flag&TRACK_HAS_BUNDLE)==0  || track->error < error;

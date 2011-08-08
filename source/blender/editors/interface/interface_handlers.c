@@ -4075,9 +4075,8 @@ static int ui_do_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonData *data, int mx, int my, int shift)
 {
 	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
-	/* rcti rect; */
 	int changed= 1;
-	float dx, dy, yfac=1.f;
+	float dx, dy;
 
 	dx = mx - data->draglastx;
 	dy = my - data->draglasty;

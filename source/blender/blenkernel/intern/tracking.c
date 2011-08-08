@@ -1081,7 +1081,6 @@ static int reconstruction_camera_index(MovieTracking *tracking, int framenr, int
 
 	while(a>=0 && a<reconstruction->camnr) {
 		int cfra= cameras[a].framenr;
-		int ok= cfra==framenr;
 
 		/* check if needed framenr was "skipped" -- no data for requested frame */
 
