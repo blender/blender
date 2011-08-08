@@ -16,12 +16,32 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 """
 This module contains utility functions specific to blender but
 not assosiated with blenders internal data.
 """
+
+__all__ = (
+    "blend_paths",
+    "keyconfig_set",
+    "load_scripts",
+    "modules_from_path",
+    "preset_find",
+    "preset_paths",
+    "refresh_script_paths",
+    "register_class",
+    "register_module",
+    "resource_path",
+    "script_paths",
+    "smpte_from_frame",
+    "smpte_from_seconds",
+    "unregister_class",
+    "unregister_module",
+    "user_resource",
+    "user_script_path",
+    )
 
 from _bpy import register_class, unregister_class, blend_paths, resource_path
 from _bpy import script_paths as _bpy_script_paths
@@ -42,7 +62,8 @@ def _test_import(module_name, loaded_modules):
     if module_name in loaded_modules:
         return None
     if "." in module_name:
-        print("Ignoring '%s', can't import files containing multiple periods." % module_name)
+        print("Ignoring '%s', can't import files containing "
+              "multiple periods." % module_name)
         return None
 
     if use_time:
@@ -74,7 +95,8 @@ def modules_from_path(path, loaded_modules):
 
     :arg path: this path is scanned for scripts and packages.
     :type path: string
-    :arg loaded_modules: already loaded module names, files matching these names will be ignored.
+    :arg loaded_modules: already loaded module names, files matching these
+       names will be ignored.
     :type loaded_modules: set
     :return: all loaded modules.
     :rtype: list
@@ -97,12 +119,16 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     """
     Load scripts and run each modules register function.
 
-    :arg reload_scripts: Causes all scripts to have their unregister method called before loading.
+    :arg reload_scripts: Causes all scripts to have their unregister method
+       called before loading.
     :type reload_scripts: bool
-    :arg refresh_scripts: only load scripts which are not already loaded as modules.
+    :arg refresh_scripts: only load scripts which are not already loaded
+       as modules.
     :type refresh_scripts: bool
     """
     use_time = _bpy.app.debug
+
+    prefs = _bpy.context.user_preferences
 
     if use_time:
         import time
@@ -116,10 +142,11 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     if reload_scripts:
         _bpy_types.TypeMap.clear()
 
-        # just unload, dont change user defaults, this means we can sync to reload.
-        # note that they will only actually reload of the modification time changes.
-        # this `wont` work for packages so... its not perfect.
-        for module_name in [ext.module for ext in _bpy.context.user_preferences.addons]:
+        # just unload, dont change user defaults, this means we can sync
+        # to reload. note that they will only actually reload of the
+        # modification time changes. This `wont` work for packages so...
+        # its not perfect.
+        for module_name in [ext.module for ext in prefs.addons]:
             _addon_utils.disable(module_name, default_set=False)
 
     def register_module_call(mod):
@@ -131,7 +158,9 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 import traceback
                 traceback.print_exc()
         else:
-            print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
+            print("\nWarning! '%s' has no register function, "
+                  "this is now a requirement for registerable scripts." %
+                  mod.__file__)
 
     def unregister_module_call(mod):
         unregister = getattr(mod, "unregister", None)
@@ -172,7 +201,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     if reload_scripts:
 
         # module names -> modules
-        _global_loaded_modules[:] = [_sys.modules[mod_name] for mod_name in _global_loaded_modules]
+        _global_loaded_modules[:] = [_sys.modules[mod_name]
+                                     for mod_name in _global_loaded_modules]
 
         # loop over and unload all scripts
         _global_loaded_modules.reverse()
@@ -201,7 +231,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     _addon_utils.reset_all(reload_scripts)
 
     # run the active integration preset
-    filepath = preset_find(_bpy.context.user_preferences.inputs.active_keyconfig, "keyconfig")
+    filepath = preset_find(prefs.inputs.active_keyconfig, "keyconfig")
+
     if filepath:
         keyconfig_set(filepath)
 
@@ -214,12 +245,16 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
 
 # base scripts
-_scripts = _os.path.join(_os.path.dirname(__file__), _os.path.pardir, _os.path.pardir)
+_scripts = _os.path.join(_os.path.dirname(__file__),
+                         _os.path.pardir,
+                         _os.path.pardir,
+                         )
 _scripts = (_os.path.normpath(_scripts), )
 
 
 def user_script_path():
-    path = _bpy.context.user_preferences.filepaths.script_directory
+    prefs = _bpy.context.user_preferences
+    path = prefs.filepaths.script_directory
 
     if path:
         path = _os.path.normpath(path)
@@ -236,22 +271,25 @@ def script_paths(subdir=None, user_pref=True, all=False):
     :type subdir: string
     :arg user_pref: Include the user preference script path.
     :type user_pref: bool
-    :arg all: Include local, user and system paths rather just the paths blender uses.
+    :arg all: Include local, user and system paths rather just the paths
+       blender uses.
     :type all: bool
     :return: script paths.
     :rtype: list
     """
     scripts = list(_scripts)
+    prefs = _bpy.context.user_preferences
 
     # add user scripts dir
     if user_pref:
-        user_script_path = _bpy.context.user_preferences.filepaths.script_directory
+        user_script_path = prefs.filepaths.script_directory
     else:
         user_script_path = None
 
     if all:
         # all possible paths
-        base_paths = tuple(_os.path.join(resource_path(res), "scripts") for res in ('LOCAL', 'USER', 'SYSTEM'))
+        base_paths = tuple(_os.path.join(resource_path(res), "scripts")
+                           for res in ('LOCAL', 'USER', 'SYSTEM'))
     else:
         # only paths blender uses
         base_paths = _bpy_script_paths()
@@ -426,7 +464,8 @@ def user_resource(type, path="", create=False):
     :type type: string
     :arg subdir: Optional subdirectory.
     :type subdir: string
-    :arg create: Treat the path as a directory and create it if its not existing.
+    :arg create: Treat the path as a directory and create
+       it if its not existing.
     :type create: boolean
     :return: a path.
     :rtype: string
@@ -477,7 +516,8 @@ def register_module(module, verbose=False):
         try:
             register_class(cls)
         except:
-            print("bpy.utils.register_module(): failed to registering class %r" % cls)
+            print("bpy.utils.register_module(): "
+                  "failed to registering class %r" % cls)
             import traceback
             traceback.print_exc()
     if verbose:
@@ -495,7 +535,8 @@ def unregister_module(module, verbose=False):
         try:
             unregister_class(cls)
         except:
-            print("bpy.utils.unregister_module(): failed to unregistering class %r" % cls)
+            print("bpy.utils.unregister_module(): "
+                  "failed to unregistering class %r" % cls)
             import traceback
             traceback.print_exc()
     if verbose:

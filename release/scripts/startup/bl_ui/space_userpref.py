@@ -755,6 +755,31 @@ class USERPREF_PT_file(bpy.types.Panel):
 from bl_ui.space_userpref_keymap import InputKeyMapPanel
 
 
+class USERPREF_MT_ndof_settings(bpy.types.Menu):
+    # accessed from the window keybindings in C (only)
+    bl_label = "3D Mouse Settings"
+
+    def draw(self, context):
+        layout = self.layout
+        input_prefs = context.user_preferences.inputs
+
+        layout.separator()
+        layout.prop(input_prefs, "ndof_sensitivity")
+
+        if context.space_data.type == 'VIEW_3D':
+            layout.separator()
+            layout.prop(input_prefs, "ndof_show_guide")
+
+            layout.separator()
+            layout.label(text="orbit options")
+            layout.prop(input_prefs, "ndof_orbit_invert_axes")
+
+            layout.separator()
+            layout.label(text="fly options")
+            layout.prop(input_prefs, "ndof_fly_helicopter", icon='NDOF_FLY')
+            layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
+
+
 class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = "Input"
@@ -817,12 +842,9 @@ class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
 
         col.separator()
-        ''' not implemented yet
         sub = col.column()
         sub.label(text="NDOF Device:")
-        sub.prop(inputs, "ndof_pan_speed", text="Pan Speed")
-        sub.prop(inputs, "ndof_rotate_speed", text="Orbit Speed")
-        '''
+        sub.prop(inputs, "ndof_sensitivity", text="NDOF Sensitivity")
 
         row.separator()
 
@@ -881,7 +903,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         if not user_addon_paths:
             user_script_path = bpy.utils.user_script_path()
             if user_script_path is not None:
-                user_addon_paths.append(os.path.join(user_script_path(), "addons"))
+                user_addon_paths.append(os.path.join(user_script_path, "addons"))
             user_addon_paths.append(os.path.join(bpy.utils.resource_path('USER'), "scripts", "addons"))
 
         for path in user_addon_paths:
@@ -924,6 +946,12 @@ class USERPREF_PT_addons(bpy.types.Panel):
             self.draw_error(col,
                             "Multiple addons using the same name found!\n"
                             "likely a problem with the script search path.\n"
+                            "(see console for details)",
+                            )
+
+        if addon_utils.error_encoding:
+            self.draw_error(col,
+                            "One or more addons do not have UTF-8 encoding\n"
                             "(see console for details)",
                             )
 

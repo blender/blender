@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 __all__ = (
     "paths",
@@ -26,12 +26,13 @@ __all__ = (
     "disable",
     "reset_all",
     "module_bl_info",
-)
+    )
 
 import bpy as _bpy
 
 
 error_duplicates = False
+error_encoding = False
 
 
 def paths():
@@ -51,14 +52,18 @@ def paths():
 
 def modules(module_cache):
     global error_duplicates
+    global error_encoding
     import os
 
     error_duplicates = False
+    error_encoding = False
 
     path_list = paths()
 
     # fake module importing
     def fake_module(mod_name, mod_path, speedy=True):
+        global error_encoding
+
         if _bpy.app.debug:
             print("fake_module", mod_path, mod_name)
         import ast
@@ -69,12 +74,28 @@ def modules(module_cache):
             line_iter = iter(file_mod)
             l = ""
             while not l.startswith("bl_info"):
-                l = line_iter.readline()
+                try:
+                    l = line_iter.readline()
+                except UnicodeDecodeError as e:
+                    if not error_encoding:
+                        error_encoding = True
+                        print("Error reading file as UTF-8:", mod_path, e)
+                    file_mod.close()
+                    return None
+
                 if len(l) == 0:
                     break
             while l.rstrip():
                 lines.append(l)
-                l = line_iter.readline()
+                try:
+                    l = line_iter.readline()
+                except UnicodeDecodeError as e:
+                    if not error_encoding:
+                        error_encoding = True
+                        print("Error reading file as UTF-8:", mod_path, e)
+                    file_mod.close()
+                    return None
+
             data = "".join(lines)
 
         else:
@@ -129,7 +150,12 @@ def modules(module_cache):
                     error_duplicates = True
 
                 elif mod.__time__ != os.path.getmtime(mod_path):
-                    print("reloading addon:", mod_name, mod.__time__, os.path.getmtime(mod_path), mod_path)
+                    print("reloading addon:",
+                          mod_name,
+                          mod.__time__,
+                          os.path.getmtime(mod_path),
+                          mod_path,
+                          )
                     del module_cache[mod_name]
                     mod = None
 
@@ -144,7 +170,9 @@ def modules(module_cache):
     del modules_stale
 
     mod_list = list(module_cache.values())
-    mod_list.sort(key=lambda mod: (mod.bl_info['category'], mod.bl_info['name']))
+    mod_list.sort(key=lambda mod: (mod.bl_info['category'],
+                                   mod.bl_info['name'],
+                                   ))
     return mod_list
 
 
@@ -164,8 +192,9 @@ def check(module_name):
     loaded_state = mod and getattr(mod, "__addon_enabled__", Ellipsis)
 
     if loaded_state is Ellipsis:
-        print("Warning: addon-module %r found module but without"
-               " __addon_enabled__ field, possible name collision from file: %r" %
+        print("Warning: addon-module %r found module "
+               "but without __addon_enabled__ field, "
+               "possible name collision from file: %r" %
                (module_name, getattr(mod, "__file__", "<unknown>")))
 
         loaded_state = False
@@ -208,7 +237,8 @@ def enable(module_name, default_set=True):
                 return None
             mod.__addon_enabled__ = False
 
-    # Split registering up into 3 steps so we can undo if it fails par way through
+    # Split registering up into 3 steps so we can undo
+    # if it fails par way through.
     # 1) try import
     try:
         mod = __import__(module_name)
@@ -255,8 +285,9 @@ def disable(module_name, default_set=True):
     import sys
     mod = sys.modules.get(module_name)
 
-    # possible this addon is from a previous session and didnt load a module this time.
-    # so even if the module is not found, still disable the addon in the user prefs.
+    # possible this addon is from a previous session and didnt load a
+    # module this time. So even if the module is not found, still disable
+    # the addon in the user prefs.
     if mod:
         mod.__addon_enabled__ = False
 
@@ -311,7 +342,22 @@ def reset_all(reload_scripts=False):
                 disable(mod_name)
 
 
-def module_bl_info(mod, info_basis={"name": "", "author": "", "version": (), "blender": (), "api": 0, "location": "", "description": "", "wiki_url": "", "tracker_url": "", "support": 'COMMUNITY', "category": "", "warning": "", "show_expanded": False}):
+def module_bl_info(mod, info_basis={"name": "",
+                                    "author": "",
+                                    "version": (),
+                                    "blender": (),
+                                    "api": 0,
+                                    "location": "",
+                                    "description": "",
+                                    "wiki_url": "",
+                                    "tracker_url": "",
+                                    "support": 'COMMUNITY',
+                                    "category": "",
+                                    "warning": "",
+                                    "show_expanded": False,
+                                    }
+                   ):
+
     addon_info = getattr(mod, "bl_info", {})
 
     # avoid re-initializing

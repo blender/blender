@@ -392,6 +392,7 @@ extern StructRNA RNA_Scene;
 extern StructRNA RNA_SceneGameData;
 extern StructRNA RNA_SceneRenderLayer;
 extern StructRNA RNA_SceneSequence;
+extern StructRNA RNA_SceneObjects;
 extern StructRNA RNA_Scopes;
 extern StructRNA RNA_Screen;
 extern StructRNA RNA_ScrewModifier;

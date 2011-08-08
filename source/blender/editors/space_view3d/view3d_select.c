@@ -889,14 +889,14 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 {
 	Base *base;
 	unsigned int *bufmin,*bufmax;
-	int a,b,rc,tel,aantal,dirvec[4][2],maxob;
+	int a,b,rc,tel,len,dirvec[4][2],maxob;
 	unsigned int retval=0;
 	
 	base= LASTBASE;
 	if(base==0) return 0;
 	maxob= base->selcol;
 
-	aantal= (size-1)/2;
+	len= (size-1)/2;
 	rc= 0;
 
 	dirvec[0][0]= 1;
@@ -910,7 +910,7 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 
 	bufmin= buf;
 	bufmax= buf+ size*size;
-	buf+= aantal*size+ aantal;
+	buf+= len*size+ len;
 
 	for(tel=1;tel<=size;tel++) {
 

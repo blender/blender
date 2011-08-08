@@ -462,7 +462,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
             col.prop(part, "mass")
             col.prop(part, "use_multiply_size_mass", text="Multiply mass with size")
 
-        if part.physics_type in ('NEWTON', 'FLUID'):
+        if part.physics_type in {'NEWTON', 'FLUID'}:
             split = layout.split()
 
             col = split.column()
@@ -921,7 +921,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
                 col = row.column()
                 col.label(text="")
 
-        if part.render_type in ('OBJECT', 'GROUP') and not part.use_advanced_hair:
+        if part.render_type in {'OBJECT', 'GROUP'} and not part.use_advanced_hair:
             row = layout.row(align=True)
             row.prop(part, "particle_size")
             row.prop(part, "size_random", slider=True)

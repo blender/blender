@@ -1,10 +1,6 @@
 
-Game Engine bge.texture Module
-==============================
-
-.. note::
-   This documentation is still very weak, and needs some help! Right now they are mostly a collection
-   of the docstrings found in the bge.texture source code + some random places filled with text.
+Video Texture (bge.texture)
+===========================
 
 *****
 Intro
@@ -39,6 +35,10 @@ except that you are now in control of the texture.
 When the texture object is deleted, the new texture is deleted and the old texture restored.
 
 .. module:: bge.texture
+
+.. literalinclude:: ../examples/bge.texture.py
+
+.. literalinclude:: ../examples/bge.texture.1.py
 
 .. class:: VideoFFmpeg(file [, capture=-1, rate=25.0, width=0, height=0])
 

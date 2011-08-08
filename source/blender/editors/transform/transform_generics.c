@@ -887,6 +887,7 @@ void resetTransRestrictions(TransInfo *t)
 	t->flag &= ~T_ALL_RESTRICTIONS;
 }
 
+/* the *op can be NULL */
 int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 {
 	Scene *sce = CTX_data_scene(C);
@@ -1013,6 +1014,22 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 				t->options |= CTX_NO_PET;
 			}
 		}
+
+		/* initialize UV transform from */
+		if (op && RNA_struct_find_property(op->ptr, "correct_uv")) {
+			if(RNA_property_is_set(op->ptr, "correct_uv")) {
+				if(RNA_boolean_get(op->ptr, "correct_uv")) {
+					t->settings->uvcalc_flag |= UVCALC_TRANSFORM_CORRECT;
+				}
+				else {
+					t->settings->uvcalc_flag &= ~UVCALC_TRANSFORM_CORRECT;
+				}
+			}
+			else {
+				RNA_boolean_set(op->ptr, "correct_uv", t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT);
+			}
+		}
+
 	}
 	else if(t->spacetype==SPACE_IMAGE)
 	{
@@ -1148,7 +1165,6 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);
-	initNDofInput(&t->ndof);
 	
 	return 1;
 }

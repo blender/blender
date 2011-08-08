@@ -1,8 +1,7 @@
 import bpy
 is_ntsc = (bpy.context.scene.render.fps != 25)
 
-bpy.context.scene.render.ffmpeg_format = "AVI"
-bpy.context.scene.render.ffmpeg_codec = "XVID"
+bpy.context.scene.render.ffmpeg_format = "XVID"
 
 if is_ntsc:
     bpy.context.scene.render.ffmpeg_gopsize = 18

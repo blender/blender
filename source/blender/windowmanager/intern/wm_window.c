@@ -621,12 +621,12 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		if (!ghostwin) {
 			// XXX - should be checked, why are we getting an event here, and
 			//	what is it?
-			
+			puts("<!> event has no window");
 			return 1;
 		} else if (!GHOST_ValidWindow(g_system, ghostwin)) {
 			// XXX - should be checked, why are we getting an event here, and
 			//	what is it?
-			
+			puts("<!> event has invalid window");			
 			return 1;
 		} else {
 			win= GHOST_GetWindowUserData(ghostwin);

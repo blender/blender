@@ -111,6 +111,11 @@ btools.print_targets(B.targets, B.bc)
 
 # handling cmd line arguments & config file
 
+# bitness stuff
+tempbitness = int(B.arguments.get('BF_BITNESS', bitness)) # default to bitness found as per starting python
+if tempbitness in (32, 64): # only set if 32 or 64 has been given
+    bitness = int(tempbitness)
+
 # first check cmdline for toolset and we create env to work on
 quickie = B.arguments.get('BF_QUICK', None)
 quickdebug = B.arguments.get('BF_QUICKDEBUG', None)
@@ -241,11 +246,29 @@ if 'blenderlite' in B.targets:
     target_env_defs['BF_BUILDINFO'] = False
     target_env_defs['BF_NO_ELBEEM'] = True
     target_env_defs['WITH_BF_PYTHON'] = False
+    target_env_defs['WITH_BF_3DMOUSE'] = False
     
     # Merge blenderlite, let command line to override
     for k,v in target_env_defs.iteritems():
         if k not in B.arguments:
             env[k] = v
+
+# Extended OSX_SDK and 3D_CONNEXION_CLIENT_LIBRARY detection for OSX
+if env['OURPLATFORM']=='darwin':
+    print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'][:9] + " --"
+    print "Available " + env['MACOSX_SDK_CHECK']
+    if not 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
+        print  B.bc.OKGREEN + "MacOSX10.5.sdk not available:" + B.bc.ENDC + " using MacOSX10.6.sdk"
+    else:
+        print B.bc.OKGREEN + "Found recommended sdk :" + B.bc.ENDC + " using MacOSX10.5.sdk"
+
+    # for now, Mac builders must download and install the driver framework from 3Dconnexion
+    # necessary header file lives here when installed:
+    # /Library/Frameworks/3DconnexionClient.framework/Versions/Current/Headers/ConnexionClientAPI.h
+    if env['WITH_BF_3DMOUSE'] == 1 and not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
+        print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
+        env['WITH_BF_3DMOUSE'] = 0
+        env['FOUND_NDOF_DRIVERS'] = 0
 
 
 if env['WITH_BF_OPENMP'] == 1:
@@ -658,11 +681,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         dllsources.append('${LCGDIR}/sndfile/lib/libsndfile-1.dll')
 
     if env['WITH_BF_FFMPEG']:
-        dllsources += ['${BF_FFMPEG_LIBPATH}/avcodec-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avformat-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avdevice-52.dll',
-                    '${BF_FFMPEG_LIBPATH}/avutil-50.dll',
-                    '${BF_FFMPEG_LIBPATH}/swscale-0.dll']
+        dllsources += env['BF_FFMPEG_DLL'].split()
 
     # Since the thumb handler is loaded by Explorer, architecture is
     # strict: the x86 build fails on x64 Windows. We need to ship

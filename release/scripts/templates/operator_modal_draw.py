@@ -45,7 +45,7 @@ class ModalDrawOperator(bpy.types.Operator):
             context.region.callback_remove(self._handle)
             return {'FINISHED'}
 
-        elif event.type in ('RIGHTMOUSE', 'ESC'):
+        elif event.type in {'RIGHTMOUSE', 'ESC'}:
             context.region.callback_remove(self._handle)
             return {'CANCELLED'}
 

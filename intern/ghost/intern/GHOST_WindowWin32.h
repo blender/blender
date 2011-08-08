@@ -39,19 +39,11 @@
 #endif // WIN32
 
 #include "GHOST_Window.h"
-
-/* MinGW needs it */
-#ifdef FREE_WINDOWS
-#ifdef WINVER
-#undef WINVER
-#endif
-#define WINVER 0x0501
-#endif
-
-
-
-#include <windows.h>
 #include "GHOST_TaskbarWin32.h"
+
+#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 
 #include <wintab.h>
