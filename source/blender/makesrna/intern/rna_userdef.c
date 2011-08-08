@@ -2852,7 +2852,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ndof_orbit_invert_axes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ORBIT_INVERT_AXES);
 	RNA_def_property_ui_text(prop, "Invert Axes", "Toggle between moving the viewpoint or moving the scene being viewed");
-	/* in 3Dx docs, this is called 'object mode' vs. 'target camera mode'
+	/* in 3Dx docs, this is called 'object mode' vs. 'target camera mode' */
 
 	/* 3D view: fly */
 	prop= RNA_def_property(srna, "ndof_lock_horizon", PROP_BOOLEAN, PROP_NONE);

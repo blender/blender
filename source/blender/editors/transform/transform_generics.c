@@ -1210,7 +1210,6 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);
-	initNDofInput(&t->ndof);
 	
 	return 1;
 }

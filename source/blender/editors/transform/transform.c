@@ -1040,11 +1040,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			else view_editmove(event->type);
 			t->redraw= 1;
 			break;
-#if 0
-		case NDOF_MOTION:
-			// should have been caught by tranform_modal
-			return OPERATOR_PASS_THROUGH;
-#endif
 		default:
 			handled = 0;
 			break;

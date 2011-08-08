@@ -167,6 +167,8 @@ convertSDLKey(SDL_Scancode key)
 		GXMAP(type,SDL_SCANCODE_APOSTROPHE,     GHOST_kKeyQuote);
 		GXMAP(type,SDL_SCANCODE_GRAVE,          GHOST_kKeyAccentGrave);
 		GXMAP(type,SDL_SCANCODE_MINUS,          GHOST_kKeyMinus);
+		GXMAP(type,SDL_SCANCODE_EQUALS,         GHOST_kKeyEqual);
+
 		GXMAP(type,SDL_SCANCODE_SLASH,          GHOST_kKeySlash);
 		GXMAP(type,SDL_SCANCODE_BACKSLASH,      GHOST_kKeyBackslash);
 		GXMAP(type,SDL_SCANCODE_KP_EQUALS,      GHOST_kKeyEqual);
@@ -198,6 +200,7 @@ convertSDLKey(SDL_Scancode key)
 		GXMAP(type,SDL_SCANCODE_CAPSLOCK,       GHOST_kKeyCapsLock);
 		GXMAP(type,SDL_SCANCODE_SCROLLLOCK,     GHOST_kKeyScrollLock);
 		GXMAP(type,SDL_SCANCODE_NUMLOCKCLEAR,   GHOST_kKeyNumLock);
+		GXMAP(type,SDL_SCANCODE_PRINTSCREEN,    GHOST_kKeyPrintScreen);
 
 		/* keypad events */
 

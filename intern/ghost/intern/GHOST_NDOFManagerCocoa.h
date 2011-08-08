@@ -22,9 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef _GHOST_NDOFMANAGERCOCOA_H_
 #define _GHOST_NDOFMANAGERCOCOA_H_
+
+#ifdef WITH_INPUT_NDOF
 
 #include "GHOST_NDOFManager.h"
 
@@ -47,4 +49,5 @@ private:
 };
 
 
-#endif
+#endif // WITH_INPUT_NDOF
+#endif // #include guard

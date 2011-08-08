@@ -22,7 +22,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
+#ifdef WITH_INPUT_NDOF
+
 #include "GHOST_NDOFManagerCocoa.h"
 #include "GHOST_SystemCocoa.h"
 
@@ -170,3 +172,5 @@ bool GHOST_NDOFManagerCocoa::available()
 	return InstallConnexionHandlers != NULL;
 	// this means that the driver is installed and dynamically linked to blender
 }
+
+#endif // WITH_INPUT_NDOF

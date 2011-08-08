@@ -70,7 +70,7 @@ def run_ops(operators, setup_func=None):
 
             setup_func()
 
-            for mode in ('EXEC_DEFAULT', 'INVOKE_DEFAULT'):
+            for mode in {'EXEC_DEFAULT', 'INVOKE_DEFAULT'}:
                 try:
                     op(mode)
                 except:
