@@ -44,7 +44,7 @@
 struct ImBuf;
 struct MovieCache;
 
-typedef void (*MovieCacheGetKeyDataFP) (void *userkey, int *framenr);
+typedef void (*MovieCacheGetKeyDataFP) (void *userkey, int *framenr, int *proxy);
 
 void BKE_moviecache_init(void);
 void BKE_moviecache_destruct(void);
@@ -53,6 +53,6 @@ struct MovieCache *BKE_moviecache_create(int keysize, GHashHashFP hashfp, GHashC
 void BKE_moviecache_put(struct MovieCache *cache, void *userkey, struct ImBuf *ibuf);
 struct ImBuf* BKE_moviecache_get(struct MovieCache *cache, void *userkey);
 void BKE_moviecache_free(struct MovieCache *cache);
-void BKE_moviecache_get_cache_segments(struct MovieCache *cache, int *totseg_r, int **points_r);
+void BKE_moviecache_get_cache_segments(struct MovieCache *cache, int proxy, int *totseg_r, int **points_r);
 
 #endif

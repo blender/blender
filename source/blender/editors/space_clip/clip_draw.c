@@ -190,12 +190,13 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	}
 }
 
-static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf, float zoomx, float zoomy)
+static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
+			int width, int height, float zoomx, float zoomy)
 {
 	int x, y;
 
 	/* set zoom */
-	glPixelZoom(zoomx, zoomy);
+	glPixelZoom(zoomx*width/ibuf->x, zoomy*height/ibuf->y);
 
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.f, 0.f, &x, &y);
@@ -988,12 +989,14 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
 	MovieClip *clip= ED_space_clip(sc);
 	ImBuf *ibuf;
+	int width, height;
 	float zoomx, zoomy;
 
 	/* if no clip, nothing to do */
 	if(!clip)
 		return;
 
+	ED_space_clip_size(sc, &width, &height);
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
 	if(sc->flag&SC_SHOW_STABLE) {
@@ -1008,10 +1011,10 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	}
 
 	if(ibuf) {
-		draw_movieclip_buffer(sc, ar, ibuf, zoomx, zoomy);
+		draw_movieclip_buffer(sc, ar, ibuf, width, height, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
 
-		draw_tracking(sc, ar, clip, ibuf->x, ibuf->y, zoomx, zoomy);
+		draw_tracking(sc, ar, clip, width, height, zoomx, zoomy);
 	}
 
 	draw_movieclip_cache(sc, ar, clip, scene);

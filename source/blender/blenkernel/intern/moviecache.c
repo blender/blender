@@ -58,7 +58,8 @@ typedef struct MovieCache {
 	int keysize;
 	unsigned long curtime;
 
-	int totseg, *points;	/* for visual statistics optimization */
+	int totseg, *points, points_proxy;	/* for visual statistics optimization */
+	int pad;
 } MovieCache;
 
 typedef struct MovieCacheKey {
@@ -211,6 +212,7 @@ struct MovieCache *BKE_moviecache_create(int keysize, GHashHashFP hashfp, GHashC
 	cache->hashfp= hashfp;
 	cache->cmpfp= cmpfp;
 	cache->getdatafp= getdatafp;
+	cache->points_proxy= -1;
 
 	return cache;
 }
@@ -292,13 +294,20 @@ void BKE_moviecache_free(MovieCache *cache)
 }
 
 /* get segments of cached frames. useful for debugging cache policies */
-void BKE_moviecache_get_cache_segments(MovieCache *cache, int *totseg_r, int **points_r)
+void BKE_moviecache_get_cache_segments(MovieCache *cache, int proxy, int *totseg_r, int **points_r)
 {
 	*totseg_r= 0;
 	*points_r= NULL;
 
 	if(!cache->getdatafp)
 		return;
+
+	if(cache->points_proxy!=proxy) {
+		if(cache->points)
+			MEM_freeN(cache->points);
+
+		cache->points= NULL;
+	}
 
 	if(cache->points) {
 		*totseg_r= cache->totseg;
@@ -314,12 +323,13 @@ void BKE_moviecache_get_cache_segments(MovieCache *cache, int *totseg_r, int **p
 		while(!BLI_ghashIterator_isDone(iter)) {
 			MovieCacheKey *key= BLI_ghashIterator_getKey(iter);
 			MovieCacheItem *item= BLI_ghashIterator_getValue(iter);
-			int framenr;
+			int framenr, curproxy;
 
 			if(item->ibuf) {
-				cache->getdatafp(key->userkey, &framenr);
+				cache->getdatafp(key->userkey, &framenr, &curproxy);
 
-				frames[a++]= framenr;
+				if(curproxy==proxy)
+					frames[a++]= framenr;
 			}
 
 			BLI_ghashIterator_step(iter);

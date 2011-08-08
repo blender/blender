@@ -48,6 +48,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+
 #include "ED_screen.h"
 #include "ED_clip.h"
 
@@ -829,6 +832,105 @@ void CLIP_OT_change_frame(wmOperatorType *ot)
 
 	/* rna */
 	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
+}
+
+/********************** rebuild proxies operator *********************/
+
+typedef struct ProxyBuildJob {
+	Scene *scene;
+	struct Main *main;
+	MovieClip *clip;
+} ProxyJob;
+
+static void proxy_freejob(void *pjv)
+{
+	ProxyJob *pj= pjv;
+
+	MEM_freeN(pj);
+}
+
+/* only this runs inside thread */
+static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
+{
+	ProxyJob *pj= pjv;
+	Scene *scene=pj->scene;
+	MovieClip *clip= pj->clip;
+	int cfra, tc_flags, size_flags, quality;
+
+	tc_flags= clip->proxy.build_tc_flags;
+	size_flags= clip->proxy.build_size_flags;
+	quality= clip->proxy.quality;
+
+	if (clip->source == MCLIP_SRC_MOVIE) {
+		if (clip->anim)
+			IMB_anim_index_rebuild(clip->anim, tc_flags, size_flags, quality, stop, do_update, progress);
+
+		return;
+	}
+
+	for(cfra= SFRA; cfra<=EFRA; cfra++) {
+		if (size_flags & IMB_PROXY_25) {
+			BKE_movieclip_build_proxy_frame(clip, cfra, MCLIP_PROXY_RENDER_SIZE_25);
+		}
+		if (size_flags & IMB_PROXY_50) {
+			BKE_movieclip_build_proxy_frame(clip, cfra, MCLIP_PROXY_RENDER_SIZE_50);
+		}
+		if (size_flags & IMB_PROXY_75) {
+			BKE_movieclip_build_proxy_frame(clip, cfra, MCLIP_PROXY_RENDER_SIZE_75);
+		}
+
+		if(*stop || G.afbreek)
+			break;
+
+		*do_update= 1;
+		*progress= ((float)cfra)/(EFRA-SFRA);
+	}
+}
+
+static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	wmJob * steve;
+	ProxyJob *pj;
+	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+
+	if((clip->flag&MCLIP_USE_PROXY)==0)
+		return OPERATOR_CANCELLED;
+
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), sa, "Building Proxies", WM_JOB_PROGRESS);
+
+	pj= MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
+	pj->scene= scene;
+	pj->main= CTX_data_main(C);
+	pj->clip= clip;
+
+	WM_jobs_customdata(steve, pj, proxy_freejob);
+	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|ND_DISPLAY, 0);
+	WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, NULL);
+
+	G.afbreek= 0;
+	WM_jobs_start(CTX_wm_manager(C), steve);
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_rebuild_proxy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rebuild Proxy and Timecode Indices";
+	ot->idname= "CLIP_OT_rebuild_proxy";
+	ot->description="Rebuild all selected proxies and timecode indeces using the job system";
+
+	/* api callbacks */
+	ot->exec= sequencer_rebuild_proxy_exec;
+	ot->poll= ED_space_clip_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
 }
 
 /********************** macroses *********************/

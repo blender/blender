@@ -49,6 +49,7 @@ void BKE_movieclip_reload(struct MovieClip *clip);
 
 struct ImBuf *BKE_movieclip_acquire_ibuf(struct MovieClip *clip, struct MovieClipUser *user);
 struct ImBuf *BKE_movieclip_acquire_stable_ibuf(struct MovieClip *clip, struct MovieClipUser *user, float loc[2], float *scale);
+struct ImBuf *BKE_movieclip_acquire_ibuf_flag(struct MovieClip *clip, struct MovieClipUser *user, int flag);
 void BKE_movieclip_acquire_size(struct MovieClip *clip, struct MovieClipUser *user, int *width, int *height);
 void BKE_movieclip_aspect(struct MovieClip *clip, float *aspx, float *aspy);
 int BKE_movieclip_has_frame(struct MovieClip *clip, struct MovieClipUser *user);
@@ -62,6 +63,8 @@ void BKE_movieclip_last_selection(struct MovieClip *clip, int *type, void **sel)
 void BKE_movieclip_update_scopes(struct MovieClip *clip, struct MovieClipUser *user, struct MovieClipScopes *scopes);
 
 void BKE_movieclip_get_cache_segments(struct MovieClip *clip, int *totseg_r, int **points_r);
+
+void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, int cfra, int proxy_render_size);
 
 #define TRACK_CLEAR_UPTO		0
 #define TRACK_CLEAR_REMAINED	1

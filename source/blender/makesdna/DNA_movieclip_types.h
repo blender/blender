@@ -42,6 +42,7 @@
 
 struct anim;
 struct ImBuf;
+struct MovieClipProxy;
 struct MovieTrackingTrack;
 struct MovieTrackingMarker;
 
@@ -49,6 +50,15 @@ typedef struct MovieClipUser {
 	int framenr;	/* current frame number */
 	int pad;
 } MovieClipUser;
+
+typedef struct MovieClipProxy {
+	char dir[160];			/* custom directory for index and proxy files (defaults to BL_proxy) */
+
+	short tc;				/* time code in use */
+	short quality;			/* proxy build quality */
+	short build_size_flags;	/* size flags (see below) of all proxies to build */
+	short build_tc_flags;	/* time code flags (see below) of all tc indices to build */
+} MovieClipProxy;
 
 typedef struct MovieClip {
 	ID id;
@@ -69,8 +79,12 @@ typedef struct MovieClip {
 										   used to synchronize data like framenumber
 										   in SpaceClip clip user */
 
+	struct MovieClipProxy proxy;		/* proxy to clip data */
+	short render_size;					/* proxy render size */
+	char pad[6];
+	int flag;
+
 	int sel_type;		/* last selected thing */
-	int pad;
 	void *last_sel;
 } MovieClip;
 
@@ -94,5 +108,15 @@ typedef struct MovieClipScopes {
 /* MovieClip->selection types */
 #define MCLIP_SEL_NONE		0
 #define MCLIP_SEL_TRACK		1
+
+/* MovieClip->flag */
+#define MCLIP_USE_PROXY					(1<<0)
+#define MCLIP_USE_PROXY_CUSTOM_DIR		(1<<1)
+
+/* MovieClip->render_size */
+#define MCLIP_PROXY_RENDER_SIZE_25        0
+#define MCLIP_PROXY_RENDER_SIZE_50        1
+#define MCLIP_PROXY_RENDER_SIZE_75        2
+#define MCLIP_PROXY_RENDER_SIZE_FULL      3
 
 #endif

@@ -2189,7 +2189,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, &sc->user);
+	ImBuf *ibuf= BKE_movieclip_acquire_ibuf_flag(clip, &sc->user, 0);
 	MovieTrackingTrack *track= clip->tracking.tracks.first;
 	int margin= RNA_int_get(op->ptr, "margin");
 	int min_trackness= RNA_int_get(op->ptr, "min_trackness");

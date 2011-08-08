@@ -804,13 +804,13 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(!context->num_tracks)
 		return 0;
 
-	ibuf= BKE_movieclip_acquire_ibuf(context->clip, &context->user);
+	ibuf= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
 	if(!ibuf) return 0;
 
 	if(context->backwards) context->user.framenr--;
 	else context->user.framenr++;
 
-	ibuf_new= BKE_movieclip_acquire_ibuf(context->clip, &context->user);
+	ibuf_new= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
 	if(!ibuf_new) {
 		IMB_freeImBuf(ibuf);
 		return 0;

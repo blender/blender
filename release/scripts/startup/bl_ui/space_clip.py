@@ -406,6 +406,55 @@ class CLIP_PT_stabilization(bpy.types.Panel):
         row.prop(stab, "influence_scale")
 
 
+class CLIP_PT_proxy(bpy.types.Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Proxy / Timecode"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+
+        return sc.clip
+
+    def draw_header(self, context):
+        sc = context.space_data
+
+        self.layout.prop(sc.clip, "use_proxy", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+        clip = sc.clip
+
+        layout.active = clip.use_proxy
+
+        layout.label(text="Build Sizes:")
+        row = layout.row()
+        row.prop(clip.proxy, "build_25")
+        row.prop(clip.proxy, "build_50")
+        row.prop(clip.proxy, "build_75")
+
+        layout.prop(clip.proxy, "quality")
+
+        layout.prop(clip, 'use_proxy_custom_directory')
+        if clip.use_proxy_custom_directory:
+           layout.prop(clip.proxy, "directory")
+
+        layout.operator("clip.rebuild_proxy", text="Rebuild Proxy")
+
+        if clip.source == 'MOVIE':
+            col = layout.column()
+
+            col.label(text="Use timecode index:")
+            col.prop(clip.proxy, "timecode", text="")
+
+        col = layout.column()
+        col.label(text="Proxy render size:")
+        col.prop(clip, "proxy_render_size", text="")
+
+
 class CLIP_PT_footage(bpy.types.Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'

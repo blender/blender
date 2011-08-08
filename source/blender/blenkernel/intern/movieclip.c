@@ -87,14 +87,62 @@ static int sequence_guess_offset(const char *full_name, int head_len, int numlen
 	return atoi(num);
 }
 
-static ImBuf *movieclip_load_sequence_file(MovieClip *clip, int framenr)
+static int rendersize_to_proxy(MovieClip *clip, int flag)
 {
-	struct ImBuf *ibuf;
-	unsigned short numlen;
-	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
-	int flag, offset;
+	if((flag&MCLIP_USE_PROXY)==0)
+		return IMB_PROXY_NONE;
 
-	BLI_strncpy(name, clip->name, sizeof(name));
+	switch(clip->render_size) {
+		case MCLIP_PROXY_RENDER_SIZE_25:
+			return IMB_PROXY_25;
+
+		case MCLIP_PROXY_RENDER_SIZE_50:
+			return IMB_PROXY_50;
+
+		case MCLIP_PROXY_RENDER_SIZE_75:
+			return IMB_PROXY_75;
+
+		case MCLIP_PROXY_RENDER_SIZE_FULL:
+			return IMB_PROXY_NONE;
+	}
+
+	return IMB_PROXY_NONE;
+}
+
+static int rendersize_to_number(int render_size)
+{
+	switch(render_size) {
+		case MCLIP_PROXY_RENDER_SIZE_25:
+			return 25;
+
+		case MCLIP_PROXY_RENDER_SIZE_50:
+			return 50;
+
+		case MCLIP_PROXY_RENDER_SIZE_75:
+			return 75;
+
+		case MCLIP_PROXY_RENDER_SIZE_FULL:
+			return 100;
+	}
+
+	return 100;
+}
+
+static int get_timecode(MovieClip *clip, int flag)
+{
+	if((flag&MCLIP_USE_PROXY)==0)
+		return IMB_TC_NONE;
+
+	return clip->proxy.tc;
+}
+
+static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
+{
+	unsigned short numlen;
+	char head[FILE_MAX], tail[FILE_MAX];
+	int offset;
+
+	BLI_strncpy(name, clip->name, sizeof(clip->name));
 	BLI_stringdec(name, head, tail, &numlen);
 
 	/* movieclips always points to first image from sequence,
@@ -108,18 +156,55 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, int framenr)
 		BLI_path_abs(name, clip->id.lib->filepath);
 	else
 		BLI_path_abs(name, G.main->name);
+}
 
-	flag= IB_rect|IB_multilayer;
+/* supposed to work with sequences only */
+static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int framenr, char *name)
+{
+	int size= rendersize_to_number(proxy_render_size);
+	char dir[FILE_MAX], curname[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
+
+	get_sequence_fname(clip, framenr, curname);
+	BLI_split_dirfile(curname, clipdir, clipfile);
+
+	if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
+		strcpy(dir, clip->proxy.dir);
+	} else {
+		snprintf(dir, FILE_MAX, "%s/BL_proxy", clipdir);
+	}
+
+	snprintf(name, FILE_MAX, "%s/images/%d/%s_proxy", dir, size,  clipfile);
+
+	BLI_path_abs(name, G.main->name);
+	BLI_path_frame(name, 1, 0);
+
+	strcat(name, ".jpg");
+}
+
+static ImBuf *movieclip_load_sequence_file(MovieClip *clip, int framenr, int flag)
+{
+	struct ImBuf *ibuf;
+	char name[FILE_MAX];
+	int loadflag, size;
+
+	size= rendersize_to_number(clip->render_size);
+
+	if(flag&MCLIP_USE_PROXY && size!=100) get_proxy_fname(clip, clip->render_size, framenr, name);
+	else get_sequence_fname(clip, framenr, name);
+
+	loadflag= IB_rect|IB_multilayer;
 
 	/* read ibuf */
-	ibuf= IMB_loadiffname(name, flag);
+	ibuf= IMB_loadiffname(name, loadflag);
 
 	return ibuf;
 }
 
-static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr)
+static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr, int flag)
 {
 	ImBuf *ibuf= NULL;
+	int tc= get_timecode(clip, flag);
+	int proxy= rendersize_to_proxy(clip, flag);
 	char str[FILE_MAX];
 
 	if(!clip->anim) {
@@ -131,11 +216,24 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr)
 			BLI_path_abs(str, G.main->name);
 
 		clip->anim= openanim(str, IB_rect);
+
+
+		if(clip->anim) {
+			if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
+				char dir[FILE_MAX];
+				strcpy(dir, clip->proxy.dir);
+				BLI_path_abs(dir, G.main->name);
+				IMB_anim_set_index_dir(clip->anim, dir);
+			}
+		}
 	}
 
 	if(clip->anim) {
-		int dur= IMB_anim_get_duration(clip->anim, IMB_TC_NONE);
+		int dur= IMB_anim_get_duration(clip->anim, tc);
 		int fra= framenr-1;
+
+		dur= IMB_anim_get_duration(clip->anim, tc);
+		fra= framenr-1;
 
 		if(fra<0)
 			fra= 0;
@@ -143,7 +241,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr)
 		if(fra>(dur-1))
 			fra= dur-1;
 
-		ibuf= IMB_anim_absolute(clip->anim, fra, IMB_TC_NONE, IMB_PROXY_NONE);
+		ibuf= IMB_anim_absolute(clip->anim, fra, tc, proxy);
 	}
 
 	return ibuf;
@@ -163,13 +261,15 @@ typedef struct MovieClipCache {
 
 typedef struct MovieClipImBufCacheKey {
 	int framenr;
+	int proxy;
 } MovieClipImBufCacheKey;
 
-static void moviecache_keydata(void *userkey, int *framenr)
+static void moviecache_keydata(void *userkey, int *framenr, int *proxy)
 {
 	MovieClipImBufCacheKey *key= (MovieClipImBufCacheKey*)userkey;
 
 	*framenr= key->framenr;
+	*proxy= key->proxy;
 }
 
 static unsigned int moviecache_hashhash(const void *keyv)
@@ -188,22 +288,29 @@ static int moviecache_hashcmp(const void *av, const void *bv)
 	if(a->framenr<b->framenr) return -1;
 	else if(a->framenr>b->framenr) return 1;
 
+	if(a->proxy<b->proxy) return -1;
+	else if(a->proxy>b->proxy) return 1;
+
 	return 0;
 }
 
-static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user)
+static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 {
 	if(clip->cache) {
 		MovieClipImBufCacheKey key;
 
 		key.framenr= user?user->framenr:clip->lastframe;
+
+		if(flag&MCLIP_USE_PROXY) key.proxy= rendersize_to_proxy(clip, flag);
+		else key.proxy= IMB_PROXY_NONE;
+
 		return BKE_moviecache_get(clip->cache->moviecache, &key);
 	}
 
 	return NULL;
 }
 
-static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf)
+static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int flag)
 {
 	MovieClipImBufCacheKey key;
 
@@ -215,6 +322,9 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf)
 	}
 
 	key.framenr= user?user->framenr:clip->lastframe;
+
+	if(flag&MCLIP_USE_PROXY) key.proxy= rendersize_to_proxy(clip, flag);
+	else key.proxy= IMB_PROXY_NONE;
 
 	BKE_moviecache_put(clip->cache->moviecache, &key, ibuf);
 }
@@ -241,6 +351,11 @@ static MovieClip *movieclip_alloc(const char *name)
 
 	clip->tracking.stabilization.scaleinf= 1.f;
 	clip->tracking.stabilization.locinf= 1.f;
+
+	clip->proxy.build_size_flags= IMB_PROXY_25;
+	clip->proxy.build_tc_flags= IMB_TC_RECORD_RUN|IMB_TC_FREE_RUN|IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
+	clip->proxy.quality= 90;
+	clip->render_size= MCLIP_PROXY_RENDER_SIZE_FULL;
 
 	return clip;
 }
@@ -304,6 +419,31 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 	return clip;
 }
 
+static void real_ibuf_size(MovieClip *clip, ImBuf *ibuf, int *width, int *height)
+{
+	*width= ibuf->x;
+	*height= ibuf->y;
+
+	if(clip->flag&MCLIP_USE_PROXY) {
+		switch(clip->render_size) {
+			case MCLIP_PROXY_RENDER_SIZE_25:
+				(*width)*= 4;
+				(*height)*= 4;
+				break;
+
+			case MCLIP_PROXY_RENDER_SIZE_50:
+				(*width)*= 2;
+				(*height)*= 2;
+				break;
+
+			case MCLIP_PROXY_RENDER_SIZE_75:
+				*width= ((float)*width)*4.f/3.f;
+				*height= ((float)*height)*4.f/3.f;
+				break;
+               }
+       }
+}
+
 ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *ibuf= NULL;
@@ -314,27 +454,45 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
 	/* cache is supposed to be threadsafe */
-	ibuf= get_imbuf_cache(clip, user);
+	ibuf= get_imbuf_cache(clip, user, clip->flag);
 
 	if(!ibuf) {
 		if(clip->source==MCLIP_SRC_SEQUENCE)
-			ibuf= movieclip_load_sequence_file(clip, framenr);
+			ibuf= movieclip_load_sequence_file(clip, framenr, clip->flag);
 		else {
-			ibuf= movieclip_load_movie_file(clip, framenr);
+			ibuf= movieclip_load_movie_file(clip, framenr, clip->flag);
 		}
 
 		if(ibuf)
-			put_imbuf_cache(clip, user, ibuf);
+			put_imbuf_cache(clip, user, ibuf, clip->flag);
 	}
 
 	if(ibuf) {
 		clip->lastframe= framenr;
 
-		clip->lastsize[0]= ibuf->x;
-		clip->lastsize[1]= ibuf->y;
+		real_ibuf_size(clip, ibuf, &clip->lastsize[0], &clip->lastsize[1]);
 	}
 
 	BLI_unlock_thread(LOCK_MOVIECLIP);
+
+	return ibuf;
+}
+
+ImBuf *BKE_movieclip_acquire_ibuf_flag(MovieClip *clip, MovieClipUser *user, int flag)
+{
+	ImBuf *ibuf= NULL;
+	int framenr= user?user->framenr:clip->lastframe;
+
+	if(clip->source==MCLIP_SRC_SEQUENCE) {
+		ibuf= movieclip_load_sequence_file(clip, framenr, flag);
+	} else {
+		/* loading of movies can't happen from concurent threads */
+		BLI_lock_thread(LOCK_MOVIECLIP);
+
+		ibuf= movieclip_load_movie_file(clip, framenr, flag);
+
+		BLI_unlock_thread(LOCK_MOVIECLIP);
+	}
 
 	return ibuf;
 }
@@ -412,8 +570,7 @@ void BKE_movieclip_acquire_size(MovieClip *clip, MovieClipUser *user, int *width
 		ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
 
 		if(ibuf && ibuf->x && ibuf->y) {
-			*width= ibuf->x;
-			*height= ibuf->y;
+			real_ibuf_size(clip, ibuf, width, height);
 		} else {
 			*width= 0;
 			*height= 0;
@@ -438,8 +595,11 @@ void BKE_movieclip_get_cache_segments(MovieClip *clip, int *totseg_r, int **poin
 	*totseg_r= 0;
 	*points_r= NULL;
 
-	if(clip->cache)
-		BKE_moviecache_get_cache_segments(clip->cache->moviecache, totseg_r, points_r);
+	if(clip->cache) {
+		int proxy= rendersize_to_proxy(clip, clip->flag);
+
+		BKE_moviecache_get_cache_segments(clip->cache->moviecache, proxy, totseg_r, points_r);
+	}
 }
 
 void BKE_movieclip_user_set_frame(MovieClipUser *iuser, int framenr)
@@ -585,6 +745,38 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 	scopes->framenr= user->framenr;
 	scopes->ok= 1;
+}
+
+void BKE_movieclip_build_proxy_frame(MovieClip *clip, int cfra, int proxy_render_size)
+{
+	char name[FILE_MAXFILE+FILE_MAXDIR];
+	int quality, rectx, recty, size;
+	struct ImBuf * ibuf;
+	MovieClipUser user;
+
+	size= rendersize_to_number(proxy_render_size);
+	user.framenr= cfra;
+
+	get_proxy_fname(clip, proxy_render_size, cfra, name);
+
+	ibuf= BKE_movieclip_acquire_ibuf_flag(clip, &user, 0);
+
+	rectx= ibuf->x*size/100.f;
+	recty= ibuf->y*size/100.f;
+
+	if (ibuf->x != rectx || ibuf->y != recty) {
+		IMB_scalefastImBuf(ibuf, (short)rectx, (short)recty);
+	}
+
+	quality= clip->proxy.quality;
+	ibuf->ftype= JPG | quality;
+
+	BLI_make_existing_file(name);
+
+	if(IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)==0)
+		perror(name);
+
+	IMB_freeImBuf(ibuf);
 }
 
 void free_movieclip(MovieClip *clip)
