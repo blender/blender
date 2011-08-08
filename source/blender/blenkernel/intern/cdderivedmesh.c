@@ -2236,15 +2236,8 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, int *vtargetmap)
 		if (ml->v == -1)
 			continue;
 		
-		if (vtargetmap[ml->v] != -1) {
-			me = &cddm->medge[ml->e];
-			if (me->v1 == ml->v)
-				me->v1 = vtargetmap[ml->v];
-			else
-				me->v2 = vtargetmap[ml->v];
-			
+		if (vtargetmap[ml->v] != -1)
 			ml->v = vtargetmap[ml->v];
-		}
 	}
 	
 	/*now go through and fix edges and faces*/

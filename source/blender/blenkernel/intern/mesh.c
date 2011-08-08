@@ -2364,6 +2364,14 @@ int mesh_recalcTesselation(CustomData *fdata,
 		mf->v2 = mloop[mf->v2].v;
 		mf->v3 = mloop[mf->v3].v;
 
+		if(mf->v3==0) {
+			/*prevent eekadoodle*/
+			SWAP(int, mf->v1, mf->v2);
+			SWAP(int, mf->v2, mf->v3);
+			SWAP(int, lindex[0], lindex[1]);
+			SWAP(int, lindex[1], lindex[2]);
+		}
+
 		mesh_loops_to_tri_corners(fdata, ldata, pdata,
 			lindex, i, mf->v4);
 		
