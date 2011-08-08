@@ -102,7 +102,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot);
 
 /* clip_draw.c */
 void draw_clip_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
-void draw_clip_track_widget(const bContext *C, void *poin, void *arg1, void *arg2, rcti *rect);
+void draw_clip_grease_pencil(struct bContext *C, int onlyv2d);
 
 /* clip_buttons.c */
 void ED_clip_buttons_register(struct ARegionType *art);

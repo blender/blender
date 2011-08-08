@@ -617,7 +617,6 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 	ot->idname= "CLIP_OT_slide_marker";
 
 	/* api callbacks */
-	//ot->exec= slide_marker_exec;
 	ot->poll= space_clip_frame_poll;
 	ot->invoke= slide_marker_invoke;
 	ot->modal= slide_marker_modal;

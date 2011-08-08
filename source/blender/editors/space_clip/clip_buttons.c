@@ -51,6 +51,7 @@
 #include "BKE_tracking.h"
 
 #include "ED_clip.h"
+#include "ED_gpencil.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -302,6 +303,13 @@ void ED_clip_buttons_register(ARegionType *art)
 	pt->draw= clip_panel_marker;
 	pt->poll= clip_panel_marker_poll;
 
+	BLI_addtail(&art->paneltypes, pt);
+
+	pt= MEM_callocN(sizeof(PanelType), "spacetype clip panel gpencil");
+	strcpy(pt->idname, "CLIP_PT_gpencil");
+	strcpy(pt->label, "Grease Pencil");
+	pt->draw= gpencil_panel_standard;
+	pt->flag|= PNL_DEFAULT_CLOSED;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

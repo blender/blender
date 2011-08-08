@@ -511,6 +511,7 @@ void paste_gpdata (Scene *scene)
 								
 							case SPACE_NODE: /* Nodes Editor: either screen-aligned or view-aligned */
 							case SPACE_IMAGE: /* Image Editor: either screen-aligned or view\image-aligned */
+							case SPACE_CLIP: /* Image Editor: either screen-aligned or view\image-aligned */
 								if ((gps->flag == 0) || (gps->flag & GP_STROKE_2DSPACE))
 									stroke_ok= 1;
 								break;

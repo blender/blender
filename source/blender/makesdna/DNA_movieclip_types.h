@@ -41,6 +41,7 @@
 #include "DNA_tracking_types.h"
 
 struct anim;
+struct bGPdata;
 struct ImBuf;
 struct MovieClipProxy;
 struct MovieTrackingTrack;
@@ -73,6 +74,7 @@ typedef struct MovieClip {
 
 	struct anim *anim;	/* movie source data */
 	struct MovieClipCache *cache;		/* cache for different stuff, not in file */
+	struct bGPdata *gpd;				/* grease pencil data */
 
 	struct MovieTracking tracking;		/* data for SfM tracking */
 	void *tracking_context;				/* context of tracking job
@@ -80,9 +82,8 @@ typedef struct MovieClip {
 										   in SpaceClip clip user */
 
 	struct MovieClipProxy proxy;		/* proxy to clip data */
-	short render_size;					/* proxy render size */
-	char pad[6];
-	int flag;
+	short render_size, pad;				/* proxy render size */
+	int flag, pad2;
 
 	int sel_type;		/* last selected thing */
 	void *last_sel;

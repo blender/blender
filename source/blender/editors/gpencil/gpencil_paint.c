@@ -1026,7 +1026,28 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 #endif
 		}
 			break;
-
+		case SPACE_CLIP:
+		{
+			//SpaceClip *sc= curarea->spacedata.first;
+			
+			/* set the current area */
+			p->sa= curarea;
+			p->ar= ar;
+			p->v2d= &ar->v2d;
+			//p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+			
+#if 0 // XXX disabled for now
+			/* check that gpencil data is allowed to be drawn */
+			if ((sc->flag & SC_DISPGP)==0) {
+				p->status= GP_STATUS_ERROR;
+				if (G.f & G_DEBUG)
+					printf("Error: In active view, Grease Pencil not shown \n");
+				return p;
+			}
+#endif
+		}
+			break;
+			
 		/* unsupported views */
 		default:
 		{
@@ -1209,6 +1230,12 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				}	
 				else
 					p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
+			}
+				break;
+				
+			case SPACE_CLIP:
+			{
+				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
 			}
 				break;
 		}

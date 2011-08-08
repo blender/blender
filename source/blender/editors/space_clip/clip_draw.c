@@ -51,6 +51,7 @@
 
 #include "ED_screen.h"
 #include "ED_clip.h"
+#include "ED_gpencil.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1018,4 +1019,27 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	}
 
 	draw_movieclip_cache(sc, ar, clip, scene);
+}
+
+/* draw grease pencil */
+void draw_clip_grease_pencil(bContext *C, int onlyv2d)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	ImBuf *ibuf;
+
+	if(/*(sc->flag&SI_DISPGP)==0 ||*/! clip)
+		return;
+
+	if(onlyv2d) {
+		ibuf= ED_space_clip_acquire_buffer(sc);
+
+		if(ibuf) {
+				draw_gpencil_2dimage(C, ibuf);
+
+			IMB_freeImBuf(ibuf);
+		}
+	} else {
+		draw_gpencil_view2d(C, 0);
+	}
 }

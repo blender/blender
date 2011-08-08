@@ -395,7 +395,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "CLIP_OT_slide_marker", LEFTMOUSE, KM_PRESS, 0, 0);
 
-	kmi= WM_keymap_add_item(keymap, "CLIP_OT_disable_markers", DKEY, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_disable_markers", DKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", 2);	/* toggle */
 
 	/* tracks */
@@ -560,10 +560,28 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* data... */
 	movieclip_main_area_set_view2d(sc, ar);
+
 	draw_clip_main(sc, ar, scene);
+
+	/* Grease Pencil */
+	draw_clip_grease_pencil((bContext *)C, 1);
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
+
+	/* draw Grease Pencil - screen space only */
+	draw_clip_grease_pencil((bContext *)C, 0);
+}
+
+static void clip_main_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCREEN:
+			if (wmn->data==ND_GPENCIL)
+				ED_region_tag_redraw(ar);
+		break;
+	}
 }
 
 /****************** header region ******************/
@@ -635,6 +653,21 @@ static void clip_properties_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
+static void clip_properties_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCREEN:
+			if (wmn->data==ND_GPENCIL)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_BRUSH:
+			if(wmn->action==NA_EDITED)
+				ED_region_tag_redraw(ar);
+			break;
+	}
+}
+
 /********************* registration ********************/
 
 /* only called once, from space/spacetypes.c */
@@ -661,7 +694,8 @@ void ED_spacetype_clip(void)
 	art->regionid= RGN_TYPE_WINDOW;
 	art->init= clip_main_area_init;
 	art->draw= clip_main_area_draw;
-	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
+	art->listener= clip_main_area_listener;
+	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI|ED_KEYMAP_GPENCIL;
 
 	BLI_addhead(&st->regiontypes, art);
 
@@ -672,6 +706,7 @@ void ED_spacetype_clip(void)
 	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
 	art->init= clip_properties_area_init;
 	art->draw= clip_properties_area_draw;
+	art->listener= clip_properties_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	ED_clip_buttons_register(art);
 
