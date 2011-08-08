@@ -545,9 +545,11 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
         if not self.filepath:
             raise Exception("Filepath not set")
 
+        # simply check we can open
         f = open(self.filepath, "r")
         if not f:
             raise Exception("Could not open file")
+        f.close()
 
         config_name = basename(self.filepath)
 

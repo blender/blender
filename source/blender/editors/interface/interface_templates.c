@@ -277,7 +277,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 		case UI_ID_ALONE:
 			if(id) {
 				const int do_scene_obj= (GS(id->name) == ID_OB) &&
-										(template->ptr.type == &RNA_SceneObjects);
+				                        (template->ptr.type == &RNA_SceneObjects);
 
 				/* make copy */
 				if(do_scene_obj) {
