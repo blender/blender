@@ -86,6 +86,8 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_view_zoom_ratio);
 	WM_operatortype_append(SEQUENCER_OT_view_ghost_border);
 
+	WM_operatortype_append(SEQUENCER_OT_rebuild_proxy);
+
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_select_all_toggle);
 	WM_operatortype_append(SEQUENCER_OT_select_inverse);

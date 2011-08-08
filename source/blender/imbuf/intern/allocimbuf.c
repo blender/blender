@@ -177,6 +177,19 @@ void IMB_refImBuf(ImBuf *ibuf)
 	ibuf->refcounter++;
 }
 
+ImBuf * IMB_makeSingleUser(ImBuf *ibuf)
+{
+	ImBuf * rval;
+
+	if (!ibuf || ibuf->refcounter == 0) { return ibuf; }
+
+	rval = IMB_dupImBuf(ibuf);
+
+	IMB_freeImBuf(ibuf);
+
+	return rval;
+}
+
 short addzbufImBuf(ImBuf *ibuf)
 {
 	int size;

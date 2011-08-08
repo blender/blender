@@ -111,6 +111,8 @@ void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
 void SEQUENCER_OT_copy(struct wmOperatorType *ot);
 void SEQUENCER_OT_paste(struct wmOperatorType *ot);
 
+void SEQUENCER_OT_rebuild_proxy(struct wmOperatorType *ot);
+
 /* preview specific operators */
 void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 

@@ -60,6 +60,7 @@ class SEQUENCER_HT_header(bpy.types.Header):
 
             layout.separator()
             layout.operator("sequencer.refresh_all")
+            layout.template_running_jobs()
         elif st.view_type == 'SEQUENCER_PREVIEW':
             layout.separator()
             layout.operator("sequencer.refresh_all")
@@ -234,6 +235,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.operator("sequencer.cut", text="Cut (soft) at frame").type = 'SOFT'
         layout.operator("sequencer.images_separate")
         layout.operator("sequencer.deinterlace_selected_movies")
+        layout.operator("sequencer.rebuild_proxy")
         layout.separator()
 
         layout.operator("sequencer.duplicate")
@@ -733,7 +735,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
 
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
-    bl_label = "Proxy"
+    bl_label = "Proxy / Timecode"
 
     @classmethod
     def poll(cls, context):
@@ -759,11 +761,28 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
         flow = layout.column_flow()
         flow.prop(strip, "use_proxy_custom_directory")
         flow.prop(strip, "use_proxy_custom_file")
-        if strip.proxy:  # TODO - need to add this somehow
+        if strip.proxy:
             if strip.use_proxy_custom_directory and not strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "directory")
             if strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "filepath")
+
+            row = layout.row()
+            row.label(text="Build Sizes:")
+            row.prop(strip.proxy, "build_25")
+            row.prop(strip.proxy, "build_50")
+            row.prop(strip.proxy, "build_75")
+
+            col = layout.column()
+            col.label(text="Build JPEG quality")
+            col.prop(strip.proxy, "quality")
+
+            if strip.type == "MOVIE":
+                col = layout.column()
+                col.label(text="Use timecode index:")
+
+                col.prop(strip.proxy, "timecode")
+
 
 
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, bpy.types.Panel):

@@ -134,7 +134,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr)
 	}
 
 	if(clip->anim) {
-		int dur= IMB_anim_get_duration(clip->anim);
+		int dur= IMB_anim_get_duration(clip->anim, IMB_TC_NONE);
 		int fra= framenr-1;
 
 		if(fra<0)
@@ -143,7 +143,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr)
 		if(fra>(dur-1))
 			fra= dur-1;
 
-		ibuf= IMB_anim_absolute(clip->anim, fra);
+		ibuf= IMB_anim_absolute(clip->anim, fra, IMB_TC_NONE, IMB_PROXY_NONE);
 	}
 
 	return ibuf;

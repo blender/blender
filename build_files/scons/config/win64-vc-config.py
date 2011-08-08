@@ -3,11 +3,11 @@ LIBDIR = '${LCGDIR}'
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True # -DWITH_FFMPEG
-BF_FFMPEG = LIBDIR +'/ffmpeg'
+BF_FFMPEG = LIBDIR +'/ffmpeg-0.8'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include ${BF_FFMPEG}/include/msvc '
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-BF_FFMPEG_LIB = 'avformat-52.lib avcodec-52.lib avdevice-52.lib avutil-50.lib swscale-0.lib'
-BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-52.dll ${BF_FFMPEG_LIBPATH}/avcodec-52.dll ${BF_FFMPEG_LIBPATH}/avdevice-52.dll ${BF_FFMPEG_LIBPATH}/avutil-50.dll ${BF_FFMPEG_LIBPATH}/swscale-0.dll'
+BF_FFMPEG_LIB = 'avformat-53.lib avcodec-53.lib avdevice-53.lib avutil-51.lib swscale-2.lib'
+BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-53.dll ${BF_FFMPEG_LIBPATH}/avcodec-53.dll ${BF_FFMPEG_LIBPATH}/avdevice-53.dll ${BF_FFMPEG_LIBPATH}/avutil-51.dll ${BF_FFMPEG_LIBPATH}/swscale-2.dll'
 
 BF_PYTHON = LIBDIR + '/python'
 BF_PYTHON_VERSION = '3.2'
