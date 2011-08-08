@@ -192,6 +192,9 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num, int *indice
 		MDeformVert *dv = &dvert[indices ? indices[i] : i];
 		MDeformWeight *newdw;
 
+		/* Never allow weights out of [0.0, 1.0] range. */
+		CLAMP(w, 0.0, 1.0);
+
 		/* Let’s first check to see if this vert is already in the weight group – if so
 		 * let’s update it, or remove it if needed.
 		 */

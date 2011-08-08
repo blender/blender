@@ -859,6 +859,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
                 row = layout.row()
                 row.prop(md, "proximity_geometry", expand=True)
 
+            row = layout.split()
+            row.prop(md, "min_dist")
+            row.prop(md, "max_dist")
+
             # Common mask options…
             layout.separator()
             self.weight_vg_mask(layout, ob, md)

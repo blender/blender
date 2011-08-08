@@ -200,6 +200,27 @@ static float get_ob2ob_distance(const Object* ob, const Object* obr)
 	return len_v3v3(ob->obmat[3], obr->obmat[3]); 
 }
 
+/**
+ * Maps distances to weights.
+ */
+void do_map(float *weights, const int nidx, const float min_d, const float max_d)
+{
+	int i;
+	float b = min_d / (min_d - max_d);
+	float a = -b / min_d;
+	for (i = 0; i < nidx; i++)
+		weights[i] = a * weights[i] + b;
+}
+
+/*a min_d + b = 0.0*/
+/*a max_d + b = 1.0*/
+/*a min_d = -b*/
+/*a = -b / min_d*/
+
+/*max_d(-b/min_d) + b = 1.0*/
+/*b((-max_d/min_d)+1.0) = 1.0*/
+/*b = 1.0 / ((min_d-max_d)/min_d)*/
+/*b = min_d/(min_d-max_d)*/
 /**************************************
  * Modifiers functions.               *
  **************************************/
@@ -475,6 +496,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	weightvg_do_mask(numIdx, indices, org_w, new_w, ob, ret, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, wmd->mask_texture, wmd->mask_tex_use_channel,
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
+
+	/* Map distances to weights. */
+	do_map(org_w, numIdx, wmd->min_dist, wmd->max_dist);
 
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
 	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);

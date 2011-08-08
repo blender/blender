@@ -2781,6 +2781,18 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
+	prop= RNA_def_property(srna, "min_dist", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
+	RNA_def_property_ui_text(prop, "Lowest Dist", "Distance mapping to weight 0.0.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "max_dist", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
+	RNA_def_property_ui_text(prop, "Highest Dist", "Distance mapping to weight 1.0.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	/* Common masking properties. */
 	rna_def_modifier_weightvg_mask(brna, srna);
 }

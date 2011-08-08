@@ -921,6 +921,8 @@ typedef struct WeightVGProximityModifierData {
 	int		mask_tex_mapping;          /* How to map the texture! */
 	char	mask_tex_uvlayer_name[32]; /* Name of the UV layer. */
 
+	float	min_dist, max_dist;        /* Distances mapping to 0.0/1.0 weights. */
+
 	/* Padding… */
 	int pad_i2;
 } WeightVGProximityModifierData;
