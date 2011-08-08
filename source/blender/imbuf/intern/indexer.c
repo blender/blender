@@ -5,6 +5,8 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
+#include "BLI_math_base.h"
+#include "BLI_string.h"
 #include "MEM_guardedalloc.h"
 #include "DNA_userdef_types.h"
 #include "BKE_global.h"
@@ -419,7 +421,7 @@ static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 	rv->of = avformat_alloc_context();
 	rv->of->oformat = av_guess_format("avi", NULL, NULL);
 	
-	snprintf(rv->of->filename, sizeof(rv->of->filename), "%s", fname);
+	BLI_snprintf(rv->of->filename, sizeof(rv->of->filename), "%s", fname);
 
 	fprintf(stderr, "Starting work on proxy: %s\n", rv->of->filename);
 
@@ -726,8 +728,8 @@ static int index_rebuild_ffmpeg(struct anim * anim,
 
 	while(av_read_frame(iFormatCtx, &next_packet) >= 0) {
 		int frame_finished = 0;
-		float next_progress =  rint(((double) next_packet.pos) * 100 / 
-					    ((double) stream_size)) / 100;
+		float next_progress =  ((int)floor(((double) next_packet.pos) * 100 /
+					           ((double) stream_size)+0.5)) / 100;
 
 		if (*progress != next_progress) {
 			*progress = next_progress;
