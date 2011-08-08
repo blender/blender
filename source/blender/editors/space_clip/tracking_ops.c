@@ -1693,7 +1693,7 @@ static int count_selected_bundles(bContext *C)
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track))
+		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_HAS_BUNDLE))
 			tot++;
 
 		track= track->next;
