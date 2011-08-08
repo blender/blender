@@ -76,6 +76,8 @@
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
 
+#include "BLI_math_base.h"
+
 #include "imbuf.h"
 
 #include "AVI_avi.h"
@@ -1014,7 +1016,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 			tc_index, new_frame_index);
 	} else {
 		pts_to_search = (long long) 
-			rint(((double) position) / pts_time_base / frame_rate);
+			floor(((double) position) / pts_time_base / frame_rate + 0.5);
 
 		if (st_time != AV_NOPTS_VALUE) {
 			pts_to_search += st_time / pts_time_base 
