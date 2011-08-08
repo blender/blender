@@ -2745,6 +2745,25 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		uiItemL(layout, "* Redo Unsupported *", ICON_NONE); // XXX, could give some nicer feedback or not show redo panel at all?
 	}
 
+	/* menu */
+	if(op->type->flag & OPTYPE_PRESET) {
+		/* XXX, no simple way to get WM_MT_operator_presets.bl_label from python! Label remains the same always! */
+		PointerRNA op_ptr;
+		uiLayout *row;
+
+		row= uiLayoutRow(layout, TRUE);
+		uiItemM(row, (bContext *)C, "WM_MT_operator_presets", NULL, ICON_NONE);
+
+		WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
+		RNA_string_set(&op_ptr, "operator", op->type->idname);
+		op_ptr= uiItemFullO(row, "WM_OT_operator_preset_add", "", ICON_ZOOMIN, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+
+		WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
+		RNA_string_set(&op_ptr, "operator", op->type->idname);
+		RNA_boolean_set(&op_ptr, "remove_active", 1);
+		op_ptr= uiItemFullO(row, "WM_OT_operator_preset_add", "", ICON_ZOOMOUT, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+	}
+
 	if(op->type->ui) {
 		op->layout= layout;
 		op->type->ui((bContext*)C, op);
@@ -2758,25 +2777,6 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		int empty;
 
 		RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-
-		/* menu */
-		if(op->type->flag & OPTYPE_PRESET) {
-			/* XXX, no simple way to get WM_MT_operator_presets.bl_label from python! Label remains the same always! */
-			PointerRNA op_ptr;
-			uiLayout *row;
-
-			row= uiLayoutRow(layout, TRUE);
-			uiItemM(row, (bContext *)C, "WM_MT_operator_presets", NULL, ICON_NONE);
-
-			WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
-			RNA_string_set(&op_ptr, "operator", op->type->idname);
-			op_ptr= uiItemFullO(row, "WM_OT_operator_preset_add", "", ICON_ZOOMIN, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
-
-			WM_operator_properties_create(&op_ptr, "WM_OT_operator_preset_add");
-			RNA_string_set(&op_ptr, "operator", op->type->idname);
-			RNA_boolean_set(&op_ptr, "remove_active", 1);
-			op_ptr= uiItemFullO(row, "WM_OT_operator_preset_add", "", ICON_ZOOMOUT, op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
-		}
 
 		/* main draw call */
 		empty= uiDefAutoButsRNA(layout, &ptr, check_prop, label_align) == 0;
