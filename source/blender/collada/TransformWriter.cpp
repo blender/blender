@@ -48,8 +48,13 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[][4], 
 		copy_m4_m4(local, mat);
 	}
 
+	double dmat[4][4];
+	for ( int i = 0 ; i< 4 ; i ++ )
+		for ( int j =0 ; j < 4 ; j++)
+			dmat[i][j]  = (double)local[i][j];
+
 	TransformBase::decompose(local, loc, rot, NULL, scale);
-	
+	node.addMatrix("transform",dmat);
 	add_transform(node, loc, rot, scale);
 }
 
