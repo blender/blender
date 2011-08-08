@@ -44,7 +44,6 @@ set(SRC
 	intern/GHOST_ISystem.cpp
 	intern/GHOST_ISystemPaths.cpp
 	intern/GHOST_ModifierKeys.cpp
-	intern/GHOST_NDOFManager.cpp
 	intern/GHOST_Path-api.cpp
 	intern/GHOST_Path-api.cpp
 	intern/GHOST_Rect.cpp
@@ -74,12 +73,10 @@ set(SRC
 	intern/GHOST_EventDragnDrop.h
 	intern/GHOST_EventKey.h
 	intern/GHOST_EventManager.h
-	intern/GHOST_EventNDOF.h
 	intern/GHOST_EventString.h
 	intern/GHOST_EventTrackpad.h
 	intern/GHOST_EventWheel.h
 	intern/GHOST_ModifierKeys.h
-	intern/GHOST_NDOFManager.h
 	intern/GHOST_System.h
 	intern/GHOST_SystemPaths.h
 	intern/GHOST_TimerManager.h
@@ -97,6 +94,20 @@ if(WITH_GHOST_DEBUG)
 	add_definitions(-DWITH_GHOST_DEBUG)
 endif()
 
+if(WITH_INPUT_NDOF)
+	add_definitions(-DWITH_INPUT_NDOF)
+
+	list(APPEND SRC
+		intern/GHOST_NDOFManager.cpp
+
+		intern/GHOST_EventNDOF.h
+		intern/GHOST_NDOFManager.h
+	)
+
+	list(APPEND INC_SYS
+		${NDOF_INCLUDE_DIRS}
+	)
+endif()
 
 if(WITH_HEADLESS OR WITH_GHOST_SDL)
 	if(WITH_HEADLESS)
@@ -138,6 +149,10 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
 			intern/GHOST_SystemPathsX11.cpp
 			intern/GHOST_SystemPathsX11.h
 		)
+
+		if(NOT WITH_INSTALL_PORTABLE)
+			add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+		endif()
 	elseif(WIN32)
 
 		list(APPEND SRC
@@ -158,12 +173,21 @@ elseif(APPLE)
 			intern/GHOST_SystemCocoa.mm
 			intern/GHOST_SystemPathsCocoa.mm
 			intern/GHOST_WindowCocoa.mm
-			
+
 			intern/GHOST_DisplayManagerCocoa.h
 			intern/GHOST_SystemCocoa.h
 			intern/GHOST_SystemPathsCocoa.h
 			intern/GHOST_WindowCocoa.h
 		)
+
+		if(WITH_INPUT_NDOF)
+			list(APPEND SRC
+				intern/GHOST_NDOFManagerCocoa.mm
+
+				intern/GHOST_NDOFManagerCocoa.h
+			)
+		endif()
+
 	else()
 		list(APPEND SRC
 			intern/GHOST_DisplayManagerCarbon.cpp
@@ -184,10 +208,6 @@ elseif(APPLE)
 
 elseif(UNIX)
 
-	if(WITH_X11_XINPUT)
-		add_definitions(-DWITH_X11_XINPUT)
-	endif()
-
 	list(APPEND INC_SYS
 		${X11_X11_INCLUDE_PATH}
 	)
@@ -204,15 +224,27 @@ elseif(UNIX)
 		intern/GHOST_WindowX11.h
 	)
 
-	if(NOT WITH_INSTALL_PORTABLE)
-		add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
-	endif()
-
 	if(X11_XF86keysym_INCLUDE_PATH)
 		add_definitions(-DWITH_XF86KEYSYM)
 		list(APPEND INC_SYS
 			${X11_XF86keysym_INCLUDE_PATH}
 		)
+	endif()
+
+	if(WITH_INPUT_NDOF)
+		list(APPEND SRC
+			intern/GHOST_NDOFManagerX11.cpp
+
+			intern/GHOST_NDOFManagerX11.h
+		)
+	endif()
+
+	if(NOT WITH_INSTALL_PORTABLE)
+		add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+	endif()
+
+	if(WITH_X11_XINPUT)
+		add_definitions(-DWITH_X11_XINPUT)
 	endif()
 
 elseif(WIN32)
@@ -238,6 +270,15 @@ elseif(WIN32)
 		intern/GHOST_WindowWin32.h
 		intern/GHOST_TaskbarWin32.h
 	)
+
+	if(WITH_INPUT_NDOF)
+		list(APPEND SRC
+			intern/GHOST_NDOFManagerWin32.cpp
+
+			intern/GHOST_NDOFManagerWin32.h
+		)
+	endif()
+
 endif()
 
 blender_add_lib(bf_intern_ghost "${SRC}" "${INC}" "${INC_SYS}")

@@ -21,8 +21,8 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s):	Maarten Gribnau 05/2001
- *					Damien Plisson 09/2009
+ * Contributors: Maarten Gribnau 05/2001
+ *               Damien Plisson 09/2009
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -43,16 +43,17 @@
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventWheel.h"
-#include "GHOST_EventNDOF.h"
 #include "GHOST_EventTrackpad.h"
 #include "GHOST_EventDragnDrop.h"
 #include "GHOST_EventString.h"
-
 #include "GHOST_TimerManager.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowCocoa.h"
-#include "GHOST_NDOFManager.h"
+#ifdef WITH_INPUT_NDOF
+#include "GHOST_NDOFManagerCocoa.h"
+#endif
+
 #include "AssertMacros.h"
 
 #pragma mark KeyMap, mouse converters
@@ -596,6 +597,11 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 	
     GHOST_TSuccess success = GHOST_System::init();
     if (success) {
+
+#ifdef WITH_INPUT_NDOF
+		m_ndofManager = new GHOST_NDOFManagerCocoa(*this);
+#endif
+
 		//ProcessSerialNumber psn;
 		
 		//Carbon stuff to move window & menu to foreground
@@ -1005,6 +1011,11 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	
 	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
+}
+
+void GHOST_SystemCocoa::notifyExternalEventProcessed()
+{
+	m_outsideLoopEventProcessed = true;
 }
 
 //Note: called from NSWindow delegate
@@ -1560,6 +1571,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
+
+					if (deltaF == 0.0) deltaF = [event deltaX]; // make blender decide if it's horizontal scroll
 					if (deltaF == 0.0) break; //discard trackpad delta=0 events
 					
 					delta = deltaF > 0.0 ? 1 : -1;

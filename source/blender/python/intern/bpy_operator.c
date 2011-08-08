@@ -55,6 +55,10 @@
 #include "BKE_report.h"
 #include "BKE_context.h"
 
+/* so operators called can spawn threads which aquire the GIL */
+#define BPY_RELEASE_GIL
+
+
 static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 {
 	wmOperatorType *ot;
@@ -219,7 +223,22 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
 			BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD); /* own so these dont move into global reports */
 
-			operator_ret= WM_operator_call_py(C, ot, context, &ptr, reports);
+#ifdef BPY_RELEASE_GIL
+			/* release GIL, since a thread could be started from an operator
+			 * that updates a driver */
+			/* note: I havve not seen any examples of code that does this
+			 * so it may not be officially supported but seems to work ok. */
+			{
+				PyThreadState *ts= PyEval_SaveThread();
+#endif
+
+				operator_ret= WM_operator_call_py(C, ot, context, &ptr, reports);
+
+#ifdef BPY_RELEASE_GIL
+				/* regain GIL */
+				PyEval_RestoreThread(ts);
+			}
+#endif
 
 			error_val= BPy_reports_to_error(reports, PyExc_RuntimeError, FALSE);
 
@@ -378,7 +397,9 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 
 	
 	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
+#ifdef PYRNA_FREE_SUPPORT
 	pyrna->freeptr= TRUE;
+#endif
 	return (PyObject *)pyrna;
 }
 

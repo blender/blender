@@ -18,7 +18,7 @@ class ModalOperator(bpy.types.Operator):
         elif event.type == 'LEFTMOUSE':
             return {'FINISHED'}
 
-        elif event.type in ('RIGHTMOUSE', 'ESC'):
+        elif event.type in {'RIGHTMOUSE', 'ESC'}:
             context.object.location.x = self.first_value
             return {'CANCELLED'}
 

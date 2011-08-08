@@ -675,6 +675,104 @@ static void draw_view_axis(RegionView3D *rv3d)
 	glDisable(GL_BLEND);
 }
 
+/* draw center and axis of rotation for ongoing 3D mouse navigation */
+static void draw_rotation_guide(RegionView3D *rv3d)
+{
+	float o[3]; // center of rotation
+	float end[3]; // endpoints for drawing
+
+	float color[4] = {0.f ,0.4235f, 1.f, 1.f}; // bright blue so it matches device LEDs
+
+	negate_v3_v3(o, rv3d->ofs);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glShadeModel(GL_SMOOTH);
+	glPointSize(5);
+	glEnable(GL_POINT_SMOOTH);
+	glDepthMask(0); // don't overwrite zbuf
+
+	if (rv3d->rot_angle != 0.f) {
+		// -- draw rotation axis --
+		float scaled_axis[3];
+		const float scale = rv3d->dist;
+		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
+	
+		glBegin(GL_LINE_STRIP);
+			color[3] = 0.f; // more transparent toward the ends
+			glColor4fv(color);
+			add_v3_v3v3(end, o, scaled_axis);
+			glVertex3fv(end);
+	
+			// color[3] = 0.2f + fabsf(rv3d->rot_angle); // modulate opacity with angle
+			// ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2
+
+			color[3] = 0.5f; // more opaque toward the center
+			glColor4fv(color);
+			glVertex3fv(o);
+	
+			color[3] = 0.f;
+			glColor4fv(color);
+			sub_v3_v3v3(end, o, scaled_axis);
+			glVertex3fv(end);
+		glEnd();
+		
+		// -- draw ring around rotation center --
+		{
+		#define ROT_AXIS_DETAIL 13
+		const float s = 0.05f * scale;
+		const float step = 2.f * M_PI / ROT_AXIS_DETAIL;
+		float angle;
+		int i;
+
+		float q[4]; // rotate ring so it's perpendicular to axis
+		const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
+		if (!upright)
+			{
+			const float up[3] = {0.f, 0.f, 1.f};
+			float vis_angle, vis_axis[3];
+
+			cross_v3_v3v3(vis_axis, up, rv3d->rot_axis);
+			vis_angle = acosf(dot_v3v3(up, rv3d->rot_axis));
+			axis_angle_to_quat(q, vis_axis, vis_angle);
+			}
+
+		color[3] = 0.25f; // somewhat faint
+		glColor4fv(color);
+		glBegin(GL_LINE_LOOP);
+		for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step)
+			{
+			float p[3] = { s * cosf(angle), s * sinf(angle), 0.f };
+
+			if (!upright)
+				mul_qt_v3(q, p);
+
+			add_v3_v3(p, o);
+			glVertex3fv(p);
+			}
+		glEnd();
+		}
+
+		color[3] = 1.f; // solid dot
+	}
+	else
+		color[3] = 0.5f; // see-through dot
+
+	// -- draw rotation center --
+	glColor4fv(color);
+	glBegin(GL_POINTS);
+		glVertex3fv(o);
+	glEnd();
+
+	// find screen coordinates for rotation center, then draw pretty icon
+	// mul_m4_v3(rv3d->persinv, rot_center);
+	// UI_icon_draw(rot_center[0], rot_center[1], ICON_NDOF_TURN);
+	// ^^ just playing around, does not work
+
+	glDisable(GL_BLEND);
+	glDisable(GL_POINT_SMOOTH);
+	glDepthMask(1);
+}
 
 static void draw_view_icon(RegionView3D *rv3d)
 {
@@ -2617,6 +2715,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		BDR_drawSketch(C);
 	}
+
+	if ((U.ndof_flag & NDOF_SHOW_GUIDE) && (rv3d->viewlock != RV3D_LOCKED) && (rv3d->persp != RV3D_CAMOB))
+		// TODO: draw something else (but not this) during fly mode
+		draw_rotation_guide(rv3d);
 
 	ED_region_pixelspace(ar);
 	

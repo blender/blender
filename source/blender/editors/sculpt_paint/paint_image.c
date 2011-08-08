@@ -2187,7 +2187,7 @@ static int IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot)
 
 /* One of the most important function for projectiopn painting, since it selects the pixels to be added into each bucket.
  * initialize pixels from this face where it intersects with the bucket_index, optionally initialize pixels for removing seams */
-static void project_paint_face_init(const ProjPaintState *ps, const int thread_index, const int bucket_index, const int face_index, const int image_index, rctf *bucket_bounds, const ImBuf *ibuf)
+static void project_paint_face_init(const ProjPaintState *ps, const int thread_index, const int bucket_index, const int face_index, const int image_index, rctf *bucket_bounds, const ImBuf *ibuf, const short clamp_u, const short clamp_v)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
 	MemArena *arena = ps->arena_mt[thread_index];
@@ -2304,14 +2304,24 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 		
 
 		if (pixel_bounds_array(uv_clip, &bounds_px, ibuf->x, ibuf->y, uv_clip_tot)) {
-			
+
+			if(clamp_u) {
+				CLAMP(bounds_px.xmin, 0, ibuf->x);
+				CLAMP(bounds_px.xmax, 0, ibuf->x);
+			}
+
+			if(clamp_v) {
+				CLAMP(bounds_px.ymin, 0, ibuf->y);
+				CLAMP(bounds_px.ymax, 0, ibuf->y);
+			}
+
 			/* clip face and */
 			
 			has_isect = 0;
 			for (y = bounds_px.ymin; y < bounds_px.ymax; y++) {
 				//uv[1] = (((float)y) + 0.5f) / (float)ibuf->y;
 				uv[1] = (float)y / ibuf_yf; /* use pixel offset UV coords instead */
-				
+
 				has_x_isect = 0;
 				for (x = bounds_px.xmin; x < bounds_px.xmax; x++) {
 					//uv[0] = (((float)x) + 0.5f) / ibuf->x;
@@ -2630,6 +2640,7 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 	LinkNode *node;
 	int face_index, image_index=0;
 	ImBuf *ibuf = NULL;
+	Image *ima = NULL;
 	MTFace *tf;
 	
 	Image *tpage_last = NULL;
@@ -2638,9 +2649,10 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 	if (ps->image_tot==1) {
 		/* Simple loop, no context switching */
 		ibuf = ps->projImages[0].ibuf;
-		
+		ima = ps->projImages[0].ima;
+
 		for (node = ps->bucketFaces[bucket_index]; node; node= node->next) { 
-			project_paint_face_init(ps, thread_index, bucket_index, GET_INT_FROM_POINTER(node->link), 0, bucket_bounds, ibuf);
+			project_paint_face_init(ps, thread_index, bucket_index, GET_INT_FROM_POINTER(node->link), 0, bucket_bounds, ibuf, ima->tpageflag & IMA_CLAMP_U, ima->tpageflag & IMA_CLAMP_V);
 		}
 	}
 	else {
@@ -2659,14 +2671,14 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 				for (image_index=0; image_index < ps->image_tot; image_index++) {
 					if (ps->projImages[image_index].ima == tpage_last) {
 						ibuf = ps->projImages[image_index].ibuf;
+						ima = ps->projImages[image_index].ima;
 						break;
 					}
 				}
 			}
 			/* context switching done */
 			
-			project_paint_face_init(ps, thread_index, bucket_index, face_index, image_index, bucket_bounds, ibuf);
-			
+			project_paint_face_init(ps, thread_index, bucket_index, face_index, image_index, bucket_bounds, ibuf, ima->tpageflag & IMA_CLAMP_U, ima->tpageflag & IMA_CLAMP_V);
 		}
 	}
 	

@@ -26,7 +26,7 @@ __all__ = (
     "edge_loops_from_edges",
     "ngon_tesselate",
     "face_random_points",
-)
+    )
 
 
 def mesh_linked_faces(mesh):
@@ -294,7 +294,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
         '''
         Normal single concave loop filling
         '''
-        if type(from_data) in (tuple, list):
+        if type(from_data) in {tuple, list}:
             verts = [Vector(from_data[i]) for ii, i in enumerate(indices)]
         else:
             verts = [from_data.vertices[i].co for ii, i in enumerate(indices)]
@@ -312,7 +312,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
         used twice. This is used by lightwave LWO files a lot
         '''
 
-        if type(from_data) in (tuple, list):
+        if type(from_data) in {tuple, list}:
             verts = [vert_treplet(Vector(from_data[i]), ii)
                      for ii, i in enumerate(indices)]
         else:

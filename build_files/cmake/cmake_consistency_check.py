@@ -39,7 +39,7 @@ def replace_line(f, i, text, keep_indent=True):
     file_handle = open(f, 'r')
     data = file_handle.readlines()
     file_handle.close()
-    
+
     l = data[i]
     ws = l[:len(l) - len(l.lstrip())]
 

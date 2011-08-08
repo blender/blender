@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 """
 Utility modules assosiated with the bpy module.
@@ -28,4 +28,4 @@ __all__ = (
     "image_utils",
     "mesh_utils",
     "view3d_utils",
-)
+    )
