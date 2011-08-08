@@ -542,24 +542,24 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     def execute(self, context):
         from os.path import basename
         import shutil
-        if not self.filepath:
-            raise Exception("Filepath not set")
 
-        # simply check we can open
-        f = open(self.filepath, "r")
-        if not f:
-            raise Exception("Could not open file")
-        f.close()
+        if not self.filepath:
+            self.report({'ERROR'}, "Filepath not set")
+            return {'CANCELLED'}
 
         config_name = basename(self.filepath)
 
         path = bpy.utils.user_resource('SCRIPTS', os.path.join("presets", "keyconfig"), create=True)
         path = os.path.join(path, config_name)
 
-        if self.keep_original:
-            shutil.copy(self.filepath, path)
-        else:
-            shutil.move(self.filepath, path)
+        try:
+            if self.keep_original:
+                shutil.copy(self.filepath, path)
+            else:
+                shutil.move(self.filepath, path)
+        except Exception as e:
+            self.report({'ERROR'}, "Installing keymap failed: %s" % e)
+            return {'CANCELLED'}
 
         # sneaky way to check we're actually running the code.
         bpy.utils.keyconfig_set(path)
