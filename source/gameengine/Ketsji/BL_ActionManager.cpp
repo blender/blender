@@ -63,6 +63,18 @@ struct bAction *BL_ActionManager::GetCurrentAction(short layer)
 	return 0;
 }
 
+void BL_ActionManager::SetPlayMode(short layer, short mode)
+{
+	if (m_layers[layer])
+		m_layers[layer]->SetPlayMode(mode);
+}
+
+void BL_ActionManager::SetTimes(short layer, float start, float end)
+{
+	if (m_layers[layer])
+		m_layers[layer]->SetTimes(start, end);
+}
+
 bool BL_ActionManager::PlayAction(const char* name,
 								float start,
 								float end,

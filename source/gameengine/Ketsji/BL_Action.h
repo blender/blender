@@ -71,9 +71,11 @@ private:
 	short m_ipo_flags;
 
 	bool m_done;
+	bool m_calc_localtime;
 
 	void InitIPO();
 	void SetLocalTime(float curtime);
+	void ResetStartTime(float curtime);
 	void IncrementBlending(float curtime);
 	void BlendShape(struct Key* key, float srcweight, std::vector<float>& blendshape);
 public:
@@ -111,6 +113,8 @@ public:
 
 	// Mutators
 	void SetFrame(float frame);
+	void SetPlayMode(short play_mode);
+	void SetTimes(float start, float end);
 
 	enum 
 	{

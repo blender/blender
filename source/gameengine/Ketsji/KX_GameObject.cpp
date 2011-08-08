@@ -404,6 +404,16 @@ bAction *KX_GameObject::GetCurrentAction(short layer)
 	return GetActionManager()->GetCurrentAction(layer);
 }
 
+void KX_GameObject::SetPlayMode(short layer, short mode)
+{
+	GetActionManager()->SetPlayMode(layer, mode);
+}
+
+void KX_GameObject::SetTimes(short layer, float start, float end)
+{
+	GetActionManager()->SetTimes(layer, start, end);
+}
+
 void KX_GameObject::ProcessReplica()
 {
 	SCA_IObject::ProcessReplica();

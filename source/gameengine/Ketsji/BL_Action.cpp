@@ -67,7 +67,8 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_priority(0),
 	m_playmode(0),
 	m_ipo_flags(0),
-	m_done(true)
+	m_done(true),
+	m_calc_localtime(true)
 {
 	if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_ARMATURE)
 	{
@@ -215,24 +216,25 @@ float BL_Action::GetFrame()
 
 void BL_Action::SetFrame(float frame)
 {
-	float dt;
-
 	// Clamp the frame to the start and end frame
 	if (frame < min(m_startframe, m_endframe))
 		frame = min(m_startframe, m_endframe);
 	else if (frame > max(m_startframe, m_endframe))
 		frame = max(m_startframe, m_endframe);
 	
-	// We don't set m_localtime directly since it's recalculated
-	// in the next update. So, we modify the value (m_starttime) 
-	// used to calculate m_localtime the next time SetLocalTime() is called.
+	m_localtime = frame;
+	m_calc_localtime = false;
+}
 
-	dt = frame-m_startframe;
+void BL_Action::SetPlayMode(short play_mode)
+{
+	m_playmode = play_mode;
+}
 
-	if (m_endframe < m_startframe)
-		dt = -dt;
-
-	m_starttime -= dt / (KX_KetsjiEngine::GetAnimFrameRate()*m_speed);
+void BL_Action::SetTimes(float start, float end)
+{
+	m_startframe = start;
+	m_endframe = end;
 }
 
 void BL_Action::SetLocalTime(float curtime)
@@ -243,6 +245,16 @@ void BL_Action::SetLocalTime(float curtime)
 		dt = -dt;
 
 	m_localtime = m_startframe + dt;
+}
+
+void BL_Action::ResetStartTime(float curtime)
+{
+	float dt = m_localtime - m_startframe;
+
+	m_starttime = curtime - dt / (KX_KetsjiEngine::GetAnimFrameRate()*m_speed);
+	printf("Before: %f, ", m_localtime);
+	SetLocalTime(curtime);
+	printf("After: %f\n", m_localtime);
 }
 
 void BL_Action::IncrementBlending(float curtime)
@@ -285,7 +297,14 @@ void BL_Action::Update(float curtime)
 		return;
 
 	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
-	SetLocalTime(curtime);
+
+	if (m_calc_localtime)
+		SetLocalTime(curtime);
+	else
+	{
+		ResetStartTime(curtime);
+		m_calc_localtime = true;
+	}
 
 	// Handle wrap around
 	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
