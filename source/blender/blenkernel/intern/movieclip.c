@@ -170,10 +170,10 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int framenr,
 	if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
 		strcpy(dir, clip->proxy.dir);
 	} else {
-		snprintf(dir, FILE_MAX, "%s/BL_proxy", clipdir);
+		BLI_snprintf(dir, FILE_MAX, "%s/BL_proxy", clipdir);
 	}
 
-	snprintf(name, FILE_MAX, "%s/images/%d/%s_proxy", dir, size,  clipfile);
+	BLI_snprintf(name, FILE_MAX, "%s/images/%d/%s_proxy", dir, size,  clipfile);
 
 	BLI_path_abs(name, G.main->name);
 	BLI_path_frame(name, 1, 0);
