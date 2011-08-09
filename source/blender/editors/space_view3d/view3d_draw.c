@@ -1243,21 +1243,24 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			uiSetRoundBox(15);
 			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 		}
-#if 0 /* XXX: ... */
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* assume fixed sensor width for now */
+			float aspx = (float) scene->r.xsch*scene->r.xasp;
+			float aspy = (float) scene->r.ysch*scene->r.yasp;
 			float sensor_scale = (x2i-x1i) / ca->sensor_x;
-			float sensor_height = sensor_scale * ca->sensor_y;
+			float sensor_height, ymid, sy1, sy2;
 
-			float ymid = y1i + (y2i-y1i)/2.f;
-			float sy1= ymid - sensor_height/2.f;
-			float sy2= ymid + sensor_height/2.f;
+			if(aspx < aspy) sensor_height = ca->sensor_x * sensor_scale * aspx / aspy;
+			else sensor_height = ca->sensor_x * sensor_scale * aspy / aspx;
+
+			ymid = y1i + (y2i-y1i)/2.f;
+			sy1= ymid - sensor_height/2.f;
+			sy2= ymid + sensor_height/2.f;
 
 			UI_ThemeColorShade(TH_WIRE, 100);
 
 			uiDrawBox(GL_LINE_LOOP, x1i, sy1, x2i, sy2, 2.0);
 		}
-#endif
 	}
 
 	setlinestyle(0);
