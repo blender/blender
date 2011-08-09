@@ -483,16 +483,29 @@ ImBuf *BKE_movieclip_acquire_ibuf_flag(MovieClip *clip, MovieClipUser *user, int
 	ImBuf *ibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
 
-	if(clip->source==MCLIP_SRC_SEQUENCE) {
-		ibuf= movieclip_load_sequence_file(clip, framenr, flag);
-	} else {
-		/* loading of movies can't happen from concurent threads */
-		BLI_lock_thread(LOCK_MOVIECLIP);
+	/* cache isn't threadsafe itself and also loading of movies
+	   can't happen from concurent threads that's why we use lock here */
+	BLI_lock_thread(LOCK_MOVIECLIP);
 
-		ibuf= movieclip_load_movie_file(clip, framenr, flag);
+	/* cache is supposed to be threadsafe */
+	ibuf= get_imbuf_cache(clip, user, flag);
 
-		BLI_unlock_thread(LOCK_MOVIECLIP);
+	if(!ibuf) {
+		if(clip->source==MCLIP_SRC_SEQUENCE) {
+			ibuf= movieclip_load_sequence_file(clip, framenr, flag);
+		} else {
+			ibuf= movieclip_load_movie_file(clip, framenr, flag);
+		}
+
+		if(ibuf) {
+			int bits= MCLIP_USE_PROXY|MCLIP_USE_PROXY_CUSTOM_DIR;
+
+			if((flag&bits)==(clip->flag&bits))
+				put_imbuf_cache(clip, user, ibuf, clip->flag);
+		}
 	}
+
+	BLI_unlock_thread(LOCK_MOVIECLIP);
 
 	return ibuf;
 }
