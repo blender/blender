@@ -630,7 +630,7 @@ void sound_read_waveform(struct bSound* sound)
 
 	if(info.length > 0)
 	{
-		SoundWaveform* waveform = MEM_mallocN(sizeof(SoundWaveform), "SoundWaveform");;
+		SoundWaveform* waveform = MEM_mallocN(sizeof(SoundWaveform), "SoundWaveform");
 		int length = info.length * SOUND_WAVE_SAMPLES_PER_SECOND;
 
 		waveform->data = MEM_mallocN(length * sizeof(float) * 3, "SoundWaveform.samples");
