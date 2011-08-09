@@ -82,7 +82,7 @@ void AUD_LinearResampleReader::read(int& length, bool& eos, sample_t* buffer)
 
 	int samplesize = AUD_SAMPLE_SIZE(specs);
 	int size = length;
-	float factor = float(m_rate) / float(m_reader->getSpecs().rate);
+	float factor = m_rate / m_reader->getSpecs().rate;
 	float spos;
 	sample_t low, high;
 	eos = false;

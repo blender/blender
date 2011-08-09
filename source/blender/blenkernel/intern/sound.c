@@ -13,13 +13,16 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_speaker_types.h"
 
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
@@ -175,7 +178,12 @@ void sound_init(struct Main *bmain)
 
 	if(!AUD_init(device, specs, buffersize))
 		AUD_init(AUD_NULL_DEVICE, specs, buffersize);
-		
+
+	sound_init_main(bmain);
+}
+
+void sound_init_main(struct Main *bmain)
+{
 #ifdef WITH_JACK
 	AUD_setSyncCallback(sound_sync_callback, bmain);
 #else
@@ -615,6 +623,84 @@ int sound_get_channels(struct bSound* sound)
 	info = AUD_getInfo(sound->playback_handle);
 
 	return info.specs.channels;
+}
+
+void sound_update_scene(struct Main* bmain, struct Scene* scene)
+{
+	Object* ob;
+	NlaTrack* track;
+	NlaStrip* strip;
+	Speaker* speaker;
+
+	void* new_set = AUD_createSet();
+	void* handle;
+	float quat[4];
+
+	for(ob = bmain->object.first; ob; ob = ob->id.next)
+	{
+		if(ob->type == OB_SPEAKER)
+		{
+			if(ob->adt)
+			{
+				for(track = ob->adt->nla_tracks.first; track; track = track->next)
+				{
+					for(strip = track->strips.first; strip; strip = strip->next)
+					{
+						if(strip->type == NLASTRIP_TYPE_SOUND)
+						{
+							speaker = (Speaker*)ob->data;
+
+							if(AUD_removeSet(scene->speaker_handles, strip->speaker_handle))
+							{
+								AUD_moveSequence(strip->speaker_handle, strip->start / FPS, -1, 0);
+							}
+							else
+							{
+								if(speaker && speaker->sound)
+								{
+									strip->speaker_handle = AUD_addSequence(scene->sound_scene, speaker->sound->playback_handle, strip->start / FPS, -1, 0);
+									AUD_setRelativeSequence(strip->speaker_handle, 0);
+								}
+							}
+
+							if(strip->speaker_handle)
+							{
+								AUD_addSet(new_set, strip->speaker_handle);
+								AUD_updateSequenceData(strip->speaker_handle, speaker->volume_max,
+													   speaker->volume_min, speaker->distance_max,
+													   speaker->distance_reference, speaker->attenuation,
+													   speaker->cone_angle_outer, speaker->cone_angle_inner,
+													   speaker->cone_volume_outer);
+
+								mat4_to_quat(quat, ob->obmat);
+								AUD_setSequenceAnimData(strip->speaker_handle, AUD_AP_LOCATION, CFRA, ob->obmat[3], 1);
+								AUD_setSequenceAnimData(strip->speaker_handle, AUD_AP_ORIENTATION, CFRA, quat, 1);
+								AUD_setSequenceAnimData(strip->speaker_handle, AUD_AP_VOLUME, CFRA, &speaker->volume, 1);
+								AUD_setSequenceAnimData(strip->speaker_handle, AUD_AP_PITCH, CFRA, &speaker->pitch, 1);
+								AUD_updateSequenceSound(strip->speaker_handle, speaker->sound->playback_handle);
+								AUD_muteSequence(strip->speaker_handle, ((strip->flag & NLASTRIP_FLAG_MUTED) != 0) || ((speaker->flag & SPK_MUTED) != 0));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	while((handle = AUD_getSet(scene->speaker_handles)))
+	{
+		AUD_removeSequence(scene->sound_scene, handle);
+	}
+
+	if(scene->camera)
+	{
+		mat4_to_quat(quat, scene->camera->obmat);
+		AUD_setSequencerAnimData(scene->sound_scene, AUD_AP_LOCATION, CFRA, scene->camera->obmat[3], 1);
+		AUD_setSequencerAnimData(scene->sound_scene, AUD_AP_ORIENTATION, CFRA, quat, 1);
+	}
+
+	AUD_destroySet(scene->speaker_handles);
+	scene->speaker_handles = new_set;
 }
 
 void* sound_get_factory(void* sound)

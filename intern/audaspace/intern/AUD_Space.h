@@ -41,6 +41,8 @@
 /// Throws a AUD_Exception with the provided error code.
 #define AUD_THROW(exception, errorstr) { AUD_Exception e; e.error = exception; e.str = errorstr; throw e; }
 
+#define AUD_COMPARE_SPECS(s1, s2) ((s1.rate == s2.rate) && (s1.channels == s2.channels))
+
 /// Returns the bit for a channel mask.
 #define AUD_CHANNEL_BIT(channel) (0x01 << channel)
 

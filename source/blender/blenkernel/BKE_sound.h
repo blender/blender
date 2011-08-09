@@ -46,6 +46,8 @@ void sound_init_once(void);
 
 void sound_init(struct Main *main);
 
+void sound_init_main(struct Main *bmain);
+
 void sound_exit(void);
 
 void sound_force_device(int device);
@@ -123,6 +125,8 @@ int sound_scene_playing(struct Scene *scene);
 int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length, float start, float end);
 
 int sound_get_channels(struct bSound* sound);
+
+void sound_update_scene(struct Main* bmain, struct Scene* scene);
 
 void* sound_get_factory(void* sound);
 

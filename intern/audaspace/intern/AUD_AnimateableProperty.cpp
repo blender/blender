@@ -105,10 +105,10 @@ void AUD_AnimateableProperty::read(float position, float* out)
 		return;
 	}
 
-	float last = (getSize() / (sizeof(float) * m_count) - 1);
+	int last = getSize() / (sizeof(float) * m_count) - 1;
 	float t = position - floor(position);
 
-	if(position > last)
+	if(position >= last)
 	{
 		position = last;
 		t = 0;
@@ -128,24 +128,18 @@ void AUD_AnimateableProperty::read(float position, float* out)
 		float* p1 = getBuffer() + pos;
 		float* p2;
 		float* p3;
+		last *= m_count;
 
 		if(pos == 0)
 			p0 = p1;
 		else
 			p0 = p1 - m_count;
 
-		if(pos > last)
-		{
-			p3 = p2 = p1;
-		}
+		p2 = p1 + m_count;
+		if(pos + m_count == last)
+			p3 = p2;
 		else
-		{
-			p2 = p1 + m_count;
-			if(pos + m_count > last)
-				p3 = p2;
-			else
-				p3 = p2 + m_count;
-		}
+			p3 = p2 + m_count;
 
 		for(int i = 0; i < m_count; i++)
 		{

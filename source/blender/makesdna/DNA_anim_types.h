@@ -585,6 +585,8 @@ typedef struct NlaStrip {
 	
 	short type;					/* type of NLA strip */
 	
+	void *speaker_handle;		/* handle for speaker objects */
+
 	int flag;					/* settings */
 	int pad2;
 } NlaStrip;

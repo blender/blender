@@ -82,6 +82,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_sound.h"
 
 
 #include "BLO_undofile.h"
@@ -247,6 +248,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	G.main= bfd->main;
 
 	CTX_data_main_set(C, G.main);
+
+	sound_init_main(G.main);
 	
 	if (bfd->user) {
 		

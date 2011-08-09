@@ -533,7 +533,6 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->latt);
 	lb[a++]= &(main->lamp);
 	lb[a++]= &(main->camera);
-	lb[a++]= &(main->speaker);
 
 	lb[a++]= &(main->text);
 	lb[a++]= &(main->sound);
@@ -541,6 +540,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++]= &(main->brush);
 	lb[a++]= &(main->script);
 	lb[a++]= &(main->particle);
+	lb[a++]= &(main->speaker);
 
 	lb[a++]= &(main->world);
 	lb[a++]= &(main->screen);

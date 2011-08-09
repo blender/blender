@@ -81,7 +81,7 @@ void AUD_SuperposeReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	AUD_Specs specs = m_reader1->getSpecs();
 	AUD_Specs s2 = m_reader2->getSpecs();
-	if(memcmp(&specs, &s2, sizeof(AUD_Specs)))
+	if(AUD_COMPARE_SPECS(specs, s2))
 		AUD_THROW(AUD_ERROR_SPECS, specs_error);
 
 	int samplesize = AUD_SAMPLE_SIZE(specs);

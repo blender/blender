@@ -97,7 +97,7 @@ void AUD_DoubleReader::read(int& length, bool& eos, sample_t* buffer)
 			AUD_Specs specs1, specs2;
 			specs1 = m_reader1->getSpecs();
 			specs2 = m_reader2->getSpecs();
-			if(memcmp(&specs1, &specs2, sizeof(AUD_Specs)))
+			if(AUD_COMPARE_SPECS(specs1, specs2))
 				length = len;
 			else
 			{

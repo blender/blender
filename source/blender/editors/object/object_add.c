@@ -774,6 +774,7 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 	int enter_editmode;
 	unsigned int layer;
 	float loc[3], rot[3];
+	Scene *scene = CTX_data_scene(C);
 
 	object_add_generic_invoke_options(C, op);
 	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
@@ -789,6 +790,8 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 		AnimData *adt = BKE_id_add_animdata(&ob->id);
 		NlaTrack *nlt = add_nlatrack(adt, NULL);
 		NlaStrip *strip = add_nla_soundstrip(CTX_data_scene(C), ob->data);
+		strip->start = CFRA;
+		strip->end += strip->start;
 		
 		/* hook them up */
 		BKE_nlatrack_add_strip(nlt, strip);

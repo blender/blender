@@ -70,7 +70,7 @@ bool AUD_ReadDevice::read(data_t* buffer, int length)
 
 void AUD_ReadDevice::changeSpecs(AUD_Specs specs)
 {
-	if(memcmp(&specs, &m_specs.specs, sizeof(specs)))
+	if(AUD_COMPARE_SPECS(specs, m_specs.specs))
 		setSpecs(specs);
 }
 
