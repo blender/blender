@@ -1722,7 +1722,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		/* standard undo/redo shouldn't be allowed to execute or else it causes crashes, so catch it here */
 		// FIXME: this is a hardcoded hotkey that can't be changed
 		// TODO: catch redo as well, but how?
-		if (event->type == ZKEY) {
+		if (event->type == ZKEY && event->val == KM_RELEASE) {
 			/* oskey = cmd key on macs as they seem to use cmd-z for undo as well? */
 			if ((event->ctrl) || (event->oskey)) {
 				/* just delete last stroke, which will look like undo to the end user */
