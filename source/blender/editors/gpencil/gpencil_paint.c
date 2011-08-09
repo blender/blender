@@ -1728,7 +1728,12 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 				/* just delete last stroke, which will look like undo to the end user */
 				//printf("caught attempted undo event... deleting last stroke \n");
 				gpencil_frame_delete_laststroke(p->gpl, p->gpf);
-				
+				/* undoing the last line can free p->gpf
+				 * note, could do this in a bit more of an elegant way then a search but it at least prevents a crash */
+				if(BLI_findindex(&p->gpl->frames, p->gpf) == -1) {
+					p->gpf= NULL;
+				}
+
 				/* event handled, so force refresh */
 				ED_region_tag_redraw(p->ar); /* just active area for now, since doing whole screen is too slow */
 				estate = OPERATOR_RUNNING_MODAL; 
