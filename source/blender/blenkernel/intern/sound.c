@@ -24,6 +24,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 
+#define WITH_AUDASPACE
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
 #endif
@@ -96,6 +97,8 @@ void sound_free(struct bSound* sound)
 		AUD_unload(sound->cache);
 		sound->cache = NULL;
 	}
+
+	sound_free_waveform(sound);
 #endif // WITH_AUDASPACE
 }
 
@@ -608,12 +611,34 @@ int sound_scene_playing(struct Scene *scene)
 		return -1;
 }
 
-int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length, float start, float end)
+void sound_free_waveform(struct bSound* sound)
 {
-	AUD_Sound* limiter = AUD_limitSound(sound->cache, start, end);
-	int ret= AUD_readSound(limiter, buffer, length);
-	AUD_unload(limiter);
-	return ret;
+	if(sound->waveform)
+	{
+		MEM_freeN(((SoundWaveform*)sound->waveform)->data);
+		MEM_freeN(sound->waveform);
+	}
+
+	sound->waveform = NULL;
+}
+
+void sound_read_waveform(struct bSound* sound)
+{
+	AUD_SoundInfo info;
+
+	info = AUD_getInfo(sound->playback_handle);
+
+	if(info.length > 0)
+	{
+		SoundWaveform* waveform = MEM_mallocN(sizeof(SoundWaveform), "SoundWaveform");;
+		int length = info.length * SOUND_WAVE_SAMPLES_PER_SECOND;
+
+		waveform->data = MEM_mallocN(length * sizeof(float) * 3, "SoundWaveform.samples");
+		waveform->length = AUD_readSound(sound->playback_handle, waveform->data, length, SOUND_WAVE_SAMPLES_PER_SECOND);
+
+		sound_free_waveform(sound);
+		sound->waveform = waveform;
+	}
 }
 
 int sound_get_channels(struct bSound* sound)

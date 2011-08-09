@@ -288,6 +288,7 @@ typedef struct SpeedControlVars {
 #define SEQ_AUDIO_VOLUME_ANIMATED   (1<<24)
 #define SEQ_AUDIO_PITCH_ANIMATED    (1<<25)
 #define SEQ_AUDIO_PAN_ANIMATED      (1<<26)
+#define SEQ_AUDIO_DRAW_WAVEFORM     (1<<27)
 
 #define SEQ_INVALID_EFFECT          (1<<31)
 

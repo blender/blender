@@ -638,6 +638,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
 
         row.prop(strip.sound, "use_memory_cache")
 
+        layout.prop(strip, "waveform")
         layout.prop(strip, "volume")
         layout.prop(strip, "attenuation")
         layout.prop(strip, "pitch")

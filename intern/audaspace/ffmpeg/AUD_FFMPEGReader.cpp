@@ -177,6 +177,7 @@ static const char* fileopen_error = "AUD_FFMPEGReader: File couldn't be "
 
 AUD_FFMPEGReader::AUD_FFMPEGReader(std::string filename) :
 	m_pkgbuf(AVCODEC_MAX_AUDIO_FRAME_SIZE<<1),
+	m_formatCtx(NULL),
 	m_aviocontext(NULL),
 	m_membuf(NULL)
 {

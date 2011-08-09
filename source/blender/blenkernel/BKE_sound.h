@@ -35,12 +35,20 @@
  *  \author nzc
  */
 
+#define SOUND_WAVE_SAMPLES_PER_SECOND 250
+
 struct PackedFile;
 struct bSound;
 struct bContext;
 struct ListBase;
 struct Main;
 struct Sequence;
+
+typedef struct SoundWaveform
+{
+	int length;
+	float *data;
+} SoundWaveform;
 
 void sound_init_once(void);
 
@@ -122,7 +130,9 @@ float sound_sync_scene(struct Scene *scene);
 
 int sound_scene_playing(struct Scene *scene);
 
-int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length, float start, float end);
+void sound_free_waveform(struct bSound* sound);
+
+void sound_read_waveform(struct bSound* sound);
 
 int sound_get_channels(struct bSound* sound);
 

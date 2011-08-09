@@ -85,6 +85,11 @@ typedef struct bSound {
 	void *cache;
 
 	/**
+	 * Waveform display data.
+	 */
+	void *waveform;
+
+	/**
 	 * The audaspace handle that should actually be played back.
 	 * Should be cache if cache != NULL; otherwise it's handle
 	 */

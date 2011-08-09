@@ -502,7 +502,7 @@ extern void AUD_setSyncCallback(AUD_syncFunction function, void* data);
 
 extern int AUD_doesPlayback(void);
 
-extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length);
+extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length, int samples_per_second);
 
 extern AUD_Sound* AUD_copy(AUD_Sound* sound);
 

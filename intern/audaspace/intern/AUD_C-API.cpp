@@ -816,7 +816,7 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 	if(high < rate)
 		sound = new AUD_LowpassFactory(sound, high);
 	if(low > 0)
-		sound = new AUD_HighpassFactory(sound, low);;
+		sound = new AUD_HighpassFactory(sound, low);
 
 	sound = new AUD_EnvelopeFactory(sound, attack, release, threshold, 0.1f);
 	sound = new AUD_LinearResampleFactory(sound, specs);
@@ -1055,7 +1055,7 @@ int AUD_doesPlayback()
 	return -1;
 }
 
-int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
+int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length, int samples_per_second)
 {
 	AUD_DeviceSpecs specs;
 	sample_t* buf;
@@ -1067,38 +1067,40 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 
 	AUD_Reference<AUD_IReader> reader = AUD_ChannelMapperFactory(*sound, specs).createReader();
 
-	int len = reader->getLength();
-	float samplejump = (float)len / (float)length;
-	float min, max;
+	specs.specs = reader->getSpecs();
+	int len;
+	float samplejump = specs.rate / samples_per_second;
+	float min, max, power;
 	bool eos;
 
 	for(int i = 0; i < length; i++)
 	{
 		len = floor(samplejump * (i+1)) - floor(samplejump * i);
 
-		if(aBuffer.getSize() < len * AUD_SAMPLE_SIZE(reader->getSpecs()))
-		{
-			aBuffer.resize(len * AUD_SAMPLE_SIZE(reader->getSpecs()));
-			buf = aBuffer.getBuffer();
-		}
+		aBuffer.assureSize(len * AUD_SAMPLE_SIZE(specs));
+		buf = aBuffer.getBuffer();
 
 		reader->read(len, eos, buf);
 
-		if(eos)
-		{
-			length = i;
-			break;
-		}
-
 		max = min = *buf;
+		power = *buf * *buf;
 		for(int j = 1; j < len; j++)
 		{
 			if(buf[j] < min)
 				min = buf[j];
 			if(buf[j] > max)
 				max = buf[j];
-			buffer[i * 2] = min;
-			buffer[i * 2 + 1] = max;
+			power += buf[j] * buf[j];
+		}
+
+		buffer[i * 3] = min;
+		buffer[i * 3 + 1] = max;
+		buffer[i * 3 + 2] = sqrt(power) / len;
+
+		if(eos)
+		{
+			length = i;
+			break;
 		}
 	}
 

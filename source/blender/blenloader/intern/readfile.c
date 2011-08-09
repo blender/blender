@@ -5609,6 +5609,7 @@ static void direct_link_sound(FileData *fd, bSound *sound)
 {
 	sound->handle = NULL;
 	sound->playback_handle = NULL;
+	sound->waveform = NULL;
 
 	// versioning stuff, if there was a cache, then we enable caching:
 	if(sound->cache)
@@ -11764,6 +11765,36 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					seq->pitch = 1.0f;
 				}
 				SEQ_END
+			}
+		}
+		{
+			bScreen *screen;
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				ScrArea *sa;
+				/* add regions */
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					SpaceLink *sl= sa->spacedata.first;
+					if(sl->spacetype==SPACE_SEQ) {
+						ARegion *ar;
+						for (ar=sa->regionbase.first; ar; ar= ar->next) {
+							if(ar->regiontype == RGN_TYPE_WINDOW) {
+								if(ar->v2d.min[1] == 4.0f)
+									ar->v2d.min[1]= 0.5f;
+							}
+						}
+					}
+					for (sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_SEQ) {
+							ARegion *ar;
+							for (ar=sl->regionbase.first; ar; ar= ar->next) {
+								if(ar->regiontype == RGN_TYPE_WINDOW) {
+									if(ar->v2d.min[1] == 4.0f)
+										ar->v2d.min[1]= 0.5f;
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 		{
