@@ -129,7 +129,7 @@ __device float3 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 			L += throughput*shader_eval_background(kg, &sd, path_flag);
 			shader_release(kg, &sd);
 #else
-			L += throughputmake_float3(0.8f, 0.8f, 0.8f);
+			L += make_float3(0.8f, 0.8f, 0.8f);
 #endif
 			break;
 		}

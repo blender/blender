@@ -27,6 +27,7 @@ CCL_NAMESPACE_BEGIN
 
 #define OBJECT_SIZE 16
 
+#define __SOBOL__
 #define __INSTANCING__
 #define __DPDU__
 #define __UV__
@@ -34,8 +35,9 @@ CCL_NAMESPACE_BEGIN
 #define __EMISSION__
 #define __CAUSTICS_TRICKS__
 #define __SVM__
-#define __SOBOL__
+#ifndef __KERNEL_OPENCL__
 #define __TEXTURES__
+#endif
 #define __RAY_DIFFERENTIALS__
 #define __CAMERA_CLIPPING__
 #define __INTERSECTION_REFINE__
@@ -286,9 +288,13 @@ typedef struct KernelCamera {
 
 	/* differentials */
 	float3 dx;
+#ifndef WITH_OPENCL
 	float pad1;
+#endif
 	float3 dy;
+#ifndef WITH_OPENCL
 	float pad2;
+#endif
 
 	/* clipping */
 	float nearclip;
@@ -321,7 +327,9 @@ typedef struct KernelSunSky {
 	/* sun direction in spherical and cartesian */
 	float theta, phi, pad3, pad4;
 	float3 dir;
+#ifndef WITH_OPENCL
 	float pad;
+#endif
 
 	/* perez function parameters */
 	float zenith_Y, zenith_x, zenith_y, pad2;

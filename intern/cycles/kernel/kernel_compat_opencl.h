@@ -24,13 +24,14 @@
 
 CCL_NAMESPACE_BEGIN
 
-#pragma OPENCL EXTENSION cl_khr_byte_addressable_store: enable
-
+/* in opencl all functions are device functions, so leave this empty */
 #define __device
 #define __device_inline
 
+/* no assert in opencl */
 #define kernel_assert(cond)
 
+/* manual implementation of interpolated 1D lookup */
 __device float kernel_tex_interp_(__global float *data, int width, float x)
 {
 	x = clamp(x, 0.0f, 1.0f)*width;
@@ -42,6 +43,7 @@ __device float kernel_tex_interp_(__global float *data, int width, float x)
 	return (1.0f - t)*data[index] + t*data[nindex];
 }
 
+/* make_type definitions with opencl style element initializers */
 #ifdef make_float2
 #undef make_float2
 #endif
@@ -62,22 +64,13 @@ __device float kernel_tex_interp_(__global float *data, int width, float x)
 #endif
 
 #define make_float2(x, y) ((float2)(x, y))
-#define make_float3(x, y, z) ((float3)(x, y, z, 0.0f))
+#define make_float3(x, y, z) ((float3)(x, y, z))
 #define make_float4(x, y, z, w) ((float4)(x, y, z, w))
 #define make_int2(x, y) ((int2)(x, y))
-#define make_int3(x, y, z) ((int3)(x, y, z, 0))
+#define make_int3(x, y, z) ((int3)(x, y, z))
 #define make_int4(x, y, z, w) ((int4)(x, y, z, w))
 
-#ifdef float3
-#undef float3
-#endif
-#ifdef int3
-#undef int3
-#endif
-
-typedef float4 float3;
-typedef int4 int3;
-
+/* math functions */
 #define __uint_as_float(x) as_float(x)
 #define __float_as_uint(x) as_uint(x)
 #define __int_as_float(x) as_float(x)
@@ -88,13 +81,25 @@ typedef int4 int3;
 #define powf(x, y) pow(((float)x), ((float)y))
 #define fabsf(x) fabs(((float)x))
 #define copysignf(x, y) copysign(((float)x), ((float)y))
+#define cosf(x) cos(((float)x))
+#define asinf(x) asin(((float)x))
+#define acosf(x) acos(((float)x))
+#define atanf(x) atan(((float)x))
+#define tanf(x) tan(((float)x))
+#define logf(x) log(((float)x))
+#define floorf(x) floor(((float)x))
+#define expf(x) exp(((float)x))
+#define hypotf(x, y) hypot(((float)x), ((float)y))
+#define atan2f(x, y) atan2(((float)x), ((float)y))
+#define fmaxf(x, y) fmax(((float)x), ((float)y))
+#define fminf(x, y) fmin(((float)x), ((float)y))
 
+/* data lookup defines */
 #define kernel_data (*kg->data)
-#define kernel_tex_interp(t, x) \
-	kernel_tex_interp_(kg->t, kg->t##_width, x)
-#define kernel_tex_fetch(t, index) \
-	kg->t[index]
+#define kernel_tex_interp(t, x) kernel_tex_interp_(kg->t, kg->t##_width, x)
+#define kernel_tex_fetch(t, index) kg->t[index]
 
+/* define NULL */
 #define NULL 0
 
 #include "util_types.h"

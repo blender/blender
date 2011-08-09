@@ -34,7 +34,7 @@ __device void svm_node_light_path(ShaderData *sd, float *stack, uint type, uint 
 		case NODE_LP_backfacing: info = (sd->flag & SD_BACKFACING)? 1.0f: 0.0f; break;
 	}
 
-	stack_store_float(stack, out_offset, info? 1.0f: 0.0f);
+	stack_store_float(stack, out_offset, info);
 }
 
 CCL_NAMESPACE_END

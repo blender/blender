@@ -70,8 +70,12 @@ CCL_NAMESPACE_BEGIN
 
 /* Shorter Unsigned Names */
 
+#ifndef __KERNEL_OPENCL__
+
 typedef unsigned char uchar;
 typedef unsigned int uint;
+
+#endif
 
 #ifndef __KERNEL_GPU__
 
