@@ -268,18 +268,11 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "MovieTrackingCamera", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking camera data", "Match-moving camera data for tracking");
 
-	/* Sensor Wdth */
+	/* Sensor */
 	prop= RNA_def_property(srna, "sensor_width", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sensor_width");
 	RNA_def_property_range(prop, 0.0f, 500.0f);
-	RNA_def_property_ui_text(prop, "Sensor Width", "Width of CCD sensor in millimeters");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
-
-	/* Sensor height */
-	prop= RNA_def_property(srna, "sensor_height", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "sensor_height");
-	RNA_def_property_range(prop, 0.0f, 500.0f);
-	RNA_def_property_ui_text(prop, "Sensor Height", "Height of CCD sensor in millimeters");
+	RNA_def_property_ui_text(prop, "Sensor", "Width of CCD sensor in millimeters");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	/* Focal Length */
@@ -322,6 +315,14 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0, 10, .1, 3);
 	RNA_def_property_ui_text(prop, "K3", "");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+
+	/* pixel aspect */
+	prop= RNA_def_property(srna, "pixel_aspect", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "pixel_aspect");
+	RNA_def_property_range(prop, 0.1f, 5000.0f);
+	RNA_def_property_ui_range(prop, 0.1f, 5000.0f, 1, 2);
+	RNA_def_property_ui_text(prop, "Pixel Aspect", "Pixel aspect ratio");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 }
 
 static void rna_def_trackingMarker(BlenderRNA *brna)

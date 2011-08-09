@@ -53,8 +53,7 @@ typedef struct Camera {
 	float passepartalpha;
 	float clipsta, clipend;
 	float lens, ortho_scale, drawsize;
-	float hfov, vfov;
-	float sensor_x, sensor_y;
+	float sensor_x, pad;
 	float shiftx, shifty;
 	
 	/* yafray: dof params */

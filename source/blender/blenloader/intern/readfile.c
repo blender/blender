@@ -11859,12 +11859,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			if(clip->proxy.quality==0)
 				clip->proxy.quality= 90;
+
+			if(clip->tracking.camera.pixel_aspect<0.01f)
+				clip->tracking.camera.pixel_aspect= 1.f;
 		}
 
 		for(cam= main->camera.first; cam; cam= cam->id.next) {
 			if (cam->sensor_x < 0.01f) {
 				cam->sensor_x = 32.f;
-				cam->sensor_y = 18.f;
 			}
 		}
 	}

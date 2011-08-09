@@ -76,17 +76,12 @@ class DATA_PT_lens(CameraButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         if cam.type == 'PERSP':
-            col.prop(cam, "lens")
-
-            split = layout.split()
-
-            col = split.column()
-            if cam.angle_unit == 'HORIZONTAL':
-                col.prop(cam, "angle_x")
-            elif cam.angle_unit == 'VERTICAL':
-                col.prop(cam, "angle_y")
-            col = split.column()
-            col.prop(cam, "angle_unit", text="")
+            row = col.row()
+            if cam.lens_unit == 'MILLIMETERS':
+                row.prop(cam, "lens")
+            elif cam.lens_unit == 'DEGREES':
+                row.prop(cam, "angle")
+            row.prop(cam, "lens_unit", text="")
 
         elif cam.type == 'ORTHO':
             col.prop(cam, "ortho_scale")
@@ -133,17 +128,12 @@ class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
         row.operator("camera.preset_add", text="", icon="ZOOMIN")
         row.operator("camera.preset_add", text="", icon="ZOOMOUT").remove_active = True
 
-        split = layout.split()
+        layout.prop(cam, "sensor_width")
 
-        col = split.column(align=True)
-        col.label(text="Sensor Size:")
-        col.prop(cam, "sensor_x", text="X")
-        col.prop(cam, "sensor_y", text="Y")
-
-        col = split.column(align=True)
-        col.label(text="Clipping:")
-        col.prop(cam, "clip_start", text="Start")
-        col.prop(cam, "clip_end", text="End")
+        layout.label(text="Clipping:")
+        row = layout.row(align=True)
+        row.prop(cam, "clip_start", text="Start")
+        row.prop(cam, "clip_end", text="End")
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):

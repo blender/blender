@@ -1007,16 +1007,17 @@ static int retrive_libmv_reconstruct(MovieTracking *tracking, struct libmv_Recon
 
 #endif
 
-float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int height, float aspx, float aspy)
+float BKE_tracking_solve_reconstruction(MovieTracking *tracking, int width, int height)
 {
 #if WITH_LIBMV
 	{
 		MovieTrackingCamera *camera= &tracking->camera;
-		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width*aspx, height*aspy);
+		float aspy= 1.f/tracking->camera.pixel_aspect;
+		struct libmv_Tracks *tracks= create_libmv_tracks(tracking, width, height*aspy);
 		struct libmv_Reconstruction *reconstruction = libmv_solveReconstruction(tracks,
 		        tracking->settings.keyframe1, tracking->settings.keyframe2,
 		        camera->focal,
-		        camera->principal[0]*aspx, camera->principal[1]*aspy,
+		        camera->principal[0], camera->principal[1]*aspy,
 		        camera->k1, camera->k2, camera->k3);
 		float error= libmv_reprojectionError(reconstruction);
 

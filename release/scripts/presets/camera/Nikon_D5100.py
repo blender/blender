@@ -1,3 +1,2 @@
 import bpy
-bpy.context.object.data.sensor_x = 23.6
-bpy.context.object.data.sensor_y = 15.6
+bpy.context.object.data.sensor_width = 23.6

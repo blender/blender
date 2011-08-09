@@ -478,7 +478,7 @@ static void movieclip_main_area_set_view2d(SpaceClip *sc, ARegion *ar)
 	h= height;
 
 	if(clip)
-		h*= clip->aspy/clip->aspx;
+		h*= clip->aspy/clip->aspx/clip->tracking.camera.pixel_aspect;
 
 	winx= ar->winrct.xmax - ar->winrct.xmin + 1;
 	winy= ar->winrct.ymax - ar->winrct.ymin + 1;

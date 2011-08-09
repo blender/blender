@@ -713,7 +713,6 @@ void *add_camera(const char *name)
 
 	cam->lens= 35.0f;
 	cam->sensor_x = 32.f;
-	cam->sensor_y = 18.f;
 	cam->clipsta= 0.1f;
 	cam->clipend= 100.0f;
 	cam->drawsize= 0.5f;

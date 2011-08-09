@@ -183,9 +183,7 @@ void quat_apply_track(float quat[4], short axis, short upflag);
 void vec_apply_track(float vec[3], short axis);
 
 float focallength_to_hfov(float focal_length, float sensor_x);
-float focallength_to_vfov(float focal_length, float sensor_y);
 float hfov_to_focallength(float hfov, float sensor_x);
-float vfov_to_focallength(float vfov, float sensor_y);
 
 float angle_wrap_rad(float angle);
 float angle_wrap_deg(float angle);

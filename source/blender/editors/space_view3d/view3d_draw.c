@@ -1243,7 +1243,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			uiSetRoundBox(15);
 			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 		}
-
+#if 0 /* XXX: ... */
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* assume fixed sensor width for now */
 			float sensor_scale = (x2i-x1i) / ca->sensor_x;
@@ -1257,6 +1257,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 			uiDrawBox(GL_LINE_LOOP, x1i, sy1, x2i, sy2, 2.0);
 		}
+#endif
 	}
 
 	setlinestyle(0);

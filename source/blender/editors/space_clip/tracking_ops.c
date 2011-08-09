@@ -1470,7 +1470,7 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	MovieTracking *tracking= &clip->tracking;
 	int width, height;
-	float error, aspx, aspy;
+	float error;
 
 	if(!check_solve_track_count(tracking)) {
 		BKE_report(op->reports, RPT_ERROR, "At least 10 tracks on both of keyframes are needed for reconstruction");
@@ -1479,9 +1479,8 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 
 	/* could fail if footage uses images with different sizes */
 	BKE_movieclip_acquire_size(clip, NULL, &width, &height);
-	BKE_movieclip_aspect(clip, &aspx, &aspy);
 
-	error= BKE_tracking_solve_reconstruction(tracking, width, height, aspx, aspy);
+	error= BKE_tracking_solve_reconstruction(tracking, width, height);
 
 	if(error<0)
 		BKE_report(op->reports, RPT_WARNING, "Some data failed to reconstruct, see console for details");
@@ -1500,11 +1499,18 @@ static int solve_camera_exec(bContext *C, wmOperator *op)
 		if(focal) {
 			Camera *camera= (Camera*)scene->camera->data;
 
-			if(clip->lastsize[0]) {
-				camera->sensor_x= tracking->camera.sensor_width;
-				camera->sensor_y= tracking->camera.sensor_height;
+			camera->sensor_x= tracking->camera.sensor_width;
+			camera->lens= focal*camera->sensor_x/width;
 
-				camera->lens= focal*camera->sensor_x/(float)clip->lastsize[0];
+			scene->r.xsch= width;
+			scene->r.ysch= height;
+
+			if(tracking->camera.pixel_aspect > 1.0f) {
+				scene->r.xasp= tracking->camera.pixel_aspect;
+				scene->r.yasp= 1.f;
+			} else {
+				scene->r.xasp= 1.f;
+				scene->r.yasp= 1.f / tracking->camera.pixel_aspect;
 			}
 
 			WM_event_add_notifier(C, NC_OBJECT, camera);

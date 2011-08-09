@@ -341,7 +341,6 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->aspx= clip->aspy= 1.0f;
 
 	clip->tracking.camera.sensor_width= 35.0f;
-	clip->tracking.camera.sensor_height= 18.0f;
 	clip->tracking.camera.units= CAMERA_UNITS_MM;
 
 	clip->tracking.settings.frames_limit= 20;
@@ -599,7 +598,7 @@ void BKE_movieclip_aspect(MovieClip *clip, float *aspx, float *aspy)
 	*aspx= *aspy= 1.0;
 
 	/* x is always 1 */
-	*aspy = clip->aspy/clip->aspx;
+	*aspy = clip->aspy/clip->aspx/clip->tracking.camera.pixel_aspect;
 }
 
 /* get segments of cached frames. useful for debugging cache policies */

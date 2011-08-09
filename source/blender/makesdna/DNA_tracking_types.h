@@ -55,8 +55,8 @@ typedef struct MovieReconstructedCamera {
 } MovieReconstructedCamera;
 
 typedef struct MovieTrackingCamera {
-	float sensor_width;		/* width of CCD sensor */
-	float sensor_height;	/* height of CCD sensor */
+	float sensor_width;	/* width of CCD sensor */
+	float pixel_aspect;	/* pixel aspect ratio */
 	float pad2;
 	float focal;		/* focal length */
 	short units;		/* units of focal length user is working with */

@@ -910,13 +910,13 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	}
 
 	if(sc->flag&SC_SHOW_BUNDLES) {
-		float pos[4], vec[4], mat[4][4], aspx, aspy;
+		float pos[4], vec[4], mat[4][4], aspy;
 
 		glEnable(GL_POINT_SMOOTH);
 		glPointSize(3.0f);
 
-		BKE_movieclip_aspect(clip, &aspx, &aspy);
-		BKE_tracking_projection_matrix(tracking, framenr, width*aspx, height*aspy, mat);
+		aspy= 1.f/clip->tracking.camera.pixel_aspect;
+		BKE_tracking_projection_matrix(tracking, framenr, width, height*aspy, mat);
 
 		track= tracking->tracks.first;
 		while(track) {
