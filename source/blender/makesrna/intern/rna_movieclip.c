@@ -54,7 +54,7 @@
 
 static void rna_MovieClip_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	MovieClip *clip= (MovieClip*)ptr->data;
+	MovieClip *clip= (MovieClip*)ptr->id.data;
 
 	BKE_movieclip_reload(clip);
 	DAG_id_tag_update(&clip->id, 0);
@@ -62,7 +62,7 @@ static void rna_MovieClip_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 
 static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 {
-	MovieClip *clip= (MovieClip*)ptr->data;
+	MovieClip *clip= (MovieClip*)ptr->id.data;
 
 	values[0]= clip->lastsize[0];
 	values[1]= clip->lastsize[1];
@@ -70,7 +70,7 @@ static void rna_MovieClip_size_get(PointerRNA *ptr, int *values)
 
 static void rna_MovieClip_resolution_get(PointerRNA *ptr, float *values)
 {
-	MovieClip *clip= (MovieClip*)ptr->data;
+	MovieClip *clip= (MovieClip*)ptr->id.data;
 	ImBuf *ibuf;
 
 	ibuf= BKE_movieclip_acquire_ibuf(clip, NULL);
