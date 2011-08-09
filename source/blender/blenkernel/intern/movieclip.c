@@ -341,6 +341,7 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->aspx= clip->aspy= 1.0f;
 
 	clip->tracking.camera.sensor_width= 35.0f;
+	clip->tracking.camera.pixel_aspect= 1.0f;
 	clip->tracking.camera.units= CAMERA_UNITS_MM;
 
 	clip->tracking.settings.frames_limit= 20;
