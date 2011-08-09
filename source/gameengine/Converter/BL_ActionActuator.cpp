@@ -174,8 +174,10 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		start = end = prop->GetNumber();
 	}
 
-	// Continue only really makes sense for play stop. All other modes go until they are complete.
-	if (m_flag & ACT_FLAG_CONTINUE && m_playtype == ACT_ACTION_LOOP_STOP)
+	// Continue only really makes sense for play stop and flipper. All other modes go until they are complete.
+	if (m_flag & ACT_FLAG_CONTINUE &&
+		(m_playtype == ACT_ACTION_LOOP_STOP ||
+		m_playtype == ACT_ACTION_FLIPPER))
 		use_continue = true;
 	
 	
@@ -189,6 +191,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	
 	if (bPositiveEvent)
 	{
+		if (use_continue && m_flag & ACT_FLAG_ACTIVE)
+			start = m_localtime = obj->GetActionFrame(m_layer);
+
 		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, play_mode, m_layer_weight, m_ipo_flags))
 		{
 			m_flag |= ACT_FLAG_ACTIVE;
@@ -215,11 +220,13 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			return false;
 		}
 
+		
+		m_localtime = obj->GetActionFrame(m_layer);
+		if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
+			m_localtime = m_startframe;
+
 		if (m_playtype == ACT_ACTION_LOOP_STOP)
 		{
-			m_localtime = obj->GetActionFrame(m_layer);
-			if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
-				m_localtime = m_startframe;
 			obj->StopAction(m_layer); // Stop the action after getting the frame
 
 			// We're done

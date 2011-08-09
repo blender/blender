@@ -252,9 +252,7 @@ void BL_Action::ResetStartTime(float curtime)
 	float dt = m_localtime - m_startframe;
 
 	m_starttime = curtime - dt / (KX_KetsjiEngine::GetAnimFrameRate()*m_speed);
-	printf("Before: %f, ", m_localtime);
 	SetLocalTime(curtime);
-	printf("After: %f\n", m_localtime);
 }
 
 void BL_Action::IncrementBlending(float curtime)
