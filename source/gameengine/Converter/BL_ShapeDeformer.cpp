@@ -73,8 +73,8 @@ BL_ShapeDeformer::BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
                     RAS_MeshObject *mesh)
 				:	
 					BL_SkinDeformer(gameobj,bmeshobj, mesh),
-					m_lastShapeUpdate(-1),
-					m_useShapeDrivers(false)
+					m_useShapeDrivers(false),
+					m_lastShapeUpdate(-1)
 {
 	m_key = m_bmesh->key;
 	m_bmesh->key = copy_key(m_key);
@@ -90,8 +90,8 @@ BL_ShapeDeformer::BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
 				BL_ArmatureObject* arma)
 				:
 					BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, recalc_normal, arma),
-					m_lastShapeUpdate(-1),
-					m_useShapeDrivers(false)
+					m_useShapeDrivers(false),
+					m_lastShapeUpdate(-1)
 {
 	m_key = m_bmesh->key;
 	m_bmesh->key = copy_key(m_key);
