@@ -27,7 +27,7 @@
 namespace libmv {
 
 /*!
-    A Camera is the location and rotation of the camera viewing \a image.
+    A EuclideanCamera is the location and rotation of the camera viewing \a image.
 
     \a image identify which image from \l Tracks this camera represents.
     \a R is a 3x3 matrix representing the rotation of the camera.
@@ -35,9 +35,9 @@ namespace libmv {
 
     \sa Reconstruction
 */
-struct Camera {
-  Camera() : image(-1) {}
-  Camera(const Camera &c) : image(c.image), R(c.R), t(c.t) {}
+struct EuclideanCamera {
+  EuclideanCamera() : image(-1) {}
+  EuclideanCamera(const EuclideanCamera &c) : image(c.image), R(c.R), t(c.t) {}
 
   int image;
   Mat3 R;
@@ -52,32 +52,42 @@ struct Camera {
 
     \sa Reconstruction
 */
-struct Point {
-  Point() : track(-1) {}
-  Point(const Point &p) : track(p.track), X(p.X) {}
+struct EuclideanPoint {
+  EuclideanPoint() : track(-1) {}
+  EuclideanPoint(const EuclideanPoint &p) : track(p.track), X(p.X) {}
   int track;
   Vec3 X;
 };
 
 /*!
-    The Reconstruction class stores \link Camera cameras \endlink and \link Point points \endlink.
+    The EuclideanReconstruction class stores \link EuclideanCamera cameras
+    \endlink and \link EuclideanPoint points \endlink.
 
-    The Reconstruction container is intended as the store of 3D reconstruction data
-    to be used with the MultiView API.
+    The EuclideanReconstruction container is intended as the store of 3D
+    reconstruction data to be used with the MultiView API.
 
-    The container has lookups to query a \a Camera from an \a image or a \a Point from a \a track.
+    The container has lookups to query a \a EuclideanCamera from an \a image or
+    a \a EuclideanPoint from a \a track.
 
     \sa Camera, Point
 */
-class Reconstruction {
+class EuclideanReconstruction {
  public:
+  // Default constructor starts with no cameras.
+  EuclideanReconstruction();
+
+  /// Copy constructor.
+  EuclideanReconstruction(const EuclideanReconstruction &other);
+
+  EuclideanReconstruction &operator=(const EuclideanReconstruction &other);
+
   /*!
       Insert a camera into the set. If there is already a camera for the given
-      \a image, the existing camera is replaced. If there is no
-      camera for the given \a image, a new one is added.
+      \a image, the existing camera is replaced. If there is no camera for the
+      given \a image, a new one is added.
 
-      \a image is the key used to retrieve the cameras with the
-      other methods in this class.
+      \a image is the key used to retrieve the cameras with the other methods
+      in this class.
 
       \note You should use the same \a image identifier as in \l Tracks.
   */
@@ -96,22 +106,110 @@ class Reconstruction {
   void InsertPoint(int track, const Vec3 &X);
 
   /// Returns a pointer to the camera corresponding to \a image.
-  Camera *CameraForImage(int image);
-  const Camera *CameraForImage(int image) const;
+  EuclideanCamera *CameraForImage(int image);
+  const EuclideanCamera *CameraForImage(int image) const;
 
   /// Returns all cameras.
-  vector<Camera> AllCameras() const;
+  vector<EuclideanCamera> AllCameras() const;
 
   /// Returns a pointer to the point corresponding to \a track.
-  Point *PointForTrack(int track);
-  const Point *PointForTrack(int track) const;
+  EuclideanPoint *PointForTrack(int track);
+  const EuclideanPoint *PointForTrack(int track) const;
 
   /// Returns all points.
-  vector<Point> AllPoints() const;
+  vector<EuclideanPoint> AllPoints() const;
 
  private:
-  vector<Camera> cameras_;
-  vector<Point> points_;
+  vector<EuclideanCamera> cameras_;
+  vector<EuclideanPoint> points_;
+};
+
+/*!
+    A ProjectiveCamera is the projection matrix for the camera of \a image.
+
+    \a image identify which image from \l Tracks this camera represents.
+    \a P is the 3x4 projection matrix.
+
+    \sa ProjectiveReconstruction
+*/
+struct ProjectiveCamera {
+  ProjectiveCamera() : image(-1) {}
+  ProjectiveCamera(const ProjectiveCamera &c) : image(c.image), P(c.P) {}
+
+  int image;
+  Mat34 P;
+};
+
+/*!
+    A Point is the 3D location of a track.
+
+    \a track identifies which track from \l Tracks this point corresponds to.
+    \a X is the homogeneous 3D position of the track.
+
+    \sa Reconstruction
+*/
+struct ProjectivePoint {
+  ProjectivePoint() : track(-1) {}
+  ProjectivePoint(const ProjectivePoint &p) : track(p.track), X(p.X) {}
+  int track;
+  Vec4 X;
+};
+
+/*!
+    The ProjectiveReconstruction class stores \link ProjectiveCamera cameras
+    \endlink and \link ProjectivePoint points \endlink.
+
+    The ProjectiveReconstruction container is intended as the store of 3D
+    reconstruction data to be used with the MultiView API.
+
+    The container has lookups to query a \a ProjectiveCamera from an \a image or
+    a \a ProjectivePoint from a \a track.
+
+    \sa Camera, Point
+*/
+class ProjectiveReconstruction {
+ public:
+  /*!
+      Insert a camera into the set. If there is already a camera for the given
+      \a image, the existing camera is replaced. If there is no camera for the
+      given \a image, a new one is added.
+
+      \a image is the key used to retrieve the cameras with the other methods
+      in this class.
+
+      \note You should use the same \a image identifier as in \l Tracks.
+  */
+  void InsertCamera(int image, const Mat34 &P);
+
+  /*!
+      Insert a point into the reconstruction. If there is already a point for
+      the given \a track, the existing point is replaced. If there is no point
+      for the given \a track, a new one is added.
+
+      \a track is the key used to retrieve the points with the
+      other methods in this class.
+
+      \note You should use the same \a track identifier as in \l Tracks.
+  */
+  void InsertPoint(int track, const Vec4 &X);
+
+  /// Returns a pointer to the camera corresponding to \a image.
+  ProjectiveCamera *CameraForImage(int image);
+  const ProjectiveCamera *CameraForImage(int image) const;
+
+  /// Returns all cameras.
+  vector<ProjectiveCamera> AllCameras() const;
+
+  /// Returns a pointer to the point corresponding to \a track.
+  ProjectivePoint *PointForTrack(int track);
+  const ProjectivePoint *PointForTrack(int track) const;
+
+  /// Returns all points.
+  vector<ProjectivePoint> AllPoints() const;
+
+ private:
+  vector<ProjectiveCamera> cameras_;
+  vector<ProjectivePoint> points_;
 };
 
 }  // namespace libmv

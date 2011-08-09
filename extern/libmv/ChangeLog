@@ -1,3 +1,348 @@
+commit c2af303e7bf0dddcb02937323ac5846b1801e6cc
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 11:13:29 2011 +0200
+
+    Remove reconstruction breaking debug code.
+
+commit 8792a633e5c5f1c1f12e164b9e8897ca0790ac59
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 10:49:18 2011 +0200
+
+    Remove getchar()s.
+
+commit 63a9bdee0cbd1197e0315d01c27bfc2361bd5656
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 10:35:07 2011 +0200
+
+    Adapt patch to new PipelineRoutines code generation strategy.
+
+commit 096ff1a4070f7212c50fb0a4b2feec7ca9d97158
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 09:54:12 2011 +0200
+
+    Merge max_image and max_track fix from tomato.
+
+commit d8450cd3c37278a397482cd36b1e2419f154cfb9
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 09:38:49 2011 +0200
+
+    Synchronize tree with Tomato: Merge patch for better resection, keep deprecated KLT tracker.
+
+commit e9b2dca920cf9575c15150a4988634b00e343a41
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Aug 8 17:07:08 2011 +0200
+
+    Fixes, Documentation.
+
+commit 4fc1c57a2d92442808ac4a3676e6d9a25a51e310
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Aug 7 14:35:08 2011 +0200
+
+    Improve tracker resilience by penalizing large motion vectors.
+
+commit cc8e7e8e08cd91f75c080a0091461ca9fe969664
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Aug 7 09:28:09 2011 +0200
+
+    Leverage SSE2 SAD instruction for 16x speed improvement in integer pixel search resulting in ~1ms per marker for 16x16 pattern on 128x128 region.
+
+commit f362ab4999a768370fca57552464b459eb9fbddc
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Aug 7 09:06:04 2011 +0200
+
+    Improve SAD Tracker subpixel precision (avoid drift even when adapting at each frame).
+
+commit fce7a214c561b5f5f0e17115c31fb48814bde2db
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Aug 6 21:57:06 2011 +0200
+
+    Track using simple Sum of Absolute Differences matching.
+    This method is simpler, more robust, faster and accurate.
+
+commit 620a7a35d9a2818bf6e9dbf5d11debda4be6bc26
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 29 12:35:57 2011 +0200
+
+    Add Intersect unit test.
+
+commit a2bf58fa57be11215eb17ff7f7de58f97d480ec3
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Jul 28 11:08:06 2011 +0200
+
+    Remove tests depending on dead code.
+    Fix CameraIntrinsics test.
+    Add Intersect and Resect tests.
+
+commit 19bddee10b4879c8cd2238ccdf5b8f7620cf8384
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 27 12:07:21 2011 +0200
+
+    Image Distortion: Fixes and more testing.
+
+commit 0454d97da328fb0eda8c6c50511ac31864a6d3d6
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 27 10:32:37 2011 +0200
+
+    Test float image distortion.
+
+commit 8db01595a8721f766d85931a8d92b780461d8741
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 27 10:27:07 2011 +0200
+
+    Image Distortion: Bilinear sampling, Optimization, Instantiate all variants (Distort/Undistort, float/ubyte, 1-4 channels).
+
+commit 91916db921e1f2818f0aa2be823bf92c50ad4de9
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 26 22:51:21 2011 +0200
+
+    New Undistortion API in CameraIntrinsics.h.
+    Implement Undistortion API in CameraIntrinsics.cc.
+
+commit 8c47a26072cfa9cf216771e5ae7a1dc60a770f82
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 26 22:16:06 2011 +0200
+
+    Qt Calibration fixes. Image undistortion experiments.
+
+commit b575d9f68856b4e95a6b0a92ecc4e7d635342f95
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 26 22:14:54 2011 +0200
+
+    Qt Calibration fixes.
+    Image undistortion experiments.
+
+commit fac2b3e88ef8f14fa62149f6fc929c623d73fe39
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Mon Jul 25 11:44:17 2011 +0200
+
+    Merge uncalibrated reconstruction.
+    UI fixes.
+
+commit d04071ee210baef5ff657441c8c5284c235e93a3
+Merge: 795e50f c4c67db
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Jul 23 12:18:58 2011 +0200
+
+    Merge branch 'master' of git://github.com/keir/libmv
+    
+    Conflicts:
+    	src/libmv/simple_pipeline/initialize_reconstruction.h
+    	src/ui/tracker/main.cc
+    	src/ui/tracker/main.h
+    	src/ui/tracker/scene.cc
+    	src/ui/tracker/scene.h
+
+commit 795e50fa1ca9ca4373ad9b5432916edf2f1940a0
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Jul 23 12:12:53 2011 +0200
+
+    Support creating FloatImage without copying data.
+
+commit c4c67db84cc6e972be19c3e0f495477a1419200e
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Jul 21 10:24:06 2011 -0700
+
+    Add an uncalibrated reconstruction pipeline to libmv.
+    
+    Note: The pipeline doesn't actually work yet! It runs, but the resulting
+    reconstruction is wildly broken. I have a number of theories as to why this is,
+    and will write tests to track this down, but this change has grown out of
+    control in the meantime.
+
+commit 584e0ddc4058a6a4e41b1fd9665654097af177d4
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 20 20:21:55 2011 +0200
+
+    Latest working revision of simple optimized tracker.
+
+commit 7983f86ff93f1ccd06f78439fb87387aecdfe49e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 20 20:10:12 2011 +0200
+
+    Revert "Incremental optimization: Change API to take float*."
+    
+    This reverts commit 922dc5c31022afc7fd14b2ead32491c079565d7b.
+
+commit 922dc5c31022afc7fd14b2ead32491c079565d7b
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 20 17:11:20 2011 +0200
+
+    Incremental optimization: Change API to take float*.
+
+commit 9d9fab4165aabad6474bb879b5f418c1b7a7862e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 20 17:05:14 2011 +0200
+
+    Incremental optimization.
+
+commit 739fe5a118a2a5c90cf2c6d66c776231da0fb92b
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 20 16:57:37 2011 +0200
+
+    Incremental optimization.
+
+commit c48ba3b9f49e8fc5ef45ab1b6753f70bfdef0c34
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 20 15:05:11 2011 +0200
+
+    Inline.
+
+commit 2b7e704d947cafd12d67b3904365feb7c2b3e89a
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 20 14:59:12 2011 +0200
+
+    Keep relative marker position in tracker.
+
+commit a92e1fb70c2be05f9808bc43b87d3949790ef7ed
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 20 10:56:52 2011 +0200
+
+    Avoid unecessary pyramid copy.
+
+commit 31908b280e8862f15c3f67f697727dd692db9997
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Jul 20 10:45:54 2011 +0200
+
+    tracker.cc: Extract float image only when necessary.
+    klt.cc: Remove retrack which wasn't useful when we already use robust time-reversible KLT (+40% speed)
+    klt.cc: Factorize bilinear sampling
+    
+    We are probably limited by bandwidth because of the float image filtering.
+    Next optimization step would require reducing filter sizes and use integer filtering.
+    Though, it will be necessary to verify the impact of tracking quality.
+
+commit 433cd976f6047324ba27f21b3cafe3ecfbcb5aa1
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 23:21:47 2011 +0200
+
+    Really add the simplified and optimized tracker.
+
+commit caf938781bcd3e695f127a548678a1cf0a426b8f
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 23:19:24 2011 +0200
+
+    Replace tracking/* trackers with the new simplified and optimized version.
+    
+    This first optimization pass should result in a 4x speedup.
+    TODO: Integrating optimized filtering and optimized bilinear sampling should provide additionnal performance.
+
+commit 13f5707573757a37d72b3d5be21a019049de9523
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 23:14:19 2011 +0200
+
+    Update documentation.
+
+commit a002fcf0ee42bd15991df34832cf557a5653c48e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 23:07:05 2011 +0200
+
+    Incremental Optimization #4: Keep last filtered pyramid.
+    
+    This avoid computing the pyramid downsampling twice (as new patch and then as old patch).
+    API was changed as this require the client to keep our state.
+
+commit 6772d7916126e710179370a5412d9380f05995a9
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 22:54:30 2011 +0200
+
+    Incremental Optimization #3: Move Filtering in MakePyramid.
+    
+    This avoid computing each pyramid filter twice (i.e for each call to TrackImage).
+
+commit eec24f8c8b21ec286d12990b6e63772d7559bccc
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 22:42:35 2011 +0200
+
+    Incremental Optimization #2: Move pyramid downsampling up to Track.
+    
+    This avoid computing the pyramid downsampling twice (forward and backward).
+
+commit 35cd70d321113956f2413084102a3a76ca35186f
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 22:37:01 2011 +0200
+
+    Incremental optimization #1: Convert retrack/pyramid/KLT tracker objects to respective methods in a single Tracker object.
+    
+    This is necessary to allow retrack to reuse pyramids and avoid filtering images multiple times.
+
+commit 84341da380c585645f38e67dce5a8e1fd58242ac
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 22:17:58 2011 +0200
+
+    Revert to working tracker in Qt Tracker.
+    
+    TODO: The optimization changes shall be done incrementally.
+
+commit 1d15e8572e8922c2a7aa8927f6f82c13ed6c3fc8
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 21:18:21 2011 +0200
+
+    Fix missing deallocation.
+
+commit a3ca18db4dec90414e658d480ea5f19b31bb8a77
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 21:00:37 2011 +0200
+
+    Progress in debugging optimized KLT.
+
+commit 354488cca6a29a4aa6ea3f943f693ae4af21e8da
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Jul 19 14:54:43 2011 +0200
+
+    Add optimized version of KLT tracker.
+    
+    FIXME: It currently doesn't work.
+
+commit 07a27f214c98e92b876c0878d05397f2031b35cd
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Jul 17 23:01:58 2011 +0200
+
+    Add some #if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0)) and #define constBits bits macros to support Qt < 4.7 which is still used on older systems.
+    
+    Build using Qt < 4.7 will see increased memory usage and unecessary copying.
+
+commit 1b91161241f90ef40391edd13c902d1901b723fb
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Jul 17 18:25:47 2011 +0200
+
+    Fix sequence caching.
+
+commit e1737d71b50237c0f0d5a7f2b7463284d95a902e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Jul 17 16:35:48 2011 +0200
+
+    Use deprecated FFmpeg API.
+
+commit 09b090a20134a8ccef273d802752bbf475ff5280
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Jul 16 21:19:14 2011 +0200
+
+    Fix loading cache directly after creation.
+
+commit 1190584f6ca60fb74188cac36c61333951244026
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sat Jul 16 20:02:36 2011 +0200
+
+    Add custom FileDialog to handle multiple files and folders selection in the same dialog
+
+commit 50504af3d0fc11665483aed524d52d076f38ffa8
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 15 23:34:41 2011 +0200
+
+    Fix mistake.
+
+commit a8e322a2c37cc87acd864d94a354334d611b9750
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 15 22:25:51 2011 +0200
+
+    Use cache even on first run (i.e don't load all images on the heap).
+
+commit 66ac3b5833a1fd4fbd97b082db6ddf859b33811c
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Jul 15 21:15:45 2011 +0200
+
+    Improve Zoom View.
+
 commit dec996966d5466717a813da2d8b9962115dfc8ac
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Fri Jul 15 20:04:06 2011 +0200
@@ -98,474 +443,3 @@ Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Sat Jul 9 12:08:28 2011 +0200
 
     Update README with instructions to build Qt OpenCV Calibration tool.
-
-commit dc4e18b474b024c04fbb0ef6b4f2c2cd642c8715
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jul 8 13:25:14 2011 +0200
-
-    Make Qt OpenCV Calibration Tool optionnal.
-
-commit 86356bd988b1b937082d56330f18a20e4cb26c19
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jul 8 10:19:30 2011 +0200
-
-    add QCompleter with QFileSystemModel to choose source image folder easily.
-
-commit 209983a5e74c8b328d22d17668b3ad20d6e87f7a
-Merge: 0396ccf 7bef9ca
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jul 8 10:17:05 2011 +0200
-
-    Merge branch 'master' of git://github.com/libmv/libmv
-
-commit 0396ccf81dee87c3e7a06aa15f05bcaad8dd6ac3
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jul 7 18:35:12 2011 +0200
-
-    calibration: Compute intrinsincs, undistort image and corners, output custom XML file.
-
-commit 540a48b1e9f9d4e28fe6b1ef56decf1b29b4811f
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jul 7 11:18:25 2011 +0200
-
-    Detect calibration checkerboard using OpenCV Calib3D.
-
-commit d8113dbac2f2156cdfebb5070102f29c26ba9776
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jul 6 22:36:12 2011 +0200
-
-    Initial implementation of OpenCV Qt Calibration Tool
-
-commit dae6fae16ec4abbaa9826f944c6ae16cc17ba051
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jul 6 16:01:41 2011 +0200
-
-    Fix build.
-
-commit 8cdf7aa54f16bf4fb0f0f824c7b5874373831019
-Merge: b8d02b5 df1d54e
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Tue Jul 5 09:51:01 2011 +0200
-
-    Merge branch 'master' of git://github.com/keir/libmv
-
-commit df1d54efd23530891851d3573a5126094acea840
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon Jul 4 13:12:53 2011 -0700
-
-    Fix include ordering.
-
-commit b8d02b551bca95f4a228a85188f12078cc3bd2f4
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jul 4 16:34:04 2011 +0200
-
-    Remove momentum in scene view.
-
-commit 67433907db5537a2e32893ef558c63ab336f59c1
-Merge: 0049521 b027af4
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon Jul 4 04:01:44 2011 -0700
-
-    Merge Matthias's branch.
-
-commit 0049521756bf03c88061ccc46d0a97397cc77094
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon Jul 4 03:18:05 2011 -0700
-
-    Fix build break caused by removing out-of-place definition of P_from_KRt.
-
-commit 40b38d52f71ba61af9d2b00a5077d6346b83d669
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon Jul 4 03:07:46 2011 -0700
-
-    Improvements to reconstruction.h documentation.
-
-commit b027af4662007c50a12c08e1991fb9b1124a3a87
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jul 4 10:22:54 2011 +0200
-
-    use P_From_KRt from projection.cc.
-
-commit b082a3e50c79e168e79e51d1571cd2e9b31aa2c2
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sun Jul 3 19:33:30 2011 +0200
-
-    Make unit testing optionnal.
-    Restore user defined camera intrinsincs.
-    Reduce subjective view speed.
-
-commit 144618f9bb247c33e7530118b1ff5aca608573af
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 30 02:33:09 2011 -0700
-
-    Add missing headers.
-
-commit 41b185566506a3583dc7d2aa46b48fa647d30177
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 30 02:32:50 2011 -0700
-
-    Disable projective resection for now.
-
-commit c0f6582f01d3529f757cccd83e7b76ffb1184f1f
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 30 02:31:07 2011 -0700
-
-    Fix a uninitialized memory error in reconstruction.
-    
-    With this change, the elevator sequence now reconstructs with 0.2 pixel average
-    reprojection error. That's over about 2000 markers, 120 frames, and 25 tracks.
-    Reconstruction is now working for real!
-
-commit 3dc34c599eaf69d7903e2213f68196fd32d69439
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Thu Jun 30 01:31:08 2011 -0700
-
-    Split multiview.h/cc up into individual files to keep compile times sane.
-
-commit c3b3296905f7b67ea038058b51efa8cd76e232ba
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Jun 29 22:46:58 2011 -0700
-
-    Add bundling support to simple pipeline. It seems to work pretty well.
-
-commit 4a3ebd309f551abe3197dc573cd7549941d74efd
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Wed Jun 29 10:33:27 2011 -0700
-
-    Fix return type in multiview minimization.
-
-commit 045ff6625a3de3fff98e9f4c153376f2143d2c3d
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 28 10:27:33 2011 -0700
-
-    Add hacky hardcoded calls into multiview from qt-tracker.
-
-commit 8c1dec581afbb06e45ed6f15dd72c64b90f52409
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 28 10:25:38 2011 -0700
-
-    Add Intersect and Resect implementations, including nonlinear refinement with Levenberg-Marquardt.
-
-commit 63939617aa39a8012154b6f18cf65b671a57880d
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 28 10:10:48 2011 -0700
-
-    Add const and non-const accessors to Reconstruction.
-
-commit b95015c8e99d7c9c37c13c3efdc4e6c87cece53d
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 28 10:09:56 2011 -0700
-
-    Return false from euclidean resection if it does not work.
-
-commit 437ab722d16c442f27b9c63af3a43468a564a2ef
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 28 10:09:15 2011 -0700
-
-    Formatting.
-
-commit c7156a6fcaf7ca8d30d624abeefcd9ddf1087bea
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 28 10:04:21 2011 -0700
-
-    More testing fixes.
-
-commit ba9e89674a49aa3b5372dd721dd413d90222a064
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 28 10:04:03 2011 -0700
-
-    Reenable testing.
-
-commit 0f9a11ace1294f9d857683779747d367923d48a2
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 28 10:03:36 2011 -0700
-
-    Add a test for camera intrinsics.
-
-commit 37ae9aea4541c9211cd983ce44a875f037136bd7
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Mon Jun 27 02:36:41 2011 -0700
-
-    Get simple reconstruction pipeline is running without BA. Doesn't work well yet.
-
-commit 656f4588f2dbb7672c7233bee5425b34e5ba8aa4
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun Jun 26 23:06:22 2011 -0700
-
-    Fix PointForTrack() in the Reconstruction object.
-
-commit b27afb3168c23671c130c0f92e24643204034d3e
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun Jun 26 23:05:39 2011 -0700
-
-    Clarify documenattion in pipelien.h.
-
-commit afd5c5b57999282a7f800c17c05d9020423843b3
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun Jun 26 23:05:15 2011 -0700
-
-    Add more source files to multiview that got removed.
-
-commit 2916c0f0c29c1e03a11773ac6615a7dbfbc9c058
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun Jun 26 23:04:24 2011 -0700
-
-    Implement Intersect() and Resect() in multiview.cc.
-
-commit ff2478331a98d0bf2e83b7b03a501049741b1d0e
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sun Jun 26 23:03:45 2011 -0700
-
-    Clarify documentation in multiview.h.
-
-commit f7670aab1b101f68802bc35bc1b64c3d55fa5f3c
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 23 16:18:44 2011 +0200
-
-    fix EnforceFundamentalRank2Constraint
-
-commit a3e29213bdd959502d2fdc077ac479d2b59db0c8
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 22 23:30:54 2011 +0200
-
-    fix CoordinatesForMarkersInImage
-
-commit 9e5f84b6cb063bdca8649b76b4f9769e35823f5d
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 22 20:26:33 2011 +0200
-
-    Remove random data generation, use InsertPoint in Intersect.
-
-commit a41b10fa74f0e7977654a43bb7367704b638bede
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 22 16:24:26 2011 +0200
-
-    hook NViewTriangulate to simple_pipeline/multiview Intersect API.
-    
-    Use libmv::vector instead of std::vector to avoid conflicts.
-    Convert iterator-based loops to counter-based loops as libmv::vector doesn't support iteration.
-
-commit 67b7437b074cb0dfdc26422dd29b9aba1cb906f4
-Merge: 045ca85 c257195
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 22 10:28:48 2011 +0200
-
-    Merge branch 'master' of git://github.com/keir/libmv
-    
-    Conflicts:
-    	src/libmv/simple_pipeline/multiview.cc
-
-commit 045ca85dde561c6ec84621ae8f8a67757152dc62
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Tue Jun 21 22:19:33 2011 +0200
-
-    Only reconstruct when we have at least 8 tracks, remove tracks from selections when no markers.
-
-commit 7b593875e6ba089d997ef9a7ff0df255c8883ea4
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Tue Jun 21 21:57:12 2011 +0200
-
-    only lens distort in overlay, fix keyframes creation.
-
-commit 4ff8e9762a4816bf3634578c2c4886e655120698
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Tue Jun 21 21:50:15 2011 +0200
-
-    MacOS support.
-
-commit c2571954d8d88b45b2f05be139fef06f308228ee
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 21 10:35:51 2011 -0700
-
-    Rework multiview.h doxygen comments.
-
-commit 7bef9cac601f4407eab576906442dba70396ed89
-Merge: 7a996a2 56f49b5
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 21 10:04:20 2011 -0700
-
-    Merge pull request #5 from nathanwiegand/master
-    
-    Howdy, Keir.
-
-commit 7a996a2f8153eed6c6ae784b5a17aee59c65d45f
-Merge: 1b20b39 7aceb96
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 21 10:03:01 2011 -0700
-
-    Merge pull request #7 from JulienMichot/master
-    
-    Fixed issue 26: Error 'REG_RIP' was not declared in this scope
-
-commit fb1c93590a67ba95d550f351c1d297699cdceffb
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 21 09:26:17 2011 -0700
-
-    Remove use od constBits() which is not present in Qt 4.6.
-
-commit 5a1883edb1b5b2b56b31ba929a1a077f53187306
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 21 09:26:00 2011 -0700
-
-    Make multiview.cc compile.
-
-commit 5ca168c45291205b387683ef679dbee18af23e72
-Merge: 9aea3ad 1de8d03
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 21 01:35:20 2011 -0700
-
-    Merge branch 'master' of git://github.com/Matthias-Fauconneau/libmv
-
-commit 9aea3adc56234b059a7ee10a6ff946c3a67ee699
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Tue Jun 21 01:34:40 2011 -0700
-
-    Progress on multiview code in simple pipeline.
-
-commit 1de8d0326cfe2c1b1d1b151b9eef147fca3c72c9
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jun 20 23:16:46 2011 +0200
-
-    Add back third_party/glog and third_party/gflag to build system as they are needed to compile multiview with logging in debug mode.
-
-commit a51662a259a6c946b5f84c3e0e3b351e9ea4105c
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jun 20 19:13:40 2011 +0200
-
-    Implement keyframe selection, Fix Tracks::MarkersForTracksInBothImages, Use Reconstruction methods.
-
-commit 2d6cd58ee1cd7c5073980f358c71b2898ad16b4c
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jun 20 14:15:37 2011 +0200
-
-    Add Simple Pipeline API header and documentation.
-    Make rebuilding much faster by removing unneeded dependencies.
-
-commit 7af3c1af55e42a8091b95ece38bbd1dbefa64013
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jun 20 12:52:44 2011 +0200
-
-    Add documentation to MultiView and Reconstruction APIs.
-
-commit 308fbc7d87c8d7189c588eb56a563d1f1ff926ba
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sun Jun 19 20:37:49 2011 +0200
-
-    Update the README.
-
-commit 340b69b2afa4d6c48a019c083bfd0a705bb12165
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sun Jun 19 20:28:22 2011 +0200
-
-    Change default build options to avoid spurious build failure reports.
-
-commit 2e1c6ef7803bbe8ef53237e2027764e932c404f9
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sat Jun 18 12:17:59 2011 +0200
-
-    Set maximum focal length to FLT_MAX.
-
-commit a213989750b7f080a2c543203865262a0d40252e
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sat Jun 18 12:01:52 2011 +0200
-
-    Fix issues caused by style changes.
-
-commit cea54e0207696bb09cadeefbce7bb2a4f1e4c996
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jun 17 22:46:10 2011 +0200
-
-    Add many whitespaces and newlines.
-
-commit fd01f5139fe720fbe3e8206de27b48519c3de947
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jun 17 13:05:05 2011 +0200
-
-    Add low order lens distortion for reprojected bundle preview.
-    
-    TODO: Test if the distortion is correct.
-
-commit 8aca7f45513b3cdc2b4b3cf04bd6c11aecf0a756
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 16 23:02:17 2011 +0200
-
-    Add Solve button and a solve() stub.
-
-commit 60b24a44cebdb7308d19e0b472349eadac42fdde
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 16 21:41:08 2011 +0200
-
-    Fix first MaxImage() and MaxTrack().
-    Correct transform for Zoom view.
-    Display whole track for visible markers.
-
-commit 3cc45633279ac6fdcdfcae70db03301c69ad609b
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 16 19:58:07 2011 +0200
-
-    Persistent Settings.
-
-commit 8c5b8de3019013cbdbcf019352c49fc3dc1b181b
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 16 19:19:41 2011 +0200
-
-    Add Camera parameters GUI.
-    
-    TODO: persistent parameters.
-    TODO: Feed the data to Multiview API.
-
-commit 7db187d7035bc7f5adee3771125867e9b892d03a
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 16 18:34:40 2011 +0200
-
-    Smaller bundle display, Display bundles in overlay.
-
-commit 9bf3ccee0f846cdfa5358b367ca35bf68d726df3
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 16 10:26:12 2011 +0200
-
-    Display 3D Scene overlay on 2D Tracker view.
-
-commit 3e795fa9f5aa7c461d2d65507af5d7b7d4e976ab
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jun 16 00:26:12 2011 +0200
-
-    Fix tracking (was wrong coordinate transform).
-
-commit f3dc249c6cf417c0bed7455ff4a974d59088d369
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 15 22:56:56 2011 +0200
-
-    attribute should have been varying.
-
-commit cfe8f83cea71d0fe46159cdb4b750c5888ae2065
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 15 22:49:53 2011 +0200
-
-    NVidia GLSL compiler is really not strict enough...
-
-commit 13eb0c74ee49cc15827c88fe7f7ae6a0f29e378b
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 15 22:46:20 2011 +0200
-
-    correct GLSL 1.2
-
-commit a8e9cfffac479cd0af0a4e461a9204e4685fd01e
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 15 22:26:36 2011 +0200
-
-    Remove unused GL abstraction, Downgrade GLSL requirement to 1.20, use GLEW by default even on linux.
-
-commit f9a29280ede36f6a3a894d2eea51dc7f4a1f62e2
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jun 15 21:58:35 2011 +0200
-
-    Add GL Zoom Views.
-    
-    This new implementation now display all selected markers.
-
-commit 7aceb964db6843fcf91bf641adde0646817db305
-Author: Julien Michot <julien.michot.fr@gmail.com>
-Date:   Wed Jun 15 21:51:04 2011 +0200
-
-    Fixed issue 26.

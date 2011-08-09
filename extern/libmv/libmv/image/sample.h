@@ -76,6 +76,7 @@ inline T SampleLinear(const Array3D<T> &image, float y, float x, int v = 0) {
 
 // Downsample all channels by 2. If the image has odd width or height, the last
 // row or column is ignored.
+// FIXME(MatthiasF): this implementation shouldn't be in an interface file
 inline void DownsampleChannelsBy2(const Array3Df &in, Array3Df *out) {
   int height = in.Height() / 2;
   int width = in.Width() / 2;

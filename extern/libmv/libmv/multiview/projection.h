@@ -128,7 +128,7 @@ inline void Project(const Mat34 &P, const Vec3 &X, Vec2 *x) {
 
 inline void Project(const Mat34 &P, const Mat4X &X, Mat2X *x) {
   x->resize(2, X.cols());
-  for (size_t c = 0; c < X.cols(); ++c) {
+  for (int c = 0; c < X.cols(); ++c) {
     Vec3 hx = P * X.col(c);
     x->col(c) = hx.head<2>() / hx(2);
   }
@@ -142,7 +142,7 @@ inline Mat2X Project(const Mat34 &P, const Mat4X &X) {
 
 inline void Project(const Mat34 &P, const Mat3X &X, Mat2X *x) {
   x->resize(2, X.cols());
-  for (size_t c = 0; c < X.cols(); ++c) {
+  for (int c = 0; c < X.cols(); ++c) {
     Vec4 HX;
     HX << X.col(c), 1.0;
     Vec3 hx = P * HX;
@@ -154,7 +154,7 @@ inline void Project(const Mat34 &P, const Mat3X &X, const Vecu &ids, Mat2X *x) {
   x->resize(2, ids.size());
   Vec4 HX;
   Vec3 hx;
-  for (size_t c = 0; c < ids.size(); ++c) {
+  for (int c = 0; c < ids.size(); ++c) {
     HX << X.col(ids[c]), 1.0;
     hx = P * HX;
     x->col(c) = hx.head<2>() / hx(2);

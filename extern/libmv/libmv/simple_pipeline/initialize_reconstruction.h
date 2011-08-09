@@ -25,11 +25,13 @@
 
 namespace libmv {
 
-class Marker;
-class Reconstruction;
+struct Marker;
+class EuclideanReconstruction;
+class ProjectiveReconstruction;
 
 /*!
-    Initialize the \link Reconstruction reconstruction \endlink using two frames.
+    Initialize the \link EuclideanReconstruction reconstruction \endlink using
+    two frames.
 
     \a markers should contain all \l Marker markers \endlink belonging to
     tracks visible in both frames. The pose estimation of the camera for
@@ -43,11 +45,30 @@ class Reconstruction;
           already corrected for camera intrinsics and radial distortion.
     \note This assumes an outlier-free set of markers.
 
-    \sa Resect
+    \sa EuclideanResect, EuclideanIntersect, EuclideanBundle
 */
-bool ReconstructTwoFrames(const vector<Marker> &markers,
-                          Reconstruction *reconstruction);
+bool EuclideanReconstructTwoFrames(const vector<Marker> &markers,
+                                   EuclideanReconstruction *reconstruction);
 
+/*!
+    Initialize the \link ProjectiveReconstruction reconstruction \endlink using
+    two frames.
+
+    \a markers should contain all \l Marker markers \endlink belonging to
+    tracks visible in both frames. An estimate of the projection matrices for
+    the two frames will get added to the reconstruction.
+
+    \note The two frames need to have both enough parallax and enough common tracks
+          for accurate reconstruction. At least 8 tracks are suggested.
+    \note The origin of the coordinate system is defined to be the camera of
+          the first keyframe.
+    \note This assumes the markers are already corrected for radial distortion.
+    \note This assumes an outlier-free set of markers.
+
+    \sa ProjectiveResect, ProjectiveIntersect, ProjectiveBundle
+*/
+bool ProjectiveReconstructTwoFrames(const vector<Marker> &markers,
+                                    ProjectiveReconstruction *reconstruction);
 }  // namespace libmv
 
 #endif  // LIBMV_SIMPLE_PIPELINE_INITIALIZE_RECONSTRUCTION_H

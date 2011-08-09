@@ -37,22 +37,22 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
   Q.setIdentity();
 
   // Set K(2,1) to zero.
-  if (K(2,1) != 0) {
+  if (K(2, 1) != 0) {
     double c = -K(2,2);
     double s = K(2,1);
     double l = sqrt(c * c + s * s);
     c /= l; s /= l;
     Mat3 Qx;
-    Qx << 1, 0, 0,
-         0, c, -s,
-         0, s, c;
+    Qx << 1, 0,  0,
+          0, c, -s,
+          0, s,  c;
     K = K * Qx;
     Q = Qx.transpose() * Q;
   }
   // Set K(2,0) to zero.
-  if (K(2,0) != 0) {
-    double c = K(2,2);
-    double s = K(2,0);
+  if (K(2, 0) != 0) {
+    double c = K(2, 2);
+    double s = K(2, 0);
     double l = sqrt(c * c + s * s);
     c /= l; s /= l;
     Mat3 Qy;
@@ -63,9 +63,9 @@ void KRt_From_P(const Mat34 &P, Mat3 *Kp, Mat3 *Rp, Vec3 *tp) {
     Q = Qy.transpose() * Q;
   }
   // Set K(1,0) to zero.
-  if (K(1,0) != 0) {
-    double c = -K(1,1);
-    double s = K(1,0);
+  if (K(1, 0) != 0) {
+    double c = -K(1, 1);
+    double s = K(1, 0);
     double l = sqrt(c * c + s * s);
     c /= l; s /= l;
     Mat3 Qz;

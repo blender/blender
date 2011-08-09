@@ -22,11 +22,13 @@
 #define LIBMV_SIMPLE_PIPELINE_RESECT_H
 
 #include "libmv/base/vector.h"
+#include "libmv/simple_pipeline/tracks.h"
+#include "libmv/simple_pipeline/reconstruction.h"
 
 namespace libmv {
 
 /*!
-    Estimate the pose of a camera from 2D to 3D correspondences.
+    Estimate the Euclidean pose of a camera from 2D to 3D correspondences.
 
     This takes a set of markers visible in one frame (which is the one to
     resection), such that the markers are also reconstructed in 3D in the
@@ -47,10 +49,37 @@ namespace libmv {
 
     \return True if the resection was successful, false otherwise.
 
-    \sa ReconstructTwoFrames
+    \sa EuclideanIntersect, EuclideanReconstructTwoFrames
 */
-bool Resect(const vector<Marker> &markers,
-            Reconstruction *reconstruction);
+bool EuclideanResect(const vector<Marker> &markers,
+                     EuclideanReconstruction *reconstruction, bool final_pass);
+
+/*!
+    Estimate the projective pose of a camera from 2D to 3D correspondences.
+
+    This takes a set of markers visible in one frame (which is the one to
+    resection), such that the markers are also reconstructed in a projective
+    frame in the reconstruction object, and solves for the projective matrix of
+    the camera for that frame.
+
+    \a markers should contain \l Marker markers \endlink belonging to tracks
+    visible in the one frame to be resectioned. Each of the tracks associated
+    with the markers must have a corresponding reconstructed homogeneous 3D
+    position in the \a *reconstruction object.
+
+    \a *reconstruction should contain the homogeneous 3D points associated with
+    the tracks for the markers present in \a markers.
+
+    \note This assumes radial distortion has already been corrected, but
+          otherwise works for uncalibrated sequences.
+    \note This assumes an outlier-free set of markers.
+
+    \return True if the resection was successful, false otherwise.
+
+    \sa ProjectiveIntersect, ProjectiveReconstructTwoFrames
+*/
+bool ProjectiveResect(const vector<Marker> &markers,
+                      ProjectiveReconstruction *reconstruction);
 
 }  // namespace libmv
 

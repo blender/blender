@@ -66,7 +66,7 @@ typedef struct libmv_RegionTracker {
 } libmv_RegionTracker;
 
 typedef struct libmv_Reconstruction {
-	libmv::Reconstruction reconstruction;
+	libmv::EuclideanReconstruction reconstruction;
 
 	/* used for per-track average error calculation after reconstruction */
 	libmv::Tracks tracks;
@@ -332,7 +332,7 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 	/* Invert the camera intrinsics. */
 	libmv::vector<libmv::Marker> markers = ((libmv::Tracks*)tracks)->AllMarkers();
 	libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
-	libmv::Reconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
 	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
 
 	intrinsics->SetFocalLength(focal_length, focal_length);
@@ -354,20 +354,20 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 	libmv::vector<libmv::Marker> keyframe_markers =
 		normalized_tracks.MarkersForTracksInBothImages(keyframe1, keyframe2);
 
-	libmv::ReconstructTwoFrames(keyframe_markers, reconstruction);
-	libmv::Bundle(normalized_tracks, reconstruction);
-	libmv::CompleteReconstruction(normalized_tracks, reconstruction);
+	libmv::EuclideanReconstructTwoFrames(keyframe_markers, reconstruction);
+	libmv::EuclideanBundle(normalized_tracks, reconstruction);
+	libmv::EuclideanCompleteReconstruction(normalized_tracks, reconstruction);
 
 	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;
-	libmv_reconstruction->error = libmv::ReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, *intrinsics);
+	libmv_reconstruction->error = libmv::EuclideanReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, *intrinsics);
 
 	return (libmv_Reconstruction *)libmv_reconstruction;
 }
 
 int libmv_reporojectionPointForTrack(libmv_Reconstruction *libmv_reconstruction, int track, double pos[3])
 {
-	libmv::Reconstruction *reconstruction = &libmv_reconstruction->reconstruction;
-	libmv::Point *point = reconstruction->PointForTrack(track);
+	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::EuclideanPoint *point = reconstruction->PointForTrack(track);
 
 	if(point) {
 		pos[0] = point->X[0];
@@ -380,7 +380,7 @@ int libmv_reporojectionPointForTrack(libmv_Reconstruction *libmv_reconstruction,
 	return 0;
 }
 
-static libmv::Marker ProjectMarker(const libmv::Point &point, const libmv::Camera &camera,
+static libmv::Marker ProjectMarker(const libmv::EuclideanPoint &point, const libmv::EuclideanCamera &camera,
 			const libmv::CameraIntrinsics &intrinsics) {
 	libmv::Vec3 projected = camera.R * point.X + camera.t;
 	projected /= projected(2);
@@ -396,7 +396,7 @@ static libmv::Marker ProjectMarker(const libmv::Point &point, const libmv::Camer
 
 double libmv_reporojectionErrorForTrack(libmv_Reconstruction *libmv_reconstruction, int track)
 {
-	libmv::Reconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
 	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
 	libmv::vector<libmv::Marker> markers =  libmv_reconstruction->tracks.MarkersForTrack(track);
 
@@ -404,8 +404,8 @@ double libmv_reporojectionErrorForTrack(libmv_Reconstruction *libmv_reconstructi
 	double total_error = 0.0;
 
 	for (int i = 0; i < markers.size(); ++i) {
-		const libmv::Camera *camera = reconstruction->CameraForImage(markers[i].image);
-		const libmv::Point *point = reconstruction->PointForTrack(markers[i].track);
+		const libmv::EuclideanCamera *camera = reconstruction->CameraForImage(markers[i].image);
+		const libmv::EuclideanPoint *point = reconstruction->PointForTrack(markers[i].track);
 
 		if (!camera || !point) {
 			continue;
@@ -425,8 +425,8 @@ double libmv_reporojectionErrorForTrack(libmv_Reconstruction *libmv_reconstructi
 
 int libmv_reporojectionCameraForImage(libmv_Reconstruction *libmv_reconstruction, int image, double mat[4][4])
 {
-	libmv::Reconstruction *reconstruction = &libmv_reconstruction->reconstruction;
-	libmv::Camera *camera = reconstruction->CameraForImage(image);
+	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::EuclideanCamera *camera = reconstruction->CameraForImage(image);
 
 	if(camera) {
 		for (int j = 0; j < 3; ++j) {

@@ -41,23 +41,25 @@ class ArrayND : public BaseArray {
   typedef Tuple<int, N> Index;
 
   /// Create an empty array.
-  ArrayND() : data_(NULL) { Resize(Index(0)); }
+  ArrayND() : data_(NULL), own_data(true) { Resize(Index(0)); }
 
   /// Create an array with the specified shape.
-  ArrayND(const Index &shape) : data_(NULL) { Resize(shape); }
+  ArrayND(const Index &shape) : data_(NULL), own_data(true) { Resize(shape); }
 
   /// Create an array with the specified shape.
-  ArrayND(int *shape) : data_(NULL) { Resize(shape); }
+  ArrayND(int *shape) : data_(NULL), own_data(true) { Resize(shape); }
 
   /// Copy constructor.
-  ArrayND(const ArrayND<T, N> &b) : data_(NULL) {
+  ArrayND(const ArrayND<T, N> &b) : data_(NULL), own_data(true) {
     ResizeLike(b);
     std::memcpy(Data(), b.Data(), sizeof(T) * Size());
   }
 
-  ArrayND(int s0) : data_(NULL) { Resize(s0); }
-  ArrayND(int s0, int s1) : data_(NULL) { Resize(s0, s1); }
-  ArrayND(int s0, int s1, int s2) : data_(NULL) { Resize(s0, s1, s2); }
+  ArrayND(int s0) : data_(NULL), own_data(true) { Resize(s0); }
+  ArrayND(int s0, int s1) : data_(NULL), own_data(true) { Resize(s0, s1); }
+  ArrayND(int s0, int s1, int s2) : data_(NULL), own_data(true) { Resize(s0, s1, s2); }
+
+  ArrayND(T* data, int s0, int s1, int s2) : data_(data), own_data(false) { Resize(s0, s1, s2); }
 
   /// Destructor deletes pixel data.
   ~ArrayND() {
@@ -91,10 +93,12 @@ class ArrayND : public BaseArray {
     for (int i = N - 1; i > 0; --i) {
       strides_(i - 1) = strides_(i) * shape_(i);
     }
-    delete [] data_;
-    data_ = NULL;
-    if (Size() > 0) {
-      data_ = new T[Size()];
+    if(own_data) {
+      delete [] data_;
+      data_ = NULL;
+      if (Size() > 0) {
+        data_ = new T[Size()];
+      }
     }
   }
 
@@ -326,6 +330,9 @@ class ArrayND : public BaseArray {
 
   /// Pointer to the first element of the array.
   T *data_;
+
+  /// Flag if this Array either own or reference the data
+  bool own_data;
 };
 
 /// 3D array (row, column, channel).
@@ -338,6 +345,9 @@ class Array3D : public ArrayND<T, 3> {
   }
   Array3D(int height, int width, int depth=1)
       : Base(height, width, depth) {
+  }
+  Array3D(T* data, int height, int width, int depth=1)
+      : Base(data, height, width, depth) {
   }
 
   void Resize(int height, int width, int depth=1) {

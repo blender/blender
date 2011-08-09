@@ -134,10 +134,12 @@ class LevenbergMarquardt {
       Solver solver(A_augmented);
       dx = solver.solve(g);
       bool solved = (A_augmented * dx).isApprox(g);
-      if (!solved) LOG(ERROR) << "Failed to solve";
+      if (!solved) {
+        LOG(ERROR) << "Failed to solve";
+      }
       if (solved && dx.norm() <= params.relative_step_threshold * x.norm()) {
-          results.status = RELATIVE_STEP_SIZE_TOO_SMALL;
-          break;
+        results.status = RELATIVE_STEP_SIZE_TOO_SMALL;
+        break;
       } 
       if (solved) {
         x_new = x + dx;

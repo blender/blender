@@ -21,13 +21,17 @@
 #ifndef LIBMV_SIMPLE_PIPELINE_CAMERA_INTRINSICS_H_
 #define LIBMV_SIMPLE_PIPELINE_CAMERA_INTRINSICS_H_
 
-#include "libmv/numeric/numeric.h"
+#include <Eigen/Core>
+typedef Eigen::Matrix<double, 3, 3> Mat3;
 
 namespace libmv {
+
+struct Offset;
 
 class CameraIntrinsics {
  public:
   CameraIntrinsics();
+  ~CameraIntrinsics();
 
   const Mat3 &K()                 const { return K_;            }
   // FIXME(MatthiasF): these should be CamelCase methods
@@ -43,6 +47,11 @@ class CameraIntrinsics {
   double      k3()                const { return k3_; }
   double      p1()                const { return p1_; }
   double      p2()                const { return p2_; }
+
+  /// Set the entire calibration matrix at once.
+  void SetK(const Mat3 new_k) {
+    K_ = new_k;
+  }
 
   /// Set both x and y focal length in pixels.
   void SetFocalLength(double focal_x, double focal_y) {
@@ -66,6 +75,11 @@ class CameraIntrinsics {
     k3_ = k3;
   }
 
+  void SetTangentialDistortion(double p1, double p2) {
+    p1_ = p1;
+    p2_ = p2;
+  }
+
   /*!
       Apply camera intrinsics to the normalized point to get image coordinates.
 
@@ -85,7 +99,50 @@ class CameraIntrinsics {
   void InvertIntrinsics(double image_x, double image_y,
                         double *normalized_x, double *normalized_y) const;
 
+  /*!
+      Distort an image using the current camera instrinsics
+
+      The distorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This is the reference implementation using floating point images.
+  */
+  void Distort(const float* src, float* dst,
+               int width, int height, int channels);
+  /*!
+      Distort an image using the current camera instrinsics
+
+      The distorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This version is much faster.
+  */
+  void Distort(const unsigned char* src, unsigned char* dst,
+               int width, int height, int channels);
+  /*!
+      Undistort an image using the current camera instrinsics
+
+      The undistorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This is the reference implementation using floating point images.
+  */
+  void Undistort(const float* src, float* dst,
+                 int width, int height, int channels);
+  /*!
+      Undistort an image using the current camera instrinsics
+
+      The undistorted image is computed in \a dst using samples from \a src.
+      both buffers should be \a width x \a height x \a channels sized.
+
+      \note This version is much faster.
+  */
+  void Undistort(const unsigned char* src, unsigned char* dst,
+                 int width, int height, int channels);
+
  private:
+  template<typename WarpFunction> void ComputeLookupGrid(Offset* grid, int width, int height);
+
   // The traditional intrinsics matrix from x = K[R|t]X.
   Mat3 K_;
 
@@ -99,6 +156,9 @@ class CameraIntrinsics {
   // the normalized coordinates before the focal length, which makes them
   // independent of image size.
   double k1_, k2_, k3_, p1_, p2_;
+
+  Offset* distort_;
+  Offset* undistort_;
 };
 
 }  // namespace libmv

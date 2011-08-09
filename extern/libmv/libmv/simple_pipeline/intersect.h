@@ -44,10 +44,33 @@ namespace libmv {
           already corrected for camera intrinsics and radial distortion.
     \note This assumes an outlier-free set of markers.
 
+    \sa EuclideanResect
+*/
+bool EuclideanIntersect(const vector<Marker> &markers,
+                        EuclideanReconstruction *reconstruction);
+
+/*!
+    Estimate the homogeneous coordinates of a track by intersecting rays.
+
+    This takes a set of markers, where each marker is for the same track but
+    different images, and reconstructs the homogeneous 3D position of that
+    track. Each of the frames for which there is a marker for that track must
+    have a corresponding reconstructed camera in \a *reconstruction.
+
+    \a markers should contain all \l Marker markers \endlink belonging to
+       tracks visible in all frames.
+    \a reconstruction should contain the cameras for all frames.
+       The new \l Point points \endlink will be inserted in \a reconstruction.
+
+    \note This assumes that radial distortion is already corrected for, but
+          does not assume that e.g. focal length and principal point are
+          accounted for.
+    \note This assumes an outlier-free set of markers.
+
     \sa Resect
 */
-bool Intersect(const vector<Marker> &markers,
-               Reconstruction *reconstruction);
+bool ProjectiveIntersect(const vector<Marker> &markers,
+                         ProjectiveReconstruction *reconstruction);
 
 }  // namespace libmv
 

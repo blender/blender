@@ -31,7 +31,7 @@ namespace libmv {
 std::vector<Corner> Detect(const unsigned char* data, int width, int height, int stride,
                            int margin, int min_trackness, int min_distance) {
   std::vector<Corner> corners;
-  data += margin*width+margin;
+  data += margin*width + margin;
   // TODO(MatthiasF): Support targetting a feature count (binary search trackness)
   int num_corners;
   xy* all = fast9_detect(data, width-2*margin, height-2*margin,
@@ -44,15 +44,11 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
   // TODO: merge with close feature suppression
   xy* nonmax = nonmax_suppression(all, scores, num_corners, &num_corners);
   free(all);
-  free(scores);
-  if(num_corners == 0) {
-    free(nonmax);
-    return corners;
-  }
   // Remove too close features
   // TODO(MatthiasF): A resolution independent parameter would be better than distance
   // e.g. a coefficient going from 0 (no minimal distance) to 1 (optimal circle packing)
-  corners.reserve(num_corners);
+  // FIXME(MatthiasF): this method will not necessarily give all maximum markers
+  if(num_corners) corners.reserve(num_corners);
   for(int i = 0; i < num_corners; ++i) {
     xy xy = nonmax[i];
     Corner a = { xy.x+margin, xy.y+margin, scores[i], 7 };
@@ -60,19 +56,16 @@ std::vector<Corner> Detect(const unsigned char* data, int width, int height, int
     for(int j = 0; j < corners.size(); j++) {
       Corner& b = corners[j];
       if ( (a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y) < min_distance*min_distance ) {
-        if( a.score > b.score ) {
-          // replace close lesser feature
-          b = a;
-        }
+        // already a nearby feature
         goto skip;
       }
     }
-    // or add a new feature
-    corners.push_back( a );
+    // otherwise add the new feature
+    corners.push_back(a);
     skip: ;
   }
+  free(scores);
   free(nonmax);
   return corners;
 }
-
 }

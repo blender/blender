@@ -36,7 +36,8 @@
 
 namespace libmv {
 
-void Bundle(const Tracks &tracks, Reconstruction *reconstruction) {
+void EuclideanBundle(const Tracks &tracks,
+                     EuclideanReconstruction *reconstruction) {
   vector<Marker> markers = tracks.AllMarkers();
 
   // "index" in this context is the index that V3D's optimizer will see. The
@@ -44,16 +45,16 @@ void Bundle(const Tracks &tracks, Reconstruction *reconstruction) {
   // not the case for the "image" numbering that arises from the tracks
   // structure. The complicated mapping is necessary to convert between the two
   // representations.
-  std::map<Camera *, int> camera_to_index;
-  std::map<Point *, int> point_to_index;
-  vector<Camera *> index_to_camera;
-  vector<Point *> index_to_point;
+  std::map<EuclideanCamera *, int> camera_to_index;
+  std::map<EuclideanPoint *, int> point_to_index;
+  vector<EuclideanCamera *> index_to_camera;
+  vector<EuclideanPoint *> index_to_point;
   int num_cameras = 0;
   int num_points = 0;
   for (int i = 0; i < markers.size(); ++i) {
     const Marker &marker = markers[i];
-    Camera *camera = reconstruction->CameraForImage(marker.image);
-    Point *point = reconstruction->PointForTrack(marker.track);
+    EuclideanCamera *camera = reconstruction->CameraForImage(marker.image);
+    EuclideanPoint *point = reconstruction->PointForTrack(marker.track);
     if (camera && point) {
       if (camera_to_index.find(camera) == camera_to_index.end()) {
         camera_to_index[camera] = num_cameras;
@@ -118,8 +119,8 @@ void Bundle(const Tracks &tracks, Reconstruction *reconstruction) {
   std::vector<int> v3d_camera_for_measurement;
   std::vector<int> v3d_point_for_measurement;
   for (int i = 0; i < markers.size(); ++i) {
-    Camera *camera = reconstruction->CameraForImage(markers[i].image);
-    Point *point = reconstruction->PointForTrack(markers[i].track);
+    EuclideanCamera *camera = reconstruction->CameraForImage(markers[i].image);
+    EuclideanPoint *point = reconstruction->PointForTrack(markers[i].track);
     if (!camera || !point) {
       continue;
     }
@@ -172,6 +173,12 @@ void Bundle(const Tracks &tracks, Reconstruction *reconstruction) {
       index_to_point[k]->X(i) = v3d_points[k][i];
     }
   }
+}
+
+void ProjectiveBundle(const Tracks & /*tracks*/,
+                      ProjectiveReconstruction * /*reconstruction*/) {
+  // TODO(keir): Implement this! This can't work until we have a better bundler
+  // than SSBA, since SSBA has no support for projective bundling.
 }
 
 }  // namespace libmv

@@ -57,6 +57,9 @@ class Tracks {
  public:
   Tracks() {}
 
+  // Copy constructor for a tracks object.
+  Tracks(const Tracks &other);
+
   /// Construct a new tracks object using the given markers to start.
   Tracks(const vector<Marker> &markers);
 
