@@ -2860,16 +2860,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	// Jason
 	if(paint_vertsel_test(ob)) {
 		glColor3f(0.0f, 0.0f, 0.0f);
-		 glPointSize(2.0f);
-		// TODO clarify:
-		// there is clearly something I don't understand, when it was 
-		// dt != OB_WIRE instead, it still drew in wire mode! (in weight paint mode)
-		if(dt != OB_SOLID || ob->mode & OB_MODE_VERTEX_PAINT) {
-			dm->drawEdges(dm, (totface==0), TRUE);
-		}
-		glPointSize(3.0f);
+		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 		dm->drawSelectedVerts(dm);
-		//draw_obmode_dm_verts(dm, 1);
 		glPointSize(1.0f);
 	}
 	dm->release(dm);
@@ -6421,6 +6413,29 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 }
 
 /* ***************** BACKBUF SEL (BBS) ********* */
+/* Jason */
+static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+{
+	// TODO: support hidden vertices
+	int offset = (intptr_t) userData;
+	//EditVert *eve = EM_get_vert_for_index(index);
+
+	//if (eve->h==0) {
+	WM_set_framebuffer_index_color(offset+index);
+	bglVertex3fv(co);
+	//}
+}
+/* Jason */
+static void bbs_obmode_mesh_verts(Scene* scene, Object *ob, DerivedMesh *dm, int offset)
+{
+	Mesh *me = (Mesh*)ob->data;
+
+	glPointSize( UI_GetThemeValuef(TH_VERTEX_SIZE) );
+	bglBegin(GL_POINTS);
+	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, (void*)(intptr_t) offset);
+	bglEnd();
+	glPointSize(1.0);
+}
 
 static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
@@ -6519,7 +6534,18 @@ static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *UNUS
 		return 0;
 	}
 }
+/* Jason */
+// must have called WM_set_framebuffer_index_color beforehand
+static int bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index, int *UNUSED(drawSmooth_r))
+{
+	Mesh *me = userData;
 
+	if (!(me->mface[index].flag&ME_HIDE)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
 static void bbs_mesh_solid(Scene *scene, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
@@ -6578,7 +6604,23 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 			EM_free_index_arrays();
 		}
-		else bbs_mesh_solid(scene, ob);
+		else {
+			Mesh *me= ob->data;
+			if(me->editflag & ME_EDIT_VERT_SEL) {
+				DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
+				WM_set_framebuffer_index_color(me->totvert+2);
+				glColor3ub(0, 0, 0);
+
+				dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, me, 0, GPU_enable_material);
+
+				
+				bbs_obmode_mesh_verts(scene, ob, dm, 1);
+				em_vertoffs = me->totvert+1;
+				dm->release(dm);
+			}
+			else bbs_mesh_solid(scene, ob);
+		}
+		
 	}
 		break;
 	case OB_CURVE:

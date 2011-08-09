@@ -892,6 +892,7 @@ static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, f
 	MEM_freeN(projA);
 	MEM_freeN(projB);
 }
+// Jason
 static int dm_deform_clear(DerivedMesh *dm, Object *ob) {
 	dm->needsFree = 1;
 	dm->release(dm);
@@ -899,9 +900,11 @@ static int dm_deform_clear(DerivedMesh *dm, Object *ob) {
 	// dm = NULL;
 	return NULL;
 }
+// Jason
 static DerivedMesh* dm_deform_recalc(Scene *scene, Object *ob) {
 	return mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 }
+// Jason
 static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float *norm, float *coord, float d, float distToBe, float strength, float cp) {
 	DerivedMesh *dm;
 	MDeformWeight *dw;

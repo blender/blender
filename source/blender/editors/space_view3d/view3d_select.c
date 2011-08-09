@@ -54,6 +54,11 @@
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
+// Jason--vertex box select
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+#include "BKE_global.h"
+
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_armature.h"
@@ -641,15 +646,6 @@ static void do_lasso_select_curve(ViewContext *vc, int mcords[][2], short moves,
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data);
 }
-/* Jason */
-static void do_obmode_lasso_select__doSelect(void *userData, MVert *mv, int x, int y)
-{
-	struct { int (*mcords)[2]; short moves; short select; } *data = userData;
-
-	if (lasso_inside(data->mcords, data->moves, x, y)) {
-		mv->flag = data->select?(mv->flag|SELECT):(mv->flag&~SELECT);
-	}
-}
 static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x, int y)
 {
 	struct { int (*mcords)[2]; short moves; short select; } *data = userData;
@@ -751,38 +747,62 @@ static void do_lasso_select_meta(ViewContext *vc, int mcords[][2], short moves, 
 	}
 }
 /* Jason */
-static void do_obmode_box_select__doSelect(void *userData, MVert *mv, int x, int y)
-{
-	struct { ViewContext vc; rcti *rect; int select; } *data = userData;
-
-	if (BLI_in_rcti(data->rect, x, y)) {
-		mv->flag = data->select?(mv->flag|SELECT):(mv->flag&~SELECT);
-	}
-}
-/* Jason */
 int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
-	Object *ob= vc->obact;
-	Mesh *me= ob?ob->data:NULL;
+	Mesh *me;
+	MVert *mvert;
+	struct ImBuf *ibuf;
+	unsigned int *rt;
+	int a, index;
+	char *selar;
 	int sx= rect->xmax-rect->xmin+1;
 	int sy= rect->ymax-rect->ymin+1;
 
-	struct { ViewContext vc; rcti *rect; int select; } data = {NULL};
+	me= vc->obact->data;
 
 	if(me==NULL || me->totvert==0 || sx*sy <= 0)
 		return OPERATOR_CANCELLED;
 
-	if(extend==0 && select)
-		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE); /* flush selection at the end */
+	selar= MEM_callocN(me->totvert+1, "selar");
 
-	ED_view3d_init_mats_rv3d(ob, vc->rv3d);
-	data.vc = *vc;
-	data.rect = rect;
-	data.select= select;
+	if (extend == 0 && select)
+		paintvert_deselect_all_visible(vc->obact, SEL_DESELECT, FALSE);
 
-	mesh_obmode_foreachScreenVert(vc, do_obmode_box_select__doSelect, &data, 1);
+	view3d_validate_backbuf(vc);
 
-	paintvert_flush_flags(ob);
+	ibuf = IMB_allocImBuf(sx,sy,32,IB_rect);
+	rt = ibuf->rect;
+	glReadPixels(rect->xmin+vc->ar->winrct.xmin,  rect->ymin+vc->ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
+	if(ENDIAN_ORDER==B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+
+	a= sx*sy;
+	while(a--) {
+		if(*rt) {
+			index= WM_framebuffer_to_index(*rt);
+			if(index<=me->totvert) selar[index]= 1;
+		}
+		rt++;
+	}
+
+	mvert= me->mvert;
+	for(a=1; a<=me->totvert; a++, mvert++) {
+		if(selar[a]) {
+			if(mvert->flag & ME_HIDE);
+			else {
+				if(select) mvert->flag |= SELECT;
+				else mvert->flag &= ~SELECT;
+			}
+		}
+	}
+
+	IMB_freeImBuf(ibuf);
+	MEM_freeN(selar);
+
+#ifdef __APPLE__	
+	glReadBuffer(GL_BACK);
+#endif
+
+	paintvert_flush_flags(vc->obact);
 
 	return OPERATOR_FINISHED;
 }
@@ -791,19 +811,21 @@ static void do_lasso_select_paintvert(ViewContext *vc, int mcords[][2], short mo
 {
 	Object *ob= vc->obact;
 	Mesh *me= ob?ob->data:NULL;
-
-	struct { int (*mcords)[2]; short moves; short select; } data = {NULL};
+	rcti rect;
 
 	if(me==NULL || me->totvert==0)
 		return;
 
 	if(extend==0 && select)
 		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE); /* flush selection at the end */
-	ED_view3d_init_mats_rv3d(ob, vc->rv3d);
-	data.select = select;
-	data.mcords = mcords;
-	data.moves= moves;
-	mesh_obmode_foreachScreenVert(vc, do_obmode_lasso_select__doSelect, &data, 1);
+	em_vertoffs= me->totvert+1;	/* max index array */
+
+	lasso_select_boundbox(&rect, mcords, moves);
+	EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+
+	EM_backbuf_checkAndSelectTVerts(me, select);
+
+	EM_free_backbuf();
 
 	paintvert_flush_flags(ob);
 }
@@ -1913,53 +1935,44 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
 /*Jason*/
-static void findnearestWPvert__doClosest(void *userData, MVert *mv, int x, int y, int UNUSED(index))
+/* much like facesel_face_pick()*/
+/* returns 0 if not found, otherwise 1 */
+static int vertsel_vert_pick(struct bContext *C, Mesh *me, const int mval[2], unsigned int *index, short rect)
 {
-	struct { MVert *mv; short dist, select; int mval[2]; } *data = userData;
-	float temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
-	if((mv->flag & SELECT)==data->select)
-		temp += 5;
+	ViewContext vc;
+	view3d_set_viewcontext(C, &vc);
 
-	if(temp<data->dist) {
-		data->dist = temp;
+	if (!me || me->totvert==0)
+		return 0;
 
-		data->mv = mv;
+	if (rect) {
+		/* sample rect to increase changes of selecting, so that when clicking
+		   on an face in the backbuf, we can still select a vert */
+
+		int dist;
+		*index = view3d_sample_backbuf_rect(&vc, mval, 3, 1, me->totvert+1, &dist,0,NULL, NULL);
 	}
-}
-/*Jason*/
-static MVert *findnearestWPvert(ViewContext *vc, Object *obact, Mesh *me, const int mval[2], int sel)
-{
-	/* sel==1: selected gets a disadvantage */
-	struct { MVert *mv; short dist, select; int mval[2]; } data = {NULL};
+	else {
+		/* sample only on the exact position */
+		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
+	}
 
-	data.dist = 100;
-	data.select = sel;
-	data.mval[0]= mval[0];
-	data.mval[1]= mval[1];
+	if ((*index)<=0 || (*index)>(unsigned int)me->totvert)
+		return 0;
 
-	mesh_obmode_foreachScreenVert(vc, findnearestWPvert__doClosest, &data, 1);
-
-	return data.mv;
+	(*index)--;
+	
+	return 1;
 }
 /* Jason */
 /* mouse selection in weight paint */
 /* gets called via generic mouse select operator */
 int mouse_wp_select(bContext *C, const int mval[2], short extend, Object *obact, Mesh* me)
 {
+	unsigned int index = 0;
 	MVert *mv;
-	ViewContext *vc = NULL;
-	vc = MEM_callocN(sizeof(ViewContext), "wp_m_sel_viewcontext");
-	vc->ar= CTX_wm_region(C);
-	vc->scene= CTX_data_scene(C);
-	vc->v3d= CTX_wm_view3d(C);
-	vc->rv3d= CTX_wm_region_view3d(C);
-	vc->obact= obact;
-	vc->mval[0] = mval[0];
-	vc->mval[1] = mval[1];
-
-	ED_view3d_init_mats_rv3d(obact, vc->rv3d);
-
-	if(mv = findnearestWPvert(vc, obact, me, mval, 1)) {
+	if(vertsel_vert_pick(C, me, mval, &index, 1)) {
+		mv = me->mvert+index;
 		if(extend) {
 			mv->flag ^= 1;
 		} else {
@@ -1968,11 +1981,8 @@ int mouse_wp_select(bContext *C, const int mval[2], short extend, Object *obact,
 		}
 		paintvert_flush_flags(obact);
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
-
-		MEM_freeN(vc);
 		return 1;
 	}
-	MEM_freeN(vc);
 	return 0;
 }
 
@@ -2061,17 +2071,6 @@ static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y
 		eve->f = data->select?(eve->f|1):(eve->f&~1);
 	}
 }
-/* Jason */
-static void mesh_obmode_circle_doSelectVert(void *userData, MVert *mv, int x, int y, int UNUSED(index))
-{
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
-	int mx = x - data->mval[0], my = y - data->mval[1];
-	float r = sqrt(mx*mx + my*my);
-
-	if (r<=data->radius) {
-		mv->flag = data->select?(mv->flag|1):(mv->flag&~1);
-	}
-}
 
 static void mesh_circle_doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
 {
@@ -2157,17 +2156,14 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 {
 	Object *ob= vc->obact;
 	Mesh *me = ob?ob->data:NULL;
-
+	int bbsel;
 	struct {ViewContext *vc; short select; int mval[2]; float radius; } data = {NULL};
 	if (me) {
-		ED_view3d_init_mats_rv3d(ob, vc->rv3d);
-		data.radius = rad;
-		data.vc = vc;
-		data.select = select;
-		data.mval[0]= mval[0];
-		data.mval[1]= mval[1];
+		em_vertoffs= me->totvert+1;	/* max index array */
 
-		mesh_obmode_foreachScreenVert(vc, mesh_obmode_circle_doSelectVert, &data, 1);
+		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
+		EM_backbuf_checkAndSelectTVerts(me, select==LEFTMOUSE);
+		EM_free_backbuf();
 
 		paintvert_flush_flags(ob);
 	}
