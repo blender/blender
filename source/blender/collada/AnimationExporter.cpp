@@ -169,7 +169,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 					fcu = fcu->next;
 			}
 
-			for ( int i = 0 ; i < fcu->totvert ; i++){
+			for ( int i = 0 ; i < keys ; i++){
 				for ( int j = 0;j<4;j++)
 					temp_quat[j] = quat[(i*4)+j];
 
@@ -208,7 +208,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		
 		if ( !strcmp(transformName, "rotation_quaternion") )
 		{
-			fprintf(stderr, "quaternion rotations are not supported. rotation curves will not be exported\n");
+			fprintf(stderr, "quaternion rotation curves are not supported. rotation curve will not be exported\n");
 			quatRotation = true;
 			/*const char *axis_names[] = {"", "X", "Y", "Z"};
 			if (fcu->array_index < 4)
@@ -261,18 +261,18 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		// create output source
 		std::string output_id ;
 	    
-		/*if(quatRotation) 
+		if(quatRotation) 
 		{
             float * eul  = get_eul_source_for_quat(ob);
-			float * eul_axis = 
+			float * eul_axis = (float*)MEM_callocN(sizeof(float) * fcu->totvert, "quat output source values");
 				for ( int i = 0 ; i< fcu->totvert ; i++)
 					eul_axis[i] = eul[i*3 + fcu->array_index];
 			output_id= create_source_from_array(COLLADASW::InputSemantic::OUTPUT, eul_axis , fcu->totvert, quatRotation, anim_id, axis_name);
 		}
-		 else*/ 
-		
-		output_id= create_source_from_fcurve(COLLADASW::InputSemantic::OUTPUT, fcu, anim_id, axis_name);
-
+		 else 
+		{
+			output_id= create_source_from_fcurve(COLLADASW::InputSemantic::OUTPUT, fcu, anim_id, axis_name);
+		}
 		// create interpolations source
 		std::string interpolation_id = create_interpolation_source(fcu, anim_id, axis_name, &has_tangents);
 
@@ -1085,12 +1085,15 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			tm_name = "";
 			break;
 		}
-
+       
 		if (tm_name.size()) {
 			if (is_rotation)
-				return tm_name + std::string(axis_name);
+				return tm_name + std::string(axis_name) + ".ANGLE";
 			else
-				return tm_name;
+				if (axis_name != "")
+					return tm_name + "." + std::string(axis_name);
+				else 
+					return tm_name;
 		}
 
 		return std::string("");
