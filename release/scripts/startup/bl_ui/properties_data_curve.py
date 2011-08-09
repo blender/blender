@@ -361,7 +361,7 @@ class DATA_PT_paragraph(CurveButtonsPanel, bpy.types.Panel):
         col.prop(text, "offset_y", text="Y")
 
 
-class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
+class DATA_PT_text_boxes(CurveButtonsPanel, bpy.types.Panel):
     bl_label = "Text Boxes"
 
     @classmethod
