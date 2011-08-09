@@ -208,10 +208,12 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		
 		if ( !strcmp(transformName, "rotation_quaternion") )
 		{
+			fprintf(stderr, "quaternion rotations are not supported. rotation curves will not be exported\n");
 			quatRotation = true;
 			/*const char *axis_names[] = {"", "X", "Y", "Z"};
 			if (fcu->array_index < 4)
 			axis_name = axis_names[fcu->array_index];*/
+			return;
 		}
 		//maybe a list or a vector of float animations
 		else if ( !strcmp(transformName, "color")||!strcmp(transformName, "specular_color")||!strcmp(transformName, "diffuse_color")||

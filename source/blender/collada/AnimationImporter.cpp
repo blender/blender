@@ -90,11 +90,12 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 {
 	COLLADAFW::FloatOrDoubleArray& input = curve->getInputValues();
 	COLLADAFW::FloatOrDoubleArray& output = curve->getOutputValues();
-   
+    
 	if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ) {
 	COLLADAFW::FloatOrDoubleArray& intan = curve->getInTangentValues();
     COLLADAFW::FloatOrDoubleArray& outtan = curve->getOutTangentValues();
 	}
+
 	float fps = (float)FPS;
 	size_t dim = curve->getOutDimension();
 	unsigned int i;
@@ -661,6 +662,14 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 			}
 			
 		case COLLADAFW::Transformation::MATRIX:
+			/*{
+				COLLADAFW::Matrix* mat = (COLLADAFW::Matrix*)transform;
+				COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
+				switch (binding->animationClass) {
+					case COLLADAFW::AnimationList::TRANSFORM:
+
+				}
+			}*/
 		case COLLADAFW::Transformation::SKEW:
 		case COLLADAFW::Transformation::LOOKAT:
 			fprintf(stderr, "Animation of MATRIX, SKEW and LOOKAT transformations is not supported yet.\n");
