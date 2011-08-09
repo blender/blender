@@ -764,7 +764,7 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int cfra, int proxy_render
 {
 	char name[FILE_MAXFILE+FILE_MAXDIR];
 	int quality, rectx, recty, size;
-	struct ImBuf * ibuf;
+	ImBuf *ibuf;
 	MovieClipUser user;
 
 	size= rendersize_to_number(proxy_render_size);
@@ -774,22 +774,33 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int cfra, int proxy_render
 
 	ibuf= BKE_movieclip_acquire_ibuf_flag(clip, &user, 0);
 
-	rectx= ibuf->x*size/100.f;
-	recty= ibuf->y*size/100.f;
+	if(ibuf) {
+		ImBuf *scaleibuf= ibuf;
 
-	if (ibuf->x != rectx || ibuf->y != recty) {
-		IMB_scalefastImBuf(ibuf, (short)rectx, (short)recty);
+		rectx= ibuf->x*size/100.f;
+		recty= ibuf->y*size/100.f;
+
+		if (ibuf->x != rectx || ibuf->y != recty) {
+			if(ibuf->refcounter)	/* means buffer came from cache and shouldn't be modified */
+				scaleibuf= IMB_dupImBuf(ibuf);
+
+			IMB_scalefastImBuf(scaleibuf, (short)rectx, (short)recty);
+		}
+
+		quality= clip->proxy.quality;
+		scaleibuf->ftype= JPG | quality;
+
+		BLI_lock_thread(LOCK_MOVIECLIP);
+
+		BLI_make_existing_file(name);
+		if(IMB_saveiff(scaleibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)==0)
+			perror(name);
+
+		BLI_unlock_thread(LOCK_MOVIECLIP);
+
+		IMB_freeImBuf(ibuf);
+		if(scaleibuf!=ibuf) IMB_freeImBuf(scaleibuf);
 	}
-
-	quality= clip->proxy.quality;
-	ibuf->ftype= JPG | quality;
-
-	BLI_make_existing_file(name);
-
-	if(IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)==0)
-		perror(name);
-
-	IMB_freeImBuf(ibuf);
 }
 
 void free_movieclip(MovieClip *clip)
