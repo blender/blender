@@ -24,7 +24,6 @@
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 
-#define WITH_AUDASPACE
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
 #endif
