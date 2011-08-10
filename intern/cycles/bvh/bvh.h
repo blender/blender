@@ -83,6 +83,7 @@ public:
 	vector<Object*> objects;
 
 	static BVH *create(const BVHParams& params, const vector<Object*>& objects);
+	virtual ~BVH() {}
 
 	void build(Progress& progress);
 	void refit(Progress& progress);

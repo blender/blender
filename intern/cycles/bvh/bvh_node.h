@@ -42,6 +42,7 @@ public:
 	{
 	}
 
+	virtual ~BVHNode() {}
 	virtual bool is_leaf() const = 0;
 	virtual int num_children() const = 0;
 	virtual BVHNode *get_child(int i) const = 0;

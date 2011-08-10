@@ -21,6 +21,7 @@
 
 /* Vector */
 
+#include <string.h>
 #include <vector>
 
 CCL_NAMESPACE_BEGIN

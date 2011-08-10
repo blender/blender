@@ -30,6 +30,7 @@ class Mesh;
 
 class Patch {
 public:
+	virtual ~Patch() {}
 	virtual void eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, float v) = 0;
 	virtual bool is_triangle() = 0;
 	virtual BoundBox bound() = 0;
