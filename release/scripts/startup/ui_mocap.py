@@ -121,6 +121,12 @@ class AnimationStitchSettings(bpy.types.PropertyGroup):
     blend_amount = bpy.props.IntProperty(name="Blend amount",
             description="Size of blending transitiion, on both sides of the stitch",
             default=10)
+    second_offset = bpy.props.IntProperty(name="Second offset",
+            description="Frame offset for 2nd animation, where it should start",
+            default=10)
+    stick_bone = bpy.props.StringProperty(name="Stick Bone",
+            description="Bone to freeze during transition",
+            default="")
 
 bpy.utils.register_class(AnimationStitchSettings)
 
@@ -355,6 +361,8 @@ class ExtraToolsPanel(bpy.types.Panel):
             layout.prop_search(settings, "second_action", enduser_arm, "mocapNLATracks")
             layout.prop(settings, "blend_frame")
             layout.prop(settings, "blend_amount")
+            layout.prop(settings, "second_offset")
+            layout.prop_search(settings, "stick_bone", context.active_object.pose, "bones")
             layout.operator('mocap.animstitch', text="Stitch Animations")
 
 
