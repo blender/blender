@@ -937,9 +937,9 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int width, int height, float zoomx, float zoomy)
 {
 	float x, y;
-	const int n= 9;
-	int i, j;
-	float pos[2], grid[10][10][2];
+	const int n= 10;
+	int i, j, a;
+	float pos[2], tpos[2], grid[11][11][2];
 	float dx= (float)width/n, dy= (float)height/n;
 	MovieTracking *tracking= &clip->tracking;
 
@@ -959,21 +959,50 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 
 	/* grid */
 	if(sc->flag&SC_SHOW_GRID) {
-		float min[2], max[2], tpos[2];
+		float val[4][2], idx[4][2];
+		float min[2], max[2];
 
-		INIT_MINMAX2(min, max);
+		for(a=0; a<4; a++) {
+			if(a<2) val[a][a%2]= FLT_MAX;
+			else val[a][a%2]= -FLT_MAX;
+		}
 
 		zero_v2(pos);
 		for(i= 0; i<=n; i++) {
 			for(j= 0; j<=n; j++) {
-				BKE_tracking_apply_intrinsics(tracking, pos, tpos);
-				DO_MINMAX2(tpos, min, max);
+				if(i==0 || j==0 || i==n || j==n) {
+					BKE_tracking_invert_intrinsics(tracking, pos, tpos);
+
+					for(a=0; a<4; a++) {
+						int ok;
+
+						if(a<2) ok= tpos[a%2] < val[a][a%2];
+						else ok= tpos[a%2] > val[a][a%2];
+
+						if(ok) {
+							copy_v2_v2(val[a], tpos);
+							idx[a][0]= j;
+							idx[a][1]= i;
+						}
+					}
+				}
 
 				pos[0]+= dx;
 			}
 
 			pos[0]= 0.f;
 			pos[1]+= dy;
+		}
+
+		INIT_MINMAX2(min, max);
+
+		for(a= 0; a<4; a++) {
+			pos[0]= idx[a][0]*dx;
+			pos[1]= idx[a][1]*dy;
+
+			BKE_tracking_apply_intrinsics(tracking, pos, tpos);
+
+			DO_MINMAX2(tpos, min, max);
 		}
 
 		copy_v2_v2(pos, min);
@@ -1029,7 +1058,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 					if(stroke->flag&GP_STROKE_2DSPACE && stroke->totpoints>1) {
 						glBegin(GL_LINE_STRIP);
 							for(i= 0; i<stroke->totpoints-1; i++) {
-								float npos[2], dpos[2], tpos[2], len;
+								float npos[2], dpos[2], len;
 								int steps;
 
 								pos[0]= stroke->points[i].x*width;
