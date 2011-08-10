@@ -2110,7 +2110,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		Object *ob= (Object*)activeptr->data;
-		Key *key= (Key*)itemptr->data;
+		Key *key= (Key*)itemptr->id.data;
 
 		split= uiLayoutSplit(sub, 0.75f, 0);
 
