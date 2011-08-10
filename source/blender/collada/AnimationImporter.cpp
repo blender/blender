@@ -750,6 +750,165 @@ void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& list
 	
 }
 
+void AnimationImporter::apply_matrix_curves_to_bone( Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node, 
+													COLLADAFW::Transformation * tm , char * joint_path, bool is_joint,const char * bone_name)
+{
+	std::vector<float> frames;
+	find_frames(&frames, &animcurves);
+
+	float irest_dae[4][4];
+	float rest[4][4], irest[4][4];
+
+	if (is_joint) {
+		get_joint_rest_mat(irest_dae, root, node);
+		invert_m4(irest_dae);
+
+		Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
+		if (!bone) {
+			fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
+			return;
+		}
+
+		unit_m4(rest);
+		copy_m4_m4(rest, bone->arm_mat);
+		invert_m4_m4(irest, rest);
+	}
+    // new curves to assign matrix transform animation
+	FCurve *newcu[10]; // if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale
+	unsigned int totcu = 10 ;
+    const char *tm_str = NULL;
+	char rna_path[200];
+	for (int i = 0; i < totcu; i++) {
+
+		int axis = i;
+
+			if (i < 4) {
+				tm_str = "rotation_quaternion";
+				axis = i;
+			}
+			else if (i < 7) {
+				tm_str = "location";
+				axis = i - 4;
+			}
+			else {
+				tm_str = "scale";
+				axis = i - 7;
+			}
+		
+
+		if (is_joint)
+			BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
+		else
+			strcpy(rna_path, tm_str);
+		newcu[i] = create_fcurve(axis, rna_path);
+
+#ifdef ARMATURE_TEST
+		if (is_joint)
+			job_curves[i] = create_fcurve(axis, tm_str);
+#endif
+	}
+
+//	Object *job = NULL;
+
+#ifdef ARMATURE_TEST
+	FCurve *job_curves[10];
+	job = get_joint_object(root, node, par_job);
+#endif
+
+	if (frames.size() == 0)
+		return;
+
+std::sort(frames.begin(), frames.end());
+	//if (is_joint)
+	//	armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
+
+	
+	std::vector<float>::iterator it;
+
+	// sample values at each frame
+	for (it = frames.begin(); it != frames.end(); it++) {
+		float fra = *it;
+
+		float mat[4][4];
+		float matfra[4][4];
+
+		unit_m4(matfra);
+
+        float m[4][4];
+
+		unit_m4(m);
+		dae_matrix_to_mat4(tm, m);
+
+		float temp[4][4];
+		copy_m4_m4(temp, mat);
+
+		mul_m4_m4m4(mat, m, temp);
+		
+		// for joints, we need a special matrix
+		if (is_joint) {
+			// special matrix: iR * M * iR_dae * R
+			// where R, iR are bone rest and inverse rest mats in world space (Blender bones),
+			// iR_dae is joint inverse rest matrix (DAE) and M is an evaluated joint world-space matrix (DAE)
+			float temp[4][4], par[4][4];
+
+			// calc M
+			calc_joint_parent_mat_rest(par, NULL, root, node);
+			mul_m4_m4m4(temp, matfra, par);
+
+			// evaluate_joint_world_transform_at_frame(temp, NULL, , node, fra);
+
+			// calc special matrix
+			mul_serie_m4(mat, irest, temp, irest_dae, rest, NULL, NULL, NULL, NULL);
+		}
+		else {
+			copy_m4_m4(mat, matfra);
+		}
+
+		float  rot[4], loc[3], scale[3];
+
+			mat4_to_quat(rot, mat);
+			copy_v3_v3(loc, mat[3]);
+			mat4_to_size(scale, mat);
+		
+		// add keys
+		for (int i = 0; i < totcu; i++) {
+				if (i < 4)
+					add_bezt(newcu[i], fra, rot[i]);
+				else if (i < 7)
+					add_bezt(newcu[i], fra, loc[i - 4]);
+				else
+					add_bezt(newcu[i], fra, scale[i - 7]);
+		}
+	}
+	verify_adt_action((ID*)&ob->id, 1);
+
+	ListBase *curves = &ob->adt->action->curves;
+
+	// add curves
+	for (int i= 0; i < totcu; i++) {
+		if (is_joint)
+			add_bone_fcurve(ob, node, newcu[i]);
+		else
+			BLI_addtail(curves, newcu[i]);
+
+#ifdef ARMATURE_TEST
+		if (is_joint)
+			BLI_addtail(&job->adt->action->curves, job_curves[i]);
+#endif
+	}
+
+		if (is_joint) {
+			bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+			chan->rotmode = ROT_MODE_QUAT;
+		}
+		else {
+			ob->rotmode = ROT_MODE_QUAT;
+		}
+
+	return;
+
+}
+
 void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node , 
 												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 												   std::map<COLLADAFW::UniqueId, Object*>& object_map,
@@ -816,8 +975,13 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 						for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 							FCurve * fcu = *iter;
 							if ((ob->type == OB_ARMATURE)){
-								 if ( !is_matrix)
-								add_bone_fcurve( ob, node , fcu );
+								if ( is_matrix){
+									float irest_dae[4][4];
+									get_joint_rest_mat(irest_dae, root, node);
+									apply_matrix_curves_to_bone(ob, animcurves, root , node,  transform ,joint_path , true , bone_name );
+								} 
+								else
+									add_bone_fcurve( ob, node , fcu );
 							} else 
 							 BLI_addtail(AnimCurves, fcu);	
 						}	 			

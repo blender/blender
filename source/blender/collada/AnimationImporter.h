@@ -152,6 +152,8 @@ public:
 
 	AnimMix* get_animation_type( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map ) ;
 
+	void apply_matrix_curves_to_bone( Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node,
+									COLLADAFW::Transformation * tm , char * joint_path, bool is_joint,const char * bone_name);
 
 	void Assign_transform_animations(COLLADAFW::Transformation* transform , 
 									 const COLLADAFW::AnimationList::AnimationBinding * binding,
