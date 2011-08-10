@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 """
 Give access to blender data and utility functions.
@@ -31,7 +31,7 @@ __all__ = (
     "props",
     "types",
     "utils",
-)
+    )
 
 
 # internal blender C module
@@ -43,12 +43,14 @@ from . import utils, path, ops
 # fake operator module
 ops = ops.ops_fake_module
 
+
 def _main():
     import sys as _sys
 
     # Possibly temp. addons path
     from os.path import join, dirname, normpath
-    _sys.path.append(normpath(join(dirname(__file__), "..", "..", "addons", "modules")))
+    _sys.path.append(normpath(join(dirname(__file__),
+                                   "..", "..", "addons", "modules")))
 
     # if "-d" in sys.argv: # Enable this to measure startup speed
     if 0:

@@ -251,7 +251,7 @@ blender_include_dirs_sys(
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
 if (WITH_INTERNATIONAL) 
-	target_link_libraries(makesrna bf_dna ${GETTEXT_LIB} ${PLATFORM_LINKFLAGS})
+	target_link_libraries(makesrna bf_dna ${GETTEXT_LIB})
 else()
 	target_link_libraries(makesrna bf_dna)
 endif()

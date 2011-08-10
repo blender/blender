@@ -67,6 +67,7 @@ set(SRC
 	intern/wm_window.c
 
 	WM_api.h
+	WM_keymap.h
 	WM_types.h
 	wm.h
 	wm_cursors.h

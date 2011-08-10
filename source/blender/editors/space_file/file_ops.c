@@ -66,6 +66,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 
 /* for events */
 #define NOTACTIVEFILE			0
@@ -1081,8 +1082,18 @@ static void file_expand_directory(bContext *C)
 		}
 
 #ifdef WIN32
-		if (sfile->params->dir[0] == '\0')
+		if (sfile->params->dir[0] == '\0') {
 			get_default_root(sfile->params->dir);
+		}
+		/* change "C:" --> "C:\", [#28102] */
+		else if (   (isalpha(sfile->params->dir[0]) &&
+		            (sfile->params->dir[1] == ':')) &&
+		            (sfile->params->dir[2] == '\0')
+
+		) {
+			sfile->params->dir[2]= '\\';
+			sfile->params->dir[3]= '\0';
+		}
 #endif
 	}
 }

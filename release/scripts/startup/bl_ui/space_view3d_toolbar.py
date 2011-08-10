@@ -59,6 +59,7 @@ def draw_gpencil_tools(context, layout):
     row = col.row()
     row.prop(context.tool_settings, "use_grease_pencil_sessions")
 
+
 # ********** default tools for objectmode ****************
 
 class VIEW3D_PT_tools_objectmode(View3DPanel, bpy.types.Panel):
@@ -88,8 +89,9 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, bpy.types.Panel):
 
             col = layout.column(align=True)
             col.label(text=_("Shading:"))
-            col.operator("object.shade_smooth", text=_("Smooth"))
-            col.operator("object.shade_flat", text=_("Flat"))
+            row = col.row(align=True)
+            row.operator("object.shade_smooth", text=_("Smooth"))
+            row.operator("object.shade_flat", text=_("Flat"))
 
         draw_keyframing_tools(context, layout)
 
@@ -155,8 +157,9 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, bpy.types.Panel):
 
         col = layout.column(align=True)
         col.label(text="Shading:")
-        col.operator("mesh.faces_shade_smooth", text="Smooth")
-        col.operator("mesh.faces_shade_flat", text="Flat")
+        row = col.row(align=True)
+        row.operator("mesh.faces_shade_smooth", text="Smooth")
+        row.operator("mesh.faces_shade_flat", text="Flat")
 
         draw_repeat_tools(context, layout)
 

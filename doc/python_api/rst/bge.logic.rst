@@ -1,6 +1,7 @@
 
-Game Engine bge.logic Module
-============================
+Game Logic (bge.logic)
+======================
+
 *****
 Intro
 *****
@@ -215,6 +216,12 @@ General functions
 .. function:: addScene(name, overlay=1)
 
    Loads a scene into the game engine.
+
+   .. note::
+
+      This function is not effective immediately, the scene is queued
+      and added on the next logic cycle where it will be available
+      from `getSceneList`
 
    :arg name: The name of the scene
    :type name: string

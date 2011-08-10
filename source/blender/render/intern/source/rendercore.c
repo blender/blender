@@ -730,7 +730,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	
 	if(zpass==NULL) return;
 
-	/* check for at least one sun lamp that its atmosphere flag is is enabled */
+	/* check for at least one sun lamp that its atmosphere flag is enabled */
 	for(go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
 		if(lar->type==LA_SUN && lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_AP))

@@ -1009,9 +1009,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			else view_editmove(event->type);
 			t->redraw= 1;
 			break;
-//		case NDOFMOTION:
-//            viewmoveNDOF(1);
-  //         break;
 		default:
 			handled = 0;
 			break;
@@ -1019,43 +1016,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 
 		// Numerical input events
 		t->redraw |= handleNumInput(&(t->num), event);
-
-		// NDof input events
-		switch(handleNDofInput(&(t->ndof), event))
-		{
-			case NDOF_CONFIRM:
-				if ((t->options & CTX_NDOF) == 0)
-				{
-					/* Confirm on normal transform only */
-					t->state = TRANS_CONFIRM;
-				}
-				break;
-			case NDOF_CANCEL:
-				if (t->options & CTX_NDOF)
-				{
-					/* Cancel on pure NDOF transform */
-					t->state = TRANS_CANCEL;
-				}
-				else
-				{
-					/* Otherwise, just redraw, NDof input was cancelled */
-					t->redraw |= TREDRAW_HARD;
-				}
-				break;
-			case NDOF_NOMOVE:
-				if (t->options & CTX_NDOF)
-				{
-					/* Confirm on pure NDOF transform */
-					t->state = TRANS_CONFIRM;
-				}
-				break;
-			case NDOF_REFRESH:
-				t->redraw |= TREDRAW_HARD;
-				break;
-			default:
-				handled = 0;
-				break;
-		}
 
 		// Snapping events
 		t->redraw |= handleSnapping(t, event);
@@ -2889,10 +2849,6 @@ void initRotation(TransInfo *t)
 	setInputPostFct(&t->mouse, postInputRotation);
 	initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 	
-	t->ndof.axis = 16;
-	/* Scale down and flip input for rotation */
-	t->ndof.factor[0] = -0.2f;
-	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -3164,8 +3120,6 @@ int Rotation(TransInfo *t, const int UNUSED(mval[2]))
 
 	final = t->values[0];
 	
-	applyNDofInput(&t->ndof, &final);
-	
 	snapGrid(t, &final);
 	
 	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
@@ -3218,11 +3172,6 @@ void initTrackball(TransInfo *t)
 	t->transform = Trackball;
 
 	initMouseInputMode(t, &t->mouse, INPUT_TRACKBALL);
-
-	t->ndof.axis = 40;
-	/* Scale down input for rotation */
-	t->ndof.factor[0] = 0.2f;
-	t->ndof.factor[1] = 0.2f;
 
 	t->idx_max = 1;
 	t->num.idx_max = 1;
@@ -3279,8 +3228,6 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 	phi[0] = t->values[0];
 	phi[1] = t->values[1];
 
-	applyNDofInput(&t->ndof, phi);
-
 	snapGrid(t, phi);
 
 	if (hasNumInput(&t->num)) {
@@ -3333,8 +3280,6 @@ void initTranslation(TransInfo *t)
 	t->idx_max = (t->flag & T_2D_EDIT)? 1: 2;
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
-
-	t->ndof.axis = (t->flag & T_2D_EDIT)? 1|2: 1|2|4;
 
 	if(t->spacetype == SPACE_VIEW3D) {
 		RegionView3D *rv3d = t->ar->regiondata;
@@ -3510,7 +3455,6 @@ int Translation(TransInfo *t, const int UNUSED(mval[2]))
 		headerTranslation(t, pvec, str);
 	}
 	else {
-		applyNDofInput(&t->ndof, t->values);
 		snapGrid(t, t->values);
 		applyNumInput(&t->num, t->values);
 		if (hasNumInput(&t->num)) {
@@ -3619,10 +3563,6 @@ void initTilt(TransInfo *t)
 
 	initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 
-	t->ndof.axis = 16;
-	/* Scale down and flip input for rotation */
-	t->ndof.factor[0] = -0.2f;
-
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -3645,8 +3585,6 @@ int Tilt(TransInfo *t, const int UNUSED(mval[2]))
 	float final;
 
 	final = t->values[0];
-
-	applyNDofInput(&t->ndof, &final);
 
 	snapGrid(t, &final);
 
@@ -3762,10 +3700,6 @@ void initPushPull(TransInfo *t)
 
 	initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 
-	t->ndof.axis = 4;
-	/* Flip direction */
-	t->ndof.factor[0] = -1.0f;
-
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -3785,8 +3719,6 @@ int PushPull(TransInfo *t, const int UNUSED(mval[2]))
 	TransData *td = t->data;
 
 	distance = t->values[0];
-
-	applyNDofInput(&t->ndof, &distance);
 
 	snapGrid(t, &distance);
 
@@ -4309,7 +4241,7 @@ static int createSlideVerts(TransInfo *t)
 	/* UV correction vars */
 	GHash **uvarray= NULL;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
-	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+	const int  uvlay_tot=  (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) ? CustomData_number_of_layers(&em->fdata, CD_MTFACE) : 0;
 	int uvlay_idx;
 	TransDataSlideUv *slideuvs=NULL, *suv=NULL, *suv_last=NULL;
 	RegionView3D *v3d = t->ar ? t->ar->regiondata : NULL; /* background mode support */
@@ -4662,7 +4594,7 @@ static int createSlideVerts(TransInfo *t)
 #define EDGE_SLIDE_MIN 30
 	if (len_squared_v2v2(start, end) < (EDGE_SLIDE_MIN * EDGE_SLIDE_MIN)) {
 		if(ABS(start[0]-end[0]) + ABS(start[1]-end[1]) < 4.0f) {
-			/* even more exceptional case, points are ontop of eachother */
+			/* even more exceptional case, points are ontop of each other */
 			end[0]= start[0];
 			end[1]= start[1] + EDGE_SLIDE_MIN;
 		}
@@ -4681,7 +4613,7 @@ static int createSlideVerts(TransInfo *t)
 	sld->end[0] = (int) end[0];
 	sld->end[1] = (int) end[1];
 	
-	if (uvlay_tot) { // XXX && (scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT)) {
+	if (uvlay_tot) {
 		int maxnum = 0;
 
 		uvarray = MEM_callocN( uvlay_tot * sizeof(GHash *), "SlideUVs Array");
@@ -4871,8 +4803,6 @@ void initEdgeSlide(TransInfo *t)
 
 int doEdgeSlide(TransInfo *t, float perc)
 {
-	Mesh *me= t->obedit->data;
-	EditMesh *em = me->edit_mesh;
 	SlideData *sld = t->customData;
 	EditVert *ev, *nearest = sld->nearest;
 	EditVert *centerVert, *upVert, *downVert;
@@ -4883,7 +4813,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 	int prop=1, flip=0;
 	/* UV correction vars */
 	GHash **uvarray= sld->uvhash;
-	int  uvlay_tot= CustomData_number_of_layers(&em->fdata, CD_MTFACE);
+	const int  uvlay_tot= sld->uvlay_tot;
 	int uvlay_idx;
 	TransDataSlideUv *suv;
 	float uv_tmp[2];
@@ -4909,7 +4839,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 			tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
 			interp_v3_v3v3(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
 
-			if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
+			if (uvlay_tot) {
 				for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 					suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
 					if (suv && suv->fuv_list && suv->uv_up && suv->uv_down) {
@@ -4939,7 +4869,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 			if(newlen < 0.0f) {newlen = 0.0;}
 			if(flip == 0) {
 				interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));
-				if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
+				if (uvlay_tot) {
 					/* dont do anything if no UVs */
 					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
@@ -4956,7 +4886,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 			} else{
 				interp_v3_v3v3(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));
 
-				if (uvlay_tot) { // XXX scene->toolsettings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) {
+				if (uvlay_tot) {
 					/* dont do anything if no UVs */
 					for (uvlay_idx=0; uvlay_idx<uvlay_tot; uvlay_idx++) {
 						suv = BLI_ghash_lookup( uvarray[uvlay_idx], ev );
@@ -5312,8 +5242,6 @@ void initSeqSlide(TransInfo *t)
 	t->num.flag = 0;
 	t->num.idx_max = t->idx_max;
 
-	t->ndof.axis = 1|2;
-
 	t->snap[0] = 0.0f;
 	t->snap[1] = floor(t->scene->r.frs_sec / t->scene->r.frs_sec_base);
 	t->snap[2] = 10.0f;
@@ -5368,7 +5296,6 @@ int SeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 		VECCOPY(t->values, tvec);
 	}
 	else {
-		applyNDofInput(&t->ndof, t->values);
 		snapGrid(t, t->values);
 		applyNumInput(&t->num, t->values);
 	}
@@ -5928,54 +5855,3 @@ void BIF_TransformSetUndo(char *UNUSED(str))
 	// TRANSFORM_FIX_ME
 	//Trans.undostr= str;
 }
-
-
-#if 0 // TRANSFORM_FIX_ME
-static void NDofTransform(void)
-{
-	float fval[7];
-	float maxval = 50.0f; // also serves as threshold
-	int axis = -1;
-	int mode = 0;
-	int i;
-
-	getndof(fval);
-
-	for(i = 0; i < 6; i++)
-	{
-		float val = fabs(fval[i]);
-		if (val > maxval)
-		{
-			axis = i;
-			maxval = val;
-		}
-	}
-
-	switch(axis)
-	{
-		case -1:
-			/* No proper axis found */
-			break;
-		case 0:
-		case 1:
-		case 2:
-			mode = TFM_TRANSLATION;
-			break;
-		case 4:
-			mode = TFM_ROTATION;
-			break;
-		case 3:
-		case 5:
-			mode = TFM_TRACKBALL;
-			break;
-		default:
-			printf("ndof: what we are doing here ?");
-	}
-
-	if (mode != 0)
-	{
-		initTransform(mode, CTX_NDOF);
-		Transform();
-	}
-}
-#endif

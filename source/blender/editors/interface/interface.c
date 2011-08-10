@@ -2490,138 +2490,141 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	return but;
 }
 
-static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  const char *tip)
+/* ui_def_but_rna_propname and ui_def_but_rna
+ * both take the same args except for propname vs prop, this is done so we can
+ * avoid an extra lookup on 'prop' when its already available.
+ *
+ * When this kind of change won't disrupt branches, best look into making more
+ * of our UI functions take prop rather then propname.
+ */
+
+#define UI_DEF_BUT_RNA_DISABLE(but) \
+	but->flag |= UI_BUT_DISABLED; \
+	but->lock = 1; \
+	but->lockstr = ""
+
+
+static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but;
-	PropertyRNA *prop;
 	PropertyType proptype;
 	int freestr= 0, icon= 0;
 
-	prop= RNA_struct_find_property(ptr, propname);
+	proptype= RNA_property_type(prop);
 
-	if(prop) {
-		proptype= RNA_property_type(prop);
+	/* use rna values if parameters are not specified */
+	if(!str) {
+		if(type == MENU && proptype == PROP_ENUM) {
+			EnumPropertyItem *item;
+			DynStr *dynstr;
+			int i, totitem, value, free;
 
-		/* use rna values if parameters are not specified */
-		if(!str) {
-			if(type == MENU && proptype == PROP_ENUM) {
-				EnumPropertyItem *item;
-				DynStr *dynstr;
-				int i, totitem, value, free;
+			RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
+			value= RNA_property_enum_get(ptr, prop);
 
-				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
-				value= RNA_property_enum_get(ptr, prop);
-
-				dynstr= BLI_dynstr_new();
-				BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop));
-				for(i=0; i<totitem; i++) {
-					if(!item[i].identifier[0]) {
-						if(item[i].name)
-							BLI_dynstr_appendf(dynstr, "|%s%%l", item[i].name);
-						else
-							BLI_dynstr_append(dynstr, "|%l");
-					}
-					else if(item[i].icon)
-						BLI_dynstr_appendf(dynstr, "|%s %%i%d %%x%d", item[i].name, item[i].icon, item[i].value);
+			dynstr= BLI_dynstr_new();
+			BLI_dynstr_appendf(dynstr, "%s%%t", RNA_property_ui_name(prop));
+			for(i=0; i<totitem; i++) {
+				if(!item[i].identifier[0]) {
+					if(item[i].name)
+						BLI_dynstr_appendf(dynstr, "|%s%%l", item[i].name);
 					else
-						BLI_dynstr_appendf(dynstr, "|%s %%x%d", item[i].name, item[i].value);
-
-					if(value == item[i].value) {
-						icon= item[i].icon;
-						if(!tip)
-							tip= item[i].description;
-					}
+						BLI_dynstr_append(dynstr, "|%l");
 				}
-				str= BLI_dynstr_get_cstring(dynstr);
-				BLI_dynstr_free(dynstr);
+				else if(item[i].icon)
+					BLI_dynstr_appendf(dynstr, "|%s %%i%d %%x%d", item[i].name, item[i].icon, item[i].value);
+				else
+					BLI_dynstr_appendf(dynstr, "|%s %%x%d", item[i].name, item[i].value);
 
-				if(free)
-					MEM_freeN(item);
-
-				freestr= 1;
-			}
-			else if(ELEM(type, ROW, LISTROW) && proptype == PROP_ENUM) {
-				EnumPropertyItem *item;
-				int i, totitem, free;
-
-				RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
-				for(i=0; i<totitem; i++) {
-					if(item[i].identifier[0] && item[i].value == (int)max) {
-						str= item[i].name;
-						icon= item[i].icon;
-					}
+				if(value == item[i].value) {
+					icon= item[i].icon;
+					if(!tip)
+						tip= item[i].description;
 				}
+			}
+			str= BLI_dynstr_get_cstring(dynstr);
+			BLI_dynstr_free(dynstr);
 
-				if(!str)
-					str= RNA_property_ui_name(prop);
-				if(free)
-					MEM_freeN(item);
-			}
-			else {
-				str= RNA_property_ui_name(prop);
-				icon= RNA_property_ui_icon(prop);
-			}
+			if(free)
+				MEM_freeN(item);
+
+			freestr= 1;
 		}
-		
-		if(!tip && proptype != PROP_ENUM)
-			tip= RNA_property_ui_description(prop);
+		else if(ELEM(type, ROW, LISTROW) && proptype == PROP_ENUM) {
+			EnumPropertyItem *item;
+			int i, totitem, free;
 
-		if(min == max || a1 == -1 || a2 == -1) {
-			if(proptype == PROP_INT) {
-				int hardmin, hardmax, softmin, softmax, step;
-
-				RNA_property_int_range(ptr, prop, &hardmin, &hardmax);
-				RNA_property_int_ui_range(ptr, prop, &softmin, &softmax, &step);
-
-				if(!ELEM(type, ROW, LISTROW) && min == max) {
-					min= hardmin;
-					max= hardmax;
+			RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
+			for(i=0; i<totitem; i++) {
+				if(item[i].identifier[0] && item[i].value == (int)max) {
+					str= item[i].name;
+					icon= item[i].icon;
 				}
-				if(a1 == -1)
-					a1= step;
-				if(a2 == -1)
-					a2= 0;
 			}
-			else if(proptype == PROP_FLOAT) {
-				float hardmin, hardmax, softmin, softmax, step, precision;
 
-				RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
-				RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
-
-				if(!ELEM(type, ROW, LISTROW) && min == max) {
-					min= hardmin;
-					max= hardmax;
-				}
-				if(a1 == -1)
-					a1= step;
-				if(a2 == -1)
-					a2= precision;
-			}
-			else if(proptype == PROP_STRING) {
-				min= 0;
-				max= RNA_property_string_maxlength(prop);
-				if(max == 0) /* interface code should ideally support unlimited length */
-					max= UI_MAX_DRAW_STR; 
-			}
+			if(!str)
+				str= RNA_property_ui_name(prop);
+			if(free)
+				MEM_freeN(item);
+		}
+		else {
+			str= RNA_property_ui_name(prop);
+			icon= RNA_property_ui_icon(prop);
 		}
 	}
-	else {
-		RNA_warning("ui_def_but_rna: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
-		str= propname;
+
+	if(!tip && proptype != PROP_ENUM)
+		tip= RNA_property_ui_description(prop);
+
+	if(min == max || a1 == -1 || a2 == -1) {
+		if(proptype == PROP_INT) {
+			int hardmin, hardmax, softmin, softmax, step;
+
+			RNA_property_int_range(ptr, prop, &hardmin, &hardmax);
+			RNA_property_int_ui_range(ptr, prop, &softmin, &softmax, &step);
+
+			if(!ELEM(type, ROW, LISTROW) && min == max) {
+				min= hardmin;
+				max= hardmax;
+			}
+			if(a1 == -1)
+				a1= step;
+			if(a2 == -1)
+				a2= 0;
+		}
+		else if(proptype == PROP_FLOAT) {
+			float hardmin, hardmax, softmin, softmax, step, precision;
+
+			RNA_property_float_range(ptr, prop, &hardmin, &hardmax);
+			RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
+
+			if(!ELEM(type, ROW, LISTROW) && min == max) {
+				min= hardmin;
+				max= hardmax;
+			}
+			if(a1 == -1)
+				a1= step;
+			if(a2 == -1)
+				a2= precision;
+		}
+		else if(proptype == PROP_STRING) {
+			min= 0;
+			max= RNA_property_string_maxlength(prop);
+			if(max == 0) /* interface code should ideally support unlimited length */
+				max= UI_MAX_DRAW_STR;
+		}
 	}
 
 	/* now create button */
 	but= ui_def_but(block, type, retval, str, x1, y1, x2, y2, NULL, min, max, a1, a2, tip);
 
-	if(prop) {
-		but->rnapoin= *ptr;
-		but->rnaprop= prop;
+	but->rnapoin= *ptr;
+	but->rnaprop= prop;
 
-		if(RNA_property_array_length(&but->rnapoin, but->rnaprop))
-			but->rnaindex= index;
-		else
-			but->rnaindex= 0;
-	}
+	if(RNA_property_array_length(&but->rnapoin, but->rnaprop))
+		but->rnaindex= index;
+	else
+		but->rnaindex= 0;
 
 	if(icon) {
 		but->icon= (BIFIconID)icon;
@@ -2629,10 +2632,8 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		but->flag|= UI_ICON_LEFT;
 	}
 	
-	if (!prop || !RNA_property_editable(&but->rnapoin, prop)) {
-		but->flag |= UI_BUT_DISABLED;
-		but->lock = 1;
-		but->lockstr = "";
+	if (!RNA_property_editable(&but->rnapoin, prop)) {
+		UI_DEF_BUT_RNA_DISABLE(but);
 	}
 
 	/* If this button uses units, calculate the step from this */
@@ -2642,6 +2643,23 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	if(freestr)
 		MEM_freeN((void *)str);
 	
+	return but;
+}
+
+static uiBut *ui_def_but_rna_propname(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  const char *tip)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
+	uiBut *but;
+
+	if(prop) {
+		but= ui_def_but_rna(block, type, retval, str, x1, y1, x2, y2, ptr, prop, index, min, max, a1, a2,  tip);
+	}
+	else {
+		but= ui_def_but(block, type, retval, propname, x1, y1, x2, y2, NULL, min, max, a1, a2, tip);
+
+		UI_DEF_BUT_RNA_DISABLE(but);
+	}
+
 	return but;
 }
 
@@ -2812,6 +2830,16 @@ static void autocomplete_id(bContext *C, char *str, void *arg_v)
 	}
 }
 
+static void ui_check_but_and_iconize(uiBut *but, int icon)
+{
+	if(icon) {
+		but->icon= (BIFIconID) icon;
+		but->flag|= UI_HAS_ICON;
+	}
+
+	ui_check_but(but);
+}
+
 static uiBut *uiDefButBit(uiBlock *block, int type, int bit, int retval, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
 {
 	int bitIdx= findBitIndex(bit);
@@ -2856,31 +2884,29 @@ uiBut *uiDefButBitC(uiBlock *block, int type, int bit, int retval, const char *s
 uiBut *uiDefButR(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but;
-
-	but= ui_def_but_rna(block, type, retval, str, x1, y1, x2, y2, ptr, propname, index, min, max, a1, a2, tip);
-	if(but)
-		ui_check_but(but);
-
+	but= ui_def_but_rna_propname(block, type, retval, str, x1, y1, x2, y2, ptr, propname, index, min, max, a1, a2, tip);
+	ui_check_but(but);
+	return but;
+}
+uiBut *uiDefButR_prop(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
+{
+	uiBut *but;
+	but= ui_def_but_rna(block, type, retval, str, x1, y1, x2, y2, ptr, prop, index, min, max, a1, a2, tip);
+	ui_check_but(but);
 	return but;
 }
 uiBut *uiDefButO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-
 	but= ui_def_but_operator(block, type, opname, opcontext, str, x1, y1, x2, y2, tip);
-	if(but)
-		ui_check_but(but);
-
+	ui_check_but(but);
 	return but;
 }
 
 uiBut *uiDefButTextO(uiBlock *block, int type, const char *opname, int opcontext, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but= ui_def_but_operator_text(block, type, opname, opcontext, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
-
-	if(but)
-		ui_check_but(but);
-	
+	ui_check_but(but);
 	return but;
 }
 
@@ -2888,12 +2914,7 @@ uiBut *uiDefButTextO(uiBlock *block, int type, const char *opname, int opcontext
 uiBut *uiDefIconBut(uiBlock *block, int type, int retval, int icon, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but= ui_def_but(block, type, retval, "", x1, y1, x2, y2, poin, min, max, a1, a2, tip);
-	
-	but->icon= (BIFIconID) icon;
-	but->flag|= UI_HAS_ICON;
-
-	ui_check_but(but);
-	
+	ui_check_but_and_iconize(but, icon);
 	return but;
 }
 static uiBut *uiDefIconButBit(uiBlock *block, int type, int bit, int retval, int icon, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2, const char *tip)
@@ -2941,29 +2962,22 @@ uiBut *uiDefIconButBitC(uiBlock *block, int type, int bit, int retval, int icon,
 uiBut *uiDefIconButR(uiBlock *block, int type, int retval, int icon, int x1, int y1, short x2, short y2, PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but;
-
-	but= ui_def_but_rna(block, type, retval, "", x1, y1, x2, y2, ptr, propname, index, min, max, a1, a2, tip);
-	if(but) {
-		if(icon) {
-			but->icon= (BIFIconID) icon;
-			but->flag|= UI_HAS_ICON;
-		}
-		ui_check_but(but);
-	}
-
+	but= ui_def_but_rna_propname(block, type, retval, "", x1, y1, x2, y2, ptr, propname, index, min, max, a1, a2, tip);
+	ui_check_but_and_iconize(but, icon);
+	return but;
+}
+uiBut *uiDefIconButR_prop(uiBlock *block, int type, int retval, int icon, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
+{
+	uiBut *but;
+	but= ui_def_but_rna(block, type, retval, "", x1, y1, x2, y2, ptr, prop, index, min, max, a1, a2, tip);
+	ui_check_but_and_iconize(but, icon);
 	return but;
 }
 uiBut *uiDefIconButO(uiBlock *block, int type, const char *opname, int opcontext, int icon, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-
 	but= ui_def_but_operator(block, type, opname, opcontext, "", x1, y1, x2, y2, tip);
-	if(but) {
-		but->icon= (BIFIconID) icon;
-		but->flag|= UI_HAS_ICON;
-		ui_check_but(but);
-	}
-
+	ui_check_but_and_iconize(but, icon);
 	return but;
 }
 
@@ -2971,14 +2985,8 @@ uiBut *uiDefIconButO(uiBlock *block, int type, const char *opname, int opcontext
 uiBut *uiDefIconTextBut(uiBlock *block, int type, int retval, int icon, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but= ui_def_but(block, type, retval, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
-
-	but->icon= (BIFIconID) icon;
-	but->flag|= UI_HAS_ICON;
-
+	ui_check_but_and_iconize(but, icon);
 	but->flag|= UI_ICON_LEFT;
-
-	ui_check_but(but);
-
 	return but;
 }
 static uiBut *uiDefIconTextButBit(uiBlock *block, int type, int bit, int retval, int icon, const char *str, int x1, int y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  const char *tip)
@@ -3026,31 +3034,25 @@ uiBut *uiDefIconTextButBitC(uiBlock *block, int type, int bit, int retval, int i
 uiBut *uiDefIconTextButR(uiBlock *block, int type, int retval, int icon, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, const char *propname, int index, float min, float max, float a1, float a2,  const char *tip)
 {
 	uiBut *but;
-
-	but= ui_def_but_rna(block, type, retval, str, x1, y1, x2, y2, ptr, propname, index, min, max, a1, a2, tip);
-	if(but) {
-		if(icon) {
-			but->icon= (BIFIconID) icon;
-			but->flag|= UI_HAS_ICON;
-		}
-		but->flag|= UI_ICON_LEFT;
-		ui_check_but(but);
-	}
-
+	but= ui_def_but_rna_propname(block, type, retval, str, x1, y1, x2, y2, ptr, propname, index, min, max, a1, a2, tip);
+	ui_check_but_and_iconize(but, icon);
+	but->flag|= UI_ICON_LEFT;
+	return but;
+}
+uiBut *uiDefIconTextButR_prop(uiBlock *block, int type, int retval, int icon, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
+{
+	uiBut *but;
+	but= ui_def_but_rna(block, type, retval, str, x1, y1, x2, y2, ptr, prop, index, min, max, a1, a2, tip);
+	ui_check_but_and_iconize(but, icon);
+	but->flag|= UI_ICON_LEFT;
 	return but;
 }
 uiBut *uiDefIconTextButO(uiBlock *block, int type, const char *opname, int opcontext, int icon, const char *str, int x1, int y1, short x2, short y2, const char *tip)
 {
 	uiBut *but;
-
 	but= ui_def_but_operator(block, type, opname, opcontext, str, x1, y1, x2, y2, tip);
-	if(but) {
-		but->icon= (BIFIconID) icon;
-		but->flag|= UI_HAS_ICON;
-		but->flag|= UI_ICON_LEFT;
-		ui_check_but(but);
-	}
-
+	ui_check_but_and_iconize(but, icon);
+	but->flag|= UI_ICON_LEFT;
 	return but;
 }
 

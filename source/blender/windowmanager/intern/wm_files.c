@@ -226,6 +226,14 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			oldwm= oldwmlist->first;
 			wm= G.main->wm.first;
 
+			/* move addon key configuration to new wm, to preserve their keymaps */
+			if(oldwm->addonconf) {
+				wm->addonconf= oldwm->addonconf;
+				BLI_remlink(&oldwm->keyconfigs, oldwm->addonconf);
+				oldwm->addonconf= NULL;
+				BLI_addtail(&wm->keyconfigs, wm->addonconf);
+			}
+
 			/* ensure making new keymaps and set space types */
 			wm->initialized= 0;
 			wm->winactive= NULL;
@@ -801,10 +809,13 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	wmWindow *win= CTX_wm_window(C);
 	char filepath[FILE_MAXDIR+FILE_MAXFILE];
 	int fileflags;
-	
+
 	/* check current window and close it if temp */
 	if(win->screen->temp)
 		wm_window_close(C, wm, win);
+	
+	/* update keymaps in user preferences */
+	WM_keyconfig_update(wm);
 	
 	BLI_make_file_string("/", filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	printf("trying to save homefile at %s ", filepath);

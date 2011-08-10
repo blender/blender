@@ -1768,8 +1768,8 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 		vec[3][0]= snode->mx;
 		vec[3][1]= snode->my;
 	}
-	
-	dist= 0.5f*ABS(vec[0][0] - vec[3][0]);
+
+	dist= UI_GetThemeValue(TH_NODE_CURVING)*0.10f*ABS(vec[0][0] - vec[3][0]);
 	
 	/* check direction later, for top sockets */
 	vec[1][0]= vec[0][0]+dist;

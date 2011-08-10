@@ -61,13 +61,19 @@ class EditExternally(bpy.types.Operator):
     def execute(self, context):
         import os
         import subprocess
-        filepath = os.path.normpath(bpy.path.abspath(self.filepath))
+
+        filepath = self.filepath
+
+        if not filepath:
+            self.report({'ERROR'}, "Image path not set")
+            return {'CANCELLED'}
+
+        filepath = os.path.normpath(bpy.path.abspath(filepath))
 
         if not os.path.exists(filepath):
             self.report({'ERROR'},
                         "Image path %r not found, image may be packed or "
                         "unsaved." % filepath)
-
             return {'CANCELLED'}
 
         cmd = self._editor_guess(context) + [filepath]

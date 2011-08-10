@@ -61,7 +61,7 @@ class INFO_HT_header(bpy.types.Header):
         layout.template_running_jobs()
 
         layout.template_reports_banner()
-        
+
         row = layout.row(align=True)
         row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
         row.label(text=scene.statistics())
@@ -353,7 +353,7 @@ class INFO_MT_help(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("wm.url_open", text=_("Manual"), icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:Manual'
-        layout.operator("wm.url_open", text=_("Release Log"), icon='URL').url = 'http://www.blender.org/development/release-logs/blender-257/'
+        layout.operator("wm.url_open", text=_("Release Log"), icon='URL').url = 'http://www.blender.org/development/release-logs/blender-259/'
 
         layout.separator()
 

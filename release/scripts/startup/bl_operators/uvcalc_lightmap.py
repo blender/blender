@@ -520,7 +520,7 @@ def unwrap(operator, context, **kwargs):
         if obj and obj.type == 'MESH':
             meshes = [obj.data]
     else:
-        meshes = {me.name: me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if not me.library if len(me.faces)}.values()
+        meshes = list({me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if me.faces and me.library is None})
 
     if not meshes:
         operator.report({'ERROR'}, "No mesh object.")

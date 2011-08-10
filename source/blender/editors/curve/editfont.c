@@ -1651,10 +1651,10 @@ static int open_exec(bContext *C, wmOperator *op)
 	VFont *font;
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
-	char str[FILE_MAX];
-	RNA_string_get(op->ptr, "filepath", str);
+	char filepath[FILE_MAX];
+	RNA_string_get(op->ptr, "filepath", filepath);
 
-	font = load_vfont(str);
+	font= load_vfont(filepath);
 
 	if(!font) {
 		if(op->customdata) MEM_freeN(op->customdata);
