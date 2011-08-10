@@ -146,7 +146,7 @@ convertSDLKey(SDL_Scancode key)
 	if ((key >= SDL_SCANCODE_A) && (key <= SDL_SCANCODE_Z)) {
 		type= GHOST_TKey( key - SDL_SCANCODE_A + int(GHOST_kKeyA));
 	} else if ((key >= SDL_SCANCODE_1) && (key <= SDL_SCANCODE_0)) {
-		type= GHOST_TKey(key - SDL_SCANCODE_1 + int(GHOST_kKey0));
+		type= (key == SDL_SCANCODE_0) ? GHOST_kKey0 : GHOST_TKey(key - SDL_SCANCODE_1 + int(GHOST_kKey1));
 	} else if ((key >= SDL_SCANCODE_F1) && (key <= SDL_SCANCODE_F12)) {
 		type= GHOST_TKey(key - SDL_SCANCODE_F1 + int(GHOST_kKeyF1));
 	} else if ((key >= SDL_SCANCODE_F13) && (key <= SDL_SCANCODE_F24)) {

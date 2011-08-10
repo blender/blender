@@ -87,7 +87,7 @@ static EnumPropertyItem target_space_pchan_items[] = {
 static EnumPropertyItem owner_space_pchan_items[] = {
 	{0, "WORLD", 0, "World Space", "The constraint is applied relative to the world coordinate system"},
 	{2, "POSE", 0, "Pose Space", "The constraint is applied in Pose Space, the object transformation is ignored"},
-	{3, "LOCAL_WITH_PARENT", 0, "The constraint is applied relative to the local coordinate system of the object, with the parent transformation added"},
+	{3, "LOCAL_WITH_PARENT", 0, "Local With Parent", "The constraint is applied relative to the local coordinate system of the object, with the parent transformation added"},
 	{1, "LOCAL", 0, "Local Space", "The constraint is applied relative to the local coordinate sytem of the object"},
 	{0, NULL, 0, NULL, NULL}};
 

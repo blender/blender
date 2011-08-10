@@ -47,4 +47,4 @@ if __name__ == "__main__":
     register()
 
     # test call
-    bpy.ops.object.modal_operator()
+    bpy.ops.object.modal_operator('INVOKE_DEFAULT')
