@@ -49,6 +49,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_rect.h"
+#include "BLI_math_base.h"
 
 #include "ED_screen.h"
 #include "ED_clip.h"
@@ -958,7 +959,26 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 
 	/* grid */
 	if(sc->flag&SC_SHOW_GRID) {
+		float min[2], max[2], tpos[2];
+
+		INIT_MINMAX2(min, max);
+
 		zero_v2(pos);
+		for(i= 0; i<=n; i++) {
+			for(j= 0; j<=n; j++) {
+				BKE_tracking_apply_intrinsics(tracking, pos, tpos);
+				DO_MINMAX2(tpos, min, max);
+
+				pos[0]+= dx;
+			}
+
+			pos[0]= 0.f;
+			pos[1]+= dy;
+		}
+
+		copy_v2_v2(pos, min);
+		dx= (max[0]-min[0])/n;
+		dy= (max[1]-min[1])/n;
 
 		for(i= 0; i<=n; i++) {
 			for(j= 0; j<=n; j++) {
@@ -970,7 +990,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 				pos[0]+= dx;
 			}
 
-			pos[0]= 0.f;
+			pos[0]= min[0];
 			pos[1]+= dy;
 		}
 
@@ -996,10 +1016,12 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 	if(sc->flag&SC_MANUAL_CALIBRATION && clip->gpd) {
 		bGPDlayer *layer= clip->gpd->layers.first;
 
-		glColor4fv(layer->color);
-		glLineWidth(layer->thickness);
 		while(layer) {
 			bGPDframe *frame= layer->frames.first;
+
+			glColor4fv(layer->color);
+			glLineWidth(layer->thickness);
+
 			while(frame) {
 				bGPDstroke *stroke= frame->strokes.first;
 
@@ -1007,11 +1029,33 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 					if(stroke->flag&GP_STROKE_2DSPACE && stroke->totpoints>1) {
 						glBegin(GL_LINE_STRIP);
 							for(i= 0; i<stroke->totpoints-1; i++) {
+								float npos[2], dpos[2], tpos[2], len;
+								int steps;
+
 								pos[0]= stroke->points[i].x*width;
 								pos[1]= stroke->points[i].y*height;
 
-								BKE_tracking_apply_intrinsics(tracking, pos, pos);
-								glVertex2f(pos[0]/width, pos[1]/height);
+								npos[0]= stroke->points[i+1].x*width;
+								npos[1]= stroke->points[i+1].y*height;
+
+								len= len_v2v2(pos, npos);
+								steps= ceil(len/5.f);
+
+								/* we want to distort only long straight lines */
+								if(stroke->totpoints==2) {
+									BKE_tracking_apply_intrinsics(tracking, pos, pos);
+									BKE_tracking_apply_intrinsics(tracking, npos, npos);
+								}
+
+								sub_v2_v2v2(dpos, npos, pos);
+								mul_v2_fl(dpos, 1.f/steps);
+
+								for(j= 0; j<steps; j++) {
+									BKE_tracking_invert_intrinsics(tracking, pos, tpos);
+									glVertex2f(tpos[0]/width, tpos[1]/height);
+
+									add_v2_v2(pos, dpos);
+								}
 							}
 						glEnd();
 					}
