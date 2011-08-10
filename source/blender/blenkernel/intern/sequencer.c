@@ -1318,6 +1318,10 @@ static void seq_proxy_build_frame(SeqRenderData context,
 	quality = seq->strip->proxy->quality;
 	ibuf->ftype= JPG | quality;
 
+	/* unsupported feature only confuses other s/w */
+	if(ibuf->depth==32)
+		ibuf->depth= 24;
+
 	BLI_make_existing_file(name);
 	
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);

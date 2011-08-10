@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Blender Foundation,
@@ -790,10 +790,14 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int cfra, int proxy_render
 		quality= clip->proxy.quality;
 		scaleibuf->ftype= JPG | quality;
 
+		/* unsupported feature only confuses other s/w */
+		if(scaleibuf->depth==32)
+			scaleibuf->depth= 24;
+
 		BLI_lock_thread(LOCK_MOVIECLIP);
 
 		BLI_make_existing_file(name);
-		if(IMB_saveiff(scaleibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)==0)
+		if(IMB_saveiff(scaleibuf, name, IB_rect)==0)
 			perror(name);
 
 		BLI_unlock_thread(LOCK_MOVIECLIP);
