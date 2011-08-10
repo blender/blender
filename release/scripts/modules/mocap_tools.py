@@ -760,8 +760,64 @@ def path_editing(context, stride_obj, path):
 
 
 def anim_stitch(context, enduser_obj):
+    selected_bone = enduser_obj.pose.bones["Toes.L"]
+    second_offset = 5
+    
     stitch_settings = enduser_obj.data.stitch_settings
     action_1 = stitch_settings.first_action
     action_2 = stitch_settings.second_action
+    scene = context.scene
     TrackNamesA = enduser_obj.data.mocapNLATracks[action_1]
     TrackNamesB = enduser_obj.data.mocapNLATracks[action_2]
+    enduser_obj.data.active_mocap = action_1
+    anim_data = enduser_obj.animation_data
+    # add tracks for action 2
+    mocapAction = bpy.data.actions[TrackNamesB.base_track]
+    mocapTrack = anim_data.nla_tracks.new()
+    mocapTrack.name = TrackNamesB.base_track
+    mocapStrip = mocapTrack.strips.new(TrackNamesB.base_track, stitch_settings.blend_frame, mocapAction)
+    mocapStrip.extrapolation = "HOLD_FORWARD"
+    mocapStrip.action_frame_start+=second_offset
+    mocapStrip.action_frame_end+=second_offset
+    constraintTrack = anim_data.nla_tracks.new()
+    constraintTrack.name = TrackNamesB.auto_fix_track
+    constraintAction = bpy.data.actions[TrackNamesB.auto_fix_track]
+    constraintStrip = constraintTrack.strips.new(TrackNamesB.auto_fix_track, stitch_settings.blend_frame, constraintAction)
+    constraintStrip.extrapolation = "HOLD_FORWARD"
+    userTrack = anim_data.nla_tracks.new()
+    userTrack.name = TrackNamesB.manual_fix_track
+    userAction = bpy.data.actions[TrackNamesB.manual_fix_track]
+    userStrip = userTrack.strips.new(TrackNamesB.manual_fix_track, stitch_settings.blend_frame, userAction)
+    userStrip.extrapolation = "HOLD_FORWARD"
+    #stride bone
+    if enduser_obj.parent:
+        if enduser_obj.parent.name == "stride_bone":
+            stride_bone = enduser_obj.parent
+            stride_anim_data = stride_bone.animation_data
+            stride_anim_data.use_nla = True
+            stride_anim_data.action = None
+            for track in stride_anim_data.nla_tracks:
+                stride_anim_data.nla_tracks.remove(track)
+            actionATrack = stride_anim_data.nla_tracks.new()
+            actionATrack.name = TrackNamesA.stride_action
+            actionAStrip = actionATrack.strips.new(TrackNamesA.stride_action, 0, bpy.data.actions[TrackNamesA.stride_action])
+            actionAStrip.extrapolation = "NOTHING"
+            actionBTrack = stride_anim_data.nla_tracks.new()
+            actionBTrack.name = TrackNamesB.stride_action
+            actionBStrip = actionBTrack.strips.new(TrackNamesB.stride_action, stitch_settings.blend_frame, bpy.data.actions[TrackNamesB.stride_action])
+            actionBStrip.extrapolation = "NOTHING"
+            #we need to change the stride_bone's action to add the offset
+            scene.frame_set(stitch_settings.blend_frame - 1)
+            desired_pos = selected_bone.tail * enduser_obj.matrix_world
+            scene.frame_set(stitch_settings.blend_frame)
+            actual_pos = selected_bone.tail * enduser_obj.matrix_world
+            offset = actual_pos - desired_pos
+            print(offset)
+            
+            for i,fcurve in enumerate([fcurve for fcurve in bpy.data.actions[TrackNamesB.stride_action].fcurves if fcurve.data_path=="location"]):
+                print(offset[i],i,fcurve.array_index)
+                for pt in fcurve.keyframe_points:
+                    pt.co.y-=offset[i]
+                    pt.handle_left.y-=offset[i]
+                    pt.handle_right.y-=offset[i]
+
