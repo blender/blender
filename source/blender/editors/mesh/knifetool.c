@@ -1158,20 +1158,11 @@ static KnifeEdge *knife_find_closest_edge(knifetool_opdata *kcd, float p[3], BMF
 			float d;
 
 			if (!kcd->ignore_edge_snapping || !(cure->e)) {
-				
-				closest_to_line_segment_v3(p, sco, cure->v1->sco, cure->v2->sco);
-				sub_v3_v3(p, cure->v1->sco);
-				
 				if (kcd->snap_midpoints) {
-					d = 0.5f;	
+					interp_v3_v3v3(p, cure->v1->co, cure->v2->co, 0.5f);
 				} else {
-					d = len_v3v3(cure->v1->sco, cure->v2->sco);
-					if (d != 0.0) {
-						d = len_v3(p) / d;
-					}
+					closest_to_line_segment_v3(p, co, cure->v1->co, cure->v2->co);
 				}
-				
-				interp_v3_v3v3(p, cure->v1->co, cure->v2->co, d);
 			} else {
 				return NULL;
 			}
