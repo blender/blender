@@ -355,6 +355,7 @@ class CLIP_PT_display(bpy.types.Panel):
 
         layout.prop(sc, "lock_selection")
         layout.prop(sc, "use_mute_footage")
+        layout.prop(sc, "use_manual_calibration")
 
         clip = sc.clip
         if clip:

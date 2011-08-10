@@ -300,19 +300,19 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	/* Radial distortion parameters */
 	prop= RNA_def_property(srna, "k1", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k1");
-	RNA_def_property_ui_range(prop, 0, 10, .1, 3);
+	RNA_def_property_ui_range(prop, -10, 10, .1, 3);
 	RNA_def_property_ui_text(prop, "K1", "");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	prop= RNA_def_property(srna, "k2", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k2");
-	RNA_def_property_ui_range(prop, 0, 10, .1, 3);
+	RNA_def_property_ui_range(prop, -10, 10, .1, 3);
 	RNA_def_property_ui_text(prop, "K2", "");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	prop= RNA_def_property(srna, "k3", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k3");
-	RNA_def_property_ui_range(prop, 0, 10, .1, 3);
+	RNA_def_property_ui_range(prop, -10, 10, .1, 3);
 	RNA_def_property_ui_text(prop, "K3", "");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 

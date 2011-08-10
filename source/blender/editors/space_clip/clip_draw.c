@@ -31,6 +31,7 @@
  *  \ingroup spclip
  */
 
+#include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"	/* SELECT */
@@ -776,51 +777,6 @@ static void view2d_to_region_float(View2D *v2d, float x, float y, float *regionx
 	*regiony= v2d->mask.ymin + y*(v2d->mask.ymax-v2d->mask.ymin);
 }
 
-static void draw_distorion_grid(MovieTracking *tracking, int width, int height)
-{
-	const int n= 9;
-	int x, y;
-	float pos[2], grid[10][10][2];
-	float dx= (float)width/n, dy= (float)height/n;
-
-	if(!tracking->camera.focal)
-		return;
-
-	zero_v2(pos);
-
-	for(y= 0; y<=n; y++) {
-		for(x= 0; x<=n; x++) {
-			BKE_tracking_invert_intrinsics(tracking, pos, grid[y][x]);
-
-			grid[y][x][0]/= width;
-			grid[y][x][1]/= height;
-
-			pos[0]+= dx;
-		}
-
-		pos[0]= 0.f;
-		pos[1]+= dy;
-	}
-
-	glColor3f(1.f, 0.f, 0.f);
-
-	for(y= 0; y<=n; y++) {
-		glBegin(GL_LINE_STRIP);
-			for(x= 0; x<=n; x++) {
-				glVertex2fv(grid[y][x]);
-			}
-		glEnd();
-	}
-
-	for(x= 0; x<=n; x++) {
-		glBegin(GL_LINE_STRIP);
-			for(y= 0; y<=n; y++) {
-				glVertex2fv(grid[y][x]);
-			}
-		glEnd();
-	}
-}
-
 static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 			int width, int height, float zoomx, float zoomy)
 {
@@ -954,9 +910,6 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		glDisable(GL_POINT_SMOOTH);
 	}
 
-	if(sc->flag&SC_SHOW_GRID)
-		draw_distorion_grid(tracking, width, height);
-
 	glPopMatrix();
 
 	if(sc->flag&SC_SHOW_NAMES) {
@@ -980,10 +933,102 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	glPopMatrix();
 }
 
-static void draw_tracking(SpaceClip *sc, ARegion *ar, MovieClip *clip,
-			int width, int height, float zoomx, float zoomy)
+static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int width, int height, float zoomx, float zoomy)
 {
-	draw_tracking_tracks(sc, ar, clip, width, height, zoomx, zoomy);
+	float x, y;
+	const int n= 9;
+	int i, j;
+	float pos[2], grid[10][10][2];
+	float dx= (float)width/n, dy= (float)height/n;
+	MovieTracking *tracking= &clip->tracking;
+
+	if(!tracking->camera.focal)
+		return;
+
+	if((sc->flag&SC_SHOW_GRID)==0 && (sc->flag&SC_MANUAL_CALIBRATION)==0)
+		return;
+
+	view2d_to_region_float(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+	glPushMatrix();
+	glTranslatef(x, y, 0);
+	glScalef(zoomx, zoomy, 0);
+	glMultMatrixf(sc->stabmat);
+	glScalef(width, height, 0);
+
+	/* grid */
+	if(sc->flag&SC_SHOW_GRID) {
+		zero_v2(pos);
+
+		for(i= 0; i<=n; i++) {
+			for(j= 0; j<=n; j++) {
+				BKE_tracking_invert_intrinsics(tracking, pos, grid[i][j]);
+
+				grid[i][j][0]/= width;
+				grid[i][j][1]/= height;
+
+				pos[0]+= dx;
+			}
+
+			pos[0]= 0.f;
+			pos[1]+= dy;
+		}
+
+		glColor3f(1.f, 0.f, 0.f);
+
+		for(i= 0; i<=n; i++) {
+			glBegin(GL_LINE_STRIP);
+				for(j= 0; j<=n; j++) {
+					glVertex2fv(grid[i][j]);
+				}
+			glEnd();
+		}
+
+		for(j= 0; j<=n; j++) {
+			glBegin(GL_LINE_STRIP);
+				for(i= 0; i<=n; i++) {
+					glVertex2fv(grid[i][j]);
+				}
+			glEnd();
+		}
+	}
+
+	if(sc->flag&SC_MANUAL_CALIBRATION && clip->gpd) {
+		bGPDlayer *layer= clip->gpd->layers.first;
+
+		glColor4fv(layer->color);
+		glLineWidth(layer->thickness);
+		while(layer) {
+			bGPDframe *frame= layer->frames.first;
+			while(frame) {
+				bGPDstroke *stroke= frame->strokes.first;
+
+				while(stroke) {
+					if(stroke->flag&GP_STROKE_2DSPACE && stroke->totpoints>1) {
+						glBegin(GL_LINE_STRIP);
+							for(i= 0; i<stroke->totpoints-1; i++) {
+								pos[0]= stroke->points[i].x*width;
+								pos[1]= stroke->points[i].y*height;
+
+								BKE_tracking_apply_intrinsics(tracking, pos, pos);
+								glVertex2f(pos[0]/width, pos[1]/height);
+							}
+						glEnd();
+					}
+
+					stroke= stroke->next;
+				}
+
+				frame= frame->next;
+			}
+
+			layer= layer->next;
+		}
+
+		glLineWidth(1.f);
+	}
+
+	glPopMatrix();
 }
 
 void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
@@ -1015,7 +1060,8 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		draw_movieclip_buffer(sc, ar, ibuf, width, height, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
 
-		draw_tracking(sc, ar, clip, width, height, zoomx, zoomy);
+		draw_tracking_tracks(sc, ar, clip, width, height, zoomx, zoomy);
+		draw_distortion(sc, ar, clip, width, height, zoomx, zoomy);
 	}
 
 	draw_movieclip_cache(sc, ar, clip, scene);
@@ -1032,12 +1078,16 @@ void draw_clip_grease_pencil(bContext *C, int onlyv2d)
 		return;
 
 	if(onlyv2d) {
-		ibuf= ED_space_clip_acquire_buffer(sc);
+		/* if manual calibration is used then grase pencil data is already
+		    drawed in draw_distortion */
+		if((sc->flag&SC_MANUAL_CALIBRATION)==0) {
+			ibuf= ED_space_clip_acquire_buffer(sc);
 
-		if(ibuf) {
-				draw_gpencil_2dimage(C, ibuf);
+			if(ibuf) {
+					draw_gpencil_2dimage(C, ibuf);
 
-			IMB_freeImBuf(ibuf);
+				IMB_freeImBuf(ibuf);
+			}
 		}
 	} else {
 		draw_gpencil_view2d(C, 0);

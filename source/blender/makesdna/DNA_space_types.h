@@ -980,6 +980,7 @@ enum {
 #define SC_SHOW_NAMES			(1<<8)
 #define SC_SHOW_GRID			(1<<9)
 #define SC_SHOW_STABLE			(1<<10)
+#define SC_MANUAL_CALIBRATION	(1<<11)
 
 
 /* space types, moved from DNA_screen_types.h */
