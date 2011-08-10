@@ -667,7 +667,7 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 				COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
 				switch (binding->animationClass) {
 					case COLLADAFW::AnimationList::TRANSFORM:
-
+					
 				}
 			}*/
 		case COLLADAFW::Transformation::SKEW:
@@ -815,9 +815,10 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 						//Add the curves of the current animation to the object
 						for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 							FCurve * fcu = *iter;
-							 if (ob->type == OB_ARMATURE) 
+							if ((ob->type == OB_ARMATURE)){
+								 if ( !is_matrix)
 								add_bone_fcurve( ob, node , fcu );
-							 else 
+							} else 
 							 BLI_addtail(AnimCurves, fcu);	
 						}	 			
 				}
