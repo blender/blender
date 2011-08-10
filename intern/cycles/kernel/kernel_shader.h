@@ -140,14 +140,18 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 #endif
 
 	/* detect instancing, for non-instanced the object index is -object-1 */
+#ifdef __INSTANCING__
 	bool instanced = false;
 
 	if(sd->prim != ~0) {
 		if(sd->object >= 0)
 			instanced = true;
 		else
+#endif
 			sd->object = -sd->object-1;
+#ifdef __INSTANCING__
 	}
+#endif
 
 	/* smooth normal */
 	if(sd->shader < 0) {

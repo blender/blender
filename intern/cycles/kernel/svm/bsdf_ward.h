@@ -166,9 +166,7 @@ __device int bsdf_ward_sample(const ShaderData *sd, float randu, float randv, fl
 		h = h.x * X + h.y * Y + h.z * m_N;
 		// generate the final sample
 		float oh = dot(h, sd->I);
-		omega_in->x = 2 * oh * h.x - sd->I.x;
-		omega_in->y = 2 * oh * h.y - sd->I.y;
-		omega_in->z = 2 * oh * h.z - sd->I.z;
+		*omega_in = 2.0f * oh * h - sd->I;
 		if(dot(sd->Ng, *omega_in) > 0) {
 			float cosNI = dot(m_N, *omega_in);
 			if(cosNI > 0) {

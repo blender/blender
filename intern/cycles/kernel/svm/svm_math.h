@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 __device float safe_asinf(float a)
 {
 	if(a <= -1.0f)
-		return -M_PI_2;
+		return -M_PI_2_F;
 	else if(a >= 1.0f)
 		return M_PI_2_F;
 
@@ -114,15 +114,20 @@ __device float svm_math(NodeMath type, float Fac1, float Fac2)
 	return Fac;
 }
 
+__device float average_fac(float3 v)
+{
+	return (fabsf(v.x) + fabsf(v.y) + fabsf(v.z))/3.0f;
+}
+
 __device void svm_vector_math(float *Fac, float3 *Vector, NodeVectorMath type, float3 Vector1, float3 Vector2)
 {
 	if(type == NODE_VECTOR_MATH_ADD) {
 		*Vector = Vector1 + Vector2;
-		*Fac = (fabsf(Vector->x) + fabsf(Vector->y) + fabsf(Vector->z))/3.0f;
+		*Fac = average_fac(*Vector);
 	}
 	else if(type == NODE_VECTOR_MATH_SUBTRACT) {
 		*Vector = Vector1 - Vector2;
-		*Fac = (fabsf(Vector->x) + fabsf(Vector->y) + fabsf(Vector->z))/3.0f;
+		*Fac = average_fac(*Vector);
 	}
 	else if(type == NODE_VECTOR_MATH_AVERAGE) {
 		*Fac = len(Vector1 + Vector2);

@@ -194,15 +194,15 @@ __device float noise_wave(NodeWaveType wave, float a)
     	return 0.5f + 0.5f*sin(a);
 	}
 	else if(wave == NODE_WAVE_SAW) {
-		float b = 2*M_PI;
+		float b = 2.0f*M_PI_F;
 		int n = (int)(a / b);
 		a -= n*b;
-		if(a < 0) a += b;
+		if(a < 0.0f) a += b;
 
 		return a / b;
 	}
 	else if(wave == NODE_WAVE_TRI) {
-		float b = 2*M_PI;
+		float b = 2.0f*M_PI_F;
 		float rmax = 1.0f;
 
 		return rmax - 2.0f*fabsf(floorf((a*(1.0f/b))+0.5f) - (a*(1.0f/b)));

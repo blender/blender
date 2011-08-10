@@ -51,7 +51,6 @@ __kernel void kernel_ocl_path_trace(
 
 	int x = sx + get_global_id(0);
 	int y = sy + get_global_id(1);
-	int w = kernel_data.cam.width;
 
 	if(x < sx + sw && y < sy + sh)
 		kernel_path_trace(kg, buffer, rng_state, pass, x, y);
