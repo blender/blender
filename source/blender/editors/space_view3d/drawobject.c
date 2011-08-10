@@ -2858,7 +2858,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	// Jason
-	if(paint_vertsel_test(ob)) {
+	if(paint_vertsel_test(ob) && dm->drawSelectedVerts) {
 		glColor3f(0.0f, 0.0f, 0.0f);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 		dm->drawSelectedVerts(dm);

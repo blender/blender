@@ -2311,7 +2311,19 @@ static int vertex_group_fix_exec(bContext *C, wmOperator *op)
 	float distToBe= RNA_float_get(op->ptr,"dist");
 	float strength= RNA_float_get(op->ptr,"strength");
 	float cp= RNA_float_get(op->ptr,"cp");
+	ModifierData *md = ob->modifiers.first;
+
+	while(md) {
+		if(md->type == eModifierType_Mirror && (md->mode&eModifierMode_Realtime)) {
+			break;
+		}
+		md = md->next;
+	}
 	
+	if(md && md->type == eModifierType_Mirror) {
+		BKE_report(op->reports, RPT_ERROR_INVALID_CONTEXT, "This operator does not support an active mirror modifier");
+		return OPERATOR_CANCELLED;
+	}
 	vgroup_fix(scene, ob, distToBe, strength, cp);
 	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
