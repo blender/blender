@@ -186,6 +186,8 @@ def setConstraint(m_constraint, context):
     bone = bones[m_constraint.constrained_bone]
     cons_obj = getConsObj(bone)
     real_constraint = cons_obj.constraints[m_constraint.real_constraint]
+    NLATracks = obj.data.mocapNLATracks[obj.data.active_mocap]
+    obj.animation_data.action = bpy.data.actions[NLATracks.auto_fix_track]
 
     #frame changing section
     setConstraintFraming(m_constraint, context)
@@ -364,8 +366,9 @@ def bakeAllConstraints(obj, s_frame, e_frame, bones):
                 simpleBake += [end_bone]
     for bone in selectedBones:
         bone.bone.select = True
-    tracks = [track for track in obj.data.mocapNLATracks if track.active][0]
-    constraintTrack = obj.animation_data.nla_tracks[tracks.auto_fix_track]
+    NLATracks = obj.data.mocapNLATracks[obj.data.active_mocap]
+    obj.animation_data.action = bpy.data.actions[NLATracks.auto_fix_track]
+    constraintTrack = obj.animation_data.nla_tracks[NLATracks.auto_fix_track]
     constraintStrip = constraintTrack.strips[0]
     constraintStrip.action_frame_start = s_frame
     constraintStrip.action_frame_end = e_frame
@@ -404,8 +407,9 @@ def unbakeConstraints(context):
     obj = context.active_object
     bones = obj.pose.bones
     scene = bpy.context.scene
-    tracks = obj.data.mocapNLATracks[obj.animation_data.action]
-    constraintTrack = obj.animation_data.nla_tracks[tracks.auto_fix_track]
+    NLATracks = obj.data.mocapNLATracks[obj.data.active_mocap]
+    obj.animation_data.action = bpy.data.actions[NLATracks.auto_fix_track]
+    constraintTrack = obj.animation_data.nla_tracks[NLATracks.auto_fix_track]
     constraintStrip = constraintTrack.strips[0]
     action = constraintStrip.action
     # delete the fcurves on the strip

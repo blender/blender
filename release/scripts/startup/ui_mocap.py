@@ -127,7 +127,6 @@ bpy.utils.register_class(AnimationStitchSettings)
 
 class MocapNLATracks(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
-    active = bpy.props.BoolProperty()
     base_track = bpy.props.StringProperty()
     auto_fix_track = bpy.props.StringProperty()
     manual_fix_track = bpy.props.StringProperty()
@@ -136,7 +135,7 @@ class MocapNLATracks(bpy.types.PropertyGroup):
 bpy.utils.register_class(MocapNLATracks)
 
 bpy.types.Armature.stitch_settings = bpy.props.PointerProperty(type=AnimationStitchSettings)
-
+bpy.types.Armature.active_mocap =  bpy.props.StringProperty(update=retarget.NLASystemInitialize)
 bpy.types.Armature.mocapNLATracks = bpy.props.CollectionProperty(type=MocapNLATracks)
 
 #Update function for IK functionality. Is called when IK prop checkboxes are toggled.
@@ -349,6 +348,8 @@ class ExtraToolsPanel(bpy.types.Panel):
         activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
         if activeIsArmature:
             enduser_arm = context.active_object.data
+            layout.label("Retargeted Animations:")
+            layout.prop_search(enduser_arm, "active_mocap",enduser_arm, "mocapNLATracks")
             settings = enduser_arm.stitch_settings
             layout.prop_search(settings, "first_action", enduser_arm, "mocapNLATracks")
             layout.prop_search(settings, "second_action", enduser_arm, "mocapNLATracks")
