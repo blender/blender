@@ -275,6 +275,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
     #is there a stride_bone?
     if "stride_bone" in bpy.data.objects:
         stride_action = bpy.data.actions.new("Stride Bone " + action_name)
+        stride_action.use_fake_user = True
         stride_bone = enduser_obj.parent
         stride_bone.animation_data.action = stride_action
     else:
@@ -410,6 +411,7 @@ def NLASystemInitialize(enduser_arm, context):#enduser_obj, name):
         constraintAction = bpy.data.actions[("Auto fixes " + name)]
     else:
         constraintAction = bpy.data.actions.new("Auto fixes " + name)
+        constraintAction.use_fake_user = True
     constraintStrip = constraintTrack.strips.new("Auto fixes " + name, s_frame, constraintAction)
     constraintStrip.extrapolation = "NOTHING"
     userTrack = anim_data.nla_tracks.new()
@@ -419,6 +421,7 @@ def NLASystemInitialize(enduser_arm, context):#enduser_obj, name):
         userAction = bpy.data.actions[("Manual fixes " + name)]
     else:
         userAction = bpy.data.actions.new("Manual fixes " + name)
+        userAction.use_fake_user = True
     userStrip = userTrack.strips.new("Manual fixes " + name, s_frame, userAction)
     userStrip.extrapolation = "HOLD"
     #userStrip.blend_type = "MULITPLY" - doesn't work due to work, will be activated soon
@@ -432,6 +435,7 @@ def NLASystemInitialize(enduser_arm, context):#enduser_obj, name):
             stride_bone.animation_data.action = bpy.data.actions[NLATracks.stride_action]
         else:
             NLATracks.stride_action = stride_bone.animation_data.action.name
+            stride_bone.animation_data.action.use_fake_user = True
     anim_data.action = None
 
 
@@ -442,6 +446,7 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     
     try:
         enduser_obj.animation_data.action = bpy.data.actions.new("temp")
+        enduser_obj.animation_data.action.use_fake_user = True
     except:
         print("no need to create new action")
     
