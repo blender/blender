@@ -188,12 +188,12 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		bPositiveEvent = m_posevent;
 		RemoveAllEvents();
 	}
+
+	if (use_continue && m_flag & ACT_FLAG_ACTIVE)
+		m_localtime = obj->GetActionFrame(m_layer);
 	
 	if (bPositiveEvent)
 	{
-		if (use_continue && m_flag & ACT_FLAG_ACTIVE)
-			start = m_localtime = obj->GetActionFrame(m_layer);
-
 		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, play_mode, m_layer_weight, m_ipo_flags))
 		{
 			m_flag |= ACT_FLAG_ACTIVE;
