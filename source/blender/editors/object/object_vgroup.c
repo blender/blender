@@ -751,6 +751,10 @@ static void vgroup_normalize(Object *ob)
 	if (dvert_array) MEM_freeN(dvert_array);
 }
 // Jason
+/* This adds the indices of vertices to a list if they are not already present
+It returns the number that it added (0-2)
+It relies on verts having -1 for unassigned indices
+*/
 static int tryToAddVerts(int *verts, int length, int a, int b) {
 	char containsA = FALSE;
 	char containsB = FALSE;
@@ -776,6 +780,11 @@ static int tryToAddVerts(int *verts, int length, int a, int b) {
 	return added;
 }
 //Jason
+/* This finds all of the vertices connected to vert by an edge
+and returns an array of indices of size count
+
+count is an int passed by reference so it can be assigned the value of the length here.
+*/
 static int* getSurroundingVerts(Mesh *me, int vert, int *count) {
 	int length = 0;
 	int *tverts;
@@ -799,7 +808,6 @@ static int* getSurroundingVerts(Mesh *me, int vert, int *count) {
 	}
 	for(i = 0; i < totface; i++, mf++) {
 		int a=-1, b=-1;
-		//printf("face %d verts: %d %d %d %d\n", i, mf->v1, mf->v2, mf->v3, mf->v4);
 		if(mf->v1 == vert) {
 			a = mf->v2;
 			if(mf->v4) {
@@ -830,11 +838,15 @@ static int* getSurroundingVerts(Mesh *me, int vert, int *count) {
 		for(i = 0; i < found; i++) {
 			verts[i] = tverts[i];
 		}
-		count[0] = found;
+		*count = found;
 	}
 	MEM_freeN(tverts);
 	return verts;
 }
+/* Jason */
+/* get a single point in space by averaging a point cloud (vectors of size 3)
+coord is the place the average is stored, points is the point cloud, count is the number of points in the cloud
+*/
 static void getSingleCoordinate(MVert **points, int count, float *coord) {
 	int i, k;
 	for(k = 0; k < 3; k++) {
@@ -849,6 +861,11 @@ static void getSingleCoordinate(MVert **points, int count, float *coord) {
 		coord[k] /= count;
 	}
 }
+/* Jason */
+/* find the closest point on a plane to another point and store it in dst */
+/* coord is a point on the plane */
+/* point is the point that you want the nearest of */
+/* norm is the plane's normal, and d is the last number in the plane equation 0 = ax + by + cz + d */
 static void getNearestPointOnPlane(float *norm, float d, float *coord, float *point, float *dst) {
 	float *temp = MEM_callocN(sizeof(float)*3, "temp");
 	int i;
@@ -864,6 +881,8 @@ static void getNearestPointOnPlane(float *norm, float d, float *coord, float *po
 		dst[i] = point[i] - dotprod*norm[i];
 	}
 }
+/* Jason */
+/* distance of two vectors a and b of size length */
 static float distance(float* a, float *b, int length) {
 	int i;
 	float sum = 0;
@@ -872,6 +891,11 @@ static float distance(float* a, float *b, int length) {
 	}
 	return sqrt(sum);
 }
+/* Jason */
+/* given a plane and a start and end position,
+compute the amount of vertical distance relative to the plane and store it in dists,
+then get the horizontal and vertical change and store them in changes
+*/
 static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, float *start, float distToStart, float *end, float **changes, float *dists, int index) {
 	// A=Q-((Q-P).N)N
 	// D = (a*x0 + b*y0 +c*z0 +d)
@@ -893,6 +917,7 @@ static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, f
 	MEM_freeN(projB);
 }
 // Jason
+// I need the derived mesh to be forgotten so the positions are recalculated with weight changes (see dm_deform_recalc)
 static int dm_deform_clear(DerivedMesh *dm, Object *ob) {
 	dm->needsFree = 1;
 	dm->release(dm);
@@ -901,10 +926,19 @@ static int dm_deform_clear(DerivedMesh *dm, Object *ob) {
 	return NULL;
 }
 // Jason
+// recalculate the deformation
 static DerivedMesh* dm_deform_recalc(Scene *scene, Object *ob) {
 	return mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 }
 // Jason
+/* by changing nonzero weights, try to move a vertex in me->mverts with index 'index' to distToBe distance away from the provided plane
+strength can change distToBe so that it moves towards distToBe by that percentage
+cp changes how much the weights are adjusted to check the distance
+
+index is the index of the vertex being moved
+norm and d are the plane's properties for the equation: ax + by + cz + d = 0
+coord is a point on the plane
+*/
 static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float *norm, float *coord, float d, float distToBe, float strength, float cp) {
 	DerivedMesh *dm;
 	MDeformWeight *dw;
@@ -936,8 +970,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 		oldPos[1] = m.co[1];
 		oldPos[2] = m.co[2];
 		distToStart = norm[0]*oldPos[0] + norm[1]*oldPos[1] + norm[2]*oldPos[2] + d;
-		//printf("dist %f \n",distToStart);
-		//printf("mesh point %f %f %f dpoint %f %f %f \n", (me->mvert+index)->co[0], (me->mvert+index)->co[1], (me->mvert+index)->co[3], oldPos[0], oldPos[1], oldPos[2]);
+
 		if(distToBe == originalDistToBe) {
 			distToBe += distToStart - distToStart*strength;
 		}
@@ -994,7 +1027,6 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 					}
 				}
 			}
-			//printf("final vc: %f\n", changes[i][0]);
 		}
 		// sort the changes by the vertical change
 		for(k = 0; k < totweight; k++) {
@@ -1040,8 +1072,9 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 			}
 		}
 		if(bestIndex != -1) {
-			//printf("changing %d\n", bestIndex);
 			wasChange = TRUE;
+			// it is a good place to stop if it tries to move the opposite direction
+			// (relative to the plane) of last time
 			if(lastIndex != -1) {
 				if(wasUp != upDown[bestIndex]) {
 					wasChange = FALSE;
@@ -1066,7 +1099,6 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 				dm = dm_deform_clear(dm, ob);
 			}
 		}
-		//printf("best vc=%f hc=%f \n", changes[bestIndex][0], changes[bestIndex][1]);
 	}while(wasChange && (distToStart-distToBe)/fabs(distToStart-distToBe) == (dists[bestIndex]-distToBe)/fabs(dists[bestIndex]-distToBe));
 	MEM_freeN(upDown);
 	for(i = 0; i < totweight; i++) {
@@ -1078,6 +1110,8 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 	MEM_freeN(oldPos);
 }
 // Jason
+/* this is used to try to smooth a surface by only adjusting the nonzero weights of a vertex 
+but it could be used to raise or lower an existing 'bump.' */
 static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength, float cp)
 {
 	int i;
@@ -1086,22 +1120,20 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 	MVert *mv = me->mvert;
 	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
 	int *verts = NULL;
-	int *pcount = MEM_callocN(sizeof(int), "intPointer");
 	for(i = 0; i < me->totvert && mv; i++, mv++) {
 		// Jason
 		if(selectedVerts && (mv->flag & SELECT)) {
 			
-			int count;
-			if((verts = getSurroundingVerts(me, i, pcount))) {
+			int count=0;
+			if((verts = getSurroundingVerts(me, i, &count))) {
 				MVert m;
-				MVert **p = MEM_callocN(sizeof(MVert*)*(count = pcount[0]), "deformedPoints");
+				MVert **p = MEM_callocN(sizeof(MVert*)*(count), "deformedPoints");
 				int k;
 
 				DerivedMesh *dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 				for(k = 0; k < count; k++) {
 					dm->getVert(dm, verts[k], &m);
 					p[k] = &m;
-					//printf("deformed coords %f %f %f\n", p[k]->co[0], p[k]->co[1], p[k]->co[2]);
 				}
 				
 				if(count >= 3) {
@@ -1119,7 +1151,6 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 					}
 					d = -norm[0]*coord[0] -norm[1]*coord[1] -norm[2]*coord[2];
 					dist = (norm[0]*m.co[0] + norm[1]*m.co[1] + norm[2]*m.co[2] + d);
-					//printf("status plane: (%f %f %f) %f dist: %f\n", norm[0], norm[1], norm[2], d, dist);
 					moveCloserToDistanceFromPlane(scene, ob, me, i, norm, coord, d, distToBe, strength, cp);
 					MEM_freeN(coord);
 					MEM_freeN(norm);
@@ -1130,7 +1161,6 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 			}
 		}
 	}
-	MEM_freeN(pcount);
 }
 
 static void vgroup_levels(Object *ob, float offset, float gain)
