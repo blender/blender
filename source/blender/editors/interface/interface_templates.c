@@ -40,6 +40,7 @@
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
@@ -2326,10 +2327,11 @@ static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
 
 static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
-	wmOperatorType *ot = WM_operatortype_first();
-	
-	for(; ot; ot= ot->next) {
-		
+	GHashIterator *iter= WM_operatortype_iter();
+
+	for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		wmOperatorType *ot= BLI_ghashIterator_getValue(iter);
+
 		if(BLI_strcasestr(ot->name, str)) {
 			if(WM_operator_poll((bContext*)C, ot)) {
 				char name[256];
@@ -2349,6 +2351,7 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 			}
 		}
 	}
+	BLI_ghashIterator_free(iter);
 }
 
 void uiTemplateOperatorSearch(uiLayout *layout)

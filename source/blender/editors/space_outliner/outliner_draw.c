@@ -66,6 +66,8 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 
+#include "BLI_ghash.h"
+
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -584,9 +586,10 @@ static void operator_call_cb(struct bContext *UNUSED(C), void *arg_kmi, void *ar
 
 static void operator_search_cb(const struct bContext *UNUSED(C), void *UNUSED(arg_kmi), const char *str, uiSearchItems *items)
 {
-	wmOperatorType *ot = WM_operatortype_first();
-	
-	for(; ot; ot= ot->next) {
+	GHashIterator *iter= WM_operatortype_iter();
+
+	for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		wmOperatorType *ot= BLI_ghashIterator_getValue(iter);
 		
 		if(BLI_strcasestr(ot->idname, str)) {
 			char name[OP_MAX_TYPENAME];
@@ -598,6 +601,7 @@ static void operator_search_cb(const struct bContext *UNUSED(C), void *UNUSED(ar
 				break;
 		}
 	}
+	BLI_ghashIterator_free(iter);
 }
 
 /* operator Search browse menu, open */
