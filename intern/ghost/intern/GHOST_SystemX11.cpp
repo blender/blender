@@ -42,8 +42,10 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
-#include "GHOST_NDOFManagerX11.h"
 #include "GHOST_DisplayManagerX11.h"
+#ifdef WITH_INPUT_NDOF
+#include "GHOST_NDOFManagerX11.h"
+#endif
 
 #include "GHOST_Debug.h"
 
@@ -814,22 +816,6 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		pushEvent(g_event);
 	}
 }
-
-#if 0 // obsolete SpaceNav code
-
-	void *
-GHOST_SystemX11::
-prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
-{
-	const vector<GHOST_IWindow*>& v(m_windowManager->getWindows());
-	if (v.size() > 0)
-		sNdofInfo.window = static_cast<GHOST_WindowX11*>(v[0])->getXWindow();
-	sNdofInfo.display = m_display;
-	sNdofInfo.currValues = currentNdofValues;
-	return (void*)&sNdofInfo;
-}
-
-#endif
 
 	GHOST_TSuccess 
 GHOST_SystemX11::

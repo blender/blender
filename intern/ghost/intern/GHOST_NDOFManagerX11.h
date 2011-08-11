@@ -26,6 +26,8 @@
 #ifndef _GHOST_NDOFMANAGERX11_H_
 #define _GHOST_NDOFMANAGERX11_H_
 
+#ifdef WITH_INPUT_NDOF
+
 #include "GHOST_NDOFManager.h"
 
 /* Event capture is handled within the NDOF manager on Linux,
@@ -40,10 +42,9 @@ public:
 	bool processEvents();
 
 private:
-	//	bool identifyDevice();
-
 	bool m_available;
 };
 
-#endif
+#endif /* WITH_INPUT_NDOF */
+#endif /* #include guard */
 

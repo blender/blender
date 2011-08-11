@@ -146,7 +146,7 @@ convertSDLKey(SDL_Scancode key)
 	if ((key >= SDL_SCANCODE_A) && (key <= SDL_SCANCODE_Z)) {
 		type= GHOST_TKey( key - SDL_SCANCODE_A + int(GHOST_kKeyA));
 	} else if ((key >= SDL_SCANCODE_1) && (key <= SDL_SCANCODE_0)) {
-		type= GHOST_TKey(key - SDL_SCANCODE_1 + int(GHOST_kKey0));
+		type= (key == SDL_SCANCODE_0) ? GHOST_kKey0 : GHOST_TKey(key - SDL_SCANCODE_1 + int(GHOST_kKey1));
 	} else if ((key >= SDL_SCANCODE_F1) && (key <= SDL_SCANCODE_F12)) {
 		type= GHOST_TKey(key - SDL_SCANCODE_F1 + int(GHOST_kKeyF1));
 	} else if ((key >= SDL_SCANCODE_F13) && (key <= SDL_SCANCODE_F24)) {
@@ -167,6 +167,8 @@ convertSDLKey(SDL_Scancode key)
 		GXMAP(type,SDL_SCANCODE_APOSTROPHE,     GHOST_kKeyQuote);
 		GXMAP(type,SDL_SCANCODE_GRAVE,          GHOST_kKeyAccentGrave);
 		GXMAP(type,SDL_SCANCODE_MINUS,          GHOST_kKeyMinus);
+		GXMAP(type,SDL_SCANCODE_EQUALS,         GHOST_kKeyEqual);
+
 		GXMAP(type,SDL_SCANCODE_SLASH,          GHOST_kKeySlash);
 		GXMAP(type,SDL_SCANCODE_BACKSLASH,      GHOST_kKeyBackslash);
 		GXMAP(type,SDL_SCANCODE_KP_EQUALS,      GHOST_kKeyEqual);
@@ -198,6 +200,7 @@ convertSDLKey(SDL_Scancode key)
 		GXMAP(type,SDL_SCANCODE_CAPSLOCK,       GHOST_kKeyCapsLock);
 		GXMAP(type,SDL_SCANCODE_SCROLLLOCK,     GHOST_kKeyScrollLock);
 		GXMAP(type,SDL_SCANCODE_NUMLOCKCLEAR,   GHOST_kKeyNumLock);
+		GXMAP(type,SDL_SCANCODE_PRINTSCREEN,    GHOST_kKeyPrintScreen);
 
 		/* keypad events */
 

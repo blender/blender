@@ -43,7 +43,11 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
-using namespace std;
+#ifdef PREFIX
+static const char *static_path= PREFIX "/share" ;
+#else
+static const char *static_path= NULL;
+#endif
 
 GHOST_SystemPathsX11::GHOST_SystemPathsX11()
 {
@@ -56,21 +60,12 @@ GHOST_SystemPathsX11::~GHOST_SystemPathsX11()
 const GHOST_TUns8* GHOST_SystemPathsX11::getSystemDir() const
 {
 	/* no prefix assumes a portable build which only uses bundled scripts */
-#ifdef PREFIX
-	return (GHOST_TUns8*) PREFIX "/share";
-#else
-	return NULL;
-#endif
+	return (const GHOST_TUns8 *)static_path;
 }
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getUserDir() const
 {
-	const char* env = getenv("HOME");
-	if(env) {
-		return (GHOST_TUns8*) env;
-	} else {
-		return NULL;
-	}
+	return (const GHOST_TUns8 *)getenv("HOME");
 }
 
 const GHOST_TUns8* GHOST_SystemPathsX11::getBinaryDir() const

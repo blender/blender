@@ -148,7 +148,7 @@ class InfoStructRNA:
         import types
         functions = []
         for identifier, attr in self._get_py_visible_attrs():
-            if type(attr) in (types.FunctionType, types.MethodType):
+            if type(attr) in {types.FunctionType, types.MethodType}:
                 functions.append((identifier, attr))
         return functions
 
@@ -156,7 +156,7 @@ class InfoStructRNA:
         import types
         functions = []
         for identifier, attr in self._get_py_visible_attrs():
-            if type(attr) in (types.BuiltinMethodType, types.BuiltinFunctionType):
+            if type(attr) in {types.BuiltinMethodType, types.BuiltinFunctionType}:
                 functions.append((identifier, attr))
         return functions
 
@@ -260,7 +260,7 @@ class InfoPropertyRNA:
             if self.array_length:
                 type_str += " array of %d items" % (self.array_length)
 
-            if self.type in ("float", "int"):
+            if self.type in {"float", "int"}:
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
             elif self.type == "enum":
                 if self.is_enum_flag:
@@ -595,7 +595,7 @@ def BuildRNAInfo():
             for prop in rna_info.properties:
                 # ERROR CHECK
                 default = prop.default
-                if type(default) in (float, int):
+                if type(default) in {float, int}:
                     if default < prop.min or default > prop.max:
                         print("\t %s.%s, %s not in [%s - %s]" % (rna_info.identifier, prop.identifier, default, prop.min, prop.max))
 

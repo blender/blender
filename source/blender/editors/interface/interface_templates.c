@@ -54,6 +54,7 @@
 #include "BKE_displist.h"
 
 #include "ED_screen.h"
+#include "ED_object.h"
 #include "ED_render.h"
 
 #include "RNA_access.h"
@@ -276,8 +277,22 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			}
 			break;
 		case UI_ID_ALONE:
-			if(id) 
-				id_single_user(C, id, &template->ptr, template->prop);
+			if(id) {
+				const int do_scene_obj= (GS(id->name) == ID_OB) &&
+				                        (template->ptr.type == &RNA_SceneObjects);
+
+				/* make copy */
+				if(do_scene_obj) {
+					Scene *scene= CTX_data_scene(C);
+					ED_object_single_user(scene, (struct Object *)id);
+					WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
+				}
+				else {
+					if(id) {
+						id_single_user(C, id, &template->ptr, template->prop);
+					}
+				}
+			}
 			break;
 #if 0
 		case UI_ID_AUTO_NAME:
@@ -395,10 +410,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 			sprintf(str, "%d", id->us);
 
-			if(id->us<10)
-				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
-			else
-				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X+10,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+			but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X + ((id->us < 10) ? 0:10), UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib) || !editable)
@@ -2093,7 +2105,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		Object *ob= (Object*)activeptr->data;
-		Key *key= (Key*)itemptr->data;
+		Key *key= (Key*)itemptr->id.data;
 
 		split= uiLayoutSplit(sub, 0.75f, 0);
 

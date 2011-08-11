@@ -40,13 +40,13 @@ def _parse_rna(prop, value):
     elif prop.type == 'INT':
         value = int(value)
     elif prop.type == 'BOOLEAN':
-        if value in (True, False):
+        if value in {True, False}:
             pass
         else:
-            if value not in ("True", "False"):
+            if value not in {"True", "False"}:
                 raise Exception("invalid bool value: %s" % value)
             value = bool(value == "True")
-    elif prop.type in ('STRING', 'ENUM'):
+    elif prop.type in {'STRING', 'ENUM'}:
         pass
     elif prop.type == 'POINTER':
         value = eval("_bpy." + value)

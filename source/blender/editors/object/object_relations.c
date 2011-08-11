@@ -1404,6 +1404,20 @@ static void single_object_users(Scene *scene, View3D *v3d, int flag)
 	set_sca_new_poins();
 }
 
+/* not an especially efficient function, only added so the single user
+ * button can be functional.*/
+void ED_object_single_user(Scene *scene, Object *ob)
+{
+	Base *base;
+
+	for(base= FIRSTBASE; base; base= base->next) {
+		if(base->object == ob)  base->flag |=  OB_DONE;
+		else					base->flag &= ~OB_DONE;
+	}
+
+	single_object_users(scene, NULL, OB_DONE);
+}
+
 static void new_id_matar(Material **matar, int totcol)
 {
 	ID *id;

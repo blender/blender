@@ -1077,17 +1077,25 @@ class WM_OT_addon_enable(bpy.types.Operator):
     bl_idname = "wm.addon_enable"
     bl_label = "Enable Add-On"
 
-    module = StringProperty(name="Module", description="Module name of the addon to enable")
+    module = StringProperty(
+            name="Module",
+            description="Module name of the addon to enable",
+            )
 
     def execute(self, context):
         mod = addon_utils.enable(self.module)
 
         if mod:
-            # check if add-on is written for current blender version, or raise a warning
             info = addon_utils.module_bl_info(mod)
 
-            if info.get("blender", (0, 0, 0)) > bpy.app.version:
-                self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
+            info_ver = info.get("blender", (0, 0, 0))
+
+            if info_ver > bpy.app.version:
+                self.report({'WARNING'}, ("This script was written Blender "
+                                          "version %d.%d.%d and might not "
+                                          "function (correctly).\n"
+                                          "The script is enabled though.") %
+                                         info_ver)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}

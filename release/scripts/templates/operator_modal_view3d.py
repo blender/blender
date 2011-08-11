@@ -29,7 +29,7 @@ class ViewOperator(bpy.types.Operator):
             context.area.header_text_set()
             return {'FINISHED'}
 
-        elif event.type in ('RIGHTMOUSE', 'ESC'):
+        elif event.type in {'RIGHTMOUSE', 'ESC'}:
             rv3d.view_location = self._initial_location
             context.area.header_text_set()
             return {'CANCELLED'}

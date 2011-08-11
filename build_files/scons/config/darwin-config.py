@@ -21,17 +21,23 @@ cmd = 'uname -p'
 MAC_PROC=commands.getoutput(cmd) 
 cmd = 'uname -r'
 cmd_res=commands.getoutput(cmd) 
-MAC_CUR_VER='10.5' # by default (test below fails on my 10.5 PowerPC)
-if cmd_res[:2]=='7':
+
+if cmd_res[:1]=='7':
 	MAC_CUR_VER='10.3'
-elif cmd_res[:2]=='8':
+elif cmd_res[:1]=='8':
 	MAC_CUR_VER='10.4'
-elif cmd_res[:2]=='9':
+elif cmd_res[:1]=='9':
 	MAC_CUR_VER='10.5'
 elif cmd_res[:2]=='10':
 	MAC_CUR_VER='10.6'
 elif cmd_res[:2]=='11':
 	MAC_CUR_VER='10.7'
+cmd = 'xcodebuild -version'
+cmd_xcode=commands.getoutput(cmd)
+XCODE_CUR_VER=cmd_xcode
+cmd = 'xcodebuild -showsdks'
+cmd_sdk=commands.getoutput(cmd)
+MACOSX_SDK_CHECK=cmd_sdk
 
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
 	USE_QTKIT=True # Carbon quicktime is not available for 64bit
@@ -60,21 +66,23 @@ elif MACOSX_ARCHITECTURE == 'i386' and MAC_CUR_VER == '10.4':
 	LCGDIR = '#../lib/darwin-8.x.i386'
 	CC = 'gcc-4.0'
 	CXX = 'g++-4.0'
-elif MAC_CUR_VER >= '10.6':
-	# OSX 10.6 and 10.7 developer tools do not come with sdk < 10.6 anymore !
-	MAC_MIN_VERS = '10.6'
-	MACOSX_DEPLOYMENT_TARGET = '10.6'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
-	LCGDIR = '#../lib/darwin-9.x.universal'
-	CC = 'llvm-gcc-4.2'
-	CXX = 'llvm-g++-4.2'
 else :
-	MAC_MIN_VERS = '10.5'
-	MACOSX_DEPLOYMENT_TARGET = '10.5'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
-	LCGDIR = '#../lib/darwin-9.x.universal'
-	CC = 'gcc-4.2'
-	CXX = 'g++-4.2'
+	if 'Mac OS X 10.5' in MACOSX_SDK_CHECK:
+		# OSX 10.5/6 with Xcode 3.x
+		MAC_MIN_VERS = '10.5'
+		MACOSX_DEPLOYMENT_TARGET = '10.5'
+		MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
+		LCGDIR = '#../lib/darwin-9.x.universal'
+		CC = 'gcc-4.2'
+		CXX = 'g++-4.2'
+	else:
+		# OSX 10.6/7 with Xcode 4.x
+		MAC_MIN_VERS = '10.6'
+		MACOSX_DEPLOYMENT_TARGET = '10.6'
+		MACOSX_SDK='/Developer/SDKs/MacOSX10.6.sdk'
+		LCGDIR = '#../lib/darwin-9.x.universal'
+		CC = 'gcc-4.2'
+		CXX = 'g++-4.2'
 
 LIBDIR = '${LCGDIR}'
 
@@ -199,8 +207,8 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_GAMEENGINE=True
-WITH_BF_PLAYER = False
+WITH_BF_GAMEENGINE = True
+WITH_BF_PLAYER = True
 
 WITH_BF_BULLET = True
 BF_BULLET = '#extern/bullet2/src'
@@ -251,7 +259,7 @@ BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
 BF_OPENGL_LINKFLAGS = ['-framework', 'OpenGL']
 
 #OpenCollada flags
-WITH_BF_COLLADA = False
+WITH_BF_COLLADA = True
 BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
@@ -277,7 +285,7 @@ elif MACOSX_ARCHITECTURE == 'x86_64':
     BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-msse2']
 
 # SpaceNavigator and related 3D mice
-WITH_BF_3DMOUSE = False
+WITH_BF_3DMOUSE = True
 
 #############################################################################
 ###################  various compile settings and flags    ##################
@@ -296,31 +304,31 @@ CPPFLAGS = []+ARCH_FLAGS
 CCFLAGS = ['-pipe','-funsigned-char']+ARCH_FLAGS
 CXXFLAGS = ['-pipe','-funsigned-char']+ARCH_FLAGS
 
-if WITH_GHOST_COCOA==True:
+if WITH_GHOST_COCOA:
 	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Cocoa','-framework','Carbon','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
 else:
 	PLATFORM_LINKFLAGS = ['-fexceptions','-framework','CoreServices','-framework','Foundation','-framework','IOKit','-framework','AppKit','-framework','Carbon','-framework','AGL','-framework','AudioUnit','-framework','AudioToolbox','-framework','CoreAudio','-framework','OpenAL']+ARCH_FLAGS
 
-if WITH_BF_QUICKTIME == True:
-	if USE_QTKIT == True:
+if WITH_BF_QUICKTIME:
+	if USE_QTKIT:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QTKit']
 	else:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
 
-if WITH_BF_3DMOUSE:
+if FOUND_NDOF_DRIVERS:
 	PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS + ['-weak_framework','3DconnexionClient']
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
 LLIBS = ['stdc++', 'SystemStubs']
 
-# some flags shuffling for different Os versions
+# some flags shuffling for different OS versions
 if MAC_MIN_VERS == '10.3':
 	CFLAGS = ['-fuse-cxa-atexit']+CFLAGS
 	CXXFLAGS = ['-fuse-cxa-atexit']+CXXFLAGS
 	PLATFORM_LINKFLAGS = ['-fuse-cxa-atexit']+PLATFORM_LINKFLAGS
 	LLIBS.append('crt3.o')
 	
-if USE_SDK==True:
+if USE_SDK:
 	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS,'-arch',MACOSX_ARCHITECTURE]	
 	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-isysroot',MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
 	CCFLAGS=SDK_FLAGS+CCFLAGS
