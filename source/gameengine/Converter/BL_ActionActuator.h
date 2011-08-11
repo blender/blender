@@ -78,19 +78,8 @@ public:
 	static PyObject*	pyattr_get_channel_names(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
-
-	/* attribute check */
-	static int CheckFrame(void *self, const PyAttributeDef*)
-	{
-		BL_ActionActuator* act = reinterpret_cast<BL_ActionActuator*>(self);
-
-		if (act->m_localtime < act->m_startframe)
-			act->m_localtime = act->m_startframe;
-		else if (act->m_localtime > act->m_endframe)
-			act->m_localtime = act->m_endframe;
-
-		return 0;
-	}
+	static PyObject*	pyattr_get_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
 	static int CheckBlendTime(void *self, const PyAttributeDef*)
 	{

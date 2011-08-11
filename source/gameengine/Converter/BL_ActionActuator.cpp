@@ -461,7 +461,7 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("action", BL_ActionActuator, pyattr_get_action, pyattr_set_action),
 	KX_PYATTRIBUTE_RO_FUNCTION("channelNames", BL_ActionActuator, pyattr_get_channel_names),
 	KX_PYATTRIBUTE_SHORT_RW("priority", 0, 100, false, BL_ActionActuator, m_priority),
-	KX_PYATTRIBUTE_FLOAT_RW_CHECK("frame", 0, MAXFRAMEF, BL_ActionActuator, m_localtime, CheckFrame),
+	KX_PYATTRIBUTE_RW_FUNCTION("frame", BL_ActionActuator, pyattr_get_frame, pyattr_set_frame),
 	KX_PYATTRIBUTE_STRING_RW("propName", 0, 31, false, BL_ActionActuator, m_propname),
 	KX_PYATTRIBUTE_STRING_RW("framePropName", 0, 31, false, BL_ActionActuator, m_framepropname),
 	KX_PYATTRIBUTE_RW_FUNCTION("useContinue", BL_ActionActuator, pyattr_get_use_continue, pyattr_set_use_continue),
@@ -538,6 +538,21 @@ int BL_ActionActuator::pyattr_set_use_continue(void *self_v, const KX_PYATTRIBUT
 		self->m_flag |= ACT_FLAG_CONTINUE;
 	else
 		self->m_flag &= ~ACT_FLAG_CONTINUE;
+	
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* BL_ActionActuator::pyattr_get_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	return PyFloat_FromDouble(((KX_GameObject*)self->m_gameobj)->GetActionFrame(self->m_layer));
+}
+
+int BL_ActionActuator::pyattr_set_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	
+	((KX_GameObject*)self->m_gameobj)->SetActionFrame(self->m_layer, PyFloat_AsDouble(value));
 	
 	return PY_SET_ATTR_SUCCESS;
 }
