@@ -382,6 +382,7 @@ class ExtraToolsPanel(bpy.types.Panel):
             layout.prop(settings, "blend_amount")
             layout.prop(settings, "second_offset")
             layout.prop_search(settings, "stick_bone", context.active_object.pose, "bones")
+            layout.operator('mocap.animstitchguess', text="Guess Settings")
             layout.operator('mocap.animstitch', text="Stitch Animations")
 
 
@@ -764,6 +765,25 @@ class OBJECT_OT_AnimationStitchingButton(bpy.types.Operator):
                 return (stitch_settings.first_action and stitch_settings.second_action)
         return False
     
+
+class OBJECT_OT_GuessAnimationStitchingButton(bpy.types.Operator):
+    '''Guesses the stitch frame and second offset for animation stitch'''
+    bl_idname = "mocap.animstitchguess"
+    bl_label = "Guesses the stitch frame and second offset for animation stitch"
+
+    def execute(self, context):
+        mocap_tools.guess_anim_stitch(context, context.active_object)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        activeIsArmature = False
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+            if activeIsArmature:
+                stitch_settings = context.active_object.data.stitch_settings
+                return (stitch_settings.first_action and stitch_settings.second_action)
+        return False
 
 def register():
     bpy.utils.register_module(__name__)

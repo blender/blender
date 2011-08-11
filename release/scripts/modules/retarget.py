@@ -305,6 +305,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
 
 
 def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene):
+    bpy.ops.object.select_name(name=enduser_obj.name, extend=False)
     end_bones = enduser_obj.pose.bones
     for pose_bone in end_bones:
         ik_constraint = hasIKConstraint(pose_bone)
@@ -313,9 +314,12 @@ def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene):
             # set constraint target to corresponding empty if targetless,
             # if not, keyframe current target to corresponding empty
             perf_bone = pose_bone.bone.reverseMap[-1].name
+            bpy.ops.object.mode_set(mode='EDIT')
             orgLocTrg = originalLocationTarget(pose_bone, enduser_obj)
+            bpy.ops.object.mode_set(mode='OBJECT')
             if not ik_constraint.target:
-                ik_constraint.target = orgLocTrg
+                ik_constraint.target = enduser_obj
+                ik_constraint.subtarget = pose_bone.name+"IK"
                 target = orgLocTrg
 
             # There is a target now
@@ -337,6 +341,7 @@ def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene):
                 target.keyframe_insert("location")
             ik_constraint.mute = False
     scene.frame_set(s_frame)
+    bpy.ops.object.mode_set(mode='OBJECT')
 
 
 def turnOffIK(enduser_obj):
@@ -379,14 +384,17 @@ def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, str
 
 #create (or return if exists) the related IK empty to the bone
 def originalLocationTarget(end_bone, enduser_obj):
-    if not end_bone.name + "Org" in bpy.data.objects:
-        bpy.ops.object.add()
-        empty = bpy.context.active_object
-        empty.name = end_bone.name + "Org"
-        empty.empty_draw_size = 0.1
-        empty.parent = enduser_obj
-    empty = bpy.data.objects[end_bone.name + "Org"]
-    return empty
+    if not end_bone.name + "IK" in enduser_obj.data.bones:
+        newBone = enduser_obj.data.edit_bones.new(end_bone.name + "IK")
+        newBone.head = end_bone.tail
+        newBone.tail = end_bone.tail + Vector((0,0.1,0))
+        #~ empty = bpy.context.active_object
+        #~ empty.name = end_bone.name + "Org"
+        #~ empty.empty_draw_size = 0.1
+        #~ empty.parent = enduser_obj
+    else:
+        newBone = enduser_obj.pose.bones[end_bone.name + "IK"]
+    return newBone
 
 
 #create the specified NLA setup for base animation, constraints and tweak layer.
@@ -530,6 +538,7 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
     if not advanced:
         IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene)
+        bpy.ops.object.select_name(name=stride_bone.name, extend=False)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone)
     bpy.ops.object.mode_set(mode='OBJECT')
     if not advanced:

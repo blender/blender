@@ -105,64 +105,75 @@ class dataPoint:
         self.u = u
 
 
-def autoloop_anim():
-    context = bpy.context
-    obj = context.active_object
-    fcurves = [x for x in obj.animation_data.action.fcurves if x.select]
-
-    data = []
-    end = len(fcurves[0].keyframe_points)
+def crossCorrelationMatch(curvesA, curvesB, margin):
+    dataA = []
+    dataB = []
+    end = len(curvesA[0].keyframe_points)
 
     for i in range(1, end):
         vec = []
-        for fcurve in fcurves:
+        for fcurve in curvesA:
             vec.append(fcurve.evaluate(i))
-        data.append(NdVector(vec))
+        dataA.append(NdVector(vec))
+        vec = []
+        for fcurve in curvesB:
+            vec.append(fcurve.evaluate(i))
+        dataB.append(NdVector(vec))
 
     def comp(a, b):
         return a * b
 
-    N = len(data)
+    N = len(dataA)
     Rxy = [0.0] * N
     for i in range(N):
         for j in range(i, min(i + N, N)):
-            Rxy[i] += comp(data[j], data[j - i])
+            Rxy[i] += comp(dataA[j], dataB[j - i])
         for j in range(i):
-            Rxy[i] += comp(data[j], data[j - i + N])
+            Rxy[i] += comp(dataA[j], dataB[j - i + N])
         Rxy[i] /= float(N)
-
     def bestLocalMaximum(Rxy):
         Rxyd = [Rxy[i] - Rxy[i - 1] for i in range(1, len(Rxy))]
         maxs = []
         for i in range(1, len(Rxyd) - 1):
             a = Rxyd[i - 1]
             b = Rxyd[i]
-            print(a, b)
             #sign change (zerocrossing) at point i, denoting max point (only)
             if (a >= 0 and b < 0) or (a < 0 and b >= 0):
                 maxs.append((i, max(Rxy[i], Rxy[i - 1])))
-        return max(maxs, key=lambda x: x[1])[0]
-    flm = bestLocalMaximum(Rxy[0:int(len(Rxy))])
+        return [x[0] for x in maxs]
+        #~ return max(maxs, key=lambda x: x[1])[0]
+        
+    flms = bestLocalMaximum(Rxy[0:int(len(Rxy))])
+    ss = []
+    for flm in flms:
+        diff = []
 
-    diff = []
+        for i in range(len(dataA) - flm):
+            diff.append((dataA[i] - dataB[i + flm]).lengthSq)
 
-    for i in range(len(data) - flm):
-        diff.append((data[i] - data[i + flm]).lengthSq)
+        def lowerErrorSlice(diff, e):
+            #index, error at index
+            bestSlice = (0, 100000)
+            for i in range(e, len(diff) - e):
+                errorSlice = sum(diff[i - e:i + e + 1])
+                if errorSlice < bestSlice[1]:
+                    bestSlice = (i, errorSlice, flm)
+            return bestSlice
+            
+        s = lowerErrorSlice(diff, margin)
+        ss.append(s)
 
-    def lowerErrorSlice(diff, e):
-        #index, error at index
-        bestSlice = (0, 100000)
-        for i in range(e, len(diff) - e):
-            errorSlice = sum(diff[i - e:i + e + 1])
-            if errorSlice < bestSlice[1]:
-                bestSlice = (i, errorSlice)
-        return bestSlice[0]
+    ss.sort(key = lambda x: x[1])
+    return ss[0][2], ss[0][0], dataA
 
-    margin = 2
+def autoloop_anim():
+    context = bpy.context
+    obj = context.active_object
+    fcurves = [x for x in obj.animation_data.action.fcurves if x.select]
 
-    s = lowerErrorSlice(diff, margin)
+    margin = 10
 
-    print(flm, s)
+    flm, s, data = crossCorrelationMatch(fcurves, fcurves, margin)
     loop = data[s:s + flm + margin]
 
     #find *all* loops, s:s+flm, s+flm:s+2flm, etc...
@@ -824,3 +835,18 @@ def anim_stitch(context, enduser_obj):
                     pt.handle_left.y-=offset[i]
                     pt.handle_right.y-=offset[i]
 
+
+def guess_anim_stitch(context, enduser_obj):
+    stitch_settings = enduser_obj.data.stitch_settings
+    action_1 = stitch_settings.first_action
+    action_2 = stitch_settings.second_action
+    TrackNamesA = enduser_obj.data.mocapNLATracks[action_1]
+    TrackNamesB = enduser_obj.data.mocapNLATracks[action_2]
+    mocapA = bpy.data.actions[TrackNamesA.base_track]
+    mocapB = bpy.data.actions[TrackNamesB.base_track]
+    curvesA = mocapA.fcurves
+    curvesB = mocapB.fcurves
+    flm, s, data = crossCorrelationMatch(curvesA, curvesB, 10)
+    print(flm,s)
+    enduser_obj.data.stitch_settings.blend_frame = flm
+    enduser_obj.data.stitch_settings.second_offset = s
