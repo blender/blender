@@ -387,7 +387,7 @@ void RE_engine_report(struct RenderEngine *engine, int type, const char *msg) {}
 
 /* python */
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet){return (struct wmOperatorType *) NULL;}
-struct wmOperatorType *WM_operatortype_first(){return (struct wmOperatorType *) NULL;}
+struct GHashIterator *WM_operatortype_iter(){return (struct GHashIterator *) NULL;}
 struct wmOperatorType *WM_operatortype_exists(const char *idname){return (struct wmOperatorType *) NULL;}
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname){return (struct wmOperatorTypeMacro *) NULL;}
 int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports){return 0;}

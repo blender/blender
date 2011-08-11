@@ -136,7 +136,7 @@ def validate_arguments(args, bc):
             'BF_NO_ELBEEM',
             'WITH_BF_CXX_GUARDEDALLOC',
             'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC',
-            'BUILDBOT_BRANCH', 'WITH_BF_3DMOUSE', 'FOUND_NDOF_DRIVERS', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC'
+            'BUILDBOT_BRANCH', 'WITH_BF_3DMOUSE', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC'
             ]
     
     # Have options here that scons expects to be lists
@@ -439,7 +439,6 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 
         (BoolVariable('WITH_BF_3DMOUSE', 'Build blender with support of 3D mouses', False)),
-        (BoolVariable('FOUND_NDOF_DRIVERS', 'We detected NDOF libs or framework', False)),
         (BoolVariable('WITH_BF_STATIC3DMOUSE', 'Staticly link to 3d mouse library', False)),
         ('BF_3DMOUSE', '3d mouse library base path', ''),
         ('BF_3DMOUSE_INC', '3d mouse library include path', ''),

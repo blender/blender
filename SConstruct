@@ -268,7 +268,8 @@ if env['OURPLATFORM']=='darwin':
     if env['WITH_BF_3DMOUSE'] == 1 and not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
         print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
         env['WITH_BF_3DMOUSE'] = 0
-        env['FOUND_NDOF_DRIVERS'] = 0
+    else:
+        env.Append(LINKFLAGS=['-weak_framework','3DconnexionClient'])
 
 
 if env['WITH_BF_OPENMP'] == 1:

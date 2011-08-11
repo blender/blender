@@ -1642,7 +1642,12 @@ static int gpencil_area_exists(bContext *C, ScrArea *satest)
 static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p= op->customdata;
-	int estate = OPERATOR_PASS_THROUGH; /* default exit state - not handled, so let others have a share of the pie */
+	//int estate = OPERATOR_PASS_THROUGH; /* default exit state - not handled, so let others have a share of the pie */
+	/* currently, grease pencil conflicts with such operators as undo and set object mode
+	   which makes behavior of operator totally unpredictable and crash for some cases.
+	   the only way to solve this proper is to ger rid of pointers to data which can
+	   chage stored in operator custom data (sergey) */
+	int estate = OPERATOR_RUNNING_MODAL;
 	
 	// if (event->type == NDOF_MOTION)
 	//	return OPERATOR_PASS_THROUGH;

@@ -159,18 +159,22 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 
 GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 {
-	UnregisterConnexionClient(m_clientID);
-	CleanupConnexionHandlers();
-	ghost_system = NULL;
-	ndof_manager = NULL;
+	if (available())
+	{
+		UnregisterConnexionClient(m_clientID);
+		CleanupConnexionHandlers();
+		ghost_system = NULL;
+		ndof_manager = NULL;
+	}
 }
-
-bool GHOST_NDOFManagerCocoa::available()
-{
-	// extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
-	// ^^ not needed since the entire framework is weak-linked
-	return InstallConnexionHandlers != NULL;
-	// this means that the driver is installed and dynamically linked to blender
+extern "C" {
+	bool GHOST_NDOFManagerCocoa::available()
+	{
+		extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
+		// Make the linker happy for the framework check (see link below for more info)
+		// http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html
+		return InstallConnexionHandlers != NULL;
+		// this means that the driver is installed and dynamically linked to blender
+	}
 }
-
 #endif // WITH_INPUT_NDOF

@@ -1728,6 +1728,21 @@ static int Vector_setLength(VectorObject *self, PyObject *value)
 	return 0;
 }
 
+/* vector.length_squared */
+static PyObject *Vector_getLengthSquared(VectorObject *self, void *UNUSED(closure))
+{
+	double dot = 0.0f;
+	int i;
+
+	if(BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	for(i = 0; i < self->size; i++){
+		dot += (double)(self->vec[i] * self->vec[i]);
+	}
+	return PyFloat_FromDouble(dot);
+}
+
 /* Get a new Vector according to the provided swizzle. This function has little
    error checking, as we are in control of the inputs: the closure is set by us
    in Vector_createSwizzleGetSeter. */
@@ -1851,6 +1866,7 @@ static PyGetSetDef Vector_getseters[] = {
 	{(char *)"z", (getter)Vector_getAxis, (setter)Vector_setAxis, (char *)"Vector Z axis (3D Vectors only).\n\n:type: float", (void *)2},
 	{(char *)"w", (getter)Vector_getAxis, (setter)Vector_setAxis, (char *)"Vector W axis (4D Vectors only).\n\n:type: float", (void *)3},
 	{(char *)"length", (getter)Vector_getLength, (setter)Vector_setLength, (char *)"Vector Length.\n\n:type: float", NULL},
+	{(char *)"length_squared", (getter)Vector_getLengthSquared, (setter)NULL, (char *)"Vector length squared (v.dot(v)).\n\n:type: float", NULL},
 	{(char *)"magnitude", (getter)Vector_getLength, (setter)Vector_setLength, (char *)"Vector Length.\n\n:type: float", NULL},
 	{(char *)"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, (char *)BaseMathObject_Wrapped_doc, NULL},
 	{(char *)"owner", (getter)BaseMathObject_getOwner, (setter)NULL, (char *)BaseMathObject_Owner_doc, NULL},
