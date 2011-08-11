@@ -58,7 +58,12 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_id_operation);
 	WM_operatortype_append(OUTLINER_OT_data_operation);
 	WM_operatortype_append(OUTLINER_OT_animdata_operation);
+
+#if 0 // GSOC_PEPPER
+
 	WM_operatortype_append(OUTLINER_OT_action_set);
+
+#endif // GSOC_PEPPER
 
 	WM_operatortype_append(OUTLINER_OT_show_one_level);
 	WM_operatortype_append(OUTLINER_OT_show_active);
