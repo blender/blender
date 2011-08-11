@@ -194,9 +194,6 @@ void RNA_enum_items_add(EnumPropertyItem **items, int *totitem, EnumPropertyItem
 void RNA_enum_items_add_value(EnumPropertyItem **items, int *totitem, EnumPropertyItem *item, int value);
 void RNA_enum_item_end(EnumPropertyItem **items, int *totitem);
 
-/* make every name and description field surrounded by gettext */
-EnumPropertyItem* RNA_enum_items_gettexted(EnumPropertyItem *item);
-
 /* Memory management */
 
 void RNA_def_struct_duplicate_pointers(StructRNA *srna);

@@ -853,14 +853,14 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 	if(ob) {
 		if(ob->type == OB_LAMP) {
 			tmp.value = SB_TEXC_MAT_OR_LAMP;
-			tmp.description = _("Show Lamp Textures");
+			tmp.description = "Show Lamp Textures";
 			tmp.identifier = "LAMP";
 			tmp.icon = ICON_LAMP_POINT;
 			RNA_enum_item_add(&item, &totitem, &tmp);
 		}
 		else if(ob->totcol) {
 			tmp.value = SB_TEXC_MAT_OR_LAMP;
-			tmp.description = _("Show Material Textures");
+			tmp.description = "Show Material Textures";
 			tmp.identifier = "MATERIAL";
 			tmp.icon = ICON_MATERIAL;
 			RNA_enum_item_add(&item, &totitem, &tmp);
@@ -868,7 +868,7 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 
 		if(ob->particlesystem.first) {
 			tmp.value = SB_TEXC_PARTICLES;
-			tmp.description = _("Show Particle Textures");
+			tmp.description = "Show Particle Textures";
 			tmp.identifier = "PARTICLE";
 			tmp.icon = ICON_PARTICLES;
 			RNA_enum_item_add(&item, &totitem, &tmp);
@@ -877,14 +877,14 @@ static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, 
 
 	if(scene && scene->world) {
 		tmp.value = SB_TEXC_WORLD;
-		tmp.description = _("Show World Textures");
+		tmp.description = "Show World Textures";
 		tmp.identifier = "WORLD";
 		tmp.icon = ICON_WORLD;
 		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
 
 	tmp.value = SB_TEXC_BRUSH;
-	tmp.description = _("Show Brush Textures");
+	tmp.description = "Show Brush Textures";
 	tmp.identifier = "BRUSH";
 	tmp.icon = ICON_BRUSH_DATA;
 	RNA_enum_item_add(&item, &totitem, &tmp);

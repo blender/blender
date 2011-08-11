@@ -3,7 +3,6 @@ Import ('env')
 import sys
 
 SConscript(['avi/SConscript',
-            'blenfont/SConscript',
             'blenkernel/SConscript',
             'blenlib/SConscript',
             'blenloader/SConscript',
@@ -17,7 +16,8 @@ SConscript(['avi/SConscript',
             'nodes/SConscript',
             'modifiers/SConscript',
             'ikplugin/SConscript',
-            'windowmanager/SConscript'])
+            'windowmanager/SConscript',
+            'blenfont/SConscript'])
 
 
 

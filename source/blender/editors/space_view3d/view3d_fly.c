@@ -44,6 +44,7 @@
 
 #include "BLF_api.h"
 #include "RNA_define.h"
+#include "RNA_access.h"
 
 #include "BKE_context.h"
 #include "BKE_object.h"

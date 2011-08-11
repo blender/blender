@@ -1270,23 +1270,6 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
 	}
 }
 
-/* make every name and description field surrounded by gettext */
-EnumPropertyItem* RNA_enum_items_gettexted(EnumPropertyItem *item)
-{
-	if( item )
-	{
-		int i;
-		for(i=0; item[i].identifier; i++)
-		{
-			if( item[i].name )
-				item[i].name = _(item[i].name);
-			if( item[i].description )
-				item[i].description = _(item[i].description);
-		}
-	}
-	return item;
-}
-
 void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength)
 {
 	StructRNA *srna= DefRNA.laststruct;

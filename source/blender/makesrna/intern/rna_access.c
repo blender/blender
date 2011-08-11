@@ -98,6 +98,23 @@ void RNA_exit(void)
 	RNA_free(&BLENDER_RNA);
 }
 
+/* make every name and description field surrounded by gettext */
+EnumPropertyItem* RNA_enum_items_gettexted(EnumPropertyItem *item)
+{
+	if( item )
+	{
+		int i;
+		for(i=0; item[i].identifier; i++)
+		{
+			if( item[i].name )
+				item[i].name = _(item[i].name);
+			if( item[i].description )
+				item[i].description = _(item[i].description);
+		}
+	}
+	return item;
+}
+
 void RNA_struct_gettexted( StructRNA* ptr )
 {
 	PropertyRNA *temp_property, *end_property;
