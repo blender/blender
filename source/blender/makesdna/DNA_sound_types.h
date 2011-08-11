@@ -113,6 +113,7 @@ typedef enum eSound_Type {
 
 #define SOUND_FLAGS_3D					(1 << 3) /* deprecated! used for sound actuator loading */
 #define SOUND_FLAGS_CACHING				(1 << 4)
+#define SOUND_FLAGS_MONO				(1 << 5)
 
 /* to DNA_sound_types.h*/
 

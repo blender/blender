@@ -306,7 +306,7 @@ void AUD_JOSResampleReader::read(int& length, bool& eos, sample_t* buffer)
 		m_n = m_cache_valid;
 	}
 
-	eos = eos && ((m_n == m_cache_valid) || (length = 0));
+	eos = eos && ((m_n == m_cache_valid) || (length == 0));
 }
 
 // kaiser windowed (beta = 10) sinc lowpass with a cutt-off of 0.9

@@ -123,6 +123,13 @@ extern AUD_Sound* AUD_loadBuffer(unsigned char* buffer, int size);
 extern AUD_Sound* AUD_bufferSound(AUD_Sound* sound);
 
 /**
+ * Rechannels the sound to be mono.
+ * \param sound The sound to rechannel.
+ * \return The mono sound.
+ */
+extern AUD_Sound* AUD_monoSound(AUD_Sound* sound);
+
+/**
  * Delays a sound.
  * \param sound The sound to dealy.
  * \param delay The delay in seconds.

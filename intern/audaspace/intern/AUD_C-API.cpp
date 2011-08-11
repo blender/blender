@@ -321,6 +321,24 @@ AUD_Sound* AUD_bufferSound(AUD_Sound* sound)
 	}
 }
 
+AUD_Sound* AUD_monoSound(AUD_Sound* sound)
+{
+	assert(sound);
+
+	try
+	{
+		AUD_DeviceSpecs specs;
+		specs.channels = AUD_CHANNELS_MONO;
+		specs.rate = AUD_RATE_INVALID;
+		specs.format = AUD_FORMAT_INVALID;
+		return new AUD_Sound(new AUD_ChannelMapperFactory(*sound, specs));
+	}
+	catch(AUD_Exception&)
+	{
+		return NULL;
+	}
+}
+
 AUD_Sound* AUD_delaySound(AUD_Sound* sound, float delay)
 {
 	assert(sound);

@@ -349,6 +349,13 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			break;
 		}
 #endif
+		if(sound->flags & SOUND_FLAGS_MONO)
+		{
+			void* handle = AUD_monoSound(sound->handle);
+			AUD_unload(sound->handle);
+			sound->handle = handle;
+		}
+
 		if(sound->flags & SOUND_FLAGS_CACHING)
 		{
 			sound->cache = AUD_bufferSound(sound->handle);

@@ -98,13 +98,13 @@ void AUD_DoubleReader::read(int& length, bool& eos, sample_t* buffer)
 			specs1 = m_reader1->getSpecs();
 			specs2 = m_reader2->getSpecs();
 			if(AUD_COMPARE_SPECS(specs1, specs2))
-				length = len;
-			else
 			{
 				int len2 = length - len;
 				m_reader2->read(len2, eos, buffer + specs1.channels * len);
 				length = len + len2;
 			}
+			else
+				length = len;
 		}
 	}
 	else

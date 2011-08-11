@@ -79,6 +79,13 @@
 
 /******************** open sound operator ********************/
 
+static int open_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+	return OPERATOR_CANCELLED;
+}
+
 static void open_init(bContext *C, wmOperator *op)
 {
 	PropertyPointerRNA *pprop;
@@ -95,9 +102,10 @@ static int open_exec(bContext *C, wmOperator *op)
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	AUD_SoundInfo info;
+	Main *bmain = CTX_data_main(C);
 
 	RNA_string_get(op->ptr, "filepath", path);
-	sound = sound_new_file(CTX_data_main(C), path);
+	sound = sound_new_file(bmain, path);
 
 	if(!op->customdata)
 		open_init(C, op);
@@ -115,6 +123,11 @@ static int open_exec(bContext *C, wmOperator *op)
 		if(op->customdata) MEM_freeN(op->customdata);
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;
+	}
+
+	if(RNA_boolean_get(op->ptr, "mono")) {
+		sound->flags |= SOUND_FLAGS_MONO;
+		sound_load(bmain, sound);
 	}
 
 	if (RNA_boolean_get(op->ptr, "cache")) {
@@ -172,6 +185,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= open_exec;
 	ot->invoke= open_invoke;
+	ot->cancel= open_cancel;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -179,6 +193,28 @@ void SOUND_OT_open(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH);
 	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
+	RNA_def_boolean(ot->srna, "mono", FALSE, "Mono", "Mixdown the sound to mono.");
+}
+
+void SOUND_OT_open_mono(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Open Sound Mono";
+	ot->description= "Load a sound file as mono";
+	ot->idname= "SOUND_OT_open_mono";
+
+	/* api callbacks */
+	ot->exec= open_exec;
+	ot->invoke= open_invoke;
+	ot->cancel= open_cancel;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH);
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
+	RNA_def_boolean(ot->srna, "mono", TRUE, "Mono", "Mixdown the sound to mono.");
 }
 
 /******************** mixdown operator ********************/
@@ -667,6 +703,7 @@ void SOUND_OT_bake_animation(wmOperatorType *ot)
 void ED_operatortypes_sound(void)
 {
 	WM_operatortype_append(SOUND_OT_open);
+	WM_operatortype_append(SOUND_OT_open_mono);
 	WM_operatortype_append(SOUND_OT_mixdown);
 	WM_operatortype_append(SOUND_OT_pack);
 	WM_operatortype_append(SOUND_OT_unpack);

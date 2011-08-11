@@ -88,6 +88,8 @@ void AUD_SequencerHandle::update(float position, float frame)
 			}
 
 			m_sound_status = m_entry->m_sound_status;
+			m_pos_status--;
+			m_status--;
 		}
 
 		if(m_pos_status != m_entry->m_pos_status)

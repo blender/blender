@@ -63,7 +63,7 @@ class DATA_PT_speaker(DataButtonsPanel, bpy.types.Panel):
 
         split = layout.split(percentage=0.75)
 
-        split.template_ID(speaker, "sound", open="sound.open")
+        split.template_ID(speaker, "sound", open="sound.open_mono")
         split.prop(speaker, "muted")
 
         split = layout.split()
