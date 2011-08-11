@@ -423,8 +423,6 @@ typedef struct wmTimer {
 
 
 typedef struct wmOperatorType {
-	struct wmOperatorType *next, *prev;
-
 	const char *name;		/* text for ui, undo */
 	const char *idname;		/* unique identifier */
 	const char *description;	/* tooltips and python docs */
