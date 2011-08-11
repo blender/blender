@@ -21,6 +21,7 @@
 import bpy
 from mathutils import *
 from math import radians, acos
+from bl_operators import nla
 import cProfile
 
 
@@ -264,6 +265,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
             v = locDeriv[key][i]
             hipV = locDeriv[perfRoot][i]
             endV = locDeriv[perf_bones[key].bone.map][i]
+            print(v.length,)
             if (v.length < 0.1):
                 #this is a plant frame.
                 #lets see what the original hip delta is, and the corresponding
@@ -284,6 +286,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
         stride_bone.name = "stride_bone"
     print(stride_bone)
     stride_bone.location = Vector((0, 0, 0))
+    print(linearAvg)
     if linearAvg:
         #determine the average change in scale needed
         avg = sum(linearAvg) / len(linearAvg)
@@ -295,6 +298,8 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
             newTranslation = (tailLoc(perf_bones[perfRoot]) / avg)
             stride_bone.location = enduser_obj_mat * (newTranslation - initialPos)
             stride_bone.keyframe_insert("location")
+    else:
+        stride_bone.keyframe_insert("location")
     stride_bone.animation_data.action.name = ("Stride Bone " + action_name)
 
     return stride_bone
@@ -439,10 +444,66 @@ def NLASystemInitialize(enduser_arm, context):#enduser_obj, name):
     anim_data.action = None
 
 
+def preAdvancedRetargeting(performer_obj, enduser_obj):
+    createDictionary(performer_obj.data, enduser_obj.data)
+    bones = enduser_obj.pose.bones
+    map_bones = [bone for bone in bones if bone.bone.reverseMap]
+    for bone in map_bones:
+        perf_bone = bone.bone.reverseMap[0].name
+        addLocalRot = False;
+        if bone.bone.use_connect or not bone.constraints:
+            locks = bone.lock_location
+            if not (locks[0] or locks[1] or locks[2]):  
+                cons = bone.constraints.new('COPY_LOCATION')
+                cons.name = "retargetTemp"
+                cons.use_x = not locks[0]
+                cons.use_y = not locks[1]
+                cons.use_z = not locks[2]
+                cons.target = performer_obj
+                cons.subtarget = perf_bone
+                addLocalRot = True
+
+       
+        cons2 = bone.constraints.new('COPY_ROTATION')
+        cons2.name = "retargetTemp"
+        locks = bone.lock_rotation
+        cons2.use_x = not locks[0]
+        cons2.use_y = not locks[1]
+        cons2.use_z = not locks[2]
+        cons2.target = performer_obj
+        cons2.subtarget = perf_bone
+
+        if addLocalRot:
+            for constraint in bone.constraints:
+                if constraint.type == 'COPY_ROTATION':
+                    constraint.target_space = 'LOCAL'
+                    constraint.owner_space = 'LOCAL_WITH_PARENT'
+
+
+def prepareForBake(enduser_obj):
+    bones = enduser_obj.pose.bones
+    for bone in bones:
+        bone.bone.select = False
+    map_bones = [bone for bone in bones if bone.bone.reverseMap]
+    for bone in map_bones:
+        for cons in bone.constraints:
+            if "retargetTemp" in cons.name:
+                bone.bone.select = True
+
+def cleanTempConstraints(enduser_obj):
+    bones = enduser_obj.pose.bones
+    map_bones = [bone for bone in bones if bone.bone.reverseMap]
+    for bone in map_bones:
+        for cons in bone.constraints:
+            if "retargetTemp" in cons.name:
+                bone.constraints.remove(cons)
+
 #Main function that runs the retargeting sequence.
+#If advanced == True, we assume constraint's were already created
 def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     perf_arm = performer_obj.data
     end_arm = enduser_obj.data
+    advanced = end_arm.advancedRetarget
     
     try:
         enduser_obj.animation_data.action = bpy.data.actions.new("temp")
@@ -450,27 +511,33 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     except:
         print("no need to create new action")
     
-    
     print("creating Dictionary")
     feetBones, root = createDictionary(perf_arm, end_arm)
     print("cleaning stuff up")
     perf_obj_mat, enduser_obj_mat = cleanAndStoreObjMat(performer_obj, enduser_obj)
-    turnOffIK(enduser_obj)
-    print("Creating intermediate armature (for first pass)")
-    inter_obj = createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene)
-    print("First pass: retargeting from intermediate to end user")
-
-        
-    retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
+    if not advanced:
+        turnOffIK(enduser_obj)
+        print("Creating intermediate armature (for first pass)")
+        inter_obj = createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene)
+        print("First pass: retargeting from intermediate to end user")
+        retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
+    else:
+        prepareForBake(enduser_obj)
+        print("Retargeting pose (Advanced Retarget)")
+        nla.bake(s_frame, e_frame, action=enduser_obj.animation_data.action, only_selected=True, do_pose=True, do_object=False)
     name = performer_obj.animation_data.action.name
     enduser_obj.animation_data.action.name = "Base " + name
     print("Second pass: retargeting root translation and clean up")
     stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
-    IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene)
+    if not advanced:
+        IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone)
     bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.select_name(name=inter_obj.name, extend=False)
-    bpy.ops.object.delete()
+    if not advanced:
+        bpy.ops.object.select_name(name=inter_obj.name, extend=False)
+        bpy.ops.object.delete()
+    else:
+        cleanTempConstraints(enduser_obj)
     bpy.ops.object.select_name(name=enduser_obj.name, extend=False)
 
     if not name in [tracks.name for tracks in end_arm.mocapNLATracks]:

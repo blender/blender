@@ -140,9 +140,26 @@ class MocapNLATracks(bpy.types.PropertyGroup):
 
 bpy.utils.register_class(MocapNLATracks)
 
+                    
+def advancedRetargetToggle(self, context):
+    enduser_obj = context.active_object
+    performer_obj = [obj for obj in context.selected_objects if obj != enduser_obj]
+    if enduser_obj is None or len(performer_obj) != 1:
+        print("Need active and selected armatures")
+        return
+    else:
+        performer_obj = performer_obj[0]
+    if self.advancedRetarget:
+        retarget.preAdvancedRetargeting(performer_obj, enduser_obj)
+    else:
+        retarget.cleanTempConstraints(enduser_obj)
+
+
+
 bpy.types.Armature.stitch_settings = bpy.props.PointerProperty(type=AnimationStitchSettings)
 bpy.types.Armature.active_mocap =  bpy.props.StringProperty(update=retarget.NLASystemInitialize)
 bpy.types.Armature.mocapNLATracks = bpy.props.CollectionProperty(type=MocapNLATracks)
+bpy.types.Armature.advancedRetarget = bpy.props.BoolProperty(default=False, update=advancedRetargetToggle)
 
 #Update function for IK functionality. Is called when IK prop checkboxes are toggled.
 
@@ -189,7 +206,7 @@ def toggleIKBone(self, context):
             for bone in cnstrn_bone.parent_recursive:
                 if not bone.is_in_ik_chain:
                     bone.IKRetarget = False
-
+        
 
 class MocapMapping(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
@@ -281,6 +298,7 @@ class MocapPanel(bpy.types.Panel):
                     mapRow.operator("mocap.savemapping", text='Save mapping')
                     mapRow.operator("mocap.loadmapping", text='Load mapping')
                     self.layout.prop(data=performer_obj.animation_data.action, property='name', text='Action Name')
+                    self.layout.prop(enduser_arm, "advancedRetarget", text='Advanced Retarget')
                     self.layout.operator("mocap.retarget", text='RETARGET!')
 
 
@@ -396,6 +414,35 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
             return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
         else:
             return False
+            
+    
+    #~ class OBJECT_OT_AdvancedRetargetButton(bpy.types.Operator):
+        #~ '''Prepare for advanced retargeting '''
+        #~ bl_idname = "mocap.preretarget"
+        #~ bl_label = "Prepares retarget of active action from Performer to Enduser"
+
+        #~ def execute(self, context):
+            #~ scene = context.scene
+            #~ s_frame = scene.frame_start
+            #~ e_frame = scene.frame_end
+            #~ enduser_obj = context.active_object
+            #~ performer_obj = [obj for obj in context.selected_objects if obj != enduser_obj]
+            #~ if enduser_obj is None or len(performer_obj) != 1:
+                #~ print("Need active and selected armatures")
+            #~ else:
+                #~ performer_obj = performer_obj[0]
+            #~ retarget.preAdvancedRetargeting(performer_obj, enduser_obj)
+            #~ return {"FINISHED"}
+
+        #~ @classmethod
+        #~ def poll(cls, context):
+            #~ if context.active_object:
+                #~ activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+            #~ performer_obj = [obj for obj in context.selected_objects if obj != context.active_object]
+            #~ if performer_obj:
+                #~ return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
+            #~ else:
+                #~ return False
 
 
 class OBJECT_OT_SaveMappingButton(bpy.types.Operator):
@@ -715,7 +762,7 @@ class OBJECT_OT_AnimationStitchingButton(bpy.types.Operator):
                 stitch_settings = context.active_object.data.stitch_settings
                 return (stitch_settings.first_action and stitch_settings.second_action)
         return False
-
+    
 
 def register():
     bpy.utils.register_module(__name__)
