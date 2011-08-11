@@ -108,4 +108,7 @@ void paste_gpdata(void);
 void snap_gplayer_frames(struct bGPDlayer *gpl, short mode);
 void mirror_gplayer_frames(struct bGPDlayer *gpl, short mode);
 
+/* ------------ Grease-Pencil Undo System ------------------ */
+int ED_undo_gpencil_step(struct bContext *C, int step, const char *name);
+
 #endif /*  ED_GPENCIL_H */

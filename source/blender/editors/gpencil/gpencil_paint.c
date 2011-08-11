@@ -895,8 +895,10 @@ static void gp_session_validatebuffer (tGPsdata *p)
 	/* clear memory of buffer (or allocate it if starting a new session) */
 	if (gpd->sbuffer)
 		memset(gpd->sbuffer, 0, sizeof(tGPspoint)*GP_STROKE_BUFFER_MAX);
-	else
+	else {
+		//printf("\t\tGP - allocate sbuffer\n");
 		gpd->sbuffer= MEM_callocN(sizeof(tGPspoint)*GP_STROKE_BUFFER_MAX, "gp_session_strokebuffer");
+	}
 	
 	/* reset indices */
 	gpd->sbuffer_size = 0;
@@ -1075,7 +1077,12 @@ static tGPsdata *gp_session_initpaint (bContext *C)
 	}
 	
 	/* set edit flags - so that buffer will get drawn */
-	G.f |= G_GREASEPENCIL;
+	if((G.f & G_GREASEPENCIL)==0) {
+		G.f |= G_GREASEPENCIL;
+		
+		/* initialize undo stack */
+		gpencil_undo_init(p->gpd);
+	}
 	
 	/* clear out buffer (stored in gp-data), in case something contaminated it */
 	gp_session_validatebuffer(p);
@@ -1101,6 +1108,7 @@ static void gp_session_cleanup (tGPsdata *p)
 	
 	/* free stroke buffer */
 	if (gpd->sbuffer) {
+		//printf("\t\tGP - free sbuffer\n");
 		MEM_freeN(gpd->sbuffer);
 		gpd->sbuffer= NULL;
 	}
@@ -1276,7 +1284,8 @@ static void gp_paint_strokeend (tGPsdata *p)
 static void gp_paint_cleanup (tGPsdata *p)
 {
 	/* finish off a stroke */
-	gp_paint_strokeend(p);
+	if(p->gpd)
+		gp_paint_strokeend(p);
 	
 	/* "unlock" frame */
 	if (p->gpf)
@@ -1291,6 +1300,9 @@ static void gpencil_draw_exit (bContext *C, wmOperator *op)
 	
 	/* clear edit flags */
 	G.f &= ~G_GREASEPENCIL;
+	
+	/* clear undo stack */
+	gpencil_undo_finish();
 	
 	/* restore cursor to indicate end of drawing */
 	WM_cursor_restore(CTX_wm_window(C));
@@ -1621,6 +1633,7 @@ static int gpencil_draw_invoke (bContext *C, wmOperator *op, wmEvent *event)
 		//printf("\tGP - hotkey invoked... waiting for click-drag\n");
 	}
 	
+	WM_event_add_notifier(C, NC_SCREEN|ND_GPENCIL, NULL);
 	/* add a modal handler for this operator, so that we can then draw continuous strokes */
 	WM_event_add_modal_handler(C, op);
 	return OPERATOR_RUNNING_MODAL;
@@ -1638,16 +1651,60 @@ static int gpencil_area_exists(bContext *C, ScrArea *satest)
 	return 0;
 }
 
+static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
+{
+	tGPsdata *p= op->customdata;
+
+	/* we must check that we're still within the area that we're set up to work from
+	 * otherwise we could crash (see bug #20586)
+	 */
+	if (CTX_wm_area(C) != p->sa) {
+		printf("\t\t\tGP - wrong area execution abort! \n");
+		p->status= GP_STATUS_ERROR;
+	}
+
+	/* free pointer used by previous stroke */
+	if(p)
+		MEM_freeN(p);
+
+	//printf("\t\tGP - start stroke \n");
+
+	/* we may need to set up paint env again if we're resuming */
+	// XXX: watch it with the paintmode! in future, it'd be nice to allow changing paint-mode when in sketching-sessions
+	// XXX: with tablet events, we may event want to check for eraser here, for nicer tablet support
+
+	gpencil_draw_init(C, op);
+
+	p= op->customdata;
+
+	if(p->status != GP_STATUS_ERROR)
+		p->status= GP_STATUS_PAINTING;
+
+	return op->customdata;
+}
+
+static void gpencil_stroke_end(wmOperator *op)
+{
+	tGPsdata *p= op->customdata;
+
+	gp_paint_cleanup(p);
+
+	gpencil_undo_push(p->gpd);
+
+	gp_session_cleanup(p);
+
+	p->status= GP_STATUS_IDLING;
+
+	p->gpd= NULL;
+	p->gpl= NULL;
+	p->gpf= NULL;
+}
+
 /* events handling during interactive drawing part of operator */
 static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 {
 	tGPsdata *p= op->customdata;
-	//int estate = OPERATOR_PASS_THROUGH; /* default exit state - not handled, so let others have a share of the pie */
-	/* currently, grease pencil conflicts with such operators as undo and set object mode
-	   which makes behavior of operator totally unpredictable and crash for some cases.
-	   the only way to solve this proper is to ger rid of pointers to data which can
-	   chage stored in operator custom data (sergey) */
-	int estate = OPERATOR_RUNNING_MODAL;
+	int estate = OPERATOR_PASS_THROUGH; /* default exit state - not handled, so let others have a share of the pie */
 	
 	// if (event->type == NDOF_MOTION)
 	//	return OPERATOR_PASS_THROUGH;
@@ -1681,11 +1738,13 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			if (GPENCIL_SKETCH_SESSIONS_ON(p->scene)) {
 				/* end stroke only, and then wait to resume painting soon */
 				//printf("\t\tGP - end stroke only\n");
-				gp_paint_cleanup(p);
-				p->status= GP_STATUS_IDLING;
+				gpencil_stroke_end(op);
 				
 				/* we've just entered idling state, so this event was processed (but no others yet) */
 				estate = OPERATOR_RUNNING_MODAL;
+
+				/* stroke could be smoothed, send notifier to refresh screen */
+				ED_region_tag_redraw(p->ar);
 			}
 			else {
 				//printf("\t\tGP - end of stroke + op\n");
@@ -1693,34 +1752,18 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 				estate = OPERATOR_FINISHED;
 			}
 		}
-		else {
+		else if (event->val == KM_PRESS) {
 			/* not painting, so start stroke (this should be mouse-button down) */
 			
-			/* we must check that we're still within the area that we're set up to work from
-			 * otherwise we could crash (see bug #20586)
-			 */
-			if (CTX_wm_area(C) != p->sa) {
-				//printf("\t\t\tGP - wrong area execution abort! \n");
-				p->status= GP_STATUS_ERROR;
+			p= gpencil_stroke_begin(C, op);
+
+			if (p->status == GP_STATUS_ERROR) {
 				estate = OPERATOR_CANCELLED;
 			}
-			else {
-				//printf("\t\tGP - start stroke \n");
-				p->status= GP_STATUS_PAINTING;
-				
-				/* we may need to set up paint env again if we're resuming */
-				// XXX: watch it with the paintmode! in future, it'd be nice to allow changing paint-mode when in sketching-sessions
-				// XXX: with tablet events, we may event want to check for eraser here, for nicer tablet support
-				gp_paint_initstroke(p, p->paintmode);
-				
-				if (p->status == GP_STATUS_ERROR) {
-					estate = OPERATOR_CANCELLED;
-				}
-			}
+		} else {
+			p->status = GP_STATUS_IDLING;
 		}
 	}
-	
-	
 	
 	/* handle mode-specific events */
 	if (p->status == GP_STATUS_PAINTING) {
@@ -1733,7 +1776,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* finish painting operation if anything went wrong just now */
 			if (p->status == GP_STATUS_ERROR) {
-				//printf("\t\t\t\tGP - add error done! \n");
+				printf("\t\t\t\tGP - add error done! \n");
 				estate = OPERATOR_CANCELLED;
 			}
 			else {
@@ -1748,28 +1791,6 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		else {
 			/* swallow event to save ourselves trouble */
 			estate = OPERATOR_RUNNING_MODAL;
-		}
-	}
-	else if (p->status == GP_STATUS_IDLING) {
-		/* standard undo/redo shouldn't be allowed to execute or else it causes crashes, so catch it here */
-		// FIXME: this is a hardcoded hotkey that can't be changed
-		// TODO: catch redo as well, but how?
-		if (event->type == ZKEY && event->val == KM_RELEASE) {
-			/* oskey = cmd key on macs as they seem to use cmd-z for undo as well? */
-			if ((event->ctrl) || (event->oskey)) {
-				/* just delete last stroke, which will look like undo to the end user */
-				//printf("caught attempted undo event... deleting last stroke \n");
-				gpencil_frame_delete_laststroke(p->gpl, p->gpf);
-				/* undoing the last line can free p->gpf
-				 * note, could do this in a bit more of an elegant way then a search but it at least prevents a crash */
-				if(BLI_findindex(&p->gpl->frames, p->gpf) == -1) {
-					p->gpf= NULL;
-				}
-
-				/* event handled, so force refresh */
-				ED_region_tag_redraw(p->ar); /* just active area for now, since doing whole screen is too slow */
-				estate = OPERATOR_RUNNING_MODAL; 
-			}
 		}
 	}
 	
