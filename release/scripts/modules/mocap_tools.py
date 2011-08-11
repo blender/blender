@@ -660,15 +660,12 @@ def limit_dof(context, performer_obj, enduser_obj):
                 srcParent = bone.parent
                 parent_mat = srcParent.matrix
                 parent_rest = end_bone.parent.bone.matrix_local
-                parent_rest_inv = parent_rest.copy()
-                parent_rest_inv.invert()
-                parent_mat_inv = parent_mat.copy()
-                parent_mat_inv.invert()
+                parent_rest_inv = parent_rest.inverted()
+                parent_mat_inv = parent_mat.inverted()
                 bake_matrix = parent_mat_inv * bake_matrix
                 rest_matrix = parent_rest_inv * rest_matrix
 
-            rest_matrix_inv = rest_matrix.copy()
-            rest_matrix_inv.invert()
+            rest_matrix_inv = rest_matrix.inverted()
             bake_matrix = rest_matrix_inv * bake_matrix
 
             mat = bake_matrix

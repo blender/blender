@@ -25,6 +25,7 @@ from bpy import *
 import mocap_constraints
 import retarget
 import mocap_tools
+
 ### reloads modules (for testing purposes only)
 from imp import reload
 reload(mocap_constraints)

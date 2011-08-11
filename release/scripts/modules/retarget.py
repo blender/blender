@@ -79,8 +79,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
     def singleBoneRetarget(inter_bone, perf_bone):
             perf_world_rotation = perf_bone.matrix * performer_obj.matrix_world
             inter_world_base_rotation = inter_bone.bone.matrix_local * inter_obj.matrix_world
-            inter_world_base_inv = Matrix(inter_world_base_rotation)
-            inter_world_base_inv.invert()
+            inter_world_base_inv = inter_world_base_rotation.inverted()
             return (inter_world_base_inv.to_3x3() * perf_world_rotation.to_3x3()).to_4x4()
 
     #uses 1to1 and interpolation/averaging to match many to 1 retarget
@@ -178,15 +177,12 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
                 srcParent = srcParent.parent
             parent_mat = srcParent.matrix
             parent_rest = trg_bone.parent.bone.matrix_local
-            parent_rest_inv = parent_rest.copy()
-            parent_rest_inv.invert()
-            parent_mat_inv = parent_mat.copy()
-            parent_mat_inv.invert()
+            parent_rest_inv = parent_rest.inverted()
+            parent_mat_inv = parent_mat.inverted()
             bake_matrix = parent_mat_inv * bake_matrix
             rest_matrix = parent_rest_inv * rest_matrix
 
-        rest_matrix_inv = rest_matrix.copy()
-        rest_matrix_inv.invert()
+        rest_matrix_inv = rest_matrix.inverted()
         bake_matrix = rest_matrix_inv * bake_matrix
         end_bone.matrix_basis = bake_matrix
         rot_mode = end_bone.rotation_mode
@@ -247,26 +243,29 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
 
     # now we take our locDict and analyze it.
     # we need to derive all chains
-
-    locDeriv = {}
-    for key in locDictKeys:
-        locDeriv[key] = []
-
-    for key in locDict.keys():
+    
+    def locDeriv(key, t):
         graph = locDict[key]
-        locDeriv[key] = [graph[t + 1] - graph[t] for t in range(len(graph) - 1)]
+        return graph[t + 1] - graph[t]
+
+    #~ locDeriv = {}
+    #~ for key in locDictKeys:
+        #~ locDeriv[key] = []
+
+    #~ for key in locDict.keys():
+        #~ graph = locDict[key]
+        #~ locDeriv[key] = [graph[t + 1] - graph[t] for t in range(len(graph) - 1)]
 
     # now find the plant frames, where perfFeet don't move much
 
     linearAvg = []
 
     for key in perfFeet:
-        for i in range(len(locDeriv[key]) - 1):
-            v = locDeriv[key][i]
-            hipV = locDeriv[perfRoot][i]
-            endV = locDeriv[perf_bones[key].bone.map][i]
-            print(v.length,)
+        for i in range(len(locDict[key]) - 1):
+            v = locDeriv(key,i)
             if (v.length < 0.1):
+                hipV = locDeriv(perfRoot,i)
+                endV = locDeriv(perf_bones[key].bone.map,i)
                 #this is a plant frame.
                 #lets see what the original hip delta is, and the corresponding
                 #end bone's delta
@@ -547,6 +546,22 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
         NLATracks = end_arm.mocapNLATracks[name]
     end_arm.active_mocap = name
     print("retargeting done!")
+    
+def profileWrapper():
+    context = bpy.context
+    scene = context.scene
+    s_frame = scene.frame_start
+    e_frame = scene.frame_end
+    enduser_obj = context.active_object
+    performer_obj = [obj for obj in context.selected_objects if obj != enduser_obj]
+    if enduser_obj is None or len(performer_obj) != 1:
+        print("Need active and selected armatures")
+    else:
+        performer_obj = performer_obj[0]
+        s_frame, e_frame = performer_obj.animation_data.action.frame_range
+        s_frame = int(s_frame)
+        e_frame = int(e_frame)
+        totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame)
 
 if __name__ == "__main__":
-    totalRetarget()
+    cProfile.run("profileWrapper()")
