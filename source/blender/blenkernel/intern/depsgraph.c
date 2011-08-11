@@ -2366,7 +2366,7 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 	}
 
 	/* hack to get objects updating on layer changes */
-	bmain->id_tag_update['O'] = 1;
+	DAG_id_type_tag(bmain, ID_OB);
 }
 
 static void dag_id_flush_update__isDependentTexture(void *userData, Object *UNUSED(ob), ID **idpoin)
@@ -2612,6 +2612,11 @@ void DAG_id_tag_update(ID *id, short flag)
 			/* BLI_assert(!"invalid flag for this 'idtype'"); */
 		}
 	}
+}
+
+void DAG_id_type_tag(struct Main *bmain, short idtype)
+{
+	bmain->id_tag_update[((char*)&idtype)[0]] = 1;
 }
 
 int DAG_id_type_tagged(Main *bmain, short idtype)

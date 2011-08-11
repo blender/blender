@@ -126,6 +126,7 @@ void	DAG_ids_flush_tagged(struct Main *bmain);
 void	DAG_ids_check_recalc(struct Main *bmain);
 void	DAG_ids_clear_recalc(struct Main *bmain);
 		/* test if any of this id type is tagged for update */
+void	DAG_id_type_tag(struct Main *bmain, short idtype);
 int		DAG_id_type_tagged(struct Main *bmain, short idtype);
 
 		/* (re)-create dependency graph for armature pose */

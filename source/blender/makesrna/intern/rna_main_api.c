@@ -63,6 +63,7 @@
 #include "BKE_particle.h"
 #include "BKE_font.h"
 #include "BKE_node.h"
+#include "BKE_depsgraph.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -508,6 +509,8 @@ void rna_Main_actions_tag(Main *bmain, int value) { tag_main_lb(&bmain->action, 
 void rna_Main_particles_tag(Main *bmain, int value) { tag_main_lb(&bmain->particle, value); }
 void rna_Main_gpencil_tag(Main *bmain, int value) { tag_main_lb(&bmain->gpencil, value); }
 
+static int rna_Main_objects_recalc_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_OB); }
+
 #else
 
 void RNA_api_main(StructRNA *srna)
@@ -590,6 +593,7 @@ void RNA_def_main_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *parm;
+	PropertyRNA *prop;
 
 	RNA_def_property_srna(cprop, "BlendDataObjects");
 	srna= RNA_def_struct(brna, "BlendDataObjects", NULL);
@@ -617,6 +621,10 @@ void RNA_def_main_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "tag", "rna_Main_objects_tag");
 	parm= RNA_def_boolean(func, "value", 0, "Value", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	prop= RNA_def_property(srna, "recalc", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_objects_recalc_get", NULL);
 }
 
 void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)

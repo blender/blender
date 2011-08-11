@@ -803,6 +803,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 /* note: now unlinks constraints as well */
 void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 {
+	DAG_id_type_tag(bmain, ID_OB);
 	BLI_remlink(&scene->base, base);
 	free_libblock_us(&bmain->object, base->object);
 	if(scene->basact==base) scene->basact= NULL;

@@ -60,6 +60,9 @@ BlenderSync::~BlenderSync()
 
 bool BlenderSync::sync_recalc()
 {
+	/* sync recalc flags from blender to cycles. actual update is done separate,
+	   so we can do it later on if doing it immediate is not suitable */
+
 	BL::BlendData::materials_iterator b_mat;
 
 	for(b_mat = b_data.materials.begin(); b_mat != b_data.materials.end(); ++b_mat)
@@ -104,6 +107,7 @@ bool BlenderSync::sync_recalc()
 		object_map.has_recalc() ||
 		light_map.has_recalc() ||
 		mesh_map.has_recalc() ||
+		BlendDataObjects_recalc_get(&b_data.ptr) ||
 		world_recalc;
 
 	return recalc;
