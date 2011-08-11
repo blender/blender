@@ -581,7 +581,7 @@ else
 		framestep = (frames*timestep)/m_maxLogicFrame;
 		frames = m_maxLogicFrame;
 	}
-		
+
 	while (frames)
 	{
 	
@@ -655,16 +655,6 @@ else
 				scene->LogicUpdateFrame(m_frameTime, true);
 				
 				scene->LogicEndFrame();
-
-				// Handle animations
-				double anim_timestep = 1.0/scene->GetAnimationFPS();
-				if (m_clockTime - m_previousAnimTime > anim_timestep)
-				{
-					m_previousAnimTime = m_clockTime;
-					m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
-					SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
-					scene->UpdateAnimations(m_frameTime);
-				}
 	
 				// Actuators can affect the scenegraph
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
@@ -777,7 +767,22 @@ else
 		}
 	}
 
+		
+	// Handle the animations independently of the logic time step
+	m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+	SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
 
+	double anim_timestep = 1.0/KX_GetActiveScene()->GetAnimationFPS();
+	if (m_clockTime - m_previousAnimTime > anim_timestep)
+	{
+		// Sanity/debug print to make sure we're actually going at the fps we want (should be close to anim_timestep)
+		// printf("Anim fps: %f\n", 1.0/(m_clockTime - m_previousAnimTime));
+		m_previousAnimTime = m_clockTime;
+		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
+		{
+			(*sceneit)->UpdateAnimations(m_frameTime);
+		}
+	}
 	m_previousClockTime = m_clockTime;
 	
 	// Start logging time spend outside main loop
