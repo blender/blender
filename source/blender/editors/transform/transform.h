@@ -70,14 +70,6 @@ struct ARegion;
 struct ReportList;
 struct SmallHash;
 
-typedef struct NDofInput {
-	int		flag;
-	int		axis;
-	float	fval[7];
-	float	factor[3];
-} NDofInput;
-
-
 /*
 	The ctrl value has different meaning:
 		0			: No value has been typed
@@ -285,7 +277,6 @@ typedef struct TransInfo {
 	TransCon    con;            /* transformed constraint               */
 	TransSnap	tsnap;
 	NumInput    num;            /* numerical input                      */
-	NDofInput   ndof;           /* ndof input                           */
 	MouseInput	mouse;			/* mouse input                          */
 	char        redraw;         /* redraw flag                          */
 	float		prop_size;		/* proportional circle radius           */
@@ -351,9 +342,6 @@ typedef struct TransInfo {
 
 
 /* ******************** Macros & Prototypes *********************** */
-
-/* NDOFINPUT FLAGS */
-#define NDOF_INIT			1
 
 /* transinfo->state */
 #define TRANS_STARTING  0
@@ -694,20 +682,6 @@ void calculateCenterCursor2D(TransInfo *t);
 void calculatePropRatio(TransInfo *t);
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3]);
-
-/*********************** NDofInput ********************************/
-
-void initNDofInput(NDofInput *n);
-int hasNDofInput(NDofInput *n);
-void applyNDofInput(NDofInput *n, float *vec);
-int handleNDofInput(NDofInput *n, struct wmEvent *event);
-
-/* handleNDofInput return values */
-#define NDOF_REFRESH	1
-#define NDOF_NOMOVE		2
-#define NDOF_CONFIRM	3
-#define NDOF_CANCEL		4
-
 
 /*********************** Transform Orientations ******************************/
 

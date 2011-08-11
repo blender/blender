@@ -1735,6 +1735,9 @@ void wm_event_do_handlers(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
 
+	/* update key configuration before handling events */
+	WM_keyconfig_update(wm);
+
 	for(win= wm->windows.first; win; win= win->next) {
 		wmEvent *event;
 		
@@ -1938,6 +1941,9 @@ void wm_event_do_handlers(bContext *C)
 		
 		CTX_wm_window_set(C, NULL);
 	}
+
+	/* update key configuration after handling events */
+	WM_keyconfig_update(wm);
 }
 
 /* ********** filesector handling ************ */
@@ -2323,27 +2329,32 @@ static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* g
 
 	const float s = U.ndof_sensitivity;
 
-	data->tvec[0]= s * ghost->tx;
-	data->rvec[0]= s * ghost->rx;
+	data->tx = s * ghost->tx;
+
+	data->rx = s * ghost->rx;
+	data->ry = s * ghost->ry;
+	data->rz = s * ghost->rz;
 
 	if (U.ndof_flag & NDOF_ZOOM_UPDOWN)
 		{
-		// swap Y and Z
-		data->tvec[1]= s * ghost->tz;
-		data->tvec[2]= s * ghost->ty;
+		/* rotate so Y is where Z was */
+		data->ty = s * ghost->tz;
+		data->tz = s * ghost->ty;
+		/* maintain handed-ness? or just do what feels right? */
 
-		// should this affect rotation also?
-		// initial guess is 'yes', but get user feedback immediately!
-		data->rvec[1]= s * ghost->rz;
-		data->rvec[2]= s * ghost->ry;
+		/* should this affect rotation also?
+		 * initial guess is 'yes', but get user feedback immediately!
+		 */
+#if 0
+		/* after turning this on, my guess becomes 'no' */
+		data->ry = s * ghost->rz;
+		data->rz = s * ghost->ry;
+#endif
 		}
 	else
 		{
-		data->tvec[1]= s * ghost->ty;
-		data->tvec[2]= s * ghost->tz;
-
-		data->rvec[1]= s * ghost->ry;
-		data->rvec[2]= s * ghost->rz;
+		data->ty = s * ghost->ty;
+		data->tz = s * ghost->tz;
 		}
 
 	data->dt = ghost->dt;

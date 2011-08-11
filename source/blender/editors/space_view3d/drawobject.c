@@ -5804,7 +5804,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
 	
 	/* draw motion paths (in view space) */
-	if (ob->mpath) {
+	if (ob->mpath && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		bAnimVizSettings *avs= &ob->avs;
 		
 		/* setup drawing environment for paths */

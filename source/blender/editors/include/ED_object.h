@@ -111,7 +111,7 @@ struct Object *ED_object_add_type(struct bContext *C, int type, float *loc,
 	float *rot, int enter_editmode, unsigned int layer);
 
 void ED_object_single_users(struct Main *bmain, struct Scene *scene, int full);
-
+void ED_object_single_user(struct Scene *scene, struct Object *ob);
 
 /* object motion paths */
 void ED_objects_clear_paths(struct bContext *C);

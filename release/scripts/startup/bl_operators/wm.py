@@ -586,7 +586,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
             self._values_clear()
             return {'FINISHED'}
 
-        elif event_type in ('RIGHTMOUSE', 'ESC'):
+        elif event_type in {'RIGHTMOUSE', 'ESC'}:
             self._values_restore()
             return {'FINISHED'}
 
@@ -839,7 +839,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
         prop_ui = rna_idprop_ui_prop_get(item, prop)
 
-        if prop_type in (float, int):
+        if prop_type in {float, int}:
 
             prop_ui['soft_min'] = prop_ui['min'] = prop_type(self.min)
             prop_ui['soft_max'] = prop_ui['max'] = prop_type(self.max)

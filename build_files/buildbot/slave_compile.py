@@ -134,7 +134,7 @@ else:
             scons_options.append('BF_FFMPEG_LIB=' + (' '.join(ffmpeg_lib)))
             scons_options.append('BF_FFMPEG_DLL=' + (' '.join(ffmpeg_dll)))
 
-            scons_options.append('BF_BITNESS='+bitness)
+            scons_options.append('BF_BITNESS=' + bitness)
 
         retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
         sys.exit(retcode)

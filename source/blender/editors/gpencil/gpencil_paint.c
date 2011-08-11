@@ -1721,13 +1721,18 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 		/* standard undo/redo shouldn't be allowed to execute or else it causes crashes, so catch it here */
 		// FIXME: this is a hardcoded hotkey that can't be changed
 		// TODO: catch redo as well, but how?
-		if (event->type == ZKEY) {
+		if (event->type == ZKEY && event->val == KM_RELEASE) {
 			/* oskey = cmd key on macs as they seem to use cmd-z for undo as well? */
 			if ((event->ctrl) || (event->oskey)) {
 				/* just delete last stroke, which will look like undo to the end user */
 				//printf("caught attempted undo event... deleting last stroke \n");
 				gpencil_frame_delete_laststroke(p->gpl, p->gpf);
-				
+				/* undoing the last line can free p->gpf
+				 * note, could do this in a bit more of an elegant way then a search but it at least prevents a crash */
+				if(BLI_findindex(&p->gpl->frames, p->gpf) == -1) {
+					p->gpf= NULL;
+				}
+
 				/* event handled, so force refresh */
 				ED_region_tag_redraw(p->ar); /* just active area for now, since doing whole screen is too slow */
 				estate = OPERATOR_RUNNING_MODAL; 
