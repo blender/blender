@@ -45,7 +45,7 @@ CCL_NAMESPACE_BEGIN
 class OpenCLDevice : public Device
 {
 public:
-	cl_context cxGPUContext;
+	cl_context cxContext;
 	cl_command_queue cqCommandQueue;
 	cl_platform_id cpPlatform;
 	cl_device_id cdDevice;
@@ -121,18 +121,27 @@ public:
 	OpenCLDevice(bool background_)
 	{
 		background = background_;
+		vector<cl_platform_id> platform_ids;
+		cl_uint num_platforms;
 
 		/* setup device */
-		ciErr = clGetPlatformIDs(1, &cpPlatform, NULL);
+		ciErr = clGetPlatformIDs(0, NULL, &num_platforms);
+		opencl_assert(ciErr);
+		assert(num_platforms != 0);
+
+		platform_ids.resize(num_platforms);
+		ciErr = clGetPlatformIDs(num_platforms, &platform_ids[0], NULL);
 		opencl_assert(ciErr);
 
-		ciErr = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_CPU, 1, &cdDevice, NULL);
+		cpPlatform = platform_ids[0]; /* todo: pick specified platform && device */
+
+		ciErr = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_ALL, 1, &cdDevice, NULL);
 		opencl_assert(ciErr);
 
-		cxGPUContext = clCreateContext(0, 1, &cdDevice, NULL, NULL, &ciErr);
+		cxContext = clCreateContext(0, 1, &cdDevice, NULL, NULL, &ciErr);
 		opencl_assert(ciErr);
 
-		cqCommandQueue = clCreateCommandQueue(cxGPUContext, cdDevice, 0, &ciErr);
+		cqCommandQueue = clCreateCommandQueue(cxContext, cdDevice, 0, &ciErr);
 		opencl_assert(ciErr);
 		
 		/* compile kernel */
@@ -141,15 +150,11 @@ public:
 
 		string build_options = "";
 
-		//string csource = "../blender/intern/cycles";
-		//build_options += "-I " + csource + "/kernel -I " + csource + "/util";
+		string csource = "../blender/intern/cycles";
+		build_options += "-I " + path_get("kernel") + " -I " + path_get("util"); /* todo: escape path */
+		build_options += " -Werror -cl-fast-relaxed-math -cl-strict-aliasing";
 
-		build_options += " -I " + path_get("kernel"); /* todo: escape path */
-
-		build_options += " -Werror";
-		build_options += " -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END=";
-
-		cpProgram = clCreateProgramWithSource(cxGPUContext, 1, (const char **)&source, &source_len, &ciErr);
+		cpProgram = clCreateProgramWithSource(cxContext, 1, (const char **)&source, &source_len, &ciErr);
 
 		opencl_assert(ciErr);
 
@@ -178,7 +183,7 @@ public:
 		ckFilmConvertKernel = clCreateKernel(cpProgram, "kernel_ocl_tonemap", &ciErr);
 		opencl_assert(ciErr);
 
-		null_mem = (device_ptr)clCreateBuffer(cxGPUContext, CL_MEM_READ_ONLY, 1, NULL, &ciErr);
+		null_mem = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_ONLY, 1, NULL, &ciErr);
 	}
 
 	~OpenCLDevice()
@@ -196,7 +201,7 @@ public:
 		clReleaseKernel(ckFilmConvertKernel);  
 		clReleaseProgram(cpProgram);
 		clReleaseCommandQueue(cqCommandQueue);
-		clReleaseContext(cxGPUContext);
+		clReleaseContext(cxContext);
 	}
 
 	string description()
@@ -213,11 +218,11 @@ public:
 		size_t size = mem.memory_size();
 
 		if(type == MEM_READ_ONLY)
-			mem.device_pointer = (device_ptr)clCreateBuffer(cxGPUContext, CL_MEM_READ_ONLY, size, NULL, &ciErr);
+			mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_ONLY, size, NULL, &ciErr);
 		else if(type == MEM_WRITE_ONLY)
-			mem.device_pointer = (device_ptr)clCreateBuffer(cxGPUContext, CL_MEM_WRITE_ONLY, size, NULL, &ciErr);
+			mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, CL_MEM_WRITE_ONLY, size, NULL, &ciErr);
 		else
-			mem.device_pointer = (device_ptr)clCreateBuffer(cxGPUContext, CL_MEM_READ_WRITE, size, NULL, &ciErr);
+			mem.device_pointer = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_WRITE, size, NULL, &ciErr);
 
 		opencl_assert(ciErr);
 	}
@@ -321,7 +326,7 @@ public:
 
 		opencl_assert(ciErr);
 
-		size_t local_size[2] = {1, 1};
+		size_t local_size[2] = {8, 8};
 		size_t global_size[2] = {global_size_round_up(local_size[0], d_w), global_size_round_up(local_size[1], d_h)};
 
 		/* run kernel */
@@ -389,7 +394,7 @@ public:
 
 		opencl_assert(ciErr);
 
-		size_t local_size[2] = {1, 1};
+		size_t local_size[2] = {8, 8};
 		size_t global_size[2] = {global_size_round_up(local_size[0], d_w), global_size_round_up(local_size[1], d_h)};
 
 		/* run kernel */

@@ -34,8 +34,8 @@ CCL_NAMESPACE_BEGIN
 #define __BACKGROUND__
 #define __EMISSION__
 #define __CAUSTICS_TRICKS__
-#define __SVM__
 #ifndef __KERNEL_OPENCL__
+#define __SVM__
 #define __TEXTURES__
 #endif
 #define __RAY_DIFFERENTIALS__

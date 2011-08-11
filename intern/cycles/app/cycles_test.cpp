@@ -284,7 +284,7 @@ using namespace ccl;
 
 int main(int argc, const char **argv)
 {
-	path_init();
+	path_init("../blender/intern/cycles");
 
 	options_parse(argc, argv);
 

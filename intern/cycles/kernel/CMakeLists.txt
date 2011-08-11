@@ -72,6 +72,12 @@ SET(svm_headers
 	svm/volume.h
 	)
 
+SET(util_headers
+	../util/util_color.h
+	../util/util_math.h
+	../util/util_transform.h
+	../util/util_types.h)
+
 # CUDA module
 
 IF("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
@@ -118,11 +124,13 @@ ENDIF()
 # OPENCL kernel
 
 IF(WITH_CYCLES_OPENCL)
-	SET(util_headers
-		../util/util_color.h
-		../util/util_math.h
-		../util/util_transform.h
-		../util/util_types.h)
+	#SET(kernel_preprocessed ${CMAKE_CURRENT_BINARY_DIR}/kernel_preprocessed.cl)
+	#ADD_CUSTOM_COMMAND(
+	#	OUTPUT ${kernel_preprocessed}
+	#	COMMAND gcc -x c++ -E ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cl -I ${CMAKE_CURRENT_SOURCE_DIR}/../util/ -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DWITH_OPENCL -o ${kernel_preprocessed}
+	#	DEPENDS ${kernel_sources} ${util_headers})
+	#ADD_CUSTOM_TARGET(cycles_kernel_preprocess ALL DEPENDS ${kernel_preprocessed})
+	#INSTALL(FILES ${kernel_preprocessed} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel)
 
 	INSTALL(FILES kernel.cl ${headers} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel)
 	INSTALL(FILES ${svm_headers} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel/svm)

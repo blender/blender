@@ -22,7 +22,10 @@
 #define __KERNEL_GPU__
 #define __KERNEL_OPENCL__
 
-CCL_NAMESPACE_BEGIN
+/* no namespaces in opencl */
+#define CCL_NAMESPACE_BEGIN
+#define CCL_NAMESPACE_END
+#define WITH_OPENCL
 
 /* in opencl all functions are device functions, so leave this empty */
 #define __device
@@ -103,8 +106,6 @@ __device float kernel_tex_interp_(__global float *data, int width, float x)
 #define NULL 0
 
 #include "util_types.h"
-
-CCL_NAMESPACE_END
 
 #endif /* __KERNEL_COMPAT_OPENCL_H__ */
 
