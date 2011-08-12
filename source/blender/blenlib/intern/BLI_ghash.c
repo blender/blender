@@ -49,8 +49,6 @@ unsigned int hashsizes[]= {
 
 /***/
 
-/***/
-
 GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info) {
 	GHash *gh= MEM_mallocN(sizeof(*gh), info);
 	gh->hashfp= hashfp;
@@ -67,12 +65,94 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info) {
 	return gh;
 }
 
-#ifdef BLI_ghash_insert
-#undef BLI_ghash_insert
-#endif
-
 int BLI_ghash_size(GHash *gh) {
 	return gh->nentries;
+}
+
+void BLI_ghash_insert(GHash *gh, void *key, void *val) {
+	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+	Entry *e= (Entry*) BLI_mempool_alloc(gh->entrypool);
+
+	e->key= key;
+	e->val= val;
+	e->next= gh->buckets[hash];
+	gh->buckets[hash]= e;
+
+	if (++gh->nentries>(float)gh->nbuckets/2) {
+		Entry **old= gh->buckets;
+		int i, nold= gh->nbuckets;
+
+		gh->nbuckets= hashsizes[++gh->cursize];
+		gh->buckets= (Entry**)MEM_mallocN(gh->nbuckets*sizeof(*gh->buckets), "buckets");
+		memset(gh->buckets, 0, gh->nbuckets*sizeof(*gh->buckets));
+
+		for (i=0; i<nold; i++) {
+			for (e= old[i]; e;) {
+				Entry *n= e->next;
+
+				hash= gh->hashfp(e->key)%gh->nbuckets;
+				e->next= gh->buckets[hash];
+				gh->buckets[hash]= e;
+
+				e= n;
+			}
+		}
+
+		MEM_freeN(old);
+	}
+}
+
+void *BLI_ghash_lookup(GHash *gh, const void *key) {
+	if(gh) {
+		unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+		Entry *e;
+
+		for (e= gh->buckets[hash]; e; e= e->next)
+			if (gh->cmpfp(key, e->key)==0)
+				return e->val;
+	}
+	return NULL;
+}
+
+int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
+{
+	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+	Entry *e;
+	Entry *p = NULL;
+
+	for (e= gh->buckets[hash]; e; e= e->next) {
+		if (gh->cmpfp(key, e->key)==0) {
+			Entry *n= e->next;
+
+			if (keyfreefp) keyfreefp(e->key);
+			if (valfreefp) valfreefp(e->val);
+			BLI_mempool_free(gh->entrypool, e);
+
+
+			e= n;
+			if (p)
+				p->next = n;
+			else
+				gh->buckets[hash] = n;
+
+			--gh->nentries;
+			return 1;
+		}
+		p = e;
+	}
+
+	return 0;
+}
+
+int BLI_ghash_haskey(GHash *gh, void *key) {
+	unsigned int hash= gh->hashfp(key)%gh->nbuckets;
+	Entry *e;
+
+	for (e= gh->buckets[hash]; e; e= e->next)
+		if (gh->cmpfp(key, e->key)==0)
+			return 1;
+
+	return 0;
 }
 
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp) {
