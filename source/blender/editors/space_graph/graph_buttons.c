@@ -257,7 +257,6 @@ static void graphedit_activekey_update_cb(bContext *UNUSED(C), void *fcu_ptr, vo
 /* update callback for active keyframe properties - handle-editing wrapper */
 static void graphedit_activekey_handles_cb(bContext *C, void *fcu_ptr, void *bezt_ptr)
 {
-	FCurve *fcu = (FCurve *)fcu_ptr;
 	BezTriple *bezt = (BezTriple *)bezt_ptr;
 	
 	/* since editing the handles, make sure they're set to types which are receptive to editing 
