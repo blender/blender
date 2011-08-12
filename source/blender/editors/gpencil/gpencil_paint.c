@@ -1090,7 +1090,7 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			break;
 		case SPACE_CLIP:
 		{
-			//SpaceClip *sc= curarea->spacedata.first;
+			SpaceClip *sc= curarea->spacedata.first;
 			
 			/* set the current area */
 			p->sa= curarea;
@@ -1098,15 +1098,13 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			p->v2d= &ar->v2d;
 			//p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
 			
-#if 0 // XXX disabled for now
 			/* check that gpencil data is allowed to be drawn */
-			if ((sc->flag & SC_DISPGP)==0) {
+			if ((sc->flag & SC_SHOW_GPENCIL)==0) {
 				p->status= GP_STATUS_ERROR;
 				if (G.f & G_DEBUG)
 					printf("Error: In active view, Grease Pencil not shown \n");
 				return 0;
 			}
-#endif
 		}
 			break;
 			
@@ -1356,9 +1354,12 @@ static void gp_paint_strokeend (tGPsdata *p)
 /* finish off stroke painting operation */
 static void gp_paint_cleanup (tGPsdata *p)
 {
-	/* finish off a stroke */
-	if(p->gpd)
+	/* p->gpd==NULL happens when stroke failed to initialize,
+	      for example. when GP is hidden in current space (sergey) */
+	if (p->gpd) {
+		/* finish off a stroke */
 		gp_paint_strokeend(p);
+	}
 	
 	/* "unlock" frame */
 	if (p->gpf)

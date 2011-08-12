@@ -197,6 +197,21 @@ class CLIP_PT_tools(Panel):
             col = layout.column(align=True)
             col.label(text="Clean-up:")
             col.operator("clip.clean_tracks")
+
+            col = layout.column(align=True)
+            col.label(text="Grease Pencil:")
+
+            row = col.row()
+            row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
+            row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+
+            row = col.row()
+            row.operator("gpencil.draw", text="Poly").mode = 'DRAW_POLY'
+            row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
+
+            row = col.row()
+            row.prop(context.tool_settings, "use_grease_pencil_sessions")
+
         else:
             layout.operator('clip.open')
 
@@ -354,8 +369,11 @@ class CLIP_PT_display(Panel):
         row.prop(sc, "show_tiny_markers", text="Tiny Markers")
         row.prop(sc, "show_stable", text="Stable")
 
+        row = layout.row()
+        row.prop(sc, "show_grease_pencil", text="Grease Pencil")
+        row.prop(sc, "use_mute_footage", text="Mute")
+
         layout.prop(sc, "lock_selection")
-        layout.prop(sc, "use_mute_footage")
         layout.prop(sc, "use_manual_calibration")
 
         clip = sc.clip

@@ -2745,6 +2745,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_MANUAL_CALIBRATION);
 	RNA_def_property_ui_text(prop, "Manual Calibration", "Use manual calibration helpers");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* show stable */
+	prop= RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GPENCIL);
+	RNA_def_property_ui_text(prop, "Show Grease Pencil", "Show grease pencil strokes over the footage");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 
 

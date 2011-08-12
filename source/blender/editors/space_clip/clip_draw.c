@@ -1050,43 +1050,51 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 
 			glColor4fv(layer->color);
 			glLineWidth(layer->thickness);
+			glPointSize((float)(layer->thickness + 2));
 
 			while(frame) {
 				bGPDstroke *stroke= frame->strokes.first;
 
 				while(stroke) {
-					if(stroke->flag&GP_STROKE_2DSPACE && stroke->totpoints>1) {
-						glBegin(GL_LINE_STRIP);
-							for(i= 0; i<stroke->totpoints-1; i++) {
-								float npos[2], dpos[2], len;
-								int steps;
+					if(stroke->flag&GP_STROKE_2DSPACE) {
+						if(stroke->totpoints>1) {
+							glBegin(GL_LINE_STRIP);
+								for(i= 0; i<stroke->totpoints-1; i++) {
+									float npos[2], dpos[2], len;
+									int steps;
 
-								pos[0]= stroke->points[i].x*width;
-								pos[1]= stroke->points[i].y*height;
+									pos[0]= stroke->points[i].x*width;
+									pos[1]= stroke->points[i].y*height;
 
-								npos[0]= stroke->points[i+1].x*width;
-								npos[1]= stroke->points[i+1].y*height;
+									npos[0]= stroke->points[i+1].x*width;
+									npos[1]= stroke->points[i+1].y*height;
 
-								len= len_v2v2(pos, npos);
-								steps= ceil(len/5.f);
+									len= len_v2v2(pos, npos);
+									steps= ceil(len/5.f);
 
-								/* we want to distort only long straight lines */
-								if(stroke->totpoints==2) {
-									BKE_tracking_apply_intrinsics(tracking, pos, pos);
-									BKE_tracking_apply_intrinsics(tracking, npos, npos);
+									/* we want to distort only long straight lines */
+									if(stroke->totpoints==2) {
+										BKE_tracking_apply_intrinsics(tracking, pos, pos);
+										BKE_tracking_apply_intrinsics(tracking, npos, npos);
+									}
+
+									sub_v2_v2v2(dpos, npos, pos);
+									mul_v2_fl(dpos, 1.f/steps);
+
+									for(j= 0; j<steps; j++) {
+										BKE_tracking_invert_intrinsics(tracking, pos, tpos);
+										glVertex2f(tpos[0]/width, tpos[1]/height);
+
+										add_v2_v2(pos, dpos);
+									}
 								}
-
-								sub_v2_v2v2(dpos, npos, pos);
-								mul_v2_fl(dpos, 1.f/steps);
-
-								for(j= 0; j<steps; j++) {
-									BKE_tracking_invert_intrinsics(tracking, pos, tpos);
-									glVertex2f(tpos[0]/width, tpos[1]/height);
-
-									add_v2_v2(pos, dpos);
-								}
-							}
-						glEnd();
+							glEnd();
+						}
+						else if(stroke->totpoints==1) {
+							glBegin(GL_POINTS);
+								glVertex2f(stroke->points[0].x, stroke->points[0].y);
+							glEnd();
+						}
 					}
 
 					stroke= stroke->next;
@@ -1099,6 +1107,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 		}
 
 		glLineWidth(1.f);
+		glPointSize(1.f);
 	}
 
 	glPopMatrix();
@@ -1147,7 +1156,7 @@ void draw_clip_grease_pencil(bContext *C, int onlyv2d)
 	MovieClip *clip= ED_space_clip(sc);
 	ImBuf *ibuf;
 
-	if(/*(sc->flag&SI_DISPGP)==0 ||*/! clip)
+	if((sc->flag&SC_SHOW_GPENCIL)==0 || !clip)
 		return;
 
 	if(onlyv2d) {
@@ -1157,7 +1166,7 @@ void draw_clip_grease_pencil(bContext *C, int onlyv2d)
 			ibuf= ED_space_clip_acquire_buffer(sc);
 
 			if(ibuf) {
-					draw_gpencil_2dimage(C, ibuf);
+				draw_gpencil_2dimage(C, ibuf);
 
 				IMB_freeImBuf(ibuf);
 			}
