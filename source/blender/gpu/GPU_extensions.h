@@ -178,6 +178,7 @@ typedef struct GPUVertexAttribs {
 	struct {
 		int type;
 		int glindex;
+		int gltexco;
 		char name[32];
 	} layer[GPU_MAX_ATTRIB];
 
