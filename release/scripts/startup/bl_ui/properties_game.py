@@ -342,6 +342,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
         row = layout.row()
         row.prop(gs, "use_frame_rate")
         row.prop(gs, "use_display_lists")
+        row.prop(gs, "restrict_animation_updates")
 
 
 class RENDER_PT_game_display(RenderButtonsPanel, bpy.types.Panel):

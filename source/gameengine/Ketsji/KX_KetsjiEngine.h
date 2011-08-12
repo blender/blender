@@ -116,6 +116,8 @@ private:
 	static double			m_ticrate;
 	static double			m_anim_framerate; /* for animation playback only - ipo and action */
 
+	static bool				m_restrict_anim_fps;
+
 	static double			m_suspendedtime;
 	static double			m_suspendeddelta;
 
@@ -321,6 +323,16 @@ public:
 	 * Sets the maximum number of physics frame before render frame
 	 */
 	static void SetMaxPhysicsFrame(int frame);
+
+	/**
+	 * Gets whether or not to lock animation updates to the animframerate
+	 */
+	static bool GetRestrictAnimationFPS();
+
+	/**
+	 * Sets whether or not to lock animation updates to the animframerate
+	 */
+	static void SetRestrictAnimationFPS(bool bRestrictAnimFPS);
 
 	/**
 	 * Gets the framerate for playing animations. (actions and ipos)

@@ -187,6 +187,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 #endif
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		bool mouse_state = startscene->gm.flag & GAME_SHOW_MOUSE;
+		bool restrictAnimFPS = startscene->gm.flag & GAME_RESTRICT_ANIM_UPDATES;
 
 		if(animation_record) usefixed= true; /* override since you's always want fixed time for sim recording */
 
@@ -237,6 +238,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		ketsjiengine->SetNetworkDevice(networkdevice);
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
+		ketsjiengine->SetRestrictAnimationFPS(restrictAnimFPS);
 
 #ifdef WITH_PYTHON
 		CValue::SetDeprecationWarnings(nodepwarnings);

@@ -479,6 +479,7 @@ typedef struct GameData {
 #define WOPHY_BULLET	5
 
 /* GameData.flag */
+#define GAME_RESTRICT_ANIM_UPDATES			(1 << 0)
 #define GAME_ENABLE_ALL_FRAMES				(1 << 1)
 #define GAME_SHOW_DEBUG_PROPS				(1 << 2)
 #define GAME_SHOW_FRAMERATE					(1 << 3)
@@ -494,6 +495,7 @@ typedef struct GameData {
 #define GAME_ENABLE_ANIMATION_RECORD		(1 << 13)
 #define GAME_SHOW_MOUSE						(1 << 14)
 #define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
+/* Note: GameData.flag is a short (max 16 flags). To add more flags, GameData.flag needs to be an int */
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0

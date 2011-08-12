@@ -110,6 +110,7 @@ double KX_KetsjiEngine::m_anim_framerate = 25.0;
 double KX_KetsjiEngine::m_suspendedtime = 0.0;
 double KX_KetsjiEngine::m_suspendeddelta = 0.0;
 double KX_KetsjiEngine::m_average_framerate = 0.0;
+bool   KX_KetsjiEngine::m_restrict_anim_fps = false;
 
 
 /**
@@ -660,7 +661,14 @@ else
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_ACTUATOR_UPDATE);
 				scene->UpdateParents(m_frameTime);
-				
+
+				if (!GetRestrictAnimationFPS())
+				{
+					m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+					SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
+					scene->UpdateAnimations(m_frameTime);
+				}
+
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS2);
 				scene->GetPhysicsEnvironment()->beginFrame();
@@ -769,21 +777,24 @@ else
 
 		
 	// Handle the animations independently of the logic time step
-	m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
-	SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
-
-	double anim_timestep = 1.0/KX_GetActiveScene()->GetAnimationFPS();
-	if (m_clockTime - m_previousAnimTime > anim_timestep)
+	if (GetRestrictAnimationFPS())
 	{
-		// Sanity/debug print to make sure we're actually going at the fps we want (should be close to anim_timestep)
-		// printf("Anim fps: %f\n", 1.0/(m_clockTime - m_previousAnimTime));
-		m_previousAnimTime = m_clockTime;
-		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
+		m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+		SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
+
+		double anim_timestep = 1.0/KX_GetActiveScene()->GetAnimationFPS();
+		if (m_clockTime - m_previousAnimTime > anim_timestep)
 		{
-			(*sceneit)->UpdateAnimations(m_frameTime);
+			// Sanity/debug print to make sure we're actually going at the fps we want (should be close to anim_timestep)
+			// printf("Anim fps: %f\n", 1.0/(m_clockTime - m_previousAnimTime));
+			m_previousAnimTime = m_clockTime;
+			for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
+			{
+				(*sceneit)->UpdateAnimations(m_frameTime);
+			}
 		}
+		m_previousClockTime = m_clockTime;
 	}
-	m_previousClockTime = m_clockTime;
 	
 	// Start logging time spend outside main loop
 	m_logger->StartLog(tc_outside, m_kxsystem->GetTimeInSeconds(), true);
@@ -1819,6 +1830,16 @@ int KX_KetsjiEngine::GetMaxPhysicsFrame()
 void KX_KetsjiEngine::SetMaxPhysicsFrame(int frame)
 {
 	m_maxPhysicsFrame = frame;
+}
+
+bool KX_KetsjiEngine::GetRestrictAnimationFPS()
+{
+	return m_restrict_anim_fps;
+}
+
+void KX_KetsjiEngine::SetRestrictAnimationFPS(bool bRestrictAnimFPS)
+{
+	m_restrict_anim_fps = bRestrictAnimFPS;
 }
 
 double KX_KetsjiEngine::GetAnimFrameRate()
