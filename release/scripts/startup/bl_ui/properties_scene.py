@@ -191,7 +191,7 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
 
 
-class SCENE_PT_movie_clip(SceneButtonsPanel, bpy.types.Panel):
+class SCENE_PT_movie_clip(SceneButtonsPanel, Panel):
     bl_label = "Movie Clip"
 
     def draw(self, context):

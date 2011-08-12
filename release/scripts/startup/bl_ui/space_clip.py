@@ -18,9 +18,10 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Operator, Panel, Header, Menu
 
 
-class CLIP_OT_apply_follow_track(bpy.types.Operator):
+class CLIP_OT_apply_follow_track(Operator):
     bl_idname = "clip.apply_follow_track"
     bl_label = "Apply Follow Track"
     bl_options = {'UNDO', 'REGISTER'}
@@ -57,7 +58,7 @@ class CLIP_OT_apply_follow_track(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CLIP_OT_bundles_to_mesh(bpy.types.Operator):
+class CLIP_OT_bundles_to_mesh(Operator):
     bl_idname = "clip.bundles_to_mesh"
     bl_label = "Bundles to Mesh"
     bl_options = {'UNDO', 'REGISTER'}
@@ -89,7 +90,7 @@ class CLIP_OT_bundles_to_mesh(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class CLIP_HT_header(bpy.types.Header):
+class CLIP_HT_header(Header):
     bl_space_type = 'CLIP_EDITOR'
 
     def draw(self, context):
@@ -120,7 +121,7 @@ class CLIP_HT_header(bpy.types.Header):
                 layout.label(text="Average solve error: %.4f"  % (r.average_error))
 
 
-class CLIP_PT_tools(bpy.types.Panel):
+class CLIP_PT_tools(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
     bl_label = "Tools"
@@ -200,7 +201,7 @@ class CLIP_PT_tools(bpy.types.Panel):
             layout.operator('clip.open')
 
 
-class CLIP_PT_track(bpy.types.Panel):
+class CLIP_PT_track(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Track"
@@ -247,7 +248,7 @@ class CLIP_PT_track(bpy.types.Panel):
             layout.label(text=label_text)
 
 
-class CLIP_PT_track_settings(bpy.types.Panel):
+class CLIP_PT_track_settings(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Tracking Settings"
@@ -273,7 +274,7 @@ class CLIP_PT_track_settings(bpy.types.Panel):
         row.prop(settings, "frames_limit")
 
 
-class CLIP_PT_tracking_camera(bpy.types.Panel):
+class CLIP_PT_tracking_camera(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Camera Data"
@@ -321,7 +322,7 @@ class CLIP_PT_tracking_camera(bpy.types.Panel):
         col.prop(clip.tracking.camera, "k3")
 
 
-class CLIP_PT_display(bpy.types.Panel):
+class CLIP_PT_display(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Display"
@@ -363,7 +364,7 @@ class CLIP_PT_display(bpy.types.Panel):
             layout.prop(clip, "display_aspect", text="")
 
 
-class CLIP_PT_stabilization(bpy.types.Panel):
+class CLIP_PT_stabilization(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "2D Stabilization"
@@ -407,7 +408,7 @@ class CLIP_PT_stabilization(bpy.types.Panel):
         row.prop(stab, "influence_scale")
 
 
-class CLIP_PT_proxy(bpy.types.Panel):
+class CLIP_PT_proxy(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Proxy / Timecode"
@@ -456,7 +457,7 @@ class CLIP_PT_proxy(bpy.types.Panel):
         col.prop(clip, "proxy_render_size", text="")
 
 
-class CLIP_PT_footage(bpy.types.Panel):
+class CLIP_PT_footage(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Footage Settings"
@@ -480,7 +481,7 @@ class CLIP_PT_footage(bpy.types.Panel):
             layout.operator("clip.open", icon='FILESEL')
 
 
-class CLIP_MT_view(bpy.types.Menu):
+class CLIP_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -510,7 +511,7 @@ class CLIP_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class CLIP_MT_clip(bpy.types.Menu):
+class CLIP_MT_clip(Menu):
     bl_label = "Clip"
 
     def draw(self, context):
@@ -525,7 +526,7 @@ class CLIP_MT_clip(bpy.types.Menu):
         layout.operator("clip.open")
 
 
-class CLIP_MT_track(bpy.types.Menu):
+class CLIP_MT_track(Menu):
     bl_label = "Track"
 
     def draw(self, context):
@@ -575,7 +576,7 @@ class CLIP_MT_track(bpy.types.Menu):
         layout.menu("CLIP_MT_track_transform")
 
 
-class CLIP_MT_track_visibility(bpy.types.Menu):
+class CLIP_MT_track_visibility(Menu):
     bl_label = "Show/Hide"
 
     def draw(self, context):
@@ -588,7 +589,7 @@ class CLIP_MT_track_visibility(bpy.types.Menu):
         op.unselected = True
 
 
-class CLIP_MT_track_transform(bpy.types.Menu):
+class CLIP_MT_track_transform(Menu):
     bl_label = "Transform"
 
     def draw(self, context):
@@ -598,7 +599,7 @@ class CLIP_MT_track_transform(bpy.types.Menu):
         layout.operator("transform.resize")
 
 
-class CLIP_MT_select(bpy.types.Menu):
+class CLIP_MT_select(Menu):
     bl_label = "Select"
 
     def draw(self, context):
@@ -613,7 +614,7 @@ class CLIP_MT_select(bpy.types.Menu):
         layout.operator("clip.select_all", text="Inverse").action = 'INVERT'
 
 
-class CLIP_MT_select_grouped(bpy.types.Menu):
+class CLIP_MT_select_grouped(Menu):
     bl_label = "Select Grouped"
 
     def draw(self, context):
@@ -643,7 +644,7 @@ class CLIP_MT_select_grouped(bpy.types.Menu):
         op.group = 'COLOR'
 
 
-class CLIP_MT_tracking_specials(bpy.types.Menu):
+class CLIP_MT_tracking_specials(Menu):
     bl_label = "Specials"
 
     @classmethod
@@ -674,21 +675,21 @@ class CLIP_MT_tracking_specials(bpy.types.Menu):
         op.action = 'UNLOCK'
 
 
-class CLIP_MT_camera_presets(bpy.types.Menu):
+class CLIP_MT_camera_presets(Menu):
     bl_label = "Camera Presets"
     preset_subdir = "tracking_camera"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
 
-class CLIP_MT_track_color_presets(bpy.types.Menu):
+class CLIP_MT_track_color_presets(Menu):
     bl_label = "Color Presets"
     preset_subdir = "tracking_track_color"
     preset_operator = "script.execute_preset"
     draw = bpy.types.Menu.draw_preset
 
 
-class CLIP_MT_track_color_specials(bpy.types.Menu):
+class CLIP_MT_track_color_specials(Menu):
     bl_label = "Track Color Specials"
 
     def draw(self, context):
@@ -697,7 +698,7 @@ class CLIP_MT_track_color_specials(bpy.types.Menu):
         layout.operator('clip.track_copy_color', icon='COPY_ID')
 
 
-class CLIP_MT_stabilize_2d_specials(bpy.types.Menu):
+class CLIP_MT_stabilize_2d_specials(Menu):
     bl_label = "Track Color Specials"
 
     def draw(self, context):

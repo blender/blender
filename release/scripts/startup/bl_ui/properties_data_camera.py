@@ -62,7 +62,7 @@ class DATA_PT_context_camera(CameraButtonsPanel, Panel):
             split.separator()
 
 
-class DATA_PT_lens(CameraButtonsPanel, bpy.types.Panel):
+class DATA_PT_lens(CameraButtonsPanel, Panel):
     bl_label = "Lens"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 

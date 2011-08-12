@@ -195,7 +195,7 @@ class AddPresetRender(AddPresetBase, Operator):
     preset_subdir = "render"
 
 
-class AddPresetCamera(AddPresetBase, bpy.types.Operator):
+class AddPresetCamera(AddPresetBase, Operator):
     '''Add a Camera Preset'''
     bl_idname = "camera.preset_add"
     bl_label = "Add Camera Preset"
@@ -317,7 +317,7 @@ class AddPresetInteraction(AddPresetBase, Operator):
     preset_subdir = "interaction"
 
 
-class AddPresetTrackingCamera(AddPresetBase, bpy.types.Operator):
+class AddPresetTrackingCamera(AddPresetBase, Operator):
     '''Add a Tracking Camera Intrinsics  Preset'''
     bl_idname = "clip.camera_preset_add"
     bl_label = "Add Camera Preset"
@@ -340,7 +340,7 @@ class AddPresetTrackingCamera(AddPresetBase, bpy.types.Operator):
     preset_subdir = "tracking_camera"
 
 
-class AddPresetTrackingTrackColor(AddPresetBase, bpy.types.Operator):
+class AddPresetTrackingTrackColor(AddPresetBase, Operator):
     '''Add a Clip Track Color Preset'''
     bl_idname = "clip.track_color_preset_add"
     bl_label = "Add Track Color Preset"
