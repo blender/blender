@@ -70,6 +70,8 @@ int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, in
 
 /* operator helpers */
 int sequencer_edit_poll(struct bContext *C);
+int sequencer_strip_poll(struct bContext *C);
+int sequencer_strip_has_path_poll(struct bContext *C);
 int sequencer_view_poll(struct bContext *C);
 
 /* externs */
@@ -107,6 +109,10 @@ void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_zoom_ratio(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_ghost_border(struct wmOperatorType *ot);
+
+void SEQUENCER_OT_change_effect_input(struct wmOperatorType *ot);
+void SEQUENCER_OT_change_effect_type(struct wmOperatorType *ot);
+void SEQUENCER_OT_change_path(struct wmOperatorType *ot);
 
 void SEQUENCER_OT_copy(struct wmOperatorType *ot);
 void SEQUENCER_OT_paste(struct wmOperatorType *ot);

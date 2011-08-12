@@ -169,6 +169,19 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
         #layout.operator("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
 
 
+class SEQUENCER_MT_change(bpy.types.Menu):
+    bl_label = "Change"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator_menu_enum("sequencer.change_effect_input", "swap")
+        layout.operator_menu_enum("sequencer.change_effect_type", "type")
+        layout.operator("sequencer.change_path", text="Path/Files")
+
+
 class SEQUENCER_MT_add(bpy.types.Menu):
     bl_label = "Add"
 
@@ -292,6 +305,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.separator()
 
         layout.operator("sequencer.swap_data")
+        layout.menu("SEQUENCER_MT_change")
 
 
 class SequencerButtonsPanel():
