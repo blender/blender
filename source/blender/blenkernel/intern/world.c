@@ -137,7 +137,7 @@ World *copy_world(World *wrld)
 	
 	if(wrld->preview)
 		wrldn->preview = BKE_previewimg_copy(wrld->preview);
-	
+
 	return wrldn;
 }
 

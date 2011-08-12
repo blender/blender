@@ -131,7 +131,7 @@ static int draw_mesh_face_select__setHiddenOpts(void *userData, int index)
 	MEdge *med = &me->medge[index];
 	uintptr_t flags = (intptr_t) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
-	if(me->drawflag & ME_DRAWEDGES){ 
+	if(me->drawflag & ME_DRAWEDGES) { 
 		if(me->drawflag & ME_HIDDENEDGES)
 			return 1;
 		else
@@ -223,7 +223,7 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 	static int c_litmatnr;
 	static int c_badtex;
 
-	if(clearcache) {
+	if (clearcache) {
 		c_textured= c_lit= c_doublesided= -1;
 		c_texface= (MTFace*) -1;
 		c_litob= (Object*) -1;
@@ -231,7 +231,7 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 		c_badtex= 0;
 	}
 
-	if(texface) {
+	if (texface) {
 		lit = lit && (lit==-1 || texface->mode&TF_LIGHT);
 		textured = textured && (texface->mode&TF_TEX);
 		doublesided = texface->mode&TF_TWOSIDE;
@@ -239,15 +239,15 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 		textured = 0;
 	}
 
-	if(doublesided!=c_doublesided) {
-		if(doublesided) glDisable(GL_CULL_FACE);
+	if (doublesided!=c_doublesided) {
+		if (doublesided) glDisable(GL_CULL_FACE);
 		else glEnable(GL_CULL_FACE);
 
 		c_doublesided= doublesided;
 	}
 
-	if(textured!=c_textured || texface!=c_texface) {
-		if(textured ) {
+	if (textured!=c_textured || texface!=c_texface) {
+		if (textured ) {
 			c_badtex= !GPU_set_tpage(texface, !(litob->mode & OB_MODE_TEXTURE_PAINT));
 		} else {
 			GPU_set_tpage(NULL, 0);
@@ -257,9 +257,9 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 		c_texface= texface;
 	}
 
-	if(c_badtex) lit= 0;
-	if(lit!=c_lit || litob!=c_litob || litmatnr!=c_litmatnr) {
-		if(lit) {
+	if (c_badtex) lit= 0;
+	if (lit!=c_lit || litob!=c_litob || litmatnr!=c_litmatnr) {
+		if (lit) {
 			Material *ma= give_current_material_or_def(litob, litmatnr+1);
 			float spec[4];
 
@@ -353,16 +353,16 @@ static void draw_textured_end(void)
 
 static int draw_tface__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
 {
-	if(tface && (tface->mode&TF_INVISIBLE)) return 0;
+	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
 
-	if(tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
+	if (tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
 		glColor3ub(0xFF, 0x00, 0xFF);
 		return 2; /* Don't set color */
-	} else if(tface && tface->mode&TF_OBCOL) {
+	} else if (tface && tface->mode&TF_OBCOL) {
 		glColor3ubv(Gtexdraw.obcol);
 		return 2; /* Don't set color */
-	} else if(!mcol) {
-		if(tface) glColor3f(1.0, 1.0, 1.0);
+	} else if (!mcol) {
+		if (tface) glColor3f(1.0, 1.0, 1.0);
 		else {
 			Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 			if(ma) {
@@ -381,13 +381,13 @@ static int draw_tface__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
 }
 static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 {
-	if(tface && (tface->mode&TF_INVISIBLE)) return 0;
+	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
 
-	if(tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
+	if (tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
 		return 2; /* Don't set color */
-	} else if(tface && tface->mode&TF_OBCOL) {
+	} else if (tface && tface->mode&TF_OBCOL) {
 		return 2; /* Don't set color */
-	} else if(!mcol) {
+	} else if (!mcol) {
 		return 1; /* Don't set color */
 	} else {
 		return 1; /* Set color from mcol */
@@ -405,7 +405,7 @@ static void add_tface_color_layer(DerivedMesh *dm)
 
 	finalCol = MEM_mallocN(sizeof(MCol)*4*dm->getNumFaces(dm),"add_tface_color_layer");
 	for(i=0;i<dm->getNumFaces(dm);i++) {
-		if(tface && (tface->mode&TF_INVISIBLE)) {
+		if (tface && (tface->mode&TF_INVISIBLE)) {
 			if( mcol )
 				memcpy(&finalCol[i*4],&mcol[i*4],sizeof(MCol)*4);
 			else
@@ -415,20 +415,20 @@ static void add_tface_color_layer(DerivedMesh *dm)
 					finalCol[i*4+j].r = 255;
 				}
 		}
-		else if(tface && mface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, mface[i].mat_nr, TF_TWOSIDE)) {
+		else if (tface && mface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, mface[i].mat_nr, TF_TWOSIDE)) {
 			for(j=0;j<4;j++) {
 				finalCol[i*4+j].b = 255;
 				finalCol[i*4+j].g = 0;
 				finalCol[i*4+j].r = 255;
 			}
-		} else if(tface && tface->mode&TF_OBCOL) {
+		} else if (tface && tface->mode&TF_OBCOL) {
 			for(j=0;j<4;j++) {
 				finalCol[i*4+j].r = FTOCHAR(Gtexdraw.obcol[0]);
 				finalCol[i*4+j].g = FTOCHAR(Gtexdraw.obcol[1]);
 				finalCol[i*4+j].b = FTOCHAR(Gtexdraw.obcol[2]);
 			}
-		} else if(!mcol) {
-			if(tface) {
+		} else if (!mcol) {
+			if (tface) {
 				for(j=0;j<4;j++) {
 					finalCol[i*4+j].b = 255;
 					finalCol[i*4+j].g = 255;
@@ -474,7 +474,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	MFace *mface = &me->mface[index];
 	MCol *mcol = (me->mcol)? &me->mcol[index]: NULL;
 	const int matnr = mface->mat_nr;
-	if(mface->flag & ME_HIDE) return 0;
+	if (mface->flag & ME_HIDE) return 0;
 	return draw_tface__set_draw(tface, mcol, matnr);
 }
 
@@ -486,7 +486,7 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 	MCol *mcol;
 	int matnr;
 
-	if(efa->h)
+	if (efa->h)
 		return 0;
 
 	tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -500,7 +500,7 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 {
 	Mesh *me = (Mesh*)userData;
 
-	if(	(me->mface && me->mface[index].flag & ME_HIDE) ||
+	if (	(me->mface && me->mface[index].flag & ME_HIDE) ||
 			(me->mtface && (me->mtface[index].mode & TF_INVISIBLE))
 	) {
 		return 0;
@@ -539,7 +539,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 		int matnr= mf->mat_nr;
 		int mf_smooth= mf->flag & ME_SMOOTH;
 
-		if(!(mf->flag&ME_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
+		if (!(mf->flag&ME_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
 			float v1[3], v2[3], v3[3], v4[3];
 			char string[MAX_PROPSTRING];
 			int characters, i, glattrib= -1, badtex= 0;
@@ -556,8 +556,8 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			}
 			else {
 				badtex = set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE);
-				if(badtex) {
-					if(mcol) mcol+=4;
+				if (badtex) {
+					if (mcol) mcol+=4;
 					continue;
 				}
 			}
@@ -565,7 +565,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			ddm->getVertCo(ddm, mf->v1, v1);
 			ddm->getVertCo(ddm, mf->v2, v2);
 			ddm->getVertCo(ddm, mf->v3, v3);
-			if(mf->v4) ddm->getVertCo(ddm, mf->v4, v4);
+			if (mf->v4) ddm->getVertCo(ddm, mf->v4, v4);
 
 			// The BM_FONT handling is in the gpu module, shared with the
 			// game engine, was duplicated previously
@@ -576,7 +576,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			if(!BKE_image_get_ibuf(tface->tpage, NULL))
 				characters = 0;
 
-			if(!mf_smooth) {
+			if (!mf_smooth) {
 				float nor[3];
 
 				normal_tri_v3( nor,v1, v2, v3);
@@ -587,7 +587,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 			GPU_render_text(tface, tface->mode, string, characters,
 				(unsigned int*)mcol, v1, v2, v3, (mf->v4? v4: NULL), glattrib);
 		}
-		if(mcol) {
+		if (mcol) {
 			mcol+=4;
 		}
 	}

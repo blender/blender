@@ -653,10 +653,6 @@ Material *give_node_material(Material *ma)
 	return NULL;
 }
 
-/*Image *give_mesh_face_image(Object *ob, int face)
-{
-}*/
-
 /* GS reads the memory pointed at in a specific ordering. There are,
  * however two definitions for it. I have jotted them down here, both,
  * but I think the first one is actually used. The thing is that

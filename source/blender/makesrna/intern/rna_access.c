@@ -1361,11 +1361,6 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 			else
 				prop->update(bmain, scene, ptr);
 		}
-		else if(!(prop->flag & PROP_BUILTIN)) {
-			DAG_id_tag_update(ptr->id.data, OB_RECALC_ALL);
-			WM_main_add_notifier(NC_WINDOW, NULL);
-		}
-
 		if(prop->noteflag)
 			WM_main_add_notifier(prop->noteflag, ptr->id.data);
 	}

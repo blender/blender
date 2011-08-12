@@ -58,4 +58,3 @@ endif()
 if(WITH_IK_ITASC)
 	add_subdirectory(itasc)
 endif()
-

@@ -195,5 +195,6 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_read_fullsamplelayers", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_render_changed", ZKEY, KM_PRESS, 0, 0);
 	
+	
 	transform_keymap_for_space(keyconf, keymap, SPACE_NODE);
 }

@@ -671,9 +671,9 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 	/* test for collapsed areas. This could happen in some blender version... */
 	/* ton: removed option now, it needs Context... */
 	
-	/* make each window at least HEADERY high */
+	/* make each window at least ED_area_headersize() high */
 	for(sa= sc->areabase.first; sa; sa= sa->next) {
-		int headery= HEADERY+1;
+		int headery= ED_area_headersize()+1;
 		
 		if(sa->v1->vec.y+headery > sa->v2->vec.y) {
 			/* lower edge */

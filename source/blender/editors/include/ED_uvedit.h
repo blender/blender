@@ -35,6 +35,7 @@
 struct ARegionType;
 struct EditFace;
 struct Image;
+struct Main;
 struct ImageUser;
 struct MTFace;
 struct Object;

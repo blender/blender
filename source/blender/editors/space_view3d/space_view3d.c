@@ -630,7 +630,6 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	bScreen *sc;
-	RegionView3D *rv3d= ar->regiondata;
 
 	/* context changes */
 	switch(wmn->category) {
@@ -754,9 +753,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_VIEW3D) {
-				if (wmn->subtype == NS_VIEW3D_GPU)
+				if (wmn->subtype == NS_VIEW3D_GPU) {
+					RegionView3D *rv3d= ar->regiondata;
 					rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
-
+				}
 				ED_region_tag_redraw(ar);
 			}
 			break;

@@ -860,7 +860,7 @@ Lamp *copy_lamp(Lamp *la)
 
 	for(a=0; a<MAX_MTEX; a++) {
 		if(lan->mtex[a]) {
-			lan->mtex[a]= MEM_mallocN(sizeof(MTex), "copy_lamp");
+			lan->mtex[a]= MEM_mallocN(sizeof(MTex), "copylamptex");
 			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
 			id_us_plus((ID *)lan->mtex[a]->tex);
 		}

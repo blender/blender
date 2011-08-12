@@ -118,13 +118,13 @@ set(SRC
 	intern/raytrace/vbvh.h
 )
 
-IF(WITH_PYTHON)
-	ADD_DEFINITIONS(-DWITH_PYTHON)
-	LIST(APPEND INC ../python ${PYTHON_INC})
+if(WITH_PYTHON)
+	add_definitions(-DWITH_PYTHON)
+	list(APPEND INC ../python ${PYTHON_INC})
 endif()
 
-IF(WITH_IMAGE_OPENEXR)
-	ADD_DEFINITIONS(-DWITH_OPENEXR)
+if(WITH_IMAGE_OPENEXR)
+	add_definitions(-DWITH_OPENEXR)
 endif()
 
 if(WITH_MOD_SMOKE)
