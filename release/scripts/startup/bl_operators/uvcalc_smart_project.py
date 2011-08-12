@@ -20,6 +20,7 @@
 
 from mathutils import Matrix, Vector, geometry
 import bpy
+from bpy.types import Operator
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
 SMALL_NUM = 0.000000001
@@ -1116,7 +1117,7 @@ def main(context,
 from bpy.props import FloatProperty
 
 
-class SmartProject(bpy.types.Operator):
+class SmartProject(Operator):
     '''This script projection unwraps the selected faces of a mesh. it operates on all selected mesh objects, and can be used unwrap selected faces, or all faces.'''
     bl_idname = "uv.smart_project"
     bl_label = "Smart UV Project"

@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu, Panel
 
 
 def act_strip(context):
@@ -27,7 +28,7 @@ def act_strip(context):
         return None
 
 
-class SEQUENCER_HT_header(bpy.types.Header):
+class SEQUENCER_HT_header(Header):
     bl_space_type = 'SEQUENCE_EDITOR'
 
     def draw(self, context):
@@ -76,7 +77,7 @@ class SEQUENCER_HT_header(bpy.types.Header):
                     row.prop(ed, "overlay_lock", text="", icon='LOCKED')
 
 
-class SEQUENCER_MT_view_toggle(bpy.types.Menu):
+class SEQUENCER_MT_view_toggle(Menu):
     bl_label = "View Type"
 
     def draw(self, context):
@@ -87,7 +88,7 @@ class SEQUENCER_MT_view_toggle(bpy.types.Menu):
         layout.operator("sequencer.view_toggle").type = 'SEQUENCER_PREVIEW'
 
 
-class SEQUENCER_MT_view(bpy.types.Menu):
+class SEQUENCER_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -129,7 +130,7 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class SEQUENCER_MT_select(bpy.types.Menu):
+class SEQUENCER_MT_select(Menu):
     bl_label = "Select"
 
     def draw(self, context):
@@ -148,7 +149,7 @@ class SEQUENCER_MT_select(bpy.types.Menu):
         layout.operator("sequencer.select_inverse")
 
 
-class SEQUENCER_MT_marker(bpy.types.Menu):
+class SEQUENCER_MT_marker(Menu):
     bl_label = "Marker"
 
     def draw(self, context):
@@ -169,7 +170,20 @@ class SEQUENCER_MT_marker(bpy.types.Menu):
         #layout.operator("sequencer.sound_strip_add", text="Transform Markers") # toggle, will be rna - (sseq->flag & SEQ_MARKER_TRANS)
 
 
-class SEQUENCER_MT_add(bpy.types.Menu):
+class SEQUENCER_MT_change(Menu):
+    bl_label = "Change"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator_menu_enum("sequencer.change_effect_input", "swap")
+        layout.operator_menu_enum("sequencer.change_effect_type", "type")
+        layout.operator("sequencer.change_path", text="Path/Files")
+
+
+class SEQUENCER_MT_add(Menu):
     bl_label = "Add"
 
     def draw(self, context):
@@ -190,7 +204,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
         layout.menu("SEQUENCER_MT_add_effect")
 
 
-class SEQUENCER_MT_add_effect(bpy.types.Menu):
+class SEQUENCER_MT_add_effect(Menu):
     bl_label = "Effect Strip..."
 
     def draw(self, context):
@@ -216,7 +230,7 @@ class SEQUENCER_MT_add_effect(bpy.types.Menu):
         layout.operator("sequencer.effect_strip_add", text="Adjustment Layer").type = 'ADJUSTMENT'
 
 
-class SEQUENCER_MT_strip(bpy.types.Menu):
+class SEQUENCER_MT_strip(Menu):
     bl_label = "Strip"
 
     def draw(self, context):
@@ -292,6 +306,7 @@ class SEQUENCER_MT_strip(bpy.types.Menu):
         layout.separator()
 
         layout.operator("sequencer.swap_data")
+        layout.menu("SEQUENCER_MT_change")
 
 
 class SequencerButtonsPanel():
@@ -320,7 +335,7 @@ class SequencerButtonsPanel_Output():
         return cls.has_preview(context)
 
 
-class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
+class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
     bl_label = "Edit Strip"
 
     def draw(self, context):
@@ -376,7 +391,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, bpy.types.Panel):
             col.label(text="Orig Dim: %dx%d" % (elem.orig_width, elem.orig_height))
 
 
-class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
+class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
     bl_label = "Effect Strip"
 
     @classmethod
@@ -514,7 +529,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, bpy.types.Panel):
         col.prop(strip, "rotation_start", text="Rotation")
 
 
-class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
+class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
     bl_label = "Strip Input"
 
     @classmethod
@@ -595,7 +610,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, bpy.types.Panel):
         col.prop(strip, "frame_offset_end", text="End")
 
 
-class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
+class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
     bl_label = "Sound"
 
     @classmethod
@@ -636,7 +651,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, bpy.types.Panel):
         col.prop(strip, "animation_offset_end", text="End")
 
 
-class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
+class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
     bl_label = "Scene"
 
     @classmethod
@@ -670,7 +685,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, bpy.types.Panel):
             layout.label(text="Original frame range: %d-%d (%d)" % (sta, end, end - sta + 1))
 
 
-class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
+class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
     bl_label = "Filter"
 
     @classmethod
@@ -732,7 +747,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, bpy.types.Panel):
             col.prop(strip.color_balance, "invert_gain", text="Inverse")
 
 
-class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
+class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
     bl_label = "Proxy"
 
     @classmethod
@@ -766,7 +781,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, bpy.types.Panel):
                 flow.prop(strip.proxy, "filepath")
 
 
-class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, bpy.types.Panel):
+class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
     bl_label = "Scene Preview/Render"
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
@@ -791,7 +806,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, bpy.types.Panel):
         '''
 
 
-class SEQUENCER_PT_view(SequencerButtonsPanel_Output, bpy.types.Panel):
+class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
     bl_label = "View Settings"
 
     def draw(self, context):

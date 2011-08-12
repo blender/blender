@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 
 import bpy
+from bpy.types import Operator
 
 
 def randomize_selected(seed, delta, loc, rot, scale, scale_even):
@@ -87,7 +88,7 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even):
 from bpy.props import IntProperty, BoolProperty, FloatVectorProperty
 
 
-class RandomizeLocRotSize(bpy.types.Operator):
+class RandomizeLocRotSize(Operator):
     '''Randomize objects loc/rot/scale'''
     bl_idname = "object.randomize_transform"
     bl_label = "Randomize Transform"

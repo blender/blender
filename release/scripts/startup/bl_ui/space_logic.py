@@ -18,9 +18,10 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu, Panel
 
 
-class LOGIC_PT_properties(bpy.types.Panel):
+class LOGIC_PT_properties(Panel):
     bl_space_type = 'LOGIC_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Properties"
@@ -49,7 +50,7 @@ class LOGIC_PT_properties(bpy.types.Panel):
             row.operator("object.game_property_remove", text="", icon='X', emboss=False).index = i
 
 
-class LOGIC_MT_logicbricks_add(bpy.types.Menu):
+class LOGIC_MT_logicbricks_add(Menu):
     bl_label = "Add"
 
     def draw(self, context):
@@ -60,7 +61,7 @@ class LOGIC_MT_logicbricks_add(bpy.types.Menu):
         layout.operator_menu_enum("logic.actuator_add", "type", text="Actuator")
 
 
-class LOGIC_HT_header(bpy.types.Header):
+class LOGIC_HT_header(Header):
     bl_space_type = 'LOGIC_EDITOR'
 
     def draw(self, context):
@@ -76,7 +77,7 @@ class LOGIC_HT_header(bpy.types.Header):
             #sub.menu("LOGIC_MT_add")
 
 
-class LOGIC_MT_view(bpy.types.Menu):
+class LOGIC_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):

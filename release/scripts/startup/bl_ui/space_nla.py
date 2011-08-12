@@ -19,9 +19,10 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Header, Menu
 
 
-class NLA_HT_header(bpy.types.Header):
+class NLA_HT_header(Header):
     bl_space_type = 'NLA_EDITOR'
 
     def draw(self, context):
@@ -48,7 +49,7 @@ class NLA_HT_header(bpy.types.Header):
         layout.prop(st, "auto_snap", text="")
 
 
-class NLA_MT_view(bpy.types.Menu):
+class NLA_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -78,7 +79,7 @@ class NLA_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class NLA_MT_select(bpy.types.Menu):
+class NLA_MT_select(Menu):
     bl_label = "Select"
 
     def draw(self, context):
@@ -98,7 +99,7 @@ class NLA_MT_select(bpy.types.Menu):
         layout.operator("nla.select_leftright", text="After Current Frame").mode = 'RIGHT'
 
 
-class NLA_MT_marker(bpy.types.Menu):
+class NLA_MT_marker(Menu):
     bl_label = "Marker"
 
     def draw(self, context):
@@ -117,7 +118,7 @@ class NLA_MT_marker(bpy.types.Menu):
         layout.operator("marker.move", text="Grab/Move Marker")
 
 
-class NLA_MT_edit(bpy.types.Menu):
+class NLA_MT_edit(Menu):
     bl_label = "Edit"
 
     def draw(self, context):
@@ -160,7 +161,7 @@ class NLA_MT_edit(bpy.types.Menu):
             layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions")
 
 
-class NLA_MT_add(bpy.types.Menu):
+class NLA_MT_add(Menu):
     bl_label = "Add"
 
     def draw(self, context):
@@ -179,7 +180,7 @@ class NLA_MT_add(bpy.types.Menu):
         layout.operator("nla.tracks_add", text="Add Tracks Above Selected").above_selected = True
 
 
-class NLA_MT_edit_transform(bpy.types.Menu):
+class NLA_MT_edit_transform(Menu):
     bl_label = "Transform"
 
     def draw(self, context):

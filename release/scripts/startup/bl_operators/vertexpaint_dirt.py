@@ -142,10 +142,11 @@ def applyVertexDirt(me, blur_iterations, blur_strength, clamp_dirt, clamp_clean,
 
 
 import bpy
+from bpy.types import Operator
 from bpy.props import FloatProperty, IntProperty, BoolProperty
 
 
-class VertexPaintDirt(bpy.types.Operator):
+class VertexPaintDirt(Operator):
     bl_idname = "paint.vertex_color_dirt"
     bl_label = "Dirty Vertex Colors"
     bl_options = {'REGISTER', 'UNDO'}
