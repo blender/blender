@@ -277,20 +277,20 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
     if "stride_bone" in bpy.data.objects:
         stride_action = bpy.data.actions.new("Stride Bone " + action_name)
         stride_action.use_fake_user = True
-        stride_bone = enduser_obj.parent
+        #~ stride_bone = enduser_obj.parent
         stride_bone.animation_data.action = stride_action
     else:
         bpy.ops.object.add()
         stride_bone = bpy.context.active_object
         stride_bone.name = "stride_bone"
     print(stride_bone)
-    stride_bone.location = Vector((0, 0, 0))
+    stride_bone.location = enduser_obj_mat.to_translation()
     print(linearAvg)
     if linearAvg:
         #determine the average change in scale needed
         avg = sum(linearAvg) / len(linearAvg)
         scene.frame_set(s_frame)
-        initialPos = (tailLoc(perf_bones[perfRoot]) / avg) + stride_bone.location
+        initialPos = (tailLoc(perf_bones[perfRoot]) / avg) #+ stride_bone.location
         for t in range(s_frame, e_frame):
             scene.frame_set(t)
             #calculate the new position, by dividing by the found ratio between performer and enduser
@@ -298,6 +298,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
             stride_bone.location = enduser_obj_mat * (newTranslation - initialPos)
             stride_bone.keyframe_insert("location")
     else:
+        
         stride_bone.keyframe_insert("location")
     stride_bone.animation_data.action.name = ("Stride Bone " + action_name)
 
@@ -371,7 +372,7 @@ def cleanAndStoreObjMat(performer_obj, enduser_obj):
 
 
 #restore the object matrixes after parenting the auto generated IK empties
-def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone):
+def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone, scene, s_frame):
     pose_bones = enduser_obj.pose.bones
     for pose_bone in pose_bones:
         if pose_bone.name + "Org" in bpy.data.objects:
@@ -379,6 +380,8 @@ def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, str
             empty.parent = stride_bone
     performer_obj.matrix_world = perf_obj_mat
     enduser_obj.parent = stride_bone
+    scene.frame_set(s_frame)
+    enduser_obj_mat = enduser_obj_mat.to_3x3().to_4x4() * Matrix.Translation(stride_bone.matrix_world.to_translation())
     enduser_obj.matrix_world = enduser_obj_mat
 
 
@@ -455,20 +458,23 @@ def preAdvancedRetargeting(performer_obj, enduser_obj):
     createDictionary(performer_obj.data, enduser_obj.data)
     bones = enduser_obj.pose.bones
     map_bones = [bone for bone in bones if bone.bone.reverseMap]
+    perf_root = performer_obj.pose.bones[0].name
     for bone in map_bones:
         perf_bone = bone.bone.reverseMap[0].name
         addLocalRot = False;
-        if bone.bone.use_connect or not bone.constraints:
+        if (not bone.bone.use_connect) and (perf_bone!=perf_root):
             locks = bone.lock_location
-            if not (locks[0] or locks[1] or locks[2]):  
-                cons = bone.constraints.new('COPY_LOCATION')
-                cons.name = "retargetTemp"
-                cons.use_x = not locks[0]
-                cons.use_y = not locks[1]
-                cons.use_z = not locks[2]
-                cons.target = performer_obj
-                cons.subtarget = perf_bone
-                addLocalRot = True
+            #if not (locks[0] or locks[1] or locks[2]):  
+            cons = bone.constraints.new('COPY_LOCATION')
+            cons.name = "retargetTemp"
+            cons.use_x = not locks[0]
+            cons.use_y = not locks[1]
+            cons.use_z = not locks[2]
+            cons.target = performer_obj
+            cons.subtarget = perf_bone
+            cons.target_space = 'LOCAL'
+            cons.owner_space = 'LOCAL'
+            addLocalRot = True
 
        
         cons2 = bone.constraints.new('COPY_ROTATION')
@@ -479,12 +485,17 @@ def preAdvancedRetargeting(performer_obj, enduser_obj):
         cons2.use_z = not locks[2]
         cons2.target = performer_obj
         cons2.subtarget = perf_bone
+        cons2.target_space = 'WORLD'
+        cons2.owner_space = 'WORLD'
 
-        if addLocalRot:
-            for constraint in bone.constraints:
-                if constraint.type == 'COPY_ROTATION':
-                    constraint.target_space = 'LOCAL'
-                    constraint.owner_space = 'LOCAL_WITH_PARENT'
+        if perf_bone==perf_root:
+            addLocalRot = True
+
+        #~ if addLocalRot:
+            #~ for constraint in bone.constraints:
+                #~ if constraint.type == 'COPY_ROTATION':
+                    #~ constraint.target_space = 'LOCAL'
+                    #~ constraint.owner_space = 'LOCAL'
 
 
 def prepareForBake(enduser_obj):
@@ -539,7 +550,7 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     if not advanced:
         IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene)
         bpy.ops.object.select_name(name=stride_bone.name, extend=False)
-    restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone)
+    restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone, scene, s_frame)
     bpy.ops.object.mode_set(mode='OBJECT')
     if not advanced:
         bpy.ops.object.select_name(name=inter_obj.name, extend=False)
@@ -572,5 +583,16 @@ def profileWrapper():
         e_frame = int(e_frame)
         totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame)
 
+
+def isRigAdvanced(enduser_obj):
+    bones = enduser_obj.pose.bones
+    for bone in bones:
+        for constraint in bone.constraints:
+            if constraint.type != "IK":
+                return True
+        if enduser_obj.data.animation_data:
+            if enduser_obj.data.animation_data.drivers:
+                return True
+    
 if __name__ == "__main__":
     cProfile.run("profileWrapper()")

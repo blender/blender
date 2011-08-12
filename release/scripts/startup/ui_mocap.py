@@ -404,7 +404,11 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
             s_frame, e_frame = performer_obj.animation_data.action.frame_range
             s_frame = int(s_frame)
             e_frame = int(e_frame)
-        retarget.totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame)
+        if retarget.isRigAdvanced(enduser_obj) and not enduser_obj.data.advancedRetarget:
+            print("Recommended to use Advanced Retargeting method")
+            enduser_obj.data.advancedRetarget = True
+        else:
+            retarget.totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame)
         return {"FINISHED"}
 
     @classmethod
