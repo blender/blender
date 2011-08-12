@@ -1446,6 +1446,7 @@ static void clamp_weights(MDeformVert *dvert) {
 }
 /*Jason*/
 /* fresh start to make multi-paint and locking modular */
+/* returns TRUE if it thinks you need to reset the weights due to normalizing while multi-painting */
 static int apply_mp_lcks_normalize(Object *ob, Mesh *me, int index, MDeformWeight *dw, MDeformWeight *tdw, int defcnt, float change, float oldChange, float oldw, float neww, char *selection, int selected, char *bone_groups, char *validmap, char *flags, int multipaint) {
 	MDeformVert *dvert = me->dvert+index;
 	MDeformVert *dv = MEM_mallocN(sizeof (*(me->dvert+index)), "oldMDeformVert");
@@ -1473,21 +1474,13 @@ static int apply_mp_lcks_normalize(Object *ob, Mesh *me, int index, MDeformWeigh
 	if(oldChange && multipaint && selected > 1) {
 		if(tdw->weight != oldw) {
 			if( neww > oldw ) {
-				if(tdw->weight > oldw) {
-					//printf("should have changed\n");
-				} else {
-					//printf("should not have changed\n");
-					//reset_to_prev(dv, dvert);
+				if(tdw->weight <= oldw) {
 					MEM_freeN(dv->dw);
 					MEM_freeN(dv);
 					return TRUE;
 				}
 			} else {
-				if(tdw->weight < oldw) {
-					//printf("should have changed\n");
-				} else {
-					//printf("should not have changed\n");
-					//reset_to_prev(dv, dvert);
+				if(tdw->weight >= oldw) {
 					MEM_freeN(dv->dw);
 					MEM_freeN(dv);
 					return TRUE;
@@ -1631,8 +1624,11 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 					testw = tuw->weight*change;
 					if( testw > tuw->weight ) {
 						if(change > oldChange) {
+							// reset the weights and use the new change
 							reset_to_prev(wp->wpaint_prev+index, me->dvert+index);
 						} else {
+							// the old change was more significant,
+							// so set the change to 0 so that it will not do another multi-paint
 							change = 0;
 						}
 					} else {
