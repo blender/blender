@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -586,7 +584,7 @@ typedef struct NlaStrip {
 	short type;					/* type of NLA strip */
 	
 	void *speaker_handle;		/* handle for speaker objects */
-
+	
 	int flag;					/* settings */
 	int pad2;
 } NlaStrip;
