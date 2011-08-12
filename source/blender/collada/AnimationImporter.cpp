@@ -65,7 +65,6 @@ static const char *bc_get_joint_name(T *node)
 FCurve *AnimationImporter::create_fcurve(int array_index, const char *rna_path)
 {
 	FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
-	
 	fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
 	fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
 	fcu->array_index = array_index;
@@ -801,19 +800,10 @@ void AnimationImporter::apply_matrix_curves_to_bone( Object * ob, std::vector<FC
 		else
 			strcpy(rna_path, tm_str);
 		newcu[i] = create_fcurve(axis, rna_path);
-
-#ifdef ARMATURE_TEST
-		if (is_joint)
-			job_curves[i] = create_fcurve(axis, tm_str);
-#endif
+		newcu[i]->totvert = frames.size();
 	}
 
 //	Object *job = NULL;
-
-#ifdef ARMATURE_TEST
-	FCurve *job_curves[10];
-	job = get_joint_object(root, node, par_job);
-#endif
 
 	if (frames.size() == 0)
 		return;
@@ -833,17 +823,11 @@ std::sort(frames.begin(), frames.end());
 		float matfra[4][4];
 
 		unit_m4(matfra);
+        
+		// calc object-space mat
+		evaluate_transform_at_frame(matfra, node, fra);
 
-        float m[4][4];
 
-		unit_m4(m);
-		dae_matrix_to_mat4(tm, m);
-
-		float temp[4][4];
-		copy_m4_m4(temp, mat);
-
-		mul_m4_m4m4(mat, m, temp);
-		
 		// for joints, we need a special matrix
 		if (is_joint) {
 			// special matrix: iR * M * iR_dae * R
@@ -865,8 +849,12 @@ std::sort(frames.begin(), frames.end());
 		}
 
 		float  rot[4], loc[3], scale[3];
-
+        
 			mat4_to_quat(rot, mat);
+			for ( int i = 0 ; i < 4  ;  i ++ )
+			{
+				rot[i] = rot[i] * (180 / M_PI); 
+			}
 			copy_v3_v3(loc, mat[3]);
 			mat4_to_size(scale, mat);
 		
@@ -979,6 +967,7 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 									float irest_dae[4][4];
 									get_joint_rest_mat(irest_dae, root, node);
 									apply_matrix_curves_to_bone(ob, animcurves, root , node,  transform ,joint_path , true , bone_name );
+									break;
 								} 
 								else
 									add_bone_fcurve( ob, node , fcu );
@@ -990,8 +979,8 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 			if (is_rotation || is_matrix) {
 				if (is_joint) 
 				{
-					bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
-					chan->rotmode = ROT_MODE_EUL;
+					/*bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+					chan->rotmode = ROT_MODE_Quat;*/
 				}
 				else 
 				{
@@ -1534,10 +1523,12 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::
 		float m[4][4];
 
 		unit_m4(m);
+		if ( type != COLLADAFW::Transformation::MATRIX )
+			continue;
 
 		std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
 		if (!evaluate_animation(tm, m, fra, nodename.c_str())) {
-			switch (type) {
+			/*switch (type) {
 			case COLLADAFW::Transformation::ROTATE:
 				dae_rotate_to_mat4(tm, m);
 				break;
@@ -1552,7 +1543,9 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::
 				break;
 			default:
 				fprintf(stderr, "unsupported transformation type %d\n", type);
-			}
+			}*/
+			dae_matrix_to_mat4(tm, m);
+			
 		}
 
 		float temp[4][4];
@@ -1588,9 +1581,9 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 		bool is_scale = (type == COLLADAFW::Transformation::SCALE);
 		bool is_translate = (type == COLLADAFW::Transformation::TRANSLATE);
 
-		if (type == COLLADAFW::Transformation::SCALE)
+		if (is_scale)
 			dae_scale_to_v3(tm, vec);
-		else if (type == COLLADAFW::Transformation::TRANSLATE)
+		else if (is_translate)
 			dae_translate_to_v3(tm, vec);
 
 		for (unsigned int j = 0; j < bindings.getCount(); j++) {
@@ -1618,7 +1611,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 
 			if (animclass == COLLADAFW::AnimationList::UNKNOWN_CLASS) {
 				fprintf(stderr, "%s: UNKNOWN animation class\n", path);
-				continue;
+				//continue;
 			}
 
 			if (type == COLLADAFW::Transformation::ROTATE) {
@@ -1858,11 +1851,12 @@ void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurv
 
 void AnimationImporter::add_bezt(FCurve *fcu, float fra, float value)
 {
+	//float fps = (float)FPS;
 	BezTriple bez;
 	memset(&bez, 0, sizeof(BezTriple));
-	bez.vec[1][0] = fra;
+	bez.vec[1][0] = fra ;
 	bez.vec[1][1] = value;
-	bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+	bez.ipo = BEZT_IPO_LIN ;/* use default interpolation mode here... */
 	bez.f1 = bez.f2 = bez.f3 = SELECT;
 	bez.h1 = bez.h2 = HD_AUTO;
 	insert_bezt_fcurve(fcu, &bez, 0);
