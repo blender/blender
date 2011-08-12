@@ -160,7 +160,8 @@ class ProjectEdit(bpy.types.Operator):
 
         filepath = os.path.basename(bpy.data.filepath)
         filepath = os.path.splitext(filepath)[0]
-        # filepath = bpy.path.clean_name(filepath) # fixes <memory> rubbish, needs checking
+        # fixes <memory> rubbish, needs checking
+        # filepath = bpy.path.clean_name(filepath)
 
         if bpy.data.is_saved:
             filepath = "//" + filepath

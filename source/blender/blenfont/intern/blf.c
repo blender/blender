@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <libintl.h>
 #include <math.h>
 
 #include <ft2build.h>
@@ -297,6 +298,13 @@ void BLF_enable(int fontid, int option)
 	font= BLF_get(fontid);
 	if (font)
 		font->flags |= option;
+}
+
+char* BLF_gettext(const char *msgid)
+{
+	if( msgid!=NULL && strlen(msgid)>0 )
+		return gettext( msgid );
+	return "";
 }
 
 void BLF_disable(int fontid, int option)

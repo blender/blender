@@ -381,7 +381,7 @@ static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *args)
 {
 	char* msgid;
 	char* msgstr;
-	char* error_handle;
+	char* error_handle=NULL;
 
 	if (!PyArg_ParseTuple(args, "s:blf.gettext", &msgid))
 		return NULL;
@@ -404,7 +404,7 @@ PyDoc_STRVAR(py_blf_fake_gettext_doc,
 static PyObject *py_blf_fake_gettext(PyObject *UNUSED(self), PyObject *args)
 {
 	char* msgid;
-	char* error_handle;
+	char* error_handle = NULL;
 
 	if (!PyArg_ParseTuple(args, "s:blf.gettext", &msgid))
 		return NULL;

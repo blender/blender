@@ -140,8 +140,11 @@ void BLF_lang_set(const char *str)
 	char *locreturn;
 	if(str==NULL)
 		str = lang_to_locale[U.language];
-	BLI_setenv("LANG", str);
-	BLI_setenv("LANGUAGE", str);
+	if( str[0]!=0 )
+	{
+		BLI_setenv("LANG", str);
+		BLI_setenv("LANGUAGE", str);
+	}
 
 	locreturn= setlocale(LC_ALL, str);
 	if (locreturn == NULL) {
@@ -161,9 +164,6 @@ void BLF_lang_set(const char *str)
 	bindtextdomain(DOMAIN_NAME, global_messagepath);
 	/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
 	BLI_strncpy(global_language, str, sizeof(global_language));
-
-//	printf( "<<< %s %s %s \n", setlocale(LC_MESSAGES,NULL), getenv("LANG"), getenv("LANGUAGE") );
-
 }
 
 void BLF_lang_encoding(const char *str)
