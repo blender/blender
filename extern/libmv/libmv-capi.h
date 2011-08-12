@@ -71,6 +71,17 @@ int libmv_countCorners(struct libmv_Corners *libmv_corners);
 void libmv_getCorner(struct libmv_Corners *libmv_corners, int number, double *x, double *y, double *score, double *size);
 void libmv_destroyCorners(struct libmv_Corners *libmv_corners);
 
+/* dsitortion */
+void libmv_undistortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			unsigned char *src, unsigned char *dst, int width, int height, int channels);
+void libmv_undistortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			float *src, float *dst, int width, int height, int channels);
+
+void libmv_distortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			unsigned char *src, unsigned char *dst, int width, int height, int channels);
+void libmv_distortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			float *src, float *dst, int width, int height, int channels);
+
 /* utils */
 void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
 			double x, double y, double *x1, double *y1);

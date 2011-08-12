@@ -23,7 +23,7 @@
 
 namespace libmv {
 
-struct Offset { char ix,iy; unsigned char fx,fy; };
+struct Offset { signed char ix,iy; unsigned char fx,fy; };
 
 CameraIntrinsics::CameraIntrinsics()
     : K_(Mat3::Identity()),
@@ -40,6 +40,44 @@ CameraIntrinsics::CameraIntrinsics()
 CameraIntrinsics::~CameraIntrinsics() {
   if(distort_) delete[] distort_;
   if(undistort_) delete[] undistort_;
+}
+
+/// Set the entire calibration matrix at once.
+void CameraIntrinsics::SetK(const Mat3 new_k) {
+  K_ = new_k;
+  FreeLookupGrid();
+}
+
+/// Set both x and y focal length in pixels.
+void CameraIntrinsics::SetFocalLength(double focal_x, double focal_y) {
+  K_(0, 0) = focal_x;
+  K_(1, 1) = focal_y;
+  FreeLookupGrid();
+}
+
+void CameraIntrinsics::SetPrincipalPoint(double cx, double cy) {
+  K_(0, 2) = cx;
+  K_(1, 2) = cy;
+  FreeLookupGrid();
+}
+
+void CameraIntrinsics::SetImageSize(int width, int height) {
+  image_width_ = width;
+  image_height_ = height;
+  FreeLookupGrid();
+}
+
+void CameraIntrinsics::SetRadialDistortion(double k1, double k2, double k3) {
+  k1_ = k1;
+  k2_ = k2;
+  k3_ = k3;
+  FreeLookupGrid();
+}
+
+void CameraIntrinsics::SetTangentialDistortion(double p1, double p2) {
+  p1_ = p1;
+  p2_ = p2;
+  FreeLookupGrid();
 }
 
 void CameraIntrinsics::ApplyIntrinsics(double normalized_x,
@@ -117,18 +155,11 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
       int fx = round((warp_x-ix)*256), fy = round((warp_y-iy)*256);
       if(fx == 256) { fx=0; ix++; }
       if(fy == 256) { fy=0; iy++; }
-#ifdef CLIP
       // Use nearest border pixel
       if( ix < 0 ) { ix = 0, fx = 0; }
       if( iy < 0 ) { iy = 0, fy = 0; }
-      if( ix >= width-1 ) { ix = width-1, fx = 0; }
-      if( iy >= height-1 ) { iy = height-1, fy = 0; }
-#else
-      // No offset: Avoid adding out of bounds to error.
-      if( ix < 0 || iy < 0 || ix >= width-1 || iy >= height-1 ) {
-        ix = x; iy = y; fx = fy = 0;
-      }
-#endif
+      if( ix >= width-2 ) ix = width-2;
+      if( iy >= height-2 ) iy = height-2;
       //assert( ix-x > -128 && ix-x < 128 && iy-y > -128 && iy-y < 128 );
       Offset offset = { ix-x, iy-y, fx, fy };
       grid[y*width+x] = offset;
@@ -150,6 +181,11 @@ static void Warp(const Offset* grid, const T* src, T* dst,
       }
     }
   }
+}
+
+void CameraIntrinsics::FreeLookupGrid() {
+  if(distort_) delete distort_, distort_=0;
+  if(undistort_) delete undistort_, undistort_=0;
 }
 
 // FIXME: C++ templates limitations makes thing complicated, but maybe there is a simpler method.

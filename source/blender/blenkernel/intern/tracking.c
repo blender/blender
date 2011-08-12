@@ -1516,3 +1516,51 @@ void BKE_tracking_stabdata_to_mat4(float loc[2], float scale, float mat[4][4])
 
 	copy_v2_v2(mat[3], loc);
 }
+
+ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf)
+{
+	ImBuf *resibuf;
+	MovieTrackingCamera *camera= &tracking->camera;
+
+	resibuf= IMB_dupImBuf(ibuf);
+
+	if(ibuf->rect_float) {
+		libmv_undistortFloat(camera->focal,
+		                     camera->principal[0], camera->principal[1],
+		                     camera->k1, camera->k2, camera->k3,
+		                     ibuf->rect_float, resibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels);
+
+		ibuf->userflags|= IB_RECT_INVALID;
+	} else {
+		libmv_undistortByte(camera->focal,
+		                    camera->principal[0], camera->principal[1],
+		                    camera->k1, camera->k2, camera->k3,
+		                    (unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect, ibuf->x, ibuf->y, ibuf->channels);
+	}
+
+	return resibuf;
+}
+
+ImBuf *BKE_tracking_distort(MovieTracking *tracking, ImBuf *ibuf)
+{
+	ImBuf *resibuf;
+	MovieTrackingCamera *camera= &tracking->camera;
+
+	resibuf= IMB_dupImBuf(ibuf);
+
+	if(ibuf->rect_float) {
+		libmv_distortFloat(camera->focal,
+		                   camera->principal[0], camera->principal[1],
+		                   camera->k1, camera->k2, camera->k3,
+		                   ibuf->rect_float, resibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels);
+
+		ibuf->userflags|= IB_RECT_INVALID;
+	} else {
+		libmv_distortByte(camera->focal,
+		                  camera->principal[0], camera->principal[1],
+		                  camera->k1, camera->k2, camera->k3,
+		                  (unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect, ibuf->x, ibuf->y, ibuf->channels);
+	}
+
+	return resibuf;
+}

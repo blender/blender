@@ -49,36 +49,18 @@ class CameraIntrinsics {
   double      p2()                const { return p2_; }
 
   /// Set the entire calibration matrix at once.
-  void SetK(const Mat3 new_k) {
-    K_ = new_k;
-  }
+  void SetK(const Mat3 new_k);
 
   /// Set both x and y focal length in pixels.
-  void SetFocalLength(double focal_x, double focal_y) {
-    K_(0, 0) = focal_x;
-    K_(1, 1) = focal_y;
-  }
+  void SetFocalLength(double focal_x, double focal_y);
 
-  void SetPrincipalPoint(double cx, double cy) {
-    K_(0, 2) = cx;
-    K_(1, 2) = cy;
-  }
+  void SetPrincipalPoint(double cx, double cy);
 
-  void SetImageSize(int width, int height) {
-    image_width_ = width;
-    image_height_ = height;
-  }
+  void SetImageSize(int width, int height);
 
-  void SetRadialDistortion(double k1, double k2, double k3 = 0) {
-    k1_ = k1;
-    k2_ = k2;
-    k3_ = k3;
-  }
+  void SetRadialDistortion(double k1, double k2, double k3 = 0);
 
-  void SetTangentialDistortion(double p1, double p2) {
-    p1_ = p1;
-    p2_ = p2;
-  }
+  void SetTangentialDistortion(double p1, double p2);
 
   /*!
       Apply camera intrinsics to the normalized point to get image coordinates.
@@ -142,6 +124,7 @@ class CameraIntrinsics {
 
  private:
   template<typename WarpFunction> void ComputeLookupGrid(Offset* grid, int width, int height);
+  void FreeLookupGrid();
 
   // The traditional intrinsics matrix from x = K[R|t]X.
   Mat3 K_;

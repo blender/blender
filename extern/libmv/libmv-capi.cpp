@@ -501,6 +501,56 @@ void libmv_destroyCorners(struct libmv_Corners *libmv_corners)
 	delete (std::vector<libmv::Corner> *)libmv_corners;
 }
 
+/* ************ distortion ************ */
+
+void libmv_undistortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			unsigned char *src, unsigned char *dst, int width, int height, int channels)
+{
+	libmv::CameraIntrinsics intrinsics;
+
+	intrinsics.SetFocalLength(focal_length, focal_length);
+	intrinsics.SetPrincipalPoint(principal_x, principal_y);
+	intrinsics.SetRadialDistortion(k1, k2, k3);
+
+	intrinsics.Undistort(src, dst, width, height, channels);
+}
+
+void libmv_undistortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			float *src, float *dst, int width, int height, int channels)
+{
+	libmv::CameraIntrinsics intrinsics;
+
+	intrinsics.SetFocalLength(focal_length, focal_length);
+	intrinsics.SetPrincipalPoint(principal_x, principal_y);
+	intrinsics.SetRadialDistortion(k1, k2, k3);
+
+	intrinsics.Undistort(src, dst, width, height, channels);
+}
+
+void libmv_distortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			unsigned char *src, unsigned char *dst, int width, int height, int channels)
+{
+	libmv::CameraIntrinsics intrinsics;
+
+	intrinsics.SetFocalLength(focal_length, focal_length);
+	intrinsics.SetPrincipalPoint(principal_x, principal_y);
+	intrinsics.SetRadialDistortion(k1, k2, k3);
+
+	intrinsics.Distort(src, dst, width, height, channels);
+}
+
+void libmv_distortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+			float *src, float *dst, int width, int height, int channels)
+{
+	libmv::CameraIntrinsics intrinsics;
+
+	intrinsics.SetFocalLength(focal_length, focal_length);
+	intrinsics.SetPrincipalPoint(principal_x, principal_y);
+	intrinsics.SetRadialDistortion(k1, k2, k3);
+
+	intrinsics.Distort(src, dst, width, height, channels);
+}
+
 /* ************ utils ************ */
 
 void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,

@@ -206,7 +206,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 
 	if(sc->flag&SC_MUTE_FOOTAGE) {
 		glColor3f(0.0f, 0.0f, 0.0f);
-		glRectf(x, y, x+ibuf->x*sc->zoom, y+ibuf->y*sc->zoom);
+		glRectf(x, y, x+zoomx*width, y+zoomy*height);
 	} else {
 		if(ibuf->rect_float && !ibuf->rect) {
 			IMB_rect_from_float(ibuf);
@@ -971,7 +971,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 		for(i= 0; i<=n; i++) {
 			for(j= 0; j<=n; j++) {
 				if(i==0 || j==0 || i==n || j==n) {
-					BKE_tracking_invert_intrinsics(tracking, pos, tpos);
+					BKE_tracking_apply_intrinsics(tracking, pos, tpos);
 
 					for(a=0; a<4; a++) {
 						int ok;
@@ -1000,7 +1000,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 			pos[0]= idx[a][0]*dx;
 			pos[1]= idx[a][1]*dy;
 
-			BKE_tracking_apply_intrinsics(tracking, pos, tpos);
+			BKE_tracking_invert_intrinsics(tracking, pos, tpos);
 
 			DO_MINMAX2(tpos, min, max);
 		}
@@ -1011,7 +1011,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 
 		for(i= 0; i<=n; i++) {
 			for(j= 0; j<=n; j++) {
-				BKE_tracking_invert_intrinsics(tracking, pos, grid[i][j]);
+				BKE_tracking_apply_intrinsics(tracking, pos, grid[i][j]);
 
 				grid[i][j][0]/= width;
 				grid[i][j][1]/= height;
@@ -1074,15 +1074,15 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 
 									/* we want to distort only long straight lines */
 									if(stroke->totpoints==2) {
-										BKE_tracking_apply_intrinsics(tracking, pos, pos);
-										BKE_tracking_apply_intrinsics(tracking, npos, npos);
+										BKE_tracking_invert_intrinsics(tracking, pos, pos);
+										BKE_tracking_invert_intrinsics(tracking, npos, npos);
 									}
 
 									sub_v2_v2v2(dpos, npos, pos);
 									mul_v2_fl(dpos, 1.f/steps);
 
 									for(j= 0; j<steps; j++) {
-										BKE_tracking_invert_intrinsics(tracking, pos, tpos);
+										BKE_tracking_apply_intrinsics(tracking, pos, tpos);
 										glVertex2f(tpos[0]/width, tpos[1]/height);
 
 										add_v2_v2(pos, dpos);

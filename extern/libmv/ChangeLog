@@ -1,3 +1,33 @@
+commit 10bdad9ad2cea2603896263cde5a5339169a9af0
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 12 21:05:32 2011 +0200
+
+    Fix out of bound access in warp bilinear sampling.
+
+commit dd9a418db021a28af2c1198d5e5b9e68fe048a03
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 12 19:14:36 2011 +0200
+
+    Fix compilation with -funsigned-char.
+
+commit bd1a268ede39b67f2ba4b360f6fc693419e7cd7f
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 12 18:39:27 2011 +0200
+
+    CameraIntrinsics fixes.
+
+commit ae513b39fb779632f96ceff7c1e014fb8e68702a
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 19:38:58 2011 +0200
+
+    Remove stray QDebug include.
+
+commit 1e58f55078ce6009a885be30ae0316aec6ed8239
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 9 14:16:31 2011 +0200
+
+    Make API future-proof (for an eventual affine or planar tracker).
+
 commit c2af303e7bf0dddcb02937323ac5846b1801e6cc
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Tue Aug 9 11:13:29 2011 +0200
@@ -388,58 +418,3 @@ Date:   Wed Jul 13 10:21:52 2011 +0200
     Add feature detection.
     
     Remove unused keyframe selection code.
-
-commit 1088517da70ae9ec2369752fbc17dde4bb869c47
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jul 11 22:42:14 2011 +0200
-
-    Replace system file dialog with custom one which supports multiple file/folder selection.
-    Add Stop button when adding frame from video.
-
-commit 323af7a3a1344e7ef419c72fe22b674c17c578e3
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jul 11 16:30:59 2011 +0200
-
-    Add stub for feature detection.
-
-commit 739ec729fa8bc6e0ba6a40cc7b89d85e5332e900
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jul 11 16:30:42 2011 +0200
-
-    Fix compilation of Qt Calibration tool.
-
-commit 113ccc413db6bdfb75839418bddfba5ce3ba60f7
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jul 11 12:27:47 2011 +0200
-
-    Add raw on-disk video cache.
-    
-    This is useful for faster testing iterations.
-    It avoids waiting for the footage to decode on startup.
-    Using file memory mapping, we let the OS handle caching.
-    The OS disk cache also has the advantage of being kept in memory between runs.
-    A cache is only created for shot < 1GiB (e.g 17s of 1080@30).
-
-commit efbe8b6a3e2a8cff497726e11afffbce0ec6aa53
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Mon Jul 11 11:11:47 2011 +0200
-
-    Miscellaneous UI fixes, faster grayscale conversion, compute window size from pattern size and pyramid level count.
-
-commit 0c6911831b0a391da14bf1c5833b1e5c0d5056b7
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sun Jul 10 22:48:15 2011 +0200
-
-    Add Video support using FFmpeg to Qt Calibration.
-
-commit c9f2bd5a17585f816bf0ef89097ac8f222ad058e
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sun Jul 10 19:44:35 2011 +0200
-
-    Add Video support using FFmpeg to Qt Tracker.
-
-commit af8f9c412b0592868a0e68a14686651b45de9737
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sat Jul 9 12:08:28 2011 +0200
-
-    Update README with instructions to build Qt OpenCV Calibration tool.
