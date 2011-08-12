@@ -18,9 +18,10 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu, Panel
 
 
-class NODE_HT_header(bpy.types.Header):
+class NODE_HT_header(Header):
     bl_space_type = 'NODE_EDITOR'
 
     def draw(self, context):
@@ -78,7 +79,7 @@ class NODE_HT_header(bpy.types.Header):
         layout.template_running_jobs()
 
 
-class NODE_MT_view(bpy.types.Menu):
+class NODE_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -107,7 +108,7 @@ class NODE_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class NODE_MT_select(bpy.types.Menu):
+class NODE_MT_select(Menu):
     bl_label = "Select"
 
     def draw(self, context):
@@ -124,7 +125,7 @@ class NODE_MT_select(bpy.types.Menu):
         layout.operator("node.select_same_type_prev")
 
 
-class NODE_MT_node(bpy.types.Menu):
+class NODE_MT_node(Menu):
     bl_label = "Node"
 
     def draw(self, context):
@@ -165,7 +166,7 @@ class NODE_MT_node(bpy.types.Menu):
 
 
 # Node Backdrop options
-class NODE_PT_properties(bpy.types.Panel):
+class NODE_PT_properties(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Backdrop"

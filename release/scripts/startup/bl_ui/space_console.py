@@ -18,10 +18,11 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu, Operator
 from bpy.props import StringProperty
 
 
-class CONSOLE_HT_header(bpy.types.Header):
+class CONSOLE_HT_header(Header):
     bl_space_type = 'CONSOLE'
 
     def draw(self, context):
@@ -38,7 +39,7 @@ class CONSOLE_HT_header(bpy.types.Header):
         row.operator("console.autocomplete", text="Autocomplete")
 
 
-class CONSOLE_MT_console(bpy.types.Menu):
+class CONSOLE_MT_console(Menu):
     bl_label = "Console"
 
     def draw(self, context):
@@ -55,7 +56,7 @@ class CONSOLE_MT_console(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class CONSOLE_MT_language(bpy.types.Menu):
+class CONSOLE_MT_language(Menu):
     bl_label = "Languages..."
 
     def draw(self, context):
@@ -82,7 +83,7 @@ def add_scrollback(text, text_type):
             type=text_type)
 
 
-class ConsoleExec(bpy.types.Operator):
+class ConsoleExec(Operator):
     '''Execute the current console line as a python expression'''
     bl_idname = "console.execute"
     bl_label = "Console Execute"
@@ -100,7 +101,7 @@ class ConsoleExec(bpy.types.Operator):
             return {'FINISHED'}
 
 
-class ConsoleAutocomplete(bpy.types.Operator):
+class ConsoleAutocomplete(Operator):
     '''Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one'''
     bl_idname = "console.autocomplete"
     bl_label = "Console Autocomplete"
@@ -117,7 +118,7 @@ class ConsoleAutocomplete(bpy.types.Operator):
             return {'FINISHED'}
 
 
-class ConsoleBanner(bpy.types.Operator):
+class ConsoleBanner(Operator):
     '''Print a message whem the terminal initializes'''
     bl_idname = "console.banner"
     bl_label = "Console Banner"
@@ -139,7 +140,7 @@ class ConsoleBanner(bpy.types.Operator):
             return {'FINISHED'}
 
 
-class ConsoleLanguage(bpy.types.Operator):
+class ConsoleLanguage(Operator):
     '''Set the current language for this console'''
     bl_idname = "console.language"
     bl_label = "Console Language"

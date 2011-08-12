@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
 
@@ -31,7 +32,7 @@ class DataButtonsPanel():
         return context.lattice
 
 
-class DATA_PT_context_lattice(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_lattice(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
 
@@ -51,7 +52,7 @@ class DATA_PT_context_lattice(DataButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_lattice(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_lattice(DataButtonsPanel, Panel):
     bl_label = "Lattice"
 
     def draw(self, context):
@@ -76,7 +77,7 @@ class DATA_PT_lattice(DataButtonsPanel, bpy.types.Panel):
         row.prop_search(lat, "vertex_group", context.object, "vertex_groups", text="")
 
 
-class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Lattice

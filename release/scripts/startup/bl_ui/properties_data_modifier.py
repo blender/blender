@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 
 
 class ModifierButtonsPanel():
@@ -26,7 +27,7 @@ class ModifierButtonsPanel():
     bl_context = "modifier"
 
 
-class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
+class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     bl_label = "Modifiers"
 
     def draw(self, context):

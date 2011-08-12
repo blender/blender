@@ -20,6 +20,7 @@
 
 from mathutils import Vector
 import bpy
+from bpy.types import Operator
 from bpy.props import (BoolProperty,
                        EnumProperty,
                        IntProperty,
@@ -45,7 +46,7 @@ def object_ensure_material(obj, mat_name):
     return mat
 
 
-class QuickFur(bpy.types.Operator):
+class QuickFur(Operator):
     bl_idname = "object.quick_fur"
     bl_label = "Quick Fur"
     bl_options = {'REGISTER', 'UNDO'}
@@ -104,7 +105,7 @@ class QuickFur(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class QuickExplode(bpy.types.Operator):
+class QuickExplode(Operator):
     bl_idname = "object.quick_explode"
     bl_label = "Quick Explode"
     bl_options = {'REGISTER', 'UNDO'}
@@ -265,7 +266,7 @@ def obj_bb_minmax(obj, min_co, max_co):
         max_co[2] = max(bb_vec[2], max_co[2])
 
 
-class QuickSmoke(bpy.types.Operator):
+class QuickSmoke(Operator):
     bl_idname = "object.quick_smoke"
     bl_label = "Quick Smoke"
     bl_options = {'REGISTER', 'UNDO'}
@@ -383,7 +384,7 @@ class QuickSmoke(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class QuickFluid(bpy.types.Operator):
+class QuickFluid(Operator):
     bl_idname = "object.quick_fluid"
     bl_label = "Quick Fluid"
     bl_options = {'REGISTER', 'UNDO'}
