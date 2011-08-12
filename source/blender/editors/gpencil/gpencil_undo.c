@@ -116,10 +116,28 @@ void gpencil_undo_init(bGPdata *gpd)
 void gpencil_undo_push(bGPdata *gpd)
 {
 	bGPundonode *undo_node= MEM_callocN(sizeof(bGPundonode), "gpencil undo node");
+	bGPundonode *node, *next;
 
 	//printf("\t\tGP - undo push\n");
 
 	undo_node->gpd= gpencil_data_duplicate(gpd);
+
+	if(cur_node) {
+		node= cur_node->next;
+
+		while(node) {
+			next= node->next;
+
+			free_gpencil_data(node->gpd);
+			MEM_freeN(node->gpd);
+
+			BLI_remlink(&undo_nodes, node);
+			MEM_freeN(node);
+
+			node= next;
+		}
+	}
+
 	cur_node= undo_node;
 
 	BLI_addtail(&undo_nodes, undo_node);

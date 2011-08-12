@@ -51,6 +51,7 @@ typedef enum eGPencil_PaintModes {
 	GP_PAINTMODE_DRAW = 0,
 	GP_PAINTMODE_ERASER,
 	GP_PAINTMODE_DRAW_STRAIGHT,
+	GP_PAINTMODE_DRAW_POLY
 } eGPencil_PaintModes;
 
 /* buttons editing --- */
