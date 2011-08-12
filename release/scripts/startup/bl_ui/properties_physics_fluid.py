@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 
 
 class PhysicButtonsPanel():
@@ -32,7 +33,7 @@ class PhysicButtonsPanel():
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.fluid)
 
 
-class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
     bl_label = "Fluid"
 
     def draw(self, context):
@@ -186,7 +187,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, bpy.types.Panel):
                 sub.prop(fluid, "velocity_radius", text="Radius")
 
 
-class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
     bl_label = "Domain World"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -236,7 +237,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(fluid, "compressibility", slider=True)
 
 
-class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
     bl_label = "Domain Boundary"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -265,7 +266,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(fluid, "surface_subdivisions", text="Subdivisions")
 
 
-class PHYSICS_PT_domain_particles(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
     bl_label = "Domain Particles"
     bl_options = {'DEFAULT_CLOSED'}
 

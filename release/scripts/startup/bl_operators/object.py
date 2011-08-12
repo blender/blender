@@ -19,10 +19,11 @@
 # <pep8-80 compliant>
 
 import bpy
+from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 
 
-class SelectPattern(bpy.types.Operator):
+class SelectPattern(Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_pattern"
     bl_label = "Select Pattern"
@@ -99,7 +100,7 @@ class SelectPattern(bpy.types.Operator):
         row.prop(self, "extend")
 
 
-class SelectCamera(bpy.types.Operator):
+class SelectCamera(Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_camera"
     bl_label = "Select Camera"
@@ -120,7 +121,7 @@ class SelectCamera(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SelectHierarchy(bpy.types.Operator):
+class SelectHierarchy(Operator):
     '''Select object relative to the active objects position''' \
     '''in the hierarchy'''
     bl_idname = "object.select_hierarchy"
@@ -187,7 +188,7 @@ class SelectHierarchy(bpy.types.Operator):
         return {'CANCELLED'}
 
 
-class SubdivisionSet(bpy.types.Operator):
+class SubdivisionSet(Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
     bl_idname = "object.subdivision_set"
@@ -263,7 +264,7 @@ class SubdivisionSet(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ShapeTransfer(bpy.types.Operator):
+class ShapeTransfer(Operator):
     '''Copy another selected objects active shape to this one by ''' \
     '''applying the relative offsets'''
 
@@ -507,7 +508,7 @@ class ShapeTransfer(bpy.types.Operator):
         return self._main(ob_act, objects, self.mode, self.use_clamp)
 
 
-class JoinUVs(bpy.types.Operator):
+class JoinUVs(Operator):
     '''Copy UV Layout to objects with matching geometry'''
     bl_idname = "object.join_uvs"
     bl_label = "Join as UVs"
@@ -575,7 +576,7 @@ class JoinUVs(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class MakeDupliFace(bpy.types.Operator):
+class MakeDupliFace(Operator):
     '''Make linked objects into dupli-faces'''
     bl_idname = "object.make_dupli_face"
     bl_label = "Make Dupli-Face"
@@ -649,7 +650,7 @@ class MakeDupliFace(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class IsolateTypeRender(bpy.types.Operator):
+class IsolateTypeRender(Operator):
     '''Hide unselected render objects of same type as active ''' \
     '''by setting the hide render flag'''
     bl_idname = "object.isolate_type_render"
@@ -670,7 +671,7 @@ class IsolateTypeRender(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ClearAllRestrictRender(bpy.types.Operator):
+class ClearAllRestrictRender(Operator):
     '''Reveal all render objects by setting the hide render flag'''
     bl_idname = "object.hide_render_clear_all"
     bl_label = "Clear All Restrict Render"

@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Header, Menu
 
 
 #######################################
@@ -84,7 +85,7 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
 #######################################
 # DopeSheet Editor - General/Standard UI
 
-class DOPESHEET_HT_header(bpy.types.Header):
+class DOPESHEET_HT_header(Header):
     bl_space_type = 'DOPESHEET_EDITOR'
 
     def draw(self, context):
@@ -134,7 +135,7 @@ class DOPESHEET_HT_header(bpy.types.Header):
         row.operator("action.paste", text="", icon='PASTEDOWN')
 
 
-class DOPESHEET_MT_view(bpy.types.Menu):
+class DOPESHEET_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -170,7 +171,7 @@ class DOPESHEET_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class DOPESHEET_MT_select(bpy.types.Menu):
+class DOPESHEET_MT_select(Menu):
     bl_label = "Select"
 
     def draw(self, context):
@@ -206,7 +207,7 @@ class DOPESHEET_MT_select(bpy.types.Menu):
             layout.operator("action.select_linked")
 
 
-class DOPESHEET_MT_marker(bpy.types.Menu):
+class DOPESHEET_MT_marker(Menu):
     bl_label = "Marker"
 
     def draw(self, context):
@@ -237,7 +238,7 @@ class DOPESHEET_MT_marker(bpy.types.Menu):
 #######################################
 # Keyframe Editing
 
-class DOPESHEET_MT_channel(bpy.types.Menu):
+class DOPESHEET_MT_channel(Menu):
     bl_label = "Channel"
 
     def draw(self, context):
@@ -268,7 +269,7 @@ class DOPESHEET_MT_channel(bpy.types.Menu):
         layout.operator("anim.channels_fcurves_enable")
 
 
-class DOPESHEET_MT_key(bpy.types.Menu):
+class DOPESHEET_MT_key(Menu):
     bl_label = "Key"
 
     def draw(self, context):
@@ -301,7 +302,7 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.operator("action.paste")
 
 
-class DOPESHEET_MT_key_transform(bpy.types.Menu):
+class DOPESHEET_MT_key_transform(Menu):
     bl_label = "Transform"
 
     def draw(self, context):
@@ -317,7 +318,7 @@ class DOPESHEET_MT_key_transform(bpy.types.Menu):
 #######################################
 # Grease Pencil Editing
 
-class DOPESHEET_MT_gpencil_channel(bpy.types.Menu):
+class DOPESHEET_MT_gpencil_channel(Menu):
     bl_label = "Channel"
 
     def draw(self, context):
@@ -345,7 +346,7 @@ class DOPESHEET_MT_gpencil_channel(bpy.types.Menu):
         #layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
 
 
-class DOPESHEET_MT_gpencil_frame(bpy.types.Menu):
+class DOPESHEET_MT_gpencil_frame(Menu):
     bl_label = "Frame"
 
     def draw(self, context):

@@ -19,11 +19,12 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Operator
 
 from bpy.props import IntProperty
 
 
-class SequencerCrossfadeSounds(bpy.types.Operator):
+class SequencerCrossfadeSounds(Operator):
     '''Do crossfading volume animation of two selected sound strips.'''
 
     bl_idname = "sequencer.crossfade_sounds"
@@ -74,7 +75,7 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-class SequencerCutMulticam(bpy.types.Operator):
+class SequencerCutMulticam(Operator):
     '''Cut multicam strip and select camera.'''
 
     bl_idname = "sequencer.cut_multicam"
@@ -112,7 +113,7 @@ class SequencerCutMulticam(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SequencerDeinterlaceSelectedMovies(bpy.types.Operator):
+class SequencerDeinterlaceSelectedMovies(Operator):
     '''Deinterlace all selected movie sources.'''
 
     bl_idname = "sequencer.deinterlace_selected_movies"

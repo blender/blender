@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 
 import bpy
+from bpy.types import Menu, Operator
 
 
 class AddPresetBase():
@@ -140,7 +141,7 @@ class AddPresetBase():
             return self.execute(context)
 
 
-class ExecutePreset(bpy.types.Operator):
+class ExecutePreset(Operator):
     ''' Executes a preset '''
     bl_idname = "script.execute_preset"
     bl_label = "Execute a Python Preset"
@@ -168,7 +169,7 @@ class ExecutePreset(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class AddPresetRender(AddPresetBase, bpy.types.Operator):
+class AddPresetRender(AddPresetBase, Operator):
     '''Add a Render Preset'''
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
@@ -211,7 +212,7 @@ class AddPresetCamera(AddPresetBase, bpy.types.Operator):
     preset_subdir = "camera"
 
 
-class AddPresetSSS(AddPresetBase, bpy.types.Operator):
+class AddPresetSSS(AddPresetBase, Operator):
     '''Add a Subsurface Scattering Preset'''
     bl_idname = "material.sss_preset_add"
     bl_label = "Add SSS Preset"
@@ -239,7 +240,7 @@ class AddPresetSSS(AddPresetBase, bpy.types.Operator):
     preset_subdir = "sss"
 
 
-class AddPresetCloth(AddPresetBase, bpy.types.Operator):
+class AddPresetCloth(AddPresetBase, Operator):
     '''Add a Cloth Preset'''
     bl_idname = "cloth.preset_add"
     bl_label = "Add Cloth Preset"
@@ -261,7 +262,7 @@ class AddPresetCloth(AddPresetBase, bpy.types.Operator):
     preset_subdir = "cloth"
 
 
-class AddPresetSunSky(AddPresetBase, bpy.types.Operator):
+class AddPresetSunSky(AddPresetBase, Operator):
     '''Add a Sky & Atmosphere Preset'''
     bl_idname = "lamp.sunsky_preset_add"
     bl_label = "Add Sunsky Preset"
@@ -290,7 +291,7 @@ class AddPresetSunSky(AddPresetBase, bpy.types.Operator):
     preset_subdir = "sunsky"
 
 
-class AddPresetInteraction(AddPresetBase, bpy.types.Operator):
+class AddPresetInteraction(AddPresetBase, Operator):
     '''Add an Application Interaction Preset'''
     bl_idname = "wm.interaction_preset_add"
     bl_label = "Add Interaction Preset"
@@ -357,7 +358,7 @@ class AddPresetTrackingTrackColor(AddPresetBase, bpy.types.Operator):
     preset_subdir = "tracking_track_color"
 
 
-class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
+class AddPresetKeyconfig(AddPresetBase, Operator):
     '''Add a Keyconfig Preset'''
     bl_idname = "wm.keyconfig_preset_add"
     bl_label = "Add Keyconfig Preset"
@@ -380,7 +381,7 @@ class AddPresetKeyconfig(AddPresetBase, bpy.types.Operator):
             keyconfigs.remove(keyconfigs.active)
 
 
-class AddPresetOperator(AddPresetBase, bpy.types.Operator):
+class AddPresetOperator(AddPresetBase, Operator):
     '''Add an Application Interaction Preset'''
     bl_idname = "wm.operator_preset_add"
     bl_label = "Operator Preset"
@@ -403,7 +404,7 @@ class AddPresetOperator(AddPresetBase, bpy.types.Operator):
 
     @property
     def preset_values(self):
-        properties_blacklist = bpy.types.Operator.bl_rna.properties.keys()
+        properties_blacklist = Operator.bl_rna.properties.keys()
 
         prefix, suffix = self.operator.split("_OT_", 1)
         op = getattr(getattr(bpy.ops, prefix.lower()), suffix)
@@ -425,12 +426,12 @@ class AddPresetOperator(AddPresetBase, bpy.types.Operator):
         return os.path.join("operator", "%s.%s" % (prefix.lower(), suffix))
 
 
-class WM_MT_operator_presets(bpy.types.Menu):
+class WM_MT_operator_presets(Menu):
     bl_label = "Operator Presets"
 
     def draw(self, context):
         self.operator = context.space_data.operator.bl_idname
-        bpy.types.Menu.draw_preset(self, context)
+        Menu.draw_preset(self, context)
 
     @property
     def preset_subdir(self):

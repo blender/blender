@@ -498,205 +498,6 @@ void recurs_sel_seq(Sequence *seqm)
 	}
 }
 
-int event_to_efftype(int event)
-{
-	if(event==2) return SEQ_CROSS;
-	if(event==3) return SEQ_GAMCROSS;
-	if(event==4) return SEQ_ADD;
-	if(event==5) return SEQ_SUB;
-	if(event==6) return SEQ_MUL;
-	if(event==7) return SEQ_ALPHAOVER;
-	if(event==8) return SEQ_ALPHAUNDER;
-	if(event==9) return SEQ_OVERDROP;
-	if(event==10) return SEQ_PLUGIN;
-	if(event==13) return SEQ_WIPE;
-	if(event==14) return SEQ_GLOW;
-	if(event==15) return SEQ_TRANSFORM;
-	if(event==16) return SEQ_COLOR;
-	if(event==17) return SEQ_SPEED;
-	if(event==18) return SEQ_ADJUSTMENT;
-	return 0;
-}
-
-#if 0
-static void reload_sound_strip(Scene *scene, char *name)
-{
-	Editing *ed;
-	Sequence *seq, *seqact;
-	SpaceFile *sfile;
-	Sequence *last_seq= seq_active_get(scene);
-
-	ed= scene->ed;
-
-	if(last_seq==0 || last_seq->type!=SEQ_SOUND) return;
-	seqact= last_seq;	/* last_seq changes in alloc_sequence */
-
-	/* search sfile */
-//	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
-	if(sfile==0) return;
-
-	waitcursor(1);
-
-	seq = sfile_to_snd_sequence(sfile, seqact->start, seqact->machine);
-	printf("seq->type: %i\n", seq->type);
-	if(seq && seq!=seqact) {
-		/* i'm not sure about this one, seems to work without it -- sgefant */
-		seq_free_strip(seqact->strip);
-
-		seqact->strip= seq->strip;
-
-		seqact->len= seq->len;
-		calc_sequence(scene, seqact);
-
-		seq->strip= 0;
-		seq_free_sequence(scene, seq);
-		BLI_remlink(ed->seqbasep, seq);
-
-		seq= ed->seqbasep->first;
-
-	}
-
-	waitcursor(0);
-
-}
-#endif
-
-static void reload_image_strip(Scene *scene, char *UNUSED(name))
-{
-	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *seq=NULL, *seqact;
-	SpaceFile *sfile=NULL;
-	Sequence *last_seq= seq_active_get(scene);
-
-
-
-	if(last_seq==NULL || last_seq->type!=SEQ_IMAGE) return;
-	seqact= last_seq;	/* last_seq changes in alloc_sequence */
-
-	/* search sfile */
-//	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
-	if(sfile == NULL) return;
-
-	waitcursor(1);
-
-//	seq= sfile_to_sequence(scene, sfile, seqact->start, seqact->machine, 1); // XXX ADD BACK
-	if(seq && seq!=seqact) {
-		seq_free_strip(seqact->strip);
-
-		seqact->strip= seq->strip;
-
-		seqact->len= seq->len;
-		calc_sequence(scene, seqact);
-
-		seq->strip= NULL;
-		seq_free_sequence(scene, seq);
-		BLI_remlink(ed->seqbasep, seq);
-
-		update_changed_seq_and_deps(scene, seqact, 1, 1);
-	}
-	waitcursor(0);
-
-}
-
-
-static void change_sequence(Scene *scene)
-{
-	Editing *ed= seq_give_editing(scene, FALSE);
-	Sequence *last_seq= seq_active_get(scene);
-	Scene *sce;
-	short event;
-
-	if(last_seq == NULL) return;
-
-	if(last_seq->type & SEQ_EFFECT) {
-		event = pupmenu("Change Effect%t"
-				"|Switch A <-> B %x1"
-				"|Switch B <-> C %x10"
-				"|Plugin%x11"
-				"|Recalculate%x12"
-				"|Cross%x2"
-				"|Gamma Cross%x3"
-				"|Add%x4"
-				"|Sub%x5"
-				"|Mul%x6"
-				"|Alpha Over%x7"
-				"|Alpha Under%x8"
-				"|Alpha Over Drop%x9"
-				"|Wipe%x13"
-				"|Glow%x14"
-				"|Transform%x15"
-				"|Color Generator%x16"
-				"|Speed Control%x17"
-				"|Adjustment Layer%x18");
-		if(event > 0) {
-			if(event==1) {
-				SWAP(Sequence *,last_seq->seq1,last_seq->seq2);
-			}
-			else if(event==10) {
-				SWAP(Sequence *,last_seq->seq2,last_seq->seq3);
-			}
-			else if(event==11) {
-				activate_fileselect(
-					FILE_SPECIAL, "Select Plugin", 
-					U.plugseqdir, change_plugin_seq);
-			}
-			else if(event==12);	
-								/* recalculate: only new_stripdata */
-			else {
-				/* free previous effect and init new effect */
-				struct SeqEffectHandle sh;
-
-				if (get_sequence_effect_num_inputs(
-						last_seq->type)
-					< get_sequence_effect_num_inputs(
-						event_to_efftype(event))) {
-					error("New effect needs more "
-						  "input strips!");
-				} else {
-					sh = get_sequence_effect(last_seq);
-					sh.free(last_seq);
-					
-					last_seq->type 
-						= event_to_efftype(event);
-					
-					sh = get_sequence_effect(last_seq);
-					sh.init(last_seq);
-				}
-			}
-
-			update_changed_seq_and_deps(scene, last_seq, 0, 1);
-		}
-	}
-	else if(last_seq->type == SEQ_IMAGE) {
-		if(okee("Change images")) {
-			activate_fileselect(FILE_SPECIAL, 
-						"Select Images", 
-						ed->act_imagedir, 
-						reload_image_strip);
-		}
-	}
-	else if(last_seq->type == SEQ_MOVIE) {
-		;
-	}
-	else if(last_seq->type == SEQ_SCENE) {
-		event= pupmenu("Change Scene%t|Update Start and End");
-
-		if(event==1) {
-			sce= last_seq->scene;
-
-			last_seq->len= sce->r.efra - sce->r.sfra + 1;
-			last_seq->sfra= sce->r.sfra;
-			
-			/* bad code to change seq->len? update_changed_seq_and_deps() expects the strip->len to be OK */
-			new_tstripdata(last_seq);
-			
-			update_changed_seq_and_deps(scene, last_seq, 1, 1);
-
-		}
-	}
-
-}
-
 int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3, const char **error_str)
 {
 	Editing *ed = seq_give_editing(scene, FALSE);
@@ -1207,6 +1008,19 @@ static int seq_get_snaplimit(View2D *v2d)
 int sequencer_edit_poll(bContext *C)
 {
 	return (seq_give_editing(CTX_data_scene(C), FALSE) != NULL);
+}
+
+int sequencer_strip_poll(bContext *C)
+{
+	Editing *ed;
+	return (((ed= seq_give_editing(CTX_data_scene(C), FALSE)) != NULL) && (ed->act_seq != NULL));
+}
+
+int sequencer_strip_has_path_poll(bContext *C)
+{
+	Editing *ed;
+	Sequence *seq;
+	return (((ed= seq_give_editing(CTX_data_scene(C), FALSE)) != NULL) && ((seq= ed->act_seq) != NULL) && (SEQ_HAS_PATH(seq)));
 }
 
 int sequencer_view_poll(bContext *C)
@@ -2967,4 +2781,225 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
+}
+
+
+/* change ops */
+
+static EnumPropertyItem prop_change_effect_input_types[] = {
+	{0, "A_B", 0, "A -> B", ""},
+	{1, "B_C", 0, "B -> C", ""},
+	{2, "A_C", 0, "A -> C", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq= seq_active_get(scene);
+
+	Sequence **seq_1, **seq_2;
+
+	switch(RNA_enum_get(op->ptr, "swap")) {
+		case 0:
+			seq_1= &seq->seq1;
+			seq_2= &seq->seq2;
+			break;
+		case 1:
+			seq_1= &seq->seq2;
+			seq_2= &seq->seq3;
+			break;
+		default: /* 2 */
+			seq_1= &seq->seq1;
+			seq_2= &seq->seq3;
+			break;
+	}
+
+	if(*seq_1 == NULL || *seq_2 == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "One of the effect inputs is unset, can't swap");
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		SWAP(Sequence *, *seq_1, *seq_2);
+	}
+
+	update_changed_seq_and_deps(scene, seq, 0, 1);
+
+	/* important else we dont get the imbuf cache flushed */
+	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_change_effect_input(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Change Effect Input";
+	ot->idname= "SEQUENCER_OT_change_effect_input";
+	ot->description="";
+
+	/* api callbacks */
+	ot->exec= sequencer_change_effect_input_exec;
+	ot->poll= sequencer_effect_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ot->prop= RNA_def_enum(ot->srna, "swap", prop_change_effect_input_types, 0, "Swap", "The effect inputs to swap");
+}
+
+static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq= seq_active_get(scene);
+	const int new_type= RNA_enum_get(op->ptr, "type");
+
+	/* free previous effect and init new effect */
+	struct SeqEffectHandle sh;
+
+	if ((seq->type & SEQ_EFFECT) == 0) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* can someone explain the logic behind only allowing to increse this,
+	 * copied from 2.4x - campbell */
+	if (get_sequence_effect_num_inputs(seq->type) <
+		get_sequence_effect_num_inputs(new_type)
+	) {
+		BKE_report(op->reports, RPT_ERROR, "New effect needs more input strips");
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		sh = get_sequence_effect(seq);
+		sh.free(seq);
+
+		seq->type= new_type;
+
+		sh = get_sequence_effect(seq);
+		sh.init(seq);
+	}
+
+	/* update */
+	update_changed_seq_and_deps(scene, seq, 0, 1);
+
+	/* important else we dont get the imbuf cache flushed */
+	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_change_effect_type(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Change Effect Type";
+	ot->idname= "SEQUENCER_OT_change_effect_type";
+	ot->description="";
+
+	/* api callbacks */
+	ot->exec= sequencer_change_effect_type_exec;
+	ot->poll= sequencer_effect_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ot->prop= RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, "Type", "Sequencer effect type");
+}
+
+static int sequencer_change_path_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq= seq_active_get(scene);
+
+	if(seq->type == SEQ_IMAGE) {
+		char directory[FILE_MAX];
+		const int len= RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+		StripElem *se;
+
+		if(len==0)
+			return OPERATOR_CANCELLED;
+
+		RNA_string_get(op->ptr, "directory", directory);
+		BLI_strncpy(seq->strip->dir, directory, sizeof(seq->strip->dir));
+
+		if(seq->strip->stripdata) {
+			MEM_freeN(seq->strip->stripdata);
+		}
+		seq->strip->stripdata= se= MEM_callocN(len*sizeof(StripElem), "stripelem");
+
+		RNA_BEGIN(op->ptr, itemptr, "files") {
+			char *filename= RNA_string_get_alloc(&itemptr, "name", NULL, 0);
+			BLI_strncpy(se->name, filename, sizeof(se->name));
+			MEM_freeN(filename);
+			se++;
+		}
+		RNA_END;
+
+		/* correct start/end frames so we dont move
+		 * important not to set seq->len= len; allow the function to handle it */
+		reload_sequence_new_file(scene, seq, TRUE);
+
+		calc_sequence(scene, seq);
+
+		/* important else we dont get the imbuf cache flushed */
+		free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
+	}
+	else {
+		/* lame, set rna filepath */
+		PointerRNA seq_ptr;
+		char filepath[FILE_MAX];
+
+		RNA_pointer_create(&scene->id, &RNA_Sequence, seq, &seq_ptr);
+
+		RNA_string_get(op->ptr, "filepath", filepath);
+		RNA_string_set(&seq_ptr, "filepath", filepath);
+	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+static int sequencer_change_path_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	Scene *scene= CTX_data_scene(C);
+	Sequence *seq= seq_active_get(scene);
+
+	RNA_string_set(op->ptr, "directory", seq->strip->dir);
+
+	/* set default display depending on seq type */
+	if(seq->type == SEQ_IMAGE) {
+		RNA_boolean_set(op->ptr, "filter_movie", 0);
+	}
+	else {
+		RNA_boolean_set(op->ptr, "filter_image", 0);
+	}
+
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Change Data/Files";
+	ot->idname= "SEQUENCER_OT_change_path";
+	ot->description="";
+
+	/* api callbacks */
+	ot->exec= sequencer_change_path_exec;
+	ot->invoke= sequencer_change_path_invoke;
+	ot->poll= sequencer_strip_has_path_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_DIRECTORY|WM_FILESEL_RELPATH|WM_FILESEL_FILEPATH|WM_FILESEL_FILES);
 }

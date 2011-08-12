@@ -18,9 +18,10 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu
 
 
-class OUTLINER_HT_header(bpy.types.Header):
+class OUTLINER_HT_header(Header):
     bl_space_type = 'OUTLINER'
 
     def draw(self, context):
@@ -63,7 +64,7 @@ class OUTLINER_HT_header(bpy.types.Header):
                 row.label(text="No Keying Set active")
 
 
-class OUTLINER_MT_view(bpy.types.Menu):
+class OUTLINER_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -86,7 +87,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class OUTLINER_MT_search(bpy.types.Menu):
+class OUTLINER_MT_search(Menu):
     bl_label = "Search"
 
     def draw(self, context):
@@ -100,7 +101,7 @@ class OUTLINER_MT_search(bpy.types.Menu):
         col.prop(space, "use_filter_complete")
 
 
-class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
+class OUTLINER_MT_edit_datablocks(Menu):
     bl_label = "Edit"
 
     def draw(self, context):

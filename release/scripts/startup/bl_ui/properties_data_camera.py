@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
 
@@ -40,7 +41,7 @@ class CAMERA_MT_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
-class DATA_PT_context_camera(CameraButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_camera(CameraButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -113,7 +114,7 @@ class DATA_PT_lens(CameraButtonsPanel, bpy.types.Panel):
         col.prop(cam, "shift_y", text="Y")
 
 
-class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
+class DATA_PT_camera(CameraButtonsPanel, Panel):
     bl_label = "Camera"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -136,7 +137,7 @@ class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
         row.prop(cam, "clip_end", text="End")
 
 
-class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
+class DATA_PT_camera_display(CameraButtonsPanel, Panel):
     bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -165,7 +166,7 @@ class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
         sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
 
 
-class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Camera

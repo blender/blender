@@ -88,6 +88,10 @@ void sequencer_operatortypes(void)
 
 	WM_operatortype_append(SEQUENCER_OT_rebuild_proxy);
 
+	WM_operatortype_append(SEQUENCER_OT_change_effect_input);
+	WM_operatortype_append(SEQUENCER_OT_change_effect_type);
+	WM_operatortype_append(SEQUENCER_OT_change_path);
+
 	/* sequencer_select.c */
 	WM_operatortype_append(SEQUENCER_OT_select_all_toggle);
 	WM_operatortype_append(SEQUENCER_OT_select_inverse);
@@ -242,6 +246,8 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_menu(keymap, "SEQUENCER_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
+
+	WM_keymap_add_menu(keymap, "SEQUENCER_MT_change", CKEY, KM_PRESS, 0, 0);
 	
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", OKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "scene.sequence_editor.overlay_frame");

@@ -19,9 +19,10 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Header, Menu
 
 
-class GRAPH_HT_header(bpy.types.Header):
+class GRAPH_HT_header(Header):
     bl_space_type = 'GRAPH_EDITOR'
 
     def draw(self, context):
@@ -61,7 +62,7 @@ class GRAPH_HT_header(bpy.types.Header):
             row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
 
 
-class GRAPH_MT_view(bpy.types.Menu):
+class GRAPH_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -107,7 +108,7 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class GRAPH_MT_select(bpy.types.Menu):
+class GRAPH_MT_select(Menu):
     bl_label = "Select"
 
     def draw(self, context):
@@ -142,7 +143,7 @@ class GRAPH_MT_select(bpy.types.Menu):
         layout.operator("graph.select_linked")
 
 
-class GRAPH_MT_marker(bpy.types.Menu):
+class GRAPH_MT_marker(Menu):
     bl_label = "Marker"
 
     def draw(self, context):
@@ -163,7 +164,7 @@ class GRAPH_MT_marker(bpy.types.Menu):
         # TODO: pose markers for action edit mode only?
 
 
-class GRAPH_MT_channel(bpy.types.Menu):
+class GRAPH_MT_channel(Menu):
     bl_label = "Channel"
 
     def draw(self, context):
@@ -195,7 +196,7 @@ class GRAPH_MT_channel(bpy.types.Menu):
         layout.operator("anim.channels_fcurves_enable")
 
 
-class GRAPH_MT_key(bpy.types.Menu):
+class GRAPH_MT_key(Menu):
     bl_label = "Key"
 
     def draw(self, context):
@@ -234,7 +235,7 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
 
 
-class GRAPH_MT_key_transform(bpy.types.Menu):
+class GRAPH_MT_key_transform(Menu):
     bl_label = "Transform"
 
     def draw(self, context):
