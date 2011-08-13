@@ -36,13 +36,11 @@ class NLA_HT_header(Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-
-            sub.menu("NLA_MT_view")
-            sub.menu("NLA_MT_select")
-            sub.menu("NLA_MT_marker")
-            sub.menu("NLA_MT_edit")
-            sub.menu("NLA_MT_add")
+            row.menu("NLA_MT_view")
+            row.menu("NLA_MT_select")
+            row.menu("NLA_MT_marker")
+            row.menu("NLA_MT_edit")
+            row.menu("NLA_MT_add")
 
         dopesheet_filter(layout, context)
 
@@ -56,8 +54,6 @@ class NLA_MT_view(Menu):
         layout = self.layout
 
         st = context.space_data
-
-        layout.column()
 
         layout.operator("nla.properties", icon='MENU_PANEL')
 
@@ -85,7 +81,6 @@ class NLA_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
         layout.operator("nla.select_all_toggle")
         layout.operator("nla.select_all_toggle", text="Invert Selection").invert = True
@@ -107,7 +102,6 @@ class NLA_MT_marker(Menu):
 
         #layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.column()
         layout.operator("marker.add", "Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")
         layout.operator("marker.delete", text="Delete Marker")
@@ -126,7 +120,6 @@ class NLA_MT_edit(Menu):
 
         scene = context.scene
 
-        layout.column()
         layout.menu("NLA_MT_edit_transform", text="Transform")
 
         layout.operator_menu_enum("nla.snap", "type", text="Snap")
@@ -167,7 +160,6 @@ class NLA_MT_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.operator("nla.actionclip_add")
         layout.operator("nla.transition_add")
 
@@ -186,7 +178,6 @@ class NLA_MT_edit_transform(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.operator("transform.translate", text="Grab/Move")
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
