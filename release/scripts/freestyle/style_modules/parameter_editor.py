@@ -647,10 +647,8 @@ class MaterialBoundaryUP0D(UnaryPredicate0D):
             return False
         fe = v.getFEdge(it_prev.getObject())
         idx1 = fe.materialIndex() if fe.isSmooth() else fe.bMaterialIndex()
-        print(1, fe, idx1)
         fe = v.getFEdge(it.getObject())
         idx2 = fe.materialIndex() if fe.isSmooth() else fe.bMaterialIndex()
-        print(2, fe, idx2)
         return idx1 != idx2
 
 # main function for parameter processing
