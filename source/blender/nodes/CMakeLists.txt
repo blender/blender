@@ -182,6 +182,7 @@ set(SRC
 	intern/SHD_util.h
 	intern/TEX_util.h
 	intern/node_util.h
+	intern/SHD_nodes/SHD_noise.h
 )
 
 if(WITH_PYTHON)

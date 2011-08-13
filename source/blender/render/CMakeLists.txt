@@ -120,7 +120,13 @@ set(SRC
 
 if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
-	list(APPEND INC ../python ${PYTHON_INC})
+	list(APPEND INC
+		../python
+	)
+
+	list(APPEND INC_SYS
+		${PYTHON_INCLUDE_DIRS}
+	)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
