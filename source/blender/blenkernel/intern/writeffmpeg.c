@@ -658,9 +658,11 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	switch(ffmpeg_type) {
 	case FFMPEG_AVI:
 	case FFMPEG_MOV:
-	case FFMPEG_OGG:
 	case FFMPEG_MKV:
 		fmt->video_codec = ffmpeg_codec;
+		break;
+	case FFMPEG_OGG:
+		fmt->video_codec = CODEC_ID_THEORA;
 		break;
 	case FFMPEG_DV:
 		fmt->video_codec = CODEC_ID_DVVIDEO;
@@ -1309,6 +1311,9 @@ void ffmpeg_verify_image_type(RenderData *rd)
 			rd->ffcodecdata.codec = CODEC_ID_MPEG2VIDEO;
 			/* Don't set preset, disturbs render resolution.
 			 * ffmpeg_set_preset(rd, FFMPEG_PRESET_DVD); */
+		}
+		if(rd->ffcodecdata.type == FFMPEG_OGG) {
+			rd->ffcodecdata.type = FFMPEG_MPEG2;
 		}
 
 		audio= 1;

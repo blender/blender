@@ -21,6 +21,7 @@
 # Originally written by Matt Ebb
 
 import bpy
+from bpy.types import Operator
 import os
 
 
@@ -64,7 +65,7 @@ def guess_player_path(preset):
     return player_path
 
 
-class PlayRenderedAnim(bpy.types.Operator):
+class PlayRenderedAnim(Operator):
     '''Plays back rendered frames/movies using an external player.'''
     bl_idname = "render.play_rendered_anim"
     bl_label = "Play Rendered Animation"

@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/render/render_shading.c
+/** \file blender/editors/render/render_update.c
  *  \ingroup edrend
  */
 

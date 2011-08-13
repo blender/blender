@@ -1311,4 +1311,5 @@ ModifierTypeInfo modifierType_EdgeSplit = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

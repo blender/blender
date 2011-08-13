@@ -18,10 +18,11 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
 
 
-class MESH_MT_vertex_group_specials(bpy.types.Menu):
+class MESH_MT_vertex_group_specials(Menu):
     bl_label = "Vertex Group Specials"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -36,7 +37,7 @@ class MESH_MT_vertex_group_specials(bpy.types.Menu):
         layout.operator("object.vertex_group_remove", icon='X', text="Delete All").all = True
 
 
-class MESH_MT_shape_key_specials(bpy.types.Menu):
+class MESH_MT_shape_key_specials(Menu):
     bl_label = "Shape Key Specials"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -61,7 +62,7 @@ class MeshButtonsPanel():
         return context.mesh and (engine in cls.COMPAT_ENGINES)
 
 
-class DATA_PT_context_mesh(MeshButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_mesh(MeshButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -79,7 +80,7 @@ class DATA_PT_context_mesh(MeshButtonsPanel, bpy.types.Panel):
             layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
+class DATA_PT_normals(MeshButtonsPanel, Panel):
     bl_label = "Normals"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -99,7 +100,7 @@ class DATA_PT_normals(MeshButtonsPanel, bpy.types.Panel):
         split.prop(mesh, "show_double_sided")
 
 
-class DATA_PT_texture_space(MeshButtonsPanel, bpy.types.Panel):
+class DATA_PT_texture_space(MeshButtonsPanel, Panel):
     bl_label = "Texture Space"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -119,7 +120,7 @@ class DATA_PT_texture_space(MeshButtonsPanel, bpy.types.Panel):
         row.column().prop(mesh, "texspace_size", text="Size")
 
 
-class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
+class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
     bl_label = "Vertex Groups"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -168,7 +169,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, bpy.types.Panel):
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight")
 
 
-class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
+class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
     bl_label = "Shape Keys"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -261,7 +262,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, bpy.types.Panel):
                 row.prop(key, "slurph")
 
 
-class DATA_PT_uv_texture(MeshButtonsPanel, bpy.types.Panel):
+class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
     bl_label = "UV Texture"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -284,7 +285,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, bpy.types.Panel):
             layout.prop(lay, "name")
 
 
-class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
+class DATA_PT_texface(MeshButtonsPanel, Panel):
     bl_label = "Texture Face"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -331,7 +332,7 @@ class DATA_PT_texface(MeshButtonsPanel, bpy.types.Panel):
             col.label(text="No UV Texture")
 
 
-class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
+class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
     bl_label = "Vertex Colors"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -354,7 +355,7 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, bpy.types.Panel):
             layout.prop(lay, "name")
 
 
-class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Mesh

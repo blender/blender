@@ -1557,7 +1557,7 @@ void init_userdef_do_versions(void)
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
 
-	if (bmain->versionfile < 258 || (bmain->versionfile == 258 && bmain->subversionfile < 1)) {
+	if (bmain->versionfile < 258 || (bmain->versionfile == 258 && bmain->subversionfile < 2)) {
 		bTheme *btheme;
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			btheme->tnode.noodle_curving = 5;

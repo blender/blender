@@ -1010,6 +1010,10 @@ elseif(APPLE)
 			if(NOT 3D_CONNEXION_CLIENT_LIBRARY)
 				set(WITH_INPUT_NDOF OFF)
 			endif()
+
+			if(WITH_INPUT_NDOF)
+				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -weak_framework 3DconnexionClient")
+			endif()
 		endif()
 
 	else()

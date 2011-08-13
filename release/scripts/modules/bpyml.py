@@ -120,7 +120,7 @@ def fromxml(data):
         py_item = (xml_node.tagName, _fromxml_kwargs(xml_node), [])
         #_fromxml_iter(py_item, xml_node.childNodes)
         for xml_node_child in xml_node.childNodes:
-            if xml_node_child.nodeType not in (xml_node_child.TEXT_NODE, xml_node_child.COMMENT_NODE):
+            if xml_node_child.nodeType not in {xml_node_child.TEXT_NODE, xml_node_child.COMMENT_NODE}:
                 py_item[CHILDREN].append(_fromxml(xml_node_child))
         return py_item
 

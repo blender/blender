@@ -140,6 +140,11 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
 	walk(userData, ob, (ID **)&wmd->map_object);
 }
 
+static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void *userData)
+{
+	walk(userData, ob, md, "texture");
+}
+
 static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
                            Object *UNUSED(ob), DagNode *obNode)
 {
@@ -364,4 +369,5 @@ ModifierTypeInfo modifierType_Warp = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
+	/* foreachTexLink */    foreachTexLink,
 };

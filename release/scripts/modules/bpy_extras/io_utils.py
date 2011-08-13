@@ -379,7 +379,7 @@ def path_reference(filepath,
     is_relative = filepath.startswith("//")
     filepath_abs = os.path.normpath(bpy.path.abspath(filepath, base_src))
 
-    if mode in ('ABSOLUTE', 'RELATIVE', 'STRIP'):
+    if mode in {'ABSOLUTE', 'RELATIVE', 'STRIP'}:
         pass
     elif mode == 'MATCH':
         mode = 'RELATIVE' if is_relative else 'ABSOLUTE'

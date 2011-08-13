@@ -253,14 +253,23 @@ if 'blenderlite' in B.targets:
         if k not in B.arguments:
             env[k] = v
 
-# detect presence of 3D_CONNEXION_CLIENT_LIBRARY for OSX
+# Extended OSX_SDK and 3D_CONNEXION_CLIENT_LIBRARY detection for OSX
 if env['OURPLATFORM']=='darwin':
-    envi = Environment()
-    conf = Configure(envi)
-    if not conf.CheckCHeader('ConnexionClientAPI.h'): # CheckCXXHeader if it is c++ !
+    print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'][:9] + " --"
+    print "Available " + env['MACOSX_SDK_CHECK']
+    if not 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
+        print  B.bc.OKGREEN + "MacOSX10.5.sdk not available:" + B.bc.ENDC + " using MacOSX10.6.sdk"
+    else:
+        print B.bc.OKGREEN + "Found recommended sdk :" + B.bc.ENDC + " using MacOSX10.5.sdk"
+
+    # for now, Mac builders must download and install the driver framework from 3Dconnexion
+    # necessary header file lives here when installed:
+    # /Library/Frameworks/3DconnexionClient.framework/Versions/Current/Headers/ConnexionClientAPI.h
+    if env['WITH_BF_3DMOUSE'] == 1 and not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
         print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
         env['WITH_BF_3DMOUSE'] = 0
-    envi = conf.Finish()
+    else:
+        env.Append(LINKFLAGS=['-weak_framework','3DconnexionClient'])
 
 
 if env['WITH_BF_OPENMP'] == 1:

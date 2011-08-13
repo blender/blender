@@ -378,7 +378,8 @@ unsigned int index_to_framebuffer(int index)
 
 void WM_set_framebuffer_index_color(int index)
 {
-	cpack(index_to_framebuffer(index));
+	const int col= index_to_framebuffer(index);
+	cpack(col);
 }
 
 int WM_framebuffer_to_index(unsigned int col)
