@@ -141,18 +141,18 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Lamp *la)
 	cla.addExtraTechniqueParameter("blender", "type", la->type);
 	cla.addExtraTechniqueParameter("blender", "flag", la->flag);
 	cla.addExtraTechniqueParameter("blender", "mode", la->mode);
-	cla.addExtraTechniqueParameter("blender", "gamma", la->k);
+	cla.addExtraTechniqueParameter("blender", "gamma", la->k, "blender_gamma");
 	cla.addExtraTechniqueParameter("blender", "red", la->r);
 	cla.addExtraTechniqueParameter("blender", "green", la->g);
 	cla.addExtraTechniqueParameter("blender", "blue", la->b);
-	cla.addExtraTechniqueParameter("blender", "shadow_r", la->shdwr);
-	cla.addExtraTechniqueParameter("blender", "shadow_g", la->shdwg);
-	cla.addExtraTechniqueParameter("blender", "shadow_b", la->shdwb);
-	cla.addExtraTechniqueParameter("blender", "energy", la->energy);
-	cla.addExtraTechniqueParameter("blender", "dist", la->dist);
+	cla.addExtraTechniqueParameter("blender", "shadow_r", la->shdwr, "blender_shadow_r");
+	cla.addExtraTechniqueParameter("blender", "shadow_g", la->shdwg, "blender_shadow_g");
+	cla.addExtraTechniqueParameter("blender", "shadow_b", la->shdwb, "blender_shadow_b");
+	cla.addExtraTechniqueParameter("blender", "energy", la->energy, "blender_energy");
+	cla.addExtraTechniqueParameter("blender", "dist", la->dist, "blender_dist");
 	cla.addExtraTechniqueParameter("blender", "spotsize", la->spotsize);
 	cla.addExtraTechniqueParameter("blender", "spotblend", la->spotblend);
-	cla.addExtraTechniqueParameter("blender", "halo_intensity", la->haint);
+	cla.addExtraTechniqueParameter("blender", "halo_intensity", la->haint, "blnder_halo_intensity");
 	cla.addExtraTechniqueParameter("blender", "att1", la->att1);
 	cla.addExtraTechniqueParameter("blender", "att2", la->att2);
 	// \todo figure out how we can have falloff curve supported here
