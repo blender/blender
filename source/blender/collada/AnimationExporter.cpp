@@ -85,9 +85,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			while (fcu) {
 			transformName = extract_transform_name( fcu->rna_path );
 				
-				if ((!strcmp(transformName, "color")) ||
-					(!strcmp(transformName, "spot_size"))||
-					(!strcmp(transformName, "spot_blend"))) 
+				if ((!strcmp(transformName, "color")) || (!strcmp(transformName, "spot_size"))|| (!strcmp(transformName, "spot_blend"))||
+					(!strcmp(transformName, "distance")) ) 
 					dae_animation(ob , fcu, transformName, true );
 				fcu = fcu->next;
 			}
@@ -314,7 +313,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		{
 			if ( ob->type == OB_LAMP )
 				target = get_light_id(ob)
-				+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
+				+ "/" + get_light_param_sid(fcu->rna_path, -1, axis_name, true);
 
 			if ( ob->type == OB_CAMERA )
 				target = get_camera_id(ob)
@@ -986,6 +985,54 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		return source_id;
 	}
 
+	std::string AnimationExporter::get_light_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)
+	{
+		std::string tm_name;
+        bool is_rotation =false;
+		// when given rna_path, determine tm_type from it
+		if (rna_path) {
+			char *name = extract_transform_name(rna_path);
+
+			if (!strcmp(name, "color"))
+				tm_type = 1;
+			else if (!strcmp(name, "spot_size"))
+				tm_type = 2;
+			else if (!strcmp(name, "spot_blend"))
+				tm_type = 3;
+			else if (!strcmp(name, "distance"))
+				tm_type = 4;
+			else
+				tm_type = -1;
+		}
+
+		switch (tm_type) {
+		case 1:
+			tm_name = "color";
+			break;
+		case 2:
+			tm_name = "fall_off_angle";
+			break;
+		case 3:
+			tm_name = "fall_off_exponent";
+			break;
+		case 4:
+			tm_name = "blender_dist";
+			break;
+		
+		default:
+			tm_name = "";
+			break;
+		}
+       
+		if (tm_name.size()) {
+			if (axis_name != "")
+				return tm_name + "." + std::string(axis_name);
+			else 
+				return tm_name;
+		}
+
+		return std::string("");
+	}
 	// for rotation, axis name is always appended and the value of append_axis is ignored
 	std::string AnimationExporter::get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)
 	{
@@ -1003,30 +1050,24 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				tm_type = 2;
 			else if (!strcmp(name, "location"))
 				tm_type = 3;
-			else if (!strcmp(name, "color"))
-				tm_type = 4;
-			else if (!strcmp(name, "spot_size"))
-				tm_type = 5;
-			else if (!strcmp(name, "spot_blend"))
-				tm_type = 6;
 			else if (!strcmp(name, "lens"))
-				tm_type = 7;
+				tm_type = 4;
             else if (!strcmp(name, "ortho_scale"))
-				tm_type = 8;
+				tm_type = 5;
 			else if (!strcmp(name, "clip_end"))
-				tm_type = 9;
+				tm_type = 6;
 			else if (!strcmp(name, "clip_start"))
-				tm_type = 10;
+				tm_type = 7;
 			else if (!strcmp(name, "specular_hardness"))
-				tm_type = 11;
+				tm_type = 8;
 			else if (!strcmp(name, "specular_color"))
-				tm_type = 12;
+				tm_type = 9;
 			else if (!strcmp(name, "diffuse_color"))
-				tm_type = 13;
+				tm_type = 10;
 			else if (!strcmp(name, "alpha"))
-				tm_type = 14;
+				tm_type = 11;
 			else if (!strcmp(name, "ior"))
-				tm_type = 15;
+				tm_type = 12;
 			
 			else
 				tm_type = -1;
@@ -1045,39 +1086,30 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			tm_name = "location";
 			break;
 		case 4:
-			tm_name = "color";
-			break;
-		case 5:
-			tm_name = "fall_off_angle";
-			break;
-		case 6:
-			tm_name = "fall_off_exponent";
-			break;
-		case 7:
 			tm_name = "xfov";
 			break;
-		case 8:
+		case 5:
 			tm_name = "xmag";
 			break;
-		case 9:
+		case 6:
 			tm_name = "zfar";
 			break;
-		case 10:
+		case 7:
 			tm_name = "znear";
 			break;
-		case 11:
+		case 8:
 			tm_name = "shininess";
 			break;
-		case 12:
+		case 9:
 			tm_name = "specular";
 			break;
-		case 13:
+		case 10:
 			tm_name = "diffuse";
 			break;	
-		case 14:
+		case 11:
 			tm_name = "transparency";
 			break;	
-		case 15:
+		case 12:
 			tm_name = "index_of_refraction";
 			break;	
 		
