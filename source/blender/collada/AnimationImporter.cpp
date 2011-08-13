@@ -976,11 +976,11 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 						}	 			
 				}
 			}
-			if (is_rotation || is_matrix) {
+			if (is_rotation) {
 				if (is_joint) 
 				{
-					/*bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
-					chan->rotmode = ROT_MODE_Quat;*/
+					bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+					chan->rotmode = ROT_MODE_EUL;
 				}
 				else 
 				{
