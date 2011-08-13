@@ -231,9 +231,10 @@ typedef struct LineStyleThicknessModifier_Material {
 #define LS_PANEL_MISC         6
 
 /* FreestyleLineStyle::flag */
-#define LS_DS_EXPAND    1 /* for animation editors */
-#define LS_SAME_OBJECT  2
-#define LS_DASHED_LINE  4
+#define LS_DS_EXPAND          1  /* for animation editors */
+#define LS_SAME_OBJECT        2
+#define LS_DASHED_LINE        4
+#define LS_MATERIAL_BOUNDARY  8
 
 /* FreestyleLineStyle::caps */
 #define LS_CAPS_BUTT    1

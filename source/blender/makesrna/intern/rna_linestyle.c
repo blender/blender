@@ -505,6 +505,11 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Same Object", "If true, only feature edges of the same object are joined.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "material_boundary", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_MATERIAL_BOUNDARY);
+	RNA_def_property_ui_text(prop, "Material Boundary", "If true, chains of feature edges are split at material boundaries.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 	prop= RNA_def_property(srna, "use_dashed_line", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_DASHED_LINE);
 	RNA_def_property_ui_text(prop, "Dashed Line", "Enable or disable dashed line.");

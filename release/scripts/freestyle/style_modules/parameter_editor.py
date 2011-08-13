@@ -633,6 +633,26 @@ class AndBP1D(BinaryPredicate1D):
     def __call__(self, i1, i2):
         return self.__pred1(i1, i2) and self.__pred2(i1, i2)
 
+# predicates for splitting
+
+class MaterialBoundaryUP0D(UnaryPredicate0D):
+    def __call__(self, it):
+        if it.isBegin():
+            return False
+        it_prev = Interface0DIterator(it) 
+        it_prev.decrement()
+        v = it.getObject()
+        it.increment()
+        if it.isEnd():
+            return False
+        fe = v.getFEdge(it_prev.getObject())
+        idx1 = fe.materialIndex() if fe.isSmooth() else fe.bMaterialIndex()
+        print(1, fe, idx1)
+        fe = v.getFEdge(it.getObject())
+        idx2 = fe.materialIndex() if fe.isSmooth() else fe.bMaterialIndex()
+        print(2, fe, idx2)
+        return idx1 != idx2
+
 # main function for parameter processing
 
 def process(layer_name, lineset_name):
@@ -749,6 +769,9 @@ def process(layer_name, lineset_name):
             Operators.sequentialSplit(DashedLineStartingUP0D(controller),
                                       DashedLineStoppingUP0D(controller),
                                       sampling)
+    # split chains of feature edges
+    if linestyle.material_boundary:
+        Operators.sequentialSplit(MaterialBoundaryUP0D())
     # prepare a list of stroke shaders
     color = linestyle.color
     shaders_list = [
