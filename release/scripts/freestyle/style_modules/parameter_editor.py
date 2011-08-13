@@ -636,6 +636,8 @@ class AndBP1D(BinaryPredicate1D):
 # predicates for splitting
 
 class MaterialBoundaryUP0D(UnaryPredicate0D):
+    def getName(self):
+        return "MaterialBoundaryUP0D"
     def __call__(self, it):
         if it.isBegin():
             return False
