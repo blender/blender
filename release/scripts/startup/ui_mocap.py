@@ -283,6 +283,7 @@ class MocapPanel(bpy.types.Panel):
                         row.prop(data=bone, property='foot', text='', icon='POSE_DATA')
                         row.label(bone.name)
                         row.prop_search(bone, "map", enduser_arm, "bones")
+                        row.operator("mocap.selectmap", text='', icon='CURSOR').perf_bone = bone.name
                         label_mod = "FK"
                         if bone.map:
                             pose_bone = perf_pose_bones[bone.map]
@@ -482,6 +483,37 @@ class OBJECT_OT_LoadMappingButton(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         retarget.loadMapping(performer_obj.data, enduser_obj.data)
+        return {"FINISHED"}
+
+    @classmethod
+    def poll(cls, context):
+        if context.active_object:
+            activeIsArmature = isinstance(context.active_object.data, bpy.types.Armature)
+        performer_obj = [obj for obj in context.selected_objects if obj != context.active_object]
+        if performer_obj:
+            return activeIsArmature and isinstance(performer_obj[0].data, bpy.types.Armature)
+        else:
+            return False
+            
+
+class OBJECT_OT_SelectMapBoneButton(bpy.types.Operator):
+    '''Select a bone for faster mapping'''
+    bl_idname = "mocap.selectmap"
+    bl_label = "Select a bone for faster mapping"
+    perf_bone = bpy.props.StringProperty()
+
+    def execute(self, context):
+        enduser_obj = bpy.context.active_object
+        performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
+        selectedBone = ""
+        for bone in enduser_obj.data.bones:
+            boneVis = bone.layers
+            for i in range(32):
+                if boneVis[i] and enduser_obj.data.layers[i]:
+                    if bone.select:
+                        selectedBone = bone.name
+                        break
+        performer_obj.data.bones[self.perf_bone].map = selectedBone
         return {"FINISHED"}
 
     @classmethod
