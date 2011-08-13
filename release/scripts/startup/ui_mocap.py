@@ -161,6 +161,10 @@ bpy.types.Armature.stitch_settings = bpy.props.PointerProperty(type=AnimationSti
 bpy.types.Armature.active_mocap =  bpy.props.StringProperty(update=retarget.NLASystemInitialize)
 bpy.types.Armature.mocapNLATracks = bpy.props.CollectionProperty(type=MocapNLATracks)
 bpy.types.Armature.advancedRetarget = bpy.props.BoolProperty(default=False, update=advancedRetargetToggle)
+bpy.types.Armature.frameStep = smooth_out = bpy.props.IntProperty(name="Frame Skip",
+        default=1,
+        description="Amount of frames to skip - for previewing retargets quickly. 1 is fully sampled",
+        min=1)
 
 #Update function for IK functionality. Is called when IK prop checkboxes are toggled.
 
@@ -301,6 +305,7 @@ class MocapPanel(bpy.types.Panel):
                     mapRow.operator("mocap.loadmapping", text='Load mapping')
                     self.layout.prop(data=performer_obj.animation_data.action, property='name', text='Action Name')
                     self.layout.prop(enduser_arm, "advancedRetarget", text='Advanced Retarget')
+                    self.layout.prop(enduser_arm, "frameStep")
                     self.layout.operator("mocap.retarget", text='RETARGET!')
 
 

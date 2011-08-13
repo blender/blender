@@ -69,7 +69,7 @@ def loadMapping(perf_arm, end_arm):
 # easily while concentrating on the hierarchy changes
 
 
-def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene):
+def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene, step):
     #creates and keyframes an empty with its location
     #the original position of the tail bone
     #useful for storing the important data in the original motion
@@ -80,7 +80,10 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
             perf_world_rotation = perf_bone.matrix * performer_obj.matrix_world
             inter_world_base_rotation = inter_bone.bone.matrix_local * inter_obj.matrix_world
             inter_world_base_inv = inter_world_base_rotation.inverted()
-            return (inter_world_base_inv.to_3x3() * perf_world_rotation.to_3x3()).to_4x4()
+            bake_matrix =  (inter_world_base_inv.to_3x3() * perf_world_rotation.to_3x3())
+            base_euler = inter_bone.rotation_euler
+            eul = bake_matrix.to_euler(base_euler.order,base_euler)
+            return eul.to_matrix().to_4x4()
 
     #uses 1to1 and interpolation/averaging to match many to 1 retarget
     def manyPerfToSingleInterRetarget(inter_bone, performer_bones_s):
@@ -142,7 +145,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
         else:
             inter_bone.bone.use_inherit_rotation = True
 
-    for t in range(s_frame, e_frame):
+    for t in range(s_frame, e_frame, step):
         if (t - s_frame) % 10 == 0:
             print("First pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))
         scene.frame_set(t)
@@ -161,7 +164,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
 #       Scale: ? Should work but needs testing.
 
 
-def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
+def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene, step):
     inter_bones = inter_obj.pose.bones
     end_bones = enduser_obj.pose.bones
 
@@ -198,7 +201,7 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene):
         for bone in end_bone.children:
             bakeTransform(bone)
 
-    for t in range(s_frame, e_frame):
+    for t in range(s_frame, e_frame, step):
         if (t - s_frame) % 10 == 0:
             print("Second pass: retargeting frame {0}/{1}".format(t, e_frame - s_frame))
         scene.frame_set(t)
@@ -277,7 +280,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
     if "stride_bone" in bpy.data.objects:
         stride_action = bpy.data.actions.new("Stride Bone " + action_name)
         stride_action.use_fake_user = True
-        #~ stride_bone = enduser_obj.parent
+        stride_bone = enduser_obj.parent
         stride_bone.animation_data.action = stride_action
     else:
         bpy.ops.object.add()
@@ -305,7 +308,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
     return stride_bone
 
 
-def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene):
+def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene, step):
     bpy.ops.object.select_name(name=enduser_obj.name, extend=False)
     end_bones = enduser_obj.pose.bones
     for pose_bone in end_bones:
@@ -332,7 +335,7 @@ def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene):
                 target = ik_constraint.target
 
             # bake the correct locations for the ik target bones
-            for t in range(s_frame, e_frame):
+            for t in range(s_frame, e_frame, step):
                 scene.frame_set(t)
                 if target_is_bone:
                     final_loc = pose_bone.tail - target.bone.matrix_local.to_translation()
@@ -522,6 +525,7 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     perf_arm = performer_obj.data
     end_arm = enduser_obj.data
     advanced = end_arm.advancedRetarget
+    step = end_arm.frameStep
     
     try:
         enduser_obj.animation_data.action = bpy.data.actions.new("temp")
@@ -536,19 +540,19 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     if not advanced:
         turnOffIK(enduser_obj)
         print("Creating intermediate armature (for first pass)")
-        inter_obj = createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene)
+        inter_obj = createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene, step)
         print("First pass: retargeting from intermediate to end user")
-        retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene)
+        retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene, step)
     else:
         prepareForBake(enduser_obj)
         print("Retargeting pose (Advanced Retarget)")
-        nla.bake(s_frame, e_frame, action=enduser_obj.animation_data.action, only_selected=True, do_pose=True, do_object=False)
+        nla.bake(s_frame, e_frame, action=enduser_obj.animation_data.action, only_selected=True, do_pose=True, do_object=False, step=step)
     name = performer_obj.animation_data.action.name
     enduser_obj.animation_data.action.name = "Base " + name
     print("Second pass: retargeting root translation and clean up")
     stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
     if not advanced:
-        IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene)
+        IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene, step)
         bpy.ops.object.select_name(name=stride_bone.name, extend=False)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone, scene, s_frame)
     bpy.ops.object.mode_set(mode='OBJECT')
