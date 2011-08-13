@@ -458,7 +458,7 @@ elseif(WIN32)
 		DIRECTORY
           ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
           ${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
-		DESTINATION ${TARGETDIR_VER}/datafiles/locale
+		DESTINATION ${TARGETDIR_VER}/datafiles
 		PATTERN ".svn" EXCLUDE
 	)
 
@@ -667,14 +667,14 @@ elseif(APPLE)
 	if(WITH_INTERNATIONAL)
 		install(
 			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-			DESTINATION ${TARGETDIR_VER}/datafiles/
+			DESTINATION ${TARGETDIR_VER}/datafiles
 		)
 
 		install(
 			DIRECTORY
 				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-			DESTINATION ${TARGETDIR_VER}/datafiles/
+			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
 	endif()
