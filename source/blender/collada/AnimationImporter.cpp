@@ -90,7 +90,8 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 	COLLADAFW::FloatOrDoubleArray& input = curve->getInputValues();
 	COLLADAFW::FloatOrDoubleArray& output = curve->getOutputValues();
     
-	if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ) {
+	if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
+		curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP ) {
 	COLLADAFW::FloatOrDoubleArray& intan = curve->getInTangentValues();
     COLLADAFW::FloatOrDoubleArray& outtan = curve->getOutTangentValues();
 	}
@@ -126,7 +127,8 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 					bez.vec[1][1] = bc_get_float_value(output, j * dim + i);
 
 
-					if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ) 
+					if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
+						curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP) 
 					{
 						COLLADAFW::FloatOrDoubleArray& intan = curve->getInTangentValues();
                         COLLADAFW::FloatOrDoubleArray& outtan = curve->getOutTangentValues();
@@ -138,7 +140,10 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 						 // outtangent
 						 bez.vec[2][0] = bc_get_float_value(outtan, (j * 2 * dim ) + (2 * i)) * fps;
 						 bez.vec[2][1] = bc_get_float_value(outtan, (j * 2 * dim )+ (2 * i) + 1);
-					     bez.ipo = BEZT_IPO_BEZ;
+						 if(curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER) 
+							bez.ipo = BEZT_IPO_BEZ;
+						 else 
+							 bez.ipo = BEZT_IPO_CONST;
 						 //bez.h1 = bez.h2 = HD_AUTO; 	
 					}
 					else 
@@ -276,11 +281,12 @@ bool AnimationImporter::write_animation(const COLLADAFW::Animation* anim)
 			switch (interp) {
 			case COLLADAFW::AnimationCurve::INTERPOLATION_LINEAR:
 			case COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER:
+			case COLLADAFW::AnimationCurve::INTERPOLATION_STEP:
 				animation_to_fcurves(curve);
 				break;
 			default:
 				// TODO there're also CARDINAL, HERMITE, BSPLINE and STEP types
-				fprintf(stderr, "CARDINAL, HERMITE, BSPLINE and STEP anim interpolation types not supported yet.\n");
+				fprintf(stderr, "CARDINAL, HERMITE and BSPLINE anim interpolation types not supported yet.\n");
 				break;
 			}
 		}
@@ -749,9 +755,15 @@ void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& list
 	
 }
 
-void AnimationImporter::apply_matrix_curves_to_bone( Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node, 
-													COLLADAFW::Transformation * tm , char * joint_path, bool is_joint,const char * bone_name)
+void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node, 
+													COLLADAFW::Transformation * tm )
 {
+	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
+	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
+	char joint_path[200];
+	if ( is_joint ) 
+		armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
+
 	std::vector<float> frames;
 	find_frames(&frames, &animcurves);
 
@@ -878,11 +890,6 @@ std::sort(frames.begin(), frames.end());
 			add_bone_fcurve(ob, node, newcu[i]);
 		else
 			BLI_addtail(curves, newcu[i]);
-
-#ifdef ARMATURE_TEST
-		if (is_joint)
-			BLI_addtail(&job->adt->action->curves, job_curves[i]);
-#endif
 	}
 
 		if (is_joint) {
@@ -955,25 +962,22 @@ void AnimationImporter::translate_Animations_NEW ( COLLADAFW::Node * node ,
 				std::vector<FCurve*> animcurves;    
 				for (unsigned int j = 0; j < bindings.getCount(); j++) {
 					 animcurves = curve_map[bindings[j].animation];
-					//calculate rnapaths and array index of fcurves according to transformation and animation class
-					 Assign_transform_animations(transform, &bindings[j], &animcurves, is_joint, joint_path ); 
-					
-					 std::vector<FCurve*>::iterator iter;
-						//Add the curves of the current animation to the object
-						for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-							FCurve * fcu = *iter;
-							if ((ob->type == OB_ARMATURE)){
-								if ( is_matrix){
-									float irest_dae[4][4];
-									get_joint_rest_mat(irest_dae, root, node);
-									apply_matrix_curves_to_bone(ob, animcurves, root , node,  transform ,joint_path , true , bone_name );
-									break;
-								} 
-								else
+					 if ( is_matrix )
+						 apply_matrix_curves(ob, animcurves, root , node,  transform  );
+					 else {				
+						//calculate rnapaths and array index of fcurves according to transformation and animation class
+						 Assign_transform_animations(transform, &bindings[j], &animcurves, is_joint, joint_path ); 
+						
+						 std::vector<FCurve*>::iterator iter;
+							//Add the curves of the current animation to the object
+							for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+								FCurve * fcu = *iter;
+								if ((ob->type == OB_ARMATURE))
 									add_bone_fcurve( ob, node , fcu );
-							} else 
-							 BLI_addtail(AnimCurves, fcu);	
-						}	 			
+								else 
+									BLI_addtail(AnimCurves, fcu);	
+							}
+						}
 				}
 			}
 			if (is_rotation) {
@@ -1861,4 +1865,9 @@ void AnimationImporter::add_bezt(FCurve *fcu, float fra, float value)
 	bez.h1 = bez.h2 = HD_AUTO;
 	insert_bezt_fcurve(fcu, &bez, 0);
 	calchandles_fcurve(fcu);
+}
+
+void AnimationImporter::extra_data_importer(std::string elementName )
+{
+
 }
