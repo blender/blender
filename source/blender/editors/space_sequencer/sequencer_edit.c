@@ -2870,12 +2870,15 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 	else {
 		/* lame, set rna filepath */
 		PointerRNA seq_ptr;
+		PropertyRNA *prop;
 		char filepath[FILE_MAX];
 
 		RNA_pointer_create(&scene->id, &RNA_Sequence, seq, &seq_ptr);
 
 		RNA_string_get(op->ptr, "filepath", filepath);
-		RNA_string_set(&seq_ptr, "filepath", filepath);
+		prop= RNA_struct_find_property(&seq_ptr, "filepath");
+		RNA_property_string_set(&seq_ptr, prop, filepath);
+		RNA_property_update(C, &seq_ptr, prop);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
