@@ -116,7 +116,7 @@ bool DocumentImporter::import()
 	/** TODO Add error handler (implement COLLADASaxFWL::IErrorHandler */
 	COLLADASaxFWL::Loader loader;
 	COLLADAFW::Root root(&loader, this);
-	ExtraHandler *ehandler = new ExtraHandler(this);
+	ExtraHandler *ehandler = new ExtraHandler(this, &(this->anim_importer));
 	
 	loader.registerExtraDataCallbackHandler(ehandler);
 	
