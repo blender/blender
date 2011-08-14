@@ -1016,7 +1016,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			tm_name = "fall_off_exponent";
 			break;
 		case 4:
-			tm_name = "blender_dist";
+			tm_name = "blender/blender_dist";
 			break;
 		
 		default:
@@ -1135,30 +1135,6 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	{
 		char *dot = strrchr(rna_path, '.');
 		return dot ? (dot + 1) : rna_path;
-	}
-
-	void AnimationExporter::find_all_frames(Object *ob, std::vector<float> &fra)
-	{
-		FCurve *fcu= (FCurve*)ob->adt->action->curves.first;
-		std::vector<float> keys;
-		for (unsigned int i = 0; i < fcu->totvert; i++) {
-					float f = fcu->bezt[i].vec[1][0];     //
-					if (std::find(keys.begin(), keys.end(), f) == keys.end())   
-						keys.push_back(f);
-		}
-
-		std::sort(keys.begin(), keys.end());
-		float first, last;
-		std::vector<float>::reference ref = keys.front();
-		first = ref;
-		ref = keys.back();
-		last = ref;
-		for (float i = first ; i != last ; i+=1.0f )
-		{
-			fra.push_back(i); 
-		}
-		return;
-
 	}
 
 	void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra)
