@@ -107,7 +107,7 @@ static int pyrna_struct_anim_args_parse(PointerRNA *ptr, const char *error_prefi
 		return -1;
 	}
 
-	if(RNA_property_array_check(&r_ptr, prop) == 0) {
+	if(RNA_property_array_check(prop) == 0) {
 		if((*index) == -1) {
 			*index= 0;
 		}

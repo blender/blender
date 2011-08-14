@@ -976,7 +976,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 
 	/* retrieve info */
 	type= RNA_property_type(prop);
-	is_array= RNA_property_array_check(ptr, prop);
+	is_array= RNA_property_array_check(prop);
 	len= (is_array) ? RNA_property_array_length(ptr, prop) : 0;
 
 	/* set name and icon */
