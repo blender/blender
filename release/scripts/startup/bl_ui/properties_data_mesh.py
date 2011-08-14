@@ -73,7 +73,7 @@ class DATA_PT_context_mesh(MeshButtonsPanel, Panel):
         ob = context.object
         mesh = context.mesh
         space = context.space_data
-
+        layout.prop(context.scene.tool_settings, "mesh_select_mode", index=0, text="Vertex")
         if ob:
             layout.template_ID(ob, "data")
         elif mesh:

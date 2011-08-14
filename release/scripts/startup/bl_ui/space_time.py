@@ -35,10 +35,9 @@ class TIME_HT_header(Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("TIME_MT_view")
-            sub.menu("TIME_MT_frame")
-            sub.menu("TIME_MT_playback")
+            row.menu("TIME_MT_view")
+            row.menu("TIME_MT_frame")
+            row.menu("TIME_MT_playback")
 
         layout.prop(scene, "use_preview_range", text="", toggle=True)
 

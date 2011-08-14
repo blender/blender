@@ -355,46 +355,65 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* create buttons */
-	if(type == PROP_BOOLEAN && ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER)) {
-		/* special check for layer layout */
-		int butw, buth, unit;
-		int cols= (len >= 20)? 2: 1;
-		int colbuts= len/(2*cols);
-		int layer_used= 0;
+	if(type == PROP_BOOLEAN) {
+		if(ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER)) {
+			/* special check for layer layout */
+			int butw, buth, unit;
+			int cols= (len >= 20)? 2: 1;
+			int colbuts= len/(2*cols);
+			int layer_used= 0;
 
-		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 0));
+			uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 0));
 
-		unit= UI_UNIT_X*0.75;
-		butw= unit;
-		buth= unit;
-		
-		if(ptr->type == &RNA_Armature) {
-			bArmature *arm= (bArmature *)ptr->data;
-			layer_used= arm->layer_used;
+			unit= UI_UNIT_X*0.75;
+			butw= unit;
+			buth= unit;
+
+			if(ptr->type == &RNA_Armature) {
+				bArmature *arm= (bArmature *)ptr->data;
+				layer_used= arm->layer_used;
+			}
+
+			for(b=0; b<cols; b++) {
+				uiBlockBeginAlign(block);
+
+				for(a=0; a<colbuts; a++) {
+					if(layer_used & (1<<(a+b*colbuts))) icon= ICON_LAYER_USED;
+					else icon= ICON_BLANK1;
+
+					but= uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", icon, x + butw*a, y+buth, butw, buth);
+					if(subtype == PROP_LAYER_MEMBER)
+						uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+b*colbuts));
+				}
+				for(a=0; a<colbuts; a++) {
+					if(layer_used & (1<<(a+len/2+b*colbuts))) icon= ICON_LAYER_USED;
+					else icon= ICON_BLANK1;
+
+					but= uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", icon, x + butw*a, y, butw, buth);
+					if(subtype == PROP_LAYER_MEMBER)
+						uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+len/2+b*colbuts));
+				}
+				uiBlockEndAlign(block);
+
+				x += colbuts*butw + style->buttonspacex;
+			}
 		}
+		else {
+			/* not common, but good to support non layer boolean arrays */
+			int *tmparray= MEM_callocN(sizeof(int)*len, "ui_item_array");
+			RNA_property_boolean_get_array(ptr, prop, tmparray);
 
-		for(b=0; b<cols; b++) {
 			uiBlockBeginAlign(block);
 
-			for(a=0; a<colbuts; a++) {
-				if(layer_used & (1<<(a+b*colbuts))) icon= ICON_LAYER_USED;
-				else icon= ICON_BLANK1;
-					
-				but= uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", icon, x + butw*a, y+buth, butw, buth);
-				if(subtype == PROP_LAYER_MEMBER)
-					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+b*colbuts));
+			for(a=0; a<len; a++) {
+				/* always override the icon for boolean arrays */
+				icon= tmparray[a] ? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+				uiDefAutoButR(block, ptr, prop, a, NULL, icon, 0, 0, w, UI_UNIT_Y);
 			}
-			for(a=0; a<colbuts; a++) {
-				if(layer_used & (1<<(a+len/2+b*colbuts))) icon= ICON_LAYER_USED;
-				else icon= ICON_BLANK1;
-				
-				but= uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", icon, x + butw*a, y, butw, buth);
-				if(subtype == PROP_LAYER_MEMBER)
-					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+len/2+b*colbuts));
-			}
-			uiBlockEndAlign(block);
 
-			x += colbuts*butw + style->buttonspacex;
+			MEM_freeN(tmparray);
+
+			uiBlockEndAlign(block);
 		}
 	}
 	else if(subtype == PROP_MATRIX) {
@@ -951,13 +970,14 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	uiBut *but;
 	PropertyType type;
 	char namestr[UI_MAX_NAME_STR];
-	int len, w, h, slider, toggle, expand, icon_only, no_bg;
+	int len, is_array, w, h, slider, toggle, expand, icon_only, no_bg;
 
 	uiBlockSetCurLayout(block, layout);
 
 	/* retrieve info */
 	type= RNA_property_type(prop);
-	len= RNA_property_array_length(ptr, prop);
+	is_array= RNA_property_array_check(prop);
+	len= (is_array) ? RNA_property_array_length(ptr, prop) : 0;
 
 	/* set name and icon */
 	if(!name)
@@ -967,14 +987,16 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	
 	if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER))
 		name= ui_item_name_add_colon(name, namestr);
-	else if(type == PROP_BOOLEAN && len && index == RNA_NO_INDEX)
+	else if(type == PROP_BOOLEAN && is_array && index == RNA_NO_INDEX)
 		name= ui_item_name_add_colon(name, namestr);
 	else if(type == PROP_ENUM && index != RNA_ENUM_VALUE)
 		name= ui_item_name_add_colon(name, namestr);
 
 	if(layout->root->type == UI_LAYOUT_MENU) {
-		if(type == PROP_BOOLEAN)
-			icon= (RNA_property_boolean_get(ptr, prop))? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+		if(type == PROP_BOOLEAN && ((is_array == FALSE) || (index != RNA_NO_INDEX))) {
+			if(is_array) icon= (RNA_property_boolean_get_index(ptr, prop, index)) ? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+			else         icon= (RNA_property_boolean_get(ptr, prop)) ? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+		}
 		else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
 			int enum_value= RNA_property_enum_get(ptr, prop);
 			if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
@@ -999,7 +1021,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* array property */
-	if(index == RNA_NO_INDEX && len > 0)
+	if(index == RNA_NO_INDEX && is_array)
 		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand, slider, toggle, icon_only);
 	/* enum item */
 	else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {

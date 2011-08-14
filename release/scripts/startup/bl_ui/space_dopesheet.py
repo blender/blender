@@ -97,21 +97,19 @@ class DOPESHEET_HT_header(Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-
-            sub.menu("DOPESHEET_MT_view")
-            sub.menu("DOPESHEET_MT_select")
-            sub.menu("DOPESHEET_MT_marker")
+            row.menu("DOPESHEET_MT_view")
+            row.menu("DOPESHEET_MT_select")
+            row.menu("DOPESHEET_MT_marker")
 
             if st.mode == 'DOPESHEET' or (st.mode == 'ACTION' and st.action != None):
-                sub.menu("DOPESHEET_MT_channel")
+                row.menu("DOPESHEET_MT_channel")
             elif st.mode == 'GPENCIL':
-                sub.menu("DOPESHEET_MT_gpencil_channel")
+                row.menu("DOPESHEET_MT_gpencil_channel")
 
             if st.mode != 'GPENCIL':
-                sub.menu("DOPESHEET_MT_key")
+                row.menu("DOPESHEET_MT_key")
             else:
-                sub.menu("DOPESHEET_MT_gpencil_frame")
+                row.menu("DOPESHEET_MT_gpencil_frame")
 
         layout.prop(st, "mode", text="")
         layout.prop(st.dopesheet, "show_summary", text="Summary")
@@ -142,8 +140,6 @@ class DOPESHEET_MT_view(Menu):
         layout = self.layout
 
         st = context.space_data
-
-        layout.column()
 
         layout.prop(st, "use_realtime_update")
         layout.prop(st, "show_frame_indicator")
@@ -177,7 +173,6 @@ class DOPESHEET_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
         layout.operator("action.select_all_toggle")
         layout.operator("action.select_all_toggle", text="Invert Selection").invert = True
@@ -217,7 +212,6 @@ class DOPESHEET_MT_marker(Menu):
 
         #layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.column()
         layout.operator("marker.add", "Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")
         layout.operator("marker.delete", text="Delete Marker")
@@ -246,7 +240,6 @@ class DOPESHEET_MT_channel(Menu):
 
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
-        layout.column()
         layout.operator("anim.channels_delete")
 
         layout.separator()
@@ -275,7 +268,6 @@ class DOPESHEET_MT_key(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.menu("DOPESHEET_MT_key_transform", text="Transform")
 
         layout.operator_menu_enum("action.snap", "type", text="Snap")
@@ -308,7 +300,6 @@ class DOPESHEET_MT_key_transform(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.operator("transform.transform", text="Grab/Move").mode = 'TIME_TRANSLATE'
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text="Slide").mode = 'TIME_SLIDE'
@@ -326,7 +317,6 @@ class DOPESHEET_MT_gpencil_channel(Menu):
 
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
-        layout.column()
         layout.operator("anim.channels_delete")
 
         layout.separator()
@@ -352,7 +342,6 @@ class DOPESHEET_MT_gpencil_frame(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.menu("DOPESHEET_MT_key_transform", text="Transform")
 
         #layout.operator_menu_enum("action.snap", "type", text="Snap")

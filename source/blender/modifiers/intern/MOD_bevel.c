@@ -150,4 +150,5 @@ ModifierTypeInfo modifierType_Bevel = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

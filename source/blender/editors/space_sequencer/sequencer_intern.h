@@ -93,6 +93,7 @@ void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot);
 void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot);
 void SEQUENCER_OT_duplicate(struct wmOperatorType *ot);
 void SEQUENCER_OT_delete(struct wmOperatorType *ot);
+void SEQUENCER_OT_offset_clear(struct wmOperatorType *ot);
 void SEQUENCER_OT_images_separate(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_meta_make(struct wmOperatorType *ot);

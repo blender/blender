@@ -40,14 +40,13 @@ class SEQUENCER_HT_header(Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("SEQUENCER_MT_view")
+            row.menu("SEQUENCER_MT_view")
 
             if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
-                sub.menu("SEQUENCER_MT_select")
-                sub.menu("SEQUENCER_MT_marker")
-                sub.menu("SEQUENCER_MT_add")
-                sub.menu("SEQUENCER_MT_strip")
+                row.menu("SEQUENCER_MT_select")
+                row.menu("SEQUENCER_MT_marker")
+                row.menu("SEQUENCER_MT_add")
+                row.menu("SEQUENCER_MT_strip")
 
         layout.prop(st, "view_type", expand=True, text="")
 
@@ -97,8 +96,6 @@ class SEQUENCER_MT_view(Menu):
 
         st = context.space_data
 
-        layout.column()
-
         layout.operator("sequencer.properties", icon='MENU_PANEL')
 
         layout.separator()
@@ -137,7 +134,6 @@ class SEQUENCER_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.operator("sequencer.select_active_side", text="Strips to the Left").side = 'LEFT'
         layout.operator("sequencer.select_active_side", text="Strips to the Right").side = 'RIGHT'
         layout.separator()
@@ -158,7 +154,6 @@ class SEQUENCER_MT_marker(Menu):
 
         #layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.column()
         layout.operator("marker.add", "Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")
         layout.operator("marker.delete", text="Delete Marker")
@@ -191,7 +186,6 @@ class SEQUENCER_MT_add(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.column()
         if len(bpy.data.scenes) > 10:
             layout.operator_context = 'INVOKE_DEFAULT'
             layout.operator("sequencer.scene_strip_add", text="Scene...")
@@ -212,7 +206,6 @@ class SEQUENCER_MT_add_effect(Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.column()
         layout.operator("sequencer.effect_strip_add", text="Add").type = 'ADD'
         layout.operator("sequencer.effect_strip_add", text="Subtract").type = 'SUBTRACT'
         layout.operator("sequencer.effect_strip_add", text="Alpha Over").type = 'ALPHA_OVER'
@@ -239,7 +232,6 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.column()
         layout.operator("transform.transform", text="Grab/Move").mode = 'TRANSLATION'
         layout.operator("transform.transform", text="Grab/Extend from frame").mode = 'TIME_EXTEND'
         #  uiItemO(layout, NULL, 0, "sequencer.strip_snap"); // TODO - add this operator
@@ -248,6 +240,7 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.cut", text="Cut (hard) at frame").type = 'HARD'
         layout.operator("sequencer.cut", text="Cut (soft) at frame").type = 'SOFT'
         layout.operator("sequencer.images_separate")
+        layout.operator("sequencer.offset_clear")
         layout.operator("sequencer.deinterlace_selected_movies")
         layout.operator("sequencer.rebuild_proxy")
         layout.separator()
@@ -391,6 +384,8 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
 
         if elem and elem.orig_width > 0 and elem.orig_height > 0:
             col.label(text="Orig Dim: %dx%d" % (elem.orig_width, elem.orig_height))
+        else:
+            col.label(text="Orig Dim: None")
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
@@ -574,6 +569,9 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
                 col.label(text="File:")
                 col = split.column()
                 col.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
+
+            # also accessible from the menu
+            layout.operator("sequencer.change_path")
 
         elif seq_type == 'MOVIE':
             split = layout.split(percentage=0.2)

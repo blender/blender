@@ -92,7 +92,7 @@ class INFO_MT_report(Menu):
 
     def draw(self, context):
         layout = self.layout
-        layout.column()
+
         layout.operator("console.select_all_toggle")
         layout.operator("console.select_border")
         layout.operator("console.report_delete")
@@ -194,6 +194,7 @@ class INFO_MT_mesh_add(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.primitive_plane_add", icon='MESH_PLANE', text="Plane")
         layout.operator("mesh.primitive_cube_add", icon='MESH_CUBE', text="Cube")
@@ -214,6 +215,7 @@ class INFO_MT_curve_add(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("curve.primitive_bezier_curve_add", icon='CURVE_BEZCURVE', text="Bezier")
         layout.operator("curve.primitive_bezier_circle_add", icon='CURVE_BEZCIRCLE', text="Circle")
@@ -244,6 +246,7 @@ class INFO_MT_surface_add(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("surface.primitive_nurbs_surface_curve_add", icon='SURFACE_NCURVE', text="NURBS Curve")
         layout.operator("surface.primitive_nurbs_surface_circle_add", icon='SURFACE_NCIRCLE', text="NURBS Circle")
@@ -259,6 +262,7 @@ class INFO_MT_armature_add(Menu):
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("object.armature_add", text="Single Bone", icon='BONE_DATA')
 
