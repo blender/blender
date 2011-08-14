@@ -792,12 +792,8 @@ static short set_bezier_auto_clamped(KeyframeEditData *UNUSED(ked), BezTriple *b
 /* Sets the selected bezier handles to type 'vector'  */
 static short set_bezier_vector(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
-	if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
-		if (bezt->f1 & SELECT) bezt->h1= HD_VECT;
-		if (bezt->f3 & SELECT) bezt->h2= HD_VECT;
-		
-		ENSURE_HANDLES_MATCH(bezt);
-	}
+	if (bezt->f1 & SELECT) bezt->h1= HD_VECT;
+	if (bezt->f3 & SELECT) bezt->h2= HD_VECT;
 	return 0;
 }
 
