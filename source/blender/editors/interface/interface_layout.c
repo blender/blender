@@ -355,65 +355,46 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		uiDefBut(block, LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	/* create buttons */
-	if(type == PROP_BOOLEAN) {
-		if(ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER)) {
-			/* special check for layer layout */
-			int butw, buth, unit;
-			int cols= (len >= 20)? 2: 1;
-			int colbuts= len/(2*cols);
-			int layer_used= 0;
+	if(type == PROP_BOOLEAN && ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER)) {
+		/* special check for layer layout */
+		int butw, buth, unit;
+		int cols= (len >= 20)? 2: 1;
+		int colbuts= len/(2*cols);
+		int layer_used= 0;
 
-			uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 0));
+		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 0));
 
-			unit= UI_UNIT_X*0.75;
-			butw= unit;
-			buth= unit;
+		unit= UI_UNIT_X*0.75;
+		butw= unit;
+		buth= unit;
 
-			if(ptr->type == &RNA_Armature) {
-				bArmature *arm= (bArmature *)ptr->data;
-				layer_used= arm->layer_used;
-			}
-
-			for(b=0; b<cols; b++) {
-				uiBlockBeginAlign(block);
-
-				for(a=0; a<colbuts; a++) {
-					if(layer_used & (1<<(a+b*colbuts))) icon= ICON_LAYER_USED;
-					else icon= ICON_BLANK1;
-
-					but= uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", icon, x + butw*a, y+buth, butw, buth);
-					if(subtype == PROP_LAYER_MEMBER)
-						uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+b*colbuts));
-				}
-				for(a=0; a<colbuts; a++) {
-					if(layer_used & (1<<(a+len/2+b*colbuts))) icon= ICON_LAYER_USED;
-					else icon= ICON_BLANK1;
-
-					but= uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", icon, x + butw*a, y, butw, buth);
-					if(subtype == PROP_LAYER_MEMBER)
-						uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+len/2+b*colbuts));
-				}
-				uiBlockEndAlign(block);
-
-				x += colbuts*butw + style->buttonspacex;
-			}
+		if(ptr->type == &RNA_Armature) {
+			bArmature *arm= (bArmature *)ptr->data;
+			layer_used= arm->layer_used;
 		}
-		else {
-			/* not common, but good to support non layer boolean arrays */
-			int *tmparray= MEM_callocN(sizeof(int)*len, "ui_item_array");
-			RNA_property_boolean_get_array(ptr, prop, tmparray);
 
+		for(b=0; b<cols; b++) {
 			uiBlockBeginAlign(block);
 
-			for(a=0; a<len; a++) {
-				/* always override the icon for boolean arrays */
-				icon= tmparray[a] ? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
-				uiDefAutoButR(block, ptr, prop, a, NULL, icon, 0, 0, w, UI_UNIT_Y);
+			for(a=0; a<colbuts; a++) {
+				if(layer_used & (1<<(a+b*colbuts))) icon= ICON_LAYER_USED;
+				else icon= ICON_BLANK1;
+
+				but= uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", icon, x + butw*a, y+buth, butw, buth);
+				if(subtype == PROP_LAYER_MEMBER)
+					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+b*colbuts));
 			}
+			for(a=0; a<colbuts; a++) {
+				if(layer_used & (1<<(a+len/2+b*colbuts))) icon= ICON_LAYER_USED;
+				else icon= ICON_BLANK1;
 
-			MEM_freeN(tmparray);
-
+				but= uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", icon, x + butw*a, y, butw, buth);
+				if(subtype == PROP_LAYER_MEMBER)
+					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+len/2+b*colbuts));
+			}
 			uiBlockEndAlign(block);
+
+			x += colbuts*butw + style->buttonspacex;
 		}
 	}
 	else if(subtype == PROP_MATRIX) {
@@ -441,34 +422,45 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		uiDefButR_prop(block, BUT_NORMAL, 0, name, x, y, UI_UNIT_X*3, UI_UNIT_Y*3, ptr, prop, 0, 0, 0, -1, -1, NULL);
 	}
 	else {
-		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)
-			uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, 0, 0, w, UI_UNIT_Y);
+		/* note, this block of code is a bit arbitrary and has just been made
+		 * to work with common cases, but may need to be re-worked */
 
-		if(!ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) || expand) {
+		/* special case, boolean array in a menu, this could be used in a more generic way too */
+		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand) {
+			uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, 0, 0, w, UI_UNIT_Y);
+		}
+		else {
+			int *boolarr= NULL;
+
+			/* even if 'expand' is fale, expanding anyway */
+
 			/* layout for known array subtypes */
-			char str[3];
+			char str[3]= {'\0'};
+
+			if(!icon_only) {
+				if(type != PROP_BOOLEAN) {
+					str[1]= ':';
+				}
+			}
+
+			/* show checkboxes for rna on a non-emboss block (menu for eg) */
+			if(type == PROP_BOOLEAN && ELEM(layout->root->block->dt, UI_EMBOSSN, UI_EMBOSSP)) {
+				boolarr= MEM_callocN(sizeof(int)*len, "ui_item_array");
+				RNA_property_boolean_get_array(ptr, prop, boolarr);
+			}
 
 			for(a=0; a<len; a++) {
-				str[0]= RNA_property_array_item_char(prop, a);
-
-				if(str[0]) {
-					if (icon_only) {
-						str[0] = '\0';
-					}
-					else if(type == PROP_BOOLEAN) {
-						str[1]= '\0';
-					}
-					else {
-						str[1]= ':';
-						str[2]= '\0';
-					}
-				}
-
+				if(!icon_only) str[0]= RNA_property_array_item_char(prop, a);
+				if(boolarr) icon= boolarr[a] ? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
 				but= uiDefAutoButR(block, ptr, prop, a, str, icon, 0, 0, w, UI_UNIT_Y);
 				if(slider && but->type==NUM)
 					but->type= NUMSLI;
 				if(toggle && but->type==OPTION)
 					but->type= TOG;
+			}
+
+			if(boolarr) {
+				MEM_freeN(boolarr);
 			}
 		}
 	}
