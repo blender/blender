@@ -76,6 +76,8 @@ static SpaceLink *action_new(const bContext *C)
 	saction->autosnap = SACTSNAP_FRAME;
 	saction->mode= SACTCONT_DOPESHEET;
 	
+	saction->ads.filterflag |= ADS_FILTER_SUMMARY;
+	
 	/* header */
 	ar= MEM_callocN(sizeof(ARegion), "header for action");
 	
