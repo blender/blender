@@ -1569,6 +1569,58 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 }
 
 
+/* offset clear operator */
+static int sequencer_offset_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq;
+
+	/* for effects, try to find a replacement input */
+	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
+		if((seq->type & SEQ_EFFECT)==0 && (seq->flag & SELECT)) {
+			seq->startofs= seq->endofs= seq->startstill= seq->endstill= 0;
+		}
+	}
+
+	/* updates lengths etc */
+	seq= ed->seqbasep->first;
+	while(seq) {
+		calc_sequence(scene, seq);
+		seq= seq->next;
+	}
+
+	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
+		if((seq->type & SEQ_EFFECT)==0 && (seq->flag & SELECT)) {
+			if(seq_test_overlap(ed->seqbasep, seq)) {
+				shuffle_seq(ed->seqbasep, seq, scene);
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void SEQUENCER_OT_offset_clear(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "Clear Strip Offset";
+	ot->idname= "SEQUENCER_OT_offset_clear";
+	ot->description="Clear strip offsets from the start and end frames";
+
+	/* api callbacks */
+	ot->exec= sequencer_offset_clear_exec;
+	ot->poll= sequencer_edit_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 /* separate_images operator */
 static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 {
@@ -2802,6 +2854,9 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 			se++;
 		}
 		RNA_END;
+
+		/* reset these else we wont see all the images */
+		seq->anim_startofs= seq->anim_endofs= 0;
 
 		/* correct start/end frames so we dont move
 		 * important not to set seq->len= len; allow the function to handle it */

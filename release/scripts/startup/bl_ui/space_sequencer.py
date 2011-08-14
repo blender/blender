@@ -239,6 +239,7 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.cut", text="Cut (hard) at frame").type = 'HARD'
         layout.operator("sequencer.cut", text="Cut (soft) at frame").type = 'SOFT'
         layout.operator("sequencer.images_separate")
+        layout.operator("sequencer.offset_clear")
         layout.operator("sequencer.deinterlace_selected_movies")
         layout.separator()
 
@@ -381,6 +382,8 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
 
         if elem and elem.orig_width > 0 and elem.orig_height > 0:
             col.label(text="Orig Dim: %dx%d" % (elem.orig_width, elem.orig_height))
+        else:
+            col.label(text="Orig Dim: None")
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
@@ -564,6 +567,9 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
                 col.label(text="File:")
                 col = split.column()
                 col.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
+
+            # also accessible from the menu
+            layout.operator("sequencer.change_path")
 
         elif seq_type == 'MOVIE':
             split = layout.split(percentage=0.2)
