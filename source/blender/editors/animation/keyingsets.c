@@ -875,32 +875,18 @@ void ANIM_relative_keyingset_add_source (ListBase *dsources, ID *id, StructRNA *
 
 /* KeyingSet Operations (Insert/Delete Keyframes) ------------ */
 
-/* Given a KeyingSet and context info (if required), modify keyframes for the channels specified
- * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
- * Returns the number of channels that keyframes were added to
+/* Given a KeyingSet and context info, validate Keying Set's paths.
+ * This is only really necessary with relative/built-in KeyingSets
+ * where their list of paths is dynamically generated based on the
+ * current context info.
+ *
+ * Returns 0 if succeeded, otherwise an error code: eModifyKey_Returns
  */
-int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
+short ANIM_validate_keyingset (bContext *C, ListBase *dsources, KeyingSet *ks)
 {
-	Scene *scene= CTX_data_scene(C);
-	ReportList *reports = CTX_wm_reports(C);
-	KS_Path *ksp;
-	int kflag=0, success= 0;
-	char *groupname= NULL;
-	
-	/* sanity checks */
+	/* sanity check */
 	if (ks == NULL)
 		return 0;
-	
-	/* get flags to use */
-	if (mode == MODIFYKEY_MODE_INSERT) {
-		/* use KeyingSet's flags as base */
-		kflag= ks->keyingflag;
-		
-		/* suppliment with info from the context */
-		kflag |= ANIM_get_keyframing_flags(scene, 1);
-	}
-	else if (mode == MODIFYKEY_MODE_DELETE)
-		kflag= 0;
 	
 	/* if relative Keying Sets, poll and build up the paths */
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
@@ -934,6 +920,45 @@ int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingS
 			/* poll callback tells us that KeyingSet is useless in current context */
 			return MODIFYKEY_INVALID_CONTEXT;
 		}
+	}
+	
+	/* succeeded; return 0 to tag error free */
+	return 0;
+} 
+
+/* Given a KeyingSet and context info (if required), modify keyframes for the channels specified
+ * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
+ * Returns the number of channels that keyframes were added to
+ */
+int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
+{
+	Scene *scene= CTX_data_scene(C);
+	ReportList *reports = CTX_wm_reports(C);
+	KS_Path *ksp;
+	int kflag=0, success= 0;
+	char *groupname= NULL;
+	
+	/* sanity checks */
+	if (ks == NULL)
+		return 0;
+	
+	/* get flags to use */
+	if (mode == MODIFYKEY_MODE_INSERT) {
+		/* use KeyingSet's flags as base */
+		kflag= ks->keyingflag;
+		
+		/* suppliment with info from the context */
+		kflag |= ANIM_get_keyframing_flags(scene, 1);
+	}
+	else if (mode == MODIFYKEY_MODE_DELETE)
+		kflag= 0;
+	
+	/* if relative Keying Sets, poll and build up the paths */
+	success = ANIM_validate_keyingset(C, dsources, ks);
+	
+	if (success != 0) {
+		/* return error code if failed */
+		return success;
 	}
 	
 	/* apply the paths as specified in the KeyingSet now */

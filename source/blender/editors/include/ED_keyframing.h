@@ -176,6 +176,9 @@ typedef enum eModifyKey_Returns {
 	MODIFYKEY_MISSING_TYPEINFO = -2,
 } eModifyKey_Returns;
 
+/* poll the current KeyingSet, updating it's set of paths (if "builtin"/"relative") for context changes */
+short ANIM_validate_keyingset(struct bContext *C, ListBase *dsources, struct KeyingSet *ks);
+
 /* use the specified KeyingSet to add/remove various Keyframes on the specified frame */
 int ANIM_apply_keyingset(struct bContext *C, ListBase *dsources, struct bAction *act, struct KeyingSet *ks, short mode, float cfra);
 
