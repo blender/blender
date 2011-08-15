@@ -655,7 +655,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 							
 							BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 								keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-								if (*keyi != ORIGINDEX_NONE)
+								if (keyi && *keyi != ORIGINDEX_NONE)
 									vertMap[*keyi] = eve;
 							}
 						}
