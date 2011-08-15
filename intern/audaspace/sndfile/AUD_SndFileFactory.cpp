@@ -31,7 +31,6 @@
 
 #include "AUD_SndFileFactory.h"
 #include "AUD_SndFileReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 

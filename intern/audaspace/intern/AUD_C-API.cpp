@@ -1182,7 +1182,7 @@ const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int lengt
 		AUD_SequencerFactory* f = dynamic_cast<AUD_SequencerFactory*>(sound->get());
 
 		f->setSpecs(specs.specs);
-		AUD_Reference<AUD_IReader> reader = f->createReader();
+		AUD_Reference<AUD_IReader> reader = f->createQualityReader();
 		reader->seek(start);
 		AUD_Reference<AUD_IWriter> writer = AUD_FileWriter::createWriter(filename, specs, format, codec, bitrate);
 		AUD_FileWriter::writeReader(reader, writer, length, buffersize);
@@ -1192,6 +1192,28 @@ const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int lengt
 	catch(AUD_Exception& e)
 	{
 		return e.str;
+	}
+}
+
+AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* sequencer, float volume, float start)
+{
+	try
+	{
+		AUD_ReadDevice* device = new AUD_ReadDevice(specs);
+		device->setQuality(true);
+		device->setVolume(volume);
+
+		dynamic_cast<AUD_SequencerFactory*>(sequencer->get())->setSpecs(specs.specs);
+
+		AUD_Handle handle = device->play(*sequencer);
+		if(!handle.isNull())
+			handle->seek(start);
+
+		return new AUD_Device(device);
+	}
+	catch(AUD_Exception&)
+	{
+		return NULL;
 	}
 }
 

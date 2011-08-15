@@ -33,11 +33,8 @@
 #include "AUD_IReader.h"
 #include "AUD_Mixer.h"
 #include "AUD_IFactory.h"
-#ifdef WITH_SAMPLERATE
-#include "AUD_SRCResampleReader.h"
-#else
+#include "AUD_JOSResampleReader.h"
 #include "AUD_LinearResampleReader.h"
-#endif
 
 #include <cstring>
 #include <cmath>
@@ -665,6 +662,7 @@ void AUD_SoftwareDevice::create()
 	m_doppler_factor = 1.0f;
 	m_distance_model = AUD_DISTANCE_MODEL_INVERSE_CLAMPED;
 	m_flags = 0;
+	m_quality = false;
 
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
@@ -701,6 +699,7 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 		int pos;
 		bool eos;
 		std::list<AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> > stopSounds;
+		std::list<AUD_Reference<AUD_SoftwareDevice::AUD_SoftwareHandle> > pauseSounds;
 		sample_t* buf = m_buffer.getBuffer();
 
 		m_mixer->clear(length);
@@ -752,7 +751,7 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 					sound->m_stop(sound->m_stop_data);
 
 				if(sound->m_keep)
-					sound->pause();
+					pauseSounds.push_back(sound);
 				else
 					stopSounds.push_back(sound);
 			}
@@ -768,6 +767,13 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			stopSounds.pop_front();
 			sound->stop();
 		}
+
+		while(!pauseSounds.empty())
+		{
+			sound = pauseSounds.front();
+			pauseSounds.pop_front();
+			sound->pause();
+		}
 	}
 
 	unlock();
@@ -777,6 +783,11 @@ void AUD_SoftwareDevice::setPanning(AUD_IHandle* handle, float pan)
 {
 	AUD_SoftwareDevice::AUD_SoftwareHandle* h = dynamic_cast<AUD_SoftwareDevice::AUD_SoftwareHandle*>(handle);
 	h->m_user_pan = pan;
+}
+
+void AUD_SoftwareDevice::setQuality(bool quality)
+{
+	m_quality = quality;
 }
 
 void AUD_SoftwareDevice::setSpecs(AUD_Specs specs)
@@ -806,11 +817,10 @@ AUD_Reference<AUD_IHandle> AUD_SoftwareDevice::play(AUD_Reference<AUD_IReader> r
 	AUD_Reference<AUD_ResampleReader> resampler;
 
 	// resample
-	#ifdef WITH_SAMPLERATE
-		resampler = new AUD_SRCResampleReader(reader, m_specs.specs);
-	#else
+	if(m_quality)
+		resampler = new AUD_JOSResampleReader(reader, m_specs.specs);
+	else
 		resampler = new AUD_LinearResampleReader(reader, m_specs.specs);
-	#endif
 	reader = AUD_Reference<AUD_IReader>(resampler);
 
 	// rechannel

@@ -34,9 +34,10 @@
 typedef std::list<AUD_Reference<AUD_SequencerHandle> >::iterator AUD_HandleIterator;
 typedef std::list<AUD_Reference<AUD_SequencerEntry> >::iterator AUD_EntryIterator;
 
-AUD_SequencerReader::AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory) :
+AUD_SequencerReader::AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory, bool quality) :
 	m_position(0), m_device(factory->m_specs), m_factory(factory), m_status(0), m_entry_status(0)
 {
+	m_device.setQuality(quality);
 }
 
 AUD_SequencerReader::~AUD_SequencerReader()

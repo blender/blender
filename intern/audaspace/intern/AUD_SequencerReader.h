@@ -73,7 +73,7 @@ public:
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 */
-	AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory);
+	AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory, bool quality = false);
 
 	/**
 	 * Destroys the reader.

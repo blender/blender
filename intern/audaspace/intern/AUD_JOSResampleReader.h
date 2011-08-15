@@ -41,13 +41,11 @@
 class AUD_JOSResampleReader : public AUD_ResampleReader
 {
 private:
-	static const unsigned int m_nL = 9;
-	static const unsigned int m_nN = 23;
-	static const unsigned int m_Nz = 32;
-	static const unsigned int m_L  = 1 << m_nL;
-	static const unsigned int m_NN = 1 << m_nN;
+	typedef void (AUD_JOSResampleReader::*AUD_resample_f)(double target_factor, int length, sample_t* buffer);
+
+	static const int m_len = 292874;
+	static const int m_L = 2048;
 	static const float m_coeff[];
-	static const float m_diff[];
 
 	/**
 	 * The reader channels.
@@ -62,7 +60,7 @@ private:
 	/**
 	 * The subsample position in the cache.
 	 */
-	unsigned int m_P;
+	double m_P;
 
 	/**
 	 * The input data buffer.
@@ -70,9 +68,24 @@ private:
 	AUD_Buffer m_buffer;
 
 	/**
+	 * Double buffer for the sums.
+	 */
+	AUD_Buffer m_sums;
+
+	/**
 	 * How many samples in the cache are valid.
 	 */
 	int m_cache_valid;
+
+	/**
+	 * Resample function.
+	 */
+	AUD_resample_f m_resample;
+
+	/**
+	 * Last resampling factor.
+	 */
+	double m_last_factor;
 
 	// hide copy constructor and operator=
 	AUD_JOSResampleReader(const AUD_JOSResampleReader&);
@@ -80,7 +93,11 @@ private:
 
 	void reset();
 
-	void updateBuffer(int size, float factor, int samplesize);
+	void updateBuffer(int size, double factor, int samplesize);
+
+	void resample(double target_factor, int length, sample_t* buffer);
+	void resample_mono(double target_factor, int length, sample_t* buffer);
+	void resample_stereo(double target_factor, int length, sample_t* buffer);
 
 public:
 	/**

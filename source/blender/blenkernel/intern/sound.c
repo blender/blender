@@ -372,14 +372,7 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 
 AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
 {
-	AUD_Device* mixdown = AUD_openReadDevice(specs);
-
-	AUD_setDeviceVolume(mixdown, volume);
-
-	AUD_setSequencerSpecs(scene->sound_scene, specs.specs);
-	AUD_freeHandle(AUD_playDevice(mixdown, scene->sound_scene, start / FPS));
-
-	return mixdown;
+	return AUD_openMixdownDevice(specs, scene->sound_scene, volume, start / FPS);
 }
 
 void sound_create_scene(struct Scene *scene)

@@ -527,6 +527,8 @@ extern void* AUD_getSet(void* set);
 
 extern const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate);
 
+extern AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* sequencer, float volume, float start);
+
 #ifdef WITH_PYTHON
 extern PyObject* AUD_getPythonFactory(AUD_Sound* sound);
 

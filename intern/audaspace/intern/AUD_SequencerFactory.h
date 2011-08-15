@@ -110,6 +110,8 @@ public:
 	void remove(AUD_Reference<AUD_SequencerEntry> entry);
 
 	virtual AUD_Reference<AUD_IReader> createReader();
+
+	AUD_Reference<AUD_IReader> createQualityReader();
 };
 
 #endif //AUD_SEQUENCERFACTORY

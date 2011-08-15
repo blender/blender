@@ -204,6 +204,11 @@ protected:
 	AUD_Reference<AUD_Mixer> m_mixer;
 
 	/**
+	 * Whether to do high or low quality resampling.
+	 */
+	bool m_quality;
+
+	/**
 	 * Initializes member variables.
 	 */
 	void create();
@@ -283,6 +288,7 @@ private:
 public:
 
 	static void setPanning(AUD_IHandle* handle, float pan);
+	void setQuality(bool quality);
 
 	virtual AUD_DeviceSpecs getSpecs() const;
 	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);

@@ -224,14 +224,14 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 		{
 			KX_GameObject* obj = (KX_GameObject*)this->GetParent();
 			AUD_Vector3 v;
-			AUD_Quaternion q;
+			float q[4];
 
 			obj->NodeGetWorldPosition().getValue(v.get());
 			handle3d->setSourceLocation(v);
 			obj->GetLinearVelocity().getValue(v.get());
 			handle3d->setSourceVelocity(v);
-			obj->NodeGetWorldOrientation().getRotation().getValue(q.get());
-			handle3d->setSourceOrientation(q);
+			obj->NodeGetWorldOrientation().getRotation().getValue(q);
+			handle3d->setSourceOrientation(AUD_Quaternion(q[3], q[0], q[1], q[2]));
 		}
 		result = true;
 	}

@@ -1016,15 +1016,15 @@ void KX_KetsjiEngine::DoSound(KX_Scene* scene)
 	if(dev)
 	{
 		AUD_Vector3 v;
-		AUD_Quaternion q;
+		float q[4];
 		cam->NodeGetWorldPosition().getValue(v.get());
 		dev->setListenerLocation(v);
 
 		cam->GetLinearVelocity().getValue(v.get());
 		dev->setListenerVelocity(v);
 
-		cam->NodeGetWorldOrientation().getRotation().getValue(q.get());
-		dev->setListenerOrientation(q);
+		cam->NodeGetWorldOrientation().getRotation().getValue(q);
+		dev->setListenerOrientation(AUD_Quaternion(q[3], q[0], q[1], q[2]));
 	}
 }
 
