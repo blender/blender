@@ -4509,7 +4509,8 @@ int  RNA_parameter_list_ret_count(ParameterList *parms)
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 {
-	RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr);
+	/* may be useful but unused now */
+	/* RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr); */ /*UNUSED*/
 
 	iter->parms= parms;
 	iter->parm= parms->func->cont.properties.first;
