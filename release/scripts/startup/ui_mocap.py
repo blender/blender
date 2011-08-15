@@ -223,6 +223,9 @@ bpy.types.Bone.reverseMap = bpy.props.CollectionProperty(type=MocapMapping)
 bpy.types.Bone.foot = bpy.props.BoolProperty(name="Foot",
     description="Marks this bone as a 'foot', which determines retargeted animation's translation",
     default=False)
+bpy.types.Bone.twistFix = bpy.props.BoolProperty(name="Twist Fix",
+    description="Fix Twist on this bone",
+    default=False)
 bpy.types.PoseBone.IKRetarget = bpy.props.BoolProperty(name="IK",
     description="Toggles IK Retargeting method for given bone",
     update=toggleIKBone, default=False)
@@ -295,6 +298,7 @@ class MocapPanel(bpy.types.Panel):
                                 label_mod = "ik chain"
                             if hasIKConstraint(pose_bone):
                                 label_mod = "ik end"
+                            row.prop(data=bone, property='twistFix', text='', icon='RNA')
                             row.prop(pose_bone, 'IKRetarget')
                             row.label(label_mod)
                         else:
@@ -396,6 +400,7 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
     '''Retarget animation from selected armature to active armature '''
     bl_idname = "mocap.retarget"
     bl_label = "Retargets active action from Performer to Enduser"
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         scene = context.scene

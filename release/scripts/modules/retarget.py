@@ -20,7 +20,7 @@
 
 import bpy
 from mathutils import *
-from math import radians, acos
+from math import radians, acos, pi
 from bl_operators import nla
 import cProfile
 
@@ -77,13 +77,21 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
 
     #Simple 1to1 retarget of a bone
     def singleBoneRetarget(inter_bone, perf_bone):
-            perf_world_rotation = perf_bone.matrix * performer_obj.matrix_world
-            inter_world_base_rotation = inter_bone.bone.matrix_local * inter_obj.matrix_world
+            perf_world_rotation = perf_bone.matrix
+            inter_world_base_rotation = inter_bone.bone.matrix_local
             inter_world_base_inv = inter_world_base_rotation.inverted()
             bake_matrix =  (inter_world_base_inv.to_3x3() * perf_world_rotation.to_3x3())
-            base_euler = inter_bone.rotation_euler
-            eul = bake_matrix.to_euler(base_euler.order,base_euler)
-            return eul.to_matrix().to_4x4()
+            #~ orgEul = inter_bone.bone.matrix_local.to_euler("XYZ")
+            #~ eul = bake_matrix.to_euler("XYZ", orgEul)
+            #~ diff = -bake_matrix.to_euler().y + inter_bone.bone.matrix.to_euler().y
+            #~ eul.rotate_axis("Y", diff)
+            #~ eul.make_compatible(orgEul)
+            #~ bake_matrix = eul.to_matrix()
+            #~ #diff = abs(diff)
+            #bake_matrix = bake_matrix* Matrix.Rotation(pi/2, 3, "Y") 
+            #~ scene = bpy.context.scene
+            #~ print(scene.frame_current, inter_bone.name, bake_matrix.to_euler().y)
+            return bake_matrix.to_4x4()
 
     #uses 1to1 and interpolation/averaging to match many to 1 retarget
     def manyPerfToSingleInterRetarget(inter_bone, performer_bones_s):
@@ -109,7 +117,15 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
             else:
                 perf_bone = performer_bones[perf_bone_name[0].name]
                 inter_bone.matrix_basis = singleBoneRetarget(inter_bone, perf_bone)
-        inter_bone.keyframe_insert("rotation_quaternion")
+        if inter_bone.bone.twistFix:
+            inter_bone.matrix_basis *= Matrix.Rotation(radians(180), 4, "Y")
+        rot_mode = inter_bone.rotation_mode
+        if rot_mode == "QUATERNION":
+            inter_bone.keyframe_insert("rotation_quaternion")
+        elif rot_mode == "AXIS_ANGLE":
+            inter_bone.keyframe_insert("rotation_axis_angle")
+        else:
+            inter_bone.keyframe_insert("rotation_euler")
 
     #creates the intermediate armature object
     inter_obj = enduser_obj.copy()
@@ -119,6 +135,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
     bpy.context.scene.objects.active = inter_obj
     bpy.ops.object.mode_set(mode='EDIT')
     #add some temporary connecting bones in case end user bones are not connected to their parents
+    rollDict = {}
     print("creating temp bones")
     for bone in inter_obj.data.edit_bones:
         if not bone.use_connect and bone.parent:
@@ -130,9 +147,11 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
                 bone.parent = newBone
                 bone.use_connect = True
                 newBone.use_connect = True
+        rollDict[bone.name] = bone.roll
+        bone.roll = 0
     #resets roll
     print("retargeting to intermediate")
-    bpy.ops.armature.calculate_roll(type='Z')
+    #bpy.ops.armature.calculate_roll(type='Z')
     bpy.ops.object.mode_set(mode="OBJECT")
     inter_obj.data.name = "inter_arm"
     inter_arm = inter_obj.data
