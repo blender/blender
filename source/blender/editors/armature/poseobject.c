@@ -107,24 +107,6 @@ Object *ED_object_pose_armature(Object *ob)
 	return NULL;
 }
 
-
-/* This function is used to indicate that a bone is selected and needs keyframes inserted */
-static void set_pose_keys (Object *ob)
-{
-	bArmature *arm= ob->data;
-	bPoseChannel *chan;
-
-	if (ob->pose){
-		for (chan=ob->pose->chanbase.first; chan; chan=chan->next){
-			Bone *bone= chan->bone;
-			if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer))
-				chan->flag |= POSE_KEY;	
-			else
-				chan->flag &= ~POSE_KEY;
-		}
-	}
-}
-
 /* This function is used to process the necessary updates for */
 void ED_armature_enter_posemode(bContext *C, Base *base)
 {
@@ -634,7 +616,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 	 */
 	for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
 		/* only items related to this object will be relevant */
-		if ((ksp->id == ob) && (ksp->rna_path != NULL)) {
+		if ((ksp->id == &ob->id) && (ksp->rna_path != NULL)) {
 			if (strstr(ksp->rna_path, "bones")) {
 				char *boneName = BLI_getQuotedStr(ksp->rna_path, "bones[");
 				
@@ -1005,6 +987,25 @@ void free_posebuf(void)
 	g_posebuf=NULL;
 }
 
+/* This function is used to indicate that a bone is selected 
+ * and needs to be included in copy buffer (used to be for inserting keys)
+ */
+static void set_pose_keys (Object *ob)
+{
+	bArmature *arm= ob->data;
+	bPoseChannel *chan;
+
+	if (ob->pose){
+		for (chan=ob->pose->chanbase.first; chan; chan=chan->next){
+			Bone *bone= chan->bone;
+			if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer))
+				chan->flag |= POSE_KEY;	
+			else
+				chan->flag &= ~POSE_KEY;
+		}
+	}
+}
+
 /* ---- */
 
 static int pose_copy_exec (bContext *C, wmOperator *op)
@@ -1239,7 +1240,7 @@ void POSE_OT_paste (wmOperatorType *ot)
 }
 
 /* ********************************************** */
-
+/* Bone Groups */
 
 static int pose_group_add_exec (bContext *C, wmOperator *UNUSED(op))
 {
@@ -2253,40 +2254,6 @@ void POSE_OT_quaternions_flip (wmOperatorType *ot)
 
 /* context: active channel */
 #if 0
-void pose_special_editmenu(Scene *scene)
-{
-	Object *obedit= scene->obedit; // XXX context
-	Object *ob= OBACT;
-	short nr;
-	
-	/* paranoia checks */
-	if(!ob && !ob->pose) return;
-	if(ob==obedit || (ob->mode & OB_MODE_POSE)==0) return;
-	
-	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear Paths%x4|Clear User Transform %x5|Relax Pose %x6|%l|AutoName Left-Right%x7|AutoName Front-Back%x8|AutoName Top-Bottom%x9");
-	if(nr==1) {
-		pose_select_constraint_target(scene);
-	}
-	else if(nr==2) {
-		pose_flip_names();
-	}
-	else if(nr==3) {
-		pose_calculate_path(C, ob);
-	}
-	else if(nr==4) {
-		pose_clear_paths(ob);
-	}
-	else if(nr==5) {
-		pose_clear_user_transforms(ob);
-	}
-	else if(nr==6) {
-		pose_relax();
-	}
-	else if(ELEM3(nr, 7, 8, 9)) {
-		pose_autoside_names(nr-7);
-	}
-}
-
 
 /* Restore selected pose-bones to 'action'-defined pose */
 static void pose_clear_user_transforms(Object *ob)
