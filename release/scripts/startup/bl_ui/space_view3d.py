@@ -1262,11 +1262,15 @@ class VIEW3D_MT_pose_transform(bpy.types.Menu):
 
         layout.operator("pose.transforms_clear", text="All")
 
+        layout.separator()
+
         layout.operator("pose.loc_clear", text="Location")
         layout.operator("pose.rot_clear", text="Rotation")
         layout.operator("pose.scale_clear", text="Scale")
 
-        layout.label(text="Origin")
+        layout.separator()
+
+        layout.operator("pose.user_transforms_clear", text="Reset unkeyed")
 
 
 class VIEW3D_MT_pose_slide(bpy.types.Menu):

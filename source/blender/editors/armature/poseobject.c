@@ -47,6 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_anim.h"
 #include "BKE_idprop.h"
 #include "BKE_action.h"
@@ -1006,6 +1007,130 @@ static void set_pose_keys (Object *ob)
 	}
 }
 
+/* perform paste pose, for a single bone 
+ * < ob: object where bone to paste to lives
+ * < chan: bone that pose to paste comes from
+ * < selOnly: only paste on selected bones
+ * < flip: flip on x-axis
+ *
+ * > returns: whether the bone that we pasted to if we succeeded
+ */
+static bPoseChannel *pose_bone_do_paste (Object *ob, bPoseChannel *chan, short selOnly, short flip)
+{
+	bPoseChannel *pchan;
+	char name[32];
+	short paste_ok;
+	
+	/* get the name - if flipping, we must flip this first */
+	if (flip)
+		flip_side_name(name, chan->name, 0);		/* 0 = don't strip off number extensions */
+	else
+		BLI_strncpy(name, chan->name, sizeof(name));
+	
+	/* only copy when:
+	 * 	1) channel exists - poses are not meant to add random channels to anymore
+	 * 	2) if selection-masking is on, channel is selected - only selected bones get pasted on, allowing making both sides symmetrical
+	 */
+	pchan= get_pose_channel(ob->pose, name);
+	
+	if (selOnly)
+		paste_ok= ((pchan) && (pchan->bone->flag & BONE_SELECTED));
+	else
+		paste_ok= ((pchan != NULL));
+	
+	/* continue? */
+	if (paste_ok) {
+		/* only loc rot size 
+		 *	- only copies transform info for the pose 
+		 */
+		VECCOPY(pchan->loc, chan->loc);
+		VECCOPY(pchan->size, chan->size);
+		pchan->flag= chan->flag;
+		
+		/* check if rotation modes are compatible (i.e. do they need any conversions) */
+		if (pchan->rotmode == chan->rotmode) {
+			/* copy the type of rotation in use */
+			if (pchan->rotmode > 0) {
+				VECCOPY(pchan->eul, chan->eul);
+			}
+			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+				VECCOPY(pchan->rotAxis, chan->rotAxis);
+				pchan->rotAngle = chan->rotAngle;
+			}
+			else {
+				QUATCOPY(pchan->quat, chan->quat);
+			}
+		}
+		else if (pchan->rotmode > 0) {
+			/* quat/axis-angle to euler */
+			if (chan->rotmode == ROT_MODE_AXISANGLE)
+				axis_angle_to_eulO( pchan->eul, pchan->rotmode,chan->rotAxis, chan->rotAngle);
+			else
+				quat_to_eulO( pchan->eul, pchan->rotmode,chan->quat);
+		}
+		else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+			/* quat/euler to axis angle */
+			if (chan->rotmode > 0)
+				eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->eul, chan->rotmode);
+			else	
+				quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->quat);
+		}
+		else {
+			/* euler/axis-angle to quat */
+			if (chan->rotmode > 0)
+				eulO_to_quat(pchan->quat, chan->eul, chan->rotmode);
+			else
+				axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
+		}
+		
+		/* paste flipped pose? */
+		if (flip) {
+			pchan->loc[0]*= -1;
+			
+			/* has to be done as eulers... */
+			if (pchan->rotmode > 0) {
+				pchan->eul[1] *= -1;
+				pchan->eul[2] *= -1;
+			}
+			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+				float eul[3];
+				
+				axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
+				eul[1]*= -1;
+				eul[2]*= -1;
+				eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
+			}
+			else {
+				float eul[3];
+				
+				normalize_qt(pchan->quat);
+				quat_to_eul(eul, pchan->quat);
+				eul[1]*= -1;
+				eul[2]*= -1;
+				eul_to_quat(pchan->quat, eul);
+			}
+		}
+		
+		/* ID properties */
+		if (chan->prop) {
+			if (pchan->prop) {
+				/* if we have existing properties on a bone, just copy over the values of 
+				 * matching properties (i.e. ones which will have some impact) on to the 
+				 * target instead of just blinding replacing all [
+				 */
+				IDP_SyncGroupValues(pchan->prop, chan->prop);
+			}
+			else {
+				/* no existing properties, so assume that we want copies too? */
+				pchan->prop= IDP_CopyProperty(chan->prop);	
+			}
+		}
+	}
+	
+	/* return whether paste went ahead */
+	return pchan;
+}
+
 /* ---- */
 
 static int pose_copy_exec (bContext *C, wmOperator *op)
@@ -1048,9 +1173,9 @@ void POSE_OT_copy (wmOperatorType *ot)
 
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	bPoseChannel *chan, *pchan;
+	Scene *scene= CTX_data_scene(C);
+	bPoseChannel *chan;
 	int flip= RNA_boolean_get(op->ptr, "flipped");
 	int selOnly= RNA_boolean_get(op->ptr, "selected_mask");
 	
@@ -1074,115 +1199,11 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	/* Safely merge all of the channels in the buffer pose into any existing pose */
 	for (chan= g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
-			char name[32];
-			short paste_ok;
+			/* try to perform paste on this bone */
+			bPoseChannel *pchan = pose_bone_do_paste(ob, chan, selOnly, flip);
 			
-			/* get the name - if flipping, we must flip this first */
-			if (flip)
-				flip_side_name(name, chan->name, 0);		/* 0 = don't strip off number extensions */
-			else
-				BLI_strncpy(name, chan->name, sizeof(name));
-			
-			/* only copy when:
-			 * 	1) channel exists - poses are not meant to add random channels to anymore
-			 * 	2) if selection-masking is on, channel is selected - only selected bones get pasted on, allowing making both sides symmetrical
-			 */
-			pchan= get_pose_channel(ob->pose, name);
-			
-			if (selOnly)
-				paste_ok= ((pchan) && (pchan->bone->flag & BONE_SELECTED));
-			else
-				paste_ok= ((pchan != NULL));
-			
-			/* continue? */
-			if (paste_ok) {
-				/* only loc rot size 
-				 *	- only copies transform info for the pose 
-				 */
-				VECCOPY(pchan->loc, chan->loc);
-				VECCOPY(pchan->size, chan->size);
-				pchan->flag= chan->flag;
-				
-				/* check if rotation modes are compatible (i.e. do they need any conversions) */
-				if (pchan->rotmode == chan->rotmode) {
-					/* copy the type of rotation in use */
-					if (pchan->rotmode > 0) {
-						VECCOPY(pchan->eul, chan->eul);
-					}
-					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-						VECCOPY(pchan->rotAxis, chan->rotAxis);
-						pchan->rotAngle = chan->rotAngle;
-					}
-					else {
-						QUATCOPY(pchan->quat, chan->quat);
-					}
-				}
-				else if (pchan->rotmode > 0) {
-					/* quat/axis-angle to euler */
-					if (chan->rotmode == ROT_MODE_AXISANGLE)
-						axis_angle_to_eulO( pchan->eul, pchan->rotmode,chan->rotAxis, chan->rotAngle);
-					else
-						quat_to_eulO( pchan->eul, pchan->rotmode,chan->quat);
-				}
-				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-					/* quat/euler to axis angle */
-					if (chan->rotmode > 0)
-						eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->eul, chan->rotmode);
-					else	
-						quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->quat);
-				}
-				else {
-					/* euler/axis-angle to quat */
-					if (chan->rotmode > 0)
-						eulO_to_quat(pchan->quat, chan->eul, chan->rotmode);
-					else
-						axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
-				}
-				
-				/* paste flipped pose? */
-				if (flip) {
-					pchan->loc[0]*= -1;
-					
-					/* has to be done as eulers... */
-					if (pchan->rotmode > 0) {
-						pchan->eul[1] *= -1;
-						pchan->eul[2] *= -1;
-					}
-					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-						float eul[3];
-						
-						axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
-						eul[1]*= -1;
-						eul[2]*= -1;
-						eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
-					}
-					else {
-						float eul[3];
-						
-						normalize_qt(pchan->quat);
-						quat_to_eul(eul, pchan->quat);
-						eul[1]*= -1;
-						eul[2]*= -1;
-						eul_to_quat(pchan->quat, eul);
-					}
-				}
-				
-				/* ID properties */
-				if (chan->prop) {
-					if (pchan->prop) {
-						/* if we have existing properties on a bone, just copy over the values of 
-						 * matching properties (i.e. ones which will have some impact) on to the 
-						 * target instead of just blinding replacing all [
-						 */
-						IDP_SyncGroupValues(pchan->prop, chan->prop);
-					}
-					else {
-						/* no existing properties, so assume that we want copies too? */
-						pchan->prop= IDP_CopyProperty(chan->prop);	
-					}
-				}
-				
-				/* keyframing tagging */
+			if (pchan) {
+				/* keyframing tagging for successful paste */
 				if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 					ListBase dsources = {NULL, NULL};
 					
@@ -2187,6 +2208,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 }
 
 /* ********************************************** */
+/* Flip Quats */
 
 static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 {
@@ -2251,41 +2273,78 @@ void POSE_OT_quaternions_flip (wmOperatorType *ot)
 }
 
 /* ********************************************** */
+/* Clear User Transforms */
 
-/* context: active channel */
-#if 0
-
-/* Restore selected pose-bones to 'action'-defined pose */
-static void pose_clear_user_transforms(Object *ob)
+static int pose_clear_user_transforms_exec (bContext *C, wmOperator *op)
 {
-	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	float cframe = (float)CFRA;
 	
-	if (ob->pose == NULL)
-		return;
-	
-	/* if the object has an action, restore pose to the pose defined by the action by clearing pose on selected bones */
-	if (ob->action) {
-		/* find selected bones */
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if (pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
-				/* just clear the BONE_UNKEYED flag, allowing this bone to get overwritten by actions again */
-				pchan->bone->flag &= ~BONE_UNKEYED;
-			}
+	if ((ob->adt) && (ob->adt->action)) {
+		/* XXX: this is just like this to avoid contaminating anything else; 
+		 * just pose values should change, so this should be fine 
+		 */
+		bPose *dummyPose = NULL;
+		Object workob = {{0}}; 
+		bPoseChannel *pchan;
+		
+		/* execute animation step for current frame using a dummy copy of the pose */		
+		copy_pose(&dummyPose, ob->pose, 0);
+		
+		BLI_strncpy(workob.id.name, "OB<ClearTfmWorkOb>", sizeof(workob.id.name));
+		workob.type = OB_ARMATURE;
+		workob.data = ob->data;
+		workob.adt = ob->adt;
+		workob.pose = dummyPose;
+		
+		BKE_animsys_evaluate_animdata(scene, &workob.id, workob.adt, cframe, ADT_RECALC_ANIM);
+		
+		/* copy back values, but on selected bones only  */
+		for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
+			pose_bone_do_paste(ob, pchan, 1, 0);
 		}
 		
-		/* clear pose locking flag 
-		 *	- this will only clear the user-defined pose in the selected bones, where BONE_UNKEYED has been cleared
-		 */
-		ob->pose->flag |= POSE_DO_UNLOCK;
+		/* free temp data - free manually as was copied without constraints */
+		if (dummyPose) {
+			for (pchan= dummyPose->chanbase.first; pchan; pchan= pchan->next) {
+				if (pchan->prop) {
+					IDP_FreeProperty(pchan->prop);
+					MEM_freeN(pchan->prop);
+				}
+			}
+			
+			/* was copied without constraints */
+			BLI_freelistN(&dummyPose->chanbase);
+			MEM_freeN(dummyPose);
+		}
 	}
 	else {
-		/* no action, so restore entire pose to rest pose (cannot restore only selected bones) */
+		/* no animation, so just reset whole pose to rest pose 
+		 * (cannot just restore for selected though)
+		 */
 		rest_pose(ob->pose);
 	}
 	
+	/* notifiers and updates */
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	BIF_undo_push("Clear User Transform");
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
 }
 
-#endif
+void POSE_OT_user_transforms_clear (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear User Transforms";
+	ot->idname= "POSE_OT_user_transforms_clear";
+	ot->description= "Reset pose on selected bones to keyframed state";
+	
+	/* callbacks */
+	ot->exec= pose_clear_user_transforms_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+

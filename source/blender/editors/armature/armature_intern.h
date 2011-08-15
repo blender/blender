@@ -93,6 +93,7 @@ void POSE_OT_rot_clear(struct wmOperatorType *ot);
 void POSE_OT_loc_clear(struct wmOperatorType *ot);
 void POSE_OT_scale_clear(struct wmOperatorType *ot);
 void POSE_OT_transforms_clear(struct wmOperatorType *ot);
+void POSE_OT_user_transforms_clear(struct wmOperatorType *ot);
 
 void POSE_OT_copy(struct wmOperatorType *ot);
 void POSE_OT_paste(struct wmOperatorType *ot);
