@@ -603,6 +603,63 @@ static short pose_select_same_layer (bContext *C, Object *ob, short extend)
 	return changed;
 }
 
+static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
+{
+	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
+	KS_Path *ksp;
+	
+	bArmature *arm = (ob)? ob->data : NULL;
+	bPose *pose= (ob)? ob->pose : NULL;
+	short changed= 0;
+	
+	/* sanity checks: validate Keying Set and object */
+	if ((ks == NULL) || (ANIM_validate_keyingset(C, NULL, ks) != 0))
+		return 0;
+		
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
+		
+	/* if not extending selection, deselect all selected first */
+	if (extend == 0) {
+		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+		{
+			if ((pchan->bone->flag & BONE_UNSELECTABLE)==0)
+				pchan->bone->flag &= ~BONE_SELECTED;
+		}
+		CTX_DATA_END;
+	}
+		
+	/* iterate over elements in the Keying Set, setting selection depending on whether 
+	 * that bone is visible or not...
+	 */
+	for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
+		/* only items related to this object will be relevant */
+		if ((ksp->id == ob) && (ksp->rna_path != NULL)) {
+			if (strstr(ksp->rna_path, "bones")) {
+				char *boneName = BLI_getQuotedStr(ksp->rna_path, "bones[");
+				
+				if (boneName) {
+					bPoseChannel *pchan = get_pose_channel(pose, boneName);
+					
+					if (pchan) {
+						/* select if bone is visible and can be affected */
+						if ((PBONE_VISIBLE(arm, pchan->bone)) && 
+							(pchan->bone->flag & BONE_UNSELECTABLE)==0)
+						{
+							pchan->bone->flag |= BONE_SELECTED;
+							changed = 1;
+						}
+					}
+					
+					/* free temp memory */
+					MEM_freeN(boneName);
+				}
+			}
+		}
+	}
+	
+	return changed;
+}
 
 static int pose_select_grouped_exec (bContext *C, wmOperator *op)
 {
@@ -620,6 +677,9 @@ static int pose_select_grouped_exec (bContext *C, wmOperator *op)
 	switch (RNA_enum_get(op->ptr, "type")) {
 		case 1: /* group */
 			changed= pose_select_same_group(C, ob, extend);
+			break;
+		case 2: /* Keying Set */
+			changed= pose_select_same_keyingset(C, ob, extend);
 			break;
 		default: /* layer */
 			changed= pose_select_same_layer(C, ob, extend);
@@ -641,6 +701,7 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 	static EnumPropertyItem prop_select_grouped_types[] = {
 		{0, "LAYER", 0, "Layer", "Shared layers"},
 		{1, "GROUP", 0, "Group", "Shared group"},
+		{2, "KEYINGSET", 0, "Keying Set", "All bones affected by active Keying Set"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2139,7 +2200,7 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 		if (pchan->rotmode == ROT_MODE_QUAT) {
 			/* quaternions have 720 degree range */
 			negate_v4(pchan->quat);
-
+			
 			/* tagging */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 				ListBase dsources = {NULL, NULL};
