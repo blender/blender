@@ -161,6 +161,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_next_loop);
 	
 	WM_operatortype_append(EXPORT_MESH_OT_wavefront);
+	WM_operatortype_append(MESH_OT_bridge_edge_loops);
 }
 
 #if 0 /* UNUSED, remove? */

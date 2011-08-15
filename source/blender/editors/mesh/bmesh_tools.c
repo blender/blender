@@ -4848,3 +4848,34 @@ void EXPORT_MESH_OT_wavefront(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers", "Apply Modifiers");
 	RNA_def_boolean(ot->srna, "relpaths", 0, "Relative Paths", "Use relative paths for textures");
 }
+
+static int bridge_edge_loops(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	
+	if (!EDBM_CallOpf(em, op, "bridge_loops edges=%he", BM_SELECT))
+		return OPERATOR_CANCELLED;
+	
+	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bridge edge loops";
+	ot->description= "Make faces between two edge loops";
+	ot->idname= "MESH_OT_bridge_edge_loops";
+	
+	/* api callbacks */
+	ot->exec= bridge_edge_loops;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
+}

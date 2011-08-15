@@ -382,6 +382,19 @@ static BMOpDefine def_contextual_create= {
 	BMOP_UNTAN_MULTIRES,
 };
 
+/*
+
+	Bridge edge loops with faces
+*/
+static BMOpDefine def_bridge_loops= {
+	"bridge_loops",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /*input edges*/
+	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, /*new faces*/
+	{0, /*null-terminating sentinel*/}},
+	bmesh_bridge_loops_exec,
+	0,
+};
+
 static BMOpDefine def_edgenet_fill= {
 	"edgenet_fill",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edges"}, /*input edges*/
@@ -1072,6 +1085,7 @@ BMOpDefine *opdefines[] = {
 	&def_bevel,
 	&def_beautify_fill,
 	&def_triangle_fill,
+	&def_bridge_loops,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

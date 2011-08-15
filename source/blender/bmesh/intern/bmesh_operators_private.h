@@ -73,5 +73,6 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op);
 void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op);
 void bmesh_triangle_fill_exec(BMesh *bm, BMOperator *op);
 void bmesh_create_circle_exec(BMesh *bm, BMOperator *op);
+void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op);
 
 #endif

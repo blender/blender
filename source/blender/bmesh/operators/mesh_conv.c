@@ -146,7 +146,9 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		if (me->key) {
 			/*set shape key original index*/
 			keyi = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_SHAPE_KEYINDEX);
-			*keyi = i;
+			if (keyi) {
+				*keyi = i;
+			}
 			
 			for (block=me->key->block.first, j=0; block; block=block->next, j++) {
 				float *co = CustomData_bmesh_get_n(&bm->vdata, v->head.data, 
@@ -799,6 +801,9 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 			mvert = me->mvert;
 			while(eve) {
 				keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+				if (!keyi) {
+					break;
+				}
 				if (*keyi >= 0 && *keyi < currkey->totelem) { // valid old vertex
 					if(currkey == actkey) {
 						if(actkey == me->key->refkey) {

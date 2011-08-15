@@ -1652,6 +1652,10 @@ class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
         layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").direction = 'CCW'
 
         layout.separator()
+        
+        layout.operator("mesh.bridge_edge_loops", text="Bridge Two Edge Loops")
+
+        layout.separator()
 
         layout.operator("TRANSFORM_OT_edge_slide")
         layout.operator("TRANSFORM_OT_edge_crease")

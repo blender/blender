@@ -570,8 +570,9 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		else if (ese->type == BM_FACE) {
 			ele = ftable[BM_GetIndex(ese->data)];
 		}
-
-		BM_store_selection(bm, ele);
+		
+		if (ele)
+			BM_store_selection(bm, ele);
 	}
 
 	BLI_array_free(etable);

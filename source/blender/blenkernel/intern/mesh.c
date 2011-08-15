@@ -1886,8 +1886,10 @@ static void bmesh_corners_to_loops(Mesh *me, int findex, int loopstart, int numT
 			if (ld->disps)
 				BLI_cellalloc_free(ld->disps);
 			
-			ld->disps = BLI_cellalloc_malloc(sizeof(float)*3*side*side, "converted loop mdisps");
-			memcpy(ld->disps, disps, sizeof(float)*3*side*side);
+			ld->disps = BLI_cellalloc_calloc(sizeof(float)*3*side*side, "converted loop mdisps");
+			if (fd->disps) {
+				memcpy(ld->disps, disps, sizeof(float)*3*side*side);
+			}
 		}
 	}
 }
