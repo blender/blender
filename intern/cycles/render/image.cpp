@@ -135,6 +135,7 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 	int components = spec.nchannels;
 
 	if(!(components == 1 || components == 3 || components == 4)) {
+		in->close();
 		delete in;
 		return false;
 	}
@@ -150,6 +151,7 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 		AutoStride);
 
 	in->close();
+	delete in;
 
 	if(components == 3) {
 		for(int i = width*height-1; i >= 0; i--) {
