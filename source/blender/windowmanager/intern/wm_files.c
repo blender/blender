@@ -466,7 +466,6 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 		} else {
 			tstr[0] = '\0';
 			from_memory = 1;
-			BKE_report(reports, RPT_INFO, "Config directory with "STRINGIFY(BLENDER_STARTUP_FILE)" file not found.");
 		}
 	}
 	
