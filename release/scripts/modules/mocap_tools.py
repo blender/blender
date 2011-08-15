@@ -169,20 +169,24 @@ def crossCorrelationMatch(curvesA, curvesB, margin):
 def autoloop_anim():
     context = bpy.context
     obj = context.active_object
-    fcurves = [x for x in obj.animation_data.action.fcurves if x.select]
+    
+    def locCurve(x):
+        x.data_path == "location"
+    
+    fcurves = [x for x in obj.animation_data.action.fcurves if not locCurve(x)]
 
     margin = 10
 
     flm, s, data = crossCorrelationMatch(fcurves, fcurves, margin)
-    loop = data[s:s + flm + margin]
+    loop = data[s:s + flm]
 
     #find *all* loops, s:s+flm, s+flm:s+2flm, etc...
     #and interpolate between all
     # to find "the perfect loop".
     #Maybe before finding s? interp(i,i+flm,i+2flm)....
-    for i in range(1, margin + 1):
-        w1 = sqrt(float(i) / margin)
-        loop[-i] = (loop[-i] * w1) + (loop[0] * (1 - w1))
+    #~ for i in range(1, margin + 1):
+        #~ w1 = sqrt(float(i) / margin)
+        #~ loop[-i] = (loop[-i] * w1) + (loop[0] * (1 - w1))
 
     for curve in fcurves:
         pts = curve.keyframe_points
@@ -192,9 +196,9 @@ def autoloop_anim():
     for c, curve in enumerate(fcurves):
         pts = curve.keyframe_points
         for i in range(len(loop)):
-            pts.insert(i + 1, loop[i][c])
+            pts.insert(i + 2, loop[i][c])
 
-    context.scene.frame_end = flm + 1
+    context.scene.frame_end = flm
 
 
 def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
