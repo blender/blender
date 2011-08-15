@@ -1189,6 +1189,10 @@ def rna2sphinx(BASEPATH):
         import mathutils.geometry as module
         pymodule2sphinx(BASEPATH, "mathutils.geometry", module, "Geometry Utilities")
 
+    if "Freestyle" not in EXCLUDE_MODULES:
+        import Freestyle as module
+        pymodule2sphinx(BASEPATH, "Freestyle", module, "Freestyle Data Types & Operators")
+
     if "blf" not in EXCLUDE_MODULES:
         import blf as module
         pymodule2sphinx(BASEPATH, "blf", module, "Font Drawing")
