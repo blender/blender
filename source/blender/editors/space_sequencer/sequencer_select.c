@@ -159,7 +159,7 @@ void select_surround_from_last(Scene *scene)
 #endif
 
 
-static void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING BACK */
+static void UNUSED_FUNCTION(select_single_seq)(Scene *scene, Sequence *seq, int deselect_all) /* BRING BACK */
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
