@@ -615,7 +615,7 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMFACE_NORMAL:
-					angle = RAD2DEG(angle_v2v2(fs->no, fm->no));	/* if the angle between the normals -> 0 */
+					angle = RAD2DEG(angle_v3v3(fs->no, fm->no));	/* if the angle between the normals -> 0 */
 					if( angle / 180.0 <= thresh ) {
 						BMO_SetFlag(bm, fm, FACE_MARK);
 						cont = 0;
@@ -623,7 +623,7 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMFACE_COPLANAR:
-					angle = RAD2DEG(angle_v2v2(fs->no, fm->no)); /* angle -> 0 */
+					angle = RAD2DEG(angle_v3v3(fs->no, fm->no)); /* angle -> 0 */
 					if( angle / 180.0 <= thresh ) { /* and dot product difference -> 0 */
 						if( fabs(f_ext[i].d - f_ext[indices[idx]].d) <= thresh ) {
 							BMO_SetFlag(bm, fm, FACE_MARK);
@@ -784,7 +784,7 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 
 				case SIMEDGE_DIR:
 					/* compute the angle between the two edges */
-					angle = RAD2DEG(angle_v2v2(e_ext[i].dir, e_ext[indices[idx]].dir));
+					angle = RAD2DEG(angle_v3v3(e_ext[i].dir, e_ext[indices[idx]].dir));
 
 					if( angle > 90.0 ) /* use the smallest angle between the edges */
 						angle = fabs(angle - 180.0f);
@@ -927,7 +927,7 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 				switch( type ) {
 				case SIMVERT_NORMAL:
 					/* compare the angle between the normals */
-					if( RAD2DEG(angle_v2v2(v->no, vs->no) / 180.0 <= thresh )) {
+					if( RAD2DEG(angle_v3v3(v->no, vs->no) / 180.0 <= thresh )) {
 						BMO_SetFlag(bm, v, VERT_MARK);
 						cont = 0;
 
