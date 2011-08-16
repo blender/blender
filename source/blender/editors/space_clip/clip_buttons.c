@@ -63,252 +63,11 @@
 
 #include "clip_intern.h"	// own include
 
-#define B_MARKER_POS			3
-#define B_MARKER_OFFSET			4
-#define B_MARKER_PAT_DIM		5
-#define B_MARKER_SEARCH_POS		6
-#define B_MARKER_SEARCH_DIM		7
-#define B_MARKER_FLAG			8
-
-static void to_pixel_space(float r[2], float a[2], int width, int height)
-{
-	copy_v2_v2(r, a);
-	r[0]*= width;
-	r[1]*= height;
-}
-
-static void trackingMarker_buttons(const bContext *C, uiLayout *layout)
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	int width, height, step, digits, type;
-	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
-	float pat_dim[2], pat_pos[2], search_dim[2], search_pos[2];
-	uiBlock *block;
-	uiLayout *col;
-
-	ED_space_clip_size(sc, &width, &height);
-	BKE_movieclip_last_selection(clip, &type, (void**)&track);
-
-	if(track->flag&TRACK_LOCKED) {
-		uiLayoutSetActive(layout, 0);
-		block= uiLayoutAbsoluteBlock(layout);
-		uiDefBut(block, LABEL, 0, "Track is locked", 0, 0, 300, 19, NULL, 0, 0, 0, 0, "");
-		return;
-	}
-
-	step= 100;
-	digits= 2;
-
-	marker= BKE_tracking_get_marker(track, sc->user.framenr);
-
-	sub_v2_v2v2(pat_dim, track->pat_max, track->pat_min);
-	sub_v2_v2v2(search_dim, track->search_max, track->search_min);
-
-	add_v2_v2v2(search_pos, track->search_max, track->search_min);
-	mul_v2_fl(search_pos, 0.5);
-
-	add_v2_v2v2(pat_pos, track->pat_max, track->pat_min);
-	mul_v2_fl(pat_pos, 0.5);
-
-	to_pixel_space(sc->marker_pos, marker->pos, width, height);
-	to_pixel_space(sc->track_pat, pat_dim, width, height);
-	to_pixel_space(sc->track_search, search_dim, width, height);
-	to_pixel_space(sc->track_search_pos, search_pos, width, height);
-	to_pixel_space(sc->track_offset, track->offset, width, height);
-
-	sc->marker_flag= marker->flag;
-
-	block= uiLayoutAbsoluteBlock(layout);
-
-	uiDefButBitI(block, OPTIONN, MARKER_DISABLED, B_MARKER_FLAG,  "Enabled", 10, 190, 145, 19, &sc->marker_flag,
-		0, 0, 0, 0, "Marker is disabled for current frame.");
-
-	col= uiLayoutColumn(layout, 1);
-	uiLayoutSetActive(col, (sc->marker_flag&MARKER_DISABLED)==0);
-
-	block= uiLayoutAbsoluteBlock(col);
-	uiBlockBeginAlign(block);
-
-	uiDefBut(block, LABEL, 0, "Position:", 0, 190, 300, 19, NULL, 0, 0, 0, 0, "");
-	uiDefButF(block, NUM, B_MARKER_POS, "X:", 10, 171, 145, 19, &sc->marker_pos[0],
-		-10*width, 10.0*width, step, digits, "X-position of marker at frame in screen coordinates.");
-	uiDefButF(block, NUM, B_MARKER_POS, "Y:", 165, 171, 145, 19, &sc->marker_pos[1],
-		-10*height, 10.0*height, step, digits, "Y-position of marker at frame in screen coordinates.");
-
-	uiDefBut(block, LABEL, 0, "Offset:", 0, 152, 300, 19, NULL, 0, 0, 0, 0, "");
-	uiDefButF(block, NUM, B_MARKER_OFFSET, "X:", 10, 133, 145, 19, &sc->track_offset[0],
-		-10*width, 10.0*width, step, digits, "X-offset to parenting point.");
-	uiDefButF(block, NUM, B_MARKER_OFFSET, "Y:", 165, 133, 145, 19, &sc->track_offset[1],
-		-10*height, 10.0*height, step, digits, "Y-offset to parenting point.");
-
-	uiDefBut(block, LABEL, 0, "Pattern Area:", 0, 114, 300, 19, NULL, 0, 0, 0, 0, "");
-	uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Width:", 10, 95, 300, 19, &sc->track_pat[0], 3.0f,
-		10.0*width, step, digits, "Width of marker's pattern in screen soordinates.");
-	uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Height:", 10, 76, 300, 19, &sc->track_pat[1], 3.0f,
-		10.0*height, step, digits, "Height of marker's pattern in screen soordinates.");
-
-	uiDefBut(block, LABEL, 0, "Search Area:", 0, 57, 300, 19, NULL, 0, 0, 0, 0, "");
-	uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "X:", 10, 38, 145, 19, &sc->track_search_pos[0],
-		-width, width, step, digits, "X-position of search at frame relative to marker's position");
-	uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "Y:", 165, 38, 145, 19, &sc->track_search_pos[1],
-		-height, height, step, digits, "X-position of search at frame relative to marker's position");
-	uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Width:", 10, 19, 300, 19, &sc->track_search[0], 3.0f,
-		10.0*width, step, digits, "Width of marker's search in screen soordinates.");
-	uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Height:", 10, 0, 300, 19, &sc->track_search[1], 3.0f,
-		10.0*height, step, digits, "Height of marker's search in screen soordinates.");
-
-	uiBlockEndAlign(block);
-}
-
-static void do_tracking_marker(bContext *C, void *UNUSED(arg), int event)
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip= ED_space_clip(sc);
-	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
-	int width, height, type, ok= 0;
-
-	ED_space_clip_size(sc, &width, &height);
-
-	BKE_movieclip_last_selection(clip, &type, (void**)&track);
-
-	marker= BKE_tracking_ensure_marker(track, sc->user.framenr);
-
-	if(event==B_MARKER_POS) {
-		marker->pos[0]= sc->marker_pos[0]/width;
-		marker->pos[1]= sc->marker_pos[1]/height;
-
-		/* to update position of "parented" objects */
-		DAG_id_tag_update(&clip->id, 0);
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
-
-		ok= 1;
-	}
-	else if(event==B_MARKER_PAT_DIM) {
-		float dim[2], pat_dim[2];
-
-		sub_v2_v2v2(pat_dim, track->pat_max, track->pat_min);
-
-		dim[0]= sc->track_pat[0]/width;
-		dim[1]= sc->track_pat[1]/height;
-
-		sub_v2_v2(dim, pat_dim);
-		mul_v2_fl(dim, 0.5f);
-
-		track->pat_min[0]-= dim[0];
-		track->pat_min[1]-= dim[1];
-
-		track->pat_max[0]+= dim[0];
-		track->pat_max[1]+= dim[1];
-
-		BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
-
-		ok= 1;
-	}
-	else if(event==B_MARKER_SEARCH_POS) {
-		float delta[2], side[2];
-
-		sub_v2_v2v2(side, track->search_max, track->search_min);
-		mul_v2_fl(side, 0.5f);
-
-		delta[0]= sc->track_search_pos[0]/width;
-		delta[1]= sc->track_search_pos[1]/height;
-
-		sub_v2_v2v2(track->search_min, delta, side);
-		add_v2_v2v2(track->search_max, delta, side);
-
-		BKE_tracking_clamp_track(track, CLAMP_SEARCH_POS);
-
-		ok= 1;
-	}
-	else if(event==B_MARKER_SEARCH_DIM) {
-		float dim[2], search_dim[2];
-
-		sub_v2_v2v2(search_dim, track->search_max, track->search_min);
-
-		dim[0]= sc->track_search[0]/width;
-		dim[1]= sc->track_search[1]/height;
-
-		sub_v2_v2(dim, search_dim);
-		mul_v2_fl(dim, 0.5f);
-
-		track->search_min[0]-= dim[0];
-		track->search_min[1]-= dim[1];
-
-		track->search_max[0]+= dim[0];
-		track->search_max[1]+= dim[1];
-
-		BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
-
-		ok= 1;
-	} else if(event==B_MARKER_FLAG) {
-		marker->flag= sc->marker_flag;
-
-		ok= 1;
-	} else if(event==B_MARKER_OFFSET) {
-		track->offset[0]= sc->track_offset[0]/width;
-		track->offset[1]= sc->track_offset[1]/height;
-
-		/* to update position of "parented" objects */
-		DAG_id_tag_update(&clip->id, 0);
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
-
-		ok= 1;
-	}
-
-	if(ok)
-		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
-}
-
 /* Panels */
-
-static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
-{
-	SpaceClip *sc= CTX_wm_space_clip(C);
-	MovieClip *clip;
-	int type;
-	MovieTrackingTrack *track;
-
-	if(sc->mode!=SC_MODE_TRACKING)
-		return 0;
-
-	clip= ED_space_clip(sc);
-
-	if(!clip || !BKE_movieclip_has_frame(clip, &sc->user))
-		return 0;
-
-	BKE_movieclip_last_selection(clip, &type, (void**)&track);
-
-	if(type!=MCLIP_SEL_TRACK)
-		return 0;
-
-	return 1;
-}
-
-static void clip_panel_marker(const bContext *C, Panel *pa)
-{
-	uiBlock *block;
-
-	block= uiLayoutAbsoluteBlock(pa->layout);
-	uiBlockSetHandleFunc(block, do_tracking_marker, NULL);
-
-	trackingMarker_buttons(C, pa->layout);
-}
 
 void ED_clip_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
-
-	pt= MEM_callocN(sizeof(PanelType), "spacetype clip panel marker");
-	strcpy(pt->idname, "CLIP_PT_marker");
-	strcpy(pt->label, "Marker");
-	pt->draw= clip_panel_marker;
-	pt->poll= clip_panel_marker_poll;
-	pt->flag|= PNL_DEFAULT_CLOSED;
-
-	BLI_addtail(&art->paneltypes, pt);
 
 	pt= MEM_callocN(sizeof(PanelType), "spacetype clip panel gpencil");
 	strcpy(pt->idname, "CLIP_PT_gpencil");
@@ -320,12 +79,11 @@ void ED_clip_buttons_register(ARegionType *art)
 
 /********************* MovieClip Template ************************/
 
-void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *UNUSED(userptr), int compact)
+void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, int compact)
 {
 	PropertyRNA *prop;
 	PointerRNA clipptr;
 	MovieClip *clip;
-	/* MovieClipUser *user; */ /* currently unused */
 	uiLayout *row, *split;
 	uiBlock *block;
 
@@ -345,7 +103,6 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 
 	clipptr= RNA_property_pointer_get(ptr, prop);
 	clip= clipptr.data;
-	/* user= userptr->data; */
 
 	uiLayoutSetContextPointer(layout, "edit_movieclip", &clipptr);
 
@@ -405,29 +162,153 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 
 /********************* Marker Template ************************/
 
+#define B_MARKER_POS			3
+#define B_MARKER_OFFSET			4
+#define B_MARKER_PAT_DIM		5
+#define B_MARKER_SEARCH_POS		6
+#define B_MARKER_SEARCH_DIM		7
+#define B_MARKER_FLAG			8
+
 typedef struct {
-	int flag, framenr;
+	int compact;								/* compact mode */
+
+	MovieClip *clip;
+	MovieClipUser *user;						/* user of clip */
 	MovieTrackingTrack *track;
+
+	int framenr;								/* current frame number */
+	float marker_pos[2];						/* position of marker in pixel coords */
+	float track_pat[2];							/* position and dimensions of marker pattern in pixel coords */
+	float track_offset[2];						/* offset of "parenting" point */
+	float track_search_pos[2], track_search[2];	/* position and dimensions of marker search in pixel coords */
+	int marker_flag;							/* marker's flags */
 } MarkerUpdateCb;
+
+static void to_pixel_space(float r[2], float a[2], int width, int height)
+{
+	copy_v2_v2(r, a);
+	r[0]*= width;
+	r[1]*= height;
+}
 
 static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 {
 	MarkerUpdateCb *cb= (MarkerUpdateCb*) arg_cb;
 	MovieTrackingMarker *marker;
 
+	if(!cb->compact)
+		return;
+
 	marker= BKE_tracking_ensure_marker(cb->track, cb->framenr);
 
-	marker->flag= cb->flag;
+	marker->flag= cb->marker_flag;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
-void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr)
+static void marker_block_handler(bContext *C, void *arg_cb, int event)
+{
+	MarkerUpdateCb *cb= (MarkerUpdateCb*) arg_cb;
+	MovieTrackingMarker *marker;
+	int width, height, ok= 0;
+
+	BKE_movieclip_acquire_size(cb->clip, cb->user, &width, &height);
+
+	marker= BKE_tracking_ensure_marker(cb->track, cb->framenr);
+
+	if(event==B_MARKER_POS) {
+		marker->pos[0]= cb->marker_pos[0]/width;
+		marker->pos[1]= cb->marker_pos[1]/height;
+
+		/* to update position of "parented" objects */
+		DAG_id_tag_update(&cb->clip->id, 0);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+		ok= 1;
+	}
+	else if(event==B_MARKER_PAT_DIM) {
+		float dim[2], pat_dim[2];
+
+		sub_v2_v2v2(pat_dim, cb->track->pat_max, cb->track->pat_min);
+
+		dim[0]= cb->track_pat[0]/width;
+		dim[1]= cb->track_pat[1]/height;
+
+		sub_v2_v2(dim, pat_dim);
+		mul_v2_fl(dim, 0.5f);
+
+		cb->track->pat_min[0]-= dim[0];
+		cb->track->pat_min[1]-= dim[1];
+
+		cb->track->pat_max[0]+= dim[0];
+		cb->track->pat_max[1]+= dim[1];
+
+		BKE_tracking_clamp_track(cb->track, CLAMP_PAT_DIM);
+
+		ok= 1;
+	}
+	else if(event==B_MARKER_SEARCH_POS) {
+		float delta[2], side[2];
+
+		sub_v2_v2v2(side, cb->track->search_max, cb->track->search_min);
+		mul_v2_fl(side, 0.5f);
+
+		delta[0]= cb->track_search_pos[0]/width;
+		delta[1]= cb->track_search_pos[1]/height;
+
+		sub_v2_v2v2(cb->track->search_min, delta, side);
+		add_v2_v2v2(cb->track->search_max, delta, side);
+
+		BKE_tracking_clamp_track(cb->track, CLAMP_SEARCH_POS);
+
+		ok= 1;
+	}
+	else if(event==B_MARKER_SEARCH_DIM) {
+		float dim[2], search_dim[2];
+
+		sub_v2_v2v2(search_dim, cb->track->search_max, cb->track->search_min);
+
+		dim[0]= cb->track_search[0]/width;
+		dim[1]= cb->track_search[1]/height;
+
+		sub_v2_v2(dim, search_dim);
+		mul_v2_fl(dim, 0.5f);
+
+		cb->track->search_min[0]-= dim[0];
+		cb->track->search_min[1]-= dim[1];
+
+		cb->track->search_max[0]+= dim[0];
+		cb->track->search_max[1]+= dim[1];
+
+		BKE_tracking_clamp_track(cb->track, CLAMP_SEARCH_DIM);
+
+		ok= 1;
+	} else if(event==B_MARKER_FLAG) {
+		marker->flag= cb->marker_flag;
+
+		ok= 1;
+	} else if(event==B_MARKER_OFFSET) {
+		cb->track->offset[0]= cb->track_offset[0]/width;
+		cb->track->offset[1]= cb->track_offset[1]/height;
+
+		/* to update position of "parented" objects */
+		DAG_id_tag_update(&cb->clip->id, 0);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+
+		ok= 1;
+	}
+
+	if(ok)
+		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, cb->clip);
+}
+
+void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int compact)
 {
 	PropertyRNA *prop;
 	uiBlock *block;
 	uiBut *bt;
-	PointerRNA trackptr;
+	PointerRNA clipptr;
+	MovieClip *clip;
 	MovieClipUser *user;
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
@@ -447,19 +328,102 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		return;
 	}
 
-	trackptr= RNA_property_pointer_get(ptr, prop);
-	track= (MovieTrackingTrack *)trackptr.data;
+	clipptr= RNA_property_pointer_get(ptr, prop);
+	clip= (MovieClip *)clipptr.data;
 	user= userptr->data;
+	track= trackptr->data;
 
 	marker= BKE_tracking_get_marker(track, user->framenr);
 
-	block= uiLayoutGetBlock(layout);
-
 	cb= MEM_callocN(sizeof(MarkerUpdateCb), "uiTemplateMarker update_cb");
-	cb->flag= marker->flag;
+	cb->compact= compact;
+	cb->clip= clip;
+	cb->user= user;
 	cb->track= track;
+	cb->marker_flag= marker->flag;
 	cb->framenr= user->framenr;
 
-	bt= uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_MUTE_IPO_OFF, 0, 0, 20, 20, &cb->flag, 0, 0, 1, 0, "Marker is disabled for current frame.");
-	uiButSetNFunc(bt, marker_update_cb, cb, NULL);
+	if(compact) {
+		block= uiLayoutGetBlock(layout);
+
+		bt= uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_MUTE_IPO_OFF, 0, 0, 20, 20, &cb->marker_flag, 0, 0, 1, 0, "Marker is disabled for current frame.");
+		uiButSetNFunc(bt, marker_update_cb, cb, NULL);
+	} else {
+		int width, height, step, digits;
+		float pat_dim[2], pat_pos[2], search_dim[2], search_pos[2];
+		uiLayout *col;
+
+		BKE_movieclip_acquire_size(clip, user, &width, &height);
+
+		if(track->flag&TRACK_LOCKED) {
+			uiLayoutSetActive(layout, 0);
+			block= uiLayoutAbsoluteBlock(layout);
+			uiDefBut(block, LABEL, 0, "Track is locked", 0, 0, 300, 19, NULL, 0, 0, 0, 0, "");
+
+			return;
+		}
+
+		step= 100;
+		digits= 2;
+
+		sub_v2_v2v2(pat_dim, track->pat_max, track->pat_min);
+		sub_v2_v2v2(search_dim, track->search_max, track->search_min);
+
+		add_v2_v2v2(search_pos, track->search_max, track->search_min);
+		mul_v2_fl(search_pos, 0.5);
+
+		add_v2_v2v2(pat_pos, track->pat_max, track->pat_min);
+		mul_v2_fl(pat_pos, 0.5);
+
+		to_pixel_space(cb->marker_pos, marker->pos, width, height);
+		to_pixel_space(cb->track_pat, pat_dim, width, height);
+		to_pixel_space(cb->track_search, search_dim, width, height);
+		to_pixel_space(cb->track_search_pos, search_pos, width, height);
+		to_pixel_space(cb->track_offset, track->offset, width, height);
+
+		cb->marker_flag= marker->flag;
+
+		block= uiLayoutAbsoluteBlock(layout);
+		uiBlockSetHandleFunc(block, marker_block_handler, cb);
+		uiBlockSetNFunc(block, marker_update_cb, cb, NULL);
+
+		uiDefButBitI(block, OPTIONN, MARKER_DISABLED, B_MARKER_FLAG,  "Enabled", 10, 190, 145, 19, &cb->marker_flag,
+			0, 0, 0, 0, "Marker is disabled for current frame.");
+
+		col= uiLayoutColumn(layout, 1);
+		uiLayoutSetActive(col, (cb->marker_flag&MARKER_DISABLED)==0);
+
+		block= uiLayoutAbsoluteBlock(col);
+		uiBlockBeginAlign(block);
+
+		uiDefBut(block, LABEL, 0, "Position:", 0, 190, 300, 19, NULL, 0, 0, 0, 0, "");
+		uiDefButF(block, NUM, B_MARKER_POS, "X:", 10, 171, 145, 19, &cb->marker_pos[0],
+			-10*width, 10.0*width, step, digits, "X-position of marker at frame in screen coordinates.");
+		uiDefButF(block, NUM, B_MARKER_POS, "Y:", 165, 171, 145, 19, &cb->marker_pos[1],
+			-10*height, 10.0*height, step, digits, "Y-position of marker at frame in screen coordinates.");
+
+		uiDefBut(block, LABEL, 0, "Offset:", 0, 152, 300, 19, NULL, 0, 0, 0, 0, "");
+		uiDefButF(block, NUM, B_MARKER_OFFSET, "X:", 10, 133, 145, 19, &cb->track_offset[0],
+			-10*width, 10.0*width, step, digits, "X-offset to parenting point.");
+		uiDefButF(block, NUM, B_MARKER_OFFSET, "Y:", 165, 133, 145, 19, &cb->track_offset[1],
+			-10*height, 10.0*height, step, digits, "Y-offset to parenting point.");
+
+		uiDefBut(block, LABEL, 0, "Pattern Area:", 0, 114, 300, 19, NULL, 0, 0, 0, 0, "");
+		uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Width:", 10, 95, 300, 19, &cb->track_pat[0], 3.0f,
+			10.0*width, step, digits, "Width of marker's pattern in screen soordinates.");
+		uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Height:", 10, 76, 300, 19, &cb->track_pat[1], 3.0f,
+			10.0*height, step, digits, "Height of marker's pattern in screen soordinates.");
+
+		uiDefBut(block, LABEL, 0, "Search Area:", 0, 57, 300, 19, NULL, 0, 0, 0, 0, "");
+		uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "X:", 10, 38, 145, 19, &cb->track_search_pos[0],
+			-width, width, step, digits, "X-position of search at frame relative to marker's position");
+		uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "Y:", 165, 38, 145, 19, &cb->track_search_pos[1],
+			-height, height, step, digits, "X-position of search at frame relative to marker's position");
+		uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Width:", 10, 19, 300, 19, &cb->track_search[0], 3.0f,
+			10.0*width, step, digits, "Width of marker's search in screen soordinates.");
+		uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Height:", 10, 0, 300, 19, &cb->track_search[1], 3.0f,
+			10.0*height, step, digits, "Height of marker's search in screen soordinates.");
+
+		uiBlockEndAlign(block);
+	}
 }

@@ -366,9 +366,9 @@ void uiTemplateHistogram(struct uiLayout *layout, struct PointerRNA *ptr, char *
 void uiTemplateReportsBanner(struct uiLayout *layout, struct bContext *C, struct wmOperator *op){}
 void uiTemplateWaveform(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand){}
 void uiTemplateVectorscope(struct uiLayout *_self, struct PointerRNA *data, char* property, int expand){}
-void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact){}
+void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact){}
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname){}
-void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr){}
+void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int compact){}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}

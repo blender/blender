@@ -357,7 +357,7 @@ class CLIP_PT_track(Panel):
         sc = context.space_data
         clip = sc.clip
 
-        return sc.mode == 'TRACKING' and clip and clip.tracking.active_track
+        return sc.mode == 'TRACKING' and clip
 
     def draw(self, context):
         layout = self.layout
@@ -365,14 +365,17 @@ class CLIP_PT_track(Panel):
         clip = context.space_data.clip
         act_track = clip.tracking.active_track
 
-        marker = act_track.get_marker(sc.clip_user.current_frame)
+        if not act_track:
+            layout.active = False
+            layout.label(text="No active track")
+            return
 
         row = layout.row()
         row.prop(act_track, "name", text="")
 
         sub = row.row(align=True)
 
-        sub.template_marker(clip.tracking, "active_track", sc.clip_user)
+        sub.template_marker(sc, "clip", sc.clip_user, act_track, True)
 
         icon = 'LOCKED' if act_track.locked else 'UNLOCKED'
         sub.prop(act_track, "locked", text="", icon=icon)
@@ -564,6 +567,31 @@ class CLIP_PT_stabilization(Panel):
         row = layout.row()
         row.active = stab.use_autoscale
         row.prop(stab, "influence_scale")
+
+
+class CLIP_PT_marker(Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Marker"
+
+    @classmethod
+    def poll(cls, context):
+        sc = context.space_data
+        clip = sc.clip
+
+        return sc.mode == 'TRACKING' and clip
+
+    def draw(self, context):
+        layout = self.layout
+        sc = context.space_data
+        clip = context.space_data.clip
+        act_track = clip.tracking.active_track
+
+        if act_track:
+            layout.template_marker(sc, "clip", sc.clip_user, act_track, False)
+        else:
+            layout.active = False
+            layout.label(text="No active track")
 
 
 class CLIP_PT_proxy(Panel):

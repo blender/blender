@@ -732,9 +732,9 @@ void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, int rows, int maxrows, int type);
 
-void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
+void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, int compact);
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);
-void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr);
+void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int cmpact);
 
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);
