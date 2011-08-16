@@ -668,26 +668,20 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 static float edge_angle(BMesh *bm, BMEdge *e)
 {
 	BMIter	fiter;
-	BMFace	*f;
-	int		num_faces = 0;
-	float	n1[3], n2[3];
-	float	angle = 0.0f;
+	BMFace	*f, *f_prev = NULL;
 
-	/* this is a bit odd, n2 keeps getting written into */
+	/* first edge faces, dont account for 3+ */
 
 	BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
-		if( num_faces == 0 ) {
-			copy_v3_v3(n1, f->no);
-			num_faces++;
-		} else {
-			copy_v3_v3(n2, f->no);
-			num_faces++;
+		if(f_prev == NULL) {
+			f_prev= f;
+		}
+		else {
+			return angle_v3v3(f_prev->no, f->no);
 		}
 	}
 
-	angle = angle_v2v2(n1, n2);
-
-	return angle;
+	return 0.0f;
 }
 /*
 ** extra edge information
