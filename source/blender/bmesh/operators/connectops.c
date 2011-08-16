@@ -217,7 +217,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			v2 = BLI_array_count(ee1) > 1 ? get_outer_vert(bm, ee1[1]) : v1;
 			v3 = get_outer_vert(bm, ee2[0]);
 			v4 = BLI_array_count(ee2) > 1 ? get_outer_vert(bm, ee2[1]) : v3;
-\			
+
 			if (len_v3v3(v1->co, v3->co) > len_v3v3(v1->co, v4->co)) {
 				for (i=0; i<BLI_array_count(ee1)/2; i++) {
 					SWAP(void*, ee1[i], ee1[BLI_array_count(ee1)-i-1]);
