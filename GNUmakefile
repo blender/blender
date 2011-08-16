@@ -35,16 +35,26 @@ OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
 # Source and Build DIR's
 BLENDER_DIR:=$(shell pwd -P)
 BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
-
+BUILD_TYPE:=Release
+BUILD_CMAKE_ARGS:=""
 
 # support 'make debug'
 ifneq "$(findstring debug, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_debug
 	BUILD_TYPE:=Debug
-else
-	BUILD_TYPE:=Release
 endif
-
+ifneq "$(findstring lite, $(MAKECMDGOALS))" ""
+	BUILD_DIR:=$(BUILD_DIR)_lite
+	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C$(BLENDER_DIR)/build_files/cmake/config/blender_lite.cmake
+endif
+ifneq "$(findstring headless, $(MAKECMDGOALS))" ""
+	BUILD_DIR:=$(BUILD_DIR)_bpy
+	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C$(BLENDER_DIR)/build_files/cmake/config/blender_headless.cmake
+endif
+ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
+	BUILD_DIR:=$(BUILD_DIR)_bpy
+	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake
+endif
 
 # Get the number of cores for threaded build
 NPROCS:=1
@@ -68,7 +78,7 @@ all:
 	@echo Configuring Blender ...
 
 	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
-		cmake -H$(BLENDER_DIR) -B$(BUILD_DIR) -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE) ; \
+		cmake $(BUILD_CMAKE_ARGS) -H$(BLENDER_DIR) -B$(BUILD_DIR) -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE); \
 	fi
 
 	@echo
@@ -80,7 +90,9 @@ all:
 	@echo
 
 debug: all
-	# pass
+lite: all
+headless: all
+bpy: all
 
 # package types
 package_debian:
