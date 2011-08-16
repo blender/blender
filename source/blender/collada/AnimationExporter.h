@@ -96,13 +96,13 @@ protected:
 
 	void dae_animation(Object* ob, FCurve *fcu, char* transformName , bool is_param, Material *ma = NULL);
 
-	void bake_bone_animation(Object *ob_arm, Bone *bone);
+	void write_bone_animation_matrix(Object *ob_arm, Bone *bone);
 
 	void write_bone_animation(Object *ob_arm, Bone *bone);
 
 	void sample_and_write_bone_animation(Object *ob_arm, Bone *bone, int transform_type);
 
-	void sample_and_bake_bone_animation(Object *ob_arm, Bone *bone);
+	void sample_and_write_bone_animation_matrix(Object *ob_arm, Bone *bone);
 
 	void sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pChan);
 
