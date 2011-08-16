@@ -5524,7 +5524,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 		}
 	}
 	else if(ob->type==OB_ARMATURE) {
-		if(!(ob->mode & OB_MODE_POSE))
+		if(!(ob->mode & OB_MODE_POSE && base == scene->basact))
 			draw_armature(scene, v3d, ar, base, OB_WIRE, FALSE, TRUE);
 	}
 

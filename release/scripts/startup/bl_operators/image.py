@@ -19,10 +19,11 @@
 # <pep8-80 compliant>
 
 import bpy
+from bpy.types import Operator
 from bpy.props import StringProperty
 
 
-class EditExternally(bpy.types.Operator):
+class EditExternally(Operator):
     '''Edit image in an external application'''
     bl_idname = "image.external_edit"
     bl_label = "Image Edit Externally"
@@ -106,7 +107,7 @@ class EditExternally(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SaveDirty(bpy.types.Operator):
+class SaveDirty(Operator):
     """Save all modified textures"""
     bl_idname = "image.save_dirty"
     bl_label = "Save Dirty"
@@ -129,7 +130,7 @@ class SaveDirty(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ProjectEdit(bpy.types.Operator):
+class ProjectEdit(Operator):
     """Edit a snapshot of the viewport in an external image editor"""
     bl_idname = "image.project_edit"
     bl_label = "Project Edit"
@@ -196,7 +197,7 @@ class ProjectEdit(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ProjectApply(bpy.types.Operator):
+class ProjectApply(Operator):
     """Project edited image back onto the object"""
     bl_idname = "image.project_apply"
     bl_label = "Project Apply"

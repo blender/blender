@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 
 
 class ConstraintButtonsPanel():
@@ -760,7 +761,7 @@ class ConstraintButtonsPanel():
         layout.label("Blender 2.5 has no py-constraints")
 
 
-class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
     bl_label = "Object Constraints"
     bl_context = "constraint"
 
@@ -784,7 +785,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
             self.draw_constraint(context, con)
 
 
-class BONE_PT_constraints(ConstraintButtonsPanel, bpy.types.Panel):
+class BONE_PT_constraints(ConstraintButtonsPanel, Panel):
     bl_label = "Bone Constraints"
     bl_context = "bone_constraint"
 

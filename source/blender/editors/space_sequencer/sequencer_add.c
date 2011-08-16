@@ -83,9 +83,8 @@
 /* avoid passing multiple args and be more verbose */
 #define SEQPROP_STARTFRAME	(1<<0)
 #define SEQPROP_ENDFRAME	(1<<1)
-#define SEQPROP_FILES		(1<<2)
-#define SEQPROP_NOPATHS		(1<<3)
-#define SEQPROP_NOCHAN		(1<<4)
+#define SEQPROP_NOPATHS		(1<<2)
+#define SEQPROP_NOCHAN		(1<<3)
 
 #define SELECT 1
 
@@ -102,9 +101,6 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 	RNA_def_boolean(ot->srna, "replace_sel", 1, "Replace Selection", "replace the current selection");
 
 	RNA_def_boolean(ot->srna, "overlap", 0, "Allow Overlap", "Don't correct overlap on new sequence strips");
-
-	if(flag & SEQPROP_FILES)
-		RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }
 
 static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op, const char *identifier)
@@ -411,8 +407,8 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILES);
+	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH|WM_FILESEL_FILES);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load sound with the movie");
 }
 
@@ -466,8 +462,8 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILES);
+	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH|WM_FILESEL_FILES);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
 }
 
@@ -573,8 +569,8 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_DIRECTORY|WM_FILESEL_RELPATH);
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME|SEQPROP_FILES);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_DIRECTORY|WM_FILESEL_RELPATH|WM_FILESEL_FILES);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME);
 }
 
 

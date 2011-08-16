@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Menu, Operator, OperatorProperties
 import os
 
 
@@ -124,7 +125,7 @@ def _merge_keymaps(kc1, kc2):
     return merged_keymaps
 
 
-class USERPREF_MT_keyconfigs(bpy.types.Menu):
+class USERPREF_MT_keyconfigs(Menu):
     bl_label = "KeyPresets"
     preset_subdir = "keyconfig"
     preset_operator = "wm.keyconfig_activate"
@@ -135,7 +136,7 @@ class USERPREF_MT_keyconfigs(bpy.types.Menu):
         props.value = "context.window_manager.keyconfigs.default"
 
         # now draw the presets
-        bpy.types.Menu.draw_preset(self, context)
+        Menu.draw_preset(self, context)
 
 
 class InputKeyMapPanel:
@@ -232,7 +233,7 @@ class InputKeyMapPanel:
         flow = box.column_flow(columns=2)
         for pname, value in properties.bl_rna.properties.items():
             if pname != "rna_type" and not properties.is_property_hidden(pname):
-                if isinstance(value, bpy.types.OperatorProperties):
+                if isinstance(value, OperatorProperties):
                     InputKeyMapPanel.draw_kmi_properties(box, value, title=pname)
                 else:
                     flow.prop(properties, pname)
@@ -410,7 +411,7 @@ def export_properties(prefix, properties, lines=None):
     for pname in properties.bl_rna.properties.keys():
         if pname != "rna_type" and not properties.is_property_hidden(pname):
             value = getattr(properties, pname)
-            if isinstance(value, bpy.types.OperatorProperties):
+            if isinstance(value, OperatorProperties):
                 export_properties(prefix + "." + pname, value, lines)
             elif properties.is_property_set(pname):
                 value = _string_value(value)
@@ -419,7 +420,7 @@ def export_properties(prefix, properties, lines=None):
     return lines
 
 
-class WM_OT_keyconfig_test(bpy.types.Operator):
+class WM_OT_keyconfig_test(Operator):
     "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
     bl_label = "Test Key Configuration for Conflicts"
@@ -527,7 +528,7 @@ def _string_value(value):
     return result
 
 
-class WM_OT_keyconfig_import(bpy.types.Operator):
+class WM_OT_keyconfig_import(Operator):
     "Import key configuration from a python script"
     bl_idname = "wm.keyconfig_import"
     bl_label = "Import Key Configuration..."
@@ -574,7 +575,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 # This operator is also used by interaction presets saving - AddPresetBase
 
 
-class WM_OT_keyconfig_export(bpy.types.Operator):
+class WM_OT_keyconfig_export(Operator):
     "Export key configuration to a python script"
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
@@ -667,7 +668,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-class WM_OT_keymap_restore(bpy.types.Operator):
+class WM_OT_keymap_restore(Operator):
     "Restore key map(s)"
     bl_idname = "wm.keymap_restore"
     bl_label = "Restore Key Map(s)"
@@ -687,7 +688,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyitem_restore(bpy.types.Operator):
+class WM_OT_keyitem_restore(Operator):
     "Restore key map item"
     bl_idname = "wm.keyitem_restore"
     bl_label = "Restore Key Map Item"
@@ -709,7 +710,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyitem_add(bpy.types.Operator):
+class WM_OT_keyitem_add(Operator):
     "Add key map item"
     bl_idname = "wm.keyitem_add"
     bl_label = "Add Key Map Item"
@@ -731,7 +732,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyitem_remove(bpy.types.Operator):
+class WM_OT_keyitem_remove(Operator):
     "Remove key map item"
     bl_idname = "wm.keyitem_remove"
     bl_label = "Remove Key Map Item"
@@ -749,7 +750,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class WM_OT_keyconfig_remove(bpy.types.Operator):
+class WM_OT_keyconfig_remove(Operator):
     "Remove key config"
     bl_idname = "wm.keyconfig_remove"
     bl_label = "Remove Key Config"

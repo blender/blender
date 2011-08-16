@@ -18,15 +18,16 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
 
 
-class LAMP_MT_sunsky_presets(bpy.types.Menu):
+class LAMP_MT_sunsky_presets(Menu):
     bl_label = "Sun & Sky Presets"
     preset_subdir = "sunsky"
     preset_operator = "script.execute_preset"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class DataButtonsPanel():
@@ -40,7 +41,7 @@ class DataButtonsPanel():
         return context.lamp and (engine in cls.COMPAT_ENGINES)
 
 
-class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_lamp(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -65,7 +66,7 @@ class DATA_PT_context_lamp(DataButtonsPanel, bpy.types.Panel):
             split.label(text=str(texture_count), icon='TEXTURE')
 
 
-class DATA_PT_preview(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_preview(DataButtonsPanel, Panel):
     bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -73,7 +74,7 @@ class DATA_PT_preview(DataButtonsPanel, bpy.types.Panel):
         self.layout.template_preview(context.lamp)
 
 
-class DATA_PT_lamp(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_lamp(DataButtonsPanel, Panel):
     bl_label = "Lamp"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -115,7 +116,7 @@ class DATA_PT_lamp(DataButtonsPanel, bpy.types.Panel):
         col.prop(lamp, "use_diffuse")
 
 
-class DATA_PT_sunsky(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_sunsky(DataButtonsPanel, Panel):
     bl_label = "Sky & Atmosphere"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -187,7 +188,7 @@ class DATA_PT_sunsky(DataButtonsPanel, bpy.types.Panel):
         sub.prop(lamp, "atmosphere_extinction", slider=True, text="Extinction")
 
 
-class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_shadow(DataButtonsPanel, Panel):
     bl_label = "Shadow"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -302,7 +303,7 @@ class DATA_PT_shadow(DataButtonsPanel, bpy.types.Panel):
             sub.prop(lamp, "shadow_buffer_clip_end", text=" Clip End")
 
 
-class DATA_PT_area(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_area(DataButtonsPanel, Panel):
     bl_label = "Area Shape"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -328,7 +329,7 @@ class DATA_PT_area(DataButtonsPanel, bpy.types.Panel):
             sub.prop(lamp, "size_y", text="Size Y")
 
 
-class DATA_PT_spot(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_spot(DataButtonsPanel, Panel):
     bl_label = "Spot Shape"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -362,7 +363,7 @@ class DATA_PT_spot(DataButtonsPanel, bpy.types.Panel):
             sub.prop(lamp, "halo_step", text="Step")
 
 
-class DATA_PT_falloff_curve(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
     bl_label = "Falloff Curve"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -380,7 +381,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel, bpy.types.Panel):
         self.layout.template_curve_mapping(lamp, "falloff_curve")
 
 
-class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Lamp

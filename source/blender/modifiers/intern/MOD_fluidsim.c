@@ -162,4 +162,5 @@ ModifierTypeInfo modifierType_Fluidsim = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };
