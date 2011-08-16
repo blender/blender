@@ -229,6 +229,7 @@ int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks){re
 struct ListBase builtin_keyingsets;
 void ANIM_keyingset_info_register (struct KeyingSetInfo *ksi){}
 void ANIM_keyingset_info_unregister (const struct bContext *C, struct KeyingSetInfo *ksi){}
+short ANIM_validate_keyingset (struct bContext *C, struct ListBase *dsources, struct KeyingSet *ks){return 0;}
 short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, short flag, int type){return 0;}
 short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag){return 0;}
 void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock){}
