@@ -301,10 +301,7 @@ int calc_manipulator_stats(const bContext *C)
 
 		if(obedit->type==OB_MESH) {
 			BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
-			BMesh *bm = em->bm;
-			BMVert *eve;
 			BMEditSelection ese;
-			BMIter iter;
 			float vec[3]= {0,0,0};
 
 			/* USE LAST SELECTE WITH ACTIVE */
@@ -312,77 +309,52 @@ int calc_manipulator_stats(const bContext *C)
 				EDBM_editselection_center(em, vec, &ese);
 				calc_tw_center(scene, vec);
 				totsel= 1;
-			} else {
-#if 1			/* OLD CODE */
-				/* do vertices for center, and if still no normal found, use vertex normals */
-				BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-					if(BM_TestHFlag(eve, BM_SELECT)) {
-						totsel++;
-						calc_tw_center(scene, eve->co);
-					}
-				}
+			}
+			else {
+				BMesh *bm = em->bm;
+				BMVert *eve;
 
-#else			// BMESH_TODO
+				BMIter iter;
+
 				/* do vertices/edges/faces for center depending on selection
 				   mode. note we can't use just vertex selection flag because
 				   it is not flush down on changes */
 				if(ts->selectmode & SCE_SELECT_VERTEX) {
-					for(eve= em->verts.first; eve; eve= eve->next) {
-						if(eve->f & SELECT) {
+					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+						if(BM_TestHFlag(eve, BM_SELECT)) {
 							totsel++;
 							calc_tw_center(scene, eve->co);
 						}
 					}
 				}
 				else if(ts->selectmode & SCE_SELECT_EDGE) {
-					EditEdge *eed;
-
-					for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-					for(eed= em->edges.first; eed; eed= eed->next) {
-						if(eed->h==0 && (eed->f & SELECT)) {
-							if(!eed->v1->f1) {
-								eed->v1->f1= 1;
+					BMIter itersub;
+					BMEdge *eed;
+					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+						/* check the vertex has a selected edge, only add it once */
+						BM_ITER(eed, &itersub, bm, BM_EDGES_OF_VERT, eve) {
+							if(BM_TestHFlag(eed, BM_SELECT)) {
 								totsel++;
-								calc_tw_center(scene, eed->v1->co);
-							}
-							if(!eed->v2->f1) {
-								eed->v2->f1= 1;
-								totsel++;
-								calc_tw_center(scene, eed->v2->co);
+								calc_tw_center(scene, eve->co);
+								break;
 							}
 						}
 					}
 				}
 				else {
-					EditFace *efa;
-
-					for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-					for(efa= em->faces.first; efa; efa= efa->next) {
-						if(efa->h==0 && (efa->f & SELECT)) {
-							if(!efa->v1->f1) {
-								efa->v1->f1= 1;
+					BMIter itersub;
+					BMFace *efa;
+					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+						/* check the vertex has a selected face, only add it once */
+						BM_ITER(efa, &itersub, bm, BM_FACES_OF_VERT, eve) {
+							if(BM_TestHFlag(efa, BM_SELECT)) {
 								totsel++;
-								calc_tw_center(scene, efa->v1->co);
-							}
-							if(!efa->v2->f1) {
-								efa->v2->f1= 1;
-								totsel++;
-								calc_tw_center(scene, efa->v2->co);
-							}
-							if(!efa->v3->f1) {
-								efa->v3->f1= 1;
-								totsel++;
-								calc_tw_center(scene, efa->v3->co);
-							}
-							if(efa->v4 && !efa->v4->f1) {
-								efa->v4->f1= 1;
-								totsel++;
-								calc_tw_center(scene, efa->v4->co);
+								calc_tw_center(scene, eve->co);
+								break;
 							}
 						}
 					}
 				}
-#endif
 			}
 		} /* end editmesh */
 		else if (obedit->type==OB_ARMATURE){
