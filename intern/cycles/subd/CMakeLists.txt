@@ -1,7 +1,7 @@
 
-INCLUDE_DIRECTORIES(. ../util ../kernel ../kernel/svm ../render)
+include_directories(. ../util ../kernel ../kernel/svm ../render)
 
-SET(sources
+set(sources
 	subd_build.cpp
 	subd_dice.cpp
 	subd_mesh.cpp
@@ -10,7 +10,7 @@ SET(sources
 	subd_split.cpp
 	subd_stencil.cpp)
 
-SET(headers
+set(headers
 	subd_build.h
 	subd_dice.h
 	subd_edge.h
@@ -22,5 +22,5 @@ SET(headers
 	subd_stencil.h
 	subd_vert.h)
 
-ADD_LIBRARY(cycles_subd ${sources} ${headers})
+add_library(cycles_subd ${sources} ${headers})
 

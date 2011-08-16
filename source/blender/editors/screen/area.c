@@ -275,6 +275,7 @@ void ED_area_overdraw(bContext *C)
 				if(az->type==AZONE_AREA) {
 					area_draw_azone(az->x1, az->y1, az->x2, az->y2);
 				} else if(az->type==AZONE_REGION) {
+					if(0) {
 					
 					if(az->ar) {
 						/* only display tab or icons when the region is hidden */
@@ -287,6 +288,8 @@ void ED_area_overdraw(bContext *C)
 							else
 								region_draw_azone_icon(az);
 						}
+					}
+
 					}
 				}
 				

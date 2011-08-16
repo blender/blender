@@ -1,3 +1,3 @@
 
-INSTALL(DIRECTORY license DESTINATION ${CYCLES_INSTALL_PATH}/cycles PATTERN ".svn" EXCLUDE)
+add_subdirectory(license)
 

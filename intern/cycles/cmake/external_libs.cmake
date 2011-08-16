@@ -1,227 +1,133 @@
-###########################################################################
-# Windows and Darwin lib directory libraries
-
-IF(WIN32)
-	IF(CMAKE_CL_64)
-		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/win64)
-	ELSE()
-		SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/windows)
-	ENDIF()
-ENDIF()
-
-IF(APPLE)
-	SET(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/darwin-9.x.universal)
-	SET(OIIO_STATIC ON)
-ENDIF()
-
-IF(LIBDIR)
-	SET(CYCLES_OIIO ${LIBDIR}/openimageio)
-	SET(CYCLES_BOOST ${LIBDIR}/boost)
-   	SET(Boost_USE_STATIC_LIBS ON)
-ENDIF()
-
-###########################################################################
-# Boost setup
-
-SET(BOOST_ROOT ${CYCLES_BOOST})
-
-SET(Boost_ADDITIONAL_VERSIONS "1.45" "1.44" 
-                               "1.43" "1.43.0" "1.42" "1.42.0" 
-                               "1.41" "1.41.0" "1.40" "1.40.0"
-                               "1.39" "1.39.0" "1.38" "1.38.0"
-                               "1.37" "1.37.0" "1.34.1" "1_34_1")
-
-SET(Boost_USE_MULTITHREADED ON)
-
-FIND_PACKAGE(Boost 1.34 REQUIRED COMPONENTS filesystem regex system thread)
-
-MESSAGE(STATUS "Boost found ${Boost_FOUND}")
-MESSAGE(STATUS "Boost version ${Boost_VERSION}")
-MESSAGE(STATUS "Boost include dirs ${Boost_INCLUDE_DIRS}")
-MESSAGE(STATUS "Boost library dirs ${Boost_LIBRARY_DIRS}")
-MESSAGE(STATUS "Boost libraries ${Boost_LIBRARIES}")
-
-INCLUDE_DIRECTORIES("${Boost_INCLUDE_DIRS}")
-LINK_DIRECTORIES("${Boost_LIBRARY_DIRS}")
-
-ADD_DEFINITIONS(-DBOOST_ALL_NO_LIB)
-
-IF(WITH_CYCLES_NETWORK)
-	ADD_DEFINITIONS(-DWITH_NETWORK)
-ENDIF()
-
-IF(WITH_CYCLES_MULTI)
-	ADD_DEFINITIONS(-DWITH_MULTI)
-ENDIF()
-
-###########################################################################
-# OpenImageIO
-
-FIND_LIBRARY(OPENIMAGEIO_LIBRARY NAMES OpenImageIO PATHS ${CYCLES_OIIO}/lib ${CYCLES_OIIO}/dist)
-FIND_PATH(OPENIMAGEIO_INCLUDES OpenImageIO/imageio.h PATHS ${CYCLES_OIIO}/include ${CYCLES_OIIO}/dist)
-FIND_PROGRAM(OPENIMAGEIO_IDIFF NAMES idiff PATHS ${CYCLES_OIIO}/bin ${CYCLES_OIIO}/dist)
-
-IF(OPENIMAGEIO_INCLUDES AND OPENIMAGEIO_LIBRARY)
-	SET(OPENIMAGEIO_FOUND TRUE)
-	MESSAGE(STATUS "OpenImageIO includes = ${OPENIMAGEIO_INCLUDES}")
-	MESSAGE(STATUS "OpenImageIO library = ${OPENIMAGEIO_LIBRARY}")
-ELSE()
-	MESSAGE(STATUS "OpenImageIO not found")
-ENDIF()
-
-ADD_DEFINITIONS(-DWITH_OIIO)
-INCLUDE_DIRECTORIES(${OPENIMAGEIO_INCLUDES} ${OPENIMAGEIO_INCLUDES}/OpenImageIO)
-
-IF(OIIO_STATIC)
-	ADD_DEFINITIONS(-DOIIO_STATIC_BUILD)
-
-	SET(OPENIMAGEIO_LIBRARY
-		${OPENIMAGEIO_LIBRARY}
-		${PNG_LIBRARIES}
-		${JPEG_LIBRARIES}
-		${TIFF_LIBRARY}
-		${OPENEXR_LIBRARIES}
-		${ZLIB_LIBRARIES})
-
-	LINK_DIRECTORIES(
-		${JPEG_LIBPATH}
-		${PNG_LIBPATH}
-		${TIFF_LIBPATH}
-		${OPENEXR_LIBPATH}
-		${ZLIB_LIBPATH})
-ENDIF()
 
 ###########################################################################
 # GLUT
 
-IF(WITH_CYCLES_TEST)
-	SET(GLUT_ROOT_PATH ${CYCLES_GLUT})
+if(WITH_CYCLES_TEST)
+	set(GLUT_ROOT_PATH ${CYCLES_GLUT})
 
-	FIND_PACKAGE(GLUT)
-	MESSAGE(STATUS "GLUT_FOUND=${GLUT_FOUND}")
+	find_package(GLUT)
+	message(STATUS "GLUT_FOUND=${GLUT_FOUND}")
 
-	INCLUDE_DIRECTORIES(${GLUT_INCLUDE_DIR})
-ENDIF()
+	include_directories(${GLUT_INCLUDE_DIR})
+endif()
 
-IF(WITH_BUILTIN_GLEW)
-	SET(CYCLES_GLEW_LIBRARY extern_glew)
-ELSE()
-	SET(CYCLES_GLEW_LIBRARY ${GLEW_LIBRARY})
-ENDIF()
+if(WITH_BUILTIN_GLEW)
+	set(CYCLES_GLEW_LIBRARY extern_glew)
+else()
+	set(CYCLES_GLEW_LIBRARY ${GLEW_LIBRARY})
+endif()
 
 ###########################################################################
 # OpenShadingLanguage
 
-IF(WITH_CYCLES_OSL)
+if(WITH_CYCLES_OSL)
 
-	MESSAGE(STATUS "CYCLES_OSL = ${CYCLES_OSL}")
+	set(CYCLES_OSL "" CACHE PATH "Path to OpenShadingLanguage installation")
 
-	FIND_LIBRARY(OSL_LIBRARIES NAMES oslexec oslcomp oslquery PATHS ${CYCLES_OSL}/lib ${CYCLES_OSL}/dist)
-	FIND_PATH(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include ${CYCLES_OSL}/dist)
-	FIND_PROGRAM(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin ${CYCLES_OSL}/dist)
+	message(STATUS "CYCLES_OSL = ${CYCLES_OSL}")
 
-	IF(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
-		SET(OSL_FOUND TRUE)
-		MESSAGE(STATUS "OSL includes = ${OSL_INCLUDES}")
-		MESSAGE(STATUS "OSL library = ${OSL_LIBRARIES}")
-		MESSAGE(STATUS "OSL compiler = ${OSL_COMPILER}")
-	ELSE()
-		MESSAGE(STATUS "OSL not found")
-	ENDIF()
+	find_library(OSL_LIBRARIES NAMES oslexec oslcomp oslquery PATHS ${CYCLES_OSL}/lib ${CYCLES_OSL}/dist)
+	find_path(OSL_INCLUDES OSL/oslclosure.h PATHS ${CYCLES_OSL}/include ${CYCLES_OSL}/dist)
+	find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin ${CYCLES_OSL}/dist)
 
-	ADD_DEFINITIONS(-DWITH_OSL)
-	INCLUDE_DIRECTORIES(${OSL_INCLUDES} ${OSL_INCLUDES}/OSL ${OSL_INCLUDES}/../../../src/liboslexec)
+	if(OSL_INCLUDES AND OSL_LIBRARIES AND OSL_COMPILER)
+		set(OSL_FOUND TRUE)
+		message(STATUS "OSL includes = ${OSL_INCLUDES}")
+		message(STATUS "OSL library = ${OSL_LIBRARIES}")
+		message(STATUS "OSL compiler = ${OSL_COMPILER}")
+	else()
+		message(STATUS "OSL not found")
+	endif()
 
-ENDIF()
+	include_directories(${OSL_INCLUDES} ${OSL_INCLUDES}/OSL ${OSL_INCLUDES}/../../../src/liboslexec)
+
+endif()
 
 ###########################################################################
 # Partio
 
-IF(WITH_CYCLES_PARTIO)
+if(WITH_CYCLES_PARTIO)
 
-	MESSAGE(STATUS "CYCLES_PARTIO = ${CYCLES_PARTIO}")
+	set(CYCLES_PARTIO "" CACHE PATH "Path to Partio installation")
 
-	FIND_LIBRARY(PARTIO_LIBRARIES NAMES partio PATHS ${CYCLES_PARTIO}/lib)
-	FIND_PATH(PARTIO_INCLUDES Partio.h ${CYCLES_PARTIO}/include)
+	message(STATUS "CYCLES_PARTIO = ${CYCLES_PARTIO}")
 
-	FIND_PACKAGE(ZLIB)
+	find_library(PARTIO_LIBRARIES NAMES partio PATHS ${CYCLES_PARTIO}/lib)
+	find_path(PARTIO_INCLUDES Partio.h ${CYCLES_PARTIO}/include)
 
-	IF(PARTIO_INCLUDES AND PARTIO_LIBRARIES AND ZLIB_LIBRARIES)
-		LIST(APPEND PARTIO_LIBRARIES ${ZLIB_LIBRARIES})
-		SET(PARTIO_FOUND TRUE)
-		MESSAGE(STATUS "PARTIO includes = ${PARTIO_INCLUDES}")
-		MESSAGE(STATUS "PARTIO library = ${PARTIO_LIBRARIES}")
-	ELSE()
-		MESSAGE(STATUS "PARTIO not found")
-	ENDIF()
+	find_package(ZLIB)
 
-	ADD_DEFINITIONS(-DWITH_PARTIO)
-	INCLUDE_DIRECTORIES(${PARTIO_INCLUDES})
+	if(PARTIO_INCLUDES AND PARTIO_LIBRARIES AND ZLIB_LIBRARIES)
+		list(APPEND PARTIO_LIBRARIES ${ZLIB_LIBRARIES})
+		set(PARTIO_FOUND TRUE)
+		message(STATUS "PARTIO includes = ${PARTIO_INCLUDES}")
+		message(STATUS "PARTIO library = ${PARTIO_LIBRARIES}")
+	else()
+		message(STATUS "PARTIO not found")
+	endif()
 
-ENDIF()
+	include_directories(${PARTIO_INCLUDES})
+
+endif()
 
 ###########################################################################
 # Blender
 
-IF(WITH_CYCLES_BLENDER)
-	# FIND_PATH(BLENDER_INCLUDE_DIRS RNA_blender.h PATHS ${CMAKE_BINARY_DIR}/include)
-	SET(BLENDER_INCLUDE_DIRS
+if(WITH_CYCLES_BLENDER)
+
+	set(BLENDER_INCLUDE_DIRS
 		${CMAKE_SOURCE_DIR}/intern/guardedalloc
 		${CMAKE_SOURCE_DIR}/source/blender/makesdna
 		${CMAKE_SOURCE_DIR}/source/blender/makesrna
 		${CMAKE_SOURCE_DIR}/source/blender/blenloader
 		${CMAKE_BINARY_DIR}/source/blender/makesrna/intern)
-	IF(WIN32)
-		SET(BLENDER_LIBRARIES ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/blender.lib)
-	ENDIF()
 
 	ADD_DEFINITIONS(-DBLENDER_PLUGIN)
-ENDIF()
+endif()
 
 ###########################################################################
 # CUDA
 
-IF(WITH_CYCLES_CUDA)
+if(WITH_CYCLES_CUDA)
 
-	FIND_LIBRARY(CUDA_LIBRARIES NAMES cuda PATHS ${CYCLES_CUDA}/lib ${CYCLES_CUDA}/lib/Win32 NO_DEFAULT_PATH)
-	FIND_PATH(CUDA_INCLUDES cuda.h ${CYCLES_CUDA}/include NO_DEFAULT_PATH)
-	FIND_PROGRAM(CUDA_NVCC NAMES nvcc PATHS ${CYCLES_CUDA}/bin NO_DEFAULT_PATH)
+	set(CYCLES_CUDA "/usr/local/cuda" CACHE PATH "Path to CUDA installation")
+	set(CYCLES_CUDA_ARCH sm_10 sm_11 sm_12 sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build for")
+	set(CYCLES_CUDA_MAXREG 24 CACHE STRING "CUDA maximum number of register to use")
 
-	IF(CUDA_INCLUDES AND CUDA_LIBRARIES AND CUDA_NVCC)
-		MESSAGE(STATUS "CUDA includes = ${CUDA_INCLUDES}")
-		MESSAGE(STATUS "CUDA library = ${CUDA_LIBRARIES}")
-		MESSAGE(STATUS "CUDA nvcc = ${CUDA_NVCC}")
-	ELSE()
-		MESSAGE(STATUS "CUDA not found")
-	ENDIF()
+	find_library(CUDA_LIBRARIES NAMES cuda PATHS ${CYCLES_CUDA}/lib ${CYCLES_CUDA}/lib/Win32 NO_DEFAULT_PATH)
+	find_path(CUDA_INCLUDES cuda.h ${CYCLES_CUDA}/include NO_DEFAULT_PATH)
+	find_program(CUDA_NVCC NAMES nvcc PATHS ${CYCLES_CUDA}/bin NO_DEFAULT_PATH)
 
-	ADD_DEFINITIONS(-DWITH_CUDA)
-	INCLUDE_DIRECTORIES(${CUDA_INCLUDES})
+	if(CUDA_INCLUDES AND CUDA_LIBRARIES AND CUDA_NVCC)
+		message(STATUS "CUDA includes = ${CUDA_INCLUDES}")
+		message(STATUS "CUDA library = ${CUDA_LIBRARIES}")
+		message(STATUS "CUDA nvcc = ${CUDA_NVCC}")
+	else()
+		message(STATUS "CUDA not found")
+	endif()
 
-ENDIF()
+	include_directories(${CUDA_INCLUDES})
+
+endif()
 
 ###########################################################################
 # OpenCL
 
-IF(WITH_CYCLES_OPENCL)
+if(WITH_CYCLES_OPENCL)
 
-	IF(APPLE)
-		SET(OPENCL_INCLUDES "/System/Library/Frameworks/OpenCL.framework/Headers")
-		SET(OPENCL_LIBRARIES "-framework OpenCL")
-	ENDIF()
+	if(APPLE)
+		set(OPENCL_INCLUDE_DIR "/System/Library/Frameworks/OpenCL.framework/Headers")
+		set(OPENCL_LIBRARIES "-framework OpenCL")
+	endif()
 
-	IF(WIN32)
-		SET(OPENCL_INCLUDES "")
-		SET(OPENCL_LIBRARIES "OpenCL")
-	ENDIF()
+	if(WIN32)
+		set(OPENCL_INCLUDE_DIR "")
+		set(OPENCL_LIBRARIES "OpenCL")
+	endif()
 
-	IF(UNIX AND NOT APPLE)
-		SET(OPENCL_INCLUDES ${CYCLES_OPENCL})
-		SET(OPENCL_LIBRARIES "OpenCL")
-	ENDIF()
-
-	ADD_DEFINITIONS(-DWITH_OPENCL)
-	INCLUDE_DIRECTORIES(${OPENCL_INCLUDES})
-
-ENDIF()
+	if(UNIX AND NOT APPLE)
+		set(OPENCL_INCLUDE_DIR ${CYCLES_OPENCL})
+		set(OPENCL_LIBRARIES "OpenCL")
+	endif()
+endif()
 

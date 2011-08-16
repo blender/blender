@@ -1,10 +1,10 @@
 
-SET(sources
+set(sources
 	kernel.cpp
 	kernel.cl
 	kernel.cu)
 
-SET(headers
+set(headers
 	kernel.h
 	kernel_bvh.h
 	kernel_camera.h
@@ -29,7 +29,7 @@ SET(headers
 	kernel_triangle.h
 	kernel_types.h)
 
-SET(svm_headers
+set(svm_headers
 	svm/bsdf.h
 	svm/bsdf_ashikhmin_velvet.h
 	svm/bsdf_diffuse.h
@@ -72,7 +72,7 @@ SET(svm_headers
 	svm/volume.h
 	)
 
-SET(util_headers
+set(util_headers
 	../util/util_color.h
 	../util/util_math.h
 	../util/util_transform.h
@@ -80,60 +80,61 @@ SET(util_headers
 
 # CUDA module
 
-IF("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-	SET(CUDA_BITS 64)
-ELSE()
-	SET(CUDA_BITS 32)
-ENDIF()
+if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+	set(CUDA_BITS 64)
+else()
+	set(CUDA_BITS 32)
+endif()
 
-IF(WITH_CYCLES_CUDA)
-	SET(cuda_sources kernel.cu ${headers} ${svm_headers})
-	SET(cuda_cubins)
+if(WITH_CYCLES_CUDA)
+	set(cuda_sources kernel.cu ${headers} ${svm_headers})
+	set(cuda_cubins)
 
-	FOREACH(arch ${CYCLES_CUDA_ARCH})
-		SET(cuda_cubin kernel_${arch}.cubin)
+	foreach(arch ${CYCLES_CUDA_ARCH})
+		set(cuda_cubin kernel_${arch}.cubin)
 
-		ADD_CUSTOM_COMMAND(
+		add_custom_command(
 			OUTPUT ${cuda_cubin}
 			COMMAND ${CUDA_NVCC} -arch=${arch} -m${CUDA_BITS} --cubin ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cu --use_fast_math -o ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} --ptxas-options="-v" --maxrregcount=${CYCLES_CUDA_MAXREG} --opencc-options -OPT:Olimit=0 -I${CMAKE_CURRENT_SOURCE_DIR}/../util -I${CMAKE_CURRENT_SOURCE_DIR}/svm -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC
 			DEPENDS ${cuda_sources})
 
-		INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${cuda_cubin} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/lib)
-		LIST(APPEND cuda_cubins ${cuda_cubin})
-	ENDFOREACH()
+		delayed_install("${CMAKE_CURRENT_BINARY_DIR}" "${cuda_cubin}" ${CYCLES_INSTALL_PATH}/lib)
+		list(APPEND cuda_cubins ${cuda_cubin})
+	endforeach()
 
-	ADD_CUSTOM_TARGET(cycles_kernel_cuda ALL DEPENDS ${cuda_cubins})
-ENDIF()
+	add_custom_target(cycles_kernel_cuda ALL DEPENDS ${cuda_cubins})
+endif()
 
 # OSL module
 
-IF(WITH_CYCLES_OSL)
-	ADD_SUBDIRECTORY(osl)
-ENDIF()
+if(WITH_CYCLES_OSL)
+	add_subdirectory(osl)
+endif()
 
 # CPU module
 
-INCLUDE_DIRECTORIES(. ../util osl svm)
+include_directories(. ../util osl svm)
 
-ADD_LIBRARY(cycles_kernel ${sources} ${headers} ${svm_headers})
+add_library(cycles_kernel ${sources} ${headers} ${svm_headers})
 
-IF(WITH_CYCLES_CUDA)
-	ADD_DEPENDENCIES(cycles_kernel cycles_kernel_cuda)
-ENDIF()
+if(WITH_CYCLES_CUDA)
+	add_dependencies(cycles_kernel cycles_kernel_cuda)
+endif()
 
 # OPENCL kernel
 
-IF(WITH_CYCLES_OPENCL)
-	#SET(kernel_preprocessed ${CMAKE_CURRENT_BINARY_DIR}/kernel_preprocessed.cl)
-	#ADD_CUSTOM_COMMAND(
+if(WITH_CYCLES_OPENCL)
+	#set(kernel_preprocessed ${CMAKE_CURRENT_BINARY_DIR}/kernel_preprocessed.cl)
+	#add_custom_command(
 	#	OUTPUT ${kernel_preprocessed}
 	#	COMMAND gcc -x c++ -E ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cl -I ${CMAKE_CURRENT_SOURCE_DIR}/../util/ -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DWITH_OPENCL -o ${kernel_preprocessed}
 	#	DEPENDS ${kernel_sources} ${util_headers})
-	#ADD_CUSTOM_TARGET(cycles_kernel_preprocess ALL DEPENDS ${kernel_preprocessed})
-	#INSTALL(FILES ${kernel_preprocessed} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel)
+	#add_custom_target(cycles_kernel_preprocess ALL DEPENDS ${kernel_preprocessed})
+	#delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${kernel_preprocessed}" ${CYCLES_INSTALL_PATH}/kernel)
 
-	INSTALL(FILES kernel.cl ${headers} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel)
-	INSTALL(FILES ${svm_headers} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel/svm)
-	INSTALL(FILES ${util_headers} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/kernel)
-ENDIF()
+	delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernel.cl" ${CYCLES_INSTALL_PATH}/kernel)
+	delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${headers}" ${CYCLES_INSTALL_PATH}/kernel)
+	delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${svm_headers}" ${CYCLES_INSTALL_PATH}/kernel/svm)
+	delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${util_headers}" ${CYCLES_INSTALL_PATH}/kernel)
+endif()
 

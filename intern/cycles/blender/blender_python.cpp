@@ -224,7 +224,9 @@ static struct PyModuleDef module = {
 
 CCL_NAMESPACE_END
 
-PyMODINIT_FUNC PyInit_libcycles_blender() 
+extern "C" PyObject *CYCLES_initPython();
+
+PyObject *CYCLES_initPython()
 {
 	return PyModule_Create(&ccl::module);
 }

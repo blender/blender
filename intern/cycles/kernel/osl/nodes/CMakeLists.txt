@@ -1,7 +1,7 @@
 
 # OSL node shaders
 
-SET(osl_sources
+set(osl_sources
 	node_add_closure.osl
 	node_attribute.osl
 	node_background.osl
@@ -46,24 +46,24 @@ SET(osl_sources
 	node_ward_bsdf.osl
 	node_wood_texture.osl)
 
-SET(osl_headers
+set(osl_headers
 	node_texture.h
 	stdosl.h)
 
-SET(oso_sources)
+set(oso_sources)
 
-FOREACH(_file ${osl_sources})
-	SET(osl_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
-	STRING(REPLACE ".osl" ".oso" oso_file ${osl_file})
-	STRING(REPLACE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} oso_file ${oso_file})
-	ADD_CUSTOM_COMMAND(
+foreach(_file ${osl_sources})
+	set(osl_file ${CMAKE_CURRENT_SOURCE_DIR}/${_file})
+	string(REPLACE ".osl" ".oso" oso_file ${osl_file})
+	string(REPLACE ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR} oso_file ${oso_file})
+	add_custom_command(
 		OUTPUT ${oso_file} 
 		COMMAND ${OSL_COMPILER} -O2 ${osl_file}
 		DEPENDS ${osl_file} ${osl_headers})
-	LIST(APPEND oso_sources ${oso_file})
-ENDFOREACH()
+	list(APPEND oso_sources ${oso_file})
+endforeach()
 
-ADD_CUSTOM_TARGET(shader ALL DEPENDS ${oso_sources} ${osl_headers})
+add_custom_target(shader ALL DEPENDS ${oso_sources} ${osl_headers})
 
-INSTALL(FILES ${oso_sources} DESTINATION ${CYCLES_INSTALL_PATH}/cycles/shader)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${oso_sources}" ${CYCLES_INSTALL_PATH}/shader)
 

@@ -190,6 +190,14 @@ option(WITH_API_INSTALL     "Copy API header files into the blender install fold
 
 # Cycles
 option(WITH_CYCLES			"Enable Cycles Render Engine" ON)
+OPTION(WITH_CYCLES_OSL		"Build with Open Shading Language support" OFF)
+OPTION(WITH_CYCLES_CUDA		"Build with CUDA support" OFF)
+OPTION(WITH_CYCLES_OPENCL	"Build with OpenCL support (not working)" OFF)
+OPTION(WITH_CYCLES_BLENDER	"Build Blender Python extension" ON)
+OPTION(WITH_CYCLES_PARTIO	"Build with Partio point cloud support (unfinished)" OFF)
+OPTION(WITH_CYCLES_NETWORK	"Build with network rendering support (unfinished)" OFF)
+OPTION(WITH_CYCLES_MULTI	"Build with network rendering support (unfinished)" OFF)
+OPTION(WITH_CYCLES_TEST		"Build cycles test application" OFF)
 
 # disable for now, but plan to support on all platforms eventually
 option(WITH_MEM_JEMALLOC   "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
@@ -262,6 +270,16 @@ if(WITH_PYTHON_MODULE)
 endif()
 
 TEST_SSE_SUPPORT()
+
+# XXX hack
+if(WITH_CYCLES)
+	set(WITH_OPENIMAGEIO ON)
+	set(WITH_BOOST ON)
+endif()
+
+if(WITH_OPENIMAGEIO)
+	set(WITH_BOOST ON)
+endif()
 
 #-----------------------------------------------------------------------------
 # Initialize un-cached vars, avoid unused warning
@@ -469,6 +487,44 @@ if(UNIX AND NOT APPLE)
 			set(NDOF_INCLUDE_DIRS ${SPACENAV_INCLUDE_DIRS})
 			set(NDOF_LIBRARIES ${SPACENAV_LIBRARIES})
 		endif()
+	endif()
+
+	if(WITH_BOOST)
+		if(CYCLES_BOOST)
+			set(BOOST ${CYCLES_BOOST} CACHE PATH "Boost Directory")
+			unset(CYCLES_BOOST CACHE)
+		else()
+			set(BOOST "/usr" CACHE PATH "Boost Directory")
+		endif()
+
+	    #set(Boost_ADDITIONAL_VERSIONS "1.46" "1.45" "1.44" 
+		#	"1.43" "1.43.0" "1.42" "1.42.0" 
+		#	"1.41" "1.41.0" "1.40" "1.40.0"
+		#	"1.39" "1.39.0" "1.38" "1.38.0"
+		#	"1.37" "1.37.0" "1.34.1" "1_34_1")
+
+		set(BOOST_ROOT ${BOOST})
+		set(Boost_USE_MULTITHREADED ON)
+		find_package(Boost 1.34 REQUIRED COMPONENTS filesystem regex system thread)
+
+		set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
+		set(BOOST_LIBRARIES ${Boost_LIBRARIES})
+		set(BOOST_LIBPATH ${Boost_LIBRARY_DIRS})
+		set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
+	endif()
+
+	if(WITH_OPENIMAGEIO)
+		if(CYCLES_OIIO)
+			set(OPENIMAGEIO ${CYCLES_OIIO} CACHE PATH "OpenImageIO Directory")
+			unset(CYCLES_OIIO CACHE)
+		else()
+			set(OPENIMAGEIO "/usr" CACHE PATH "OpenImageIO Directory")
+		endif()
+
+		set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
+		set(OPENIMAGEIO_LIBRARY OpenImageIO)
+		set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
+		set(OPENIMAGEIO_DEFINITIONS)
 	endif()
 
 	# OpenSuse needs lutil, ArchLinux not, for now keep, can avoid by using --as-needed
@@ -757,6 +813,24 @@ elseif(WIN32)
 			# uncached vars
 			set(PYTHON_INCLUDE_DIRS "${PYTHON_INCLUDE_DIR}")
 			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
+		endif()
+
+		if(WITH_BOOST)
+			set(BOOST ${LIBDIR}/boost)
+			set(BOOST_INCLUDE_DIR ${BOOST}/include)
+			set(BOOST_POSTFIX "vc90-mt-s-1_46_1.lib")
+			set(BOOST_LIBRARIES libboost_date_time-${BOOST_POSTFIX} libboost_filesystem-${BOOST_POSTFIX}
+			libboost_regex-${BOOST_POSTFIX} libboost_system-${BOOST_POSTFIX} libboost_thread-${BOOST_POSTFIX})
+			set(BOOST_LIBPATH ${BOOST}/lib)
+			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
+		endif()
+			
+		if(WITH_OPENIMAGEIO)
+			set(OPENIMAGEIO ${LIBDIR}/openimageio)
+			set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
+			set(OPENIMAGEIO_LIBRARY OpenImageIO)
+			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
+			set(OPENIMAGEIO_DEFINITIONS)
 		endif()
 
 		set(PLATFORM_LINKFLAGS "/SUBSYSTEM:CONSOLE /STACK:2097152 /INCREMENTAL:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:msvcmrt.lib /NODEFAULTLIB:msvcurt.lib /NODEFAULTLIB:msvcrtd.lib")
@@ -1064,6 +1138,22 @@ elseif(APPLE)
 		# linker needs "-weak_framework 3DconnexionClient"
 	endif()
 
+	if(WITH_BOOST)
+		set(BOOST ${LIBDIR}/boost)
+		set(BOOST_INCLUDE_DIR ${BOOST}/include)
+		set(BOOST_LIBRARIES boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt)
+		set(BOOST_LIBPATH ${BOOST}/lib)
+		set(BOOST_DEFINITIONS)
+	endif()
+
+	if(WITH_OPENIMAGEIO)
+		set(OPENIMAGEIO ${LIBDIR}/openimageio)
+		set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
+		set(OPENIMAGEIO_LIBRARY OpenImageIO ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES})
+		set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib ${JPEG_LIBPATH} ${PNG_LIBPATH} ${TIFF_LIBPATH} ${OPENEXR_LIBPATH} ${ZLIB_LIBPATH})
+		set(OPENIMAGEIO_DEFINITIONS "-DOIIO_STATIC_BUILD")
+	endif()
+
 	set(EXETYPE MACOSX_BUNDLE)
 
 	set(CMAKE_C_FLAGS_DEBUG "-fno-strict-aliasing -g")
@@ -1304,6 +1394,12 @@ add_subdirectory(source)
 add_subdirectory(intern)
 add_subdirectory(extern)
 
+#-----------------------------------------------------------------------------
+# Cycles
+
+if(WITH_CYCLES)
+	add_subdirectory(intern/cycles)
+endif()
 
 #-----------------------------------------------------------------------------
 # Blender Application
@@ -1315,13 +1411,6 @@ endif()
 # Blender Player
 if(WITH_PLAYER)
 	add_subdirectory(source/blenderplayer)
-endif()
-
-#-----------------------------------------------------------------------------
-# Cycles
-
-if(WITH_CYCLES)
-	add_subdirectory(intern/cycles)
 endif()
 
 #-----------------------------------------------------------------------------

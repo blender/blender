@@ -155,6 +155,10 @@ static int IMB_ispic_name(const char *name)
 	int fp, buf[10];
 
 	if(UTIL_DEBUG) printf("IMB_ispic_name: loading %s\n", name);
+
+	/*for(type=IMB_FILE_TYPES; type->is_a; type++)
+		if(type->is_a_filepath && type->is_a_filepath(name))
+			return type->filetype;*/
 	
 	if(stat(name,&st) == -1)
 		return FALSE;
@@ -176,7 +180,7 @@ static int IMB_ispic_name(const char *name)
 		return JPG;
 
 	for(type=IMB_FILE_TYPES; type->is_a; type++)
-		if(type->is_a((uchar*)buf))
+		if(type->is_a && type->is_a((uchar*)buf))
 			return type->filetype;
 
 	return FALSE;

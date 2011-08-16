@@ -1,19 +1,18 @@
 
-SET(sources
+set(sources
 	blender_camera.cpp
 	blender_mesh.cpp
 	blender_object.cpp
 	blender_python.cpp
 	blender_session.cpp
 	blender_shader.cpp
-	blender_sync.cpp)
+	blender_sync.cpp
 
-SET(headers
 	blender_sync.h
 	blender_session.h
 	blender_util.h)
 
-SET(addonfiles
+set(addonfiles
 	addon/__init__.py
 	addon/engine.py 
 	addon/enums.py
@@ -21,7 +20,7 @@ SET(addonfiles
 	addon/ui.py
 	addon/xml.py)
 
-INCLUDE_DIRECTORIES(
+include_directories(
 	../render
 	../device
 	../kernel
@@ -32,78 +31,30 @@ INCLUDE_DIRECTORIES(
 	${PYTHON_INCLUDE_DIRS}
 	${GLEW_INCLUDE_PATH})
 
-SET(LIBRARIES
+set(LIBRARIES
 	cycles_render
 	cycles_bvh
 	cycles_device
 	cycles_kernel
 	cycles_util
-	cycles_subd
-	${Boost_LIBRARIES}
-	${OPENGL_LIBRARIES}
-	${OPENIMAGEIO_LIBRARY}
-	${GLUT_LIBRARIES}
-	${CYCLES_GLEW_LIBRARY}
-	${BLENDER_LIBRARIES})
+	cycles_subd)
 
-IF(WITH_CYCLES_OSL)
-	LIST(APPEND LIBRARIES cycles_kernel_osl ${OSL_LIBRARIES})
-ENDIF()
+if(WITH_CYCLES_OSL)
+	list(APPEND LIBRARIES cycles_kernel_osl ${OSL_LIBRARIES})
+endif()
 
-IF(WITH_CYCLES_PARTIO)
-	LIST(APPEND LIBRARIES ${PARTIO_LIBRARIES})
-ENDIF()
+if(WITH_CYCLES_PARTIO)
+	list(APPEND LIBRARIES ${PARTIO_LIBRARIES})
+endif()
 
-IF(WITH_CYCLES_OPENCL)
-	LIST(APPEND LIBRARIES ${OPENCL_LIBRARIES})
-ENDIF()
+if(WITH_CYCLES_OPENCL)
+	list(APPEND LIBRARIES ${OPENCL_LIBRARIES})
+endif()
 
-LINK_DIRECTORIES(${PYTHON_LIBPATH})
-SET(CMAKE_MODULE_LINKER_FLAGS ${PYTHON_MODULE_FLAGS})
+blender_add_lib(bf_intern_cycles "${sources}" "" "")
 
-ADD_LIBRARY(cycles_blender MODULE ${sources} ${headers})
-ADD_DEPENDENCIES(cycles_blender bf_rna)
+add_dependencies(bf_intern_cycles bf_rna)
+target_link_libraries(bf_intern_cycles ${LIBRARIES})
 
-IF(WIN32)
-	TARGET_LINK_LIBRARIES(cycles_blender ${PYTHON_LINKFLAGS})
-
-	FILE_LIST_SUFFIX(PYTHON_LIBRARIES_DEBUG "${PYTHON_LIBRARIES}" "_d")
-	TARGET_LINK_LIBRARIES_DEBUG(cycles_blender "${PYTHON_LIBRARIES_DEBUG}")
-	TARGET_LINK_LIBRARIES_OPTIMIZED(cycles_blender "${PYTHON_LIBRARIES}")
-	UNSET(PYTHON_LIBRARIES_DEBUG)
-
-	SET_TARGET_PROPERTIES(cycles_blender PROPERTIES PREFIX "lib")
-	SET_TARGET_PROPERTIES(cycles_blender PROPERTIES SUFFIX ".pyd")
-ENDIF()
-
-TARGET_LINK_LIBRARIES(cycles_blender ${LIBRARIES})
-
-INSTALL(FILES ${addonfiles} DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
-INSTALL(TARGETS cycles_blender LIBRARY DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
-
-# Install Dynamic Libraries
-
-IF(WIN32)
-	FILE(GLOB OIIO_DLLS "${CYCLES_OIIO}/bin/*.dll")
-	INSTALL(FILES ${OIIO_DLLS}
-		DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
-ENDIF()
-
-IF(UNIX AND NOT APPLE)
-	# copy libraries to cycles lib directory
-	SET(install_libs
-		${OPENIMAGEIO_LIBRARY}
-		${Boost_LIBRARIES}
-		${OSL_LIBRARIES}
-		${PARTIO_LIBRARIES})
-	
-	LIST(REMOVE_ITEM install_libs optimized)
-	LIST(REMOVE_ITEM install_libs debug)
-
-	INSTALL(FILES ${install_libs}
-		DESTINATION ${CYCLES_INSTALL_PATH}/cycles/lib)
-	
-	# set path to look for dynamic libs
-	SET_TARGET_PROPERTIES(cycles_blender PROPERTIES INSTALL_RPATH $ORIGIN/lib)
-ENDIF()
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${addonfiles}" ${CYCLES_INSTALL_PATH})
 

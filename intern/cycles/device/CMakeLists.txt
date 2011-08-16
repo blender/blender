@@ -1,5 +1,5 @@
 
-INCLUDE_DIRECTORIES(
+include_directories(
 	.
 	../kernel
 	../kernel/svm
@@ -9,7 +9,7 @@ INCLUDE_DIRECTORIES(
 	${OPENGL_INCLUDE_DIR}
 	${GLEW_INCLUDE_PATH})
 
-SET(sources
+set(sources
 	device.cpp
 	device_cpu.cpp
 	device_cuda.cpp
@@ -17,10 +17,10 @@ SET(sources
 	device_network.cpp
 	device_opencl.cpp)
 
-SET(headers
+set(headers
 	device.h
 	device_intern.h
 	device_network.h)
 
-ADD_LIBRARY(cycles_device ${sources} ${headers})
+add_library(cycles_device ${sources} ${headers})
 

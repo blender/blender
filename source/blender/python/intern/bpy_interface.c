@@ -172,6 +172,8 @@ void BPY_context_set(bContext *C)
 
 /* defined in AUD_C-API.cpp */
 extern PyObject *AUD_initPython(void);
+/* defined in cycles/blender */
+extern PyObject *CYCLES_initPython(void);
 
 static struct _inittab bpy_internal_modules[]= {
 	{(char *)"noise", BPyInit_noise},
@@ -181,6 +183,9 @@ static struct _inittab bpy_internal_modules[]= {
 	{(char *)"blf", BPyInit_blf},
 #ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
+#endif
+#ifdef WITH_CYCLES
+	{(char *)"libcycles_blender", CYCLES_initPython},
 #endif
 	{NULL, NULL}
 };

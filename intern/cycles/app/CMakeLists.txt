@@ -1,5 +1,5 @@
 
-INCLUDE_DIRECTORIES(
+include_directories(
 	.
 	../device
 	../kernel
@@ -9,51 +9,51 @@ INCLUDE_DIRECTORIES(
 	../render
 	../subd)
 
-SET(LIBRARIES
+set(LIBRARIES
 	cycles_device
 	cycles_kernel
 	cycles_render
 	cycles_bvh
 	cycles_subd
 	cycles_util
-	${Boost_LIBRARIES}
+	${BOOST_LIBRARIES}
 	${OPENGL_LIBRARIES}
 	${CYCLES_GLEW_LIBRARY}
 	${OPENIMAGEIO_LIBRARY})
 
-IF(WITH_CYCLES_TEST)
-	LIST(APPEND LIBRARIES ${GLUT_LIBRARIES})
-ENDIF()
+link_directories(${OPENIMAGEIO_LIBPATH} ${BOOST_LIBPATH})
 
-IF(WITH_CYCLES_OSL)
-	LIST(APPEND LIBRARIES cycles_kernel_osl ${OSL_LIBRARIES})
-ENDIF()
+if(WITH_CYCLES_TEST)
+	list(APPEND LIBRARIES ${GLUT_LIBRARIES})
+endif()
 
-IF(WITH_CYCLES_PARTIO)
-	LIST(APPEND LIBRARIES ${PARTIO_LIBRARIES})
-ENDIF()
+if(WITH_CYCLES_OSL)
+	list(APPEND LIBRARIES cycles_kernel_osl ${OSL_LIBRARIES})
+endif()
 
-IF(WITH_CYCLES_OPENCL)
-	LIST(APPEND LIBRARIES ${OPENCL_LIBRARIES})
-ENDIF()
+if(WITH_CYCLES_PARTIO)
+	list(APPEND LIBRARIES ${PARTIO_LIBRARIES})
+endif()
 
-IF(WITH_CYCLES_TEST)
-	ADD_EXECUTABLE(cycles_test cycles_test.cpp cycles_xml.cpp cycles_xml.h)
-	TARGET_LINK_LIBRARIES(cycles_test ${LIBRARIES})
-	INSTALL(TARGETS cycles_test DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
+if(WITH_CYCLES_OPENCL)
+	list(APPEND LIBRARIES ${OPENCL_LIBRARIES})
+endif()
 
-	IF(UNIX AND NOT APPLE)
-		SET_TARGET_PROPERTIES(cycles_test PROPERTIES INSTALL_RPATH $ORIGIN/lib)
-	ENDIF()
-ENDIF()
+if(WITH_CYCLES_TEST)
+	add_executable(cycles_test cycles_test.cpp cycles_xml.cpp cycles_xml.h)
+	target_link_libraries(cycles_test ${LIBRARIES})
 
-IF(WITH_CYCLES_NETWORK)
-	ADD_EXECUTABLE(cycles_server cycles_server.cpp)
-	TARGET_LINK_LIBRARIES(cycles_server ${LIBRARIES})
-	INSTALL(TARGETS cycles_server DESTINATION ${CYCLES_INSTALL_PATH}/cycles)
+	if(UNIX AND NOT APPLE)
+		set_target_properties(cycles_test PROPERTIES INSTALL_RPATH $ORIGIN/lib)
+	endif()
+endif()
 
-	IF(UNIX AND NOT APPLE)
-		SET_TARGET_PROPERTIES(cycles_server PROPERTIES INSTALL_RPATH $ORIGIN/lib)
-	ENDIF()
-ENDIF()
+if(WITH_CYCLES_NETWORK)
+	add_executable(cycles_server cycles_server.cpp)
+	target_link_libraries(cycles_server ${LIBRARIES})
+
+	if(UNIX AND NOT APPLE)
+		set_target_properties(cycles_server PROPERTIES INSTALL_RPATH $ORIGIN/lib)
+	endif()
+endif()
 

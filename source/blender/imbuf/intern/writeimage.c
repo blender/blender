@@ -50,7 +50,7 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 	ibuf->flags = flags;
 
 	for(type=IMB_FILE_TYPES; type->is_a; type++) {
-		if(type->save && type->ftype(type, ibuf)) {
+		if(type->save && type->ftype && type->ftype(type, ibuf)) {
 			if(!(type->flag & IM_FTYPE_FLOAT)) {
 				if(ibuf->rect==NULL && ibuf->rect_float)
 					IMB_rect_from_float(ibuf);

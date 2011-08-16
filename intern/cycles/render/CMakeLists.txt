@@ -1,5 +1,5 @@
 
-INCLUDE_DIRECTORIES(
+include_directories(
 	.
 	../device
 	../kernel
@@ -9,7 +9,7 @@ INCLUDE_DIRECTORIES(
 	../util
 	${GLEW_INCLUDE_PATH})
 
-SET(sources
+set(sources
 	attribute.cpp
 	background.cpp
 	buffers.cpp
@@ -33,7 +33,7 @@ SET(sources
 	svm.cpp
 	tile.cpp)
 
-SET(headers
+set(headers
 	attribute.h
 	background.h
 	buffers.h
@@ -56,7 +56,7 @@ SET(headers
 	svm.h
 	tile.h)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RTTI_DISABLE_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${RTTI_DISABLE_FLAGS}")
 
-ADD_LIBRARY(cycles_render ${sources} ${headers})
+add_library(cycles_render ${sources} ${headers})
 

@@ -19,12 +19,12 @@
 import bpy
 
 def init():
-	from cycles import libcycles_blender as lib
+	import libcycles_blender as lib
 	import os.path
 	lib.init(os.path.dirname(__file__))
 
 def create(engine, data, scene, region = 0, v3d = 0, rv3d = 0):
-	from cycles import libcycles_blender as lib
+	import libcycles_blender as lib
 
 	data = data.as_pointer()
 	scene = scene.as_pointer()
@@ -40,20 +40,20 @@ def create(engine, data, scene, region = 0, v3d = 0, rv3d = 0):
 def free(engine):
 	if "session" in dir(engine):
 		if engine.session:
-			from cycles import libcycles_blender as lib
+			import libcycles_blender as lib
 			lib.free(engine.session)
 		del engine.session
 
 def render(engine):
-	from cycles import libcycles_blender as lib
+	import libcycles_blender as lib
 	lib.render(engine.session)
 
 def update(engine, data, scene):
-	from cycles import libcycles_blender as lib
+	import libcycles_blender as lib
 	lib.sync(engine.session)
 
 def draw(engine, region, v3d, rv3d):
-	from cycles import libcycles_blender as lib
+	import libcycles_blender as lib
 	v3d = v3d.as_pointer()
 	rv3d = rv3d.as_pointer()
 
@@ -95,10 +95,10 @@ def draw(engine, region, v3d, rv3d):
 		blf.draw(fontid, substatus)
 
 def available_devices():
-	from cycles import libcycles_blender as lib
+	import libcycles_blender as lib
 	return lib.available_devices()
 
 def with_osl():
-	from cycles import libcycles_blender as lib
+	import libcycles_blender as lib
 	return lib.with_osl()
 

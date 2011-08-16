@@ -407,6 +407,22 @@ if(UNIX AND NOT APPLE)
 			# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
 		endif()
 	endif()
+
+	# XXX this is non standard
+	if(WITH_OPENIMAGEIO)
+		set(oiio_install_libs
+			${OPENIMAGEIO_LIBPATH}/lib${OPENIMAGEIO_LIBRARY}.so
+			${BOOST_LIBRARIES})
+
+		list(REMOVE_ITEM oiio_install_libs optimized)
+		list(REMOVE_ITEM oiio_install_libs debug)
+
+		install(
+			FILES ${oiio_install_libs}
+			DESTINATION ${TARGETDIR}
+		)
+	endif()
+
 elseif(WIN32)
 
 	set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
@@ -594,6 +610,14 @@ elseif(WIN32)
 		)
 	endif()
 
+	if(WITH_OPENIMAGEIO)
+		install(
+			FILES
+				${LIBDIR}/openimageio/bin/OpenImageIO.dll
+			DESTINATION ${TARGETDIR}
+		)
+	endif()
+
 elseif(APPLE)
 	set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)
 	set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
@@ -703,6 +727,9 @@ elseif(APPLE)
 		)
 	endif()
 endif()
+
+# install more files XXX pass target dir
+delayed_do_install(${TARGETDIR_VER})
 
 unset(BLENDER_TEXT_FILES)
 
@@ -845,6 +872,10 @@ endif()
 
 	if(WITH_CODEC_QUICKTIME)
 		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
+	endif()
+
+	if(WITH_CYCLES)
+		list(APPEND BLENDER_SORTED_LIBS bf_intern_cycles)
 	endif()
 
 	foreach(SORTLIB ${BLENDER_SORTED_LIBS})

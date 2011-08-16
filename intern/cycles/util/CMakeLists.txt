@@ -1,10 +1,10 @@
 
-INCLUDE_DIRECTORIES(
+include_directories(
 	.
 	${GLEW_INCLUDE_PATH}
 	${OPENGL_INCLUDE_DIR})
 
-SET(sources
+set(sources
 	util_cache.cpp
 	util_cuda.cpp
 	util_dynlib.cpp
@@ -15,11 +15,11 @@ SET(sources
 	util_time.cpp
 	util_transform.cpp)
 
-IF(WITH_CYCLES_TEST)
-	LIST(APPEND sources util_view.cpp)
-ENDIF()
+if(WITH_CYCLES_TEST)
+	list(APPEND sources util_view.cpp)
+endif()
 
-SET(headers
+set(headers
 	util_algorithm.h
 	util_args.h
 	util_boundbox.h
@@ -49,5 +49,5 @@ SET(headers
 	util_vector.h
 	util_xml.h)
 
-ADD_LIBRARY(cycles_util ${sources} ${headers})
+add_library(cycles_util ${sources} ${headers})
 
