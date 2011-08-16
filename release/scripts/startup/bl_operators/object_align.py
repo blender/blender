@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 
 import bpy
+from bpy.types import Operator
 from mathutils import Vector
 
 
@@ -339,7 +340,7 @@ def align_objects(align_x,
 from bpy.props import EnumProperty, BoolProperty
 
 
-class AlignObjects(bpy.types.Operator):
+class AlignObjects(Operator):
     '''Align Objects'''
     bl_idname = "object.align"
     bl_label = "Align Objects"

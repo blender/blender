@@ -93,14 +93,14 @@ void RE_engine_free(RenderEngine *engine);
 void RE_layer_load_from_file(struct RenderLayer *layer, struct ReportList *reports, const char *filename, int x, int y);
 void RE_result_load_from_file(struct RenderResult *result, struct ReportList *reports, const char *filename);
 
-LIBEXPORT struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
-LIBEXPORT void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
-LIBEXPORT void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
+struct RenderResult *RE_engine_begin_result(RenderEngine *engine, int x, int y, int w, int h);
+void RE_engine_update_result(RenderEngine *engine, struct RenderResult *result);
+void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
 
-LIBEXPORT int RE_engine_test_break(RenderEngine *engine);
-LIBEXPORT void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
-LIBEXPORT void RE_engine_update_progress(RenderEngine *engine, float progress);
-LIBEXPORT void RE_engine_report(RenderEngine *engine, int type, const char *msg);
+int RE_engine_test_break(RenderEngine *engine);
+void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
+void RE_engine_update_progress(RenderEngine *engine, float progress);
+void RE_engine_report(RenderEngine *engine, int type, const char *msg);
 
 int RE_engine_render(struct Render *re, int do_all);
 

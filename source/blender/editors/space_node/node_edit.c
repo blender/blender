@@ -1703,7 +1703,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 
 
 /* return 0, nothing done */
-static int node_mouse_groupheader(SpaceNode *snode)
+static int UNUSED_FUNCTION(node_mouse_groupheader)(SpaceNode *snode)
 {
 	bNode *gnode;
 	float mx=0, my=0;
@@ -2018,7 +2018,7 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 }
 
 /* can be called from menus too, but they should do own undopush and redraws */
-bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy)
+bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, int type, float locx, float locy)
 {
 	bNode *node= NULL, *gnode;
 	
@@ -2033,7 +2033,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 			return NULL;
 		}
 		else {
-			bNodeTree *ngroup= BLI_findlink(&G.main->nodetree, type-NODE_GROUP_MENU);
+			bNodeTree *ngroup= BLI_findlink(&bmain->nodetree, type-NODE_GROUP_MENU);
 			if(ngroup)
 				node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup, NULL);
 		}
@@ -2054,7 +2054,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 		}
 
 		node_tree_verify_groups(snode->nodetree);
-		ED_node_set_active(G.main, snode->edittree, node);
+		ED_node_set_active(bmain, snode->edittree, node);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT) {
 			if(ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE))
@@ -3069,10 +3069,10 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
-			if(node->inputs.first && node->outputs.first) {
+			/* Be able to mute in-/output nodes as well.  - DingTo
+			if(node->inputs.first && node->outputs.first) { */
 				node->flag ^= NODE_MUTED;
 				snode_tag_changed(snode, node);
-			}
 		}
 	}
 	
@@ -3283,6 +3283,7 @@ void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
 
 static int node_add_file_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
@@ -3323,7 +3324,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 	ED_preview_kill_jobs(C);
 	
-	node = node_add_node(snode, scene, ntype, snode->mx, snode->my);
+	node = node_add_node(snode, bmain, scene, ntype, snode->mx, snode->my);
 	
 	if (!node) {
 		BKE_report(op->reports, RPT_WARNING, "Could not add an image node.");

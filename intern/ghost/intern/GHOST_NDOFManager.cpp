@@ -375,7 +375,7 @@ void GHOST_NDOFManager::setDeadZone(float dz)
 
 static bool atHomePosition(GHOST_TEventNDOFMotionData* ndof)
 {
-#define HOME(foo) (ndof->foo == 0)
+#define HOME(foo) (ndof->foo == 0.f)
 	return HOME(tx) && HOME(ty) && HOME(tz) && HOME(rx) && HOME(ry) && HOME(rz);
 #undef HOME
 }
@@ -386,9 +386,9 @@ static bool nearHomePosition(GHOST_TEventNDOFMotionData* ndof, float threshold)
 		return atHomePosition(ndof);
 	}
 	else {
-#define HOME1(foo) (fabsf(ndof->foo) < threshold)
-		return HOME1(tx) && HOME1(ty) && HOME1(tz) && HOME1(rx) && HOME1(ry) && HOME1(rz);
-#undef HOME1
+#define HOME(foo) (fabsf(ndof->foo) < threshold)
+		return HOME(tx) && HOME(ty) && HOME(tz) && HOME(rx) && HOME(ry) && HOME(rz);
+#undef HOME
 	}
 }
 
@@ -423,17 +423,17 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
 	data->dt = 0.001f * (m_motionTime - m_prevMotionTime); // in seconds
 
-	bool handMotion = !nearHomePosition(data, m_deadZone);
+	bool weHaveMotion = !nearHomePosition(data, m_deadZone);
 
 	// determine what kind of motion event to send (Starting, InProgress, Finishing)
 	// and where that leaves this NDOF manager (NotStarted, InProgress, Finished)
 	switch (m_motionState) {
 		case GHOST_kNotStarted:
 		case GHOST_kFinished:
-			if (handMotion) {
+			if (weHaveMotion) {
 				data->progress = GHOST_kStarting;
 				m_motionState = GHOST_kInProgress;
-				// prev motion time will be ancient, so just make up something reasonable
+				// prev motion time will be ancient, so just make up a reasonable time delta
 				data->dt = 0.0125f;
 			}
 			else {
@@ -443,9 +443,9 @@ bool GHOST_NDOFManager::sendMotionEvent()
 			}
 			break;
 		case GHOST_kInProgress:
-			if (handMotion) {
+			if (weHaveMotion) {
 				data->progress = GHOST_kInProgress;
-				// keep InProgress state
+				// remain 'InProgress'
 			}
 			else {
 				data->progress = GHOST_kFinishing;
@@ -453,7 +453,7 @@ bool GHOST_NDOFManager::sendMotionEvent()
 			}
 			break;
 		default:
-			break;
+			; // will always be one of the above
 	}
 
 #ifdef DEBUG_NDOF_MOTION

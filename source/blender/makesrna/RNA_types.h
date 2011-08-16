@@ -36,18 +36,6 @@
 extern "C" {
 #endif
 
-#ifndef LIBEXPORT
-#ifdef _WIN32
-#ifdef BLENDER_PLUGIN
-#define LIBEXPORT __declspec(dllimport)
-#else
-#define LIBEXPORT __declspec(dllexport)
-#endif
-#else
-#define LIBEXPORT
-#endif
-#endif
-
 struct ParameterList;
 struct FunctionRNA;
 struct PropertyRNA;
@@ -293,7 +281,7 @@ typedef struct ParameterList {
 
 typedef struct ParameterIterator {
 	struct ParameterList *parms;
-	PointerRNA funcptr;
+	/* PointerRNA funcptr; */ /*UNUSED*/
 	void *data;
 	int size, offset;
 

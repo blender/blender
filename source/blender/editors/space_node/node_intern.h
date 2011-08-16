@@ -43,6 +43,7 @@ struct wmWindowManager;
 struct bNode;
 struct bNodeSocket;
 struct bNodeLink;
+struct Main;
 
 /* temp data to pass on to modal */
 typedef struct bNodeLinkDrag
@@ -97,7 +98,7 @@ void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *tre
 void snode_notify(bContext *C, SpaceNode *snode);
 void snode_dag_update(bContext *C, SpaceNode *snode);
 bNode *next_node(bNodeTree *ntree);
-bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
+bNode *node_add_node(SpaceNode *snode, struct Main *bmain, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
 void node_deselectall(SpaceNode *snode);

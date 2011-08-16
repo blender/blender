@@ -38,6 +38,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
@@ -72,7 +73,7 @@ static bNode *node_under_mouse(bNodeTree *ntree, int mx, int my)
 
 /* ****** Click Select ****** */
  
-static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, const int mval[2], short extend)
+static bNode *node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const int mval[2], short extend)
 {
 	bNode *node;
 	float mx, my;
@@ -94,7 +95,7 @@ static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, const int mval[2]
 		else
 			node->flag ^= SELECT;
 			
-		ED_node_set_active(G.main, snode->edittree, node);
+		ED_node_set_active(bmain, snode->edittree, node);
 	}
 
 	return node;
@@ -102,6 +103,7 @@ static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, const int mval[2]
 
 static int node_select_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	int mval[2];
@@ -115,7 +117,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	extend = RNA_boolean_get(op->ptr, "extend");
 	
 	/* perform the select */
-	node= node_mouse_select(snode, ar, mval, extend);
+	node= node_mouse_select(bmain, snode, ar, mval, extend);
 	
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);

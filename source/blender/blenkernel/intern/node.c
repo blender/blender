@@ -3399,7 +3399,7 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 		int driven, len=1, index;
 		prop = (PropertyRNA *)link;
 		
-		if (RNA_property_array_check(&ptr, prop))
+		if (RNA_property_array_check(prop))
 			len = RNA_property_array_length(&ptr, prop);
 		
 		for (index=0; index<len; index++) {
@@ -3417,7 +3417,7 @@ static int node_animation_properties(bNodeTree *ntree, bNode *node)
 		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 		prop = RNA_struct_find_property(&ptr, "default_value");
 		
-		if (RNA_property_array_check(&ptr, prop))
+		if (RNA_property_array_check(prop))
 			len = RNA_property_array_length(&ptr, prop);
 		
 		for (index=0; index<len; index++) {

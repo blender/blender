@@ -60,6 +60,7 @@
 
 #include "RE_engine.h"
 
+#include "ED_node.h"
 #include "ED_render.h"
 
 #include "render_intern.h"	// own include
@@ -214,6 +215,8 @@ static void texture_changed(Main *bmain, Tex *tex)
 	Material *ma;
 	Lamp *la;
 	World *wo;
+	Scene *scene;
+	bNode *node;
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_getid(&tex->id));
@@ -246,6 +249,16 @@ static void texture_changed(Main *bmain, Tex *tex)
 		else continue;
 
 		BKE_icon_changed(BKE_icon_getid(&wo->id));
+	}
+
+	/* find compositing nodes */
+	for(scene=bmain->scene.first; scene; scene=scene->id.next) {
+		if(scene->use_nodes && scene->nodetree) {
+			for(node=scene->nodetree->nodes.first; node; node=node->next) {
+				if(node->id == &tex->id)
+					ED_node_changed_update(&scene->id, node);
+			}
+		}
 	}
 }
 

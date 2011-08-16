@@ -232,7 +232,7 @@ Mesh *rna_Main_meshes_new(Main *UNUSED(bmain), const char *name)
 	id_us_min(&me->id);
 	return me;
 }
-LIBEXPORT void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
+void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 {
 	if(ID_REAL_USERS(mesh) <= 0)
 		free_libblock(&bmain->mesh, mesh);

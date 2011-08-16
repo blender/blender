@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 
 
 from bl_ui.properties_physics_common import (
@@ -38,7 +39,7 @@ class PhysicButtonsPanel():
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.smoke)
 
 
-class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
     bl_label = "Smoke"
 
     def draw(self, context):
@@ -103,7 +104,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, bpy.types.Panel):
                 sub.prop(flow, "temperature")
 
 
-class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Groups"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -131,7 +132,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(group, "collision_group", text="")
 
 
-class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
     bl_label = "Smoke High Resolution"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -168,7 +169,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, bpy.types.Panel):
         layout.prop(md, "show_high_resolution")
 
 
-class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Cache"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -189,7 +190,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, bpy.types.Panel):
         point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')
 
 
-class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
 

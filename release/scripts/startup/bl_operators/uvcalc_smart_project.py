@@ -20,6 +20,7 @@
 
 from mathutils import Matrix, Vector, geometry
 import bpy
+from bpy.types import Operator
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
 SMALL_NUM = 0.000000001
@@ -812,38 +813,25 @@ def main(context,
     global RotMatStepRotation
     main_consts()
 
-    # TODO, all selected meshes
-    '''
-    # objects = context.selected_editable_objects
-    objects = []
-
-    # we can will tag them later.
-    obList =  [ob for ob in objects if ob.type == 'MESH']
-
-    # Face select object may not be selected.
-    ob = context.active_object
-
-    if ob and (not ob.select) and ob.type == 'MESH':
-        # Add to the list
-        obList =[ob]
-    del objects
-    '''
+    # Create the variables.
+    USER_PROJECTION_LIMIT = projection_limit
+    USER_ONLY_SELECTED_FACES = True
+    USER_SHARE_SPACE = 1 # Only for hole filling.
+    USER_STRETCH_ASPECT = 1 # Only for hole filling.
+    USER_ISLAND_MARGIN = island_margin # Only for hole filling.
+    USER_FILL_HOLES = 0
+    USER_FILL_HOLES_QUALITY = 50 # Only for hole filling.
+    USER_VIEW_INIT = 0 # Only for hole filling.
     
-    # quick workaround
-    obList =  [ob for ob in [context.active_object] if ob and ob.type == 'MESH']
+    is_editmode = (context.active_object.mode == 'EDIT')
+    if is_editmode:
+        obList =  [ob for ob in [context.active_object] if ob and ob.type == 'MESH']
+    else:
+        obList =  [ob for ob in context.selected_editable_objects if ob and ob.type == 'MESH']
+        USER_ONLY_SELECTED_FACES = False
 
     if not obList:
         raise('error, no selected mesh objects')
-
-    # Create the variables.
-    USER_PROJECTION_LIMIT = projection_limit
-    USER_ONLY_SELECTED_FACES = (1)
-    USER_SHARE_SPACE = (1) # Only for hole filling.
-    USER_STRETCH_ASPECT = (1) # Only for hole filling.
-    USER_ISLAND_MARGIN = island_margin # Only for hole filling.
-    USER_FILL_HOLES = (0)
-    USER_FILL_HOLES_QUALITY = (50) # Only for hole filling.
-    USER_VIEW_INIT = (0) # Only for hole filling.
 
     # Reuse variable
     if len(obList) == 1:
@@ -905,8 +893,8 @@ def main(context,
 
         if USER_ONLY_SELECTED_FACES:
             meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces) if f.select]
-        #else:
-        #	meshFaces = map(thickface, me.faces)
+        else:
+        	meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces)]
 
         if not meshFaces:
             continue
@@ -921,7 +909,7 @@ def main(context,
         # meshFaces = []
 
         # meshFaces.sort( lambda a, b: cmp(b.area , a.area) ) # Biggest first.
-        meshFaces.sort( key = lambda a: -a.area )
+        meshFaces.sort(key=lambda a: -a.area)
 
         # remove all zero area faces
         while meshFaces and meshFaces[-1].area <= SMALL_NUM:
@@ -1116,7 +1104,7 @@ def main(context,
 from bpy.props import FloatProperty
 
 
-class SmartProject(bpy.types.Operator):
+class SmartProject(Operator):
     '''This script projection unwraps the selected faces of a mesh. it operates on all selected mesh objects, and can be used unwrap selected faces, or all faces.'''
     bl_idname = "uv.smart_project"
     bl_label = "Smart UV Project"

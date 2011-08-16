@@ -50,12 +50,12 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 
-LIBEXPORT void engine_tag_redraw(RenderEngine *engine)
+void engine_tag_redraw(RenderEngine *engine)
 {
 	engine->do_draw = 1;
 }
 
-LIBEXPORT void engine_tag_update(RenderEngine *engine)
+void engine_tag_update(RenderEngine *engine)
 {
 	engine->do_update = 1;
 }
@@ -263,7 +263,7 @@ static void rna_RenderLayer_rect_get(PointerRNA *ptr, float *values)
 	memcpy(values, rl->rectf, sizeof(float)*rl->rectx*rl->recty*4);
 }
 
-LIBEXPORT void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values)
+void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values)
 {
 	RenderLayer *rl= (RenderLayer*)ptr->data;
 	memcpy(rl->rectf, values, sizeof(float)*rl->rectx*rl->recty*4);
@@ -285,7 +285,7 @@ static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
 	memcpy(values, rpass->rect, sizeof(float)*rpass->rectx*rpass->recty*rpass->channels);
 }
 
-LIBEXPORT void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
+void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 {
 	RenderPass *rpass= (RenderPass*)ptr->data;
 	memcpy(rpass->rect, values, sizeof(float)*rpass->rectx*rpass->recty*rpass->channels);

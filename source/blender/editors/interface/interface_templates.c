@@ -39,6 +39,7 @@
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
@@ -53,6 +54,7 @@
 #include "BKE_displist.h"
 
 #include "ED_screen.h"
+#include "ED_object.h"
 #include "ED_render.h"
 
 #include "RNA_access.h"
@@ -275,18 +277,28 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			break;
 		case UI_ID_ALONE:
 			if(id) {
-				/* make copy */
-				if(id_copy(id, &newid, 0) && newid) {
-					/* copy animation actions too */
-					BKE_copy_animdata_id_action(id);
-					/* us is 1 by convention, but RNA_property_pointer_set
-					   will also incremement it, so set it to zero */
-					newid->us= 0;
+				const int do_scene_obj= (GS(id->name) == ID_OB) &&
+				                        (template->ptr.type == &RNA_SceneObjects);
 
-					/* assign copy */
-					RNA_id_pointer_create(newid, &idptr);
-					RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-					RNA_property_update(C, &template->ptr, template->prop);
+				/* make copy */
+				if(do_scene_obj) {
+					Scene *scene= CTX_data_scene(C);
+					ED_object_single_user(scene, (struct Object *)id);
+					WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
+				}
+				else {
+					if(id_copy(id, &newid, 0) && newid) {
+						/* copy animation actions too */
+						BKE_copy_animdata_id_action(id);
+						/* us is 1 by convention, but RNA_property_pointer_set
+						   will also incremement it, so set it to zero */
+						newid->us= 0;
+
+						/* assign copy */
+						RNA_id_pointer_create(newid, &idptr);
+						RNA_property_pointer_set(&template->ptr, template->prop, idptr);
+						RNA_property_update(C, &template->ptr, template->prop);
+					}
 				}
 			}
 			break;
@@ -404,10 +416,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 			sprintf(str, "%d", id->us);
 
-			if(id->us<10)
-				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
-			else
-				but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X+10,UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+			but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X + ((id->us < 10) ? 0:10), UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib) || !editable)
@@ -2107,7 +2116,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		Object *ob= (Object*)activeptr->data;
-		Key *key= (Key*)itemptr->data;
+		Key *key= (Key*)itemptr->id.data;
 
 		split= uiLayoutSplit(sub, 0.75f, 0);
 
@@ -2319,10 +2328,11 @@ static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
 
 static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
-	wmOperatorType *ot = WM_operatortype_first();
-	
-	for(; ot; ot= ot->next) {
-		
+	GHashIterator *iter= WM_operatortype_iter();
+
+	for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		wmOperatorType *ot= BLI_ghashIterator_getValue(iter);
+
 		if(BLI_strcasestr(ot->name, str)) {
 			if(WM_operator_poll((bContext*)C, ot)) {
 				char name[256];
@@ -2342,6 +2352,7 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 			}
 		}
 	}
+	BLI_ghashIterator_free(iter);
 }
 
 void uiTemplateOperatorSearch(uiLayout *layout)
