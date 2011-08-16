@@ -483,41 +483,28 @@ def preAdvancedRetargeting(performer_obj, enduser_obj):
     perf_root = performer_obj.pose.bones[0].name
     for bone in map_bones:
         perf_bone = bone.bone.reverseMap[0].name
-        addLocalRot = False;
+
+        cons = bone.constraints.new('COPY_ROTATION')
+        cons.name = "retargetTemp"
+        locks = bone.lock_rotation
+        cons.use_x = not locks[0]
+        cons.use_y = not locks[1]
+        cons.use_z = not locks[2]
+        cons.target = performer_obj
+        cons.subtarget = perf_bone
+        cons.target_space = 'WORLD'
+        cons.owner_space = 'WORLD'
+        
         if (not bone.bone.use_connect) and (perf_bone!=perf_root):
-            locks = bone.lock_location
-            #if not (locks[0] or locks[1] or locks[2]):  
             cons = bone.constraints.new('COPY_LOCATION')
             cons.name = "retargetTemp"
-            cons.use_x = not locks[0]
-            cons.use_y = not locks[1]
-            cons.use_z = not locks[2]
             cons.target = performer_obj
             cons.subtarget = perf_bone
+            cons.use_x = True
+            cons.use_y = True
+            cons.use_z = True
             cons.target_space = 'LOCAL'
             cons.owner_space = 'LOCAL'
-            addLocalRot = True
-
-       
-        cons2 = bone.constraints.new('COPY_ROTATION')
-        cons2.name = "retargetTemp"
-        locks = bone.lock_rotation
-        cons2.use_x = not locks[0]
-        cons2.use_y = not locks[1]
-        cons2.use_z = not locks[2]
-        cons2.target = performer_obj
-        cons2.subtarget = perf_bone
-        cons2.target_space = 'WORLD'
-        cons2.owner_space = 'WORLD'
-
-        if perf_bone==perf_root:
-            addLocalRot = True
-
-        #~ if addLocalRot:
-            #~ for constraint in bone.constraints:
-                #~ if constraint.type == 'COPY_ROTATION':
-                    #~ constraint.target_space = 'LOCAL'
-                    #~ constraint.owner_space = 'LOCAL'
 
 
 def prepareForBake(enduser_obj):
