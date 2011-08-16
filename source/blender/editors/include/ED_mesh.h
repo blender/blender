@@ -178,6 +178,8 @@ void		EDBM_free_backbuf(void);
 int			EDBM_init_backbuf_border(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 int			EDBM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short rads);
 
+void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
+
 void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
 void EDBM_set_actFace(struct BMEditMesh *em, struct BMFace *efa);
 

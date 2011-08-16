@@ -225,15 +225,11 @@ static int material_slot_de_select(bContext *C, int select)
 		return OPERATOR_CANCELLED;
 
 	if(ob->type == OB_MESH) {
-/*BMESH_TODO
 		BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
+
 		if(em) {
-			if(select)
-				EM_select_by_material(em, ob->actcol-1);
-			else
-				EM_deselect_by_material(em, ob->actcol-1);
+			EDBM_deselect_by_material(em, ob->actcol-1, select);
 		}
-*/
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 		ListBase *nurbs= ED_curve_editnurbs((Curve*)ob->data);

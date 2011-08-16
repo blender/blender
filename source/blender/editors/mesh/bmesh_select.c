@@ -1362,6 +1362,21 @@ void EDBM_convertsel(BMEditMesh *em, short oldmode, short selectmode)
 }
 
 
+void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select)
+{
+	BMIter iter;
+	BMFace *efa;
+
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		if (BM_TestHFlag(efa, BM_HIDDEN))
+			continue;
+		if(efa->mat_nr == index) {
+			BM_Select(em->bm, efa, select);
+		}
+	}
+}
+
+
 void EDBM_select_swap(BMEditMesh *em) /* exported for UV */
 {
 	BMIter iter;
