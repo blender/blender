@@ -77,6 +77,28 @@ ifeq ($(OS), NetBSD)
 	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3 )
 endif
 
+# -----------------------------------------------------------------------------
+# Build Blender
+all:
+	@echo
+	@echo Configuring Blender ...
+
+	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
+		cmake $(BUILD_CMAKE_ARGS) -H$(BLENDER_DIR) -B$(BUILD_DIR) -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE); \
+	fi
+
+	@echo
+	@echo Building Blender ...
+	$(MAKE) -C $(BUILD_DIR) -s -j $(NPROCS) install
+	@echo
+	@echo edit build configuration with: "$(BUILD_DIR)/CMakeCache.txt" run make again to rebuild.
+	@echo blender installed, run from: "$(BUILD_DIR)/bin/blender"
+	@echo
+
+debug: all
+lite: all
+headless: all
+bpy: all
 
 # -----------------------------------------------------------------------------
 # Helo for build targets
@@ -104,31 +126,6 @@ help:
 	@echo "  * test_pep8       - checks all python script are pep8 which are tagged to use the stricter formatting"
 	@echo "  * test_deprecated - checks for deprecation tags in our code which may need to be removed"
 	@echo ""
-
-
-# -----------------------------------------------------------------------------
-# Build Blender
-all:
-	@echo
-	@echo Configuring Blender ...
-
-	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
-		cmake $(BUILD_CMAKE_ARGS) -H$(BLENDER_DIR) -B$(BUILD_DIR) -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE); \
-	fi
-
-	@echo
-	@echo Building Blender ...
-	$(MAKE) -C $(BUILD_DIR) -s -j $(NPROCS) install
-	@echo
-	@echo edit build configuration with: "$(BUILD_DIR)/CMakeCache.txt" run make again to rebuild.
-	@echo blender installed, run from: "$(BUILD_DIR)/bin/blender"
-	@echo
-
-debug: all
-lite: all
-headless: all
-bpy: all
-
 
 # -----------------------------------------------------------------------------
 # Packages
