@@ -106,6 +106,9 @@ static int wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
 	     (a->ptr && b->ptr && IDP_EqualsProperties(a->ptr->data, b->ptr->data))))
 		return 0;
 	
+	if((a->flag & KMI_INACTIVE) != (b->flag & KMI_INACTIVE))
+		return 0;
+	
 	return (a->propvalue == b->propvalue);
 }
 

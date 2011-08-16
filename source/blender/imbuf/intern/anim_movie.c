@@ -350,7 +350,7 @@ struct anim * IMB_open_anim( const char * name, int ib_flags) {
 
 	anim = (struct anim*)MEM_callocN(sizeof(struct anim), "anim struct");
 	if (anim != NULL) {
-		strcpy(anim->name, name);  /* fixme: possible buffer overflow here? */
+		BLI_strncpy(anim->name, name, sizeof(anim->name));
 		anim->ib_flags = ib_flags;
 	}
 	return(anim);

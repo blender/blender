@@ -76,10 +76,6 @@
 /* own include */
 #include "sequencer_intern.h"
 
-static void error(const char *UNUSED(dummy)) {}
-static void waitcursor(int UNUSED(val)) {}
-static void activate_fileselect(int UNUSED(d1), const char *UNUSED(d2), const char *UNUSED(d3), void *UNUSED(d4)) {}
-static int pupmenu(const char *UNUSED(dummy)) {return 0;}
 static int okee(const char *UNUSED(dummy)) {return 0;}
 
 
@@ -245,7 +241,7 @@ void seq_rectf(Sequence *seq, rctf *rectf)
 	rectf->ymax= seq->machine+SEQ_STRIP_OFSTOP;
 }
 
-static void change_plugin_seq(Scene *scene, char *str)	/* called from fileselect */
+static void UNUSED_FUNCTION(change_plugin_seq)(Scene *scene, char *str) /* called from fileselect */
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	struct SeqEffectHandle sh;
@@ -868,7 +864,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 	return done;
 }
 
-static void touch_seq_files(Scene *scene)
+static void UNUSED_FUNCTION(touch_seq_files)(Scene *scene)
 {
 	Sequence *seq;
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -880,7 +876,7 @@ static void touch_seq_files(Scene *scene)
 
 	if(okee("Touch and print selected movies")==0) return;
 
-	waitcursor(1);
+	WM_cursor_wait(1);
 
 	SEQP_BEGIN(ed, seq) {
 		if(seq->flag & SELECT) {
@@ -895,7 +891,7 @@ static void touch_seq_files(Scene *scene)
 	}
 	SEQ_END
 
-	waitcursor(0);
+	WM_cursor_wait(0);
 }
 
 /*
@@ -923,7 +919,7 @@ static void set_filter_seq(Scene *scene)
 }
 */
 
-static void seq_remap_paths(Scene *scene)
+static void UNUSED_FUNCTION(seq_remap_paths)(Scene *scene)
 {
 	Sequence *seq, *last_seq = seq_active_get(scene);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -964,7 +960,7 @@ static void seq_remap_paths(Scene *scene)
 }
 
 
-static void no_gaps(Scene *scene)
+static void UNUSED_FUNCTION(no_gaps)(Scene *scene)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	int cfra, first= 0, done;
@@ -3008,12 +3004,15 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 	else {
 		/* lame, set rna filepath */
 		PointerRNA seq_ptr;
+		PropertyRNA *prop;
 		char filepath[FILE_MAX];
 
 		RNA_pointer_create(&scene->id, &RNA_Sequence, seq, &seq_ptr);
 
 		RNA_string_get(op->ptr, "filepath", filepath);
-		RNA_string_set(&seq_ptr, "filepath", filepath);
+		prop= RNA_struct_find_property(&seq_ptr, "filepath");
+		RNA_property_string_set(&seq_ptr, prop, filepath);
+		RNA_property_update(C, &seq_ptr, prop);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);

@@ -43,6 +43,7 @@
 #include "BKE_text.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_utildefines.h"
 
 #include "WM_types.h"
 
@@ -192,7 +193,7 @@ static void confirm_suggestion(Text *text, int skipleft)
 // XXX
 static int doc_scroll= 0;
 
-static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short val)
+static short UNUSED_FUNCTION(do_texttools)(SpaceText *st, char ascii, unsigned short evnt, short val)
 {
 	ARegion *ar= NULL; // XXX
 	int qual= 0; // XXX
@@ -375,7 +376,7 @@ static short do_texttools(SpaceText *st, char ascii, unsigned short evnt, short 
 		; // XXX redraw_alltext();
 #endif
 
-static short do_textmarkers(SpaceText *st, char ascii, unsigned short evnt, short val)
+static short UNUSED_FUNCTION(do_textmarkers)(SpaceText *st, char ascii, unsigned short evnt, short val)
 {
 	Text *text;
 	TextMarker *marker, *mrk, *nxt;

@@ -1679,7 +1679,7 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 
 /* not used, test function for ambient occlusion (yaf: pathlight) */
 /* main problem; has to be called within shading loop, giving unwanted recursion */
-static int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
+static int UNUSED_FUNCTION(ray_trace_shadow_rad)(ShadeInput *ship, ShadeResult *shr)
 {
 	static int counter=0, only_one= 0;
 	extern float hashvectf[];
