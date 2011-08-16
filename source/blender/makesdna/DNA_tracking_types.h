@@ -100,12 +100,20 @@ typedef struct MovieTrackingTrack {
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingSettings {
-	int flag;		/* different flags (frames nr limit..) */
 	short speed;	/* speed of tracking */
 	short frames_limit;	/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
+
+	/* ** tool settings ** */
+
+	/* set scale */
 	float dist;					/* distance between two bundles used for scene scaling */
-	float pad;
+
+	/* cleanup */
+	int clean_frames, clean_action;
+	float clean_error;
+
+	int pad;
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {
@@ -165,14 +173,15 @@ enum {
 #define TRACKING_SPEED_HALF			2
 #define TRACKING_SPEED_QUARTER		4
 
-/* MovieTrackingSettings->flag */
-#define TRACKING_FRAMES_LIMIT		(1<<0)
-
 /* MovieTrackingStrabilization->flag */
 #define TRACKING_2D_STABILIZATION	(1<<0)
 #define TRACKING_AUTOSCALE			(1<<1)
 
 /* MovieTrackingReconstruction->flag */
 #define TRACKING_RECONSTRUCTED	(1<<0)
+
+#define TRACKING_CLEAN_SELECT			0
+#define TRACKING_CLEAN_DELETE_TRACK		1
+#define TRACKING_CLEAN_DELETE_SEGMENT	2
 
 #endif

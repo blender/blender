@@ -344,7 +344,7 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->tracking.camera.pixel_aspect= 1.0f;
 	clip->tracking.camera.units= CAMERA_UNITS_MM;
 
-	clip->tracking.settings.frames_limit= 20;
+	clip->tracking.settings.frames_limit= 0;
 	clip->tracking.settings.keyframe1= 1;
 	clip->tracking.settings.keyframe2= 30;
 	clip->tracking.settings.dist= 1;

@@ -1148,6 +1148,7 @@ static void rna_def_background_image(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "clip_user", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "MovieClipUser");
 	RNA_def_property_pointer_sdna(prop, NULL, "cuser");
 	RNA_def_property_ui_text(prop, "Clip User", "Parameters defining which frame of the movie clip is displayed");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
@@ -2643,6 +2644,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem mode_items[] = {
+		{SC_MODE_TRACKING, "TRACKING", 0, "Tracking", "Show tracking and solving tools"},
+		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", 0, "Reconstruction", "Show tracking/reconstruction tools"},
+		{SC_MODE_DISTORTION, "DISTORTION", 0, "Distortion", "Show distortion tools"},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "SpaceClipEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceClip");
 	RNA_def_struct_ui_text(srna, "Space Clip Editor", "Clip editor space data");
@@ -2657,8 +2664,16 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	/* clip user */
 	prop= RNA_def_property(srna, "clip_user", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "MovieClipUser");
 	RNA_def_property_pointer_sdna(prop, NULL, "user");
 	RNA_def_property_ui_text(prop, "Movie Clip User", "Parameters defining which frame of the movie clip is displayed");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* mode */
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "Current clip editor mode");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 
 	/* show pattern */

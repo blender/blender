@@ -91,6 +91,13 @@ static void trackingMarker_buttons(const bContext *C, uiLayout *layout)
 	ED_space_clip_size(sc, &width, &height);
 	BKE_movieclip_last_selection(clip, &type, (void**)&track);
 
+	if(track->flag&TRACK_LOCKED) {
+		uiLayoutSetActive(layout, 0);
+		block= uiLayoutAbsoluteBlock(layout);
+		uiDefBut(block, LABEL, 0, "Track is locked", 0, 0, 300, 19, NULL, 0, 0, 0, 0, "");
+		return;
+	}
+
 	step= 100;
 	digits= 2;
 
@@ -115,7 +122,7 @@ static void trackingMarker_buttons(const bContext *C, uiLayout *layout)
 
 	block= uiLayoutAbsoluteBlock(layout);
 
-	uiDefButBitI(block, OPTION, MARKER_DISABLED, B_MARKER_FLAG,  "Disabled", 10, 190, 145, 19, &sc->marker_flag,
+	uiDefButBitI(block, OPTIONN, MARKER_DISABLED, B_MARKER_FLAG,  "Enabled", 10, 190, 145, 19, &sc->marker_flag,
 		0, 0, 0, 0, "Marker is disabled for current frame.");
 
 	col= uiLayoutColumn(layout, 1);
@@ -264,7 +271,7 @@ static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
 	int type;
 	MovieTrackingTrack *track;
 
-	if(!sc)
+	if(sc->mode!=SC_MODE_TRACKING)
 		return 0;
 
 	clip= ED_space_clip(sc);
@@ -275,9 +282,6 @@ static int clip_panel_marker_poll(const bContext *C, PanelType *UNUSED(pt))
 	BKE_movieclip_last_selection(clip, &type, (void**)&track);
 
 	if(type!=MCLIP_SEL_TRACK)
-		return 0;
-
-	if(track->flag&TRACK_LOCKED)
 		return 0;
 
 	return 1;
@@ -302,6 +306,7 @@ void ED_clip_buttons_register(ARegionType *art)
 	strcpy(pt->label, "Marker");
 	pt->draw= clip_panel_marker;
 	pt->poll= clip_panel_marker_poll;
+	pt->flag|= PNL_DEFAULT_CLOSED;
 
 	BLI_addtail(&art->paneltypes, pt);
 
@@ -361,7 +366,7 @@ void uiTemplateMovieClip(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 	}
 }
 
-/********************* Marker Template ************************/
+/********************* Track Template ************************/
 
 void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
@@ -396,4 +401,65 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	scopes->track_preview_height= (scopes->track_preview_height<=UI_UNIT_Y)?UI_UNIT_Y:scopes->track_preview_height;
 
 	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
+}
+
+/********************* Marker Template ************************/
+
+typedef struct {
+	int flag, framenr;
+	MovieTrackingTrack *track;
+} MarkerUpdateCb;
+
+static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
+{
+	MarkerUpdateCb *cb= (MarkerUpdateCb*) arg_cb;
+	MovieTrackingMarker *marker;
+
+	marker= BKE_tracking_ensure_marker(cb->track, cb->framenr);
+
+	marker->flag= cb->flag;
+
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
+}
+
+void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr)
+{
+	PropertyRNA *prop;
+	uiBlock *block;
+	uiBut *bt;
+	PointerRNA trackptr;
+	MovieClipUser *user;
+	MovieTrackingTrack *track;
+	MovieTrackingMarker *marker;
+	MarkerUpdateCb *cb;
+
+	if(!ptr->data)
+		return;
+
+	prop= RNA_struct_find_property(ptr, propname);
+	if(!prop) {
+		printf("uiTemplateMarker: property not found: %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	if(RNA_property_type(prop) != PROP_POINTER) {
+		printf("uiTemplateMarker: expected pointer property for %s.%s\n", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	trackptr= RNA_property_pointer_get(ptr, prop);
+	track= (MovieTrackingTrack *)trackptr.data;
+	user= userptr->data;
+
+	marker= BKE_tracking_get_marker(track, user->framenr);
+
+	block= uiLayoutGetBlock(layout);
+
+	cb= MEM_callocN(sizeof(MarkerUpdateCb), "uiTemplateMarker update_cb");
+	cb->flag= marker->flag;
+	cb->track= track;
+	cb->framenr= user->framenr;
+
+	bt= uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_MUTE_IPO_OFF, 0, 0, 20, 20, &cb->flag, 0, 0, 1, 0, "Marker is disabled for current frame.");
+	uiButSetNFunc(bt, marker_update_cb, cb, NULL);
 }

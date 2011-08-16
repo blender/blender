@@ -281,7 +281,7 @@ static void clip_operatortypes(void)
 
 	/* solving */
 	WM_operatortype_append(CLIP_OT_solve_camera);
-	WM_operatortype_append(CLIP_OT_clear_reconstruction);
+	WM_operatortype_append(CLIP_OT_clear_solution);
 
 	WM_operatortype_append(CLIP_OT_disable_markers);
 	WM_operatortype_append(CLIP_OT_hide_tracks);

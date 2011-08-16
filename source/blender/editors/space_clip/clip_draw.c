@@ -943,6 +943,9 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 	float dx= (float)width/n, dy= (float)height/n;
 	MovieTracking *tracking= &clip->tracking;
 
+	if(sc->mode!=SC_MODE_DISTORTION)
+		return;
+
 	if(!tracking->camera.focal)
 		return;
 
@@ -1162,7 +1165,7 @@ void draw_clip_grease_pencil(bContext *C, int onlyv2d)
 	if(onlyv2d) {
 		/* if manual calibration is used then grase pencil data is already
 		    drawed in draw_distortion */
-		if((sc->flag&SC_MANUAL_CALIBRATION)==0) {
+		if((sc->flag&SC_MANUAL_CALIBRATION)==0 || sc->mode!=SC_MODE_DISTORTION) {
 			ibuf= ED_space_clip_acquire_buffer(sc);
 
 			if(ibuf) {

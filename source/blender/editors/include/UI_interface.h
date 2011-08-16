@@ -734,6 +734,7 @@ void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr
 
 void uiTemplateMovieClip(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact);
 void uiTemplateTrack(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);
+void uiTemplateMarker(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname, PointerRNA *userptr);
 
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);

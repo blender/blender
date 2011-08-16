@@ -1216,7 +1216,7 @@ static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwar
 	else tmj->efra= EFRA;
 
 	/* limit frames to be tracked by user setting */
-	if(settings->flag&TRACKING_FRAMES_LIMIT) {
+	if(settings->frames_limit) {
 		if(backwards) tmj->efra= MAX2(tmj->efra, tmj->sfra-settings->frames_limit);
 		else tmj->efra= MIN2(tmj->efra, tmj->sfra+settings->frames_limit);
 	}
@@ -1328,7 +1328,7 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 	else efra= EFRA;
 
 	/* limit frames to be tracked by user setting */
-	if(settings->flag&TRACKING_FRAMES_LIMIT) {
+	if(settings->frames_limit) {
 		if(backwards) efra= MAX2(efra, sfra-settings->frames_limit);
 		else efra= MIN2(efra, sfra+settings->frames_limit);
 	}
@@ -1540,9 +1540,9 @@ void CLIP_OT_solve_camera(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/********************** clear reconstruction operator *********************/
+/********************** clear solution operator *********************/
 
-static int clear_reconstruction_exec(bContext *C, wmOperator *UNUSED(op))
+static int clear_solution_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
@@ -1571,15 +1571,15 @@ static int clear_reconstruction_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void CLIP_OT_clear_reconstruction(wmOperatorType *ot)
+void CLIP_OT_clear_solution(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Clear Reconstruction";
-	ot->description= "Clear all reconstruciton data";
-	ot->idname= "CLIP_OT_clear_reconstruction";
+	ot->name= "Clear Solution";
+	ot->description= "Clear all calculated data";
+	ot->idname= "CLIP_OT_clear_solution";
 
 	/* api callbacks */
-	ot->exec= clear_reconstruction_exec;
+	ot->exec= clear_solution_exec;
 	ot->poll= ED_space_clip_poll;
 
 	/* flags */
@@ -2735,8 +2735,8 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 	if(sel_type!=MCLIP_SEL_TRACK)
 		sel_track= NULL;
 
-	if(error && action==2)
-		action= 1;
+	if(error && action==TRACKING_CLEAN_DELETE_SEGMENT)
+		action= TRACKING_CLEAN_DELETE_TRACK;
 
 	track= tracking->tracks.first;
 	while(track) {
@@ -2745,14 +2745,14 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 		if((track->flag&TRACK_HIDDEN)==0 && (track->flag&TRACK_LOCKED)==0) {
 			int ok= 1;
 
-			ok&= is_track_clean(track, frames, action==2);
+			ok&= is_track_clean(track, frames, action==TRACKING_CLEAN_DELETE_SEGMENT);
 			ok&= error == 0.f || (track->flag&TRACK_HAS_BUNDLE)==0  || track->error < error;
 
 			if(!ok) {
-				if(action==0) {			/* select */
+				if(action==TRACKING_CLEAN_SELECT) {
 					BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, 0);
 				}
-				else if(action==1) {	/* delete track */
+				else if(action==TRACKING_CLEAN_DELETE_TRACK) {
 					if(track==sel_track)
 						BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 
@@ -2779,12 +2779,29 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int clean_tracks_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	int frames= RNA_int_get(op->ptr, "frames");
+	float error= RNA_float_get(op->ptr, "error");
+	int action= RNA_enum_get(op->ptr, "action");
+
+	if(frames==0 && error==0 && action==0) {
+		RNA_int_set(op->ptr, "frames", clip->tracking.settings.clean_frames);
+		RNA_float_set(op->ptr, "error", clip->tracking.settings.clean_error);
+		RNA_enum_set(op->ptr, "action", clip->tracking.settings.clean_action);
+	}
+
+	return clean_tracks_exec(C, op);
+}
+
 void CLIP_OT_clean_tracks(wmOperatorType *ot)
 {
 	static EnumPropertyItem actions_items[] = {
-			{0, "SELECT", 0, "Select", "Select un-clean tracks"},
-			{1, "DELETE_TRACK", 0, "Delete Track", "Delete un-clean tracks"},
-			{2, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete un-clean segments of tracks"},
+			{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select un-clean tracks"},
+			{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete un-clean tracks"},
+			{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete un-clean segments of tracks"},
 			{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2795,6 +2812,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= clean_tracks_exec;
+	ot->invoke= clean_tracks_invoke;
 	ot->poll= ED_space_clip_poll;
 
 	/* flags */
@@ -2803,5 +2821,5 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 	/* properties */
 	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Affect on tracks which are tracked less than specified amount of frames.", 0, INT_MAX);
 	RNA_def_float(ot->srna, "error", 0.0f, 0.f, FLT_MAX, "Reprojection Error", "Affect on tracks with have got larger reprojection error.", 0.f, 100.0f);
-	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
+	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute.");
 }

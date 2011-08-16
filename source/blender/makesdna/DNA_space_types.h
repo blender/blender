@@ -578,7 +578,7 @@ typedef struct SpaceClip {
 	struct MovieClipScopes scopes;	/* different scoped displayed in space panels */
 
 	int flag;					/* flags */
-	int pad;
+	int mode;					/*editor mode */
 
 	int path_length;			/* length of displaying path, in frames */
 
@@ -983,6 +983,10 @@ enum {
 #define SC_MANUAL_CALIBRATION	(1<<11)
 #define SC_SHOW_GPENCIL			(1<<12)
 
+/* SpaceClip->mode */
+#define SC_MODE_TRACKING		0
+#define SC_MODE_RECONSTRUCTION	1
+#define SC_MODE_DISTORTION		2
 
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */
