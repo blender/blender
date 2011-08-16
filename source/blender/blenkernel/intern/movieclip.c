@@ -672,40 +672,15 @@ void BKE_movieclip_select_track(MovieClip *clip, MovieTrackingTrack *track, int 
 			cur= cur->next;
 		}
 	}
-
-	if(!TRACK_SELECTED(track))
-		BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 }
 
 void BKE_movieclip_deselect_track(MovieClip *clip, MovieTrackingTrack *track, int area)
 {
 	BKE_tracking_track_flag(track, area, SELECT, 1);
-
-	if(!TRACK_SELECTED(track))
-		BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
-}
-
-void BKE_movieclip_set_selection(MovieClip *clip, int type, void *sel)
-{
-	clip->sel_type= type;
-
-	if(type == MCLIP_SEL_NONE) clip->last_sel= NULL;
-	else clip->last_sel= sel;
-}
-
-void BKE_movieclip_last_selection(MovieClip *clip, int *type, void **sel)
-{
-	*type= clip->sel_type;
-
-	if(clip->sel_type == MCLIP_SEL_NONE) *sel= NULL;
-	else *sel= clip->last_sel;
 }
 
 void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClipScopes *scopes)
 {
-	void *sel;
-	int sel_type;
-
 	if(scopes->ok) return;
 
 	if(scopes->track_preview) {
@@ -717,10 +692,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 	scopes->track= NULL;
 
 	if(clip) {
-		BKE_movieclip_last_selection(clip, &sel_type, &sel);
-
-		if(sel_type==MCLIP_SEL_TRACK) {
-			MovieTrackingTrack *track= (MovieTrackingTrack*)sel;
+		if(clip->tracking.act_track) {
+			MovieTrackingTrack *track= clip->tracking.act_track;
 			MovieTrackingMarker *marker= BKE_tracking_get_marker(track, user->framenr);
 
 			if(marker->flag&MARKER_DISABLED) {

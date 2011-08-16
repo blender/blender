@@ -704,10 +704,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 	MovieTrackingTrack *track;
 	ListBase tracks= {NULL, NULL}, new_tracks= {NULL, NULL};
 	ListBase *old_tracks= &context->clip->tracking.tracks;
-	int a, sel_type, newframe;
-	void *sel;
-
-	BKE_movieclip_last_selection(context->clip, &sel_type, &sel);
+	int a, newframe;
 
 	/* duplicate currently tracking tracks to temporary list.
 	   this is needed to keep names in unique state and it's faster to change names
@@ -732,7 +729,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 
 			/* original track was found, re-use flags and remove this track */
 			if(cur) {
-				if(sel_type==MCLIP_SEL_TRACK && sel==cur)
+				if(cur==context->clip->tracking.act_track)
 					replace_sel= 1;
 
 				track->flag= cur->flag;
@@ -750,7 +747,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 		BLI_ghash_insert(context->hash, track, new_track);
 
 		if(replace_sel)		/* update current selection in clip */
-			BKE_movieclip_set_selection(context->clip, MCLIP_SEL_TRACK, new_track);
+			context->clip->tracking.act_track= new_track;
 
 		BLI_addtail(&tracks, new_track);
 	}

@@ -145,6 +145,8 @@ typedef struct MovieTracking {
 	ListBase tracks;				/* all tracks */
 	MovieTrackingReconstruction reconstruction;	/* reconstruction data */
 	MovieTrackingStabilization stabilization;	/* stabilization data */
+
+	MovieTrackingTrack *act_track;		/* active track */
 } MovieTracking;
 
 /* MovieTrackingCamera->units */

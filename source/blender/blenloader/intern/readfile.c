@@ -5719,9 +5719,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 		track= track->next;
 	}
 
-	clip->last_sel= newdataadr(fd, clip->last_sel);
-	if(clip->last_sel==NULL)
-		clip->sel_type= MCLIP_SEL_NONE;
+	clip->tracking.act_track= newdataadr(fd, clip->tracking.act_track);
 
 	clip->anim= NULL;
 	clip->tracking_context= NULL;

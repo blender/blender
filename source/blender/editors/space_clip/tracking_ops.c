@@ -125,7 +125,8 @@ static void add_marker(SpaceClip *sc, float x, float y)
 	track= BKE_tracking_add_track(&clip->tracking, x, y, sc->user.framenr, width, height);
 
 	BKE_movieclip_select_track(clip, track, TRACK_AREA_ALL, 0);
-	BKE_movieclip_set_selection(clip, MCLIP_SEL_TRACK, track);
+
+	clip->tracking.act_track= track;
 }
 
 static int add_marker_exec(bContext *C, wmOperator *op)
@@ -192,6 +193,9 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 		next= track->next;
 
 		if(TRACK_VIEW_SELECTED(sc, track)) {
+			if(track==clip->tracking.act_track)
+				clip->tracking.act_track= NULL;
+
 			if(track->flag&TRACK_HAS_BUNDLE)
 				has_bundle= 1;
 
@@ -202,7 +206,6 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 		track= next;
 	}
 
-	BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 
 	if(has_bundle)
@@ -234,10 +237,7 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track= clip->tracking.tracks.first, *next;
-	int framenr= sc->user.framenr, sel_type;
-	void *sel;
-
-	BKE_movieclip_last_selection(clip, &sel_type, &sel);
+	int framenr= sc->user.framenr;
 
 	while(track) {
 		next= track->next;
@@ -247,8 +247,8 @@ static int delete_marker_exec(bContext *C, wmOperator *UNUSED(op))
 
 			if(marker) {
 				if(track->markersnr==1) {
-					if(sel_type==MCLIP_SEL_TRACK && sel==track)
-						BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+					if(track==clip->tracking.act_track)
+						clip->tracking.act_track= NULL;
 
 					BKE_tracking_free_track(track);
 					BLI_freelinkN(&clip->tracking.tracks, track);
@@ -756,7 +756,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 				area= TRACK_AREA_ALL;
 
 			BKE_movieclip_select_track(clip, track, area, extend);
-			BKE_movieclip_set_selection(clip, MCLIP_SEL_TRACK, track);
+			clip->tracking.act_track= track;
 		}
 	}
 
@@ -856,8 +856,6 @@ static int border_select_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
-
 	if(change) {
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
 
@@ -941,8 +939,6 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
-
 	if(change) {
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
 
@@ -983,8 +979,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track= NULL;	/* selected track */
 	int action= RNA_enum_get(op->ptr, "action");
-	int sel_type, framenr= sc->user.framenr;
-	void *sel;
+	int framenr= sc->user.framenr;
 
 	if(action == SEL_TOGGLE){
 		action= SEL_SELECT;
@@ -1028,11 +1023,6 @@ static int select_all_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	BKE_movieclip_last_selection(clip, &sel_type, &sel);
-	if(sel_type==MCLIP_SEL_TRACK)
-		if(!TRACK_VIEW_SELECTED(sc, ((MovieTrackingTrack*)sel)))
-			BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
-
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1061,12 +1051,9 @@ static int select_groped_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	MovieTrackingTrack *track, *sel;
+	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	int group= RNA_enum_get(op->ptr, "group");
-	int sel_type;
-
-	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
 
 	track= clip->tracking.tracks.first;
 	while(track) {
@@ -1090,11 +1077,11 @@ static int select_groped_exec(bContext *C, wmOperator *op)
 			ok= marker->flag&MARKER_DISABLED;
 		}
 		else if(group==5) { /* color */
-			if(sel_type==MCLIP_SEL_TRACK) {
-				ok= (track->flag&TRACK_CUSTOMCOLOR) == (sel->flag&TRACK_CUSTOMCOLOR);
+			if(clip->tracking.act_track) {
+				ok= (track->flag&TRACK_CUSTOMCOLOR) == (clip->tracking.act_track->flag&TRACK_CUSTOMCOLOR);
 
 				if(ok && track->flag&TRACK_CUSTOMCOLOR)
-					ok= equals_v3v3(track->color, sel->color);
+					ok= equals_v3v3(track->color, clip->tracking.act_track->color);
 			}
 		}
 		else if(group==6) { /* failed */
@@ -1815,10 +1802,10 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	Scene *scene= CTX_data_scene(C);
-	MovieTrackingTrack *track, *sel, *axis_track= NULL;
+	MovieTrackingTrack *track, *axis_track= NULL;
 	Object *camera= scene->camera;
 	Object *parent= camera;
-	int tot= 0, sel_type;
+	int tot= 0;
 	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3]= {0.f, 0.f, 0.f};
 	float rot[4][4]={{0.f, 0.f, -1.f, 0.f},
 	                 {0.f, 1.f, 0.f, 0.f},
@@ -1835,15 +1822,13 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 
 	BKE_get_tracking_mat(scene, mat);
 
-	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
-
 	/* get 3 bundles to use as reference */
 	track= clip->tracking.tracks.first;
 	while(track && tot<3) {
 		if(track->flag&TRACK_HAS_BUNDLE && TRACK_VIEW_SELECTED(sc, track)) {
 			mul_v3_m4v3(vec[tot], mat, track->bundle_pos);
 
-			if(tot==0 || (sel_type==MCLIP_SEL_TRACK && track==sel))
+			if(tot==0 || track==clip->tracking.act_track)
 				copy_v3_v3(orig, vec[tot]);
 			else
 				axis_track= track;
@@ -2105,12 +2090,9 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track;
-	int sel_type, unselected;
-	void *sel;
+	int unselected;
 
 	unselected= RNA_boolean_get(op->ptr, "unselected");
-
-	BKE_movieclip_last_selection(clip, &sel_type, &sel);
 
 	track= clip->tracking.tracks.first;
 	while(track) {
@@ -2123,12 +2105,8 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	if(sel_type==MCLIP_SEL_TRACK) {
-		track= (MovieTrackingTrack *)sel;
-
-		if(track->flag&TRACK_HIDDEN)
-			BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
-	}
+	if(clip->tracking.act_track->flag&TRACK_HIDDEN)
+		clip->tracking.act_track= NULL;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
@@ -2213,7 +2191,6 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 
 	IMB_freeImBuf(ibuf);
 
-	BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -2251,9 +2228,9 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 	int sel_type, delta;
 
 	if(pos<=1) {	/* jump to path */
-		BKE_movieclip_last_selection(clip, &sel_type, (void**)&track);
+		track= clip->tracking.act_track;
 
-		if(sel_type!=MCLIP_SEL_TRACK)
+		if(!track)
 			return OPERATOR_CANCELLED;
 
 		delta= pos == 1 ? 1 : -1;
@@ -2337,9 +2314,9 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 	MovieTrackingTrack *act_track, *track, *next;
 	int sel_type;
 
-	BKE_movieclip_last_selection(clip, &sel_type, (void**)&act_track);
+	act_track= clip->tracking.act_track;
 
-	if(sel_type!=MCLIP_SEL_TRACK) {
+	if(!act_track) {
 		BKE_report(op->reports, RPT_ERROR, "No active track to join to");
 		return OPERATOR_CANCELLED;
 	}
@@ -2446,21 +2423,18 @@ static int track_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	MovieTrackingTrack *track, *sel;
-	int sel_type;
+	MovieTrackingTrack *track, *act_track= clip->tracking.act_track;
 
-	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel);
-
-	if(sel_type!=MCLIP_SEL_TRACK)
+	if(!act_track)
 		return OPERATOR_CANCELLED;
 
 	track= clip->tracking.tracks.first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track) && track!=sel) {
+		if(TRACK_VIEW_SELECTED(sc, track) && track!=act_track) {
 			track->flag&= ~TRACK_CUSTOMCOLOR;
 
-			if(sel->flag&TRACK_CUSTOMCOLOR) {
-				copy_v3_v3(track->color, sel->color);
+			if(act_track->flag&TRACK_CUSTOMCOLOR) {
+				copy_v3_v3(track->color, act_track->color);
 				track->flag|= TRACK_CUSTOMCOLOR;
 			}
 		}
@@ -2725,15 +2699,10 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
-	MovieTrackingTrack *track, *next, *sel_track;
+	MovieTrackingTrack *track, *next, *act_track= clip->tracking.act_track;
 	int frames= RNA_int_get(op->ptr, "frames");
 	int action= RNA_enum_get(op->ptr, "action");
 	float error= RNA_float_get(op->ptr, "error");
-	int sel_type;
-
-	BKE_movieclip_last_selection(clip, &sel_type, (void**)&sel_track);
-	if(sel_type!=MCLIP_SEL_TRACK)
-		sel_track= NULL;
 
 	if(error && action==TRACKING_CLEAN_DELETE_SEGMENT)
 		action= TRACKING_CLEAN_DELETE_TRACK;
@@ -2753,8 +2722,8 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 					BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, 0);
 				}
 				else if(action==TRACKING_CLEAN_DELETE_TRACK) {
-					if(track==sel_track)
-						BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+					if(track==act_track)
+						clip->tracking.act_track= NULL;
 
 					BKE_tracking_free_track(track);
 					BLI_freelinkN(&clip->tracking.tracks, track);
@@ -2762,8 +2731,8 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 
 				/* happens when all tracking segments are not long enough */
 				if(track->markersnr==0) {
-					if(track==sel_track)
-						BKE_movieclip_set_selection(clip, MCLIP_SEL_NONE, NULL);
+					if(track==act_track)
+						clip->tracking.act_track= NULL;
 
 					BKE_tracking_free_track(track);
 					BLI_freelinkN(&clip->tracking.tracks, track);

@@ -582,17 +582,8 @@ typedef struct SpaceClip {
 
 	int path_length;			/* length of displaying path, in frames */
 
-	/* ** some runtime vars which aren't really in file ** */
-	/* marker data displayed in panel */
-	float marker_pos[2];						/* position of marker in pixel coords */
-	float track_pat[2];							/* position and dimensions of marker pattern in pixel coords */
-	float track_offset[2];						/* offset of "parenting" point */
-	float track_search_pos[2], track_search[2];	/* position and dimensions of marker search in pixel coords */
-	int marker_flag;							/* marker's flags */
-
 	/* current stabilization data */
 	float loc[2], scale;	/* pre-composed stabilization data */
-	float pad2;
 	float stabmat[4][4];	/* current stabilization matrix, defined when drawing
 							   and used for mouse position calculation */
 } SpaceClip;

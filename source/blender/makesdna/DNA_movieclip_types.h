@@ -83,10 +83,7 @@ typedef struct MovieClip {
 
 	struct MovieClipProxy proxy;		/* proxy to clip data */
 	short render_size, pad;				/* proxy render size */
-	int flag, pad2;
-
-	int sel_type;		/* last selected thing */
-	void *last_sel;
+	int flag;
 } MovieClip;
 
 typedef struct MovieClipScopes {

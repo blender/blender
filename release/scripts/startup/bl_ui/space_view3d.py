@@ -2318,7 +2318,7 @@ class VIEW3D_PT_background_image(Panel):
                     row.template_ID(bg, "clip", open="clip.open")
 
                     if bg.clip:
-                        box.template_movieclip(bg, "clip", bg.clip_user, compact=True)
+                        box.template_movieclip(bg, "clip", compact=True)
                         hasbg = True
 
                 if hasbg:

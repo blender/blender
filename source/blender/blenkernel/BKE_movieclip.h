@@ -57,8 +57,6 @@ void BKE_movieclip_user_set_frame(struct MovieClipUser *user, int framenr);
 
 void BKE_movieclip_select_track(struct MovieClip *clip, struct MovieTrackingTrack *track, int area, int extend);
 void BKE_movieclip_deselect_track(struct MovieClip *clip, struct MovieTrackingTrack *track, int area);
-void BKE_movieclip_set_selection(struct MovieClip *clip, int type, void *sel);
-void BKE_movieclip_last_selection(struct MovieClip *clip, int *type, void **sel);
 
 void BKE_movieclip_update_scopes(struct MovieClip *clip, struct MovieClipUser *user, struct MovieClipScopes *scopes);
 

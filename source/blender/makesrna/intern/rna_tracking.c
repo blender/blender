@@ -60,6 +60,23 @@ static void rna_tracking_tracks_begin(CollectionPropertyIterator *iter, PointerR
 	rna_iterator_listbase_begin(iter, &clip->tracking.tracks, NULL);
 }
 
+static PointerRNA rna_tracking_active_track_get(PointerRNA *ptr)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+
+	return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingTrack, clip->tracking.act_track);
+}
+
+static void rna_tracking_active_track_set(PointerRNA *ptr, PointerRNA value)
+{
+	MovieClip *clip= (MovieClip*)ptr->id.data;
+	MovieTrackingTrack *track= (MovieTrackingTrack *)value.data;
+	int index= BLI_findindex(&clip->tracking.tracks, track);
+
+	if(index>=0) clip->tracking.act_track= track;
+	else clip->tracking.act_track= NULL;
+}
+
 void rna_trackingTrack_name_get(PointerRNA *ptr, char *value)
 {
 	MovieTrackingTrack *track= (MovieTrackingTrack *)ptr->data;
@@ -105,20 +122,6 @@ static void rna_tracking_trackerSearch_update(Main *UNUSED(bmain), Scene *UNUSED
 		BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 		track= track->next;
 	}
-}
-
-static PointerRNA rna_tracking_active_track_get(PointerRNA *ptr)
-{
-	MovieClip *clip= (MovieClip*)ptr->id.data;
-	int type;
-	void *sel;
-
-	BKE_movieclip_last_selection(clip, &type, &sel);
-
-	if(type==MCLIP_SEL_TRACK)
-		return rna_pointer_inherit_refine(ptr, &RNA_MovieTrackingTrack, sel);
-
-	return rna_pointer_inherit_refine(ptr, &RNA_SceneRenderLayer, NULL);
 }
 
 static float rna_trackingCamera_focal_get(PointerRNA *ptr)
@@ -653,7 +656,8 @@ static void rna_def_tracking(BlenderRNA *brna)
 	/* active track */
 	prop= RNA_def_property(srna, "active_track", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MovieTrackingTrack");
-	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_track_get", NULL, NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_tracking_active_track_get", "rna_tracking_active_track_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
 	RNA_def_property_ui_text(prop, "Active Track", "Active track in this tracking data object");
 
 	/* stabilization */

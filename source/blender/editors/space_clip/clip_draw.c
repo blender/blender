@@ -75,14 +75,11 @@
 static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Scene *scene)
 {
 	float x;
-	int *points, totseg, sel_type, i, a;
+	int *points, totseg, i, a;
 	float sfra= SFRA, efra= EFRA, framelen= ar->winx/(efra-sfra+1), fontsize, fontwidth;
-	void *sel;
 	uiStyle *style= U.uistyles.first;
 	int fontid= style->widget.uifont_id;
 	char str[32];
-
-	BKE_movieclip_last_selection(clip, &sel_type, &sel);
 
 	glEnable(GL_BLEND);
 
@@ -106,8 +103,8 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	}
 
 	/* track */
-	if(sel_type==MCLIP_SEL_TRACK) {
-		MovieTrackingTrack *track= (MovieTrackingTrack *)sel;
+	if(clip->tracking.act_track) {
+		MovieTrackingTrack *track= clip->tracking.act_track;
 
 		for(i= sfra, a= 0; i <= efra; i++) {
 			int framenr;
@@ -250,19 +247,16 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 	glPixelZoom(1.f, 1.f);
 }
 
-static void draw_track_path(SpaceClip *sc, MovieClip *clip, MovieTrackingTrack *track)
+static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackingTrack *track)
 {
 	int count= sc->path_length;
-	int i, a, b, sel_type, curindex= -1;
+	int i, a, b, curindex= -1;
 	float path[102][2];
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER, framenr;
 	MovieTrackingMarker *marker;
-	void *sel;
 
 	if(count==0)
 		return;
-
-	BKE_movieclip_last_selection(clip, &sel_type, &sel);
 
 	marker= BKE_tracking_get_marker(track, sc->user.framenr);
 	if(marker->framenr!=sc->user.framenr || marker->flag&MARKER_DISABLED)
@@ -784,9 +778,8 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	float x, y;
 	MovieTracking* tracking= &clip->tracking;
 	MovieTrackingMarker *marker;
-	MovieTrackingTrack *track;
-	int sel_type, framenr= sc->user.framenr;
-	void *sel;
+	MovieTrackingTrack *track, *act_track;
+	int framenr= sc->user.framenr;
 
 	/* ** find window pixel coordinates of origin ** */
 
@@ -805,7 +798,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	glMultMatrixf(sc->stabmat);
 	glScalef(width, height, 0);
 
-	BKE_movieclip_last_selection(clip, &sel_type, &sel);
+	act_track= clip->tracking.act_track;
 
 	if(sc->flag&SC_SHOW_TRACK_PATH) {
 		track= tracking->tracks.first;
@@ -839,7 +832,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	track= tracking->tracks.first;
 	while(track) {
 		if((track->flag&TRACK_HIDDEN)==0) {
-			int act= sel_type==MCLIP_SEL_TRACK && sel==track;
+			int act= track==act_track;
 
 			if(!act) {
 				marker= BKE_tracking_get_marker(track, framenr);
@@ -855,13 +848,13 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	}
 
 	/* active marker would be displayed on top of everything else */
-	if(sel_type==MCLIP_SEL_TRACK) {
-		if((((MovieTrackingTrack *)sel)->flag&TRACK_HIDDEN)==0) {
-			marker= BKE_tracking_get_marker(sel, framenr);
+	if(act_track) {
+		if((act_track->flag&TRACK_HIDDEN)==0) {
+			marker= BKE_tracking_get_marker(act_track, framenr);
 
 			if(MARKER_VISIBLE(sc, marker)) {
-				draw_marker_areas(sc, sel, marker, width, height, 1, 1);
-				draw_marker_slide_zones(sc, sel, marker, 0, 1, 1, width, height);
+				draw_marker_areas(sc, act_track, marker, width, height, 1, 1);
+				draw_marker_slide_zones(sc, act_track, marker, 0, 1, 1, width, height);
 			}
 		}
 	}
@@ -921,7 +914,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 				marker= BKE_tracking_get_marker(track, framenr);
 
 				if(MARKER_VISIBLE(sc, marker)) {
-					int act= sel_type==MCLIP_SEL_TRACK && sel==track;
+					int act= track==act_track;
 
 					draw_marker_texts(sc, track, marker, act, width, height, zoomx, zoomy);
 				}

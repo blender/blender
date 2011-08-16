@@ -662,7 +662,7 @@ class CLIP_PT_footage(Panel):
         clip = sc.clip
 
         if clip:
-            layout.template_movieclip(sc, "clip", sc.clip_user, compact=True)
+            layout.template_movieclip(sc, "clip", compact=True)
         else:
             layout.operator("clip.open", icon='FILESEL')
 
