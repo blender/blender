@@ -105,7 +105,7 @@ static SpaceLink *clip_new(const bContext *UNUSED(C))
 
 	sc= MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype= SPACE_CLIP;
-	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH|SC_SHOW_GPENCIL;
+	sc->flag= SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH|SC_SHOW_GPENCIL|SC_MANUAL_CALIBRATION;
 	sc->zoom= 1.0f;
 	sc->path_length= 20;
 	sc->scopes.track_preview_height= 120;
@@ -250,6 +250,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_view_selected);
 	WM_operatortype_append(CLIP_OT_change_frame);
 	WM_operatortype_append(CLIP_OT_rebuild_proxy);
+	WM_operatortype_append(CLIP_OT_mode_set);
 
 	/* ** clip_toolbar.c ** */
 	WM_operatortype_append(CLIP_OT_tools);
@@ -337,6 +338,15 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	/* ******** Hotkeys avalaible for main region only ******** */
 
 	keymap= WM_keymap_find(keyconf, "Clip Editor", SPACE_CLIP, 0);
+
+	/* mode */
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "mode", SC_MODE_RECONSTRUCTION);
+	RNA_boolean_set(kmi->ptr, "toggle", 1);
+
+	kmi= WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "mode", SC_MODE_DISTORTION);
+	RNA_boolean_set(kmi->ptr, "toggle", 1);
 
 	/* ** View/navigation ** */
 

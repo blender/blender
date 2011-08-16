@@ -933,6 +933,50 @@ void CLIP_OT_rebuild_proxy(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 }
 
+/********************** mode set operator *********************/
+
+static int mode_set_exec(bContext *C, wmOperator *op)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	int mode= RNA_enum_get(op->ptr, "mode");
+	int toggle= RNA_boolean_get(op->ptr, "toggle");
+
+	if(sc->mode==mode) {
+		if(toggle)
+			sc->mode= SC_MODE_TRACKING;
+	} else {
+		sc->mode= mode;
+	}
+
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_mode_set(wmOperatorType *ot)
+{
+	static EnumPropertyItem mode_items[] = {
+		{SC_MODE_TRACKING, "TRACKING", 0, "Tracking", "Show tracking and solving tools"},
+		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", 0, "Reconstruction", "Show tracking/reconstruction tools"},
+		{SC_MODE_DISTORTION, "DISTORTION", 0, "Distortion", "Show distortion tools"},
+		{0, NULL, 0, NULL, NULL}};
+
+
+	/* identifiers */
+	ot->name= "Set Clip Mode";
+	ot->description = "Sets the clip interaction mode";
+	ot->idname= "CLIP_OT_mode_set";
+
+	/* api callbacks */
+	ot->exec= mode_set_exec;
+
+	ot->poll= ED_space_clip_poll;
+
+	/* properties */
+	RNA_def_enum(ot->srna, "mode", mode_items, SC_MODE_TRACKING, "Mode", "");
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
+}
+
 /********************** macroses *********************/
 
 void ED_operatormacros_clip(void)

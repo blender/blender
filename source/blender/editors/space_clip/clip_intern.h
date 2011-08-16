@@ -56,6 +56,7 @@ void CLIP_OT_view_all(struct wmOperatorType *ot);
 void CLIP_OT_view_selected(struct wmOperatorType *ot);
 void CLIP_OT_change_frame(wmOperatorType *ot);
 void CLIP_OT_rebuild_proxy(struct wmOperatorType *ot);
+void CLIP_OT_mode_set(struct wmOperatorType *ot);
 
 /* tracking_ops.c */
 void CLIP_OT_select(struct wmOperatorType *ot);
