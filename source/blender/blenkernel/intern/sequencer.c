@@ -699,6 +699,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 			seq->len = 0;
 		}
 		seq->strip->len = seq->len;
+		break;
 	case SEQ_SOUND:
 #ifdef WITH_AUDASPACE
 		if(!seq->sound)

@@ -128,8 +128,8 @@ int BLI_ghash_remove (GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFr
 			if (valfreefp) valfreefp(e->val);
 			BLI_mempool_free(gh->entrypool, e);
 
-
-			e= n;
+			/* correct but 'e' isnt used before return */
+			/* e= n; */ /*UNUSED*/
 			if (p)
 				p->next = n;
 			else

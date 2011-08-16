@@ -185,6 +185,12 @@
 #endif
 
 #ifdef __GNUC__
+#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#  define UNUSED_FUNCTION(x) UNUSED_ ## x
+#endif
+
+#ifdef __GNUC__
 #  define WARN_UNUSED  __attribute__((warn_unused_result))
 #else
 #  define WARN_UNUSED

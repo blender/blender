@@ -1188,7 +1188,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	uiBut *bt;
 	uiSafetyRct *saferct;
 	rctf butrct;
-	float aspect;
+	/*float aspect;*/ /*UNUSED*/
 	int xsize, ysize, xof=0, yof=0, center;
 	short dir1= 0, dir2=0;
 	
@@ -1223,7 +1223,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 	}
 	
-	aspect= (float)(block->maxx - block->minx + 4);
+	/*aspect= (float)(block->maxx - block->minx + 4);*/ /*UNUSED*/
 	ui_block_to_window_fl(butregion, but->block, &block->minx, &block->miny);
 	ui_block_to_window_fl(butregion, but->block, &block->maxx, &block->maxy);
 
@@ -1232,7 +1232,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	
 	xsize= block->maxx - block->minx+4; // 4 for shadow
 	ysize= block->maxy - block->miny+4;
-	aspect/= (float)xsize;
+	/*aspect/= (float)xsize;*/ /*UNUSED*/
 
 	if(but) {
 		int left=0, right=0, top=0, down=0;

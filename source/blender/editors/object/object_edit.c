@@ -724,7 +724,7 @@ static void spot_interactive(Object *ob, int mode)
 }
 #endif
 
-static void special_editmenu(Scene *scene, View3D *v3d)
+static void UNUSED_FUNCTION(special_editmenu)(Scene *scene, View3D *v3d)
 {
 // XXX	static short numcuts= 2;
 	Object *ob= OBACT;
@@ -1346,7 +1346,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 	DAG_ids_flush_update(bmain, 0);
 }
 
-static void copy_attr_menu(Main *bmain, Scene *scene, View3D *v3d)
+static void UNUSED_FUNCTION(copy_attr_menu)(Main *bmain, Scene *scene, View3D *v3d)
 {
 	Object *ob;
 	short event;
@@ -1619,7 +1619,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
 /* ********************** */
 
-static void image_aspect(Scene *scene, View3D *v3d)
+static void UNUSED_FUNCTION(image_aspect)(Scene *scene, View3D *v3d)
 {
 	/* all selected objects with an image map: scale in image aspect */
 	Base *base;
@@ -1694,7 +1694,7 @@ static int vergbaseco(const void *a1, const void *a2)
 }
 
 
-static void auto_timeoffs(Scene *scene, View3D *v3d)
+static void UNUSED_FUNCTION(auto_timeoffs)(Scene *scene, View3D *v3d)
 {
 	Base *base, **basesort, **bs;
 	float start, delta;
@@ -1735,7 +1735,7 @@ static void auto_timeoffs(Scene *scene, View3D *v3d)
 
 }
 
-static void ofs_timeoffs(Scene *scene, View3D *v3d)
+static void UNUSED_FUNCTION(ofs_timeoffs)(Scene *scene, View3D *v3d)
 {
 	float offset=0.0f;
 
@@ -1754,7 +1754,7 @@ static void ofs_timeoffs(Scene *scene, View3D *v3d)
 }
 
 
-static void rand_timeoffs(Scene *scene, View3D *v3d)
+static void UNUSED_FUNCTION(rand_timeoffs)(Scene *scene, View3D *v3d)
 {
 	Base *base;
 	float rand_ofs=0.0f;

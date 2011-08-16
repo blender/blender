@@ -371,11 +371,15 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 	float weight[25];
 
 	/* build a weights buffer */
-	n= 2;
-	k= 0;
+	n= 1;
+	/*k= 0;
 	for(i = -n; i <= n; i++)
 		for(j = -n; j <= n; j++)
 			weight[k++] = sqrt((float) i * i + j * j);
+			*/
+	weight[0]=1; weight[1]=2; weight[2]=1;
+	weight[3]=2; weight[4]=0; weight[5]=2;
+	weight[6]=1; weight[7]=2; weight[8]=1;
 
 	/* run passes */
 	for(r = 0; cannot_early_out == 1 && r < filter; r++) {
@@ -393,10 +397,10 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 					float acc[4]={0,0,0,0};
 					k = 0;
 
-					if (check_pixel_assigned(srcbuf, srcmask, filter_make_index(x-1, y, width, height), depth, is_float) ||
+					/*if (check_pixel_assigned(srcbuf, srcmask, filter_make_index(x-1, y, width, height), depth, is_float) ||
 						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x+1, y, width, height), depth, is_float) ||
 						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x, y-1, width, height), depth, is_float) ||
-						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x, y+1, width, height), depth, is_float)) {
+						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x, y+1, width, height), depth, is_float))*/ {
 						for(i= -n; i<=n; i++) {
 							for(j=-n; j<=n; j++) {
 								if(i != 0 || j != 0) {

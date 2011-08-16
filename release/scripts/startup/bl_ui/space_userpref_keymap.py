@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, Operator
+from bpy.types import Menu, Operator, OperatorProperties
 import os
 
 

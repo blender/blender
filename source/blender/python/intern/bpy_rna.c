@@ -856,7 +856,7 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 		if(type==PROP_COLLECTION) {
 			len= pyrna_prop_collection_length(self);
 		}
-		else if (RNA_property_array_check(&self->ptr, self->prop)) {
+		else if (RNA_property_array_check(self->prop)) {
 			len= pyrna_prop_array_length((BPy_PropertyArrayRNA *)self);
 		}
 
@@ -1224,7 +1224,7 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	PyObject *ret;
 	int type= RNA_property_type(prop);
 
-	if (RNA_property_array_check(ptr, prop)) {
+	if (RNA_property_array_check(prop)) {
 		return pyrna_py_from_array(ptr, prop);
 	}
 
@@ -1369,7 +1369,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 	int type= RNA_property_type(prop);
 
 
-	if (RNA_property_array_check(ptr, prop)) {
+	if (RNA_property_array_check(prop)) {
 		/* done getting the length */
 		if(pyrna_py_to_array(ptr, prop, data, value, error_prefix) == -1) {
 			return -1;
@@ -4088,7 +4088,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 	int type= RNA_property_type(prop);
 	int flag= RNA_property_flag(prop);
 
-	if(RNA_property_array_check(ptr, prop)) {
+	if(RNA_property_array_check(prop)) {
 		int a, len;
 
 		if (flag & PROP_DYNAMIC) {
@@ -5519,7 +5519,7 @@ PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop)
 {
 	BPy_PropertyRNA *pyrna;
 
-	if (RNA_property_array_check(ptr, prop) == 0) {
+	if (RNA_property_array_check(prop) == 0) {
 		PyTypeObject *type;
 
 		if (RNA_property_type(prop) != PROP_COLLECTION) {
