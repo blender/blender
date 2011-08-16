@@ -34,7 +34,7 @@
 
 #include "AUD_IFactory.h"
 #include "AUD_Reference.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 #include <string>
 

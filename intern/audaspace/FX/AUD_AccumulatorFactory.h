@@ -37,6 +37,10 @@ class AUD_CallbackIIRFilterReader;
 
 /**
  * This factory creates an accumulator reader.
+ *
+ * The accumulator adds the difference at the input to the last output in case
+ * it's positive. In additive mode it additionaly adds the difference always.
+ * So in case the difference is positive, it's added twice.
  */
 class AUD_AccumulatorFactory : public AUD_EffectFactory
 {

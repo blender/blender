@@ -97,11 +97,21 @@ protected:
 	void setLengths(int in, int out);
 
 public:
+	/**
+	 * Retrieves the last input samples.
+	 * \param pos The position, valid are 0 (current) or negative values.
+	 * \return The sample value.
+	 */
 	inline sample_t x(int pos)
 	{
 		return m_x[(m_xpos + pos + m_xlen) % m_xlen * m_specs.channels + m_channel];
 	}
 
+	/**
+	 * Retrieves the last output samples.
+	 * \param pos The position, valid are negative values.
+	 * \return The sample value.
+	 */
 	inline sample_t y(int pos)
 	{
 		return m_y[(m_ypos + pos + m_ylen) % m_ylen * m_specs.channels + m_channel];
@@ -111,7 +121,16 @@ public:
 
 	virtual void read(int& length, bool& eos, sample_t* buffer);
 
+	/**
+	 * Runs the filtering function.
+	 * \return The current output sample value.
+	 */
 	virtual sample_t filter()=0;
+
+	/**
+	 * Notifies the filter about a sample rate change.
+	 * \param rate The new sample rate.
+	 */
 	virtual void sampleRateChanged(AUD_SampleRate rate);
 };
 

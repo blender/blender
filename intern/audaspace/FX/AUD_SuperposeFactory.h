@@ -35,8 +35,9 @@
 #include "AUD_IFactory.h"
 
 /**
- * This factory plays two other factories behind each other.
- * \note Readers from the underlying factories must have the same sample rate and channel count.
+ * This factory mixes two other factories, playing them the same time.
+ * \note Readers from the underlying factories must have the same sample rate
+ *       and channel count.
  */
 class AUD_SuperposeFactory : public AUD_IFactory
 {

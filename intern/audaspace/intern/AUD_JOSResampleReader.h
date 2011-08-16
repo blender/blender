@@ -43,8 +43,19 @@ class AUD_JOSResampleReader : public AUD_ResampleReader
 private:
 	typedef void (AUD_JOSResampleReader::*AUD_resample_f)(double target_factor, int length, sample_t* buffer);
 
+	/**
+	 * The half filter length.
+	 */
 	static const int m_len = 292874;
+
+	/**
+	 * The sample step size for the filter.
+	 */
 	static const int m_L = 2048;
+
+	/**
+	 * The filter coefficients.
+	 */
 	static const float m_coeff[];
 
 	/**
@@ -91,8 +102,17 @@ private:
 	AUD_JOSResampleReader(const AUD_JOSResampleReader&);
 	AUD_JOSResampleReader& operator=(const AUD_JOSResampleReader&);
 
+	/**
+	 * Resets the resampler to its initial state.
+	 */
 	void reset();
 
+	/**
+	 * Updates the buffer to be as small as possible for the coming reading.
+	 * \param size The size of samples to be read.
+	 * \param factor The next resampling factor.
+	 * \param samplesize The size of a sample.
+	 */
 	void updateBuffer(int size, double factor, int samplesize);
 
 	void resample(double target_factor, int length, sample_t* buffer);

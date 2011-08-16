@@ -61,6 +61,7 @@ public:
 
 	/**
 	 * Returns the volume.
+	 * \return The current volume.
 	 */
 	float getVolume() const;
 

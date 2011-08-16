@@ -38,7 +38,7 @@
 #include "AUD_SequencerHandle.h"
 
 /**
- * This resampling reader uses libsamplerate for resampling.
+ * This reader plays back sequenced entries.
  */
 class AUD_SequencerReader : public AUD_IReader
 {
@@ -58,9 +58,19 @@ private:
 	 */
 	AUD_Reference<AUD_SequencerFactory> m_factory;
 
+	/**
+	 * The list of playback handles for the entries.
+	 */
 	std::list<AUD_Reference<AUD_SequencerHandle> > m_handles;
 
+	/**
+	 * Last status read from the factory.
+	 */
 	int m_status;
+
+	/**
+	 * Last entry status read from the factory.
+	 */
 	int m_entry_status;
 
 	// hide copy constructor and operator=

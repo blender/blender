@@ -36,7 +36,6 @@
 
 /**
  * This factory plays two other factories behind each other.
- * \note Readers from the underlying factories must have the same sample rate and channel count.
  */
 class AUD_DoubleFactory : public AUD_IFactory
 {

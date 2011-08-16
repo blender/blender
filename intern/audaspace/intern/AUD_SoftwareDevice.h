@@ -143,9 +143,26 @@ protected:
 
 	public:
 
+		/**
+		 * Creates a new software handle.
+		 * \param device The device this handle is from.
+		 * \param reader The reader to play.
+		 * \param pitch The pitch reader.
+		 * \param resampler The resampling reader.
+		 * \param mapper The channel mapping reader.
+		 * \param keep Whether to keep the handle when the sound ends.
+		 */
 		AUD_SoftwareHandle(AUD_SoftwareDevice* device, AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_PitchReader> pitch, AUD_Reference<AUD_ResampleReader> resampler, AUD_Reference<AUD_ChannelMapperReader> mapper, bool keep);
 
+		/**
+		 * Updates the handle's playback parameters.
+		 */
 		void update();
+
+		/**
+		 * Sets the audio output specification of the readers.
+		 * \param sepcs The output specification.
+		 */
 		void setSpecs(AUD_Specs specs);
 
 		virtual ~AUD_SoftwareHandle() {}
@@ -231,6 +248,10 @@ protected:
 	 */
 	virtual void playing(bool playing)=0;
 
+	/**
+	 * Sets the audio output specification of the device.
+	 * \param sepcs The output specification.
+	 */
 	void setSpecs(AUD_Specs specs);
 
 private:
@@ -287,7 +308,17 @@ private:
 
 public:
 
+	/**
+	 * Sets the panning of a specific handle.
+	 * \param handle The handle to set the panning from.
+	 * \param pan The new panning value, should be in the range [-2, 2].
+	 */
 	static void setPanning(AUD_IHandle* handle, float pan);
+
+	/**
+	 * Sets the resampling quality.
+	 * \param quality Low (false) or high (true) quality.
+	 */
 	void setQuality(bool quality);
 
 	virtual AUD_DeviceSpecs getSpecs() const;

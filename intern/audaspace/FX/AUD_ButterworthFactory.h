@@ -35,7 +35,7 @@
 #include "AUD_DynamicIIRFilterFactory.h"
 
 /**
- * This factory creates a butterworth filter reader.
+ * This factory creates a butterworth lowpass filter reader.
  */
 class AUD_ButterworthFactory : public AUD_DynamicIIRFilterFactory
 {

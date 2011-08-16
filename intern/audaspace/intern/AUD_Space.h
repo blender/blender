@@ -41,6 +41,7 @@
 /// Throws a AUD_Exception with the provided error code.
 #define AUD_THROW(exception, errorstr) { AUD_Exception e; e.error = exception; e.str = errorstr; throw e; }
 
+/// Compares two audio data specifications.
 #define AUD_COMPARE_SPECS(s1, s2) ((s1.rate == s2.rate) && (s1.channels == s2.channels))
 
 /// Returns the bit for a channel mask.
@@ -162,6 +163,7 @@ typedef enum
 	AUD_DISTANCE_MODEL_EXPONENT_CLAMPED
 } AUD_DistanceModel;
 
+/// Possible animatable properties for Sequencer Factories and Entries.
 typedef enum
 {
 	AUD_AP_VOLUME,
@@ -171,6 +173,7 @@ typedef enum
 	AUD_AP_ORIENTATION
 } AUD_AnimateablePropertyType;
 
+/// Container formats for writers.
 typedef enum
 {
 	AUD_CONTAINER_INVALID = 0,
@@ -183,6 +186,7 @@ typedef enum
 	AUD_CONTAINER_WAV
 } AUD_Container;
 
+/// Audio codecs for writers.
 typedef enum
 {
 	AUD_CODEC_INVALID = 0,

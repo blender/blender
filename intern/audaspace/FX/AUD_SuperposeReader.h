@@ -37,7 +37,7 @@
 #include "AUD_Reference.h"
 
 /**
- * This reader plays two readers with the same specs sequently.
+ * This reader plays two readers with the same specs in parallel.
  */
 class AUD_SuperposeReader : public AUD_IReader
 {
@@ -53,7 +53,7 @@ private:
 	AUD_Reference<AUD_IReader> m_reader2;
 
 	/**
-	 * The playback buffer for the intersecting part.
+	 * Buffer used for mixing.
 	 */
 	AUD_Buffer m_buffer;
 

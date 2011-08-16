@@ -36,7 +36,7 @@
 #include "AUD_Buffer.h"
 
 /**
- * This class reads another reader and changes it's delay.
+ * This class reads another reader and delays it.
  */
 class AUD_DelayReader : public AUD_EffectReader
 {

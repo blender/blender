@@ -35,7 +35,7 @@
 #include <cmath>
 
 AUD_AnimateableProperty::AUD_AnimateableProperty(int count) :
-	AUD_Buffer(count * sizeof(float)), m_count(count), m_isAnimated(false), m_changed(false)
+	AUD_Buffer(count * sizeof(float)), m_count(count), m_isAnimated(false)
 {
 	memset(getBuffer(), 0, count * sizeof(float));
 
@@ -68,7 +68,6 @@ void AUD_AnimateableProperty::write(const float* data)
 	lock();
 
 	m_isAnimated = false;
-	m_changed = true;
 	memcpy(getBuffer(), data, m_count * sizeof(float));
 
 	unlock();
@@ -157,14 +156,4 @@ void AUD_AnimateableProperty::read(float position, float* out)
 bool AUD_AnimateableProperty::isAnimated() const
 {
 	return m_isAnimated;
-}
-
-bool AUD_AnimateableProperty::hasChanged()
-{
-	if(m_isAnimated)
-		return true;
-
-	bool result = m_changed;
-	m_changed = false;
-	return result;
 }

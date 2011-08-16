@@ -40,7 +40,7 @@
 #include "AUD_IReader.h"
 
 /**
- * This factory tries to read a sound file via all available file readers.
+ * This class is able to create IWriter classes as well as write reads to them.
  */
 class AUD_FileWriter
 {
@@ -51,7 +51,24 @@ private:
 	AUD_FileWriter& operator=(const AUD_FileWriter&);
 
 public:
+	/**
+	 * Creates a new IWriter.
+	 * \param filename The file to write to.
+	 * \param specs The file's audio specification.
+	 * \param format The file's container format.
+	 * \param codec The codec used for encoding the audio data.
+	 * \param bitrate The bitrate for encoding.
+	 * \return The writer to write data to.
+	 */
 	static AUD_Reference<AUD_IWriter> createWriter(std::string filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate);
+
+	/**
+	 * Writes a reader to a writer.
+	 * \param reader The reader to read from.
+	 * \param writer The writer to write to.
+	 * \param length How many samples should be transfered.
+	 * \param buffersize How many samples should be transfered at once.
+	 */
 	static void writeReader(AUD_Reference<AUD_IReader> reader, AUD_Reference<AUD_IWriter> writer, unsigned int length, unsigned int buffersize);
 };
 

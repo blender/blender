@@ -37,11 +37,7 @@
 
 /**
  * This class is used for sine tone playback.
- * The output format is in the 16 bit format and stereo, the sample rate can be
- * specified.
- * As the two channels both play the same the output could also be mono, but
- * in most cases this will result in having to resample for output, so stereo
- * sound is created directly.
+ * The sample rate can be specified, the signal is mono.
  */
 class AUD_SinusReader : public AUD_IReader
 {

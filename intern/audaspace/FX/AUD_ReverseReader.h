@@ -37,7 +37,7 @@
 
 /**
  * This class reads another reader from back to front.
- * \note The underlying reader must be a buffer.
+ * \note The underlying reader must be seekable.
  */
 class AUD_ReverseReader : public AUD_EffectReader
 {

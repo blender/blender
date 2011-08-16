@@ -36,7 +36,7 @@
 
 /**
  * This factory plays another factory first normal, then reversed.
- * \note Readers from the underlying factory must be from the buffer type.
+ * \note Readers from the underlying factory must be reversable with seeking.
  */
 class AUD_PingPongFactory : public AUD_EffectFactory
 {

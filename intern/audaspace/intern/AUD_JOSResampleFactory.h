@@ -45,6 +45,11 @@ private:
 	AUD_JOSResampleFactory& operator=(const AUD_JOSResampleFactory&);
 
 public:
+	/**
+	 * Creates a new factory.
+	 * \param factory The input factory.
+	 * \param specs The target specifications.
+	 */
 	AUD_JOSResampleFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
 	virtual AUD_Reference<AUD_IReader> createReader();

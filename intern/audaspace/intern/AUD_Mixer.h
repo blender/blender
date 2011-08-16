@@ -38,7 +38,7 @@
 class AUD_IReader;
 
 /**
- * This abstract class is able to mix audiosignals of different channel count
+ * This abstract class is able to mix audiosignals with same channel count
  * and sample rate and convert it to a specific output format.
  */
 class AUD_Mixer

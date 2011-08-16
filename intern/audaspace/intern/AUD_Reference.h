@@ -40,12 +40,22 @@
 #include <typeinfo>
 #endif
 
+/**
+ * This class handles the reference counting.
+ */
 class AUD_ReferenceHandler
 {
 private:
+	/**
+	 * Saves the reference counts.
+	 */
 	static std::map<void*, int> m_references;
 
 public:
+	/**
+	 * Reference increment.
+	 * \param reference The reference.
+	 */
 	static inline void incref(void* reference)
 	{
 		if(!reference)
@@ -62,6 +72,11 @@ public:
 		}
 	}
 
+	/**
+	 * Reference decrement.
+	 * \param reference The reference.
+	 * \return Whether the reference has to be deleted.
+	 */
 	static inline bool decref(void* reference)
 	{
 		if(!reference)
@@ -193,6 +208,9 @@ public:
 		return m_reference;
 	}
 
+	/**
+	 * Returns the original pointer.
+	 */
 	inline void* getOriginal() const
 	{
 		return m_original;

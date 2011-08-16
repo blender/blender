@@ -46,6 +46,11 @@ private:
 	AUD_ChannelMapperFactory& operator=(const AUD_ChannelMapperFactory&);
 
 public:
+	/**
+	 * Creates a new factory.
+	 * \param factory The input factory.
+	 * \param specs The target specifications.
+	 */
 	AUD_ChannelMapperFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
 	virtual AUD_Reference<AUD_IReader> createReader();

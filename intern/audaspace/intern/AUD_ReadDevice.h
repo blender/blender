@@ -80,6 +80,10 @@ public:
 	 */
 	bool read(data_t* buffer, int length);
 
+	/**
+	 * Changes the output specification.
+	 * \param specs The new audio data specification.
+	 */
 	void changeSpecs(AUD_Specs specs);
 };
 

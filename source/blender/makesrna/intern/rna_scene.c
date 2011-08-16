@@ -46,7 +46,7 @@
 #ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
 #  ifdef WITH_AUDASPACE
-#    include "AUD_C-API.h"
+#    include "AUD_Space.h"
 #  endif
 #endif
 

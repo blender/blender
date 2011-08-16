@@ -33,10 +33,17 @@
 #define AUD_3DMATH
 
 #include <cmath>
+#include <cstring>
 
+/**
+ * This class represents a 3 dimensional vector.
+ */
 class AUD_Vector3
 {
 private:
+	/**
+	 * The vector components.
+	 */
 	union
 	{
 		float m_v[3];
@@ -93,9 +100,7 @@ public:
 	 */
 	inline void get(float* destination) const
 	{
-		destination[0] = m_x;
-		destination[1] = m_y;
-		destination[2] = m_z;
+		memcpy(destination, m_v, sizeof(m_v));
 	}
 
 	/**
@@ -125,6 +130,11 @@ public:
 		return sqrt(m_x*m_x + m_y*m_y + m_z*m_z);
 	}
 
+	/**
+	 * Retrieves the cross product.
+	 * \param op The second operand.
+	 * \return The cross product of the two vectors.
+	 */
 	inline AUD_Vector3 cross(const AUD_Vector3& op) const
 	{
 		return AUD_Vector3(m_y * op.m_z - m_z * op.m_y,
@@ -142,26 +152,50 @@ public:
 		return m_x * op.m_x + m_y * op.m_y + m_z * op.m_z;
 	}
 
+	/**
+	 * Retrieves the product with a scalar.
+	 * \param op The second operand.
+	 * \return The scaled vector.
+	 */
 	inline AUD_Vector3 operator*(const float& op) const
 	{
 		return AUD_Vector3(m_x * op, m_y * op, m_z * op);
 	}
 
+	/**
+	 * Adds two vectors.
+	 * \param op The second operand.
+	 * \return The sum vector.
+	 */
 	inline AUD_Vector3 operator+(const AUD_Vector3& op) const
 	{
 		return AUD_Vector3(m_x + op.m_x, m_y + op.m_y, m_z + op.m_z);
 	}
 
+	/**
+	 * Subtracts two vectors.
+	 * \param op The second operand.
+	 * \return The difference vector.
+	 */
 	inline AUD_Vector3 operator-(const AUD_Vector3& op) const
 	{
 		return AUD_Vector3(m_x - op.m_x, m_y - op.m_y, m_z - op.m_z);
 	}
 
+	/**
+	 * Negates the vector.
+	 * \return The vector facing in the opposite direction.
+	 */
 	inline AUD_Vector3 operator-() const
 	{
 		return AUD_Vector3(-m_x, -m_y, -m_z);
 	}
 
+	/**
+	 * Subtracts the second vector.
+	 * \param op The second operand.
+	 * \return The difference vector.
+	 */
 	inline AUD_Vector3& operator-=(const AUD_Vector3& op)
 	{
 		m_x -= op.m_x;
@@ -171,9 +205,15 @@ public:
 	}
 };
 
+/**
+ * This class represents a quaternion used for 3D rotations.
+ */
 class AUD_Quaternion
 {
 private:
+	/**
+	 * The quaternion components.
+	 */
 	union
 	{
 		float m_v[4];
@@ -241,10 +281,7 @@ public:
 	 */
 	inline void get(float* destination) const
 	{
-		destination[0] = m_w;
-		destination[1] = m_x;
-		destination[2] = m_y;
-		destination[3] = m_z;
+		memcpy(destination, m_v, sizeof(m_v));
 	}
 
 	/**
@@ -265,6 +302,11 @@ public:
 		return m_v;
 	}
 
+	/**
+	 * When the quaternion represents an orientation, this returns the negative
+	 * z axis vector.
+	 * \return The negative z axis vector.
+	 */
 	inline AUD_Vector3 getLookAt() const
 	{
 		return AUD_Vector3(-2 * (m_w * m_y + m_x * m_z),
@@ -272,6 +314,11 @@ public:
 							2 * (m_x * m_x + m_y * m_y) - 1);
 	}
 
+	/**
+	 * When the quaternion represents an orientation, this returns the y axis
+	 * vector.
+	 * \return The y axis vector.
+	 */
 	inline AUD_Vector3 getUp() const
 	{
 		return AUD_Vector3(2 * (m_x * m_y - m_w * m_z),

@@ -53,13 +53,22 @@ public:
 	/**
 	 * Creates a new pitch reader.
 	 * \param reader The reader to read from.
-	 * \param pitch The size of the buffer.
+	 * \param pitch The pitch value.
 	 */
 	AUD_PitchReader(AUD_Reference<AUD_IReader> reader, float pitch);
 
 	virtual AUD_Specs getSpecs() const;
 
+	/**
+	 * Retrieves the pitch.
+	 * \return The current pitch value.
+	 */
 	float getPitch() const;
+
+	/**
+	 * Sets the pitch.
+	 * \param pitch The new pitch value.
+	 */
 	void setPitch(float pitch);
 };
 

@@ -34,6 +34,10 @@
 #include "AUD_IIRFilterReader.h"
 #include "AUD_DynamicIIRFilterFactory.h"
 
+/**
+ * This class is for dynamic infinite impulse response filters with simple
+ * coefficients that change depending on the sample rate.
+ */
 class AUD_DynamicIIRFilterReader : public AUD_IIRFilterReader
 {
 private:

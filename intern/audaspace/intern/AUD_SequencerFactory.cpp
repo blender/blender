@@ -192,12 +192,12 @@ void AUD_SequencerFactory::remove(AUD_Reference<AUD_SequencerEntry> entry)
 	unlock();
 }
 
-AUD_Reference<AUD_IReader> AUD_SequencerFactory::createReader()
-{
-	return new AUD_SequencerReader(this);
-}
-
 AUD_Reference<AUD_IReader> AUD_SequencerFactory::createQualityReader()
 {
 	return new AUD_SequencerReader(this, true);
+}
+
+AUD_Reference<AUD_IReader> AUD_SequencerFactory::createReader()
+{
+	return new AUD_SequencerReader(this);
 }

@@ -36,12 +36,8 @@
 #include "AUD_Buffer.h"
 
 /**
- * This class is used for sine tone playback.
- * The output format is in the 16 bit format and stereo, the sample rate can be
- * specified.
- * As the two channels both play the same the output could also be mono, but
- * in most cases this will result in having to resample for output, so stereo
- * sound is created directly.
+ * This class is used for silence playback.
+ * The signal generated is 44.1kHz mono.
  */
 class AUD_SilenceReader : public AUD_IReader
 {

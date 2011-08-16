@@ -33,12 +33,9 @@
 #define AUD_SNDFILEWRITER
 
 #include "AUD_IWriter.h"
-//#include "AUD_Buffer.h"
 
 #include <string>
 #include <sndfile.h>
-
-typedef sf_count_t (*sf_read_f)(SNDFILE *sndfile, void *ptr, sf_count_t frames);
 
 /**
  * This class writes a sound file via libsndfile.
@@ -69,6 +66,10 @@ public:
 	/**
 	 * Creates a new writer.
 	 * \param filename The path to the file to be read.
+	 * \param specs The file's audio specification.
+	 * \param format The file's container format.
+	 * \param codec The codec used for encoding the audio data.
+	 * \param bitrate The bitrate for encoding.
 	 * \exception AUD_Exception Thrown if the file specified cannot be written
 	 *                          with libsndfile.
 	 */

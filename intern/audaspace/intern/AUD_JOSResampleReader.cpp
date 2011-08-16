@@ -36,6 +36,29 @@
 #include <cstring>
 #include <iostream>
 
+/* MSVC does not have lrint */
+#ifdef _MSC_VER
+#ifdef _M_X64
+#include <emmintrin.h>
+static inline int lrint(double d)
+{
+		return _mm_cvtsd_si32(_mm_load_sd(&d));
+}
+#else
+static inline int lrint(double d)
+{
+	int i;
+
+	_asm{
+		fld d
+		fistp i
+	};
+
+	return i;
+}
+#endif
+#endif
+
 #define CC m_channels + channel
 
 #define AUD_RATE_MAX 256

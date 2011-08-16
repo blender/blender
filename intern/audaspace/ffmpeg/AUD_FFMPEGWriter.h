@@ -69,16 +69,34 @@ private:
 	 */
 	AVCodecContext* m_codecCtx;
 
+	/**
+	 * The AVOutputFormat structure for using ffmpeg.
+	 */
 	AVOutputFormat* m_outputFmt;
 
+	/**
+	 * The AVStream structure for using ffmpeg.
+	 */
 	AVStream* m_stream;
 
+	/**
+	 * The input buffer for the format converted data before encoding.
+	 */
 	AUD_Buffer m_input_buffer;
 
+	/**
+	 * The output buffer for the encoded audio data.
+	 */
 	AUD_Buffer m_output_buffer;
 
+	/**
+	 * The count of input samples we have so far.
+	 */
 	unsigned int m_input_samples;
 
+	/**
+	 * The count of input samples necessary to encode a packet.
+	 */
 	unsigned int m_input_size;
 
 	/**
@@ -90,12 +108,20 @@ private:
 	AUD_FFMPEGWriter(const AUD_FFMPEGWriter&);
 	AUD_FFMPEGWriter& operator=(const AUD_FFMPEGWriter&);
 
+	/**
+	 * Encodes to the output buffer.
+	 * \param data Pointer to the data to encode.
+	 */
 	void encode(sample_t* data);
 
 public:
 	/**
 	 * Creates a new writer.
 	 * \param filename The path to the file to be read.
+	 * \param specs The file's audio specification.
+	 * \param format The file's container format.
+	 * \param codec The codec used for encoding the audio data.
+	 * \param bitrate The bitrate for encoding.
 	 * \exception AUD_Exception Thrown if the file specified does not exist or
 	 *            cannot be read with ffmpeg.
 	 */

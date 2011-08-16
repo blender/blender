@@ -119,8 +119,16 @@ public:
 	 */
 	~AUD_ChannelMapperReader();
 
+	/**
+	 * Sets the requested channel output count.
+	 * \param channels The channel output count.
+	 */
 	void setChannels(AUD_Channels channels);
 
+	/**
+	 * Sets the angle for mono sources.
+	 * \param angle The angle for mono sources.
+	 */
 	void setMonoAngle(float angle);
 
 	virtual AUD_Specs getSpecs() const;

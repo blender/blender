@@ -33,6 +33,9 @@
 
 #include "AUD_EffectReader.h"
 
+/**
+ * This is the base class for all resampling readers.
+ */
 class AUD_ResampleReader : public AUD_EffectReader
 {
 protected:
@@ -41,11 +44,25 @@ protected:
 	 */
 	AUD_SampleRate m_rate;
 
+	/**
+	 * Creates a resampling reader.
+	 * \param reader The reader to mix.
+	 * \param rate The target sampling rate.
+	 */
 	AUD_ResampleReader(AUD_Reference<AUD_IReader> reader, AUD_SampleRate rate);
 
 public:
+	/**
+	 * Sets the sample rate.
+	 * \param rate The target sampling rate.
+	 */
 	virtual void setRate(AUD_SampleRate rate);
-	AUD_SampleRate getRate();
+
+	/**
+	 * Retrieves the sample rate.
+	 * \return The target sampling rate.
+	 */
+	virtual AUD_SampleRate getRate();
 };
 
 #endif // AUD_RESAMPLEREADER

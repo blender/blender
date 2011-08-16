@@ -36,7 +36,6 @@
 
 #include "AUD_FFMPEGFactory.h"
 #include "AUD_FFMPEGReader.h"
-#include "AUD_Buffer.h"
 
 AUD_FFMPEGFactory::AUD_FFMPEGFactory(std::string filename) :
 		m_filename(filename)

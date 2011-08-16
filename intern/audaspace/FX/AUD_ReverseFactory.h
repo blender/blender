@@ -36,7 +36,7 @@
 
 /**
  * This factory reads another factory reverted.
- * \note Readers from the underlying factory must be from the buffer type.
+ * \note Readers from the underlying factory must be seekable.
  */
 class AUD_ReverseFactory : public AUD_EffectFactory
 {

@@ -41,6 +41,7 @@ extern "C" {
 
 #include "AUD_Space.h"
 
+/// Supported output devices.
 typedef enum
 {
 	AUD_NULL_DEVICE = 0,
@@ -49,6 +50,7 @@ typedef enum
 	AUD_JACK_DEVICE
 } AUD_DeviceType;
 
+/// Sound information structure.
 typedef struct
 {
 	AUD_Specs specs;
@@ -459,79 +461,279 @@ extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
  */
 extern AUD_Handle* AUD_pauseAfter(AUD_Handle* handle, float seconds);
 
+/**
+ * Creates a new sequenced sound scene.
+ * \param fps The FPS of the scene.
+ * \param muted Whether the scene is muted.
+ * \return The new sound scene.
+ */
 extern AUD_Sound* AUD_createSequencer(float fps, int muted);
 
+/**
+ * Deletes a sound scene.
+ * \param sequencer The sound scene.
+ */
 extern void AUD_destroySequencer(AUD_Sound* sequencer);
 
+/**
+ * Sets the muting state of the scene.
+ * \param sequencer The sound scene.
+ * \param muted Whether the scene is muted.
+ */
 extern void AUD_setSequencerMuted(AUD_Sound* sequencer, int muted);
 
+/**
+ * Sets the scene's FPS.
+ * \param sequencer The sound scene.
+ * \param fps The new FPS.
+ */
 extern void AUD_setSequencerFPS(AUD_Sound* sequencer, float fps);
 
+/**
+ * Adds a new entry to the scene.
+ * \param sequencer The sound scene.
+ * \param sound The sound this entry should play.
+ * \param begin The start time.
+ * \param end The end time or a negative value if determined by the sound.
+ * \param skip How much seconds should be skipped at the beginning.
+ * \return The entry added.
+ */
 extern AUD_SEntry* AUD_addSequence(AUD_Sound* sequencer, AUD_Sound* sound,
 								   float begin, float end, float skip);
 
+/**
+ * Removes an entry from the scene.
+ * \param sequencer The sound scene.
+ * \param entry The entry to remove.
+ */
 extern void AUD_removeSequence(AUD_Sound* sequencer, AUD_SEntry* entry);
 
+/**
+ * Moves the entry.
+ * \param entry The sequenced entry.
+ * \param begin The new start time.
+ * \param end The new end time or a negative value if unknown.
+ * \param skip How many seconds to skip at the beginning.
+ */
 extern void AUD_moveSequence(AUD_SEntry* entry, float begin, float end, float skip);
 
+/**
+ * Sets the muting state of the entry.
+ * \param entry The sequenced entry.
+ * \param mute Whether the entry should be muted or not.
+ */
 extern void AUD_muteSequence(AUD_SEntry* entry, char mute);
 
+/**
+ * Sets whether the entrie's location, velocity and orientation are relative
+ * to the listener.
+ * \param entry The sequenced entry.
+ * \param relative Whether the source is relative.
+ * \return Whether the action succeeded.
+ */
 extern void AUD_setRelativeSequence(AUD_SEntry* entry, char relative);
 
+/**
+ * Sets the sound of the entry.
+ * \param entry The sequenced entry.
+ * \param sound The new sound.
+ */
 extern void AUD_updateSequenceSound(AUD_SEntry* entry, AUD_Sound* sound);
 
+/**
+ * Writes animation data to a sequenced entry.
+ * \param entry The sequenced entry.
+ * \param type The type of animation data.
+ * \param frame The frame this data is for.
+ * \param data The data to write.
+ * \param animated Whether the attribute is animated.
+ */
 extern void AUD_setSequenceAnimData(AUD_SEntry* entry, AUD_AnimateablePropertyType type, int frame, float* data, char animated);
 
+/**
+ * Writes animation data to a sequenced entry.
+ * \param sequencer The sound scene.
+ * \param type The type of animation data.
+ * \param frame The frame this data is for.
+ * \param data The data to write.
+ * \param animated Whether the attribute is animated.
+ */
 extern void AUD_setSequencerAnimData(AUD_Sound* sequencer, AUD_AnimateablePropertyType type, int frame, float* data, char animated);
 
+/**
+ * Updates all non-animated parameters of the entry.
+ * \param entry The sequenced entry.
+ * \param volume_max The maximum volume.
+ * \param volume_min The minimum volume.
+ * \param distance_max The maximum distance.
+ * \param distance_reference The reference distance.
+ * \param attenuation The attenuation.
+ * \param cone_angle_outer The outer cone opening angle.
+ * \param cone_angle_inner The inner cone opening angle.
+ * \param cone_volume_outer The volume outside the outer cone.
+ */
 extern void AUD_updateSequenceData(AUD_SEntry* entry, float volume_max, float volume_min,
 								   float distance_max, float distance_reference, float attenuation,
 								   float cone_angle_outer, float cone_angle_inner, float cone_volume_outer);
 
+/**
+ * Updates all non-animated parameters of the entry.
+ * \param sequencer The sound scene.
+ * \param speed_of_sound The speed of sound for doppler calculation.
+ * \param factor The doppler factor to control the effect's strength.
+ * \param model The distance model for distance calculation.
+ */
 extern void AUD_updateSequencerData(AUD_Sound* sequencer, float speed_of_sound,
 									float factor, AUD_DistanceModel model);
 
+/**
+ * Sets the audio output specification of the sound scene to the specs of the
+ * current playback device.
+ * \param sequencer The sound scene.
+ */
 extern void AUD_setSequencerDeviceSpecs(AUD_Sound* sequencer);
 
+/**
+ * Sets the audio output specification of the sound scene.
+ * \param sequencer The sound scene.
+ * \param specs The new specification.
+ */
 extern void AUD_setSequencerSpecs(AUD_Sound* sequencer, AUD_Specs specs);
 
+/**
+ * Seeks sequenced sound scene playback.
+ * \param handle Playback handle.
+ * \param time Time in seconds to seek to.
+ */
 extern void AUD_seekSequencer(AUD_Handle* handle, float time);
 
+/**
+ * Returns the current sound scene playback time.
+ * \param handle Playback handle.
+ * \return The playback time in seconds.
+ */
 extern float AUD_getSequencerPosition(AUD_Handle* handle);
 
+/**
+ * Starts the playback of jack transport if possible.
+ */
 extern void AUD_startPlayback(void);
 
+/**
+ * Stops the playback of jack transport if possible.
+ */
 extern void AUD_stopPlayback(void);
 
 #ifdef WITH_JACK
+/**
+ * Sets the sync callback for jack transport.
+ * \param function The callback function.
+ * \param data The data parameter for the callback.
+ */
 extern void AUD_setSyncCallback(AUD_syncFunction function, void* data);
 #endif
 
+/**
+ * Returns whether jack transport is currently playing.
+ * \return Whether jack transport is currently playing.
+ */
 extern int AUD_doesPlayback(void);
 
+/**
+ * Reads a sound into a buffer for drawing at a specific sampling rate.
+ * \param sound The sound to read.
+ * \param buffer The buffer to write to. Must have a size of 3*4*length.
+ * \param length How many samples to read from the sound.
+ * \param samples_per_second How many samples to read per second of the sound.
+ * \return How many samples really have been read. Always <= length.
+ */
 extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length, int samples_per_second);
 
+/**
+ * Copies a sound.
+ * \param sound Sound to copy.
+ * \return Copied sound.
+ */
 extern AUD_Sound* AUD_copy(AUD_Sound* sound);
 
+/**
+ * Frees a handle.
+ * \param channel Handle to free.
+ */
 extern void AUD_freeHandle(AUD_Handle* channel);
 
+/**
+ * Creates a new set.
+ * \return The new set.
+ */
 extern void* AUD_createSet(void);
 
+/**
+ * Deletes a set.
+ * \param set The set to delete.
+ */
 extern void AUD_destroySet(void* set);
 
+/**
+ * Removes an entry from a set.
+ * \param set The set work on.
+ * \param entry The entry to remove.
+ * \return Whether the entry was in the set or not.
+ */
 extern char AUD_removeSet(void* set, void* entry);
 
+/**
+ * Adds a new entry to a set.
+ * \param set The set work on.
+ * \param entry The entry to add.
+ */
 extern void AUD_addSet(void* set, void* entry);
 
+/**
+ * Removes one entry from a set and returns it.
+ * \param set The set work on.
+ * \return The entry or NULL if the set is empty.
+ */
 extern void* AUD_getSet(void* set);
 
+/**
+ * Mixes a sound down into a file.
+ * \param sound The sound scene to mix down.
+ * \param start The start frame.
+ * \param length The count of frames to write.
+ * \param buffersize How many samples should be written at once.
+ * \param filename The file to write to.
+ * \param specs The file's audio specification.
+ * \param format The file's container format.
+ * \param codec The codec used for encoding the audio data.
+ * \param bitrate The bitrate for encoding.
+ * \return An error message or NULL in case of success.
+ */
 extern const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate);
 
+/**
+ * Opens a read device and prepares it for mixdown of the sound scene.
+ * \param specs Output audio specifications.
+ * \param sequencer The sound scene to mix down.
+ * \param volume The overall mixdown volume.
+ * \param start The start time of the mixdown in the sound scene.
+ * \return The read device for the mixdown.
+ */
 extern AUD_Device* AUD_openMixdownDevice(AUD_DeviceSpecs specs, AUD_Sound* sequencer, float volume, float start);
 
 #ifdef WITH_PYTHON
+/**
+ * Retrieves the python factory of a sound.
+ * \param sound The sound factory.
+ * \return The python factory.
+ */
 extern PyObject* AUD_getPythonFactory(AUD_Sound* sound);
 
+/**
+ * Retrieves the sound factory of a python factory.
+ * \param sound The python factory.
+ * \return The sound factory.
+ */
 extern AUD_Sound* AUD_getPythonSound(PyObject* sound);
 #endif
 
@@ -542,8 +744,16 @@ extern AUD_Sound* AUD_getPythonSound(PyObject* sound);
 class AUD_IDevice;
 class AUD_I3DDevice;
 
+/**
+ * Returns the current playback device.
+ * \return The playback device.
+ */
 AUD_Reference<AUD_IDevice> AUD_getDevice();
 
+/**
+ * Returns the current playback 3D device.
+ * \return The playback 3D device.
+ */
 AUD_I3DDevice* AUD_get3DDevice();
 #endif
 

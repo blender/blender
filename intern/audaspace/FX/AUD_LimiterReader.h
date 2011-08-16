@@ -35,7 +35,7 @@
 #include "AUD_EffectReader.h"
 
 /**
- * This reader limits another reader in start and end sample.
+ * This reader limits another reader in start and end times.
  */
 class AUD_LimiterReader : public AUD_EffectReader
 {
@@ -58,9 +58,9 @@ public:
 	/**
 	 * Creates a new limiter reader.
 	 * \param reader The reader to read from.
-	 * \param start The desired start sample (inclusive).
-	 * \param end The desired end sample (exklusive), a negative value signals
-	 *            that it should play to the end.
+	 * \param start The desired start time (inclusive).
+	 * \param end The desired end time (sample exklusive), a negative value
+	 *            signals that it should play to the end.
 	 */
 	AUD_LimiterReader(AUD_Reference<AUD_IReader> reader, float start = 0, float end = -1);
 

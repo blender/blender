@@ -36,7 +36,7 @@
 #include "AUD_3DMath.h"
 
 /**
- * This class represents an output device for 3D sound.
+ * This class represents a playback handle for 3D sources.
  */
 class AUD_I3DHandle
 {

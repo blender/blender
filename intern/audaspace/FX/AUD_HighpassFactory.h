@@ -41,7 +41,7 @@ class AUD_HighpassFactory : public AUD_DynamicIIRFilterFactory
 {
 private:
 	/**
-	 * The attack value in seconds.
+	 * The cutoff frequency.
 	 */
 	const float m_frequency;
 

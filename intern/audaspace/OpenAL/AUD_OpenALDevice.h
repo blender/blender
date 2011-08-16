@@ -100,6 +100,13 @@ private:
 
 	public:
 
+		/**
+		 * Creates a new OpenAL handle.
+		 * \param device The OpenAL device the handle belongs to.
+		 * \param format The AL format.
+		 * \param reader The reader this handle plays.
+		 * \param keep Whether to keep the handle alive when the reader ends.
+		 */
 		AUD_OpenALHandle(AUD_OpenALDevice* device, ALenum format, AUD_Reference<AUD_IReader> reader, bool keep);
 
 		virtual ~AUD_OpenALHandle() {}
@@ -214,6 +221,7 @@ private:
 
 	/**
 	 * Starts the streaming thread.
+	 * \param Whether the previous thread should be joined.
 	 */
 	void start(bool join = true);
 

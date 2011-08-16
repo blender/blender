@@ -49,8 +49,6 @@ extern "C" {
  * \warning Seeking may not be accurate! Moreover the position is updated after
  *          a buffer reading call. So calling getPosition right after seek
  *          normally results in a wrong value.
- * \warning Playback of an ogg with some outdated ffmpeg versions results in a
- *          segfault on windows.
  */
 class AUD_FFMPEGReader : public AUD_IReader
 {

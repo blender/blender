@@ -37,7 +37,7 @@
 #include "AUD_Reference.h"
 
 /**
- * This reader plays two readers with the same specs sequently.
+ * This reader plays two readers sequently.
  */
 class AUD_DoubleReader : public AUD_IReader
 {
@@ -57,21 +57,15 @@ private:
 	 */
 	bool m_finished1;
 
-	/**
-	 * The playback buffer for the intersecting part.
-	 */
-	AUD_Buffer m_buffer;
-
 	// hide copy constructor and operator=
 	AUD_DoubleReader(const AUD_DoubleReader&);
 	AUD_DoubleReader& operator=(const AUD_DoubleReader&);
 
 public:
 	/**
-	 * Creates a new ping pong reader.
+	 * Creates a new double reader.
 	 * \param reader1 The first reader to read from.
 	 * \param reader2 The second reader to read from.
-	 * \exception AUD_Exception Thrown if the specs from the readers differ.
 	 */
 	AUD_DoubleReader(AUD_Reference<AUD_IReader> reader1, AUD_Reference<AUD_IReader> reader2);
 

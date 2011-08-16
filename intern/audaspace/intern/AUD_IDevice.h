@@ -34,9 +34,9 @@
 
 #include "AUD_Space.h"
 #include "AUD_Reference.h"
-class AUD_IFactory;
-class AUD_IReader;
-class AUD_IHandle;
+#include "AUD_IFactory.h"
+#include "AUD_IReader.h"
+#include "AUD_IHandle.h"
 
 /**
  * This class represents an output device for sound sources.

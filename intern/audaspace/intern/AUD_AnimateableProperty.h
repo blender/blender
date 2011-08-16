@@ -51,9 +51,6 @@ private:
 	/// The mutex for locking.
 	pthread_mutex_t m_mutex;
 
-	/// Whether the property has been changed.
-	bool m_changed;
-
 	// hide copy constructor and operator=
 	AUD_AnimateableProperty(const AUD_AnimateableProperty&);
 	AUD_AnimateableProperty& operator=(const AUD_AnimateableProperty&);
@@ -80,15 +77,32 @@ public:
 	 */
 	void unlock();
 
+	/**
+	 * Writes the properties value and marks it non-animated.
+	 * \param data The new value.
+	 */
 	void write(const float* data);
 
+	/**
+	 * Writes the properties value and marks it animated.
+	 * \param data The new value.
+	 * \param position The position in the animation in frames.
+	 * \param count The count of frames to write.
+	 */
 	void write(const float* data, int position, int count);
 
+	/**
+	 * Reads the properties value.
+	 * \param position The position in the animation in frames.
+	 * \param[out] out Where to write the value to.
+	 */
 	void read(float position, float* out);
 
+	/**
+	 * Returns whether the property is animated.
+	 * \return Whether the property is animated.
+	 */
 	bool isAnimated() const;
-
-	bool hasChanged();
 };
 
 #endif //AUD_ANIMATEABLEPROPERTY
