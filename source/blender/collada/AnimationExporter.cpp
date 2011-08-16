@@ -61,13 +61,14 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		bool isMatAnim = false;
         if(ob->adt && ob->adt->action)      
 		{
-			if ( ob->type == OB_ARMATURE )
+			//transform matrix export for bones are temporarily disabled here.
+			/*if ( ob->type == OB_ARMATURE )
 			{
 				bArmature *arm = (bArmature*)ob->data;
 				for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
 					bake_bone_animation(ob, bone);
 			    
-			}
+			}*/
 			fcu = (FCurve*)ob->adt->action->curves.first;
 		    while (fcu) {
 			transformName = extract_transform_name( fcu->rna_path );
@@ -988,8 +989,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 	std::string AnimationExporter::get_light_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)
 	{
 		std::string tm_name;
-        bool is_rotation =false;
-		// when given rna_path, determine tm_type from it
+        // when given rna_path, determine tm_type from it
 		if (rna_path) {
 			char *name = extract_transform_name(rna_path);
 
@@ -1033,6 +1033,57 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		return std::string("");
 	}
+	
+	std::string AnimationExporter::get_camera_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)
+	{
+		std::string tm_name;
+        // when given rna_path, determine tm_type from it
+		if (rna_path) {
+			char *name = extract_transform_name(rna_path);
+
+		    if (!strcmp(name, "lens"))
+				tm_type = 0;
+            else if (!strcmp(name, "ortho_scale"))
+				tm_type = 1;
+			else if (!strcmp(name, "clip_end"))
+				tm_type = 2;
+			else if (!strcmp(name, "clip_start"))
+				tm_type = 3;
+			
+			else
+				tm_type = -1;
+		}
+
+		switch (tm_type) {
+		case 0:
+			tm_name = "xfov";
+			break;
+		case 1:
+			tm_name = "xmag";
+			break;
+		case 2:
+			tm_name = "zfar";
+			break;
+		case 3:
+			tm_name = "znear";
+			break;
+		
+		default:
+			tm_name = "";
+			break;
+		}
+       
+		if (tm_name.size()) {
+			if (axis_name != "")
+				return tm_name + "." + std::string(axis_name);
+			else 
+				return tm_name;
+		}
+
+		return std::string("");
+	}
+
+    // Assign sid of the animated parameter or transform 
 	// for rotation, axis name is always appended and the value of append_axis is ignored
 	std::string AnimationExporter::get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)
 	{
@@ -1137,6 +1188,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		return dot ? (dot + 1) : rna_path;
 	}
 
+	//find keyframes of all the objects animations
 	void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra)
 	{
 		FCurve *fcu= (FCurve*)ob->adt->action->curves.first;
@@ -1154,38 +1206,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		std::sort(fra.begin(), fra.end());
 	}
 
-
-	void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name)
-	{
-		FCurve *fcu= (FCurve*)ob->adt->action->curves.first;
-
-		for (; fcu; fcu = fcu->next) {
-			if (prefix && strncmp(prefix, fcu->rna_path, strlen(prefix)))
-				continue;
-
-			char *name = extract_transform_name(fcu->rna_path);
-			if (!strcmp(name, tm_name)) {
-				for (unsigned int i = 0; i < fcu->totvert; i++) {
-					float f = fcu->bezt[i].vec[1][0];     //
-					if (std::find(fra.begin(), fra.end(), f) == fra.end())   
-						fra.push_back(f);
-				}
-			}
-		}
-
-		// keep the keys in ascending order
-		std::sort(fra.begin(), fra.end());
-	}
-
-	void AnimationExporter::find_rotation_frames(Object *ob, std::vector<float> &fra, const char *prefix, int rotmode)
-	{
-		if (rotmode > 0)
-			find_frames(ob, fra, prefix, "rotation_euler");
-		else if (rotmode == ROT_MODE_QUAT)
-			find_frames(ob, fra, prefix, "rotation_quaternion");
-		/*else if (rotmode == ROT_MODE_AXISANGLE)
-			;*/
-	}
+        
 
 	// enable fcurves driving a specific bone, disable all the rest
 	// if bone_name = NULL enable all fcurves
@@ -1218,13 +1239,17 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			Object *ob = base->object;
 			
 			FCurve *fcu = 0;
+			//Check for object transform animations
 			if(ob->adt && ob->adt->action)      
 				fcu = (FCurve*)ob->adt->action->curves.first;
+			//Check for Lamp parameter animations
 			else if( (ob->type == OB_LAMP ) && ((Lamp*)ob ->data)->adt && ((Lamp*)ob ->data)->adt->action )
 				fcu = (FCurve*)(((Lamp*)ob ->data)->adt->action->curves.first);
+			//Check for Camera parameter animations
 			else if( (ob->type == OB_CAMERA ) && ((Camera*)ob ->data)->adt && ((Camera*)ob ->data)->adt->action )
 				fcu = (FCurve*)(((Camera*)ob ->data)->adt->action->curves.first);
 			
+			//Check Material Effect parameter animations.
 		    for(int a = 0; a < ob->totcol; a++)
 			{
 				Material *ma = give_current_material(ob, a+1);
@@ -1239,4 +1264,37 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			base= base->next;
 		}
 		return false;
+	}
+
+	//------------------------------- Not used in the new system.--------------------------------------------------------
+	void AnimationExporter::find_rotation_frames(Object *ob, std::vector<float> &fra, const char *prefix, int rotmode)
+	{
+		if (rotmode > 0)
+			find_frames(ob, fra, prefix, "rotation_euler");
+		else if (rotmode == ROT_MODE_QUAT)
+			find_frames(ob, fra, prefix, "rotation_quaternion");
+		/*else if (rotmode == ROT_MODE_AXISANGLE)
+			;*/
+	}
+
+	void AnimationExporter::find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name)
+	{
+		FCurve *fcu= (FCurve*)ob->adt->action->curves.first;
+
+		for (; fcu; fcu = fcu->next) {
+			if (prefix && strncmp(prefix, fcu->rna_path, strlen(prefix)))
+				continue;
+
+			char *name = extract_transform_name(fcu->rna_path);
+			if (!strcmp(name, tm_name)) {
+				for (unsigned int i = 0; i < fcu->totvert; i++) {
+					float f = fcu->bezt[i].vec[1][0];     //
+					if (std::find(fra.begin(), fra.end(), f) == fra.end())   
+						fra.push_back(f);
+				}
+			}
+		}
+
+		// keep the keys in ascending order
+		std::sort(fra.begin(), fra.end());
 	}

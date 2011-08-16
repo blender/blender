@@ -143,7 +143,7 @@ protected:
 	// for rotation, axis name is always appended and the value of append_axis is ignored
 	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	std::string get_light_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
-	
+	std::string get_camera_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	void find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name);
 	void find_frames(Object *ob, std::vector<float> &fra);
 

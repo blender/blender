@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory.
+ * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory, Sukhitha jayathilake.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -37,6 +37,7 @@
 #include "BKE_action.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
+#include "BKE_armature.h"
 #include "BLI_string.h"
 #include "ED_armature.h"
 
@@ -97,28 +98,21 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 
 	if (parent) bone->parent = parent;
     float ax[3];
-	float angle = NULL;
+	float angle = 0;
 
 	// get world-space
 	if (parent){
        	mul_m4_m4m4(mat, obmat, parent_mat);
-		bPoseChannel *parchan = get_pose_channel(ob_arm->pose, parent->name);
-		if ( parchan && pchan)
-		mul_m4_m4m4(pchan->pose_mat, mat , parchan->pose_mat);
-		mat4_to_axis_angle(ax,&angle,mat);
-		bone->roll = angle;
+
 	}
 	else {
 		copy_m4_m4(mat, obmat);
-		float invObmat[4][4];
-       invert_m4_m4(invObmat, ob_arm->obmat);
-	   if(pchan)
-       mul_m4_m4m4(pchan->pose_mat, mat, invObmat);
-	   mat4_to_axis_angle(ax,&angle,mat);
-	   bone->roll = angle;
-	}
-	
 
+	}
+	float loc[3], size[3], rot[3][3];
+	mat4_to_loc_rot_size( loc, rot, size, obmat);
+	mat3_to_vec_roll(rot, NULL, &angle );
+	bone->roll=angle;
 	// set head
 	copy_v3_v3(bone->head, mat[3]);
    
@@ -130,10 +124,10 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	// set parent tail
 	if (parent && totchild == 1) {
 		copy_v3_v3(parent->tail, bone->head);
-
+		
 		// not setting BONE_CONNECTED because this would lock child bone location with respect to parent
 		// bone->flag |= BONE_CONNECTED;
-
+    
 		// XXX increase this to prevent "very" small bones?
 		const float epsilon = 0.000001f;
 
