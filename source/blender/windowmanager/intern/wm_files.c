@@ -498,7 +498,10 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory, ListBa
 	return TRUE;
 }
 
-/* split from the old WM_read_homefile */
+/* split from the old WM_read_homefile, as the locale setting should
+ * be called after loading user preference, while the
+ * WM_read_homefile_proc may need i18n support. So we split them, and
+ * insert locale setting steps */
 int WM_read_homefile_proc(bContext *C, ListBase *wmbase)
 {
 	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise

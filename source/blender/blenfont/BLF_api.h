@@ -42,7 +42,7 @@ void BLF_exit(void);
 
 void BLF_cache_clear(void);
 
-char* BLF_gettext(const char *msgid);
+const char* BLF_gettext(const char *msgid);
 
 int BLF_load(const char *name);
 int BLF_load_mem(const char *name, unsigned char *mem, int mem_size);

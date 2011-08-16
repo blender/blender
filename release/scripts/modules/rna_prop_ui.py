@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-
+from blf import gettext as _
 
 def rna_idprop_ui_get(item, create=True):
     try:
@@ -145,7 +145,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
 
         if use_edit:
             row = split.row(align=True)
-            prop = row.operator("wm.properties_edit", text="edit")
+            prop = row.operator("wm.properties_edit", text=_("edit"))
             assign_props(prop, val_draw, key)
 
             prop = row.operator("wm.properties_remove", text="", icon='ZOOMOUT')
@@ -157,7 +157,7 @@ class PropertyPanel():
     The subclass should have its own poll function
     and the variable '_context_path' MUST be set.
     """
-    bl_label = "Custom Properties"
+    bl_label = _("Custom Properties")
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod

@@ -798,6 +798,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_edit"
     bl_label = _("Edit Property")
+    __doc__ = _("Internal use (edit a property data_path)")
     bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
     data_path = rna_path
@@ -882,6 +883,7 @@ class WM_OT_properties_add(bpy.types.Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_add"
     bl_label = _("Add Property")
+    __doc__ = _("Internal use (edit a property data_path)")
 
     data_path = rna_path
 
@@ -920,6 +922,7 @@ class WM_OT_properties_remove(bpy.types.Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_remove"
     bl_label = _("Remove Property")
+    __doc__ = _("Internal use (edit a property data_path)")
 
     data_path = rna_path
     property = rna_property
