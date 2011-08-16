@@ -31,7 +31,7 @@
 
 #include "BL_Action.h"
 
-#define MAX_ACTION_LAYERS 4
+#define MAX_ACTION_LAYERS 8
 
 /**
  * BL_ActionManager is responsible for handling a KX_GameObject's actions.

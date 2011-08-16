@@ -3055,7 +3055,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 
 static void layer_check(short &layer, const char *method_name)
 {
-	if (layer < 0 || layer > MAX_ACTION_LAYERS)
+	if (layer < 0 || layer >= MAX_ACTION_LAYERS)
 	{
 		printf("KX_GameObject.%s(): given layer (%d) is out of range (0 - %d), setting to 0.\n", method_name, layer, MAX_ACTION_LAYERS-1);
 		layer = 0;
