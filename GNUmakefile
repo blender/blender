@@ -126,4 +126,24 @@ test_deprecated:
 clean:
 	$(MAKE) -C $(BUILD_DIR) clean
 
+help:
+	@echo ""
+	@echo "Convenience targets provided for building blender, (multiple at once can be used)"
+	@echo "  * debug     - build a debug binary"
+	@echo "  * lite      - disable non essential features for a smaller binary and faster build"
+	@echo "  * headless  - build without an interface (renderfarm or server automation)"
+	@echo "  * bpy       - build as a python module which can be loaded from python directly"
+	@echo ""
+	@echo "Package Targets"
+	@echo "  * package_debian  - build a debian package"
+	@echo "  * package_pacman  - build an arch linux pacmanpackage"
+	@echo "  * package_archive - build an archive package"
+	@echo ""
+	@echo "Testing Targets (not assosiated with building blender)"
+	@echo "  * test            - run ctest, currently tests import/export, operator execution and that python modules load"
+	@echo "  * test_cmake      - runs our own cmake file checker which detects errors in the cmake file list definitions"
+	@echo "  * test_pep8       - checks all python script are pep8 which are tagged to use the stricter formatting"
+	@echo "  * test_deprecated - checks for deprecation tags in our code which may need to be removed"
+	@echo ""
+
 .PHONY: all
