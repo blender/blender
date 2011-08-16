@@ -38,6 +38,10 @@ BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
 BUILD_TYPE:=Release
 BUILD_CMAKE_ARGS:=""
 
+
+# -----------------------------------------------------------------------------
+# additional targets for the build configuration
+
 # support 'make debug'
 ifneq "$(findstring debug, $(MAKECMDGOALS))" ""
 	BUILD_DIR:=$(BUILD_DIR)_debug
@@ -56,6 +60,8 @@ ifneq "$(findstring bpy, $(MAKECMDGOALS))" ""
 	BUILD_CMAKE_ARGS:=$(BUILD_CMAKE_ARGS) -C$(BLENDER_DIR)/build_files/cmake/config/bpy_module.cmake
 endif
 
+
+# -----------------------------------------------------------------------------
 # Get the number of cores for threaded build
 NPROCS:=1
 ifeq ($(OS), Linux)
@@ -72,6 +78,35 @@ ifeq ($(OS), NetBSD)
 endif
 
 
+# -----------------------------------------------------------------------------
+# Helo for build targets
+help:
+	@echo ""
+	@echo "Convenience targets provided for building blender, (multiple at once can be used)"
+	@echo "  * debug     - build a debug binary"
+	@echo "  * lite      - disable non essential features for a smaller binary and faster build"
+	@echo "  * headless  - build without an interface (renderfarm or server automation)"
+	@echo "  * bpy       - build as a python module which can be loaded from python directly"
+	@echo ""
+	@echo "Project Files for IDE's"
+	@echo "  * project_qtcreator - QtCreator Project Files"
+	@echo "  * project_netbeans  - NetBeans Project Files"
+	@echo "  * project_eclipse   - Eclipse CDT4 Project Files"
+	@echo ""
+	@echo "Package Targets"
+	@echo "  * package_debian  - build a debian package"
+	@echo "  * package_pacman  - build an arch linux pacmanpackage"
+	@echo "  * package_archive - build an archive package"
+	@echo ""
+	@echo "Testing Targets (not assosiated with building blender)"
+	@echo "  * test            - run ctest, currently tests import/export, operator execution and that python modules load"
+	@echo "  * test_cmake      - runs our own cmake file checker which detects errors in the cmake file list definitions"
+	@echo "  * test_pep8       - checks all python script are pep8 which are tagged to use the stricter formatting"
+	@echo "  * test_deprecated - checks for deprecation tags in our code which may need to be removed"
+	@echo ""
+
+
+# -----------------------------------------------------------------------------
 # Build Blender
 all:
 	@echo
@@ -94,7 +129,10 @@ lite: all
 headless: all
 bpy: all
 
-# package types
+
+# -----------------------------------------------------------------------------
+# Packages
+#
 package_debian:
 	cd build_files/package_spec ; DEB_BUILD_OPTIONS="parallel=$(NPROCS)" sh ./build_debian.sh
 
@@ -105,7 +143,10 @@ package_archive:
 	make -C $(BUILD_DIR) -s package_archive
 	@echo archive in "$(BUILD_DIR)/release"
 
-# forward build targets
+
+# -----------------------------------------------------------------------------
+# Tests
+#
 test:
 	cd $(BUILD_DIR) ; ctest . --output-on-failure
 
@@ -123,27 +164,22 @@ test_cmake:
 test_deprecated:
 	python3 source/tests/check_deprecated.py
 
+
+# -----------------------------------------------------------------------------
+# Project Files
+#
+
+project_qtcreator:
+	python3 build_files/cmake/cmake_qtcreator_project.py $(BUILD_DIR)
+
+project_netbeans:
+	python3 build_files/cmake/cmake_netbeans_project.py $(BUILD_DIR)
+
+project_eclipse:
+	cmake -G"Eclipse CDT4 - Unix Makefiles" -H$(BLENDER_DIR) -B$(BUILD_DIR)
+
+
 clean:
 	$(MAKE) -C $(BUILD_DIR) clean
-
-help:
-	@echo ""
-	@echo "Convenience targets provided for building blender, (multiple at once can be used)"
-	@echo "  * debug     - build a debug binary"
-	@echo "  * lite      - disable non essential features for a smaller binary and faster build"
-	@echo "  * headless  - build without an interface (renderfarm or server automation)"
-	@echo "  * bpy       - build as a python module which can be loaded from python directly"
-	@echo ""
-	@echo "Package Targets"
-	@echo "  * package_debian  - build a debian package"
-	@echo "  * package_pacman  - build an arch linux pacmanpackage"
-	@echo "  * package_archive - build an archive package"
-	@echo ""
-	@echo "Testing Targets (not assosiated with building blender)"
-	@echo "  * test            - run ctest, currently tests import/export, operator execution and that python modules load"
-	@echo "  * test_cmake      - runs our own cmake file checker which detects errors in the cmake file list definitions"
-	@echo "  * test_pep8       - checks all python script are pep8 which are tagged to use the stricter formatting"
-	@echo "  * test_deprecated - checks for deprecation tags in our code which may need to be removed"
-	@echo ""
 
 .PHONY: all
