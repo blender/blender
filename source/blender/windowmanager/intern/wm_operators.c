@@ -58,6 +58,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "BLO_readfile.h"
 
@@ -100,7 +101,7 @@
 #include "wm_subwindow.h"
 #include "wm_window.h"
 
-static ListBase global_ops= {NULL, NULL};
+static GHash *global_ops_hash= NULL;
 
 /* ************ operator API, exported ********** */
 
@@ -113,7 +114,7 @@ wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 	WM_operator_bl_idname(idname_bl, idname);
 
 	if (idname_bl[0]) {
-		ot= (wmOperatorType *)BLI_findstring_ptr(&global_ops, idname_bl, offsetof(wmOperatorType, idname));
+		ot= BLI_ghash_lookup(global_ops_hash, idname_bl);
 		if(ot) {
 			return ot;
 		}
@@ -125,9 +126,10 @@ wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 	return NULL;
 }
 
-wmOperatorType *WM_operatortype_first(void)
+/* caller must free */
+GHashIterator *WM_operatortype_iter(void)
 {
-	return global_ops.first;
+	return BLI_ghashIterator_new(global_ops_hash);
 }
 
 /* all ops in 1 list (for time being... needs evaluation later) */
@@ -147,7 +149,8 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType*))
 
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)"); // XXX All ops should have a description but for now allow them not to.
 	RNA_def_struct_identifier(ot->srna, ot->idname);
-	BLI_addtail(&global_ops, ot);
+
+	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 }
 
 void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *userdata)
@@ -159,7 +162,8 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType*, void*), void *us
 	opfunc(ot, userdata);
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)");
 	RNA_def_struct_identifier(ot->srna, ot->idname);
-	BLI_addtail(&global_ops, ot);
+
+	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 }
 
 /* ********************* macro operator ******************** */
@@ -351,7 +355,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description); // XXX All ops should have a description but for now allow them not to.
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
-	BLI_addtail(&global_ops, ot);
+	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 
 	return ot;
 }
@@ -378,7 +382,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), vo
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
-	BLI_addtail(&global_ops, ot);
+	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
 }
 
 wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)
@@ -426,14 +430,14 @@ int WM_operatortype_remove(const char *idname)
 	if (ot==NULL)
 		return 0;
 	
-	BLI_remlink(&global_ops, ot);
 	RNA_struct_free(&BLENDER_RNA, ot->srna);
 	
 	if(ot->macro.first)
 		wm_operatortype_free_macro(ot);
-	
-	MEM_freeN(ot);
 
+	BLI_ghash_remove(global_ops_hash, (void *)ot->idname, NULL, NULL);
+
+	MEM_freeN(ot);
 	return 1;
 }
 
@@ -806,6 +810,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 
 	if(flag & WM_FILESEL_FILENAME)
 		RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file");
+
+	if(flag & WM_FILESEL_FILES)
+		RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 
 	if (action == FILE_SAVE) {
 		prop= RNA_def_boolean(ot->srna, "check_existing", 1, "Check Existing", "Check and warn on overwriting existing files");
@@ -1311,9 +1318,10 @@ static void operator_call_cb(struct bContext *C, void *UNUSED(arg1), void *arg2)
 
 static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
-	wmOperatorType *ot = WM_operatortype_first();
-	
-	for(; ot; ot= ot->next) {
+	GHashIterator *iter= WM_operatortype_iter();
+
+	for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		wmOperatorType *ot= BLI_ghashIterator_getValue(iter);
 
 		if((ot->flag & OPTYPE_INTERNAL) && (G.f & G_DEBUG) == 0)
 			continue;
@@ -1337,6 +1345,7 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 			}
 		}
 	}
+	BLI_ghashIterator_free(iter);
 }
 
 static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_op))
@@ -1742,14 +1751,12 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	
 	ot->flag |= OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_DIRECTORY|WM_FILESEL_FILENAME| WM_FILESEL_RELPATH);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_DIRECTORY|WM_FILESEL_FILENAME| WM_FILESEL_RELPATH|WM_FILESEL_FILES);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
 	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer");
 	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup");
-
-	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }	
 
 /* *************** recover last session **************** */
@@ -3457,26 +3464,31 @@ static void WM_OT_ndof_sensitivity_change(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "fast", 0, "Fast NDOF sensitivity change", "If true then sensitivity changes 50%, otherwise 10%");
 } 
 
+
+static void operatortype_ghash_free_cb(wmOperatorType *ot)
+{
+	if(ot->macro.first)
+		wm_operatortype_free_macro(ot);
+
+	if(ot->ext.srna) /* python operator, allocs own string */
+		MEM_freeN((void *)ot->idname);
+
+	MEM_freeN(ot);
+}
+
 /* ******************************************************* */
 /* called on initialize WM_exit() */
 void wm_operatortype_free(void)
 {
-	wmOperatorType *ot;
-	
-	for(ot= global_ops.first; ot; ot= ot->next) {
-		if(ot->macro.first)
-			wm_operatortype_free_macro(ot);
-
-		if(ot->ext.srna) /* python operator, allocs own string */
-			MEM_freeN((void *)ot->idname);
-	}
-	
-	BLI_freelistN(&global_ops);
+	BLI_ghash_free(global_ops_hash, NULL, (GHashValFreeFP)operatortype_ghash_free_cb);
+	global_ops_hash= NULL;
 }
 
 /* called on initialize WM_init() */
 void wm_operatortype_init(void)
 {
+	global_ops_hash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "wm_operatortype_init gh");
+
 	WM_operatortype_append(WM_OT_window_duplicate);
 	WM_operatortype_append(WM_OT_read_homefile);
 	WM_operatortype_append(WM_OT_read_factory_settings);

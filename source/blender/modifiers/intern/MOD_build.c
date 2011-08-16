@@ -328,5 +328,6 @@ ModifierTypeInfo modifierType_Build = {
 	/* dependsOnTime */     dependsOnTime,
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL
+	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

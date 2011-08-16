@@ -152,4 +152,6 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };
+

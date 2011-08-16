@@ -134,6 +134,12 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
+static void foreachTexLink(ModifierData *md, Object *ob,
+					   TexWalkFunc walk, void *userData)
+{
+	walk(userData, ob, md, "texture");
+}
+
 static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
@@ -284,4 +290,5 @@ ModifierTypeInfo modifierType_Displace = {
 	/* dependsOnNormals */	dependsOnNormals,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
+	/* foreachTexLink */    foreachTexLink,
 };

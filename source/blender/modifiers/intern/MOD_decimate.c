@@ -222,4 +222,5 @@ ModifierTypeInfo modifierType_Decimate = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

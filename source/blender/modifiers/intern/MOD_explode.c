@@ -1041,4 +1041,5 @@ ModifierTypeInfo modifierType_Explode = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

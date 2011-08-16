@@ -2165,6 +2165,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					attribs->tface[a].array = NULL;
 					attribs->tface[a].emOffset = pdata->layers[layer].offset;
 					attribs->tface[a].glIndex = gattribs->layer[b].glindex;
+					attribs->tface[a].glTexco = gattribs->layer[b].gltexco;
 					
 				}
 			}*/
@@ -2207,6 +2208,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 				attribs->orco.array = vdata->layers[layer].data;
 				attribs->orco.emOffset = vdata->layers[layer].offset;
 				attribs->orco.glIndex = gattribs->layer[b].glindex;
+				attribs->orco.glTexco = gattribs->layer[b].gltexco;
 			}
 		}
 	}

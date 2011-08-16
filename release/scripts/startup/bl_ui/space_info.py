@@ -18,9 +18,10 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu, Operator
 
 
-class INFO_HT_header(bpy.types.Header):
+class INFO_HT_header(Header):
     bl_space_type = 'INFO'
 
     def draw(self, context):
@@ -86,19 +87,19 @@ class INFO_HT_header(bpy.types.Header):
         """
 
 
-class INFO_MT_report(bpy.types.Menu):
+class INFO_MT_report(Menu):
     bl_label = "Report"
 
     def draw(self, context):
         layout = self.layout
-        layout.column()
+
         layout.operator("console.select_all_toggle")
         layout.operator("console.select_border")
         layout.operator("console.report_delete")
         layout.operator("console.report_copy")
 
 
-class INFO_MT_file(bpy.types.Menu):
+class INFO_MT_file(Menu):
     bl_label = "File"
 
     def draw(self, context):
@@ -152,7 +153,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 
 
-class INFO_MT_file_import(bpy.types.Menu):
+class INFO_MT_file_import(Menu):
     bl_idname = "INFO_MT_file_import"
     bl_label = "Import"
 
@@ -160,8 +161,10 @@ class INFO_MT_file_import(bpy.types.Menu):
         if hasattr(bpy.types, "WM_OT_collada_import"):
             self.layout.operator("wm.collada_import", text="COLLADA (.dae)")
 
+        self.layout.operator("export_mesh.wavefront", text="Wavefront (.obj), BMesh")
 
-class INFO_MT_file_export(bpy.types.Menu):
+
+class INFO_MT_file_export(Menu):
     bl_idname = "INFO_MT_file_export"
     bl_label = "Export"
 
@@ -169,10 +172,8 @@ class INFO_MT_file_export(bpy.types.Menu):
         if hasattr(bpy.types, "WM_OT_collada_export"):
             self.layout.operator("wm.collada_export", text="COLLADA (.dae)")
 
-        self.layout.operator("export_mesh.wavefront", text="Wavefront (.obj), BMesh")
 
-
-class INFO_MT_file_external_data(bpy.types.Menu):
+class INFO_MT_file_external_data(Menu):
     bl_label = "External Data"
 
     def draw(self, context):
@@ -189,12 +190,13 @@ class INFO_MT_file_external_data(bpy.types.Menu):
         layout.operator("file.find_missing_files")
 
 
-class INFO_MT_mesh_add(bpy.types.Menu):
+class INFO_MT_mesh_add(Menu):
     bl_idname = "INFO_MT_mesh_add"
     bl_label = "Mesh"
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.primitive_plane_add", icon='MESH_PLANE', text="Plane")
         layout.operator("mesh.primitive_cube_add", icon='MESH_CUBE', text="Cube")
@@ -209,12 +211,13 @@ class INFO_MT_mesh_add(bpy.types.Menu):
         layout.operator("mesh.primitive_torus_add", text="Torus", icon='MESH_TORUS')
 
 
-class INFO_MT_curve_add(bpy.types.Menu):
+class INFO_MT_curve_add(Menu):
     bl_idname = "INFO_MT_curve_add"
     bl_label = "Curve"
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("curve.primitive_bezier_curve_add", icon='CURVE_BEZCURVE', text="Bezier")
         layout.operator("curve.primitive_bezier_circle_add", icon='CURVE_BEZCIRCLE', text="Circle")
@@ -223,7 +226,7 @@ class INFO_MT_curve_add(bpy.types.Menu):
         layout.operator("curve.primitive_nurbs_path_add", icon='CURVE_PATH', text="Path")
 
 
-class INFO_MT_edit_curve_add(bpy.types.Menu):
+class INFO_MT_edit_curve_add(Menu):
     bl_idname = "INFO_MT_edit_curve_add"
     bl_label = "Add"
 
@@ -239,12 +242,13 @@ class INFO_MT_edit_curve_add(bpy.types.Menu):
             INFO_MT_curve_add.draw(self, context)
 
 
-class INFO_MT_surface_add(bpy.types.Menu):
+class INFO_MT_surface_add(Menu):
     bl_idname = "INFO_MT_surface_add"
     bl_label = "Surface"
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("surface.primitive_nurbs_surface_curve_add", icon='SURFACE_NCURVE', text="NURBS Curve")
         layout.operator("surface.primitive_nurbs_surface_circle_add", icon='SURFACE_NCIRCLE', text="NURBS Circle")
@@ -254,17 +258,18 @@ class INFO_MT_surface_add(bpy.types.Menu):
         layout.operator("surface.primitive_nurbs_surface_torus_add", icon='SURFACE_NTORUS', text="NURBS Torus")
 
 
-class INFO_MT_armature_add(bpy.types.Menu):
+class INFO_MT_armature_add(Menu):
     bl_idname = "INFO_MT_armature_add"
     bl_label = "Armature"
 
     def draw(self, context):
         layout = self.layout
+        
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("object.armature_add", text="Single Bone", icon='BONE_DATA')
 
 
-class INFO_MT_add(bpy.types.Menu):
+class INFO_MT_add(Menu):
     bl_label = "Add"
 
     def draw(self, context):
@@ -304,7 +309,7 @@ class INFO_MT_add(bpy.types.Menu):
             layout.operator_menu_enum("object.group_instance_add", "group", text="Group Instance", icon='OUTLINER_OB_EMPTY')
 
 
-class INFO_MT_game(bpy.types.Menu):
+class INFO_MT_game(Menu):
     bl_label = "Game"
 
     def draw(self, context):
@@ -325,7 +330,7 @@ class INFO_MT_game(bpy.types.Menu):
         layout.prop(gs, "use_auto_start")
 
 
-class INFO_MT_render(bpy.types.Menu):
+class INFO_MT_render(Menu):
     bl_label = "Render"
 
     def draw(self, context):
@@ -345,7 +350,7 @@ class INFO_MT_render(bpy.types.Menu):
         layout.operator("render.play_rendered_anim")
 
 
-class INFO_MT_help(bpy.types.Menu):
+class INFO_MT_help(Menu):
     bl_label = "Help"
 
     def draw(self, context):
@@ -381,7 +386,7 @@ class INFO_MT_help(bpy.types.Menu):
 # Help operators
 
 
-class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
+class HELP_OT_operator_cheat_sheet(Operator):
     bl_idname = "help.operator_cheat_sheet"
     bl_label = "Operator Cheat Sheet"
 

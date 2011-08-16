@@ -192,4 +192,5 @@ ModifierTypeInfo modifierType_Surface = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

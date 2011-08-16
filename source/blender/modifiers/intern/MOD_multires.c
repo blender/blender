@@ -131,4 +131,5 @@ ModifierTypeInfo modifierType_Multires = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

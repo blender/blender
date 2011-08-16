@@ -2268,6 +2268,13 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of the shell");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop= RNA_def_property(srna, "thickness_vertex_group", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "offset_fac_vg");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Vertex Group Factor", "Thickness factor to use for zero vertex group influence");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "offset_fac");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);

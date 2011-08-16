@@ -19,11 +19,12 @@
 # <pep8-80 compliant>
 
 import bpy
+from bpy.types import Operator
 
 from bpy.props import EnumProperty
 
 
-class MeshSelectInteriorFaces(bpy.types.Operator):
+class MeshSelectInteriorFaces(Operator):
     '''Select faces where all edges have more then 2 face users.'''
 
     bl_idname = "mesh.faces_select_interior"
@@ -67,7 +68,7 @@ class MeshSelectInteriorFaces(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class MeshMirrorUV(bpy.types.Operator):
+class MeshMirrorUV(Operator):
     '''Copy mirror UV coordinates on the X axis based on a mirrored mesh'''
     bl_idname = "mesh.faces_mirror_uv"
     bl_label = "Copy Mirrored UV coords"

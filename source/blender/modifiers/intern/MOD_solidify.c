@@ -230,8 +230,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	float (*vert_nors)[3]= NULL;
 
-	float const ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
-	float const ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	const float ofs_orig=				- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	const float ofs_new= smd->offset	- (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	const float offset_fac_vg= smd->offset_fac_vg;
+	const float offset_fac_vg_inv= 1.0f - smd->offset_fac_vg;
 
 	/* weights */
 	MDeformVert *dvert, *dv= NULL;
@@ -398,8 +400,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			dv= dvert;
 			for(i=0; i<numVerts; i++, mv++) {
 				if(dv) {
-					if(defgrp_invert)	scalar_short_vgroup = scalar_short * (1.0f - defvert_find_weight(dv, defgrp_index));
-					else				scalar_short_vgroup = scalar_short * defvert_find_weight(dv, defgrp_index);
+					if(defgrp_invert)	scalar_short_vgroup = 1.0f - defvert_find_weight(dv, defgrp_index);
+					else				scalar_short_vgroup = defvert_find_weight(dv, defgrp_index);
+					scalar_short_vgroup= (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) * scalar_short;
 					dv++;
 				}
 				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
@@ -412,8 +415,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			dv= dvert;
 			for(i=0; i<numVerts; i++, mv++) {
 				if(dv) {
-					if(defgrp_invert)	scalar_short_vgroup = scalar_short * (1.0f - defvert_find_weight(dv, defgrp_index));
-					else				scalar_short_vgroup = scalar_short * defvert_find_weight(dv, defgrp_index);
+					if(defgrp_invert)	scalar_short_vgroup = 1.0f - defvert_find_weight(dv, defgrp_index);
+					else				scalar_short_vgroup = defvert_find_weight(dv, defgrp_index);
+					scalar_short_vgroup= (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) * scalar_short;
 					dv++;
 				}
 				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
@@ -473,15 +477,21 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		/* vertex group support */
 		if(dvert) {
+			float scalar;
+
 			dv= dvert;
 			if(defgrp_invert) {
 				for(i=0; i<numVerts; i++, dv++) {
-					vert_angles[i] *= (1.0f - defvert_find_weight(dv, defgrp_index));
+					scalar= 1.0f - defvert_find_weight(dv, defgrp_index);
+					scalar= offset_fac_vg + (scalar * offset_fac_vg_inv);
+					vert_angles[i] *= scalar;
 				}
 			}
 			else {
 				for(i=0; i<numVerts; i++, dv++) {
-					vert_angles[i] *= defvert_find_weight(dv, defgrp_index);
+					scalar= defvert_find_weight(dv, defgrp_index);
+					scalar= offset_fac_vg + (scalar * offset_fac_vg_inv);
+					vert_angles[i] *= scalar;
 				}
 			}
 		}
@@ -748,5 +758,6 @@ ModifierTypeInfo modifierType_Solidify = {
 	/* dependsOnTime */     NULL,
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL
+	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

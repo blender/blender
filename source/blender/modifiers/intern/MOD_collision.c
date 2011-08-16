@@ -267,4 +267,5 @@ ModifierTypeInfo modifierType_Collision = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

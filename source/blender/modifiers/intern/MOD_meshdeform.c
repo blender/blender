@@ -463,4 +463,5 @@ ModifierTypeInfo modifierType_MeshDeform = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 
 
 class ModifierButtonsPanel():
@@ -26,7 +27,7 @@ class ModifierButtonsPanel():
     bl_context = "modifier"
 
 
-class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
+class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     bl_label = "Modifiers"
 
     def draw(self, context):
@@ -580,13 +581,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, bpy.types.Panel):
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "invert_vertex_group", text="Invert")
+        sub.prop(md, "thickness_vertex_group", text="Factor")
 
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
         col.prop(md, "use_rim")
 
         sub = col.column()
-        sub.label()
         row = sub.split(align=True, percentage=0.4)
         row.prop(md, "material_offset", text="")
         row = row.row()
