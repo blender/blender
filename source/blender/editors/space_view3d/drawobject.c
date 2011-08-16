@@ -1642,15 +1642,12 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 
 	if (!BM_TestHFlag(eve, BM_HIDDEN)) {
 		short s[2]= {IS_CLIPPED, 0};
-		float co2[3];
-
-		VECCOPY(co2, co);
-
-		mul_m4_v3(data->vc.obedit->obmat, co2);
 
 		if (data->clipVerts) {
 			view3d_project_short_clip(data->vc.ar, co, s, 1);
 		} else {
+			float co2[2];
+			mul_v3_m4v3(co2, data->vc.obedit->obmat, co);
 			project_short_noclip(data->vc.ar, co2, s);
 		}
 
@@ -1683,20 +1680,19 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 {
 	struct { void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	BMEdge *eed = EDBM_get_edge_for_index(data->vc.em, index);
-	short s[2][2];
-	float v1_co[3], v2_co[3];
-	
-	VECCOPY(v1_co, v0co);
-	VECCOPY(v2_co, v1co);
-
-	mul_m4_v3(data->vc.obedit->obmat, v1_co);
-	mul_m4_v3(data->vc.obedit->obmat, v2_co);
 
 	if (!BM_TestHFlag(eed, BM_HIDDEN)) {
+		short s[2][2];
+
 		if (data->clipVerts==1) {
 			view3d_project_short_clip(data->vc.ar, v0co, s[0], 1);
 			view3d_project_short_clip(data->vc.ar, v1co, s[1], 1);
 		} else {
+			float v1_co[3], v2_co[3];
+
+			mul_v3_m4v3(v1_co, data->vc.obedit->obmat, v0co);
+			mul_v3_m4v3(v2_co, data->vc.obedit->obmat, v1co);
+
 			project_short_noclip(data->vc.ar, v1_co, s[0]);
 			project_short_noclip(data->vc.ar, v2_co, s[1]);
 
@@ -1734,16 +1730,18 @@ void mesh_foreachScreenEdge(ViewContext *vc, void (*func)(void *userData, BMEdge
 static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *UNUSED(no))
 {
 	struct { void (*func)(void *userData, BMFace *efa, int x, int y, int index); void *userData; ViewContext vc; float pmat[4][4], vmat[4][4]; } *data = userData;
-	float cent2[3];
 	BMFace *efa = EDBM_get_face_for_index(data->vc.em, index);
-	short s[2];
 
-	VECCOPY(cent2, cent);
 	if (efa && !BM_TestHFlag(efa, BM_HIDDEN)) {
-		mul_m4_v3(data->vc.obedit->obmat, cent2);
+		float cent2[3];
+		short s[2];
+
+		mul_v3_m4v3(cent2, data->vc.obedit->obmat, cent);
 		project_short(data->vc.ar, cent2, s);
 
-		data->func(data->userData, efa, s[0], s[1], index);
+		if (s[0] != IS_CLIPPED) {
+			data->func(data->userData, efa, s[0], s[1], index);
+		}
 	}
 }
 
