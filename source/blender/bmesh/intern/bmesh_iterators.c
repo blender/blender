@@ -374,17 +374,14 @@ void *BMIter_New(BMIter *iter, BMesh *bm, int type, void *data)
 		case BM_VERTS_OF_MESH:
 			iter->begin = vert_of_mesh_begin;
 			iter->step = vert_of_mesh_step;
-			iter->bm = bm;
 			break;
 		case BM_EDGES_OF_MESH:
 			iter->begin = edge_of_mesh_begin;
 			iter->step = edge_of_mesh_step;
-			iter->bm = bm;
 			break;
 		case BM_FACES_OF_MESH:
 			iter->begin = face_of_mesh_begin;
 			iter->step = face_of_mesh_step;
-			iter->bm = bm;
 			break;
 		case BM_EDGES_OF_VERT:
 			if (!data)
