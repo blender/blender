@@ -39,6 +39,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -65,6 +66,7 @@
 #include "BKE_group.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
@@ -1496,28 +1498,6 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 		}
 		
 		/* duplicates using userflags */
-#if 0 // XXX old animation system				
-		if(dupflag & USER_DUP_IPO) {
-			bConstraintChannel *chan;
-			id= (ID *)obn->ipo;
-			
-			if(id) {
-				ID_NEW_US( obn->ipo)
-				else obn->ipo= copy_ipo(obn->ipo);
-				id->us--;
-			}
-			/* Handle constraint ipos */
-			for (chan=obn->constraintChannels.first; chan; chan=chan->next){
-				id= (ID *)chan->ipo;
-				if(id) {
-					ID_NEW_US( chan->ipo)
-					else chan->ipo= copy_ipo(chan->ipo);
-					id->us--;
-				}
-			}
-		}
-#endif // XXX old animation system
-		
 		if(dupflag & USER_DUP_ACT) {
 			BKE_copy_animdata_id_action(&obn->id);
 		}
@@ -1674,8 +1654,11 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 
 		/* check if obdata is copied */
 		if(didit) {
+			Key *key = ob_get_key(obn);
+			
 			if(dupflag & USER_DUP_ACT) {
 				BKE_copy_animdata_id_action((ID *)obn->data);
+				if(key) BKE_copy_animdata_id_action((ID*)key);
 			}
 			
 			if(dupflag & USER_DUP_MAT) {

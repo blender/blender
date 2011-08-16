@@ -604,7 +604,7 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue),
 			
 		/* calculate the 'number' of the cycle */
 		cycle= ((float)side * (evaltime - ofs) / cycdx);
-
+		
 		/* calculate the time inside the cycle */
 		cyct= fmod(evaltime - ofs, cycdx);
 		

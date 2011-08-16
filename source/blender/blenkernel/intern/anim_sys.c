@@ -287,7 +287,7 @@ int BKE_copy_animdata_id (ID *id_to, ID *id_from, const short do_action)
 	return 1;
 }
 
-void BKE_copy_animdata_id_action(struct ID *id)
+void BKE_copy_animdata_id_action(ID *id)
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	if (adt) {
