@@ -388,14 +388,9 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 			continue;
 		}
 
-		co[0] /= (float)j;
-		co[1] /= (float)j;
-		co[2] /= (float)j;
+		mul_v3_fl(co, 1.0f / (float)j);
+		mid_v3_v3v3(co, co, v->co);
 
-		co[0] = v->co[0]*0.5 + co[0]*0.5;
-		co[1] = v->co[1]*0.5 + co[1]*0.5;
-		co[2] = v->co[2]*0.5 + co[2]*0.5;
-		
 		if (clipx && fabs(v->co[0]) < clipdist)
 			co[0] = 0.0f;
 		if (clipy && fabs(v->co[1]) < clipdist)
@@ -431,12 +426,7 @@ static void ngon_center(float *v, BMesh *bm, BMFace *f)
 		add_v3_v3v3(v, v, l->v->co);
 	}
 
-	if( f->len )
-	{
-		v[0] /= f->len;
-		v[1] /= f->len;
-		v[2] /= f->len;
-	}
+	if( f->len ) mul_v3_fl(v, 1.0f / (float)f->len);
 }
 
 /*
@@ -454,17 +444,13 @@ static float ngon_perimeter(BMesh *bm, BMFace *f)
 
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		if( num_verts == 0 ) {
-			sv[0] = v[0] = l->v->co[0];
-			sv[1] = v[1] = l->v->co[1];
-			sv[2] = v[2] = l->v->co[2];
-			num_verts++;
+			copy_v3_v3(v, l->v->co);
+			copy_v3_v3(sv, l->v->co);
 		} else {
 			perimeter += len_v3v3(v, l->v->co);
-			v[0] = l->v->co[0];
-			v[1] = l->v->co[1];
-			v[2] = l->v->co[2];
-			num_verts++;
+			copy_v3_v3(v, l->v->co);
 		}
+		num_verts++;
 	}
 
 	perimeter += len_v3v3(v, sv);
@@ -491,15 +477,12 @@ static float ngon_fake_area(BMesh *bm, BMFace *f)
 
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		if( num_verts == 0 ) {
-			sv[0] = v[0] = l->v->co[0];
-			sv[1] = v[1] = l->v->co[1];
-			sv[2] = v[2] = l->v->co[2];
+			copy_v3_v3(v, l->v->co);
+			copy_v3_v3(sv, l->v->co);
 			num_verts++;
 		} else {
 			area += area_tri_v3(v, c, l->v->co);
-			v[0] = l->v->co[0];
-			v[1] = l->v->co[1];
-			v[2] = l->v->co[2];
+			copy_v3_v3(v, l->v->co);
 			num_verts++;
 		}
 	}
@@ -690,16 +673,14 @@ static float edge_angle(BMesh *bm, BMEdge *e)
 	float	n1[3], n2[3];
 	float	angle = 0.0f;
 
+	/* this is a bit odd, n2 keeps getting written into */
+
 	BM_ITER(f, &fiter, bm, BM_FACES_OF_EDGE, e) {
 		if( num_faces == 0 ) {
-			n1[0] = f->no[0];
-			n1[1] = f->no[1];
-			n1[2] = f->no[2];
+			copy_v3_v3(n1, f->no);
 			num_faces++;
 		} else {
-			n2[0] = f->no[0];
-			n2[1] = f->no[1];
-			n2[2] = f->no[2];
+			copy_v3_v3(n2, f->no);
 			num_faces++;
 		}
 	}
