@@ -28,6 +28,8 @@
 
 namespace libmv {
 
+typedef unsigned int uint;
+
 struct vec2 {
   float x,y;
   inline vec2(float x, float y):x(x),y(y){}
@@ -44,11 +46,20 @@ template <int k> inline int sample(const ubyte* image,int stride, int x, int y, 
         + (s[stride] * (k-u) + s[stride+1] * u) * (  v) ) / (k*k);
 }
 
-void SamplePattern(const ubyte* image, int stride, mat3 warp, ubyte* pattern) {
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
+void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern) {
   const int k = 256;
   for (int i = 0; i < 16; i++) for (int j = 0; j < 16; j++) {
     vec2 p = warp*vec2(j-8,i-8);
+#ifdef __SSE__
+    //MSVC apparently doesn't support any float rounding.
+    int fx = _mm_cvtss_si32(_mm_set_ss(p.x*k));
+    int fy = _mm_cvtss_si32(_mm_set_ss(p.y*k));
+#else
     int fx = lround(p.x*k), fy = lround(p.y*k);
+#endif
     int ix = fx/k, iy = fy/k;
     int u = fx%k, v = fy%k;
     pattern[i*16+j] = sample<k>(image,stride,ix,iy,u,v);
@@ -78,14 +89,14 @@ static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
 #endif
 
 //float sq( float x ) { return x*x; }
-bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, float* px, float* py) {
+int Track(ubyte* pattern, ubyte* image, int stride, int w, int h, float* px, float* py) {
   int ix = *px-8, iy = *py-8;
   uint min=-1;
   // integer pixel
   for(int y = 0; y < h-16; y++) {
     for(int x = 0; x < w-16; x++) {
       uint d = SAD(pattern,&image[y*stride+x],stride); //image L1 distance
-      //d += sq(x-w/2-8)+sq(y-h/2-8); //spatial L2 distance
+      //d += sq(x-w/2-8)+sq(y-h/2-8); //spatial L2 distance (need feature prediction first)
       if(d < min) {
         min = d;
         ix = x, iy = y;
@@ -123,7 +134,7 @@ bool Track(const ubyte* pattern, const ubyte* image, int stride, int w, int h, f
 
   *px = float((ix*kScale)+fx)/kScale+8;
   *py = float((iy*kScale)+fy)/kScale+8;
-  return true;
+  return min;
 }
 
 }  // namespace libmv

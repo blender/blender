@@ -40,7 +40,7 @@ typedef float mat3[9];
 
     \note \a warp might be used by higher level tracking methods (e.g planar)
 */
-void SamplePattern(const ubyte* image, int stride, mat3 warp, ubyte* pattern);
+void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern);
 
 /*!
     Track \a pattern in \a image.
@@ -59,8 +59,10 @@ void SamplePattern(const ubyte* image, int stride, mat3 warp, ubyte* pattern);
 
     \note For a 16x speedup, compile this tracker with SSE2 support.
     \note \a stride allow you to reference your search region instead of copying.
+
+    \return Sum of absolute difference between reference and matched pattern.
 */
-bool Track(const ubyte* pattern, const ubyte* image, int stride, int width, int height, float* x, float* y);
+int Track(ubyte* pattern, ubyte* image, int stride, int width, int height, float* x, float* y);
 
 #ifdef __cplusplus
 }  // namespace libmv

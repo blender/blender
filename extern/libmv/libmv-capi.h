@@ -36,7 +36,7 @@ extern "C" {
 struct libmv_RegionTracker;
 struct libmv_Tracks;
 struct libmv_Reconstruction;
-struct libmv_Corners;
+struct libmv_Features;
 
 /* Logging */
 void libmv_initLogging(const char *argv0);
@@ -71,11 +71,11 @@ double libmv_reprojectionError(struct libmv_Reconstruction *libmv_reconstruction
 void libmv_destroyReconstruction(struct libmv_Reconstruction *libmv_reconstruction);
 
 /* feature detector */
-struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride,
-			int margin, int min_trackness, int min_distance);
-int libmv_countCorners(struct libmv_Corners *libmv_corners);
-void libmv_getCorner(struct libmv_Corners *libmv_corners, int number, double *x, double *y, double *score, double *size);
-void libmv_destroyCorners(struct libmv_Corners *libmv_corners);
+struct libmv_Features *libmv_detectFeatures(unsigned char *data, int width, int height, int stride,
+			int margin, int count, int min_distance);
+int libmv_countFeatures(struct libmv_Features *libmv_features);
+void libmv_getFeature(struct libmv_Features *libmv_features, int number, double *x, double *y, double *score, double *size);
+void libmv_destroyFeatures(struct libmv_Features *libmv_features);
 
 /* dsitortion */
 void libmv_undistortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,

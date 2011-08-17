@@ -1363,22 +1363,22 @@ static unsigned char *acquire_ucharbuf(ImBuf *ibuf)
 }
 #endif
 
-void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr, int margin, int min_trackness, int min_distance)
+void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr, int margin, int count, int min_distance)
 {
 #ifdef WITH_LIBMV
-	struct libmv_Corners *corners;
+	struct libmv_Features *features;
 	unsigned char *pixels= acquire_ucharbuf(ibuf);
 	int a;
 
-	corners= libmv_detectCorners(pixels, ibuf->x, ibuf->y, ibuf->x, margin, min_trackness, min_distance);
+	features= libmv_detectFeatures(pixels, ibuf->x, ibuf->y, ibuf->x, margin, count, min_distance);
 	MEM_freeN(pixels);
 
-	a= libmv_countCorners(corners);
+	a= libmv_countFeatures(features);
 	while(a--) {
 		MovieTrackingTrack *track;
 		double x, y, size, score;
 
-		libmv_getCorner(corners, a, &x, &y, &score, &size);
+		libmv_getFeature(features, a, &x, &y, &score, &size);
 
 		track= BKE_tracking_add_track(tracking, x/ibuf->x, 1.0f-(y/ibuf->y), framenr, ibuf->x, ibuf->y);
 		track->flag|= SELECT;
@@ -1386,7 +1386,7 @@ void BKE_tracking_detect(MovieTracking *tracking, ImBuf *ibuf, int framenr, int 
 		track->search_flag|= SELECT;
 	}
 
-	libmv_destroyCorners(corners);
+	libmv_destroyFeatures(features);
 #endif
 }
 

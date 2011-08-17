@@ -1,3 +1,49 @@
+commit d22720e618456329388d2c107422c3b371657cba
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 14:14:45 2011 +0200
+
+    Improve Detect and SAD Tracker API and documentation.
+
+commit 5d6cd4ad365b061901bad40695b51d568487a0cf
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 11:57:29 2011 +0200
+
+    MSVC support fixes.
+
+commit 50f0323173c6deebd6aaf9c126f0b51b2a79c3c1
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 23:21:37 2011 +0200
+
+    Detector can detect features similar to a given pattern.
+
+commit 5734cc27bbf84c2b6edcfcc1ea736798e12d5820
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 22:53:54 2011 +0200
+
+    Ensure SAD Tracker is C compatible.
+    Update Detect API documentation.
+
+commit 701c42842574064fea992f8822e3899cb9066108
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:56:42 2011 +0200
+
+    Remove FAST detector.
+    Add Moravec detector.
+    This detector is more suited to tracking since it try to choose patterns which are unlikely to drift by computing SAD with neighbouring patches.
+    It could be improved to better avoid edges.
+
+commit 9bdf93e13fc880c78b6f34397da673388c16040e
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:55:08 2011 +0200
+
+    Fix Qt Tracker GL to work with AMD drivers.
+
+commit 81613ee0cc94b315f333c9632b18b95d426aad05
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:54:12 2011 +0200
+
+    Make CameraIntrinsics (and thus Qt tracker) compilable without linking libmv.
+
 commit a1d9a8fa8b01ef7cf2a79b3b891633fc333fc9cf
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Tue Aug 16 21:24:51 2011 +0200

@@ -77,6 +77,11 @@ typedef struct libmv_Reconstruction {
 	double error;
 } libmv_Reconstruction;
 
+typedef struct libmv_Features {
+	int count, margin;
+	libmv::Feature *features;
+} libmv_Features;
+
 /* ************ Logging ************ */
 
 void libmv_initLogging(const char *argv0)
@@ -324,12 +329,12 @@ int libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *image, int stri
 {
 	float x2, y2;
 
-	int result = libmv::Track(pattern, image, stride, width, height, &x2, &y2);
+	libmv::Track(pattern, image, stride, width, height, &x2, &y2);
 
 	*x= x2;
 	*y= y2;
 
-	return result;
+	return 1;
 }
 
 /* ************ Tracks ************ */
@@ -495,37 +500,45 @@ void libmv_destroyReconstruction(libmv_Reconstruction *libmv_reconstruction)
 
 /* ************ feature detector ************ */
 
-struct libmv_Corners *libmv_detectCorners(unsigned char *data, int width, int height, int stride,
-			int margin, int min_trackness, int min_distance)
+struct libmv_Features *libmv_detectFeatures(unsigned char *data, int width, int height, int stride,
+			int margin, int count, int min_distance)
 {
-	std::vector<libmv::Corner> detect;
-	std::vector<libmv::Corner> *libmv_corners= new std::vector<libmv::Corner>();
+	libmv::Feature *features = new libmv::Feature[count];
+	libmv_Features *libmv_features = new libmv_Features;
 
-	detect= libmv::Detect(data, width, height, stride, margin, min_trackness, min_distance);
+	if(margin) {
+		data += margin*stride+margin;
+		width -= 2*margin;
+		height -= 2*margin;
+	}
 
-	libmv_corners->insert(libmv_corners->begin(), detect.begin(), detect.end());
+	libmv::Detect(data, stride, width, height, features, &count, min_distance, NULL);
 
-	return (libmv_Corners *)libmv_corners;
+	libmv_features->count= count;
+	libmv_features->margin= margin;
+	libmv_features->features= features;
+
+	return libmv_features ;
 }
 
-int libmv_countCorners(struct libmv_Corners *libmv_corners)
+int libmv_countFeatures(struct libmv_Features *libmv_features)
 {
-	return ((std::vector<libmv::Corner> *)libmv_corners)->size();
+	return libmv_features->count;
 }
 
-void libmv_getCorner(struct libmv_Corners *libmv_corners, int number, double *x, double *y, double *score, double *size)
+void libmv_getFeature(struct libmv_Features *libmv_features, int number, double *x, double *y, double *score, double *size)
 {
-	libmv::Corner corner = ((std::vector<libmv::Corner> *)libmv_corners)->at(number);
+	libmv::Feature feature = libmv_features->features[number];
 
-	*x = corner.x;
-	*y = corner.y;
-	*score = corner.score;
-	*size = corner.size;
+	*x = feature.x + libmv_features->margin;
+	*y = feature.y + libmv_features->margin;
+	*score = feature.score;
+	*size = feature.size;
 }
 
-void libmv_destroyCorners(struct libmv_Corners *libmv_corners)
+void libmv_destroyFeatures(struct libmv_Features *libmv_features)
 {
-	delete (std::vector<libmv::Corner> *)libmv_corners;
+	delete (libmv::Feature *)libmv_features;
 }
 
 /* ************ distortion ************ */
