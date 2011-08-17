@@ -770,7 +770,6 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "compression", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, point_cache_compress_items);
 	RNA_def_property_ui_text(prop, "Cache Compression", "Compression method to be used");
-	RNA_def_property_update(prop, 0, NULL);
 
 	/* flags */
 	prop= RNA_def_property(srna, "is_baked", PROP_BOOLEAN, PROP_NONE);
