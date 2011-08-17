@@ -1373,9 +1373,9 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 			if(oldbasact != basact) {
 				ED_base_object_activate(C, basact); /* adds notifier */
 			}
-
-			WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 		}
+
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 
 	return retval;
@@ -1879,8 +1879,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int	retval = 0;
 
 	view3d_operator_needs_opengl(C);
-	
-	if(obedit) {
+
+	if(obedit && center==FALSE) {
 		if(obedit->type==OB_MESH)
 			retval = mouse_mesh(C, event->mval, extend);
 		else if(obedit->type==OB_ARMATURE)
@@ -1927,7 +1927,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting (object mode only).");
+	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection.");
 	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only).");
 }
 

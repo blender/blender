@@ -3007,10 +3007,10 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
-			if(node->inputs.first && node->outputs.first) {
+			/* Be able to mute in-/output nodes as well.  - DingTo
+			if(node->inputs.first && node->outputs.first) { */
 				node->flag ^= NODE_MUTED;
 				snode_tag_changed(snode, node);
-			}
 		}
 	}
 	
