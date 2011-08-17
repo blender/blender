@@ -27,6 +27,8 @@
 
 namespace libmv {
 
+typedef unsigned int uint;
+
 #ifdef __SSE2__
 #include <emmintrin.h>
 static uint SAD(const ubyte* imageA, const ubyte* imageB, int strideA, int strideB) {

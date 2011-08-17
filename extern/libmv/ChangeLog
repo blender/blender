@@ -1,3 +1,9 @@
+commit 65a9d496f81e8b37eae39a4063957b8be9a4e6f0
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 19:25:17 2011 +0200
+
+    Fix compilation on OSX.
+
 commit d22720e618456329388d2c107422c3b371657cba
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Wed Aug 17 14:14:45 2011 +0200
@@ -395,15 +401,3 @@ Date:   Sun Jul 17 23:01:58 2011 +0200
     Add some #if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0)) and #define constBits bits macros to support Qt < 4.7 which is still used on older systems.
     
     Build using Qt < 4.7 will see increased memory usage and unecessary copying.
-
-commit 1b91161241f90ef40391edd13c902d1901b723fb
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sun Jul 17 18:25:47 2011 +0200
-
-    Fix sequence caching.
-
-commit e1737d71b50237c0f0d5a7f2b7463284d95a902e
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sun Jul 17 16:35:48 2011 +0200
-
-    Use deprecated FFmpeg API.

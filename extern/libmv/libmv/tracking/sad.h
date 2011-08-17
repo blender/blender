@@ -61,6 +61,8 @@ void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern);
     \note \a stride allow you to reference your search region instead of copying.
 
     \return Sum of absolute difference between reference and matched pattern.
+            A lower value indicate a better match. Divide this sum by the pattern area (16x16)
+            to compute the per pixel deviation (0=perfect match, 255=worst match).
 */
 int Track(ubyte* pattern, ubyte* image, int stride, int width, int height, float* x, float* y);
 
