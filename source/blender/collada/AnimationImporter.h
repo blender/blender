@@ -145,7 +145,7 @@ public:
 	virtual void change_eul_to_quat(Object *ob, bAction *act);
 #endif
   
-	void translate_Animations_NEW ( COLLADAFW::Node * Node , 
+	void translate_Animations( COLLADAFW::Node * Node , 
 												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 												   std::map<COLLADAFW::UniqueId, Object*>& object_map ,
 												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
@@ -168,7 +168,7 @@ public:
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist
 	// curve_map - map anim id -> curve(s)
-	Object * translate_animation(COLLADAFW::Node *node,
+	Object * translate_animation_OLD(COLLADAFW::Node *node,
 								std::map<COLLADAFW::UniqueId, Object*>& object_map,
 								std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 								COLLADAFW::Transformation::TransformationType tm_type,

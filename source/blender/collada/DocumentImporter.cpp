@@ -252,7 +252,7 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 
 	//for (i = 0; i < 4; i++)
 		//ob = 
-	anim_importer.translate_Animations_NEW(node, root_map, object_map, FW_object_map);
+	anim_importer.translate_Animations(node, root_map, object_map, FW_object_map);
 
 	COLLADAFW::NodePointerArray &children = node->getChildNodes();
 	for (i = 0; i < children.getCount(); i++) {
