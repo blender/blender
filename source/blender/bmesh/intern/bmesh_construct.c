@@ -594,25 +594,27 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 */
 
 int BMFlags_To_MEFlags(void *element) {
-	BMHeader *h = element;
-	int f = 0;
+	const short src_type= ((BMHeader *)element)->type;
+	const short src_flag= ((BMHeader *)element)->flag;
 
-	if (h->flag & BM_HIDDEN) f |= ME_HIDE;
+	int dst_flag = 0;
 
-	if (h->type == BM_FACE) {
-		if (h->flag & BM_SELECT) f |= ME_FACE_SEL;
-		if (h->flag & BM_SMOOTH) f |= ME_SMOOTH;
-	} else if (h->type == BM_EDGE) {
-		if (h->flag & BM_SELECT) f |= BM_SELECT;
-		if (h->flag & BM_SEAM) f |= ME_SEAM;
-		if (h->flag & BM_SHARP) f |= ME_SHARP;
-		if (BM_Wire_Edge(NULL, element)) f |= ME_LOOSEEDGE;
-		f |= ME_EDGEDRAW;
-	} else if (h->type == BM_VERT) {
-		if (h->flag & BM_SELECT) f |= BM_SELECT;
+	if (src_flag & BM_HIDDEN)            dst_flag |= ME_HIDE;
+
+	if (src_type == BM_FACE) {
+		if (src_flag & BM_SELECT)        dst_flag |= ME_FACE_SEL;
+		if (src_flag & BM_SMOOTH)        dst_flag |= ME_SMOOTH;
+	} else if (src_type == BM_EDGE) {
+		if (src_flag & BM_SELECT)        dst_flag |= BM_SELECT;
+		if (src_flag & BM_SEAM)          dst_flag |= ME_SEAM;
+		if (src_flag & BM_SHARP)         dst_flag |= ME_SHARP;
+		if (BM_Wire_Edge(NULL, element)) dst_flag |= ME_LOOSEEDGE;
+		dst_flag |= ME_EDGEDRAW;
+	} else if (src_type == BM_VERT) {
+		if (src_flag & BM_SELECT)        dst_flag |= BM_SELECT;
 	}
 
-	return f;
+	return dst_flag;
 }
 
 /*
