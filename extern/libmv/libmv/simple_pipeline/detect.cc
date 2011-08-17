@@ -23,6 +23,7 @@
 ****************************************************************************/
 
 #include "libmv/simple_pipeline/detect.h"
+#include <stdlib.h>
 #include <string.h>
 
 namespace libmv {
@@ -54,7 +55,7 @@ static uint SAD(const ubyte* imageA, const ubyte* imageB, int strideA, int strid
 void Detect(ubyte* image, int stride, int width, int height, Feature* detected, int* count, int distance, ubyte* pattern) {
   unsigned short histogram[256];
   memset(histogram,0,sizeof(histogram));
-  ubyte scores[width*height];
+  ubyte* scores = new ubyte[width*height];
   memset(scores,0,sizeof(scores));
   const int r = 1; //radius for self similarity comparison
   for(int y=distance; y<height-distance; y++) {
@@ -103,6 +104,7 @@ void Detect(ubyte* image, int stride, int width, int height, Feature* detected, 
     }
   }
   *count = i;
+  free(scores);
 }
 
 }

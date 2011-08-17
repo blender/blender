@@ -57,6 +57,8 @@ void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern) {
     //MSVC apparently doesn't support any float rounding.
     int fx = _mm_cvtss_si32(_mm_set_ss(p.x*k));
     int fy = _mm_cvtss_si32(_mm_set_ss(p.y*k));
+#elif defined(_MSC_VER)
+    int fx = int(p.x*k+0.5), fy = int(p.y*k+0.5);
 #else
     int fx = lround(p.x*k), fy = lround(p.y*k);
 #endif

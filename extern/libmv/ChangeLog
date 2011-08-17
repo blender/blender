@@ -1,3 +1,16 @@
+commit a4876d8c40dcde615b44009c38c49e9a1b1d4698
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 20:26:01 2011 +0200
+
+    Hack to make sad.cc compile with MSVC on system without support for the SSE instruction set.
+
+commit 0de723dfce5bbe44dbd19be8cd6dd6e9b03b7924
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Wed Aug 17 20:10:46 2011 +0200
+
+    Fix slow path (for computers without SSE2).
+    Heap allocate scores in detect.cc
+
 commit 65a9d496f81e8b37eae39a4063957b8be9a4e6f0
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Wed Aug 17 19:25:17 2011 +0200
