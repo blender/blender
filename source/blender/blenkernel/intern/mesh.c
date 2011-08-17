@@ -1382,10 +1382,11 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 		
 		if (mface >= *allface + totvlak)
 			break;
-		
+
+		mpoly->flag |= mface->flag & ME_SMOOTH;
 		mpoly->loopstart= j;
 		mpoly->totloop= mface->v4 ? 4 : 3;
-		for (k=0; k<mpoly->totloop; k++, mloop++) {
+		for (k=0; k<mpoly->totloop; k++, mloop++, j++) {
 			mloop->v = (&mface->v1)[k];
 		}
 	}
