@@ -24,7 +24,9 @@ import time
 from mathutils import Vector, Matrix
 
 
-#Vector utility functions
+# A Python implementation of n sized Vectors.
+# Mathutils has a max size of 4, and we need at least 5 for Simplify Curves and even more for Cross Correlation.
+# Vector utility functions
 class NdVector:
     vec = []
 
@@ -90,6 +92,7 @@ class NdVector:
     y = property(y)
 
 
+#Sampled Data Point class for Simplify Curves
 class dataPoint:
     index = 0
     # x,y1,y2,y3 coordinate of original point
@@ -105,11 +108,19 @@ class dataPoint:
         self.u = u
 
 
+#Cross Correlation Function
+#http://en.wikipedia.org/wiki/Cross_correlation
+#IN:   curvesA, curvesB - bpy_collection/list of fcurves to analyze. Auto-Correlation is when they are the same.
+#        margin - When searching for the best "start" frame, how large a neighborhood of frames should we inspect (similar to epsilon in Calculus)
+#OUT:   startFrame, length of new anim, and curvesA
 def crossCorrelationMatch(curvesA, curvesB, margin):
     dataA = []
     dataB = []
-    end = len(curvesA[0].keyframe_points)
+    start, end = curvesA[0].range()
+    start = int(start)
+    end = int(end)
 
+    #transfer all fcurves data on each frame to a single NdVector.
     for i in range(1, end):
         vec = []
         for fcurve in curvesA:
@@ -120,9 +131,11 @@ def crossCorrelationMatch(curvesA, curvesB, margin):
             vec.append(fcurve.evaluate(i))
         dataB.append(NdVector(vec))
 
+    #Comparator for Cross Correlation. "Classic" implementation uses dot product, as do we.
     def comp(a, b):
         return a * b
 
+    #Create Rxy, which holds the Cross Correlation data.
     N = len(dataA)
     Rxy = [0.0] * N
     for i in range(N):
@@ -131,7 +144,9 @@ def crossCorrelationMatch(curvesA, curvesB, margin):
         for j in range(i):
             Rxy[i] += comp(dataA[j], dataB[j - i + N])
         Rxy[i] /= float(N)
-    def bestLocalMaximum(Rxy):
+
+    #Find the Local maximums in the Cross Correlation data via numerical derivative.
+    def LocalMaximums(Rxy):
         Rxyd = [Rxy[i] - Rxy[i - 1] for i in range(1, len(Rxy))]
         maxs = []
         for i in range(1, len(Rxyd) - 1):
@@ -142,9 +157,12 @@ def crossCorrelationMatch(curvesA, curvesB, margin):
                 maxs.append((i, max(Rxy[i], Rxy[i - 1])))
         return [x[0] for x in maxs]
         #~ return max(maxs, key=lambda x: x[1])[0]
-        
-    flms = bestLocalMaximum(Rxy[0:int(len(Rxy))])
+
+    #flms - the possible offsets of the first part of the animation. In Auto-Corr, this is the length of the loop.
+    flms = LocalMaximums(Rxy[0:int(len(Rxy))])
     ss = []
+
+    #for every local maximum, find the best one - i.e. also has the best start frame.
     for flm in flms:
         diff = []
 
@@ -159,20 +177,28 @@ def crossCorrelationMatch(curvesA, curvesB, margin):
                 if errorSlice < bestSlice[1]:
                     bestSlice = (i, errorSlice, flm)
             return bestSlice
-            
+
         s = lowerErrorSlice(diff, margin)
         ss.append(s)
 
-    ss.sort(key = lambda x: x[1])
+    #Find the best result and return it.
+    ss.sort(key=lambda x: x[1])
     return ss[0][2], ss[0][0], dataA
 
+
+#Uses auto correlation (cross correlation of the same set of curves) and trims the active_object's fcurves
+#Except for location curves (which in mocap tend to be not cyclic, e.g. a walk cycle forward)
+#Transfers the fcurve data to a list of NdVector (length of list is number of fcurves), and calls the cross correlation function.
+#Then trims the fcurve accordingly.
+#IN: Nothing, set the object you want as active and call. Assumes object has animation_data.action!
+#OUT: Trims the object's fcurves (except location curves).
 def autoloop_anim():
     context = bpy.context
     obj = context.active_object
-    
+
     def locCurve(x):
         x.data_path == "location"
-    
+
     fcurves = [x for x in obj.animation_data.action.fcurves if not locCurve(x)]
 
     margin = 10
@@ -180,13 +206,10 @@ def autoloop_anim():
     flm, s, data = crossCorrelationMatch(fcurves, fcurves, margin)
     loop = data[s:s + flm]
 
-    #find *all* loops, s:s+flm, s+flm:s+2flm, etc...
-    #and interpolate between all
-    # to find "the perfect loop".
-    #Maybe before finding s? interp(i,i+flm,i+2flm)....
-    #~ for i in range(1, margin + 1):
-        #~ w1 = sqrt(float(i) / margin)
-        #~ loop[-i] = (loop[-i] * w1) + (loop[0] * (1 - w1))
+    #performs blending with a root falloff on the seam's neighborhood to ensure good tiling.
+    for i in range(1, margin + 1):
+        w1 = sqrt(float(i) / margin)
+        loop[-i] = (loop[-i] * w1) + (loop[0] * (1 - w1))
 
     for curve in fcurves:
         pts = curve.keyframe_points
@@ -201,8 +224,16 @@ def autoloop_anim():
     context.scene.frame_end = flm
 
 
+#simplifyCurves: performes the bulk of the samples to bezier conversion.
+#IN:    curveGroup - which can be a collection of singleFcurves, or grouped (via nested lists) .
+#         error - threshold of permittable error (max distance) of the new beziers to the original data
+#         reparaError - threshold of error where we should try to fix the parameterization rather than split the existing curve. > error, usually by a small constant factor for best performance.
+#         maxIterations - maximum number of iterations of reparameterizations we should attempt. (Newton-Rahpson is not guarenteed to converge, so this is needed).
+#         group_mode - boolean, indicating wether we should place bezier keyframes on the same x (frame), or optimize each individual curve.
+#OUT: None. Deletes the existing curves and creates the new beziers.
 def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
 
+    #Calculates the unit tangent of point v
     def unitTangent(v, data_pts):
         tang = NdVector((0, 0, 0, 0, 0))
         if v != 0:
@@ -214,7 +245,8 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
         tang.normalize()
         return tang
 
-    #assign parametric u value for each point in original data
+    #assign parametric u value for each point in original data, via relative arc length
+    #http://en.wikipedia.org/wiki/Arc_length
     def chordLength(data_pts, s, e):
         totalLength = 0
         for pt in data_pts[s:e + 1]:
@@ -230,7 +262,7 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
                 print(s, e)
             pt.u = (pt.temp / totalLength)
 
-    # get binomial coefficient, this function/table is only called with args
+    # get binomial coefficient lookup table, this function/table is only called with args
     # (3,0),(3,1),(3,2),(3,3),(2,0),(2,1),(2,2)!
     binomDict = {(3, 0): 1,
     (3, 1): 3,
@@ -239,8 +271,8 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
     (2, 0): 1,
     (2, 1): 2,
     (2, 2): 1}
-    #value at pt t of a single bernstein Polynomial
 
+    #value at pt t of a single bernstein Polynomial
     def bernsteinPoly(n, i, t):
         binomCoeff = binomDict[(n, i)]
         return binomCoeff * pow(t, i) * pow(1 - t, n - i)
@@ -380,6 +412,7 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
                     fud = 1
                 pt.u = pt.u - (fu / fud)
 
+    #Create data_pts, a list of dataPoint type, each is assigned index i, and an NdVector
     def createDataPts(curveGroup, group_mode):
         data_pts = []
         if group_mode:
@@ -403,6 +436,7 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
                 data_pts.append(dataPoint(i, NdVector((x, y1, y2, y3, y4))))
         return data_pts
 
+    #Recursively fit cubic beziers to the data_pts between s and e
     def fitCubic(data_pts, s, e):
         # if there are less than 3 points, fit a single basic bezier
         if e - s < 3:
@@ -437,6 +471,7 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
             beziers.append(bez)
             return
 
+    # deletes the sampled points and creates beziers.
     def createNewCurves(curveGroup, beziers, group_mode):
         #remove all existing data points
         if group_mode:
@@ -483,15 +518,14 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
     #remove old Fcurves and insert the new ones
     createNewCurves(curveGroup, beziers, group_mode)
 
-#Main function of simplification
-#sel_opt: either "sel" or "all" for which curves to effect
-#error: maximum error allowed, in fraction (20% = 0.0020),
-#i.e. divide by 10000 from percentage wanted.
-#group_mode: boolean, to analyze each curve seperately or in groups,
-#where group is all curves that effect the same property
-#(e.g. a bone's x,y,z rotation)
 
-
+#Main function of simplification, which called by Operator
+#IN:
+#       sel_opt- either "sel" (selected) or "all" for which curves to effect
+#       error- maximum error allowed, in fraction (20% = 0.0020, which is the default),
+#       i.e. divide by 10000 from percentage wanted.
+#       group_mode- boolean, to analyze each curve seperately or in groups,
+#       where a group is all curves that effect the same property/RNA path
 def fcurves_simplify(context, obj, sel_opt="all", error=0.002, group_mode=True):
     # main vars
     fcurves = obj.animation_data.action.fcurves
@@ -533,11 +567,12 @@ def fcurves_simplify(context, obj, sel_opt="all", error=0.002, group_mode=True):
 
     return
 
+
 # Implementation of non-linear median filter, with variable kernel size
-# Double pass - one marks spikes, the other smooths one
+# Double pass - one marks spikes, the other smooths them
 # Expects sampled keyframes on everyframe
-
-
+# IN: None. Performs the operations on the active_object's fcurves. Expects animation_data.action to exist!
+# OUT: None. Fixes the fcurves "in-place".
 def denoise_median():
     context = bpy.context
     obj = context.active_object
@@ -568,6 +603,9 @@ def denoise_median():
     return
 
 
+# Recieves armature, and rotations all bones by 90 degrees along the X axis
+# This fixes the common axis issue BVH files have when importing.
+# IN: Armature (bpy.types.Armature)
 def rotate_fix_armature(arm_data):
     global_matrix = Matrix.Rotation(radians(90), 4, "X")
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
@@ -588,6 +626,8 @@ def rotate_fix_armature(arm_data):
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
 
+#Roughly scales the performer armature to match the enduser armature
+#IN: perfromer_obj, enduser_obj, Blender objects whose .data is an armature.
 def scale_fix_armature(performer_obj, enduser_obj):
         perf_bones = performer_obj.data.bones
         end_bones = enduser_obj.data.bones
@@ -611,6 +651,8 @@ def scale_fix_armature(performer_obj, enduser_obj):
         performer_obj.scale *= factor
 
 
+#Guess Mapping
+#Given a performer and enduser armature, attempts to guess the hiearchy mapping
 def guessMapping(performer_obj, enduser_obj):
         perf_bones = performer_obj.data.bones
         end_bones = enduser_obj.data.bones
@@ -642,11 +684,16 @@ def guessMapping(performer_obj, enduser_obj):
 
         def guessSingleMapping(perf_bone):
             possible_bones = [end_bones[0]]
+
             while possible_bones:
                 for end_bone in possible_bones:
                     match = nameMatch(perf_bone.name, end_bone.name)
                     if match == 2 and not perf_bone.map:
                         perf_bone.map = end_bone.name
+                    #~ elif match == 1 and not perf_bone.map:
+                        #~ oppo = perf_bones[oppositeBone(perf_bone)].map
+                        # if oppo:
+                        #   perf_bone = oppo
                 newPossibleBones = []
                 for end_bone in possible_bones:
                     newPossibleBones += list(end_bone.children)
@@ -658,6 +705,9 @@ def guessMapping(performer_obj, enduser_obj):
         guessSingleMapping(root)
 
 
+# Creates limit rotation constraints on the enduser armature based on range of motion (max min of fcurves) of the performer.
+# IN: context (bpy.context, etc.), and 2 blender objects which are armatures
+# OUT: creates the limit constraints.
 def limit_dof(context, performer_obj, enduser_obj):
     limitDict = {}
     perf_bones = [bone for bone in performer_obj.pose.bones if bone.bone.map]
@@ -705,18 +755,10 @@ def limit_dof(context, performer_obj, enduser_obj):
         newCons.use_limit_x = True
         newCons.use_limit_y = True
         newCons.use_limit_z = True
-        #~ else:
-            #~ bone.ik_min_x, bone.ik_min_y, bone.ik_min_z, bone.ik_max_x, bone.ik_max_y, bone.ik_max_z = limitDict[bone.name]
-            #~ bone.use_ik_limit_x = True
-            #~ bone.use_ik_limit_y = True
-            #~ bone.use_ik_limit_z= True
-            #~ bone.ik_stiffness_x = 1/((limitDict[bone.name][3] - limitDict[bone.name][0])/(2*pi)))
-            #~ bone.ik_stiffness_y = 1/((limitDict[bone.name][4] - limitDict[bone.name][1])/(2*pi)))
-            #~ bone.ik_stiffness_z = 1/((limitDict[bone.name][5] - limitDict[bone.name][2])/(2*pi)))
-
     context.scene.frame_set(c_frame)
 
 
+# Removes the constraints that were added by limit_dof on the enduser_obj
 def limit_dof_toggle_off(context, enduser_obj):
     for bone in enduser_obj.pose.bones:
         existingConstraint = [constraint for constraint in bone.constraints if constraint.name == "DOF Limitation"]
@@ -724,6 +766,8 @@ def limit_dof_toggle_off(context, enduser_obj):
             bone.constraints.remove(existingConstraint[0])
 
 
+# Reparameterizes a blender path via keyframing it's eval_time to match a stride_object's forward velocity.
+# IN: Context, stride object (blender object with location keyframes), path object.
 def path_editing(context, stride_obj, path):
     y_fcurve = [fcurve for fcurve in stride_obj.animation_data.action.fcurves if fcurve.data_path == "location"][1]
     s, e = context.scene.frame_start, context.scene.frame_end  # y_fcurve.range()
@@ -771,11 +815,14 @@ def path_editing(context, stride_obj, path):
     print("finished path editing")
 
 
+#Animation Stitching
+#Stitches two retargeted animations together via NLA settings.
+#IN: enduser_obj, a blender armature that has had two retargets applied.
 def anim_stitch(context, enduser_obj):
     stitch_settings = enduser_obj.data.stitch_settings
     action_1 = stitch_settings.first_action
     action_2 = stitch_settings.second_action
-    if stitch_settings.stick_bone!="":
+    if stitch_settings.stick_bone != "":
         selected_bone = enduser_obj.pose.bones[stitch_settings.stick_bone]
     else:
         selected_bone = enduser_obj.pose.bones[0]
@@ -791,8 +838,8 @@ def anim_stitch(context, enduser_obj):
     mocapStrip = mocapTrack.strips.new(TrackNamesB.base_track, stitch_settings.blend_frame, mocapAction)
     mocapStrip.extrapolation = "HOLD_FORWARD"
     mocapStrip.blend_in = stitch_settings.blend_amount
-    mocapStrip.action_frame_start+=stitch_settings.second_offset
-    mocapStrip.action_frame_end+=stitch_settings.second_offset
+    mocapStrip.action_frame_start += stitch_settings.second_offset
+    mocapStrip.action_frame_end += stitch_settings.second_offset
     constraintTrack = anim_data.nla_tracks.new()
     constraintTrack.name = TrackNamesB.auto_fix_track
     constraintAction = bpy.data.actions[TrackNamesB.auto_fix_track]
@@ -821,8 +868,8 @@ def anim_stitch(context, enduser_obj):
             actionBTrack = stride_anim_data.nla_tracks.new()
             actionBTrack.name = TrackNamesB.stride_action
             actionBStrip = actionBTrack.strips.new(TrackNamesB.stride_action, stitch_settings.blend_frame, bpy.data.actions[TrackNamesB.stride_action])
-            actionBStrip.action_frame_start+=stitch_settings.second_offset
-            actionBStrip.action_frame_end+=stitch_settings.second_offset
+            actionBStrip.action_frame_start += stitch_settings.second_offset
+            actionBStrip.action_frame_end += stitch_settings.second_offset
             actionBStrip.blend_in = stitch_settings.blend_amount
             actionBStrip.extrapolation = "NOTHING"
             #we need to change the stride_bone's action to add the offset
@@ -831,15 +878,16 @@ def anim_stitch(context, enduser_obj):
             scene.frame_set(stitch_settings.blend_frame)
             actual_pos = (selected_bone.matrix.to_translation() * enduser_obj.matrix_world)
             offset = actual_pos - desired_pos
-            
-            for i,fcurve in enumerate([fcurve for fcurve in bpy.data.actions[TrackNamesB.stride_action].fcurves if fcurve.data_path=="location"]):
-                print(offset[i],i,fcurve.array_index)
+
+            for i, fcurve in enumerate([fcurve for fcurve in bpy.data.actions[TrackNamesB.stride_action].fcurves if fcurve.data_path == "location"]):
+                print(offset[i], i, fcurve.array_index)
                 for pt in fcurve.keyframe_points:
-                    pt.co.y-=offset[i]
-                    pt.handle_left.y-=offset[i]
-                    pt.handle_right.y-=offset[i]
+                    pt.co.y -= offset[i]
+                    pt.handle_left.y -= offset[i]
+                    pt.handle_right.y -= offset[i]
 
 
+#Guesses setting for animation stitching via Cross Correlation
 def guess_anim_stitch(context, enduser_obj):
     stitch_settings = enduser_obj.data.stitch_settings
     action_1 = stitch_settings.first_action
@@ -851,6 +899,6 @@ def guess_anim_stitch(context, enduser_obj):
     curvesA = mocapA.fcurves
     curvesB = mocapB.fcurves
     flm, s, data = crossCorrelationMatch(curvesA, curvesB, 10)
-    print(flm,s)
+    print("Guessed the following for start and offset: ", s, flm)
     enduser_obj.data.stitch_settings.blend_frame = flm
     enduser_obj.data.stitch_settings.second_offset = s

@@ -22,7 +22,6 @@ import bpy
 from mathutils import *
 from math import radians, acos, pi
 from bl_operators import nla
-import cProfile
 
 
 def hasIKConstraint(pose_bone):
@@ -53,8 +52,8 @@ def createDictionary(perf_arm, end_arm):
     feetBones = [bone.name for bone in perf_arm.bones if bone.foot]
     return feetBones, root
 
-def loadMapping(perf_arm, end_arm):
 
+def loadMapping(perf_arm, end_arm):
     for end_bone in end_arm.bones:
         #find its match and add perf_bone to the match's mapping
         if end_bone.reverseMap:
@@ -80,17 +79,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
             perf_world_rotation = perf_bone.matrix
             inter_world_base_rotation = inter_bone.bone.matrix_local
             inter_world_base_inv = inter_world_base_rotation.inverted()
-            bake_matrix =  (inter_world_base_inv.to_3x3() * perf_world_rotation.to_3x3())
-            #~ orgEul = inter_bone.bone.matrix_local.to_euler("XYZ")
-            #~ eul = bake_matrix.to_euler("XYZ", orgEul)
-            #~ diff = -bake_matrix.to_euler().y + inter_bone.bone.matrix.to_euler().y
-            #~ eul.rotate_axis("Y", diff)
-            #~ eul.make_compatible(orgEul)
-            #~ bake_matrix = eul.to_matrix()
-            #~ #diff = abs(diff)
-            #bake_matrix = bake_matrix* Matrix.Rotation(pi/2, 3, "Y") 
-            #~ scene = bpy.context.scene
-            #~ print(scene.frame_current, inter_bone.name, bake_matrix.to_euler().y)
+            bake_matrix = (inter_world_base_inv.to_3x3() * perf_world_rotation.to_3x3())
             return bake_matrix.to_4x4()
 
     #uses 1to1 and interpolation/averaging to match many to 1 retarget
@@ -117,6 +106,7 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
             else:
                 perf_bone = performer_bones[perf_bone_name[0].name]
                 inter_bone.matrix_basis = singleBoneRetarget(inter_bone, perf_bone)
+        #Some bones have incorrect roll on the source armature, and need to be marked for fixing
         if inter_bone.bone.twistFix:
             inter_bone.matrix_basis *= Matrix.Rotation(radians(180), 4, "Y")
         rot_mode = inter_bone.rotation_mode
@@ -151,7 +141,6 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
         bone.roll = 0
     #resets roll
     print("retargeting to intermediate")
-    #bpy.ops.armature.calculate_roll(type='Z')
     bpy.ops.object.mode_set(mode="OBJECT")
     inter_obj.data.name = "inter_arm"
     inter_arm = inter_obj.data
@@ -187,6 +176,7 @@ def retargetEnduser(inter_obj, enduser_obj, root, s_frame, e_frame, scene, step)
     inter_bones = inter_obj.pose.bones
     end_bones = enduser_obj.pose.bones
 
+    #Basic "visual baking" function, for transfering rotations from intermediate to end user
     def bakeTransform(end_bone):
         src_bone = inter_bones[end_bone.name]
         trg_bone = end_bone
@@ -265,18 +255,10 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
 
     # now we take our locDict and analyze it.
     # we need to derive all chains
-    
+
     def locDeriv(key, t):
         graph = locDict[key]
         return graph[t + 1] - graph[t]
-
-    #~ locDeriv = {}
-    #~ for key in locDictKeys:
-        #~ locDeriv[key] = []
-
-    #~ for key in locDict.keys():
-        #~ graph = locDict[key]
-        #~ locDeriv[key] = [graph[t + 1] - graph[t] for t in range(len(graph) - 1)]
 
     # now find the plant frames, where perfFeet don't move much
 
@@ -284,10 +266,10 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
 
     for key in perfFeet:
         for i in range(len(locDict[key]) - 1):
-            v = locDeriv(key,i)
+            v = locDeriv(key, i)
             if (v.length < 0.1):
-                hipV = locDeriv(perfRoot,i)
-                endV = locDeriv(perf_bones[key].bone.map,i)
+                hipV = locDeriv(perfRoot, i)
+                endV = locDeriv(perf_bones[key].bone.map, i)
                 #this is a plant frame.
                 #lets see what the original hip delta is, and the corresponding
                 #end bone's delta
@@ -312,7 +294,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
         #determine the average change in scale needed
         avg = sum(linearAvg) / len(linearAvg)
         scene.frame_set(s_frame)
-        initialPos = (tailLoc(perf_bones[perfRoot]) / avg) #+ stride_bone.location
+        initialPos = (tailLoc(perf_bones[perfRoot]) / avg)
         for t in range(s_frame, e_frame):
             scene.frame_set(t)
             #calculate the new position, by dividing by the found ratio between performer and enduser
@@ -320,7 +302,6 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
             stride_bone.location = enduser_obj_mat * (newTranslation - initialPos)
             stride_bone.keyframe_insert("location")
     else:
-        
         stride_bone.keyframe_insert("location")
     stride_bone.animation_data.action.name = ("Stride Bone " + action_name)
 
@@ -342,7 +323,7 @@ def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene, step):
             bpy.ops.object.mode_set(mode='OBJECT')
             if not ik_constraint.target:
                 ik_constraint.target = enduser_obj
-                ik_constraint.subtarget = pose_bone.name+"IK"
+                ik_constraint.subtarget = pose_bone.name + "IK"
                 target = orgLocTrg
 
             # There is a target now
@@ -370,14 +351,6 @@ def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene, step):
 def turnOffIK(enduser_obj):
     end_bones = enduser_obj.pose.bones
     for pose_bone in end_bones:
-        if pose_bone.is_in_ik_chain:
-            pass
-            # TODO:
-            # set stiffness according to place on chain
-            # and values from analysis that is stored in the bone
-            #pose_bone.ik_stiffness_x = 0.5
-            #pose_bone.ik_stiffness_y = 0.5
-            #pose_bone.ik_stiffness_z = 0.5
         ik_constraint = hasIKConstraint(pose_bone)
         if ik_constraint:
             ik_constraint.mute = True
@@ -412,18 +385,14 @@ def originalLocationTarget(end_bone, enduser_obj):
     if not end_bone.name + "IK" in enduser_obj.data.bones:
         newBone = enduser_obj.data.edit_bones.new(end_bone.name + "IK")
         newBone.head = end_bone.tail
-        newBone.tail = end_bone.tail + Vector((0,0.1,0))
-        #~ empty = bpy.context.active_object
-        #~ empty.name = end_bone.name + "Org"
-        #~ empty.empty_draw_size = 0.1
-        #~ empty.parent = enduser_obj
+        newBone.tail = end_bone.tail + Vector((0, 0.1, 0))
     else:
         newBone = enduser_obj.pose.bones[end_bone.name + "IK"]
     return newBone
 
 
 #create the specified NLA setup for base animation, constraints and tweak layer.
-def NLASystemInitialize(enduser_arm, context):#enduser_obj, name):
+def NLASystemInitialize(enduser_arm, context):
     enduser_obj = context.active_object
     NLATracks = enduser_arm.mocapNLATracks[enduser_obj.data.active_mocap]
     name = NLATracks.name
@@ -461,9 +430,8 @@ def NLASystemInitialize(enduser_arm, context):#enduser_obj, name):
         userAction.use_fake_user = True
     userStrip = userTrack.strips.new("Manual fixes " + name, s_frame, userAction)
     userStrip.extrapolation = "HOLD"
-    #userStrip.blend_type = "MULITPLY" - doesn't work due to work, will be activated soon
+    userStrip.blend_type = "ADD"
     anim_data.nla_tracks.active = constraintTrack
-    #anim_data.action = constraintAction
     anim_data.action_extrapolation = "NOTHING"
     #set the stride_bone's action
     if "stride_bone" in bpy.data.objects:
@@ -494,8 +462,8 @@ def preAdvancedRetargeting(performer_obj, enduser_obj):
         cons.subtarget = perf_bone
         cons.target_space = 'WORLD'
         cons.owner_space = 'WORLD'
-        
-        if (not bone.bone.use_connect) and (perf_bone!=perf_root):
+
+        if (not bone.bone.use_connect) and (perf_bone != perf_root):
             cons = bone.constraints.new('COPY_LOCATION')
             cons.name = "retargetTemp"
             cons.target = performer_obj
@@ -517,6 +485,7 @@ def prepareForBake(enduser_obj):
             if "retargetTemp" in cons.name:
                 bone.bone.select = True
 
+
 def cleanTempConstraints(enduser_obj):
     bones = enduser_obj.pose.bones
     map_bones = [bone for bone in bones if bone.bone.reverseMap]
@@ -525,6 +494,7 @@ def cleanTempConstraints(enduser_obj):
             if "retargetTemp" in cons.name:
                 bone.constraints.remove(cons)
 
+
 #Main function that runs the retargeting sequence.
 #If advanced == True, we assume constraint's were already created
 def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
@@ -532,13 +502,13 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     end_arm = enduser_obj.data
     advanced = end_arm.advancedRetarget
     step = end_arm.frameStep
-    
+
     try:
         enduser_obj.animation_data.action = bpy.data.actions.new("temp")
         enduser_obj.animation_data.action.use_fake_user = True
     except:
         print("no need to create new action")
-    
+
     print("creating Dictionary")
     feetBones, root = createDictionary(perf_arm, end_arm)
     print("cleaning stuff up")
@@ -576,22 +546,6 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
         NLATracks = end_arm.mocapNLATracks[name]
     end_arm.active_mocap = name
     print("retargeting done!")
-    
-def profileWrapper():
-    context = bpy.context
-    scene = context.scene
-    s_frame = scene.frame_start
-    e_frame = scene.frame_end
-    enduser_obj = context.active_object
-    performer_obj = [obj for obj in context.selected_objects if obj != enduser_obj]
-    if enduser_obj is None or len(performer_obj) != 1:
-        print("Need active and selected armatures")
-    else:
-        performer_obj = performer_obj[0]
-        s_frame, e_frame = performer_obj.animation_data.action.frame_range
-        s_frame = int(s_frame)
-        e_frame = int(e_frame)
-        totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame)
 
 
 def isRigAdvanced(enduser_obj):
@@ -603,6 +557,3 @@ def isRigAdvanced(enduser_obj):
         if enduser_obj.data.animation_data:
             if enduser_obj.data.animation_data.drivers:
                 return True
-    
-if __name__ == "__main__":
-    cProfile.run("profileWrapper()")
