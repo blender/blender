@@ -106,6 +106,9 @@ static int wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
 	     (a->ptr && b->ptr && IDP_EqualsProperties(a->ptr->data, b->ptr->data))))
 		return 0;
 	
+	if((a->flag & KMI_INACTIVE) != (b->flag & KMI_INACTIVE))
+		return 0;
+	
 	return (a->propvalue == b->propvalue);
 }
 
@@ -1009,7 +1012,8 @@ void WM_keyconfig_update(wmWindowManager *wm)
 			addonmap= WM_keymap_list_find(&wm->addonconf->keymaps, km->idname, km->spaceid, km->regionid);
 
 			/* diff */
-			wm_keymap_diff_update(&U.user_keymaps, defaultmap, addonmap, km);
+			if(defaultmap)
+				wm_keymap_diff_update(&U.user_keymaps, defaultmap, addonmap, km);
 		}
 	}
 

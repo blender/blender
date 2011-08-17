@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
 
@@ -48,7 +49,7 @@ class CurveButtonsPanelActive(CurveButtonsPanel):
         return (curve and type(curve) is not bpy.types.TextCurve and curve.splines.active)
 
 
-class DATA_PT_context_curve(CurveButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_curve(CurveButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
 
@@ -65,7 +66,7 @@ class DATA_PT_context_curve(CurveButtonsPanel, bpy.types.Panel):
             layout.template_ID(space, "pin_id")  # XXX: broken
 
 
-class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
+class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
     bl_label = "Shape"
 
     def draw(self, context):
@@ -108,13 +109,13 @@ class DATA_PT_shape_curve(CurveButtonsPanel, bpy.types.Panel):
         if (is_curve or is_text):
             col.label(text="Fill:")
             sub = col.column()
-            sub.active = (curve.bevel_object is None)
+            sub.active = (curve.dimensions == '2D' or (curve.bevel_object is None and curve.dimensions == '3D'))
             sub.prop(curve, "use_fill_front")
             sub.prop(curve, "use_fill_back")
             col.prop(curve, "use_fill_deform", text="Fill Deformed")
 
 
-class DATA_PT_curve_texture_space(CurveButtonsPanel, bpy.types.Panel):
+class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
     bl_label = "Texture Space"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -133,7 +134,7 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, bpy.types.Panel):
         row.column().prop(curve, "texspace_size", text="Size")
 
 
-class DATA_PT_geometry_curve(CurveButtonsPanel, bpy.types.Panel):
+class DATA_PT_geometry_curve(CurveButtonsPanel, Panel):
     bl_label = "Geometry"
 
     @classmethod
@@ -166,7 +167,7 @@ class DATA_PT_geometry_curve(CurveButtonsPanel, bpy.types.Panel):
         col.prop(curve, "bevel_object", text="")
 
 
-class DATA_PT_pathanim(CurveButtonsPanelCurve, bpy.types.Panel):
+class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
     bl_label = "Path Animation"
 
     def draw_header(self, context):
@@ -197,7 +198,7 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, bpy.types.Panel):
         col.prop(curve, "use_time_offset", text="Offset Children")
 
 
-class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
+class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
     bl_label = "Active Spline"
 
     def draw(self, context):
@@ -268,7 +269,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, bpy.types.Panel):
             layout.prop(act_spline, "use_smooth")
 
 
-class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
+class DATA_PT_font(CurveButtonsPanel, Panel):
     bl_label = "Font"
 
     @classmethod
@@ -332,7 +333,7 @@ class DATA_PT_font(CurveButtonsPanel, bpy.types.Panel):
         row.prop(char, "use_small_caps")
 
 
-class DATA_PT_paragraph(CurveButtonsPanel, bpy.types.Panel):
+class DATA_PT_paragraph(CurveButtonsPanel, Panel):
     bl_label = "Paragraph"
 
     @classmethod
@@ -361,7 +362,7 @@ class DATA_PT_paragraph(CurveButtonsPanel, bpy.types.Panel):
         col.prop(text, "offset_y", text="Y")
 
 
-class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
+class DATA_PT_text_boxes(CurveButtonsPanel, Panel):
     bl_label = "Text Boxes"
 
     @classmethod
@@ -401,7 +402,7 @@ class DATA_PT_textboxes(CurveButtonsPanel, bpy.types.Panel):
             row.operator("font.textbox_remove", text='', icon='X', emboss=False).index = i
 
 
-class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Curve

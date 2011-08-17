@@ -2769,3 +2769,4 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
+

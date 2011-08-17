@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 import bpy
+from bpy.types import Operator
 import mathutils
 
 
@@ -81,7 +82,7 @@ from bpy.props import (FloatProperty,
                        )
 
 
-class AddTorus(bpy.types.Operator):
+class AddTorus(Operator):
     '''Add a torus mesh'''
     bl_idname = "mesh.primitive_torus_add"
     bl_label = "Add Torus"

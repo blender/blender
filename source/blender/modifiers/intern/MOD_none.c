@@ -77,4 +77,5 @@ ModifierTypeInfo modifierType_None = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };
