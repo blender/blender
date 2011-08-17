@@ -2105,7 +2105,7 @@ static int hide_tracks_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	if(clip->tracking.act_track->flag&TRACK_HIDDEN)
+	if(clip->tracking.act_track && clip->tracking.act_track->flag&TRACK_HIDDEN)
 		clip->tracking.act_track= NULL;
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, NULL);
@@ -2225,7 +2225,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	int pos= RNA_enum_get(op->ptr, "position");
-	int sel_type, delta;
+	int delta;
 
 	if(pos<=1) {	/* jump to path */
 		track= clip->tracking.act_track;
@@ -2312,7 +2312,6 @@ static int join_tracks_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTrackingTrack *act_track, *track, *next;
-	int sel_type;
 
 	act_track= clip->tracking.act_track;
 
