@@ -61,18 +61,18 @@
 static void initData(ModifierData *md)
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
-	wmd->edit_flags             = MOD_WVG_EDIT_CLAMP;
+	wmd->edit_flags             = 0;
 	wmd->default_weight         = 0.0f;
 
-	wmd->map_org_min            = 0.0f;
-	wmd->map_org_max            = 1.0f;
-	wmd->map_new_min            = 0.0f;
-	wmd->map_new_max            = 1.0f;
+/*	wmd->map_org_min            = 0.0f;*/
+/*	wmd->map_org_max            = 1.0f;*/
+/*	wmd->map_new_min            = 0.0f;*/
+/*	wmd->map_new_max            = 1.0f;*/
 	wmd->cmap_curve             = curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
 	curvemapping_initialize(wmd->cmap_curve);
 
-	wmd->clamp_weight_min       = 0.0f;
-	wmd->clamp_weight_max       = 1.0f;
+/*	wmd->clamp_weight_min       = 0.0f;*/
+/*	wmd->clamp_weight_max       = 1.0f;*/
 
 	wmd->add_threshold          = 0.01f;
 	wmd->rem_threshold          = 0.01f;
@@ -98,14 +98,14 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->edit_flags             = wmd->edit_flags;
 	twmd->default_weight         = wmd->default_weight;
 
-	twmd->map_org_min            = wmd->map_org_min;
-	twmd->map_org_max            = wmd->map_org_max;
-	twmd->map_new_min            = wmd->map_new_min;
-	twmd->map_new_max            = wmd->map_new_max;
+/*	twmd->map_org_min            = wmd->map_org_min;*/
+/*	twmd->map_org_max            = wmd->map_org_max;*/
+/*	twmd->map_new_min            = wmd->map_new_min;*/
+/*	twmd->map_new_max            = wmd->map_new_max;*/
 	twmd->cmap_curve             = curvemapping_copy(wmd->cmap_curve);
 
-	twmd->clamp_weight_min       = wmd->clamp_weight_min;
-	twmd->clamp_weight_max       = wmd->clamp_weight_max;
+/*	twmd->clamp_weight_min       = wmd->clamp_weight_min;*/
+/*	twmd->clamp_weight_max       = wmd->clamp_weight_max;*/
 
 	twmd->add_threshold          = wmd->add_threshold;
 	twmd->rem_threshold          = wmd->rem_threshold;
@@ -161,6 +161,11 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
+static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void *userData)
+{
+	walk(userData, ob, md, "mask_texture");
+}
+
 static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
                            Object *UNUSED(ob), DagNode *obNode)
 {
@@ -203,12 +208,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	char rel_ret = 0; /* Boolean, whether we have to release ret dm or not, when not using it! */
 	float *mapf = NULL; /* Cache for mapping factors. */
 	/* Flags. */
-	char do_map   = wmd->edit_flags & MOD_WVG_EDIT_MAP;
+/*	char do_map   = wmd->edit_flags & MOD_WVG_EDIT_MAP;*/
 	char do_cmap  = wmd->edit_flags & MOD_WVG_EDIT_CMAP;
-	char do_rev   = wmd->edit_flags & MOD_WVG_EDIT_REVERSE_WEIGHTS;
+/*	char do_rev   = wmd->edit_flags & MOD_WVG_EDIT_REVERSE_WEIGHTS;*/
 	char do_add   = wmd->edit_flags & MOD_WVG_EDIT_ADD2VG;
 	char do_rem   = wmd->edit_flags & MOD_WVG_EDIT_REMFVG;
-	char do_clamp = wmd->edit_flags & MOD_WVG_EDIT_CLAMP;
+/*	char do_clamp = wmd->edit_flags & MOD_WVG_EDIT_CLAMP;*/
 
 	/* Get number of verts. */
 	numVerts = dm->getNumVerts(dm);
@@ -281,6 +286,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			}
 		}
 		/* Do mapping. */
+#if 0
 		if (do_map) {
 			/* This mapping is a simple func: a*in + b.
 			 * with a = (out_min - out_max)/(in_min - in_max)
@@ -299,10 +305,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			}
 			new_w[i] = (mapf[0] * new_w[i]) + mapf[1];
 		}
+#endif
 		if (do_cmap)
 			new_w[i] = curvemapping_evaluateF(wmd->cmap_curve, 0, new_w[i]);
-		if (do_rev)
-			new_w[i] = (-1.0 * new_w[i]) + 1.0;
+/*		if (do_rev)*/
+/*			new_w[i] = (-1.0 * new_w[i]) + 1.0;*/
 	}
 
 	/* Do masking. */
@@ -311,10 +318,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Do clamping. */
-	if (do_clamp) {
-		for (i = 0; i < numVerts; i++)
-			CLAMP(org_w[i], wmd->clamp_weight_min, wmd->clamp_weight_max);
-	}
+/*	if (do_clamp) {*/
+/*		for (i = 0; i < numVerts; i++)*/
+/*			CLAMP(org_w[i], wmd->clamp_weight_min, wmd->clamp_weight_max);*/
+/*	}*/
 
 	/* Update/add/remove from vgroup. */
 	weightvg_update_vg(dvert, defgrp_idx, numVerts, NULL, org_w, do_add, wmd->add_threshold,
@@ -365,5 +372,6 @@ ModifierTypeInfo modifierType_WeightVGEdit = {
 	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
+	/* foreachTexLink */    foreachTexLink,
 };
 

@@ -803,15 +803,15 @@ typedef struct WeightVGEditModifierData {
 	float	default_weight; /* Weight for vertices not in vgroup. */
 
 	/* Mapping stuff. */
-	float	map_org_min, map_org_max;
-	float	map_new_min, map_new_max;
+	float	map_org_min, map_org_max; /* Deprecated, keeping for file compatibility for now... */
+	float	map_new_min, map_new_max; /* Deprecated, keeping for file compatibility for now... */
 	struct CurveMapping *cmap_curve;  /* The custom mapping curve! */
 
  	/* The add/remove vertices weight thresholds. */
 	float	add_threshold, rem_threshold;
 
 	/* Clamping options. */
-	float	clamp_weight_min, clamp_weight_max;
+	float	clamp_weight_min, clamp_weight_max; /* Deprecated, keeping for file compatibility for now... */
 
 	/* Masking options. */
 	float	mask_constant; /* The global “influence”, if no vgroup nor tex is used as mask. */
@@ -832,17 +832,17 @@ typedef struct WeightVGEditModifierData {
 
 /* WeightVGEdit flags. */
 /* Use parametric mapping. */
-#define MOD_WVG_EDIT_MAP					(1 << 0)
+//#define MOD_WVG_EDIT_MAP					(1 << 0)
 /* Use curve mapping. */
 #define MOD_WVG_EDIT_CMAP					(1 << 1)
 /* Reverse weights (in the [0.0, 1.0] standard range). */
-#define MOD_WVG_EDIT_REVERSE_WEIGHTS		(1 << 2)
+//#define MOD_WVG_EDIT_REVERSE_WEIGHTS		(1 << 2)
 /* Add vertices with higher weight than threshold to vgroup. */
 #define MOD_WVG_EDIT_ADD2VG					(1 << 3)
 /* Remove vertices with lower weight than threshold from vgroup. */
 #define MOD_WVG_EDIT_REMFVG					(1 << 4)
 /* Clamp weights. */
-#define MOD_WVG_EDIT_CLAMP					(1 << 5)
+//#define MOD_WVG_EDIT_CLAMP					(1 << 5)
 
 typedef struct WeightVGMixModifierData {
 	ModifierData modifier;

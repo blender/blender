@@ -298,6 +298,11 @@ static void foreachIDLink(ModifierData *md, Object *ob, IDWalkFunc walk, void *u
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
+static void foreachTexLink(ModifierData *md, Object *ob, TexWalkFunc walk, void *userData)
+{
+	walk(userData, ob, md, "mask_texture");
+}
+
 static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UNUSED(scene),
                            Object *UNUSED(ob), DagNode *obNode)
 {
@@ -550,5 +555,6 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
 	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
+	/* foreachTexLink */    foreachTexLink,
 };
 
