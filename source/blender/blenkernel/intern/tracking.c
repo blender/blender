@@ -949,7 +949,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					warp[1][2]= pos[1];
 
 					track_context->pattern= MEM_callocN(sizeof(unsigned char)*16*16, "trackking pattern");
-					libmv_SADSamplePatternByte(image, width, warp, track_context->pattern);
+					libmv_SADSamplePattern(image, width, warp, track_context->pattern);
 
 					MEM_freeN(image);
 					IMB_freeImBuf(ibuf);

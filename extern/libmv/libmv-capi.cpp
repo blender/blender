@@ -309,7 +309,7 @@ void libmv_regionTrackerDestroy(libmv_RegionTracker *libmv_tracker)
 
 /* ************ Tracks ************ */
 
-void libmv_SADSamplePatternByte(unsigned char *image, int stride,
+void libmv_SADSamplePattern(unsigned char *image, int stride,
 			float warp[3][3], unsigned char *pattern)
 {
 	float mat3[9];

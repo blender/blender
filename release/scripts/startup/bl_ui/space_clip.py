@@ -23,7 +23,7 @@ from bpy.types import Operator, Panel, Header, Menu
 
 class CLIP_OT_track_to_empty(Operator):
     bl_idname = "clip.track_to_empty"
-    bl_label = "2D Track to Emppty"
+    bl_label = "2D Track to Empty"
     bl_options = {'UNDO', 'REGISTER'}
 
     @classmethod
