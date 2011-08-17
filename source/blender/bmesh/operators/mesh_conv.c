@@ -654,11 +654,26 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 						if (!vertMap) {
 							vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
-							
-							BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-								keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-								if (keyi && *keyi != ORIGINDEX_NONE)
-									vertMap[*keyi] = eve;
+							if(CustomData_has_layer(&bm->vdata, CD_SHAPE_KEYINDEX)) {
+								i= 0;
+								BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+									keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+									if(keyi) {
+										if (*keyi != ORIGINDEX_NONE)
+											vertMap[*keyi] = eve;
+									}
+									else {
+										vertMap[i] = eve;
+									}
+									i++;
+								}
+							}
+							else {
+								i= 0;
+								BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+									vertMap[i] = eve;
+									i++;
+								}
 							}
 						}
 						
