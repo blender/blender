@@ -66,6 +66,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 			//transform matrix export for bones are temporarily disabled here.
 			if ( ob->type == OB_ARMATURE )
 			{
+				if (!ob->data) return;
 				bArmature *arm = (bArmature*)ob->data;
 				for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
 					write_bone_animation_matrix(ob, bone);
@@ -363,10 +364,18 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		bArmature *arm = (bArmature*)ob_arm->data;
 		int flag = arm->flag;
 		std::vector<float> fra;
-		char prefix[256];
+		//char prefix[256];
 
-		BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone->name);
+		FCurve* fcu = (FCurve*)ob_arm->adt->action->curves.first;
+		while(fcu)
+		{
+			std::string bone_name = getObjectBoneName(ob_arm,fcu);
+			int val = BLI_strcasecmp((char*)bone_name.c_str(),bone->name);
+			if(val==0) break;
+			fcu = fcu->next;
+		}
 
+		if(!(fcu)) return; 
 		bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
 		if (!pchan)
 			return;
