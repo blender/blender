@@ -49,13 +49,14 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[][4], 
 	}
 
 	double dmat[4][4];
-	for ( int i = 0 ; i< 4 ; i ++ )
-		for ( int j =0 ; j < 4 ; j++)
-			dmat[i][j]  = (double)local[i][j];
+	UnitConverter* converter = new UnitConverter();
+    converter->mat4_to_dae_double(dmat,local);
 
 	TransformBase::decompose(local, loc, rot, NULL, scale);
-	node.addMatrix("transform",dmat);
-	add_transform(node, loc, rot, scale);
+	if ( node.getType() == COLLADASW::Node::JOINT)
+		node.addMatrix("transform",dmat);
+	else
+		add_transform(node, loc, rot, scale);
 }
 
 void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)

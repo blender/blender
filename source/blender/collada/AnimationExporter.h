@@ -85,7 +85,7 @@ private:
 public:
 
 	AnimationExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) { this->sw = sw; }
-    
+	
 
 	void exportAnimations(Scene *sce);
 
@@ -106,13 +106,13 @@ protected:
 
 	void sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pChan);
 
-	void sample_animation(float *v, std::vector<float> &frames, Bone *bone, Object *ob_arm, bPoseChannel *pChan);
+	void sample_animation(std::vector<float[4][4]> &mats, std::vector<float> &frames, Bone *bone, Object *ob_arm, bPoseChannel *pChan);
 
 	// dae_bone_animation -> add_bone_animation
 	// (blend this into dae_bone_animation)
 	void dae_bone_animation(std::vector<float> &fra, float *v, int tm_type, int axis, std::string ob_name, std::string bone_name);
-    
-	void dae_baked_animation(std::vector<float> &fra, float *values, std::string ob_name, std::string bone_name);
+	
+	void dae_baked_animation(std::vector<float> &fra, Object *ob_arm , Bone *bone);
 
 	float convert_time(float frame);
 
@@ -123,9 +123,9 @@ protected:
 	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
 							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis , bool transform);
 	
-    void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool rotation, float *values, int *length);
+	void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool rotation, float *values, int *length);
 	
-    float * get_eul_source_for_quat(Object *ob );
+	float * get_eul_source_for_quat(Object *ob );
 
 	std::string create_source_from_fcurve(COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id, const char *axis_name);
 
@@ -135,7 +135,7 @@ protected:
 
 	std::string create_xyz_source(float *v, int tot, const std::string& anim_id);
 
-	std::string create_4x4_source(float *v, int tot, const std::string& anim_id);
+	std::string create_4x4_source(std::vector<float> &frames , Object * ob_arm, Bone *bone , const std::string& anim_id);
 
 	std::string create_interpolation_source(FCurve *fcu, const std::string& anim_id, const char *axis_name, bool *has_tangents);
 
