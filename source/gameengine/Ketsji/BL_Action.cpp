@@ -54,7 +54,6 @@ BL_Action::BL_Action(class KX_GameObject* gameobj)
 	m_blendpose(NULL),
 	m_blendinpose(NULL),
 	m_ptrrna(NULL),
-	m_sg_contr(NULL),
 	m_obj(gameobj),
 	m_startframe(0.f),
 	m_endframe(0.f),
@@ -98,13 +97,22 @@ BL_Action::~BL_Action()
 		game_free_pose(m_blendpose);
 	if (m_blendinpose)
 		game_free_pose(m_blendinpose);
-	if (m_sg_contr)
-	{
-		m_obj->GetSGNode()->RemoveSGController(m_sg_contr);
-		delete m_sg_contr;
-	}
 	if (m_ptrrna)
 		delete m_ptrrna;
+	ClearControllerList();
+}
+
+void BL_Action::ClearControllerList()
+{
+	// Clear out the controller list
+	std::vector<SG_Controller*>::iterator it;
+	for (it = m_sg_contr_list.begin(); it != m_sg_contr_list.end(); it++)
+	{
+		m_obj->GetSGNode()->RemoveSGController((*it));
+		delete *it;
+	}
+
+	m_sg_contr_list.clear();
 }
 
 bool BL_Action::Play(const char* name,
@@ -136,10 +144,30 @@ bool BL_Action::Play(const char* name,
 
 	if (prev_action != m_action)
 	{
+		// First get rid of any old controllers
+		ClearControllerList();
+
 		// Create an SG_Controller
-		m_sg_contr = BL_CreateIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
-		m_obj->GetSGNode()->AddSGController(m_sg_contr);
-		m_sg_contr->SetObject(m_obj->GetSGNode());
+		SG_Controller *sg_contr = BL_CreateIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+		m_sg_contr_list.push_back(sg_contr);
+		m_obj->GetSGNode()->AddSGController(sg_contr);
+		sg_contr->SetObject(m_obj->GetSGNode());
+
+		// Extra controllers
+		if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
+		{
+			sg_contr = BL_CreateLampIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+			m_sg_contr_list.push_back(sg_contr);
+			m_obj->GetSGNode()->AddSGController(sg_contr);
+			sg_contr->SetObject(m_obj->GetSGNode());
+		}
+		else if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_CAMERA)
+		{
+			sg_contr = BL_CreateCameraIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+			m_sg_contr_list.push_back(sg_contr);
+			m_obj->GetSGNode()->AddSGController(sg_contr);
+			sg_contr->SetObject(m_obj->GetSGNode());
+		}
 	}
 	
 	m_ipo_flags = ipo_flags;
@@ -197,11 +225,15 @@ bool BL_Action::IsDone()
 
 void BL_Action::InitIPO()
 {
-		// Initialize the IPO
-		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_RESET, true);
-		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, m_ipo_flags & ACT_IPOFLAG_FORCE);
-		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_IPO_ADD, m_ipo_flags & ACT_IPOFLAG_ADD);
-		m_sg_contr->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, m_ipo_flags & ACT_IPOFLAG_LOCAL);
+	// Initialize the IPOs
+	std::vector<SG_Controller*>::iterator it;
+	for (it = m_sg_contr_list.begin(); it != m_sg_contr_list.end(); it++)
+	{
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_RESET, true);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_AS_FORCE, m_ipo_flags & ACT_IPOFLAG_FORCE);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_IPO_ADD, m_ipo_flags & ACT_IPOFLAG_ADD);
+		(*it)->SetOption(SG_Controller::SG_CONTR_IPO_LOCAL, m_ipo_flags & ACT_IPOFLAG_LOCAL);
+	}
 }
 
 bAction *BL_Action::GetAction()
@@ -330,7 +362,7 @@ void BL_Action::Update(float curtime)
 			break;
 		}
 
-		if (!m_done && m_sg_contr)
+		if (!m_done)
 			InitIPO();
 	}
 

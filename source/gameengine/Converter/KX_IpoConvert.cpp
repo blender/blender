@@ -207,93 +207,108 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 	}
 }
 
+SG_Controller *BL_CreateLampIPO(struct bAction *action, KX_GameObject*  lightobj, KX_BlenderSceneConverter *converter)
+{
+	KX_LightIpoSGController* ipocontr = new KX_LightIpoSGController();
+
+	Lamp *blenderlamp = (Lamp*)lightobj->GetBlenderObject()->data;
+
+	ipocontr->m_energy = blenderlamp->energy;
+	ipocontr->m_col_rgb[0] = blenderlamp->r;
+	ipocontr->m_col_rgb[1] = blenderlamp->g;
+	ipocontr->m_col_rgb[2] = blenderlamp->b;
+	ipocontr->m_dist = blenderlamp->dist;
+
+	BL_InterpolatorList *adtList= GetAdtList(action, converter);
+
+	// For each active channel in the adtList add an
+	// interpolator to the game object.
+		
+	KX_IInterpolator *interpolator;
+	KX_IScalarInterpolator *interp;
+		
+	if ((interp= adtList->GetScalarInterpolator("energy", 0))) {
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_energy, interp);
+		ipocontr->AddInterpolator(interpolator);
+		ipocontr->SetModifyEnergy(true);
+	}
+
+	if ((interp = adtList->GetScalarInterpolator("distance", 0))) {
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_dist, interp);
+		ipocontr->AddInterpolator(interpolator);
+		ipocontr->SetModifyDist(true);
+	}
+		
+	for(int i=0; i<3; i++) {
+		if ((interp = adtList->GetScalarInterpolator("color", i))) {
+			interpolator= new KX_ScalarInterpolator(&ipocontr->m_col_rgb[i], interp);
+			ipocontr->AddInterpolator(interpolator);
+			ipocontr->SetModifyColor(true);
+		}
+	}
+
+	return ipocontr;
+}
+
 void BL_ConvertLampIpos(struct Lamp* blenderlamp, KX_GameObject *lightobj,KX_BlenderSceneConverter *converter)
 {
 
 	if (blenderlamp->adt) {
 
-		KX_LightIpoSGController* ipocontr = new KX_LightIpoSGController();
+		SG_Controller* ipocontr = BL_CreateLampIPO(blenderlamp->adt->action, lightobj, converter);
 		lightobj->GetSGNode()->AddSGController(ipocontr);
 		ipocontr->SetObject(lightobj->GetSGNode());
 		
-		ipocontr->m_energy = blenderlamp->energy;
-		ipocontr->m_col_rgb[0] = blenderlamp->r;
-		ipocontr->m_col_rgb[1] = blenderlamp->g;
-		ipocontr->m_col_rgb[2] = blenderlamp->b;
-		ipocontr->m_dist = blenderlamp->dist;
-
-		BL_InterpolatorList *adtList= GetAdtList(blenderlamp->adt->action, converter);
-
-		// For each active channel in the adtList add an
-		// interpolator to the game object.
 		
-		KX_IInterpolator *interpolator;
-		KX_IScalarInterpolator *interp;
-		
-		if ((interp= adtList->GetScalarInterpolator("energy", 0))) {
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_energy, interp);
-			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyEnergy(true);
-		}
-
-		if ((interp = adtList->GetScalarInterpolator("distance", 0))) {
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_dist, interp);
-			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyDist(true);
-		}
-		
-		for(int i=0; i<3; i++) {
-			if ((interp = adtList->GetScalarInterpolator("color", i))) {
-				interpolator= new KX_ScalarInterpolator(&ipocontr->m_col_rgb[i], interp);
-				ipocontr->AddInterpolator(interpolator);
-				ipocontr->SetModifyColor(true);
-			}
-		}
 	}
 }
 
+SG_Controller *BL_CreateCameraIPO(struct bAction *action, KX_GameObject*  cameraobj, KX_BlenderSceneConverter *converter)
+{
+	KX_CameraIpoSGController* ipocontr = new KX_CameraIpoSGController();
 
+	Camera *blendercamera = (Camera*)cameraobj->GetBlenderObject()->data;
 
+	ipocontr->m_lens = blendercamera->lens;
+	ipocontr->m_clipstart = blendercamera->clipsta;
+	ipocontr->m_clipend = blendercamera->clipend;
+
+	BL_InterpolatorList *adtList= GetAdtList(blendercamera->adt->action, converter);
+
+	// For each active channel in the adtList add an
+	// interpolator to the game object.
+		
+	KX_IInterpolator *interpolator;
+	KX_IScalarInterpolator *interp;
+		
+	if ((interp = adtList->GetScalarInterpolator("lens", 0))) {
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_lens, interp);
+		ipocontr->AddInterpolator(interpolator);
+		ipocontr->SetModifyLens(true);
+	}
+
+	if ((interp = adtList->GetScalarInterpolator("clip_start", 0))) {
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_clipstart, interp);
+		ipocontr->AddInterpolator(interpolator);
+		ipocontr->SetModifyClipStart(true);
+	}
+
+	if ((interp = adtList->GetScalarInterpolator("clip_end", 0))) {
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_clipend, interp);
+		ipocontr->AddInterpolator(interpolator);
+		ipocontr->SetModifyClipEnd(true);
+	}
+
+	return ipocontr;
+}
 
 void BL_ConvertCameraIpos(struct Camera* blendercamera, KX_GameObject *cameraobj,KX_BlenderSceneConverter *converter)
 {
 
 	if (blendercamera->adt) {
-
-		KX_CameraIpoSGController* ipocontr = new KX_CameraIpoSGController();
+		SG_Controller* ipocontr = BL_CreateCameraIPO(blendercamera->adt->action, cameraobj, converter);
 		cameraobj->GetSGNode()->AddSGController(ipocontr);
 		ipocontr->SetObject(cameraobj->GetSGNode());
-		
-		ipocontr->m_lens = blendercamera->lens;
-		ipocontr->m_clipstart = blendercamera->clipsta;
-		ipocontr->m_clipend = blendercamera->clipend;
-
-		BL_InterpolatorList *adtList= GetAdtList(blendercamera->adt->action, converter);
-
-		// For each active channel in the adtList add an
-		// interpolator to the game object.
-		
-		KX_IInterpolator *interpolator;
-		KX_IScalarInterpolator *interp;
-		
-		if ((interp = adtList->GetScalarInterpolator("lens", 0))) {
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_lens, interp);
-			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyLens(true);
-		}
-
-		if ((interp = adtList->GetScalarInterpolator("clip_start", 0))) {
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_clipstart, interp);
-			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyClipStart(true);
-		}
-
-		if ((interp = adtList->GetScalarInterpolator("clip_end", 0))) {
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_clipend, interp);
-			ipocontr->AddInterpolator(interpolator);
-			ipocontr->SetModifyClipEnd(true);
-		}
-
 	}
 }
 

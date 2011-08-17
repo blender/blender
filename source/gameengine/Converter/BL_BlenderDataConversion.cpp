@@ -1682,8 +1682,6 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 
 	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools,
 		lightobj, glslmat);
-
-	BL_ConvertLampIpos(la, gamelight, converter);
 	
 	return gamelight;
 }
@@ -1695,8 +1693,6 @@ static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_Blen
 	
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);
 	gamecamera->SetName(ca->id.name + 2);
-	
-	BL_ConvertCameraIpos(ca, gamecamera, converter);
 	
 	return gamecamera;
 }
@@ -2092,8 +2088,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 			gameobj->NodeSetLocalScale(scale);
 			gameobj->NodeUpdateGS(0);
-			
-			BL_ConvertIpos(blenderobject,gameobj,converter);
+
 			BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
 			
 			sumolist->Add(gameobj->AddRef());
@@ -2282,8 +2277,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 							gameobj->NodeSetLocalScale(scale);
 							gameobj->NodeUpdateGS(0);
-							
-							BL_ConvertIpos(blenderobject,gameobj,converter);
+	
 							BL_ConvertMaterialIpos(blenderobject,gameobj, converter);	
 					
 							sumolist->Add(gameobj->AddRef());

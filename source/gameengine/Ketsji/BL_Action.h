@@ -45,7 +45,7 @@ private:
 	struct bPose* m_blendpose;
 	struct bPose* m_blendinpose;
 	struct PointerRNA *m_ptrrna;
-	class SG_Controller *m_sg_contr;
+	std::vector<class SG_Controller*> m_sg_contr_list;
 	class KX_GameObject* m_obj;
 	std::vector<float>	m_blendshape;
 	std::vector<float>	m_blendinshape;
@@ -73,6 +73,7 @@ private:
 	bool m_done;
 	bool m_calc_localtime;
 
+	void ClearControllerList();
 	void InitIPO();
 	void SetLocalTime(float curtime);
 	void ResetStartTime(float curtime);
