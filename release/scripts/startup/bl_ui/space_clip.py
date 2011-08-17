@@ -518,6 +518,7 @@ class CLIP_PT_track_settings(Panel):
         clip = context.space_data.clip
         settings = clip.tracking.settings
 
+        layout.prop(settings, "tracker")
         layout.prop(settings, "speed")
         layout.prop(settings, "frames_limit")
 

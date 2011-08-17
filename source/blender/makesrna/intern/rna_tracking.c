@@ -217,6 +217,11 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem tracker_items[] = {
+		{TRACKER_KLT, "KLT", 0, "KLT", "Kanade–Lucas–Tomasi racker"},
+		{TRACKER_SAD, "SAD", 0, "SAD", "Sum of Absolute Differences tracker"},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem speed_items[] = {
 		{0, "FASTEST", 0, "Fastest", "Track as fast as it's possible"},
 		{TRACKING_SPEED_REALTIME, "REALTIME", 0, "Realtime", "Track with realtime speed"},
@@ -225,14 +230,20 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem cleanup_items[] = {
-			{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select un-clean tracks"},
-			{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete un-clean tracks"},
-			{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete un-clean segments of tracks"},
-			{0, NULL, 0, NULL, NULL}
+		{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select un-clean tracks"},
+		{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete un-clean tracks"},
+		{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete un-clean segments of tracks"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna= RNA_def_struct(brna, "MovieTrackingSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Movie tracking settings", "Match-moving tracking settings");
+
+	/* tracker */
+	prop= RNA_def_property(srna, "tracker", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, tracker_items);
+	RNA_def_property_ui_text(prop, "tracker", "Tracking algorithm to use");
 
 	/* speed */
 	prop= RNA_def_property(srna, "speed", PROP_ENUM, PROP_NONE);

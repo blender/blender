@@ -461,7 +461,12 @@ typedef struct TrackContext {
 	MovieTrackingTrack *track;
 
 #ifdef WITH_LIBMV
+	/* ** KLT tracker ** */
 	struct libmv_RegionTracker *region_tracker;
+	float *patch;			/* keyframed patch */
+
+	/* ** SAD tracker ** */
+	unsigned char *pattern;	/* keyframed pattern */
 #endif
 } TrackContext;
 
@@ -526,14 +531,19 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 
 #ifdef WITH_LIBMV
 					{
-						float search_size_x= (track->search_max[0]-track->search_min[0])*width;
-						float search_size_y= (track->search_max[1]-track->search_min[1])*height;
-						float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
-						float pattern_size_y= (track->pat_max[1]-track->pat_min[1])*height;
+						if(context->settings.tracker==TRACKER_KLT) {
+							float search_size_x= (track->search_max[0]-track->search_min[0])*width;
+							float search_size_y= (track->search_max[1]-track->search_min[1])*height;
+							float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
+							float pattern_size_y= (track->pat_max[1]-track->pat_min[1])*height;
 
-						int level= log(2.0f * MIN2(search_size_x, search_size_y) / MAX2(pattern_size_x, pattern_size_y))/M_LN2;
+							int level= log(2.0f * MIN2(search_size_x, search_size_y) / MAX2(pattern_size_x, pattern_size_y))/M_LN2;
 
-						track_context->region_tracker= libmv_regionTrackerNew(100, level, 0.2);
+							track_context->region_tracker= libmv_regionTrackerNew(100, level, 0.2);
+						}
+						else if(context->settings.tracker==TRACKER_SAD) {
+							/* notfing to initialize */
+						}
 					}
 #endif
 
@@ -562,7 +572,14 @@ void BKE_tracking_context_free(MovieTrackingContext *context)
 		BKE_tracking_free_track(context->track_context[a].track);
 
 #if WITH_LIBMV
-		libmv_regionTrackerDestroy(track_context->region_tracker);
+		if(track_context->region_tracker)
+			libmv_regionTrackerDestroy(track_context->region_tracker);
+
+		if(track_context->patch)
+			MEM_freeN(track_context->patch);
+
+		if(track_context->pattern)
+			MEM_freeN(track_context->pattern);
 #endif
 
 		MEM_freeN(track_context->track);
@@ -696,6 +713,72 @@ static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 
 	return pixels;
 }
+
+static unsigned char *acquire_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+			int *width_r, int *height_r, float pos[2], int origin[2])
+{
+	ImBuf *tmpibuf;
+	unsigned char *pixels, *fp;
+	int x, y, width, height;
+
+	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
+	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
+
+	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, 0, pos, origin);
+	disable_imbuf_channels(tmpibuf, track);
+
+	*width_r= width;
+	*height_r= height;
+
+	fp= pixels= MEM_callocN(width*height*sizeof(unsigned char), "tracking byteBuf");
+	for(y= 0; y<(int)height; y++) {
+		for (x= 0; x<(int)width; x++) {
+			int pixel= tmpibuf->x*y + x;
+
+			if(tmpibuf->rect_float) {
+				float *rrgbf= ibuf->rect_float + pixel*4;
+
+				*fp= (0.2126*rrgbf[0] + 0.7152*rrgbf[1] + 0.0722*rrgbf[2]);
+			} else {
+				char *rrgb= (char*)tmpibuf->rect + pixel*4;
+
+				*fp= (0.2126*rrgb[0] + 0.7152*rrgb[1] + 0.0722*rrgb[2]);
+			}
+
+			fp++;
+		}
+	}
+
+	IMB_freeImBuf(tmpibuf);
+
+	return pixels;
+}
+
+static ImBuf *acquire_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track, MovieTrackingMarker *marker)
+{
+	int framenr_old= context->user.framenr, framenr= marker->framenr;
+	int a= marker-track->markers;
+	ImBuf *ibuf;
+
+	while(a>=0 && a<track->markersnr) {
+		if(marker->flag&MARKER_TRACKED) {
+			framenr= marker->framenr;
+			break;
+		}
+
+		if(context->backwards) a++;
+		else a--;
+	}
+
+	context->user.framenr= framenr;
+
+	ibuf= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
+
+	context->user.framenr= framenr_old;
+
+	return ibuf;
+}
+
 #endif
 
 void BKE_tracking_sync(MovieTrackingContext *context)
@@ -793,7 +876,7 @@ void BKE_tracking_sync_user(MovieClipUser *user, MovieTrackingContext *context)
 
 int BKE_tracking_next(MovieTrackingContext *context)
 {
-	ImBuf *ibuf, *ibuf_new;
+	ImBuf *ibuf_new;
 	int curfra= context->user.framenr;
 	int a, ok= 0;
 
@@ -801,19 +884,14 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(!context->num_tracks)
 		return 0;
 
-	ibuf= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
-	if(!ibuf) return 0;
-
 	if(context->backwards) context->user.framenr--;
 	else context->user.framenr++;
 
 	ibuf_new= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
-	if(!ibuf_new) {
-		IMB_freeImBuf(ibuf);
+	if(!ibuf_new)
 		return 0;
-	}
 
-	#pragma omp parallel for private(a) shared(ibuf, ibuf_new, ok)
+	#pragma omp parallel for private(a) shared(ibuf_new, ok) if(context->num_tracks>1)
 	for(a= 0; a<context->num_tracks; a++) {
 		TrackContext *track_context= &context->track_context[a];
 		MovieTrackingTrack *track= track_context->track;
@@ -821,28 +899,70 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 		if(marker && (marker->flag&MARKER_DISABLED)==0 && marker->framenr==curfra) {
 #ifdef WITH_LIBMV
-			int width, height, origin[2];
+			int width, height, origin[2], tracked= 0;
 			float pos[2];
-			float *patch, *patch_new;
 			double x1, y1, x2, y2;
-			int wndx, wndy;
+			ImBuf *ibuf= NULL;
 			MovieTrackingMarker marker_new;
 
-			patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height, pos, origin);
-			patch_new= acquire_search_floatbuf(ibuf_new, track, marker, &width, &height, pos, origin);
+			if(context->settings.tracker==TRACKER_KLT) {
+				int wndx, wndy;
+				float *patch_new;
 
-			x1= pos[0];
-			y1= pos[1];
+				if(!track_context->patch) {
+					/* calculate patch for keyframed position */
+					ibuf= acquire_keyframed_ibuf(context, track, marker);
+					track_context->patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height, pos, origin);
+					IMB_freeImBuf(ibuf);
+				}
 
-			x2= x1;
-			y2= y1;
+				patch_new= acquire_search_floatbuf(ibuf_new, track, marker, &width, &height, pos, origin);
 
-			wndx= (int)((track->pat_max[0]-track->pat_min[0])*ibuf->x)/2;
-			wndy= (int)((track->pat_max[1]-track->pat_min[1])*ibuf->y)/2;
+				x1= pos[0];
+				y1= pos[1];
 
-			if(libmv_regionTrackerTrack(track_context->region_tracker, patch, patch_new,
-						width, height, MAX2(wndx, wndy),
-						x1, y1, &x2, &y2)) {
+				x2= x1;
+				y2= y1;
+
+				wndx= (int)((track->pat_max[0]-track->pat_min[0])*ibuf_new->x)/2;
+				wndy= (int)((track->pat_max[1]-track->pat_min[1])*ibuf_new->y)/2;
+
+				tracked= libmv_regionTrackerTrack(track_context->region_tracker, track_context->patch, patch_new,
+							width, height, MAX2(wndx, wndy), x1, y1, &x2, &y2);
+
+				MEM_freeN(patch_new);
+			}
+			else if(context->settings.tracker==TRACKER_SAD) {
+				unsigned char *image_new;
+
+				if(track_context->pattern==NULL) {
+					unsigned char *image;
+					float warp[3][3];
+
+					/* calculate pattern for keyframed position */
+
+					ibuf= acquire_keyframed_ibuf(context, track, marker);
+					image= acquire_search_bytebuf(ibuf, track, marker, &width, &height, pos, origin);
+
+					unit_m3(warp);
+					warp[0][2]= pos[0];
+					warp[1][2]= pos[1];
+
+					track_context->pattern= MEM_callocN(sizeof(unsigned char)*16*16, "trackking pattern");
+					libmv_SADSamplePatternByte(image, width, warp, track_context->pattern);
+
+					MEM_freeN(image);
+					IMB_freeImBuf(ibuf);
+				}
+
+				image_new= acquire_search_bytebuf(ibuf_new, track, marker, &width, &height, pos, origin);
+
+				tracked= libmv_SADTrackerTrack(track_context->pattern, image_new, width, width, height, &x2, &y2);
+
+				MEM_freeN(image_new);
+			}
+
+			if(tracked) {
 				memset(&marker_new, 0, sizeof(marker_new));
 				marker_new.pos[0]= (origin[0]+x2)/ibuf_new->x;
 				marker_new.pos[1]= (origin[1]+y2)/ibuf_new->y;
@@ -870,15 +990,11 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				}
 			}
 
-			MEM_freeN(patch);
-			MEM_freeN(patch_new);
-
 			ok= 1;
 #endif
 		}
 	}
 
-	IMB_freeImBuf(ibuf);
 	IMB_freeImBuf(ibuf_new);
 
 	return ok;

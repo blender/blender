@@ -100,6 +100,9 @@ typedef struct MovieTrackingTrack {
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingSettings {
+	short tracker;	/* tracker to use */
+	short pad;
+
 	short speed;	/* speed of tracking */
 	short frames_limit;	/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
@@ -112,8 +115,6 @@ typedef struct MovieTrackingSettings {
 	/* cleanup */
 	int clean_frames, clean_action;
 	float clean_error;
-
-	int pad;
 } MovieTrackingSettings;
 
 typedef struct MovieTrackingStabilization {
@@ -168,6 +169,10 @@ enum {
 #define TRACK_LOCKED		(1<<6)
 #define TRACK_CUSTOMCOLOR	(1<<7)
 #define TRACK_USE_2D_STAB	(1<<8)
+
+/* MovieTrackingSettings->tracker */
+#define TRACKER_KLT		0
+#define TRACKER_SAD		1
 
 /* MovieTrackingSettings->speed */
 #define TRACKING_SPEED_FASTEST		0

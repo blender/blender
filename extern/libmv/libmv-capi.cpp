@@ -40,6 +40,8 @@
 #include "libmv/tracking/pyramid_region_tracker.h"
 #include "libmv/tracking/retrack_region_tracker.h"
 
+#include "libmv/tracking/sad.h"
+
 #include "libmv/simple_pipeline/tracks.h"
 #include "libmv/simple_pipeline/initialize_reconstruction.h"
 #include "libmv/simple_pipeline/bundle.h"
@@ -303,6 +305,31 @@ void libmv_regionTrackerDestroy(libmv_RegionTracker *libmv_tracker)
 {
 	delete libmv_tracker->region_tracker;
 	delete libmv_tracker;
+}
+
+/* ************ Tracks ************ */
+
+void libmv_SADSamplePatternByte(unsigned char *image, int stride,
+			float warp[3][3], unsigned char *pattern)
+{
+	float mat3[9];
+
+	memcpy(mat3, warp, sizeof(float)*9);
+
+	libmv::SamplePattern(image, stride, mat3, pattern);
+}
+
+int libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *image, int stride,
+			int width, int height, double *x, double *y)
+{
+	float x2, y2;
+
+	int result = libmv::Track(pattern, image, stride, width, height, &x2, &y2);
+
+	*x= x2;
+	*y= y2;
+
+	return result;
 }
 
 /* ************ Tracks ************ */

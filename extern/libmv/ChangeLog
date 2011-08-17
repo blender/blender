@@ -1,3 +1,22 @@
+commit a1d9a8fa8b01ef7cf2a79b3b891633fc333fc9cf
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:24:51 2011 +0200
+
+    Fix SAD tracker. Pattern was transposed by affine pattern sampler.
+
+commit c3b794da2e7fd23f2fbdf90dbd71de0e6b3bc811
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Tue Aug 16 21:19:02 2011 +0200
+
+    Fix SAD tracker. Pattern was transposed by affine pattern sampler.
+
+commit a9b61bf3356f27174cdd983f562f99c3a6a2cc35
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Sun Aug 14 09:56:51 2011 +0200
+
+    Clarify CameraIntrinsics documentation.
+    Edit CameraInstrinsics test to fail.
+
 commit 10bdad9ad2cea2603896263cde5a5339169a9af0
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Fri Aug 12 21:05:32 2011 +0200
@@ -342,79 +361,3 @@ Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Sun Jul 17 16:35:48 2011 +0200
 
     Use deprecated FFmpeg API.
-
-commit 09b090a20134a8ccef273d802752bbf475ff5280
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sat Jul 16 21:19:14 2011 +0200
-
-    Fix loading cache directly after creation.
-
-commit 1190584f6ca60fb74188cac36c61333951244026
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sat Jul 16 20:02:36 2011 +0200
-
-    Add custom FileDialog to handle multiple files and folders selection in the same dialog
-
-commit 50504af3d0fc11665483aed524d52d076f38ffa8
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jul 15 23:34:41 2011 +0200
-
-    Fix mistake.
-
-commit a8e322a2c37cc87acd864d94a354334d611b9750
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jul 15 22:25:51 2011 +0200
-
-    Use cache even on first run (i.e don't load all images on the heap).
-
-commit 66ac3b5833a1fd4fbd97b082db6ddf859b33811c
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jul 15 21:15:45 2011 +0200
-
-    Improve Zoom View.
-
-commit dec996966d5466717a813da2d8b9962115dfc8ac
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jul 15 20:04:06 2011 +0200
-
-    Detect API documentation.
-
-commit bfc07bd0940bba0d5439ccd0297368607db514be
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Jul 15 16:22:52 2011 +0200
-
-    Refactor Qt Tracker.
-    Create Detect API.
-    Improve CameraIntrinsics API.
-    Put Calibration settings UI in a QDockWidget.
-    Support anamorphic.
-    
-    TODO: Finish new Zoom widget.
-
-commit e59595806c045916ab4ef15ef7047c1a728b2da9
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Thu Jul 14 22:29:06 2011 +0200
-
-    Use FAST detector.
-    
-    FAST is much faster and works much better than the "Good Features to Track algorithm".
-
-commit 17c036e9f8c6529c2f771fdd9dc73f3022e36c77
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jul 13 22:23:40 2011 +0200
-
-    Add visualization of image filtering operations.
-
-commit c4f71e17b6b72acc0f863906c01c87d53e8bbb2c
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jul 13 10:37:26 2011 +0200
-
-    Simplify feature detection.
-
-commit d8109b7a4fede1660e0dbd73735f1a9e3fd79eec
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Wed Jul 13 10:21:52 2011 +0200
-
-    Add feature detection.
-    
-    Remove unused keyframe selection code.

@@ -65,7 +65,7 @@ class CameraIntrinsics {
   /*!
       Apply camera intrinsics to the normalized point to get image coordinates.
 
-      This applies the camera intrinsics to a point which is in normalized
+      This applies the lens distortion to a point which is in normalized
       camera coordinates (i.e. the principal point is at (0, 0)) to get image
       coordinates in pixels.
   */
@@ -75,7 +75,7 @@ class CameraIntrinsics {
   /*!
       Invert camera intrinsics on the image point to get normalized coordinates.
 
-      This reverses the effect of camera intrinsics on a point which is in image
+      This reverses the effect of lens distortion on a point which is in image
       coordinates to get normalized camera coordinates.
   */
   void InvertIntrinsics(double image_x, double image_y,

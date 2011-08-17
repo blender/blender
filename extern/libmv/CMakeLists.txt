@@ -52,6 +52,7 @@ set(SRC
 	libmv/image/convolve.cc
 	libmv/image/array_nd.cc
 	libmv/tracking/pyramid_region_tracker.cc
+	libmv/tracking/sad.cc
 	libmv/tracking/trklt_region_tracker.cc
 	libmv/tracking/klt_region_tracker.cc
 	libmv/tracking/retrack_region_tracker.cc
@@ -97,6 +98,7 @@ set(SRC
 	libmv/image/image.h
 	libmv/tracking/region_tracker.h
 	libmv/tracking/retrack_region_tracker.h
+	libmv/tracking/sad.h
 	libmv/tracking/pyramid_region_tracker.h
 	libmv/tracking/trklt_region_tracker.h
 	libmv/tracking/klt_region_tracker.h
