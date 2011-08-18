@@ -76,6 +76,54 @@ def context_path_validate(context, data_path):
     return value
 
 
+def operator_value_is_undo(value):
+    if value in {None, Ellipsis}:
+        return False
+
+    # typical properties or objects
+    id_data = getattr(value, "id_data", Ellipsis)
+
+    if id_data is None:
+        return False
+    elif id_data is Ellipsis:
+        # handle mathutils types
+        id_data = getattr(getattr(value, "owner", None), "id_data", None)
+
+        if id_data is None:
+            return False
+
+    # return True if its a non window ID type
+    return (isinstance(id_data, bpy.types.ID) and
+            (not isinstance(id_data, (bpy.types.WindowManager,
+                                      bpy.types.Screen,
+                                      bpy.types.Scene,
+                                      bpy.types.Brush,
+                                      ))))
+
+
+def operator_path_is_undo(context, data_path):
+    # note that if we have data paths that use strings this could fail
+    # luckily we dont do this!
+    #
+    # When we cant find the data owner assume no undo is needed.
+    data_path_head, data_path_sep, data_path_tail = data_path.rpartition(".")
+
+    if not data_path_head:
+        return False
+
+    value = context_path_validate(context, data_path_head)
+
+    return operator_value_is_undo(value)
+
+
+def operator_path_undo_return(context, data_path):
+    return {'FINISHED'} if operator_path_is_undo(context, data_path) else {'CANCELLED'}
+
+
+def operator_value_undo_return(value):
+    return {'FINISHED'} if operator_value_is_undo(value) else {'CANCELLED'}
+
+
 def execute_context_assign(self, context):
     data_path = self.data_path
     if context_path_validate(context, data_path) is Ellipsis:
@@ -86,7 +134,7 @@ def execute_context_assign(self, context):
     else:
         exec("context.%s = self.value" % data_path)
 
-    return {'FINISHED'}
+    return operator_path_undo_return(context, data_path)
 
 
 class BRUSH_OT_active_index_set(Operator):
@@ -196,7 +244,7 @@ class WM_OT_context_scale_int(Operator):
         else:
             exec("context.%s *= value" % data_path)
 
-        return {'FINISHED'}
+        return operator_path_undo_return(context, data_path)
 
 
 class WM_OT_context_set_float(Operator):  # same as enum
@@ -266,7 +314,7 @@ class WM_OT_context_set_value(Operator):
         if context_path_validate(context, data_path) is Ellipsis:
             return {'PASS_THROUGH'}
         exec("context.%s = %s" % (data_path, self.value))
-        return {'FINISHED'}
+        return operator_path_undo_return(context, data_path)
 
 
 class WM_OT_context_toggle(Operator):
@@ -285,7 +333,7 @@ class WM_OT_context_toggle(Operator):
 
         exec("context.%s = not (context.%s)" % (data_path, data_path))
 
-        return {'FINISHED'}
+        return operator_path_undo_return(context, data_path)
 
 
 class WM_OT_context_toggle_enum(Operator):
@@ -318,7 +366,7 @@ class WM_OT_context_toggle_enum(Operator):
               self.value_2,
               ))
 
-        return {'FINISHED'}
+        return operator_path_undo_return(context, data_path)
 
 
 class WM_OT_context_cycle_int(Operator):
@@ -353,7 +401,7 @@ class WM_OT_context_cycle_int(Operator):
 
             exec("context.%s = value" % data_path)
 
-        return {'FINISHED'}
+        return operator_path_undo_return(context, data_path)
 
 
 class WM_OT_context_cycle_enum(Operator):
@@ -405,7 +453,7 @@ class WM_OT_context_cycle_enum(Operator):
 
         # set the new value
         exec("context.%s = advance_enum" % data_path)
-        return {'FINISHED'}
+        return operator_path_undo_return(context, data_path)
 
 
 class WM_OT_context_cycle_array(Operator):
@@ -433,7 +481,7 @@ class WM_OT_context_cycle_array(Operator):
 
         exec("context.%s = cycle(context.%s[:])" % (data_path, data_path))
 
-        return {'FINISHED'}
+        return operator_path_undo_return(context, data_path)
 
 
 class WM_MT_context_menu_enum(Menu):
@@ -504,7 +552,7 @@ class WM_OT_context_set_id(Operator):
             value_id = getattr(bpy.data, id_iter).get(value)
             exec("context.%s = value_id" % data_path)
 
-        return {'FINISHED'}
+        return operator_path_undo_return(context, data_path)
 
 
 doc_id = StringProperty(
@@ -568,6 +616,10 @@ class WM_OT_context_collection_boolean_set(Operator):
 
             items_ok.append(item)
 
+        # avoid undo push when nothing to do
+        if not items_ok:
+            return {'CANCELLED'}
+
         if self.type == 'ENABLE':
             is_set = True
         elif self.type == 'DISABLE':
@@ -579,14 +631,14 @@ class WM_OT_context_collection_boolean_set(Operator):
         for item in items_ok:
             exec(exec_str)
 
-        return {'FINISHED'}
+        return operator_value_undo_return(item)
 
 
 class WM_OT_context_modal_mouse(Operator):
     '''Adjust arbitrary values with mouse input'''
     bl_idname = "wm.context_modal_mouse"
     bl_label = "Context Modal Mouse"
-    bl_options = {'GRAB_POINTER', 'BLOCKING', 'INTERNAL'}
+    bl_options = {'GRAB_POINTER', 'BLOCKING', 'UNDO', 'INTERNAL'}
 
     data_path_iter = data_path_iter
     data_path_item = data_path_item
@@ -651,12 +703,13 @@ class WM_OT_context_modal_mouse(Operator):
             self._values_delta(delta)
 
         elif 'LEFTMOUSE' == event_type:
+            item = next(iter(self._values.keys()))
             self._values_clear()
-            return {'FINISHED'}
+            return operator_value_undo_return(item)
 
         elif event_type in {'RIGHTMOUSE', 'ESC'}:
             self._values_restore()
-            return {'FINISHED'}
+            return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}
 
