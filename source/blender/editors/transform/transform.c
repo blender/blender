@@ -1356,16 +1356,15 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	int constraint_axis[3] = {0, 0, 0};
 	int proportional = 0;
+	PropertyRNA *prop;
 
-	if (RNA_struct_find_property(op->ptr, "value"))
-	{
-		if (t->flag & T_AUTOVALUES)
-		{
-			RNA_float_set_array(op->ptr, "value", t->auto_values);
+	if ((prop= RNA_struct_find_property(op->ptr, "value"))) {
+		float *values= (t->flag & T_AUTOVALUES) ? t->auto_values : t->values;
+		if (RNA_property_array_check(prop)) {
+			RNA_property_float_set_array(op->ptr, prop, values);
 		}
-		else
-		{
-			RNA_float_set_array(op->ptr, "value", t->values);
+		else {
+			RNA_property_float_set(op->ptr, prop, values[0]);
 		}
 	}
 
