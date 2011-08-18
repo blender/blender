@@ -36,6 +36,8 @@
 
 #include "rna_internal.h"
 
+#include "BLF_api.h"
+
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -1217,11 +1219,11 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem texco_items[] = {
-		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates"},
-		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates"},
-		{TEXCO_UV, "UV", 0, "UV", "Uses UV coordinates for texture coordinates"},
-		{TEXCO_ORCO, "ORCO", 0, "Generated", "Uses the original undeformed coordinates of the object"},
-		{TEXCO_STRAND, "STRAND", 0, "Strand / Particle", "Uses normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"},
+		{TEXCO_GLOB, "GLOBAL", 0, N_("Global"), N_("Uses global coordinates for the texture coordinates")},
+		{TEXCO_OBJECT, "OBJECT", 0, N_("Object"), N_("Uses linked object's coordinates for texture coordinates")},
+		{TEXCO_UV, "UV", 0, "UV", N_("Uses UV coordinates for texture coordinates")},
+		{TEXCO_ORCO, "ORCO", 0, N_("Generated"), N_("Uses the original undeformed coordinates of the object")},
+		{TEXCO_STRAND, "STRAND", 0, N_("Strand / Particle"), N_("Uses normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)")},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_mapping_items[] = {

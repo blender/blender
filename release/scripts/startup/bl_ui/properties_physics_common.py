@@ -62,17 +62,17 @@ class PHYSICS_PT_add(PhysicButtonsPanel, bpy.types.Panel):
             col.operator("object.forcefield_toggle", text=_("Force Field"), icon='X')
 
         if(ob.type == 'MESH'):
-            physics_add(self, col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
-            physics_add(self, col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
+            physics_add(self, col, context.collision, _("Collision"), 'COLLISION', 'MOD_PHYSICS', False)
+            physics_add(self, col, context.cloth, _("Cloth"), 'CLOTH', 'MOD_CLOTH', True)
 
         col = split.column()
 
         if(ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE'):
-            physics_add(self, col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True)
+            physics_add(self, col, context.soft_body, _("Soft Body"), 'SOFT_BODY', 'MOD_SOFT', True)
 
         if(ob.type == 'MESH'):
-            physics_add(self, col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
-            physics_add(self, col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True)
+            physics_add(self, col, context.fluid, _("Fluid"), 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
+            physics_add(self, col, context.smoke, _("Smoke"), 'SMOKE', 'MOD_SMOKE', True)
 
 
 #cachetype can be 'PSYS' 'HAIR' 'SMOKE' etc

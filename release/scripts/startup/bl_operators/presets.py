@@ -145,6 +145,7 @@ class ExecutePreset(bpy.types.Operator):
     ''' Executes a preset '''
     bl_idname = "script.execute_preset"
     bl_label = _("Execute a Python Preset")
+    __doc__ = _(" Executes a preset ")
 
     filepath = bpy.props.StringProperty(
             name=_("Path"),
@@ -200,6 +201,7 @@ class AddPresetSSS(AddPresetBase, bpy.types.Operator):
     bl_idname = "material.sss_preset_add"
     bl_label = _("Add SSS Preset")
     preset_menu = "MATERIAL_MT_sss_presets"
+    __doc__ = _("Add a Subsurface Scattering Preset")
 
     preset_defines = [
         ("material = "

@@ -1552,7 +1552,7 @@ static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Vertex Group";
+	ot->name= _("Add Vertex Group");
 	ot->idname= "OBJECT_OT_vertex_group_add";
 	
 	/* api callbacks */
@@ -1683,7 +1683,7 @@ static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select Vertex Group";
+	ot->name= _("Select Vertex Group");
 	ot->idname= "OBJECT_OT_vertex_group_select";
 
 	/* api callbacks */
@@ -1707,7 +1707,7 @@ static int vertex_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_deselect(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Deselect Vertex Group";
+	ot->name= _("Deselect Vertex Group");
 	ot->idname= "OBJECT_OT_vertex_group_deselect";
 
 	/* api callbacks */
@@ -1733,7 +1733,7 @@ static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Vertex Group";
+	ot->name= _("Copy Vertex Group");
 	ot->idname= "OBJECT_OT_vertex_group_copy";
 
 	/* api callbacks */
@@ -1763,7 +1763,7 @@ static int vertex_group_levels_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Vertex Group Levels";
+	ot->name= _("Vertex Group Levels");
 	ot->idname= "OBJECT_OT_vertex_group_levels";
 	
 	/* api callbacks */
@@ -1773,8 +1773,8 @@ void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_float(ot->srna, "offset", 0.f, -1.0, 1.0, "Offset", "Value to add to weights.", -1.0f, 1.f);
-	RNA_def_float(ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by.", 0.0f, 10.f);
+	RNA_def_float(ot->srna, "offset", 0.f, -1.0, 1.0, N_("Offset"), N_("Value to add to weights."), -1.0f, 1.f);
+	RNA_def_float(ot->srna, "gain", 1.f, 0.f, FLT_MAX, N_("Gain"), N_("Value to multiply weights by."), 0.0f, 10.f);
 }
 
 static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1793,7 +1793,7 @@ static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Normalize Vertex Group";
+	ot->name= _("Normalize Vertex Group");
 	ot->idname= "OBJECT_OT_vertex_group_normalize";
 
 	/* api callbacks */
@@ -1882,7 +1882,7 @@ static int vertex_group_blend_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_blend(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Blend Vertex Group";
+	ot->name= _("Blend Vertex Group");
 	ot->idname= "OBJECT_OT_vertex_group_blend";
 	ot->description= "";
 
@@ -1995,9 +1995,9 @@ static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Vertex Groups to Linked";
+	ot->name= _("Copy Vertex Groups to Linked");
 	ot->idname= "OBJECT_OT_vertex_group_copy_to_linked";
-	ot->description= "Copy Vertex Groups to all users of the same Geometry data";
+	ot->description= _("Copy Vertex Groups to all users of the same Geometry data");
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -2033,9 +2033,9 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Vertex Group to Selected";
+	ot->name= _("Copy Vertex Group to Selected");
 	ot->idname= "OBJECT_OT_vertex_group_copy_to_selected";
-	ot->description= "Copy Vertex Groups to other selected objects with matching indices";
+	ot->description= _("Copy Vertex Groups to other selected objects with matching indices");
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -2091,9 +2091,9 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Set Active Vertex Group";
+	ot->name= _("Set Active Vertex Group");
 	ot->idname= "OBJECT_OT_vertex_group_set_active";
-	ot->description= "Set the active vertex group";
+	ot->description= _("Set the active vertex group");
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -2104,7 +2104,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active.");
+	prop= RNA_def_enum(ot->srna, "group", vgroup_items, 0, _("Group"), _("Vertex group to set as active."));
 	RNA_def_enum_funcs(prop, vgroup_itemf);
 	ot->prop= prop;
 }
@@ -2223,9 +2223,9 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 {
-	ot->name= "Sort Vertex Groups";
+	ot->name= _("Sort Vertex Groups");
 	ot->idname= "OBJECT_OT_vertex_group_sort";
-	ot->description= "Sorts vertex groups alphabetically";
+	ot->description= _("Sorts vertex groups alphabetically");
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -2276,13 +2276,13 @@ static int vgroup_move_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_move(wmOperatorType *ot)
 {
 	static EnumPropertyItem vgroup_slot_move[] = {
-		{1, "UP", 0, "Up", ""},
-		{-1, "DOWN", 0, "Down", ""},
+		{1, "UP", 0, N_("Up"), ""},
+		{-1, "DOWN", 0, N_("Down"), ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
-	ot->name= "Move Vertex Group";
+	ot->name= _("Move Vertex Group");
 	ot->idname= "OBJECT_OT_vertex_group_move";
 
 	/* api callbacks */
@@ -2292,5 +2292,5 @@ void OBJECT_OT_vertex_group_move(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "direction", vgroup_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
+	RNA_def_enum(ot->srna, "direction", RNA_enum_items_gettexted(vgroup_slot_move), 0, _("Direction"), _("Direction to move, UP or DOWN"));
 }

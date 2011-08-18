@@ -897,31 +897,31 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
 
                 col = split.column()
                 col.label(text=_("Diffuse:"))
-                factor_but(col, "use_map_diffuse", "diffuse_factor", "Intensity")
-                factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
-                factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
-                factor_but(col, "use_map_translucency", "translucency_factor", "Translucency")
+                factor_but(col, "use_map_diffuse", "diffuse_factor", _("Intensity"))
+                factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", _("Color"))
+                factor_but(col, "use_map_alpha", "alpha_factor", _("Alpha"))
+                factor_but(col, "use_map_translucency", "translucency_factor", _("Translucency"))
 
                 col.label(text=_("Specular:"))
-                factor_but(col, "use_map_specular", "specular_factor", "Intensity")
-                factor_but(col, "use_map_color_spec", "specular_color_factor", "Color")
-                factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
+                factor_but(col, "use_map_specular", "specular_factor", _("Intensity"))
+                factor_but(col, "use_map_color_spec", "specular_color_factor", _("Color"))
+                factor_but(col, "use_map_hardness", "hardness_factor", _("Hardness"))
 
                 col = split.column()
                 col.label(text=_("Shading:"))
-                factor_but(col, "use_map_ambient", "ambient_factor", "Ambient")
-                factor_but(col, "use_map_emit", "emit_factor", "Emit")
-                factor_but(col, "use_map_mirror", "mirror_factor", "Mirror")
-                factor_but(col, "use_map_raymir", "raymir_factor", "Ray Mirror")
+                factor_but(col, "use_map_ambient", "ambient_factor", _("Ambient"))
+                factor_but(col, "use_map_emit", "emit_factor", _("Emit"))
+                factor_but(col, "use_map_mirror", "mirror_factor", _("Mirror"))
+                factor_but(col, "use_map_raymir", "raymir_factor", _("Ray Mirror"))
 
                 col.label(text=_("Geometry:"))
                 # XXX replace 'or' when displacement is fixed to not rely on normal influence value.
-                sub_tmp = factor_but(col, "use_map_normal", "normal_factor", "Normal")
+                sub_tmp = factor_but(col, "use_map_normal", "normal_factor", _("Normal"))
                 sub_tmp.active = (tex.use_map_normal or tex.use_map_displacement)
                 # END XXX
 
-                factor_but(col, "use_map_warp", "warp_factor", "Warp")
-                factor_but(col, "use_map_displacement", "displacement_factor", "Displace")
+                factor_but(col, "use_map_warp", "warp_factor", _("Warp"))
+                factor_but(col, "use_map_displacement", "displacement_factor", _("Displace"))
 
                 #sub = col.column()
                 #sub.active = tex.use_map_translucency or tex.map_emit or tex.map_alpha or tex.map_raymir or tex.map_hardness or tex.map_ambient or tex.map_specularity or tex.map_reflection or tex.map_mirror
@@ -932,75 +932,75 @@ class TEXTURE_PT_influence(TextureSlotPanel, bpy.types.Panel):
                 split = layout.split()
 
                 col = split.column()
-                factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
-                factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
+                factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", _("Color"))
+                factor_but(col, "use_map_alpha", "alpha_factor", _("Alpha"))
 
                 col = split.column()
-                factor_but(col, "use_map_raymir", "raymir_factor", "Size")
-                factor_but(col, "use_map_hardness", "hardness_factor", "Hardness")
-                factor_but(col, "use_map_translucency", "translucency_factor", "Add")
+                factor_but(col, "use_map_raymir", "raymir_factor", _("Size"))
+                factor_but(col, "use_map_hardness", "hardness_factor", _("Hardness"))
+                factor_but(col, "use_map_translucency", "translucency_factor", _("Add"))
             elif idblock.type == 'VOLUME':
                 split = layout.split()
 
                 col = split.column()
-                factor_but(col, "use_map_density", "density_factor", "Density")
-                factor_but(col, "use_map_emission", "emission_factor", "Emission")
-                factor_but(col, "use_map_scatter", "scattering_factor", "Scattering")
-                factor_but(col, "use_map_reflect", "reflection_factor", "Reflection")
+                factor_but(col, "use_map_density", "density_factor", _("Density"))
+                factor_but(col, "use_map_emission", "emission_factor", _("Emission"))
+                factor_but(col, "use_map_scatter", "scattering_factor", _("Scattering"))
+                factor_but(col, "use_map_reflect", "reflection_factor", _("Reflection"))
 
                 col = split.column()
                 col.label(text=" ")
-                factor_but(col, "use_map_color_emission", "emission_color_factor", "Emission Color")
-                factor_but(col, "use_map_color_transmission", "transmission_color_factor", "Transmission Color")
-                factor_but(col, "use_map_color_reflection", "reflection_color_factor", "Reflection Color")
+                factor_but(col, "use_map_color_emission", "emission_color_factor", _("Emission Color"))
+                factor_but(col, "use_map_color_transmission", "transmission_color_factor", _("Transmission Color"))
+                factor_but(col, "use_map_color_reflection", "reflection_color_factor", _("Reflection Color"))
 
         elif isinstance(idblock, bpy.types.Lamp):
             split = layout.split()
 
             col = split.column()
-            factor_but(col, "use_map_color", "color_factor", "Color")
+            factor_but(col, "use_map_color", "color_factor", _("Color"))
 
             col = split.column()
-            factor_but(col, "use_map_shadow", "shadow_factor", "Shadow")
+            factor_but(col, "use_map_shadow", "shadow_factor", _("Shadow"))
 
         elif isinstance(idblock, bpy.types.World):
             split = layout.split()
 
             col = split.column()
-            factor_but(col, "use_map_blend", "blend_factor", "Blend")
-            factor_but(col, "use_map_horizon", "horizon_factor", "Horizon")
+            factor_but(col, "use_map_blend", "blend_factor", _("Blend"))
+            factor_but(col, "use_map_horizon", "horizon_factor", _("Horizon"))
 
             col = split.column()
-            factor_but(col, "use_map_zenith_up", "zenith_up_factor", "Zenith Up")
-            factor_but(col, "use_map_zenith_down", "zenith_down_factor", "Zenith Down")
+            factor_but(col, "use_map_zenith_up", "zenith_up_factor", _("Zenith Up"))
+            factor_but(col, "use_map_zenith_down", "zenith_down_factor", _("Zenith Down"))
         elif isinstance(idblock, bpy.types.ParticleSettings):
             split = layout.split()
 
             col = split.column()
             col.label(text=_("General:"))
-            factor_but(col, "use_map_time", "time_factor", "Time")
-            factor_but(col, "use_map_life", "life_factor", "Lifetime")
-            factor_but(col, "use_map_density", "density_factor", "Density")
-            factor_but(col, "use_map_size", "size_factor", "Size")
+            factor_but(col, "use_map_time", "time_factor", _("Time"))
+            factor_but(col, "use_map_life", "life_factor", _("Lifetime"))
+            factor_but(col, "use_map_density", "density_factor", _("Density"))
+            factor_but(col, "use_map_size", "size_factor", _("Size"))
 
             col = split.column()
             col.label(text=_("Physics:"))
-            factor_but(col, "use_map_velocity", "velocity_factor", "Velocity")
-            factor_but(col, "use_map_damp", "damp_factor", "Damp")
-            factor_but(col, "use_map_gravity", "gravity_factor", "Gravity")
-            factor_but(col, "use_map_field", "field_factor", "Force Fields")
+            factor_but(col, "use_map_velocity", "velocity_factor", _("Velocity"))
+            factor_but(col, "use_map_damp", "damp_factor", _("Damp"))
+            factor_but(col, "use_map_gravity", "gravity_factor", _("Gravity"))
+            factor_but(col, "use_map_field", "field_factor", _("Force Fields"))
 
             layout.label(text=_("Hair:"))
 
             split = layout.split()
 
             col = split.column()
-            factor_but(col, "use_map_length", "length_factor", "Length")
-            factor_but(col, "use_map_clump", "clump_factor", "Clump")
+            factor_but(col, "use_map_length", "length_factor", _("Length"))
+            factor_but(col, "use_map_clump", "clump_factor", _("Clump"))
 
             col = split.column()
-            factor_but(col, "use_map_kink", "kink_factor", "Kink")
-            factor_but(col, "use_map_rough", "rough_factor", "Rough")
+            factor_but(col, "use_map_kink", "kink_factor", _("Kink"))
+            factor_but(col, "use_map_rough", "rough_factor", _("Rough"))
 
         layout.separator()
 

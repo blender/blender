@@ -576,6 +576,7 @@ extern StructRNA RNA_WipeSequence;
 extern StructRNA RNA_WoodTexture;
 extern StructRNA RNA_World;
 extern StructRNA RNA_WorldAmbientOcclusion;
+extern StructRNA RNA_WorldLighting;
 extern StructRNA RNA_WorldMistSettings;
 extern StructRNA RNA_WorldStarsSettings;
 extern StructRNA RNA_WorldTextureSlot;

@@ -1296,8 +1296,8 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem link_items[] = {
-		{1, "OBJECT", 0, "Object", ""},
-		{0, "DATA", 0, "Data", ""},
+		{1, "OBJECT", 0, N_("Object"), ""},
+		{0, "DATA", 0, N_("Data"), ""},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* NOTE: there is no MaterialSlot equivalent in DNA, so the internal
@@ -1305,25 +1305,25 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	 * get/set for the properties. */
 
 	srna= RNA_def_struct(brna, "MaterialSlot", NULL);
-	RNA_def_struct_ui_text(srna, "Material Slot", "Material slot in an object");
+	RNA_def_struct_ui_text(srna, N_("Material Slot"), N_("Material slot in an object"));
 	RNA_def_struct_ui_icon(srna, ICON_MATERIAL_DATA);
 
 	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_MaterialSlot_material_get", "rna_MaterialSlot_material_set", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Material", "Material datablock used by this material slot");
+	RNA_def_property_ui_text(prop, N_("Material"), N_("Material datablock used by this material slot"));
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_MaterialSlot_update");
 
 	prop= RNA_def_property(srna, "link", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, link_items);
 	RNA_def_property_enum_funcs(prop, "rna_MaterialSlot_link_get", "rna_MaterialSlot_link_set", NULL);
-	RNA_def_property_ui_text(prop, "Link", "Link material to object or the object's data");
+	RNA_def_property_ui_text(prop, N_("Link"), N_("Link material to object or the object's data"));
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_MaterialSlot_update");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_MaterialSlot_name_get", "rna_MaterialSlot_name_length", NULL);
-	RNA_def_property_ui_text(prop, "Name", "Material slot name");
+	RNA_def_property_ui_text(prop, N_("Name"), N_("Material slot name"));
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_struct_name_property(srna, prop);
 }
@@ -1334,13 +1334,13 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem body_type_items[] = {
-		{OB_BODY_TYPE_NO_COLLISION, "NO_COLLISION", 0, "No Collision", "Disable collision for this object"},
-		{OB_BODY_TYPE_STATIC, "STATIC", 0, "Static", "Stationary object"},
-		{OB_BODY_TYPE_DYNAMIC, "DYNAMIC", 0, "Dynamic", "Linear physics"},
-		{OB_BODY_TYPE_RIGID, "RIGID_BODY", 0, "Rigid Body", "Linear and angular physics"},
-		{OB_BODY_TYPE_SOFT, "SOFT_BODY", 0, "Soft Body", "Soft body"},
-		{OB_BODY_TYPE_OCCLUDER, "OCCLUDE", 0, "Occlude", "Occluder for optimizing scene rendering"},
-		{OB_BODY_TYPE_SENSOR, "SENSOR", 0, "Sensor", "Collision Sensor, detects static and dynamic objects but not the other collision sensor objects"},
+		{OB_BODY_TYPE_NO_COLLISION, "NO_COLLISION", 0, N_("No Collision"), N_("Disable collision for this object")},
+		{OB_BODY_TYPE_STATIC, "STATIC", 0, N_("Static"), N_("Stationary object")},
+		{OB_BODY_TYPE_DYNAMIC, "DYNAMIC", 0, N_("Dynamic"), N_("Linear physics")},
+		{OB_BODY_TYPE_RIGID, "RIGID_BODY", 0, N_("Rigid Body"), N_("Linear and angular physics")},
+		{OB_BODY_TYPE_SOFT, "SOFT_BODY", 0, N_("Soft Body"), N_("Soft body")},
+		{OB_BODY_TYPE_OCCLUDER, "OCCLUDE", 0, N_("Occlude"), N_("Occluder for optimizing scene rendering")},
+		{OB_BODY_TYPE_SENSOR, "SENSOR", 0, N_("Sensor"), N_("Collision Sensor, detects static and dynamic objects but not the other collision sensor objects")},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "GameObjectSettings", NULL);

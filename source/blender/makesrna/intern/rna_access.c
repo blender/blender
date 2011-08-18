@@ -147,6 +147,7 @@ void RNA_types_init_gettext(void)
 			&RNA_Action, &RNA_ActionFCurves, &RNA_ActionGroup, &RNA_ActionGroups, &RNA_ActionPoseMarkers,
 			&RNA_BackgroundImage,
 			&RNA_ConsoleLine,
+			&RNA_Constraint,
 			&RNA_DopeSheet,
 			&RNA_Event,
 			&RNA_FileSelectParams,
@@ -154,11 +155,19 @@ void RNA_types_init_gettext(void)
 			&RNA_KeyMap, &RNA_KeyMapItem, &RNA_KeyMapItems, 
 			&RNA_KeyboardSensor,
 			&RNA_KeyingSetsAll,
-			&RNA_Object,
-			&RNA_RenderLayer, &RNA_RenderSettings,
 			&RNA_Macro,
-			&RNA_Material,
-			&RNA_Scene,
+
+			&RNA_Material, &RNA_MaterialHalo, &RNA_MaterialRaytraceMirror, &RNA_MaterialRaytraceTransparency,
+			&RNA_MaterialSlot, &RNA_MaterialStrand, &RNA_MaterialSubsurfaceScattering,
+			&RNA_MaterialTextureSlot, &RNA_MaterialVolume,
+			&RNA_Mesh,
+			&RNA_Modifier,
+
+			&RNA_Object,
+			&RNA_ParticleSettingsTextureSlot,
+			&RNA_RenderLayer, &RNA_RenderSettings,
+
+			&RNA_Scene, &RNA_SceneRenderLayer,
 			&RNA_Scopes,
 
 			&RNA_Space,
@@ -180,10 +189,13 @@ void RNA_types_init_gettext(void)
 			&RNA_SpaceUVEditor,
 			&RNA_SpaceUserPreferences,
 
+			&RNA_Texture, &RNA_TextureSlot,
 			&RNA_Theme, &RNA_ThemeBoneColorSet, &RNA_ThemeWidgetColors,
 			&RNA_ToolSettings,			
 			&RNA_UserPreferences, &RNA_UserPreferencesEdit, &RNA_UserPreferencesFilePaths,
 			&RNA_UserPreferencesInput, &RNA_UserPreferencesSystem, &RNA_UserPreferencesView,
+			&RNA_UnitSettings,
+			&RNA_World, &RNA_WorldLighting,
 			/* for test */
 			NULL
 	};

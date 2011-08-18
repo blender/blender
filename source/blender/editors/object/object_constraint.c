@@ -1455,7 +1455,7 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", constraint_type_items, 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(constraint_type_items), 0, _("Type"), "");
 }
 
 void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)

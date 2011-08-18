@@ -87,9 +87,9 @@ static int particle_system_add_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_particle_system_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Particle System Slot";
+	ot->name= _("Add Particle System Slot");
 	ot->idname= "OBJECT_OT_particle_system_add";
-	ot->description="Add a particle system";
+	ot->description=_("Add a particle system");
 	
 	/* api callbacks */
 	ot->poll= ED_operator_object_active_editable;
@@ -126,9 +126,9 @@ static int particle_system_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Particle System Slot";
+	ot->name= _("Remove Particle System Slot");
 	ot->idname= "OBJECT_OT_particle_system_remove";
-	ot->description="Remove the selected particle system";
+	ot->description=_("Remove the selected particle system");
 	
 	/* api callbacks */
 	ot->poll= ED_operator_object_active_editable;
@@ -185,9 +185,9 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Particle Settings";
+	ot->name= _("New Particle Settings");
 	ot->idname= "PARTICLE_OT_new";
-	ot->description="Add new particle settings";
+	ot->description=_("Add new particle settings");
 	
 	/* api callbacks */
 	ot->exec= new_particle_settings_exec;
@@ -234,9 +234,9 @@ static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_new_target(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New Particle Target";
+	ot->name= _("New Particle Target");
 	ot->idname= "PARTICLE_OT_new_target";
-	ot->description="Add a new particle target";
+	ot->description=_("Add a new particle target");
 	
 	/* api callbacks */
 	ot->exec= new_particle_target_exec;
@@ -283,9 +283,9 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_target_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Particle Target";
+	ot->name= _("Remove Particle Target");
 	ot->idname= "PARTICLE_OT_target_remove";
-	ot->description="Remove the selected particle target";
+	ot->description=_("Remove the selected particle target");
 	
 	/* api callbacks */
 	ot->exec= remove_particle_target_exec;
@@ -323,9 +323,9 @@ static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PARTICLE_OT_target_move_up(wmOperatorType *ot)
 {
-	ot->name= "Move Up Target";
+	ot->name= _("Move Up Target");
 	ot->idname= "PARTICLE_OT_target_move_up";
-	ot->description= "Move particle target up in the list";
+	ot->description= _("Move particle target up in the list");
 	
 	ot->exec= target_move_up_exec;
 	
@@ -361,9 +361,9 @@ static int target_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PARTICLE_OT_target_move_down(wmOperatorType *ot)
 {
-	ot->name= "Move Down Target";
+	ot->name= _("Move Down Target");
 	ot->idname= "PARTICLE_OT_target_move_down";
-	ot->description= "Move particle target down in the list";
+	ot->description= _("Move particle target down in the list");
 	
 	ot->exec= target_move_down_exec;
 	
@@ -399,9 +399,9 @@ static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PARTICLE_OT_dupliob_move_up(wmOperatorType *ot)
 {
-	ot->name= "Move Up Dupli Object";
+	ot->name= _("Move Up Dupli Object");
 	ot->idname= "PARTICLE_OT_dupliob_move_up";
-	ot->description= "Move dupli object up in the list";
+	ot->description= _("Move dupli object up in the list");
 	
 	ot->exec= dupliob_move_up_exec;
 	
@@ -439,9 +439,9 @@ static int copy_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_dupliob_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Particle Dupliob";
+	ot->name= _("Copy Particle Dupliob");
 	ot->idname= "PARTICLE_OT_dupliob_copy";
-	ot->description="Duplicate the current dupliobject";
+	ot->description=_("Duplicate the current dupliobject");
 	
 	/* api callbacks */
 	ot->exec= copy_particle_dupliob_exec;
@@ -482,9 +482,9 @@ static int remove_particle_dupliob_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_dupliob_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Particle Dupliobject";
+	ot->name= _("Remove Particle Dupliobject");
 	ot->idname= "PARTICLE_OT_dupliob_remove";
-	ot->description="Remove the selected dupliobject";
+	ot->description=_("Remove the selected dupliobject");
 	
 	/* api callbacks */
 	ot->exec= remove_particle_dupliob_exec;
@@ -521,9 +521,9 @@ static int dupliob_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 
 void PARTICLE_OT_dupliob_move_down(wmOperatorType *ot)
 {
-	ot->name= "Move Down Dupli Object";
+	ot->name= _("Move Down Dupli Object");
 	ot->idname= "PARTICLE_OT_dupliob_move_down";
-	ot->description= "Move dupli object down in the list";
+	ot->description= _("Move dupli object down in the list");
 	
 	ot->exec= dupliob_move_down_exec;
 	

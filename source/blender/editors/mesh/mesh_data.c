@@ -48,6 +48,8 @@
 #include "BLI_edgehash.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_api.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -322,8 +324,8 @@ static int uv_texture_add_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_uv_texture_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add UV Texture";
-	ot->description= "Add UV texture layer";
+	ot->name= _("Add UV Texture");
+	ot->description= _("Add UV texture layer");
 	ot->idname= "MESH_OT_uv_texture_add";
 	
 	/* api callbacks */
@@ -401,8 +403,8 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void MESH_OT_drop_named_image(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Assign Image to UV Texture";
-	ot->description= "Assigns Image to active UV layer, or creates a UV layer";
+	ot->name= _("Assign Image to UV Texture");
+	ot->description= _("Assigns Image to active UV layer, or creates a UV layer");
 	ot->idname= "MESH_OT_drop_named_image";
 	
 	/* api callbacks */
@@ -413,8 +415,8 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign.");
-	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
+	RNA_def_string(ot->srna, "name", "Image", 24, _("Name"), _("Image name to assign."));
+	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, _("Filepath"), _("Path to image file"));
 }
 
 static int uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
@@ -431,8 +433,8 @@ static int uv_texture_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove UV Texture";
-	ot->description= "Remove UV texture layer";
+	ot->name= _("Remove UV Texture");
+	ot->description= _("Remove UV texture layer");
 	ot->idname= "MESH_OT_uv_texture_remove";
 	
 	/* api callbacks */
@@ -460,8 +462,8 @@ static int vertex_color_add_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_vertex_color_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Vertex Color";
-	ot->description= "Add vertex color layer";
+	ot->name= _("Add Vertex Color");
+	ot->description= _("Add vertex color layer");
 	ot->idname= "MESH_OT_vertex_color_add";
 	
 	/* api callbacks */
@@ -486,8 +488,8 @@ static int vertex_color_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Vertex Color";
-	ot->description= "Remove vertex color layer";
+	ot->name= _("Remove Vertex Color");
+	ot->description= _("Remove vertex color layer");
 	ot->idname= "MESH_OT_vertex_color_remove";
 	
 	/* api callbacks */
@@ -521,8 +523,8 @@ static int sticky_add_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_sticky_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Add Sticky";
-	ot->description= "Add sticky UV texture layer";
+	ot->name= _("Add Sticky");
+	ot->description= _("Add sticky UV texture layer");
 	ot->idname= "MESH_OT_sticky_add";
 	
 	/* api callbacks */
@@ -553,8 +555,8 @@ static int sticky_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_sticky_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Remove Sticky";
-	ot->description= "Remove sticky UV texture layer";
+	ot->name= _("Remove Sticky");
+	ot->description= _("Remove sticky UV texture layer");
 	ot->idname= "MESH_OT_sticky_remove";
 	
 	/* api callbacks */

@@ -86,6 +86,7 @@ source/blender/editors/mesh/editmesh_loop.c
 source/blender/editors/mesh/editmesh_mods.c
 source/blender/editors/mesh/editmesh_tools.c
 source/blender/editors/mesh/loopcut.c
+source/blender/editors/mesh/mesh_data.c
 source/blender/editors/mesh/mesh_ops.c
 
 source/blender/editors/metaball/mball_edit.c
@@ -95,11 +96,13 @@ source/blender/editors/object/object_constraint.c
 source/blender/editors/object/object_edit.c
 source/blender/editors/object/object_group.c
 source/blender/editors/object/object_lattice.c
+source/blender/editors/object/object_modifier.c
 source/blender/editors/object/object_ops.c
 source/blender/editors/object/object_relations.c
 source/blender/editors/object/object_select.c
 source/blender/editors/object/object_shapekey.c
 source/blender/editors/object/object_transform.c
+source/blender/editors/object/object_vgroup.c
 
 source/blender/editors/physics/particle_edit.c
 source/blender/editors/physics/particle_object.c
@@ -126,7 +129,9 @@ source/blender/editors/space_action/action_edit.c
 source/blender/editors/space_action/action_ops.c
 source/blender/editors/space_action/action_select.c
 
+source/blender/editors/space_buttons/buttons_header.c
 source/blender/editors/space_buttons/buttons_ops.c
+
 source/blender/editors/space_console/console_ops.c
 
 source/blender/editors/space_file/file_draw.c
@@ -192,18 +197,24 @@ source/blender/editors/uvedit/uvedit_unwrap_ops.c
 source/blender/makesrna/intern/rna_ID.c
 source/blender/makesrna/intern/rna_action.c
 source/blender/makesrna/intern/rna_color.c
+source/blender/makesrna/intern/rna_constraint.c
 source/blender/makesrna/intern/rna_curve.c
 source/blender/makesrna/intern/rna_fcurve.c
 source/blender/makesrna/intern/rna_material.c
+source/blender/makesrna/intern/rna_mesh.c
+source/blender/makesrna/intern/rna_modifier.c
 source/blender/makesrna/intern/rna_object.c
 source/blender/makesrna/intern/rna_object_force.c
+source/blender/makesrna/intern/rna_particle.c
 source/blender/makesrna/intern/rna_render.c
 source/blender/makesrna/intern/rna_scene.c
 source/blender/makesrna/intern/rna_space.c
+source/blender/makesrna/intern/rna_texture.c
 source/blender/makesrna/intern/rna_ui_api.c
 source/blender/makesrna/intern/rna_userdef.c
 source/blender/makesrna/intern/rna_wm.c
 source/blender/makesrna/intern/rna_wm_api.c
+source/blender/makesrna/intern/rna_world.c
 
 source/blender/windowmanager/intern/wm_files.c
 source/blender/windowmanager/intern/wm_operators.c
