@@ -195,6 +195,7 @@ public:
 			Object *ob = base->object;
 
 			if (!ob->parent) {
+				if(sce->lay & ob->lay) {
 				switch(ob->type) {
 				case OB_MESH:
 				case OB_CAMERA:
@@ -207,6 +208,7 @@ public:
 					// write nodes....
 					writeNodes(ob, sce);
 					break;
+				}
 				}
 			}
 
