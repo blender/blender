@@ -922,13 +922,12 @@ class pyPerlinNoise1DShader(StrokeShader):
 	def getName(self):
 		return "pyPerlinNoise1DShader"
 	def shade(self, stroke):
-		i = randint(0, 50)
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
 			v = it.getObject()
+			i = v.getProjectedX() + v.getProjectedY()
 			nres = self.__noise.turbulence1(i, self.__freq, self.__amp, self.__oct)
 			v.setPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
-			i = i+1
 			it.increment()
 
 class pyPerlinNoise2DShader(StrokeShader):
