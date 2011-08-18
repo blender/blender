@@ -625,6 +625,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
 				}
+				else if(t->mode == TFM_TRANSLATION) {
+					if(t->options&CTX_MOVIECLIP) {
+						restoreTransObjects(t);
+
+						t->flag^= T_ALT_TRANSFORM;
+						t->redraw |= TREDRAW_HARD;
+					}
+				}
 				break;
 			case TFM_MODAL_ROTATE:
 				/* only switch when... */
@@ -804,15 +812,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case RIGHTSHIFTKEY:
 			t->modifiers |= MOD_CONSTRAINT_PLANE;
 			t->redraw |= TREDRAW_HARD;
-			break;
-
-		case LEFTALTKEY:
-			if(t->options&CTX_MOVIECLIP) {
-				restoreTransObjects(t);
-
-				t->flag|= T_RELATIVE_POSITION;
-				t->redraw |= TREDRAW_HARD;
-			}
 			break;
 
 		case SPACEKEY:
@@ -1064,14 +1063,6 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
 				t->modifiers &= ~MOD_CONSTRAINT_SELECT;
 				postSelectConstraint(t);
-				t->redraw |= TREDRAW_HARD;
-			}
-			break;
-		case LEFTALTKEY:
-			if(t->options&CTX_MOVIECLIP) {
-				restoreTransObjects(t);
-
-				t->flag&= ~T_RELATIVE_POSITION;
 				t->redraw |= TREDRAW_HARD;
 			}
 			break;

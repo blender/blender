@@ -5230,10 +5230,14 @@ typedef struct TransDataTracking {
 	float *relative, *loc;
 	float soffset[2], srelative[2];
 	float offset[2];
+
+	float (*smarkers)[2];
+	int markersnr;
+	MovieTrackingMarker *markers;
 } TransDataTracking;
 
 static void markerToTransDataInit(TransData *td, TransData2D *td2d,
-			TransDataTracking *tdt, int area, float *loc, float *rel, float *off)
+			TransDataTracking *tdt, MovieTrackingTrack *track, int area, float *loc, float *rel, float *off)
 {
 	int anchor = area==TRACK_AREA_POINT && off;
 
@@ -5242,8 +5246,7 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d,
 		td2d->loc[1] = rel[1];
 
 		tdt->loc= loc;
-		copy_v2_v2(tdt->offset, rel);
-		td2d->loc2d = tdt->offset; /* current location */
+		td2d->loc2d = loc; /* current location */
 	} else {
 		td2d->loc[0] = loc[0]; /* hold original location */
 		td2d->loc[1] = loc[1];
@@ -5254,6 +5257,9 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d,
 
 	tdt->relative= rel;
 	tdt->area= area;
+
+	tdt->markersnr= track->markersnr;
+	tdt->markers= track->markers;
 
 	if(rel) {
 		if(!anchor) {
@@ -5293,19 +5299,29 @@ static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
 
 	marker->flag&= ~(MARKER_DISABLED|MARKER_TRACKED);
 
-	markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_POINT, track->offset, marker->pos, track->offset);
+	markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_POINT, track->offset, marker->pos, track->offset);
 
 	if(track->flag&SELECT)
-		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_POINT, marker->pos, NULL, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_POINT, marker->pos, NULL, NULL);
 
 	if(track->pat_flag&SELECT) {
-		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_PAT, track->pat_min, marker->pos, NULL);
-		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_PAT, track->pat_max, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_min, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_max, marker->pos, NULL);
 	}
 
 	if(track->search_flag&SELECT) {
-		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_SEARCH, track->search_min, marker->pos, NULL);
-		markerToTransDataInit(td++, td2d++, tdt++, TRACK_AREA_SEARCH, track->search_max, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_SEARCH, track->search_min, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_SEARCH, track->search_max, marker->pos, NULL);
+	}
+}
+
+static void transDataTrackingFree(TransInfo *t)
+{
+	TransDataTracking *tdt= t->customData;
+
+	if(tdt) {
+		if(tdt->smarkers) MEM_freeN(tdt->smarkers);
+		MEM_freeN(tdt);
 	}
 }
 
@@ -5352,6 +5368,8 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransTracking TransData2D");
 	tdt = t->customData = MEM_callocN(t->total*sizeof(TransDataTracking), "TransTracking TransDataTracking");
 
+	t->customFree= transDataTrackingFree;
+
 	/* create actual data */
 	track = clip->tracking.tracks.first;
 	while(track) {
@@ -5360,6 +5378,7 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 
 			trackToTransData(sc, td, td2d, tdt, track);
 
+			/* offset */
 			td++;
 			td2d++;
 			tdt++;
@@ -5395,14 +5414,25 @@ void flushTransTracking(TransInfo *t)
 
 	/* flush to 2d vector from internally used 3d vector */
 	for(a=0, td= t->data, td2d= t->data2d, tdt= t->customData; a<t->total; a++, td2d++, td++, tdt++) {
-		if(t->flag&T_RELATIVE_POSITION) {
+		if(t->flag&T_ALT_TRANSFORM) {
 			if(tdt->area==TRACK_AREA_POINT && tdt->relative) {
-				float d[2];
+				float d[2], d2[2];
+
+				if(!tdt->smarkers) {
+					tdt->smarkers= MEM_callocN(sizeof(*tdt->smarkers)*tdt->markersnr, "flushTransTracking markers");
+					for(a= 0; a<tdt->markersnr; a++)
+						copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
+				}
 
 				sub_v2_v2v2(d, td2d->loc, tdt->soffset);
 				sub_v2_v2(d, tdt->srelative);
-				sub_v2_v2v2(td2d->loc2d, tdt->soffset, d);
-				negate_v2_v2(tdt->loc, d);
+
+				sub_v2_v2v2(d2, td2d->loc, tdt->srelative);
+
+				for(a= 0; a<tdt->markersnr; a++)
+					add_v2_v2v2(tdt->markers[a].pos, tdt->smarkers[a], d2);
+
+				negate_v2_v2(td2d->loc2d, d);
 			}
 		}
 

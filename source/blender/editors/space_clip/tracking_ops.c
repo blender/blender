@@ -297,6 +297,7 @@ typedef struct {
 	int width, height;
 	float *min, *max, *pos, *offset;
 	float smin[2], smax[2], spos[2], soff[2];
+	float (*smarkers)[2];
 
 	int lock, accurate;
 } SlideMarkerData;
@@ -323,10 +324,16 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 			data->min= track->pat_min;
 			data->max= track->pat_max;
 		} else {
+			int a;
+
 			data->pos= marker->pos;
 			data->offset= track->offset;
-			copy_v2_v2(data->spos, marker->pos);
+
 			copy_v2_v2(data->soff, track->offset);
+
+			data->smarkers= MEM_callocN(sizeof(*data->smarkers)*track->markersnr, "slide marekrs");
+			for(a= 0; a<track->markersnr; a++)
+				copy_v2_v2(data->smarkers[a], track->markers[a].pos);
 		}
 	} else if(area==TRACK_AREA_SEARCH) {
 		data->min= track->search_min;
@@ -500,8 +507,21 @@ static void cancel_mouse_slide(SlideMarkerData *data)
 		if(data->action==SLIDE_ACTION_SIZE) {
 			copy_v2_v2(data->min, data->smin);
 			copy_v2_v2(data->max, data->smax);
+		} else {
+			int a;
+
+			for(a= 0; a<data->track->markersnr; a++)
+				copy_v2_v2(data->track->markers[a].pos, data->smarkers[a]);
+
+			copy_v2_v2(data->offset, data->soff);
 		}
 	}
+}
+
+static void free_slide_data(SlideMarkerData *data)
+{
+	if(data->smarkers) MEM_freeN(data->smarkers);
+	MEM_freeN(data);
 }
 
 static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -568,8 +588,10 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 						add_v2_v2v2(data->min, data->smin, d);
 						add_v2_v2v2(data->max, data->smax, d);
 					} else {
-						add_v2_v2v2(data->pos, data->spos, d);
-						add_v2_v2v2(data->pos, data->spos, d);
+						int a;
+
+						for(a= 0; a<data->track->markersnr; a++)
+							add_v2_v2v2(data->track->markers[a].pos, data->smarkers[a], d);
 
 						sub_v2_v2v2(data->offset, data->soff, d);
 					}
@@ -585,7 +607,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		case LEFTMOUSE:
 			if(event->val==KM_RELEASE) {
-				MEM_freeN(op->customdata);
+				free_slide_data(op->customdata);
 
 				show_cursor(C);
 
@@ -597,7 +619,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case ESCKEY:
 			cancel_mouse_slide(op->customdata);
 
-			MEM_freeN(op->customdata);
+			free_slide_data(op->customdata);
 
 			show_cursor(C);
 
