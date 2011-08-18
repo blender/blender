@@ -68,9 +68,9 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
-	{eModifierType_WeightVGEdit, "WEIGHT_VGEDIT", ICON_MOD_WEIGHTVG, "Edit Vertex Group Weights", ""},
-	{eModifierType_WeightVGMix, "WEIGHT_VGMIX", ICON_MOD_WEIGHTVG, "Mix Two Vertex Groups", ""},
-	{eModifierType_WeightVGProximity, "WEIGHT_VGPROXIMITY", ICON_MOD_WEIGHTVG, "Weight Vertex Group - Poximity", ""},
+	{eModifierType_WeightVGEdit, "WEIGHT_VGEDIT", ICON_MOD_WEIGHTVG, "WeightVG Edit", ""},
+	{eModifierType_WeightVGMix, "WEIGHT_VGMIX", ICON_MOD_WEIGHTVG, "WeightVG Mix", ""},
+	{eModifierType_WeightVGProximity, "WEIGHT_VGPROXIMITY", ICON_MOD_WEIGHTVG, "WeightVG Proximity", ""},
 	{0, "", 0, "Deform", ""},
 	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
 	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
@@ -2554,7 +2554,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "WeightVGEditModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "Edit Vertex Group Weights Modifier",
+	RNA_def_struct_ui_text(srna, "WeightVG Edit Modifier",
 	                       "Edit the weights of vertices in a group.");
 	RNA_def_struct_sdna(srna, "WeightVGEditModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_WEIGHTVG);
@@ -2693,7 +2693,7 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "WeightVGMixModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "Weight Vertex Group Modifier",
+	RNA_def_struct_ui_text(srna, "WeightVG Mix Modifier",
 	                       "Mix the weights of two vertex groups.");
 	RNA_def_struct_sdna(srna, "WeightVGMixModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_WEIGHTVG);
@@ -2758,7 +2758,7 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "WeightVGProximityModifier", "Modifier");
-	RNA_def_struct_ui_text(srna, "Weight Vertex Group - Proximity Modifier",
+	RNA_def_struct_ui_text(srna, "WeightVG Proximity Modifier",
 	                       "Set the weights of vertices in a group from a target object’s "
 	                       "distance.");
 	RNA_def_struct_sdna(srna, "WeightVGProximityModifierData");
