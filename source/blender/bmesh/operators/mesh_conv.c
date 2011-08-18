@@ -703,6 +703,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		BMEditSelection *selected;
 		me->totselect = BLI_countlist(&(bm->selected));
 
+		if(me->mselect) MEM_freeN(me->mselect);
+
 		me->mselect = MEM_callocN(sizeof(MSelect) * me->totselect, "Mesh selection history");
 
 
