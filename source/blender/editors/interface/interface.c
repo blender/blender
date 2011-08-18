@@ -710,6 +710,27 @@ int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
 	return 1;
 }
 
+/* use to check if we need to disable undo, but dont make any changes
+ * returns FALSE if undo needs to be disabled. */
+static int ui_but_is_rna_undo(uiBut *but)
+{
+	if(but->rnapoin.id.data) {
+		/* avoid undo push for buttons who's ID are screen or wm level
+		 * we could disable undo for buttons with no ID too but may have
+		 * unforseen conciquences, so best check for ID's we _know_ are not
+		 * handled by undo - campbell */
+		ID *id= but->rnapoin.id.data;
+		if(ELEM(GS(id->name), ID_SCR, ID_WM)) {
+			return FALSE;
+		}
+		else {
+			return TRUE;
+		}
+	}
+
+	return TRUE;
+}
+
 /* assigns automatic keybindings to menu items for fast access
  * (underline key in menu) */
 static void ui_menu_block_set_keyaccels(uiBlock *block)
@@ -1245,11 +1266,13 @@ int ui_is_but_float(uiBut *but)
 
 int ui_is_but_unit(uiBut *but)
 {
-	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
-	int unit_type= uiButGetUnitType(but);
+	const int unit_type= uiButGetUnitType(but);
+	Scene *scene; /* avoid getting the scene on non unit buttons */
 
 	if(unit_type == PROP_UNIT_NONE)
 		return 0;
+
+	scene= CTX_data_scene((bContext *)but->block->evil_C);
 
 #if 1 // removed so angle buttons get correct snapping
 	if (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION)
@@ -1293,19 +1316,19 @@ double ui_get_but_val(uiBut *but)
 
 		switch(RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
-				if(RNA_property_array_length(&but->rnapoin, prop))
+				if(RNA_property_array_check(prop))
 					value= RNA_property_boolean_get_index(&but->rnapoin, prop, but->rnaindex);
 				else
 					value= RNA_property_boolean_get(&but->rnapoin, prop);
 				break;
 			case PROP_INT:
-				if(RNA_property_array_length(&but->rnapoin, prop))
+				if(RNA_property_array_check(prop))
 					value= RNA_property_int_get_index(&but->rnapoin, prop, but->rnaindex);
 				else
 					value= RNA_property_int_get(&but->rnapoin, prop);
 				break;
 			case PROP_FLOAT:
-				if(RNA_property_array_length(&but->rnapoin, prop))
+				if(RNA_property_array_check(prop))
 					value= RNA_property_float_get_index(&but->rnapoin, prop, but->rnaindex);
 				else
 					value= RNA_property_float_get(&but->rnapoin, prop);
@@ -2506,11 +2529,9 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 
 static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str, int x1, int y1, short x2, short y2, PointerRNA *ptr, PropertyRNA *prop, int index, float min, float max, float a1, float a2,  const char *tip)
 {
+	const PropertyType proptype= RNA_property_type(prop);
 	uiBut *but;
-	PropertyType proptype;
 	int freestr= 0, icon= 0;
-
-	proptype= RNA_property_type(prop);
 
 	/* use rna values if parameters are not specified */
 	if(!str) {
@@ -2636,20 +2657,14 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		UI_DEF_BUT_RNA_DISABLE(but);
 	}
 
-	/* avoid undo push for buttons who's ID are screen or wm level
-	 * we could disable undo for buttons with no ID too but but may have
-	 * unforseen conciquences, so best check for ID's we _know_ are not
-	 * handled by undo - campbell */
-	if (but->flag & UI_BUT_UNDO) {
-		ID *id= ptr->id.data;
-		if(id && ELEM(GS(id->name), ID_SCR, ID_WM)) {
-			but->flag &= ~UI_BUT_UNDO;
-		}
+	if (but->flag & UI_BUT_UNDO && (ui_but_is_rna_undo(but) == FALSE)) {
+		but->flag &= ~UI_BUT_UNDO;
 	}
 
 	/* If this button uses units, calculate the step from this */
-	if(ui_is_but_unit(but))
+	if((proptype == PROP_FLOAT) && ui_is_but_unit(but)) {
 		but->a1= ui_get_but_step_unit(but, but->a1);
+	}
 
 	if(freestr)
 		MEM_freeN((void *)str);
@@ -2693,6 +2708,7 @@ static uiBut *ui_def_but_operator(uiBlock *block, int type, const char *opname, 
 	but= ui_def_but(block, type, -1, str, x1, y1, x2, y2, NULL, 0, 0, 0, 0, tip);
 	but->optype= ot;
 	but->opcontext= opcontext;
+	but->flag &= ~UI_BUT_UNDO; /* no need for ui_but_is_undo(), we never need undo here */
 
 	if(!ot) {
 		but->flag |= UI_BUT_DISABLED;
@@ -2722,6 +2738,7 @@ static uiBut *ui_def_but_operator_text(uiBlock *block, int type, const char *opn
 	but= ui_def_but(block, type, -1, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
 	but->optype= ot;
 	but->opcontext= opcontext;
+	but->flag &= ~UI_BUT_UNDO; /* no need for ui_but_is_undo(), we never need undo here */
 
 	if(!ot) {
 		but->flag |= UI_BUT_DISABLED;
