@@ -156,6 +156,16 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, float x, flo
 	MovieTrackingMarker marker;
 	float pat[2]= {5.5f, 5.5f}, search[2]= {80.5f, 80.5f}; /* TODO: move to default setting? */
 
+	/* XXX: not very nice to have such check here, but it will prevent
+	        complaints about bad default settings for new markers */
+	if(tracking->settings.tracker==TRACKER_SAD) {
+		pat[0]= 8.f;
+		pat[1]= 8.f;
+
+		search[0]= 32.f;
+		search[1]= 32.f;
+	}
+
 	pat[0] /= (float)width;
 	pat[1] /= (float)height;
 
@@ -466,6 +476,7 @@ typedef struct TrackContext {
 	float *patch;			/* keyframed patch */
 
 	/* ** SAD tracker ** */
+	int patsize[2];			/* size of pattern (currently only 16x16 due to libmv side) */
 	unsigned char *pattern;	/* keyframed pattern */
 #endif
 } TrackContext;
@@ -934,6 +945,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			}
 			else if(context->settings.tracker==TRACKER_SAD) {
 				unsigned char *image_new;
+				int sad, error;
 
 				if(track_context->pattern==NULL) {
 					unsigned char *image;
@@ -948,7 +960,11 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					warp[0][2]= pos[0];
 					warp[1][2]= pos[1];
 
-					track_context->pattern= MEM_callocN(sizeof(unsigned char)*16*16, "trackking pattern");
+					/* pattern size is hardcoded to 16x16px in libmv */
+					track_context->patsize[0]= 16;
+					track_context->patsize[1]= 16;
+
+					track_context->pattern= MEM_callocN(sizeof(unsigned char)*track_context->patsize[0]*track_context->patsize[1], "trackking pattern");
 					libmv_SADSamplePattern(image, width, warp, track_context->pattern);
 
 					MEM_freeN(image);
@@ -957,7 +973,10 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				image_new= acquire_search_bytebuf(ibuf_new, track, marker, &width, &height, pos, origin);
 
-				tracked= libmv_SADTrackerTrack(track_context->pattern, image_new, width, width, height, &x2, &y2);
+				sad= libmv_SADTrackerTrack(track_context->pattern, image_new, width, width, height, &x2, &y2);
+				error= sad/(track_context->patsize[0]*track_context->patsize[1]);
+
+				tracked= error<=context->settings.maxsad;
 
 				MEM_freeN(image_new);
 			}

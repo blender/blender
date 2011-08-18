@@ -327,14 +327,15 @@ void libmv_SADSamplePattern(unsigned char *image, int stride,
 int libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *image, int stride,
 			int width, int height, double *x, double *y)
 {
+	int result;
 	float x2, y2;
 
-	libmv::Track(pattern, image, stride, width, height, &x2, &y2);
+	result = libmv::Track(pattern, image, stride, width, height, &x2, &y2);
 
 	*x= x2;
 	*y= y2;
 
-	return 1;
+	return result;
 }
 
 /* ************ Tracks ************ */

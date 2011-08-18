@@ -519,6 +519,10 @@ class CLIP_PT_track_settings(Panel):
         settings = clip.tracking.settings
 
         layout.prop(settings, "tracker")
+
+        if settings.tracker == "SAD":
+            layout.prop(settings, "max_sad")
+
         layout.prop(settings, "speed")
         layout.prop(settings, "frames_limit")
 
