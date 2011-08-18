@@ -45,7 +45,7 @@ class LIB_GEOMETRY_EXPORT Noise
  public:
 
   /*! Builds a Noise object */
-  Noise();
+  Noise(long seed = -1);
   /*! Destructor */
   ~Noise() {}
 

@@ -225,11 +225,11 @@ float Noise::smoothNoise3(Vec3f& vec)
   return lerp(sz, c, d);
 }
 
-Noise::Noise()
+Noise::Noise(long seed)
 {
   int i, j, k;
   
-  seednrand(time(NULL));
+  seednrand((seed < 0) ? time(NULL) : seed);
   for (i = 0 ; i < _Noise_B_ ; i++) 
     {
       p[i] = i;

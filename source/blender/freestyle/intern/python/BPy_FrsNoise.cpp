@@ -28,15 +28,21 @@ int FrsNoise_Init( PyObject *module )
 static char FrsNoise___doc__[] =
 "Class to provide Perlin noise functionalities.\n"
 "\n"
-".. method:: __init__()\n"
+".. method:: __init__(seed = -1)\n"
 "\n"
-"   Builds a Noise object.\n";
+"   Builds a Noise object.  Seed is an optional argument.  The seed value is used\n"
+"   as a seed for random number generation if it is equal to or greater than zero;\n"
+"   otherwise, time is used as a seed.\n"
+"\n"
+"   :arg seed: Seed for random number generation.\n"
+"   :type seed: int\n";
 
 static int FrsNoise___init__(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
-	if(!( PyArg_ParseTuple(args, "") ))
+	long seed = -1;
+	if(!( PyArg_ParseTuple(args, "|l", &seed) ))
 		return -1;
-	self->n = new Noise();
+	self->n = new Noise(seed);
 	return 0;
 }
 
