@@ -485,6 +485,8 @@ typedef struct MovieTrackingContext {
 	MovieClipUser user;
 	MovieClip *clip;
 
+	int first_time;
+
 	TrackContext *track_context;
 	int num_tracks;
 
@@ -507,6 +509,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 	context->backwards= backwards;
 	context->hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "tracking trackHash");
 	context->sync_frame= user->framenr;
+	context->first_time= 1;
 
 	/* count */
 	track= tracking->tracks.first;
@@ -982,6 +985,27 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			}
 
 			if(tracked) {
+				if(context->first_time) {
+					int prevframe;
+
+					if(context->backwards) prevframe= curfra+1;
+					else prevframe= curfra-1;
+
+					/* check if there's no keyframe/tracked markers before tracking marker.
+					    if so -- create disabled marker before currently tracking "segment" */
+					if(!BKE_tracking_has_marker(track, prevframe)) {
+						marker_new= *marker;
+						marker_new.framenr= prevframe;
+
+						marker_new.flag|= MARKER_DISABLED;
+
+						#pragma omp critical
+						{
+							BKE_tracking_insert_marker(track, &marker_new);
+						}
+					}
+				}
+
 				memset(&marker_new, 0, sizeof(marker_new));
 				marker_new.pos[0]= (origin[0]+x2)/ibuf_new->x;
 				marker_new.pos[1]= (origin[1]+y2)/ibuf_new->y;
@@ -1015,6 +1039,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	}
 
 	IMB_freeImBuf(ibuf_new);
+	context->first_time= 0;
 
 	return ok;
 }
