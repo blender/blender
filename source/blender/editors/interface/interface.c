@@ -2636,6 +2636,17 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 		UI_DEF_BUT_RNA_DISABLE(but);
 	}
 
+	/* avoid undo push for buttons who's ID are screen or wm level
+	 * we could disable undo for buttons with no ID too but but may have
+	 * unforseen conciquences, so best check for ID's we _know_ are not
+	 * handled by undo - campbell */
+	if (but->flag & UI_BUT_UNDO) {
+		ID *id= ptr->id.data;
+		if(id && ELEM(GS(id->name), ID_SCR, ID_WM)) {
+			but->flag &= ~UI_BUT_UNDO;
+		}
+	}
+
 	/* If this button uses units, calculate the step from this */
 	if(ui_is_but_unit(but))
 		but->a1= ui_get_but_step_unit(but, but->a1);
