@@ -63,11 +63,10 @@ rna_relative_prop = BoolProperty(
 
 
 def context_path_validate(context, data_path):
-    import sys
     try:
         value = eval("context.%s" % data_path) if data_path else Ellipsis
-    except AttributeError:
-        if "'NoneType'" in str(sys.exc_info()[1]):
+    except AttributeError as e:
+        if str(e).startswith("'NoneType'"):
             # One of the items in the rna path is None, just ignore this
             value = Ellipsis
         else:
@@ -78,13 +77,14 @@ def context_path_validate(context, data_path):
 
 
 def execute_context_assign(self, context):
-    if context_path_validate(context, self.data_path) is Ellipsis:
+    data_path = self.data_path
+    if context_path_validate(context, data_path) is Ellipsis:
         return {'PASS_THROUGH'}
 
     if getattr(self, "relative", False):
-        exec("context.%s+=self.value" % self.data_path)
+        exec("context.%s += self.value" % data_path)
     else:
-        exec("context.%s=self.value" % self.data_path)
+        exec("context.%s = self.value" % data_path)
 
     return {'FINISHED'}
 
@@ -175,11 +175,11 @@ class WM_OT_context_scale_int(Operator):
             )
 
     def execute(self, context):
-        if context_path_validate(context, self.data_path) is Ellipsis:
+        data_path = self.data_path
+        if context_path_validate(context, data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
         value = self.value
-        data_path = self.data_path
 
         if value == 1.0:  # nothing to do
             return {'CANCELLED'}
@@ -194,7 +194,7 @@ class WM_OT_context_scale_int(Operator):
             exec("context.%s = %s(round(context.%s * value), context.%s + %s)" %
                  (data_path, func, data_path, data_path, add))
         else:
-            exec("context.%s *= value" % self.data_path)
+            exec("context.%s *= value" % data_path)
 
         return {'FINISHED'}
 
@@ -262,9 +262,10 @@ class WM_OT_context_set_value(Operator):
             )
 
     def execute(self, context):
-        if context_path_validate(context, self.data_path) is Ellipsis:
+        data_path = self.data_path
+        if context_path_validate(context, data_path) is Ellipsis:
             return {'PASS_THROUGH'}
-        exec("context.%s=%s" % (self.data_path, self.value))
+        exec("context.%s = %s" % (data_path, self.value))
         return {'FINISHED'}
 
 
@@ -277,12 +278,12 @@ class WM_OT_context_toggle(Operator):
     data_path = rna_path_prop
 
     def execute(self, context):
+        data_path = self.data_path
 
-        if context_path_validate(context, self.data_path) is Ellipsis:
+        if context_path_validate(context, data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
-        exec("context.%s=not (context.%s)" %
-            (self.data_path, self.data_path))
+        exec("context.%s = not (context.%s)" % (data_path, data_path))
 
         return {'FINISHED'}
 
@@ -306,13 +307,14 @@ class WM_OT_context_toggle_enum(Operator):
             )
 
     def execute(self, context):
+        data_path = self.data_path
 
-        if context_path_validate(context, self.data_path) is Ellipsis:
+        if context_path_validate(context, data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
-        exec("context.%s = ['%s', '%s'][context.%s!='%s']" %
-             (self.data_path, self.value_1,
-              self.value_2, self.data_path,
+        exec("context.%s = ('%s', '%s')[context.%s != '%s']" %
+             (data_path, self.value_1,
+              self.value_2, data_path,
               self.value_2,
               ))
 
@@ -340,7 +342,7 @@ class WM_OT_context_cycle_int(Operator):
         else:
             value += 1
 
-        exec("context.%s=value" % data_path)
+        exec("context.%s = value" % data_path)
 
         if value != eval("context.%s" % data_path):
             # relies on rna clamping int's out of the range
@@ -349,7 +351,7 @@ class WM_OT_context_cycle_int(Operator):
             else:
                 value = -1 << 31
 
-            exec("context.%s=value" % data_path)
+            exec("context.%s = value" % data_path)
 
         return {'FINISHED'}
 
@@ -364,15 +366,15 @@ class WM_OT_context_cycle_enum(Operator):
     reverse = rna_reverse_prop
 
     def execute(self, context):
-
-        value = context_path_validate(context, self.data_path)
+        data_path = self.data_path
+        value = context_path_validate(context, data_path)
         if value is Ellipsis:
             return {'PASS_THROUGH'}
 
         orig_value = value
 
         # Have to get rna enum values
-        rna_struct_str, rna_prop_str = self.data_path.rsplit('.', 1)
+        rna_struct_str, rna_prop_str = data_path.rsplit('.', 1)
         i = rna_prop_str.find('[')
 
         # just incse we get "context.foo.bar[0]"
@@ -402,7 +404,7 @@ class WM_OT_context_cycle_enum(Operator):
                 advance_enum = enums[orig_index + 1]
 
         # set the new value
-        exec("context.%s=advance_enum" % self.data_path)
+        exec("context.%s = advance_enum" % data_path)
         return {'FINISHED'}
 
 
@@ -429,7 +431,7 @@ class WM_OT_context_cycle_array(Operator):
                 array.append(array.pop(0))
             return array
 
-        exec("context.%s=cycle(context.%s[:])" % (data_path, data_path))
+        exec("context.%s = cycle(context.%s[:])" % (data_path, data_path))
 
         return {'FINISHED'}
 
@@ -500,7 +502,7 @@ class WM_OT_context_set_id(Operator):
 
         if id_iter:
             value_id = getattr(bpy.data, id_iter).get(value)
-            exec("context.%s=value_id" % data_path)
+            exec("context.%s = value_id" % data_path)
 
         return {'FINISHED'}
 
@@ -952,14 +954,15 @@ class WM_OT_properties_edit(Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        data_path = self.data_path
 
-        if not self.data_path:
+        if not data_path:
             self.report({'ERROR'}, "Data path not set")
             return {'CANCELLED'}
 
         self._last_prop = [self.property]
 
-        item = eval("context.%s" % self.data_path)
+        item = eval("context.%s" % data_path)
 
         # setup defaults
         prop_ui = rna_idprop_ui_prop_get(item, self.property, False)  # dont create
@@ -980,7 +983,8 @@ class WM_OT_properties_add(Operator):
     data_path = rna_path
 
     def execute(self, context):
-        item = eval("context.%s" % self.data_path)
+        data_path = self.data_path
+        item = eval("context.%s" % data_path)
 
         def unique_name(names):
             prop = 'prop'
@@ -1009,7 +1013,7 @@ class WM_OT_properties_context_change(Operator):
             )
 
     def execute(self, context):
-        context.space_data.context = (self.context)
+        context.space_data.context = self.context
         return {'FINISHED'}
 
 
@@ -1022,7 +1026,8 @@ class WM_OT_properties_remove(Operator):
     property = rna_property
 
     def execute(self, context):
-        item = eval("context.%s" % self.data_path)
+        data_path = self.data_path
+        item = eval("context.%s" % data_path)
         del item[self.property]
         return {'FINISHED'}
 
