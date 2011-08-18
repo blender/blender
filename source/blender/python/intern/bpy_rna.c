@@ -84,7 +84,9 @@ int pyrna_struct_validity_check(BPy_StructRNA *pysrna)
 {
 	if(pysrna->ptr.type)
 		return 0;
-	PyErr_Format(PyExc_ReferenceError, "StructRNA of type %.200s has been removed", Py_TYPE(pysrna)->tp_name);
+	PyErr_Format(PyExc_ReferenceError,
+	             "StructRNA of type %.200s has been removed",
+	             Py_TYPE(pysrna)->tp_name);
 	return -1;
 }
 
@@ -790,18 +792,23 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
 	const char *name;
 
 	if(!PYRNA_STRUCT_IS_VALID(self)) {
-		return PyUnicode_FromFormat("<bpy_struct, %.200s dead>", Py_TYPE(self)->tp_name);
+		return PyUnicode_FromFormat("<bpy_struct, %.200s dead>",
+		                            Py_TYPE(self)->tp_name);
 	}
 
 	/* print name if available */
 	name= RNA_struct_name_get_alloc(&self->ptr, NULL, FALSE);
 	if(name) {
-		ret= PyUnicode_FromFormat("<bpy_struct, %.200s(\"%.200s\")>", RNA_struct_identifier(self->ptr.type), name);
+		ret= PyUnicode_FromFormat("<bpy_struct, %.200s(\"%.200s\")>",
+		                          RNA_struct_identifier(self->ptr.type),
+		                          name);
 		MEM_freeN((void *)name);
 		return ret;
 	}
 
-	return PyUnicode_FromFormat("<bpy_struct, %.200s at %p>", RNA_struct_identifier(self->ptr.type), self->ptr.data);
+	return PyUnicode_FromFormat("<bpy_struct, %.200s at %p>",
+	                            RNA_struct_identifier(self->ptr.type),
+	                            self->ptr.data);
 }
 
 static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
@@ -811,18 +818,26 @@ static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
 		return pyrna_struct_str(self); /* fallback */
 
 	if(RNA_struct_is_ID(self->ptr.type)) {
-		return PyUnicode_FromFormat("bpy.data.%s[\"%s\"]", BKE_idcode_to_name_plural(GS(id->name)), id->name+2);
+		return PyUnicode_FromFormat("bpy.data.%s[\"%s\"]",
+		                            BKE_idcode_to_name_plural(GS(id->name)),
+		                            id->name+2);
 	}
 	else {
 		PyObject *ret;
 		const char *path;
 		path= RNA_path_from_ID_to_struct(&self->ptr);
 		if(path) {
-			ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"].%s", BKE_idcode_to_name_plural(GS(id->name)), id->name+2, path);
+			ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"].%s",
+			                          BKE_idcode_to_name_plural(GS(id->name)),
+			                          id->name+2,
+			                          path);
 			MEM_freeN((void *)path);
 		}
 		else { /* cant find, print something sane */
-			ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"]...%s", BKE_idcode_to_name_plural(GS(id->name)), id->name+2, RNA_struct_identifier(self->ptr.type));
+			ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"]...%s",
+			                          BKE_idcode_to_name_plural(GS(id->name)),
+			                          id->name+2,
+			                          RNA_struct_identifier(self->ptr.type));
 		}
 
 		return ret;
@@ -870,7 +885,11 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 		name= RNA_struct_name_get_alloc(&ptr, NULL, FALSE);
 
 		if(name) {
-			ret= PyUnicode_FromFormat("<bpy_%.200s, %.200s.%.200s(\"%.200s\")>", type_fmt, RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop), name);
+			ret= PyUnicode_FromFormat("<bpy_%.200s, %.200s.%.200s(\"%.200s\")>",
+			                          type_fmt,
+			                          RNA_struct_identifier(self->ptr.type),
+			                          RNA_property_identifier(self->prop),
+			                          name);
 			MEM_freeN((void *)name);
 			return ret;
 		}
@@ -878,11 +897,16 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 	if(RNA_property_type(self->prop) == PROP_COLLECTION) {
 		PointerRNA r_ptr;
 		if(RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
-			return PyUnicode_FromFormat("<bpy_%.200s, %.200s>", type_fmt, RNA_struct_identifier(r_ptr.type));
+			return PyUnicode_FromFormat("<bpy_%.200s, %.200s>",
+			                            type_fmt,
+			                            RNA_struct_identifier(r_ptr.type));
 		}
 	}
 
-	return PyUnicode_FromFormat("<bpy_%.200s, %.200s.%.200s>", type_fmt, RNA_struct_identifier(self->ptr.type), RNA_property_identifier(self->prop));
+	return PyUnicode_FromFormat("<bpy_%.200s, %.200s.%.200s>",
+	                            type_fmt,
+	                            RNA_struct_identifier(self->ptr.type),
+	                            RNA_property_identifier(self->prop));
 }
 
 static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
@@ -902,7 +926,10 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 		MEM_freeN((void *)path);
 	}
 	else { /* cant find, print something sane */
-		ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"]...%s", BKE_idcode_to_name_plural(GS(id->name)), id->name+2, RNA_property_identifier(self->prop));
+		ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"]...%s",
+		                          BKE_idcode_to_name_plural(GS(id->name)),
+		                          id->name+2,
+		                          RNA_property_identifier(self->prop));
 	}
 
 	return ret;
@@ -911,7 +938,10 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 
 static PyObject *pyrna_func_repr(BPy_FunctionRNA *self)
 {
-	return PyUnicode_FromFormat("<%.200s %.200s.%.200s()>", Py_TYPE(self)->tp_name, RNA_struct_identifier(self->ptr.type), RNA_function_identifier(self->func));
+	return PyUnicode_FromFormat("<%.200s %.200s.%.200s()>",
+	                            Py_TYPE(self)->tp_name,
+	                            RNA_struct_identifier(self->ptr.type),
+	                            RNA_function_identifier(self->func));
 }
 
 
@@ -2995,7 +3025,9 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 	else if (self->ptr.type == &RNA_Context) {
 		bContext *C= self->ptr.data;
 		if(C==NULL) {
-			PyErr_Format(PyExc_AttributeError, "bpy_struct: Context is 'NULL', can't get \"%.200s\" from context", name);
+			PyErr_Format(PyExc_AttributeError,
+			             "bpy_struct: Context is 'NULL', can't get \"%.200s\" from context",
+			             name);
 			ret= NULL;
 		}
 		else {
@@ -3054,7 +3086,9 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 	}
 	else {
 #if 0
-		PyErr_Format(PyExc_AttributeError, "bpy_struct: attribute \"%.200s\" not found", name);
+		PyErr_Format(PyExc_AttributeError,
+		             "bpy_struct: attribute \"%.200s\" not found",
+		             name);
 		ret= NULL;
 #endif
 		/* Include this incase this instance is a subtype of a python class
@@ -3170,7 +3204,9 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
 		const char *attr_str= _PyUnicode_AsString(attr);
 		int ret= RNA_def_property_free_identifier(srna, attr_str);
 		if (ret == -1) {
-			PyErr_Format(PyExc_TypeError, "struct_meta_idprop.detattr(): '%s' not a dynamic property", attr_str);
+			PyErr_Format(PyExc_TypeError,
+			             "struct_meta_idprop.detattr(): '%s' not a dynamic property",
+			             attr_str);
 			return -1;
 		}
 	}
@@ -3208,7 +3244,9 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
 		/* code just raises correct error, context prop's cant be set, unless its apart of the py class */
 		bContext *C= self->ptr.data;
 		if(C==NULL) {
-			PyErr_Format(PyExc_AttributeError, "bpy_struct: Context is 'NULL', can't set \"%.200s\" from context", name);
+			PyErr_Format(PyExc_AttributeError,
+			             "bpy_struct: Context is 'NULL', can't set \"%.200s\" from context",
+			             name);
 			return -1;
 		}
 		else {
@@ -3219,7 +3257,9 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
 			int done= CTX_data_get(C, name, &newptr, &newlb, &newtype);
 
 			if(done==1) {
-				PyErr_Format(PyExc_AttributeError, "bpy_struct: Context property \"%.200s\" is read-only", name);
+				PyErr_Format(PyExc_AttributeError,
+				             "bpy_struct: Context property \"%.200s\" is read-only",
+				             name);
 				BLI_freelistN(&newlb);
 				return -1;
 			}
@@ -3363,7 +3403,9 @@ static int pyrna_prop_collection_setattro(BPy_PropertyRNA *self, PyObject *pynam
 		}
 	}
 
-	PyErr_Format(PyExc_AttributeError, "bpy_prop_collection: attribute \"%.200s\" not found", name);
+	PyErr_Format(PyExc_AttributeError,
+	             "bpy_prop_collection: attribute \"%.200s\" not found",
+	             name);
 	return -1;
 }
 
@@ -4048,11 +4090,14 @@ static PyObject *pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *
 		}
 
 		/* error, invalid type given */
-		PyErr_Format(PyExc_TypeError, "bpy_struct.__new__(type): type '%.200s' is not a subtype of bpy_struct", type->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "bpy_struct.__new__(type): type '%.200s' is not a subtype of bpy_struct",
+		             type->tp_name);
 		return NULL;
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "bpy_struct.__new__(type): expected a single argument");
+		PyErr_Format(PyExc_TypeError,
+		             "bpy_struct.__new__(type): expected a single argument");
 		return NULL;
 	}
 }
@@ -4077,7 +4122,9 @@ static PyObject *pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *UN
 		return (PyObject *)ret;
 	}
 	else {
-		PyErr_Format(PyExc_TypeError, "bpy_prop.__new__(type): type '%.200s' is not a subtype of bpy_prop", type->tp_name);
+		PyErr_Format(PyExc_TypeError,
+		             "bpy_prop.__new__(type): type '%.200s' is not a subtype of bpy_prop",
+		             type->tp_name);
 		return NULL;
 	}
 }
@@ -4139,7 +4186,9 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 			}
 			break;
 		default:
-			PyErr_Format(PyExc_TypeError, "RNA Error: unknown array type \"%d\" (pyrna_param_to_py)", type);
+			PyErr_Format(PyExc_TypeError,
+			             "RNA Error: unknown array type \"%d\" (pyrna_param_to_py)",
+			             type);
 			ret= NULL;
 			break;
 		}
@@ -4237,7 +4286,9 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 			break;
 		}
 		default:
-			PyErr_Format(PyExc_TypeError, "RNA Error: unknown type \"%d\" (pyrna_param_to_py)", type);
+			PyErr_Format(PyExc_TypeError,
+			             "RNA Error: unknown type \"%d\" (pyrna_param_to_py)",
+			             type);
 			ret= NULL;
 			break;
 		}

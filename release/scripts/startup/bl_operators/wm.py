@@ -20,8 +20,12 @@
 
 import bpy
 from bpy.types import Menu, Operator
-from bpy.props import StringProperty, BoolProperty, IntProperty, \
-                      FloatProperty, EnumProperty
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       IntProperty,
+                       FloatProperty,
+                       EnumProperty,
+                       )
 
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
@@ -39,15 +43,23 @@ class MESH_OT_delete_edgeloop(Operator):
 
         return {'CANCELLED'}
 
-rna_path_prop = StringProperty(name="Context Attributes",
-        description="rna context string", maxlen=1024, default="")
+rna_path_prop = StringProperty(
+        name="Context Attributes",
+        description="rna context string",
+        maxlen=1024,
+        )
 
-rna_reverse_prop = BoolProperty(name="Reverse",
-        description="Cycle backwards", default=False)
+rna_reverse_prop = BoolProperty(
+        name="Reverse",
+        description="Cycle backwards",
+        default=False,
+        )
 
-rna_relative_prop = BoolProperty(name="Relative",
+rna_relative_prop = BoolProperty(
+        name="Relative",
         description="Apply relative to the current value (delta)",
-        default=False)
+        default=False,
+        )
 
 
 def context_path_validate(context, data_path):
@@ -82,15 +94,21 @@ class BRUSH_OT_active_index_set(Operator):
     bl_idname = "brush.active_index_set"
     bl_label = "Set Brush Number"
 
-    mode = StringProperty(name="mode",
-            description="Paint mode to set brush for", maxlen=1024)
-    index = IntProperty(name="number",
-            description="Brush number")
+    mode = StringProperty(
+            name="mode",
+            description="Paint mode to set brush for",
+            maxlen=1024,
+            )
+    index = IntProperty(
+            name="number",
+            description="Brush number",
+            )
 
     _attr_dict = {"sculpt": "use_paint_sculpt",
                   "vertex_paint": "use_paint_vertex",
                   "weight_paint": "use_paint_weight",
-                  "image_paint": "use_paint_image"}
+                  "image_paint": "use_paint_image",
+                  }
 
     def execute(self, context):
         attr = self._attr_dict.get(self.mode)
@@ -112,8 +130,11 @@ class WM_OT_context_set_boolean(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value = BoolProperty(name="Value",
-            description="Assignment value", default=True)
+    value = BoolProperty(
+            name="Value",
+            description="Assignment value",
+            default=True,
+            )
 
     execute = execute_context_assign
 
@@ -125,7 +146,11 @@ class WM_OT_context_set_int(Operator):  # same as enum
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value = IntProperty(name="Value", description="Assign value", default=0)
+    value = IntProperty(
+            name="Value",
+            description="Assign value",
+            default=0,
+            )
     relative = rna_relative_prop
 
     execute = execute_context_assign
@@ -138,10 +163,16 @@ class WM_OT_context_scale_int(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value = FloatProperty(name="Value", description="Assign value", default=1.0)
-    always_step = BoolProperty(name="Always Step",
-        description="Always adjust the value by a minimum of 1 when 'value' is not 1.0.",
-        default=True)
+    value = FloatProperty(
+            name="Value",
+            description="Assign value",
+            default=1.0,
+            )
+    always_step = BoolProperty(
+            name="Always Step",
+            description="Always adjust the value by a minimum of 1 when 'value' is not 1.0.",
+            default=True,
+            )
 
     def execute(self, context):
         if context_path_validate(context, self.data_path) is Ellipsis:
@@ -160,7 +191,8 @@ class WM_OT_context_scale_int(Operator):
             else:
                 add = "-1"
                 func = "min"
-            exec("context.%s = %s(round(context.%s * value), context.%s + %s)" % (data_path, func, data_path, data_path, add))
+            exec("context.%s = %s(round(context.%s * value), context.%s + %s)" %
+                 (data_path, func, data_path, data_path, add))
         else:
             exec("context.%s *= value" % self.data_path)
 
@@ -174,8 +206,11 @@ class WM_OT_context_set_float(Operator):  # same as enum
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value = FloatProperty(name="Value",
-            description="Assignment value", default=0.0)
+    value = FloatProperty(
+            name="Value",
+            description="Assignment value",
+            default=0.0,
+            )
     relative = rna_relative_prop
 
     execute = execute_context_assign
@@ -188,8 +223,11 @@ class WM_OT_context_set_string(Operator):  # same as enum
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value = StringProperty(name="Value",
-            description="Assign value", maxlen=1024, default="")
+    value = StringProperty(
+            name="Value",
+            description="Assign value",
+            maxlen=1024,
+            )
 
     execute = execute_context_assign
 
@@ -201,9 +239,11 @@ class WM_OT_context_set_enum(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value = StringProperty(name="Value",
+    value = StringProperty(
+            name="Value",
             description="Assignment value (as a string)",
-            maxlen=1024, default="")
+            maxlen=1024,
+            )
 
     execute = execute_context_assign
 
@@ -215,9 +255,11 @@ class WM_OT_context_set_value(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value = StringProperty(name="Value",
+    value = StringProperty(
+            name="Value",
             description="Assignment value (as a string)",
-            maxlen=1024, default="")
+            maxlen=1024,
+            )
 
     def execute(self, context):
         if context_path_validate(context, self.data_path) is Ellipsis:
@@ -252,21 +294,27 @@ class WM_OT_context_toggle_enum(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value_1 = StringProperty(name="Value", \
-                description="Toggle enum", maxlen=1024, default="")
-
-    value_2 = StringProperty(name="Value", \
-                description="Toggle enum", maxlen=1024, default="")
+    value_1 = StringProperty(
+            name="Value",
+            description="Toggle enum",
+            maxlen=1024,
+            )
+    value_2 = StringProperty(
+            name="Value",
+            description="Toggle enum",
+            maxlen=1024,
+            )
 
     def execute(self, context):
 
         if context_path_validate(context, self.data_path) is Ellipsis:
             return {'PASS_THROUGH'}
 
-        exec("context.%s = ['%s', '%s'][context.%s!='%s']" % \
-            (self.data_path, self.value_1,\
-             self.value_2, self.data_path,
-             self.value_2))
+        exec("context.%s = ['%s', '%s'][context.%s!='%s']" %
+             (self.data_path, self.value_1,
+              self.value_2, self.data_path,
+              self.value_2,
+              ))
 
         return {'FINISHED'}
 
@@ -426,8 +474,11 @@ class WM_OT_context_set_id(Operator):
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
-    value = StringProperty(name="Value",
-            description="Assign value", maxlen=1024, default="")
+    value = StringProperty(
+            name="Value",
+            description="Assign value",
+            maxlen=1024,
+            )
 
     def execute(self, context):
         value = self.value
@@ -454,11 +505,18 @@ class WM_OT_context_set_id(Operator):
         return {'FINISHED'}
 
 
-doc_id = StringProperty(name="Doc ID",
-        description="", maxlen=1024, default="", options={'HIDDEN'})
+doc_id = StringProperty(
+        name="Doc ID",
+        description="",
+        maxlen=1024,
+        options={'HIDDEN'},
+        )
 
-doc_new = StringProperty(name="Edit Description",
-        description="", maxlen=1024, default="")
+doc_new = StringProperty(
+        name="Edit Description",
+        description="",
+        maxlen=1024,
+        )
 
 data_path_iter = StringProperty(
         description="The data path relative to the context, must point to an iterable.")
@@ -476,12 +534,13 @@ class WM_OT_context_collection_boolean_set(Operator):
     data_path_iter = data_path_iter
     data_path_item = data_path_item
 
-    type = EnumProperty(items=(
-            ('TOGGLE', "Toggle", ""),
-            ('ENABLE', "Enable", ""),
-            ('DISABLE', "Disable", ""),
-            ),
-        name="Type")
+    type = EnumProperty(
+            name="Type",
+            items=(('TOGGLE', "Toggle", ""),
+                   ('ENABLE', "Enable", ""),
+                   ('DISABLE', "Disable", ""),
+                   ),
+            )
 
     def execute(self, context):
         data_path_iter = self.data_path_iter
@@ -530,8 +589,14 @@ class WM_OT_context_modal_mouse(Operator):
     data_path_iter = data_path_iter
     data_path_item = data_path_item
 
-    input_scale = FloatProperty(default=0.01, description="Scale the mouse movement by this value before applying the delta")
-    invert = BoolProperty(default=False, description="Invert the mouse input")
+    input_scale = FloatProperty(
+            description="Scale the mouse movement by this value before applying the delta",
+            default=0.01,
+            )
+    invert = BoolProperty(
+            description="Invert the mouse input",
+            default=False,
+            )
     initial_x = IntProperty(options={'HIDDEN'})
 
     def _values_store(self, context):
@@ -613,7 +678,10 @@ class WM_OT_url_open(Operator):
     bl_idname = "wm.url_open"
     bl_label = ""
 
-    url = StringProperty(name="URL", description="URL to open")
+    url = StringProperty(
+            name="URL",
+            description="URL to open",
+            )
 
     def execute(self, context):
         import webbrowser
@@ -627,7 +695,11 @@ class WM_OT_path_open(Operator):
     bl_idname = "wm.path_open"
     bl_label = ""
 
-    filepath = StringProperty(name="File Path", maxlen=1024, subtype='FILE_PATH')
+    filepath = StringProperty(
+            name="File Path",
+            maxlen=1024,
+            subtype='FILE_PATH',
+            )
 
     def execute(self, context):
         import sys
@@ -662,9 +734,11 @@ class WM_OT_doc_view(Operator):
 
     doc_id = doc_id
     if bpy.app.version_cycle == "release":
-        _prefix = "http://www.blender.org/documentation/blender_python_api_%s%s_release" % ("_".join(str(v) for v in bpy.app.version[:2]), bpy.app.version_char)
+        _prefix = ("http://www.blender.org/documentation/blender_python_api_%s%s_release" %
+                   ("_".join(str(v) for v in bpy.app.version[:2]), bpy.app.version_char))
     else:
-        _prefix = "http://www.blender.org/documentation/blender_python_api_%s" % "_".join(str(v) for v in bpy.app.version)
+        _prefix = ("http://www.blender.org/documentation/blender_python_api_%s" %
+                   "_".join(str(v) for v in bpy.app.version))
 
     def _nested_class_string(self, class_string):
         ls = []
@@ -682,8 +756,8 @@ class WM_OT_doc_view(Operator):
             class_name, class_prop = id_split
 
             if hasattr(bpy.types, class_name.upper() + '_OT_' + class_prop):
-                url = '%s/bpy.ops.%s.html#bpy.ops.%s.%s' % \
-                        (self._prefix, class_name, class_name, class_prop)
+                url = ("%s/bpy.ops.%s.html#bpy.ops.%s.%s" %
+                       (self._prefix, class_name, class_name, class_prop))
             else:
 
                 # detect if this is a inherited member and use that name instead
@@ -696,8 +770,8 @@ class WM_OT_doc_view(Operator):
 
                 # It so happens that epydoc nests these, not sphinx
                 # class_name_full = self._nested_class_string(class_name)
-                url = '%s/bpy.types.%s.html#bpy.types.%s.%s' % \
-                        (self._prefix, class_name, class_name, class_prop)
+                url = ("%s/bpy.types.%s.html#bpy.types.%s.%s" %
+                       (self._prefix, class_name, class_name, class_prop))
 
         else:
             return {'PASS_THROUGH'}
@@ -780,17 +854,36 @@ class WM_OT_doc_edit(Operator):
         return wm.invoke_props_dialog(self, width=600)
 
 
-rna_path = StringProperty(name="Property Edit",
-    description="Property data_path edit", maxlen=1024, default="", options={'HIDDEN'})
+rna_path = StringProperty(
+        name="Property Edit",
+        description="Property data_path edit",
+        maxlen=1024,
+        options={'HIDDEN'},
+        )
 
-rna_value = StringProperty(name="Property Value",
-    description="Property value edit", maxlen=1024, default="")
+rna_value = StringProperty(
+        name="Property Value",
+        description="Property value edit",
+        maxlen=1024,
+        )
 
-rna_property = StringProperty(name="Property Name",
-    description="Property name edit", maxlen=1024, default="")
+rna_property = StringProperty(
+        name="Property Name",
+        description="Property name edit",
+        maxlen=1024,
+        )
 
-rna_min = FloatProperty(name="Min", default=0.0, precision=3)
-rna_max = FloatProperty(name="Max", default=1.0, precision=3)
+rna_min = FloatProperty(
+        name="Min",
+        default=0.0,
+        precision=3,
+        )
+
+rna_max = FloatProperty(
+        name="Max",
+        default=1.0,
+        precision=3,
+        )
 
 
 class WM_OT_properties_edit(Operator):
@@ -804,7 +897,9 @@ class WM_OT_properties_edit(Operator):
     value = rna_value
     min = rna_min
     max = rna_max
-    description = StringProperty(name="Tip", default="")
+    description = StringProperty(
+            name="Tip",
+            )
 
     def execute(self, context):
         data_path = self.data_path
@@ -908,7 +1003,10 @@ class WM_OT_properties_context_change(Operator):
     bl_idname = "wm.properties_context_change"
     bl_label = ""
 
-    context = StringProperty(name="Context", maxlen=32)
+    context = StringProperty(
+            name="Context",
+            maxlen=32,
+            )
 
     def execute(self, context):
         context.space_data.context = (self.context)
@@ -933,7 +1031,10 @@ class WM_OT_keyconfig_activate(Operator):
     bl_idname = "wm.keyconfig_activate"
     bl_label = "Activate Keyconfig"
 
-    filepath = StringProperty(name="File Path", maxlen=1024)
+    filepath = StringProperty(
+            name="File Path",
+            maxlen=1024,
+            )
 
     def execute(self, context):
         bpy.utils.keyconfig_set(self.filepath)
@@ -961,7 +1062,10 @@ class WM_OT_appconfig_activate(Operator):
     bl_idname = "wm.appconfig_activate"
     bl_label = "Activate Application Configuration"
 
-    filepath = StringProperty(name="File Path", maxlen=1024)
+    filepath = StringProperty(
+            name="File Path",
+            maxlen=1024,
+            )
 
     def execute(self, context):
         import os
