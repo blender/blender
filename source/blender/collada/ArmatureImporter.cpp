@@ -83,13 +83,10 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 				 float parent_mat[][4], Object * ob_arm)
 {
 	float mat[4][4];
-   float obmat[4][4];
+    float obmat[4][4];
 
 	// object-space
 	get_node_mat(obmat, node, NULL, NULL);
-
-	// get world-space
-	
 
 	EditBone *bone = ED_armature_edit_bone_add((bArmature*)ob_arm->data, (char*)bc_get_joint_name(node));
 	totbone++;
@@ -151,7 +148,6 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 
 	// in second case it's not a leaf bone, but we handle it the same way
 	if (!children.getCount() || children.getCount() > 1) {
-
 		add_leaf_bone(mat, bone, node);
 	}
 
@@ -659,7 +655,7 @@ void ArmatureImporter::make_armatures(bContext *C)
 	}
 	
 	//for bones without skins
-	create_armature_bones();
+	//create_armature_bones();
 }
 
 #if 0

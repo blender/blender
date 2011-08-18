@@ -177,7 +177,7 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 	node.setNodeName(node_name);
 	node.setNodeSid(node_sid);
 
-	if ( bone->childbase.first == NULL )
+	if ( bone->childbase.first == NULL || BLI_countlist(&(bone->childbase))>=2)
 		add_blender_leaf_bone( bone, ob_arm , node );
 	else{
 	node.start();
@@ -202,6 +202,9 @@ void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADA
 	node.addExtraTechniqueParameter("blender", "tip_y", bone->tail[1] );
 	node.addExtraTechniqueParameter("blender", "tip_z", bone->tail[2] );
 	
+	for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
+		add_bone_node(child, ob_arm);
+	}
 	node.end();
 	
 }
