@@ -28,15 +28,12 @@
 
 namespace libmv {
 
-typedef unsigned int uint;
-
 struct vec2 {
   float x,y;
   inline vec2(float x, float y):x(x),y(y){}
 };
-static vec2 operator*(mat3 m, vec2 v) {
-  float z = v.x*m[6]+v.y*m[7]+m[8];
-  return vec2((v.x*m[0]+v.y*m[1]+m[2])/z,(v.x*m[3]+v.y*m[4]+m[5])/z);
+inline vec2 operator*(mat32 m, vec2 v) {
+  return vec2(v.x*m(0,0)+v.y*m(0,1)+m(0,2),v.x*m(1,0)+v.y*m(1,1)+m(1,2));
 }
 
 //! fixed point bilinear sample with precision k
@@ -48,95 +45,109 @@ template <int k> inline int sample(const ubyte* image,int stride, int x, int y, 
 
 #ifdef __SSE__
 #include <xmmintrin.h>
-#endif
-void SamplePattern(ubyte* image, int stride, mat3 warp, ubyte* pattern) {
-  const int k = 256;
-  for (int i = 0; i < 16; i++) for (int j = 0; j < 16; j++) {
-    vec2 p = warp*vec2(j-8,i-8);
-#ifdef __SSE__
-    //MSVC apparently doesn't support any float rounding.
-    int fx = _mm_cvtss_si32(_mm_set_ss(p.x*k));
-    int fy = _mm_cvtss_si32(_mm_set_ss(p.y*k));
+int lround(float x) { return _mm_cvtss_si32(_mm_set_ss(x)); }
 #elif defined(_MSC_VER)
-    int fx = int(p.x*k+0.5), fy = int(p.y*k+0.5);
-#else
-    int fx = lround(p.x*k), fy = lround(p.y*k);
+int lround(float x) { return x+0.5; }
 #endif
+
+//TODO(MatthiasF): SSE optimization
+void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int size) {
+  const int k = 256;
+  for (int i = 0; i < size; i++) for (int j = 0; j < size; j++) {
+    vec2 p = warp*vec2(j-size/2,i-size/2);
+    int fx = lround(p.x*k), fy = lround(p.y*k);
     int ix = fx/k, iy = fy/k;
     int u = fx%k, v = fy%k;
-    pattern[i*16+j] = sample<k>(image,stride,ix,iy,u,v);
+    pattern[i*size+j] = sample<k>(image,stride,ix,iy,u,v);
   }
 }
 
 #ifdef __SSE2__
 #include <emmintrin.h>
-static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
+static uint SAD(const ubyte* pattern, const ubyte* image, int stride, int size) {
   __m128i a = _mm_setzero_si128();
-  for(int i = 0; i < 16; i++) {
-    a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(pattern+i*16)),
-                                        _mm_loadu_si128((__m128i*)(image+i*stride))));
+  for(int i = 0; i < size; i++) {
+    for(int j = 0; j < size/16; j++) {
+      a = _mm_adds_epu16(a, _mm_sad_epu8( _mm_loadu_si128((__m128i*)(pattern+i*size+j*16)),
+                                          _mm_loadu_si128((__m128i*)(image+i*stride+j*16))));
+    }
   }
   return _mm_extract_epi16(a,0) + _mm_extract_epi16(a,4);
 }
 #else
-static uint SAD(const ubyte* pattern, const ubyte* image, int stride) {
+static uint SAD(const ubyte* pattern, const ubyte* image, int stride, int size) {
   uint sad=0;
-  for(int i = 0; i < 16; i++) {
-    for(int j = 0; j < 16; j++) {
-      sad += abs((int)pattern[i*16+j] - image[i*stride+j]);
+  for(int i = 0; i < size; i++) {
+    for(int j = 0; j < size; j++) {
+      sad += abs((int)pattern[i*size+j] - image[i*stride+j]);
     }
   }
   return sad;
 }
 #endif
 
-//float sq( float x ) { return x*x; }
-int Track(ubyte* pattern, ubyte* image, int stride, int w, int h, float* px, float* py) {
-  int ix = *px-8, iy = *py-8;
+float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, mat32* warp) {
+  mat32 m=*warp;
   uint min=-1;
-  // integer pixel
-  for(int y = 0; y < h-16; y++) {
-    for(int x = 0; x < w-16; x++) {
-      uint d = SAD(pattern,&image[y*stride+x],stride); //image L1 distance
-      //d += sq(x-w/2-8)+sq(y-h/2-8); //spatial L2 distance (need feature prediction first)
-      if(d < min) {
-        min = d;
+
+  // exhaustive search integer pixel translation
+  int ix = m(0,2), iy = m(1,2);
+  for(int y = size/2; y < h-size/2; y++) {
+    for(int x = size/2; x < w-size/2; x++) {
+      m(0,2) = x, m(1,2) = y;
+      ubyte match[size*size];
+      SamplePattern(image,stride,m,match,size);
+      uint sad = SAD(reference,match,size,size);
+      if(sad < min) {
+        min = sad;
         ix = x, iy = y;
       }
     }
   }
+  m(0,2) = ix, m(1,2) = iy;
 
-  const int kPrecision = 4; //subpixel precision in bits
-  const int kScale = 1<<kPrecision;
-  int fx=0,fy=0;
-  for(int k = 1; k <= kPrecision; k++) {
-    fx *= 2, fy *= 2;
-    int nx = fx, ny = fy;
-    int p = kPrecision-k;
-    for(int y = -1; y <= 1; y++) {
-      for(int x = -1; x <= 1; x++) {
-        uint sad=0;
-        int sx = ix, sy = iy;
-        int u = (fx+x)<<p, v = (fy+y)<<p;
-        if( u < 0 ) u+=kScale, sx--;
-        if( v < 0 ) v+=kScale, sy--;
-        for(int i = 0; i < 16; i++) {
-          for(int j = 0; j < 16; j++) {
-            sad += abs((int)pattern[i*16+j] - sample<kScale>(image,stride,sx+j,sy+i,u,v));
+  // 6D coordinate descent to find affine transform
+  float step = 0.5;
+  for(int p = 0; p < 4; p++) { //foreach precision level
+    step /= 2;
+    for(int i = 0; i < 2; i++) { // iterate twice per precision level
+      for(int d = 0; d < 6; d++) { // foreach dimension
+        for(float x = -step*2; x <= step*2; x+=step*2) { //test small steps
+          mat32 t = m;
+          t.data[d] += x;
+          if( d<4 && (t.data[d] > 2 || t.data[d] < -2) ) continue; // avoid big distortion
+          ubyte match[size*size];
+          SamplePattern(image,stride,t,match,size);
+          uint sad = SAD(reference,match,size,size);
+          if(sad < min) {
+            min = sad;
+            m = t;
           }
-        }
-        if(sad < min) {
-          min = sad;
-          nx = fx + x, ny = fy + y;
         }
       }
     }
-    fx = nx, fy = ny;
   }
+  *warp = m;
 
-  *px = float((ix*kScale)+fx)/kScale+8;
-  *py = float((iy*kScale)+fy)/kScale+8;
-  return min;
+  // Compute Pearson product-moment correlation coefficient
+  uint sX=0,sY=0,sXX=0,sYY=0,sXY=0;
+  ubyte match[size*size];
+  SamplePattern(image,stride,m,match,size);
+  SAD(reference,match,size,size);
+  for(int i = 0; i < size; i++) {
+    for(int j = 0; j < size; j++) {
+      int x = reference[i*size+j];
+      int y = match[i*size+j];
+      sX += x;
+      sY += y;
+      sXX += x*x;
+      sYY += y*y;
+      sXY += x*y;
+    }
+  }
+  const int N = size*size;
+  sX /= N, sY /= N, sXX /= N, sYY /= N, sXY /= N;
+  return (sXY-sX*sY)/sqrt((sXX-sX*sX)*(sYY-sY*sY));
 }
 
 }  // namespace libmv

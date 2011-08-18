@@ -315,25 +315,28 @@ void libmv_regionTrackerDestroy(libmv_RegionTracker *libmv_tracker)
 /* ************ Tracks ************ */
 
 void libmv_SADSamplePattern(unsigned char *image, int stride,
-			float warp[3][3], unsigned char *pattern)
+			float warp[3][2], unsigned char *pattern)
 {
-	float mat3[9];
+	libmv::mat32 mat32;
 
-	memcpy(mat3, warp, sizeof(float)*9);
+	memcpy(mat32.data, warp, sizeof(float)*3*2);
 
-	libmv::SamplePattern(image, stride, mat3, pattern);
+	libmv::SamplePattern(image, stride, mat32, pattern, 16);
 }
 
 int libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *image, int stride,
 			int width, int height, double *x, double *y)
 {
 	int result;
-	float x2, y2;
+	libmv::mat32 mat32;
 
-	result = libmv::Track(pattern, image, stride, width, height, &x2, &y2);
+	mat32(0, 2)= *x;
+	mat32(1, 2)= *y;
 
-	*x= x2;
-	*y= y2;
+	result = libmv::Track(pattern, 16, image, stride, width, height, &mat32);
+
+	*x= mat32(0, 2);
+	*y= mat32(1, 2);
 
 	return result;
 }

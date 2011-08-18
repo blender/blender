@@ -56,7 +56,7 @@ void Detect(ubyte* image, int stride, int width, int height, Feature* detected, 
   unsigned short histogram[256];
   memset(histogram,0,sizeof(histogram));
   ubyte* scores = new ubyte[width*height];
-  memset(scores,0,sizeof(scores));
+  memset(scores,0,width*height);
   const int r = 1; //radius for self similarity comparison
   for(int y=distance; y<height-distance; y++) {
     for(int x=distance; x<width-distance; x++) {
@@ -104,7 +104,7 @@ void Detect(ubyte* image, int stride, int width, int height, Feature* detected, 
     }
   }
   *count = i;
-  free(scores);
+  delete[] scores;
 }
 
 }

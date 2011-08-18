@@ -1,3 +1,39 @@
+commit 75520f4bc4ccbb272a1b4149d3b8d05a90f7f896
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 23:14:17 2011 +0200
+
+    Fix affine iteration.
+
+commit 4e8e0aa6018e3eb2fbebdad7f1cbd6c909d26e79
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 23:03:26 2011 +0200
+
+    Handle rotations.
+
+commit 3ce41cf3c1b5c136a61d8f4c63ccae3cafbdb8da
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 22:24:47 2011 +0200
+
+    Slow brute-force affine diamond search implementation.
+
+commit 1c4acd03e030c1c50dc6fc36c419c72ea69a0713
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 20:51:43 2011 +0200
+
+    Fix detect.cc.
+
+commit ec18cc5ea9ae2e641075a847e82d0aacb8415ad8
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 17:45:37 2011 +0200
+
+    Compute and return Pearson product-moment correlation coefficient between reference and matched pattern.
+
+commit 21d4245c63a01bfc736192d55baf10983e7c9ec7
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Thu Aug 18 16:18:44 2011 +0200
+
+    UI and API support for affine tracking.
+
 commit a4876d8c40dcde615b44009c38c49e9a1b1d4698
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Wed Aug 17 20:26:01 2011 +0200
@@ -406,11 +442,3 @@ Date:   Tue Jul 19 14:54:43 2011 +0200
     Add optimized version of KLT tracker.
     
     FIXME: It currently doesn't work.
-
-commit 07a27f214c98e92b876c0878d05397f2031b35cd
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sun Jul 17 23:01:58 2011 +0200
-
-    Add some #if (QT_VERSION < QT_VERSION_CHECK(4, 7, 0)) and #define constBits bits macros to support Qt < 4.7 which is still used on older systems.
-    
-    Build using Qt < 4.7 will see increased memory usage and unecessary copying.

@@ -952,16 +952,17 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				if(track_context->pattern==NULL) {
 					unsigned char *image;
-					float warp[3][3];
+					float warp[3][2]={0};
 
 					/* calculate pattern for keyframed position */
 
 					ibuf= acquire_keyframed_ibuf(context, track, marker);
 					image= acquire_search_bytebuf(ibuf, track, marker, &width, &height, pos, origin);
 
-					unit_m3(warp);
-					warp[0][2]= pos[0];
-					warp[1][2]= pos[1];
+					warp[0][0]= 1;
+					warp[1][1]= 1;
+					warp[2][0]= pos[0];
+					warp[2][1]= pos[1];
 
 					/* pattern size is hardcoded to 16x16px in libmv */
 					track_context->patsize[0]= 16;
@@ -975,6 +976,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				}
 
 				image_new= acquire_search_bytebuf(ibuf_new, track, marker, &width, &height, pos, origin);
+
+				x2= pos[0];
+				y2= pos[1];
 
 				sad= libmv_SADTrackerTrack(track_context->pattern, image_new, width, width, height, &x2, &y2);
 				error= sad/(track_context->patsize[0]*track_context->patsize[1]);
