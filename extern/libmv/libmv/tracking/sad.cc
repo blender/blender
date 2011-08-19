@@ -28,6 +28,20 @@
 
 namespace libmv {
 
+void LaplaceFilter(ubyte* src, ubyte* dst, int width, int height, int strength) {
+  for(int y=1; y<height-1; y++) for(int x=1; x<width-1; x++) {
+    const ubyte* s = &src[y*width+x];
+    int l = 128 +
+        s[-width-1] + s[-width] + s[-width+1] +
+        s[1]        - 8*s[0]    + s[1]        +
+        s[ width-1] + s[ width] + s[ width+1] ;
+    int d = ((256-strength)*s[0] + strength*l) / 256;
+    if(d < 0) d=0;
+    if(d > 255) d=255;
+    dst[y*width+x] = d;
+  }
+}
+
 struct vec2 {
   float x,y;
   inline vec2(float x, float y):x(x),y(y){}
@@ -86,7 +100,8 @@ static uint SAD(const ubyte* pattern, const ubyte* image, int stride, int size) 
 }
 #endif
 
-float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, mat32* warp) {
+float sq(float x) { return x*x; }
+float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride, int w, int h, mat32* warp, float areaPenalty, float conditionPenalty) {
   mat32 m=*warp;
   uint min=-1;
 
@@ -95,9 +110,8 @@ float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, 
   for(int y = size/2; y < h-size/2; y++) {
     for(int x = size/2; x < w-size/2; x++) {
       m(0,2) = x, m(1,2) = y;
-      ubyte match[size*size];
-      SamplePattern(image,stride,m,match,size);
-      uint sad = SAD(reference,match,size,size);
+      uint sad = SAD(warped,&image[(y-size/2)*stride+(x-size/2)],stride,size);
+      // TODO: using chroma could help disambiguate some cases
       if(sad < min) {
         min = sad;
         ix = x, iy = y;
@@ -105,20 +119,26 @@ float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, 
     }
   }
   m(0,2) = ix, m(1,2) = iy;
+  min=-1; //reset score since direct warped search match too well (but the wrong pattern).
 
   // 6D coordinate descent to find affine transform
   float step = 0.5;
-  for(int p = 0; p < 4; p++) { //foreach precision level
-    step /= 2;
+  for(int p = 0; p < 8; p++) { //foreach precision level
     for(int i = 0; i < 2; i++) { // iterate twice per precision level
-      for(int d = 0; d < 6; d++) { // foreach dimension
-        for(float x = -step*2; x <= step*2; x+=step*2) { //test small steps
+      //TODO: other sweep pattern might converge better
+      for(int d=0; d < 6; d++) { // iterate dimension sequentially (cyclic descent)
+        for(float x = -step; x <= step; x+=step) { //solve subproblem (evaluate only along one coordinate)
           mat32 t = m;
           t.data[d] += x;
-          if( d<4 && (t.data[d] > 2 || t.data[d] < -2) ) continue; // avoid big distortion
           ubyte match[size*size];
+          //TODO: better performance would also allow a more exhaustive search
           SamplePattern(image,stride,t,match,size);
           uint sad = SAD(reference,match,size,size);
+          // regularization: keep constant area and good condition
+          float area = t(0,0)*t(1,1)-t(0,1)*t(1,0);
+          float x = sq(t(0,0))+sq(t(0,1)), y = sq(t(1,0))+sq(t(1,1));
+          float condition = x>y ? x/y : y/x;
+          sad += size*size*( areaPenalty*sq(area-1) + conditionPenalty*sq(condition-1) );
           if(sad < min) {
             min = sad;
             m = t;
@@ -126,6 +146,7 @@ float Track(ubyte* reference, int size, ubyte* image, int stride, int w, int h, 
         }
       }
     }
+    step /= 2;
   }
   *warp = m;
 

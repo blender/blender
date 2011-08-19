@@ -32,6 +32,16 @@ namespace libmv {
 typedef unsigned char ubyte;
 typedef unsigned int uint;
 
+/*!
+    Convolve \a src into \a dst with the discrete laplacian operator.
+
+    \a src and \a dst should be \a width x \a height images.
+    \a strength is an interpolation coefficient (0-256) between original image and the laplacian.
+
+    \note Make sure the search region is filtered with the same strength as the pattern.
+*/
+void LaplaceFilter(ubyte* src, ubyte* dst, int width, int height, int strength);
+
 /// Affine transformation matrix in column major order.
 struct mat32 {
   float data[3*2];
@@ -44,7 +54,6 @@ struct mat32 {
   inline operator bool() const { for (int i=0; i<3*2; i++) if(data[i]!=0) return true; return false; }
 #endif
 };
-
 
 /*!
     Sample \a pattern from \a image.
@@ -63,12 +72,21 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int siz
     A similar method is used for motion estimation in video encoders.
 
     \a reference is the pattern to track.
-    the \a size of the pattern should be aligned to 16.
+    \a warped is a warped version of reference for fast unsampled integer search.
+       Best is to directly extract an already warped pattern from previous frame.
+    The \a size of the patterns should be aligned to 16.
     \a image is a reference to the region to search.
     \a stride is size of \a image lines.
 
     On input, \a warp is the predicted affine transformation (e.g from previous frame)
     On return, \a warp is the affine transformation which best match the reference \a pattern
+
+    \a areaPenalty and conditionPenalty control the regularization and need to be tweaked depending on the motion.
+       Setting them to 0 will allow any transformation (including unrealistic distortions and scaling).
+       Good values are between 0-32. 16 can be used as a realistic default.
+       areaPenalty control scaling (decrease to allow pull/zoom, increase to allow only 2D rotation).
+       a large conditionPenalty avoid a large ratio between the largest and smallest axices.
+       It need to be decreased for non-2D rotation (when pattern appears to scale along an axis).
 
     \return Pearson product-moment correlation coefficient between reference and matched pattern.
             This measure of the linear dependence between the patterns
@@ -81,7 +99,8 @@ void SamplePattern(ubyte* image, int stride, mat32 warp, ubyte* pattern, int siz
     \note \a stride allow you to reference your search region instead of copying.
     \note For a 16x speedup, compile this tracker with SSE2 support.
 */
-float Track(ubyte* reference, int size, ubyte* image, int stride, int width, int height, mat32* warp);
+float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride, int width, int height, mat32* warp,
+            float areaPenalty, float conditionPenalty);
 
 #ifdef __cplusplus
 }  // namespace libmv

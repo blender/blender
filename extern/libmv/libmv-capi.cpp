@@ -324,19 +324,17 @@ void libmv_SADSamplePattern(unsigned char *image, int stride,
 	libmv::SamplePattern(image, stride, mat32, pattern, 16);
 }
 
-int libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *image, int stride,
-			int width, int height, double *x, double *y)
+float libmv_SADTrackerTrack(unsigned char *pattern, unsigned char *warped, unsigned char *image, int stride,
+			int width, int height, float warp[3][2])
 {
-	int result;
+	float result;
 	libmv::mat32 mat32;
 
-	mat32(0, 2)= *x;
-	mat32(1, 2)= *y;
+	memcpy(mat32.data, warp, sizeof(float)*3*2);
 
-	result = libmv::Track(pattern, 16, image, stride, width, height, &mat32);
+	result = libmv::Track(pattern, warped, 16, image, stride, width, height, &mat32, 16, 16);
 
-	*x= mat32(0, 2);
-	*y= mat32(1, 2);
+	memcpy(warp, mat32.data, sizeof(float)*3*2);
 
 	return result;
 }

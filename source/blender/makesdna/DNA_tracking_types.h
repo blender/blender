@@ -104,10 +104,10 @@ typedef struct MovieTrackingSettings {
 
 	/* ** common tracker settings ** */
 	short speed;	/* speed of tracking */
-	short frames_limit;	/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
+	short frames_limit, pad;	/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
 
 	/* ** SAD tracker settings ** */
-	short maxsad;	/* max value of sad which is still treated as successful tracking */
+	float corr, pad2;			/* minimal correlation which is still treated as successful tracking */
 
 	/* ** reconstructionsettings ** */
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */

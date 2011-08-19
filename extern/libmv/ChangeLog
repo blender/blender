@@ -1,3 +1,31 @@
+commit 702658d2f8616964a6eeb3743fd85e97ac7ff09d
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 14:59:24 2011 +0200
+
+    Expose regularization parameters (areaPenalty and conditionPenalty) in API.
+
+commit 3e84ae5fbac10451d4935418f6281a90cedace11
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 14:19:27 2011 +0200
+
+    Add LaplaceFilter.
+    Add regularization in affine SAD Tracker (keep constant area and good condition number).
+    UI: Better track display (+enable line antialiasing).
+
+commit 6d26d9a8ccc4ce009fbf253898fea8864dd5001a
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 10:25:26 2011 +0200
+
+    Add optimization for integer pixel search.
+    Allows more agressive settings for affine coordinate descent.
+
+commit 70ceae81c0ab561b07e640ecb9933f0a902b57cd
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 00:02:12 2011 +0200
+
+    Document coordinate descent method in affine SAD matcher.
+    Add heuristic to prevent high distortions.
+
 commit 75520f4bc4ccbb272a1b4149d3b8d05a90f7f896
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Thu Aug 18 23:14:17 2011 +0200
@@ -434,11 +462,3 @@ Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Tue Jul 19 21:00:37 2011 +0200
 
     Progress in debugging optimized KLT.
-
-commit 354488cca6a29a4aa6ea3f943f693ae4af21e8da
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Tue Jul 19 14:54:43 2011 +0200
-
-    Add optimized version of KLT tracker.
-    
-    FIXME: It currently doesn't work.

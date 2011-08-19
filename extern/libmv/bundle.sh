@@ -3,6 +3,11 @@
 #BRANCH="keir"
 BRANCH="Matthias-Fauconneau"
 
+if [ -d ./.svn ]; then
+  echo "This script is supposed to work only when using git-svn"
+  exit 1
+fi
+
 repo="git://github.com/${BRANCH}/libmv.git"
 tmp=`mktemp -d`
 

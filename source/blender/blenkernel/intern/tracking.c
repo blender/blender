@@ -476,8 +476,9 @@ typedef struct TrackContext {
 	float *patch;			/* keyframed patch */
 
 	/* ** SAD tracker ** */
-	int patsize[2];			/* size of pattern (currently only 16x16 due to libmv side) */
+	int patsize;			/* size of pattern (currently only 16x16 due to libmv side) */
 	unsigned char *pattern;	/* keyframed pattern */
+	unsigned char *warped;	/* warped version of reference */
 #endif
 } TrackContext;
 
@@ -594,6 +595,9 @@ void BKE_tracking_context_free(MovieTrackingContext *context)
 
 		if(track_context->pattern)
 			MEM_freeN(track_context->pattern);
+
+		if(track_context->warped)
+			MEM_freeN(track_context->warped);
 #endif
 
 		MEM_freeN(track_context->track);
@@ -797,6 +801,32 @@ static ImBuf *acquire_keyframed_ibuf(MovieTrackingContext *context, MovieTrackin
 	return ibuf;
 }
 
+static ImBuf *acquire_frame_ibuf(MovieTrackingContext *context, int framenr)
+{
+	ImBuf *ibuf;
+	int framenr_old= context->user.framenr;
+
+	context->user.framenr= framenr;
+
+	ibuf= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
+
+	context->user.framenr= framenr_old;
+
+	return ibuf;
+}
+
+static void acquire_warped(TrackContext *track_context, int x, int y, int width, unsigned char *image)
+{
+	int i, j;
+
+	for(i=0; i<track_context->patsize; i++) {
+		for(j=0; j<track_context->patsize; j++) {
+			track_context->warped[i*track_context->patsize+j]=
+					image[(y+i-track_context->patsize/2)*width+x+j-track_context->patsize/2];
+		}
+	}
+}
+
 #endif
 
 void BKE_tracking_sync(MovieTrackingContext *context)
@@ -909,7 +939,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(!ibuf_new)
 		return 0;
 
-	#pragma omp parallel for private(a) shared(ibuf_new, ok) if(context->num_tracks>1)
+	//#pragma omp parallel for private(a) shared(ibuf_new, ok) if(context->num_tracks>1)
 	for(a= 0; a<context->num_tracks; a++) {
 		TrackContext *track_context= &context->track_context[a];
 		MovieTrackingTrack *track= track_context->track;
@@ -953,27 +983,27 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			}
 			else if(context->settings.tracker==TRACKER_SAD) {
 				unsigned char *image_new;
-				int sad, error;
+				float corr;
+				float warp[3][2]={{0}};
 
 				if(track_context->pattern==NULL) {
 					unsigned char *image;
-					float warp[3][2]={{0}};
 
 					/* calculate pattern for keyframed position */
 
 					ibuf= acquire_keyframed_ibuf(context, track, marker, &marker_keyed);
 					image= acquire_search_bytebuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
 
+					memset(warp, 0, sizeof(warp));
 					warp[0][0]= 1;
 					warp[1][1]= 1;
 					warp[2][0]= pos[0];
 					warp[2][1]= pos[1];
 
 					/* pattern size is hardcoded to 16x16px in libmv */
-					track_context->patsize[0]= 16;
-					track_context->patsize[1]= 16;
+					track_context->patsize= 16;
 
-					track_context->pattern= MEM_callocN(sizeof(unsigned char)*track_context->patsize[0]*track_context->patsize[1], "trackking pattern");
+					track_context->pattern= MEM_callocN(sizeof(unsigned char)*track_context->patsize*track_context->patsize, "trackking pattern");
 					libmv_SADSamplePattern(image, width, warp, track_context->pattern);
 
 					MEM_freeN(image);
@@ -982,13 +1012,35 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				image_new= acquire_search_bytebuf(ibuf_new, track, marker, &width, &height, pos, origin);
 
-				x2= pos[0];
-				y2= pos[1];
+				if(track_context->warped==NULL) {
+					unsigned char *image_old;
 
-				sad= libmv_SADTrackerTrack(track_context->pattern, image_new, width, width, height, &x2, &y2);
-				error= sad/(track_context->patsize[0]*track_context->patsize[1]);
+					ibuf= acquire_frame_ibuf(context, curfra);
 
-				tracked= error<=context->settings.maxsad;
+					if(track_context->warped==NULL)
+						track_context->warped= MEM_callocN(sizeof(unsigned char)*track_context->patsize*track_context->patsize, "trackking warped");
+
+					image_old= acquire_search_bytebuf(ibuf, track, marker, &width, &height, pos, origin);
+					acquire_warped(track_context, pos[0], pos[1], width, image_old);
+					IMB_freeImBuf(ibuf);
+					MEM_freeN(image_old);
+				}
+
+				memset(warp, 0, sizeof(warp));
+				warp[0][0]= 1;
+				warp[1][1]= 1;
+				warp[2][0]= pos[0];
+				warp[2][1]= pos[1];
+
+				corr= libmv_SADTrackerTrack(track_context->pattern, track_context->warped, image_new, width, width, height, warp);
+
+				x2= warp[2][0];
+				y2= warp[2][1];
+
+				tracked= corr>=context->settings.corr;
+
+				if(tracked)
+					acquire_warped(track_context, x2, y2, width, image_new);
 
 				MEM_freeN(image_new);
 			}

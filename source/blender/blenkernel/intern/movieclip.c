@@ -348,6 +348,7 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->tracking.settings.keyframe1= 1;
 	clip->tracking.settings.keyframe2= 30;
 	clip->tracking.settings.dist= 1;
+	clip->tracking.settings.corr= 0.75;
 
 	clip->tracking.stabilization.scaleinf= 1.f;
 	clip->tracking.stabilization.locinf= 1.f;

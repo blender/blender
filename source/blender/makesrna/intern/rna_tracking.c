@@ -246,11 +246,12 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "tracker", "Tracking algorithm to use");
 
 	/* limit frames */
-	prop= RNA_def_property(srna, "max_sad", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "min_correlation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_int_sdna(prop, NULL, "maxsad");
-	RNA_def_property_range(prop, 0, 255);
-	RNA_def_property_ui_text(prop, "Max SAD", "Maximum value of SAD whichis still treated as successful tracking");
+	RNA_def_property_float_sdna(prop, NULL, "corr");
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_ui_range(prop, -1.f, 1.f, .1, 3);
+	RNA_def_property_ui_text(prop, "Correlation", "Minimal value of correlation between mathed pattern and reference which is still treated as successful tracking");
 
 	/* speed */
 	prop= RNA_def_property(srna, "speed", PROP_ENUM, PROP_NONE);
