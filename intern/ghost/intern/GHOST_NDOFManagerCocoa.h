@@ -43,6 +43,7 @@ public:
 	// whether multi-axis functionality is available (via the OS or driver)
 	// does not imply that a device is plugged in or being used
 	bool available();
+	bool oldDRV();
 
 private:
 	unsigned short m_clientID;

@@ -1407,6 +1407,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 						   "Displays current editor type. "
 						   "Click for menu of available types");
 	uiButSetFunc(but, spacefunc, NULL, NULL);
+	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	
 	return xco + UI_UNIT_X + 14;
 }
@@ -1415,6 +1416,7 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	int xco= 8;
+	uiBut *but;
 	
 	if (!sa->full)
 		xco= ED_area_header_switchbutton(C, block, yco);
@@ -1422,19 +1424,21 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
 	if (sa->flag & HEADER_NO_PULLDOWN) {
-		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0, 
+		but= uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
 						 ICON_DISCLOSURE_TRI_RIGHT,
 						 xco,yco,UI_UNIT_X,UI_UNIT_Y-2,
 						 &(sa->flag), 0, 0, 0, 0, 
 						 "Show pulldown menus");
 	}
 	else {
-		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0, 
+		but= uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
 						 ICON_DISCLOSURE_TRI_DOWN,
 						 xco,yco,UI_UNIT_X,UI_UNIT_Y-2,
 						 &(sa->flag), 0, 0, 0, 0, 
 						 "Hide pulldown menus");
 	}
+
+	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
