@@ -2572,6 +2572,44 @@ static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifie
 	}
 }
 
+static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifiers)
+{
+	LineStyleModifier *m;
+	char *struct_name;
+
+	for (m = modifiers->first; m; m = m->next) {
+		switch (m->type) {
+		case LS_MODIFIER_SAMPLING:
+			struct_name = "LineStyleGeometryModifier_Sampling";
+			break;
+		case LS_MODIFIER_BEZIER_CURVE:
+			struct_name = "LineStyleGeometryModifier_BezierCurve";
+			break;
+		case LS_MODIFIER_SINUS_DISPLACEMENT:
+			struct_name = "LineStyleGeometryModifier_SinusDisplacement";
+			break;
+		case LS_MODIFIER_SPATIAL_NOISE:
+			struct_name = "LineStyleGeometryModifier_SpatialNoise";
+			break;
+		case LS_MODIFIER_PERLIN_NOISE_1D:
+			struct_name = "LineStyleGeometryModifier_PerlinNoise1D";
+			break;
+		case LS_MODIFIER_PERLIN_NOISE_2D:
+			struct_name = "LineStyleGeometryModifier_PerlinNoise2D";
+			break;
+		case LS_MODIFIER_BACKBONE_STRETCHER:
+			struct_name = "LineStyleGeometryModifier_BackboneStretcher";
+			break;
+		case LS_MODIFIER_TIP_REMOVER:
+			struct_name = "LineStyleGeometryModifier_TipRemover";
+			break;
+		default:
+			struct_name = "LineStyleGeometryModifier"; // this should not happen
+		}
+		writestruct(wd, DATA, struct_name, 1, m);
+	}
+}
+
 static void write_linestyles(WriteData *wd, ListBase *idbase)
 {
 	FreestyleLineStyle *linestyle;
@@ -2584,6 +2622,7 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 			write_linestyle_color_modifiers(wd, &linestyle->color_modifiers);
 			write_linestyle_alpha_modifiers(wd, &linestyle->alpha_modifiers);
 			write_linestyle_thickness_modifiers(wd, &linestyle->thickness_modifiers);
+			write_linestyle_geometry_modifiers(wd, &linestyle->geometry_modifiers);
 		}
 	}
 }

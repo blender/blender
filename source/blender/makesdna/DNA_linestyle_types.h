@@ -44,7 +44,8 @@ typedef struct LineStyleModifier {
 	int type;
 	float influence;
 	int flags;
-	int pad;
+	int blend;
+
 } LineStyleModifier;
 
 /* LineStyleModifier::type */
@@ -52,7 +53,15 @@ typedef struct LineStyleModifier {
 #define LS_MODIFIER_DISTANCE_FROM_CAMERA    2
 #define LS_MODIFIER_DISTANCE_FROM_OBJECT    3
 #define LS_MODIFIER_MATERIAL                4
-#define LS_MODIFIER_NUM                     5
+#define LS_MODIFIER_SAMPLING                5
+#define LS_MODIFIER_BEZIER_CURVE            6
+#define LS_MODIFIER_SINUS_DISPLACEMENT      7
+#define LS_MODIFIER_SPATIAL_NOISE           8
+#define LS_MODIFIER_PERLIN_NOISE_1D         9
+#define LS_MODIFIER_PERLIN_NOISE_2D        10
+#define LS_MODIFIER_BACKBONE_STRETCHER     11
+#define LS_MODIFIER_TIP_REMOVER            12
+#define LS_MODIFIER_NUM                    13
 
 /* LineStyleModifier::flags */
 #define LS_MODIFIER_ENABLED     1
@@ -81,8 +90,6 @@ typedef struct LineStyleColorModifier_AlongStroke {
 	struct LineStyleModifier modifier;
 
 	struct ColorBand *color_ramp;
-	int blend;
-	int pad;
 
 } LineStyleColorModifier_AlongStroke;
 
@@ -90,8 +97,8 @@ typedef struct LineStyleAlphaModifier_AlongStroke {
 	struct LineStyleModifier modifier;
 
 	struct CurveMapping	*curve;
-	int blend;
 	int flags;
+	int pad;
 
 } LineStyleAlphaModifier_AlongStroke;
 
@@ -99,9 +106,9 @@ typedef struct LineStyleThicknessModifier_AlongStroke {
 	struct LineStyleModifier modifier;
 
 	struct CurveMapping	*curve;
-	int blend;
 	int flags;
 	float value_min, value_max;
+	int pad;
 
 } LineStyleThicknessModifier_AlongStroke;
 
@@ -111,9 +118,7 @@ typedef struct LineStyleColorModifier_DistanceFromCamera {
 	struct LineStyleModifier modifier;
 
 	struct ColorBand *color_ramp;
-	int blend;
 	float range_min, range_max;
-	int pad;
 
 } LineStyleColorModifier_DistanceFromCamera;
 
@@ -121,9 +126,9 @@ typedef struct LineStyleAlphaModifier_DistanceFromCamera {
 	struct LineStyleModifier modifier;
 
 	struct CurveMapping	*curve;
-	int blend;
 	int flags;
 	float range_min, range_max;
+	int pad;
 
 } LineStyleAlphaModifier_DistanceFromCamera;
 
@@ -131,10 +136,10 @@ typedef struct LineStyleThicknessModifier_DistanceFromCamera {
 	struct LineStyleModifier modifier;
 
 	struct CurveMapping	*curve;
-	int blend;
 	int flags;
 	float range_min, range_max;
 	float value_min, value_max;
+	int pad;
 
 } LineStyleThicknessModifier_DistanceFromCamera;
 
@@ -145,9 +150,7 @@ typedef struct LineStyleColorModifier_DistanceFromObject {
 
 	struct Object *target;
 	struct ColorBand *color_ramp;
-	int blend;
 	float range_min, range_max;
-	int pad;
 
 } LineStyleColorModifier_DistanceFromObject;
 
@@ -156,9 +159,9 @@ typedef struct LineStyleAlphaModifier_DistanceFromObject {
 
 	struct Object *target;
 	struct CurveMapping	*curve;
-	int blend;
 	int flags;
 	float range_min, range_max;
+	int pad;
 
 } LineStyleAlphaModifier_DistanceFromObject;
 
@@ -167,10 +170,10 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 
 	struct Object *target;
 	struct CurveMapping	*curve;
-	int blend;
 	int flags;
 	float range_min, range_max;
 	float value_min, value_max;
+	int pad;
 
 } LineStyleThicknessModifier_DistanceFromObject;
 
@@ -192,10 +195,8 @@ typedef struct LineStyleColorModifier_Material {
 	struct LineStyleModifier modifier;
 
 	struct ColorBand *color_ramp;
-	int blend;
 	int flags;
 	int mat_attr;
-	int pad;
 
 } LineStyleColorModifier_Material;
 
@@ -203,10 +204,8 @@ typedef struct LineStyleAlphaModifier_Material {
 	struct LineStyleModifier modifier;
 
 	struct CurveMapping	*curve;
-	int blend;
 	int flags;
 	int mat_attr;
-	int pad;
 
 } LineStyleAlphaModifier_Material;
 
@@ -214,20 +213,91 @@ typedef struct LineStyleThicknessModifier_Material {
 	struct LineStyleModifier modifier;
 
 	struct CurveMapping	*curve;
-	int blend;
 	int flags;
 	float value_min, value_max;
 	int mat_attr;
-	int pad;
 
 } LineStyleThicknessModifier_Material;
 
+/* Geometry modifiers */
+
+typedef struct LineStyleGeometryModifier_Sampling {
+	struct LineStyleModifier modifier;
+
+	float sampling;
+	int pad;
+
+} LineStyleGeometryModifier_Sampling;
+
+typedef struct LineStyleGeometryModifier_BezierCurve {
+	struct LineStyleModifier modifier;
+
+	float error;
+	int pad;
+
+} LineStyleGeometryModifier_BezierCurve;
+
+typedef struct LineStyleGeometryModifier_SinusDisplacement {
+	struct LineStyleModifier modifier;
+
+	float wavelength, amplitude, phase;
+	int pad;
+
+} LineStyleGeometryModifier_SinusDisplacement;
+
+/* LineStyleGeometryModifier_SpatialNoise::flags */
+#define LS_MODIFIER_SPATIAL_NOISE_SMOOTH      1
+#define LS_MODIFIER_SPATIAL_NOISE_PURERANDOM  2
+
+typedef struct LineStyleGeometryModifier_SpatialNoise {
+	struct LineStyleModifier modifier;
+
+	float amplitude, scale;
+	unsigned int octaves;
+	int flags;
+
+} LineStyleGeometryModifier_SpatialNoise;
+
+typedef struct LineStyleGeometryModifier_PerlinNoise1D {
+	struct LineStyleModifier modifier;
+
+	float frequency, amplitude;
+	unsigned int octaves;
+	int seed;
+
+} LineStyleGeometryModifier_PerlinNoise1D;
+
+typedef struct LineStyleGeometryModifier_PerlinNoise2D {
+	struct LineStyleModifier modifier;
+
+	float frequency, amplitude;
+	unsigned int octaves;
+	int seed;
+
+} LineStyleGeometryModifier_PerlinNoise2D;
+
+typedef struct LineStyleGeometryModifier_BackboneStretcher {
+	struct LineStyleModifier modifier;
+
+	float amount;
+	int pad;
+
+} LineStyleGeometryModifier_BackboneStretcher;
+
+typedef struct LineStyleGeometryModifier_TipRemover {
+	struct LineStyleModifier modifier;
+
+	float tip_length;
+	int pad;
+
+} LineStyleGeometryModifier_TipRemover;
+
 /* FreestyleLineStyle::panel */
-#define LS_PANEL_COLOR        1
-#define LS_PANEL_ALPHA        2
-#define LS_PANEL_THICKNESS    3
-#define LS_PANEL_STROKES      4
-#define LS_PANEL_DISTORT      5
+#define LS_PANEL_STROKES      1
+#define LS_PANEL_COLOR        2
+#define LS_PANEL_ALPHA        3
+#define LS_PANEL_THICKNESS    4
+#define LS_PANEL_GEOMETRY     5
 #define LS_PANEL_MISC         6
 
 /* FreestyleLineStyle::flag */
@@ -255,6 +325,7 @@ typedef struct FreestyleLineStyle {
 	ListBase color_modifiers;
 	ListBase alpha_modifiers;
 	ListBase thickness_modifiers;
+	ListBase geometry_modifiers;
 
 } FreestyleLineStyle;
 

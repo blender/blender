@@ -37,6 +37,7 @@
 #define LS_MODIFIER_TYPE_COLOR      1
 #define LS_MODIFIER_TYPE_ALPHA      2
 #define LS_MODIFIER_TYPE_THICKNESS  3
+#define LS_MODIFIER_TYPE_GEOMETRY   4
 
 struct Main;
 struct Object;
@@ -47,14 +48,17 @@ void FRS_free_linestyle(FreestyleLineStyle *linestyle);
 int FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type);
 int FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type);
 int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type);
+int FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type);
 
 void FRS_remove_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
 void FRS_remove_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
 void FRS_remove_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
+void FRS_remove_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier);
 
 void FRS_move_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
 void FRS_move_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
 void FRS_move_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
+void FRS_move_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction);
 
 void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase);
 char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp);

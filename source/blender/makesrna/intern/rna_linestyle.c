@@ -57,6 +57,17 @@ EnumPropertyItem linestyle_thickness_modifier_type_items[] ={
 	{LS_MODIFIER_MATERIAL, "MATERIAL", ICON_MODIFIER, "Material", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem linestyle_geometry_modifier_type_items[] ={
+	{LS_MODIFIER_SAMPLING, "SAMPLING", ICON_MODIFIER, "Sampling", ""},
+	{LS_MODIFIER_BEZIER_CURVE, "BEZIER_CURVE", ICON_MODIFIER, "Bezier Curve", ""},
+	{LS_MODIFIER_SINUS_DISPLACEMENT, "SINUS_DISPLACEMENT", ICON_MODIFIER, "Sinus Displacement", ""},
+	{LS_MODIFIER_SPATIAL_NOISE, "SPATIAL_NOISE", ICON_MODIFIER, "Spatial Noise", ""},
+	{LS_MODIFIER_PERLIN_NOISE_1D, "PERLIN_NOISE_1D", ICON_MODIFIER, "Perlin Noise 1D", ""},
+	{LS_MODIFIER_PERLIN_NOISE_2D, "PERLIN_NOISE_2D", ICON_MODIFIER, "Perlin Noise 2D", ""},
+	{LS_MODIFIER_BACKBONE_STRETCHER, "BACKBONE_STRETCHER", ICON_MODIFIER, "Backbone Stretcher", ""},
+	{LS_MODIFIER_TIP_REMOVER, "TIP_REMOVER", ICON_MODIFIER, "Tip Remover", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 static StructRNA *rna_LineStyle_color_modifier_refine(struct PointerRNA *ptr)
@@ -113,6 +124,32 @@ static StructRNA *rna_LineStyle_thickness_modifier_refine(struct PointerRNA *ptr
 	}
 }
 
+static StructRNA *rna_LineStyle_geometry_modifier_refine(struct PointerRNA *ptr)
+{
+	LineStyleModifier *m = (LineStyleModifier *)ptr->data;
+
+	switch(m->type) {
+		case LS_MODIFIER_SAMPLING:
+			return &RNA_LineStyleGeometryModifier_Sampling;
+		case LS_MODIFIER_BEZIER_CURVE:
+			return &RNA_LineStyleGeometryModifier_BezierCurve;
+		case LS_MODIFIER_SINUS_DISPLACEMENT:
+			return &RNA_LineStyleGeometryModifier_SinusDisplacement;
+		case LS_MODIFIER_SPATIAL_NOISE:
+			return &RNA_LineStyleGeometryModifier_SpatialNoise;
+		case LS_MODIFIER_PERLIN_NOISE_1D:
+			return &RNA_LineStyleGeometryModifier_PerlinNoise1D;
+		case LS_MODIFIER_PERLIN_NOISE_2D:
+			return &RNA_LineStyleGeometryModifier_PerlinNoise2D;
+		case LS_MODIFIER_BACKBONE_STRETCHER:
+			return &RNA_LineStyleGeometryModifier_BackboneStretcher;
+		case LS_MODIFIER_TIP_REMOVER:
+			return &RNA_LineStyleGeometryModifier_TipRemover;
+		default:
+			return &RNA_LineStyleGeometryModifier;
+	}
+}
+
 static char *rna_LineStyle_color_modifier_path(PointerRNA *ptr)
 {
 	return BLI_sprintfN("color_modifiers[\"%s\"]", ((LineStyleModifier*)ptr->data)->name);
@@ -128,11 +165,16 @@ static char *rna_LineStyle_thickness_modifier_path(PointerRNA *ptr)
 	return BLI_sprintfN("thickness_modifiers[\"%s\"]", ((LineStyleModifier*)ptr->data)->name);
 }
 
+static char *rna_LineStyle_geometry_modifier_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("geometry_modifiers[\"%s\"]", ((LineStyleModifier*)ptr->data)->name);
+}
+
 #else
 
 #include "DNA_material_types.h"
 
-static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modifier_type_items, int color)
+static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modifier_type_items, int blend, int color)
 {
 	PropertyRNA *prop;
 
@@ -180,17 +222,19 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "blend");
-	RNA_def_property_enum_items(prop, (color) ? color_blend_items : value_blend_items);
-	RNA_def_property_ui_text(prop, "Blend", "Specify how the modifier value is blended into the base value.");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	if (blend) {
+		prop= RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
+		RNA_def_property_enum_sdna(prop, NULL, "modifier.blend");
+		RNA_def_property_enum_items(prop, (color) ? color_blend_items : value_blend_items);
+		RNA_def_property_ui_text(prop, "Blend", "Specify how the modifier value is blended into the base value.");
+		RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "influence", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "modifier.influence");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Influence", "Influence factor by which the modifier changes the property.");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+		prop= RNA_def_property(srna, "influence", PROP_FLOAT, PROP_FACTOR);
+		RNA_def_property_float_sdna(prop, NULL, "modifier.influence");
+		RNA_def_property_range(prop, 0.0f, 1.0f);
+		RNA_def_property_ui_text(prop, "Influence", "Influence factor by which the modifier changes the property.");
+		RNA_def_property_update(prop, NC_SCENE, NULL);
+	}
 
 	prop= RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "modifier.flags", LS_MODIFIER_ENABLED);
@@ -203,17 +247,22 @@ static void rna_def_modifier_type_common(StructRNA *srna, EnumPropertyItem *modi
 
 static void rna_def_color_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_color_modifier_type_items, 1);
+	rna_def_modifier_type_common(srna, linestyle_color_modifier_type_items, 1, 1);
 }
 
 static void rna_def_alpha_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_alpha_modifier_type_items, 0);
+	rna_def_modifier_type_common(srna, linestyle_alpha_modifier_type_items, 1, 0);
 }
 
 static void rna_def_thickness_modifier(StructRNA *srna)
 {
-	rna_def_modifier_type_common(srna, linestyle_thickness_modifier_type_items, 0);
+	rna_def_modifier_type_common(srna, linestyle_thickness_modifier_type_items, 1, 0);
+}
+
+static void rna_def_geometry_modifier(StructRNA *srna)
+{
+	rna_def_modifier_type_common(srna, linestyle_geometry_modifier_type_items, 0, 0);
 }
 
 static void rna_def_modifier_color_ramp_common(StructRNA *srna, int range)
@@ -436,6 +485,146 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	rna_def_modifier_material_common(srna);
 	rna_def_modifier_curve_common(srna, 0, 1);
 
+	/* geometry modifiers */
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier", "LineStyleModifier");
+	RNA_def_struct_sdna(srna, "LineStyleModifier");
+	RNA_def_struct_refine_func(srna, "rna_LineStyle_geometry_modifier_refine");
+	RNA_def_struct_path_func(srna, "rna_LineStyle_geometry_modifier_path");
+	RNA_def_struct_ui_text(srna, "Line Style Geometry Modifier", "Base type to define stroke geometry modifiers.");
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_Sampling", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Sampling", "Specify a new sampling value that determines the resolution of stroke polylines.");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "sampling", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "sampling");
+	RNA_def_property_ui_text(prop, "Sampling", "New sampling value to be used for subsequent modifiers.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_BezierCurve", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Bezier Curve", "Replace stroke backbone geometry by a Bezier curve approximation of the original backbone geometry.");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "error", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "error");
+	RNA_def_property_ui_text(prop, "Error", "Maximum distance allowed between the new Bezier curve and the original backbone geometry).");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_SinusDisplacement", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Sinus Displacement", "Add sinus displacement to stroke backbone geometry.");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "wavelength", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "wavelength");
+	RNA_def_property_ui_text(prop, "Wavelength", "Wavelength of the sinus displacement.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "amplitude");
+	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of the sinus displacement.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "phase", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "phase");
+	RNA_def_property_ui_text(prop, "Phase", "Phase of the sinus displacement.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_SpatialNoise", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Spatial Noise", "Add spatial noise to stroke backbone geometry.");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "amplitude");
+	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of the spatial noise.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "scale");
+	RNA_def_property_ui_text(prop, "Scale", "Scale of the spatial noise.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "octaves", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "octaves");
+	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the spatial noise).");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "smooth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", LS_MODIFIER_SPATIAL_NOISE_SMOOTH);
+	RNA_def_property_ui_text(prop, "Smooth", "If true, the spatial noise is smooth.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "pure_random", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", LS_MODIFIER_SPATIAL_NOISE_PURERANDOM);
+	RNA_def_property_ui_text(prop, "Pure Random", "If true, the spatial noise does not show any coherence.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_PerlinNoise1D", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Perlin Noise 1D", "Add one-dimensional Perlin noise to stroke backbone geometry.");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "frequency", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "frequency");
+	RNA_def_property_ui_text(prop, "Frequency", "Frequency of the Perlin noise.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "amplitude");
+	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of the Perlin noise.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "octaves", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "octaves");
+	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the Perlin noise).");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "seed");
+	RNA_def_property_ui_text(prop, "Seed", "Seed for random number generation.  If negative, time is used as a seed instead.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_PerlinNoise2D", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Perlin Noise 2D", "Add two-dimensional Perlin noise to stroke backbone geometry.");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "frequency", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "frequency");
+	RNA_def_property_ui_text(prop, "Frequency", "Frequency of the Perlin noise.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "amplitude");
+	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of the Perlin noise.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "octaves", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "octaves");
+	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the Perlin noise).");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "seed");
+	RNA_def_property_ui_text(prop, "Seed", "Seed for random number generation.  If negative, time is used as a seed instead.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_BackboneStretcher", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Backbone Stretcher", "Stretch the beginning and the end of stroke backbone.");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "amount", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "amount");
+	RNA_def_property_ui_text(prop, "Amount", "Amount of stretching.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	srna= RNA_def_struct(brna, "LineStyleGeometryModifier_TipRemover", "LineStyleGeometryModifier");
+	RNA_def_struct_ui_text(srna, "Tip Remover", "Remove a piece of stroke at the beginning and the end of stroke backbone.");
+	rna_def_geometry_modifier(srna);
+
+	prop= RNA_def_property(srna, "tip_length", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "tip_length");
+	RNA_def_property_ui_text(prop, "Tip Length", "Length of tips to be removed.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 }
 
 static void rna_def_linestyle(BlenderRNA *brna)
@@ -444,11 +633,11 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem panel_items[] = {
+		{LS_PANEL_STROKES, "STROKES", 0, "Strokes", "Show the panel for stroke construction."},
 		{LS_PANEL_COLOR, "COLOR", 0, "Color", "Show the panel for line color options."},
 		{LS_PANEL_ALPHA, "ALPHA", 0, "Alpha", "Show the panel for alpha transparency options."},
 		{LS_PANEL_THICKNESS, "THICKNESS", 0, "Thickness", "Show the panel for line thickness options."},
-		{LS_PANEL_STROKES, "STROKES", 0, "Strokes", "Show the panel for stroke construction."},
-		{LS_PANEL_DISTORT, "DISTORT", 0, "Distort", "Show the panel for stroke distortion."},
+		{LS_PANEL_GEOMETRY, "GEOMETRY", 0, "Geometry", "Show the panel for stroke geometry options."},
 		{LS_PANEL_MISC, "MISC", 0, "Misc", "Show the panel for miscellaneous options."},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem cap_items[] = {
@@ -499,6 +688,11 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "thickness_modifiers", NULL);
 	RNA_def_property_struct_type(prop, "LineStyleThicknessModifier");
 	RNA_def_property_ui_text(prop, "Thickness Modifiers", "List of line thickness modifiers.");
+
+	prop= RNA_def_property(srna, "geometry_modifiers", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "geometry_modifiers", NULL);
+	RNA_def_property_struct_type(prop, "LineStyleGeometryModifier");
+	RNA_def_property_ui_text(prop, "Geometry Modifiers", "List of stroke geometry modifiers.");
 
 	prop= RNA_def_property(srna, "same_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LS_SAME_OBJECT);

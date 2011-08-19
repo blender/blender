@@ -921,6 +921,45 @@ void SCENE_OT_freestyle_thickness_modifier_add(wmOperatorType *ot)
 	ot->prop= RNA_def_enum(ot->srna, "type", linestyle_thickness_modifier_type_items, 0, "Type", "");
 }
 
+static int freestyle_geometry_modifier_add_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
+	FreestyleLineSet *lineset = FRS_get_active_lineset(&srl->freestyleConfig);
+	int type= RNA_enum_get(op->ptr, "type");
+
+	if (!lineset) {
+		BKE_report(op->reports, RPT_ERROR, "No active lineset and associated line style to add the modifier to.");
+		return OPERATOR_CANCELLED;
+	}
+	if (FRS_add_linestyle_geometry_modifier(lineset->linestyle, type) < 0) {
+		BKE_report(op->reports, RPT_ERROR, "Unknown stroke geometry modifier type.");
+		return OPERATOR_CANCELLED;
+	}
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_OPTIONS, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_freestyle_geometry_modifier_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Stroke Geometry Modifier";
+	ot->idname= "SCENE_OT_freestyle_geometry_modifier_add";
+	ot->description = "Add a stroke geometry modifier to the line style associated with the active lineset.";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= freestyle_geometry_modifier_add_exec;
+	ot->poll= freestyle_active_lineset_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop= RNA_def_enum(ot->srna, "type", linestyle_geometry_modifier_type_items, 0, "Type", "");
+}
+
 static int freestyle_get_modifier_type(PointerRNA *ptr)
 {
 	if (RNA_struct_is_a(ptr->type, &RNA_LineStyleColorModifier))
@@ -929,6 +968,8 @@ static int freestyle_get_modifier_type(PointerRNA *ptr)
 		return LS_MODIFIER_TYPE_ALPHA;
 	else if (RNA_struct_is_a(ptr->type, &RNA_LineStyleThicknessModifier))
 		return LS_MODIFIER_TYPE_THICKNESS;
+	else if (RNA_struct_is_a(ptr->type, &RNA_LineStyleGeometryModifier))
+		return LS_MODIFIER_TYPE_GEOMETRY;
 	return -1;
 }
 
@@ -953,6 +994,9 @@ static int freestyle_modifier_remove_exec(bContext *C, wmOperator *op)
 		break;
 	case LS_MODIFIER_TYPE_THICKNESS:
 		FRS_remove_linestyle_thickness_modifier(lineset->linestyle, modifier);
+		break;
+	case LS_MODIFIER_TYPE_GEOMETRY:
+		FRS_remove_linestyle_geometry_modifier(lineset->linestyle, modifier);
 		break;
 	default:
 		BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier.");
@@ -1000,6 +1044,9 @@ static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)
 		break;
 	case LS_MODIFIER_TYPE_THICKNESS:
 		FRS_move_linestyle_thickness_modifier(lineset->linestyle, modifier, dir);
+		break;
+	case LS_MODIFIER_TYPE_GEOMETRY:
+		FRS_move_linestyle_geometry_modifier(lineset->linestyle, modifier, dir);
 		break;
 	default:
 		BKE_report(op->reports, RPT_ERROR, "The object the data pointer refers to is not a valid modifier.");

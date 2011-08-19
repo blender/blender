@@ -437,6 +437,51 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
                 box.prop(modifier, "material_attr", text="")
                 self.draw_modifier_curve_common(box, modifier, False, True)
 
+    def draw_geometry_modifier(self, context, modifier):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        self.draw_modifier_box_header(col.box(), modifier)
+        if modifier.expanded:
+            box = col.box()
+
+            if modifier.type == "SAMPLING":
+                box.prop(modifier, "sampling")
+
+            elif modifier.type == "BEZIER_CURVE":
+                box.prop(modifier, "error")
+
+            elif modifier.type == "SINUS_DISPLACEMENT":
+                box.prop(modifier, "wavelength")
+                box.prop(modifier, "amplitude")
+                box.prop(modifier, "phase")
+
+            elif modifier.type == "SPATIAL_NOISE":
+                box.prop(modifier, "amplitude")
+                box.prop(modifier, "scale")
+                box.prop(modifier, "octaves")
+                sub = box.row()
+                sub.prop(modifier, "smooth")
+                sub.prop(modifier, "pure_random")
+
+            elif modifier.type == "PERLIN_NOISE_1D":
+                box.prop(modifier, "frequency")
+                box.prop(modifier, "amplitude")
+                box.prop(modifier, "octaves")
+                box.prop(modifier, "seed")
+
+            elif modifier.type == "PERLIN_NOISE_2D":
+                box.prop(modifier, "frequency")
+                box.prop(modifier, "amplitude")
+                box.prop(modifier, "octaves")
+                box.prop(modifier, "seed")
+
+            elif modifier.type == "BACKBONE_STRETCHER":
+                box.prop(modifier, "amount")
+
+            elif modifier.type == "TIP_REMOVER":
+                box.prop(modifier, "tip_length")
+
     def draw(self, context):
         layout = self.layout
 
@@ -445,70 +490,76 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
         lineset = rl.freestyle_settings.linesets.active
         linestyle = lineset.linestyle
 
-        split = layout.split()
-        col = split.column()
-        col.template_ID(lineset, "linestyle", new="scene.freestyle_linestyle_new")
-
-        col.separator()
-        sub = col.row(align=True)
-        sub.prop(linestyle, "panel", expand=True)
-
-        if linestyle.panel == "COLOR":
+        layout.template_ID(lineset, "linestyle", new="scene.freestyle_linestyle_new")
+        row = layout.row(align=True)
+        row.prop(linestyle, "panel", expand=True)
+        if linestyle.panel == "STROKES":
+            col = layout.column()
+            col.label(text="Chaining:")
+            col.prop(linestyle, "same_object")
+            col = layout.column()
+            col.label(text="Splitting:")
+            row = col.row(align=True)
+            row.prop(linestyle, "material_boundary")
+            col = layout.column()
+            col.label(text="Caps:")
+            row = col.row(align=True)
+            row.prop(linestyle, "caps", expand=True)
+            col = layout.column()
+            col.prop(linestyle, "use_dashed_line")
+            split = col.split()
+            split.enabled = linestyle.use_dashed_line
+            sub = split.column()
+            sub.label(text="Dash")
+            sub.prop(linestyle, "dash1", text="")
+            sub = split.column()
+            sub.label(text="Gap")
+            sub.prop(linestyle, "gap1", text="")
+            sub = split.column()
+            sub.label(text="Dash")
+            sub.prop(linestyle, "dash2", text="")
+            sub = split.column()
+            sub.label(text="Gap")
+            sub.prop(linestyle, "gap2", text="")
+            sub = split.column()
+            sub.label(text="Dash")
+            sub.prop(linestyle, "dash3", text="")
+            sub = split.column()
+            sub.label(text="Gap")
+            sub.prop(linestyle, "gap3", text="")
+        elif linestyle.panel == "COLOR":
+            col = layout.column()
             col.label(text="Base Color:")
             col.prop(linestyle, "color", text="")
+            col = layout.column()
             col.label(text="Modifiers:")
-            layout.operator_menu_enum("scene.freestyle_color_modifier_add", "type", text="Add Modifier")
+            col.operator_menu_enum("scene.freestyle_color_modifier_add", "type", text="Add Modifier")
             for modifier in linestyle.color_modifiers:
                 self.draw_color_modifier(context, modifier)
         elif linestyle.panel == "ALPHA":
+            col = layout.column()
             col.label(text="Base Transparency:")
             col.prop(linestyle, "alpha")
+            col = layout.column()
             col.label(text="Modifiers:")
-            layout.operator_menu_enum("scene.freestyle_alpha_modifier_add", "type", text="Add Modifier")
+            col.operator_menu_enum("scene.freestyle_alpha_modifier_add", "type", text="Add Modifier")
             for modifier in linestyle.alpha_modifiers:
                 self.draw_alpha_modifier(context, modifier)
         elif linestyle.panel == "THICKNESS":
+            col = layout.column()
             col.label(text="Base Thickness:")
             col.prop(linestyle, "thickness")
+            col = layout.column()
             col.label(text="Modifiers:")
-            layout.operator_menu_enum("scene.freestyle_thickness_modifier_add", "type", text="Add Modifier")
+            col.operator_menu_enum("scene.freestyle_thickness_modifier_add", "type", text="Add Modifier")
             for modifier in linestyle.thickness_modifiers:
                 self.draw_thickness_modifier(context, modifier)
-        elif linestyle.panel == "STROKES":
-            col.label(text="Chaining:")
-            col.prop(linestyle, "same_object")
-            col.separator()
-            col.label(text="Splitting:")
-            sub = col.row(align=True)
-            sub.prop(linestyle, "material_boundary")
-            col.separator()
-            col.label(text="Caps:")
-            sub = col.row(align=True)
-            sub.prop(linestyle, "caps", expand=True)
-            col.separator()
-            col.prop(linestyle, "use_dashed_line")
-            sub = col.row()
-            sub.enabled = linestyle.use_dashed_line
-            subsub = sub.column()
-            subsub.label(text="Dash")
-            subsub.prop(linestyle, "dash1", text="")
-            subsub = sub.column()
-            subsub.label(text="Gap")
-            subsub.prop(linestyle, "gap1", text="")
-            subsub = sub.column()
-            subsub.label(text="Dash")
-            subsub.prop(linestyle, "dash2", text="")
-            subsub = sub.column()
-            subsub.label(text="Gap")
-            subsub.prop(linestyle, "gap2", text="")
-            subsub = sub.column()
-            subsub.label(text="Dash")
-            subsub.prop(linestyle, "dash3", text="")
-            subsub = sub.column()
-            subsub.label(text="Gap")
-            subsub.prop(linestyle, "gap3", text="")
-        elif linestyle.panel == "DISTORT":
-            pass
+        elif linestyle.panel == "GEOMETRY":
+            col = layout.column()
+            col.label(text="Modifiers:")
+            col.operator_menu_enum("scene.freestyle_geometry_modifier_add", "type", text="Add Modifier")
+            for modifier in linestyle.geometry_modifiers:
+                self.draw_geometry_modifier(context, modifier)
         elif linestyle.panel == "MISC":
             pass
 

@@ -5799,6 +5799,10 @@ static void direct_link_linestyle_thickness_modifier(FileData *fd, LineStyleModi
 	}
 }
 
+static void direct_link_linestyle_geometry_modifier(FileData *fd, LineStyleModifier *modifier)
+{
+}
+
 static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
 {
 	LineStyleModifier *modifier;
@@ -5814,6 +5818,9 @@ static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
 	link_list(fd, &linestyle->thickness_modifiers);
 	for(modifier=linestyle->thickness_modifiers.first; modifier; modifier= modifier->next)
 		direct_link_linestyle_thickness_modifier(fd, modifier);
+	link_list(fd, &linestyle->geometry_modifiers);
+	for(modifier=linestyle->geometry_modifiers.first; modifier; modifier= modifier->next)
+		direct_link_linestyle_geometry_modifier(fd, modifier);
 }
 
 /* ************** GENERAL & MAIN ******************** */

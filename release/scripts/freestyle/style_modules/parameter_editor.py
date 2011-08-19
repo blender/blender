@@ -18,6 +18,7 @@
 
 import Freestyle
 import math
+import time
 
 from freestyle_init import *
 from logical_operators import *
@@ -387,6 +388,37 @@ class ThicknessMaterialShader(CurveMappingModifier):
             c = self.blend_curve(a, b)
             attr.setThickness(c/2, c/2)
 
+# Geometry modifiers
+
+def iter_distance_along_stroke(stroke):
+    distance = 0.0
+    it = stroke.strokeVerticesBegin()
+    while not it.isEnd():
+        p = it.getObject().getPoint()
+        if not it.isBegin():
+            distance += (prev - p).length
+        prev = p
+        yield it, distance
+        it.increment()
+
+class SinusDisplacementShader(StrokeShader):
+    def __init__(self, wavelength, amplitude, phase):
+        StrokeShader.__init__(self)
+        self._wavelength = wavelength
+        self._amplitude = amplitude
+        self._phase = phase / wavelength * 2 * math.pi
+        self._getNormal = Normal2DF0D()
+    def getName(self):
+        return "SinusDisplacementShader"
+    def shade(self, stroke):
+        for it, distance in iter_distance_along_stroke(stroke):
+            v = it.getObject()
+            n = self._getNormal(it.castToInterface0DIterator())
+            p = v.getPoint()
+            u = v.u()
+            n = n * self._amplitude * math.cos(distance / self._wavelength * 2 * math.pi + self._phase)
+            v.setPoint(p + n)
+
 # Predicates and helper functions
 
 class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
@@ -653,6 +685,20 @@ class MaterialBoundaryUP0D(UnaryPredicate0D):
         idx2 = fe.materialIndex() if fe.isSmooth() else fe.bMaterialIndex()
         return idx1 != idx2
 
+# Seed for random number generation
+
+class Seed:
+    def __init__(self):
+        self.t_max = 2 ** 15
+        self.t = int(time.time()) % self.t_max
+    def get(self, seed):
+        if seed < 0:
+            self.t = (self.t + 1) % self.t_max
+            return self.t
+        return seed
+
+_seed = Seed()
+
 # main function for parameter processing
 
 def process(layer_name, lineset_name):
@@ -773,11 +819,41 @@ def process(layer_name, lineset_name):
     if linestyle.material_boundary:
         Operators.sequentialSplit(MaterialBoundaryUP0D())
     # prepare a list of stroke shaders
+    shaders_list = []
+    for m in linestyle.geometry_modifiers:
+        if not m.use:
+            continue
+        if m.type == "SAMPLING":
+            shaders_list.append(SamplingShader(
+                m.sampling))
+        elif m.type == "BEZIER_CURVE":
+            shaders_list.append(BezierCurveShader(
+                m.error))
+        elif m.type == "SINUS_DISPLACEMENT":
+            shaders_list.append(SinusDisplacementShader(
+                m.wavelength, m.amplitude, m.phase))
+        elif m.type == "SPATIAL_NOISE":
+            shaders_list.append(SpatialNoiseShader(
+                m.amplitude, m.scale, m.octaves, m.smooth, m.pure_random))
+        elif m.type == "PERLIN_NOISE_1D":
+            shaders_list.append(pyPerlinNoise1DShader(
+                m.frequency, m.amplitude, m.octaves, _seed.get(m.seed)))
+        elif m.type == "PERLIN_NOISE_2D":
+            shaders_list.append(pyPerlinNoise2DShader(
+                m.frequency, m.amplitude, m.octaves, _seed.get(m.seed)))
+        elif m.type == "BACKBONE_STRETCHER":
+            shaders_list.append(BackboneStretcherShader(
+                m.amount))
+        elif m.type == "TIP_REMOVER":
+            shaders_list.append(TipRemoverShader(
+                m.tip_length))
+    if linestyle.caps == "ROUND":
+        shaders_list.append(RoundCapShader())
+    elif linestyle.caps == "SQUARE":
+        shaders_list.append(SquareCapShader())
     color = linestyle.color
-    shaders_list = [
-        SamplingShader(5.0),
-        ConstantThicknessShader(linestyle.thickness),
-        ConstantColorShader(color.r, color.g, color.b, linestyle.alpha)]
+    shaders_list.append(ConstantColorShader(color.r, color.g, color.b, linestyle.alpha))
+    shaders_list.append(ConstantThicknessShader(linestyle.thickness))
     for m in linestyle.color_modifiers:
         if not m.use:
             continue
@@ -833,9 +909,5 @@ def process(layer_name, lineset_name):
             shaders_list.append(ThicknessMaterialShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.material_attr, m.value_min, m.value_max))
-    if linestyle.caps == "ROUND":
-        shaders_list.append(RoundCapShader())
-    elif linestyle.caps == "SQUARE":
-        shaders_list.append(SquareCapShader())
     # create strokes using the shaders list
     Operators.create(TrueUP1D(), shaders_list)

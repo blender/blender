@@ -52,11 +52,19 @@ static char *modifier_name[LS_MODIFIER_NUM] = {
 	"Along Stroke",
 	"Distance from Camera",
 	"Distance from Object",
-	"Material"};
+	"Material",
+	"Sampling",
+	"Bezier Curve",
+	"Sinus Displacement",
+	"Spatial Noise",
+	"Perlin Noise 1D",
+	"Perlin Noise 2D",
+	"Backbone Stretcher",
+	"Tip Remover"};
 
 static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 {
-	linestyle->panel = LS_PANEL_COLOR;
+	linestyle->panel = LS_PANEL_STROKES;
 	linestyle->r = linestyle->g = linestyle->b = 0.0;
 	linestyle->alpha = 1.0;
 	linestyle->thickness = 1.0;
@@ -64,6 +72,9 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->color_modifiers.first = linestyle->color_modifiers.last = NULL;
 	linestyle->alpha_modifiers.first = linestyle->alpha_modifiers.last = NULL;
 	linestyle->thickness_modifiers.first = linestyle->thickness_modifiers.last = NULL;
+	linestyle->geometry_modifiers.first = linestyle->geometry_modifiers.last = NULL;
+
+	FRS_add_linestyle_geometry_modifier(linestyle, LS_MODIFIER_SAMPLING);
 
 	linestyle->caps = LS_CAPS_BUTT;
 }
@@ -93,6 +104,8 @@ void FRS_free_linestyle(FreestyleLineStyle *linestyle)
 		FRS_remove_linestyle_alpha_modifier(linestyle, m);
 	while ((m = (LineStyleModifier *)linestyle->thickness_modifiers.first))
 		FRS_remove_linestyle_thickness_modifier(linestyle, m);
+	while ((m = (LineStyleModifier *)linestyle->geometry_modifiers.first))
+		FRS_remove_linestyle_geometry_modifier(linestyle, m);
 }
 
 static LineStyleModifier *new_modifier(int type, size_t size)
@@ -117,40 +130,45 @@ static void add_to_modifier_list(ListBase *lb, LineStyleModifier *m)
 
 int FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type)
 {
-	static size_t modifier_size[LS_MODIFIER_NUM] = {
-		0,
-		sizeof(LineStyleColorModifier_AlongStroke),
-		sizeof(LineStyleColorModifier_DistanceFromCamera),
-		sizeof(LineStyleColorModifier_DistanceFromObject),
-		sizeof(LineStyleColorModifier_Material)
-	};
+	size_t size;
 	LineStyleModifier *m;
 
-	if (type <= 0 || type >= LS_MODIFIER_NUM || modifier_size[type] == 0)
-		return -1;
-	m = new_modifier(type, modifier_size[type]);
+	switch (type) {
+	case LS_MODIFIER_ALONG_STROKE:
+		size = sizeof(LineStyleColorModifier_AlongStroke);
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+		size = sizeof(LineStyleColorModifier_DistanceFromCamera);
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+		size = sizeof(LineStyleColorModifier_DistanceFromObject);
+		break;
+	case LS_MODIFIER_MATERIAL:
+		size = sizeof(LineStyleColorModifier_Material);
+		break;
+	default:
+		return -1; /* unknown modifier type */
+	}
+	m = new_modifier(type, size);
 	if (!m)
 		return -1;
+	m->blend = MA_RAMP_BLEND;
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		((LineStyleColorModifier_AlongStroke *)m)->color_ramp = add_colorband(1);
-		((LineStyleColorModifier_AlongStroke *)m)->blend = MA_RAMP_BLEND;
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
 		((LineStyleColorModifier_DistanceFromCamera *)m)->color_ramp = add_colorband(1);
-		((LineStyleColorModifier_DistanceFromCamera *)m)->blend = MA_RAMP_BLEND;
 		((LineStyleColorModifier_DistanceFromCamera *)m)->range_min = 0.0f;
 		((LineStyleColorModifier_DistanceFromCamera *)m)->range_max = 10000.0f;
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		((LineStyleColorModifier_DistanceFromObject *)m)->target = NULL;
 		((LineStyleColorModifier_DistanceFromObject *)m)->color_ramp = add_colorband(1);
-		((LineStyleColorModifier_DistanceFromObject *)m)->blend = MA_RAMP_BLEND;
 		((LineStyleColorModifier_DistanceFromObject *)m)->range_min = 0.0f;
 		((LineStyleColorModifier_DistanceFromObject *)m)->range_max = 10000.0f;
 		break;
 	case LS_MODIFIER_MATERIAL:
-		((LineStyleColorModifier_Material *)m)->blend = MA_RAMP_BLEND;
 		((LineStyleColorModifier_Material *)m)->color_ramp = add_colorband(1);
 		((LineStyleColorModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
 		break;
@@ -183,45 +201,48 @@ void FRS_remove_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyl
 
 int FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type)
 {
-	static size_t modifier_size[LS_MODIFIER_NUM] = {
-		0,
-		sizeof(LineStyleAlphaModifier_AlongStroke),
-		sizeof(LineStyleAlphaModifier_DistanceFromCamera),
-		sizeof(LineStyleAlphaModifier_DistanceFromObject),
-		sizeof(LineStyleAlphaModifier_Material)
-	};
+	size_t size;
 	LineStyleModifier *m;
 
-	if (type <= 0 || type >= LS_MODIFIER_NUM || modifier_size[type] == 0)
-		return -1;
-	m = new_modifier(type, modifier_size[type]);
+	switch (type) {
+	case LS_MODIFIER_ALONG_STROKE:
+		size = sizeof(LineStyleAlphaModifier_AlongStroke);
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+		size = sizeof(LineStyleAlphaModifier_DistanceFromCamera);
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+		size = sizeof(LineStyleAlphaModifier_DistanceFromObject);
+		break;
+	case LS_MODIFIER_MATERIAL:
+		size = sizeof(LineStyleAlphaModifier_Material);
+		break;
+	default:
+		return -1; /* unknown modifier type */
+	}
+	m = new_modifier(type, size);
 	if (!m)
 		return -1;
+	m->blend = LS_VALUE_BLEND;
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		((LineStyleAlphaModifier_AlongStroke *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_AlongStroke *)m)->blend = LS_VALUE_BLEND;
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
 		((LineStyleAlphaModifier_DistanceFromCamera *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_DistanceFromCamera *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleAlphaModifier_DistanceFromCamera *)m)->range_min = 0.0f;
 		((LineStyleAlphaModifier_DistanceFromCamera *)m)->range_max = 10000.0f;
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->target = NULL;
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_DistanceFromObject *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->range_min = 0.0f;
 		((LineStyleAlphaModifier_DistanceFromObject *)m)->range_max = 10000.0f;
 		break;
 	case LS_MODIFIER_MATERIAL:
 		((LineStyleAlphaModifier_Material *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleAlphaModifier_Material *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleAlphaModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
 		break;
-	default:
-		return -1; /* unknown modifier type */
 	}
 	add_to_modifier_list(&linestyle->alpha_modifiers, m);
 
@@ -249,30 +270,37 @@ void FRS_remove_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyl
 
 int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type)
 {
-	static size_t modifier_size[LS_MODIFIER_NUM] = {
-		0,
-		sizeof(LineStyleThicknessModifier_AlongStroke),
-		sizeof(LineStyleThicknessModifier_DistanceFromCamera),
-		sizeof(LineStyleThicknessModifier_DistanceFromObject),
-		sizeof(LineStyleThicknessModifier_Material)
-	};
+	size_t size;
 	LineStyleModifier *m;
 
-	if (type <= 0 || type >= LS_MODIFIER_NUM || modifier_size[type] == 0)
-		return -1;
-	m = new_modifier(type, modifier_size[type]);
+	switch (type) {
+	case LS_MODIFIER_ALONG_STROKE:
+		size = sizeof(LineStyleThicknessModifier_AlongStroke);
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+		size = sizeof(LineStyleThicknessModifier_DistanceFromCamera);
+		break;
+	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+		size = sizeof(LineStyleThicknessModifier_DistanceFromObject);
+		break;
+	case LS_MODIFIER_MATERIAL:
+		size = sizeof(LineStyleThicknessModifier_Material);
+		break;
+	default:
+		return -1; /* unknown modifier type */
+	}
+	m = new_modifier(type, size);
 	if (!m)
 		return -1;
+	m->blend = LS_VALUE_BLEND;
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		((LineStyleThicknessModifier_AlongStroke *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_AlongStroke *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleThicknessModifier_AlongStroke *)m)->value_min = 0.0f;
 		((LineStyleThicknessModifier_AlongStroke *)m)->value_max = 1.0f;
 		break;
 	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
 		((LineStyleThicknessModifier_DistanceFromCamera *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_DistanceFromCamera *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleThicknessModifier_DistanceFromCamera *)m)->range_min = 0.0f;
 		((LineStyleThicknessModifier_DistanceFromCamera *)m)->range_max = 1000.0f;
 		((LineStyleThicknessModifier_DistanceFromCamera *)m)->value_min = 0.0f;
@@ -281,7 +309,6 @@ int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type
 	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->target = NULL;
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_DistanceFromObject *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->range_min = 0.0f;
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->range_max = 1000.0f;
 		((LineStyleThicknessModifier_DistanceFromObject *)m)->value_min = 0.0f;
@@ -289,13 +316,10 @@ int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type
 		break;
 	case LS_MODIFIER_MATERIAL:
 		((LineStyleThicknessModifier_Material *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-		((LineStyleThicknessModifier_Material *)m)->blend = LS_VALUE_BLEND;
 		((LineStyleThicknessModifier_Material *)m)->mat_attr = LS_MODIFIER_MATERIAL_DIFF;
 		((LineStyleThicknessModifier_Material *)m)->value_min = 0.0f;
 		((LineStyleThicknessModifier_Material *)m)->value_max = 1.0f;
 		break;
-	default:
-		return -1; /* unknown modifier type */
 	}
 	add_to_modifier_list(&linestyle->thickness_modifiers, m);
 
@@ -321,6 +345,104 @@ void FRS_remove_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, Line
 	BLI_freelinkN(&linestyle->thickness_modifiers, m);
 }
 
+int FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type)
+{
+	size_t size;
+	LineStyleModifier *m;
+
+	switch (type) {
+	case LS_MODIFIER_SAMPLING:
+		size = sizeof(LineStyleGeometryModifier_Sampling);
+		break;
+	case LS_MODIFIER_BEZIER_CURVE:
+		size = sizeof(LineStyleGeometryModifier_BezierCurve);
+		break;
+	case LS_MODIFIER_SINUS_DISPLACEMENT:
+		size = sizeof(LineStyleGeometryModifier_SinusDisplacement);
+		break;
+	case LS_MODIFIER_SPATIAL_NOISE:
+		size = sizeof(LineStyleGeometryModifier_SpatialNoise);
+		break;
+	case LS_MODIFIER_PERLIN_NOISE_1D:
+		size = sizeof(LineStyleGeometryModifier_PerlinNoise1D);
+		break;
+	case LS_MODIFIER_PERLIN_NOISE_2D:
+		size = sizeof(LineStyleGeometryModifier_PerlinNoise2D);
+		break;
+	case LS_MODIFIER_BACKBONE_STRETCHER:
+		size = sizeof(LineStyleGeometryModifier_BackboneStretcher);
+		break;
+	case LS_MODIFIER_TIP_REMOVER:
+		size = sizeof(LineStyleGeometryModifier_TipRemover);
+		break;
+	default:
+		return -1; /* unknown modifier type */
+	}
+	m = new_modifier(type, size);
+	if (!m)
+		return -1;
+	switch (type) {
+	case LS_MODIFIER_SAMPLING:
+		((LineStyleGeometryModifier_Sampling *)m)->sampling = 10.0;
+		break;
+	case LS_MODIFIER_BEZIER_CURVE:
+		((LineStyleGeometryModifier_BezierCurve *)m)->error = 10.0;
+		break;
+	case LS_MODIFIER_SINUS_DISPLACEMENT:
+		((LineStyleGeometryModifier_SinusDisplacement *)m)->wavelength = 20.0;
+		((LineStyleGeometryModifier_SinusDisplacement *)m)->amplitude = 5.0;
+		((LineStyleGeometryModifier_SinusDisplacement *)m)->phase = 0.0;
+		break;
+	case LS_MODIFIER_SPATIAL_NOISE:
+		((LineStyleGeometryModifier_SpatialNoise *)m)->amplitude = 5.0;
+		((LineStyleGeometryModifier_SpatialNoise *)m)->scale = 20.0;
+		((LineStyleGeometryModifier_SpatialNoise *)m)->octaves = 4;
+		((LineStyleGeometryModifier_SpatialNoise *)m)->flags = LS_MODIFIER_SPATIAL_NOISE_SMOOTH | LS_MODIFIER_SPATIAL_NOISE_PURERANDOM;
+		break;
+	case LS_MODIFIER_PERLIN_NOISE_1D:
+		((LineStyleGeometryModifier_PerlinNoise1D *)m)->frequency = 10.0;
+		((LineStyleGeometryModifier_PerlinNoise1D *)m)->amplitude = 10.0;
+		((LineStyleGeometryModifier_PerlinNoise1D *)m)->octaves = 4;
+		break;
+	case LS_MODIFIER_PERLIN_NOISE_2D:
+		((LineStyleGeometryModifier_PerlinNoise2D *)m)->frequency = 10.0;
+		((LineStyleGeometryModifier_PerlinNoise2D *)m)->amplitude = 10.0;
+		((LineStyleGeometryModifier_PerlinNoise2D *)m)->octaves = 4;
+		break;
+	case LS_MODIFIER_BACKBONE_STRETCHER:
+		((LineStyleGeometryModifier_BackboneStretcher *)m)->amount = 10.0;
+		break;
+	case LS_MODIFIER_TIP_REMOVER:
+		((LineStyleGeometryModifier_TipRemover *)m)->tip_length = 10.0;
+		break;
+	}
+	add_to_modifier_list(&linestyle->geometry_modifiers, m);
+	return 0;
+}
+
+void FRS_remove_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
+{
+	switch (m->type) {
+	case LS_MODIFIER_SAMPLING:
+		break;
+	case LS_MODIFIER_BEZIER_CURVE:
+		break;
+	case LS_MODIFIER_SINUS_DISPLACEMENT:
+		break;
+	case LS_MODIFIER_SPATIAL_NOISE:
+		break;
+	case LS_MODIFIER_PERLIN_NOISE_1D:
+		break;
+	case LS_MODIFIER_PERLIN_NOISE_2D:
+		break;
+	case LS_MODIFIER_BACKBONE_STRETCHER:
+		break;
+	case LS_MODIFIER_TIP_REMOVER:
+		break;
+	}
+	BLI_freelinkN(&linestyle->geometry_modifiers, m);
+}
+
 static void move_modifier(ListBase *lb, LineStyleModifier *modifier, int direction)
 {
 	BLI_remlink(lb, modifier);
@@ -343,6 +465,11 @@ void FRS_move_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleM
 void FRS_move_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
 {
 	move_modifier(&linestyle->thickness_modifiers, modifier, direction);
+}
+
+void FRS_move_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *modifier, int direction)
+{
+	move_modifier(&linestyle->geometry_modifiers, modifier, direction);
 }
 
 void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *listbase)
