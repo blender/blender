@@ -768,15 +768,19 @@ static unsigned char *acquire_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *tr
 	return pixels;
 }
 
-static ImBuf *acquire_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track, MovieTrackingMarker *marker)
+static ImBuf *acquire_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track,
+			MovieTrackingMarker *marker, MovieTrackingMarker **marker_keyed)
 {
 	int framenr_old= context->user.framenr, framenr= marker->framenr;
 	int a= marker-track->markers;
 	ImBuf *ibuf;
 
+	*marker_keyed= marker;
+
 	while(a>=0 && a<track->markersnr) {
-		if(marker->flag&MARKER_TRACKED) {
-			framenr= marker->framenr;
+		if((track->markers[a].flag&MARKER_TRACKED)==0) {
+			framenr= track->markers[a].framenr;
+			*marker_keyed= &track->markers[a];
 			break;
 		}
 
@@ -917,7 +921,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			float pos[2];
 			double x1, y1, x2, y2;
 			ImBuf *ibuf= NULL;
-			MovieTrackingMarker marker_new;
+			MovieTrackingMarker marker_new, *marker_keyed;
 
 			if(context->settings.tracker==TRACKER_KLT) {
 				int wndx, wndy;
@@ -925,8 +929,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				if(!track_context->patch) {
 					/* calculate patch for keyframed position */
-					ibuf= acquire_keyframed_ibuf(context, track, marker);
-					track_context->patch= acquire_search_floatbuf(ibuf, track, marker, &width, &height, pos, origin);
+					ibuf= acquire_keyframed_ibuf(context, track, marker, &marker_keyed);
+					track_context->patch= acquire_search_floatbuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
+
 					IMB_freeImBuf(ibuf);
 				}
 
@@ -952,12 +957,12 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				if(track_context->pattern==NULL) {
 					unsigned char *image;
-					float warp[3][2]={0};
+					float warp[3][2]={{0}};
 
 					/* calculate pattern for keyframed position */
 
-					ibuf= acquire_keyframed_ibuf(context, track, marker);
-					image= acquire_search_bytebuf(ibuf, track, marker, &width, &height, pos, origin);
+					ibuf= acquire_keyframed_ibuf(context, track, marker, &marker_keyed);
+					image= acquire_search_bytebuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
 
 					warp[0][0]= 1;
 					warp[1][1]= 1;
