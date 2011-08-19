@@ -122,7 +122,7 @@ float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride,
   min=-1; //reset score since direct warped search match too well (but the wrong pattern).
 
   // 6D coordinate descent to find affine transform
-  ubyte match = new ubyte[size*size];
+  ubyte* match = new ubyte[size*size];
   float step = 0.5;
   for(int p = 0; p < 8; p++) { //foreach precision level
     for(int i = 0; i < 2; i++) { // iterate twice per precision level

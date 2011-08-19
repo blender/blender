@@ -1,3 +1,9 @@
+commit a14eb3953c9521b2e08ff9ddd45b33ff1f8aeafb
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 17:12:12 2011 +0200
+
+    Update marker preview to new affine tracking.
+
 commit 5299ea67043459eda147950e589c2d327a8fbced
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Fri Aug 19 16:05:54 2011 +0200
