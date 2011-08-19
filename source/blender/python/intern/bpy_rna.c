@@ -4309,7 +4309,6 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 	PropertyRNA *parm;
 	PyObject *ret, *item;
 	int i, pyargs_len, pykw_len, parms_len, ret_len, flag, err= 0, kw_tot= 0, kw_arg;
-	const char *parm_id;
 
 	PropertyRNA *pret_single= NULL;
 	void *retdata_single= NULL;
@@ -4385,28 +4384,29 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 			continue;
 		}
 
-		parm_id= RNA_property_identifier(parm);
 		item= NULL;
 
 		if (i < pyargs_len) {
 			item= PyTuple_GET_ITEM(args, i);
-			i++;
-
 			kw_arg= FALSE;
 		}
 		else if (kw != NULL) {
-			item= PyDict_GetItemString(kw, parm_id); /* borrow ref */
+			item= PyDict_GetItemString(kw, RNA_property_identifier(parm)); /* borrow ref */
 			if(item)
 				kw_tot++; /* make sure invalid keywords are not given */
 
 			kw_arg= TRUE;
 		}
 
+		i++; /* current argument */
+
 		if (item==NULL) {
 			if(flag & PROP_REQUIRED) {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s.%.200s(): required parameter \"%.200s\" not specified",
-				             RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), parm_id);
+				             RNA_struct_identifier(self_ptr->type),
+				             RNA_function_identifier(self_func),
+				             RNA_property_identifier(parm));
 				err= -1;
 				break;
 			}
@@ -4433,9 +4433,18 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 			PyErr_Clear(); /* re-raise */
 
 			if(kw_arg==TRUE)
-				snprintf(error_prefix, sizeof(error_prefix), "%s.%s(): error with keyword argument \"%s\" - ", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), parm_id);
+				BLI_snprintf(error_prefix, sizeof(error_prefix),
+				             "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
+				             RNA_struct_identifier(self_ptr->type),
+				             RNA_function_identifier(self_func),
+				             RNA_property_identifier(parm));
 			else
-				snprintf(error_prefix, sizeof(error_prefix), "%s.%s(): error with argument %d, \"%s\" - ", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), i, parm_id);
+				BLI_snprintf(error_prefix, sizeof(error_prefix),
+				             "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
+				             RNA_struct_identifier(self_ptr->type),
+				             RNA_function_identifier(self_func),
+				             i,
+				             RNA_property_identifier(parm));
 
 			pyrna_py_to_prop(&funcptr, parm, iter.data, item, error_prefix);
 
