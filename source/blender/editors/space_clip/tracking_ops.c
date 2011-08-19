@@ -1418,8 +1418,8 @@ static int track_markers_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 static int track_markers_modal(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
 	/* no running blender, remove handler and pass through */
-	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C)))
-		return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
+	if(0==WM_jobs_test(CTX_wm_manager(C), CTX_wm_area(C)))
+		return OPERATOR_FINISHED;
 
 	/* running tracking */
 	switch (event->type) {
