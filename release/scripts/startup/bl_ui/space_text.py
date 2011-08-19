@@ -172,7 +172,6 @@ class TEXT_MT_text(Menu):
         st = context.space_data
         text = st.text
 
-        layout.column()
         layout.operator("text.new")
         layout.operator("text.open")
 
@@ -188,11 +187,6 @@ class TEXT_MT_text(Menu):
 
             layout.column()
             layout.operator("text.run_script")
-
-            #ifdef WITH_PYTHON
-            # XXX if(BPY_is_pyconstraint(text))
-            # XXX   uiMenuItemO(head, 0, "text.refresh_pyconstraints");
-            #endif
 
 
 class TEXT_MT_templates(Menu):

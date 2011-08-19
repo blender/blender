@@ -101,6 +101,7 @@ typedef enum {
 
 typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);
 typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin);
+typedef void (*TexWalkFunc)(void *userData, struct Object *ob, struct ModifierData *md, const char *propname);
 
 typedef struct ModifierTypeInfo {
 	/* The user visible name for this modifier */
@@ -284,6 +285,16 @@ typedef struct ModifierTypeInfo {
 	 */
 	void (*foreachIDLink)(struct ModifierData *md, struct Object *ob,
 						  IDWalkFunc walk, void *userData);
+
+	/* Should call the given walk function for each texture that the
+	 * modifier data stores. This is used for finding all textures in
+	 * the context for the UI.
+	 *
+	 * This function is optional. If it is not present, it will be
+	 * assumed the modifier has no textures.
+	 */
+	void (*foreachTexLink)(struct ModifierData *md, struct Object *ob,
+						  TexWalkFunc walk, void *userData);
 } ModifierTypeInfo;
 
 ModifierTypeInfo *modifierType_getInfo (ModifierType type);
@@ -315,6 +326,10 @@ void          modifiers_foreachObjectLink(struct Object *ob,
 void          modifiers_foreachIDLink(struct Object *ob,
 									  IDWalkFunc walk,
 									  void *userData);
+void          modifiers_foreachTexLink(struct Object *ob,
+									  TexWalkFunc walk,
+									  void *userData);
+
 struct ModifierData  *modifiers_findByType(struct Object *ob, ModifierType type);
 struct ModifierData  *modifiers_findByName(struct Object *ob, const char *name);
 void          modifiers_clearErrors(struct Object *ob);

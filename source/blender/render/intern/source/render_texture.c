@@ -2084,14 +2084,21 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 	if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
 		if(tex->ima) {
-			// crazy hack solution that gives results similar to normal mapping - part 2
 			float vec[2];
+			int dimx=512, dimy=512; 
+			ImBuf* ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
+			if (ibuf) {
+				dimx = ibuf->x;
+				dimy = ibuf->y;
+			}
+
+			// crazy hack solution that gives results similar to normal mapping - part 2
 			
-			vec[0] = tex->ima->gen_x*dxt[0];
-			vec[1] = tex->ima->gen_y*dxt[1];
+			vec[0] = dimx*dxt[0];
+			vec[1] = dimy*dxt[1];
 			dHdx *= 1.0f/len_v2(vec);
-			vec[0] = tex->ima->gen_x*dyt[0];
-			vec[1] = tex->ima->gen_y*dyt[1];
+			vec[0] = dimx*dyt[0];
+			vec[1] = dimy*dyt[1];
 			dHdy *= 1.0f/len_v2(vec);
 		}
 	}

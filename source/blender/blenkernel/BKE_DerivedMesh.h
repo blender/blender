@@ -529,7 +529,7 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 typedef struct DMVertexAttribs {
 	struct {
 		struct MTFace *array;
-		int emOffset, glIndex;
+		int emOffset, glIndex, glTexco;
 	} tface[MAX_MTFACE];
 
 	struct {
@@ -544,7 +544,7 @@ typedef struct DMVertexAttribs {
 
 	struct {
 		float (*array)[3];
-		int emOffset, glIndex;
+		int emOffset, glIndex, glTexco;
 	} orco;
 
 	int tottface, totmcol, tottang, totorco;

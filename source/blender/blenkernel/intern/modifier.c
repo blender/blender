@@ -195,6 +195,18 @@ void modifiers_foreachIDLink(Object *ob, IDWalkFunc walk, void *userData)
 	}
 }
 
+void modifiers_foreachTexLink(Object *ob, TexWalkFunc walk, void *userData)
+{
+	ModifierData *md = ob->modifiers.first;
+
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if(mti->foreachTexLink)
+			mti->foreachTexLink(md, ob, walk, userData);
+	}
+}
+
 void modifier_copyData(ModifierData *md, ModifierData *target)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);

@@ -450,7 +450,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
-int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
+int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
@@ -466,7 +466,6 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 		} else {
 			tstr[0] = '\0';
 			from_memory = 1;
-			BKE_report(reports, RPT_INFO, "Config directory with "STRINGIFY(BLENDER_STARTUP_FILE)" file not found.");
 		}
 	}
 	

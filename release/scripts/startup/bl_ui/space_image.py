@@ -387,7 +387,7 @@ class IMAGE_HT_header(Header):
 
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_element", text="", icon_only=True)
+            row.prop(toolsettings, "snap_target", text="")
 
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_textures, "active", mesh, "uv_textures", text="")
@@ -452,15 +452,13 @@ class IMAGE_PT_game_properties(Panel):
         split = layout.split()
 
         col = split.column()
-
+        
+        col.prop(ima, "use_animation")
         sub = col.column(align=True)
-        sub.prop(ima, "use_animation")
-
-        subsub = sub.column()
-        subsub.active = ima.use_animation
-        subsub.prop(ima, "frame_start", text="Start")
-        subsub.prop(ima, "frame_end", text="End")
-        subsub.prop(ima, "fps", text="Speed")
+        sub.active = ima.use_animation
+        sub.prop(ima, "frame_start", text="Start")
+        sub.prop(ima, "frame_end", text="End")
+        sub.prop(ima, "fps", text="Speed")
 
         col.prop(ima, "use_tiles")
         sub = col.column(align=True)
@@ -509,10 +507,11 @@ class IMAGE_PT_view_waveform(Panel):
         layout = self.layout
 
         sima = context.space_data
+        
         layout.template_waveform(sima, "scopes")
-        sub = layout.row().split(percentage=0.75)
-        sub.prop(sima.scopes, "waveform_alpha")
-        sub.prop(sima.scopes, "waveform_mode", text="", icon_only=True)
+        row = layout.split(percentage=0.75)
+        row.prop(sima.scopes, "waveform_alpha")
+        row.prop(sima.scopes, "waveform_mode", text="", icon_only=True)
 
 
 class IMAGE_PT_view_vectorscope(Panel):
@@ -545,8 +544,10 @@ class IMAGE_PT_sample_line(Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("image.sample_line")
+        
         sima = context.space_data
+        
+        layout.operator("image.sample_line")
         layout.template_histogram(sima, "sample_histogram")
         layout.prop(sima.sample_histogram, "mode")
 
@@ -563,13 +564,14 @@ class IMAGE_PT_scope_sample(Panel):
 
     def draw(self, context):
         layout = self.layout
+        
         sima = context.space_data
-        split = layout.split()
-        row = split.row()
+        
+        row = layout.row()
         row.prop(sima.scopes, "use_full_resolution")
-        row = split.row()
-        row.active = not sima.scopes.use_full_resolution
-        row.prop(sima.scopes, "accuracy")
+        sub = row.row()
+        sub.active = not sima.scopes.use_full_resolution
+        sub.prop(sima.scopes, "accuracy")
 
 
 class IMAGE_PT_view_properties(Panel):
@@ -609,16 +611,16 @@ class IMAGE_PT_view_properties(Panel):
         if show_uvedit:
 
             col = layout.column()
-            col.label("Cursor Location")
-            row = col.row()
-            row.prop(uvedit, "cursor_location", text="")
-
-            col = layout.column()
+            col.label("Cursor Location:")
+            col.row().prop(uvedit, "cursor_location", text="")
+            
+            col.separator()
+            
             col.label(text="UVs:")
-            row = col.row()
-            row.prop(uvedit, "edge_draw_type", expand=True)
+            col.row().prop(uvedit, "edge_draw_type", expand=True)
 
             split = layout.split()
+            
             col = split.column()
             col.prop(uvedit, "show_faces")
             col.prop(uvedit, "show_smooth_edges", text="Smooth")
@@ -647,9 +649,8 @@ class IMAGE_PT_paint(Panel):
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
 
-        col = layout.split().column()
-        row = col.row()
-        col.template_ID_preview(toolsettings, "brush", new="brush.add", rows=3, cols=8)
+        col = layout.column()
+        col.template_ID_preview(toolsettings, "brush", new="brush.add", rows=2, cols=6)
 
         if brush:
             col = layout.column()
@@ -700,9 +701,7 @@ class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, Panel):
         settings = context.tool_settings.image_paint
         brush = settings.brush
 
-        col = layout.column(align=True)
-
-        col.prop(brush, "image_tool", expand=False, text="")
+        layout.prop(brush, "image_tool", text="")
 
         row = layout.row(align=True)
         row.prop(brush, "use_paint_sculpt", text="", icon='SCULPTMODE_HLT')
@@ -722,9 +721,9 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
         brush = toolsettings.brush
 
         layout.prop(brush, "use_airbrush")
-        col = layout.column()
-        col.active = brush.use_airbrush
-        col.prop(brush, "rate", slider=True)
+        row = layout.row()
+        row.active = brush.use_airbrush
+        row.prop(brush, "rate", slider=True)
 
         layout.prop(brush, "use_space")
         row = layout.row(align=True)

@@ -37,8 +37,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-extern void PyC_LineSpit(void);
-
 #define MAX_DIMENSIONS 4
 
 /* Swizzle axes get packed into a single value that is used as a closure. Each
@@ -1161,28 +1159,18 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 	}
 	else if (vec1) {
 		if (MatrixObject_Check(v2)) {
-			extern void PyC_LineSpit(void);
-
-			/* VEC * MATRIX */
-			/* this is deprecated!, use the reverse instead */
-			float tvec[MAX_DIMENSIONS];
-
 
 /* ------ to be removed ------*/
-#ifndef MATH_STANDALONE
-#ifdef WITH_ASSERT_ABORT
+#if 1
 			PyErr_SetString(PyExc_ValueError,
 			                "(Vector * Matrix) is now removed, reverse the "
 			                "order (promoted to an Error for Debug builds)");
 			return NULL;
 #else
-			printf("Warning: (Vector * Matrix) is now deprecated, "
-			       "reverse the multiplication order in the script.\n");
-			PyC_LineSpit();
-#endif
-#endif		/* ifndef MATH_STANDALONE */
-/* ------ to be removed ------*/
 
+			/* VEC * MATRIX */
+			/* this is deprecated!, use the reverse instead */
+			float tvec[MAX_DIMENSIONS];
 
 			if(BaseMath_ReadCallback((MatrixObject *)v2) == -1)
 				return NULL;
@@ -1191,9 +1179,18 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 			}
 
 			return newVectorObject(tvec, vec1->size, Py_NEW, Py_TYPE(vec1));
+#endif
+/* ------ to be removed ------*/
 		}
 		else if (QuaternionObject_Check(v2)) {
 			/* VEC * QUAT */
+/* ------ to be removed ------*/
+#if 1
+			PyErr_SetString(PyExc_ValueError,
+			                "(Vector * Quat) is now removed, reverse the "
+			                "order (promoted to an Error for Debug builds)");
+			return NULL;
+#else
 			QuaternionObject *quat2 = (QuaternionObject*)v2;
 			float tvec[3];
 
@@ -1207,26 +1204,11 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 				return NULL;
 			}
 
-
-/* ------ to be removed ------*/
-#ifndef MATH_STANDALONE
-#ifdef WITH_ASSERT_ABORT
-			PyErr_SetString(PyExc_ValueError,
-			                "(Vector * Quat) is now removed, reverse the "
-			                "order (promoted to an Error for Debug builds)");
-			return NULL;
-#else
-			printf("Warning: (Vector * Quat) is now deprecated, "
-			       "reverse the multiplication order in the script.\n");
-			PyC_LineSpit();
-#endif
-#endif		/* ifndef MATH_STANDALONE */
-/* ------ to be removed ------*/
-
-
 			copy_v3_v3(tvec, vec1->vec);
 			mul_qt_v3(quat2->quat, tvec);
 			return newVectorObject(tvec, 3, Py_NEW, Py_TYPE(vec1));
+#endif
+/* ------ to be removed ------*/
 		}
 		else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC * FLOAT */
 			return vector_mul_float(vec1, scalar);
@@ -1260,6 +1242,14 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 	/* only support vec*=float and vec*=mat
 	   vec*=vec result is a float so that wont work */
 	if (MatrixObject_Check(v2)) {
+/* ------ to be removed ------*/
+#if 1
+		PyErr_SetString(PyExc_ValueError,
+						"(Vector *= Matrix) is now removed, reverse the "
+						"order (promoted to an Error for Debug builds) "
+						"and uses the non in-place multiplication.");
+		return NULL;
+#else
 		float rvec[MAX_DIMENSIONS];
 		if(BaseMath_ReadCallback((MatrixObject *)v2) == -1)
 			return NULL;
@@ -1267,28 +1257,21 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		if(column_vector_multiplication(rvec, vec, (MatrixObject*)v2) == -1)
 			return NULL;
 
-
-/* ------ to be removed ------*/
-#ifndef MATH_STANDALONE
-#ifdef WITH_ASSERT_ABORT
-			PyErr_SetString(PyExc_ValueError,
-							"(Vector *= Matrix) is now removed, reverse the "
-							"order (promoted to an Error for Debug builds) "
-			                "and uses the non in-place multiplication.");
-			return NULL;
-#else
-			printf("Warning: (Vector *= Matrix) is now deprecated, "
-				   "reverse the (non in-place) multiplication order in the script.\n");
-			PyC_LineSpit();
-#endif
-#endif		/* ifndef MATH_STANDALONE */
-/* ------ to be removed ------*/
-
-
 		memcpy(vec->vec, rvec, sizeof(float) * vec->size);
+#endif
+/* ------ to be removed ------*/
 	}
 	else if (QuaternionObject_Check(v2)) {
 		/* VEC *= QUAT */
+
+/* ------ to be removed ------*/
+#if 1
+		PyErr_SetString(PyExc_ValueError,
+						"(Vector *= Quat) is now removed, reverse the "
+						"order (promoted to an Error for Debug builds) "
+						"and uses the non in-place multiplication.");
+		return NULL;
+#else
 		QuaternionObject *quat2 = (QuaternionObject*)v2;
 
 		if(vec->size != 3) {
@@ -1302,25 +1285,9 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 			return NULL;
 		}
 
-
-/* ------ to be removed ------*/
-#ifndef MATH_STANDALONE
-#ifdef WITH_ASSERT_ABORT
-			PyErr_SetString(PyExc_ValueError,
-							"(Vector *= Quat) is now removed, reverse the "
-							"order (promoted to an Error for Debug builds) "
-			                "and uses the non in-place multiplication.");
-			return NULL;
-#else
-			printf("Warning: (Vector *= Quat) is now deprecated, "
-				   "reverse the (non in-place) multiplication order in the script.\n");
-			PyC_LineSpit();
-#endif
-#endif		/* ifndef MATH_STANDALONE */
-/* ------ to be removed ------*/
-
-
 		mul_qt_v3(quat2->quat, vec->vec);
+#endif
+/* ------ to be removed ------*/
 	}
 	else if (((scalar= PyFloat_AsDouble(v2)) == -1.0f && PyErr_Occurred())==0) { /* VEC *= FLOAT */
 		mul_vn_fl(vec->vec, vec->size, scalar);

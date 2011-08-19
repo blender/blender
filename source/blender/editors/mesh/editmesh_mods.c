@@ -1699,7 +1699,7 @@ void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type)
 
 
 /* ctrl+c in mesh editmode */
-static void mesh_copy_menu(EditMesh *em, wmOperator *op)
+static void UNUSED_FUNCTION(mesh_copy_menu)(EditMesh *em, wmOperator *op)
 {
 	EditSelection *ese;
 	int ret;

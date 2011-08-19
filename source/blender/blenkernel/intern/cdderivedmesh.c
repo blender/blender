@@ -1031,6 +1031,50 @@ static void cdDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void 
 	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
 }
 
+static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int a, int index, int vert, int smoothnormal)
+{
+	int b;
+
+	/* orco texture coordinates */
+	if(attribs->totorco) {
+		if(attribs->orco.glTexco)
+			glTexCoord3fv(attribs->orco.array[index]);
+		else
+			glVertexAttrib3fvARB(attribs->orco.glIndex, attribs->orco.array[index]);
+	}
+
+	/* uv texture coordinates */
+	for(b = 0; b < attribs->tottface; b++) {
+		MTFace *tf = &attribs->tface[b].array[a];
+
+		if(attribs->tface[b].glTexco)
+			glTexCoord2fv(tf->uv[vert]);
+		else
+			glVertexAttrib2fvARB(attribs->tface[b].glIndex, tf->uv[vert]);
+	}
+
+	/* vertex colors */
+	for(b = 0; b < attribs->totmcol; b++) {
+		MCol *cp = &attribs->mcol[b].array[a*4 + vert];
+		GLubyte col[4];
+		col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;
+		glVertexAttrib4ubvARB(attribs->mcol[b].glIndex, col);
+	}
+
+	/* tangent for normal mapping */
+	if(attribs->tottang) {
+		float *tang = attribs->tang.array[a*4 + vert];
+		glVertexAttrib4fvARB(attribs->tang.glIndex, tang);
+	}
+
+	/* vertex normal */
+	if(smoothnormal)
+		glNormal3sv(mvert[index].no);
+	
+	/* vertex coordinate */
+	glVertex3fv(mvert[index].co);
+}
+
 static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs), int (*setDrawOptions)(void *userData, int index), void *userData)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
@@ -1121,37 +1165,14 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 				}
 			}
 
-#define PASSVERT(index, vert) {													\
-		if(attribs.totorco)															\
-			glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);	\
-		for(b = 0; b < attribs.tottface; b++) {										\
-			MTFace *tf = &attribs.tface[b].array[a];								\
-			glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);			\
-		}																			\
-		for(b = 0; b < attribs.totmcol; b++) {										\
-			MCol *cp = &attribs.mcol[b].array[a*4 + vert];							\
-			GLubyte col[4];															\
-			col[0]= cp->b; col[1]= cp->g; col[2]= cp->r; col[3]= cp->a;				\
-			glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);					\
-		}																			\
-		if(attribs.tottang) {														\
-			float *tang = attribs.tang.array[a*4 + vert];							\
-			glVertexAttrib4fvARB(attribs.tang.glIndex, tang);						\
-		}																			\
-		if(smoothnormal)															\
-			glNormal3sv(mvert[index].no);											\
-		glVertex3fv(mvert[index].co);												\
-	}
+			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v1, 0, smoothnormal);
+			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v2, 1, smoothnormal);
+			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v3, 2, smoothnormal);
 
-			PASSVERT(mface->v1, 0);
-			PASSVERT(mface->v2, 1);
-			PASSVERT(mface->v3, 2);
 			if(mface->v4)
-				PASSVERT(mface->v4, 3)
+				cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v4, 3, smoothnormal);
 			else
-				PASSVERT(mface->v3, 2)
-
-#undef PASSVERT
+				cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v3, 2, smoothnormal);
 		}
 		glEnd();
 	}

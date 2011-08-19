@@ -2010,8 +2010,6 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {	
-	int selected = 0;
-
 	if(!RNA_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
 		BLI_strncpy(filepath, G.main->name, sizeof(filepath));
@@ -2928,7 +2926,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	case PROP_FACTOR:
 		r1= (1 - rc->current_value) * WM_RADIAL_CONTROL_DISPLAY_SIZE;
 		r2= tex_radius= WM_RADIAL_CONTROL_DISPLAY_SIZE;
-		alpha = rc->current_value / 2 + 0.5;
+		alpha = rc->current_value / 2.0f + 0.5f;
 		break;
 	case PROP_ANGLE:
 		r1= r2= tex_radius= WM_RADIAL_CONTROL_DISPLAY_SIZE;

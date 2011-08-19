@@ -68,6 +68,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_swap_inputs);
 	WM_operatortype_append(SEQUENCER_OT_duplicate);
 	WM_operatortype_append(SEQUENCER_OT_delete);
+	WM_operatortype_append(SEQUENCER_OT_offset_clear);
 	WM_operatortype_append(SEQUENCER_OT_images_separate);
 	WM_operatortype_append(SEQUENCER_OT_meta_toggle);
 	WM_operatortype_append(SEQUENCER_OT_meta_make);
@@ -148,6 +149,8 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_reassign_inputs", RKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_reload", RKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_offset_clear", OKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 

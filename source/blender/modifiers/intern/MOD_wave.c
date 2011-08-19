@@ -126,6 +126,12 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
+static void foreachTexLink(ModifierData *md, Object *ob,
+					   TexWalkFunc walk, void *userData)
+{
+	walk(userData, ob, md, "texture");
+}
+
 static void updateDepgraph(ModifierData *md, DagForest *forest,
 						Scene *UNUSED(scene),
 						Object *UNUSED(ob),
@@ -466,4 +472,5 @@ ModifierTypeInfo modifierType_Wave = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
+	/* foreachTexLink */    foreachTexLink,
 };

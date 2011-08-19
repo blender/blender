@@ -106,10 +106,11 @@
 /* ****************************************************** */
 /* Outliner Selection (grey-blue highlight for rows) */
 
-void outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selecting)
+static int outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selecting)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
+	int change= 0;
 	
 	for (te= lb->first; te && *index >= 0; te=te->next, (*index)--) {
 		tselem= TREESTORE(te);
@@ -131,6 +132,8 @@ void outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selectin
 					tselem->flag |= TSE_SELECTED;
 				else 
 					tselem->flag &= ~TSE_SELECTED;
+
+				change |= 1;
 			}
 		}
 		else if ((tselem->flag & TSE_CLOSED)==0) {
@@ -142,10 +145,12 @@ void outliner_select(SpaceOops *soops, ListBase *lb, int *index, short *selectin
 			 * 	function correctly
 			 */
 			(*index)--;
-			outliner_select(soops, &te->subtree, index, selecting);
+			change |= outliner_select(soops, &te->subtree, index, selecting);
 			(*index)++;
 		}
 	}
+
+	return change;
 }
 
 /* ****************************************************** */
@@ -660,8 +665,8 @@ int tree_element_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement
 {
 
 	switch(te->idcode) {
-		case ID_OB:
-			return tree_element_set_active_object(C, scene, soops, te, set);
+		/* Note: no ID_OB: objects are handled specially to allow multiple
+		   selection. See do_outliner_item_activate. */
 		case ID_MA:
 			return tree_element_active_material(C, scene, soops, te, set);
 		case ID_WO:
@@ -839,11 +844,14 @@ static int outliner_item_activate(bContext *C, wmOperator *op, wmEvent *event)
 						fmval[0], fmval[1], NULL, &row);
 		
 		/* select relevant row */
-		outliner_select(soops, &soops->tree, &row, &selecting);
+		if(outliner_select(soops, &soops->tree, &row, &selecting)) {
 		
-		soops->storeflag |= SO_TREESTORE_REDRAW;
+			soops->storeflag |= SO_TREESTORE_REDRAW;
 		
-		ED_undo_push(C, "Outliner selection event");
+			/* no need for undo push here, only changing outliner data which is
+			 * scene level - campbell */
+			/* ED_undo_push(C, "Outliner selection event"); */
+		}
 	}
 	
 	ED_region_tag_redraw(ar);
