@@ -225,6 +225,7 @@ set(SRC
 	BKE_sound.h
 	BKE_subsurf.h
 	BKE_suggestions.h
+	BKE_tessmesh.h
 	BKE_text.h
 	BKE_texture.h
 	BKE_unit.h

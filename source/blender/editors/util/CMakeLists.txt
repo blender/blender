@@ -76,6 +76,7 @@ set(SRC
 	../include/ED_sound.h
 	../include/ED_space_api.h
 	../include/ED_text.h
+	../include/ED_toolmode.h
 	../include/ED_transform.h
 	../include/ED_types.h
 	../include/ED_util.h

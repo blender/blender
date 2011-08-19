@@ -26,12 +26,14 @@
 
 set(INC 
 	.
+	intern
+	operators
 	../avi
+	../blenfont
+	../blenkernel
 	../blenlib
 	../blenloader
-	../blenkernel
-	operators
-	intern
+	../editors/include
 	../editors/mesh
 	../gpu
 	../ikplugin
@@ -40,20 +42,20 @@ set(INC
 	../makesrna
 	../modifiers
 	../nodes
-	../editors/include
 	../render/extern/include
 	../../../extern/glew/include
 	../../../intern/audaspace/intern
-	../../../intern/bsp/extern ../blenfont
+	../../../intern/bsp/extern
 	../../../intern/decimation/extern
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
 	../../../intern/iksolver/extern
 	../../../intern/memutil
+	../../../intern/mikktspace
 	../../../intern/opennl/extern
 	../../../intern/smoke/extern
-	../../../intern/mikktspace
-    ../../../source/blender/windowmanager # XXX - BAD LEVEL CALL WM_api.h
+	# XXX - BAD LEVEL CALL WM_api.h
+	../../../source/blender/windowmanager
 )
 
 set(INC_SYS
@@ -115,17 +117,21 @@ set(SRC
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_LZO)
-	list(APPEND INC_SYS ../../../extern/lzo/minilzo)
 	add_definitions(-DWITH_LZO)
+	list(APPEND INC_SYS
+		../../../extern/lzo/minilzo
+	)
 endif()
 
 if(WITH_LZMA)
-	list(APPEND INC_SYS ../../../extern/lzma)
 	add_definitions(-DWITH_LZMA)
+	list(APPEND INC_SYS
+		../../../extern/lzma
+	)
 endif()
 
 if(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif()
 
 blender_add_lib(bf_bmesh "${SRC}" "${INC}" "${INC_SYS}")

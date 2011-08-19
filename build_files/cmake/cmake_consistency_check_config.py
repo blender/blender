@@ -40,7 +40,16 @@ IGNORE = (
     "extern/eltopo/common/meshes/ObjLoader.hpp",
     "extern/eltopo/common/meshes/TriangleIndex.hpp",
     "extern/eltopo/common/meshes/meshloader.h",
-    "extern/eltopo/eltopo3d/broadphase_blenderbvh.h"
+    "extern/eltopo/eltopo3d/broadphase_blenderbvh.h",
+
+    # for bmesh branch only
+    "source/blender/bmesh/editmesh_tools.c",
+    "source/blender/bmesh/intern/in-progress/BME_conversions.c",
+    "source/blender/bmesh/tools/BME_bevel.c",
+    "source/blender/bmesh/tools/BME_dupe_ops.c",
+    "source/blender/bmesh/tools/BME_duplicate.c",
+    "source/blender/bmesh/tools/BME_extrude.c",
+    "source/blender/bmesh/tools/BME_weld.c",
     )
 
 UTF8_CHECK = True
