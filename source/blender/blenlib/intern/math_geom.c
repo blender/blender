@@ -402,7 +402,7 @@ int isect_line_sphere_v3(const float l1[3], const float l2[3],
 		madd_v3_v3v3fl(r_p1, l1, ldir, mu);
 		return 1;
 	}
-	else if (i > 0.0) {
+	else if (i > 0.0f) {
 		const float i_sqrt= sqrt(i); /* avoid calc twice */
 
 		/* first intersection */
@@ -456,7 +456,7 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 		madd_v2_v2v2fl(r_p1, l1, ldir, mu);
 		return 1;
 	}
-	else if (i > 0.0) {
+	else if (i > 0.0f) {
 		const float i_sqrt= sqrt(i); /* avoid calc twice */
 
 		/* first intersection */
@@ -2010,7 +2010,7 @@ void resolve_quad_uv(float uv[2], const float st[2], const float st0[2], const f
 		}
 
 		if(IS_ZERO(denom)==0)
-			uv[1]= (float) (( (1-uv[0])*(st0[i]-st[i]) + uv[0]*(st1[i]-st[i]) ) / denom);
+			uv[1]= (float) (( (1.0f-uv[0])*(st0[i]-st[i]) + uv[0]*(st1[i]-st[i]) ) / denom);
 	}
 }
 

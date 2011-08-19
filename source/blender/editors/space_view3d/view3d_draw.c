@@ -721,7 +721,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 		{
 		#define ROT_AXIS_DETAIL 13
 		const float s = 0.05f * scale;
-		const float step = 2.f * M_PI / ROT_AXIS_DETAIL;
+		const float step = 2.f * (float)(M_PI / ROT_AXIS_DETAIL);
 		float angle;
 		int i;
 
@@ -1041,7 +1041,7 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 	glBegin(GL_LINES);
 	if(w > h) {
 		if(golden) {
-			ofs = w * (1.0f-(1.0f/1.61803399));
+			ofs = w * (1.0f-(1.0f/1.61803399f));
 		}
 		else {
 			ofs = h * (h / w);
@@ -1059,7 +1059,7 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 	}
 	else {
 		if(golden) {
-			ofs = h * (1.0f-(1.0f/1.61803399));
+			ofs = h * (1.0f-(1.0f/1.61803399f));
 		}
 		else {
 			ofs = w * (w / h);
@@ -1203,7 +1203,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 		if (ca->dtx & CAM_DTX_GOLDEN) {
 			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
-			drawviewborder_grid3(x1, x2, y1, y2, 1.0f-(1.0f/1.61803399));
+			drawviewborder_grid3(x1, x2, y1, y2, 1.0f-(1.0f/1.61803399f));
 		}
 
 		if (ca->dtx & CAM_DTX_GOLDEN_TRI_A) {

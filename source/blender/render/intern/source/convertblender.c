@@ -192,10 +192,10 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	/* minimal free space (starting at camera) */
 	starmindist= wrld->starmindist;
 	
-	if (stargrid <= 0.10) return;
+	if (stargrid <= 0.10f) return;
 	
 	if (re) re->flag |= R_HALO;
-	else stargrid *= 1.0;				/* then it draws fewer */
+	else stargrid *= 1.0f;				/* then it draws fewer */
 	
 	if(re) invert_m4_m4(mat, re->viewmat);
 	else unit_m4(mat);
@@ -267,17 +267,17 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 						
 						if (alpha >= clipend) alpha = 0.0;
 						else if (alpha <= starmindist) alpha = 0.0;
-						else if (alpha <= 2.0 * starmindist) {
+						else if (alpha <= 2.0f * starmindist) {
 							alpha = (alpha - starmindist) / starmindist;
 						} else {
-							alpha -= 2.0 * starmindist;
-							alpha /= (clipend - 2.0 * starmindist);
-							alpha = 1.0 - alpha;
+							alpha -= 2.0f * starmindist;
+							alpha /= (clipend - 2.0f * starmindist);
+							alpha = 1.0f - alpha;
 						}
 					}
 					
 					
-					if (alpha != 0.0) {
+					if (alpha != 0.0f) {
 						fac = force * BLI_drand();
 						
 						har = initstar(re, obr, vec, fac);
@@ -822,7 +822,7 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[][4], int d
 	if(obr->totvert==0) return;
 	asverts= MEM_callocN(sizeof(ASvert)*obr->totvert, "all smooth verts");
 	
-	thresh= cos( M_PI*(0.5f+(float)degr)/180.0 );
+	thresh= cosf((float)M_PI*(0.5f+(float)degr)/180.0f );
 	
 	/* step zero: give faces normals of original mesh, if this is provided */
 	
