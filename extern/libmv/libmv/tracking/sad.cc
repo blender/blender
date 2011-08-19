@@ -122,6 +122,7 @@ float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride,
   min=-1; //reset score since direct warped search match too well (but the wrong pattern).
 
   // 6D coordinate descent to find affine transform
+  ubyte match = new ubyte[size*size];
   float step = 0.5;
   for(int p = 0; p < 8; p++) { //foreach precision level
     for(int i = 0; i < 2; i++) { // iterate twice per precision level
@@ -130,7 +131,6 @@ float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride,
         for(float x = -step; x <= step; x+=step) { //solve subproblem (evaluate only along one coordinate)
           mat32 t = m;
           t.data[d] += x;
-          ubyte match[size*size];
           //TODO: better performance would also allow a more exhaustive search
           SamplePattern(image,stride,t,match,size);
           uint sad = SAD(reference,match,size,size);
@@ -152,7 +152,6 @@ float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride,
 
   // Compute Pearson product-moment correlation coefficient
   uint sX=0,sY=0,sXX=0,sYY=0,sXY=0;
-  ubyte match[size*size];
   SamplePattern(image,stride,m,match,size);
   SAD(reference,match,size,size);
   for(int i = 0; i < size; i++) {
@@ -166,9 +165,10 @@ float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride,
       sXY += x*y;
     }
   }
+  delete[] match;
   const int N = size*size;
   sX /= N, sY /= N, sXX /= N, sYY /= N, sXY /= N;
-  return (sXY-sX*sY)/sqrt((sXX-sX*sX)*(sYY-sY*sY));
+  return (sXY-sX*sY)/sqrt(double((sXX-sX*sX)*(sYY-sY*sY)));
 }
 
 }  // namespace libmv

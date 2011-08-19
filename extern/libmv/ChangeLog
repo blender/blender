@@ -1,3 +1,15 @@
+commit 5299ea67043459eda147950e589c2d327a8fbced
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 16:05:54 2011 +0200
+
+    sqrt takes double precision.
+
+commit 9f9221ce151d788c49b48f6f293ab2e2f8813978
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 16:04:37 2011 +0200
+
+    MSVC compatibility: heap allocate pattern, explicit float cast.
+
 commit 702658d2f8616964a6eeb3743fd85e97ac7ff09d
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Fri Aug 19 14:59:24 2011 +0200
