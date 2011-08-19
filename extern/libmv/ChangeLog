@@ -1,3 +1,15 @@
+commit 2ac7281ff6b9545b425dd84fb03bf9c5c98b4de2
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 17:34:45 2011 +0200
+
+    Avoid symbol shadowing.
+
+commit 2a7c3de4acc60e0433b4952f69e30528dbafe0d2
+Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
+Date:   Fri Aug 19 17:22:47 2011 +0200
+
+    Better dragging behavior when hitting borders.
+
 commit a14eb3953c9521b2e08ff9ddd45b33ff1f8aeafb
 Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Fri Aug 19 17:12:12 2011 +0200

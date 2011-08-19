@@ -128,9 +128,9 @@ float Track(ubyte* reference, ubyte* warped, int size, ubyte* image, int stride,
     for(int i = 0; i < 2; i++) { // iterate twice per precision level
       //TODO: other sweep pattern might converge better
       for(int d=0; d < 6; d++) { // iterate dimension sequentially (cyclic descent)
-        for(float x = -step; x <= step; x+=step) { //solve subproblem (evaluate only along one coordinate)
+        for(float e = -step; e <= step; e+=step) { //solve subproblem (evaluate only along one coordinate)
           mat32 t = m;
-          t.data[d] += x;
+          t.data[d] += e;
           //TODO: better performance would also allow a more exhaustive search
           SamplePattern(image,stride,t,match,size);
           uint sad = SAD(reference,match,size,size);
