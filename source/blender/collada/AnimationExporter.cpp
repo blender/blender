@@ -732,7 +732,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		source.setAccessorStride(16);
 		
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, false, NULL, false);
+		add_source_parameters(param, semantic, false, NULL, true);
 
 		source.prepareToAppendValues();
 		
@@ -1123,7 +1123,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				}
 			}
 
-			if ( fcu) return true;
+			if ( fcu) 
+				return true;
 			base= base->next;
 		}
 		return false;
