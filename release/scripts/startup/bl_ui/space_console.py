@@ -141,7 +141,11 @@ class ConsoleLanguage(Operator):
     '''Set the current language for this console'''
     bl_idname = "console.language"
     bl_label = "Console Language"
-    language = StringProperty(name="Language", maxlen=32, default="")
+
+    language = StringProperty(
+            name="Language",
+            maxlen=32,
+            )
 
     def execute(self, context):
         sc = context.space_data

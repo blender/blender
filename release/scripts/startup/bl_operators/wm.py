@@ -557,14 +557,12 @@ class WM_OT_context_set_id(Operator):
 
 doc_id = StringProperty(
         name="Doc ID",
-        description="",
         maxlen=1024,
         options={'HIDDEN'},
         )
 
 doc_new = StringProperty(
         name="Edit Description",
-        description="",
         maxlen=1024,
         )
 

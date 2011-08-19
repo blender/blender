@@ -533,12 +533,31 @@ class WM_OT_keyconfig_import(Operator):
     bl_idname = "wm.keyconfig_import"
     bl_label = "Import Key Configuration..."
 
-    filepath = StringProperty(name="File Path", description="Filepath to write file to", default="keymap.py")
-    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
-    filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
-    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
-
-    keep_original = BoolProperty(name="Keep original", description="Keep original file after copying to configuration folder", default=True)
+    filepath = StringProperty(
+            name="File Path",
+            description="Filepath to write file to",
+            default="keymap.py",
+            )
+    filter_folder = BoolProperty(
+            name="Filter folders",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_text = BoolProperty(
+            name="Filter text",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_python = BoolProperty(
+            name="Filter python",
+            default=True,
+            options={'HIDDEN'},
+            )
+    keep_original = BoolProperty(
+            name="Keep original",
+            description="Keep original file after copying to configuration folder",
+            default=True,
+            )
 
     def execute(self, context):
         from os.path import basename
@@ -580,10 +599,26 @@ class WM_OT_keyconfig_export(Operator):
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
-    filepath = StringProperty(name="File Path", description="Filepath to write file to", default="keymap.py")
-    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
-    filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
-    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+    filepath = StringProperty(
+            name="File Path",
+            description="Filepath to write file to",
+            default="keymap.py",
+            )
+    filter_folder = BoolProperty(
+            name="Filter folders",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_text = BoolProperty(
+            name="Filter text",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_python = BoolProperty(
+            name="Filter python",
+            default=True,
+            options={'HIDDEN'},
+            )
 
     def execute(self, context):
         if not self.filepath:
@@ -673,7 +708,10 @@ class WM_OT_keymap_restore(Operator):
     bl_idname = "wm.keymap_restore"
     bl_label = "Restore Key Map(s)"
 
-    all = BoolProperty(name="All Keymaps", description="Restore all keymaps to default")
+    all = BoolProperty(
+            name="All Keymaps",
+            description="Restore all keymaps to default",
+            )
 
     def execute(self, context):
         wm = context.window_manager
@@ -693,7 +731,10 @@ class WM_OT_keyitem_restore(Operator):
     bl_idname = "wm.keyitem_restore"
     bl_label = "Restore Key Map Item"
 
-    item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
+    item_id = IntProperty(
+            name="Item Identifier",
+            description="Identifier of the item to remove",
+            )
 
     @classmethod
     def poll(cls, context):
@@ -737,7 +778,10 @@ class WM_OT_keyitem_remove(Operator):
     bl_idname = "wm.keyitem_remove"
     bl_label = "Remove Key Map Item"
 
-    item_id = IntProperty(name="Item Identifier", description="Identifier of the item to remove")
+    item_id = IntProperty(
+            name="Item Identifier",
+            description="Identifier of the item to remove",
+            )
 
     @classmethod
     def poll(cls, context):

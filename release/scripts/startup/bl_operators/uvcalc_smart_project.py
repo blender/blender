@@ -1110,17 +1110,24 @@ class SmartProject(Operator):
     bl_label = "Smart UV Project"
     bl_options = {'REGISTER', 'UNDO'}
 
-    angle_limit = FloatProperty(name="Angle Limit",
+    angle_limit = FloatProperty(
+            name="Angle Limit",
             description="lower for more projection groups, higher for less distortion",
-            default=66.0, min=1.0, max=89.0)
-
-    island_margin = FloatProperty(name="Island Margin",
+            min=1.0, max=89.0,
+            default=66.0,
+            )
+    island_margin = FloatProperty(
+            name="Island Margin",
             description="Margin to reduce bleed from adjacent islands",
-            default=0.0, min=0.0, max=1.0)
-
-    user_area_weight = FloatProperty(name="Area Weight",
+            min=0.0, max=1.0,
+            default=0.0,
+            )
+    user_area_weight = FloatProperty(
+            name="Area Weight",
             description="Weight projections vector by faces with larger areas",
-            default=0.0, min=0.0, max=1.0)
+            min=0.0, max=1.0,
+            default=0.0,
+            )
 
     @classmethod
     def poll(cls, context):
