@@ -39,6 +39,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "ED_armature.h"
 
 #include "BLI_listbase.h"
 
@@ -177,9 +178,9 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 	node.setNodeName(node_name);
 	node.setNodeSid(node_sid);
 
-	if ( bone->childbase.first == NULL || BLI_countlist(&(bone->childbase))>=2)
+	/*if ( bone->childbase.first == NULL || BLI_countlist(&(bone->childbase))>=2)
 		add_blender_leaf_bone( bone, ob_arm , node );
-	else{
+	else{*/
 	node.start();
 
 	add_bone_transform(ob_arm, bone, node);
@@ -189,15 +190,15 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 	}
 
 	node.end();
-	}
+	//}
 }
 
 void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node)
 {
 	node.start();
-    
+	
 	add_bone_transform(ob_arm, bone, node);
-    
+	
 	node.addExtraTechniqueParameter("blender", "tip_x", bone->tail[0] );
 	node.addExtraTechniqueParameter("blender", "tip_y", bone->tail[1] );
 	node.addExtraTechniqueParameter("blender", "tip_z", bone->tail[2] );

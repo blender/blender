@@ -454,14 +454,14 @@ void AnimationImporter::find_frames( std::vector<float>* frames , std::vector<FC
 		for (iter = curves->begin(); iter != curves->end(); iter++) {
 			FCurve *fcu = *iter;
         
-		for (unsigned int k = 0; k < fcu->totvert; k++) {
-			//get frame value from bezTriple
-			float fra = fcu->bezt[k].vec[1][0];
-			//if frame already not added add frame to frames
-			if (std::find(frames->begin(), frames->end(), fra) == frames->end())
-				frames->push_back(fra);
-							
-		}
+			for (unsigned int k = 0; k < fcu->totvert; k++) {
+				//get frame value from bezTriple
+				float fra = fcu->bezt[k].vec[1][0];
+				//if frame already not added add frame to frames
+				if (std::find(frames->begin(), frames->end(), fra) == frames->end())
+					frames->push_back(fra);
+								
+			}
 		}
 }
 
@@ -1568,10 +1568,13 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 						i++;
 						j = 0;
 					}
+					unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), *it), unused_curves.end());
 				}
 
 				COLLADAFW::Matrix tm(matrix);
 				dae_matrix_to_mat4(&tm, mat);
+                
+				std::vector<FCurve*>::iterator it;
 
 				return true;
 			}

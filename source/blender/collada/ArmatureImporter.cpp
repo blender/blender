@@ -183,10 +183,10 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 		else
 			copy_m4_m4(mat, obmat);
 
-		float loc[3], size[3], rot[3][3] , angle;
+		/*float loc[3], size[3], rot[3][3] , angle;
 		mat4_to_loc_rot_size( loc, rot, size, obmat);
 		mat3_to_vec_roll(rot, NULL, &angle );
-		bone->roll=angle;
+		bone->roll=angle;*/
 	}
 
 	
@@ -267,21 +267,25 @@ void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW:
 	copy_m4_m4(leaf.mat, mat);
 	BLI_strncpy(leaf.name, bone->name, sizeof(leaf.name));
 	
+	float vec[3];
+
 	TagsMap::iterator etit;
 	ExtraTags *et = 0;
 	etit = uid_tags_map.find(node->getUniqueId().toAscii());
 	if(etit !=  uid_tags_map.end())
-	et = etit->second;
-	else return;
+	{
+		et = etit->second;
+		//else return;
 
-	float x,y,z;
-	et->setData("tip_x",&x);
-	et->setData("tip_y",&y);
-	et->setData("tip_z",&z);
-	float vec[3] = {x,y,z};
-	copy_v3_v3(leaf.bone->tail, leaf.bone->head);
-	add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
-	leaf_bones.push_back(leaf);
+		float x,y,z;
+		et->setData("tip_x",&x);
+		et->setData("tip_y",&y);
+		et->setData("tip_z",&z);
+		float vec[3] = {x,y,z};
+		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
+	    add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
+	}else
+		leaf_bones.push_back(leaf);
 }
 
 void ArmatureImporter::fix_leaf_bones( )
@@ -295,7 +299,7 @@ void ArmatureImporter::fix_leaf_bones( )
 		// pointing up
 		float vec[3] = {0.0f, 0.0f, 1.0f};
 		
-		mul_v3_fl(vec, leaf_bone_length);
+		//mul_v3_fl(vec, leaf_bone_length);
 
 		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
 		add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
@@ -418,7 +422,7 @@ void ArmatureImporter::create_armature_bones( )
 	 leaf_bone_length = FLT_MAX;
 		create_unskinned_bone(*ri, NULL, (*ri)->getChildNodes().getCount(), NULL, ob_arm);
 
-		//fix_leaf_bones();
+		fix_leaf_bones();
 
 	// exit armature edit mode
 	
