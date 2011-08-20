@@ -126,8 +126,8 @@ static float filt_cubic(float x)
 	
 	if (x <  0.0f) x = -x;
 	
-	if (x < 1.0f) return 0.5*x*x2 - x2 + 2.0f/3.0f;
-	if (x < 2.0f) return (2.0-x)*(2.0-x)*(2.0-x)/6.0f;
+	if (x < 1.0f) return 0.5f*x*x2 - x2 + 2.0f/3.0f;
+	if (x < 2.0f) return (2.0f-x)*(2.0f-x)*(2.0f-x)/6.0f;
 	return 0.0f;
 }
 
@@ -138,27 +138,27 @@ static float filt_catrom(float x)
 	
 	if (x <  0.0f) x = -x;
 	if (x < 1.0f) return  1.5f*x2*x - 2.5f*x2  + 1.0f;
-	if (x < 2.0f) return -0.5f*x2*x + 2.5*x2 - 4.0f*x + 2.0f;
+	if (x < 2.0f) return -0.5f*x2*x + 2.5f*x2 - 4.0f*x + 2.0f;
 	return 0.0f;
 }
 
 static float filt_mitchell(float x)	/* Mitchell & Netravali's two-param cubic */
 {
 	float b = 1.0f/3.0f, c = 1.0f/3.0f;
-	float p0 = (  6.0 -  2.0*b         ) / 6.0;
-	float p2 = (-18.0 + 12.0*b +  6.0*c) / 6.0;
-	float p3 = ( 12.0 -  9.0*b -  6.0*c) / 6.0;
-	float q0 = (	   8.0*b + 24.0*c) / 6.0;
-	float q1 = (      - 12.0*b - 48.0*c) / 6.0;
-	float q2 = (         6.0*b + 30.0*c) / 6.0;
-	float q3 = (       -     b -  6.0*c) / 6.0;
+	float p0 = (  6.0f -  2.0f*b         ) / 6.0f;
+	float p2 = (-18.0f + 12.0f*b +  6.0f*c) / 6.0f;
+	float p3 = ( 12.0f -  9.0f*b -  6.0f*c) / 6.0f;
+	float q0 = (	   8.0f*b + 24.0f*c) / 6.0f;
+	float q1 = (      - 12.0f *b - 48.0f*c) / 6.0f;
+	float q2 = (         6.0f *b + 30.0f*c) / 6.0f;
+	float q3 = (       -       b -  6.0f*c) / 6.0f;
 
-	if (x<-2.0) return 0.0;
-	if (x<-1.0) return (q0-x*(q1-x*(q2-x*q3)));
-	if (x< 0.0) return (p0+x*x*(p2-x*p3));
-	if (x< 1.0) return (p0+x*x*(p2+x*p3));
-	if (x< 2.0) return (q0+x*(q1+x*(q2+x*q3)));
-	return 0.0;
+	if (x<-2.0f) return 0.0f;
+	if (x<-1.0f) return (q0-x*(q1-x*(q2-x*q3)));
+	if (x< 0.0f) return (p0+x*x*(p2-x*p3));
+	if (x< 1.0f) return (p0+x*x*(p2+x*p3));
+	if (x< 2.0f) return (q0+x*(q1+x*(q2+x*q3)));
+	return 0.0f;
 }
 
 /* x ranges from -1 to 1 */
@@ -170,16 +170,16 @@ float RE_filter_value(int type, float x)
 	
 	switch(type) {
 		case R_FILTER_BOX:
-			if(x>1.0) return 0.0f;
-			return 1.0;
+			if(x>1.0f) return 0.0f;
+			return 1.0f;
 			
 		case R_FILTER_TENT:
-			if(x>1.0) return 0.0f;
+			if(x>1.0f) return 0.0f;
 			return 1.0f-x;
 			
 		case R_FILTER_GAUSS:
 			x*= gaussfac;
-			return (1.0/exp(x*x) - 1.0/exp(gaussfac*gaussfac*2.25));
+			return (1.0f/expf(x*x) - 1.0f/expf(gaussfac*gaussfac*2.25f));
 			
 		case R_FILTER_MITCH:
 			return filt_mitchell(x*gaussfac);
@@ -221,7 +221,7 @@ static float calc_weight(Render *re, float *weight, int i, int j)
 			
 		case R_FILTER_GAUSS:
 			x = dist*re->r.gauss;
-			weight[a]= (1.0/exp(x*x) - 1.0/exp(re->r.gauss*re->r.gauss*2.25));
+			weight[a]= (1.0f/expf(x*x) - 1.0f/expf(re->r.gauss*re->r.gauss*2.25f));
 			break;
 		
 		case R_FILTER_MITCH:
@@ -309,7 +309,7 @@ void make_sample_tables(Render *re)
 	st->centmask= MEM_mallocN((1<<re->osa), "Initfilt3");
 	
 	for(a=0; a<16; a++) {
-		st->centLut[a]= -0.45+((float)a)/16.0;
+		st->centLut[a]= -0.45f+((float)a)/16.0f;
 	}
 
 	/* calculate totw */
@@ -327,7 +327,7 @@ void make_sample_tables(Render *re)
 			memset(weight, 0, sizeof(weight));
 			calc_weight(re, weight, i, j);
 
-			for(a=0; a<16; a++) flweight[a]= weight[a]*(1.0/totw);
+			for(a=0; a<16; a++) flweight[a]= weight[a]*(1.0f/totw);
 
 			m3= st->fmask1[ 3*(j+1)+i+1 ];
 			m4= st->fmask2[ 3*(j+1)+i+1 ];
@@ -430,9 +430,9 @@ void make_sample_tables(Render *re)
 
 	for(a= (1<<re->osa)-1; a>0; a--) {
 		val= st->cmask[a & 255] + st->cmask[a>>8];
-		i= 8+(15.9*(fpy1[a & 255]+fpy2[a>>8])/val);
+		i= 8+(15.9f*(fpy1[a & 255]+fpy2[a>>8])/val);
 		CLAMP(i, 0, 15);
-		j= 8+(15.9*(fpx1[a & 255]+fpx2[a>>8])/val);
+		j= 8+(15.9f*(fpx1[a & 255]+fpx2[a>>8])/val);
 		CLAMP(j, 0, 15);
 		i= j + (i<<4);
 		st->centmask[a]= i;

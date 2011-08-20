@@ -172,7 +172,7 @@ static float f_Rd(float alpha_, float A, float ro)
 	float sq;
 
 	sq= sqrt(3.0f*(1.0f - alpha_));
-	return (alpha_/2.0f)*(1.0f + exp((-4.0f/3.0f)*A*sq))*exp(-sq) - ro;
+	return (alpha_/2.0f)*(1.0f + expf((-4.0f/3.0f)*A*sq))*expf(-sq) - ro;
 }
 
 static float compute_reduced_albedo(ScatterSettings *ss)
@@ -189,10 +189,10 @@ static float compute_reduced_albedo(ScatterSettings *ss)
 
 	for(i= 0; i < max_iteration_count; i++) {
 		fsub= (fxn - fxn_1);
-		if(fabs(fsub) < tolerance)
+		if(fabsf(fsub) < tolerance)
 			break;
 		d= ((xn - xn_1)/fsub)*fxn;
-		if(fabs(d) < tolerance)
+		if(fabsf(d) < tolerance)
 			break;
 
 		xn_1= xn;
@@ -221,10 +221,10 @@ static float Rd_rsquare(ScatterSettings *ss, float rr)
 	sr= sqrt(rr + ss->zr*ss->zr);
 	sv= sqrt(rr + ss->zv*ss->zv);
 
-	Rdr= ss->zr*(1.0f + ss->sigma*sr)*exp(-ss->sigma*sr)/(sr*sr*sr);
-	Rdv= ss->zv*(1.0f + ss->sigma*sv)*exp(-ss->sigma*sv)/(sv*sv*sv);
+	Rdr= ss->zr*(1.0f + ss->sigma*sr)*expf(-ss->sigma*sr)/(sr*sr*sr);
+	Rdv= ss->zv*(1.0f + ss->sigma*sv)*expf(-ss->sigma*sv)/(sv*sv*sv);
 
-	return /*ss->alpha_*/(1.0f/(4.0f*M_PI))*(Rdr + Rdv);
+	return /*ss->alpha_*/(1.0f/(4.0f*(float)M_PI))*(Rdr + Rdv);
 }
 
 static float Rd(ScatterSettings *ss, float r)
@@ -316,7 +316,7 @@ ScatterSettings *scatter_settings_new(float refl, float radius, float ior, float
 	ss->alpha_= compute_reduced_albedo(ss);
 
 	ss->sigma= 1.0f/ss->ld;
-	ss->sigma_t_= ss->sigma/sqrt(3.0f*(1.0f - ss->alpha_));
+	ss->sigma_t_= ss->sigma/sqrtf(3.0f*(1.0f - ss->alpha_));
 	ss->sigma_s_= ss->alpha_*ss->sigma_t_;
 	ss->sigma_a= ss->sigma_t_ - ss->sigma_s_;
 
@@ -489,7 +489,7 @@ static void sum_leaf_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 	for(i=0; i<node->totpoint; i++) {
 		p= &node->points[i];
 
-		rad= p->area*fabs(p->rad[0] + p->rad[1] + p->rad[2]);
+		rad= p->area*fabsf(p->rad[0] + p->rad[1] + p->rad[2]);
 		totrad += rad;
 
 		node->co[0] += rad*p->co[0];
@@ -513,20 +513,20 @@ static void sum_leaf_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 	}
 
 	if(node->area > 1e-16f) {
-		inv= 1.0/node->area;
+		inv= 1.0f/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
 	if(node->backarea > 1e-16f) {
-		inv= 1.0/node->backarea;
+		inv= 1.0f/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
 	if(totrad > 1e-16f) {
-		inv= 1.0/totrad;
+		inv= 1.0f/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
 		node->co[2] *= inv;
@@ -566,8 +566,8 @@ static void sum_branch_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 
 		subnode= node->child[i];
 
-		rad= subnode->area*fabs(subnode->rad[0] + subnode->rad[1] + subnode->rad[2]);
-		rad += subnode->backarea*fabs(subnode->backrad[0] + subnode->backrad[1] + subnode->backrad[2]);
+		rad= subnode->area*fabsf(subnode->rad[0] + subnode->rad[1] + subnode->rad[2]);
+		rad += subnode->backarea*fabsf(subnode->backrad[0] + subnode->backrad[1] + subnode->backrad[2]);
 		totrad += rad;
 
 		node->co[0] += rad*subnode->co[0];
@@ -587,20 +587,20 @@ static void sum_branch_radiance(ScatterTree *UNUSED(tree), ScatterNode *node)
 	}
 
 	if(node->area > 1e-16f) {
-		inv= 1.0/node->area;
+		inv= 1.0f/node->area;
 		node->rad[0] *= inv;
 		node->rad[1] *= inv;
 		node->rad[2] *= inv;
 	}
 	if(node->backarea > 1e-16f) {
-		inv= 1.0/node->backarea;
+		inv= 1.0f/node->backarea;
 		node->backrad[0] *= inv;
 		node->backrad[1] *= inv;
 		node->backrad[2] *= inv;
 	}
 
 	if(totrad > 1e-16f) {
-		inv= 1.0/totrad;
+		inv= 1.0f/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
 		node->co[2] *= inv;
@@ -668,9 +668,9 @@ static void create_octree_node(ScatterTree *tree, ScatterNode *node, float *mid,
 		return;
 	}
 
-	subsize[0]= size[0]*0.5;
-	subsize[1]= size[1]*0.5;
-	subsize[2]= size[2]*0.5;
+	subsize[0]= size[0]*0.5f;
+	subsize[1]= size[1]*0.5f;
+	subsize[2]= size[2]*0.5f;
 
 	node->split[0]= mid[0];
 	node->split[1]= mid[1];
@@ -764,7 +764,7 @@ ScatterTree *scatter_tree_new(ScatterSettings *ss[3], float scale, float error,
 	for(i=0; i<totpoint; i++) {
 		VECCOPY(points[i].co, co[i]);
 		VECCOPY(points[i].rad, color[i]);
-		points[i].area= fabs(area[i])/(tree->scale*tree->scale);
+		points[i].area= fabsf(area[i])/(tree->scale*tree->scale);
 		points[i].back= (area[i] < 0.0f);
 
 		mul_v3_fl(points[i].co, 1.0f/tree->scale);
@@ -794,13 +794,13 @@ void scatter_tree_build(ScatterTree *tree)
 	tree->root->points= newpoints;
 	tree->root->totpoint= totpoint;
 
-	mid[0]= (tree->min[0]+tree->max[0])*0.5;
-	mid[1]= (tree->min[1]+tree->max[1])*0.5;
-	mid[2]= (tree->min[2]+tree->max[2])*0.5;
+	mid[0]= (tree->min[0]+tree->max[0])*0.5f;
+	mid[1]= (tree->min[1]+tree->max[1])*0.5f;
+	mid[2]= (tree->min[2]+tree->max[2])*0.5f;
 
-	size[0]= (tree->max[0]-tree->min[0])*0.5;
-	size[1]= (tree->max[1]-tree->min[1])*0.5;
-	size[2]= (tree->max[2]-tree->min[2])*0.5;
+	size[0]= (tree->max[0]-tree->min[0])*0.5f;
+	size[1]= (tree->max[1]-tree->min[1])*0.5f;
+	size[2]= (tree->max[2]-tree->min[2])*0.5f;
 
 	create_octree_node(tree, tree->root, mid, size, tree->refpoints, 0);
 
