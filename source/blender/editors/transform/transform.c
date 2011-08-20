@@ -4343,7 +4343,7 @@ static int createSlideVerts(TransInfo *t)
 				}
 			}
 
-			if (numsel > 2) {
+			if (numsel == 0 || numsel > 2) {
 				return 0; //invalid edge selection
 			}
 		}
@@ -4425,7 +4425,6 @@ static int createSlideVerts(TransInfo *t)
 
 		/*iterate over the loop*/
 		first = v;
-		j = 0;
 		do {
 			TransDataSlideVert *sv = tempsv + j;
 
@@ -4651,6 +4650,8 @@ void projectSVData(TransInfo *t, int final)
 					} else if (sld->perc > 0.0 && BM_Vert_In_Face(l3->radial_next->f, tempsv->up)) {
 						copyf = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l3->radial_next->f);
 					}
+					if (!copyf)
+						continue;  /* shouldn't happen, but protection */
 				}
 				
 				BM_loop_interp_from_face(em->bm, l2, copyf, do_vdata, 0);
