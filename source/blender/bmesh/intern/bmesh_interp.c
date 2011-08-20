@@ -379,7 +379,8 @@ static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3
 	/*computer center*/
 	l2 = bm_firstfaceloop(l->f);
 	do {
-		VECADD2(cent, l2->v->co);
+		cent[0] += (double)l2->v->co[0];
+		cent[1] += (double)l2->v->co[1];
 		l2 = l2->next;
 	} while (l2 != bm_firstfaceloop(l->f));
 	
@@ -428,9 +429,9 @@ static double quad_coord(double aa[3], double bb[3], double cc[3], double dd[3],
 			int i;
 			
 			for (i=0; i<2; i++) {
-				if (fabs(aa[i]) < FLT_EPSILON*100)
+				if (fabsf(aa[i]) < FLT_EPSILON*100)
 					return aa[(i+1)%2] / fabs(bb[(i+1)%2] - aa[(i+1)%2]);
-				if (fabs(cc[i]) < FLT_EPSILON*100)
+				if (fabsf(cc[i]) < FLT_EPSILON*100)
 					return cc[(i+1)%2] / fabs(dd[(i+1)%2] - cc[(i+1)%2]);
 			}
 		}
@@ -490,9 +491,9 @@ static int mdisp_in_mdispquad(BMesh *bm, BMLoop *l, BMLoop *tl, double p[3], dou
 	double v1[3], v2[3], c[3], v3[3], v4[3], e1[3], e2[3];
 	double eps = FLT_EPSILON*4000;
 	
-	if (len_v3(l->v->no) == 0.0)
+	if (len_v3(l->v->no) == 0.0f)
 		BM_Vert_UpdateAllNormals(bm, l->v);
-	if (len_v3(tl->v->no) == 0.0)
+	if (len_v3(tl->v->no) == 0.0f)
 		BM_Vert_UpdateAllNormals(bm, tl->v);
 		
 	compute_mdisp_quad(tl, v1, v2, v3, v4, e1, e2);
@@ -545,7 +546,7 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	}
 	
 	res = (int)sqrt(mdisps->totdisp);
-	d = 1.0f/(double)(res-1);
+	d = 1.0/(double)(res-1);
 	for (x=0.0f, ix=0; ix<res; x += d, ix++) {
 		for (y=0.0f, iy=0; iy<res; y+= d, iy++) {
 			double co1[3], co2[3], co[3];
@@ -553,8 +554,8 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			
 			VECCOPY(co1, e1);
 			
-			if (!iy) yy = y + FLT_EPSILON*20;
-			else yy = y - FLT_EPSILON*20;
+			if (!iy) yy = y + (double)FLT_EPSILON*20;
+			else yy = y - (double)FLT_EPSILON*20;
 			
 			VECMUL(co1, y);
 			VECADD2(co1, v1);
@@ -563,8 +564,8 @@ static void bmesh_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 			VECMUL(co2, y);
 			VECADD2(co2, v4);
 			
-			if (!ix) xx = x + FLT_EPSILON*20;
-			else xx = x - FLT_EPSILON*20;
+			if (!ix) xx = x + (double)FLT_EPSILON*20;
+			else xx = x - (double)FLT_EPSILON*20;
 			
 			VECSUB(co, co2, co1);
 			VECMUL(co, x);

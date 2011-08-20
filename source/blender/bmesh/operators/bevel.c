@@ -63,11 +63,11 @@ static void calc_corner_co(BMesh *bm, BMLoop *l, float *co, float fac)
 		sub_v3_v3v3(vec2, v4, v3);
 
 		cross_v3_v3v3(no, vec1, vec2);
-		if (dot_v3v3(no, no) == 0.0) {
+		if (dot_v3v3(no, no) == 0.0f) {
 			no[0] = no[1] = 0.0f; no[2] = -1.0f;	
 		}
 		
-		inv = dot_v3v3(no, up) < 0.0;
+		inv = dot_v3v3(no, up) < 0.0f;
 	}
 	
 	/*calculate normal*/
@@ -527,14 +527,14 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					d2 = *(float*)CustomData_bmesh_get_n(&bm->edata, l2->e->head.data, CD_PROP_FLT, li);
 					
 					ang = angle_v3v3v3(l->prev->v->co, l->v->co, BM_OtherEdgeVert(l2->e, l->v)->co);
-					*d3 = (d1+d2)*0.5;
+					*d3 = (d1+d2)*0.5f;
 					
 					d3 = CustomData_bmesh_get_n(&bm->edata, e2->head.data, CD_PROP_FLT, li);
 					d1 = *(float*)CustomData_bmesh_get_n(&bm->edata, l->next->e->head.data, CD_PROP_FLT, li);
 					d2 = *(float*)CustomData_bmesh_get_n(&bm->edata, l3->e->head.data, CD_PROP_FLT, li);
 
 					ang = angle_v3v3v3(BM_OtherEdgeVert(l->next->e, l->next->v)->co, l->next->v->co, BM_OtherEdgeVert(l3->e, l->next->v)->co);
-					*d3 = (d1+d2)*0.5;
+					*d3 = (d1+d2)*0.5f;
 				}
 
 				if (!f) {

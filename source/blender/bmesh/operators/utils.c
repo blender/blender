@@ -288,7 +288,7 @@ void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	BM_Compute_Face_Center(bm, startf, cent);
 
 	/*make sure the starting face has the correct winding*/
-	if (cent[0]*startf->no[0] + cent[1]*startf->no[1] + cent[2]*startf->no[2] < 0.0) {
+	if (dot_v3v3(cent, startf->no) < 0.0f) {
 		BM_flip_normal(bm, startf);
 		BMO_ToggleFlag(bm, startf, FACE_FLIP);
 
@@ -391,11 +391,11 @@ void bmesh_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 		mul_v3_fl(co, 1.0f / (float)j);
 		mid_v3_v3v3(co, co, v->co);
 
-		if (clipx && fabs(v->co[0]) < clipdist)
+		if (clipx && fabsf(v->co[0]) < clipdist)
 			co[0] = 0.0f;
-		if (clipy && fabs(v->co[1]) < clipdist)
+		if (clipy && fabsf(v->co[1]) < clipdist)
 			co[1] = 0.0f;
-		if (clipz && fabs(v->co[2]) < clipdist)
+		if (clipz && fabsf(v->co[2]) < clipdist)
 			co[2] = 0.0f;
 
 		i++;
@@ -615,17 +615,17 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMFACE_NORMAL:
-					angle = RAD2DEG(angle_v3v3(fs->no, fm->no));	/* if the angle between the normals -> 0 */
-					if( angle / 180.0 <= thresh ) {
+					angle = RAD2DEGF(angle_v3v3(fs->no, fm->no));	/* if the angle between the normals -> 0 */
+					if( angle / 180.0f <= thresh ) {
 						BMO_SetFlag(bm, fm, FACE_MARK);
 						cont = 0;
 					}
 					break;
 
 				case SIMFACE_COPLANAR:
-					angle = RAD2DEG(angle_v3v3(fs->no, fm->no)); /* angle -> 0 */
-					if( angle / 180.0 <= thresh ) { /* and dot product difference -> 0 */
-						if( fabs(f_ext[i].d - f_ext[indices[idx]].d) <= thresh ) {
+					angle = RAD2DEGF(angle_v3v3(fs->no, fm->no)); /* angle -> 0 */
+					if( angle / 180.0f <= thresh ) { /* and dot product difference -> 0 */
+						if( fabsf(f_ext[i].d - f_ext[indices[idx]].d) <= thresh ) {
 							BMO_SetFlag(bm, fm, FACE_MARK);
 							cont = 0;
 						}
@@ -633,14 +633,14 @@ void bmesh_similarfaces_exec(BMesh *bm, BMOperator *op)
 					break;
 
 				case SIMFACE_AREA:
-					if( fabs(f_ext[i].area - f_ext[indices[idx]].area) <= thresh ) {
+					if( fabsf(f_ext[i].area - f_ext[indices[idx]].area) <= thresh ) {
 						BMO_SetFlag(bm, fm, FACE_MARK);
 						cont = 0;
 					}
 					break;
 
 				case SIMFACE_PERIMETER:
-					if( fabs(f_ext[i].perim - f_ext[indices[idx]].perim) <= thresh ) {
+					if( fabsf(f_ext[i].perim - f_ext[indices[idx]].perim) <= thresh ) {
 						BMO_SetFlag(bm, fm, FACE_MARK);
 						cont = 0;
 					}
@@ -776,7 +776,7 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 				es = e_ext[indices[idx]].e;
 				switch( type ) {
 				case SIMEDGE_LENGTH:
-					if( fabs(e_ext[i].length - e_ext[indices[idx]].length) <= thresh ) {
+					if( fabsf(e_ext[i].length - e_ext[indices[idx]].length) <= thresh ) {
 						BMO_SetFlag(bm, e, EDGE_MARK);
 						cont = 0;
 					}
@@ -784,12 +784,12 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 
 				case SIMEDGE_DIR:
 					/* compute the angle between the two edges */
-					angle = RAD2DEG(angle_v3v3(e_ext[i].dir, e_ext[indices[idx]].dir));
+					angle = RAD2DEGF(angle_v3v3(e_ext[i].dir, e_ext[indices[idx]].dir));
 
-					if( angle > 90.0 ) /* use the smallest angle between the edges */
-						angle = fabs(angle - 180.0f);
+					if( angle > 90.0f ) /* use the smallest angle between the edges */
+						angle = fabsf(angle - 180.0f);
 
-					if( angle / 90.0 <= thresh ) {
+					if( angle / 90.0f <= thresh ) {
 						BMO_SetFlag(bm, e, EDGE_MARK);
 						cont = 0;
 					}
@@ -805,7 +805,7 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 				case SIMEDGE_FACE_ANGLE:
 					if( e_ext[i].faces == 2 ) {
 						if( e_ext[indices[idx]].faces == 2 ) {
-							if( fabs(e_ext[i].angle - e_ext[indices[idx]].angle) <= thresh ) {
+							if( fabsf(e_ext[i].angle - e_ext[indices[idx]].angle) <= thresh ) {
 								BMO_SetFlag(bm, e, EDGE_MARK);
 								cont = 0;
 							}
@@ -820,7 +820,7 @@ void bmesh_similaredges_exec(BMesh *bm, BMOperator *op)
 						c1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
 						c2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_CREASE);
 
-						if( c1&&c2 && fabs(*c1 - *c2) <= thresh ) {
+						if( c1&&c2 && fabsf(*c1 - *c2) <= thresh ) {
 							BMO_SetFlag(bm, e, EDGE_MARK);
 							cont = 0;
 						}
@@ -927,10 +927,9 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 				switch( type ) {
 				case SIMVERT_NORMAL:
 					/* compare the angle between the normals */
-					if( RAD2DEG(angle_v3v3(v->no, vs->no) / 180.0 <= thresh )) {
+					if( RAD2DEGF(angle_v3v3(v->no, vs->no) / 180.0f <= thresh )) {
 						BMO_SetFlag(bm, v, VERT_MARK);
 						cont = 0;
-
 					}
 					break;
 				case SIMVERT_FACE:

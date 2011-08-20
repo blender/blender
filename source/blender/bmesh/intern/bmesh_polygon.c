@@ -281,18 +281,18 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 		v2 = verts[(i+1) % nverts];
 		v3 = verts[(i+2) % nverts];
 		normal_tri_v3( norm,v1, v2, v3);	
-	
-		avgn[0] += norm[0];
-		avgn[1] += norm[1];
-		avgn[2] += norm[2];
+
+		add_v3_v3(avgn, norm);
 	}
 
 	/*what was this bit for?*/
-	if(avgn[0] == 0.0 && avgn[1] == 0.0 && avgn[2] == 0.0){
-		avgn[0] = 0.0;
-		avgn[1] = 0.0;
-		avgn[2] = 1.0;
+	if(avgn[0] == 0.0f && avgn[1] == 0.0f && avgn[2] == 0.0f) {
+		avgn[0] = 0.0f;
+		avgn[1] = 0.0f;
+		avgn[2] = 1.0f;
 	} else {
+		/* XXX, why is this being divided and _then_ normalized
+		 * division could be removed? - campbell */
 		avgn[0] /= nverts;
 		avgn[1] /= nverts;
 		avgn[2] /= nverts;
@@ -375,9 +375,9 @@ void poly_rotate_plane(float normal[3], float (*verts)[3], int nverts)
 
 	cross_v3_v3v3(axis, normal, up);
 
-	angle = saacos(normal[0]*up[0]+normal[1]*up[1] + normal[2]*up[2]);
+	angle = saacos(dot_v3v3(normal, up));
 
-	if (angle == 0.0f) return;
+	if (angle == 0.0) return;
 
 	axis_angle_to_quat(q, axis, (float)angle);
 	quat_to_mat3(mat, q);
@@ -598,7 +598,7 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, float co[3])
 	float co2[3], cent[3] = {0.0f, 0.0f}, out[3] = {FLT_MAX*0.5f, FLT_MAX*0.5f, 0};
 	BMLoop *l;
 	int crosses = 0;
-	float eps = 1.0+FLT_EPSILON*150;
+	float eps = 1.0f+(float)FLT_EPSILON*150.0f;
 	
 	if (dot_v3v3(f->no, f->no) <= FLT_EPSILON*10)
 		BM_Face_UpdateNormal(bm, f);
@@ -627,7 +627,7 @@ int BM_Point_In_Face(BMesh *bm, BMFace *f, float co[3])
 		l = l->next;
 	} while (l != bm_firstfaceloop(f));
 	
-	mul_v2_fl(cent, 1.0/(float)f->len);
+	mul_v2_fl(cent, 1.0f/(float)f->len);
 	
 	l = bm_firstfaceloop(f);
 	do {

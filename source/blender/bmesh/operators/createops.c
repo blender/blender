@@ -428,13 +428,13 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			sub_v3_v3v3(vec2, vd2->sco, cent);
 			sub_v3_v3v3(vec3, vd3->sco, cent);
 			
-			size = (len_v3(vec1) + len_v3(vec3))*0.01;
+			size = (len_v3(vec1) + len_v3(vec3)) * 0.01f;
 			normalize_v3(vec1); normalize_v3(vec2); normalize_v3(vec3);
 			
 			#ifdef STRAIGHT
 			#undef STRAIGHT
 			#endif
-			#define STRAIGHT(vec11, vec22) (fabs(dot_v3v3((vec11), (vec22))) > 1.0-FLT_EPSILON*1000)
+			#define STRAIGHT(vec11, vec22) (fabsf(dot_v3v3((vec11), (vec22))) > 1.0f - ((float)FLT_EPSILON*1000.0f))
 			
 			s1 = STRAIGHT(vec1, vec2); s2 = STRAIGHT(vec2, vec3); s3 = STRAIGHT(vec1, vec3);
 			

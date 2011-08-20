@@ -415,9 +415,9 @@ void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
 			we cant make a crossvec from a vec thats the same as the vec
 			unlikely but possible, so make sure if the normal is (0,0,1)
 			that vec isnt the same or in the same direction even.*/
-			if (eve->no[0]<0.5)		vec[0]=1;
-			else if (eve->no[1]<0.5)	vec[1]=1;
-			else				vec[2]=1;
+			if (eve->no[0] < 0.5f)		vec[0]= 1.0f;
+			else if (eve->no[1] < 0.5f)	vec[1]= 1.0f;
+			else						vec[2]= 1.0f;
 			cross_v3_v3v3(plane, eve->no, vec);
 		}
 	} else if (ese->type==BM_EDGE) {
@@ -443,9 +443,9 @@ void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
 		we cant make a crossvec from a vec thats the same as the vec
 		unlikely but possible, so make sure if the normal is (0,0,1)
 		that vec isnt the same or in the same direction even.*/
-		if (efa->no[0]<0.5)		vec[0]=1.0f;
-		else if (efa->no[1]<0.5)	vec[1]=1.0f;
-		else				vec[2]=1.0f;
+		if (efa->no[0] < 0.5f)		vec[0]= 1.0f;
+		else if (efa->no[1] < 0.5f)	vec[1]= 1.0f;
+		else						vec[2]= 1.0f;
 		cross_v3_v3v3(plane, efa->no, vec);
 #if 0 //BMESH_TODO
 

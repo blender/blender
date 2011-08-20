@@ -143,8 +143,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 			sub_v3_v3v3(co1, omvert[mf->v1].co, omvert[mf->v3].co);
 			sub_v3_v3v3(co2, omvert[mf->v2].co, omvert[mf->v3].co);
 			
-			mul_v3_fl(co1, 1.0 - fac*x);
-			mul_v3_fl(co2, 1.0 - fac*x);
+			mul_v3_fl(co1, 1.0f - fac*x);
+			mul_v3_fl(co2, 1.0f - fac*x);
 			
 			add_v3_v3(co1, omvert[mf->v3].co);
 			add_v3_v3(co2, omvert[mf->v3].co);
@@ -159,7 +159,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 			
 			for (x2=0; x2<(nmd->resolution-x); x2++) {
 				sub_v3_v3v3(co3, co1, co2);
-				mul_v3_fl(co3, 1.0 - (1.0f/(float)(nmd->resolution-x+1))*(x2+1));
+				mul_v3_fl(co3, 1.0f - (1.0f/(float)(nmd->resolution-x+1))*(x2+1));
 				add_v3_v3(co3, co2);
 				
 				NG_MAKE_VERTCO(mf->v2, co3);
@@ -244,10 +244,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		
 		/*scale source face coordinates a bit, so points sitting directly on an
 		  edge will work.*/
-		mul_v3_fl(cent, 1.0/(float)(mp->totloop));
+		mul_v3_fl(cent, 1.0f/(float)(mp->totloop));
 		for (j=0; j<mp->totloop; j++) {
 			sub_v3_v3(cos[j], cent);
-			mul_v3_fl(cos[j], 1.0+FLT_EPSILON*1500.0f);
+			mul_v3_fl(cos[j], 1.0f+FLT_EPSILON*1500.0f);
 			add_v3_v3(cos[j], cent);
 		}
 

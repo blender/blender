@@ -74,13 +74,11 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 	sub_v3_v3v3(edgeVec3, v3->co, v4->co);
 	sub_v3_v3v3(edgeVec4, v4->co, v1->co);	
 
-	diff = 0.0;
-
 	diff = (
-		fabs(angle_v3v3(edgeVec1, edgeVec2) - M_PI/2) +
-		fabs(angle_v3v3(edgeVec2, edgeVec3) - M_PI/2) +
-		fabs(angle_v3v3(edgeVec3, edgeVec4) - M_PI/2) +
-		fabs(angle_v3v3(edgeVec4, edgeVec1) - M_PI/2));
+		fabsf(angle_v3v3(edgeVec1, edgeVec2) - (float)M_PI_2) +
+		fabsf(angle_v3v3(edgeVec2, edgeVec3) - (float)M_PI_2) +
+		fabsf(angle_v3v3(edgeVec3, edgeVec4) - (float)M_PI_2) +
+		fabsf(angle_v3v3(edgeVec4, edgeVec1) - (float)M_PI_2));
 	if(!diff) return 0.0;
 
 	measure +=  diff;
@@ -102,7 +100,7 @@ static float measure_facepair(BMesh *UNUSED(bm), BMVert *v1, BMVert *v2,
 	return measure;
 }
 
-#define T2QUV_LIMIT 0.005
+#define T2QUV_LIMIT 0.005f
 #define T2QCOL_LIMIT 3
 
 static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
@@ -221,7 +219,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 	JoinEdge *jedges = NULL;
 	int dosharp = BMO_Get_Int(op, "compare_sharp"), douvs=BMO_Get_Int(op, "compare_uvs");
 	int dovcols = BMO_Get_Int(op, "compare_vcols"), domat=BMO_Get_Int(op, "compare_materials");
-	float limit = BMO_Get_Float(op, "limit")/180.0f*M_PI;
+	float limit = BMO_Get_Float(op, "limit")/180.0f*(float)M_PI;
 	int i, totedge;
 
 	/*flag all edges of all input faces*/

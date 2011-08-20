@@ -227,7 +227,7 @@ void BM_Compute_Normals(BMesh *bm)
 		if (BM_TestHFlag(v, BM_HIDDEN))
 			continue;
 
-		if (normalize_v3(v->no)==0.0) {
+		if (normalize_v3(v->no) == 0.0f) {
 			copy_v3_v3(v->no, v->co);
 			normalize_v3(v->no);
 		}

@@ -107,9 +107,9 @@ void bmesh_mirror_exec(BMesh *bm, BMOperator *op) {
 				for (i=0; i<totlayer; i++) {
 					luv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
 					if (mirroru)
-						luv->uv[0] = 1.0 - luv->uv[0];
+						luv->uv[0]= 1.0f - luv->uv[0];
 					if (mirrorv)
-						luv->uv[1] = 1.0 - luv->uv[1];
+						luv->uv[1]= 1.0f - luv->uv[1];
 				}
 			}
 		}

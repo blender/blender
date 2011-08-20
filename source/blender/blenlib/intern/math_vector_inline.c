@@ -440,7 +440,7 @@ MINLINE double normalize_dv3(double n[3])
 
 	/* a larger value causes normalize errors in a
 	   scaled down models with camera xtreme close */
-	if(d > 1.0e-35f) {
+	if(d > 1.0e-35) {
 		double mul;
 
 		d= sqrt(d);

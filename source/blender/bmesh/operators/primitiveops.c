@@ -229,8 +229,8 @@ void bmesh_create_grid_exec(BMesh *bm, BMOperator *op)
 	BMO_Get_Mat4(op, "mat", mat);
 
 	/* one segment first: the X axis */
-	phi= 1.0; 
-	phid= 2.0/((float)tot-1);
+	phi= 1.0f;
+	phid= 2.0f/((float)tot-1);
 	for(a=0;a<tot;a++) {
 		vec[0]= dia*phi;
 		vec[1]= - dia;
@@ -296,9 +296,9 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	phi= 0; 
 	phid/=2;
 	for(a=0; a<=tot; a++) {
-		vec[0]= dia*sin(phi);
+		vec[0]= dia*sinf(phi);
 		vec[1]= 0.0;
-		vec[2]= dia*cos(phi);
+		vec[2]= dia*cosf(phi);
 		eve= BM_Make_Vert(bm, vec, NULL);
 		BMO_SetFlag(bm, eve, VERT_MARK);
 
@@ -469,8 +469,8 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 	}
 
 	for (a=0; a<segs; a++, phi+=phid) {
-		vec[0]= dia*sin(phi);
-		vec[1]= dia*cos(phi);
+		vec[0]= dia*sinf(phi);
+		vec[1]= dia*cosf(phi);
 		vec[2]= 0.0f;
 		mul_m4_v3(mat, vec);
 		v1 = BM_Make_Vert(bm, vec, NULL);
@@ -550,14 +550,14 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	}
 
 	for (a=0; a<segs; a++, phi+=phid) {
-		vec[0]= dia1*sin(phi);
-		vec[1]= dia1*cos(phi);
+		vec[0]= dia1*sinf(phi);
+		vec[1]= dia1*cosf(phi);
 		vec[2]= -depth;
 		mul_m4_v3(mat, vec);
 		v1 = BM_Make_Vert(bm, vec, NULL);
 
-		vec[0]= dia2*sin(phi);
-		vec[1]= dia2*cos(phi);
+		vec[0]= dia2*sinf(phi);
+		vec[1]= dia2*cosf(phi);
 		vec[2]= depth;
 		mul_m4_v3(mat, vec);
 		v2 = BM_Make_Vert(bm, vec, NULL);

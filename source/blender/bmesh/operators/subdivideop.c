@@ -212,7 +212,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), subdparams *p
 			vec1[2]+= fac*nor2[2];
 	
 			/* falloff for multi subdivide */
-			smooth *= sqrt(fabs(1.0f - 2.0f*fabs(perc)));
+			smooth *= sqrtf(fabsf(1.0f - 2.0f*fabsf(perc)));
 	
 			vec1[0]*= smooth*len;
 			vec1[1]*= smooth*len;
@@ -844,9 +844,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	params.fractal = fractal;
 	params.beauty = beauty;
 	params.origkey = skey;
-	params.off[0] = BLI_drand()*200.0f;
-	params.off[1] = BLI_drand()*200.0f;
-	params.off[2] = BLI_drand()*200.0f;
+	params.off[0] = (float)BLI_drand()*200.0f;
+	params.off[1] = (float)BLI_drand()*200.0f;
+	params.off[2] = (float)BLI_drand()*200.0f;
 	
 	BMO_Mapping_To_Flag(bmesh, op, "custompatterns",
 	                    FACE_CUSTOMFILL);
@@ -896,7 +896,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 			angle = INPR(vec1, vec2);
 			angle = ABS(angle);
-			if (ABS(angle-1.0) < 0.01)
+			if (ABS(angle - 1.0f) < 0.01f)
 				totesel = 0;
 		}
 

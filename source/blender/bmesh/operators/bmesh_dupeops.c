@@ -567,7 +567,7 @@ void spinop_exec(BMesh *bm, BMOperator *op)
 	BMO_Get_Vec(op, "dvec", dvec);
 	usedvec = !is_zero_v3(dvec);
 	steps = BMO_Get_Int(op, "steps");
-	phi = BMO_Get_Float(op, "ang")*M_PI/(360.0*steps);
+	phi = BMO_Get_Float(op, "ang")*(float)M_PI/(360.0f*steps);
 	dupli = BMO_Get_Int(op, "dupli");
 
 	si = (float)sin(phi);
