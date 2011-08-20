@@ -42,6 +42,10 @@
 
 #include "MEM_guardedalloc.h" // for MEM_freeN MEM_mallocN MEM_callocN
 
+#ifdef WITH_DNA_GHASH
+#  include "BLI_ghash.h"
+#endif
+
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h" // for SDNA ;-)
 
@@ -197,7 +201,11 @@ void DNA_sdna_free(SDNA *sdna)
 	MEM_freeN((void *)sdna->names);
 	MEM_freeN(sdna->types);
 	MEM_freeN(sdna->structs);
-	
+
+#ifdef WITH_DNA_GHASH
+	BLI_ghash_free(sdna->structs_map, NULL, NULL);
+#endif
+
 	MEM_freeN(sdna);
 }
 
@@ -275,24 +283,30 @@ static short *findstruct_name(SDNA *sdna, const char *str)
 int DNA_struct_find_nr(SDNA *sdna, const char *str)
 {
 	short *sp= NULL;
-	int a;
 
 	if(sdna->lastfind<sdna->nr_structs) {
 		sp= sdna->structs[sdna->lastfind];
 		if(strcmp( sdna->types[ sp[0] ], str )==0) return sdna->lastfind;
 	}
 
-	for(a=0; a<sdna->nr_structs; a++) {
+#ifdef WITH_DNA_GHASH
+	return (intptr_t)BLI_ghash_lookup(sdna->structs_map, str) - 1;
+#else
+	{
+		int a;
 
-		sp= sdna->structs[a];
-		
-		if(strcmp( sdna->types[ sp[0] ], str )==0) {
-			sdna->lastfind= a;
-			return a;
+		for(a=0; a<sdna->nr_structs; a++) {
+
+			sp= sdna->structs[a];
+
+			if(strcmp( sdna->types[ sp[0] ], str )==0) {
+				sdna->lastfind= a;
+				return a;
+			}
 		}
 	}
-	
 	return -1;
+#endif
 }
 
 /* ************************* END DIV ********************** */
@@ -481,6 +495,16 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 					sp[10]= 9;
 			}
 		}
+
+#ifdef WITH_DNA_GHASH
+		/* create a ghash lookup to speed up */
+		sdna->structs_map= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "init_structDNA gh");
+
+		for(nr = 0; nr < sdna->nr_structs; nr++) {
+			sp= sdna->structs[nr];
+			BLI_ghash_insert(sdna->structs_map, (void *)sdna->types[sp[0]], (void *)(nr + 1));
+		}
+#endif
 	}
 }
 
