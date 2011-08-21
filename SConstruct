@@ -269,7 +269,7 @@ if env['OURPLATFORM']=='darwin':
     else:
         print B.bc.OKGREEN + "Found recommended sdk :" + B.bc.ENDC + " using MacOSX10.5.sdk"
 
-    # for now, Mac builders must download and install the driver framework from 3Dconnexion
+    # for now, Mac builders must download and install the 3DxWare 10 Beta 4 driver framework from 3Dconnexion
     # necessary header file lives here when installed:
     # /Library/Frameworks/3DconnexionClient.framework/Versions/Current/Headers/ConnexionClientAPI.h
     if env['WITH_BF_3DMOUSE'] == 1 and not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
