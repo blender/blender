@@ -189,6 +189,9 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			
 			if (v && !e2) {			
 				if (c==0) {
+					if (BLI_array_count(vv1) && v == vv1[BLI_array_count(vv1)-1]) {
+						printf("eck!\n");
+					}
 					BLI_array_append(vv1, v);
 				} else {
 					BLI_array_append(vv2, v);
@@ -209,7 +212,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	if (ee1 && ee2) {
 		int i, j;
 		BMVert *v1, *v2, *v3, *v4;
-		int starti=0, lenv1=BLI_array_count(vv1);
+		int starti=0, lenv1=BLI_array_count(vv1), lenv2=BLI_array_count(vv1);
 		
 		/*handle case of two unclosed loops*/
 		if (!cl1 && !cl2) {
@@ -238,15 +241,27 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		j = 0;
+		if (lenv1 && vv1[0] == vv1[lenv1-1]) {
+			lenv1--;
+		}
+		if (lenv2 && vv2[0] == vv2[lenv2-1]) {
+			lenv2--;
+		}
+		
 		for (i=0; i<BLI_array_count(ee1); i++) {
 			BMFace *f;
 		
 			if (j >= BLI_array_count(ee2))
 				break;
-								
-			f = BM_Make_QuadTri(bm, vv1[(i + starti)%lenv1], vv2[i], vv2[i+1], vv1[(i+1 + starti)%lenv1], NULL, 1);
-			if (!f) {
-				printf("eek!\n");
+			
+			if (vv1[(i + starti)%lenv1] ==  vv1[(i + 1 + starti)%lenv1]) {
+				j++;
+				continue;
+			}
+				
+			f = BM_Make_QuadTri(bm, vv1[(i + starti)%lenv1], vv2[i], vv2[(i+1)%lenv2], vv1[(i+1 + starti)%lenv1], NULL, 1);
+			if (!f || f->len != 4) {
+				printf("eek in bridge!\n");
 			}
 			
 			j++;
