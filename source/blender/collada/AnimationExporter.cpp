@@ -352,13 +352,34 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		if (!ob_arm->adt)
 			return;
 		
+		//This will only export animations of bones in deform group.
+		/*if(!is_bone_deform_group(bone))
+			return;*/
+		
 		sample_and_write_bone_animation_matrix(ob_arm, bone);
 
 		for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next)
 			write_bone_animation_matrix(ob_arm, child);
 	}
 
-	
+	bool AnimationExporter::is_bone_deform_group(Bone * bone)
+	{   
+		bool is_def;
+		//Check if current bone is deform
+		if((bone->flag & BONE_NO_DEFORM) == 0 ) return true;
+		//Check child bones
+		else 
+		{   
+			for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next){
+				//loop through all the children until deform bone is found, and then return
+				is_def = is_bone_deform_group(child);
+				if (is_def) return true;
+			}
+		}
+        //no deform bone found in children also
+		return false;
+	}
+
 	void AnimationExporter::sample_and_write_bone_animation_matrix(Object *ob_arm, Bone *bone)
 	{
 		bArmature *arm = (bArmature*)ob_arm->data;

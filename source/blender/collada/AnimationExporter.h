@@ -102,6 +102,8 @@ protected:
 
 	void sample_and_write_bone_animation(Object *ob_arm, Bone *bone, int transform_type);
 
+	bool is_bone_deform_group(Bone * bone);
+
 	void sample_and_write_bone_animation_matrix(Object *ob_arm, Bone *bone);
 
 	void sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm, bPoseChannel *pChan);
