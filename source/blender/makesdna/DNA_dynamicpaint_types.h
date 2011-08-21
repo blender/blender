@@ -174,7 +174,6 @@ typedef struct DynamicPaintBrushSettings {
 
 	float particle_radius, particle_smooth;
 	float paint_distance;
-	float displace_distance, prox_displace_strength;
 
 	/* color ramps */
 	struct ColorBand *paint_ramp;	/* Proximity paint falloff */

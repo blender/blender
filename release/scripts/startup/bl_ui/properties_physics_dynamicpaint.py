@@ -400,7 +400,7 @@ class PHYSICS_PT_dp_advanced_brush(PhysicButtonsPanel, bpy.types.Panel):
             if (brush.paint_source != 'POINT'):
                 sub.prop(brush, "prox_facealigned")
             sub = split.column()
-            sub.prop(brush, "prox_falloff", text="Falloff")
+            sub.prop(brush, "prox_falloff")
             if brush.paint_source == "VOLDIST":
                 col = layout.row().column()
                 col.prop(brush, "prox_inverse")

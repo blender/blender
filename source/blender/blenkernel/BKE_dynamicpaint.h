@@ -21,14 +21,11 @@ struct PaintBakeData;
 
 /* Actual surface point	*/
 typedef struct PaintSurfaceData {
-	/* surface format data */
-	void *format_data;
-	/* surface type data */
-	void *type_data;
-	/* point neighbor data */
-	struct PaintAdjData *adj_data;
+	void *format_data; /* special data for each surface "format" */
+	void *type_data; /* data used by specific surface type */
+	struct PaintAdjData *adj_data; /* adjacency data for current surface */
 
-	struct PaintBakeData *bData;
+	struct PaintBakeData *bData; /* temporary per step data used for frame calculation */
 	unsigned int total_points;
 
 } PaintSurfaceData;

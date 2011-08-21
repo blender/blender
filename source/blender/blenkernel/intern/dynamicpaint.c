@@ -130,12 +130,12 @@ typedef struct Bounds3D {
 
 typedef struct VolumeGrid {
 	int x,y,z;
-	Bounds3D grid_bounds;
+	Bounds3D grid_bounds; /* whole grid bounds */
 
 	Bounds3D *bounds;	/* (x*y*z) precalculated grid cell bounds */
-	unsigned int *s_pos; /* (x*y*z) search indexses */
-	unsigned int *s_num; /* (x*y*z) number of points */
-	unsigned int *t_index; /* actual point index,
+	unsigned int *s_pos; /* (x*y*z) t_index begin id */
+	unsigned int *s_num; /* (x*y*z) number of t_index points */
+	unsigned int *t_index; /* actual surface point index,
 						   access: (s_pos+s_num) */
 } VolumeGrid;
 
@@ -158,42 +158,42 @@ typedef struct PaintBakeNormal {
 typedef struct PaintBakeData {
 	/* point space data */
 	PaintBakeNormal *bNormal;
-	unsigned int *s_pos;		/* index to start reading point sample realCoord */
-	unsigned int *s_num;	/* num of samples for each point */
-	Vec3f *realCoord;  /* current pixel center world-space coordinates * numOfSamples
-					   *  ordered as (s_pos+sample_num)*/
+	unsigned int *s_pos;	/* index to start reading point sample realCoord */
+	unsigned int *s_num;	/* num of realCoord samples */
+	Vec3f *realCoord;  /* current pixel center world-space coordinates for each sample
+					   *  ordered as (s_pos+s_num)*/
 
-	/* adjacency */
-	BakeNeighPoint *bNeighs; /* current frame neighbour distances, if required */
+	/* adjacency info */
+	BakeNeighPoint *bNeighs; /* current global neighbour distances and directions, if required */
 	double average_dist;
 	/* space partitioning */
-	VolumeGrid *grid;	/* space partitioning grid to optimize brush checks */
+	VolumeGrid *grid;		/* space partitioning grid to optimize brush checks */
 
 	/* velocity and movement */
-	Vec3f *velocity;  /* speed vector in global space movement per frame, if required */
+	Vec3f *velocity;		/* speed vector in global space movement per frame, if required */
 	Vec3f *prev_velocity;
-	float *brush_velocity; /* special temp data for post-p velocity based brushes like smudge
-						   *  3 float dir vec + 1 float str */
-	MVert *prev_verts;	/* copy of previous frame vertices. used to observe surface movement */
+	float *brush_velocity;	/* special temp data for post-p velocity based brushes like smudge
+							*  3 float dir vec + 1 float str */
+	MVert *prev_verts;		/* copy of previous frame vertices. used to observe surface movement */
 	float prev_obmat[4][4]; /* previous frame object matrix */
-	int clear;
+	int clear;				/* flag to check if surface was cleared/reset -> have to redo velocity etc. */
 
 } PaintBakeData;
 
 /* UV Image sequence format point	*/
 typedef struct PaintUVPoint {
 	/* Pixel / mesh data */
-	unsigned int face_index, pixel_index;		/* face index on domain derived mesh */
-	unsigned int v1, v2, v3;		/* vertex indexes */
+	unsigned int face_index, pixel_index;	/* face index on domain derived mesh */
+	unsigned int v1, v2, v3;				/* vertex indexes */
 
 	unsigned int neighbour_pixel;	/* If this pixel isn't uv mapped to any face,
-							but it's neighbouring pixel is */
+									   but it's neighbouring pixel is */
 	short quad;
 } PaintUVPoint;
 
 typedef struct ImgSeqFormatData {
 	PaintUVPoint *uv_p;
-	Vec3f *barycentricWeights;	/* b-weights for all pixel samples */
+	Vec3f *barycentricWeights;		/* b-weights for all pixel samples */
 } ImgSeqFormatData;
 
 typedef struct EffVelPoint {
@@ -207,7 +207,7 @@ typedef struct EffVelPoint {
 
 typedef struct PaintAdjData {
 	unsigned int *n_target;		/* array of neighbouring point indexes,
-							   for single sample use (n_index+neigh_num) */
+							       for single sample use (n_index+neigh_num) */
 	unsigned int *n_index;		/* index to start reading n_target for each point */
 	unsigned int *n_num;		/* num of neighs for each point */
 	unsigned int *flags;		/* vertex adjacency flags */
@@ -247,7 +247,8 @@ static int dynamicPaint_surfaceNumOfPoints(DynamicPaintSurface *surface)
 }
 
 /* checks whether surface's format/type has realtime preview */
-int dynamicPaint_surfaceHasColorPreview(DynamicPaintSurface *surface) {
+int dynamicPaint_surfaceHasColorPreview(DynamicPaintSurface *surface)
+{
 	if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) return 0;
 	else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 		if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
@@ -300,7 +301,8 @@ static void dynamicPaint_setPreview(DynamicPaintSurface *t_surface)
 }
 
 /* change surface data to defaults on new type */
-void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface) {
+void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface)
+{
 	if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
 		surface->output_name[0]='\0';
 		surface->output_name2[0]='\0';
@@ -370,7 +372,8 @@ static int surfaceDublicateNameExists(void *arg, const char *name)
 	return 0;
 }
 
-void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basename) {
+void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basename)
+{
 	char name[64];
 	strncpy(name, basename, 62); /* in case basename is surface->name use a copy */
 	BLI_uniquename_cb(surfaceDublicateNameExists, surface, name, '.', surface->name, sizeof(surface->name));
@@ -792,6 +795,17 @@ static void free_bakeData(PaintSurfaceData *data)
 	}
 }
 
+/* free surface data if it's not used anymore */
+void surface_freeUnusedData(DynamicPaintSurface *surface)
+{
+	if (!surface->data) return;
+
+	/* free bakedata if not active or surface is baked */
+	if (!(surface->flags & MOD_DPAINT_ACTIVE) ||
+		(surface->pointcache && surface->pointcache->flag & PTCACHE_BAKED))
+		free_bakeData(surface->data);
+}
+
 static void dynamicPaint_freeSurfaceData(DynamicPaintSurface *surface)
 {
 	PaintSurfaceData *data = surface->data;
@@ -983,9 +997,6 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 			pmd->brush->paint_distance = 0.1f;
 			pmd->brush->proximity_falloff = MOD_DPAINT_PRFALL_SMOOTH;
 
-			pmd->brush->displace_distance = 0.5f;
-			pmd->brush->prox_displace_strength = 0.5f;
-
 			pmd->brush->particle_radius = 0.2f;
 			pmd->brush->particle_smooth = 0.05f;
 
@@ -1062,8 +1073,6 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 		tpmd->brush->particle_smooth = pmd->brush->particle_smooth;
 		tpmd->brush->paint_distance = pmd->brush->paint_distance;
 		tpmd->brush->psys = pmd->brush->psys;
-		tpmd->brush->displace_distance = pmd->brush->displace_distance;
-		tpmd->brush->prox_displace_strength = pmd->brush->prox_displace_strength;
 
 		tpmd->brush->paint_ramp = pmd->brush->paint_ramp;
 
@@ -1093,13 +1102,15 @@ static void dynamicPaint_allocateSurfaceType(DynamicPaintSurface *surface)
 	if (sData->type_data == NULL) printError(surface->canvas, "Not enough free memory!");
 }
 
-static int surface_usesAdjDistance(DynamicPaintSurface *surface) {
+static int surface_usesAdjDistance(DynamicPaintSurface *surface)
+{
 	if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && surface->effect) return 1;
 	if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) return 1;
 	return 0;
 }
 
-static int surface_usesAdjData(DynamicPaintSurface *surface) {
+static int surface_usesAdjData(DynamicPaintSurface *surface)
+{
 	if (surface_usesAdjDistance(surface)) return 1;
 	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX &&
 		surface->flags & MOD_DPAINT_ANTIALIAS) return 1;
@@ -1108,7 +1119,8 @@ static int surface_usesAdjData(DynamicPaintSurface *surface) {
 }
 
 /* initialize surface adjacency data */
-static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int force_init) {
+static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int force_init)
+{
 	PaintSurfaceData *sData = surface->data;
 	PaintAdjData *ed;
 	int *temp_data;
@@ -1213,7 +1225,8 @@ static void dynamicPaint_initAdjacencyData(DynamicPaintSurface *surface, int for
 }
 
 /* clears surface data back to zero */
-void dynamicPaint_clearSurface(DynamicPaintSurface *surface) {
+void dynamicPaint_clearSurface(DynamicPaintSurface *surface)
+{
 	PaintSurfaceData *sData = surface->data;
 	if (sData && sData->type_data) {
 		unsigned int data_size;
@@ -1571,6 +1584,9 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 		/* loop through surfaces */
 		for (; surface; surface=surface->next) {
 			int current_frame = (int)scene->r.cfra;
+
+			/* free bake data if not required anymore */
+			surface_freeUnusedData(surface);
 
 			/* image sequences are handled by bake operator */
 			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) continue;
@@ -3183,6 +3199,8 @@ static void dynamicPaint_updatePointData(DynamicPaintSurface *surface, unsigned 
 
 static int meshBrush_boundsIntersect(Bounds3D *b1, Bounds3D *b2, DynamicPaintBrushSettings *brush)
 {
+	if (brush->flags & MOD_DPAINT_ACCEPT_NONCLOSED)
+		return 1;
 	if (brush->collision == MOD_DPAINT_COL_VOLUME)
 		return boundsIntersect(b1, b2);
 	else if (brush->collision == MOD_DPAINT_COL_DIST || brush->collision == MOD_DPAINT_COL_VOLDIST)
@@ -4636,7 +4654,8 @@ void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescale)
 #define VALUE_DISSOLVE(VALUE, SPEED, SCALE, LOG) (VALUE) = (LOG) ? (VALUE) * 1.0f - 1.0f/((SPEED)/(SCALE)) : (VALUE) - 1.0f/(SPEED)*(SCALE)
 
 /* Do dissolve and fading effects */
-static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float timescale) {
+static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float timescale)
+{
 	PaintSurfaceData *sData = surface->data;
 	int index;
 
@@ -5445,7 +5464,8 @@ void DPAINT_OT_surface_slot_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int type_toggle_exec(bContext *C, wmOperator *op) {
+static int type_toggle_exec(bContext *C, wmOperator *op)
+{
 
 	Object *cObject = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
@@ -5496,7 +5516,8 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-static int output_toggle_exec(bContext *C, wmOperator *op) {
+static int output_toggle_exec(bContext *C, wmOperator *op)
+{
 
 	Object *ob = CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	Scene *scene = CTX_data_scene(C);
@@ -5561,4 +5582,3 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
 	prop= RNA_def_int(ot->srna, "index", 0, 0, 1, "Index", "", 0, 1);
 	ot->prop= prop;
 }
-
