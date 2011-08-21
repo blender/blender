@@ -1042,11 +1042,6 @@ static void rearrange_action_channels (bAnimContext *ac, bAction *act, short mod
 static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	
-	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
 	short mode;
 	
 	/* get editor data */
@@ -1056,42 +1051,50 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 	/* get mode */
 	mode= RNA_enum_get(op->ptr, "direction");
 	
-	/* get animdata blocks */
-	// XXX: hierarchy visibility is provisional atm... might be wrong decision!
-	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA);
-	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	
-	for (ale = anim_data.first; ale; ale = ale->next) {
-		AnimData *adt= ale->data;
-		
-		switch (ac.datatype) {
-			case ANIMCONT_NLA: /* NLA-tracks only */
-				rearrange_nla_channels(&ac, adt, mode);
-				break;
-			
-			case ANIMCONT_DRIVERS: /* Drivers list only */
-				rearrange_driver_channels(&ac, adt, mode);
-				break;
-				
-			case ANIMCONT_GPENCIL: /* Grease Pencil channels */
-				// FIXME: this case probably needs to get moved out of here or treated specially...
-				printf("grease pencil not supported for moving yet\n");
-				break;
-				
-			case ANIMCONT_SHAPEKEY: // DOUBLE CHECK ME...
-				
-			default: /* some collection of actions */
-				// FIXME: actions should only be considered once!
-				if (adt->action)
-					rearrange_action_channels(&ac, adt->action, mode);
-				else if (G.f & G_DEBUG)
-					printf("animdata has no action\n");
-				break;
-		}
+	/* method to move channels depends on the editor */
+	if (ac.datatype == ANIMCONT_GPENCIL) {
+		/* Grease Pencil channels */
+		printf("Grease Pencil not supported for moving yet\n");
 	}
-	
-	/* free temp data */
-	BLI_freelistN(&anim_data);
+	else if (ac.datatype == ANIMCONT_ACTION) {
+		/* Directly rearrange action's channels */
+		rearrange_action_channels(&ac, ac.data, mode);
+	}
+	else {
+		ListBase anim_data = {NULL, NULL};
+		bAnimListElem *ale;
+		int filter;
+		
+		/* get animdata blocks */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA);
+		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		for (ale = anim_data.first; ale; ale = ale->next) {
+			AnimData *adt= ale->data;
+			
+			switch (ac.datatype) {
+				case ANIMCONT_NLA: /* NLA-tracks only */
+					rearrange_nla_channels(&ac, adt, mode);
+					break;
+				
+				case ANIMCONT_DRIVERS: /* Drivers list only */
+					rearrange_driver_channels(&ac, adt, mode);
+					break;
+				
+				case ANIMCONT_SHAPEKEY: // DOUBLE CHECK ME...
+					
+				default: /* some collection of actions */
+					if (adt->action)
+						rearrange_action_channels(&ac, adt->action, mode);
+					else if (G.f & G_DEBUG)
+						printf("Animdata has no action\n");
+					break;
+			}
+		}
+		
+		/* free temp data */
+		BLI_freelistN(&anim_data);
+	}
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
