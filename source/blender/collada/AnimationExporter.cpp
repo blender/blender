@@ -63,6 +63,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 		//Export transform animations
 		if(ob->adt && ob->adt->action)      
 		{
+			fcu = (FCurve*)ob->adt->action->curves.first;
+
 			//transform matrix export for bones are temporarily disabled here.
 			if ( ob->type == OB_ARMATURE )
 			{
@@ -71,19 +73,20 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
 					write_bone_animation_matrix(ob, bone);
 				
+				transformName = fcu->rna_path;
 			}
-			else {
-			fcu = (FCurve*)ob->adt->action->curves.first;
+			else 
+				transformName = extract_transform_name( fcu->rna_path );
+			
 			while (fcu) {
-			transformName = extract_transform_name( fcu->rna_path );
-				
+				transformName = extract_transform_name( fcu->rna_path );
 				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
 					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
 					(!strcmp(transformName, "rotation_quaternion"))) 
 					dae_animation(ob ,fcu, transformName, false);
 				fcu = fcu->next;
 			}
-			}
+		
 		}
 
 		//Export Lamp parameter animations

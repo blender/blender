@@ -167,7 +167,6 @@ std::string ArmatureExporter::get_joint_sid(Bone *bone, Object *ob_arm)
 // parent_mat is armature-space
 void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 {
-	/*if((bone->flag & BONE_NO_DEFORM) == 0 ){*/
 	std::string node_id = get_joint_id(bone, ob_arm);
 	std::string node_name = std::string(bone->name);
 	std::string node_sid = get_joint_sid(bone, ob_arm);
@@ -189,8 +188,7 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 	for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
 		add_bone_node(child, ob_arm);
 	}
-
-	node.end();
+    node.end();
 	//}
 }
 
