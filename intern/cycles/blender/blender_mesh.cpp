@@ -62,14 +62,14 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	/* create vertices */
 	BL::Mesh::vertices_iterator v;
 
-	for(v = b_mesh.vertices.begin(); v != b_mesh.vertices.end(); ++v)
+	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
 		mesh->verts.push_back(get_float3(v->co()));
 
 	/* create faces */
 	BL::Mesh::faces_iterator f;
 	vector<int> nverts;
 
-	for(f = b_mesh.faces.begin(); f != b_mesh.faces.end(); ++f) {
+	for(b_mesh.faces.begin(f); f != b_mesh.faces.end(); ++f) {
 		int4 vi = get_int4(f->vertices_raw());
 		int n= (vi[3] == 0)? 3: 4;
 		int shader = used_shaders[f->material_index()];
@@ -101,7 +101,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		BL::Mesh::vertices_iterator v;
 		size_t i = 0;
 
-		for(v = b_mesh.vertices.begin(); v != b_mesh.vertices.end(); ++v)
+		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
 			fdata[i++] = get_float3(v->co())*size - loc;
 	}
 
@@ -109,7 +109,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	{
 		BL::Mesh::vertex_colors_iterator l;
 
-		for(l = b_mesh.vertex_colors.begin(); l != b_mesh.vertex_colors.end(); ++l) {
+		for(b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l) {
 			if(!mesh_need_attribute(scene, mesh, ustring(l->name())))
 				continue;
 
@@ -120,7 +120,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 			float3 *fdata = attr->data_float3();
 			size_t i = 0;
 
-			for(c = l->data.begin(); c != l->data.end(); ++c, ++i) {
+			for(l->data.begin(c); c != l->data.end(); ++c, ++i) {
 				fdata[0] =  get_float3(c->color1());
 				fdata[1] =  get_float3(c->color2());
 				fdata[2] =  get_float3(c->color3());
@@ -140,7 +140,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	{
 		BL::Mesh::uv_textures_iterator l;
 
-		for(l = b_mesh.uv_textures.begin(); l != b_mesh.uv_textures.end(); ++l) {
+		for(b_mesh.uv_textures.begin(l); l != b_mesh.uv_textures.end(); ++l) {
 			Attribute::Standard std = (l->active_render())? Attribute::STD_UV: Attribute::STD_NONE;
 			ustring name = ustring(l->name());
 
@@ -158,7 +158,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 			float3 *fdata = attr->data_float3();
 			size_t i = 0;
 
-			for(t = l->data.begin(); t != l->data.end(); ++t, ++i) {
+			for(l->data.begin(t); t != l->data.end(); ++t, ++i) {
 				fdata[0] =  get_float3(t->uv1());
 				fdata[1] =  get_float3(t->uv2());
 				fdata[2] =  get_float3(t->uv3());
@@ -183,13 +183,13 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 	/* create vertices */
 	BL::Mesh::vertices_iterator v;
 
-	for(v = b_mesh.vertices.begin(); v != b_mesh.vertices.end(); ++v)
+	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
 		sdmesh.add_vert(get_float3(v->co()));
 
 	/* create faces */
 	BL::Mesh::faces_iterator f;
 
-	for(f = b_mesh.faces.begin(); f != b_mesh.faces.end(); ++f) {
+	for(b_mesh.faces.begin(f); f != b_mesh.faces.end(); ++f) {
 		int4 vi = get_int4(f->vertices_raw());
 		int n= (vi[3] == 0)? 3: 4;
 		//int shader = used_shaders[f->material_index()];
@@ -223,7 +223,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 	vector<uint> used_shaders;
 
 	BL::Object::material_slots_iterator slot;
-	for(slot = b_ob.material_slots.begin(); slot != b_ob.material_slots.end(); ++slot)
+	for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot)
 		find_shader(slot->material(), used_shaders);
 
 	if(used_shaders.size() == 0)

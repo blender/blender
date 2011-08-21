@@ -148,7 +148,9 @@ void BlenderSession::write_render_result()
 	RNA_pointer_create(NULL, &RNA_RenderResult, rrp, &rrptr);
 	BL::RenderResult rr(rrptr);
 
-	rna_RenderLayer_rect_set(&rr.layers.begin()->ptr, (float*)&buffer[0]);
+	BL::RenderResult::layers_iterator layer;
+	rr.layers.begin(layer);
+	rna_RenderLayer_rect_set(&layer->ptr, (float*)&buffer[0]);
 
 	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, rrp);
 }

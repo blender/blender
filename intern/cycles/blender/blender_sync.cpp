@@ -65,19 +65,19 @@ bool BlenderSync::sync_recalc()
 
 	BL::BlendData::materials_iterator b_mat;
 
-	for(b_mat = b_data.materials.begin(); b_mat != b_data.materials.end(); ++b_mat)
+	for(b_data.materials.begin(b_mat); b_mat != b_data.materials.end(); ++b_mat)
 		if(b_mat->recalc())
 			shader_map.set_recalc(*b_mat);
 
 	BL::BlendData::lamps_iterator b_lamp;
 
-	for(b_lamp = b_data.lamps.begin(); b_lamp != b_data.lamps.end(); ++b_lamp)
+	for(b_data.lamps.begin(b_lamp); b_lamp != b_data.lamps.end(); ++b_lamp)
 		if(b_lamp->recalc())
 			shader_map.set_recalc(*b_lamp);
 
 	BL::BlendData::objects_iterator b_ob;
 
-	for(b_ob = b_data.objects.begin(); b_ob != b_data.objects.end(); ++b_ob) {
+	for(b_data.objects.begin(b_ob); b_ob != b_data.objects.end(); ++b_ob) {
 		if(b_ob->recalc()) {
 			object_map.set_recalc(*b_ob);
 			light_map.set_recalc(*b_ob);
@@ -92,13 +92,13 @@ bool BlenderSync::sync_recalc()
 
 	BL::BlendData::meshes_iterator b_mesh;
 
-	for(b_mesh = b_data.meshes.begin(); b_mesh != b_data.meshes.end(); ++b_mesh)
+	for(b_data.meshes.begin(b_mesh); b_mesh != b_data.meshes.end(); ++b_mesh)
 		if(b_mesh->recalc())
 			mesh_map.set_recalc(*b_mesh);
 
 	BL::BlendData::worlds_iterator b_world;
 
-	for(b_world = b_data.worlds.begin(); b_world != b_data.worlds.end(); ++b_world)
+	for(b_data.worlds.begin(b_world); b_world != b_data.worlds.end(); ++b_world)
 		if(world_map == b_world->ptr.data && b_world->recalc())
 			world_recalc = true;
 

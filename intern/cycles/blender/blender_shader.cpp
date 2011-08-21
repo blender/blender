@@ -54,18 +54,18 @@ static BL::NodeSocket get_node_input(BL::Node *b_group_node, BL::Node b_node, co
 {
 	BL::Node::inputs_iterator b_in;
 
-	for(b_in = b_node.inputs.begin(); b_in != b_node.inputs.end(); ++b_in) {
+	for(b_node.inputs.begin(b_in); b_in != b_node.inputs.end(); ++b_in) {
 		if(b_in->name() == name) {
 			if(b_group_node) {
 
 				BL::NodeTree b_ntree = BL::NodeGroup(*b_group_node).node_tree();
 				BL::NodeTree::links_iterator b_link;
 
-				for(b_link = b_ntree.links.begin(); b_link != b_ntree.links.end(); ++b_link) {
+				for(b_ntree.links.begin(b_link); b_link != b_ntree.links.end(); ++b_link) {
 					if(b_link->to_socket().ptr.data == b_in->ptr.data) {
 						BL::Node::inputs_iterator b_gin;
 
-						for(b_gin = b_group_node->inputs.begin(); b_gin != b_group_node->inputs.end(); ++b_gin)
+						for(b_group_node->inputs.begin(b_gin); b_gin != b_group_node->inputs.end(); ++b_gin)
 							if(b_gin->group_socket().ptr.data == b_link->from_socket().ptr.data)
 								return *b_gin;
 
@@ -86,7 +86,7 @@ static BL::NodeSocket get_node_output(BL::Node b_node, const string& name)
 {
 	BL::Node::outputs_iterator b_out;
 
-	for(b_out = b_node.outputs.begin(); b_out != b_node.outputs.end(); ++b_out)
+	for(b_node.outputs.begin(b_out); b_out != b_node.outputs.end(); ++b_out)
 		if(b_out->name() == name)
 			return *b_out;
 
@@ -405,7 +405,7 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 	PtrNodeMap node_map;
 	map<void*, PtrSockMap> node_groups;
 
-	for(b_node = b_ntree.nodes.begin(); b_node != b_ntree.nodes.end(); ++b_node) {
+	for(b_ntree.nodes.begin(b_node); b_node != b_ntree.nodes.end(); ++b_node) {
 		if(b_node->is_a(&RNA_NodeGroup)) {
 			BL::NodeGroup b_gnode(*b_node);
 			BL::ShaderNodeTree b_group_ntree(b_gnode.node_tree());
@@ -422,7 +422,7 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 
 				node_map[b_node->ptr.data] = node;
 
-				for(b_input = b_node->inputs.begin(); b_input != b_node->inputs.end(); ++b_input) {
+				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
 					ShaderInput *input = node->input(b_input->name().c_str());
 					BL::NodeSocket sock(get_node_input(b_group_node, *b_node, b_input->name()));
 
@@ -458,7 +458,7 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 	/* connect nodes */
 	BL::NodeTree::links_iterator b_link;
 
-	for(b_link = b_ntree.links.begin(); b_link != b_ntree.links.end(); ++b_link) {
+	for(b_ntree.links.begin(b_link); b_link != b_ntree.links.end(); ++b_link) {
 		/* get blender link data */
 		BL::Node b_from_node = b_link->from_node();
 		BL::Node b_to_node = b_link->to_node();
@@ -528,7 +528,7 @@ void BlenderSync::sync_materials()
 	/* material loop */
 	BL::BlendData::materials_iterator b_mat;
 
-	for(b_mat = b_data.materials.begin(); b_mat != b_data.materials.end(); ++b_mat) {
+	for(b_data.materials.begin(b_mat); b_mat != b_data.materials.end(); ++b_mat) {
 		Shader *shader;
 		
 		/* test if we need to sync */
@@ -610,7 +610,7 @@ void BlenderSync::sync_lamps()
 	/* lamp loop */
 	BL::BlendData::lamps_iterator b_lamp;
 
-	for(b_lamp = b_data.lamps.begin(); b_lamp != b_data.lamps.end(); ++b_lamp) {
+	for(b_data.lamps.begin(b_lamp); b_lamp != b_data.lamps.end(); ++b_lamp) {
 		Shader *shader;
 		
 		/* test if we need to sync */

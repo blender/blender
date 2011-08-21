@@ -324,7 +324,7 @@ void ShaderGraph::clean()
 	break_cycles(output(), visited, on_stack);
 
 	/* remove unused nodes */
-	vector<ShaderNode*> newnodes;
+	list<ShaderNode*> newnodes;
 	
 	foreach(ShaderNode *node, nodes) {
 		if(visited[node->id])

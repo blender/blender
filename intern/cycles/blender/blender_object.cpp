@@ -40,7 +40,7 @@ bool BlenderSync::object_is_modified(BL::Object b_ob)
 	else {
 		/* object level material links */
 		BL::Object::material_slots_iterator slot;
-		for(slot = b_ob.material_slots.begin(); slot != b_ob.material_slots.end(); ++slot)
+		for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot)
 			if(slot->link() == BL::MaterialSlot::link_OBJECT)
 				return true;
 	}
@@ -144,7 +144,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 	/* object loop */
 	BL::Scene::objects_iterator b_ob;
 
-	for(b_ob = b_scene.objects.begin(); b_ob != b_scene.objects.end(); ++b_ob) {
+	for(b_scene.objects.begin(b_ob); b_ob != b_scene.objects.end(); ++b_ob) {
 		bool hide = (b_v3d)? b_ob->hide(): b_ob->hide_render();
 
 		if(!hide && get_layer(b_ob->layers()) & layer) {
@@ -155,7 +155,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 				BL::Object::dupli_list_iterator b_dup;
 				int b_index = 0;
 
-				for(b_dup = b_ob->dupli_list.begin(); b_dup != b_ob->dupli_list.end(); ++b_dup) {
+				for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
 					Transform tfm = get_transform(b_dup->matrix());
 					sync_object(*b_ob, b_index, b_dup->object(), tfm);
 					b_index++;

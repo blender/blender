@@ -497,12 +497,6 @@ if(UNIX AND NOT APPLE)
 			set(BOOST "/usr" CACHE PATH "Boost Directory")
 		endif()
 
-	    #set(Boost_ADDITIONAL_VERSIONS "1.46" "1.45" "1.44" 
-		#	"1.43" "1.43.0" "1.42" "1.42.0" 
-		#	"1.41" "1.41.0" "1.40" "1.40.0"
-		#	"1.39" "1.39.0" "1.38" "1.38.0"
-		#	"1.37" "1.37.0" "1.34.1" "1_34_1")
-
 		set(BOOST_ROOT ${BOOST})
 		set(Boost_USE_MULTITHREADED ON)
 		find_package(Boost 1.34 REQUIRED COMPONENTS filesystem regex system thread)
@@ -819,8 +813,12 @@ elseif(WIN32)
 			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
 			set(BOOST_POSTFIX "vc90-mt-s-1_46_1.lib")
-			set(BOOST_LIBRARIES libboost_date_time-${BOOST_POSTFIX} libboost_filesystem-${BOOST_POSTFIX}
-			libboost_regex-${BOOST_POSTFIX} libboost_system-${BOOST_POSTFIX} libboost_thread-${BOOST_POSTFIX})
+			set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_46_1.lib")
+			set(BOOST_LIBRARIES
+				optimized libboost_date_time-${BOOST_POSTFIX} libboost_filesystem-${BOOST_POSTFIX}
+				libboost_regex-${BOOST_POSTFIX} libboost_system-${BOOST_POSTFIX} libboost_thread-${BOOST_POSTFIX}
+				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} libboost_filesystem-${BOOST_DEBUG_POSTFIX}
+				libboost_regex-${BOOST_DEBUG_POSTFIX} libboost_system-${BOOST_DEBUG_POSTFIX} libboost_thread-${BOOST_DEBUG_POSTFIX})
 			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 		endif()

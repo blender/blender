@@ -21,6 +21,7 @@
 
 #include "kernel_types.h"
 
+#include "util_list.h"
 #include "util_map.h"
 #include "util_param.h"
 #include "util_set.h"
@@ -193,7 +194,7 @@ public:
 
 class ShaderGraph {
 public:
-	vector<ShaderNode*> nodes;
+	list<ShaderNode*> nodes;
 	bool finalized;
 
 	ShaderGraph();
