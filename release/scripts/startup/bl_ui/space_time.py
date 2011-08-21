@@ -18,9 +18,10 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu
 
 
-class TIME_HT_header(bpy.types.Header):
+class TIME_HT_header(Header):
     bl_space_type = 'TIMELINE'
 
     def draw(self, context):
@@ -34,10 +35,9 @@ class TIME_HT_header(bpy.types.Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("TIME_MT_view")
-            sub.menu("TIME_MT_frame")
-            sub.menu("TIME_MT_playback")
+            row.menu("TIME_MT_view")
+            row.menu("TIME_MT_frame")
+            row.menu("TIME_MT_playback")
 
         layout.prop(scene, "use_preview_range", text="", toggle=True)
 
@@ -91,7 +91,7 @@ class TIME_HT_header(bpy.types.Header):
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
 
-class TIME_MT_view(bpy.types.Menu):
+class TIME_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -116,7 +116,7 @@ class TIME_MT_view(bpy.types.Menu):
         layout.operator("marker.camera_bind")
 
 
-class TIME_MT_cache(bpy.types.Menu):
+class TIME_MT_cache(Menu):
     bl_label = "Cache"
 
     def draw(self, context):
@@ -137,7 +137,7 @@ class TIME_MT_cache(bpy.types.Menu):
         col.prop(st, "cache_dynamicpaint")
 
 
-class TIME_MT_frame(bpy.types.Menu):
+class TIME_MT_frame(Menu):
     bl_label = "Frame"
 
     def draw(self, context):
@@ -163,7 +163,7 @@ class TIME_MT_frame(bpy.types.Menu):
         sub.menu("TIME_MT_autokey")
 
 
-class TIME_MT_playback(bpy.types.Menu):
+class TIME_MT_playback(Menu):
     bl_label = "Playback"
 
     def draw(self, context):
@@ -188,7 +188,7 @@ class TIME_MT_playback(bpy.types.Menu):
         layout.prop(scene, "use_audio_scrub")
 
 
-class TIME_MT_autokey(bpy.types.Menu):
+class TIME_MT_autokey(Menu):
     bl_label = "Auto-Keyframing Mode"
 
     def draw(self, context):

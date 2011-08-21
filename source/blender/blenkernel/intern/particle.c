@@ -4398,6 +4398,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 	copy_m3_m4(nmat, ob->imat);
 	transpose_m3(nmat);
 	mul_m3_v3(nmat, nor);
+	normalize_v3(nor);
 
 	/* make sure that we get a proper side vector */
 	if(fabs(dot_v3v3(nor,vec))>0.999999) {

@@ -149,6 +149,10 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
 			intern/GHOST_SystemPathsX11.cpp
 			intern/GHOST_SystemPathsX11.h
 		)
+
+		if(NOT WITH_INSTALL_PORTABLE)
+			add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+		endif()
 	elseif(WIN32)
 
 		list(APPEND SRC
@@ -204,10 +208,6 @@ elseif(APPLE)
 
 elseif(UNIX)
 
-	if(WITH_X11_XINPUT)
-		add_definitions(-DWITH_X11_XINPUT)
-	endif()
-
 	list(APPEND INC_SYS
 		${X11_X11_INCLUDE_PATH}
 	)
@@ -224,10 +224,6 @@ elseif(UNIX)
 		intern/GHOST_WindowX11.h
 	)
 
-	if(NOT WITH_INSTALL_PORTABLE)
-		add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
-	endif()
-
 	if(X11_XF86keysym_INCLUDE_PATH)
 		add_definitions(-DWITH_XF86KEYSYM)
 		list(APPEND INC_SYS
@@ -241,6 +237,14 @@ elseif(UNIX)
 
 			intern/GHOST_NDOFManagerX11.h
 		)
+	endif()
+
+	if(NOT WITH_INSTALL_PORTABLE)
+		add_definitions(-DPREFIX="${CMAKE_INSTALL_PREFIX}")
+	endif()
+
+	if(WITH_X11_XINPUT)
+		add_definitions(-DWITH_X11_XINPUT)
 	endif()
 
 elseif(WIN32)

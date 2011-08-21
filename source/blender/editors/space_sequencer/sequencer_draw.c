@@ -702,7 +702,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 
 static Sequence *special_seq_update= 0;
 
-static void set_special_seq_update(int val)
+static void UNUSED_FUNCTION(set_special_seq_update)(int val)
 {
 //	int x;
 

@@ -18,6 +18,7 @@
 
 # <pep8-80 compliant>
 import bpy
+from bpy.types import Operator
 import mathutils
 
 
@@ -81,42 +82,68 @@ from bpy.props import (FloatProperty,
                        )
 
 
-class AddTorus(bpy.types.Operator):
+class AddTorus(Operator):
     '''Add a torus mesh'''
     bl_idname = "mesh.primitive_torus_add"
     bl_label = "Add Torus"
     bl_options = {'REGISTER', 'UNDO'}
 
-    major_radius = FloatProperty(name="Major Radius",
+    major_radius = FloatProperty(
+            name="Major Radius",
             description=("Radius from the origin to the "
                          "center of the cross sections"),
-            default=1.0, min=0.01, max=100.0)
-    minor_radius = FloatProperty(name="Minor Radius",
+            min=0.01, max=100.0,
+            default=1.0,
+            )
+    minor_radius = FloatProperty(
+            name="Minor Radius",
             description="Radius of the torus' cross section",
-            default=0.25, min=0.01, max=100.0)
-    major_segments = IntProperty(name="Major Segments",
+            min=0.01, max=100.0,
+            default=0.25,
+            )
+    major_segments = IntProperty(
+            name="Major Segments",
             description="Number of segments for the main ring of the torus",
-            default=48, min=3, max=256)
-    minor_segments = IntProperty(name="Minor Segments",
+            min=3, max=256,
+            default=48,
+            )
+    minor_segments = IntProperty(
+            name="Minor Segments",
             description="Number of segments for the minor ring of the torus",
-            default=12, min=3, max=256)
-    use_abso = BoolProperty(name="Use Int+Ext Controls",
+            min=3, max=256,
+            default=12,
+            )
+    use_abso = BoolProperty(
+            name="Use Int+Ext Controls",
             description="Use the Int / Ext controls for torus dimensions",
-            default=False)
-    abso_major_rad = FloatProperty(name="Exterior Radius",
+            default=False,
+            )
+    abso_major_rad = FloatProperty(
+            name="Exterior Radius",
             description="Total Exterior Radius of the torus",
-            default=1.0, min=0.01, max=100.0)
-    abso_minor_rad = FloatProperty(name="Inside Radius",
+            min=0.01, max=100.0,
+            default=1.0,
+            )
+    abso_minor_rad = FloatProperty(
+            name="Inside Radius",
             description="Total Interior Radius of the torus",
-            default=0.5, min=0.01, max=100.0)
+            min=0.01, max=100.0,
+            default=0.5,
+            )
 
     # generic transform props
-    view_align = BoolProperty(name="Align to View",
-            default=False)
-    location = FloatVectorProperty(name="Location",
-            subtype='TRANSLATION')
-    rotation = FloatVectorProperty(name="Rotation",
-            subtype='EULER')
+    view_align = BoolProperty(
+            name="Align to View",
+            default=False,
+            )
+    location = FloatVectorProperty(
+            name="Location",
+            subtype='TRANSLATION',
+            )
+    rotation = FloatVectorProperty(
+            name="Rotation",
+            subtype='EULER',
+            )
 
     def execute(self, context):
 

@@ -44,6 +44,8 @@ struct TreeStoreElem;
 struct bContext;
 struct Scene;
 struct ARegion;
+struct ID;
+struct Object;
 
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
@@ -107,27 +109,62 @@ typedef struct TreeElement {
 /* button events */
 #define OL_NAMEBUTTON		1
 
+/* get TreeStoreElem associated with a TreeElement 
+ * < a: (TreeElement) tree element to find stored element for
+ */
+#define TREESTORE(a) ((a)?soops->treestore->data+(a)->store_index:NULL)
 
-/* outliner_ops.c */
-void outliner_operatortypes(void);
-void outliner_keymap(struct wmKeyConfig *keyconf);
+/* size constants */
+#define OL_Y_OFFSET	2
 
-/* outliner_header.c */
-void outliner_header_buttons(const struct bContext *C, struct ARegion *ar);
+#define OL_TOG_RESTRICT_VIEWX	(UI_UNIT_X*3)
+#define OL_TOG_RESTRICT_SELECTX	(UI_UNIT_X*2)
+#define OL_TOG_RESTRICT_RENDERX	UI_UNIT_X
 
-/* outliner.c */
-void outliner_free_tree(struct ListBase *lb);
-void outliner_select(struct SpaceOops *soops, struct ListBase *lb, int *index, short *selecting);
+#define OL_TOGW OL_TOG_RESTRICT_VIEWX
+
+#define OL_RNA_COLX			(UI_UNIT_X*15)
+#define OL_RNA_COL_SIZEX	(UI_UNIT_X*7.5f)
+#define OL_RNA_COL_SPACEX	(UI_UNIT_X*2.5f)
+
+
+/* outliner_tree.c ----------------------------------------------- */
+
+void outliner_free_tree(ListBase *lb);
+
+TreeElement *outliner_find_tse(struct SpaceOops *soops, TreeStoreElem *tse);
+TreeElement *outliner_find_id(struct SpaceOops *soops, ListBase *lb, struct ID *id);
+struct ID *outliner_search_back(SpaceOops *soops, TreeElement *te, short idcode);
+
+void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct SpaceOops *soops);
+
+/* outliner_draw.c ---------------------------------------------- */
+
 void draw_outliner(const struct bContext *C);
+
+/* outliner_select.c -------------------------------------------- */
+int tree_element_type_active(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set);
+int tree_element_active(struct bContext *C, struct Scene *scene, SpaceOops *soops, TreeElement *te, int set);
+
+/* outliner_edit.c ---------------------------------------------- */
+
+void outliner_do_object_operation(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, struct ListBase *lb, 
+								  void (*operation_cb)(struct bContext *C, struct Scene *scene, struct TreeElement *, struct TreeStoreElem *, TreeStoreElem *));
+
+int common_restrict_check(struct bContext *C, struct Object *ob);
+
+int outliner_has_one_flag(struct SpaceOops *soops, ListBase *lb, short flag, short curlevel);
+void outliner_set_flag(struct SpaceOops *soops, ListBase *lb, short flag, short set);
+
+void object_toggle_visibility_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
+void object_toggle_selectability_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
+void object_toggle_renderability_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
+
+/* ...................................................... */
 
 void OUTLINER_OT_item_activate(struct wmOperatorType *ot);
 void OUTLINER_OT_item_openclose(struct wmOperatorType *ot);
 void OUTLINER_OT_item_rename(struct wmOperatorType *ot);
-void OUTLINER_OT_operation(struct wmOperatorType *ot);
-void OUTLINER_OT_object_operation(struct wmOperatorType *ot);
-void OUTLINER_OT_group_operation(struct wmOperatorType *ot);
-void OUTLINER_OT_id_operation(struct wmOperatorType *ot);
-void OUTLINER_OT_data_operation(struct wmOperatorType *ot);
 
 void OUTLINER_OT_show_one_level(struct wmOperatorType *ot);
 void OUTLINER_OT_show_active(struct wmOperatorType *ot);
@@ -148,5 +185,23 @@ void OUTLINER_OT_keyingset_remove_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_drivers_add_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_drivers_delete_selected(struct wmOperatorType *ot);
 
-#endif /* ED_OUTLINER_INTERN_H */
+/* outliner_tools.c ---------------------------------------------- */
 
+void OUTLINER_OT_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_object_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_group_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_id_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_data_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_animdata_operation(struct wmOperatorType *ot);
+void OUTLINER_OT_action_set(struct wmOperatorType *ot);
+
+/* ---------------------------------------------------------------- */
+
+/* outliner_ops.c */
+void outliner_operatortypes(void);
+void outliner_keymap(struct wmKeyConfig *keyconf);
+
+/* outliner_header.c */
+void outliner_header_buttons(const struct bContext *C, struct ARegion *ar);
+
+#endif /* ED_OUTLINER_INTERN_H */

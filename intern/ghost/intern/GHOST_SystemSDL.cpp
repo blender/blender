@@ -146,7 +146,7 @@ convertSDLKey(SDL_Scancode key)
 	if ((key >= SDL_SCANCODE_A) && (key <= SDL_SCANCODE_Z)) {
 		type= GHOST_TKey( key - SDL_SCANCODE_A + int(GHOST_kKeyA));
 	} else if ((key >= SDL_SCANCODE_1) && (key <= SDL_SCANCODE_0)) {
-		type= GHOST_TKey(key - SDL_SCANCODE_1 + int(GHOST_kKey0));
+		type= (key == SDL_SCANCODE_0) ? GHOST_kKey0 : GHOST_TKey(key - SDL_SCANCODE_1 + int(GHOST_kKey1));
 	} else if ((key >= SDL_SCANCODE_F1) && (key <= SDL_SCANCODE_F12)) {
 		type= GHOST_TKey(key - SDL_SCANCODE_F1 + int(GHOST_kKeyF1));
 	} else if ((key >= SDL_SCANCODE_F13) && (key <= SDL_SCANCODE_F24)) {
@@ -167,6 +167,8 @@ convertSDLKey(SDL_Scancode key)
 		GXMAP(type,SDL_SCANCODE_APOSTROPHE,     GHOST_kKeyQuote);
 		GXMAP(type,SDL_SCANCODE_GRAVE,          GHOST_kKeyAccentGrave);
 		GXMAP(type,SDL_SCANCODE_MINUS,          GHOST_kKeyMinus);
+		GXMAP(type,SDL_SCANCODE_EQUALS,         GHOST_kKeyEqual);
+
 		GXMAP(type,SDL_SCANCODE_SLASH,          GHOST_kKeySlash);
 		GXMAP(type,SDL_SCANCODE_BACKSLASH,      GHOST_kKeyBackslash);
 		GXMAP(type,SDL_SCANCODE_KP_EQUALS,      GHOST_kKeyEqual);
@@ -180,6 +182,7 @@ convertSDLKey(SDL_Scancode key)
 		GXMAP(type,SDL_SCANCODE_RCTRL,          GHOST_kKeyRightControl);
 		GXMAP(type,SDL_SCANCODE_LALT,           GHOST_kKeyLeftAlt);
 		GXMAP(type,SDL_SCANCODE_RALT,           GHOST_kKeyRightAlt);
+		GXMAP(type,SDL_SCANCODE_LGUI,           GHOST_kKeyOS);
 		GXMAP(type,SDL_SCANCODE_RGUI,           GHOST_kKeyOS);
 
 		GXMAP(type,SDL_SCANCODE_INSERT,         GHOST_kKeyInsert);
@@ -197,6 +200,7 @@ convertSDLKey(SDL_Scancode key)
 		GXMAP(type,SDL_SCANCODE_CAPSLOCK,       GHOST_kKeyCapsLock);
 		GXMAP(type,SDL_SCANCODE_SCROLLLOCK,     GHOST_kKeyScrollLock);
 		GXMAP(type,SDL_SCANCODE_NUMLOCKCLEAR,   GHOST_kKeyNumLock);
+		GXMAP(type,SDL_SCANCODE_PRINTSCREEN,    GHOST_kKeyPrintScreen);
 
 		/* keypad events */
 
@@ -228,6 +232,7 @@ convertSDLKey(SDL_Scancode key)
         GXMAP(type,SDL_SCANCODE_AUDIONEXT,      GHOST_kKeyMediaLast);
 
 		default:
+			printf("Unknown\n");
 			type= GHOST_kKeyUnknown;
 			break;
 		}
@@ -372,6 +377,7 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 	case SDL_KEYUP:
 		{
 			SDL_KeyboardEvent &sdl_sub_evt= sdl_event->key;
+			SDL_Keycode sym= sdl_sub_evt.keysym.sym;
 			GHOST_TEventType type= (sdl_sub_evt.state == SDL_PRESSED) ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
 
 			GHOST_WindowSDL *window= findGhostWindow(SDL_GetWindowFromID(sdl_sub_evt.windowID));
@@ -379,7 +385,63 @@ GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
 
 			GHOST_TKey gkey= convertSDLKey(sdl_sub_evt.keysym.scancode);
 			/* note, the sdl_sub_evt.keysym.sym is truncated, for unicode support ghost has to be modified */
-			g_event= new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sdl_sub_evt.keysym.sym);
+			/* printf("%d\n", sym); */
+			if(sym > 127) {
+				switch(sym) {
+					case SDLK_KP_DIVIDE: sym= '/'; break;
+				    case SDLK_KP_MULTIPLY: sym= '*'; break;
+				    case SDLK_KP_MINUS: sym= '-'; break;
+				    case SDLK_KP_PLUS: sym= '+'; break;
+				    case SDLK_KP_1: sym= '1'; break;
+				    case SDLK_KP_2: sym= '2'; break;
+				    case SDLK_KP_3: sym= '3'; break;
+				    case SDLK_KP_4: sym= '4'; break;
+				    case SDLK_KP_5: sym= '5'; break;
+				    case SDLK_KP_6: sym= '6'; break;
+				    case SDLK_KP_7: sym= '7'; break;
+				    case SDLK_KP_8: sym= '8'; break;
+				    case SDLK_KP_9: sym= '9'; break;
+				    case SDLK_KP_0: sym= '0'; break;
+				    case SDLK_KP_PERIOD: sym= '.'; break;
+					default: sym= 0; break;
+				}
+			}
+			else {
+				if(sdl_sub_evt.keysym.mod & (KMOD_LSHIFT|KMOD_RSHIFT)) {
+					/* lame US keyboard assumptions */
+					if(sym >= 'a' && sym <= ('a' + 32)) {
+						sym -= 32;
+					}
+					else {
+						switch(sym) {
+							case '`': sym= '~'; break;
+							case '1': sym= '!'; break;
+							case '2': sym= '@'; break;
+							case '3': sym= '#'; break;
+							case '4': sym= '$'; break;
+							case '5': sym= '%'; break;
+							case '6': sym= '^'; break;
+							case '7': sym= '&'; break;
+							case '8': sym= '*'; break;
+							case '9': sym= '('; break;
+							case '0': sym= ')'; break;
+							case '-': sym= '_'; break;
+							case '=': sym= '+'; break;
+							case '[': sym= '{'; break;
+							case ']': sym= '}'; break;
+							case '\\': sym= '|'; break;
+							case ';': sym= ':'; break;
+							case '\'': sym= '"'; break;
+							case ',': sym= '<'; break;
+							case '.': sym= '>'; break;
+							case '/': sym= '?'; break;
+							default:            break;
+						}
+					}
+				}
+			}
+
+			g_event= new GHOST_EventKey(getMilliSeconds(), type, window, gkey, sym);
 		}
 		break;
 	}

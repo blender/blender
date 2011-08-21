@@ -206,7 +206,7 @@ def setup_staticlibs(lenv):
         if lenv['WITH_BF_STATICJEMALLOC']:
             statlibs += Split(lenv['BF_JEMALLOC_LIB_STATIC'])
 
-    if lenv['OURPLATFORM']=='linux2':
+    if lenv['OURPLATFORM']=='linux':
         if lenv['WITH_BF_3DMOUSE']:
             libincs += Split(lenv['BF_3DMOUSE_LIBPATH'])
             if lenv['WITH_BF_STATIC3DMOUSE']:
@@ -277,7 +277,7 @@ def setup_syslibs(lenv):
         if not lenv['WITH_BF_STATICJEMALLOC']:
             syslibs += Split(lenv['BF_JEMALLOC_LIB'])
 
-    if lenv['OURPLATFORM']=='linux2':
+    if lenv['OURPLATFORM']=='linux':
         if lenv['WITH_BF_3DMOUSE']:
             if not lenv['WITH_BF_STATIC3DMOUSE']:
                 syslibs += Split(lenv['BF_3DMOUSE_LIB'])
@@ -775,7 +775,7 @@ class BlenderEnvironment(SConsEnvironment):
         if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
             if lenv['BF_DEBUG']:
                 lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb','/NODEFAULTLIB:libcmt'])
-        if  lenv['OURPLATFORM']=='linux2':
+        if  lenv['OURPLATFORM']=='linux':
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
         if  lenv['OURPLATFORM']=='sunos5':

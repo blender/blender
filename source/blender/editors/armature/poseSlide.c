@@ -1000,7 +1000,7 @@ static short pose_propagate_get_refVal (Object *ob, FCurve *fcu, float *value)
 	
 	/* resolve the property... */
 	if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) {
-		if (RNA_property_array_check(&ptr, prop)) {
+		if (RNA_property_array_check(prop)) {
 			/* array */
 			if (fcu->array_index < RNA_property_array_length(&ptr, prop)) {
 				found= TRUE;

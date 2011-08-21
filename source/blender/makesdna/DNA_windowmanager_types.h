@@ -144,7 +144,9 @@ typedef struct wmWindowManager {
 	ListBase drags;			/* active dragged items */
 	
 	ListBase keyconfigs;				/* known key configurations */
-	struct wmKeyConfig *defaultconf;	/* default configuration, not saved */
+	struct wmKeyConfig *defaultconf;	/* default configuration */
+	struct wmKeyConfig *addonconf;		/* addon configuration */
+	struct wmKeyConfig *userconf;		/* user configuration */
 
 	ListBase timers;					/* active timers */
 	struct wmTimer *autosavetimer;		/* timer for auto save */
@@ -239,15 +241,26 @@ typedef struct wmKeyMapItem {
 	struct PointerRNA *ptr;			/* rna pointer to access properties */
 } wmKeyMapItem;
 
+/* used instead of wmKeyMapItem for diff keymaps */
+typedef struct wmKeyMapDiffItem {
+	struct wmKeyMapDiffItem *next, *prev;
+
+	wmKeyMapItem *remove_item;
+	wmKeyMapItem *add_item;
+} wmKeyMapDiffItem;
+
 /* wmKeyMapItem.flag */
-#define KMI_INACTIVE	1
-#define KMI_EXPANDED	2
+#define KMI_INACTIVE		1
+#define KMI_EXPANDED		2
+#define KMI_USER_MODIFIED	4
+#define KMI_UPDATE			8
 
 /* stored in WM, the actively used keymaps */
 typedef struct wmKeyMap {
 	struct wmKeyMap *next, *prev;
 	
 	ListBase items;
+	ListBase diff_items;
 	
 	char idname[64];	/* global editor keymaps, or for more per space/region */
 	short spaceid;		/* same IDs as in DNA_space_types.h */
@@ -263,9 +276,12 @@ typedef struct wmKeyMap {
 
 /* wmKeyMap.flag */
 #define KEYMAP_MODAL				1	/* modal map, not using operatornames */
-#define KEYMAP_USER					2	/* user created keymap */
+#define KEYMAP_USER					2	/* user keymap */
 #define KEYMAP_EXPANDED				4
 #define KEYMAP_CHILDREN_EXPANDED	8
+#define KEYMAP_DIFF					16	/* diff keymap for user preferences */
+#define KEYMAP_USER_MODIFIED		32	/* keymap has user modifications */
+#define KEYMAP_UPDATE				64
 
 typedef struct wmKeyConfig {
 	struct wmKeyConfig *next, *prev;

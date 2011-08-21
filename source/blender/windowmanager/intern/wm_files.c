@@ -224,6 +224,14 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			oldwm= oldwmlist->first;
 			wm= G.main->wm.first;
 
+			/* move addon key configuration to new wm, to preserve their keymaps */
+			if(oldwm->addonconf) {
+				wm->addonconf= oldwm->addonconf;
+				BLI_remlink(&oldwm->keyconfigs, oldwm->addonconf);
+				oldwm->addonconf= NULL;
+				BLI_addtail(&wm->keyconfigs, wm->addonconf);
+			}
+
 			/* ensure making new keymaps and set space types */
 			wm->initialized= 0;
 			wm->winactive= NULL;
@@ -442,7 +450,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
-int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
+int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
@@ -458,7 +466,6 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 		} else {
 			tstr[0] = '\0';
 			from_memory = 1;
-			BKE_report(reports, RPT_INFO, "Config directory with "STRINGIFY(BLENDER_STARTUP_FILE)" file not found.");
 		}
 	}
 	
@@ -794,10 +801,13 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	wmWindow *win= CTX_wm_window(C);
 	char filepath[FILE_MAXDIR+FILE_MAXFILE];
 	int fileflags;
-	
+
 	/* check current window and close it if temp */
 	if(win->screen->temp)
 		wm_window_close(C, wm, win);
+	
+	/* update keymaps in user preferences */
+	WM_keyconfig_update(wm);
 	
 	BLI_make_file_string("/", filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	printf("trying to save homefile at %s ", filepath);

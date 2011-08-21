@@ -413,9 +413,9 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 		}
 		case TEX_REPEAT:
 		{
-			co[0] = co[0] - floor(co[0]);
-			co[1] = co[1] - floor(co[1]);
-			co[2] = co[2] - floor(co[2]);
+			co[0] = co[0] - floorf(co[0]);
+			co[1] = co[1] - floorf(co[1]);
+			co[2] = co[2] - floorf(co[2]);
 			break;
 		}
 		case TEX_EXTEND:

@@ -8,7 +8,10 @@ class ViewOperator(bpy.types.Operator):
     bl_idname = "view3d.modal_operator"
     bl_label = "Simple View Operator"
 
-    offset = FloatVectorProperty(name="Offset", size=3)
+    offset = FloatVectorProperty(
+            name="Offset",
+            size=3,
+            )
 
     def execute(self, context):
         v3d = context.space_data
@@ -29,7 +32,7 @@ class ViewOperator(bpy.types.Operator):
             context.area.header_text_set()
             return {'FINISHED'}
 
-        elif event.type in ('RIGHTMOUSE', 'ESC'):
+        elif event.type in {'RIGHTMOUSE', 'ESC'}:
             rv3d.view_location = self._initial_location
             context.area.header_text_set()
             return {'CANCELLED'}

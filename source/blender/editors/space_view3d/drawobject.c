@@ -2368,7 +2368,20 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 			}
 		}
 	}
-	
+
+	/* useful for debugging index vs shape key index */
+#if 0
+	{
+		EditVert *eve;
+		int j;
+		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
+		for(eve= em->verts.first, j= 0; eve; eve= eve->next, j++) {
+			sprintf(val, "%d:%d", j, eve->keyindex);
+			view3d_cached_text_draw_add(eve->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+		}
+	}
+#endif
+
 	if(v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
 		bglPolygonOffset(rv3d->dist, 0.0f);
@@ -5526,7 +5539,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 		}
 	}
 	else if(ob->type==OB_ARMATURE) {
-		if(!(ob->mode & OB_MODE_POSE))
+		if(!(ob->mode & OB_MODE_POSE && base == scene->basact))
 			draw_armature(scene, v3d, ar, base, OB_WIRE, FALSE, TRUE);
 	}
 
@@ -5783,7 +5796,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
 	
 	/* draw motion paths (in view space) */
-	if (ob->mpath) {
+	if (ob->mpath && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 		bAnimVizSettings *avs= &ob->avs;
 		
 		/* setup drawing environment for paths */

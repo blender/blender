@@ -22,7 +22,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
+#ifdef WITH_INPUT_NDOF
+
 #include "GHOST_NDOFManagerCocoa.h"
 #include "GHOST_SystemCocoa.h"
 
@@ -141,7 +143,7 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 
 		// printf("ndof: client id = %d\n", m_clientID);
 
-		if (SetConnexionClientButtonMask != NULL) {
+		if (oldDRV()) {
 			has_old_driver = false;
 			SetConnexionClientButtonMask(m_clientID, kConnexionMaskAllButtons);
 		}
@@ -157,16 +159,31 @@ GHOST_NDOFManagerCocoa::GHOST_NDOFManagerCocoa(GHOST_System& sys)
 
 GHOST_NDOFManagerCocoa::~GHOST_NDOFManagerCocoa()
 {
-	UnregisterConnexionClient(m_clientID);
-	CleanupConnexionHandlers();
-	ghost_system = NULL;
-	ndof_manager = NULL;
+	if (available())
+	{
+		UnregisterConnexionClient(m_clientID);
+		CleanupConnexionHandlers();
+		ghost_system = NULL;
+		ndof_manager = NULL;
+	}
 }
+extern "C" {
+	bool GHOST_NDOFManagerCocoa::available()
+	{
+		extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
+		// Make the linker happy for the framework check (see link below for more info)
+		// http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html
+		return InstallConnexionHandlers != NULL;
+		// this means that the driver is installed and dynamically linked to blender
+	}
 
-bool GHOST_NDOFManagerCocoa::available()
-{
-	// extern OSErr InstallConnexionHandlers() __attribute__((weak_import));
-	// ^^ not needed since the entire framework is weak-linked
-	return InstallConnexionHandlers != NULL;
-	// this means that the driver is installed and dynamically linked to blender
+	bool GHOST_NDOFManagerCocoa::oldDRV()
+	{
+		extern OSErr SetConnexionClientButtonMask() __attribute__((weak_import));
+		// Make the linker happy for the framework check (see link below for more info)
+		// http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/WeakLinking.html
+		return SetConnexionClientButtonMask != NULL;
+		// this means that the driver has this symbol
+	}
 }
+#endif // WITH_INPUT_NDOF

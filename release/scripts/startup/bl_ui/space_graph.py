@@ -19,9 +19,10 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Header, Menu
 
 
-class GRAPH_HT_header(bpy.types.Header):
+class GRAPH_HT_header(Header):
     bl_space_type = 'GRAPH_EDITOR'
 
     def draw(self, context):
@@ -35,13 +36,11 @@ class GRAPH_HT_header(bpy.types.Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-
-            sub.menu("GRAPH_MT_view")
-            sub.menu("GRAPH_MT_select")
-            sub.menu("GRAPH_MT_marker")
-            sub.menu("GRAPH_MT_channel")
-            sub.menu("GRAPH_MT_key")
+            row.menu("GRAPH_MT_view")
+            row.menu("GRAPH_MT_select")
+            row.menu("GRAPH_MT_marker")
+            row.menu("GRAPH_MT_channel")
+            row.menu("GRAPH_MT_key")
 
         layout.prop(st, "mode", text="")
 
@@ -61,15 +60,13 @@ class GRAPH_HT_header(bpy.types.Header):
             row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
 
 
-class GRAPH_MT_view(bpy.types.Menu):
+class GRAPH_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
 
         st = context.space_data
-
-        layout.column()
 
         layout.operator("graph.properties", icon='MENU_PANEL')
         layout.separator()
@@ -107,13 +104,12 @@ class GRAPH_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class GRAPH_MT_select(bpy.types.Menu):
+class GRAPH_MT_select(Menu):
     bl_label = "Select"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
         layout.operator("graph.select_all_toggle")
         layout.operator("graph.select_all_toggle", text="Invert Selection").invert = True
@@ -142,7 +138,7 @@ class GRAPH_MT_select(bpy.types.Menu):
         layout.operator("graph.select_linked")
 
 
-class GRAPH_MT_marker(bpy.types.Menu):
+class GRAPH_MT_marker(Menu):
     bl_label = "Marker"
 
     def draw(self, context):
@@ -150,7 +146,6 @@ class GRAPH_MT_marker(bpy.types.Menu):
 
         #layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.column()
         layout.operator("marker.add", "Add Marker")
         layout.operator("marker.duplicate", text="Duplicate Marker")
         layout.operator("marker.delete", text="Delete Marker")
@@ -163,7 +158,7 @@ class GRAPH_MT_marker(bpy.types.Menu):
         # TODO: pose markers for action edit mode only?
 
 
-class GRAPH_MT_channel(bpy.types.Menu):
+class GRAPH_MT_channel(Menu):
     bl_label = "Channel"
 
     def draw(self, context):
@@ -171,7 +166,6 @@ class GRAPH_MT_channel(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
-        layout.column()
         layout.operator("anim.channels_delete")
 
         layout.separator()
@@ -195,13 +189,12 @@ class GRAPH_MT_channel(bpy.types.Menu):
         layout.operator("anim.channels_fcurves_enable")
 
 
-class GRAPH_MT_key(bpy.types.Menu):
+class GRAPH_MT_key(Menu):
     bl_label = "Key"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.menu("GRAPH_MT_key_transform", text="Transform")
 
         layout.operator_menu_enum("graph.snap", "type", text="Snap")
@@ -234,13 +227,12 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
 
 
-class GRAPH_MT_key_transform(bpy.types.Menu):
+class GRAPH_MT_key_transform(Menu):
     bl_label = "Transform"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.operator("transform.translate", text="Grab/Move")
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.rotate", text="Rotate")

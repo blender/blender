@@ -20,6 +20,7 @@
 
 from mathutils import Vector
 import bpy
+from bpy.types import Operator
 from bpy.props import (BoolProperty,
                        EnumProperty,
                        IntProperty,
@@ -45,24 +46,30 @@ def object_ensure_material(obj, mat_name):
     return mat
 
 
-class QuickFur(bpy.types.Operator):
+class QuickFur(Operator):
     bl_idname = "object.quick_fur"
     bl_label = "Quick Fur"
     bl_options = {'REGISTER', 'UNDO'}
 
-    density = EnumProperty(items=(
-                        ('LIGHT', "Light", ""),
-                        ('MEDIUM', "Medium", ""),
-                        ('HEAVY', "Heavy", "")),
-                name="Fur Density",
-                description="",
-                default='MEDIUM')
-
-    view_percentage = IntProperty(name="View %",
-            default=10, min=1, max=100, soft_min=1, soft_max=100)
-
-    length = FloatProperty(name="Length",
-            default=0.1, min=0.001, max=100, soft_min=0.01, soft_max=10)
+    density = EnumProperty(
+            name="Fur Density",
+            items=(('LIGHT', "Light", ""),
+                   ('MEDIUM', "Medium", ""),
+                   ('HEAVY', "Heavy", "")),
+            default='MEDIUM',
+            )
+    view_percentage = IntProperty(
+            name="View %",
+            min=1, max=100,
+            soft_min=1, soft_max=100,
+            default=10,
+            )
+    length = FloatProperty(
+            name="Length",
+            min=0.001, max=100,
+            soft_min=0.01, soft_max=10,
+            default=0.1,
+            )
 
     def execute(self, context):
         fake_context = bpy.context.copy()
@@ -104,36 +111,55 @@ class QuickFur(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class QuickExplode(bpy.types.Operator):
+class QuickExplode(Operator):
     bl_idname = "object.quick_explode"
     bl_label = "Quick Explode"
     bl_options = {'REGISTER', 'UNDO'}
 
-    style = EnumProperty(items=(
-                        ('EXPLODE', "Explode", ""),
-                        ('BLEND', "Blend", "")),
-                name="Explode Style",
-                description="",
-                default='EXPLODE')
+    style = EnumProperty(
+            name="Explode Style",
+            items=(('EXPLODE', "Explode", ""),
+                   ('BLEND', "Blend", "")),
+            default='EXPLODE',
+            )
+    amount = IntProperty(
+            name="Amount of pieces",
+            min=2, max=10000,
+            soft_min=2, soft_max=10000,
+            default=100,
+            )
+    frame_duration = IntProperty(
+            name="Duration",
+            min=1, max=300000,
+            soft_min=1, soft_max=10000,
+            default=50,
+            )
 
-    amount = IntProperty(name="Amount of pieces",
-            default=100, min=2, max=10000, soft_min=2, soft_max=10000)
+    frame_start = IntProperty(
+            name="Start Frame",
+            min=1, max=300000,
+            soft_min=1, soft_max=10000,
+            default=1,
+            )
+    frame_end = IntProperty(
+            name="End Frame",
+            min=1, max=300000,
+            soft_min=1, soft_max=10000,
+            default=10,
+            )
 
-    frame_duration = IntProperty(name="Duration",
-            default=50, min=1, max=300000, soft_min=1, soft_max=10000)
+    velocity = FloatProperty(
+            name="Outwards Velocity",
+            min=0, max=300000,
+            soft_min=0, soft_max=10,
+            default=1,
+            )
 
-    frame_start = IntProperty(name="Start Frame",
-            default=1, min=1, max=300000, soft_min=1, soft_max=10000)
-
-    frame_end = IntProperty(name="End Frame",
-            default=10, min=1, max=300000, soft_min=1, soft_max=10000)
-
-    velocity = FloatProperty(name="Outwards Velocity",
-            default=1, min=0, max=300000, soft_min=0, soft_max=10)
-
-    fade = BoolProperty(name="Fade",
-                description="Fade the pieces over time.",
-                default=True)
+    fade = BoolProperty(
+            name="Fade",
+            description="Fade the pieces over time.",
+            default=True,
+            )
 
     def execute(self, context):
         fake_context = bpy.context.copy()
@@ -265,18 +291,17 @@ def obj_bb_minmax(obj, min_co, max_co):
         max_co[2] = max(bb_vec[2], max_co[2])
 
 
-class QuickSmoke(bpy.types.Operator):
+class QuickSmoke(Operator):
     bl_idname = "object.quick_smoke"
     bl_label = "Quick Smoke"
     bl_options = {'REGISTER', 'UNDO'}
 
     style = EnumProperty(
+            name="Smoke Style",
             items=(('STREAM', "Stream", ""),
                    ('PUFF', "Puff", ""),
                    ('FIRE', "Fire", ""),
                    ),
-            name="Smoke Style",
-            description="",
             default='STREAM',
             )
 
@@ -383,25 +408,22 @@ class QuickSmoke(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class QuickFluid(bpy.types.Operator):
+class QuickFluid(Operator):
     bl_idname = "object.quick_fluid"
     bl_label = "Quick Fluid"
     bl_options = {'REGISTER', 'UNDO'}
 
     style = EnumProperty(
+            name="Fluid Style",
             items=(('INFLOW', "Inflow", ""),
-                   ('BASIC', "Basic", ""),
-                   ),
-                name="Fluid Style",
-                description="",
-                default='BASIC',
-                )
+                   ('BASIC', "Basic", "")),
+            default='BASIC',
+            )
     initial_velocity = FloatVectorProperty(
             name="Initial Velocity",
             description="Initial velocity of the fluid",
+            min=-100.0, max=100.0,
             default=(0.0, 0.0, 0.0),
-            min=-100.0,
-            max=100.0,
             subtype='VELOCITY',
             )
     show_flows = BoolProperty(

@@ -4764,6 +4764,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 
 	wm->keyconfigs.first= wm->keyconfigs.last= NULL;
 	wm->defaultconf= NULL;
+	wm->addonconf= NULL;
+	wm->userconf= NULL;
 
 	wm->jobs.first= wm->jobs.last= NULL;
 	wm->drags.first= wm->drags.last= NULL;
@@ -11706,8 +11708,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			Tex *tex;
 			for(tex= main->tex.first; tex; tex= tex->id.next) {
 				if(tex->pd) {
-					if (tex->pd->falloff_speed_scale == 0.0)
-						tex->pd->falloff_speed_scale = 100.0;
+					if (tex->pd->falloff_speed_scale == 0.0f)
+						tex->pd->falloff_speed_scale = 100.0f;
 
 					if (!tex->pd->falloff_curve) {
 						tex->pd->falloff_curve = curvemapping_add(1, 0, 0, 1, 1);
@@ -11800,33 +11802,57 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_library(fd, main);		/* only init users */
 }
 
+static void direct_link_keymapitem(FileData *fd, wmKeyMapItem *kmi)
+{
+	kmi->properties= newdataadr(fd, kmi->properties);
+	if(kmi->properties)
+		IDP_DirectLinkProperty(kmi->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+	kmi->ptr= NULL;
+	kmi->flag &= ~KMI_UPDATE;
+}
 
 static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
 	UserDef *user;
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
+	wmKeyMapDiffItem *kmdi;
 
 	bfd->user= user= read_struct(fd, bhead, "user def");
 
 	/* read all data into fd->datamap */
 	bhead= read_data_into_oldnewmap(fd, bhead, "user def");
 
+	if(user->keymaps.first) {
+		/* backwards compatibility */
+		user->user_keymaps= user->keymaps;
+		user->keymaps.first= user->keymaps.last= NULL;
+	}
+
 	link_list(fd, &user->themes);
-	link_list(fd, &user->keymaps);
+	link_list(fd, &user->user_keymaps);
 	link_list(fd, &user->addons);
 
-	for(keymap=user->keymaps.first; keymap; keymap=keymap->next) {
+	for(keymap=user->user_keymaps.first; keymap; keymap=keymap->next) {
 		keymap->modal_items= NULL;
 		keymap->poll= NULL;
+		keymap->flag &= ~KEYMAP_UPDATE;
 
+		link_list(fd, &keymap->diff_items);
 		link_list(fd, &keymap->items);
-		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
-			kmi->properties= newdataadr(fd, kmi->properties);
-			if(kmi->properties)
-				IDP_DirectLinkProperty(kmi->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-			kmi->ptr= NULL;
+		
+		for(kmdi=keymap->diff_items.first; kmdi; kmdi=kmdi->next) {
+			kmdi->remove_item= newdataadr(fd, kmdi->remove_item);
+			kmdi->add_item= newdataadr(fd, kmdi->add_item);
+
+			if(kmdi->remove_item)
+				direct_link_keymapitem(fd, kmdi->remove_item);
+			if(kmdi->add_item)
+				direct_link_keymapitem(fd, kmdi->add_item);
 		}
+
+		for(kmi=keymap->items.first; kmi; kmi=kmi->next)
+			direct_link_keymapitem(fd, kmi);
 	}
 
 	// XXX

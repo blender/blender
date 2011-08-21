@@ -41,6 +41,7 @@
 
 /* dna-savable wmStructs here */
 #include "DNA_windowmanager_types.h"
+#include "WM_keymap.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,49 +115,8 @@ void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
 
-			/* keyconfig and keymap */
-wmKeyConfig *WM_keyconfig_new	(struct wmWindowManager *wm, const char *idname);
-wmKeyConfig *WM_keyconfig_new_user(struct wmWindowManager *wm, const char *idname);
-void 		WM_keyconfig_remove	(struct wmWindowManager *wm, struct wmKeyConfig *keyconf);
-void 		WM_keyconfig_free	(struct wmKeyConfig *keyconf);
-void		WM_keyconfig_userdef(void);
-
-void		WM_keymap_init		(struct bContext *C);
-void		WM_keymap_free		(struct wmKeyMap *keymap);
-
-wmKeyMapItem *WM_keymap_verify_item(struct wmKeyMap *keymap, const char *idname, int type, 
-								 int val, int modifier, int keymodifier);
-wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, const char *idname, int type, 
-								 int val, int modifier, int keymodifier);
-wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, const char *idname, int type,
-								 int val, int modifier, int keymodifier);
-
-void		WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
-char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
-
-wmKeyMap	*WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid);
-wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid);
-wmKeyMap	*WM_keymap_find_all(const struct bContext *C, const char *idname, int spaceid, int regionid);
-wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
-wmKeyMap	*WM_keymap_guess_opname(const struct bContext *C, const char *opname);
-int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
-wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
-void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
-void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi, struct IDProperty *properties);
-void		WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
-
-wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id);
-int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
+			/* event map */
 int			WM_userdef_event_map(int kmitype);
-
-wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, const char *idname, struct EnumPropertyItem *items);
-wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, const char *idname);
-wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
-void		WM_modalkeymap_assign(struct wmKeyMap *km, const char *opname);
-
-const char	*WM_key_event_string(short type);
-int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, int hotkey, struct wmKeyMap **keymap_r);
-char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
 
 			/* handlers */
 
@@ -219,7 +179,7 @@ void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct wmWindowManager *wm);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
-struct wmOperatorType *WM_operatortype_first(void);
+struct GHashIterator *WM_operatortype_iter(void);
 void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
 void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
@@ -262,6 +222,7 @@ wmOperator *WM_operator_last_redo(const struct bContext *C);
 #define WM_FILESEL_DIRECTORY	(1 << 1)
 #define WM_FILESEL_FILENAME		(1 << 2)
 #define WM_FILESEL_FILEPATH		(1 << 3)
+#define WM_FILESEL_FILES		(1 << 4)
 
 
 		/* operator as a python command (resultuing string must be free'd) */
@@ -270,6 +231,7 @@ void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 
 /* *************** menu types ******************** */
+void				WM_menutype_init(void);
 struct MenuType		*WM_menutype_find(const char *idname, int quiet);
 int					WM_menutype_add(struct MenuType* mt);
 int					WM_menutype_contains(struct MenuType* mt);

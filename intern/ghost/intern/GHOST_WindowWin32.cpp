@@ -612,7 +612,6 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 		wp.showCmd = SW_SHOWMINIMIZED;
 		break;
 	case GHOST_kWindowStateMaximized:
-		ShowWindow(m_hWnd, SW_HIDE);
 		wp.showCmd = SW_SHOWMAXIMIZED;
 		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 		break;
@@ -629,12 +628,12 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 		break;
 	case GHOST_kWindowStateNormal:
 	default:
-		ShowWindow(m_hWnd, SW_HIDE);
 		wp.showCmd = SW_SHOWNORMAL;
 		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 		break;
 	}
-	return ::SetWindowPlacement(m_hWnd, &wp) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+	SetWindowPos(m_hWnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED); /*Clears window cache for SetWindowLongPtr */
+ 	return ::SetWindowPlacement(m_hWnd, &wp) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
 }
 
 

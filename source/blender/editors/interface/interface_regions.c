@@ -424,7 +424,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		
 		if (unit_type == PROP_UNIT_ROTATION) {
 			if (RNA_property_type(but->rnaprop) == PROP_FLOAT) {
-				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Radians: %f", RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex));
+				float value= RNA_property_array_check(but->rnaprop) ? RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex) : RNA_property_float_get(&but->rnapoin, but->rnaprop);
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Radians: %f", value);
 				data->color[data->totline]= 0x888888;
 				data->totline++;
 			}
@@ -1188,7 +1189,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	uiBut *bt;
 	uiSafetyRct *saferct;
 	rctf butrct;
-	float aspect;
+	/*float aspect;*/ /*UNUSED*/
 	int xsize, ysize, xof=0, yof=0, center;
 	short dir1= 0, dir2=0;
 	
@@ -1223,7 +1224,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 	}
 	
-	aspect= (float)(block->maxx - block->minx + 4);
+	/*aspect= (float)(block->maxx - block->minx + 4);*/ /*UNUSED*/
 	ui_block_to_window_fl(butregion, but->block, &block->minx, &block->miny);
 	ui_block_to_window_fl(butregion, but->block, &block->maxx, &block->maxy);
 
@@ -1232,7 +1233,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	
 	xsize= block->maxx - block->minx+4; // 4 for shadow
 	ysize= block->maxy - block->miny+4;
-	aspect/= (float)xsize;
+	/*aspect/= (float)xsize;*/ /*UNUSED*/
 
 	if(but) {
 		int left=0, right=0, top=0, down=0;
@@ -1934,31 +1935,31 @@ static void do_picker_new_mode_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(a
 
 #define PICKER_TOTAL_W	(PICKER_W+PICKER_SPACE+PICKER_BAR)
 
-static void circle_picker(uiBlock *block, PointerRNA *ptr, const char *propname)
+static void circle_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop)
 {
 	uiBut *bt;
 	
 	/* HS circle */
-	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, PICKER_H, PICKER_W, ptr, propname, 0, 0.0, 0.0, 0, 0, "Color");
+	bt= uiDefButR_prop(block, HSVCIRCLE, 0, "",	0, 0, PICKER_H, PICKER_W, ptr, prop, 0, 0.0, 0.0, 0, 0, "Color");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, 0, 0.0, 0.0, UI_GRAD_V_ALT, 0, "Value");
+	bt= uiDefButR_prop(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, prop, 0, 0.0, 0.0, UI_GRAD_V_ALT, 0, "Value");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
 
-static void square_picker(uiBlock *block, PointerRNA *ptr, const char *propname, int type)
+static void square_picker(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int type)
 {
 	uiBut *bt;
 	int bartype = type + 3;
 	
 	/* HS square */
-	bt= uiDefButR(block, HSVCUBE, 0, "",	0, PICKER_BAR+PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, propname, 0, 0.0, 0.0, type, 0, "Color");
+	bt= uiDefButR_prop(block, HSVCUBE, 0, "",	0, PICKER_BAR+PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, prop, 0, 0.0, 0.0, type, 0, "Color");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, 0, 0.0, 0.0, bartype, 0, "Value");
+	bt= uiDefButR_prop(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, prop, 0, 0.0, 0.0, bartype, 0, "Value");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1973,7 +1974,6 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	static char hexcol[128];
 	float rgb_gamma[3];
 	float min, max, step, precision;
-	const char *propname = RNA_property_identifier(prop);
 	float *hsv= ui_block_hsv_get(block);
 	
 	ui_block_hsv_get(block);
@@ -1999,16 +1999,16 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 
 	switch (U.color_picker_type) {
 		case USER_CP_CIRCLE:
-			circle_picker(block, ptr, propname);
+			circle_picker(block, ptr, prop);
 			break;
 		case USER_CP_SQUARE_SV:
-			square_picker(block, ptr, propname, UI_GRAD_SV);
+			square_picker(block, ptr, prop, UI_GRAD_SV);
 			break;
 		case USER_CP_SQUARE_HS:
-			square_picker(block, ptr, propname, UI_GRAD_HS);
+			square_picker(block, ptr, prop, UI_GRAD_HS);
 			break;
 		case USER_CP_SQUARE_HV:
-			square_picker(block, ptr, propname, UI_GRAD_HV);
+			square_picker(block, ptr, prop, UI_GRAD_HV);
 			break;
 	}
 	
@@ -2027,11 +2027,11 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
-	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 3, "Red");
+	bt= uiDefButR_prop(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, prop, 0, 0.0, 0.0, 0, 3, "Red");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 3, "Green");
+	bt= uiDefButR_prop(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, prop, 1, 0.0, 0.0, 0, 3, "Green");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 3, "Blue");
+	bt= uiDefButR_prop(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, prop, 2, 0.0, 0.0, 0, 3, "Blue");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 
 	// could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NONE);
@@ -2048,7 +2048,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	uiBlockEndAlign(block);
 
 	if(rgb[3] != FLT_MAX) {
-		bt= uiDefButR(block, NUMSLI, 0, "A ",	0, -120, butwidth, UI_UNIT_Y, ptr, propname, 3, 0.0, 0.0, 0, 0, "Alpha");
+		bt= uiDefButR_prop(block, NUMSLI, 0, "A ",	0, -120, butwidth, UI_UNIT_Y, ptr, prop, 3, 0.0, 0.0, 0, 0, "Alpha");
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	}
 	else {

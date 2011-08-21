@@ -18,9 +18,10 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header
 
 
-class FILEBROWSER_HT_header(bpy.types.Header):
+class FILEBROWSER_HT_header(Header):
     bl_space_type = 'FILE_BROWSER'
 
     def draw(self, context):

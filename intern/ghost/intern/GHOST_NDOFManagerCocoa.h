@@ -22,9 +22,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef _GHOST_NDOFMANAGERCOCOA_H_
 #define _GHOST_NDOFMANAGERCOCOA_H_
+
+#ifdef WITH_INPUT_NDOF
 
 #include "GHOST_NDOFManager.h"
 
@@ -41,10 +43,12 @@ public:
 	// whether multi-axis functionality is available (via the OS or driver)
 	// does not imply that a device is plugged in or being used
 	bool available();
+	bool oldDRV();
 
 private:
 	unsigned short m_clientID;
 };
 
 
-#endif
+#endif // WITH_INPUT_NDOF
+#endif // #include guard

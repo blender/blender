@@ -53,10 +53,10 @@ void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)
 		y = jit1[i+1];
 		for (j = 2*num-2; j>=0 ; j-=2) {
 			if (i != j){
-				vecx = jit1[j] - x - 1.0;
-				vecy = jit1[j+1] - y - 1.0;
+				vecx = jit1[j] - x - 1.0f;
+				vecy = jit1[j+1] - y - 1.0f;
 				for (k = 3; k>0 ; k--){
-					if( fabs(vecx)<rad1 && fabs(vecy)<rad1) {
+					if( fabsf(vecx)<rad1 && fabsf(vecy)<rad1) {
 						len=  sqrt(vecx*vecx + vecy*vecy);
 						if(len>0 && len<rad1) {
 							len= len/rad1;
@@ -64,9 +64,9 @@ void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)
 							dvecy += vecy/len;
 						}
 					}
-					vecx += 1.0;
+					vecx += 1.0f;
 
-					if( fabs(vecx)<rad1 && fabs(vecy)<rad1) {
+					if( fabsf(vecx)<rad1 && fabsf(vecy)<rad1) {
 						len=  sqrt(vecx*vecx + vecy*vecy);
 						if(len>0 && len<rad1) {
 							len= len/rad1;
@@ -74,9 +74,9 @@ void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)
 							dvecy += vecy/len;
 						}
 					}
-					vecx += 1.0;
+					vecx += 1.0f;
 
-					if( fabs(vecx)<rad1 && fabs(vecy)<rad1) {
+					if( fabsf(vecx)<rad1 && fabsf(vecy)<rad1) {
 						len=  sqrt(vecx*vecx + vecy*vecy);
 						if(len>0 && len<rad1) {
 							len= len/rad1;
@@ -84,16 +84,16 @@ void BLI_jitterate1(float *jit1, float *jit2, int num, float rad1)
 							dvecy += vecy/len;
 						}
 					}
-					vecx -= 2.0;
-					vecy += 1.0;
+					vecx -= 2.0f;
+					vecy += 1.0f;
 				}
 			}
 		}
 
-		x -= dvecx/18.0 ;
-		y -= dvecy/18.0;
-		x -= floor(x) ;
-		y -= floor(y);
+		x -= dvecx/18.0f;
+		y -= dvecy/18.0f;
+		x -= floorf(x) ;
+		y -= floorf(y);
 		jit2[i] = x;
 		jit2[i+1] = y;
 	}
@@ -111,28 +111,28 @@ void BLI_jitterate2(float *jit1, float *jit2, int num, float rad2)
 		y = jit1[i+1];
 		for (j =2*num -2; j>= 0 ; j-=2){
 			if (i != j){
-				vecx = jit1[j] - x - 1.0;
-				vecy = jit1[j+1] - y - 1.0;
+				vecx = jit1[j] - x - 1.0f;
+				vecy = jit1[j+1] - y - 1.0f;
 
-				if( fabs(vecx)<rad2) dvecx+= vecx*rad2;
-				vecx += 1.0;
-				if( fabs(vecx)<rad2) dvecx+= vecx*rad2;
-				vecx += 1.0;
-				if( fabs(vecx)<rad2) dvecx+= vecx*rad2;
+				if( fabsf(vecx)<rad2) dvecx+= vecx*rad2;
+				vecx += 1.0f;
+				if( fabsf(vecx)<rad2) dvecx+= vecx*rad2;
+				vecx += 1.0f;
+				if( fabsf(vecx)<rad2) dvecx+= vecx*rad2;
 
-				if( fabs(vecy)<rad2) dvecy+= vecy*rad2;
-				vecy += 1.0;
-				if( fabs(vecy)<rad2) dvecy+= vecy*rad2;
-				vecy += 1.0;
-				if( fabs(vecy)<rad2) dvecy+= vecy*rad2;
+				if( fabsf(vecy)<rad2) dvecy+= vecy*rad2;
+				vecy += 1.0f;
+				if( fabsf(vecy)<rad2) dvecy+= vecy*rad2;
+				vecy += 1.0f;
+				if( fabsf(vecy)<rad2) dvecy+= vecy*rad2;
 
 			}
 		}
 
-		x -= dvecx/2 ;
-		y -= dvecy/2;
-		x -= floor(x) ;
-		y -= floor(y);
+		x -= dvecx/2.0f;
+		y -= dvecy/2.0f;
+		x -= floorf(x) ;
+		y -= floorf(y);
 		jit2[i] = x;
 		jit2[i+1] = y;
 	}
@@ -148,17 +148,17 @@ void BLI_initjit(float *jitarr, int num)
 	if(num==0) return;
 
 	jit2= MEM_mallocN(12 + 2*sizeof(float)*num, "initjit");
-	rad1=  1.0/sqrt((float)num);
-	rad2= 1.0/((float)num);
-	rad3= sqrt((float)num)/((float)num);
+	rad1= 1.0f/sqrtf((float)num);
+	rad2= 1.0f/((float)num);
+	rad3= sqrtf((float)num)/((float)num);
 
 	BLI_srand(31415926 + num);
 	x= 0;
 	for(i=0; i<2*num; i+=2) {
-		jitarr[i]= x+ rad1*(0.5-BLI_drand());
-		jitarr[i+1]= ((float)i/2)/num +rad1*(0.5-BLI_drand());
+		jitarr[i]= x+ rad1*(float)(0.5-BLI_drand());
+		jitarr[i+1]= ((float)i/2)/num +rad1*(float)(0.5-BLI_drand());
 		x+= rad3;
-		x -= floor(x);
+		x -= floorf(x);
 	}
 
 	for (i=0 ; i<24 ; i++) {
@@ -171,8 +171,8 @@ void BLI_initjit(float *jitarr, int num)
 	
 	/* finally, move jittertab to be centered around (0,0) */
 	for(i=0; i<2*num; i+=2) {
-		jitarr[i] -= 0.5;
-		jitarr[i+1] -= 0.5;
+		jitarr[i] -= 0.5f;
+		jitarr[i+1] -= 0.5f;
 	}
 	
 }
