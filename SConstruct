@@ -166,6 +166,13 @@ if sys.platform=='win32':
 
 env.SConscriptChdir(0)
 
+# Remove major kernel version from linux platform.
+# After Linus switched kernel to new version model this major version
+# shouldn't take much sense for building rules.
+
+if re.match('linux[0-9]+', platform):
+    platform = 'linux'
+
 crossbuild = B.arguments.get('BF_CROSS', None)
 if crossbuild and platform not in ('win32-vc', 'win64-vc'):
     platform = 'linuxcross'
@@ -551,7 +558,7 @@ if  env['OURPLATFORM']!='darwin':
                     scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- icons
-if env['OURPLATFORM']=='linux2':
+if env['OURPLATFORM']=='linux':
     iconlist = []
     icontargetlist = []
 
@@ -630,7 +637,7 @@ textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
 if  env['OURPLATFORM']=='darwin':
         allinstall = [blenderinstall, plugininstall, textinstall]
-elif env['OURPLATFORM']=='linux2':
+elif env['OURPLATFORM']=='linux':
         allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall, iconinstall]
 else:
         allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]

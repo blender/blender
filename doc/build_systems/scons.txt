@@ -76,7 +76,7 @@ $Id$
     $BLENDERHOME/config. Your platform specific defaults are in
     (platform)-config.py, where platform is one of:
 
-        - linux2, for machines running Linux
+        - linux, for machines running Linux
         - win32-vc, for Windows machines, compiling with a Microsoft compiler
         - win32-mingw, for Windows machines, compiling with the MingW compiler
         - darwin, for OS X machines

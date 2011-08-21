@@ -31,7 +31,7 @@ if env['OURPLATFORM'] == 'darwin':
         cflags_raytrace = env['CFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
         cxxflags_raytrace = env['CXXFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
         
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     if env['WITH_BF_RAYOPTIMIZATION']:
         cflags_raytrace = env['CCFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
         cxxflags_raytrace = env['CXXFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
