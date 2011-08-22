@@ -107,7 +107,7 @@ set(SRC
 )
 
 if(WITH_BUILDINFO)
-	add_definitions(-DNAN_BUILDINFO)
+	add_definitions(-DWITH_BUILDINFO)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)

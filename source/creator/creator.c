@@ -355,9 +355,9 @@ static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf(BLEND_VERSION_STRING_FMT);
 	MEM_set_memory_debug();
 
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 	printf("Build: %s %s %s %s\n", build_date, build_time, build_platform, build_type);
-#endif // NAN_BUILDINFO
+#endif // WITH_BUILDINFO
 
 	BLI_argsPrint(data);
 	return 0;

@@ -133,6 +133,7 @@ if(WIN32 AND NOT UNIX)
 endif()
 
 if(WITH_BUILDINFO)
+	add_definitions(-DWITH_BUILDINFO)
 	# --------------------------------------------------------------------------
 	# These defines could all be moved into the header below
 	string(REPLACE " " "\ " BUILDINFO_CFLAGS "${CMAKE_C_FLAGS}")

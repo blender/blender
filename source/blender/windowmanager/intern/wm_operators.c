@@ -1202,7 +1202,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);
 	char url[96];
 	
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 	int ver_width, rev_width;
 	char *version_str = NULL;
 	char *revision_str = NULL;
@@ -1219,7 +1219,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
 	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_str) + 5;
 	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_str) + 5;
-#endif //NAN_BUILDINFO
+#endif //WITH_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
@@ -1228,10 +1228,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
 	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
-#ifdef NAN_BUILDINFO	
+#ifdef WITH_BUILDINFO	
 	uiDefBut(block, LABEL, 0, version_str, 494-ver_width, 282-24, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 	uiDefBut(block, LABEL, 0, revision_str, 494-rev_width, 282-36, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-#endif //NAN_BUILDINFO
+#endif //WITH_BUILDINFO
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, 480, 110, style);
 	
