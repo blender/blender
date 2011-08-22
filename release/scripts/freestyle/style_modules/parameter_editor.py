@@ -847,10 +847,6 @@ def process(layer_name, lineset_name):
         elif m.type == "TIP_REMOVER":
             shaders_list.append(TipRemoverShader(
                 m.tip_length))
-    if linestyle.caps == "ROUND":
-        shaders_list.append(RoundCapShader())
-    elif linestyle.caps == "SQUARE":
-        shaders_list.append(SquareCapShader())
     color = linestyle.color
     shaders_list.append(ConstantColorShader(color.r, color.g, color.b, linestyle.alpha))
     shaders_list.append(ConstantThicknessShader(linestyle.thickness))
@@ -909,5 +905,9 @@ def process(layer_name, lineset_name):
             shaders_list.append(ThicknessMaterialShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.material_attr, m.value_min, m.value_max))
+    if linestyle.caps == "ROUND":
+        shaders_list.append(RoundCapShader())
+    elif linestyle.caps == "SQUARE":
+        shaders_list.append(SquareCapShader())
     # create strokes using the shaders list
     Operators.create(TrueUP1D(), shaders_list)
