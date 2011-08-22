@@ -629,11 +629,11 @@ static float fcm_cycles_time (FCurve *fcu, FModifier *fcm, float UNUSED(cvalue),
 				cycyofs = (float)ceil((evaltime - ofs) / cycdx);
 			cycyofs *= cycdy;
 		}
-
+		
 		/* special case for cycle start/end */
 		if(cyct == 0.0f) {
 			evaltime = (side == 1 ? lastkey[0] : prevkey[0]);
-
+			
 			if((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)cycle % 2))
 				evaltime = (side == 1 ? prevkey[0] : lastkey[0]);
 		}

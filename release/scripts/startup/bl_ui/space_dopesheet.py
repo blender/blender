@@ -35,7 +35,7 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
     row.prop(dopesheet, "show_hidden", text="")
 
     if is_nla:
-            row.prop(dopesheet, "show_missing_nla", text="")
+        row.prop(dopesheet, "show_missing_nla", text="")
     
     if not genericFiltersOnly:
         if bpy.data.groups:
@@ -50,20 +50,15 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
         if dopesheet.show_only_matching_fcurves:
             row.prop(dopesheet, "filter_fcurve_name", text="")
 
-    row = layout.row()
-    row.prop(dopesheet, "show_datablock_filters", text="Filters", icon='DISCLOSURE_TRI_RIGHT')
+    row = layout.row(align=True)
+    row.prop(dopesheet, "show_datablock_filters", text="Filters")
 
     if (not genericFiltersOnly) and (dopesheet.show_datablock_filters):
-        # TODO: put a box around these?
-        subrow = row.row()
-        
-        row = subrow.row(align=True)
-        row.prop(dopesheet, "show_transforms", text="")
-
-        row = subrow.row(align=True)
         row.prop(dopesheet, "show_scenes", text="")
         row.prop(dopesheet, "show_worlds", text="")
         row.prop(dopesheet, "show_nodes", text="")
+
+        row.prop(dopesheet, "show_transforms", text="")
 
         if bpy.data.meshes:
             row.prop(dopesheet, "show_meshes", text="")
