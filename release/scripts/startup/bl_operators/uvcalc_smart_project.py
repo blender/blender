@@ -178,7 +178,7 @@ def pointInEdges(pt, edges):
     intersectCount = 0
     for ed in edges:
         xi, yi = lineIntersection2D(x1,y1, x2,y2, ed[0][0], ed[0][1], ed[1][0], ed[1][1])
-        if xi != None: # Is there an intersection.
+        if xi is not None: # Is there an intersection.
             intersectCount+=1
 
     return intersectCount % 2
@@ -1131,7 +1131,7 @@ class SmartProject(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
         main(context,
