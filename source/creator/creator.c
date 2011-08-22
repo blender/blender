@@ -182,20 +182,6 @@ static void blender_esc(int sig)
 }
 #endif
 
-/* buildinfo can have quotes */
-#ifdef BUILD_DATE
-static void strip_quotes(char *str)
-{
-	if(str[0] == '"') {
-		int len= strlen(str) - 1;
-		memmove(str, str+1, len);
-		if(str[len-1] == '"') {
-			str[len-1]= '\0';
-		}
-	}
-}
-#endif
-
 static int print_version(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	printf (BLEND_VERSION_STRING_FMT);
@@ -1181,18 +1167,6 @@ int main(int argc, const char **argv)
 	// need this.
 
 	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
-	
-#ifdef BUILD_DATE	
-	strip_quotes(build_date);
-	strip_quotes(build_time);
-	strip_quotes(build_rev);
-	strip_quotes(build_platform);
-	strip_quotes(build_type);
-	strip_quotes(build_cflags);
-	strip_quotes(build_cxxflags);
-	strip_quotes(build_linkflags);
-	strip_quotes(build_system);
-#endif
 
 	BLI_threadapi_init();
 

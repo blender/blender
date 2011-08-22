@@ -25,9 +25,6 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-# So BUILDINFO and BLENDERPATH strings are automatically quoted
-cmake_policy(SET CMP0005 NEW)
-
 setup_libdirs()
 
 blender_include_dirs(
