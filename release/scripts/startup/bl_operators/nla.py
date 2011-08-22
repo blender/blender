@@ -84,6 +84,7 @@ def bake(frame_start,
          do_pose=True,
          do_object=True,
          do_constraint_clear=False,
+         action=None,
          ):
 
     scene = bpy.context.scene
@@ -121,7 +122,8 @@ def bake(frame_start,
 
     # incase animation data hassnt been created
     atd = obj.animation_data_create()
-    action = bpy.data.actions.new("Action")
+    if action is None:
+        action = bpy.data.actions.new("Action")
     atd.action = action
 
     if do_pose:
