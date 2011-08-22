@@ -46,12 +46,12 @@ private:
 	/**
 	 * The half filter length.
 	 */
-	static const int m_len = 292874;
+	static const int m_len;
 
 	/**
 	 * The sample step size for the filter.
 	 */
-	static const int m_L = 2048;
+	static const int m_L;
 
 	/**
 	 * The filter coefficients.
