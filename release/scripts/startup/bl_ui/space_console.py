@@ -41,7 +41,7 @@ class CONSOLE_MT_console(Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("console.clear")
         layout.operator("console.copy")
         layout.operator("console.paste")
@@ -141,7 +141,11 @@ class ConsoleLanguage(Operator):
     '''Set the current language for this console'''
     bl_idname = "console.language"
     bl_label = "Console Language"
-    language = StringProperty(name="Language", maxlen=32, default="")
+
+    language = StringProperty(
+            name="Language",
+            maxlen=32,
+            )
 
     def execute(self, context):
         sc = context.space_data

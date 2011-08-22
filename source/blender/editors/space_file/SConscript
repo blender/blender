@@ -19,7 +19,7 @@ if env['WITH_BF_OPENEXR']:
 if env['WITH_BF_TIFF']:
     defs.append('WITH_TIFF')
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 

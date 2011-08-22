@@ -2310,13 +2310,13 @@ static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, floa
 		float fac= 1.0f;
 		
 		if(ui_is_but_unit(but)) {
-			Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+			UnitSettings *unit= but->block->unit;
 			int unit_type= uiButGetUnitType(but)>>16;
 
-			if(bUnit_IsValid(scene->unit.system, unit_type)) {
-				fac= (float)bUnit_BaseScalar(scene->unit.system, unit_type);
+			if(bUnit_IsValid(unit->system, unit_type)) {
+				fac= (float)bUnit_BaseScalar(unit->system, unit_type);
 				if(ELEM3(unit_type, B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME)) {
-					fac /= scene->unit.scale_length;
+					fac /= unit->scale_length;
 				}
 			}
 		}

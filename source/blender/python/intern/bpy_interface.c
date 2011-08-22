@@ -87,6 +87,14 @@ static double	bpy_timer_run; /* time for each python script run */
 static double	bpy_timer_run_tot; /* accumulate python runs */
 #endif
 
+/* use for updating while a python script runs - in case of file load */
+void bpy_context_update(bContext *C)
+{
+	BPy_SetContext(C);
+	bpy_import_main_set(CTX_data_main(C));
+	BPY_modules_update(C); /* can give really bad results if this isnt here */
+}
+
 void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 {
 	py_call_level++;
@@ -95,16 +103,7 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 		*gilstate= PyGILState_Ensure();
 
 	if(py_call_level==1) {
-
-		if(C) { // XXX - should always be true.
-			BPy_SetContext(C);
-			bpy_import_main_set(CTX_data_main(C));
-		}
-		else {
-			fprintf(stderr, "ERROR: Python context called with a NULL Context. this should not happen!\n");
-		}
-
-		BPY_modules_update(C); /* can give really bad results if this isnt here */
+		bpy_context_update(C);
 
 #ifdef TIME_PY_RUN
 		if(bpy_timer_count==0) {
@@ -569,6 +568,12 @@ void BPY_modules_load_user(bContext *C)
 	/* can happen on file load */
 	if(bmain==NULL)
 		return;
+
+	/* update pointers since this can run from a nested script
+	 * on file load */
+	if(py_call_level) {
+		bpy_context_update(C);
+	}
 
 	bpy_context_set(C, &gilstate);
 

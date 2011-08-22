@@ -332,7 +332,9 @@ struct uiBlock {
 	void *evil_C;				// XXX hack for dynamic operator enums
 
 	float _hsv[3];				// XXX, only access via ui_block_hsv_get()
-	char color_profile;				// color profile for correcting linear colors for display
+	char color_profile;			// color profile for correcting linear colors for display
+	struct UnitSettings *unit;	// unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
+
 };
 
 typedef struct uiSafetyRct {

@@ -2482,7 +2482,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	fg.subversion= BLENDER_SUBVERSION;
 	fg.minversion= BLENDER_MINVERSION;
 	fg.minsubversion= BLENDER_MINSUBVERSION;
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 	{
 		extern char build_rev[];
 		fg.revision= atoi(build_rev);

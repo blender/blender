@@ -122,8 +122,8 @@ typedef struct TreeElement {
 #define OL_TOGW OL_TOG_RESTRICT_VIEWX
 
 #define OL_RNA_COLX			(UI_UNIT_X*15)
-#define OL_RNA_COL_SIZEX	(UI_UNIT_X*7.5)
-#define OL_RNA_COL_SPACEX	(UI_UNIT_X*2.5)
+#define OL_RNA_COL_SIZEX	(UI_UNIT_X*7.5f)
+#define OL_RNA_COL_SPACEX	(UI_UNIT_X*2.5f)
 
 
 /* outliner_tree.c ----------------------------------------------- */
@@ -141,9 +141,6 @@ void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct Space
 void draw_outliner(const struct bContext *C);
 
 /* outliner_select.c -------------------------------------------- */
-
-void outliner_select(struct SpaceOops *soops, ListBase *lb, int *index, short *selecting);
-
 int tree_element_type_active(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set);
 int tree_element_active(struct bContext *C, struct Scene *scene, SpaceOops *soops, TreeElement *te, int set);
 

@@ -121,7 +121,7 @@ def bake(frame_start,
 
     # incase animation data hassnt been created
     atd = obj.animation_data_create()
-    if action == None:
+    if action is None:
         action = bpy.data.actions.new("Action")
     atd.action = action
 

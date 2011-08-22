@@ -1331,7 +1331,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 	ot->exec= reload_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER; /* no undo, image buffer is not handled by undo */
 }
 
 /********************** new image operator *********************/
@@ -1989,7 +1989,7 @@ void IMAGE_OT_sample_line(wmOperatorType *ot)
 	ot->cancel= WM_gesture_straightline_cancel;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= 0; /* no undo/register since this operates on the space */
 	
 	WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
 }

@@ -195,8 +195,12 @@ class SubdivisionSet(Operator):
     bl_label = "Subdivision Set"
     bl_options = {'REGISTER', 'UNDO'}
 
-    level = IntProperty(name="Level",
-            default=1, min=-100, max=100, soft_min=-6, soft_max=6)
+    level = IntProperty(
+            name="Level",
+            min=-100, max=100,
+            soft_min=-6, soft_max=6,
+            default=1,
+            )
 
     relative = BoolProperty(
             name="Relative",

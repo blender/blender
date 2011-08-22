@@ -288,7 +288,7 @@ static short testedgeside(float *v1, float *v2, float *v3)
 	inp= (v2[cox]-v1[cox])*(v1[coy]-v3[coy])
 		+(v1[coy]-v2[coy])*(v1[cox]-v3[cox]);
 
-	if(inp<0.0) return 0;
+	if(inp < 0.0f) return 0;
 	else if(inp==0) {
 		if(v1[cox]==v3[cox] && v1[coy]==v3[coy]) return 0;
 		if(v2[cox]==v3[cox] && v2[coy]==v3[coy]) return 0;
@@ -312,8 +312,8 @@ static short addedgetoscanvert(ScFillVert *sc, EditEdge *eed)
 	y= eed->v1->co[coy];
 
 	fac1= eed->v2->co[coy]-y;
-	if(fac1==0.0) {
-		fac1= 1.0e10*(eed->v2->co[cox]-x);
+	if(fac1==0.0f) {
+		fac1= 1.0e10f*(eed->v2->co[cox]-x);
 
 	}
 	else fac1= (x-eed->v2->co[cox])/fac1;
@@ -324,8 +324,8 @@ static short addedgetoscanvert(ScFillVert *sc, EditEdge *eed)
 		if(ed->v2==eed->v2) return 0;
 
 		fac= ed->v2->co[coy]-y;
-		if(fac==0.0) {
-			fac= 1.0e10*(ed->v2->co[cox]-x);
+		if(fac==0.0f) {
+			fac= 1.0e10f*(ed->v2->co[cox]-x);
 
 		}
 		else fac= (x-ed->v2->co[cox])/fac;
@@ -443,7 +443,7 @@ static void testvertexnearedge(void)
 						vec2[1]= eed->v2->co[coy];
 						if(boundinsideEV(eed,eve)) {
 							dist= dist_to_line_v2(vec1,vec2,vec3);
-							if(dist<COMPLIMIT) {
+							if(dist<(float)COMPLIMIT) {
 								/* new edge */
 								ed1= BLI_addfilledge(eed->v1, eve);
 								
@@ -816,7 +816,7 @@ int BLI_edgefill(short mat_nr)
 		if(v2) {
 			if( compare_v3v3(v2, eve->co, COMPLIMIT)==0) {
 				len= normal_tri_v3( norm,v1, v2, eve->co);
-				if(len != 0.0) break;
+				if(len != 0.0f) break;
 			}
 		}
 		else if(compare_v3v3(v1, eve->co, COMPLIMIT)==0) {
@@ -825,7 +825,7 @@ int BLI_edgefill(short mat_nr)
 		eve= eve->next;
 	}
 
-	if(len==0.0) return 0;	/* no fill possible */
+	if(len==0.0f) return 0;	/* no fill possible */
 
 	norm[0]= fabs(norm[0]);
 	norm[1]= fabs(norm[1]);

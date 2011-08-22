@@ -617,7 +617,6 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetCanvas(m_canvas);
 		m_ketsjiengine->SetRenderTools(m_rendertools);
 		m_ketsjiengine->SetRasterizer(m_rasterizer);
-		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
 
 		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
 #ifdef WITH_PYTHON

@@ -568,7 +568,7 @@ def buildslave(target=None, source=None, env=None):
         extension = '.tar.bz2'
 
     platform = env['OURPLATFORM'].split('-')[0]
-    if platform == 'linux2':
+    if platform == 'linux':
         import platform
 
         bitness = platform.architecture()[0]
