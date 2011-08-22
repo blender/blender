@@ -1008,7 +1008,8 @@ void KX_KetsjiEngine::DoSound(KX_Scene* scene)
 {
 	m_logger->StartLog(tc_sound, m_kxsystem->GetTimeInSeconds(), true);
 
-	KX_Camera* cam = scene->GetActiveCamera();
+	// nothing to do here, everything relative now...
+	/*KX_Camera* cam = scene->GetActiveCamera();
 	if (!cam)
 		return;
 
@@ -1016,16 +1017,17 @@ void KX_KetsjiEngine::DoSound(KX_Scene* scene)
 	if(dev)
 	{
 		AUD_Vector3 v;
-		float q[4];
-		cam->NodeGetWorldPosition().getValue(v.get());
+		//float q[4];
+		//cam->NodeGetWorldPosition().getValue(v.get());
 		dev->setListenerLocation(v);
 
-		cam->GetLinearVelocity().getValue(v.get());
+		//cam->GetLinearVelocity().getValue(v.get());
 		dev->setListenerVelocity(v);
 
-		cam->NodeGetWorldOrientation().getRotation().getValue(q);
-		dev->setListenerOrientation(AUD_Quaternion(q[3], q[0], q[1], q[2]));
-	}
+		//cam->NodeGetWorldOrientation().getRotation().getValue(q);
+		//dev->setListenerOrientation(AUD_Quaternion(q[3], q[0], q[1], q[2]));
+		dev->setListenerOrientation(AUD_Quaternion());
+	}*/
 }
 
 

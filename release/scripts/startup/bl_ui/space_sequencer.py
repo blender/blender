@@ -653,7 +653,6 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
 
         layout.prop(strip, "waveform")
         layout.prop(strip, "volume")
-        layout.prop(strip, "attenuation")
         layout.prop(strip, "pitch")
         layout.prop(strip, "pan")
 

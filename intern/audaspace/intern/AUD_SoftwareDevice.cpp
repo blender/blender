@@ -72,7 +72,7 @@ void AUD_SoftwareDevice::AUD_SoftwareHandle::update()
 
 	AUD_Vector3 SL;
 	if(m_relative)
-		SL = m_location;
+		SL = -m_location;
 	else
 		SL = m_device->m_location - m_location;
 	float distance = SL * SL;

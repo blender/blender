@@ -100,7 +100,7 @@ void AUD_JOSResampleReader::updateBuffer(int size, double factor, int samplesize
 
 	// then check if afterwards the length is enough for the maximum rate
 	if(len + size < num_samples * AUD_RATE_MAX)
-		len = size - num_samples * AUD_RATE_MAX;
+		len = num_samples * AUD_RATE_MAX - size;
 
 	if(m_n > len)
 	{
@@ -130,58 +130,101 @@ void AUD_JOSResampleReader::updateBuffer(int size, double factor, int samplesize
 \
 	for(unsigned int t = 0; t < length; t++)\
 	{\
-		factor = (m_last_factor * (length - t) + target_factor * t) / length;\
-\
-		if(factor >= 1)\
-			f_increment = m_L;\
-		else\
-			f_increment = factor * m_L;\
-\
-		P_increment = double_to_fp(f_increment);\
-		P = double_to_fp(m_P * f_increment);\
-\
-		end = (int_to_fp(m_len) - P) / P_increment - 1;\
-		if(m_n < end)\
-			end = m_n;\
+		factor = (m_last_factor * (length - t - 1) + target_factor * (t + 1)) / length;\
 \
 		memset(sums, 0, sizeof(double) * m_channels);\
 \
-		P += P_increment * end;\
-		data = buf + (m_n - end) * m_channels;\
-		l = fp_to_int(P);\
-\
-		for(i = 0; i <= end; i++)\
+		if(factor >= 1)\
 		{\
-			eta = fp_rest_to_double(P);\
-			v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
-			P -= P_increment;\
+			P = double_to_fp(m_P * m_L);\
+\
+			end = floor(m_len / double(m_L) - m_P) - 1;\
+			if(m_n < end)\
+				end = m_n;\
+\
+			data = buf + (m_n - end) * m_channels;\
 			l = fp_to_int(P);\
-			left\
-		}\
-\
-		P = -P;\
-\
-		end = (int_to_fp(m_len) - P) / P_increment - 1;\
-		if(m_cache_valid - m_n - 2 < end)\
-			end = m_cache_valid - m_n - 2;\
-\
-		P += P_increment * end;\
-		data = buf + (m_n + 2 + end) * m_channels - 1;\
-		l = fp_to_int(P);\
-\
-		for(i = 0; i <= end; i++)\
-		{\
 			eta = fp_rest_to_double(P);\
-			v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
-			P -= P_increment;\
-			l = fp_to_int(P);\
-			right\
-		}\
+			l += m_L * end;\
 \
-		for(channel = 0; channel < m_channels; channel++)\
+			for(i = 0; i <= end; i++)\
+			{\
+				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
+				l -= m_L;\
+				left\
+			}\
+\
+			P = int_to_fp(m_L) - P;\
+\
+			end = floor((m_len - 1) / double(m_L) + m_P) - 1;\
+			if(m_cache_valid - m_n - 2 < end)\
+				end = m_cache_valid - m_n - 2;\
+\
+			data = buf + (m_n + 2 + end) * m_channels - 1;\
+			l = fp_to_int(P);\
+			eta = fp_rest_to_double(P);\
+			l += m_L * end;\
+\
+			for(i = 0; i <= end; i++)\
+			{\
+				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
+				l -= m_L;\
+				right\
+			}\
+\
+			for(channel = 0; channel < m_channels; channel++)\
+			{\
+				*buffer = sums[channel];\
+				buffer++;\
+			}\
+		}\
+		else\
 		{\
-			*buffer = f_increment / m_L * sums[channel];\
-			buffer++;\
+			f_increment = factor * m_L;\
+			P_increment = double_to_fp(f_increment);\
+			P = double_to_fp(m_P * f_increment);\
+\
+			end = (int_to_fp(m_len) - P) / P_increment - 1;\
+			if(m_n < end)\
+				end = m_n;\
+\
+			P += P_increment * end;\
+			data = buf + (m_n - end) * m_channels;\
+			l = fp_to_int(P);\
+\
+			for(i = 0; i <= end; i++)\
+			{\
+				eta = fp_rest_to_double(P);\
+				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
+				P -= P_increment;\
+				l = fp_to_int(P);\
+				left\
+			}\
+\
+			P = -P;\
+\
+			end = (int_to_fp(m_len) - P) / P_increment - 1;\
+			if(m_cache_valid - m_n - 2 < end)\
+				end = m_cache_valid - m_n - 2;\
+\
+			P += P_increment * end;\
+			data = buf + (m_n + 2 + end) * m_channels - 1;\
+			l = fp_to_int(P);\
+\
+			for(i = 0; i <= end; i++)\
+			{\
+				eta = fp_rest_to_double(P);\
+				v = coeff[l] + eta * (coeff[l+1] - coeff[l]);\
+				P -= P_increment;\
+				l = fp_to_int(P);\
+				right\
+			}\
+\
+			for(channel = 0; channel < m_channels; channel++)\
+			{\
+				*buffer = f_increment / m_L * sums[channel];\
+				buffer++;\
+			}\
 		}\
 \
 		m_P += fmod(1.0 / factor, 1.0);\

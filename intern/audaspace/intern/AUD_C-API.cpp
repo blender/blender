@@ -967,7 +967,10 @@ void AUD_setSequenceAnimData(AUD_SEntry* entry, AUD_AnimateablePropertyType type
 {
 	AUD_AnimateableProperty* prop = (*entry)->getAnimProperty(type);
 	if(animated)
-		prop->write(data, frame, 1);
+	{
+		if(frame >= 0)
+			prop->write(data, frame, 1);
+	}
 	else
 		prop->write(data);
 }
@@ -976,7 +979,10 @@ void AUD_setSequencerAnimData(AUD_Sound* sequencer, AUD_AnimateablePropertyType 
 {
 	AUD_AnimateableProperty* prop = dynamic_cast<AUD_SequencerFactory*>(sequencer->get())->getAnimProperty(type);
 	if(animated)
-		prop->write(data, frame, 1);
+	{
+		if(frame >= 0)
+			prop->write(data, frame, 1);
+	}
 	else
 		prop->write(data);
 }

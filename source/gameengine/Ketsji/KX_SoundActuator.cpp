@@ -46,6 +46,8 @@
 
 #include "KX_GameObject.h"
 #include "KX_PyMath.h" // needed for PyObjectFrom()
+#include "KX_PythonInit.h"
+#include "KX_Camera.h"
 #include <iostream>
 
 /* ------------------------------------------------------------------------- */
@@ -112,7 +114,7 @@ void KX_SoundActuator::play()
 
 	if(m_is3d && !handle3d.isNull())
 	{
-		handle3d->setRelative(false);
+		handle3d->setRelative(true);
 		handle3d->setVolumeMaximum(m_3d.max_gain);
 		handle3d->setVolumeMinimum(m_3d.min_gain);
 		handle3d->setDistanceReference(m_3d.reference_distance);
@@ -222,16 +224,27 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 
 		if(m_is3d && !handle3d.isNull())
 		{
-			KX_GameObject* obj = (KX_GameObject*)this->GetParent();
-			AUD_Vector3 v;
-			float q[4];
+			KX_Camera* cam = KX_GetActiveScene()->GetActiveCamera();
+			if (cam)
+			{
+				KX_GameObject* obj = (KX_GameObject*)this->GetParent();
+				MT_Point3 p;
+				MT_Matrix3x3 Mo;
+				AUD_Vector3 v;
+				float q[4];
 
-			obj->NodeGetWorldPosition().getValue(v.get());
-			handle3d->setSourceLocation(v);
-			obj->GetLinearVelocity().getValue(v.get());
-			handle3d->setSourceVelocity(v);
-			obj->NodeGetWorldOrientation().getRotation().getValue(q);
-			handle3d->setSourceOrientation(AUD_Quaternion(q[3], q[0], q[1], q[2]));
+				Mo = cam->NodeGetWorldOrientation().inverse();
+				p = (obj->NodeGetWorldPosition() - cam->NodeGetWorldPosition());
+				p = Mo * p;
+				p.getValue(v.get());
+				handle3d->setSourceLocation(v);
+				p = (obj->GetLinearVelocity() - cam->GetLinearVelocity());
+				p = Mo * p;
+				p.getValue(v.get());
+				handle3d->setSourceVelocity(v);
+				(Mo * obj->NodeGetWorldOrientation()).getRotation().getValue(q);
+				handle3d->setSourceOrientation(AUD_Quaternion(q[3], q[0], q[1], q[2]));
+			}
 		}
 		result = true;
 	}
