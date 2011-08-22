@@ -4094,7 +4094,7 @@ static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonDa
 			if(scopes->marker->framenr!=scopes->framenr)
 				scopes->marker= BKE_tracking_ensure_marker(scopes->track, scopes->framenr);
 
-			scopes->marker->flag&= ~MARKER_DISABLED;
+			scopes->marker->flag&= ~(MARKER_DISABLED|MARKER_TRACKED);
 			scopes->marker->pos[0]+= -dx*scopes->slide_scale[0] / (but->block->maxx-but->block->minx);
 			scopes->marker->pos[1]+= -dy*scopes->slide_scale[1] / (but->block->maxy-but->block->miny);
 
