@@ -851,33 +851,34 @@ void BKE_nlameta_flush_transforms (NlaStrip *mstrip)
 	/* for each child-strip, calculate new start/end points based on this new info */
 	for (strip= mstrip->strips.first; strip; strip= strip->next) {
 		if (scaleChanged) {
-			PointerRNA ptr;
-			float p1, p2, nStart, nEnd;
+			float p1, p2;
 			
 			/* compute positions of endpoints relative to old extents of strip */
 			p1= (strip->start - oStart) / oLen;
 			p2= (strip->end - oStart) / oLen;
 			
-			/* compute the new strip endpoints using the proportions */
-			nStart= (p1 * nLen) + mstrip->start;
-			nEnd= (p2 * nLen) + mstrip->start;
-			
-			/* firstly, apply the new positions manually, then apply using RNA 
-			 *	- first time is to make sure no truncation errors from one endpoint not being 
-			 *	  set yet occur
-			 *	- second time is to make sure scale is computed properly...
-			 */
-			strip->start= nStart;
-			strip->end= nEnd;
-			
-			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &ptr);
-			RNA_float_set(&ptr, "frame_start", nStart);
-			RNA_float_set(&ptr, "frame_end", nEnd);
+			/* apply new strip endpoints using the proportions, then wait for second pass to flush scale properly */
+			strip->start= (p1 * nLen) + mstrip->start;
+			strip->end= (p2 * nLen) + mstrip->start;
 		}
 		else {
 			/* just apply the changes in offset to both ends of the strip */
 			strip->start += offset;
 			strip->end += offset;
+		}
+	}
+		
+	/* apply a second pass over child strips, to finish up unfinished business */
+	for (strip= mstrip->strips.first; strip; strip= strip->next) {
+		/* only if scale changed, need to perform RNA updates */
+		if (scaleChanged) {
+			PointerRNA ptr;
+			
+			/* use RNA updates to compute scale properly */
+			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &ptr);
+			
+			RNA_float_set(&ptr, "frame_start", strip->start);
+			RNA_float_set(&ptr, "frame_end", strip->end);
 		}
 		
 		/* finally, make sure the strip's children (if it is a meta-itself), get updated */
