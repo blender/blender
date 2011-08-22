@@ -44,9 +44,11 @@ void RE_engine_update_result(struct RenderEngine *engine, struct RenderResult *r
 void RE_engine_end_result(struct RenderEngine *engine, struct RenderResult *result);
 int RE_engine_test_break(struct RenderEngine *engine);
 void RE_engine_update_stats(struct RenderEngine *engine, const char *stats, const char *info);
+void RE_engine_update_progress(struct RenderEngine *engine, float progress);
 void engine_tag_redraw(void *engine);
 void engine_tag_update(void *engine);
 int rna_Object_is_modified(void *ob, void *scene, int settings);
+void BLI_timestr(double _time, char *str);
 
 }
 

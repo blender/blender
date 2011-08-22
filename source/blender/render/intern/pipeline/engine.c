@@ -38,6 +38,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_report.h"
@@ -133,6 +134,9 @@ void RE_engine_free(RenderEngine *engine)
 	}
 #endif
 
+	if(engine->text)
+		MEM_freeN(engine->text);
+
 	MEM_freeN(engine);
 }
 
@@ -204,7 +208,10 @@ int RE_engine_test_break(RenderEngine *engine)
 {
 	Render *re= engine->re;
 
-	return re->test_break(re->tbh);
+	if(re)
+		return re->test_break(re->tbh);
+	
+	return 0;
 }
 
 /* Statistics */
@@ -213,19 +220,37 @@ void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char 
 {
 	Render *re= engine->re;
 
-	re->i.statstr= stats;
-	re->i.infostr= info;
-	re->stats_draw(re->sdh, &re->i);
-	re->i.infostr= NULL;
-	re->i.statstr= NULL;
+	/* stats draw callback */
+	if(re) {
+		re->i.statstr= stats;
+		re->i.infostr= info;
+		re->stats_draw(re->sdh, &re->i);
+		re->i.infostr= NULL;
+		re->i.statstr= NULL;
+	}
+
+	/* set engine text */
+	if(engine->text) {
+		MEM_freeN(engine->text);
+		engine->text= NULL;
+	}
+
+	if(stats && stats[0] && info && info[0])
+		engine->text= BLI_sprintfN("%s | %s", stats, info);
+	else if(info && info[0])
+		engine->text= BLI_strdup(info);
+	else if(stats && stats[0])
+		engine->text= BLI_strdup(stats);
 }
 
 void RE_engine_update_progress(RenderEngine *engine, float progress)
 {
 	Render *re= engine->re;
 
-	CLAMP(progress, 0.0f, 1.0f);
-	re->progress(re->prh, progress);
+	if(re) {
+		CLAMP(progress, 0.0f, 1.0f);
+		re->progress(re->prh, progress);
+	}
 }
 
 void RE_engine_report(RenderEngine *engine, int type, const char *msg)

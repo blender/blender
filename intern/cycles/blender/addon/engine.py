@@ -58,41 +58,7 @@ def draw(engine, region, v3d, rv3d):
 	rv3d = rv3d.as_pointer()
 
 	# draw render image
-	status, substatus = lib.draw(engine.session, v3d, rv3d)
-
-	# draw text over image
-	if status != "":
-		import blf
-		import bgl
-
-		fontid = 0 # todo, find out how to set this
-		dim = blf.dimensions(fontid, status)
-		dim_sub = blf.dimensions(fontid, substatus)
-
-		padding = 5
-
-		x = (region.width - max(dim[0], dim_sub[0]))*0.5 - padding
-		y = (region.height - (dim[1] + dim_sub[1] + padding))*0.5 - padding
-
-		bgl.glColor4f(0.0, 0.0, 0.0, 0.5)
-		bgl.glEnable(bgl.GL_BLEND)
-		bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
-		bgl.glRectf(x, y, x+max(dim[0], dim_sub[0])+padding+padding, y+dim[1]+dim_sub[1]+padding+padding+2)
-		bgl.glDisable(bgl.GL_BLEND)
-
-		x = (region.width - dim[0])*0.5
-		y = (region.height - (dim[1] + dim_sub[1] + padding))*0.5 + dim_sub[1] + padding
-
-		bgl.glColor3f(0.8, 0.8, 0.8)
-		blf.position(fontid, x, y, 0)
-		blf.draw(fontid, status)
-
-		x = (region.width - dim_sub[0])*0.5
-		y = (region.height - (dim[1] + dim_sub[1] + padding))*0.5
-
-		bgl.glColor3f(0.6, 0.6, 0.6)
-		blf.position(fontid, x, y, 0)
-		blf.draw(fontid, substatus)
+	lib.draw(engine.session, v3d, rv3d)
 
 def available_devices():
 	import libcycles_blender as lib

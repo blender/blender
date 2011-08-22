@@ -55,6 +55,7 @@ public:
 	void tag_redraw();
 	void tag_update();
 	void get_status(string& status, string& substatus);
+	void get_progress(float& progress, double& total_time);
 	void test_cancel();
 
 	bool background;

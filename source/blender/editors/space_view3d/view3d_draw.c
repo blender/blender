@@ -2566,6 +2566,32 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 	return 1;
 }
 
+static void view3d_main_area_draw_engine_info(RegionView3D *rv3d, ARegion *ar)
+{
+	rcti rect;
+	const int header_height = 18;
+
+	if(!rv3d->render_engine || !rv3d->render_engine->text)
+		return;
+	
+	/* background box */
+	rect= ar->winrct;
+	rect.xmin= 0;
+	rect.ymin= ar->winrct.ymax - ar->winrct.ymin - header_height;
+	rect.xmax= ar->winrct.xmax - ar->winrct.xmin;
+	rect.ymax= ar->winrct.ymax - ar->winrct.ymin;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.25f);
+	glRecti(rect.xmin, rect.ymin, rect.xmax+1, rect.ymax+1);
+	glDisable(GL_BLEND);
+	
+	/* text */
+	UI_ThemeColor(TH_TEXT_HI);
+	UI_DrawString(12, rect.ymin + 5, rv3d->render_engine->text);
+}
+
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
 void view3d_main_area_draw(const bContext *C, ARegion *ar)
 {
@@ -2781,26 +2807,31 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	else	
 		draw_view_icon(rv3d);
 	
-	if((U.uiflag & USER_SHOW_FPS) && (CTX_wm_screen(C)->animtimer)) {
-		draw_viewport_fps(scene, ar);
+	if(rv3d->render_engine) {
+		view3d_main_area_draw_engine_info(rv3d, ar);
 	}
-	else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
-		draw_viewport_name(ar, v3d);
-	}
-	if (grid_unit) { /* draw below the viewport name */
-		char tstr[32]= "";
+	else {
+		if((U.uiflag & USER_SHOW_FPS) && (CTX_wm_screen(C)->animtimer)) {
+			draw_viewport_fps(scene, ar);
+		}
+		else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
+			draw_viewport_name(ar, v3d);
+		}
+		if (grid_unit) { /* draw below the viewport name */
+			char tstr[32]= "";
 
-		UI_ThemeColor(TH_TEXT_HI);
-		if(v3d->grid != 1.0f) {
-			BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", grid_unit, v3d->grid);
+			UI_ThemeColor(TH_TEXT_HI);
+			if(v3d->grid != 1.0f) {
+				BLI_snprintf(tstr, sizeof(tstr), "%s x %.4g", grid_unit, v3d->grid);
+			}
+
+			BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
 		}
 
-		BLF_draw_default_ascii(22,  ar->winy-(USER_SHOW_VIEWPORTNAME?40:20), 0.0f, tstr[0]?tstr : grid_unit, sizeof(tstr)); /* XXX, use real length */
+		ob= OBACT;
+		if(U.uiflag & USER_DRAWVIEWINFO) 
+			draw_selected_name(scene, ob);
 	}
-
-	ob= OBACT;
-	if(U.uiflag & USER_DRAWVIEWINFO) 
-		draw_selected_name(scene, ob);
 	
 	/* XXX here was the blockhandlers for floating panels */
 

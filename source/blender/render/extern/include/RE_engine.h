@@ -82,6 +82,7 @@ typedef struct RenderEngine {
 
 	struct Render *re;
 	ListBase fullresult;
+	char *text;
 
 	int do_draw;
 	int do_update;

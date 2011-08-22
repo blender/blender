@@ -243,6 +243,15 @@ void BlenderSession::get_status(string& status, string& substatus)
 	session->progress.get_status(status, substatus);
 }
 
+void BlenderSession::get_progress(float& progress, double& total_time)
+{
+	double pass_time;
+	int pass;
+
+	session->progress.get_pass(pass, total_time, pass_time);
+	progress = ((float)pass/(float)session->params.passes);
+}
+
 void BlenderSession::tag_update()
 {
 	/* tell blender that we want to get another update callback */
@@ -251,16 +260,28 @@ void BlenderSession::tag_update()
 
 void BlenderSession::tag_redraw()
 {
+	string status, substatus;
+	float progress;
+	double total_time;
+	char time_str[128];
+
+	/* update stats and progress */
+	get_status(status, substatus);
+	get_progress(progress, total_time);
+
+	if(!background) {
+		BLI_timestr(total_time, time_str);
+		status = "Time: " + string(time_str) + " | " + status;
+	}
+
+	if(substatus.size() > 0)
+		status += " | " + substatus;
+
+	RE_engine_update_stats((RenderEngine*)b_engine.ptr.data, "", status.c_str());
+	RE_engine_update_progress((RenderEngine*)b_engine.ptr.data, progress);
+
 	if(background) {
-		/* offline render, set stats and redraw if timeout passed */
-		string status, substatus;
-		get_status(status, substatus);
-
-		if(substatus.size() > 0)
-			status += " | " + substatus;
-
-		RE_engine_update_stats((RenderEngine*)b_engine.ptr.data, "", status.c_str());
-
+		/* offline render, redraw if timeout passed */
 		if(time_dt() - last_redraw_time > 1.0f) {
 			write_render_result();
 			engine_tag_redraw((RenderEngine*)b_engine.ptr.data);
