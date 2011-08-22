@@ -814,34 +814,40 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
 static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
 {
 	ID *id= self->ptr.id.data;
+	PyObject *tmp_str;
+	PyObject *ret;
+
 	if(id == NULL || !PYRNA_STRUCT_IS_VALID(self))
 		return pyrna_struct_str(self); /* fallback */
 
+	tmp_str= PyUnicode_FromString(id->name+2);
+
 	if(RNA_struct_is_ID(self->ptr.type)) {
-		return PyUnicode_FromFormat("bpy.data.%s[\"%s\"]",
+		ret= PyUnicode_FromFormat("bpy.data.%s[%R]",
 		                            BKE_idcode_to_name_plural(GS(id->name)),
-		                            id->name+2);
+		                            tmp_str);
 	}
 	else {
-		PyObject *ret;
 		const char *path;
 		path= RNA_path_from_ID_to_struct(&self->ptr);
 		if(path) {
-			ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"].%s",
+			ret= PyUnicode_FromFormat("bpy.data.%s[%R].%s",
 			                          BKE_idcode_to_name_plural(GS(id->name)),
-			                          id->name+2,
+			                          tmp_str,
 			                          path);
 			MEM_freeN((void *)path);
 		}
 		else { /* cant find, print something sane */
-			ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"]...%s",
+			ret= PyUnicode_FromFormat("bpy.data.%s[%R]...%s",
 			                          BKE_idcode_to_name_plural(GS(id->name)),
-			                          id->name+2,
+			                          tmp_str,
 			                          RNA_struct_identifier(self->ptr.type));
 		}
-
-		return ret;
 	}
+
+	Py_DECREF(tmp_str);
+
+	return ret;
 }
 
 static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
@@ -911,26 +917,34 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 
 static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 {
-	ID *id;
+	ID *id= self->ptr.id.data;
+	PyObject *tmp_str;
 	PyObject *ret;
 	const char *path;
 
 	PYRNA_PROP_CHECK_OBJ(self)
 
-	if((id= self->ptr.id.data) == NULL)
+	if(id == NULL)
 		return pyrna_prop_str(self); /* fallback */
+
+	tmp_str= PyUnicode_FromString(id->name+2);
 
 	path= RNA_path_from_ID_to_property(&self->ptr, self->prop);
 	if(path) {
-		ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"].%s", BKE_idcode_to_name_plural(GS(id->name)), id->name+2, path);
+		ret= PyUnicode_FromFormat("bpy.data.%s[%R].%s",
+		                          BKE_idcode_to_name_plural(GS(id->name)),
+		                          tmp_str,
+		                          path);
 		MEM_freeN((void *)path);
 	}
 	else { /* cant find, print something sane */
-		ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"]...%s",
+		ret= PyUnicode_FromFormat("bpy.data.%s[%R]...%s",
 		                          BKE_idcode_to_name_plural(GS(id->name)),
-		                          id->name+2,
+		                          tmp_str,
 		                          RNA_property_identifier(self->prop));
 	}
+
+	Py_DECREF(tmp_str);
 
 	return ret;
 }
@@ -4297,6 +4311,27 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 	return ret;
 }
 
+/* Use to replace PyDict_GetItemString() when the overhead of converting a
+ * string into a python unicode is higher than a non hash lookup.
+ * works on small dict's such as keyword args. */
+static PyObject *small_dict_get_item_string(PyObject *dict, const char *key_lookup)
+{
+	PyObject *key= NULL;
+	Py_ssize_t pos = 0;
+	PyObject *value = NULL;
+
+	/* case not, search for it in the script's global dictionary */
+	while (PyDict_Next(dict, &pos, &key, &value)) {
+		if(PyUnicode_Check(key)) {
+			if(strcmp(key_lookup, _PyUnicode_AsString(key))==0) {
+				return value;
+			}
+		}
+	}
+
+	return NULL;
+}
+
 static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject *kw)
 {
 	/* Note, both BPy_StructRNA and BPy_PropertyRNA can be used here */
@@ -4309,7 +4344,6 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 	PropertyRNA *parm;
 	PyObject *ret, *item;
 	int i, pyargs_len, pykw_len, parms_len, ret_len, flag, err= 0, kw_tot= 0, kw_arg;
-	const char *parm_id;
 
 	PropertyRNA *pret_single= NULL;
 	void *retdata_single= NULL;
@@ -4385,28 +4419,33 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 			continue;
 		}
 
-		parm_id= RNA_property_identifier(parm);
 		item= NULL;
 
 		if (i < pyargs_len) {
 			item= PyTuple_GET_ITEM(args, i);
-			i++;
-
 			kw_arg= FALSE;
 		}
 		else if (kw != NULL) {
-			item= PyDict_GetItemString(kw, parm_id); /* borrow ref */
+#if 0
+			item= PyDict_GetItemString(kw, RNA_property_identifier(parm)); /* borrow ref */
+#else
+			item= small_dict_get_item_string(kw, RNA_property_identifier(parm)); /* borrow ref */
+#endif
 			if(item)
 				kw_tot++; /* make sure invalid keywords are not given */
 
 			kw_arg= TRUE;
 		}
 
+		i++; /* current argument */
+
 		if (item==NULL) {
 			if(flag & PROP_REQUIRED) {
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s.%.200s(): required parameter \"%.200s\" not specified",
-				             RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), parm_id);
+				             RNA_struct_identifier(self_ptr->type),
+				             RNA_function_identifier(self_func),
+				             RNA_property_identifier(parm));
 				err= -1;
 				break;
 			}
@@ -4433,9 +4472,18 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 			PyErr_Clear(); /* re-raise */
 
 			if(kw_arg==TRUE)
-				snprintf(error_prefix, sizeof(error_prefix), "%s.%s(): error with keyword argument \"%s\" - ", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), parm_id);
+				BLI_snprintf(error_prefix, sizeof(error_prefix),
+				             "%.200s.%.200s(): error with keyword argument \"%.200s\" - ",
+				             RNA_struct_identifier(self_ptr->type),
+				             RNA_function_identifier(self_func),
+				             RNA_property_identifier(parm));
 			else
-				snprintf(error_prefix, sizeof(error_prefix), "%s.%s(): error with argument %d, \"%s\" - ", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), i, parm_id);
+				BLI_snprintf(error_prefix, sizeof(error_prefix),
+				             "%.200s.%.200s(): error with argument %d, \"%.200s\" - ",
+				             RNA_struct_identifier(self_ptr->type),
+				             RNA_function_identifier(self_func),
+				             i,
+				             RNA_property_identifier(parm));
 
 			pyrna_py_to_prop(&funcptr, parm, iter.data, item, error_prefix);
 

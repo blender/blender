@@ -452,7 +452,7 @@ class IMAGE_PT_game_properties(Panel):
         split = layout.split()
 
         col = split.column()
-        
+
         col.prop(ima, "use_animation")
         sub = col.column(align=True)
         sub.active = ima.use_animation
@@ -507,7 +507,7 @@ class IMAGE_PT_view_waveform(Panel):
         layout = self.layout
 
         sima = context.space_data
-        
+
         layout.template_waveform(sima, "scopes")
         row = layout.split(percentage=0.75)
         row.prop(sima.scopes, "waveform_alpha")
@@ -544,9 +544,9 @@ class IMAGE_PT_sample_line(Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         sima = context.space_data
-        
+
         layout.operator("image.sample_line")
         layout.template_histogram(sima, "sample_histogram")
         layout.prop(sima.sample_histogram, "mode")
@@ -564,9 +564,9 @@ class IMAGE_PT_scope_sample(Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         sima = context.space_data
-        
+
         row = layout.row()
         row.prop(sima.scopes, "use_full_resolution")
         sub = row.row()
@@ -613,14 +613,14 @@ class IMAGE_PT_view_properties(Panel):
             col = layout.column()
             col.label("Cursor Location:")
             col.row().prop(uvedit, "cursor_location", text="")
-            
+
             col.separator()
-            
+
             col.label(text="UVs:")
             col.row().prop(uvedit, "edge_draw_type", expand=True)
 
             split = layout.split()
-            
+
             col = split.column()
             col.prop(uvedit, "show_faces")
             col.prop(uvedit, "show_smooth_edges", text="Smooth")

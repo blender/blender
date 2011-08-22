@@ -104,7 +104,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
         col.prop(cam, "dof_object", text="")
 
         col = col.column()
-        if cam.dof_object != None:
+        if cam.dof_object is not None:
             col.enabled = False
         col.prop(cam, "dof_distance", text="Distance")
 

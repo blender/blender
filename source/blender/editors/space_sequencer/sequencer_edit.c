@@ -1308,7 +1308,7 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER; /* no undo, the data changed is stored outside 'main' */
 }
 
 /* reload operator */
@@ -2628,7 +2628,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 	ot->poll= sequencer_edit_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 }

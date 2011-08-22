@@ -596,7 +596,7 @@ static int envcube_isect(EnvMap *env, float *vec, float *answ)
 	if(env->type==ENV_PLANE) {
 		face= 1;
 		
-		labda= 1.0/vec[2];
+		labda= 1.0f/vec[2];
 		answ[0]= env->viewscale*labda*vec[0];
 		answ[1]= -env->viewscale*labda*vec[1];
 	}
@@ -604,44 +604,44 @@ static int envcube_isect(EnvMap *env, float *vec, float *answ)
 		/* which face */
 		if( vec[2]<=-fabs(vec[0]) && vec[2]<=-fabs(vec[1]) ) {
 			face= 0;
-			labda= -1.0/vec[2];
+			labda= -1.0f/vec[2];
 			answ[0]= labda*vec[0];
 			answ[1]= labda*vec[1];
 		}
 		else if( vec[2]>=fabs(vec[0]) && vec[2]>=fabs(vec[1]) ) {
 			face= 1;
-			labda= 1.0/vec[2];
+			labda= 1.0f/vec[2];
 			answ[0]= labda*vec[0];
 			answ[1]= -labda*vec[1];
 		}
 		else if( vec[1]>=fabs(vec[0]) ) {
 			face= 2;
-			labda= 1.0/vec[1];
+			labda= 1.0f/vec[1];
 			answ[0]= labda*vec[0];
 			answ[1]= labda*vec[2];
 		}
 		else if( vec[0]<=-fabs(vec[1]) ) {
 			face= 3;
-			labda= -1.0/vec[0];
+			labda= -1.0f/vec[0];
 			answ[0]= labda*vec[1];
 			answ[1]= labda*vec[2];
 		}
 		else if( vec[1]<=-fabs(vec[0]) ) {
 			face= 4;
-			labda= -1.0/vec[1];
+			labda= -1.0f/vec[1];
 			answ[0]= -labda*vec[0];
 			answ[1]= labda*vec[2];
 		}
 		else {
 			face= 5;
-			labda= 1.0/vec[0];
+			labda= 1.0f/vec[0];
 			answ[0]= -labda*vec[1];
 			answ[1]= labda*vec[2];
 		}
 	}
 	
-	answ[0]= 0.5+0.5*answ[0];
-	answ[1]= 0.5+0.5*answ[1];
+	answ[0]= 0.5f+0.5f*answ[0];
+	answ[1]= 0.5f+0.5f*answ[1];
 	return face;
 }
 
@@ -726,7 +726,7 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		
 		/* edges? */
 		
-		if(texres->ta<1.0) {
+		if(texres->ta<1.0f) {
 			TexResult texr1, texr2;
 	
 			texr1.nor= texr2.nor= NULL;
@@ -757,8 +757,8 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 			else texr2.tr= texr2.tg= texr2.tb= texr2.ta= 0.0;
 			
 			fac= (texres->ta+texr1.ta+texr2.ta);
-			if(fac!=0.0) {
-				fac= 1.0/fac;
+			if(fac!=0.0f) {
+				fac= 1.0f/fac;
 
 				texres->tr= fac*(texres->ta*texres->tr + texr1.ta*texr1.tr + texr2.ta*texr2.tr );
 				texres->tg= fac*(texres->ta*texres->tg + texr1.ta*texr1.tg + texr2.ta*texr2.tg );

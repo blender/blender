@@ -210,8 +210,8 @@ static void randuvec(float v[3])
 	if((r = 1.f - v[2] * v[2]) > 0.f) {
 		float a = (float)(6.283185307f * frand());
 		r = (float)sqrt(r);
-		v[0] = (float)(r * cos(a));
-		v[1] = (float)(r * sin(a));
+		v[0] = (float)(r * cosf(a));
+		v[1] = (float)(r * sinf(a));
 	}
 	else {
 		v[2] = 1.f;
@@ -254,7 +254,7 @@ static PyObject *Noise_noise(PyObject *UNUSED(self), PyObject *args)
 	if(!PyArg_ParseTuple(args, "(fff)|i:noise", &x, &y, &z, &nb))
 		return NULL;
 
-	return PyFloat_FromDouble((2.0 * BLI_gNoise(1.0, x, y, z, 0, nb) - 1.0));
+	return PyFloat_FromDouble((2.0f * BLI_gNoise(1.0f, x, y, z, 0, nb) - 1.0f));
 }
 
 /*-------------------------------------------------------------------------*/
@@ -264,11 +264,11 @@ static PyObject *Noise_noise(PyObject *UNUSED(self), PyObject *args)
 static void noise_vector(float x, float y, float z, int nb, float v[3])
 {
 	/* Simply evaluate noise at 3 different positions */
-	v[0] = (float)(2.0 * BLI_gNoise(1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0,
-				 nb) - 1.0);
-	v[1] = (float)(2.0 * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0);
-	v[2] = (float)(2.0 * BLI_gNoise(1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0,
-				 nb) - 1.0);
+	v[0]= (float)(2.0f * BLI_gNoise(1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0,
+				 nb) - 1.0f);
+	v[1]= (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
+	v[2]= (float)(2.0f * BLI_gNoise(1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0,
+				 nb) - 1.0f);
 }
 
 static PyObject *Noise_vector(PyObject *UNUSED(self), PyObject *args)
@@ -291,7 +291,7 @@ static float turb(float x, float y, float z, int oct, int hard, int nb,
 	float amp, out, t;
 	int i;
 	amp = 1.f;
-	out = (float)(2.0 * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0);
+	out = (float)(2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f);
 	if(hard)
 		out = (float)fabs(out);
 	for(i = 1; i < oct; i++) {
@@ -299,7 +299,7 @@ static float turb(float x, float y, float z, int oct, int hard, int nb,
 		x *= freqscale;
 		y *= freqscale;
 		z *= freqscale;
-		t = (float)(amp * (2.0 * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0));
+		t = (float)(amp * (2.0f * BLI_gNoise(1.f, x, y, z, 0, nb) - 1.0f));
 		if(hard)
 			t = (float)fabs(t);
 		out += t;
