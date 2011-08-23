@@ -867,10 +867,12 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			for(; dw; dw=dw->next) {
 				/* update indices */
 				dw->index = 0;
-				go = part->dup_group->gobject.first;
-				while(go && go->ob != dw->ob) {
-					go=go->next;
-					dw->index++;
+				if(part->dup_group) { /* can be NULL if lining fails or set to None */
+					go = part->dup_group->gobject.first;
+					while(go && go->ob != dw->ob) {
+						go=go->next;
+						dw->index++;
+					}
 				}
 				writestruct(wd, DATA, "ParticleDupliWeight", 1, dw);
 			}
