@@ -274,6 +274,11 @@ endif()
 
 TEST_SSE_SUPPORT()
 
+# don't store paths to libs for portable distrobution
+if(WITH_INSTALL_PORTABLE)
+	set(CMAKE_SKIP_BUILD_RPATH TRUE)
+endif()
+
 #-----------------------------------------------------------------------------
 # Initialize un-cached vars, avoid unused warning
 
