@@ -676,11 +676,17 @@ void sound_update_scene(struct Main* bmain, struct Scene* scene)
 
 							if(AUD_removeSet(scene->speaker_handles, strip->speaker_handle))
 							{
-								AUD_moveSequence(strip->speaker_handle, strip->start / FPS, -1, 0);
+								if(speaker->sound)
+									AUD_moveSequence(strip->speaker_handle, strip->start / FPS, -1, 0);
+								else
+								{
+									AUD_removeSequence(scene->sound_scene, strip->speaker_handle);
+									strip->speaker_handle = NULL;
+								}
 							}
 							else
 							{
-								if(speaker && speaker->sound)
+								if(speaker->sound)
 								{
 									strip->speaker_handle = AUD_addSequence(scene->sound_scene, speaker->sound->playback_handle, strip->start / FPS, -1, 0);
 									AUD_setRelativeSequence(strip->speaker_handle, 0);
