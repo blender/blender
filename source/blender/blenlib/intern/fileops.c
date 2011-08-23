@@ -69,8 +69,10 @@ int BLI_gzip(const char *from, const char *to) {
 	int readsize = 0;
 	int rval= 0, err;
 	gzFile gzfile;
-	
-	gzfile = gzopen(to, "wb"); 
+
+	/* level 1 is very close to 3 (the default) in terms of file size,
+	 * but about twice as fast, best use for speedy saving - campbell */
+	gzfile = gzopen(to, "wb1");
 	if(gzfile == NULL)
 		return -1;
 	

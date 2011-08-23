@@ -63,6 +63,22 @@ set(CMAKE_BUILD_TYPE_INIT "Release")
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
 #-----------------------------------------------------------------------------
+# Set policy
+
+# see "cmake --help-policy CMP0003"
+# So library linking is more sane
+cmake_policy(SET CMP0003 NEW)
+
+# So BUILDINFO and BLENDERPATH strings are automatically quoted
+cmake_policy(SET CMP0005 NEW)
+
+# So syntax problems are errors
+cmake_policy(SET CMP0010 NEW)
+
+# Input directories must have CMakeLists.txt
+cmake_policy(SET CMP0014 NEW)
+
+#-----------------------------------------------------------------------------
 # Load some macros.
 include(build_files/cmake/macros.cmake)
 
@@ -499,6 +515,9 @@ if(UNIX AND NOT APPLE)
 	# GNU Compiler
 	if(CMAKE_COMPILER_IS_GNUCC)
 		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
+	# CLang is the same as GCC for now.
+	elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+		set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
 	# Intel C++ Compiler
 	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 		# think these next two are broken
@@ -691,11 +710,11 @@ elseif(WIN32)
 				${LIBDIR}/ffmpeg/include/msvc
 			)
 			set(FFMPEG_LIBRARIES
-				${LIBDIR}/ffmpeg/lib/avcodec-52.lib
-				${LIBDIR}/ffmpeg/lib/avformat-52.lib
-				${LIBDIR}/ffmpeg/lib/avdevice-52.lib
-				${LIBDIR}/ffmpeg/lib/avutil-50.lib
-				${LIBDIR}/ffmpeg/lib/swscale-0.lib
+				${LIBDIR}/ffmpeg/lib/avcodec-53.lib
+				${LIBDIR}/ffmpeg/lib/avformat-53.lib
+				${LIBDIR}/ffmpeg/lib/avdevice-53.lib
+				${LIBDIR}/ffmpeg/lib/avutil-51.lib
+				${LIBDIR}/ffmpeg/lib/swscale-2.lib
 			)
 		endif()
 
@@ -822,7 +841,7 @@ elseif(WIN32)
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg)
 			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include)
-			set(FFMPEG_LIBRARIES avcodec-52 avformat-52 avdevice-52 avutil-50 swscale-0)
+			set(FFMPEG_LIBRARIES avcodec-53 avformat-53 avdevice-53 avutil-51 swscale-2)
 			set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		endif()
 

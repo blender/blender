@@ -803,7 +803,7 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "axis_number", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "axis");
 	RNA_def_property_ui_text(prop, "Axis Number", "Specify which axis pair to use, 1 is usually the main direction input");
-	RNA_def_property_range(prop, 1, 2);
+	RNA_def_property_range(prop, 1, 8);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop= RNA_def_property(srna, "axis_threshold", PROP_INT, PROP_NONE);

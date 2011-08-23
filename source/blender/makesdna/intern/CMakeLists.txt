@@ -27,12 +27,17 @@
 
 # message(STATUS "Configuring makesdna")
 
+# add_definitions(-DWITH_DNA_GHASH)
+
 blender_include_dirs(
 	../../../../intern/guardedalloc
 	../../blenloader
+	../../blenlib
 	..
 )
 
+
+# -----------------------------------------------------------------------------
 # Build makesdna executable
 set(SRC
 	makesdna.c
@@ -56,6 +61,8 @@ add_custom_command(
 	DEPENDS makesdna
 )
 
+
+# -----------------------------------------------------------------------------
 # Build bf_dna library
 set(INC
 
@@ -72,3 +79,22 @@ set(SRC
 )
 
 blender_add_lib(bf_dna "${SRC}" "${INC}" "${INC_SYS}")
+
+
+# -----------------------------------------------------------------------------
+# Build bf_dna_blenlib library
+set(INC
+
+)
+
+set(INC_SYS
+
+)
+
+set(SRC
+	../../blenlib/intern/BLI_mempool.c
+	../../blenlib/intern/listbase.c
+	../../blenlib/intern/BLI_ghash.c
+)
+
+blender_add_lib(bf_dna_blenlib "${SRC}" "${INC}" "${INC_SYS}")
