@@ -229,12 +229,10 @@ bool BlenderSession::draw(int w, int h)
 			session->reset(width, height);
 	}
 
-	/* draw */
-	return !session->draw(width, height);
-}
+	/* update status and progress for 3d view draw */
+	update_status_progress();
 
-bool BlenderSession::draw()
-{
+	/* draw */
 	return !session->draw(width, height);
 }
 
@@ -252,20 +250,13 @@ void BlenderSession::get_progress(float& progress, double& total_time)
 	progress = ((float)pass/(float)session->params.passes);
 }
 
-void BlenderSession::tag_update()
-{
-	/* tell blender that we want to get another update callback */
-	engine_tag_update((RenderEngine*)b_engine.ptr.data);
-}
-
-void BlenderSession::tag_redraw()
+void BlenderSession::update_status_progress()
 {
 	string status, substatus;
 	float progress;
 	double total_time;
 	char time_str[128];
 
-	/* update stats and progress */
 	get_status(status, substatus);
 	get_progress(progress, total_time);
 
@@ -279,8 +270,21 @@ void BlenderSession::tag_redraw()
 
 	RE_engine_update_stats((RenderEngine*)b_engine.ptr.data, "", status.c_str());
 	RE_engine_update_progress((RenderEngine*)b_engine.ptr.data, progress);
+}
 
+void BlenderSession::tag_update()
+{
+	/* tell blender that we want to get another update callback */
+	engine_tag_update((RenderEngine*)b_engine.ptr.data);
+}
+
+void BlenderSession::tag_redraw()
+{
 	if(background) {
+		/* update stats and progress, only for background here because
+		   in 3d view we do it in draw for thread safety reasons */
+		update_status_progress();
+
 		/* offline render, redraw if timeout passed */
 		if(time_dt() - last_redraw_time > 1.0f) {
 			write_render_result();

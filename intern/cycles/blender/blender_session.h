@@ -50,13 +50,13 @@ public:
 	void synchronize();
 
 	/* drawing */
-	bool draw();
 	bool draw(int w, int h);
 	void tag_redraw();
 	void tag_update();
 	void get_status(string& status, string& substatus);
 	void get_progress(float& progress, double& total_time);
 	void test_cancel();
+	void update_status_progress();
 
 	bool background;
 	Session *session;

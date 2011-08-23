@@ -129,37 +129,16 @@ static PyObject *draw_func(PyObject *self, PyObject *args)
 	
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
 
-	bool draw_text = false;
-
 	if(PyLong_AsVoidPtr(pyrv3d)) {
 		/* 3d view drawing */
 		int viewport[4];
 		glGetIntegerv(GL_VIEWPORT, viewport);
 
-		draw_text = session->draw(viewport[2], viewport[3]);
-	}
-	else {
-		/* image editor drawing */
-		draw_text = session->draw();
+		session->draw(viewport[2], viewport[3]);
 	}
 
-	/* draw */
-	PyObject *ret = PyTuple_New(2);
-
-	if(!draw_text) {
-		PyTuple_SetItem(ret, 0, PyUnicode_FromString(""));
-		PyTuple_SetItem(ret, 1, PyUnicode_FromString(""));
-	}
-	else {
-		string status, substatus;
-
-		session->get_status(status, substatus);
-
-		PyTuple_SetItem(ret, 0, PyUnicode_FromString(status.c_str()));
-		PyTuple_SetItem(ret, 1, PyUnicode_FromString(substatus.c_str()));
-	}
-
-	return ret;
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 static PyObject *sync_func(PyObject *self, PyObject *args)
