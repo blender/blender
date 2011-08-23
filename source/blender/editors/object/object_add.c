@@ -308,6 +308,7 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 	/* more editor stuff */
 	ED_object_base_init_transform(C, BASACT, loc, rot);
 
+	DAG_id_type_tag(bmain, ID_OB);
 	DAG_scene_sort(bmain, scene);
 	ED_render_id_flush_update(bmain, ob->data);
 
