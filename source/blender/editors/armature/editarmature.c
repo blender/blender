@@ -5402,12 +5402,14 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				ScrArea *sa;
 				/* add regions */
 				for(sa= screen->areabase.first; sa; sa= sa->next) {
-					SpaceLink *sl= sa->spacedata.first;
-					if(sl->spacetype == SPACE_VIEW3D) {
-						View3D *v3d= (View3D *)sl;
-						if(v3d->ob_centre && v3d->ob_centre->data == arm) {
-							if (!strcmp(v3d->ob_centre_bone, oldname)) {
-								BLI_strncpy(v3d->ob_centre_bone, newname, MAXBONENAME);
+					SpaceLink *sl;
+					for (sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_VIEW3D) {
+							View3D *v3d= (View3D *)sl;
+							if(v3d->ob_centre && v3d->ob_centre->data == arm) {
+								if (!strcmp(v3d->ob_centre_bone, oldname)) {
+									BLI_strncpy(v3d->ob_centre_bone, newname, MAXBONENAME);
+								}
 							}
 						}
 					}
