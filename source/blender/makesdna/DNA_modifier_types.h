@@ -803,15 +803,10 @@ typedef struct WeightVGEditModifierData {
 	float	default_weight; /* Weight for vertices not in vgroup. */
 
 	/* Mapping stuff. */
-	float	map_org_min, map_org_max; /* Deprecated, keeping for file compatibility for now... */
-	float	map_new_min, map_new_max; /* Deprecated, keeping for file compatibility for now... */
 	struct CurveMapping *cmap_curve;  /* The custom mapping curve! */
 
  	/* The add/remove vertices weight thresholds. */
 	float	add_threshold, rem_threshold;
-
-	/* Clamping options. */
-	float	clamp_weight_min, clamp_weight_max; /* Deprecated, keeping for file compatibility for now... */
 
 	/* Masking options. */
 	float	mask_constant; /* The global “influence”, if no vgroup nor tex is used as mask. */
