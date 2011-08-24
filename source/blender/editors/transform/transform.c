@@ -1353,16 +1353,15 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	int constraint_axis[3] = {0, 0, 0};
 	int proportional = 0;
+	PropertyRNA *prop;
 
-	if (RNA_struct_find_property(op->ptr, "value"))
-	{
-		if (t->flag & T_AUTOVALUES)
-		{
-			RNA_float_set_array(op->ptr, "value", t->auto_values);
+	if ((prop= RNA_struct_find_property(op->ptr, "value"))) {
+		float *values= (t->flag & T_AUTOVALUES) ? t->auto_values : t->values;
+		if (RNA_property_array_check(prop)) {
+			RNA_property_float_set_array(op->ptr, prop, values);
 		}
-		else
-		{
-			RNA_float_set_array(op->ptr, "value", t->values);
+		else {
+			RNA_property_float_set(op->ptr, prop, values[0]);
 		}
 	}
 
@@ -4649,7 +4648,7 @@ static int createSlideVerts(TransInfo *t)
 							uv_new = tf->uv[k];
 
 							if (ev->tmp.l) {
-								if (fabs(suv->origuv[0]-uv_new[0]) > 0.0001f || fabs(suv->origuv[1]-uv_new[1]) > 0.0001f) {
+								if (fabsf(suv->origuv[0]-uv_new[0]) > 0.0001f || fabs(suv->origuv[1]-uv_new[1]) > 0.0001f) {
 									ev->tmp.l = -1; /* Tag as invalid */
 									BLI_linklist_free(suv->fuv_list,NULL);
 									suv->fuv_list = NULL;

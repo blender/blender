@@ -75,10 +75,6 @@
 /* own include */
 #include "sequencer_intern.h"
 
-static void error(const char *UNUSED(dummy)) {}
-static void waitcursor(int UNUSED(val)) {}
-static void activate_fileselect(int UNUSED(d1), const char *UNUSED(d2), const char *UNUSED(d3), void *UNUSED(d4)) {}
-static int pupmenu(const char *UNUSED(dummy)) {return 0;}
 static int okee(const char *UNUSED(dummy)) {return 0;}
 
 
@@ -139,7 +135,7 @@ void seq_rectf(Sequence *seq, rctf *rectf)
 	rectf->ymax= seq->machine+SEQ_STRIP_OFSTOP;
 }
 
-static void change_plugin_seq(Scene *scene, char *str)	/* called from fileselect */
+static void UNUSED_FUNCTION(change_plugin_seq)(Scene *scene, char *str) /* called from fileselect */
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	struct SeqEffectHandle sh;
@@ -762,7 +758,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 	return done;
 }
 
-static void touch_seq_files(Scene *scene)
+static void UNUSED_FUNCTION(touch_seq_files)(Scene *scene)
 {
 	Sequence *seq;
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -774,7 +770,7 @@ static void touch_seq_files(Scene *scene)
 
 	if(okee("Touch and print selected movies")==0) return;
 
-	waitcursor(1);
+	WM_cursor_wait(1);
 
 	SEQP_BEGIN(ed, seq) {
 		if(seq->flag & SELECT) {
@@ -789,7 +785,7 @@ static void touch_seq_files(Scene *scene)
 	}
 	SEQ_END
 
-	waitcursor(0);
+	WM_cursor_wait(0);
 }
 
 /*
@@ -817,7 +813,7 @@ static void set_filter_seq(Scene *scene)
 }
 */
 
-static void seq_remap_paths(Scene *scene)
+static void UNUSED_FUNCTION(seq_remap_paths)(Scene *scene)
 {
 	Sequence *seq, *last_seq = seq_active_get(scene);
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -858,7 +854,7 @@ static void seq_remap_paths(Scene *scene)
 }
 
 
-static void no_gaps(Scene *scene)
+static void UNUSED_FUNCTION(no_gaps)(Scene *scene)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	int cfra, first= 0, done;
@@ -1206,7 +1202,7 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 	ot->poll= sequencer_edit_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER; /* no undo, the data changed is stored outside 'main' */
 }
 
 /* reload operator */
@@ -1232,9 +1228,6 @@ void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= sequencer_refresh_all_exec;
 	ot->poll= sequencer_edit_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
@@ -1564,6 +1557,58 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 	ot->exec= sequencer_delete_exec;
 	ot->poll= sequencer_edit_poll;
 	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+/* offset clear operator */
+static int sequencer_offset_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene= CTX_data_scene(C);
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq;
+
+	/* for effects, try to find a replacement input */
+	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
+		if((seq->type & SEQ_EFFECT)==0 && (seq->flag & SELECT)) {
+			seq->startofs= seq->endofs= seq->startstill= seq->endstill= 0;
+		}
+	}
+
+	/* updates lengths etc */
+	seq= ed->seqbasep->first;
+	while(seq) {
+		calc_sequence(scene, seq);
+		seq= seq->next;
+	}
+
+	for(seq=ed->seqbasep->first; seq; seq=seq->next) {
+		if((seq->type & SEQ_EFFECT)==0 && (seq->flag & SELECT)) {
+			if(seq_test_overlap(ed->seqbasep, seq)) {
+				shuffle_seq(ed->seqbasep, seq, scene);
+			}
+		}
+	}
+
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void SEQUENCER_OT_offset_clear(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "Clear Strip Offset";
+	ot->idname= "SEQUENCER_OT_offset_clear";
+	ot->description="Clear strip offsets from the start and end frames";
+
+	/* api callbacks */
+	ot->exec= sequencer_offset_clear_exec;
+	ot->poll= sequencer_edit_poll;
+
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -2477,7 +2522,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 	ot->poll= sequencer_edit_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 }
@@ -2803,6 +2848,9 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 		}
 		RNA_END;
 
+		/* reset these else we wont see all the images */
+		seq->anim_startofs= seq->anim_endofs= 0;
+
 		/* correct start/end frames so we dont move
 		 * important not to set seq->len= len; allow the function to handle it */
 		reload_sequence_new_file(scene, seq, TRUE);
@@ -2815,12 +2863,15 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 	else {
 		/* lame, set rna filepath */
 		PointerRNA seq_ptr;
+		PropertyRNA *prop;
 		char filepath[FILE_MAX];
 
 		RNA_pointer_create(&scene->id, &RNA_Sequence, seq, &seq_ptr);
 
 		RNA_string_get(op->ptr, "filepath", filepath);
-		RNA_string_set(&seq_ptr, "filepath", filepath);
+		prop= RNA_struct_find_property(&seq_ptr, "filepath");
+		RNA_property_string_set(&seq_ptr, prop, filepath);
+		RNA_property_update(C, &seq_ptr, prop);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);

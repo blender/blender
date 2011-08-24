@@ -703,8 +703,8 @@ static void rna_RenderSettings_active_layer_set(PointerRNA *ptr, PointerRNA valu
 {
 	RenderData *rd= (RenderData*)ptr->data;
 	SceneRenderLayer *srl= (SceneRenderLayer*)value.data;
-	
-	rd->actlay = BLI_findindex(&rd->layers, srl);
+	const int index= BLI_findindex(&rd->layers, srl);
+	if (index != -1) rd->actlay= index;
 }
 
 static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
@@ -2318,7 +2318,7 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "SceneRenderLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_RenderSettings_active_layer_get", "rna_RenderSettings_active_layer_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Active Render Layer", "Active Render Layer");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 

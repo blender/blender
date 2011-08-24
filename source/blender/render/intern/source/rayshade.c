@@ -611,12 +611,12 @@ static int refraction(float *refract, float *n, float *view, float index)
 		index = 1.0f/index;
 		fac= 1.0f - (1.0f - dot*dot)*index*index;
 		if(fac<= 0.0f) return 0;
-		fac= -dot*index + sqrt(fac);
+		fac= -dot*index + sqrtf(fac);
 	}
 	else {
 		fac= 1.0f - (1.0f - dot*dot)*index*index;
 		if(fac<= 0.0f) return 0;
-		fac= -dot*index - sqrt(fac);
+		fac= -dot*index - sqrtf(fac);
 	}
 
 	refract[0]= index*view[0] + fac*n[0];
@@ -693,7 +693,7 @@ static float shade_by_transmission(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		if(p < 0.0f) p= 0.0f;
 		else if (p > 10.0f) p= 10.0f;
 
-		shr->alpha *= pow(d, p);
+		shr->alpha *= powf(d, p);
 		if (shr->alpha > 1.0f)
 			shr->alpha= 1.0f;
 	}
@@ -720,11 +720,11 @@ static void ray_fadeout(Isect *is, ShadeInput *shi, float *col, float *blendcol,
 	/* if fading out, linear blend against fade color */
 	float blendfac;
 
-	blendfac = 1.0 - len_v3v3(shi->co, is->start)/dist_mir;
+	blendfac = 1.0f - len_v3v3(shi->co, is->start)/dist_mir;
 	
-	col[0] = col[0]*blendfac + (1.0 - blendfac)*blendcol[0];
-	col[1] = col[1]*blendfac + (1.0 - blendfac)*blendcol[1];
-	col[2] = col[2]*blendfac + (1.0 - blendfac)*blendcol[2];
+	col[0] = col[0]*blendfac + (1.0f - blendfac)*blendcol[0];
+	col[1] = col[1]*blendfac + (1.0f - blendfac)*blendcol[1];
+	col[2] = col[2]*blendfac + (1.0f - blendfac)*blendcol[2];
 }
 
 /* the main recursive tracer itself
@@ -870,7 +870,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 				col[2]= shr.diff[2] + shr.spec[2];
 			}
 			
-			if (dist_mir > 0.0) {
+			if (dist_mir > 0.0f) {
 				float blendcol[3];
 				
 				/* max ray distance set, but found an intersection, so fade this color
@@ -922,11 +922,11 @@ static void DP_energy(float *table, float *vec, int tot, float xsize, float ysiz
 			}
 		}
 	}
-	vec[0] += 0.1*min*result[0]/(float)tot;
-	vec[1] += 0.1*min*result[1]/(float)tot;
+	vec[0] += 0.1f*min*result[0]/(float)tot;
+	vec[1] += 0.1f*min*result[1]/(float)tot;
 	// cyclic clamping
-	vec[0]= vec[0] - xsize*floor(vec[0]/xsize + 0.5);
-	vec[1]= vec[1] - ysize*floor(vec[1]/ysize + 0.5);
+	vec[0]= vec[0] - xsize*floorf(vec[0]/xsize + 0.5f);
+	vec[1]= vec[1] - ysize*floorf(vec[1]/ysize + 0.5f);
 }
 
 // random offset of 1 in 2
@@ -934,7 +934,7 @@ static void jitter_plane_offset(float *jitter1, float *jitter2, int tot, float s
 {
 	float dsizex= sizex*ofsx;
 	float dsizey= sizey*ofsy;
-	float hsizex= 0.5*sizex, hsizey= 0.5*sizey;
+	float hsizex= 0.5f*sizex, hsizey= 0.5f*sizey;
 	int x;
 	
 	for(x=tot; x>0; x--, jitter1+=2, jitter2+=2) {
@@ -968,8 +968,8 @@ void init_jitter_plane(LampRen *lar)
 		
 		/* fill table with random locations, area_size large */
 		for(x=0; x<tot; x++, fp+=2) {
-			fp[0]= (BLI_frand()-0.5)*lar->area_size;
-			fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
+			fp[0]= (BLI_frand()-0.5f)*lar->area_size;
+			fp[1]= (BLI_frand()-0.5f)*lar->area_sizey;
 		}
 		
 		while(iter--) {
@@ -1081,8 +1081,8 @@ static void QMC_initPixel(QMCSampler *qsa, int thread)
 	{
 		/* hammersley sequence is fixed, already created in QMCSampler init.
 		 * per pixel, gets a random offset. We create separate offsets per thread, for write-safety */
-		qsa->offs[thread][0] = 0.5 * BLI_thread_frand(thread);
-		qsa->offs[thread][1] = 0.5 * BLI_thread_frand(thread);
+		qsa->offs[thread][0] = 0.5f * BLI_thread_frand(thread);
+		qsa->offs[thread][1] = 0.5f * BLI_thread_frand(thread);
 	}
 	else { 	/* SAMP_TYPE_HALTON */
 		
@@ -1136,8 +1136,8 @@ static void QMC_samplePhong(float *vec, QMCSampler *qsa, int thread, int num, fl
 	pz = pow(s[1], blur);
 	sqr = sqrt(1.0f-pz*pz);
 
-	vec[0] = cos(phi)*sqr;
-	vec[1] = sin(phi)*sqr;
+	vec[0] = (float)(cosf(phi)*sqr);
+	vec[1] = (float)(sinf(phi)*sqr);
 	vec[2] = 0.0f;
 }
 
@@ -1148,8 +1148,8 @@ static void QMC_sampleRect(float *vec, QMCSampler *qsa, int thread, int num, flo
 
 	QMC_getSample(s, qsa, thread, num);
 		
-	vec[0] = (s[0] - 0.5) * sizex;
-	vec[1] = (s[1] - 0.5) * sizey;
+	vec[0] = (float)(s[0] - 0.5) * sizex;
+	vec[1] = (float)(s[1] - 0.5) * sizey;
 	vec[2] = 0.0f;
 }
 
@@ -1164,8 +1164,8 @@ static void QMC_sampleDisc(float *vec, QMCSampler *qsa, int thread, int num, flo
 	phi = s[0]*2*M_PI;
 	sqr = sqrt(s[1]);
 
-	vec[0] = cos(phi)*sqr* radius/2.0;
-	vec[1] = sin(phi)*sqr* radius/2.0;
+	vec[0] = cosf(phi)*sqr* radius/2.0f;
+	vec[1] = sinf(phi)*sqr* radius/2.0f;
 	vec[2] = 0.0f;
 }
 
@@ -1177,12 +1177,12 @@ static void QMC_sampleHemi(float *vec, QMCSampler *qsa, int thread, int num)
 	
 	QMC_getSample(s, qsa, thread, num);
 	
-	phi = s[0]*2.f*M_PI;	
+	phi = s[0]*2.0*M_PI;
 	sqr = sqrt(s[1]);
 
-	vec[0] = cos(phi)*sqr;
-	vec[1] = sin(phi)*sqr;
-	vec[2] = 1.f - s[1]*s[1];
+	vec[0] = cosf(phi)*sqr;
+	vec[1] = sinf(phi)*sqr;
+	vec[2] = (float)(1.0 - s[1]*s[1]);
 }
 
 #if 0 /* currently not used */
@@ -1272,7 +1272,7 @@ static int adaptive_sample_variance(int samples, float *col, float *colsq, float
 	var[1] = (colsq[1] / (float)samples) - (mean[1]*mean[1]);
 	var[2] = (colsq[2] / (float)samples) - (mean[2]*mean[2]);
 	
-	if ((var[0] * 0.4 < thresh) && (var[1] * 0.3 < thresh) && (var[2] * 0.6 < thresh))
+	if ((var[0] * 0.4f < thresh) && (var[1] * 0.3f < thresh) && (var[2] * 0.6f < thresh))
 		return 1;
 	else
 		return 0;
@@ -1283,7 +1283,7 @@ static int adaptive_sample_contrast_val(int samples, float prev, float val, floa
 	/* if the last sample's contribution to the total value was below a small threshold
 	 * (i.e. the samples taken are very similar), then taking more samples that are probably 
 	 * going to be the same is wasting effort */
-	if (fabs( prev/(float)(samples-1) - val/(float)samples ) < thresh) {
+	if (fabsf( prev/(float)(samples-1) - val/(float)samples ) < thresh) {
 		return 1;
 	} else
 		return 0;
@@ -1293,10 +1293,10 @@ static float get_avg_speed(ShadeInput *shi)
 {
 	float pre_x, pre_y, post_x, post_y, speedavg;
 	
-	pre_x = (shi->winspeed[0] == PASS_VECTOR_MAX)?0.0:shi->winspeed[0];
-	pre_y = (shi->winspeed[1] == PASS_VECTOR_MAX)?0.0:shi->winspeed[1];
-	post_x = (shi->winspeed[2] == PASS_VECTOR_MAX)?0.0:shi->winspeed[2];
-	post_y = (shi->winspeed[3] == PASS_VECTOR_MAX)?0.0:shi->winspeed[3];
+	pre_x = (shi->winspeed[0] == PASS_VECTOR_MAX)?0.0f:shi->winspeed[0];
+	pre_y = (shi->winspeed[1] == PASS_VECTOR_MAX)?0.0f:shi->winspeed[1];
+	post_x = (shi->winspeed[2] == PASS_VECTOR_MAX)?0.0f:shi->winspeed[2];
+	post_y = (shi->winspeed[3] == PASS_VECTOR_MAX)?0.0f:shi->winspeed[3];
 	
 	speedavg = (sqrt(pre_x*pre_x + pre_y*pre_y) + sqrt(post_x*post_x + post_y*post_y)) / 2.0;
 	
@@ -1316,7 +1316,7 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 	float v_refract[3], v_refract_new[3];
 	float sampcol[4], colsq[4];
 	
-	float blur = pow(1.0 - shi->mat->gloss_tra, 3);
+	float blur = powf(1.0f - shi->mat->gloss_tra, 3);
 	short max_samples = shi->mat->samp_gloss_tra;
 	float adapt_thresh = shi->mat->adapt_thresh_tra;
 	
@@ -1325,9 +1325,9 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 	colsq[0] = colsq[1] = colsq[2] = 0.0;
 	col[0] = col[1] = col[2] = 0.0;
 	col[3]= shr->alpha;
-	
-	if (blur > 0.0) {
-		if (adapt_thresh != 0.0) samp_type = SAMP_TYPE_HALTON;
+
+	if (blur > 0.0f) {
+		if (adapt_thresh != 0.0f) samp_type = SAMP_TYPE_HALTON;
 		else samp_type = SAMP_TYPE_HAMMERSLEY;
 			
 		/* all samples are generated per pixel */
@@ -1386,13 +1386,13 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 		samples++;
 		
 		/* adaptive sampling */
-		if (adapt_thresh < 1.0 && samples > max_samples/2) 
+		if (adapt_thresh < 1.0f && samples > max_samples/2)
 		{
 			if (adaptive_sample_variance(samples, col, colsq, adapt_thresh))
 				break;
 			
 			/* if the pixel so far is very dark, we can get away with less samples */
-			if ( (col[0] + col[1] + col[2])/3.0/(float)samples < 0.01 )
+			if ( (col[0] + col[1] + col[2])/3.0f/(float)samples < 0.01f )
 				max_samples--;
 		}
 	}
@@ -1415,18 +1415,18 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 	float v_nor_new[3], v_reflect[3];
 	float sampcol[4], colsq[4];
 		
-	float blur = pow(1.0 - shi->mat->gloss_mir, 3);
+	float blur = powf(1.0f - shi->mat->gloss_mir, 3);
 	short max_samples = shi->mat->samp_gloss_mir;
 	float adapt_thresh = shi->mat->adapt_thresh_mir;
-	float aniso = 1.0 - shi->mat->aniso_gloss_mir;
+	float aniso = 1.0f - shi->mat->aniso_gloss_mir;
 	
 	int samples=0;
 	
 	col[0] = col[1] = col[2] = 0.0;
 	colsq[0] = colsq[1] = colsq[2] = 0.0;
 	
-	if (blur > 0.0) {
-		if (adapt_thresh != 0.0) samp_type = SAMP_TYPE_HALTON;
+	if (blur > 0.0f) {
+		if (adapt_thresh != 0.0f) samp_type = SAMP_TYPE_HALTON;
 		else samp_type = SAMP_TYPE_HAMMERSLEY;
 			
 		/* all samples are generated per pixel */
@@ -1485,22 +1485,22 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 		samples++;
 
 		/* adaptive sampling */
-		if (adapt_thresh > 0.0 && samples > max_samples/3) 
+		if (adapt_thresh > 0.0f && samples > max_samples/3)
 		{
 			if (adaptive_sample_variance(samples, col, colsq, adapt_thresh))
 				break;
 			
 			/* if the pixel so far is very dark, we can get away with less samples */
-			if ( (col[0] + col[1] + col[2])/3.0/(float)samples < 0.01 )
+			if ( (col[0] + col[1] + col[2])/3.0f/(float)samples < 0.01f )
 				max_samples--;
 		
 			/* reduce samples when reflection is dim due to low ray mirror blend value or fresnel factor
 			 * and when reflection is blurry */
-			if (fresnelfac < 0.1 * (blur+1)) {
+			if (fresnelfac < 0.1f * (blur+1)) {
 				max_samples--;
 				
 				/* even more for very dim */
-				if (fresnelfac < 0.05 * (blur+1)) 
+				if (fresnelfac < 0.05f * (blur+1))
 					max_samples--;
 			}
 		}
@@ -1659,7 +1659,7 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 			col[1] = a*col[1] + shr.alpha*shr.combined[1];
 			col[2] = a*col[2] + shr.alpha*shr.combined[2];
 			
-			col[3] = (1.0 - shr.alpha)*a;
+			col[3] = (1.0f - shr.alpha)*a;
 		}
 		
 		if(depth>0 && col[3]>0.0f) {
@@ -1679,7 +1679,7 @@ static void ray_trace_shadow_tra(Isect *is, ShadeInput *origshi, int depth, int 
 
 /* not used, test function for ambient occlusion (yaf: pathlight) */
 /* main problem; has to be called within shading loop, giving unwanted recursion */
-static int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
+static int UNUSED_FUNCTION(ray_trace_shadow_rad)(ShadeInput *ship, ShadeResult *shr)
 {
 	static int counter=0, only_one= 0;
 	extern float hashvectf[];
@@ -1758,8 +1758,8 @@ static void RandomSpherical(float *v)
 	if ((r = 1.f - v[2]*v[2])>0.f) {
 		float a = 6.283185307f*BLI_frand();
 		r = sqrt(r);
-		v[0] = r * cos(a);
-		v[1] = r * sin(a);
+		v[0] = r * cosf(a);
+		v[1] = r * sinf(a);
 	}
 	else v[2] = 1.f;
 }
@@ -1956,7 +1956,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *ao, float *env)
 		float speedfac;
 		
 		speedfac = get_avg_speed(shi) * adapt_speed_fac;
-		CLAMP(speedfac, 1.0, 1000.0);
+		CLAMP(speedfac, 1.0f, 1000.0f);
 		max_samples /= speedfac;
 		if (max_samples < 5) max_samples = 5;
 		
@@ -1985,7 +1985,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *ao, float *env)
 		prev = fac;
 		
 		if(RE_rayobject_raycast(R.raytree, &isec)) {
-			if (R.wrld.aomode & WO_AODIST) fac+= exp(-isec.dist*R.wrld.aodistfac); 
+			if (R.wrld.aomode & WO_AODIST) fac+= expf(-isec.dist*R.wrld.aodistfac);
 			else fac+= 1.0f;
 		}
 		else if(envcolor!=WO_AOPLAIN) {
@@ -1998,7 +1998,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *ao, float *env)
 			normalize_v3(view);
 			
 			if(envcolor==WO_AOSKYCOL) {
-				skyfac= 0.5*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
+				skyfac= 0.5f*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
 				env[0]+= (1.0f-skyfac)*R.wrld.horr + skyfac*R.wrld.zenr;
 				env[1]+= (1.0f-skyfac)*R.wrld.horg + skyfac*R.wrld.zeng;
 				env[2]+= (1.0f-skyfac)*R.wrld.horb + skyfac*R.wrld.zenb;
@@ -2017,7 +2017,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *ao, float *env)
 		
 		if (qsa->type == SAMP_TYPE_HALTON) {
 			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */		
-			if (adapt_thresh > 0.0 && (samples > max_samples/2) ) {
+			if (adapt_thresh > 0.0f && (samples > max_samples/2) ) {
 				
 				if (adaptive_sample_contrast_val(samples, prev, fac, adapt_thresh)) {
 					break;
@@ -2123,7 +2123,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *ao, float *env)
 			
 			/* do the trace */
 			if(RE_rayobject_raycast(R.raytree, &isec)) {
-				if (R.wrld.aomode & WO_AODIST) sh+= exp(-isec.dist*R.wrld.aodistfac); 
+				if (R.wrld.aomode & WO_AODIST) sh+= expf(-isec.dist*R.wrld.aodistfac);
 				else sh+= 1.0f;
 			}
 			else if(envcolor!=WO_AOPLAIN) {
@@ -2136,7 +2136,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *ao, float *env)
 				normalize_v3(view);
 				
 				if(envcolor==WO_AOSKYCOL) {
-					fac= 0.5*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
+					fac= 0.5f*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
 					env[0]+= (1.0f-fac)*R.wrld.horr + fac*R.wrld.zenr;
 					env[1]+= (1.0f-fac)*R.wrld.horg + fac*R.wrld.zeng;
 					env[2]+= (1.0f-fac)*R.wrld.horb + fac*R.wrld.zenb;
@@ -2367,14 +2367,14 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		if (lar->ray_samp_method == LA_SAMP_HALTON) {
 		
 			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */
-			if ((max_samples > min_adapt_samples) && (adapt_thresh > 0.0) && (samples > max_samples / 3)) {
+			if ((max_samples > min_adapt_samples) && (adapt_thresh > 0.0f) && (samples > max_samples / 3)) {
 				if (isec->mode==RE_RAY_SHADOW_TRA) {
-					if ((shadfac[3] / samples > (1.0-adapt_thresh)) || (shadfac[3] / samples < adapt_thresh))
+					if ((shadfac[3] / samples > (1.0f-adapt_thresh)) || (shadfac[3] / samples < adapt_thresh))
 						break;
 					else if (adaptive_sample_variance(samples, shadfac, colsq, adapt_thresh))
 						break;
 				} else {
-					if ((fac / samples > (1.0-adapt_thresh)) || (fac / samples < adapt_thresh))
+					if ((fac / samples > (1.0f-adapt_thresh)) || (fac / samples < adapt_thresh))
 						break;
 				}
 			}

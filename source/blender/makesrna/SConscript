@@ -55,7 +55,7 @@ if env['WITH_BF_PYTHON']:
 if env['WITH_BF_COLLADA']:
     defs.append('WITH_COLLADA')
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 

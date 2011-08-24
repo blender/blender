@@ -550,14 +550,16 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				}
 			}
 			else if(node->type==CMP_NODE_COMPOSITE) {
-				bNode *tnode;
-				
-				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
-					if( tnode->type==CMP_NODE_COMPOSITE)
-						tnode->flag &= ~NODE_DO_OUTPUT;
-				
-				node->flag |= NODE_DO_OUTPUT;
-				ED_node_generic_update(bmain, ntree, node);
+				if (was_output==0) {
+					bNode *tnode;
+					
+					for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
+						if( tnode->type==CMP_NODE_COMPOSITE)
+							tnode->flag &= ~NODE_DO_OUTPUT;
+					
+					node->flag |= NODE_DO_OUTPUT;
+					ED_node_generic_update(bmain, ntree, node);
+				}
 			}
 		}
 		else if(ntree->type==NTREE_TEXTURE) {
@@ -1641,7 +1643,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 
 
 /* return 0, nothing done */
-static int node_mouse_groupheader(SpaceNode *snode)
+static int UNUSED_FUNCTION(node_mouse_groupheader)(SpaceNode *snode)
 {
 	bNode *gnode;
 	float mx=0, my=0;
@@ -3007,10 +3009,10 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
-			if(node->inputs.first && node->outputs.first) {
+			/* Be able to mute in-/output nodes as well.  - DingTo
+			if(node->inputs.first && node->outputs.first) { */
 				node->flag ^= NODE_MUTED;
 				snode_tag_changed(snode, node);
-			}
 		}
 	}
 	

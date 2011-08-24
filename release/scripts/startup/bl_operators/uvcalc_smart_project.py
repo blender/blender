@@ -178,7 +178,7 @@ def pointInEdges(pt, edges):
     intersectCount = 0
     for ed in edges:
         xi, yi = lineIntersection2D(x1,y1, x2,y2, ed[0][0], ed[0][1], ed[1][0], ed[1][1])
-        if xi != None: # Is there an intersection.
+        if xi is not None: # Is there an intersection.
             intersectCount+=1
 
     return intersectCount % 2
@@ -813,38 +813,25 @@ def main(context,
     global RotMatStepRotation
     main_consts()
 
-    # TODO, all selected meshes
-    '''
-    # objects = context.selected_editable_objects
-    objects = []
-
-    # we can will tag them later.
-    obList =  [ob for ob in objects if ob.type == 'MESH']
-
-    # Face select object may not be selected.
-    ob = context.active_object
-
-    if ob and (not ob.select) and ob.type == 'MESH':
-        # Add to the list
-        obList =[ob]
-    del objects
-    '''
+    # Create the variables.
+    USER_PROJECTION_LIMIT = projection_limit
+    USER_ONLY_SELECTED_FACES = True
+    USER_SHARE_SPACE = 1 # Only for hole filling.
+    USER_STRETCH_ASPECT = 1 # Only for hole filling.
+    USER_ISLAND_MARGIN = island_margin # Only for hole filling.
+    USER_FILL_HOLES = 0
+    USER_FILL_HOLES_QUALITY = 50 # Only for hole filling.
+    USER_VIEW_INIT = 0 # Only for hole filling.
     
-    # quick workaround
-    obList =  [ob for ob in [context.active_object] if ob and ob.type == 'MESH']
+    is_editmode = (context.active_object.mode == 'EDIT')
+    if is_editmode:
+        obList =  [ob for ob in [context.active_object] if ob and ob.type == 'MESH']
+    else:
+        obList =  [ob for ob in context.selected_editable_objects if ob and ob.type == 'MESH']
+        USER_ONLY_SELECTED_FACES = False
 
     if not obList:
         raise('error, no selected mesh objects')
-
-    # Create the variables.
-    USER_PROJECTION_LIMIT = projection_limit
-    USER_ONLY_SELECTED_FACES = (1)
-    USER_SHARE_SPACE = (1) # Only for hole filling.
-    USER_STRETCH_ASPECT = (1) # Only for hole filling.
-    USER_ISLAND_MARGIN = island_margin # Only for hole filling.
-    USER_FILL_HOLES = (0)
-    USER_FILL_HOLES_QUALITY = (50) # Only for hole filling.
-    USER_VIEW_INIT = (0) # Only for hole filling.
 
     # Reuse variable
     if len(obList) == 1:
@@ -906,8 +893,8 @@ def main(context,
 
         if USER_ONLY_SELECTED_FACES:
             meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces) if f.select]
-        #else:
-        #	meshFaces = map(thickface, me.faces)
+        else:
+        	meshFaces = [thickface(f, uv_layer[i], me_verts) for i, f in enumerate(me.faces)]
 
         if not meshFaces:
             continue
@@ -922,7 +909,7 @@ def main(context,
         # meshFaces = []
 
         # meshFaces.sort( lambda a, b: cmp(b.area , a.area) ) # Biggest first.
-        meshFaces.sort( key = lambda a: -a.area )
+        meshFaces.sort(key=lambda a: -a.area)
 
         # remove all zero area faces
         while meshFaces and meshFaces[-1].area <= SMALL_NUM:
@@ -1123,21 +1110,28 @@ class SmartProject(Operator):
     bl_label = "Smart UV Project"
     bl_options = {'REGISTER', 'UNDO'}
 
-    angle_limit = FloatProperty(name="Angle Limit",
+    angle_limit = FloatProperty(
+            name="Angle Limit",
             description="lower for more projection groups, higher for less distortion",
-            default=66.0, min=1.0, max=89.0)
-
-    island_margin = FloatProperty(name="Island Margin",
+            min=1.0, max=89.0,
+            default=66.0,
+            )
+    island_margin = FloatProperty(
+            name="Island Margin",
             description="Margin to reduce bleed from adjacent islands",
-            default=0.0, min=0.0, max=1.0)
-
-    user_area_weight = FloatProperty(name="Area Weight",
+            min=0.0, max=1.0,
+            default=0.0,
+            )
+    user_area_weight = FloatProperty(
+            name="Area Weight",
             description="Weight projections vector by faces with larger areas",
-            default=0.0, min=0.0, max=1.0)
+            min=0.0, max=1.0,
+            default=0.0,
+            )
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
         main(context,

@@ -205,11 +205,7 @@ static ParamHandle *construct_param_handle(Scene *scene, EditMesh *em, short imp
 		float *uv[4];
 		int nverts;
 		
-		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-			if(efa->h)
-				continue;
-		}
-		else if((efa->h) || (sel && (efa->f & SELECT)==0))
+		if((efa->h) || (sel && (efa->f & SELECT)==0))
 			continue;
 
 		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -586,7 +582,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 		return;
 	}
 
-	liveHandle = construct_param_handle(scene, em, 0, fillholes, 1, 1);
+	liveHandle = construct_param_handle(scene, em, 0, fillholes, 0, 1);
 
 	param_lscm_begin(liveHandle, PARAM_TRUE, abf);
 	BKE_mesh_end_editmesh(obedit->data, em);

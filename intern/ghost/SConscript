@@ -26,7 +26,7 @@ if env['WITH_GHOST_SDL']:
             pass
     incs += ' ' + env['BF_SDL_INC']
     defs += ['WITH_GHOST_SDL']
-elif window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'freebsd9', 'irix6', 'aix4', 'aix5'):
+elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'freebsd9', 'irix6', 'aix4', 'aix5'):
     for f in pf:
         try:
             sources.remove('intern' + os.sep + f + 'Win32.cpp')
@@ -81,7 +81,7 @@ else:
 if env['WITH_BF_3DMOUSE']:
     defs.append('WITH_INPUT_NDOF')
 
-    if env['OURPLATFORM']=='linux2':
+    if env['OURPLATFORM']=='linux':
         incs += ' ' + env['BF_3DMOUSE_INC']
 else:
     sources.remove('intern' + os.sep + 'GHOST_NDOFManager.cpp')

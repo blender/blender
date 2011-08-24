@@ -74,10 +74,10 @@ else:
         "bpy.props",
         "bpy.utils",
         "bpy.context",
-        "bpy.types",  # supports filtering
+        #"bpy.types",  # supports filtering
         "bpy.ops",  # supports filtering
         "bpy_extras",
-        # "bge",
+        "bge",
         "aud",
         "bgl",
         "blf",
@@ -86,7 +86,7 @@ else:
         "Freestyle",
     )
 
-    FILTER_BPY_TYPES = ("bpy_struct", "Panel", "Menu", "Operator", "RenderEngine")  # allow
+    FILTER_BPY_TYPES = ("bpy_struct", "Panel", "ID")  # allow
     FILTER_BPY_OPS = ("import.scene", )  # allow
 
     # for quick rebuilds
@@ -751,6 +751,8 @@ def pyrna2sphinx(BASEPATH):
                     if not descr:
                         descr = prop.name
                     fw("         `%s`, %s, %s\n\n" % (prop.identifier, descr, type_descr))
+
+            write_example_ref("      ", fw, "bpy.types." + struct.identifier + "." + func.identifier)
 
             fw("\n")
 

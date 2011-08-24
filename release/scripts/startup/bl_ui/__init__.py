@@ -102,7 +102,10 @@ def register():
         items.extend([(cat, cat, "") for cat in sorted(items_unique)])
         return items
 
-    WindowManager.addon_search = StringProperty(name="Search", description="Search within the selected filter")
+    WindowManager.addon_search = StringProperty(
+            name="Search",
+            description="Search within the selected filter",
+            )
     WindowManager.addon_filter = EnumProperty(
             items=addon_filter_items,
             name="Category",
