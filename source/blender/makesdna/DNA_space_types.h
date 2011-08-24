@@ -267,7 +267,7 @@ typedef struct SpaceImage {
 	float centx, centy;				/* storage for offset while render drawing */
 
 	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
-	short imtypenr;
+	short pad;
 	short lock;
 	short pin;
 	char dt_uv; /* UV draw type */
