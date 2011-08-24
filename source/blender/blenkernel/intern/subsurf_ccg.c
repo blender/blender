@@ -425,7 +425,7 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
 	if (!wtable->weight_table[faceLen].valid) {
 		wtable->weight_table[faceLen].valid = 1;
 		wtable->weight_table[faceLen].w = w = MEM_callocN(sizeof(float)*faceLen*faceLen*(gridCuts+2)*(gridCuts+2), "weight table alloc");
-		fac = 1.0 / (float)faceLen;
+		fac = 1.0f / (float)faceLen;
 
 		for (i=0; i<faceLen; i++) {
 			for (x=0; x<gridCuts+2; x++) {
@@ -436,9 +436,9 @@ static float *get_ss_weights(WeightTable *wtable, int gridCuts, int faceLen)
 					fac2 = faceLen - 4;
 					w1 = (1.0f - fx) * (1.0f - fy) + (-fac2*fx*fy*fac);
 					w2 = (1.0f - fx + fac2*fx*-fac) * (fy);
-					w4 = (fx) * (1.0 - fy + -fac2*fy*fac);
+					w4 = (fx) * (1.0f - fy + -fac2*fy*fac);
 					
-					fac2 = 1.0 - (w1+w2+w4);
+					fac2 = 1.0f - (w1+w2+w4);
 					fac2 = fac2 / (float)(faceLen-3);
 					for (j=0; j<faceLen; j++)
 						w[j] = fac2;
@@ -781,9 +781,9 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 				while (1) {
 					previ = i;
 					if (cgdm->faceMap[i].startEdge >= edgeNum) {
-						i -= fabs(i-lasti)/2.0f;
+						i -= fabsf(i-lasti)/2.0f;
 					} else if (cgdm->faceMap[i].startEdge < edgeNum) {
-						i += fabs(i-lasti)/2.0;
+						i += fabsf(i-lasti)/2.0f;
 					} else {
 						break;
 					}
