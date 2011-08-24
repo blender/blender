@@ -74,9 +74,8 @@ FOREACH(COMPONENT ${_opencollada_FIND_INCLUDES})
     NAMES
       ${COMPONENT}/include
       ${COMPONENT}
+      include/opencollada/${COMPONENT} # ubuntu ppa needs this
     HINTS
-      # some packagers do this.
-      ${OPENCOLLADA_ROOT_DIR}/include/opencollada
       ${_opencollada_SEARCH_DIRS}
     )
   MARK_AS_ADVANCED(OPENCOLLADA_${UPPERCOMPONENT}_INCLUDE_DIR)
