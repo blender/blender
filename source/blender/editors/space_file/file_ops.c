@@ -621,25 +621,31 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 	}
 	
 	/* some ops have multiple files to select */
+	/* this is called on operators check() so clear collections first since
+	 * they may be already set. */
 	{
 		PointerRNA itemptr;
+		PropertyRNA *prop_files= RNA_struct_find_property(op->ptr, "files");
+		PropertyRNA *prop_dirs= RNA_struct_find_property(op->ptr, "dirs");
 		int i, numfiles = filelist_numfiles(sfile->files);
 
-		if(RNA_struct_find_property(op->ptr, "files")) {
+		if(prop_files) {
+			RNA_property_collection_clear(op->ptr, prop_files);
 			for (i=0; i<numfiles; i++) {
 				if (filelist_is_selected(sfile->files, i, CHECK_FILES)) {
 					struct direntry *file= filelist_file(sfile->files, i);
-					RNA_collection_add(op->ptr, "files", &itemptr);
+					RNA_property_collection_add(op->ptr, prop_files, &itemptr);
 					RNA_string_set(&itemptr, "name", file->relname);
 				}
 			}
 		}
-		
-		if(RNA_struct_find_property(op->ptr, "dirs")) {
+
+		if(prop_dirs) {
+			RNA_property_collection_clear(op->ptr, prop_dirs);
 			for (i=0; i<numfiles; i++) {
 				if (filelist_is_selected(sfile->files, i, CHECK_DIRS)) {
 					struct direntry *file= filelist_file(sfile->files, i);
-					RNA_collection_add(op->ptr, "dirs", &itemptr);
+					RNA_property_collection_add(op->ptr, prop_dirs, &itemptr);
 					RNA_string_set(&itemptr, "name", file->relname);
 				}
 			}

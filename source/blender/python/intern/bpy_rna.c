@@ -4320,7 +4320,6 @@ static PyObject *small_dict_get_item_string(PyObject *dict, const char *key_look
 	Py_ssize_t pos = 0;
 	PyObject *value = NULL;
 
-	/* case not, search for it in the script's global dictionary */
 	while (PyDict_Next(dict, &pos, &key, &value)) {
 		if(PyUnicode_Check(key)) {
 			if(strcmp(key_lookup, _PyUnicode_AsString(key))==0) {
