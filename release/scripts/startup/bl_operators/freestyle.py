@@ -22,7 +22,7 @@ from bpy.props import (EnumProperty, StringProperty)
 
 
 class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
-    '''Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the active camera.'''
+    '''Fill the Range Min/Max entries by the min/max distance between selected mesh objects and the source object (either a user-specified object or the active camera).'''
     bl_idname = "scene.freestyle_fill_range_by_selection"
     bl_label = "Fill Range by Selection"
 
@@ -43,17 +43,26 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
             m = linestyle.alpha_modifiers[self.name]
         else:
             m = linestyle.thickness_modifiers[self.name]
-        # Find the active camera
-        camera = context.scene.camera
+        # Find the source object
+        if m.type == 'DISTANCE_FROM_CAMERA':
+            source = context.scene.camera
+        elif m.type == 'DISTANCE_FROM_OBJECT':
+            if m.target is None:
+                self.report({'ERROR'}, "Target object not specified")
+                return {'CANCELLED'}
+            source = m.target
+        else:
+            self.report({'ERROR'}, "Unexpected modifier type: " + m.type)
+            return {'CANCELLED'}
         # Find selected mesh objects
-        selection = [ob for ob in context.scene.objects if ob.select and ob.type == 'MESH']
+        selection = [ob for ob in context.scene.objects if ob.select and ob.type == 'MESH' and ob.name != source.name]
         if len(selection) > 0:
-            # Compute the min/max distance between selected mesh objects and the camera
+            # Compute the min/max distance between selected mesh objects and the source
             min_dist = float('inf')
             max_dist = -min_dist
             for ob in selection:
                 for vert in ob.data.vertices:
-                    dist = (ob.matrix_world * vert.co - camera.location).length
+                    dist = (ob.matrix_world * vert.co - source.location).length
                     min_dist = min(dist, min_dist)
                     max_dist = max(dist, max_dist)
             # Fill the Range Min/Max entries with the computed distances

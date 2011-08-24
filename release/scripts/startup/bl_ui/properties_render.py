@@ -364,6 +364,9 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
             elif modifier.type == "DISTANCE_FROM_OBJECT":
                 box.prop(modifier, "target")
                 self.draw_modifier_color_ramp_common(box, modifier, True)
+                prop = box.operator("scene.freestyle_fill_range_by_selection")
+                prop.type = 'COLOR'
+                prop.name = modifier.name
 
             elif modifier.type == "DISTANCE_FROM_CAMERA":
                 self.draw_modifier_color_ramp_common(box, modifier, True)
@@ -400,6 +403,9 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
             elif modifier.type == "DISTANCE_FROM_OBJECT":
                 box.prop(modifier, "target")
                 self.draw_modifier_curve_common(box, modifier, True, False)
+                prop = box.operator("scene.freestyle_fill_range_by_selection")
+                prop.type = 'ALPHA'
+                prop.name = modifier.name
 
             elif modifier.type == "DISTANCE_FROM_CAMERA":
                 self.draw_modifier_curve_common(box, modifier, True, False)
@@ -426,6 +432,9 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
             elif modifier.type == "DISTANCE_FROM_OBJECT":
                 box.prop(modifier, "target")
                 self.draw_modifier_curve_common(box, modifier, True, True)
+                prop = box.operator("scene.freestyle_fill_range_by_selection")
+                prop.type = 'THICKNESS'
+                prop.name = modifier.name
 
             elif modifier.type == "DISTANCE_FROM_CAMERA":
                 self.draw_modifier_curve_common(box, modifier, True, True)
