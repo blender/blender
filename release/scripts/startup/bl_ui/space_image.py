@@ -387,7 +387,7 @@ class IMAGE_HT_header(Header):
 
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_element", text="", icon_only=True)
+            row.prop(toolsettings, "snap_target", text="")
 
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_textures, "active", mesh, "uv_textures", text="")

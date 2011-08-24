@@ -1371,6 +1371,11 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 	Curve *cu= ob->data;
 	ListBase *dispbase;
 
+	/* The same check for duplis as in do_makeDispListCurveTypes.
+	   Happens when curve used for constraint/bevel was converted to mesh.
+	   check there is still needed for render displist and orco displists. */
+	if(!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
+
 	freedisplist(&(ob->disp));
 	dispbase= &(ob->disp);
 	freedisplist(dispbase);
