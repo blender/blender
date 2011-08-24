@@ -405,22 +405,6 @@ if(UNIX AND NOT APPLE)
 			# install(CODE "execute_process(COMMAND find ${TARGETDIR}/${BLENDER_VERSION}/python/lib/ -name '*.so' -exec strip -s {} '\;')")
 		endif()
 	endif()
-
-	# XXX this is non standard
-	if(WITH_OPENIMAGEIO)
-		set(oiio_install_libs
-			${OPENIMAGEIO_LIBPATH}/lib${OPENIMAGEIO_LIBRARY}.so
-			${BOOST_LIBRARIES})
-
-		list(REMOVE_ITEM oiio_install_libs optimized)
-		list(REMOVE_ITEM oiio_install_libs debug)
-
-		install(
-			FILES ${oiio_install_libs}
-			DESTINATION ${TARGETDIR}
-		)
-	endif()
-
 elseif(WIN32)
 
 	set(TARGETDIR_VER ${TARGETDIR}/${BLENDER_VERSION})
