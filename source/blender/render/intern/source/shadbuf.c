@@ -260,7 +260,7 @@ static int compress_deepsamples(DeepSample *dsample, int tot, float epsilon)
 		}
 		else {
 			/* compute visibility at center between slopes at z */
-			slope= (slopemin+slopemax)*0.5;
+			slope= (slopemin+slopemax)*0.5f;
 			v= newds->v + slope*((z - newds->z)/(double)0x7FFFFFFF);
 		}
 
@@ -774,7 +774,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	angle= saacos(lar->spotsi);
 	temp= 0.5f*shb->size*cos(angle)/sin(angle);
 	shb->pixsize= (shb->d)/temp;
-	wsize= shb->pixsize*(shb->size/2.0);
+	wsize= shb->pixsize*(shb->size/2.0f);
 	
 	perspective_m4( shb->winmat,-wsize, wsize, -wsize, wsize, shb->d, shb->clipend);
 	mul_m4_m4m4(shb->persmat, shb->viewmat, shb->winmat);
@@ -1094,7 +1094,7 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
 	else {					/* soft area */
 		
 		temp=  ( (float)(zs- zsamp) )/(float)bias;
-		return 1.0 - temp*temp;
+		return 1.0f - temp*temp;
 			
 	}
 }
@@ -1287,7 +1287,7 @@ static float readshadowbuf_halo(ShadBuf *shb, ShadSampleBuf *shsample, int xs, i
 	/* soft area */
 	
 	temp=  ( (float)(zs- zsamp) )/(float)bias;
-	return 1.0 - temp*temp;
+	return 1.0f - temp*temp;
 }
 
 
@@ -1303,15 +1303,15 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	int x, y, z, xs1, ys1;
 	int dx = 0, dy = 0;
 	
-	siz= 0.5*(float)shb->size;
+	siz= 0.5f*(float)shb->size;
 	
 	co[0]= p1[0];
 	co[1]= p1[1];
 	co[2]= p1[2]/lar->sh_zfac;
 	co[3]= 1.0;
 	mul_m4_v4(shb->winmat, co);	/* rational hom co */
-	xf1= siz*(1.0+co[0]/co[3]);
-	yf1= siz*(1.0+co[1]/co[3]);
+	xf1= siz*(1.0f+co[0]/co[3]);
+	yf1= siz*(1.0f+co[1]/co[3]);
 	zf1= (co[2]/co[3]);
 
 
@@ -1320,8 +1320,8 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	co[2]= p2[2]/lar->sh_zfac;
 	co[3]= 1.0;
 	mul_m4_v4(shb->winmat, co);	/* rational hom co */
-	xf2= siz*(1.0+co[0]/co[3]);
-	yf2= siz*(1.0+co[1]/co[3]);
+	xf2= siz*(1.0f+co[0]/co[3]);
+	yf2= siz*(1.0f+co[1]/co[3]);
 	zf2= (co[2]/co[3]);
 
 	/* the 2dda (a pixel line formula) */
@@ -1330,8 +1330,8 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	ys1= (int)yf1;
 
 	if(xf1 != xf2) {
-		if(xf2-xf1 > 0.0) {
-			labdax= (xf1-xs1-1.0)/(xf1-xf2);
+		if(xf2-xf1 > 0.0f) {
+			labdax= (xf1-xs1-1.0f)/(xf1-xf2);
 			ldx= -shb->shadhalostep/(xf1-xf2);
 			dx= shb->shadhalostep;
 		}
@@ -1347,8 +1347,8 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 	}
 
 	if(yf1 != yf2) {
-		if(yf2-yf1 > 0.0) {
-			labday= (yf1-ys1-1.0)/(yf1-yf2);
+		if(yf2-yf1 > 0.0f) {
+			labday= (yf1-ys1-1.0f)/(yf1-yf2);
 			ldy= -shb->shadhalostep/(yf1-yf2);
 			dy= shb->shadhalostep;
 		}
@@ -1389,16 +1389,16 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 		}
 		
 		labda= MIN2(labdax, labday);
-		if(labda==labdao || labda>=1.0) break;
+		if(labda==labdao || labda>=1.0f) break;
 		
 		zf= zf1 + labda*(zf2-zf1);
 		count+= (float)shb->totbuf;
 
-		if(zf<= -1.0) lightcount += 1.0;	/* close to the spot */
+		if(zf<= -1.0f) lightcount += 1.0f;	/* close to the spot */
 		else {
 		
 			/* make sure, behind the clipend we extend halolines. */
-			if(zf>=1.0) z= 0x7FFFF000;
+			if(zf>=1.0f) z= 0x7FFFF000;
 			else z= (int)(0x7FFFF000*zf);
 			
 			for(shsample= shb->buffers.first; shsample; shsample= shsample->next)
@@ -1407,8 +1407,8 @@ float shadow_halo(LampRen *lar, float *p1, float *p2)
 		}
 	}
 	
-	if(count!=0.0) return (lightcount/count);
-	return 0.0;
+	if(count!=0.0f) return (lightcount/count);
+	return 0.0f;
 	
 }
 
@@ -2081,11 +2081,11 @@ static int viewpixel_to_lampbuf(ShadBuf *shb, ObjectInstanceRen *obi, VlakRen *v
 	/* ortho viewplane cannot intersect using view vector originating in (0,0,0) */
 	if(R.r.mode & R_ORTHO) {
 		/* x and y 3d coordinate can be derived from pixel coord and winmat */
-		float fx= 2.0/(R.winx*R.winmat[0][0]);
-		float fy= 2.0/(R.winy*R.winmat[1][1]);
+		float fx= 2.0f/(R.winx*R.winmat[0][0]);
+		float fy= 2.0f/(R.winy*R.winmat[1][1]);
 		
-		hoco[0]= (x - 0.5*R.winx)*fx - R.winmat[3][0]/R.winmat[0][0];
-		hoco[1]= (y - 0.5*R.winy)*fy - R.winmat[3][1]/R.winmat[1][1];
+		hoco[0]= (x - 0.5f*R.winx)*fx - R.winmat[3][0]/R.winmat[0][0];
+		hoco[1]= (y - 0.5f*R.winy)*fy - R.winmat[3][1]/R.winmat[1][1];
 		
 		/* using a*x + b*y + c*z = d equation, (a b c) is normal */
 		if(nor[2]!=0.0f)
@@ -2141,9 +2141,9 @@ static void isb_add_shadfac(ISBShadfacA **isbsapp, MemArena *mem, int obi, int f
 	
 	/* in osa case, the samples were filled in with factor 1.0/R.osa. if fewer samples we have to correct */
 	if(R.osa)
-		shadfacf= ((float)shadfac*R.osa)/(4096.0*samples);
+		shadfacf= ((float)shadfac*R.osa)/(4096.0f*samples);
 	else
-		shadfacf= ((float)shadfac)/(4096.0);
+		shadfacf= ((float)shadfac)/(4096.0f);
 	
 	new= BLI_memarena_alloc(mem, sizeof(ISBShadfacA));
 	new->obi= obi;
@@ -2640,4 +2640,3 @@ void ISB_free(RenderPart *pa)
 		}
 	}
 }
-

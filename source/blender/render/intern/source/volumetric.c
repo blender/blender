@@ -422,9 +422,9 @@ static void vol_get_transmittance_seg(ShadeInput *shi, float *tr, float stepsize
 	tau[1] += stepd * sigma_t[1];
 	tau[2] += stepd * sigma_t[2];
 	
-	tr[0] *= exp(-tau[0]);
-	tr[1] *= exp(-tau[1]);
-	tr[2] *= exp(-tau[2]);
+	tr[0] *= expf(-tau[0]);
+	tr[1] *= expf(-tau[1]);
+	tr[2] *= expf(-tau[2]);
 }
 
 /* Compute transmittance = e^(-attenuation) */
@@ -473,7 +473,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, 
 	
 	if (lar->mode & LA_LAYER) if((lar->lay & shi->obi->lay)==0) return;
 	if ((lar->lay & shi->lay)==0) return;
-	if (lar->energy == 0.0) return;
+	if (lar->energy == 0.0f) return;
 	
 	if ((visifac= lamp_get_visibility(lar, co, lv, &lampdist)) == 0.f) return;
 	
@@ -613,7 +613,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			/* transmittance component (alpha) */
 			vol_get_transmittance_seg(shi, tr, stepsize, co, density);
 			
-			if (t0 > t1 * 0.25) {
+			if (t0 > t1 * 0.25f) {
 				/* only use depth cutoff after we've traced a little way into the volume */
 				if (luminance(tr) < shi->mat->vol.depth_cutoff) break;
 			}
@@ -623,9 +623,9 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 			if (shi->obi->volume_precache) {
 				float p2[3];
 				
-				p2[0] = p[0] + (step_vec[0] * 0.5);
-				p2[1] = p[1] + (step_vec[1] * 0.5);
-				p2[2] = p[2] + (step_vec[2] * 0.5);
+				p2[0] = p[0] + (step_vec[0] * 0.5f);
+				p2[1] = p[1] + (step_vec[1] * 0.5f);
+				p2[2] = p[2] + (step_vec[2] * 0.5f);
 				
 				vol_get_precached_scattering(&R, shi, scatter_col, p2);
 			} else
@@ -817,7 +817,7 @@ void shade_volume_inside(ShadeInput *shi, ShadeResult *shr)
 	volume_trace(shi, shr, VOL_SHADE_INSIDE);
 	
 	shr->alpha = shr->alpha + prev_alpha;
-	CLAMP(shr->alpha, 0.0, 1.0);
+	CLAMP(shr->alpha, 0.0f, 1.0f);
 
 	shi->mat = mat_backup;
 	shi->obi = obi_backup;

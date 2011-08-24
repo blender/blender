@@ -612,14 +612,16 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				}
 			}
 			else if(node->type==CMP_NODE_COMPOSITE) {
-				bNode *tnode;
-				
-				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
-					if( tnode->type==CMP_NODE_COMPOSITE)
-						tnode->flag &= ~NODE_DO_OUTPUT;
-				
-				node->flag |= NODE_DO_OUTPUT;
-				ED_node_generic_update(bmain, ntree, node);
+				if (was_output==0) {
+					bNode *tnode;
+					
+					for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
+						if( tnode->type==CMP_NODE_COMPOSITE)
+							tnode->flag &= ~NODE_DO_OUTPUT;
+					
+					node->flag |= NODE_DO_OUTPUT;
+					ED_node_generic_update(bmain, ntree, node);
+				}
 			}
 		}
 		else if(ntree->type==NTREE_TEXTURE) {

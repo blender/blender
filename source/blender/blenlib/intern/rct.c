@@ -233,10 +233,10 @@ int BLI_isect_rcti(rcti *src1, rcti *src2, rcti *dest)
 
 void BLI_copy_rcti_rctf(rcti *tar, const rctf *src)
 {
-	tar->xmin= floor(src->xmin + 0.5);
-	tar->xmax= floor((src->xmax - src->xmin) + 0.5);
-	tar->ymin= floor(src->ymin + 0.5);
-	tar->ymax= floor((src->ymax - src->ymin) + 0.5);
+	tar->xmin= floor(src->xmin + 0.5f);
+	tar->xmax= floor((src->xmax - src->xmin) + 0.5f);
+	tar->ymin= floor(src->ymin + 0.5f);
+	tar->ymax= floor((src->ymax - src->ymin) + 0.5f);
 }
 
 void print_rctf(const char *str, rctf *rect)

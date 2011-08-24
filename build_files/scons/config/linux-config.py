@@ -1,4 +1,4 @@
-LCGDIR = '../lib/linux2'
+LCGDIR = '../lib/linux'
 LIBDIR = "${LCGDIR}"
 
 BF_PYTHON_ABI_FLAGS = 'm'  # Most common for linux distros
@@ -241,8 +241,8 @@ BF_PROFILE_LINKFLAGS = ['-pg']
 BF_DEBUG = False
 BF_DEBUG_CCFLAGS = ['-g', '-D_DEBUG']
 
-BF_BUILDDIR = '../build/linux2'
-BF_INSTALLDIR='../install/linux2'
+BF_BUILDDIR = '../build/linux'
+BF_INSTALLDIR='../install/linux'
 
 #Link against pthread
 PLATFORM_LINKFLAGS = ['-pthread']

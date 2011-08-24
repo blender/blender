@@ -1481,7 +1481,7 @@ static void rna_def_wipe(BlenderRNA *brna)
 #if 1 /* expose as radians */
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_funcs(prop, "rna_WipeSequence_angle_get", "rna_WipeSequence_angle_set", NULL);
-	RNA_def_property_range(prop, DEG2RAD(-90.0f), DEG2RAD(90.0f));
+	RNA_def_property_range(prop, DEG2RAD(-90.0), DEG2RAD(90.0));
 #else
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");

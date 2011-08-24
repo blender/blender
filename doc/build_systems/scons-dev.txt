@@ -27,7 +27,7 @@ $Id$
     filenames have the form (platform)-config.py, where platform one of:
 
         * darwin
-        * linux2
+        * linux
         * win32-mingw
         * win32-vc
 

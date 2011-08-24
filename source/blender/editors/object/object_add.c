@@ -183,7 +183,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	}
 	
 	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object", -FLT_MAX, FLT_MAX);
-	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -M_PI * 2.0f, M_PI * 2.0f);
+	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", (float)-M_PI * 2.0f, (float)M_PI * 2.0f);
 	
 	prop = RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);

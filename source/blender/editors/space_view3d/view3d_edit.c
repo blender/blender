@@ -1697,7 +1697,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 static void view_dolly_mouseloc(ARegion *ar, float orig_ofs[3], float dvec[3], float dfac)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0 - dfac));
+	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0f - dfac));
 }
 
 static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_invert)
@@ -1718,7 +1718,7 @@ static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_inv
 		if (zoom_invert)
 			SWAP(float, len1, len2);
 
-		zfac =  1.0 + ((len2 - len1) * 0.01 * vod->rv3d->dist);
+		zfac =  1.0f + ((len2 - len1) * 0.01f * vod->rv3d->dist);
 	}
 
 	if(zfac != 1.0f)

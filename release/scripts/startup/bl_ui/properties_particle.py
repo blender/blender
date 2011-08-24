@@ -155,7 +155,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
         if part:
             split = layout.split(percentage=0.65)
             if part.type == 'HAIR':
-                if psys != None and psys.is_edited:
+                if psys is not None and psys.is_edited:
                     split.operator("particle.edited_clear", text="Free Edit")
                 else:
                     row = split.row()
@@ -165,12 +165,12 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
                 row = split.row()
                 row.enabled = particle_panel_enabled(context, psys)
                 row.prop(part, "hair_step")
-                if psys != None and psys.is_edited:
+                if psys is not None and psys.is_edited:
                     if psys.is_global_hair:
                         layout.operator("particle.connect_hair")
                     else:
                         layout.operator("particle.disconnect_hair")
-            elif psys != None and part.type == 'REACTOR':
+            elif psys is not None and part.type == 'REACTOR':
                 split.enabled = particle_panel_enabled(context, psys)
                 split.prop(psys, "reactor_target_object")
                 split.prop(psys, "reactor_target_particle_system", text="Particle System")
@@ -646,7 +646,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
 
         if settings is None:
             return False
-        if psys != None and psys.point_cache.use_external:
+        if psys is not None and psys.point_cache.use_external:
             return False
         return settings.physics_type == 'BOIDS'
 

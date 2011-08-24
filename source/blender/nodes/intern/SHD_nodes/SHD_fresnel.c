@@ -40,7 +40,7 @@ static bNodeSocketType sh_node_fresnel_out[]= {
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_fresnel(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
+static void node_shader_exec_fresnel(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 
