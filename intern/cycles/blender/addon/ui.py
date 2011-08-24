@@ -54,7 +54,7 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, bpy.types.Panel):
 		#row = col.row()
 		#row.prop(cycles, "blur_caustics")
 		#row.active = not cycles.no_caustics
-
+		
 class CyclesRender_PT_film(CyclesButtonsPanel, bpy.types.Panel):
 	bl_label = "Film"
 
@@ -69,32 +69,38 @@ class CyclesRender_PT_film(CyclesButtonsPanel, bpy.types.Panel):
 		split.prop(cycles, "exposure")
 		split.prop(cycles, "response_curve", text="")
 
-class CyclesRender_PT_debug(CyclesButtonsPanel, bpy.types.Panel):
-	bl_label = "Debug"
+class CyclesRender_PT_performance(CyclesButtonsPanel, bpy.types.Panel):
+	bl_label = "Performance"
 	bl_options = {'DEFAULT_CLOSED'}
 
 	def draw(self, context):
 		layout = self.layout
 
 		scene = context.scene
+		rd = scene.render
 		cycles = scene.cycles
 
 		split = layout.split()
 
-		col = split.column()
+		col = split.column(align=True)
+
+		col.label(text="Threads:")
+		col.row().prop(rd, "threads_mode", expand=True)
+		sub = col.column()
+		sub.enabled = rd.threads_mode == 'FIXED'
+		sub.prop(rd, "threads")
 
 		sub = col.column(align=True)
-		sub.prop(cycles, "debug_bvh_type", text="")
-		sub.prop(cycles, "debug_use_spatial_splits")
-
-		sub = col.column(align=True)
+		sub.label(text="Tiles:")
 		sub.prop(cycles, "debug_tile_size")
 		sub.prop(cycles, "debug_min_size")
 
-		col = split.column(align=True)
-		col.prop(cycles, "debug_cancel_timeout")
-		col.prop(cycles, "debug_reset_timeout")
-		col.prop(cycles, "debug_text_timeout")
+		col = split.column()
+
+		sub = col.column(align=True)
+		sub.label(text="Acceleration structure:")
+		sub.prop(cycles, "debug_bvh_type", text="")
+		sub.prop(cycles, "debug_use_spatial_splits")
 
 class Cycles_PT_post_processing(CyclesButtonsPanel, bpy.types.Panel):
 	bl_label = "Post Processing"

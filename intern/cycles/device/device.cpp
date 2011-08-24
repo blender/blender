@@ -99,13 +99,13 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int width, in
 	glPixelZoom(1.0f, 1.0f);
 }
 
-Device *Device::create(DeviceType type, bool background)
+Device *Device::create(DeviceType type, bool background, int threads)
 {
 	Device *device;
 
 	switch(type) {
 		case DEVICE_CPU:
-			device = device_cpu_create();
+			device = device_cpu_create(threads);
 			break;
 #ifdef WITH_CUDA
 		case DEVICE_CUDA:

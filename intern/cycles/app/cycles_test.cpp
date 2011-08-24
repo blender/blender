@@ -222,6 +222,7 @@ static void options_parse(int argc, const char **argv)
 		"--quiet", &options.quiet, "In background mode, don't print progress messages",
 		"--passes %d", &options.session_params.passes, "Number of passes to render",
 		"--output %s", &options.session_params.output_path, "File path to write output image",
+		"--threads %d", &options.session_params.threads, "CPU Rendering Threads",
 		"--help", &help, "Print help message",
 		NULL);
 	

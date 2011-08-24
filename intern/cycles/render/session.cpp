@@ -37,7 +37,7 @@ Session::Session(const SessionParams& params_)
 {
 	device_use_gl = (params.device_type == DEVICE_CUDA && !params.background);
 
-	device = Device::create(params.device_type, params.background);
+	device = Device::create(params.device_type, params.background, params.threads);
 	buffers = new RenderBuffers(device);
 	display = new DisplayBuffer(device);
 

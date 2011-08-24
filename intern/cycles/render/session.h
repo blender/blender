@@ -46,6 +46,7 @@ public:
 	int passes;
 	int tile_size;
 	int min_size;
+	int threads;
 
 	double cancel_timeout;
 	double reset_timeout;
@@ -61,6 +62,7 @@ public:
 		passes = INT_MAX;
 		tile_size = 64;
 		min_size = 64;
+		threads = 0;
 
 		cancel_timeout = 0.1;
 		reset_timeout = 0.1;
@@ -75,6 +77,7 @@ public:
 		&& progressive == params.progressive
 		&& tile_size == params.tile_size
 		&& min_size == params.min_size
+		&& threads == params.threads
 		&& cancel_timeout == params.cancel_timeout
 		&& reset_timeout == params.reset_timeout
 		&& text_timeout == params.text_timeout); }

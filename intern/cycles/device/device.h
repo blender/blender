@@ -123,7 +123,7 @@ public:
 #endif
 
 	/* static */
-	static Device *create(DeviceType type, bool background = true);
+	static Device *create(DeviceType type, bool background = true, int threads = 0);
 
 	static DeviceType type_from_string(const char *name);
 	static string string_from_type(DeviceType type);

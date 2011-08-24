@@ -61,7 +61,7 @@ class ExportCyclesXML(bpy.types.Operator, ExportHelper):
 		if not object:
 			raise Exception("No active object")
 
-		mesh = object.create_mesh(scene, True, 'PREVIEW')
+		mesh = object.to_mesh(scene, True, 'PREVIEW')
 
 		if not mesh:
 			raise Exception("No mesh data in active object")

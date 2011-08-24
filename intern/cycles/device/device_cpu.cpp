@@ -44,10 +44,14 @@ public:
 	ThreadQueue<DeviceTask> tasks;
 	KernelGlobals *kg;
 	
-	CPUDevice()
+	CPUDevice(int threads_num)
 	{
 		kg = kernel_globals_create();
-		threads.resize(system_cpu_thread_count());
+
+		if(threads_num == 0)
+			threads_num = system_cpu_thread_count();
+
+		threads.resize(threads_num);
 
 		for(size_t i = 0; i < threads.size(); i++)
 			threads[i] = new thread(function_bind(&CPUDevice::thread_run, this, i));
@@ -207,9 +211,9 @@ public:
 	}
 };
 
-Device *device_cpu_create()
+Device *device_cpu_create(int threads)
 {
-	return new CPUDevice();
+	return new CPUDevice(threads);
 }
 
 CCL_NAMESPACE_END

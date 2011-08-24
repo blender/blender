@@ -192,6 +192,7 @@ SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background
 			params.device_type = dtype;
 
 	/* other parameters */
+	params.threads = b_scene.render().threads();
 	params.background = background;
 	params.passes = (background)? get_int(cscene, "passes"): INT_MAX;
 	params.tile_size = get_int(cscene, "debug_tile_size");
