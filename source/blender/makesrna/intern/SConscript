@@ -91,7 +91,7 @@ if env['WITH_BF_PYTHON']:
 if env['WITH_BF_COLLADA']:
     defs.append('WITH_COLLADA')
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 
@@ -140,7 +140,7 @@ targetpath = root_build_dir+'/makesrna'
 if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
     targetpath = '#' + targetpath
 
-if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
+if env['OURPLATFORM'] == 'linux' and root_build_dir[0]==os.sep:
     makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_intern_guardedalloc', 'bf_dna', 'bf_blenlib'])
 else:
     makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_intern_guardedalloc', 'bf_dna', 'bf_blenlib'])

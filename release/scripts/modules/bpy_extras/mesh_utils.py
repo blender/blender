@@ -426,7 +426,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
         # See if its flipped the wrong way.
         flip = None
         for fi in fill:
-            if flip != None:
+            if flip is not None:
                 break
             for i, vi in enumerate(fi):
                 if vi == 0 and fi[i - 1] == 1:

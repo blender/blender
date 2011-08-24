@@ -78,9 +78,9 @@ static float strand_eval_width(Material *ma, float strandco)
 
 	if(ma->strand_ease!=0.0f) {
 		if(ma->strand_ease<0.0f)
-			fac= pow(strandco, 1.0+ma->strand_ease);
+			fac= pow(strandco, 1.0f+ma->strand_ease);
 		else
-			fac= pow(strandco, 1.0/(1.0f-ma->strand_ease));
+			fac= pow(strandco, 1.0f/(1.0f-ma->strand_ease));
 	}
 	else fac= strandco;
 	
@@ -816,8 +816,8 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 	zbuf_alloc_span(&zspan, pa->rectx, pa->recty, clipcrop);
 
 	/* needed for transform from hoco to zbuffer co */
-	zspan.zmulx= ((float)winx)/2.0;
-	zspan.zmuly= ((float)winy)/2.0;
+	zspan.zmulx= ((float)winx)/2.0f;
+	zspan.zmuly= ((float)winy)/2.0f;
 	
 	zspan.zofsx= -pa->disprect.xmin;
 	zspan.zofsy= -pa->disprect.ymin;

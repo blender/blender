@@ -22,7 +22,7 @@ BF_EXPAT_LIB = ''
 WITH_BF_FFMPEG = True
 WITH_BF_STATICFFMPEG = True
 
-BF_FFMPEG = '/home/sources/staticlibs/ffmpeg-0.8'
+BF_FFMPEG = '/home/sources/staticlibs/ffmpeg'
 BF_FFMPEG_LIBPATH = '${BF_FFMPEG}/lib32'
 BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libavformat.a ${BF_FFMPEG_LIBPATH}/libswscale.a ' + \
     '${BF_FFMPEG_LIBPATH}/libavcodec.a ${BF_FFMPEG_LIBPATH}/libavdevice.a ${BF_FFMPEG_LIBPATH}/libavutil.a ' + \

@@ -26,7 +26,7 @@ if env['WITH_BF_PYTHON']:
 if env['WITH_BF_COLLADA']:
     defs.append('WITH_COLLADA')
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 
@@ -37,6 +37,6 @@ if env['OURPLATFORM'] != 'darwin' or env['WITH_GHOST_COCOA']:
     sources.remove('intern' + os.sep + 'wm_apple.c')
 
 if env['BF_BUILDINFO']:
-    defs.append('NAN_BUILDINFO')
+    defs.append('WITH_BUILDINFO')
 
 env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defines=defs, libtype=['core'], priority=[5] )

@@ -213,7 +213,7 @@ void quat_to_mat4(float m[][4], const float q[4])
 	double q0, q1, q2, q3, qda,qdb,qdc,qaa,qab,qac,qbb,qbc,qcc;
 
 #ifdef DEBUG
-	if(!((q0=dot_qtqt(q, q))==0.0f || (fabsf(q0-1.0f) < (float)QUAT_EPSILON))) {
+	if(!((q0=dot_qtqt(q, q))==0.0f || (fabs(q0-1.0) < QUAT_EPSILON))) {
 		fprintf(stderr, "Warning! quat_to_mat4() called with non-normalized: size %.8f *** report a bug ***\n", (float)q0);
 	}
 #endif
@@ -492,8 +492,8 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
 			else angle= (float)(-0.5*atan2(-fp[0], -fp[1]));
 		}
 				
-		co= (float)cos(angle);
-		si= (float)(sin(angle)/len1);
+		co= cosf(angle);
+		si= sinf(angle)/len1;
 		q2[0]= co;
 		q2[1]= x2*si;
 		q2[2]= y2*si;

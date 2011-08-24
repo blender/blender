@@ -8,7 +8,7 @@ incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../render/extern/include ../../bmesh'
 incs += ' ../../gpu ../../makesrna #/intern/opennl/extern'
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 

@@ -10,7 +10,7 @@ incs += ' ../../render/extern/include ../../gpu' # for object_bake.c
 
 defs = []
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 

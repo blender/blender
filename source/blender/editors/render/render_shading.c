@@ -787,7 +787,7 @@ void TEXTURE_OT_envmap_save(wmOperatorType *ot)
 	ot->poll= envmap_save_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER; /* no undo since this doesnt modify the env-map */
 	
 	/* properties */
 	//RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
@@ -875,8 +875,6 @@ static int copy_material_exec(bContext *C, wmOperator *UNUSED(op))
 
 	copy_matcopybuf(ma);
 
-	WM_event_add_notifier(C, NC_MATERIAL, ma);
-
 	return OPERATOR_FINISHED;
 }
 
@@ -891,7 +889,7 @@ void MATERIAL_OT_copy(wmOperatorType *ot)
 	ot->exec= copy_material_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER; /* no undo needed since no changes are made to the material */
 }
 
 static int paste_material_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1015,8 +1013,6 @@ static int copy_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 
 	copy_mtex_copybuf(id);
 
-	WM_event_add_notifier(C, NC_TEXTURE, NULL);
-
 	return OPERATOR_FINISHED;
 }
 
@@ -1039,7 +1035,7 @@ void TEXTURE_OT_slot_copy(wmOperatorType *ot)
 	ot->poll= copy_mtex_poll;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_REGISTER; /* no undo needed since no changes are made to the mtex */
 }
 
 static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))

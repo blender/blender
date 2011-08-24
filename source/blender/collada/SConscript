@@ -38,6 +38,6 @@ else:
     incs = '../blenlib ../blenkernel ../windowmanager ../makesdna ../blenloader ../makesrna ../editors/include ../../../intern/guardedalloc [OPENCOLLADA]/COLLADAStreamWriter/include [OPENCOLLADA]/COLLADABaseUtils/include [OPENCOLLADA]/COLLADAFramework/include [OPENCOLLADA]/COLLADASaxFrameworkLoader/include [OPENCOLLADA]/GeneratedSaxParser/include '.replace('[OPENCOLLADA]', env['BF_OPENCOLLADA_INC'])
 
 if env['BF_BUILDINFO']:
-    defs.append('NAN_BUILDINFO')
+    defs.append('WITH_BUILDINFO')
 
 env.BlenderLib ('bf_collada', sources, Split(incs), defs, libtype='core', priority=200 )

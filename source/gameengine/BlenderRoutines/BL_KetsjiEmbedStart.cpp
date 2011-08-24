@@ -233,7 +233,6 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		ketsjiengine->SetCanvas(canvas);
 		ketsjiengine->SetRenderTools(rendertools);
 		ketsjiengine->SetRasterizer(rasterizer);
-		ketsjiengine->SetNetworkDevice(networkdevice);
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 

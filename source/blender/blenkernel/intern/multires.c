@@ -1703,6 +1703,7 @@ void multires_load_old(Object *ob, Mesh *me)
 		me->mface[i].v2 = lvl->faces[i].v[1];
 		me->mface[i].v3 = lvl->faces[i].v[2];
 		me->mface[i].v4 = lvl->faces[i].v[3];
+		me->mface[i].mat_nr = lvl->faces[i].mat_nr;
 	}
 
 	/* Add a multires modifier to the object */

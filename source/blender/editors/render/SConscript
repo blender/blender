@@ -9,7 +9,7 @@ incs += ' ../../gpu'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
 incs += ' ../../blenloader ../../bmesh'
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 

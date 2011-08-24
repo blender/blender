@@ -230,16 +230,9 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		float *co[4];
 		float *uv[4];
 		int lsel;
-		
-		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-			if(BM_TestHFlag(efa, BM_HIDDEN)) {
-				continue;
-			}
-		}
-		else {
-			if((BM_TestHFlag(efa, BM_HIDDEN)) || (sel && BM_TestHFlag(efa, BM_SELECT)==0)) 
-				continue;
-		}
+
+		if((BM_TestHFlag(efa, BM_HIDDEN)) || (sel && BM_TestHFlag(efa, BM_SELECT)==0))
+			continue;
 
 		tf= (MTexPoly *)CustomData_em_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		lsel = 0;
@@ -643,7 +636,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 		return;
 	}
 
-	liveHandle = construct_param_handle(scene, em, 0, fillholes, 1, 1);
+	liveHandle = construct_param_handle(scene, em, 0, fillholes, 0, 1);
 
 	param_lscm_begin(liveHandle, PARAM_TRUE, abf);
 }
