@@ -74,7 +74,10 @@ FOREACH(COMPONENT ${_opencollada_FIND_INCLUDES})
     NAMES
       ${COMPONENT}/include
       ${COMPONENT}
-      include/opencollada/${COMPONENT} # ubuntu ppa needs this
+      # Ubuntu ppa needs this.
+      # Alternative would be to suffix all members of search path
+      # but this is less trouble, just looks strange.
+      include/opencollada/${COMPONENT}
     HINTS
       ${_opencollada_SEARCH_DIRS}
     )
@@ -94,22 +97,15 @@ FOREACH(COMPONENT ${_opencollada_FIND_COMPONENTS})
       ${_opencollada_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib
+      # Ubuntu ppa needs this.
+      lib64/opencollada lib/opencollada
     )
   MARK_AS_ADVANCED(OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY)
   LIST(APPEND _opencollada_LIBRARIES "${OPENCOLLADA_${UPPERCOMPONENT}_LIBRARY}")
 ENDFOREACH()
 
 
-FIND_LIBRARY(OPENCOLLADA_LIBRARY
-  NAMES
-    jack
-  HINTS
-    ${_opencollada_SEARCH_DIRS}
-  PATH_SUFFIXES
-    lib64 lib
-  )
-
-# handle the QUIETLY and REQUIRED arguments and set OPENEXR_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set OPENCOLLADA_FOUND to TRUE if 
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenCOLLADA  DEFAULT_MSG
