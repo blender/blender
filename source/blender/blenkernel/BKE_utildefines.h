@@ -86,8 +86,6 @@ extern "C" {
 /* bit-row */
 #define BROW(min, max)	(((max)>=31? 0xFFFFFFFF: (1<<(max+1))-1) - ((min)? ((1<<(min))-1):0) )
 
-#define BMEMSET(mem, val, size) {unsigned int _i; char *_c = (char*) mem; for (_i=0; _i<size; _i++) *_c++ = val;}
-
 #ifdef __cplusplus
 }
 #endif

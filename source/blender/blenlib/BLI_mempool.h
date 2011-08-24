@@ -42,7 +42,6 @@ extern "C"
 
 struct BLI_mempool;
 
-#include "BKE_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_blenlib.h"
 #include <string.h>
@@ -91,6 +90,15 @@ typedef struct BLI_mempool_iter {
 void BLI_mempool_allow_iter(BLI_mempool *pool);
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter);
 void *BLI_mempool_iterstep(BLI_mempool_iter *iter);
+
+/* XXX - copied from BKE_utildefines.h, dont use here because we're in BLI */
+#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
+	/* Big Endian */
+#define MAKE_ID(a,b,c,d) ( (int)(a)<<24 | (int)(b)<<16 | (c)<<8 | (d) )
+#else
+	/* Little Endian */
+#define MAKE_ID(a,b,c,d) ( (int)(d)<<24 | (int)(c)<<16 | (b)<<8 | (a) )
+#endif
 
 /************ inlined stuff ***********/
 #define FREEWORD MAKE_ID('f', 'r', 'e', 'e')

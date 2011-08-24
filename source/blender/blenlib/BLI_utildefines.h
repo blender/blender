@@ -241,4 +241,6 @@ do { \
 #  define BLI_assert(a) (void)0
 #endif
 
+#define BMEMSET(mem, val, size) {unsigned int _i; char *_c = (char*) mem; for (_i=0; _i<size; _i++) *_c++ = val;}
+
 #endif // BLI_UTILDEFINES_H
