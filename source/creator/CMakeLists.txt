@@ -729,6 +729,16 @@ if(WITH_MOD_FLUID)
 	list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
 endif()
 
+if(WITH_CYCLES)
+	list(APPEND BLENDER_LINK_LIBS
+		cycles_render
+		cycles_bvh
+		cycles_device
+		cycles_kernel
+		cycles_util
+		cycles_subd)
+endif()
+
 
 #if(UNIX)
 	# Sort libraries
@@ -830,6 +840,14 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		bf_intern_mikktspace
+
+		bf_intern_cycles
+		cycles_render
+		cycles_bvh
+		cycles_device
+		cycles_kernel
+		cycles_util
+		cycles_subd
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
@@ -854,10 +872,6 @@ endif()
 
 	if(WITH_CODEC_QUICKTIME)
 		list(APPEND BLENDER_SORTED_LIBS bf_quicktime)
-	endif()
-
-	if(WITH_CYCLES)
-		list(APPEND BLENDER_SORTED_LIBS bf_intern_cycles)
 	endif()
 
 	foreach(SORTLIB ${BLENDER_SORTED_LIBS})
