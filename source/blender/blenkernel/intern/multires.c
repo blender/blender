@@ -972,7 +972,6 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 						
 		for(S = 0; S < numVerts; ++S, ++gIndex, ++k) {
 			MDisps *mdisp = &mdisps[mpoly[i].loopstart+S];
-			DMGridData *grid = gridData[gIndex];
 			DMGridData *subgrid = subGridData[gIndex];
 			float (*dispgrid)[3] = NULL;
 

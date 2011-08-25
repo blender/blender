@@ -142,8 +142,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 		if (!BMO_TestFlag(bm, e, EDGE_DONE)) {
 			BMVert *v, *ov;
-			BMEdge *e2, *e3, *oe = e;
-			int i;
+			BMEdge *e2, *e3;
 			
 			if (c > 2) {
 				printf("eek! more than two edge loops!\n");

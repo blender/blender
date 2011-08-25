@@ -499,7 +499,6 @@ static int ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 	BLI_array_declare(fVerts);
 	MVert *mvert = dm->getVertArray(dm);
 	MEdge *medge = dm->getEdgeArray(dm);
-	MFace *mface = dm->getTessFaceArray(dm);
 	MVert *mv;
 	MEdge *me;
 	MLoop *mloop = dm->getLoopArray(dm), *ml;
@@ -1113,7 +1112,6 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int i = 0;
 	MLoop *mv;
-	char *faceFlags = cgdm->faceFlags;
 
 	if (!cgdm->ehash) {
 		MEdge *medge;
@@ -1131,8 +1129,6 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 	for(index = 0; index < totface; index++) {
 		CCGFace *f = cgdm->faceMap[index].face;
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
-		int flag = (faceFlags)? faceFlags[index*2]: ME_SMOOTH;
-		int mat_nr = (faceFlags)? faceFlags[index*2+1]: 0;
 
 		for(S = 0; S < numVerts; S++) {
 			for(y = 0; y < gridSize - 1; y++) {
@@ -1178,7 +1174,6 @@ static void ccgDM_copyFinalPolyArray(DerivedMesh *dm, MPoly *mface)
 	int index;
 	int totface;
 	int gridSize = ccgSubSurf_getGridSize(ss);
-	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int i = 0, k = 0;
 	char *faceFlags = cgdm->faceFlags;
 

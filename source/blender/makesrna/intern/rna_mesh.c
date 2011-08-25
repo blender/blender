@@ -606,7 +606,6 @@ static void rna_MeshTextureFaceLayer_clone_set(PointerRNA *ptr, int value)
 static void rna_MeshTextureFaceLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
-	CustomData *fdata= rna_mesh_pdata(me);
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
 	BLI_strncpy(cdl->name, value, sizeof(cdl->name));
 	CustomData_set_layer_unique_name(&me->pdata, cdl - rna_mesh_pdata(me)->layers);
@@ -643,9 +642,9 @@ static PointerRNA rna_Mesh_active_vertex_color_get(PointerRNA *ptr)
 static void rna_Mesh_active_vertex_color_set(PointerRNA *ptr, PointerRNA value)
 {
 	Mesh *me= (Mesh*)ptr->data;
-	CustomData *ldata= rna_mesh_ldata(me), *fdata;
+	CustomData *ldata= rna_mesh_ldata(me);
 	CustomDataLayer *cdl;
-	int a, b, c;
+	int a, b;
 
 	b = 0;
 	for(cdl=ldata->layers, a=0; a<ldata->totlayer; cdl++, a++) {
@@ -723,7 +722,6 @@ static void rna_MeshColorLayer_active_set(PointerRNA *ptr, int value)
 static void rna_MeshColorLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
-	CustomData *fdata= rna_mesh_pdata(me);
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
 	BLI_strncpy(cdl->name, value, sizeof(cdl->name));
 	CustomData_set_layer_unique_name(&me->ldata, cdl - rna_mesh_ldata(me)->layers);
@@ -1257,7 +1255,9 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 		{TF_ALPHA, "ALPHA", 0, "Alpha", "Render polygon transparent, depending on alpha channel of the texture"},
 		{TF_CLIP, "CLIPALPHA", 0, "Clip Alpha", "Use the images alpha values clipped with no blending (binary alpha)"},
 		{0, NULL, 0, NULL, NULL}};
+#if 0  /* BMESH_TODO: needed later when do another todo */
 	int uv_dim[]= {4, 2};
+#endif
 
 	srna= RNA_def_struct(brna, "MeshTextureFaceLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Mesh Texture Face Layer", "Layer of texture faces in a Mesh datablock");

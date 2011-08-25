@@ -279,16 +279,15 @@ typedef struct StrokeCache {
 static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 				Object *ob, rcti *rect)
 {
-	StrokeCache *cache = ob->sculpt->cache;
 	PBVH *pbvh= ob->sculpt->pbvh;
 	float bb_min[3], bb_max[3], pmat[4][4];
 	int i, j, k;
 
 /*	if (G.rt == 1) {
-		rect->xmin = cache->prect.xmin;
-		rect->xmax = cache->prect.xmax;
-		rect->ymin = cache->prect.ymin;
-		rect->ymax = cache->prect.ymax;
+		rect->xmin = ob->sculpt->cache->prect.xmin;
+		rect->xmax = ob->sculpt->cache->prect.xmax;
+		rect->ymin = ob->sculpt->cache->prect.ymin;
+		rect->ymax = ob->sculpt->cache->prect.ymax;
 
 		return rect->xmin < rect->xmax && rect->ymin < rect->ymax;;
 	}
@@ -2240,8 +2239,6 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 {
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
-	rctf mr;
-	float xrad, yrad;
 
 	float bstrength = ss->cache->bstrength;
 	const float radius = ss->cache->radius;
