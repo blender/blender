@@ -531,6 +531,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 			wm->op_undo_depth++;
 
 		retval= op->type->exec(C, op);
+		OPERATOR_RETVAL_CHECK(retval);
 
 		if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 			wm->op_undo_depth--;
@@ -690,6 +691,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				wm->op_undo_depth++;
 
 			retval= op->type->invoke(C, op, event);
+			OPERATOR_RETVAL_CHECK(retval);
 
 			if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
@@ -699,6 +701,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				wm->op_undo_depth++;
 
 			retval= op->type->exec(C, op);
+			OPERATOR_RETVAL_CHECK(retval);
 
 			if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
@@ -917,6 +920,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 			wm->op_undo_depth++;
 
 		retval= op->type->exec(C, op);
+		OPERATOR_RETVAL_CHECK(retval);
 
 		if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 			wm->op_undo_depth--;
@@ -1203,6 +1207,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				wm->op_undo_depth++;
 
 			retval= ot->modal(C, op, event);
+			OPERATOR_RETVAL_CHECK(retval);
 
 			if(ot->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
