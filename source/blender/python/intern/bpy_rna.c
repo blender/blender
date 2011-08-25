@@ -6428,7 +6428,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 				PyErr_Fetch(&error_type, &error_value, &error_traceback);
 
 				PyErr_Format(error_type,
-				             "expected class %.200s, function %.200s: incompatible return value%S",
+				             "class %.200s, function %.200s: incompatible return value%S",
 				             RNA_struct_identifier(ptr->type), RNA_function_identifier(func),
 				             error_value);
 			}
