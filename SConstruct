@@ -272,7 +272,7 @@ if env['OURPLATFORM']=='darwin':
     # for now, Mac builders must download and install the 3DxWare 10 Beta 4 driver framework from 3Dconnexion
     # necessary header file lives here when installed:
     # /Library/Frameworks/3DconnexionClient.framework/Versions/Current/Headers/ConnexionClientAPI.h
-    if env['WITH_BF_3DMOUSE'] == 1 and not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
+    if not os.path.exists('/Library/Frameworks/3DconnexionClient.framework'):
         print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
         env['WITH_BF_3DMOUSE'] = 0
     else:
