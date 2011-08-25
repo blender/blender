@@ -6417,7 +6417,21 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			err= -1;
 		}
 		else if(ret_len==1) {
-			err= pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "calling class function:");
+			err= pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "");
+
+			/* when calling operator funcs only gives Function.result with
+			 * no line number since the func has finished calling on error,
+			 * re-raise the exception with more info since it would be slow to
+			 * create prefix on every call (when there are no errors) */
+			if(err == -1 && PyErr_Occurred()) {
+				PyObject *error_type, *error_value, *error_traceback;
+				PyErr_Fetch(&error_type, &error_value, &error_traceback);
+
+				PyErr_Format(error_type,
+				             "expected class %.200s, function %.200s: incompatible return value%S",
+				             RNA_struct_identifier(ptr->type), RNA_function_identifier(func),
+				             error_value);
+			}
 		}
 		else if (ret_len > 1) {
 

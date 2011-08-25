@@ -293,7 +293,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	 * function corrects bpy.data (internal Main pointer) */
 	BPY_modules_update(C);
 
-	/* needed for when WM_OT_read_factory_settings us called fro within a script */
+	/* needed for when WM_OT_read_factory_settings us called from within a script */
 	bpy_import_main_set(CTX_data_main(C));
 
 	/* return operator_ret as a bpy enum */
