@@ -1103,8 +1103,7 @@ int ui_id_icon_get(bContext *C, ID *id, int big)
 	int iconid= 0;
 	
 	/* icon */
-	switch(GS(id->name))
-	{
+	switch(GS(id->name)) {
 		case ID_BR:
 			iconid= ui_id_brush_get_icon(C, id);
 			break;

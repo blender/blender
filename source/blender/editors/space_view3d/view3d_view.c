@@ -840,8 +840,7 @@ void project_int_noclip(ARegion *ar, const float vec[3], int adr[2])
 		adr[0] = (int)floor(fx); 
 		adr[1] = (int)floor(fy);
 	}
-	else
-	{
+	else {
 		adr[0] = ar->winx / 2;
 		adr[1] = ar->winy / 2;
 	}
@@ -904,8 +903,7 @@ void project_float_noclip(ARegion *ar, const float vec[3], float adr[2])
 		adr[0] = (float)(ar->winx/2.0f)+(ar->winx/2.0f)*vec4[0]/vec4[3];
 		adr[1] = (float)(ar->winy/2.0f)+(ar->winy/2.0f)*vec4[1]/vec4[3];
 	}
-	else
-	{
+	else {
 		adr[0] = ar->winx / 2.0f;
 		adr[1] = ar->winy / 2.0f;
 	}

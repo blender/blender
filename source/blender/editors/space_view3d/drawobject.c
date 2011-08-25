@@ -2843,18 +2843,17 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	Object *ob= base->object;
 	Object *obedit= scene->obedit;
 	Mesh *me= ob->data;
-	Material *ma=NULL;
 	EditMesh *em= me->edit_mesh;
 	int do_alpha_pass= 0, drawlinked= 0, retval= 0, glsl, check_alpha, i;
 
-	/* If we are drawing shadows and any of the materials don't cast a shadow, then don't draw the object */
-	if (v3d->flag2 & V3D_RENDER_SHADOW)
-	{
-		for(i=0; i<ob->totcol; ++i)
-		{
-			ma = give_current_material(ob, i);
-			if (ma && !(ma->mode & MA_SHADBUF))
+	/* If we are drawing shadows and any of the materials don't cast a shadow,
+	 * then don't draw the object */
+	if (v3d->flag2 & V3D_RENDER_SHADOW) {
+		for(i=0; i<ob->totcol; ++i) {
+			Material *ma= give_current_material(ob, i);
+			if (ma && !(ma->mode & MA_SHADBUF)) {
 				return 1;
+			}
 		}
 	}
 	
@@ -6125,8 +6124,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* draw code for smoke */
-	if((md = modifiers_findByType(ob, eModifierType_Smoke)))
-	{
+	if((md = modifiers_findByType(ob, eModifierType_Smoke))) {
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 
 		// draw collision objects
@@ -6518,7 +6516,6 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 	switch( ob->type) {
 	case OB_MESH:
-	{
 		if(ob->mode & OB_MODE_EDIT) {
 			Mesh *me= ob->data;
 			EditMesh *em= me->edit_mesh;
@@ -6552,8 +6549,9 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 			EM_free_index_arrays();
 		}
-		else bbs_mesh_solid(scene, ob);
-	}
+		else {
+			bbs_mesh_solid(scene, ob);
+		}
 		break;
 	case OB_CURVE:
 	case OB_SURF:
