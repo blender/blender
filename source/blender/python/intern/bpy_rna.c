@@ -1117,6 +1117,7 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 	return 1;
 }
 
+/* 'value' _must_ be a set type, error check before calling */
 int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_value, const char *error_prefix)
 {
 	/* set of enum items, concatenate all values with OR */
@@ -1138,8 +1139,10 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 			             error_prefix, Py_TYPE(key)->tp_name);
 			return -1;
 		}
-		if(pyrna_enum_value_from_id(items, param, &ret, error_prefix) < 0)
+
+		if(pyrna_enum_value_from_id(items, param, &ret, error_prefix) < 0) {
 			return -1;
+		}
 
 		flag |= ret;
 	}
@@ -1155,6 +1158,14 @@ static int pyrna_prop_to_enum_bitfield(PointerRNA *ptr, PropertyRNA *prop, PyObj
 	int free= FALSE;
 
 	*r_value= 0;
+
+	if (!PyAnySet_Check(value)) {
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s, %.200s.%.200s expected a set, not a %.200s",
+		             error_prefix, RNA_struct_identifier(ptr->type),
+		             RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+		return -1;
+	}
 
 	RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
 
@@ -1529,33 +1540,18 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 		{
 			int val= 0;
 
-			if (PyUnicode_Check(value)) {
-				if (!pyrna_string_to_enum(value, ptr, prop, &val, error_prefix))
-					return -1;
-			}
-			else if (PyAnySet_Check(value)) {
-				if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
-					/* set of enum items, concatenate all values with OR */
-					if(pyrna_prop_to_enum_bitfield(ptr, prop, value, &val, error_prefix) < 0)
-						return -1;
-				}
-				else {
-					PyErr_Format(PyExc_TypeError,
-					             "%.200s, %.200s.%.200s is not a bitflag enum type",
-					             error_prefix, RNA_struct_identifier(ptr->type),
-					             RNA_property_identifier(prop));
+			/* type checkins is done by each function */
+			if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+				/* set of enum items, concatenate all values with OR */
+				if(pyrna_prop_to_enum_bitfield(ptr, prop, value, &val, error_prefix) < 0) {
 					return -1;
 				}
 			}
 			else {
-				const char *enum_str= pyrna_enum_as_string(ptr, prop);
-				PyErr_Format(PyExc_TypeError,
-				             "%.200s %.200s.%.200s expected a string enum or a set of strings in (%.2000s), not %.200s",
-				             error_prefix, RNA_struct_identifier(ptr->type),
-				             RNA_property_identifier(prop), enum_str,
-				             Py_TYPE(value)->tp_name);
-				MEM_freeN((void *)enum_str);
-				return -1;
+				/* simple enum string */
+				if (!pyrna_string_to_enum(value, ptr, prop, &val, error_prefix) < 0) {
+					return -1;
+				}
 			}
 
 			if(data)	*((int*)data)= val;
