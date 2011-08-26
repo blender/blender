@@ -257,9 +257,10 @@ typedef struct View3D {
 #define V3D_SOLID_TEX			8
 #define V3D_DISPGP				16
 #define V3D_LOCK_CAMERA			32
-#define V3D_SHOW_RECONSTRUCTION	64
-#define V3D_SHOW_CAMERAPATH		128
-#define V3D_SHOW_BUNDLENAME		256
+#define V3D_RENDER_SHADOW		64 /* This is a runtime only flag that's used to tell draw_mesh_object() that we're doing a shadow pass instead of a regular draw */
+#define V3D_SHOW_RECONSTRUCTION		128
+#define V3D_SHOW_CAMERAPATH		256
+#define V3D_SHOW_BUNDLENAME		512
 
 /* View3D->around */
 #define V3D_CENTER		 0

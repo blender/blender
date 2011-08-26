@@ -801,8 +801,7 @@ static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
 	if(!act_iter) return;
 
 	/* (3) add a new controller */
-	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, NULL) & OPERATOR_FINISHED)
-	{
+	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, NULL) & OPERATOR_FINISHED) {
 		cont = (bController *)ob->controllers.last;
 
 		/* (4) link the sensor->controller->actuator */

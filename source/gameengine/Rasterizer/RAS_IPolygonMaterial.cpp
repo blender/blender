@@ -246,6 +246,11 @@ bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 	return dolights;
 }
 
+bool RAS_IPolyMaterial::CastsShadows() const
+{
+	return (m_flag & RAS_CASTSHADOW) != 0;
+}
+
 bool RAS_IPolyMaterial::UsesObjectColor() const
 {
 	return !(m_flag & RAS_BLENDERGLSL);

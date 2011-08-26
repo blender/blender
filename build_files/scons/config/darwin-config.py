@@ -316,7 +316,11 @@ if WITH_BF_QUICKTIME:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
 
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
-LLIBS = ['stdc++', 'SystemStubs']
+#for 10.7.sdk, SystemStubs needs to be excluded (lib doesn't exist anymore)
+if MACOSX_DEPLOYMENT_TARGET == '10.7':
+	LLIBS = ['stdc++']
+else:
+	LLIBS = ['stdc++', 'SystemStubs']
 
 # some flags shuffling for different OS versions
 if MAC_MIN_VERS == '10.3':

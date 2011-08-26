@@ -1544,8 +1544,7 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 	
 	/* subtractwidth of regions on opposite side 
 	 * prevents dragging regions into other opposite regions */
-	for (ar=sa->regionbase.first; ar; ar=ar->next)
-	{
+	for (ar=sa->regionbase.first; ar; ar=ar->next) {
 		if (ar == scalear)
 			continue;
 		
@@ -2021,12 +2020,12 @@ static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
  */
 
 typedef struct sAreaJoinData
-	{
-		ScrArea *sa1;	/* first area to be considered */
-		ScrArea *sa2;	/* second area to be considered */
-		ScrArea *scr;	/* designed for removal */
-		
-	} sAreaJoinData;
+{
+	ScrArea *sa1;	/* first area to be considered */
+	ScrArea *sa2;	/* second area to be considered */
+	ScrArea *scr;	/* designed for removal */
+
+} sAreaJoinData;
 
 
 /* validate selection inside screen, set variables OK */

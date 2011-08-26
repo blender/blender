@@ -1142,12 +1142,10 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	glRectf(x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
-	{
-		if(view3d_camera_border_hack_test == TRUE) {
-			glColor4fv(view3d_camera_border_hack_col);
-			glRectf(x1i+1, y1i+1, x2i-1, y2i-1);
-			view3d_camera_border_hack_test= FALSE;
-		}
+	if(view3d_camera_border_hack_test == TRUE) {
+		glColor4fv(view3d_camera_border_hack_col);
+		glRectf(x1i+1, y1i+1, x2i-1, y2i-1);
+		view3d_camera_border_hack_test= FALSE;
 	}
 #endif
 
@@ -2201,7 +2199,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		v3d->drawtype = OB_SOLID;
 		v3d->lay &= GPU_lamp_shadow_layer(shadow->lamp);
 		v3d->flag2 &= ~V3D_SOLID_TEX;
-		v3d->flag2 |= V3D_RENDER_OVERRIDE;
+		v3d->flag2 |= V3D_RENDER_OVERRIDE | V3D_RENDER_SHADOW;
 		
 		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
 

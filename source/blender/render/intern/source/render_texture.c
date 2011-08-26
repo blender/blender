@@ -1905,11 +1905,13 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 	const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
 	float Hscale = Tnor*mtex->norfac;
+	int dimx=512, dimy=512;
 
 	// 2 channels for 2D texture and 3 for 3D textures.
 	const int nr_channels = (mtex->texco == TEXCO_UV)? 2 : 3;
 	int c, rgbnor, iBumpSpace;
 	float dHdx, dHdy;
+	int found_deriv_map = (tex->type==TEX_IMAGE) && (tex->imaflag & TEX_DERIVATIVEMAP);
 
 	// disable internal bump eval in sampler, save pointer
 	float *nvec = texres->nor;
@@ -1929,8 +1931,31 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		
 		ntap_bump->init_done = 1;
 	}
+
+	// resolve image dimensions
+	if(found_deriv_map || (mtex->texflag&MTEX_BUMP_TEXTURESPACE)!=0) {
+		ImBuf* ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
+		if (ibuf) {
+			dimx = ibuf->x;
+			dimy = ibuf->y;
+		}
+	}
 	
-	if(!(mtex->texflag & MTEX_5TAP_BUMP)) {
+	if(found_deriv_map) {
+		float dBdu, dBdv;
+		float s = 1;		// negate this if flipped texture coordinate
+		texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
+		rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, texres);
+		
+		// this variant using a derivative map is described here
+		// http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
+		dBdu = Hscale*dimx*(2*texres->tr-1);
+		dBdv = Hscale*dimy*(2*texres->tg-1);
+
+		dHdx = dBdu*dxt[0] + s * dBdv*dxt[1];
+		dHdy = dBdu*dyt[0] + s * dBdv*dyt[1];
+	}
+	else if(!(mtex->texflag & MTEX_5TAP_BUMP)) {
 		// compute height derivatives with respect to output image pixel coordinates x and y
 		float STll[3], STlr[3], STul[3];
 		float Hll, Hlr, Hul;
@@ -2084,15 +2109,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 	if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
 		if(tex->ima) {
-			float vec[2];
-			int dimx=512, dimy=512; 
-			ImBuf* ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
-			if (ibuf) {
-				dimx = ibuf->x;
-				dimy = ibuf->y;
-			}
-
 			// crazy hack solution that gives results similar to normal mapping - part 2
+			float vec[2];
 			
 			vec[0] = dimx*dxt[0];
 			vec[1] = dimy*dxt[1];
@@ -2126,7 +2144,7 @@ void do_material_tex(ShadeInput *shi)
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
 	int tex_nr, rgbnor= 0, warpdone=0;
 	int use_compat_bump = 0, use_ntap_bump = 0;
-	int found_nmapping = 0;
+	int found_nmapping = 0, found_deriv_map = 0;
 	int iFirstTimeNMap=1;
 
 	compatible_bump_init(&compat_bump);
@@ -2146,8 +2164,9 @@ void do_material_tex(ShadeInput *shi)
 			tex= mtex->tex;
 			if(tex==0) continue;
 
+			found_deriv_map = (tex->type==TEX_IMAGE) && (tex->imaflag & TEX_DERIVATIVEMAP);
 			use_compat_bump= (mtex->texflag & MTEX_COMPAT_BUMP);
-			use_ntap_bump= (mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP));
+			use_ntap_bump= ((mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP))!=0 || found_deriv_map!=0) ? 1 : 0;
 
 			/* XXX texture node trees don't work for this yet */
 			if(tex->nodetree && tex->use_nodes) {

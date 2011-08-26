@@ -33,11 +33,11 @@ def add_object_align_init(context, operator):
     Return a matrix using the operator settings and view context.
 
     :arg context: The context to use.
-    :type context: :class:`Context`
+    :type context: :class:`bpy.types.Context`
     :arg operator: The operator, checked for location and rotation properties.
-    :type operator: :class:`Operator`
+    :type operator: :class:`bpy.types.Operator`
     :return: the matrix from the context and settings.
-    :rtype: :class:`Matrix`
+    :rtype: :class:`mathutils.Matrix`
     """
 
     from mathutils import Matrix, Vector, Euler
@@ -92,13 +92,13 @@ def object_data_add(context, obdata, operator=None):
     location, rotation and layer.
 
     :arg context: The context to use.
-    :type context: :class:`Context`
+    :type context: :class:`bpy.types.Context`
     :arg obdata: the data used for the new object.
     :type obdata: valid object data type or None.
     :arg operator: The operator, checked for location and rotation properties.
-    :type operator: :class:`Operator`
+    :type operator: :class:`bpy.types.Operator`
     :return: the newly created object in the scene.
-    :rtype: :class:`ObjectBase`
+    :rtype: :class:`bpy.types.ObjectBase`
     """
     scene = context.scene
 

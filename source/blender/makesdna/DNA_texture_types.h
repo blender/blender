@@ -342,6 +342,7 @@ typedef struct TexMapping {
 #define TEX_NORMALMAP	2048
 #define TEX_GAUSS_MIP	4096
 #define TEX_FILTER_MIN	8192
+#define TEX_DERIVATIVEMAP	16384
 
 /* texfilter */
 // TXF_BOX -> blender's old texture filtering method

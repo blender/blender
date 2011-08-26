@@ -531,14 +531,11 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	int charmax = G.charmax;
 	
 	/* FO_BUILTIN_NAME font in use. There are TTF FO_BUILTIN_NAME and non-TTF FO_BUILTIN_NAME fonts */
-	if(!strcmp(G.selfont->name, FO_BUILTIN_NAME))
-	{
-		if(G.ui_international == TRUE)
-		{
+	if(!strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
+		if(G.ui_international == TRUE) {
 			charmax = 0xff;
 		}
-		else
-		{
+		else {
 			charmax = 0xff;
 		}
 	}
@@ -563,16 +560,13 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	cs = G.charstart;
 
 	/* Set the font, in case it is not FO_BUILTIN_NAME font */
-	if(G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME))
-	{
+	if(G.selfont && strcmp(G.selfont->name, FO_BUILTIN_NAME)) {
 		// Is the font file packed, if so then use the packed file
-		if(G.selfont->packedfile)
-		{
+		if(G.selfont->packedfile) {
 			pf = G.selfont->packedfile;		
 			FTF_SetFont(pf->data, pf->size, 14.0);
 		}
-		else
-		{
+		else {
 			char tmpStr[256];
 			int err;
 
@@ -581,10 +575,8 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 			err = FTF_SetFont((unsigned char *)tmpStr, 0, 14.0);
 		}
 	}
-	else
-	{
-		if(G.ui_international == TRUE)
-		{
+	else {
+		if(G.ui_international == TRUE) {
 			FTF_SetFont((unsigned char *) datatoc_bfont_ttf, datatoc_bfont_ttf_size, 14.0);
 		}
 	}
@@ -596,8 +588,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	glRectf((rect->xmin), (rect->ymin), (rect->xmax), (rect->ymax));
 
 	glColor3ub(0,  0,  0);
-	for(y = 0; y < 6; y++)
-	{
+	for(y = 0; y < 6; y++) {
 		// Do not draw more than the category allows
 		if(cs > charmax) break;
 
@@ -677,23 +668,19 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	glShadeModel(GL_FLAT);
 
 	/* Return Font Settings to original */
-	if(U.fontsize && U.fontname[0])
-	{
+	if(U.fontsize && U.fontname[0]) {
 		result = FTF_SetFont((unsigned char *)U.fontname, 0, U.fontsize);
 	}
-	else if (U.fontsize)
-	{
+	else if (U.fontsize) {
 		result = FTF_SetFont((unsigned char *) datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
 	}
 
-	if (result == 0)
-	{
+	if (result == 0) {
 		result = FTF_SetFont((unsigned char *) datatoc_bfont_ttf, datatoc_bfont_ttf_size, 11);
 	}
 	
 	/* resets the font size */
-	if(G.ui_international == TRUE)
-	{
+	if(G.ui_international == TRUE) {
 		// uiSetCurFont(but->block, UI_HELV);
 	}
 }
@@ -1713,7 +1700,6 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, int UNUSED(select))
 #endif
 	{
 		a= i*aspect;
-
 	}
 
 	for(; i--; a-=aspect) {
