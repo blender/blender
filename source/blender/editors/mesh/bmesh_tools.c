@@ -1104,6 +1104,7 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 	} else {
 		if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_SELECT))
 			return OPERATOR_CANCELLED;
+		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	}
 		
 	
