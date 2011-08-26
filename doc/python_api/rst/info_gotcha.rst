@@ -8,7 +8,7 @@ This document attempts to help you work with the Blender API in areas that can b
 Using Operators
 ***************
 
-Blender's operators are tools for users to access, that python can access them too is very useful but does not change the fact that operators have limitations that can make them cumbersome to script.
+Blender's operators are tools for users to access, that python can access them too is very useful nevertheless operators have limitations that can make them cumbersome to script.
 
 Main limits are...
 
@@ -128,6 +128,84 @@ If you insist - yes its possible, but scripts that use this hack wont be conside
    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 
 
+******************************
+Matrix multiplication is wrong
+******************************
+
+Every so often users complain that Blenders matrix math is wrong, the confusion comes from mathutils matrices being column-major to match OpenGL and the rest of Blenders matrix operations and stored matrix data.
+
+This is different to **numpy** which is row-major which matches what you would expect when using conventional matrix math notation.
+
+
+***********************************
+I can't edit the mesh in edit-mode!
+***********************************
+
+Blenders EditMesh is an internal data structure (not saved and not exposed to python), this gives the main annoyance that you need to exit edit-mode to edit the mesh from python.
+
+The reason we have not made much attempt to fix this yet is because we
+will likely move to BMesh mesh API eventually, so any work on the API now will be wasted effort.
+
+With the BMesh API we may expose mesh data to python so we can
+write useful tools in python which are also fast to execute while in edit-mode.
+
+For the time being this limitation just has to be worked around but we're aware its frustrating needs to be addressed.
+
+
+****************
+Unicode Problems
+****************
+
+Python supports many different encpdings so there is nothing stopping you from writing a script in latin1 or iso-8859-15.
+
+See `pep-0263 <http://www.python.org/dev/peps/pep-0263/>`_
+
+However this complicates things for the python api because blend files themselves dont have an encoding.
+
+To simplify the problem for python integration and script authors we have decieded all strings in blend files **must** be UTF-8 or ASCII compatible.
+
+This means assigning strings with different encodings to an object names for instance will raise an error.
+
+Paths are an exception to this rule since we cannot ignore the existane of non-utf-8 paths on peoples filesystems.
+
+This means seemingly harmless expressions can raise errors, eg.
+
+.. code-block:: python
+
+   >>> print(bpy.data.filepath)
+   UnicodeEncodeError: 'ascii' codec can't encode characters in position 10-21: ordinal not in range(128)
+
+   >>> bpy.context.object.name = bpy.data.filepath
+   Traceback (most recent call last):
+     File "<blender_console>", line 1, in <module>
+   TypeError: bpy_struct: item.attr= val: Object.name expected a string type, not str
+
+
+Here are 2 ways around filesystem encoding issues.
+
+.. code-block:: python
+
+   >>> print(repr(bpy.data.filepath))
+
+   >>> import os
+   >>> filepath_bytes = os.fsencode(bpy.data.filepath)
+   >>> filepath_utf8 = filepath_bytes.decode('utf-8', "replace")
+   >>> bpy.context.object.name = filepath_utf8
+
+
+Unicode encoding/decoding is a big topic with comprehensive python documentation, to avoid getting stuck too deep in encoding problems - here are some suggestions:
+
+* Always use utf-8 encoiding or convert to utf-8 where the input is unknown.
+
+* Avoid manipulating filepaths as strings directly, use ``os.path`` functions instead.
+
+* Use ``os.fsencode()`` / ``os.fsdecode()`` rather then the built in string decoding functions when operating on paths.
+
+* To print paths or to include them in the user interface use ``repr(path)`` first or ``"%r" % path`` with string formatting.
+
+* **Possibly** - use bytes instead of python strings, when reading some input its less trouble to read it as binary data though you will still need to deciede how to treat any strings you want to use with Blender, some importers do this.
+
+
 ***************************************
 Strange errors using 'threading' module
 ***************************************
@@ -195,30 +273,6 @@ So far no work has gone into making Blenders python integration thread safe, so 
 .. note::
 
    Pythons threads only allow co-currency and wont speed up you're scripts on multi-processor systems, the ``subprocess`` and ``multiprocess`` modules can be used with blender and make use of multiple CPU's too.
-
-
-******************************
-Matrix multiplication is wrong
-******************************
-
-Every so often we get complaints that Blenders matrix math is wrong, the confusion comes from mathutils matrices being column-major to match OpenGL and the rest of Blenders matrix operations and stored matrix data.
-
-This is different to **numpy** which is row-major which matches what you would expect when using conventional matrix math notation.
-
-
-***********************************
-I can't edit the mesh in edit-mode!
-***********************************
-
-Blenders EditMesh is an internal data structure (not saved and not exposed to python), this gives the main annoyance that you need to exit edit-mode to edit the mesh from python.
-
-The reason we have not made much attempt to fix this yet is because we
-will likely move to BMesh mesh API eventually, so any work on the API now will be wasted effort.
-
-With the BMesh API we may expose mesh data to python so we can
-write useful tools in python which are also fast to execute while in edit-mode.
-
-For the time being this limitation just has to be worked around but we're aware its frustrating needs to be addressed.
 
 
 *******************************
