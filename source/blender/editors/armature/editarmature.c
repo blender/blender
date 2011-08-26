@@ -518,7 +518,7 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 		mul_m4_v3(mat, ebone->tail);
 
 		/* apply the transfiormed roll back */
-		mat3_to_vec_roll(tmat, delta, &ebone->roll);
+		mat3_to_vec_roll(tmat, NULL, &ebone->roll);
 
 		ebone->rad_head	*= scale;
 		ebone->rad_tail	*= scale;
