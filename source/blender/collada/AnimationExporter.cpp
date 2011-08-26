@@ -41,126 +41,104 @@ void forEachObjectInScene(Scene *sce, Functor &f)
 }
 
 void AnimationExporter::exportAnimations(Scene *sce)
-	{
-		if(hasAnimations(sce)) {
-			this->scene = sce;
+{
+	if(hasAnimations(sce)) {
+		this->scene = sce;
 
-			openLibrary();
+		openLibrary();
 
-			forEachObjectInScene(sce, *this);
+		forEachObjectInScene(sce, *this);
 
-			closeLibrary();
-		}
+		closeLibrary();
 	}
+}
 
-	// called for each exported object
-	void AnimationExporter::operator() (Object *ob) 
+// called for each exported object
+void AnimationExporter::operator() (Object *ob) 
+{
+	FCurve *fcu;
+	char * transformName ;
+	bool isMatAnim = false;
+
+	//Export transform animations
+	if(ob->adt && ob->adt->action)      
 	{
-		FCurve *fcu;
-		char * transformName ;
-		bool isMatAnim = false;
+		fcu = (FCurve*)ob->adt->action->curves.first;
 
-		//Export transform animations
-		if(ob->adt && ob->adt->action)      
+		//transform matrix export for bones are temporarily disabled here.
+		if ( ob->type == OB_ARMATURE )
 		{
-			fcu = (FCurve*)ob->adt->action->curves.first;
-
-			//transform matrix export for bones are temporarily disabled here.
-			if ( ob->type == OB_ARMATURE )
-			{
-				if (!ob->data) return;
-				bArmature *arm = (bArmature*)ob->data;
-				for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
-					write_bone_animation_matrix(ob, bone);
-				
-				transformName = fcu->rna_path;
-			}
-			else 
-				transformName = extract_transform_name( fcu->rna_path );
-			
-			while (fcu) {
-				transformName = extract_transform_name( fcu->rna_path );
-				if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
-					(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
-					(!strcmp(transformName, "rotation_quaternion"))) 
-					dae_animation(ob ,fcu, transformName, false);
-				fcu = fcu->next;
-			}
-		
-		}
-
-		//Export Lamp parameter animations
-		if( (ob->type == OB_LAMP ) && ((Lamp*)ob ->data)->adt && ((Lamp*)ob ->data)->adt->action )
-		{
-			fcu = (FCurve*)(((Lamp*)ob ->data)->adt->action->curves.first);
-			while (fcu) {
-			transformName = extract_transform_name( fcu->rna_path );
-				
-				if ((!strcmp(transformName, "color")) || (!strcmp(transformName, "spot_size"))|| (!strcmp(transformName, "spot_blend"))||
-					(!strcmp(transformName, "distance")) ) 
-					dae_animation(ob , fcu, transformName, true );
-				fcu = fcu->next;
-			}
-		}
-
-		//Export Camera parameter animations
-		if( (ob->type == OB_CAMERA ) && ((Camera*)ob ->data)->adt && ((Camera*)ob ->data)->adt->action )
-		{		
-			fcu = (FCurve*)(((Camera*)ob ->data)->adt->action->curves.first);
-			while (fcu) {
-			transformName = extract_transform_name( fcu->rna_path );
-				
-				if ((!strcmp(transformName, "lens"))||
-					(!strcmp(transformName, "ortho_scale"))||
-					(!strcmp(transformName, "clip_end"))||(!strcmp(transformName, "clip_start"))) 
-					dae_animation(ob , fcu, transformName, true );
-				fcu = fcu->next;
-			}
-		}
-
-		//Export Material parameter animations.
-		for(int a = 0; a < ob->totcol; a++)
-		{
-			Material *ma = give_current_material(ob, a+1);
-			if (!ma) continue;
-			if(ma->adt && ma->adt->action)
-			{
-				isMatAnim = true;
-				fcu = (FCurve*)ma->adt->action->curves.first;
-				while (fcu) {
-					transformName = extract_transform_name( fcu->rna_path );
-					
-					if ((!strcmp(transformName, "specular_hardness"))||(!strcmp(transformName, "specular_color"))
-						||(!strcmp(transformName, "diffuse_color"))||(!strcmp(transformName, "alpha"))||
-						(!strcmp(transformName, "ior"))) 
-						dae_animation(ob ,fcu, transformName, true, ma );
-					fcu = fcu->next;
-				}
-			}
-			
-		}
-		/* Old System
-		if (!ob->adt || !ob->adt->action) 
-			fcu = (FCurve*)((Lamp*)ob->data)->adt->action->curves.first;  //this is already checked in hasAnimations()
-		else
-			fcu = (FCurve*)ob->adt->action->curves.first;
-								
-		if (ob->type == OB_ARMATURE) {
-			if (!ob->data) return;
 			bArmature *arm = (bArmature*)ob->data;
-			while(fcu)
-			{ 		
+			for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
+				write_bone_animation_matrix(ob, bone);
+			
+			transformName = fcu->rna_path;
+		}
+		else 
+			transformName = extract_transform_name( fcu->rna_path );
+		
+		while (fcu) {
+			transformName = extract_transform_name( fcu->rna_path );
+			if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
+				(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
+				(!strcmp(transformName, "rotation_quaternion"))) 
+				dae_animation(ob ,fcu, transformName, false);
+			fcu = fcu->next;
+		}
+	
+	}
+
+	//Export Lamp parameter animations
+	if( (ob->type == OB_LAMP ) && ((Lamp*)ob ->data)->adt && ((Lamp*)ob ->data)->adt->action )
+	{
+		fcu = (FCurve*)(((Lamp*)ob ->data)->adt->action->curves.first);
+		while (fcu) {
+		transformName = extract_transform_name( fcu->rna_path );
+			
+			if ((!strcmp(transformName, "color")) || (!strcmp(transformName, "spot_size"))|| (!strcmp(transformName, "spot_blend"))||
+				(!strcmp(transformName, "distance")) ) 
+				dae_animation(ob , fcu, transformName, true );
+			fcu = fcu->next;
+		}
+	}
+
+	//Export Camera parameter animations
+	if( (ob->type == OB_CAMERA ) && ((Camera*)ob ->data)->adt && ((Camera*)ob ->data)->adt->action )
+	{		
+		fcu = (FCurve*)(((Camera*)ob ->data)->adt->action->curves.first);
+		while (fcu) {
+		transformName = extract_transform_name( fcu->rna_path );
+			
+			if ((!strcmp(transformName, "lens"))||
+				(!strcmp(transformName, "ortho_scale"))||
+				(!strcmp(transformName, "clip_end"))||(!strcmp(transformName, "clip_start"))) 
+				dae_animation(ob , fcu, transformName, true );
+			fcu = fcu->next;
+		}
+	}
+
+	//Export Material parameter animations.
+	for(int a = 0; a < ob->totcol; a++)
+	{
+		Material *ma = give_current_material(ob, a+1);
+		if (!ma) continue;
+		if(ma->adt && ma->adt->action)
+		{
+			isMatAnim = true;
+			fcu = (FCurve*)ma->adt->action->curves.first;
+			while (fcu) {
 				transformName = extract_transform_name( fcu->rna_path );
-			//	std::string ob_name =  getObjectBoneName( ob , fcu);
-			//	for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
-			//		write_bone_animation(ob, bone);
-				dae_animation(ob, fcu, ob_name, transformName);
+				
+				if ((!strcmp(transformName, "specular_hardness"))||(!strcmp(transformName, "specular_color"))
+					||(!strcmp(transformName, "diffuse_color"))||(!strcmp(transformName, "alpha"))||
+					(!strcmp(transformName, "ior"))) 
+					dae_animation(ob ,fcu, transformName, true, ma );
 				fcu = fcu->next;
 			}
 		}
-		else {*/
 		
 	}
+}
 
 	//euler sources from quternion sources
 	float * AnimationExporter::get_eul_source_for_quat(Object *ob )
@@ -193,7 +171,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 					eul[i*3 + k] = temp_eul[k];
 
 			}
-
+        MEM_freeN(quat);
 		return eul;
 
 	}
@@ -287,6 +265,8 @@ void AnimationExporter::exportAnimations(Scene *sce)
 				for ( int i = 0 ; i< fcu->totvert ; i++)
 					eul_axis[i] = eul[i*3 + fcu->array_index];
 			output_id= create_source_from_array(COLLADASW::InputSemantic::OUTPUT, eul_axis , fcu->totvert, quatRotation, anim_id, axis_name);
+			MEM_freeN(eul);
+			MEM_freeN(eul_axis);
 		}
 		else 
 		{

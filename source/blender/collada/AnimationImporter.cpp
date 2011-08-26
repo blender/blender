@@ -179,7 +179,6 @@ void AnimationImporter::fcurve_deg_to_rad(FCurve *cu)
 		cu->bezt[i].vec[1][1] *= M_PI / 180.0f;
 		cu->bezt[i].vec[0][1] *= M_PI / 180.0f;
 		cu->bezt[i].vec[2][1] *= M_PI / 180.0f;
-		cu->bezt[i].vec[1][0];
 	}
 }
 
@@ -439,7 +438,7 @@ void AnimationImporter::modify_fcurve(std::vector<FCurve*>* curves , char* rna_p
 	int i;
 	for (it = curves->begin(), i = 0; it != curves->end(); it++, i++) {
 		FCurve *fcu = *it;
-		fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
+		fcu->rna_path = BLI_strdup(rna_path);
 		
 		if (array_index == -1) fcu->array_index = i;
 		else fcu->array_index = array_index;
