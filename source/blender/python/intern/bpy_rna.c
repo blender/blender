@@ -6591,9 +6591,9 @@ void pyrna_free_types(void)
 PyDoc_STRVAR(pyrna_register_class_doc,
 ".. method:: register_class(cls)\n"
 "\n"
-"   Register a subclass of a blender type in (:class:`Panel`,\n"
-"   :class:`Menu`, :class:`Header`, :class:`Operator`,\n"
-"   :class:`KeyingSetInfo`, :class:`RenderEngine`).\n"
+"   Register a subclass of a blender type in (:class:`bpy.types.Panel`,\n"
+"   :class:`bpy.types.Menu`, :class:`bpy.types.Header`, :class:`bpy.types.Operator`,\n"
+"   :class:`bpy.types.KeyingSetInfo`, :class:`bpy.types.RenderEngine`).\n"
 "\n"
 "   If the class has a *register* class method it will be called\n"
 "   before registration.\n"
