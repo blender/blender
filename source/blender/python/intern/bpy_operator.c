@@ -117,7 +117,6 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 	}
 
 	context_dict_back= CTX_py_dict_get(C);
-
 	CTX_py_dict_set(C, (void *)context_dict);
 	Py_XINCREF(context_dict); /* so we done loose it */
 	

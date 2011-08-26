@@ -657,25 +657,27 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 
 void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
 {
-	int change= FALSE;
-	if(RNA_struct_find_property(op->ptr, "filename")) {
-		RNA_string_get(op->ptr, "filename", sfile->params->file);
-		change= TRUE;
-	}
-	if(RNA_struct_find_property(op->ptr, "directory")) {
-		RNA_string_get(op->ptr, "directory", sfile->params->dir);
-		change= TRUE;
-	}
-	
+	PropertyRNA *prop;
+
 	/* If neither of the above are set, split the filepath back */
-	if(RNA_struct_find_property(op->ptr, "filepath")) {
-		if(change==FALSE) {
-			char filepath[FILE_MAX];
-			RNA_string_get(op->ptr, "filepath", filepath);
-			BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file);
+	if((prop= RNA_struct_find_property(op->ptr, "filepath"))) {
+		char filepath[FILE_MAX];
+		RNA_property_string_get(op->ptr, prop, filepath);
+		BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file);
+	}
+	else {
+		if((prop= RNA_struct_find_property(op->ptr, "filename"))) {
+			RNA_property_string_get(op->ptr, prop, sfile->params->file);
+		}
+		if((prop= RNA_struct_find_property(op->ptr, "directory"))) {
+			RNA_property_string_get(op->ptr, prop, sfile->params->dir);
 		}
 	}
 	
+	/* we could check for relative_path property which is used when converting
+	 * in the other direction but doesnt hurt to do this every time */
+	BLI_path_abs(sfile->params->dir, G.main->name);
+
 	/* XXX, files and dirs updates missing, not really so important though */
 }
 
