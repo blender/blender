@@ -4621,47 +4621,49 @@ static int mesh_export_obj_exec(bContext *C, wmOperator *op)
 	mloopuv = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
 	mloopcol = CustomData_get_layer(&dm->loopData, CD_MLOOPCOL);
 	
-	/*build material list*/
-	mp = mpoly;
-	for (i=0; i<dm->numPolyData; i++, (mtexpoly ? mtexpoly++ : NULL), mp++) {
-		int found = 0;
-		
-		j = 0;
-		while (!matlists[mp->mat_nr][j].end) {
-			Material *mat = ob->matbits[mp->mat_nr] ? ob->mat[mp->mat_nr] : me->mat[mp->mat_nr];
+	if (matlists) {
+		/*build material list*/
+		mp = mpoly;
+		for (i=0; i<dm->numPolyData; i++, (mtexpoly ? mtexpoly++ : NULL), mp++) {
+			int found = 0;
 			
-			if (matlists[mp->mat_nr][j].mat == mat) {
-				if (mtexpoly) { 
-					if (matlists[mp->mat_nr][j].poly.tpage == mtexpoly->tpage) {
+			j = 0;
+			while (!matlists[mp->mat_nr][j].end) {
+				Material *mat = ob->matbits[mp->mat_nr] ? ob->mat[mp->mat_nr] : me->mat[mp->mat_nr];
+				
+				if (matlists[mp->mat_nr][j].mat == mat) {
+					if (mtexpoly) { 
+						if (matlists[mp->mat_nr][j].poly.tpage == mtexpoly->tpage) {
+							found = 1;
+							break;
+						}
+					} else {
 						found = 1;
 						break;
 					}
-				} else {
-					found = 1;
-					break;
 				}
-			}
-			j++;
-		}
-		
-		if (!found) {
-			matlists[mp->mat_nr] = MEM_reallocN(matlists[mp->mat_nr], sizeof(**matlists)*(j+2));
-			
-			/*add sentinal*/
-			matlists[mp->mat_nr][j+1].end = 1;
-			matlists[mp->mat_nr][j].end = 0;
-			
-			if (ob->matbits && ob->matbits[mp->mat_nr]) {
-				matlists[mp->mat_nr][j].mat = ob->mat[mp->mat_nr];
-			} else {
-				matlists[mp->mat_nr][j].mat = me->mat[mp->mat_nr];
+				j++;
 			}
 			
-			if (mtexpoly)
-				matlists[mp->mat_nr][j].poly = *mtexpoly;
+			if (!found) {
+				matlists[mp->mat_nr] = MEM_reallocN(matlists[mp->mat_nr], sizeof(**matlists)*(j+2));
+				
+				/*add sentinal*/
+				matlists[mp->mat_nr][j+1].end = 1;
+				matlists[mp->mat_nr][j].end = 0;
+				
+				if (ob->matbits && ob->matbits[mp->mat_nr]) {
+					matlists[mp->mat_nr][j].mat = ob->mat[mp->mat_nr];
+				} else {
+					matlists[mp->mat_nr][j].mat = me->mat[mp->mat_nr];
+				}
+				
+				if (mtexpoly)
+					matlists[mp->mat_nr][j].poly = *mtexpoly;
+			}
+			
+			face_mat_group[i] = j;
 		}
-		
-		face_mat_group[i] = j;
 	}
 
 	/*write material references*/
@@ -4695,18 +4697,21 @@ static int mesh_export_obj_exec(bContext *C, wmOperator *op)
 			fprintf(file, "s off\n");
 		}
 		
-		if (matlists[mp->mat_nr][face_mat_group[i]].mat && matlists[mp->mat_nr][face_mat_group[i]].poly.tpage) {
-			sprintf(matname, "%s__%s", matlists[mp->mat_nr][face_mat_group[i]].mat->id.name+2, 
-				matlists[mp->mat_nr][face_mat_group[i]].poly.tpage->id.name+2);
-		} else if (matlists[mp->mat_nr][face_mat_group[i]].mat) {
-			sprintf(matname, "%s", matlists[mp->mat_nr][face_mat_group[i]].mat->id.name+2);
-		} else if (matlists[mp->mat_nr][face_mat_group[i]].poly.tpage != NULL) {
-			sprintf(matname, "texture_%s", matlists[mp->mat_nr][face_mat_group[i]].poly.tpage->id.name+2);
-		} else {
-			sprintf(matname, "__null_material_%d_%d", mp->mat_nr, face_mat_group[mp->mat_nr]);
+		if (matlists) {
+			if (matlists[mp->mat_nr][face_mat_group[i]].mat && matlists[mp->mat_nr][face_mat_group[i]].poly.tpage) {
+				sprintf(matname, "%s__%s", matlists[mp->mat_nr][face_mat_group[i]].mat->id.name+2, 
+					matlists[mp->mat_nr][face_mat_group[i]].poly.tpage->id.name+2);
+			} else if (matlists[mp->mat_nr][face_mat_group[i]].mat) {
+				sprintf(matname, "%s", matlists[mp->mat_nr][face_mat_group[i]].mat->id.name+2);
+			} else if (matlists[mp->mat_nr][face_mat_group[i]].poly.tpage != NULL) {
+				sprintf(matname, "texture_%s", matlists[mp->mat_nr][face_mat_group[i]].poly.tpage->id.name+2);
+			} else {
+				sprintf(matname, "__null_material_%d_%d", mp->mat_nr, face_mat_group[mp->mat_nr]);
+			}
+			
+			fprintf(file, "usemtl %s\n", matname);
 		}
 		
-		fprintf(file, "usemtl %s\n", matname);
 		fprintf(file, "f ");
 		
 		ml = mloop + mp->loopstart;
