@@ -1235,6 +1235,7 @@ static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwar
 
 		if(settings->speed==TRACKING_SPEED_HALF) tmj->delay*= 2;
 		else if(settings->speed==TRACKING_SPEED_QUARTER) tmj->delay*= 4;
+		else if(settings->speed==TRACKING_SPEED_DOUBLE) tmj->delay/= 2;
 	}
 
 	track_init_markers(sc, clip);

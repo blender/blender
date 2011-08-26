@@ -486,7 +486,7 @@ typedef struct MovieTrackingContext {
 	MovieClipUser user;
 	MovieClip *clip;
 
-	int first_time;
+	int first_time, frames;
 
 	TrackContext *track_context;
 	int num_tracks;
@@ -772,12 +772,25 @@ static unsigned char *acquire_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *tr
 	return pixels;
 }
 
+static ImBuf *acquire_frame_ibuf(MovieTrackingContext *context, int framenr)
+{
+	ImBuf *ibuf;
+	int framenr_old= context->user.framenr;
+
+	context->user.framenr= framenr;
+
+	ibuf= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
+
+	context->user.framenr= framenr_old;
+
+	return ibuf;
+}
+
 static ImBuf *acquire_keyframed_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track,
 			MovieTrackingMarker *marker, MovieTrackingMarker **marker_keyed)
 {
-	int framenr_old= context->user.framenr, framenr= marker->framenr;
+	int framenr= marker->framenr;
 	int a= marker-track->markers;
-	ImBuf *ibuf;
 
 	*marker_keyed= marker;
 
@@ -792,25 +805,22 @@ static ImBuf *acquire_keyframed_ibuf(MovieTrackingContext *context, MovieTrackin
 		else a--;
 	}
 
-	context->user.framenr= framenr;
-
-	ibuf= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
-
-	context->user.framenr= framenr_old;
-
-	return ibuf;
+	return acquire_frame_ibuf(context, framenr);
 }
 
-static ImBuf *acquire_frame_ibuf(MovieTrackingContext *context, int framenr)
+static ImBuf *acquire_adjust_ibuf(MovieTrackingContext *context, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+			int curfra, MovieTrackingMarker **marker_keyed)
 {
-	ImBuf *ibuf;
-	int framenr_old= context->user.framenr;
+	ImBuf *ibuf= NULL;
 
-	context->user.framenr= framenr;
+	if(context->settings.adjframes == 0) {
+		ibuf= acquire_keyframed_ibuf(context, track, marker, marker_keyed);
+	} else {
+		ibuf= acquire_frame_ibuf(context, curfra);
 
-	ibuf= BKE_movieclip_acquire_ibuf_flag(context->clip, &context->user, 0);
-
-	context->user.framenr= framenr_old;
+		/* use current marker as keyframed position */
+		*marker_keyed= marker;
+	}
 
 	return ibuf;
 }
@@ -947,19 +957,36 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 		if(marker && (marker->flag&MARKER_DISABLED)==0 && marker->framenr==curfra) {
 #ifdef WITH_LIBMV
-			int width, height, origin[2], tracked= 0;
-			float pos[2];
+			int width, height, origin[2], tracked= 0, need_readjust= 0;
+			float pos[2], margin[2];
 			double x1, y1, x2, y2;
 			ImBuf *ibuf= NULL;
 			MovieTrackingMarker marker_new, *marker_keyed;
 
-			if(context->settings.tracker==TRACKER_KLT) {
+			if(!context->settings.adjframes) need_readjust= context->first_time;
+			else need_readjust= context->frames%context->settings.adjframes == 0;
+
+			/* margin from frame boundaries */
+			sub_v2_v2v2(margin, track->pat_max, track->pat_min);
+
+			margin[0]= MAX2(margin[0], (float)context->settings.margin / ibuf_new->x);
+			margin[1]= MAX2(margin[1], (float)context->settings.margin / ibuf_new->y);
+
+			/* do not track markers which are too close to boundary */
+			if(marker->pos[0]<margin[0] || marker->pos[0]>1.f-margin[0] ||
+			   marker->pos[1]<margin[1] || marker->pos[1]>1.f-margin[1]) {
+			}
+			else if(context->settings.tracker==TRACKER_KLT) {
 				int wndx, wndy;
 				float *patch_new;
 
-				if(!track_context->patch) {
+				if(need_readjust) {
 					/* calculate patch for keyframed position */
-					ibuf= acquire_keyframed_ibuf(context, track, marker, &marker_keyed);
+					ibuf= acquire_adjust_ibuf(context, track, marker, curfra, &marker_keyed);
+
+					if(track_context->patch)
+						MEM_freeN(track_context->patch);
+
 					track_context->patch= acquire_search_floatbuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
 
 					IMB_freeImBuf(ibuf);
@@ -986,12 +1013,12 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				float corr;
 				float warp[3][2]={{0}};
 
-				if(track_context->pattern==NULL) {
+				if(need_readjust) {
 					unsigned char *image;
 
 					/* calculate pattern for keyframed position */
+					ibuf= acquire_adjust_ibuf(context, track, marker, curfra, &marker_keyed);
 
-					ibuf= acquire_keyframed_ibuf(context, track, marker, &marker_keyed);
 					image= acquire_search_bytebuf(ibuf, track, marker_keyed, &width, &height, pos, origin);
 
 					memset(warp, 0, sizeof(warp));
@@ -1003,7 +1030,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					/* pattern size is hardcoded to 16x16px in libmv */
 					track_context->patsize= 16;
 
-					track_context->pattern= MEM_callocN(sizeof(unsigned char)*track_context->patsize*track_context->patsize, "trackking pattern");
+					if(!track_context->pattern)
+						track_context->pattern= MEM_callocN(sizeof(unsigned char)*track_context->patsize*track_context->patsize, "trackking pattern");
+
 					libmv_SADSamplePattern(image, width, warp, track_context->pattern);
 
 					MEM_freeN(image);
@@ -1100,7 +1129,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	}
 
 	IMB_freeImBuf(ibuf_new);
+
 	context->first_time= 0;
+	context->frames++;
 
 	return ok;
 }

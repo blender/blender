@@ -224,6 +224,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 
 	static EnumPropertyItem speed_items[] = {
 		{0, "FASTEST", 0, "Fastest", "Track as fast as it's possible"},
+	    {TRACKING_SPEED_DOUBLE, "DOUBLE", 0, "Double", "Track with double speed"},
 		{TRACKING_SPEED_REALTIME, "REALTIME", 0, "Realtime", "Track with realtime speed"},
 		{TRACKING_SPEED_HALF, "HALF", 0, "Half", "Track with half of realtime speed"},
 		{TRACKING_SPEED_QUARTER, "QUARTER", 0, "Quarter", "Track with quarter of realtime speed"},
@@ -245,14 +246,6 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, tracker_items);
 	RNA_def_property_ui_text(prop, "tracker", "Tracking algorithm to use");
 
-	/* limit frames */
-	prop= RNA_def_property(srna, "min_correlation", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_float_sdna(prop, NULL, "corr");
-	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_range(prop, -1.f, 1.f, .1, 3);
-	RNA_def_property_ui_text(prop, "Correlation", "Minimal value of correlation between mathed pattern and reference which is still treated as successful tracking");
-
 	/* speed */
 	prop= RNA_def_property(srna, "speed", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -266,6 +259,20 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_text(prop, "Frames Limit", "Amount of frames to be tracked during single tracking operation");
 
+	/* adjust frames */
+	prop= RNA_def_property(srna, "adjust_frames", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "adjframes");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_text(prop, "Adjust Frames", "Automatically re-adjust marker position using position on each N frames. 0 means only keyframed position is sued.");
+
+	/* margin */
+	prop= RNA_def_property(srna, "margin", PROP_INT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "margin");
+	RNA_def_property_range(prop, 0, 300);
+	RNA_def_property_ui_text(prop, "Margin", "Margin for markers from image boundary.");
+
 	/* keyframe1 */
 	prop= RNA_def_property(srna, "keyframe1", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -277,6 +284,14 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "keyframe2");
 	RNA_def_property_ui_text(prop, "Keyframe 2", "Second keyframe used for reconstruction initialization");
+
+	/* minmal correlation */
+	prop= RNA_def_property(srna, "min_correlation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_float_sdna(prop, NULL, "corr");
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_ui_range(prop, -1.f, 1.f, .1, 3);
+	RNA_def_property_ui_text(prop, "Correlation", "Minimal value of correlation between mathed pattern and reference which is still treated as successful tracking");
 
 	/* tool settings */
 

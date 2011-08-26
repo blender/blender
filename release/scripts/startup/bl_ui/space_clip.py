@@ -520,11 +520,14 @@ class CLIP_PT_track_settings(Panel):
 
         layout.prop(settings, "tracker")
 
+        layout.prop(settings, "adjust_frames")
+
         if settings.tracker == "SAD":
             layout.prop(settings, "min_correlation")
 
         layout.prop(settings, "speed")
         layout.prop(settings, "frames_limit")
+        layout.prop(settings, "margin")
 
 
 class CLIP_PT_stabilization(Panel):

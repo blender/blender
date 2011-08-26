@@ -103,11 +103,13 @@ typedef struct MovieTrackingSettings {
 	short tracker;	/* tracker to use */
 
 	/* ** common tracker settings ** */
-	short speed;	/* speed of tracking */
-	short frames_limit, pad;	/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
+	short speed;			/* speed of tracking */
+	short frames_limit;		/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
+	short margin;			/* margin from frame boundaries */
+	int adjframes;			/* re-adjust every N frames */
 
 	/* ** SAD tracker settings ** */
-	float corr, pad2;			/* minimal correlation which is still treated as successful tracking */
+	float corr;					/* minimal correlation which is still treated as successful tracking */
 
 	/* ** reconstructionsettings ** */
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
@@ -184,6 +186,7 @@ enum {
 #define TRACKING_SPEED_REALTIME		1
 #define TRACKING_SPEED_HALF			2
 #define TRACKING_SPEED_QUARTER		4
+#define TRACKING_SPEED_DOUBLE		5
 
 /* MovieTrackingStrabilization->flag */
 #define TRACKING_2D_STABILIZATION	(1<<0)
