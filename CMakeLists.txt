@@ -843,11 +843,11 @@ elseif(WIN32)
 		if(WITH_OPENCOLLADA)
 			set(OPENCOLLADA ${LIBDIR}/gcc/opencollada)
 			set(OPENCOLLADA_INCLUDE_DIRS
-				${LIBDIR}/opencollada/include/COLLADAStreamWriter/include
-				${LIBDIR}/opencollada/include/COLLADABaseUtils/include
-				${LIBDIR}/opencollada/include/COLLADAFramework/include
-				${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader/include
-				${LIBDIR}/opencollada/include/GeneratedSaxParser/include			
+				${LIBDIR}/gcc/opencollada/include/COLLADAStreamWriter/include
+				${LIBDIR}/gcc/opencollada/include/COLLADABaseUtils/include
+				${LIBDIR}/gcc/opencollada/include/COLLADAFramework/include
+				${LIBDIR}/gcc/opencollada/include/COLLADASaxFrameworkLoader/include
+				${LIBDIR}/gcc/opencollada/include/GeneratedSaxParser/include			
 			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib ${OPENCOLLADA}/lib)
 			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa)
