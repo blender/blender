@@ -291,7 +291,7 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 			}
 		}
 
-		if(strlen(function->name) == 0 || function->totparam == 0) {
+		if(function->name[0] == '\0' || function->totparam == 0) {
 			fprintf(stderr, "GPU functions parse error.\n");
 			MEM_freeN(function);
 			break;
