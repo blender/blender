@@ -2029,16 +2029,11 @@ static void init_transform_effect(Sequence *seq)
 
 	transform->ScalexIni = 1.0f;
 	transform->ScaleyIni = 1.0f;
-	transform->ScalexFin = 1.0f;
-	transform->ScalexFin = 1.0f;
 
 	transform->xIni=0.0f;
-	transform->xFin=0.0f;
 	transform->yIni=0.0f;
-	transform->yFin=0.0f;
 
 	transform->rotIni=0.0f;
-	transform->rotFin=0.0f;
 	
 	transform->interpolation=1;
 	transform->percent=1;

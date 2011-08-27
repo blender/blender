@@ -209,14 +209,9 @@ typedef struct GlowVars {
 typedef struct TransformVars {
 	float ScalexIni;
 	float ScaleyIni;
-	float ScalexFin; /* deprecated - old transform strip */
-	float ScaleyFin; /* deprecated - old transform strip */
 	float xIni;
-	float xFin; /* deprecated - old transform strip */
 	float yIni;
-	float yFin; /* deprecated - old transform strip */
 	float rotIni;
-	float rotFin; /* deprecated - old transform strip */
 	int percent;
 	int interpolation;
 	int uniform_scale; /* preserve aspect/ratio when scaling */
