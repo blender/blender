@@ -91,41 +91,25 @@ SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_B
 
 	Object* blenderobject = gameobj->GetBlenderObject();
 
-	ipocontr->GetIPOTransform().SetPosition(
-		MT_Point3(
-		blenderobject->loc[0]/*+blenderobject->dloc[0]*/,
-		blenderobject->loc[1]/*+blenderobject->dloc[1]*/,
-		blenderobject->loc[2]/*+blenderobject->dloc[2]*/
-		)
-	);
-	ipocontr->GetIPOTransform().SetEulerAngles(
-		MT_Vector3(
-		blenderobject->rot[0],
-		blenderobject->rot[1],
-		blenderobject->rot[2]
-		)
-	);
-	ipocontr->GetIPOTransform().SetScaling(
-		MT_Vector3(
-		blenderobject->size[0],
-		blenderobject->size[1],
-		blenderobject->size[2]
-		)
-	);
+	ipocontr->GetIPOTransform().SetPosition(MT_Point3(blenderobject->loc));
+	ipocontr->GetIPOTransform().SetEulerAngles(MT_Vector3(blenderobject->rot));
+	ipocontr->GetIPOTransform().SetScaling(MT_Vector3(blenderobject->size));
 
 	const char *rotmode, *drotmode;
 
-	switch(blenderobject->rotmode)
-	{
+	switch(blenderobject->rotmode) {
 	case ROT_MODE_AXISANGLE:
 		rotmode = "rotation_axis_angle";
 		drotmode = "delta_rotation_axis_angle";
+		break;
 	case ROT_MODE_QUAT:
 		rotmode = "rotation_quaternion";
 		drotmode = "delta_rotation_quaternion";
+		break;
 	default:
 		rotmode = "rotation_euler";
 		drotmode = "delta_rotation_euler";
+		break;
 	}
 
 	BL_InterpolatorList *adtList= GetAdtList(action, converter);
