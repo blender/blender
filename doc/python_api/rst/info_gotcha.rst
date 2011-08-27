@@ -152,6 +152,92 @@ write useful tools in python which are also fast to execute while in edit-mode.
 For the time being this limitation just has to be worked around but we're aware its frustrating needs to be addressed.
 
 
+***********************************
+EditBones, PoseBones, Bone... Bones
+***********************************
+
+Armature Bones in Blender have three distinct data structures that contain them. If you are accessing the bones through one of them, you may not have access to the properties you really need.
+
+.. note::
+
+	In the following examples ``bpy.context.object`` is assumed to be an armature object.
+
+
+==========
+Edit Bones
+==========
+
+``bpy.context.object.data.edit_bones`` contains a editbones; to access them you must set the armature mode to edit mode first (editbones do not exist in object or pose mode). Use these to create new bones, set their head/tail or roll, change their parenting relationships to other bones, etc.
+
+Example using :class:`bpy.types.EditBone` in armature editmode:
+
+.. code-block:: python
+
+	# This is only possible in edit mode.
+	bpy.context.object.data.edit_bones["Bone"].head = Vector((1.0, 2.0, 3.0)) 
+
+	# This will be empty outside of editmode.
+	mybones = bpy.context.selected_editable_bones
+
+	# Returns an editbone only in edit mode.
+	bpy.context.active_bone
+
+
+===================
+Bones (Object Mode)
+===================
+
+``bpy.context.object.data.bones`` contains bones. These *live* in object mode, and have various properties you can change, note that the head and tail properties are read-only.
+
+Example using :class:`bpy.types.Bone` in object or pose mode:
+
+.. code-block:: python
+
+	# returns a bone (not an editbone) outside of edit mode
+	bpy.context.active_bone
+
+	# This works, as with blender the setting can be edited in any mode
+	bpy.context.object.data.bones["Bone"].use_deform = True
+
+	# Accessible but read-only
+	tail = myobj.data.bones["Bone"].tail
+
+
+==========
+Pose Bones
+==========
+
+``bpy.context.object.pose.bones`` contains pose bones. This is where animation data resides, i.e. animatable transformations are applied to pose bones, as are constraints and ik-settings.
+
+Examples using :class:`bpy.types.PoseBone` in object or pose mode:
+
+.. code-block:: python
+
+	# Gets the name of the first constraint (if it exists)
+	bpy.context.object.pose.bones["Bone"].constraints[0].name 
+
+	# Gets the last selected pose bone (pose mode only)
+	bpy.context.active_pose_bone
+
+
+.. note::
+
+	Notice the pose is accessed from the object rather than the object data, this is why blender can have 2 or more objects sharing the same armature in different poses.
+
+.. note::
+
+	Strictly speaking PoseBone's are not bones, they are just the state of the armature, stored in the :class:`bpy.types.Object` rather than the :class:`bpy.types.Armature`, the real bones are however accessible from the pose bones - :class:`bpy.types.PoseBone.bone`
+
+
+=======================
+Armature Mode Switching
+=======================
+
+While writing scripts that deal with armatures you may find you have to switch between modes, when doing so take care when switching out of editmode not to keep references to the edit-bones or their head/tail vectors. Further access to these will crash blender so its important the script clearly separates sections of the code which operate in different modes.
+
+This is mainly an issue with editmode since pose data can be manipulated without having to be in pose mode, however for operator access you may still need to enter pose mode.
+
+
 ****************
 Unicode Problems
 ****************
