@@ -3134,7 +3134,7 @@ int object_is_modified(Scene *scene, Object *ob)
 	int flag= 0;
 
 	if(ob_get_key(ob)) {
-		flag |= eModifierMode_Render | eModifierMode_Render;
+		flag |= eModifierMode_Render;
 	}
 	else {
 		ModifierData *md;
