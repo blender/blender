@@ -930,6 +930,7 @@ enum {
 #define SEQ_PROXY_RENDER_SIZE_25        25
 #define SEQ_PROXY_RENDER_SIZE_50        50
 #define SEQ_PROXY_RENDER_SIZE_75        75
+#define SEQ_PROXY_RENDER_SIZE_100       99
 #define SEQ_PROXY_RENDER_SIZE_FULL      100
 
 

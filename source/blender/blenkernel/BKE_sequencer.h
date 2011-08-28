@@ -177,6 +177,7 @@ int seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence 
 /* maintainance functions, mostly for RNA */
 // extern 
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
+void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);
 void seq_free_editing(struct Scene *scene);
 void seq_free_clipboard(void);
@@ -198,6 +199,11 @@ void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_s
 
 int input_have_to_preprocess(
 	SeqRenderData context, struct Sequence * seq, float cfra);
+
+void seq_proxy_rebuild(struct Main * bmain, 
+		       struct Scene *scene, struct Sequence * seq,
+		       short *stop, short *do_update, float *progress);
+
 
 /* **********************************************************************
    seqcache.c

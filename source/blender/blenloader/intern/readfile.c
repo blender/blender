@@ -9951,12 +9951,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ed) {
 				SEQP_BEGIN(ed, seq) {
 					if (seq->strip && seq->strip->proxy){
-						if (sce->r.size != 100.0) {
-							seq->strip->proxy->size
-								= sce->r.size;
-						} else {
-							seq->strip->proxy->size = 25;
-						}
 						seq->strip->proxy->quality =90;
 					}
 				}
