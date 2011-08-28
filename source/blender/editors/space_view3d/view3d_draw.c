@@ -2272,6 +2272,7 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy, float viewmat[][4], float winmat[][4])
 {
+	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
 	float backcol[3];
 	int bwinx, bwiny;
@@ -2320,6 +2321,9 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
 
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_draw_clipping(rv3d);
+
 	/* set zbuffer */
 	if(v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= TRUE;
@@ -2327,6 +2331,9 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	}
 	else
 		v3d->zbuf= FALSE;
+
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_set_clipping(rv3d);
 
 	/* draw set first */
 	if(scene->set) {
@@ -2362,6 +2369,9 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	if(v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
 	if(v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
 	if(v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
+
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_clr_clipping();
 
 	/* cleanup */
 	if(v3d->zbuf) {
