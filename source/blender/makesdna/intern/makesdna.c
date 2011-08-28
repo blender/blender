@@ -139,18 +139,18 @@ const char *includefiles[] = {
 	""
 };
 
-int maxdata= 500000, maxnr= 50000;
-int nr_names=0;
-int nr_types=0;
-int nr_structs=0;
-char **names, *namedata;		/* at address names[a] is string a */
-char **types, *typedata;		/* at address types[a] is string a */
-short *typelens;				/* at typelens[a] is de length of type a */
-short *alphalens;			    /* contains sizes as they are calculated on the DEC Alpha (64 bits) */
-short **structs, *structdata;	/* at sp= structs[a] is the first address of a struct definition
-								   sp[0] is type number
-								   sp[1] is amount of elements
-								   sp[2] sp[3] is typenr,  namenr (etc) */
+static int maxdata= 500000, maxnr= 50000;
+static int nr_names=0;
+static int nr_types=0;
+static int nr_structs=0;
+static char **names, *namedata;		/* at address names[a] is string a */
+static char **types, *typedata;		/* at address types[a] is string a */
+static short *typelens;				/* at typelens[a] is de length of type a */
+static short *alphalens;			/* contains sizes as they are calculated on the DEC Alpha (64 bits), infact any 64bit system */
+static short **structs, *structdata;/* at sp= structs[a] is the first address of a struct definition
+								       sp[0] is type number
+							    	   sp[1] is amount of elements
+							    	   sp[2] sp[3] is typenr,  namenr (etc) */
 /**
  * Variable to control debug output of makesdna.
  * debugSDNA:
@@ -159,8 +159,8 @@ short **structs, *structdata;	/* at sp= structs[a] is the first address of a str
  *  - 2 = full trace, tell which names and types were found
  *  - 4 = full trace, plus all gritty details
  */
-int debugSDNA = 0;
-int additional_slen_offset;
+static int debugSDNA = 0;
+static int additional_slen_offset;
 
 /* ************************************************************************** */
 /* Functions                                                                  */
@@ -891,7 +891,7 @@ void printStructLenghts(void)
 }
 
 
-int make_structDNA(char *baseDirectory, FILE *file)
+static int make_structDNA(char *baseDirectory, FILE *file)
 {
 	int len, i;
 	short *sp;

@@ -300,7 +300,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			
 		tmp= GetLogicalDrives();
 		
-		for (i=2; i < 26; i++) {
+		for (i=0; i < 26; i++) {
 			if ((tmp>>i) & 1) {
 				tmps[0]='A'+i;
 				tmps[1]=':';

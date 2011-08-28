@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -47,7 +48,7 @@
 
 #include "BKE_node.h"
 
-EnumPropertyItem texture_filter_items[] = {
+static EnumPropertyItem texture_filter_items[] = {
 	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
 	{TXF_FELINE, "FELINE", 0, "FELINE", ""},

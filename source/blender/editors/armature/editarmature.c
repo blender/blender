@@ -494,15 +494,32 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 	EditBone *ebone;
 	bArmature *arm= ob->data;
 	float scale = mat4_to_scale(mat);	/* store the scale of the matrix here to use on envelopes */
-	
+	float mat3[3][3];
+
+	copy_m3_m4(mat3, mat);
+	normalize_m3(mat3);
+
 	/* Put the armature into editmode */
 	ED_armature_to_edit(ob);
 
 	/* Do the rotations */
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next){
+	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
+		float	delta[3], tmat[3][3];
+
+		/* find the current bone's roll matrix */
+		sub_v3_v3v3(delta, ebone->tail, ebone->head);
+		vec_roll_to_mat3(delta, ebone->roll, tmat);
+
+		/* transform the roll matrix */
+		mul_m3_m3m3(tmat, mat3, tmat);
+
+		/* transform the bone */
 		mul_m4_v3(mat, ebone->head);
 		mul_m4_v3(mat, ebone->tail);
-		
+
+		/* apply the transfiormed roll back */
+		mat3_to_vec_roll(tmat, NULL, &ebone->roll);
+
 		ebone->rad_head	*= scale;
 		ebone->rad_tail	*= scale;
 		ebone->dist		*= scale;

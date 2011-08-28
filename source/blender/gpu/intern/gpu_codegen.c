@@ -82,7 +82,7 @@ typedef enum GPUDataSource {
 } GPUDataSource;
 
 static const char* GPU_DATATYPE_STR[17] = {"", "float", "vec2", "vec3", "vec4",
-	0, 0, 0, 0, "mat3", 0, 0, 0, 0, 0, 0, "mat4"};
+	NULL, NULL, NULL, NULL, "mat3", NULL, NULL, NULL, NULL, NULL, NULL, "mat4"};
 
 struct GPUNode {
 	struct GPUNode *next, *prev;
@@ -291,7 +291,7 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 			}
 		}
 
-		if(strlen(function->name) == 0 || function->totparam == 0) {
+		if(function->name[0] == '\0' || function->totparam == 0) {
 			fprintf(stderr, "GPU functions parse error.\n");
 			MEM_freeN(function);
 			break;
@@ -451,7 +451,7 @@ static int codegen_input_has_texture(GPUInput *input)
 	else if(input->ima)
 		return 1;
 	else
-		return input->tex != 0;
+		return input->tex != NULL;
 }
 
 const char *GPU_builtin_name(GPUBuiltin builtin)
@@ -880,7 +880,7 @@ void GPU_pass_unbind(GPUPass *pass)
 			GPU_texture_unbind(input->tex);
 
 		if (input->ima)
-			input->tex = 0;
+			input->tex = NULL;
 	}
 	
 	GPU_shader_unbind(shader);

@@ -1345,8 +1345,11 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 	VlakRen *vlr;
 	MTFace *mtf;
 	float xvec[3], yvec[3], zvec[3], bb_center[3];
+	/* Number of tiles */
 	int totsplit = bb->uv_split * bb->uv_split;
-	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
+	int tile, x, y;
+	/* Tile offsets */
+ 	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
 
 	vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 	vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
@@ -1420,11 +1423,14 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 		else if(bb->split_offset==PART_BB_OFF_RANDOM)
 			time = (float)fmod(time + bb->random, 1.0f);
 
-		uvx = uvdx * floor((float)(bb->uv_split * bb->uv_split) * (float)fmod((double)time, (double)uvdx));
-		uvy = uvdy * floor((1.0f - time) * (float)bb->uv_split);
-
-		if(fmod(time, 1.0f / bb->uv_split) == 0.0f)
-			uvy -= uvdy;
+		/* Find the coordinates in tile space (integer), then convert to UV
+		 * space (float). Note that Y is flipped. */
+		tile = (int)((time + FLT_EPSILON10) * totsplit);
+		x = tile % bb->uv_split;
+		y = tile / bb->uv_split;
+		y = (bb->uv_split - 1) - y;
+		uvx = uvdx * x;
+		uvy = uvdy * y;
 	}
 
 	/* normal UVs */

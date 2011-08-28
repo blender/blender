@@ -516,7 +516,7 @@ short *give_totcolp_id(ID *id)
 	return NULL;
 }
 
-void data_delete_material_index_id(ID *id, int index)
+static void data_delete_material_index_id(ID *id, int index)
 {
 	switch(GS(id->name)) {
 	case ID_ME:
@@ -1366,7 +1366,7 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 }
 
 /* copy/paste buffer, if we had a propper py api that would be better */
-Material matcopybuf;
+static Material matcopybuf;
 static short matcopied= 0;
 
 void clear_matcopybuf(void)

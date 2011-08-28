@@ -9,6 +9,7 @@ Release:        @CPACK_RPM_PACKAGE_RELEASE@%{?dist}
 License:        @CPACK_RPM_PACKAGE_LICENSE@
 Group:          @CPACK_RPM_PACKAGE_GROUP@
 Vendor:         @CPACK_RPM_PACKAGE_VENDOR@
+Epoch:         1
 
 %define _rpmdir @CPACK_RPM_DIRECTORY@
 %define _rpmfilename @CPACK_RPM_FILE_NAME@

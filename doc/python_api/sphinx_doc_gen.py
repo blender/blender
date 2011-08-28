@@ -60,11 +60,13 @@ if __import__("sys").modules.get("bpy") is None:
 # Switch for quick testing
 if 1:
     # full build
+    EXCLUDE_INFO_DOCS = False
     EXCLUDE_MODULES = ()
     FILTER_BPY_TYPES = None
     FILTER_BPY_OPS = None
 
 else:
+    EXCLUDE_INFO_DOCS = False
     # for testing so doc-builds dont take so long.
     EXCLUDE_MODULES = (
         "bpy.context",
@@ -74,7 +76,7 @@ else:
         "bpy.props",
         "bpy.utils",
         "bpy.context",
-        #"bpy.types",  # supports filtering
+        "bpy.types",  # supports filtering
         "bpy.ops",  # supports filtering
         "bpy_extras",
         "bge",
@@ -97,6 +99,13 @@ sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 
     """
 
+# extra info, not api reference docs
+# stored in ./rst/info/
+INFO_DOCS = (
+    ("info_quickstart.rst", "Blender/Python Quickstart: new to blender/scripting and want to get you're feet wet?"),
+    ("info_overview.rst", "Blender/Python API Overview: a more complete explanation of python integration"),
+    ("info_gotcha.rst", "Gotcha's: some of the problems you may come up against when writing scripts"),
+    )
 
 # import rpdb2; rpdb2.start_embedded_debugger('test')
 
@@ -1009,14 +1018,17 @@ def rna2sphinx(BASEPATH):
 
     fw("\n")
 
-    fw("============================\n")
-    fw("Blender/Python Documentation\n")
-    fw("============================\n")
-    fw("\n")
-    fw("\n")
-    fw("* `Quickstart Intro <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>`_ if you are new to scripting in blender and want to get you're feet wet!\n")
-    fw("* `Blender/Python Overview <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Overview>`_ for a more complete explanation of python integration in blender\n")
-    fw("\n")
+    if not EXCLUDE_INFO_DOCS:
+        fw("============================\n")
+        fw("Blender/Python Documentation\n")
+        fw("============================\n")
+        fw("\n")
+        fw("\n")
+        fw(".. toctree::\n")
+        fw("   :maxdepth: 1\n\n")
+        for info, info_desc in INFO_DOCS:
+            fw("   %s <%s>\n\n" % (info_desc, info))
+        fw("\n")
 
     fw("===================\n")
     fw("Application Modules\n")
@@ -1223,6 +1235,11 @@ def rna2sphinx(BASEPATH):
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.constraints.rst"), BASEPATH)
 
     shutil.copy2(os.path.join(BASEPATH, "..", "rst", "change_log.rst"), BASEPATH)
+
+
+    if not EXCLUDE_INFO_DOCS:
+        for info, info_desc in INFO_DOCS:
+            shutil.copy2(os.path.join(BASEPATH, "..", "rst", info), BASEPATH)
 
     if 0:
         filepath = os.path.join(BASEPATH, "bpy.rst")

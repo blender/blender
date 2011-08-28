@@ -1049,7 +1049,7 @@ void RNA_def_property_array(PropertyRNA *prop, int length)
 	}
 
 	if(prop->arraydimension > 1) {
-		fprintf(stderr, "RNA_def_property_array: \"%s.%s\", array dimensions has been set to %d but would be overwritten as 1.\n", srna->identifier, prop->identifier, prop->arraydimension);
+		fprintf(stderr, "RNA_def_property_array: \"%s.%s\", array dimensions has been set to %u but would be overwritten as 1.\n", srna->identifier, prop->identifier, prop->arraydimension);
 		DefRNA.error= 1;
 		return;
 	}
