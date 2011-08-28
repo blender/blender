@@ -1371,15 +1371,15 @@ void BKE_makepicstring(char *string, const char *base, int frame, int imtype, co
 }
 
 /* used by sequencer too */
-struct anim *openanim(char *name, int flags)
+struct anim *openanim(char *name, int flags, int streamindex)
 {
 	struct anim *anim;
 	struct ImBuf *ibuf;
 	
-	anim = IMB_open_anim(name, flags);
+	anim = IMB_open_anim(name, flags, streamindex);
 	if (anim == NULL) return NULL;
 
-	ibuf = IMB_anim_absolute(anim, 0);
+	ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
 	if (ibuf == NULL) {
 		if(BLI_exists(name))
 			printf("not an anim: %s\n", name);
@@ -1773,20 +1773,26 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		else
 			BLI_path_abs(str, G.main->name);
 		
-		ima->anim = openanim(str, IB_rect);
+		/* FIXME: make several stream accessible in image editor, too*/
+		ima->anim = openanim(str, IB_rect, 0);
 		
 		/* let's initialize this user */
 		if(ima->anim && iuser && iuser->frames==0)
-			iuser->frames= IMB_anim_get_duration(ima->anim);
+			iuser->frames= IMB_anim_get_duration(ima->anim,
+							     IMB_TC_RECORD_RUN);
 	}
 	
 	if(ima->anim) {
-		int dur = IMB_anim_get_duration(ima->anim);
+		int dur = IMB_anim_get_duration(ima->anim,
+						IMB_TC_RECORD_RUN);
 		int fra= frame-1;
 		
 		if(fra<0) fra = 0;
 		if(fra>(dur-1)) fra= dur-1;
-		ibuf = IMB_anim_absolute(ima->anim, fra);
+		ibuf = IMB_makeSingleUser(
+			IMB_anim_absolute(ima->anim, fra,
+					  IMB_TC_RECORD_RUN,
+					  IMB_PROXY_NONE));
 		
 		if(ibuf) {
 			image_initialize_after_load(ima, ibuf);

@@ -133,7 +133,7 @@ std::istream& operator >> (std::istream& is,Vector& v)
 {   IOTrace("Stream input Vector (vector or ZERO)");
     char storage[10];
     EatWord(is,"[]",storage,10);
-    if (strlen(storage)==0) {
+    if (storage[0]=='\0') {
         Eat(is,'[');
         is >> v(0);
         Eat(is,',');
@@ -194,7 +194,7 @@ std::istream& operator >> (std::istream& is,Rotation& r)
 {   IOTrace("Stream input Rotation (Matrix or EULERZYX, EULERZYZ,RPY, ROT, IDENTITY)");
     char storage[10];
     EatWord(is,"[]",storage,10);
-    if (strlen(storage)==0) {
+    if (storage[0]=='\0') {
         Eat(is,'[');
         for (int i=0;i<3;i++) {
             is >> r(i,0);
@@ -255,7 +255,7 @@ std::istream& operator >> (std::istream& is,Frame& T)
 {   IOTrace("Stream input Frame (Rotation,Vector) or DH[...]");
     char storage[10];
     EatWord(is,"[",storage,10);
-    if (strlen(storage)==0) {
+    if (storage[0]=='\0') {
         Eat(is,'[');
         is >> T.M;
         is >> T.p;

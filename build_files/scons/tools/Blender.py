@@ -364,16 +364,16 @@ def buildinfo(lenv, build_type):
 
     obj = []
     if lenv['BF_BUILDINFO']:
-        lenv.Append (CPPDEFINES = ['BUILD_TIME="%s"'%(build_time),
-                                    'BUILD_DATE="%s"'%(build_date),
-                                    'BUILD_TYPE="%s"'%(build_type),
-                                    'BUILD_REV="%s"'%(build_rev),
-                                    'NAN_BUILDINFO',
-                                    'BUILD_PLATFORM="%s:%s"'%(platform.system(), platform.architecture()[0]),
+        lenv.Append (CPPDEFINES = ['BUILD_TIME=\\"%s\\"'%(build_time),
+                                    'BUILD_DATE=\\"%s\\"'%(build_date),
+                                    'BUILD_TYPE=\\"%s\\"'%(build_type),
+                                    'BUILD_REV=\\"%s\\"'%(build_rev),
+                                    'WITH_BUILDINFO',
+                                    'BUILD_PLATFORM=\\"%s:%s\\"'%(platform.system(), platform.architecture()[0]),
                                     'BUILD_CFLAGS=\\"%s\\"'%(build_cflags),
                                     'BUILD_CXXFLAGS=\\"%s\\"'%(build_cxxflags),
                                     'BUILD_LINKFLAGS=\\"%s\\"'%(build_linkflags),
-                                    'BUILD_SYSTEM="SCons"'
+                                    'BUILD_SYSTEM=\\"SCons\\"'
                     ])
 
         lenv.Append (CPPPATH = [root_build_dir+'source/blender/blenkernel'])

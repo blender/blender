@@ -31,14 +31,14 @@ def region_2d_to_vector_3d(region, rv3d, coord):
     coordinate.
 
     :arg region: region of the 3D viewport, typically bpy.context.region.
-    :type region: :class:`Region`
+    :type region: :class:`bpy.types.Region`
     :arg rv3d: 3D region data, typically bpy.context.space_data.region_3d.
-    :type rv3d: :class:`RegionView3D`
+    :type rv3d: :class:`bpy.types.RegionView3D`
     :arg coord: 2d coordinates relative to the region:
        (event.mouse_region_x, event.mouse_region_y) for example.
     :type coord: 2d vector
     :return: normalized 3d vector.
-    :rtype: :class:`Vector`
+    :rtype: :class:`mathutils.Vector`
     """
     from mathutils import Vector
 
@@ -65,9 +65,9 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
     *depth_location*.
 
     :arg region: region of the 3D viewport, typically bpy.context.region.
-    :type region: :class:`Region`
+    :type region: :class:`bpy.types.Region`
     :arg rv3d: 3D region data, typically bpy.context.space_data.region_3d.
-    :type rv3d: :class:`RegionView3D`
+    :type rv3d: :class:`bpy.types.RegionView3D`
     :arg coord: 2d coordinates relative to the region;
        (event.mouse_region_x, event.mouse_region_y) for example.
     :type coord: 2d vector
@@ -75,7 +75,7 @@ def region_2d_to_location_3d(region, rv3d, coord, depth_location):
        there is no defined depth with a 2d region input.
     :type depth_location: 3d vector
     :return: normalized 3d vector.
-    :rtype: :class:`Vector`
+    :rtype: :class:`mathutils.Vector`
     """
     from mathutils import Vector
     from mathutils.geometry import intersect_point_line
@@ -114,13 +114,13 @@ def location_3d_to_region_2d(region, rv3d, coord):
     Return the *region* relative 2d location of a 3d position.
 
     :arg region: region of the 3D viewport, typically bpy.context.region.
-    :type region: :class:`Region`
+    :type region: :class:`bpy.types.Region`
     :arg rv3d: 3D region data, typically bpy.context.space_data.region_3d.
-    :type rv3d: :class:`RegionView3D`
+    :type rv3d: :class:`bpy.types.RegionView3D`
     :arg coord: 3d worldspace location.
     :type coord: 3d vector
     :return: 2d location
-    :rtype: :class:`Vector`
+    :rtype: :class:`mathutils.Vector`
     """
     from mathutils import Vector
 

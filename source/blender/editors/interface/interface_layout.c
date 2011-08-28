@@ -1361,7 +1361,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 {
 	MenuType *mt= (MenuType*)arg_mt;
-	Menu menu = {0};
+	Menu menu = {NULL};
 
 	menu.type= mt;
 	menu.layout= layout;

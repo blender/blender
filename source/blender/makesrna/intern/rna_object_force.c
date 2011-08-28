@@ -43,7 +43,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-EnumPropertyItem effector_shape_items[] = {
+static EnumPropertyItem effector_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface", ""},
@@ -51,20 +51,23 @@ EnumPropertyItem effector_shape_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem curve_shape_items[] = {
+#ifdef RNA_RUNTIME
+
+/* type spesific return values only used from functions */
+static EnumPropertyItem curve_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem empty_shape_items[] = {
+static EnumPropertyItem empty_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem vortex_shape_items[] = {
+static EnumPropertyItem vortex_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface falloff (New)", ""},
@@ -72,20 +75,18 @@ EnumPropertyItem vortex_shape_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem curve_vortex_shape_items[] = {
+static EnumPropertyItem curve_vortex_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve (New)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem empty_vortex_shape_items[] = {
+static EnumPropertyItem empty_vortex_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{0, NULL, 0, NULL, NULL}
 };
-
-#ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
 

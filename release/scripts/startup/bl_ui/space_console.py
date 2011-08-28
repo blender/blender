@@ -41,7 +41,7 @@ class CONSOLE_MT_console(Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("console.clear")
         layout.operator("console.copy")
         layout.operator("console.paste")

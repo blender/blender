@@ -287,7 +287,7 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
         Transform the the bones head, tail, roll and envalope (when the matrix has a scale component).
 
         :arg matrix: 3x3 or 4x4 transformation matrix.
-        :type matrix: :class:`Matrix`
+        :type matrix: :class:`mathutils.Matrix`
         :arg scale: Scale the bone envalope by the matrix.
         :type scale: bool
         :arg roll: Correct the roll to point in the same relative direction to the head and tail.

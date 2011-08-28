@@ -179,7 +179,7 @@ def execute(context):
 
     # special exception. its possible the command loaded a new user interface
     if hash(sc) != hash(context.space_data):
-        return
+        return {'FINISHED'}
 
     bpy.ops.console.scrollback_append(text=sc.prompt + line, type='INPUT')
 

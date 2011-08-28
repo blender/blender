@@ -52,7 +52,7 @@ extern "C"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "ED_keyframing.h"
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 extern char build_rev[];
 #endif
 }
@@ -1002,7 +1002,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename, bool
 	else {
 		asset.getContributor().mAuthor = "Blender User";
 	}
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 	char version_buf[128];
 	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION, build_rev);
 	asset.getContributor().mAuthoringTool = version_buf;

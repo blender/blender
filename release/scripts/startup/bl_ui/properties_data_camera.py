@@ -107,7 +107,7 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 
         col = split.column()
 
-        if cam.dof_object != None:
+        if cam.dof_object is not None:
             col.enabled = False
         col.prop(cam, "dof_distance", text="Distance")
 
