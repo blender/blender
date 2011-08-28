@@ -1301,6 +1301,7 @@ static void bmDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 
 static void bmDM_copyLoopArray(DerivedMesh *dm, MLoop *loop_r)
 {
+	/* EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm; */ /* UNUSED */
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
 	BMIter iter, liter;
 	BMVert *v;
@@ -1331,6 +1332,7 @@ static void bmDM_copyLoopArray(DerivedMesh *dm, MLoop *loop_r)
 
 static void bmDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
 {
+	/* EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm; */ /* UNUSED */
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
 	BMIter iter;
 	BMFace *f;

@@ -215,6 +215,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* only use material offsets if we have 2 or more materials  */
 	const short mat_nr_max= ob->totcol > 1 ? ob->totcol - 1 : 0;
 	const short mat_ofs= mat_nr_max ? smd->mat_ofs : 0;
+	/* const short mat_ofs_rim= mat_nr_max ? smd->mat_ofs_rim : 0; */ /* UNUSED */
 
 	/* use for edges */
 	int *new_vert_arr= NULL;
