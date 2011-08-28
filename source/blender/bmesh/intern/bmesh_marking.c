@@ -648,6 +648,11 @@ void BM_Hide(BMesh *bm, void *element, int hide)
 {
 	BMHeader *h = element;
 
+	/*Follow convention of always deselecting before
+	  hiding an element*/
+	if (hide)
+		BM_Select(bm, element, 0);
+
 	switch (h->type) {
 		case BM_VERT:
 			BM_Hide_Vert(bm, element, hide);

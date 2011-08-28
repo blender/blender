@@ -63,7 +63,6 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 
 	if (!me || !me->totvert) return; /*sanity check*/
 	
-	mvert = me->mvert;
 	vt = MEM_mallocN(sizeof(void**)*me->totvert, "mesh to bmesh vtable");
 
 	CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
@@ -125,7 +124,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 	CustomData_bmesh_init_pool(&bm->ldata, allocsize[2]);
 	CustomData_bmesh_init_pool(&bm->pdata, allocsize[3]);
 
-	for (i=0; i<me->totvert; i++, mvert++) {
+	for (i=0, mvert = me->mvert; i<me->totvert; i++, mvert++) {
 		v = BM_Make_Vert(bm, keyco&&set_key ? keyco[i] : mvert->co, NULL);
 		normal_short_to_float_v3(v->no, mvert->no);
 

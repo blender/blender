@@ -231,7 +231,7 @@ static void *islandboundWalker_step(BMWalker *walker)
 			l = bmesh_radial_nextloop(l);
 			f = l->f;
 			e = l->e;
-			if(!BMO_TestFlag(walker->bm, f, walker->restrictflag)){
+			if(walker->restrictflag && !BMO_TestFlag(walker->bm, f, walker->restrictflag)){
 				l = l->radial_next;
 				break;
 			}
@@ -301,7 +301,7 @@ static void *islandWalker_step(BMWalker *walker)
 	for (; l; l=BMIter_Step(&liter)) {
 		f = BMIter_New(&iter, walker->bm, BM_FACES_OF_EDGE, l->e);
 		for (; f; f=BMIter_Step(&iter)) {
-			if (!BMO_TestFlag(walker->bm, f, walker->restrictflag))
+			if (walker->restrictflag && !BMO_TestFlag(walker->bm, f, walker->restrictflag))
 				continue;
 			if (BLI_ghash_haskey(walker->visithash, f)) continue;
 			
@@ -310,7 +310,6 @@ static void *islandWalker_step(BMWalker *walker)
 			iwalk->cur = f;
 			BLI_ghash_insert(walker->visithash, f, NULL);
 			break;
-
 		}
 	}
 	
@@ -318,13 +317,9 @@ static void *islandWalker_step(BMWalker *walker)
 }
 
 
-/*	Island Walker:
+/*	Edge Loop Walker:
  *
- *	Starts at a tool flagged-face and walks over the face region
- *
- *	TODO:
- *
- *  Add restriction flag/callback for wire edges.
+ *	Starts at a tool-flagged edge and walks over the edge loop
  * 
 */
 

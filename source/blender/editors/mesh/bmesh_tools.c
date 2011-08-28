@@ -692,7 +692,13 @@ static int mesh_extrude_region_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	
 	EDBM_Extrude_Mesh(scene, obedit, em, op, NULL);
-	
+
+	/*This normally happens when pushing undo but modal operators
+	  like this one don't push undo data until after modal mode is
+	  done.*/
+	EDBM_RecalcNormals(em);
+	BMEdit_RecalcTesselation(em);
+
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;	
@@ -1100,14 +1106,15 @@ static int delete_mesh_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 	
 	if (type != 12) {
-		delete_mesh(C, obedit, op, type, scene);
+		if (delete_mesh(C, obedit, op, type, scene) == OPERATOR_CANCELLED)
+			return OPERATOR_CANCELLED;
+		EDBM_clear_flag_all(em, BM_SELECT);
 	} else {
 		if (!EDBM_CallOpf(em, op, "collapse edges=%he", BM_SELECT))
 			return OPERATOR_CANCELLED;
 		DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	}
-		
-	
+
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA|ND_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
@@ -1594,6 +1601,8 @@ void EDBM_hide_mesh(BMEditMesh *em, int swap)
 			BM_Hide(em->bm, h, 1);
 	}
 
+	EDBM_selectmode_flush(em);
+
 	/*original hide flushing comment (OUTDATED): 
 	  hide happens on least dominant select mode, and flushes up, not down! (helps preventing errors in subsurf) */
 	/*  - vertex hidden, always means edge is hidden too
@@ -1643,7 +1652,12 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	int i, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
 	int sels[3] = {1, !(em->selectmode & SCE_SELECT_VERTEX), !(em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE))};
 
-	for (i=0; i<3; i++) {
+	/*Reveal all hidden elements. Handle the reveal in order of faces,
+	  edges, and finally vertices. This is important because revealing
+	  edges may reveal faces, and revealing verts may reveal edges and
+	  faces. Revealing edges or faces in an earlier pass would keep them
+	  from getting selected in the later passes.*/
+	for (i=2; i>=0; i--) {
 		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
 			if (BM_TestHFlag(ele, BM_HIDDEN)) {
 				BM_Hide(em->bm, ele, 0);
@@ -3047,7 +3061,7 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMEditSelection *ese = em->bm->selected.last;
-	int axis= RNA_int_get(op->ptr, "axis");
+	int axis= RNA_enum_get(op->ptr, "axis");
 	int mode= RNA_enum_get(op->ptr, "mode"); /* -1==aligned, 0==neg, 1==pos*/
 
 	if(ese==NULL)
@@ -3098,6 +3112,12 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 		{-1, "ALIGNED",  0, "Aligned Axis", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem axis_items_xyz[] = {
+		{0, "X_AXIS", 0, "X Axis", ""},
+		{1, "Y_AXIS", 0, "Y Axis", ""},
+		{2, "Z_AXIS", 0, "Z Axis", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	/* identifiers */
 	ot->name= "Select Axis";
 	ot->description= "Select all data in the mesh on a single axis.";
@@ -3112,7 +3132,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "mode", axis_mode_items, 0, "Axis Mode", "Axis side to use when selecting");
-	RNA_def_int(ot->srna, "axis", 0, 0, 2, "Axis", "Select the axis to compare each vertex on", 0, 2);
+	RNA_def_enum(ot->srna, "axis", axis_items_xyz, 0, "Axis", "Select the axis to compare each vertex on");
 }
 
 static int solidify_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
@@ -3515,7 +3535,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	
 	EDBM_CallOpf(em, wmop, "dupe geom=%hvef dest=%p", BM_SELECT, bmnew);
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_SELECT, DEL_FACES);
-	
+
 	/*clean up any loose edges*/
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_HIDDEN))
@@ -3534,7 +3554,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 		if (BM_Vert_EdgeCount(v) != 0)
 			BM_Select(em->bm, v, 0); /*deselect*/
 	}
-	
+
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_SELECT, DEL_VERTS);
 	
 	BM_Compute_Normals(bmnew);
@@ -3552,10 +3572,78 @@ static int mesh_separate_material(Main *UNUSED(bmain), Scene *UNUSED(scene), Bas
 	return 0;
 }
 
-//BMESH_TODO
-static int mesh_separate_loose(Main *UNUSED(bmain), Scene *UNUSED(scene), Base *UNUSED(editbase), wmOperator *UNUSED(wmop))
+static int mesh_separate_loose(Main *bmain, Scene *scene, Base *editbase, wmOperator *wmop)
 {
-	return 0;
+	int i;
+	BMVert *v;
+	BMEdge *e;
+	BMVert *v_seed;
+	BMWalker walker;
+	BMIter iter;
+	int result = 0;
+	Object *obedit = editbase->object;
+	Mesh *me = obedit->data;
+	BMEditMesh *em = me->edit_btmesh;
+	BMesh *bm = em->bm;
+	int max_iter = bm->totvert;
+
+	/*Clear all selected vertices*/
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_Select(bm, v, 0);
+	}
+
+	/*Flush the selection to clear edge/face selections to match
+	  selected vertices*/
+	EDBM_select_flush(em, SCE_SELECT_VERTEX);
+
+	/*A "while(true)" loop should work here as each iteration should
+	  select and remove at least one vertex and when all vertices
+	  are selected the loop will break out. But guard against bad
+	  behavior by limiting iterations to the number of vertices in the
+	  original mesh.*/
+	for(i=0; i<max_iter; i++)
+	{
+		/* Get a seed vertex to start the walk */
+		v_seed = NULL;
+		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			v_seed = v;
+			break;
+		}
+
+		/* No vertices available, can't do anything */
+		if (v_seed == NULL)
+		{
+			break;
+		}
+
+		/*Select the seed explicitly, in case it has no edges*/
+		BM_Select(bm, v_seed, 1);
+
+		/*Walk from the single vertex, selecting everything connected
+		  to it*/
+		BMW_Init(&walker, bm, BMW_SHELL, 0, 0);
+		e = BMW_Begin(&walker, v_seed);
+		for (; e; e=BMW_Step(&walker)) {
+			BM_Select(bm, e->v1, 1);
+			BM_Select(bm, e->v2, 1);
+		}
+		BMW_End(&walker);
+				
+		/*Flush the selection to get edge/face selections matching
+		  the vertex selection*/
+		EDBM_select_flush(em, SCE_SELECT_VERTEX);
+
+		if (bm->totvert == bm->totvertsel)
+		{
+			/*Every vertex selected, nothing to separate, work is done*/
+			break;
+		}
+
+		/*Move selection into a separate object*/
+		result |= mesh_separate_selected(bmain, scene, editbase, wmop);
+	}
+
+	return result;
 }
 
 static int mesh_separate_exec(bContext *C, wmOperator *op)

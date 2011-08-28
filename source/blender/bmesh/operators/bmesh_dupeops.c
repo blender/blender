@@ -516,10 +516,19 @@ static void delete_context(BMesh *bm, int type){
 		/*now go through and mark all remaining faces all edges for keeping.*/
 		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm); f; f = BMIter_Step(&faces)){
 			if(!BMO_TestFlag(bm, (BMHeader*)f, DEL_INPUT)){
-				for(e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e= BMIter_Step(&edges))
+				for(e = BMIter_New(&edges, bm, BM_EDGES_OF_FACE, f); e; e= BMIter_Step(&edges)){
 					BMO_ClearFlag(bm, (BMHeader*)e, DEL_INPUT);
-				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v= BMIter_Step(&verts))
+				}
+				for(v = BMIter_New(&verts, bm, BM_VERTS_OF_FACE, f); v; v= BMIter_Step(&verts)){
 					BMO_ClearFlag(bm, (BMHeader*)v, DEL_INPUT);
+				}
+			}
+		}
+		/*also mark all the vertices of remaining edges for keeping.*/
+		for(e = BMIter_New(&edges, bm, BM_EDGES_OF_MESH, bm); e; e = BMIter_Step(&edges)){
+			if(!BMO_TestFlag(bm, (BMHeader*)e, DEL_INPUT)){
+				BMO_ClearFlag(bm, (BMHeader*)e->v1, DEL_INPUT);
+				BMO_ClearFlag(bm, (BMHeader*)e->v2, DEL_INPUT);
 			}
 		}
 		/*now delete marked faces*/

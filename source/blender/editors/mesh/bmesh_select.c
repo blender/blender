@@ -1646,20 +1646,318 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* not that optimal!, should be nicer with bmesh */
+static void tag_face_edges(BMesh* bm, BMFace *f)
+{
+	BMLoop *l;
+	BMIter iter;
+
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+		BM_SetIndex(l->e, 1);
+	}
+}
+static int tag_face_edges_test(BMesh* bm, BMFace *f)
+{
+	BMLoop *l;
+	BMIter iter;
+
+	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
+		if(BM_GetIndex(l->e) != 0)
+			return 1;
+	}
+
+	return 0;
+}
+
+static void em_deselect_nth_face(BMEditMesh *em, int nth, BMFace *f_act)
+{
+	BMFace *f;
+	BMEdge *e;
+	BMIter iter;
+	BMesh *bm = em->bm;
+	int index;
+	int ok= 1;
+
+	if(f_act==NULL) {
+		return;
+	}
+
+	/* to detect loose edges, we put f2 flag on 1 */
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_SetIndex(e, 0);
+	}
+
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		BM_SetIndex(f, 0);
+	}
+
+	BM_SetIndex(f_act, 1);
+
+	while(ok) {
+		ok = 0;
+
+		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			index= BM_GetIndex(f);
+			if(index==1) { /* initialize */
+				tag_face_edges(bm, f);
+			}
+
+			if (index)
+				BM_SetIndex(f, index+1);
+		}
+
+		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+			if(BM_GetIndex(f)==0 && tag_face_edges_test(bm, f)) {
+				BM_SetIndex(f, 1);
+				ok= 1; /* keep looping */
+			}
+		}
+	}
+
+	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+		index= BM_GetIndex(f);
+		if(index > 0 && index % nth) {
+			BM_Select(bm, f, 0);
+		}
+	}
+
+	EDBM_select_flush(em, SCE_SELECT_FACE);
+}
+
+/* not that optimal!, should be nicer with bmesh */
+static void tag_edge_verts(BMesh *bm, BMEdge *e)
+{
+	BM_SetIndex(e->v1, 1);
+	BM_SetIndex(e->v2, 1);
+}
+static int tag_edge_verts_test(BMesh *bm, BMEdge *e)
+{
+	return (BM_GetIndex(e->v1) || BM_GetIndex(e->v2)) ? 1:0;
+}
+
+static void em_deselect_nth_edge(BMEditMesh *em, int nth, BMEdge *e_act)
+{
+	BMEdge *e;
+	BMVert *v;
+	BMIter iter;
+	BMesh *bm = em->bm;
+	int index;
+	int ok= 1;
+
+	if(e_act==NULL) {
+		return;
+	}
+
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_SetIndex(v, 0);
+	}
+
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		BM_SetIndex(e, 0);
+	}
+
+	BM_SetIndex(e_act, 1);
+
+	while(ok) {
+		ok = 0;
+
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			index= BM_GetIndex(e);
+			if (index==1) { /* initialize */
+				tag_edge_verts(bm, e);
+			}
+
+			if (index)
+				BM_SetIndex(e, index+1);
+		}
+
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			if (BM_GetIndex(e)==0 && tag_edge_verts_test(bm, e)) {
+				BM_SetIndex(e, 1);
+				ok = 1; /* keep looping */
+			}
+		}
+	}
+
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+		index= BM_GetIndex(e);
+		if (index > 0 && index % nth)
+			BM_Select(bm, e, 0);
+	}
+
+	EDBM_select_flush(em, SCE_SELECT_EDGE);
+}
+
+static void em_deselect_nth_vert(BMEditMesh *em, int nth, BMVert *v_act)
+{
+	BMEdge *e;
+	BMVert *v;
+	BMIter iter;
+	BMesh *bm = em->bm;
+	int ok= 1;
+
+	if(v_act==NULL) {
+		return;
+	}
+
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		BM_SetIndex(v, 0);
+	}
+	
+	BM_SetIndex(v_act, 1);
+
+	while(ok) {
+		ok = 0;
+
+		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			int index = BM_GetIndex(v);
+			if (index != 0)
+				BM_SetIndex(v, index+1);
+		}
+
+		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
+			int indexv1= BM_GetIndex(e->v1);
+			int indexv2= BM_GetIndex(e->v2);
+			if (indexv1 == 2 && indexv2 == 0) {
+				BM_SetIndex(e->v2, 1);
+				ok = 1; /* keep looping */
+			}
+			else if (indexv2 == 2 && indexv1 == 0) {
+				BM_SetIndex(e->v1, 1);
+				ok = 1; /* keep looping */
+			}
+		}
+	}
+
+	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+		int index= BM_GetIndex(v);
+		if(index && index % nth) {
+			BM_Select(bm, v, 0);
+		}
+	}
+
+	EDBM_select_flush(em, SCE_SELECT_VERTEX);
+}
+
+BMFace *EM_get_actFace(BMEditMesh *em, int sloppy)
+{
+	if (em->bm->act_face) {
+		return em->bm->act_face;
+	} else if (sloppy) {
+		BMIter iter;
+		BMFace *f= NULL;
+		BMEditSelection *ese;
+		
+		/* Find the latest non-hidden face from the BMEditSelection */
+		ese = em->bm->selected.last;
+		for (; ese; ese=ese->prev){
+			if(ese->type == BM_FACE) {
+				f = (BMFace *)ese->data;
+				
+				if (BM_TestHFlag(f, BM_HIDDEN))	f= NULL;
+				else		break;
+			}
+		}
+		/* Last attempt: try to find any selected face */
+		if (f==NULL) {
+			BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+				if (BM_TestHFlag(f, BM_SELECT))
+					break;
+			}
+		}
+		return f; /* can still be null */
+	}
+	return NULL;
+}
+
+static void deselect_nth_active(BMEditMesh *em, BMVert **v_p, BMEdge **e_p, BMFace **f_p)
+{
+	BMVert *v;
+	BMEdge *e;
+	BMFace *f;
+	BMIter iter;
+	BMEditSelection *ese;
+
+	*v_p= NULL;
+	*e_p= NULL;
+	*f_p= NULL;
+
+	EDBM_selectmode_flush(em);
+	ese= (BMEditSelection*)em->bm->selected.last;
+
+	if(ese) {
+		switch(ese->type) {
+		case BM_VERT:
+			*v_p= (BMVert *)ese->data;
+			return;
+		case BM_EDGE:
+			*e_p= (BMEdge *)ese->data;
+			return;
+		case BM_FACE:
+			*f_p= (BMFace *)ese->data;
+			return;
+		}
+	}
+
+	if(em->selectmode & SCE_SELECT_VERTEX) {
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_TestHFlag(v, BM_SELECT)) {
+				*v_p = v;
+				return;
+			}
+		}
+	}
+	else if(em->selectmode & SCE_SELECT_EDGE) {
+		BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+			if (BM_TestHFlag(e, BM_SELECT)) {
+				*e_p = e;
+				return;
+			}
+		}
+	}
+	else if(em->selectmode & SCE_SELECT_FACE) {
+		f= EM_get_actFace(em, 1);
+		if(f) {
+			*f_p= f;
+			return;
+		}
+	}
+}
+
+static int EM_deselect_nth(BMEditMesh *em, int nth)
+{
+	BMVert *v;
+	BMEdge *e;
+	BMFace *f;
+
+	deselect_nth_active(em, &v, &e, &f);
+
+	if(v) {
+		em_deselect_nth_vert(em, nth, v);
+		return 1;
+	}
+	else if(e) {
+		em_deselect_nth_edge(em, nth, e);
+		return 1;
+	}
+	else if(f) {
+		em_deselect_nth_face(em, nth, f);
+		return 1;
+	}
+
+	return 0;
+}
+
 static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-//	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-//	int nth = RNA_int_get(op->ptr, "nth");
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	int nth= RNA_int_get(op->ptr, "nth");
 
-#if 0 //BMESH_TODO
 	if(EM_deselect_nth(em, nth) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face.");
 		return OPERATOR_CANCELLED;
 	}
-#else
-		BKE_report(op->reports, RPT_ERROR, "Unimplemented");
-#endif
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -1683,243 +1981,6 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
-}
-
-#if 0 //BMESH_TODO, select nth tool
-/* not that optimal!, should be nicer with bmesh */
-static void tag_face_edges(EditFace *efa)
-{
-	if(efa->v4)
-		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= efa->e4->tmp.l= 1;
-	else
-		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= 1;
-}
-static int tag_face_edges_test(EditFace *efa)
-{
-	if(efa->v4)
-		return (efa->e1->tmp.l || efa->e2->tmp.l || efa->e3->tmp.l || efa->e4->tmp.l) ? 1:0;
-	else
-		return (efa->e1->tmp.l || efa->e2->tmp.l || efa->e3->tmp.l) ? 1:0;
-}
-
-void em_deselect_nth_face(EditMesh *em, int nth, EditFace *efa_act)
-{
-	EditFace *efa;
-	EditEdge *eed;
-	int ok= 1;
-
-	if(efa_act==NULL) {
-		return;
-	}
-
-	/* to detect loose edges, we put f2 flag on 1 */
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		eed->tmp.l= 0;
-	}
-
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		efa->tmp.l = 0;
-	}
-
-	efa_act->tmp.l = 1;
-
-	while(ok) {
-		ok = 0;
-
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->tmp.l==1) { /* initialize */
-				tag_face_edges(efa);
-			}
-
-			if(efa->tmp.l)
-				efa->tmp.l++;
-		}
-
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->tmp.l==0 && tag_face_edges_test(efa)) {
-				efa->tmp.l= 1;
-				ok = 1; /* keep looping */
-			}
-		}
-	}
-
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->tmp.l > 0 && efa->tmp.l % nth) {
-			EM_select_face(efa, 0);
-		}
-	}
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->f & SELECT) {
-			EM_select_face(efa, 1);
-		}
-	}
-
-	EM_nvertices_selected(em);
-	EM_nedges_selected(em);
-	EM_nfaces_selected(em);
-}
-
-/* not that optimal!, should be nicer with bmesh */
-static void tag_edge_verts(EditEdge *eed)
-{
-	eed->v1->tmp.l= eed->v2->tmp.l= 1;
-}
-static int tag_edge_verts_test(EditEdge *eed)
-{
-	return (eed->v1->tmp.l || eed->v2->tmp.l) ? 1:0;
-}
-
-void em_deselect_nth_edge(EditMesh *em, int nth, EditEdge *eed_act)
-{
-	EditEdge *eed;
-	EditVert *eve;
-	int ok= 1;
-
-	if(eed_act==NULL) {
-		return;
-	}
-
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		eve->tmp.l= 0;
-	}
-
-	for (eed= em->edges.first; eed; eed= eed->next) {
-		eed->tmp.l = 0;
-	}
-
-	eed_act->tmp.l = 1;
-
-	while(ok) {
-		ok = 0;
-
-		for (eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->tmp.l==1) { /* initialize */
-				tag_edge_verts(eed);
-			}
-
-			if(eed->tmp.l)
-				eed->tmp.l++;
-		}
-
-		for (eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->tmp.l==0 && tag_edge_verts_test(eed)) {
-				eed->tmp.l= 1;
-				ok = 1; /* keep looping */
-			}
-		}
-	}
-
-	for (eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->tmp.l > 0 && eed->tmp.l % nth) {
-			EM_select_edge(eed, 0);
-		}
-	}
-	for (eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->f & SELECT) {
-			EM_select_edge(eed, 1);
-		}
-	}
-
-	{
-		/* grr, should be a function */
-		EditFace *efa;
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->v4) {
-				if(efa->e1->f & efa->e2->f & efa->e3->f & efa->e4->f & SELECT );
-				else efa->f &= ~SELECT;
-			}
-			else {
-				if(efa->e1->f & efa->e2->f & efa->e3->f & SELECT );
-				else efa->f &= ~SELECT;
-			}
-		}
-	}
-
-	EM_nvertices_selected(em);
-	EM_nedges_selected(em);
-	EM_nfaces_selected(em);
-}
-
-void em_deselect_nth_vert(EditMesh *em, int nth, EditVert *eve_act)
-{
-	EditVert *eve;
-	EditEdge *eed;
-	int ok= 1;
-
-	if(eve_act==NULL) {
-		return;
-	}
-
-	for (eve= em->verts.first; eve; eve= eve->next) {
-		eve->tmp.l = 0;
-	}
-
-	eve_act->tmp.l = 1;
-
-	while(ok) {
-		ok = 0;
-
-		for (eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->tmp.l)
-				eve->tmp.l++;
-		}
-
-		for (eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->v1->tmp.l==2 && eed->v2->tmp.l==0) { /* initialize */
-				eed->v2->tmp.l= 1;
-				ok = 1; /* keep looping */
-			}
-			else if(eed->v2->tmp.l==2 && eed->v1->tmp.l==0) { /* initialize */
-				eed->v1->tmp.l= 1;
-				ok = 1; /* keep looping */
-			}
-		}
-	}
-
-	for (eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->tmp.l > 0 && eve->tmp.l % nth) {
-			eve->f &= ~SELECT;
-		}
-	}
-
-	EM_deselect_flush(em);
-
-	EM_nvertices_selected(em);
-	// EM_nedges_selected(em); // flush does these
-	// EM_nfaces_selected(em); // flush does these
-}
-#endif
-
-static int EM_deselect_nth(BMEditMesh *em, int nth)
-{
-#if 1 /*BMESH_TODO*/
-	(void)em;
-	(void)nth;
-#else
-	EditSelection *ese;
-	ese = ((EditSelection*)em->selected.last);
-	if(ese) {
-		if(ese->type == EDITVERT) {
-			em_deselect_nth_vert(em, nth, (EditVert*)ese->data);
-			return 1;
-		}
-
-		if(ese->type == EDITEDGE) {
-			em_deselect_nth_edge(em, nth, (EditEdge*)ese->data);
-			return 1;
-		}
-	}
-	else {
-		EditFace *efa_act = EM_get_actFace(em, 0);
-		if(efa_act) {
-			em_deselect_nth_face(em, nth, efa_act);
-			return 1;
-		}
-	}
-
-	return 0;
-#endif
-	return 1;
 }
 
 void em_setup_viewcontext(bContext *C, ViewContext *vc)
