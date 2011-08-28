@@ -383,7 +383,6 @@ short ANIM_paste_driver (ReportList *reports, ID *id, const char rna_path[], int
 			/* modifiers */
 		copy_fmodifiers(&fcu->modifiers, &channeldriver_copypaste_buf->modifiers);
 		
-			/* flags - on a per-relevant-flag basis */
 			/* extrapolation mode */
 		fcu->extend= channeldriver_copypaste_buf->extend;
 			

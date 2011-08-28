@@ -2062,8 +2062,19 @@ static short animdata_use_time(AnimData *adt)
 			return 1;
 	}
 	
-	/* experimental check: if we have drivers, more likely than not, on a frame change
+	/* If we have drivers, more likely than not, on a frame change
 	 * they'll need updating because their owner changed
+	 * 
+	 * This is kindof a hack to get around a whole host of problems
+	 * involving drivers using non-object datablock data (which the 
+	 * depsgraph currently has no way of representing let alone correctly
+	 * dependency sort+tagging). By doing this, at least we ensure that 
+	 * some commonly attempted drivers (such as scene -> current frame;
+	 * see "Driver updates fail" thread on Bf-committers dated July 2)
+	 * will work correctly, and that other non-object datablocks will have
+	 * their drivers update at least on frame change.
+	 *
+	 * -- Aligorith, July 4 2011
 	 */
 	if (adt->drivers.first)
 		return 1;

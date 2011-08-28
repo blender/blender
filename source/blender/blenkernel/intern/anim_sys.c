@@ -1168,7 +1168,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 				 * for we know that which the updates in RNA were really just for
 				 * flushing property editing via UI/Py
 				 */
-				if (RNA_struct_is_a(new_ptr.type, &RNA_PoseBone)) {
+				if (new_ptr.type == &RNA_PoseBone) {
 					/* bone transforms - update pose (i.e. tag depsgraph) */
 					skip_updates_hack = 1;
 				}				

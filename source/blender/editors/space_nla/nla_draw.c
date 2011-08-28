@@ -471,10 +471,7 @@ static void nla_draw_strip_text (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, 
 		sprintf(str, "%d) Temp-Meta", index);
 	}
 	else {
-		if (strip->flag & NLASTRIP_FLAG_REVERSE)
-			sprintf(str, "%s", strip->name);
-		else
-			sprintf(str, "%s", strip->name);
+		sprintf(str, strip->name);
 	}
 	
 	/* set text color - if colors (see above) are light, draw black text, otherwise draw white */
