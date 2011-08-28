@@ -573,11 +573,15 @@ static int add_to_proxy_output_ffmpeg(
 			  ctx->frame->data, ctx->frame->linesize);
 	}
 
-	ctx->frame->pts = ctx->cfra++;
+	frame = ctx->sws_ctx ? (frame ? ctx->frame : 0) : frame;
+
+	if (frame) {
+		frame->pts = ctx->cfra++;
+	}
 
 	outsize = avcodec_encode_video(
 		ctx->c, ctx->video_buffer, ctx->video_buffersize, 
-		ctx->sws_ctx ? (frame ? ctx->frame : 0) : frame);
+		frame);
 
 	if (outsize < 0) {
 		fprintf(stderr, "Error encoding proxy frame %d for '%s'\n", 
