@@ -2417,7 +2417,7 @@ typedef struct RNAProcessItem {
 static RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_rna.c", NULL, RNA_def_rna},
 	{"rna_ID.c", NULL, RNA_def_ID},
-	{"rna_texture.c", NULL, RNA_def_texture},
+	{"rna_texture.c", "rna_texture_api.c", RNA_def_texture},
 	{"rna_action.c", "rna_action_api.c", RNA_def_action},
 	{"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
 	{"rna_animviz.c", NULL, RNA_def_animviz},
