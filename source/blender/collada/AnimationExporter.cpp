@@ -71,14 +71,15 @@ void AnimationExporter::operator() (Object *ob)
 			bArmature *arm = (bArmature*)ob->data;
 			for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
 				write_bone_animation_matrix(ob, bone);
-			
-			transformName = fcu->rna_path;
 		}
-		else 
-			transformName = extract_transform_name( fcu->rna_path );
 		
 		while (fcu) {
-			transformName = extract_transform_name( fcu->rna_path );
+			//for armature animations as objects
+			if ( ob->type == OB_ARMATURE )
+				transformName =  fcu->rna_path;
+			else 
+				transformName = extract_transform_name( fcu->rna_path );
+		
 			if ((!strcmp(transformName, "location") || !strcmp(transformName, "scale")) ||
 				(!strcmp(transformName, "rotation_euler") && ob->rotmode == ROT_MODE_EUL)||
 				(!strcmp(transformName, "rotation_quaternion"))) 
