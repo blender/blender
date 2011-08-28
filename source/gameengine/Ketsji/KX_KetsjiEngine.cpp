@@ -96,7 +96,6 @@ const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 	"Animations:",	// tc_animations
 	"Network:",		// tc_network
 	"Scenegraph:",	// tc_scenegraph
-	"Sound:",		// tc_sound
 	"Rasterizer:",	// tc_rasterizer
 	"Services:",	// tc_services
 	"Overhead:",	// tc_overhead
@@ -692,8 +691,6 @@ else
 			else
 				if(scene->getSuspendedTime()==0.0)
 					scene->setSuspendedTime(m_clockTime);
-	
-			DoSound(scene);
 			
 			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
 		}
@@ -768,8 +765,6 @@ else
  			else
  				if(scene->getSuspendedTime()==0.0)
  					scene->setSuspendedTime(m_clockTime);
-
-			DoSound(scene);
 
 			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
 		}
@@ -1001,35 +996,6 @@ const STR_String& KX_KetsjiEngine::GetExitString()
 {
 	return m_exitstring;
 }
-
-
-
-void KX_KetsjiEngine::DoSound(KX_Scene* scene)
-{
-	m_logger->StartLog(tc_sound, m_kxsystem->GetTimeInSeconds(), true);
-
-	// nothing to do here, everything relative now...
-	/*KX_Camera* cam = scene->GetActiveCamera();
-	if (!cam)
-		return;
-
-	AUD_I3DDevice* dev = AUD_get3DDevice();
-	if(dev)
-	{
-		AUD_Vector3 v;
-		//float q[4];
-		//cam->NodeGetWorldPosition().getValue(v.get());
-		dev->setListenerLocation(v);
-
-		//cam->GetLinearVelocity().getValue(v.get());
-		dev->setListenerVelocity(v);
-
-		//cam->NodeGetWorldOrientation().getRotation().getValue(q);
-		//dev->setListenerOrientation(AUD_Quaternion(q[3], q[0], q[1], q[2]));
-		dev->setListenerOrientation(AUD_Quaternion());
-	}*/
-}
-
 
 
 void KX_KetsjiEngine::SetBackGround(KX_WorldInfo* wi)

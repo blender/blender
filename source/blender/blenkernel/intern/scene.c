@@ -968,7 +968,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 	scene_update_drivers(bmain, scene);
 
 	/* update sound system animation */
-	sound_update_scene(bmain, scene);
+	sound_update_scene(scene);
 }
 
 /* this is called in main loop, doing tagged updates before redraw */

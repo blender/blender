@@ -153,7 +153,6 @@ private:
 		tc_animations,
 		tc_network,
 		tc_scenegraph,
-		tc_sound,
 		tc_rasterizer,
 		tc_services,	// time spend in miscelaneous activities
 		tc_overhead,	// profile info drawing overhead
@@ -199,7 +198,6 @@ private:
 	void					RenderDebugProperties();
 	void					RenderShadowBuffers(KX_Scene *scene);
 	void					SetBackGround(KX_WorldInfo* worldinfo);
-	void					DoSound(KX_Scene* scene);
 	void					RenderFonts(KX_Scene* scene);
 
 public:

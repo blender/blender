@@ -136,7 +136,7 @@ void sound_read_waveform(struct bSound* sound);
 
 int sound_get_channels(struct bSound* sound);
 
-void sound_update_scene(struct Main* bmain, struct Scene* scene);
+void sound_update_scene(struct Scene* scene);
 
 void* sound_get_factory(void* sound);
 

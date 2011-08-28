@@ -24,6 +24,7 @@
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 
+#define WITH_AUDASPACE
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
 #endif
@@ -649,9 +650,10 @@ int sound_get_channels(struct bSound* sound)
 	return info.specs.channels;
 }
 
-void sound_update_scene(struct Main* bmain, struct Scene* scene)
+void sound_update_scene(struct Scene* scene)
 {
 	Object* ob;
+	Base* base;
 	NlaTrack* track;
 	NlaStrip* strip;
 	Speaker* speaker;
@@ -660,8 +662,9 @@ void sound_update_scene(struct Main* bmain, struct Scene* scene)
 	void* handle;
 	float quat[4];
 
-	for(ob = bmain->object.first; ob; ob = ob->id.next)
+	for(base = FIRSTBASE; base; base=base->next)
 	{
+		ob = base->object;
 		if(ob->type == OB_SPEAKER)
 		{
 			if(ob->adt)

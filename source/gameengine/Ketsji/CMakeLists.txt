@@ -45,37 +45,14 @@ set(INC
 	../../blender/gpu
 	../../blender/imbuf
 	../../blender/makesdna
+	../../blender/makesrna
 	../../blender/python
 	../../blender/python/generic
 	../../blender/python/mathutils
 	../../../intern/container
 	../../../intern/guardedalloc
-	../../../intern/container
-	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer
-	../../../source/gameengine/Converter
-	../../../source/gameengine/BlenderRoutines
-	../../../source/blender/imbuf
 	../../../intern/moto/include
 	../../../intern/string
-	../../../source/gameengine/Ketsji
-	../../../source/blender/blenlib
-	../../../source/blender/blenfont
-	../../../source/blender/blenkernel
-	../../../source/blender/python
-	../../../source/blender/python/generic
-	../../../source/blender
-	../../../source/blender/makesdna
-	../../../source/blender/makesrna
-	../../../source/gameengine/Rasterizer
-	../../../source/gameengine/GameLogic
-	../../../source/gameengine/Expressions
-	../../../source/gameengine/Ketsji/KXNetwork
-	../../../source/gameengine/Network
-	../../../source/gameengine/SceneGraph
-	../../../source/gameengine/Physics/common
-	../../../source/gameengine/Network/LoopBackNetwork
-	../../../source/blender/blenloader
-	../../../source/blender/gpu
 )
 
 set(INC_SYS

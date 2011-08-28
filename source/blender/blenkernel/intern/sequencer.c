@@ -3150,18 +3150,14 @@ void seq_update_sound_bounds_all(Scene *scene)
 {
 	Editing *ed = scene->ed;
 
-	if(ed)
-	{
+	if(ed) {
 		Sequence *seq;
 
-		for(seq = ed->seqbase.first; seq; seq = seq->next)
-		{
-			if(seq->type == SEQ_META)
-			{
+		for(seq = ed->seqbase.first; seq; seq = seq->next) {
+			if(seq->type == SEQ_META) {
 				seq_update_sound_bounds_recursive(scene, seq);
 			}
-			else if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE))
-			{
+			else if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
 				seq_update_sound_bounds(scene, seq);
 			}
 		}
@@ -3170,8 +3166,7 @@ void seq_update_sound_bounds_all(Scene *scene)
 
 void seq_update_sound_bounds(Scene* scene, Sequence *seq)
 {
-	if(seq->scene_sound)
-	{
+	if(seq->scene_sound) {
 		sound_move_scene_sound(scene, seq->scene_sound, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 		/* mute is set in seq_update_muting_recursive */
 	}
