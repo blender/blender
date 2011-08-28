@@ -15,7 +15,6 @@ set(sources
 	buffers.cpp
 	camera.cpp
 	film.cpp
-	film_response.cpp
 	filter.cpp
 	graph.cpp
 	image.cpp
@@ -39,7 +38,6 @@ set(headers
 	buffers.h
 	camera.h
 	film.h
-	film_response.h
 	filter.h
 	graph.h
 	image.h

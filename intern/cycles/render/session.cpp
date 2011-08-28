@@ -52,6 +52,7 @@ Session::Session(const SessionParams& params_)
 	delayed_reset.do_reset = false;
 	delayed_reset.w = 0;
 	delayed_reset.h = 0;
+	delayed_reset.passes = 0;
 
 	display_outdated = false;
 	gpu_draw_ready = false;
@@ -95,7 +96,7 @@ bool Session::ready_to_reset()
 
 /* GPU Session */
 
-void Session::reset_gpu(int w, int h)
+void Session::reset_gpu(int w, int h, int passes)
 {
 	/* block for buffer acces and reset immediately. we can't do this
 	   in the thread, because we need to allocate an OpenGL buffer, and
@@ -106,7 +107,7 @@ void Session::reset_gpu(int w, int h)
 	display_outdated = true;
 	reset_time = time_dt();
 
-	reset_(w, h);
+	reset_(w, h, passes);
 
 	gpu_need_tonemap = false;
 	gpu_need_tonemap_cond.notify_all();
@@ -148,7 +149,14 @@ void Session::run_gpu()
 	start_time = time_dt();
 	reset_time = time_dt();
 
-	while(!progress.get_cancel() && tile_manager.next()) {
+	while(!progress.get_cancel()) {
+		bool done = !tile_manager.next();
+
+		if(done && params.background)
+			break;
+
+		/* todo: wait when done in interactive mode */
+
 		/* buffers mutex is locked entirely while rendering each
 		   pass, and released/reacquired on each iteration to allow
 		   reset and draw in between */
@@ -193,7 +201,7 @@ void Session::run_gpu()
 
 /* CPU Session */
 
-void Session::reset_cpu(int w, int h)
+void Session::reset_cpu(int w, int h, int passes)
 {
 	thread_scoped_lock reset_lock(delayed_reset.mutex);
 
@@ -202,6 +210,7 @@ void Session::reset_cpu(int w, int h)
 
 	delayed_reset.w = w;
 	delayed_reset.h = h;
+	delayed_reset.passes = passes;
 	delayed_reset.do_reset = true;
 	device->task_cancel();
 }
@@ -235,11 +244,18 @@ void Session::run_cpu()
 		thread_scoped_lock buffers_lock(buffers->mutex);
 		thread_scoped_lock display_lock(display->mutex);
 
-		reset_(delayed_reset.w, delayed_reset.h);
+		reset_(delayed_reset.w, delayed_reset.h, delayed_reset.passes);
 		delayed_reset.do_reset = false;
 	}
 
-	while(!progress.get_cancel() && tile_manager.next()) {
+	while(!progress.get_cancel()) {
+		bool done = !tile_manager.next();
+
+		if(done && params.background)
+			break;
+
+		/* todo: wait when done in interactive mode */
+
 		{
 			thread_scoped_lock buffers_lock(buffers->mutex);
 
@@ -266,7 +282,7 @@ void Session::run_cpu()
 			if(delayed_reset.do_reset) {
 				/* reset rendering if request from main thread */
 				delayed_reset.do_reset = false;
-				reset_(delayed_reset.w, delayed_reset.h);
+				reset_(delayed_reset.w, delayed_reset.h, delayed_reset.passes);
 			}
 			else {
 				/* tonemap only if we do not reset, we don't we don't
@@ -313,7 +329,7 @@ bool Session::draw(int w, int h)
 		return draw_cpu(w, h);
 }
 
-void Session::reset_(int w, int h)
+void Session::reset_(int w, int h, int passes)
 {
 	if(w != buffers->width || h != buffers->height) {
 		gpu_draw_ready = false;
@@ -321,19 +337,28 @@ void Session::reset_(int w, int h)
 		display->reset(device, w, h);
 	}
 
-	tile_manager.reset(w, h);
+	tile_manager.reset(w, h, passes);
 
 	start_time = time_dt();
 	preview_time = 0.0;
 	pass = 0;
 }
 
-void Session::reset(int w, int h)
+void Session::reset(int w, int h, int passes)
 {
 	if(device_use_gl)
-		reset_gpu(w, h);
+		reset_gpu(w, h, passes);
 	else
-		reset_cpu(w, h);
+		reset_cpu(w, h, passes);
+}
+
+void Session::set_passes(int passes)
+{
+	if(passes != params.passes) {
+		params.passes = passes;
+		tile_manager.set_passes(passes);
+		/* todo: awake in paused loop */
+	}
 }
 
 void Session::wait()

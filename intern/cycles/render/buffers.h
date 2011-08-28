@@ -47,6 +47,7 @@ public:
 	~RenderBuffers();
 
 	void reset(Device *device, int width, int height);
+	float4 *copy_from_device(float exposure, int pass);
 
 protected:
 	void device_free();
@@ -67,6 +68,8 @@ public:
 	   with progressive render we can be using only a subset of the buffer.
 	   if these are zero, it means nothing can be drawn yet */
 	int draw_width, draw_height;
+	/* draw alpha channel? */
+	bool transparent;
 	/* byte buffer for tonemapped result */
 	device_vector<uchar4> rgba;
 	/* mutex, must be locked manually by callers */
@@ -83,6 +86,7 @@ public:
 	bool draw_ready();
 
 protected:
+	void draw_transparency_grid();
 	void device_free();
 
 	Device *device;

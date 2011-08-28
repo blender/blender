@@ -125,5 +125,16 @@ void Filter::device_free(Device *device, DeviceScene *dscene)
 	dscene->filter_table.clear();
 }
 
+bool Filter::modified(const Filter& filter)
+{
+	return !(filter_type == filter.filter_type &&
+		filter_width == filter.filter_width);
+}
+
+void Filter::tag_update(Scene *scene)
+{
+	need_update = true;
+}
+
 CCL_NAMESPACE_END
 

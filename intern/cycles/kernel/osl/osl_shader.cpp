@@ -145,9 +145,11 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 
 					/* scattering flags */
 					if(scattering == OSL::Labels::DIFFUSE)
-						sd->flag |= SD_BSDF_HAS_EVAL;
+						sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
 					else if(scattering == OSL::Labels::GLOSSY)
-						sd->flag |= SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+						sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+					else
+						sd->flag |= SD_BSDF;
 
 					/* add */
 					sd->osl_closure.bsdf[sd->osl_closure.num_bsdf++] = flat;
@@ -170,8 +172,11 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					sd->osl_closure.emissive[sd->osl_closure.num_emissive++] = flat;
 					break;
 				}
-				case ClosurePrimitive::BSSRDF:
 				case ClosurePrimitive::Holdout:
+					sd->osl_closure.holdout_weight += weight;
+					sd->flag |= SD_HOLDOUT;
+					break;
+				case ClosurePrimitive::BSSRDF:
 				case ClosurePrimitive::Debug:
 					break; /* not implemented */
 				case ClosurePrimitive::Background:
@@ -212,6 +217,7 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 	sd->osl_closure.emissive_sample_sum = 0.0f;
 	sd->osl_closure.num_bsdf = 0;
 	sd->osl_closure.num_emissive = 0;
+	sd->osl_closure.holdout_weight = make_float3(0.0f, 0.0f, 0.0f);
 	sd->osl_closure.randb = randb;
 
 	if(globals->Ci) {
@@ -553,6 +559,13 @@ float3 OSLShader::volume_eval_phase(const ShaderData *sd, const float3 omega_in,
 	}
 
 	return eval;
+}
+
+/* Holdout Closure */
+
+float3 OSLShader::holdout_eval(const ShaderData *sd)
+{
+	return sd->osl_closure.holdout_weight;
 }
 
 CCL_NAMESPACE_END

@@ -30,6 +30,7 @@
 /* in opencl all functions are device functions, so leave this empty */
 #define __device
 #define __device_inline
+#define __device_noinline
 
 /* no assert in opencl */
 #define kernel_assert(cond)

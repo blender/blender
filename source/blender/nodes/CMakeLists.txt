@@ -128,6 +128,7 @@ set(SRC
 	intern/SHD_nodes/SHD_emission.c
 	intern/SHD_nodes/SHD_fresnel.c
 	intern/SHD_nodes/SHD_geometry.c
+	intern/SHD_nodes/SHD_holdout.c
 	intern/SHD_nodes/SHD_light_path.c
 	intern/SHD_nodes/SHD_mix_closure.c
 	intern/SHD_nodes/SHD_add_closure.c

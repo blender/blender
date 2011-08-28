@@ -86,9 +86,14 @@ void Device::pixels_free(device_memory& mem)
 	mem_free(mem);
 }
 
-void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int width, int height)
+void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int width, int height, bool transparent)
 {
 	pixels_copy_from(rgba, y, w, h);
+
+	if(transparent) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	}
 
 	glPixelZoom((float)width/(float)w, (float)height/(float)h);
 	glRasterPos2f(0, y);
@@ -97,6 +102,9 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int width, in
 
 	glRasterPos2f(0.0f, 0.0f);
 	glPixelZoom(1.0f, 1.0f);
+
+	if(transparent)
+		glDisable(GL_BLEND);
 }
 
 Device *Device::create(DeviceType type, bool background, int threads)

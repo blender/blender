@@ -136,6 +136,12 @@ __device void svm_node_closure_background(ShaderData *sd)
 	sd->svm_closure = CLOSURE_BACKGROUND_ID;
 }
 
+__device void svm_node_closure_holdout(ShaderData *sd)
+{
+	sd->svm_closure = CLOSURE_HOLDOUT_ID;
+	sd->flag |= SD_HOLDOUT;
+}
+
 /* Closure Nodes */
 
 __device void svm_node_closure_set_weight(ShaderData *sd, uint r, uint g, uint b)

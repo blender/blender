@@ -47,7 +47,7 @@ __device void bsdf_diffuse_setup(ShaderData *sd, float3 N)
 	//self->m_N = N;
 
 	sd->svm_closure = CLOSURE_BSDF_DIFFUSE_ID;
-	sd->flag |= SD_BSDF_HAS_EVAL;
+	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 __device void bsdf_diffuse_blur(ShaderData *sd, float roughness)
@@ -110,7 +110,7 @@ __device void bsdf_translucent_setup(ShaderData *sd, float3 N)
 	//self->m_N = N;
 
 	sd->svm_closure = CLOSURE_BSDF_TRANSLUCENT_ID;
-	sd->flag |= SD_BSDF_HAS_EVAL;
+	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 __device void bsdf_translucent_blur(ShaderData *sd, float roughness)

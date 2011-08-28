@@ -30,7 +30,7 @@ __device void svm_node_convert(ShaderData *sd, float *stack, uint type, uint fro
 		}
 		case NODE_CONVERT_CF: {
 			float3 f = stack_load_float3(stack, from);
-			float g = f.x*0.2126f + f.y*0.7152f + f.z*0.0722f;
+			float g = linear_rgb_to_gray(f);
 			stack_store_float(stack, to, g);
 			break;
 		}

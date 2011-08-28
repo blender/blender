@@ -29,6 +29,7 @@ class Scene;
 
 class Background {
 public:
+	bool transparent;
 	bool need_update;
 
 	Background();

@@ -51,7 +51,7 @@ __device void bsdf_westin_backscatter_setup(ShaderData *sd, float3 N, float roug
 	self->m_invroughness = 1.0f/roughness;
 
 	sd->svm_closure = CLOSURE_BSDF_WESTIN_BACKSCATTER_ID;
-	sd->flag |= SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
 __device void bsdf_westin_backscatter_blur(ShaderData *sd, float roughness)
@@ -146,7 +146,7 @@ __device void bsdf_westin_sheen_setup(ShaderData *sd, float3 N, float edginess)
 	self->m_edginess = edginess;
 
 	sd->svm_closure = CLOSURE_BSDF_WESTIN_SHEEN_ID;
-	sd->flag |= SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
 __device void bsdf_westin_sheen_blur(ShaderData *sd, float roughness)

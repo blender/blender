@@ -48,6 +48,7 @@ __device void bsdf_refraction_setup(ShaderData *sd, float3 N, float eta)
 	self->m_eta = eta;
 
 	sd->svm_closure = CLOSURE_BSDF_REFRACTION_ID;
+	sd->flag |= SD_BSDF;
 }
 
 __device void bsdf_refraction_blur(ShaderData *sd, float roughness)

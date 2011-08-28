@@ -311,6 +311,7 @@ struct ShadeResult;
 #define SH_NODE_ADD_CLOSURE				156
 #define SH_NODE_TEX_ENVIRONMENT			157
 #define SH_NODE_OUTPUT_TEXTURE			158
+#define SH_NODE_HOLDOUT					159
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

@@ -21,6 +21,10 @@
 
 CCL_NAMESPACE_BEGIN
 
+class Device;
+class DeviceScene;
+class Scene;
+
 typedef enum FilterType {
 	FILTER_BOX,
 	FILTER_GAUSSIAN
@@ -38,6 +42,9 @@ public:
 
 	void device_update(Device *device, DeviceScene *dscene);
 	void device_free(Device *device, DeviceScene *dscene);
+
+	bool modified(const Filter& filter);
+	void tag_update(Scene *scene);
 };
 
 CCL_NAMESPACE_END

@@ -30,6 +30,7 @@
 #ifndef __KERNEL_GPU__
 
 #define __device static inline
+#define __device_noinline static
 #define __global
 #define __local
 #define __shared

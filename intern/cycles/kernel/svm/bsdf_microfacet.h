@@ -58,7 +58,7 @@ __device void bsdf_microfacet_ggx_setup(ShaderData *sd, float3 N, float ag, floa
 	else
 		sd->svm_closure = CLOSURE_BSDF_MICROFACET_GGX_ID;
 
-	sd->flag |= SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
 __device void bsdf_microfacet_ggx_blur(ShaderData *sd, float roughness)
@@ -278,7 +278,7 @@ __device void bsdf_microfacet_beckmann_setup(ShaderData *sd, float3 N, float ab,
 	else
 		sd->svm_closure = CLOSURE_BSDF_MICROFACET_BECKMANN_ID;
 
-	sd->flag |= SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
 __device void bsdf_microfacet_beckmann_blur(ShaderData *sd, float roughness)

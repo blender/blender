@@ -244,7 +244,7 @@ public:
 		mem.device_pointer = tmp;
 	}
 
-	void draw_pixels(device_memory& rgba, int y, int w, int h, int width, int height)
+	void draw_pixels(device_memory& rgba, int y, int w, int h, int width, int height, bool transparent)
 	{
 		device_ptr tmp = rgba.device_pointer;
 		int i = 0, sub_h = h/devices.size();
@@ -255,7 +255,7 @@ public:
 			/* adjust math for w/width */
 
 			rgba.device_pointer = sub.ptr_map[tmp];
-			sub.device->draw_pixels(rgba, sy, w, sh, width, height);
+			sub.device->draw_pixels(rgba, sy, w, sh, width, height, transparent);
 			i++;
 		}
 

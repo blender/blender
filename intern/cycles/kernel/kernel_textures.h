@@ -38,9 +38,6 @@ KERNEL_TEX(uint4, texture_uint4, __svm_nodes)
 
 /* camera/film */
 KERNEL_TEX(float, texture_float, __filter_table)
-KERNEL_TEX(float, texture_float, __response_curve_R)
-KERNEL_TEX(float, texture_float, __response_curve_G)
-KERNEL_TEX(float, texture_float, __response_curve_B)
 
 /* sobol */
 KERNEL_TEX(uint, texture_uint, __sobol_directions)

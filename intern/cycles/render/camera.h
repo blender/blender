@@ -19,8 +19,6 @@
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
 
-#include "film_response.h"
-
 #include "util_transform.h"
 #include "util_types.h"
 

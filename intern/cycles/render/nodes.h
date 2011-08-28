@@ -257,6 +257,11 @@ public:
 	SHADER_NODE_CLASS(BackgroundNode)
 };
 
+class HoldoutNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(HoldoutNode)
+};
+
 class GeometryNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(GeometryNode)

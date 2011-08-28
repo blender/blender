@@ -1275,6 +1275,24 @@ void BackgroundNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_background");
 }
 
+/* Holdout Closure */
+
+HoldoutNode::HoldoutNode()
+: ShaderNode("holdout")
+{
+	add_output("Holdout", SHADER_SOCKET_CLOSURE);
+}
+
+void HoldoutNode::compile(SVMCompiler& compiler)
+{
+	compiler.add_node(NODE_CLOSURE_HOLDOUT, CLOSURE_HOLDOUT_ID);
+}
+
+void HoldoutNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_holdout");
+}
+
 /* Geometry */
 
 GeometryNode::GeometryNode()

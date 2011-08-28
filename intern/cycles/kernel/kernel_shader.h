@@ -342,6 +342,26 @@ __device void shader_emissive_sample(KernelGlobals *kg, ShaderData *sd,
 	}
 }
 
+/* Holdout */
+
+__device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
+{
+#ifdef WITH_OSL
+	if(kg->osl.use) {
+		return OSLShader::holdout_eval(sd);
+	}
+	else
+#endif
+	{
+#ifdef __SVM__
+		if(sd->svm_closure == CLOSURE_HOLDOUT_ID)
+			return make_float3(1.0f, 1.0f, 1.0f);
+		else
+			return make_float3(0.0f, 0.0f, 0.0f);
+#endif
+	}
+}
+
 /* Surface Evaluation */
 
 __device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,

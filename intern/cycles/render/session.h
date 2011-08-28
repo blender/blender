@@ -107,13 +107,15 @@ public:
 	void wait();
 
 	bool ready_to_reset();
-	void reset(int w, int h);
+	void reset(int w, int h, int passes);
+	void set_passes(int passes);
 
 protected:
 	struct DelayedReset {
 		thread_mutex mutex;
 		bool do_reset;
 		int w, h;
+		int passes;
 	} delayed_reset;
 
 	void run();
@@ -123,15 +125,15 @@ protected:
 
 	void tonemap();
 	void path_trace(Tile& tile);
-	void reset_(int w, int h);
+	void reset_(int w, int h, int passes);
 
 	void run_cpu();
 	bool draw_cpu(int w, int h);
-	void reset_cpu(int w, int h);
+	void reset_cpu(int w, int h, int passes);
 
 	void run_gpu();
 	bool draw_gpu(int w, int h);
-	void reset_gpu(int w, int h);
+	void reset_gpu(int w, int h, int passes);
 
 	TileManager tile_manager;
 	bool device_use_gl;

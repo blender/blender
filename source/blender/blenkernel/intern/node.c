@@ -3702,10 +3702,11 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_emission(ntypelist);
 	register_node_type_sh_mix_closure(ntypelist);
 	register_node_type_sh_add_closure(ntypelist);
+	register_node_type_sh_holdout(ntypelist);
 
 	register_node_type_sh_output_lamp(ntypelist);
 	register_node_type_sh_output_material(ntypelist);
-	register_node_type_sh_output_texture(ntypelist);
+	//register_node_type_sh_output_texture(ntypelist);
 	register_node_type_sh_output_world(ntypelist);
 
 	register_node_type_sh_tex_blend(ntypelist);

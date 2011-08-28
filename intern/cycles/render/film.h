@@ -29,8 +29,6 @@ class Scene;
 
 class Film {
 public:
-	string response;
-	string last_response;
 	float exposure;
 	int pass;
 	bool need_update;

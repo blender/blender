@@ -25,18 +25,17 @@ CCL_NAMESPACE_BEGIN
 TileManager::TileManager(bool progressive_, int passes_, int tile_size_, int min_size_)
 {
 	progressive = progressive_;
-	passes = passes_;
 	tile_size = tile_size_;
 	min_size = min_size_;
 
-	reset(0, 0);
+	reset(0, 0, 0);
 }
 
 TileManager::~TileManager()
 {
 }
 
-void TileManager::reset(int width_, int height_)
+void TileManager::reset(int width_, int height_, int passes_)
 {
 	full_width = width_;
 	full_height = height_;
@@ -54,11 +53,18 @@ void TileManager::reset(int width_, int height_)
 		}
 	}
 
+	passes = passes_;
+
 	state.width = 0;
 	state.height = 0;
 	state.pass = -1;
 	state.resolution = start_resolution;
 	state.tiles.clear();
+}
+
+void TileManager::set_passes(int passes_)
+{
+	passes = passes_;
 }
 
 void TileManager::set_tiles()

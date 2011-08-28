@@ -21,6 +21,7 @@
 #include "camera.h"
 #include "device.h"
 #include "integrator.h"
+#include "film.h"
 #include "light.h"
 #include "scene.h"
 #include "session.h"
@@ -94,7 +95,7 @@ void BlenderSession::create_session()
 	session->progress.set_cancel_callback(function_bind(&BlenderSession::test_cancel, this));
 
 	/* start rendering */
-	session->reset(width, height);
+	session->reset(width, height, session_params.passes);
 	session->start();
 }
 
@@ -118,30 +119,16 @@ void BlenderSession::render()
 void BlenderSession::write_render_result()
 {
 	/* get result */
-	DisplayBuffer *display = session->display;
-	Device *device = session->device;
+	RenderBuffers *buffers = session->buffers;
+	float exposure = scene->film->exposure;
+	double total_time, pass_time;
+	int pass;
+	session->progress.get_pass(pass, total_time, pass_time);
 
-	if(!display->rgba.device_pointer)
+	float4 *pixels = buffers->copy_from_device(exposure, pass);
+
+	if(!pixels)
 		return;
-
-	/* todo: get float buffer */
-	device->pixels_copy_from(display->rgba, 0, width, height);
-	uchar4 *rgba = (uchar4*)display->rgba.data_pointer;
-
-	vector<float4> buffer(width*height);
-	float fac = 1.0f/255.0f;
-	bool color_management = b_scene.render().use_color_management();
-
-	/* normalize */
-	for(int i = width*height - 1; i >= 0; i--) {
-		uchar4 f = rgba[i];
-		float3 rgb = make_float3(f.x, f.y, f.z)*fac;
-
-		if(color_management)
-			rgb = color_srgb_to_scene_linear(rgb);
-
-		buffer[i] = make_float4(rgb.x, rgb.y, rgb.z, 1.0f);
-	}
 
 	struct RenderResult *rrp = RE_engine_begin_result((RenderEngine*)b_engine.ptr.data, 0, 0, width, height);
 	PointerRNA rrptr;
@@ -150,9 +137,11 @@ void BlenderSession::write_render_result()
 
 	BL::RenderResult::layers_iterator layer;
 	rr.layers.begin(layer);
-	rna_RenderLayer_rect_set(&layer->ptr, (float*)&buffer[0]);
+	rna_RenderLayer_rect_set(&layer->ptr, (float*)pixels);
 
 	RE_engine_end_result((RenderEngine*)b_engine.ptr.data, rrp);
+
+	delete [] pixels;
 }
 
 void BlenderSession::synchronize()
@@ -167,6 +156,9 @@ void BlenderSession::synchronize()
 		create_session();
 		return;
 	}
+
+	/* increase passes, but never decrease */
+	session->set_passes(session_params.passes);
 
 	/* copy recalc flags, outside of mutex so we can decide to do the real
 	   synchronization at a later time to not block on running updates */
@@ -188,7 +180,7 @@ void BlenderSession::synchronize()
 
 	/* reset if needed */
 	if(scene->need_reset())
-		session->reset(width, height);
+		session->reset(width, height, session_params.passes);
 
 	/* unlock */
 	session->scene->mutex.unlock();
@@ -225,8 +217,10 @@ bool BlenderSession::draw(int w, int h)
 		}
 
 		/* reset if requested */
-		if(reset)
-			session->reset(width, height);
+		if(reset) {
+			SessionParams session_params = BlenderSync::get_session_params(b_scene, background);
+			session->reset(width, height, session_params.passes);
+		}
 	}
 
 	/* update status and progress for 3d view draw */

@@ -38,6 +38,7 @@ CCL_NAMESPACE_BEGIN
 __device void bsdf_transparent_setup(ShaderData *sd)
 {
 	sd->svm_closure = CLOSURE_BSDF_TRANSPARENT_ID;
+	sd->flag |= SD_BSDF;
 }
 
 __device void bsdf_transparent_blur(ShaderData *sd, float roughness)

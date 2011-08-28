@@ -52,7 +52,7 @@ DefNode( ShaderNode,     SH_NODE_COMBRGB,         0,                      "COMBR
 DefNode( ShaderNode,     SH_NODE_HUE_SAT,         0,                      "HUE_SAT",        HueSaturation,    "Hue/Saturation",    ""              )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_MATERIAL, 0,                      "OUTPUT_MATERIAL",OutputMaterial,   "Material Output",   ""              )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_LAMP,     0,                      "OUTPUT_LAMP",    OutputLamp,       "Lamp Output",       ""              )
-DefNode( ShaderNode,     SH_NODE_OUTPUT_TEXTURE,  0,                      "OUTPUT_TEXTURE", OutputTexture,    "Texture Output",    ""              )
+//DefNode( ShaderNode,     SH_NODE_OUTPUT_TEXTURE,  0,                      "OUTPUT_TEXTURE", OutputTexture,    "Texture Output",    ""              )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_WORLD,    0,                      "OUTPUT_WORLD",   OutputWorld,      "World Output",      ""              )
 DefNode( ShaderNode,     SH_NODE_FRESNEL,         0,                      "FRESNEL",        Fresnel,          "Fresnel",           ""              )
 DefNode( ShaderNode,     SH_NODE_MIX_CLOSURE,     0,                      "MIX_CLOSURE",    MixClosure,       "Mix Closure",       ""              )
@@ -60,6 +60,7 @@ DefNode( ShaderNode,     SH_NODE_ADD_CLOSURE,     0,                      "ADD_C
 
 DefNode( ShaderNode,     SH_NODE_ATTRIBUTE, 0, "ATTRIBUTE", Attribute, "Attribute", "")
 DefNode( ShaderNode,     SH_NODE_BACKGROUND, 0, "BACKGROUND", Background, "Background", "")
+DefNode( ShaderNode,     SH_NODE_HOLDOUT, 0, "HOLDOUT", Holdout, "Holdout", "")
 DefNode( ShaderNode,     SH_NODE_BSDF_ANISOTROPIC, 0, "BSDF_ANISOTROPIC", BsdfAnisotropic, "Bsdf Anisotropic", "")
 DefNode( ShaderNode,     SH_NODE_BSDF_DIFFUSE, 0, "BSDF_DIFFUSE", BsdfDiffuse, "Diffuse Bsdf", "")
 DefNode( ShaderNode,     SH_NODE_BSDF_GLOSSY, def_glossy, "BSDF_GLOSSY", BsdfGlossy, "Glossy Bsdf", "")

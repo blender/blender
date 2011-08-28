@@ -392,7 +392,7 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	progress.set_status("Updating Mesh", "Computing attributes");
 
 	/* gather per mesh requested attributes. as meshes may have multiple
-	 * shaders assigned, this merged the requested attributes that have
+	 * shaders assigned, this merges the requested attributes that have
 	 * been set per shader by the shader manager */
 	vector<AttributeRequestSet> mesh_attributes(scene->meshes.size());
 

@@ -50,7 +50,7 @@ __device void bsdf_ashikhmin_velvet_setup(ShaderData *sd, float3 N, float sigma)
 	self->m_invsigma2 = 1.0f/(sigma * sigma);
 
 	sd->svm_closure = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
-	sd->flag |= SD_BSDF_HAS_EVAL;
+	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
 __device void bsdf_ashikhmin_velvet_blur(ShaderData *sd, float roughness)

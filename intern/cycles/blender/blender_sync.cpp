@@ -18,6 +18,7 @@
 
 #include "background.h"
 #include "film.h"
+#include "../render/filter.h"
 #include "graph.h"
 #include "integrator.h"
 #include "light.h"
@@ -149,10 +150,18 @@ void BlenderSync::sync_film()
 	Film prevfilm = *film;
 
 	film->exposure = get_float(cscene, "exposure");
-	film->response = get_enum_identifier(cscene, "response_curve");
 
 	if(film->modified(prevfilm))
 		film->tag_update(scene);
+
+	Filter *filter = scene->filter;
+	Filter prevfilter = *filter;
+
+	filter->filter_type = (FilterType)RNA_enum_get(&cscene, "filter_type");
+	filter->filter_width = (filter->filter_type == FILTER_BOX)? 1.0f: get_float(cscene, "filter_width");
+
+	if(filter->modified(prevfilter))
+		filter->tag_update(scene);
 }
 
 /* Scene Parameters */
@@ -190,11 +199,22 @@ SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background
 	foreach(DeviceType dt, types)
 		if(dt == dtype)
 			params.device_type = dtype;
+			
+	/* Background */
+	params.background = background;
+			
+	/* passes */
+	if(background) {
+		params.passes = get_int(cscene, "passes");
+	}
+	else {
+		params.passes = get_int(cscene, "preview_passes");
+		if(params.passes == 0)
+			params.passes = INT_MAX;
+	}
 
 	/* other parameters */
 	params.threads = b_scene.render().threads();
-	params.background = background;
-	params.passes = (background)? get_int(cscene, "passes"): INT_MAX;
 	params.tile_size = get_int(cscene, "debug_tile_size");
 	params.min_size = get_int(cscene, "debug_min_size");
 	params.cancel_timeout = get_float(cscene, "debug_cancel_timeout");

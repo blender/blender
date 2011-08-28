@@ -54,7 +54,7 @@ __device void bsdf_ward_setup(ShaderData *sd, float3 N, float3 T, float ax, floa
 	self->m_ay = clamp(ay, 1e-5f, 1.0f);
 
 	sd->svm_closure = CLOSURE_BSDF_WARD_ID;
-	sd->flag |= SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
 __device void bsdf_ward_blur(ShaderData *sd, float roughness)

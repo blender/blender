@@ -31,6 +31,7 @@ CCL_NAMESPACE_BEGIN
 
 Background::Background()
 {
+	transparent = false;
 	need_update = true;
 }
 
@@ -45,8 +46,9 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 	
 	device_free(device, dscene);
 
-	/* set shader index */
+	/* set shader index and transparent option */
 	KernelBackground *kbackground = &dscene->data.background;
+	kbackground->transparent = transparent;
 	kbackground->shader = scene->shader_manager->get_shader_id(scene->default_background);
 
 	need_update = false;
@@ -58,7 +60,7 @@ void Background::device_free(Device *device, DeviceScene *dscene)
 
 bool Background::modified(const Background& background)
 {
-	return false;
+	return !(transparent == background.transparent);
 }
 
 void Background::tag_update(Scene *scene)

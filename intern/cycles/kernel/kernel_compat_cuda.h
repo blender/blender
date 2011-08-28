@@ -33,6 +33,7 @@ CCL_NAMESPACE_BEGIN
 
 #define __device  __device__ __inline__
 #define __device_inline  __device__ __inline__
+#define __device_noinline  __device__ __noinline__
 #define __global
 #define __shared __shared__
 #define __constant

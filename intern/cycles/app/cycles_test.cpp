@@ -85,7 +85,7 @@ static void session_print_status()
 static void session_init()
 {
 	options.session = new Session(options.session_params);
-	options.session->reset(options.width, options.height);
+	options.session->reset(options.width, options.height, options.session_params.passes);
 	options.session->scene = options.scene;
 	
 	if(options.session_params.background && !options.quiet)
@@ -162,13 +162,13 @@ static void resize(int width, int height)
 	options.height= height;
 
 	if(options.session)
-		options.session->reset(options.width, options.height);
+		options.session->reset(options.width, options.height, options.session_params.passes);
 }
 
 void keyboard(unsigned char key)
 {
 	if(key == 'r')
-		options.session->reset(options.width, options.height);
+		options.session->reset(options.width, options.height, options.session_params.passes);
 	else if(key == 27) // escape
 		options.session->progress.set_cancel("Cancelled");
 }
@@ -285,7 +285,7 @@ using namespace ccl;
 
 int main(int argc, const char **argv)
 {
-	path_init("../blender/intern/cycles");
+	path_init("../build/bin/2.59/scripts/addons/cycles/");
 
 	options_parse(argc, argv);
 

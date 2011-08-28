@@ -115,7 +115,7 @@ public:
 	
 	/* opengl drawing */
 	virtual void draw_pixels(device_memory& mem, int y, int w, int h,
-		int width, int height);
+		int width, int height, bool transparent);
 
 #ifdef WITH_NETWORK
 	/* networking */

@@ -37,6 +37,7 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_OPENCL__
 #define __SVM__
 #define __TEXTURES__
+#define __HOLDOUT__
 #endif
 #define __RAY_DIFFERENTIALS__
 #define __CAMERA_CLIPPING__
@@ -194,8 +195,10 @@ struct FlatClosure {
 enum ShaderDataFlag {
 	SD_BACKFACING = 1,		/* backside of surface? */
 	SD_EMISSION = 2,		/* have emissive closure? */
-	SD_BSDF_HAS_EVAL = 4,	/* have non-singular bsdf closure? */
-	SD_BSDF_GLOSSY = 8		/* have glossy bsdf */
+	SD_BSDF = 4,			/* have bsdf closure? */
+	SD_BSDF_HAS_EVAL = 8,	/* have non-singular bsdf closure? */
+	SD_BSDF_GLOSSY = 16,	/* have glossy bsdf */
+	SD_HOLDOUT = 32			/* have holdout closure? */
 };
 
 typedef struct ShaderData {
@@ -257,6 +260,8 @@ typedef struct ShaderData {
 		float emissive_sample_sum;
 		float volume_sample_sum;
 
+		float3 holdout_weight;
+
 		float randb;
 	} osl_closure;
 
@@ -313,14 +318,14 @@ typedef struct KernelCamera {
 
 typedef struct KernelFilm {
 	float exposure;
-	int use_response_curve;
-	int pad1, pad2;
+	int pad1, pad2, pad3;
 } KernelFilm;
 
 typedef struct KernelBackground {
 	/* only shader index */
 	int shader;
-	int pad1, pad2, pad3;
+	int transparent;
+	int pad1, pad2;
 } KernelBackground;
 
 typedef struct KernelSunSky {

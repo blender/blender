@@ -148,7 +148,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Main Interpreter Loop */
 
-__device void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type, float randb, int path_flag)
+__device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type, float randb, int path_flag)
 {
 	float stack[SVM_STACK_SIZE];
 	float closure_weight = 1.0f;
@@ -172,6 +172,8 @@ __device void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderType type,
 			svm_node_closure_emission(sd);
 		else if(node.x == NODE_CLOSURE_BACKGROUND)
 			svm_node_closure_background(sd);
+		else if(node.x == NODE_CLOSURE_HOLDOUT)
+			svm_node_closure_holdout(sd);
 		else if(node.x == NODE_CLOSURE_SET_WEIGHT)
 			svm_node_closure_set_weight(sd, node.y, node.z, node.w);
 		else if(node.x == NODE_CLOSURE_WEIGHT)

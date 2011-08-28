@@ -20,21 +20,17 @@ CCL_NAMESPACE_BEGIN
 
 __device float4 film_map(KernelGlobals *kg, float4 irradiance, int pass)
 {
-	float scale = kernel_data.film.exposure*(1.0f/(pass+1));
+	float scale = 1.0f/(float)(pass+1);
+	float exposure = kernel_data.film.exposure;
 	float4 result = irradiance*scale;
 
-	if(kernel_data.film.use_response_curve) {
-		/* camera response curve */
-		result.x = kernel_tex_interp(__response_curve_R, result.x);
-		result.y = kernel_tex_interp(__response_curve_G, result.y);
-		result.z = kernel_tex_interp(__response_curve_B, result.z);
-	}
-	else {
-		/* conversion to srgb */
-		result.x = color_scene_linear_to_srgb(result.x);
-		result.y = color_scene_linear_to_srgb(result.y);
-		result.z = color_scene_linear_to_srgb(result.z);
-	}
+	/* conversion to srgb */
+	result.x = color_scene_linear_to_srgb(result.x*exposure);
+	result.y = color_scene_linear_to_srgb(result.y*exposure);
+	result.z = color_scene_linear_to_srgb(result.z*exposure);
+
+	/* clamp since alpha might be > 1.0 due to russian roulette */
+	result.w = clamp(result.w, 0.0f, 1.0f);
 
 	return result;
 }
@@ -47,7 +43,7 @@ __device uchar4 film_float_to_byte(float4 color)
 	result.x = (uchar)clamp(color.x*255.0f, 0.0f, 255.0f);
 	result.y = (uchar)clamp(color.y*255.0f, 0.0f, 255.0f);
 	result.z = (uchar)clamp(color.z*255.0f, 0.0f, 255.0f);
-	result.w = 255;
+	result.w = (uchar)clamp(color.w*255.0f, 0.0f, 255.0f);
 
 	return result;
 }

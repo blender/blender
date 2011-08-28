@@ -84,11 +84,6 @@ public:
 	/* filter */
 	device_vector<float> filter_table;
 
-	/* film */
-	device_vector<float> response_curve_R;
-	device_vector<float> response_curve_G;
-	device_vector<float> response_curve_B;
-
 	/* integrator */
 	device_vector<uint> sobol_directions;
 

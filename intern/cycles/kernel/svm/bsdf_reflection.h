@@ -47,6 +47,7 @@ __device void bsdf_reflection_setup(ShaderData *sd, float3 N)
 	//self->m_N = N;
 
 	sd->svm_closure = CLOSURE_BSDF_REFLECTION_ID;
+	sd->flag |= SD_BSDF;
 }
 
 __device void bsdf_reflection_blur(ShaderData *sd, float roughness)

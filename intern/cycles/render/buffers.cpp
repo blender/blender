@@ -24,6 +24,7 @@
 #include "util_debug.h"
 #include "util_hash.h"
 #include "util_image.h"
+#include "util_math.h"
 #include "util_opengl.h"
 #include "util_time.h"
 #include "util_types.h"
@@ -84,6 +85,33 @@ void RenderBuffers::reset(Device *device, int width_, int height_)
 	device->mem_copy_to(rng_state);
 }
 
+float4 *RenderBuffers::copy_from_device(float exposure, int pass)
+{
+	if(!buffer.device_pointer)
+		return NULL;
+
+	device->mem_copy_from(buffer, 0, buffer.memory_size());
+
+	float4 *out = new float4[width*height];
+	float4 *in = (float4*)buffer.data_pointer;
+	float scale = 1.0f/(float)pass;
+	
+	for(int i = width*height - 1; i >= 0; i--) {
+		float4 rgba = in[i]*scale;
+
+		rgba.x = rgba.x*exposure;
+		rgba.y = rgba.y*exposure;
+		rgba.z = rgba.z*exposure;
+
+		/* clamp since alpha might be > 1.0 due to russian roulette */
+		rgba.w = clamp(rgba.w, 0.0f, 1.0f);
+
+		out[i] = rgba;
+	}
+
+	return out;
+}
+
 /* Display Buffer */
 
 DisplayBuffer::DisplayBuffer(Device *device_)
@@ -93,6 +121,7 @@ DisplayBuffer::DisplayBuffer(Device *device_)
 	height = 0;
 	draw_width = 0;
 	draw_height = 0;
+	transparent = true; /* todo: determine from background */
 }
 
 DisplayBuffer::~DisplayBuffer()
@@ -132,10 +161,36 @@ void DisplayBuffer::draw_set(int width_, int height_)
 	draw_height = height_;
 }
 
+void DisplayBuffer::draw_transparency_grid()
+{
+	GLubyte checker_stipple_sml[32*32/8] = {
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0, \
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255, \
+	};
+
+	glColor4ub(50, 50, 50, 255);
+	glRectf(0, 0, width, height);
+	glEnable(GL_POLYGON_STIPPLE);
+	glColor4ub(55, 55, 55, 255);
+	glPolygonStipple(checker_stipple_sml);
+	glRectf(0, 0, width, height);
+	glDisable(GL_POLYGON_STIPPLE);
+}
+
 void DisplayBuffer::draw(Device *device)
 {
-	if(draw_width != 0 && draw_height != 0)
-		device->draw_pixels(rgba, 0, draw_width, draw_height, width, height);
+	if(draw_width != 0 && draw_height != 0) {
+		if(transparent)
+			draw_transparency_grid();
+
+		device->draw_pixels(rgba, 0, draw_width, draw_height, width, height, transparent);
+	}
 }
 
 bool DisplayBuffer::draw_ready()

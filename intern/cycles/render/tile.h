@@ -50,7 +50,8 @@ public:
 	TileManager(bool progressive, int passes, int tile_size, int min_size);
 	~TileManager();
 
-	void reset(int width, int height);
+	void reset(int width, int height, int passes);
+	void set_passes(int passes);
 	bool next();
 	bool done();
 

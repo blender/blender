@@ -25,75 +25,75 @@ import xml.etree.ElementTree as etree
 import xml.dom.minidom as dom
 
 def strip(root):
-	root.text = None
-	root.tail = None
+    root.text = None
+    root.tail = None
 
-	for elem in root:
-		strip(elem)
+    for elem in root:
+        strip(elem)
 
 def write(node, fname):
-	strip(node)
+    strip(node)
 
-	s = etree.tostring(node)
-	s = dom.parseString(s).toprettyxml()
+    s = etree.tostring(node)
+    s = dom.parseString(s).toprettyxml()
 
-	f = open(fname, "w")
-	f.write(s)
+    f = open(fname, "w")
+    f.write(s)
 
 class ExportCyclesXML(bpy.types.Operator, ExportHelper):
-	''''''
-	bl_idname = "export_mesh.cycles_xml"
-	bl_label = "Export Cycles XML"
+    ''''''
+    bl_idname = "export_mesh.cycles_xml"
+    bl_label = "Export Cycles XML"
 
-	filename_ext = ".xml"
+    filename_ext = ".xml"
 
-	@classmethod
-	def poll(cls, context):
-		return context.active_object != None
+    @classmethod
+    def poll(cls, context):
+        return context.active_object != None
 
-	def execute(self, context):
-		filepath = bpy.path.ensure_ext(self.filepath, ".xml")
+    def execute(self, context):
+        filepath = bpy.path.ensure_ext(self.filepath, ".xml")
 
-		# get mesh
-		scene = context.scene
-		object = context.object
+        # get mesh
+        scene = context.scene
+        object = context.object
 
-		if not object:
-			raise Exception("No active object")
+        if not object:
+            raise Exception("No active object")
 
-		mesh = object.to_mesh(scene, True, 'PREVIEW')
+        mesh = object.to_mesh(scene, True, 'PREVIEW')
 
-		if not mesh:
-			raise Exception("No mesh data in active object")
+        if not mesh:
+            raise Exception("No mesh data in active object")
 
-		# generate mesh node
-		nverts = ""
-		verts = ""
-		P = ""
+        # generate mesh node
+        nverts = ""
+        verts = ""
+        P = ""
 
-		for v in mesh.vertices:
-			P += "%f %f %f  " % (v.co[0], v.co[1], v.co[2])
+        for v in mesh.vertices:
+            P += "%f %f %f  " % (v.co[0], v.co[1], v.co[2])
 
-		for i, f in enumerate(mesh.faces):
-			nverts += str(len(f.vertices)) + " "
+        for i, f in enumerate(mesh.faces):
+            nverts += str(len(f.vertices)) + " "
 
-			for v in f.vertices:
-				verts += str(v) + " "
-			verts += " "
+            for v in f.vertices:
+                verts += str(v) + " "
+            verts += " "
 
-		node = etree.Element('mesh', attrib={'nverts': nverts, 'verts': verts, 'P': P})
-		
-		# write to file
-		write(node, filepath)
+        node = etree.Element('mesh', attrib={'nverts': nverts, 'verts': verts, 'P': P})
+        
+        # write to file
+        write(node, filepath)
 
-		return {'FINISHED'}
+        return {'FINISHED'}
 
 def register():
-	pass
+    pass
 
 def unregister():
-	pass
+    pass
 
 if __name__ == "__main__":
-	register()
+    register()
 

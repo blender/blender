@@ -94,17 +94,13 @@ if(WITH_CYCLES_CUDA)
 	set(CYCLES_CUDA_ARCH sm_10 sm_11 sm_12 sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build for")
 	set(CYCLES_CUDA_MAXREG 24 CACHE STRING "CUDA maximum number of register to use")
 
-	find_path(CUDA_INCLUDES cuda.h ${CYCLES_CUDA}/include NO_DEFAULT_PATH)
 	find_program(CUDA_NVCC NAMES nvcc PATHS ${CYCLES_CUDA}/bin NO_DEFAULT_PATH)
 
-	if(CUDA_INCLUDES AND CUDA_NVCC)
-		message(STATUS "CUDA includes = ${CUDA_INCLUDES}")
+	if(CUDA_NVCC)
 		message(STATUS "CUDA nvcc = ${CUDA_NVCC}")
 	else()
-		message(STATUS "CUDA not found")
+		message(STATUS "CUDA compiler not found")
 	endif()
-
-	include_directories(${CUDA_INCLUDES})
 
 endif()
 

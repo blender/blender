@@ -74,6 +74,7 @@ public:
 		float3 *eval, float3 *I, float *pdf);
 	static float3 volume_eval_phase(const ShaderData *sd, const float3 omega_in,
 		const float3 omega_out);
+	static float3 holdout_eval(const ShaderData *sd);
 
 	/* release */
 	static void release(KernelGlobals *kg, const ShaderData *sd);

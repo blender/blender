@@ -607,7 +607,7 @@ public:
 		}
 	}
 
-	void draw_pixels(device_memory& mem, int y, int w, int h, int width, int height)
+	void draw_pixels(device_memory& mem, int y, int w, int h, int width, int height, bool transparent)
 	{
 		if(!background) {
 			PixelMem pmem = pixel_mem_map[mem.device_pointer];
@@ -621,11 +621,16 @@ public:
 			
 			glEnable(GL_TEXTURE_2D);
 			
+			if(transparent) {
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+			}
+
 			glColor3f(1.0f, 1.0f, 1.0f);
 
 			glPushMatrix();
 			glTranslatef(0.0f, (float)y, 0.0f);
-			
+				
 			glBegin(GL_QUADS);
 			
 			glTexCoord2f(0.0f, 0.0f);
@@ -640,6 +645,9 @@ public:
 			glEnd();
 
 			glPopMatrix();
+
+			if(transparent)
+				glDisable(GL_BLEND);
 			
 			glBindTexture(GL_TEXTURE_2D, 0);
 			glDisable(GL_TEXTURE_2D);
@@ -649,7 +657,7 @@ public:
 			return;
 		}
 
-		Device::draw_pixels(mem, y, w, h, width, height);
+		Device::draw_pixels(mem, y, w, h, width, height, transparent);
 	}
 
 	void task_add(DeviceTask& task)

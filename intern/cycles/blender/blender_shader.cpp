@@ -208,6 +208,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = new BackgroundNode();
 			break;
 		}
+		case BL::ShaderNode::type_HOLDOUT: {
+			node = new HoldoutNode();
+			break;
+		}
 		case BL::ShaderNode::type_BSDF_ANISOTROPIC: {
 			node = new WardBsdfNode();
 			break;
@@ -593,6 +597,9 @@ void BlenderSync::sync_world()
 		shader->set_graph(graph);
 		shader->tag_update(scene);
 	}
+
+	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+	background->transparent = get_boolean(cscene, "transparent");
 
 	if(background->modified(prevbackground))
 		background->tag_update(scene);

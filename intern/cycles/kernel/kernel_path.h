@@ -105,10 +105,11 @@ __device int path_flag_from_label(int path_flag, int label)
 	return path_flag;
 }
 
-__device float3 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray ray, float3 throughput)
+__device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray ray, float3 throughput)
 {
 	/* initialize */
 	float3 L = make_float3(0.0f, 0.0f, 0.0f);
+	float Ltransparent = 0.0f;
 
 #ifdef __EMISSION__
 	float ray_pdf = 0.0f;
@@ -123,14 +124,20 @@ __device float3 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 
 		if(!scene_intersect(kg, &ray, false, &isect)) {
 			/* eval background shader if nothing hit */
+			if(kernel_data.background.transparent && (path_flag & PATH_RAY_CAMERA)) {
+				Ltransparent += average(throughput);
+			}
+			else {
 #ifdef __BACKGROUND__
-			ShaderData sd;
-			shader_setup_from_background(kg, &sd, &ray);
-			L += throughput*shader_eval_background(kg, &sd, path_flag);
-			shader_release(kg, &sd);
+				ShaderData sd;
+				shader_setup_from_background(kg, &sd, &ray);
+				L += throughput*shader_eval_background(kg, &sd, path_flag);
+				shader_release(kg, &sd);
 #else
-			L += make_float3(0.8f, 0.8f, 0.8f);
+				L += make_float3(0.8f, 0.8f, 0.8f);
 #endif
+			}
+
 			break;
 		}
 
@@ -139,6 +146,22 @@ __device float3 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
 		float rbsdf = path_rng(kg, rng, pass, rng_offset + PRNG_BSDF);
 		shader_eval_surface(kg, &sd, rbsdf, path_flag);
+
+#ifdef __HOLDOUT__
+		if((sd.flag & SD_HOLDOUT) && (path_flag & PATH_RAY_CAMERA)) {
+			float3 holdout_weight = shader_holdout_eval(kg, &sd);
+
+			if(kernel_data.background.transparent) {
+				Ltransparent += average(holdout_weight*throughput);
+			}
+			else {
+				ShaderData sd;
+				shader_setup_from_background(kg, &sd, &ray);
+				L += holdout_weight*throughput*shader_eval_background(kg, &sd, path_flag);
+				shader_release(kg, &sd);
+			}
+		}
+#endif
 
 #ifdef __EMISSION__
 		/* emission */
@@ -166,6 +189,12 @@ __device float3 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		}
 #endif
 
+		/* no BSDF? we can stop here */
+		if(!(sd.flag & SD_BSDF)) {
+			path_flag &= ~PATH_RAY_CAMERA;
+			break;
+		}
+
 		/* sample BSDF */
 		float bsdf_pdf;
 		float3 bsdf_eval;
@@ -180,8 +209,10 @@ __device float3 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 
 		shader_release(kg, &sd);
 
-		if(bsdf_pdf == 0.0f || is_zero(bsdf_eval))
+		if(bsdf_pdf == 0.0f || is_zero(bsdf_eval)) {
+			path_flag &= ~PATH_RAY_CAMERA;
 			break;
+		}
 
 		/* modify throughput */
 		throughput *= bsdf_eval/bsdf_pdf;
@@ -197,8 +228,10 @@ __device float3 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		float probability = path_terminate_probability(kg, bounce, throughput);
 		float terminate = path_rng(kg, rng, pass, rng_offset + PRNG_TERMINATE);
 
-		if(terminate >= probability)
+		if(terminate >= probability) {
+			path_flag &= ~PATH_RAY_CAMERA;
 			break;
+		}
 
 		throughput /= probability;
 
@@ -212,7 +245,7 @@ __device float3 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 #endif
 	}
 
-	return L;
+	return make_float4(L.x, L.y, L.z, 1.0f - Ltransparent);
 }
 
 __device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __global uint *rng_state, int pass, int x, int y)
@@ -236,25 +269,19 @@ __device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __gl
 	/* integrate */
 #ifdef __MODIFY_TP__
 	float3 throughput = path_terminate_modified_throughput(kg, buffer, x, y, pass);
-	float3 L = kernel_path_integrate(kg, &rng, pass, ray, throughput)/throughput;
+	float4 L = kernel_path_integrate(kg, &rng, pass, ray, throughput)/throughput;
 #else
 	float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
-	float3 L = kernel_path_integrate(kg, &rng, pass, ray, throughput);
+	float4 L = kernel_path_integrate(kg, &rng, pass, ray, throughput);
 #endif
 
 	/* accumulate result in output buffer */
 	int index = x + y*kernel_data.cam.width;
 
-	float4 result;
-	result.x = L.x;
-	result.y = L.y;
-	result.z = L.z;
-	result.w = 1.0f;
-
 	if(pass == 0)
-		buffer[index] = result;
+		buffer[index] = L;
 	else
-		buffer[index] += result;
+		buffer[index] += L;
 
 	path_rng_end(kg, rng_state, rng, x, y);
 }

@@ -129,18 +129,6 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 		kg->__filter_table.data = (float*)mem;
 		kg->__filter_table.width = width;
 	}
-	else if(strcmp(name, "__response_curve_R") == 0) {
-		kg->__response_curve_R.data = (float*)mem;
-		kg->__response_curve_R.width = width;
-	}
-	else if(strcmp(name, "__response_curve_B") == 0) {
-		kg->__response_curve_B.data = (float*)mem;
-		kg->__response_curve_B.width = width;
-	}
-	else if(strcmp(name, "__response_curve_G") == 0) {
-		kg->__response_curve_G.data = (float*)mem;
-		kg->__response_curve_G.width = width;
-	}
 	else if(strcmp(name, "__sobol_directions") == 0) {
 		kg->__sobol_directions.data = (uint*)mem;
 		kg->__sobol_directions.width = width;
