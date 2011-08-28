@@ -1702,7 +1702,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
+static int region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;

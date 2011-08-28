@@ -2873,7 +2873,7 @@ static struct ImBuf * do_adjustment_impl(SeqRenderData context, Sequence * seq,
 {
 	Editing * ed;
 	ListBase * seqbasep;
-	struct ImBuf * i = 0;
+	struct ImBuf * i= NULL;
 
 	ed = context.scene->ed;
 
@@ -2908,7 +2908,7 @@ static struct ImBuf * do_adjustment(
 	struct ImBuf *UNUSED(ibuf1), struct ImBuf *UNUSED(ibuf2), 
 	struct ImBuf *UNUSED(ibuf3))
 {
-	struct ImBuf * i = 0;
+	struct ImBuf * i = NULL;
 	struct ImBuf * out;
 	Editing * ed;
 

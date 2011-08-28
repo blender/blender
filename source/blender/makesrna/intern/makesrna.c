@@ -66,7 +66,7 @@ static int file_older(const char *file1, const char *file2)
 
 	return (st1.st_mtime < st2.st_mtime);
 }
-const char *makesrna_path= NULL;
+static const char *makesrna_path= NULL;
 
 static int replace_if_different(char *tmpfile, const char *dep_files[])
 {
