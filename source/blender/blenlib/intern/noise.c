@@ -920,7 +920,7 @@ static float g[512+2][3]= {
 		t = vec[i] + 10000.; \
 		b0 = ((int)t) & 255; \
 		b1 = (b0+1) & 255; \
-		r0 = t - (int)t; \
+		r0 = t - floorf(t); \
 		r1 = r0 - 1.;
 
 
