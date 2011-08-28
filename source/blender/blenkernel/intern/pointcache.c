@@ -2113,6 +2113,9 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 	if(!pid || !pid->cache || pid->cache->flag & PTCACHE_BAKED)
 		return;
 
+	if (pid->cache->flag & PTCACHE_IGNORE_CLEAR)
+		return;
+
 	sta = pid->cache->startframe;
 	end = pid->cache->endframe;
 

@@ -57,6 +57,10 @@ struct PaintSurfaceData;
 #define MOD_DPAINT_EFFECT_DO_DRIP (1<<1) /* do spread effect */
 #define MOD_DPAINT_EFFECT_DO_SHRINK (1<<2) /* do spread effect */
 
+/* preview_id */
+#define MOD_DPAINT_SURFACE_PREV_PAINT 0
+#define MOD_DPAINT_SURFACE_PREV_WETMAP 1
+
 typedef struct DynamicPaintSurface {
 	
 	struct DynamicPaintSurface *next, *prev;
@@ -76,7 +80,7 @@ typedef struct DynamicPaintSurface {
 	short format, type;
 	short disp_type, image_fileformat;
 	short effect_ui;	/* just ui selection box */
-	short pad;
+	short preview_id;	/* surface output id to preview */
 	int flags, effect;
 
 	int image_resolution, substeps;

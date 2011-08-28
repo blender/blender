@@ -222,6 +222,9 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
         # vertex format outputs
         if (surface.surface_format == "VERTEX"):
             if (surface.surface_type == "PAINT"):
+                 # toggle active preview
+                layout.prop(surface, "preview_id")
+                
                 # paintmap output
                 row = layout.row()
                 row.prop_search(surface, "output_name", ob.data, "vertex_colors", text="Paintmap layer: ")

@@ -410,6 +410,25 @@ static void mixColors(float *t_color, float t_alpha, float *s_color, float s_alp
 	t_color[2] = t_color[2]*invFact + s_color[2]*factor;
 }
 
+/* set "ignore cache" flag for all caches on this object */
+static void object_cacheIgnoreClear(Object *ob, int state)
+{
+	ListBase pidlist;
+	PTCacheID *pid;
+	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+
+	for(pid=pidlist.first; pid; pid=pid->next) {
+		if(pid->cache) {
+			if (state)
+				pid->cache->flag |= PTCACHE_IGNORE_CLEAR;
+			else
+				pid->cache->flag &= ~PTCACHE_IGNORE_CLEAR;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+}
+
 #define UPDATE_PARENTS (1<<0)
 #define UPDATE_MESH (1<<1)
 #define UPDATE_EVERYTHING (UPDATE_PARENTS|UPDATE_MESH)
@@ -439,8 +458,13 @@ static void subframe_updateObject(Scene *scene, Object *ob, int flags, float fra
 	ob->recalc |= OB_RECALC_ALL;
 	ob->recalc |= OB_RECALC_DATA;
 	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, frame, ADT_RECALC_ANIM);
-	if (flags & UPDATE_MESH)
+	if (flags & UPDATE_MESH) {
+		/* ignore cache clear during subframe updates
+		*  to not mess up cache validity */
+		object_cacheIgnoreClear(ob, 1);
 		object_handle_update(scene, ob);
+		object_cacheIgnoreClear(ob, 0);
+	}
 	else
 		where_is_object_time(scene, ob, frame);
 
@@ -915,7 +939,7 @@ static DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSett
 	surface->image_fileformat = MOD_DPAINT_IMGFORMAT_PNG;
 
 	surface->image_resolution = 256;
-		surface->substeps = 0;
+	surface->substeps = 0;
 
 	if (scene) {
 		surface->start_frame = scene->r.sfra;
@@ -988,8 +1012,8 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 			pmd->brush->collision = MOD_DPAINT_COL_VOLUME;
 			
 			pmd->brush->mat = NULL;
-			pmd->brush->r = 1.0f;
-			pmd->brush->g = 1.0f;
+			pmd->brush->r = 0.0f;
+			pmd->brush->g = 0.0f;
 			pmd->brush->b = 1.0f;
 			pmd->brush->alpha = 1.0f;
 			pmd->brush->wetness = 1.0f;
@@ -1373,26 +1397,35 @@ static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData 
 
 									for (; j<((mface[i].v4)?4:3); j++) {
 										int index = (j==0)?mface[i].v1: (j==1)?mface[i].v2: (j==2)?mface[i].v3: mface[i].v4;
-										index *= 4;
-										invAlpha = 1.0f - fcolor[index+3];
 
-										/* Apply material color as base vertex color for preview */
-										col[i*4+j].a = 255;
-										if (material) {
-											col[i*4+j].r = (unsigned char)(material->b*255);
-											col[i*4+j].g = (unsigned char)(material->g*255);
-											col[i*4+j].b = (unsigned char)(material->r*255);
+										if (surface->preview_id == MOD_DPAINT_SURFACE_PREV_PAINT) {
+											index *= 4;
+											invAlpha = 1.0f - fcolor[index+3];
+
+											/* Apply material color as base vertex color for preview */
+											col[i*4+j].a = 255;
+											if (material) {
+												col[i*4+j].r = (unsigned char)(material->b*255);
+												col[i*4+j].g = (unsigned char)(material->g*255);
+												col[i*4+j].b = (unsigned char)(material->r*255);
+											}
+											else {
+												col[i*4+j].r = 165;
+												col[i*4+j].g = 165;
+												col[i*4+j].b = 165;
+											}
+
+											/* mix surface color */
+											col[i*4+j].r = (char)(((float)col[i*4+j].r)*invAlpha + (fcolor[index+2]*255*fcolor[index+3]));
+											col[i*4+j].g = (char)(((float)col[i*4+j].g)*invAlpha + (fcolor[index+1]*255*fcolor[index+3]));
+											col[i*4+j].b = (char)(((float)col[i*4+j].b)*invAlpha + (fcolor[index]*255*fcolor[index+3]));
 										}
 										else {
-											col[i*4+j].r = 165;
-											col[i*4+j].g = 165;
-											col[i*4+j].b = 165;
+											col[i*4+j].a = 255;
+											col[i*4+j].r = (char)(pPoint[index].wetness*255);
+											col[i*4+j].g = (char)(pPoint[index].wetness*255);
+											col[i*4+j].b = (char)(pPoint[index].wetness*255);
 										}
-
-										/* mix surface color */
-										col[i*4+j].r = (char)(((float)col[i*4+j].r)*invAlpha + (fcolor[index+2]*255*fcolor[index+3]));
-										col[i*4+j].g = (char)(((float)col[i*4+j].g)*invAlpha + (fcolor[index+1]*255*fcolor[index+3]));
-										col[i*4+j].b = (char)(((float)col[i*4+j].b)*invAlpha + (fcolor[index]*255*fcolor[index+3]));
 									}
 								}
 								pmd->canvas->flags |= MOD_DPAINT_PREVIEW_READY;
@@ -3800,22 +3833,30 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 				*/
 				{
 					KDTreeNearest nearest;
-					float smooth_range;
-					radius = solidradius + smooth;
+					float smooth_range, part_solidradius;
 
 					/* Find nearest particle and get distance to it	*/
 					BLI_kdtree_find_nearest(tree, bData->realCoord[bData->s_pos[index]].v, NULL, &nearest);
-					if (nearest.dist > radius) continue;
+					if (brush->flags & MOD_DPAINT_PART_RAD) {
+						/* use particles individual size */
+						ParticleData *pa = psys->particles + nearest.index;
+						part_solidradius = pa->size;
+					}
+					else {
+						part_solidradius = solidradius;
+					}
+					radius = part_solidradius + smooth;
+					if (nearest.dist < radius) {
+						/* distances inside solid radius has maximum influence -> dist = 0	*/
+						smooth_range = (nearest.dist - part_solidradius);
+						if (smooth_range<0.0f) smooth_range=0.0f;
+						/* do smoothness if enabled	*/
+						if (smooth) smooth_range/=smooth;
 
-					/* distances inside solid radius have maximum influence -> dist = 0	*/
-					smooth_range = (nearest.dist - solidradius);
-					if (smooth_range<0) smooth_range=0.0f;
-					/* do smoothness if enabled	*/
-					if (smooth) smooth_range/=smooth;
-
-					strength = 1.0f - smooth_range;
-					disp_intersect = radius - nearest.dist;
-					part_index = nearest.index;
+						strength = 1.0f - smooth_range;
+						disp_intersect = radius - nearest.dist;
+						part_index = nearest.index;
+					}
 				}
 				/* If using random per particle radius and closest particle didn't give max influence	*/
 				if (brush->flags & MOD_DPAINT_PART_RAD && strength < 1.0f && psys->part->randsize > 0.0f) {
@@ -3829,7 +3870,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 					KDTreeNearest *nearest = nearest_th[0];
 #endif
 					int n, particles = 0;
-					float smooth_range = range, dist;
+					float smooth_range = smooth * (1.0f-strength), dist;
 					/* calculate max range that can have particles with higher influence than the nearest one */
 					float max_range = smooth - strength*smooth + solidradius;
 
@@ -3847,7 +3888,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 						/* update hit data */
 						s_range = nearest[n].dist - pa->size;
 
-						/* continue if higher influence is already found */
+						/* skip if higher influence is already found */
 						if (smooth_range < s_range)
 							continue;
 
@@ -3860,11 +3901,11 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 						if (s_range < 0.0f)
 						if (surface->type != MOD_DPAINT_SURFACE_T_DISPLACE &&
 							surface->type != MOD_DPAINT_SURFACE_T_WAVE)
-							break;
+							continue;
 					}
 
 					/* now calculate influence for this particle */
-					if (smooth_range != range) {
+					{
 						float rad = radius + smooth, str;
 
 						if ((rad-dist) > disp_intersect) {
@@ -3873,6 +3914,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface, ParticleSys
 						}
 
 						/* do smoothness if enabled	*/
+						if (smooth_range<0.0f) smooth_range=0.0f;
 						if (smooth) smooth_range/=smooth;
 						str = 1.0f - smooth_range;
 						/* if influence is greater, use this one	*/

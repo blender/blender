@@ -296,6 +296,12 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 			{MOD_DPAINT_SURFACE_T_PAINT, "PAINT", 0, "Paint", ""},
 			{0, NULL, 0, NULL, NULL}};
 
+	/*  Surface output preview. currently only paint has multiple outputs */
+	static EnumPropertyItem prop_dynamicpaint_surface_preview[] = {
+			{MOD_DPAINT_SURFACE_PREV_PAINT, "PAINT", 0, "Paint", ""},
+			{MOD_DPAINT_SURFACE_PREV_WETMAP, "WETMAP", 0, "Wetmap", ""},
+			{0, NULL, 0, NULL, NULL}};
+
 	/*  Effect type
 	*   Only used by ui to view per effect settings */
 	static EnumPropertyItem prop_dynamicpaint_effecttype[] = {
@@ -527,6 +533,13 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "do_output2", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_OUT2);
 	RNA_def_property_ui_text(prop, "Save layer", "");
+
+	prop= RNA_def_property(srna, "preview_id", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_sdna(prop, NULL, "preview_id");
+	RNA_def_property_enum_items(prop, prop_dynamicpaint_surface_preview);
+	RNA_def_property_ui_text(prop, "Preview", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_DynamicPaint_redoModifier");
 
 	/* to check if output name exists */
 	func = RNA_def_function(srna, "output_exists", "rna_DynamicPaint_is_output_exists");
