@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Magic */
 
-__device float3 svm_magic(float3 p, int n, float turbulence)
+__device_noinline float3 svm_magic(float3 p, int n, float turbulence)
 {
 	float turb = turbulence/5.0f;
 

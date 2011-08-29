@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Wood */
 
-__device float svm_wood(float3 p, float size, NodeWoodType type, NodeWaveType wave, NodeNoiseBasis basis, uint hard, float turb)
+__device_noinline float svm_wood(float3 p, float size, NodeWoodType type, NodeWaveType wave, NodeNoiseBasis basis, uint hard, float turb)
 {
 	float x = p.x;
 	float y = p.y;

@@ -160,111 +160,157 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 	while(1) {
 		uint4 node = read_node(kg, &offset);
 
-		if(node.x == NODE_SHADER_JUMP) {
-			if(type == SHADER_TYPE_SURFACE) offset = node.y;
-			else if(type == SHADER_TYPE_VOLUME) offset = node.z;
-			else if(type == SHADER_TYPE_DISPLACEMENT) offset = node.w;
-			else return;
-		}
-		else if(node.x == NODE_CLOSURE_BSDF)
-			svm_node_closure_bsdf(sd, stack, node, randb);
-		else if(node.x == NODE_CLOSURE_EMISSION)
-			svm_node_closure_emission(sd);
-		else if(node.x == NODE_CLOSURE_BACKGROUND)
-			svm_node_closure_background(sd);
-		else if(node.x == NODE_CLOSURE_HOLDOUT)
-			svm_node_closure_holdout(sd);
-		else if(node.x == NODE_CLOSURE_SET_WEIGHT)
-			svm_node_closure_set_weight(sd, node.y, node.z, node.w);
-		else if(node.x == NODE_CLOSURE_WEIGHT)
-			svm_node_closure_weight(sd, stack, node.y);
-		else if(node.x == NODE_EMISSION_WEIGHT)
-			svm_node_emission_weight(kg, sd, stack, node);
-		else if(node.x == NODE_MIX_CLOSURE)
-			svm_node_mix_closure(sd, stack, node.y, node.z, &offset, &randb);
-		else if(node.x == NODE_ADD_CLOSURE)
-			svm_node_add_closure(sd, stack, node.y, node.z, &offset, &randb, &closure_weight);
-		else if(node.x == NODE_JUMP)
-			offset = node.y;
+		switch(node.x) {
+			case NODE_SHADER_JUMP: {
+				if(type == SHADER_TYPE_SURFACE) offset = node.y;
+				else if(type == SHADER_TYPE_VOLUME) offset = node.z;
+				else if(type == SHADER_TYPE_DISPLACEMENT) offset = node.w;
+				else return;
+				break;
+			}
+			case NODE_CLOSURE_BSDF:
+				svm_node_closure_bsdf(sd, stack, node, randb);
+				break;
+			case NODE_CLOSURE_EMISSION:
+				svm_node_closure_emission(sd);
+				break;
+			case NODE_CLOSURE_BACKGROUND:
+				svm_node_closure_background(sd);
+				break;
+			case NODE_CLOSURE_HOLDOUT:
+				svm_node_closure_holdout(sd);
+				break;
+			case NODE_CLOSURE_SET_WEIGHT:
+				svm_node_closure_set_weight(sd, node.y, node.z, node.w);
+				break;
+			case NODE_CLOSURE_WEIGHT:
+				svm_node_closure_weight(sd, stack, node.y);
+				break;
+			case NODE_EMISSION_WEIGHT:
+				svm_node_emission_weight(kg, sd, stack, node);
+				break;
+			case NODE_MIX_CLOSURE:
+				svm_node_mix_closure(sd, stack, node.y, node.z, &offset, &randb);
+				break;
+			case NODE_ADD_CLOSURE:
+				svm_node_add_closure(sd, stack, node.y, node.z, &offset, &randb, &closure_weight);
+				break;
+			case NODE_JUMP:
+				offset = node.y;
+				break;
 #ifdef __TEXTURES__
-		else if(node.x == NODE_TEX_NOISE_F)
-			svm_node_tex_noise_f(sd, stack, node.y, node.z);
-		else if(node.x == NODE_TEX_NOISE_V)
-			svm_node_tex_noise_v(sd, stack, node.y, node.z);
-		else if(node.x == NODE_TEX_IMAGE)
-			svm_node_tex_image(kg, sd, stack, node);
-		else if(node.x == NODE_TEX_ENVIRONMENT)
-			svm_node_tex_environment(kg, sd, stack, node);
-		else if(node.x == NODE_TEX_SKY)
-			svm_node_tex_sky(kg, sd, stack, node.y, node.z);
-		else if(node.x == NODE_TEX_BLEND)
-			svm_node_tex_blend(sd, stack, node);
-		else if(node.x == NODE_TEX_CLOUDS)
-			svm_node_tex_clouds(sd, stack, node);
-		else if(node.x == NODE_TEX_VORONOI)
-			svm_node_tex_voronoi(kg, sd, stack, node, &offset);
-		else if(node.x == NODE_TEX_MUSGRAVE)
-			svm_node_tex_musgrave(kg, sd, stack, node, &offset);
-		else if(node.x == NODE_TEX_MARBLE)
-			svm_node_tex_marble(kg, sd, stack, node, &offset);
-		else if(node.x == NODE_TEX_MAGIC)
-			svm_node_tex_magic(sd, stack, node);
-		else if(node.x == NODE_TEX_STUCCI)
-			svm_node_tex_stucci(kg, sd, stack, node, &offset);
-		else if(node.x == NODE_TEX_DISTORTED_NOISE)
-			svm_node_tex_distorted_noise(kg, sd, stack, node, &offset);
-		else if(node.x == NODE_TEX_WOOD)
-			svm_node_tex_wood(kg, sd, stack, node, &offset);
+			case NODE_TEX_NOISE_F:
+				svm_node_tex_noise_f(sd, stack, node.y, node.z);
+				break;
+			case NODE_TEX_NOISE_V:
+				svm_node_tex_noise_v(sd, stack, node.y, node.z);
+				break;
+			case NODE_TEX_IMAGE:
+				svm_node_tex_image(kg, sd, stack, node);
+				break;
+			case NODE_TEX_ENVIRONMENT:
+				svm_node_tex_environment(kg, sd, stack, node);
+				break;
+			case NODE_TEX_SKY:
+				svm_node_tex_sky(kg, sd, stack, node.y, node.z);
+				break;
+			case NODE_TEX_BLEND:
+				svm_node_tex_blend(sd, stack, node);
+				break;
+			case NODE_TEX_CLOUDS:
+				svm_node_tex_clouds(sd, stack, node);
+				break;
+			case NODE_TEX_VORONOI:
+				svm_node_tex_voronoi(kg, sd, stack, node, &offset);
+				break;
+			case NODE_TEX_MUSGRAVE:
+				svm_node_tex_musgrave(kg, sd, stack, node, &offset);
+				break;
+			case NODE_TEX_MARBLE:
+				svm_node_tex_marble(kg, sd, stack, node, &offset);
+				break;
+			case NODE_TEX_MAGIC:
+				svm_node_tex_magic(sd, stack, node);
+				break;
+			case NODE_TEX_STUCCI:
+				svm_node_tex_stucci(kg, sd, stack, node, &offset);
+				break;
+			case NODE_TEX_DISTORTED_NOISE:
+				svm_node_tex_distorted_noise(kg, sd, stack, node, &offset);
+				break;
+			case NODE_TEX_WOOD:
+				svm_node_tex_wood(kg, sd, stack, node, &offset);
+				break;
 #endif
-		else if(node.x == NODE_GEOMETRY)
-			svm_node_geometry(sd, stack, node.y, node.z);
-		else if(node.x == NODE_GEOMETRY_BUMP_DX)
-			svm_node_geometry_bump_dx(sd, stack, node.y, node.z);
-		else if(node.x == NODE_GEOMETRY_BUMP_DY)
-			svm_node_geometry_bump_dy(sd, stack, node.y, node.z);
-		else if(node.x == NODE_LIGHT_PATH)
-			svm_node_light_path(sd, stack, node.y, node.z, path_flag);
-		else if(node.x == NODE_CONVERT)
-			svm_node_convert(sd, stack, node.y, node.z, node.w);
-		else if(node.x == NODE_VALUE_F)
-			svm_node_value_f(kg, sd, stack, node.y, node.z);
-		else if(node.x == NODE_VALUE_V)
-			svm_node_value_v(kg, sd, stack, node.y, &offset);
-		else if(node.x == NODE_MIX)
-			svm_node_mix(kg, sd, stack, node.y, node.z, node.w, &offset);
-		else if(node.x == NODE_ATTR)
-			svm_node_attr(kg, sd, stack, node);
-		else if(node.x == NODE_ATTR_BUMP_DX)
-			svm_node_attr_bump_dx(kg, sd, stack, node);
-		else if(node.x == NODE_ATTR_BUMP_DY)
-			svm_node_attr_bump_dy(kg, sd, stack, node);
-		else if(node.x == NODE_FRESNEL)
-			svm_node_fresnel(sd, stack, node.y, node.z, node.w);
-		else if(node.x == NODE_SET_DISPLACEMENT)
-			svm_node_set_displacement(sd, stack, node.y);
-		else if(node.x == NODE_SET_BUMP)
-			svm_node_set_bump(sd, stack, node.y, node.z, node.w);
-		else if(node.x == NODE_MATH)
-			svm_node_math(kg, sd, stack, node.y, node.z, node.w, &offset);
-		else if(node.x == NODE_VECTOR_MATH)
-			svm_node_vector_math(kg, sd, stack, node.y, node.z, node.w, &offset);
-		else if(node.x == NODE_MAPPING)
-			svm_node_mapping(kg, sd, stack, node.y, node.z, &offset);
-		else if(node.x == NODE_TEX_COORD)
-			svm_node_tex_coord(kg, sd, stack, node.y, node.z);
-		else if(node.x == NODE_TEX_COORD_BUMP_DX)
-			svm_node_tex_coord_bump_dx(kg, sd, stack, node.y, node.z);
-		else if(node.x == NODE_TEX_COORD_BUMP_DY)
-			svm_node_tex_coord_bump_dy(kg, sd, stack, node.y, node.z);
-		else if(node.x == NODE_EMISSION_SET_WEIGHT_TOTAL)
-			svm_node_emission_set_weight_total(kg, sd, node.y, node.z, node.w);
-		else if(node.x == NODE_END)
-			break;
-		else
-			return;
+			case NODE_GEOMETRY:
+				svm_node_geometry(sd, stack, node.y, node.z);
+				break;
+			case NODE_GEOMETRY_BUMP_DX:
+				svm_node_geometry_bump_dx(sd, stack, node.y, node.z);
+				break;
+			case NODE_GEOMETRY_BUMP_DY:
+				svm_node_geometry_bump_dy(sd, stack, node.y, node.z);
+				break;
+			case NODE_LIGHT_PATH:
+				svm_node_light_path(sd, stack, node.y, node.z, path_flag);
+				break;
+			case NODE_CONVERT:
+				svm_node_convert(sd, stack, node.y, node.z, node.w);
+				break;
+			case NODE_VALUE_F:
+				svm_node_value_f(kg, sd, stack, node.y, node.z);
+				break;
+			case NODE_VALUE_V:
+				svm_node_value_v(kg, sd, stack, node.y, &offset);
+				break;
+			case NODE_MIX:
+				svm_node_mix(kg, sd, stack, node.y, node.z, node.w, &offset);
+				break;
+			case NODE_ATTR:
+				svm_node_attr(kg, sd, stack, node);
+				break;
+			case NODE_ATTR_BUMP_DX:
+				svm_node_attr_bump_dx(kg, sd, stack, node);
+				break;
+			case NODE_ATTR_BUMP_DY:
+				svm_node_attr_bump_dy(kg, sd, stack, node);
+				break;
+			case NODE_FRESNEL:
+				svm_node_fresnel(sd, stack, node.y, node.z, node.w);
+				break;
+			case NODE_SET_DISPLACEMENT:
+				svm_node_set_displacement(sd, stack, node.y);
+				break;
+			case NODE_SET_BUMP:
+				svm_node_set_bump(sd, stack, node.y, node.z, node.w);
+				break;
+			case NODE_MATH:
+				svm_node_math(kg, sd, stack, node.y, node.z, node.w, &offset);
+				break;
+			case NODE_VECTOR_MATH:
+				svm_node_vector_math(kg, sd, stack, node.y, node.z, node.w, &offset);
+				break;
+			case NODE_MAPPING:
+				svm_node_mapping(kg, sd, stack, node.y, node.z, &offset);
+				break;
+			case NODE_TEX_COORD:
+				svm_node_tex_coord(kg, sd, stack, node.y, node.z);
+				break;
+			case NODE_TEX_COORD_BUMP_DX:
+				svm_node_tex_coord_bump_dx(kg, sd, stack, node.y, node.z);
+				break;
+			case NODE_TEX_COORD_BUMP_DY:
+				svm_node_tex_coord_bump_dy(kg, sd, stack, node.y, node.z);
+				break;
+			case NODE_EMISSION_SET_WEIGHT_TOTAL:
+				svm_node_emission_set_weight_total(kg, sd, node.y, node.z, node.w);
+				break;
+			case NODE_END:
+			default:
+				sd->svm_closure_weight *= closure_weight;
+				return;
+		}
 	}
-
-	sd->svm_closure_weight *= closure_weight;
 }
 
 CCL_NAMESPACE_END

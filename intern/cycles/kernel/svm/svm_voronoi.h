@@ -20,9 +20,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Voronoi */
 
-__device float svm_voronoi(NodeDistanceMetric distance_metric, NodeVoronoiColoring coloring,
+__device_noinline float4 svm_voronoi(NodeDistanceMetric distance_metric, NodeVoronoiColoring coloring,
 	float weight1, float weight2, float weight3, float weight4,
-	float exponent, float intensity, float size, float3 p, float3 *color)
+	float exponent, float intensity, float size, float3 p)
 {
 	float aw1 = fabsf(weight1);
 	float aw2 = fabsf(weight2);
@@ -41,31 +41,32 @@ __device float svm_voronoi(NodeDistanceMetric distance_metric, NodeVoronoiColori
 
 	/* Scalar output */
 	float fac = sc * fabsf(weight1*da[0] + weight2*da[1] + weight3*da[2] + weight4*da[3]);
+	float3 color;
 
 	/* colored output */
 	if(coloring == NODE_VORONOI_INTENSITY) {
-		*color = make_float3(fac, fac, fac);
+		color = make_float3(fac, fac, fac);
 	}
 	else {
-		*color = aw1*cellnoise_color(pa[0]);
-		*color += aw2*cellnoise_color(pa[1]);
-		*color += aw3*cellnoise_color(pa[2]);
-		*color += aw4*cellnoise_color(pa[3]);
+		color = aw1*cellnoise_color(pa[0]);
+		color += aw2*cellnoise_color(pa[1]);
+		color += aw3*cellnoise_color(pa[2]);
+		color += aw4*cellnoise_color(pa[3]);
 
 		if(coloring != NODE_VORONOI_POSITION) {
 			float t1 = min((da[1] - da[0])*10.0f, 1.0f);
 
 			if(coloring == NODE_VORONOI_POSITION_OUTLINE_INTENSITY)
-				*color *= t1*fac;
+				color *= t1*fac;
 			else if(coloring == NODE_VORONOI_POSITION_OUTLINE)
-				*color *= t1*sc;
+				color *= t1*sc;
 		}
 		else {
-			*color *= sc;
+			color *= sc;
 		}
 	}
 
-	return fac;
+	return make_float4(color.x, color.y, color.z, fac);
 }
 
 __device void svm_node_tex_voronoi(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
@@ -92,10 +93,11 @@ __device void svm_node_tex_voronoi(KernelGlobals *kg, ShaderData *sd, float *sta
 	exponent = fmaxf(exponent, 1e-5f);
 	size = nonzerof(size, 1e-5f);
 
-	float3 color;
-	float f = svm_voronoi((NodeDistanceMetric)distance_metric,
+	float4 result = svm_voronoi((NodeDistanceMetric)distance_metric,
 		(NodeVoronoiColoring)coloring,
-		weight1, weight2, weight3, weight4, exponent, 1.0f, size, co, &color);
+		weight1, weight2, weight3, weight4, exponent, 1.0f, size, co);
+	float3 color = make_float3(result.x, result.y, result.z);
+	float f = result.w;
 
 	if(stack_valid(fac_offset)) stack_store_float(stack, fac_offset, f);
 	if(stack_valid(color_offset)) stack_store_float3(stack, color_offset, color);

@@ -112,7 +112,7 @@ __device float scale3(float result)
 	return 0.9820f * result;
 }
 
-__device float perlin(float x, float y, float z)
+__device_noinline float perlin(float x, float y, float z)
 {
 	int X; float fx = floorfrac(x, &X);
 	int Y; float fy = floorfrac(y, &Y);
@@ -135,7 +135,7 @@ __device float perlin(float x, float y, float z)
 	return scale3(result);
 }
 
-__device float perlin_periodic(float x, float y, float z, float3 pperiod)
+__device_noinline float perlin_periodic(float x, float y, float z, float3 pperiod)
 {
 	int X; float fx = floorfrac(x, &X);
 	int Y; float fy = floorfrac(y, &Y);
@@ -178,7 +178,7 @@ __device float snoise(float3 p)
 }
 
 /* cell noise */
-__device float cellnoise(float3 p)
+__device_noinline float cellnoise(float3 p)
 {
 	uint ix = quick_floor(p.x);
 	uint iy = quick_floor(p.y);
@@ -210,7 +210,7 @@ __device float psnoise(float3 p, float3 pperiod)
 }
 
 /* turbulence */
-__device float turbulence(float3 P, int oct, bool hard)
+__device_noinline float turbulence(float3 P, int oct, bool hard)
 {
 	float amp = 1.0f, fscale = 1.0f, sum = 0.0f;
 	int i;

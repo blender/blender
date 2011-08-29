@@ -151,15 +151,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		if((sd.flag & SD_HOLDOUT) && (path_flag & PATH_RAY_CAMERA)) {
 			float3 holdout_weight = shader_holdout_eval(kg, &sd);
 
-			if(kernel_data.background.transparent) {
+			if(kernel_data.background.transparent)
 				Ltransparent += average(holdout_weight*throughput);
-			}
-			else {
-				ShaderData sd;
-				shader_setup_from_background(kg, &sd, &ray);
-				L += holdout_weight*throughput*shader_eval_background(kg, &sd, path_flag);
-				shader_release(kg, &sd);
-			}
 		}
 #endif
 

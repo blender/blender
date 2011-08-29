@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Marble */
 
-__device float svm_marble(float3 p, float size, NodeMarbleType type, NodeWaveType wave, NodeNoiseBasis basis, int hard, float turb, int depth)
+__device_noinline float svm_marble(float3 p, float size, NodeMarbleType type, NodeWaveType wave, NodeNoiseBasis basis, int hard, float turb, int depth)
 {
 	float x = p.x;
 	float y = p.y;

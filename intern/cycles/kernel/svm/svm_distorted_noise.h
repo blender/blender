@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Distorted Noise (variable lacunarity noise) */
 
-__device float svm_distorted_noise(float3 p, float size, NodeNoiseBasis basis, NodeNoiseBasis distortion_basis, float distortion)
+__device_noinline float svm_distorted_noise(float3 p, float size, NodeNoiseBasis basis, NodeNoiseBasis distortion_basis, float distortion)
 {
 	float3 r;
 	float3 offset = make_float3(13.5f, 13.5f, 13.5f);

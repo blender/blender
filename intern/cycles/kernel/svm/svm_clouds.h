@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Clouds */
 
-__device void svm_clouds(NodeNoiseBasis basis, int hard, int depth, float size, float3 p, float *fac, float3 *color)
+__device_inline void svm_clouds(NodeNoiseBasis basis, int hard, int depth, float size, float3 p, float *fac, float3 *color)
 {
 	p /= size;
 

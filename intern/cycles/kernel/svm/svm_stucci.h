@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Stucci */
 
-__device float svm_stucci(NodeStucciType type, NodeNoiseBasis basis, int hard, float turbulence, float size, float3 p)
+__device_noinline float svm_stucci(NodeStucciType type, NodeNoiseBasis basis, int hard, float turbulence, float size, float3 p)
 {
 	p /= size;
 
