@@ -92,10 +92,11 @@ bool BL_DeformableGameObject::GetShape(vector<float> &shape)
 	{
 		// this check is normally superfluous: a shape deformer can only be created if the mesh
 		// has relative keys
-		if (shape_deformer->GetKey() && shape_deformer->GetKey()->type==KEY_RELATIVE) 
+		Key* key = shape_deformer->GetKey();
+		if (key && key->type==KEY_RELATIVE) 
 		{
 			KeyBlock *kb;
-			for (kb = (KeyBlock*)shape_deformer->GetKey()->block.first; kb; kb = (KeyBlock*)kb->next)
+			for (kb = (KeyBlock*)key->block.first; kb; kb = (KeyBlock*)kb->next)
 			{
 				shape.push_back(kb->curval);
 			}

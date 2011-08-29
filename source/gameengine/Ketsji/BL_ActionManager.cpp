@@ -37,42 +37,36 @@ BL_ActionManager::BL_ActionManager(class KX_GameObject *obj)
 BL_ActionManager::~BL_ActionManager()
 {
 	for (int i=0; i<MAX_ACTION_LAYERS; ++i)
-		if (m_layers[i])
-			delete m_layers[i];
+		delete m_layers[i];
 }
 
 float BL_ActionManager::GetActionFrame(short layer)
 {
-	if (m_layers[layer])
-		return m_layers[layer]->GetFrame();
+	return m_layers[layer]->GetFrame();
 
 	return 0.f;
 }
 
 void BL_ActionManager::SetActionFrame(short layer, float frame)
 {
-	if (m_layers[layer])
-		m_layers[layer]->SetFrame(frame);
+	m_layers[layer]->SetFrame(frame);
 }
 
 struct bAction *BL_ActionManager::GetCurrentAction(short layer)
 {
-	if (m_layers[layer])
-		return m_layers[layer]->GetAction();
+	return m_layers[layer]->GetAction();
 	
 	return 0;
 }
 
 void BL_ActionManager::SetPlayMode(short layer, short mode)
 {
-	if (m_layers[layer])
-		m_layers[layer]->SetPlayMode(mode);
+	m_layers[layer]->SetPlayMode(mode);
 }
 
 void BL_ActionManager::SetTimes(short layer, float start, float end)
 {
-	if (m_layers[layer])
-		m_layers[layer]->SetTimes(start, end);
+	m_layers[layer]->SetTimes(start, end);
 }
 
 bool BL_ActionManager::PlayAction(const char* name,
@@ -99,8 +93,7 @@ void BL_ActionManager::StopAction(short layer)
 
 bool BL_ActionManager::IsActionDone(short layer)
 {
-	if (m_layers[layer])
-		return m_layers[layer]->IsDone();
+	return m_layers[layer]->IsDone();
 
 	return true;
 }

@@ -139,46 +139,51 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 {
 	bool bNegativeEvent = false;
 	bool bPositiveEvent = false;
-	bool use_continue = false;
+	bool bUseContinue = false;
 	KX_GameObject *obj = (KX_GameObject*)GetParent();
-	short play_mode = BL_Action::ACT_MODE_PLAY;
-	float start = m_startframe, end = m_endframe;
+	short playtype = BL_Action::ACT_MODE_PLAY;
+	float start = m_startframe;
+	float end = m_endframe;
 
 	// If we don't have an action, we can't do anything
 	if (!m_action)
 		return false;
 
-	// Convert playmode
-	if (m_playtype == ACT_ACTION_LOOP_END)
-		play_mode = BL_Action::ACT_MODE_LOOP;
-	else if (m_playtype == ACT_ACTION_LOOP_STOP)
-		play_mode = BL_Action::ACT_MODE_LOOP;
-	else if (m_playtype == ACT_ACTION_PINGPONG)
+	// Convert our playtype to one that BL_Action likes
+	switch(m_playtype)
 	{
-		// We handle ping pong ourselves to increase compabitility with the pre-Pepper actuator
-		play_mode = BL_Action::ACT_MODE_PLAY;
-		
-		if (m_flag & ACT_FLAG_REVERSE)
-		{
-			float tmp = start;
-			start = end;
-			end = tmp;
-			m_localtime = end;
-		}
-	}
-	else if (m_playtype == ACT_ACTION_FROM_PROP)
-	{
-		CValue* prop = GetParent()->GetProperty(m_propname);
+		case ACT_ACTION_LOOP_END:
+		case ACT_ACTION_LOOP_STOP:
+			playtype = BL_Action::ACT_MODE_LOOP;
+			break;
 
-		play_mode = BL_Action::ACT_MODE_PLAY;
-		start = end = prop->GetNumber();
+		case ACT_ACTION_PINGPONG:
+			// We handle ping pong ourselves to increase compabitility
+			// with files made prior to animation changes from GSoC 2011.
+			playtype = BL_Action::ACT_MODE_PLAY;
+		
+			if (m_flag & ACT_FLAG_REVERSE)
+			{
+				m_localtime = start;
+				start = end;
+				end = m_localtime;
+			}
+
+			break;
+		case ACT_ACTION_FROM_PROP:
+			CValue* prop = GetParent()->GetProperty(m_propname);
+
+			playtype = BL_Action::ACT_MODE_PLAY;
+			start = end = prop->GetNumber();
+
+			break;
 	}
 
 	// Continue only really makes sense for play stop and flipper. All other modes go until they are complete.
 	if (m_flag & ACT_FLAG_CONTINUE &&
 		(m_playtype == ACT_ACTION_LOOP_STOP ||
 		m_playtype == ACT_ACTION_FLIPPER))
-		use_continue = true;
+		bUseContinue = true;
 	
 	
 	// Handle events
@@ -189,15 +194,15 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		RemoveAllEvents();
 	}
 
-	if (use_continue && m_flag & ACT_FLAG_ACTIVE)
+	if (bUseContinue && (m_flag & ACT_FLAG_ACTIVE))
 		m_localtime = obj->GetActionFrame(m_layer);
 	
 	if (bPositiveEvent)
 	{
-		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, play_mode, m_layer_weight, m_ipo_flags))
+		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, playtype, m_layer_weight, m_ipo_flags))
 		{
 			m_flag |= ACT_FLAG_ACTIVE;
-			if (use_continue)
+			if (bUseContinue)
 				obj->SetActionFrame(m_layer, m_localtime);
 
 			if (m_playtype == ACT_ACTION_PLAY)
@@ -225,32 +230,32 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
 			m_localtime = m_startframe;
 
-		if (m_playtype == ACT_ACTION_LOOP_STOP)
+		switch(m_playtype)
 		{
-			obj->StopAction(m_layer); // Stop the action after getting the frame
+			case ACT_ACTION_LOOP_STOP:
+				obj->StopAction(m_layer); // Stop the action after getting the frame
 
-			// We're done
-			m_flag &= ~ACT_FLAG_ACTIVE;
-			return false;
-		}
-		else if (m_playtype == ACT_ACTION_LOOP_END || m_playtype == ACT_ACTION_PINGPONG)
-		{
-			// Convert into a play and let it finish
-			obj->SetPlayMode(m_layer, BL_Action::ACT_MODE_PLAY);
-
-			m_flag |= ACT_FLAG_PLAY_END;
-
-			if (m_playtype == ACT_ACTION_PINGPONG)
+				// We're done
+				m_flag &= ~ACT_FLAG_ACTIVE;
+				return false;
+			case ACT_ACTION_PINGPONG:
 				m_flag ^= ACT_FLAG_REVERSE;
-		}
-		else if (m_playtype == ACT_ACTION_FLIPPER)
-		{
-			// Convert into a play action and play back to the beginning
-			end = start;
-			start = obj->GetActionFrame(m_layer);
-			obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
+				// Now fallthrough to LOOP_END code
+			case ACT_ACTION_LOOP_END:
+				// Convert into a play and let it finish
+				obj->SetPlayMode(m_layer, BL_Action::ACT_MODE_PLAY);
 
-			m_flag |= ACT_FLAG_PLAY_END;
+				m_flag |= ACT_FLAG_PLAY_END;
+				break;
+	
+			case ACT_ACTION_FLIPPER:
+				// Convert into a play action and play back to the beginning
+				end = start;
+				start = obj->GetActionFrame(m_layer);
+				obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
+
+				m_flag |= ACT_FLAG_PLAY_END;
+				break;
 		}
 	}
 
