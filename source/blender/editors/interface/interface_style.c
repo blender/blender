@@ -295,7 +295,6 @@ void uiStyleInit(void)
 {
 	uiFont *font= U.uifonts.first;
 	uiStyle *style= U.uistyles.first;
-	int defaultFontId = -1;
 	
 	/* recover from uninitialized dpi */
 	if(U.dpi == 0)
@@ -315,7 +314,6 @@ void uiStyleInit(void)
 		
 		if(font->uifont_id==UIFONT_DEFAULT) {
 			font->blf_id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
-			defaultFontId = font->blf_id;
 		}		
 		else {
 			font->blf_id= BLF_load(font->filename);
@@ -353,14 +351,6 @@ void uiStyleInit(void)
 		blf_mono_font_render= BLF_load_mem_unique("monospace", (unsigned char *)datatoc_bmonofont_ttf, datatoc_bmonofont_ttf_size);
 
 	BLF_size(blf_mono_font_render, 12, 72);
-	
-	/* also another copy of default for rendering else we get threading problems */
-	if (defaultFontId != -1) {
-		if (blf_default_font_render == -1)
-			blf_default_font_render= BLF_load_mem_unique("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
-			
-		BLF_size(blf_default_font_render, 12, 72);
-	}
 }
 
 void uiStyleFontSet(uiFontStyle *fs)

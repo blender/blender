@@ -225,7 +225,6 @@ class SEQUENCER_MT_add_effect(Menu):
         layout.operator("sequencer.effect_strip_add", text="Speed Control").type = 'SPEED'
         layout.operator("sequencer.effect_strip_add", text="Multicam Selector").type = 'MULTICAM'
         layout.operator("sequencer.effect_strip_add", text="Adjustment Layer").type = 'ADJUSTMENT'
-        layout.operator("sequencer.effect_strip_add", text="Title Card").type = 'TITLE_CARD'
 
 
 class SEQUENCER_MT_strip(Menu):
@@ -407,7 +406,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
-                              'MULTICAM', 'ADJUSTMENT', 'TITLE_CARD'}
+                              'MULTICAM', 'ADJUSTMENT'}
 
     def draw(self, context):
         layout = self.layout
@@ -475,11 +474,6 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             row.label("Cut To")
             for i in range(1, strip.channel):
                 row.operator("sequencer.cut_multicam", text=str(i)).camera = i
-        elif strip.type == "TITLE_CARD":
-            layout.prop(strip, "title")
-            layout.prop(strip, "subtitle")
-            layout.prop(strip, "color_foreground")
-            layout.prop(strip, "color_background")
 
         col = layout.column(align=True)
         if strip.type == 'SPEED':
@@ -551,8 +545,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-                              'MULTICAM', 'SPEED', 'ADJUSTMENT',
-                              'TITLE_CARD'}
+                              'MULTICAM', 'SPEED', 'ADJUSTMENT'}
 
     def draw(self, context):
         layout = self.layout
@@ -713,8 +706,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
                               'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
-                              'MULTICAM', 'SPEED', 'ADJUSTMENT',
-                              'TITLE_CARD'}
+                              'MULTICAM', 'SPEED', 'ADJUSTMENT'}
 
     def draw(self, context):
         layout = self.layout

@@ -40,10 +40,7 @@
 #include "BLI_dynlib.h"
 
 #include "BLI_math.h" /* windows needs for M_PI */
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
-
-#include "BLF_api.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -2808,130 +2805,6 @@ static struct ImBuf * do_solid_color(
 }
 
 /* **********************************************************************
-   TITLE CARD
-   ********************************************************************** */
-
-static void init_title_card(Sequence *seq)
-{
-	TitleCardVars *tv;
-	
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
-	seq->effectdata = MEM_callocN(sizeof(struct TitleCardVars), "titlecard");
-	
-	tv = (TitleCardVars *)seq->effectdata;
-	
-	BLI_strncpy(tv->titlestr, "Title goes here", sizeof(tv->titlestr));
-	tv->fgcol[0] = tv->fgcol[1] = tv->fgcol[2] = 1.0f; /* white */
-}
-
-static int num_inputs_titlecard(void)
-{
-	return 0;
-}
-
-static void free_title_card(Sequence *seq)
-{
-	if(seq->effectdata)MEM_freeN(seq->effectdata);
-	seq->effectdata = NULL;
-}
-
-static void copy_title_card(Sequence *dst, Sequence *src)
-{
-	dst->effectdata = MEM_dupallocN(src->effectdata);
-}
-
-static int early_out_titlecard(struct Sequence *UNUSED(seq),
-			   float UNUSED(facf0), float UNUSED(facf1))
-{
-	return -1;
-}
-
-static struct ImBuf * do_title_card(
-	SeqRenderData context, Sequence *seq, float cfra,
-	float facf0, float facf1, 
-	struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
-	struct ImBuf *ibuf3)
-{	
-	TitleCardVars *tv = (TitleCardVars *)seq->effectdata;
-	
-	SolidColorVars cv = {{0}};
-	struct ImBuf *out;
-	
-	int titleFontId = blf_default_font_render; // XXX: bad design!
-	
-	int width = context.rectx;
-	int height = context.recty;
-	float w, h;
-	int x, y;
-	
-	/* use fake solid-color vars to get backdrop (and an out buffer at the same time) */
-	VECCOPY(cv.col, tv->bgcol);
-	seq->effectdata = &cv;
-	
-	out = do_solid_color(context, seq, cfra,
-			facf0, facf1,
-			ibuf1, ibuf2, ibuf3);
-			
-	seq->effectdata = tv;
-	
-	/* draw text */
-	/* FIXME: imbuf out->rect is unsigned int NOT unsigned char, but without passing this pointer
-	 * this drawing code doesn't work. This cast really masks some potential bugs though...
-	 */
-	BLF_buffer(titleFontId, out->rect_float, (unsigned char *)out->rect, width, height, 4);
-	
-	if (tv->titlestr[0]) {
-		/* automatic scale - these formulae have been derived experimentally:
-		 *	- base size is based on 40pt at 960 width
-		 *	- each 26 characters, size jumps down one step, 
-		 *	  but this decrease needs to be exponential to fit everything
-		 */
-		float lfac = strlen(tv->titlestr) / 26.0f;
-		float size = (width * 0.06f) * (1.0f - 0.1f*lfac*lfac);
-		
-		BLF_size(titleFontId, size, 72);
-		BLF_buffer_col(titleFontId, tv->fgcol[0], tv->fgcol[1], tv->fgcol[2], 1.0);
-		
-		BLF_width_and_height(titleFontId, tv->titlestr, &w, &h);
-		x = width/2.0f - w/2.0f;
-		if (tv->subtitle[0])
-			y = height/2.0f + h;
-		else
-			y = height/2.0f;
-		
-		BLF_position(titleFontId, x, y, 0.0);
-		BLF_draw_buffer(titleFontId, tv->titlestr);
-	}
-	
-	if (tv->subtitle[0]) {
-		/* automatic scale - these formulae have been derived experimentally (as above):
-		 *	- base size is based on 20pt at 960 width
-		 *	- size steps aren't quite as refined here. Need a slower-growing curve!
-		 */
-		float lfac = strlen(tv->subtitle) / 36.0f;
-		float size = (width * 0.03f) * (1.0f - 0.1f*lfac*lfac*log(lfac));
-		
-		BLF_size(titleFontId, size, 72);
-		BLF_buffer_col(titleFontId, tv->fgcol[0], tv->fgcol[1], tv->fgcol[2], 1.0);
-		
-		BLF_width_and_height(titleFontId, tv->subtitle, &w, &h);
-		x = width/2.0f - w/2.0f;
-		if (tv->titlestr[0])
-			y = height/2.0f - h;
-		else
-			y = height/2.0f;
-		
-		BLF_position(titleFontId, x, y, 0.0);
-		BLF_draw_buffer(titleFontId, tv->subtitle);
-	}
-	
-	/* cleanup the buffer. */
-	BLF_buffer(UIFONT_DEFAULT, NULL, NULL, 0, 0, 0);
-	
-	return out;
-}
-
-/* **********************************************************************
    MULTICAM
    ********************************************************************** */
 
@@ -3469,14 +3342,6 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 		rval.num_inputs = num_inputs_adjustment;
 		rval.early_out = early_out_adjustment;
 		rval.execute = do_adjustment;
-		break;
-	case SEQ_TITLECARD:
-		rval.init = init_title_card;
-		rval.num_inputs = num_inputs_titlecard;
-		rval.early_out = early_out_titlecard;
-		rval.free = free_title_card;
-		rval.copy = copy_title_card;
-		rval.execute = do_title_card;
 		break;
 	}
 

@@ -127,7 +127,6 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 	case SEQ_GLOW:
 	case SEQ_MULTICAM:
 	case SEQ_ADJUSTMENT:
-	case SEQ_TITLECARD:
 		UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
 		
 		/* slightly offset hue to distinguish different effects */

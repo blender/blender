@@ -387,12 +387,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		
 		if (retval != BKE_READ_FILE_FAIL) {
 			G.relbase_valid = 1;
-			
-			/* dont write recent file list if:
-			 * 1) assuming automated tasks with background
-			 * 2) user preference to not do this is enabled (i.e. developer testing mode)
-			 */
-			if (!G.background && !(U.flag & USER_NO_RECENTLOAD_UPDATE))
+			if(!G.background) /* assume automated tasks with background, dont write recent file list */
 				write_history();
 		}
 

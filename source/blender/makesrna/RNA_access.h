@@ -536,7 +536,6 @@ extern StructRNA RNA_ThemeWidgetColors;
 extern StructRNA RNA_ThemeWidgetStateColors;
 extern StructRNA RNA_TimelineMarker;
 extern StructRNA RNA_Timer;
-extern StructRNA RNA_TitleCardSequence;
 extern StructRNA RNA_ToolSettings;
 extern StructRNA RNA_TouchSensor;
 extern StructRNA RNA_TrackToConstraint;

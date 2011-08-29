@@ -30,4 +30,4 @@
 
 #include "AUD_Reference.h"
 
-std::map<void*, int> AUD_ReferenceHandler::m_references;
+std::map<void*, unsigned int> AUD_ReferenceHandler::m_references;

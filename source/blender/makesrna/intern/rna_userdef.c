@@ -2950,11 +2950,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "recent_files", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 30);
 	RNA_def_property_ui_text(prop, "Recent Files", "Maximum number of recently opened files to remember");
-	
-	prop= RNA_def_property(srna, "use_update_recent_files_on_load", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_NO_RECENTLOAD_UPDATE);
-	RNA_def_property_ui_text(prop, "Update Recent on Load", "When enabled, opening files will update the recent files list. Otherwise, updates only occur when saving");
-	
+
 	prop= RNA_def_property(srna, "use_save_preview_images", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_SAVE_PREVIEWS);
 	RNA_def_property_ui_text(prop, "Save Preview Images", "Enables automatic saving of preview images in the .blend file");

@@ -49,7 +49,7 @@ private:
 	/**
 	 * Saves the reference counts.
 	 */
-	static std::map<void*, int> m_references;
+	static std::map<void*, unsigned int> m_references;
 
 public:
 	/**
@@ -61,7 +61,7 @@ public:
 		if(!reference)
 			return;
 
-		std::map<void*, int>::iterator result = m_references.find(reference);
+		std::map<void*, unsigned int>::iterator result = m_references.find(reference);
 		if(result != m_references.end())
 		{
 			m_references[reference]++;

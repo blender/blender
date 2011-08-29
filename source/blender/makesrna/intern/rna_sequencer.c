@@ -409,8 +409,6 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 			return &RNA_ColorSequence;
 		case SEQ_SPEED:
 			return &RNA_SpeedControlSequence;
-		case SEQ_TITLECARD:
-			return &RNA_TitleCardSequence;
 		default:
 			return &RNA_Sequence;
 	}
@@ -889,7 +887,6 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_SPEED, "SPEED", 0, "Speed", ""}, 
 		{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
 		{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
-		{SEQ_TITLECARD, "TITLE_CARD", 0, "Title Card", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem blend_mode_items[]= {
@@ -1683,37 +1680,6 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
-static void rna_def_title_card(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "TitleCardSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Title Card Sequence", "Sequence strip creating an image displaying some text on a plain color background");
-	RNA_def_struct_sdna_from(srna, "TitleCardVars", "effectdata");
-	
-	/* texts */
-	prop= RNA_def_property(srna, "title", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "titlestr");
-	RNA_def_property_ui_text(prop, "Title", "Text for main heading");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
-	
-	prop= RNA_def_property(srna, "subtitle", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Subtitle", "Additional text to be shown under the main heading");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
-	
-	/* colors */
-	prop= RNA_def_property(srna, "color_background", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "bgcol");
-	RNA_def_property_ui_text(prop, "Background Color", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
-	
-	prop= RNA_def_property(srna, "color_foreground", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "fgcol");
-	RNA_def_property_ui_text(prop, "Text Color", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
-}
-
 void RNA_def_sequencer(BlenderRNA *brna)
 {
 	rna_def_strip_element(brna);
@@ -1739,7 +1705,6 @@ void RNA_def_sequencer(BlenderRNA *brna)
 	rna_def_transform(brna);
 	rna_def_solid_color(brna);
 	rna_def_speed_control(brna);
-	rna_def_title_card(brna);
 }
 
 #endif

@@ -96,7 +96,7 @@ static void rna_def_sound(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "mono", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SOUND_FLAGS_MONO);
-	RNA_def_property_ui_text(prop, "Mono", "If the file contains multiple audio channels they are mixdown to a signle one.");
+	RNA_def_property_ui_text(prop, "Mono", "If the file contains multiple audio channels they are rendered to a single one.");
 	RNA_def_property_update(prop, 0, "rna_Sound_update");
 }
 

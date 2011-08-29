@@ -215,6 +215,5 @@ void BLF_dir_free(char **dirs, int count);
 // XXX, bad design
 extern int blf_mono_font;
 extern int blf_mono_font_render; // dont mess drawing with render threads.
-extern int blf_default_font_render; // dont mess drawing with render threads.
 
 #endif /* BLF_API_H */
