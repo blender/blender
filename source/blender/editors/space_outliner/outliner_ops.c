@@ -90,8 +90,8 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "OUTLINER_OT_item_rename", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
 	
-	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_RELEASE, 0, 0)->ptr, "extend", 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_CLICK, 0, 0)->ptr, "extend", 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_CLICK, KM_SHIFT, 0)->ptr, "extend", 1);
 	
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_openclose", RETKEY, KM_PRESS, 0, 0)->ptr, "all", 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_openclose", RETKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "all", 1);
