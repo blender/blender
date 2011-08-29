@@ -1725,12 +1725,12 @@ static void em_deselect_nth_face(BMEditMesh *em, int nth, BMFace *f_act)
 }
 
 /* not that optimal!, should be nicer with bmesh */
-static void tag_edge_verts(BMesh *bm, BMEdge *e)
+static void tag_edge_verts(BMEdge *e)
 {
 	BM_SetIndex(e->v1, 1);
 	BM_SetIndex(e->v2, 1);
 }
-static int tag_edge_verts_test(BMesh *bm, BMEdge *e)
+static int tag_edge_verts_test(BMEdge *e)
 {
 	return (BM_GetIndex(e->v1) || BM_GetIndex(e->v2)) ? 1:0;
 }
@@ -1764,7 +1764,7 @@ static void em_deselect_nth_edge(BMEditMesh *em, int nth, BMEdge *e_act)
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			index= BM_GetIndex(e);
 			if (index==1) { /* initialize */
-				tag_edge_verts(bm, e);
+				tag_edge_verts(e);
 			}
 
 			if (index)
@@ -1772,7 +1772,7 @@ static void em_deselect_nth_edge(BMEditMesh *em, int nth, BMEdge *e_act)
 		}
 
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_GetIndex(e)==0 && tag_edge_verts_test(bm, e)) {
+			if (BM_GetIndex(e)==0 && tag_edge_verts_test(e)) {
 				BM_SetIndex(e, 1);
 				ok = 1; /* keep looping */
 			}
@@ -2015,7 +2015,7 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 	BMLoop *l1, *l2;
 	float sharp = RNA_float_get(op->ptr, "sharpness"), angle;
 
-	sharp = (sharp * M_PI) / 180.0;
+	sharp = DEG2RADF(sharp);
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_HIDDEN) || !e->l)
@@ -2030,7 +2030,7 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 		/* edge has exactly two neighboring faces, check angle */
 		angle = saacos(l1->f->no[0]*l2->f->no[0]+l1->f->no[1]*l2->f->no[1]+l1->f->no[2]*l2->f->no[2]);
 
-		if (fabs(angle) < sharp) {
+		if (fabsf(angle) < sharp) {
 			BM_Select(em->bm, e, 1);
 		}
 
