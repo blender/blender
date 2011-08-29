@@ -18,6 +18,8 @@
 
 import bpy
 
+from bpy.types import Panel
+
 from cycles import enums
 from cycles import engine
 
@@ -31,7 +33,7 @@ class CyclesButtonsPanel():
         rd = context.scene.render
         return rd.engine == 'CYCLES'
 
-class CyclesRender_PT_integrator(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
     bl_label = "Integrator"
 
     def draw(self, context):
@@ -57,7 +59,7 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, bpy.types.Panel):
         #row.prop(cscene, "blur_caustics")
         #row.active = not cscene.no_caustics
         
-class CyclesRender_PT_film(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
     bl_label = "Film"
 
     def draw(self, context):
@@ -78,7 +80,7 @@ class CyclesRender_PT_film(CyclesButtonsPanel, bpy.types.Panel):
         if cscene.filter_type != 'BOX':
             sub.prop(cscene, "filter_width", text="Width")
 
-class CyclesRender_PT_performance(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
     bl_label = "Performance"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -111,7 +113,7 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, bpy.types.Panel):
         sub.prop(cscene, "debug_bvh_type", text="")
         sub.prop(cscene, "debug_use_spatial_splits")
 
-class Cycles_PT_post_processing(CyclesButtonsPanel, bpy.types.Panel):
+class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
     bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -129,7 +131,7 @@ class Cycles_PT_post_processing(CyclesButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(rd, "dither_intensity", text="Dither", slider=True)
 
-class Cycles_PT_camera(CyclesButtonsPanel, bpy.types.Panel):
+class Cycles_PT_camera(CyclesButtonsPanel, Panel):
     bl_label = "Cycles"
     bl_context = "data"
 
@@ -145,7 +147,7 @@ class Cycles_PT_camera(CyclesButtonsPanel, bpy.types.Panel):
 
         layout.prop(ccamera, "lens_radius")
 
-class Cycles_PT_context_material(CyclesButtonsPanel, bpy.types.Panel):
+class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
     bl_context = "material"
     bl_options = {'HIDE_HEADER'}
@@ -193,7 +195,7 @@ class Cycles_PT_context_material(CyclesButtonsPanel, bpy.types.Panel):
             split.template_ID(space, "pin_id")
             split.separator()
 
-class Cycles_PT_mesh_displacement(CyclesButtonsPanel, bpy.types.Panel):
+class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
     bl_label = "Displacement"
     bl_context = "data"
 
@@ -250,7 +252,7 @@ def panel_node_draw(layout, id, output_type, input_name):
         input = find_node_input(node, input_name)
         layout.template_node_view(ntree, node, input);
 
-class CyclesLamp_PT_lamp(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
     bl_context = "data"
 
@@ -264,7 +266,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, bpy.types.Panel):
         mat = context.lamp
         panel_node_draw(layout, mat, 'OUTPUT_LAMP', 'Surface')
 
-class CyclesWorld_PT_surface(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
     bl_context = "world"
 
@@ -278,7 +280,7 @@ class CyclesWorld_PT_surface(CyclesButtonsPanel, bpy.types.Panel):
         mat = context.world
         panel_node_draw(layout, mat, 'OUTPUT_WORLD', 'Surface')
 
-class CyclesWorld_PT_volume(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
     bl_context = "world"
 
@@ -293,7 +295,7 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, bpy.types.Panel):
         mat = context.world
         panel_node_draw(layout, mat, 'OUTPUT_WORLD', 'Volume')
 
-class CyclesMaterial_PT_surface(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
     bl_context = "material"
 
@@ -307,7 +309,7 @@ class CyclesMaterial_PT_surface(CyclesButtonsPanel, bpy.types.Panel):
         mat = context.material
         panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Surface')
 
-class CyclesMaterial_PT_volume(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
     bl_label = "Volume"
     bl_context = "material"
 
@@ -322,7 +324,7 @@ class CyclesMaterial_PT_volume(CyclesButtonsPanel, bpy.types.Panel):
         mat = context.material
         panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Volume')
 
-class CyclesMaterial_PT_displacement(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesMaterial_PT_displacement(CyclesButtonsPanel, Panel):
     bl_label = "Displacement"
     bl_context = "material"
 
@@ -336,7 +338,7 @@ class CyclesMaterial_PT_displacement(CyclesButtonsPanel, bpy.types.Panel):
         mat = context.material
         panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Displacement')
 
-class CyclesMaterial_PT_settings(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
     bl_label = "Settings"
     bl_context = "material"
     bl_options = {'DEFAULT_CLOSED'}
@@ -355,7 +357,7 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, bpy.types.Panel):
         row.label(text="Light Group:")
         row.prop(mat, "light_group", text="")
 
-class CyclesTexture_PT_context(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
     bl_label = ""
     bl_context = "texture"
     bl_options = {'HIDE_HEADER'}
@@ -398,7 +400,7 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, bpy.types.Panel):
                     split.label(text="Type:")
                     split.prop(tex, "type", text="")
 
-class CyclesTexture_PT_nodes(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesTexture_PT_nodes(CyclesButtonsPanel, Panel):
     bl_label = "Nodes"
     bl_context = "texture"
 
@@ -413,7 +415,7 @@ class CyclesTexture_PT_nodes(CyclesButtonsPanel, bpy.types.Panel):
         tex = context.texture
         panel_node_draw(layout, tex, 'OUTPUT_TEXTURE', 'Color')
 
-class CyclesTexture_PT_node(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesTexture_PT_node(CyclesButtonsPanel, Panel):
     bl_label = "Node"
     bl_context = "texture"
 
@@ -429,7 +431,7 @@ class CyclesTexture_PT_node(CyclesButtonsPanel, bpy.types.Panel):
         ntree = node.id_data
         layout.template_node_view(ntree, node, None)
 
-class CyclesTexture_PT_mapping(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
     bl_label = "Mapping"
     bl_context = "texture"
 
@@ -444,7 +446,7 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, bpy.types.Panel):
         layout.label("Texture coordinate mapping goes here.");
         layout.label("Translate, rotate, scale, projection, XYZ.")
 
-class CyclesTexture_PT_color(CyclesButtonsPanel, bpy.types.Panel):
+class CyclesTexture_PT_color(CyclesButtonsPanel, Panel):
     bl_label = "Color"
     bl_context = "texture"
 
