@@ -508,11 +508,13 @@ void Session::tonemap()
 	task.pass = tile_manager.state.pass;
 	task.resolution = tile_manager.state.resolution;
 
-	device->task_add(task);
-	device->task_wait();
+	if(task.w > 0 && task.h > 0) {
+		device->task_add(task);
+		device->task_wait();
 
-	/* set display to new size */
-	display->draw_set(tile_manager.state.width, tile_manager.state.height);
+		/* set display to new size */
+		display->draw_set(task.w, task.h);
+	}
 
 	display_outdated = false;
 }
