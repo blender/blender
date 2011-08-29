@@ -621,25 +621,31 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 	}
 	
 	/* some ops have multiple files to select */
+	/* this is called on operators check() so clear collections first since
+	 * they may be already set. */
 	{
 		PointerRNA itemptr;
+		PropertyRNA *prop_files= RNA_struct_find_property(op->ptr, "files");
+		PropertyRNA *prop_dirs= RNA_struct_find_property(op->ptr, "dirs");
 		int i, numfiles = filelist_numfiles(sfile->files);
 
-		if(RNA_struct_find_property(op->ptr, "files")) {
+		if(prop_files) {
+			RNA_property_collection_clear(op->ptr, prop_files);
 			for (i=0; i<numfiles; i++) {
 				if (filelist_is_selected(sfile->files, i, CHECK_FILES)) {
 					struct direntry *file= filelist_file(sfile->files, i);
-					RNA_collection_add(op->ptr, "files", &itemptr);
+					RNA_property_collection_add(op->ptr, prop_files, &itemptr);
 					RNA_string_set(&itemptr, "name", file->relname);
 				}
 			}
 		}
-		
-		if(RNA_struct_find_property(op->ptr, "dirs")) {
+
+		if(prop_dirs) {
+			RNA_property_collection_clear(op->ptr, prop_dirs);
 			for (i=0; i<numfiles; i++) {
 				if (filelist_is_selected(sfile->files, i, CHECK_DIRS)) {
 					struct direntry *file= filelist_file(sfile->files, i);
-					RNA_collection_add(op->ptr, "dirs", &itemptr);
+					RNA_property_collection_add(op->ptr, prop_dirs, &itemptr);
 					RNA_string_set(&itemptr, "name", file->relname);
 				}
 			}
@@ -651,25 +657,27 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 
 void file_operator_to_sfile(SpaceFile *sfile, wmOperator *op)
 {
-	int change= FALSE;
-	if(RNA_struct_find_property(op->ptr, "filename")) {
-		RNA_string_get(op->ptr, "filename", sfile->params->file);
-		change= TRUE;
-	}
-	if(RNA_struct_find_property(op->ptr, "directory")) {
-		RNA_string_get(op->ptr, "directory", sfile->params->dir);
-		change= TRUE;
-	}
-	
+	PropertyRNA *prop;
+
 	/* If neither of the above are set, split the filepath back */
-	if(RNA_struct_find_property(op->ptr, "filepath")) {
-		if(change==FALSE) {
-			char filepath[FILE_MAX];
-			RNA_string_get(op->ptr, "filepath", filepath);
-			BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file);
+	if((prop= RNA_struct_find_property(op->ptr, "filepath"))) {
+		char filepath[FILE_MAX];
+		RNA_property_string_get(op->ptr, prop, filepath);
+		BLI_split_dirfile(filepath, sfile->params->dir, sfile->params->file);
+	}
+	else {
+		if((prop= RNA_struct_find_property(op->ptr, "filename"))) {
+			RNA_property_string_get(op->ptr, prop, sfile->params->file);
+		}
+		if((prop= RNA_struct_find_property(op->ptr, "directory"))) {
+			RNA_property_string_get(op->ptr, prop, sfile->params->dir);
 		}
 	}
 	
+	/* we could check for relative_path property which is used when converting
+	 * in the other direction but doesnt hurt to do this every time */
+	BLI_path_abs(sfile->params->dir, G.main->name);
+
 	/* XXX, files and dirs updates missing, not really so important though */
 }
 

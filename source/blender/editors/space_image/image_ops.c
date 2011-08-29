@@ -983,7 +983,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 
 		/* unlikely but just incase */
 		if (ELEM3(simopts->planes, R_PLANESBW, R_PLANES24, R_PLANES32) == 0) {
-			simopts->planes= 32;
+			simopts->planes= R_PLANES32;
 		}
 
 		/* some formats dont use quality so fallback to scenes quality */
@@ -1000,7 +1000,6 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 			}
 			BLI_path_abs(simopts->filepath, G.main->name);
 		}
-
 		/* cleanup */
 		BKE_image_release_renderresult(scene, ima);
 	}
@@ -1026,6 +1025,7 @@ static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
 	RNA_enum_set(op->ptr, "file_format", simopts->imtype);
 	// RNA_enum_set(op->ptr, "subimtype", simopts->subimtype);
 	RNA_int_set(op->ptr, "file_quality", simopts->quality);
+
 	RNA_string_set(op->ptr, "filepath", simopts->filepath);
 }
 
@@ -1050,10 +1050,10 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 
 		if(ima->type == IMA_TYPE_R_RESULT) {
 			/* enforce user setting for RGB or RGBA, but skip BW */
-			if(simopts->planes==32) {
+			if(simopts->planes==R_PLANES32) {
 				ibuf->depth= 32;
 			}
-			else if(simopts->planes==24) {
+			else if(simopts->planes==R_PLANES24) {
 				ibuf->depth= 24;
 			}
 		}

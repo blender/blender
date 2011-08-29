@@ -162,7 +162,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 					if (i == 1)
 						strcpy(xval, "x");
 					else
-						sprintf(xval, "x^%d", i);
+						sprintf(xval, "x^%u", i);
 					uiDefBut(block, LABEL, 1, xval, 0, 0, 50, 20, NULL, 0.0, 0.0, 0, 0, "Power of x");
 				}
 				

@@ -127,19 +127,22 @@
 #define MAXNUMSTREAMS		50
 
 struct _AviMovie;
+struct anim_index;
 
 struct anim {
 	int ib_flags;
 	int curtype;
 	int curposition;	/* index  0 = 1e,  1 = 2e, enz. */
 	int duration;
+	short frs_sec;
+	float frs_sec_base;
 	int x, y;
 	
 		/* voor op nummer */
 	char name[256];
 		/* voor sequence */
 	char first[256];
-	
+
 		/* movie */
 	void *movie;
 	void *track;
@@ -148,9 +151,7 @@ struct anim {
 	size_t framesize;
 	int interlacing;
 	int preseek;
-	
-		/* data */
-	struct ImBuf * ibuf1, * ibuf2;
+	int streamindex;
 	
 		/* avi */
 	struct _AviMovie *avi;
@@ -179,11 +180,26 @@ struct anim {
 	AVFrame *pFrameDeinterlaced;
 	struct SwsContext *img_convert_ctx;
 	int videoStream;
+
+	struct ImBuf * last_frame;
+	int64_t last_pts;
+	int64_t next_pts;
+	int64_t next_undecoded_pts;
+	AVPacket next_packet;
 #endif
 
 #ifdef WITH_REDCODE
 	struct redcode_handle * redcodeCtx;
 #endif
+
+	char index_dir[256];
+
+	int proxies_tried;
+	int indices_tried;
+	
+	struct anim * proxy_anim[IMB_PROXY_MAX_SLOT];
+	struct anim_index * curr_idx[IMB_TC_MAX_SLOT];
+
 };
 
 #endif

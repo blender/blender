@@ -1,4 +1,4 @@
-# turn everything OFF CACHE FORCE BOOL) except for python which defaults to ON
+# turn everything OFF except for python which defaults to ON
 # and is needed for the UI
 #
 # Example usage:

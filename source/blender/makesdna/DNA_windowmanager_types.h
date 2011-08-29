@@ -320,14 +320,20 @@ typedef struct wmOperator {
 
 } wmOperator;
 
-/* operator type exec(), invoke() modal(), return values */
-#define OPERATOR_RUNNING_MODAL	1
-#define OPERATOR_CANCELLED		2
-#define OPERATOR_FINISHED		4
+
+/* operator type return flags: exec(), invoke() modal(), return values */
+#define OPERATOR_RUNNING_MODAL	(1<<0)
+#define OPERATOR_CANCELLED		(1<<1)
+#define OPERATOR_FINISHED		(1<<2)
 /* add this flag if the event should pass through */
-#define OPERATOR_PASS_THROUGH	8
+#define OPERATOR_PASS_THROUGH	(1<<3)
 /* in case operator got executed outside WM code... like via fileselect */
-#define OPERATOR_HANDLED		16
+#define OPERATOR_HANDLED		(1<<4)
+
+#define OPERATOR_FLAGS_ALL		((1<<5)-1)
+
+/* sanity checks for debug mode only */
+#define OPERATOR_RETVAL_CHECK(ret) BLI_assert(ret != 0 && (ret & OPERATOR_FLAGS_ALL) == ret)
 
 /* wmOperator flag */
 #define OP_GRAB_POINTER			1

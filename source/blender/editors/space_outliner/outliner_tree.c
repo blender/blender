@@ -231,7 +231,7 @@ void outliner_free_tree(ListBase *lb)
 }
 
 /* Find ith item from the treestore */
-TreeElement *outliner_find_tree_element(ListBase *lb, int store_index)
+static TreeElement *outliner_find_tree_element(ListBase *lb, int store_index)
 {
 	TreeElement *te= lb->first, *tes;
 	while(te) {

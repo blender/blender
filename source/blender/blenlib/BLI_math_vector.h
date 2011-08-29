@@ -101,7 +101,7 @@ MINLINE float dot_v3v3(const float a[3], const float b[3]);
 MINLINE float cross_v2v2(const float a[2], const float b[2]);
 MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3]);
 
-MINLINE void star_m3_v3(float R[3][3],float a[3]);
+MINLINE void star_m3_v3(float rmat[3][3],float a[3]);
 
 /*********************************** Length **********************************/
 
@@ -135,7 +135,7 @@ MINLINE int is_zero_v3(const float a[3]);
 MINLINE int is_zero_v4(const float a[4]);
 MINLINE int is_one_v3(const float a[3]);
 
-MINLINE int equals_v2v2(const float *v1, const float *v2);
+MINLINE int equals_v2v2(const float v1[2], const float v2[2]);
 MINLINE int equals_v3v3(const float a[3], const float b[3]);
 MINLINE int compare_v3v3(const float a[3], const float b[3], const float limit);
 MINLINE int compare_len_v3v3(const float a[3], const float b[3], const float limit);

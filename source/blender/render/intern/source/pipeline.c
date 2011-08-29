@@ -3463,3 +3463,60 @@ static int external_render_3d(Render *re, int do_all)
 	return 1;
 }
 
+const float default_envmap_layout[] = { 0,0, 1,0, 2,0, 0,1, 1,1, 2,1 };
+
+int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, const char *relpath, int imtype, float layout[12])
+{
+	ImBuf *ibuf=NULL;
+	int ok;
+	int dx;
+	int maxX=0,maxY=0,i=0;
+	char filepath[FILE_MAX];
+
+	if(env->cube[1]==NULL) {
+		BKE_report(reports, RPT_ERROR, "There is no generated environment map available to save");
+		return 0;
+	}
+
+	dx= env->cube[1]->x;
+
+	if (env->type == ENV_CUBE) {
+		for (i=0; i < 12; i+=2) {
+			maxX = MAX2(maxX,layout[i] + 1);
+			maxY = MAX2(maxY,layout[i+1] + 1);
+		}
+
+		ibuf = IMB_allocImBuf(maxX*dx, maxY*dx, 24, IB_rectfloat);
+
+		for (i=0; i < 12; i+=2)
+			if (layout[i] > -1 && layout[i+1] > -1)
+				IMB_rectcpy(ibuf, env->cube[i/2], layout[i]*dx, layout[i+1]*dx, 0, 0, dx, dx);
+	}
+	else if (env->type == ENV_PLANE) {
+		ibuf = IMB_allocImBuf(dx, dx, 24, IB_rectfloat);
+		IMB_rectcpy(ibuf, env->cube[1], 0, 0, 0, 0, dx, dx);
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Invalid environment map type");
+		return 0;
+	}
+
+	if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
+
+	/* to save, we first get absolute path */
+	BLI_strncpy(filepath, relpath, sizeof(filepath));
+	BLI_path_abs(filepath, G.main->name);
+
+	ok= BKE_write_ibuf(ibuf, filepath, imtype, scene->r.subimtype, scene->r.quality);
+
+	IMB_freeImBuf(ibuf);
+
+	if(ok) {
+		return TRUE;
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Error writing environment map.");
+		return FALSE;
+	}
+}
