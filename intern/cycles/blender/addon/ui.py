@@ -18,10 +18,17 @@
 
 import bpy
 
-from bpy.types import Panel
+from bpy.types import Panel, Menu
 
 from cycles import enums
 from cycles import engine
+
+class CYCLES_MT_integrator_presets(Menu):
+    bl_label = "Integrator Presets"
+    preset_subdir = "cycles/integrator"
+    preset_operator = "script.execute_preset"
+    COMPAT_ENGINES = {'CYCLES'}
+    draw = Menu.draw_preset
 
 class CyclesButtonsPanel():
     bl_space_type = "PROPERTIES"
@@ -41,6 +48,11 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
+        
+        row = layout.row(align=True)
+        row.menu("CYCLES_MT_integrator_presets", text=bpy.types.CYCLES_MT_integrator_presets.bl_label)
+        row.operator("render.cycles_integrator_preset_add", text="", icon="ZOOMIN")
+        row.operator("render.cycles_integrator_preset_add", text="", icon="ZOOMOUT").remove_active = True
 
         split = layout.split()
 

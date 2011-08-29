@@ -35,6 +35,7 @@ from cycles import ui
 from cycles import properties
 from cycles import xml
 from cycles import engine
+from cycles import presets
 
 class CyclesRender(bpy.types.RenderEngine):
     bl_idname = 'CYCLES'
@@ -76,11 +77,13 @@ def register():
     properties.register()
     ui.register()
     xml.register()
+    presets.register()
     bpy.utils.register_module(__name__)
 
 def unregister():
     xml.unregister()
     ui.unregister()
     properties.unregister()
+    presets.unregister()
     bpy.utils.unregister_module(__name__)
 

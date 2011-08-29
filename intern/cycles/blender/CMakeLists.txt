@@ -16,6 +16,7 @@ set(addonfiles
 	addon/__init__.py
 	addon/engine.py 
 	addon/enums.py
+	addon/presets.py
 	addon/properties.py
 	addon/ui.py
 	addon/xml.py)
