@@ -51,8 +51,11 @@ static char temp_ext [] = "_part";
 static int proxy_sizes[] = { IMB_PROXY_25, IMB_PROXY_50, IMB_PROXY_75,
 			     IMB_PROXY_100 };
 static float proxy_fac[] = { 0.25, 0.50, 0.75, 1.00 };
+
+#ifdef WITH_FFMPEG
 static int tc_types[] = { IMB_TC_RECORD_RUN, IMB_TC_FREE_RUN,
 			  IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN };
+#endif
 
 #define INDEX_FILE_VERSION 1
 
@@ -398,7 +401,7 @@ static void get_tc_filename(struct anim * anim, IMB_Timecode_Type tc,
 {
 	char index_dir[FILE_MAXDIR];
 	int i = IMB_timecode_to_array_index(tc);
-	char * index_names[] = {
+	const char * index_names[] = {
 		"record_run%s.blen_tc", "free_run%s.blen_tc",
 		"interp_free_run%s.blen_tc" };
 
@@ -928,7 +931,7 @@ static AviMovie * alloc_proxy_output_avi(
 }
 
 static void index_rebuild_fallback(struct anim * anim,
-				   IMB_Timecode_Type tcs_in_use,
+				   IMB_Timecode_Type UNUSED(tcs_in_use),
 				   IMB_Proxy_Size proxy_sizes_in_use,
 				   int quality,
 				   short *stop, short *do_update, 
