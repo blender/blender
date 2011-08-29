@@ -61,6 +61,7 @@ public:
 	/* get parameters */
 	static SceneParams get_scene_params(BL::Scene b_scene);
 	static SessionParams get_session_params(BL::Scene b_scene, bool background);
+	static bool get_session_pause(BL::Scene b_scene, bool background);
 
 private:
 	/* sync */

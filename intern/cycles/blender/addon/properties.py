@@ -36,6 +36,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
             default=10, min=1, max=2147483647)
         cls.preview_passes = IntProperty(name="Preview Passes", description="Number of passes to render in the viewport, unlimited if 0",
             default=0, min=0, max=2147483647)
+        cls.preview_pause = BoolProperty(name="Pause Preview", description="Pause all viewport preview renders",
+            default=False)
+
         cls.min_bounces = IntProperty(name="Min Bounces", description="Minimum number of bounces",
             default=3, min=0, max=1024)
         cls.max_bounces = IntProperty(name="Max Bounces", description="Maximum number of bounces",

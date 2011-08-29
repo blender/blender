@@ -185,6 +185,12 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene)
 
 /* Session Parameters */
 
+bool BlenderSync::get_session_pause(BL::Scene b_scene, bool background)
+{
+	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+	return (background)? false: get_boolean(cscene, "preview_pause");
+}
+
 SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background)
 {
 	SessionParams params;

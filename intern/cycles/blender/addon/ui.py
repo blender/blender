@@ -473,6 +473,17 @@ def draw_device(self, context):
         if cscene.device == 'CPU' and engine.with_osl():
             layout.prop(cscene, "shading_system")
 
+def draw_pause(self, context):
+    layout = self.layout
+    scene = context.scene
+
+    if scene.render.engine == "CYCLES":
+        view = context.space_data
+
+        if view.viewport_shade == "RENDERED":
+            cscene = scene.cycles
+            layout.prop(cscene, "preview_pause", icon="PAUSE", text="")
+
 def get_panels():
     return [
         bpy.types.RENDER_PT_render,
@@ -514,12 +525,14 @@ def get_panels():
 
 def register():
     bpy.types.RENDER_PT_render.append(draw_device)
+    bpy.types.VIEW3D_HT_header.append(draw_pause)
 
     for panel in get_panels():
         panel.COMPAT_ENGINES.add('CYCLES')
     
 def unregister():
     bpy.types.RENDER_PT_render.remove(draw_device)
+    bpy.types.VIEW3D_HT_header.remove(draw_pause)
 
     for panel in get_panels():
         panel.COMPAT_ENGINES.remove('CYCLES')

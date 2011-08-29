@@ -47,6 +47,7 @@ Session::Session(const SessionParams& params_)
 	start_time = 0.0;
 	reset_time = 0.0;
 	preview_time = 0.0;
+	paused_time = 0.0;
 	pass = 0;
 
 	delayed_reset.do_reset = false;
@@ -64,9 +65,16 @@ Session::~Session()
 {
 	if(session_thread) {
 		progress.set_cancel("Exiting");
+
 		gpu_need_tonemap = false;
 		gpu_need_tonemap_cond.notify_all();
-		set_pause(false);
+
+		{
+			thread_scoped_lock pause_lock(pause_mutex);
+			pause = false;
+		}
+		pause_cond.notify_all();
+
 		wait();
 	}
 
@@ -152,40 +160,54 @@ void Session::run_gpu()
 {
 	start_time = time_dt();
 	reset_time = time_dt();
+	paused_time = 0.0;
 
 	while(!progress.get_cancel()) {
 		/* advance to next tile */
-		bool done = !tile_manager.next();
+		bool no_tiles = !tile_manager.next();
 
-		/* any work left? */
-		if(done) {
-			/* if in background mode, we can stop immediately */
-			if(params.background) {
+		if(params.background) {
+			/* if no work left and in background mode, we can stop immediately */
+			if(no_tiles)
 				break;
-			}
-			else {
-				/* in interactive mode, we wait until woken up */
-				thread_scoped_lock pause_lock(pause_mutex);
-				pause_cond.wait(pause_lock);
-			}
 		}
 		else {
-			/* test for pause and wait until woken up */
+			/* if in interactive mode, and we are either paused or done for now,
+			   wait for pause condition notify to wake up again */
 			thread_scoped_lock pause_lock(pause_mutex);
-			while(pause)
-				pause_cond.wait(pause_lock);
+
+			if(pause || no_tiles) {
+				update_status_time(pause, no_tiles);
+
+				while(1) {
+					double pause_start = time_dt();
+					pause_cond.wait(pause_lock);
+					paused_time += time_dt() - pause_start;
+
+					update_status_time(pause, no_tiles);
+					progress.set_update();
+
+					if(!pause)
+						break;
+				}
+			}
+
+			if(progress.get_cancel())
+				break;
 		}
 
-		{
-			/* buffers mutex is locked entirely while rendering each
-			   pass, and released/reacquired on each iteration to allow
-			   reset and draw in between */
-			thread_scoped_lock buffers_lock(buffers->mutex);
-
+		if(!no_tiles) {
 			/* update scene */
 			update_scene();
 			if(progress.get_cancel())
 				break;
+		}
+
+		if(!no_tiles) {
+			/* buffers mutex is locked entirely while rendering each
+			   pass, and released/reacquired on each iteration to allow
+			   reset and draw in between */
+			thread_scoped_lock buffers_lock(buffers->mutex);
 
 			/* update status and timing */
 			update_status_time();
@@ -276,29 +298,40 @@ void Session::run_cpu()
 
 	while(!progress.get_cancel()) {
 		/* advance to next tile */
-		bool done = !tile_manager.next();
+		bool no_tiles = !tile_manager.next();
 		bool need_tonemap = false;
 
-		/* any work left? */
-		if(done) {
-			/* if in background mode, we can stop immediately */
-			if(params.background) {
+		if(params.background) {
+			/* if no work left and in background mode, we can stop immediately */
+			if(no_tiles)
 				break;
-			}
-			else {
-				/* in interactive mode, we wait until woken up */
-				thread_scoped_lock pause_lock(pause_mutex);
-				pause_cond.wait(pause_lock);
-			}
 		}
 		else {
-			/* test for pause and wait until woken up */
+			/* if in interactive mode, and we are either paused or done for now,
+			   wait for pause condition notify to wake up again */
 			thread_scoped_lock pause_lock(pause_mutex);
-			while(pause)
-				pause_cond.wait(pause_lock);
+
+			if(pause || no_tiles) {
+				update_status_time(pause, no_tiles);
+
+				while(1) {
+					double pause_start = time_dt();
+					pause_cond.wait(pause_lock);
+					paused_time += time_dt() - pause_start;
+
+					update_status_time(pause, no_tiles);
+					progress.set_update();
+
+					if(!pause)
+						break;
+				}
+			}
+
+			if(progress.get_cancel())
+				break;
 		}
 
-		if(!done) {
+		if(!no_tiles) {
 			/* buffers mutex is locked entirely while rendering each
 			   pass, and released/reacquired on each iteration to allow
 			   reset and draw in between */
@@ -350,12 +383,6 @@ void Session::run()
 	/* session thread loop */
 	progress.set_status("Waiting for render to start");
 
-	/* first scene update */
-	if(!progress.get_cancel()) {
-		thread_scoped_lock scene_lock(scene->mutex);
-		scene->device_update(device, progress);
-	}
-
 	/* run */
 	if(!progress.get_cancel()) {
 		if(device_use_gl)
@@ -391,6 +418,7 @@ void Session::reset_(int w, int h, int passes)
 
 	start_time = time_dt();
 	preview_time = 0.0;
+	paused_time = 0.0;
 	pass = 0;
 }
 
@@ -408,18 +436,28 @@ void Session::set_passes(int passes)
 		params.passes = passes;
 		tile_manager.set_passes(passes);
 
+		{
+			thread_scoped_lock pause_lock(pause_mutex);
+		}
 		pause_cond.notify_all();
 	}
 }
 
 void Session::set_pause(bool pause_)
 {
+	bool notify = false;
+
 	{
 		thread_scoped_lock pause_lock(pause_mutex);
-		pause = pause_;
+
+		if(pause != pause_) {
+			pause = pause_;
+			notify = true;
+		}
 	}
 
-	pause_cond.notify_all();
+	if(notify)
+		pause_cond.notify_all();
 }
 
 void Session::wait()
@@ -452,27 +490,40 @@ void Session::update_scene()
 		scene->device_update(device, progress);
 }
 
-void Session::update_status_time()
+void Session::update_status_time(bool show_pause, bool show_done)
 {
 	int pass = tile_manager.state.pass;
 	int resolution = tile_manager.state.resolution;
 
 	/* update status */
-	string substatus;
+	string status, substatus;
+
 	if(!params.progressive)
 		substatus = "Path Tracing";
 	else if(params.passes == INT_MAX)
 		substatus = string_printf("Path Tracing Pass %d", pass+1);
 	else
 		substatus = string_printf("Path Tracing Pass %d/%d", pass+1, params.passes);
-	progress.set_status("Rendering", substatus);
+	
+	if(show_pause)
+		status = "Paused";
+	else if(show_done)
+		status = "Done";
+	else
+		status = "Rendering";
+
+	progress.set_status(status, substatus);
 
 	/* update timing */
 	if(preview_time == 0.0 && resolution == 1)
 		preview_time = time_dt();
 
-	double total_time = (time_dt() - start_time);
-	double pass_time = (pass == 0)? 0.0: (time_dt() - preview_time)/(pass);
+	double total_time = time_dt() - start_time - paused_time;
+	double pass_time = (pass == 0)? 0.0: (time_dt() - preview_time - paused_time)/(pass);
+
+	/* negative can happen when we pause a bit before rendering, can discard that */
+	if(total_time < 0.0) total_time = 0.0;
+	if(preview_time < 0.0) preview_time = 0.0;
 
 	progress.set_pass(pass + 1, total_time, pass_time);
 }

@@ -122,7 +122,7 @@ protected:
 	void run();
 
 	void update_scene();
-	void update_status_time();
+	void update_status_time(bool show_pause = false, bool show_done = false);
 
 	void tonemap();
 	void path_trace(Tile& tile);
@@ -154,6 +154,7 @@ protected:
 	double start_time;
 	double reset_time;
 	double preview_time;
+	double paused_time;
 };
 
 CCL_NAMESPACE_END

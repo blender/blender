@@ -57,31 +57,31 @@ Scene::Scene(const SceneParams& params_)
 
 Scene::~Scene()
 {
-	camera->device_free(device, &dscene);
+	if(device) camera->device_free(device, &dscene);
 	delete camera;
 
-	filter->device_free(device, &dscene);
+	if(device) filter->device_free(device, &dscene);
 	delete filter;
 
-	film->device_free(device, &dscene);
+	if(device) film->device_free(device, &dscene);
 	delete film;
 
-	background->device_free(device, &dscene);
+	if(device) background->device_free(device, &dscene);
 	delete background;
 
-	mesh_manager->device_free(device, &dscene);
+	if(device) mesh_manager->device_free(device, &dscene);
 	delete mesh_manager;
 
-	object_manager->device_free(device, &dscene);
+	if(device) object_manager->device_free(device, &dscene);
 	delete object_manager;
 
-	integrator->device_free(device, &dscene);
+	if(device) integrator->device_free(device, &dscene);
 	delete integrator;
 
-	shader_manager->device_free(device, &dscene);
+	if(device) shader_manager->device_free(device, &dscene);
 	delete shader_manager;
 
-	light_manager->device_free(device, &dscene);
+	if(device) light_manager->device_free(device, &dscene);
 	delete light_manager;
 
 	foreach(Shader *s, shaders)
@@ -93,7 +93,7 @@ Scene::~Scene()
 	foreach(Light *l, lights)
 		delete l;
 
-	image_manager->device_free(device, &dscene);
+	if(device) image_manager->device_free(device, &dscene);
 	delete image_manager;
 }
 

@@ -93,6 +93,7 @@ void BlenderSession::create_session()
 	session->scene = scene;
 	session->progress.set_update_callback(function_bind(&BlenderSession::tag_redraw, this));
 	session->progress.set_cancel_callback(function_bind(&BlenderSession::test_cancel, this));
+	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* start rendering */
 	session->reset(width, height, session_params.passes);
@@ -159,6 +160,7 @@ void BlenderSession::synchronize()
 
 	/* increase passes, but never decrease */
 	session->set_passes(session_params.passes);
+	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* copy recalc flags, outside of mutex so we can decide to do the real
 	   synchronization at a later time to not block on running updates */
@@ -178,12 +180,12 @@ void BlenderSession::synchronize()
 	else
 		sync->sync_camera(width, height);
 
+	/* unlock */
+	session->scene->mutex.unlock();
+
 	/* reset if needed */
 	if(scene->need_reset())
 		session->reset(width, height, session_params.passes);
-
-	/* unlock */
-	session->scene->mutex.unlock();
 }
 
 bool BlenderSession::draw(int w, int h)
