@@ -109,6 +109,7 @@ public:
 	bool ready_to_reset();
 	void reset(int w, int h, int passes);
 	void set_passes(int passes);
+	void set_pause(bool pause);
 
 protected:
 	struct DelayedReset {
@@ -145,6 +146,10 @@ protected:
 	volatile bool gpu_draw_ready;
 	volatile bool gpu_need_tonemap;
 	thread_condition_variable gpu_need_tonemap_cond;
+
+	bool pause;
+	thread_condition_variable pause_cond;
+	thread_mutex pause_mutex;
 
 	double start_time;
 	double reset_time;

@@ -43,16 +43,15 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(cscene, "passes", text="Render Passes")
-        #sub = col.row()
-        #sub.active = cscene.preview_passes >= 1
-        #sub.prop(cscene, "preview_passes")
+        sub = col.column(align=True)
+        sub.prop(cscene, "passes", text="Render Passes")
+        sub.prop(cscene, "preview_passes")
         col.prop(cscene, "no_caustics")
 
         col = split.column()
-        col = col.column(align=True)
-        col.prop(cscene, "max_bounces")
-        col.prop(cscene, "min_bounces")
+        sub = col.column(align=True)
+        sub.prop(cscene, "max_bounces")
+        sub.prop(cscene, "min_bounces")
 
         #row = col.row()
         #row.prop(cscene, "blur_caustics")
@@ -74,9 +73,10 @@ class CyclesRender_PT_film(CyclesButtonsPanel, bpy.types.Panel):
         col.prop(cscene, "transparent")
 
         col = split.column()
-        col.prop(cscene, "filter_type", text="")
+        sub = col.column(align=True)
+        sub.prop(cscene, "filter_type", text="")
         if cscene.filter_type != 'BOX':
-            col.prop(cscene, "filter_width", text="Width")
+            sub.prop(cscene, "filter_width", text="Width")
 
 class CyclesRender_PT_performance(CyclesButtonsPanel, bpy.types.Panel):
     bl_label = "Performance"

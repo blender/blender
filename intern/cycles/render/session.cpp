@@ -57,6 +57,7 @@ Session::Session(const SessionParams& params_)
 	display_outdated = false;
 	gpu_draw_ready = false;
 	gpu_need_tonemap = false;
+	pause = false;
 }
 
 Session::~Session()
@@ -65,6 +66,7 @@ Session::~Session()
 		progress.set_cancel("Exiting");
 		gpu_need_tonemap = false;
 		gpu_need_tonemap_cond.notify_all();
+		set_pause(false);
 		wait();
 	}
 
@@ -111,6 +113,8 @@ void Session::reset_gpu(int w, int h, int passes)
 
 	gpu_need_tonemap = false;
 	gpu_need_tonemap_cond.notify_all();
+
+	pause_cond.notify_all();
 }
 
 bool Session::draw_gpu(int w, int h)
@@ -150,52 +154,72 @@ void Session::run_gpu()
 	reset_time = time_dt();
 
 	while(!progress.get_cancel()) {
+		/* advance to next tile */
 		bool done = !tile_manager.next();
 
-		if(done && params.background)
-			break;
+		/* any work left? */
+		if(done) {
+			/* if in background mode, we can stop immediately */
+			if(params.background) {
+				break;
+			}
+			else {
+				/* in interactive mode, we wait until woken up */
+				thread_scoped_lock pause_lock(pause_mutex);
+				pause_cond.wait(pause_lock);
+			}
+		}
+		else {
+			/* test for pause and wait until woken up */
+			thread_scoped_lock pause_lock(pause_mutex);
+			while(pause)
+				pause_cond.wait(pause_lock);
+		}
 
-		/* todo: wait when done in interactive mode */
+		{
+			/* buffers mutex is locked entirely while rendering each
+			   pass, and released/reacquired on each iteration to allow
+			   reset and draw in between */
+			thread_scoped_lock buffers_lock(buffers->mutex);
 
-		/* buffers mutex is locked entirely while rendering each
-		   pass, and released/reacquired on each iteration to allow
-		   reset and draw in between */
-		thread_scoped_lock buffers_lock(buffers->mutex);
+			/* update scene */
+			update_scene();
+			if(progress.get_cancel())
+				break;
 
-		/* update scene */
-		update_scene();
-		if(progress.get_cancel())
-			break;
+			/* update status and timing */
+			update_status_time();
 
-		/* update status and timing */
-		update_status_time();
+			/* path trace */
+			foreach(Tile& tile, tile_manager.state.tiles) {
+				path_trace(tile);
 
-		/* path trace */
-		foreach(Tile& tile, tile_manager.state.tiles) {
-			path_trace(tile);
+				device->task_wait();
 
-			device->task_wait();
+				if(progress.get_cancel())
+					break;
+			}
+
+			/* update status and timing */
+			update_status_time();
+
+			gpu_need_tonemap = true;
+			gpu_draw_ready = true;
+			progress.set_update();
+
+			/* wait for tonemap */
+			if(!params.background) {
+				while(gpu_need_tonemap) {
+					if(progress.get_cancel())
+						break;
+
+					gpu_need_tonemap_cond.wait(buffers_lock);
+				}
+			}
 
 			if(progress.get_cancel())
 				break;
 		}
-
-		gpu_need_tonemap = true;
-		gpu_draw_ready = true;
-		progress.set_update();
-
-		/* wait for tonemap */
-		if(!params.background) {
-			while(gpu_need_tonemap) {
-				if(progress.get_cancel())
-					break;
-
-				gpu_need_tonemap_cond.wait(buffers_lock);
-			}
-		}
-
-		if(progress.get_cancel())
-			break;
 	}
 }
 
@@ -213,6 +237,8 @@ void Session::reset_cpu(int w, int h, int passes)
 	delayed_reset.passes = passes;
 	delayed_reset.do_reset = true;
 	device->task_cancel();
+
+	pause_cond.notify_all();
 }
 
 bool Session::draw_cpu(int w, int h)
@@ -249,14 +275,33 @@ void Session::run_cpu()
 	}
 
 	while(!progress.get_cancel()) {
+		/* advance to next tile */
 		bool done = !tile_manager.next();
+		bool need_tonemap = false;
 
-		if(done && params.background)
-			break;
+		/* any work left? */
+		if(done) {
+			/* if in background mode, we can stop immediately */
+			if(params.background) {
+				break;
+			}
+			else {
+				/* in interactive mode, we wait until woken up */
+				thread_scoped_lock pause_lock(pause_mutex);
+				pause_cond.wait(pause_lock);
+			}
+		}
+		else {
+			/* test for pause and wait until woken up */
+			thread_scoped_lock pause_lock(pause_mutex);
+			while(pause)
+				pause_cond.wait(pause_lock);
+		}
 
-		/* todo: wait when done in interactive mode */
-
-		{
+		if(!done) {
+			/* buffers mutex is locked entirely while rendering each
+			   pass, and released/reacquired on each iteration to allow
+			   reset and draw in between */
 			thread_scoped_lock buffers_lock(buffers->mutex);
 
 			/* update scene */
@@ -267,9 +312,14 @@ void Session::run_cpu()
 			/* update status and timing */
 			update_status_time();
 
-			/* path trace all tiles */
+			/* path trace */
 			foreach(Tile& tile, tile_manager.state.tiles)
 				path_trace(tile);
+
+			/* update status and timing */
+			update_status_time();
+
+			need_tonemap = true;
 		}
 
 		device->task_wait();
@@ -284,7 +334,7 @@ void Session::run_cpu()
 				delayed_reset.do_reset = false;
 				reset_(delayed_reset.w, delayed_reset.h, delayed_reset.passes);
 			}
-			else {
+			else if(need_tonemap) {
 				/* tonemap only if we do not reset, we don't we don't
 				   want to show the result of an incomplete pass*/
 				tonemap();
@@ -357,8 +407,19 @@ void Session::set_passes(int passes)
 	if(passes != params.passes) {
 		params.passes = passes;
 		tile_manager.set_passes(passes);
-		/* todo: awake in paused loop */
+
+		pause_cond.notify_all();
 	}
+}
+
+void Session::set_pause(bool pause_)
+{
+	{
+		thread_scoped_lock pause_lock(pause_mutex);
+		pause = pause_;
+	}
+
+	pause_cond.notify_all();
 }
 
 void Session::wait()
