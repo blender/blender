@@ -493,8 +493,8 @@ datafilestargetlist = []
 dottargetlist = []
 scriptinstall = []
 
-if  env['OURPLATFORM']!='darwin':
-        for dp, dn, df in os.walk('bin/.blender'):
+if env['OURPLATFORM']!='darwin':
+        for dp, dn, df in os.walk('release/bin/.blender'):
             if '.svn' in dn:
                 dn.remove('.svn')
             if '_svn' in dn:
