@@ -66,6 +66,7 @@ typedef struct faceloopWalker {
 typedef struct edgeringWalker {
 	struct edgeringWalker * prev;
 	BMLoop *l;
+	BMEdge *wireedge;
 } edgeringWalker;
 
 typedef struct uvedgeWalker {

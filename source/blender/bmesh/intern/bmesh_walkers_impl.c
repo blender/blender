@@ -514,12 +514,18 @@ static void edgeringWalker_begin(BMWalker *walker, void *data)
 	edgeringWalker *lwalk, owalk;
 	BMEdge *e = data;
 
-	if (!e->l) return;
-
 	BMW_pushstate(walker);
 
 	lwalk = walker->currentstate;
 	lwalk->l = e->l;
+
+	if (!lwalk->l) {
+		lwalk->wireedge = e;
+		return;
+	} else {
+		lwalk->wireedge = NULL;
+	}
+
 	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
 
 	/*rewind*/
@@ -546,17 +552,24 @@ static void *edgeringWalker_yield(BMWalker *walker)
 	
 	if (!lwalk) return NULL;
 
-	return lwalk->l->e;
+	if (lwalk->l)
+		return lwalk->l->e;
+	else
+		return lwalk->wireedge;
 }
 
 static void *edgeringWalker_step(BMWalker *walker)
 {
 	edgeringWalker *lwalk = walker->currentstate;
-	BMEdge *e = lwalk->l->e;
+	BMEdge *e;
 	BMLoop *l = lwalk->l /* , *origl = lwalk->l */;
 
 	BMW_popstate(walker);
 
+	if (!l)
+		return lwalk->wireedge;
+
+	e = l->e;
 	l = l->radial_next;
 	l = l->next->next;
 	
@@ -568,6 +581,7 @@ static void *edgeringWalker_step(BMWalker *walker)
 		BMW_pushstate(walker);
 		lwalk = walker->currentstate;
 		lwalk->l = l;
+		lwalk->wireedge = NULL;
 
 		BLI_ghash_insert(walker->visithash, l->e, NULL);
 	}
