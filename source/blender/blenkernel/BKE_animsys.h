@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -41,6 +39,7 @@ struct KeyingSet;
 struct KS_Path;
 
 struct PointerRNA;
+struct ReportList;
 struct bAction;
 struct bActionGroup;
 struct AnimMapper;
@@ -56,6 +55,9 @@ struct AnimData *BKE_animdata_from_id(struct ID *id);
 
 /* Add AnimData to the given ID-block */
 struct AnimData *BKE_id_add_animdata(struct ID *id);
+
+/* Set active action used by AnimData from the given ID-block */
+short BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct bAction *act);
 
 /* Free AnimData */
 void BKE_free_animdata(struct ID *id);
@@ -136,10 +138,10 @@ void BKE_animdata_main_cb(struct Main *main, ID_AnimData_Edit_Callback func, voi
 /* In general, these ones should be called to do all animation evaluation */
 
 /* Evaluation loop for evaluating animation data  */
-void BKE_animsys_evaluate_animdata(struct ID *id, struct AnimData *adt, float ctime, short recalc);
+void BKE_animsys_evaluate_animdata(struct Scene *scene, struct ID *id, struct AnimData *adt, float ctime, short recalc);
 
 /* Evaluation of all ID-blocks with Animation Data blocks - Animation Data Only */
-void BKE_animsys_evaluate_all_animation(struct Main *main, float ctime);
+void BKE_animsys_evaluate_all_animation(struct Main *main, struct Scene *scene, float ctime);
 
 
 /* ------------ Specialised API --------------- */

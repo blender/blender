@@ -49,6 +49,7 @@ enum SG_Stage
 	SG_STAGE_CONTROLLER_UPDATE,
 	SG_STAGE_ACTUATOR,
 	SG_STAGE_ACTUATOR_UPDATE,
+	SG_STAGE_ANIMATION_UPDATE,
 	SG_STAGE_PHYSICS2,
 	SG_STAGE_PHYSICS2_UPDATE,
 	SG_STAGE_SCENE,
@@ -177,6 +178,16 @@ public:
 	
 		void				
 	AddSGController(
+		SG_Controller* cont
+	);
+
+	/**
+	 * Remove a pointer to a controller from this node.
+	 * This does not delete the controller itself! Be careful to
+	 * avoid memory leaks.
+	 */
+		void
+	RemoveSGController(
 		SG_Controller* cont
 	);
 

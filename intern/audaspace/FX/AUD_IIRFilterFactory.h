@@ -63,10 +63,10 @@ public:
 	 * \param b The input filter coefficients.
 	 * \param a The output filter coefficients.
 	 */
-	AUD_IIRFilterFactory(AUD_IFactory* factory, std::vector<float> b,
+	AUD_IIRFilterFactory(AUD_Reference<AUD_IFactory> factory, std::vector<float> b,
 						 std::vector<float> a);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_IIRFILTERFACTORY

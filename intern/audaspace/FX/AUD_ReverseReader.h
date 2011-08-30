@@ -37,7 +37,7 @@
 
 /**
  * This class reads another reader from back to front.
- * \note The underlying reader must be a buffer.
+ * \note The underlying reader must be seekable.
  */
 class AUD_ReverseReader : public AUD_EffectReader
 {
@@ -52,11 +52,6 @@ private:
 	 */
 	int m_position;
 
-	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
 	// hide copy constructor and operator=
 	AUD_ReverseReader(const AUD_ReverseReader&);
 	AUD_ReverseReader& operator=(const AUD_ReverseReader&);
@@ -68,12 +63,12 @@ public:
 	 * \exception AUD_Exception Thrown if the reader specified has an
 	 *            undeterminable/infinite length or is not seekable.
 	 */
-	AUD_ReverseReader(AUD_IReader* reader);
+	AUD_ReverseReader(AUD_Reference<AUD_IReader> reader);
 
 	virtual void seek(int position);
 	virtual int getLength() const;
 	virtual int getPosition() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_REVERSEREADER

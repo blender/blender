@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -111,7 +109,7 @@ void delete_fcurve_keys(FCurve *fcu)
 {
 	int i;
 	
-	if(fcu->bezt==NULL) /* ignore baked curves */
+	if (fcu->bezt==NULL) /* ignore baked curves */
 		return;
 
 	/* Delete selected BezTriples */
@@ -124,7 +122,7 @@ void delete_fcurve_keys(FCurve *fcu)
 	}
 	
 	/* Free the array of BezTriples if there are not keyframes */
-	if(fcu->totvert == 0)
+	if (fcu->totvert == 0)
 		clear_fcurve_keys(fcu);
 }
 

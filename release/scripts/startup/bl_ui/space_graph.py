@@ -78,7 +78,7 @@ class GRAPH_MT_view(Menu):
         layout.prop(st, "use_auto_merge_keyframes")
 
         layout.separator()
-        layout.prop(st, "use_fancy_drawing")
+        layout.prop(st, "use_beauty_drawing")
 
         layout.separator()
         if st.show_handles:
@@ -206,7 +206,7 @@ class GRAPH_MT_key(Menu):
         layout.operator("graph.sound_bake")
 
         layout.separator()
-        layout.operator("graph.duplicate")
+        layout.operator("graph.duplicate_move")
         layout.operator("graph.delete")
 
         layout.separator()

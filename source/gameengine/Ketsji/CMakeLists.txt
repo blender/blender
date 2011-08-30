@@ -45,6 +45,7 @@ set(INC
 	../../blender/gpu
 	../../blender/imbuf
 	../../blender/makesdna
+	../../blender/makesrna
 	../../blender/python
 	../../blender/python/generic
 	../../blender/python/mathutils
@@ -59,6 +60,8 @@ set(INC_SYS
 )
 
 set(SRC
+	BL_Action.cpp
+	BL_ActionManager.cpp
 	BL_BlenderShader.cpp
 	BL_Material.cpp
 	BL_Shader.cpp
@@ -128,6 +131,8 @@ set(SRC
 	KX_WorldInfo.cpp
 	KX_WorldIpoController.cpp
 
+	BL_Action.h
+	BL_ActionManager.h
 	BL_BlenderShader.h
 	BL_Material.h
 	BL_Shader.h
@@ -223,6 +228,7 @@ endif()
 if(WITH_AUDASPACE)
 	list(APPEND INC
 		../../../intern/audaspace/intern
+		../../../intern/audaspace/FX
 	)
 	add_definitions(-DWITH_AUDASPACE)
 endif()

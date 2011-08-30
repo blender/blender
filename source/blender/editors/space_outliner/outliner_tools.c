@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -137,7 +135,7 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 						break;
 						
 					case ID_ME: case ID_CU: case ID_MB: case ID_LT:
-					case ID_LA: case ID_AR: case ID_CA: /* case ID_SPK: */ /* GSOC_PEPPER */
+					case ID_LA: case ID_AR: case ID_CA: case ID_SPK:
 					case ID_MA: case ID_TE: case ID_IP: case ID_IM:
 					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
 					case ID_NLA: case ID_TXT: case ID_GR:
@@ -154,15 +152,11 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 	}
 }
 
-#if 0 // GSOC_PEPPER
-
 static void unlink_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
 	/* just set action to NULL */
 	BKE_animdata_set_action(CTX_wm_reports(C), tsep->id, NULL);
 }
-
-#endif // GSOC_PEPPER
 
 static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
@@ -333,8 +327,6 @@ static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), Tre
 	}
 }
 
-#if 0 // GSOC_PEPPER
-
 static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
@@ -350,8 +342,6 @@ static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement 
 		id_single_user(C, id, &ptr, prop);
 	}
 }
-
-#endif
 
 static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
@@ -406,15 +396,11 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 
 /* ******************************************** */
 
-#if 0 // GSOC_PEPPER
-
 static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
 {
 	/* just set action to NULL */
 	BKE_animdata_set_action(NULL, tselem->id, NULL);
 }
-
-#endif // GSOC_PEPPER
 
 static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
 {
@@ -709,18 +695,12 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 		{
 			/* unlink datablock from its parent */
 			switch (idlevel) {
-
-#if 0 // GSOC_PEPPER
-
 				case ID_AC:
 					outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_action_cb);
 					
 					WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
 					ED_undo_push(C, "Unlink action");
 					break;
-
-#endif // GSOC_PEPPER
-
 				case ID_MA:
 					outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_material_cb);
 					
@@ -748,8 +728,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 		}
 			break;
 			
-#if 0 // GSOC_PEPPER
-
 		case OUTLINER_IDOP_SINGLE:
 		{
 			/* make single user */
@@ -768,8 +746,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 		}
 			break;
 			
-#endif // GSOC_PEPPER
-
 		case OUTLINER_IDOP_FAKE_ADD:
 		{
 			/* set fake user */
@@ -845,8 +821,6 @@ static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *l
 }
 
 /* ------------------------------------------ */
-
-#if 0 // GSOC_PEPPER
 
 static void actionset_id_cb(TreeElement *te, TreeStoreElem *tselem, TreeStoreElem *tsep, ID *actId)
 {
@@ -932,8 +906,6 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-#endif // GSOC_PEPPER
-
 /* **************************************** */
 
 typedef enum eOutliner_AnimDataOps {
@@ -978,9 +950,6 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 	
 	/* perform the core operation */
 	switch (event) {
-
-#if 0 // GSOC_PEPPER
-
 		case OUTLINER_ANIMOP_SET_ACT:
 			/* delegate once again... */
 			WM_operator_name_call(C, "OUTLINER_OT_action_set", WM_OP_INVOKE_REGION_WIN, NULL);
@@ -994,8 +963,6 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 			ED_undo_push(C, "Unlink action");
 			break;
 			
-#endif // GSOC_PEPPER
-
 		case OUTLINER_ANIMOP_REFRESH_DRV:
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, refreshdrivers_animdata_cb);
 			

@@ -34,9 +34,10 @@
 
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
+#include "AUD_Reference.h"
 
 /**
- * This reader plays two readers with the same specs sequently.
+ * This reader plays two readers with the same specs in parallel.
  */
 class AUD_SuperposeReader : public AUD_IReader
 {
@@ -44,15 +45,15 @@ private:
 	/**
 	 * The first reader.
 	 */
-	AUD_IReader* m_reader1;
+	AUD_Reference<AUD_IReader> m_reader1;
 
 	/**
 	 * The second reader.
 	 */
-	AUD_IReader* m_reader2;
+	AUD_Reference<AUD_IReader> m_reader2;
 
 	/**
-	 * The playback buffer for the intersecting part.
+	 * Buffer used for mixing.
 	 */
 	AUD_Buffer m_buffer;
 
@@ -67,7 +68,7 @@ public:
 	 * \param reader2 The second reader to read from.
 	 * \exception AUD_Exception Thrown if the specs from the readers differ.
 	 */
-	AUD_SuperposeReader(AUD_IReader* reader1, AUD_IReader* reader2);
+	AUD_SuperposeReader(AUD_Reference<AUD_IReader> reader1, AUD_Reference<AUD_IReader> reader2);
 
 	/**
 	 * Destroys the reader.
@@ -79,7 +80,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_SUPERPOSEREADER

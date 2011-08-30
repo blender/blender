@@ -34,9 +34,10 @@
 
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
+#include "AUD_Reference.h"
 
 /**
- * This reader plays two readers with the same specs sequently.
+ * This reader plays two readers sequently.
  */
 class AUD_DoubleReader : public AUD_IReader
 {
@@ -44,22 +45,17 @@ private:
 	/**
 	 * The first reader.
 	 */
-	AUD_IReader* m_reader1;
+	AUD_Reference<AUD_IReader> m_reader1;
 
 	/**
 	 * The second reader.
 	 */
-	AUD_IReader* m_reader2;
+	AUD_Reference<AUD_IReader> m_reader2;
 
 	/**
 	 * Whether we've reached the end of the first reader.
 	 */
 	bool m_finished1;
-
-	/**
-	 * The playback buffer for the intersecting part.
-	 */
-	AUD_Buffer m_buffer;
 
 	// hide copy constructor and operator=
 	AUD_DoubleReader(const AUD_DoubleReader&);
@@ -67,12 +63,11 @@ private:
 
 public:
 	/**
-	 * Creates a new ping pong reader.
+	 * Creates a new double reader.
 	 * \param reader1 The first reader to read from.
 	 * \param reader2 The second reader to read from.
-	 * \exception AUD_Exception Thrown if the specs from the readers differ.
 	 */
-	AUD_DoubleReader(AUD_IReader* reader1, AUD_IReader* reader2);
+	AUD_DoubleReader(AUD_Reference<AUD_IReader> reader1, AUD_Reference<AUD_IReader> reader2);
 
 	/**
 	 * Destroys the reader.
@@ -84,7 +79,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_DOUBLEREADER

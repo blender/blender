@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -38,6 +36,7 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
 
@@ -225,7 +224,10 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 	vec[0]= (float)(scene->r.cfra * scene->r.framelen);
 	
 	UI_ThemeColor(TH_CFRAME);
-	glLineWidth(2.0);
+	if (flag & DRAWCFRA_WIDE)
+		glLineWidth(3.0);
+	else
+		glLineWidth(2.0);
 	
 	glBegin(GL_LINE_STRIP);
 		vec[1]= v2d->cur.ymin-500.0f;	/* XXX arbitrary... want it go to bottom */
@@ -243,13 +245,13 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 			// XXX ob->ipoflag is depreceated!
 			if ((ob->ipoflag & OB_OFFS_OB) && (timeoffset != 0.0f)) {
 				vec[0]-= timeoffset; /* could avoid calling twice */
-			
+				
 				UI_ThemeColorShade(TH_CFRAME, -30);
-			
+				
 				glBegin(GL_LINE_STRIP);
 					/*vec[1]= v2d->cur.ymax;*/ // this is set already. this line is only included
 					glVertex2fv(vec);
-				
+					
 					vec[1]= v2d->cur.ymin;
 					glVertex2fv(vec);
 				glEnd();
@@ -304,6 +306,9 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 	/* sanity checks */
 	if (ac == NULL)
 		return NULL;
+	
+	/* abort if rendering - we may get some race condition issues... */
+	if (G.rendering) return NULL;
 	
 	/* handling depends on the type of animation-context we've got */
 	if (ale)
@@ -443,6 +448,9 @@ void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short fl
 	KeyframeEditData ked;
 	KeyframeEditFunc sel_cb;
 	float fac;
+	
+	/* abort if rendering - we may get some race condition issues... */
+	if (G.rendering) return;
 	
 	/* calculate mapping factor, and abort if nothing to change */
 	fac= ANIM_unit_mapping_get_factor(scene, id, fcu, (flag & ANIM_UNITCONV_RESTORE));

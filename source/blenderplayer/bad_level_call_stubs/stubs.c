@@ -184,6 +184,7 @@ void	ED_area_headerprint(struct ScrArea *sa, char *str){}
 
 struct EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, struct EditBone *ebo){return (struct EditBone *) NULL;}
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name){return (struct EditBone*) NULL;}
+struct Object *ED_object_pose_armature(struct Object *ob){ return (struct Object *)NULL; }
 struct ListBase *get_active_constraints (struct Object *ob){return (struct ListBase *) NULL;}
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r){return (struct ListBase *) NULL;}
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan){return 0;}
@@ -230,6 +231,7 @@ int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks){re
 struct ListBase builtin_keyingsets;
 void ANIM_keyingset_info_register (struct KeyingSetInfo *ksi){}
 void ANIM_keyingset_info_unregister (const struct bContext *C, struct KeyingSetInfo *ksi){}
+short ANIM_validate_keyingset (struct bContext *C, struct ListBase *dsources, struct KeyingSet *ks){return 0;}
 short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, short flag, int type){return 0;}
 short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag){return 0;}
 void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock){}

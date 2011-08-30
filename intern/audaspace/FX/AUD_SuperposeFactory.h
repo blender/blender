@@ -35,8 +35,9 @@
 #include "AUD_IFactory.h"
 
 /**
- * This factory plays two other factories behind each other.
- * \note Readers from the underlying factories must have the same sample rate and channel count.
+ * This factory mixes two other factories, playing them the same time.
+ * \note Readers from the underlying factories must have the same sample rate
+ *       and channel count.
  */
 class AUD_SuperposeFactory : public AUD_IFactory
 {
@@ -44,12 +45,12 @@ private:
 	/**
 	 * First played factory.
 	 */
-	AUD_IFactory* m_factory1;
+	AUD_Reference<AUD_IFactory> m_factory1;
 
 	/**
 	 * Second played factory.
 	 */
-	AUD_IFactory* m_factory2;
+	AUD_Reference<AUD_IFactory> m_factory2;
 
 	// hide copy constructor and operator=
 	AUD_SuperposeFactory(const AUD_SuperposeFactory&);
@@ -61,9 +62,9 @@ public:
 	 * \param factory1 The first input factory.
 	 * \param factory2 The second input factory.
 	 */
-	AUD_SuperposeFactory(AUD_IFactory* factory1, AUD_IFactory* factory2);
+	AUD_SuperposeFactory(AUD_Reference<AUD_IFactory> factory1, AUD_Reference<AUD_IFactory> factory2);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_SUPERPOSEFACTORY

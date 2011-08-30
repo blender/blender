@@ -32,7 +32,7 @@
 #include "AUD_SquareFactory.h"
 #include "AUD_CallbackIIRFilterReader.h"
 
-sample_t squareFilter(AUD_CallbackIIRFilterReader* reader, float* threshold)
+sample_t AUD_SquareFactory::squareFilter(AUD_CallbackIIRFilterReader* reader, float* threshold)
 {
 	float in = reader->x(0);
 	if(in >= *threshold)
@@ -43,12 +43,12 @@ sample_t squareFilter(AUD_CallbackIIRFilterReader* reader, float* threshold)
 		return 0;
 }
 
-void endSquareFilter(float* threshold)
+void AUD_SquareFactory::endSquareFilter(float* threshold)
 {
 	delete threshold;
 }
 
-AUD_SquareFactory::AUD_SquareFactory(AUD_IFactory* factory, float threshold) :
+AUD_SquareFactory::AUD_SquareFactory(AUD_Reference<AUD_IFactory> factory, float threshold) :
 		AUD_EffectFactory(factory),
 		m_threshold(threshold)
 {
@@ -59,7 +59,7 @@ float AUD_SquareFactory::getThreshold() const
 	return m_threshold;
 }
 
-AUD_IReader* AUD_SquareFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SquareFactory::createReader()
 {
 	return new AUD_CallbackIIRFilterReader(getReader(), 1, 1,
 										   (doFilterIIR) squareFilter,
