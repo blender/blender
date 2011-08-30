@@ -583,7 +583,8 @@ static void bmDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 static void bmDM_drawMappedFaces(DerivedMesh *dm, 
 	int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), 
 	void *userData, int useColors, 
-	int (*setMaterial)(int, void *attribs))
+	int (*setMaterial)(int, void *attribs),
+	int (*compareDrawOptions)(void *userData, int cur_index, int next_index))
 {
 	EditDerivedBMesh *bmdm= (EditDerivedBMesh*) dm;
 	BMFace *efa;
@@ -592,7 +593,11 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 
 	/*BMESH_TODO*/
 	(void)useColors;
-	(void)setMaterial;
+
+	(void)setMaterial; /* UNUSED */
+
+	/* currently unused -- each original face is handled separately */
+	(void)compareDrawOptions;
 
 	if (bmdm->vertexCos) {
 		BMVert *eve;
