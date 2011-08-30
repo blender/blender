@@ -1588,6 +1588,14 @@ void init_userdef_do_versions(void)
 		}
 	}
 	
+	if (bmain->versionfile < 259 || (bmain->versionfile == 259 && bmain->subversionfile < 1)) {
+		bTheme *btheme;
+
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			btheme->tv3d.speaker[3] = 255;
+		}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;
@@ -1623,13 +1631,6 @@ void init_userdef_do_versions(void)
 		U.ndof_sensitivity = 1.0f;
 		U.ndof_flag = NDOF_LOCK_HORIZON |
 			NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE;
-	}
-
-	{
-		bTheme *btheme;
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			btheme->tv3d.speaker[3] = 255;
-		}
 	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */

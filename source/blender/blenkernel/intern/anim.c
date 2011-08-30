@@ -1348,6 +1348,10 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				continue;
 
 			if(part->ren_as==PART_DRAW_GR) {
+				/* prevent divide by zero below [#28336] */
+				if(totgroup == 0)
+					continue;
+
 				/* for groups, pick the object based on settings */
 				if(part->draw&PART_DRAW_RAND_GR)
 					b= BLI_rand() % totgroup;

@@ -104,7 +104,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 {
 	DerivedMesh* dm;
 	ParticleKey state;
-	ParticleSimulationData sim= {0};
+	ParticleSimulationData sim= {NULL};
 	ParticleData *pa=NULL;
 	float cfra = BKE_curframe(re->scene);
 	int i, childexists;

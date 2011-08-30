@@ -236,6 +236,10 @@ static void rna_Sequence_use_proxy_set(PointerRNA *ptr, int value)
 		seq->flag |= SEQ_USE_PROXY;
 		if(seq->strip->proxy == NULL) {
 			seq->strip->proxy = MEM_callocN(sizeof(struct StripProxy), "StripProxy");
+			seq->strip->proxy->quality = 90;
+			seq->strip->proxy->build_tc_flags = SEQ_PROXY_TC_ALL;
+			seq->strip->proxy->build_size_flags 
+				= SEQ_PROXY_IMAGE_SIZE_25;
 		}
 	} else {
 		seq->flag ^= SEQ_USE_PROXY;
@@ -588,6 +592,34 @@ static void rna_Sequence_filepath_update(Main *bmain, Scene *scene, PointerRNA *
 	rna_Sequence_update(bmain, scene, ptr);
 }
 
+static int seqproxy_seq_cmp_cb(Sequence *seq, void *arg_pt)
+{
+	struct { Sequence *seq; void *seq_proxy; } *data= arg_pt;
+
+	if(seq->strip && seq->strip->proxy == data->seq_proxy) {
+		data->seq= seq;
+		return -1; /* done so bail out */
+	}
+	return 1;
+}
+
+static void rna_Sequence_tcindex_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Editing *ed= seq_give_editing(scene, FALSE);
+	Sequence *seq;
+
+	struct { Sequence *seq; void *seq_proxy; } data;
+
+	data.seq= NULL;
+	data.seq_proxy = ptr->data;
+
+	seqbase_recursive_apply(&ed->seqbase, seqproxy_seq_cmp_cb, &data);
+	seq= data.seq;
+
+	reload_sequence_new_file(scene, seq, FALSE);
+	rna_Sequence_frame_change_update(scene, seq);
+}
+
 /* do_versions? */
 static float rna_Sequence_opacity_get(PointerRNA *ptr)
 {
@@ -790,6 +822,19 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	static const EnumPropertyItem seq_tc_items[]= {
+		{SEQ_PROXY_TC_NONE, "NONE", 0, "No TC in use", ""}, 
+		{SEQ_PROXY_TC_RECORD_RUN, "RECORD_RUN", 0, "Record Run",
+		 "use images in the order as they are recorded"}, 
+		{SEQ_PROXY_TC_FREE_RUN, "FREE_RUN", 0, "Free Run", 
+		 "use global timestamp written by recording device"}, 
+		{SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 
+		 0, "Free Run (rec date)", 
+		 "interpolate a global timestamp using the "
+		 "record date and time written by recording "
+		 "device"}, 
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "SequenceProxy", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence Proxy", "Proxy parameters for a sequence strip");
@@ -805,6 +850,46 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Sequence_proxy_filepath_get", "rna_Sequence_proxy_filepath_length", "rna_Sequence_proxy_filepath_set");
 
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "build_25", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flags", SEQ_PROXY_IMAGE_SIZE_25);
+	RNA_def_property_ui_text(prop, "25%", "Build 25% proxy resolution");
+
+	prop= RNA_def_property(srna, "build_50", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flags", SEQ_PROXY_IMAGE_SIZE_50);
+	RNA_def_property_ui_text(prop, "50%", "Build 50% proxy resolution");
+
+	prop= RNA_def_property(srna, "build_75", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flags", SEQ_PROXY_IMAGE_SIZE_75);
+	RNA_def_property_ui_text(prop, "75%", "Build 75% proxy resolution");
+
+	prop= RNA_def_property(srna, "build_100", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_size_flags", SEQ_PROXY_IMAGE_SIZE_100);
+	RNA_def_property_ui_text(prop, "100%", "Build 100% proxy resolution");
+
+	prop= RNA_def_property(srna, "build_record_run", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_tc_flags", SEQ_PROXY_TC_RECORD_RUN);
+	RNA_def_property_ui_text(prop, "Rec Run", "Build record run time code index");
+
+	prop= RNA_def_property(srna, "build_free_run", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_tc_flags", SEQ_PROXY_TC_FREE_RUN);
+	RNA_def_property_ui_text(prop, "Free Run", "Build free run time code index");
+
+	prop= RNA_def_property(srna, "build_free_run_rec_date", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "build_tc_flags", SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN);
+	RNA_def_property_ui_text(prop, "Free Run (Rec Date)", "Build free run time code index using Record Date/Time");
+
+	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "quality");
+	RNA_def_property_ui_text(prop, "Quality", "JPEG Quality of proxies to build");
+	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
+
+	prop= RNA_def_property(srna, "timecode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tc");
+	RNA_def_property_enum_items(prop, seq_tc_items);
+	RNA_def_property_ui_text(prop, "Timecode", "");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_tcindex_update");
+
 }
 
 static void rna_def_strip_color_balance(BlenderRNA *brna)
@@ -1214,7 +1299,7 @@ static void rna_def_proxy(StructRNA *srna)
 
 	prop= RNA_def_property(srna, "use_proxy", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_PROXY);
-	RNA_def_property_ui_text(prop, "Use Proxy", "Use a preview proxy for this strip");
+	RNA_def_property_ui_text(prop, "Use Proxy / Timecode", "Use a preview proxy and/or timecode index for this strip");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Sequence_use_proxy_set");
 
 	prop= RNA_def_property(srna, "proxy", PROP_POINTER, PROP_NONE);
@@ -1335,6 +1420,12 @@ static void rna_def_movie(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 50);
 	RNA_def_property_ui_text(prop, "MPEG Preseek", "For MPEG movies, preseek this many frames");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "streamindex", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "streamindex");
+	RNA_def_property_range(prop, 0, 20);
+	RNA_def_property_ui_text(prop, "Streamindex", "For files with several movie streams, use the stream with the given index");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update_reopen_files");
 
 	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", NULL);

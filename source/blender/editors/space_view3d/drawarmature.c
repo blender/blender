@@ -315,11 +315,9 @@ static float cube[8][3] = {
 static void drawsolidcube_size(float xsize, float ysize, float zsize)
 {
 	static GLuint displist=0;
-	float n[3];
+	float n[3]= {0.0f};
 	
 	glScalef(xsize, ysize, zsize);
-	
-	n[0]=0; n[1]=0; n[2]=0;
 
 	if(displist==0) {
 		displist= glGenLists(1);
@@ -345,7 +343,6 @@ static void drawsolidcube_size(float xsize, float ysize, float zsize)
 		n[2]= 1.0;
 		glNormal3fv(n); 
 		glVertex3fv(cube[1]); glVertex3fv(cube[5]); glVertex3fv(cube[6]); glVertex3fv(cube[2]);
-		n[2]=0;
 		n[2]= -1.0;
 		glNormal3fv(n); 
 		glVertex3fv(cube[7]); glVertex3fv(cube[4]); glVertex3fv(cube[0]); glVertex3fv(cube[3]);

@@ -73,6 +73,7 @@ set(SRC
 	intern/tiff.c
 	intern/util.c
 	intern/writeimage.c
+	intern/indexer.c
 
 	IMB_imbuf.h
 	IMB_imbuf_types.h

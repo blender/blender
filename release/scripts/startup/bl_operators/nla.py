@@ -199,19 +199,32 @@ class BakeAction(Operator):
     bl_label = "Bake Action"
     bl_options = {'REGISTER', 'UNDO'}
 
-    frame_start = IntProperty(name="Start Frame",
+    frame_start = IntProperty(
+            name="Start Frame",
             description="Start frame for baking",
-            default=1, min=1, max=300000)
-    frame_end = IntProperty(name="End Frame",
+            min=0, max=300000,
+            default=1,
+            )
+    frame_end = IntProperty(
+            name="End Frame",
             description="End frame for baking",
-            default=250, min=1, max=300000)
-    step = IntProperty(name="Frame Step",
+            min=1, max=300000,
+            default=250,
+            )
+    step = IntProperty(
+            name="Frame Step",
             description="Frame Step",
-            default=1, min=1, max=120)
-    only_selected = BoolProperty(name="Only Selected",
-            default=True)
-    clear_consraints = BoolProperty(name="Clear Constraints",
-            default=False)
+            min=1, max=120,
+            default=1,
+            )
+    only_selected = BoolProperty(
+            name="Only Selected",
+            default=True,
+            )
+    clear_consraints = BoolProperty(
+            name="Clear Constraints",
+            default=False,
+            )
     bake_types = EnumProperty(
             name="Bake Data",
             options={'ENUM_FLAG'},

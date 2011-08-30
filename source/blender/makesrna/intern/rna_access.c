@@ -2214,7 +2214,7 @@ char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fi
 	if(length+1 < fixedlen)
 		buf= fixedbuf;
 	else
-		buf= MEM_callocN(sizeof(char)*(length+1), "RNA_string_get_alloc");
+		buf= MEM_mallocN(sizeof(char)*(length+1), "RNA_string_get_alloc");
 
 	RNA_property_string_get(ptr, prop, buf);
 
@@ -4379,11 +4379,18 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 		break;
 	case PROP_STRING:
 	{
-		/* string arrays dont exist */
+		char *buf_esc;
 		char *buf;
-		buf = RNA_property_string_get_alloc(ptr, prop, NULL, -1);
-		BLI_dynstr_appendf(dynstr, "\"%s\"", buf);
+		int length;
+
+		length= RNA_property_string_length(ptr, prop);
+		buf= MEM_mallocN(sizeof(char)*(length+1), "RNA_property_as_string");
+		buf_esc= MEM_mallocN(sizeof(char)*(length*2+1), "RNA_property_as_string esc");
+		RNA_property_string_get(ptr, prop, buf);
+		BLI_strescape(buf_esc, buf, length*2);
 		MEM_freeN(buf);
+		BLI_dynstr_appendf(dynstr, "\"%s\"", buf_esc);
+		MEM_freeN(buf_esc);
 		break;
 	}
 	case PROP_ENUM:

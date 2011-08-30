@@ -62,7 +62,8 @@ enum MaterialProps
 	RAS_AUTOGEN		=128,
 	RAS_NORMAL		=256,
 	RAS_DEFMULTI	=512,
-	RAS_BLENDERGLSL =1024
+	RAS_BLENDERGLSL =1024,
+	RAS_CASTSHADOW	=2048
 };
 
 /**
@@ -169,6 +170,7 @@ public:
 	virtual void		GetMaterialRGBAColor(unsigned char *rgba) const;
 	virtual bool		UsesLighting(RAS_IRasterizer *rasty) const;
 	virtual bool		UsesObjectColor() const;
+	virtual bool		CastsShadows() const;
 
 	virtual void		Replace_IScene(SCA_IScene *val) {}; /* overridden by KX_BlenderMaterial */
 

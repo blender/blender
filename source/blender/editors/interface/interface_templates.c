@@ -2373,6 +2373,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 #define B_STOPCAST		2
 #define B_STOPANIM		3
 #define B_STOPCOMPO		4
+#define B_STOPSEQ		5
 
 static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 {
@@ -2387,6 +2388,9 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
 		case B_STOPCOMPO:
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+			break;
+		case B_STOPSEQ:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
 			break;
 	}
@@ -2410,8 +2414,11 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		if(WM_jobs_test(wm, sa))
 		   owner = sa;
 		handle_event= B_STOPCOMPO;
-	} 
-	else {
+	} else if (sa->spacetype==SPACE_SEQ) {
+		if(WM_jobs_test(wm, sa))
+			owner = sa;
+		handle_event = B_STOPSEQ;
+	} else {
 		Scene *scene;
 		/* another scene can be rendering too, for example via compositor */
 		for(scene= CTX_data_main(C)->scene.first; scene; scene= scene->id.next)

@@ -733,7 +733,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	}
 }
 
-static Sequence *special_seq_update= 0;
+static Sequence *special_seq_update= NULL;
 
 static void UNUSED_FUNCTION(set_special_seq_update)(int val)
 {
@@ -743,14 +743,14 @@ static void UNUSED_FUNCTION(set_special_seq_update)(int val)
 	if(val) {
 // XXX		special_seq_update= find_nearest_seq(&x);
 	}
-	else special_seq_update= 0;
+	else special_seq_update= NULL;
 }
 
 void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq, int cfra, int frame_ofs)
 {
 	struct Main *bmain= CTX_data_main(C);
-	struct ImBuf *ibuf = 0;
-	struct ImBuf *scope = 0;
+	struct ImBuf *ibuf= NULL;
+	struct ImBuf *scope= NULL;
 	struct View2D *v2d = &ar->v2d;
 	int rectx, recty;
 	float viewrectx, viewrecty;

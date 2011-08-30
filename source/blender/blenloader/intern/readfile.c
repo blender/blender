@@ -9992,12 +9992,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ed) {
 				SEQP_BEGIN(ed, seq) {
 					if (seq->strip && seq->strip->proxy){
-						if (sce->r.size != 100.0) {
-							seq->strip->proxy->size
-								= sce->r.size;
-						} else {
-							seq->strip->proxy->size = 25;
-						}
 						seq->strip->proxy->quality =90;
 					}
 				}
@@ -10104,7 +10098,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 * to have them show in RNA viewer and accessible otherwise.
 		 */
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
-			if(ma->nodetree && strlen(ma->nodetree->id.name)==0)
+			if(ma->nodetree && ma->nodetree->id.name[0] == '\0')
 				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
 			
 			/* which_output 0 is now "not specified" */
@@ -10118,7 +10112,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
-			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)
+			if(sce->nodetree && sce->nodetree->id.name[0] == '\0')
 				strcpy(sce->nodetree->id.name, "NTCompositing Nodetree");
 
 			/* move to cameras */
@@ -10140,7 +10134,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			bNode *node;
 
 			if(tx->nodetree) {
-				if(strlen(tx->nodetree->id.name)==0)
+				if(tx->nodetree->id.name[0] == '\0')
 					strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
 
 				/* which_output 0 is now "not specified" */
@@ -11749,10 +11743,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	/* put compatibility code here until next subversion bump */
 
-	{
-
+	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 1)){
 		{
 			Scene *scene;
 			Sequence *seq;
@@ -11868,7 +11860,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	
+
+	/* put compatibility code here until next subversion bump */
+
+	{
+
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

@@ -202,6 +202,20 @@ char *WM_jobs_name(wmWindowManager *wm, void *owner)
 	return NULL;
 }
 
+int WM_jobs_is_running(wmJob *steve)
+{
+	return steve->running;
+}
+
+void* WM_jobs_get_customdata(wmJob * steve)
+{
+	if (!steve->customdata) {
+		return steve->run_customdata;
+	} else {
+		return steve->customdata;
+	}
+}
+
 void WM_jobs_customdata(wmJob *steve, void *customdata, void (*free)(void *))
 {
 	/* pending job? just free */

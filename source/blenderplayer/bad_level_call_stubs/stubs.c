@@ -51,6 +51,7 @@ struct Curve;
 struct EditBone;
 struct EditFace;
 struct EditMesh;
+struct EnvMap;
 struct ID;
 struct FCurve;
 struct ImBuf;
@@ -145,6 +146,7 @@ double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, c
 struct Render *RE_NewRender(const char *name){return (struct Render*) NULL;}
 void RE_SwapResult(struct Render *re, struct RenderResult **rr){}
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame){}
+int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, int imtype, float layout[12]) { return 0; }
 
 /* rna */
 float *give_cursor(struct Scene *scene, struct View3D *v3d){return (float *) NULL;}

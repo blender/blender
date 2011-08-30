@@ -350,6 +350,8 @@ bool ConvertMaterial(
 
 		// use lighting?
 		material->ras_mode |= ( mat->mode & MA_SHLESS )?0:USE_LIGHT;
+		// cast shadows?
+		material->ras_mode |= ( mat->mode & MA_SHADBUF )?CAST_SHADOW:0;
 		MTex *mttmp = 0;
 		numchan = getNumTexChannels(mat);
 		int valid_index = 0;

@@ -155,6 +155,12 @@ EnumPropertyItem image_type_items[] = {
 #endif
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem image_color_mode_items[] ={
+	{R_PLANESBW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
+	{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
+	{R_PLANES32, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -721,8 +727,8 @@ static void rna_RenderSettings_active_layer_set(PointerRNA *ptr, PointerRNA valu
 {
 	RenderData *rd= (RenderData*)ptr->data;
 	SceneRenderLayer *srl= (SceneRenderLayer*)value.data;
-	
-	rd->actlay = BLI_findindex(&rd->layers, srl);
+	const int index= BLI_findindex(&rd->layers, srl);
+	if (index != -1) rd->actlay= index;
 }
 
 static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
@@ -2001,7 +2007,7 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "SceneRenderLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_RenderSettings_active_layer_get", "rna_RenderSettings_active_layer_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
 	RNA_def_property_ui_text(prop, "Active Render Layer", "Active Render Layer");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
@@ -2027,13 +2033,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_ALPHAPREMUL, "PREMUL", 0, "Premultiplied", "Transparent RGB pixels are multiplied by the alpha channel"},
 		{R_ALPHAKEY, "STRAIGHT", 0, "Straight Alpha", "Transparent RGB and alpha pixels are unmodified"},
 		{0, NULL, 0, NULL, NULL}};
-		
-	static EnumPropertyItem color_mode_items[] ={
-		{R_PLANESBW, "BW", 0, "BW", "Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)"},
-		{R_PLANES24, "RGB", 0, "RGB", "Images are saved with RGB (color) data"},
-		{R_PLANES32, "RGBA", 0, "RGBA", "Images are saved with RGB and Alpha data (if supported)"},
-		{0, NULL, 0, NULL, NULL}};
-	
+
 	static EnumPropertyItem display_mode_items[] ={
 		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in full Screen"},
 		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in Image Editor"},
@@ -2169,14 +2169,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 #endif
 
 #ifdef WITH_FFMPEG
-	static EnumPropertyItem audio_channel_items[] = {
-		{1, "MONO", 0, "Mono", "Set audio channels to mono"},
-		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
-		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
-		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
-		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem ffmpeg_format_items[] = {
 		{FFMPEG_MPEG1, "MPEG1", 0, "MPEG-1", ""},
 		{FFMPEG_MPEG2, "MPEG2", 0, "MPEG-2", ""},
@@ -2218,6 +2210,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 #endif
 
+	static EnumPropertyItem audio_channel_items[] = {
+		{1, "MONO", 0, "Mono", "Set audio channels to mono"},
+		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
+		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
+		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
+		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem engine_items[] = {
 		{0, "BLENDER_RENDER", 0, "Blender Render", "Use the Blender internal rendering engine for rendering"},
 		{0, NULL, 0, NULL, NULL}};
@@ -2230,7 +2230,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
-	RNA_def_property_enum_items(prop, color_mode_items);
+	RNA_def_property_enum_items(prop, image_color_mode_items);
 	RNA_def_property_ui_text(prop, "Color Mode", "Choose BW for saving greyscale images, RGB for saving red, green and blue channels, AND RGBA for saving red, green, blue + alpha channels");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 

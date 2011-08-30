@@ -54,6 +54,7 @@ extern EnumPropertyItem constraint_type_items[];
 extern EnumPropertyItem boidrule_type_items[];
 
 extern EnumPropertyItem image_type_items[];
+extern EnumPropertyItem image_color_mode_items[];
 
 extern EnumPropertyItem beztriple_keyframe_type_items[];
 extern EnumPropertyItem beztriple_handle_type_items[];

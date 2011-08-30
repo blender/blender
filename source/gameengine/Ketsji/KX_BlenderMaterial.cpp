@@ -85,6 +85,7 @@ void KX_BlenderMaterial::Initialize(
 	m_flag |= (mMaterial->IdMode>=ONETEX)? RAS_MULTITEX: 0;
 	m_flag |= ((mMaterial->ras_mode & USE_LIGHT)!=0)? RAS_MULTILIGHT: 0;
 	m_flag |= (mMaterial->glslmat)? RAS_BLENDERGLSL: 0;
+	m_flag |= ((mMaterial->ras_mode & CAST_SHADOW)!=0)? RAS_CASTSHADOW: 0;
 
 	// figure max
 	int enabled = mMaterial->num_enabled;

@@ -218,6 +218,18 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 	MEM_freeN(seq);
 }
 
+void seq_free_sequence_recurse(Scene *scene, Sequence *seq)
+{
+	Sequence *iseq;
+
+	for(iseq= seq->seqbase.first; iseq; iseq= iseq->next) {
+		seq_free_sequence_recurse(scene, iseq);
+	}
+
+	seq_free_sequence(scene, seq);
+}
+
+
 Editing *seq_give_editing(Scene *scene, int alloc)
 {
 	if (scene->ed == NULL && alloc) {
@@ -683,13 +695,16 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 	}
 	case SEQ_MOVIE:
 		if(seq->anim) IMB_free_anim(seq->anim);
-		seq->anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0));
+		seq->anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0), seq->streamindex);
 
 		if (!seq->anim) {
 			return;
 		}
 	
-		seq->len = IMB_anim_get_duration(seq->anim);
+		seq->len = IMB_anim_get_duration(seq->anim,
+						 seq->strip->proxy ?
+						 seq->strip->proxy->tc :
+						 IMB_TC_RECORD_RUN);
 		
 		seq->anim_preseek = IMB_anim_get_preseek(seq->anim);
 
@@ -1117,7 +1132,7 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
 
 	return cnt;
 }
- 
+
 
 /* **********************************************************************
    proxy management
@@ -1125,48 +1140,105 @@ static int get_shown_sequences(	ListBase * seqbasep, int cfra, int chanshown, Se
 
 #define PROXY_MAXFILE (2*FILE_MAXDIR+FILE_MAXFILE)
 
+static IMB_Proxy_Size seq_rendersize_to_proxysize(int size)
+{
+	if (size >= 100) {
+		return IMB_PROXY_NONE;
+	}
+	if (size >= 99) {
+		return IMB_PROXY_100;
+	}
+	if (size >= 75) {
+		return IMB_PROXY_75;
+	}
+	if (size >= 50) {
+		return IMB_PROXY_50;
+	}
+	return IMB_PROXY_25;
+}
+
+static void seq_open_anim_file(Sequence * seq)
+{
+	char name[FILE_MAXDIR+FILE_MAXFILE];
+	StripProxy * proxy;
+
+	if(seq->anim != NULL) {
+		return;
+	}
+
+	BLI_join_dirfile(name, sizeof(name), 
+			 seq->strip->dir, seq->strip->stripdata->name);
+	BLI_path_abs(name, G.main->name);
+	
+	seq->anim = openanim(name, IB_rect |
+			     ((seq->flag & SEQ_FILTERY) ? 
+			      IB_animdeinterlace : 0), seq->streamindex);
+
+	if (seq->anim == NULL) {
+		return;
+	}
+
+	proxy = seq->strip->proxy;
+
+	if (proxy == NULL) {
+		return;
+	}
+
+	if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+		IMB_anim_set_index_dir(seq->anim, seq->strip->proxy->dir);
+	}
+}
+
+
 static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, char * name)
 {
 	int frameno;
 	char dir[FILE_MAXDIR];
+	int render_size = context.preview_render_size;
 
 	if (!seq->strip->proxy) {
 		return FALSE;
 	}
 
+	/* MOVIE tracks (only exception: custom files) are now handled 
+	   internally by ImBuf module for various reasons: proper time code 
+	   support, quicker index build, using one file instead 
+	   of a full directory of jpeg files, etc. Trying to support old
+	   and new method at once could lead to funny effects, if people
+	   have both, a directory full of jpeg files and proxy avis, so
+	   sorry folks, please rebuild your proxies... */
+
 	if (seq->flag & (SEQ_USE_PROXY_CUSTOM_DIR|SEQ_USE_PROXY_CUSTOM_FILE)) {
 		strcpy(dir, seq->strip->proxy->dir);
+	} else if (seq->type == SEQ_IMAGE) {
+		snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
 	} else {
-		if (ELEM(seq->type, SEQ_IMAGE, SEQ_MOVIE)) {
-			snprintf(dir, FILE_MAXDIR, "%s/BL_proxy", seq->strip->dir);
-		} else {
-			return FALSE;
-		}
+		return FALSE;
 	}
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-		BLI_join_dirfile(name, FILE_MAX, dir, seq->strip->proxy->file); /* XXX, not real length */
+		BLI_join_dirfile(name, PROXY_MAXFILE, 
+				 dir, seq->strip->proxy->file);
 		BLI_path_abs(name, G.main->name);
 
 		return TRUE;
 	}
 
+	/* dirty hack to distinguish 100% render size from PROXY_100 */
+	if (render_size == 99) {
+		render_size = 100;
+	}
+
 	/* generate a separate proxy directory for each preview size */
 
-	switch(seq->type) {
-	case SEQ_IMAGE:
+	if (seq->type == SEQ_IMAGE) {
 		snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir,
 			 context.preview_render_size, 
 			 give_stripelem(seq, cfra)->name);
 		frameno = 1;
-		break;
-	case SEQ_MOVIE:
-		frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
-		snprintf(name, PROXY_MAXFILE, "%s/%s/%d/####", dir,
-			 seq->strip->stripdata->name, context.preview_render_size);
-		break;
-	default:
-		frameno = (int) give_stripelem_index(seq, cfra) + seq->anim_startofs;
+	} else {
+		frameno = (int) give_stripelem_index(seq, cfra) 
+			+ seq->anim_startofs;
 		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, 
 			 context.preview_render_size);
 	}
@@ -1182,13 +1254,18 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int cfra)
 {
 	char name[PROXY_MAXFILE];
+	IMB_Proxy_Size psize = seq_rendersize_to_proxysize(
+		context.preview_render_size);
+	int size_flags;
 
 	if (!(seq->flag & SEQ_USE_PROXY)) {
 		return NULL;
 	}
 
-	/* rendering at 100% ? No real sense in proxy-ing, right? */
-	if (context.preview_render_size == 100) {
+	size_flags = seq->strip->proxy->build_size_flags;
+
+	/* only use proxies, if they are enabled (even if present!) */
+	if (psize != IMB_PROXY_NONE && ((size_flags & psize) != psize)) {
 		return NULL;
 	}
 
@@ -1199,13 +1276,19 @@ static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int
 				return NULL;
 			}
  
-			seq->strip->proxy->anim = openanim(name, IB_rect);
+			seq->strip->proxy->anim = openanim(name, IB_rect, 0);
 		}
 		if (seq->strip->proxy->anim==NULL) {
 			return NULL;
 		}
  
-		return IMB_anim_absolute(seq->strip->proxy->anim, frameno);
+		seq_open_anim_file(seq);
+
+		frameno = IMB_anim_index_get_frame_index(
+			seq->anim, seq->strip->proxy->tc, frameno);
+
+		return IMB_anim_absolute(seq->strip->proxy->anim, frameno,
+					 IMB_TC_NONE, IMB_PROXY_NONE);
 	}
  
 	if (seq_proxy_get_fname(context, seq, cfra, name) == 0) {
@@ -1219,67 +1302,30 @@ static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int
 	}
 }
 
-#if 0
-static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int cfra,
-				  int build_proxy_run, int preview_render_size);
-
-static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int preview_render_size, int seqrectx, int seqrecty)
+static void seq_proxy_build_frame(SeqRenderData context,
+				  Sequence* seq, int cfra,
+				  int proxy_render_size)
 {
 	char name[PROXY_MAXFILE];
 	int quality;
-	TStripElem * se;
-	int ok;
 	int rectx, recty;
+	int ok;
 	struct ImBuf * ibuf;
 
-	if (!(seq->flag & SEQ_USE_PROXY)) {
+	if (!seq_proxy_get_fname(context, seq, cfra, name)) {
 		return;
 	}
 
-	/* rendering at 100% ? No real sense in proxy-ing, right? */
-	if (preview_render_size == 100) {
-		return;
-	}
+	ibuf = seq_render_strip(context, seq, cfra);
 
-	/* that's why it is called custom... */
-	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-		return;
-	}
-
-	if (!seq_proxy_get_fname(scene, seq, cfra, name, preview_render_size)) {
-		return;
-	}
-
-	se = give_tstripelem(seq, cfra);
-	if (!se) {
-		return;
-	}
-
-	if(se->ibuf) {
-		IMB_freeImBuf(se->ibuf);
-		se->ibuf = 0;
-	}
-	
-	do_build_seq_ibuf(scene, seq, se, cfra, TRUE, preview_render_size,
-			  seqrectx, seqrecty);
-
-	if (!se->ibuf) {
-		return;
-	}
-
-	rectx= (preview_render_size*scene->r.xsch)/100;
-	recty= (preview_render_size*scene->r.ysch)/100;
-
-	ibuf = se->ibuf;
+	rectx = (proxy_render_size * context.scene->r.xsch) / 100;
+	recty = (proxy_render_size * context.scene->r.ysch) / 100;
 
 	if (ibuf->x != rectx || ibuf->y != recty) {
 		IMB_scalefastImBuf(ibuf, (short)rectx, (short)recty);
 	}
 
-	/* quality is fixed, otherwise one has to generate separate
-	   directories for every quality...
-
-	   depth = 32 is intentionally left in, otherwise ALPHA channels
+	/* depth = 32 is intentionally left in, otherwise ALPHA channels
 	   won't work... */
 	quality = seq->strip->proxy->quality;
 	ibuf->ftype= JPG | quality;
@@ -1292,69 +1338,80 @@ static void seq_proxy_build_frame(Scene *scene, Sequence * seq, int cfra, int pr
 	}
 
 	IMB_freeImBuf(ibuf);
-	se->ibuf = 0;
 }
 
-static void seq_proxy_rebuild(Scene *scene, Sequence * seq, int seqrectx,
-			      int seqrecty)
+void seq_proxy_rebuild(struct Main * bmain, Scene *scene, Sequence * seq,
+		       short *stop, short *do_update, float *progress)
 {
+	SeqRenderData context;
 	int cfra;
-	float rsize = seq->strip->proxy->size;
+	int tc_flags;
+	int size_flags;
+	int quality;
 
-	waitcursor(1);
-
-	G.afbreek = 0;
-
-	/* flag management tries to account for strobe and 
-	   other "non-linearities", that might come in the future...
-	   better way would be to "touch" the files, so that _really_
-	   no one is rebuild twice.
-	 */
-
-	for (cfra = seq->startdisp; cfra < seq->enddisp; cfra++) {
-		TStripElem * tse = give_tstripelem(seq, cfra);
-
-		tse->flag &= ~STRIPELEM_PREVIEW_DONE;
+	if (!seq->strip || !seq->strip->proxy) {
+		return;
 	}
 
-	
-
-	/* a _lot_ faster for movie files, if we read frames in
-	   sequential order */
-	if (seq->flag & SEQ_REVERSE_FRAMES) {
-		for (cfra = seq->enddisp-seq->endstill-1; 
-			 cfra >= seq->startdisp + seq->startstill; cfra--) {
-			TStripElem * tse = give_tstripelem(seq, cfra);
-
-			if (!(tse->flag & STRIPELEM_PREVIEW_DONE)) {
-//XXX				set_timecursor(cfra);
-				seq_proxy_build_frame(scene, seq, cfra, rsize,
-						      seqrectx, seqrecty);
-				tse->flag |= STRIPELEM_PREVIEW_DONE;
-			}
-			if (blender_test_break()) {
-				break;
-			}
-		}
-	} else {
-		for (cfra = seq->startdisp + seq->startstill; 
-			 cfra < seq->enddisp - seq->endstill; cfra++) {
-			TStripElem * tse = give_tstripelem(seq, cfra);
-
-			if (!(tse->flag & STRIPELEM_PREVIEW_DONE)) {
-//XXX				set_timecursor(cfra);
-				seq_proxy_build_frame(scene, seq, cfra, rsize,
-						      seqrectx, seqrecty);
-				tse->flag |= STRIPELEM_PREVIEW_DONE;
-			}
-			if (blender_test_break()) {
-				break;
-			}
-		}
+	if (!(seq->flag & SEQ_USE_PROXY)) {
+		return;
 	}
-	waitcursor(0);
+
+	tc_flags   = seq->strip->proxy->build_tc_flags;
+	size_flags = seq->strip->proxy->build_size_flags;
+	quality    = seq->strip->proxy->quality;
+
+	if (seq->type == SEQ_MOVIE) {
+		seq_open_anim_file(seq);
+
+		if (seq->anim) {
+			IMB_anim_index_rebuild(
+				seq->anim, tc_flags, size_flags, quality,
+				stop, do_update, progress);
+		}
+		return;
+	}
+
+	if (!(seq->flag & SEQ_USE_PROXY)) {
+		return;
+	}
+
+	/* that's why it is called custom... */
+	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+		return;
+	}
+
+	/* fail safe code */
+
+	context = seq_new_render_data(
+		bmain, scene, 
+		(scene->r.size * (float) scene->r.xsch) / 100.0f + 0.5f, 
+		(scene->r.size * (float) scene->r.ysch) / 100.0f + 0.5f, 
+		100);
+
+	for (cfra = seq->startdisp + seq->startstill; 
+	     cfra < seq->enddisp - seq->endstill; cfra++) {
+		if (size_flags & IMB_PROXY_25) {
+			seq_proxy_build_frame(context, seq, cfra, 25);
+		}
+		if (size_flags & IMB_PROXY_50) {
+			seq_proxy_build_frame(context, seq, cfra, 50);
+		}
+		if (size_flags & IMB_PROXY_75) {
+			seq_proxy_build_frame(context, seq, cfra, 75);
+		}
+		if (size_flags & IMB_PROXY_100) {
+			seq_proxy_build_frame(context, seq, cfra, 100);
+		}
+
+		*progress= (float)cfra/(seq->enddisp - seq->endstill 
+					- seq->startdisp + seq->startstill);
+		*do_update= 1;
+
+		if(*stop || G.afbreek)
+			break;
+	}
 }
-#endif
 
 
 /* **********************************************************************
@@ -1570,6 +1627,8 @@ static ImBuf * input_preprocess(
 	SeqRenderData context, Sequence *seq, float UNUSED(cfra), ImBuf * ibuf)
 {
 	float mul;
+
+	ibuf = IMB_makeSingleUser(ibuf);
 
 	if((seq->flag & SEQ_FILTERY) && seq->type != SEQ_MOVIE) {
 		IMB_filtery(ibuf);
@@ -2096,17 +2155,20 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 		}
 		case SEQ_MOVIE:
 		{
-			if(seq->anim==NULL) {
-				BLI_join_dirfile(name, sizeof(name), seq->strip->dir, seq->strip->stripdata->name);
-				BLI_path_abs(name, G.main->name);
-					
-				seq->anim = openanim(name, IB_rect |
-						     ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0));
-			}
+			seq_open_anim_file(seq);
 
 			if(seq->anim) {
-				IMB_anim_set_preseek(seq->anim, seq->anim_preseek);
-				ibuf = IMB_anim_absolute(seq->anim, nr + seq->anim_startofs);
+				IMB_anim_set_preseek(seq->anim,
+						     seq->anim_preseek);
+
+				ibuf = IMB_anim_absolute(
+					seq->anim, nr + seq->anim_startofs, 
+					seq->strip->proxy ? 
+					seq->strip->proxy->tc
+					: IMB_TC_RECORD_RUN, 
+					seq_rendersize_to_proxysize(
+						context.preview_render_size));
+
 				/* we don't need both (speed reasons)! */
 				if (ibuf && ibuf->rect_float && ibuf->rect)
 					imb_freerectImBuf(ibuf);
@@ -3625,7 +3687,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	BLI_strncpy(path, seq_load->path, sizeof(path));
 	BLI_path_abs(path, G.main->name);
 
-	an = openanim(path, IB_rect);
+	an = openanim(path, IB_rect, 0);
 
 	if(an==NULL)
 		return NULL;
@@ -3641,7 +3703,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = IMB_anim_get_duration( an );
+	strip->len = seq->len = IMB_anim_get_duration( an, IMB_TC_RECORD_RUN );
 	strip->us= 1;
 
 	/* we only need 1 element for MOVIE strips */
