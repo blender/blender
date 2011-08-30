@@ -4306,7 +4306,7 @@ static int createSlideVerts(TransInfo *t)
 	BMVert *v, *v2, *first;
 	BMLoop *l, *l1, *l2;
 	TransDataSlideVert *tempsv;
-	BMBVHTree *btree = BMBVH_NewBVH(em);
+	BMBVHTree *btree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	SmallHash table;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	View3D *v3d = t->sa ? t->sa->spacedata.first : NULL;

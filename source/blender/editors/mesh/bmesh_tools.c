@@ -1808,7 +1808,7 @@ static int bm_test_exec(bContext *C, wmOperator *UNUSED(op))
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	BMBVHTree *tree = BMBVH_NewBVH(em);
+	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	BMIter iter;
 	BMEdge *e;
 
@@ -2789,7 +2789,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMO_Exec_Op(em->bm, &bmop);
 
 	/*build bvh tree for edge visibility tests*/
-	bvhtree = BMBVH_NewBVH(em);
+	bvhtree = BMBVH_NewBVH(em, 0, NULL, NULL);
 
 	for (i=0; i<2; i++) {
 		BMO_ITER(e, &siter, em->bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
@@ -4212,7 +4212,7 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 	
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
-	BMBVHTree *tree = BMBVH_NewBVH(em);
+	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	BMVert *v1, *v2;
 	BMIter iter;
 	int extend= RNA_boolean_get(op->ptr, "extend");

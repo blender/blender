@@ -816,7 +816,7 @@ int EDBM_vertColorCheck(BMEditMesh *em)
 
 void EDBM_CacheMirrorVerts(BMEditMesh *em)
 {
-	BMBVHTree *tree = BMBVH_NewBVH(em);
+	BMBVHTree *tree = BMBVH_NewBVH(em, 0, NULL, NULL);
 	BMIter iter;
 	BMVert *v;
 	float invmat[4][4];

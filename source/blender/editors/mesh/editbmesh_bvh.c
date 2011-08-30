@@ -62,7 +62,9 @@
 #include "BLI_heap.h"
 #include "BLI_array.h"
 #include "BLI_kdopbvh.h"
+#include "BLI_smallhash.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -99,38 +101,95 @@ typedef struct BMBVHTree {
 	BVHTree *tree;
 	float epsilon;
 	float maxdist; //for nearest point search
-
+	float uv[2];
+	
 	/*stuff for topological vert search*/
 	BMVert *v, *curv;
 	GHash *gh;
 	float curw, curd;
-	float co[3];
-	int curtag;
+	float co[3], (*cagecos)[3], (*cos)[3];
+	int curtag, flag;
+	
+	Object *ob;
+	Scene *scene;
 } BMBVHTree;
 
-BMBVHTree *BMBVH_NewBVH(BMEditMesh *em)
+static void cage_mapped_verts_callback(void *userData, int index, float *co, 
+	float *no_f, short *no_s)
+{
+	void **data = userData;
+	BMEditMesh *em = data[0];
+	float (*cagecos)[3] = data[1];
+	SmallHash *hash = data[2];
+	
+	if (index >= 0 && index < em->bm->totvert && !BLI_smallhash_haskey(hash, index)) {
+		BLI_smallhash_insert(hash, index, NULL);
+		copy_v3_v3(cagecos[index], co);
+	}
+}
+
+BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 {
 	BMBVHTree *tree = MEM_callocN(sizeof(*tree), "BMBVHTree");
-	float cos[3][3];
+	DerivedMesh *cage, *final;
+	SmallHash shash;
+	float cos[3][3], (*cagecos)[3] = NULL;
 	int i;
 
+	/*when initializing cage verts, we only want the first cage coordinate for each vertex,
+	  so that e.g. mirror or array use original vertex coordiantes and not mirrored or duplicate*/
+	BLI_smallhash_init(&shash);
+	
 	BMEdit_RecalcTesselation(em);
 
+	tree->ob = obedit;
+	tree->scene = scene;
 	tree->em = em;
 	tree->bm = em->bm;
 	tree->epsilon = FLT_EPSILON*2.0f;
-
+	tree->flag = flag;
+	
 	tree->tree = BLI_bvhtree_new(em->tottri, tree->epsilon, 8, 8);
+	
+	if (flag & BMBVH_USE_CAGE) {
+		BMIter iter;
+		BMVert *v;
+		void *data[3];
+		
+		tree->cos = MEM_callocN(sizeof(float)*3*em->bm->totvert, "bmbvh cos");
+		BM_ITER_INDEX(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL, i) {
+			BM_SetIndex(v, i);
+			copy_v3_v3(tree->cos[i], v->co);
+		}
 
+		cage = editbmesh_get_derived_cage_and_final(scene, obedit, em, &final, CD_MASK_DERIVEDMESH);
+		cagecos = MEM_callocN(sizeof(float)*3*em->bm->totvert, "bmbvh cagecos");
+		
+		data[0] = em;
+		data[1] = cagecos;
+		data[2] = &shash;
+		
+		cage->foreachMappedVert(cage, cage_mapped_verts_callback, data);
+	}
+	
+	tree->cagecos = cagecos;
+	
 	for (i=0; i<em->tottri; i++) {
-		VECCOPY(cos[0], em->looptris[i][0]->v->co);
-		VECCOPY(cos[1], em->looptris[i][1]->v->co);
-		VECCOPY(cos[2], em->looptris[i][2]->v->co);
+		if (flag & BMBVH_USE_CAGE) {
+			copy_v3_v3(cos[0], cagecos[BM_GetIndex(em->looptris[i][0]->v)]);
+			copy_v3_v3(cos[1], cagecos[BM_GetIndex(em->looptris[i][1]->v)]);
+			copy_v3_v3(cos[2], cagecos[BM_GetIndex(em->looptris[i][2]->v)]);
+		} else {
+			copy_v3_v3(cos[0], em->looptris[i][0]->v->co);
+			copy_v3_v3(cos[1], em->looptris[i][1]->v->co);
+			copy_v3_v3(cos[2], em->looptris[i][2]->v->co);
+		}
 
 		BLI_bvhtree_insert(tree->tree, i, (float*)cos, 3);
 	}
 	
 	BLI_bvhtree_balance(tree->tree);
+	BLI_smallhash_release(&shash);
 	
 	return tree;
 }
@@ -138,6 +197,12 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em)
 void BMBVH_FreeBVH(BMBVHTree *tree)
 {
 	BLI_bvhtree_free(tree->tree);
+	
+	if (tree->cagecos)
+		MEM_freeN(tree->cagecos);
+	if (tree->cos)
+		MEM_freeN(tree->cos);
+	
 	MEM_freeN(tree);
 }
 
@@ -146,37 +211,9 @@ static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_di
 				  float *v1, float *v2, float *uv, float UNUSED(e))
 {
 	float dist;
-#if 0
-	float vv1[3], vv2[3], vv3[3], cent[3];
 
-	/*expand triangle by an epsilon.  this is probably a really stupid
-	  way of doing it, but I'm too tired to do better work.*/
-	VECCOPY(vv1, v0);
-	VECCOPY(vv2, v1);
-	VECCOPY(vv3, v2);
-
-	add_v3_v3v3(cent, vv1, vv2);
-	add_v3_v3v3(cent, cent, vv3);
-	mul_v3_fl(cent, 1.0f/3.0f);
-
-	sub_v3_v3v3(vv1, vv1, cent);
-	sub_v3_v3v3(vv2, vv2, cent);
-	sub_v3_v3v3(vv3, vv3, cent);
-
-	mul_v3_fl(vv1, 1.0f + e);
-	mul_v3_fl(vv2, 1.0f + e);
-	mul_v3_fl(vv3, 1.0f + e);
-
-	add_v3_v3v3(vv1, vv1, cent);
-	add_v3_v3v3(vv2, vv2, cent);
-	add_v3_v3v3(vv3, vv3, cent);
-
-	if(isect_ray_tri_v3((float*)ray->origin, (float*)ray->direction, vv1, vv2, vv3, &dist, uv))
-		return dist;
-#else
 	if(isect_ray_tri_v3((float*)ray->origin, (float*)ray->direction, v0, v1, v2, &dist, uv))
 		return dist;
-#endif
 
 	return FLT_MAX;
 }
@@ -202,20 +239,42 @@ static void raycallback(void *userdata, int index, const BVHTreeRay *ray, BVHTre
 		normalize_v3(hit->co);
 		mul_v3_fl(hit->co, dist);
 		add_v3_v3(hit->co, ray->origin);
+		
+		copy_v2_v2(tree->uv, uv);
 	}
 }
 
-BMFace *BMBVH_RayCast(BMBVHTree *tree, float *co, float *dir, float *hitout)
+BMFace *BMBVH_RayCast(BMBVHTree *tree, float *co, float *dir, float *hitout, float *cagehit)
 {
 	BVHTreeRayHit hit;
 
 	hit.dist = FLT_MAX;
 	hit.index = -1;
-
+	
+	tree->uv[0] = tree->uv[1] = 0.0f;
+	
 	BLI_bvhtree_ray_cast(tree->tree, co, dir, 0.0f, &hit, raycallback, tree);
 	if (hit.dist != FLT_MAX && hit.index != -1) {
 		if (hitout) {
-			VECCOPY(hitout, hit.co);
+			if (tree->flag & BMBVH_RETURN_ORIG) {
+				BMVert *v1, *v2, *v3;
+				float co[3];
+				int i;
+				
+				v1 = tree->em->looptris[hit.index][0]->v;
+				v2 = tree->em->looptris[hit.index][1]->v;
+				v3 = tree->em->looptris[hit.index][2]->v;
+				
+				for (i=0; i<3; i++) {
+					co[i] = v1->co[i] + (v2->co[i] - v1->co[i])*tree->uv[0] + (v3->co[i]-v1->co[i])*tree->uv[1];
+				}
+				copy_v3_v3(hitout, co);
+			} else {
+				copy_v3_v3(hitout, hit.co);
+			}
+
+			if (cagehit)
+				copy_v3_v3(cagehit, hit.co);
 		}
 
 		return tree->em->looptris[hit.index][0]->f;
@@ -643,7 +702,7 @@ int BMBVH_VertVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d)
 
 static BMFace *edge_ray_cast(BMBVHTree *tree, float *co, float *dir, float *hitout, BMEdge *e)
 {
-	BMFace *f = BMBVH_RayCast(tree, co, dir, hitout);
+	BMFace *f = BMBVH_RayCast(tree, co, dir, hitout, NULL);
 	
 	if (f && BM_Edge_In_Face(f, e))
 		return NULL;
