@@ -641,15 +641,6 @@ void sound_read_waveform(struct bSound* sound)
 	}
 }
 
-int sound_get_channels(struct bSound* sound)
-{
-	AUD_SoundInfo info;
-
-	info = AUD_getInfo(sound->playback_handle);
-
-	return info.specs.channels;
-}
-
 void sound_update_scene(struct Scene* scene)
 {
 	Object* ob;
@@ -769,6 +760,5 @@ void sound_seek_scene(struct bContext *UNUSED(C)) {}
 float sound_sync_scene(struct Scene *UNUSED(scene)) { return 0.0f; }
 int sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
 int sound_read_sound_buffer(struct bSound* UNUSED(sound), float* UNUSED(buffer), int UNUSED(length), float UNUSED(start), float UNUSED(end)) { return 0; }
-int sound_get_channels(struct bSound* UNUSED(sound)) { return 1; }
 
 #endif // WITH_AUDASPACE
