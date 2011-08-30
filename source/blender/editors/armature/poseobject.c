@@ -1611,7 +1611,7 @@ static int compare_agroup(const void *sgrp_a_ptr, const void *sgrp_b_ptr)
 	return strcmp(sgrp_a->agrp->name, sgrp_b->agrp->name);
 }
 
-static int group_sort_exec(bContext *C, wmOperator *op)
+static int group_sort_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	bPose *pose= (ob) ? ob->pose : NULL;
@@ -2275,7 +2275,7 @@ void POSE_OT_quaternions_flip (wmOperatorType *ot)
 /* ********************************************** */
 /* Clear User Transforms */
 
-static int pose_clear_user_transforms_exec (bContext *C, wmOperator *op)
+static int pose_clear_user_transforms_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);

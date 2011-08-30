@@ -990,7 +990,7 @@ static size_t animfilter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *
 	return items;
 }
 
-static size_t animfilter_act_group (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAction *act, bActionGroup *agrp, int filter_mode, ID *owner_id)
+static size_t animfilter_act_group (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, bAction *UNUSED(act), bActionGroup *agrp, int filter_mode, ID *owner_id)
 {
 	ListBase tmp_data = {NULL, NULL};
 	size_t tmp_items = 0;

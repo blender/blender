@@ -26,6 +26,7 @@
 
 #include "IMB_indexer.h"
 #include "MEM_guardedalloc.h"
+#include "BLI_utildefines.h"
 #include <time.h>
 
 typedef struct indexer_dv_bitstream {
@@ -279,7 +280,7 @@ static void fill_gap(indexer_dv_context * This, int isPAL)
 }
 
 static void proc_frame(indexer_dv_context * This,
-		       unsigned char* framebuffer, int isPAL)
+		       unsigned char* UNUSED(framebuffer), int isPAL)
 {
 	struct tm recDate;
 	time_t t;
@@ -329,7 +330,7 @@ static void proc_frame(indexer_dv_context * This,
 
 static void indexer_dv_proc_frame(anim_index_builder * idx, 
 				  unsigned char * buffer,
-				  int data_size, 
+				  int UNUSED(data_size),
 				  struct anim_index_entry * entry)
 {
 	int isPAL;

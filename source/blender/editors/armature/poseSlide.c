@@ -520,7 +520,7 @@ static void pose_slide_reset (tPoseSlideOp *pso)
 /* ------------------------------------ */
 
 /* draw percentage indicator in header */
-static void pose_slide_draw_status (bContext *C, tPoseSlideOp *pso)
+static void pose_slide_draw_status (tPoseSlideOp *pso)
 {
 	char statusStr[32];
 	char mode[32];
@@ -615,7 +615,7 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 	WM_cursor_modal(win, BC_EW_SCROLLCURSOR);
 	
 	/* header print */
-	pose_slide_draw_status(C, pso);
+	pose_slide_draw_status(pso);
 	
 	/* add a modal handler for this operator */
 	WM_event_add_modal_handler(C, op);
@@ -672,7 +672,7 @@ static int pose_slide_modal (bContext *C, wmOperator *op, wmEvent *evt)
 			RNA_float_set(op->ptr, "percentage", pso->percentage);
 			
 			/* update percentage indicator in header */
-			pose_slide_draw_status(C, pso);
+			pose_slide_draw_status(pso);
 			
 			/* reset transforms (to avoid accumulation errors) */
 			pose_slide_reset(pso);

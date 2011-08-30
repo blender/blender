@@ -822,7 +822,7 @@ static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *l
 
 /* ------------------------------------------ */
 
-static void actionset_id_cb(TreeElement *te, TreeStoreElem *tselem, TreeStoreElem *tsep, ID *actId)
+static void actionset_id_cb(TreeElement *UNUSED(te), TreeStoreElem *tselem, TreeStoreElem *tsep, ID *actId)
 {
 	bAction *act = (bAction *)actId;
 	

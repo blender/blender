@@ -706,7 +706,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 			if (fcu->driver) 
 				resol= 32;
 			else 
-				resol= (int)(5.0*len_v2v2(bezt->vec[1], prevbezt->vec[1]));
+				resol= (int)(5.0f*len_v2v2(bezt->vec[1], prevbezt->vec[1]));
 			
 			if (resol < 2) {
 				/* only draw one */

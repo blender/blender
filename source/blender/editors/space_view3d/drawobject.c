@@ -1493,7 +1493,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 }
 
 /* flag similar to draw_object() */
-static void drawspeaker(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int flag)
+static void drawspeaker(Scene *UNUSED(scene), View3D *UNUSED(v3d), RegionView3D *UNUSED(rv3d), Object *UNUSED(ob), int UNUSED(flag))
 {
 	//Speaker *spk = ob->data;
 
@@ -1502,34 +1502,29 @@ static void drawspeaker(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 
 	glEnable(GL_BLEND);
 
-	for(j = 0; j < 3; j++)
-	{
-		vec[2] = .25f * j -.125f;
+	for(j = 0; j < 3; j++) {
+		vec[2] = 0.25f * j -0.125f;
 
 		glBegin(GL_LINE_LOOP);
-		for(i = 0; i < 16; i++)
-		{
-			vec[0] = cos(M_PI * i / 8.0f) * (j == 0 ? .5f : .25f);
-			vec[1] = sin(M_PI * i / 8.0f) * (j == 0 ? .5f : .25f);
+		for(i = 0; i < 16; i++) {
+			vec[0] = cosf(M_PI * i / 8.0f) * (j == 0 ? 0.5f : 0.25f);
+			vec[1] = sinf(M_PI * i / 8.0f) * (j == 0 ? 0.5f : 0.25f);
 			glVertex3fv(vec);
 		}
 		glEnd();
 	}
 
-	for(j = 0; j < 4; j++)
-	{
-		vec[0] = (((j + 1) % 2) * (j - 1)) * .5f;
-		vec[1] = ((j % 2) * (j - 2)) * .5f;
+	for(j = 0; j < 4; j++) {
+		vec[0] = (((j + 1) % 2) * (j - 1)) * 0.5f;
+		vec[1] = ((j % 2) * (j - 2)) * 0.5f;
 		glBegin(GL_LINE_STRIP);
-		for(i = 0; i < 3; i++)
-		{
-			if(i == 1)
-			{
-				vec[0] *= .5f;
-				vec[1] *= .5f;
+		for(i = 0; i < 3; i++) {
+			if(i == 1) {
+				vec[0] *= 0.5f;
+				vec[1] *= 0.5f;
 			}
 
-			vec[2] = .25f * i -.125f;
+			vec[2] = 0.25f * i -0.125f;
 			glVertex3fv(vec);
 		}
 		glEnd();

@@ -533,7 +533,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 			if ELEM(0, (s1->flag & NLASTRIP_FLAG_SELECT), (s2->flag & NLASTRIP_FLAG_SELECT))
 				continue;
 			/* check if there's space between the two */
-			if (IS_EQ(s1->end, s2->start))
+			if (IS_EQF(s1->end, s2->start))
 				continue;
 			/* make sure neither one is a transition 
 			 *	- although this is impossible to create with the standard tools, 
@@ -613,7 +613,7 @@ void NLA_OT_transition_add (wmOperatorType *ot)
 /* ******************** Add Sound Clip Operator ***************************** */
 /* Add a new sound clip */
 
-static int nlaedit_add_sound_exec (bContext *C, wmOperator *op)
+static int nlaedit_add_sound_exec (bContext *C, wmOperator *UNUSED(op))
 {
 	bAnimContext ac;
 	
@@ -1013,14 +1013,14 @@ static void nlaedit_split_strip_actclip (AnimData *adt, NlaTrack *nlt, NlaStrip 
 			
 			/* strip extents */
 		len= strip->end - strip->start;
-		if (IS_EQ(len, 0.0f)) 
+		if (IS_EQF(len, 0.0f))
 			return;
 		else
 			splitframe= strip->start + (len / 2.0f);
 			
 			/* action range */
 		len= strip->actend - strip->actstart;
-		if (IS_EQ(len, 0.0f))
+		if (IS_EQF(len, 0.0f))
 			splitaframe= strip->actend;
 		else
 			splitaframe= strip->actstart + (len / 2.0f);
@@ -1858,10 +1858,10 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 						strip->start= (float)CFRA;
 						break;
 					case NLAEDIT_SNAP_NEAREST_FRAME: /* to nearest frame */
-						strip->start= (float)(floor(start+0.5));
+						strip->start= floorf(start+0.5);
 						break;
 					case NLAEDIT_SNAP_NEAREST_SECOND: /* to nearest second */
-						strip->start= ((float)floor(start/secf + 0.5f) * secf);
+						strip->start= floorf(start/secf + 0.5f) * secf;
 						break;
 					case NLAEDIT_SNAP_NEAREST_MARKER: /* to nearest marker */
 						strip->start= (float)ED_markers_find_nearest_marker_time(ac.markers, start);
