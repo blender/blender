@@ -389,9 +389,24 @@ static void *loopWalker_step(BMWalker *walker)
 	
 	rlen = owalk.startrad;
 	l = e->l;
-	if (!l)
+	
+	/*handle wire edge case*/
+	if (!l && val == 2) {
+		e = bmesh_disk_nextedge(e, v);
+		
+		if (!BLI_ghash_haskey(walker->visithash, e)) {
+			BMW_pushstate(walker);
+			lwalk = walker->currentstate;
+			*lwalk = owalk;
+			lwalk->cur = e;
+			lwalk->lastv = v;
+			
+			BLI_ghash_insert(walker->visithash, e, NULL);			
+		}
+		
 		return owalk.cur;
-
+	}
+	
 	if (val == 4 || val == 2 || rlen == 1) {		
 		i = 0;
 		stopi = val / 2;
