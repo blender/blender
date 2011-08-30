@@ -39,9 +39,6 @@ typedef struct Speaker {
 
 	struct bSound *sound;
 
-	short flag;
-	short pad1[3];
-
 	// not animatable properties
 	float volume_max;
 	float volume_min;
@@ -55,6 +52,10 @@ typedef struct Speaker {
 	// animatable properties
 	float volume;
 	float pitch;
+
+	// flag
+	short flag;
+	short pad1[3];
 } Speaker;
 
 /* **************** SPEAKER ********************* */

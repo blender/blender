@@ -648,6 +648,13 @@ static int update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
 
 void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 {
+	/*
+	  This operator is needed to set a correct state of the sound animation
+	  System. Unfortunately there's no really correct place to call the exec
+	  function, that's why I made it an operator that's only visible in the
+	  search menu. Apart from that the bake animation operator calls it too.
+	*/
+
 	/* identifiers */
 	ot->name= "Update animation";
 	ot->description= "Update animation flags";

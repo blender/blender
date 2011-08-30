@@ -37,6 +37,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_animsys.h"
 #include "BKE_sequencer.h"
+#include "BKE_scene.h"
 
 // evil global ;-)
 static int sound_cfra;
@@ -656,12 +657,13 @@ void sound_update_scene(struct Scene* scene)
 	NlaTrack* track;
 	NlaStrip* strip;
 	Speaker* speaker;
+	Scene* sce_it;
 
 	void* new_set = AUD_createSet();
 	void* handle;
 	float quat[4];
 
-	for(base = FIRSTBASE; base; base=base->next)
+	for(SETLOOPER(scene, sce_it, base))
 	{
 		ob = base->object;
 		if(ob->type == OB_SPEAKER)

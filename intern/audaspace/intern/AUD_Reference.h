@@ -32,6 +32,7 @@
 #define AUD_REFERENCE
 
 #include <map>
+#include <cstddef>
 
 // #define MEM_DEBUG
 
@@ -113,15 +114,15 @@ public:
 		m_reference = dynamic_cast<T*>(reference);
 		AUD_ReferenceHandler::incref(m_original);
 #ifdef MEM_DEBUG
-		if(m_reference != 0)
+		if(m_reference != NULL)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
 #endif
 	}
 
 	AUD_Reference()
 	{
-		m_original = 0;
-		m_reference = 0;
+		m_original = NULL;
+		m_reference = NULL;
 	}
 
 	/**
@@ -134,7 +135,7 @@ public:
 		m_reference = ref.m_reference;
 		AUD_ReferenceHandler::incref(m_original);
 #ifdef MEM_DEBUG
-		if(m_reference != 0)
+		if(m_reference != NULL)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
 #endif
 	}
@@ -146,7 +147,7 @@ public:
 		m_reference = dynamic_cast<T*>(ref.get());
 		AUD_ReferenceHandler::incref(m_original);
 #ifdef MEM_DEBUG
-		if(m_reference != 0)
+		if(m_reference != NULL)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
 #endif
 	}
@@ -158,7 +159,7 @@ public:
 	~AUD_Reference()
 	{
 #ifdef MEM_DEBUG
-		if(m_reference != 0)
+		if(m_reference != NULL)
 			std::cerr << "-" << typeid(*m_reference).name() << std::endl;
 #endif
 		if(AUD_ReferenceHandler::decref(m_original))
@@ -175,7 +176,7 @@ public:
 			return *this;
 
 #ifdef MEM_DEBUG
-		if(m_reference != 0)
+		if(m_reference != NULL)
 			std::cerr << "-" << typeid(*m_reference).name() << std::endl;
 #endif
 		if(AUD_ReferenceHandler::decref(m_original))
@@ -185,7 +186,7 @@ public:
 		m_reference = ref.m_reference;
 		AUD_ReferenceHandler::incref(m_original);
 #ifdef MEM_DEBUG
-		if(m_reference != 0)
+		if(m_reference != NULL)
 			std::cerr << "+" << typeid(*m_reference).name() << std::endl;
 #endif
 
@@ -197,7 +198,7 @@ public:
 	 */
 	inline bool isNull() const
 	{
-		return m_reference == 0;
+		return m_reference == NULL;
 	}
 
 	/**
