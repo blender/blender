@@ -403,11 +403,13 @@ int FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *linestyle, int type)
 		((LineStyleGeometryModifier_PerlinNoise1D *)m)->frequency = 10.0;
 		((LineStyleGeometryModifier_PerlinNoise1D *)m)->amplitude = 10.0;
 		((LineStyleGeometryModifier_PerlinNoise1D *)m)->octaves = 4;
+		((LineStyleGeometryModifier_PerlinNoise1D *)m)->angle = 45.0;
 		break;
 	case LS_MODIFIER_PERLIN_NOISE_2D:
 		((LineStyleGeometryModifier_PerlinNoise2D *)m)->frequency = 10.0;
 		((LineStyleGeometryModifier_PerlinNoise2D *)m)->amplitude = 10.0;
 		((LineStyleGeometryModifier_PerlinNoise2D *)m)->octaves = 4;
+		((LineStyleGeometryModifier_PerlinNoise2D *)m)->angle = 45.0;
 		break;
 	case LS_MODIFIER_BACKBONE_STRETCHER:
 		((LineStyleGeometryModifier_BackboneStretcher *)m)->amount = 10.0;

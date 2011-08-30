@@ -578,6 +578,11 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the Perlin noise).");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "angle");
+	RNA_def_property_ui_text(prop, "Angle", "Displacement direction in degrees.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "seed");
 	RNA_def_property_ui_text(prop, "Seed", "Seed for random number generation.  If negative, time is used as a seed instead.");
@@ -600,6 +605,11 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "octaves", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "octaves");
 	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the Perlin noise).");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "angle");
+	RNA_def_property_ui_text(prop, "Angle", "Displacement direction in degrees.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);

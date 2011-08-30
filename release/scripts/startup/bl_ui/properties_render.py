@@ -477,12 +477,14 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
                 box.prop(modifier, "frequency")
                 box.prop(modifier, "amplitude")
                 box.prop(modifier, "octaves")
+                box.prop(modifier, "angle")
                 box.prop(modifier, "seed")
 
             elif modifier.type == "PERLIN_NOISE_2D":
                 box.prop(modifier, "frequency")
                 box.prop(modifier, "amplitude")
                 box.prop(modifier, "octaves")
+                box.prop(modifier, "angle")
                 box.prop(modifier, "seed")
 
             elif modifier.type == "BACKBONE_STRETCHER":

@@ -419,6 +419,46 @@ class SinusDisplacementShader(StrokeShader):
             n = n * self._amplitude * math.cos(distance / self._wavelength * 2 * math.pi + self._phase)
             v.setPoint(p + n)
 
+class PerlinNoise1DShader(StrokeShader):
+    def __init__(self, freq = 10, amp = 10, oct = 4, angle = 45, seed = -1):
+        StrokeShader.__init__(self)
+        self.__noise = Noise(seed)
+        self.__freq = freq
+        self.__amp = amp
+        self.__oct = oct
+        theta = pi * angle / 180.0
+        self.__dir = Vector([cos(theta), sin(theta)])
+    def getName(self):
+        return "PerlinNoise1DShader"
+    def shade(self, stroke):
+        it = stroke.strokeVerticesBegin()
+        while not it.isEnd():
+            v = it.getObject()
+            i = v.getProjectedX() + v.getProjectedY()
+            nres = self.__noise.turbulence1(i, self.__freq, self.__amp, self.__oct)
+            v.setPoint(v.getPoint() + nres * self.__dir)
+            it.increment()
+
+class PerlinNoise2DShader(StrokeShader):
+    def __init__(self, freq = 10, amp = 10, oct = 4, angle = 45, seed = -1):
+        StrokeShader.__init__(self)
+        self.__noise = Noise(seed)
+        self.__freq = freq
+        self.__amp = amp
+        self.__oct = oct
+        theta = pi * angle / 180.0
+        self.__dir = Vector([cos(theta), sin(theta)])
+    def getName(self):
+        return "PerlinNoise2DShader"
+    def shade(self, stroke):
+        it = stroke.strokeVerticesBegin()
+        while not it.isEnd():
+            v = it.getObject()
+            vec = Vector([v.getProjectedX(), v.getProjectedY()])
+            nres = self.__noise.turbulence2(vec, self.__freq, self.__amp, self.__oct)
+            v.setPoint(v.getPoint() + nres * self.__dir)
+            it.increment()
+
 # Predicates and helper functions
 
 class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
@@ -836,11 +876,11 @@ def process(layer_name, lineset_name):
             shaders_list.append(SpatialNoiseShader(
                 m.amplitude, m.scale, m.octaves, m.smooth, m.pure_random))
         elif m.type == "PERLIN_NOISE_1D":
-            shaders_list.append(pyPerlinNoise1DShader(
-                m.frequency, m.amplitude, m.octaves, _seed.get(m.seed)))
+            shaders_list.append(PerlinNoise1DShader(
+                m.frequency, m.amplitude, m.octaves, m.angle, _seed.get(m.seed)))
         elif m.type == "PERLIN_NOISE_2D":
-            shaders_list.append(pyPerlinNoise2DShader(
-                m.frequency, m.amplitude, m.octaves, _seed.get(m.seed)))
+            shaders_list.append(PerlinNoise2DShader(
+                m.frequency, m.amplitude, m.octaves, m.angle, _seed.get(m.seed)))
         elif m.type == "BACKBONE_STRETCHER":
             shaders_list.append(BackboneStretcherShader(
                 m.amount))

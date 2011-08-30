@@ -261,18 +261,20 @@ typedef struct LineStyleGeometryModifier_SpatialNoise {
 typedef struct LineStyleGeometryModifier_PerlinNoise1D {
 	struct LineStyleModifier modifier;
 
-	float frequency, amplitude;
+	float frequency, amplitude, angle;
 	unsigned int octaves;
 	int seed;
+	int pad1;
 
 } LineStyleGeometryModifier_PerlinNoise1D;
 
 typedef struct LineStyleGeometryModifier_PerlinNoise2D {
 	struct LineStyleModifier modifier;
 
-	float frequency, amplitude;
+	float frequency, amplitude, angle;
 	unsigned int octaves;
 	int seed;
+	int pad1;
 
 } LineStyleGeometryModifier_PerlinNoise2D;
 
