@@ -69,6 +69,7 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_storage.h" /* For _LARGEFILE64_SOURCE;  zlib needs this on some systems */
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_main.h"
@@ -103,12 +104,6 @@
 #include "LBM_fluidsim.h"
 #include <zlib.h>
 #include <string.h>
-
-#ifdef WIN32
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
-#endif
 
 #endif // DISABLE_ELBEEM
 
@@ -3876,7 +3871,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 
 			gzf = gzopen(filename, "rb");
 			if (!gzf) {
-				snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
+				BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer),"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
 				// XXX bad level call elbeemDebugOut(debugStrBuffer);
 				return;
 			}
@@ -3937,7 +3932,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			gzclose( gzf );
 	
 			totpart = psys->totpart = activeParts;
-			snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
+			BLI_snprintf(debugStrBuffer,sizeof(debugStrBuffer),"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
 			// bad level call
 			// XXX elbeemDebugOut(debugStrBuffer);
 			

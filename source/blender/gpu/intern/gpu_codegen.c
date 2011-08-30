@@ -59,15 +59,6 @@
 #include <string.h>
 #include <stdarg.h>
 
-#ifdef _WIN32
-#ifndef vsnprintf
-#define vsnprintf _vsnprintf
-#endif
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
-#endif
-
 extern char datatoc_gpu_shader_material_glsl[];
 extern char datatoc_gpu_shader_vertex_glsl[];
 
@@ -167,24 +158,6 @@ struct GPUPass {
 	struct GPUOutput *output;
 	struct GPUShader *shader;
 };
-
-/* Strings utility */
-
-static void BLI_dynstr_printf(DynStr *dynstr, const char *format, ...)
-{
-	va_list args;
-	int retval;
-	char str[2048];
-
-	va_start(args, format);
-	retval = vsnprintf(str, sizeof(str), format, args);
-	va_end(args);
-
-	if (retval >= sizeof(str))
-		fprintf(stderr, "BLI_dynstr_printf: limit exceeded\n");
-	else
-		BLI_dynstr_append(dynstr, str);
-}
 
 /* GLSL code parsing for finding function definitions.
  * These are stored in a hash for lookup when creating a material. */
@@ -318,7 +291,7 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 		name = BLI_ghashIterator_getValue(ghi);
 		function = BLI_ghashIterator_getValue(ghi);
 
-		BLI_dynstr_printf(ds, "void %s(", name);
+		BLI_dynstr_appendf(ds, "void %s(", name);
 		for(a=0; a<function->totparam; a++) {
 			if(function->paramqual[a] == FUNCTION_QUAL_OUT)
 				BLI_dynstr_append(ds, "out ");
@@ -334,7 +307,7 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 			else
 				BLI_dynstr_append(ds, GPU_DATATYPE_STR[function->paramtype[a]]);
 				
-			//BLI_dynstr_printf(ds, " param%d", a);
+			//BLI_dynstr_appendf(ds, " param%d", a);
 			
 			if(a != function->totparam-1)
 				BLI_dynstr_append(ds, ", ");
@@ -390,42 +363,42 @@ static void codegen_convert_datatype(DynStr *ds, int from, int to, const char *t
 {
 	char name[1024];
 
-	snprintf(name, sizeof(name), "%s%d", tmp, id);
+	BLI_snprintf(name, sizeof(name), "%s%d", tmp, id);
 
 	if (from == to) {
 		BLI_dynstr_append(ds, name);
 	}
 	else if (to == GPU_FLOAT) {
 		if (from == GPU_VEC4)
-			BLI_dynstr_printf(ds, "dot(%s.rgb, vec3(0.35, 0.45, 0.2))", name);
+			BLI_dynstr_appendf(ds, "dot(%s.rgb, vec3(0.35, 0.45, 0.2))", name);
 		else if (from == GPU_VEC3)
-			BLI_dynstr_printf(ds, "dot(%s, vec3(0.33))", name);
+			BLI_dynstr_appendf(ds, "dot(%s, vec3(0.33))", name);
 		else if (from == GPU_VEC2)
-			BLI_dynstr_printf(ds, "%s.r", name);
+			BLI_dynstr_appendf(ds, "%s.r", name);
 	}
 	else if (to == GPU_VEC2) {
 		if (from == GPU_VEC4)
-			BLI_dynstr_printf(ds, "vec2(dot(%s.rgb, vec3(0.35, 0.45, 0.2)), %s.a)", name, name);
+			BLI_dynstr_appendf(ds, "vec2(dot(%s.rgb, vec3(0.35, 0.45, 0.2)), %s.a)", name, name);
 		else if (from == GPU_VEC3)
-			BLI_dynstr_printf(ds, "vec2(dot(%s.rgb, vec3(0.33)), 1.0)", name);
+			BLI_dynstr_appendf(ds, "vec2(dot(%s.rgb, vec3(0.33)), 1.0)", name);
 		else if (from == GPU_FLOAT)
-			BLI_dynstr_printf(ds, "vec2(%s, 1.0)", name);
+			BLI_dynstr_appendf(ds, "vec2(%s, 1.0)", name);
 	}
 	else if (to == GPU_VEC3) {
 		if (from == GPU_VEC4)
-			BLI_dynstr_printf(ds, "%s.rgb", name);
+			BLI_dynstr_appendf(ds, "%s.rgb", name);
 		else if (from == GPU_VEC2)
-			BLI_dynstr_printf(ds, "vec3(%s.r, %s.r, %s.r)", name, name, name);
+			BLI_dynstr_appendf(ds, "vec3(%s.r, %s.r, %s.r)", name, name, name);
 		else if (from == GPU_FLOAT)
-			BLI_dynstr_printf(ds, "vec3(%s, %s, %s)", name, name, name);
+			BLI_dynstr_appendf(ds, "vec3(%s, %s, %s)", name, name, name);
 	}
 	else {
 		if (from == GPU_VEC3)
-			BLI_dynstr_printf(ds, "vec4(%s, 1.0)", name);
+			BLI_dynstr_appendf(ds, "vec4(%s, 1.0)", name);
 		else if (from == GPU_VEC2)
-			BLI_dynstr_printf(ds, "vec4(%s.r, %s.r, %s.r, %s.g)", name, name, name, name);
+			BLI_dynstr_appendf(ds, "vec4(%s.r, %s.r, %s.r, %s.g)", name, name, name, name);
 		else if (from == GPU_FLOAT)
-			BLI_dynstr_printf(ds, "vec4(%s, %s, %s, 1.0)", name, name, name);
+			BLI_dynstr_appendf(ds, "vec4(%s, %s, %s, 1.0)", name, name, name);
 	}
 }
 
@@ -433,10 +406,10 @@ static void codegen_print_datatype(DynStr *ds, int type, float *data)
 {
 	int i;
 
-	BLI_dynstr_printf(ds, "%s(", GPU_DATATYPE_STR[type]);
+	BLI_dynstr_appendf(ds, "%s(", GPU_DATATYPE_STR[type]);
 
 	for(i=0; i<type; i++) {
-		BLI_dynstr_printf(ds, "%f", data[i]);
+		BLI_dynstr_appendf(ds, "%f", data[i]);
 		if(i == type-1)
 			BLI_dynstr_append(ds, ")");
 		else
@@ -568,7 +541,7 @@ static void codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 			if ((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL)) {
 				/* create exactly one sampler for each texture */
 				if (codegen_input_has_texture(input) && input->bindtex)
-					BLI_dynstr_printf(ds, "uniform %s samp%d;\n",
+					BLI_dynstr_appendf(ds, "uniform %s samp%d;\n",
 						(input->textype == GPU_TEX1D)? "sampler1D":
 						(input->textype == GPU_TEX2D)? "sampler2D": "sampler2DShadow",
 						input->texid);
@@ -580,11 +553,11 @@ static void codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 					name = GPU_builtin_name(input->builtin);
 
 					if(gpu_str_prefix(name, "unf")) {
-						BLI_dynstr_printf(ds, "uniform %s %s;\n",
+						BLI_dynstr_appendf(ds, "uniform %s %s;\n",
 							GPU_DATATYPE_STR[input->type], name);
 					}
 					else {
-						BLI_dynstr_printf(ds, "varying %s %s;\n",
+						BLI_dynstr_appendf(ds, "varying %s %s;\n",
 							GPU_DATATYPE_STR[input->type], name);
 					}
 				}
@@ -592,19 +565,19 @@ static void codegen_print_uniforms_functions(DynStr *ds, ListBase *nodes)
 			else if (input->source == GPU_SOURCE_VEC_UNIFORM) {
 				if(input->dynamicvec) {
 					/* only create uniforms for dynamic vectors */
-					BLI_dynstr_printf(ds, "uniform %s unf%d;\n",
+					BLI_dynstr_appendf(ds, "uniform %s unf%d;\n",
 						GPU_DATATYPE_STR[input->type], input->id);
 				}
 				else {
 					/* for others use const so the compiler can do folding */
-					BLI_dynstr_printf(ds, "const %s cons%d = ",
+					BLI_dynstr_appendf(ds, "const %s cons%d = ",
 						GPU_DATATYPE_STR[input->type], input->id);
 					codegen_print_datatype(ds, input->type, input->vec);
 					BLI_dynstr_append(ds, ";\n");
 				}
 			}
 			else if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-				BLI_dynstr_printf(ds, "varying %s var%d;\n",
+				BLI_dynstr_appendf(ds, "varying %s var%d;\n",
 					GPU_DATATYPE_STR[input->type], input->attribid);
 			}
 		}
@@ -624,8 +597,8 @@ static void codegen_declare_tmps(DynStr *ds, ListBase *nodes)
 		for (input=node->inputs.first; input; input=input->next) {
 			if (input->source == GPU_SOURCE_TEX_PIXEL) {
 				if (codegen_input_has_texture(input) && input->definetex) {
-					BLI_dynstr_printf(ds, "\tvec4 tex%d = texture2D(", input->texid);
-					BLI_dynstr_printf(ds, "samp%d, gl_TexCoord[%d].st);\n",
+					BLI_dynstr_appendf(ds, "\tvec4 tex%d = texture2D(", input->texid);
+					BLI_dynstr_appendf(ds, "samp%d, gl_TexCoord[%d].st);\n",
 						input->texid, input->texid);
 				}
 			}
@@ -633,7 +606,7 @@ static void codegen_declare_tmps(DynStr *ds, ListBase *nodes)
 
 		/* declare temporary variables for node output storage */
 		for (output=node->outputs.first; output; output=output->next)
-			BLI_dynstr_printf(ds, "\t%s tmp%d;\n",
+			BLI_dynstr_appendf(ds, "\t%s tmp%d;\n",
 				GPU_DATATYPE_STR[output->type], output->id);
 	}
 
@@ -647,13 +620,13 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 	GPUOutput *output;
 
 	for (node=nodes->first; node; node=node->next) {
-		BLI_dynstr_printf(ds, "\t%s(", node->name);
+		BLI_dynstr_appendf(ds, "\t%s(", node->name);
 		
 		for (input=node->inputs.first; input; input=input->next) {
 			if (input->source == GPU_SOURCE_TEX) {
-				BLI_dynstr_printf(ds, "samp%d", input->texid);
+				BLI_dynstr_appendf(ds, "samp%d", input->texid);
 				if (input->link)
-					BLI_dynstr_printf(ds, ", gl_TexCoord[%d].st", input->texid);
+					BLI_dynstr_appendf(ds, ", gl_TexCoord[%d].st", input->texid);
 			}
 			else if (input->source == GPU_SOURCE_TEX_PIXEL) {
 				if (input->link && input->link->output)
@@ -664,21 +637,21 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 						"tex", input->texid);
 			}
 			else if(input->source == GPU_SOURCE_BUILTIN)
-				BLI_dynstr_printf(ds, "%s", GPU_builtin_name(input->builtin));
+				BLI_dynstr_appendf(ds, "%s", GPU_builtin_name(input->builtin));
 			else if(input->source == GPU_SOURCE_VEC_UNIFORM) {
 				if(input->dynamicvec)
-					BLI_dynstr_printf(ds, "unf%d", input->id);
+					BLI_dynstr_appendf(ds, "unf%d", input->id);
 				else
-					BLI_dynstr_printf(ds, "cons%d", input->id);
+					BLI_dynstr_appendf(ds, "cons%d", input->id);
 			}
 			else if (input->source == GPU_SOURCE_ATTRIB)
-				BLI_dynstr_printf(ds, "var%d", input->attribid);
+				BLI_dynstr_appendf(ds, "var%d", input->attribid);
 
 			BLI_dynstr_append(ds, ", ");
 		}
 
 		for (output=node->outputs.first; output; output=output->next) {
-			BLI_dynstr_printf(ds, "tmp%d", output->id);
+			BLI_dynstr_appendf(ds, "tmp%d", output->id);
 			if (output->next)
 				BLI_dynstr_append(ds, ", ");
 		}
@@ -702,7 +675,7 @@ static char *code_generate_fragment(ListBase *nodes, GPUOutput *output, const ch
 	codegen_print_uniforms_functions(ds, nodes);
 
 	//if(G.f & G_DEBUG)
-	//	BLI_dynstr_printf(ds, "/* %s */\n", name);
+	//	BLI_dynstr_appendf(ds, "/* %s */\n", name);
 
 	BLI_dynstr_append(ds, "void main(void)\n");
 	BLI_dynstr_append(ds, "{\n");
@@ -731,9 +704,9 @@ static char *code_generate_vertex(ListBase *nodes)
 	for (node=nodes->first; node; node=node->next) {
 		for (input=node->inputs.first; input; input=input->next) {
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-				BLI_dynstr_printf(ds, "attribute %s att%d;\n",
+				BLI_dynstr_appendf(ds, "attribute %s att%d;\n",
 					GPU_DATATYPE_STR[input->type], input->attribid);
-				BLI_dynstr_printf(ds, "varying %s var%d;\n",
+				BLI_dynstr_appendf(ds, "varying %s var%d;\n",
 					GPU_DATATYPE_STR[input->type], input->attribid);
 			}
 		}
@@ -747,11 +720,11 @@ static char *code_generate_vertex(ListBase *nodes)
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				if(input->attribtype == CD_TANGENT) /* silly exception */
 				{
-					BLI_dynstr_printf(ds, "\tvar%d.xyz = normalize((gl_ModelViewMatrix * vec4(att%d.xyz, 0)).xyz);\n", input->attribid, input->attribid);
-					BLI_dynstr_printf(ds, "\tvar%d.w = att%d.w;\n", input->attribid, input->attribid);
+					BLI_dynstr_appendf(ds, "\tvar%d.xyz = normalize((gl_ModelViewMatrix * vec4(att%d.xyz, 0)).xyz);\n", input->attribid, input->attribid);
+					BLI_dynstr_appendf(ds, "\tvar%d.w = att%d.w;\n", input->attribid, input->attribid);
 				}
 				else
-					BLI_dynstr_printf(ds, "\tvar%d = att%d;\n", input->attribid, input->attribid);
+					BLI_dynstr_appendf(ds, "\tvar%d = att%d;\n", input->attribid, input->attribid);
 			}
 
 	BLI_dynstr_append(ds, "}\n\n");
@@ -799,9 +772,9 @@ static void GPU_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
 				continue;
 
 			if (input->ima || input->tex)
-				snprintf(input->shadername, sizeof(input->shadername), "samp%d", input->texid);
+				BLI_snprintf(input->shadername, sizeof(input->shadername), "samp%d", input->texid);
 			else
-				snprintf(input->shadername, sizeof(input->shadername), "unf%d", input->id);
+				BLI_snprintf(input->shadername, sizeof(input->shadername), "unf%d", input->id);
 
 			/* pass non-dynamic uniforms to opengl */
 			extract = 0;

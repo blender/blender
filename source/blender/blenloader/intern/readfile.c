@@ -10081,7 +10081,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					   !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR))
 					{
 						
-						snprintf(seq->strip->proxy->dir, 
+						BLI_snprintf(seq->strip->proxy->dir, 
 							 FILE_MAXDIR, "%s/BL_proxy", 
 							 seq->strip->dir);
 					}

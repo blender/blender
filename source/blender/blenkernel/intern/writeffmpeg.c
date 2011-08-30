@@ -39,10 +39,6 @@
 #include <libswscale/swscale.h>
 #include <libavcodec/opt.h>
 
-#if defined(WIN32) && (!(defined snprintf))
-#define snprintf _snprintf
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -652,7 +648,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 
 	fmt->audio_codec = ffmpeg_audio_codec;
 
-	snprintf(of->filename, sizeof(of->filename), "%s", name);
+	BLI_snprintf(of->filename, sizeof(of->filename), "%s", name);
 	/* set the codec to the user's selection */
 	switch(ffmpeg_type) {
 	case FFMPEG_AVI:

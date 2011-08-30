@@ -78,11 +78,6 @@
 #  include "AUD_C-API.h"
 #endif
 
-#ifdef WIN32
-#define snprintf _snprintf
-#endif
-
-
 static ImBuf* seq_render_strip_stack( 
 	SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown);
 
@@ -1193,7 +1188,7 @@ static void seq_open_anim_file(Sequence * seq)
 static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, char * name)
 {
 	int frameno;
-	char dir[FILE_MAXDIR];
+	char dir[PROXY_MAXFILE];
 	int render_size = context.preview_render_size;
 
 	if (!seq->strip->proxy) {
@@ -1211,7 +1206,7 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 	if (seq->flag & (SEQ_USE_PROXY_CUSTOM_DIR|SEQ_USE_PROXY_CUSTOM_FILE)) {
 		strcpy(dir, seq->strip->proxy->dir);
 	} else if (seq->type == SEQ_IMAGE) {
-		snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
+		BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
 	} else {
 		return FALSE;
 	}
@@ -1232,14 +1227,14 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 	/* generate a separate proxy directory for each preview size */
 
 	if (seq->type == SEQ_IMAGE) {
-		snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir,
+		BLI_snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir,
 			 context.preview_render_size, 
 			 give_stripelem(seq, cfra)->name);
 		frameno = 1;
 	} else {
 		frameno = (int) give_stripelem_index(seq, cfra) 
 			+ seq->anim_startofs;
-		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, 
+		BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, 
 			 context.preview_render_size);
 	}
 
