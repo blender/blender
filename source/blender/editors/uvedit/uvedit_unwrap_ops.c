@@ -144,44 +144,38 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 
 static int uvedit_have_selection(Scene *scene, BMEditMesh *em, short implicit)
 {
-#if 0 // BMESH_TODO
-	EditFace *efa;
-	MTFace *tf;
-
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
+	MTexPoly *tf;
+	MLoopUV *luv;
+	
 	/* verify if we have any selected uv's before unwrapping,
 	   so we can cancel the operator early */
-	for(efa= em->faces.first; efa; efa= efa->next) {
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 		if(scene->toolsettings->uv_flag & UV_SYNC_SELECTION) {
-			if(efa->h)
+			if(BM_TestHFlag(efa, BM_HIDDEN))
 				continue;
 		}
-		else if((efa->h) || ((efa->f & SELECT)==0))
+		else if(BM_TestHFlag(efa, BM_HIDDEN) || !BM_TestHFlag(efa, BM_SELECT))
 			continue;
-
-		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-
-		if(!tf)
-			return 1; /* default selected if doesn't exists */
-		
-		if(implicit &&
-			!(	uvedit_uv_selected(scene, efa, tf, 0) ||
-				uvedit_uv_selected(scene, efa, tf, 1) ||
-				uvedit_uv_selected(scene, efa, tf, 2) ||
-				(efa->v4 && uvedit_uv_selected(scene, efa, tf, 3)) )
-		) {
-			continue;
+	
+		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			if (!luv)
+				return 1;
+			
+			if (uvedit_uv_selected(em, scene, l))
+				break;
 		}
-
+		
+		if (implicit && !l)
+			continue;
+		
 		return 1;
 	}
 
 	return 0;
-#else
-	(void)scene;
-	(void)em;
-	(void)implicit;
-	return 0;
-#endif
 }
 
 static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em, 
