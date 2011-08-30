@@ -159,8 +159,10 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 						break;
 					}
 				}
-				e2 = e3;
-			} while (e2 && e2 != e);
+				
+				if (e3)
+					e2 = e3;
+			} while (e3 && e2 != e);
 			
 			if (!e2)
 				e2 = e;
@@ -184,10 +186,11 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 						break;
 					}
 				}
-				e2 = e3;
-			} while (e2 && e2 != e);
+				if (e3)
+					e2 = e3;
+			} while (e3 && e2 != e);
 			
-			if (v && !e2) {			
+			if (v && !e3) {			
 				if (c==0) {
 					if (BLI_array_count(vv1) && v == vv1[BLI_array_count(vv1)-1]) {
 						printf("eck!\n");
@@ -197,7 +200,8 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 					BLI_array_append(vv2, v);
 				}
 			}
-				
+			
+			/*test for connected loops, and set cl1 or cl2 if so*/
 			if (v == ov) {
 				if (c==0)
 					cl1 = 1;
@@ -248,7 +252,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			lenv2--;
 		}
 		
-		for (i=0; i<BLI_array_count(ee1); i++) {
+		for (i=0; i<BLI_array_count(ee1) && lenv1; i++) {
 			BMFace *f;
 		
 			if (j >= BLI_array_count(ee2))
