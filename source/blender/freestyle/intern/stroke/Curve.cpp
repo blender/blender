@@ -203,7 +203,7 @@ FEdge* CurvePoint::getFEdge(Interface0D& inter)
     ||
     ((__A == iVertexB->__B) && (__B == iVertexB->__A)))
     return __A->getFEdge(*__B);
-  else if(__B == 0)
+  if(__B == 0)
   {
     if(iVertexB->__B == 0)
       return __A->getFEdge(*(iVertexB->__A));
@@ -212,35 +212,35 @@ FEdge* CurvePoint::getFEdge(Interface0D& inter)
     else if(iVertexB->__B == __A)
       return __A->getFEdge(*(iVertexB->__A));
   }
-  else if(iVertexB->__B == 0)
+  if(iVertexB->__B == 0)
   {
     if(iVertexB->__A == __A)
       return __B->getFEdge(*(iVertexB->__A));
     else if(iVertexB->__A == __B)
       return __A->getFEdge(*(iVertexB->__A));
   }
-  else if(__B == iVertexB->__A)
+  if(__B == iVertexB->__A)
   {
     if((_t2d != 1) && (iVertexB->_t2d == 0))
       return __A->getFEdge(*__B);
     if((_t2d == 1) && (iVertexB->_t2d != 0))
       return iVertexB->__A->getFEdge(*(iVertexB->__B));
   }
-  else if(__B == iVertexB->__B)
+  if(__B == iVertexB->__B)
   {
     if((_t2d != 1) && (iVertexB->_t2d == 1))
       return __A->getFEdge(*__B);
     if((_t2d == 1) && (iVertexB->_t2d != 1))
       return iVertexB->__A->getFEdge(*(iVertexB->__B));
   }
-  else if(__A == iVertexB->__A)
+  if(__A == iVertexB->__A)
   {
     if((_t2d == 0) && (iVertexB->_t2d != 0))
       return iVertexB->__A->getFEdge(*(iVertexB->__B));
     if((_t2d != 0) && (iVertexB->_t2d == 0))
       return __A->getFEdge(*__B);
   }
-  else if(__A == iVertexB->__B)
+  if(__A == iVertexB->__B)
   {
     if((_t2d == 0) && (iVertexB->_t2d != 1))
       return iVertexB->__A->getFEdge(*(iVertexB->__B));
