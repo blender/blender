@@ -1858,7 +1858,7 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 						strip->start= (float)CFRA;
 						break;
 					case NLAEDIT_SNAP_NEAREST_FRAME: /* to nearest frame */
-						strip->start= floorf(start+0.5);
+						strip->start= floorf(start+0.5f);
 						break;
 					case NLAEDIT_SNAP_NEAREST_SECOND: /* to nearest second */
 						strip->start= floorf(start/secf + 0.5f) * secf;

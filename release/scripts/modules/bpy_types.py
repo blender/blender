@@ -413,7 +413,7 @@ TypeMap = {}
 
 class Sound(bpy_types.ID):
     __slots__ = ()
-    
+
     @property
     def factory(self):
         """The aud.Factory object of the sound."""

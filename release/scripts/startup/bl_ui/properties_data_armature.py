@@ -74,6 +74,7 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
         if context.scene.render.engine == "BLENDER_GAME":
             layout.row().prop(arm, "vert_deformer", expand=True, text="")
 
+
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
     bl_label = "Display"
 

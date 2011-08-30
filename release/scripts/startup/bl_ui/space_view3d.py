@@ -179,9 +179,9 @@ class VIEW3D_MT_transform(Menu):
 
         layout.operator("object.randomize_transform")
         layout.operator("object.align")
-        
+
         layout.separator()
-        
+
         layout.operator("object.anim_transforms_to_deltas")
 
 
@@ -1272,6 +1272,7 @@ class VIEW3D_MT_pose_transform(Menu):
         layout.separator()
 
         layout.operator("pose.user_transforms_clear", text="Reset unkeyed")
+
 
 class VIEW3D_MT_pose_slide(Menu):
     bl_label = "In-Betweens"

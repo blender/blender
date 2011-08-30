@@ -804,7 +804,6 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
                 col.prop(strip.proxy, "timecode")
 
 
-
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
     bl_label = "Scene Preview/Render"
     bl_space_type = 'SEQUENCE_EDITOR'
