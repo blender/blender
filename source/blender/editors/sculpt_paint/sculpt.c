@@ -3389,7 +3389,7 @@ static void sculpt_flush_update(bContext *C)
 	if(ob->derivedFinal) /* VBO no longer valid */
 		GPU_drawobject_free(ob->derivedFinal);
 
-	if (!ss->cache)
+	if (!ss->cache || !mmd)
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	
 	if(ss->modifiers_active) {

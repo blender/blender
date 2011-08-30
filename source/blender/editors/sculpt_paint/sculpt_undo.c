@@ -193,7 +193,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		if((mmd=sculpt_multires_active(scene, ob)))
 			multires_mark_as_modified(ob);
 
-		tag_update= ((Mesh*)ob->data)->id.us > 1;
+		tag_update= ((Mesh*)ob->data)->id.us > 1 || !mmd;
 
 		if(ss->modifiers_active) {
 			Mesh *mesh= ob->data;
