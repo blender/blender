@@ -885,6 +885,37 @@ static void rna_MeshFace_verts_set(PointerRNA *ptr, const int *values)
 	memcpy(&face->v1, values, (face->v4 ? 4 : 3) * sizeof(int));
 }
 
+/* poly.vertices - this is faked loop access for convenience */
+static int rna_MeshPoly_vertices_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+	MPoly *mp= (MPoly*)ptr->data;
+	/* note, raw access uses dummy item, this _could_ crash, watch out for this, mface uses it but it cant work here */
+	return (length[0]= mp->totloop);
+}
+
+static void rna_MeshPoly_vertices_get(PointerRNA *ptr, int *values)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MPoly *mp= (MPoly*)ptr->data;
+	MLoop *ml= &me->mloop[mp->loopstart];
+	unsigned int i;
+	for(i= mp->totloop; i > 0; i--, values++, ml++) {
+		*values = ml->v;
+	}
+}
+
+static void rna_MeshPoly_vertices_set(PointerRNA *ptr, const int *values)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MPoly *mp= (MPoly*)ptr->data;
+	MLoop *ml= &me->mloop[mp->loopstart];
+	unsigned int i;
+	for(i= mp->totloop; i > 0; i--, values++, ml++) {
+		ml->v = *values;
+	}
+}
+
+
 static int rna_MeshVertex_index_get(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
@@ -944,6 +975,12 @@ static char *rna_MeshEdge_path(PointerRNA *ptr)
 {
 	return BLI_sprintfN("edges[%d]", (int)((MEdge*)ptr->data - ((Mesh*)ptr->id.data)->medge));
 }
+
+static char *rna_MeshLoop_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("loops[%d]", (int)((MLoop*)ptr->data - ((Mesh*)ptr->id.data)->mloop));
+}
+
 
 static char *rna_MeshVertex_path(PointerRNA *ptr)
 {
@@ -1268,6 +1305,26 @@ static void rna_def_mface(BlenderRNA *brna)
 }
 
 
+static void rna_def_mloop(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MeshLoop", NULL);
+	RNA_def_struct_sdna(srna, "MLoop");
+	RNA_def_struct_ui_text(srna, "Mesh Loop", "Loop in a Mesh datablock");
+	RNA_def_struct_path_func(srna, "rna_MeshLoop_path");
+	RNA_def_struct_ui_icon(srna, ICON_EDGESEL);
+
+	prop= RNA_def_property(srna, "vertex_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "v");
+	RNA_def_property_ui_text(prop, "Vertex", "Vertex index");
+
+	prop= RNA_def_property(srna, "edge_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "e");
+	RNA_def_property_ui_text(prop, "Edge", "Edge index");
+}
+
 static void rna_def_mpolygon(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1279,14 +1336,14 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 	RNA_def_struct_path_func(srna, "rna_MeshPolygon_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
-#if 0 // BMESH_TODO - add loop support
+	/* faked, actually access to loop vertex values, dont this way because manually setting up vertex/edge per loop is very low level
+	 * instead we setup poly sizes, assign indicies, then calc edges automatic when creating meshes from rna/py */
 	prop= RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_array(prop, 4);
+	RNA_def_property_array(prop, 3); // eek, this is still used in some cases but infact we dont want to use it at all here.
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
-	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshFace_verts_get_length");
-	RNA_def_property_int_funcs(prop, "rna_MeshFace_verts_get", "rna_MeshFace_verts_set", NULL);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshPoly_vertices_get_length");
+	RNA_def_property_int_funcs(prop, "rna_MeshPoly_vertices_get", "rna_MeshPoly_vertices_set", NULL);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
-#endif
 
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "mat_nr");
@@ -1723,7 +1780,35 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
 }
 
-/* mesh.faces */
+/* mesh.loops */
+static void rna_def_mesh_loops(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+#if 0 // BMESH_TODO
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+#endif
+
+	RNA_def_property_srna(cprop, "MeshLoops");
+	srna= RNA_def_struct(brna, "MeshLoops", NULL);
+	RNA_def_struct_sdna(srna, "Mesh");
+	RNA_def_struct_ui_text(srna, "Mesh Loops", "Collection of mesh loops");
+
+#if 0 // BMESH_TODO
+	prop= RNA_def_property(srna, "active", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "act_face");
+	RNA_def_property_ui_text(prop, "Active Polygon", "The active polygon for this mesh");
+
+	func= RNA_def_function(srna, "add", "ED_mesh_polys_add");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of polygons to add.", 0, INT_MAX);
+#endif
+}
+
+/* mesh.polygons */
 static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
@@ -1860,6 +1945,12 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MeshFace");
 	RNA_def_property_ui_text(prop, "Faces", "Faces of the mesh");
 	rna_def_mesh_faces(brna, prop);
+
+	prop= RNA_def_property(srna, "loops", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "mloop", "totloop");
+	RNA_def_property_struct_type(prop, "MeshLoop");
+	RNA_def_property_ui_text(prop, "Loops", "Loops of the mesh");
+	rna_def_mesh_loops(brna, prop);
 
 	prop= RNA_def_property(srna, "polygons", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mpoly", "totpoly");
@@ -2100,6 +2191,7 @@ void RNA_def_mesh(BlenderRNA *brna)
 	rna_def_mvert_group(brna);
 	rna_def_medge(brna);
 	rna_def_mface(brna);
+	rna_def_mloop(brna);
 	rna_def_mpolygon(brna);
 	rna_def_mtexpoly(brna);
 	rna_def_msticky(brna);
