@@ -147,11 +147,19 @@ static void rna_MEdge_crease_set(PointerRNA *ptr, float value)
 	medge->crease= (char)(CLAMPIS(value*255.0f, 0, 255));
 }
 
+static void rna_MeshPolygon_normal_get(PointerRNA *ptr, float *values)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MPoly *mp= (MPoly*)ptr->data;
+
+	mesh_calc_poly_normal(mp, me->mloop+mp->loopstart, me->mvert, values);
+}
+
 static void rna_MeshFace_normal_get(PointerRNA *ptr, float *values)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
 	MFace *mface= (MFace*)ptr->data;
-	
+
 	if(mface->v4)
 		normal_quad_v3( values,me->mvert[mface->v1].co, me->mvert[mface->v2].co, me->mvert[mface->v3].co, me->mvert[mface->v4].co);
 	else
@@ -898,6 +906,13 @@ static int rna_MeshFace_index_get(PointerRNA *ptr)
 	return (int)(face - me->mface);
 }
 
+static int rna_MeshPolygon_index_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	MPoly *mpoly= (MPoly*)ptr->data;
+	return (int)(mpoly - me->mpoly);
+}
+
 /* path construction */
 
 static char *rna_VertexGroupElement_path(PointerRNA *ptr)
@@ -915,6 +930,11 @@ static char *rna_VertexGroupElement_path(PointerRNA *ptr)
 	return NULL;
 }
 
+static char *rna_MeshPolygon_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("polygons[%d]", (int)((MPoly*)ptr->data - ((Mesh*)ptr->id.data)->mpoly));
+}
+
 static char *rna_MeshFace_path(PointerRNA *ptr)
 {
 	return BLI_sprintfN("faces[%d]", (int)((MFace*)ptr->data - ((Mesh*)ptr->id.data)->mface));
@@ -927,7 +947,7 @@ static char *rna_MeshEdge_path(PointerRNA *ptr)
 
 static char *rna_MeshVertex_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("verts[%d]", (int)((MVert*)ptr->data - ((Mesh*)ptr->id.data)->mvert));
+	return BLI_sprintfN("vertices[%d]", (int)((MVert*)ptr->data - ((Mesh*)ptr->id.data)->mvert));
 }
 
 static char *rna_MeshTextureFaceLayer_path(PointerRNA *ptr)
@@ -1244,6 +1264,68 @@ static void rna_def_mface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_MeshFace_index_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex");
+}
+
+
+static void rna_def_mpolygon(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "MeshPolygon", NULL);
+	RNA_def_struct_sdna(srna, "MPoly");
+	RNA_def_struct_ui_text(srna, "Mesh Polygon", "Polygon in a Mesh datablock");
+	RNA_def_struct_path_func(srna, "rna_MeshPolygon_path");
+	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
+
+#if 0 // BMESH_TODO - add loop support
+	prop= RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_MeshFace_verts_get_length");
+	RNA_def_property_int_funcs(prop, "rna_MeshFace_verts_get", "rna_MeshFace_verts_set", NULL);
+	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
+#endif
+
+	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "mat_nr");
+	RNA_def_property_ui_text(prop, "Material Index", "");
+	RNA_def_property_int_funcs(prop, NULL, NULL, "rna_MeshFace_material_index_range");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FACE_SEL);
+	RNA_def_property_ui_text(prop, "Select", "");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
+
+	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_HIDE);
+	RNA_def_property_ui_text(prop, "Hide", "");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
+
+	prop= RNA_def_property(srna, "use_smooth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_SMOOTH);
+	RNA_def_property_ui_text(prop, "Smooth", "");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, -1.0f, 1.0f);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_MeshPolygon_normal_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "face normal", "local space unit length normal vector for this polygon");
+
+#if 0 /* BMESH_TODO */
+	prop= RNA_def_property(srna, "area", PROP_FLOAT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_MeshPolygon_area_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "face area", "read only area of the face");
+#endif
+
+	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_MeshPolygon_index_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex");
 }
 
@@ -1641,6 +1723,35 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
 }
 
+/* mesh.faces */
+static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+#if 0 // BMESH_TODO
+	PropertyRNA *prop;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+#endif
+
+	RNA_def_property_srna(cprop, "MeshPolygons");
+	srna= RNA_def_struct(brna, "MeshPolygons", NULL);
+	RNA_def_struct_sdna(srna, "Mesh");
+	RNA_def_struct_ui_text(srna, "Mesh Polygons", "Collection of mesh polygons");
+
+#if 0 // BMESH_TODO
+	prop= RNA_def_property(srna, "active", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "act_face");
+	RNA_def_property_ui_text(prop, "Active Polygon", "The active polygon for this mesh");
+
+	func= RNA_def_function(srna, "add", "ED_mesh_polys_add");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of polygons to add.", 0, INT_MAX);
+#endif
+}
+
+
 /* mesh.vertex_colors */
 static void rna_def_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -1749,6 +1860,12 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MeshFace");
 	RNA_def_property_ui_text(prop, "Faces", "Faces of the mesh");
 	rna_def_mesh_faces(brna, prop);
+
+	prop= RNA_def_property(srna, "polygons", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "mpoly", "totpoly");
+	RNA_def_property_struct_type(prop, "MeshPolygon");
+	RNA_def_property_ui_text(prop, "Polygons", "Polygons of the mesh");
+	rna_def_mesh_polygons(brna, prop);
 
 	prop= RNA_def_property(srna, "sticky", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "msticky", "totvert");
@@ -1983,6 +2100,7 @@ void RNA_def_mesh(BlenderRNA *brna)
 	rna_def_mvert_group(brna);
 	rna_def_medge(brna);
 	rna_def_mface(brna);
+	rna_def_mpolygon(brna);
 	rna_def_mtexpoly(brna);
 	rna_def_msticky(brna);
 	rna_def_mloopcol(brna);
