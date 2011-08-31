@@ -1685,7 +1685,7 @@ static void knifetool_exit (bContext *UNUSED(C), wmOperator *op)
 }
 
 static void cage_mapped_verts_callback(void *userData, int index, float *co, 
-	float *no_f, short *no_s)
+	float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	void **data = userData;
 	BMEditMesh *em = data[0];
