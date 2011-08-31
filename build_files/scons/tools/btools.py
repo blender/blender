@@ -230,7 +230,7 @@ def read_opts(env, cfg, args):
         ('BF_PYTHON_LIBPATH', 'Library path', ''),
         ('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
         (BoolVariable('WITH_BF_STATICPYTHON', 'Staticly link to python', False)),
-        (BoolVariable('WITH_OSX_STATICPYTHON', 'Staticly link to python', False)),
+        (BoolVariable('WITH_OSX_STATICPYTHON', 'Staticly link to python', True)),
         ('BF_PYTHON_ABI_FLAGS', 'Python ABI flags (suffix in library version: m, mu, etc)', ''),
 
         (BoolVariable('BF_NO_ELBEEM', 'Disable Fluid Sim', False)),
