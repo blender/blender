@@ -14,7 +14,7 @@ USE_SDK=True
 ###################     Cocoa & architecture settings      ##################
 #############################################################################
 WITH_GHOST_COCOA=True
-MACOSX_ARCHITECTURE = 'i386' # valid archs: ppc, i386, ppc64, x86_64
+MACOSX_ARCHITECTURE = 'x86_64' # valid archs: ppc, i386, ppc64, x86_64
 
 
 cmd = 'uname -p'
@@ -105,9 +105,9 @@ BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore 
 #bz2 is a standard osx dynlib
 
 BF_PYTHON_VERSION = '3.2'
-WITH_BF_STATICPYTHON ='True'
+WITH_OSX_STATICPYTHON = True
 
-if BF_PYTHON_VERSION=='3.2' and WITH_BF_STATICPYTHON =='True':
+if WITH_OSX_STATICPYTHON:
 	# python 3.2 uses precompiled libraries in bf svn /lib by default
 
 	BF_PYTHON = LIBDIR + '/python'
@@ -327,7 +327,7 @@ if WITH_BF_QUICKTIME:
 	else:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
 
-if WITH_BF_STATICPYTHON == 'False':
+if not WITH_OSX_STATICPYTHON:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','Python']
 
 
