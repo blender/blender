@@ -310,9 +310,10 @@ void ArmatureImporter::fix_leaf_bones( )
 		LeafBone& leaf = *it;
 
 		// pointing up
-		float vec[3] = {0.0f, 0.0f, 1.0f};
+		float vec[3] = {0.0f, 0.0f, 0.1f};
 		
-		//mul_v3_fl(vec, leaf_bone_length);
+		// if parent: take parent length and direction
+		if(leaf.bone->parent) sub_v3_v3v3(vec, leaf.bone->parent->tail, leaf.bone->parent->head);
 
 		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
 		add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
