@@ -67,58 +67,87 @@ static char global_language[32];
 static char global_encoding_name[32];
 
 /* map from the rna_userdef.c:rna_def_userdef_system(BlenderRNA *brna):language_items */
-static char locale_default[] = "";
-static char locale_english[] = "en_US";
-static char locale_japanese[] = "ja_JP";
-static char locale_dutch[] = "nl_NL";
-static char locale_italian[] = "it_IT";
-static char locale_german[] = "de_DE";
-static char locale_finnish[] = "fi_FI";
-static char locale_swedish[] = "sv_SE";
-static char locale_french[] = "fr_FR";
-static char locale_spanish[] = "es_ES";
-static char locale_catalan[] = "ca_AD";
-static char locale_czech[] = "cs_CZ";
-static char locale_bra_portuguese[] = "pt_BR";
-static char locale_sim_chinese[] = "zh_CN";
-static char locale_tra_chinese[] = "zh_TW";
-static char locale_russian[] = "ru_RU";
-static char locale_croatian[] = "hr_HR";
-static char locale_serbian[] = "sr_RS";
-static char locale_ukrainian[] = "uk_UA";
-static char locale_polish[] = "pl_PL";
-static char locale_romanian[] = "ro_RO";
-static char locale_arabic[] = "ar_EG";
-static char locale_bulgarian[] = "bg_BG";
-static char locale_greek[] = "el_GR";
-static char locale_korean[] = "ko_KR";
 
-static char *lang_to_locale[] = {
-		locale_default,
-		locale_english, /* us english is the default language of blender */
-		locale_japanese,
-		locale_dutch,
-		locale_italian,
-		locale_german,
-		locale_finnish,
-		locale_swedish,
-		locale_french,
-		locale_spanish,
-		locale_catalan,
-		locale_czech,
-		locale_bra_portuguese,
-		locale_sim_chinese,
-		locale_tra_chinese,
-		locale_russian,
-		locale_croatian,
-		locale_serbian,
-		locale_ukrainian,
-		locale_polish,
-		locale_romanian,
-		locale_arabic,
-		locale_bulgarian,
-		locale_greek,
-		locale_korean,
+static char *long_locales[] = {
+	"",
+	"english",
+	"japanese",
+	"dutch",
+	"italian",
+	"german",
+	"finnish",
+	"swedish",
+	"french",
+	"spanish",
+	"catalan",
+	"czech",
+	"ptb",
+	"chs",
+	"cht",
+	"russian",
+	"croatian",
+	"serbian",
+	"ukrainian",
+	"polish",
+	"romanian",
+	"arabic",
+	"bulgarian",
+	"greek",
+	"korean"
+};
+
+static char short_locale_default[] = "";
+static char short_locale_english[] = "en_US";
+static char short_locale_japanese[] = "ja_JP";
+static char short_locale_dutch[] = "nl_NL";
+static char short_locale_italian[] = "it_IT";
+static char short_locale_german[] = "de_DE";
+static char short_locale_finnish[] = "fi_FI";
+static char short_locale_swedish[] = "sv_SE";
+static char short_locale_french[] = "fr_FR";
+static char short_locale_spanish[] = "es_ES";
+static char short_locale_catalan[] = "ca_AD";
+static char short_locale_czech[] = "cs_CZ";
+static char short_locale_bra_portuguese[] = "pt_BR";
+static char short_locale_sim_chinese[] = "zh_CN";
+static char short_locale_tra_chinese[] = "zh_TW";
+static char short_locale_russian[] = "ru_RU";
+static char short_locale_croatian[] = "hr_HR";
+static char short_locale_serbian[] = "sr_RS";
+static char short_locale_ukrainian[] = "uk_UA";
+static char short_locale_polish[] = "pl_PL";
+static char short_locale_romanian[] = "ro_RO";
+static char short_locale_arabic[] = "ar_EG";
+static char short_locale_bulgarian[] = "bg_BG";
+static char short_locale_greek[] = "el_GR";
+static char short_locale_korean[] = "ko_KR";
+
+static char *short_locales[] = {
+		short_locale_default,
+		short_locale_english, /* us english is the default language of blender */
+		short_locale_japanese,
+		short_locale_dutch,
+		short_locale_italian,
+		short_locale_german,
+		short_locale_finnish,
+		short_locale_swedish,
+		short_locale_french,
+		short_locale_spanish,
+		short_locale_catalan,
+		short_locale_czech,
+		short_locale_bra_portuguese,
+		short_locale_sim_chinese,
+		short_locale_tra_chinese,
+		short_locale_russian,
+		short_locale_croatian,
+		short_locale_serbian,
+		short_locale_ukrainian,
+		short_locale_polish,
+		short_locale_romanian,
+		short_locale_arabic,
+		short_locale_bulgarian,
+		short_locale_greek,
+		short_locale_korean,
 };
 
 void BLF_lang_init(void)
@@ -138,32 +167,50 @@ void BLF_lang_init(void)
 void BLF_lang_set(const char *str)
 {
 	char *locreturn;
-	if(str==NULL)
-		str = lang_to_locale[U.language];
-	if( str[0]!=0 )
+	char *short_locale;
+#if defined (_WIN32)
+	char *long_locale = long_locales[U.language];
+#endif
+
+	if(str)
+		short_locale = str;
+	else
+		short_locale = short_locales[U.language];
+
+	if(short_locale)
 	{
-		BLI_setenv("LANG", str);
-		BLI_setenv("LANGUAGE", str);
+		BLI_setenv("LANG", short_locale);
+		BLI_setenv("LANGUAGE", short_locale);
 	}
 
-	locreturn= setlocale(LC_ALL, str);
+#if defined (_WIN32)
+	locreturn= setlocale(LC_ALL, long_locale);
 	if (locreturn == NULL) {
-		char *lang= BLI_sprintfN("%s.UTF-8", str);
+		printf("Could not change locale to %s\n", long_locale);
+	}
+#else
+	locreturn= setlocale(LC_ALL, short_locale);
+	if (locreturn == NULL) {
+		char *short_locale_utf8 = BLI_sprintfN("%s.UTF-8", short_locale);
 
-		locreturn= setlocale(LC_ALL, lang);
+		locreturn= setlocale(LC_ALL, short_locale_utf8);
 		if (locreturn == NULL) {
-			printf("could not change language to %s nor %s\n", str, lang);
+			printf("Could not change locale to %s nor %s\n", short_locale, short_locale_utf8);
 		}
 
-		MEM_freeN(lang);
+		MEM_freeN(short_locale_utf8);
 	}
-
+#endif
+	else
+	{
+		printf("Change locale to %s\n", locreturn );
+		BLI_strncpy(global_language, locreturn, sizeof(global_language));
+	}
 	setlocale(LC_NUMERIC, "C");
 
 	textdomain(DOMAIN_NAME);
 	bindtextdomain(DOMAIN_NAME, global_messagepath);
-	/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */
-	BLI_strncpy(global_language, str, sizeof(global_language));
+	/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */	
 }
 
 void BLF_lang_encoding(const char *str)

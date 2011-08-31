@@ -380,15 +380,9 @@ PyDoc_STRVAR(py_blf_gettext_doc,
 static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *args)
 {
 	char* msgid;
-	char* msgstr;
-	char* error_handle=NULL;
-
 	if (!PyArg_ParseTuple(args, "s:blf.gettext", &msgid))
 		return NULL;
-
-	msgstr = BLF_gettext( msgid );
-
-	return PyUnicode_DecodeUTF8( msgstr, strlen(msgstr), error_handle );
+	return PyUnicode_FromString( BLF_gettext( msgid ) );
 }
 
 PyDoc_STRVAR(py_blf_fake_gettext_doc,
@@ -403,13 +397,11 @@ PyDoc_STRVAR(py_blf_fake_gettext_doc,
 );
 static PyObject *py_blf_fake_gettext(PyObject *UNUSED(self), PyObject *args)
 {
-	char* msgid;
-	char* error_handle = NULL;
-
-	if (!PyArg_ParseTuple(args, "s:blf.gettext", &msgid))
+	const char* msgid;
+	if (!PyArg_ParseTuple(args, "s:blf.fake_gettext", &msgid))
 		return NULL;
 
-	return PyUnicode_DecodeUTF8( msgid, strlen(msgid), error_handle );
+	return PyUnicode_FromString( msgid );
 }
 
 /*----------------------------MODULE INIT-------------------------*/
