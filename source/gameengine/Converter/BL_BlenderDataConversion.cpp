@@ -1483,7 +1483,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		{
 			objprop.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
 			
-			objprop.m_soft_linStiff = 0.5;;
+			objprop.m_soft_linStiff = 0.5;
 			objprop.m_soft_angStiff = 1.f;		/* angular stiffness 0..1 */
 			objprop.m_soft_volume= 1.f;			/* volume preservation 0..1 */
 
