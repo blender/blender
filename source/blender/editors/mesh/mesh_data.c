@@ -75,7 +75,6 @@
 #include "mesh_intern.h"
 
 #define GET_CD_DATA(me, data) (me->edit_btmesh ? &me->edit_btmesh->bm->data : &me->data)
-
 static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *layer)
 {
 	Mesh *me = ob->data;
@@ -99,6 +98,7 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	  to do this, we store a pointer to the .data member of both layer and the active layer,
 	  (to detect if we're deleting the active layer or not), then use the active
 	  layer data pointer to find where the active layer has ended up.
+
 	  
 	  this is necassary because the deletion functions only support deleting the active
 	  layer. */
@@ -129,10 +129,12 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 				break;
 			}
 		}
+
 		
 		/* set index */
 		CustomData_set_layer_active(data, type, actindex);
 	}
+
 	
 	if (rndlayerdata != layerdata) {
 		/* find index */
@@ -143,10 +145,12 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 				break;
 			}
 		}
+
 		
 		/* set index */
 		CustomData_set_layer_render(data, type, rndindex);
 	}
+
 	
 	if (clonelayerdata != layerdata) {
 		/* find index */
@@ -157,10 +161,12 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 				break;
 			}
 		}
+
 		
 		/* set index */
 		CustomData_set_layer_clone(data, type, cloneindex);
 	}
+
 	
 	if (stencillayerdata != layerdata) {
 		/* find index */
@@ -171,6 +177,7 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 				break;
 			}
 		}
+
 		
 		/* set index */
 		CustomData_set_layer_stencil(data, type, stencilindex);
@@ -241,6 +248,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 			CustomData_set_layer_active(&me->ldata, CD_MLOOPUV, layernum);
 		}
 		
+
 		mesh_update_customdata_pointers(me);
 	}
 
@@ -290,13 +298,11 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 		BM_add_data_layer(em->bm, &em->bm->pdata, CD_MLOOPCOL);
 		CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
 
-
 		if(layernum) /* copy data from active vertex color layer */
 			copy_editface_active_customdata(em, CD_MCOL, layernum);
 
 		if(active_set || layernum==0)
 			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
-
 	}
 	else {
 		layernum= CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
@@ -366,6 +372,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 	ot->name= "Add UV Texture";
 	ot->description= "Add UV texture layer";
 	ot->idname= "MESH_OT_uv_texture_add";
+
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -385,16 +392,19 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Object *obedit;
 	int exitmode= 0;
 	char name[32];
+
 	
 	/* Check context */
 	if(base==NULL || base->object->type!=OB_MESH) {
 		BKE_report(op->reports, RPT_ERROR, "Not an Object or Mesh");
 		return OPERATOR_CANCELLED;
 	}
+
 	
 	/* check input variables */
 	if(RNA_property_is_set(op->ptr, "filepath")) {
 		char path[FILE_MAX];
+
 		
 		RNA_string_get(op->ptr, "filepath", path);
 		ima= BKE_add_image_file(path);
@@ -403,11 +413,13 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_get(op->ptr, "name", name);
 		ima= (Image *)find_id("IM", name);
 	}
+
 	
 	if(!ima) {
 		BKE_report(op->reports, RPT_ERROR, "Not an Image.");
 		return OPERATOR_CANCELLED;
 	}
+
 	
 	/* put mesh in editmode */
 
@@ -417,9 +429,9 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
 		exitmode= 1;
 	}
-
 	if(me->edit_btmesh==NULL)
 		return OPERATOR_CANCELLED;
+
 	
 	ED_uvedit_assign_image(scene, obedit, ima, NULL);
 
@@ -433,8 +445,10 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* dummie drop support; ensure view shows a result :) */
 	if(v3d)
 		v3d->flag2 |= V3D_SOLID_TEX;
+
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
 	
 	return OPERATOR_FINISHED;
 }
@@ -445,13 +459,16 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	ot->name= "Assign Image to UV Texture";
 	ot->description= "Assigns Image to active UV layer, or creates a UV layer";
 	ot->idname= "MESH_OT_drop_named_image";
+
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
 	ot->invoke= drop_named_image_invoke;
+
 	
 	/* flags */
 	ot->flag= OPTYPE_UNDO;
+
 	
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign.");
@@ -475,6 +492,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 	ot->name= "Remove UV Texture";
 	ot->description= "Remove UV texture layer";
 	ot->idname= "MESH_OT_uv_texture_remove";
+
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -504,6 +522,7 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 	ot->name= "Add Vertex Color";
 	ot->description= "Add vertex color layer";
 	ot->idname= "MESH_OT_vertex_color_add";
+
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -530,6 +549,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 	ot->name= "Remove Vertex Color";
 	ot->description= "Remove vertex color layer";
 	ot->idname= "MESH_OT_vertex_color_remove";
+
 	
 	/* api callbacks */
 	ot->exec= vertex_color_remove_exec;
@@ -565,6 +585,7 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 	ot->name= "Add Sticky";
 	ot->description= "Add sticky UV texture layer";
 	ot->idname= "MESH_OT_sticky_add";
+
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -597,6 +618,7 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 	ot->name= "Remove Sticky";
 	ot->description= "Remove sticky UV texture layer";
 	ot->idname= "MESH_OT_sticky_remove";
+
 	
 	/* api callbacks */
 	ot->poll= layers_poll;
@@ -693,6 +715,8 @@ static void mesh_add_edges(Mesh *mesh, int len)
 	mesh->totedge= totedge;
 }
 
+
+
 static void mesh_add_faces(Mesh *mesh, int len)
 {
 	CustomData fdata;
@@ -723,6 +747,61 @@ static void mesh_add_faces(Mesh *mesh, int len)
 	mesh->totface= totface;
 }
 
+static void mesh_add_loops(Mesh *mesh, int len)
+{
+	CustomData ldata;
+	MLoop *mloop;
+	int i, totloop;
+
+	if(len == 0)
+		return;
+
+	totloop= mesh->totloop + len;	/* new face count */
+
+	/* update customdata */
+	CustomData_copy(&mesh->ldata, &ldata, CD_MASK_MESH, CD_DEFAULT, totloop);
+	CustomData_copy_data(&mesh->ldata, &ldata, 0, 0, mesh->totloop);
+
+	if(!CustomData_has_layer(&ldata, CD_MLOOP))
+		CustomData_add_layer(&ldata, CD_MLOOP, CD_CALLOC, NULL, totloop);
+
+	CustomData_free(&mesh->ldata, mesh->totloop);
+	mesh->ldata= ldata;
+	mesh_update_customdata_pointers(mesh);
+
+	mesh->totloop= totloop;
+}
+
+static void mesh_add_polys(Mesh *mesh, int len)
+{
+	CustomData pdata;
+	MPoly *mpoly;
+	int i, totpoly;
+
+	if(len == 0)
+		return;
+
+	totpoly= mesh->totpoly + len;	/* new face count */
+
+	/* update customdata */
+	CustomData_copy(&mesh->pdata, &pdata, CD_MASK_MESH, CD_DEFAULT, totpoly);
+	CustomData_copy_data(&mesh->pdata, &pdata, 0, 0, mesh->totpoly);
+
+	if(!CustomData_has_layer(&pdata, CD_MPOLY))
+		CustomData_add_layer(&pdata, CD_MPOLY, CD_CALLOC, NULL, totpoly);
+
+	CustomData_free(&mesh->pdata, mesh->totpoly);
+	mesh->pdata= pdata;
+	mesh_update_customdata_pointers(mesh);
+
+	/* set default flags */
+	mpoly= &mesh->mpoly[mesh->totpoly];
+	for(i=0; i<len; i++, mpoly++)
+		mpoly->flag= ME_FACE_SEL;
+
+	mesh->totpoly= totpoly;
+}
+
 /*
 void ED_mesh_geometry_add(Mesh *mesh, ReportList *reports, int verts, int edges, int faces)
 {
@@ -746,6 +825,7 @@ void ED_mesh_faces_add(Mesh *mesh, ReportList *reports, int count)
 		BKE_report(reports, RPT_ERROR, "Can't add faces in edit mode.");
 		return;
 	}
+
 	mesh_add_faces(mesh, count);
 }
 
@@ -759,6 +839,7 @@ void ED_mesh_edges_add(Mesh *mesh, ReportList *reports, int count)
 	mesh_add_edges(mesh, count);
 }
 
+
 void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
 {
 	if(mesh->edit_btmesh) {
@@ -767,6 +848,26 @@ void ED_mesh_vertices_add(Mesh *mesh, ReportList *reports, int count)
 	}
 
 	mesh_add_verts(mesh, count);
+}
+
+void ED_mesh_loops_add(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_btmesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add loops in edit mode.");
+			return;
+	}
+
+	mesh_add_loops(mesh, count);
+}
+
+void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
+{
+	if(mesh->edit_btmesh) {
+		BKE_report(reports, RPT_ERROR, "Can't add polys in edit mode.");
+		return;
+	}
+
+	mesh_add_polys(mesh, count);
 }
 
 void ED_mesh_calc_normals(Mesh *mesh)

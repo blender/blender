@@ -1345,6 +1345,15 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_MeshPoly_vertices_get", "rna_MeshPoly_vertices_set", NULL);
 	RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
 
+	/* these are both very low level access */
+	prop= RNA_def_property(srna, "loop_start", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "loopstart");
+	RNA_def_property_ui_text(prop, "Loop Start", "");
+	/* also low level */
+	prop= RNA_def_property(srna, "loop_total", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "totloop");
+	RNA_def_property_ui_text(prop, "Loop Total", "");
+
 	prop= RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "mat_nr");
 	RNA_def_property_ui_text(prop, "Material Index", "");
@@ -1785,12 +1794,10 @@ static void rna_def_mesh_loops(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 
-#if 0 // BMESH_TODO
 	PropertyRNA *prop;
 
 	FunctionRNA *func;
-	PropertyRNA *parm;
-#endif
+//	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MeshLoops");
 	srna= RNA_def_struct(brna, "MeshLoops", NULL);
@@ -1801,11 +1808,11 @@ static void rna_def_mesh_loops(BlenderRNA *brna, PropertyRNA *cprop)
 	prop= RNA_def_property(srna, "active", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "act_face");
 	RNA_def_property_ui_text(prop, "Active Polygon", "The active polygon for this mesh");
-
-	func= RNA_def_function(srna, "add", "ED_mesh_polys_add");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of polygons to add.", 0, INT_MAX);
 #endif
+
+	func= RNA_def_function(srna, "add", "ED_mesh_loops_add");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of loops to add.", 0, INT_MAX);
 }
 
 /* mesh.polygons */
@@ -1813,12 +1820,10 @@ static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 
-#if 0 // BMESH_TODO
-	PropertyRNA *prop;
+//	PropertyRNA *prop;
 
 	FunctionRNA *func;
 	PropertyRNA *parm;
-#endif
 
 	RNA_def_property_srna(cprop, "MeshPolygons");
 	srna= RNA_def_struct(brna, "MeshPolygons", NULL);
@@ -1829,11 +1834,11 @@ static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
 	prop= RNA_def_property(srna, "active", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "act_face");
 	RNA_def_property_ui_text(prop, "Active Polygon", "The active polygon for this mesh");
+#endif
 
 	func= RNA_def_function(srna, "add", "ED_mesh_polys_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of polygons to add.", 0, INT_MAX);
-#endif
 }
 
 
