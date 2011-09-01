@@ -140,13 +140,14 @@ public:
 		/* compile kernel */
 		string source = string_printf("#include \"kernel.cl\" // %lf\n", time_dt());
 		size_t source_len = source.size();
+		const char *source_str = source.c_str();
 
 		string build_options = "";
 
 		build_options += "-I " + path_get("kernel") + " -I " + path_get("util"); /* todo: escape path */
 		build_options += " -Werror -cl-fast-relaxed-math -cl-strict-aliasing";
 
-		cpProgram = clCreateProgramWithSource(cxContext, 1, (const char **)&source, &source_len, &ciErr);
+		cpProgram = clCreateProgramWithSource(cxContext, 1, (const char **)&source_str, &source_len, &ciErr);
 
 		opencl_assert(ciErr);
 

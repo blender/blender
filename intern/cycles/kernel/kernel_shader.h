@@ -377,7 +377,7 @@ __device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 #ifdef __SVM__
 		svm_eval_nodes(kg, sd, SHADER_TYPE_SURFACE, randb, path_flag);
 #else
-		sd->svm_closure = CLOSURE_BSDF_DIFFUSE_ID;
+		bsdf_diffuse_setup(sd, sd->N);
 		sd->svm_closure_weight = make_float3(0.8f, 0.8f, 0.8f);
 #endif
 

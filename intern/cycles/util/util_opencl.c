@@ -130,7 +130,7 @@ static void clewExit(void)
 int clLibraryInit()
 {
 #ifdef _WIN32
-	const char *path = "opencl.dll";
+	const char *path = "OpenCL.dll";
 #elif defined(__APPLE__)
 	const char *path = "/Library/Frameworks/OpenCL.framework/OpenCL";
 #else
