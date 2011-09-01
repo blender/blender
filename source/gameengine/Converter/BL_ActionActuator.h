@@ -64,6 +64,8 @@ public:
 	virtual void ProcessReplica();
 	
 	void SetBlendTime (float newtime);
+	void SetLocalTime (float curtime);
+	void ResetStartTime (float curtime);
 	
 	bAction*	GetAction() { return m_action; }
 	void		SetAction(bAction* act) { m_action= act; }
@@ -150,7 +152,7 @@ enum {
 	ACT_FLAG_ACTIVE		= 1<<3,
 	ACT_FLAG_CONTINUE	= 1<<4,
 	ACT_FLAG_PLAY_END	= 1<<5,
-
+	ACT_FLAG_ATTEMPT_PLAY = 1<<6,
 };
 
 #endif

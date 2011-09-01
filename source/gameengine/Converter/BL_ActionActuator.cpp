@@ -129,6 +129,50 @@ void BL_ActionActuator::SetBlendTime (float newtime){
 	m_blendframe = newtime;
 }
 
+void BL_ActionActuator::SetLocalTime(float curtime)
+{
+	float dt = (curtime-m_starttime)*KX_KetsjiEngine::GetAnimFrameRate();
+
+	if (m_endframe < m_startframe)
+		dt = -dt;
+
+	m_localtime = m_startframe + dt;
+	
+	// Handle wrap around
+	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
+	{
+		switch(m_playtype)
+		{
+		case ACT_ACTION_PLAY:
+			// Clamp
+			m_localtime = m_endframe;
+			break;
+		case ACT_ACTION_LOOP_END:
+			// Put the time back to the beginning
+			m_localtime = m_startframe;
+			m_starttime = curtime;
+			break;
+		case ACT_ACTION_PINGPONG:
+			// Swap the start and end frames
+			float temp = m_startframe;
+			m_startframe = m_endframe;
+			m_endframe = temp;
+
+			m_starttime = curtime;
+
+			break;
+		}
+	}
+}
+
+void BL_ActionActuator::ResetStartTime(float curtime)
+{
+	float dt = m_localtime - m_startframe;
+
+	m_starttime = curtime - dt / (KX_KetsjiEngine::GetAnimFrameRate());
+	//SetLocalTime(curtime);
+}
+
 CValue* BL_ActionActuator::GetReplica() {
 	BL_ActionActuator* replica = new BL_ActionActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
@@ -194,11 +238,46 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		RemoveAllEvents();
 	}
 
+	if (m_flag & ACT_FLAG_ATTEMPT_PLAY)
+		SetLocalTime(curtime);
+
 	if (bUseContinue && (m_flag & ACT_FLAG_ACTIVE))
-		m_localtime = obj->GetActionFrame(m_layer);
-	
-	if (bPositiveEvent)
 	{
+		m_localtime = obj->GetActionFrame(m_layer);
+		ResetStartTime(curtime);
+	}
+
+	// Handle a frame property if it's defined
+	if ((m_flag & ACT_FLAG_ACTIVE) && m_framepropname[0] != 0)
+	{
+		CValue* oldprop = obj->GetProperty(m_framepropname);
+		CValue* newval = new CFloatValue(obj->GetActionFrame(m_layer));
+		if (oldprop)
+			oldprop->SetValue(newval);
+		else
+			obj->SetProperty(m_framepropname, newval);
+
+		newval->Release();
+	}
+
+	// Handle a finished animation
+	if ((m_flag & ACT_FLAG_PLAY_END) && obj->IsActionDone(m_layer))
+	{
+		m_flag &= ~ACT_FLAG_ACTIVE;
+		m_flag &= ~ACT_FLAG_ATTEMPT_PLAY;
+		obj->StopAction(m_layer);
+		return false;
+	}
+	
+	// If a different action is playing, we've been overruled and are no longer active
+	if (obj->GetCurrentAction(m_layer) != m_action)
+		m_flag &= ~ACT_FLAG_ACTIVE;
+
+	if (bPositiveEvent || (m_flag & ACT_FLAG_ATTEMPT_PLAY && !(m_flag & ACT_FLAG_ACTIVE)))
+	{
+		if (bPositiveEvent)
+			ResetStartTime(curtime);
+
 		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, playtype, m_layer_weight, m_ipo_flags))
 		{
 			m_flag |= ACT_FLAG_ACTIVE;
@@ -210,11 +289,11 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			else
 				m_flag &= ~ACT_FLAG_PLAY_END;
 		}
-		else
-			return false;
+		m_flag |= ACT_FLAG_ATTEMPT_PLAY;
 	}
 	else if ((m_flag & ACT_FLAG_ACTIVE) && bNegativeEvent)
 	{	
+		m_flag &= ~ACT_FLAG_ATTEMPT_PLAY;
 		bAction *curr_action = obj->GetCurrentAction(m_layer);
 		if (curr_action && curr_action != m_action)
 		{
@@ -257,27 +336,6 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				m_flag |= ACT_FLAG_PLAY_END;
 				break;
 		}
-	}
-
-	// Handle a frame property if it's defined
-	if ((m_flag & ACT_FLAG_ACTIVE) && m_framepropname[0] != 0)
-	{
-		CValue* oldprop = obj->GetProperty(m_framepropname);
-		CValue* newval = new CFloatValue(obj->GetActionFrame(m_layer));
-		if (oldprop)
-			oldprop->SetValue(newval);
-		else
-			obj->SetProperty(m_framepropname, newval);
-
-		newval->Release();
-	}
-
-	// Handle a finished animation
-	if ((m_flag & ACT_FLAG_PLAY_END) && obj->IsActionDone(m_layer))
-	{
-		m_flag &= ~ACT_FLAG_ACTIVE;
-		obj->StopAction(m_layer);
-		return false;
 	}
 
 	return true;
