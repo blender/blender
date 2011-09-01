@@ -22,7 +22,7 @@ devices = (
 
 gpu_type = (
 ("CUDA", "CUDA", "NVidia only"),
-("OPENCL", "OpenCL", ""))
+("OPENCL", "OpenCL (incomplete)", ""))
 
 shading_systems = (
 ("GPU_COMPATIBLE", "GPU Compatible", "Restricted shading system compatible with GPU rendering"),

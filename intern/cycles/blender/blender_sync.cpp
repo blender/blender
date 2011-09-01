@@ -199,24 +199,34 @@ bool BlenderSync::get_session_pause(BL::Scene b_scene, bool background)
 	return (background)? false: get_boolean(cscene, "preview_pause");
 }
 
+static bool device_type_available(vector<DeviceType>& types, DeviceType dtype)
+{
+	foreach(DeviceType dt, types)
+		if(dt == dtype)
+			return true;
+
+	return false;
+}
+
 SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background)
 {
 	SessionParams params;
-	DeviceType dtype;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
 	/* device type */
-	if ((RNA_enum_get(&cscene, "device")) == 0)
-		dtype = DEVICE_CPU;
-	else 
-		dtype = ((RNA_enum_get(&cscene, "gpu_type")) == 0)? DEVICE_CUDA: DEVICE_OPENCL;
-
 	params.device_type = DEVICE_CPU;
-	vector<DeviceType> types = Device::available_types();
 
-	foreach(DeviceType dt, types)
-		if(dt == dtype)
+	if(RNA_enum_get(&cscene, "device") != 0) {
+		vector<DeviceType> types = Device::available_types();
+		DeviceType dtype = (RNA_enum_get(&cscene, "gpu_type") == 0)? DEVICE_CUDA: DEVICE_OPENCL;
+
+		if(device_type_available(types, dtype))
 			params.device_type = dtype;
+		else if(device_type_available(types, DEVICE_OPENCL))
+			params.device_type = DEVICE_OPENCL;
+		else if(device_type_available(types, DEVICE_CUDA))
+			params.device_type = DEVICE_CUDA;
+	}
 			
 	/* Background */
 	params.background = background;

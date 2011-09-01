@@ -357,8 +357,8 @@ __device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
 		if(sd->svm_closure == CLOSURE_HOLDOUT_ID)
 			return make_float3(1.0f, 1.0f, 1.0f);
 		else
-			return make_float3(0.0f, 0.0f, 0.0f);
 #endif
+			return make_float3(0.0f, 0.0f, 0.0f);
 	}
 }
 

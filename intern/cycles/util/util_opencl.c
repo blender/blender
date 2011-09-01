@@ -134,7 +134,7 @@ int clLibraryInit()
 #elif defined(__APPLE__)
 	const char *path = "/Library/Frameworks/OpenCL.framework/OpenCL";
 #else
-	const char *path = "libopencl.so";
+	const char *path = "libOpenCL.so";
 #endif
     int error = 0;
 
