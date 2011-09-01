@@ -1229,14 +1229,14 @@ void mtex_bump_tap5( vec3 texco, sampler2D ima, float hScale,
 void mtex_bump_deriv( vec3 texco, sampler2D ima, float ima_x, float ima_y, float hScale, 
                      out float dBs, out float dBt ) 
 {
-	float s = 1;		// negate this if flipped texture coordinate
+	float s = 1.0;		// negate this if flipped texture coordinate
 	vec2 TexDx = dFdx(texco.xy);
 	vec2 TexDy = dFdy(texco.xy);
 	
 	// this variant using a derivative map is described here
 	// http://mmikkelsen3d.blogspot.com/2011/07/derivative-maps.html
 	vec2 dim = vec2(ima_x, ima_y);
-	vec2 dBduv = hScale*dim*(2*texture2D(ima, texco.xy).xy-1);
+	vec2 dBduv = hScale*dim*(2.0*texture2D(ima, texco.xy).xy-1.0);
 	
 	dBs = dBduv.x*TexDx.x + s*dBduv.y*TexDx.y;
 	dBt = dBduv.x*TexDy.x + s*dBduv.y*TexDy.y;

@@ -60,6 +60,7 @@ class SEQUENCER_HT_header(Header):
 
             layout.separator()
             layout.operator("sequencer.refresh_all")
+            layout.template_running_jobs()
         elif st.view_type == 'SEQUENCER_PREVIEW':
             layout.separator()
             layout.operator("sequencer.refresh_all")
@@ -112,7 +113,11 @@ class SEQUENCER_MT_view(Menu):
 
         layout.operator("sequencer.view_selected")
 
-        layout.prop(st, "show_frames")
+        if st.show_frames:
+            layout.operator("anim.time_toggle", text="Show Seconds")
+        else:
+            layout.operator("anim.time_toggle", text="Show Frames")
+
         layout.prop(st, "show_frame_indicator")
         if st.display_mode == 'IMAGE':
             layout.prop(st, "show_safe_margin")
@@ -241,6 +246,7 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.images_separate")
         layout.operator("sequencer.offset_clear")
         layout.operator("sequencer.deinterlace_selected_movies")
+        layout.operator("sequencer.rebuild_proxy")
         layout.separator()
 
         layout.operator("sequencer.duplicate")
@@ -578,6 +584,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
             col = split.column()
             col.prop(strip, "filepath", text="")
             col.prop(strip, "mpeg_preseek", text="MPEG Preseek")
+            col.prop(strip, "streamindex", text="Stream Index")
 
         # TODO, sound???
         # end drawing filename
@@ -640,8 +647,10 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
 
         row.prop(strip.sound, "use_memory_cache")
 
+        layout.prop(strip, "waveform")
         layout.prop(strip, "volume")
-        layout.prop(strip, "attenuation")
+        layout.prop(strip, "pitch")
+        layout.prop(strip, "pan")
 
         col = layout.column(align=True)
         col.label(text="Trim Duration:")
@@ -746,7 +755,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
-    bl_label = "Proxy"
+    bl_label = "Proxy / Timecode"
 
     @classmethod
     def poll(cls, context):
@@ -772,11 +781,27 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
         flow = layout.column_flow()
         flow.prop(strip, "use_proxy_custom_directory")
         flow.prop(strip, "use_proxy_custom_file")
-        if strip.proxy:  # TODO - need to add this somehow
+        if strip.proxy:
             if strip.use_proxy_custom_directory and not strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "directory")
             if strip.use_proxy_custom_file:
                 flow.prop(strip.proxy, "filepath")
+
+            row = layout.row()
+            row.prop(strip.proxy, "build_25")
+            row.prop(strip.proxy, "build_50")
+            row.prop(strip.proxy, "build_75")
+            row.prop(strip.proxy, "build_100")
+
+            col = layout.column()
+            col.label(text="Build JPEG quality")
+            col.prop(strip.proxy, "quality")
+
+            if strip.type == "MOVIE":
+                col = layout.column()
+                col.label(text="Use timecode index:")
+
+                col.prop(strip.proxy, "timecode")
 
 
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):

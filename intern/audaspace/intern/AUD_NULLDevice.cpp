@@ -32,10 +32,91 @@
 #include <limits>
 
 #include "AUD_NULLDevice.h"
-#include "AUD_IReader.h"
-#include "AUD_IFactory.h"
+
+AUD_NULLDevice::AUD_NULLHandle::AUD_NULLHandle()
+{
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::pause()
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::resume()
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::stop()
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::getKeep()
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setKeep(bool keep)
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::seek(float position)
+{
+	return false;
+}
+
+float AUD_NULLDevice::AUD_NULLHandle::getPosition()
+{
+	return 0.0f;
+}
+
+AUD_Status AUD_NULLDevice::AUD_NULLHandle::getStatus()
+{
+	return AUD_STATUS_INVALID;
+}
+
+float AUD_NULLDevice::AUD_NULLHandle::getVolume()
+{
+	return 0.0f;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setVolume(float volume)
+{
+	return false;
+}
+
+float AUD_NULLDevice::AUD_NULLHandle::getPitch()
+{
+	return 0.0f;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setPitch(float pitch)
+{
+	return false;
+}
+
+int AUD_NULLDevice::AUD_NULLHandle::getLoopCount()
+{
+	return 0;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setLoopCount(int count)
+{
+	return false;
+}
+
+bool AUD_NULLDevice::AUD_NULLHandle::setStopCallback(stopCallback callback, void* data)
+{
+	return false;
+}
 
 AUD_NULLDevice::AUD_NULLDevice()
+{
+}
+
+AUD_NULLDevice::~AUD_NULLDevice()
 {
 }
 
@@ -48,54 +129,18 @@ AUD_DeviceSpecs AUD_NULLDevice::getSpecs() const
 	return specs;
 }
 
-AUD_Handle* AUD_NULLDevice::play(AUD_IReader* reader, bool keep)
+AUD_Reference<AUD_IHandle> AUD_NULLDevice::play(AUD_Reference<AUD_IReader> reader, bool keep)
 {
-	return 0;
+	return new AUD_NULLHandle();
 }
 
-AUD_Handle* AUD_NULLDevice::play(AUD_IFactory* factory, bool keep)
+AUD_Reference<AUD_IHandle> AUD_NULLDevice::play(AUD_Reference<AUD_IFactory> factory, bool keep)
 {
-	return 0;
+	return new AUD_NULLHandle();
 }
 
-bool AUD_NULLDevice::pause(AUD_Handle* handle)
+void AUD_NULLDevice::stopAll()
 {
-	return false;
-}
-
-bool AUD_NULLDevice::resume(AUD_Handle* handle)
-{
-	return false;
-}
-
-bool AUD_NULLDevice::stop(AUD_Handle* handle)
-{
-	return false;
-}
-
-bool AUD_NULLDevice::getKeep(AUD_Handle* handle)
-{
-	return false;
-}
-
-bool AUD_NULLDevice::setKeep(AUD_Handle* handle, bool keep)
-{
-	return false;
-}
-
-bool AUD_NULLDevice::seek(AUD_Handle* handle, float position)
-{
-	return false;
-}
-
-float AUD_NULLDevice::getPosition(AUD_Handle* handle)
-{
-	return std::numeric_limits<float>::quiet_NaN();
-}
-
-AUD_Status AUD_NULLDevice::getStatus(AUD_Handle* handle)
-{
-	return AUD_STATUS_INVALID;
 }
 
 void AUD_NULLDevice::lock()
@@ -113,39 +158,4 @@ float AUD_NULLDevice::getVolume() const
 
 void AUD_NULLDevice::setVolume(float volume)
 {
-}
-
-float AUD_NULLDevice::getVolume(AUD_Handle* handle)
-{
-	return std::numeric_limits<float>::quiet_NaN();
-}
-
-bool AUD_NULLDevice::setVolume(AUD_Handle* handle, float volume)
-{
-	return false;
-}
-
-float AUD_NULLDevice::getPitch(AUD_Handle* handle)
-{
-	return std::numeric_limits<float>::quiet_NaN();
-}
-
-bool AUD_NULLDevice::setPitch(AUD_Handle* handle, float pitch)
-{
-	return false;
-}
-
-int AUD_NULLDevice::getLoopCount(AUD_Handle* handle)
-{
-	return 0;
-}
-
-bool AUD_NULLDevice::setLoopCount(AUD_Handle* handle, int count)
-{
-	return false;
-}
-
-bool AUD_NULLDevice::setStopCallback(AUD_Handle* handle, stopCallback callback, void* data)
-{
-	return false;
 }

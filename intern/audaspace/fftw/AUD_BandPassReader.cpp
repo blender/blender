@@ -71,8 +71,7 @@ void AUD_BandPassReader::read(int & length, sample_t* & buffer)
 
 	if(length > 0)
 	{
-		if(length * AUD_SAMPLE_SIZE(specs) > m_buffer->getSize())
-			m_buffer->resize(length * AUD_SAMPLE_SIZE(specs));
+		m_buffer->assureSize(length * AUD_SAMPLE_SIZE(specs));
 
 		if(length != m_length)
 		{

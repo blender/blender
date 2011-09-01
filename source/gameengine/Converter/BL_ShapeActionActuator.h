@@ -54,27 +54,7 @@ public:
 						short	playtype,
 						short	blendin,
 						short	priority,
-						float	stride) 
-		: SCA_IActuator(gameobj, KX_ACT_SHAPEACTION),
-		
-		m_lastpos(0, 0, 0),
-		m_blendframe(0),
-		m_flag(0),
-		m_startframe (starttime),
-		m_endframe(endtime) ,
-		m_starttime(0),
-		m_localtime(starttime),
-		m_lastUpdate(-1),
-		m_blendin(blendin),
-		m_blendstart(0),
-		m_stridelength(stride),
-		m_playtype(playtype),
-		m_priority(priority),
-		m_action(action),
-		m_framepropname(framepropname),	
-		m_propname(propname)
-	{
-	};
+						float	stride);
 	virtual ~BL_ShapeActionActuator();
 	virtual	bool Update(double curtime, bool frame);
 	virtual CValue* GetReplica();
@@ -160,6 +140,7 @@ protected:
 	STR_String	m_framepropname;
 	STR_String	m_propname;
 	vector<float> m_blendshape;
+	struct PointerRNA *m_idptr;
 };
 
 #endif

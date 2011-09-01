@@ -47,6 +47,7 @@
 #include "BLI_math.h"
 #include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
+#include "BLI_threads.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -124,6 +125,111 @@ typedef struct TransSeq {
 	/* int final_left, final_right; */ /* UNUSED */
 	int len;
 } TransSeq;
+
+/* ********************************************************************** */
+
+/* ***************** proxy job manager ********************** */
+
+typedef struct ProxyBuildJob {
+	Scene *scene; 
+	struct Main * main;
+	ListBase queue;
+	ThreadMutex queue_lock;
+} ProxyJob;
+
+static void proxy_freejob(void *pjv)
+{
+	ProxyJob *pj= pjv;
+	Sequence * seq;
+
+	for (seq = pj->queue.first; seq; seq = seq->next) {
+		BLI_remlink(&pj->queue, seq);
+		seq_free_sequence_recurse(pj->scene, seq);
+	}
+
+	BLI_mutex_end(&pj->queue_lock);
+
+	MEM_freeN(pj);
+}
+
+/* only this runs inside thread */
+static void proxy_startjob(void *pjv, short *stop, short *do_update, float *progress)
+{
+	ProxyJob *pj = pjv;
+
+	while (!*stop) {
+		Sequence * seq;
+
+		BLI_mutex_lock(&pj->queue_lock);
+		
+		if (!pj->queue.first) {
+			BLI_mutex_unlock(&pj->queue_lock);
+			break;
+		}
+
+		seq = pj->queue.first;
+
+		BLI_remlink(&pj->queue, seq);
+		BLI_mutex_unlock(&pj->queue_lock);
+
+		seq_proxy_rebuild(pj->main, pj->scene, seq, 
+				  stop, do_update, progress);
+		seq_free_sequence_recurse(pj->scene, seq);
+	}
+
+	if (*stop) {
+		fprintf(stderr, 
+			"Canceling proxy rebuild on users request...\n");
+	}
+}
+
+static void proxy_endjob(void *UNUSED(customdata))
+{
+
+}
+
+void seq_proxy_build_job(const bContext *C, Sequence * seq)
+{
+	wmJob * steve;
+	ProxyJob *pj;
+	Scene *scene= CTX_data_scene(C);
+	ScrArea * sa= CTX_wm_area(C);
+
+	seq = seq_dupli_recursive(scene, scene, seq, 0);
+
+	steve = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), 
+			    sa, "Building Proxies", WM_JOB_PROGRESS);
+
+	pj = WM_jobs_get_customdata(steve);
+
+	if (!pj) {
+		pj = MEM_callocN(sizeof(ProxyJob), "proxy rebuild job");
+	
+		pj->scene= scene;
+		pj->main = CTX_data_main(C);
+
+		BLI_mutex_init(&pj->queue_lock);
+
+		WM_jobs_customdata(steve, pj, proxy_freejob);
+		WM_jobs_timer(steve, 0.1, NC_SCENE|ND_SEQUENCER,
+			      NC_SCENE|ND_SEQUENCER);
+		WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, 
+				  proxy_endjob);
+	}
+
+	BLI_mutex_lock(&pj->queue_lock);
+	BLI_addtail(&pj->queue, seq);
+	BLI_mutex_unlock(&pj->queue_lock);
+
+	if (!WM_jobs_is_running(steve)) {
+		G.afbreek = 0;
+		WM_jobs_start(CTX_wm_manager(C), steve);
+	}
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+}
+
+/* ********************************************************************** */
 
 void seq_rectf(Sequence *seq, rctf *rectf)
 {
@@ -1035,7 +1141,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1082,7 +1188,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1756,7 +1862,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 	}
 
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
@@ -1820,7 +1926,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm, scene);
 
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 
 	seqbase_unique_name_recursive(&scene->ed->seqbase, seqm);
 
@@ -1893,7 +1999,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	sort_seq(scene);
-	seq_update_muting(scene, ed);
+	seq_update_muting(ed);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
@@ -2690,6 +2796,37 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, FALSE);
 }
 
+/* rebuild_proxy operator */
+static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = seq_give_editing(scene, FALSE);
+	Sequence * seq;
+
+	SEQP_BEGIN(ed, seq) {
+		if ((seq->flag & SELECT)) {
+			seq_proxy_build_job(C, seq);
+		}
+	}
+	SEQ_END
+		
+	return OPERATOR_FINISHED;
+}
+
+void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rebuild Proxy and Timecode Indices";
+	ot->idname= "SEQUENCER_OT_rebuild_proxy";
+	ot->description="Rebuild all selected proxies and timecode indeces using the job system";
+	
+	/* api callbacks */
+	ot->exec= sequencer_rebuild_proxy_exec;
+	ot->poll= ED_operator_sequencer_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+}
 
 /* change ops */
 

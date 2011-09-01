@@ -274,6 +274,11 @@ endif()
 
 TEST_SSE_SUPPORT()
 
+# don't store paths to libs for portable distrobution
+if(WITH_INSTALL_PORTABLE)
+	set(CMAKE_SKIP_BUILD_RPATH TRUE)
+endif()
+
 #-----------------------------------------------------------------------------
 # Initialize un-cached vars, avoid unused warning
 
@@ -445,21 +450,20 @@ if(UNIX AND NOT APPLE)
 	endif()
 
 	if(WITH_OPENCOLLADA)
-		set(OPENCOLLADA /usr/local/opencollada CACHE PATH "OpenCollada Directory")
-		mark_as_advanced(OPENCOLLADA)
-		set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-		set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre ftoa buffer xml2)
-		set(OPENCOLLADA_INCLUDE_DIR ${OPENCOLLADA})
+		find_package(OpenCOLLADA)
+		if(OPENCOLLADA_FOUND)
+			set(PCRE /usr CACHE PATH "PCRE Directory")
+			mark_as_advanced(PCRE)
+			set(PCRE_LIBPATH ${PCRE}/lib)
+			set(PCRE_LIB pcre)
 
-		set(PCRE /usr CACHE PATH "PCRE Directory")
-		mark_as_advanced(PCRE)
-		set(PCRE_LIBPATH ${PCRE}/lib)
-		set(PCRE_LIB pcre)
-
-		set(EXPAT /usr CACHE PATH "Expat Directory")
-		mark_as_advanced(EXPAT)
-		set(EXPAT_LIBPATH ${EXPAT}/lib)
-		set(EXPAT_LIB expat)
+			set(EXPAT /usr CACHE PATH "Expat Directory")
+			mark_as_advanced(EXPAT)
+			set(EXPAT_LIBPATH ${EXPAT}/lib)
+			set(EXPAT_LIB expat)
+		else()
+			set(WITH_OPENCOLLADA OFF)
+		endif()
 	endif()
 
 	if(WITH_MEM_JEMALLOC)
@@ -684,9 +688,15 @@ elseif(WIN32)
 		endif()
 
 		if(WITH_OPENCOLLADA)
-			set(OPENCOLLADA_INCLUDE_DIR
-				${LIBDIR}/opencollada/include
+
+			set(OPENCOLLADA_INCLUDE_DIRS
+				${LIBDIR}/opencollada/include/COLLADAStreamWriter/include
+				${LIBDIR}/opencollada/include/COLLADABaseUtils/include
+				${LIBDIR}/opencollada/include/COLLADAFramework/include
+				${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader/include
+				${LIBDIR}/opencollada/include/GeneratedSaxParser/include			
 			)
+
 			set(OPENCOLLADA_LIBRARIES
 				${LIBDIR}/opencollada/lib/OpenCOLLADASaxFrameworkLoader.lib
 				${LIBDIR}/opencollada/lib/OpenCOLLADAFramework.lib
@@ -832,7 +842,13 @@ elseif(WIN32)
 
 		if(WITH_OPENCOLLADA)
 			set(OPENCOLLADA ${LIBDIR}/gcc/opencollada)
-			set(OPENCOLLADA_INCLUDE_DIR ${OPENCOLLADA}/include)
+			set(OPENCOLLADA_INCLUDE_DIRS
+				${LIBDIR}/gcc/opencollada/include/COLLADAStreamWriter/include
+				${LIBDIR}/gcc/opencollada/include/COLLADABaseUtils/include
+				${LIBDIR}/gcc/opencollada/include/COLLADAFramework/include
+				${LIBDIR}/gcc/opencollada/include/COLLADASaxFrameworkLoader/include
+				${LIBDIR}/gcc/opencollada/include/GeneratedSaxParser/include			
+			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib ${OPENCOLLADA}/lib)
 			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa)
 			set(PCRE_LIB pcre)
@@ -932,7 +948,7 @@ elseif(APPLE)
 		# we use precompiled libraries for py 3.2 and up by default
 
 		# normally cached but not since we include them with blender
-                set(PYTHON_VERSION 3.2)
+		set(PYTHON_VERSION 3.2)
 		set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
 		# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
 		set(PYTHON_LIBRARY python${PYTHON_VERSION})
@@ -1043,7 +1059,15 @@ elseif(APPLE)
 
 	if(WITH_OPENCOLLADA)
 		set(OPENCOLLADA ${LIBDIR}/opencollada)
-		set(OPENCOLLADA_INCLUDE_DIR ${OPENCOLLADA}/include)
+
+		set(OPENCOLLADA_INCLUDE_DIRS
+			${LIBDIR}/opencollada/include/COLLADAStreamWriter
+			${LIBDIR}/opencollada/include/COLLADABaseUtils
+			${LIBDIR}/opencollada/include/COLLADAFramework
+			${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader
+			${LIBDIR}/opencollada/include/GeneratedSaxParser
+		)
+
 		set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
 		set(OPENCOLLADA_LIBRARIES "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lUTF -lxml2 -lbuffer -lftoa" )
 		#pcre is bundled with openCollada

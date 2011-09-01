@@ -29,7 +29,6 @@
  */
 
 
-#include "AUD_DefaultMixer.h"
 #include "AUD_ReadDevice.h"
 #include "AUD_IReader.h"
 
@@ -39,6 +38,15 @@ AUD_ReadDevice::AUD_ReadDevice(AUD_DeviceSpecs specs) :
 	m_playing(false)
 {
 	m_specs = specs;
+
+	create();
+}
+
+AUD_ReadDevice::AUD_ReadDevice(AUD_Specs specs) :
+	m_playing(false)
+{
+	m_specs.specs = specs;
+	m_specs.format = AUD_FORMAT_FLOAT32;
 
 	create();
 }
@@ -58,6 +66,12 @@ bool AUD_ReadDevice::read(data_t* buffer, int length)
 		else
 			memset(buffer, 0, length * AUD_DEVICE_SAMPLE_SIZE(m_specs));
 	return m_playing;
+}
+
+void AUD_ReadDevice::changeSpecs(AUD_Specs specs)
+{
+	if(!AUD_COMPARE_SPECS(specs, m_specs.specs))
+		setSpecs(specs);
 }
 
 void AUD_ReadDevice::playing(bool playing)

@@ -32,12 +32,12 @@
 #include "AUD_MixerFactory.h"
 #include "AUD_IReader.h"
 
-AUD_IReader* AUD_MixerFactory::getReader() const
+AUD_Reference<AUD_IReader> AUD_MixerFactory::getReader() const
 {
 	return m_factory->createReader();
 }
 
-AUD_MixerFactory::AUD_MixerFactory(AUD_IFactory* factory,
+AUD_MixerFactory::AUD_MixerFactory(AUD_Reference<AUD_IFactory> factory,
 								   AUD_DeviceSpecs specs) :
 	m_specs(specs), m_factory(factory)
 {
@@ -48,7 +48,7 @@ AUD_DeviceSpecs AUD_MixerFactory::getSpecs() const
 	return m_specs;
 }
 
-AUD_IFactory* AUD_MixerFactory::getFactory() const
+AUD_Reference<AUD_IFactory> AUD_MixerFactory::getFactory() const
 {
 	return m_factory;
 }

@@ -34,7 +34,7 @@
 
 #include <cstring>
 
-AUD_LoopReader::AUD_LoopReader(AUD_IReader* reader, int loop) :
+AUD_LoopReader::AUD_LoopReader(AUD_Reference<AUD_IReader> reader, int loop) :
 		AUD_EffectReader(reader), m_count(loop), m_left(loop)
 {
 }
@@ -68,29 +68,20 @@ int AUD_LoopReader::getPosition() const
 	return m_reader->getPosition() * (m_count < 0 ? 1 : m_count);
 }
 
-void AUD_LoopReader::read(int & length, sample_t* & buffer)
+void AUD_LoopReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	AUD_Specs specs = m_reader->getSpecs();
-	int samplesize = AUD_SAMPLE_SIZE(specs);
+	const AUD_Specs specs = m_reader->getSpecs();
 
 	int len = length;
 
-	m_reader->read(len, buffer);
+	m_reader->read(length, eos, buffer);
 
-	if(len < length && m_left)
+	if(length < len && eos && m_left)
 	{
-		int pos = 0;
+		int pos = length;
+		length = len;
 
-		if(m_buffer.getSize() < length * samplesize)
-			m_buffer.resize(length * samplesize);
-
-		sample_t* buf = m_buffer.getBuffer();
-
-		memcpy(buf + pos * specs.channels, buffer, len * samplesize);
-
-		pos += len;
-
-		while(pos < length && m_left)
+		while(pos < length && eos && m_left)
 		{
 			if(m_left > 0)
 				m_left--;
@@ -98,20 +89,15 @@ void AUD_LoopReader::read(int & length, sample_t* & buffer)
 			m_reader->seek(0);
 
 			len = length - pos;
-			m_reader->read(len, buffer);
+			m_reader->read(len, eos, buffer + pos * specs.channels);
 
 			// prevent endless loop
 			if(!len)
 				break;
 
-			memcpy(buf + pos * specs.channels, buffer, len * samplesize);
-
 			pos += len;
 		}
 
 		length = pos;
-		buffer = buf;
 	}
-	else
-		length = len;
 }

@@ -36,7 +36,7 @@
 sf_count_t AUD_SndFileReader::vio_get_filelen(void *user_data)
 {
 	AUD_SndFileReader* reader = (AUD_SndFileReader*)user_data;
-	return reader->m_membuffer.get()->getSize();
+	return reader->m_membuffer->getSize();
 }
 
 sf_count_t AUD_SndFileReader::vio_seek(sf_count_t offset, int whence,
@@ -53,7 +53,7 @@ sf_count_t AUD_SndFileReader::vio_seek(sf_count_t offset, int whence,
 		reader->m_memoffset = reader->m_memoffset + offset;
 		break;
 	case SEEK_END:
-		reader->m_memoffset = reader->m_membuffer.get()->getSize() + offset;
+		reader->m_memoffset = reader->m_membuffer->getSize() + offset;
 		break;
 	}
 
@@ -65,10 +65,10 @@ sf_count_t AUD_SndFileReader::vio_read(void *ptr, sf_count_t count,
 {
 	AUD_SndFileReader* reader = (AUD_SndFileReader*)user_data;
 
-	if(reader->m_memoffset + count > reader->m_membuffer.get()->getSize())
-		count = reader->m_membuffer.get()->getSize() - reader->m_memoffset;
+	if(reader->m_memoffset + count > reader->m_membuffer->getSize())
+		count = reader->m_membuffer->getSize() - reader->m_memoffset;
 
-	memcpy(ptr, ((data_t*)reader->m_membuffer.get()->getBuffer()) +
+	memcpy(ptr, ((data_t*)reader->m_membuffer->getBuffer()) +
 		   reader->m_memoffset, count);
 	reader->m_memoffset += count;
 
@@ -161,17 +161,13 @@ AUD_Specs AUD_SndFileReader::getSpecs() const
 	return m_specs;
 }
 
-void AUD_SndFileReader::read(int & length, sample_t* & buffer)
+void AUD_SndFileReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	int sample_size = AUD_SAMPLE_SIZE(m_specs);
-
-	// resize output buffer if necessary
-	if(m_buffer.getSize() < length*sample_size)
-		m_buffer.resize(length*sample_size);
-
-	buffer = m_buffer.getBuffer();
+	int olen = length;
 
 	length = sf_readf_float(m_sndfile, buffer, length);
 
 	m_position += length;
+
+	eos = length < olen;
 }

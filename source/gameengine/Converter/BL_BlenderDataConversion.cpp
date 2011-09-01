@@ -350,6 +350,8 @@ bool ConvertMaterial(
 
 		// use lighting?
 		material->ras_mode |= ( mat->mode & MA_SHLESS )?0:USE_LIGHT;
+		// cast shadows?
+		material->ras_mode |= ( mat->mode & MA_SHADBUF )?CAST_SHADOW:0;
 		MTex *mttmp = 0;
 		numchan = getNumTexChannels(mat);
 		int valid_index = 0;
@@ -1481,7 +1483,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		{
 			objprop.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
 			
-			objprop.m_soft_linStiff = 0.5;;
+			objprop.m_soft_linStiff = 0.5;
 			objprop.m_soft_angStiff = 1.f;		/* angular stiffness 0..1 */
 			objprop.m_soft_volume= 1.f;			/* volume preservation 0..1 */
 
@@ -1682,8 +1684,6 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 
 	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools,
 		lightobj, glslmat);
-
-	BL_ConvertLampIpos(la, gamelight, converter);
 	
 	return gamelight;
 }
@@ -1695,8 +1695,6 @@ static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_Blen
 	
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);
 	gamecamera->SetName(ca->id.name + 2);
-	
-	BL_ConvertCameraIpos(ca, gamecamera, converter);
 	
 	return gamecamera;
 }
@@ -1807,11 +1805,13 @@ static KX_GameObject *gameobject_from_blenderobject(
 	
 	case OB_ARMATURE:
 	{
+		bArmature *arm = (bArmature*)ob->data;
 		gameobj = new BL_ArmatureObject(
 			kxscene,
 			KX_Scene::m_callbacks,
 			ob,
-			kxscene->GetBlenderScene() // handle
+			kxscene->GetBlenderScene(), // handle
+			arm->gevertdeformer
 		);
 		/* Get the current pose from the armature object and apply it as the rest pose */
 		break;
@@ -1911,11 +1911,11 @@ void RBJconstraints(Object *ob)//not used
 
 KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc){//not used
 
-    for (int j=0;j<sumolist->GetCount();j++)
+	for (int j=0;j<sumolist->GetCount();j++)
 	{
-	    KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
-	    if (gameobje->GetName()==busc)
-            return gameobje->GetPhysicsController();
+		KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
+		if (gameobje->GetName()==busc)
+			return gameobje->GetPhysicsController();
 	}
 
 	return 0;
@@ -1924,11 +1924,11 @@ KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc){//not used
 
 KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
 
-    for (int j=0;j<sumolist->GetCount();j++)
+	for (int j=0;j<sumolist->GetCount();j++)
 	{
-	    KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
-	    if (gameobje->GetName()==busc)
-            return gameobje;
+		KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
+		if (gameobje->GetName()==busc)
+			return gameobje;
 	}
 	
 	return 0;
@@ -2090,8 +2090,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 			gameobj->NodeSetLocalScale(scale);
 			gameobj->NodeUpdateGS(0);
-			
-			BL_ConvertIpos(blenderobject,gameobj,converter);
+
 			BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
 			
 			sumolist->Add(gameobj->AddRef());
@@ -2280,8 +2279,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 							gameobj->NodeSetLocalScale(scale);
 							gameobj->NodeUpdateGS(0);
-							
-							BL_ConvertIpos(blenderobject,gameobj,converter);
+	
 							BL_ConvertMaterialIpos(blenderobject,gameobj, converter);	
 					
 							sumolist->Add(gameobj->AddRef());
@@ -2631,7 +2629,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 						{
 							PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
 							//we need to pass a full constraint frame, not just axis
-	                            
+
 							//localConstraintFrameBasis
 							MT_Matrix3x3 localCFrame(MT_Vector3(dat->axX,dat->axY,dat->axZ));
 							MT_Vector3 axis0 = localCFrame.getColumn(0);

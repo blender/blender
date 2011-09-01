@@ -833,7 +833,7 @@ static int select_edgeloop(Scene *scene, Image *ima, EditMesh *em, NearestHit *h
 	if(extend) {
 		tf= CustomData_em_get(&em->fdata, hit->efa->data, CD_MTFACE);
 
-		if(uvedit_uv_selected(scene, hit->efa, tf, hit->edge) && uvedit_uv_selected(scene, hit->efa, tf, hit->edge))
+		if(uvedit_uv_selected(scene, hit->efa, tf, hit->edge))
 			select= 0;
 		else
 			select= 1;

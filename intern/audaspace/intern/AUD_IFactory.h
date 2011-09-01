@@ -33,7 +33,8 @@
 #define AUD_IFACTORY
 
 #include "AUD_Space.h"
-class AUD_IReader;
+#include "AUD_Reference.h"
+#include "AUD_IReader.h"
 
 /**
  * This class represents a type of sound source and saves the necessary values
@@ -55,7 +56,7 @@ public:
 	 * \exception AUD_Exception An exception may be thrown if there has been
 	 *            a more unexpected error during reader creation.
 	 */
-	virtual AUD_IReader* createReader() const=0;
+	virtual AUD_Reference<AUD_IReader> createReader()=0;
 };
 
 #endif //AUD_IFACTORY

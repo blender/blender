@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -46,6 +44,8 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_speaker_types.h"
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
@@ -53,6 +53,9 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 #include "RNA_access.h"
 #include "nla_private.h"
@@ -334,6 +337,41 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 	BKE_nlastrip_validate_name(adt, strip);
 	
 	/* returns the strip added */
+	return strip;
+}
+
+/* Add a NLA Strip referencing the given speaker's sound */
+NlaStrip *add_nla_soundstrip (Scene *scene, Speaker *speaker)
+{
+	NlaStrip *strip = MEM_callocN(sizeof(NlaStrip), "NlaSoundStrip");
+	
+	/* if speaker has a sound, set the strip length to the length of the sound,
+	 * otherwise default to length of 10 frames
+	 */
+#ifdef WITH_AUDASPACE
+	if (speaker->sound) 
+	{
+		AUD_SoundInfo info = AUD_getInfo(speaker->sound->playback_handle);
+		
+		strip->end = ceil(info.length * FPS);
+	}
+	else 
+#endif
+	{
+		strip->end = 10.0f;
+	}
+	
+	/* general settings */
+	strip->type = NLASTRIP_TYPE_SOUND;
+	
+	strip->flag = NLASTRIP_FLAG_SELECT;
+	strip->extendmode = NLASTRIP_EXTEND_NOTHING; /* nothing to extend... */
+	
+	/* strip should be referenced as-is */
+	strip->scale= 1.0f;
+	strip->repeat = 1.0f;
+	
+	/* return this strip */
 	return strip;
 }
 
@@ -813,33 +851,34 @@ void BKE_nlameta_flush_transforms (NlaStrip *mstrip)
 	/* for each child-strip, calculate new start/end points based on this new info */
 	for (strip= mstrip->strips.first; strip; strip= strip->next) {
 		if (scaleChanged) {
-			PointerRNA ptr;
-			float p1, p2, nStart, nEnd;
+			float p1, p2;
 			
 			/* compute positions of endpoints relative to old extents of strip */
 			p1= (strip->start - oStart) / oLen;
 			p2= (strip->end - oStart) / oLen;
 			
-			/* compute the new strip endpoints using the proportions */
-			nStart= (p1 * nLen) + mstrip->start;
-			nEnd= (p2 * nLen) + mstrip->start;
-			
-			/* firstly, apply the new positions manually, then apply using RNA 
-			 *	- first time is to make sure no truncation errors from one endpoint not being 
-			 *	  set yet occur
-			 *	- second time is to make sure scale is computed properly...
-			 */
-			strip->start= nStart;
-			strip->end= nEnd;
-			
-			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &ptr);
-			RNA_float_set(&ptr, "frame_start", nStart);
-			RNA_float_set(&ptr, "frame_end", nEnd);
+			/* apply new strip endpoints using the proportions, then wait for second pass to flush scale properly */
+			strip->start= (p1 * nLen) + mstrip->start;
+			strip->end= (p2 * nLen) + mstrip->start;
 		}
 		else {
 			/* just apply the changes in offset to both ends of the strip */
 			strip->start += offset;
 			strip->end += offset;
+		}
+	}
+		
+	/* apply a second pass over child strips, to finish up unfinished business */
+	for (strip= mstrip->strips.first; strip; strip= strip->next) {
+		/* only if scale changed, need to perform RNA updates */
+		if (scaleChanged) {
+			PointerRNA ptr;
+			
+			/* use RNA updates to compute scale properly */
+			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &ptr);
+			
+			RNA_float_set(&ptr, "frame_start", strip->start);
+			RNA_float_set(&ptr, "frame_end", strip->end);
 		}
 		
 		/* finally, make sure the strip's children (if it is a meta-itself), get updated */
@@ -1185,7 +1224,7 @@ void BKE_nlastrip_validate_fcurves (NlaStrip *strip)
 			BLI_addtail(&strip->fcurves, fcu);
 			
 			/* set default flags */
-			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+			fcu->flag = (FCURVE_VISIBLE|FCURVE_SELECTED);
 			
 			/* store path - make copy, and store that */
 			fcu->rna_path= BLI_strdupn("influence", 9);
@@ -1206,7 +1245,7 @@ void BKE_nlastrip_validate_fcurves (NlaStrip *strip)
 			BLI_addtail(&strip->fcurves, fcu);
 			
 			/* set default flags */
-			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+			fcu->flag = (FCURVE_VISIBLE|FCURVE_SELECTED);
 			
 			/* store path - make copy, and store that */
 			fcu->rna_path= BLI_strdupn("strip_time", 10);
@@ -1242,7 +1281,7 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 	if (strip->name[0]==0) {
 		switch (strip->type) {
 			case NLASTRIP_TYPE_CLIP: /* act-clip */
-				sprintf(strip->name, "Act: %s", (strip->act)?(strip->act->id.name+2):("<None>"));
+				sprintf(strip->name, "%s", (strip->act)?(strip->act->id.name+2):("<No Action>"));
 				break;
 			case NLASTRIP_TYPE_TRANSITION: /* transition */
 				sprintf(strip->name, "Transition");

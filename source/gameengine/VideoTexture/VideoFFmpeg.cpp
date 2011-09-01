@@ -544,11 +544,11 @@ void VideoFFmpeg::openFile (char * filename)
 		// It would be good to find this information from the context but there are no simple indication
 		!strncmp(filename, "http://", 7) ||
 #ifdef FFMPEG_PB_IS_POINTER
-        (m_formatCtx->pb && m_formatCtx->pb->is_streamed)
+		(m_formatCtx->pb && m_formatCtx->pb->is_streamed)
 #else
-        m_formatCtx->pb.is_streamed
+		m_formatCtx->pb.is_streamed
 #endif
-        )
+		)
 	{
 		// the file is in fact a streaming source, treat as cam to prevent seeking
 		m_isFile = false;

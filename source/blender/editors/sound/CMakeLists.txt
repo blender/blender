@@ -47,4 +47,12 @@ if(WITH_AUDASPACE)
 	add_definitions(-DWITH_AUDASPACE)
 endif()
 
+if(WITH_CODEC_FFMPEG)
+	add_definitions(-DWITH_FFMPEG)
+endif()
+
+if(WITH_CODEC_SNDFILE)
+	add_definitions(-DWITH_SNDFILE)
+endif()
+
 blender_add_lib(bf_editor_sound "${SRC}" "${INC}" "${INC_SYS}")

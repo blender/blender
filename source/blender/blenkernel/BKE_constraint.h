@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -154,6 +152,7 @@ void constraints_clear_evalob(struct bConstraintOb *cob);
 void constraint_mat_convertspace(struct Object *ob, struct bPoseChannel *pchan, float mat[][4], short from, short to);
 
 void get_constraint_target_matrix(struct Scene *scene, struct bConstraint *con, int n, short ownertype, void *ownerdata, float mat[][4], float ctime);
+void get_constraint_targets_for_solving(struct bConstraint *con, struct bConstraintOb *ob, struct ListBase *targets, float ctime);
 void solve_constraints(struct ListBase *conlist, struct bConstraintOb *cob, float ctime);
 
 #ifdef __cplusplus

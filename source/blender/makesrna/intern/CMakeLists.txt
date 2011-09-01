@@ -78,6 +78,7 @@ set(DEFSRC
 	rna_smoke.c
 	rna_sound.c
 	rna_space.c
+	rna_speaker.c
 	rna_test.c
 	rna_text.c
 	rna_texture.c
@@ -100,6 +101,7 @@ set(APISRC
 	rna_main_api.c
 	rna_material_api.c
 	rna_mesh_api.c
+	rna_texture_api.c
 	rna_object_api.c
 	rna_pose_api.c
 	rna_scene_api.c

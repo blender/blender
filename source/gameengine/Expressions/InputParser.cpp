@@ -192,89 +192,89 @@ void CParser::NextSym()
 
 	switch(ch)
 	{
-    case '(':
-		sym = lbracksym; NextCh();
-		break;
-    case ')':
-		sym = rbracksym; NextCh();
-		break;
-    case ',':
-		sym = commasym; NextCh();
-		break;
-	case '%' :
-		sym = opsym; opkind = OPmodulus; NextCh();
-		break;
-    case '+' :
-		sym = opsym; opkind = OPplus; NextCh();
-		break;
-    case '-' :
-		sym = opsym; opkind = OPminus; NextCh();
-		break;
-    case '*' :
-		sym = opsym; opkind = OPtimes; NextCh();
-		break;
-    case '/' :
-		sym = opsym; opkind = OPdivide; NextCh();
-		break;
-	case '&' :
-		sym = opsym; opkind = OPand; NextCh(); TermChar('&');
-		break;
-	case '|' :
-		sym = opsym; opkind = OPor; NextCh(); TermChar('|');
-		break;
-	case '=' :
-		sym = opsym; opkind = OPequal; NextCh(); TermChar('=');
-		break;
-	case '!' :
-		sym = opsym;
-		NextCh();
-		if (ch == '=')
-		{
-			opkind = OPunequal;
+		case '(':
+			sym = lbracksym; NextCh();
+			break;
+		case ')':
+			sym = rbracksym; NextCh();
+			break;
+		case ',':
+			sym = commasym; NextCh();
+			break;
+		case '%' :
+			sym = opsym; opkind = OPmodulus; NextCh();
+			break;
+		case '+' :
+			sym = opsym; opkind = OPplus; NextCh();
+			break;
+		case '-' :
+			sym = opsym; opkind = OPminus; NextCh();
+			break;
+		case '*' :
+			sym = opsym; opkind = OPtimes; NextCh();
+			break;
+		case '/' :
+			sym = opsym; opkind = OPdivide; NextCh();
+			break;
+		case '&' :
+			sym = opsym; opkind = OPand; NextCh(); TermChar('&');
+			break;
+		case '|' :
+			sym = opsym; opkind = OPor; NextCh(); TermChar('|');
+			break;
+		case '=' :
+			sym = opsym; opkind = OPequal; NextCh(); TermChar('=');
+			break;
+		case '!' :
+			sym = opsym;
 			NextCh();
-		}
-		else
-		{
-			opkind = OPnot;
-		}
-		break;
-	case '>':
-		sym = opsym;
-		NextCh();
-		if (ch == '=')
-		{
-			opkind = OPgreaterequal;
+			if (ch == '=')
+			{
+				opkind = OPunequal;
+				NextCh();
+			}
+			else
+			{
+				opkind = OPnot;
+			}
+			break;
+		case '>':
+			sym = opsym;
 			NextCh();
-		}
-		else
-		{
-			opkind = OPgreater;
-		}
-		break;
-	case '<':
-		sym = opsym;
-		NextCh();
-		if (ch == '=') {
-			opkind = OPlessequal;
+			if (ch == '=')
+			{
+				opkind = OPgreaterequal;
+				NextCh();
+			}
+			else
+			{
+				opkind = OPgreater;
+			}
+			break;
+		case '<':
+			sym = opsym;
 			NextCh();
-		} else {
-			opkind = OPless;
-		}
-		break;
-    case '\"' : {
-		int start;
-		sym = constsym;
-		constkind = stringtype;
-		NextCh();
-		start = chcount;
-		while ((ch != '\"') && (ch != 0x0))
+			if (ch == '=') {
+				opkind = OPlessequal;
+				NextCh();
+			} else {
+				opkind = OPless;
+			}
+			break;
+		case '\"' : {
+			int start;
+			sym = constsym;
+			constkind = stringtype;
 			NextCh();
-		GrabRealString(start);
-		TermChar('\"');	// check for eol before '\"'
-		break;
-				}
-    case 0x0: sym = eolsym; break;
-    default: 
+			start = chcount;
+			while ((ch != '\"') && (ch != 0x0))
+				NextCh();
+			GrabRealString(start);
+			TermChar('\"');	// check for eol before '\"'
+			break;
+		}
+		case 0x0: sym = eolsym; break;
+		default:
 		{
 			int start;
 			start = chcount;
@@ -301,7 +301,7 @@ void CParser::NextSym()
 				}
 				GrabString(start);
 			} else if (((ch >= 'a') && (ch <= 'z'))
-				|| ((ch >= 'A') && (ch <= 'Z')))
+			           || ((ch >= 'A') && (ch <= 'Z')))
 			{ // reserved word?
 				
 				start = chcount;
@@ -358,18 +358,18 @@ STR_String CParser::Symbol2Str(int s) {
 	// returns a string representation of of symbol s,
 	// for use in Term when generating an error
 	switch(s) {
-    case errorsym: return "error";
-    case lbracksym: return "(";
-    case rbracksym: return ")";
-    case commasym: return ",";
-    case opsym: return "operator";
-    case constsym: return "constant";
-	case sumsym: return "SUM";
-	case ifsym: return "IF";
-	case whocodedsym: return "WHOMADE";
-    case eolsym: return "end of line";
-	case idsym: return "identifier";
-    default: return "unknown";  // should not happen
+		case errorsym: return "error";
+		case lbracksym: return "(";
+		case rbracksym: return ")";
+		case commasym: return ",";
+		case opsym: return "operator";
+		case constsym: return "constant";
+		case sumsym: return "SUM";
+		case ifsym: return "IF";
+		case whocodedsym: return "WHOMADE";
+		case eolsym: return "end of line";
+		case idsym: return "identifier";
+		default: return "unknown";  // should not happen
 	}
 }
 
@@ -391,19 +391,19 @@ int CParser::Priority(int optorkind) {
 	// returns the priority of an operator
 	// higher number means higher priority
 	switch(optorkind) {
-	case OPor: return 1;
-	case OPand: return 2;
-	case OPgreater:
-	case OPless:
-	case OPgreaterequal:
-	case OPlessequal:
-	case OPequal:
-	case OPunequal: return 3;
-    case OPplus:
-    case OPminus: return 4;
-	case OPmodulus:
-    case OPtimes:
-    case OPdivide: return 5;
+		case OPor: return 1;
+		case OPand: return 2;
+		case OPgreater:
+		case OPless:
+		case OPgreaterequal:
+		case OPlessequal:
+		case OPequal:
+		case OPunequal: return 3;
+		case OPplus:
+		case OPminus: return 4;
+		case OPmodulus:
+		case OPtimes:
+		case OPdivide: return 5;
 	}
 	MT_assert(false);
 	return 0;      // should not happen
