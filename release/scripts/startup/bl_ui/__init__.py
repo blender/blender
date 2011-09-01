@@ -36,6 +36,7 @@ _modules = (
     "properties_data_mesh",
     "properties_data_metaball",
     "properties_data_modifier",
+    "properties_data_speaker",
     "properties_game",
     "properties_material",
     "properties_object_constraint",

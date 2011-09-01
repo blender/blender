@@ -596,9 +596,8 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rd, "ffmpeg_audio_bitrate")
-        col.prop(rd, "ffmpeg_audio_mixrate")
-
-        split.prop(rd, "ffmpeg_audio_volume", slider=True)
+        col = split.column()
+        col.prop(rd, "ffmpeg_audio_volume", slider=True)
 
 
 class RENDER_PT_bake(RenderButtonsPanel, Panel):

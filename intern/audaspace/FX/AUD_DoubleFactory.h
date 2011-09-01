@@ -36,7 +36,6 @@
 
 /**
  * This factory plays two other factories behind each other.
- * \note Readers from the underlying factories must have the same sample rate and channel count.
  */
 class AUD_DoubleFactory : public AUD_IFactory
 {
@@ -44,12 +43,12 @@ private:
 	/**
 	 * First played factory.
 	 */
-	AUD_IFactory* m_factory1;
+	AUD_Reference<AUD_IFactory> m_factory1;
 
 	/**
 	 * Second played factory.
 	 */
-	AUD_IFactory* m_factory2;
+	AUD_Reference<AUD_IFactory> m_factory2;
 
 	// hide copy constructor and operator=
 	AUD_DoubleFactory(const AUD_DoubleFactory&);
@@ -61,9 +60,9 @@ public:
 	 * \param factory1 The first input factory.
 	 * \param factory2 The second input factory.
 	 */
-	AUD_DoubleFactory(AUD_IFactory* factory1, AUD_IFactory* factory2);
+	AUD_DoubleFactory(AUD_Reference<AUD_IFactory> factory1, AUD_Reference<AUD_IFactory> factory2);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_DOUBLEFACTORY

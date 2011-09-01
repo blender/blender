@@ -45,6 +45,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
 
@@ -75,6 +76,7 @@
 #include "BKE_report.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
+#include "BKE_speaker.h"
 #include "BKE_texture.h"
 #include "BKE_tessmesh.h"
 
@@ -968,8 +970,8 @@ static int track_set_exec(bContext *C, wmOperator *op)
 				data->tar = obact;
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 				
-				/* Lamp and Camera track differently by default */
-				if (ob->type == OB_LAMP || ob->type == OB_CAMERA)
+				/* Lamp, Camera and Speaker track differently by default */
+				if (ob->type == OB_LAMP || ob->type == OB_CAMERA || ob->type == OB_SPEAKER)
 					data->trackflag = TRACK_nZ;
 			}
 		}
@@ -987,8 +989,8 @@ static int track_set_exec(bContext *C, wmOperator *op)
 				data->tar = obact;
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 				
-				/* Lamp and Camera track differently by default */
-				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
+				/* Lamp, Camera and Speaker track differently by default */
+				if (ob->type == OB_LAMP || ob->type == OB_CAMERA || ob->type == OB_SPEAKER) {
 					data->reserved1 = TRACK_nZ;
 					data->reserved2 = UP_Y;
 				}
@@ -1008,8 +1010,8 @@ static int track_set_exec(bContext *C, wmOperator *op)
 				data->tar = obact;
 				ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 				
-				/* Lamp and Camera track differently by default */
-				if (ob->type == OB_LAMP || ob->type == OB_CAMERA) {
+				/* Lamp, Camera and Speaker track differently by default */
+				if (ob->type == OB_LAMP || ob->type == OB_CAMERA || ob->type == OB_SPEAKER) {
 					data->trackflag = TRACK_nZ;
 					data->lockflag = LOCK_Y;
 				}
@@ -1493,6 +1495,9 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 					ob->recalc |= OB_RECALC_DATA;
 					ob->data= copy_armature(ob->data);
 					armature_rebuild_pose(ob, ob->data);
+					break;
+				case OB_SPEAKER:
+					ob->data= copy_speaker(ob->data);
 					break;
 				default:
 					if (G.f & G_DEBUG)

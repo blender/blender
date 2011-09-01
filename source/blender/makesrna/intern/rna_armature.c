@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -816,6 +814,11 @@ static void rna_def_armature(BlenderRNA *brna)
 		{ARM_LINE, "STICK", 0, "Stick", "Display bones as simple 2D lines with dots"},
 		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Display bones as boxes, showing subdivision and B-Splines"},
 		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Display bones as extruded spheres, showing deformation influence volume"},
+		{ARM_WIRE, "WIRE", 0, "Wire", "Display bones as thin wires, showing subdivision and B-Splines"},
+		{0, NULL, 0, NULL, NULL}};
+	static EnumPropertyItem prop_vdeformer[] = {
+		{ARM_VDEF_BLENDER, "BLENDER", 0, "Blender", "Uses Blender's armature vertex deformation"},
+		{ARM_VDEF_BGE_CPU, "BGE_CPU", 0, "BGE", "Uses vertex deformation code optimized for the BGE"},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_ghost_type_items[] = {
 		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Frame", "Display Ghosts of poses within a fixed number of frames around the current frame"},
@@ -861,6 +864,13 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
 	RNA_def_property_enum_items(prop, prop_drawtype_items);
 	RNA_def_property_ui_text(prop, "Draw Type", "");
+	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+
+	prop= RNA_def_property(srna, "vert_deformer", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "gevertdeformer");
+	RNA_def_property_enum_items(prop, prop_vdeformer);
+	RNA_def_property_ui_text(prop, "Vertex Deformer", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	

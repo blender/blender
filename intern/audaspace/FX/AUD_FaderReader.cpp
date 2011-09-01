@@ -33,68 +33,39 @@
 
 #include <cstring>
 
-AUD_FaderReader::AUD_FaderReader(AUD_IReader* reader, AUD_FadeType type,
+AUD_FaderReader::AUD_FaderReader(AUD_Reference<AUD_IReader> reader, AUD_FadeType type,
 								 float start,float length) :
 		AUD_EffectReader(reader),
 		m_type(type),
 		m_start(start),
-		m_length(length),
-		m_empty(true)
+		m_length(length)
 {
 }
 
-void AUD_FaderReader::read(int & length, sample_t* & buffer)
+void AUD_FaderReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	int position = m_reader->getPosition();
 	AUD_Specs specs = m_reader->getSpecs();
 	int samplesize = AUD_SAMPLE_SIZE(specs);
 
-	m_reader->read(length, buffer);
+	m_reader->read(length, eos, buffer);
 
 	if((position + length) / (float)specs.rate <= m_start)
 	{
 		if(m_type != AUD_FADE_OUT)
 		{
-			if(m_buffer.getSize() < length * samplesize)
-			{
-				m_buffer.resize(length * samplesize);
-				m_empty = false;
-			}
-
-			buffer = m_buffer.getBuffer();
-
-			if(!m_empty)
-			{
-				memset(buffer, 0, length * samplesize);
-				m_empty = true;
-			}
+			memset(buffer, 0, length * samplesize);
 		}
 	}
 	else if(position / (float)specs.rate >= m_start+m_length)
 	{
 		if(m_type == AUD_FADE_OUT)
 		{
-			if(m_buffer.getSize() < length * samplesize)
-			{
-				m_buffer.resize(length * samplesize);
-				m_empty = false;
-			}
-
-			buffer = m_buffer.getBuffer();
-
-			if(!m_empty)
-			{
-				memset(buffer, 0, length * samplesize);
-				m_empty = true;
-			}
+			memset(buffer, 0, length * samplesize);
 		}
 	}
 	else
 	{
-		if(m_buffer.getSize() < length * samplesize)
-			m_buffer.resize(length * samplesize);
-
-		sample_t* buf = m_buffer.getBuffer();
 		float volume = 1.0f;
 
 		for(int i = 0; i < length * specs.channels; i++)
@@ -111,10 +82,7 @@ void AUD_FaderReader::read(int & length, sample_t* & buffer)
 					volume = 1.0f - volume;
 			}
 
-			buf[i] = buffer[i] * volume;
+			buffer[i] = buffer[i] * volume;
 		}
-
-		buffer = buf;
-		m_empty = false;
 	}
 }

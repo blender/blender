@@ -31,9 +31,10 @@
 
 #include "ExtraHandler.h"
 
-ExtraHandler::ExtraHandler(DocumentImporter *dimp) : currentExtraTags(0)
+ExtraHandler::ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp) : currentExtraTags(0)
 {
 	this->dimp = dimp;
+	this->aimp = aimp;
 }
 
 ExtraHandler::~ExtraHandler() {}
@@ -42,6 +43,7 @@ bool ExtraHandler::elementBegin( const char* elementName, const char** attribute
 {
 	// \todo attribute handling for profile tags
 	currentElement = std::string(elementName);
+	//addToSidTree(attributes[0], attributes[1]);
 	return true;
 }
 

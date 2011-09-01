@@ -73,6 +73,7 @@ set(SRC_DNA_INC
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_smoke_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sound_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_speaker_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_text_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_texture_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_userdef_types.h

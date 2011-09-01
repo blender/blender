@@ -343,6 +343,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel, Panel):
         row = layout.row()
         row.prop(gs, "use_frame_rate")
         row.prop(gs, "use_display_lists")
+        row.prop(gs, "restrict_animation_updates")
 
 
 class RENDER_PT_game_display(RenderButtonsPanel, Panel):
@@ -359,21 +360,6 @@ class RENDER_PT_game_display(RenderButtonsPanel, Panel):
         flow.prop(gs, "show_physics_visualization", text="Physics Visualization")
         flow.prop(gs, "use_deprecation_warnings")
         flow.prop(gs, "show_mouse", text="Mouse Cursor")
-
-
-class RENDER_PT_game_sound(RenderButtonsPanel, Panel):
-    bl_label = "Sound"
-    COMPAT_ENGINES = {'BLENDER_GAME'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-
-        layout.prop(scene, "audio_distance_model")
-
-        layout.prop(scene, "audio_doppler_speed", text="Speed")
-        layout.prop(scene, "audio_doppler_factor")
 
 
 class WorldButtonsPanel():

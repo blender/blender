@@ -1,8 +1,4 @@
-/* anim.c
- *
- *
- * $Id$
- *
+/* 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -174,7 +170,7 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 	}
 
 	/* avoid 0 size allocs */
-	if(avs->path_sf >= avs->path_ef) {
+	if (avs->path_sf >= avs->path_ef) {
 		return NULL;
 	}
 
@@ -232,6 +228,7 @@ typedef struct MPathTarget {
 /* get list of motion paths to be baked for the given object
  * 	- assumes the given list is ready to be used
  */
+// TODO: it would be nice in future to be able to update objects dependant on these bones too?
 void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 {
 	MPathTarget *mpt;
@@ -796,7 +793,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 			 * and/or other objects which may affect this object's transforms are not updated either.
 			 * However, this has always been the way that this worked (i.e. pre 2.5), so I guess that it'll be fine!
 			 */
-			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
+			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
 			where_is_object_time(scene, ob, (float)scene->r.cfra);
 			
 			dob= new_dupli_object(lb, ob, ob->obmat, ob->lay, scene->r.cfra, OB_DUPLIFRAMES, animated);
@@ -811,7 +808,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	 */
 	scene->r.cfra= cfrao;
 	
-	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
 	where_is_object_time(scene, ob, (float)scene->r.cfra);
 	
 	/* but, to make sure unkeyed object transforms are still sane, 

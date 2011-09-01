@@ -57,7 +57,7 @@ class Library(bpy_types.ID):
                 "curves", "grease_pencil", "groups", "images", \
                 "lamps", "lattices", "materials", "metaballs", \
                 "meshes", "node_groups", "objects", "scenes", \
-                "sounds", "textures", "texts", "fonts", "worlds"
+                "sounds", "speakers", "textures", "texts", "fonts", "worlds"
 
         return tuple(id_block for attr in attr_links for id_block in getattr(bpy.data, attr) if id_block.library == self)
 
@@ -409,6 +409,16 @@ class Text(bpy_types.ID):
 
 # values are module: [(cls, path, line), ...]
 TypeMap = {}
+
+
+class Sound(bpy_types.ID):
+    __slots__ = ()
+    
+    @property
+    def factory(self):
+        """The aud.Factory object of the sound."""
+        import aud
+        return aud._sound_from_pointer(self.as_pointer())
 
 
 class RNAMeta(type):

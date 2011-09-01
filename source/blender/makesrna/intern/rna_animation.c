@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -74,36 +72,7 @@ static int rna_AnimData_action_editable(PointerRNA *ptr)
 static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 {
 	ID *ownerId = (ID *)ptr->id.data;
-	AnimData *adt = (AnimData *)ptr->data;
-	
-	/* assume that AnimData's action can in fact be edited... */
-	if ((value.data) && (ownerId)) {
-		bAction *act = (bAction *)value.data;
-		
-		/* action must have same type as owner */
-		if (ownerId) {
-			if (ELEM(act->idroot, 0, GS(ownerId->name))) {
-				/* can set */
-				adt->action = act;
-			}
-			else {
-				/* cannot set */
-				printf("ERROR: Couldn't set Action '%s' onto ID '%s', as it doesn't have suitably rooted paths for this purpose\n", 
-						act->id.name+2, ownerId->name);
-			}
-		}
-		else {
-			/* cannot tell if we can set, so let's just be generous... */
-			printf("Warning: Set Action '%s' onto AnimData block with an unknown ID-owner. May have attached invalid data\n",
-					act->id.name+2);
-				
-			adt->action = act;
-		}
-	}
-	else {
-		/* just clearing the action... */
-		adt->action = NULL;
-	}
+	BKE_animdata_set_action(NULL, ownerId, value.data);
 }
 
 /* ****************************** */
@@ -695,7 +664,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	/* Name */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
-	RNA_def_struct_ui_icon(srna, ICON_KEY_HLT); // TODO: we need a dedicated icon
+	RNA_def_struct_ui_icon(srna, ICON_KEYINGSET);
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_SCENE|ND_KEYINGSET|NA_RENAME, NULL);
 	

@@ -477,6 +477,11 @@ class ConstraintButtonsPanel():
         row.label(text="Clamp Region:")
         row.prop(con, "limit_mode", text="")
 
+        row = layout.row()
+        row.prop(con, "use_transform_limit")
+        row.label()
+
+
     def STRETCH_TO(self, context, layout, con):
         self.target_template(layout, con)
 

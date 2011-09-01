@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -49,6 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_anim.h"
 #include "BKE_idprop.h"
 #include "BKE_action.h"
@@ -64,6 +63,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -106,24 +106,6 @@ Object *ED_object_pose_armature(Object *ob)
 		return ob;
 
 	return NULL;
-}
-
-
-/* This function is used to indicate that a bone is selected and needs keyframes inserted */
-static void set_pose_keys (Object *ob)
-{
-	bArmature *arm= ob->data;
-	bPoseChannel *chan;
-
-	if (ob->pose){
-		for (chan=ob->pose->chanbase.first; chan; chan=chan->next){
-			Bone *bone= chan->bone;
-			if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer))
-				chan->flag |= POSE_KEY;	
-			else
-				chan->flag &= ~POSE_KEY;
-		}
-	}
 }
 
 /* This function is used to process the necessary updates for */
@@ -604,6 +586,63 @@ static short pose_select_same_layer (bContext *C, Object *ob, short extend)
 	return changed;
 }
 
+static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
+{
+	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
+	KS_Path *ksp;
+	
+	bArmature *arm = (ob)? ob->data : NULL;
+	bPose *pose= (ob)? ob->pose : NULL;
+	short changed= 0;
+	
+	/* sanity checks: validate Keying Set and object */
+	if ((ks == NULL) || (ANIM_validate_keyingset(C, NULL, ks) != 0))
+		return 0;
+		
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
+		
+	/* if not extending selection, deselect all selected first */
+	if (extend == 0) {
+		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+		{
+			if ((pchan->bone->flag & BONE_UNSELECTABLE)==0)
+				pchan->bone->flag &= ~BONE_SELECTED;
+		}
+		CTX_DATA_END;
+	}
+		
+	/* iterate over elements in the Keying Set, setting selection depending on whether 
+	 * that bone is visible or not...
+	 */
+	for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
+		/* only items related to this object will be relevant */
+		if ((ksp->id == &ob->id) && (ksp->rna_path != NULL)) {
+			if (strstr(ksp->rna_path, "bones")) {
+				char *boneName = BLI_getQuotedStr(ksp->rna_path, "bones[");
+				
+				if (boneName) {
+					bPoseChannel *pchan = get_pose_channel(pose, boneName);
+					
+					if (pchan) {
+						/* select if bone is visible and can be affected */
+						if ((PBONE_VISIBLE(arm, pchan->bone)) && 
+							(pchan->bone->flag & BONE_UNSELECTABLE)==0)
+						{
+							pchan->bone->flag |= BONE_SELECTED;
+							changed = 1;
+						}
+					}
+					
+					/* free temp memory */
+					MEM_freeN(boneName);
+				}
+			}
+		}
+	}
+	
+	return changed;
+}
 
 static int pose_select_grouped_exec (bContext *C, wmOperator *op)
 {
@@ -621,6 +660,9 @@ static int pose_select_grouped_exec (bContext *C, wmOperator *op)
 	switch (RNA_enum_get(op->ptr, "type")) {
 		case 1: /* group */
 			changed= pose_select_same_group(C, ob, extend);
+			break;
+		case 2: /* Keying Set */
+			changed= pose_select_same_keyingset(C, ob, extend);
 			break;
 		default: /* layer */
 			changed= pose_select_same_layer(C, ob, extend);
@@ -642,6 +684,7 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 	static EnumPropertyItem prop_select_grouped_types[] = {
 		{0, "LAYER", 0, "Layer", "Shared layers"},
 		{1, "GROUP", 0, "Group", "Shared group"},
+		{2, "KEYINGSET", 0, "Keying Set", "All bones affected by active Keying Set"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -945,6 +988,149 @@ void free_posebuf(void)
 	g_posebuf=NULL;
 }
 
+/* This function is used to indicate that a bone is selected 
+ * and needs to be included in copy buffer (used to be for inserting keys)
+ */
+static void set_pose_keys (Object *ob)
+{
+	bArmature *arm= ob->data;
+	bPoseChannel *chan;
+
+	if (ob->pose){
+		for (chan=ob->pose->chanbase.first; chan; chan=chan->next){
+			Bone *bone= chan->bone;
+			if ((bone) && (bone->flag & BONE_SELECTED) && (arm->layer & bone->layer))
+				chan->flag |= POSE_KEY;	
+			else
+				chan->flag &= ~POSE_KEY;
+		}
+	}
+}
+
+/* perform paste pose, for a single bone 
+ * < ob: object where bone to paste to lives
+ * < chan: bone that pose to paste comes from
+ * < selOnly: only paste on selected bones
+ * < flip: flip on x-axis
+ *
+ * > returns: whether the bone that we pasted to if we succeeded
+ */
+static bPoseChannel *pose_bone_do_paste (Object *ob, bPoseChannel *chan, short selOnly, short flip)
+{
+	bPoseChannel *pchan;
+	char name[32];
+	short paste_ok;
+	
+	/* get the name - if flipping, we must flip this first */
+	if (flip)
+		flip_side_name(name, chan->name, 0);		/* 0 = don't strip off number extensions */
+	else
+		BLI_strncpy(name, chan->name, sizeof(name));
+	
+	/* only copy when:
+	 * 	1) channel exists - poses are not meant to add random channels to anymore
+	 * 	2) if selection-masking is on, channel is selected - only selected bones get pasted on, allowing making both sides symmetrical
+	 */
+	pchan= get_pose_channel(ob->pose, name);
+	
+	if (selOnly)
+		paste_ok= ((pchan) && (pchan->bone->flag & BONE_SELECTED));
+	else
+		paste_ok= ((pchan != NULL));
+	
+	/* continue? */
+	if (paste_ok) {
+		/* only loc rot size 
+		 *	- only copies transform info for the pose 
+		 */
+		VECCOPY(pchan->loc, chan->loc);
+		VECCOPY(pchan->size, chan->size);
+		pchan->flag= chan->flag;
+		
+		/* check if rotation modes are compatible (i.e. do they need any conversions) */
+		if (pchan->rotmode == chan->rotmode) {
+			/* copy the type of rotation in use */
+			if (pchan->rotmode > 0) {
+				VECCOPY(pchan->eul, chan->eul);
+			}
+			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+				VECCOPY(pchan->rotAxis, chan->rotAxis);
+				pchan->rotAngle = chan->rotAngle;
+			}
+			else {
+				QUATCOPY(pchan->quat, chan->quat);
+			}
+		}
+		else if (pchan->rotmode > 0) {
+			/* quat/axis-angle to euler */
+			if (chan->rotmode == ROT_MODE_AXISANGLE)
+				axis_angle_to_eulO( pchan->eul, pchan->rotmode,chan->rotAxis, chan->rotAngle);
+			else
+				quat_to_eulO( pchan->eul, pchan->rotmode,chan->quat);
+		}
+		else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+			/* quat/euler to axis angle */
+			if (chan->rotmode > 0)
+				eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->eul, chan->rotmode);
+			else	
+				quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->quat);
+		}
+		else {
+			/* euler/axis-angle to quat */
+			if (chan->rotmode > 0)
+				eulO_to_quat(pchan->quat, chan->eul, chan->rotmode);
+			else
+				axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
+		}
+		
+		/* paste flipped pose? */
+		if (flip) {
+			pchan->loc[0]*= -1;
+			
+			/* has to be done as eulers... */
+			if (pchan->rotmode > 0) {
+				pchan->eul[1] *= -1;
+				pchan->eul[2] *= -1;
+			}
+			else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+				float eul[3];
+				
+				axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
+				eul[1]*= -1;
+				eul[2]*= -1;
+				eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
+			}
+			else {
+				float eul[3];
+				
+				normalize_qt(pchan->quat);
+				quat_to_eul(eul, pchan->quat);
+				eul[1]*= -1;
+				eul[2]*= -1;
+				eul_to_quat(pchan->quat, eul);
+			}
+		}
+		
+		/* ID properties */
+		if (chan->prop) {
+			if (pchan->prop) {
+				/* if we have existing properties on a bone, just copy over the values of 
+				 * matching properties (i.e. ones which will have some impact) on to the 
+				 * target instead of just blinding replacing all [
+				 */
+				IDP_SyncGroupValues(pchan->prop, chan->prop);
+			}
+			else {
+				/* no existing properties, so assume that we want copies too? */
+				pchan->prop= IDP_CopyProperty(chan->prop);	
+			}
+		}
+	}
+	
+	/* return whether paste went ahead */
+	return pchan;
+}
+
 /* ---- */
 
 static int pose_copy_exec (bContext *C, wmOperator *op)
@@ -987,9 +1173,9 @@ void POSE_OT_copy (wmOperatorType *ot)
 
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
-	bPoseChannel *chan, *pchan;
+	Scene *scene= CTX_data_scene(C);
+	bPoseChannel *chan;
 	int flip= RNA_boolean_get(op->ptr, "flipped");
 	int selOnly= RNA_boolean_get(op->ptr, "selected_mask");
 	
@@ -1002,120 +1188,22 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
+	/* if selOnly option is enabled, if user hasn't selected any bones, 
+	 * just go back to default behaviour to be more in line with other pose tools
+	 */
+	if (selOnly) {
+		if (CTX_DATA_COUNT(C, selected_pose_bones) == 0)
+			selOnly = 0;
+	}
+	
 	/* Safely merge all of the channels in the buffer pose into any existing pose */
 	for (chan= g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
-			char name[32];
-			short paste_ok;
+			/* try to perform paste on this bone */
+			bPoseChannel *pchan = pose_bone_do_paste(ob, chan, selOnly, flip);
 			
-			/* get the name - if flipping, we must flip this first */
-			if (flip)
-				flip_side_name(name, chan->name, 0);		/* 0 = don't strip off number extensions */
-			else
-				BLI_strncpy(name, chan->name, sizeof(name));
-			
-			/* only copy when:
-			 * 	1) channel exists - poses are not meant to add random channels to anymore
-			 * 	2) if selection-masking is on, channel is selected - only selected bones get pasted on, allowing making both sides symmetrical
-			 */
-			pchan= get_pose_channel(ob->pose, name);
-			
-			if (selOnly)
-				paste_ok= ((pchan) && (pchan->bone->flag & BONE_SELECTED));
-			else
-				paste_ok= ((pchan != NULL));
-			
-			/* continue? */
-			if (paste_ok) {
-				/* only loc rot size 
-				 *	- only copies transform info for the pose 
-				 */
-				VECCOPY(pchan->loc, chan->loc);
-				VECCOPY(pchan->size, chan->size);
-				pchan->flag= chan->flag;
-				
-				/* check if rotation modes are compatible (i.e. do they need any conversions) */
-				if (pchan->rotmode == chan->rotmode) {
-					/* copy the type of rotation in use */
-					if (pchan->rotmode > 0) {
-						VECCOPY(pchan->eul, chan->eul);
-					}
-					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-						VECCOPY(pchan->rotAxis, chan->rotAxis);
-						pchan->rotAngle = chan->rotAngle;
-					}
-					else {
-						QUATCOPY(pchan->quat, chan->quat);
-					}
-				}
-				else if (pchan->rotmode > 0) {
-					/* quat/axis-angle to euler */
-					if (chan->rotmode == ROT_MODE_AXISANGLE)
-						axis_angle_to_eulO( pchan->eul, pchan->rotmode,chan->rotAxis, chan->rotAngle);
-					else
-						quat_to_eulO( pchan->eul, pchan->rotmode,chan->quat);
-				}
-				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-					/* quat/euler to axis angle */
-					if (chan->rotmode > 0)
-						eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->eul, chan->rotmode);
-					else	
-						quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->quat);
-				}
-				else {
-					/* euler/axis-angle to quat */
-					if (chan->rotmode > 0)
-						eulO_to_quat(pchan->quat, chan->eul, chan->rotmode);
-					else
-						axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
-				}
-				
-				/* paste flipped pose? */
-				if (flip) {
-					pchan->loc[0]*= -1;
-					
-					/* has to be done as eulers... */
-					if (pchan->rotmode > 0) {
-						pchan->eul[1] *= -1;
-						pchan->eul[2] *= -1;
-					}
-					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
-						float eul[3];
-						
-						axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
-						eul[1]*= -1;
-						eul[2]*= -1;
-						eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
-					}
-					else {
-						float eul[3];
-						
-						normalize_qt(pchan->quat);
-						quat_to_eul(eul, pchan->quat);
-						eul[1]*= -1;
-						eul[2]*= -1;
-						eul_to_quat(pchan->quat, eul);
-					}
-				}
-				
-				/* ID properties 
-				 *	- only free the existing properties if the channel we're copying from has them
-				 * 	  NOTE: this means that if the pose depends on some pchan property, the pose may not be ok,
-				 *		    but this is better than loosing all the setting you've painstakingly added...
-				 */
-				if (chan->prop) {
-					/* free the old properties since we want to replace them now */
-					if (pchan->prop) {
-						IDP_FreeProperty(pchan->prop);
-						MEM_freeN(pchan->prop);
-						pchan->prop= NULL;
-					}
-					
-					/* now copy over the new copy of the properties */
-					pchan->prop= IDP_CopyProperty(chan->prop);	
-				}
-				
-				/* keyframing tagging */
+			if (pchan) {
+				/* keyframing tagging for successful paste */
 				if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 					ListBase dsources = {NULL, NULL};
 					
@@ -1169,11 +1257,11 @@ void POSE_OT_paste (wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
-	RNA_def_boolean(ot->srna, "selected_mask", 0, "On Selected Only", "Only paste the stored pose on to selected bones in the current pose");
+	RNA_def_boolean(ot->srna, "selected_mask", 1, "On Selected Only", "Only paste the stored pose on to selected bones in the current pose");
 }
 
 /* ********************************************** */
-
+/* Bone Groups */
 
 static int pose_group_add_exec (bContext *C, wmOperator *UNUSED(op))
 {
@@ -1425,6 +1513,171 @@ void POSE_OT_group_unassign (wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+static int group_move_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan;
+	bActionGroup *grp;
+	int dir= RNA_enum_get(op->ptr, "direction");
+	int grpIndexA, grpIndexB;
+
+	if (ELEM(NULL, ob, pose))
+		return OPERATOR_CANCELLED;
+	if (pose->active_group <= 0)
+		return OPERATOR_CANCELLED;
+
+	/* get group to move */
+	grp= BLI_findlink(&pose->agroups, pose->active_group-1);
+	if (grp == NULL)
+		return OPERATOR_CANCELLED;
+
+	/* move bone group */
+	grpIndexA = pose->active_group;
+	if (dir == 1) { /* up */
+		void *prev = grp->prev;
+		
+		if (prev == NULL)
+			return OPERATOR_FINISHED;
+			
+		BLI_remlink(&pose->agroups, grp);
+		BLI_insertlinkbefore(&pose->agroups, prev, grp);
+		
+		grpIndexB = grpIndexA - 1;
+		pose->active_group--;
+	}
+	else { /* down */
+		void *next = grp->next;
+		
+		if (next == NULL)
+			return OPERATOR_FINISHED;
+			
+		BLI_remlink(&pose->agroups, grp);
+		BLI_insertlinkafter(&pose->agroups, next, grp);
+		
+		grpIndexB = grpIndexA + 1;
+		pose->active_group++;
+	}
+
+	/* fix changed bone group indices in bones (swap grpIndexA with grpIndexB) */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->agrp_index == grpIndexB)
+			pchan->agrp_index= grpIndexA;
+		else if (pchan->agrp_index == grpIndexA)
+			pchan->agrp_index= grpIndexB;
+	}
+
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_group_move(wmOperatorType *ot)
+{
+	static EnumPropertyItem group_slot_move[] = {
+		{1, "UP", 0, "Up", ""},
+		{-1, "DOWN", 0, "Down", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Move Bone Group";
+	ot->idname= "POSE_OT_group_move";
+	ot->description= "Change position of active Bone Group in list of Bone Groups";
+
+	/* api callbacks */
+	ot->exec= group_move_exec;
+	ot->poll= ED_operator_posemode;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "direction", group_slot_move, 0, "Direction", "Direction to move, UP or DOWN");
+}
+
+/* bone group sort element */
+typedef struct tSortActionGroup {
+	bActionGroup *agrp;
+	int          index;
+} tSortActionGroup;
+
+/* compare bone groups by name */
+static int compare_agroup(const void *sgrp_a_ptr, const void *sgrp_b_ptr)
+{
+	tSortActionGroup *sgrp_a= (tSortActionGroup *)sgrp_a_ptr;
+	tSortActionGroup *sgrp_b= (tSortActionGroup *)sgrp_b_ptr;
+
+	return strcmp(sgrp_a->agrp->name, sgrp_b->agrp->name);
+}
+
+static int group_sort_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bPoseChannel *pchan;
+	tSortActionGroup *agrp_array;
+	bActionGroup *agrp;
+	int agrp_count;
+	int i;
+
+	if (ELEM(NULL, ob, pose))
+		return OPERATOR_CANCELLED;
+	if (pose->active_group <= 0)
+		return OPERATOR_CANCELLED;
+
+	/* create temporary array with bone groups and indices */
+	agrp_count = BLI_countlist(&pose->agroups);
+	agrp_array = MEM_mallocN(sizeof(tSortActionGroup) * agrp_count, "sort bone groups");
+	for (agrp= pose->agroups.first, i= 0; agrp; agrp= agrp->next, i++) {
+		BLI_assert(i < agrp_count);
+		agrp_array[i].agrp = agrp;
+		agrp_array[i].index = i+1;
+	}
+
+	/* sort bone groups by name */
+	qsort(agrp_array, agrp_count, sizeof(tSortActionGroup), compare_agroup);
+
+	/* create sorted bone group list from sorted array */
+	pose->agroups.first= pose->agroups.last= NULL;
+	for (i= 0; i < agrp_count; i++) {
+		BLI_addtail(&pose->agroups, agrp_array[i].agrp);
+	}
+
+	/* fix changed bone group indizes in bones */
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		for (i= 0; i < agrp_count; i++) {
+			if (pchan->agrp_index == agrp_array[i].index) {
+				pchan->agrp_index= i+1;
+				break;
+			}
+		}
+	}
+
+	/* free temp resources */
+	MEM_freeN(agrp_array);
+
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_group_sort(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Sort Bone Groups";
+	ot->idname= "POSE_OT_group_sort";
+	ot->description= "Sort Bone Groups by their names in ascending order";
+
+	/* api callbacks */
+	ot->exec= group_sort_exec;
+	ot->poll= ED_operator_posemode;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 static void pose_group_select(bContext *C, Object *ob, int select)
 {
 	bPose *pose= ob->pose;
@@ -1625,6 +1878,46 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 
 /* ********************************************** */
 
+static int pose_bone_rotmode_exec (bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	int mode = RNA_enum_get(op->ptr, "type");
+	
+	/* set rotation mode of selected bones  */	
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
+	{
+		pchan->rotmode = mode;
+	}
+	CTX_DATA_END;
+	
+	/* notifiers and updates */
+	DAG_id_tag_update((ID *)ob, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_rotation_mode_set (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Rotation Mode";
+	ot->idname= "POSE_OT_rotation_mode_set";
+	ot->description= "Set the rotation representation used by selected bones";
+	
+	/* callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= pose_bone_rotmode_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop= RNA_def_enum(ot->srna, "type", posebone_rotmode_items, 0, "Rotation Mode", "");
+}
+
+/* ********************************************** */
+
 /* Show all armature layers */
 static int pose_armature_layers_showall_poll (bContext *C)
 {
@@ -1711,7 +2004,7 @@ static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 	PointerRNA ptr;
 	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 
-	if(ob==NULL || ob->data==NULL) {
+	if (ELEM(NULL, ob, ob->data)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1915,6 +2208,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 }
 
 /* ********************************************** */
+/* Flip Quats */
 
 static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 {
@@ -1929,7 +2223,7 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 		if (pchan->rotmode == ROT_MODE_QUAT) {
 			/* quaternions have 720 degree range */
 			negate_v4(pchan->quat);
-
+			
 			/* tagging */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
 				ListBase dsources = {NULL, NULL};
@@ -1979,75 +2273,78 @@ void POSE_OT_quaternions_flip (wmOperatorType *ot)
 }
 
 /* ********************************************** */
+/* Clear User Transforms */
 
-/* context: active channel */
-#if 0
-void pose_special_editmenu(Scene *scene)
+static int pose_clear_user_transforms_exec (bContext *C, wmOperator *op)
 {
-	Object *obedit= scene->obedit; // XXX context
-	Object *ob= OBACT;
-	short nr;
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	float cframe = (float)CFRA;
 	
-	/* paranoia checks */
-	if(!ob && !ob->pose) return;
-	if(ob==obedit || (ob->mode & OB_MODE_POSE)==0) return;
-	
-	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear Paths%x4|Clear User Transform %x5|Relax Pose %x6|%l|AutoName Left-Right%x7|AutoName Front-Back%x8|AutoName Top-Bottom%x9");
-	if(nr==1) {
-		pose_select_constraint_target(scene);
-	}
-	else if(nr==2) {
-		pose_flip_names();
-	}
-	else if(nr==3) {
-		pose_calculate_path(C, ob);
-	}
-	else if(nr==4) {
-		pose_clear_paths(ob);
-	}
-	else if(nr==5) {
-		pose_clear_user_transforms(ob);
-	}
-	else if(nr==6) {
-		pose_relax();
-	}
-	else if(ELEM3(nr, 7, 8, 9)) {
-		pose_autoside_names(nr-7);
-	}
-}
-
-
-/* Restore selected pose-bones to 'action'-defined pose */
-static void pose_clear_user_transforms(Object *ob)
-{
-	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
-	
-	if (ob->pose == NULL)
-		return;
-	
-	/* if the object has an action, restore pose to the pose defined by the action by clearing pose on selected bones */
-	if (ob->action) {
-		/* find selected bones */
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if (pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
-				/* just clear the BONE_UNKEYED flag, allowing this bone to get overwritten by actions again */
-				pchan->bone->flag &= ~BONE_UNKEYED;
-			}
+	if ((ob->adt) && (ob->adt->action)) {
+		/* XXX: this is just like this to avoid contaminating anything else; 
+		 * just pose values should change, so this should be fine 
+		 */
+		bPose *dummyPose = NULL;
+		Object workob = {{0}}; 
+		bPoseChannel *pchan;
+		
+		/* execute animation step for current frame using a dummy copy of the pose */		
+		copy_pose(&dummyPose, ob->pose, 0);
+		
+		BLI_strncpy(workob.id.name, "OB<ClearTfmWorkOb>", sizeof(workob.id.name));
+		workob.type = OB_ARMATURE;
+		workob.data = ob->data;
+		workob.adt = ob->adt;
+		workob.pose = dummyPose;
+		
+		BKE_animsys_evaluate_animdata(scene, &workob.id, workob.adt, cframe, ADT_RECALC_ANIM);
+		
+		/* copy back values, but on selected bones only  */
+		for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
+			pose_bone_do_paste(ob, pchan, 1, 0);
 		}
 		
-		/* clear pose locking flag 
-		 *	- this will only clear the user-defined pose in the selected bones, where BONE_UNKEYED has been cleared
-		 */
-		ob->pose->flag |= POSE_DO_UNLOCK;
+		/* free temp data - free manually as was copied without constraints */
+		if (dummyPose) {
+			for (pchan= dummyPose->chanbase.first; pchan; pchan= pchan->next) {
+				if (pchan->prop) {
+					IDP_FreeProperty(pchan->prop);
+					MEM_freeN(pchan->prop);
+				}
+			}
+			
+			/* was copied without constraints */
+			BLI_freelistN(&dummyPose->chanbase);
+			MEM_freeN(dummyPose);
+		}
 	}
 	else {
-		/* no action, so restore entire pose to rest pose (cannot restore only selected bones) */
+		/* no animation, so just reset whole pose to rest pose 
+		 * (cannot just restore for selected though)
+		 */
 		rest_pose(ob->pose);
 	}
 	
+	/* notifiers and updates */
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	BIF_undo_push("Clear User Transform");
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
 }
 
-#endif
+void POSE_OT_user_transforms_clear (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear User Transforms";
+	ot->idname= "POSE_OT_user_transforms_clear";
+	ot->description= "Reset pose on selected bones to keyframed state";
+	
+	/* callbacks */
+	ot->exec= pose_clear_user_transforms_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+

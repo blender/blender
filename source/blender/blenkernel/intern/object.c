@@ -54,6 +54,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
@@ -97,6 +98,7 @@
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
+#include "BKE_speaker.h"
 #include "BKE_softbody.h"
 #include "BKE_material.h"
 
@@ -990,6 +992,7 @@ static void *add_obdata_from_type(int type)
 	case OB_LAMP: return add_lamp("Lamp");
 	case OB_LATTICE: return add_lattice("Lattice");
 	case OB_ARMATURE: return add_armature("Armature");
+	case OB_SPEAKER: return add_speaker("Speaker");
 	case OB_EMPTY: return NULL;
 	default:
 		printf("add_obdata_from_type: Internal error, bad type: %d\n", type);
@@ -1009,6 +1012,7 @@ static const char *get_obdata_defname(int type)
 	case OB_LAMP: return "Lamp";
 	case OB_LATTICE: return "Lattice";
 	case OB_ARMATURE: return "Armature";
+	case OB_SPEAKER: return "Speaker";
 	case OB_EMPTY: return "Empty";
 	default:
 		printf("get_obdata_defname: Internal error, bad type: %d\n", type);
@@ -1052,7 +1056,7 @@ Object *add_only_object(int type, const char *name)
 	ob->empty_drawtype= OB_PLAINAXES;
 	ob->empty_drawsize= 1.0;
 
-	if(type==OB_CAMERA || type==OB_LAMP) {
+	if(type==OB_CAMERA || type==OB_LAMP || type==OB_SPEAKER) {
 		ob->trackflag= OB_NEGZ;
 		ob->upflag= OB_POSY;
 	}
@@ -2097,7 +2101,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	if(ob==NULL) return;
 	
 	/* execute drivers only, as animation has already been done */
-	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
+	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
 	
 	if(ob->parent) {
 		Object *par= ob->parent;
@@ -2636,7 +2640,7 @@ void object_handle_update(Scene *scene, Object *ob)
 			if(adt) {
 				/* evaluate drivers */
 				// XXX: for mesh types, should we push this to derivedmesh instead?
-				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
+				BKE_animsys_evaluate_animdata(scene, data_id, adt, ctime, ADT_RECALC_DRIVERS);
 			}
 
 			/* includes all keys and modifiers */

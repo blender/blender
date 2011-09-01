@@ -33,9 +33,14 @@
 #define AUD_ACCUMULATORFACTORY
 
 #include "AUD_EffectFactory.h"
+class AUD_CallbackIIRFilterReader;
 
 /**
  * This factory creates an accumulator reader.
+ *
+ * The accumulator adds the difference at the input to the last output in case
+ * it's positive. In additive mode it additionaly adds the difference always.
+ * So in case the difference is positive, it's added twice.
  */
 class AUD_AccumulatorFactory : public AUD_EffectFactory
 {
@@ -55,9 +60,12 @@ public:
 	 * \param factory The input factory.
 	 * \param additive Whether the accumulator is additive.
 	 */
-	AUD_AccumulatorFactory(AUD_IFactory* factory, bool additive = false);
+	AUD_AccumulatorFactory(AUD_Reference<AUD_IFactory> factory, bool additive = false);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
+
+	static sample_t accumulatorFilterAdditive(AUD_CallbackIIRFilterReader* reader, void* useless);
+	static sample_t accumulatorFilter(AUD_CallbackIIRFilterReader* reader, void* useless);
 };
 
 #endif //AUD_ACCUMULATORFACTORY

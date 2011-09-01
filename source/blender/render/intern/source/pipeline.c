@@ -2525,7 +2525,7 @@ static void do_render_seq(Render * re)
 
 	if(recurs_depth==0) {
 		/* otherwise sequencer animation isnt updated */
-		BKE_animsys_evaluate_all_animation(re->main, (float)cfra); // XXX, was BKE_curframe(re->scene)
+		BKE_animsys_evaluate_all_animation(re->main, re->scene, (float)cfra); // XXX, was BKE_curframe(re->scene)
 	}
 
 	recurs_depth++;

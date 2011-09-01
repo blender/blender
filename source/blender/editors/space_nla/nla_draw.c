@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -38,6 +36,7 @@
 #include <float.h>
 
 #include "DNA_anim_types.h"
+#include "DNA_node_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
@@ -80,7 +79,6 @@
  */
 static void nla_action_get_color (AnimData *adt, bAction *act, float color[4])
 {
-	// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
 	if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
 		// greenish color (same as tweaking strip) - hardcoded for now
 		color[0]= 0.30f;
@@ -104,6 +102,10 @@ static void nla_action_get_color (AnimData *adt, bAction *act, float color[4])
 			color[3]= 0.3f;
 		}
 	}
+	
+	/* when an NLA track is tagged "solo", action doesn't contribute, so shouldn't be as prominent */
+	if (adt && (adt->flag & ADT_NLA_SOLO_TRACK))
+		color[3] *= 0.15f;
 }
 
 /* draw the keyframes in the specified Action */
@@ -124,9 +126,12 @@ static void nla_action_draw_keyframes (AnimData *adt, bAction *act, View2D *v2d,
 	
 	/* draw a darkened region behind the strips 
 	 *	- get and reset the background color, this time without the alpha to stand out better 
+	 *	  (amplified alpha is used instead)
 	 */
 	nla_action_get_color(adt, act, color);
-	glColor3fv(color);
+	color[3] *= 2.5f;
+	
+	glColor4fv(color);
 	/* 	- draw a rect from the first to the last frame (no extra overlaps for now) 
 	 *	  that is slightly stumpier than the track background (hardcoded 2-units here)
 	 */
@@ -191,7 +196,24 @@ static void nla_strip_get_color_inside (AnimData *adt, NlaStrip *strip, float co
 			color[1]= 0.15f;
 			color[2]= 0.26f;
 		}
-	}	
+	}
+	else if (strip->type == NLASTRIP_TYPE_SOUND) {
+		/* Sound Clip */
+		if (strip->flag & NLASTRIP_FLAG_SELECT) {
+			/* selected - use a bright teal color */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.12f;
+			color[1]= 0.48f;
+			color[2]= 0.48f;
+		}
+		else {
+			/* normal, unselected strip - use (hardly noticable) teal tinge */
+			// FIXME: hardcoded temp-hack colors
+			color[0]= 0.17f;
+			color[1]= 0.24f;
+			color[2]= 0.24f;
+		}
+	}
 	else {
 		/* Action Clip (default/normal type of strip) */
 		if ((strip->flag & NLASTRIP_FLAG_ACTIVE) && (adt && (adt->flag & ADT_NLA_EDIT_ON))) {
@@ -285,15 +307,18 @@ static void nla_draw_strip_curves (NlaStrip *strip, float yminc, float ymaxc)
 }
 
 /* main call for drawing a single NLA-strip */
-static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStrip *strip, View2D *v2d, float yminc, float ymaxc)
 {
+	short nonSolo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO)==0);
 	float color[3];
 	
 	/* get color of strip */
 	nla_strip_get_color_inside(adt, strip, color);
 	
-	/* draw extrapolation info first (as backdrop) */
-	if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
+	/* draw extrapolation info first (as backdrop)
+	 *	- but this should only be drawn if track has some contribution
+	 */
+	if ((strip->extendmode != NLASTRIP_EXTEND_NOTHING) && (nonSolo == 0)) {
 		/* enable transparency... */
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
@@ -346,10 +371,23 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 		glDisable(GL_BLEND);
 	}
 	
+	
 	/* draw 'inside' of strip itself */
-	glColor3fv(color);
-	uiSetRoundBox(15); /* all corners rounded */
-	uiDrawBoxShade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
+	if (nonSolo == 0) {
+		/* strip is in normal track */
+		glColor3fv(color);
+		uiSetRoundBox(15); /* all corners rounded */
+		
+		uiDrawBoxShade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
+	}
+	else {
+		/* strip is in disabled track - make less visible */
+		glColor4f(color[0], color[1], color[2], 0.1f);
+		
+		glEnable(GL_BLEND);
+			glRectf(strip->start, yminc, strip->end, ymaxc);
+		glDisable(GL_BLEND);
+	}
 	
 	
 	/* draw strip's control 'curves'
@@ -357,6 +395,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 	 */
 	if ((snla->flag & SNLA_NOSTRIPCURVES) == 0)
 		nla_draw_strip_curves(strip, yminc, ymaxc);
+	
 	
 	/* draw strip outline 
 	 *	- color used here is to indicate active vs non-active
@@ -419,23 +458,21 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *UNUSED(nlt)
 } 
 
 /* add the relevant text to the cache of text-strings to draw in pixelspace */
-static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNUSED(index), View2D *v2d, float yminc, float ymaxc)
+static void nla_draw_strip_text (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, int index, View2D *v2d, float yminc, float ymaxc)
 {
-	char str[256], dir[3];
+	short notSolo = ((adt && (adt->flag & ADT_NLA_SOLO_TRACK)) && (nlt->flag & NLATRACK_SOLO)==0);
+	char str[256];
 	char col[4];
+	float xofs;
 	rctf rect;
 	
-	/* 'dir' - direction that strip is played in */
-	if (strip->flag & NLASTRIP_FLAG_REVERSE)
-		sprintf(dir, "<-");
-	else
-		sprintf(dir, "->");
-	
 	/* just print the name and the range */
-	if (strip->flag & NLASTRIP_FLAG_TEMP_META)
-		sprintf(str, "Temp-Meta | %.2f %s %.2f", strip->start, dir, strip->end);
-	else
-		sprintf(str, "%s | %.2f %s %.2f", strip->name, strip->start, dir, strip->end);
+	if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
+		sprintf(str, "%d) Temp-Meta", index);
+	}
+	else {
+		sprintf(str, strip->name);
+	}
 	
 	/* set text color - if colors (see above) are light, draw black text, otherwise draw white */
 	if (strip->flag & (NLASTRIP_FLAG_ACTIVE|NLASTRIP_FLAG_SELECT|NLASTRIP_FLAG_TWEAKUSER)) {
@@ -444,20 +481,55 @@ static void nla_draw_strip_text (NlaTrack *UNUSED(nlt), NlaStrip *strip, int UNU
 	else {
 		col[0]= col[1]= col[2]= 255;
 	}
-	col[3]= 1.0;
-
+	
+	/* text opacity depends on whether if there's a solo'd track, this isn't it */
+	if (notSolo == 0)
+		col[3]= 255;
+	else
+		col[3]= 128;
+	
+	/* determine the amount of padding required - cannot be constant otherwise looks weird in some cases */
+	if ((strip->end - strip->start) <= 5.0f)
+		xofs = 0.5f;
+	else
+		xofs = 1.0f;
+	
 	/* set bounding-box for text 
 	 *	- padding of 2 'units' on either side
 	 */
 	// TODO: make this centered?
-	rect.xmin= strip->start + 0.5f;
+	rect.xmin= strip->start + xofs;
 	rect.ymin= yminc;
-	rect.xmax= strip->end - 0.5f;
+	rect.xmax= strip->end - xofs;
 	rect.ymax= ymaxc;
 	
-	/* add this string to the cache of texts to draw*/
-
+	/* add this string to the cache of texts to draw */
 	UI_view2d_text_cache_rectf(v2d, &rect, str, col);
+}
+
+/* add frame extents to cache of text-strings to draw in pixelspace
+ * for now, only used when transforming strips
+ */
+static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float UNUSED(yminc), float ymaxc)
+{
+	const float ytol = 1.0f; /* small offset to vertical positioning of text, for legibility */
+	const char col[4] = {220, 220, 220, 255}; /* light grey */
+	char str[16] = "";
+	
+	
+	/* Always draw times above the strip, whereas sequencer drew below + above.
+	 * However, we should be fine having everything on top, since these tend to be 
+	 * quite spaced out. 
+	 *	- 1 dp is compromise between lack of precision (ints only, as per sequencer)
+	 *	  while also preserving some accuracy, since we do use floats
+	 */
+		/* start frame */
+	sprintf(str, "%.1f", strip->start);
+	UI_view2d_text_cache_add(v2d, strip->start-1.0f, ymaxc+ytol, str, col);
+	
+		/* end frame */
+	sprintf(str, "%.1f", strip->end);
+	UI_view2d_text_cache_add(v2d, strip->end, ymaxc+ytol, str, col);
 }
 
 /* ---------------------- */
@@ -470,10 +542,11 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	
 	View2D *v2d= &ar->v2d;
 	float y= 0.0f;
-	int items, height;
+	size_t items;
+	int height;
 	
 	/* build list of channels to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
@@ -482,18 +555,18 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
-	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
+	height= ((items*NLACHANNEL_STEP(snla)) + (NLACHANNEL_HEIGHT(snla)*2));
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
 	v2d->tot.ymin= (float)(-height);
 	
 	/* loop through channels, and set up drawing depending on their type  */	
-	y= (float)(-NLACHANNEL_HEIGHT);
+	y= (float)(-NLACHANNEL_HEIGHT(snla));
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
-		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
+		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
+		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
 		
 		/* check if visible */
 		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -515,7 +588,13 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 							nla_draw_strip(snla, adt, nlt, strip, v2d, yminc, ymaxc);
 							
 							/* add the text for this strip to the cache */
-							nla_draw_strip_text(nlt, strip, index, v2d, yminc, ymaxc);
+							nla_draw_strip_text(adt, nlt, strip, index, v2d, yminc, ymaxc);
+							
+							/* if transforming strips (only real reason for temp-metas currently), 
+							 * add to the cache the frame numbers of the strip's extents
+							 */
+							if (strip->flag & NLASTRIP_FLAG_TEMP_META)
+								nla_draw_strip_frames_text(nlt, strip, v2d, yminc, ymaxc);
 						}
 					}
 				}
@@ -564,7 +643,7 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 		}
 		
 		/* adjust y-position for next one */
-		y -= NLACHANNEL_STEP;
+		y -= NLACHANNEL_STEP(snla);
 	}
 	
 	/* free tempolary channels */
@@ -578,20 +657,23 @@ void draw_nla_main_data (bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 // TODO: depreceate this code...
 static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, View2D *v2d, float y)
 {
+	SpaceNla *snla = (SpaceNla *)ac->sl;
 	bAnimListElem *ale;
 	float x = 0.0f;
 	
 	/* loop through channels, and set up drawing depending on their type  */	
 	for (ale= anim_data->first; ale; ale= ale->next) {
-		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
-		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
+		const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
+		const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
 		const float ydatac= (float)(y - 7);
 		
 		/* check if visible */
 		if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
 			 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
 		{
-			short indent= 0, offset= 0, sel= 0, group= 0;
+			AnimData *adt = ale->adt;
+			
+			short indent= 0, offset= 0, sel= 0, group= 0, nonSolo= 0;
 			int expand= -1, protect = -1, special= -1, mute = -1;
 			char name[128];
 			short doDraw=0;
@@ -602,27 +684,11 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 				{
 					NlaTrack *nlt= (NlaTrack *)ale->data;
 					
-					indent= 0;
-					
-					if (ale->id) {
-						/* special exception for materials and particles */
-						if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) {
-							offset= 21;
-							indent= 1;
-						}
-						else
-							offset= 14;
-					}
-					else
-						offset= 0;
-					
-					/* FIXME: 'solo' as the 'special' button?
-					 *	- need special icons for these
-					 */
+					/* 'solo' as the 'special' button? */
 					if (nlt->flag & NLATRACK_SOLO)
-						special= ICON_LAYER_ACTIVE;
+						special= ICON_SOLO_ON;
 					else
-						special= ICON_LAYER_USED;
+						special= ICON_SOLO_OFF;
 						
 					/* if this track is active and we're tweaking it, don't draw these toggles */
 					// TODO: need a special macro for this...
@@ -638,6 +704,15 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 						else
 							protect = ICON_LOCKED;
 					}
+					
+					/* is track enabled for solo drawing? */
+					if ((adt) && (adt->flag & ADT_NLA_SOLO_TRACK)) {
+						if ((nlt->flag & NLATRACK_SOLO) == 0) {
+							/* tag for special non-solo handling; also hide the mute toggles */
+							nonSolo= 1;
+							mute = 0;
+						}
+					}
 						
 					sel = SEL_NLT(nlt);
 					strcpy(name, nlt->name);
@@ -652,22 +727,10 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					
 					group = 5;
 					
-					if (ale->id) {
-						/* special exception for materials and particles */
-						if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) {
-							offset= 21;
-							indent= 1;
-						}
-						else
-							offset= 14;
-					}
-					else
-						offset= 0;
-					
 					special = ICON_ACTION;
 					
 					if (act)
-						sprintf(name, "ActAction: <%s>", act->id.name+2);
+						sprintf(name, "%s", act->id.name+2);
 					else
 						sprintf(name, "<No Action>");
 						
@@ -684,6 +747,45 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 			
 			/* if special types, draw manually for now... */
 			if (doDraw) {
+				if (ale->id) {
+					/* special exception for textures */
+					if (GS(ale->id->name) == ID_TE) {
+						offset= 14;
+						indent= 1;
+					}
+					/* special exception for nodetrees */
+					else if (GS(ale->id->name) == ID_NT) {
+						bNodeTree *ntree = (bNodeTree *)ale->id;
+						
+						switch (ntree->type) {
+							case NTREE_SHADER:
+							{
+								/* same as for textures */
+								offset= 14;
+								indent= 1;
+							}
+								break;
+								
+							case NTREE_TEXTURE:
+							{
+								/* even more */
+								offset= 21;
+								indent= 1;
+							}	
+								break;
+								
+							default:
+								/* normal will do */
+								offset= 14;
+								break;
+						}
+					}
+					else
+						offset= 14;
+				}
+				else
+					offset= 0;
+				
 				/* now, start drawing based on this information */
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
@@ -691,18 +793,19 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 				/* draw backing strip behind channel name */
 				if (group == 5) {
 					/* Action Line */
-					AnimData *adt= ale->adt;
-					
 					// TODO: if tweaking some action, use the same color as for the tweaked track (quick hack done for now)
 					if (adt && (adt->flag & ADT_NLA_EDIT_ON)) {
 						// greenish color (same as tweaking strip) - hardcoded for now
 						glColor3f(0.3f, 0.95f, 0.1f);
 					}
 					else {
+						/* if a track is being solo'd, action is ignored, so draw less boldly (alpha lower) */
+						float alpha = (adt && (adt->flag & ADT_NLA_SOLO_TRACK))? 0.3f : 1.0f;
+						
 						if (ale->data)
-							glColor3f(0.8f, 0.2f, 0.0f);	// reddish color - hardcoded for now 
+							glColor4f(0.8f, 0.2f, 0.0f, alpha);	// reddish color - hardcoded for now 
 						else
-							glColor3f(0.6f, 0.5f, 0.5f); 	// greyish-red color - hardcoded for now
+							glColor4f(0.6f, 0.5f, 0.5f, alpha); // greyish-red color - hardcoded for now
 					}
 					
 					offset += 7 * indent;
@@ -719,10 +822,8 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					group = 0;
 				}
 				else {
-					/* for normal channels 
-					 *	- use 3 shades of color group/standard color for 3 indention level
-					 */
-					UI_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+					/* NLA tracks - darker color if not solo track when we're showing solo */
+					UI_ThemeColorShade(TH_HEADER, ((nonSolo == 0)? 20 : -20));
 					
 					indent += group;
 					offset += 7 * indent;
@@ -816,7 +917,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 		}
 		
 		/* adjust y-position for next one */
-		y -= NLACHANNEL_STEP;
+		y -= NLACHANNEL_STEP(snla);
 	}
 }
 
@@ -826,12 +927,14 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 	bAnimListElem *ale;
 	int filter;
 	
+	SpaceNla *snla = (SpaceNla *)ac->sl;
 	View2D *v2d= &ar->v2d;
 	float y= 0.0f;
-	int items, height;
+	size_t items;
+	int height;
 	
 	/* build list of channels to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
@@ -840,7 +943,7 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 	 *	- offset of NLACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
 	 *	  start of list offset, and the second is as a correction for the scrollers.
 	 */
-	height= ((items*NLACHANNEL_STEP) + (NLACHANNEL_HEIGHT*2));
+	height= ((items*NLACHANNEL_STEP(snla)) + (NLACHANNEL_HEIGHT(snla)*2));
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */
@@ -850,14 +953,15 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 	
 	/* draw channels */
 	{	/* first pass: backdrops + oldstyle drawing */
-		y= (float)(-NLACHANNEL_HEIGHT);
+		y= (float)(-NLACHANNEL_HEIGHT(snla));
 		
 		draw_nla_channel_list_gl(ac, &anim_data, v2d, y);
 	}
 	{	/* second pass: UI widgets */
 		uiBlock *block= uiBeginBlock(C, ar, "NLA channel buttons", UI_EMBOSS);
+		size_t channel_index = 0;
 		
-		y= (float)(-NLACHANNEL_HEIGHT);
+		y= (float)(-NLACHANNEL_HEIGHT(snla));
 		
 		/* set blending again, as may not be set in previous step */
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -865,19 +969,20 @@ void draw_nla_channel_list (bContext *C, bAnimContext *ac, ARegion *ar)
 		
 		/* loop through channels, and set up drawing depending on their type  */	
 		for (ale= anim_data.first; ale; ale= ale->next) {
-			const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF);
-			const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF);
+			const float yminc= (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
+			const float ymaxc= (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
 			
 			/* check if visible */
 			if ( IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
 				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
 			{
 				/* draw all channels using standard channel-drawing API */
-				ANIM_channel_draw_widgets(ac, ale, block, yminc, ymaxc);
+				ANIM_channel_draw_widgets(C, ac, ale, block, yminc, ymaxc, channel_index);
 			}
 			
 			/* adjust y-position for next one */
-			y -= NLACHANNEL_STEP;
+			y -= NLACHANNEL_STEP(snla);
+			channel_index++;
 		}
 		
 		uiEndBlock(C, block);

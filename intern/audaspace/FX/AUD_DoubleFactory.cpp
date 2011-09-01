@@ -32,25 +32,15 @@
 #include "AUD_DoubleFactory.h"
 #include "AUD_DoubleReader.h"
 
-AUD_DoubleFactory::AUD_DoubleFactory(AUD_IFactory* factory1, AUD_IFactory* factory2) :
+AUD_DoubleFactory::AUD_DoubleFactory(AUD_Reference<AUD_IFactory> factory1, AUD_Reference<AUD_IFactory> factory2) :
 		m_factory1(factory1), m_factory2(factory2)
 {
 }
 
-AUD_IReader* AUD_DoubleFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_DoubleFactory::createReader()
 {
-	AUD_IReader* reader1 = m_factory1->createReader();
-	AUD_IReader* reader2;
-
-	try
-	{
-		reader2 = m_factory2->createReader();
-	}
-	catch(AUD_Exception&)
-	{
-		delete reader1;
-		throw;
-	}
+	AUD_Reference<AUD_IReader> reader1 = m_factory1->createReader();
+	AUD_Reference<AUD_IReader> reader2 = m_factory2->createReader();
 
 	return new AUD_DoubleReader(reader1, reader2);
 }

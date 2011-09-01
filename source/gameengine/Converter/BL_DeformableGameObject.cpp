@@ -87,15 +87,16 @@ bool BL_DeformableGameObject::SetActiveAction(BL_ShapeActionActuator *act, short
 bool BL_DeformableGameObject::GetShape(vector<float> &shape)
 {
 	shape.clear();
-	if (m_pDeformer)
+	BL_ShapeDeformer* shape_deformer = dynamic_cast<BL_ShapeDeformer*>(m_pDeformer);
+	if (shape_deformer)
 	{
-		Mesh* mesh = ((BL_MeshDeformer*)m_pDeformer)->GetMesh();
 		// this check is normally superfluous: a shape deformer can only be created if the mesh
 		// has relative keys
-		if (mesh && mesh->key && mesh->key->type==KEY_RELATIVE) 
+		Key* key = shape_deformer->GetKey();
+		if (key && key->type==KEY_RELATIVE) 
 		{
 			KeyBlock *kb;
-			for (kb = (KeyBlock*)mesh->key->block.first; kb; kb = (KeyBlock*)kb->next)
+			for (kb = (KeyBlock*)key->block.first; kb; kb = (KeyBlock*)kb->next)
 			{
 				shape.push_back(kb->curval);
 			}

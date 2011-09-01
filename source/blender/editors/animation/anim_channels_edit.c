@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -38,7 +36,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
-
+#include "BKE_library.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -51,6 +49,7 @@
 
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
+#include "BKE_gpencil.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 
@@ -123,6 +122,7 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
 			case ANIMTYPE_DSMESH:
 			case ANIMTYPE_DSTEX:
 			case ANIMTYPE_DSLAT:
+			case ANIMTYPE_DSSPK:
 			{
 				/* need to verify that this data is valid for now */
 				if (ale->adt) {
@@ -167,6 +167,7 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
 			case ANIMTYPE_DSARM:
 			case ANIMTYPE_DSMESH:
 			case ANIMTYPE_DSLAT:
+			case ANIMTYPE_DSSPK:
 			{
 				/* need to verify that this data is valid for now */
 				if (ale && ale->adt) {
@@ -194,7 +195,8 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 	int filter;
 	
 	/* filter data */
-	filter= ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS;
+	/* NOTE: no list visible, otherwise, we get dangling */
+	filter= ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;
 	ANIM_animdata_filter(ac, &anim_data, filter, data, datatype);
 	
 	/* See if we should be selecting or deselecting */
@@ -245,6 +247,7 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 				case ANIMTYPE_DSNTREE:
 				case ANIMTYPE_DSTEX:
 				case ANIMTYPE_DSLAT:
+				case ANIMTYPE_DSSPK:
 				{
 					if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED))
 						sel= ACHANNEL_SETFLAG_CLEAR;
@@ -334,6 +337,7 @@ void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, 
 			case ANIMTYPE_DSNTREE:
 			case ANIMTYPE_DSTEX:
 			case ANIMTYPE_DSLAT:
+			case ANIMTYPE_DSSPK:
 			{
 				/* need to verify that this data is valid for now */
 				if (ale->adt) {
@@ -515,12 +519,34 @@ void ANIM_fcurve_delete_from_animdata (bAnimContext *ac, AnimData *adt, FCurve *
 	 *	- Drivers
 	 *	- TODO... some others?
 	 */
-	if (fcu->grp)
-		action_groups_remove_channel(adt->action, fcu);
-	else if ((ac) && (ac->datatype == ANIMCONT_DRIVERS))
+	if ((ac) && (ac->datatype == ANIMCONT_DRIVERS)) {
+		/* driver F-Curve */
 		BLI_remlink(&adt->drivers, fcu);
-	else if (adt->action)
-		BLI_remlink(&adt->action->curves, fcu);
+	}
+	else if (adt->action) {
+		/* remove from group or action, whichever one "owns" the F-Curve */
+		if (fcu->grp)
+			action_groups_remove_channel(adt->action, fcu);
+		else
+			BLI_remlink(&adt->action->curves, fcu);
+			
+		/* if action has no more F-Curves as a result of this, unlink it from
+		 * AnimData if it did not come from a NLA Strip being tweaked.
+		 *
+		 * This is done so that we don't have dangling Object+Action entries in
+		 * channel list that are empty, and linger around long after the data they
+		 * are for has disappeared (and probably won't come back).
+		 */
+			// XXX: does everybody always want this?
+			/* XXX: there's a problem where many actions could build up in the file if multiple
+			 * full add/delete cycles are performed on the same objects, but assume that this is rare
+			 */
+		if ((adt->action->curves.first == NULL) && (adt->flag & ADT_NLA_EDIT_ON)==0)
+		{
+			id_us_min(&adt->action->id);
+			adt->action = NULL;
+		}
+	}
 		
 	/* free the F-Curve itself */
 	free_fcurve(fcu);
@@ -1016,11 +1042,6 @@ static void rearrange_action_channels (bAnimContext *ac, bAction *act, short mod
 static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
-	
-	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
 	short mode;
 	
 	/* get editor data */
@@ -1030,41 +1051,50 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 	/* get mode */
 	mode= RNA_enum_get(op->ptr, "direction");
 	
-	/* get animdata blocks */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
-	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-	
-	for (ale = anim_data.first; ale; ale = ale->next) {
-		AnimData *adt= ale->data;
-		
-		switch (ac.datatype) {
-			case ANIMCONT_NLA: /* NLA-tracks only */
-				rearrange_nla_channels(&ac, adt, mode);
-				break;
-			
-			case ANIMCONT_DRIVERS: /* Drivers list only */
-				rearrange_driver_channels(&ac, adt, mode);
-				break;
-				
-			case ANIMCONT_GPENCIL: /* Grease Pencil channels */
-				// FIXME: this case probably needs to get moved out of here or treated specially...
-				printf("grease pencil not supported for moving yet\n");
-				break;
-				
-			case ANIMCONT_SHAPEKEY: // DOUBLE CHECK ME...
-				
-			default: /* some collection of actions */
-				// FIXME: actions should only be considered once!
-				if (adt->action)
-					rearrange_action_channels(&ac, adt->action, mode);
-				else if (G.f & G_DEBUG)
-					printf("animdata has no action\n");
-				break;
-		}
+	/* method to move channels depends on the editor */
+	if (ac.datatype == ANIMCONT_GPENCIL) {
+		/* Grease Pencil channels */
+		printf("Grease Pencil not supported for moving yet\n");
 	}
-	
-	/* free temp data */
-	BLI_freelistN(&anim_data);
+	else if (ac.datatype == ANIMCONT_ACTION) {
+		/* Directly rearrange action's channels */
+		rearrange_action_channels(&ac, ac.data, mode);
+	}
+	else {
+		ListBase anim_data = {NULL, NULL};
+		bAnimListElem *ale;
+		int filter;
+		
+		/* get animdata blocks */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA);
+		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		for (ale = anim_data.first; ale; ale = ale->next) {
+			AnimData *adt= ale->data;
+			
+			switch (ac.datatype) {
+				case ANIMCONT_NLA: /* NLA-tracks only */
+					rearrange_nla_channels(&ac, adt, mode);
+					break;
+				
+				case ANIMCONT_DRIVERS: /* Drivers list only */
+					rearrange_driver_channels(&ac, adt, mode);
+					break;
+				
+				case ANIMCONT_SHAPEKEY: // DOUBLE CHECK ME...
+					
+				default: /* some collection of actions */
+					if (adt->action)
+						rearrange_action_channels(&ac, adt->action, mode);
+					else if (G.f & G_DEBUG)
+						printf("Animdata has no action\n");
+					break;
+			}
+		}
+		
+		/* free temp data */
+		BLI_freelistN(&anim_data);
+	}
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
@@ -1111,7 +1141,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	/* do groups only first (unless in Drivers mode, where there are none) */
 	if (ac.datatype != ANIMCONT_DRIVERS) {
 		/* filter data */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_CHANNELS | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
 		/* delete selected groups and their associated channels */
@@ -1147,27 +1177,40 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		BLI_freelistN(&anim_data);
 	}
 	
-	/* now do F-Curves */
-	if (ac.datatype != ANIMCONT_GPENCIL) {
-		/* filter data */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-		
-		/* delete selected F-Curves */
-		for (ale= anim_data.first; ale; ale= ale->next) {
-			/* only F-Curves, and only if we can identify its parent */
-			if (ale->type == ANIMTYPE_FCURVE) {
+	/* filter data */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* delete selected data channels */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		switch (ale->type) {
+			case ANIMTYPE_FCURVE: 
+			{
+				/* F-Curves if we can identify its parent */
 				AnimData *adt= ale->adt;
 				FCurve *fcu= (FCurve *)ale->data;
 				
 				/* try to free F-Curve */
 				ANIM_fcurve_delete_from_animdata(&ac, adt, fcu);
 			}
+				break;
+				
+			case ANIMTYPE_GPLAYER:
+			{
+				/* Grease Pencil layer */
+				bGPdata *gpd= (bGPdata *)ale->id;
+				bGPDlayer *gpl= (bGPDlayer *)ale->data;
+				
+				/* try to delete the layer's data and the layer itself */
+				free_gpencil_frames(gpl);
+				BLI_freelinkN(&gpd->layers, gpl);
+			}
+				break;
 		}
-		
-		/* cleanup */
-		BLI_freelistN(&anim_data);
 	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
@@ -1205,12 +1248,27 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
-	/* get list of all channels that selection may need to be flushed to */
-	filter= ANIMFILTER_CHANNELS;
+	/* get list of all channels that selection may need to be flushed to 
+	 * - hierarchy mustn't affect what we have access to here...
+	 */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
-	
-	/* hide all channels not selected */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_NODUPLIS);
+		
+	/* hide all channels not selected
+	 * - hierarchy matters if we're doing this from the channels region
+	 *   since we only want to apply this to channels we can "see", 
+	 *   and have these affect their relatives
+	 * - but for Graph Editor, this gets used also from main region
+	 *   where hierarchy doesn't apply, as for [#21276]
+	 */
+	if ((ac.spacetype == SPACE_IPO) && (ac.regiontype != RGN_TYPE_CHANNELS)) {
+		/* graph editor (case 2) */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
+	}
+	else {
+		/* standard case */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_UNSEL | ANIMFILTER_NODUPLIS);
+	}
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
@@ -1284,12 +1342,16 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(o
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 		
-	/* get list of all channels that selection may need to be flushed to */
-	filter= (ANIMFILTER_CHANNELS | ANIMFILTER_NODUPLIS);
+	/* get list of all channels that selection may need to be flushed to 
+	 * - hierarchy mustn't affect what we have access to here...
+	 */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 		
-	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+	/* filter data
+	 * - restrict this to only applying on settings we can get to in the list
+	 */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* See if we should be making showing all selected or hiding */
@@ -1362,10 +1424,6 @@ static EnumPropertyItem prop_animchannel_settings_types[] = {
 
 /* ------------------- */
 
-/* macro to be used in setflag_anim_channels */
-#define ASUBCHANNEL_SEL_OK(ale) ( (onlysel == 0) || \
-		((ale->id) && (GS(ale->id->name)==ID_OB) && (((Object *)ale->id)->flag & SELECT)) ) 
-
 /* Set/clear a particular flag (setting) for all selected + visible channels 
  *	setting: the setting to modify
  *	mode: eAnimChannels_SetFlag
@@ -1381,14 +1439,29 @@ static void setflag_anim_channels (bAnimContext *ac, short setting, short mode, 
 	
 	/* filter data that we need if flush is on */
 	if (flush) {
-		/* get list of all channels that selection may need to be flushed to */
-		filter= ANIMFILTER_CHANNELS;
+		/* get list of all channels that selection may need to be flushed to 
+		 * - hierarchy visibility needs to be ignored so that settings can get flushed
+		 *   "down" inside closed containers
+		 */
+		filter= ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;
 		ANIM_animdata_filter(ac, &all_data, filter, ac->data, ac->datatype);
 	}
 	
-	/* filter data that we're working on */
-	// XXX: noduplis enabled so that results don't cancel, but will be problematic for some channels where only type differs
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS | ANIMFILTER_NODUPLIS);
+	/* filter data that we're working on 
+	 * - hierarchy matters if we're doing this from the channels region
+	 *   since we only want to apply this to channels we can "see", 
+	 *   and have these affect their relatives
+	 * - but for Graph Editor, this gets used also from main region
+	 *   where hierarchy doesn't apply [#21276]
+	 */
+	if ((ac->spacetype == SPACE_IPO) && (ac->regiontype != RGN_TYPE_CHANNELS)) {
+		/* graph editor (case 2) */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_NODUPLIS);
+	}
+	else {
+		/* standard case */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
+	}
 	if (onlysel) filter |= ANIMFILTER_SEL;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
@@ -1681,7 +1754,7 @@ static int animchannels_enable_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY | ANIMFILTER_NODUPLIS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* loop through filtered data and clean curves */
@@ -1771,13 +1844,14 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 	bAnimListElem *ale;
 	int filter;
 	
+	SpaceNla *snla = (SpaceNla *)ac->sl;
 	View2D *v2d= &ac->ar->v2d;
 	rctf rectf;
 	float ymin, ymax;
 	
 	/* set initial y extents */
 	if (ac->datatype == ANIMCONT_NLA) {
-		ymin = (float)(-NLACHANNEL_HEIGHT);
+		ymin = (float)(-NLACHANNEL_HEIGHT(snla));
 		ymax = 0.0f;
 	}
 	else {
@@ -1790,13 +1864,13 @@ static void borderselect_anim_channels (bAnimContext *ac, rcti *rect, short sele
 	UI_view2d_region_to_view(v2d, rect->xmax, rect->ymax-2, &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop over data, doing border select */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		if (ac->datatype == ANIMCONT_NLA)
-			ymin= ymax - NLACHANNEL_STEP;
+			ymin= ymax - NLACHANNEL_STEP(snla);
 		else
 			ymin= ymax - ACHANNEL_STEP;
 		
@@ -1892,6 +1966,107 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border(ot, FALSE);
 }
 
+/* ******************* Rename Operator ***************************** */
+/* Allow renaming some channels by clicking on them */
+
+static void rename_anim_channels (bAnimContext *ac, int channel_index)
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimChannelType *acf;
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get the channel that was clicked on */
+		/* filter channels */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+		/* get channel from index */
+	ale= BLI_findlink(&anim_data, channel_index);
+	if (ale == NULL) {
+		/* channel not found */
+		if (G.f & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in rename_anim_channels() \n", channel_index);
+		
+		BLI_freelistN(&anim_data);
+		return;
+	}
+	
+	/* check that channel can be renamed */
+	acf = ANIM_channel_get_typeinfo(ale);
+	if (acf && acf->name_prop) {
+		PointerRNA ptr;
+		PropertyRNA *prop;
+		
+		/* ok if we can get name property to edit from this channel */
+		if (acf->name_prop(ale, &ptr, &prop)) {
+			/* actually showing the rename textfield is done on redraw,
+			 * so here we just store the index of this channel in the 
+			 * dopesheet data, which will get utilised when drawing the
+			 * channel...
+			 *
+			 * +1 factor is for backwards compat issues
+			 */
+			if (ac->ads) {
+				ac->ads->renameIndex = channel_index + 1;
+			}
+		}
+	}
+	
+	/* free temp data and tag for refresh */
+	BLI_freelistN(&anim_data);
+	ED_region_tag_redraw(ac->ar);
+}
+
+static int animchannels_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+{
+	bAnimContext ac;
+	ARegion *ar;
+	View2D *v2d;
+	int channel_index;
+	float x, y;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get useful pointers from animation context data */
+	ar= ac.ar;
+	v2d= &ar->v2d;
+	
+	/* figure out which channel user clicked in 
+	 * Note: although channels technically start at y= ACHANNEL_FIRST, we need to adjust by half a channel's height
+	 *		so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
+	 *		ACHANNEL_HEIGHT_HALF.
+	 */
+	UI_view2d_region_to_view(v2d, evt->mval[0], evt->mval[1], &x, &y);
+	
+	if (ac.datatype == ANIMCONT_NLA) {
+		SpaceNla *snla = (SpaceNla *)ac.sl;
+		UI_view2d_listview_view_to_cell(v2d, NLACHANNEL_NAMEWIDTH, NLACHANNEL_STEP(snla), 0, (float)NLACHANNEL_HEIGHT_HALF(snla), x, y, NULL, &channel_index);
+	}
+	else {
+		UI_view2d_listview_view_to_cell(v2d, ACHANNEL_NAMEWIDTH, ACHANNEL_STEP, 0, (float)ACHANNEL_HEIGHT_HALF, x, y, NULL, &channel_index);
+	}
+	
+	/* handle click */
+	rename_anim_channels(&ac, channel_index);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_channels_rename (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Rename Channels";
+	ot->idname= "ANIM_OT_channels_rename";
+	ot->description= "Rename animation channel under mouse";
+	
+	/* api callbacks */
+	ot->invoke= animchannels_rename_invoke;
+	ot->poll= animedit_poll_channels_active;
+}
+
 /* ******************** Mouse-Click Operator *********************** */
 /* Handle selection changes due to clicking on channels. Settings will get caught by UI code... */
 
@@ -1904,7 +2079,7 @@ static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_i
 	
 	/* get the channel that was clicked on */
 		/* filter channels */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 		/* get channel from index */
@@ -2002,6 +2177,7 @@ static int mouse_anim_channels (bAnimContext *ac, float UNUSED(x), int channel_i
 		case ANIMTYPE_DSNTREE:
 		case ANIMTYPE_DSTEX:
 		case ANIMTYPE_DSLAT:
+		case ANIMTYPE_DSSPK:
 		{
 			/* sanity checking... */
 			if (ale->adt) {
@@ -2214,7 +2390,9 @@ void ED_operatortypes_animchannels(void)
 {
 	WM_operatortype_append(ANIM_OT_channels_select_all_toggle);
 	WM_operatortype_append(ANIM_OT_channels_select_border);
+	
 	WM_operatortype_append(ANIM_OT_channels_click);
+	WM_operatortype_append(ANIM_OT_channels_rename);
 	
 	WM_operatortype_append(ANIM_OT_channels_setting_enable);
 	WM_operatortype_append(ANIM_OT_channels_setting_disable);
@@ -2249,6 +2427,9 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_click", LEFTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "children_only", 1);
 	
+		/* rename */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_rename", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
+	
 		/* deselect all */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", AKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0)->ptr, "invert", 1);
@@ -2277,10 +2458,10 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, KM_CTRL, 0)->ptr, "all", 0);
 	
 	/* rearranging */
-	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "direction", REARRANGE_ANIMCHAN_UP);
-	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "direction", REARRANGE_ANIMCHAN_DOWN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEUPKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "direction", REARRANGE_ANIMCHAN_TOP);
-	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEDOWNKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "direction", REARRANGE_ANIMCHAN_BOTTOM);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEUPKEY, KM_PRESS, 0, 0)->ptr, "direction", REARRANGE_ANIMCHAN_UP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEDOWNKEY, KM_PRESS, 0, 0)->ptr, "direction", REARRANGE_ANIMCHAN_DOWN);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "direction", REARRANGE_ANIMCHAN_TOP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "direction", REARRANGE_ANIMCHAN_BOTTOM);
 	
 	/* Graph Editor only */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_set", VKEY, KM_PRESS, 0, 0);

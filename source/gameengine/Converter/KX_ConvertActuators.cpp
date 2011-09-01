@@ -99,6 +99,7 @@
 #include "BL_ActionActuator.h"
 #include "BL_ShapeActionActuator.h"
 #include "BL_ArmatureActuator.h"
+#include "BL_Action.h"
 /* end of blender include block */
 
 #include "BL_BlenderDataConversion.h"
@@ -196,30 +197,37 @@ void BL_ConvertActuators(char* maggiename,
 			}
 		case ACT_ACTION:
 			{
-				if (blenderobject->type==OB_ARMATURE){
-					bActionActuator* actact = (bActionActuator*) bact->data;
-					STR_String propname = (actact->name ? actact->name : "");
-					STR_String propframe = (actact->frameProp ? actact->frameProp : "");
+				bActionActuator* actact = (bActionActuator*) bact->data;
+				STR_String propname = (actact->name ? actact->name : "");
+				STR_String propframe = (actact->frameProp ? actact->frameProp : "");
+
+				short ipo_flags = 0;
+
+				// Convert flags
+				if (actact->flag & ACT_IPOFORCE) ipo_flags |= BL_Action::ACT_IPOFLAG_FORCE;
+				if (actact->flag & ACT_IPOLOCAL) ipo_flags |= BL_Action::ACT_IPOFLAG_LOCAL;
+				if (actact->flag & ACT_IPOADD) ipo_flags |= BL_Action::ACT_IPOFLAG_ADD;
+				if (actact->flag & ACT_IPOCHILD) ipo_flags |= BL_Action::ACT_IPOFLAG_CHILD;
 					
-					BL_ActionActuator* tmpbaseact = new BL_ActionActuator(
-						gameobj,
-						propname,
-						propframe,
-						actact->sta,
-						actact->end,
-						actact->act,
-						actact->type, // + 1, because Blender starts to count at zero,
-						actact->blendin,
-						actact->priority,
-						actact->end_reset,
-						actact->stridelength
-						// Ketsji at 1, because zero is reserved for "NoDef"
-						);
-					baseact= tmpbaseact;
-					break;
-				}
-				else
-					printf ("Discarded action actuator from non-armature object [%s]\n", blenderobject->id.name+2);
+				BL_ActionActuator* tmpbaseact = new BL_ActionActuator(
+					gameobj,
+					propname,
+					propframe,
+					actact->sta,
+					actact->end,
+					actact->act,
+					actact->type, // + 1, because Blender starts to count at zero,
+					actact->blendin,
+					actact->priority,
+					actact->layer,
+					actact->layer_weight,
+					ipo_flags,
+					actact->end_reset,
+					actact->stridelength
+					// Ketsji at 1, because zero is reserved for "NoDef"
+					);
+				baseact= tmpbaseact;
+				break;
 			}
 		case ACT_SHAPEACTION:
 			{
@@ -380,7 +388,7 @@ void BL_ConvertActuators(char* maggiename,
 				{
 					bSound* sound = soundact->sound;
 					bool is3d = soundact->flag & ACT_SND_3D_SOUND ? true : false;
-					AUD_Sound* snd_sound = NULL;
+					AUD_Reference<AUD_IFactory> snd_sound;
 					KX_3DSoundSettings settings;
 					settings.cone_inner_angle = soundact->sound3D.cone_inner_angle;
 					settings.cone_outer_angle = soundact->sound3D.cone_outer_angle;
@@ -398,7 +406,7 @@ void BL_ConvertActuators(char* maggiename,
 										"\" has no sound datablock." << std::endl;
 					}
 					else
-						snd_sound = sound->playback_handle;
+						snd_sound = *reinterpret_cast<AUD_Reference<AUD_IFactory>*>(sound->playback_handle);
 					KX_SoundActuator* tmpsoundact =
 						new KX_SoundActuator(gameobj,
 						snd_sound,

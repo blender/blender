@@ -68,11 +68,6 @@ private:
 	AUD_Specs m_specs;
 
 	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
-	/**
 	 * The sndfile.
 	 */
 	SNDFILE* m_sndfile;
@@ -129,7 +124,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_SNDFILEREADER

@@ -1,6 +1,4 @@
 /*
- * $Id: rna_nla.c 21537 2009-07-11 22:22:53Z gsrb3d $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -222,6 +220,29 @@ static void rna_NlaStrip_blend_out_set(PointerRNA *ptr, float value)
 	data->blendout= value;
 }
 
+static int rna_NlaStrip_action_editable(PointerRNA *ptr)
+{
+	NlaStrip *strip = (NlaStrip *)ptr->data;
+	
+	/* strip actions shouldn't be editable if NLA tweakmode is on */
+	if (ptr->id.data) {
+		AnimData *adt = BKE_animdata_from_id(ptr->id.data);
+		
+		if (adt) {
+			/* active action is only editable when it is not a tweaking strip */
+			if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact))
+				return 0;
+		}
+	}
+	
+	/* check for clues that strip probably shouldn't be used... */
+	if (strip->flag & NLASTRIP_FLAG_TWEAKUSER)
+		return 0;
+		
+	/* should be ok, though we may still miss some cases */
+	return 1;
+}
+
 static void rna_NlaStrip_action_start_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
@@ -357,6 +378,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 		{NLASTRIP_TYPE_CLIP, "CLIP", 0, "Action Clip", "NLA Strip references some Action"},
 		{NLASTRIP_TYPE_TRANSITION, "TRANSITION", 0, "Transition", "NLA Strip 'transitions' between adjacent strips"},
 		{NLASTRIP_TYPE_META, "META", 0, "Meta", "NLA Strip acts as a container for adjacent strips"},
+		{NLASTRIP_TYPE_SOUND, "SOUND", 0, "Sound Clip", "NLA Strip representing a sound event for speakers"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* struct definition */
@@ -428,6 +450,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "act");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Action_id_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE); 
+	RNA_def_property_editable_func(prop, "rna_NlaStrip_action_editable");
 	RNA_def_property_ui_text(prop, "Action", "Action referenced by this strip");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_NLA, NULL); /* this will do? */
 	

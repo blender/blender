@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -927,13 +925,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			case TSE_NLA_ACTION:
 				UI_icon_draw(x, y, ICON_ACTION); break;
 			case TSE_DRIVER_BASE:
-
-#if 0		// GSOC_PEPPER
-
 				UI_icon_draw(x, y, ICON_DRIVER); break;
-
-#endif		// GSOC_PEPPER
-
 			case TSE_DEFGROUP_BASE:
 				UI_icon_draw(x, y, ICON_GROUP_VERTEX); break;
 			case TSE_BONE:
@@ -1092,14 +1084,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_FONT); break;
 			case OB_SURF: 
 				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SURFACE); break;
-
-#if 0		// GSOC_PEPPER
-
 			case OB_SPEAKER:
 				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SPEAKER); break;
-
-#endif		// GSOC_PEPPER
-
 			case OB_EMPTY: 
 				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_EMPTY); break;
 		
@@ -1143,15 +1129,9 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 				tselem_draw_icon_uibut(&arg, ICON_TEXTURE_DATA); break;
 			case ID_IM:
 				tselem_draw_icon_uibut(&arg, ICON_IMAGE_DATA); break;
-
-#if 0		// GSOC_PEPPER
-
 			case ID_SPK:
 			case ID_SO:
 				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_SPEAKER); break;
-
-#endif		// GSOC_PEPPER
-
 			case ID_AR:
 				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_ARMATURE); break;
 			case ID_CA:

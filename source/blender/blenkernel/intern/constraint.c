@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -2641,7 +2639,7 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			/* if inside, then move to surface */
 			if (dist <= data->dist) {
 				clamp_surf= 1;
-				sfac= data->dist / dist;
+				if (dist != 0.0f) sfac= data->dist / dist;
 			}
 			/* if soft-distance is enabled, start fading once owner is dist+softdist from the target */
 			else if (data->flag & LIMITDIST_USESOFT) {
@@ -2654,14 +2652,14 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 			/* if outside, then move to surface */
 			if (dist >= data->dist) {
 				clamp_surf= 1;
-				sfac= data->dist / dist;
+				if (dist != 0.0f) sfac= data->dist / dist;
 			}
 			/* if soft-distance is enabled, start fading once owner is dist-soft from the target */
 			else if (data->flag & LIMITDIST_USESOFT) {
 				// FIXME: there's a problem with "jumping" when this kicks in
 				if (dist >= (data->dist - data->soft)) {
 					sfac = (float)( data->soft*(1.0f - expf(-(dist - data->dist)/data->soft)) + data->dist );
-					sfac /= dist;
+					if (dist != 0.0f) sfac /= dist;
 					
 					clamp_surf= 1;
 				}
@@ -2670,7 +2668,7 @@ static void distlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 		else {
 			if (IS_EQF(dist, data->dist)==0) {
 				clamp_surf= 1;
-				sfac= data->dist / dist;
+				if (dist != 0.0f) sfac= data->dist / dist;
 			}
 		}
 		
@@ -4420,6 +4418,34 @@ void get_constraint_target_matrix (struct Scene *scene, bConstraint *con, int n,
 		unit_m4(mat);
 	}
 }
+
+/* Get the list of targets required for solving a constraint */
+void get_constraint_targets_for_solving (bConstraint *con, bConstraintOb *cob, ListBase *targets, float ctime)
+{
+	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+	
+	if (cti && cti->get_constraint_targets) {
+		bConstraintTarget *ct;
+		
+		/* get targets 
+		 * 	- constraints should use ct->matrix, not directly accessing values
+		 *	- ct->matrix members have not yet been calculated here! 
+		 */
+		cti->get_constraint_targets(con, targets);
+		
+		/* set matrices 
+		 * 	- calculate if possible, otherwise just initialise as identity matrix 
+		 */
+		if (cti->get_target_matrix) {
+			for (ct= targets->first; ct; ct= ct->next) 
+				cti->get_target_matrix(con, cob, ct, ctime);
+		}
+		else {
+			for (ct= targets->first; ct; ct= ct->next)
+				unit_m4(ct->matrix);
+		}
+	}
+}
  
 /* ---------- Evaluation ----------- */
 
@@ -4464,27 +4490,7 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, CONSTRAINT_SPACE_WORLD, con->ownspace);
 		
 		/* prepare targets for constraint solving */
-		if (cti->get_constraint_targets) {
-			bConstraintTarget *ct;
-			
-			/* get targets 
-			 * 	- constraints should use ct->matrix, not directly accessing values
-			 *	- ct->matrix members have not yet been calculated here! 
-			 */
-			cti->get_constraint_targets(con, &targets);
-			
-			/* set matrices 
-			 * 	- calculate if possible, otherwise just initialise as identity matrix 
-			 */
-			if (cti->get_target_matrix) {
-				for (ct= targets.first; ct; ct= ct->next) 
-					cti->get_target_matrix(con, cob, ct, ctime);
-			}
-			else {
-				for (ct= targets.first; ct; ct= ct->next)
-					unit_m4(ct->matrix);
-			}
-		}
+		get_constraint_targets_for_solving(con, cob, &targets, ctime);
 		
 		/* Solve the constraint and put result in cob->matrix */
 		cti->evaluate_constraint(con, cob, &targets);

@@ -1945,12 +1945,15 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 
 /* ******************* TRANSFORM LIMITS ********************** */
 
-static void constraintTransLim(TransInfo *UNUSED(t), TransData *td)
+static void constraintTransLim(TransInfo *t, TransData *td)
 {
 	if (td->con) {
-		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
+		bConstraintTypeInfo *ctiLoc= get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
+		bConstraintTypeInfo *ctiDist= get_constraint_typeinfo(CONSTRAINT_TYPE_DISTLIMIT);
+		
 		bConstraintOb cob= {NULL};
 		bConstraint *con;
+		float ctime = (float)(t->scene->r.cfra);
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
 		 * 	- they only care that cob->matrix is correctly set ;-)
@@ -1961,6 +1964,8 @@ static void constraintTransLim(TransInfo *UNUSED(t), TransData *td)
 		
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
+			bConstraintTypeInfo *cti = NULL;
+			ListBase targets = {NULL, NULL};
 			float tmat[4][4];
 			
 			/* only consider constraint if enabled */
@@ -1973,7 +1978,17 @@ static void constraintTransLim(TransInfo *UNUSED(t), TransData *td)
 				
 				if ((data->flag2 & LIMIT_TRANSFORM)==0)
 					continue;
+				cti = ctiLoc;
+			}
+			else if (con->type == CONSTRAINT_TYPE_DISTLIMIT) {
+				bDistLimitConstraint *data= con->data;
 				
+				if ((data->flag & LIMITDIST_TRANSFORM)==0)
+					continue;
+				cti = ctiDist;
+			}
+			
+			if (cti) {
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
@@ -1985,8 +2000,11 @@ static void constraintTransLim(TransInfo *UNUSED(t), TransData *td)
 					continue;
 				}
 				
+				/* get constraint targets if needed */
+				get_constraint_targets_for_solving(con, &cob, &targets, ctime);
+				
 				/* do constraint */
-				cti->evaluate_constraint(con, &cob, NULL);
+				cti->evaluate_constraint(con, &cob, &targets);
 				
 				/* convert spaces again */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
@@ -1994,6 +2012,9 @@ static void constraintTransLim(TransInfo *UNUSED(t), TransData *td)
 					copy_m4_m4(tmat, cob.matrix);
 					mul_m4_m3m4(cob.matrix, td->smtx, tmat);
 				}
+				
+				/* free targets list */
+				BLI_freelistN(&targets);
 			}
 		}
 		
@@ -5595,8 +5616,8 @@ int TimeSlide(TransInfo *t, const int mval[2])
 	char str[200];
 
 	/* calculate mouse co-ordinates */
-	UI_view2d_region_to_view(v2d, mval[0], mval[0], &cval[0], &cval[1]);
-	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[0], &sval[0], &sval[1]);
+	UI_view2d_region_to_view(v2d, mval[0], mval[1], &cval[0], &cval[1]);
+	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &sval[0], &sval[1]);
 
 	/* t->values[0] stores cval[0], which is the current mouse-pointer location (in frames) */
 	// XXX Need to be able to repeat this

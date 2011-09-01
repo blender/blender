@@ -45,6 +45,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
 #include "DNA_armature_types.h"
 
@@ -1492,6 +1493,52 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 			glPopMatrix();
 		}
 	}
+}
+
+/* flag similar to draw_object() */
+static void drawspeaker(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, int flag)
+{
+	//Speaker *spk = ob->data;
+
+	float vec[3];
+	int i, j;
+
+	glEnable(GL_BLEND);
+
+	for(j = 0; j < 3; j++)
+	{
+		vec[2] = .25f * j -.125f;
+
+		glBegin(GL_LINE_LOOP);
+		for(i = 0; i < 16; i++)
+		{
+			vec[0] = cos(M_PI * i / 8.0f) * (j == 0 ? .5f : .25f);
+			vec[1] = sin(M_PI * i / 8.0f) * (j == 0 ? .5f : .25f);
+			glVertex3fv(vec);
+		}
+		glEnd();
+	}
+
+	for(j = 0; j < 4; j++)
+	{
+		vec[0] = (((j + 1) % 2) * (j - 1)) * .5f;
+		vec[1] = ((j % 2) * (j - 2)) * .5f;
+		glBegin(GL_LINE_STRIP);
+		for(i = 0; i < 3; i++)
+		{
+			if(i == 1)
+			{
+				vec[0] *= .5f;
+				vec[1] *= .5f;
+			}
+
+			vec[2] = .25f * i -.125f;
+			glVertex3fv(vec);
+		}
+		glEnd();
+	}
+
+	glDisable(GL_BLEND);
 }
 
 static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
@@ -5873,6 +5920,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		else {
 
 			if(ob->type==OB_LAMP) UI_ThemeColor(TH_LAMP);
+			else if(ob->type==OB_SPEAKER) UI_ThemeColor(TH_SPEAKER);
 			else UI_ThemeColor(TH_WIRE);
 
 			if((scene->basact)==base) {
@@ -6119,6 +6167,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		case OB_CAMERA:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0 || (rv3d->persp==RV3D_CAMOB && v3d->camera==ob)) /* special exception for active camera */
 				drawcamera(scene, v3d, rv3d, ob, flag);
+			break;
+		case OB_SPEAKER:
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
+				drawspeaker(scene, v3d, rv3d, ob, flag);
 			break;
 		case OB_LATTICE:
 			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {

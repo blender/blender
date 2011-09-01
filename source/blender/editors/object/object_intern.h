@@ -116,6 +116,7 @@ void OBJECT_OT_armature_add(struct wmOperatorType *ot);
 void OBJECT_OT_lamp_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
+void OBJECT_OT_speaker_add(struct wmOperatorType *ot);
 void OBJECT_OT_group_instance_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
