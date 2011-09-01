@@ -30,8 +30,8 @@
 #include <time.h>
 
 typedef struct indexer_dv_bitstream {
-        unsigned char* buffer;
-        int bit_pos;
+	unsigned char* buffer;
+	int bit_pos;
 } indexer_dv_bitstream;
 
 static indexer_dv_bitstream bitstream_new(unsigned char* buffer_) 
@@ -57,41 +57,41 @@ static unsigned long bitstream_get_bits(indexer_dv_bitstream * This, int num)
 }
 
 static int parse_num(indexer_dv_bitstream * b, int numbits) {
-        return bitstream_get_bits(b, numbits);
+	return bitstream_get_bits(b, numbits);
 }
 
 static int parse_bcd(indexer_dv_bitstream * b, int n) 
 {
-        char s[256];
+	char s[256];
 	char * p = s + (n+3)/4;
 
 	*p-- = 0;
 
-        while (n > 4) {
-                char a;
-                int v = bitstream_get_bits(b, 4);
+	while (n > 4) {
+		char a;
+		int v = bitstream_get_bits(b, 4);
 
-                n -= 4;
+		n -= 4;
 		a = '0' + v;
 
-                if (a > '9') {
-			bitstream_get_bits(b, n); 
+		if (a > '9') {
+			bitstream_get_bits(b, n);
 			return -1;
-                }
+		}
 
 		*p-- = a;
-        }
-        if (n) {
-                char a;
-                int v = bitstream_get_bits(b, n);
-                a = '0' + v;
-                if (a > '9') {
+	}
+	if (n) {
+		char a;
+		int v = bitstream_get_bits(b, n);
+		a = '0' + v;
+		if (a > '9') {
 			return -1;
-                }
-                *p-- = a;
-        }
+		}
+		*p-- = a;
+	}
 
-        return atol(s);
+	return atol(s);
 }
 
 typedef struct indexer_dv_context
@@ -125,124 +125,124 @@ typedef struct indexer_dv_context
 
 static void parse_packet(indexer_dv_context * This, unsigned char * p)
 {
-        indexer_dv_bitstream b;
-        int type = p[0];
+	indexer_dv_bitstream b;
+	int type = p[0];
 
 	b = bitstream_new(p + 1);
 
-        switch (type) {
-        case 0x62: // Record date
-                parse_num(&b, 8);
-                This->rec_curr_day = parse_bcd(&b, 6);
-                parse_num(&b, 2);
-                This->rec_curr_month = parse_bcd(&b, 5);
-                parse_num(&b, 3);
-                This->rec_curr_year = parse_bcd(&b, 8);
-                if (This->rec_curr_year < 25) {
-                        This->rec_curr_year += 2000;
-                } else {
-                        This->rec_curr_year += 1900;
-                }
-                This->got_record_date = 1;
-                break;
-        case 0x63: // Record time
-                This->rec_curr_frame = parse_bcd(&b, 6);
-                parse_num(&b, 2);
-                This->rec_curr_second = parse_bcd(&b, 7);
-                parse_num(&b, 1);
-                This->rec_curr_minute = parse_bcd(&b, 7);
-                parse_num(&b, 1);
-                This->rec_curr_hour = parse_bcd(&b, 6);
-                This->got_record_time = 1;
-                break;
-        }
+	switch (type) {
+		case 0x62: // Record date
+			parse_num(&b, 8);
+			This->rec_curr_day = parse_bcd(&b, 6);
+			parse_num(&b, 2);
+			This->rec_curr_month = parse_bcd(&b, 5);
+			parse_num(&b, 3);
+			This->rec_curr_year = parse_bcd(&b, 8);
+			if (This->rec_curr_year < 25) {
+				This->rec_curr_year += 2000;
+			} else {
+				This->rec_curr_year += 1900;
+			}
+			This->got_record_date = 1;
+			break;
+		case 0x63: // Record time
+			This->rec_curr_frame = parse_bcd(&b, 6);
+			parse_num(&b, 2);
+			This->rec_curr_second = parse_bcd(&b, 7);
+			parse_num(&b, 1);
+			This->rec_curr_minute = parse_bcd(&b, 7);
+			parse_num(&b, 1);
+			This->rec_curr_hour = parse_bcd(&b, 6);
+			This->got_record_time = 1;
+			break;
+	}
 }
 
 static void parse_header_block(indexer_dv_context * This, unsigned char* target)
 {
 	int i;
-        for (i = 3; i < 80; i += 5) {
-                  if (target[i] != 0xff) {
-                          parse_packet(This, target + i);
-                  }
-        }
+	for (i = 3; i < 80; i += 5) {
+		if (target[i] != 0xff) {
+			parse_packet(This, target + i);
+		}
+	}
 }
 
 static void parse_subcode_blocks(
-	indexer_dv_context * This, unsigned char* target)
+        indexer_dv_context * This, unsigned char* target)
 {
 	int i,j;
 
-        for (j = 0; j < 2; j++) {
-                for (i = 3; i < 80; i += 5) {
-                        if (target[i] != 0xff) {
-                                parse_packet(This, target + i);
-                        }
-                }
-        }
+	for (j = 0; j < 2; j++) {
+		for (i = 3; i < 80; i += 5) {
+			if (target[i] != 0xff) {
+				parse_packet(This, target + i);
+			}
+		}
+	}
 }
 
 static void parse_vaux_blocks(
-	indexer_dv_context * This, unsigned char* target)
+        indexer_dv_context * This, unsigned char* target)
 {
 	int i,j;
 
-        for (j = 0; j < 3; j++) {
-                for (i = 3; i < 80; i += 5) {
-                        if (target[i] != 0xff) {
-                                parse_packet(This, target + i);
-                        }
-                }
-                target += 80;
-        }
+	for (j = 0; j < 3; j++) {
+		for (i = 3; i < 80; i += 5) {
+			if (target[i] != 0xff) {
+				parse_packet(This, target + i);
+			}
+		}
+		target += 80;
+	}
 }
 
 static void parse_audio_headers(
-	indexer_dv_context * This, unsigned char* target)
+        indexer_dv_context * This, unsigned char* target)
 {
 	int i;
 
-        for(i = 0; i < 9; i++) {
-                if (target[3] != 0xff) {
-                        parse_packet(This, target + 3);
-                }
-                target += 16 * 80;
-        }
+	for(i = 0; i < 9; i++) {
+		if (target[3] != 0xff) {
+			parse_packet(This, target + 3);
+		}
+		target += 16 * 80;
+	}
 }
 
 static void parse_frame(indexer_dv_context * This, 
-			unsigned char * framebuffer, int isPAL)
+                        unsigned char * framebuffer, int isPAL)
 {
-        int numDIFseq = isPAL ? 12 : 10;
-        unsigned char* target = framebuffer;
+	int numDIFseq = isPAL ? 12 : 10;
+	unsigned char* target = framebuffer;
 	int ds;
 
-        for (ds = 0; ds < numDIFseq; ds++) { 
-                parse_header_block(This, target);
-                target +=   1 * 80;
-                parse_subcode_blocks(This, target);
-                target +=   2 * 80;
-                parse_vaux_blocks(This, target);
-                target +=   3 * 80;
-                parse_audio_headers(This, target);
-                target += 144 * 80;
-        }
+	for (ds = 0; ds < numDIFseq; ds++) {
+		parse_header_block(This, target);
+		target +=   1 * 80;
+		parse_subcode_blocks(This, target);
+		target +=   2 * 80;
+		parse_vaux_blocks(This, target);
+		target +=   3 * 80;
+		parse_audio_headers(This, target);
+		target += 144 * 80;
+	}
 }
 
 static void inc_frame(int * frame, time_t * t, int isPAL)
 {
-        if ((isPAL && *frame >= 25) || (!isPAL && *frame >= 30)) {
-                fprintf(stderr, "Ouchie: inc_frame: invalid_frameno: %d\n",
-			*frame);
-        }
-        (*frame)++;
-        if (isPAL && *frame >= 25) {
-                (*t)++;
-                *frame = 0;
-        } else if (!isPAL && *frame >= 30) {
-                (*t)++;
-                *frame = 0;
-        }
+	if ((isPAL && *frame >= 25) || (!isPAL && *frame >= 30)) {
+		fprintf(stderr, "Ouchie: inc_frame: invalid_frameno: %d\n",
+		        *frame);
+	}
+	(*frame)++;
+	if (isPAL && *frame >= 25) {
+		(*t)++;
+		*frame = 0;
+	} else if (!isPAL && *frame >= 30) {
+		(*t)++;
+		*frame = 0;
+	}
 }
 
 static void write_index(indexer_dv_context * This, anim_index_entry * entry)
@@ -256,36 +256,36 @@ static void fill_gap(indexer_dv_context * This, int isPAL)
 {
 	int i;
 
-        for (i = 0; i < This->fsize; i++) {
-                if (This->gap_start == This->ref_time_read && 
-		    This->gap_frame == This->curr_frame) {
-                        fprintf(stderr, 
-				"indexer_dv::fill_gap: "
-				"can't seek backwards !\n");
-                        break;
-                }
-                inc_frame(&This->gap_frame, &This->gap_start, isPAL);
-        }
+	for (i = 0; i < This->fsize; i++) {
+		if (This->gap_start == This->ref_time_read &&
+		        This->gap_frame == This->curr_frame) {
+			fprintf(stderr,
+			        "indexer_dv::fill_gap: "
+			        "can't seek backwards !\n");
+			break;
+		}
+		inc_frame(&This->gap_frame, &This->gap_start, isPAL);
+	}
 
-        while (This->gap_start != This->ref_time_read || 
+	while (This->gap_start != This->ref_time_read ||
 	       This->gap_frame != This->curr_frame) {
-                inc_frame(&This->gap_frame, &This->gap_start, isPAL);
+		inc_frame(&This->gap_frame, &This->gap_start, isPAL);
 		This->frameno_offset++;
-        }
+	}
 
-        for (i = 0; i < This->fsize; i++) {
+	for (i = 0; i < This->fsize; i++) {
 		write_index(This, This->backbuffer + i);
-        }
-        This->fsize = 0;
+	}
+	This->fsize = 0;
 }
 
 static void proc_frame(indexer_dv_context * This,
-		       unsigned char* UNUSED(framebuffer), int isPAL)
+                       unsigned char* UNUSED(framebuffer), int isPAL)
 {
 	struct tm recDate;
 	time_t t;
 
-        if (!This->got_record_date || !This->got_record_time) {
+	if (!This->got_record_date || !This->got_record_time) {
 		return;
 	}
 
@@ -329,9 +329,9 @@ static void proc_frame(indexer_dv_context * This,
 }
 
 static void indexer_dv_proc_frame(anim_index_builder * idx, 
-				  unsigned char * buffer,
-				  int UNUSED(data_size),
-				  struct anim_index_entry * entry)
+                                  unsigned char * buffer,
+                                  int UNUSED(data_size),
+                                  struct anim_index_entry * entry)
 {
 	int isPAL;
 	
@@ -354,7 +354,7 @@ static void indexer_dv_proc_frame(anim_index_builder * idx,
 			int i;
 
 			fprintf(stderr, "indexer_dv::indexer_dv_proc_frame: "
-				"backbuffer overrun, emergency flush");
+			        "backbuffer overrun, emergency flush");
 
 			for (i = 0; i < This->fsize; i++) {
 				write_index(This, This->backbuffer+i);
@@ -378,8 +378,8 @@ static void indexer_dv_delete(anim_index_builder * idx)
 
 void IMB_indexer_dv_new(anim_index_builder * idx)
 {
-	indexer_dv_context * rv = MEM_callocN( 
-		sizeof(indexer_dv_context), "index_dv builder context");
+	indexer_dv_context * rv = MEM_callocN(
+	            sizeof(indexer_dv_context), "index_dv builder context");
 
 	rv->ref_time_read = -1;
 	rv->curr_frame = -1;

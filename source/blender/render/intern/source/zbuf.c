@@ -4115,13 +4115,13 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 							add_transp_obindex(rlpp[a], od, obr->ob);
 					}
 				}
-                                if(addpassflag & SCE_PASS_INDEXMA) {
-                                        ObjectRen *obr= R.objectinstance[zrow[totface-1].obi].obr;
-                                        if(obr->ob) {
-                                                for(a= 0; a<totfullsample; a++)
-                                                        add_transp_obindex(rlpp[a], od, obr->ob);
-                                        }
-                                }
+				if(addpassflag & SCE_PASS_INDEXMA) {
+					ObjectRen *obr= R.objectinstance[zrow[totface-1].obi].obr;
+					if(obr->ob) {
+						for(a= 0; a<totfullsample; a++)
+							add_transp_obindex(rlpp[a], od, obr->ob);
+					}
+				}
 
 				/* for each mask-sample we alpha-under colors. then in end it's added using filter */
 				memset(samp_shr, 0, sizeof(ShadeResult)*osa);
