@@ -760,5 +760,17 @@ void sound_seek_scene(struct bContext *UNUSED(C)) {}
 float sound_sync_scene(struct Scene *UNUSED(scene)) { return 0.0f; }
 int sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
 int sound_read_sound_buffer(struct bSound* UNUSED(sound), float* UNUSED(buffer), int UNUSED(length), float UNUSED(start), float UNUSED(end)) { return 0; }
+void sound_read_waveform(struct bSound* sound) { (void)sound; }
+void sound_init_main(struct Main *bmain) { (void)bmain; }
+void sound_set_cfra(int cfra) { (void)cfra; }
+void sound_update_sequencer(struct Main* main, struct bSound* sound) { (void)main; (void)sound; }
+void sound_update_scene(struct Scene* scene) { (void)scene; }
+void sound_update_scene_sound(void* handle, struct bSound* sound) { (void)handle; (void)sound; }
+void sound_update_scene_listener(struct Scene *scene) { (void)scene; }
+void sound_update_fps(struct Scene *scene) { (void)scene; }
+void sound_set_scene_sound_volume(void* handle, float volume, char animated) { (void)handle; (void)volume; (void)animated; }
+void sound_set_scene_sound_pan(void* handle, float pan, char animated) { (void)handle; (void)pan; (void)animated; }
+void sound_set_scene_volume(struct Scene *scene, float volume) { (void)scene; (void)volume; }
+void sound_set_scene_sound_pitch(void* handle, float pitch, char animated) { (void)handle; (void)pitch; (void)animated; }
 
 #endif // WITH_AUDASPACE
