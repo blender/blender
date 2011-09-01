@@ -174,7 +174,7 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 			fprintf(stdout, "Sce: %s Ve:%d Fa:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->totlamp);
 	}
 
-	BLI_exec_cb(rs, (ID *)rs, BLI_CB_EVT_RENDER_STATS);
+	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
 
 	fputc('\n', stdout);
 	fflush(stdout);
