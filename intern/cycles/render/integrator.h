@@ -27,8 +27,19 @@ class Scene;
 
 class Integrator {
 public:
-	int minbounce;
-	int maxbounce;
+	int min_bounce;
+	int max_bounce;
+
+	int max_diffuse_bounce;
+	int max_glossy_bounce;
+	int max_transmission_bounce;
+	bool probalistic_termination;
+
+	int transparent_min_bounce;
+	int transparent_max_bounce;
+	bool transparent_probalistic;
+	bool transparent_shadows;
+
 	bool no_caustics;
 	float blur_caustics;
 	bool need_update;

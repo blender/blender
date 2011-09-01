@@ -1117,7 +1117,7 @@ GlassBsdfNode::GlassBsdfNode()
 {
 	distribution = ustring("Sharp");
 
-	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.2f);
+	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.0f);
 	add_input("Fresnel", SHADER_SOCKET_FLOAT, 0.3f);
 }
 
@@ -1490,8 +1490,8 @@ LightPathNode::LightPathNode()
 	add_output("Is Shadow Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Diffuse Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Glossy Ray", SHADER_SOCKET_FLOAT);
-	add_output("Is Reflection Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Transmission Ray", SHADER_SOCKET_FLOAT);
+	add_output("Is Singular Ray", SHADER_SOCKET_FLOAT);
 }
 
 void LightPathNode::compile(SVMCompiler& compiler)
@@ -1522,11 +1522,18 @@ void LightPathNode::compile(SVMCompiler& compiler)
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_glossy, out->stack_offset);
 	}
 
+	out = output("Is Singular Ray");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_singular, out->stack_offset);
+	}
+
 	out = output("Is Reflection Ray");
 	if(!out->links.empty()) {
 		compiler.stack_assign(out);
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_reflection, out->stack_offset);
 	}
+
 
 	out = output("Is Transmission Ray");
 	if(!out->links.empty()) {

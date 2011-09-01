@@ -51,6 +51,8 @@ struct PackedBVH {
 	array<int> object_node; 
 	/* precomputed triangle intersection data, one triangle is 4x float4 */
 	array<float4> tri_woop; 
+	/* visibility visibilitys for primitives */
+	array<uint> prim_visibility;
 	/* mapping from BVH primitive index to true primitive index, as primitives
 	   may be duplicated due to spatial splits. -1 for instances. */
 	array<int> prim_index;
@@ -121,11 +123,11 @@ protected:
 	void pack_nodes(const array<int>& prims, const BVHNode *root);
 	void pack_leaf(const BVHStackEntry& e, const LeafNode *leaf);
 	void pack_inner(const BVHStackEntry& e, const BVHStackEntry& e0, const BVHStackEntry& e1);
-	void pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int c0, int c1);
+	void pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int c0, int c1, uint visibility0, uint visibility1);
 
 	/* refit */
 	void refit_nodes();
-	void refit_node(int idx, bool leaf, BoundBox& bbox);
+	void refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility);
 };
 
 /* QBVH

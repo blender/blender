@@ -42,7 +42,7 @@ __device float voronoi_distance(NodeDistanceMetric distance_metric, float3 d, fl
 
 /* Voronoi / Worley like */
 
-__device void voronoi(float3 p, NodeDistanceMetric distance_metric, float e, float da[4], float3 pa[4])
+__device_noinline void voronoi(float3 p, NodeDistanceMetric distance_metric, float e, float da[4], float3 pa[4])
 {
 	/* returns distances in da and point coords in pa */
 	int xx, yy, zz, xi, yi, zi;
@@ -213,7 +213,7 @@ __device float noise_wave(NodeWaveType wave, float a)
 
 /* Turbulence */
 
-__device float noise_turbulence(float3 p, NodeNoiseBasis basis, int octaves, int hard)
+__device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, int octaves, int hard)
 {
 	float fscale = 1.0f;
 	float amp = 1.0f;

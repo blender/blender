@@ -209,22 +209,5 @@ __device float psnoise(float3 p, float3 pperiod)
 	return perlin_periodic(p.x, p.y, p.z, pperiod);
 }
 
-/* turbulence */
-__device_noinline float turbulence(float3 P, int oct, bool hard)
-{
-	float amp = 1.0f, fscale = 1.0f, sum = 0.0f;
-	int i;
-
-	for(i=0; i<=oct; i++, amp *= 0.5f, fscale *= 2.0f) {
-		float t = noise(fscale*P);
-		if(hard) t = fabsf(2.0f*t - 1.0f);
-		sum += t * amp;
-	}
-
-	sum *= ((float)(1<<oct)/(float)((1<<(oct+1))-1));
-
-	return sum;
-}
-
 CCL_NAMESPACE_END
 

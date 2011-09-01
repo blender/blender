@@ -52,6 +52,7 @@ public:
 	float getArea() const { return m_bounds.area(); }
 
 	BoundBox m_bounds;
+	uint m_visibility;
 
 	// Subtree functions
 	int getSubtreeSize(BVH_STAT stat=BVH_STAT_NODE_COUNT) const;
@@ -65,6 +66,7 @@ public:
 	InnerNode(const BoundBox& bounds, BVHNode* child0, BVHNode* child1)
 	{
 		m_bounds = bounds;
+		m_visibility = child0->m_visibility|child1->m_visibility;
 		children[0] = child0;
 		children[1] = child1;
 	}
@@ -80,9 +82,10 @@ public:
 class LeafNode : public BVHNode
 {
 public:
-	LeafNode(const BoundBox& bounds, int lo, int hi) 
+	LeafNode(const BoundBox& bounds, uint visibility, int lo, int hi) 
 	{
 		m_bounds = bounds;
+		m_visibility = visibility;
 		m_lo = lo;
 		m_hi = hi;
 	}

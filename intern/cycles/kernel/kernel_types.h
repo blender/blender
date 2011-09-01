@@ -34,11 +34,14 @@ CCL_NAMESPACE_BEGIN
 #define __BACKGROUND__
 #define __EMISSION__
 #define __CAUSTICS_TRICKS__
+#define __VISIBILITY_FLAG__
+
 #ifndef __KERNEL_OPENCL__
 #define __SVM__
 #define __TEXTURES__
 #define __HOLDOUT__
 #endif
+
 #define __RAY_DIFFERENTIALS__
 #define __CAMERA_CLIPPING__
 #define __INTERSECTION_REFINE__
@@ -76,7 +79,8 @@ enum PathRayFlag {
 	PATH_RAY_TRANSMIT = 8,
 	PATH_RAY_DIFFUSE = 16,
 	PATH_RAY_GLOSSY = 32,
-	PATH_RAY_SINGULAR = 64
+	PATH_RAY_SINGULAR = 64,
+	PATH_RAY_TRANSPARENT = 128
 };
 
 /* Bidirectional Path Tracing */
@@ -115,7 +119,7 @@ typedef enum ClosureLabel {
 	LABEL_DIFFUSE = 128,
 	LABEL_GLOSSY = 256,
 	LABEL_SINGULAR = 512,
-	LABEL_STRAIGHT = 1024,
+	LABEL_TRANSPARENT = 1024,
 	LABEL_STOP = 2048
 } ClosureLabel;
 
@@ -351,9 +355,18 @@ typedef struct KernelIntegrator {
 	float pdf_triangles;
 	float pdf_lights;
 
-	/* path tracing */
-	int minbounce;
-	int maxbounce;
+	/* bounces */
+	int min_bounce;
+	int max_bounce;
+
+    int max_diffuse_bounce;
+    int max_glossy_bounce;
+    int max_transmission_bounce;
+
+	/* transparent */
+    int transparent_min_bounce;
+    int transparent_max_bounce;
+	int transparent_shadows;
 
 	/* caustics */
 	int no_caustics;

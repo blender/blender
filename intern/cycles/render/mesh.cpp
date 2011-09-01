@@ -576,6 +576,10 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 		dscene->tri_woop.reference(&pack.tri_woop[0], pack.tri_woop.size());
 		device->tex_alloc("__tri_woop", dscene->tri_woop);
 	}
+	if(pack.prim_visibility.size()) {
+		dscene->prim_visibility.reference((uint*)&pack.prim_visibility[0], pack.prim_visibility.size());
+		device->tex_alloc("__prim_visibility", dscene->prim_visibility);
+	}
 	if(pack.prim_index.size()) {
 		dscene->prim_index.reference((uint*)&pack.prim_index[0], pack.prim_index.size());
 		device->tex_alloc("__prim_index", dscene->prim_index);
@@ -686,6 +690,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->bvh_nodes);
 	device->tex_free(dscene->object_node);
 	device->tex_free(dscene->tri_woop);
+	device->tex_free(dscene->prim_visibility);
 	device->tex_free(dscene->prim_index);
 	device->tex_free(dscene->prim_object);
 	device->tex_free(dscene->tri_normal);
@@ -699,6 +704,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->bvh_nodes.clear();
 	dscene->object_node.clear();
 	dscene->tri_woop.clear();
+	dscene->prim_visibility.clear();
 	dscene->prim_index.clear();
 	dscene->prim_object.clear();
 	dscene->tri_normal.clear();

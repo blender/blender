@@ -63,6 +63,20 @@ bool BlenderSync::object_is_light(BL::Object b_ob)
 	return (b_ob_data && b_ob_data.is_a(&RNA_Lamp));
 }
 
+static uint object_ray_visibility(BL::Object b_ob)
+{
+	PointerRNA cvisibility = RNA_pointer_get(&b_ob.ptr, "cycles_visibility");
+	uint flag = 0;
+
+	flag |= get_boolean(cvisibility, "camera")? PATH_RAY_CAMERA: 0;
+	flag |= get_boolean(cvisibility, "diffuse")? PATH_RAY_DIFFUSE: 0;
+	flag |= get_boolean(cvisibility, "glossy")? PATH_RAY_GLOSSY: 0;
+	flag |= get_boolean(cvisibility, "transmission")? PATH_RAY_TRANSMIT: 0;
+	flag |= get_boolean(cvisibility, "shadow")? PATH_RAY_SHADOW: 0;
+
+	return flag;
+}
+
 /* Light */
 
 void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm)
@@ -115,6 +129,11 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	if(object_map.sync(&object, b_ob, b_parent, key)) {
 		object->name = b_ob.name();
 		object->tfm = tfm;
+		
+		object->visibility = object_ray_visibility(b_ob);
+		if(b_parent.ptr.data != b_ob.ptr.data)
+			object->visibility &= object_ray_visibility(b_parent);
+
 		object->tag_update(scene);
 		object_updated = true;
 	}

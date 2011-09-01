@@ -84,6 +84,7 @@ bool BVH::cache_read(CacheData& key)
 		value.read(pack.nodes);
 		value.read(pack.object_node);
 		value.read(pack.tri_woop);
+		value.read(pack.prim_visibility);
 		value.read(pack.prim_index);
 		value.read(pack.prim_object);
 		value.read(pack.is_leaf);
@@ -103,6 +104,7 @@ void BVH::cache_write(CacheData& key)
 	value.add(pack.nodes);
 	value.add(pack.object_node);
 	value.add(pack.tri_woop);
+	value.add(pack.prim_visibility);
 	value.add(pack.prim_index);
 	value.add(pack.prim_object);
 	value.add(pack.is_leaf);
@@ -236,6 +238,8 @@ void BVH::pack_triangles()
 
 	pack.tri_woop.clear();
 	pack.tri_woop.resize(tidx_size * nsize);
+	pack.prim_visibility.clear();
+	pack.prim_visibility.resize(tidx_size);
 
 	for(unsigned int i = 0; i < tidx_size; i++) {
 		if(pack.prim_index[i] != -1) {
@@ -243,6 +247,10 @@ void BVH::pack_triangles()
 
 			pack_triangle(i, woop);
 			memcpy(&pack.tri_woop[i * nsize], woop, sizeof(float4)*3);
+
+			int tob = pack.prim_object[i];
+			Object *ob = objects[tob];
+			pack.prim_visibility[i] = ob->visibility;
 		}
 	}
 }
@@ -292,12 +300,14 @@ void BVH::pack_instances(size_t nodes_size)
 
 	pack.prim_index.resize(prim_index_size);
 	pack.prim_object.resize(prim_index_size);
+	pack.prim_visibility.resize(prim_index_size);
 	pack.tri_woop.resize(tri_woop_size);
 	pack.nodes.resize(nodes_size);
 	pack.object_node.resize(objects.size());
 
 	int *pack_prim_index = &pack.prim_index[0];
 	int *pack_prim_object = &pack.prim_object[0];
+	uint *pack_prim_visibility = &pack.prim_visibility[0];
 	float4 *pack_tri_woop = &pack.tri_woop[0];
 	int4 *pack_nodes = &pack.nodes[0];
 
@@ -327,9 +337,11 @@ void BVH::pack_instances(size_t nodes_size)
 		{
 			size_t bvh_prim_index_size = bvh->pack.prim_index.size();
 			int *bvh_prim_index = &bvh->pack.prim_index[0];
+			uint *bvh_prim_visibility = &bvh->pack.prim_visibility[0];
 
 			for(size_t i = 0; i < bvh_prim_index_size; i++) {
 				pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + mesh_tri_offset;
+				pack_prim_visibility[pack_prim_index_offset] = bvh_prim_visibility[i] + mesh_tri_offset;
 				pack_prim_object[pack_prim_index_offset] = 0;  // unused for instances
 				pack_prim_index_offset++;
 			}
@@ -394,25 +406,25 @@ void RegularBVH::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)
 {
 	if(leaf->num_triangles() == 1 && pack.prim_index[leaf->m_lo] == -1)
 		/* object */
-		pack_node(e.idx, leaf->m_bounds, leaf->m_bounds, ~(leaf->m_lo), 0);
+		pack_node(e.idx, leaf->m_bounds, leaf->m_bounds, ~(leaf->m_lo), 0, leaf->m_visibility, leaf->m_visibility);
 	else
 		/* triangle */
-		pack_node(e.idx, leaf->m_bounds, leaf->m_bounds, leaf->m_lo, leaf->m_hi);
+		pack_node(e.idx, leaf->m_bounds, leaf->m_bounds, leaf->m_lo, leaf->m_hi, leaf->m_visibility, leaf->m_visibility);
 }
 
 void RegularBVH::pack_inner(const BVHStackEntry& e, const BVHStackEntry& e0, const BVHStackEntry& e1)
 {
-	pack_node(e.idx, e0.node->m_bounds, e1.node->m_bounds, e0.encodeIdx(), e1.encodeIdx());
+	pack_node(e.idx, e0.node->m_bounds, e1.node->m_bounds, e0.encodeIdx(), e1.encodeIdx(), e0.node->m_visibility, e1.node->m_visibility);
 }
 
-void RegularBVH::pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int c0, int c1)
+void RegularBVH::pack_node(int idx, const BoundBox& b0, const BoundBox& b1, int c0, int c1, uint visibility0, uint visibility1)
 {
 	int4 data[BVH_NODE_SIZE] =
 	{
 		make_int4(__float_as_int(b0.min.x), __float_as_int(b0.max.x), __float_as_int(b0.min.y), __float_as_int(b0.max.y)),
 		make_int4(__float_as_int(b1.min.x), __float_as_int(b1.max.x), __float_as_int(b1.min.y), __float_as_int(b1.max.y)),
 		make_int4(__float_as_int(b0.min.z), __float_as_int(b0.max.z), __float_as_int(b1.min.z), __float_as_int(b1.max.z)),
-		make_int4(c0, c1, 0, 0)
+		make_int4(c0, c1, visibility0, visibility1)
 	};
 
 	memcpy(&pack.nodes[idx * BVH_NODE_SIZE], data, sizeof(int4)*BVH_NODE_SIZE);
@@ -467,10 +479,11 @@ void RegularBVH::refit_nodes()
 	assert(!params.top_level);
 
 	BoundBox bbox;
-	refit_node(0, (pack.is_leaf[0])? true: false, bbox);
+	uint visibility = 0;
+	refit_node(0, (pack.is_leaf[0])? true: false, bbox, visibility);
 }
 
-void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox)
+void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 {
 	int4 *data = &pack.nodes[idx*4];
 
@@ -499,21 +512,25 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox)
 				bbox.grow(vpos[vidx[1]]);
 				bbox.grow(vpos[vidx[2]]);
 			}
+
+			visibility |= ob->visibility;
 		}
 
-		pack_node(idx, bbox, bbox, c0, c1);
+		pack_node(idx, bbox, bbox, c0, c1, visibility, visibility);
 	}
 	else {
 		/* refit inner node, set bbox from children */
 		BoundBox bbox0, bbox1;
+		uint visibility0 = 0, visibility1 = 0;
 
-		refit_node((c0 < 0)? -c0-1: c0, (c0 < 0), bbox0);
-		refit_node((c1 < 0)? -c1-1: c1, (c1 < 0), bbox1);
+		refit_node((c0 < 0)? -c0-1: c0, (c0 < 0), bbox0, visibility0);
+		refit_node((c1 < 0)? -c1-1: c1, (c1 < 0), bbox1, visibility1);
+
+		pack_node(idx, bbox0, bbox1, c0, c1, visibility0, visibility1);
 
 		bbox.grow(bbox0);
 		bbox.grow(bbox1);
-
-		pack_node(idx, bbox0, bbox1, c0, c1);
+		visibility = visibility0|visibility1;
 	}
 }
 
@@ -523,6 +540,8 @@ QBVH::QBVH(const BVHParams& params_, const vector<Object*>& objects_)
 : BVH(params_, objects_)
 {
 	params.use_qbvh = true;
+
+	/* todo: use visibility */
 }
 
 void QBVH::pack_leaf(const BVHStackEntry& e, const LeafNode *leaf)

@@ -89,6 +89,10 @@ void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t
 		kg->__tri_woop.data = (float4*)mem;
 		kg->__tri_woop.width = width;
 	}
+	else if(strcmp(name, "__prim_visibility") == 0) {
+		kg->__prim_visibility.data = (uint*)mem;
+		kg->__prim_visibility.width = width;
+	}
 	else if(strcmp(name, "__prim_index") == 0) {
 		kg->__prim_index.data = (uint*)mem;
 		kg->__prim_index.width = width;

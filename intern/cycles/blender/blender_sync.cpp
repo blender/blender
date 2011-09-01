@@ -131,8 +131,16 @@ void BlenderSync::sync_integrator()
 	Integrator *integrator = scene->integrator;
 	Integrator previntegrator = *integrator;
 
-	integrator->minbounce = get_int(cscene, "min_bounces");
-	integrator->maxbounce = get_int(cscene, "max_bounces");
+	integrator->min_bounce = get_int(cscene, "min_bounces");
+	integrator->max_bounce = get_int(cscene, "max_bounces");
+
+	integrator->max_diffuse_bounce = get_int(cscene, "diffuse_bounces");
+	integrator->max_glossy_bounce = get_int(cscene, "glossy_bounces");
+	integrator->max_transmission_bounce = get_int(cscene, "transmission_bounces");
+
+	integrator->transparent_max_bounce = get_int(cscene, "transparent_max_bounces");
+	integrator->transparent_min_bounce = get_int(cscene, "transparent_min_bounces");
+
 	integrator->no_caustics = get_boolean(cscene, "no_caustics");
 	integrator->blur_caustics = get_float(cscene, "blur_caustics");
 
@@ -149,7 +157,7 @@ void BlenderSync::sync_film()
 	Film *film = scene->film;
 	Film prevfilm = *film;
 
-	film->exposure = get_float(cscene, "exposure");
+	film->exposure = get_float(cscene, "film_exposure");
 
 	if(film->modified(prevfilm))
 		film->tag_update(scene);

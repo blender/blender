@@ -58,51 +58,108 @@ __device float3 path_terminate_modified_throughput(KernelGlobals *kg, __global f
 }
 #endif
 
-__device float path_terminate_probability(KernelGlobals *kg, int bounce, const float3 throughput)
-{
-	if(bounce >= kernel_data.integrator.maxbounce)
-		return 0.0f;
-	else if(bounce <= kernel_data.integrator.minbounce)
-		return 1.0f;
+typedef struct PathState {
+	uint flag;
+	int bounce;
 
-	return average(throughput);
+	int diffuse_bounce;
+	int glossy_bounce;
+	int transmission_bounce;
+	int transparent_bounce;
+} PathState;
+
+__device_inline void path_state_init(PathState *state)
+{
+	state->flag = PATH_RAY_CAMERA|PATH_RAY_SINGULAR;
+	state->bounce = 0;
+	state->diffuse_bounce = 0;
+	state->glossy_bounce = 0;
+	state->transmission_bounce = 0;
+	state->transparent_bounce = 0;
 }
 
-__device int path_flag_from_label(int path_flag, int label)
+__device_inline void path_state_next(PathState *state, int label)
 {
-	/* reflect/transmit */
+	/* ray through transparent keeps same flags from previous ray and is
+	   not counted as a regular bounce, transparent has separate max */
+	if(label & LABEL_TRANSPARENT) {
+		state->flag |= PATH_RAY_TRANSPARENT;
+		state->transparent_bounce++;
+
+		return;
+	}
+
+	state->bounce++;
+
+	/* reflection/transmission */
 	if(label & LABEL_REFLECT) {
-		path_flag |= PATH_RAY_REFLECT;
-		path_flag &= ~PATH_RAY_TRANSMIT;
+		state->flag |= PATH_RAY_REFLECT;
+		state->flag &= ~(PATH_RAY_TRANSMIT|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT);
+
+		if(label & LABEL_DIFFUSE)
+			state->diffuse_bounce++;
+		else
+			state->glossy_bounce++;
 	}
 	else {
 		kernel_assert(label & LABEL_TRANSMIT);
 
-		path_flag |= PATH_RAY_TRANSMIT;
-		path_flag &= ~PATH_RAY_REFLECT;
+		state->flag |= PATH_RAY_TRANSMIT;
+		state->flag &= ~(PATH_RAY_REFLECT|PATH_RAY_CAMERA|PATH_RAY_TRANSPARENT);
+
+		state->transmission_bounce++;
 	}
 
 	/* diffuse/glossy/singular */
 	if(label & LABEL_DIFFUSE) {
-		path_flag |= PATH_RAY_DIFFUSE;
-		path_flag &= ~(PATH_RAY_GLOSSY|PATH_RAY_SINGULAR);
+		state->flag |= PATH_RAY_DIFFUSE;
+		state->flag &= ~(PATH_RAY_GLOSSY|PATH_RAY_SINGULAR);
 	}
 	else if(label & LABEL_GLOSSY) {
-		path_flag |= PATH_RAY_GLOSSY;
-		path_flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_SINGULAR);
+		state->flag |= PATH_RAY_GLOSSY;
+		state->flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_SINGULAR);
 	}
 	else {
-		kernel_assert(label & (LABEL_SINGULAR|LABEL_STRAIGHT));
+		kernel_assert(label & LABEL_SINGULAR);
 
-		path_flag |= PATH_RAY_SINGULAR;
-		path_flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY);
+		state->flag |= PATH_RAY_GLOSSY|PATH_RAY_SINGULAR;
+		state->flag &= ~PATH_RAY_DIFFUSE;
 	}
-	
-	/* ray through transparent is still camera ray */
-	if(!(label & LABEL_STRAIGHT))
-		path_flag &= ~PATH_RAY_CAMERA;
-	
-	return path_flag;
+}
+
+__device_inline uint path_state_ray_visibility(PathState *state)
+{
+	uint flag = state->flag;
+
+	/* for visibility, diffuse/glossy are for reflection only */
+	if(flag & PATH_RAY_TRANSMIT)
+		flag &= ~(PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY);
+
+	return flag;
+}
+
+__device_inline float path_state_terminate_probability(KernelGlobals *kg, PathState *state, const float3 throughput)
+{
+	if(state->flag & PATH_RAY_TRANSPARENT) {
+		/* transparent rays treated separately */
+		if(state->transparent_bounce >= kernel_data.integrator.transparent_max_bounce)
+			return 0.0f;
+		else if(state->transparent_bounce <= kernel_data.integrator.transparent_min_bounce)
+			return 1.0f;
+	}
+	else {
+		/* other rays */
+		if((state->bounce >= kernel_data.integrator.max_bounce) ||
+		   (state->diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce) ||
+		   (state->glossy_bounce >= kernel_data.integrator.max_glossy_bounce) ||
+		   (state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce))
+			return 0.0f;
+		else if(state->bounce <= kernel_data.integrator.min_bounce)
+			return 1.0f;
+	}
+
+	/* probalistic termination */
+	return average(throughput);
 }
 
 __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray ray, float3 throughput)
@@ -114,24 +171,27 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 #ifdef __EMISSION__
 	float ray_pdf = 0.0f;
 #endif
-	int path_flag = PATH_RAY_CAMERA|PATH_RAY_SINGULAR;
+	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
 
+	path_state_init(&state);
+
 	/* path iteration */
-	for(int bounce = 0; ; bounce++, rng_offset += PRNG_BOUNCE_NUM) {
+	for(;; rng_offset += PRNG_BOUNCE_NUM) {
 		/* intersect scene */
 		Intersection isect;
+		uint visibility = path_state_ray_visibility(&state);
 
-		if(!scene_intersect(kg, &ray, false, &isect)) {
+		if(!scene_intersect(kg, &ray, visibility, &isect)) {
 			/* eval background shader if nothing hit */
-			if(kernel_data.background.transparent && (path_flag & PATH_RAY_CAMERA)) {
+			if(kernel_data.background.transparent && (state.flag & PATH_RAY_CAMERA)) {
 				Ltransparent += average(throughput);
 			}
 			else {
 #ifdef __BACKGROUND__
 				ShaderData sd;
 				shader_setup_from_background(kg, &sd, &ray);
-				L += throughput*shader_eval_background(kg, &sd, path_flag);
+				L += throughput*shader_eval_background(kg, &sd, state.flag);
 				shader_release(kg, &sd);
 #else
 				L += make_float3(0.8f, 0.8f, 0.8f);
@@ -145,10 +205,10 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
 		float rbsdf = path_rng(kg, rng, pass, rng_offset + PRNG_BSDF);
-		shader_eval_surface(kg, &sd, rbsdf, path_flag);
+		shader_eval_surface(kg, &sd, rbsdf, state.flag);
 
 #ifdef __HOLDOUT__
-		if((sd.flag & SD_HOLDOUT) && (path_flag & PATH_RAY_CAMERA)) {
+		if((sd.flag & SD_HOLDOUT) && (state.flag & PATH_RAY_CAMERA)) {
 			float3 holdout_weight = shader_holdout_eval(kg, &sd);
 
 			if(kernel_data.background.transparent)
@@ -160,11 +220,25 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		/* emission */
 		if(kernel_data.integrator.use_emission) {
 			if(sd.flag & SD_EMISSION)
-				L += throughput*indirect_emission(kg, &sd, isect.t, path_flag, ray_pdf);
+				L += throughput*indirect_emission(kg, &sd, isect.t, state.flag, ray_pdf);
+		}
+#endif
 
+		/* path termination. this is a strange place to put the termination, it's
+		   mainly due to the mixed in MIS that we use. gives too many unneeded
+		   shader evaluations, only need emission if we are going to terminate */
+		float probability = path_state_terminate_probability(kg, &state, throughput);
+		float terminate = path_rng(kg, rng, pass, rng_offset + PRNG_TERMINATE);
+
+		if(terminate >= probability)
+			break;
+
+		throughput /= probability;
+
+#ifdef __EMISSION__
+		if(kernel_data.integrator.use_emission) {
 			/* sample illumination from lights to find path contribution */
-			if((sd.flag & SD_BSDF_HAS_EVAL) &&
-				bounce != kernel_data.integrator.maxbounce) {
+			if(sd.flag & SD_BSDF_HAS_EVAL) {
 				float light_t = path_rng(kg, rng, pass, rng_offset + PRNG_LIGHT);
 				float light_o = path_rng(kg, rng, pass, rng_offset + PRNG_LIGHT_F);
 				float light_u = path_rng(kg, rng, pass, rng_offset + PRNG_LIGHT_U);
@@ -173,9 +247,11 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 				Ray light_ray;
 				float3 light_L;
 
+				/* todo: use visbility flag to skip lights */
+
 				if(direct_emission(kg, &sd, light_t, light_o, light_u, light_v, &light_ray, &light_L)) {
 					/* trace shadow ray */
-					if(!scene_intersect(kg, &light_ray, true, &isect))
+					if(!scene_intersect(kg, &light_ray, PATH_RAY_SHADOW, &isect))
 						L += throughput*light_L;
 				}
 			}
@@ -183,10 +259,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 #endif
 
 		/* no BSDF? we can stop here */
-		if(!(sd.flag & SD_BSDF)) {
-			path_flag &= ~PATH_RAY_CAMERA;
+		if(!(sd.flag & SD_BSDF))
 			break;
-		}
 
 		/* sample BSDF */
 		float bsdf_pdf;
@@ -202,10 +276,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 
 		shader_release(kg, &sd);
 
-		if(bsdf_pdf == 0.0f || is_zero(bsdf_eval)) {
-			path_flag &= ~PATH_RAY_CAMERA;
+		if(bsdf_pdf == 0.0f || is_zero(bsdf_eval))
 			break;
-		}
 
 		/* modify throughput */
 		throughput *= bsdf_eval/bsdf_pdf;
@@ -215,18 +287,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		ray_pdf = bsdf_pdf;
 #endif
 
-		path_flag = path_flag_from_label(path_flag, label);
-
-		/* path termination */
-		float probability = path_terminate_probability(kg, bounce, throughput);
-		float terminate = path_rng(kg, rng, pass, rng_offset + PRNG_TERMINATE);
-
-		if(terminate >= probability) {
-			path_flag &= ~PATH_RAY_CAMERA;
-			break;
-		}
-
-		throughput /= probability;
+		/* update path state */
+		path_state_next(&state, label);
 
 		/* setup ray */
 		ray.P = ray_offset(sd.P, (label & LABEL_TRANSMIT)? -sd.Ng: sd.Ng);

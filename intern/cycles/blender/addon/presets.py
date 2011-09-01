@@ -33,6 +33,11 @@ class AddPresetIntegrator(AddPresetBase, Operator):
         "cycles.max_bounces",
         "cycles.min_bounces",
         "cycles.no_caustics",
+        "cycles.diffuse_bounces",
+        "cycles.glossy_bounces",
+        "cycles.transmission_bounces",
+        "cycles.transparent_min_bounces",
+        "cycles.transparent_max_bounces"
     ]
 
     preset_subdir = "cycles/integrator"

@@ -70,7 +70,7 @@ __device int bsdf_transparent_sample(const ShaderData *sd, float randu, float ra
 #endif
 	*pdf = 1;
 	*eval = make_float3(1, 1, 1);
-	return LABEL_TRANSMIT|LABEL_STRAIGHT;
+	return LABEL_TRANSMIT|LABEL_TRANSPARENT;
 }
 
 CCL_NAMESPACE_END

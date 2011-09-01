@@ -42,6 +42,7 @@ public:
 	BoundBox bounds;
 	ustring name;
 	vector<ParamValue> attributes;
+	uint visibility;
 
 	Object();
 	~Object();

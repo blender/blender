@@ -25,8 +25,19 @@ CCL_NAMESPACE_BEGIN
 
 Integrator::Integrator()
 {
-	minbounce = 2;
-	maxbounce = 7;
+	min_bounce = 2;
+	max_bounce = 7;
+
+	max_diffuse_bounce = max_bounce;
+	max_glossy_bounce = max_bounce;
+	max_transmission_bounce = max_bounce;
+	probalistic_termination = true;
+
+	transparent_min_bounce = min_bounce;
+	transparent_max_bounce = max_bounce;
+	transparent_probalistic = true;
+	transparent_shadows = false;
+
 	no_caustics = false;
 	blur_caustics = 0.0f;
 
@@ -47,13 +58,29 @@ void Integrator::device_update(Device *device, DeviceScene *dscene)
 	KernelIntegrator *kintegrator = &dscene->data.integrator;
 
 	/* integrator parameters */
-	kintegrator->minbounce = minbounce + 1;
-	kintegrator->maxbounce = maxbounce + 1;
+	kintegrator->max_bounce = max_bounce + 1;
+	if(probalistic_termination)
+		kintegrator->min_bounce = min_bounce + 1;
+	else
+		kintegrator->min_bounce = kintegrator->max_bounce;
+
+	kintegrator->max_diffuse_bounce = max_diffuse_bounce + 1;
+	kintegrator->max_glossy_bounce = max_glossy_bounce + 1;
+	kintegrator->max_transmission_bounce = max_transmission_bounce + 1;
+
+	kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
+	if(transparent_probalistic)
+		kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
+	else
+		kintegrator->transparent_min_bounce = kintegrator->transparent_max_bounce;
+
+	kintegrator->transparent_shadows = transparent_shadows;
+
 	kintegrator->no_caustics = no_caustics;
 	kintegrator->blur_caustics = blur_caustics;
 
 	/* sobol directions table */
-	int dimensions = PRNG_BASE_NUM + (maxbounce + 2)*PRNG_BOUNCE_NUM;
+	int dimensions = PRNG_BASE_NUM + (max_bounce + 2)*PRNG_BOUNCE_NUM;
 	uint *directions = dscene->sobol_directions.resize(SOBOL_BITS*dimensions);
 
 	sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
@@ -71,8 +98,16 @@ void Integrator::device_free(Device *device, DeviceScene *dscene)
 
 bool Integrator::modified(const Integrator& integrator)
 {
-	return !(minbounce == integrator.minbounce &&
-		maxbounce == integrator.maxbounce &&
+	return !(min_bounce == integrator.min_bounce &&
+		max_bounce == integrator.max_bounce &&
+		max_diffuse_bounce == integrator.max_diffuse_bounce &&
+		max_glossy_bounce == integrator.max_glossy_bounce &&
+		max_transmission_bounce == integrator.max_transmission_bounce &&
+		probalistic_termination == integrator.probalistic_termination &&
+		transparent_min_bounce == integrator.transparent_min_bounce &&
+		transparent_max_bounce == integrator.transparent_max_bounce &&
+		transparent_probalistic == integrator.transparent_probalistic &&
+		transparent_shadows == integrator.transparent_shadows &&
 		no_caustics == integrator.no_caustics &&
 		blur_caustics == integrator.blur_caustics);
 }

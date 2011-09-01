@@ -78,7 +78,7 @@ __device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray *
 __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	bool *traverseChild0, bool *traverseChild1,
 	bool *closestChild1, int *nodeAddr0, int *nodeAddr1,
-	float3 P, float3 idir, float t, int nodeAddr)
+	float3 P, float3 idir, float t, uint visibility, int nodeAddr)
 {
 	/* fetch node data */
 	float4 n0xy = kernel_tex_fetch(__bvh_nodes, nodeAddr*BVH_NODE_SIZE+0);
@@ -111,8 +111,14 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 	float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
 
 	/* decide which nodes to traverse next */
+#ifdef __VISIBILITY_FLAG__
+	/* this visibility test gives a 5% performance hit, how to solve? */
+	*traverseChild0 = (c0max >= c0min) && (__float_as_int(cnodes.z) & visibility);
+	*traverseChild1 = (c1max >= c1min) && (__float_as_int(cnodes.w) & visibility);
+#else
 	*traverseChild0 = (c0max >= c0min);
 	*traverseChild1 = (c1max >= c1min);
+#endif
 
 	*nodeAddr0 = __float_as_int(cnodes.x);
 	*nodeAddr1 = __float_as_int(cnodes.y);
@@ -121,7 +127,8 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 }
 
 /* Sven Woop's algorithm */
-__device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *isect, float3 P, float3 idir, int object, int triAddr)
+__device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *isect,
+	float3 P, float3 idir, uint visibility, int object, int triAddr)
 {
 	/* compute and check intersection t-value */
 	float4 v00 = kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0);
@@ -146,18 +153,25 @@ __device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *ise
 			float v = Oy + t*Dy;
 
 			if(v >= 0.0f && u + v <= 1.0f) {
-				/* record intersection */
-				isect->prim = triAddr;
-				isect->object = object;
-				isect->u = u;
-				isect->v = v;
-				isect->t = t;
+#ifdef __VISIBILITY_FLAG__
+				/* visibility flag test. we do it here under the assumption
+				   that most triangles are culled by node flags */
+				if(kernel_tex_fetch(__prim_visibility, triAddr) & visibility)
+#endif
+				{
+					/* record intersection */
+					isect->prim = triAddr;
+					isect->object = object;
+					isect->u = u;
+					isect->v = v;
+					isect->t = t;
+				}
 			}
 		}
 	}
 }
 
-__device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const bool isshadowray, Intersection *isect)
+__device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
 {
 	/* traversal stack in CUDA thread-local memory */
 	int traversalStack[BVH_STACK_SIZE];
@@ -191,7 +205,7 @@ __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const bo
 
 				bvh_node_intersect(kg, &traverseChild0, &traverseChild1,
 					&closestChild1, &nodeAddr, &nodeAddrChild1,
-					P, idir, isect->t, nodeAddr);
+					P, idir, isect->t, visibility, nodeAddr);
 
 				if(traverseChild0 != traverseChild1) {
 					/* one child was intersected */
@@ -236,10 +250,10 @@ __device_inline bool scene_intersect(KernelGlobals *kg, const Ray *ray, const bo
 					/* triangle intersection */
 					while(primAddr < primAddr2) {
 						/* intersect ray against triangle */
-						bvh_triangle_intersect(kg, isect, P, idir, object, primAddr);
+						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 						/* shadow ray early termination */
-						if(isshadowray && isect->prim != ~0)
+						if(visibility == PATH_RAY_SHADOW && isect->prim != ~0)
 							return true;
 
 						primAddr++;

@@ -218,12 +218,13 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const Reference *ref, int num)
 {
 	if(num == 0) {
 		BoundBox bounds;
-		return new LeafNode(bounds, 0, 0);
+		return new LeafNode(bounds, 0, 0, 0);
 	}
 	else if(num == 1) {
 		prim_index.push_back(ref[0].prim_index);
 		prim_object.push_back(ref[0].prim_object);
-		return new LeafNode(ref[0].bounds, prim_index.size()-1, prim_index.size());
+		uint visibility = objects[ref[0].prim_object]->visibility;
+		return new LeafNode(ref[0].bounds, visibility, prim_index.size()-1, prim_index.size());
 	}
 	else {
 		int mid = num/2;
@@ -244,12 +245,14 @@ BVHNode* BVHBuild::create_leaf_node(const NodeSpec& spec)
 	vector<int>& p_object = prim_object;
 	BoundBox bounds;
 	int num = 0;
+	uint visibility = 0;
 
 	for(int i = 0; i < spec.num; i++) {
 		if(references.back().prim_index != -1) {
 			p_index.push_back(references.back().prim_index);
 			p_object.push_back(references.back().prim_object);
 			bounds.grow(references.back().bounds);
+			visibility |= objects[references.back().prim_object]->visibility;
 			references.pop_back();
 			num++;
 		}
@@ -258,7 +261,7 @@ BVHNode* BVHBuild::create_leaf_node(const NodeSpec& spec)
 	BVHNode *leaf = NULL;
 	
 	if(num > 0) {
-		leaf = new LeafNode(bounds, p_index.size() - num, p_index.size());
+		leaf = new LeafNode(bounds, visibility, p_index.size() - num, p_index.size());
 
 		if(num == spec.num)
 			return leaf;

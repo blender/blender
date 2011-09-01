@@ -89,7 +89,7 @@ static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd,
 	globals->surfacearea = (sd->object == ~0)? 1.0f: object_surface_area(kg, sd->object);
 
 	/* booleans */
-	globals->raytype = path_flag;
+	globals->raytype = path_flag; /* todo: add our own ray types */
 	globals->backfacing = (sd->flag & SD_BACKFACING);
 
 	/* don't know yet if we need this */
@@ -437,7 +437,7 @@ int OSLShader::bsdf_sample(const ShaderData *sd, float randu, float randv, float
 		else if(uscattering == OSL::Labels::SINGULAR)
 			label |= LABEL_SINGULAR;
 		else
-			label |= LABEL_STRAIGHT;
+			label |= LABEL_TRANSPARENT;
 
 		/* eval + pdf */
 		eval *= flat->weight;

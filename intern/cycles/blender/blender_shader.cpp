@@ -599,7 +599,7 @@ void BlenderSync::sync_world()
 	}
 
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-	background->transparent = get_boolean(cscene, "transparent");
+	background->transparent = get_boolean(cscene, "film_transparent");
 
 	if(background->modified(prevbackground))
 		background->tag_update(scene);

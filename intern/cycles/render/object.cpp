@@ -33,6 +33,7 @@ Object::Object()
 	name = "";
 	mesh = NULL;
 	tfm = transform_identity();
+	visibility = ~0;
 }
 
 Object::~Object()

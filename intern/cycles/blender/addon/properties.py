@@ -24,7 +24,7 @@ from cycles import enums
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
-        bpy.types.Scene.cycles = PointerProperty(type=cls, name="Cycles Render Settings", description="Cycles Render Settings")
+        bpy.types.Scene.cycles = PointerProperty(type=cls, name="Cycles Render Settings", description="Cycles render settings")
 
         cls.device = EnumProperty(name="Device", description="Device to use for rendering",
             items=enums.devices, default="CPU")
@@ -39,18 +39,31 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.preview_pause = BoolProperty(name="Pause Preview", description="Pause all viewport preview renders",
             default=False)
 
-        cls.min_bounces = IntProperty(name="Min Bounces", description="Minimum number of bounces",
-            default=3, min=0, max=1024)
-        cls.max_bounces = IntProperty(name="Max Bounces", description="Maximum number of bounces",
-            default=8, min=0, max=1024)
         cls.no_caustics = BoolProperty(name="No Caustics", description="Leave out caustics, resulting in a darker image with less noise",
             default=False)
         cls.blur_caustics = FloatProperty(name="Blur Caustics", description="Blur caustics to reduce noise",
             default=0.0, min=0.0, max=1.0)
 
-        cls.exposure = FloatProperty(name="Exposure", description="Image brightness scale",
+        cls.min_bounces = IntProperty(name="Min Bounces", description="Minimum number of bounces, setting this lower than the maximum enables probalistic path termination (faster but noisier)",
+            default=3, min=0, max=1024)
+        cls.max_bounces = IntProperty(name="Max Bounces", description="Total maximum number of bounces",
+            default=8, min=0, max=1024)
+
+        cls.diffuse_bounces = IntProperty(name="Diffuse Bounces", description="Maximum number of diffuse reflection bounces, bounded by total maximum",
+            default=1024, min=0, max=1024)
+        cls.glossy_bounces = IntProperty(name="Glossy Bounces", description="Maximum number of glossy reflection bounces, bounded by total maximum",
+            default=1024, min=0, max=1024)
+        cls.transmission_bounces = IntProperty(name="Transmission Bounces", description="Maximum number of transmission bounces, bounded by total maximum",
+            default=1024, min=0, max=1024)
+
+        cls.transparent_min_bounces = IntProperty(name="Transparent Min Bounces", description="Minimum number of transparent bounces, setting this lower than the maximum enables probalistic path termination (faster but noisier)",
+            default=8, min=0, max=1024)
+        cls.transparent_max_bounces = IntProperty(name="Transparent Max Bounces", description="Maximum number of transparent bounces",
+            default=8, min=0, max=1024)
+
+        cls.film_exposure = FloatProperty(name="Exposure", description="Image brightness scale",
             default=1.0, min=0.0, max=10.0)
-        cls.transparent = BoolProperty(name="Transparent", description="World background is transparent",
+        cls.film_transparent = BoolProperty(name="Transparent", description="World background is transparent",
             default=False)
 
         cls.filter_type = EnumProperty(name="Filter Type", description="Pixel filter type",
@@ -81,7 +94,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 class CyclesCameraSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
-        bpy.types.Camera.cycles = PointerProperty(type=cls, name="Cycles Camera Settings", description="Cycles Camera Settings")
+        bpy.types.Camera.cycles = PointerProperty(type=cls, name="Cycles Camera Settings", description="Cycles camera settings")
 
         cls.lens_radius = FloatProperty(name="Lens radius", description="Lens radius for depth of field",
             default=0.0, min=0.0, max=10.0)
@@ -93,7 +106,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
 class CyclesMaterialSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
-        bpy.types.Material.cycles = PointerProperty(type=cls, name="Cycles Material Settings", description="Cycles Material Settings")
+        bpy.types.Material.cycles = PointerProperty(type=cls, name="Cycles Material Settings", description="Cycles material settings")
 
     @classmethod
     def unregister(cls):
@@ -102,18 +115,33 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
 class CyclesWorldSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
-        bpy.types.World.cycles = PointerProperty(type=cls, name="Cycles World Settings", description="Cycles World Settings")
+        bpy.types.World.cycles = PointerProperty(type=cls, name="Cycles World Settings", description="Cycles world settings")
 
     @classmethod
     def unregister(cls):
         del bpy.types.World.cycles
 
+class CyclesVisibilitySettings(bpy.types.PropertyGroup):
+    @classmethod
+    def register(cls):
+        bpy.types.Object.cycles_visibility = PointerProperty(type=cls, name="Cycles Visibility Settings", description="Cycles visibility settings")
+
+        cls.camera = BoolProperty(name="Camera", description="Object visibility for camera rays", default=True)
+        cls.diffuse = BoolProperty(name="Diffuse", description="Object visibility for diffuse reflection rays", default=True)
+        cls.glossy = BoolProperty(name="Glossy", description="Object visibility for glossy reflection rays", default=True)
+        cls.transmission = BoolProperty(name="Transmission", description="Object visibility for transmission rays", default=True)
+        cls.shadow = BoolProperty(name="Shadow", description="Object visibility for shadow rays", default=True)
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.Object.cycles_visibility
+
 class CyclesMeshSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
-        bpy.types.Mesh.cycles = PointerProperty(type=cls, name="Cycles Mesh Settings", description="Cycles Mesh Settings")
-        bpy.types.Curve.cycles = PointerProperty(type=cls, name="Cycles Mesh Settings", description="Cycles Mesh Settings")
-        bpy.types.MetaBall.cycles = PointerProperty(type=cls, name="Cycles Mesh Settings", description="Cycles Mesh Settings")
+        bpy.types.Mesh.cycles = PointerProperty(type=cls, name="Cycles Mesh Settings", description="Cycles mesh settings")
+        bpy.types.Curve.cycles = PointerProperty(type=cls, name="Cycles Mesh Settings", description="Cycles mesh settings")
+        bpy.types.MetaBall.cycles = PointerProperty(type=cls, name="Cycles Mesh Settings", description="Cycles mesh settings")
 
         cls.displacement_method = EnumProperty(name="Displacement Method", description="Method to use for the displacement",
             items=enums.displacement_methods, default="BUMP")
@@ -124,12 +152,15 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
     @classmethod
     def unregister(cls):
         del bpy.types.Mesh.cycles
+        del bpy.types.Curve.cycles
+        del bpy.types.MetaBall.cycles
 
 def register():
     bpy.utils.register_class(CyclesRenderSettings)
     bpy.utils.register_class(CyclesCameraSettings)
     bpy.utils.register_class(CyclesMaterialSettings)
     bpy.utils.register_class(CyclesWorldSettings)
+    bpy.utils.register_class(CyclesVisibilitySettings)
     bpy.utils.register_class(CyclesMeshSettings)
     
 def unregister():
@@ -138,4 +169,5 @@ def unregister():
     bpy.utils.unregister_class(CyclesMaterialSettings)
     bpy.utils.unregister_class(CyclesWorldSettings)
     bpy.utils.unregister_class(CyclesMeshSettings)
+    bpy.utils.unregister_class(CyclesVisibilitySettings)
 

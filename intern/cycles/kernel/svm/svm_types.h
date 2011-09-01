@@ -104,6 +104,7 @@ typedef enum NodeLightPath {
 	NODE_LP_shadow,
 	NODE_LP_diffuse,
 	NODE_LP_glossy,
+	NODE_LP_singular,
 	NODE_LP_reflection,
 	NODE_LP_transmission,
 	NODE_LP_backfacing

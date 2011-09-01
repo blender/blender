@@ -42,6 +42,7 @@ class CyclesButtonsPanel():
 
 class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
     bl_label = "Integrator"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -58,14 +59,28 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
 
         col = split.column()
         sub = col.column(align=True)
-        sub.prop(cscene, "passes", text="Render Passes")
-        sub.prop(cscene, "preview_passes")
-        col.prop(cscene, "no_caustics")
+        sub.label(text="Passes:")
+        sub.prop(cscene, "passes", text="Render")
+        sub.prop(cscene, "preview_passes", text="Preview")
+
+        sub = col.column(align=True)
+        sub.label("Tranparency:")
+        sub.prop(cscene, "transparent_max_bounces", text="Max")
+        sub.prop(cscene, "transparent_min_bounces", text="Min")
+        sub.prop(cscene, "no_caustics")
 
         col = split.column()
+
         sub = col.column(align=True)
-        sub.prop(cscene, "max_bounces")
-        sub.prop(cscene, "min_bounces")
+        sub.label(text="Bounces:")
+        sub.prop(cscene, "max_bounces", text="Max")
+        sub.prop(cscene, "min_bounces", text="Min")
+
+        sub = col.column(align=True)
+        sub.label(text="Light Paths:")
+        sub.prop(cscene, "diffuse_bounces", text="Diffuse")
+        sub.prop(cscene, "glossy_bounces", text="Glossy")
+        sub.prop(cscene, "transmission_bounces", text="Transmission")
 
         #row = col.row()
         #row.prop(cscene, "blur_caustics")
@@ -83,8 +98,8 @@ class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column();
-        col.prop(cscene, "exposure")
-        col.prop(cscene, "transparent")
+        col.prop(cscene, "film_exposure")
+        col.prop(cscene, "film_transparent")
 
         col = split.column()
         sub = col.column(align=True)
@@ -232,6 +247,33 @@ class Cycles_PT_mesh_displacement(CyclesButtonsPanel, Panel):
         layout.prop(cdata, "displacement_method", text="Method")
         layout.prop(cdata, "use_subdivision");
         layout.prop(cdata, "dicing_rate");
+
+class CyclesObject_PT_ray_visibility(CyclesButtonsPanel, Panel):
+    bl_label = "Ray Visibility"
+    bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob and ob.type in ('MESH', 'CURVE', 'CURVE', 'SURFACE', 'FONT', 'META') # todo: 'LAMP'
+
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        visibility = ob.cycles_visibility
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(visibility, "camera")
+        col.prop(visibility, "diffuse")
+        col.prop(visibility, "glossy")
+
+        col = split.column()
+        col.prop(visibility, "transmission")
+        col.prop(visibility, "shadow")
 
 def find_node(material, nodetype):
     if material and material.node_tree:
