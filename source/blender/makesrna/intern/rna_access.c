@@ -1378,7 +1378,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
  * but this isnt likely to be a performance problem. */
 int RNA_property_update_check(PropertyRNA *prop)
 {
-	return ((prop->magic != RNA_MAGIC) || (prop->flag & PROP_IDPROPERTY)|| prop->update || prop->noteflag);
+	return ((prop->magic != RNA_MAGIC) || prop->update || prop->noteflag);
 }
 
 void RNA_property_update(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
