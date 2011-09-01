@@ -886,8 +886,6 @@ void KX_KetsjiEngine::Render()
 		{
 			if((*it)->GetViewport())
 			{
-				// Change the active camera so Python scripts can figure out what viewport they're in
-				scene->SetActiveCamera(*it);
 				if (scene->IsClearingZBuffer())
 					m_rasterizer->ClearDepthBuffer();
 		
@@ -899,10 +897,6 @@ void KX_KetsjiEngine::Render()
 			
 			it++;
 		}
-
-		// Now change the camera back
-		scene->SetActiveCamera(cam);
-
 		PostRenderScene(scene);
 	}
 
@@ -1322,10 +1316,6 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
-
-#ifdef WITH_PYTHON
-	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
-#endif
 }
 
 void KX_KetsjiEngine::RenderFonts(KX_Scene* scene)
@@ -1345,8 +1335,14 @@ To run once per scene
 */
 void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
+	// We need to first make sure our viewport is correct (enabling multiple viewports can mess this up)
+	m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
+
 	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
+#ifdef WITH_PYTHON
+	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
+#endif
 	m_rasterizer->FlushDebugLines();
 }
 
