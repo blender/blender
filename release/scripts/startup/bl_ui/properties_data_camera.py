@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
@@ -32,7 +33,7 @@ class CameraButtonsPanel():
         return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
-class DATA_PT_context_camera(CameraButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_camera(CameraButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -53,7 +54,7 @@ class DATA_PT_context_camera(CameraButtonsPanel, bpy.types.Panel):
             split.separator()
 
 
-class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
+class DATA_PT_camera(CameraButtonsPanel, Panel):
     bl_label = _("Lens")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -106,12 +107,12 @@ class DATA_PT_camera(CameraButtonsPanel, bpy.types.Panel):
 
         col = split.column()
 
-        if cam.dof_object != None:
+        if cam.dof_object is not None:
             col.enabled = False
         col.prop(cam, "dof_distance", text=_("Distance"))
 
 
-class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
+class DATA_PT_camera_display(CameraButtonsPanel, Panel):
     bl_label = _("Display")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -138,7 +139,7 @@ class DATA_PT_camera_display(CameraButtonsPanel, bpy.types.Panel):
         sub.prop(cam, "passepartout_alpha", text=_("Alpha"), slider=True)
 
 
-class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Camera

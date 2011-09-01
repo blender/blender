@@ -44,6 +44,8 @@ struct Main;
 struct Library;
 struct wmWindowManager;
 struct bContext;
+struct PointerRNA;
+struct PropertyRNA;
 
 void *alloc_libblock(struct ListBase *lb, short type, const char *name);
 void *copy_libblock(void *rt);
@@ -53,6 +55,7 @@ void id_lib_extern(struct ID *id);
 void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
 int id_make_local(struct ID *id, int test);
+int id_single_user(struct bContext *C, struct ID *id, struct PointerRNA *ptr, struct PropertyRNA *prop);
 int id_copy(struct ID *id, struct ID **newid, int test);
 int id_unlink(struct ID *id, int test);
 

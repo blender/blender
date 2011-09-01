@@ -159,7 +159,7 @@ typedef struct {
 static void multiresbake_get_normal(const MResolvePixelData *data, float norm[], const int face_num, const int vert_index)
 {
 	unsigned int indices[]= {data->mface[face_num].v1, data->mface[face_num].v2,
-                             data->mface[face_num].v3, data->mface[face_num].v4};
+	                         data->mface[face_num].v3, data->mface[face_num].v4};
 	const int smoothnormal= (data->mface[face_num].flag & ME_SMOOTH);
 
 	if(!smoothnormal)  { /* flat */
@@ -636,14 +636,14 @@ static void apply_heights_data(void *bake_data)
 			if(ibuf->rect_float) {
 				float *rrgbf= ibuf->rect_float + i*4;
 
-				if(max-min > 1e-5) height= (heights[i]-min)/(max-min);
+				if(max-min > 1e-5f) height= (heights[i]-min)/(max-min);
 				else height= 0;
 
 				rrgbf[0]=rrgbf[1]=rrgbf[2]= height;
 			} else {
 				char *rrgb= (char*)ibuf->rect + i*4;
 
-				if(max-min > 1e-5) height= (heights[i]-min)/(max-min);
+				if(max-min > 1e-5f) height= (heights[i]-min)/(max-min);
 				else height= 0;
 
 				rrgb[0]=rrgb[1]=rrgb[2]= FTOCHAR(height);

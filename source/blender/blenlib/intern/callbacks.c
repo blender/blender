@@ -28,7 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
-static ListBase callback_slots[BLI_CB_EVT_TOT]= {{0}};
+static ListBase callback_slots[BLI_CB_EVT_TOT]= {{NULL}};
 
 void BLI_exec_cb(struct Main *main, struct ID *self, eCbEvent evt)
 {

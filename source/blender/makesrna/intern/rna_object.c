@@ -116,6 +116,7 @@ EnumPropertyItem object_type_items[] = {
 	{0, "", 0, NULL, NULL},
 	{OB_CAMERA, "CAMERA", 0, N_("Camera"), ""},
 	{OB_LAMP, "LAMP", 0, N_("Lamp"), ""},
+	{OB_SPEAKER, "SPEAKER", 0, "Speaker", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem object_type_curve_items[] = {
@@ -366,6 +367,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
 		case OB_CAMERA: return &RNA_Camera;
 		case OB_LATTICE: return &RNA_Lattice;
 		case OB_ARMATURE: return &RNA_Armature;
+		case OB_SPEAKER: return &RNA_Speaker;
 		default: return &RNA_ID;
 	}
 }
@@ -2026,7 +2028,14 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, N_("Input Matrix"), N_("Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied."));
 	RNA_def_property_float_funcs(prop, "rna_Object_matrix_basis_get", "rna_Object_matrix_basis_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
-	
+
+	/*parent_inverse*/
+	prop= RNA_def_property(srna, "matrix_parent_inverse", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "parentinv");
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_ui_text(prop, "Matrix", "Inverse of object's parent matrix at time of parenting");
+	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
+
 	/* collections */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");

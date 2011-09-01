@@ -78,6 +78,7 @@ set(DEFSRC
 	rna_smoke.c
 	rna_sound.c
 	rna_space.c
+	rna_speaker.c
 	rna_test.c
 	rna_text.c
 	rna_texture.c
@@ -100,6 +101,7 @@ set(APISRC
 	rna_main_api.c
 	rna_material_api.c
 	rna_mesh_api.c
+	rna_texture_api.c
 	rna_object_api.c
 	rna_pose_api.c
 	rna_scene_api.c
@@ -243,6 +245,7 @@ blender_include_dirs_sys(
 
 add_executable(makesrna ${SRC} ${SRC_RNA_INC} ${SRC_DNA_INC})
 target_link_libraries(makesrna bf_dna)
+target_link_libraries(makesrna bf_dna_blenlib)
 
 # Output rna_*_gen.c
 # note (linux only): with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes

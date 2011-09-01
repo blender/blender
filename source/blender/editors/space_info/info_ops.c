@@ -275,7 +275,7 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
 	ot->exec= report_missing_files_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= 0; /* only reports so no need to undo/register */
 }
 
 /********************* find missing files operator *********************/

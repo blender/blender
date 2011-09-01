@@ -481,72 +481,90 @@ static void snode_tag_changed(SpaceNode *snode, bNode *node)
 		NodeTagIDChanged(snode->nodetree, gnode->id);
 }
 
-void node_set_active(SpaceNode *snode, bNode *node)
+static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 {
-	nodeSetActive(snode->edittree, node);
+	bNode *node;
+	
+	if(ntree == lookup)
+		return 1;
+	
+	for(node=ntree->nodes.first; node; node=node->next)
+		if(node->type == NODE_GROUP && node->id)
+			if(has_nodetree((bNodeTree*)node->id, lookup))
+				return 1;
+	
+	return 0;
+}
+
+void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
+{
+	nodeSetActive(ntree, node);
 	
 	if(node->type!=NODE_GROUP) {
 		int was_output= (node->flag & NODE_DO_OUTPUT);
 		
 		/* tree specific activate calls */
-		if(snode->treetype==NTREE_SHADER) {
+		if(ntree->type==NTREE_SHADER) {
 			/* when we select a material, active texture is cleared, for buttons */
 			if(node->id && GS(node->id->name)==ID_MA)
-				nodeClearActiveID(snode->edittree, ID_TE);
+				nodeClearActiveID(ntree, ID_TE);
 			
 			if(node->type==SH_NODE_OUTPUT) {
 				bNode *tnode;
 				
-				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
+				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
 					if( tnode->type==SH_NODE_OUTPUT)
 						tnode->flag &= ~NODE_DO_OUTPUT;
 				
 				node->flag |= NODE_DO_OUTPUT;
 				if(was_output==0)
-					ED_node_changed_update(snode->id, node);
+					ED_node_generic_update(bmain, ntree, node);
 			}
 
 			WM_main_add_notifier(NC_MATERIAL|ND_NODES, node->id);
 		}
-		else if(snode->treetype==NTREE_COMPOSIT) {
-			Scene *scene= (Scene*)snode->id;
-
+		else if(ntree->type==NTREE_COMPOSIT) {
 			/* make active viewer, currently only 1 supported... */
 			if( ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 				bNode *tnode;
 				
 
-				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
+				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
 					if( ELEM(tnode->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
 						tnode->flag &= ~NODE_DO_OUTPUT;
 				
 				node->flag |= NODE_DO_OUTPUT;
-				if(was_output==0) {
-					snode_tag_changed(snode, node);
-					
-					ED_node_changed_update(snode->id, node);
-				}
+				if(was_output==0)
+					ED_node_generic_update(bmain, ntree, node);
 				
 				/* addnode() doesnt link this yet... */
 				node->id= (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 			}
 			else if(node->type==CMP_NODE_R_LAYERS) {
-				if(node->id==NULL || node->id==(ID *)scene) {
-					scene->r.actlay= node->custom1;
+				Scene *scene;
+
+				for(scene=bmain->scene.first; scene; scene=scene->id.next) {
+					if(scene->nodetree && scene->use_nodes && has_nodetree(scene->nodetree, ntree)) {
+						if(node->id==NULL || node->id==(ID *)scene) {
+							scene->r.actlay= node->custom1;
+						}
+					}
 				}
 			}
 			else if(node->type==CMP_NODE_COMPOSITE) {
-				bNode *tnode;
-				
-				for(tnode= snode->edittree->nodes.first; tnode; tnode= tnode->next)
-					if( tnode->type==CMP_NODE_COMPOSITE)
-						tnode->flag &= ~NODE_DO_OUTPUT;
-				
-				node->flag |= NODE_DO_OUTPUT;
-				ED_node_changed_update(snode->id, node);
+				if (was_output==0) {
+					bNode *tnode;
+					
+					for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
+						if( tnode->type==CMP_NODE_COMPOSITE)
+							tnode->flag &= ~NODE_DO_OUTPUT;
+					
+					node->flag |= NODE_DO_OUTPUT;
+					ED_node_generic_update(bmain, ntree, node);
+				}
 			}
 		}
-		else if(snode->treetype==NTREE_TEXTURE) {
+		else if(ntree->type==NTREE_TEXTURE) {
 			// XXX
 #if 0
 			if(node->id)
@@ -1627,7 +1645,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 
 
 /* return 0, nothing done */
-static int node_mouse_groupheader(SpaceNode *snode)
+static int UNUSED_FUNCTION(node_mouse_groupheader)(SpaceNode *snode)
 {
 	bNode *gnode;
 	float mx=0, my=0;
@@ -1942,7 +1960,7 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 }
 
 /* can be called from menus too, but they should do own undopush and redraws */
-bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy)
+bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, int type, float locx, float locy)
 {
 	bNode *node= NULL, *gnode;
 	
@@ -1957,7 +1975,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 			return NULL;
 		}
 		else {
-			bNodeTree *ngroup= BLI_findlink(&G.main->nodetree, type-NODE_GROUP_MENU);
+			bNodeTree *ngroup= BLI_findlink(&bmain->nodetree, type-NODE_GROUP_MENU);
 			if(ngroup)
 				node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup, NULL);
 		}
@@ -1978,7 +1996,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 		}
 
 		node_tree_verify_groups(snode->nodetree);
-		node_set_active(snode, node);
+		ED_node_set_active(bmain, snode->edittree, node);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT) {
 			if(ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE))
@@ -2993,10 +3011,10 @@ static int node_mute_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
-			if(node->inputs.first && node->outputs.first) {
+			/* Be able to mute in-/output nodes as well.  - DingTo
+			if(node->inputs.first && node->outputs.first) { */
 				node->flag ^= NODE_MUTED;
 				snode_tag_changed(snode, node);
-			}
 		}
 	}
 	
@@ -3064,78 +3082,115 @@ void NODE_OT_delete(wmOperatorType *ot)
 }
 
 /* ****************** Delete with reconnect ******************* */
+static int is_connected_to_input_socket(bNode* node, bNodeLink* link) {
+	bNodeSocket *sock;
+	if (link->tonode == node) {
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			if (link->tosock == sock) {
+				return sock->type;
+			}
+		}		
+	}
+	return -1;
+}
 
-/* note: in cmp_util.c is similar code, for node_compo_pass_on() */
-/* used for disabling node  (similar code in node_draw.c for disable line) */
 static void node_delete_reconnect(bNodeTree* tree, bNode* node) 
 {
-	bNodeLink *link, *next;
+	bNodeLink *link, *next, *first = NULL;
 	bNodeSocket *valsocket= NULL, *colsocket= NULL, *vecsocket= NULL;
 	bNodeSocket *deliveringvalsocket= NULL, *deliveringcolsocket= NULL, *deliveringvecsocket= NULL;
 	bNode *deliveringvalnode= NULL, *deliveringcolnode= NULL, *deliveringvecnode= NULL;
 	bNodeSocket *sock;
+	int type;
+	int numberOfConnectedOutputSockets = 0;
+	int numberOfReconnections = 0;
+	int numberOfConnectedInputSockets = 0;
 
-	/* test the inputs */
-	for(sock= node->inputs.first; sock; sock= sock->next) {
-		int type = sock->type;
-		if(type==SOCK_VALUE && valsocket==NULL) valsocket = sock;
-		if(type==SOCK_VECTOR && vecsocket==NULL) vecsocket = sock;
-		if(type==SOCK_RGBA && colsocket==NULL) colsocket = sock;
-	}
-	// we now have the input sockets for the 'data types'
-	// now find the output sockets (and nodes) in the tree that delivers data to these input sockets
+	/* 
+		test the inputs, not really correct when a node has multiple input sockets of the same type
+		the first link evaluated will be used to determine the possible connection.
+	*/
 	for(link= tree->links.first; link; link=link->next) {
-		if (valsocket != NULL) {
-			if (link->tosock == valsocket) {
-				deliveringvalnode = link->fromnode;
-				deliveringvalsocket = link->fromsock;
-			}
-		}
-		if (vecsocket != NULL) {
-			if (link->tosock == vecsocket) {
-				deliveringvecnode = link->fromnode;
-				deliveringvecsocket = link->fromsock;
-			}
-		}
-		if (colsocket != NULL) {
-			if (link->tosock == colsocket) {
+		if (link->tonode == node)  { numberOfConnectedInputSockets++; }
+		type = is_connected_to_input_socket(node, link);
+		switch (type) {
+		case SOCK_RGBA:
+			if (colsocket == NULL) {
+				colsocket = link->tosock;
 				deliveringcolnode = link->fromnode;
 				deliveringcolsocket = link->fromsock;
 			}
+			break;
+		case SOCK_VECTOR:
+			if (vecsocket == NULL) {
+				vecsocket = link->tosock;
+				deliveringvecnode = link->fromnode;
+				deliveringvecsocket = link->fromsock;
+			}
+			break;
+		case SOCK_VALUE:
+			if (valsocket == NULL) {
+				valsocket = link->tosock;
+				deliveringvalnode = link->fromnode;
+				deliveringvalsocket = link->fromsock;
+			}
+			break;
+		default:
+			break;
 		}
 	}
+	
 	// we now have the sockets+nodes that fill the inputsockets be aware for group nodes these can be NULL
 	// now make the links for all outputlinks of the node to be reconnected
 	for(link= tree->links.first; link; link=next) {
 		next= link->next;
 		if (link->fromnode == node) {
 			sock = link->fromsock;
+			numberOfConnectedOutputSockets ++;
+			if (!first) first = link;
 			switch(sock->type) {
 			case SOCK_VALUE:
 				if (deliveringvalsocket) {
 					link->fromnode = deliveringvalnode;
 					link->fromsock = deliveringvalsocket;
+					numberOfReconnections++;
 				}
 				break;
 			case SOCK_VECTOR:
 				if (deliveringvecsocket) {
 					link->fromnode = deliveringvecnode;
 					link->fromsock = deliveringvecsocket;
+					numberOfReconnections++;
 				}
 				break;
 			case SOCK_RGBA:
 				if (deliveringcolsocket) {
 					link->fromnode = deliveringcolnode;
 					link->fromsock = deliveringcolsocket;
+					numberOfReconnections++;
 				}
 				break;
 			}
 		}
 	}
+
+	/* when no connections have been made, and if only one delivering input socket type and one output socket we will connect those two */
+	if (numberOfConnectedOutputSockets == 1 && numberOfReconnections == 0 && numberOfConnectedInputSockets == 1) {
+		if (deliveringcolsocket) {
+			first->fromnode = deliveringcolnode;
+			first->fromsock = deliveringcolsocket;
+		} else if (deliveringvecsocket) {
+			first->fromnode = deliveringvecnode;
+			first->fromsock = deliveringvecsocket;
+		} else if (deliveringvalsocket) {
+			first->fromnode = deliveringvalnode;
+			first->fromsock = deliveringvalsocket;
+		}
+	}
+
 	if(node->id)
 		node->id->us--;
 	nodeFreeNode(tree, node);
-
 }
 
 static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3207,6 +3262,7 @@ void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
 
 static int node_add_file_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
@@ -3247,7 +3303,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 	ED_preview_kill_jobs(C);
 	
-	node = node_add_node(snode, scene, ntype, snode->mx, snode->my);
+	node = node_add_node(snode, bmain, scene, ntype, snode->mx, snode->my);
 	
 	if (!node) {
 		BKE_report(op->reports, RPT_WARNING, "Could not add an image node.");

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -42,6 +40,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
@@ -52,6 +51,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_constraint.h"
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -172,7 +172,7 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 /* ----------------- Finding F-Curves -------------------------- */
 
 /* high level function to get an fcurve from C without having the rna */
-FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *prop_name, int index)
+FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *prop_name, int index, char *driven)
 {
 	/* anim vars */
 	AnimData *adt= BKE_animdata_from_id(id);
@@ -182,6 +182,9 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	char *path;
+
+	if(driven)
+		*driven = 0;
 	
 	/* only use the current action ??? */
 	if (ELEM(NULL, adt, adt->action))
@@ -199,11 +202,12 @@ FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, const char *pro
 				fcu= list_find_fcurve(&adt->action->curves, path, index);
 			
 			/* if not animated, check if driven */
-#if 0
 			if ((fcu == NULL) && (adt->drivers.first)) {
-				fcu= list_find_fcurve(&adt->drivers, path, but->rnaindex);
+				fcu= list_find_fcurve(&adt->drivers, path, index);
+				if(fcu && driven)
+					*driven = 1;
+				fcu = NULL;
 			}
-#endif
 			
 			MEM_freeN(path);
 		}
@@ -786,13 +790,10 @@ void calchandles_fcurve (FCurve *fcu)
 		if (bezt->vec[2][0] < bezt->vec[1][0]) bezt->vec[2][0]= bezt->vec[1][0];
 		
 		/* calculate auto-handles */
-		if (fcu->flag & FCURVE_AUTO_HANDLES) 
-			calchandleNurb(bezt, prev, next, 2);	/* 2==special autohandle && keep extrema horizontal */
-		else
-			calchandleNurb(bezt, prev, next, 1);	/* 1==special autohandle */
+		calchandleNurb(bezt, prev, next, 1);	/* 1==special autohandle */
 		
 		/* for automatic ease in and out */
-		if ((bezt->h1==HD_AUTO) && (bezt->h2==HD_AUTO)) {
+		if (ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM) && ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {
 			/* only do this on first or last beztriple */
 			if ((a == 0) || (a == fcu->totvert-1)) {
 				/* set both handles to have same horizontal value as keyframe */
@@ -840,9 +841,9 @@ void testhandles_fcurve (FCurve *fcu)
 		/* one or two handles selected only */
 		if (ELEM(flag, 0, 7)==0) {
 			/* auto handles become aligned */
-			if (bezt->h1==HD_AUTO)
+			if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM))
 				bezt->h1= HD_ALIGN;
-			if (bezt->h2==HD_AUTO)
+			if (ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM))
 				bezt->h2= HD_ALIGN;
 			
 			/* vector handles become 'free' when only one half selected */
@@ -1002,7 +1003,7 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	
 	/* get property to read from, and get value as appropriate */
 	if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
-		if(RNA_property_array_check(&ptr, prop)) {
+		if(RNA_property_array_check(prop)) {
 			/* array */
 			if (index < RNA_property_array_length(&ptr, prop)) {	
 				switch (RNA_property_type(prop)) {
@@ -1151,25 +1152,50 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 		/* check if object or bone */
 		if (pchan) {
 			/* bone */
-			if ((dtar->flag & DTAR_FLAG_LOCALSPACE) == 0) {
+			if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
+				if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
+					float mat[4][4];
+					
+					/* extract transform just like how the constraints do it! */
+					copy_m4_m4(mat, pchan->pose_mat);
+					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+					
+					/* ... and from that, we get our transform */
+					VECCOPY(tmp_loc, mat[3]);
+				}
+				else {
+					/* transform space (use transform values directly) */
+					VECCOPY(tmp_loc, pchan->loc);
+				}
+			}
+			else {
 				/* convert to worldspace */
 				VECCOPY(tmp_loc, pchan->pose_head);
 				mul_m4_v3(ob->obmat, tmp_loc);
 			}
-			else {
-				/* local (use transform values directly) */
-				VECCOPY(tmp_loc, pchan->loc);
-			}
 		}
 		else {
 			/* object */
-			if ((dtar->flag & DTAR_FLAG_LOCALSPACE) == 0) {
-				/* worldspace */
-				VECCOPY(tmp_loc, ob->obmat[3]); 
+			if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
+				if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
+					// XXX: this should practically be the same as transform space...
+					float mat[4][4];
+					
+					/* extract transform just like how the constraints do it! */
+					copy_m4_m4(mat, ob->obmat);
+					constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL);
+					
+					/* ... and from that, we get our transform */
+					VECCOPY(tmp_loc, mat[3]);
+				}
+				else {
+					/* transform space (use transform values directly) */
+					VECCOPY(tmp_loc, ob->loc);
+				}
 			}
 			else {
-				/* local (use transform values directly) */
-				VECCOPY(tmp_loc, ob->loc);
+				/* worldspace */
+				VECCOPY(tmp_loc, ob->obmat[3]); 
 			}
 		}
 		
@@ -1197,7 +1223,7 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	Object *ob= (Object *)dtar_id_ensure_proxy_from(dtar->id);
 	bPoseChannel *pchan;
 	float mat[4][4];
-	float eul[3] = {0.0f,0.0f,0.0f};
+	float oldEul[3] = {0.0f,0.0f,0.0f};
 	short useEulers=0, rotOrder=ROT_MODE_EUL;
 	
 	/* check if this target has valid data */
@@ -1210,36 +1236,62 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	/* try to get posechannel */
 	pchan= get_pose_channel(ob->pose, dtar->pchan_name);
 	
-	/* check if object or bone, and get transform matrix accordingly */
+	/* check if object or bone, and get transform matrix accordingly 
+	 *	- "useEulers" code is used to prevent the problems associated with non-uniqueness
+	 *	  of euler decomposition from matrices [#20870]
+	 *	- localspace is for [#21384], where parent results are not wanted
+	 *	  but local-consts is for all the common "corrective-shapes-for-limbs" situations
+	 */
 	if (pchan) {
 		/* bone */
 		if (pchan->rotmode > 0) {
-			VECCOPY(eul, pchan->eul);
+			VECCOPY(oldEul, pchan->eul);
 			rotOrder= pchan->rotmode;
 			useEulers = 1;
 		}
 		
 		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
-			/* specially calculate local matrix, since chan_mat is not valid 
-			 * since it stores delta transform of pose_mat so that deforms work
-			 */
-			pchan_to_mat4(pchan, mat);
+			if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
+				/* just like how the constraints do it! */
+				copy_m4_m4(mat, pchan->pose_mat);
+				constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+			}
+			else {
+				/* specially calculate local matrix, since chan_mat is not valid 
+				 * since it stores delta transform of pose_mat so that deforms work
+				 * so it cannot be used here for "transform" space
+				 */
+				pchan_to_mat4(pchan, mat);
+			}
 		}
-		else
+		else {
+			/* worldspace matrix */
 			mul_m4_m4m4(mat, pchan->pose_mat, ob->obmat);
+		}
 	}
 	else {
 		/* object */
 		if (ob->rotmode > 0) {
-			VECCOPY(eul, ob->rot);
+			VECCOPY(oldEul, ob->rot);
 			rotOrder= ob->rotmode;
 			useEulers = 1;
 		}
 		
-		if (dtar->flag & DTAR_FLAG_LOCALSPACE)
-			object_to_mat4(ob, mat);
-		else
+		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
+			if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
+				/* just like how the constraints do it! */
+				copy_m4_m4(mat, ob->obmat);
+				constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL);
+			}
+			else {
+				/* transforms to matrix */
+				object_to_mat4(ob, mat);
+			}
+		}
+		else {
+			/* worldspace matrix - just the good-old one */
 			copy_m4_m4(mat, ob->obmat);
+		}
 	}
 	
 	/* check which transform */
@@ -1255,9 +1307,21 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 		return scale[dtar->transChan - DTAR_TRANSCHAN_SCALEX];
 	}
 	else if (dtar->transChan >= DTAR_TRANSCHAN_ROTX) {
-		/* extract euler rotation (if needed), and choose the right axis */
-		if ((dtar->flag & DTAR_FLAG_LOCALSPACE)==0 || (useEulers == 0))
-			mat4_to_eulO(eul, rotOrder, mat);
+		/* extract rotation as eulers (if needed) 
+		 *	- definitely if rotation order isn't eulers already
+		 *	- if eulers, then we have 2 options:
+		 *		a) decompose transform matrix as required, then try to make eulers from
+		 *		   there compatible with original values
+		 *		b) [NOT USED] directly use the original values (no decomposition) 
+		 *			- only an option for "transform space", if quality is really bad with a)
+		 */
+		float eul[3];
+		
+		mat4_to_eulO(eul, rotOrder, mat);
+		
+		if (useEulers) {
+			compatible_eul(eul, oldEul);
+		}
 		
 		return eul[dtar->transChan - DTAR_TRANSCHAN_ROTX];
 	}

@@ -3161,7 +3161,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 			}
 			else {
 				ca->vel[0] = ca->vel[1] = 0.0f;
-				ca->vel[1] = 1.0f;
+				ca->vel[2] = 1.0f;
 			}
 
 			/* selection coloring in edit mode */
@@ -4389,6 +4389,7 @@ void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa
 	copy_m3_m4(nmat, ob->imat);
 	transpose_m3(nmat);
 	mul_m3_v3(nmat, nor);
+	normalize_v3(nor);
 
 	/* make sure that we get a proper side vector */
 	if(fabs(dot_v3v3(nor,vec))>0.999999) {

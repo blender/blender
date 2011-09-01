@@ -42,9 +42,10 @@ static PyTypeObject BlenderAppCbType;
 static PyStructSequence_Field app_cb_info_fields[]= {
 	{(char *)"render_pre", NULL},
 	{(char *)"render_post", NULL},
-    {(char *)"load_pre", NULL},
+	{(char *)"render_stats", NULL},
+	{(char *)"load_pre", NULL},
 	{(char *)"load_post", NULL},
-    {(char *)"save_pre", NULL},
+	{(char *)"save_pre", NULL},
 	{(char *)"save_post", NULL},
 	{NULL}
 };

@@ -31,14 +31,13 @@
 
 #include "AUD_EffectReader.h"
 
-AUD_EffectReader::AUD_EffectReader(AUD_IReader* reader)
+AUD_EffectReader::AUD_EffectReader(AUD_Reference<AUD_IReader> reader)
 {
 	m_reader = reader;
 }
 
 AUD_EffectReader::~AUD_EffectReader()
 {
-	delete m_reader;
 }
 
 bool AUD_EffectReader::isSeekable() const
@@ -66,7 +65,7 @@ AUD_Specs AUD_EffectReader::getSpecs() const
 	return m_reader->getSpecs();
 }
 
-void AUD_EffectReader::read(int & length, sample_t* & buffer)
+void AUD_EffectReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	m_reader->read(length, buffer);
+	m_reader->read(length, eos, buffer);
 }

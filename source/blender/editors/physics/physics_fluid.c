@@ -41,12 +41,6 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#ifdef WIN32	/* Windos */
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
-#endif
-
 #include "MEM_guardedalloc.h"
 
 /* types */
@@ -155,8 +149,8 @@ static int fluid_is_animated_mesh(FluidsimSettings *fss)
 #if 0
 /* helper function */
 void fluidsimGetGeometryObjFilename(Object *ob, char *dst) { //, char *srcname) {
-	//snprintf(dst,FILE_MAXFILE, "%s_cfgdata_%s.bobj.gz", srcname, ob->id.name);
-	snprintf(dst,FILE_MAXFILE, "fluidcfgdata_%s.bobj.gz", ob->id.name);
+	//BLI_snprintf(dst,FILE_MAXFILE, "%s_cfgdata_%s.bobj.gz", srcname, ob->id.name);
+	BLI_snprintf(dst,FILE_MAXFILE, "fluidcfgdata_%s.bobj.gz", ob->id.name);
 }
 #endif
 
@@ -888,7 +882,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
 		elbeemSetDebugLevel(dlevel);
-		snprintf(debugStrBuffer,256,"fluidsimBake::msg: Debug messages activated due to envvar '%s'\n",strEnvName); 
+		BLI_snprintf(debugStrBuffer,256,"fluidsimBake::msg: Debug messages activated due to envvar '%s'\n",strEnvName); 
 		elbeemDebugOut(debugStrBuffer);
 	}
 	
@@ -925,7 +919,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	
 	/* rough check of settings... */
 	if(domainSettings->previewresxyz > domainSettings->resolutionxyz) {
-		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", domainSettings->previewresxyz ,  domainSettings->resolutionxyz); 
+		BLI_snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", domainSettings->previewresxyz ,  domainSettings->resolutionxyz); 
 		elbeemDebugOut(debugStrBuffer);
 		domainSettings->previewresxyz = domainSettings->resolutionxyz;
 	}
@@ -945,7 +939,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	} else {
 		gridlevels = domainSettings->maxRefine;
 	}
-	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , gridlevels ); 
+	BLI_snprintf(debugStrBuffer,256,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , gridlevels ); 
 	elbeemDebugOut(debugStrBuffer);
 	
 	
@@ -997,7 +991,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	/* ******** init domain object's matrix ******** */
 	copy_m4_m4(domainMat, fsDomain->obmat);
 	if(!invert_m4_m4(invDomMat, domainMat)) {
-		snprintf(debugStrBuffer,256,"fluidsimBake::error - Invalid obj matrix?\n"); 
+		BLI_snprintf(debugStrBuffer,256,"fluidsimBake::error - Invalid obj matrix?\n"); 
 		elbeemDebugOut(debugStrBuffer);
 		BKE_report(reports, RPT_ERROR, "Invalid object matrix."); 
 

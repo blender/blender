@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu, Operator, Panel
 import os
 import addon_utils
 
@@ -76,7 +77,7 @@ def opengl_lamp_buttons(column, lamp):
     col.prop(lamp, "direction", text="")
 
 
-class USERPREF_HT_header(bpy.types.Header):
+class USERPREF_HT_header(Header):
     bl_space_type = 'USER_PREFERENCES'
 
     def draw(self, context):
@@ -100,7 +101,7 @@ class USERPREF_HT_header(bpy.types.Header):
             layout.operator("ui.reset_default_theme")
 
 
-class USERPREF_PT_tabs(bpy.types.Panel):
+class USERPREF_PT_tabs(Panel):
     bl_label = ""
     bl_space_type = 'USER_PREFERENCES'
     bl_region_type = 'WINDOW'
@@ -114,14 +115,14 @@ class USERPREF_PT_tabs(bpy.types.Panel):
         layout.prop(userpref, "active_section", expand=True)
 
 
-class USERPREF_MT_interaction_presets(bpy.types.Menu):
+class USERPREF_MT_interaction_presets(Menu):
     bl_label = _("Presets")
     preset_subdir = "interaction"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
-class USERPREF_MT_appconfigs(bpy.types.Menu):
+class USERPREF_MT_appconfigs(Menu):
     bl_label = "AppPresets"
     preset_subdir = "keyconfig"
     preset_operator = "wm.appconfig_activate"
@@ -130,10 +131,10 @@ class USERPREF_MT_appconfigs(bpy.types.Menu):
         self.layout.operator("wm.appconfig_default", text=_("Blender (default)"))
 
         # now draw the presets
-        bpy.types.Menu.draw_preset(self, context)
+        Menu.draw_preset(self, context)
 
 
-class USERPREF_MT_splash(bpy.types.Menu):
+class USERPREF_MT_splash(Menu):
     bl_label = "Splash"
 
     def draw(self, context):
@@ -150,7 +151,7 @@ class USERPREF_MT_splash(bpy.types.Menu):
         row.menu("USERPREF_MT_appconfigs", text=_("Preset"))
 
 
-class USERPREF_PT_interface(bpy.types.Panel):
+class USERPREF_PT_interface(Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = _("Interface")
     bl_region_type = 'WINDOW'
@@ -247,7 +248,7 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "show_splash")
 
 
-class USERPREF_PT_edit(bpy.types.Panel):
+class USERPREF_PT_edit(Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = _("Edit")
     bl_region_type = 'WINDOW'
@@ -360,7 +361,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "use_duplicate_particle", text=_("Particle"))
 
 
-class USERPREF_PT_system(bpy.types.Panel):
+class USERPREF_PT_system(Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = _("System")
     bl_region_type = 'WINDOW'
@@ -496,7 +497,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub.template_color_ramp(system, "weight_color_range", expand=True)
 
 
-class USERPREF_PT_theme(bpy.types.Panel):
+class USERPREF_PT_theme(Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = _("Themes")
     bl_region_type = 'WINDOW'
@@ -679,7 +680,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             self._theme_generic(split, getattr(theme, theme.theme_area.lower()))
 
 
-class USERPREF_PT_file(bpy.types.Panel):
+class USERPREF_PT_file(Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = _("Files")
     bl_region_type = 'WINDOW'
@@ -755,7 +756,7 @@ class USERPREF_PT_file(bpy.types.Panel):
 from bl_ui.space_userpref_keymap import InputKeyMapPanel
 
 
-class USERPREF_MT_ndof_settings(bpy.types.Menu):
+class USERPREF_MT_ndof_settings(Menu):
     # accessed from the window keybindings in C (only)
     bl_label = _("3D Mouse Settings")
 
@@ -780,7 +781,7 @@ class USERPREF_MT_ndof_settings(bpy.types.Menu):
             layout.prop(input_prefs, "ndof_lock_horizon", icon='NDOF_DOM')
 
 
-class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
+class USERPREF_PT_input(Panel, InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = _("Input")
 
@@ -870,7 +871,7 @@ class USERPREF_PT_input(bpy.types.Panel, InputKeyMapPanel):
         #print("runtime", time.time() - start)
 
 
-class USERPREF_MT_addons_dev_guides(bpy.types.Menu):
+class USERPREF_MT_addons_dev_guides(Menu):
     bl_label = _("Development Guides")
 
     # menu to open webpages with addons development guides
@@ -881,7 +882,7 @@ class USERPREF_MT_addons_dev_guides(bpy.types.Menu):
         layout.operator('wm.url_open', text=_('How to share your addon'), icon='URL').url = 'http://wiki.blender.org/index.php/Dev:Py/Sharing'
 
 
-class USERPREF_PT_addons(bpy.types.Panel):
+class USERPREF_PT_addons(Panel):
     bl_space_type = 'USER_PREFERENCES'
     bl_label = _("Addons")
     bl_region_type = 'WINDOW'
@@ -1071,7 +1072,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
 
 
-class WM_OT_addon_enable(bpy.types.Operator):
+class WM_OT_addon_enable(Operator):
     "Enable an addon"
     bl_idname = "wm.addon_enable"
     bl_label = _("Enable Add-On")
@@ -1100,33 +1101,55 @@ class WM_OT_addon_enable(bpy.types.Operator):
             return {'CANCELLED'}
 
 
-class WM_OT_addon_disable(bpy.types.Operator):
+class WM_OT_addon_disable(Operator):
     "Disable an addon"
     bl_idname = "wm.addon_disable"
     bl_label = _("Disable Add-On")
 
-    module = StringProperty(name=_("Module"), description=_("Module name of the addon to disable"))
+    module = StringProperty(
+            name=_("Module"),
+            description=_("Module name of the addon to disable"),
+            )
 
     def execute(self, context):
         addon_utils.disable(self.module)
         return {'FINISHED'}
 
 
-class WM_OT_addon_install(bpy.types.Operator):
+class WM_OT_addon_install(Operator):
     "Install an addon"
     bl_idname = "wm.addon_install"
     bl_label = _("Install Add-On...")
 
-    overwrite = BoolProperty(name=_("Overwrite"), description=_("Remove existing addons with the same ID"), default=True)
+    overwrite = BoolProperty(
+            name=_("Overwrite"),
+            description=_("Remove existing addons with the same ID"),
+            default=True,
+            )
     target = EnumProperty(
             name="Target Path",
             items=(('DEFAULT', "Default", ""),
-                   ('PREFS', "User Prefs", "")))
+                   ('PREFS', "User Prefs", "")),
+            )
 
-    filepath = StringProperty(name=_("File Path"), description=_("File path to write file to"))
-    filter_folder = BoolProperty(name=_("Filter folders"), description="", default=True, options={'HIDDEN'})
-    filter_python = BoolProperty(name=_("Filter python"), description="", default=True, options={'HIDDEN'})
-    filter_glob = StringProperty(default="*.py;*.zip", options={'HIDDEN'})
+    filepath = StringProperty(
+            name=_("File Path"),
+            description=_("File path to write file to"),
+            )
+    filter_folder = BoolProperty(
+            name=_("Filter folders"),
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_python = BoolProperty(
+            name=_("Filter python"),
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_glob = StringProperty(
+            default="*.py;*.zip",
+            options={'HIDDEN'},
+            )
 
     @staticmethod
     def _module_remove(path_addons, module):
@@ -1258,12 +1281,15 @@ class WM_OT_addon_install(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-class WM_OT_addon_remove(bpy.types.Operator):
+class WM_OT_addon_remove(Operator):
     "Disable an addon"
     bl_idname = "wm.addon_remove"
     bl_label = _("Remove Add-On")
 
-    module = StringProperty(name="Module", description="Module name of the addon to remove")
+    module = StringProperty(
+            name=_("Module"),
+            description=_("Module name of the addon to remove"),
+            )
 
     @staticmethod
     def path_from_addon(module):
@@ -1306,12 +1332,15 @@ class WM_OT_addon_remove(bpy.types.Operator):
         return wm.invoke_props_dialog(self, width=600)
 
 
-class WM_OT_addon_expand(bpy.types.Operator):
+class WM_OT_addon_expand(Operator):
     "Display more information on this add-on"
     bl_idname = "wm.addon_expand"
     bl_label = ""
 
-    module = StringProperty(name=_("Module"), description=_("Module name of the addon to expand"))
+    module = StringProperty(
+            name=_("Module"),
+            description=_("Module name of the addon to expand"),
+            )
 
     def execute(self, context):
         module_name = self.module

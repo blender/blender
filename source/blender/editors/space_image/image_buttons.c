@@ -115,7 +115,7 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 		if(ima->source==IMA_SRC_MOVIE) {
 			ofs+= sprintf(str, "Movie");
 			if(ima->anim)
-				ofs+= sprintf(str+ofs, "%d frs", IMB_anim_get_duration(ima->anim));
+				ofs+= sprintf(str+ofs, "%d frs", IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN));
 		}
 		else
 			ofs+= sprintf(str, "Image");
@@ -430,7 +430,7 @@ static void set_frames_cb(bContext *C, void *ima_v, void *iuser_v)
 	ImageUser *iuser= iuser_v;
 	
 	if(ima->anim) {
-		iuser->frames = IMB_anim_get_duration(ima->anim);
+		iuser->frames = IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN);
 		BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
 	}
 }

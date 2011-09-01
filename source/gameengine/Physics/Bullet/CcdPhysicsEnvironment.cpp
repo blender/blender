@@ -1200,7 +1200,7 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IRayCastFilterCallbac
 						
 					// Bullet returns the normal from "outside".
 					// If the user requests the real normal, compute it now
-                    if (filterCallback.m_faceNormal)
+					if (filterCallback.m_faceNormal)
 					{
 						if (shape->isSoftBody()) 
 						{

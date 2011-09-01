@@ -161,7 +161,7 @@ void select_surround_from_last(Scene *scene)
 #endif
 
 
-static void select_single_seq(Scene *scene, Sequence *seq, int deselect_all) /* BRING BACK */
+static void UNUSED_FUNCTION(select_single_seq)(Scene *scene, Sequence *seq, int deselect_all) /* BRING BACK */
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	
@@ -848,7 +848,7 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
 		seq_rectf(seq, &rq);
 		
-		if(BLI_isect_rctf(&rq, &rectf, 0)) {
+		if(BLI_isect_rctf(&rq, &rectf, NULL)) {
 			if(selecting)		seq->flag |= SELECT;
 			else				seq->flag &= ~SEQ_ALLSEL;
 			recurs_sel_seq(seq);

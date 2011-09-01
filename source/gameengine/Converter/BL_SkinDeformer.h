@@ -109,6 +109,11 @@ protected:
 	bool					m_releaseobject;
 	bool					m_poseApplied;
 	bool					m_recalcNormal;
+	bool					m_copyNormals; // dirty flag so we know if Apply() needs to copy normal information (used for BGEDeformVerts())
+	struct bPoseChannel**	m_dfnrToPC;
+
+	void BlenderDeformVerts();
+	void BGEDeformVerts();
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

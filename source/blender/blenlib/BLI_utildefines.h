@@ -105,9 +105,9 @@
 #define FTOUSHORT(val) ((val >= 1.0f-0.5f/65535)? 65535: (val <= 0.0f)? 0: (unsigned short)(val*65535.0f + 0.5f))
 #define F3TOCHAR3(v2,v1) (v1)[0]=FTOCHAR((v2[0])); (v1)[1]=FTOCHAR((v2[1])); (v1)[2]=FTOCHAR((v2[2]))
 #define F3TOCHAR4(v2,v1) { (v1)[0]=FTOCHAR((v2[0])); (v1)[1]=FTOCHAR((v2[1])); (v1)[2]=FTOCHAR((v2[2])); \
-						(v1)[3]=FTOCHAR((v2[3])); (v1)[3] = 255; }
+						(v1)[3] = 255; }
 #define F4TOCHAR4(v2,v1) { (v1)[0]=FTOCHAR((v2[0])); (v1)[1]=FTOCHAR((v2[1])); (v1)[2]=FTOCHAR((v2[2])); \
-						(v1)[3]=FTOCHAR((v2[3])); (v1)[3]=FTOCHAR((v2[3])); }
+						(v1)[3]=FTOCHAR((v2[3])); }
 
 
 #define VECCOPY(v1,v2)          {*(v1)= *(v2); *(v1+1)= *(v2+1); *(v1+2)= *(v2+2);}
@@ -181,6 +181,12 @@
 #  define UNUSED(x) UNUSED_ ## x __attribute__((__unused__))
 #else
 #  define UNUSED(x) UNUSED_ ## x
+#endif
+
+#ifdef __GNUC__
+#  define UNUSED_FUNCTION(x) __attribute__((__unused__)) UNUSED_ ## x
+#else
+#  define UNUSED_FUNCTION(x) UNUSED_ ## x
 #endif
 
 #ifdef __GNUC__

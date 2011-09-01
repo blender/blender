@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -85,65 +83,83 @@ bAction *add_empty_action(const char name[])
 	bAction *act;
 	
 	act= alloc_libblock(&G.main->action, ID_AC, name);
-	act->id.flag |= LIB_FAKEUSER; // XXX this is nasty for new users... maybe we don't want this anymore
-	act->id.us++;
 	
 	return act;
 }	
 
+/* .................................. */
+
+/* temp data for make_local_action */
+typedef struct tMakeLocalActionContext {
+	bAction *act;    /* original action */
+	bAction *actn;   /* new action */
+	
+	int lib;         /* some action users were libraries */
+	int local;       /* some action users were not libraries */
+} tMakeLocalActionContext;
+
+/* helper function for make_local_action() - local/lib init step */
+static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
+{
+	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
+	
+	if (adt->action == mlac->act) {
+		if (id->lib) 
+			mlac->lib = 1;
+		else 
+			mlac->local = 1;
+	}
+}
+
+/* helper function for make_local_action() - change references */
+static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
+{
+	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
+	
+	if (adt->action == mlac->act) {
+		if (id->lib==0) {
+			adt->action = mlac->actn;
+			
+			id_us_plus(&mlac->actn->id);
+			id_us_min(&mlac->act->id);
+		}
+	}
+}
+
 // does copy_fcurve...
 void make_local_action(bAction *act)
 {
-	// Object *ob;
+	tMakeLocalActionContext mlac = {act, NULL, 0, 0};
 	Main *bmain= G.main;
-	bAction *actn;
-	int local=0, lib=0;
 	
-	if (act->id.lib==NULL) return;
-	if (act->id.us==1) {
+	if (act->id.lib==NULL) 
+		return;
+	
+	// XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default
+	if ((act->id.flag & LIB_FAKEUSER) && (act->id.us<=1)) {
 		act->id.lib= NULL;
 		act->id.flag= LIB_LOCAL;
 		new_id(&bmain->action, (ID *)act, NULL);
 		return;
 	}
 	
-#if 0	// XXX old animation system
-	ob= G.main->object.first;
-	while(ob) {
-		if(ob->action==act) {
-			if(ob->id.lib) lib= 1;
-			else local= 1;
-		}
-		ob= ob->id.next;
-	}
-#endif
+	BKE_animdata_main_cb(bmain, make_localact_init_cb, &mlac);
 	
-	if(local && lib==0) {
+	if (mlac.local && mlac.lib==0) {
 		act->id.lib= NULL;
 		act->id.flag= LIB_LOCAL;
 		//make_local_action_channels(act);
 		new_id(&bmain->action, (ID *)act, NULL);
 	}
-	else if(local && lib) {
-		actn= copy_action(act);
-		actn->id.us= 0;
+	else if (mlac.local && mlac.lib) {
+		mlac.actn= copy_action(act);
+		mlac.actn->id.us= 0;
 		
-#if 0	// XXX old animation system
-		ob= G.main->object.first;
-		while(ob) {
-			if(ob->action==act) {
-				
-				if(ob->id.lib==0) {
-					ob->action = actn;
-					actn->id.us++;
-					act->id.us--;
-				}
-			}
-			ob= ob->id.next;
-		}
-#endif	// XXX old animation system
+		BKE_animdata_main_cb(bmain, make_localact_apply_cb, &mlac);
 	}
 }
+
+/* .................................. */
 
 void free_action (bAction *act)
 {
@@ -162,6 +178,8 @@ void free_action (bAction *act)
 	if (act->markers.first)
 		BLI_freelistN(&act->markers);
 }
+
+/* .................................. */
 
 bAction *copy_action (bAction *src)
 {
@@ -199,9 +217,6 @@ bAction *copy_action (bAction *src)
 			}
 		}
 	}
-	
-	dst->id.flag |= LIB_FAKEUSER; // XXX this is nasty for new users... maybe we don't want this anymore
-	dst->id.us++;
 	
 	return dst;
 }
@@ -1180,7 +1195,7 @@ void what_does_obaction (Object *ob, Object *workob, bPose *pose, bAction *act, 
 		adt.action= act;
 		
 		/* execute effects of Action on to workob (or it's PoseChannels) */
-		BKE_animsys_evaluate_animdata(&workob->id, &adt, cframe, ADT_RECALC_ANIM);
+		BKE_animsys_evaluate_animdata(NULL, &workob->id, &adt, cframe, ADT_RECALC_ANIM);
 	}
 }
 

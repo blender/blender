@@ -3898,7 +3898,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 
   /* XXX old bevel not ported yet */
 
-static void bevel_menu(EditMesh *em)
+static void UNUSED_FUNCTION(bevel_menu)(EditMesh *em)
 {
 	BME_Mesh *bm;
 	BME_TransData_Head *td;

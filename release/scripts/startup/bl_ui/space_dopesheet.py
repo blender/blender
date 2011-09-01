@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Header, Menu
 from blf import gettext as _
 
 
@@ -34,41 +35,10 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
     row.prop(dopesheet, "show_only_selected", text="")
     row.prop(dopesheet, "show_hidden", text="")
 
+    if is_nla:
+        row.prop(dopesheet, "show_missing_nla", text="")
+
     if not genericFiltersOnly:
-        row = layout.row(align=True)
-        row.prop(dopesheet, "show_transforms", text="")
-
-        if is_nla:
-            row.prop(dopesheet, "show_missing_nla", text="")
-
-        row = layout.row(align=True)
-        row.prop(dopesheet, "show_scenes", text="")
-        row.prop(dopesheet, "show_worlds", text="")
-        row.prop(dopesheet, "show_nodes", text="")
-
-        if bpy.data.meshes:
-            row.prop(dopesheet, "show_meshes", text="")
-        if bpy.data.shape_keys:
-            row.prop(dopesheet, "show_shapekeys", text="")
-        if bpy.data.materials:
-            row.prop(dopesheet, "show_materials", text="")
-        if bpy.data.lamps:
-            row.prop(dopesheet, "show_lamps", text="")
-        if bpy.data.textures:
-            row.prop(dopesheet, "show_textures", text="")
-        if bpy.data.cameras:
-            row.prop(dopesheet, "show_cameras", text="")
-        if bpy.data.curves:
-            row.prop(dopesheet, "show_curves", text="")
-        if bpy.data.metaballs:
-            row.prop(dopesheet, "show_metaballs", text="")
-        if bpy.data.lattices:
-            row.prop(dopesheet, "show_lattices", text="")
-        if bpy.data.armatures:
-            row.prop(dopesheet, "show_armatures", text="")
-        if bpy.data.particles:
-            row.prop(dopesheet, "show_particles", text="")
-
         if bpy.data.groups:
             row = layout.row(align=True)
             row.prop(dopesheet, "show_only_group_objects", text="")
@@ -81,11 +51,47 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
         if dopesheet.show_only_matching_fcurves:
             row.prop(dopesheet, "filter_fcurve_name", text="")
 
+    if not genericFiltersOnly:
+        row = layout.row(align=True)
+        row.prop(dopesheet, "show_datablock_filters", text="Filters")
+
+        if dopesheet.show_datablock_filters:
+            row.prop(dopesheet, "show_scenes", text="")
+            row.prop(dopesheet, "show_worlds", text="")
+            row.prop(dopesheet, "show_nodes", text="")
+
+            row.prop(dopesheet, "show_transforms", text="")
+
+            if bpy.data.meshes:
+                row.prop(dopesheet, "show_meshes", text="")
+            if bpy.data.shape_keys:
+                row.prop(dopesheet, "show_shapekeys", text="")
+            if bpy.data.materials:
+                row.prop(dopesheet, "show_materials", text="")
+            if bpy.data.lamps:
+                row.prop(dopesheet, "show_lamps", text="")
+            if bpy.data.textures:
+                row.prop(dopesheet, "show_textures", text="")
+            if bpy.data.cameras:
+                row.prop(dopesheet, "show_cameras", text="")
+            if bpy.data.curves:
+                row.prop(dopesheet, "show_curves", text="")
+            if bpy.data.metaballs:
+                row.prop(dopesheet, "show_metaballs", text="")
+            if bpy.data.lattices:
+                row.prop(dopesheet, "show_lattices", text="")
+            if bpy.data.armatures:
+                row.prop(dopesheet, "show_armatures", text="")
+            if bpy.data.particles:
+                row.prop(dopesheet, "show_particles", text="")
+            if bpy.data.speakers:
+                row.prop(dopesheet, "show_speakers", text="")
+
 
 #######################################
 # DopeSheet Editor - General/Standard UI
 
-class DOPESHEET_HT_header(bpy.types.Header):
+class DOPESHEET_HT_header(Header):
     bl_space_type = 'DOPESHEET_EDITOR'
 
     def draw(self, context):
@@ -97,21 +103,19 @@ class DOPESHEET_HT_header(bpy.types.Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
+            row.menu("DOPESHEET_MT_view")
+            row.menu("DOPESHEET_MT_select")
+            row.menu("DOPESHEET_MT_marker")
 
-            sub.menu("DOPESHEET_MT_view")
-            sub.menu("DOPESHEET_MT_select")
-            sub.menu("DOPESHEET_MT_marker")
-
-            if st.mode == 'DOPESHEET' or (st.mode == 'ACTION' and st.action != None):
-                sub.menu("DOPESHEET_MT_channel")
+            if st.mode == 'DOPESHEET' or (st.mode == 'ACTION' and st.action is not None):
+                row.menu("DOPESHEET_MT_channel")
             elif st.mode == 'GPENCIL':
-                sub.menu("DOPESHEET_MT_gpencil_channel")
+                row.menu("DOPESHEET_MT_gpencil_channel")
 
             if st.mode != 'GPENCIL':
-                sub.menu("DOPESHEET_MT_key")
+                row.menu("DOPESHEET_MT_key")
             else:
-                sub.menu("DOPESHEET_MT_gpencil_frame")
+                row.menu("DOPESHEET_MT_gpencil_frame")
 
         layout.prop(st, "mode", text="")
         layout.prop(st.dopesheet, "show_summary", text=_("Summary"))
@@ -135,15 +139,13 @@ class DOPESHEET_HT_header(bpy.types.Header):
         row.operator("action.paste", text="", icon='PASTEDOWN')
 
 
-class DOPESHEET_MT_view(bpy.types.Menu):
+class DOPESHEET_MT_view(Menu):
     bl_label = _("View")
 
     def draw(self, context):
         layout = self.layout
 
         st = context.space_data
-
-        layout.column()
 
         layout.prop(st, "use_realtime_update")
         layout.prop(st, "show_frame_indicator")
@@ -171,13 +173,12 @@ class DOPESHEET_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class DOPESHEET_MT_select(bpy.types.Menu):
+class DOPESHEET_MT_select(Menu):
     bl_label = _("Select")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
         layout.operator("action.select_all_toggle")
         layout.operator("action.select_all_toggle", text=_("Invert Selection")).invert = True
@@ -207,7 +208,7 @@ class DOPESHEET_MT_select(bpy.types.Menu):
             layout.operator("action.select_linked")
 
 
-class DOPESHEET_MT_marker(bpy.types.Menu):
+class DOPESHEET_MT_marker(Menu):
     bl_label = _("Marker")
 
     def draw(self, context):
@@ -217,7 +218,6 @@ class DOPESHEET_MT_marker(bpy.types.Menu):
 
         #layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.column()
         layout.operator("marker.add", _("Add Marker"))
         layout.operator("marker.duplicate", text=_("Duplicate Marker"))
         layout.operator("marker.delete", text=_("Delete Marker"))
@@ -238,7 +238,7 @@ class DOPESHEET_MT_marker(bpy.types.Menu):
 #######################################
 # Keyframe Editing
 
-class DOPESHEET_MT_channel(bpy.types.Menu):
+class DOPESHEET_MT_channel(Menu):
     bl_label = _("Channel")
 
     def draw(self, context):
@@ -246,7 +246,6 @@ class DOPESHEET_MT_channel(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
-        layout.column()
         layout.operator("anim.channels_delete")
 
         layout.separator()
@@ -269,13 +268,12 @@ class DOPESHEET_MT_channel(bpy.types.Menu):
         layout.operator("anim.channels_fcurves_enable")
 
 
-class DOPESHEET_MT_key(bpy.types.Menu):
+class DOPESHEET_MT_key(Menu):
     bl_label = _("Key")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.menu("DOPESHEET_MT_key_transform", text=_("Transform"))
 
         layout.operator_menu_enum("action.snap", "type", text=_("Snap"))
@@ -285,7 +283,7 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.operator("action.keyframe_insert")
 
         layout.separator()
-        layout.operator("action.duplicate")
+        layout.operator("action.duplicate_move")
         layout.operator("action.delete")
 
         layout.separator()
@@ -302,13 +300,12 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.operator("action.paste")
 
 
-class DOPESHEET_MT_key_transform(bpy.types.Menu):
+class DOPESHEET_MT_key_transform(Menu):
     bl_label = _("Transform")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.operator("transform.transform", text=_("Grab/Move")).mode = 'TIME_TRANSLATE'
         layout.operator("transform.transform", text=_("Extend")).mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text=_("Slide")).mode = 'TIME_SLIDE'
@@ -318,7 +315,7 @@ class DOPESHEET_MT_key_transform(bpy.types.Menu):
 #######################################
 # Grease Pencil Editing
 
-class DOPESHEET_MT_gpencil_channel(bpy.types.Menu):
+class DOPESHEET_MT_gpencil_channel(Menu):
     bl_label = _("Channel")
 
     def draw(self, context):
@@ -326,7 +323,6 @@ class DOPESHEET_MT_gpencil_channel(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
-        layout.column()
         layout.operator("anim.channels_delete")
 
         layout.separator()
@@ -346,13 +342,12 @@ class DOPESHEET_MT_gpencil_channel(bpy.types.Menu):
         #layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
 
 
-class DOPESHEET_MT_gpencil_frame(bpy.types.Menu):
+class DOPESHEET_MT_gpencil_frame(Menu):
     bl_label = _("Frame")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.menu("DOPESHEET_MT_key_transform", text=_("Transform"))
 
         #layout.operator_menu_enum("action.snap", "type", text="Snap")

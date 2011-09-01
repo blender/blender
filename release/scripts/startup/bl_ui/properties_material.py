@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
@@ -50,14 +51,14 @@ def simple_material(mat):
     return False
 
 
-class MATERIAL_MT_sss_presets(bpy.types.Menu):
+class MATERIAL_MT_sss_presets(Menu):
     bl_label = _("SSS Presets")
     preset_subdir = "sss"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
-class MATERIAL_MT_specials(bpy.types.Menu):
+class MATERIAL_MT_specials(Menu):
     bl_label = _("Material Specials")
 
     def draw(self, context):
@@ -79,7 +80,7 @@ class MaterialButtonsPanel():
         return context.material and (context.scene.render.engine in cls.COMPAT_ENGINES)
 
 
-class MATERIAL_PT_context_material(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -144,7 +145,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, bpy.types.Panel):
                     row.label(text=_("No material node selected"))
 
 
-class MATERIAL_PT_preview(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_preview(MaterialButtonsPanel, Panel):
     bl_label = _("Preview")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -152,7 +153,7 @@ class MATERIAL_PT_preview(MaterialButtonsPanel, bpy.types.Panel):
         self.layout.template_preview(context.material)
 
 
-class MATERIAL_PT_pipeline(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_pipeline(MaterialButtonsPanel, Panel):
     bl_label = _("Render Pipeline Options")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -203,7 +204,7 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(mat, "pass_index")
 
 
-class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_diffuse(MaterialButtonsPanel, Panel):
     bl_label = _("Diffuse")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -260,7 +261,7 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, bpy.types.Panel):
             col.prop(mat, "diffuse_ramp_factor", text=_("Factor"))
 
 
-class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_specular(MaterialButtonsPanel, Panel):
     bl_label = _("Specular")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -313,7 +314,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, bpy.types.Panel):
             layout.prop(mat, "specular_ramp_factor", text=_("Factor"))
 
 
-class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_shading(MaterialButtonsPanel, Panel):
     bl_label = _("Shading")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -347,7 +348,7 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, bpy.types.Panel):
             sub.prop(mat, "use_cubic")
 
 
-class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_transp(MaterialButtonsPanel, Panel):
     bl_label = _("Transparency")
     # bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -413,7 +414,7 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, bpy.types.Panel):
             sub.prop(rayt, "gloss_samples", text=_("Samples"))
 
 
-class MATERIAL_PT_mirror(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_mirror(MaterialButtonsPanel, Panel):
     bl_label = _("Mirror")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -471,7 +472,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel, bpy.types.Panel):
         sub.prop(raym, "gloss_anisotropic", text=_("Anisotropic"))
 
 
-class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_sss(MaterialButtonsPanel, Panel):
     bl_label = _("Subsurface Scattering")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -523,7 +524,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(sss, "error_threshold", text=_("Error"))
 
 
-class MATERIAL_PT_halo(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_halo(MaterialButtonsPanel, Panel):
     bl_label = _("Halo")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -576,7 +577,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, bpy.types.Panel):
         number_but(col, "use_star", "star_tip_count", "Star tips", "")
 
 
-class MATERIAL_PT_flare(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_flare(MaterialButtonsPanel, Panel):
     bl_label = _("Flare")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -611,7 +612,7 @@ class MATERIAL_PT_flare(MaterialButtonsPanel, bpy.types.Panel):
         col.prop(halo, "flare_subflare_size", text=_("Subsize"))
 
 
-class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_physics(MaterialButtonsPanel, Panel):
     bl_label = _("Physics")
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -641,7 +642,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
         row.prop(phys, "use_fh_normal")
 
 
-class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
     bl_label = _("Strand")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -688,7 +689,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, bpy.types.Panel):
         sub.prop(tan, "blend_distance", text=_("Distance"))
 
 
-class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
     bl_label = _("Options")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -737,7 +738,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, bpy.types.Panel):
             col.prop(mat, "pass_index")
 
 
-class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_shadow(MaterialButtonsPanel, Panel):
     bl_label = _("Shadow")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -781,7 +782,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, bpy.types.Panel):
             col.prop(mat, "use_cast_approximate")
 
 
-class MATERIAL_PT_transp_game(MaterialButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_transp_game(MaterialButtonsPanel, Panel):
     bl_label = _("Transparency")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_GAME'}
@@ -824,7 +825,7 @@ class VolumeButtonsPanel():
         return mat and (mat.type == 'VOLUME') and (engine in cls.COMPAT_ENGINES)
 
 
-class MATERIAL_PT_volume_density(VolumeButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_volume_density(VolumeButtonsPanel, Panel):
     bl_label = _("Density")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -838,7 +839,7 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel, bpy.types.Panel):
         row.prop(vol, "density_scale")
 
 
-class MATERIAL_PT_volume_shading(VolumeButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_volume_shading(VolumeButtonsPanel, Panel):
     bl_label = _("Shading")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -863,7 +864,7 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel, bpy.types.Panel):
         sub.prop(vol, "reflection_color", text="")
 
 
-class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, Panel):
     bl_label = _("Lighting")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -898,7 +899,7 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, bpy.types.Panel):
             sub.prop(vol, "ms_intensity")
 
 
-class MATERIAL_PT_volume_transp(VolumeButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_volume_transp(VolumeButtonsPanel, Panel):
     bl_label = _("Transparency")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -916,7 +917,7 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel, bpy.types.Panel):
         layout.prop(mat, "transparency_method", expand=True)
 
 
-class MATERIAL_PT_volume_integration(VolumeButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_volume_integration(VolumeButtonsPanel, Panel):
     bl_label = _("Integration")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -938,7 +939,7 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel, bpy.types.Panel):
         col.prop(vol, "depth_threshold")
 
 
-class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
+class MATERIAL_PT_volume_options(VolumeButtonsPanel, Panel):
     bl_label = _("Options")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     bl_options = {'DEFAULT_CLOSED'}
@@ -970,7 +971,7 @@ class MATERIAL_PT_volume_options(VolumeButtonsPanel, bpy.types.Panel):
         row.prop(mat, "use_light_group_exclusive", text=_("Exclusive"))
 
 
-class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel, bpy.types.Panel):
+class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "material"
     _property_type = bpy.types.Material

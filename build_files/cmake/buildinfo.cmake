@@ -27,9 +27,9 @@ endif()
 
 # Write a file with the SVNVERSION define
 file(WRITE buildinfo.h.txt
-	"#define BUILD_REV ${MY_WC_REVISION}\n"
-	"#define BUILD_DATE ${BUILD_DATE}\n"
-	"#define BUILD_TIME ${BUILD_TIME}\n"
+	"#define BUILD_REV \"${MY_WC_REVISION}\"\n"
+	"#define BUILD_DATE \"${BUILD_DATE}\"\n"
+	"#define BUILD_TIME \"${BUILD_TIME}\"\n"
 )
 
 # Copy the file to the final header only if the version changes

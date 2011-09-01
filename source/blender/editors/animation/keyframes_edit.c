@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -197,196 +195,95 @@ static short act_keyframes_loop(KeyframeEditData *ked, bAction *act, KeyframeEdi
 	return 0;
 }
 
-/* This function is used to loop over the keyframe data of an AnimData block */
-static short adt_keyframes_loop(KeyframeEditData *ked, AnimData *adt, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
-{
-	/* sanity check */
-	if (adt == NULL)
-		return 0;
-	
-	/* drivers or actions? */
-	if (filterflag & ADS_FILTER_ONLYDRIVERS) {
-		FCurve *fcu;
-		
-		/* just loop through all F-Curves acting as Drivers */
-		for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
-			if (ANIM_fcurve_keyframes_loop(ked, fcu, key_ok, key_cb, fcu_cb))
-				return 1;
-		}
-	}
-	else if (adt->action) {
-		/* call the function for actions */
-		if (act_keyframes_loop(ked, adt->action, key_ok, key_cb, fcu_cb))
-			return 1;
-	}
-	
-	return 0;
-}
-
 /* This function is used to loop over the keyframe data in an Object */
-static short ob_keyframes_loop(KeyframeEditData *ked, Object *ob, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
+static short ob_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, Object *ob, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb)
 {
-	Key *key= ob_get_key(ob);
+	bAnimContext ac = {NULL};
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	int ret=0;
 	
-	/* sanity check */
+	bAnimListElem dummychan = {0};
+	Base dummybase = {0};
+	
 	if (ob == NULL)
 		return 0;
 	
-	/* firstly, Object's own AnimData */
-	if (ob->adt) {
-		if (adt_keyframes_loop(ked, ob->adt, key_ok, key_cb, fcu_cb, filterflag))
-			return 1;
-	}
+	/* create a dummy wrapper data to work with */
+	dummybase.object = ob;
 	
-	/* shapekeys */
-	if ((key && key->adt) && !(filterflag & ADS_FILTER_NOSHAPEKEYS)) {
-		if (adt_keyframes_loop(ked, key->adt, key_ok, key_cb, fcu_cb, filterflag))
-			return 1;
-	}
-		
-	/* Add material keyframes */
-	if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
-		int a;
-		
-		for (a=1; a <= ob->totcol; a++) {
-			Material *ma= give_current_material(ob, a);
-			
-			/* there might not be a material */
-			if (ELEM(NULL, ma, ma->adt)) 
-				continue;
-			
-			/* add material's data */
-			if (adt_keyframes_loop(ked, ma->adt, key_ok, key_cb, fcu_cb, filterflag))
-				return 1;
+	dummychan.type = ANIMTYPE_OBJECT;
+	dummychan.data = &dummybase;
+	dummychan.id = &ob->id;
+	dummychan.adt = ob->adt;
+	
+	ac.ads = ads;
+	ac.data = &dummychan;
+	ac.datatype = ANIMCONT_CHANNEL;
+	
+	/* get F-Curves to take keyframes from */
+	filter= ANIMFILTER_DATA_VISIBLE; // curves only
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* loop through each F-Curve, applying the operation as required, but stopping on the first one */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		if (ANIM_fcurve_keyframes_loop(ked, (FCurve*)ale->data, key_ok, key_cb, fcu_cb)) {
+			ret = 1;
+			break;
 		}
 	}
 	
-	/* Add object data keyframes */
-	switch (ob->type) {
-		case OB_CAMERA: /* ------- Camera ------------ */
-		{
-			Camera *ca= (Camera *)ob->data;
-			
-			if ((ca->adt) && !(filterflag & ADS_FILTER_NOCAM)) {
-				if (adt_keyframes_loop(ked, ca->adt, key_ok, key_cb, fcu_cb, filterflag))
-					return 1;
-			}
-		}
-			break;
-		case OB_LAMP: /* ---------- Lamp ----------- */
-		{
-			Lamp *la= (Lamp *)ob->data;
-			
-			if ((la->adt) && !(filterflag & ADS_FILTER_NOLAM)) {
-				if (adt_keyframes_loop(ked, la->adt, key_ok, key_cb, fcu_cb, filterflag))
-					return 1;
-			}
-		}
-			break;
-		case OB_CURVE: /* ------- Curve ---------- */
-		case OB_SURF: /* ------- Nurbs Surface ---------- */
-		case OB_FONT: /* ------- Text Curve ---------- */
-		{
-			Curve *cu= (Curve *)ob->data;
-			
-			if ((cu->adt) && !(filterflag & ADS_FILTER_NOCUR)) {
-				if (adt_keyframes_loop(ked, cu->adt, key_ok, key_cb, fcu_cb, filterflag))
-					return 1;
-			}
-		}
-			break;
-		case OB_MBALL: /* ------- MetaBall ---------- */
-		{
-			MetaBall *mb= (MetaBall *)ob->data;
-			
-			if ((mb->adt) && !(filterflag & ADS_FILTER_NOMBA)) {
-				if (adt_keyframes_loop(ked, mb->adt, key_ok, key_cb, fcu_cb, filterflag))
-					return 1;
-			}
-		}
-			break;
-		case OB_ARMATURE: /* ------- Armature ---------- */
-		{
-			bArmature *arm= (bArmature *)ob->data;
-			
-			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) {
-				if (adt_keyframes_loop(ked, arm->adt, key_ok, key_cb, fcu_cb, filterflag))
-					return 1;
-			}
-		}
-			break;
-		case OB_MESH: /* ------- Mesh ---------- */
-		{
-			Mesh *me= (Mesh *)ob->data;
-			
-			if ((me->adt) && !(filterflag & ADS_FILTER_NOMESH)) {
-				if (adt_keyframes_loop(ked, me->adt, key_ok, key_cb, fcu_cb, filterflag))
-					return 1;
-			}
-		}
-			break;
-		case OB_LATTICE: /* ---- Lattice ------ */
-		{
-			Lattice *lt= (Lattice *)ob->data;
-			
-			if ((lt->adt) && !(filterflag & ADS_FILTER_NOLAT)) {
-				if (adt_keyframes_loop(ked, lt->adt, key_ok, key_cb, fcu_cb, filterflag))
-					return 1;
-			}
-		}
-			break;
-	}
+	BLI_freelistN(&anim_data);
 	
-	/* Add Particle System Keyframes */
-	if ((ob->particlesystem.first) && !(filterflag & ADS_FILTER_NOPART)) {
-		ParticleSystem *psys = ob->particlesystem.first;
-		
-		for(; psys; psys=psys->next) {
-			if (ELEM(NULL, psys->part, psys->part->adt))
-				continue;
-				
-			if (adt_keyframes_loop(ked, psys->part->adt, key_ok, key_cb, fcu_cb, filterflag))
-				return 1;
-		}
-	}
-	
-	return 0;
+	/* return return code - defaults to zero if nothing happened */
+	return ret;
 }
 
 /* This function is used to loop over the keyframe data in a Scene */
-static short scene_keyframes_loop(KeyframeEditData *ked, Scene *sce, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
+static short scene_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, Scene *sce, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb)
 {
-	World *wo= (sce) ? sce->world : NULL;
-	bNodeTree *ntree= (sce) ? sce->nodetree : NULL;
+	bAnimContext ac = {NULL};
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	int ret=0;
 	
-	/* sanity check */
+	bAnimListElem dummychan = {0};
+	
 	if (sce == NULL)
 		return 0;
 	
-	/* Scene's own animation */
-	if (sce->adt) {
-		if (adt_keyframes_loop(ked, sce->adt, key_ok, key_cb, fcu_cb, filterflag))
-			return 1;
+	/* create a dummy wrapper data to work with */
+	dummychan.type = ANIMTYPE_SCENE;
+	dummychan.data = sce;
+	dummychan.id = &sce->id;
+	dummychan.adt = sce->adt;
+	
+	ac.ads = ads;
+	ac.data = &dummychan;
+	ac.datatype = ANIMCONT_CHANNEL;
+	
+	/* get F-Curves to take keyframes from */
+	filter= ANIMFILTER_DATA_VISIBLE; // curves only
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* loop through each F-Curve, applying the operation as required, but stopping on the first one */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		if (ANIM_fcurve_keyframes_loop(ked, (FCurve*)ale->data, key_ok, key_cb, fcu_cb)) {
+			ret = 1;
+			break;
+		}
 	}
 	
-	/* World */
-	if (wo && wo->adt) {
-		if (adt_keyframes_loop(ked, wo->adt, key_ok, key_cb, fcu_cb, filterflag))
-			return 1;
-	}
+	BLI_freelistN(&anim_data);
 	
-	/* NodeTree */
-	if (ntree && ntree->adt) {
-		if (adt_keyframes_loop(ked, ntree->adt, key_ok, key_cb, fcu_cb, filterflag))
-			return 1;
-	}
-	
-	
-	return 0;
+	/* return return code - defaults to zero if nothing happened */
+	return ret;
 }
 
 /* This function is used to loop over the keyframe data in a DopeSheet summary */
-static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int UNUSED(filterflag))
+static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -397,7 +294,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, Key
 		return 0;
 	
 	/* get F-Curves to take keyframes from */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+	filter= ANIMFILTER_DATA_VISIBLE;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop through each F-Curve, working on the keyframes until the first curve aborts */
@@ -416,7 +313,7 @@ static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, Key
 /* --- */
 
 /* This function is used to apply operation to all keyframes, regardless of the type */
-short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, bAnimListElem *ale, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
+short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, bAnimListElem *ale, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb)
 {
 	/* sanity checks */
 	if (ale == NULL)
@@ -437,18 +334,18 @@ short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, bAnimListElem *ale,
 			return act_keyframes_loop(ked, (bAction *)ale->key_data, key_ok, key_cb, fcu_cb);
 			
 		case ALE_OB: /* object */
-			return ob_keyframes_loop(ked, (Object *)ale->key_data, key_ok, key_cb, fcu_cb, filterflag);
+			return ob_keyframes_loop(ked, ads, (Object *)ale->key_data, key_ok, key_cb, fcu_cb);
 		case ALE_SCE: /* scene */
-			return scene_keyframes_loop(ked, (Scene *)ale->data, key_ok, key_cb, fcu_cb, filterflag);
+			return scene_keyframes_loop(ked, ads, (Scene *)ale->data, key_ok, key_cb, fcu_cb);
 		case ALE_ALL: /* 'all' (DopeSheet summary) */
-			return summary_keyframes_loop(ked, (bAnimContext *)ale->data, key_ok, key_cb, fcu_cb, filterflag);
+			return summary_keyframes_loop(ked, (bAnimContext *)ale->data, key_ok, key_cb, fcu_cb);
 	}
 	
 	return 0;
 }
 
 /* This function is used to apply operation to all keyframes, regardless of the type without needed an AnimListElem wrapper */
-short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, void *data, int keytype, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag)
+short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, void *data, int keytype, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb)
 {
 	/* sanity checks */
 	if (data == NULL)
@@ -469,11 +366,11 @@ short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, void *data, int
 			return act_keyframes_loop(ked, (bAction *)data, key_ok, key_cb, fcu_cb);
 			
 		case ALE_OB: /* object */
-			return ob_keyframes_loop(ked, (Object *)data, key_ok, key_cb, fcu_cb, filterflag);
+			return ob_keyframes_loop(ked, ads, (Object *)data, key_ok, key_cb, fcu_cb);
 		case ALE_SCE: /* scene */
-			return scene_keyframes_loop(ked, (Scene *)data, key_ok, key_cb, fcu_cb, filterflag);
+			return scene_keyframes_loop(ked, ads, (Scene *)data, key_ok, key_cb, fcu_cb);
 		case ALE_ALL: /* 'all' (DopeSheet summary) */
-			return summary_keyframes_loop(ked, (bAnimContext *)data, key_ok, key_cb, fcu_cb, filterflag);
+			return summary_keyframes_loop(ked, (bAnimContext *)data, key_ok, key_cb, fcu_cb);
 	}
 	
 	return 0;
@@ -491,7 +388,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	int filter;
 	
 	/* filter animation data */
-	filter= ANIMFILTER_CURVESONLY; 
+	filter= ANIMFILTER_DATA_VISIBLE; 
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* loop over F-Curves that are likely to have been edited, and check them */
@@ -735,8 +632,8 @@ static short snap_bezier_horizontal(KeyframeEditData *UNUSED(ked), BezTriple *be
 	if (bezt->f2 & SELECT) {
 		bezt->vec[0][1]= bezt->vec[2][1]= bezt->vec[1][1];
 		
-		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
-		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
+		if (ELEM3(bezt->h1, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) bezt->h1= HD_ALIGN;
+		if (ELEM3(bezt->h2, HD_AUTO, HD_AUTO_ANIM, HD_VECT)) bezt->h2= HD_ALIGN;
 	}
 	return 0;	
 }
@@ -857,20 +754,37 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 /* ******************************************* */
 /* Settings */
 
+/* standard validation step for a few of these (implemented as macro for inlining without fn-call overhead):
+ *	"if the handles are not of the same type, set them to type free"
+ */
+#define ENSURE_HANDLES_MATCH(bezt) \
+		if (bezt->h1 != bezt->h2) { \
+			if ELEM3(bezt->h1, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM) bezt->h1= HD_FREE; \
+			if ELEM3(bezt->h2, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM) bezt->h2= HD_FREE; \
+		}
+
 /* Sets the selected bezier handles to type 'auto' */
 static short set_bezier_auto(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
-	if((bezt->f1  & SELECT) || (bezt->f3 & SELECT)) {
-		if (bezt->f1 & SELECT) bezt->h1= HD_AUTO; /* the secret code for auto */
+	if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
+		if (bezt->f1 & SELECT) bezt->h1= HD_AUTO;
 		if (bezt->f3 & SELECT) bezt->h2= HD_AUTO;
 		
-		/* if the handles are not of the same type, set them
-		 * to type free
-		 */
-		if (bezt->h1 != bezt->h2) {
-			if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
-			if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
-		}
+		ENSURE_HANDLES_MATCH(bezt);
+	}
+	return 0;
+}
+
+/* Sets the selected bezier handles to type 'auto-clamped'
+ * NOTE: this is like auto above, but they're handled a bit different
+ */
+static short set_bezier_auto_clamped(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
+{
+	if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
+		if (bezt->f1 & SELECT) bezt->h1= HD_AUTO_ANIM;
+		if (bezt->f3 & SELECT) bezt->h2= HD_AUTO_ANIM;
+		
+		ENSURE_HANDLES_MATCH(bezt);
 	}
 	return 0;
 }
@@ -878,18 +792,8 @@ static short set_bezier_auto(KeyframeEditData *UNUSED(ked), BezTriple *bezt)
 /* Sets the selected bezier handles to type 'vector'  */
 static short set_bezier_vector(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 
 {
-	if ((bezt->f1 & SELECT) || (bezt->f3 & SELECT)) {
-		if (bezt->f1 & SELECT) bezt->h1= HD_VECT;
-		if (bezt->f3 & SELECT) bezt->h2= HD_VECT;
-		
-		/* if the handles are not of the same type, set them
-		 * to type free
-		 */
-		if (bezt->h1 != bezt->h2) {
-			if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
-			if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
-		}
-	}
+	if (bezt->f1 & SELECT) bezt->h1= HD_VECT;
+	if (bezt->f3 & SELECT) bezt->h2= HD_VECT;
 	return 0;
 }
 
@@ -925,8 +829,9 @@ KeyframeEditFunc ANIM_editkeyframes_handles(short code)
 {
 	switch (code) {
 		case HD_AUTO: /* auto */
-		case HD_AUTO_ANIM: /* auto clamped */
 			return set_bezier_auto;
+		case HD_AUTO_ANIM: /* auto clamped */
+			return set_bezier_auto_clamped;
 			
 		case HD_VECT: /* vector */
 			return set_bezier_vector;

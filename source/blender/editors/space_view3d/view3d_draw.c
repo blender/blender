@@ -721,7 +721,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 		{
 		#define ROT_AXIS_DETAIL 13
 		const float s = 0.05f * scale;
-		const float step = 2.f * M_PI / ROT_AXIS_DETAIL;
+		const float step = 2.f * (float)(M_PI / ROT_AXIS_DETAIL);
 		float angle;
 		int i;
 
@@ -1041,7 +1041,7 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 	glBegin(GL_LINES);
 	if(w > h) {
 		if(golden) {
-			ofs = w * (1.0f-(1.0f/1.61803399));
+			ofs = w * (1.0f-(1.0f/1.61803399f));
 		}
 		else {
 			ofs = h * (h / w);
@@ -1059,7 +1059,7 @@ static void drawviewborder_triangle(float x1, float x2, float y1, float y2, cons
 	}
 	else {
 		if(golden) {
-			ofs = h * (1.0f-(1.0f/1.61803399));
+			ofs = h * (1.0f-(1.0f/1.61803399f));
 		}
 		else {
 			ofs = w * (w / h);
@@ -1141,12 +1141,10 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	glRectf(x1i, y1i, x2i, y2i);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
-	{
-		if(view3d_camera_border_hack_test == TRUE) {
-			glColor4fv(view3d_camera_border_hack_col);
-			glRectf(x1i+1, y1i+1, x2i-1, y2i-1);
-			view3d_camera_border_hack_test= FALSE;
-		}
+	if(view3d_camera_border_hack_test == TRUE) {
+		glColor4fv(view3d_camera_border_hack_col);
+		glRectf(x1i+1, y1i+1, x2i-1, y2i-1);
+		view3d_camera_border_hack_test= FALSE;
 	}
 #endif
 
@@ -1203,7 +1201,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 		if (ca->dtx & CAM_DTX_GOLDEN) {
 			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
-			drawviewborder_grid3(x1, x2, y1, y2, 1.0f-(1.0f/1.61803399));
+			drawviewborder_grid3(x1, x2, y1, y2, 1.0f-(1.0f/1.61803399f));
 		}
 
 		if (ca->dtx & CAM_DTX_GOLDEN_TRI_A) {
@@ -2155,7 +2153,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		v3d->drawtype = OB_SOLID;
 		v3d->lay &= GPU_lamp_shadow_layer(shadow->lamp);
 		v3d->flag2 &= ~V3D_SOLID_TEX;
-		v3d->flag2 |= V3D_RENDER_OVERRIDE;
+		v3d->flag2 |= V3D_RENDER_OVERRIDE | V3D_RENDER_SHADOW;
 		
 		GPU_lamp_shadow_buffer_bind(shadow->lamp, viewmat, &winsize, winmat);
 
@@ -2274,6 +2272,7 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy, float viewmat[][4], float winmat[][4])
 {
+	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
 	float backcol[3];
 	int bwinx, bwiny;
@@ -2322,6 +2321,9 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
 
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_draw_clipping(rv3d);
+
 	/* set zbuffer */
 	if(v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= TRUE;
@@ -2329,6 +2331,9 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	}
 	else
 		v3d->zbuf= FALSE;
+
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_set_clipping(rv3d);
 
 	/* draw set first */
 	if(scene->set) {
@@ -2364,6 +2369,9 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	if(v3d->afterdraw_transp.first)		view3d_draw_transp(scene, ar, v3d);
 	if(v3d->afterdraw_xray.first)		view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
 	if(v3d->afterdraw_xraytransp.first)	view3d_draw_xraytransp(scene, ar, v3d, 1);
+
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_clr_clipping();
 
 	/* cleanup */
 	if(v3d->zbuf) {
@@ -2769,3 +2777,4 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
+

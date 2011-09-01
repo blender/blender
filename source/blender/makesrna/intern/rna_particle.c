@@ -33,6 +33,7 @@
 #include "limits.h"
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -52,34 +53,34 @@
 #include "WM_types.h"
 #include "WM_api.h"
 
-EnumPropertyItem part_from_items[] = {
+static EnumPropertyItem part_from_items[] = {
 	{PART_FROM_VERT, "VERT", 0, "Verts", ""},
 	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
 	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem part_reactor_from_items[] = {
+static EnumPropertyItem part_reactor_from_items[] = {
 	{PART_FROM_VERT, "VERT", 0, "Verts", ""},
 	{PART_FROM_FACE, "FACE", 0, "Faces", ""},
 	{PART_FROM_VOLUME, "VOLUME", 0, "Volume", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem part_dist_items[] = {
+static EnumPropertyItem part_dist_items[] = {
 	{PART_DISTR_JIT, "JIT", 0, "Jittered", ""},
 	{PART_DISTR_RAND, "RAND", 0, "Random", ""},
 	{PART_DISTR_GRID, "GRID", 0, "Grid", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem part_hair_dist_items[] = {
+static EnumPropertyItem part_hair_dist_items[] = {
 	{PART_DISTR_JIT, "JIT", 0, "Jittered", ""},
 	{PART_DISTR_RAND, "RAND", 0, "Random", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem part_draw_as_items[] = {
+static EnumPropertyItem part_draw_as_items[] = {
 	{PART_DRAW_NOT, "NONE", 0, "None", ""},
 	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
 	{PART_DRAW_DOT, "DOT", 0, "Point", ""},
@@ -89,14 +90,14 @@ EnumPropertyItem part_draw_as_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem part_hair_draw_as_items[] = {
+static EnumPropertyItem part_hair_draw_as_items[] = {
 	{PART_DRAW_NOT, "NONE", 0, "None", ""},
 	{PART_DRAW_REND, "RENDER", 0, "Rendered", ""},
 	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem part_ren_as_items[] = {
+static EnumPropertyItem part_ren_as_items[] = {
 	{PART_DRAW_NOT, "NONE", 0, "None", ""},
 	{PART_DRAW_HALO, "HALO", 0, "Halo", ""},
 	{PART_DRAW_LINE, "LINE", 0, "Line", ""},
@@ -107,7 +108,7 @@ EnumPropertyItem part_ren_as_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem part_hair_ren_as_items[] = {
+static EnumPropertyItem part_hair_ren_as_items[] = {
 	{PART_DRAW_NOT, "NONE", 0, "None", ""},
 	{PART_DRAW_PATH, "PATH", 0, "Path", ""},
 	{PART_DRAW_OB, "OBJECT", 0, "Object", ""},

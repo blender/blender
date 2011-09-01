@@ -48,7 +48,9 @@
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventWheel.h"
+#ifdef WITH_INPUT_NDOF
 #include "GHOST_EventNDOF.h"
+#endif
 
 #include "GHOST_TimerManager.h"
 #include "GHOST_TimerTask.h"
@@ -1101,7 +1103,9 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
 	GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) userData;
     OSStatus err = eventNotHandledErr;
 	GHOST_IWindow* window;
+#ifdef WITH_INPUT_NDOF
 	GHOST_TEventNDOFData data;
+#endif
 	UInt32 kind;
 	
     switch (::GetEventClass(event))
@@ -1122,6 +1126,7 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
 			err = sys->handleKeyEvent(event);
 			break;
  		case kEventClassBlender :
+#ifdef WITH_INPUT_NDOF
 			window = sys->m_windowManager->getActiveWindow();
 			sys->m_ndofManager->GHOST_NDOFGetDatas(data);
 			kind = ::GetEventKind(event);
@@ -1137,6 +1142,7 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
 //					printf("button\n");
 					break;
 			}
+#endif
 			err = noErr;
 			break;
 		default : 

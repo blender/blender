@@ -514,7 +514,7 @@ static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], 
 	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
 }
 
-static float VecZDepthPersp(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
+static float VecZDepthPersp(float pt[2], float v1[4], float v2[4], float v3[4], float w[3])
 {
 	float wtot_inv, wtot;
 	float w_tmp[3];
@@ -1195,7 +1195,7 @@ static void screen_px_from_ortho(
  * the perspective W coord for each vert */
 static void screen_px_from_persp(
 		float uv[2],
-		float v1co[3], float v2co[3], float v3co[3], /* screenspace coords */
+		float v1co[4], float v2co[4], float v3co[4], /* screenspace coords */
 		float uv1co[2], float uv2co[2], float uv3co[2],
 		float pixelScreenCo[4],
 		float w[3])

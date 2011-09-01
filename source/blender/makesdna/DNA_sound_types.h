@@ -85,6 +85,11 @@ typedef struct bSound {
 	void *cache;
 
 	/**
+	 * Waveform display data.
+	 */
+	void *waveform;
+
+	/**
 	 * The audaspace handle that should actually be played back.
 	 * Should be cache if cache != NULL; otherwise it's handle
 	 */
@@ -106,7 +111,9 @@ typedef enum eSound_Type {
 #define SND_DRAWFRAMES	1
 #define SND_CFRA_NUM	2
 
-#define SOUND_FLAGS_3D					(1 << 3)
+#define SOUND_FLAGS_3D					(1 << 3) /* deprecated! used for sound actuator loading */
+#define SOUND_FLAGS_CACHING				(1 << 4)
+#define SOUND_FLAGS_MONO				(1 << 5)
 
 /* to DNA_sound_types.h*/
 

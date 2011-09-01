@@ -48,6 +48,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
+#include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -363,7 +364,7 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", VKEY, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "GRAPH_OT_interpolation_type", TKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_interpolation_type", TKEY, KM_PRESS, 0, 0);
 	
 		/* destructive */
 	WM_keymap_add_item(keymap, "GRAPH_OT_clean", OKEY, KM_PRESS, 0, 0);
@@ -401,6 +402,9 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* transform system */
 	transform_keymap_for_space(keyconf, keymap, SPACE_IPO);
+	
+	/* special markers hotkeys for anim editors: see note in definition of this function */
+	ED_marker_keymap_animedit_conflictfree(keymap);
 }
 
 /* --------------- */

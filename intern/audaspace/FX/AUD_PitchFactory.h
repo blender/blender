@@ -55,9 +55,9 @@ public:
 	 * \param factory The input factory.
 	 * \param pitch The desired pitch.
 	 */
-	AUD_PitchFactory(AUD_IFactory* factory, float pitch);
+	AUD_PitchFactory(AUD_Reference<AUD_IFactory> factory, float pitch);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_PITCHFACTORY

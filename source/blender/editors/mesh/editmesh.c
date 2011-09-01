@@ -1451,9 +1451,8 @@ static int mesh_separate_material(wmOperator *op, Main *bmain, Scene *scene, Bas
 		/* select the material */
 		EM_select_by_material(em, curr_mat);
 		/* and now separate */
-		if(0==mesh_separate_selected(op, bmain, scene, editbase)) {
-			BKE_mesh_end_editmesh(me, em);
-			return 0;
+		if(em->totfacesel > 0) {
+			mesh_separate_selected(op, bmain, scene, editbase);
 		}
 	}
 

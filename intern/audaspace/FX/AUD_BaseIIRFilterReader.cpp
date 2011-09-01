@@ -33,20 +33,20 @@
 
 #include <cstring>
 
-#define CC m_channels + m_channel
+#define CC m_specs.channels + m_channel
 
-AUD_BaseIIRFilterReader::AUD_BaseIIRFilterReader(AUD_IReader* reader, int in,
+AUD_BaseIIRFilterReader::AUD_BaseIIRFilterReader(AUD_Reference<AUD_IReader> reader, int in,
 												 int out) :
 		AUD_EffectReader(reader),
-		m_channels(reader->getSpecs().channels),
+		m_specs(reader->getSpecs()),
 		m_xlen(in), m_ylen(out),
 		m_xpos(0), m_ypos(0), m_channel(0)
 {
-	m_x = new sample_t[in * m_channels];
-	m_y = new sample_t[out * m_channels];
+	m_x = new sample_t[m_xlen * m_specs.channels];
+	m_y = new sample_t[m_ylen * m_specs.channels];
 
-	memset(m_x, 0, sizeof(sample_t) * in * m_channels);
-	memset(m_y, 0, sizeof(sample_t) * out * m_channels);
+	memset(m_x, 0, sizeof(sample_t) * m_xlen * m_specs.channels);
+	memset(m_y, 0, sizeof(sample_t) * m_ylen * m_specs.channels);
 }
 
 AUD_BaseIIRFilterReader::~AUD_BaseIIRFilterReader()
@@ -55,28 +55,85 @@ AUD_BaseIIRFilterReader::~AUD_BaseIIRFilterReader()
 	delete[] m_y;
 }
 
-void AUD_BaseIIRFilterReader::read(int & length, sample_t* & buffer)
+void AUD_BaseIIRFilterReader::setLengths(int in, int out)
 {
-	sample_t* buf;
+	if(in != m_xlen)
+	{
+		sample_t* xn = new sample_t[in * m_specs.channels];
+		memset(xn, 0, sizeof(sample_t) * in * m_specs.channels);
 
-	int samplesize = AUD_SAMPLE_SIZE(m_reader->getSpecs());
+		for(m_channel = 0; m_channel < m_specs.channels; m_channel++)
+		{
+			for(int i = 1; i <= in && i <= m_xlen; i++)
+			{
+				xn[(in - i) * CC] = x(-i);
+			}
+		}
 
-	m_reader->read(length, buf);
+		delete[] m_x;
+		m_x = xn;
+		m_xpos = 0;
+		m_xlen = in;
+	}
 
-	if(m_buffer.getSize() < length * samplesize)
-		m_buffer.resize(length * samplesize);
+	if(out != m_ylen)
+	{
+		sample_t* yn = new sample_t[out * m_specs.channels];
+		memset(yn, 0, sizeof(sample_t) * out * m_specs.channels);
 
-	buffer = m_buffer.getBuffer();
+		for(m_channel = 0; m_channel < m_specs.channels; m_channel++)
+		{
+			for(int i = 1; i <= out && i <= m_ylen; i++)
+			{
+				yn[(out - i) * CC] = y(-i);
+			}
+		}
 
-	for(m_channel = 0; m_channel < m_channels; m_channel++)
+		delete[] m_y;
+		m_y = yn;
+		m_ypos = 0;
+		m_ylen = out;
+	}
+}
+
+void AUD_BaseIIRFilterReader::read(int& length, bool& eos, sample_t* buffer)
+{
+	AUD_Specs specs = m_reader->getSpecs();
+	if(specs.channels != m_specs.channels)
+	{
+		m_specs.channels = specs.channels;
+
+		delete[] m_x;
+		delete[] m_y;
+
+		m_x = new sample_t[m_xlen * m_specs.channels];
+		m_y = new sample_t[m_ylen * m_specs.channels];
+
+		memset(m_x, 0, sizeof(sample_t) * m_xlen * m_specs.channels);
+		memset(m_y, 0, sizeof(sample_t) * m_ylen * m_specs.channels);
+	}
+
+	if(specs.rate != m_specs.rate)
+	{
+		m_specs = specs;
+		sampleRateChanged(m_specs.rate);
+	}
+
+	m_reader->read(length, eos, buffer);
+
+	for(m_channel = 0; m_channel < m_specs.channels; m_channel++)
 	{
 		for(int i = 0; i < length; i++)
 		{
-			m_x[m_xpos * CC] = buf[i * CC];
+			m_x[m_xpos * CC] = buffer[i * CC];
 			m_y[m_ypos * CC] = buffer[i * CC] = filter();
 
 			m_xpos = (m_xpos + 1) % m_xlen;
 			m_ypos = (m_ypos + 1) % m_ylen;
 		}
 	}
+}
+
+void AUD_BaseIIRFilterReader::sampleRateChanged(AUD_SampleRate rate)
+{
 }

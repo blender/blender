@@ -38,8 +38,12 @@ set(INC_SYS
 )
 
 set(SRC
-	outliner.c
+	outliner_draw.c
+	outliner_edit.c
 	outliner_ops.c
+	outliner_select.c
+	outliner_tools.c
+	outliner_tree.c
 	space_outliner.c
 
 	outliner_intern.h

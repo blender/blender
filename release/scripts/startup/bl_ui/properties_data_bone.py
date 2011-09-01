@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
@@ -32,7 +33,7 @@ class BoneButtonsPanel():
         return (context.bone or context.edit_bone)
 
 
-class BONE_PT_context_bone(BoneButtonsPanel, bpy.types.Panel):
+class BONE_PT_context_bone(BoneButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
 
@@ -48,7 +49,7 @@ class BONE_PT_context_bone(BoneButtonsPanel, bpy.types.Panel):
         row.prop(bone, "name", text="")
 
 
-class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
+class BONE_PT_transform(BoneButtonsPanel, Panel):
     bl_label = _("Transform")
 
     @classmethod
@@ -102,7 +103,7 @@ class BONE_PT_transform(BoneButtonsPanel, bpy.types.Panel):
             sub.prop(bone, "lock")
 
 
-class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
+class BONE_PT_transform_locks(BoneButtonsPanel, Panel):
     bl_label = _("Transform Locks")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -135,7 +136,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel, bpy.types.Panel):
         row.column().prop(pchan, "lock_scale")
 
 
-class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
+class BONE_PT_relations(BoneButtonsPanel, Panel):
     bl_label = _("Relations")
 
     def draw(self, context):
@@ -180,7 +181,7 @@ class BONE_PT_relations(BoneButtonsPanel, bpy.types.Panel):
         sub.prop(bone, "use_local_location", text=_("Local Location"))
 
 
-class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
+class BONE_PT_display(BoneButtonsPanel, Panel):
     bl_label = _("Display")
 
     @classmethod
@@ -217,7 +218,7 @@ class BONE_PT_display(BoneButtonsPanel, bpy.types.Panel):
                     col.prop_search(pchan, "custom_shape_transform", ob.pose, "bones", text=_("At"))
 
 
-class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
+class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
     bl_label = _("Inverse Kinematics")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -308,7 +309,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, bpy.types.Panel):
             #row.prop(pchan, "ik_linear_weight", text=_("Weight"), slider=True)
 
 
-class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
+class BONE_PT_deform(BoneButtonsPanel, Panel):
     bl_label = _("Deform")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -357,7 +358,7 @@ class BONE_PT_deform(BoneButtonsPanel, bpy.types.Panel):
         col.prop(bone, "use_cyclic_offset")
 
 
-class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, bpy.types.Panel):
+class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _property_type = bpy.types.Bone, bpy.types.EditBone, bpy.types.PoseBone
 

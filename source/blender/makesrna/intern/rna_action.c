@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -260,9 +258,17 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, N_("DopeSheet"), N_("Settings for filtering the channels shown in Animation Editors"));
 	
 	/* Source of DopeSheet data */
+	// XXX: make this obsolete?
 	prop= RNA_def_property(srna, "source", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");
 	RNA_def_property_ui_text(prop, N_("Source"), N_("ID-Block representing source data, currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil)"));
+	
+	/* Show datablock filters */
+	prop= RNA_def_property(srna, "show_datablock_filters", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ADS_FLAG_SHOW_DBFILTERS);
+	RNA_def_property_ui_text(prop, "Show Datablock Filters", "Show options for whether channels related to certain types of data are included");
+	RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, -1);
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN, NULL);
 	
 	/* General Filtering Settings */
 	prop= RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
@@ -411,6 +417,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NONTREE);
 	RNA_def_property_ui_text(prop, N_("Display Node"), N_("Include visualization of Node related Animation data"));
 	RNA_def_property_ui_icon(prop, ICON_NODETREE, 0);
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
+
+	prop= RNA_def_property(srna, "show_speakers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOSPK);
+	RNA_def_property_ui_text(prop, "Display Speaker", "Include visualization of Speaker related Animation data");
+	RNA_def_property_ui_icon(prop, ICON_SPEAKER, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 }
 

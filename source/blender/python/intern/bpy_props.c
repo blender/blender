@@ -117,7 +117,7 @@ static PyObject *pymeth_PointerProperty= NULL;
 static PyObject *pymeth_CollectionProperty= NULL;
 static PyObject *pymeth_RemoveProperty= NULL;
 
-PyObject *pyrna_struct_as_instance(PointerRNA *ptr)
+static PyObject *pyrna_struct_as_instance(PointerRNA *ptr)
 {
 	PyObject *self= NULL;
 	/* first get self */
@@ -177,7 +177,7 @@ static PyObject *bpy_prop_deferred_return(PyObject *func, PyObject *kw)
 }
 
 /* callbacks */
-void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop)
+static void bpy_prop_update_cb(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop)
 {
 	PyGILState_STATE gilstate;
 	PyObject **py_data= (PyObject **)RNA_property_py_data_get(prop);

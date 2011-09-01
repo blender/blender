@@ -19,11 +19,12 @@
 # <pep8-80 compliant>
 
 import bpy
+from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
 from blf import gettext as _
 
 
-class SelectPattern(bpy.types.Operator):
+class SelectPattern(Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_pattern"
     bl_label = _("Select Pattern")
@@ -100,7 +101,7 @@ class SelectPattern(bpy.types.Operator):
         row.prop(self, "extend")
 
 
-class SelectCamera(bpy.types.Operator):
+class SelectCamera(Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_camera"
     bl_label = _("Select Camera")
@@ -121,7 +122,7 @@ class SelectCamera(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SelectHierarchy(bpy.types.Operator):
+class SelectHierarchy(Operator):
     '''Select object relative to the active objects position''' \
     '''in the hierarchy'''
     bl_idname = "object.select_hierarchy"
@@ -188,15 +189,19 @@ class SelectHierarchy(bpy.types.Operator):
         return {'CANCELLED'}
 
 
-class SubdivisionSet(bpy.types.Operator):
+class SubdivisionSet(Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
     bl_idname = "object.subdivision_set"
     bl_label = _("Subdivision Set")
     bl_options = {'REGISTER', 'UNDO'}
 
-    level = IntProperty(name=_("Level"),
-            default=1, min=-100, max=100, soft_min=-6, soft_max=6)
+    level = IntProperty(
+            name=_("Level"),
+            min=-100, max=100,
+            soft_min=-6, soft_max=6,
+            default=1,
+            )
 
     relative = BoolProperty(
             name=_("Relative"),
@@ -263,7 +268,7 @@ class SubdivisionSet(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ShapeTransfer(bpy.types.Operator):
+class ShapeTransfer(Operator):
     '''Copy another selected objects active shape to this one by ''' \
     '''applying the relative offsets'''
 
@@ -506,7 +511,7 @@ class ShapeTransfer(bpy.types.Operator):
         return self._main(ob_act, objects, self.mode, self.use_clamp)
 
 
-class JoinUVs(bpy.types.Operator):
+class JoinUVs(Operator):
     '''Copy UV Layout to objects with matching geometry'''
     bl_idname = "object.join_uvs"
     bl_label = _("Join as UVs")
@@ -574,7 +579,7 @@ class JoinUVs(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class MakeDupliFace(bpy.types.Operator):
+class MakeDupliFace(Operator):
     '''Make linked objects into dupli-faces'''
     bl_idname = "object.make_dupli_face"
     bl_label = _("Make Dupli-Face")
@@ -648,7 +653,7 @@ class MakeDupliFace(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class IsolateTypeRender(bpy.types.Operator):
+class IsolateTypeRender(Operator):
     '''Hide unselected render objects of same type as active ''' \
     '''by setting the hide render flag'''
     bl_idname = "object.isolate_type_render"
@@ -669,7 +674,7 @@ class IsolateTypeRender(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ClearAllRestrictRender(bpy.types.Operator):
+class ClearAllRestrictRender(Operator):
     '''Reveal all render objects by setting the hide render flag'''
     bl_idname = "object.hide_render_clear_all"
     bl_label = _("Clear All Restrict Render")
@@ -678,4 +683,50 @@ class ClearAllRestrictRender(bpy.types.Operator):
     def execute(self, context):
         for obj in context.scene.objects:
             obj.hide_render = False
+        return {'FINISHED'}
+
+
+class TransformsToDeltasAnim(Operator):
+    '''Convert object animation for normal transforms to delta transforms'''
+    bl_idname = "object.anim_transforms_to_deltas"
+    bl_label = "Animated Transforms to Deltas"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obs = context.selected_editable_objects
+        return (obs is not None)
+
+    def execute(self, context):
+        for obj in context.selected_editable_objects:
+            # get animation data
+            adt = obj.animation_data
+            if (adt is None) or (adt.action is None):
+                self.report({'WARNING'},
+                            "No animation data to convert on object: %r" %
+                            obj.name)
+                continue
+
+            # if F-Curve uses standard transform path
+            # just append "delta_" to this path
+            for fcu in adt.action.fcurves:
+                if fcu.data_path == "location":
+                    fcu.data_path = "delta_location"
+                    obj.location.zero()
+                elif fcu.data_path == "rotation_euler":
+                    fcu.data_path = "delta_rotation_euler"
+                    obj.rotation_euler.zero()
+                elif fcu.data_path == "rotation_quaternion":
+                    fcu.data_path = "delta_rotation_quaternion"
+                    obj.rotation_quaternion.identity()
+                # XXX: currently not implemented
+                # elif fcu.data_path == "rotation_axis_angle":
+                #    fcu.data_path = "delta_rotation_axis_angle"
+                elif fcu.data_path == "scale":
+                    fcu.data_path = "delta_scale"
+                    obj.scale = 1.0, 1.0, 1.0
+
+        # hack: force animsys flush by changing frame, so that deltas get run
+        context.scene.frame_set(context.scene.frame_current)
+
         return {'FINISHED'}

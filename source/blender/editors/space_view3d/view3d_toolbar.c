@@ -46,6 +46,7 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "BLF_api.h"
 
@@ -142,10 +143,11 @@ static void operator_call_cb(struct bContext *C, void *arg_listbase, void *arg2)
 
 static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
-	wmOperatorType *ot = WM_operatortype_first();
-	
-	for(; ot; ot= ot->next) {
-		
+	GHashIterator *iter= WM_operatortype_iter();
+
+	for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		wmOperatorType *ot= BLI_ghashIterator_getValue(iter);
+
 		if(BLI_strcasestr(ot->name, str)) {
 			if(WM_operator_poll((bContext*)C, ot)) {
 				
@@ -154,6 +156,7 @@ static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), cons
 			}
 		}
 	}
+	BLI_ghashIterator_free(iter);
 }
 
 

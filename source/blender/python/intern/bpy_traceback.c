@@ -30,9 +30,9 @@
 
 #include "bpy_traceback.h"
 
-static const char *traceback_filepath(PyTracebackObject *tb)
+static const char *traceback_filepath(PyTracebackObject *tb, PyObject **coerce)
 {
-	return _PyUnicode_AsString(tb->tb_frame->f_code->co_filename);
+	return PyBytes_AS_STRING((*coerce= PyUnicode_EncodeFSDefault(tb->tb_frame->f_code->co_filename)));
 }
 
 /* copied from pythonrun.c, 3.2.0 */
@@ -146,7 +146,12 @@ void python_script_error_jump(const char *filepath, int *lineno, int *offset)
 		PyErr_Print();
 
 		for(tb= (PyTracebackObject *)PySys_GetObject("last_traceback"); tb && (PyObject *)tb != Py_None; tb= tb->tb_next) {
-			if(strcmp(traceback_filepath(tb), filepath) != 0) {
+			PyObject *coerce;
+			const char *tb_filepath= traceback_filepath(tb, &coerce);
+			const int match= strcmp(tb_filepath, filepath) != 0;
+			Py_DECREF(coerce);
+
+			if(match) {
 				*lineno= tb->tb_lineno;
 				break;
 			}

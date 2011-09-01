@@ -66,15 +66,9 @@ AUD_Specs AUD_SilenceReader::getSpecs() const
 	return specs;
 }
 
-void AUD_SilenceReader::read(int & length, sample_t* & buffer)
+void AUD_SilenceReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	// resize if necessary
-	if(m_buffer.getSize() < length * sizeof(sample_t))
-	{
-		m_buffer.resize(length * sizeof(sample_t));
-		memset(m_buffer.getBuffer(), 0, m_buffer.getSize());
-	}
-
-	buffer = m_buffer.getBuffer();
+	memset(buffer, 0, length * sizeof(sample_t));
 	m_position += length;
+	eos = false;
 }

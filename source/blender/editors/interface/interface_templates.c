@@ -33,12 +33,14 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
@@ -57,6 +59,7 @@
 #include "ED_render.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -236,7 +239,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
 	TemplateID *template= (TemplateID*)arg_litem;
 	PointerRNA idptr= RNA_property_pointer_get(&template->ptr, template->prop);
-	ID *id= idptr.data, *newid;
+	ID *id= idptr.data;
 	int event= GET_INT_FROM_POINTER(arg_event);
 	
 	switch(event) {
@@ -286,17 +289,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 					WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 				}
 				else {
-					if(id_copy(id, &newid, 0) && newid) {
-						/* copy animation actions too */
-						BKE_copy_animdata_id_action(id);
-						/* us is 1 by convention, but RNA_property_pointer_set
-						   will also incremement it, so set it to zero */
-						newid->us= 0;
-
-						/* assign copy */
-						RNA_id_pointer_create(newid, &idptr);
-						RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-						RNA_property_update(C, &template->ptr, template->prop);
+					if(id) {
+						id_single_user(C, id, &template->ptr, template->prop);
 					}
 				}
 			}
@@ -320,11 +314,13 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_MA: return _("Browse Material to be linked");
 			case ID_TE: return _("Browse Texture to be linked");
 			case ID_IM: return _("Browse Image to be linked");
-			case ID_LA: return _("Browse Lattice Data to be linked");
+			case ID_LT: return _("Browse Lattice Data to be linked");
+			case ID_LA: return _("Browse Lamp Data to be linked");
 			case ID_CA: return _("Browse Camera Data to be linked");
 			case ID_WO: return _("Browse World Settings to be linked");
 			case ID_SCR: return _("Choose Screen lay-out");
 			case ID_TXT: return _("Browse Text to be linked");
+			case ID_SPK: return _("Browse Speaker Data to be linked");
 			case ID_SO: return _("Browse Sound to be linked");
 			case ID_AR: return _("Browse Armature data to be linked");
 			case ID_AC: return _("Browse Action to be linked");
@@ -2110,7 +2106,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		Object *ob= (Object*)activeptr->data;
-		Key *key= (Key*)itemptr->data;
+		Key *key= (Key*)itemptr->id.data;
 
 		split= uiLayoutSplit(sub, 0.75f, 0);
 
@@ -2125,6 +2121,15 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			uiLayoutSetActive(row, 0);
 		//uiItemR(row, itemptr, "mute", 0, "", ICON_MUTE_IPO_OFF);
 		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+	else if(itemptr->type == &RNA_KeyingSetPath) {
+		KS_Path *ksp = (KS_Path*)itemptr->data;
+		
+		/* icon needs to be the type of ID which is currently active */
+		RNA_enum_icon_from_value(id_type_items, ksp->idtype, &icon);
+		
+		/* nothing else special to do... */
+		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */
 	}
 	else
 		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */
@@ -2322,10 +2327,11 @@ static void operator_call_cb(bContext *C, void *UNUSED(arg1), void *arg2)
 
 static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
 {
-	wmOperatorType *ot = WM_operatortype_first();
-	
-	for(; ot; ot= ot->next) {
-		
+	GHashIterator *iter= WM_operatortype_iter();
+
+	for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		wmOperatorType *ot= BLI_ghashIterator_getValue(iter);
+
 		if(BLI_strcasestr(ot->name, str)) {
 			if(WM_operator_poll((bContext*)C, ot)) {
 				char name[256];
@@ -2345,6 +2351,7 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 			}
 		}
 	}
+	BLI_ghashIterator_free(iter);
 }
 
 void uiTemplateOperatorSearch(uiLayout *layout)
@@ -2366,6 +2373,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 #define B_STOPCAST		2
 #define B_STOPANIM		3
 #define B_STOPCOMPO		4
+#define B_STOPSEQ		5
 
 static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 {
@@ -2380,6 +2388,9 @@ static void do_running_jobs(bContext *C, void *UNUSED(arg), int event)
 			WM_operator_name_call(C, "SCREEN_OT_animation_play", WM_OP_INVOKE_SCREEN, NULL);
 			break;
 		case B_STOPCOMPO:
+			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
+			break;
+		case B_STOPSEQ:
 			WM_jobs_stop(CTX_wm_manager(C), CTX_wm_area(C), NULL);
 			break;
 	}
@@ -2403,8 +2414,11 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		if(WM_jobs_test(wm, sa))
 		   owner = sa;
 		handle_event= B_STOPCOMPO;
-	} 
-	else {
+	} else if (sa->spacetype==SPACE_SEQ) {
+		if(WM_jobs_test(wm, sa))
+			owner = sa;
+		handle_event = B_STOPSEQ;
+	} else {
 		Scene *scene;
 		/* another scene can be rendering too, for example via compositor */
 		for(scene= CTX_data_main(C)->scene.first; scene; scene= scene->id.next)

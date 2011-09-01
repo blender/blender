@@ -800,8 +800,7 @@ static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
 	if(!act_iter) return;
 
 	/* (3) add a new controller */
-	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, NULL) & OPERATOR_FINISHED)
-	{
+	if (WM_operator_name_call(C, "LOGIC_OT_controller_add", WM_OP_EXEC_DEFAULT, NULL) & OPERATOR_FINISHED) {
 		cont = (bController *)ob->controllers.last;
 
 		/* (4) link the sensor->controller->actuator */
@@ -1236,7 +1235,7 @@ static short test_special_char(char ch)
 		case ':':
 		case ';':
 		case '\'':
-		case '\"':
+		case '\"': // " - an extra closing one for Aligorith's text editor
 		case '<':
 		case '>':
 		case ',':
@@ -2310,13 +2309,13 @@ static float ui_numedit_apply_snapf(uiBut *but, float tempf, float softmin, floa
 		float fac= 1.0f;
 		
 		if(ui_is_but_unit(but)) {
-			Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
+			UnitSettings *unit= but->block->unit;
 			int unit_type= uiButGetUnitType(but)>>16;
 
-			if(bUnit_IsValid(scene->unit.system, unit_type)) {
-				fac= (float)bUnit_BaseScalar(scene->unit.system, unit_type);
+			if(bUnit_IsValid(unit->system, unit_type)) {
+				fac= (float)bUnit_BaseScalar(unit->system, unit_type);
 				if(ELEM3(unit_type, B_UNIT_LENGTH, B_UNIT_AREA, B_UNIT_VOLUME)) {
-					fac /= scene->unit.scale_length;
+					fac /= unit->scale_length;
 				}
 			}
 		}
@@ -4235,6 +4234,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		
 		/* Keyframes */
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
+			/* replace/delete keyfraemes */
 			if(length) {
 				uiItemBooleanO(layout, "Replace Keyframes", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
 				uiItemBooleanO(layout, "Replace Single Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
@@ -4245,6 +4245,11 @@ static int ui_but_menu(bContext *C, uiBut *but)
 				uiItemBooleanO(layout, "Replace Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
 				uiItemBooleanO(layout, "Delete Keyframe", ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 0);
 			}
+			
+			/* keyframe settings */
+			uiItemS(layout);
+			
+			
 		}
 		else if(but->flag & UI_BUT_DRIVEN);
 		else if(is_anim) {
@@ -4287,6 +4292,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		}
 		
 		/* Keying Sets */
+		// TODO: check on modifyability of Keying Set when doing this
 		if(is_anim) {
 			uiItemS(layout);
 

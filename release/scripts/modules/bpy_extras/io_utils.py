@@ -252,10 +252,10 @@ def axis_conversion(from_forward='Y', from_up='Z', to_forward='Y', to_up='Z'):
 def axis_conversion_ensure(operator, forward_attr, up_attr):
     """
     Function to ensure an operator has valid axis conversion settings, intended
-    to be used from :class:`Operator.check`.
+    to be used from :class:`bpy.types.Operator.check`.
 
     :arg operator: the operator to access axis attributes from.
-    :type operator: :class:`Operator`
+    :type operator: :class:`bpy.types.Operator`
     :arg forward_attr: attribute storing the forward axis
     :type forward_attr: string
     :arg up_attr: attribute storing the up axis
@@ -439,7 +439,7 @@ def path_reference_copy(copy_set, report=print):
             shutil.copy(file_src, file_dst)
 
 
-def unique_name(key, name, name_dict, name_max=-1, clean_func=None):
+def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
     """
     Helper function for storing unique names which may have special characters
     stripped and restricted to a maximum length.
@@ -456,6 +456,9 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None):
     :type name_dict: dict
     :arg clean_func: Function to call on *name* before creating a unique value.
     :type clean_func: function
+    :arg sep: Separator to use when between the name and a number when a
+       duplicate name is found.
+    :type sep: string
     """
     name_new = name_dict.get(key)
     if name_new is None:
@@ -466,14 +469,15 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None):
 
         if name_max == -1:
             while name_new in name_dict_values:
-                name_new = "%s.%03d" % (name_new_orig, count)
+                name_new = "%s%s%03d" % (name_new_orig, sep, count)
                 count += 1
         else:
             name_new = name_new[:name_max]
             while name_new in name_dict_values:
                 count_str = "%03d" % count
-                name_new = "%.*s.%s" % (name_max - (len(count_str) + 1),
+                name_new = "%.*s%s%s" % (name_max - (len(count_str) + 1),
                                         name_new_orig,
+                                        sep,
                                         count_str,
                                         )
                 count += 1

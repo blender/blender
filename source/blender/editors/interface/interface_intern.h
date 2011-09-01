@@ -213,7 +213,7 @@ struct uiBut {
 
 	BIFIconID icon;
 	char lock;
-	char dt;
+	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied from the block */
 	char changed; /* could be made into a single flag */
 	unsigned char unit_type; /* so buttons can support unit systems which are not RNA */
 	short modifier_key;
@@ -306,7 +306,8 @@ struct uiBlock {
 	void *drawextra_arg2;
 
 	int flag;
-	char direction, dt;
+	char direction;
+	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
 	short auto_open;
 	double auto_open_last;
 
@@ -331,7 +332,9 @@ struct uiBlock {
 	void *evil_C;				// XXX hack for dynamic operator enums
 
 	float _hsv[3];				// XXX, only access via ui_block_hsv_get()
-	char color_profile;				// color profile for correcting linear colors for display
+	char color_profile;			// color profile for correcting linear colors for display
+	struct UnitSettings *unit;	// unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
+
 };
 
 typedef struct uiSafetyRct {
@@ -520,6 +523,7 @@ void ui_but_anim_add_keyingset(struct bContext *C);
 void ui_but_anim_remove_keyingset(struct bContext *C);
 int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen);
 int ui_but_anim_expression_set(uiBut *but, const char *str);
+int ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
 
 #endif

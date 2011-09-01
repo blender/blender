@@ -32,12 +32,12 @@
 #ifndef AUD_BUTTERWORTHFACTORY
 #define AUD_BUTTERWORTHFACTORY
 
-#include "AUD_EffectFactory.h"
+#include "AUD_DynamicIIRFilterFactory.h"
 
 /**
- * This factory creates a butterworth filter reader.
+ * This factory creates a butterworth lowpass filter reader.
  */
-class AUD_ButterworthFactory : public AUD_EffectFactory
+class AUD_ButterworthFactory : public AUD_DynamicIIRFilterFactory
 {
 private:
 	/**
@@ -55,9 +55,11 @@ public:
 	 * \param factory The input factory.
 	 * \param frequency The cutoff frequency.
 	 */
-	AUD_ButterworthFactory(AUD_IFactory* factory, float frequency);
+	AUD_ButterworthFactory(AUD_Reference<AUD_IFactory> factory, float frequency);
 
-	virtual AUD_IReader* createReader() const;
+	virtual void recalculateCoefficients(AUD_SampleRate rate,
+										 std::vector<float>& b,
+										 std::vector<float>& a);
 };
 
 #endif //AUD_BUTTERWORTHFACTORY

@@ -186,4 +186,5 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

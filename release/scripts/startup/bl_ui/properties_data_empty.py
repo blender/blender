@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from blf import gettext as _
 
 class DataButtonsPanel():
@@ -30,7 +31,7 @@ class DataButtonsPanel():
         return (context.object and context.object.type == 'EMPTY')
 
 
-class DATA_PT_empty(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_empty(DataButtonsPanel, Panel):
     bl_label = _("Empty")
 
     def draw(self, context):

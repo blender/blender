@@ -78,7 +78,7 @@ def print_arguments(args, bc):
 
 def validate_arguments(args, bc):
     opts_list = [
-            'WITH_BF_PYTHON', 'WITH_BF_PYTHON_SAFETY', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL', 'BF_PYTHON_ABI_FLAGS', 
+            'WITH_BF_PYTHON', 'WITH_BF_PYTHON_SAFETY', 'BF_PYTHON', 'BF_PYTHON_VERSION', 'BF_PYTHON_INC', 'BF_PYTHON_BINARY', 'BF_PYTHON_LIB', 'BF_PYTHON_LIBPATH', 'WITH_BF_STATICPYTHON', 'WITH_OSX_STATICPYTHON', 'BF_PYTHON_LIB_STATIC', 'BF_PYTHON_DLL', 'BF_PYTHON_ABI_FLAGS', 
             'WITH_BF_OPENAL', 'BF_OPENAL', 'BF_OPENAL_INC', 'BF_OPENAL_LIB', 'BF_OPENAL_LIBPATH', 'WITH_BF_STATICOPENAL', 'BF_OPENAL_LIB_STATIC',
             'WITH_BF_SDL', 'BF_SDL', 'BF_SDL_INC', 'BF_SDL_LIB', 'BF_SDL_LIBPATH',
             'BF_LIBSAMPLERATE', 'BF_LIBSAMPLERATE_INC', 'BF_LIBSAMPLERATE_LIB', 'BF_LIBSAMPLERATE_LIBPATH', 'WITH_BF_STATICLIBSAMPLERATE', 'BF_LIBSAMPLERATE_LIB_STATIC',
@@ -136,7 +136,7 @@ def validate_arguments(args, bc):
             'BF_NO_ELBEEM',
             'WITH_BF_CXX_GUARDEDALLOC',
             'WITH_BF_JEMALLOC', 'WITH_BF_STATICJEMALLOC', 'BF_JEMALLOC', 'BF_JEMALLOC_INC', 'BF_JEMALLOC_LIBPATH', 'BF_JEMALLOC_LIB', 'BF_JEMALLOC_LIB_STATIC',
-            'BUILDBOT_BRANCH', 'WITH_BF_3DMOUSE', 'FOUND_NDOF_DRIVERS', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC'
+            'BUILDBOT_BRANCH', 'WITH_BF_3DMOUSE', 'WITH_BF_STATIC3DMOUSE', 'BF_3DMOUSE', 'BF_3DMOUSE_INC', 'BF_3DMOUSE_LIB', 'BF_3DMOUSE_LIBPATH', 'BF_3DMOUSE_LIB_STATIC'
             ]
     
     # Have options here that scons expects to be lists
@@ -230,6 +230,7 @@ def read_opts(env, cfg, args):
         ('BF_PYTHON_LIBPATH', 'Library path', ''),
         ('BF_PYTHON_LINKFLAGS', 'Python link flags', ''),
         (BoolVariable('WITH_BF_STATICPYTHON', 'Staticly link to python', False)),
+        (BoolVariable('WITH_OSX_STATICPYTHON', 'Staticly link to python', True)),
         ('BF_PYTHON_ABI_FLAGS', 'Python ABI flags (suffix in library version: m, mu, etc)', ''),
 
         (BoolVariable('BF_NO_ELBEEM', 'Disable Fluid Sim', False)),
@@ -439,7 +440,6 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_NOBLENDER', 'Do not build blender if true', False)),
 
         (BoolVariable('WITH_BF_3DMOUSE', 'Build blender with support of 3D mouses', False)),
-        (BoolVariable('FOUND_NDOF_DRIVERS', 'We detected NDOF libs or framework', False)),
         (BoolVariable('WITH_BF_STATIC3DMOUSE', 'Staticly link to 3d mouse library', False)),
         ('BF_3DMOUSE', '3d mouse library base path', ''),
         ('BF_3DMOUSE_INC', '3d mouse library include path', ''),
@@ -569,7 +569,7 @@ def buildslave(target=None, source=None, env=None):
         extension = '.tar.bz2'
 
     platform = env['OURPLATFORM'].split('-')[0]
-    if platform == 'linux2':
+    if platform == 'linux':
         import platform
 
         bitness = platform.architecture()[0]

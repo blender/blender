@@ -1385,7 +1385,7 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 		default:
 			ntype->uifunc= NULL;
 	}
-        if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
+	if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
 }
 
 /* ******* init draw callbacks for all tree types, only called in usiblender.c, once ************* */

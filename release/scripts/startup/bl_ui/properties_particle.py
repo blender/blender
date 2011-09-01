@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
@@ -73,7 +74,7 @@ class ParticleButtonsPanel():
         return particle_panel_poll(cls, context)
 
 
-class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -156,7 +157,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
         if part:
             split = layout.split(percentage=0.65)
             if part.type == 'HAIR':
-                if psys != None and psys.is_edited:
+                if psys is not None and psys.is_edited:
                     split.operator("particle.edited_clear", text=_("Free Edit"))
                 else:
                     row = split.row()
@@ -166,18 +167,18 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, bpy.types.Panel):
                 row = split.row()
                 row.enabled = particle_panel_enabled(context, psys)
                 row.prop(part, "hair_step")
-                if psys != None and psys.is_edited:
+                if psys is not None and psys.is_edited:
                     if psys.is_global_hair:
                         layout.operator("particle.connect_hair")
                     else:
                         layout.operator("particle.disconnect_hair")
-            elif psys != None and part.type == 'REACTOR':
+            elif psys is not None and part.type == 'REACTOR':
                 split.enabled = particle_panel_enabled(context, psys)
                 split.prop(psys, "reactor_target_object")
                 split.prop(psys, "reactor_target_particle_system", text=_("Particle System"))
 
 
-class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
     bl_label = _("Emission")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -246,7 +247,7 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, bpy.types.Panel):
                 row.prop(part, "grid_random", text=_("Random"), slider=True)
 
 
-class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
     bl_label = _("Hair dynamics")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -302,7 +303,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, bpy.types.Panel):
         col.prop(cloth, "quality", text=_("Steps"), slider=True)
 
 
-class PARTICLE_PT_cache(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_cache(ParticleButtonsPanel, Panel):
     bl_label = _("Cache")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -328,7 +329,7 @@ class PARTICLE_PT_cache(ParticleButtonsPanel, bpy.types.Panel):
         point_cache_ui(self, context, psys.point_cache, True, 'HAIR' if (psys.settings.type == 'HAIR') else 'PSYS')
 
 
-class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_velocity(ParticleButtonsPanel, Panel):
     bl_label = _("Velocity")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -378,7 +379,7 @@ class PARTICLE_PT_velocity(ParticleButtonsPanel, bpy.types.Panel):
         #    sub.prop(part, "reaction_shape", slider=True)
 
 
-class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_rotation(ParticleButtonsPanel, Panel):
     bl_label = _("Rotation")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -427,7 +428,7 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel, bpy.types.Panel):
             col.prop(part, "angular_velocity_factor", text="")
 
 
-class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
     bl_label = _("Physics")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -642,7 +643,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, bpy.types.Panel):
                     sub.prop(key, "system", text=_("System"))
 
 
-class PARTICLE_PT_boidbrain(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
     bl_label = _("Boid Brain")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -654,7 +655,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, bpy.types.Panel):
 
         if settings is None:
             return False
-        if psys != None and psys.point_cache.use_external:
+        if psys is not None and psys.point_cache.use_external:
             return False
         return settings.physics_type == 'BOIDS' and engine in cls.COMPAT_ENGINES
 
@@ -743,7 +744,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, bpy.types.Panel):
                 row.prop(rule, "flee_distance")
 
 
-class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
     bl_label = _("Render")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -928,7 +929,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, bpy.types.Panel):
             row.prop(part, "size_random", slider=True)
 
 
-class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
     bl_label = _("Display")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -990,7 +991,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, bpy.types.Panel):
             col.prop(part, "draw_step")
 
 
-class PARTICLE_PT_children(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
     bl_label = _("Children")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -1090,7 +1091,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel, bpy.types.Panel):
         sub.prop(part, "kink_shape", slider=True)
 
 
-class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_field_weights(ParticleButtonsPanel, Panel):
     bl_label = _("Field Weights")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -1111,7 +1112,7 @@ class PARTICLE_PT_field_weights(ParticleButtonsPanel, bpy.types.Panel):
             row.prop(part, "effect_hair", slider=True)
 
 
-class PARTICLE_PT_force_fields(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_force_fields(ParticleButtonsPanel, Panel):
     bl_label = _("Force Field Settings")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -1145,7 +1146,7 @@ class PARTICLE_PT_force_fields(ParticleButtonsPanel, bpy.types.Panel):
         basic_force_field_falloff_ui(self, context, part.force_field_2)
 
 
-class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
+class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
     bl_label = _("Vertexgroups")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -1216,7 +1217,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, bpy.types.Panel):
         # row.prop(psys, "invert_vertex_group_field", text="")
 
 
-class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, bpy.types.Panel):
+class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "particle_system.settings"
     _property_type = bpy.types.ParticleSettings

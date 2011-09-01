@@ -31,7 +31,6 @@
 
 #include "AUD_SndFileFactory.h"
 #include "AUD_SndFileReader.h"
-#include "AUD_Buffer.h"
 
 #include <cstring>
 
@@ -43,13 +42,13 @@ AUD_SndFileFactory::AUD_SndFileFactory(std::string filename) :
 AUD_SndFileFactory::AUD_SndFileFactory(const data_t* buffer, int size) :
 	m_buffer(new AUD_Buffer(size))
 {
-	memcpy(m_buffer.get()->getBuffer(), buffer, size);
+	memcpy(m_buffer->getBuffer(), buffer, size);
 }
 
-AUD_IReader* AUD_SndFileFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SndFileFactory::createReader()
 {
-	if(m_buffer.get())
-		return new AUD_SndFileReader(m_buffer);
-	else
+	if(m_buffer.isNull())
 		return new AUD_SndFileReader(m_filename);
+	else
+		return new AUD_SndFileReader(m_buffer);
 }

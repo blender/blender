@@ -1748,6 +1748,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", KMI_INACTIVE);
 	RNA_def_property_ui_text(prop, N_("Active"), N_("Activate or deactivate item"));
 	RNA_def_property_ui_icon(prop, ICON_CHECKBOX_DEHLT, 1);
+	RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
 	prop= RNA_def_property(srna, "is_user_modified", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KMI_USER_MODIFIED);

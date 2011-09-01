@@ -18,43 +18,40 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu, Panel
 from blf import gettext as _
 
 
-class NODE_HT_header(bpy.types.Header):
+class NODE_HT_header(Header):
     bl_space_type = 'NODE_EDITOR'
 
     def draw(self, context):
         layout = self.layout
 
         snode = context.space_data
+        snode_id = snode.id
+        id_from = snode.id_from
 
         row = layout.row(align=True)
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("NODE_MT_view")
-            sub.menu("NODE_MT_select")
-            sub.menu("NODE_MT_add")
-            sub.menu("NODE_MT_node")
+            row.menu("NODE_MT_view")
+            row.menu("NODE_MT_select")
+            row.menu("NODE_MT_add")
+            row.menu("NODE_MT_node")
 
-        row = layout.row()
-        row.prop(snode, "tree_type", text="", expand=True)
+        layout.prop(snode, "tree_type", text="", expand=True)
 
         if snode.tree_type == 'MATERIAL':
-            ob = snode.id_from
-            snode_id = snode.id
-            if ob:
-                layout.template_ID(ob, "active_material", new="material.new")
+            if id_from:
+                layout.template_ID(id_from, "active_material", new="material.new")
             if snode_id:
                 layout.prop(snode_id, "use_nodes")
 
         elif snode.tree_type == 'TEXTURE':
-            row.prop(snode, "texture_type", text="", expand=True)
+            layout.prop(snode, "texture_type", text="", expand=True)
 
-            snode_id = snode.id
-            id_from = snode.id_from
             if id_from:
                 if snode.texture_type == 'BRUSH':
                     layout.template_ID(id_from, "texture", new="texture.new")
@@ -64,10 +61,8 @@ class NODE_HT_header(bpy.types.Header):
                 layout.prop(snode_id, "use_nodes")
 
         elif snode.tree_type == 'COMPOSITING':
-            scene = snode.id
-
-            layout.prop(scene, "use_nodes")
-            layout.prop(scene.render, "use_free_unused_nodes", text=_("Free Unused"))
+            layout.prop(snode_id, "use_nodes")
+            layout.prop(snode_id.render, "use_free_unused_nodes", text=_("Free Unused"))
             layout.prop(snode, "show_backdrop")
             if snode.show_backdrop:
                 row = layout.row(align=True)
@@ -79,7 +74,7 @@ class NODE_HT_header(bpy.types.Header):
         layout.template_running_jobs()
 
 
-class NODE_MT_view(bpy.types.Menu):
+class NODE_MT_view(Menu):
     bl_label = _("View")
 
     def draw(self, context):
@@ -108,7 +103,7 @@ class NODE_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class NODE_MT_select(bpy.types.Menu):
+class NODE_MT_select(Menu):
     bl_label = _("Select")
 
     def draw(self, context):
@@ -125,7 +120,7 @@ class NODE_MT_select(bpy.types.Menu):
         layout.operator("node.select_same_type_prev")
 
 
-class NODE_MT_node(bpy.types.Menu):
+class NODE_MT_node(Menu):
     bl_label = _("Node")
 
     def draw(self, context):
@@ -166,7 +161,7 @@ class NODE_MT_node(bpy.types.Menu):
 
 
 # Node Backdrop options
-class NODE_PT_properties(bpy.types.Panel):
+class NODE_PT_properties(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = _("Backdrop")

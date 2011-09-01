@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Menu, Panel
 from blf import gettext as _
 
 from bl_ui.properties_physics_common import (
@@ -30,14 +31,14 @@ def cloth_panel_enabled(md):
     return md.point_cache.is_baked is False
 
 
-class CLOTH_MT_presets(bpy.types.Menu):
+class CLOTH_MT_presets(Menu):
     '''
     Creates the menu items by scanning scripts/templates
     '''
     bl_label = _("Cloth Presets")
     preset_subdir = "cloth"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class PhysicButtonsPanel():
@@ -52,7 +53,7 @@ class PhysicButtonsPanel():
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine) and (context.cloth)
 
 
-class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
     bl_label = _("Cloth")
 
     def draw(self, context):
@@ -117,7 +118,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, bpy.types.Panel):
                 col.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="")
 
 
-class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
     bl_label = _("Cloth Cache")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -130,7 +131,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, bpy.types.Panel):
         point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
 
 
-class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
     bl_label = _("Cloth Collision")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -171,7 +172,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, bpy.types.Panel):
         layout.prop(cloth, "group")
 
 
-class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
     bl_label = _("Cloth Stiffness Scaling")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -207,7 +208,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(cloth, "bending_stiffness_max", text=_("Max"))
 
 
-class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
     bl_label = _("Cloth Field Weights")
     bl_options = {'DEFAULT_CLOSED'}
 

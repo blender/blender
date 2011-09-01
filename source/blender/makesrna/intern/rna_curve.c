@@ -49,9 +49,17 @@
 
 EnumPropertyItem beztriple_handle_type_items[] = {
 		{HD_FREE, "FREE", 0, N_("Free"), ""},
-		{HD_AUTO, "AUTO", 0, N_("Auto"), ""},
 		{HD_VECT, "VECTOR", 0, N_("Vector"), ""},
 		{HD_ALIGN, "ALIGNED", 0, N_("Aligned"), ""},
+		{HD_AUTO, "AUTO", 0, N_("Auto"), ""},
+		{0, NULL, 0, NULL, NULL}};
+		
+EnumPropertyItem keyframe_handle_type_items[] = {
+		{HD_FREE, "FREE", 0, N_("Free"), ""},
+		{HD_VECT, "VECTOR", 0, N_("Vector"), ""},
+		{HD_ALIGN, "ALIGNED", 0, N_("Aligned"), ""},
+		{HD_AUTO, "AUTO", 0, N_("Automatic"), ""},
+		{HD_AUTO_ANIM, "AUTO_CLAMPED", 0, N_("Auto Clamped"), N_("Auto handles clamped to not overshoot")},
 		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem beztriple_interpolation_mode_items[] = {

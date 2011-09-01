@@ -18,10 +18,11 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu
 from blf import gettext as _
 
 
-class OUTLINER_HT_header(bpy.types.Header):
+class OUTLINER_HT_header(Header):
     bl_space_type = 'OUTLINER'
 
     def draw(self, context):
@@ -64,7 +65,7 @@ class OUTLINER_HT_header(bpy.types.Header):
                 row.label(text="No Keying Set active")
 
 
-class OUTLINER_MT_view(bpy.types.Menu):
+class OUTLINER_MT_view(Menu):
     bl_label = _("View")
 
     def draw(self, context):
@@ -72,14 +73,13 @@ class OUTLINER_MT_view(bpy.types.Menu):
 
         space = context.space_data
 
-        col = layout.column()
         if space.display_mode not in {'DATABLOCKS', 'USER_PREFERENCES', 'KEYMAPS'}:
-            col.prop(space, "show_restrict_columns")
-            col.separator()
-            col.operator("outliner.show_active")
+            layout.prop(space, "show_restrict_columns")
+            layout.separator()
+            layout.operator("outliner.show_active")
 
-        col.operator("outliner.show_one_level")
-        col.operator("outliner.show_hierarchy")
+        layout.operator("outliner.show_one_level")
+        layout.operator("outliner.show_hierarchy")
 
         layout.separator()
 
@@ -87,7 +87,7 @@ class OUTLINER_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class OUTLINER_MT_search(bpy.types.Menu):
+class OUTLINER_MT_search(Menu):
     bl_label = _("Search")
 
     def draw(self, context):
@@ -95,27 +95,23 @@ class OUTLINER_MT_search(bpy.types.Menu):
 
         space = context.space_data
 
-        col = layout.column()
-
-        col.prop(space, "use_filter_case_sensitive")
-        col.prop(space, "use_filter_complete")
+        layout.prop(space, "use_filter_case_sensitive")
+        layout.prop(space, "use_filter_complete")
 
 
-class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
+class OUTLINER_MT_edit_datablocks(Menu):
     bl_label = _("Edit")
 
     def draw(self, context):
         layout = self.layout
 
-        col = layout.column()
+        layout.operator("outliner.keyingset_add_selected")
+        layout.operator("outliner.keyingset_remove_selected")
 
-        col.operator("outliner.keyingset_add_selected")
-        col.operator("outliner.keyingset_remove_selected")
+        layout.separator()
 
-        col.separator()
-
-        col.operator("outliner.drivers_add_selected")
-        col.operator("outliner.drivers_delete_selected")
+        layout.operator("outliner.drivers_add_selected")
+        layout.operator("outliner.drivers_delete_selected")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

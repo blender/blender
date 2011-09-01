@@ -470,6 +470,7 @@ extern StructRNA RNA_SpaceTimeline;
 extern StructRNA RNA_SpaceUVEditor;
 extern StructRNA RNA_SpaceUserPreferences;
 extern StructRNA RNA_SpaceView3D;
+extern StructRNA RNA_Speaker;
 extern StructRNA RNA_SpeedControlSequence;
 extern StructRNA RNA_Spline;
 extern StructRNA RNA_SplineIKConstraint;
@@ -667,7 +668,7 @@ int RNA_property_flag(PropertyRNA *prop);
 void *RNA_property_py_data_get(PropertyRNA *prop);
 
 int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop);
-int RNA_property_array_check(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_array_check(PropertyRNA *prop);
 int RNA_property_multi_array_length(PointerRNA *ptr, PropertyRNA *prop, int dimension);
 int RNA_property_array_dimension(PointerRNA *ptr, PropertyRNA *prop, int length[]);
 char RNA_property_array_item_char(PropertyRNA *prop, int index);
@@ -714,6 +715,10 @@ int RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop); /* slow
 void RNA_property_update(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_update_main(struct Main *bmain, struct Scene *scene, PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_update_check(struct PropertyRNA *prop);
+
+void RNA_property_update_cache_add(PointerRNA *ptr, PropertyRNA *prop);
+void RNA_property_update_cache_flush(struct Main *bmain, struct Scene *scene);
+void RNA_property_update_cache_free(void);
 
 /* Property Data */
 

@@ -32,7 +32,7 @@
 #include "AUD_EffectFactory.h"
 #include "AUD_IReader.h"
 
-AUD_EffectFactory::AUD_EffectFactory(AUD_IFactory* factory)
+AUD_EffectFactory::AUD_EffectFactory(AUD_Reference<AUD_IFactory> factory)
 {
 	m_factory = factory;
 }
@@ -41,7 +41,7 @@ AUD_EffectFactory::~AUD_EffectFactory()
 {
 }
 
-AUD_IFactory* AUD_EffectFactory::getFactory() const
+AUD_Reference<AUD_IFactory> AUD_EffectFactory::getFactory() const
 {
 	return m_factory;
 }

@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
@@ -31,7 +32,7 @@ class DataButtonsPanel():
         return context.meta_ball
 
 
-class DATA_PT_context_metaball(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_metaball(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
 
@@ -48,7 +49,7 @@ class DATA_PT_context_metaball(DataButtonsPanel, bpy.types.Panel):
             layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_metaball(DataButtonsPanel, Panel):
     bl_label = _("Metaball")
 
     def draw(self, context):
@@ -72,7 +73,7 @@ class DATA_PT_metaball(DataButtonsPanel, bpy.types.Panel):
         layout.prop(mball, "update_method", expand=True)
 
 
-class DATA_PT_mball_texture_space(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_mball_texture_space(DataButtonsPanel, Panel):
     bl_label = _("Texture Space")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -89,7 +90,7 @@ class DATA_PT_mball_texture_space(DataButtonsPanel, bpy.types.Panel):
         row.column().prop(mball, "texspace_size", text=_("Size"))
 
 
-class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
+class DATA_PT_metaball_element(DataButtonsPanel, Panel):
     bl_label = _("Active Element")
 
     @classmethod
@@ -129,7 +130,7 @@ class DATA_PT_metaball_element(DataButtonsPanel, bpy.types.Panel):
             col.prop(metaelem, "size_y", text="Y")
 
 
-class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.MetaBall

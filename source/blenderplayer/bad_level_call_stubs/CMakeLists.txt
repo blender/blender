@@ -49,7 +49,12 @@ if(WITH_BUILDINFO)
 	list(APPEND SRC
 		../../creator/buildinfo.c
 	)
-	add_definitions(-DBUILD_DATE)
+	add_definitions(-DBUILD_DATE="\"\""
+					-DBUILD_TIME="\"\""
+					-DBUILD_REV="\"\""
+					-DBUILD_PLATFORM="\"\""
+					-DBUILD_TYPE="\"\""
+					)
 endif()
 
 if(WITH_GAMEENGINE)

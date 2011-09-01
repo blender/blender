@@ -52,6 +52,9 @@
 #include "WM_types.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_ghash.h"
+
 #include "BKE_report.h"
 #include "BKE_context.h"
 
@@ -114,7 +117,6 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 	}
 
 	context_dict_back= CTX_py_dict_get(C);
-
 	CTX_py_dict_set(C, (void *)context_dict);
 	Py_XINCREF(context_dict); /* so we done loose it */
 	
@@ -290,7 +292,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	 * function corrects bpy.data (internal Main pointer) */
 	BPY_modules_update(C);
 
-	/* needed for when WM_OT_read_factory_settings us called fro within a script */
+	/* needed for when WM_OT_read_factory_settings us called from within a script */
 	bpy_import_main_set(CTX_data_main(C));
 
 	/* return operator_ret as a bpy enum */
@@ -359,15 +361,18 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 
 static PyObject *pyop_dir(PyObject *UNUSED(self))
 {
+	GHashIterator *iter= WM_operatortype_iter();
 	PyObject *list= PyList_New(0), *name;
-	wmOperatorType *ot;
-	
-	for(ot= WM_operatortype_first(); ot; ot= ot->next) {
+
+	for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		wmOperatorType *ot= BLI_ghashIterator_getValue(iter);
+
 		name= PyUnicode_FromString(ot->idname);
 		PyList_Append(list, name);
 		Py_DECREF(name);
 	}
-	
+	BLI_ghashIterator_free(iter);
+
 	return list;
 }
 

@@ -301,6 +301,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
 		ChannelDriver *driver= fcu->driver;
 		DriverVar *dvar;
+		int isdata_fcu = isdata || (fcu->rna_path && strstr(fcu->rna_path, "modifiers["));
 		
 		/* loop over variables to get the target relationships */
 		for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
@@ -320,14 +321,14 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 							( ((dtar->rna_path) && strstr(dtar->rna_path, "pose.bones[")) || 
 							  ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (dtar->pchan_name[0])) )) 
 						{
-							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+							dag_add_relation(dag, node1, node, isdata_fcu?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
 						}
 						/* check if ob data */
 						else if (dtar->rna_path && strstr(dtar->rna_path, "data."))
-							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+							dag_add_relation(dag, node1, node, isdata_fcu?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
 						/* normal */
 						else
-							dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
+							dag_add_relation(dag, node1, node, isdata_fcu?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
 					}
 				}
 			}
@@ -2061,6 +2062,23 @@ static short animdata_use_time(AnimData *adt)
 			return 1;
 	}
 	
+	/* If we have drivers, more likely than not, on a frame change
+	 * they'll need updating because their owner changed
+	 * 
+	 * This is kindof a hack to get around a whole host of problems
+	 * involving drivers using non-object datablock data (which the 
+	 * depsgraph currently has no way of representing let alone correctly
+	 * dependency sort+tagging). By doing this, at least we ensure that 
+	 * some commonly attempted drivers (such as scene -> current frame;
+	 * see "Driver updates fail" thread on Bf-committers dated July 2)
+	 * will work correctly, and that other non-object datablocks will have
+	 * their drivers update at least on frame change.
+	 *
+	 * -- Aligorith, July 4 2011
+	 */
+	if (adt->drivers.first)
+		return 1;
+	
 	return 0;
 }
 
@@ -2377,7 +2395,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 	if(id) {
 		idtype= GS(id->name);
 
-		if(ELEM7(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR)) {
+		if(ELEM8(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR, ID_SPK)) {
 			for(obt=bmain->object.first; obt; obt= obt->id.next) {
 				if(!(ob && obt == ob) && obt->data == id) {
 					obt->recalc |= OB_RECALC_DATA;

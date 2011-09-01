@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from blf import gettext as _
 
 from bl_ui.properties_physics_common import (
@@ -44,7 +45,7 @@ class PhysicButtonsPanel():
         return (ob and (ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE')) and (not rd.use_game_engine) and (context.soft_body)
 
 
-class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
     bl_label = _("Soft Body")
 
     def draw(self, context):
@@ -71,7 +72,7 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(softbody, "speed")
 
 
-class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, Panel):
     bl_label = _("Soft Body Cache")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -84,7 +85,7 @@ class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, bpy.types.Panel):
         point_cache_ui(self, context, md.point_cache, softbody_panel_enabled(md), 'SOFTBODY')
 
 
-class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
     bl_label = _("Soft Body Goal")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -127,7 +128,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, bpy.types.Panel):
         layout.prop_search(softbody, "vertex_group_goal", ob, "vertex_groups", text=_("Vertex Group"))
 
 
-class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
     bl_label = _("Soft Body Edges")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -180,7 +181,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(softbody, "use_face_collision", text=_("Face"))
 
 
-class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
     bl_label = _("Soft Body Self Collision")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -212,7 +213,7 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, bpy.types.Panel):
         col.prop(softbody, "ball_damp", text=_("Dampening"))
 
 
-class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, Panel):
     bl_label = _("Soft Body Solver")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -248,7 +249,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, bpy.types.Panel):
         layout.prop(softbody, "use_estimate_matrix")
 
 
-class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, Panel):
     bl_label = _("Soft Body Field Weights")
     bl_options = {'DEFAULT_CLOSED'}
 

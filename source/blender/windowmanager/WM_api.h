@@ -180,7 +180,7 @@ void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct wmWindowManager *wm);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
-struct wmOperatorType *WM_operatortype_first(void);
+struct GHashIterator *WM_operatortype_iter(void);
 void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
 void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
 void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
@@ -223,6 +223,7 @@ wmOperator *WM_operator_last_redo(const struct bContext *C);
 #define WM_FILESEL_DIRECTORY	(1 << 1)
 #define WM_FILESEL_FILENAME		(1 << 2)
 #define WM_FILESEL_FILEPATH		(1 << 3)
+#define WM_FILESEL_FILES		(1 << 4)
 
 
 		/* operator as a python command (resultuing string must be free'd) */
@@ -231,6 +232,7 @@ void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 
 /* *************** menu types ******************** */
+void				WM_menutype_init(void);
 struct MenuType		*WM_menutype_find(const char *idname, int quiet);
 int					WM_menutype_add(struct MenuType* mt);
 int					WM_menutype_contains(struct MenuType* mt);
@@ -299,6 +301,8 @@ int			WM_jobs_test(struct wmWindowManager *wm, void *owner);
 float		WM_jobs_progress(struct wmWindowManager *wm, void *owner);
 char		*WM_jobs_name(struct wmWindowManager *wm, void *owner);
 
+int             WM_jobs_is_running(struct wmJob *);
+void*           WM_jobs_get_customdata(struct wmJob *);
 void		WM_jobs_customdata(struct wmJob *, void *customdata, void (*free)(void *));
 void		WM_jobs_timer(struct wmJob *, double timestep, unsigned int note, unsigned int endnote);
 void		WM_jobs_callbacks(struct wmJob *, 

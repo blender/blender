@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
@@ -31,7 +32,7 @@ class ArmatureButtonsPanel():
         return context.armature
 
 
-class DATA_PT_context_arm(ArmatureButtonsPanel, bpy.types.Panel):
+class DATA_PT_context_arm(ArmatureButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
 
@@ -48,7 +49,7 @@ class DATA_PT_context_arm(ArmatureButtonsPanel, bpy.types.Panel):
             layout.template_ID(space, "pin_id")
 
 
-class DATA_PT_skeleton(ArmatureButtonsPanel, bpy.types.Panel):
+class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
     bl_label = _("Skeleton")
 
     def draw(self, context):
@@ -70,8 +71,10 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, bpy.types.Panel):
         flow.prop(arm, "use_deform_envelopes", text=_("Envelopes"))
         flow.prop(arm, "use_deform_preserve_volume", text=_("Quaternion"))
 
+        if context.scene.render.engine == "BLENDER_GAME":
+            layout.row().prop(arm, "vert_deformer", expand=True)
 
-class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
+class DATA_PT_display(ArmatureButtonsPanel, Panel):
     bl_label = _("Display")
 
     def draw(self, context):
@@ -96,7 +99,16 @@ class DATA_PT_display(ArmatureButtonsPanel, bpy.types.Panel):
         col.prop(arm, "use_deform_delay", text=_("Delay Refresh"))
 
 
-class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
+class DATA_PT_bone_group_specials(Menu):
+    bl_label = _("Bone Group Specials")
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("pose.group_sort", icon='SORTALPHA')
+
+
+class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
     bl_label = _("Bone Groups")
 
     @classmethod
@@ -108,16 +120,25 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
 
         ob = context.object
         pose = ob.pose
+        group = pose.bone_groups.active
 
         row = layout.row()
-        row.template_list(pose, "bone_groups", pose.bone_groups, "active_index", rows=2)
+
+        rows = 2
+        if group:
+            rows = 5
+        row.template_list(pose, "bone_groups", pose.bone_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
         col.active = (ob.proxy is None)
         col.operator("pose.group_add", icon='ZOOMIN', text="")
         col.operator("pose.group_remove", icon='ZOOMOUT', text="")
+        col.menu("DATA_PT_bone_group_specials", icon='DOWNARROW_HLT', text="")
+        if group:
+            col.separator()
+            col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        group = pose.bone_groups.active
         if group:
             col = layout.column()
             col.active = (ob.proxy is None)
@@ -147,7 +168,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, bpy.types.Panel):
         sub.operator("pose.group_deselect", text=_("Deselect"))
 
 
-class DATA_PT_pose_library(ArmatureButtonsPanel, bpy.types.Panel):
+class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
     bl_label = _("Pose Library")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -186,7 +207,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, bpy.types.Panel):
 
 
 # TODO: this panel will soon be depreceated too
-class DATA_PT_ghost(ArmatureButtonsPanel, bpy.types.Panel):
+class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
     bl_label = _("Ghost")
 
     def draw(self, context):
@@ -213,7 +234,7 @@ class DATA_PT_ghost(ArmatureButtonsPanel, bpy.types.Panel):
         col.prop(arm, "show_only_ghost_selected", text=_("Selected Only"))
 
 
-class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, bpy.types.Panel):
+class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
     bl_label = _("iTaSC parameters")
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -266,7 +287,7 @@ from bl_ui.properties_animviz import (
     )
 
 
-class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
+class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
     #bl_label = "Bones Motion Paths"
     bl_context = "data"
 
@@ -289,7 +310,7 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
         split.operator("pose.paths_clear", text=_("Clear Paths"))
 
 
-class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # inherit from panel when ready
+class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from panel when ready
     #bl_label = "Bones Onion Skinning"
     bl_context = "data"
 
@@ -303,7 +324,7 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # in
         self.draw_settings(context, ob.pose.animation_visualisation, bones=True)
 
 
-class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, bpy.types.Panel):
+class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object.data"
     _property_type = bpy.types.Armature

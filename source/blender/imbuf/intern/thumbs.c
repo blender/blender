@@ -317,9 +317,9 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 				}
 			} else if (THB_SOURCE_MOVIE == source) {
 				struct anim * anim = NULL;
-				anim = IMB_open_anim(path, IB_rect | IB_metadata);
+				anim = IMB_open_anim(path, IB_rect | IB_metadata, 0);
 				if (anim != NULL) {
-					img = IMB_anim_absolute(anim, 0);
+					img = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
 					if (img == NULL) {
 						printf("not an anim; %s\n", path);
 					} else {

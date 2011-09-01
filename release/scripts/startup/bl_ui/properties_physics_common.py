@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Panel
 from blf import gettext as _
 
 class PhysicButtonsPanel():
@@ -44,7 +45,7 @@ def physics_add(self, layout, md, name, type, typeicon, toggles):
         sub.operator("object.modifier_add", text=name, icon=typeicon).type = type
 
 
-class PHYSICS_PT_add(PhysicButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
 

@@ -369,7 +369,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		unit= UI_UNIT_X*0.75;
 		butw= unit;
 		buth= unit;
-		
+
 		if(ptr->type == &RNA_Armature) {
 			bArmature *arm= (bArmature *)ptr->data;
 			layer_used= arm->layer_used;
@@ -381,7 +381,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 			for(a=0; a<colbuts; a++) {
 				if(layer_used & (1<<(a+b*colbuts))) icon= ICON_LAYER_USED;
 				else icon= ICON_BLANK1;
-					
+
 				but= uiDefAutoButR(block, ptr, prop, a+b*colbuts, "", icon, x + butw*a, y+buth, butw, buth);
 				if(subtype == PROP_LAYER_MEMBER)
 					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+b*colbuts));
@@ -389,7 +389,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 			for(a=0; a<colbuts; a++) {
 				if(layer_used & (1<<(a+len/2+b*colbuts))) icon= ICON_LAYER_USED;
 				else icon= ICON_BLANK1;
-				
+
 				but= uiDefAutoButR(block, ptr, prop, a+len/2+b*colbuts, "", icon, x + butw*a, y, butw, buth);
 				if(subtype == PROP_LAYER_MEMBER)
 					uiButSetFunc(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(a+len/2+b*colbuts));
@@ -424,34 +424,45 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		uiDefButR_prop(block, BUT_NORMAL, 0, name, x, y, UI_UNIT_X*3, UI_UNIT_Y*3, ptr, prop, 0, 0, 0, -1, -1, NULL);
 	}
 	else {
-		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)
-			uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, 0, 0, w, UI_UNIT_Y);
+		/* note, this block of code is a bit arbitrary and has just been made
+		 * to work with common cases, but may need to be re-worked */
 
-		if(!ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) || expand) {
+		/* special case, boolean array in a menu, this could be used in a more generic way too */
+		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand) {
+			uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, 0, 0, w, UI_UNIT_Y);
+		}
+		else {
+			int *boolarr= NULL;
+
+			/* even if 'expand' is fale, expanding anyway */
+
 			/* layout for known array subtypes */
-			char str[3];
+			char str[3]= {'\0'};
+
+			if(!icon_only) {
+				if(type != PROP_BOOLEAN) {
+					str[1]= ':';
+				}
+			}
+
+			/* show checkboxes for rna on a non-emboss block (menu for eg) */
+			if(type == PROP_BOOLEAN && ELEM(layout->root->block->dt, UI_EMBOSSN, UI_EMBOSSP)) {
+				boolarr= MEM_callocN(sizeof(int)*len, "ui_item_array");
+				RNA_property_boolean_get_array(ptr, prop, boolarr);
+			}
 
 			for(a=0; a<len; a++) {
-				str[0]= RNA_property_array_item_char(prop, a);
-
-				if(str[0]) {
-					if (icon_only) {
-						str[0] = '\0';
-					}
-					else if(type == PROP_BOOLEAN) {
-						str[1]= '\0';
-					}
-					else {
-						str[1]= ':';
-						str[2]= '\0';
-					}
-				}
-
+				if(!icon_only) str[0]= RNA_property_array_item_char(prop, a);
+				if(boolarr) icon= boolarr[a] ? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
 				but= uiDefAutoButR(block, ptr, prop, a, str, icon, 0, 0, w, UI_UNIT_Y);
 				if(slider && but->type==NUM)
 					but->type= NUMSLI;
 				if(toggle && but->type==OPTION)
 					but->type= TOG;
+			}
+
+			if(boolarr) {
+				MEM_freeN(boolarr);
 			}
 		}
 	}
@@ -953,13 +964,14 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	uiBut *but;
 	PropertyType type;
 	char namestr[UI_MAX_NAME_STR];
-	int len, w, h, slider, toggle, expand, icon_only, no_bg;
+	int len, is_array, w, h, slider, toggle, expand, icon_only, no_bg;
 
 	uiBlockSetCurLayout(block, layout);
 
 	/* retrieve info */
 	type= RNA_property_type(prop);
-	len= RNA_property_array_length(ptr, prop);
+	is_array= RNA_property_array_check(prop);
+	len= (is_array) ? RNA_property_array_length(ptr, prop) : 0;
 
 	/* set name and icon */
 	if(!name)
@@ -969,14 +981,16 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	
 	if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER))
 		name= ui_item_name_add_colon(name, namestr);
-	else if(type == PROP_BOOLEAN && len && index == RNA_NO_INDEX)
+	else if(type == PROP_BOOLEAN && is_array && index == RNA_NO_INDEX)
 		name= ui_item_name_add_colon(name, namestr);
 	else if(type == PROP_ENUM && index != RNA_ENUM_VALUE)
 		name= ui_item_name_add_colon(name, namestr);
 
 	if(layout->root->type == UI_LAYOUT_MENU) {
-		if(type == PROP_BOOLEAN)
-			icon= (RNA_property_boolean_get(ptr, prop))? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+		if(type == PROP_BOOLEAN && ((is_array == FALSE) || (index != RNA_NO_INDEX))) {
+			if(is_array) icon= (RNA_property_boolean_get_index(ptr, prop, index)) ? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+			else         icon= (RNA_property_boolean_get(ptr, prop)) ? ICON_CHECKBOX_HLT: ICON_CHECKBOX_DEHLT;
+		}
 		else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
 			int enum_value= RNA_property_enum_get(ptr, prop);
 			if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
@@ -1001,16 +1015,14 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* array property */
-	if(index == RNA_NO_INDEX && len > 0)
+	if(index == RNA_NO_INDEX && is_array)
 		ui_item_array(layout, block, name, icon, ptr, prop, len, 0, 0, w, h, expand, slider, toggle, icon_only);
 	/* enum item */
 	else if(type == PROP_ENUM && index == RNA_ENUM_VALUE) {
-		const char *identifier= RNA_property_identifier(prop);
-
 		if(icon && name[0] && !icon_only)
 			uiDefIconTextButR_prop(block, ROW, 0, icon, name, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 		else if(icon)
-			uiDefIconButR(block, ROW, 0, icon, 0, 0, w, h, ptr, identifier, -1, 0, value, -1, -1, NULL);
+			uiDefIconButR_prop(block, ROW, 0, icon, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 		else
 			uiDefButR_prop(block, ROW, 0, name, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 	}
@@ -1351,7 +1363,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 {
 	MenuType *mt= (MenuType*)arg_mt;
-	Menu menu = {0};
+	Menu menu = {NULL};
 
 	menu.type= mt;
 	menu.layout= layout;

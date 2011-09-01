@@ -19,10 +19,11 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Header, Menu
 from blf import gettext as _
 
 
-class NLA_HT_header(bpy.types.Header):
+class NLA_HT_header(Header):
     bl_space_type = 'NLA_EDITOR'
 
     def draw(self, context):
@@ -36,28 +37,24 @@ class NLA_HT_header(bpy.types.Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-
-            sub.menu("NLA_MT_view")
-            sub.menu("NLA_MT_select")
-            sub.menu("NLA_MT_marker")
-            sub.menu("NLA_MT_edit")
-            sub.menu("NLA_MT_add")
+            row.menu("NLA_MT_view")
+            row.menu("NLA_MT_select")
+            row.menu("NLA_MT_marker")
+            row.menu("NLA_MT_edit")
+            row.menu("NLA_MT_add")
 
         dopesheet_filter(layout, context)
 
         layout.prop(st, "auto_snap", text="")
 
 
-class NLA_MT_view(bpy.types.Menu):
+class NLA_MT_view(Menu):
     bl_label = _("View")
 
     def draw(self, context):
         layout = self.layout
 
         st = context.space_data
-
-        layout.column()
 
         layout.operator("nla.properties", icon='MENU_PANEL')
 
@@ -75,17 +72,20 @@ class NLA_MT_view(bpy.types.Menu):
         layout.operator("anim.previewrange_clear")
 
         layout.separator()
+        layout.operator("nla.view_all")
+        layout.operator("nla.view_selected")
+
+        layout.separator()
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 
 
-class NLA_MT_select(bpy.types.Menu):
+class NLA_MT_select(Menu):
     bl_label = _("Select")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
         layout.operator("nla.select_all_toggle")
         layout.operator("nla.select_all_toggle", text=_("Invert Selection")).invert = True
@@ -99,7 +99,7 @@ class NLA_MT_select(bpy.types.Menu):
         layout.operator("nla.select_leftright", text=_("After Current Frame")).mode = 'RIGHT'
 
 
-class NLA_MT_marker(bpy.types.Menu):
+class NLA_MT_marker(Menu):
     bl_label = _("Marker")
 
     def draw(self, context):
@@ -107,7 +107,6 @@ class NLA_MT_marker(bpy.types.Menu):
 
         #layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.column()
         layout.operator("marker.add", _("Add Marker"))
         layout.operator("marker.duplicate", text=_("Duplicate Marker"))
         layout.operator("marker.delete", text=_("Delete Marker"))
@@ -118,7 +117,7 @@ class NLA_MT_marker(bpy.types.Menu):
         layout.operator("marker.move", text=_("Grab/Move Marker"))
 
 
-class NLA_MT_edit(bpy.types.Menu):
+class NLA_MT_edit(Menu):
     bl_label = _("Edit")
 
     def draw(self, context):
@@ -126,7 +125,6 @@ class NLA_MT_edit(bpy.types.Menu):
 
         scene = context.scene
 
-        layout.column()
         layout.menu("NLA_MT_edit_transform", text=_("Transform"))
 
         layout.operator_menu_enum("nla.snap", "type", text=_("Snap"))
@@ -161,15 +159,15 @@ class NLA_MT_edit(bpy.types.Menu):
             layout.operator("nla.tweakmode_enter", text=_("Start Tweaking Strip Actions"))
 
 
-class NLA_MT_add(bpy.types.Menu):
+class NLA_MT_add(Menu):
     bl_label = _("Add")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.operator("nla.actionclip_add")
         layout.operator("nla.transition_add")
+        layout.operator("nla.soundclip_add")
 
         layout.separator()
         layout.operator("nla.meta_add")
@@ -180,13 +178,12 @@ class NLA_MT_add(bpy.types.Menu):
         layout.operator("nla.tracks_add", text=_("Add Tracks Above Selected")).above_selected = True
 
 
-class NLA_MT_edit_transform(bpy.types.Menu):
+class NLA_MT_edit_transform(Menu):
     bl_label = _("Transform")
 
     def draw(self, context):
         layout = self.layout
 
-        layout.column()
         layout.operator("transform.translate", text=_("Grab/Move"))
         layout.operator("transform.transform", text=_("Extend")).mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text=_("Scale")).mode = 'TIME_SCALE'

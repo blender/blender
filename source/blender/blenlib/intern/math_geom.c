@@ -402,7 +402,7 @@ int isect_line_sphere_v3(const float l1[3], const float l2[3],
 		madd_v3_v3v3fl(r_p1, l1, ldir, mu);
 		return 1;
 	}
-	else if (i > 0.0) {
+	else if (i > 0.0f) {
 		const float i_sqrt= sqrt(i); /* avoid calc twice */
 
 		/* first intersection */
@@ -456,7 +456,7 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 		madd_v2_v2v2fl(r_p1, l1, ldir, mu);
 		return 1;
 	}
-	else if (i > 0.0) {
+	else if (i > 0.0f) {
 		const float i_sqrt= sqrt(i); /* avoid calc twice */
 
 		/* first intersection */
@@ -1968,7 +1968,7 @@ void resolve_tri_uv(float uv[2], const float st[2], const float st0[2], const fl
 void resolve_quad_uv(float uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2])
 {
 	const double signed_area= (st0[0]*st1[1] - st0[1]*st1[0]) + (st1[0]*st2[1] - st1[1]*st2[0]) +
-                              (st2[0]*st3[1] - st2[1]*st3[0]) + (st3[0]*st0[1] - st3[1]*st0[0]);
+	                          (st2[0]*st3[1] - st2[1]*st3[0]) + (st3[0]*st0[1] - st3[1]*st0[0]);
 
 	/* X is 2D cross product (determinant)
 	   A= (p0-p) X (p0-p3)*/
@@ -2010,7 +2010,7 @@ void resolve_quad_uv(float uv[2], const float st[2], const float st0[2], const f
 		}
 
 		if(IS_ZERO(denom)==0)
-			uv[1]= (float) (( (1-uv[0])*(st0[i]-st[i]) + uv[0]*(st1[i]-st[i]) ) / denom);
+			uv[1]= (float) (( (1.0f-uv[0])*(st0[i]-st[i]) + uv[0]*(st1[i]-st[i]) ) / denom);
 	}
 }
 

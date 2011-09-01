@@ -602,28 +602,6 @@ short filelist_changed(struct FileList* filelist)
 	return filelist->changed;
 }
 
-static struct ImBuf * filelist_loadimage(struct FileList* filelist, int index)
-{
-	ImBuf *imb = NULL;
-	int fidx = 0;
-	
-	if ( (index < 0) || (index >= filelist->numfiltered) ) {
-		return NULL;
-	}
-	fidx = filelist->fidx[index];
-	imb = filelist->filelist[fidx].image;
-	if (!imb)
-	{
-		if ( (filelist->filelist[fidx].flags & IMAGEFILE) || (filelist->filelist[fidx].flags & MOVIEFILE) ) {
-			imb = IMB_thumb_read(filelist->filelist[fidx].path, THB_NORMAL);
-		} 
-		if (imb) {
-			filelist->filelist[fidx].image = imb;
-		} 
-	}
-	return imb;
-}
-
 struct ImBuf * filelist_getimage(struct FileList* filelist, int index)
 {
 	ImBuf* ibuf = NULL;
@@ -1127,7 +1105,7 @@ void filelist_from_main(struct FileList *filelist)
 	if( filelist->dir[0]==0) {
 		
 		/* make directories */
-		filelist->numfiles= 23;
+		filelist->numfiles= 24;
 		filelist->filelist= (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
 		
 		for(a=0; a<filelist->numfiles; a++) {
@@ -1157,6 +1135,7 @@ void filelist_from_main(struct FileList *filelist)
 		filelist->filelist[20].relname= BLI_strdup("Armature");
 		filelist->filelist[21].relname= BLI_strdup("Action");
 		filelist->filelist[22].relname= BLI_strdup("NodeTree");
+		filelist->filelist[23].relname= BLI_strdup("Speaker");
 		filelist_sort(filelist, FILE_SORT_ALPHA);
 	}
 	else {

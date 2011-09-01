@@ -36,6 +36,7 @@ _modules = (
     "properties_data_mesh",
     "properties_data_metaball",
     "properties_data_modifier",
+    "properties_data_speaker",
     "properties_game",
     "properties_material",
     "properties_object_constraint",
@@ -102,7 +103,10 @@ def register():
         items.extend([(cat, cat, "") for cat in sorted(items_unique)])
         return items
 
-    WindowManager.addon_search = StringProperty(name="Search", description="Search within the selected filter")
+    WindowManager.addon_search = StringProperty(
+            name="Search",
+            description="Search within the selected filter",
+            )
     WindowManager.addon_filter = EnumProperty(
             items=addon_filter_items,
             name="Category",

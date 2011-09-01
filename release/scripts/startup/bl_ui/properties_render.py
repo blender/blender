@@ -18,28 +18,29 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Menu, Panel
 from blf import gettext as _
 
 
-class RENDER_MT_presets(bpy.types.Menu):
+class RENDER_MT_presets(Menu):
     bl_label = _("Render Presets")
     preset_subdir = "render"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
-class RENDER_MT_ffmpeg_presets(bpy.types.Menu):
+class RENDER_MT_ffmpeg_presets(Menu):
     bl_label = _("FFMPEG Presets")
     preset_subdir = "ffmpeg"
     preset_operator = "script.python_file_run"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
-class RENDER_MT_framerate_presets(bpy.types.Menu):
+class RENDER_MT_framerate_presets(Menu):
     bl_label = _("Frame Rate Presets")
     preset_subdir = "framerate"
     preset_operator = "script.execute_preset"
-    draw = bpy.types.Menu.draw_preset
+    draw = Menu.draw_preset
 
 
 class RenderButtonsPanel():
@@ -54,7 +55,7 @@ class RenderButtonsPanel():
         return (context.scene and rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
-class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_render(RenderButtonsPanel, Panel):
     bl_label = _("Render")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -70,7 +71,7 @@ class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
         layout.prop(rd, "display_mode", text=_("Display"))
 
 
-class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_layers(RenderButtonsPanel, Panel):
     bl_label = _("Layers")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -174,7 +175,7 @@ class RENDER_PT_layers(RenderButtonsPanel, bpy.types.Panel):
         row.prop(rl, "exclude_refraction", text="")
 
 
-class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
     bl_label = _("Dimensions")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -241,7 +242,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, bpy.types.Panel):
         subrow.prop(rd, "frame_map_new", text=_("New"))
 
 
-class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_antialiasing(RenderButtonsPanel, Panel):
     bl_label = _("Anti-Aliasing")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -269,7 +270,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "filter_size", text=_("Size"))
 
 
-class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_motion_blur(RenderButtonsPanel, Panel):
     bl_label = _("Sampled Motion Blur")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -295,7 +296,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel, bpy.types.Panel):
         row.prop(rd, "motion_blur_shutter")
 
 
-class RENDER_PT_shading(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_shading(RenderButtonsPanel, Panel):
     bl_label = _("Shading")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -319,7 +320,7 @@ class RENDER_PT_shading(RenderButtonsPanel, bpy.types.Panel):
         col.prop(rd, "alpha_mode", text=_("Alpha"))
 
 
-class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_performance(RenderButtonsPanel, Panel):
     bl_label = _("Performance")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -362,7 +363,7 @@ class RENDER_PT_performance(RenderButtonsPanel, bpy.types.Panel):
         sub.prop(rd, "use_local_coords", text=_("Local Coordinates"))
 
 
-class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
     bl_label = _("Post Processing")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -399,7 +400,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel, bpy.types.Panel):
         sub.prop(rd, "edge_color", text="")
 
 
-class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_stamp(RenderButtonsPanel, Panel):
     bl_label = _("Stamp")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -444,7 +445,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, bpy.types.Panel):
         sub.prop(rd, "stamp_note_text", text="")
 
 
-class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_output(RenderButtonsPanel, Panel):
     bl_label = _("Output")
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -544,7 +545,7 @@ class RENDER_PT_output(RenderButtonsPanel, bpy.types.Panel):
                 col.prop(rd, "quicktime_audio_resampling_hq")
 
 
-class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_encoding(RenderButtonsPanel, Panel):
     bl_label = _("Encoding")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -592,16 +593,12 @@ class RENDER_PT_encoding(RenderButtonsPanel, bpy.types.Panel):
         if rd.ffmpeg_format not in {'MP3'}:
             layout.prop(rd, "ffmpeg_audio_codec", text=_("Audio Codec"))
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "ffmpeg_audio_bitrate")
-        col.prop(rd, "ffmpeg_audio_mixrate")
-
-        split.prop(rd, "ffmpeg_audio_volume", slider=True)
+        row = layout.row()
+        row.prop(rd, "ffmpeg_audio_bitrate")
+        row.prop(rd, "ffmpeg_audio_volume", slider=True)
 
 
-class RENDER_PT_bake(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_bake(RenderButtonsPanel, Panel):
     bl_label = _("Bake")
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}

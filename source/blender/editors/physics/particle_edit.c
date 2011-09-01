@@ -3990,7 +3990,7 @@ static void PTCacheUndo_clear(PTCacheEdit *edit)
 {
 	PTCacheUndo *undo;
 
-	if(edit==0) return;
+	if(edit==NULL) return;
 	
 	undo= edit->undo.first;
 	while(undo) {

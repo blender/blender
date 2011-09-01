@@ -206,7 +206,7 @@ def setup_staticlibs(lenv):
         if lenv['WITH_BF_STATICJEMALLOC']:
             statlibs += Split(lenv['BF_JEMALLOC_LIB_STATIC'])
 
-    if lenv['OURPLATFORM']=='linux2':
+    if lenv['OURPLATFORM']=='linux':
         if lenv['WITH_BF_3DMOUSE']:
             libincs += Split(lenv['BF_3DMOUSE_LIBPATH'])
             if lenv['WITH_BF_STATIC3DMOUSE']:
@@ -277,7 +277,7 @@ def setup_syslibs(lenv):
         if not lenv['WITH_BF_STATICJEMALLOC']:
             syslibs += Split(lenv['BF_JEMALLOC_LIB'])
 
-    if lenv['OURPLATFORM']=='linux2':
+    if lenv['OURPLATFORM']=='linux':
         if lenv['WITH_BF_3DMOUSE']:
             if not lenv['WITH_BF_STATIC3DMOUSE']:
                 syslibs += Split(lenv['BF_3DMOUSE_LIB'])
@@ -364,16 +364,16 @@ def buildinfo(lenv, build_type):
 
     obj = []
     if lenv['BF_BUILDINFO']:
-        lenv.Append (CPPDEFINES = ['BUILD_TIME="%s"'%(build_time),
-                                    'BUILD_DATE="%s"'%(build_date),
-                                    'BUILD_TYPE="%s"'%(build_type),
-                                    'BUILD_REV="%s"'%(build_rev),
-                                    'NAN_BUILDINFO',
-                                    'BUILD_PLATFORM="%s:%s"'%(platform.system(), platform.architecture()[0]),
+        lenv.Append (CPPDEFINES = ['BUILD_TIME=\\"%s\\"'%(build_time),
+                                    'BUILD_DATE=\\"%s\\"'%(build_date),
+                                    'BUILD_TYPE=\\"%s\\"'%(build_type),
+                                    'BUILD_REV=\\"%s\\"'%(build_rev),
+                                    'WITH_BUILDINFO',
+                                    'BUILD_PLATFORM=\\"%s:%s\\"'%(platform.system(), platform.architecture()[0]),
                                     'BUILD_CFLAGS=\\"%s\\"'%(build_cflags),
                                     'BUILD_CXXFLAGS=\\"%s\\"'%(build_cxxflags),
                                     'BUILD_LINKFLAGS=\\"%s\\"'%(build_linkflags),
-                                    'BUILD_SYSTEM="SCons"'
+                                    'BUILD_SYSTEM=\\"SCons\\"'
                     ])
 
         lenv.Append (CPPPATH = [root_build_dir+'source/blender/blenkernel'])
@@ -536,7 +536,10 @@ def AppIt(target=None, source=None, env=None):
     print("Installing to %s"%(installdir))
     # TODO, use tar.
     python_zip = 'python_' + osxarch + '.zip' # set specific python_arch.zip
-    print("unzipping to app-bundle: %s"%(python_zip))
+    if env['WITH_OSX_STATICPYTHON']:
+        print("unzipping to app-bundle: %s"%(python_zip))
+    else:
+        print("dynamic build - make sure to have python3.x-framework installed")
     bldroot = env.Dir('.').abspath
     binary = env['BINARYKIND']
      
@@ -569,10 +572,11 @@ def AppIt(target=None, source=None, env=None):
     commands.getoutput(cmd)
     cmd = 'cp %s/release/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
     commands.getoutput(cmd)
-    cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
-    commands.getoutput(cmd)
-    cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
-    commands.getoutput(cmd)
+    if env['WITH_OSX_STATICPYTHON']:
+        cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
+        commands.getoutput(cmd)
+        cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
+        commands.getoutput(cmd) 
 
     if binary == 'blender':#not copy everything for blenderplayer
         cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
@@ -775,7 +779,7 @@ class BlenderEnvironment(SConsEnvironment):
         if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
             if lenv['BF_DEBUG']:
                 lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb','/NODEFAULTLIB:libcmt'])
-        if  lenv['OURPLATFORM']=='linux2':
+        if  lenv['OURPLATFORM']=='linux':
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
         if  lenv['OURPLATFORM']=='sunos5':

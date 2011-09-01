@@ -99,7 +99,8 @@ void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
 	}
 }
 
-void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
+/* return TRUE if the camera is moved */
+int ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 {
 	if(ED_view3d_camera_lock_check(v3d, rv3d)) {
 		Object *root_parent;
@@ -134,6 +135,11 @@ void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 			WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, v3d->camera);
 		}
+
+		return TRUE;
+	}
+	else {
+		return FALSE;
 	}
 }
 
@@ -374,12 +380,12 @@ static void calctrackballvec(rcti *rect, int mx, int my, float *vec)
 	y/= (float)((rect->ymax - rect->ymin)/2);
 
 	d = sqrt(x*x + y*y);
-	if (d < radius * (float)M_SQRT1_2)  	/* Inside sphere */
-		z = sqrt(radius*radius - d*d);
-	else
-	{ 			/* On hyperbola */
-		t = radius / (float)M_SQRT2;
-		z = t*t / d;
+	if (d < radius * (float)M_SQRT1_2) { /* Inside sphere */
+		z= sqrt(radius*radius - d*d);
+	}
+	else { /* On hyperbola */
+		t= radius / (float)M_SQRT2;
+		z= t*t / d;
 	}
 
 	vec[0]= x;
@@ -946,16 +952,21 @@ void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
 	axis_angle_to_quat(q, axis, angle);
 }
 
+/* -- "orbit" navigation (trackball/turntable)
+ * -- zooming
+ * -- panning in rotationally-locked views
+ */
 static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
-// -- "orbit" navigation (trackball/turntable)
-// -- zooming
-// -- panning in rotationally-locked views
 {
-	if (event->type != NDOF_MOTION)
+	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;
+	}
 	else {
+		View3D *v3d= CTX_wm_view3d(C);
 		RegionView3D* rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+
+		ED_view3d_camera_lock_init(v3d, rv3d);
 
 		rv3d->rot_angle = 0.f; // off by default, until changed later this function
 
@@ -1066,6 +1077,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 			}
 		}
 
+		ED_view3d_camera_lock_sync(v3d, rv3d);
+
 		ED_region_tag_redraw(CTX_wm_region(C));
 
 		return OPERATOR_FINISHED;
@@ -1087,16 +1100,20 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 	ot->flag = 0;
 }
 
+/* -- "pan" navigation
+ * -- zoom or dolly?
+ */
 static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
-// -- "pan" navigation
-// -- zoom or dolly?
 {
-	if (event->type != NDOF_MOTION)
+	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;
+	}
 	else {
+		View3D *v3d= CTX_wm_view3d(C);
 		RegionView3D* rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
+		ED_view3d_camera_lock_init(v3d, rv3d);
 
 		rv3d->rot_angle = 0.f; // we're panning here! so erase any leftover rotation from other operators
 
@@ -1142,6 +1159,8 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
 			sub_v3_v3(rv3d->ofs, pan_vec);
 		}
+
+		ED_view3d_camera_lock_sync(v3d, rv3d);
 
 		ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -1622,8 +1641,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	vod= op->customdata;
 
 	/* if one or the other zoom position aren't set, set from event */
-	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
-	{
+	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my")) {
 		RNA_int_set(op->ptr, "mx", event->x);
 		RNA_int_set(op->ptr, "my", event->y);
 	}
@@ -1699,7 +1717,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 static void view_dolly_mouseloc(ARegion *ar, float orig_ofs[3], float dvec[3], float dfac)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0 - dfac));
+	madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0f - dfac));
 }
 
 static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_invert)
@@ -1720,7 +1738,7 @@ static void viewdolly_apply(ViewOpsData *vod, int x, int y, const short zoom_inv
 		if (zoom_invert)
 			SWAP(float, len1, len2);
 
-		zfac =  1.0 + ((len2 - len1) * 0.01 * vod->rv3d->dist);
+		zfac =  1.0f + ((len2 - len1) * 0.01f * vod->rv3d->dist);
 	}
 
 	if(zfac != 1.0f)
@@ -1836,8 +1854,7 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	vod= op->customdata;
 
 	/* if one or the other zoom position aren't set, set from event */
-	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my"))
-	{
+	if (!RNA_property_is_set(op->ptr, "mx") || !RNA_property_is_set(op->ptr, "my")) {
 		RNA_int_set(op->ptr, "mx", event->x);
 		RNA_int_set(op->ptr, "my", event->y);
 	}
@@ -3460,7 +3477,7 @@ void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 		copy_m3_m4(nmat, mat);
 		normalize_m3(nmat);
 
-		mul_m3_v3(nmat, vec);;
+		mul_m3_v3(nmat, vec);
 		sub_v3_v3(ofs, vec);
 	}
 }
