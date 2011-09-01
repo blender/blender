@@ -202,10 +202,14 @@ bool BlenderSync::get_session_pause(BL::Scene b_scene, bool background)
 SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background)
 {
 	SessionParams params;
+	DeviceType dtype;
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
 	/* device type */
-	DeviceType dtype = (RNA_enum_get(&cscene, "device") == 1)? DEVICE_CUDA: DEVICE_CPU;
+	if ((RNA_enum_get(&cscene, "device")) == 0)
+		dtype = DEVICE_CPU;
+	else 
+		dtype = ((RNA_enum_get(&cscene, "gpu_type")) == 0)? DEVICE_CUDA: DEVICE_OPENCL;
 
 	params.device_type = DEVICE_CPU;
 	vector<DeviceType> types = Device::available_types();

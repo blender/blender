@@ -28,6 +28,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 
         cls.device = EnumProperty(name="Device", description="Device to use for rendering",
             items=enums.devices, default="CPU")
+            
+        cls.gpu_type = EnumProperty(name="GPU Type", description="Processing system to use on the GPU",
+            items=enums.gpu_type, default="CUDA")
 
         cls.shading_system = EnumProperty(name="Shading System", description="Shading system to use for rendering",
             items=enums.shading_systems, default="GPU_COMPATIBLE")

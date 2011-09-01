@@ -522,8 +522,10 @@ def draw_device(self, context):
     if scene.render.engine == "CYCLES":
         cscene = scene.cycles
 
-        if 'cuda' in engine.available_devices():
+        if ('cuda' or 'opencl') in engine.available_devices():
             layout.prop(cscene, "device")
+            if cscene.device == 'GPU':
+                layout.prop(cscene, "gpu_type", expand=True)
         if cscene.device == 'CPU' and engine.with_osl():
             layout.prop(cscene, "shading_system")
 

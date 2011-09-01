@@ -18,7 +18,11 @@
 
 devices = (
 ("CPU", "CPU", "Processor"),
-("GPU", "GPU", "Graphics card (NVidia only)"))
+("GPU", "GPU", "Graphics card"))
+
+gpu_type = (
+("CUDA", "CUDA", "NVidia only"),
+("OPENCL", "OpenCL", ""))
 
 shading_systems = (
 ("GPU_COMPATIBLE", "GPU Compatible", "Restricted shading system compatible with GPU rendering"),
