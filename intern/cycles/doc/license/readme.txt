@@ -8,4 +8,5 @@ This program uses code from various sources. These are the licenses:
 * Sobol direction vectors are licensed under the Modified BSD license.
 * Matrix code adapted from OpenEXR under the Modified BSD license.
 * Procedural texture functions from Blender are licensed under GPL v2 or later.
+* Boost and OpenCL dynamic loading under Boost License.
 

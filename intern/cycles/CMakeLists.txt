@@ -54,8 +54,6 @@ endif()
 
 if(WITH_CYCLES_OPENCL)
   add_definitions(-DWITH_OPENCL)
-  include_directories(${OPENCL_INCLUDE_DIR})
-
 endif()
 
 include_directories(

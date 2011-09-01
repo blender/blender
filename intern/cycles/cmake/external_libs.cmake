@@ -104,24 +104,3 @@ if(WITH_CYCLES_CUDA)
 
 endif()
 
-###########################################################################
-# OpenCL
-
-if(WITH_CYCLES_OPENCL)
-
-	if(APPLE)
-		set(OPENCL_INCLUDE_DIR "/System/Library/Frameworks/OpenCL.framework/Headers")
-		set(OPENCL_LIBRARIES "-framework OpenCL")
-	endif()
-
-	if(WIN32)
-		set(OPENCL_INCLUDE_DIR "")
-		set(OPENCL_LIBRARIES "OpenCL")
-	endif()
-
-	if(UNIX AND NOT APPLE)
-		set(OPENCL_INCLUDE_DIR ${CYCLES_OPENCL})
-		set(OPENCL_LIBRARIES "OpenCL")
-	endif()
-endif()
-

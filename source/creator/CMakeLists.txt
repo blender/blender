@@ -739,7 +739,6 @@ if(WITH_CYCLES)
 		cycles_subd)
 endif()
 
-
 #if(UNIX)
 	# Sort libraries
 	set(BLENDER_SORTED_LIBS

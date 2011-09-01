@@ -24,6 +24,7 @@
 
 #include "util_cuda.h"
 #include "util_debug.h"
+#include "util_opencl.h"
 #include "util_opengl.h"
 #include "util_types.h"
 #include "util_vector.h"
@@ -135,7 +136,10 @@ Device *Device::create(DeviceType type, bool background, int threads)
 #endif
 #ifdef WITH_OPENCL
 		case DEVICE_OPENCL:
-			device = device_opencl_create(background);
+			if(clLibraryInit())
+				device = device_opencl_create(background);
+			else
+				device = NULL;
 			break;
 #endif
 		default:
@@ -189,7 +193,8 @@ vector<DeviceType> Device::available_types()
 #endif
 
 #ifdef WITH_OPENCL
-	types.push_back(DEVICE_OPENCL);
+	if(clLibraryInit())
+		types.push_back(DEVICE_OPENCL);
 #endif
 
 #ifdef WITH_NETWORK

@@ -35,10 +35,6 @@ if(WITH_CYCLES_PARTIO)
 	list(APPEND LIBRARIES ${PARTIO_LIBRARIES})
 endif()
 
-if(WITH_CYCLES_OPENCL)
-	list(APPEND LIBRARIES ${OPENCL_LIBRARIES})
-endif()
-
 if(WITH_CYCLES_TEST)
 	add_executable(cycles_test cycles_test.cpp cycles_xml.cpp cycles_xml.h)
 	target_link_libraries(cycles_test ${LIBRARIES})

@@ -22,18 +22,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef __APPLE__
-#include <cl.h>
-#include <cl_ext.h>
-#else
-#include <CL/cl.h>
-#include <CL/cl_ext.h>
-#endif
-
 #include "device.h"
 #include "device_intern.h"
 
 #include "util_map.h"
+#include "util_opencl.h"
 #include "util_opengl.h"
 #include "util_path.h"
 #include "util_time.h"
@@ -150,7 +143,6 @@ public:
 
 		string build_options = "";
 
-		string csource = "../blender/intern/cycles";
 		build_options += "-I " + path_get("kernel") + " -I " + path_get("util"); /* todo: escape path */
 		build_options += " -Werror -cl-fast-relaxed-math -cl-strict-aliasing";
 
