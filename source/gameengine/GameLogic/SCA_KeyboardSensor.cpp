@@ -132,7 +132,7 @@ bool SCA_KeyboardSensor::Evaluate()
 	//  	cerr << "SCA_KeyboardSensor::Eval event, sensing for "<< m_hotkey << " at device " << inputdev << "\n";
 
 	/* See if we need to do logging: togPropState exists and is
-     * different from 0 */
+	 * different from 0 */
 	CValue* myparent = GetParent();
 	CValue* togPropState = myparent->GetProperty(m_toggleprop);
 	if (togPropState &&
@@ -400,7 +400,7 @@ void SCA_KeyboardSensor::LogKeystrokes(void)
 		
 		int index = 0;
 		/* Check on all keys whether they were pushed. This does not
-         * untangle the ordering, so don't type too fast :) */
+		 * untangle the ordering, so don't type too fast :) */
 		for (int i=SCA_IInputDevice::KX_BEGINKEY ; i<= SCA_IInputDevice::KX_ENDKEY;i++)
 		{
 			const SCA_InputEvent & inevent = inputdev->GetEventValue((SCA_IInputDevice::KX_EnumInputs) i);

@@ -389,10 +389,10 @@ static PyObject* gPyGetSpectrum(PyObject*)
 {
 	PyObject* resultlist = PyList_New(512);
 
-        for (int index = 0; index < 512; index++)
-        {
-                PyList_SET_ITEM(resultlist, index, PyFloat_FromDouble(0.0));
-        }
+	for (int index = 0; index < 512; index++)
+	{
+		PyList_SET_ITEM(resultlist, index, PyFloat_FromDouble(0.0));
+	}
 
 	return resultlist;
 }
@@ -479,13 +479,13 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	char cpath[sizeof(gp_GamePythonPath)];
 	char *searchpath = NULL;
 	PyObject* list, *value;
-	
-    DIR *dp;
-    struct dirent *dirp;
-	
+
+	DIR *dp;
+	struct dirent *dirp;
+
 	if (!PyArg_ParseTuple(args, "|s:getBlendFileList", &searchpath))
 		return NULL;
-	
+
 	list = PyList_New(0);
 	
 	if (searchpath) {
@@ -495,23 +495,23 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 		/* Get the dir only */
 		BLI_split_dirfile(gp_GamePythonPath, cpath, NULL);
 	}
-	
-    if((dp  = opendir(cpath)) == NULL) {
+
+	if((dp  = opendir(cpath)) == NULL) {
 		/* todo, show the errno, this shouldnt happen anyway if the blendfile is readable */
 		fprintf(stderr, "Could not read directoty (%s) failed, code %d (%s)\n", cpath, errno, strerror(errno));
 		return list;
-    }
+	}
 	
-    while ((dirp = readdir(dp)) != NULL) {
+	while ((dirp = readdir(dp)) != NULL) {
 		if (BLI_testextensie(dirp->d_name, ".blend")) {
 			value= PyUnicode_DecodeFSDefault(dirp->d_name);
 			PyList_Append(list, value);
 			Py_DECREF(value);
 		}
-    }
+	}
 	
-    closedir(dp);
-    return list;
+	closedir(dp);
+	return list;
 }
 
 static char gPyAddScene_doc[] = 
@@ -1662,9 +1662,9 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 
 	// Check for errors
 	if (PyErr_Occurred())
-    {
+	{
 		Py_FatalError("can't initialize module bge.logic");
-    }
+	}
 
 	return m;
 }
@@ -1954,12 +1954,12 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 	gp_Rasterizer = rasty;
 
 
-  PyObject* m;
-  PyObject* d;
-  PyObject* item;
+	PyObject* m;
+	PyObject* d;
+	PyObject* item;
 
 	/* Use existing module where possible
-	 * be careful not to init any runtime vars after this */
+  * be careful not to init any runtime vars after this */
 	m = PyImport_ImportModule( "Rasterizer" );
 	if(m) {
 		Py_DECREF(m);
@@ -1967,32 +1967,32 @@ PyObject* initRasterizer(RAS_IRasterizer* rasty,RAS_ICanvas* canvas)
 	}
 	else {
 		PyErr_Clear();
-	
+
 		// Create the module and add the functions
 		m = PyModule_Create(&Rasterizer_module_def);
 		PyDict_SetItemString(PySys_GetObject("modules"), Rasterizer_module_def.m_name, m);
 	}
 
-  // Add some symbolic constants to the module
-  d = PyModule_GetDict(m);
-  ErrorObject = PyUnicode_FromString("Rasterizer.error");
-  PyDict_SetItemString(d, "error", ErrorObject);
-  Py_DECREF(ErrorObject);
+	// Add some symbolic constants to the module
+	d = PyModule_GetDict(m);
+	ErrorObject = PyUnicode_FromString("Rasterizer.error");
+	PyDict_SetItemString(d, "error", ErrorObject);
+	Py_DECREF(ErrorObject);
 
-  /* needed for get/setMaterialType */
-  KX_MACRO_addTypesToDict(d, KX_TEXFACE_MATERIAL, KX_TEXFACE_MATERIAL);
-  KX_MACRO_addTypesToDict(d, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL);
-  KX_MACRO_addTypesToDict(d, KX_BLENDER_GLSL_MATERIAL, KX_BLENDER_GLSL_MATERIAL);
+	/* needed for get/setMaterialType */
+	KX_MACRO_addTypesToDict(d, KX_TEXFACE_MATERIAL, KX_TEXFACE_MATERIAL);
+	KX_MACRO_addTypesToDict(d, KX_BLENDER_MULTITEX_MATERIAL, KX_BLENDER_MULTITEX_MATERIAL);
+	KX_MACRO_addTypesToDict(d, KX_BLENDER_GLSL_MATERIAL, KX_BLENDER_GLSL_MATERIAL);
 
-  // XXXX Add constants here
+	// XXXX Add constants here
 
-  // Check for errors
-  if (PyErr_Occurred())
-    {
-      Py_FatalError("can't initialize module Rasterizer");
-    }
+	// Check for errors
+	if (PyErr_Occurred())
+	{
+		Py_FatalError("can't initialize module Rasterizer");
+	}
 
-  return d;
+	return d;
 }
 
 
@@ -2231,9 +2231,9 @@ PyObject* initGameKeys()
 
 	// Check for errors
 	if (PyErr_Occurred())
-    {
+	{
 		Py_FatalError("can't initialize module GameKeys");
-    }
+	}
 
 	return d;
 }

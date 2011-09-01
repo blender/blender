@@ -380,12 +380,12 @@ int main(int argc, char** argv)
 #endif /* __linux__ */
 	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
 #ifdef __APPLE__
-    // Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
-    /*
-    IBNibRef 		nibRef;
-    WindowRef 		window;
-    OSStatus		err;
-	
+	// Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
+	/*
+	IBNibRef 		nibRef;
+	WindowRef 		window;
+	OSStatus		err;
+
 	  // Create a Nib reference passing the name of the nib file (without the .nib extension)
 	  // CreateNibReference only searches into the application bundle.
 	  err = ::CreateNibReference(CFSTR("main"), &nibRef);
@@ -398,7 +398,7 @@ int main(int argc, char** argv)
 		
 		  // We don't need the nib reference anymore.
 		  ::DisposeNibReference(nibRef);
-    */
+	*/
 #endif // __APPLE__
 	
 	// We don't use threads directly in the BGE, but we need to call this so things like
@@ -421,7 +421,7 @@ int main(int argc, char** argv)
 	BLF_init(11, U.dpi);
 	BLF_lang_init();
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
- 
+
 	// Parse command line options
 #if defined(DEBUG)
 	printf("argv[0] = '%s'\n", argv[0]);

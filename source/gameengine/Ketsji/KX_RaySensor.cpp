@@ -83,7 +83,7 @@ void KX_RaySensor::Init()
 
 KX_RaySensor::~KX_RaySensor() 
 {
-    /* Nothing to be done here. */
+	/* Nothing to be done here. */
 }
 
 
@@ -279,7 +279,7 @@ bool KX_RaySensor::Evaluate()
 
 	/* now pass this result to some controller */
 
-    if (m_rayHit)
+	if (m_rayHit)
 	{
 		if (!m_bTriggered)
 		{
@@ -288,14 +288,14 @@ bool KX_RaySensor::Evaluate()
 			m_bTriggered = true;
 		}
 		else
-		  {
+		{
 			// notify logicsystem that ray is STILL hitting ...
 			result = false;
-		    
-		  }
+
+		}
 	}
-    else
-      {
+	else
+	{
 		if (m_bTriggered)
 		{
 			m_bTriggered = false;
@@ -306,9 +306,9 @@ bool KX_RaySensor::Evaluate()
 		{
 			result = false;
 		}
-	
-      }
-    if (reset)
+
+	}
+	if (reset)
 		// force an event
 		result = true;
 

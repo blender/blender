@@ -66,8 +66,8 @@ void KX_NetworkEventManager::NextFrame()
 	for (it.begin();!it.end();++it)
 	{
 //	    printf("KX_NetworkEventManager::proceed sensor %.2f\n", curtime);
-	    // process queue
-	    (*it)->Activate(m_logicmgr);
+		// process queue
+		(*it)->Activate(m_logicmgr);
 	}
 
 	// now a list of triggerer sensors has been built

@@ -116,7 +116,7 @@ bool   KX_KetsjiEngine::m_restrict_anim_fps = false;
  *	Constructor of the Ketsji Engine
  */
 KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
-     :	m_canvas(NULL),
+	:	m_canvas(NULL),
 	m_rasterizer(NULL),
 	m_kxsystem(system),
 	m_rendertools(NULL),

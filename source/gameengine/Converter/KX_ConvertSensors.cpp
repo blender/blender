@@ -276,7 +276,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		gReverseKeyTranslateTable[ENDKEY			] = SCA_IInputDevice::KX_ENDKEY;
 	}
 
-    int executePriority = 0;
+	int executePriority = 0;
 	int uniqueint = 0;
 	int count = 0;
 	bSensor* sens = (bSensor*)blenderobject->sensors.first;
