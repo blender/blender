@@ -338,20 +338,35 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 			BLI_edgehash_insert(eh, med->v1, med->v2, med);
 	}
 
-	for (i = 0; i < totface; i++, mf++) {
-		if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
-			BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
-		if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
-			BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
+	if(mesh->totpoly) {
+		/* mesh loops (bmesh only) */
+		MPoly *mp= mesh->mpoly;
+		for(i=0; i < mesh->totpoly; i++, mp++) {
+			MLoop *l= &mesh->mloop[mp->loopstart];
+			int j, l_prev= (l + (mp->totloop-1))->v;
+			for (j=0; j < mp->totloop; j++, l++) {
+				BLI_edgehash_insert(eh, l_prev, l->v, NULL);
+				l_prev= l->v;
+			}
+		}
+	}
+	else {
+		/* regular faces (note, we could remove this for bmesh - campbell) */
+		for (i = 0; i < totface; i++, mf++) {
+			if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
+				BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
+			if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
+				BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
 
-		if (mf->v4) {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v4))
-				BLI_edgehash_insert(eh, mf->v3, mf->v4, NULL);
-			if (!BLI_edgehash_haskey(eh, mf->v4, mf->v1))
-				BLI_edgehash_insert(eh, mf->v4, mf->v1, NULL);
-		} else {
-			if (!BLI_edgehash_haskey(eh, mf->v3, mf->v1))
-				BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
+			if (mf->v4) {
+				if (!BLI_edgehash_haskey(eh, mf->v3, mf->v4))
+					BLI_edgehash_insert(eh, mf->v3, mf->v4, NULL);
+				if (!BLI_edgehash_haskey(eh, mf->v4, mf->v1))
+					BLI_edgehash_insert(eh, mf->v4, mf->v1, NULL);
+			} else {
+				if (!BLI_edgehash_haskey(eh, mf->v3, mf->v1))
+					BLI_edgehash_insert(eh, mf->v3, mf->v1, NULL);
+			}
 		}
 	}
 
