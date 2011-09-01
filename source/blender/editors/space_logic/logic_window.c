@@ -3677,7 +3677,7 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA settings_ptr;
-	uiLayout *row, *subrow, *col;;
+	uiLayout *row, *subrow, *col;
 
 	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
 

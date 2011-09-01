@@ -59,14 +59,12 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-
         col.label("Listener:")
         col.prop(scene, "audio_distance_model", text="")
         col.prop(scene, "audio_doppler_speed", text="Speed")
         col.prop(scene, "audio_doppler_factor", text="Doppler")
 
         col = split.column()
-
         col.label("Format:")
         col.prop(rd, "ffmpeg_audio_channels", text="")
         col.prop(rd, "ffmpeg_audio_mixrate", text="Rate")

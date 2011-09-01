@@ -277,8 +277,10 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
 		RNA_boolean_set(op->ptr, "view_align", view_align);
 	}
 	
-	if (view_align)
+	if (view_align) {
 		ED_object_rotation_from_view(C, rot);
+		RNA_float_set_array(op->ptr, "rotation", rot);
+	}
 	else
 		RNA_float_get_array(op->ptr, "rotation", rot);
 	

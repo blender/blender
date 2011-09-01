@@ -55,6 +55,8 @@ set(SRC
 	intern/filetype.c
 	intern/filter.c
 	intern/imageprocess.c
+	intern/indexer.c
+	intern/indexer_dv.c
 	intern/iris.c
 	intern/jp2.c
 	intern/jpeg.c
@@ -73,7 +75,6 @@ set(SRC
 	intern/tiff.c
 	intern/util.c
 	intern/writeimage.c
-	intern/indexer.c
 
 	IMB_imbuf.h
 	IMB_imbuf_types.h
@@ -82,6 +83,7 @@ set(SRC
 	intern/IMB_anim.h
 	intern/IMB_filetype.h
 	intern/IMB_filter.h
+	intern/IMB_indexer.h
 	intern/IMB_metadata.h
 	intern/cineon/cin_debug_stuff.h
 	intern/cineon/cineonfile.h

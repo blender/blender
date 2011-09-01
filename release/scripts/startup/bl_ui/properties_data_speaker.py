@@ -66,10 +66,7 @@ class DATA_PT_speaker(DataButtonsPanel, bpy.types.Panel):
         split.template_ID(speaker, "sound", open="sound.open_mono")
         split.prop(speaker, "muted")
 
-        split = layout.split()
-
-        row = split.row()
-
+        row = layout.row()
         row.prop(speaker, "volume")
         row.prop(speaker, "pitch")
 
@@ -84,15 +81,14 @@ class DATA_PT_distance(DataButtonsPanel, bpy.types.Panel):
         speaker = context.speaker
 
         split = layout.split()
+        
         col = split.column()
-
         col.label("Volume:")
         col.prop(speaker, "volume_min", text="Minimum")
         col.prop(speaker, "volume_max", text="Maximum")
         col.prop(speaker, "attenuation")
 
         col = split.column()
-
         col.label("Distance:")
         col.prop(speaker, "distance_max", text="Maximum")
         col.prop(speaker, "distance_reference", text="Reference")

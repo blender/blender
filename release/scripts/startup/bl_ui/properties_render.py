@@ -592,12 +592,9 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         if rd.ffmpeg_format not in {'MP3'}:
             layout.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "ffmpeg_audio_bitrate")
-        col = split.column()
-        col.prop(rd, "ffmpeg_audio_volume", slider=True)
+        row = layout.row()
+        row.prop(rd, "ffmpeg_audio_bitrate")
+        row.prop(rd, "ffmpeg_audio_volume", slider=True)
 
 
 class RENDER_PT_bake(RenderButtonsPanel, Panel):

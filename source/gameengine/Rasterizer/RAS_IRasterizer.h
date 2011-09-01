@@ -417,6 +417,9 @@ public:
 
 	virtual void	SetBlendingMode(int blendmode)=0;
 	virtual void	SetFrontFace(bool ccw)=0;
+
+	virtual void	SetAnisotropicFiltering(short level)=0;
+	virtual short	GetAnisotropicFiltering()=0;
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC

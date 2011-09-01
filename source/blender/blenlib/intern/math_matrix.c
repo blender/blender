@@ -820,7 +820,7 @@ void normalize_m4_m4(float rmat[][4], float mat[][4])
 	len= normalize_v3_v3(rmat[1], mat[1]);
 	if(len!=0.0f) rmat[1][3]= mat[1][3] / len;
 	len= normalize_v3_v3(rmat[2], mat[2]);
-	if(len!=0.0f) rmat[2][3]= mat[2][3] / len;;
+	if(len!=0.0f) rmat[2][3]= mat[2][3] / len;
 }
 
 void adjoint_m3_m3(float m1[][3], float m[][3])

@@ -468,10 +468,10 @@ static void nla_draw_strip_text (AnimData *adt, NlaTrack *nlt, NlaStrip *strip, 
 	
 	/* just print the name and the range */
 	if (strip->flag & NLASTRIP_FLAG_TEMP_META) {
-		sprintf(str, "%d) Temp-Meta", index);
+		BLI_snprintf(str, sizeof(str), "%d) Temp-Meta", index);
 	}
 	else {
-		sprintf(str, strip->name);
+		BLI_strncpy(str, strip->name, sizeof(str));
 	}
 	
 	/* set text color - if colors (see above) are light, draw black text, otherwise draw white */
@@ -514,7 +514,7 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 {
 	const float ytol = 1.0f; /* small offset to vertical positioning of text, for legibility */
 	const char col[4] = {220, 220, 220, 255}; /* light grey */
-	char str[16] = "";
+	char str[32] = "";
 	
 	
 	/* Always draw times above the strip, whereas sequencer drew below + above.
@@ -524,11 +524,11 @@ static void nla_draw_strip_frames_text(NlaTrack *UNUSED(nlt), NlaStrip *strip, V
 	 *	  while also preserving some accuracy, since we do use floats
 	 */
 		/* start frame */
-	sprintf(str, "%.1f", strip->start);
+	BLI_snprintf(str, sizeof(str), "%.1f", strip->start);
 	UI_view2d_text_cache_add(v2d, strip->start-1.0f, ymaxc+ytol, str, col);
 	
 		/* end frame */
-	sprintf(str, "%.1f", strip->end);
+	BLI_snprintf(str, sizeof(str), "%.1f", strip->end);
 	UI_view2d_text_cache_add(v2d, strip->end, ymaxc+ytol, str, col);
 }
 
@@ -730,9 +730,9 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					special = ICON_ACTION;
 					
 					if (act)
-						sprintf(name, "%s", act->id.name+2);
+						BLI_snprintf(name, sizeof(name), "%s", act->id.name+2);
 					else
-						sprintf(name, "<No Action>");
+						BLI_strncpy(name, "<No Action>", sizeof(name));
 						
 					// draw manually still
 					doDraw= 1;

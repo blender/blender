@@ -600,7 +600,7 @@ static short select_grouped_keyingset(bContext *C, Object *UNUSED(ob))
 			 */
 			for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
 				/* if id matches, select then stop looping (match found) */
-				if (ksp->id == base->object) {
+				if (ksp->id == (ID *)base->object) {
 					ED_base_object_select(base, BA_SELECT);
 					changed = 1;
 					break;

@@ -1273,7 +1273,7 @@ static int acf_dstex_icon(bAnimListElem *UNUSED(ale))
 
 /* offset for texture expanders */
 // FIXME: soon to be obsolete?
-static short acf_dstex_offset(bAnimContext *UNUSED(ac), bAnimListElem *ale)
+static short acf_dstex_offset(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
 {
 	return 14; // XXX: simply include this in indention instead?
 }

@@ -3124,7 +3124,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getActionFrame,
 
 	layer_check(layer, "getActionFrame");
 
-	return PyLong_FromLong(GetActionFrame(layer));
+	return PyFloat_FromDouble(GetActionFrame(layer));
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, setActionFrame,

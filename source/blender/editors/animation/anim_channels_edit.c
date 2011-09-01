@@ -2018,7 +2018,7 @@ static void rename_anim_channels (bAnimContext *ac, int channel_index)
 	ED_region_tag_redraw(ac->ar);
 }
 
-static int animchannels_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
+static int animchannels_rename_invoke (bContext *C, wmOperator *UNUSED(op), wmEvent *evt)
 {
 	bAnimContext ac;
 	ARegion *ar;

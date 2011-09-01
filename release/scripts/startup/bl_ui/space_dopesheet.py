@@ -36,7 +36,7 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
 
     if is_nla:
         row.prop(dopesheet, "show_missing_nla", text="")
-    
+
     if not genericFiltersOnly:
         if bpy.data.groups:
             row = layout.row(align=True)
