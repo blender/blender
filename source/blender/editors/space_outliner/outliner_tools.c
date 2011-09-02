@@ -287,6 +287,8 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 	if(base==NULL) 
 		base= object_in_scene((Object *)tselem->id, scene);
 	if(base) {
+		SpaceOops *soops= CTX_wm_space_outliner(C);
+
 		// check also library later
 		if(scene->obedit==base->object) 
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
@@ -294,6 +296,13 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 		ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
 		te->directdata= NULL;
 		tselem->id= NULL;
+
+		/* XXX: tree management normally happens from draw_outliner(), but when
+		        you're clicking to fast on Delete object from context menu in
+		        outliner several mouse events can be handled in one cycle without
+		        handling notifiers/redraw which leads to deleting the same object twice.
+		        cleanup tree here to prevent such cases. */
+		outliner_cleanup_tree(soops);
 	}
 
 }

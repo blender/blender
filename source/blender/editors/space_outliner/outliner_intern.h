@@ -129,6 +129,7 @@ typedef struct TreeElement {
 /* outliner_tree.c ----------------------------------------------- */
 
 void outliner_free_tree(ListBase *lb);
+void outliner_cleanup_tree(struct SpaceOops *soops);
 
 TreeElement *outliner_find_tse(struct SpaceOops *soops, TreeStoreElem *tse);
 TreeElement *outliner_find_id(struct SpaceOops *soops, ListBase *lb, struct ID *id);
