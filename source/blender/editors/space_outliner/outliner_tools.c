@@ -510,6 +510,7 @@ static EnumPropertyItem prop_object_op_types[] = {
 	{6, "TOGVIS", 0, "Toggle Visible", ""},
 	{7, "TOGSEL", 0, "Toggle Selectable", ""},
 	{8, "TOGREN", 0, "Toggle Renderable", ""},
+	{9, "RENAME", 0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -567,6 +568,10 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		str= "Toggle Renderability";
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_RENDER, scene);
 	}
+	else if(event==9) {
+		outliner_do_object_operation(C, scene, soops, &soops->tree, item_rename_cb);
+		str= "Rename Object";
+	}
 
 	ED_undo_push(C, str);
 	
@@ -600,6 +605,7 @@ static EnumPropertyItem prop_group_op_types[] = {
 	{4, "TOGVIS", 0, "Toggle Visible", ""},
 	{5, "TOGSEL", 0, "Toggle Selectable", ""},
 	{6, "TOGREN", 0, "Toggle Renderable", ""},
+	{7, "RENAME", 0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -608,6 +614,7 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
+	const char *str= NULL;
 	
 	/* check for invalid states */
 	if (soops == NULL)
@@ -617,18 +624,35 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	
 	if(event==1) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_group_cb);
-		ED_undo_push(C, "Unlink group");
+		str= "Unlink group";
 	}
 	else if(event==2) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb);
-		ED_undo_push(C, "Localized Data");
+		str= "Localized Data";
 	}
 	else if(event==3) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb);
-		ED_undo_push(C, "Link Group Objects to Scene");
+		str= "Link Group Objects to Scene";
+	}
+	else if(event==4) {
+		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb);
+		str= "Toggle Visibility";
+	}
+	else if(event==5) {
+		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_selectability_cb);
+		str= "Toggle Selectability";
+	}
+	else if(event==6) {
+		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_renderability_cb);
+		str= "Toggle Renderability";
+	}
+	else if(event==7) {
+		outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
+		str= "Rename";
 	}
 	
 	
+	ED_undo_push(C, str);
 	WM_event_add_notifier(C, NC_GROUP, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -662,7 +686,8 @@ typedef enum eOutlinerIdOpTypes {
 	OUTLINER_IDOP_SINGLE,
 	
 	OUTLINER_IDOP_FAKE_ADD,
-	OUTLINER_IDOP_FAKE_CLEAR
+	OUTLINER_IDOP_FAKE_CLEAR,
+	OUTLINER_IDOP_RENAME
 } eOutlinerIdOpTypes;
 
 // TODO: implement support for changing the ID-block used
@@ -672,6 +697,7 @@ static EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
 	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User", "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
 	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
+	{OUTLINER_IDOP_RENAME, "RENAME", 0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -764,6 +790,14 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 			WM_event_add_notifier(C, NC_ID|NA_EDITED, NULL);
 			ED_undo_push(C, "Clear Fake User");
 		}
+			break;
+		case OUTLINER_IDOP_RENAME:
+			/* rename */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
+
+			WM_event_add_notifier(C, NC_ID|NA_EDITED, NULL);
+			ED_undo_push(C, "Rename");
+
 			break;
 			
 		default:
