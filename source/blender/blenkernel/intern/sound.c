@@ -39,8 +39,10 @@
 #include "BKE_sequencer.h"
 #include "BKE_scene.h"
 
+#ifdef WITH_AUDASPACE
 // evil global ;-)
 static int sound_cfra;
+#endif
 
 struct bSound* sound_new_file(struct Main *bmain, const char *filename)
 {

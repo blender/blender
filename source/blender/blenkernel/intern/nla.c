@@ -341,7 +341,7 @@ NlaStrip *add_nlastrip_to_stack (AnimData *adt, bAction *act)
 }
 
 /* Add a NLA Strip referencing the given speaker's sound */
-NlaStrip *add_nla_soundstrip (Scene *scene, Speaker *speaker)
+NlaStrip *add_nla_soundstrip (Scene *UNUSED(scene), Speaker *speaker)
 {
 	NlaStrip *strip = MEM_callocN(sizeof(NlaStrip), "NlaSoundStrip");
 	
@@ -359,6 +359,8 @@ NlaStrip *add_nla_soundstrip (Scene *scene, Speaker *speaker)
 #endif
 	{
 		strip->end = 10.0f;
+		/* quiet compiler warnings */
+		(void)speaker;
 	}
 	
 	/* general settings */
