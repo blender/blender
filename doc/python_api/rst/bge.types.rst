@@ -1539,7 +1539,7 @@ Game Types (bge.types)
       Return the value matching key, or the default value if its not found.
       :return: The key value or a default.
 
-   .. method:: playAction(name, start_frame, end_frame, layer=0, priority=0 blendin=0, play_mode=ACT_MODE_PLAY, layer_weight=0.0, ipo_flags=0, speed=1.0)
+   .. method:: playAction(name, start_frame, end_frame, layer=0, priority=0, blendin=0, play_mode=ACT_MODE_PLAY, layer_weight=0.0, ipo_flags=0, speed=1.0)
 
       Plays an action.
       
