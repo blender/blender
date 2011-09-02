@@ -52,9 +52,7 @@ if(WITH_CYCLES_PARTIO)
   add_definitions(-DWITH_PARTIO)
 endif()
 
-if(WITH_CYCLES_OPENCL)
-  add_definitions(-DWITH_OPENCL)
-endif()
+add_definitions(-DWITH_OPENCL)
 
 include_directories(
 	${BOOST_INCLUDE_DIR}

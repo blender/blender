@@ -5414,6 +5414,10 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->afterdraw_xray.first= v3d->afterdraw_xray.last= NULL;
 				v3d->afterdraw_xraytransp.first= v3d->afterdraw_xraytransp.last= NULL;
 				v3d->properties_storage= NULL;
+
+				/* render can be quite heavy, set to wire on load */
+				if(v3d->drawtype == OB_RENDER)
+					v3d->drawtype = OB_WIRE;
 				
 				view3d_split_250(v3d, &sl->regionbase);
 			}

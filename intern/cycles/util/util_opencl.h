@@ -482,6 +482,18 @@ typedef struct _cl_image_format {
 #define CL_DEVICE_VERSION                           0x102F
 #define CL_DEVICE_EXTENSIONS                        0x1030
 #define CL_DEVICE_PLATFORM                          0x1031
+/* 0x1032 reserved for CL_DEVICE_DOUBLE_FP_CONFIG */
+/* 0x1033 reserved for CL_DEVICE_HALF_FP_CONFIG */
+#define CL_DEVICE_PREFERRED_VECTOR_WIDTH_HALF       0x1034
+#define CL_DEVICE_HOST_UNIFIED_MEMORY               0x1035
+#define CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR          0x1036
+#define CL_DEVICE_NATIVE_VECTOR_WIDTH_SHORT         0x1037
+#define CL_DEVICE_NATIVE_VECTOR_WIDTH_INT           0x1038
+#define CL_DEVICE_NATIVE_VECTOR_WIDTH_LONG          0x1039
+#define CL_DEVICE_NATIVE_VECTOR_WIDTH_FLOAT         0x103A
+#define CL_DEVICE_NATIVE_VECTOR_WIDTH_DOUBLE        0x103B
+#define CL_DEVICE_NATIVE_VECTOR_WIDTH_HALF          0x103C
+#define CL_DEVICE_OPENCL_C_VERSION                  0x103D
 
 // cl_device_fp_config - bitfield
 #define CL_FP_DENORM                                (1 << 0)

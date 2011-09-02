@@ -27,6 +27,7 @@
 #include "util_cache.h"
 #include "util_debug.h"
 #include "util_foreach.h"
+#include "util_map.h"
 #include "util_progress.h"
 #include "util_types.h"
 
@@ -287,16 +288,24 @@ void BVH::pack_instances(size_t nodes_size)
 	size_t pack_nodes_offset = nodes_size;
 	size_t object_offset = 0;
 
+	map<Mesh*, int> mesh_map;
+
 	foreach(Object *ob, objects) {
 		Mesh *mesh = ob->mesh;
 		BVH *bvh = mesh->bvh;
 
 		if(!mesh->transform_applied) {
-			prim_index_size += bvh->pack.prim_index.size();
-			tri_woop_size += bvh->pack.tri_woop.size();
-			nodes_size += bvh->pack.nodes.size()*nsize;
+			if(mesh_map.find(mesh) == mesh_map.end()) {
+				prim_index_size += bvh->pack.prim_index.size();
+				tri_woop_size += bvh->pack.tri_woop.size();
+				nodes_size += bvh->pack.nodes.size()*nsize;
+
+				mesh_map[mesh] = 1;
+			}
 		}
 	}
+
+	mesh_map.clear();
 
 	pack.prim_index.resize(prim_index_size);
 	pack.prim_object.resize(prim_index_size);
@@ -322,6 +331,16 @@ void BVH::pack_instances(size_t nodes_size)
 			continue;
 		}
 
+		/* if mesh already added once, don't add it again, but used set
+		   node offset for this object */
+		map<Mesh*, int>::iterator it = mesh_map.find(mesh);
+
+		if(mesh_map.find(mesh) != mesh_map.end()) {
+			int noffset = it->second;
+			pack.object_node[object_offset++] = noffset;
+			continue;
+		}
+
 		BVH *bvh = mesh->bvh;
 
 		int noffset = nodes_offset/nsize;
@@ -333,6 +352,8 @@ void BVH::pack_instances(size_t nodes_size)
 		else
 			pack.object_node[object_offset++] = noffset;
 
+		mesh_map[mesh] = pack.object_node[object_offset-1];
+
 		/* merge primitive and object indexes */
 		{
 			size_t bvh_prim_index_size = bvh->pack.prim_index.size();
@@ -341,7 +362,7 @@ void BVH::pack_instances(size_t nodes_size)
 
 			for(size_t i = 0; i < bvh_prim_index_size; i++) {
 				pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + mesh_tri_offset;
-				pack_prim_visibility[pack_prim_index_offset] = bvh_prim_visibility[i] + mesh_tri_offset;
+				pack_prim_visibility[pack_prim_index_offset] = bvh_prim_visibility[i];
 				pack_prim_object[pack_prim_index_offset] = 0;  // unused for instances
 				pack_prim_index_offset++;
 			}

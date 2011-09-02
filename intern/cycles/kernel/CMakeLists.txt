@@ -123,18 +123,16 @@ endif()
 
 # OPENCL kernel
 
-if(WITH_CYCLES_OPENCL)
-	#set(kernel_preprocessed ${CMAKE_CURRENT_BINARY_DIR}/kernel_preprocessed.cl)
-	#add_custom_command(
-	#	OUTPUT ${kernel_preprocessed}
-	#	COMMAND gcc -x c++ -E ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cl -I ${CMAKE_CURRENT_SOURCE_DIR}/../util/ -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DWITH_OPENCL -o ${kernel_preprocessed}
-	#	DEPENDS ${kernel_sources} ${util_headers})
-	#add_custom_target(cycles_kernel_preprocess ALL DEPENDS ${kernel_preprocessed})
-	#delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${kernel_preprocessed}" ${CYCLES_INSTALL_PATH}/kernel)
+#set(kernel_preprocessed ${CMAKE_CURRENT_BINARY_DIR}/kernel_preprocessed.cl)
+#add_custom_command(
+#	OUTPUT ${kernel_preprocessed}
+#	COMMAND gcc -x c++ -E ${CMAKE_CURRENT_SOURCE_DIR}/kernel.cl -I ${CMAKE_CURRENT_SOURCE_DIR}/../util/ -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DWITH_OPENCL -o ${kernel_preprocessed}
+#	DEPENDS ${kernel_sources} ${util_headers})
+#add_custom_target(cycles_kernel_preprocess ALL DEPENDS ${kernel_preprocessed})
+#delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${kernel_preprocessed}" ${CYCLES_INSTALL_PATH}/kernel)
 
-	delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernel.cl" ${CYCLES_INSTALL_PATH}/kernel)
-	delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${headers}" ${CYCLES_INSTALL_PATH}/kernel)
-	delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${svm_headers}" ${CYCLES_INSTALL_PATH}/kernel/svm)
-	delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${util_headers}" ${CYCLES_INSTALL_PATH}/kernel)
-endif()
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "kernel.cl" ${CYCLES_INSTALL_PATH}/kernel)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${headers}" ${CYCLES_INSTALL_PATH}/kernel)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${svm_headers}" ${CYCLES_INSTALL_PATH}/kernel/svm)
+delayed_install(${CMAKE_CURRENT_SOURCE_DIR} "${util_headers}" ${CYCLES_INSTALL_PATH}/kernel)
 

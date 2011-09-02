@@ -371,9 +371,6 @@ typedef struct KernelIntegrator {
 	/* caustics */
 	int no_caustics;
 	float blur_caustics;
-
-	/* padding */
-	int pad[2];
 } KernelIntegrator;
 
 typedef struct KernelBVH {

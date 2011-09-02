@@ -49,6 +49,7 @@ public:
 	map<string, device_vector<uchar>*> const_mem_map;
 	map<string, device_memory*> mem_map;
 	device_ptr null_mem;
+	bool device_initialized;
 
 	const char *opencl_error_string(cl_int err)
 	{
@@ -103,50 +104,120 @@ public:
 		}
 	}
 
+	bool opencl_error(cl_int err)
+	{
+		if(err != CL_SUCCESS) {
+			fprintf(stderr, "OpenCL error (%d): %s\n", err, opencl_error_string(err));
+			return true;
+		}
+
+		return false;
+	}
+
 	void opencl_assert(cl_int err)
 	{
 		if(err != CL_SUCCESS) {
 			printf("error (%d): %s\n", err, opencl_error_string(err));
+#ifndef NDEBUG
 			abort();
+#endif
 		}
 	}
 
 	OpenCLDevice(bool background_)
 	{
 		background = background_;
+		cpPlatform = NULL;
+		cxContext = NULL;
+		cqCommandQueue = NULL;
+		cpProgram = NULL;
+		ckPathTraceKernel = NULL;
+		ckFilmConvertKernel = NULL;
+		null_mem = 0;
+		device_initialized = false;
+
 		vector<cl_platform_id> platform_ids;
 		cl_uint num_platforms;
 
 		/* setup device */
 		ciErr = clGetPlatformIDs(0, NULL, &num_platforms);
-		opencl_assert(ciErr);
-		assert(num_platforms != 0);
+		if(opencl_error(ciErr))
+			return;
+
+		if(num_platforms == 0) {
+			fprintf(stderr, "OpenCL: no platforms found.\n");
+			return;
+		}
 
 		platform_ids.resize(num_platforms);
 		ciErr = clGetPlatformIDs(num_platforms, &platform_ids[0], NULL);
-		opencl_assert(ciErr);
+		if(opencl_error(ciErr))
+			return;
 
 		cpPlatform = platform_ids[0]; /* todo: pick specified platform && device */
 
 		ciErr = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_ALL, 1, &cdDevice, NULL);
-		opencl_assert(ciErr);
+		if(opencl_error(ciErr))
+			return;
 
 		cxContext = clCreateContext(0, 1, &cdDevice, NULL, NULL, &ciErr);
-		opencl_assert(ciErr);
+		if(opencl_error(ciErr))
+			return;
 
 		cqCommandQueue = clCreateCommandQueue(cxContext, cdDevice, 0, &ciErr);
-		opencl_assert(ciErr);
+		if(opencl_error(ciErr))
+			return;
 
 		null_mem = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_ONLY, 1, NULL, &ciErr);
+		device_initialized = true;
+	}
 
-		cpProgram = NULL;
-		ckPathTraceKernel = NULL;
-		ckFilmConvertKernel = NULL;
+	bool opencl_version_check()
+	{
+		char version[256];
+		int major, minor, req_major = 1, req_minor = 1;
+
+		clGetPlatformInfo(cpPlatform, CL_PLATFORM_VERSION, sizeof(version), &version, NULL);
+
+		if(sscanf(version, "OpenCL %d.%d", &major, &minor) < 2) {
+			fprintf(stderr, "OpenCL: failed to parse platform version string (%s).", version);
+			return false;
+		}
+
+		if(!((major == req_major && minor >= req_minor) || (major > req_major))) {
+			fprintf(stderr, "OpenCL: platform version 1.1 or later required, found %d.%d\n", major, minor);
+			return false;
+		}
+
+		clGetDeviceInfo(cdDevice, CL_DEVICE_OPENCL_C_VERSION, sizeof(version), &version, NULL);
+
+		if(sscanf(version, "OpenCL C %d.%d", &major, &minor) < 2) {
+			fprintf(stderr, "OpenCL: failed to parse OpenCL C version string (%s).", version);
+			return false;
+		}
+
+		if(!((major == req_major && minor >= req_minor) || (major > req_major))) {
+			fprintf(stderr, "OpenCL: C version 1.1 or later required, found %d.%d\n", major, minor);
+			return false;
+		}
+
+		/* we don't check CL_DEVICE_VERSION since for e.g. nvidia sm 1.3 cards this is
+			1.0 even if the language features are there, just limited shared memory */
+
+		return true;
 	}
 
 	bool load_kernels()
 	{
-		/* compile kernel */
+		/* verify if device was initialized */
+		if(!device_initialized)
+			return false;
+
+		/* verify we have right opencl version */
+		if(!opencl_version_check())
+			return false;
+
+		/* compile source */
 		string source = string_printf("#include \"kernel.cl\" // %lf\n", time_dt());
 		size_t source_len = source.size();
 		const char *source_str = source.c_str();
@@ -156,9 +227,9 @@ public:
 		build_options += "-I " + path_get("kernel") + " -I " + path_get("util"); /* todo: escape path */
 		build_options += " -Werror -cl-fast-relaxed-math -cl-strict-aliasing";
 
-		cpProgram = clCreateProgramWithSource(cxContext, 1, (const char **)&source_str, &source_len, &ciErr);
-
-		opencl_assert(ciErr);
+		cpProgram = clCreateProgramWithSource(cxContext, 1, &source_str, &source_len, &ciErr);
+		if(opencl_error(ciErr))
+			return false;
 
 		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
 
@@ -179,10 +250,14 @@ public:
 			return false;
 		}
 
+		/* find kernels */
 		ckPathTraceKernel = clCreateKernel(cpProgram, "kernel_ocl_path_trace", &ciErr);
-		opencl_assert(ciErr);
+		if(opencl_error(ciErr))
+			return false;
+
 		ckFilmConvertKernel = clCreateKernel(cpProgram, "kernel_ocl_tonemap", &ciErr);
-		opencl_assert(ciErr);
+		if(opencl_error(ciErr))
+			return false;
 
 		return true;
 	}

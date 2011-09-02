@@ -1490,8 +1490,9 @@ LightPathNode::LightPathNode()
 	add_output("Is Shadow Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Diffuse Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Glossy Ray", SHADER_SOCKET_FLOAT);
-	add_output("Is Transmission Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Singular Ray", SHADER_SOCKET_FLOAT);
+	add_output("Is Reflection Ray", SHADER_SOCKET_FLOAT);
+	add_output("Is Transmission Ray", SHADER_SOCKET_FLOAT);
 }
 
 void LightPathNode::compile(SVMCompiler& compiler)
