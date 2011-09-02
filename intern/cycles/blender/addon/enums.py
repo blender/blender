@@ -16,9 +16,24 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 
+from cycles import engine
+
+def get_gpu_device():
+    available_devices = engine.available_devices()
+    cuda = 'cuda' in available_devices
+    opencl = 'opencl' in available_devices
+    if cuda and opencl:
+        gpu_string = "GPU"
+    elif cuda and not opencl:
+        gpu_string = "GPU (CUDA)"
+    else:
+        gpu_string = "GPU (OpenCL)"
+    
+    return gpu_string
+
 devices = (
 ("CPU", "CPU", "Processor"),
-("GPU", "GPU", "Graphics card"))
+("GPU", get_gpu_device(), "Graphics card"))
 
 gpu_type = (
 ("CUDA", "CUDA", "NVidia only"),
