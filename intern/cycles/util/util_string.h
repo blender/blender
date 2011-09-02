@@ -41,7 +41,7 @@ using std::istringstream;
 string string_printf(const char *format, ...) PRINTF_ATTRIBUTE;
 
 bool string_iequals(const string& a, const string& b);
-void string_split(vector<string>& tokens, const string& str);
+void string_split(vector<string>& tokens, const string& str, const string& separators = "\t ");
 
 CCL_NAMESPACE_END
 

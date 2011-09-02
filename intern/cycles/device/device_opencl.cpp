@@ -136,7 +136,16 @@ public:
 
 		cqCommandQueue = clCreateCommandQueue(cxContext, cdDevice, 0, &ciErr);
 		opencl_assert(ciErr);
-		
+
+		null_mem = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_ONLY, 1, NULL, &ciErr);
+
+		cpProgram = NULL;
+		ckPathTraceKernel = NULL;
+		ckFilmConvertKernel = NULL;
+	}
+
+	bool load_kernels()
+	{
 		/* compile kernel */
 		string source = string_printf("#include \"kernel.cl\" // %lf\n", time_dt());
 		size_t source_len = source.size();
@@ -152,6 +161,7 @@ public:
 		opencl_assert(ciErr);
 
 		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
+
 		if(ciErr != CL_SUCCESS) {
 			char *build_log;
 			size_t ret_val_size;
@@ -162,13 +172,11 @@ public:
 			clGetProgramBuildInfo(cpProgram, cdDevice, CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
 
 			build_log[ret_val_size] = '\0';
-			printf("OpenCL build failed:\n %s\n", build_log);
+			fprintf(stderr, "OpenCL build failed:\n %s\n", build_log);
 
 			delete[] build_log;
 
-			opencl_assert(ciErr);
-
-			return;
+			return false;
 		}
 
 		ckPathTraceKernel = clCreateKernel(cpProgram, "kernel_ocl_path_trace", &ciErr);
@@ -176,13 +184,13 @@ public:
 		ckFilmConvertKernel = clCreateKernel(cpProgram, "kernel_ocl_tonemap", &ciErr);
 		opencl_assert(ciErr);
 
-		null_mem = (device_ptr)clCreateBuffer(cxContext, CL_MEM_READ_ONLY, 1, NULL, &ciErr);
+		return true;
 	}
 
 	~OpenCLDevice()
 	{
-
-		clReleaseMemObject(CL_MEM_PTR(null_mem));
+		if(null_mem)
+			clReleaseMemObject(CL_MEM_PTR(null_mem));
 
 		map<string, device_vector<uchar>*>::iterator mt;
 		for(mt = const_mem_map.begin(); mt != const_mem_map.end(); mt++) {
@@ -190,11 +198,16 @@ public:
 			delete mt->second;
 		}
 
-		clReleaseKernel(ckPathTraceKernel);  
-		clReleaseKernel(ckFilmConvertKernel);  
-		clReleaseProgram(cpProgram);
-		clReleaseCommandQueue(cqCommandQueue);
-		clReleaseContext(cxContext);
+		if(ckPathTraceKernel)
+			clReleaseKernel(ckPathTraceKernel);  
+		if(ckFilmConvertKernel)
+			clReleaseKernel(ckFilmConvertKernel);  
+		if(cpProgram)
+			clReleaseProgram(cpProgram);
+		if(cqCommandQueue)
+			clReleaseCommandQueue(cqCommandQueue);
+		if(cxContext)
+			clReleaseContext(cxContext);
 	}
 
 	string description()

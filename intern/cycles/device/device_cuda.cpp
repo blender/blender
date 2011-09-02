@@ -137,7 +137,6 @@ public:
 
 	CUDADevice(bool background_)
 	{
-		int major, minor;
 		background = background_;
 
 		cuDevId = 0;
@@ -152,11 +151,6 @@ public:
 			cuda_assert(cuCtxCreate(&cuContext, 0, cuDevice))
 		else
 			cuda_assert(cuGLCtxCreate(&cuContext, 0, cuDevice))
-
-		/* open module */
-		cuDeviceComputeCapability(&major, &minor, cuDevId);
-		string cubin = string_printf("lib/kernel_sm_%d%d.cubin", major, minor);
-		cuda_assert(cuModuleLoad(&cuModule, path_get(cubin).c_str()))
 
 		cuda_pop_context();
 	}
@@ -177,6 +171,27 @@ public:
 		cuda_pop_context();
 
 		return string("CUDA ") + deviceName;
+	}
+
+
+	bool load_kernels()
+	{
+		CUresult result;
+		int major, minor;
+
+		cuda_push_context();
+
+		/* open module */
+		cuDeviceComputeCapability(&major, &minor, cuDevId);
+		string cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
+
+		result = cuModuleLoad(&cuModule, cubin.c_str());
+		if(result != CUDA_SUCCESS)
+			fprintf(stderr, "Failed loading CUDA kernel %s (%s).\n", cubin.c_str(), cuda_error_string(result));
+
+		cuda_pop_context();
+
+		return (result == CUDA_SUCCESS);
 	}
 
 	void mem_alloc(device_memory& mem, MemoryType type)
@@ -231,7 +246,7 @@ public:
 
 		cuda_push_context();
 		cuda_assert(cuModuleGetGlobal(&mem, &bytes, cuModule, name))
-		assert(bytes == size);
+		//assert(bytes == size);
 		cuda_assert(cuMemcpyHtoD(mem, host, size))
 		cuda_pop_context();
 	}

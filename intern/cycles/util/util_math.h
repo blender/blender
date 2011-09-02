@@ -38,14 +38,20 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_OPENCL__
-
+#ifndef M_PI_F
 #define M_PI_F		((float)3.14159265358979323846264338327950288)
+#endif
+#ifndef M_PI_2_F
 #define M_PI_2_F	((float)1.57079632679489661923132169163975144)
+#endif
+#ifndef M_PI_4_F
 #define M_PI_4_F	((float)0.785398163397448309615660845819875721)
+#endif
+#ifndef M_1_PI_F
 #define M_1_PI_F	((float)0.318309886183790671537767526745028724)
+#endif
+#ifndef M_2_PI_F
 #define M_2_PI_F	((float)0.636619772367581343075535053490057448)
-
 #endif
 
 /* Scalar */

@@ -77,11 +77,11 @@ bool string_iequals(const string& a, const string& b)
 	return false;
 }
 
-void string_split(vector<string>& tokens, const string& str)
+void string_split(vector<string>& tokens, const string& str, const string& separators)
 {
 	vector<string> split;
 
-	boost::split(split, str, boost::is_any_of("\t "), boost::token_compress_on);
+	boost::split(split, str, boost::is_any_of(separators), boost::token_compress_on);
 
 	foreach(const string& token, split)
 		if(token != "")

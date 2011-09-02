@@ -108,6 +108,9 @@ public:
 	/* open shading language, only for CPU device */
 	virtual void *osl_memory() { return NULL; }
 
+	/* load/compile kernels, must be called before adding tasks */ 
+	virtual bool load_kernels() { return true; }
+
 	/* tasks */
 	virtual void task_add(DeviceTask& task) = 0;
 	virtual void task_wait() = 0;
