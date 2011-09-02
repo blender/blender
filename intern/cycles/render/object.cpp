@@ -22,6 +22,7 @@
 #include "scene.h"
 
 #include "util_foreach.h"
+#include "util_map.h"
 #include "util_progress.h"
 
 CCL_NAMESPACE_BEGIN
@@ -103,6 +104,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 {
 	float4 *objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
 	int i = 0;
+	map<Mesh*, float> surface_area_map;
 
 	foreach(Object *ob, scene->objects) {
 		Mesh *mesh = ob->mesh;
@@ -112,16 +114,39 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		Transform itfm = transform_inverse(tfm);
 		Transform ntfm = transform_transpose(itfm);
 
-		/* compute surface area */
+		/* compute surface area. for uniform scale we can do avoid the many
+		   transform calls and share computation for instances */
 		/* todo: correct for displacement, and move to a better place */
-		float surfacearea = 0.0f;
+		float uniform_scale;
+		float surface_area = 0.0f;
+		
+		if(transform_uniform_scale(tfm, uniform_scale)) {
+			map<Mesh*, float>::iterator it = surface_area_map.find(mesh);
 
-		foreach(Mesh::Triangle& t, mesh->triangles) {
-			float3 p1 = transform(&tfm, mesh->verts[t.v[0]]);
-			float3 p2 = transform(&tfm, mesh->verts[t.v[1]]);
-			float3 p3 = transform(&tfm, mesh->verts[t.v[2]]);
+			if(it == surface_area_map.end()) {
+				foreach(Mesh::Triangle& t, mesh->triangles) {
+					float3 p1 = mesh->verts[t.v[0]];
+					float3 p2 = mesh->verts[t.v[1]];
+					float3 p3 = mesh->verts[t.v[2]];
 
-			surfacearea += triangle_area(p1, p2, p3);
+					surface_area += triangle_area(p1, p2, p3);
+				}
+
+				surface_area_map[mesh] = surface_area;
+			}
+			else
+				surface_area = it->second;
+
+			surface_area *= uniform_scale;
+		}
+		else {
+			foreach(Mesh::Triangle& t, mesh->triangles) {
+				float3 p1 = transform(&tfm, mesh->verts[t.v[0]]);
+				float3 p2 = transform(&tfm, mesh->verts[t.v[1]]);
+				float3 p3 = transform(&tfm, mesh->verts[t.v[2]]);
+
+				surface_area += triangle_area(p1, p2, p3);
+			}
 		}
 
 		/* pack in texture */
@@ -130,7 +155,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		memcpy(&objects[offset], &tfm, sizeof(float4)*4);
 		memcpy(&objects[offset+4], &itfm, sizeof(float4)*4);
 		memcpy(&objects[offset+8], &ntfm, sizeof(float4)*4);
-		objects[offset+12] = make_float4(surfacearea, 0.0f, 0.0f, 0.0f);
+		objects[offset+12] = make_float4(surface_area, 0.0f, 0.0f, 0.0f);
 
 		i++;
 

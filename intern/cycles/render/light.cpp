@@ -61,12 +61,24 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	foreach(Object *object, scene->objects) {
 		Mesh *mesh = object->mesh;
+		bool have_emission = false;
 
-		for(size_t i = 0; i < mesh->triangles.size(); i++) {
-			Shader *shader = scene->shaders[mesh->shader[i]];
+		/* skip if we have no emission shaders */
+		foreach(uint sindex, mesh->used_shaders) {
+			if(scene->shaders[sindex]->has_surface_emission) {
+				have_emission = true;
+				break;
+			}
+		}
 
-			if(shader->has_surface_emission)
-				num_triangles++;
+		/* count triangles */
+		if(have_emission) {
+			for(size_t i = 0; i < mesh->triangles.size(); i++) {
+				Shader *shader = scene->shaders[mesh->shader[i]];
+
+				if(shader->has_surface_emission)
+					num_triangles++;
+			}
 		}
 	}
 
@@ -82,25 +94,38 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	foreach(Object *object, scene->objects) {
 		Mesh *mesh = object->mesh;
-		Transform tfm = object->tfm;
-		int object_id = (mesh->transform_applied)? -j-1: j;
+		bool have_emission = false;
 
-		for(size_t i = 0; i < mesh->triangles.size(); i++) {
-			Shader *shader = scene->shaders[mesh->shader[i]];
+		/* skip if we have no emission shaders */
+		foreach(uint sindex, mesh->used_shaders) {
+			if(scene->shaders[sindex]->has_surface_emission) {
+				have_emission = true;
+				break;
+			}
+		}
 
-			if(shader->has_surface_emission) {
-				distribution[offset].x = totarea;
-				distribution[offset].y = __int_as_float(i + mesh->tri_offset);
-				distribution[offset].z = 1.0f;
-				distribution[offset].w = __int_as_float(object_id);
-				offset++;
+		/* sum area */
+		if(have_emission) {
+			Transform tfm = object->tfm;
+			int object_id = (mesh->transform_applied)? -j-1: j;
 
-				Mesh::Triangle t = mesh->triangles[i];
-				float3 p1 = transform(&tfm, mesh->verts[t.v[0]]);
-				float3 p2 = transform(&tfm, mesh->verts[t.v[1]]);
-				float3 p3 = transform(&tfm, mesh->verts[t.v[2]]);
+			for(size_t i = 0; i < mesh->triangles.size(); i++) {
+				Shader *shader = scene->shaders[mesh->shader[i]];
 
-				totarea += triangle_area(p1, p2, p3);
+				if(shader->has_surface_emission) {
+					distribution[offset].x = totarea;
+					distribution[offset].y = __int_as_float(i + mesh->tri_offset);
+					distribution[offset].z = 1.0f;
+					distribution[offset].w = __int_as_float(object_id);
+					offset++;
+
+					Mesh::Triangle t = mesh->triangles[i];
+					float3 p1 = transform(&tfm, mesh->verts[t.v[0]]);
+					float3 p2 = transform(&tfm, mesh->verts[t.v[1]]);
+					float3 p3 = transform(&tfm, mesh->verts[t.v[2]]);
+
+					totarea += triangle_area(p1, p2, p3);
+				}
 			}
 		}
 

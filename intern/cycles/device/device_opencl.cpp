@@ -217,8 +217,13 @@ public:
 		if(!opencl_version_check())
 			return false;
 
+		/* nvidia opencl cache doesn't not work correct with includes, so force recompile */
+		static double recompile_trick = 0.0;
+		if(recompile_trick == 0.0)
+			recompile_trick = time_dt();
+
 		/* compile source */
-		string source = string_printf("#include \"kernel.cl\" // %lf\n", time_dt());
+		string source = string_printf("#include \"kernel.cl\" // %lf\n", recompile_trick);
 		size_t source_len = source.size();
 		const char *source_str = source.c_str();
 

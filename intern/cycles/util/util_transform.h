@@ -205,6 +205,30 @@ __device_inline float3 transform_get_column(const Transform *t, int column)
 
 Transform transform_inverse(const Transform& a);
 
+__device_inline bool transform_uniform_scale(const Transform& tfm, float& scale)
+{
+	/* the epsilon here is quite arbitrary, but this function is only used for
+	   surface area and bump, where we except it to not be so sensitive */
+	Transform ttfm = transform_transpose(tfm);
+	float eps = 1e-7f; 
+	
+	float sx = len(float4_to_float3(tfm.x));
+	float sy = len(float4_to_float3(tfm.y));
+	float sz = len(float4_to_float3(tfm.z));
+	float stx = len(float4_to_float3(ttfm.x));
+	float sty = len(float4_to_float3(ttfm.y));
+	float stz = len(float4_to_float3(ttfm.z));
+	
+	if(fabsf(sx - sy) < eps && fabsf(sx - sz) < eps &&
+	   fabsf(sx - stx) < eps && fabsf(sx - sty) < eps &&
+	   fabsf(sx - stz) < eps) {
+		scale = sx;
+		return true;
+	}
+   
+   return false;
+}
+
 #endif
 
 CCL_NAMESPACE_END
