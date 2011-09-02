@@ -1174,12 +1174,9 @@ static void bmDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 		edge_r->crease = (unsigned char) (BM_GetCDf(&bm->edata, e, CD_CREASE)*255.0f);
 	}
 
-	edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
+	/* Should this be set in BMFlags_To_MEFlags? */
+	edge_r->flag = ME_EDGERENDER;
 	edge_r->flag |= BMFlags_To_MEFlags(e);
-#if 0
-	/* this needs setup of f2 field */
-	if (!ee->f2) edge_r->flag |= ME_LOOSEEDGE;
-#endif
 	
 	edge_r->v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, e->v1));
 	edge_r->v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(bmdm->vhash, e->v2));
@@ -1248,7 +1245,7 @@ static void bmDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 		BM_SetIndex(ev, i);
 
 	ee = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
-	for( ; ee; ee=BMIter_Step(&iter)) {
+	for( ; ee; ee=BMIter_Step(&iter), edge_r++) {
 		if (has_bweight) {
 			edge_r->bweight = (unsigned char) (BM_GetCDf(&bm->edata, ee, CD_BWEIGHT)*255.0f);
 		}
@@ -1257,13 +1254,9 @@ static void bmDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 			edge_r->crease = (unsigned char) (BM_GetCDf(&bm->edata, ee, CD_CREASE)*255.0f);
 		}
 
-		edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
-		if (ee->head.flag & BM_SEAM) edge_r->flag |= ME_SEAM;
-		if (ee->head.flag & BM_SHARP) edge_r->flag |= ME_SHARP;
-#if 0
-		/* this needs setup of f2 (edge draw flags, if I remember right) field */
-		if (!ee->f2) edge_r->flag |= ME_LOOSEEDGE;
-#endif
+		/* Should this be set in BMFlags_To_MEFlags? */
+		edge_r->flag = ME_EDGERENDER;
+		edge_r->flag |= BMFlags_To_MEFlags(ee);
 
 		edge_r->v1 = (int)BM_GetIndex(ee->v1);
 		edge_r->v2 = (int)BM_GetIndex(ee->v2);
@@ -1281,22 +1274,24 @@ static void bmDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 	int i;
 
 	/* store vertexes indices in tmp union */
-	ev = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-	for (i=0; ev; ev=BMIter_Step(&iter), i++)
-		BM_SetIndex(ev, i);
+	i = 0;
+	BM_ITER(ev, &iter, bm, BM_VERTS_OF_MESH, NULL)
+		BM_SetIndex(ev, i++);
 
-	for (i=0; i<bmdm->tc->tottri; i++) {
+	for (i=0; i<bmdm->tc->tottri; i++, face_r++) {
 		l = bmdm->tc->looptris[i];
 		ef = l[0]->f;
 
 		face_r->mat_nr = (unsigned char) ef->mat_nr;
 
-		/*HACK/BMESH_TODO: need to convert this*/
-		face_r->flag = ef->head.flag;
+		face_r->flag = BMFlags_To_MEFlags(ef);
 
 		face_r->v1 = BM_GetIndex(l[0]->v);
 		face_r->v2 = BM_GetIndex(l[1]->v);
 		face_r->v3 = BM_GetIndex(l[2]->v);
+		/*BMESH_TODO: zero is not the best way to signal that
+		  the face is a triangle and not a quad, since 0 is
+		  also the index assigned to a real vertex*/
 		face_r->v4 = 0;
 
 		test_index_face(face_r, NULL, 0, 3);
@@ -1331,6 +1326,7 @@ static void bmDM_copyLoopArray(DerivedMesh *dm, MLoop *loop_r)
 			loop_r[i].v = BM_GetIndex(l->v);
 			loop_r[i].e = BM_GetIndex(l->e);
 			i++;
+			loop_r++;
 		}
 	}
 }
@@ -1351,6 +1347,7 @@ static void bmDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
 		poly_r[i].mat_nr = f->mat_nr;
 
 		i++;
+		poly_r++;
 		j += f->len;
 	}
 }
