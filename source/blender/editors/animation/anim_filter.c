@@ -1177,29 +1177,34 @@ static size_t animfilter_nla (bAnimContext *UNUSED(ac), ListBase *anim_data, bDo
 /* determine what animation data from AnimData block should get displayed */
 static size_t animfilter_block_data (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *id, int filter_mode)
 {
-	IdAdtTemplate *iat = (IdAdtTemplate*)id;
 	AnimData *adt = BKE_animdata_from_id(id);
 	size_t items = 0;
-	
-	/* NOTE: this macro is used instead of inlining the logic here, since this sort of filtering is still needed 
-	 * in a few places in he rest of the code still - notably for the few cases where special mode-based 
-	 * different types of data expanders are required.
-	 */
-	ANIMDATA_FILTER_CASES(iat,
-		{ /* AnimData */
-			/* specifically filter animdata block */
-			ANIMCHANNEL_NEW_CHANNEL(adt, ANIMTYPE_ANIMDATA, id);
-		},
-		{ /* NLA */
-			items += animfilter_nla(ac, anim_data, ads, adt, filter_mode, id); 
-		},
-		{ /* Drivers */
-			items += animfilter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, id);
-		},
-		{ /* Keyframes */
-			items += animfilter_action(ac, anim_data, ads, adt->action, filter_mode, id);
-		});
-	
+
+	/* image object datablocks have no anim-data so check for NULL */
+	if(adt) {
+		IdAdtTemplate *iat = (IdAdtTemplate*)id;
+
+		/* NOTE: this macro is used instead of inlining the logic here, since this sort of filtering is still needed
+		 * in a few places in he rest of the code still - notably for the few cases where special mode-based
+		 * different types of data expanders are required.
+		 */
+		ANIMDATA_FILTER_CASES(iat,
+			{ /* AnimData */
+				/* specifically filter animdata block */
+				ANIMCHANNEL_NEW_CHANNEL(adt, ANIMTYPE_ANIMDATA, id);
+			},
+			{ /* NLA */
+				items += animfilter_nla(ac, anim_data, ads, adt, filter_mode, id);
+			},
+			{ /* Drivers */
+				items += animfilter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, id);
+			},
+			{ /* Keyframes */
+				items += animfilter_action(ac, anim_data, ads, adt->action, filter_mode, id);
+			}
+		);
+	}
+
 	return items;
 }
 
