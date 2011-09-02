@@ -487,7 +487,7 @@ void IMB_exr_add_channel(void *handle, const char *layname, const char *passname
 }
 
 /* only used for writing temp. render results (not image files) */
-void IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress)
+int IMB_exr_begin_write(void *handle, const char *filename, int width, int height, int compress)
 {
 	ExrHandle *data= (ExrHandle *)handle;
 	Header header (width, height);
@@ -504,8 +504,17 @@ void IMB_exr_begin_write(void *handle, const char *filename, int width, int heig
 	/* header.lineOrder() = DECREASING_Y; this crashes in windows for file read! */
 	
 	header.insert ("BlenderMultiChannel", StringAttribute ("Blender V2.55.1 and newer"));
-	
-	data->ofile = new OutputFile(filename, header);
+
+	/* avoid crash/abort when we dont have permission to write here */
+	try {
+		data->ofile = new OutputFile(filename, header);
+	}
+	catch (const std::exception &exc) {
+		std::cerr << "IMB_exr_begin_write: ERROR: " << exc.what() << std::endl;
+		data->ofile = NULL;
+	}
+
+	return (data->ofile != NULL);
 }
 
 void IMB_exrtile_begin_write(void *handle, const char *filename, int mipmap, int width, int height, int tilex, int tiley)

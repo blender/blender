@@ -1,6 +1,4 @@
-/*  
- * $Id$
- *
+/* 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -519,6 +517,9 @@ typedef struct bDopeSheet {
 	
 	int filterflag;				/* flags to use for filtering data */
 	int flag;					/* standard flags */
+	
+	int renameIndex;			/* index+1 of channel to rename - only gets set by renaming operator */
+	int pad;
 } bDopeSheet;
 
 
@@ -552,6 +553,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_NOARM			= (1<<18),
 	ADS_FILTER_NONTREE			= (1<<19),
 	ADS_FILTER_NOTEX			= (1<<20),
+	ADS_FILTER_NOSPK			= (1<<21),
 	
 		/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT		= (1<<25),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
@@ -561,12 +563,13 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_BY_FCU_NAME		= (1<<27),	/* for F-Curves, filter by the displayed name (i.e. to isolate all Location curves only) */
 	
 		/* combination filters (some only used at runtime) */
-	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM)
+	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM|ADS_FILTER_NOSPK)
 } eDopeSheet_FilterFlag;	
 
 /* DopeSheet general flags */
 typedef enum eDopeSheet_Flag {
-	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0)	/* when summary is shown, it is collapsed, so all other channels get hidden */
+	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0),	/* when summary is shown, it is collapsed, so all other channels get hidden */
+	ADS_FLAG_SHOW_DBFILTERS		= (1<<1)	/* show filters for datablocks */
 } eDopeSheet_Flag;
 
 

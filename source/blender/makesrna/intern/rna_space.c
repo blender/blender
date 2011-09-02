@@ -615,7 +615,8 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 	SpaceText *st= (SpaceText*)(ptr->data);
 
 	st->text= value.data;
-	st->top= 0;
+
+	WM_main_add_notifier(NC_TEXT|NA_SELECTED, st->text);
 }
 
 static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -1704,6 +1705,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{SEQ_PROXY_RENDER_SIZE_25, "PROXY_25", 0, "Proxy size 25%", ""},
 		{SEQ_PROXY_RENDER_SIZE_50, "PROXY_50", 0, "Proxy size 50%", ""},
 		{SEQ_PROXY_RENDER_SIZE_75, "PROXY_75", 0, "Proxy size 75%", ""},
+		{SEQ_PROXY_RENDER_SIZE_100, "PROXY_100", 0, "Proxy size 100%", ""},
 		{SEQ_PROXY_RENDER_SIZE_FULL, "FULL", 0, "No proxy, full render", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
@@ -1907,11 +1909,12 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	// XXX: action-editor is currently for object-level only actions, so show that using object-icon hint
 	static EnumPropertyItem mode_items[] = {
-		{SACTCONT_DOPESHEET, "DOPESHEET", 0, "DopeSheet", "DopeSheet Editor"},
-		{SACTCONT_ACTION, "ACTION", 0, "Action Editor", "Action Editor"},
-		{SACTCONT_SHAPEKEY, "SHAPEKEY", 0, "ShapeKey Editor", "ShapeKey Editor"},
-		{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", "Grease Pencil"},
+		{SACTCONT_DOPESHEET, "DOPESHEET", ICON_OOPS, "DopeSheet", "DopeSheet Editor"},
+		{SACTCONT_ACTION, "ACTION", ICON_OBJECT_DATA, "Action Editor", "Action Editor"},
+		{SACTCONT_SHAPEKEY, "SHAPEKEY", ICON_SHAPEKEY_DATA, "ShapeKey Editor", "ShapeKey Editor"},
+		{SACTCONT_GPENCIL, "GPENCIL", ICON_GREASEPENCIL, "Grease Pencil", "Grease Pencil"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	
@@ -1990,8 +1993,8 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem mode_items[] = {
-		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curve Editor", "Edit f-curves"},
-		{SIPO_MODE_DRIVERS, "DRIVERS", 0, "Drivers", "Edit drivers"},
+		{SIPO_MODE_ANIMATION, "FCURVES", ICON_IPO, "F-Curve Editor", "Edit animation/keyframes displayed as 2D curves"},
+		{SIPO_MODE_DRIVERS, "DRIVERS", ICON_DRIVER, "Drivers", "Edit drivers"},
 		{0, NULL, 0, NULL, NULL}};
 		
 		/* this is basically the same as the one for the 3D-View, but with some entries ommitted */
@@ -2048,9 +2051,9 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Only Selected Keyframes Handles", "Only show and edit handles of selected keyframes");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
-	prop= RNA_def_property(srna, "use_fancy_drawing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_beauty_drawing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_BEAUTYDRAW_OFF);
-	RNA_def_property_ui_text(prop, "Use Fancy Drawing", "Draw F-Curves using Anti-Aliasing and other fancy effects. Disable for better performance");
+	RNA_def_property_ui_text(prop, "Use High Quality Drawing", "Draw F-Curves using Anti-Aliasing and other fancy effects. Disable for better performance");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
 	/* editing */
@@ -2160,7 +2163,7 @@ static void rna_def_space_time(BlenderRNA *brna)
 	/* view settings */	
 	prop= RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ONLYACTSEL);
-	RNA_def_property_ui_text(prop, "Only Selected channels", "Show keyframes for active Object and/or its selected channels only");	
+	RNA_def_property_ui_text(prop, "Only Selected Channels", "Show keyframes for active Object and/or its selected bones only");	
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, NULL);
 	
 	prop= RNA_def_property(srna, "show_frame_indicator", PROP_BOOLEAN, PROP_NONE);

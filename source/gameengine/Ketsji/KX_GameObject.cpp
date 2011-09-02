@@ -74,6 +74,8 @@ typedef unsigned long uint_ptr;
 #include "SCA_IController.h"
 #include "NG_NetworkScene.h" //Needed for sendMessage()
 
+#include "BL_ActionManager.h"
+
 #include "PyObjectPlus.h" /* python stuff */
 
 // This file defines relationships between parents and children
@@ -85,31 +87,32 @@ typedef unsigned long uint_ptr;
 
 static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
 static MT_Vector3 dummy_scaling = MT_Vector3(1.0, 1.0, 1.0);
-static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(	1.0, 0.0, 0.0,
-														0.0, 1.0, 0.0,
-														0.0, 0.0, 1.0);
+static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(1.0, 0.0, 0.0,
+                                                     0.0, 1.0, 0.0,
+                                                     0.0, 0.0, 1.0);
 
 KX_GameObject::KX_GameObject(
-	void* sgReplicationInfo,
-	SG_Callbacks callbacks)
-	: SCA_IObject(),
-	m_bDyna(false),
-	m_layer(0),
-	m_pBlenderObject(NULL),
-	m_pBlenderGroupObject(NULL),
-	m_bSuspendDynamics(false),
-	m_bUseObjectColor(false),
-	m_bIsNegativeScaling(false),
-	m_bVisible(true),
-	m_bCulled(true),
-	m_bOccluder(false),
-	m_pPhysicsController1(NULL),
-	m_pGraphicController(NULL),
-	m_xray(false),
-	m_pHitObject(NULL),
-	m_isDeformable(false)
-#ifdef WITH_PYTHON
-	, m_attr_dict(NULL)
+        void* sgReplicationInfo,
+        SG_Callbacks callbacks)
+    : SCA_IObject(),
+      m_bDyna(false),
+      m_layer(0),
+      m_pBlenderObject(NULL),
+      m_pBlenderGroupObject(NULL),
+      m_bSuspendDynamics(false),
+      m_bUseObjectColor(false),
+      m_bIsNegativeScaling(false),
+      m_bVisible(true),
+      m_bCulled(true),
+      m_bOccluder(false),
+      m_pPhysicsController1(NULL),
+      m_pGraphicController(NULL),
+      m_xray(false),
+      m_pHitObject(NULL),
+      m_actionManager(NULL),
+      m_isDeformable(false)
+    #ifdef WITH_PYTHON
+    , m_attr_dict(NULL)
 #endif
 {
 	m_ignore_activity_culling = false;
@@ -153,6 +156,10 @@ KX_GameObject::~KX_GameObject()
 	if (m_pGraphicController)
 	{
 		delete m_pGraphicController;
+	}
+	if (m_actionManager)
+	{
+		delete m_actionManager;
 	}
 #ifdef WITH_PYTHON
 	if (m_attr_dict) {
@@ -344,6 +351,69 @@ void KX_GameObject::RemoveParent(KX_Scene *scene)
 	}
 }
 
+BL_ActionManager* KX_GameObject::GetActionManager()
+{
+	// We only want to create an action manager if we need it
+	if (!m_actionManager)
+		m_actionManager = new BL_ActionManager(this);
+
+	return m_actionManager;
+}
+
+bool KX_GameObject::PlayAction(const char* name,
+								float start,
+								float end,
+								short layer,
+								short priority,
+								float blendin,
+								short play_mode,
+								float layer_weight,
+								short ipo_flags,
+								float playback_speed)
+{
+	return GetActionManager()->PlayAction(name, start, end, layer, priority, blendin, play_mode, layer_weight, ipo_flags, playback_speed);
+}
+
+void KX_GameObject::StopAction(short layer)
+{
+	GetActionManager()->StopAction(layer);
+}
+
+bool KX_GameObject::IsActionDone(short layer)
+{
+	return GetActionManager()->IsActionDone(layer);
+}
+
+void KX_GameObject::UpdateActionManager(float curtime)
+{
+	GetActionManager()->Update(curtime);
+}
+
+float KX_GameObject::GetActionFrame(short layer)
+{
+	return GetActionManager()->GetActionFrame(layer);
+}
+
+void KX_GameObject::SetActionFrame(short layer, float frame)
+{
+	GetActionManager()->SetActionFrame(layer, frame);
+}
+
+bAction *KX_GameObject::GetCurrentAction(short layer)
+{
+	return GetActionManager()->GetCurrentAction(layer);
+}
+
+void KX_GameObject::SetPlayMode(short layer, short mode)
+{
+	GetActionManager()->SetPlayMode(layer, mode);
+}
+
+void KX_GameObject::SetTimes(short layer, float start, float end)
+{
+	GetActionManager()->SetTimes(layer, start, end);
+}
+
 void KX_GameObject::ProcessReplica()
 {
 	SCA_IObject::ProcessReplica();
@@ -353,6 +423,8 @@ void KX_GameObject::ProcessReplica()
 	m_pSGNode = NULL;
 	m_pClient_info = new KX_ClientObjectInfo(*m_pClient_info);
 	m_pClient_info->m_gameobject = this;
+	if (m_actionManager)
+		m_actionManager = new BL_ActionManager(this);
 	m_state = 0;
 
 #ifdef WITH_PYTHON
@@ -1497,6 +1569,12 @@ PyMethodDef KX_GameObject::Methods[] = {
 	KX_PYMETHODTABLE_O(KX_GameObject, getDistanceTo),
 	KX_PYMETHODTABLE_O(KX_GameObject, getVectTo),
 	KX_PYMETHODTABLE(KX_GameObject, sendMessage),
+
+	KX_PYMETHODTABLE_KEYWORDS(KX_GameObject, playAction),
+	KX_PYMETHODTABLE(KX_GameObject, stopAction),
+	KX_PYMETHODTABLE(KX_GameObject, getActionFrame),
+	KX_PYMETHODTABLE(KX_GameObject, setActionFrame),
+	KX_PYMETHODTABLE(KX_GameObject, isPlayingAction),
 	
 	// dict style access for props
 	{"get",(PyCFunction) KX_GameObject::sPyget, METH_VARARGS},
@@ -1839,7 +1917,7 @@ PyObject* KX_GameObject::pyattr_get_lin_vel_min(void *self_v, const KX_PYATTRIBU
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
 	KX_IPhysicsController *spc = self->GetPhysicsController();
-	return PyFloat_FromDouble(spc ? spc->GetLinVelocityMax() : 0.0f);
+	return PyFloat_FromDouble(spc ? spc->GetLinVelocityMin() : 0.0f);
 }
 
 int KX_GameObject::pyattr_set_lin_vel_min(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -2974,6 +3052,112 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_GameObject, sendMessage,
 	scene->GetNetworkScene()->SendMessage(to, from, subject, body);
 	Py_RETURN_NONE;
 }
+
+static void layer_check(short &layer, const char *method_name)
+{
+	if (layer < 0 || layer >= MAX_ACTION_LAYERS)
+	{
+		printf("KX_GameObject.%s(): given layer (%d) is out of range (0 - %d), setting to 0.\n", method_name, layer, MAX_ACTION_LAYERS-1);
+		layer = 0;
+	}
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, playAction,
+	"playAction(name, start_frame, end_frame, layer=0, priority=0 blendin=0, play_mode=ACT_MODE_PLAY, layer_weight=0.0, ipo_flags=0, speed=1.0)\n"
+	"Plays an action\n")
+{
+	const char* name;
+	float start, end, blendin=0.f, speed=1.f, layer_weight=0.f;
+	short layer=0, priority=0;
+	short ipo_flags=0;
+	short play_mode=0;
+
+	static const char *kwlist[] = {"name", "start_frame", "end_frame", "layer", "priority", "blendin", "play_mode", "layer_weight", "ipo_flags", "speed", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "sff|hhfhfhf:playAction", const_cast<char**>(kwlist),
+									&name, &start, &end, &layer, &priority, &blendin, &play_mode, &layer_weight, &ipo_flags, &speed))
+		return NULL;
+
+	layer_check(layer, "playAction");
+
+	if (play_mode < 0 || play_mode > BL_Action::ACT_MODE_MAX)
+	{
+		printf("KX_GameObject.playAction(): given play_mode (%d) is out of range (0 - %d), setting to ACT_MODE_PLAY", play_mode, BL_Action::ACT_MODE_MAX-1);
+		play_mode = BL_Action::ACT_MODE_MAX;
+	}
+
+	if (layer_weight < 0.f || layer_weight > 1.f)
+	{
+		printf("KX_GameObject.playAction(): given layer_weight (%f) is out of range (0.0 - 1.0), setting to 0.0", layer_weight);
+		layer_weight = 0.f;
+	}
+
+	PlayAction(name, start, end, layer, priority, blendin, play_mode, layer_weight, ipo_flags, speed);
+
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, stopAction,
+	"stopAction(layer=0)\n"
+	"Stop playing the action on the given layer\n")
+{
+	short layer=0;
+
+	if (!PyArg_ParseTuple(args, "|h:stopAction", &layer))
+		return NULL;
+
+	layer_check(layer, "stopAction");
+
+	StopAction(layer);
+
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, getActionFrame,
+	"getActionFrame(layer=0)\n"
+	"Gets the current frame of the action playing in the supplied layer\n")
+{
+	short layer=0;
+
+	if (!PyArg_ParseTuple(args, "|h:getActionFrame", &layer))
+		return NULL;
+
+	layer_check(layer, "getActionFrame");
+
+	return PyFloat_FromDouble(GetActionFrame(layer));
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, setActionFrame,
+	"setActionFrame(frame, layer=0)\n"
+	"Set the current frame of the action playing in the supplied layer\n")
+{
+	short layer=0;
+	float frame;
+
+	if (!PyArg_ParseTuple(args, "f|h:setActionFrame", &frame, &layer))
+		return NULL;
+
+	layer_check(layer, "setActionFrame");
+
+	SetActionFrame(layer, frame);
+
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_GameObject, isPlayingAction,
+	"isPlayingAction(layer=0)\n"
+	"Checks to see if there is an action playing in the given layer\n")
+{
+	short layer=0;
+
+	if (!PyArg_ParseTuple(args, "|h:isPlayingAction", &layer))
+		return NULL;
+
+	layer_check(layer, "isPlayingAction");
+
+	return PyBool_FromLong(!IsActionDone(layer));
+}
+
 
 /* dict style access */
 

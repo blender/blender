@@ -108,21 +108,28 @@ static GHash *global_ops_hash= NULL;
 
 wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 {
-	wmOperatorType *ot;
-	
-	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
-	WM_operator_bl_idname(idname_bl, idname);
+	if(idname[0]) {
+		wmOperatorType *ot;
 
-	if (idname_bl[0]) {
+		/* needed to support python style names without the _OT_ syntax */
+		char idname_bl[OP_MAX_TYPENAME];
+		WM_operator_bl_idname(idname_bl, idname);
+
 		ot= BLI_ghash_lookup(global_ops_hash, idname_bl);
 		if(ot) {
 			return ot;
 		}
+
+		if(!quiet) {
+			printf("search for unknown operator '%s', '%s'\n", idname_bl, idname);
+		}
 	}
-	
-	if(!quiet)
-		printf("search for unknown operator %s, %s\n", idname_bl, idname);
-	
+	else {
+		if(!quiet) {
+			printf("search for empty operator\n");
+		}
+	}
+
 	return NULL;
 }
 
@@ -213,6 +220,7 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 		
 		if(opm->type->exec) {
 			retval= opm->type->exec(C, opm);
+			OPERATOR_RETVAL_CHECK(retval);
 		
 			if (retval & OPERATOR_FINISHED) {
 				MacroData *md = op->customdata;
@@ -236,6 +244,8 @@ static int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event,
 			retval= opm->type->invoke(C, opm, event);
 		else if(opm->type->exec)
 			retval= opm->type->exec(C, opm);
+
+		OPERATOR_RETVAL_CHECK(retval);
 
 		BLI_movelisttolist(&op->reports->list, &opm->reports->list);
 		
@@ -265,6 +275,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 		printf("macro error, calling NULL modal()\n");
 	else {
 		retval = opm->type->modal(C, opm, event);
+		OPERATOR_RETVAL_CHECK(retval);
 
 		/* if this one is done but it's not the last operator in the macro */
 		if ((retval & OPERATOR_FINISHED) && opm->next) {
@@ -655,7 +666,9 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		printf("WM_menu_invoke: %s \"%s\" is not an enum property\n", op->type->idname, RNA_property_identifier(prop));
 	}
 	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
-		return op->type->exec(C, op);
+		const int retval= op->type->exec(C, op);
+		OPERATOR_RETVAL_CHECK(retval);
+		return retval;
 	}
 	else {
 		pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
@@ -1253,11 +1266,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	split = uiLayoutSplit(layout, 0, 0);
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Links", ICON_NONE);
-	uiItemStringO(col, "Donations", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment/");
-	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-259/");
+	uiItemStringO(col, "Donations", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment");
+	uiItemStringO(col, "Credits", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/credits");
+	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-259");
 	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.5/Manual");
-	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
-	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/"); // 
+	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
+	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community");
 	if(strcmp(STRINGIFY(BLENDER_VERSION_CYCLE), "release")==0) {
 		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d" STRINGIFY(BLENDER_VERSION_CHAR) "_release", BLENDER_VERSION/100, BLENDER_VERSION%100);
 	}
@@ -2345,7 +2359,6 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 	
 	if(op->type->exec)
 		op->type->exec(C, op);
-
 #ifdef GESTURE_MEMORY
 	circle_select_size= rect->xmax;
 #endif
@@ -2566,7 +2579,6 @@ static void gesture_lasso_apply(bContext *C, wmOperator *op)
 		
 	if(op->type->exec)
 		op->type->exec(C, op);
-	
 }
 
 int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)

@@ -38,6 +38,8 @@
 #include "COLLADAFWController.h"
 #include "COLLADAFWMorphController.h"
 #include "COLLADAFWSkinController.h"
+#include "COLLADAFWEffectCommon.h"
+
 
 #include "BKE_object.h"
 
@@ -45,7 +47,7 @@
 #include "AnimationImporter.h"
 #include "ArmatureImporter.h"
 #include "MeshImporter.h"
-#include "ExtraTags.h"
+
 
 
 struct Main;
@@ -155,8 +157,9 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> node_map;
 	std::vector<const COLLADAFW::VisualScene*> vscenes;
 	std::vector<Object*> libnode_ob;
-
+	
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> root_map; // find root joint by child joint uid, for bone tree evaluation during resampling
+	std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map;
 
 };
 

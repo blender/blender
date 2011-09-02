@@ -85,6 +85,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_smoke_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_space_types.h"
 #include "DNA_vfont_types.h"
@@ -4501,7 +4502,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 #endif
 
 			if(sce->ed)
-				seq_update_muting(sce, sce->ed);
+				seq_update_muting(sce->ed);
 			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
@@ -5620,12 +5621,51 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 	}
 }
 
+/* ************ READ SPEAKER ***************** */
+
+static void lib_link_speaker(FileData *fd, Main *main)
+{
+	Speaker *spk;
+
+	spk= main->speaker.first;
+	while(spk) {
+		if(spk->id.flag & LIB_NEEDLINK) {
+			if (spk->adt) lib_link_animdata(fd, &spk->id, spk->adt);
+
+			spk->sound= newlibadr(fd, spk->id.lib, spk->sound);
+			if (spk->sound) {
+				spk->sound->id.us++;
+			}
+
+			spk->id.flag -= LIB_NEEDLINK;
+		}
+		spk= spk->id.next;
+	}
+}
+
+static void direct_link_speaker(FileData *fd, Speaker *spk)
+{
+	spk->adt= newdataadr(fd, spk->adt);
+	direct_link_animdata(fd, spk->adt);
+
+	/*spk->sound= newdataadr(fd, spk->sound);
+	direct_link_sound(fd, spk->sound);*/
+}
+
 /* ************** READ SOUND ******************* */
 
 static void direct_link_sound(FileData *fd, bSound *sound)
 {
 	sound->handle = NULL;
 	sound->playback_handle = NULL;
+	sound->waveform = NULL;
+
+	// versioning stuff, if there was a cache, then we enable caching:
+	if(sound->cache)
+	{
+		sound->flags |= SOUND_FLAGS_CACHING;
+		sound->cache = NULL;
+	}
 
 	sound->packedfile = direct_link_packedfile(fd, sound->packedfile);
 	sound->newpackedfile = direct_link_packedfile(fd, sound->newpackedfile);
@@ -5642,9 +5682,6 @@ static void lib_link_sound(FileData *fd, Main *main)
 			sound->ipo= newlibadr_us(fd, sound->id.lib, sound->ipo); // XXX depreceated - old animation system
 			
 			sound_load(main, sound);
-
-			if(sound->cache)
-				sound_cache(sound, 1);
 		}
 		sound= sound->id.next;
 	}
@@ -5715,6 +5752,7 @@ static const char *dataname(short id_code)
 		case ID_SCR: return "Data from SCR";
 		case ID_VF: return "Data from VF";
 		case ID_TXT	: return "Data from TXT";
+		case ID_SPK: return "Data from SPK";
 		case ID_SO: return "Data from SO";
 		case ID_NT: return "Data from NT";
 		case ID_BR: return "Data from BR";
@@ -5858,6 +5896,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_CA:
 			direct_link_camera(fd, (Camera *)id);
+			break;
+		case ID_SPK:
+			direct_link_speaker(fd, (Speaker *)id);
 			break;
 		case ID_SO:
 			direct_link_sound(fd, (bSound *)id);
@@ -10000,12 +10041,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(ed) {
 				SEQP_BEGIN(ed, seq) {
 					if (seq->strip && seq->strip->proxy){
-						if (sce->r.size != 100.0) {
-							seq->strip->proxy->size
-								= sce->r.size;
-						} else {
-							seq->strip->proxy->size = 25;
-						}
 						seq->strip->proxy->quality =90;
 					}
 				}
@@ -10095,7 +10130,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					   !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR))
 					{
 						
-						snprintf(seq->strip->proxy->dir, 
+						BLI_snprintf(seq->strip->proxy->dir, 
 							 FILE_MAXDIR, "%s/BL_proxy", 
 							 seq->strip->dir);
 					}
@@ -10112,7 +10147,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		 * to have them show in RNA viewer and accessible otherwise.
 		 */
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
-			if(ma->nodetree && strlen(ma->nodetree->id.name)==0)
+			if(ma->nodetree && ma->nodetree->id.name[0] == '\0')
 				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
 			
 			/* which_output 0 is now "not specified" */
@@ -10126,7 +10161,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
-			if(sce->nodetree && strlen(sce->nodetree->id.name)==0)
+			if(sce->nodetree && sce->nodetree->id.name[0] == '\0')
 				strcpy(sce->nodetree->id.name, "NTCompositing Nodetree");
 
 			/* move to cameras */
@@ -10148,7 +10183,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			bNode *node;
 
 			if(tx->nodetree) {
-				if(strlen(tx->nodetree->id.name)==0)
+				if(tx->nodetree->id.name[0] == '\0')
 					strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
 
 				/* which_output 0 is now "not specified" */
@@ -11757,13 +11792,130 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	
+
+	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 1)){
+		{
+			Scene *scene;
+			Sequence *seq;
+
+			for (scene=main->scene.first; scene; scene=scene->id.next)
+			{
+				scene->r.ffcodecdata.audio_channels = 2;
+				scene->audio.volume = 1.0f;
+				SEQ_BEGIN(scene->ed, seq) {
+					seq->pitch = 1.0f;
+				}
+				SEQ_END
+			}
+		}
+		{
+			bScreen *screen;
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				ScrArea *sa;
+				/* add regions */
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					SpaceLink *sl= sa->spacedata.first;
+					if(sl->spacetype==SPACE_SEQ) {
+						ARegion *ar;
+						for (ar=sa->regionbase.first; ar; ar= ar->next) {
+							if(ar->regiontype == RGN_TYPE_WINDOW) {
+								if(ar->v2d.min[1] == 4.0f)
+									ar->v2d.min[1]= 0.5f;
+							}
+						}
+					}
+					for (sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_SEQ) {
+							ARegion *ar;
+							for (ar=sl->regionbase.first; ar; ar= ar->next) {
+								if(ar->regiontype == RGN_TYPE_WINDOW) {
+									if(ar->v2d.min[1] == 4.0f)
+										ar->v2d.min[1]= 0.5f;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		{
+			/* Make "auto-clamped" handles a per-keyframe setting instead of per-FCurve 
+			 *
+			 * We're only patching F-Curves in Actions here, since it is assumed that most
+			 * drivers out there won't be using this (and if they are, they're in the minority).
+			 * While we should aim to fix everything ideally, in practice it's far too hard
+			 * to get to every animdata block, not to mention the performance hit that'd have
+			 */
+			bAction *act;
+			FCurve *fcu;
+			
+			for (act = main->action.first; act; act = act->id.next) {
+				for (fcu = act->curves.first; fcu; fcu = fcu->next) {
+					BezTriple *bezt;
+					unsigned int i = 0;
+					
+					/* only need to touch curves that had this flag set */
+					if ((fcu->flag & FCURVE_AUTO_HANDLES) == 0)
+						continue;
+					if ((fcu->totvert == 0) || (fcu->bezt == NULL))
+						continue;
+						
+					/* only change auto-handles to auto-clamped */
+					for (bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+						if (bezt->h1 == HD_AUTO) bezt->h1 = HD_AUTO_ANIM;
+						if (bezt->h2 == HD_AUTO) bezt->h2 = HD_AUTO_ANIM;
+					}
+					
+					fcu->flag &= ~FCURVE_AUTO_HANDLES;
+				}
+			}
+		}
+		{
+			/* convert fcurve and shape action actuators to action actuators */
+			Object *ob;
+			bActuator *act;
+			bIpoActuator *ia;
+			bActionActuator *aa;
+
+			for (ob= main->object.first; ob; ob= ob->id.next) {
+				for (act= ob->actuators.first; act; act= act->next) {
+					if (act->type == ACT_IPO) {
+						// Create the new actuator
+						ia= act->data;
+						aa= MEM_callocN(sizeof(bActionActuator), "fcurve -> action actuator do_version");
+
+						// Copy values
+						aa->type = ia->type;
+						aa->flag = ia->flag;
+						aa->sta = ia->sta;
+						aa->end = ia->end;
+						strcpy(aa->name, ia->name);
+						strcpy(aa->frameProp, ia->frameProp);
+						if (ob->adt)
+							aa->act = ob->adt->action;
+
+						// Get rid of the old actuator
+						MEM_freeN(ia);
+
+						// Assign the new actuator
+						act->data = aa;
+						act->type= act->otype= ACT_ACTION;
+						
+					}
+					else if (act->type == ACT_SHAPEACTION)  {
+						act->type = act->otype = ACT_ACTION;
+					}
+				}
+			}
+		}
+	}
+
 	/* put compatibility code here until next subversion bump */
 
 	{
-	
+
 	}
-	
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
@@ -11799,6 +11951,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_latt(fd, main);
 	lib_link_text(fd, main);
 	lib_link_camera(fd, main);
+	lib_link_speaker(fd, main);
 	lib_link_sound(fd, main);
 	lib_link_group(fd, main);
 	lib_link_armature(fd, main);
@@ -12745,6 +12898,14 @@ static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)
 		expand_animdata(fd, mainvar, ca->adt);
 }
 
+static void expand_speaker(FileData *fd, Main *mainvar, Speaker *spk)
+{
+	expand_doit(fd, mainvar, spk->sound);
+
+	if (spk->adt)
+		expand_animdata(fd, mainvar, spk->adt);
+}
+
 static void expand_sound(FileData *fd, Main *mainvar, bSound *snd)
 {
 	expand_doit(fd, mainvar, snd->ipo); // XXX depreceated - old animation system
@@ -12806,6 +12967,9 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					case ID_CA:
 						expand_camera(fd, mainvar, (Camera *)id);
+						break;
+					case ID_SPK:
+						expand_speaker(fd, mainvar,(Speaker *)id);
 						break;
 					case ID_SO:
 						expand_sound(fd, mainvar, (bSound *)id);

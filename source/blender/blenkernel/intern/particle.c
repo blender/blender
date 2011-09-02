@@ -3161,7 +3161,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 			}
 			else {
 				ca->vel[0] = ca->vel[1] = 0.0f;
-				ca->vel[1] = 1.0f;
+				ca->vel[2] = 1.0f;
 			}
 
 			/* selection coloring in edit mode */

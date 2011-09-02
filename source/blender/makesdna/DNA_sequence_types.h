@@ -71,12 +71,19 @@ typedef struct StripColorBalance {
 } StripColorBalance;
 
 typedef struct StripProxy {
-	char dir[160];
-	char file[80];
-	struct anim *anim;
-	short size;
-	short quality;
-	int pad;
+	char dir[160];	       // custom directory for index and proxy files
+	                       // (defaults to BL_proxy)
+
+	char file[80];         // custom file
+	struct anim *anim;     // custom proxy anim file
+
+	short tc;              // time code in use
+
+	short quality;         // proxy build quality
+	short build_size_flags;// size flags (see below) of all proxies 
+	                       // to build
+	short build_tc_flags;  // time code flags (see below) of all tc indices
+	                       // to build
 } StripProxy;
 
 typedef struct Strip {
@@ -128,11 +135,12 @@ typedef struct Sequence {
 	int startstill, endstill;
 	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */
 	int startdisp, enddisp;	/*starting and ending points in the sequence*/
-	float sat, pad;
+	float sat;
 	float mul, handsize;
 					/* is sfra needed anymore? - it looks like its only used in one place */
 	int sfra;		/* starting frame according to the timeline of the scene. */
 	int anim_preseek;
+	int streamindex;   /* streamindex for movie or sound files with several streams */
 
 	Strip *strip;
 
@@ -155,7 +163,7 @@ typedef struct Sequence {
 	void *scene_sound;
 	float volume;
 
-	float level, pan;	/* level in dB (0=full), pan -1..1 */
+	float pitch, pan;	/* pitch (-0.1..10), pan -2..2 */
 	int scenenr;          /* for scene selection */
 	int multicam_source;  /* for multicam source selection */
 	float strobe;
@@ -209,14 +217,9 @@ typedef struct GlowVars {
 typedef struct TransformVars {
 	float ScalexIni;
 	float ScaleyIni;
-	float ScalexFin; /* deprecated - old transform strip */
-	float ScaleyFin; /* deprecated - old transform strip */
 	float xIni;
-	float xFin; /* deprecated - old transform strip */
 	float yIni;
-	float yFin; /* deprecated - old transform strip */
 	float rotIni;
-	float rotFin; /* deprecated - old transform strip */
 	int percent;
 	int interpolation;
 	int uniform_scale; /* preserve aspect/ratio when scaling */
@@ -276,6 +279,12 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_PROXY_CUSTOM_FILE   (1<<21)
 #define SEQ_USE_EFFECT_DEFAULT_FADE (1<<22)
 
+// flags for whether those properties are animated or not
+#define SEQ_AUDIO_VOLUME_ANIMATED   (1<<24)
+#define SEQ_AUDIO_PITCH_ANIMATED    (1<<25)
+#define SEQ_AUDIO_PAN_ANIMATED      (1<<26)
+#define SEQ_AUDIO_DRAW_WAVEFORM     (1<<27)
+
 #define SEQ_INVALID_EFFECT          (1<<31)
 
 /* convenience define for all selection flags */
@@ -287,6 +296,19 @@ typedef struct SpeedControlVars {
 #define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
 #define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
 #define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
+
+/* !!! has to be same as IMB_imbuf.h IMB_PROXY_... and IMB_TC_... */
+
+#define SEQ_PROXY_IMAGE_SIZE_25                 1
+#define SEQ_PROXY_IMAGE_SIZE_50                 2
+#define SEQ_PROXY_IMAGE_SIZE_75                 4
+#define SEQ_PROXY_IMAGE_SIZE_100                8
+
+#define SEQ_PROXY_TC_NONE                       0
+#define SEQ_PROXY_TC_RECORD_RUN                 1
+#define SEQ_PROXY_TC_FREE_RUN                   2
+#define SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN   4
+#define SEQ_PROXY_TC_ALL                        7
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0

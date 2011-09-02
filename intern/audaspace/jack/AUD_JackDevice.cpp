@@ -28,8 +28,6 @@
  *  \ingroup audjack
  */
 
-
-#include "AUD_Mixer.h"
 #include "AUD_JackDevice.h"
 #include "AUD_IReader.h"
 

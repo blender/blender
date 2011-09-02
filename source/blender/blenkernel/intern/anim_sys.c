@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -58,6 +56,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -86,6 +85,7 @@ short id_type_can_have_animdata (ID *id)
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
 		case ID_LA: case ID_CA: case ID_WO:
+		case ID_SPK:
 		case ID_SCE:
 		{
 			return 1;
@@ -144,6 +144,59 @@ AnimData *BKE_id_add_animdata (ID *id)
 	}
 	else 
 		return NULL;
+}
+
+/* Action Setter --------------------------------------- */
+
+/* Called when user tries to change the active action of an AnimData block (via RNA, Outliner, etc.) */
+short BKE_animdata_set_action (ReportList *reports, ID *id, bAction *act)
+{
+	AnimData *adt = BKE_animdata_from_id(id);
+	short ok = 0;
+	
+	/* animdata validity check */
+	if (adt == NULL) {
+		BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
+		return ok;
+	}
+	
+	/* active action is only editable when it is not a tweaking strip 
+	 * see rna_AnimData_action_editable() in rna_animation.c
+	 */
+	if ((adt->flag & ADT_NLA_EDIT_ON) || (adt->actstrip) || (adt->tmpact)) {
+		/* cannot remove, otherwise things turn to custard */
+		BKE_report(reports, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
+		return ok;
+	}
+	
+	/* manage usercount for current action */
+	if (adt->action)
+		id_us_min((ID*)adt->action);
+	
+	/* assume that AnimData's action can in fact be edited... */
+	if (act) {
+		/* action must have same type as owner */
+		if (ELEM(act->idroot, 0, GS(id->name))) {
+			/* can set */
+			adt->action = act;
+			id_us_plus((ID*)adt->action);
+			ok = 1;
+		}
+		else {
+			/* cannot set */
+			BKE_reportf(reports, RPT_ERROR,
+					"Couldn't set Action '%s' onto ID '%s', as it doesn't have suitably rooted paths for this purpose", 
+					act->id.name+2, id->name);
+			//ok = 0;
+		}
+	}
+	else {
+		/* just clearing the action... */
+		adt->action = NULL;
+		ok = 1;
+	}
+	
+	return ok;
 }
 
 /* Freeing -------------------------------------------- */
@@ -236,7 +289,7 @@ int BKE_copy_animdata_id (ID *id_to, ID *id_from, const short do_action)
 	return 1;
 }
 
-void BKE_copy_animdata_id_action(struct ID *id)
+void BKE_copy_animdata_id_action(ID *id)
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	if (adt) {
@@ -735,7 +788,10 @@ void BKE_animdata_main_cb (Main *mainptr, ID_AnimData_Edit_Callback func, void *
 	
 	/* particles */
 	ANIMDATA_IDS_CB(mainptr->particle.first);
-	
+
+	/* speakers */
+	ANIMDATA_IDS_CB(mainptr->speaker.first);
+
 	/* objects */
 	ANIMDATA_IDS_CB(mainptr->object.first);
 	
@@ -813,7 +869,10 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 	
 	/* particles */
 	RENAMEFIX_ANIM_IDS(mainptr->particle.first);
-	
+
+	/* speakers */
+	RENAMEFIX_ANIM_IDS(mainptr->speaker.first);
+
 	/* objects */
 	RENAMEFIX_ANIM_IDS(mainptr->object.first); 
 	
@@ -1064,7 +1123,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		{
 			int array_len= RNA_property_array_length(&new_ptr, prop);
 			
-			if(array_len && array_index >= array_len)
+			if (array_len && array_index >= array_len)
 			{
 				if (G.f & G_DEBUG) {
 					printf("Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d \n",
@@ -1101,6 +1160,23 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 				default:
 					/* nothing can be done here... so it is unsuccessful? */
 					return 0;
+			}
+			
+			/* buffer property update for later flushing */
+			if (RNA_property_update_check(prop)) {
+				short skip_updates_hack = 0;
+				
+				/* optimisation hacks: skip property updates for those properties
+				 * for we know that which the updates in RNA were really just for
+				 * flushing property editing via UI/Py
+				 */
+				if (new_ptr.type == &RNA_PoseBone) {
+					/* bone transforms - update pose (i.e. tag depsgraph) */
+					skip_updates_hack = 1;
+				}				
+				
+				if (skip_updates_hack == 0)
+					RNA_property_update_cache_add(&new_ptr, prop);
 			}
 		}
 		
@@ -1845,6 +1921,9 @@ void nlastrip_evaluate (PointerRNA *ptr, ListBase *channels, ListBase *modifiers
 		case NLASTRIP_TYPE_META: /* meta */
 			nlastrip_evaluate_meta(ptr, channels, modifiers, nes);
 			break;
+			
+		default: /* do nothing */
+			break;
 	}
 	
 	/* clear temp recursion safe-check */
@@ -2080,7 +2159,7 @@ static void animsys_evaluate_overrides (PointerRNA *ptr, AnimData *adt)
  * and that the flags for which parts of the anim-data settings need to be recalculated 
  * have been set already by the depsgraph. Now, we use the recalc 
  */
-void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short recalc)
+void BKE_animsys_evaluate_animdata (Scene *scene, ID *id, AnimData *adt, float ctime, short recalc)
 {
 	PointerRNA id_ptr;
 	
@@ -2132,6 +2211,14 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
 	 */
 	animsys_evaluate_overrides(&id_ptr, adt);
 	
+	/* execute and clear all cached property update functions */
+	if (scene)
+	{
+		Main *bmain = G.main; // xxx - to get passed in!
+		RNA_property_update_cache_flush(bmain, scene);
+		RNA_property_update_cache_free();
+	}
+	
 	/* clear recalc flag now */
 	adt->recalc= 0;
 }
@@ -2143,7 +2230,7 @@ void BKE_animsys_evaluate_animdata (ID *id, AnimData *adt, float ctime, short re
  * 'local' (i.e. belonging in the nearest ID-block that setting is related to, not a
  * standard 'root') block are overridden by a larger 'user'
  */
-void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
+void BKE_animsys_evaluate_all_animation (Main *main, Scene *scene, float ctime)
 {
 	ID *id;
 
@@ -2159,7 +2246,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	for (id= first; id; id= id->next) { \
 		if (ID_REAL_USERS(id) > 0) { \
 			AnimData *adt= BKE_animdata_from_id(id); \
-			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
+			BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag); \
 		} \
 	}
 	/* another macro for the "embedded" nodetree cases 
@@ -2175,9 +2262,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 			NtId_Type *ntp= (NtId_Type *)id; \
 			if (ntp->nodetree) { \
 				AnimData *adt2= BKE_animdata_from_id((ID *)ntp->nodetree); \
-				BKE_animsys_evaluate_animdata((ID *)ntp->nodetree, adt2, ctime, ADT_RECALC_ANIM); \
+				BKE_animsys_evaluate_animdata(scene, (ID *)ntp->nodetree, adt2, ctime, ADT_RECALC_ANIM); \
 			} \
-			BKE_animsys_evaluate_animdata(id, adt, ctime, aflag); \
+			BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag); \
 		} \
 	}
 	
@@ -2232,6 +2319,9 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	/* particles */
 	EVAL_ANIM_IDS(main->particle.first, ADT_RECALC_ANIM);
 	
+	/* lamps */
+	EVAL_ANIM_IDS(main->speaker.first, ADT_RECALC_ANIM);
+
 	/* objects */
 		/* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets 
 		 * this tagged by Depsgraph on framechange. This optimisation means that objects

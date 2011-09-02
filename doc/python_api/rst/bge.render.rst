@@ -215,7 +215,19 @@ Functions
    :type setting: string (lights, shaders, shadows, ramps, nodes, extra_textures)
    :rtype: boolean
 
+.. function:: setAnisotropicFiltering(level)
 
+   Set the anisotropic filtering level for textures.
+   
+   :arg level: The new anisotropic filtering level to use
+   :type level: integer (must be one of 1, 2, 4, 8, 16)
+   
+.. function:: getAnisotropicFiltering()
+
+   Get the anisotropic filtering level used for textures.
+   
+   :rtype: integer (one of 1, 2, 4, 8, 16)
+   
 .. function:: drawLine(fromVec,toVec,color)
 
    Draw a line in the 3D scene.

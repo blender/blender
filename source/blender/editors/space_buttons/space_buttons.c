@@ -276,6 +276,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_DATA);	/* autotexpace flag */
 					break;
 				case ND_POSE:
+					buttons_area_redraw(sa, BCONTEXT_DATA);
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 					buttons_area_redraw(sa, BCONTEXT_BONE);

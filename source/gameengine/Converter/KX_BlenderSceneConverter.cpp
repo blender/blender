@@ -566,18 +566,18 @@ void KX_BlenderSceneConverter::RegisterPolyMaterial(RAS_IPolyMaterial *polymat)
 
 
 void KX_BlenderSceneConverter::RegisterInterpolatorList(
-									BL_InterpolatorList *adtList,
-									struct AnimData *for_adt)
+									BL_InterpolatorList *actList,
+									struct bAction *for_act)
 {
-	m_map_blender_to_gameAdtList.insert(CHashedPtr(for_adt), adtList);
+	m_map_blender_to_gameAdtList.insert(CHashedPtr(for_act), actList);
 }
 
 
 
 BL_InterpolatorList *KX_BlenderSceneConverter::FindInterpolatorList(
-									struct AnimData *for_adt)
+									struct bAction *for_act)
 {
-	BL_InterpolatorList **listp = m_map_blender_to_gameAdtList[CHashedPtr(for_adt)];
+	BL_InterpolatorList **listp = m_map_blender_to_gameAdtList[CHashedPtr(for_act)];
 		
 	return listp?*listp:NULL;
 }
@@ -1083,7 +1083,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
  * most are temp and NewRemoveObject frees m_map_gameobject_to_blender */
 bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 {
-	int maggie_index;
+	int maggie_index= -1;
 	int i=0;
 
 	if(maggie==NULL)
@@ -1100,6 +1100,10 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		}
 		i++;
 	}
+
+	/* should never happen but just to be safe */
+	if(maggie_index == -1)
+		return false;
 
 	m_DynamicMaggie.erase(m_DynamicMaggie.begin() + maggie_index);
 	tag_main(maggie, 1);

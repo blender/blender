@@ -524,6 +524,7 @@ void ui_but_anim_add_keyingset(struct bContext *C);
 void ui_but_anim_remove_keyingset(struct bContext *C);
 int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen);
 int ui_but_anim_expression_set(uiBut *but, const char *str);
+int ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
 
 #endif

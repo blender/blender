@@ -71,6 +71,10 @@ class NLA_MT_view(Menu):
         layout.operator("anim.previewrange_clear")
 
         layout.separator()
+        layout.operator("nla.view_all")
+        layout.operator("nla.view_selected")
+
+        layout.separator()
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 
@@ -162,6 +166,7 @@ class NLA_MT_add(Menu):
 
         layout.operator("nla.actionclip_add")
         layout.operator("nla.transition_add")
+        layout.operator("nla.soundclip_add")
 
         layout.separator()
         layout.operator("nla.meta_add")

@@ -32,13 +32,13 @@
 #ifndef AUD_SRCRESAMPLEFACTORY
 #define AUD_SRCRESAMPLEFACTORY
 
-#include "AUD_ResampleFactory.h"
+#include "AUD_MixerFactory.h"
 
 /**
  * This factory creates a resampling reader that uses libsamplerate for
  * resampling.
  */
-class AUD_SRCResampleFactory : public AUD_ResampleFactory
+class AUD_SRCResampleFactory : public AUD_MixerFactory
 {
 private:
 	// hide copy constructor and operator=
@@ -46,9 +46,14 @@ private:
 	AUD_SRCResampleFactory& operator=(const AUD_SRCResampleFactory&);
 
 public:
-	AUD_SRCResampleFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+	/**
+	 * Creates a new factory.
+	 * \param factory The input factory.
+	 * \param specs The target specifications.
+	 */
+	AUD_SRCResampleFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_SRCRESAMPLEFACTORY

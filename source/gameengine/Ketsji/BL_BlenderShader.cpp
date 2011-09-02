@@ -64,7 +64,7 @@ int BL_BlenderShader::GetAttribNum()
 
 	GPU_material_vertex_attributes(mGPUMat, &attribs);
 
-    for(i = 0; i < attribs.totlayer; i++)
+	for(i = 0; i < attribs.totlayer; i++)
 		if(attribs.layer[i].glindex+1 > enabled)
 			enabled= attribs.layer[i].glindex+1;
 	

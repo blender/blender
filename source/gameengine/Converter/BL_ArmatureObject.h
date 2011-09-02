@@ -69,7 +69,8 @@ public:
 		void* sgReplicationInfo,
 		SG_Callbacks callbacks,
 		Object *armature,
-		Scene *scene
+		Scene *scene,
+		int vert_deform_type
 	);
 	virtual ~BL_ArmatureObject();
 
@@ -89,6 +90,8 @@ public:
 	const struct Scene * GetScene() const { return m_scene; }
 	
 	Object* GetArmatureObject() {return m_objArma;}
+
+	int GetVertDeformType() {return m_vert_deform_type;}
 
 	// for constraint python API
 	void LoadConstraints(KX_BlenderSceneConverter* converter);
@@ -136,6 +139,7 @@ protected:
 	double  m_timestep;		// delta since last pose evaluation.
 	class BL_ActionActuator *m_activeAct;
 	short	m_activePriority;
+	int		m_vert_deform_type;
 	size_t  m_constraintNumber;
 	size_t  m_channelNumber;
 	// store the original armature object matrix

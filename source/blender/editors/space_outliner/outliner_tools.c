@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -137,7 +135,7 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 						break;
 						
 					case ID_ME: case ID_CU: case ID_MB: case ID_LT:
-					case ID_LA: case ID_AR: case ID_CA: /* case ID_SPK: */ /* GSOC_PEPPER */
+					case ID_LA: case ID_AR: case ID_CA: case ID_SPK:
 					case ID_MA: case ID_TE: case ID_IP: case ID_IM:
 					case ID_SO: case ID_KE: case ID_WO: case ID_AC:
 					case ID_NLA: case ID_TXT: case ID_GR:
@@ -154,15 +152,11 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 	}
 }
 
-#if 0 // GSOC_PEPPER
-
 static void unlink_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
 	/* just set action to NULL */
 	BKE_animdata_set_action(CTX_wm_reports(C), tsep->id, NULL);
 }
-
-#endif // GSOC_PEPPER
 
 static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
@@ -333,8 +327,6 @@ static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), Tre
 	}
 }
 
-#if 0 // GSOC_PEPPER
-
 static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
@@ -350,8 +342,6 @@ static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement 
 		id_single_user(C, id, &ptr, prop);
 	}
 }
-
-#endif
 
 static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
@@ -406,15 +396,11 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 
 /* ******************************************** */
 
-#if 0 // GSOC_PEPPER
-
 static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
 {
 	/* just set action to NULL */
 	BKE_animdata_set_action(NULL, tselem->id, NULL);
 }
-
-#endif // GSOC_PEPPER
 
 static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
 {
@@ -524,6 +510,7 @@ static EnumPropertyItem prop_object_op_types[] = {
 	{6, "TOGVIS", 0, "Toggle Visible", ""},
 	{7, "TOGSEL", 0, "Toggle Selectable", ""},
 	{8, "TOGREN", 0, "Toggle Renderable", ""},
+	{9, "RENAME", 0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -581,6 +568,10 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		str= "Toggle Renderability";
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_RENDER, scene);
 	}
+	else if(event==9) {
+		outliner_do_object_operation(C, scene, soops, &soops->tree, item_rename_cb);
+		str= "Rename Object";
+	}
 
 	ED_undo_push(C, str);
 	
@@ -614,6 +605,7 @@ static EnumPropertyItem prop_group_op_types[] = {
 	{4, "TOGVIS", 0, "Toggle Visible", ""},
 	{5, "TOGSEL", 0, "Toggle Selectable", ""},
 	{6, "TOGREN", 0, "Toggle Renderable", ""},
+	{7, "RENAME", 0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -622,6 +614,7 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	SpaceOops *soops= CTX_wm_space_outliner(C);
 	int event;
+	const char *str= NULL;
 	
 	/* check for invalid states */
 	if (soops == NULL)
@@ -631,18 +624,35 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	
 	if(event==1) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_group_cb);
-		ED_undo_push(C, "Unlink group");
+		str= "Unlink group";
 	}
 	else if(event==2) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb);
-		ED_undo_push(C, "Localized Data");
+		str= "Localized Data";
 	}
 	else if(event==3) {
 		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb);
-		ED_undo_push(C, "Link Group Objects to Scene");
+		str= "Link Group Objects to Scene";
+	}
+	else if(event==4) {
+		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb);
+		str= "Toggle Visibility";
+	}
+	else if(event==5) {
+		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_selectability_cb);
+		str= "Toggle Selectability";
+	}
+	else if(event==6) {
+		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_renderability_cb);
+		str= "Toggle Renderability";
+	}
+	else if(event==7) {
+		outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
+		str= "Rename";
 	}
 	
 	
+	ED_undo_push(C, str);
 	WM_event_add_notifier(C, NC_GROUP, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -676,7 +686,8 @@ typedef enum eOutlinerIdOpTypes {
 	OUTLINER_IDOP_SINGLE,
 	
 	OUTLINER_IDOP_FAKE_ADD,
-	OUTLINER_IDOP_FAKE_CLEAR
+	OUTLINER_IDOP_FAKE_CLEAR,
+	OUTLINER_IDOP_RENAME
 } eOutlinerIdOpTypes;
 
 // TODO: implement support for changing the ID-block used
@@ -686,6 +697,7 @@ static EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
 	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User", "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
 	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
+	{OUTLINER_IDOP_RENAME, "RENAME", 0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -709,18 +721,12 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 		{
 			/* unlink datablock from its parent */
 			switch (idlevel) {
-
-#if 0 // GSOC_PEPPER
-
 				case ID_AC:
 					outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_action_cb);
 					
 					WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
 					ED_undo_push(C, "Unlink action");
 					break;
-
-#endif // GSOC_PEPPER
-
 				case ID_MA:
 					outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_material_cb);
 					
@@ -748,8 +754,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 		}
 			break;
 			
-#if 0 // GSOC_PEPPER
-
 		case OUTLINER_IDOP_SINGLE:
 		{
 			/* make single user */
@@ -768,8 +772,6 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 		}
 			break;
 			
-#endif // GSOC_PEPPER
-
 		case OUTLINER_IDOP_FAKE_ADD:
 		{
 			/* set fake user */
@@ -788,6 +790,14 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 			WM_event_add_notifier(C, NC_ID|NA_EDITED, NULL);
 			ED_undo_push(C, "Clear Fake User");
 		}
+			break;
+		case OUTLINER_IDOP_RENAME:
+			/* rename */
+			outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
+
+			WM_event_add_notifier(C, NC_ID|NA_EDITED, NULL);
+			ED_undo_push(C, "Rename");
+
 			break;
 			
 		default:
@@ -846,9 +856,7 @@ static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *l
 
 /* ------------------------------------------ */
 
-#if 0 // GSOC_PEPPER
-
-static void actionset_id_cb(TreeElement *te, TreeStoreElem *tselem, TreeStoreElem *tsep, ID *actId)
+static void actionset_id_cb(TreeElement *UNUSED(te), TreeStoreElem *tselem, TreeStoreElem *tsep, ID *actId)
 {
 	bAction *act = (bAction *)actId;
 	
@@ -932,8 +940,6 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-#endif // GSOC_PEPPER
-
 /* **************************************** */
 
 typedef enum eOutliner_AnimDataOps {
@@ -978,9 +984,6 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 	
 	/* perform the core operation */
 	switch (event) {
-
-#if 0 // GSOC_PEPPER
-
 		case OUTLINER_ANIMOP_SET_ACT:
 			/* delegate once again... */
 			WM_operator_name_call(C, "OUTLINER_OT_action_set", WM_OP_INVOKE_REGION_WIN, NULL);
@@ -994,8 +997,6 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 			ED_undo_push(C, "Unlink action");
 			break;
 			
-#endif // GSOC_PEPPER
-
 		case OUTLINER_ANIMOP_REFRESH_DRV:
 			outliner_do_data_operation(soops, datalevel, event, &soops->tree, refreshdrivers_animdata_cb);
 			

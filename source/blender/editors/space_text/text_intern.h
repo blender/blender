@@ -55,6 +55,7 @@ int text_font_width(struct SpaceText *st, const char *str);
 void text_update_line_edited(struct TextLine *line);
 void text_update_edited(struct Text *text);
 void text_update_character_width(struct SpaceText *st);
+void text_scroll_to_cursor(struct SpaceText *st, struct ScrArea *sa);
 void text_update_cursor_moved(struct bContext *C);
 
 	/* TXT_OFFSET used to be 35 when the scrollbar was on the left... */

@@ -36,16 +36,11 @@
 #include "AUD_Buffer.h"
 
 /**
- * This class reads another reader and changes it's delay.
+ * This class reads another reader and delays it.
  */
 class AUD_DelayReader : public AUD_EffectReader
 {
 private:
-	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
 	/**
 	 * The delay level.
 	 */
@@ -55,11 +50,6 @@ private:
 	 * The remaining delay for playback.
 	 */
 	int m_remdelay;
-
-	/**
-	 * Whether the buffer is currently filled with zeros.
-	 */
-	bool m_empty;
 
 	// hide copy constructor and operator=
 	AUD_DelayReader(const AUD_DelayReader&);
@@ -71,12 +61,12 @@ public:
 	 * \param reader The reader to read from.
 	 * \param delay The delay in seconds.
 	 */
-	AUD_DelayReader(AUD_IReader* reader, float delay);
+	AUD_DelayReader(AUD_Reference<AUD_IReader> reader, float delay);
 
 	virtual void seek(int position);
 	virtual int getLength() const;
 	virtual int getPosition() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_DELAYREADER

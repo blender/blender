@@ -152,7 +152,7 @@ bool SCA_RandomActuator::Update()
 		/* If x_1, x_2, ... is a sequence of random numbers with uniform     */
 		/* distribution between zero and one, k is the first integer for     */
 		/* which the product x_1*x_2*...*x_k < exp(-\lamba).                 */
-		float a = 0.0, b = 0.0;
+		float a, b;
 		int res = 0;
 		/* The - sign is important here! The number to test for, a, must be  */
 		/* between 0 and 1.                                                  */

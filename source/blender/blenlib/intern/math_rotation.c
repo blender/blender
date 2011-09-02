@@ -774,28 +774,6 @@ void mat4_to_axis_angle(float axis[3], float *angle,float mat[4][4])
 /****************************** Vector/Rotation ******************************/
 /* TODO: the following calls should probably be depreceated sometime         */
 
-/* 3x3 matrix to axis angle */
-void mat3_to_vec_rot(float axis[3], float *angle,float mat[3][3])
-{
-	float q[4];
-	
-	/* use quaternions as intermediate representation */
-	// TODO: it would be nicer to go straight there...
-	mat3_to_quat(q,mat);
-	quat_to_axis_angle(axis, angle,q);
-}
-
-/* 4x4 matrix to axis angle */
-void mat4_to_vec_rot(float axis[3], float *angle,float mat[4][4])
-{
-	float q[4];
-	
-	/* use quaternions as intermediate representation */
-	// TODO: it would be nicer to go straight there...
-	mat4_to_quat(q,mat);
-	quat_to_axis_angle(axis, angle,q);
-}
-
 /* axis angle to 3x3 matrix */
 void vec_rot_to_mat3(float mat[][3], const float vec[3], const float phi)
 {

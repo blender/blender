@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -494,15 +492,32 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 	EditBone *ebone;
 	bArmature *arm= ob->data;
 	float scale = mat4_to_scale(mat);	/* store the scale of the matrix here to use on envelopes */
-	
+	float mat3[3][3];
+
+	copy_m3_m4(mat3, mat);
+	normalize_m3(mat3);
+
 	/* Put the armature into editmode */
 	ED_armature_to_edit(ob);
 
 	/* Do the rotations */
-	for (ebone = arm->edbo->first; ebone; ebone=ebone->next){
+	for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
+		float	delta[3], tmat[3][3];
+
+		/* find the current bone's roll matrix */
+		sub_v3_v3v3(delta, ebone->tail, ebone->head);
+		vec_roll_to_mat3(delta, ebone->roll, tmat);
+
+		/* transform the roll matrix */
+		mul_m3_m3m3(tmat, mat3, tmat);
+
+		/* transform the bone */
 		mul_m4_v3(mat, ebone->head);
 		mul_m4_v3(mat, ebone->tail);
-		
+
+		/* apply the transfiormed roll back */
+		mat3_to_vec_roll(tmat, NULL, &ebone->roll);
+
 		ebone->rad_head	*= scale;
 		ebone->rad_tail	*= scale;
 		ebone->dist		*= scale;
@@ -2991,28 +3006,31 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	/* TODO, copy more things to the new bone */
 	newbone->flag= start->flag & (BONE_HINGE|BONE_NO_DEFORM|BONE_NO_SCALE|BONE_NO_CYCLICOFFSET|BONE_NO_LOCAL_LOCATION|BONE_DONE);
 	
-	/* step 2a: parent children of in-between bones to newbone */
-	for (chain= chains->first; chain; chain= chain->next) {
-		/* ick: we need to check if parent of each bone in chain is one of the bones in the */
-		short found= 0;
-		for (ebo= chain->data; ebo; ebo= ebo->parent) {
+	/* step 2a: reparent any side chains which may be parented to any bone in the chain of bones to merge 
+	 *	- potentially several tips for side chains leading to some tree exist...
+	 */
+	for (chain = chains->first; chain; chain = chain->next) {
+		/* traverse down chain until we hit the bottom or if we run into the tip of the chain of bones we're 
+		 * merging (need to stop in this case to avoid corrupting this chain too!) 
+		 */
+		for (ebone = chain->data; (ebone) && (ebone != end); ebone = ebone->parent) {
+			short found = 0;
 			
-			/* try to find which bone from the list to be removed, is the parent */
-			for (ebone= end; ebone; ebone= ebone->parent) {
-				if (ebo->parent == ebone) {
-					found= 1;
+			/* check if this bone is parented to one in the merging chain
+			 * ! WATCHIT: must only go check until end of checking chain
+			 */
+			for (ebo = end; (ebo) && (ebo != start->parent); ebo = ebo->parent) {
+				/* side-chain found? --> remap parent to new bone, then we're done with this chain :) */
+				if (ebone->parent == ebo) {
+					ebone->parent = newbone;
+					found = 1;
 					break;
 				}
 			}
 			
-			/* adjust this bone's parent to newbone then */
-			if (found) {
-				ebo->parent= newbone;
+			/* carry on to the next tip now  */
+			if (found) 
 				break;
-			}
-		}
-		if (found) {
-			break;
 		}
 	}
 	
@@ -3048,12 +3066,12 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 		LinkData *chain, *nchain;
 		EditBone *ebo;
 		
+		armature_tag_select_mirrored(arm);
+		
 		/* get chains (ends on chains) */
 		chains_find_tips(arm->edbo, &chains);
 		if (chains.first == NULL) return OPERATOR_CANCELLED;
-
-		armature_tag_select_mirrored(arm);
-
+		
 		/* each 'chain' is the last bone in the chain (with no children) */
 		for (chain= chains.first; chain; chain= nchain) {
 			EditBone *bstart= NULL, *bend= NULL;
@@ -3098,7 +3116,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 		}		
 		
 		armature_tag_unselect(arm);
-
+		
 		BLI_freelistN(&chains);
 	}
 	

@@ -56,21 +56,21 @@ KX_BlenderMaterial::KX_BlenderMaterial()
 }
 
 void KX_BlenderMaterial::Initialize(
-    KX_Scene *scene,
-	BL_Material *data)
+        KX_Scene *scene,
+        BL_Material *data)
 {
 	RAS_IPolyMaterial::Initialize(
-		data->texname[0],
-		data->matname,
-		data->materialindex,
-		data->tile,
-		data->tilexrep[0],
-		data->tileyrep[0],
-		data->mode,
-		data->transp,
-		((data->ras_mode &ALPHA)!=0),
-		((data->ras_mode &ZSORT)!=0)
-	);
+	            data->texname[0],
+	            data->matname,
+	            data->materialindex,
+	            data->tile,
+	            data->tilexrep[0],
+	            data->tileyrep[0],
+	            data->mode,
+	            data->transp,
+	            ((data->ras_mode &ALPHA)!=0),
+	            ((data->ras_mode &ZSORT)!=0)
+	            );
 	mMaterial = data;
 	mShader = 0;
 	mBlenderShader = 0;
@@ -80,11 +80,12 @@ void KX_BlenderMaterial::Initialize(
 	mConstructed = false;
 	mPass = 0;
 	// --------------------------------
-	// RAS_IPolyMaterial variables... 
+	// RAS_IPolyMaterial variables...
 	m_flag |= RAS_BLENDERMAT;
 	m_flag |= (mMaterial->IdMode>=ONETEX)? RAS_MULTITEX: 0;
 	m_flag |= ((mMaterial->ras_mode & USE_LIGHT)!=0)? RAS_MULTILIGHT: 0;
 	m_flag |= (mMaterial->glslmat)? RAS_BLENDERGLSL: 0;
+	m_flag |= ((mMaterial->ras_mode & CAST_SHADOW)!=0)? RAS_CASTSHADOW: 0;
 
 	// figure max
 	int enabled = mMaterial->num_enabled;
@@ -92,14 +93,11 @@ void KX_BlenderMaterial::Initialize(
 	mMaterial->num_enabled = enabled>=max?max:enabled;
 
 	// test the sum of the various modes for equality
-	// so we can ether accept or reject this material 
-	// as being equal, this is rather important to 
+	// so we can ether accept or reject this material
+	// as being equal, this is rather important to
 	// prevent material bleeding
 	for(int i=0; i<mMaterial->num_enabled; i++) {
-		m_multimode	+=
-			( mMaterial->flag[i]	+
-			  mMaterial->blend_mode[i]
-			 );
+		m_multimode	+= (mMaterial->flag[i] + mMaterial->blend_mode[i]);
 	}
 	m_multimode += mMaterial->IdMode+ (mMaterial->ras_mode & ~(COLLIDER|USE_LIGHT));
 }

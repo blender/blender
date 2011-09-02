@@ -105,7 +105,7 @@ Exception::Exception (ExceptionID & expID, RESULT rslt, const char * fil, int li
 : m_expID (&expID), m_hRslt (rslt)
 {
 	// set file and line
-	if (strlen(fil) > 0 || lin > 0)
+	if (fil[0] != '\0' || lin > 0)
 		setFileLine (fil, lin);
 }
 
@@ -201,20 +201,20 @@ void Exception::copy (const Exception & xpt)
 
 void registerAllExceptions(void)
 {
-    errGenerDesc.registerDesc();
-    errNFoundDesc.registerDesc();
-    MaterialNotAvailDesc.registerDesc();
-    ImageSizesNotMatchDesc.registerDesc();
-    ImageHasExportsDesc.registerDesc();
+	errGenerDesc.registerDesc();
+	errNFoundDesc.registerDesc();
+	MaterialNotAvailDesc.registerDesc();
+	ImageSizesNotMatchDesc.registerDesc();
+	ImageHasExportsDesc.registerDesc();
 	InvalidColorChannelDesc.registerDesc();
-    SceneInvalidDesc.registerDesc();
-    CameraInvalidDesc.registerDesc();
-    ObserverInvalidDesc.registerDesc();
-    MirrorInvalidDesc.registerDesc();
-    MirrorSizeInvalidDesc.registerDesc();
-    MirrorNormalInvalidDesc.registerDesc();
-    MirrorHorizontalDesc.registerDesc();
-    MirrorTooSmallDesc.registerDesc();
-    SourceVideoEmptyDesc.registerDesc();
-    SourceVideoCreationDesc.registerDesc();
+	SceneInvalidDesc.registerDesc();
+	CameraInvalidDesc.registerDesc();
+	ObserverInvalidDesc.registerDesc();
+	MirrorInvalidDesc.registerDesc();
+	MirrorSizeInvalidDesc.registerDesc();
+	MirrorNormalInvalidDesc.registerDesc();
+	MirrorHorizontalDesc.registerDesc();
+	MirrorTooSmallDesc.registerDesc();
+	SourceVideoEmptyDesc.registerDesc();
+	SourceVideoCreationDesc.registerDesc();
 }

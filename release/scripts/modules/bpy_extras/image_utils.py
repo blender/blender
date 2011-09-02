@@ -58,7 +58,7 @@ def load_image(imagepath,
        For formats blender can read, simply return the path that is given.
     :type convert_callback: function
     :return: an image or None
-    :rtype: :class:`Image`
+    :rtype: :class:`bpy.types.Image`
     """
     import os
     import bpy

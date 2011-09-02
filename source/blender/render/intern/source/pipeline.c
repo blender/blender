@@ -174,6 +174,9 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 		else
 			fprintf(stdout, "Sce: %s Ve:%d Fa:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->totlamp);
 	}
+
+	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
+
 	fputc('\n', stdout);
 	fflush(stdout);
 }
@@ -638,9 +641,9 @@ RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int savebuf
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
-                if(srl->passflag  & SCE_PASS_INDEXMA)
-                        render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXMA);
-                if(srl->passflag  & SCE_PASS_MIST)
+		if(srl->passflag  & SCE_PASS_INDEXMA)
+			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXMA);
+		if(srl->passflag  & SCE_PASS_MIST)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_MIST);
 		if(rl->passflag & SCE_PASS_RAYHITS)
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_RAYHITS);
@@ -824,11 +827,12 @@ static char *make_pass_name(RenderPass *rpass, int chan)
 
 /* filename already made absolute */
 /* called from within UI, saves both rendered result as a file-read result */
-void RE_WriteRenderResult(RenderResult *rr, const char *filename, int compress)
+int RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *filename, int compress)
 {
 	RenderLayer *rl;
 	RenderPass *rpass;
 	void *exrhandle= IMB_exr_get_handle();
+	int success;
 
 	BLI_make_existing_file(filename);
 	
@@ -864,11 +868,20 @@ void RE_WriteRenderResult(RenderResult *rr, const char *filename, int compress)
 			}
 		}
 	}
-	
-	IMB_exr_begin_write(exrhandle, filename, rr->rectx, rr->recty, compress);
-	
-	IMB_exr_write_channels(exrhandle);
+
+	/* when the filename has no permissions, this can fail */
+	if(IMB_exr_begin_write(exrhandle, filename, rr->rectx, rr->recty, compress)) {
+		IMB_exr_write_channels(exrhandle);
+		success= TRUE;
+	}
+	else {
+		/* TODO, get the error from openexr's exception */
+		BKE_report(reports, RPT_ERROR, "Error Writing Render Result, see console");
+		success= FALSE;
+	}
 	IMB_exr_close(exrhandle);
+
+	return success;
 }
 
 /* callbacks for RE_MultilayerConvert */
@@ -1003,9 +1016,10 @@ static int read_render_result_from_file(const char *filename, RenderResult *rr, 
 }
 
 /* only for temp buffer files, makes exact copy of render result */
-static void read_render_result(Render *re, int sample)
+static int read_render_result(Render *re, int sample)
 {
 	char str[FILE_MAX];
+	int success;
 
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
@@ -1015,10 +1029,18 @@ static void read_render_result(Render *re, int sample)
 	render_unique_exr_name(re, str, sample);
 	printf("read exr tmp file: %s\n", str);
 
-	if(!read_render_result_from_file(str, re->result, 0))
+	if(read_render_result_from_file(str, re->result, 0)) {
+		success= TRUE;
+	}
+	else {
 		printf("cannot read: %s\n", str);
+		success= FALSE;
+
+	}
 
 	BLI_rw_mutex_unlock(&re->resultmutex);
+
+	return success;
 }
 
 /* *************************************************** */
@@ -2534,7 +2556,7 @@ static void do_render_seq(Render * re)
 
 	if(recurs_depth==0) {
 		/* otherwise sequencer animation isnt updated */
-		BKE_animsys_evaluate_all_animation(re->main, (float)cfra); // XXX, was BKE_curframe(re->scene)
+		BKE_animsys_evaluate_all_animation(re->main, re->scene, (float)cfra); // XXX, was BKE_curframe(re->scene)
 	}
 
 	recurs_depth++;
@@ -2990,7 +3012,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, c
 		
 		if(re->r.imtype==R_MULTILAYER) {
 			if(re->result) {
-				RE_WriteRenderResult(re->result, name, scene->r.quality);
+				RE_WriteRenderResult(re->reports, re->result, name, scene->r.quality);
 				printf("Saved: %s", name);
 			}
 		}
@@ -3207,7 +3229,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
 
 /* only the temp file! */
-void RE_ReadRenderResult(Scene *scene, Scene *scenode)
+int RE_ReadRenderResult(Scene *scene, Scene *scenode)
 {
 	Render *re;
 	int winx, winy;
@@ -3241,7 +3263,7 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	RE_InitState(re, NULL, &scene->r, NULL, winx, winy, &disprect);
 	re->scene= scene;
 	
-	read_render_result(re, 0);
+	return read_render_result(re, 0);
 }
 
 void RE_set_max_threads(int threads)
@@ -3326,4 +3348,61 @@ void RE_result_load_from_file(RenderResult *result, ReportList *reports, const c
 #endif
 }
 
+const float default_envmap_layout[] = { 0,0, 1,0, 2,0, 0,1, 1,1, 2,1 };
+
+int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, const char *relpath, int imtype, float layout[12])
+{
+	ImBuf *ibuf=NULL;
+	int ok;
+	int dx;
+	int maxX=0,maxY=0,i=0;
+	char filepath[FILE_MAX];
+
+	if(env->cube[1]==NULL) {
+		BKE_report(reports, RPT_ERROR, "There is no generated environment map available to save");
+		return 0;
+	}
+
+	dx= env->cube[1]->x;
+
+	if (env->type == ENV_CUBE) {
+		for (i=0; i < 12; i+=2) {
+			maxX = MAX2(maxX,layout[i] + 1);
+			maxY = MAX2(maxY,layout[i+1] + 1);
+		}
+
+		ibuf = IMB_allocImBuf(maxX*dx, maxY*dx, 24, IB_rectfloat);
+
+		for (i=0; i < 12; i+=2)
+			if (layout[i] > -1 && layout[i+1] > -1)
+				IMB_rectcpy(ibuf, env->cube[i/2], layout[i]*dx, layout[i+1]*dx, 0, 0, dx, dx);
+	}
+	else if (env->type == ENV_PLANE) {
+		ibuf = IMB_allocImBuf(dx, dx, 24, IB_rectfloat);
+		IMB_rectcpy(ibuf, env->cube[1], 0, 0, 0, 0, dx, dx);
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Invalid environment map type");
+		return 0;
+	}
+
+	if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
+
+	/* to save, we first get absolute path */
+	BLI_strncpy(filepath, relpath, sizeof(filepath));
+	BLI_path_abs(filepath, G.main->name);
+
+	ok= BKE_write_ibuf(ibuf, filepath, imtype, scene->r.subimtype, scene->r.quality);
+
+	IMB_freeImBuf(ibuf);
+
+	if(ok) {
+		return TRUE;
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Error writing environment map.");
+		return FALSE;
+	}
+}
 

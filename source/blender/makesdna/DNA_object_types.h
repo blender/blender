@@ -306,6 +306,8 @@ typedef struct DupliObject {
 #define OB_LAMP			10
 #define OB_CAMERA		11
 
+#define OB_SPEAKER		12
+
 // #define OB_WAVE			21
 #define OB_LATTICE		22
 

@@ -308,7 +308,7 @@ void GPU_set_anisotropic(float value)
 	}
 }
 
-float GPU_get_anisotropic()
+float GPU_get_anisotropic(void)
 {
 	return GTS.anisotropic;
 }

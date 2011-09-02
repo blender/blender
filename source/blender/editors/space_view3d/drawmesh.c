@@ -613,7 +613,7 @@ void draw_mesh_textured_old(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 	}
 	else if(faceselect) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
-			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1, GPU_enable_material);
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1, GPU_enable_material, NULL);
 		else
 			dm->drawMappedFacesTex(dm, me->mface ? draw_tface_mapped__set_draw : NULL, me);
 	}
@@ -752,7 +752,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 		int useColors= 1;
 
 		dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions,
-			ob->data, useColors, GPU_enable_material);
+			ob->data, useColors, GPU_enable_material, NULL);
 	}
 	else {
 		Mesh *me= ob->data;

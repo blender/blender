@@ -762,7 +762,7 @@ static StructRNA* def_node(BlenderRNA *brna, int node_id)
 	return srna;
 }
 
-void alloc_node_type_items(EnumPropertyItem *items, int category)
+static void alloc_node_type_items(EnumPropertyItem *items, int category)
 {
 	int i;
 	int count = 3;

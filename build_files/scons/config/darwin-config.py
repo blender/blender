@@ -14,7 +14,7 @@ USE_SDK=True
 ###################     Cocoa & architecture settings      ##################
 #############################################################################
 WITH_GHOST_COCOA=True
-MACOSX_ARCHITECTURE = 'i386' # valid archs: ppc, i386, ppc64, x86_64
+MACOSX_ARCHITECTURE = 'x86_64' # valid archs: ppc, i386, ppc64, x86_64
 
 
 cmd = 'uname -p'
@@ -104,14 +104,26 @@ BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg bz2'
 #bz2 is a standard osx dynlib
 
-# python 3.1 uses precompiled libraries in bf svn /lib by default
 BF_PYTHON_VERSION = '3.2'
-BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
-# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
-BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
-BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
-# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
+WITH_OSX_STATICPYTHON = True
+
+if WITH_OSX_STATICPYTHON:
+	# python 3.2 uses precompiled libraries in bf svn /lib by default
+
+	BF_PYTHON = LIBDIR + '/python'
+	BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
+	# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
+	BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
+	BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
+	# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
+else:
+	# python 3.2 uses Python-framework additionally installed in /Library/Frameworks
+	
+	BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
+	BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}m'
+	BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
+	#BF_PYTHON_LIB = ''
+	BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config-3.2m'
 	
 WITH_BF_OPENAL = True
 #different lib must be used  following version of gcc
@@ -315,8 +327,16 @@ if WITH_BF_QUICKTIME:
 	else:
 		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','QuickTime']
 
+if not WITH_OSX_STATICPYTHON:
+		PLATFORM_LINKFLAGS = PLATFORM_LINKFLAGS+['-framework','Python']
+
+
 #note to build succesfully on 10.3.9 SDK you need to patch  10.3.9 by adding the SystemStubs.a lib from 10.4
-LLIBS = ['stdc++', 'SystemStubs']
+#for 10.7.sdk, SystemStubs needs to be excluded (lib doesn't exist anymore)
+if MACOSX_DEPLOYMENT_TARGET == '10.7':
+	LLIBS = ['stdc++']
+else:
+	LLIBS = ['stdc++', 'SystemStubs']
 
 # some flags shuffling for different OS versions
 if MAC_MIN_VERS == '10.3':

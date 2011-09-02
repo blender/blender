@@ -960,20 +960,19 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 
 	if(ibuf) {
 		Image *ima= sima->image;
-		RenderResult *rr= BKE_image_acquire_renderresult(scene, ima);
 
 		simopts->planes= ibuf->depth;
 
-		/* cant save multilayer sequence, ima->rr isn't valid for a specific frame */
-		if(rr && !(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER))
-			simopts->imtype= R_MULTILAYER;
-		else if(ima->type==IMA_TYPE_R_RESULT)
+		if(ELEM(ima->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE)) {
 			simopts->imtype= scene->r.imtype;
-		else if (ima->source == IMA_SRC_GENERATED)
+			simopts->planes= scene->r.planes;
+		}
+		else if (ima->source == IMA_SRC_GENERATED) {
 			simopts->imtype= R_PNG;
-		else
+		}
+		else {
 			simopts->imtype= BKE_ftype_to_imtype(ibuf->ftype);
-
+		}
 		simopts->subimtype= scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
 		simopts->quality= ibuf->ftype & 0xff;
 
@@ -983,7 +982,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 
 		/* unlikely but just incase */
 		if (ELEM3(simopts->planes, R_PLANESBW, R_PLANES24, R_PLANES32) == 0) {
-			simopts->planes= 32;
+			simopts->planes= R_PLANES32;
 		}
 
 		/* some formats dont use quality so fallback to scenes quality */
@@ -1000,9 +999,6 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 			}
 			BLI_path_abs(simopts->filepath, G.main->name);
 		}
-
-		/* cleanup */
-		BKE_image_release_renderresult(scene, ima);
 	}
 
 	ED_space_image_release_buffer(sima, lock);
@@ -1017,7 +1013,10 @@ static void save_image_options_from_op(SaveImageOptions *simopts, wmOperator *op
 	// if (RNA_property_is_set(op->ptr, "subimtype")) simopts->subimtype= RNA_enum_get(op->ptr, "subimtype"); // XXX
 	if (RNA_property_is_set(op->ptr, "file_quality")) simopts->quality= RNA_int_get(op->ptr, "file_quality");
 
-	if (RNA_property_is_set(op->ptr, "filepath")) RNA_string_get(op->ptr, "filepath", simopts->filepath);
+	if (RNA_property_is_set(op->ptr, "filepath")) {
+		RNA_string_get(op->ptr, "filepath", simopts->filepath);
+		BLI_path_abs(simopts->filepath, G.main->name);
+	}
 }
 
 static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
@@ -1026,6 +1025,7 @@ static void save_image_options_to_op(SaveImageOptions *simopts, wmOperator *op)
 	RNA_enum_set(op->ptr, "file_format", simopts->imtype);
 	// RNA_enum_set(op->ptr, "subimtype", simopts->subimtype);
 	RNA_int_set(op->ptr, "file_quality", simopts->quality);
+
 	RNA_string_set(op->ptr, "filepath", simopts->filepath);
 }
 
@@ -1050,10 +1050,10 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 
 		if(ima->type == IMA_TYPE_R_RESULT) {
 			/* enforce user setting for RGB or RGBA, but skip BW */
-			if(simopts->planes==32) {
+			if(simopts->planes==R_PLANES32) {
 				ibuf->depth= 32;
 			}
-			else if(simopts->planes==24) {
+			else if(simopts->planes==R_PLANES24) {
 				ibuf->depth= 24;
 			}
 		}
@@ -1069,7 +1069,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			Scene *scene= CTX_data_scene(C);
 			RenderResult *rr= BKE_image_acquire_renderresult(scene, ima);
 			if(rr) {
-				RE_WriteRenderResult(rr, simopts->filepath, simopts->quality);
+				RE_WriteRenderResult(op->reports, rr, simopts->filepath, simopts->quality);
 				ok= TRUE;
 			}
 			else {

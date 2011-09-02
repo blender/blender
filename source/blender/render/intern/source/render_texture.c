@@ -1789,7 +1789,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 			const float adx[3] = {fabsf(dx[0]), fabsf(dx[1]), fabsf(dx[2])};
 			const float ady[3] = {fabsf(dy[0]), fabsf(dy[1]), fabsf(dy[2])};
 			du = MAX3(adx[0], adx[1], adx[2]);
-			dv = MAX3(ady[1], ady[1], ady[2]);
+			dv = MAX3(ady[0], ady[1], ady[2]);
 		}
 	}
 
@@ -2358,7 +2358,6 @@ void do_material_tex(ShadeInput *shi)
 						f1= shi->vn[0];
 						f2= shi->vn[1];
 						texres.nor[0]= f1*co_nor+f2*si;
-						texres.nor[1]= f2*co_nor-f1*si;
 						f1= shi->vn[1];
 						f2= shi->vn[2];
 						texres.nor[1]= f1*co_nor+f2*si;
