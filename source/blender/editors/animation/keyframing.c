@@ -530,6 +530,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 {
 	bConstraint *con= NULL;
 	short searchtype= VISUALKEY_NONE;
+	short has_parent = FALSE;
 	char *identifier= NULL;
 	
 	/* validate data */
@@ -548,6 +549,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		
 		con= ob->constraints.first;
 		identifier= (char *)RNA_property_identifier(prop);
+		has_parent= (ob->parent != NULL);
 	}
 	else if (ptr->type == &RNA_PoseBone) {
 		/* Pose Channel */
@@ -555,10 +557,11 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		
 		con= pchan->constraints.first;
 		identifier= (char *)RNA_property_identifier(prop);
+		has_parent= (pchan->parent != NULL);
 	}
 	
 	/* check if any data to search using */
-	if (ELEM(NULL, con, identifier))
+	if (ELEM(NULL, con, identifier) && (has_parent == FALSE))
 		return 0;
 		
 	/* location or rotation identifiers only... */
@@ -573,7 +576,12 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 	
 	
 	/* only search if a searchtype and initial constraint are available */
-	if (searchtype && con) {
+	if (searchtype) {
+		/* parent is always matching */
+		if (has_parent)
+			return 1;
+		
+		/* constraints */
 		for (; con; con= con->next) {
 			/* only consider constraint if it is not disabled, and has influence */
 			if (con->flag & CONSTRAINT_DISABLE) continue;
@@ -645,39 +653,34 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 	if (ptr->type == &RNA_Object) {
 		Object *ob= (Object *)ptr->data;
 		
-		/* parented objects are not supported, as the effects of the parent
-		 * are included in the matrix, which kindof beats the point
-		 */
-		if (ob->parent == NULL) {
-			/* only Location or Rotation keyframes are supported now */
-			if (strstr(identifier, "location")) {
-				return ob->obmat[3][array_index];
-			}
-			else if (strstr(identifier, "rotation_euler")) {
-				float eul[3];
-				
-				mat4_to_eulO(eul, ob->rotmode, ob->obmat);
-				return eul[array_index];
-			}
-			else if (strstr(identifier, "rotation_quaternion")) {
-				float trimat[3][3], quat[4];
-				
-				copy_m3_m4(trimat, ob->obmat);
-				mat3_to_quat_is_ok(quat, trimat);
-				
-				return quat[array_index];
-			}
-			else if (strstr(identifier, "rotation_axis_angle")) {
-				float axis[3], angle;
-				
-				mat4_to_axis_angle(axis, &angle, ob->obmat);
-				
-				/* w = 0, x,y,z = 1,2,3 */
-				if (array_index == 0)
-					return angle;
-				else
-					return axis[array_index - 1];
-			}
+		/* only Location or Rotation keyframes are supported now */
+		if (strstr(identifier, "location")) {
+			return ob->obmat[3][array_index];
+		}
+		else if (strstr(identifier, "rotation_euler")) {
+			float eul[3];
+			
+			mat4_to_eulO(eul, ob->rotmode, ob->obmat);
+			return eul[array_index];
+		}
+		else if (strstr(identifier, "rotation_quaternion")) {
+			float trimat[3][3], quat[4];
+			
+			copy_m3_m4(trimat, ob->obmat);
+			mat3_to_quat_is_ok(quat, trimat);
+			
+			return quat[array_index];
+		}
+		else if (strstr(identifier, "rotation_axis_angle")) {
+			float axis[3], angle;
+			
+			mat4_to_axis_angle(axis, &angle, ob->obmat);
+			
+			/* w = 0, x,y,z = 1,2,3 */
+			if (array_index == 0)
+				return angle;
+			else
+				return axis[array_index - 1];
 		}
 	}
 	else if (ptr->type == &RNA_PoseBone) {
