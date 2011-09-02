@@ -477,8 +477,8 @@ void bmesh_removedoubles_exec(BMesh *bm, BMOperator *op)
 			
 			v2 = verts[j];
 			//if ((v2->co[0]+v2->co[1]+v2->co[2]) - (v->co[0]+v->co[1]+v->co[2])
-			//     > distsqr) break;
-			if ((v2->co[0]-v->co[0]) + (v2->co[1]-v->co[1]) + (v2->co[2]-v->co[2]) > distsqr*4.0f)
+			//     > dist) break;
+			if ((v2->co[0]-v->co[0]) + (v2->co[1]-v->co[1]) + (v2->co[2]-v->co[2]) > dist)
 				break;
 
 			vec[0] = v->co[0] - v2->co[0];
@@ -508,11 +508,10 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, *v2;
 	BMVert **verts=NULL;
 	BLI_array_declare(verts);
-	float dist, distsqr;
+	float dist;
 	int i, j, len, keepvert;
 
 	dist = BMO_Get_Float(op, "dist");
-	distsqr = dist*dist;
 
 	i = 0;
 	BMO_ITER(v, &oiter, bm, op, "verts", BM_VERT) {
@@ -534,9 +533,9 @@ void bmesh_finddoubles_exec(BMesh *bm, BMOperator *op)
 		
 		for (j=i+1; j<len; j++) {
 			v2 = verts[j];
-			if ((v2->co[0]+v2->co[1]+v2->co[2]) - (v->co[0]+v->co[1]+v->co[2])
-			     > distsqr) break;
-			
+			if ((v2->co[0]+v2->co[1]+v2->co[2]) - (v->co[0]+v->co[1]+v->co[2]) > dist)
+				break;
+
 			if (keepvert) {
 				if (BMO_TestFlag(bm, v2, VERT_KEEP) == BMO_TestFlag(bm, v, VERT_KEEP))
 					continue;
@@ -561,11 +560,10 @@ void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
 	BMVert *v, *v2;
 	BMVert **verts=NULL;
 	BLI_array_declare(verts);
-	float dist, distsqr;
+	float dist;
 	int i, j, len /* , keepvert */;
 
 	dist = BMO_Get_Float(op, "dist");
-	distsqr = dist*dist;
 
 	i = 0;
 	BMO_ITER(v, &oiter, bm, op, "verts", BM_VERT) {
@@ -588,7 +586,7 @@ void bmesh_automerge_exec(BMesh *bm, BMOperator *op)
 		for (j=i+1; j<len; j++) {
 			v2 = verts[j];
 			if ((v2->co[0]+v2->co[1]+v2->co[2]) - (v->co[0]+v->co[1]+v->co[2])
-			     > distsqr) break;
+			     > dist) break;
 			
 			/* only allow unselected -> selected */
 			if (BMO_TestFlag(bm, v2, VERT_IN))
