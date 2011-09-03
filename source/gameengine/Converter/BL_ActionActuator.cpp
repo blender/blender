@@ -217,6 +217,9 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 		case ACT_ACTION_FROM_PROP:
 			CValue* prop = GetParent()->GetProperty(m_propname);
 
+			// If we don't have a property, we can't do anything, so just bail
+			if (!prop) return false;
+
 			playtype = BL_Action::ACT_MODE_PLAY;
 			start = end = prop->GetNumber();
 
