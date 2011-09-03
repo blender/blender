@@ -942,7 +942,7 @@ void BL_ConvertActuators(char* maggiename,
 		case ACT_2DFILTER:
 		{
 			bTwoDFilterActuator *_2dfilter = (bTwoDFilterActuator*) bact->data;
-            SCA_2DFilterActuator *tmp = NULL;
+			SCA_2DFilterActuator *tmp = NULL;
 
 			RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode;
 			switch(_2dfilter->type)

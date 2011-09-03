@@ -1023,46 +1023,70 @@ static void layerInterp_shapekey(void **sources, float *weights,
 	}
 }
 
+/* note, these numbered comments below are copied from trunk,
+ * while _most_ match, some at the end need adding and are out of sync */
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
+	/* 0: CD_MVERT */
 	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 1: CD_MSTICKY */
 	{sizeof(MSticky), "MSticky", 1, NULL, NULL, NULL, layerInterp_msticky, NULL,
 	 NULL},
+	/* 2: CD_MDEFORMVERT */
 	{sizeof(MDeformVert), "MDeformVert", 1, NULL, layerCopy_mdeformvert,
 	 layerFree_mdeformvert, layerInterp_mdeformvert, NULL, NULL},
+	/* 3: CD_MEDGE */
 	{sizeof(MEdge), "MEdge", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 4: CD_MFACE */
 	{sizeof(MFace), "MFace", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 5: CD_MTFACE */
 	{sizeof(MTFace), "MTFace", 1, "UVTex", layerCopy_tface, NULL,
 	 layerInterp_tface, layerSwap_tface, layerDefault_tface},
+	/* 6: CD_MCOL */
 	/* 4 MCol structs per face */
 	{sizeof(MCol)*4, "MCol", 4, "Col", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
+	/* 7: CD_ORIGINDEX */
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 8: CD_NORMAL */
 	/* 3 floats per normal vector */
 	{sizeof(float)*3, "vec3f", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 9: CD_FLAGS */
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 10: CD_PROP_FLT */
 	{sizeof(MFloatProperty), "MFloatProperty",1,"Float", layerCopy_propFloat,NULL,NULL,NULL},
+	/* 11: CD_PROP_INT */
 	{sizeof(MIntProperty), "MIntProperty",1,"Int",layerCopy_propInt,NULL,NULL,NULL},
+	/* 12: CD_PROP_STR */
 	{sizeof(MStringProperty), "MStringProperty",1,"String",layerCopy_propString,NULL,NULL,NULL},
+	/* 13: CD_ORIGSPACE */
 	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVTex", layerCopy_origspace_face, NULL,
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
+	/* 14: CD_ORCO */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 15: CD_MTEXPOLY */
 	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
+	/* 16: CD_MLOOPUV */
 	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL,
 	 layerEqual_mloopuv, layerMultiply_mloopuv, layerInitMinMax_mloopuv, 
 	 layerAdd_mloopuv, layerDoMinMax_mloopuv, layerCopyValue_mloopuv},
+	/* 17: CD_MLOOPCOL */
 	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, 
 	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol, 
 	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
 	{sizeof(float)*4*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 19: CD_MDISPS */
 	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
 	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL, 
 	 NULL, NULL, NULL, NULL, NULL, NULL, 
 	 layerRead_mdisps, layerWrite_mdisps, layerFilesize_mdisps, layerValidate_mdisps},
+	/* 20: CD_WEIGHT_MCOL */
 	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
 	{sizeof(MPoly), "MPoly", 1, "NGon Face", NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MLoop), "MLoop", 1, "NGon Face-Vertex", NULL, NULL, NULL, NULL, NULL},
 	{sizeof(float)*3, "", 0, "ClothOrco", NULL, NULL, layerInterp_shapekey},
+	/* 21: CD_ID_MCOL */
 	{sizeof(MCol)*4, "MCol", 4, "IDCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
 	{sizeof(MCol)*4, "MCol", 4, "TextureCol", NULL, NULL, layerInterp_mcol,

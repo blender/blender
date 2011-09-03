@@ -207,10 +207,10 @@ bool SCA_RandomActuator::Update()
 			  sensible values. The termination condition states two 
 			  things: 
 			  1. s >= 0 is not allowed: to prevent the distro from 
-			     getting a bias towards high values. This is a small 
+				 getting a bias towards high values. This is a small
 				 correction, really, and might also be left out.
 			  2. s == 0 is not allowed: to prevent a division by zero
-			     when renormalising the drawn value to the desired 
+				 when renormalising the drawn value to the desired
 				 distribution shape. As a side effect, the distro will
 				 never yield the exact mean. 
 			  I am not sure whether this is consistent, since the error 

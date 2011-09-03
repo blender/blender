@@ -1414,6 +1414,8 @@ static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	else
 		ob->pd->forcefield = 0;
 	
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+
 	return OPERATOR_FINISHED;
 }
 

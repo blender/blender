@@ -208,77 +208,34 @@ PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 	return item;
 }
 
-/* returns the exception string as a new PyUnicode object, depends on external StringIO module */
+/* returns the exception string as a new PyUnicode object, depends on external traceback module */
 PyObject *PyC_ExceptionBuffer(void)
 {
-	PyObject *stdout_backup = PySys_GetObject("stdout"); /* borrowed */
-	PyObject *stderr_backup = PySys_GetObject("stderr"); /* borrowed */
-	PyObject *string_io = NULL;
-	PyObject *string_io_buf = NULL;
-	PyObject *string_io_mod= NULL;
-	PyObject *string_io_getvalue= NULL;
-	
-	PyObject *error_type, *error_value, *error_traceback;
-	
-	if (!PyErr_Occurred())
-		return NULL;
-	
-	PyErr_Fetch(&error_type, &error_value, &error_traceback);
-	
-	PyErr_Clear();
-	
-	/* import io
-	 * string_io = io.StringIO()
-	 */
-	
-	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
+	PyObject *traceback_mod= NULL;
+	PyObject *format_tb_func= NULL;
+	PyObject *ret= NULL;
+
+	if(! (traceback_mod= PyImport_ImportModule("traceback")) ) {
 		goto error_cleanup;
 	}
-	else if (! (string_io = PyObject_CallMethod(string_io_mod, (char *)"StringIO", NULL))) {
+	else if (! (format_tb_func= PyObject_GetAttrString(traceback_mod, "format_exc"))) {
 		goto error_cleanup;
 	}
-	else if (! (string_io_getvalue= PyObject_GetAttrString(string_io, "getvalue"))) {
-		goto error_cleanup;
+
+	ret= PyObject_CallObject(format_tb_func, NULL);
+
+	if(ret == Py_None) {
+		Py_DECREF(ret);
+		ret= NULL;
 	}
-	
-	Py_INCREF(stdout_backup); // since these were borrowed we dont want them freed when replaced.
-	Py_INCREF(stderr_backup);
-	
-	PySys_SetObject("stdout", string_io); // both of these are free'd when restoring
-	PySys_SetObject("stderr", string_io);
-	
-	PyErr_Restore(error_type, error_value, error_traceback);
-	PyErr_Print(); /* print the error */
-	PyErr_Clear();
-	
-	string_io_buf = PyObject_CallObject(string_io_getvalue, NULL);
-	
-	PySys_SetObject("stdout", stdout_backup);
-	PySys_SetObject("stderr", stderr_backup);
-	
-	Py_DECREF(stdout_backup); /* now sys owns the ref again */
-	Py_DECREF(stderr_backup);
-	
-	Py_DECREF(string_io_mod);
-	Py_DECREF(string_io_getvalue);
-	Py_DECREF(string_io); /* free the original reference */
-	
-	PyErr_Clear();
-	return string_io_buf;
-	
-	
+
 error_cleanup:
 	/* could not import the module so print the error and close */
-	Py_XDECREF(string_io_mod);
-	Py_XDECREF(string_io);
-	
-	PyErr_Restore(error_type, error_value, error_traceback);
-	PyErr_Print(); /* print the error */
-	PyErr_Clear();
-	
-	return NULL;
-}
+	Py_XDECREF(traceback_mod);
+	Py_XDECREF(format_tb_func);
 
+	return ret;
+}
 
 /* string conversion, escape non-unicode chars, coerce must be set to NULL */
 const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)

@@ -111,7 +111,7 @@ KX_GameObject::KX_GameObject(
       m_pHitObject(NULL),
       m_actionManager(NULL),
       m_isDeformable(false)
-    #ifdef WITH_PYTHON
+#ifdef WITH_PYTHON
     , m_attr_dict(NULL)
 #endif
 {
