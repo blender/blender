@@ -183,7 +183,7 @@ class _GenericBone:
     @property
     def center(self):
         """The midpoint between the head and the tail."""
-        return (self.head + self.tail) * 0.5
+        return self.head.lerp(self.tail, 0.5)
 
     @property
     def length(self):
@@ -568,7 +568,7 @@ class _GenericUI:
         draw_funcs = cls._dyn_ui_initialize()
         try:
             draw_funcs.remove(draw_func)
-        except:
+        except ValueError:
             pass
 
 

@@ -620,7 +620,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 		int i,j;
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {
-			if (ob->parent==ob && ELEM(ob->partype, PARVERT1,PARVERT3)) {
+			if (ob->parent==bm->ob && ELEM(ob->partype, PARVERT1,PARVERT3)) {
 				
 				/* duplicate code from below, make it function later...? */
 				if (!vertMap) {

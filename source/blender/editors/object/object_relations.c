@@ -92,6 +92,8 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_lattice.h"
+#include "ED_mesh.h"
 #include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -124,7 +126,11 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		BMEditMesh *em = me->edit_btmesh;
+		BMEditMesh *em;
+
+		EDBM_LoadEditBMesh(scene, obedit);
+		EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
+		em = me->edit_btmesh;
 
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (BM_TestHFlag(eve, BM_SELECT)) {
@@ -137,8 +143,13 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
-		ListBase *editnurb= curve_get_editcurve(obedit);
-		
+		ListBase *editnurb;
+
+		load_editNurb(obedit);
+		make_editNurb(obedit);
+
+		editnurb= curve_get_editcurve(obedit);
+
 		cu= obedit->data;
 
 		nu= editnurb->first;
@@ -177,8 +188,13 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if(obedit->type==OB_LATTICE) {
-		Lattice *lt= obedit->data;
-		
+		Lattice *lt;
+
+		load_editLatt(obedit);
+		make_editLatt(obedit);
+
+		lt= obedit->data;
+
 		a= lt->editlatt->latt->pntsu*lt->editlatt->latt->pntsv*lt->editlatt->latt->pntsw;
 		bp= lt->editlatt->latt->def;
 		while(a--) {
