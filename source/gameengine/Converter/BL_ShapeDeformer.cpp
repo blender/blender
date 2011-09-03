@@ -69,12 +69,12 @@ extern "C"{
 //#undef __NLA_DEFNORMALS
 
 BL_ShapeDeformer::BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
-                    Object *bmeshobj,
-                    RAS_MeshObject *mesh)
-				:	
-					BL_SkinDeformer(gameobj,bmeshobj, mesh),
-					m_useShapeDrivers(false),
-					m_lastShapeUpdate(-1)
+                                   Object *bmeshobj,
+                                   RAS_MeshObject *mesh)
+    :
+      BL_SkinDeformer(gameobj,bmeshobj, mesh),
+      m_useShapeDrivers(false),
+      m_lastShapeUpdate(-1)
 {
 	m_key = m_bmesh->key;
 	m_bmesh->key = copy_key(m_key);

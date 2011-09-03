@@ -170,10 +170,10 @@ float BlenderWorldInfo::getMistStart()
 float BlenderWorldInfo::getMistDistance()
 {
 	return m_mistdistance;
-}  
-    
+}
 
-    
+
+
 float BlenderWorldInfo::getMistColorRed()
 {
 	return m_mistcolor[0];

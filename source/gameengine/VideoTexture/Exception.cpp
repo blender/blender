@@ -201,20 +201,20 @@ void Exception::copy (const Exception & xpt)
 
 void registerAllExceptions(void)
 {
-    errGenerDesc.registerDesc();
-    errNFoundDesc.registerDesc();
-    MaterialNotAvailDesc.registerDesc();
-    ImageSizesNotMatchDesc.registerDesc();
-    ImageHasExportsDesc.registerDesc();
+	errGenerDesc.registerDesc();
+	errNFoundDesc.registerDesc();
+	MaterialNotAvailDesc.registerDesc();
+	ImageSizesNotMatchDesc.registerDesc();
+	ImageHasExportsDesc.registerDesc();
 	InvalidColorChannelDesc.registerDesc();
-    SceneInvalidDesc.registerDesc();
-    CameraInvalidDesc.registerDesc();
-    ObserverInvalidDesc.registerDesc();
-    MirrorInvalidDesc.registerDesc();
-    MirrorSizeInvalidDesc.registerDesc();
-    MirrorNormalInvalidDesc.registerDesc();
-    MirrorHorizontalDesc.registerDesc();
-    MirrorTooSmallDesc.registerDesc();
-    SourceVideoEmptyDesc.registerDesc();
-    SourceVideoCreationDesc.registerDesc();
+	SceneInvalidDesc.registerDesc();
+	CameraInvalidDesc.registerDesc();
+	ObserverInvalidDesc.registerDesc();
+	MirrorInvalidDesc.registerDesc();
+	MirrorSizeInvalidDesc.registerDesc();
+	MirrorNormalInvalidDesc.registerDesc();
+	MirrorHorizontalDesc.registerDesc();
+	MirrorTooSmallDesc.registerDesc();
+	SourceVideoEmptyDesc.registerDesc();
+	SourceVideoCreationDesc.registerDesc();
 }

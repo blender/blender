@@ -178,7 +178,7 @@ static void stats_background(void *UNUSED(arg), RenderStats *rs)
 			fprintf(stdout, "Sce: %s Ve:%d Fa:%d La:%d", rs->scenename, rs->totvert, rs->totface, rs->totlamp);
 	}
 
-	BLI_exec_cb(rs, (ID *)rs, BLI_CB_EVT_RENDER_STATS);
+	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_RENDER_STATS);
 
 	fputc('\n', stdout);
 	fflush(stdout);
@@ -645,9 +645,9 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
-                if(srl->passflag  & SCE_PASS_INDEXMA)
-                        render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXMA);
-                if(srl->passflag  & SCE_PASS_MIST)
+		if(srl->passflag  & SCE_PASS_INDEXMA)
+			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXMA);
+		if(srl->passflag  & SCE_PASS_MIST)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_MIST);
 		if(rl->passflag & SCE_PASS_RAYHITS)
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_RAYHITS);

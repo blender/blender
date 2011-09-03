@@ -922,7 +922,7 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 static void ffmpeg_decode_video_frame_scan(
 	struct anim * anim, int64_t pts_to_search)
 {
-        /* there seem to exist *very* silly GOP lengths out in the wild... */
+	/* there seem to exist *very* silly GOP lengths out in the wild... */
 	int count = 1000;
 
 	av_log(anim->pFormatCtx,

@@ -1099,7 +1099,7 @@ void load_editMesh(Scene *scene, Object *obedit)
 		int j;
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {
-			if (ob->parent==ob && ELEM(ob->partype, PARVERT1,PARVERT3)) {
+			if (ob->parent==obedit && ELEM(ob->partype, PARVERT1,PARVERT3)) {
 				
 				/* duplicate code from below, make it function later...? */
 				if (!vertMap) {

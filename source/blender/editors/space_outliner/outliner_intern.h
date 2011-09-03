@@ -129,6 +129,7 @@ typedef struct TreeElement {
 /* outliner_tree.c ----------------------------------------------- */
 
 void outliner_free_tree(ListBase *lb);
+void outliner_cleanup_tree(struct SpaceOops *soops);
 
 TreeElement *outliner_find_tse(struct SpaceOops *soops, TreeStoreElem *tse);
 TreeElement *outliner_find_id(struct SpaceOops *soops, ListBase *lb, struct ID *id);
@@ -139,6 +140,7 @@ void outliner_build_tree(struct Main *mainvar, struct Scene *scene, struct Space
 /* outliner_draw.c ---------------------------------------------- */
 
 void draw_outliner(const struct bContext *C);
+void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag);
 
 /* outliner_select.c -------------------------------------------- */
 int tree_element_type_active(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set);
@@ -157,6 +159,13 @@ void outliner_set_flag(struct SpaceOops *soops, ListBase *lb, short flag, short 
 void object_toggle_visibility_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
 void object_toggle_selectability_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
 void object_toggle_renderability_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
+
+
+void group_toggle_visibility_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
+void group_toggle_selectability_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
+void group_toggle_renderability_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
+
+void item_rename_cb(struct bContext *C, struct Scene *scene, TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem);
 
 /* ...................................................... */
 

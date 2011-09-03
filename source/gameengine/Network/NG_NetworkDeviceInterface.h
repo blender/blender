@@ -64,7 +64,7 @@ public:
 	bool IsOnline(void) { return m_online; }
 
 	virtual bool Connect(char *address, unsigned int port, char *password,
-		     unsigned int localport, unsigned int timeout)=0;
+	                     unsigned int localport, unsigned int timeout)=0;
 	virtual bool Disconnect(void)=0;
 
 	virtual void SendNetworkMessage(NG_NetworkMessage* msg)=0;

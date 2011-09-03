@@ -34,7 +34,7 @@
 
 #ifndef KX_PYTHONCONTROLLER_H
 #define KX_PYTHONCONTROLLER_H
-	      
+
 #include "SCA_IController.h"
 #include "SCA_LogicManager.h"
 #include "BoolValue.h"

@@ -57,7 +57,7 @@ class KX_TrackToActuator : public SCA_IActuator
 
   public:
 	KX_TrackToActuator(SCA_IObject* gameobj, SCA_IObject *ob, int time,
-				       bool threedee,int trackflag,int upflag);
+	                   bool threedee,int trackflag,int upflag);
 	virtual ~KX_TrackToActuator();
 	virtual CValue* GetReplica() {
 		KX_TrackToActuator* replica = new KX_TrackToActuator(*this);

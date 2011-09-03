@@ -282,10 +282,10 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		else if(ok1==0 || ok2==0) return;
 		
 		/* at least 1 visible interesction point */
-		if(t1<0.0f && t2<0.0f) return;
+		if(t1<0.0 && t2<0.0) return;
 		
-		if(t1<0.0f) t1= 0.0f;
-		if(t2<0.0f) t2= 0.0f;
+		if(t1<0.0) t1= 0.0;
+		if(t2<0.0) t2= 0.0;
 		
 		if(t1==t2) return;
 		
@@ -423,8 +423,8 @@ float fresnel_fac(float *view, float *vn, float grad, float fac)
 
 static double saacos_d(double fac)
 {
-	if(fac<= -1.0f) return M_PI;
-	else if(fac>=1.0f) return 0.0;
+	if(fac<= -1.0) return M_PI;
+	else if(fac>=1.0) return 0.0;
 	else return acos(fac);
 }
 
@@ -590,7 +590,7 @@ static float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent)
 
 	i= spec(nh, hard);
 
-	i= i/(0.1+nv);
+	i= i/(0.1f+nv);
 	return i;
 }
 
@@ -896,7 +896,7 @@ static void ramp_diffuse_result(float *diff, ShadeInput *shi)
 	if(ma->ramp_col) {
 		if(ma->rampin_col==MA_RAMP_IN_RESULT) {
 			
-			fac= 0.3*diff[0] + 0.58*diff[1] + 0.12*diff[2];
+			fac= 0.3f*diff[0] + 0.58f*diff[1] + 0.12f*diff[2];
 			do_colorband(ma->ramp_col, fac, col);
 			
 			/* blending method */
@@ -926,7 +926,7 @@ static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, floa
 			/* input */
 			switch(ma->rampin_col) {
 			case MA_RAMP_IN_ENERGY:
-				fac= 0.3*r + 0.58*g + 0.12*b;
+				fac= 0.3f*r + 0.58f*g + 0.12f*b;
 				break;
 			case MA_RAMP_IN_SHADER:
 				fac= is;
@@ -966,7 +966,7 @@ static void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInpu
 	float fac;
 	
 	if(ma->ramp_spec && (ma->rampin_spec==MA_RAMP_IN_RESULT)) {
-		fac= 0.3*(*specr) + 0.58*(*specg) + 0.12*(*specb);
+		fac= 0.3f*(*specr) + 0.58f*(*specg) + 0.12f*(*specb);
 		do_colorband(ma->ramp_spec, fac, col);
 		
 		/* blending method */
@@ -1213,7 +1213,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 				}
 			}
 		}
-		if (visifac <= 0.001) visifac = 0.0f;
+		if (visifac <= 0.001f) visifac = 0.0f;
 		return visifac;
 	}
 }
@@ -1231,7 +1231,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	view= shi->view;
 	
 	
-	if (lar->energy == 0.0) return;
+	if (lar->energy == 0.0f) return;
 	/* only shadow lamps shouldn't affect shadow-less materials at all */
 	if ((lar->mode & LA_ONLYSHADOW) && (!(ma->mode & MA_SHADOW) || !(R.r.mode & R_SHADOW)))
 		return;
@@ -1359,7 +1359,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	
 	/* 'is' is diffuse */
 	if((ma->shade_flag & MA_CUBIC) && is>0.0f && is<1.0f)
-		is= 3.0*is*is - 2.0*is*is*is;	// nicer termination of shades
+		is= 3.0f*is*is - 2.0f*is*is*is;	// nicer termination of shades
 
 	i= is*phongcorr;
 	
@@ -1388,7 +1388,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 						lamp_get_shadow(lar, shi, inp, shadfac, shi->depth);
 						
 					/* warning, here it skips the loop */
-					if((lar->mode & LA_ONLYSHADOW) && i>0.0) {
+					if((lar->mode & LA_ONLYSHADOW) && i>0.0f) {
 						
 						shadfac[3]= i*lar->energy*(1.0f-shadfac[3]);
 						shr->shad[0] -= shadfac[3]*shi->r*(1.0f-lashdw[0]);
@@ -1448,7 +1448,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 				t= vn[0]*lv[0]+vn[1]*lv[1]+vn[2]*lv[2];
 				
 				if(lar->type==LA_HEMI) {
-					t= 0.5*t+0.5;
+					t= 0.5f*t+0.5f;
 				}
 				
 				t= shadfac[3]*shi->spec*spec(t, shi->har);

@@ -1539,7 +1539,7 @@ Game Types (bge.types)
       Return the value matching key, or the default value if its not found.
       :return: The key value or a default.
 
-   .. method:: playAction(name, start_frame, end_frame, layer=0, priority=0 blendin=0, play_mode=ACT_MODE_PLAY, layer_weight=0.0, ipo_flags=0, speed=1.0)
+   .. method:: playAction(name, start_frame, end_frame, layer=0, priority=0, blendin=0, play_mode=ACT_MODE_PLAY, layer_weight=0.0, ipo_flags=0, speed=1.0)
 
       Plays an action.
       
@@ -1556,7 +1556,7 @@ Game Types (bge.types)
       :arg blendin: the amount of blending between this animation and the previous one on this layer
       :type blendin: float
       :arg play_mode: the play mode
-      :type play_mode: KX_ACTION_PLAY, KX_ACTION_LOOP, or KX_ACTION_PING_PONG
+      :type play_mode: KX_ACTION_MODE_PLAY, KX_ACTION_MODE_LOOP, or KX_ACTION_MODE_PING_PONG
       :arg layer_weight: how much of the previous layer to use for blending (0 = add)
       :type layer_weight: float
       :arg ipo_flags: flags for the old IPO behaviors (force, etc)
