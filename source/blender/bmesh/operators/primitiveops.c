@@ -41,21 +41,21 @@ static float icovert[12][3] = {
 };
 
 static short icoface[20][3] = {
-	{1,0,2},
+	{0,1,2},
 	{1,0,5},
-	{2,0,3},
-	{3,0,4},
-	{4,0,5},
+	{0,2,3},
+	{0,3,4},
+	{0,4,5},
 	{1,5,10},
 	{2,1,6},
 	{3,2,7},
 	{4,3,8},
 	{5,4,9},
-	{10,1,6},
-	{6,2,7},
-	{7,3,8},
-	{8,4,9},
-	{9,5,10},
+	{1,10,6},
+	{2,6,7},
+	{3,7,8},
+	{4,8,9},
+	{5,9,10},
 	{6,10,11},
 	{7,6,11},
 	{8,7,11},
@@ -296,7 +296,8 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 	phi= 0; 
 	phid/=2;
 	for(a=0; a<=tot; a++) {
-		vec[0]= dia*sinf(phi);
+		/* Going in this direction, then edge extruding, makes normals face outward */
+		vec[0]= -dia*sinf(phi);
 		vec[1]= 0.0;
 		vec[2]= dia*cosf(phi);
 		eve= BM_Make_Vert(bm, vec, NULL);
@@ -312,8 +313,8 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 		preveve = eve;
 	}
 
-	/* extrude and rotate */
-	phi= M_PI/seg;
+	/* extrude and rotate; negative phi to make normals face outward */
+	phi= -M_PI/seg;
 	q[0]= cos(phi);
 	q[3]= sin(phi);
 	q[1]=q[2]= 0;
@@ -469,7 +470,8 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 	}
 
 	for (a=0; a<segs; a++, phi+=phid) {
-		vec[0]= dia*sinf(phi);
+		/* Going this way ends up with normal(s) upward */
+		vec[0]= -dia*sinf(phi);
 		vec[1]= dia*cosf(phi);
 		vec[2]= 0.0f;
 		mul_m4_v3(mat, vec);
@@ -501,7 +503,7 @@ void bmesh_create_circle_exec(BMesh *bm, BMOperator *op)
 	if (cap_ends) {
 		BMFace *f;
 		
-		f = BM_Make_QuadTri(bm, cent1, firstv1, v1, NULL, NULL, 0);
+		f = BM_Make_QuadTri(bm, cent1, v1, firstv1, NULL, NULL, 0);
 		BMO_SetFlag(bm, f, FACE_NEW);
 	}
 	
@@ -571,7 +573,7 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 				
 				f = BM_Make_QuadTri(bm, cent1, lastv1, v1, NULL, NULL, 0);
 				BMO_SetFlag(bm, f, FACE_NEW);
-				f = BM_Make_QuadTri(bm, v2, lastv2, cent2, NULL, NULL, 0);
+				f = BM_Make_QuadTri(bm, cent2, v2, lastv2, NULL, NULL, 0);
 				BMO_SetFlag(bm, f, FACE_NEW);
 			}
 			BM_Make_QuadTri(bm, lastv1, lastv2, v2, v1, NULL, 0);
@@ -590,9 +592,9 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 	if (cap_ends) {
 		BMFace *f;
 		
-		f = BM_Make_QuadTri(bm, cent1, firstv1, v1, NULL, NULL, 0);
+		f = BM_Make_QuadTri(bm, cent1, v1, firstv1, NULL, NULL, 0);
 		BMO_SetFlag(bm, f, FACE_NEW);
-		f = BM_Make_QuadTri(bm, v2, firstv2, cent2, NULL, NULL, 0);
+		f = BM_Make_QuadTri(bm, cent2, firstv2, v2, NULL, NULL, 0);
 		BMO_SetFlag(bm, f, FACE_NEW);
 	}
 	
@@ -600,7 +602,7 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 		BMO_CallOpf(bm, "dissolvefaces faces=%ff", FACE_NEW);
 	}
 	
-	BM_Make_QuadTri(bm, firstv1, firstv2, v2, v1, NULL, 0);
+	BM_Make_QuadTri(bm, v1, v2, firstv2, firstv1, NULL, 0);
 
 	BMO_CallOpf(bm, "removedoubles verts=%fv dist=%f", VERT_MARK, 0.000001);
 	BMO_Flag_To_Slot(bm, op, "vertout", VERT_MARK, BM_VERT);
