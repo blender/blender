@@ -217,19 +217,19 @@ public:
 		if(!opencl_version_check())
 			return false;
 
-		/* nvidia opencl cache doesn't not work correct with includes, so force recompile */
-		static double recompile_trick = 0.0;
-		if(recompile_trick == 0.0)
-			recompile_trick = time_dt();
+		/* we compile kernels consisting of many files. unfortunately opencl
+		   kernel caches do not seem to recognize changes in included files.
+		   so we force recompile on changes by adding the md5 hash of all files */
+		string kernel_path = path_get("kernel");
+		string kernel_md5 = path_files_md5_hash(kernel_path);
 
-		/* compile source */
-		string source = string_printf("#include \"kernel.cl\" // %lf\n", recompile_trick);
+		string source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
 		size_t source_len = source.size();
 		const char *source_str = source.c_str();
 
 		string build_options = "";
 
-		build_options += "-I " + path_get("kernel") + " -I " + path_get("util"); /* todo: escape path */
+		build_options += "-I " + kernel_path + ""; /* todo: escape path */
 		build_options += " -Werror -cl-fast-relaxed-math -cl-strict-aliasing";
 
 		cpProgram = clCreateProgramWithSource(cxContext, 1, &source_str, &source_len, &ciErr);

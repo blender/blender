@@ -37,6 +37,7 @@ __device int svm_bsdf_sample(const ShaderData *sd, float randu, float randv, flo
 		case CLOSURE_BSDF_DIFFUSE_ID:
 			label = bsdf_diffuse_sample(sd, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
+#ifdef __SVM__
 		case CLOSURE_BSDF_TRANSLUCENT_ID:
 			label = bsdf_translucent_sample(sd, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
@@ -71,6 +72,7 @@ __device int svm_bsdf_sample(const ShaderData *sd, float randu, float randv, flo
 		case CLOSURE_BSDF_WESTIN_SHEEN_ID:
 			label = bsdf_westin_sheen_sample(sd, randu, randv, eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;
+#endif
 		default:
 			label = LABEL_NONE;
 			break;

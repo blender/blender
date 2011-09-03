@@ -32,12 +32,12 @@ CCL_NAMESPACE_BEGIN
 #define __DPDU__
 #define __UV__
 #define __BACKGROUND__
-#define __EMISSION__
 #define __CAUSTICS_TRICKS__
 #define __VISIBILITY_FLAG__
 
 #ifndef __KERNEL_OPENCL__
 #define __SVM__
+#define __EMISSION__
 #define __TEXTURES__
 #define __HOLDOUT__
 #endif

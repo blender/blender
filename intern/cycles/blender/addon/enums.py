@@ -25,9 +25,9 @@ def get_gpu_device():
     if cuda and opencl:
         gpu_string = "GPU"
     elif cuda and not opencl:
-        gpu_string = "GPU (CUDA)"
+        gpu_string = "CUDA GPU"
     else:
-        gpu_string = "GPU (OpenCL)"
+        gpu_string = "OpenCL GPU"
     
     return gpu_string
 

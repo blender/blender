@@ -309,6 +309,29 @@ void MD5Hash::append(const uint8_t *data, int nbytes)
 		memcpy(buf, p, left);
 }
 
+bool MD5Hash::append_file(const string& filepath)
+{
+	FILE *f = fopen(filepath.c_str(), "rb");
+
+	if(!f)
+		return false;
+
+	const size_t buffer_size = 1024;
+	uint8_t buffer[buffer_size];
+	size_t n;
+
+	do {
+		n = fread(buffer, 1, buffer_size, f);
+		append(buffer, n);
+	} while(n == buffer_size);
+
+	bool success = (ferror(f) == 0);
+
+	fclose(f);
+	
+	return success;
+}
+
 void MD5Hash::finish(uint8_t digest[16])
 {
 	static const uint8_t pad[64] = {

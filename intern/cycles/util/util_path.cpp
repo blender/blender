@@ -17,6 +17,7 @@
  */
 
 #include "util_debug.h"
+#include "util_md5.h"
 #include "util_path.h"
 #include "util_string.h"
 
@@ -57,6 +58,30 @@ string path_dirname(const string& path)
 string path_join(const string& dir, const string& file)
 {
 	return (boost::filesystem::path(dir) / boost::filesystem::path(file)).string();
+}
+
+string path_files_md5_hash(const string& dir)
+{
+	/* computes md5 hash of all files in the directory */
+	MD5Hash hash;
+
+	if(boost::filesystem::exists(dir)) {
+		boost::filesystem::directory_iterator it(dir), it_end;
+
+		for(; it != it_end; it++) {
+			if(boost::filesystem::is_directory(it->status())) {
+				path_files_md5_hash(it->path().string());
+			}
+			else {
+				string filepath = it->path().string();
+
+				hash.append((const uint8_t*)filepath.c_str(), filepath.size());
+				hash.append_file(filepath);
+			}
+		}
+	}
+
+	return hash.get_hex();
 }
 
 CCL_NAMESPACE_END
