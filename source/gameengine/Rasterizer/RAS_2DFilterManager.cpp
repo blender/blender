@@ -433,6 +433,9 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_LUMINANCE16, 0, 0, texturewidth,textureheight, 0);
 	}
 
+	// reverting to texunit 0, without this we get bug [#28462]
+	glActiveTextureARB(GL_TEXTURE0);
+
 	glViewport(0,0, texturewidth, textureheight);
 
 	glDisable(GL_DEPTH_TEST);
