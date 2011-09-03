@@ -221,6 +221,7 @@ void SOUND_OT_open_mono(wmOperatorType *ot)
 
 static int mixdown_exec(bContext *C, wmOperator *op)
 {
+#ifdef WITH_AUDASPACE
 	char path[FILE_MAX];
 	char filename[FILE_MAX];
 	Scene *scene;
@@ -254,7 +255,10 @@ static int mixdown_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, result);
 		return OPERATOR_CANCELLED;
 	}
-
+#else // WITH_AUDASPACE
+	(void)C;
+	(void)op;
+#endif // WITH_AUDASPACE
 	return OPERATOR_FINISHED;
 }
 
@@ -278,6 +282,7 @@ static int mixdown_draw_check_prop(PropertyRNA *prop)
 	);
 }
 
+#ifdef WITH_AUDASPACE
 static void mixdown_draw(bContext *C, wmOperator *op)
 {
 	static EnumPropertyItem pcm_format_items[] = {
@@ -429,9 +434,11 @@ static void mixdown_draw(bContext *C, wmOperator *op)
 	/* main draw call */
 	uiDefAutoButsRNA(layout, &ptr, mixdown_draw_check_prop, '\0');
 }
+#endif // WITH_AUDASPACE
 
 void SOUND_OT_mixdown(wmOperatorType *ot)
 {
+#ifdef WITH_AUDASPACE
 	static EnumPropertyItem format_items[] = {
 		{AUD_FORMAT_U8, "U8", 0, "U8", "8 bit unsigned"},
 		{AUD_FORMAT_S16, "S16", 0, "S16", "16 bit signed"},
@@ -469,6 +476,8 @@ void SOUND_OT_mixdown(wmOperatorType *ot)
 		{AUD_CODEC_VORBIS, "VORBIS", 0, "Vorbis", "Xiph.Org Vorbis Codec"},
 		{0, NULL, 0, NULL, NULL}};
 
+#endif // WITH_AUDASPACE
+
 	/* identifiers */
 	ot->name= "Mixdown";
 	ot->description= "Mixes the scene's audio to a sound file";
@@ -477,18 +486,22 @@ void SOUND_OT_mixdown(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= mixdown_exec;
 	ot->invoke= mixdown_invoke;
-	ot->ui= mixdown_draw;
 
+#ifdef WITH_AUDASPACE
+	ot->ui= mixdown_draw;
+#endif
 	/* flags */
 	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);
+#ifdef WITH_AUDASPACE
 	RNA_def_int(ot->srna, "accuracy", 1024, 1, 16777216, "Accuracy", "Sample accuracy. Important for animation data. The lower the value, the more accurate.", 1, 16777216);
 	RNA_def_enum(ot->srna, "container", container_items, AUD_CONTAINER_FLAC, "Container", "File format");
 	RNA_def_enum(ot->srna, "codec", codec_items, AUD_CODEC_FLAC, "Codec", "Audio Codec");
 	RNA_def_enum(ot->srna, "format", format_items, AUD_FORMAT_S16, "Format", "Sample format");
 	RNA_def_int(ot->srna, "bitrate", 192, 32, 512, "Bitrate", "Bitrate in kbit/s", 32, 512);
+#endif // WITH_AUDASPACE
 }
 
 /* ******************************************************* */

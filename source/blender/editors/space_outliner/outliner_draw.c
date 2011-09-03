@@ -236,7 +236,7 @@ static int group_select_flag(Group *gr)
 	return 0;
 }
 
-static void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
+void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 {	
 	Scene *scene = (Scene *)poin;		
 	GroupObject *gob;

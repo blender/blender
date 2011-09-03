@@ -216,8 +216,8 @@ void SCA_ISensor::UnregisterToManager()
 
 void SCA_ISensor::ActivateControllers(class SCA_LogicManager* logicmgr)
 {
-    for(vector<SCA_IController*>::const_iterator c= m_linkedcontrollers.begin();
-		c!=m_linkedcontrollers.end();++c)
+	for(vector<SCA_IController*>::const_iterator c= m_linkedcontrollers.begin();
+	    c!=m_linkedcontrollers.end();++c)
 	{
 		SCA_IController* contr = *c;
 		if (contr->IsActive())

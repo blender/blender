@@ -1298,7 +1298,9 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 	{
 		int subtype= RNA_property_subtype(prop);
 		const char *buf;
-		buf= RNA_property_string_get_alloc(ptr, prop, NULL, -1);
+		char buf_fixed[32];
+
+		buf= RNA_property_string_get_alloc(ptr, prop, buf_fixed, sizeof(buf_fixed));
 #ifdef USE_STRING_COERCE
 		/* only file paths get special treatment, they may contain non utf-8 chars */
 		if(ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
@@ -1310,7 +1312,9 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 #else // USE_STRING_COERCE
 		ret= PyUnicode_FromString(buf);
 #endif // USE_STRING_COERCE
-		MEM_freeN((void *)buf);
+		if(buf_fixed != buf) {
+			MEM_freeN((void *)buf);
+		}
 		break;
 	}
 	case PROP_ENUM:

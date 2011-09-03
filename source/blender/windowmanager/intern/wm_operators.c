@@ -108,21 +108,28 @@ static GHash *global_ops_hash= NULL;
 
 wmOperatorType *WM_operatortype_find(const char *idname, int quiet)
 {
-	wmOperatorType *ot;
-	
-	char idname_bl[OP_MAX_TYPENAME]; // XXX, needed to support python style names without the _OT_ syntax
-	WM_operator_bl_idname(idname_bl, idname);
+	if(idname[0]) {
+		wmOperatorType *ot;
 
-	if (idname_bl[0]) {
+		/* needed to support python style names without the _OT_ syntax */
+		char idname_bl[OP_MAX_TYPENAME];
+		WM_operator_bl_idname(idname_bl, idname);
+
 		ot= BLI_ghash_lookup(global_ops_hash, idname_bl);
 		if(ot) {
 			return ot;
 		}
+
+		if(!quiet) {
+			printf("search for unknown operator '%s', '%s'\n", idname_bl, idname);
+		}
 	}
-	
-	if(!quiet)
-		printf("search for unknown operator %s, %s\n", idname_bl, idname);
-	
+	else {
+		if(!quiet) {
+			printf("search for empty operator\n");
+		}
+	}
+
 	return NULL;
 }
 
@@ -1259,11 +1266,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	split = uiLayoutSplit(layout, 0, 0);
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Links", ICON_NONE);
-	uiItemStringO(col, "Donations", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment/");
-	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-259/");
+	uiItemStringO(col, "Donations", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment");
+	uiItemStringO(col, "Credits", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/credits");
+	uiItemStringO(col, "Release Log", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-259");
 	uiItemStringO(col, "Manual", ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.5/Manual");
-	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/");
-	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community/"); // 
+	uiItemStringO(col, "Blender Website", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
+	uiItemStringO(col, "User Community", ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community");
 	if(strcmp(STRINGIFY(BLENDER_VERSION_CYCLE), "release")==0) {
 		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d" STRINGIFY(BLENDER_VERSION_CHAR) "_release", BLENDER_VERSION/100, BLENDER_VERSION%100);
 	}

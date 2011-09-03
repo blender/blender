@@ -44,11 +44,11 @@
 #include "SCA_IScene.h"
 
 KX_SCA_EndObjectActuator::KX_SCA_EndObjectActuator(SCA_IObject *gameobj,
-												   SCA_IScene* scene):
-	SCA_IActuator(gameobj, KX_ACT_END_OBJECT),
-	m_scene(scene)
+                                                   SCA_IScene* scene):
+    SCA_IActuator(gameobj, KX_ACT_END_OBJECT),
+    m_scene(scene)
 {
-    // intentionally empty 
+	// intentionally empty
 } /* End of constructor */
 
 

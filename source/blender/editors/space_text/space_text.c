@@ -154,6 +154,11 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 				case NA_REMOVED:
 					ED_area_tag_redraw(sa);
 					break;
+				case NA_SELECTED:
+					if(st->text && st->text == wmn->reference)
+						text_scroll_to_cursor(st, sa);
+
+					break;
 			}
 
 			break;

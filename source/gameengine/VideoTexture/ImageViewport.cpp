@@ -123,34 +123,34 @@ void ImageViewport::calcImage (unsigned int texId, double ts)
 	}
 	// if texture can be directly created
 	if (texId != 0 && m_pyfilter == NULL && m_capSize[0] == calcSize(m_capSize[0])
-		&& m_capSize[1] == calcSize(m_capSize[1]) && !m_flip)
+	        && m_capSize[1] == calcSize(m_capSize[1]) && !m_flip)
 	{
 		// just copy current viewport to texture
-	    glBindTexture(GL_TEXTURE_2D, texId);
-	    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1]);
-	    // image is not available
-	    m_avail = false;
+		glBindTexture(GL_TEXTURE_2D, texId);
+		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1]);
+		// image is not available
+		m_avail = false;
 	}
 	// otherwise copy viewport to buffer, if image is not available
 	else if (!m_avail)
 	{
 		// get frame buffer data
-        if (m_alpha)
-        {
-    		glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGBA,
-			    GL_UNSIGNED_BYTE, m_viewportImage);
-		    // filter loaded data
-		    FilterRGBA32 filt;
-		    filterImage(filt, m_viewportImage, m_capSize);
-        } 
-        else
-        {
-    		glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
-	    		GL_UNSIGNED_BYTE, m_viewportImage);
-    		// filter loaded data
-		    FilterRGB24 filt;
-		    filterImage(filt, m_viewportImage, m_capSize);
-        }
+		if (m_alpha)
+		{
+			glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGBA,
+			             GL_UNSIGNED_BYTE, m_viewportImage);
+			// filter loaded data
+			FilterRGBA32 filt;
+			filterImage(filt, m_viewportImage, m_capSize);
+		}
+		else
+		{
+			glReadPixels(m_upLeft[0], m_upLeft[1], (GLsizei)m_capSize[0], (GLsizei)m_capSize[1], GL_RGB,
+			             GL_UNSIGNED_BYTE, m_viewportImage);
+			// filter loaded data
+			FilterRGB24 filt;
+			filterImage(filt, m_viewportImage, m_capSize);
+		}
 	}
 }
 

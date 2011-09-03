@@ -1488,8 +1488,8 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2,
 		
 		sdis = clmd->coll_parms->distance_repel + epsilon2 + FLT_EPSILON;
 		
-		/*apply a repulsion force, to help the solver along.
-          this is kindof crude, it only tests one vert of the triangle*/
+		/* apply a repulsion force, to help the solver along.
+		 * this is kindof crude, it only tests one vert of the triangle */
 		if (isect_ray_plane_v3(cloth->verts[collpair->ap1].tx, n2, collmd->current_xnew[collpair->bp1].co, 
 			collmd->current_xnew[collpair->bp2].co,
 			collmd->current_xnew[collpair->bp3].co, &l, 0))

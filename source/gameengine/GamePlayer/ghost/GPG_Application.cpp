@@ -139,7 +139,7 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 
 GPG_Application::~GPG_Application(void)
 {
-    if(m_pyGlobalDictString) {
+	if(m_pyGlobalDictString) {
 		delete [] m_pyGlobalDictString;
 		m_pyGlobalDictString = 0;
 		m_pyGlobalDictString_Length = 0;
