@@ -306,8 +306,8 @@ void RAS_2DFilterManager::SetupTextures(bool depth, bool luminance)
 	if(depth){
 		glGenTextures(1, (GLuint*)&texname[1]);
 		glBindTexture(GL_TEXTURE_2D, texname[1]);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, texturewidth,textureheight, 
-			0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE,NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, texturewidth,textureheight,
+		             0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE,NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
 		                GL_NONE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
