@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -77,10 +75,11 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	
 	View2D *v2d= &ar->v2d;
 	float y= 0.0f;
-	int items, height;
+	size_t items;
+	int height;
 	
 	/* build list of channels to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
@@ -121,6 +120,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	}
 	{	/* second pass: widgets */
 		uiBlock *block= uiBeginBlock(C, ar, "dopesheet channel buttons", UI_EMBOSS);
+		size_t channel_index = 0;
 		
 		y= (float)ACHANNEL_FIRST;
 		
@@ -133,11 +133,12 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 				 IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax) ) 
 			{
 				/* draw all channels using standard channel-drawing API */
-				ANIM_channel_draw_widgets(ac, ale, block, yminc, ymaxc);
+				ANIM_channel_draw_widgets(C, ac, ale, block, yminc, ymaxc, channel_index);
 			}
 			
 			/* adjust y-position for next one */
 			y -= ACHANNEL_STEP;
+			channel_index++;
 		}
 		
 		uiEndBlock(C, block);
@@ -166,7 +167,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	AnimData *adt= NULL;
 	
 	float act_start, act_end, y;
-	int height, items;
+	size_t items;
+	int height;
 	
 	unsigned char col1[3], col2[3];
 	unsigned char col1a[3], col2a[3];
@@ -194,7 +196,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	}
 	
 	/* build list of channels to draw */
-	filter= (ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	items= ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* Update max-extent of channels here (taking into account scrollers):
@@ -248,8 +250,6 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							break;
 						
 						case ANIMTYPE_FILLACTD:
-						case ANIMTYPE_FILLMATD:
-						case ANIMTYPE_FILLPARTD:
 						case ANIMTYPE_DSSKEY:
 						case ANIMTYPE_DSWOR:
 						{

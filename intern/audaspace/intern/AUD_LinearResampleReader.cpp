@@ -34,95 +34,152 @@
 #include <cmath>
 #include <cstring>
 
-#define CC channels + channel
+#define CC m_channels + channel
 
-AUD_LinearResampleReader::AUD_LinearResampleReader(AUD_IReader* reader,
+AUD_LinearResampleReader::AUD_LinearResampleReader(AUD_Reference<AUD_IReader> reader,
 												   AUD_Specs specs) :
-	AUD_EffectReader(reader),
-	m_sspecs(reader->getSpecs()),
-	m_factor(float(specs.rate) / float(m_sspecs.rate)),
-	m_tspecs(specs),
-	m_position(0),
-	m_sposition(0)
+	AUD_ResampleReader(reader, specs.rate),
+	m_channels(reader->getSpecs().channels),
+	m_cache_pos(0),
+	m_cache_ok(false)
 {
-	m_tspecs.channels = m_sspecs.channels;
-	m_cache.resize(2 * AUD_SAMPLE_SIZE(m_tspecs));
+	specs.channels = m_channels;
+	m_cache.resize(2 * AUD_SAMPLE_SIZE(specs));
 }
 
 void AUD_LinearResampleReader::seek(int position)
 {
-	m_position = position;
-	m_sposition = floor(position / m_factor);
-	m_reader->seek(m_sposition);
+	position = floor(position * double(m_reader->getSpecs().rate) / double(m_rate));
+	m_reader->seek(position);
+	m_cache_ok = false;
+	m_cache_pos = 0;
 }
 
 int AUD_LinearResampleReader::getLength() const
 {
-	return m_reader->getLength() * m_factor;
+	return floor(m_reader->getLength() * double(m_rate) / double(m_reader->getSpecs().rate));
 }
 
 int AUD_LinearResampleReader::getPosition() const
 {
-	return m_position;
+	return floor((m_reader->getPosition() + (m_cache_ok ? m_cache_pos - 1 : 0))
+				 * m_rate / m_reader->getSpecs().rate);
 }
 
 AUD_Specs AUD_LinearResampleReader::getSpecs() const
 {
-	return m_tspecs;
+	AUD_Specs specs = m_reader->getSpecs();
+	specs.rate = m_rate;
+	return specs;
 }
 
-void AUD_LinearResampleReader::read(int & length, sample_t* & buffer)
+void AUD_LinearResampleReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	int samplesize = AUD_SAMPLE_SIZE(m_tspecs);
-	int size = length * samplesize;
+	if(length == 0)
+		return;
 
-	if(m_buffer.getSize() < size)
-		m_buffer.resize(size);
+	AUD_Specs specs = m_reader->getSpecs();
 
-	int need = ceil((m_position + length) / m_factor) + 1 - m_sposition;
-	int len = need;
-	sample_t* buf;
-	buffer = m_buffer.getBuffer();
-
-	m_reader->read(len, buf);
-
-	if(len < need)
-		length = floor((m_sposition + len - 1) * m_factor) - m_position;
-
+	int samplesize = AUD_SAMPLE_SIZE(specs);
+	int size = length;
+	float factor = m_rate / m_reader->getSpecs().rate;
 	float spos;
 	sample_t low, high;
-	int channels = m_sspecs.channels;
+	eos = false;
 
-	for(int channel = 0; channel < channels; channel++)
+	// check for channels changed
+
+	if(specs.channels != m_channels)
+	{
+		m_cache.resize(2 * samplesize);
+		m_channels = specs.channels;
+		m_cache_ok = false;
+	}
+
+	if(factor == 1 && (!m_cache_ok || m_cache_pos == 1))
+	{
+		// can read directly!
+		m_reader->read(length, eos, buffer);
+
+		if(length > 0)
+		{
+			memcpy(m_cache.getBuffer() + m_channels, buffer + m_channels * (length - 1), samplesize);
+			m_cache_pos = 1;
+			m_cache_ok = true;
+		}
+
+		return;
+	}
+
+	int len;
+	sample_t* buf;
+
+	if(m_cache_ok)
+	{
+		int need = ceil(length / factor + m_cache_pos) - 1;
+
+		len = need;
+
+		m_buffer.assureSize((len + 2) * samplesize);
+		buf = m_buffer.getBuffer();
+
+		memcpy(buf, m_cache.getBuffer(), 2 * samplesize);
+		m_reader->read(len, eos, buf + 2 * m_channels);
+
+		if(len < need)
+			length = floor((len + 1 - m_cache_pos) * factor);
+	}
+	else
+	{
+		m_cache_pos = 1 - 1 / factor;
+
+		int need = ceil(length / factor + m_cache_pos);
+
+		len = need;
+
+		m_buffer.assureSize((len + 1) * samplesize);
+		buf = m_buffer.getBuffer();
+
+		memset(buf, 0, samplesize);
+		m_reader->read(len, eos, buf + m_channels);
+
+		if(len == 0)
+		{
+			length = 0;
+			return;
+		}
+
+		if(len < need)
+		{
+			length = floor((len - m_cache_pos) * factor);
+		}
+
+		m_cache_ok = true;
+	}
+
+	for(int channel = 0; channel < m_channels; channel++)
 	{
 		for(int i = 0; i < length; i++)
 		{
-			spos = (m_position + i) / m_factor - m_sposition;
+			spos = (i + 1) / factor + m_cache_pos;
 
-			if(floor(spos) < 0)
-			{
-				low = m_cache.getBuffer()[(int)(floor(spos) + 2) * CC];
-				if(ceil(spos) < 0)
-					high = m_cache.getBuffer()[(int)(ceil(spos) + 2) * CC];
-				else
-					high = buf[(int)ceil(spos) * CC];
-			}
-			else
-			{
-					low = buf[(int)floor(spos) * CC];
-					high = buf[(int)ceil(spos) * CC];
-			}
+			low = buf[(int)floor(spos) * CC];
+			high = buf[(int)ceil(spos) * CC];
+
 			buffer[i * CC] = low + (spos - floor(spos)) * (high - low);
 		}
 	}
 
-	if(len > 1)
-		memcpy(m_cache.getBuffer(),
-			   buf + (len - 2) * channels,
-			   2 * samplesize);
-	else if(len == 1)
-		memcpy(m_cache.getBuffer() + 1 * channels, buf, samplesize);
+	if(floor(spos) == spos)
+	{
+		memcpy(m_cache.getBuffer() + m_channels, buf + int(floor(spos)) * m_channels, samplesize);
+		m_cache_pos = 1;
+	}
+	else
+	{
+		memcpy(m_cache.getBuffer(), buf + int(floor(spos)) * m_channels, 2 * samplesize);
+		m_cache_pos = spos - floor(spos);
+	}
 
-	m_sposition += len;
-	m_position += length;
+	eos &= length < size;
 }

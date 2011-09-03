@@ -1236,7 +1236,6 @@ def rna2sphinx(BASEPATH):
 
     shutil.copy2(os.path.join(BASEPATH, "..", "rst", "change_log.rst"), BASEPATH)
 
-
     if not EXCLUDE_INFO_DOCS:
         for info, info_desc in INFO_DOCS:
             shutil.copy2(os.path.join(BASEPATH, "..", "rst", info), BASEPATH)

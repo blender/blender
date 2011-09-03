@@ -866,6 +866,8 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 				{
 
 					// Make sure we don't screw up the context
+					if (m_hGlRc == s_firsthGLRc)
+						s_firsthGLRc = NULL;
 					m_drawingContextType = GHOST_kDrawingContextTypeOpenGL;
 					removeDrawingContext();
 

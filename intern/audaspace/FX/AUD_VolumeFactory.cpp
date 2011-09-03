@@ -32,7 +32,7 @@
 #include "AUD_VolumeFactory.h"
 #include "AUD_IIRFilterReader.h"
 
-AUD_VolumeFactory::AUD_VolumeFactory(AUD_IFactory* factory, float volume) :
+AUD_VolumeFactory::AUD_VolumeFactory(AUD_Reference<AUD_IFactory> factory, float volume) :
 		AUD_EffectFactory(factory),
 		m_volume(volume)
 {
@@ -43,7 +43,7 @@ float AUD_VolumeFactory::getVolume() const
 	return m_volume;
 }
 
-AUD_IReader* AUD_VolumeFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_VolumeFactory::createReader()
 {
 	std::vector<float> a, b;
 	a.push_back(1);

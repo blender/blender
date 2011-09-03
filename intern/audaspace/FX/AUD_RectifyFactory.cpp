@@ -34,17 +34,17 @@
 
 #include <cmath>
 
-sample_t rectifyFilter(AUD_CallbackIIRFilterReader* reader, void* useless)
+sample_t AUD_RectifyFactory::rectifyFilter(AUD_CallbackIIRFilterReader* reader, void* useless)
 {
 	return fabs(reader->x(0));
 }
 
-AUD_RectifyFactory::AUD_RectifyFactory(AUD_IFactory* factory) :
+AUD_RectifyFactory::AUD_RectifyFactory(AUD_Reference<AUD_IFactory> factory) :
 		AUD_EffectFactory(factory)
 {
 }
 
-AUD_IReader* AUD_RectifyFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_RectifyFactory::createReader()
 {
 	return new AUD_CallbackIIRFilterReader(getReader(), 1, 1, rectifyFilter);
 }

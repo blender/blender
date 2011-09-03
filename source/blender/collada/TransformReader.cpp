@@ -37,6 +37,7 @@ void TransformReader::get_node_mat(float mat[][4], COLLADAFW::Node *node, std::m
 {
 	float cur[4][4];
 	float copy[4][4];
+	float eul[3];
 
 	unit_m4(mat);
 	
@@ -45,24 +46,24 @@ void TransformReader::get_node_mat(float mat[][4], COLLADAFW::Node *node, std::m
 		COLLADAFW::Transformation *tm = node->getTransformations()[i];
 		COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
 
-		switch(type) {
-		case COLLADAFW::Transformation::TRANSLATE:
-			dae_translate_to_mat4(tm, cur);
-			break;
-		case COLLADAFW::Transformation::ROTATE:
-			dae_rotate_to_mat4(tm, cur);
-			break;
-		case COLLADAFW::Transformation::SCALE:
-			dae_scale_to_mat4(tm, cur);
-			break;
-		case COLLADAFW::Transformation::MATRIX:
-			dae_matrix_to_mat4(tm, cur);
-			break;
-		case COLLADAFW::Transformation::LOOKAT:
-		case COLLADAFW::Transformation::SKEW:
-			fprintf(stderr, "LOOKAT and SKEW transformations are not supported yet.\n");
-			break;
-		}
+			switch(type) {
+			case COLLADAFW::Transformation::TRANSLATE:
+				dae_translate_to_mat4(tm, cur);
+				break;
+			case COLLADAFW::Transformation::ROTATE:
+				dae_rotate_to_mat4(tm, cur);
+				break;
+			case COLLADAFW::Transformation::SCALE:
+				dae_scale_to_mat4(tm, cur);
+				break;
+			case COLLADAFW::Transformation::MATRIX:
+				dae_matrix_to_mat4(tm, cur);
+				break;
+			case COLLADAFW::Transformation::LOOKAT:
+			case COLLADAFW::Transformation::SKEW:
+				fprintf(stderr, "LOOKAT and SKEW transformations are not supported yet.\n");
+				break;
+			}
 
 		copy_m4_m4(copy, mat);
 		mul_m4_m4m4(mat, cur, copy);

@@ -28,74 +28,343 @@
  *  \ingroup audaspaceintern
  */
 
+#include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+#ifndef M_PI_2
+#define M_PI_2 1.57079632679489661923
+#endif
 
 #include "AUD_ChannelMapperReader.h"
 
-AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_IReader* reader,
-												 float **mapping) :
-		AUD_EffectReader(reader)
+AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_Reference<AUD_IReader> reader,
+												 AUD_Channels channels) :
+		AUD_EffectReader(reader), m_target_channels(channels),
+	m_source_channels(AUD_CHANNELS_INVALID), m_mapping(0), m_map_size(0), m_mono_angle(0)
 {
-	m_specs = reader->getSpecs();
-
-	int channels = -1;
-	m_rch = m_specs.channels;
-	while(mapping[++channels] != 0);
-
-	m_mapping = new float*[channels];
-	m_specs.channels = (AUD_Channels)channels;
-
-	float sum;
-	int i;
-
-	while(channels--)
-	{
-		m_mapping[channels] = new float[m_rch];
-		sum = 0.0f;
-		for(i=0; i < m_rch; i++)
-			sum += mapping[channels][i];
-		for(i=0; i < m_rch; i++)
-			m_mapping[channels][i] = sum > 0.0f ?
-									 mapping[channels][i]/sum : 0.0f;
-	}
 }
 
 AUD_ChannelMapperReader::~AUD_ChannelMapperReader()
 {
-	int channels = m_specs.channels;
+	delete[] m_mapping;
+}
 
-	while(channels--)
+void AUD_ChannelMapperReader::setChannels(AUD_Channels channels)
+{
+	m_target_channels = channels;
+	calculateMapping();
+}
+
+void AUD_ChannelMapperReader::setMonoAngle(float angle)
+{
+	if(angle != angle)
+		angle = 0;
+	m_mono_angle = angle;
+	if(m_source_channels == AUD_CHANNELS_MONO)
+		calculateMapping();
+}
+
+float AUD_ChannelMapperReader::angleDistance(float alpha, float beta)
+{
+	alpha = fabs(alpha - beta);
+
+	if(alpha > M_PI)
+		alpha = fabs(alpha - 2 * M_PI);
+
+	return alpha;
+}
+
+void AUD_ChannelMapperReader::calculateMapping()
+{
+	if(m_map_size < m_source_channels * m_target_channels)
 	{
-		delete[] m_mapping[channels];
+		delete[] m_mapping;
+		m_mapping = new float[m_source_channels * m_target_channels];
+		m_map_size = m_source_channels * m_target_channels;
 	}
 
-	delete[] m_mapping;
+	for(int i = 0; i < m_source_channels * m_target_channels; i++)
+		m_mapping[i] = 0;
+
+	const AUD_Channel* source_channels = CHANNEL_MAPS[m_source_channels - 1];
+	const AUD_Channel* target_channels = CHANNEL_MAPS[m_target_channels - 1];
+
+	int lfe = -1;
+
+	for(int i = 0; i < m_target_channels; i++)
+	{
+		if(target_channels[i] == AUD_CHANNEL_LFE)
+		{
+			lfe = i;
+			break;
+		}
+	}
+
+	const float* source_angles = CHANNEL_ANGLES[m_source_channels - 1];
+	const float* target_angles = CHANNEL_ANGLES[m_target_channels - 1];
+
+	if(m_source_channels == AUD_CHANNELS_MONO)
+		source_angles = &m_mono_angle;
+
+	int channel_min1, channel_min2;
+	float angle_min1, angle_min2, angle;
+
+	for(int i = 0; i < m_source_channels; i++)
+	{
+		if(source_channels[i] == AUD_CHANNEL_LFE)
+		{
+			if(lfe != -1)
+				m_mapping[lfe * m_source_channels + i] = 1;
+
+			continue;
+		}
+
+		channel_min1 = channel_min2 = -1;
+		angle_min1 = angle_min2 = 2 * M_PI;
+
+		for(int j = 0; j < m_target_channels; j++)
+		{
+			if(j == lfe)
+				continue;
+			angle = angleDistance(source_angles[i], target_angles[j]);
+			if(angle < angle_min1)
+			{
+				channel_min2 = channel_min1;
+				angle_min2 = angle_min1;
+
+				channel_min1 = j;
+				angle_min1 = angle;
+			}
+			else if(angle < angle_min2)
+			{
+				channel_min2 = j;
+				angle_min2 = angle;
+			}
+		}
+
+		angle = angle_min1 + angle_min2;
+		if(channel_min2 == -1 || angle == 0)
+		{
+			m_mapping[channel_min1 * m_source_channels + i] = 1;
+		}
+		else
+		{
+			m_mapping[channel_min1 * m_source_channels + i] = cos(M_PI_2 * angle_min1 / angle);
+			m_mapping[channel_min2 * m_source_channels + i] = cos(M_PI_2 * angle_min2 / angle);
+		}
+	}
+
+	/* AUD_XXX for(int i = 0; i < m_source_channels; i++)
+	{
+		for(int j = 0; j < m_target_channels; j++)
+		{
+			std::cout << m_mapping[i * m_source_channels + j] << " ";
+		}
+		std::cout << std::endl;
+	}*/
 }
 
 AUD_Specs AUD_ChannelMapperReader::getSpecs() const
 {
-	return m_specs;
+	AUD_Specs specs = m_reader->getSpecs();
+	specs.channels = m_target_channels;
+	return specs;
 }
 
-void AUD_ChannelMapperReader::read(int & length, sample_t* & buffer)
+void AUD_ChannelMapperReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	sample_t* in = buffer;
+	AUD_Channels channels = m_reader->getSpecs().channels;
+	if(channels != m_source_channels)
+	{
+		m_source_channels = channels;
+		calculateMapping();
+	}
 
-	m_reader->read(length, in);
+	if(m_source_channels == m_target_channels)
+	{
+		m_reader->read(length, eos, buffer);
+		return;
+	}
 
-	if(m_buffer.getSize() < length * AUD_SAMPLE_SIZE(m_specs))
-		m_buffer.resize(length * AUD_SAMPLE_SIZE(m_specs));
+	m_buffer.assureSize(length * channels * sizeof(sample_t));
 
-	buffer = m_buffer.getBuffer();
+	sample_t* in = m_buffer.getBuffer();
+
+	m_reader->read(length, eos, in);
+
 	sample_t sum;
 
 	for(int i = 0; i < length; i++)
 	{
-		for(int j = 0; j < m_specs.channels; j++)
+		for(int j = 0; j < m_target_channels; j++)
 		{
 			sum = 0;
-			for(int k = 0; k < m_rch; k++)
-				sum += m_mapping[j][k] * in[i * m_rch + k];
-			buffer[i * m_specs.channels + j] = sum;
+			for(int k = 0; k < m_source_channels; k++)
+				sum += m_mapping[j * m_source_channels + k] * in[i * m_source_channels + k];
+			buffer[i * m_target_channels + j] = sum;
 		}
 	}
 }
+
+const AUD_Channel AUD_ChannelMapperReader::MONO_MAP[] =
+{
+	AUD_CHANNEL_FRONT_CENTER
+};
+
+const AUD_Channel AUD_ChannelMapperReader::STEREO_MAP[] =
+{
+	AUD_CHANNEL_FRONT_LEFT,
+	AUD_CHANNEL_FRONT_RIGHT
+};
+
+const AUD_Channel AUD_ChannelMapperReader::STEREO_LFE_MAP[] =
+{
+	AUD_CHANNEL_FRONT_LEFT,
+	AUD_CHANNEL_FRONT_RIGHT,
+	AUD_CHANNEL_LFE
+};
+
+const AUD_Channel AUD_ChannelMapperReader::SURROUND4_MAP[] =
+{
+	AUD_CHANNEL_FRONT_LEFT,
+	AUD_CHANNEL_FRONT_RIGHT,
+	AUD_CHANNEL_REAR_LEFT,
+	AUD_CHANNEL_REAR_RIGHT
+};
+
+const AUD_Channel AUD_ChannelMapperReader::SURROUND5_MAP[] =
+{
+	AUD_CHANNEL_FRONT_LEFT,
+	AUD_CHANNEL_FRONT_RIGHT,
+	AUD_CHANNEL_FRONT_CENTER,
+	AUD_CHANNEL_REAR_LEFT,
+	AUD_CHANNEL_REAR_RIGHT
+};
+
+const AUD_Channel AUD_ChannelMapperReader::SURROUND51_MAP[] =
+{
+	AUD_CHANNEL_FRONT_LEFT,
+	AUD_CHANNEL_FRONT_RIGHT,
+	AUD_CHANNEL_FRONT_CENTER,
+	AUD_CHANNEL_LFE,
+	AUD_CHANNEL_REAR_LEFT,
+	AUD_CHANNEL_REAR_RIGHT
+};
+
+const AUD_Channel AUD_ChannelMapperReader::SURROUND61_MAP[] =
+{
+	AUD_CHANNEL_FRONT_LEFT,
+	AUD_CHANNEL_FRONT_RIGHT,
+	AUD_CHANNEL_FRONT_CENTER,
+	AUD_CHANNEL_LFE,
+	AUD_CHANNEL_REAR_CENTER,
+	AUD_CHANNEL_REAR_LEFT,
+	AUD_CHANNEL_REAR_RIGHT
+};
+
+const AUD_Channel AUD_ChannelMapperReader::SURROUND71_MAP[] =
+{
+	AUD_CHANNEL_FRONT_LEFT,
+	AUD_CHANNEL_FRONT_RIGHT,
+	AUD_CHANNEL_FRONT_CENTER,
+	AUD_CHANNEL_LFE,
+	AUD_CHANNEL_REAR_LEFT,
+	AUD_CHANNEL_REAR_RIGHT,
+	AUD_CHANNEL_SIDE_LEFT,
+	AUD_CHANNEL_SIDE_RIGHT
+};
+
+const AUD_Channel* AUD_ChannelMapperReader::CHANNEL_MAPS[] =
+{
+	AUD_ChannelMapperReader::MONO_MAP,
+	AUD_ChannelMapperReader::STEREO_MAP,
+	AUD_ChannelMapperReader::STEREO_LFE_MAP,
+	AUD_ChannelMapperReader::SURROUND4_MAP,
+	AUD_ChannelMapperReader::SURROUND5_MAP,
+	AUD_ChannelMapperReader::SURROUND51_MAP,
+	AUD_ChannelMapperReader::SURROUND61_MAP,
+	AUD_ChannelMapperReader::SURROUND71_MAP
+};
+
+const float AUD_ChannelMapperReader::MONO_ANGLES[] =
+{
+	0.0f * M_PI / 180.0f
+};
+
+const float AUD_ChannelMapperReader::STEREO_ANGLES[] =
+{
+	-90.0f * M_PI / 180.0f,
+	 90.0f * M_PI / 180.0f
+};
+
+const float AUD_ChannelMapperReader::STEREO_LFE_ANGLES[] =
+{
+   -90.0f * M_PI / 180.0f,
+	90.0f * M_PI / 180.0f,
+	 0.0f * M_PI / 180.0f
+};
+
+const float AUD_ChannelMapperReader::SURROUND4_ANGLES[] =
+{
+	 -45.0f * M_PI / 180.0f,
+	  45.0f * M_PI / 180.0f,
+	-135.0f * M_PI / 180.0f,
+	 135.0f * M_PI / 180.0f
+};
+
+const float AUD_ChannelMapperReader::SURROUND5_ANGLES[] =
+{
+	 -30.0f * M_PI / 180.0f,
+	  30.0f * M_PI / 180.0f,
+	   0.0f * M_PI / 180.0f,
+	-110.0f * M_PI / 180.0f,
+	 110.0f * M_PI / 180.0f
+};
+
+const float AUD_ChannelMapperReader::SURROUND51_ANGLES[] =
+{
+	  -30.0f * M_PI / 180.0f,
+	   30.0f * M_PI / 180.0f,
+	   0.0f * M_PI / 180.0f,
+	   0.0f * M_PI / 180.0f,
+	-110.0f * M_PI / 180.0f,
+	 110.0f * M_PI / 180.0f
+};
+
+const float AUD_ChannelMapperReader::SURROUND61_ANGLES[] =
+{
+	  -30.0f * M_PI / 180.0f,
+	   30.0f * M_PI / 180.0f,
+	   0.0f * M_PI / 180.0f,
+	   0.0f * M_PI / 180.0f,
+	 180.0f * M_PI / 180.0f,
+	-110.0f * M_PI / 180.0f,
+	 110.0f * M_PI / 180.0f
+};
+
+const float AUD_ChannelMapperReader::SURROUND71_ANGLES[] =
+{
+	  -30.0f * M_PI / 180.0f,
+	   30.0f * M_PI / 180.0f,
+	   0.0f * M_PI / 180.0f,
+	   0.0f * M_PI / 180.0f,
+	-110.0f * M_PI / 180.0f,
+	 110.0f * M_PI / 180.0f
+	-150.0f * M_PI / 180.0f,
+	 150.0f * M_PI / 180.0f
+};
+
+const float* AUD_ChannelMapperReader::CHANNEL_ANGLES[] =
+{
+	AUD_ChannelMapperReader::MONO_ANGLES,
+	AUD_ChannelMapperReader::STEREO_ANGLES,
+	AUD_ChannelMapperReader::STEREO_LFE_ANGLES,
+	AUD_ChannelMapperReader::SURROUND4_ANGLES,
+	AUD_ChannelMapperReader::SURROUND5_ANGLES,
+	AUD_ChannelMapperReader::SURROUND51_ANGLES,
+	AUD_ChannelMapperReader::SURROUND61_ANGLES,
+	AUD_ChannelMapperReader::SURROUND71_ANGLES
+};

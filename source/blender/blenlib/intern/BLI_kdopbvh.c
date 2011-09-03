@@ -1494,7 +1494,7 @@ static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *nod
 	float t2z = (bv[data->index[5]] - data->ray.origin[2]) * data->idot_axis[2];
 
 	if(t1x > t2y || t2x < t1y || t1x > t2z || t2x < t1z || t1y > t2z || t2y < t1z) return FLT_MAX;
-	if(t2x < 0.0 || t2y < 0.0 || t2z < 0.0) return FLT_MAX;
+	if(t2x < 0.0f || t2y < 0.0f || t2z < 0.0f) return FLT_MAX;
 	if(t1x > data->hit.dist || t1y > data->hit.dist || t1z > data->hit.dist) return FLT_MAX;
 
 	dist = t1x;
@@ -1599,11 +1599,11 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float *co, const float *dir, float
 		data.ray_dot_axis[i] = INPR( data.ray.direction, KDOP_AXES[i]);
 		data.idot_axis[i] = 1.0f / data.ray_dot_axis[i];
 
-		if(fabs(data.ray_dot_axis[i]) < FLT_EPSILON)
+		if(fabsf(data.ray_dot_axis[i]) < FLT_EPSILON)
 		{
 			data.ray_dot_axis[i] = 0.0;
 		}
-		data.index[2*i] = data.idot_axis[i] < 0.0 ? 1 : 0;
+		data.index[2*i] = data.idot_axis[i] < 0.0f ? 1 : 0;
 		data.index[2*i+1] = 1 - data.index[2*i];
 		data.index[2*i]	  += 2*i;
 		data.index[2*i+1] += 2*i;
@@ -1654,7 +1654,7 @@ float BLI_bvhtree_bb_raycast(float *bv, float *light_start, float *light_end, fl
 	
 	dist = ray_nearest_hit(&data, bv);
 	
-	if(dist > 0.0)
+	if(dist > 0.0f)
 	{
 		VECADDFAC(pos, light_start, data.ray.direction, dist);
 	}

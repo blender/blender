@@ -33,19 +33,12 @@
 #define AUD_SEQUENCERREADER
 
 #include "AUD_IReader.h"
+#include "AUD_ReadDevice.h"
 #include "AUD_SequencerFactory.h"
-#include "AUD_Buffer.h"
-class AUD_Mixer;
-
-struct AUD_SequencerStrip
-{
-	AUD_IFactory* old_sound;
-	AUD_IReader* reader;
-	AUD_SequencerEntry* entry;
-};
+#include "AUD_SequencerHandle.h"
 
 /**
- * This resampling reader uses libsamplerate for resampling.
+ * This reader plays back sequenced entries.
  */
 class AUD_SequencerReader : public AUD_IReader
 {
@@ -56,24 +49,29 @@ private:
 	int m_position;
 
 	/**
-	 * The sound output buffer.
+	 * The read device used to mix the sounds correctly.
 	 */
-	AUD_Buffer m_buffer;
-
-	/**
-	 * The target specification.
-	 */
-	AUD_Mixer* m_mixer;
+	AUD_ReadDevice m_device;
 
 	/**
 	 * Saves the SequencerFactory the reader belongs to.
 	 */
-	AUD_SequencerFactory* m_factory;
+	AUD_Reference<AUD_SequencerFactory> m_factory;
 
-	std::list<AUD_SequencerStrip*> m_strips;
+	/**
+	 * The list of playback handles for the entries.
+	 */
+	std::list<AUD_Reference<AUD_SequencerHandle> > m_handles;
 
-	void* m_data;
-	AUD_volumeFunction m_volume;
+	/**
+	 * Last status read from the factory.
+	 */
+	int m_status;
+
+	/**
+	 * Last entry status read from the factory.
+	 */
+	int m_entry_status;
 
 	// hide copy constructor and operator=
 	AUD_SequencerReader(const AUD_SequencerReader&);
@@ -85,24 +83,19 @@ public:
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 */
-	AUD_SequencerReader(AUD_SequencerFactory* factory, std::list<AUD_SequencerEntry*> &entries, const AUD_Specs specs, void* data, AUD_volumeFunction volume);
+	AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory, bool quality = false);
 
 	/**
 	 * Destroys the reader.
 	 */
 	~AUD_SequencerReader();
 
-	void destroy();
-
-	void add(AUD_SequencerEntry* entry);
-	void remove(AUD_SequencerEntry* entry);
-
 	virtual bool isSeekable() const;
 	virtual void seek(int position);
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_SEQUENCERREADER

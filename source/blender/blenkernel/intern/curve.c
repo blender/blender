@@ -2473,7 +2473,7 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 	if(len2==0.0f) len2=1.0f;
 
 
-	if(bezt->h1==HD_AUTO || bezt->h2==HD_AUTO) {    /* auto */
+	if(ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM) || ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {    /* auto */
 		vx= dx1/len2 + dx/len1;
 		vy= dy1/len2 + dy/len1;
 		vz= dz1/len2 + dz/len1;
@@ -2484,13 +2484,13 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 			if(len1>5.0f*len2) len1= 5.0f*len2;	
 			if(len2>5.0f*len1) len2= 5.0f*len1;
 			
-			if(bezt->h1==HD_AUTO) {
+			if(ELEM(bezt->h1,HD_AUTO,HD_AUTO_ANIM)) {
 				len1/=len;
 				*(p2-3)= *p2-vx*len1;
 				*(p2-2)= *(p2+1)-vy*len1;
 				*(p2-1)= *(p2+2)-vz*len1;
 				
-				if(mode==2 && next && prev) {	// keep horizontal if extrema
+				if((bezt->h1==HD_AUTO_ANIM) && next && prev) {	// keep horizontal if extrema
 					float ydiff1= prev->vec[1][1] - bezt->vec[1][1];
 					float ydiff2= next->vec[1][1] - bezt->vec[1][1];
 					if( (ydiff1 <= 0.0f && ydiff2 <= 0.0f) || (ydiff1 >= 0.0f && ydiff2 >= 0.0f) ) {
@@ -2512,13 +2512,13 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 					}
 				}
 			}
-			if(bezt->h2==HD_AUTO) {
+			if(ELEM(bezt->h2,HD_AUTO,HD_AUTO_ANIM)) {
 				len2/=len;
 				*(p2+3)= *p2+vx*len2;
 				*(p2+4)= *(p2+1)+vy*len2;
 				*(p2+5)= *(p2+2)+vz*len2;
 				
-				if(mode==2 && next && prev) {	// keep horizontal if extrema
+				if((bezt->h2==HD_AUTO_ANIM) && next && prev) {	// keep horizontal if extrema
 					float ydiff1= prev->vec[1][1] - bezt->vec[1][1];
 					float ydiff2= next->vec[1][1] - bezt->vec[1][1];
 					if( (ydiff1 <= 0.0f && ydiff2 <= 0.0f) || (ydiff1 >= 0.0f && ydiff2 >= 0.0f) ) {
@@ -2674,15 +2674,15 @@ void testhandlesNurb(Nurb *nu)
 		if(bezt->f1 & SELECT) flag++;
 		if(bezt->f2 & SELECT) flag += 2;
 		if(bezt->f3 & SELECT) flag += 4;
-
+		
 		if( !(flag==0 || flag==7) ) {
-			if(bezt->h1==HD_AUTO) {   /* auto */
+			if(ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM)) {   /* auto */
 				bezt->h1= HD_ALIGN;
 			}
-			if(bezt->h2==HD_AUTO) {   /* auto */
+			if(ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM)) {   /* auto */
 				bezt->h2= HD_ALIGN;
 			}
-
+			
 			if(bezt->h1==HD_VECT) {   /* vector */
 				if(flag < 4) bezt->h1= 0;
 			}
@@ -2692,7 +2692,7 @@ void testhandlesNurb(Nurb *nu)
 		}
 		bezt++;
 	}
-
+	
 	calchandlesNurb(nu);
 }
 

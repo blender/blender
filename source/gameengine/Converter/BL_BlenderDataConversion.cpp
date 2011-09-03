@@ -1483,7 +1483,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		{
 			objprop.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
 			
-			objprop.m_soft_linStiff = 0.5;;
+			objprop.m_soft_linStiff = 0.5;
 			objprop.m_soft_angStiff = 1.f;		/* angular stiffness 0..1 */
 			objprop.m_soft_volume= 1.f;			/* volume preservation 0..1 */
 
@@ -1684,8 +1684,6 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 
 	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools,
 		lightobj, glslmat);
-
-	BL_ConvertLampIpos(la, gamelight, converter);
 	
 	return gamelight;
 }
@@ -1697,8 +1695,6 @@ static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_Blen
 	
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);
 	gamecamera->SetName(ca->id.name + 2);
-	
-	BL_ConvertCameraIpos(ca, gamecamera, converter);
 	
 	return gamecamera;
 }
@@ -1809,11 +1805,13 @@ static KX_GameObject *gameobject_from_blenderobject(
 	
 	case OB_ARMATURE:
 	{
+		bArmature *arm = (bArmature*)ob->data;
 		gameobj = new BL_ArmatureObject(
 			kxscene,
 			KX_Scene::m_callbacks,
 			ob,
-			kxscene->GetBlenderScene() // handle
+			kxscene->GetBlenderScene(), // handle
+			arm->gevertdeformer
 		);
 		/* Get the current pose from the armature object and apply it as the rest pose */
 		break;
@@ -2092,8 +2090,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 			gameobj->NodeSetLocalScale(scale);
 			gameobj->NodeUpdateGS(0);
-			
-			BL_ConvertIpos(blenderobject,gameobj,converter);
+
 			BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
 			
 			sumolist->Add(gameobj->AddRef());
@@ -2282,8 +2279,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
 							gameobj->NodeSetLocalScale(scale);
 							gameobj->NodeUpdateGS(0);
-							
-							BL_ConvertIpos(blenderobject,gameobj,converter);
+	
 							BL_ConvertMaterialIpos(blenderobject,gameobj, converter);	
 					
 							sumolist->Add(gameobj->AddRef());

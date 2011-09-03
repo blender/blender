@@ -917,14 +917,14 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 		if (i > 6)
 			file[i-6] = '\0';
 		
-		snprintf(filename, MAX_PTCACHE_PATH, "//"PTCACHE_PATH"%s", file); /* add blend file name to pointcache dir */
+		BLI_snprintf(filename, MAX_PTCACHE_PATH, "//"PTCACHE_PATH"%s", file); /* add blend file name to pointcache dir */
 		BLI_path_abs(filename, blendfilename);
 		return BLI_add_slash(filename); /* new strlen() */
 	}
 	
 	/* use the temp path. this is weak but better then not using point cache at all */
 	/* btempdir is assumed to exist and ALWAYS has a trailing slash */
-	snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
+	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
 	
 	return BLI_add_slash(filename); /* new strlen() */
 }
@@ -948,7 +948,7 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
 		idname = (pid->ob->id.name+2);
 		/* convert chars to hex so they are always a valid filename */
 		while('\0' != *idname) {
-			snprintf(newname, MAX_PTCACHE_FILE, "%02X", (char)(*idname++));
+			BLI_snprintf(newname, MAX_PTCACHE_FILE, "%02X", (char)(*idname++));
 			newname+=2;
 			len += 2;
 		}
@@ -967,12 +967,12 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
 
 		if(pid->cache->flag & PTCACHE_EXTERNAL) {
 			if(pid->cache->index >= 0)
-				snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02u"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
+				BLI_snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02u"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
 			else
-				snprintf(newname, MAX_PTCACHE_FILE, "_%06d"PTCACHE_EXT, cfra); /* always 6 chars */
+				BLI_snprintf(newname, MAX_PTCACHE_FILE, "_%06d"PTCACHE_EXT, cfra); /* always 6 chars */
 		}
 		else {
-			snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02u"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
+			BLI_snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02u"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
 		}
 		len += 16;
 	}
@@ -2002,7 +2002,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 			if (dir==NULL)
 				return;
 
-			snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
+			BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 			
 			while ((de = readdir(dir)) != NULL) {
 				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
@@ -2204,7 +2204,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 			if (dir==NULL)
 				return;
 
-			snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
+			BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 			
 			while ((de = readdir(dir)) != NULL) {
 				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
@@ -2904,7 +2904,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
 		return;
 	}
 
-	snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
+	BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 
 	/* put new name into cache */
 	strcpy(pid->cache->name, to);
@@ -2960,7 +2960,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 		return;
 
 	if(cache->index >= 0)
-		snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, cache->index);
+		BLI_snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, cache->index);
 	else
 		strcpy(ext, PTCACHE_EXT);
 	

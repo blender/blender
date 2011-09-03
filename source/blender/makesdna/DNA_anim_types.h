@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -62,6 +60,11 @@ typedef struct FModifier {
 	short flag;			/* settings for the modifier */
 	
 	float influence;	/* the amount that the modifier should influence the value */
+	
+	float sfra;			/* start frame of restricted frame-range */
+	float efra;			/* end frame of restricted frame-range */
+	float blendin;		/* number of frames from sfra before modifier takes full influence */
+	float blendout;		/* number of frames from efra before modifier fades out */
 } FModifier;
 
 /* Types of F-Curve modifier 
@@ -86,13 +89,17 @@ typedef enum eFModifier_Types {
 /* F-Curve Modifier Settings */
 typedef enum eFModifier_Flags {
 		/* modifier is not able to be evaluated for some reason, and should be skipped (internal) */
-	FMODIFIER_FLAG_DISABLED		= (1<<0),
+	FMODIFIER_FLAG_DISABLED		 = (1<<0),
 		/* modifier's data is expanded (in UI) */
-	FMODIFIER_FLAG_EXPANDED		= (1<<1),
+	FMODIFIER_FLAG_EXPANDED		 = (1<<1),
 		/* modifier is active one (in UI) for editing purposes */
-	FMODIFIER_FLAG_ACTIVE		= (1<<2),
+	FMODIFIER_FLAG_ACTIVE		 = (1<<2),
 		/* user wants modifier to be skipped */
-	FMODIFIER_FLAG_MUTED		= (1<<3)
+	FMODIFIER_FLAG_MUTED		 = (1<<3),
+		/* restrict range that F-Modifier can be considered over */
+	FMODIFIER_FLAG_RANGERESTRICT = (1<<4),
+		/* use influence control */
+	FMODIFIER_FLAG_USEINFLUENCE  = (1<<5)
 } eFModifier_Flags; 
 
 /* --- */
@@ -280,8 +287,12 @@ typedef enum eDriverTarget_Flag {
 	DTAR_FLAG_STRUCT_REF	= (1<<0),
 		/* idtype can only be 'Object' */
 	DTAR_FLAG_ID_OB_ONLY	= (1<<1),
-		/* toggles localspace (where transforms are manually obtained) */
+	
+	/* "localspace" flags */
+		/* base flag - basically "pre parent+constraints" */
 	DTAR_FLAG_LOCALSPACE	= (1<<2),
+		/* include constraints transformed to space including parents */
+	DTAR_FLAG_LOCAL_CONSTS	= (1<<3),
 } eDriverTarget_Flag;
 
 /* Transform Channels for Driver Targets */
@@ -460,7 +471,9 @@ typedef enum eFCurve_Flags {
 	FCURVE_PROTECTED	= (1<<3),
 		/* fcurve will not be evaluated for the next round */
 	FCURVE_MUTED		= (1<<4),
+	
 		/* fcurve uses 'auto-handles', which stay horizontal... */
+		// DEPRECATED
 	FCURVE_AUTO_HANDLES	= (1<<5),
 	
 		/* skip evaluation, as RNA-path cannot be resolved (similar to muting, but cannot be set by user) */
@@ -570,6 +583,8 @@ typedef struct NlaStrip {
 	
 	short type;					/* type of NLA strip */
 	
+	void *speaker_handle;		/* handle for speaker objects */
+	
 	int flag;					/* settings */
 	int pad2;
 } NlaStrip;
@@ -636,7 +651,10 @@ typedef enum eNlaStrip_Type {
 		/* 'transition' - blends between the adjacent strips */
 	NLASTRIP_TYPE_TRANSITION,
 		/* 'meta' - a strip which acts as a container for a few others */
-	NLASTRIP_TYPE_META
+	NLASTRIP_TYPE_META,	
+	
+		/* 'emit sound' - a strip which is used for timing when speaker emits sounds */
+	NLASTRIP_TYPE_SOUND
 } eNlaStrip_Type;
 
 /* NLA Tracks ------------------------------------- */

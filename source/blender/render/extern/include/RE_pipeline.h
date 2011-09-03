@@ -51,6 +51,7 @@ struct ReportList;
 struct ReportList;
 struct Scene;
 struct SceneRenderLayer;
+struct EnvMap;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */
@@ -227,9 +228,12 @@ void RE_SetReports(struct Render *re, struct ReportList *reports);
 /* main preview render call */
 void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene);
 
-void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
-void RE_WriteRenderResult(RenderResult *rr, const char *filename, int compress);
+int RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
+int RE_WriteRenderResult(struct ReportList *reports, RenderResult *rr, const char *filename, int compress);
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
+
+extern const float default_envmap_layout[];
+int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, int imtype, float layout[12]);
 
 /* do a full sample buffer compo */
 void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce, struct bNodeTree *ntree);

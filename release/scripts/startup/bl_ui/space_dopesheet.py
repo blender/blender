@@ -34,41 +34,10 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
     row.prop(dopesheet, "show_only_selected", text="")
     row.prop(dopesheet, "show_hidden", text="")
 
+    if is_nla:
+        row.prop(dopesheet, "show_missing_nla", text="")
+
     if not genericFiltersOnly:
-        row = layout.row(align=True)
-        row.prop(dopesheet, "show_transforms", text="")
-
-        if is_nla:
-            row.prop(dopesheet, "show_missing_nla", text="")
-
-        row = layout.row(align=True)
-        row.prop(dopesheet, "show_scenes", text="")
-        row.prop(dopesheet, "show_worlds", text="")
-        row.prop(dopesheet, "show_nodes", text="")
-
-        if bpy.data.meshes:
-            row.prop(dopesheet, "show_meshes", text="")
-        if bpy.data.shape_keys:
-            row.prop(dopesheet, "show_shapekeys", text="")
-        if bpy.data.materials:
-            row.prop(dopesheet, "show_materials", text="")
-        if bpy.data.lamps:
-            row.prop(dopesheet, "show_lamps", text="")
-        if bpy.data.textures:
-            row.prop(dopesheet, "show_textures", text="")
-        if bpy.data.cameras:
-            row.prop(dopesheet, "show_cameras", text="")
-        if bpy.data.curves:
-            row.prop(dopesheet, "show_curves", text="")
-        if bpy.data.metaballs:
-            row.prop(dopesheet, "show_metaballs", text="")
-        if bpy.data.lattices:
-            row.prop(dopesheet, "show_lattices", text="")
-        if bpy.data.armatures:
-            row.prop(dopesheet, "show_armatures", text="")
-        if bpy.data.particles:
-            row.prop(dopesheet, "show_particles", text="")
-
         if bpy.data.groups:
             row = layout.row(align=True)
             row.prop(dopesheet, "show_only_group_objects", text="")
@@ -80,6 +49,42 @@ def dopesheet_filter(layout, context, genericFiltersOnly=False):
         row.prop(dopesheet, "show_only_matching_fcurves", text="")
         if dopesheet.show_only_matching_fcurves:
             row.prop(dopesheet, "filter_fcurve_name", text="")
+
+    if not genericFiltersOnly:
+        row = layout.row(align=True)
+        row.prop(dopesheet, "show_datablock_filters", text="Filters")
+
+        if dopesheet.show_datablock_filters:
+            row.prop(dopesheet, "show_scenes", text="")
+            row.prop(dopesheet, "show_worlds", text="")
+            row.prop(dopesheet, "show_nodes", text="")
+
+            row.prop(dopesheet, "show_transforms", text="")
+
+            if bpy.data.meshes:
+                row.prop(dopesheet, "show_meshes", text="")
+            if bpy.data.shape_keys:
+                row.prop(dopesheet, "show_shapekeys", text="")
+            if bpy.data.materials:
+                row.prop(dopesheet, "show_materials", text="")
+            if bpy.data.lamps:
+                row.prop(dopesheet, "show_lamps", text="")
+            if bpy.data.textures:
+                row.prop(dopesheet, "show_textures", text="")
+            if bpy.data.cameras:
+                row.prop(dopesheet, "show_cameras", text="")
+            if bpy.data.curves:
+                row.prop(dopesheet, "show_curves", text="")
+            if bpy.data.metaballs:
+                row.prop(dopesheet, "show_metaballs", text="")
+            if bpy.data.lattices:
+                row.prop(dopesheet, "show_lattices", text="")
+            if bpy.data.armatures:
+                row.prop(dopesheet, "show_armatures", text="")
+            if bpy.data.particles:
+                row.prop(dopesheet, "show_particles", text="")
+            if bpy.data.speakers:
+                row.prop(dopesheet, "show_speakers", text="")
 
 
 #######################################
@@ -277,7 +282,7 @@ class DOPESHEET_MT_key(Menu):
         layout.operator("action.keyframe_insert")
 
         layout.separator()
-        layout.operator("action.duplicate")
+        layout.operator("action.duplicate_move")
         layout.operator("action.delete")
 
         layout.separator()

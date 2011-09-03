@@ -31,9 +31,10 @@
 
 #include "ExtraHandler.h"
 
-ExtraHandler::ExtraHandler(DocumentImporter *dimp) : currentExtraTags(0)
+ExtraHandler::ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp) : currentExtraTags(0)
 {
 	this->dimp = dimp;
+	this->aimp = aimp;
 }
 
 ExtraHandler::~ExtraHandler() {}
@@ -42,6 +43,7 @@ bool ExtraHandler::elementBegin( const char* elementName, const char** attribute
 {
 	// \todo attribute handling for profile tags
 	currentElement = std::string(elementName);
+	//addToSidTree(attributes[0], attributes[1]);
 	return true;
 }
 
@@ -54,7 +56,7 @@ bool ExtraHandler::textData(const char* text, size_t textLength)
 {
 	char buf[1024];
 	
-	if(currentElement.length() == 0) return false;
+	if(currentElement.length() == 0 || currentExtraTags == 0) return false;
 	
 	BLI_snprintf(buf, textLength+1, "%s", text);
 	currentExtraTags->addTag(currentElement, std::string(buf));

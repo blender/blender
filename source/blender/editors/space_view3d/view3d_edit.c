@@ -3475,7 +3475,7 @@ void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 		copy_m3_m4(nmat, mat);
 		normalize_m3(nmat);
 
-		mul_m3_v3(nmat, vec);;
+		mul_m3_v3(nmat, vec);
 		sub_v3_v3(ofs, vec);
 	}
 }

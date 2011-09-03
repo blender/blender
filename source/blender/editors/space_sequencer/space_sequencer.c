@@ -223,7 +223,7 @@ static SpaceLink *sequencer_new(const bContext *C)
 	ar->v2d.cur= ar->v2d.tot;
 	
 	ar->v2d.min[0]= 10.0f;
-	ar->v2d.min[1]= 4.0f;
+	ar->v2d.min[1]= 0.5f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
 	ar->v2d.max[1]= MAXSEQ;

@@ -113,6 +113,7 @@ extern "C" {
 #include "NG_NetworkScene.h" //Needed for sendMessage()
 
 #include "BL_Shader.h"
+#include "BL_Action.h"
 
 #include "KX_PyMath.h"
 
@@ -1207,6 +1208,28 @@ static PyObject* gPyGetMaterialType(PyObject*)
 	return PyLong_FromSsize_t(flag);
 }
 
+static PyObject* gPySetAnisotropicFiltering(PyObject*, PyObject* args)
+{
+	short level;
+
+	if (!PyArg_ParseTuple(args, "h:setAnisotropicFiltering", &level))
+		return NULL;
+
+	if (level != 1 && level != 2 && level != 4 && level != 8 && level != 16) {
+		PyErr_SetString(PyExc_ValueError, "Rasterizer.setAnisotropicFiltering(level): Expected value of 1, 2, 4, 8, or 16 for value");
+		return NULL;
+	}
+
+	gp_Rasterizer->SetAnisotropicFiltering(level);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject* gPyGetAnisotropicFiltering(PyObject*, PyObject* args)
+{
+	return PyLong_FromLong(gp_Rasterizer->GetAnisotropicFiltering());
+}
+
 static PyObject* gPyDrawLine(PyObject*, PyObject* args)
 {
 	PyObject* ob_from;
@@ -1271,6 +1294,10 @@ static struct PyMethodDef rasterizer_methods[] = {
    METH_VARARGS, "set the state of a GLSL material setting"},
   {"getGLSLMaterialSetting",(PyCFunction) gPyGetGLSLMaterialSetting,
    METH_VARARGS, "get the state of a GLSL material setting"},
+  {"setAnisotropicFiltering", (PyCFunction) gPySetAnisotropicFiltering,
+  METH_VARARGS, "set the anisotropic filtering level (must be one of 1, 2, 4, 8, 16)"},
+  {"getAnisotropicFiltering", (PyCFunction) gPyGetAnisotropicFiltering,
+  METH_VARARGS, "get the anisotropic filtering level"},
   {"drawLine", (PyCFunction) gPyDrawLine,
    METH_VARARGS, "draw a line on the screen"},
   { NULL, (PyCFunction) NULL, 0, NULL }
@@ -1627,6 +1654,11 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, ROT_MODE_YZX, ROT_MODE_YZX);
 	KX_MACRO_addTypesToDict(d, ROT_MODE_ZXY, ROT_MODE_ZXY);
 	KX_MACRO_addTypesToDict(d, ROT_MODE_ZYX, ROT_MODE_ZYX);
+
+	/* BL_Action play modes */
+	KX_MACRO_addTypesToDict(d, KX_ACTION_MODE_PLAY, BL_Action::ACT_MODE_PLAY);
+	KX_MACRO_addTypesToDict(d, KX_ACTION_MODE_LOOP, BL_Action::ACT_MODE_LOOP);
+	KX_MACRO_addTypesToDict(d, KX_ACTION_MODE_PING_PONG, BL_Action::ACT_MODE_PING_PONG);
 
 	// Check for errors
 	if (PyErr_Occurred())

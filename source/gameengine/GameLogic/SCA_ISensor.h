@@ -105,7 +105,7 @@ public:
 	};
 
 	SCA_ISensor(SCA_IObject* gameobj,
-				class SCA_EventManager* eventmgr);;
+				class SCA_EventManager* eventmgr);
 	~SCA_ISensor();
 	virtual void	ReParent(SCA_IObject* parent);
 

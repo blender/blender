@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -54,12 +52,12 @@
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_linestyle_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 
@@ -774,7 +772,7 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 		int filter;
 		
 		/* get F-Curves to take keyframes from */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+		filter= ANIMFILTER_DATA_VISIBLE; // curves only
 		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 		
 		/* loop through each F-Curve, grabbing the keyframes */
@@ -787,167 +785,71 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 
 void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, DLRBT_Tree *blocks)
 {
-	if (sce) {
-		AnimData *adt;
-		int filterflag;
-		
-		/* get filterflag */
-		if (ads)
-			filterflag= ads->filterflag;
-		else
-			filterflag= 0;
-			
-		/* scene animdata */
-		if ((sce->adt) && !(filterflag & ADS_FILTER_NOSCE)) {
-			adt= sce->adt;
-			
-			if (adt->action) 
-				action_to_keylist(adt, adt->action, keys, blocks);
-		}
-		
-		/* world animdata */
-		if ((sce->world) && (sce->world->adt) && !(filterflag & ADS_FILTER_NOWOR)) {
-			adt= sce->world->adt;
-			
-			if (adt->action) 
-				action_to_keylist(adt, adt->action, keys, blocks);
-		}
-		
-		/* nodetree animdata */
-		if ((sce->nodetree) && (sce->nodetree->adt) && !(filterflag & ADS_FILTER_NONTREE)) {
-			adt= sce->nodetree->adt;
-			
-			if (adt->action) 
-				action_to_keylist(adt, adt->action, keys, blocks);
-		}
-
-		/* linestyle animdata */
-		if (sce->r.mode & R_EDGE_FRS && !(filterflag & ADS_FILTER_NOLINESTYLE)) {
-			SceneRenderLayer *srl;
-			FreestyleLineSet *lineset;
-
-			for (srl= sce->r.layers.first; srl; srl= srl->next) {
-				if (srl->layflag & SCE_LAY_FRS) {
-					for (lineset= srl->freestyleConfig.linesets.first; lineset; lineset= lineset->next) {
-						adt= lineset->linestyle->adt;
-
-						if (adt && adt->action) 
-							action_to_keylist(adt, adt->action, keys, blocks);
-					}
-				}
-			}
-		}
-	}
+	bAnimContext ac = {NULL};
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	bAnimListElem dummychan = {0};
+	
+	if (sce == NULL)
+		return;
+	
+	/* create a dummy wrapper data to work with */
+	dummychan.type = ANIMTYPE_SCENE;
+	dummychan.data = sce;
+	dummychan.id = &sce->id;
+	dummychan.adt = sce->adt;
+	
+	ac.ads = ads;
+	ac.data = &dummychan;
+	ac.datatype = ANIMCONT_CHANNEL;
+	
+	/* get F-Curves to take keyframes from */
+	filter= ANIMFILTER_DATA_VISIBLE; // curves only
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* loop through each F-Curve, grabbing the keyframes */
+	for (ale= anim_data.first; ale; ale= ale->next)
+		fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
+	
+	BLI_freelistN(&anim_data);
 }
 
 void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *blocks)
-{
-	Key *key= ob_get_key(ob);
-	int filterflag= (ads)? ads->filterflag : 0;
+{	
+	bAnimContext ac = {NULL};
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
 	
-	/* sanity check */
+	bAnimListElem dummychan = {0};
+	Base dummybase = {0};
+	
 	if (ob == NULL)
 		return;
-		
-	/* Add action keyframes */
-	if (ob->adt && ob->adt->action)
-		action_to_keylist(ob->adt, ob->adt->action, keys, blocks);
 	
-	/* Add shapekey keyframes (only if dopesheet allows, if it is available) */
-	if ((key && key->adt && key->adt->action) && !(filterflag & ADS_FILTER_NOSHAPEKEYS))
-		action_to_keylist(key->adt, key->adt->action, keys, blocks);
+	/* create a dummy wrapper data to work with */
+	dummybase.object = ob;
 	
-	/* Add material keyframes */
-	if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
-		int a;
-		
-		for (a=1; a <= ob->totcol; a++) {
-			Material *ma= give_current_material(ob, a);
-			
-			/* there might not be a material */
-			if (ELEM(NULL, ma, ma->adt)) 
-				continue;
-			
-			/* add material's data */
-			action_to_keylist(ma->adt, ma->adt->action, keys, blocks);
-			
-			// TODO: textures...
-		}
-	}
+	dummychan.type = ANIMTYPE_OBJECT;
+	dummychan.data = &dummybase;
+	dummychan.id = &ob->id;
+	dummychan.adt = ob->adt;
 	
-	/* Add object data keyframes */
-	switch (ob->type) {
-		case OB_CAMERA: /* ------- Camera ------------ */
-		{
-			Camera *ca= (Camera *)ob->data;
-			
-			if ((ca->adt) && !(filterflag & ADS_FILTER_NOCAM)) 
-				action_to_keylist(ca->adt, ca->adt->action, keys, blocks);
-		}
-			break;
-		case OB_LAMP: /* ---------- Lamp ----------- */
-		{
-			Lamp *la= (Lamp *)ob->data;
-			
-			if ((la->adt) && !(filterflag & ADS_FILTER_NOLAM)) 
-				action_to_keylist(la->adt, la->adt->action, keys, blocks);
-		}
-			break;
-		case OB_CURVE: /* ------- Curve ---------- */
-		case OB_SURF: /* ------- Nurbs Surface ---------- */
-		case OB_FONT: /* ------- Text Curve ---------- */
-		{
-			Curve *cu= (Curve *)ob->data;
-			
-			if ((cu->adt) && !(filterflag & ADS_FILTER_NOCUR)) 
-				action_to_keylist(cu->adt, cu->adt->action, keys, blocks);
-		}
-			break;
-		case OB_MBALL: /* ------- MetaBall ---------- */
-		{
-			MetaBall *mb= (MetaBall *)ob->data;
-			
-			if ((mb->adt) && !(filterflag & ADS_FILTER_NOMBA)) 
-				action_to_keylist(mb->adt, mb->adt->action, keys, blocks);
-		}
-			break;
-		case OB_ARMATURE: /* ------- Armature ---------- */
-		{
-			bArmature *arm= (bArmature *)ob->data;
-			
-			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) 
-				action_to_keylist(arm->adt, arm->adt->action, keys, blocks);
-		}
-			break;
-		case OB_MESH: /* ------- Mesh ---------- */
-		{
-			Mesh *me= (Mesh *)ob->data;
-			
-			if ((me->adt) && !(filterflag & ADS_FILTER_NOMESH)) 
-				action_to_keylist(me->adt, me->adt->action, keys, blocks);
-		}
-			break;
-		case OB_LATTICE: /* ------- Lattice ---------- */
-		{
-			Lattice *lt= (Lattice *)ob->data;
-			
-			if ((lt->adt) && !(filterflag & ADS_FILTER_NOLAT)) 
-				action_to_keylist(lt->adt, lt->adt->action, keys, blocks);
-	}
-			break;
-	}
+	ac.ads = ads;
+	ac.data = &dummychan;
+	ac.datatype = ANIMCONT_CHANNEL;
 	
-	/* Add Particle System Keyframes */
-	if ((ob->particlesystem.first) && !(filterflag & ADS_FILTER_NOPART)) {
-		ParticleSystem *psys = ob->particlesystem.first;
-		
-		for(; psys; psys=psys->next) {
-			if (ELEM(NULL, psys->part, psys->part->adt))
-				continue;
-			else
-				action_to_keylist(psys->part->adt, psys->part->adt->action, keys, blocks);
-		}
-	}
+	/* get F-Curves to take keyframes from */
+	filter= ANIMFILTER_DATA_VISIBLE; // curves only
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* loop through each F-Curve, grabbing the keyframes */
+	for (ale= anim_data.first; ale; ale= ale->next)
+		fcurve_to_keylist(ale->adt, ale->data, keys, blocks);
+	
+	BLI_freelistN(&anim_data);
 }
 
 void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree *blocks)

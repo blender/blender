@@ -82,6 +82,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_sound.h"
 
 
 #include "BLO_undofile.h"
@@ -89,6 +90,8 @@
 #include "BLO_writefile.h" 
 
 #include "BKE_utildefines.h"
+
+#include "RNA_access.h"
 
 #include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
 
@@ -239,9 +242,14 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 //	CTX_wm_manager_set(C, NULL);
 	clear_global();	
 	
+	/* clear old property update cache, in case some old references are left dangling */
+	RNA_property_update_cache_free();
+	
 	G.main= bfd->main;
 
 	CTX_data_main_set(C, G.main);
+
+	sound_init_main(G.main);
 	
 	if (bfd->user) {
 		

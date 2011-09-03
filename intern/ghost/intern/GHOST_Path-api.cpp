@@ -39,7 +39,7 @@
 
 GHOST_TSuccess GHOST_CreateSystemPaths(void)
 {
-	return GHOST_ISystemPaths::create();;
+	return GHOST_ISystemPaths::create();
 }
 
 GHOST_TSuccess GHOST_DisposeSystemPaths(void)
