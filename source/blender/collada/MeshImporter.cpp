@@ -220,8 +220,8 @@ void MeshImporter::set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
 
 	if (quad) uvs.getUV(indices[index + 3], mtface->uv[3]);
 
-#ifdef COLLADA_DEBUG
-	/*if (quad) {
+#if 1 // #ifdef COLLADA_DEBUG
+	if (quad) {
 		fprintf(stderr, "face uv:\n"
 				"((%d, %d, %d, %d))\n"
 				"((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
@@ -248,7 +248,7 @@ void MeshImporter::set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
 				mtface->uv[0][0], mtface->uv[0][1],
 				mtface->uv[1][0], mtface->uv[1][1],
 				mtface->uv[2][0], mtface->uv[2][1]);
-	}*/
+	}
 #endif
 }
 
@@ -587,7 +587,7 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //T
 					for (k = 0; k < index_list_array.getCount(); k++) {
 						// get mtface by face index and uv set index
 						MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-						set_face_uv(&mtface[face_index], uvs, *index_list_array[k], index, mface->v4 != 0);
+						set_face_uv(&mtface[face_index], uvs, *index_list_array[k], index, vcount == 4);
 					}
 #endif
 
