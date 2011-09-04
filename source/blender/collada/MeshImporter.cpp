@@ -796,7 +796,7 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId>::iterator it;
 	it=materials_mapped_to_geom.find(*geom_uid);
 	while(it!=materials_mapped_to_geom.end()) {
-		if(it->second == ma_uid) return NULL; // do nothing if already found
+		if(it->second == ma_uid && it->first == *geom_uid) return NULL; // do nothing if already found
 		it++;
 	}
 	// first time we get geom_uid, ma_uid pair. Save for later check.
