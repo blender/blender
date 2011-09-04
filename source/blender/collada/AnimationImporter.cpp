@@ -1059,12 +1059,14 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 			const COLLADAFW::UniqueId & matuid = matBinds[j].getReferencedMaterial();
 			const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
 			const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
-			COLLADAFW::EffectCommon *efc = commonEffects[0];
-			types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
-			types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
-			types->material =  setAnimType(&(efc->getDiffuse().getColor()),(types->material), MATERIAL_DIFF_COLOR);
-			// types->material =  setAnimType(&(efc->get()),(types->material), MATERIAL_TRANSPARENCY);
-			types->material =  setAnimType(&(efc->getIndexOfRefraction()),(types->material), MATERIAL_IOR);
+			if(!commonEffects.empty()) {
+				COLLADAFW::EffectCommon *efc = commonEffects[0];
+				types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
+				types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
+				types->material =  setAnimType(&(efc->getDiffuse().getColor()),(types->material), MATERIAL_DIFF_COLOR);
+				// types->material =  setAnimType(&(efc->get()),(types->material), MATERIAL_TRANSPARENCY);
+				types->material =  setAnimType(&(efc->getIndexOfRefraction()),(types->material), MATERIAL_IOR);
+			}
 		}
 	}
 	return types;
