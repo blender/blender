@@ -12,6 +12,23 @@
 #include <string.h>
 
 /*
+ * Restricted deselect prevents deslection of a
+ * face or vertex from deselecting the component
+ * edges and/or vertices, if those edges/vertices
+ * are part of another selected face/edge.
+ * This is not 100% reliable, and so needs to be
+ * turned off for now. A couple of examples where
+ * it didn't work:
+ * - In vertex mode, select two adjacent edge loops,
+ *   then try to deselect one of the loops (see bug
+ *   #28492)
+ * - In vertex+edge multi-select mode, select three
+ *   edges that line up to form a path, then try to
+ *   deselect the middle edge
+*/
+/*#define RESTRICTED_DESELECT*/
+
+/*
  * BM_MARK.C
  *
  * Selection routines for bmesh structures.
@@ -134,13 +151,13 @@ void BM_Select_Vert(BMesh *bm, BMVert *v, int select)
  * BMESH SELECT EDGE
  *
  * Changes selection state of a single edge
- * in a mesh. Note that this may not be
- * 100 percent reliable.
+ * in a mesh.
  *
 */
 
 void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 {
+#if defined(RESTRICTED_DESELECT)
 	int candesel;
 	int testiso = 1;
 
@@ -181,6 +198,7 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 			if (candesel) BM_Select_Vert(bm, !i?e->v1:e->v2, 0);			
 		}
 	}
+#endif
 
 	if(select) { 
 		if (!BM_TestHFlag(e, BM_SELECT)) bm->totedgesel += 1;
@@ -193,6 +211,10 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 		if (BM_TestHFlag(e, BM_SELECT)) bm->totedgesel -= 1;
 
 		BM_ClearHFlag(&(e->head), BM_SELECT);
+#if !defined(RESTRICTED_DESELECT)
+		BM_Select(bm, e->v1, 0);
+		BM_Select(bm, e->v2, 0);
+#endif
 	}
 }
 
@@ -201,9 +223,7 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
  * BMESH SELECT FACE
  *
  * Changes selection state of a single
- * face in a mesh. This (might) suffer
- * from same problems as edge select
- * code...
+ * face in a mesh.
  *
 */
 
@@ -223,34 +243,42 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 		}while(l != bm_firstfaceloop(f));
 	}
 	else{ 
-		BMIter liter, fiter, eiter;
-		BMFace *f2;
+		BMIter liter;
 		BMLoop *l;
-		BMEdge *e;
 
 		if (BM_TestHFlag(f, BM_SELECT)) bm->totfacesel -= 1;
 		BM_ClearHFlag(&(f->head), BM_SELECT);
 
 		/*flush down to edges*/
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+#if defined(RESTRICTED_DESELECT)
+			BMIter fiter;
+			BMFace *f2;
 			BM_ITER(f2, &fiter, bm, BM_FACES_OF_EDGE, l->e) {
 				if (BM_TestHFlag(f2, BM_SELECT))
 					break;
 			}
 
-			if (!f2) {
+			if (!f2)
+#endif
+			{
 				BM_Select(bm, l->e, 0);
 			}
 		}
 
 		/*flush down to verts*/
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
+#if defined(RESTRICTED_DESELECT)
+			BMIter eiter;
+			BMEdge *e;
 			BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, l->v) {
 				if (BM_TestHFlag(e, BM_SELECT))
 					break;
 			}
 
-			if (!e) {
+			if (!e)
+#endif
+			{
 				BM_Select(bm, l->v, 0);
 			}
 		}

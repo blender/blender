@@ -877,9 +877,6 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 /* ***************************************************** */
 
 /* ****************  LOOP SELECTS *************** */
-/*faceloop_select, edgeloop_select, and edgering_select, are left
-  here for reference purposes temporarily, but have all been replaced
-  by uses of walker_select.*/
 
 static void walker_select(BMEditMesh *em, int walkercode, void *start, int select)
 {
@@ -994,7 +991,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 	if(eed) {
 		if(extend==0) EDBM_clear_flag_all(em, BM_SELECT);
 	
-		if(BM_TestHFlag(em, BM_SELECT)==0) select=1;
+		if(BM_TestHFlag(eed, BM_SELECT)==0) select=1;
 		else if(extend) select=0;
 
 		if(em->selectmode & SCE_SELECT_FACE) {
@@ -1009,7 +1006,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 		else if(em->selectmode & SCE_SELECT_VERTEX) {
 			if(ring)
 				walker_select(em, BMW_EDGERING, eed, select);
-			else 
+			else
 				walker_select(em, BMW_LOOP, eed, select);
 		}
 
