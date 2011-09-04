@@ -565,6 +565,8 @@ elseif(WIN32)
 		set(ICONV_INCLUDE_DIRS ${ICONV}/include)
 		set(ICONV_LIBRARIES iconv)
 		set(ICONV_LIBPATH ${ICONV}/lib)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -MD")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -MD")
 	endif()
 
 	if(WITH_SAMPLERATE)

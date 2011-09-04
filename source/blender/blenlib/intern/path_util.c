@@ -72,6 +72,7 @@
 #endif
 #define _WIN32_IE 0x0501
 #include <windows.h>
+#include <Winbase.h>
 #include <shlobj.h>
 
 #include "BLI_winstuff.h"
@@ -1157,14 +1158,13 @@ void BLI_setenv(const char *env, const char*val)
 {
 	/* SGI or free windows */
 #if (defined(__sgi) || ((defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)))
-	char *envstr= MEM_mallocN(sizeof(char) * (strlen(env) + strlen(val) + 2), "envstr"); /* one for = another for \0 */
-
-	sprintf(envstr, "%s=%s", env, val);
+	char *envstr= BLI_sprintfN("%s=%s", env, val);
 	putenv(envstr);
 	MEM_freeN(envstr);
 
 	/* non-free windows */
 #elif (defined(WIN32) || defined(WIN64)) /* not free windows */
+	SetEnvironmentVariableA(env, val);
 	_putenv_s(env, val);
 #else
 	/* linux/osx/bsd */
