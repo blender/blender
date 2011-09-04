@@ -411,7 +411,7 @@ int MeshImporter::count_new_tris(COLLADAFW::Mesh *mesh, Mesh *me)
 }
 
 // TODO: import uv set names
-void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)        //TODO:: Refactor. Possibly replace by iterators
+void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //TODO:: Refactor. Possibly replace by iterators
 {
 	unsigned int i;
 	
