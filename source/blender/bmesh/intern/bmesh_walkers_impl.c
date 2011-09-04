@@ -446,14 +446,65 @@ static void *loopWalker_step(BMWalker *walker)
 	return owalk.cur;
 }
 
+/*	Face Loop Walker:
+ *
+ *	Starts at a tool-flagged face and walks over the face loop
+ * Conditions for starting and stepping the face loop have been
+ * tuned in an attempt to match the face loops built by EditMesh
+ * 
+*/
+
+/*Check whether the face loop should includes the face specified
+  by the given BMLoop*/
+static int faceloopWalker_include_face(BMWalker *walker, BMLoop *l)
+{
+	/*face must have degree 4*/
+	if (l->f->len != 4)
+		return 0;
+
+	/*the face must not have been already visited*/
+	if (BLI_ghash_haskey(walker->visithash, l->f))
+		return 0;
+
+	return 1;
+}
+
+/*Check whether the face loop can start from the given edge*/
+static int faceloopWalker_edge_begins_loop(BMWalker *walker, BMEdge *e)
+{
+	BMesh *bm = walker->bm;
+
+	/*There is no face loop starting from a wire edges*/
+	if (BM_Wire_Edge(bm, e)) {
+		return 0;
+	}
+	
+	/*Don't start a loop from a boundary edge if it cannot
+	  be extended to cover any faces*/
+	if (BM_Edge_FaceCount(e) == 1) {
+		if (!faceloopWalker_include_face(walker, e->l))
+			return 0;
+	}
+	
+	/*Don't start a face loop from non-manifold edges*/
+	if (BM_Nonmanifold_Edge(bm, e)) {
+		return 0;
+	}
+
+	return 1;
+}
+
 static void faceloopWalker_begin(BMWalker *walker, void *data)
 {
 	faceloopWalker *lwalk, owalk;
 	BMEdge *e = data;
+	BMesh *bm = walker->bm;
+	int fcount = BM_Edge_FaceCount(e);
+
+	if (!faceloopWalker_edge_begins_loop(walker, e))
+		return;
 
 	BMW_pushstate(walker);
-
-	if (!e->l) return;
 
 	lwalk = walker->currentstate;
 	lwalk->l = e->l;
@@ -498,16 +549,16 @@ static void *faceloopWalker_step(BMWalker *walker)
 	if (lwalk->nocalc)
 		return f;
 
-	if (BLI_ghash_haskey(walker->visithash, l->f)) {
+	if (!faceloopWalker_include_face(walker, l)) {
 		l = lwalk->l;
 		l = l->next->next;
-		if (l == l->radial_next) {
+		if (BM_Edge_FaceCount(l->e) != 2) {
 			l = l->prev->prev;
 		}
 		l = l->radial_next;
 	}
 
-	if (!BLI_ghash_haskey(walker->visithash, l->f)) {
+	if (faceloopWalker_include_face(walker, l)) {
 		BMW_pushstate(walker);
 		lwalk = walker->currentstate;
 		lwalk->l = l;
@@ -523,6 +574,14 @@ static void *faceloopWalker_step(BMWalker *walker)
 
 	return f;
 }
+
+/*	Edge Ring Walker:
+ *
+ *	Starts at a tool-flagged edge and walks over the edge ring
+ * Conditions for starting and stepping the edge ring have been
+ * tuned in an attempt to match the edge rings built by EditMesh
+ * 
+*/
 
 static void edgeringWalker_begin(BMWalker *walker, void *data)
 {
@@ -578,6 +637,7 @@ static void *edgeringWalker_step(BMWalker *walker)
 	edgeringWalker *lwalk = walker->currentstate;
 	BMEdge *e;
 	BMLoop *l = lwalk->l /* , *origl = lwalk->l */;
+	BMesh *bm = walker->bm;
 
 	BMW_popstate(walker);
 
@@ -585,14 +645,24 @@ static void *edgeringWalker_step(BMWalker *walker)
 		return lwalk->wireedge;
 
 	e = l->e;
+	if (BM_Nonmanifold_Edge(bm, e)) {
+		/*walker won't traverse to a non-manifold edge, but may
+		  be started on one, and should not traverse *away* from
+		  a non-manfold edge (non-manifold edges are never in an
+		  edge ring with manifold edges*/
+		return e;
+	}
+
 	l = l->radial_next;
 	l = l->next->next;
 	
-	if (l->f->len != 4) {
+	if ((l->f->len != 4) || BM_Nonmanifold_Edge(bm, l->e)) {
 		l = lwalk->l->next->next;
 	}
 
-	if (l->f->len == 4 && !BLI_ghash_haskey(walker->visithash, l->e)) {
+	/*only walk to manifold edges*/
+	if ((l->f->len == 4) && !BM_Nonmanifold_Edge(bm, l->e) &&
+		 !BLI_ghash_haskey(walker->visithash, l->e)) {
 		BMW_pushstate(walker);
 		lwalk = walker->currentstate;
 		lwalk->l = l;
