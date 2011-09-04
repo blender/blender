@@ -2,3 +2,4 @@ v3d_verbosity.patch
 snrptinf_fix.patch
 bundle_tweaks.patch
 fast.patch
+config_mac.patch
