@@ -975,6 +975,28 @@ elseif(WIN32)
 			set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 		endif()
 
+		if(WITH_BOOST)
+			set(BOOST ${LIBDIR}/boost)
+			set(BOOST_INCLUDE_DIR ${BOOST}/include)
+			set(BOOST_POSTFIX "vc90-mt-s-1_46_1")
+			set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_46_1")
+			set(BOOST_LIBRARIES
+				optimized libboost_date_time-${BOOST_POSTFIX} libboost_filesystem-${BOOST_POSTFIX}
+				libboost_regex-${BOOST_POSTFIX} libboost_system-${BOOST_POSTFIX} libboost_thread-${BOOST_POSTFIX}
+				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} libboost_filesystem-${BOOST_DEBUG_POSTFIX}
+				libboost_regex-${BOOST_DEBUG_POSTFIX} libboost_system-${BOOST_DEBUG_POSTFIX} libboost_thread-${BOOST_DEBUG_POSTFIX})
+			set(BOOST_LIBPATH ${BOOST}/lib)
+			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
+		endif()
+			
+		if(WITH_OPENIMAGEIO)
+			set(OPENIMAGEIO ${LIBDIR}/openimageio)
+			set(OPENIMAGEIO_INCLUDE_DIR ${OPENIMAGEIO}/include)
+			set(OPENIMAGEIO_LIBRARY OpenImageIO)
+			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
+			set(OPENIMAGEIO_DEFINITIONS)
+		endif()
+
 		set(PLATFORM_LINKFLAGS "--stack,2097152")
 
 	endif()

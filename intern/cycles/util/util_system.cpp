@@ -20,7 +20,9 @@
 #include "util_types.h"
 
 #ifdef _WIN32
+#if(!defined(FREE_WINDOWS))
 #include <intrin.h>
+#endif
 #include <windows.h>
 #elif defined(__APPLE__)
 #include <sys/sysctl.h>
@@ -57,7 +59,7 @@ int system_cpu_thread_count()
 	return count;
 }
 
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(FREE_WINDOWS)
 static void __cpuid(int data[4], int selector)
 {
 #ifdef __x86_64__

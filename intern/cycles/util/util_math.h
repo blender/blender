@@ -60,8 +60,10 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_GPU__
 
+#if(!defined(FREE_WINDOWS))
 #define copysignf(x, y) ((float)_copysign(x, y))
 #define hypotf(x, y) _hypotf(x, y)
+#endif
 
 #endif
 
