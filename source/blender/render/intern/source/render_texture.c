@@ -2673,7 +2673,7 @@ void do_material_tex(ShadeInput *shi)
 }
 
 
-void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val)
+void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val, Render *re)
 {
 	MTex *mtex;
 	Tex *tex;
@@ -2682,7 +2682,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 	float co[3], texvec[3];
 	float fact, stencilTin=1.0;
 	
-	if (R.r.scemode & R_NO_TEX) return;
+	if (re->r.scemode & R_NO_TEX) return;
 	/* here: test flag if there's a tex (todo) */
 	
 	for(tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
@@ -2724,7 +2724,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 			}
 			else if(mtex->texco==TEXCO_GLOB) {							
 			   VECCOPY(co, xyz);
-			   mul_m4_v3(R.viewinv, co);
+			   mul_m4_v3(re->viewinv, co);
 			}
 			else continue;	// can happen when texco defines disappear and it renders old files
 

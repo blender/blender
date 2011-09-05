@@ -124,6 +124,8 @@ int multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osa
 int multitex_ext_safe(struct Tex *tex, float *texvec, struct TexResult *texres){return 0;}
 int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex) {return 0;}
 void texco_mapping_ext(float *facenor, struct Tex* tex, struct MTex* mtex, float* co, float* dx, float* dy, float* texvec){}
+void do_material_tex(struct ShadeInput *shi) {}
+void do_volume_tex(struct ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val, struct Render *re) {}
 
 /* nodes */
 struct RenderResult *RE_GetResult(struct Render *re){return (struct RenderResult *) NULL;}

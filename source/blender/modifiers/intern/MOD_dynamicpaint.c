@@ -112,11 +112,18 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 
 		for(; surface; surface=surface->next) {
 			walk(userData, ob, (ID **)&surface->brush_group);
+			walk(userData, ob, (ID **)&surface->init_texture);
 		}
 	}
 	if (pmd->brush) {
 		walk(userData, ob, (ID **)&pmd->brush->mat);
 	}
+}
+
+static void foreachTexLink(ModifierData *md, Object *ob,
+					   TexWalkFunc walk, void *userData)
+{
+	walk(userData, ob, md, ""); /* property name isn't used */
 }
 
 ModifierTypeInfo modifierType_DynamicPaint = {
@@ -144,4 +151,5 @@ ModifierTypeInfo modifierType_DynamicPaint = {
 	/* dependsOnNormals */	0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     foreachIDLink,
+	/* foreachTexLink */    foreachTexLink,
 };

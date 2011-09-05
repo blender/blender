@@ -61,6 +61,12 @@ struct PaintSurfaceData;
 #define MOD_DPAINT_SURFACE_PREV_PAINT 0
 #define MOD_DPAINT_SURFACE_PREV_WETMAP 1
 
+/* init_color_type */
+#define MOD_DPAINT_INITIAL_NONE 0
+#define MOD_DPAINT_INITIAL_COLOR 1
+#define MOD_DPAINT_INITIAL_TEXTURE 2
+#define MOD_DPAINT_INITIAL_VERTEXCOLOR 3
+
 typedef struct DynamicPaintSurface {
 	
 	struct DynamicPaintSurface *next, *prev;
@@ -81,6 +87,7 @@ typedef struct DynamicPaintSurface {
 	short disp_type, image_fileformat;
 	short effect_ui;	/* just ui selection box */
 	short preview_id;	/* surface output id to preview */
+	short init_color_type, pad_s;
 	int flags, effect;
 
 	int image_resolution, substeps;
@@ -88,6 +95,12 @@ typedef struct DynamicPaintSurface {
 
 	int dry_speed, diss_speed;
 	float disp_clamp;
+
+	/* initial color */
+	float init_color[4];
+	struct Tex *init_texture;
+	char init_layername[40];
+	int pad;
 
 	float spread_speed, color_spread_speed, shrink_speed;
 	float drip_vel, drip_acc;
@@ -188,9 +201,8 @@ typedef struct DynamicPaintBrushSettings {
 	short wave_type;
 	short ray_dir;
 
-	float wave_factor;
+	float wave_factor, wave_clamp;
 	float max_velocity, smudge_strength;
-	float pad;
 } DynamicPaintBrushSettings;
 
 #endif

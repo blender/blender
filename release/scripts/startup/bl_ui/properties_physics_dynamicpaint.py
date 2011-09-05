@@ -117,8 +117,11 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, bpy.types.Panel):
                     elif (brush.brush_settings_context == "WAVE"):
                         layout.prop(brush, "wave_type")
                         if (brush.wave_type != "REFLECT"):
-                            split = layout.split(percentage=0.6)
-                            split.prop(brush, "wave_factor")
+                            split = layout.split(percentage=0.5)
+                            col = split.column()
+                            col.prop(brush, "wave_factor")
+                            col = split.column()
+                            col.prop(brush, "wave_clamp")
                     elif (brush.brush_settings_context == "VELOCITY"):
                         col = layout.row().column()
                         col.label(text="Velocity Settings:")
@@ -198,6 +201,39 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
             
         layout.label(text="Brush Group:")
         layout.prop(surface, "brush_group", text="")
+
+class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, bpy.types.Panel):
+    bl_label = "Dynamic Paint: Initial Color"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        md = context.dynamic_paint
+        if (not (md and (md.ui_type == "CANVAS") and (md.canvas_settings))):
+            return 0
+        surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
+        return (surface and surface.surface_type=="PAINT")
+
+    def draw(self, context):
+        layout = self.layout
+
+        canvas = context.dynamic_paint.canvas_settings
+        surface = canvas.canvas_surfaces.active
+        ob = context.object
+
+        layout.prop(surface, "init_color_type", expand=False)
+        layout.separator()
+
+        # dissolve
+        if (surface.init_color_type == "COLOR"):
+            layout.prop(surface, "init_color")
+            
+        if (surface.init_color_type == "TEXTURE"):
+            layout.prop(surface, "init_texture")
+            layout.prop_search(surface, "init_layername", ob.data, "uv_textures", text="UV Layer:")
+        
+        if (surface.init_color_type == "VERTEXCOLOR"):
+            layout.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer: ")
 
 
 class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):

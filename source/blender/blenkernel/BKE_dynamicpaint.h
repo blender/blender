@@ -18,6 +18,8 @@
 
 struct PaintEffectData;
 struct PaintBakeData;
+struct bContext;
+struct wmOperator;
 
 /* Actual surface point	*/
 typedef struct PaintSurfaceData {
@@ -61,12 +63,22 @@ struct DerivedMesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pm
 void dynamicPaint_Modifier_free (struct DynamicPaintModifierData *pmd);
 void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tsmd);
 
-void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
-void dynamicPaint_clearSurface(DynamicPaintSurface *surface);
+int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene);
+struct DynamicPaintSurface *dynamicPaint_createNewSurface(struct DynamicPaintCanvasSettings *canvas, struct Scene *scene);
+void dynamicPaint_clearSurface(struct DynamicPaintSurface *surface);
 int  dynamicPaint_resetSurface(struct DynamicPaintSurface *surface);
-int  dynamicPaint_surfaceHasColorPreview(DynamicPaintSurface *surface);
+void dynamicPaint_freeSurface(struct DynamicPaintSurface *surface);
+void dynamicPaint_freeCanvas(struct DynamicPaintModifierData *pmd);
+void dynamicPaint_freeBrush(struct DynamicPaintModifierData *pmd);
+
+void dynamicPaint_cacheUpdateFrames(struct DynamicPaintSurface *surface);
+int  dynamicPaint_surfaceHasColorPreview(struct DynamicPaintSurface *surface);
 int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, struct Object *ob, int index);
 void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface);
-void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basename);
+void dynamicPaintSurface_setUniqueName(struct DynamicPaintSurface *surface, char *basename);
+void dynamicPaint_resetPreview(struct DynamicPaintCanvasSettings *canvas);
+struct DynamicPaintSurface *get_activeSurface(struct DynamicPaintCanvasSettings *canvas);
+
+int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op);
 
 #endif /* BKE_DYNAMIC_PAINT_H_ */
