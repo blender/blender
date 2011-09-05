@@ -169,25 +169,17 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
  * Note that it works in final world space (i.e. with constraints etc. applied).
  */
 static void get_vert2ob_distance(int numVerts, float (*v_cos)[3], float *dist,
-                                 const Object* ob, const Object* obr)
+                                 Object* ob, Object* obr)
 {
 	/* Vertex and ref object coordinates. */
-	float v_wco[3],
-	      or_wco[3],
-	      or_wro[3][3], /*unused*/
-	      or_wsz[3];    /*unused*/
-	int i;
+	float v_wco[3];
+	unsigned int i= numVerts;
 
-	/* Get world-coordinates of the reference object (constraints and anim included).
-	 * We also get rotation and scale, even though we do not want them…
-	 */
-	mat4_to_loc_rot_size(or_wco, or_wro, or_wsz, (float (*)[4])obr->obmat);
-
-	for (i = 0; i < numVerts; i++) {
+	while(i-- > 0) {
 		/* Get world-coordinates of the vertex (constraints and anim included). */
-		mul_v3_m4v3(v_wco, (float (*)[4])ob->obmat, v_cos[i]);
+		mul_v3_m4v3(v_wco, ob->obmat, v_cos[i]);
 		/* Return distance between both coordinates. */
-		dist[i] = len_v3v3(v_wco, or_wco);
+		dist[i] = len_v3v3(v_wco, obr->obmat[3]);
 	}
 }
 
