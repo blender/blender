@@ -164,7 +164,7 @@ protected:
 		
 		virtual float	getConstraintParam(int constraintId,int param);
 
-	    virtual void		removeConstraint(int	constraintid);
+		virtual void		removeConstraint(int	constraintid);
 
 		virtual float		getAppliedImpulse(int	constraintid);
 

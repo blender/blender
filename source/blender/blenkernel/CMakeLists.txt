@@ -141,6 +141,7 @@ set(SRC
 	intern/smoke.c
 	intern/softbody.c
 	intern/sound.c
+	intern/speaker.c
 	intern/subsurf_ccg.c
 	intern/suggestions.c
 	intern/text.c
@@ -221,6 +222,7 @@ set(SRC
 	BKE_smoke.h
 	BKE_softbody.h
 	BKE_sound.h
+	BKE_speaker.h
 	BKE_subsurf.h
 	BKE_suggestions.h
 	BKE_text.h

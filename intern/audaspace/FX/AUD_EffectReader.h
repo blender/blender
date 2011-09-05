@@ -33,6 +33,7 @@
 #define AUD_EFFECTREADER
 
 #include "AUD_IReader.h"
+#include "AUD_Reference.h"
 
 /**
  * This reader is a base class for all effect readers that take one other reader
@@ -49,14 +50,14 @@ protected:
 	/**
 	 * The reader to read from.
 	 */
-	AUD_IReader* m_reader;
+	AUD_Reference<AUD_IReader> m_reader;
 
 public:
 	/**
 	 * Creates a new effect reader.
 	 * \param reader The reader to read from.
 	 */
-	AUD_EffectReader(AUD_IReader* reader);
+	AUD_EffectReader(AUD_Reference<AUD_IReader> reader);
 
 	/**
 	 * Destroys the reader.
@@ -68,7 +69,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_EFFECTREADER

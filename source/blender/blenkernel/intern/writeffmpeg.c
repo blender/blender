@@ -39,10 +39,6 @@
 #include <libswscale/swscale.h>
 #include <libavcodec/opt.h>
 
-#if defined(WIN32) && (!(defined snprintf))
-#define snprintf _snprintf
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
@@ -555,7 +551,7 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 	c->sample_rate = rd->ffcodecdata.audio_mixrate;
 	c->bit_rate = ffmpeg_audio_bitrate*1000;
 	c->sample_fmt = SAMPLE_FMT_S16;
-	c->channels = 2;
+	c->channels = rd->ffcodecdata.audio_channels;
 	codec = avcodec_find_encoder(c->codec_id);
 	if (!codec) {
 		//XXX error("Couldn't find a valid audio codec");
@@ -580,12 +576,11 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 			audio_outbuf_size = c->frame_size * c->channels * sizeof(int16_t) * 4;
 	}
 
-	audio_output_buffer = (uint8_t*)MEM_mallocN(
-		audio_outbuf_size, "FFMPEG audio encoder input buffer");
+	audio_output_buffer = (uint8_t*)av_malloc(
+		audio_outbuf_size);
 
-	audio_input_buffer = (uint8_t*)MEM_mallocN(
-		audio_input_samples * c->channels * sizeof(int16_t),
-		"FFMPEG audio encoder output buffer");
+	audio_input_buffer = (uint8_t*)av_malloc(
+		audio_input_samples * c->channels * sizeof(int16_t));
 
 	audio_time = 0.0f;
 
@@ -653,7 +648,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 
 	fmt->audio_codec = ffmpeg_audio_codec;
 
-	snprintf(of->filename, sizeof(of->filename), "%s", name);
+	BLI_snprintf(of->filename, sizeof(of->filename), "%s", name);
 	/* set the codec to the user's selection */
 	switch(ffmpeg_type) {
 	case FFMPEG_AVI:
@@ -709,7 +704,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	
 	if (ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
-		if (ffmpeg_audio_codec != CODEC_ID_NONE && rd->ffcodecdata.audio_mixrate != 48000) {
+		if (ffmpeg_audio_codec != CODEC_ID_NONE && rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2) {
 			BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
 			return 0;
 		}
@@ -868,6 +863,10 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 		specs.format = AUD_FORMAT_S16;
 		specs.rate = rd->ffcodecdata.audio_mixrate;
 		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->ffcodecdata.audio_volume);
+#ifdef FFMPEG_CODEC_TIME_BASE
+		c->time_base.den = specs.rate;
+		c->time_base.num = 1;
+#endif
 	}
 #endif
 	return success;
@@ -984,11 +983,11 @@ void end_ffmpeg(void)
 		video_buffer = 0;
 	}
 	if (audio_output_buffer) {
-		MEM_freeN(audio_output_buffer);
+		av_free(audio_output_buffer);
 		audio_output_buffer = 0;
 	}
 	if (audio_input_buffer) {
-		MEM_freeN(audio_input_buffer);
+		av_free(audio_input_buffer);
 		audio_input_buffer = 0;
 	}
 

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -110,6 +108,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_loc_clear);
 	WM_operatortype_append(POSE_OT_scale_clear);
 	WM_operatortype_append(POSE_OT_transforms_clear);
+	WM_operatortype_append(POSE_OT_user_transforms_clear);
 	
 	WM_operatortype_append(POSE_OT_copy);
 	WM_operatortype_append(POSE_OT_paste);
@@ -126,6 +125,8 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(POSE_OT_group_add);
 	WM_operatortype_append(POSE_OT_group_remove);
+	WM_operatortype_append(POSE_OT_group_move);
+	WM_operatortype_append(POSE_OT_group_sort);
 	WM_operatortype_append(POSE_OT_group_assign);
 	WM_operatortype_append(POSE_OT_group_unassign);
 	WM_operatortype_append(POSE_OT_group_select);
@@ -136,6 +137,8 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(POSE_OT_autoside_names);
 	WM_operatortype_append(POSE_OT_flip_names);
+	
+	WM_operatortype_append(POSE_OT_rotation_mode_set);
 
 	WM_operatortype_append(POSE_OT_quaternions_flip);
 	
@@ -307,6 +310,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "POSE_OT_scale_clear", SKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_quaternions_flip", FKEY, KM_PRESS, KM_ALT, 0);
+	
+	WM_keymap_add_item(keymap, "POSE_OT_rotation_mode_set", RKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "POSE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);

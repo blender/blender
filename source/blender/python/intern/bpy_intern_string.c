@@ -40,7 +40,7 @@ PyObject *bpy_intern_str___slots__;
 void bpy_intern_string_init(void)
 {
 	bpy_intern_str_register= PyUnicode_FromString("register");
-	bpy_intern_str_unregister= PyUnicode_FromString("unregister");;
+	bpy_intern_str_unregister= PyUnicode_FromString("unregister");
 	bpy_intern_str_bl_rna= PyUnicode_FromString("bl_rna");
 	bpy_intern_str_order= PyUnicode_FromString("order");
 	bpy_intern_str_attr= PyUnicode_FromString("attr");

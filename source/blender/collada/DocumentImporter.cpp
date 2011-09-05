@@ -116,7 +116,7 @@ bool DocumentImporter::import()
 	/** TODO Add error handler (implement COLLADASaxFWL::IErrorHandler */
 	COLLADASaxFWL::Loader loader;
 	COLLADAFW::Root root(&loader, this);
-	ExtraHandler *ehandler = new ExtraHandler(this);
+	ExtraHandler *ehandler = new ExtraHandler(this, &(this->anim_importer));
 	
 	loader.registerExtraDataCallbackHandler(ehandler);
 	
@@ -190,7 +190,7 @@ void DocumentImporter::finish()
 			write_node(roots[i], NULL, sce, NULL, false);
 		}
 	}
-
+	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext);
 
 #if 0
@@ -250,12 +250,13 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 	unsigned int i;
 	Object *ob;
 
-	for (i = 0; i < 4; i++)
-		ob = anim_importer.translate_animation(node, object_map, root_map, types[i]);
+	//for (i = 0; i < 4; i++)
+		//ob = 
+	anim_importer.translate_Animations(node, root_map, object_map, FW_object_map);
 
 	COLLADAFW::NodePointerArray &children = node->getChildNodes();
 	for (i = 0; i < children.getCount(); i++) {
-		translate_anim_recursive(children[i], node, ob);
+		translate_anim_recursive(children[i], node, NULL);
 	}
 }
 
@@ -382,7 +383,14 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 
 	if (is_joint) {
-		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par);
+		if ( par ) {
+		Object * empty = par;
+		par = add_object(sce, OB_ARMATURE);
+		bc_set_parent(par,empty->parent, mContext);
+		//remove empty : todo
+		object_map[parent_node->getUniqueId()] = par;
+		}
+		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
 	}
 	else {
 		COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
@@ -714,13 +722,21 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 		return true;
 	
 	const COLLADAFW::UniqueId& uid = effect->getUniqueId();
+	
 	if (uid_effect_map.find(uid) == uid_effect_map.end()) {
 		fprintf(stderr, "Couldn't find a material by UID.\n");
 		return true;
 	}
 	
 	Material *ma = uid_effect_map[uid];
-	
+	std::map<COLLADAFW::UniqueId, Material*>::iterator  iter;
+	for(iter = uid_material_map.begin(); iter != uid_material_map.end() ; iter++ )
+	{
+		if ( iter->second == ma ) {
+			this->FW_object_map[iter->first] = effect;
+			break;
+		}
+	}
 	COLLADAFW::CommonEffectPointerArray common_efs = effect->getCommonEffects();
 	if (common_efs.getCount() < 1) {
 		fprintf(stderr, "Couldn't find <profile_COMMON>.\n");
@@ -730,7 +746,8 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 	// Currently only first <profile_common> is supported
 	COLLADAFW::EffectCommon *ef = common_efs[0];
 	write_profile_COMMON(ef, ma);
-	
+	this->FW_object_map[effect->getUniqueId()] = effect;
+		
 	return true;
 }
 
@@ -846,6 +863,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	}
 	
 	this->uid_camera_map[camera->getUniqueId()] = cam;
+	this->FW_object_map[camera->getUniqueId()] = camera;
 	// XXX import camera options
 	return true;
 }
@@ -1043,6 +1061,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 	}
 
 	this->uid_lamp_map[light->getUniqueId()] = lamp;
+	this->FW_object_map[light->getUniqueId()] = light;
 	return true;
 }
 

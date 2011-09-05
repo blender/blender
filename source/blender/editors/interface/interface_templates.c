@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
@@ -60,6 +61,7 @@
 #include "ED_render.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -239,7 +241,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 {
 	TemplateID *template= (TemplateID*)arg_litem;
 	PointerRNA idptr= RNA_property_pointer_get(&template->ptr, template->prop);
-	ID *id= idptr.data, *newid;
+	ID *id= idptr.data;
 	int event= GET_INT_FROM_POINTER(arg_event);
 	
 	switch(event) {
@@ -289,17 +291,8 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 					WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 				}
 				else {
-					if(id_copy(id, &newid, 0) && newid) {
-						/* copy animation actions too */
-						BKE_copy_animdata_id_action(id);
-						/* us is 1 by convention, but RNA_property_pointer_set
-						   will also incremement it, so set it to zero */
-						newid->us= 0;
-
-						/* assign copy */
-						RNA_id_pointer_create(newid, &idptr);
-						RNA_property_pointer_set(&template->ptr, template->prop, idptr);
-						RNA_property_update(C, &template->ptr, template->prop);
+					if(id) {
+						id_single_user(C, id, &template->ptr, template->prop);
 					}
 				}
 			}
@@ -323,11 +316,13 @@ static const char *template_id_browse_tip(StructRNA *type)
 			case ID_MA: return "Browse Material to be linked";
 			case ID_TE: return "Browse Texture to be linked";
 			case ID_IM: return "Browse Image to be linked";
-			case ID_LA: return "Browse Lattice Data to be linked";
+			case ID_LT: return "Browse Lattice Data to be linked";
+			case ID_LA: return "Browse Lamp Data to be linked";
 			case ID_CA: return "Browse Camera Data to be linked";
 			case ID_WO: return "Browse World Settings to be linked";
 			case ID_SCR: return "Choose Screen lay-out";
 			case ID_TXT: return "Browse Text to be linked";
+			case ID_SPK: return "Browse Speaker Data to be linked";
 			case ID_SO: return "Browse Sound to be linked";
 			case ID_AR: return "Browse Armature data to be linked";
 			case ID_AC: return "Browse Action to be linked";
@@ -2135,6 +2130,15 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			uiLayoutSetActive(row, 0);
 		//uiItemR(row, itemptr, "mute", 0, "", ICON_MUTE_IPO_OFF);
 		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+	else if(itemptr->type == &RNA_KeyingSetPath) {
+		KS_Path *ksp = (KS_Path*)itemptr->data;
+		
+		/* icon needs to be the type of ID which is currently active */
+		RNA_enum_icon_from_value(id_type_items, ksp->idtype, &icon);
+		
+		/* nothing else special to do... */
+		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */
 	}
 	else if(itemptr->type == &RNA_DynamicPaintSurface) {
 		char name_final[96];

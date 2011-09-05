@@ -1,7 +1,5 @@
 /**
- * IMB_indexer.h
- *
- * $Id: IMB_indexer.h 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

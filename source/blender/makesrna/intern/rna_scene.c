@@ -46,7 +46,7 @@
 #ifdef WITH_QUICKTIME
 #include "quicktime_export.h"
 #  ifdef WITH_AUDASPACE
-#    include "AUD_C-API.h"
+#    include "AUD_Space.h"
 #  endif
 #endif
 
@@ -188,6 +188,7 @@ EnumPropertyItem image_color_mode_items[] ={
 #include "BKE_mesh.h"
 #include "BKE_sound.h"
 #include "BKE_screen.h"
+#include "BKE_sequencer.h"
 #include "BKE_animsys.h"
 
 #include "WM_api.h"
@@ -336,6 +337,26 @@ static void rna_Scene_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_Scene_view3d_update(bmain, scene, ptr);
 	DAG_on_visible_update(bmain, FALSE);
+}
+
+static void rna_Scene_fps_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	sound_update_fps(scene);
+	seq_update_sound_bounds_all(scene);
+}
+
+static void rna_Scene_listener_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	sound_update_scene_listener(scene);
+}
+
+static void rna_Scene_volume_set(PointerRNA *ptr, float value)
+{
+	Scene *scene= (Scene*)(ptr->data);
+
+	scene->audio.volume = value;
+	if(scene->sound_scene)
+		sound_set_scene_volume(scene, value);
 }
 
 static void rna_Scene_framelen_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
@@ -997,9 +1018,8 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
 
 static void rna_TimeLine_remove(Scene *scene, ReportList *reports, TimeMarker *marker)
 {
-	/* try to remove the F-Curve from the action */
 	if (!BLI_remlink_safe(&scene->markers, marker)) {
-		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in action '%s'", marker->name, scene->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "TimelineMarker '%s' not found in scene '%s'", marker->name, scene->id.name+2);
 		return;
 	}
 
@@ -1057,10 +1077,14 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
 		{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode"},
 		{0, NULL, 0, NULL, NULL}};
-
+	
+	/* the construction of this enum is quite special - everything is stored as bitflags, 
+	 * with 1st position only for for on/off (and exposed as boolean), while others are mutually 
+	 * exclusive options but which will only have any effect when autokey is enabled
+	 */
 	static EnumPropertyItem auto_key_items[] = {
-		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add & Replace", ""},
-		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
+		{AUTOKEY_MODE_NORMAL & ~AUTOKEY_ON, "ADD_REPLACE_KEYS", 0, "Add & Replace", ""},
+		{AUTOKEY_MODE_EDITKEYS & ~AUTOKEY_ON, "REPLACE_KEYS", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem retarget_roll_items[] = {
@@ -1203,7 +1227,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_icon(prop, ICON_REC, 0);
 	
 	prop= RNA_def_property(srna, "auto_keying_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "autokey_mode");
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "autokey_mode");
 	RNA_def_property_enum_items(prop, auto_key_items);
 	RNA_def_property_ui_text(prop, "Auto-Keying Mode", "Mode of automatic keyframe insertion for Objects and Bones");
 	
@@ -1214,7 +1238,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "use_keyframe_insert_keyingset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_ONLYKEYINGSET);
 	RNA_def_property_ui_text(prop, "Auto Keyframe Insert Keying Set", "Automatic keyframe insertion using active Keying Set only");
-	RNA_def_property_ui_icon(prop, ICON_KEY_HLT, 0); // XXX: we need a dedicated icon
+	RNA_def_property_ui_icon(prop, ICON_KEYINGSET, 0);
 	
 	/* UV */
 	prop= RNA_def_property(srna, "uv_select_mode", PROP_ENUM, PROP_NONE);
@@ -1901,6 +1925,10 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_auto_start", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_GameSettings_auto_start_get", "rna_GameSettings_auto_start_set");
 	RNA_def_property_ui_text(prop, "Auto Start", "Automatically start game at load time");
+
+	prop= RNA_def_property(srna, "restrict_animation_updates", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_RESTRICT_ANIM_UPDATES);
+	RNA_def_property_ui_text(prop, "Restrict Animation Updates", "Restrict the number of animation updates to the animation FPS. This is better for performance, but can cause issues with smooth playback.");
 	
 	/* materials */
 	prop= RNA_def_property(srna, "material_mode", PROP_ENUM, PROP_NONE);
@@ -2182,6 +2210,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 #endif
 
+	static EnumPropertyItem audio_channel_items[] = {
+		{1, "MONO", 0, "Mono", "Set audio channels to mono"},
+		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
+		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
+		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
+		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem engine_items[] = {
 		{0, "BLENDER_RENDER", 0, "Blender Render", "Use the Blender internal rendering engine for rendering"},
 		{0, NULL, 0, NULL, NULL}};
@@ -2452,43 +2488,53 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	/* FFMPEG Audio*/
 	prop= RNA_def_property(srna, "ffmpeg_audio_codec", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffcodecdata.audio_codec");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, ffmpeg_audio_codec_items);
 	RNA_def_property_ui_text(prop, "Audio Codec", "FFMpeg audio codec to use");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "ffmpeg_audio_bitrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.audio_bitrate");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 32, 384);
 	RNA_def_property_ui_text(prop, "Bitrate", "Audio bitrate(kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
+	prop= RNA_def_property(srna, "ffmpeg_audio_volume", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ffcodecdata.audio_volume");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+#endif
+
+	// the following two "ffmpeg" settings are general audio settings
 	prop= RNA_def_property(srna, "ffmpeg_audio_mixrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.audio_mixrate");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 8000, 192000);
 	RNA_def_property_ui_text(prop, "Samplerate", "Audio samplerate(samples/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
-	prop= RNA_def_property(srna, "ffmpeg_audio_volume", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "ffcodecdata.audio_volume");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
-#endif
+	prop= RNA_def_property(srna, "ffmpeg_audio_channels", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ffcodecdata.audio_channels");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, audio_channel_items);
+	RNA_def_property_ui_text(prop, "Audio Channels", "Sets the audio channel count");
 
 	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frs_sec");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, 120);
 	RNA_def_property_ui_text(prop, "FPS", "Framerate, expressed in frames per second");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_fps_update");
 	
 	prop= RNA_def_property(srna, "fps_base", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "frs_sec_base");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.1f, 120.0f);
 	RNA_def_property_ui_text(prop, "FPS Base", "Framerate base");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_fps_update");
 	
 	/* frame mapping */
 	prop= RNA_def_property(srna, "frame_map_old", PROP_INT, PROP_NONE);
@@ -3427,21 +3473,31 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "audio_doppler_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "audio.speed_of_sound");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.01f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Speed of Sound", "Speed of sound for Doppler effect calculation");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_SCENE, "rna_Scene_listener_update");
 
 	prop= RNA_def_property(srna, "audio_doppler_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "audio.doppler_factor");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Doppler Factor", "Pitch factor for Doppler effect calculation");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_update(prop, NC_SCENE, "rna_Scene_listener_update");
 
 	prop= RNA_def_property(srna, "audio_distance_model", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "audio.distance_model");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, audio_distance_model_items);
 	RNA_def_property_ui_text(prop, "Distance Model", "Distance model for distance attenuation calculation");
+	RNA_def_property_update(prop, NC_SCENE, "rna_Scene_listener_update");
+
+	prop= RNA_def_property(srna, "audio_volume", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "audio.volume");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_float_funcs(prop, NULL, "rna_Scene_volume_set", NULL);
 
 	/* Game Settings */
 	prop= RNA_def_property(srna, "game_settings", PROP_POINTER, PROP_NONE);
@@ -3461,6 +3517,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	/* Transform Orientations */
 	prop= RNA_def_property(srna, "orientations", PROP_COLLECTION, PROP_NONE);

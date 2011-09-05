@@ -319,7 +319,7 @@ void IK_QSegment::RemoveChild(IK_QSegment *child)
 	else {
 		IK_QSegment *seg = m_child;
 
-		while (seg->m_sibling != child);
+		while (seg->m_sibling != child)
 			seg = seg->m_sibling;
 
 		if (child == seg->m_sibling)

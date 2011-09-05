@@ -115,6 +115,7 @@ EnumPropertyItem object_type_items[] = {
 	{0, "", 0, NULL, NULL},
 	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
 	{OB_LAMP, "LAMP", 0, "Lamp", ""},
+	{OB_SPEAKER, "SPEAKER", 0, "Speaker", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem object_type_curve_items[] = {
@@ -365,6 +366,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
 		case OB_CAMERA: return &RNA_Camera;
 		case OB_LATTICE: return &RNA_Lattice;
 		case OB_ARMATURE: return &RNA_Armature;
+		case OB_SPEAKER: return &RNA_Speaker;
 		default: return &RNA_ID;
 	}
 }
@@ -2295,6 +2297,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
 	/* pose */
 	prop= RNA_def_property(srna, "pose_library", PROP_POINTER, PROP_NONE);

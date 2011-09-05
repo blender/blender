@@ -714,7 +714,7 @@ static void handleRadialSymmetry(BGraph *graph, BNode *root_node, int depth, flo
 		int dispatch = 0;
 		int last = i - 1;
 		
-		if (fabs(ring[first].arc->length - ring[i].arc->length) > limit)
+		if (fabsf(ring[first].arc->length - ring[i].arc->length) > limit)
 		{
 			dispatch = 1;
 		}

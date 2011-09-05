@@ -843,7 +843,8 @@ static void cdDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tfa
 	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
 }
 
-static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors, int (*setMaterial)(int, void *attribs))
+static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors, int (*setMaterial)(int, void *attribs),
+			int (*compareDrawOptions)(void *userData, int cur_index, int next_index))
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mv = cddm->mvert;
@@ -960,6 +961,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					MFace *mface= mf + actualFace;
 					int drawSmooth= (mface->flag & ME_SMOOTH);
 					int draw = 1;
+					int flush = 0;
 
 					if(i != tottri-1)
 						next_actualFace= dm->drawObject->triangle_to_mface[i+1];
@@ -974,11 +976,28 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					/* Goal is to draw as long of a contiguous triangle
 					   array as possible, so draw when we hit either an
 					   invisible triangle or at the end of the array */
-					if(!draw || i == tottri - 1 || mf[actualFace].mat_nr != mf[next_actualFace].mat_nr) {
-						if(prevstart != i)
-							/* Add one to the length (via `draw')
-							   if we're drawing at the end of the array */
-							glDrawArrays(GL_TRIANGLES,prevstart*3, (i-prevstart+draw)*3);
+
+					/* flush buffer if current triangle isn't drawable or it's last triangle... */
+					flush= !draw || i == tottri - 1;
+
+					/* ... or when material setting is dissferent  */
+					flush|= mf[actualFace].mat_nr != mf[next_actualFace].mat_nr;
+
+					if(!flush && compareDrawOptions) {
+						int next_orig= (index==NULL) ? next_actualFace : index[next_actualFace];
+
+						/* also compare draw options and flush buffer if they're different
+						   need for face selection highlight in edit mode */
+						flush|= compareDrawOptions(userData, orig, next_orig) == 0;
+					}
+
+					if(flush) {
+						int first= prevstart*3;
+						int count= (i-prevstart+(draw ? 1 : 0))*3; /* Add one to the length if we're drawing at the end of the array */
+
+						if(count)
+							glDrawArrays(GL_TRIANGLES, first, count);
+
 						prevstart = i + 1;
 					}
 				}

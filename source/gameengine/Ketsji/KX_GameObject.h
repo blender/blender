@@ -63,7 +63,9 @@ class RAS_MeshObject;
 class KX_IPhysicsController;
 class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
+class BL_ActionManager;
 struct Object;
+struct bAction;
 
 #ifdef WITH_PYTHON
 /* utility conversion function */
@@ -112,6 +114,11 @@ protected:
 	SG_Node*							m_pSGNode;
 
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
+
+	// The action manager is used to play/stop/update actions
+	BL_ActionManager*				m_actionManager;
+
+	BL_ActionManager* GetActionManager();
 	
 public:
 	bool								m_isDeformable;
@@ -197,6 +204,68 @@ public:
 	 * Removes the parent of this object to a game object
 	 */			
 	void RemoveParent(KX_Scene *scene);
+
+	/*********************************
+	 * Animation API
+	 *********************************/
+
+	/**
+	 * Adds an action to the object's action manager
+	 */
+	bool PlayAction(const char* name,
+					float start,
+					float end,
+					short layer=0,
+					short priority=0,
+					float blendin=0.f,
+					short play_mode=0,
+					float layer_weight=0.f,
+					short ipo_flags=0,
+					float playback_speed=1.f);
+
+	/**
+	 * Gets the current frame of an action
+	 */
+	float GetActionFrame(short layer);
+
+	/**
+	 * Sets the current frame of an action
+	 */
+	void SetActionFrame(short layer, float frame);
+
+	/**
+	 * Gets the currently running action on the given layer
+	 */
+	bAction *GetCurrentAction(short layer);
+
+	/**
+	 * Sets play mode of the action on the given layer
+	 */
+	void SetPlayMode(short layer, short mode);
+
+	/**
+	 * Sets the start and end times of the action on the given layer
+	 */
+	void SetTimes(short layer, float start, float end);
+
+	/**
+	 * Stop playing the action on the given layer
+	 */
+	void StopAction(short layer);
+
+	/**
+	 * Check if an action has finished playing
+	 */
+	bool IsActionDone(short layer);
+
+	/**
+	 * Kick the object's action manager
+	 */
+	void UpdateActionManager(float curtime);
+
+	/*********************************
+	 * End Animation API
+	 *********************************/
 
 	/**
 	 * Construct a game object. This class also inherits the 
@@ -853,6 +922,12 @@ public:
 	KX_PYMETHOD_DOC_O(KX_GameObject,getVectTo);
 	KX_PYMETHOD_DOC_VARARGS(KX_GameObject, sendMessage);
 	KX_PYMETHOD_VARARGS(KX_GameObject, ReinstancePhysicsMesh);
+
+	KX_PYMETHOD_DOC(KX_GameObject, playAction);
+	KX_PYMETHOD_DOC(KX_GameObject, stopAction);
+	KX_PYMETHOD_DOC(KX_GameObject, getActionFrame);
+	KX_PYMETHOD_DOC(KX_GameObject, setActionFrame);
+	KX_PYMETHOD_DOC(KX_GameObject, isPlayingAction);
 	
 	/* Dict access */
 	KX_PYMETHOD_VARARGS(KX_GameObject,get);

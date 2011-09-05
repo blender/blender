@@ -42,34 +42,34 @@ Developed as part of a Research and Development project for SAT - La Société d
 
 // constructor
 KX_Dome::KX_Dome (
-	RAS_ICanvas* canvas,
-    /// rasterizer
-    RAS_IRasterizer* rasterizer,
-    /// render tools
-    RAS_IRenderTools* rendertools,
-    /// engine
-    KX_KetsjiEngine* engine,
+        RAS_ICanvas* canvas,
+        /// rasterizer
+        RAS_IRasterizer* rasterizer,
+        /// render tools
+        RAS_IRenderTools* rendertools,
+        /// engine
+        KX_KetsjiEngine* engine,
 
-	short res,		//resolution of the mesh
-	short mode,		//mode - fisheye, truncated, warped, panoramic, ...
-	short angle,
-	float resbuf,	//size adjustment of the buffer
-	short tilt,
-	struct Text* warptext
+        short res,		//resolution of the mesh
+        short mode,		//mode - fisheye, truncated, warped, panoramic, ...
+        short angle,
+        float resbuf,	//size adjustment of the buffer
+        short tilt,
+        struct Text* warptext
 
-):
-	dlistSupported(false),
-	canvaswidth(-1), canvasheight(-1),
-	m_drawingmode(engine->GetDrawType()),
-	m_resolution(res),
-	m_mode(mode),
-	m_angle(angle),
-	m_resbuffer(resbuf),
-	m_tilt(tilt),
-	m_canvas(canvas),
-	m_rasterizer(rasterizer),
-	m_rendertools(rendertools),
-	m_engine(engine)
+        ):
+    dlistSupported(false),
+    canvaswidth(-1), canvasheight(-1),
+    m_drawingmode(engine->GetDrawType()),
+    m_resolution(res),
+    m_mode(mode),
+    m_angle(angle),
+    m_resbuffer(resbuf),
+    m_tilt(tilt),
+    m_canvas(canvas),
+    m_rasterizer(rasterizer),
+    m_rendertools(rendertools),
+    m_engine(engine)
 {
 	warp.usemesh = false;
 	fboSupported = false;
@@ -1984,9 +1984,9 @@ void KX_Dome::DrawDomeWarped(void)
 	int can_width = m_viewport.GetRight();
 	int can_height = m_viewport.GetTop();
 
-	double screen_ratio = can_width/ (double) can_height;	
+	double screen_ratio = can_width/ (double) can_height;
 
-    glOrtho(-screen_ratio,screen_ratio,-1.0,1.0,-20.0,10.0);
+	glOrtho(-screen_ratio,screen_ratio,-1.0,1.0,-20.0,10.0);
 
 
 	glMatrixMode(GL_TEXTURE);

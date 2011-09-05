@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -100,6 +98,8 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			 *	- as base, we use a custom name from the structs if one is available 
 			 *	- however, if we're showing subdata of bones (probably there will be other exceptions later)
 			 *	  need to include that info too since it gets confusing otherwise
+			 *	- if a pointer just refers to the ID-block, then don't repeat this info
+			 *	  since this just introduces clutter
 			 */
 			if (strstr(fcu->rna_path, "bones") && strstr(fcu->rna_path, "constraints")) {
 				/* perform string 'chopping' to get "Bone Name : Constraint Name" */
@@ -114,7 +114,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 				if (pchanName) MEM_freeN(pchanName);
 				if (constName) MEM_freeN(constName);
 			}
-			else {
+			else if (ptr.data != ptr.id.data) {
 				PropertyRNA *nameprop= RNA_struct_name_property(ptr.type);
 				if (nameprop) {
 					/* this gets a string which will need to be freed */
@@ -145,7 +145,11 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 			
 			/* putting this all together into the buffer */
 			// XXX we need to check for invalid names...
-			BLI_snprintf(name, 256, "%s%s (%s)", arrayname, propname, structname); 
+			// XXX the name length limit needs to be passed in or as some define
+			if (structname)
+				BLI_snprintf(name, 256, "%s%s (%s)", arrayname, propname, structname); 
+			else
+				BLI_snprintf(name, 256, "%s%s", arrayname, propname); 
 			
 			/* free temp name if nameprop is set */
 			if (free_structname)

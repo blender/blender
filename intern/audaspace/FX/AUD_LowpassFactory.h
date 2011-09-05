@@ -32,16 +32,16 @@
 #ifndef AUD_LOWPASSFACTORY
 #define AUD_LOWPASSFACTORY
 
-#include "AUD_EffectFactory.h"
+#include "AUD_DynamicIIRFilterFactory.h"
 
 /**
  * This factory creates a lowpass filter reader.
  */
-class AUD_LowpassFactory : public AUD_EffectFactory
+class AUD_LowpassFactory : public AUD_DynamicIIRFilterFactory
 {
 private:
 	/**
-	 * The attack value in seconds.
+	 * The cutoff frequency.
 	 */
 	const float m_frequency;
 
@@ -61,9 +61,9 @@ public:
 	 * \param frequency The cutoff frequency.
 	 * \param Q The Q factor.
 	 */
-	AUD_LowpassFactory(AUD_IFactory* factory, float frequency, float Q = 1.0f);
+	AUD_LowpassFactory(AUD_Reference<AUD_IFactory> factory, float frequency, float Q = 1.0f);
 
-	virtual AUD_IReader* createReader() const;
+	virtual void recalculateCoefficients(AUD_SampleRate rate, std::vector<float> &b, std::vector<float> &a);
 };
 
 #endif //AUD_LOWPASSFACTORY

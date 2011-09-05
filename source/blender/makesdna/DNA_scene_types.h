@@ -126,6 +126,8 @@ typedef struct FFMpegCodecData {
 	int video_bitrate;
 	int audio_bitrate;
 	int audio_mixrate;
+	int audio_channels;
+	int audio_pad;
 	float audio_volume;
 	int gop_size;
 	int flags;
@@ -147,6 +149,8 @@ typedef struct AudioData {
 	int distance_model;
 	short flag;
 	short pad;
+	float volume;
+	float pad2;
 } AudioData;
 
 typedef struct SceneRenderLayer {
@@ -475,6 +479,7 @@ typedef struct GameData {
 #define WOPHY_BULLET	5
 
 /* GameData.flag */
+#define GAME_RESTRICT_ANIM_UPDATES			(1 << 0)
 #define GAME_ENABLE_ALL_FRAMES				(1 << 1)
 #define GAME_SHOW_DEBUG_PROPS				(1 << 2)
 #define GAME_SHOW_FRAMERATE					(1 << 3)
@@ -490,6 +495,7 @@ typedef struct GameData {
 #define GAME_ENABLE_ANIMATION_RECORD		(1 << 13)
 #define GAME_SHOW_MOUSE						(1 << 14)
 #define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
+/* Note: GameData.flag is a short (max 16 flags). To add more flags, GameData.flag needs to be an int */
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0
@@ -802,6 +808,7 @@ typedef struct Scene {
 	void *sound_scene;
 	void *sound_scene_handle;
 	void *sound_scrub_handle;
+	void *speaker_handles;
 	
 	void *fps_info;	 				/* (runtime) info/cache used for presenting playback framerate info to the user */
 	
@@ -1129,9 +1136,10 @@ typedef struct Scene {
 #define F_DUPLI			3
 
 /* audio->flag */
-#define AUDIO_MUTE		1
-#define AUDIO_SYNC		2
-#define AUDIO_SCRUB		4
+#define AUDIO_MUTE                (1<<0)
+#define AUDIO_SYNC                (1<<1)
+#define AUDIO_SCRUB		          (1<<2)
+#define AUDIO_VOLUME_ANIMATED     (1<<3)
 
 #define FFMPEG_MULTIPLEX_AUDIO  1 /* deprecated, you can choose none as audiocodec now */
 #define FFMPEG_AUTOSPLIT_OUTPUT 2

@@ -46,9 +46,14 @@ private:
 	AUD_ConverterFactory& operator=(const AUD_ConverterFactory&);
 
 public:
-	AUD_ConverterFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+	/**
+	 * Creates a new factory.
+	 * \param factory The input factory.
+	 * \param specs The target specifications.
+	 */
+	AUD_ConverterFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_CONVERTERFACTORY

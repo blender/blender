@@ -1983,7 +1983,7 @@ void resolve_tri_uv(float uv[2], const float st[2], const float st0[2], const fl
 void resolve_quad_uv(float uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2])
 {
 	const double signed_area= (st0[0]*st1[1] - st0[1]*st1[0]) + (st1[0]*st2[1] - st1[1]*st2[0]) +
-                              (st2[0]*st3[1] - st2[1]*st3[0]) + (st3[0]*st0[1] - st3[1]*st0[0]);
+	                          (st2[0]*st3[1] - st2[1]*st3[0]) + (st3[0]*st0[1] - st3[1]*st0[0]);
 
 	/* X is 2D cross product (determinant)
 	   A= (p0-p) X (p0-p3)*/

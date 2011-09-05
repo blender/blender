@@ -113,7 +113,11 @@ class SEQUENCER_MT_view(Menu):
 
         layout.operator("sequencer.view_selected")
 
-        layout.prop(st, "show_frames")
+        if st.show_frames:
+            layout.operator("anim.time_toggle", text="Show Seconds")
+        else:
+            layout.operator("anim.time_toggle", text="Show Frames")
+
         layout.prop(st, "show_frame_indicator")
         if st.display_mode == 'IMAGE':
             layout.prop(st, "show_safe_margin")
@@ -643,8 +647,10 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
 
         row.prop(strip.sound, "use_memory_cache")
 
+        layout.prop(strip, "waveform")
         layout.prop(strip, "volume")
-        layout.prop(strip, "attenuation")
+        layout.prop(strip, "pitch")
+        layout.prop(strip, "pan")
 
         col = layout.column(align=True)
         col.label(text="Trim Duration:")
@@ -796,7 +802,6 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
                 col.label(text="Use timecode index:")
 
                 col.prop(strip.proxy, "timecode")
-
 
 
 class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):

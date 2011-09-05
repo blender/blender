@@ -34,7 +34,7 @@
 
 #include "AUD_IFactory.h"
 #include "AUD_Reference.h"
-class AUD_Buffer;
+#include "AUD_Buffer.h"
 
 /**
  * This factory creates a buffer out of a reader. This way normally streamed
@@ -64,9 +64,9 @@ public:
 	 * \param factory The factory that creates the reader for buffering.
 	 * \exception AUD_Exception Thrown if the reader cannot be created.
 	 */
-	AUD_StreamBufferFactory(AUD_IFactory* factory);
+	AUD_StreamBufferFactory(AUD_Reference<AUD_IFactory> factory);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_STREAMBUFFERFACTORY

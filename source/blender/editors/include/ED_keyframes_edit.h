@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -35,6 +33,7 @@
 
 struct bAnimContext;
 struct bAnimListElem;
+struct bDopeSheet;
 struct FCurve;
 struct BezTriple;
 struct Scene;
@@ -187,11 +186,11 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked, struct FCurve *fcu, Keyf
 	/* function for working with any type (i.e. one of the known types) of animation channel 
 	 *	- filterflag is bDopeSheet->flag (DOPESHEET_FILTERFLAG)
 	 */
-short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, struct bAnimListElem *ale, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag);
+short ANIM_animchannel_keyframes_loop(KeyframeEditData *ked, struct bDopeSheet *ads, struct bAnimListElem *ale, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb);
 	/* same as above, except bAnimListElem wrapper is not needed... 
 	 * 	- keytype is eAnim_KeyType
 	 */
-short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, void *data, int keytype, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb, int filterflag);
+short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked, struct bDopeSheet *ads, void *data, int keytype, KeyframeEditFunc key_ok, KeyframeEditFunc key_cb, FcuEditFunc fcu_cb);
 
 /* functions for making sure all keyframes are in good order */
 void ANIM_editkeyframes_refresh(struct bAnimContext *ac);

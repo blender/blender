@@ -130,6 +130,7 @@ protected:
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
 	CListValue*			m_inactivelist;	// all objects that are not in the active layer
+	CListValue*			m_animatedlist; // all animated objects
 	
 	SG_QList			m_sghead;		// list of nodes that needs scenegraph update
 										// the Dlist is not object that must be updated
@@ -334,12 +335,17 @@ public:
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshob, bool use_gfx, bool use_phys);
+
+	void AddAnimatedObject(CValue* gameobj);
+	void RemoveAnimatedObject(CValue* gameobj);
+
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.
 	 */
 	void LogicBeginFrame(double curtime);
 	void LogicUpdateFrame(double curtime, bool frame);
+	void UpdateAnimations(double curtime);
 
 		void						
 	LogicEndFrame(
@@ -565,6 +571,8 @@ public:
 	void SetPhysicsEnvironment(class PHY_IPhysicsEnvironment*	physEnv);
 
 	void	SetGravity(const MT_Vector3& gravity);
+
+	short GetAnimationFPS();
 	
 	/**
 	 * Sets the node tree for this scene.

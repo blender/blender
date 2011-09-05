@@ -130,7 +130,7 @@ def deprecations():
 
 def main():
     import datetime
-    now = datetime.datetime.now()\
+    now = datetime.datetime.now()
 
     deps = deprecations()
 

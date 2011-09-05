@@ -57,14 +57,14 @@ public:
 	 * \param loop The desired loop count, negative values result in endless
 	 *        looping.
 	 */
-	AUD_LoopFactory(AUD_IFactory* factory, int loop = -1);
+	AUD_LoopFactory(AUD_Reference<AUD_IFactory> factory, int loop = -1);
 
 	/**
 	 * Returns the loop count.
 	 */
 	int getLoop() const;
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_LOOPFACTORY

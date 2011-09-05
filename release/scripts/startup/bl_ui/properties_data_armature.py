@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel
+from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 
 
@@ -71,6 +71,8 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
         flow.prop(arm, "use_deform_envelopes", text="Envelopes")
         flow.prop(arm, "use_deform_preserve_volume", text="Quaternion")
 
+        if context.scene.render.engine == "BLENDER_GAME":
+            layout.row().prop(arm, "vert_deformer", expand=True)
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
     bl_label = "Display"
@@ -97,6 +99,15 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         col.prop(arm, "use_deform_delay", text="Delay Refresh")
 
 
+class DATA_PT_bone_group_specials(Menu):
+    bl_label = "Bone Group Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("pose.group_sort", icon='SORTALPHA')
+
+
 class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
     bl_label = "Bone Groups"
 
@@ -109,16 +120,25 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
 
         ob = context.object
         pose = ob.pose
+        group = pose.bone_groups.active
 
         row = layout.row()
-        row.template_list(pose, "bone_groups", pose.bone_groups, "active_index", rows=2)
+
+        rows = 2
+        if group:
+            rows = 5
+        row.template_list(pose, "bone_groups", pose.bone_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
         col.active = (ob.proxy is None)
         col.operator("pose.group_add", icon='ZOOMIN', text="")
         col.operator("pose.group_remove", icon='ZOOMOUT', text="")
+        col.menu("DATA_PT_bone_group_specials", icon='DOWNARROW_HLT', text="")
+        if group:
+            col.separator()
+            col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("pose.group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        group = pose.bone_groups.active
         if group:
             col = layout.column()
             col.active = (ob.proxy is None)
@@ -165,9 +185,13 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
         layout.template_ID(ob, "pose_library", new="poselib.new", unlink="poselib.unlink")
 
         if poselib:
+            
+            # list of poses in pose library 
             row = layout.row()
             row.template_list(poselib, "pose_markers", poselib.pose_markers, "active_index", rows=5)
-
+            
+            # column of operators for active pose
+            # - goes beside list
             col = row.column(align=True)
             col.active = (poselib.library is None)
 
@@ -182,8 +206,12 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
             if pose_marker_active is not None:
                 col.operator("poselib.pose_remove", icon='ZOOMOUT', text="").pose = pose_marker_active.name
                 col.operator("poselib.apply_pose", icon='ZOOM_SELECTED', text="").pose_index = poselib.pose_markers.active_index
-
-            layout.operator("poselib.action_sanitise")
+            
+            col.operator("poselib.action_sanitise", icon='HELP', text="") # XXX: put in menu?
+            
+            # properties for active marker
+            if pose_marker_active is not None:
+                layout.prop(pose_marker_active, "name")
 
 
 # TODO: this panel will soon be depreceated too

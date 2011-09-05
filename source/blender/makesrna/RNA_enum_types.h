@@ -59,6 +59,7 @@ extern EnumPropertyItem image_color_mode_items[];
 extern EnumPropertyItem beztriple_keyframe_type_items[];
 extern EnumPropertyItem beztriple_handle_type_items[];
 extern EnumPropertyItem beztriple_interpolation_mode_items[];
+extern EnumPropertyItem keyframe_handle_type_items[];
 
 extern EnumPropertyItem keyingset_path_grouping_items[];
 
@@ -97,6 +98,8 @@ extern EnumPropertyItem operator_context_items[];
 extern EnumPropertyItem wm_report_items[];
 
 extern EnumPropertyItem transform_mode_types[];
+
+extern EnumPropertyItem posebone_rotmode_items[];
 
 extern EnumPropertyItem property_type_items[];
 extern EnumPropertyItem property_unit_items[];

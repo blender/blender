@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -52,13 +50,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_sequence_types.h"
-
-#if 0 // GSOC_PEPPER
-
 #include "DNA_speaker_types.h"
-
-#endif // GSOC_PEPPER
-
 #include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
@@ -228,6 +220,12 @@ void outliner_free_tree(ListBase *lb)
 		if(te->flag & TE_FREE_NAME) MEM_freeN((void *)te->name);
 		MEM_freeN(te);
 	}
+}
+
+void outliner_cleanup_tree(SpaceOops *soops)
+{
+	outliner_free_tree(&soops->tree);
+	outliner_storage_cleanup(soops);
 }
 
 /* Find ith item from the treestore */
@@ -723,9 +721,6 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 			}
 		}
 			break;
-
-#if 0 // GSOC_PEPPER
-
 		case ID_SPK:
 			{
 				Speaker *spk= (Speaker *)id;
@@ -734,9 +729,6 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 					outliner_add_element(soops, &te->subtree, spk, te, TSE_ANIM_DATA, 0);
 			}
 			break;
-
-#endif // GSOC_PEPPER
-
 		case ID_WO:
 		{
 			World *wrld= (World *)id;

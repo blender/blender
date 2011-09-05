@@ -49,9 +49,9 @@ public:
 	 * Creates a new sum factory.
 	 * \param factory The input factory.
 	 */
-	AUD_SumFactory(AUD_IFactory* factory);
+	AUD_SumFactory(AUD_Reference<AUD_IFactory> factory);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_SUMFACTORY

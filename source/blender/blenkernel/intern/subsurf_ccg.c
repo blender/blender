@@ -1779,13 +1779,17 @@ static void ccgDM_drawUVEdges(DerivedMesh *dm)
 	}
 }
 
-static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors, int (*setMaterial)(int, void *attribs)) {
+static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors, int (*setMaterial)(int, void *attribs),
+			int (*compareDrawOptions)(void *userData, int cur_index, int next_index)) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	MCol *mcol= NULL;
 	int i, gridSize = ccgSubSurf_getGridSize(ss);
 	char *faceFlags = ccgdm->faceFlags;
 	int gridFaces = gridSize - 1, totface;
+
+	/* currently unused -- each original face is handled separately */
+	(void)compareDrawOptions;
 
 	if(useColors) {
 		mcol = dm->getFaceDataArray(dm, CD_WEIGHT_MCOL);

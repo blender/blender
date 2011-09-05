@@ -2417,7 +2417,7 @@ typedef struct RNAProcessItem {
 static RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_rna.c", NULL, RNA_def_rna},
 	{"rna_ID.c", NULL, RNA_def_ID},
-	{"rna_texture.c", NULL, RNA_def_texture},
+	{"rna_texture.c", "rna_texture_api.c", RNA_def_texture},
 	{"rna_action.c", "rna_action_api.c", RNA_def_action},
 	{"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
 	{"rna_animviz.c", NULL, RNA_def_animviz},
@@ -2462,6 +2462,7 @@ static RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_sequencer.c", "rna_sequencer_api.c", RNA_def_sequencer},
 	{"rna_smoke.c", NULL, RNA_def_smoke},
 	{"rna_space.c", NULL, RNA_def_space},
+	{"rna_speaker.c", NULL, RNA_def_speaker},
 	{"rna_test.c", NULL, RNA_def_test},
 	{"rna_text.c", NULL, RNA_def_text},
 	{"rna_timeline.c", NULL, RNA_def_timeline_marker},

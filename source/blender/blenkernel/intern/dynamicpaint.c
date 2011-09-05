@@ -25,6 +25,16 @@
 /* Platform independend time	*/
 #include "PIL_time.h"
 
+#include "DNA_anim_types.h"
+#include "DNA_dynamicpaint_types.h"
+#include "DNA_group_types.h" /*GroupObject*/
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"	/* to get temp file path	*/
+
 #include "BKE_animsys.h"
 #include "BKE_bvhutils.h"	/* bvh tree	*/
 #include "BKE_blender.h"
@@ -47,16 +57,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
-
-#include "DNA_anim_types.h"
-#include "DNA_dynamicpaint_types.h"
-#include "DNA_group_types.h" /*GroupObject*/
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"	/* to get temp file path	*/
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -447,7 +447,7 @@ static void subframe_updateObject(Scene *scene, Object *ob, int flags, float fra
 	/* for curve */
 	if(ob->type==OB_CURVE) {
 		Curve *cu= ob->data;
-		BKE_animsys_evaluate_animdata(&cu->id, cu->adt, frame, ADT_RECALC_ANIM);
+		BKE_animsys_evaluate_animdata(scene, &cu->id, cu->adt, frame, ADT_RECALC_ANIM);
 	}
 	
 	/* backup object flags */
@@ -455,7 +455,7 @@ static void subframe_updateObject(Scene *scene, Object *ob, int flags, float fra
 
 	ob->recalc |= OB_RECALC_ALL;
 	ob->recalc |= OB_RECALC_DATA;
-	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, frame, ADT_RECALC_ANIM);
+	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, frame, ADT_RECALC_ANIM);
 	if (flags & UPDATE_MESH) {
 		/* ignore cache clear during subframe updates
 		*  to not mess up cache validity */
@@ -2756,7 +2756,7 @@ static void dynamicPaint_copyUpdatedMaterial(Material *orig_mat, Scene *scene, M
 	if (orig_mat == NULL) return;
 
 	/* update material anims */
-	BKE_animsys_evaluate_animdata(&orig_mat->id, orig_mat->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+	BKE_animsys_evaluate_animdata(scene, &orig_mat->id, orig_mat->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
 
 	/* copy material */
 	mat = MEM_callocN(sizeof(Material), "Temp Brush Material");
@@ -2810,7 +2810,7 @@ static void dynamicPaint_copyUpdatedMaterial(Material *orig_mat, Scene *scene, M
 			}
 
 			/* update texture anims */
-			BKE_animsys_evaluate_animdata(&tex->id, tex->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+			BKE_animsys_evaluate_animdata(scene, &tex->id, tex->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
 
 			/* if texture type requires caching, create a copy of texture/data too
 			*  to be able to re-cache safely.
@@ -5148,7 +5148,7 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 							psys_check_enabled(brushObj, brush->psys)) {
 
 							/* Paint a particle system */
-							BKE_animsys_evaluate_animdata(&brush->psys->part->id, brush->psys->part->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+							BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
 							dynamicPaint_paintParticles(surface, brush->psys, brush, ob, timescale);
 						}
 					}

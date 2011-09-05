@@ -35,7 +35,7 @@
 #include "AUD_IFactory.h"
 
 /**
- * This factory creates a reader that plays a sine tone.
+ * This factory creates a reader that plays silence.
  */
 class AUD_SilenceFactory : public AUD_IFactory
 {
@@ -50,7 +50,7 @@ public:
 	 */
 	AUD_SilenceFactory();
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_SILENCEFACTORY

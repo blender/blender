@@ -69,6 +69,7 @@
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_storage.h" /* For _LARGEFILE64_SOURCE;  zlib needs this on some systems */
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_main.h"
@@ -103,12 +104,6 @@
 #include "LBM_fluidsim.h"
 #include <zlib.h>
 #include <string.h>
-
-#ifdef WIN32
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
-#endif
 
 #endif // DISABLE_ELBEEM
 
@@ -1801,7 +1796,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	if(part->type!=PART_HAIR && dtime > 0.f && pa->time < cfra && pa->time >= sim->psys->cfra) {
 		/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
 		while(ob) {
-			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, pa->time, ADT_RECALC_ANIM);
+			BKE_animsys_evaluate_animdata(sim->scene, &ob->id, ob->adt, pa->time, ADT_RECALC_ANIM);
 			ob = ob->parent;
 		}
 		ob = sim->ob;
@@ -3876,7 +3871,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 
 			gzf = gzopen(filename, "rb");
 			if (!gzf) {
-				snprintf(debugStrBuffer,256,"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
+				BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer),"readFsPartData::error - Unable to open file for reading '%s' \n", filename); 
 				// XXX bad level call elbeemDebugOut(debugStrBuffer);
 				return;
 			}
@@ -3937,7 +3932,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 			gzclose( gzf );
 	
 			totpart = psys->totpart = activeParts;
-			snprintf(debugStrBuffer,256,"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
+			BLI_snprintf(debugStrBuffer,sizeof(debugStrBuffer),"readFsPartData::done - particles:%d, active:%d, file:%d, mask:%d  \n", psys->totpart,activeParts,fileParts,readMask);
 			// bad level call
 			// XXX elbeemDebugOut(debugStrBuffer);
 			
@@ -4253,7 +4248,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 		return;
 
 	/* execute drivers only, as animation has already been done */
-	BKE_animsys_evaluate_animdata(&part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
+	BKE_animsys_evaluate_animdata(scene, &part->id, part->adt, cfra, ADT_RECALC_DRIVERS);
 
 	if(psys->recalc & PSYS_RECALC_TYPE)
 		psys_changed_type(&sim);
@@ -4291,7 +4286,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 				for(i=0; i<=part->hair_step; i++){
 					hcfra=100.0f*(float)i/(float)psys->part->hair_step;
 					if((part->flag & PART_HAIR_REGROW)==0)
-						BKE_animsys_evaluate_animdata(&part->id, part->adt, hcfra, ADT_RECALC_ANIM);
+						BKE_animsys_evaluate_animdata(scene, &part->id, part->adt, hcfra, ADT_RECALC_ANIM);
 					system_step(&sim, hcfra);
 					psys->cfra = hcfra;
 					psys->recalc = 0;
@@ -4369,7 +4364,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(psys->cfra < cfra) {
 		/* make sure emitter is left at correct time (particle emission can change this) */
 		while(ob) {
-			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
+			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
 			ob = ob->parent;
 		}
 		ob = sim.ob;
