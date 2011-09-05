@@ -240,15 +240,15 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 			root_map[node->getUniqueId()] = root_map[par->getUniqueId()];
 	}
 
-	COLLADAFW::Transformation::TransformationType types[] = {
+	/*COLLADAFW::Transformation::TransformationType types[] = {
 		COLLADAFW::Transformation::ROTATE,
 		COLLADAFW::Transformation::SCALE,
 		COLLADAFW::Transformation::TRANSLATE,
 		COLLADAFW::Transformation::MATRIX
 	};
 
+	Object *ob;*/
 	unsigned int i;
-	Object *ob;
 
 	//for (i = 0; i < 4; i++)
 		//ob = 

@@ -95,8 +95,6 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	EditBone *bone = ED_armature_edit_bone_add((bArmature*)ob_arm->data, (char*)bc_get_joint_name(node));
 	totbone++;
 	
-	bPoseChannel *pchan  =  get_pose_channel(ob_arm->pose, (char*)bc_get_joint_name(node));
-
 	if (parent) bone->parent = parent;
 
 	float angle = 0;
@@ -280,8 +278,6 @@ void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW:
 	copy_m4_m4(leaf.mat, mat);
 	BLI_strncpy(leaf.name, bone->name, sizeof(leaf.name));
 	
-	float vec[3];
-
 	TagsMap::iterator etit;
 	ExtraTags *et = 0;
 	etit = uid_tags_map.find(node->getUniqueId().toAscii());
@@ -579,7 +575,6 @@ void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node
 	float mat[4][4];
    float obmat[4][4];
 
-   bArmature * arm = (bArmature * ) ob_arm-> data ; 
 	float ax[3];
 	float angle = NULL;
 	

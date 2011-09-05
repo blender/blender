@@ -323,30 +323,6 @@ static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, 
 	}
 }
 
-static void rna_FcurveActuator_add_set(struct PointerRNA *ptr, int value)
-{
-	bActuator *act = (bActuator *)ptr->data;
-	bIpoActuator *ia = act->data;
-
-	if(value == 1){
-		ia->flag &= ~ACT_IPOFORCE;
-		ia->flag |= ACT_IPOADD;
-	}else
-		ia->flag &= ~ACT_IPOADD;
-}
-
-static void rna_FcurveActuator_force_set(struct PointerRNA *ptr, int value)
-{
-	bActuator *act = (bActuator *)ptr->data;
-	bIpoActuator *ia = act->data;
-
-	if(value == 1){
-		ia->flag &= ~ACT_IPOADD;
-		ia->flag |= ACT_IPOFORCE;
-	}else
-		ia->flag &= ~ACT_IPOFORCE;
-}
-
 static void rna_ActionActuator_add_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator *)ptr->data;
@@ -855,77 +831,6 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_servo_limit_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_SERVO_LIMIT_Z);
 	RNA_def_property_ui_text(prop, "Z", "Set limit to force along the Z axis");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-}
-
-/* The fcurve actuator has been replace with the action actuator, so this is no longer used */
-static void rna_def_fcurve_actuator(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	static EnumPropertyItem prop_type_items[] ={
-		{ACT_IPO_PLAY, "PLAY", 0, "Play", ""},
-		{ACT_IPO_PINGPONG, "PINGPONG", 0, "Ping Pong", ""},
-		{ACT_IPO_FLIPPER, "FLIPPER", 0, "Flipper", ""},
-		{ACT_IPO_LOOP_STOP, "STOP", 0, "Loop Stop", ""},
-		{ACT_IPO_LOOP_END, "END", 0, "Loop End", ""},
-//		{ACT_IPO_KEY2KEY, "IPOCHILD", 0, "Key to Key", ""},
-		{ACT_IPO_FROM_PROP, "PROP", 0, "Property", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
-	srna= RNA_def_struct(brna, "FCurveActuator", "Actuator");
-	RNA_def_struct_ui_text(srna, "F-Curve Actuator", "Actuator to animate the object");
-	RNA_def_struct_sdna_from(srna, "bIpoActuator", "data");
-
-	prop= RNA_def_property(srna, "play_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "F-Curve Type", "Specify the way you want to play the animation");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
-	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "sta");
-	RNA_def_property_ui_range(prop, 1.0, MAXFRAME, 100, 2);
-	RNA_def_property_ui_text(prop, "Start Frame", "");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-
-	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "end");
-	RNA_def_property_ui_range(prop, 1.0, MAXFRAME, 100, 2);
-	RNA_def_property_ui_text(prop, "End Frame", "");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
-	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Use this property to define the F-Curve position");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "frame_property", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "frameProp");
-	RNA_def_property_ui_text(prop, "Frame Property", "Assign the action's current frame number to this property");
-
-	/* booleans */
-	prop= RNA_def_property(srna, "use_additive", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOADD);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_FcurveActuator_add_set");
-	RNA_def_property_ui_text(prop, "Add", "F-Curve is added to the current loc/rot/scale in global or local coordinate according to Local flag");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "use_force", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOFORCE);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_FcurveActuator_force_set");
-	RNA_def_property_ui_text(prop, "Force", "Apply F-Curve as a global or local force depending on the local option (dynamic objects only)");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
-	prop= RNA_def_property(srna, "use_local", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOLOCAL);
-	RNA_def_property_ui_text(prop, "L", "Let the F-Curve act in local coordinates, used in Force and Add mode");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "apply_to_children", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOCHILD);
-	RNA_def_property_ui_text(prop, "Child", "Update F-Curve on all children Objects as well");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 

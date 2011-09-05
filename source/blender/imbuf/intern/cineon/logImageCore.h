@@ -38,8 +38,12 @@ extern "C" {
 #endif
 
 #include "BLO_sys_types.h" // for intptr_t support
+
+#ifdef _MSC_VER
 #undef ntohl
 #undef htonl
+#endif
+
 typedef int (GetRowFn)(LogImageFile* logImage, unsigned short* row, int lineNum);
 typedef int (SetRowFn)(LogImageFile* logImage, const unsigned short* row, int lineNum);
 typedef void (CloseFn)(LogImageFile* logImage);
