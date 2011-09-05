@@ -118,10 +118,10 @@ static void initData(ModifierData *md)
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
 
-	wmd->default_weight         = 0.0;
-	wmd->default_weight2        = 0.0;
+	wmd->default_weight_a       = 0.0f;
+	wmd->default_weight_b       = 0.0f;
 	wmd->mix_mode               = MOD_WVG_MIX_SET;
-	wmd->mix_set                = MOD_WVG_SET_INTER;
+	wmd->mix_set                = MOD_WVG_SET_AND;
 
 	wmd->mask_constant          = 1.0f;
 	wmd->mask_tex_use_channel   = MOD_WVG_MASK_TEX_USE_INT; /* Use intensity by default. */
@@ -133,10 +133,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 	WeightVGMixModifierData *wmd  = (WeightVGMixModifierData*) md;
 	WeightVGMixModifierData *twmd = (WeightVGMixModifierData*) target;
 
-	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, sizeof(twmd->defgrp_name));
-	BLI_strncpy(twmd->defgrp_name2, wmd->defgrp_name2, sizeof(twmd->defgrp_name2));
-	twmd->default_weight         = wmd->default_weight;
-	twmd->default_weight2        = wmd->default_weight2;
+	BLI_strncpy(twmd->defgrp_name_a, wmd->defgrp_name_a, sizeof(twmd->defgrp_name_a));
+	BLI_strncpy(twmd->defgrp_name_b, wmd->defgrp_name_b, sizeof(twmd->defgrp_name_b));
+	twmd->default_weight_a       = wmd->default_weight_a;
+	twmd->default_weight_b       = wmd->default_weight_b;
 	twmd->mix_mode               = wmd->mix_mode;
 	twmd->mix_set                = wmd->mix_set;
 
@@ -217,7 +217,7 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
 	/* If no vertex group, bypass. */
-	return (wmd->defgrp_name == NULL);
+	return (wmd->defgrp_name_a == NULL);
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
@@ -248,12 +248,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		return dm;
 
 	/* Get vgroup idx from its name. */
-	defgrp_idx = defgroup_name_index(ob, wmd->defgrp_name);
+	defgrp_idx = defgroup_name_index(ob, wmd->defgrp_name_a);
 	if (defgrp_idx < 0)
 		return dm;
 	/* Get seconf vgroup idx from its name, if given. */
-	if (wmd->defgrp_name2[0] != (char)0) {
-		defgrp_idx2 = defgroup_name_index(ob, wmd->defgrp_name2);
+	if (wmd->defgrp_name_b[0] != (char)0) {
+		defgrp_idx2 = defgroup_name_index(ob, wmd->defgrp_name_b);
 		if (defgrp_idx2 < 0)
 			return dm;
 	}
@@ -305,7 +305,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Find out which vertices to work on. */
 	tidx = MEM_mallocN(sizeof(int) * numVerts, "WeightVGMix Modifier, tidx");
 	switch (wmd->mix_set) {
-	case MOD_WVG_SET_ORG:
+	case MOD_WVG_SET_A:
 		/* All vertices in first vgroup. */
 		for (i = 0; i < numVerts; i++) {
 			for (j = 0; j < dvert[i].totweight; j++) {
@@ -316,7 +316,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			}
 		}
 		break;
-	case MOD_WVG_SET_NEW:
+	case MOD_WVG_SET_B:
 		/* All vertices in second vgroup. */
 		for (i = 0; i < numVerts; i++) {
 			for (j = 0; j < dvert[i].totweight; j++) {
@@ -327,7 +327,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			}
 		}
 		break;
-	case MOD_WVG_SET_UNION:
+	case MOD_WVG_SET_OR:
 		/* All vertices in one vgroup or the other. */
 		for (i = 0; i < numVerts; i++) {
 			for (j = 0; j < dvert[i].totweight; j++) {
@@ -338,27 +338,29 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			}
 		}
 		break;
-	case MOD_WVG_SET_INTER:
+	case MOD_WVG_SET_AND:
 		/* All vertices in both vgroups. */
 		for (i = 0; i < numVerts; i++) {
-			char idx1 = 0;
-			char idx2 = 0;
+			int idx1 = FALSE;
+			int idx2 = FALSE;
 			for (j = 0; j < dvert[i].totweight; j++) {
 				if(dvert[i].dw[j].def_nr == defgrp_idx) {
-					if (idx2) {
+					if (idx2 == TRUE) {
 						tidx[numIdx++] = i;
 						break;
 					}
-					else
-						idx1 = 1;
+					else {
+						idx1 = TRUE;
+					}
 				}
 				else if(dvert[i].dw[j].def_nr == defgrp_idx2) {
-					if (idx1) {
+					if (idx1 == TRUE) {
 						tidx[numIdx++] = i;
 						break;
 					}
-					else
-						idx2 = 1;
+					else {
+						idx2 = TRUE;
+					}
 				}
 			}
 		}
@@ -382,27 +384,27 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Mix weights. */
 	for (i = 0; i < numIdx; i++) {
 		float weight2 = 0.0;
-		char w1 = 0;
-		char w2 = 0;
+		int w1 = FALSE;
+		int w2 = FALSE;
 		int idx = indices ? indices[i] : i;
 		for (j = 0; j < dvert[idx].totweight; j++) {
 			if(dvert[idx].dw[j].def_nr == defgrp_idx) {
 				org_w[i] = dvert[idx].dw[j].weight;
-				w1 = 1;
-				if (w2)
+				w1 = TRUE;
+				if (w2 == TRUE)
 					break;
 			}
 			else if(dvert[idx].dw[j].def_nr == defgrp_idx2) {
 				weight2 = dvert[idx].dw[j].weight;
-				w2 = 1;
-				if (w1)
+				w2 = TRUE;
+				if (w1 == TRUE)
 					break;
 			}
 		}
-		if (w1 == 0)
-			org_w[i] = wmd->default_weight;
-		if (w2 == 0)
-			weight2 = wmd->default_weight2;
+		if (w1 == FALSE)
+			org_w[i] = wmd->default_weight_a;
+		if (w2 == FALSE)
+			weight2 = wmd->default_weight_b;
 		new_w[i] = mix_weight(org_w[i], weight2, wmd->mix_mode);
 	}
 

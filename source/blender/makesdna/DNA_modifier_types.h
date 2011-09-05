@@ -841,10 +841,10 @@ typedef struct WeightVGMixModifierData {
 	/* XXX Note: I tried to keep everything logically ordered – provided the
 	 *           alignment constraints... */
 
-	char	defgrp_name[32];      /* Name of vertex group to modify/weight. */
-	char	defgrp_name2[32];     /* Name of other vertex group to mix in. */
-	float	default_weight;       /* Default weight value for first vgroup. */
-	float	default_weight2;      /* Default weight value to mix in. */
+	char	defgrp_name_a[32];      /* Name of vertex group to modify/weight. */
+	char	defgrp_name_b[32];     /* Name of other vertex group to mix in. */
+	float	default_weight_a;       /* Default weight value for first vgroup. */
+	float	default_weight_b;      /* Default weight value to mix in. */
 	char	mix_mode;             /* How second vgroups weights affect first ones */
 	char	mix_set;              /* What vertices to affect. */
 
@@ -876,10 +876,10 @@ typedef struct WeightVGMixModifierData {
 
 /* What vertices to affect. */
 #define MOD_WVG_SET_ALL			1 /* Affect all vertices. */
-#define MOD_WVG_SET_ORG			2 /* Affect only vertices in first vgroup. */
-#define MOD_WVG_SET_NEW			3 /* Affect only vertices in second vgroup. */
-#define MOD_WVG_SET_UNION		4 /* Affect only vertices in one vgroup or the other. */
-#define MOD_WVG_SET_INTER		5 /* Affect only vertices in both vgroups. */
+#define MOD_WVG_SET_A			2 /* Affect only vertices in first vgroup. */
+#define MOD_WVG_SET_B			3 /* Affect only vertices in second vgroup. */
+#define MOD_WVG_SET_OR			4 /* Affect only vertices in one vgroup or the other. */
+#define MOD_WVG_SET_AND			5 /* Affect only vertices in both vgroups. */
 
 typedef struct WeightVGProximityModifierData {
 	ModifierData modifier;

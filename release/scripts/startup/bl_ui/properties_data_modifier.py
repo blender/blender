@@ -822,19 +822,19 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         if ob.type == 'MESH':
             split = layout.split()
             col = split.column()
-            col.label(text="Vertex Group 1:")
-            col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-            col.label(text="Default Weight 1:")
-            col.prop(md, "default_weight", text="")
+            col.label(text="Vertex Group A:")
+            col.prop_search(md, "vertex_group_a", ob, "vertex_groups", text="")
+            col.label(text="Default Weight A:")
+            col.prop(md, "default_weight_a", text="")
 
             col.label(text="Mix Mode:")
             col.prop(md, "mix_mode", text="")
 
             col = split.column()
-            col.label(text="Vertex Group 2:")
-            col.prop_search(md, "vertex_group2", ob, "vertex_groups", text="")
-            col.label(text="Default Weight 2:")
-            col.prop(md, "default_weight2", text="")
+            col.label(text="Vertex Group B:")
+            col.prop_search(md, "vertex_group_b", ob, "vertex_groups", text="")
+            col.label(text="Default Weight B:")
+            col.prop(md, "default_weight_b", text="")
 
             col.label(text="Mix Set:")
             col.prop(md, "mix_set", text="")

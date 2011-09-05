@@ -394,7 +394,7 @@ static void rna_WeightVGModifier_vgroup_set(PointerRNA *ptr, const char *value)
 	}
 	else if (md->type == eModifierType_WeightVGMix) {
 		WeightVGMixModifierData *wmd= (WeightVGMixModifierData*)md;
-		rna_object_vgroup_name_set(ptr, value, wmd->defgrp_name, sizeof(wmd->defgrp_name));
+		rna_object_vgroup_name_set(ptr, value, wmd->defgrp_name_a, sizeof(wmd->defgrp_name_a));
 	}
 	else if (md->type == eModifierType_WeightVGProximity) {
 		WeightVGProximityModifierData *wmd= (WeightVGProximityModifierData*)md;
@@ -422,7 +422,7 @@ static void rna_WeightVGModifier_mask_vgroup_set(PointerRNA *ptr, const char *va
 static void rna_WeightVGMixModifier_vgroup2_set(PointerRNA *ptr, const char *value)
 {
 	WeightVGMixModifierData *wmd= (WeightVGMixModifierData*)ptr->data;
-	rna_object_vgroup_name_set(ptr, value, wmd->defgrp_name2, sizeof(wmd->defgrp_name2));
+	rna_object_vgroup_name_set(ptr, value, wmd->defgrp_name_b, sizeof(wmd->defgrp_name_b));
 }
 
 static void rna_MappingInfo_uvlayer_set(PointerRNA *ptr, const char *value)
@@ -2510,7 +2510,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 
 	prop= RNA_def_property(srna, "mask_constant", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
+	RNA_def_property_ui_range(prop, -1.0, 1.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Influence", "Global influence of current modifications on vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -2600,8 +2600,8 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 /*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 
 	prop= RNA_def_property(srna, "default_weight", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
+	RNA_def_property_range(prop, 0.0, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Default Weight", "Default weight a vertex will have if "
 	                                                 "it is not in the vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -2641,16 +2641,16 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "add_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "add_threshold");
-	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Add Threshold", "Lower bound for a vertex's weight "
 	                                                "to be added to the vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "remove_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rem_threshold");
-	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Rem Threshold", "Upper bound for a vertex's weight "
 	                                                "to be removed from the vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -2685,10 +2685,10 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 
 	static EnumPropertyItem weightvg_mix_set_items[] = {
 		{MOD_WVG_SET_ALL,   "ALL",   0, "All vertices", ""},
-		{MOD_WVG_SET_ORG,   "ORG",   0, "Vertices from vgroup 1", ""},
-		{MOD_WVG_SET_NEW,   "NEW",   0, "Vertices from vgroup 2", ""},
-		{MOD_WVG_SET_UNION, "UNION", 0, "Vertices from one group", ""},
-		{MOD_WVG_SET_INTER, "INTER", 0, "Vertices from both groups", ""},
+		{MOD_WVG_SET_A,     "A",   0, "Vertices from group A", ""},
+		{MOD_WVG_SET_B,     "B",   0, "Vertices from group B", ""},
+		{MOD_WVG_SET_OR,    "OR", 0, "Vertices from one group", ""},
+		{MOD_WVG_SET_AND,   "AND", 0, "Vertices from both groups", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;
@@ -2700,29 +2700,29 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "WeightVGMixModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_WEIGHTVG);
 
-	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
-	RNA_def_property_ui_text(prop, "Vertex Group", "First vertex group name.");
+	prop= RNA_def_property(srna, "vertex_group_a", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name_a");
+	RNA_def_property_ui_text(prop, "Vertex Group A", "First vertex group name.");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeightVGModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "vertex_group2", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "defgrp_name2");
-	RNA_def_property_ui_text(prop, "Vertex Group 2", "Second vertex group name.");
+	prop= RNA_def_property(srna, "vertex_group_b", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name_b");
+	RNA_def_property_ui_text(prop, "Vertex Group B", "Second vertex group name.");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeightVGMixModifier_vgroup2_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "default_weight", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
-	RNA_def_property_ui_text(prop, "Default Weight", "Default weight a vertex will have if "
+	prop= RNA_def_property(srna, "default_weight_a", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
+	RNA_def_property_ui_text(prop, "Default Weight A", "Default weight a vertex will have if "
 	                                                 "it is not in the first vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "default_weight2", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
-	RNA_def_property_ui_text(prop, "Default Weight 2", "Default weight a vertex will have if "
+	prop= RNA_def_property(srna, "default_weight_b", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.0, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
+	RNA_def_property_ui_text(prop, "Default Weight B", "Default weight a vertex will have if "
 	                                                   "it is not in the second vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
