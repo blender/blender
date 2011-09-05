@@ -327,10 +327,13 @@ extern StructRNA RNA_NearSensor;
 extern StructRNA RNA_NlaStrip;
 extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
+extern StructRNA RNA_NodeForLoop;
 extern StructRNA RNA_NodeGroup;
 extern StructRNA RNA_NodeLink;
 extern StructRNA RNA_NodeSocket;
+extern StructRNA RNA_NodeSocketPanel;
 extern StructRNA RNA_NodeTree;
+extern StructRNA RNA_NodeWhileLoop;
 extern StructRNA RNA_NoiseTexture;
 extern StructRNA RNA_NorController;
 extern StructRNA RNA_Object;
@@ -376,7 +379,6 @@ extern StructRNA RNA_PropertyGroupItem;
 extern StructRNA RNA_PropertySensor;
 extern StructRNA RNA_PythonConstraint;
 extern StructRNA RNA_PythonController;
-extern StructRNA RNA_RGBANodeSocket;
 extern StructRNA RNA_RadarSensor;
 extern StructRNA RNA_RandomSensor;
 extern StructRNA RNA_RaySensor;
@@ -553,9 +555,7 @@ extern StructRNA RNA_UserPreferencesFilePaths;
 extern StructRNA RNA_UserPreferencesSystem;
 extern StructRNA RNA_UserPreferencesView;
 extern StructRNA RNA_UserSolidLight;
-extern StructRNA RNA_ValueNodeSocket;
 extern StructRNA RNA_VectorFont;
-extern StructRNA RNA_VectorNodeSocket;
 extern StructRNA RNA_VertexGroup;
 extern StructRNA RNA_VertexGroupElement;
 extern StructRNA RNA_VertexPaint;
@@ -598,6 +598,8 @@ void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr);
 extern const PointerRNA PointerRNA_NULL;
 
 /* Structs */
+
+StructRNA *RNA_struct_find(const char *identifier);
 
 const char *RNA_struct_identifier(StructRNA *type);
 const char *RNA_struct_ui_name(StructRNA *type);

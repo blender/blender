@@ -48,6 +48,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_enum_types.h"
+
 EnumPropertyItem space_type_items[] = {
 	{SPACE_EMPTY, "EMPTY", 0, "Empty", ""},
 	{SPACE_VIEW3D, "VIEW_3D", 0, "3D View", ""},
@@ -119,6 +121,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #include "BKE_paint.h"
 
 #include "ED_image.h"
+#include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_sequencer.h"
@@ -837,6 +840,24 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 {
 	BGpic *bgpic= (BGpic *)ptr->data;
 	bgpic->blend = 1.0f - value;
+}
+
+/* Space Node Editor */
+
+static int rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceNode *snode= (SpaceNode*)ptr->data;
+	bNodeTree *ntree= (bNodeTree*)value.data;
+	
+	/* exclude group trees, only trees of the active type */
+	return (ntree->nodetype==0 && ntree->type == snode->treetype);
+}
+
+static void rna_SpaceNodeEditor_node_tree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	SpaceNode *snode= (SpaceNode*)ptr->data;
+	
+	ED_node_tree_update(snode, scene);
 }
 
 static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
@@ -2414,12 +2435,6 @@ static void rna_def_space_node(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem tree_type_items[] = {
-		{NTREE_SHADER, "MATERIAL", ICON_MATERIAL, "Material", "Material nodes"},
-		{NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes"},
-		{NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes"},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem texture_type_items[] = {
 		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object"},
 		{SNODE_TEX_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit texture nodes from World"},
@@ -2438,7 +2453,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "tree_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "treetype");
-	RNA_def_property_enum_items(prop, tree_type_items);
+	RNA_def_property_enum_items(prop, nodetree_type_items);
 	RNA_def_property_ui_text(prop, "Tree Type", "Node tree type to display and edit");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
 
@@ -2459,8 +2474,10 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_SpaceNodeEditor_node_tree_poll");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Node tree being displayed and edited");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, "rna_SpaceNodeEditor_node_tree_update");
 
 	prop= RNA_def_property(srna, "show_backdrop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_BACKDRAW);

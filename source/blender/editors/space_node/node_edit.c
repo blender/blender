@@ -40,9 +40,11 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
@@ -58,10 +60,16 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_report.h"
+
+
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_storage_types.h"
 
 #include "RE_pipeline.h"
 
@@ -74,11 +82,13 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 #include "UI_view2d.h"
 
 #include "IMB_imbuf.h"
@@ -88,9 +98,9 @@
 #include "node_intern.h"
 
 static EnumPropertyItem socket_in_out_items[] = {
-	{ SOCK_IN, "IN", 0, "In", "" },
-	{ SOCK_OUT, "OUT", 0, "Out", "" },
-	{ 0, NULL, 0, NULL, NULL}
+	{ SOCK_IN, "SOCK_IN", 0, "Input", "" },
+	{ SOCK_OUT, "SOCK_OUT", 0, "Output", "" },
+	{ 0, NULL, 0, NULL, NULL },
 };
 
 /* ***************** composite job manager ********************** */
@@ -227,7 +237,7 @@ static bNode *editnode_get_active(bNodeTree *ntree)
 	
 	/* check for edited group */
 	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->flag & NODE_GROUP_EDIT)
+		if(nodeGroupEditGet(node))
 			break;
 	if(node)
 		return nodeGetActive((bNodeTree *)node->id);
@@ -258,7 +268,7 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 	
 	/* get the groupnode */
 	for(gnode= nodetree->nodes.first; gnode; gnode= gnode->next)
-		if(gnode->flag & NODE_GROUP_EDIT)
+		if(nodeGroupEditGet(gnode))
 			break;
 	return gnode;
 }
@@ -269,6 +279,7 @@ void ED_node_shader_default(Material *ma)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
+	bNodeTemplate ntemp;
 	
 	/* but lets check it anyway */
 	if(ma->nodetree) {
@@ -277,12 +288,14 @@ void ED_node_shader_default(Material *ma)
 		return;
 	}
 	
-	ma->nodetree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, FALSE);
+	ma->nodetree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, 0);
 	
-	out= nodeAddNodeType(ma->nodetree, SH_NODE_OUTPUT, NULL, NULL);
+	ntemp.type = SH_NODE_OUTPUT;
+	out= nodeAddNode(ma->nodetree, &ntemp);
 	out->locx= 300.0f; out->locy= 300.0f;
 	
-	in= nodeAddNodeType(ma->nodetree, SH_NODE_MATERIAL, NULL, NULL);
+	ntemp.type = SH_NODE_MATERIAL;
+	in= nodeAddNode(ma->nodetree, &ntemp);
 	in->locx= 10.0f; in->locy= 300.0f;
 	nodeSetActive(ma->nodetree, in);
 	
@@ -291,7 +304,7 @@ void ED_node_shader_default(Material *ma)
 	tosock= out->inputs.first;
 	nodeAddLink(ma->nodetree, in, fromsock, out, tosock);
 	
-	ntreeSolveOrder(ma->nodetree);	/* needed for pointers */
+	ntreeUpdateTree(ma->nodetree);
 }
 
 /* assumes nothing being done in ntree yet, sets the default in/out node */
@@ -300,6 +313,7 @@ void ED_node_composit_default(Scene *sce)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
+	bNodeTemplate ntemp;
 	
 	/* but lets check it anyway */
 	if(sce->nodetree) {
@@ -308,14 +322,16 @@ void ED_node_composit_default(Scene *sce)
 		return;
 	}
 	
-	sce->nodetree= ntreeAddTree("Compositing Nodetree", NTREE_COMPOSIT, FALSE);
+	sce->nodetree= ntreeAddTree("Compositing Nodetree", NTREE_COMPOSIT, 0);
 	
-	out= nodeAddNodeType(sce->nodetree, CMP_NODE_COMPOSITE, NULL, NULL);
+	ntemp.type = CMP_NODE_COMPOSITE;
+	out= nodeAddNode(sce->nodetree, &ntemp);
 	out->locx= 300.0f; out->locy= 400.0f;
 	out->id= &sce->id;
 	id_us_plus(out->id);
 	
-	in= nodeAddNodeType(sce->nodetree, CMP_NODE_R_LAYERS, NULL, NULL);
+	ntemp.type = CMP_NODE_R_LAYERS;
+	in= nodeAddNode(sce->nodetree, &ntemp);
 	in->locx= 10.0f; in->locy= 400.0f;
 	in->id= &sce->id;
 	id_us_plus(in->id);
@@ -326,7 +342,7 @@ void ED_node_composit_default(Scene *sce)
 	tosock= out->inputs.first;
 	nodeAddLink(sce->nodetree, in, fromsock, out, tosock);
 	
-	ntreeSolveOrder(sce->nodetree);	/* needed for pointers */
+	ntreeUpdateTree(sce->nodetree);
 	
 	// XXX ntreeCompositForceHidden(sce->nodetree);
 }
@@ -337,6 +353,7 @@ void ED_node_texture_default(Tex *tx)
 {
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
+	bNodeTemplate ntemp;
 	
 	/* but lets check it anyway */
 	if(tx->nodetree) {
@@ -345,12 +362,14 @@ void ED_node_texture_default(Tex *tx)
 		return;
 	}
 	
-	tx->nodetree= ntreeAddTree("Texture Nodetree", NTREE_TEXTURE, FALSE);
+	tx->nodetree= ntreeAddTree("Texture Nodetree", NTREE_TEXTURE, 0);
 	
-	out= nodeAddNodeType(tx->nodetree, TEX_NODE_OUTPUT, NULL, NULL);
+	ntemp.type = TEX_NODE_OUTPUT;
+	out= nodeAddNode(tx->nodetree, &ntemp);
 	out->locx= 300.0f; out->locy= 300.0f;
 	
-	in= nodeAddNodeType(tx->nodetree, TEX_NODE_CHECKER, NULL, NULL);
+	ntemp.type = TEX_NODE_CHECKER;
+	in= nodeAddNode(tx->nodetree, &ntemp);
 	in->locx= 10.0f; in->locy= 300.0f;
 	nodeSetActive(tx->nodetree, in);
 	
@@ -358,43 +377,53 @@ void ED_node_texture_default(Tex *tx)
 	tosock= out->inputs.first;
 	nodeAddLink(tx->nodetree, in, fromsock, out, tosock);
 	
-	ntreeSolveOrder(tx->nodetree);	/* needed for pointers */
+	ntreeUpdateTree(tx->nodetree);
 }
 
 /* id is supposed to contain a node tree */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype)
 {
-	bNode *node= NULL;
-	short idtype= GS(id->name);
-
-	if(idtype == ID_MA) {
-		*ntree= ((Material*)id)->nodetree;
-		if(treetype) *treetype= NTREE_SHADER;
-	}
-	else if(idtype == ID_SCE) {
-		*ntree= ((Scene*)id)->nodetree;
-		if(treetype) *treetype= NTREE_COMPOSIT;
-	}
-	else if(idtype == ID_TE) {
-		*ntree= ((Tex*)id)->nodetree;
-		if(treetype) *treetype= NTREE_TEXTURE;
+	if (id) {
+		bNode *node= NULL;
+		short idtype= GS(id->name);
+	
+		if(idtype == ID_NT) {
+			*ntree= (bNodeTree*)id;
+			if(treetype) *treetype= (*ntree)->type;
+		}
+		else if(idtype == ID_MA) {
+			*ntree= ((Material*)id)->nodetree;
+			if(treetype) *treetype= NTREE_SHADER;
+		}
+		else if(idtype == ID_SCE) {
+			*ntree= ((Scene*)id)->nodetree;
+			if(treetype) *treetype= NTREE_COMPOSIT;
+		}
+		else if(idtype == ID_TE) {
+			*ntree= ((Tex*)id)->nodetree;
+			if(treetype) *treetype= NTREE_TEXTURE;
+		}
+		else {
+			if(treetype) *treetype= 0;
+			return;
+		}
+	
+		/* find editable group */
+		if(edittree) {
+			if(*ntree)
+				for(node= (*ntree)->nodes.first; node; node= node->next)
+					if(nodeGroupEditGet(node))
+						break;
+			
+			if(node && node->id)
+				*edittree= (bNodeTree *)node->id;
+			else
+				*edittree= *ntree;
+		}
 	}
 	else {
+		*ntree= NULL;
 		if(treetype) *treetype= 0;
-		return;
-	}
-
-	/* find editable group */
-	if(edittree) {
-		if(*ntree)
-			for(node= (*ntree)->nodes.first; node; node= node->next)
-				if(node->flag & NODE_GROUP_EDIT)
-					break;
-		
-		if(node && node->id)
-			*edittree= (bNodeTree *)node->id;
-		else
-			*edittree= *ntree;
 	}
 }
 
@@ -403,8 +432,6 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 {
 	Object *ob= OBACT;
 	
-	snode->nodetree= NULL;
-	snode->edittree= NULL;
 	snode->id= snode->from= NULL;
 	
 	if(snode->treetype==NTREE_SHADER) {
@@ -418,7 +445,6 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		}
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
-		snode->from= NULL;
 		snode->id= &scene->id;
 		
 		/* bit clumsy but reliable way to see if we draw first time */
@@ -461,9 +487,14 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 			}
 		}
 	}
+	else {
+		if (snode->nodetree && snode->nodetree->type == snode->treetype)
+			snode->id = &snode->nodetree->id;
+		else
+			snode->id = NULL;
+	}
 
-	if(snode->id)
-		node_tree_from_ID(snode->id, &snode->nodetree, &snode->edittree, NULL);
+	node_tree_from_ID(snode->id, &snode->nodetree, &snode->edittree, NULL);
 }
 
 static void snode_tag_changed(SpaceNode *snode, bNode *node)
@@ -574,17 +605,199 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 	}
 }
 
-/* when links in groups change, inputs/outputs change, nodes added/deleted... */
-void node_tree_verify_groups(bNodeTree *nodetree)
+static int compare_nodes(bNode *a, bNode *b)
 {
-	bNode *gnode;
+	bNode *parent;
 	
-	gnode= node_tree_get_editgroup(nodetree);
+	/* if one is an ancestor of the other */
+	/* XXX there might be a better sorting algorithm for stable topological sort, this is O(n^2) worst case */
+	for (parent = a->parent; parent; parent=parent->parent) {
+		if (parent==b)
+			return 1;
+	}
+	for (parent = b->parent; parent; parent=parent->parent) {
+		if (parent==a)
+			return 0;
+	}
+
+	/* if one of the nodes is in the background and the other not */
+	if ((a->flag & NODE_BACKGROUND) && !(b->typeinfo->flag & NODE_BACKGROUND))
+		return 0;
+	else if (!(a->flag & NODE_BACKGROUND) && (b->typeinfo->flag & NODE_BACKGROUND))
+		return 1;
 	
-	/* does all materials */
-	if(gnode)
-		nodeGroupVerify((bNodeTree *)gnode->id);
+	/* if one has a higher selection state (active > selected > nothing) */
+	if (!(b->flag & NODE_ACTIVE) && (a->flag & NODE_ACTIVE))
+		return 1;
+	else if (!(b->flag & NODE_SELECT) && ((a->flag & NODE_ACTIVE) || (a->flag & NODE_SELECT)))
+		return 1;
 	
+	return 0;
+}
+/* Sorts nodes by selection: unselected nodes first, then selected,
+ * then the active node at the very end. Relative order is kept intact!
+ */
+void node_sort(bNodeTree *ntree)
+{
+	/* merge sort is the algorithm of choice here */
+	bNode *first_a, *first_b, *node_a, *node_b, *tmp;
+	int totnodes= BLI_countlist(&ntree->nodes);
+	int k, a, b;
+	
+	k = 1;
+	while (k < totnodes) {
+		first_a = first_b = ntree->nodes.first;
+		
+		do {
+			/* setup first_b pointer */
+			for (b=0; b < k && first_b; ++b) {
+				first_b = first_b->next;
+			}
+			/* all batches merged? */
+			if (first_b==NULL)
+				break;
+			
+			/* merge batches */
+			node_a = first_a;
+			node_b = first_b;
+			a = b = 0;
+			while (a < k && b < k && node_b) {
+				if (compare_nodes(node_a, node_b)==0) {
+					node_a = node_a->next;
+					++a;
+				}
+				else {
+					tmp = node_b;
+					node_b = node_b->next;
+					++b;
+					BLI_remlink(&ntree->nodes, tmp);
+					BLI_insertlinkbefore(&ntree->nodes, node_a, tmp);
+				}
+			}
+
+			/* setup first pointers for next batch */
+			first_b = node_b;
+			for (; b < k; ++b) {
+				/* all nodes sorted? */
+				if (first_b==NULL)
+					break;
+				first_b = first_b->next;
+			}
+			first_a = first_b;
+		} while (first_b);
+		
+		k = k << 1;
+	}
+}
+
+static int inside_rctf(rctf *bounds, rctf *rect)
+{
+	return (bounds->xmin <= rect->xmin && bounds->xmax >= rect->xmax
+			&& bounds->ymin <= rect->ymin && bounds->ymax >= rect->ymax);
+}
+
+static void node_frame_attach_nodes(bNodeTree *UNUSED(ntree), bNode *frame)
+{
+	bNode *node;
+	
+	/* only check nodes on top of the frame for attaching */
+	for (node=frame->next; node; node=node->next) {
+		if (node->parent==frame) {
+			/* detach nodes that went outside the frame */
+			if (!inside_rctf(&frame->totr, &node->totr))
+				nodeDetachNode(node);
+		}
+		else if (node->flag & NODE_SELECT && node->parent==NULL) {
+			/* attach selected, still unparented nodes */
+			if (inside_rctf(&frame->totr, &node->totr))
+				nodeAttachNode(node, frame);
+		}
+	}
+}
+
+void ED_node_update_hierarchy(bContext *UNUSED(C), bNodeTree *ntree)
+{
+	bNode *node;
+	
+	/* XXX This does not work due to layout functions relying on node->block,
+	 * which only exists during actual drawing. Can we rely on valid totr rects?
+	 */
+	/* make sure nodes have correct bounding boxes after transform */
+//	node_update_nodetree(C, ntree, 0.0f, 0.0f);
+	
+	/* all selected nodes are re-parented */
+	for (node=ntree->nodes.last; node; node=node->prev) {
+		if (node->flag & NODE_SELECT && node->parent)
+			nodeDetachNode(node);
+	}
+	
+	/* update higher Z-level nodes first */
+	for (node=ntree->nodes.last; node; node=node->prev) {
+		/* XXX callback? */
+		if (node->type==NODE_FRAME)
+			node_frame_attach_nodes(ntree, node);
+	}
+}
+
+/* ***************** generic operator functions for nodes ***************** */
+
+static int edit_node_poll(bContext *C)
+{
+	return ED_operator_node_active(C);
+}
+
+static void edit_node_properties(wmOperatorType *ot)
+{
+	/* XXX could node be a context pointer? */
+	RNA_def_string(ot->srna, "node", "", 32, "Node", "");
+	RNA_def_int(ot->srna, "socket", 0, 0, MAX_SOCKET, "Socket", "", 0, MAX_SOCKET);
+	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Side", "");
+}
+
+static int edit_node_invoke_properties(bContext *C, wmOperator *op)
+{
+	if (!RNA_property_is_set(op->ptr, "node")) {
+		bNode *node= CTX_data_pointer_get_type(C, "node", &RNA_Node).data;
+		if (!node)
+			return 0;
+		else
+			RNA_string_set(op->ptr, "node", node->name);
+	}
+	
+	if (!RNA_property_is_set(op->ptr, "in_out"))
+		RNA_enum_set(op->ptr, "in_out", SOCK_IN);
+	
+	if (!RNA_property_is_set(op->ptr, "socket"))
+		RNA_int_set(op->ptr, "socket", 0);
+	
+	return 1;
+}
+
+static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **rnode, bNodeSocket **rsock, int *rin_out)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	char nodename[32];
+	int sockindex;
+	int in_out;
+	
+	RNA_string_get(op->ptr, "node", nodename);
+	node = nodeFindNodebyName(ntree, nodename);
+	
+	in_out = RNA_enum_get(op->ptr, "in_out");
+	
+	sockindex = RNA_int_get(op->ptr, "socket");
+	switch (in_out) {
+	case SOCK_IN:	sock = BLI_findlink(&node->inputs, sockindex);	break;
+	case SOCK_OUT:	sock = BLI_findlink(&node->outputs, sockindex);	break;
+	}
+	
+	if (rnode)
+		*rnode = node;
+	if (rsock)
+		*rsock = sock;
+	if (rin_out)
+		*rin_out = in_out;
 }
 
 /* ***************** Edit Group operator ************* */
@@ -594,8 +807,8 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 	bNode *node;
 	
 	/* make sure nothing has group editing on */
-	for(node= snode->nodetree->nodes.first; node; node= node->next)
-		node->flag &= ~NODE_GROUP_EDIT;
+	for(node=snode->nodetree->nodes.first; node; node=node->next)
+		nodeGroupEditClear(node);
 	
 	if(gnode==NULL) {
 		/* with NULL argument we do a toggle */
@@ -603,34 +816,30 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 			gnode= nodeGetActive(snode->nodetree);
 	}
 	
-	if(gnode && gnode->type==NODE_GROUP && gnode->id) {
-		if(gnode->id->lib)
-			ntreeMakeLocal((bNodeTree *)gnode->id);
-
-		gnode->flag |= NODE_GROUP_EDIT;
-		snode->edittree= (bNodeTree *)gnode->id;
+	if (gnode) {
+		snode->edittree = nodeGroupEditSet(gnode, 1);
 		
 		/* deselect all other nodes, so we can also do grabbing of entire subtree */
 		for(node= snode->nodetree->nodes.first; node; node= node->next)
 			node->flag &= ~SELECT;
 		gnode->flag |= SELECT;
-		
 	}
 	else 
 		snode->edittree= snode->nodetree;
-	
-	ntreeSolveOrder(snode->nodetree);
 }
 
 static int node_group_edit_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
-	bNode *gnode;
 
 	ED_preview_kill_jobs(C);
 
-	gnode= nodeGetActive(snode->edittree);
-	snode_make_group_editable(snode, gnode);
+	if (snode->nodetree==snode->edittree) {
+		bNode *gnode= nodeGetActive(snode->nodetree);
+		snode_make_group_editable(snode, gnode);
+	}
+	else
+		snode_make_group_editable(snode, NULL);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
 
@@ -643,7 +852,8 @@ static int node_group_edit_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(e
 	bNode *gnode;
 
 	gnode= nodeGetActive(snode->edittree);
-	if(gnode && gnode->type==NODE_GROUP && gnode->id && gnode->id->lib) {
+	/* XXX callback? */
+	if(gnode && gnode->id && GS(gnode->id->name)==ID_NT && gnode->id->lib) {
 		uiPupMenuOkee(C, op->type->idname, "Make group local?");
 		return OPERATOR_CANCELLED;
 	}
@@ -674,7 +884,7 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	int in_out= -1;
 	char name[32]= "";
-	int type= SOCK_VALUE;
+	int type= SOCK_FLOAT;
 	bNodeTree *ngroup= snode->edittree;
 	bNodeSocket *sock;
 	
@@ -691,9 +901,10 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 	else
 		return OPERATOR_CANCELLED;
 	
-	sock = nodeGroupAddSocket(ngroup, name, type, in_out);
+	/* using placeholder subtype first */
+	sock = node_group_add_socket(ngroup, name, type, in_out);
 	
-	node_tree_verify_groups(snode->nodetree);
+	ntreeUpdateTree(ngroup);
 	
 	snode_notify(C, snode);
 	
@@ -716,7 +927,7 @@ void NODE_OT_group_socket_add(wmOperatorType *ot)
 	
 	RNA_def_enum(ot->srna, "in_out", socket_in_out_items, SOCK_IN, "Socket Type", "Input or Output");
 	RNA_def_string(ot->srna, "name", "", 32, "Name", "Group socket name");
-	RNA_def_enum(ot->srna, "type", node_socket_type_items, SOCK_VALUE, "Type", "Type of the group socket");
+	RNA_def_enum(ot->srna, "type", node_socket_type_items, SOCK_FLOAT, "Type", "Type of the group socket");
 }
 
 /* ***************** Remove Group Socket operator ************* */
@@ -743,8 +954,8 @@ static int node_group_socket_remove_exec(bContext *C, wmOperator *op)
 	
 	sock = (bNodeSocket*)BLI_findlink(in_out==SOCK_IN ? &ngroup->inputs : &ngroup->outputs, index);
 	if (sock) {
-		nodeGroupRemoveSocket(ngroup, sock, in_out);
-		node_tree_verify_groups(snode->nodetree);
+		node_group_remove_socket(ngroup, sock, in_out);
+		ntreeUpdateTree(ngroup);
 		
 		snode_notify(C, snode);
 	}
@@ -801,6 +1012,8 @@ static int node_group_socket_move_up_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		BLI_remlink(&ngroup->inputs, sock);
 		BLI_insertlinkbefore(&ngroup->inputs, prev, sock);
+		
+		ngroup->update |= NTREE_UPDATE_GROUP_IN;
 	}
 	else if (in_out==SOCK_OUT) {
 		sock = (bNodeSocket*)BLI_findlink(&ngroup->outputs, index);
@@ -810,8 +1023,10 @@ static int node_group_socket_move_up_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		BLI_remlink(&ngroup->outputs, sock);
 		BLI_insertlinkbefore(&ngroup->outputs, prev, sock);
+		
+		ngroup->update |= NTREE_UPDATE_GROUP_OUT;
 	}
-	node_tree_verify_groups(snode->nodetree);
+	ntreeUpdateTree(ngroup);
 	
 	snode_notify(C, snode);
 	
@@ -867,6 +1082,8 @@ static int node_group_socket_move_down_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		BLI_remlink(&ngroup->inputs, sock);
 		BLI_insertlinkafter(&ngroup->inputs, next, sock);
+		
+		ngroup->update |= NTREE_UPDATE_GROUP_IN;
 	}
 	else if (in_out==SOCK_OUT) {
 		sock = (bNodeSocket*)BLI_findlink(&ngroup->outputs, index);
@@ -876,8 +1093,10 @@ static int node_group_socket_move_down_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		BLI_remlink(&ngroup->outputs, sock);
 		BLI_insertlinkafter(&ngroup->outputs, next, sock);
+		
+		ngroup->update |= NTREE_UPDATE_GROUP_OUT;
 	}
-	node_tree_verify_groups(snode->nodetree);
+	ntreeUpdateTree(ngroup);
 	
 	snode_notify(C, snode);
 	
@@ -924,7 +1143,7 @@ static int node_group_ungroup_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_WARNING, "Not a group");
 		return OPERATOR_CANCELLED;
 	}
-	else if(!nodeGroupUnGroup(snode->edittree, gnode)) {
+	else if(!node_group_ungroup(snode->edittree, gnode)) {
 		BKE_report(op->reports, RPT_WARNING, "Can't ungroup");
 		return OPERATOR_CANCELLED;
 	}
@@ -952,70 +1171,16 @@ void NODE_OT_group_ungroup(wmOperatorType *ot)
 
 /* ************************** Node generic ************** */
 
-/* allows to walk the list in order of visibility */
-bNode *next_node(bNodeTree *ntree)
-{
-	static bNode *current=NULL, *last= NULL;
-	
-	if(ntree) {
-		/* set current to the first selected node */
-		for(current= ntree->nodes.last; current; current= current->prev)
-			if(current->flag & NODE_SELECT)
-				break;
-		
-		/* set last to the first unselected node */
-		for(last= ntree->nodes.last; last; last= last->prev)
-			if((last->flag & NODE_SELECT)==0)
-				break;
-		
-		if(current==NULL)
-			current= last;
-		
-		return NULL;
-	}
-	/* no nodes, or we are ready */
-	if(current==NULL)
-		return NULL;
-	
-	/* now we walk the list backwards, but we always return current */
-	if(current->flag & NODE_SELECT) {
-		bNode *node= current;
-		
-		/* find previous selected */
-		current= current->prev;
-		while(current && (current->flag & NODE_SELECT)==0)
-			current= current->prev;
-		
-		/* find first unselected */
-		if(current==NULL)
-			current= last;
-		
-		return node;
-	}
-	else {
-		bNode *node= current;
-		
-		/* find previous unselected */
-		current= current->prev;
-		while(current && (current->flag & NODE_SELECT))
-			current= current->prev;
-		
-		return node;
-	}
-	
-	return NULL;
-}
-
 /* is rct in visible part of node? */
 static bNode *visible_node(SpaceNode *snode, rctf *rct)
 {
-	bNode *tnode;
+	bNode *node;
 	
-	for(next_node(snode->edittree); (tnode=next_node(NULL));) {
-		if(BLI_isect_rctf(&tnode->totr, rct, NULL))
+	for(node=snode->edittree->nodes.last; node; node=node->prev) {
+		if(BLI_isect_rctf(&node->totr, rct, NULL))
 			break;
 	}
-	return tnode;
+	return node;
 }
 
 /* **************************** */
@@ -1318,8 +1483,9 @@ void NODE_OT_backimage_sample(wmOperatorType *ot)
 /* ********************** size widget operator ******************** */
 
 typedef struct NodeSizeWidget {
-	float mxstart;
-	float oldwidth;
+	float mxstart, mystart;
+	float oldwidth, oldheight;
+	float oldminiwidth;
 } NodeSizeWidget;
 
 static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -1338,13 +1504,16 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			if (node) {
 				if(node->flag & NODE_HIDDEN) {
-					node->miniwidth= nsw->oldwidth + mx - nsw->mxstart;
+					node->miniwidth= nsw->oldminiwidth + mx - nsw->mxstart;
 					CLAMP(node->miniwidth, 0.0f, 100.0f);
 				}
 				else {
 					node->width= nsw->oldwidth + mx - nsw->mxstart;
 					CLAMP(node->width, UI_DPI_FAC*node->typeinfo->minwidth, UI_DPI_FAC*node->typeinfo->maxwidth);
 				}
+				/* height works the other way round ... */
+				node->height= nsw->oldheight - my + nsw->mystart;
+				CLAMP(node->height, node->typeinfo->minheight, node->typeinfo->maxheight);
 			}
 				
 			ED_region_tag_redraw(ar);
@@ -1357,6 +1526,8 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			MEM_freeN(nsw);
 			op->customdata= NULL;
+			
+			ED_node_update_hierarchy(C, snode->edittree);
 			
 			return OPERATOR_FINISHED;
 	}
@@ -1371,35 +1542,21 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	bNode *node= editnode_get_active(snode->edittree);
 	
 	if(node) {
-		rctf totr;
-		
 		/* convert mouse coordinates to v2d space */
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
 								 &snode->mx, &snode->my);
 		
-		totr= node->totr;
-		
-		if(node->flag & NODE_HIDDEN) {
-			/* right part of node */
-			totr.xmin= node->totr.xmax-20.0f;
-		}
-		else {
-			/* bottom right corner */
-			totr.xmin= totr.xmax-10.0f;
-			totr.ymax= totr.ymin+10.0f;
-		}
-		
-		if(BLI_in_rctf(&totr, snode->mx, snode->my)) {
+		if(node->typeinfo->resize_area_func(node, snode->mx, snode->my)) {
 			NodeSizeWidget *nsw= MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
 			
 			op->customdata= nsw;
 			nsw->mxstart= snode->mx;
+			nsw->mystart= snode->my;
 			
 			/* store old */
-			if(node->flag & NODE_HIDDEN)
-				nsw->oldwidth= node->miniwidth;
-			else
-				nsw->oldwidth= node->width;
+			nsw->oldwidth= node->width;
+			nsw->oldheight= node->height;
+			nsw->oldminiwidth= node->miniwidth;
 			
 			/* add modal handler */
 			WM_event_add_modal_handler(C, op);
@@ -1598,7 +1755,7 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 				link->fromnode= tonode;
 				link->fromsock= sock;
 			}
-			ntreeSolveOrder(snode->edittree);
+			ntreeUpdateTree(snode->edittree);
 			snode_tag_changed(snode, node);
 		}
 	}
@@ -1905,6 +2062,7 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 	ListBase *nodelist = MEM_callocN(sizeof(ListBase), "items_list");
 	bNodeListItem *nli;
 	bNode *node;
+	bNodeLink *link;
 	int i, numlinks=0;
 	
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -1941,7 +2099,15 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 			/* then we can connect */
 			if (replace)
 				nodeRemSocketLinks(snode->edittree, sock_to);
-			nodeAddLink(snode->edittree, node_fr, sock_fr, node_to, sock_to);
+			
+			link = nodeAddLink(snode->edittree, node_fr, sock_fr, node_to, sock_to);
+			/* validate the new link */
+			ntreeUpdateTree(snode->edittree);
+			if (!(link->flag & NODE_LINK_VALID)) {
+				nodeRemLink(snode->edittree, link);
+				continue;
+			}
+			
 			snode_tag_changed(snode, node_to);
 			++numlinks;
 			break;
@@ -1949,8 +2115,7 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 	}
 	
 	if (numlinks > 0) {
-		node_tree_verify_groups(snode->nodetree);
-		ntreeSolveOrder(snode->edittree);
+		ntreeUpdateTree(snode->edittree);
 	}
 	
 	BLI_freelistN(nodelist);
@@ -1958,28 +2123,13 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 }
 
 /* can be called from menus too, but they should do own undopush and redraws */
-bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, int type, float locx, float locy)
+bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, bNodeTemplate *ntemp, float locx, float locy)
 {
 	bNode *node= NULL, *gnode;
 	
 	node_deselectall(snode);
 	
-	if(type>=NODE_DYNAMIC_MENU) {
-		node= nodeAddNodeType(snode->edittree, type, NULL, NULL);
-	}
-	else if(type>=NODE_GROUP_MENU) {
-		if(snode->edittree!=snode->nodetree) {
-			// XXX error("Can not add a Group in a Group");
-			return NULL;
-		}
-		else {
-			bNodeTree *ngroup= BLI_findlink(&bmain->nodetree, type-NODE_GROUP_MENU);
-			if(ngroup)
-				node= nodeAddNodeType(snode->edittree, NODE_GROUP, ngroup, NULL);
-		}
-	}
-	else
-		node= nodeAddNodeType(snode->edittree, type, NULL, NULL);
+	node = nodeAddNode(snode->edittree, ntemp);
 	
 	/* generics */
 	if(node) {
@@ -1993,7 +2143,7 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, int type, floa
 			node->locy -= gnode->locy;
 		}
 
-		node_tree_verify_groups(snode->nodetree);
+		ntreeUpdateTree(snode->edittree);
 		ED_node_set_active(bmain, snode->edittree, node);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT) {
@@ -2025,6 +2175,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 	bNode *node, *newnode, *lastnode;
 	bNodeLink *link, *newlink, *lastlink;
 	int keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
+	bNodeSocket *sock;
 	
 	ED_preview_kill_jobs(C);
 	
@@ -2094,9 +2245,8 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 			break;
 	}
 	
-	ntreeSolveOrder(ntree);
+	ntreeUpdateTree(snode->edittree);
 	
-	node_tree_verify_groups(snode->nodetree);
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
 
@@ -2185,17 +2335,25 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 						if( link->tosock!= tsock && (!tnode || (tnode!=node && link->tonode!=tnode)) ) {
 							link->tonode= tnode;
 							link->tosock= tsock;
-							if (link->prev==NULL && link->next==NULL)
+							if (link->prev==NULL && link->next==NULL) {
 								BLI_addtail(&snode->edittree->links, link);
-							ntreeSolveOrder(snode->edittree);	/* for interactive red line warning */
+							}
+							
+							snode->edittree->update |= NTREE_UPDATE_LINKS;
+							ntreeUpdateTree(snode->edittree);
 						}
 					}
 				}
 				else {
-					BLI_remlink(&snode->edittree->links, link);
-					link->prev = link->next = NULL;
-					link->tonode= NULL;
-					link->tosock= NULL;
+					if (link->tonode || link->tosock) {
+						BLI_remlink(&snode->edittree->links, link);
+						link->prev = link->next = NULL;
+						link->tonode= NULL;
+						link->tosock= NULL;
+						
+						snode->edittree->update |= NTREE_UPDATE_LINKS;
+						ntreeUpdateTree(snode->edittree);
+					}
 				}
 			}
 			else {
@@ -2205,18 +2363,25 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							if( link->fromsock!= tsock && (!tnode || (tnode!=node && link->fromnode!=tnode)) ) {
 								link->fromnode= tnode;
 								link->fromsock= tsock;
-								if (link->prev==NULL && link->next==NULL)
+								if (link->prev==NULL && link->next==NULL) {
 									BLI_addtail(&snode->edittree->links, link);
-								ntreeSolveOrder(snode->edittree);	/* for interactive red line warning */
+								}
+								
+								snode->edittree->update |= NTREE_UPDATE_LINKS;
+								ntreeUpdateTree(snode->edittree);
 							}
 						}
 					}
 				}
 				else {
-					BLI_remlink(&snode->edittree->links, link);
-					link->prev = link->next = NULL;
-					link->fromnode= NULL;
-					link->fromsock= NULL;
+					if (link->tonode || link->tosock) {
+						BLI_remlink(&snode->edittree->links, link);
+						link->prev = link->next = NULL;
+						link->fromnode= NULL;
+						link->fromsock= NULL;
+						snode->edittree->update |= NTREE_UPDATE_LINKS;
+						ntreeUpdateTree(snode->edittree);
+					}
 				}
 			}
 			/* hilight target sockets only */
@@ -2244,23 +2409,26 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			else if (outside_group_rect(snode) && (link->tonode || link->fromnode)) {
 				/* automatically add new group socket */
 				if (link->tonode && link->tosock) {
-					link->fromsock = nodeGroupExposeSocket(snode->edittree, link->tosock, SOCK_IN);
+					link->fromsock = node_group_expose_socket(snode->edittree, link->tosock, SOCK_IN);
 					link->fromnode = NULL;
-					if (link->prev==NULL && link->next==NULL)
+					if (link->prev==NULL && link->next==NULL) {
 						BLI_addtail(&snode->edittree->links, link);
+					}
+					snode->edittree->update |= NTREE_UPDATE_GROUP_IN | NTREE_UPDATE_LINKS;
 				}
 				else if (link->fromnode && link->fromsock) {
-					link->tosock = nodeGroupExposeSocket(snode->edittree, link->fromsock, SOCK_OUT);
+					link->tosock = node_group_expose_socket(snode->edittree, link->fromsock, SOCK_OUT);
 					link->tonode = NULL;
-					if (link->prev==NULL && link->next==NULL)
+					if (link->prev==NULL && link->next==NULL) {
 						BLI_addtail(&snode->edittree->links, link);
+					}
+					snode->edittree->update |= NTREE_UPDATE_GROUP_OUT | NTREE_UPDATE_LINKS;
 				}
 			}
 			else
 				nodeRemLink(snode->edittree, link);
 			
-			ntreeSolveOrder(snode->edittree);
-			node_tree_verify_groups(snode->nodetree);
+			ntreeUpdateTree(snode->edittree);
 			snode_notify(C, snode);
 			snode_dag_update(C, snode);
 			
@@ -2335,7 +2503,7 @@ static int node_link_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ED_preview_kill_jobs(C);
 
 	nldrag->in_out= node_link_init(snode, nldrag);
-		
+	
 	if(nldrag->in_out) {
 		op->customdata= nldrag;
 		
@@ -2408,7 +2576,7 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 
 	snode_autoconnect(snode, 1, replace);
 
-	node_tree_verify_groups(snode->nodetree);
+	ntreeUpdateTree(snode->edittree);
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
 	
@@ -2482,8 +2650,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 			}
 		}
 		
-		ntreeSolveOrder(snode->edittree);
-		node_tree_verify_groups(snode->nodetree);
+		ntreeUpdateTree(snode->edittree);
 		snode_notify(C, snode);
 		snode_dag_update(C, snode);
 		
@@ -2608,7 +2775,7 @@ void ED_node_link_insert(ScrArea *sa)
 		link->flag &= ~NODE_LINKFLAG_HILITE;
 		
 		nodeAddLink(snode->edittree, select, socket_best_match(&select->outputs, sockto->type), node, sockto);
-		ntreeSolveOrder(snode->edittree);	/* needed for pointers */
+		ntreeUpdateTree(snode->edittree);	/* needed for pointers */
 		snode_tag_changed(snode, select);
 		ED_node_changed_update(snode->id, select);
 	}
@@ -2819,14 +2986,14 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 
 	ED_preview_kill_jobs(C);
 	
-	gnode= nodeMakeGroupFromSelected(snode->nodetree);
+	gnode= node_group_make_from_selected(snode->nodetree);
 	if(gnode==NULL) {
 		BKE_report(op->reports, RPT_WARNING, "Can not make Group");
 		return OPERATOR_CANCELLED;
 	}
 	else {
 		nodeSetActive(snode->nodetree, gnode);
-		ntreeSolveOrder(snode->nodetree);
+		ntreeUpdateTree(snode->nodetree);
 	}
 	
 	snode_notify(C, snode);
@@ -2972,7 +3139,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	node_tree_verify_groups(snode->nodetree);
+	ntreeUpdateTree(snode->edittree);
 
 	snode_notify(C, snode);
 
@@ -3056,7 +3223,7 @@ static int node_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 	
-	node_tree_verify_groups(snode->nodetree);
+	ntreeUpdateTree(snode->edittree);
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
@@ -3126,7 +3293,7 @@ static void node_delete_reconnect(bNodeTree* tree, bNode* node)
 				deliveringvecsocket = link->fromsock;
 			}
 			break;
-		case SOCK_VALUE:
+		case SOCK_FLOAT:
 			if (valsocket == NULL) {
 				valsocket = link->tosock;
 				deliveringvalnode = link->fromnode;
@@ -3147,7 +3314,7 @@ static void node_delete_reconnect(bNodeTree* tree, bNode* node)
 			numberOfConnectedOutputSockets ++;
 			if (!first) first = link;
 			switch(sock->type) {
-			case SOCK_VALUE:
+			case SOCK_FLOAT:
 				if (deliveringvalsocket) {
 					link->fromnode = deliveringvalnode;
 					link->fromsock = deliveringvalsocket;
@@ -3205,7 +3372,7 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	node_tree_verify_groups(snode->nodetree);
+	ntreeUpdateTree(snode->edittree);
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
@@ -3235,7 +3402,7 @@ static int node_show_cycles_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceNode *snode= CTX_wm_space_node(C);
 	
 	/* this is just a wrapper around this call... */
-	ntreeSolveOrder(snode->edittree);
+	ntreeUpdateTree(snode->nodetree);
 	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
@@ -3265,7 +3432,9 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node;
 	Image *ima= NULL;
-	int ntype=0;
+	bNodeTemplate ntemp;
+
+	ntemp.type = -1;
 
 	/* check input variables */
 	if (RNA_property_is_set(op->ptr, "filepath"))
@@ -3297,11 +3466,14 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	node_deselectall(snode);
 	
 	if (snode->nodetree->type==NTREE_COMPOSIT)
-		ntype = CMP_NODE_IMAGE;
+		ntemp.type = CMP_NODE_IMAGE;
 
+	if (ntemp.type < 0)
+		return OPERATOR_CANCELLED;
+		
 	ED_preview_kill_jobs(C);
 	
-	node = node_add_node(snode, bmain, scene, ntype, snode->mx, snode->my);
+	node = node_add_node(snode, bmain, scene, &ntemp, snode->mx, snode->my);
 	
 	if (!node) {
 		BKE_report(op->reports, RPT_WARNING, "Could not add an image node.");
@@ -3350,5 +3522,67 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign.");
 }
 
+/********************** New node tree operator *********************/
 
+static int new_node_tree_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode;
+	bNodeTree *ntree;
+	PointerRNA ptr, idptr;
+	PropertyRNA *prop;
+	int treetype;
+	char treename[MAX_ID_NAME-2] = "NodeTree";
+	
+	/* retrieve state */
+	snode= CTX_wm_space_node(C);
+	
+	if (RNA_property_is_set(op->ptr, "type"))
+		treetype = RNA_enum_get(op->ptr, "type");
+	else
+		treetype = snode->treetype;
+	
+	if (RNA_property_is_set(op->ptr, "name"))
+		RNA_string_get(op->ptr, "name", treename);
+	
+	ntree = ntreeAddTree(treename, treetype, 0);
+	if(!ntree)
+		return OPERATOR_CANCELLED;
+	
+	/* hook into UI */
+	uiIDContextProperty(C, &ptr, &prop);
 
+	if(prop) {
+		RNA_id_pointer_create(&ntree->id, &idptr);
+		RNA_property_pointer_set(&ptr, prop, idptr);
+		/* RNA_property_pointer_set increases the user count,
+		 * fixed here as the editor is the initial user.
+		 */
+		--ntree->id.us;
+		RNA_property_update(C, &ptr, prop);
+	}
+	else if(snode) {
+		Scene *scene= CTX_data_scene(C);
+		snode->nodetree = ntree;
+		
+		ED_node_tree_update(snode, scene);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_new_node_tree(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "New node tree";
+	ot->idname= "NODE_OT_new_node_tree";
+	
+	/* api callbacks */
+	ot->exec= new_node_tree_exec;
+	ot->poll= ED_operator_node_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", nodetree_type_items, NTREE_COMPOSIT, "Tree Type", "");
+	RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME-2, "Name", "");
+}

@@ -766,7 +766,9 @@ Tex *copy_texture(Tex *tex)
 	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
 	if(tex->nodetree) {
-		ntreeEndExecTree(tex->nodetree);
+		if (tex->nodetree->execdata) {
+			ntreeTexEndExecTree(tex->nodetree->execdata);
+		}
 		texn->nodetree= ntreeCopyTree(tex->nodetree); 
 	}
 	
