@@ -46,9 +46,9 @@ extern "C"
 	int collada_import(bContext *C, const char *filepath)
 	{
 		DocumentImporter imp (C, filepath);
-		imp.import();
+		if(imp.import()) return 1;
 
-		return 1;
+		return 0;
 	}
 
 	int collada_export(Scene *sce, const char *filepath, int selected)
