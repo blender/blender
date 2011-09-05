@@ -2175,7 +2175,6 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 	bNode *node, *newnode, *lastnode;
 	bNodeLink *link, *newlink, *lastlink;
 	int keep_inputs = RNA_boolean_get(op->ptr, "keep_inputs");
-	bNodeSocket *sock;
 	
 	ED_preview_kill_jobs(C);
 	

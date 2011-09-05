@@ -158,7 +158,7 @@ void ntreeInitTypes(bNodeTree *ntree)
 	ntree->init |= NTREE_TYPE_INIT;
 }
 
-static bNodeSocket *make_socket(bNodeTree *ntree, int in_out, const char *name, int type)
+static bNodeSocket *make_socket(bNodeTree *UNUSED(ntree), int in_out, const char *name, int type)
 {
 	bNodeSocketType *stype= ntreeGetSocketType(type);
 	bNodeSocket *sock;

@@ -549,7 +549,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
 	float iconofs;
-	float socket_size= NODE_SOCKSIZE*U.dpi/72;
+	/* float socket_size= NODE_SOCKSIZE*U.dpi/72; */ /* UNUSED */
 	float iconbutw= 0.8f*UI_UNIT_X;
 	int color_id= node_get_colorid(node);
 	char showname[128]; /* 128 used below */
