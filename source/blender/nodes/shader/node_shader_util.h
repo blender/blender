@@ -1,5 +1,5 @@
 /*
- * $Id: SHD_util.h 36549 2011-05-08 14:23:38Z lukastoenne $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

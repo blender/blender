@@ -1,5 +1,5 @@
 /*
- * $Id: CMP_blur.c 35562 2011-03-15 20:10:32Z lukastoenne $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

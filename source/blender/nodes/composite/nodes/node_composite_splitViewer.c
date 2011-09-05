@@ -1,5 +1,5 @@
 /*
- * $Id: CMP_splitViewer.c 36340 2011-04-26 13:24:20Z lukastoenne $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

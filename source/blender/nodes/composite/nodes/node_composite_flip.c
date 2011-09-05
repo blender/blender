@@ -1,5 +1,5 @@
 /*
- * $Id: CMP_flip.c 36333 2011-04-26 09:27:43Z lukastoenne $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

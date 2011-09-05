@@ -1,5 +1,5 @@
 /*
- * $Id: SHD_dynamic.c 35927 2011-03-31 20:59:55Z lukastoenne $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

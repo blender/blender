@@ -1,5 +1,5 @@
 /*
- * $Id: CMP_node.h 36550 2011-05-08 16:08:08Z lukastoenne $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -1,5 +1,5 @@
 /*
- * $Id: TEX_image.c 36481 2011-05-04 11:42:25Z lukastoenne $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

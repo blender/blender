@@ -1,5 +1,5 @@
 /*
- * $Id: SHD_camera.c 36536 2011-05-07 13:27:27Z lukastoenne $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

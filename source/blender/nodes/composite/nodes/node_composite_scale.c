@@ -1,5 +1,5 @@
 /*
- * $Id: CMP_scale.c 36593 2011-05-10 11:19:26Z lukastoenne $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
