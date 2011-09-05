@@ -27,8 +27,8 @@
 */
 
 /*
- * XXX I’d like to make modified weights visible in WeightPaint mode,
- *     but couldn’t figure a way to do this…
+ * XXX I'd like to make modified weights visible in WeightPaint mode,
+ *     but couldn't figure a way to do this…
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -234,6 +234,7 @@ static void initData(ModifierData *md)
 	wmd->mask_constant        = 1.0f;
 	wmd->mask_tex_use_channel = MOD_WVG_MASK_TEX_USE_INT; /* Use intensity by default. */
 	wmd->mask_tex_mapping     = MOD_DISP_MAP_LOCAL;
+	wmd->max_dist             = 1.0f; /* vert arbitrary distance, but don't use 0 */
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -252,8 +253,9 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->mask_tex_use_channel   = wmd->mask_tex_use_channel;
 	twmd->mask_tex_mapping       = wmd->mask_tex_mapping;
 	twmd->mask_tex_map_obj       = wmd->mask_tex_map_obj;
-	BLI_strncpy(twmd->mask_tex_uvlayer_name, wmd->mask_tex_uvlayer_name,
-	            sizeof(twmd->mask_tex_uvlayer_name));
+	BLI_strncpy(twmd->mask_tex_uvlayer_name, wmd->mask_tex_uvlayer_name, sizeof(twmd->mask_tex_uvlayer_name));
+	twmd->min_dist               = wmd->min_dist;
+	twmd->max_dist               = wmd->max_dist;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
@@ -396,7 +398,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Create a copy of our dmesh, only if our affected cdata layer is the same as org mesh. */
 	if (dvert == CustomData_get_layer(&ob_m->vdata, CD_MDEFORMVERT)) {
 		/* XXX Seems to create problems with weightpaint mode???
-		 *     I’m missing something here, I guess…
+		 *     I'm missing something here, I guess…
 		 */
 //		DM_set_only_copy(dm, CD_MASK_MDEFORMVERT); /* Only copy defgroup layer. */
 		ret = CDDM_copy(dm);

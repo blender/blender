@@ -790,16 +790,13 @@ typedef enum {
 typedef struct WeightVGEditModifierData {
 	ModifierData modifier;
 
-	/* XXX Note: I tried to keep everything logically ordered – provided the
-	 *           alignment constraints…
-	 */
+	/* Note: I tried to keep everything logically ordered - provided the
+	 * alignment constraints... */
 
 	char	defgrp_name[32];      /* Name of vertex group to edit. */
 
-	/* Flags (MOD_WVG_EDIT_MAP, MOD_WVG_EDIT_CMAP, MOD_WVG_EDIT_REVERSE_WEIGHTS,
-	 * MOD_WVG_EDIT_ADD2VG, MOD_WVG_EDIT_REMFVG, MOD_WVG_EDIT_CLAMP).
-	 */
-	int		edit_flags;
+	short	edit_flags;     /* using MOD_WVG_EDIT_* flags */
+	short	pad1;
 	float	default_weight; /* Weight for vertices not in vgroup. */
 
 	/* Mapping stuff. */
@@ -809,7 +806,7 @@ typedef struct WeightVGEditModifierData {
 	float	add_threshold, rem_threshold;
 
 	/* Masking options. */
-	float	mask_constant; /* The global “influence”, if no vgroup nor tex is used as mask. */
+	float	mask_constant; /* The global "influence", if no vgroup nor tex is used as mask. */
 	/* Name of mask vertex group from which to get weight factors. */
 	char	mask_defgrp_name[32];
 
@@ -817,10 +814,9 @@ typedef struct WeightVGEditModifierData {
 	int		mask_tex_use_channel;      /* Which channel to use as weightf. */
 	struct Tex *mask_texture;          /* The texture. */
 	struct Object *mask_tex_map_obj;   /* Name of the map object. */
-	/* How to map the texture (using MOD_DISP_MAP_xxx constants). */
+	/* How to map the texture (using MOD_DISP_MAP_* constants). */
 	int		mask_tex_mapping;
 	char	mask_tex_uvlayer_name[32]; /* Name of the UV layer. */
-
 	/* Padding… */
 	int pad_i1;
 } WeightVGEditModifierData;
@@ -843,21 +839,19 @@ typedef struct WeightVGMixModifierData {
 	ModifierData modifier;
 
 	/* XXX Note: I tried to keep everything logically ordered – provided the
-	 *           alignment constraints…
-	 */
+	 *           alignment constraints... */
 
 	char	defgrp_name[32];      /* Name of vertex group to modify/weight. */
 	char	defgrp_name2[32];     /* Name of other vertex group to mix in. */
 	float	default_weight;       /* Default weight value for first vgroup. */
 	float	default_weight2;      /* Default weight value to mix in. */
-	char	mix_mode;             /* How second vgroup’s weights affect first ones */
+	char	mix_mode;             /* How second vgroups weights affect first ones */
 	char	mix_set;              /* What vertices to affect. */
 
-	char	pad_c1, pad_c2;
-	int		pad_i1;
+	char	pad[6];
 
 	/* Masking options. */
-	float	mask_constant; /* The global “influence”, if no vgroup nor tex is used as mask. */
+	float	mask_constant; /* The global "influence", if no vgroup nor tex is used as mask. */
 	/* Name of mask vertex group from which to get weight factors. */
 	char	mask_defgrp_name[32];
 
@@ -867,12 +861,11 @@ typedef struct WeightVGMixModifierData {
 	struct Object *mask_tex_map_obj;   /* Name of the map object. */
 	int		mask_tex_mapping;          /* How to map the texture! */
 	char	mask_tex_uvlayer_name[32]; /* Name of the UV layer. */
-
 	/* Padding… */
-	int pad_i2;
+	int pad2;
 } WeightVGMixModifierData;
 
-/* How second vgroup’s weights affect first ones. */
+/* How second vgroup's weights affect first ones. */
 #define MOD_WVG_MIX_SET			1 /* Second weights replace weights. */
 #define MOD_WVG_MIX_ADD			2 /* Second weights are added to weights. */
 #define MOD_WVG_MIX_SUB			3 /* Second weights are subtracted from weights. */
@@ -891,9 +884,8 @@ typedef struct WeightVGMixModifierData {
 typedef struct WeightVGProximityModifierData {
 	ModifierData modifier;
 
-	/* XXX Note: I tried to keep everything logically ordered – provided the
-	 *           alignment constraints…
-	 */
+	/* Note: I tried to keep everything logically ordered - provided the
+	 * alignment constraints... */
 
 	char	defgrp_name[32];      /* Name of vertex group to modify/weight. */
 
@@ -901,11 +893,11 @@ typedef struct WeightVGProximityModifierData {
 	int		proximity_mode;
 	int		proximity_flags;
 
-	/* Target object from which to calculate vertices’ distances. */
+	/* Target object from which to calculate vertices distances. */
 	struct Object *proximity_ob_target;
 
 	/* Masking options. */
-	float	mask_constant; /* The global “influence”, if no vgroup nor tex is used as mask. */
+	float	mask_constant; /* The global "influence", if no vgroup nor tex is used as mask. */
 	/* Name of mask vertex group from which to get weight factors. */
 	char	mask_defgrp_name[32];
 
@@ -918,8 +910,8 @@ typedef struct WeightVGProximityModifierData {
 
 	float	min_dist, max_dist;        /* Distances mapping to 0.0/1.0 weights. */
 
-	/* Padding… */
-	int pad_i2;
+	/* Padding... */
+	int pad;
 } WeightVGProximityModifierData;
 
 /* Modes of proximity weighting. */

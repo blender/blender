@@ -44,8 +44,8 @@ struct Object;
 struct MappingInfoModifierData;*/
 
 /*
- * XXX I’d like to make modified weights visible in WeightPaint mode,
- *     but couldn’t figure a way to do this…
+ * XXX I'd like to make modified weights visible in WeightPaint mode,
+ *     but couldn't figure a way to do this…
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -68,7 +68,7 @@ struct MappingInfoModifierData;*/
  * XXX The standard “factor” value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
 void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object *ob,
-                      struct DerivedMesh *dm, float fact, const char *defgrp_name, Tex *texture,
+                      struct DerivedMesh *dm, float fact, const char defgrp_name[32], Tex *texture,
                       int tex_use_channel, int tex_mapping, Object *tex_map_object,
                       const char *tex_uvlayer_name);
 
@@ -76,7 +76,8 @@ void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object 
  * If indices is not NULL, it must be a table of same length as weights, mapping to the real
  * vertex index (in case the weight table does not cover the whole vertices...).
  */
-void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num, int *indices, float *weights,
-                        int do_add, float add_thresh, int do_rem, float rem_thresh);
+void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num,
+                        const int *indices, const float *weights, int do_add,
+                        float add_thresh, int do_rem, float rem_thresh);
 
 #endif /* MOD_WEIGHTVG_UTIL_H */

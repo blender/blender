@@ -27,8 +27,8 @@
 */
 
 /*
- * XXX I’d like to make modified weights visible in WeightPaint mode,
- *     but couldn’t figure a way to do this…
+ * XXX I'd like to make modified weights visible in WeightPaint mode,
+ *     but couldn't figure a way to do this…
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -61,9 +61,10 @@
  * XXX The standard “factor” value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
 void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object *ob,
-                      DerivedMesh *dm, float fact, const char *defgrp_name, Tex *texture,
+                      DerivedMesh *dm, float fact, const char defgrp_name[32], Tex *texture,
                       int tex_use_channel, int tex_mapping, Object *tex_map_object,
-                      const char *tex_uvlayer_name) {
+                      const char *tex_uvlayer_name)
+{
 	int ref_didx;
 	MDeformVert *dvert = NULL;
 	int i;
@@ -80,9 +81,9 @@ void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object 
 		float (*v_co)[3];
 
 		/* Use new generic get_texture_coords, but do not modify our DNA struct for it…
-		 * XXX Why use a ModifierData stuff here ? Why not a simple, generic struct for parameters ?
-		 *     What e.g. if a modifier wants to use several textures ?
-		 *     Why use only v_co, and not MVert (or both) ?
+		 * XXX Why use a ModifierData stuff here ? Why not a simple, generic struct for parameters ?
+		 *     What e.g. if a modifier wants to use several textures ?
+		 *     Why use only v_co, and not MVert (or both) ?
 		 */
 		t_map.texture = texture;
 		t_map.map_object = tex_map_object;
@@ -180,9 +181,10 @@ void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object 
  * If indices is not NULL, it must be a table of same length as weights, mapping to the real
  * vertex index (in case the weight table does not cover the whole vertices...).
  */
-void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num, int *indices,
-                        float *weights, int do_add, float add_thresh, int do_rem,
-                        float rem_thresh){
+void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num,
+                        const int *indices, const float *weights, int do_add,
+                        float add_thresh, int do_rem, float rem_thresh)
+{
 	int i;
 
 	for (i = 0; i < num; i++) {
@@ -195,8 +197,8 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num, int *indice
 		/* Never allow weights out of [0.0, 1.0] range. */
 		CLAMP(w, 0.0, 1.0);
 
-		/* Let’s first check to see if this vert is already in the weight group – if so
-		 * let’s update it, or remove it if needed.
+		/* Let's first check to see if this vert is already in the weight group – if so
+		 * let's update it, or remove it if needed.
 		 */
 		for (j = 0; j < dv->totweight; j++) {
 			/* If this weight corresponds to the deform group, update the value or,
@@ -233,7 +235,7 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num, int *indice
 			}
 		}
 
-		/* If the vert wasn’t in the deform group, add it if needed!
+		/* If the vert wasn't in the deform group, add it if needed!
 		 */
 		if (add2vg && w > add_thresh) {
 			newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), "WeightVGEdit Modifier, deformWeight");

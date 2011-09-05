@@ -2642,7 +2642,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "add_threshold");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
-	RNA_def_property_ui_text(prop, "Add Threshold", "Lower bound for a vertex’s weight "
+	RNA_def_property_ui_text(prop, "Add Threshold", "Lower bound for a vertex's weight "
 	                                                "to be added to the vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -2650,7 +2650,7 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "rem_threshold");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
-	RNA_def_property_ui_text(prop, "Rem Threshold", "Upper bound for a vertex’s weight "
+	RNA_def_property_ui_text(prop, "Rem Threshold", "Upper bound for a vertex's weight "
 	                                                "to be removed from the vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -2746,7 +2746,7 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 		{MOD_WVG_PROXIMITY_OBJECT, "OBJECT", 0, "Object Distance",
 		 "Use distance between affected and target objects."},
 		{MOD_WVG_PROXIMITY_GEOMETRY, "GEOMETRY", 0, "Geometry Distance",
-		 "Use distance between affected object’s vertices and target object, or target object’s geometry."},
+		 "Use distance between affected object's vertices and target object, or target object's geometry."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem proximity_geometry_items[] = {
@@ -2760,7 +2760,7 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "WeightVGProximityModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "WeightVG Proximity Modifier",
-	                       "Set the weights of vertices in a group from a target object’s "
+	                       "Set the weights of vertices in a group from a target object's "
 	                       "distance.");
 	RNA_def_struct_sdna(srna, "WeightVGProximityModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_WEIGHTVG);
@@ -2780,12 +2780,12 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "proximity_flags");
 	RNA_def_property_enum_items(prop, proximity_geometry_items);
 	RNA_def_property_flag(prop, PROP_ENUM_FLAG); /* important to run before default set */
-	RNA_def_property_ui_text(prop, "Proximity Geometry", "Use shortest distance to target object’s geometry as weight");
+	RNA_def_property_ui_text(prop, "Proximity Geometry", "Use shortest distance to target object's geometry as weight");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "proximity_ob_target");
-	RNA_def_property_ui_text(prop, "Target Object", "Object to calculate vertices’ distances from.");
+	RNA_def_property_ui_text(prop, "Target Object", "Object to calculate vertices distances from.");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
