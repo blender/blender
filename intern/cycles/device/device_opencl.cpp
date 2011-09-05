@@ -230,7 +230,7 @@ public:
 		string build_options = "";
 
 		build_options += "-I " + kernel_path + ""; /* todo: escape path */
-		build_options += " -Werror -cl-fast-relaxed-math -cl-strict-aliasing";
+		build_options += " -cl-fast-relaxed-math -cl-strict-aliasing";
 
 		cpProgram = clCreateProgramWithSource(cxContext, 1, &source_str, &source_len, &ciErr);
 		if(opencl_error(ciErr))
