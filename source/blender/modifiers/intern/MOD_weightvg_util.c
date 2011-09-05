@@ -66,7 +66,6 @@ void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object 
                       const char *tex_uvlayer_name)
 {
 	int ref_didx;
-	MDeformVert *dvert = NULL;
 	int i;
 
 	/* If influence factor is null, nothing to do! */
@@ -139,16 +138,16 @@ void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object 
 		}
 
 		MEM_freeN(tex_co);
-		return;
 	}
+	else if ((ref_didx = defgroup_name_index(ob, defgrp_name)) != -1) {
+		MDeformVert *dvert = NULL;
 
-	/* Check whether we want to set vgroup weights from a constant weight factor or a vertex
-	 * group.
-	 */
-	/* Get vgroup idx from its name. */
-	ref_didx = defgroup_name_index(ob, defgrp_name);
-	/* Proceed only if vgroup is valid, else use constant factor. */
-	if (ref_didx >= 0) {
+		/* Check whether we want to set vgroup weights from a constant weight factor or a vertex
+		 * group.
+		 */
+		/* Get vgroup idx from its name. */
+
+		/* Proceed only if vgroup is valid, else use constant factor. */
 		/* Get actual dverts (ie vertex group data). */
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 		/* Proceed only if vgroup is valid, else assume factor = O. */
@@ -157,23 +156,18 @@ void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object 
 		/* For each weight (vertex), make the mix between org and new weights. */
 		for (i = 0; i < num; i++) {
 			int idx = indices ? indices[i] : i;
-			int j;
-			for (j = 0; j < dvert[idx].totweight; j++) {
-				if(dvert[idx].dw[j].def_nr == ref_didx) {
-					float f = dvert[idx].dw[j].weight * fact;
-					org_w[i] = (new_w[i] * f) + (org_w[i] * (1.0-f));
-					break;
-				}
-			}
+			const float f= defvert_find_weight(&dvert[idx], ref_didx) * fact;
+			org_w[i] = (new_w[i] * f) + (org_w[i] * (1.0f-f));
 			/* If that vertex is not in ref vgroup, assume null factor, and hence do nothing! */
 		}
-		return;
 	}
-
-	/* Default "influence" behavior. */
-	/* For each weight (vertex), make the mix between org and new weights. */
-	for (i = 0; i < num; i++) {
-		org_w[i] = (new_w[i] * fact) + (org_w[i] * (1.0-fact));
+	else {
+		/* Default "influence" behavior. */
+		/* For each weight (vertex), make the mix between org and new weights. */
+		const float ifact= 1.0-fact;
+		for (i = 0; i < num; i++) {
+			org_w[i] = (new_w[i] * fact) + (org_w[i] * ifact);
+		}
 	}
 }
 
@@ -189,7 +183,7 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num,
 
 	for (i = 0; i < num; i++) {
 		int j;
-		char add2vg = do_add;
+		int add2vg = do_add;
 		float w = weights[i];
 		MDeformVert *dv = &dvert[indices ? indices[i] : i];
 		MDeformWeight *newdw;
@@ -207,6 +201,8 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num,
 			if (dv->dw[j].def_nr == defgrp_idx) {
 				/* Remove the vertex from this vgroup if needed. */
 				if (do_rem && w < rem_thresh) {
+					/* TODO, move this into deform.c to make into a generic function */
+
 					dv->totweight--;
 					/* If there are still other deform weights attached to this vert then remove
 					 * this deform weight, and reshuffle the others.
@@ -230,14 +226,16 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num,
 				else {
 					dv->dw[j].weight = w;
 				}
-				add2vg = 0;
+				add2vg = FALSE;
 				break;
 			}
 		}
 
 		/* If the vert wasn't in the deform group, add it if needed!
 		 */
-		if (add2vg && w > add_thresh) {
+		if ((add2vg == TRUE) && w > add_thresh) {
+			/* TODO, mvoe into deform.c and make into a generic function, this assumes the vertex
+			 * groups have already been checked, so this has to remain low level */
 			newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), "WeightVGEdit Modifier, deformWeight");
 			if(dv->dw) {
 				memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);

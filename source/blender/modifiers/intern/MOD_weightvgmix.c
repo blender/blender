@@ -217,7 +217,7 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData*) md;
 	/* If no vertex group, bypass. */
-	return (wmd->defgrp_name_a == NULL);
+	return (wmd->defgrp_name_a[0] == '\0');
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
@@ -231,8 +231,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	MDeformVert *dvert = NULL;
 	int numVerts;
 	int defgrp_idx, defgrp_idx2 = -1;
-	float *org_w = NULL;
-	float *new_w = NULL;
+	float *org_w;
+	float *new_w;
 	int *tidx, *indices = NULL;
 	int numIdx = 0;
 	int i, j;
@@ -416,13 +416,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Update (add to) vgroup.
 	 * XXX Depending on the MOD_WVG_SET_xxx option chosen, we might have to add vertices to vgroup.
 	 */
-	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 1, -FLT_MAX, 0, 0.0f);
+	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, TRUE, -FLT_MAX, 0, 0.0f);
 
 	/* Freeing stuff. */
-	if (org_w)
-		MEM_freeN(org_w);
-	if (new_w)
-		MEM_freeN(new_w);
+	MEM_freeN(org_w);
+	MEM_freeN(new_w);
+
 	if (indices)
 		MEM_freeN(indices);
 

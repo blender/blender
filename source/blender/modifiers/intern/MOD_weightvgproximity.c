@@ -327,7 +327,7 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData*) md;
 	/* If no vertex group, bypass. */
-	if (wmd->defgrp_name == NULL) return 1;
+	if (wmd->defgrp_name[0] == '\0') return 1;
 	/* If no target object, bypass. */
 	return (wmd->proximity_ob_target == NULL);
 }
@@ -505,14 +505,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);
 
 	/* Freeing stuff. */
-	if (org_w)
-		MEM_freeN(org_w);
-	if (new_w)
-		MEM_freeN(new_w);
-	if (indices)
-		MEM_freeN(indices);
-	if (v_cos)
-		MEM_freeN(v_cos);
+	MEM_freeN(org_w);
+	MEM_freeN(new_w);
+	MEM_freeN(indices);
+	MEM_freeN(v_cos);
 
 	/* Return the vgroup-modified mesh. */
 	return ret;

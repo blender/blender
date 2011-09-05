@@ -173,7 +173,7 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
 	/* If no vertex group, bypass. */
-	return (wmd->defgrp_name == NULL);
+	return (wmd->defgrp_name[0] == '\0');
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
@@ -185,17 +185,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	Mesh *ob_m = NULL;
 #endif
 	MDeformVert *dvert = NULL;
-	float *org_w = NULL; /* Array original weights. */
-	float *new_w = NULL; /* Array new weights. */
+	float *org_w; /* Array original weights. */
+	float *new_w; /* Array new weights. */
 	int numVerts;
 	int defgrp_idx;
 	int i;
 	char rel_ret = 0; /* Boolean, whether we have to release ret dm or not, when not using it! */
-	float *mapf = NULL; /* Cache for mapping factors. */
 	/* Flags. */
-	char do_map = wmd->edit_flags & MOD_WVG_EDIT_CMAP;
-	char do_add = wmd->edit_flags & MOD_WVG_EDIT_ADD2VG;
-	char do_rem = wmd->edit_flags & MOD_WVG_EDIT_REMFVG;
+	int do_map = (wmd->edit_flags & MOD_WVG_EDIT_CMAP)   != 0;
+	int do_add = (wmd->edit_flags & MOD_WVG_EDIT_ADD2VG) != 0;
+	int do_rem = (wmd->edit_flags & MOD_WVG_EDIT_REMFVG) != 0;
 
 	/* Get number of verts. */
 	numVerts = dm->getNumVerts(dm);
@@ -259,17 +258,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	org_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
 	new_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
 	for (i = 0; i < numVerts; i++) {
-		int j;
+		MDeformWeight *dw= defvert_find_index(&dvert[i], defgrp_idx);
 		org_w[i] = new_w[i] = wmd->default_weight;
-		for (j = 0; j < dvert[i].totweight; j++) {
-			if(dvert[i].dw[j].def_nr == defgrp_idx) {
-				org_w[i] = new_w[i] = dvert[i].dw[j].weight;
-				break;
-			}
+
+		if(dw) {
+			org_w[i] = new_w[i] = dw->weight;
 		}
+
 		/* Do mapping. */
-		if (do_map)
+		if (do_map) {
 			new_w[i] = curvemapping_evaluateF(wmd->cmap_curve, 0, new_w[i]);
+		}
 	}
 
 	/* Do masking. */
@@ -282,12 +281,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                   do_rem, wmd->rem_threshold);
 
 	/* Freeing stuff. */
-	if (org_w)
-		MEM_freeN(org_w);
-	if (new_w)
-		MEM_freeN(new_w);
-	if (mapf)
-		MEM_freeN(mapf);
+	MEM_freeN(org_w);
+	MEM_freeN(new_w);
 
 	/* Return the vgroup-modified mesh. */
 	return ret;
