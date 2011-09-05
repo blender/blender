@@ -805,10 +805,9 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 
 /* Space Graph Editor */
 
-static void rna_SpaceGraphEditor_display_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
+static void rna_SpaceGraphEditor_display_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	//SpaceIpo *sipo= (SpaceIpo*)(ptr->data);
-	ScrArea *sa= CTX_wm_area(C);
+	ScrArea *sa= rna_area_from_space(ptr);
 	
 	/* after changing view mode, must force recalculation of F-Curve colors 
 	 * which can only be achieved using refresh as opposed to redraw
@@ -822,11 +821,10 @@ static int rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 	return (sipo->ghostCurves.first != NULL);
 }
 
-static void rna_Sequencer_display_mode_update(bContext *C, PointerRNA *ptr)
+static void rna_Sequencer_view_type_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	int view = RNA_enum_get(ptr, "view_type");
-
-	ED_sequencer_update_view(C, view);
+	ScrArea *sa= rna_area_from_space(ptr);
+	ED_area_tag_refresh(sa);
 }
 
 static float rna_BackgroundImage_opacity_get(PointerRNA *ptr)
@@ -1689,8 +1687,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "view");
 	RNA_def_property_enum_items(prop, view_type_items);
 	RNA_def_property_ui_text(prop, "View Type", "The type of the Sequencer view (sequencer, preview or both)");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_Sequencer_display_mode_update");
+	RNA_def_property_update(prop, 0, "rna_Sequencer_view_type_update");
 
 	/* display type, fairly important */
 	prop= RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
@@ -1987,7 +1984,6 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, "rna_SpaceGraphEditor_display_mode_update");
 	
 	/* display */
