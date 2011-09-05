@@ -2584,13 +2584,13 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_add", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_ADD2VG);
-	RNA_def_property_ui_text(prop, "Add to VG", "Add vertices with weight over threshold "
+	RNA_def_property_ui_text(prop, "Group Add", "Add vertices with weight over threshold "
 	                                            "to vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "use_remove", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_REMFVG);
-	RNA_def_property_ui_text(prop, "Rem from VG", "Remove vertices with weight below threshold "
+	RNA_def_property_ui_text(prop, "Group Remove", "Remove vertices with weight below threshold "
 	                                              "from vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

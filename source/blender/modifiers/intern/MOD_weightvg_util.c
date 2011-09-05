@@ -69,7 +69,7 @@ void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object 
 	int i;
 
 	/* If influence factor is null, nothing to do! */
-	if (fact == 0.0) return;
+	if (fact == 0.0f) return;
 
 	/* If we want to mask vgroup weights from a texture. */
 	if (texture) {
@@ -105,34 +105,34 @@ void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object 
 			/* Get the good channel value… */
 			switch(tex_use_channel) {
 			case MOD_WVG_MASK_TEX_USE_INT:
-				org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0 - (texres.tin*fact)));
+				org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin*fact)));
 				break;
 			case MOD_WVG_MASK_TEX_USE_RED:
-				org_w[i] = (new_w[i] * texres.tr * fact) + (org_w[i] * (1.0 - (texres.tr*fact)));
+				org_w[i] = (new_w[i] * texres.tr * fact) + (org_w[i] * (1.0f - (texres.tr*fact)));
 				break;
 			case MOD_WVG_MASK_TEX_USE_GREEN:
-				org_w[i] = (new_w[i] * texres.tg * fact) + (org_w[i] * (1.0 - (texres.tg*fact)));
+				org_w[i] = (new_w[i] * texres.tg * fact) + (org_w[i] * (1.0f - (texres.tg*fact)));
 				break;
 			case MOD_WVG_MASK_TEX_USE_BLUE:
-				org_w[i] = (new_w[i] * texres.tb * fact) + (org_w[i] * (1.0 - (texres.tb*fact)));
+				org_w[i] = (new_w[i] * texres.tb * fact) + (org_w[i] * (1.0f - (texres.tb*fact)));
 				break;
 			case MOD_WVG_MASK_TEX_USE_HUE:
 				rgb_to_hsv(texres.tr, texres.tg, texres.tb, &h, &s, &v);
-				org_w[i] = (new_w[i] * h * fact) + (org_w[i] * (1.0 - (h*fact)));
+				org_w[i] = (new_w[i] * h * fact) + (org_w[i] * (1.0f - (h*fact)));
 				break;
 			case MOD_WVG_MASK_TEX_USE_SAT:
 				rgb_to_hsv(texres.tr, texres.tg, texres.tb, &h, &s, &v);
-				org_w[i] = (new_w[i] * s * fact) + (org_w[i] * (1.0 - (s*fact)));
+				org_w[i] = (new_w[i] * s * fact) + (org_w[i] * (1.0f - (s*fact)));
 				break;
 			case MOD_WVG_MASK_TEX_USE_VAL:
 				rgb_to_hsv(texres.tr, texres.tg, texres.tb, &h, &s, &v);
-				org_w[i] = (new_w[i] * v * fact) + (org_w[i] * (1.0 - (v*fact)));
+				org_w[i] = (new_w[i] * v * fact) + (org_w[i] * (1.0f - (v*fact)));
 				break;
 			case MOD_WVG_MASK_TEX_USE_ALPHA:
-				org_w[i] = (new_w[i] * texres.ta * fact) + (org_w[i] * (1.0 - (texres.ta*fact)));
+				org_w[i] = (new_w[i] * texres.ta * fact) + (org_w[i] * (1.0f - (texres.ta*fact)));
 				break;
 			default:
-				org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0 - (texres.tin*fact)));
+				org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin*fact)));
 				break;
 			}
 		}
@@ -164,7 +164,7 @@ void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object 
 	else {
 		/* Default "influence" behavior. */
 		/* For each weight (vertex), make the mix between org and new weights. */
-		const float ifact= 1.0-fact;
+		const float ifact= 1.0f - fact;
 		for (i = 0; i < num; i++) {
 			org_w[i] = (new_w[i] * fact) + (org_w[i] * ifact);
 		}
@@ -189,7 +189,7 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num,
 		MDeformWeight *newdw;
 
 		/* Never allow weights out of [0.0, 1.0] range. */
-		CLAMP(w, 0.0, 1.0);
+		CLAMP(w, 0.0f, 1.0f);
 
 		/* Let's first check to see if this vert is already in the weight group – if so
 		 * let's update it, or remove it if needed.

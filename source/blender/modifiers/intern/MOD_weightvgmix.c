@@ -98,16 +98,16 @@ static float mix_weight(float weight, float weight2, char mix_mode)
 		return (weight * weight2);
 	else if (mix_mode == MOD_WVG_MIX_DIV) {
 		/* Avoid dividing by zero (or really small values). */
-		if (weight2 < 0.0 && weight2 > -MOD_WVG_ZEROFLOOR)
+		if (weight2 < 0.0f && weight2 > -MOD_WVG_ZEROFLOOR)
 			weight2 = -MOD_WVG_ZEROFLOOR;
-		else if (weight2 >= 0.0 && weight2 < MOD_WVG_ZEROFLOOR)
+		else if (weight2 >= 0.0f && weight2 < MOD_WVG_ZEROFLOOR)
 			weight2 = MOD_WVG_ZEROFLOOR;
 		return (weight / weight2);
 	}
 	else if (mix_mode == MOD_WVG_MIX_DIF)
 		return (weight < weight2 ? weight2 - weight : weight - weight2);
 	else if (mix_mode == MOD_WVG_MIX_AVG)
-		return (weight + weight2) / 2.0;
+		return (weight + weight2) * 0.5f;
 	else return weight2;
 }
 
