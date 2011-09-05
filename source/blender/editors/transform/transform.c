@@ -4371,8 +4371,8 @@ static int createSlideVerts(TransInfo *t)
 
 	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_TestHFlag(e, BM_SELECT)) {
-			if (BM_Edge_FaceCount(e) > 2 || BM_Edge_FaceCount(e) == 0)
-				return 0; //can't handle more then 2 faces around an edge
+			if (BM_Edge_FaceCount(e) != 2)
+				return 0; //can only handle exactly 2 faces around each edge
 		}
 	}
 
