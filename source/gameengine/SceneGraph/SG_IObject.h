@@ -194,7 +194,7 @@ public:
 	/** 
 	 * Clear the array of pointers to controllers associated with 
 	 * this node. This does not delete the controllers themselves!
-     * This should be used very carefully to avoid memory
+	 * This should be used very carefully to avoid memory
 	 * leaks.
 	 */
 	

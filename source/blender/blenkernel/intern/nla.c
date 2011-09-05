@@ -359,6 +359,9 @@ NlaStrip *add_nla_soundstrip (Scene *scene, Speaker *speaker)
 #endif
 	{
 		strip->end = 10.0f;
+		/* quiet compiler warnings */
+		(void)scene;
+		(void)speaker;
 	}
 	
 	/* general settings */

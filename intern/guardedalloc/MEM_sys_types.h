@@ -88,7 +88,7 @@ typedef unsigned long uintptr_t;
 #define _UINTPTR_T_DEFINED
 #endif
 
-#elif defined(__linux__) || defined(__NetBSD__)
+#elif defined(__linux__) || defined(__NetBSD__) || defined(__OpenBSD__)
 
 	/* Linux-i386, Linux-Alpha, Linux-ppc */
 #include <stdint.h>

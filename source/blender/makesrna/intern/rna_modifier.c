@@ -2432,7 +2432,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "steps", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_range(prop, 2, 10000);
-	RNA_def_property_ui_range(prop, 2, 512, 1, 0);
+	RNA_def_property_ui_range(prop, 3, 512, 1, 0);
 	RNA_def_property_ui_text(prop, "Steps", "Number of steps in the revolution");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

@@ -111,7 +111,7 @@ KX_GameObject::KX_GameObject(
       m_pHitObject(NULL),
       m_actionManager(NULL),
       m_isDeformable(false)
-    #ifdef WITH_PYTHON
+#ifdef WITH_PYTHON
     , m_attr_dict(NULL)
 #endif
 {
@@ -159,6 +159,7 @@ KX_GameObject::~KX_GameObject()
 	}
 	if (m_actionManager)
 	{
+		KX_GetActiveScene()->RemoveAnimatedObject(this);
 		delete m_actionManager;
 	}
 #ifdef WITH_PYTHON
@@ -355,8 +356,8 @@ BL_ActionManager* KX_GameObject::GetActionManager()
 {
 	// We only want to create an action manager if we need it
 	if (!m_actionManager)
-		m_actionManager = new BL_ActionManager(this);
-
+	{		KX_GetActiveScene()->AddAnimatedObject(this);		m_actionManager = new BL_ActionManager(this);
+	}
 	return m_actionManager;
 }
 

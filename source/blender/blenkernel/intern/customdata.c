@@ -808,41 +808,65 @@ static void layerDefault_mcol(void *data, int count)
 
 
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
+	/* 0: CD_MVERT */
 	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 1: CD_MSTICKY */
 	{sizeof(MSticky), "MSticky", 1, NULL, NULL, NULL, layerInterp_msticky, NULL,
 	 NULL},
+	/* 2: CD_MDEFORMVERT */
 	{sizeof(MDeformVert), "MDeformVert", 1, NULL, layerCopy_mdeformvert,
 	 layerFree_mdeformvert, layerInterp_mdeformvert, NULL, NULL},
+	/* 3: CD_MEDGE */
 	{sizeof(MEdge), "MEdge", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 4: CD_MFACE */
 	{sizeof(MFace), "MFace", 1, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 5: CD_MTFACE */
 	{sizeof(MTFace), "MTFace", 1, "UVTex", layerCopy_tface, NULL,
 	 layerInterp_tface, layerSwap_tface, layerDefault_tface},
+	/* 6: CD_MCOL */
 	/* 4 MCol structs per face */
 	{sizeof(MCol)*4, "MCol", 4, "Col", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
+	/* 7: CD_ORIGINDEX */
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 8: CD_NORMAL */
 	/* 3 floats per normal vector */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 9: CD_FLAGS */
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 10: CD_PROP_FLT */
 	{sizeof(MFloatProperty), "MFloatProperty",1,"Float",NULL,NULL,NULL,NULL},
+	/* 11: CD_PROP_INT */
 	{sizeof(MIntProperty), "MIntProperty",1,"Int",NULL,NULL,NULL,NULL},
+	/* 12: CD_PROP_STR */
 	{sizeof(MStringProperty), "MStringProperty",1,"String",NULL,NULL,NULL,NULL},
+	/* 13: CD_ORIGSPACE */
 	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVTex", layerCopy_origspace_face, NULL,
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
+	/* 14: CD_ORCO */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 15: CD_MTEXPOLY */
 	{sizeof(MTexPoly), "MTexPoly", 1, "Face Texture", NULL, NULL, NULL, NULL, NULL},
+	/* 16: CD_MLOOPUV */
 	{sizeof(MLoopUV), "MLoopUV", 1, "UV coord", NULL, NULL, layerInterp_mloopuv, NULL, NULL},
+	/* 17: CD_MLOOPCOL */
 	{sizeof(MLoopCol), "MLoopCol", 1, "Col", NULL, NULL, layerInterp_mloopcol, NULL, layerDefault_mloopcol},
+	/* 18: CD_TANGENT */
 	{sizeof(float)*4*4, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 19: CD_MDISPS */
 	{sizeof(MDisps), "MDisps", 1, NULL, layerCopy_mdisps,
 	 layerFree_mdisps, layerInterp_mdisps, layerSwap_mdisps, NULL, layerRead_mdisps, layerWrite_mdisps,
 	 layerFilesize_mdisps, layerValidate_mdisps},
+	/* 20: CD_WEIGHT_MCOL */
 	{sizeof(MCol)*4, "MCol", 4, "WeightCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
-	 {sizeof(MCol)*4, "MCol", 4, "IDCol", NULL, NULL, layerInterp_mcol,
+	/* 21: CD_ID_MCOL */
+	{sizeof(MCol)*4, "MCol", 4, "IDCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
-	 {sizeof(MCol)*4, "MCol", 4, "TexturedCol", NULL, NULL, layerInterp_mcol,
+	/* 22: CD_TEXTURE_MCOL */
+	{sizeof(MCol)*4, "MCol", 4, "TexturedCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
+	/* 23: CD_CLOTH_ORCO */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL}
 };
 

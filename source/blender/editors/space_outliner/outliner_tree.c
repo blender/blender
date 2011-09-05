@@ -222,6 +222,12 @@ void outliner_free_tree(ListBase *lb)
 	}
 }
 
+void outliner_cleanup_tree(SpaceOops *soops)
+{
+	outliner_free_tree(&soops->tree);
+	outliner_storage_cleanup(soops);
+}
+
 /* Find ith item from the treestore */
 static TreeElement *outliner_find_tree_element(ListBase *lb, int store_index)
 {

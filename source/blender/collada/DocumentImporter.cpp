@@ -410,18 +410,15 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		while (geom_done < geom.getCount()) {
 			ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map,
 												  material_texture_mapping_map);
-			if ( ob != NULL )
-				++geom_done;
+			++geom_done;
 		}
 		while (camera_done < camera.getCount()) {
 			ob = create_camera_object(camera[camera_done], sce);
-			if ( ob != NULL )
-				++camera_done;
+			++camera_done;
 		}
 		while (lamp_done < lamp.getCount()) {
 			ob = create_lamp_object(lamp[lamp_done], sce);
-			if ( ob != NULL )
-				++lamp_done;
+			++lamp_done;
 		}
 		while (controller_done < controller.getCount()) {
 			COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[controller_done];

@@ -2564,8 +2564,8 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 				btPlaneSpace1( axisInA, axis1, axis2 );
 
 				frameInA.getBasis().setValue( axisInA.x(), axis1.x(), axis2.x(),
-					                          axisInA.y(), axis1.y(), axis2.y(),
-											  axisInA.z(), axis1.z(), axis2.z() );
+				                              axisInA.y(), axis1.y(), axis2.y(),
+				                              axisInA.z(), axis1.z(), axis2.z() );
 
 				frameInA.setOrigin( pivotInA );
 

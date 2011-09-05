@@ -111,7 +111,7 @@ void RNA_api_scene(StructRNA *srna)
 #ifdef WITH_COLLADA
 	/* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 	func= RNA_def_function(srna, "collada_export", "rna_Scene_collada_export");
-	parm= RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file.");
+	RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file.");
 	parm= RNA_def_boolean(func, "selected", 0, "Export only selected", "Export only selected elements.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */

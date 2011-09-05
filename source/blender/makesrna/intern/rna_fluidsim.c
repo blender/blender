@@ -184,7 +184,11 @@ static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *v
 
 static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *ptr)
 {
-	return 32;
+#ifdef DISABLE_ELBEEM
+	return 0;
+#else
+	return 31;
+#endif
 }
 
 static char *rna_FluidSettings_path(PointerRNA *ptr)

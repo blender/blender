@@ -115,7 +115,7 @@ private:
 
 	void fix_leaf_bones();
 	
-    void set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node ,char * parentname, float parent_mat[][4]);
+	void set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node ,char * parentname, float parent_mat[][4]);
 
 
 #if 0
@@ -171,7 +171,7 @@ public:
 	
 	// gives a world-space mat
 	bool get_joint_bind_mat(float m[][4], COLLADAFW::Node *joint);
-    
+
 	void set_tags_map( TagsMap& tags_map);
 	
 };

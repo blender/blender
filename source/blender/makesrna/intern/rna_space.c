@@ -591,7 +591,8 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 	SpaceText *st= (SpaceText*)(ptr->data);
 
 	st->text= value.data;
-	st->top= 0;
+
+	WM_main_add_notifier(NC_TEXT|NA_SELECTED, st->text);
 }
 
 static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -1621,6 +1622,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	prop= RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DISPGP);
