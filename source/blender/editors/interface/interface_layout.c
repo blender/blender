@@ -1526,7 +1526,7 @@ static void menu_item_enum_opname_menu(bContext *UNUSED(C), uiLayout *layout, vo
 {
 	MenuItemLevel *lvl= (MenuItemLevel*)(((uiBut*)arg)->func_argN);
 
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
+	uiLayoutSetOperatorContext(layout, lvl->opcontext);
 	uiItemsEnumO(layout, lvl->opname, lvl->propname);
 }
 

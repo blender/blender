@@ -322,7 +322,7 @@ static void LOGIC_OT_sensor_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
+	ot->prop= prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
 	RNA_def_enum_funcs(prop, rna_Sensor_type_itemf);
 	RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Sensor to add");
 	RNA_def_string(ot->srna, "object", "", 32, "Object", "Name of the Object to add the Sensor to");
@@ -437,7 +437,7 @@ static void LOGIC_OT_controller_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
+	ot->prop= RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
 	RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Controller to add");
 	RNA_def_string(ot->srna, "object", "", 32, "Object", "Name of the Object to add the Controller to");
 }
@@ -539,7 +539,7 @@ static void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
+	ot->prop= prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
 	RNA_def_enum_funcs(prop, rna_Actuator_type_itemf);
 	RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Actuator to add");
 	RNA_def_string(ot->srna, "object", "", 32, "Object", "Name of the Object to add the Actuator to");

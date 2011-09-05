@@ -886,8 +886,8 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
 				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
-				CTX_wm_region_set(C, ar);
 				CTX_wm_area_set(C, area);
+				CTX_wm_region_set(C, ar);
 
 				return retval;
 			}
