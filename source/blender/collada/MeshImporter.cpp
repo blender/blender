@@ -220,7 +220,7 @@ void MeshImporter::set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
 
 	if (quad) uvs.getUV(indices[index + 3], mtface->uv[3]);
 
-#if 1 // #ifdef COLLADA_DEBUG
+#ifdef COLLADA_DEBUG
 	if (quad) {
 		fprintf(stderr, "face uv:\n"
 				"((%d, %d, %d, %d))\n"
