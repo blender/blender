@@ -2552,6 +2552,17 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 
 static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 {
+	static EnumPropertyItem weightvg_edit_mapping_mode_items[] = {
+		{MOD_WVG_MAPPING_NONE, "LINEAR", ICON_LINCURVE, "Linear", ""},
+		{MOD_WVG_MAPPING_CURVE, "CURVE", ICON_RNDCURVE, "Custom Curve", ""},
+		{MOD_WVG_MAPPING_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
+		{MOD_WVG_MAPPING_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
+		{MOD_WVG_MAPPING_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
+		{MOD_WVG_MAPPING_SPHERE, "ICON_SPHERECURVE", ICON_SPHERECURVE, "Sphere", ""},
+		{MOD_WVG_MAPPING_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", ""},
+		{MOD_WVG_MAPPING_STEP, "STEP", ICON_NOCURVE, "Median Step", ""}, /* Would need a better icon... */
+		{0, NULL, 0, NULL, NULL}};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -2567,20 +2578,10 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeightVGModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-/*	prop= RNA_def_property(srna, "use_map", PROP_BOOLEAN, PROP_NONE);*/
-/*	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_MAP);*/
-/*	RNA_def_property_ui_text(prop, "Map", "Map vertex group weights.");*/
-/*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
-
-	prop= RNA_def_property(srna, "use_map_curve", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_CMAP);
-	RNA_def_property_ui_text(prop, "Curve Map", "Map vertex group weights with a curve.");
+	prop= RNA_def_property(srna, "mapping_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, weightvg_edit_mapping_mode_items);
+	RNA_def_property_ui_text(prop, "Mapping Mode", "How weights are mapped to there new values.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-/*	prop= RNA_def_property(srna, "use_reverse", PROP_BOOLEAN, PROP_NONE);*/
-/*	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_REVERSE_WEIGHTS);*/
-/*	RNA_def_property_ui_text(prop, "Reverse", "Reverse vertex group weights.");*/
-/*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 
 	prop= RNA_def_property(srna, "use_add", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_ADD2VG);
@@ -2594,45 +2595,12 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	                                              "from vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-/*	prop= RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);*/
-/*	RNA_def_property_boolean_sdna(prop, NULL, "edit_flags", MOD_WVG_EDIT_CLAMP);*/
-/*	RNA_def_property_ui_text(prop, "Clamp", "Clamp vertex group weights.");*/
-/*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
-
 	prop= RNA_def_property(srna, "default_weight", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Default Weight", "Default weight a vertex will have if "
 	                                                 "it is not in the vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-/*	prop= RNA_def_property(srna, "map_input_low", PROP_FLOAT, PROP_NONE);*/
-/*	RNA_def_property_float_sdna(prop, NULL, "map_org_min");*/
-/*	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
-/*	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);*/
-/*	RNA_def_property_ui_text(prop, "Input Low Weight", "Low input mapping value.");*/
-/*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
-
-/*	prop= RNA_def_property(srna, "map_input_high", PROP_FLOAT, PROP_NONE);*/
-/*	RNA_def_property_float_sdna(prop, NULL, "map_org_max");*/
-/*	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
-/*	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);*/
-/*	RNA_def_property_ui_text(prop, "Input High Weight", "High input mapping value.");*/
-/*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
-
-/*	prop= RNA_def_property(srna, "map_output_low", PROP_FLOAT, PROP_NONE);*/
-/*	RNA_def_property_float_sdna(prop, NULL, "map_new_min");*/
-/*	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
-/*	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);*/
-/*	RNA_def_property_ui_text(prop, "Output Low Weight", "Low output mapping value.");*/
-/*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
-
-/*	prop= RNA_def_property(srna, "map_output_high", PROP_FLOAT, PROP_NONE);*/
-/*	RNA_def_property_float_sdna(prop, NULL, "map_new_max");*/
-/*	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
-/*	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);*/
-/*	RNA_def_property_ui_text(prop, "Output High Weight", "High output mapping value.");*/
-/*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 
 	prop= RNA_def_property(srna, "map_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "cmap_curve");
@@ -2654,18 +2622,6 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rem Threshold", "Upper bound for a vertex's weight "
 	                                                "to be removed from the vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-/*	prop= RNA_def_property(srna, "clamp_weight_min", PROP_FLOAT, PROP_NONE);*/
-/*	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
-/*	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);*/
-/*	RNA_def_property_ui_text(prop, "Min Weight", "Lowest weight a vertex can get.");*/
-/*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
-
-/*	prop= RNA_def_property(srna, "clamp_weight_max", PROP_FLOAT, PROP_NONE);*/
-/*	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
-/*	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);*/
-/*	RNA_def_property_ui_text(prop, "Max Weight", "Highest weight a vertex can get.");*/
-/*	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 
 	/* Common masking properties. */
 	rna_def_modifier_weightvg_mask(brna, srna);
@@ -2756,6 +2712,17 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 		{MOD_WVG_PROXIMITY_GEOM_FACES, "FACE", ICON_FACESEL, "Face", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem weightvg_proximity_mapping_mode_items[] = {
+		{MOD_WVG_MAPPING_NONE, "LINEAR", ICON_LINCURVE, "Linear", ""},
+		/* No curve mapping here! */
+		{MOD_WVG_MAPPING_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
+		{MOD_WVG_MAPPING_SMOOTH, "SMOOTH", ICON_SMOOTHCURVE, "Smooth", ""},
+		{MOD_WVG_MAPPING_ROOT, "ROOT", ICON_ROOTCURVE, "Root", ""},
+		{MOD_WVG_MAPPING_SPHERE, "ICON_SPHERECURVE", ICON_SPHERECURVE, "Sphere", ""},
+		{MOD_WVG_MAPPING_RANDOM, "RANDOM", ICON_RNDCURVE, "Random", ""},
+		{MOD_WVG_MAPPING_STEP, "STEP", ICON_NOCURVE, "Median Step", ""}, /* Would need a better icon... */
+		{0, NULL, 0, NULL, NULL}};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -2800,6 +2767,11 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0, 1000.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Highest Dist", "Distance mapping to weight 1.0.");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "mapping_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, weightvg_proximity_mapping_mode_items);
+	RNA_def_property_ui_text(prop, "Mapping Mode", "How weights are mapped to there new values.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	/* Common masking properties. */

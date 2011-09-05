@@ -37,11 +37,10 @@
 /* so modifier types match their defines */
 #include "MOD_modifiertypes.h"
 
-struct Tex;
+struct CurveMapping;
 struct DerivedMesh;
 struct Object;
-/*struct ModifierData;
-struct MappingInfoModifierData;*/
+struct Tex;
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
@@ -61,14 +60,22 @@ struct MappingInfoModifierData;*/
  */
 #define MOD_WVG_ZEROFLOOR		1.0e-32f
 
+/* Maps new_w weights in place, using either one of the predifined functions, or a custom curve.
+ * Return values are in new_w.
+ * If indices is not NULL, it must be a table of same length as org_w and new_w, mapping to the real
+ * vertex index (in case the weight tables do not cover the whole vertices...).
+ * cmap might be NULL, in which case curve mapping mode will return unmodified data.
+ */
+void weightvg_do_map(int num, float *new_w, short mode, struct CurveMapping *cmap);
+
 /* Applies new_w weights to org_w ones, using either a texture, vgroup or constant value as factor.
  * Return values are in org_w.
  * If indices is not NULL, it must be a table of same length as org_w and new_w, mapping to the real
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * XXX The standard “factor” value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
-void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object *ob,
-                      struct DerivedMesh *dm, float fact, const char defgrp_name[32], Tex *texture,
+void weightvg_do_mask(int num, const int *indices, float *org_w, const float *new_w, Object *ob,
+                      DerivedMesh *dm, float fact, const char defgrp_name[32], Tex *texture,
                       int tex_use_channel, int tex_mapping, Object *tex_map_object,
                       const char *tex_uvlayer_name);
 

@@ -795,8 +795,8 @@ typedef struct WeightVGEditModifierData {
 
 	char	defgrp_name[32];      /* Name of vertex group to edit. */
 
-	short	edit_flags;     /* using MOD_WVG_EDIT_* flags */
-	short	pad1;
+	short	edit_flags;     /* Using MOD_WVG_EDIT_* flags. */
+	short	mapping_mode;   /* Using MOD_WVG_MAPPING_* defines. */
 	float	default_weight; /* Weight for vertices not in vgroup. */
 
 	/* Mapping stuff. */
@@ -817,6 +817,7 @@ typedef struct WeightVGEditModifierData {
 	/* How to map the texture (using MOD_DISP_MAP_* constants). */
 	int		mask_tex_mapping;
 	char	mask_tex_uvlayer_name[32]; /* Name of the UV layer. */
+
 	/* Padding… */
 	int pad_i1;
 } WeightVGEditModifierData;
@@ -825,7 +826,7 @@ typedef struct WeightVGEditModifierData {
 /* Use parametric mapping. */
 //#define MOD_WVG_EDIT_MAP					(1 << 0)
 /* Use curve mapping. */
-#define MOD_WVG_EDIT_CMAP					(1 << 1)
+//#define MOD_WVG_EDIT_CMAP					(1 << 1)
 /* Reverse weights (in the [0.0, 1.0] standard range). */
 //#define MOD_WVG_EDIT_REVERSE_WEIGHTS		(1 << 2)
 /* Add vertices with higher weight than threshold to vgroup. */
@@ -848,7 +849,7 @@ typedef struct WeightVGMixModifierData {
 	char	mix_mode;             /* How second vgroups weights affect first ones */
 	char	mix_set;              /* What vertices to affect. */
 
-	char	pad[6];
+	char	pad_c1[6];
 
 	/* Masking options. */
 	float	mask_constant; /* The global "influence", if no vgroup nor tex is used as mask. */
@@ -861,8 +862,9 @@ typedef struct WeightVGMixModifierData {
 	struct Object *mask_tex_map_obj;   /* Name of the map object. */
 	int		mask_tex_mapping;          /* How to map the texture! */
 	char	mask_tex_uvlayer_name[32]; /* Name of the UV layer. */
+
 	/* Padding… */
-	int pad2;
+	int pad_i1;
 } WeightVGMixModifierData;
 
 /* How second vgroup's weights affect first ones. */
@@ -910,8 +912,11 @@ typedef struct WeightVGProximityModifierData {
 
 	float	min_dist, max_dist;        /* Distances mapping to 0.0/1.0 weights. */
 
+	/* Put here to avoid breaking existing struct... */
+	short	mapping_mode;              /* Using MOD_WVG_MAPPING_* defines. */
+
 	/* Padding... */
-	int pad;
+	short pad_s1;
 } WeightVGProximityModifierData;
 
 /* Modes of proximity weighting. */
@@ -929,6 +934,18 @@ typedef struct WeightVGProximityModifierData {
 #define MOD_WVG_PROXIMITY_GEOM_FACES		(1 << 2)
 
 /* Defines common to all WeightVG modifiers. */
+/* Mapping modes. */
+#define MOD_WVG_MAPPING_NONE				0
+#define MOD_WVG_MAPPING_CURVE				1
+#define MOD_WVG_MAPPING_SHARP				2 /* PROP_SHARP */
+#define MOD_WVG_MAPPING_SMOOTH				3 /* PROP_SMOOTH */
+#define MOD_WVG_MAPPING_ROOT				4 /* PROP_ROOT */
+/* PROP_LIN not used (same as NONE, here...). */
+/* PROP_CONST not used. */
+#define MOD_WVG_MAPPING_SPHERE				7 /* PROP_SPHERE */
+#define MOD_WVG_MAPPING_RANDOM				8 /* PROP_RANDOM */
+#define MOD_WVG_MAPPING_STEP				9 /* Median Step. */
+
 /* Tex channel to be used as mask. */
 #define MOD_WVG_MASK_TEX_USE_INT			1
 #define MOD_WVG_MASK_TEX_USE_RED			2

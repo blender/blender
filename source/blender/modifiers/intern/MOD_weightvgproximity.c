@@ -33,10 +33,10 @@
  *     Or the WeightPaint mode code itself?
  */
 
-#include "BLI_utildefines.h"
+#include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
-#include "BLI_editVert.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -193,9 +193,9 @@ static float get_ob2ob_distance(const Object* ob, const Object* obr)
 }
 
 /**
- * Maps distances to weights.
+ * Maps distances to weights, with an optionnal “smoothing” mapping.
  */
-void do_map(float *weights, const int nidx, const float min_d, const float max_d)
+void do_map(float *weights, const int nidx, const float min_d, const float max_d, short mode)
 {
 	const float range_inv= 1.0f / (max_d - min_d); /* invert since multiplication is faster */
 	unsigned int i= nidx;
@@ -204,17 +204,12 @@ void do_map(float *weights, const int nidx, const float min_d, const float max_d
 		else if(weights[i] <= min_d) weights[i]= 0.0f;
 		else                         weights[i]= (weights[i] - min_d) * range_inv;
 	}
+
+	if(!ELEM(mode, MOD_WVG_MAPPING_NONE, MOD_WVG_MAPPING_CURVE)) {
+		weightvg_do_map(nidx, weights, mode, NULL);
+	}
 }
 
-/*a min_d + b = 0.0*/
-/*a max_d + b = 1.0*/
-/*a min_d = -b*/
-/*a = -b / min_d*/
-
-/*max_d(-b/min_d) + b = 1.0*/
-/*b((-max_d/min_d)+1.0) = 1.0*/
-/*b = 1.0 / ((min_d-max_d)/min_d)*/
-/*b = min_d/(min_d-max_d)*/
 /**************************************
  * Modifiers functions.               *
  **************************************/
@@ -224,6 +219,8 @@ static void initData(ModifierData *md)
 
 	wmd->proximity_mode       = MOD_WVG_PROXIMITY_OBJECT;
 	wmd->proximity_flags      = MOD_WVG_PROXIMITY_GEOM_VERTS;
+
+	wmd->mapping_mode         = MOD_WVG_MAPPING_NONE;
 
 	wmd->mask_constant        = 1.0f;
 	wmd->mask_tex_use_channel = MOD_WVG_MASK_TEX_USE_INT; /* Use intensity by default. */
@@ -240,6 +237,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->proximity_mode         = wmd->proximity_mode;
 	twmd->proximity_flags        = wmd->proximity_flags;
 	twmd->proximity_ob_target    = wmd->proximity_ob_target;
+
+	twmd->mapping_mode           = wmd->mapping_mode;
 
 	twmd->mask_constant          = wmd->mask_constant;
 	BLI_strncpy(twmd->mask_defgrp_name, wmd->mask_defgrp_name, sizeof(twmd->mask_defgrp_name));
@@ -499,7 +498,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Map distances to weights. */
-	do_map(org_w, numIdx, wmd->min_dist, wmd->max_dist);
+	do_map(org_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->mapping_mode);
 
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
 	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);

@@ -33,16 +33,19 @@
  *     Or the WeightPaint mode code itself?
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_rand.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
+#include "DNA_color_types.h"      /* CurveMapping. */
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_colortools.h"       /* CurveMapping. */
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -54,16 +57,69 @@
 #include "MOD_weightvg_util.h"
 #include "RE_shader_ext.h"        /* Texture masking. */
 
+/* Maps new_w weights in place, using either one of the predifined functions, or a custom curve.
+ * Return values are in new_w.
+ * If indices is not NULL, it must be a table of same length as org_w and new_w, mapping to the real
+ * vertex index (in case the weight tables do not cover the whole vertices...).
+ * cmap might be NULL, in which case curve mapping mode will return unmodified data.
+ */
+void weightvg_do_map(int num, float *new_w, short mode, CurveMapping *cmap)
+{
+	int i;
+
+	/* Return immediately, if we have nothing to do! */
+	/* Also security checks... */
+	if(((mode == MOD_WVG_MAPPING_CURVE) && (cmap == NULL))
+	   || !ELEM7(mode, MOD_WVG_MAPPING_CURVE, MOD_WVG_MAPPING_SHARP, MOD_WVG_MAPPING_SMOOTH,
+	                   MOD_WVG_MAPPING_ROOT, MOD_WVG_MAPPING_SPHERE, MOD_WVG_MAPPING_RANDOM,
+	                   MOD_WVG_MAPPING_STEP))
+		return;
+
+	/* Map each weight (vertex) to its new value, accordingly to the chosen mode. */
+	for(i = 0; i < num; ++i) {
+		float fac = new_w[i];
+
+		/* Code borrowed from the warp modifier. */
+		/* Closely matches PROP_SMOOTH and similar. */
+		switch(mode) {
+		case MOD_WVG_MAPPING_CURVE:
+			fac = curvemapping_evaluateF(cmap, 0, fac);
+			break;
+		case MOD_WVG_MAPPING_SHARP:
+			fac = fac*fac;
+			break;
+		case MOD_WVG_MAPPING_SMOOTH:
+			fac = 3.0f*fac*fac - 2.0f*fac*fac*fac;
+			break;
+		case MOD_WVG_MAPPING_ROOT:
+			fac = (float)sqrt(fac);
+			break;
+		case MOD_WVG_MAPPING_SPHERE:
+			fac = (float)sqrt(2*fac - fac * fac);
+			break;
+		case MOD_WVG_MAPPING_RANDOM:
+			BLI_srand(BLI_rand()); /* random seed */
+			fac = BLI_frand()*fac;
+			break;
+		case MOD_WVG_MAPPING_STEP:
+			fac = (fac >= 0.5f)?1.0f:0.0f;
+			break;
+		}
+
+		new_w[i] = fac;
+	}
+}
+
 /* Applies new_w weights to org_w ones, using either a texture, vgroup or constant value as factor.
  * Return values are in org_w.
  * If indices is not NULL, it must be a table of same length as org_w and new_w, mapping to the real
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * XXX The standard “factor” value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
-void weightvg_do_mask(int num, int *indices, float *org_w, float *new_w, Object *ob,
-                      DerivedMesh *dm, float fact, const char defgrp_name[32], Tex *texture,
-                      int tex_use_channel, int tex_mapping, Object *tex_map_object,
-                      const char *tex_uvlayer_name)
+void weightvg_do_mask(int num, const int *indices, float *org_w, const float *new_w,
+                      Object *ob, DerivedMesh *dm, float fact, const char defgrp_name[32],
+                      Tex *texture, int tex_use_channel, int tex_mapping,
+                      Object *tex_map_object, const char *tex_uvlayer_name)
 {
 	int ref_didx;
 	int i;

@@ -779,31 +779,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.label(text="Default Weight:")
             col.prop(md, "default_weight", text="")
 
-#            layout.prop(md, "use_map")
-#            if md.use_map:
-#                split = layout.split()
-#                col = split.column()
-#                col.label("Input:")
-#                col.label("Output:")
-#                col = split.column()
-#                col.prop(md, "map_input_low", text="Min")
-#                col.prop(md, "map_output_low", text="Min")
-#                col = split.column()
-#                col.prop(md, "map_input_high", text="Max")
-#                col.prop(md, "map_output_high", text="Max")
-
-            layout.prop(md, "use_map_curve")
-            if md.use_map_curve:
+            layout.prop(md, "mapping_mode")
+            if md.mapping_mode == 'CURVE':
                 col = layout.column()
                 col.template_curve_mapping(md, "map_curve")
-
-#            layout.prop(md, "use_reverse")
-
-#            layout.prop(md, "use_clamp")
-#            if md.use_clamp:
-#                row = layout.row()
-#                row.prop(md, "clamp_weight_min")
-#                row.prop(md, "clamp_weight_max")
 
             row = layout.row()
             row.prop(md, "use_add")
@@ -863,6 +842,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row = layout.split()
             row.prop(md, "min_dist")
             row.prop(md, "max_dist")
+
+            layout.prop(md, "mapping_mode")
 
             # Common mask options…
             layout.separator()

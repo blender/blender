@@ -62,6 +62,7 @@ static void initData(ModifierData *md)
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
 	wmd->edit_flags             = 0;
+	wmd->mapping_mode           = MOD_WVG_MAPPING_NONE;
 	wmd->default_weight         = 0.0f;
 
 	wmd->cmap_curve             = curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
@@ -89,6 +90,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, sizeof(twmd->defgrp_name));
 
 	twmd->edit_flags             = wmd->edit_flags;
+	twmd->mapping_mode           = wmd->mapping_mode;
 	twmd->default_weight         = wmd->default_weight;
 
 	twmd->cmap_curve             = curvemapping_copy(wmd->cmap_curve);
@@ -192,7 +194,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	int i;
 	char rel_ret = 0; /* Boolean, whether we have to release ret dm or not, when not using it! */
 	/* Flags. */
-	int do_map = (wmd->edit_flags & MOD_WVG_EDIT_CMAP)   != 0;
 	int do_add = (wmd->edit_flags & MOD_WVG_EDIT_ADD2VG) != 0;
 	int do_rem = (wmd->edit_flags & MOD_WVG_EDIT_REMFVG) != 0;
 
@@ -264,11 +265,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		if(dw) {
 			org_w[i] = new_w[i] = dw->weight;
 		}
+	}
 
-		/* Do mapping. */
-		if (do_map) {
-			new_w[i] = curvemapping_evaluateF(wmd->cmap_curve, 0, new_w[i]);
-		}
+	/* Do mapping. */
+	if (wmd->mapping_mode != MOD_WVG_MAPPING_NONE) {
+		weightvg_do_map(numVerts, new_w, wmd->mapping_mode, wmd->cmap_curve);
 	}
 
 	/* Do masking. */
