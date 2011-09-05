@@ -205,11 +205,13 @@ static float get_ob2ob_distance(const Object* ob, const Object* obr)
  */
 void do_map(float *weights, const int nidx, const float min_d, const float max_d)
 {
-	int i;
-	float b = min_d / (min_d - max_d);
-	float a = -b / min_d;
-	for (i = 0; i < nidx; i++)
-		weights[i] = a * weights[i] + b;
+	const float range_inv= 1.0f / (max_d - min_d); /* invert since multiplication is faster */
+	unsigned int i= nidx;
+	while (i-- > 0) {
+		if     (weights[i] >= max_d) weights[i]= 1.0f; /* most likely case first */
+		else if(weights[i] <= min_d) weights[i]= 0.0f;
+		else                         weights[i]= (weights[i] - min_d) * range_inv;
+	}
 }
 
 /*a min_d + b = 0.0*/
