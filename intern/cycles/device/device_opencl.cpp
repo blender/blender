@@ -26,6 +26,7 @@
 #include "device_intern.h"
 
 #include "util_map.h"
+#include "util_math.h"
 #include "util_opencl.h"
 #include "util_opengl.h"
 #include "util_path.h"
@@ -412,7 +413,14 @@ public:
 
 		opencl_assert(ciErr);
 
-		size_t local_size[2] = {8, 8};
+		size_t workgroup_size;
+
+		clGetKernelWorkGroupInfo(ckPathTraceKernel, cdDevice,
+			CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &workgroup_size, NULL);
+	
+		workgroup_size = max(sqrt((double)workgroup_size), 1.0);
+
+		size_t local_size[2] = {workgroup_size, workgroup_size};
 		size_t global_size[2] = {global_size_round_up(local_size[0], d_w), global_size_round_up(local_size[1], d_h)};
 
 		/* run kernel */
@@ -480,7 +488,14 @@ public:
 
 		opencl_assert(ciErr);
 
-		size_t local_size[2] = {8, 8};
+		size_t workgroup_size;
+
+		clGetKernelWorkGroupInfo(ckFilmConvertKernel, cdDevice,
+			CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &workgroup_size, NULL);
+	
+		workgroup_size = max(sqrt((double)workgroup_size), 1.0);
+
+		size_t local_size[2] = {workgroup_size, workgroup_size};
 		size_t global_size[2] = {global_size_round_up(local_size[0], d_w), global_size_round_up(local_size[1], d_h)};
 
 		/* run kernel */

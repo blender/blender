@@ -101,6 +101,16 @@ __device_inline float min(float a, float b)
 	return (a < b)? a: b;
 }
 
+__device_inline double max(double a, double b)
+{
+	return (a > b)? a: b;
+}
+
+__device_inline double min(double a, double b)
+{
+	return (a < b)? a: b;
+}
+
 #endif
 
 __device_inline float min4(float a, float b, float c, float d)
