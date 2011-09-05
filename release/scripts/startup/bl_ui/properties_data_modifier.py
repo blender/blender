@@ -764,7 +764,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
                 col.prop(md, "mask_tex_use_channel", text="")
 
                 if md.mask_tex_mapping == 'OBJECT':
-                    layout.prop(md, "mask_tex_map_obj", text="Object")
+                    layout.prop(md, "mask_tex_map_object", text="Object")
                 elif md.mask_tex_mapping == 'UV' and ob.type == 'MESH':
                     layout.prop_search(md, "mask_tex_uv_layer", ob.data, "uv_textures")
 

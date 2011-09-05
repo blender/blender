@@ -463,4 +463,3 @@ ModifierTypeInfo modifierType_WeightVGMix = {
 	/* foreachIDLink */     foreachIDLink,
 	/* foreachTexLink */    foreachTexLink,
 };
-

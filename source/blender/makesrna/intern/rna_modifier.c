@@ -2542,7 +2542,8 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeightVGModifier_mask_uvlayer_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "mask_tex_map_obj", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "mask_tex_map_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "mask_tex_map_obj");
 	RNA_def_property_ui_text(prop, "Texture Coordinate Object", "Which object to take texture "
 	                                                            "coordinates from.");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
@@ -2790,14 +2791,14 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
 	prop= RNA_def_property(srna, "min_dist", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0, 1000.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Lowest Dist", "Distance mapping to weight 0.0.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "max_dist", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -100000.0, 100000.0, 10, 0);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0, 1000.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Highest Dist", "Distance mapping to weight 1.0.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

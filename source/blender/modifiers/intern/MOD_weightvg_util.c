@@ -250,4 +250,3 @@ void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num,
 		}
 	}
 }
-
