@@ -1404,7 +1404,7 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 
 	if(layout->root->type == UI_LAYOUT_HEADER)
 		uiBlockSetEmboss(block, UI_EMBOSS);
-	else if(layout->root->type == UI_LAYOUT_PANEL) {
+	else if(ELEM(layout->root->type, UI_LAYOUT_PANEL, UI_LAYOUT_TOOLBAR)) {
 		but->type= MENU;
 		but->flag |= UI_TEXT_LEFT;
 	}
