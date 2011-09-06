@@ -11991,6 +11991,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ntree->update |= NTREE_UPDATE;
 			}
 		}
+
+		{
+			/* Initialize group tree nodetypes.
+			 * These are used to distinguish tree types and
+			 * associate them with specific node types for polling.
+			 */
+			bNodeTree *ntree;
+			/* all node trees in main->nodetree are considered groups */
+			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+				ntree->nodetype = NODE_GROUP;
+		}
 	}
 
 	/* put compatibility code here until next subversion bump */
