@@ -355,6 +355,46 @@ void object_load_bmesh_exec(BMesh *bm, BMOperator *op) {
 	BMO_CallOpf(bm, "bmesh_to_mesh mesh=%p object=%p", me, ob);
 }
 
+
+static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
+{
+	BMVert **vertMap = NULL;
+	BMVert *eve;
+	 int i= 0;
+	BMIter iter;
+
+	vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
+	if(CustomData_has_layer(&bm->vdata, CD_SHAPE_KEYINDEX)) {
+		int *keyi;
+		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+			if(keyi) {
+				if (*keyi != ORIGINDEX_NONE)
+					vertMap[*keyi] = eve;
+			}
+			else {
+				if(i < ototvert) {
+					vertMap[i] = eve;
+				}
+			}
+			i++;
+		}
+	}
+	else {
+		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
+			if(i < ototvert) {
+				vertMap[i] = eve;
+			}
+			else {
+				break;
+			}
+			i++;
+		}
+	}
+
+	return vertMap;
+}
+
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	Mesh *me = BMO_Get_Pnt(op, "mesh");
 	/* Object *ob = BMO_Get_Pnt(op, "object"); */
@@ -621,17 +661,11 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {
 			if (ob->parent==bm->ob && ELEM(ob->partype, PARVERT1,PARVERT3)) {
-				
-				/* duplicate code from below, make it function later...? */
-				if (!vertMap) {
-					vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
-					
-					BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-						keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-						if (*keyi != ORIGINDEX_NONE)
-							vertMap[*keyi] = eve;
-					}
+
+				if (vertMap == NULL) {
+					vertMap= bmesh_to_mesh_vertex_map(bm, ototvert);
 				}
+
 				if(ob->par1 < ototvert) {
 					eve = vertMap[ob->par1];
 					if(eve) ob->par1= BM_GetIndex(eve);
@@ -651,29 +685,8 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 					if (md->type==eModifierType_Hook) {
 						HookModifierData *hmd = (HookModifierData*) md;
 
-						if (!vertMap) {
-							vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
-							if(CustomData_has_layer(&bm->vdata, CD_SHAPE_KEYINDEX)) {
-								i= 0;
-								BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-									keyi = CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
-									if(keyi) {
-										if (*keyi != ORIGINDEX_NONE)
-											vertMap[*keyi] = eve;
-									}
-									else {
-										vertMap[i] = eve;
-									}
-									i++;
-								}
-							}
-							else {
-								i= 0;
-								BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-									vertMap[i] = eve;
-									i++;
-								}
-							}
+						if (vertMap == NULL) {
+							vertMap= bmesh_to_mesh_vertex_map(bm, ototvert);
 						}
 						
 						for (i=j=0; i<hmd->totindex; i++) {
