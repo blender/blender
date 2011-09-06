@@ -26,7 +26,7 @@
  *   edges that line up to form a path, then try to
  *   deselect the middle edge
 */
-/*#define RESTRICTED_DESELECT*/
+#define RESTRICTED_DESELECT
 
 /*
  * BM_MARK.C
@@ -157,64 +157,49 @@ void BM_Select_Vert(BMesh *bm, BMVert *v, int select)
 
 void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 {
-#if defined(RESTRICTED_DESELECT)
-	int candesel;
-	int testiso = 1;
 
-	/*I might move this logic to editors/mesh/bmesh_select.c, where it'd be invoked
-	  by the selection tools.  in that case, we'd still retain the checks
-	  for if an edge's verts can be deselected.*/
-
-	/*ensure vert selections are valid, only if not in a multiselect
-	  mode that shares SCE_SELECT_VERT*/
-	switch (bm->selectmode) {
-		case SCE_SELECT_VERTEX:
-		case SCE_SELECT_EDGE:
-		case SCE_SELECT_FACE:
-		case SCE_SELECT_EDGE|SCE_SELECT_FACE:
-			testiso = 1;
-			break;
-		default:
-			testiso = 0;
-			break;
-	}
-
-	if (testiso && !select) {
-		BMIter eiter;
-		BMEdge *e2;
-		int i;
-
-		for (i=0; i<2; i++) {
-			candesel = 1;
-			e2 = BMIter_New(&eiter, bm, BM_EDGES_OF_VERT, !i?e->v1:e->v2);
-			for (; e2; e2=BMIter_Step(&eiter)) {
-				if (e2 == e) continue;
-				if (BM_TestHFlag(e2, BM_SELECT)) {
-					candesel = 0;
-					break;
-				}
-			}
-
-			if (candesel) BM_Select_Vert(bm, !i?e->v1:e->v2, 0);			
-		}
-	}
-#endif
-
-	if(select) { 
+	if(select){
 		if (!BM_TestHFlag(e, BM_SELECT)) bm->totedgesel += 1;
 
 		BM_SetHFlag(&(e->head), BM_SELECT);
 		BM_Select(bm, e->v1, 1);
 		BM_Select(bm, e->v2, 1);
-	}
-	else{ 
+	}else{ 
 		if (BM_TestHFlag(e, BM_SELECT)) bm->totedgesel -= 1;
-
 		BM_ClearHFlag(&(e->head), BM_SELECT);
-#if !defined(RESTRICTED_DESELECT)
-		BM_Select(bm, e->v1, 0);
-		BM_Select(bm, e->v2, 0);
-#endif
+
+		if(
+		        bm->selectmode == SCE_SELECT_EDGE ||
+		        bm->selectmode == SCE_SELECT_FACE ||
+		        bm->selectmode == (SCE_SELECT_EDGE | SCE_SELECT_FACE)){
+
+			BMIter iter;
+			BMVert *verts[2] = {e->v1, e->v2};
+			BMEdge *e2;
+			int i;
+
+			for(i = 0; i < 2; i++){
+				int deselect = 1;
+
+				for(e2 = BMIter_New(&iter, bm, BM_EDGES_OF_VERT, verts[i]);
+				    e2; e2 = BMIter_Step(&iter)){
+					if(e2 == e){
+						continue;
+					}
+
+					if (BM_TestHFlag(e2, BM_SELECT)){
+						deselect = 0;
+						break;
+					}
+				}
+
+				if(deselect) BM_Select_Vert(bm, verts[i], 0);
+			}
+		}else{
+			BM_Select(bm, e->v1, 0);
+			BM_Select(bm, e->v2, 0);
+		}
+
 	}
 }
 
@@ -251,7 +236,6 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 
 		/*flush down to edges*/
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-#if defined(RESTRICTED_DESELECT)
 			BMIter fiter;
 			BMFace *f2;
 			BM_ITER(f2, &fiter, bm, BM_FACES_OF_EDGE, l->e) {
@@ -260,7 +244,6 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 			}
 
 			if (!f2)
-#endif
 			{
 				BM_Select(bm, l->e, 0);
 			}
@@ -268,7 +251,6 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 
 		/*flush down to verts*/
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-#if defined(RESTRICTED_DESELECT)
 			BMIter eiter;
 			BMEdge *e;
 			BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, l->v) {
@@ -277,7 +259,6 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 			}
 
 			if (!e)
-#endif
 			{
 				BM_Select(bm, l->v, 0);
 			}
