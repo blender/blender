@@ -58,7 +58,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 
 		BMO_SetFlag(bm, f, EXT_DEL);
 
-		f2 = BM_Make_Ngon(bm, lastv, firstv, edges, f->len, 0);
+		f2 = BM_Make_Ngon(bm, firstv, BM_OtherEdgeVert(edges[0], firstv), edges, f->len, 0);
 		if (!f2) {
 			BMO_RaiseError(bm, op, BMERR_MESH_ERROR, "Extrude failed; could not create face");
 			BLI_array_free(edges);
