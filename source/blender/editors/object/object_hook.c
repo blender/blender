@@ -65,7 +65,6 @@
 
 #include "ED_curve.h"
 #include "ED_mesh.h"
-#include "ED_lattice.h"
 #include "ED_screen.h"
 
 #include "WM_types.h"
@@ -298,7 +297,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 	return totvert;
 }
 
-static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
+static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
 {
 	*indexar= NULL;
 	*tot= 0;
@@ -308,10 +307,7 @@ static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int *
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;
-			BMEditMesh *em;
-			EDBM_LoadEditBMesh(scene, obedit);
-			EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
-			em = me->edit_btmesh;
+			BMEditMesh *em = me->edit_btmesh;
 
 			/* check selected vertices first */
 			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
@@ -323,15 +319,10 @@ static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int *
 		}
 		case OB_CURVE:
 		case OB_SURF:
-			load_editNurb(obedit);
-			make_editNurb(obedit);
 			return return_editcurve_indexar(obedit, tot, indexar, cent_r);
 		case OB_LATTICE:
 		{
 			Lattice *lt= obedit->data;
-			load_editLatt(obedit);
-			make_editLatt(obedit);
-
 			return return_editlattice_indexar(lt->editlatt->latt, tot, indexar, cent_r);
 		}
 		default:
@@ -439,7 +430,7 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	int tot, ok, *indexar;
 	char name[32];
 	
-	ok = object_hook_index_array(scene, obedit, &tot, &indexar, name, cent);
+	ok = object_hook_index_array(obedit, &tot, &indexar, name, cent);
 	
 	if (!ok) return;	// XXX error("Requires selected vertices or active Vertex Group");
 	
@@ -772,7 +763,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	
 	/* assign functionality */
 	
-	if(!object_hook_index_array(CTX_data_scene(C), ob, &tot, &indexar, name, cent)) {
+	if(!object_hook_index_array(ob, &tot, &indexar, name, cent)) {
 		BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
 		return OPERATOR_CANCELLED;
 	}
