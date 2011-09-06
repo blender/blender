@@ -1524,9 +1524,11 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 {
 	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
 	
-	if (ntreetype->update_node)
+	/* extra null pointer checks here because this is called when unlinking
+	   unknown nodes on file load, so typeinfo pointers may not be set */
+	if (ntreetype && ntreetype->update_node)
 		ntreetype->update_node(ntree, node);
-	else if (node->typeinfo->updatefunc)
+	else if (node->typeinfo && node->typeinfo->updatefunc)
 		node->typeinfo->updatefunc(ntree, node);
 }
 

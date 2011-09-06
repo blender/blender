@@ -2217,8 +2217,9 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		if(node->type == NODE_DYNAMIC) {
 			node->custom1= 0;
 			node->custom1= BSET(node->custom1, NODE_DYNAMIC_LOADED);
-			node->typeinfo= NULL;
 		}
+
+		node->typeinfo= NULL;
 		
 		link_list(fd, &node->inputs);
 		link_list(fd, &node->outputs);
