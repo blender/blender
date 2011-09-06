@@ -1534,12 +1534,14 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 
 int NodeTagIDChanged(bNodeTree *ntree, ID *id)
 {
-	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
+	bNodeTreeType *ntreetype;
 	bNode *node;
 	int change = FALSE;
 
 	if(ELEM(NULL, id, ntree))
 		return change;
+	
+	ntreetype = ntreeGetType(ntree->type);
 	
 	if (ntreetype->update_node) {
 		for(node= ntree->nodes.first; node; node= node->next) {
