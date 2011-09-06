@@ -413,14 +413,21 @@ void BL_ConvertActuators(char* maggiename,
 						// if sound shall be 3D but isn't mono, we have to make it mono!
 						if(is3d)
 						{
-							AUD_Reference<AUD_IReader> reader = snd_sound->createReader();
-							if(reader->getSpecs().channels != AUD_CHANNELS_MONO)
+							try
 							{
-								AUD_DeviceSpecs specs;
-								specs.channels = AUD_CHANNELS_MONO;
-								specs.rate = AUD_RATE_INVALID;
-								specs.format = AUD_FORMAT_INVALID;
-								snd_sound = new AUD_ChannelMapperFactory(snd_sound, specs);
+								AUD_Reference<AUD_IReader> reader = snd_sound->createReader();
+								if(reader->getSpecs().channels != AUD_CHANNELS_MONO)
+								{
+									AUD_DeviceSpecs specs;
+									specs.channels = AUD_CHANNELS_MONO;
+									specs.rate = AUD_RATE_INVALID;
+									specs.format = AUD_FORMAT_INVALID;
+									snd_sound = new AUD_ChannelMapperFactory(snd_sound, specs);
+								}
+							}
+							catch(AUD_Exception&)
+							{
+								// sound cannot be played... ignore
 							}
 						}
 					}
