@@ -61,6 +61,7 @@ set(SRC
 	MaterialExporter.cpp
 	MeshImporter.cpp
 	SkinInfo.cpp
+	SceneExporter.cpp
 	TransformReader.cpp
 	TransformWriter.cpp
 	collada.cpp
@@ -85,6 +86,7 @@ set(SRC
 	MaterialExporter.h
 	MeshImporter.h
 	SkinInfo.h
+	SceneExporter.h
 	TransformReader.h
 	TransformWriter.h
 	collada.h
