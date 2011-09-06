@@ -507,9 +507,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				//PyDict_Clear(PyModule_GetDict(gameLogic));
 				
 				// Keep original items, means python plugins will autocomplete members
-				int listIndex;
 				PyObject *gameLogic_keys_new = PyDict_Keys(PyModule_GetDict(gameLogic));
-				for (listIndex=0; listIndex < PyList_Size(gameLogic_keys_new); listIndex++)  {
+				const Py_ssize_t numitems= PyList_GET_SIZE(gameLogic_keys_new);
+				Py_ssize_t listIndex;
+				for (listIndex=0; listIndex < numitems; listIndex++)  {
 					PyObject* item = PyList_GET_ITEM(gameLogic_keys_new, listIndex);
 					if (!PySequence_Contains(gameLogic_keys, item)) {
 						PyDict_DelItem(	PyModule_GetDict(gameLogic), item);
