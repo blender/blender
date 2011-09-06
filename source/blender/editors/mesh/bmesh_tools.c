@@ -1704,13 +1704,13 @@ static int normals_make_consistent_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	
-	/*doflip has to do with bmesh_rationalize_normals, it's an internal
-	thing*/
+	/* doflip has to do with bmesh_rationalize_normals, it's an internal
+	 * thing*/
 	if (!EDBM_CallOpf(em, op, "righthandfaces faces=%hf doflip=%d", BM_SELECT, 1))
 		return OPERATOR_CANCELLED;
-	
+
 	if (RNA_boolean_get(op->ptr, "inside"))
-		EDBM_CallOpf(em, op, "reversefaces faces=%hf doflip=%d", BM_SELECT, 1);
+		EDBM_CallOpf(em, op, "reversefaces faces=%hf", BM_SELECT);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);

@@ -234,24 +234,24 @@ void bmesh_regionextend_exec(BMesh *bm, BMOperator *op)
 #define FACE_FLIP	8
 
 /* NOTE: these are the original righthandfaces comment in editmesh_mods.c,
-         copied here for reference.
-*/
-       /* based at a select-connected to witness loose objects */
+ *       copied here for reference. */
 
-	/* count per edge the amount of faces */
+ /* based at a select-connected to witness loose objects */
 
-	/* find the ultimate left, front, upper face (not manhattan dist!!) */
-	/* also evaluate both triangle cases in quad, since these can be non-flat */
+/* count per edge the amount of faces
+ * find the ultimate left, front, upper face (not manhattan dist!!)
+ * also evaluate both triangle cases in quad, since these can be non-flat
+ *
+ * put normal to the outside, and set the first direction flags in edges
+ *
+ * then check the object, and set directions / direction-flags: but only for edges with 1 or 2 faces
+ * this is in fact the 'select connected'
+ *
+ * in case (selected) faces were not done: start over with 'find the ultimate ...' */
 
-	/* put normal to the outside, and set the first direction flags in edges */
+/* NOTE: this function uses recursion, which is a little unusual for a bmop
+         function, but acceptable I think. */
 
-	/* then check the object, and set directions / direction-flags: but only for edges with 1 or 2 faces */
-	/* this is in fact the 'select connected' */
-	
-	/* in case (selected) faces were not done: start over with 'find the ultimate ...' */
-
-/*note: this function uses recursion, which is a little unusual for a bmop
-        function, but acceptable I think.*/
 void bmesh_righthandfaces_exec(BMesh *bm, BMOperator *op)
 {
 	BMIter liter, liter2;
