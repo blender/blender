@@ -32,6 +32,7 @@ set(INC
 	../blenlib
 	../blenloader
 	../makesdna
+	../makesrna
 	../render/extern/include
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc

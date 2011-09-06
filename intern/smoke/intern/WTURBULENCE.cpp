@@ -155,7 +155,7 @@ void WTURBULENCE::setNoise(int type)
 	if(type == (1<<1)) // FFT
 	{
 		// needs fft
-		#if FFTW3==1
+		#ifdef WITH_FFTW3
 		std::string noiseTileFilename = std::string("noise.fft");
 		generatTile_FFT(_noiseTile, noiseTileFilename);
 		#endif

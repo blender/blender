@@ -3603,6 +3603,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 #ifdef WITH_AUDASPACE
 Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C); /* only for sound */
 	Editing *ed= seq_give_editing(scene, TRUE);
 	bSound *sound;
@@ -3624,7 +3625,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
-		sound_delete(C, sound);
+		sound_delete(bmain, sound);
 		//if(op)
 		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return NULL;

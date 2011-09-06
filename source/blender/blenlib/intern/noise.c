@@ -263,13 +263,21 @@ static float newPerlinU(float x, float y, float z)
 static float orgBlenderNoise(float x, float y, float z)
 {
 	register float cn1, cn2, cn3, cn4, cn5, cn6, i, *h;
-	float ox, oy, oz, jx, jy, jz;
+	float fx, fy, fz, ox, oy, oz, jx, jy, jz;
 	float n= 0.5;
 	int ix, iy, iz, b00, b01, b10, b11, b20, b21;
 
-	ox= (x- (ix= (int)floor(x)) );
-	oy= (y- (iy= (int)floor(y)) );
-	oz= (z- (iz= (int)floor(z)) );
+	fx= floor(x);
+	fy= floor(y);
+	fz= floor(z);
+
+	ox= x- fx;
+	oy= y- fy;
+	oz= z- fz;
+
+	ix= (int)fx;
+	iy= (int)fy;
+	iz= (int)fz;
 
 	jx= ox-1;
 	jy= oy-1;

@@ -366,11 +366,11 @@ void GHOST_NDOFManager::setDeadZone(float dz)
 	}
 	else if (dz > 0.5f) {
 		// warn the rogue user/programmer, but allow it
-		printf("ndof: dead zone of %.2f is rather high...\n", dz);
+		GHOST_PRINTF("ndof: dead zone of %.2f is rather high...\n", dz);
 	}
 	m_deadZone = dz;
 
-	printf("ndof: dead zone set to %.2f\n", dz);
+	GHOST_PRINTF("ndof: dead zone set to %.2f\n", dz);
 }
 
 static bool atHomePosition(GHOST_TEventNDOFMotionData* ndof)

@@ -642,6 +642,14 @@ static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
 		writestruct(wd, DATA, "CurveMapPoint", cumap->cm[a].totpoint, cumap->cm[a].curve);
 }
 
+static void write_node_socket(WriteData *wd, bNodeSocket *sock)
+{
+	bNodeSocketType *stype= ntreeGetSocketType(sock->type);
+	writestruct(wd, DATA, "bNodeSocket", 1, sock);
+	if (sock->default_value)
+		writestruct(wd, DATA, stype->value_structname, 1, sock->default_value);
+}
+
 /* this is only direct data, tree itself should have been written */
 static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 {
@@ -657,6 +665,12 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		writestruct(wd, DATA, "bNode", 1, node);
 
 	for(node= ntree->nodes.first; node; node= node->next) {
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			write_node_socket(wd, sock);
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			write_node_socket(wd, sock);
+
+		
 		if(node->storage && node->type!=NODE_DYNAMIC) {
 			/* could be handlerized at some point, now only 1 exception still */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
@@ -665,13 +679,9 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
-			else 
+			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			writestruct(wd, DATA, "bNodeSocket", 1, sock);
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			writestruct(wd, DATA, "bNodeSocket", 1, sock);
 	}
 	
 	for(link= ntree->links.first; link; link= link->next)
@@ -679,9 +689,9 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	
 	/* external sockets */
 	for(sock= ntree->inputs.first; sock; sock= sock->next)
-		writestruct(wd, DATA, "bNodeSocket", 1, sock);
+		write_node_socket(wd, sock);
 	for(sock= ntree->outputs.first; sock; sock= sock->next)
-		writestruct(wd, DATA, "bNodeSocket", 1, sock);
+		write_node_socket(wd, sock);
 }
 
 static void current_screen_compat(Main *mainvar, bScreen **screen)
@@ -933,7 +943,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 			writestruct(wd, DATA, "ClothSimSettings", 1, psys->clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, psys->clmd->coll_parms);
 		}
-		
+
 		write_pointcaches(wd, &psys->ptcaches);
 	}
 }

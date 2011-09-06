@@ -98,61 +98,6 @@ static ARegion *sequencer_find_region(ScrArea *sa, short type)
 	return ar;
 }
 
-void ED_sequencer_update_view(bContext *C, int view)
-{
-	ScrArea *sa= CTX_wm_area(C);
-	
-	ARegion *ar_main= sequencer_find_region(sa, RGN_TYPE_WINDOW);
-	ARegion *ar_preview= sequencer_find_region(sa, RGN_TYPE_PREVIEW);
-
-	switch (view) {
-		case SEQ_VIEW_SEQUENCE:
-			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
-				ar_main->flag &= ~RGN_FLAG_HIDDEN;
-				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-			}
-			if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
-				ar_preview->flag |= RGN_FLAG_HIDDEN;
-				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-				WM_event_remove_handlers(C, &ar_preview->handlers);
-			}
-			if (ar_main) ar_main->alignment= RGN_ALIGN_NONE;
-			if (ar_preview) ar_preview->alignment= RGN_ALIGN_NONE;
-			break;
-		case SEQ_VIEW_PREVIEW:
-			if (ar_main && !(ar_main->flag & RGN_FLAG_HIDDEN)) {
-				ar_main->flag |= RGN_FLAG_HIDDEN;
-				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-				WM_event_remove_handlers(C, &ar_main->handlers);
-			}
-			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
-				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
-				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-				ar_preview->v2d.cur = ar_preview->v2d.tot;
-			}
-			if (ar_main) ar_main->alignment= RGN_ALIGN_NONE;
-			if (ar_preview) ar_preview->alignment= RGN_ALIGN_NONE;
-			break;
-		case SEQ_VIEW_SEQUENCE_PREVIEW:
-			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
-				ar_main->flag &= ~RGN_FLAG_HIDDEN;
-				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
-			}
-			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
-				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
-				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
-				ar_preview->v2d.cur = ar_preview->v2d.tot;
-			}
-			if (ar_main) ar_main->alignment= RGN_ALIGN_NONE;
-			if (ar_preview) ar_preview->alignment= RGN_ALIGN_TOP;
-			break;
-	}
-
-	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
-	ED_area_tag_redraw(sa);
-}
-
-
 /* ******************** default callbacks for sequencer space ***************** */
 
 static SpaceLink *sequencer_new(const bContext *C)
@@ -254,6 +199,88 @@ static void sequencer_free(SpaceLink *UNUSED(sl))
 static void sequencer_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
 	
+}
+
+static void sequencer_refresh(const bContext *C, ScrArea *sa)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *window= CTX_wm_window(C);
+	SpaceSeq *sseq= (SpaceSeq *)sa->spacedata.first;
+	ARegion *ar_main= sequencer_find_region(sa, RGN_TYPE_WINDOW);
+	ARegion *ar_preview= sequencer_find_region(sa, RGN_TYPE_PREVIEW);
+	int view_changed= 0;
+
+	switch (sseq->view) {
+		case SEQ_VIEW_SEQUENCE:
+			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
+				ar_main->flag &= ~RGN_FLAG_HIDDEN;
+				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
+				view_changed= 1;
+			}
+			if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
+				ar_preview->flag |= RGN_FLAG_HIDDEN;
+				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+				WM_event_remove_handlers((bContext*)C, &ar_preview->handlers);
+				view_changed= 1;
+			}
+			if (ar_main && ar_main->alignment != RGN_ALIGN_TOP) {
+				ar_main->alignment= RGN_ALIGN_NONE;
+				view_changed= 1;
+			}
+			if (ar_preview && ar_preview->alignment != RGN_ALIGN_TOP) {
+				ar_preview->alignment= RGN_ALIGN_NONE;
+				view_changed= 1;
+			}
+			break;
+		case SEQ_VIEW_PREVIEW:
+			if (ar_main && !(ar_main->flag & RGN_FLAG_HIDDEN)) {
+				ar_main->flag |= RGN_FLAG_HIDDEN;
+				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
+				WM_event_remove_handlers((bContext*)C, &ar_main->handlers);
+				view_changed= 1;
+			}
+			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
+				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
+				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+				ar_preview->v2d.cur = ar_preview->v2d.tot;
+				view_changed= 1;
+			}
+			if (ar_main && ar_main->alignment != RGN_ALIGN_TOP) {
+				ar_main->alignment= RGN_ALIGN_NONE;
+				view_changed= 1;
+			}
+			if (ar_preview && ar_preview->alignment != RGN_ALIGN_TOP) {
+				ar_preview->alignment= RGN_ALIGN_NONE;
+				view_changed= 1;
+			}
+			break;
+		case SEQ_VIEW_SEQUENCE_PREVIEW:
+			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
+				ar_main->flag &= ~RGN_FLAG_HIDDEN;
+				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
+				view_changed= 1;
+			}
+			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
+				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
+				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
+				ar_preview->v2d.cur = ar_preview->v2d.tot;
+				view_changed= 1;
+			}
+			if (ar_main && ar_main->alignment != RGN_ALIGN_TOP) {
+				ar_main->alignment= RGN_ALIGN_NONE;
+				view_changed= 1;
+			}
+			if (ar_preview && ar_preview->alignment != RGN_ALIGN_TOP) {
+				ar_preview->alignment= RGN_ALIGN_TOP;
+				view_changed= 1;
+			}
+			break;
+	}
+
+	if(view_changed) {
+		ED_area_initialize(wm, window, sa);
+		ED_area_tag_redraw(sa);
+	}
 }
 
 static SpaceLink *sequencer_duplicate(SpaceLink *sl)
@@ -516,6 +543,7 @@ void ED_spacetype_sequencer(void)
 	st->operatortypes= sequencer_operatortypes;
 	st->keymap= sequencer_keymap;
 	st->dropboxes= sequencer_dropboxes;
+	st->refresh= sequencer_refresh;
 
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
