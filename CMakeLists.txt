@@ -520,7 +520,7 @@ if(UNIX AND NOT APPLE)
 		if(NOT BOOST_CUSTOM)
 			set(BOOST_ROOT ${BOOST})
 			set(Boost_USE_MULTITHREADED ON)
-			find_package(Boost 1.47 REQUIRED COMPONENTS filesystem regex system thread)
+			find_package(Boost 1.34 REQUIRED COMPONENTS filesystem regex system thread)
 		endif()
 
 		set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})
