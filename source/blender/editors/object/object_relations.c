@@ -134,6 +134,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 				else if(v4==0) v4= nr;
 				else break;
 			}
+			nr++;
 		}
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
