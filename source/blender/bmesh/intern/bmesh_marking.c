@@ -12,23 +12,6 @@
 #include <string.h>
 
 /*
- * Restricted deselect prevents deslection of a
- * face or vertex from deselecting the component
- * edges and/or vertices, if those edges/vertices
- * are part of another selected face/edge.
- * This is not 100% reliable, and so needs to be
- * turned off for now. A couple of examples where
- * it didn't work:
- * - In vertex mode, select two adjacent edge loops,
- *   then try to deselect one of the loops (see bug
- *   #28492)
- * - In vertex+edge multi-select mode, select three
- *   edges that line up to form a path, then try to
- *   deselect the middle edge
-*/
-#define RESTRICTED_DESELECT
-
-/*
  * BM_MARK.C
  *
  * Selection routines for bmesh structures.
@@ -39,7 +22,6 @@
  * that should be addressed eventually.
  *
 */
-
 
 /*
  * BMESH SELECTMODE FLUSH
