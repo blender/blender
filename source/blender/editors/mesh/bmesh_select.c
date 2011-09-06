@@ -56,6 +56,7 @@ BMEditMesh_mods.c, UI level access, no geometry changes
 #include "BLI_rand.h"
 #include "BLI_array.h"
 #include "BLI_smallhash.h"
+#include "BLI_heap.h"
 
 #include "BKE_context.h"
 #include "BKE_displist.h"
@@ -1053,15 +1054,267 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "");
 }
 
+/* ******************* edgetag_shortest_path and helpers ****************** */
+
+static float edgetag_cut_cost(BMEditMesh *UNUSED(em), BMEdge *e1, BMEdge *e2, BMVert* v)
+{
+	BMVert *v1 = (e1->v1 == v) ? e1->v2 : e1->v1;
+	BMVert *v2 = (e2->v1 == v) ? e2->v2 : e2->v1;
+	float cost, d1[3], d2[3];
+
+	/*The cost is based on the simple sum of the length of the two edgees...*/
+	sub_v3_v3v3(d1, v->co, v1->co);
+	sub_v3_v3v3(d2, v2->co, v->co);
+	cost = len_v3(d1);
+	cost += len_v3(d2);
+
+	/*...but is biased to give higher values to sharp turns, so that it will take
+	  paths with fewer "turns" when selecting between equal-weighted paths between
+	  the two edges*/
+	cost = cost + 0.5f*cost*(2.0f - sqrt(fabs(dot_v3v3(d1, d2))));
+
+	return cost;
+}
+
+static void edgetag_add_adjacent(BMEditMesh *em, SmallHash *visithash, Heap *heap, int mednum, int vertnum, 
+								 int *nedges, int *edges, int *prevedge, float *cost)
+{
+	BMEdge *e1 = EDBM_get_edge_for_index(em, mednum);
+	BMVert *v = EDBM_get_vert_for_index(em, vertnum);
+	int startadj, endadj = nedges[vertnum+1];
+
+	for (startadj = nedges[vertnum]; startadj < endadj; startadj++) {
+		int adjnum = edges[startadj];
+		BMEdge *e2 = EDBM_get_edge_for_index(em, adjnum);
+		float newcost;
+		float cutcost;
+
+		if (BLI_smallhash_haskey(visithash, (uintptr_t)e2))
+			continue;
+
+		cutcost = edgetag_cut_cost(em, e1, e2, v);
+		newcost = cost[mednum] + cutcost;
+
+		if (cost[adjnum] > newcost) {
+			cost[adjnum] = newcost;
+			prevedge[adjnum] = mednum;
+			BLI_heap_insert(heap, newcost, SET_INT_IN_POINTER(adjnum));
+		}
+	}
+}
+
+static void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *e, int val)
+{
+	
+	switch (scene->toolsettings->edge_mode) {
+	case EDGE_MODE_SELECT:
+		BM_Select(em->bm, e, val);
+		break;
+	case EDGE_MODE_TAG_SEAM:
+		if (val)		{BM_SetHFlag(e, BM_SEAM);}
+		else			{BM_ClearHFlag(e, BM_SEAM);}
+		break;
+	case EDGE_MODE_TAG_SHARP:
+		if (val)		{BM_SetHFlag(e, BM_SEAM);}
+		else			{BM_ClearHFlag(e, BM_SEAM);}
+		break;				
+	case EDGE_MODE_TAG_CREASE:
+	 {
+		float *crease = CustomData_bmesh_get(&em->bm->edata, e->head.data, CD_CREASE);
+		
+		if (val)		{*crease = 1.0f;}
+		else			{*crease = 0.0f;}
+		break;
+	 }
+	case EDGE_MODE_TAG_BEVEL:
+	 {
+		float *bweight = CustomData_bmesh_get(&em->bm->edata, e->head.data, CD_BWEIGHT);
+
+		if (val)		{*bweight = 1.0f;}
+		else			{*bweight = 0.0f;}
+		break;
+	 }
+	}
+}
+
+static float bm_cdata_get_single_float(BMesh *UNUSED(bm), CustomData *cdata, void *element, int type)
+{
+	BMHeader *ele = element;
+	float *f;
+	
+	if (!CustomData_has_layer(cdata, type))
+		return 0.0f;
+	
+	f = CustomData_bmesh_get(cdata, ele->data, type);
+	
+	return *f;
+}
+
+static int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *e)
+{
+	switch (scene->toolsettings->edge_mode) {
+	case EDGE_MODE_SELECT:
+		return BM_TestHFlag(e, BM_SELECT) ? 1 : 0;
+	case EDGE_MODE_TAG_SEAM:
+		return BM_TestHFlag(e, BM_SEAM);
+	case EDGE_MODE_TAG_SHARP:
+		return BM_TestHFlag(e, BM_SHARP);
+	case EDGE_MODE_TAG_CREASE:	
+		return bm_cdata_get_single_float(em->bm, &em->bm->edata, e, CD_CREASE) ? 1 : 0;
+	case EDGE_MODE_TAG_BEVEL:
+		return bm_cdata_get_single_float(em->bm, &em->bm->edata, e, CD_BWEIGHT) ? 1 : 0;
+	}
+	return 0;
+}
+
+static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *target)
+{
+	BMEdge *e;
+	BMVert *v;
+	BMIter iter;
+	Heap *heap;
+	SmallHash visithash;
+	float *cost;
+	int i, totvert=0, totedge=0, *nedges, *edges, *prevedge, mednum = -1, nedgeswap = 0;
+	int targetnum;
+
+	BLI_smallhash_init(&visithash);
+
+	/* we need the vert */
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BM_SetIndex(v, totvert);
+		totvert++;
+	}
+
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		e->head.flags[0].f = 0;
+		if (BM_TestHFlag(e, BM_HIDDEN)) {
+			BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
+		}
+		BM_SetIndex(e, totedge);
+		totedge++;
+	}
+
+	/* alloc */
+	nedges = MEM_callocN(sizeof(*nedges)*totvert+1, "SeamPathNEdges");
+	edges = MEM_mallocN(sizeof(*edges)*totedge*2, "SeamPathEdges");
+	prevedge = MEM_mallocN(sizeof(*prevedge)*totedge, "SeamPathPrevious");
+	cost = MEM_mallocN(sizeof(*cost)*totedge, "SeamPathCost");
+
+	/* count edges, compute adjacent edges offsets and fill adjacent */
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		nedges[BM_GetIndex(e->v1)+1]++;
+		nedges[BM_GetIndex(e->v2)+1]++;
+	}
+
+	for (i = 1; i < totvert; i++) {
+		int newswap = nedges[i+1];
+		nedges[i+1] = nedgeswap + nedges[i];
+		nedgeswap = newswap;
+	}
+	nedges[0] = nedges[1] = 0;
+
+	i = 0;
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		edges[nedges[BM_GetIndex(e->v1)+1]++] = i;
+		edges[nedges[BM_GetIndex(e->v2)+1]++] = i;
+
+		cost[i] = 1e20f;
+		prevedge[i] = -1;
+		i++;
+	}
+
+	/*
+	 * Arrays are now filled as follows:
+	 *
+	 *	nedges[n] = sum of the # of edges incident to all vertices numbered 0 thru n-1
+	 *	edges[edges[n]..edges[n-1]] = the indices of of the edges incident to vertex n
+	 *
+	 * As the search continues, prevedge[n] will be the previous edge on the shortest
+	 * path found so far to edge n. The visitedhash will of course contain entries
+	 * for edges that have been visited, cost[n] will contain the length of the shortest
+	 * path to edge n found so far, Finally, heap is a priority heap which is built on the
+	 * the same data as the cost arry, but inverted: it is a worklist of edges prioritized
+	 * by the shortest path found so far to the edge.
+	*/
+
+	for (i = 0; i < totvert; i++) {
+		int start = nedges[i], end = nedges[i+1], cur;
+		for (cur = start; cur < end; cur++) {
+			BMEdge* e = EDBM_get_edge_for_index(em, edges[cur]);
+		}
+	}
+
+	/* regular dijkstra shortest path, but over edges instead of vertices */
+	heap = BLI_heap_new();
+	BLI_heap_insert(heap, 0.0f, SET_INT_IN_POINTER(BM_GetIndex(source)));
+	cost[BM_GetIndex(source)] = 0.0f;
+	EDBM_init_index_arrays(em, 1, 1, 0);
+	targetnum = BM_GetIndex(target);
+
+	while (!BLI_heap_empty(heap)) {
+		mednum = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
+		e = EDBM_get_edge_for_index(em, mednum);
+
+		if (mednum == targetnum)
+			break;
+
+		if (BLI_smallhash_haskey(&visithash, (uintptr_t)e))
+			continue;
+
+		BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
+
+		edgetag_add_adjacent(em, &visithash, heap, mednum, BM_GetIndex(e->v1), nedges, edges, prevedge, cost);
+		edgetag_add_adjacent(em, &visithash, heap, mednum, BM_GetIndex(e->v2), nedges, edges, prevedge, cost);
+	}
+	
+	if (mednum == targetnum) {
+		short allseams = 1;
+
+		/*Check whether the path is already completely tagged.
+		  if it is, the tags will be cleared instead of set.*/
+		mednum = targetnum;
+		do {
+			e = EDBM_get_edge_for_index(em, mednum);
+			if (!edgetag_context_check(scene, em, e)) {
+				allseams = 0;
+				break;
+			}
+			mednum = prevedge[mednum];
+		} while (mednum != BM_GetIndex(source));
+
+		/*Follow path back and source and add or remove tags*/
+		mednum = targetnum;
+		do {
+			e = EDBM_get_edge_for_index(em, mednum);
+			if (allseams)
+				edgetag_context_set(em, scene, e, 0);
+			else
+				edgetag_context_set(em, scene, e, 1);
+			mednum = prevedge[mednum];
+		} while (mednum != -1);
+	}
+
+	EDBM_free_index_arrays(em);
+	MEM_freeN(nedges);
+	MEM_freeN(edges);
+	MEM_freeN(prevedge);
+	MEM_freeN(cost);
+	BLI_heap_free(heap, NULL);
+	BLI_smallhash_release(&visithash);
+
+	return 1;
+}
+
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static void mouse_mesh_shortest_path(bContext *UNUSED(C), int UNUSED(mval[2]))
+static void mouse_mesh_shortest_path(bContext *C, int mval[2])
 {
-#if 0 //BMESH_TODO
+	Object *ob = CTX_data_edit_object(C);
 	ViewContext vc;
 	BMEditMesh *em;
-	BMEdge *eed;
+	BMEdge *e;
 	int dist= 50;
 	
 	em_setup_viewcontext(C, &vc);
@@ -1069,37 +1322,37 @@ static void mouse_mesh_shortest_path(bContext *UNUSED(C), int UNUSED(mval[2]))
 	vc.mval[1]= mval[1];
 	em= vc.em;
 	
-	eed= findnearestedge(&vc, &dist);
-	if(eed) {
+	e= EDBM_findnearestedge(&vc, &dist);
+	if(e) {
 		Mesh *me= vc.obedit->data;
 		int path = 0;
 		
 		if (em->bm->selected.last) {
 			EditSelection *ese = em->bm->selected.last;
 			
-			if(ese && ese->type == BMEdge) {
-				BMEdge *eed_act;
-				eed_act = (BMEdge*)ese->data;
-				if (eed_act != eed) {
-					if (edgetag_shortest_path(vc.scene, em, eed_act, eed)) {
-						EM_remove_selection(em, eed_act, BMEdge);
+			if(ese && ese->type == BM_EDGE) {
+				BMEdge *e_act;
+				e_act = (BMEdge*)ese->data;
+				if (e_act != e) {
+					if (edgetag_shortest_path(vc.scene, em, e_act, e)) {
+						EDBM_remove_selection(em, e_act);
 						path = 1;
 					}
 				}
 			}
 		}
 		if (path==0) {
-			int act = (edgetag_context_check(vc.scene, eed)==0);
-			edgetag_context_set(em, vc.scene, eed, act); /* switch the edge option */
+			int act = (edgetag_context_check(vc.scene, em, e)==0);
+			edgetag_context_set(em, vc.scene, e, act); /* switch the edge option */
 		}
 		
-		EM_selectmode_flush(em);
+		EDBM_selectmode_flush(em);
 
 		/* even if this is selected it may not be in the selection list */
-		if(edgetag_context_check(vc.scene, eed)==0)
-			EDBM_remove_selection(em, eed);
+		if(edgetag_context_check(vc.scene, em, e)==0)
+			EDBM_remove_selection(em, e);
 		else
-			EDBM_store_selection(em, eed);
+			EDBM_store_selection(em, e);
 	
 		/* force drawmode for mesh */
 		switch (CTX_data_tool_settings(C)->edge_mode) {
@@ -1121,7 +1374,6 @@ static void mouse_mesh_shortest_path(bContext *UNUSED(C), int UNUSED(mval[2]))
 		DAG_id_tag_update(ob->data, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, ob->data);
 	}
-#endif
 }
 
 

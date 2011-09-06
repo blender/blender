@@ -100,9 +100,7 @@ float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3])
 
 /* ******************** editface.c */
 
-int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *eed);
-void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *eed, int val);
-int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *target);
+
 
 /* ******************* editmesh.c */
 
