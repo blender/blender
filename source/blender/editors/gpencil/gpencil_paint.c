@@ -400,6 +400,15 @@ static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 
 			pts = &gps->points[gps->totpoints-1];
 
+			/* special case for poly lines: normally, depth is needed only when creating new stroke from buffer,
+			   but poly lines are converting to stroke instantly, so initialize depth buffer before converting coordinates */
+			if (gpencil_project_check(p)) {
+				View3D *v3d= p->sa->spacedata.first;
+
+				view3d_region_operator_needs_opengl(p->win, p->ar);
+				ED_view3d_autodist_init(p->scene, p->ar, v3d, (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 1:0);
+			}
+
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &pt->x, &pts->x, NULL);
 
