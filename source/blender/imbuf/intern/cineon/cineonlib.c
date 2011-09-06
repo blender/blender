@@ -36,6 +36,9 @@
 #include <netinet/in.h>	 /* htonl() */
 #endif
 #include <string.h>			 /* memset */
+
+#include "BLI_utildefines.h"
+
 #include "cin_debug_stuff.h"
 #include "logmemfile.h"
 
@@ -288,7 +291,7 @@ initCineonGenericHeader(CineonFile* cineon, CineonGenericHeader* header, const c
 }
 
 static void
-dumpCineonGenericHeader(CineonGenericHeader* header) {
+UNUSED_FUNCTION(dumpCineonGenericHeader)(CineonGenericHeader* header) {
 	dumpCineonFileInfo(&header->fileInfo);
 	dumpCineonImageInfo(&header->imageInfo);
 	dumpCineonFormatInfo(&header->formatInfo);

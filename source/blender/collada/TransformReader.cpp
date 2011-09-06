@@ -37,7 +37,6 @@ void TransformReader::get_node_mat(float mat[][4], COLLADAFW::Node *node, std::m
 {
 	float cur[4][4];
 	float copy[4][4];
-	float eul[3];
 
 	unit_m4(mat);
 	

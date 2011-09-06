@@ -188,7 +188,7 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 	for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
 		add_bone_node(child, ob_arm);
 	}
-    node.end();
+	node.end();
 	//}
 }
 

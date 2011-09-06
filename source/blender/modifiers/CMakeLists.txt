@@ -32,6 +32,7 @@ set(INC
 	../blenlib
 	../blenloader
 	../makesdna
+	../makesrna
 	../bmesh
 	../render/extern/include
 	../../../intern/elbeem/extern

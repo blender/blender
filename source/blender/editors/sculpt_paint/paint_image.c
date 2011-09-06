@@ -60,6 +60,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
@@ -4667,7 +4668,7 @@ static void paint_brush_init_tex(Brush *brush)
 	if(brush) {
 		MTex *mtex= &brush->mtex;
 		if(mtex->tex && mtex->tex->nodetree)
-			ntreeBeginExecTree(mtex->tex->nodetree); /* has internal flag to detect it only does it once */
+			ntreeTexBeginExecTree(mtex->tex->nodetree); /* has internal flag to detect it only does it once */
 	}
 	
 }
@@ -4829,7 +4830,7 @@ static void paint_brush_exit_tex(Brush *brush)
 	if(brush) {
 		MTex *mtex= &brush->mtex;
 		if(mtex->tex && mtex->tex->nodetree)
-			ntreeEndExecTree(mtex->tex->nodetree);
+			ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
 	}	
 }
 

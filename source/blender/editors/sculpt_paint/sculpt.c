@@ -48,6 +48,7 @@
 #include "BLI_rand.h"
 
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
@@ -3296,7 +3297,7 @@ static void sculpt_brush_init_tex(Sculpt *sd, SculptSession *ss)
 
 	/* init mtex nodes */
 	if(mtex->tex && mtex->tex->nodetree)
-		ntreeBeginExecTree(mtex->tex->nodetree); /* has internal flag to detect it only does it once */
+		ntreeTexBeginExecTree(mtex->tex->nodetree); /* has internal flag to detect it only does it once */
 
 	/* TODO: Shouldn't really have to do this at the start of every
 	   stroke, but sculpt would need some sort of notification when
@@ -3482,7 +3483,7 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 	MTex *mtex= &brush->mtex;
 
 	if(mtex->tex && mtex->tex->nodetree)
-		ntreeEndExecTree(mtex->tex->nodetree);
+		ntreeTexEndExecTree(mtex->tex->nodetree->execdata);
 }
 
 static void sculpt_stroke_done(bContext *C, struct PaintStroke *UNUSED(stroke))

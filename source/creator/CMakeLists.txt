@@ -718,7 +718,6 @@ if(WITH_MOD_FLUID)
 	list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
 endif()
 
-
 #if(UNIX)
 	# Sort libraries
 	set(BLENDER_SORTED_LIBS

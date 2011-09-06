@@ -203,7 +203,7 @@ void sound_exit(void)
 
 // XXX unused currently
 #if 0
-struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source)
+struct bSound* sound_new_buffer(struct Main *bmain, struct bSound *source)
 {
 	bSound* sound = NULL;
 
@@ -211,23 +211,23 @@ struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source)
 	strcpy(name, "buf_");
 	strcpy(name + 4, source->id.name);
 
-	sound = alloc_libblock(&CTX_data_main(C)->sound, ID_SO, name);
+	sound = alloc_libblock(&bmain->sound, ID_SO, name);
 
 	sound->child_sound = source;
 	sound->type = SOUND_TYPE_BUFFER;
 
-	sound_load(CTX_data_main(C), sound);
+	sound_load(bmain, sound);
 
 	if(!sound->playback_handle)
 	{
-		free_libblock(&CTX_data_main(C)->sound, sound);
+		free_libblock(&bmain->sound, sound);
 		sound = NULL;
 	}
 
 	return sound;
 }
 
-struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, float start, float end)
+struct bSound* sound_new_limiter(struct Main *bmain, struct bSound *source, float start, float end)
 {
 	bSound* sound = NULL;
 
@@ -235,18 +235,18 @@ struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, floa
 	strcpy(name, "lim_");
 	strcpy(name + 4, source->id.name);
 
-	sound = alloc_libblock(&CTX_data_main(C)->sound, ID_SO, name);
+	sound = alloc_libblock(&bmain->sound, ID_SO, name);
 
 	sound->child_sound = source;
 	sound->start = start;
 	sound->end = end;
 	sound->type = SOUND_TYPE_LIMITER;
 
-	sound_load(CTX_data_main(C), sound);
+	sound_load(bmain, sound);
 
 	if(!sound->playback_handle)
 	{
-		free_libblock(&CTX_data_main(C)->sound, sound);
+		free_libblock(&bmain->sound, sound);
 		sound = NULL;
 	}
 
@@ -254,13 +254,13 @@ struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, floa
 }
 #endif
 
-void sound_delete(struct bContext *C, struct bSound* sound)
+void sound_delete(struct Main *bmain, struct bSound* sound)
 {
 	if(sound)
 	{
 		sound_free(sound);
 
-		free_libblock(&CTX_data_main(C)->sound, sound);
+		free_libblock(&bmain->sound, sound);
 	}
 }
 
@@ -538,10 +538,11 @@ void sound_stop_scene(struct Scene *scene)
 	}
 }
 
-void sound_seek_scene(struct bContext *C)
+void sound_seek_scene(struct Main *bmain, struct Scene *scene)
 {
-	struct Scene *scene = CTX_data_scene(C);
 	AUD_Status status;
+	bScreen *screen;
+	int animation_playing;
 
 	AUD_lock();
 
@@ -560,7 +561,12 @@ void sound_seek_scene(struct bContext *C)
 		AUD_pause(scene->sound_scene_handle);
 	}
 
-	if(scene->audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
+	animation_playing = 0;
+	for(screen=bmain->screen.first; screen; screen=screen->id.next)
+		if(screen->animtimer)
+			animation_playing = 1;
+
+	if(scene->audio.flag & AUDIO_SCRUB && !animation_playing)
 	{
 		if(scene->audio.flag & AUDIO_SYNC)
 		{
@@ -758,7 +764,7 @@ void sound_move_scene_sound(struct Scene *UNUSED(scene), void* UNUSED(handle), i
 static void sound_start_play_scene(struct Scene *UNUSED(scene)) {}
 void sound_play_scene(struct Scene *UNUSED(scene)) {}
 void sound_stop_scene(struct Scene *UNUSED(scene)) {}
-void sound_seek_scene(struct bContext *UNUSED(C)) {}
+void sound_seek_scene(struct Main *UNUSED(bmain), struct Scene *UNUSED(scene)) {}
 float sound_sync_scene(struct Scene *UNUSED(scene)) { return 0.0f; }
 int sound_scene_playing(struct Scene *UNUSED(scene)) { return -1; }
 int sound_read_sound_buffer(struct bSound* UNUSED(sound), float* UNUSED(buffer), int UNUSED(length), float UNUSED(start), float UNUSED(end)) { return 0; }

@@ -4904,12 +4904,14 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 	}
 	else if (t->spacetype == SPACE_NODE) {
+		SpaceNode *snode= (SpaceNode *)t->sa->spacedata.first;
+		ED_node_update_hierarchy(C, snode->edittree);
+		
 		if(cancelled == 0)
 			ED_node_link_insert(t->sa);
 		
 		/* clear link line */
 		ED_node_link_intersect_test(t->sa, 0);
-		
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -5327,6 +5329,11 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	td2d->loc2d = &node->locx; /* current location */
 
 	td->flag = 0;
+	/* exclude nodes whose parent is also transformed */
+	if (node->parent && (node->parent->flag & NODE_TRANSFORM)) {
+		td->flag |= TD_SKIP;
+	}
+
 	td->loc = td2d->loc;
 	VECCOPY(td->center, td->loc);
 	VECCOPY(td->iloc, td->loc);
@@ -5347,6 +5354,16 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 {
 	TransData *td;
 	TransData2D *td2d;
+	SpaceNode *snode= t->sa->spacedata.first;
+	bNode *node;
+
+	/* set transform flags on nodes */
+	for (node=snode->edittree->nodes.first; node; node=node->next) {
+		if ((node->flag & NODE_SELECT) || (node->parent && (node->parent->flag & NODE_TRANSFORM)))
+			node->flag |= NODE_TRANSFORM;
+		else
+			node->flag &= ~NODE_TRANSFORM;
+	}
 
 	t->total= CTX_DATA_COUNT(C, selected_nodes);
 

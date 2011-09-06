@@ -88,7 +88,7 @@ private:
 	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated);
 	
 	int typeFlag;
-    
+
 	enum lightAnim
 	{
 //		INANIMATE = 0,
@@ -144,7 +144,7 @@ public:
 #if 0
 	virtual void change_eul_to_quat(Object *ob, bAction *act);
 #endif
-  
+
 	void translate_Animations( COLLADAFW::Node * Node , 
 												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 												   std::map<COLLADAFW::UniqueId, Object*>& object_map ,
@@ -159,9 +159,9 @@ public:
 									 const COLLADAFW::AnimationList::AnimationBinding * binding,
 									 std::vector<FCurve*>* curves, bool is_joint, char * joint_path);
 
-	void Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves ,char * anim_type);
-	void Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, char * anim_type);
-    
+	void Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type);
+	void Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type);
+
 	int setAnimType ( const COLLADAFW::Animatable * prop , int type, int addition);
 	
 	void modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index );
@@ -206,5 +206,5 @@ public:
 
 	void extra_data_importer(std::string elementName);
 };
- 
- #endif
+
+#endif

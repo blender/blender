@@ -166,7 +166,7 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 		}
 
 		if(BLI_edgehash_haskey(edge_hash, med->v1, med->v2)) {
-			PRINT("    edge %u: is a duplicate of, %u\n", i, GET_INT_FROM_POINTER(BLI_edgehash_lookup(edge_hash, med->v1, med->v2)));
+			PRINT("    edge %u: is a duplicate of, %d\n", i, GET_INT_FROM_POINTER(BLI_edgehash_lookup(edge_hash, med->v1, med->v2)));
 			remove= do_fixes;
 		}
 

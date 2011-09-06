@@ -88,7 +88,7 @@ if(WITH_OPENMP)
 endif()
 
 if(WITH_FFTW3)
-	add_definitions(-DFFTW3=1)
+	add_definitions(-DWITH_FFTW3)
 	list(APPEND INC
 		${FFTW3_INCLUDE_DIRS}
 	)

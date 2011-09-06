@@ -475,6 +475,17 @@ static const char *rna_ensure_property_name(PropertyRNA *prop)
 
 /* Structs */
 
+StructRNA *RNA_struct_find(const char *identifier)
+{
+	StructRNA *type;
+	if (identifier) {
+		for (type = BLENDER_RNA.structs.first; type; type = type->cont.next)
+			if (strcmp(type->identifier, identifier)==0)
+				return type;
+	}
+	return NULL;
+}
+
 const char *RNA_struct_identifier(StructRNA *type)
 {
 	return type->identifier;
