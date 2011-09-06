@@ -897,13 +897,13 @@ void ntreeFreeTree(bNodeTree *ntree)
 	if (ntree->execdata) {
 		switch (ntree->type) {
 		case NTREE_COMPOSIT:
-			ntreeCompositEndExecTree(ntree->execdata);
+			ntreeCompositEndExecTree(ntree->execdata, 1);
 			break;
 		case NTREE_SHADER:
-			ntreeShaderEndExecTree(ntree->execdata);
+			ntreeShaderEndExecTree(ntree->execdata, 1);
 			break;
 		case NTREE_TEXTURE:
-			ntreeTexEndExecTree(ntree->execdata);
+			ntreeTexEndExecTree(ntree->execdata, 1);
 			break;
 		}
 	}

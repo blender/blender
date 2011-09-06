@@ -76,7 +76,7 @@ static void *group_initexec(bNode *node)
 	bNodeTreeExec *exec;
 	
 	/* initialize the internal node tree execution */
-	exec = ntreeShaderBeginExecTree(ngroup);
+	exec = ntreeShaderBeginExecTree(ngroup, 0);
 	
 	return exec;
 }
@@ -85,7 +85,7 @@ static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
 	bNodeTreeExec*gexec= (bNodeTreeExec*)nodedata;
 	
-	ntreeShaderEndExecTree(gexec);
+	ntreeShaderEndExecTree(gexec, 0);
 }
 
 /* Copy inputs to the internal stack.
