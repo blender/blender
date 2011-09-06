@@ -422,7 +422,11 @@ static void verify_socket_template_list(bNodeTree *ntree, bNode *node, int in_ou
 void node_verify_socket_templates(bNodeTree *ntree, bNode *node)
 {
 	bNodeType *ntype= node->typeinfo;
-	if(ntype) {
+	/* XXX Small trick: don't try to match socket lists when there are no templates.
+	 * This also prevents group node sockets from being removed, without the need to explicitly
+	 * check the node type here.
+	 */
+	if(ntype && ((ntype->inputs && ntype->inputs[0].type>=0) || (ntype->outputs && ntype->outputs[0].type>=0))) {
 		verify_socket_template_list(ntree, node, SOCK_IN, &node->inputs, ntype->inputs);
 		verify_socket_template_list(ntree, node, SOCK_OUT, &node->outputs, ntype->outputs);
 	}
