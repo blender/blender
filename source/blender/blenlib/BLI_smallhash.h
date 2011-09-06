@@ -100,8 +100,6 @@ BM_INLINE void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 {
 	int h, hoff=1;
 
-	/* key = ABS(key); BMESH_TODO: XXXXX this throws error with MSVC (warning as error) */
-
 	if (hash->size < hash->used*3) {
 		int newsize = hashsizes[++hash->curhash];
 		entry *tmp;
@@ -126,7 +124,8 @@ BM_INLINE void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 			if (ELEM(tmp[i].val, CELL_UNUSED, CELL_FREE))
 				continue;
 			
-			h = tmp[i].key; hoff = 1;
+			h = ABS((int)(tmp[i].key));
+			hoff = 1;
 			while (!ELEM(hash->table[h % newsize].val, CELL_UNUSED, CELL_FREE))
 				h = HASHNEXT(h, hoff);
 			
@@ -141,7 +140,8 @@ BM_INLINE void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 		}
 	}
 	
-	h = key; hoff = 1;
+	h = ABS((int)key);
+	hoff = 1;
 	while (!ELEM(hash->table[h % hash->size].val, CELL_UNUSED, CELL_FREE))
 		h = HASHNEXT(h, hoff);
 	
@@ -156,8 +156,7 @@ BM_INLINE void BLI_smallhash_remove(SmallHash *hash, uintptr_t key)
 {
 	int h, hoff=1;
 
-	/* key = ABS(key); BMESH_TODO: XXXXX this throws error with MSVC (warning as error) */
-	h = key;
+	h = ABS((int)key);
 	
 	while (hash->table[h % hash->size].key != key 
 	      || hash->table[h % hash->size].val == CELL_UNUSED)
@@ -175,9 +174,9 @@ BM_INLINE void BLI_smallhash_remove(SmallHash *hash, uintptr_t key)
 BM_INLINE void *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)
 {
 	int h, hoff=1;
+	void *v;
 
-	/* key = ABS(key); BMESH_TODO: XXXXX this throws error with MSVC (warning as error) */
-	h = key;
+	h = ABS((int)key);
 	
 	if (!hash->table)
 		return NULL;
@@ -190,15 +189,17 @@ BM_INLINE void *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)
 		h = HASHNEXT(h, hoff);
 	}
 	
-	return hash->table[h % hash->size].val;
+	v = hash->table[h % hash->size].val;
+	if (ELEM(v, CELL_UNUSED, CELL_FREE))
+		return NULL;
+	return v;
 }
 
 
 BM_INLINE int BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
 {
-	int h = key, hoff=1;
-	h = ABS(h);
-	/* key = ABS(key); BMESH_TODO: XXXXX this throws error with MSVC (warning as error) */
+	int h = ABS((int)key);
+	int hoff =1;
 	
 	if (!hash->table)
 		return 0;
@@ -211,7 +212,7 @@ BM_INLINE int BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
 		h = HASHNEXT(h, hoff);
 	}
 	
-	return 1;
+	return !ELEM(hash->table[h % hash->size].val, CELL_UNUSED, CELL_FREE);
 }
 
 BM_INLINE int BLI_smallhash_count(SmallHash *hash)
