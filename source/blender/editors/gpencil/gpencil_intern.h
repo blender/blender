@@ -37,6 +37,7 @@
 /* ***************************************************** */
 /* Operator Defines */
 
+struct bGPdata;
 struct wmOperatorType;
 
 /* drawing ---------- */
@@ -61,6 +62,11 @@ void GPENCIL_OT_active_frame_delete(struct wmOperatorType *ot);
 
 void GPENCIL_OT_convert(struct wmOperatorType *ot);
 
+/* undo stack ---------- */
+
+void gpencil_undo_init(struct bGPdata *gpd);
+void gpencil_undo_push(struct bGPdata *gpd);
+void gpencil_undo_finish(void);
 
 /******************************************************* */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */
