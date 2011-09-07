@@ -639,7 +639,7 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 	/* vars from original func */
 	UvVertMap *vmap;
 	UvMapVert *buf;
-	MTexPoly *tf;
+	/* MTexPoly *tf; */ /* UNUSED */
 	MLoopUV *luv;
 	unsigned int a;
 	int totverts, i, totuv;
@@ -718,7 +718,7 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 			newvlist= v;
 
 			efa = EDBM_get_face_for_index(em, v->f);
-			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 			
 			l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, efa, v->tfindex);
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
@@ -730,7 +730,7 @@ UvVertMap *EDBM_make_uv_vert_map(BMEditMesh *em, int selected, int do_face_idx_a
 			while(iterv) {
 				next= iterv->next;
 				efa = EDBM_get_face_for_index(em, iterv->f);
-				tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+				/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 				
 				l = BMIter_AtIndex(em->bm, BM_LOOPS_OF_FACE, efa, iterv->tfindex);
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);

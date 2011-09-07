@@ -356,14 +356,14 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	BMVert *eva[12];
 	BMIter liter;
 	BMLoop *l;
-	float vec[3], mat[4][4], phi, phid;
+	float vec[3], mat[4][4] /* , phi, phid */;
 	float dia = BMO_Get_Float(op, "diameter");
 	int a, subdiv = BMO_Get_Int(op, "subdivisions");
 
 	BMO_Get_Mat4(op, "mat", mat);
 
-	phid= 2.0f*(float)M_PI/subdiv;
-	phi= .25f*(float)M_PI;
+	/* phid= 2.0f*(float)M_PI/subdiv; */ /* UNUSED */
+	/* phi= .25f*(float)M_PI; */         /* UNUSED */
 
 	dia/=200;
 	for(a=0;a<12;a++) {

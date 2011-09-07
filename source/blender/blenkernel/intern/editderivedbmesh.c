@@ -1359,7 +1359,7 @@ static void *bmDM_getFaceDataArray(DerivedMesh *dm, int type)
 	BMFace *efa;
 	char *data, *bmdata;
 	void *datalayer;
-	int index, offset, size, i;
+	int index /*, offset*/ /*UNUSED */, size, i;
 
 	datalayer = DM_get_tessface_data_layer(dm, type);
 	if(datalayer)
@@ -1371,7 +1371,7 @@ static void *bmDM_getFaceDataArray(DerivedMesh *dm, int type)
 		index = CustomData_get_layer_index(&bm->pdata, type);
 
 		if(index != -1) {
-			offset = bm->pdata.layers[index].offset;
+			/* offset = bm->pdata.layers[index].offset; */ /* UNUSED */
 			size = CustomData_sizeof(type);
 
 			DM_add_tessface_layer(dm, type, CD_CALLOC, NULL);

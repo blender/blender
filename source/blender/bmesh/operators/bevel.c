@@ -509,8 +509,9 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				
 				/*set edge lengths of cross edges as the average of the cross edges they're based on*/
 				if (has_elens) {
+#if 0				/* angle happens not to be used. why? - not sure it just isnt - campbell. leave this in incase we need to use it later */
 					float ang;
-					
+#endif
 					e1 = BM_Edge_Exist(v1, v4);
 					e2 = BM_Edge_Exist(v2, v3);
 					
@@ -525,15 +526,17 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 					d3 = CustomData_bmesh_get_n(&bm->edata, e1->head.data, CD_PROP_FLT, li);
 					d1 = *(float*)CustomData_bmesh_get_n(&bm->edata, l->prev->e->head.data, CD_PROP_FLT, li);
 					d2 = *(float*)CustomData_bmesh_get_n(&bm->edata, l2->e->head.data, CD_PROP_FLT, li);
-					
+#if 0
 					ang = angle_v3v3v3(l->prev->v->co, l->v->co, BM_OtherEdgeVert(l2->e, l->v)->co);
+#endif
 					*d3 = (d1+d2)*0.5f;
 					
 					d3 = CustomData_bmesh_get_n(&bm->edata, e2->head.data, CD_PROP_FLT, li);
 					d1 = *(float*)CustomData_bmesh_get_n(&bm->edata, l->next->e->head.data, CD_PROP_FLT, li);
 					d2 = *(float*)CustomData_bmesh_get_n(&bm->edata, l3->e->head.data, CD_PROP_FLT, li);
-
+#if 0
 					ang = angle_v3v3v3(BM_OtherEdgeVert(l->next->e, l->next->v)->co, l->next->v->co, BM_OtherEdgeVert(l3->e, l->next->v)->co);
+#endif
 					*d3 = (d1+d2)*0.5f;
 				}
 

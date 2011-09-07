@@ -211,7 +211,7 @@ void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
 		}
 		
 		v1 = vt[me->mloop[mpoly->loopstart].v];
-		v2 = vt[me->mloop[mpoly->loopstart+1].v];
+		/* v2 = vt[me->mloop[mpoly->loopstart+1].v]; */ /* UNUSED */ /* code below always overwrites */
 
 		if (v1 == fedges[0]->v1) v2 = fedges[0]->v2;
 		else {

@@ -108,13 +108,13 @@ BM_INLINE void *BLI_mempool_alloc(BLI_mempool *pool) {
 	void *retval=NULL;
 	BLI_freenode *curnode=NULL;
 	char *addr=NULL;
-	int j;
 	
 	if (!pool) return NULL;
 	
 	pool->totused++;
 
-	if(!(pool->free)){
+	if (!(pool->free)) {
+		int j;
 		/*need to allocate a new chunk*/
 		BLI_mempool_chunk *mpchunk = pool->use_sysmalloc ? (BLI_mempool_chunk*)malloc(sizeof(BLI_mempool_chunk)) :  (BLI_mempool_chunk*)MEM_mallocN(sizeof(BLI_mempool_chunk), "BLI_Mempool Chunk");
 		mpchunk->next = mpchunk->prev = NULL;

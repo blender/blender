@@ -2630,7 +2630,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	WeightTable wtable = {0};
 	MCol *mcol;
 	MEdge *medge = NULL;
-	MFace *mface = NULL;
+	/* MFace *mface = NULL; */
 	MPoly *mpoly = NULL;
 
 	DM_from_template(&ccgdm->dm, dm, DM_TYPE_CCGDM,
@@ -2761,9 +2761,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	edgeNum = 0;
 	faceNum = 0;
 
-	/* mvert = dm->getVertArray(dm); - as yet unused */
+	/* mvert = dm->getVertArray(dm); */ /* UNUSED */
 	medge = dm->getEdgeArray(dm);
-	mface = dm->getTessFaceArray(dm);
+	/* mface = dm->getTessFaceArray(dm); */ /* UNUSED */
 
 	mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 	base_polyOrigIndex = CustomData_get_layer(&dm->polyData, CD_ORIGINDEX);

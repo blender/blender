@@ -83,8 +83,6 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		
 		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 			BMVert *v1, *v2, *v3, *v4;
-			float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
-			int ok;
 			
 			if (BM_Edge_FaceCount(e) != 2 || BMO_TestFlag(bm, e, EDGE_MARK))
 				continue;
@@ -97,6 +95,7 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 			v4 = e->l->next->v;
 			
 			if (is_quad_convex_v3(v1->co, v2->co, v3->co, v4->co)) {
+				float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
 				/* testing rule:
 				* the area divided by the total edge lengths
 				*/
@@ -116,7 +115,6 @@ void bmesh_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				opp2= area_tri_v3(v2->co, v4->co, v1->co);
 	
 				fac2= opp1/(len2+len3+len6) + opp2/(len4+len1+len6);
-				ok = 0;
 				
 				if (fac1 > fac2) {
 					e = BM_Rotate_Edge(bm, e, 0);

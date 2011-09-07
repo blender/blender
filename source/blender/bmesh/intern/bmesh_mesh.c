@@ -175,7 +175,7 @@ void BM_Compute_Normals(BMesh *bm)
 	BMIter verts;
 	BMIter faces;
 	BMIter loops;
-	unsigned int maxlength = 0, i;
+	unsigned int maxlength = 0;
 	float (*projectverts)[3];
 	
 	/*first, find out the largest face in mesh*/
@@ -211,9 +211,7 @@ void BM_Compute_Normals(BMesh *bm)
 	}
 
 	/*add face normals to vertices*/
-	i = 0;
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
-		i += 1;
 
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;

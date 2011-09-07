@@ -622,9 +622,7 @@ static void vertsearchcallback_topo(void *userdata, int index, const float *UNUS
 	BMBVHTree *tree = userdata;
 	BMLoop **ls = tree->em->looptris[index];
 	int i;
-	float maxdist, vec[3], w;
-
-	maxdist = tree->maxdist;
+	float vec[3], w;
 
 	for (i=0; i<3; i++) {
 		float dis;

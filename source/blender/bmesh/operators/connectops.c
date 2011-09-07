@@ -24,7 +24,7 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	BMLoop **loops = NULL, *lastl = NULL;
 	BLI_array_declare(loops);
 	BMLoop *l, *nl;
-	BMVert *v1, *v2, **verts = NULL;
+	BMVert **verts = NULL;
 	BLI_array_declare(verts);
 	int i;
 	
@@ -37,7 +37,6 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 		if (BMO_TestFlag(bm, f, FACE_NEW)) continue;
 
 		l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, f);
-		v1 = v2 = NULL;
 		lastl = NULL;
 		for (; l; l=BMIter_Step(&liter)) {
 			if (BMO_TestFlag(bm, l->v, VERT_INPUT)) {

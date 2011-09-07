@@ -467,20 +467,18 @@ v7-v0--v1-v2
 
 */
 static void quad_2edge_split_fan(BMesh *bm, BMFace *UNUSED(face), BMVert **verts,
-                          subdparams *params)
+                                 subdparams *params)
 {
 	BMFace *nf;
-	// BMVert *v;
-	BMVert *lastv;
-	// BMEdge *e, *ne;
+	/* BMVert *v; */               /* UNUSED */
+	/* BMVert *lastv= verts[2]; */ /* UNUSED */
+	/* BMEdge *e, *ne; */          /* UNUSED */
 	int i, numcuts = params->numcuts;
-	
-	lastv = verts[2];
 
 	for (i=0; i<numcuts; i++) {
 		connect_smallest_face(bm, verts[i], verts[numcuts*2+2], &nf);
-		connect_smallest_face(bm, verts[numcuts+(numcuts-i)], 
-			verts[numcuts*2+2], &nf);
+		connect_smallest_face(bm, verts[numcuts+(numcuts-i)],
+		                      verts[numcuts*2+2], &nf);
 	}
 }
 
@@ -1040,9 +1038,8 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 
 			for (j=0; j<BLI_array_count(splits)/2; j++) {
 				if (splits[j*2]) {
-					BMFace *nf;
-
-					nf = BM_Split_Face(bmesh, face, splits[j*2]->v, splits[j*2+1]->v, &nl, NULL);
+					/* BMFace *nf= */ /* UNUSED */
+					BM_Split_Face(bmesh, face, splits[j*2]->v, splits[j*2+1]->v, &nl, NULL);
 				}
 			}
 

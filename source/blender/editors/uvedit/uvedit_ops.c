@@ -2373,7 +2373,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 
 		/* now select tagged verts */
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 				if (BM_GetIndex(l->v)) {
@@ -2411,7 +2411,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 		efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
 		for (efa_index=0; efa; efa=BMIter_Step(&iter), efa_index++) {
 			if(BM_GetIndex(efa)) {
-				tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+				/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 				
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					if(select)

@@ -824,10 +824,10 @@ static int select_similar_exec(bContext *C, wmOperator *op)
 static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	EnumPropertyItem *item= NULL;
-	int a, totitem= 0;
-	
+
 	if(obedit && obedit->type == OB_MESH) {
+		EnumPropertyItem *item= NULL;
+		int a, totitem= 0;
 		BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh; 
 
 		if(em->selectmode & SCE_SELECT_VERTEX) {
@@ -1238,12 +1238,14 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	 * by the shortest path found so far to the edge.
 	*/
 
+#if 0 /* UNUSED */ /* this block does nothing, not sure why its here? - campbell */
 	for (i = 0; i < totvert; i++) {
 		int start = nedges[i], end = nedges[i+1], cur;
 		for (cur = start; cur < end; cur++) {
 			BMEdge* e = EDBM_get_edge_for_index(em, edges[cur]);
 		}
 	}
+#endif
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
 	heap = BLI_heap_new();

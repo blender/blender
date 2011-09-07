@@ -2228,15 +2228,16 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 {
 	BMIter iter;
 	BMVert *v;
-	float *vco=NULL, co[3], cent[3] = {0.0f, 0.0f, 0.0f}, fac;
-	int i;
+	float *vco=NULL, co[3], cent[3] = {0.0f, 0.0f, 0.0f};
 
 	if (target) {
 		vco = give_cursor(scene, v3d);
 		VECCOPY(co, vco);
 		mul_m4_v3(ob->imat, co);
-	} else {
-		i = 0;
+	}
+	else {
+		float fac;
+		int i = 0;
 		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 			if (!BM_TestHFlag(v, BM_SELECT))
 				continue;
@@ -2376,13 +2377,13 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	BMOperator bmop;
-	int count;
+	/* int count; */ /* UNUSED */
 
 	EDBM_InitOpf(em, &bmop, op, "finddoubles verts=%hv dist=%f", 
 		BM_SELECT, RNA_float_get(op->ptr, "mergedist"));
 	BMO_Exec_Op(em->bm, &bmop);
 
-	count = BMO_CountSlotMap(em->bm, &bmop, "targetmapout");
+	/* count = BMO_CountSlotMap(em->bm, &bmop, "targetmapout"); */ /* UNUSED */
 
 	if (!EDBM_CallOpf(em, op, "weldverts targetmap=%s", &bmop, "targetmapout")) {
 		BMO_Finish_Op(em->bm, &bmop);
@@ -3007,10 +3008,13 @@ static EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr),  Prop
 	Object *obedit= CTX_data_edit_object(C);
 	Mesh *me= (obedit) ? obedit->data : NULL;
 	BMEditMesh *em = me->edit_btmesh;
-	EnumPropertyItem tmp= {0, "", 0, "", ""}, *item= NULL;
-	int totitem= 0, a;
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
 
 	if(obedit && obedit->type == OB_MESH && CustomData_has_layer(&em->bm->vdata, CD_SHAPEKEY)) {
+		EnumPropertyItem tmp= {0, "", 0, "", ""};
+		int a;
+
 		for (a=0; a<em->bm->vdata.totlayer; a++) {
 			if (em->bm->vdata.layers[a].type != CD_SHAPEKEY)
 				continue;
@@ -4544,7 +4548,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	BMEdge *eed;
 	BMOperator bmop;
-	float factor= RNA_float_get(op->ptr, "percent"), fac=factor, dfac, df, s;
+	float factor= RNA_float_get(op->ptr, "percent"), fac=factor /*, dfac */ /* UNUSED */, df, s;
 	/*float p2 = RNA_float_get(op->ptr, "param2");
 	float p3 = RNA_float_get(op->ptr, "param3");
 	float p4 = RNA_float_get(op->ptr, "param4");
@@ -4567,7 +4571,7 @@ static int mesh_bevel_exec(bContext *C, wmOperator *op)
 	if(em==NULL) return OPERATOR_CANCELLED;
 	
 	/*ugh, stupid math depends somewhat on angles!*/
-	dfac = 1.0/(float)(recursion+1);
+	/* dfac = 1.0/(float)(recursion+1); */ /* UNUSED */
 	df = 1.0;
 	for (i=0, ftot=0.0f; i<recursion; i++) {
 		s = pow(df, 1.25);
@@ -4707,7 +4711,7 @@ static int mesh_export_obj_exec(bContext *C, wmOperator *op)
 	mpoly = CDDM_get_polys(dm);
 	mtexpoly = CustomData_get_layer(&dm->polyData, CD_MTEXPOLY);
 	mloopuv = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
-	mloopcol = CustomData_get_layer(&dm->loopData, CD_MLOOPCOL);
+	/* mloopcol = CustomData_get_layer(&dm->loopData, CD_MLOOPCOL); */ /* UNUSED */
 	
 	if (matlists) {
 		/*build material list*/

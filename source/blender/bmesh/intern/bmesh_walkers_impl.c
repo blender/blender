@@ -327,11 +327,11 @@ static void loopWalker_begin(BMWalker *walker, void *data){
 	loopWalker *lwalk = NULL, owalk;
 	BMEdge *e = data;
 	BMVert *v;
-	int /*  found=1, */ val;
+	/* int found=1, val; */ /* UNUSED */
 
 	v = e->v1;
 
-	val = BM_Vert_EdgeCount(v);
+	/* val = BM_Vert_EdgeCount(v); */ /* UNUSED */
 
 	BMW_pushstate(walker);
 	
@@ -498,8 +498,8 @@ static void faceloopWalker_begin(BMWalker *walker, void *data)
 {
 	faceloopWalker *lwalk, owalk;
 	BMEdge *e = data;
-	BMesh *bm = walker->bm;
-	int fcount = BM_Edge_FaceCount(e);
+	/* BMesh *bm = walker->bm; */ /* UNUSED */
+	/* int fcount = BM_Edge_FaceCount(e); */ /* UNUSED */
 
 	if (!faceloopWalker_edge_begins_loop(walker, e))
 		return;
