@@ -1353,6 +1353,12 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				write_curvemapping(wd, tmd->curfalloff);
 			}
 		}
+		else if (md->type==eModifierType_WeightVGEdit) {
+			WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
+
+			if (wmd->cmap_curve)
+				write_curvemapping(wd, wmd->cmap_curve);
+		}
 	}
 }
 

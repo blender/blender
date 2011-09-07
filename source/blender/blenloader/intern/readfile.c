@@ -4228,6 +4228,13 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if(tmd->curfalloff)
 				direct_link_curvemapping(fd, tmd->curfalloff);
 		}
+		else if (md->type==eModifierType_WeightVGEdit) {
+			WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
+
+			wmd->cmap_curve = newdataadr(fd, wmd->cmap_curve);
+			if(wmd->cmap_curve)
+				direct_link_curvemapping(fd, wmd->cmap_curve);
+		}
 	}
 }
 

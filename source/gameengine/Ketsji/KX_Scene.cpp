@@ -1916,7 +1916,7 @@ void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
 
 void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
 {
-	int len;
+	Py_ssize_t len;
 
 	if (cb_list && (len=PyList_GET_SIZE(cb_list)))
 	{
@@ -1925,7 +1925,7 @@ void KX_Scene::RunDrawingCallbacks(PyObject* cb_list)
 		PyObject* ret;
 
 		// Iterate the list and run the callbacks
-		for (int pos=0; pos < len; pos++)
+		for (Py_ssize_t pos=0; pos < len; pos++)
 		{
 			func= PyList_GET_ITEM(cb_list, pos);
 			ret= PyObject_Call(func, args, NULL);

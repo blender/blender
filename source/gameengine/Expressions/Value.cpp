@@ -546,8 +546,8 @@ CValue* CValue::ConvertPythonToValue(PyObject* pyobj, const char *error_prefix)
 		CListValue* listval = new CListValue();
 		bool error = false;
 
-		int i;
-		int numitems = PyList_Size(pyobj);
+		Py_ssize_t i;
+		Py_ssize_t numitems = PyList_GET_SIZE(pyobj);
 		for (i=0;i<numitems;i++)
 		{
 			PyObject* listitem = PyList_GetItem(pyobj,i); /* borrowed ref */

@@ -36,7 +36,8 @@
 
 /* **************** VALUE ******************** */
 static bNodeSocketTemplate cmp_node_value_out[]= {
-	{	SOCK_FLOAT, 0, "Value"},
+	/* XXX value nodes use the output sockets for buttons, so we need explicit limits here! */
+	{	SOCK_FLOAT, 0, "Value", 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
 	{	-1, 0, ""	}
 };
 
@@ -46,6 +47,8 @@ static void node_composit_init_value(bNodeTree *UNUSED(ntree), bNode *node, bNod
 	bNodeSocketValueFloat *dval= (bNodeSocketValueFloat*)sock->default_value;
 	/* uses the default value of the output socket, must be initialized here */
 	dval->value = 0.5f;
+	dval->min = -FLT_MAX;
+	dval->max = FLT_MAX;
 }
 
 static void node_composit_exec_value(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
