@@ -1810,7 +1810,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 
 	if(rv3d->persp==RV3D_CAMOB && startscene->gm.framing.type == SCE_GAMEFRAMING_BARS && startscene->gm.stereoflag != STEREO_DOME) { /* Letterbox */
 		rctf cam_framef;
-		ED_view3d_calc_camera_border(startscene, ar, rv3d, CTX_wm_view3d(C), &cam_framef, FALSE);
+		ED_view3d_calc_camera_border(startscene, ar, CTX_wm_view3d(C), rv3d, &cam_framef, FALSE);
 		cam_frame.xmin = cam_framef.xmin + ar->winrct.xmin;
 		cam_frame.xmax = cam_framef.xmax + ar->winrct.xmin;
 		cam_frame.ymin = cam_framef.ymin + ar->winrct.ymin;
