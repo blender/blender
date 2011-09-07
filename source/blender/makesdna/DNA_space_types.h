@@ -583,8 +583,9 @@ typedef struct SpaceClip {
 	int path_length;			/* length of displaying path, in frames */
 
 	/* current stabilization data */
-	float loc[2], scale;	/* pre-composed stabilization data */
-	float stabmat[4][4];	/* current stabilization matrix, defined when drawing
+	float loc[2], scale, angle;	/* pre-composed stabilization data */
+	int pad;
+	float stabmat[4][4];		/* current stabilization matrix, defined when drawing
 							   and used for mouse position calculation */
 } SpaceClip;
 

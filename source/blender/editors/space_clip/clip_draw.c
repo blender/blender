@@ -195,6 +195,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 			int width, int height, float zoomx, float zoomy)
 {
 	int x, y;
+	MovieClip *clip= ED_space_clip(sc);
 
 	/* set zoom */
 	glPixelZoom(zoomx*width/ibuf->x, zoomy*height/ibuf->y);
@@ -210,39 +211,37 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 			IMB_rect_from_float(ibuf);
 		}
 
-		if(ibuf->rect) {
-			MovieClip *clip= ED_space_clip(sc);
-
+		if(ibuf->rect)
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-
-			/* draw boundary border for frame if stabilization is enabled */
-			if(sc->flag&SC_SHOW_STABLE && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
-				glColor3f(0.f, 0.f, 0.f);
-				glLineStipple(3, 0xaaaa);
-				glEnable(GL_LINE_STIPPLE);
-				glEnable(GL_COLOR_LOGIC_OP);
-				glLogicOp(GL_NOR);
-
-				glPushMatrix();
-				glTranslatef(x, y, 0);
-
-				glScalef(zoomx, zoomy, 0);
-				glMultMatrixf(sc->stabmat);
-
-				glBegin(GL_LINE_LOOP);
-					glVertex2f(0.f, 0.f);
-					glVertex2f(ibuf->x, 0.f);
-					glVertex2f(ibuf->x, ibuf->y);
-					glVertex2f(0.f, ibuf->y);
-				glEnd();
-
-				glPopMatrix();
-
-				glDisable(GL_COLOR_LOGIC_OP);
-				glDisable(GL_LINE_STIPPLE);
-			}
-		}
 	}
+
+	/* draw boundary border for frame if stabilization is enabled */
+	if(sc->flag&SC_SHOW_STABLE && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
+		glColor3f(0.f, 0.f, 0.f);
+		glLineStipple(3, 0xaaaa);
+		glEnable(GL_LINE_STIPPLE);
+		glEnable(GL_COLOR_LOGIC_OP);
+		glLogicOp(GL_NOR);
+
+		glPushMatrix();
+		glTranslatef(x, y, 0);
+
+		glScalef(zoomx, zoomy, 0);
+		glMultMatrixf(sc->stabmat);
+
+		glBegin(GL_LINE_LOOP);
+			glVertex2f(0.f, 0.f);
+			glVertex2f(ibuf->x, 0.f);
+			glVertex2f(ibuf->x, ibuf->y);
+			glVertex2f(0.f, ibuf->y);
+		glEnd();
+
+		glPopMatrix();
+
+		glDisable(GL_COLOR_LOGIC_OP);
+		glDisable(GL_LINE_STIPPLE);
+	}
+
 
 	/* reset zoom */
 	glPixelZoom(1.f, 1.f);
@@ -706,7 +705,7 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			int width, int height, float zoomx, float zoomy)
 {
 	char str[128]= {0}, state[64]= {0};
-	float x, y, dx= 0.f, dy= 0.f, fontsize;
+	float dx= 0.f, dy= 0.f, fontsize, pos[3];
 	uiStyle *style= U.uistyles.first;
 	int fontid= style->widget.uifont_id;
 
@@ -732,8 +731,14 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		dy= track->pat_min[1];
 	}
 
-	x= (marker->pos[0]+dx)*width*sc->scale*zoomx+sc->loc[0]*zoomx;
-	y= (marker->pos[1]+dy)*height*sc->scale*zoomy-fontsize+sc->loc[1]*zoomy;
+	pos[0]= (marker->pos[0]+dx)*width;
+	pos[1]= (marker->pos[1]+dy)*height;
+	pos[2]= 0.f;
+
+	mul_m4_v3(sc->stabmat, pos);
+
+	pos[0]= pos[0]*zoomx;
+	pos[1]= pos[1]*zoomy - fontsize;
 
 	if(marker->flag&MARKER_DISABLED) strcpy(state, "disabled");
 	else if(marker->framenr!=sc->user.framenr) strcpy(state, "estimated");
@@ -745,19 +750,19 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	else
 		BLI_snprintf(str, sizeof(str), "%s", track->name);
 
-	BLF_position(fontid, x, y, 0.f);
+	BLF_position(fontid, pos[0], pos[1], 0.f);
 	BLF_draw(fontid, str, strlen(str));
-	y-= fontsize;
+	pos[1]-= fontsize;
 
 	if(track->flag&TRACK_HAS_BUNDLE) {
 		BLI_snprintf(str, sizeof(str), "Average error: %.3f", track->error);
-		BLF_position(fontid, x, y, 0.f);
+		BLF_position(fontid, pos[0], pos[1], 0.f);
 		BLF_draw(fontid, str, strlen(str));
-		y-= fontsize;
+		pos[1]-= fontsize;
 	}
 
 	if(track->flag&TRACK_LOCKED) {
-		BLF_position(fontid, x, y, 0.f);
+		BLF_position(fontid, pos[0], pos[1], 0.f);
 		BLF_draw(fontid, "locked", 6);
 	}
 }
@@ -1125,8 +1130,8 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
 	if(sc->flag&SC_SHOW_STABLE) {
-		ibuf= ED_space_clip_acquire_stable_buffer(sc, sc->loc, &sc->scale);
-		BKE_tracking_stabdata_to_mat4(sc->loc, sc->scale, sc->stabmat);
+		ibuf= ED_space_clip_acquire_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
+		BKE_tracking_stabdata_to_mat4(width, height, sc->loc, sc->scale, sc->angle, sc->stabmat);
 	} else {
 		ibuf= ED_space_clip_acquire_buffer(sc);
 

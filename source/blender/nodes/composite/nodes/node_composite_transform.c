@@ -40,7 +40,7 @@ static bNodeSocketTemplate cmp_node_stabilize2d_in[]= {
 	{	SOCK_RGBA,		1,	"Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT,		1,	"X",				0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
 	{	SOCK_FLOAT,		1,	"Y",				0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
-	{	SOCK_FLOAT,		1,	"Rotate",			0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
+	{	SOCK_FLOAT,		1,	"Degr",			0.0f, 0.0f, 0.0f, 0.0f, -10000.0f, 10000.0f},
 	{	SOCK_FLOAT,		1,	"Scale",			1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX},
 	{	-1, 0, ""	}
 };
@@ -50,32 +50,29 @@ static bNodeSocketTemplate cmp_node_stabilize2d_out[]= {
 	{	-1, 0, ""	}
 };
 
-CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float rotate, float scale, int filter_type)
+CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, float scale, int filter_type)
 {
 	CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1);
 	ImBuf *ibuf, *obuf;
 	float mat[4][4], lmat[4][4], rmat[4][4], smat[4][4], cmat[4][4], icmat[4][4];
-	float rad= (M_PI*rotate)/180.0f;
+	float svec[3]= {scale, scale, scale}, loc[2]= {x, y};
 
 	unit_m4(rmat);
 	unit_m4(lmat);
 	unit_m4(smat);
 	unit_m4(cmat);
 
+	/* image center as rotation center */
 	cmat[3][0]= (float)cbuf->x/2.f;
 	cmat[3][1]= (float)cbuf->y/2.f;
 	invert_m4_m4(icmat, cmat);
 
-	smat[0][0]*= scale;
-	smat[1][1]*= scale;
-	smat[2][2]*= scale;
+	size_to_mat4(smat, svec);		/* scale matrix */
+	add_v2_v2(lmat[3], loc);		/* tranlation matrix */
+	rotate_m4(rmat, 'Z', angle);	/* rotation matrix */
 
-	rotate_m4(rmat, 'Z', rad);
-
-	lmat[3][0]+= x;
-	lmat[3][1]+= y;
-
-	mul_serie_m4(mat, cmat, rmat, icmat, lmat, smat, NULL, NULL, NULL);
+	/* compose transformation matrix */
+	mul_serie_m4(mat, lmat, smat, cmat, rmat, icmat, NULL, NULL, NULL);
 
 	invert_m4(mat);
 
@@ -122,7 +119,7 @@ static void node_composit_exec_stabilize2d(void *UNUSED(data), bNode *node, bNod
 		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 		CompBuf *stackbuf;
 
-		stackbuf= node_composit_transform(cbuf, in[1]->vec[0], in[2]->vec[0], in[3]->vec[0], in[4]->vec[0], node->custom1);
+		stackbuf= node_composit_transform(cbuf, in[1]->vec[0], in[2]->vec[0], DEG2RAD(in[3]->vec[0]), in[4]->vec[0], node->custom1);
 
 		/* pass on output and free */
 		out[0]->data= stackbuf;

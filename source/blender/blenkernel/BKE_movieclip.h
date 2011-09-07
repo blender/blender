@@ -48,7 +48,7 @@ struct MovieClip *BKE_add_movieclip_file(const char *name);
 void BKE_movieclip_reload(struct MovieClip *clip);
 
 struct ImBuf *BKE_movieclip_acquire_ibuf(struct MovieClip *clip, struct MovieClipUser *user);
-struct ImBuf *BKE_movieclip_acquire_stable_ibuf(struct MovieClip *clip, struct MovieClipUser *user, float loc[2], float *scale);
+struct ImBuf *BKE_movieclip_acquire_stable_ibuf(struct MovieClip *clip, struct MovieClipUser *user, float loc[2], float *scale, float *angle);
 struct ImBuf *BKE_movieclip_acquire_ibuf_flag(struct MovieClip *clip, struct MovieClipUser *user, int flag);
 void BKE_movieclip_acquire_size(struct MovieClip *clip, struct MovieClipUser *user, int *width, int *height);
 void BKE_movieclip_aspect(struct MovieClip *clip, float *aspx, float *aspy);

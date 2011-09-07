@@ -214,6 +214,6 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy);
 
 #define CMP_SCALE_MAX	12000
 
-CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float rotate, float scale, int filter_type);
+CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, float scale, int filter_type);
 
 #endif

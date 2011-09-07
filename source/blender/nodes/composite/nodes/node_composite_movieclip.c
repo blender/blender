@@ -40,6 +40,7 @@ static bNodeSocketTemplate cmp_node_movieclip_out[]= {
 	{	SOCK_FLOAT,		1,	"Offset X"},
 	{	SOCK_FLOAT,		1,	"Offset Y"},
 	{	SOCK_FLOAT,		1,	"Scale"},
+	{	SOCK_FLOAT,		1,	"Degr"},
 	{	-1, 0, ""	}
 };
 
@@ -136,15 +137,16 @@ static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **U
 			out[0]->data= stackbuf;
 
 			if(stab->flag&TRACKING_2D_STABILIZATION) {
-				float loc[2], scale;
+				float loc[2], scale, angle;
 
 				BKE_tracking_stabilization_data(&clip->tracking, rd->cfra, stackbuf->x, stackbuf->y,
-							loc, &scale);
+							loc, &scale, &angle);
 
 				out[1]->vec[0]= loc[0];
 				out[2]->vec[0]= loc[1];
 
 				out[3]->vec[0]= scale;
+				out[4]->vec[0]= RAD2DEG(angle);
 			}
 
 			/* generate preview */

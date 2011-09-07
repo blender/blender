@@ -128,7 +128,11 @@ typedef struct MovieTrackingStabilization {
 	int flag;
 	int tot_track, act_track;		/* total number and index of active track in list */
 
-	float locinf, scaleinf;		/* influence on location and scale */
+	/* 2d stabilization */
+	float maxscale;			/* max auto-scale factor */
+	MovieTrackingTrack *rot_track;	/* track used to stabilize rotation */
+
+	float locinf, scaleinf, rotinf;	/* influence on location, scale and rotation */
 
 	/* some pre-computing run-time variables */
 	int ok, pad;				/* are precomputed values and scaled buf relevant? */

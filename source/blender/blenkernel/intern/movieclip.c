@@ -255,7 +255,7 @@ typedef struct MovieClipCache {
 
 	/* cache for stable shot */
 	int stable_framenr;
-	float stable_loc[2], stable_scale;
+	float stable_loc[2], stable_scale, stable_angle;
 	ImBuf *stableibuf;
 } MovieClipCache;
 
@@ -352,6 +352,8 @@ static MovieClip *movieclip_alloc(const char *name)
 
 	clip->tracking.stabilization.scaleinf= 1.f;
 	clip->tracking.stabilization.locinf= 1.f;
+	clip->tracking.stabilization.rotinf= 1.f;
+	clip->tracking.stabilization.maxscale= 2.f;
 
 	clip->proxy.build_size_flags= IMB_PROXY_25;
 	clip->proxy.build_tc_flags= IMB_TC_RECORD_RUN|IMB_TC_FREE_RUN|IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
@@ -511,7 +513,7 @@ ImBuf *BKE_movieclip_acquire_ibuf_flag(MovieClip *clip, MovieClipUser *user, int
 	return ibuf;
 }
 
-ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale)
+ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle)
 {
 	ImBuf *ibuf, *stableibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
@@ -519,14 +521,14 @@ ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, f
 	ibuf= BKE_movieclip_acquire_ibuf(clip, user);
 
 	if(clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
-		float tloc[2], tscale;
+		float tloc[2], tscale, tangle;
 
 		if(clip->cache->stableibuf && clip->cache->stable_framenr==framenr) {
 			stableibuf= clip->cache->stableibuf;
 
-			BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale);
+			BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
 
-			if(!equals_v2v2(tloc, clip->cache->stable_loc) || tscale!=clip->cache->stable_scale) {
+			if(!equals_v2v2(tloc, clip->cache->stable_loc) || tscale!=clip->cache->stable_scale || tangle!=clip->cache->stable_angle) {
 				stableibuf= NULL;
 			}
 		}
@@ -535,10 +537,11 @@ ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, f
 			if(clip->cache->stableibuf)
 				IMB_freeImBuf(clip->cache->stableibuf);
 
-			stableibuf= BKE_tracking_stabilize_shot(&clip->tracking, framenr, ibuf, tloc, &tscale);
+			stableibuf= BKE_tracking_stabilize(&clip->tracking, framenr, ibuf, tloc, &tscale, &tangle);
 
 			copy_v2_v2(clip->cache->stable_loc, tloc);
 			clip->cache->stable_scale= tscale;
+			clip->cache->stable_angle= tangle;
 			clip->cache->stable_framenr= framenr;
 			clip->cache->stableibuf= stableibuf;
 		}
@@ -547,9 +550,11 @@ ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, f
 
 		if(loc)		copy_v2_v2(loc, tloc);
 		if(scale)	*scale= tscale;
+		if(angle)	*angle= tangle;
 	} else {
 		if(loc)		zero_v2(loc);
 		if(scale)	*scale= 1.f;
+		if(angle)	*angle= 0.f;
 
 		stableibuf= ibuf;
 	}

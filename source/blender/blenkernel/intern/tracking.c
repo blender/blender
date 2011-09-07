@@ -842,6 +842,7 @@ static void acquire_warped(TrackContext *track_context, int x, int y, int width,
 void BKE_tracking_sync(MovieTrackingContext *context)
 {
 	TrackContext *track_context;
+	MovieTracking *tracking= &context->clip->tracking;
 	MovieTrackingTrack *track;
 	ListBase tracks= {NULL, NULL}, new_tracks= {NULL, NULL};
 	ListBase *old_tracks= &context->clip->tracking.tracks;
@@ -870,7 +871,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 
 			/* original track was found, re-use flags and remove this track */
 			if(cur) {
-				if(cur==context->clip->tracking.act_track)
+				if(cur==tracking->act_track)
 					replace_sel= 1;
 
 				track->flag= cur->flag;
@@ -888,7 +889,7 @@ void BKE_tracking_sync(MovieTrackingContext *context)
 		BLI_ghash_insert(context->hash, track, new_track);
 
 		if(replace_sel)		/* update current selection in clip */
-			context->clip->tracking.act_track= new_track;
+			tracking->act_track= new_track;
 
 		BLI_addtail(&tracks, new_track);
 	}
@@ -1572,7 +1573,48 @@ static int stabilization_median_point(MovieTracking *tracking, int framenr, floa
 	return ok;
 }
 
-static float stabilization_auto_scale_factor(MovieTracking *tracking)
+static void calculate_stabdata(MovieTracking *tracking, int framenr, float width, float height,
+			float firstmedian[2], float median[2], float loc[2], float *scale, float *angle)
+{
+	MovieTrackingStabilization *stab= &tracking->stabilization;
+
+	*scale= (stab->scale-1.f)*stab->scaleinf+1.f;
+	*angle= 0.f;
+
+	loc[0]= (firstmedian[0]-median[0])*width*(*scale);
+	loc[1]= (firstmedian[1]-median[1])*height*(*scale);
+
+	loc[0]-= (firstmedian[0]*(*scale)-firstmedian[0])*width;
+	loc[1]-= (firstmedian[1]*(*scale)-firstmedian[1])*height;
+
+	mul_v2_fl(loc, stab->locinf);
+
+	if(stab->rot_track && stab->rotinf) {
+		MovieTrackingMarker *marker;
+		float a[2], b[2];
+		float x0= (float)width/2.f, y0= (float)height/2.f;
+		float x= median[0]*width, y= median[1]*height;
+
+		marker= BKE_tracking_get_marker(stab->rot_track, 1);
+		sub_v2_v2v2(a, marker->pos, firstmedian);
+		a[0]*= width;
+		a[1]*= height;
+
+		marker= BKE_tracking_get_marker(stab->rot_track, framenr);
+		sub_v2_v2v2(b, marker->pos, median);
+		b[0]*= width;
+		b[1]*= height;
+
+		*angle= -atan2(a[0]*b[1]-a[1]*b[0], a[0]*b[0]+a[1]*b[1]);
+		*angle*= stab->rotinf;
+
+		/* convert to rotation around image center */
+		loc[0]-= (x0 + (x-x0)*cos(*angle)-(y-y0)*sin(*angle) - x);
+		loc[1]-= (y0 + (x-x0)*sin(*angle)+(y-y0)*cos(*angle) - y);
+	}
+}
+
+static float stabilization_auto_scale_factor(MovieTracking *tracking, int width, int height)
 {
 	float firstmedian[2];
 	MovieTrackingStabilization *stab= &tracking->stabilization;
@@ -1582,12 +1624,14 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking)
 
 	if(stabilization_median_point(tracking, 1, firstmedian)) {
 		int sfra= INT_MAX, efra= INT_MIN, cfra;
-		float delta[2]= {0.f, 0.f}, scalex, scaley, near[2]={1.f, 1.f};
+		float delta[2]= {0.f, 0.f}, scalex= 1.f, scaley= 1.f;
 		MovieTrackingTrack *track;
+
+		stab->scale= 1.f;
 
 		track= tracking->tracks.first;
 		while(track) {
-			if(track->flag&TRACK_USE_2D_STAB) {
+			if(track->flag&TRACK_USE_2D_STAB || track==stab->rot_track) {
 				if(track->markersnr) {
 					sfra= MIN2(sfra, track->markers[0].framenr);
 					efra= MAX2(efra, track->markers[track->markersnr-1].framenr);
@@ -1598,28 +1642,69 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking)
 		}
 
 		for(cfra=sfra; cfra<=efra; cfra++) {
-			float median[2], d[2];
+			float median[2], near[2];
+			float loc[2], scale, angle;
 
 			stabilization_median_point(tracking, cfra, median);
 
-			sub_v2_v2v2(d, firstmedian, median);
-			d[0]= fabsf(d[0]);
-			d[1]= fabsf(d[1]);
+			calculate_stabdata(tracking, cfra, width, height, firstmedian, median,
+						loc, &scale, &angle);
 
-			delta[0]= MAX2(delta[0], d[0]);
-			delta[1]= MAX2(delta[1], d[1]);
+			if(angle==0.f) {
+				loc[0]= fabsf(loc[0]);
+				loc[1]= fabsf(loc[1]);
 
-			near[0]= MIN3(near[0], median[0], 1.f-median[0]);
-			near[1]= MIN3(near[1], median[1], 1.f-median[1]);
+				delta[0]= MAX2(delta[0], loc[0]);
+				delta[1]= MAX2(delta[1], loc[1]);
+
+				near[0]= MIN2(median[0], 1.f-median[0]);
+				near[1]= MIN2(median[1], 1.f-median[1]);
+				near[0]= MAX2(near[0], 0.05);
+				near[1]= MAX2(near[1], 0.05);
+
+				scalex= 1.f+delta[0]/(near[0]*width);
+				scaley= 1.f+delta[1]/(near[1]*height);
+			} else {
+				int i;
+				float mat[4][4];
+				float points[4][2]={{0.f, 0.f}, {0.f, height}, {width, height}, {width, 0.f}};
+
+				BKE_tracking_stabdata_to_mat4(width, height, loc, scale, angle, mat);
+
+				for(i= 0; i<4; i++) {
+					int j;
+					float a[3]= {0.f}, b[3]= {0.f};
+
+					copy_v3_v3(a, points[i]);
+					copy_v3_v3(b, points[(i+1)%4]);
+
+					mul_m4_v3(mat, a);
+					mul_m4_v3(mat, b);
+
+					for(j= 0; j<4; j++) {
+						float point[3]= {points[j][0], points[j][1], 0.f};
+						float v1[3], v2[3];
+
+						sub_v3_v3v3(v1, b, a);
+						sub_v3_v3v3(v2, point, a);
+
+						if(cross_v2v2(v1, v2) >= 0.f) {
+							float dist= dist_to_line_v2(point, a, b);
+							if(i%2==0) {
+								scalex= MAX2(scalex, (width+2*dist)/width);
+							} else {
+								scaley= MAX2(scaley, (height+2*dist)/height);
+							}
+						}
+					}
+				}
+			}
 		}
 
-		near[0]= MAX2(near[0], 0.05);
-		near[1]= MAX2(near[1], 0.05);
-
-		scalex= 1.f+delta[0]/near[0];
-		scaley= 1.f+delta[1]/near[1];
-
 		stab->scale= MAX2(scalex, scaley);
+
+		if(stab->maxscale>0.f)
+			stab->scale= MIN2(stab->scale, stab->maxscale);
 	} else {
 		stab->scale= 1.f;
 	}
@@ -1629,22 +1714,7 @@ static float stabilization_auto_scale_factor(MovieTracking *tracking)
 	return stab->scale;
 }
 
-static void calculate_stabdata(MovieTrackingStabilization *stab, float width, float height,
-			float firstmedian[2], float curmedian[2], float loc[2], float *scale)
-{
-	*scale= (stab->scale-1.f)*stab->scaleinf+1.f;
-
-	loc[0]= (firstmedian[0]-curmedian[0])*width*(*scale);
-	loc[1]= (firstmedian[1]-curmedian[1])*height*(*scale);
-
-	loc[0]-= (firstmedian[0]*(*scale)-firstmedian[0])*width;
-	loc[1]-= (firstmedian[1]*(*scale)-firstmedian[1])*height;
-
-	mul_v2_fl(loc, stab->locinf);
-}
-
-
-static ImBuf* stabilize_acquire_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
+static ImBuf* stabilize_alloc_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
 {
 	int flags;
 
@@ -1672,43 +1742,45 @@ static ImBuf* stabilize_acquire_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int fill)
 	return cacheibuf;
 }
 
-void BKE_tracking_stabilization_data(MovieTracking *tracking, int framenr, int width, int height, float loc[2], float *scale)
+void BKE_tracking_stabilization_data(MovieTracking *tracking, int framenr, int width, int height, float loc[2], float *scale, float *angle)
 {
-	float firstmedian[2], curmedian[2];
+	float firstmedian[2], median[2];
 	MovieTrackingStabilization *stab= &tracking->stabilization;
 
 	if((stab->flag&TRACKING_2D_STABILIZATION)==0) {
 		zero_v2(loc);
 		*scale= 1.f;
+		*angle= 0.f;
 
 		return;
 	}
 
 	if(stabilization_median_point(tracking, 1, firstmedian)) {
-		stabilization_median_point(tracking, framenr, curmedian);
+		stabilization_median_point(tracking, framenr, median);
 
 		if((stab->flag&TRACKING_AUTOSCALE)==0)
-				stab->scale= 1.f;
+			stab->scale= 1.f;
 
 		if(!stab->ok) {
 			if(stab->flag&TRACKING_AUTOSCALE)
-				stabilization_auto_scale_factor(tracking);
+				stabilization_auto_scale_factor(tracking, width, height);
 
-			calculate_stabdata(stab, width, height, firstmedian, curmedian, loc, scale);
+			calculate_stabdata(tracking, framenr, width, height, firstmedian, median, loc, scale, angle);
 
 			stab->ok= 1;
 		} else {
-			calculate_stabdata(stab, width, height, firstmedian, curmedian, loc, scale);
+			calculate_stabdata(tracking, framenr, width, height, firstmedian, median, loc, scale, angle);
 		}
 	} else {
 		zero_v2(loc);
 		*scale= 1.f;
+		*angle= 0.f;
 	}
 }
 
-ImBuf *BKE_tracking_stabilize_shot(MovieTracking *tracking, int framenr, ImBuf *ibuf, float loc[2], float *scale)
+ImBuf *BKE_tracking_stabilize(MovieTracking *tracking, int framenr, ImBuf *ibuf, float loc[2], float *scale, float *angle)
 {
-	float tloc[2], tscale;
+	float tloc[2], tscale, tangle;
 	MovieTrackingStabilization *stab= &tracking->stabilization;
 	ImBuf *tmpibuf;
 	float width= ibuf->x, height= ibuf->y;
@@ -1723,17 +1795,18 @@ ImBuf *BKE_tracking_stabilize_shot(MovieTracking *tracking, int framenr, ImBuf *
 		return ibuf;
 	}
 
-	BKE_tracking_stabilization_data(tracking, framenr, width, height, tloc, &tscale);
+	BKE_tracking_stabilization_data(tracking, framenr, width, height, tloc, &tscale, &tangle);
 
-	tmpibuf= stabilize_acquire_ibuf(NULL, ibuf, 1);
+	tmpibuf= stabilize_alloc_ibuf(NULL, ibuf, 1);
 
-	if(tscale!=1.f) {
+	/* scale would be handled by matrix transformation when angle is non-zero */
+	if(tscale!=1.f && tangle==0.f) {
 		ImBuf *scaleibuf;
 		float scale= (stab->scale-1.f)*stab->scaleinf+1.f;
 
-		stabilization_auto_scale_factor(tracking);
+		stabilization_auto_scale_factor(tracking, width, height);
 
-		scaleibuf= stabilize_acquire_ibuf(stab->scaleibuf, ibuf, 0);
+		scaleibuf= stabilize_alloc_ibuf(stab->scaleibuf, ibuf, 0);
 		stab->scaleibuf= scaleibuf;
 
 		IMB_rectcpy(scaleibuf, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
@@ -1742,7 +1815,28 @@ ImBuf *BKE_tracking_stabilize_shot(MovieTracking *tracking, int framenr, ImBuf *
 		ibuf= scaleibuf;
 	}
 
-	IMB_rectcpy(tmpibuf, ibuf, tloc[0], tloc[1], 0, 0, ibuf->x, ibuf->y);
+	if(tangle==0.f) {
+		/* if angle is zero, then it's much faster to use rect copy
+		   but could be issues with subpixel precisions */
+		IMB_rectcpy(tmpibuf, ibuf, tloc[0], tloc[1], 0, 0, ibuf->x, ibuf->y);
+	} else {
+		float mat[4][4];
+		int i, j;
+
+		BKE_tracking_stabdata_to_mat4(ibuf->x, ibuf->y, tloc, tscale, tangle, mat);
+		invert_m4(mat);
+
+		for(j=0; j<tmpibuf->y; j++) {
+			for(i=0; i<tmpibuf->x;i++) {
+				float vec[3]= {i, j, 0};
+
+				mul_v3_m4v3(vec, mat, vec);
+
+				/* TODO: add selector for interpolation method */
+				neareast_interpolation(ibuf, tmpibuf, vec[0], vec[1], i, j);
+			}
+		}
+	}
 
 	tmpibuf->userflags|= IB_MIPMAP_INVALID;
 
@@ -1751,19 +1845,32 @@ ImBuf *BKE_tracking_stabilize_shot(MovieTracking *tracking, int framenr, ImBuf *
 
 	if(loc)		copy_v2_v2(loc, tloc);
 	if(scale)	*scale= tscale;
+	if(angle)	*angle= tangle;
 
 	return tmpibuf;
 }
 
-void BKE_tracking_stabdata_to_mat4(float loc[2], float scale, float mat[4][4])
+void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float scale, float angle, float mat[4][4])
 {
-	unit_m4(mat);
+	float lmat[4][4], rmat[4][4], smat[4][4], cmat[4][4], icmat[4][4];
+	float svec[3]= {scale, scale, scale};
 
-	mat[0][0]*= scale;
-	mat[1][1]*= scale;
-	mat[2][2]*= scale;
+	unit_m4(rmat);
+	unit_m4(lmat);
+	unit_m4(smat);
+	unit_m4(cmat);
 
-	copy_v2_v2(mat[3], loc);
+	/* image center as rotation center */
+	cmat[3][0]= (float)width/2.f;
+	cmat[3][1]= (float)height/2.f;
+	invert_m4_m4(icmat, cmat);
+
+	size_to_mat4(smat, svec);		/* scale matrix */
+	add_v2_v2(lmat[3], loc);		/* tranlation matrix */
+	rotate_m4(rmat, 'Z', angle);	/* rotation matrix */
+
+	/* compose transformation matrix */
+	mul_serie_m4(mat, lmat, smat, cmat, rmat, icmat, NULL, NULL, NULL);
 }
 
 ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf)

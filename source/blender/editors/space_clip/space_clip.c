@@ -302,6 +302,7 @@ static void clip_operatortypes(void)
 	WM_operatortype_append(CLIP_OT_stabilize_2d_add);
 	WM_operatortype_append(CLIP_OT_stabilize_2d_remove);
 	WM_operatortype_append(CLIP_OT_stabilize_2d_select);
+	WM_operatortype_append(CLIP_OT_stabilize_2d_set_rotation);
 
 	/* clean-up */
 	WM_operatortype_append(CLIP_OT_clear_track_path);
@@ -555,7 +556,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		ImBuf *tmpibuf= NULL;
 
 		if(clip && clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
-			tmpibuf= ED_space_clip_acquire_stable_buffer(sc, NULL, NULL);
+			tmpibuf= ED_space_clip_acquire_stable_buffer(sc, NULL, NULL, NULL);
 		}
 
 		ED_clip_view_selection(sc, ar, 0);

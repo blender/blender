@@ -570,10 +570,25 @@ class CLIP_PT_stabilization(Panel):
 
         layout.prop(stab, "influence_location")
 
+        layout.separator()
+
         layout.prop(stab, "use_autoscale")
+        col = layout.column()
+        col.active = stab.use_autoscale
+        col.prop(stab, "max_scale")
+        col.prop(stab, "influence_scale")
+
+        layout.separator()
+
+        layout.label(text="Rotation:")
+
+        row = layout.row(align=True)
+        row.prop_search(stab, "rotation_track", tracking, "tracks", text="")
+        row.operator("clip.stabilize_2d_set_rotation", text="", icon='ZOOMIN')
+
         row = layout.row()
-        row.active = stab.use_autoscale
-        row.prop(stab, "influence_scale")
+        row.active = stab.rotation_track is not None
+        row.prop(stab, "influence_rotation")
 
 
 class CLIP_PT_marker(Panel):

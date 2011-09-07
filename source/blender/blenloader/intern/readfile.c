@@ -5808,6 +5808,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 
 	clip->tracking.stabilization.ok= 0;
 	clip->tracking.stabilization.scaleibuf= NULL;
+	clip->tracking.stabilization.rot_track= newdataadr(fd, clip->tracking.stabilization.rot_track);
 }
 
 static void lib_link_movieclip(FileData *fd, Main *main)

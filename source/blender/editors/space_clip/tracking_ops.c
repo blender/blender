@@ -186,27 +186,43 @@ static int delete_track_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceClip *sc= CTX_wm_space_clip(C);
 	MovieClip *clip= ED_space_clip(sc);
-	MovieTrackingTrack *track= clip->tracking.tracks.first, *next;
-	int has_bundle= 0;
+	MovieTracking *tracking= &clip->tracking;
+	MovieTrackingTrack *track= tracking->tracks.first, *next;
+	MovieTrackingStabilization *stab= &tracking->stabilization;
+	int has_bundle= 0, update_stab= 0;
 
 	while(track) {
 		next= track->next;
 
 		if(TRACK_VIEW_SELECTED(sc, track)) {
-			if(track==clip->tracking.act_track)
-				clip->tracking.act_track= NULL;
+			if(track==tracking->act_track)
+				tracking->act_track= NULL;
 
+			if(track==stab->rot_track) {
+				stab->rot_track= NULL;
+
+				update_stab= 1;
+			}
+
+			/* handle reconstruction display in 3d viewport */
 			if(track->flag&TRACK_HAS_BUNDLE)
 				has_bundle= 1;
 
 			BKE_tracking_free_track(track);
-			BLI_freelinkN(&clip->tracking.tracks, track);
+			BLI_freelinkN(&tracking->tracks, track);
 		}
 
 		track= next;
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+
+	if(update_stab) {
+		tracking->stabilization.ok= 0;
+
+		DAG_id_tag_update(&clip->id, 0);
+		WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+	}
 
 	if(has_bundle)
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
@@ -2493,21 +2509,26 @@ static int stabilize_2d_add_exec(bContext *C, wmOperator *UNUSED(op))
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
 	MovieTrackingStabilization *stab= &tracking->stabilization;
+	int update= 0;
 
 	track= tracking->tracks.first;
 	while(track) {
-		if(TRACK_VIEW_SELECTED(sc, track)) {
+		if(TRACK_VIEW_SELECTED(sc, track) && (track->flag&TRACK_USE_2D_STAB)==0) {
 			track->flag|= TRACK_USE_2D_STAB;
 			stab->tot_track++;
+
+			update= 1;
 		}
 
 		track= track->next;
 	}
 
-	stab->ok= 0;
+	if(update) {
+		stab->ok= 0;
 
-	DAG_id_tag_update(&clip->id, 0);
-	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+		DAG_id_tag_update(&clip->id, 0);
+		WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -2536,7 +2557,7 @@ static int stabilize_2d_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingStabilization *stab= &tracking->stabilization;
 	MovieTrackingTrack *track;
-	int a= 0;
+	int a= 0, update= 0;
 
 	track= tracking->tracks.first;
 	while(track) {
@@ -2550,6 +2571,8 @@ static int stabilize_2d_remove_exec(bContext *C, wmOperator *UNUSED(op))
 				if(stab->act_track<0)
 					stab->act_track= 0;
 
+				update= 1;
+
 				break;
 			}
 
@@ -2559,10 +2582,12 @@ static int stabilize_2d_remove_exec(bContext *C, wmOperator *UNUSED(op))
 		track= track->next;
 	}
 
-	stab->ok= 0;
+	if(update) {
+		stab->ok= 0;
 
-	DAG_id_tag_update(&clip->id, 0);
-	WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+		DAG_id_tag_update(&clip->id, 0);
+		WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -2590,20 +2615,21 @@ static int stabilize_2d_select_exec(bContext *C, wmOperator *UNUSED(op))
 	MovieClip *clip= ED_space_clip(sc);
 	MovieTracking *tracking= &clip->tracking;
 	MovieTrackingTrack *track;
-	int a= 0;
+	int update= 0;
 
 	track= tracking->tracks.first;
 	while(track) {
 		if(track->flag&TRACK_USE_2D_STAB) {
 			BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, 0);
 
-			a++;
+			update= 1;
 		}
 
 		track= track->next;
 	}
 
-	WM_event_add_notifier(C, NC_MOVIECLIP|ND_SELECT, clip);
+	if(update)
+		WM_event_add_notifier(C, NC_MOVIECLIP|ND_SELECT, clip);
 
 	return OPERATOR_FINISHED;
 }
@@ -2617,6 +2643,42 @@ void CLIP_OT_stabilize_2d_select(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= stabilize_2d_select_exec;
+	ot->poll= ED_space_clip_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** set 2d stabilization rotation track operator *********************/
+
+static int stabilize_2d_set_rotation_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+	MovieClip *clip= ED_space_clip(sc);
+	MovieTracking *tracking= &clip->tracking;
+
+	if(tracking->act_track) {
+		MovieTrackingStabilization *stab= &tracking->stabilization;
+
+		stab->rot_track= tracking->act_track;
+		stab->ok= 0;
+
+		DAG_id_tag_update(&clip->id, 0);
+		WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void CLIP_OT_stabilize_2d_set_rotation(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Set Rotation Track";
+	ot->description= "Use active track to compensate rotaiton when doing 2D stabilization";
+	ot->idname= "CLIP_OT_stabilize_2d_set_rotation";
+
+	/* api callbacks */
+	ot->exec= stabilize_2d_set_rotation_exec;
 	ot->poll= ED_space_clip_poll;
 
 	/* flags */

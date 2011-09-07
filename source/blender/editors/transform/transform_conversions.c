@@ -79,6 +79,7 @@
 #include "BKE_report.h"
 #include "BKE_tracking.h"
 #include "BKE_movieclip.h"
+#include "BKE_node.h"
 
 
 #include "ED_anim_api.h"
@@ -96,6 +97,9 @@
 #include "ED_clip.h"
 #include "ED_curve.h" /* for ED_curve_editnurbs */
 #include "ED_util.h"  /* for crazyspace correction */
+
+#include "WM_api.h"		/* for WM_event_add_notifier to deal with stabilization nodes */
+#include "WM_types.h"
 
 #include "UI_view2d.h"
 
@@ -4785,7 +4789,15 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		ED_node_link_intersect_test(t->sa, 0);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		/* pass */
+		SpaceClip *sc= t->sa->spacedata.first;
+		MovieClip *clip= ED_space_clip(sc);
+
+		if(t->scene->nodetree) {
+			/* tracks can be used for stabilization nodes,
+			   flush update for such nodes */
+			NodeTagIDChanged(t->scene->nodetree, &clip->id);
+			WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
