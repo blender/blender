@@ -338,7 +338,7 @@ void BLI_adddirstrings(void)
 			if ( pwuser ) {
 				BLI_strncpy(file->owner, pwuser->pw_name, sizeof(file->owner));
 			} else {
-				snprintf(file->owner, sizeof(file->owner), "%d", file->s.st_uid);
+				BLI_snprintf(file->owner, sizeof(file->owner), "%d", file->s.st_uid);
 			}
 		}
 #endif
@@ -478,7 +478,7 @@ LinkNode *BLI_read_file_as_lines(const char *name)
 	FILE *fp= fopen(name, "r");
 	LinkNode *lines= NULL;
 	char *buf;
-	int size;
+	int64_t size;
 
 	if (!fp) return NULL;
 		

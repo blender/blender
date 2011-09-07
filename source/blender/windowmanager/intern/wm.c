@@ -40,7 +40,11 @@
 
 #include "GHOST_C-api.h"
 
+#include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -58,8 +62,6 @@
 #include "wm_event_types.h"
 #include "wm_draw.h"
 #include "wm.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "ED_screen.h"
 
@@ -151,14 +153,14 @@ void WM_operator_stack_clear(wmWindowManager *wm)
 
 /* ****************************************** */
 
-static ListBase menutypes = {NULL, NULL}; /* global menutype list */
+static GHash *menutypes_hash= NULL;
 
 MenuType *WM_menutype_find(const char *idname, int quiet)
 {
 	MenuType* mt;
 
 	if (idname[0]) {
-		mt= BLI_findstring(&menutypes, idname, offsetof(MenuType, idname));
+		mt= BLI_ghash_lookup(menutypes_hash, idname);
 		if(mt)
 			return mt;
 	}
@@ -171,29 +173,55 @@ MenuType *WM_menutype_find(const char *idname, int quiet)
 
 int WM_menutype_add(MenuType* mt)
 {
-	BLI_addtail(&menutypes, mt);
+	BLI_ghash_insert(menutypes_hash, (void *)mt->idname, mt);
 	return 1;
+}
+
+/* inefficient but only used for tooltip code */
+int WM_menutype_contains(MenuType* mt)
+{
+	int found= FALSE;
+
+	if(mt) {
+		GHashIterator *iter= BLI_ghashIterator_new(menutypes_hash);
+
+		for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+			if(mt == BLI_ghashIterator_getValue(iter)) {
+				found= TRUE;
+				break;
+			}
+		}
+		BLI_ghashIterator_free(iter);
+	}
+
+	return found;
 }
 
 void WM_menutype_freelink(MenuType* mt)
 {
-	BLI_freelinkN(&menutypes, mt);
+	BLI_ghash_remove(menutypes_hash, mt->idname, NULL, (GHashValFreeFP)MEM_freeN);
+}
+
+/* called on initialize WM_init() */
+void WM_menutype_init(void)
+{
+	menutypes_hash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "menutypes_hash gh");
 }
 
 void WM_menutype_free(void)
 {
-	MenuType* mt= menutypes.first, *mt_next;
+	GHashIterator *iter= BLI_ghashIterator_new(menutypes_hash);
 
-	while(mt) {
-		mt_next= mt->next;
-
-		if(mt->ext.free)
+	for( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		MenuType *mt= BLI_ghashIterator_getValue(iter);
+		if(mt->ext.free) {
 			mt->ext.free(mt->ext.data);
-
-		WM_menutype_freelink(mt);
-
-		mt= mt_next;
+		}
 	}
+	BLI_ghashIterator_free(iter);
+
+	BLI_ghash_free(menutypes_hash, NULL, (GHashValFreeFP)MEM_freeN);
+	menutypes_hash= NULL;
 }
 
 /* ****************************************** */
@@ -204,12 +232,18 @@ void WM_keymap_init(bContext *C)
 
 	if(!wm->defaultconf)
 		wm->defaultconf= WM_keyconfig_new(wm, "Blender");
+	if(!wm->addonconf)
+		wm->addonconf= WM_keyconfig_new(wm, "Blender Addon");
+	if(!wm->userconf)
+		wm->userconf= WM_keyconfig_new(wm, "Blender User");
 	
-	if(wm && CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
+	if(CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
 		/* create default key config */
 		wm_window_keymap(wm->defaultconf);
 		ED_spacetypes_keymap(wm->defaultconf);
-		WM_keyconfig_userdef();
+
+		WM_keyconfig_update_tag(NULL, NULL);
+		WM_keyconfig_update(wm);
 
 		wm->initialized |= WM_INIT_KEYMAP;
 	}

@@ -246,8 +246,9 @@ static struct GPUTextureState {
 	int domipmap, linearmipmap;
 
 	int alphamode;
+	float anisotropic;
 	MTFace *lasttface;
-} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, -1, NULL};
+} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, -1, 1.f, NULL};
 
 /* Mipmap settings */
 
@@ -290,6 +291,26 @@ static GLenum gpu_get_mipmap_filter(int mag)
 		else
 			return GL_NEAREST;
 	}
+}
+
+/* Anisotropic filtering settings */
+void GPU_set_anisotropic(float value)
+{
+	if (GTS.anisotropic != value)
+	{
+		GPU_free_images();
+
+		/* Clamp value to the maximum value the graphics card supports */
+		if (value > GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+			value = GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT;
+
+		GTS.anisotropic = value;
+	}
+}
+
+float GPU_get_anisotropic(void)
+{
+	return GTS.anisotropic;
 }
 
 /* Set OpenGL state for an MTFace */
@@ -559,6 +580,8 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		ima->tpageflag |= IMA_MIPMAP_COMPLETE;
 	}
 
+	if (GLEW_EXT_texture_filter_anisotropic)
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
 	/* set to modulate with vertex color */
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		
@@ -799,12 +822,18 @@ void GPU_free_smoke(SmokeModifierData *smd)
 
 void GPU_create_smoke(SmokeModifierData *smd, int highres)
 {
+#ifdef WITH_SMOKE
 	if(smd->type & MOD_SMOKE_TYPE_DOMAIN && !smd->domain->tex && !highres)
 		smd->domain->tex = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smoke_get_density(smd->domain->fluid));
 	else if(smd->type & MOD_SMOKE_TYPE_DOMAIN && !smd->domain->tex && highres)
 		smd->domain->tex = GPU_texture_create_3D(smd->domain->res_wt[0], smd->domain->res_wt[1], smd->domain->res_wt[2], smoke_turbulence_get_density(smd->domain->wt));
 
 	smd->domain->tex_shadow = GPU_texture_create_3D(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2], smd->domain->shadow);
+#else // WITH_SMOKE
+	(void)highres;
+	smd->domain->tex= NULL;
+	smd->domain->tex_shadow= NULL;
+#endif // WITH_SMOKE
 }
 
 static ListBase image_free_queue = {NULL, NULL};

@@ -1,8 +1,4 @@
-/* anim.c
- *
- *
- * $Id$
- *
+/* 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -171,7 +167,12 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 		avs= &ob->avs;
 		dst= &ob->mpath;
 	}
-	
+
+	/* avoid 0 size allocs */
+	if (avs->path_sf >= avs->path_ef) {
+		return NULL;
+	}
+
 	/* if there is already a motionpath, just return that,
 	 * but provided it's settings are ok 
 	 */
@@ -226,6 +227,7 @@ typedef struct MPathTarget {
 /* get list of motion paths to be baked for the given object
  * 	- assumes the given list is ready to be used
  */
+// TODO: it would be nice in future to be able to update objects dependant on these bones too?
 void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 {
 	MPathTarget *mpt;
@@ -714,12 +716,13 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, i
 		/* note, if you check on layer here, render goes wrong... it still deforms verts and uses parent imat */
 		if(go->ob!=ob) {
 			
-			/* Group Dupli Offset, should apply after everything else */
-			if (group->dupli_ofs[0] || group->dupli_ofs[1] || group->dupli_ofs[2]) {
+			/* group dupli offset, should apply after everything else */
+			if(!is_zero_v3(group->dupli_ofs)) {
 				copy_m4_m4(tmat, go->ob->obmat);
 				sub_v3_v3v3(tmat[3], tmat[3], group->dupli_ofs);
 				mul_m4_m4m4(mat, tmat, ob->obmat);
-			} else {
+			}
+			else {
 				mul_m4_m4m4(mat, go->ob->obmat, ob->obmat);
 			}
 			
@@ -789,7 +792,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 			 * and/or other objects which may affect this object's transforms are not updated either.
 			 * However, this has always been the way that this worked (i.e. pre 2.5), so I guess that it'll be fine!
 			 */
-			BKE_animsys_evaluate_animdata(&ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
+			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
 			where_is_object_time(scene, ob, (float)scene->r.cfra);
 			
 			dob= new_dupli_object(lb, ob, ob->obmat, ob->lay, scene->r.cfra, OB_DUPLIFRAMES, animated);
@@ -804,7 +807,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	 */
 	scene->r.cfra= cfrao;
 	
-	BKE_animsys_evaluate_animdata(&ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
 	where_is_object_time(scene, ob, (float)scene->r.cfra);
 	
 	/* but, to make sure unkeyed object transforms are still sane, 
@@ -1239,6 +1242,8 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		sim.ob= par;
 		sim.psys= psys;
 		sim.psmd= psys_get_modifier(par, psys);
+		/* make sure emitter imat is in global coordinates instead of render view coordinates */
+		invert_m4_m4(par->imat, par->obmat);
 
 		/* first check for loops (particle system object used as dupli object) */
 		if(part->ren_as == PART_DRAW_OB) {
@@ -1343,6 +1348,10 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				continue;
 
 			if(part->ren_as==PART_DRAW_GR) {
+				/* prevent divide by zero below [#28336] */
+				if(totgroup == 0)
+					continue;
+
 				/* for groups, pick the object based on settings */
 				if(part->draw&PART_DRAW_RAND_GR)
 					b= BLI_rand() % totgroup;
@@ -1390,7 +1399,17 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 			if(part->ren_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 				for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
-					mul_m4_m4m4(tmat, oblist[b]->obmat, pamat);
+
+					/* group dupli offset, should apply after everything else */
+					if(!is_zero_v3(part->dup_group->dupli_ofs)) {
+						copy_m4_m4(tmat, oblist[b]->obmat);
+						sub_v3_v3v3(tmat[3], tmat[3], part->dup_group->dupli_ofs);
+						mul_m4_m4m4(tmat, tmat, pamat);
+					}
+					else {
+						mul_m4_m4m4(tmat, oblist[b]->obmat, pamat);
+					}
+
 					mul_mat3_m4_fl(tmat, size*scale);
 					if(par_space_mat)
 						mul_m4_m4m4(mat, tmat, par_space_mat);

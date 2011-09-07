@@ -937,6 +937,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	BoidValues val;
 	BoidState *state = get_boid_state(boids, pa);
 	BoidParticle *bpa = pa->boid;
+	ParticleSystem *psys = bbd->sim->psys;
 	int rand;
 	//BoidCondition *cond;
 
@@ -959,9 +960,8 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 	bbd->wanted_co[0]=bbd->wanted_co[1]=bbd->wanted_co[2]=bbd->wanted_speed=0.0f;
 
 	/* create random seed for every particle & frame */
-	BLI_srandom(bbd->sim->psys->seed + p);
-	rand = BLI_rand();
-	BLI_srandom((int)bbd->cfra + rand);
+	rand = (int)(PSYS_FRAND(psys->seed + p) * 1000);
+	rand = (int)(PSYS_FRAND((int)bbd->cfra + rand) * 1000);
 
 	set_boid_values(&val, bbd->part->boids, pa);
 

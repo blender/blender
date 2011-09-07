@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Header, Menu, Panel
 
 
 class BrushButtonsPanel():
@@ -31,7 +32,7 @@ class BrushButtonsPanel():
         return sima.show_paint and toolsettings.brush
 
 
-class IMAGE_MT_view(bpy.types.Menu):
+class IMAGE_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -79,7 +80,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         layout.operator("screen.screen_full_area")
 
 
-class IMAGE_MT_select(bpy.types.Menu):
+class IMAGE_MT_select(Menu):
     bl_label = "Select"
 
     def draw(self, context):
@@ -100,7 +101,7 @@ class IMAGE_MT_select(bpy.types.Menu):
         layout.operator("uv.select_linked")
 
 
-class IMAGE_MT_image(bpy.types.Menu):
+class IMAGE_MT_image(Menu):
     bl_label = "Image"
 
     def draw(self, context):
@@ -151,7 +152,7 @@ class IMAGE_MT_image(bpy.types.Menu):
             layout.prop(sima, "use_image_paint")
 
 
-class IMAGE_MT_image_invert(bpy.types.Menu):
+class IMAGE_MT_image_invert(Menu):
     bl_label = "Invert"
 
     def draw(self, context):
@@ -177,7 +178,7 @@ class IMAGE_MT_image_invert(bpy.types.Menu):
         op.invert_a = True
 
 
-class IMAGE_MT_uvs_showhide(bpy.types.Menu):
+class IMAGE_MT_uvs_showhide(Menu):
     bl_label = "Show/Hide Faces"
 
     def draw(self, context):
@@ -188,7 +189,7 @@ class IMAGE_MT_uvs_showhide(bpy.types.Menu):
         layout.operator("uv.hide", text="Hide Unselected").unselected = True
 
 
-class IMAGE_MT_uvs_transform(bpy.types.Menu):
+class IMAGE_MT_uvs_transform(Menu):
     bl_label = "Transform"
 
     def draw(self, context):
@@ -198,8 +199,12 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
 
+        layout.separator()
 
-class IMAGE_MT_uvs_snap(bpy.types.Menu):
+        layout.operator("transform.shear")
+
+
+class IMAGE_MT_uvs_snap(Menu):
     bl_label = "Snap"
 
     def draw(self, context):
@@ -216,7 +221,7 @@ class IMAGE_MT_uvs_snap(bpy.types.Menu):
         layout.operator("uv.snap_cursor", text="Cursor to Selected").target = 'SELECTED'
 
 
-class IMAGE_MT_uvs_mirror(bpy.types.Menu):
+class IMAGE_MT_uvs_mirror(Menu):
     bl_label = "Mirror"
 
     def draw(self, context):
@@ -227,7 +232,7 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
         layout.operator("transform.mirror", text="Y Axis").constraint_axis[1] = True
 
 
-class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
+class IMAGE_MT_uvs_weldalign(Menu):
     bl_label = "Weld/Align"
 
     def draw(self, context):
@@ -237,7 +242,7 @@ class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
         layout.operator_enum("uv.align", "axis")  # W, 2/3/4
 
 
-class IMAGE_MT_uvs(bpy.types.Menu):
+class IMAGE_MT_uvs(Menu):
     bl_label = "UVs"
 
     def draw(self, context):
@@ -282,7 +287,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         layout.menu("IMAGE_MT_uvs_showhide")
 
 
-class IMAGE_MT_uvs_select_mode(bpy.types.Menu):
+class IMAGE_MT_uvs_select_mode(Menu):
     bl_label = "UV Select Mode"
 
     def draw(self, context):
@@ -324,7 +329,7 @@ class IMAGE_MT_uvs_select_mode(bpy.types.Menu):
             prop.data_path = "tool_settings.uv_select_mode"
 
 
-class IMAGE_HT_header(bpy.types.Header):
+class IMAGE_HT_header(Header):
     bl_space_type = 'IMAGE_EDITOR'
 
     def draw(self, context):
@@ -382,7 +387,7 @@ class IMAGE_HT_header(bpy.types.Header):
 
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_element", text="", icon_only=True)
+            row.prop(toolsettings, "snap_target", text="")
 
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_textures, "active", mesh, "uv_textures", text="")
@@ -408,7 +413,7 @@ class IMAGE_HT_header(bpy.types.Header):
             layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
 
 
-class IMAGE_PT_image_properties(bpy.types.Panel):
+class IMAGE_PT_image_properties(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Image"
@@ -427,14 +432,13 @@ class IMAGE_PT_image_properties(bpy.types.Panel):
         layout.template_image(sima, "image", iuser)
 
 
-class IMAGE_PT_game_properties(bpy.types.Panel):
+class IMAGE_PT_game_properties(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Game Properties"
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
         sima = context.space_data
         # display even when not in game mode because these settings effect the 3d view
         return (sima and sima.image)  # and (rd.engine == 'BLENDER_GAME')
@@ -449,14 +453,12 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
 
         col = split.column()
 
+        col.prop(ima, "use_animation")
         sub = col.column(align=True)
-        sub.prop(ima, "use_animation")
-
-        subsub = sub.column()
-        subsub.active = ima.use_animation
-        subsub.prop(ima, "frame_start", text="Start")
-        subsub.prop(ima, "frame_end", text="End")
-        subsub.prop(ima, "fps", text="Speed")
+        sub.active = ima.use_animation
+        sub.prop(ima, "frame_start", text="Start")
+        sub.prop(ima, "frame_end", text="End")
+        sub.prop(ima, "fps", text="Speed")
 
         col.prop(ima, "use_tiles")
         sub = col.column(align=True)
@@ -472,7 +474,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         col.prop(ima, "mapping", expand=True)
 
 
-class IMAGE_PT_view_histogram(bpy.types.Panel):
+class IMAGE_PT_view_histogram(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
     bl_label = "Histogram"
@@ -491,7 +493,7 @@ class IMAGE_PT_view_histogram(bpy.types.Panel):
         layout.prop(sima.scopes.histogram, "mode", icon_only=True)
 
 
-class IMAGE_PT_view_waveform(bpy.types.Panel):
+class IMAGE_PT_view_waveform(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
     bl_label = "Waveform"
@@ -505,13 +507,14 @@ class IMAGE_PT_view_waveform(bpy.types.Panel):
         layout = self.layout
 
         sima = context.space_data
+
         layout.template_waveform(sima, "scopes")
-        sub = layout.row().split(percentage=0.75)
-        sub.prop(sima.scopes, "waveform_alpha")
-        sub.prop(sima.scopes, "waveform_mode", text="", icon_only=True)
+        row = layout.split(percentage=0.75)
+        row.prop(sima.scopes, "waveform_alpha")
+        row.prop(sima.scopes, "waveform_mode", text="", icon_only=True)
 
 
-class IMAGE_PT_view_vectorscope(bpy.types.Panel):
+class IMAGE_PT_view_vectorscope(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
     bl_label = "Vectorscope"
@@ -529,7 +532,7 @@ class IMAGE_PT_view_vectorscope(bpy.types.Panel):
         layout.prop(sima.scopes, "vectorscope_alpha")
 
 
-class IMAGE_PT_sample_line(bpy.types.Panel):
+class IMAGE_PT_sample_line(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
     bl_label = "Sample Line"
@@ -541,13 +544,15 @@ class IMAGE_PT_sample_line(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("image.sample_line")
+
         sima = context.space_data
+
+        layout.operator("image.sample_line")
         layout.template_histogram(sima, "sample_histogram")
         layout.prop(sima.sample_histogram, "mode")
 
 
-class IMAGE_PT_scope_sample(bpy.types.Panel):
+class IMAGE_PT_scope_sample(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
     bl_label = "Scope Samples"
@@ -559,16 +564,17 @@ class IMAGE_PT_scope_sample(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+
         sima = context.space_data
-        split = layout.split()
-        row = split.row()
+
+        row = layout.row()
         row.prop(sima.scopes, "use_full_resolution")
-        row = split.row()
-        row.active = not sima.scopes.use_full_resolution
-        row.prop(sima.scopes, "accuracy")
+        sub = row.row()
+        sub.active = not sima.scopes.use_full_resolution
+        sub.prop(sima.scopes, "accuracy")
 
 
-class IMAGE_PT_view_properties(bpy.types.Panel):
+class IMAGE_PT_view_properties(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Display"
@@ -605,21 +611,20 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
         if show_uvedit:
 
             col = layout.column()
-            col.label("Cursor Location")
-            row = col.row()
-            row.prop(uvedit, "cursor_location", text="")
+            col.label("Cursor Location:")
+            col.row().prop(uvedit, "cursor_location", text="")
 
-            col = layout.column()
+            col.separator()
+
             col.label(text="UVs:")
-            row = col.row()
-            row.prop(uvedit, "edge_draw_type", expand=True)
+            col.row().prop(uvedit, "edge_draw_type", expand=True)
 
             split = layout.split()
+
             col = split.column()
+            col.prop(uvedit, "show_faces")
             col.prop(uvedit, "show_smooth_edges", text="Smooth")
             col.prop(uvedit, "show_modified_edges", text="Modified")
-            #col.prop(uvedit, "show_edges")
-            #col.prop(uvedit, "show_faces")
 
             col = split.column()
             col.prop(uvedit, "show_stretch", text="Stretch")
@@ -628,7 +633,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             sub.row().prop(uvedit, "draw_stretch_type", expand=True)
 
 
-class IMAGE_PT_paint(bpy.types.Panel):
+class IMAGE_PT_paint(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Paint"
@@ -644,9 +649,8 @@ class IMAGE_PT_paint(bpy.types.Panel):
         toolsettings = context.tool_settings.image_paint
         brush = toolsettings.brush
 
-        col = layout.split().column()
-        row = col.row()
-        col.template_ID_preview(toolsettings, "brush", new="brush.add", rows=3, cols=8)
+        col = layout.column()
+        col.template_ID_preview(toolsettings, "brush", new="brush.add", rows=2, cols=6)
 
         if brush:
             col = layout.column()
@@ -673,7 +677,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
                 col.prop(brush, "clone_alpha", text="Alpha")
 
 
-class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
+class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
     bl_label = "Texture"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -688,7 +692,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, bpy.types.Panel):
         col.prop(brush, "use_fixed_texture")
 
 
-class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, bpy.types.Panel):
+class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, Panel):
     bl_label = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -697,9 +701,7 @@ class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, bpy.types.Panel):
         settings = context.tool_settings.image_paint
         brush = settings.brush
 
-        col = layout.column(align=True)
-
-        col.prop(brush, "image_tool", expand=False, text="")
+        layout.prop(brush, "image_tool", text="")
 
         row = layout.row(align=True)
         row.prop(brush, "use_paint_sculpt", text="", icon='SCULPTMODE_HLT')
@@ -708,7 +710,7 @@ class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, bpy.types.Panel):
         row.prop(brush, "use_paint_image", text="", icon='TPAINT_HLT')
 
 
-class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
+class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
     bl_label = "Paint Stroke"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -719,9 +721,9 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
         brush = toolsettings.brush
 
         layout.prop(brush, "use_airbrush")
-        col = layout.column()
-        col.active = brush.use_airbrush
-        col.prop(brush, "rate", slider=True)
+        row = layout.row()
+        row.active = brush.use_airbrush
+        row.prop(brush, "rate", slider=True)
 
         layout.prop(brush, "use_space")
         row = layout.row(align=True)
@@ -732,7 +734,7 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, bpy.types.Panel):
         layout.prop(brush, "use_wrap")
 
 
-class IMAGE_PT_paint_curve(BrushButtonsPanel, bpy.types.Panel):
+class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
     bl_label = "Paint Curve"
     bl_options = {'DEFAULT_CLOSED'}
 

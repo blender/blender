@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -407,7 +408,8 @@ static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max
 	MultiresModifierData *mmd = (MultiresModifierData*)ptr->data;
 
 	*min = 0;
-	*max = mmd->totlvl;
+	*max = mmd->totlvl; /* intentionally _not_ -1 */
+	*max= MAX2(0, *max);
 }
 
 static int rna_MultiresModifier_external_get(PointerRNA *ptr)
@@ -579,6 +581,34 @@ static void rna_UVProjectModifier_num_projectors_set(PointerRNA *ptr, int value)
 	md->num_projectors= CLAMPIS(value, 1, MOD_UVPROJECT_MAX);
 	for(a=md->num_projectors; a<MOD_UVPROJECT_MAX; a++)
 		md->projectors[a]= NULL;
+}
+
+static float rna_EdgeSplitModifier_split_angle_get(PointerRNA *ptr)
+{
+	EdgeSplitModifierData *md= (EdgeSplitModifierData*)ptr->data;
+	return DEG2RADF(md->split_angle);
+}
+
+static void rna_EdgeSplitModifier_split_angle_set(PointerRNA *ptr, float value)
+{
+	EdgeSplitModifierData *md= (EdgeSplitModifierData*)ptr->data;
+	value= RAD2DEGF(value);
+	CLAMP(value, 0.0f, 180.0f);
+	md->split_angle= (int)value;
+}
+
+static float rna_BevelModifier_angle_limit_get(PointerRNA *ptr)
+{
+	BevelModifierData *md= (BevelModifierData*)ptr->data;
+	return DEG2RADF(md->bevel_angle);
+}
+
+static void rna_BevelModifier_angle_limit_set(PointerRNA *ptr, float value)
+{
+	BevelModifierData *md= (BevelModifierData*)ptr->data;
+	value= RAD2DEGF(value);
+	CLAMP(value, 0.0f, 180.0f);
+	md->bevel_angle= (int)value;
 }
 
 #else
@@ -778,6 +808,11 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_only_control_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", eMultiresModifierFlag_ControlEdges);
 	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_subsurf_uv", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flags", eMultiresModifierFlag_PlainUv);
+	RNA_def_property_ui_text(prop, "Subdivide UVs", "Use subsurf to subdivide UVs");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
@@ -1368,10 +1403,16 @@ static void rna_def_modifier_edgesplit(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "EdgeSplitModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_EDGESPLIT);
 
-	// XXX, convert to radians.
+#if 1 /* expose as radians */
+	prop= RNA_def_property(srna, "split_angle", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_funcs(prop, "rna_EdgeSplitModifier_split_angle_get", "rna_EdgeSplitModifier_split_angle_set", NULL);
+	RNA_def_property_range(prop, 0, DEG2RAD(180));
+	RNA_def_property_ui_range(prop, 0, DEG2RAD(180), 100, 2);
+#else
 	prop= RNA_def_property(srna, "split_angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 180);
 	RNA_def_property_ui_range(prop, 0, 180, 100, 2);
+#endif
 	RNA_def_property_ui_text(prop, "Split Angle", "Angle above which to split edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -1968,10 +2009,17 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edge Weight Method", "What edge weight to use for weighting a vertex");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+#if 1 /* expose as radians */
+	prop= RNA_def_property(srna, "angle_limit", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_funcs(prop, "rna_BevelModifier_angle_limit_get", "rna_BevelModifier_angle_limit_set", NULL);
+	RNA_def_property_range(prop, 0, DEG2RAD(180));
+	RNA_def_property_ui_range(prop, 0, DEG2RAD(180), 100, 2);
+#else
 	prop= RNA_def_property(srna, "angle_limit", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bevel_angle");
 	RNA_def_property_range(prop, 0, 180);
 	RNA_def_property_ui_range(prop, 0, 180, 100, 2);
+#endif
 	RNA_def_property_ui_text(prop, "Angle", "Angle above which to bevel edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
@@ -2221,6 +2269,13 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of the shell");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop= RNA_def_property(srna, "thickness_vertex_group", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "offset_fac_vg");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Vertex Group Factor", "Thickness factor to use for zero vertex group influence");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "offset_fac");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
@@ -2314,7 +2369,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "steps", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_range(prop, 2, 10000);
-	RNA_def_property_ui_range(prop, 2, 512, 1, 0);
+	RNA_def_property_ui_range(prop, 3, 512, 1, 0);
 	RNA_def_property_ui_text(prop, "Steps", "Number of steps in the revolution");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 

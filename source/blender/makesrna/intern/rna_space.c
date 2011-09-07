@@ -48,6 +48,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_enum_types.h"
+
 EnumPropertyItem space_type_items[] = {
 	{SPACE_EMPTY, "EMPTY", 0, "Empty", ""},
 	{SPACE_VIEW3D, "VIEW_3D", 0, "3D View", ""},
@@ -119,6 +121,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #include "BKE_paint.h"
 
 #include "ED_image.h"
+#include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_sequencer.h"
@@ -591,7 +594,8 @@ static void rna_SpaceTextEditor_text_set(PointerRNA *ptr, PointerRNA value)
 	SpaceText *st= (SpaceText*)(ptr->data);
 
 	st->text= value.data;
-	st->top= 0;
+
+	WM_main_add_notifier(NC_TEXT|NA_SELECTED, st->text);
 }
 
 static void rna_SpaceTextEditor_updateEdited(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -700,7 +704,7 @@ static void rna_ConsoleLine_cursor_index_range(PointerRNA *ptr, int *min, int *m
 	ConsoleLine *ci= (ConsoleLine*)ptr->data;
 
 	*min= 0;
-	*max= ci->len;
+	*max= ci->len; /* intentionally _not_ -1 */
 }
 
 /* Space Dopesheet */
@@ -804,10 +808,9 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 
 /* Space Graph Editor */
 
-static void rna_SpaceGraphEditor_display_mode_update(bContext *C, PointerRNA *UNUSED(ptr))
+static void rna_SpaceGraphEditor_display_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	//SpaceIpo *sipo= (SpaceIpo*)(ptr->data);
-	ScrArea *sa= CTX_wm_area(C);
+	ScrArea *sa= rna_area_from_space(ptr);
 	
 	/* after changing view mode, must force recalculation of F-Curve colors 
 	 * which can only be achieved using refresh as opposed to redraw
@@ -821,11 +824,10 @@ static int rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
 	return (sipo->ghostCurves.first != NULL);
 }
 
-static void rna_Sequencer_display_mode_update(bContext *C, PointerRNA *ptr)
+static void rna_Sequencer_view_type_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	int view = RNA_enum_get(ptr, "view_type");
-
-	ED_sequencer_update_view(C, view);
+	ScrArea *sa= rna_area_from_space(ptr);
+	ED_area_tag_refresh(sa);
 }
 
 static float rna_BackgroundImage_opacity_get(PointerRNA *ptr)
@@ -838,6 +840,24 @@ static void rna_BackgroundImage_opacity_set(PointerRNA *ptr, float value)
 {
 	BGpic *bgpic= (BGpic *)ptr->data;
 	bgpic->blend = 1.0f - value;
+}
+
+/* Space Node Editor */
+
+static int rna_SpaceNodeEditor_node_tree_poll(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceNode *snode= (SpaceNode*)ptr->data;
+	bNodeTree *ntree= (bNodeTree*)value.data;
+	
+	/* exclude group trees, only trees of the active type */
+	return (ntree->nodetype==0 && ntree->type == snode->treetype);
+}
+
+static void rna_SpaceNodeEditor_node_tree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	SpaceNode *snode= (SpaceNode*)ptr->data;
+	
+	ED_node_tree_update(snode, scene);
 }
 
 static EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
@@ -990,7 +1010,12 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_COORDFLOATS);
 	RNA_def_property_ui_text(prop, "Normalized Coordinates", "Display UV coordinates from 0.0 to 1.0 rather than in pixels");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
-	
+
+	prop= RNA_def_property(srna, "show_faces", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SI_NO_DRAWFACES);
+	RNA_def_property_ui_text(prop, "Draw Faces", "Draw faces over the image");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
+
 	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_funcs(prop, "rna_SpaceImageEditor_cursor_location_get", "rna_SpaceImageEditor_cursor_location_set", NULL);
@@ -1616,6 +1641,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, NULL);
 
 	prop= RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DISPGP);
@@ -1669,6 +1695,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{SEQ_PROXY_RENDER_SIZE_25, "PROXY_25", 0, "Proxy size 25%", ""},
 		{SEQ_PROXY_RENDER_SIZE_50, "PROXY_50", 0, "Proxy size 50%", ""},
 		{SEQ_PROXY_RENDER_SIZE_75, "PROXY_75", 0, "Proxy size 75%", ""},
+		{SEQ_PROXY_RENDER_SIZE_100, "PROXY_100", 0, "Proxy size 100%", ""},
 		{SEQ_PROXY_RENDER_SIZE_FULL, "FULL", 0, "No proxy, full render", ""},
 		{0, NULL, 0, NULL, NULL}};
 	
@@ -1681,8 +1708,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "view");
 	RNA_def_property_enum_items(prop, view_type_items);
 	RNA_def_property_ui_text(prop, "View Type", "The type of the Sequencer view (sequencer, preview or both)");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_Sequencer_display_mode_update");
+	RNA_def_property_update(prop, 0, "rna_Sequencer_view_type_update");
 
 	/* display type, fairly important */
 	prop= RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
@@ -1872,11 +1898,12 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	// XXX: action-editor is currently for object-level only actions, so show that using object-icon hint
 	static EnumPropertyItem mode_items[] = {
-		{SACTCONT_DOPESHEET, "DOPESHEET", 0, "DopeSheet", "DopeSheet Editor"},
-		{SACTCONT_ACTION, "ACTION", 0, "Action Editor", "Action Editor"},
-		{SACTCONT_SHAPEKEY, "SHAPEKEY", 0, "ShapeKey Editor", "ShapeKey Editor"},
-		{SACTCONT_GPENCIL, "GPENCIL", 0, "Grease Pencil", "Grease Pencil"},
+		{SACTCONT_DOPESHEET, "DOPESHEET", ICON_OOPS, "DopeSheet", "DopeSheet Editor"},
+		{SACTCONT_ACTION, "ACTION", ICON_OBJECT_DATA, "Action Editor", "Action Editor"},
+		{SACTCONT_SHAPEKEY, "SHAPEKEY", ICON_SHAPEKEY_DATA, "ShapeKey Editor", "ShapeKey Editor"},
+		{SACTCONT_GPENCIL, "GPENCIL", ICON_GREASEPENCIL, "Grease Pencil", "Grease Pencil"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	
@@ -1955,8 +1982,8 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem mode_items[] = {
-		{SIPO_MODE_ANIMATION, "FCURVES", 0, "F-Curve Editor", "Edit f-curves"},
-		{SIPO_MODE_DRIVERS, "DRIVERS", 0, "Drivers", "Edit drivers"},
+		{SIPO_MODE_ANIMATION, "FCURVES", ICON_IPO, "F-Curve Editor", "Edit animation/keyframes displayed as 2D curves"},
+		{SIPO_MODE_DRIVERS, "DRIVERS", ICON_DRIVER, "Drivers", "Edit drivers"},
 		{0, NULL, 0, NULL, NULL}};
 		
 		/* this is basically the same as the one for the 3D-View, but with some entries ommitted */
@@ -1978,7 +2005,6 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, "rna_SpaceGraphEditor_display_mode_update");
 	
 	/* display */
@@ -2013,9 +2039,9 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Only Selected Keyframes Handles", "Only show and edit handles of selected keyframes");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
-	prop= RNA_def_property(srna, "use_fancy_drawing", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_beauty_drawing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_BEAUTYDRAW_OFF);
-	RNA_def_property_ui_text(prop, "Use Fancy Drawing", "Draw F-Curves using Anti-Aliasing and other fancy effects. Disable for better performance");
+	RNA_def_property_ui_text(prop, "Use High Quality Drawing", "Draw F-Curves using Anti-Aliasing and other fancy effects. Disable for better performance");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
 	/* editing */
@@ -2125,7 +2151,7 @@ static void rna_def_space_time(BlenderRNA *brna)
 	/* view settings */	
 	prop= RNA_def_property(srna, "show_only_selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TIME_ONLYACTSEL);
-	RNA_def_property_ui_text(prop, "Only Selected channels", "Show keyframes for active Object and/or its selected channels only");	
+	RNA_def_property_ui_text(prop, "Only Selected Channels", "Show keyframes for active Object and/or its selected bones only");	
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, NULL);
 	
 	prop= RNA_def_property(srna, "show_frame_indicator", PROP_BOOLEAN, PROP_NONE);
@@ -2409,12 +2435,6 @@ static void rna_def_space_node(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem tree_type_items[] = {
-		{NTREE_SHADER, "MATERIAL", ICON_MATERIAL, "Material", "Material nodes"},
-		{NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes"},
-		{NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes"},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem texture_type_items[] = {
 		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object"},
 		{SNODE_TEX_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit texture nodes from World"},
@@ -2433,7 +2453,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "tree_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "treetype");
-	RNA_def_property_enum_items(prop, tree_type_items);
+	RNA_def_property_enum_items(prop, nodetree_type_items);
 	RNA_def_property_ui_text(prop, "Tree Type", "Node tree type to display and edit");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, NULL);
 
@@ -2454,8 +2474,10 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_SpaceNodeEditor_node_tree_poll");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Node tree being displayed and edited");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE, "rna_SpaceNodeEditor_node_tree_update");
 
 	prop= RNA_def_property(srna, "show_backdrop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_BACKDRAW);

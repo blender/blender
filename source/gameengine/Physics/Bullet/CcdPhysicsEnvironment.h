@@ -128,7 +128,7 @@ protected:
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep)
 		{
 			//based on DEFAULT_PHYSICS_TIC_RATE of 60 hertz
-			setNumTimeSubSteps(fixedTimeStep/60.f);
+			setNumTimeSubSteps((int)(fixedTimeStep / 60.f));
 		}
 		//returns 0.f if no fixed timestep is used
 
@@ -164,7 +164,7 @@ protected:
 		
 		virtual float	getConstraintParam(int constraintId,int param);
 
-	    virtual void		removeConstraint(int	constraintid);
+		virtual void		removeConstraint(int	constraintid);
 
 		virtual float		getAppliedImpulse(int	constraintid);
 

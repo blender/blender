@@ -43,6 +43,7 @@ struct Scene;
 struct Sequence;
 struct Strip;
 struct StripElem;
+struct bSound;
 
 #define MAXSEQ          32
 
@@ -177,6 +178,7 @@ int seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence 
 /* maintainance functions, mostly for RNA */
 // extern 
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
+void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);
 void seq_free_editing(struct Scene *scene);
 void seq_free_clipboard(void);
@@ -198,6 +200,11 @@ void update_changed_seq_and_deps(struct Scene *scene, struct Sequence *changed_s
 
 int input_have_to_preprocess(
 	SeqRenderData context, struct Sequence * seq, float cfra);
+
+void seq_proxy_rebuild(struct Main * bmain, 
+		       struct Scene *scene, struct Sequence * seq,
+		       short *stop, short *do_update, float *progress);
+
 
 /* **********************************************************************
    seqcache.c
@@ -281,8 +288,10 @@ void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_m
 struct Sequence	*seq_dupli_recursive(struct Scene *scene, struct Scene *scene_to, struct Sequence * seq, int dupe_flag);
 int seq_swap(struct Sequence *seq_a, struct Sequence *seq_b, const char **error_str);
 
-void seq_update_sound(struct Scene* scene, struct Sequence *seq);
-void seq_update_muting(struct Scene* scene, struct Editing *ed);
+void seq_update_sound_bounds_all(struct Scene *scene);
+void seq_update_sound_bounds(struct Scene* scene, struct Sequence *seq);
+void seq_update_muting(struct Editing *ed);
+void seq_update_sound(struct Scene *scene, struct bSound *sound);
 void seqbase_sound_reload(struct Scene *scene, ListBase *seqbase);
 void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void seqbase_dupli_recursive(struct Scene *scene, struct Scene *scene_to, ListBase *nseqbase, ListBase *seqbase, int dupe_flag);

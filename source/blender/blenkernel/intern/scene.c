@@ -469,15 +469,16 @@ Scene *add_scene(const char *name)
 	sce->r.ffcodecdata.audio_mixrate = 44100;
 	sce->r.ffcodecdata.audio_volume = 1.0f;
 	sce->r.ffcodecdata.audio_bitrate = 192;
+	sce->r.ffcodecdata.audio_channels = 2;
 
 	BLI_strncpy(sce->r.engine, "BLENDER_RENDER", sizeof(sce->r.engine));
 
-	sce->audio.distance_model = 2.0;
-	sce->audio.doppler_factor = 1.0;
-	sce->audio.speed_of_sound = 343.3;
+	sce->audio.distance_model = 2.0f;
+	sce->audio.doppler_factor = 1.0f;
+	sce->audio.speed_of_sound = 343.3f;
+	sce->audio.volume = 1.0f;
 
-	strcpy(sce->r.backbuf, "//backbuf");
-	strcpy(sce->r.pic, U.renderdir);
+	BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
 
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
@@ -932,7 +933,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 	
 	/* scene itself */
 	if (scene->adt && scene->adt->drivers.first) {
-		BKE_animsys_evaluate_animdata(&scene->id, scene->adt, ctime, ADT_RECALC_DRIVERS);
+		BKE_animsys_evaluate_animdata(scene, &scene->id, scene->adt, ctime, ADT_RECALC_DRIVERS);
 	}
 	
 	/* world */
@@ -942,7 +943,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 		AnimData *adt= BKE_animdata_from_id(wid);
 		
 		if (adt && adt->drivers.first)
-			BKE_animsys_evaluate_animdata(wid, adt, ctime, ADT_RECALC_DRIVERS);
+			BKE_animsys_evaluate_animdata(scene, wid, adt, ctime, ADT_RECALC_DRIVERS);
 	}
 	
 	/* nodes */
@@ -951,7 +952,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 		AnimData *adt= BKE_animdata_from_id(nid);
 		
 		if (adt && adt->drivers.first)
-			BKE_animsys_evaluate_animdata(nid, adt, ctime, ADT_RECALC_DRIVERS);
+			BKE_animsys_evaluate_animdata(scene, nid, adt, ctime, ADT_RECALC_DRIVERS);
 	}
 }
 
@@ -982,6 +983,9 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 	
 	/* scene drivers... */
 	scene_update_drivers(bmain, scene);
+
+	/* update sound system animation */
+	sound_update_scene(scene);
 }
 
 /* this is called in main loop, doing tagged updates before redraw */
@@ -1002,7 +1006,7 @@ void scene_update_tagged(Main *bmain, Scene *scene)
 		float ctime = BKE_curframe(scene);
 		
 		if (adt && (adt->recalc & ADT_RECALC_ANIM))
-			BKE_animsys_evaluate_animdata(&scene->id, adt, ctime, 0);
+			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
 	}
 	
 	if (scene->physics_settings.quick_cache_step)
@@ -1017,6 +1021,8 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 {
 	float ctime = BKE_curframe(sce);
 	Scene *sce_iter;
+
+	sound_set_cfra(sce->r.cfra);
 	
 	/* clear animation overrides */
 	// XXX TODO...
@@ -1037,7 +1043,7 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	 * can be overridden by settings from Scene, which owns the Texture through a hierarchy
 	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
 	 */
-	BKE_animsys_evaluate_all_animation(bmain, ctime);
+	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
 	/*...done with recusrive funcs */
 
 	/* object_handle_update() on all objects, groups and sets */

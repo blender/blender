@@ -1,7 +1,7 @@
 # $Id$
 # ***** BEGIN LGPL LICENSE BLOCK *****
 #
-# Copyright 2009 Jörg Hermann Müller
+# Copyright 2009 Jrg Hermann Mller
 #
 # This file is part of AudaSpace.
 #
@@ -22,14 +22,14 @@
 
 set(INC
 	.
-	intern
 	FX
 	SRC
+	intern
 	../ffmpeg
 )
 
 set(INC_SYS
-	${PTHREADS_INC}
+	${PTHREADS_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -41,6 +41,8 @@ set(SRC
 	FX/AUD_DelayReader.cpp
 	FX/AUD_DoubleFactory.cpp
 	FX/AUD_DoubleReader.cpp
+	FX/AUD_DynamicIIRFilterFactory.cpp
+	FX/AUD_DynamicIIRFilterReader.cpp
 	FX/AUD_EffectFactory.cpp
 	FX/AUD_EffectReader.cpp
 	FX/AUD_EnvelopeFactory.cpp
@@ -66,6 +68,8 @@ set(SRC
 	FX/AUD_SuperposeReader.cpp
 	FX/AUD_VolumeFactory.cpp
 	intern/AUD_3DMath.h
+	intern/AUD_AnimateableProperty.cpp
+	intern/AUD_AnimateableProperty.h
 	intern/AUD_Buffer.cpp
 	intern/AUD_Buffer.h
 	intern/AUD_BufferReader.cpp
@@ -82,14 +86,21 @@ set(SRC
 	intern/AUD_ConverterFunctions.h
 	intern/AUD_ConverterReader.cpp
 	intern/AUD_ConverterReader.h
-	intern/AUD_DefaultMixer.cpp
-	intern/AUD_DefaultMixer.h
 	intern/AUD_FileFactory.cpp
 	intern/AUD_FileFactory.h
+	intern/AUD_FileWriter.cpp
+	intern/AUD_FileWriter.h
 	intern/AUD_I3DDevice.h
+	intern/AUD_I3DHandle.h
 	intern/AUD_IDevice.h
 	intern/AUD_IFactory.h
+	intern/AUD_IHandle.h
 	intern/AUD_IReader.h
+	intern/AUD_IWriter.h
+	intern/AUD_JOSResampleFactory.cpp
+	intern/AUD_JOSResampleFactory.h
+	intern/AUD_JOSResampleReader.cpp
+	intern/AUD_JOSResampleReader.h
 	intern/AUD_LinearResampleFactory.cpp
 	intern/AUD_LinearResampleFactory.h
 	intern/AUD_LinearResampleReader.cpp
@@ -104,9 +115,16 @@ set(SRC
 	intern/AUD_ReadDevice.cpp
 	intern/AUD_ReadDevice.h
 	intern/AUD_Reference.h
+	intern/AUD_ReferenceHandler.cpp
 	intern/AUD_ResampleFactory.h
+	intern/AUD_ResampleReader.cpp
+	intern/AUD_ResampleReader.h
+	intern/AUD_SequencerEntry.cpp
+	intern/AUD_SequencerEntry.h
 	intern/AUD_SequencerFactory.cpp
 	intern/AUD_SequencerFactory.h
+	intern/AUD_SequencerHandle.cpp
+	intern/AUD_SequencerHandle.h
 	intern/AUD_SequencerReader.cpp
 	intern/AUD_SequencerReader.h
 	intern/AUD_SilenceFactory.cpp
@@ -131,6 +149,8 @@ set(SRC
 	FX/AUD_DelayReader.h
 	FX/AUD_DoubleFactory.h
 	FX/AUD_DoubleReader.h
+	FX/AUD_DynamicIIRFilterFactory.h
+	FX/AUD_DynamicIIRFilterReader.h
 	FX/AUD_EffectFactory.h
 	FX/AUD_EffectReader.h
 	FX/AUD_EnvelopeFactory.h
@@ -159,21 +179,31 @@ set(SRC
 
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
-	list(APPEND INC ffmpeg)
-	list(APPEND INC_SYS ${FFMPEG_INC})
+	list(APPEND INC
+		ffmpeg
+	)
+	list(APPEND INC_SYS
+		${FFMPEG_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		ffmpeg/AUD_FFMPEGFactory.cpp
 		ffmpeg/AUD_FFMPEGReader.cpp
+		ffmpeg/AUD_FFMPEGWriter.cpp
 
 		ffmpeg/AUD_FFMPEGFactory.h
 		ffmpeg/AUD_FFMPEGReader.h
+		ffmpeg/AUD_FFMPEGWriter.h
 	)
 endif()
 
 if(WITH_SDL)
 	add_definitions(-DWITH_SDL)
-	list(APPEND INC SDL)
-	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})
+	list(APPEND INC
+		SDL
+	)
+	list(APPEND INC_SYS
+		${SDL_INCLUDE_DIR}
+	)
 	list(APPEND SRC
 		SDL/AUD_SDLDevice.cpp
 
@@ -183,8 +213,12 @@ endif()
 
 if(WITH_OPENAL)
 	add_definitions(-DWITH_OPENAL)
-	list(APPEND INC OpenAL)
-	list(APPEND INC_SYS ${OPENAL_INCLUDE_DIR})
+	list(APPEND INC
+		OpenAL
+	)
+	list(APPEND INC_SYS
+		${OPENAL_INCLUDE_DIR}
+	)
 	list(APPEND SRC
 		OpenAL/AUD_OpenALDevice.cpp
 
@@ -194,8 +228,12 @@ endif()
 
 if(WITH_JACK)
 	add_definitions(-DWITH_JACK)
-	list(APPEND INC jack)
-	list(APPEND INC_SYS ${JACK_INC})
+	list(APPEND INC
+		jack
+	)
+	list(APPEND INC_SYS
+		${JACK_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		jack/AUD_JackDevice.cpp
 
@@ -205,20 +243,28 @@ endif()
 
 if(WITH_CODEC_SNDFILE)
 	add_definitions(-DWITH_SNDFILE)
-	list(APPEND INC sndfile)
-	list(APPEND INC_SYS ${SNDFILE_INC})
+	list(APPEND INC
+		sndfile
+	)
+	list(APPEND INC_SYS
+		${SNDFILE_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		sndfile/AUD_SndFileFactory.cpp
 		sndfile/AUD_SndFileReader.cpp
+		sndfile/AUD_SndFileWriter.cpp
 
 		sndfile/AUD_SndFileFactory.h
 		sndfile/AUD_SndFileReader.h
+		sndfile/AUD_SndFileWriter.h
 	)
 endif()
 
 if(WITH_SAMPLERATE)
 	add_definitions(-DWITH_SAMPLERATE)
-	list(APPEND INC_SYS ${LIBSAMPLERATE_INC})
+	list(APPEND INC_SYS
+		${SAMPLERATE_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		SRC/AUD_SRCResampleFactory.cpp
 		SRC/AUD_SRCResampleReader.cpp
@@ -230,8 +276,12 @@ endif()
 
 if(WITH_FFTW3 AND FALSE)
 	add_definitions(-DWITH_FFTW3)
-	list(APPEND INC fftw)
-	list(APPEND INC_SYS ${FFTW3_INC})
+	list(APPEND INC
+		fftw
+	)
+	list(APPEND INC_SYS
+		${FFTW3_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		fftw/AUD_BandPassFactory.cpp
 		fftw/AUD_BandPassReader.cpp
@@ -242,8 +292,12 @@ if(WITH_FFTW3 AND FALSE)
 endif()
 
 if(WITH_PYTHON)
-	list(APPEND INC Python)
-	list(APPEND INC_SYS ${PYTHON_INCLUDE_DIRS})
+	list(APPEND INC
+		Python
+	)
+	list(APPEND INC_SYS
+		${PYTHON_INCLUDE_DIRS}
+	)
 	list(APPEND SRC
 		Python/AUD_PyAPI.cpp
 

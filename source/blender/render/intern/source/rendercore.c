@@ -515,6 +515,14 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 						*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_INDEXMA:
+					/* no filter */
+					if(shi->vlr) {
+							fp= rpass->rect + offset;
+							if(*fp==0.0f)
+									*fp= (float)shi->mat->index;
+					}
+					break;
 			case SCE_PASS_MIST:
 				/*  */
 				col= &shr->mist;
@@ -619,6 +627,12 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 					*fp= (float)shi->obr->ob->index;
 				}
 				break;
+			case SCE_PASS_INDEXMA:
+				if(shi->vlr) {
+					fp= rpass->rect + offset;
+					*fp= (float)shi->mat->index;
+				}
+				break;
 			case SCE_PASS_MIST:
 				fp= rpass->rect + offset;
 				*fp= shr->mist;
@@ -716,7 +730,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 	
 	if(zpass==NULL) return;
 
-	/* check for at least one sun lamp that its atmosphere flag is is enabled */
+	/* check for at least one sun lamp that its atmosphere flag is enabled */
 	for(go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
 		if(lar->type==LA_SUN && lar->sunsky && (lar->sunsky->effect_type & LA_SUN_EFFECT_AP))
@@ -744,7 +758,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 					if(lar->type==LA_SUN &&	lar->sunsky) {
 						
 						/* if it's sky continue and don't apply atmosphere effect on it */
-						if(*zrect >= 9.9e10 || rgbrect[3]==0.0f) {
+						if(*zrect >= 9.9e10f || rgbrect[3]==0.0f) {
 							continue;
 						}
 												
@@ -1084,7 +1098,7 @@ static unsigned short *make_solid_mask(RenderPart *pa)
 static void addAlphaOverFloatMask(float *dest, float *source, unsigned short dmask, unsigned short smask)
 {
 	unsigned short shared= dmask & smask;
-	float mul= 1.0 - source[3];
+	float mul= 1.0f - source[3];
 	
 	if(shared) {	/* overlapping masks */
 		
@@ -1878,13 +1892,13 @@ static void renderflare(RenderResult *rr, float *rectf, HaloRen *har)
 		fla.r= fabs(rc[0]);
 		fla.g= fabs(rc[1]);
 		fla.b= fabs(rc[2]);
-		fla.alfa= ma->flareboost*fabs(alfa*visifac*rc[3]);
-		fla.hard= 20.0f + fabs(70*rc[7]);
+		fla.alfa= ma->flareboost*fabsf(alfa*visifac*rc[3]);
+		fla.hard= 20.0f + fabsf(70.0f*rc[7]);
 		fla.tex= 0;
 		
-		type= (int)(fabs(3.9*rc[6]));
+		type= (int)(fabs(3.9f*rc[6]));
 
-		fla.rad= ma->subsize*sqrt(fabs(2.0f*har->rad*rc[4]));
+		fla.rad= ma->subsize*sqrtf(fabs(2.0f*har->rad*rc[4]));
 		
 		if(type==3) {
 			fla.rad*= 3.0f;
@@ -1893,22 +1907,22 @@ static void renderflare(RenderResult *rr, float *rectf, HaloRen *har)
 		
 		fla.radsq= fla.rad*fla.rad;
 		
-		vec[0]= 1.4*rc[5]*(har->xs-R.winx/2);
-		vec[1]= 1.4*rc[5]*(har->ys-R.winy/2);
-		vec[2]= 32.0f*sqrt(vec[0]*vec[0] + vec[1]*vec[1] + 1.0f);
+		vec[0]= 1.4f*rc[5]*(har->xs-R.winx/2);
+		vec[1]= 1.4f*rc[5]*(har->ys-R.winy/2);
+		vec[2]= 32.0f*sqrtf(vec[0]*vec[0] + vec[1]*vec[1] + 1.0f);
 		
-		fla.xs= R.winx/2 + vec[0] + (1.2+rc[8])*R.rectx*vec[0]/vec[2];
-		fla.ys= R.winy/2 + vec[1] + (1.2+rc[8])*R.rectx*vec[1]/vec[2];
+		fla.xs= R.winx/2 + vec[0] + (1.2f+rc[8])*R.rectx*vec[0]/vec[2];
+		fla.ys= R.winy/2 + vec[1] + (1.2f+rc[8])*R.rectx*vec[1]/vec[2];
 
 		if(R.flag & R_SEC_FIELD) {
-			if(R.r.mode & R_ODDFIELD) fla.ys += 0.5;
-			else fla.ys -= 0.5;
+			if(R.r.mode & R_ODDFIELD) fla.ys += 0.5f;
+			else fla.ys -= 0.5f;
 		}
 		if(type & 1) fla.type= HA_FLARECIRC;
 		else fla.type= 0;
 		renderhalo_post(rr, rectf, &fla);
 
-		fla.alfa*= 0.5;
+		fla.alfa*= 0.5f;
 		if(type & 2) fla.type= HA_FLARECIRC;
 		else fla.type= 0;
 		renderhalo_post(rr, rectf, &fla);
@@ -1956,40 +1970,6 @@ void add_halo_flare(Render *re)
 	R.r.mode= mode;	
 }
 
-/* ************************* used for shaded view ************************ */
-
-/* if *re, then initialize, otherwise execute */
-void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr)
-{
-	static VlakRen vlr;
-	static ObjectRen obr;
-	static ObjectInstanceRen obi;
-	
-	/* init */
-	if(re) {
-		R= *re;
-		
-		/* fake render face */
-		memset(&vlr, 0, sizeof(VlakRen));
-		memset(&obr, 0, sizeof(ObjectRen));
-		memset(&obi, 0, sizeof(ObjectInstanceRen));
-		obr.lay= -1;
-		obi.obr= &obr;
-		
-		return;
-	}
-	shi->vlr= &vlr;
-	shi->obr= &obr;
-	shi->obi= &obi;
-	
-	if(shi->mat->nodetree && shi->mat->use_nodes)
-		ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
-	else {
-		shade_input_init_material(shi);
-		shade_material_loop(shi, shr);
-	}
-}
-
 /* ************************* bake ************************ */
 
 
@@ -2018,7 +1998,7 @@ typedef struct BakeShade {
 	short *do_update;
 } BakeShade;
 
-static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int isect, int x, int y, float u, float v)
+static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInput *shi, int quad, int UNUSED(isect), int x, int y, float u, float v)
 {
 	if(quad) 
 		shade_input_set_triangle_i(shi, obi, vlr, 0, 2, 3);
@@ -2049,7 +2029,7 @@ static void bake_set_shade_input(ObjectInstanceRen *obi, VlakRen *vlr, ShadeInpu
 	shi->view[2]= shi->vn[2];
 }
 
-static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int x, int y, float u, float v, float *tvn, float *ttang)
+static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(quad), int x, int y, float UNUSED(u), float UNUSED(v), float *tvn, float *ttang)
 {
 	BakeShade *bs= handle;
 	ShadeSample *ssamp= &bs->ssamp;
@@ -2217,7 +2197,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	}
 }
 
-static void bake_displacement(void *handle, ShadeInput *shi, float dist, int x, int y)
+static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist, int x, int y)
 {
 	BakeShade *bs= handle;
 	float disp;
@@ -2225,7 +2205,7 @@ static void bake_displacement(void *handle, ShadeInput *shi, float dist, int x, 
 	if(R.r.bake_flag & R_BAKE_NORMALIZE && R.r.bake_maxdist) {
 		disp = (dist+R.r.bake_maxdist) / (R.r.bake_maxdist*2); /* alter the range from [-bake_maxdist, bake_maxdist] to [0, 1]*/
 	} else {
-		disp = 0.5 + dist; /* alter the range from [-0.5,0.5] to [0,1]*/
+		disp = 0.5f + dist; /* alter the range from [-0.5,0.5] to [0,1]*/
 	}
 	
 	if(bs->rect_float) {
@@ -2297,7 +2277,7 @@ static void bake_set_vlr_dxyco(BakeShade *bs, float *uv1, float *uv2, float *uv3
 	 * then taking u and v partial derivatives to get dxco and dyco */
 	A= (uv2[0] - uv1[0])*(uv3[1] - uv1[1]) - (uv3[0] - uv1[0])*(uv2[1] - uv1[1]);
 
-	if(fabs(A) > FLT_EPSILON) {
+	if(fabsf(A) > FLT_EPSILON) {
 		A= 0.5f/A;
 
 		d1= uv2[1] - uv3[1];
@@ -2464,7 +2444,8 @@ static int get_next_bake_face(BakeShade *bs)
 				if(tface && tface->tpage) {
 					Image *ima= tface->tpage;
 					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-					float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+					const float vec_alpha[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+					const float vec_solid[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 					
 					if(ibuf==NULL)
 						continue;
@@ -2484,7 +2465,7 @@ static int get_next_bake_face(BakeShade *bs)
 							imb_freerectImBuf(ibuf);
 						/* clear image */
 						if(R.r.bake_flag & R_BAKE_CLEAR)
-							IMB_rectfill(ibuf, vec);
+							IMB_rectfill(ibuf, (ibuf->depth == 32) ? vec_alpha : vec_solid);
 					
 						/* might be read by UI to set active image for display */
 						R.bakebuf= ima;
@@ -2551,8 +2532,8 @@ static void shade_tface(BakeShade *bs)
 		 * where a pixel gets in between 2 faces or the middle of a quad,
 		 * camera aligned quads also have this problem but they are less common.
 		 * Add a small offset to the UVs, fixes bug #18685 - Campbell */
-		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - (0.5f + 0.001);
-		vec[a][1]= tface->uv[a][1]*(float)bs->recty - (0.5f + 0.002);
+		vec[a][0]= tface->uv[a][0]*(float)bs->rectx - (0.5f + 0.001f);
+		vec[a][1]= tface->uv[a][1]*(float)bs->recty - (0.5f + 0.002f);
 	}
 	
 	/* UV indices have to be corrected for possible quad->tria splits */
@@ -2587,6 +2568,28 @@ static void *do_bake_thread(void *bs_v)
 	bs->ready= 1;
 	
 	return NULL;
+}
+
+void RE_bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
+{
+	/* must check before filtering */
+	const short is_new_alpha= (ibuf->depth != 32) && BKE_alphatest_ibuf(ibuf);
+
+	/* Margin */
+	if(filter) {
+		IMB_filter_extend(ibuf, mask, filter);
+	}
+
+	/* if the bake results in new alpha then change the image setting */
+	if(is_new_alpha) {
+		ibuf->depth= 32;
+	}
+	else {
+		if(filter && ibuf->depth != 32) {
+			/* clear alpha added by filtering */
+			IMB_rectfill_alpha(ibuf, 1.0f);
+		}
+	}
 }
 
 /* using object selection tags, the faces with UV maps get baked */
@@ -2675,36 +2678,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 			if(!ibuf)
 				continue;
 
-			if(re->r.bake_filter) {
-				if (usemask) {
-					/* extend the mask +2 pixels from the image,
-					 * this is so colors dont blend in from outside */
-					char *temprect;
-					
-					for(a=0; a<re->r.bake_filter; a++)
-						IMB_mask_filter_extend((char *)ibuf->userdata, ibuf->x, ibuf->y);
-					
-					temprect = MEM_dupallocN(ibuf->userdata);
-					
-					/* expand twice to clear this many pixels, so they blend back in */
-					IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-					IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-					
-					/* clear all pixels in the margin*/
-					IMB_mask_clear(ibuf, temprect, FILTER_MASK_MARGIN);
-					MEM_freeN(temprect);
-				}
-				
-				for(a=0; a<re->r.bake_filter; a++) {
-					/*the mask, ibuf->userdata - can be null, in this case only zero alpha is used */
-					IMB_filter_extend(ibuf, (char *)ibuf->userdata);
-				}
-				
-				if (ibuf->userdata) {
-					MEM_freeN(ibuf->userdata);
-					ibuf->userdata= NULL;
-				}
-			}
+			RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, re->r.bake_filter);
 
 			ibuf->userflags |= IB_BITMAPDIRTY;
 			if (ibuf->rect_float) IMB_rect_from_float(ibuf);

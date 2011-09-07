@@ -19,11 +19,20 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.types import Operator
 import mathutils
 
 
 class prettyface(object):
-    __slots__ = "uv", "width", "height", "children", "xoff", "yoff", "has_parent", "rot"
+    __slots__ = ("uv",
+                 "width",
+                 "height",
+                 "children",
+                 "xoff",
+                 "yoff",
+                 "has_parent",
+                 "rot",
+                 )
 
     def __init__(self, data):
         self.has_parent = False
@@ -263,10 +272,9 @@ def lightmap_uvpack(meshes,
             del trylens
 
             def trilensdiff(t1, t2):
-                return\
-                abs(t1[1][t1[2][0]] - t2[1][t2[2][0]]) + \
-                abs(t1[1][t1[2][1]] - t2[1][t2[2][1]]) + \
-                abs(t1[1][t1[2][2]] - t2[1][t2[2][2]])
+                return (abs(t1[1][t1[2][0]] - t2[1][t2[2][0]]) +
+                        abs(t1[1][t1[2][1]] - t2[1][t2[2][1]]) +
+                        abs(t1[1][t1[2][2]] - t2[1][t2[2][2]]))
 
             while tri_lengths:
                 tri1 = tri_lengths.pop()
@@ -406,7 +414,7 @@ def lightmap_uvpack(meshes,
             ok = False
 
             # Tall boxes in groups of 2
-            for d, boxes in odd_dict.items():
+            for d, boxes in list(odd_dict.items()):
                 if d[1] < max_int_dimension:
                     #\boxes.sort(key = lambda a: len(a.children))
                     while len(boxes) >= 2:
@@ -427,7 +435,7 @@ def lightmap_uvpack(meshes,
                             odd_dict.setdefault((w, h), []).append(pf_parent)
 
             # Even boxes in groups of 4
-            for d, boxes in even_dict.items():
+            for d, boxes in list(even_dict.items()):
                 if d < max_int_dimension:
                     boxes.sort(key=lambda a: len(a.children))
 
@@ -444,7 +452,7 @@ def lightmap_uvpack(meshes,
         del even_dict
         del odd_dict
 
-        orig = len(pretty_faces)
+        # orig = len(pretty_faces)
 
         pretty_faces = [pf for pf in pretty_faces if not pf.has_parent]
 
@@ -489,7 +497,10 @@ def lightmap_uvpack(meshes,
 
         if PREF_APPLY_IMAGE:
             if not PREF_PACK_IN_ONE:
-                image = Image.New("lightmap", PREF_IMG_PX_SIZE, PREF_IMG_PX_SIZE, 24)
+                image = bpy.data.images.new(name="lightmap",
+                                            width=PREF_IMG_PX_SIZE,
+                                            height=PREF_IMG_PX_SIZE,
+                                            )
 
             for f in face_sel:
                 # f.image = image
@@ -517,7 +528,7 @@ def unwrap(operator, context, **kwargs):
         if obj and obj.type == 'MESH':
             meshes = [obj.data]
     else:
-        meshes = {me.name: me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if not me.library if len(me.faces)}.values()
+        meshes = list({me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if me.faces and me.library is None})
 
     if not meshes:
         operator.report({'ERROR'}, "No mesh object.")
@@ -530,32 +541,60 @@ def unwrap(operator, context, **kwargs):
 
     return {'FINISHED'}
 
-from bpy.props import BoolProperty, FloatProperty, IntProperty, EnumProperty
+from bpy.props import BoolProperty, FloatProperty, IntProperty
 
 
-class LightMapPack(bpy.types.Operator):
+class LightMapPack(Operator):
     '''Follow UVs from active quads along continuous face loops'''
     bl_idname = "uv.lightmap_pack"
     bl_label = "Lightmap Pack"
     bl_options = {'REGISTER', 'UNDO'}
 
     PREF_CONTEXT = bpy.props.EnumProperty(
+            name="Selection",
             items=(("SEL_FACES", "Selected Faces", "Space all UVs evently"),
                    ("ALL_FACES", "All Faces", "Average space UVs edge length of each loop"),
                    ("ALL_OBJECTS", "Selected Mesh Object", "Average space UVs edge length of each loop")
                    ),
-            name="Selection",
-            description="")
+            )
 
     # Image & UVs...
-    PREF_PACK_IN_ONE = BoolProperty(name="Share Tex Space", default=True, description="Objects Share texture space, map all objects into 1 uvmap")
-    PREF_NEW_UVLAYER = BoolProperty(name="New UV Layer", default=False, description="Create a new UV layer for every mesh packed")
-    PREF_APPLY_IMAGE = BoolProperty(name="New Image", default=False, description="Assign new images for every mesh (only one if shared tex space enabled)")
-    PREF_IMG_PX_SIZE = IntProperty(name="Image Size", min=64, max=5000, default=512, description="Width and Height for the new image")
-
+    PREF_PACK_IN_ONE = BoolProperty(
+            name="Share Tex Space",
+            description=("Objects Share texture space, map all objects "
+                         "into 1 uvmap"),
+            default=True,
+            )
+    PREF_NEW_UVLAYER = BoolProperty(
+            name="New UV Layer",
+            description="Create a new UV layer for every mesh packed",
+            default=False,
+            )
+    PREF_APPLY_IMAGE = BoolProperty(
+            name="New Image",
+            description=("Assign new images for every mesh (only one if "
+                         "shared tex space enabled)"),
+            default=False,
+            )
+    PREF_IMG_PX_SIZE = IntProperty(
+            name="Image Size",
+            description="Width and Height for the new image",
+            min=64, max=5000,
+            default=512,
+            )
     # UV Packing...
-    PREF_BOX_DIV = IntProperty(name="Pack Quality", min=1, max=48, default=12, description="Pre Packing before the complex boxpack")
-    PREF_MARGIN_DIV = FloatProperty(name="Margin", min=0.001, max=1.0, default=0.1, description="Size of the margin as a division of the UV")
+    PREF_BOX_DIV = IntProperty(
+            name="Pack Quality",
+            description="Pre Packing before the complex boxpack",
+            min=1, max=48,
+            default=12,
+            )
+    PREF_MARGIN_DIV = FloatProperty(
+            name="Margin",
+            description="Size of the margin as a division of the UV",
+            min=0.001, max=1.0,
+            default=0.1,
+            )
 
     def execute(self, context):
         kwargs = self.as_keywords()

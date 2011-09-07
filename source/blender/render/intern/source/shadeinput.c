@@ -303,7 +303,7 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
  */
 
 /* copy data from face to ShadeInput, scanline case */
-void shade_input_set_triangle(ShadeInput *shi, volatile int obi, volatile int facenr, int normal_flip)
+void shade_input_set_triangle(ShadeInput *shi, volatile int obi, volatile int facenr, int UNUSED(normal_flip))
 {
 	if(facenr>0) {
 		shi->obi= &R.objectinstance[obi];
@@ -543,11 +543,6 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 			shi->orn[2]= -shi->vn[2];
 		}
 
-		if(texco & TEXCO_REFL) {
-			/* mirror reflection color textures (and envmap) */
-			calc_R_ref(shi);    /* wrong location for normal maps! XXXXXXXXXXXXXX */
-		}
-
 		if(texco & TEXCO_STRESS) {
 			/* not supported */
 		}
@@ -776,7 +771,8 @@ void shade_input_set_uv(ShadeInput *shi)
 			t00= v3[axis1]-v1[axis1]; t01= v3[axis2]-v1[axis2];
 			t10= v3[axis1]-v2[axis1]; t11= v3[axis2]-v2[axis2];
 
-			detsh= 1.0f/(t00*t11-t10*t01);
+			detsh= (t00*t11-t10*t01);
+			detsh= (detsh != 0.0f)? 1.0f/detsh: 0.0f;
 			t00*= detsh; t01*=detsh; 
 			t10*=detsh; t11*=detsh;
 
@@ -1205,11 +1201,6 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			shi->orn[2]= -shi->vn[2];
 		}
 		
-		if(texco & TEXCO_REFL) {
-			/* mirror reflection color textures (and envmap) */
-			calc_R_ref(shi);	/* wrong location for normal maps! XXXXXXXXXXXXXX */
-		}
-		
 		if(texco & TEXCO_STRESS) {
 			float *s1, *s2, *s3;
 			
@@ -1282,8 +1273,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				s11= ho3[1]/ho3[3] - ho2[1]/ho2[3];
 				
 				detsh= s00*s11-s10*s01;
-				s00/= detsh; s01/=detsh; 
-				s10/=detsh; s11/=detsh;
+				detsh= (detsh != 0.0f)? 1.0f/detsh: 0.0f;
+				s00*= detsh; s01*=detsh; 
+				s10*=detsh; s11*=detsh;
 				
 				/* recalc u and v again */
 				hox= x/Zmulx -1.0f;
@@ -1465,7 +1457,7 @@ int shade_samples(ShadeSample *ssamp, PixStr *ps, int x, int y)
 		shade_samples_do_AO(ssamp);
 		
 		/* if shade (all shadepinputs have same passflag) */
-		if(ssamp->shi[0].passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB)) {
+		if(ssamp->shi[0].passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB|SCE_PASS_INDEXMA)) {
 
 			for(samp=0; samp<ssamp->tot; samp++, shi++, shr++) {
 				shade_input_set_shade_texco(shi);

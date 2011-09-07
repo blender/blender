@@ -45,7 +45,7 @@ extern "C" {
 #define MALWAYS_INLINE MINLINE
 #else
 #define MINLINE static inline
-#define MALWAYS_INLINE static __attribute__((always_inline))
+#define MALWAYS_INLINE static inline __attribute__((always_inline))
 #endif
 #else
 #define MINLINE

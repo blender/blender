@@ -319,7 +319,7 @@ void IK_QSegment::RemoveChild(IK_QSegment *child)
 	else {
 		IK_QSegment *seg = m_child;
 
-		while (seg->m_sibling != child);
+		while (seg->m_sibling != child)
 			seg = seg->m_sibling;
 
 		if (child == seg->m_sibling)
@@ -904,9 +904,6 @@ void IK_QElbowSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	// clamp and convert to axis angle parameters
 	lmin = MT_clamp(lmin, -MT_PI, MT_PI);
 	lmax = MT_clamp(lmax, -MT_PI, MT_PI);
-
-	lmin = lmin;
-	lmax = lmax;
 
 	if (axis == 1) {
 		m_min_twist = lmin;

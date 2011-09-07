@@ -133,6 +133,7 @@ struct ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y,
  */
 
 void IMB_refImBuf(struct ImBuf *ibuf);
+struct ImBuf * IMB_makeSingleUser(struct ImBuf *ibuf);
 
 /**
  *
@@ -193,16 +194,69 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode);
 
 /**
+ *
+ * @attention Defined in indexer.c
+ */
+
+typedef enum IMB_Timecode_Type {
+	IMB_TC_NONE       = 0, /* don't use timecode files at all */
+	IMB_TC_RECORD_RUN = 1, /* use images in the order as they are recorded 
+				  (currently, this is the only one implemented
+				  and is a sane default)
+			       */
+	IMB_TC_FREE_RUN   = 2, /* use global timestamp written by recording
+				  device (prosumer camcorders e.g. can do
+				  that) */
+	IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN = 4, 
+                               /* interpolate a global timestamp using the
+				  record date and time written by recording
+				  device (*every* consumer camcorder can do
+				  that :) )*/
+	IMB_TC_MAX_SLOT   = 3
+} IMB_Timecode_Type;
+
+typedef enum IMB_Proxy_Size {
+	IMB_PROXY_NONE = 0,
+	IMB_PROXY_25 = 1,
+	IMB_PROXY_50 = 2,
+	IMB_PROXY_75 = 4,
+	IMB_PROXY_100 = 8,
+	IMB_PROXY_MAX_SLOT = 4
+} IMB_Proxy_Size;
+
+/* defaults to BL_proxy within the directory of the animation */
+void IMB_anim_set_index_dir(struct anim * anim, const char * dir);
+
+int IMB_anim_index_get_frame_index(struct anim * anim, IMB_Timecode_Type tc,
+				   int position);
+
+/* will rebuild all used indices and proxies at once */
+void IMB_anim_index_rebuild(struct anim * anim, 
+			    IMB_Timecode_Type build_tcs,
+			    IMB_Proxy_Size build_preview_sizes, 
+			    int build_quality,
+			    short *stop, short *do_update, float *progress);
+
+/**
  * Return the length (in frames) of the given @a anim.
  */
-int IMB_anim_get_duration(struct anim *anim);
+int IMB_anim_get_duration(struct anim *anim, IMB_Timecode_Type tc);
+
+
+/**
+ * Return the fps contained in movie files (function rval is FALSE,
+ * and frs_sec and frs_sec_base untouched if none available!)
+ */
+int IMB_anim_get_fps(struct anim * anim, 
+		     short * frs_sec, float * frs_sec_base);
 
 /**
  *
  * @attention Defined in anim.c
  */
-struct anim *IMB_open_anim(const char *name, int ib_flags);
+struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex);
 void IMB_close_anim(struct anim *anim);
+
 
 /**
  *
@@ -218,7 +272,10 @@ int IMB_anim_get_preseek(struct anim *anim);
  * @attention Defined in anim.c
  */
 
-struct ImBuf *IMB_anim_absolute(struct anim *anim, int position);
+struct ImBuf *IMB_anim_absolute(
+	struct anim *anim, int position,
+	IMB_Timecode_Type tc        /* = 1 = IMB_TC_RECORD_RUN */, 
+	IMB_Proxy_Size preview_size /* = 0 = IMB_PROXY_NONE */);
 
 /**
  *
@@ -226,12 +283,6 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim, int position);
  * fetches a define previewframe, usually half way into the movie
  */
 struct ImBuf *IMB_anim_previewframe(struct anim *anim);
-
-/**
- *
- * @attention Defined in anim.c
- */
-void IMB_free_anim_ibuf(struct anim *anim);
 
 /**
  *
@@ -252,7 +303,7 @@ void IMB_filter(struct ImBuf *ibuf);
 void IMB_filterN(struct ImBuf *out, struct ImBuf *in);
 void IMB_mask_filter_extend(char *mask, int width, int height);
 void IMB_mask_clear(struct ImBuf *ibuf, char *mask, int val);
-void IMB_filter_extend(struct ImBuf *ibuf, char *mask);
+void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter);
 void IMB_makemipmap(struct ImBuf *ibuf, int use_filter);
 void IMB_remakemipmap(struct ImBuf *ibuf, int use_filter);
 struct ImBuf *IMB_getmipmap(struct ImBuf *ibuf, int level);
@@ -338,6 +389,7 @@ void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */
 void IMB_convert_profile(struct ImBuf *ibuf, int profile);
 float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc);
+void IMB_color_to_bw(struct ImBuf *ibuf);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from
@@ -442,11 +494,12 @@ void IMB_freezbuffloatImBuf(struct ImBuf *ibuf);
  *
  * @attention Defined in rectop.c
  */
-void IMB_rectfill(struct ImBuf *drect, float col[4]);
+void IMB_rectfill(struct ImBuf *drect, const float col[4]);
 void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2);
+void IMB_rectfill_alpha(struct ImBuf *ibuf, const float value);
 
 /* this should not be here, really, we needed it for operating on render data, IMB_rectfill_area calls it */
-void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2);
+void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, const float col[4], int x1, int y1, int x2, int y2);
 
 /* defined in metadata.c */
 int IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field);

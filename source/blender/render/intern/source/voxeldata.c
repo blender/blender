@@ -220,6 +220,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 
 static void init_frame_smoke(VoxelData *vd, float cfra)
 {
+#ifdef WITH_SMOKE
 	Object *ob;
 	ModifierData *md;
 	
@@ -300,7 +301,13 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 	}
 	
 	vd->ok = 1;
-	return;
+
+#else // WITH_SMOKE
+	(void)vd;
+	(void)cfra;
+
+	vd->dataset= NULL;
+#endif
 }
 
 static void cache_voxeldata(struct Render *re, Tex *tex)
@@ -406,9 +413,9 @@ int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
 		}
 		case TEX_REPEAT:
 		{
-			co[0] = co[0] - floor(co[0]);
-			co[1] = co[1] - floor(co[1]);
-			co[2] = co[2] - floor(co[2]);
+			co[0] = co[0] - floorf(co[0]);
+			co[1] = co[1] - floorf(co[1]);
+			co[2] = co[2] - floorf(co[2]);
 			break;
 		}
 		case TEX_EXTEND:

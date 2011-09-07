@@ -468,8 +468,9 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 
 void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rcti *rect)
 {
+	float modelview[4][4];
 	double xs, ys, p[3];
-	short val;
+	int val, flip_sign, a;
 
 	/* near zero floating point values can give issues with gluUnProject
 		in side view on some implementations */
@@ -493,10 +494,20 @@ void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, rc
 		VECCOPY(bb->vec[4+val], p);
 	}
 
+	/* verify if we have negative scale. doing the transform before cross
+	   product flips the sign of the vector compared to doing cross product
+	   before transform then, so we correct for that. */
+	for(a=0; a<16; a++)
+		((float*)modelview)[a] = mats->modelview[a];
+	flip_sign = is_negative_m4(modelview);
+
 	/* then plane equations */
 	for(val=0; val<4; val++) {
 
 		normal_tri_v3(planes[val], bb->vec[val], bb->vec[val==3?0:val+1], bb->vec[val+4]);
+
+		if(flip_sign)
+			negate_v3(planes[val]);
 
 		planes[val][3]= - planes[val][0]*bb->vec[val][0]
 			- planes[val][1]*bb->vec[val][1]
@@ -614,8 +625,8 @@ void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mval[
 		}
 	}
 	else {
-        const float dx= (2.0f * mval[0] / (float)ar->winx) - 1.0f;
-        const float dy= (2.0f * mval[1] / (float)ar->winy) - 1.0f;
+		const float dx= (2.0f * mval[0] / (float)ar->winx) - 1.0f;
+		const float dy= (2.0f * mval[1] / (float)ar->winy) - 1.0f;
 		line_sta[0]= (rv3d->persinv[0][0] * dx) + (rv3d->persinv[1][0] * dy) + rv3d->viewinv[3][0];
 		line_sta[1]= (rv3d->persinv[0][1] * dx) + (rv3d->persinv[1][1] * dy) + rv3d->viewinv[3][1];
 		line_sta[2]= (rv3d->persinv[0][2] * dx) + (rv3d->persinv[1][2] * dy) + rv3d->viewinv[3][2];
@@ -829,8 +840,7 @@ void project_int_noclip(ARegion *ar, const float vec[3], int adr[2])
 		adr[0] = (int)floor(fx); 
 		adr[1] = (int)floor(fy);
 	}
-	else
-	{
+	else {
 		adr[0] = ar->winx / 2;
 		adr[1] = ar->winy / 2;
 	}
@@ -893,8 +903,7 @@ void project_float_noclip(ARegion *ar, const float vec[3], float adr[2])
 		adr[0] = (float)(ar->winx/2.0f)+(ar->winx/2.0f)*vec4[0]/vec4[3];
 		adr[1] = (float)(ar->winy/2.0f)+(ar->winy/2.0f)*vec4[1]/vec4[3];
 	}
-	else
-	{
+	else {
 		adr[0] = ar->winx / 2.0f;
 		adr[1] = ar->winy / 2.0f;
 	}
@@ -1179,7 +1188,7 @@ int ED_view3d_lock(RegionView3D *rv3d)
 	return TRUE;
 }
 
-/* dont set windows active in in here, is used by renderwin too */
+/* dont set windows active in here, is used by renderwin too */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
 	if(rv3d->persp==RV3D_CAMOB) {	    /* obs/camera */
@@ -1560,7 +1569,7 @@ static void restore_localviewdata(ScrArea *sa, int free)
 	}
 }
 
-static void endlocalview(Scene *scene, ScrArea *sa)
+static void endlocalview(Main *bmain, Scene *scene, ScrArea *sa)
 {
 	View3D *v3d= sa->spacedata.first;
 	struct Base *base;
@@ -1586,6 +1595,8 @@ static void endlocalview(Scene *scene, ScrArea *sa)
 				base->object->lay= base->lay;
 			}
 		}
+		
+		DAG_on_visible_update(bmain, FALSE);
 	} 
 }
 
@@ -1594,7 +1605,7 @@ static int localview_exec(bContext *C, wmOperator *UNUSED(unused))
 	View3D *v3d= CTX_wm_view3d(C);
 	
 	if(v3d->localvd)
-		endlocalview(CTX_data_scene(C), CTX_wm_area(C));
+		endlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
 	else
 		initlocalview(CTX_data_main(C), CTX_data_scene(C), CTX_wm_area(C));
 	

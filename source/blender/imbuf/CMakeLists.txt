@@ -32,13 +32,12 @@ endif()
 set(INC 
 	.
 	../avi
-	../blenlib
 	../blenkernel
+	../blenlib
 	../blenloader
 	../makesdna
-	../../../intern/memutil
 	../../../intern/guardedalloc
-	../../../intern/ffmpeg
+	../../../intern/memutil
 )
 
 set(INC_SYS
@@ -56,6 +55,8 @@ set(SRC
 	intern/filetype.c
 	intern/filter.c
 	intern/imageprocess.c
+	intern/indexer.c
+	intern/indexer_dv.c
 	intern/iris.c
 	intern/jp2.c
 	intern/jpeg.c
@@ -82,6 +83,7 @@ set(SRC
 	intern/IMB_anim.h
 	intern/IMB_filetype.h
 	intern/IMB_filter.h
+	intern/IMB_indexer.h
 	intern/IMB_metadata.h
 	intern/cineon/cin_debug_stuff.h
 	intern/cineon/cineonfile.h
@@ -114,28 +116,43 @@ if(WITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_IMAGE_TIFF)
-	list(APPEND INC_SYS ${TIFF_INCLUDE_DIR})
+	list(APPEND INC_SYS
+		${TIFF_INCLUDE_DIR}
+	)
 	add_definitions(-DWITH_TIFF)
 endif()
 
 if(WITH_IMAGE_OPENJPEG)
-	list(APPEND INC_SYS ${OPENJPEG_INC})
+	list(APPEND INC_SYS
+		${OPENJPEG_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_OPENJPEG)
 endif()
 
 if(WITH_IMAGE_REDCODE)
-	list(APPEND INC_SYS ${REDCODE_INC})
+	list(APPEND INC_SYS
+		${REDCODE_INC}
+	)
 	add_definitions(-DWITH_REDCODE)
 endif()
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../quicktime)
-	list(APPEND INC_SYS ${QUICKTIME_INC})
+	list(APPEND INC
+		../quicktime
+	)
+	list(APPEND INC_SYS
+		${QUICKTIME_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-	list(APPEND INC_SYS ${FFMPEG_INC})
+	list(APPEND INC
+		../../../intern/ffmpeg
+	)
+	list(APPEND INC_SYS
+		${FFMPEG_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 

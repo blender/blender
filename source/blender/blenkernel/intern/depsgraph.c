@@ -301,6 +301,7 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
 		ChannelDriver *driver= fcu->driver;
 		DriverVar *dvar;
+		int isdata_fcu = isdata || (fcu->rna_path && strstr(fcu->rna_path, "modifiers["));
 		
 		/* loop over variables to get the target relationships */
 		for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
@@ -320,14 +321,14 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 							( ((dtar->rna_path) && strstr(dtar->rna_path, "pose.bones[")) || 
 							  ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (dtar->pchan_name[0])) )) 
 						{
-							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+							dag_add_relation(dag, node1, node, isdata_fcu?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
 						}
 						/* check if ob data */
 						else if (dtar->rna_path && strstr(dtar->rna_path, "data."))
-							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+							dag_add_relation(dag, node1, node, isdata_fcu?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
 						/* normal */
 						else
-							dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
+							dag_add_relation(dag, node1, node, isdata_fcu?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
 					}
 				}
 			}
@@ -372,6 +373,9 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		node2->first_ancestor = ob;
 		node2->ancestor_count += 1;
 	}
+
+	/* also build a custom data mask for dependencies that need certain layers */
+	node->customdata_mask= 0;
 	
 	if (ob->type == OB_ARMATURE) {
 		if (ob->pose){
@@ -451,8 +455,12 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			case PARSKEL:
 				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_OB, "Parent");
 				break;
-			case PARVERT1: case PARVERT3: case PARBONE:
+			case PARVERT1: case PARVERT3:
 				dag_add_relation(dag,node2,node,DAG_RL_DATA_OB|DAG_RL_OB_OB, "Vertex Parent");
+				node2->customdata_mask |= CD_MASK_ORIGINDEX;
+				break;
+			case PARBONE:
+				dag_add_relation(dag,node2,node,DAG_RL_DATA_OB|DAG_RL_OB_OB, "Bone Parent");
 				break;
 			default:
 				if(ob->parent->type==OB_LATTICE) 
@@ -592,7 +600,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			if(part->ren_as == PART_DRAW_GR && part->dup_group) {
 				for(go=part->dup_group->gobject.first; go; go=go->next) {
 					node2 = dag_get_node(dag, go->ob);
-					dag_add_relation(dag, node, node2, DAG_RL_OB_OB, "Particle Group Visualisation");
+					dag_add_relation(dag, node2, node, DAG_RL_OB_OB, "Particle Group Visualisation");
 				}
 			}
 
@@ -647,8 +655,11 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 				if (ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO))
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB, cti->name);
 				else {
-					if (ELEM3(obt->type, OB_ARMATURE, OB_MESH, OB_LATTICE) && (ct->subtarget[0]))
+					if (ELEM3(obt->type, OB_ARMATURE, OB_MESH, OB_LATTICE) && (ct->subtarget[0])) {
 						dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB, cti->name);
+						if (obt->type == OB_MESH)
+							node2->customdata_mask |= CD_MASK_MDEFORMVERT;
+					}
 					else
 						dag_add_relation(dag, node2, node, DAG_RL_OB_OB, cti->name);
 				}
@@ -722,6 +733,9 @@ struct DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 					itA->node->color |= itA->type;
 				}
 			}
+
+			/* also flush custom data mask */
+			((Object*)node->ob)->customdata_mask= node->customdata_mask;
 		}
 	}
 	/* now set relations equal, so that when only one parent changes, the correct recalcs are found */
@@ -2048,6 +2062,23 @@ static short animdata_use_time(AnimData *adt)
 			return 1;
 	}
 	
+	/* If we have drivers, more likely than not, on a frame change
+	 * they'll need updating because their owner changed
+	 * 
+	 * This is kindof a hack to get around a whole host of problems
+	 * involving drivers using non-object datablock data (which the 
+	 * depsgraph currently has no way of representing let alone correctly
+	 * dependency sort+tagging). By doing this, at least we ensure that 
+	 * some commonly attempted drivers (such as scene -> current frame;
+	 * see "Driver updates fail" thread on Bf-committers dated July 2)
+	 * will work correctly, and that other non-object datablocks will have
+	 * their drivers update at least on frame change.
+	 *
+	 * -- Aligorith, July 4 2011
+	 */
+	if (adt->drivers.first)
+		return 1;
+	
 	return 0;
 }
 
@@ -2364,7 +2395,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 	if(id) {
 		idtype= GS(id->name);
 
-		if(ELEM7(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR)) {
+		if(ELEM8(idtype, ID_ME, ID_CU, ID_MB, ID_LA, ID_LT, ID_CA, ID_AR, ID_SPK)) {
 			for(obt=bmain->object.first; obt; obt= obt->id.next) {
 				if(!(ob && obt == ob) && obt->data == id) {
 					obt->recalc |= OB_RECALC_DATA;

@@ -11,7 +11,7 @@ incs += ' #extern/recastnavigation/Recast/Include'
 
 defs = []
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 

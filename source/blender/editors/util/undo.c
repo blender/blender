@@ -54,6 +54,7 @@
 #include "ED_armature.h"
 #include "ED_particle.h"
 #include "ED_curve.h"
+#include "ED_gpencil.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -126,6 +127,11 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	Object *obact= CTX_data_active_object(C);
 	ScrArea *sa= CTX_wm_area(C);
 
+	/* grease pencil can be can be used in plenty of spaces, so check it first */
+	if(ED_gpencil_session_active()) {
+		return ED_undo_gpencil_step(C, step, undoname);
+	}
+
 	if(sa && sa->spacetype==SPACE_IMAGE) {
 		SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
 		
@@ -156,11 +162,11 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		int do_glob_undo= 0;
 		
 		if(obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
-			if(!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname)
+			if(!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname))
 				do_glob_undo= 1;
 		}
 		else if(obact && obact->mode & OB_MODE_SCULPT) {
-			if(!ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname) && undoname)
+			if(!ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname))
 				do_glob_undo= 1;
 		}
 		else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
@@ -358,18 +364,24 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 				ret= 1;
 			}
 		}
+		else {
+			if (G.f & G_DEBUG) {
+				printf("redo_cb: WM_operator_repeat_check returned false %s\n", op->type->name);
+			}
+		}
 
 		/* set region back */
 		CTX_wm_region_set(C, ar);
 	}
 	else {
 		if (G.f & G_DEBUG) {
-			printf("redo_cb: WM_operator_repeat_check returned false %s\n", op->type->name);
+			printf("redo_cb: ED_undo_operator_repeat called with NULL 'op'\n");
 		}
 	}
 
 	return ret;
 }
+
 
 void ED_undo_operator_repeat_cb(bContext *C, void *arg_op, void *UNUSED(arg_unused))
 {

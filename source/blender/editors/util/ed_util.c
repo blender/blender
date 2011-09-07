@@ -106,10 +106,6 @@ void ED_editors_exit(bContext *C)
 		if(sce->obedit) {
 			Object *ob= sce->obedit;
 		
-			/* global in meshtools... */
-			mesh_octree_table(NULL, NULL, NULL, 'e');
-			mesh_mirrtopo_table(NULL, 'e');
-			
 			if(ob) {
 				if(ob->type==OB_MESH) {
 					Mesh *me= ob->data;
@@ -122,26 +118,13 @@ void ED_editors_exit(bContext *C)
 				else if(ob->type==OB_ARMATURE) {
 					ED_armature_edit_free(ob);
 				}
-				else if(ob->type==OB_FONT) {
-					//			free_editText();
-				}
-				//		else if(ob->type==OB_MBALL) 
-				//			BLI_freelistN(&editelems);
-				//	free_editLatt();
-				//	free_posebuf();		// XXX this is still a global...
-			}
-		}
-		else if(sce->basact && sce->basact->object) {
-			Object *ob= sce->basact->object;
-			
-			/* if weight-painting is on, free mesh octree data */
-			if(ob->mode & OB_MODE_WEIGHT_PAINT) {
-				mesh_octree_table(NULL, NULL, NULL, 'e');
-				mesh_mirrtopo_table(NULL, 'e');
 			}
 		}
 	}
-	
+
+	/* global in meshtools... */
+	mesh_octree_table(NULL, NULL, NULL, 'e');
+	mesh_mirrtopo_table(NULL, 'e');
 }
 
 

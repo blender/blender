@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
 
@@ -27,14 +28,13 @@ class ObjectButtonsPanel():
     bl_context = "object"
 
 
-class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_context_object(ObjectButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
         space = context.space_data
-        ob = context.object
 
         if space.use_pin_id:
             layout.template_ID(space, "pin_id")
@@ -43,7 +43,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel, bpy.types.Panel):
             row.template_ID(context.scene.objects, "active")
 
 
-class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
     bl_label = "Transform"
 
     def draw(self, context):
@@ -69,7 +69,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, bpy.types.Panel):
         layout.prop(ob, "rotation_mode")
 
 
-class OBJECT_PT_delta_transform(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
     bl_label = "Delta Transform"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -95,7 +95,7 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, bpy.types.Panel):
         row.column().prop(ob, "delta_scale")
 
 
-class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_transform_locks(ObjectButtonsPanel, Panel):
     bl_label = "Transform Locks"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -121,7 +121,7 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel, bpy.types.Panel):
         row.column().prop(ob, "lock_scale", text="Scale")
 
 
-class OBJECT_PT_relations(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
     bl_label = "Relations"
 
     def draw(self, context):
@@ -148,7 +148,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, bpy.types.Panel):
         sub.active = (parent is not None)
 
 
-class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
     bl_label = "Groups"
 
     def draw(self, context):
@@ -187,7 +187,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, bpy.types.Panel):
                 index += 1
 
 
-class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_display(ObjectButtonsPanel, Panel):
     bl_label = "Display"
 
     def draw(self, context):
@@ -221,7 +221,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, bpy.types.Panel):
             col.prop(ob, "show_transparent", text="Transparency")
 
 
-class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
     bl_label = "Duplication"
 
     def draw(self, context):
@@ -259,7 +259,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, bpy.types.Panel):
 
 # XXX: the following options are all quite buggy, ancient hacks that should be dropped
 
-class OBJECT_PT_animation(ObjectButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_animation(ObjectButtonsPanel, Panel):
     bl_label = "Animation Hacks"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -294,7 +294,7 @@ from bl_ui.properties_animviz import (
     )
 
 
-class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
+class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
     #bl_label = "Object Motion Paths"
     bl_context = "object"
 
@@ -316,7 +316,7 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, bpy.types.Panel):
         row.operator("object.paths_clear", text="Clear Paths")
 
 
-class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # inherit from panel when ready
+class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from panel when ready
     #bl_label = "Object Onion Skinning"
     bl_context = "object"
 
@@ -330,7 +330,7 @@ class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , bpy.types.Panel): # 
         self.draw_settings(context, ob.animation_visualisation)
 
 
-class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, bpy.types.Panel):
+class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "object"
     _property_type = bpy.types.Object

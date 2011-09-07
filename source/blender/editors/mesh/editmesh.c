@@ -1099,7 +1099,7 @@ void load_editMesh(Scene *scene, Object *obedit)
 		int j;
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {
-			if (ob->parent==ob && ELEM(ob->partype, PARVERT1,PARVERT3)) {
+			if (ob->parent==obedit && ELEM(ob->partype, PARVERT1,PARVERT3)) {
 				
 				/* duplicate code from below, make it function later...? */
 				if (!vertMap) {
@@ -1449,9 +1449,8 @@ static int mesh_separate_material(wmOperator *op, Main *bmain, Scene *scene, Bas
 		/* select the material */
 		EM_select_by_material(em, curr_mat);
 		/* and now separate */
-		if(0==mesh_separate_selected(op, bmain, scene, editbase)) {
-			BKE_mesh_end_editmesh(me, em);
-			return 0;
+		if(em->totfacesel > 0) {
+			mesh_separate_selected(op, bmain, scene, editbase);
 		}
 	}
 

@@ -123,6 +123,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_smoke_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
@@ -641,6 +642,14 @@ static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
 		writestruct(wd, DATA, "CurveMapPoint", cumap->cm[a].totpoint, cumap->cm[a].curve);
 }
 
+static void write_node_socket(WriteData *wd, bNodeSocket *sock)
+{
+	bNodeSocketType *stype= ntreeGetSocketType(sock->type);
+	writestruct(wd, DATA, "bNodeSocket", 1, sock);
+	if (sock->default_value)
+		writestruct(wd, DATA, stype->value_structname, 1, sock->default_value);
+}
+
 /* this is only direct data, tree itself should have been written */
 static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 {
@@ -656,6 +665,12 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		writestruct(wd, DATA, "bNode", 1, node);
 
 	for(node= ntree->nodes.first; node; node= node->next) {
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			write_node_socket(wd, sock);
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			write_node_socket(wd, sock);
+
+		
 		if(node->storage && node->type!=NODE_DYNAMIC) {
 			/* could be handlerized at some point, now only 1 exception still */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
@@ -664,13 +679,9 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
-			else 
+			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			writestruct(wd, DATA, "bNodeSocket", 1, sock);
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			writestruct(wd, DATA, "bNodeSocket", 1, sock);
 	}
 	
 	for(link= ntree->links.first; link; link= link->next)
@@ -678,9 +689,9 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	
 	/* external sockets */
 	for(sock= ntree->inputs.first; sock; sock= sock->next)
-		writestruct(wd, DATA, "bNodeSocket", 1, sock);
+		write_node_socket(wd, sock);
 	for(sock= ntree->outputs.first; sock; sock= sock->next)
-		writestruct(wd, DATA, "bNodeSocket", 1, sock);
+		write_node_socket(wd, sock);
 }
 
 static void current_screen_compat(Main *mainvar, bScreen **screen)
@@ -717,31 +728,48 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 	}
 }
 
+static void write_keymapitem(WriteData *wd, wmKeyMapItem *kmi)
+{
+	writestruct(wd, DATA, "wmKeyMapItem", 1, kmi);
+	if(kmi->properties)
+		IDP_WriteProperty(kmi->properties, wd);
+}
+
 static void write_userdef(WriteData *wd)
 {
 	bTheme *btheme;
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
+	wmKeyMapDiffItem *kmdi;
 	bAddon *bext;
-
+	uiStyle *style;
+	
 	writestruct(wd, USER, "UserDef", 1, &U);
 
 	for(btheme= U.themes.first; btheme; btheme=btheme->next)
 		writestruct(wd, DATA, "bTheme", 1, btheme);
 
-	for(keymap= U.keymaps.first; keymap; keymap=keymap->next) {
+	for(keymap= U.user_keymaps.first; keymap; keymap=keymap->next) {
 		writestruct(wd, DATA, "wmKeyMap", 1, keymap);
 
-		for(kmi=keymap->items.first; kmi; kmi=kmi->next) {
-			writestruct(wd, DATA, "wmKeyMapItem", 1, kmi);
-
-			if(kmi->properties)
-				IDP_WriteProperty(kmi->properties, wd);
+		for(kmdi=keymap->diff_items.first; kmdi; kmdi=kmdi->next) {
+			writestruct(wd, DATA, "wmKeyMapDiffItem", 1, kmdi);
+			if(kmdi->remove_item)
+				write_keymapitem(wd, kmdi->remove_item);
+			if(kmdi->add_item)
+				write_keymapitem(wd, kmdi->add_item);
 		}
+
+		for(kmi=keymap->items.first; kmi; kmi=kmi->next)
+			write_keymapitem(wd, kmi);
 	}
 
 	for(bext= U.addons.first; bext; bext=bext->next)
 		writestruct(wd, DATA, "bAddon", 1, bext);
+	
+	for(style= U.uistyles.first; style; style= style->next) {
+		writestruct(wd, DATA, "uiStyle", 1, style);
+	}
 }
 
 static void write_boid_state(WriteData *wd, BoidState *state)
@@ -832,6 +860,7 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 {
 	ParticleSettings *part;
 	ParticleDupliWeight *dw;
+	GroupObject *go;
 	int a;
 
 	part= idbase->first;
@@ -846,8 +875,18 @@ static void write_particlesettings(WriteData *wd, ListBase *idbase)
 			writestruct(wd, DATA, "EffectorWeights", 1, part->effector_weights);
 
 			dw = part->dupliweights.first;
-			for(; dw; dw=dw->next)
+			for(; dw; dw=dw->next) {
+				/* update indices */
+				dw->index = 0;
+				if(part->dup_group) { /* can be NULL if lining fails or set to None */
+					go = part->dup_group->gobject.first;
+					while(go && go->ob != dw->ob) {
+						go=go->next;
+						dw->index++;
+					}
+				}
 				writestruct(wd, DATA, "ParticleDupliWeight", 1, dw);
+			}
 
 			if(part->boids && part->phystype == PART_PHYS_BOIDS) {
 				BoidState *state = part->boids->states.first;
@@ -904,7 +943,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 			writestruct(wd, DATA, "ClothSimSettings", 1, psys->clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, psys->clmd->coll_parms);
 		}
-		
+
 		write_pointcaches(wd, &psys->ptcaches);
 	}
 }
@@ -2101,7 +2140,11 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "SpaceButs", 1, sl);
 				}
 				else if(sl->spacetype==SPACE_FILE) {
+					SpaceFile *sfile= (SpaceFile *)sl;
+
 					writestruct(wd, DATA, "SpaceFile", 1, sl);
+					if(sfile->params)
+						writestruct(wd, DATA, "FileSelectParams", 1, sfile->params);
 				}
 				else if(sl->spacetype==SPACE_SEQ) {
 					writestruct(wd, DATA, "SpaceSeq", 1, sl);
@@ -2313,6 +2356,23 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
+static void write_speakers(WriteData *wd, ListBase *idbase)
+{
+	Speaker *spk;
+
+	spk= idbase->first;
+	while(spk) {
+		if(spk->id.us>0 || wd->current) {
+			/* write LibData */
+			writestruct(wd, ID_SPK, "Speaker", 1, spk);
+			if (spk->id.properties) IDP_WriteProperty(spk->id.properties, wd);
+
+			if (spk->adt) write_animdata(wd, spk->adt);
+		}
+		spk= spk->id.next;
+	}
+}
+
 static void write_sounds(WriteData *wd, ListBase *idbase)
 {
 	bSound *sound;
@@ -2434,7 +2494,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	fg.subversion= BLENDER_SUBVERSION;
 	fg.minversion= BLENDER_MINVERSION;
 	fg.minsubversion= BLENDER_MINSUBVERSION;
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 	{
 		extern char build_rev[];
 		fg.revision= atoi(build_rev);
@@ -2491,6 +2551,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_keys     (wd, &mainvar->key);
 	write_worlds   (wd, &mainvar->world);
 	write_texts    (wd, &mainvar->text);
+	write_speakers (wd, &mainvar->speaker);
 	write_sounds   (wd, &mainvar->sound);
 	write_groups   (wd, &mainvar->group);
 	write_armatures(wd, &mainvar->armature);

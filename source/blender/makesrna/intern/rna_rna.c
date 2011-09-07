@@ -46,6 +46,42 @@ EnumPropertyItem property_type_items[] = {
 	{PROP_COLLECTION, "COLLECTION", 0, "Collection", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem property_subtype_items[] = {
+	{PROP_NONE, "NONE", 0, "None", ""},
+
+	/* strings */
+	{PROP_FILEPATH, "FILEPATH", 0, "File Path", ""},
+	{PROP_DIRPATH, "DIRPATH", 0, "Directory Path", ""},
+	{PROP_FILENAME, "FILENAME", 0, "File Name", ""},
+
+	/* numbers */
+	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},
+	{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
+	{PROP_FACTOR, "FACTOR", 0, "Factor", ""},
+	{PROP_ANGLE, "ANGLE", 0, "Angle", ""},
+	{PROP_TIME, "TIME", 0, "Time", ""},
+	{PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
+
+	/* number arrays */
+	{PROP_COLOR, "COLOR", 0, "Color", ""},
+	{PROP_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
+	{PROP_DIRECTION, "DIRECTION", 0, "Direction", ""},
+	{PROP_VELOCITY, "VELOCITY", 0, "Velocity", ""},
+	{PROP_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
+	{PROP_MATRIX, "MATRIX", 0, "Matrix", ""},
+	{PROP_EULER, "EULER", 0, "Euler Angles", ""},
+	{PROP_QUATERNION, "QUATERNION", 0, "Quaternion", ""},
+	{PROP_AXISANGLE, "AXISANGLE", 0, "Axis-Angle", ""},
+	{PROP_XYZ, "XYZ", 0, "XYZ", ""},
+	{PROP_XYZ_LENGTH, "XYZ_LENGTH", 0, "XYZ Length", ""},
+	{PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Color", ""},
+	{PROP_COORDS, "COORDS", 0, "Coordinates", ""},
+
+	/* booleans */
+	{PROP_LAYER, "LAYER", 0, "Layer", ""},
+	{PROP_LAYER_MEMBER, "LAYER_MEMBER", 0, "Layer Member", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 EnumPropertyItem property_unit_items[] = {
 	{PROP_UNIT_NONE, "NONE", 0, "None", ""},
 	{PROP_UNIT_LENGTH, "LENGTH", 0, "Length", ""},
@@ -1067,7 +1103,7 @@ static void rna_def_property(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "is_runtime", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_runtime_get", NULL);
-	RNA_def_property_ui_text(prop, "Read Only", "Property is editable through RNA");
+	RNA_def_property_ui_text(prop, "Runtime", "Property has been dynamically created at runtime");
 
 	prop= RNA_def_property(srna, "is_enum_flag", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

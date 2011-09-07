@@ -33,9 +33,11 @@
 #define AUD_OPENALDEVICE
 
 #include "AUD_IDevice.h"
+#include "AUD_IHandle.h"
 #include "AUD_I3DDevice.h"
-struct AUD_OpenALHandle;
-struct AUD_OpenALBufferedFactory;
+#include "AUD_I3DHandle.h"
+#include "AUD_Buffer.h"
+//struct AUD_OpenALBufferedFactory;
 
 #include <AL/al.h>
 #include <AL/alc.h>
@@ -48,6 +50,110 @@ struct AUD_OpenALBufferedFactory;
 class AUD_OpenALDevice : public AUD_IDevice, public AUD_I3DDevice
 {
 private:
+	/// Saves the data for playback.
+	class AUD_OpenALHandle : public AUD_IHandle, public AUD_I3DHandle
+	{
+	public:
+		static const int CYCLE_BUFFERS = 3;
+
+		/// Whether it's a buffered or a streamed source.
+		bool m_isBuffered;
+
+		/// The reader source.
+		AUD_Reference<AUD_IReader> m_reader;
+
+		/// Whether to keep the source if end of it is reached.
+		bool m_keep;
+
+		/// OpenAL sample format.
+		ALenum m_format;
+
+		/// OpenAL source.
+		ALuint m_source;
+
+		/// OpenAL buffers.
+		ALuint m_buffers[CYCLE_BUFFERS];
+
+		/// The first buffer to be read next.
+		int m_current;
+
+		/// Whether the stream doesn't return any more data.
+		bool m_eos;
+
+		/// The loop count of the source.
+		int m_loopcount;
+
+		/// The stop callback.
+		stopCallback m_stop;
+
+		/// Stop callback data.
+		void* m_stop_data;
+
+		/// Orientation.
+		AUD_Quaternion m_orientation;
+
+		/// Current status of the handle
+		AUD_Status m_status;
+
+		/// Own device.
+		AUD_OpenALDevice* m_device;
+
+	public:
+
+		/**
+		 * Creates a new OpenAL handle.
+		 * \param device The OpenAL device the handle belongs to.
+		 * \param format The AL format.
+		 * \param reader The reader this handle plays.
+		 * \param keep Whether to keep the handle alive when the reader ends.
+		 */
+		AUD_OpenALHandle(AUD_OpenALDevice* device, ALenum format, AUD_Reference<AUD_IReader> reader, bool keep);
+
+		virtual ~AUD_OpenALHandle() {}
+		virtual bool pause();
+		virtual bool resume();
+		virtual bool stop();
+		virtual bool getKeep();
+		virtual bool setKeep(bool keep);
+		virtual bool seek(float position);
+		virtual float getPosition();
+		virtual AUD_Status getStatus();
+		virtual float getVolume();
+		virtual bool setVolume(float volume);
+		virtual float getPitch();
+		virtual bool setPitch(float pitch);
+		virtual int getLoopCount();
+		virtual bool setLoopCount(int count);
+		virtual bool setStopCallback(stopCallback callback = 0, void* data = 0);
+
+		virtual AUD_Vector3 getSourceLocation();
+		virtual bool setSourceLocation(const AUD_Vector3& location);
+		virtual AUD_Vector3 getSourceVelocity();
+		virtual bool setSourceVelocity(const AUD_Vector3& velocity);
+		virtual AUD_Quaternion getSourceOrientation();
+		virtual bool setSourceOrientation(const AUD_Quaternion& orientation);
+		virtual bool isRelative();
+		virtual bool setRelative(bool relative);
+		virtual float getVolumeMaximum();
+		virtual bool setVolumeMaximum(float volume);
+		virtual float getVolumeMinimum();
+		virtual bool setVolumeMinimum(float volume);
+		virtual float getDistanceMaximum();
+		virtual bool setDistanceMaximum(float distance);
+		virtual float getDistanceReference();
+		virtual bool setDistanceReference(float distance);
+		virtual float getAttenuation();
+		virtual bool setAttenuation(float factor);
+		virtual float getConeAngleOuter();
+		virtual bool setConeAngleOuter(float angle);
+		virtual float getConeAngleInner();
+		virtual bool setConeAngleInner(float angle);
+		virtual float getConeVolumeOuter();
+		virtual bool setConeVolumeOuter(float volume);
+	};
+
+	typedef std::list<AUD_Reference<AUD_OpenALHandle> >::iterator AUD_HandleIterator;
+
 	/**
 	 * The OpenAL device handle.
 	 */
@@ -71,17 +177,17 @@ private:
 	/**
 	 * The list of sounds that are currently playing.
 	 */
-	std::list<AUD_OpenALHandle*>* m_playingSounds;
+	std::list<AUD_Reference<AUD_OpenALHandle> > m_playingSounds;
 
 	/**
 	 * The list of sounds that are currently paused.
 	 */
-	std::list<AUD_OpenALHandle*>* m_pausedSounds;
+	std::list<AUD_Reference<AUD_OpenALHandle> > m_pausedSounds;
 
 	/**
 	 * The list of buffered factories.
 	 */
-	std::list<AUD_OpenALBufferedFactory*>* m_bufferedFactories;
+	//std::list<AUD_OpenALBufferedFactory*>* m_bufferedFactories;
 
 	/**
 	 * The mutex for locking.
@@ -104,16 +210,20 @@ private:
 	int m_buffersize;
 
 	/**
-	 * Starts the streaming thread.
+	 * Device buffer.
 	 */
-	void start();
+	AUD_Buffer m_buffer;
 
 	/**
-	 * Checks if a handle is valid.
-	 * \param handle The handle to check.
-	 * \return Whether the handle is valid.
+	 * Orientation.
 	 */
-	bool isValid(AUD_Handle* handle);
+	AUD_Quaternion m_orientation;
+
+	/**
+	 * Starts the streaming thread.
+	 * \param Whether the previous thread should be joined.
+	 */
+	void start(bool join = true);
 
 	/**
 	 * Gets the format according to the specs.
@@ -147,27 +257,13 @@ public:
 	virtual ~AUD_OpenALDevice();
 
 	virtual AUD_DeviceSpecs getSpecs() const;
-	virtual AUD_Handle* play(AUD_IReader* reader, bool keep = false);
-	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
-	virtual bool pause(AUD_Handle* handle);
-	virtual bool resume(AUD_Handle* handle);
-	virtual bool stop(AUD_Handle* handle);
-	virtual bool getKeep(AUD_Handle* handle);
-	virtual bool setKeep(AUD_Handle* handle, bool keep);
-	virtual bool seek(AUD_Handle* handle, float position);
-	virtual float getPosition(AUD_Handle* handle);
-	virtual AUD_Status getStatus(AUD_Handle* handle);
+	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IReader> reader, bool keep = false);
+	virtual AUD_Reference<AUD_IHandle> play(AUD_Reference<AUD_IFactory> factory, bool keep = false);
+	virtual void stopAll();
 	virtual void lock();
 	virtual void unlock();
 	virtual float getVolume() const;
 	virtual void setVolume(float volume);
-	virtual float getVolume(AUD_Handle* handle);
-	virtual bool setVolume(AUD_Handle* handle, float volume);
-	virtual float getPitch(AUD_Handle* handle);
-	virtual bool setPitch(AUD_Handle* handle, float pitch);
-	virtual int getLoopCount(AUD_Handle* handle);
-	virtual bool setLoopCount(AUD_Handle* handle, int count);
-	virtual bool setStopCallback(AUD_Handle* handle, stopCallback callback = NULL, void* data = NULL);
 
 	virtual AUD_Vector3 getListenerLocation() const;
 	virtual void setListenerLocation(const AUD_Vector3& location);
@@ -181,30 +277,6 @@ public:
 	virtual void setDopplerFactor(float factor);
 	virtual AUD_DistanceModel getDistanceModel() const;
 	virtual void setDistanceModel(AUD_DistanceModel model);
-	virtual AUD_Vector3 getSourceLocation(AUD_Handle* handle);
-	virtual bool setSourceLocation(AUD_Handle* handle, const AUD_Vector3& location);
-	virtual AUD_Vector3 getSourceVelocity(AUD_Handle* handle);
-	virtual bool setSourceVelocity(AUD_Handle* handle, const AUD_Vector3& velocity);
-	virtual AUD_Quaternion getSourceOrientation(AUD_Handle* handle);
-	virtual bool setSourceOrientation(AUD_Handle* handle, const AUD_Quaternion& orientation);
-	virtual bool isRelative(AUD_Handle* handle);
-	virtual bool setRelative(AUD_Handle* handle, bool relative);
-	virtual float getVolumeMaximum(AUD_Handle* handle);
-	virtual bool setVolumeMaximum(AUD_Handle* handle, float volume);
-	virtual float getVolumeMinimum(AUD_Handle* handle);
-	virtual bool setVolumeMinimum(AUD_Handle* handle, float volume);
-	virtual float getDistanceMaximum(AUD_Handle* handle);
-	virtual bool setDistanceMaximum(AUD_Handle* handle, float distance);
-	virtual float getDistanceReference(AUD_Handle* handle);
-	virtual bool setDistanceReference(AUD_Handle* handle, float distance);
-	virtual float getAttenuation(AUD_Handle* handle);
-	virtual bool setAttenuation(AUD_Handle* handle, float factor);
-	virtual float getConeAngleOuter(AUD_Handle* handle);
-	virtual bool setConeAngleOuter(AUD_Handle* handle, float angle);
-	virtual float getConeAngleInner(AUD_Handle* handle);
-	virtual bool setConeAngleInner(AUD_Handle* handle, float angle);
-	virtual float getConeVolumeOuter(AUD_Handle* handle);
-	virtual bool setConeVolumeOuter(AUD_Handle* handle, float volume);
 };
 
 #endif //AUD_OPENALDEVICE

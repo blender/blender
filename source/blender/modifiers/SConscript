@@ -6,7 +6,7 @@ sources = env.Glob('intern/*.c') + env.Glob('intern/*.cpp')
 incs = '. ./intern'
 incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern #/extern/glew/include'
 incs += ' ../render/extern/include ../blenloader'
-incs += ' ../include ../blenlib ../makesdna ../blenkernel ../blenkernel/intern'
+incs += ' ../include ../blenlib ../makesdna ../makesrna ../blenkernel ../blenkernel/intern'
 incs += ' ../editors/include ../gpu'
 incs += ' #extern/recastnavigation/Recast/Include'
 

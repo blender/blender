@@ -206,6 +206,12 @@ def setup_staticlibs(lenv):
         if lenv['WITH_BF_STATICJEMALLOC']:
             statlibs += Split(lenv['BF_JEMALLOC_LIB_STATIC'])
 
+    if lenv['OURPLATFORM']=='linux':
+        if lenv['WITH_BF_3DMOUSE']:
+            libincs += Split(lenv['BF_3DMOUSE_LIBPATH'])
+            if lenv['WITH_BF_STATIC3DMOUSE']:
+                statlibs += Split(lenv['BF_3DMOUSE_LIB_STATIC'])
+
     return statlibs, libincs
 
 def setup_syslibs(lenv):
@@ -258,7 +264,10 @@ def setup_syslibs(lenv):
         syslibs += Split(lenv['BF_PTHREADS_LIB'])
     if lenv['WITH_BF_COLLADA']:
         syslibs.append(lenv['BF_PCRE_LIB'])
-        syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])
+        if lenv['BF_DEBUG']:
+            syslibs += [colladalib+'_d' for colladalib in Split(lenv['BF_OPENCOLLADA_LIB'])]
+        else:
+            syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])
         syslibs.append(lenv['BF_EXPAT_LIB'])
 
     if not lenv['WITH_BF_STATICLIBSAMPLERATE']:
@@ -267,6 +276,11 @@ def setup_syslibs(lenv):
     if lenv['WITH_BF_JEMALLOC']:
         if not lenv['WITH_BF_STATICJEMALLOC']:
             syslibs += Split(lenv['BF_JEMALLOC_LIB'])
+
+    if lenv['OURPLATFORM']=='linux':
+        if lenv['WITH_BF_3DMOUSE']:
+            if not lenv['WITH_BF_STATIC3DMOUSE']:
+                syslibs += Split(lenv['BF_3DMOUSE_LIB'])
 
     syslibs += lenv['LLIBS']
 
@@ -286,6 +300,46 @@ def propose_priorities():
             #for p,v in sorted(libs[t].iteritems()):
             print "\t\t",new_priority, v
             new_priority += 5
+
+# emits the necessary file objects for creator.c, to be used in creating
+# the final blender executable
+def creator(env):
+    sources = ['creator.c']# + Blender.buildinfo(env, "dynamic") + Blender.resources
+
+    incs = ['#/intern/guardedalloc', '#/source/blender/blenlib', '#/source/blender/blenkernel', '#/source/blender/editors/include', '#/source/blender/blenloader', '#/source/blender/imbuf', '#/source/blender/renderconverter', '#/source/blender/render/extern/include', '#/source/blender/windowmanager', '#/source/blender/makesdna', '#/source/blender/makesrna', '#/source/gameengine/BlenderRoutines', '#/extern/glew/include', '#/source/blender/gpu', env['BF_OPENGL_INC']]
+
+    defs = []
+    if env['WITH_BF_QUICKTIME']:
+        incs.append(env['BF_QUICKTIME_INC'])
+        defs.append('WITH_QUICKTIME')
+
+    if env['WITH_BF_BINRELOC']:
+        incs.append('#/extern/binreloc/include')
+        defs.append('WITH_BINRELOC')
+
+    if env['WITH_BF_OPENEXR']:
+        defs.append('WITH_OPENEXR')
+
+    if env['WITH_BF_TIFF']:
+        defs.append('WITH_TIFF')
+
+    if not env['WITH_BF_SDL']:
+        defs.append('DISABLE_SDL')
+
+    if env['WITH_BF_PYTHON']:
+        incs.append('#/source/blender/python')
+        defs.append('WITH_PYTHON')
+        if env['BF_DEBUG']:
+            defs.append('_DEBUG')
+
+    if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
+        incs.append(env['BF_PTHREADS_INC'])
+
+    env.Append(CPPDEFINES=defs)
+    env.Append(CPPPATH=incs)
+    obj = [env.Object(root_build_dir+'source/creator/creator/creator', ['#source/creator/creator.c'])]
+
+    return obj
 
 ## TODO: see if this can be made in an emitter
 def buildinfo(lenv, build_type):
@@ -310,21 +364,21 @@ def buildinfo(lenv, build_type):
 
     obj = []
     if lenv['BF_BUILDINFO']:
-        lenv.Append (CPPDEFINES = ['BUILD_TIME="%s"'%(build_time),
-                                    'BUILD_DATE="%s"'%(build_date),
-                                    'BUILD_TYPE="%s"'%(build_type),
-                                    'BUILD_REV="%s"'%(build_rev),
-                                    'NAN_BUILDINFO',
-                                    'BUILD_PLATFORM="%s:%s"'%(platform.system(), platform.architecture()[0]),
+        lenv.Append (CPPDEFINES = ['BUILD_TIME=\\"%s\\"'%(build_time),
+                                    'BUILD_DATE=\\"%s\\"'%(build_date),
+                                    'BUILD_TYPE=\\"%s\\"'%(build_type),
+                                    'BUILD_REV=\\"%s\\"'%(build_rev),
+                                    'WITH_BUILDINFO',
+                                    'BUILD_PLATFORM=\\"%s:%s\\"'%(platform.system(), platform.architecture()[0]),
                                     'BUILD_CFLAGS=\\"%s\\"'%(build_cflags),
                                     'BUILD_CXXFLAGS=\\"%s\\"'%(build_cxxflags),
                                     'BUILD_LINKFLAGS=\\"%s\\"'%(build_linkflags),
-                                    'BUILD_SYSTEM="SCons"'
+                                    'BUILD_SYSTEM=\\"SCons\\"'
                     ])
 
         lenv.Append (CPPPATH = [root_build_dir+'source/blender/blenkernel'])
 
-        obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type, [root_build_dir+'source/creator/buildinfo.c'])]
+        obj = [lenv.Object (root_build_dir+'source/creator/%s_buildinfo'%build_type, ['#source/creator/buildinfo.c'])]
 
     return obj
 
@@ -482,7 +536,10 @@ def AppIt(target=None, source=None, env=None):
     print("Installing to %s"%(installdir))
     # TODO, use tar.
     python_zip = 'python_' + osxarch + '.zip' # set specific python_arch.zip
-    print("unzipping to app-bundle: %s"%(python_zip))
+    if env['WITH_OSX_STATICPYTHON']:
+        print("unzipping to app-bundle: %s"%(python_zip))
+    else:
+        print("dynamic build - make sure to have python3.x-framework installed")
     bldroot = env.Dir('.').abspath
     binary = env['BINARYKIND']
      
@@ -515,16 +572,20 @@ def AppIt(target=None, source=None, env=None):
     commands.getoutput(cmd)
     cmd = 'cp %s/release/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
     commands.getoutput(cmd)
-    cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
-    commands.getoutput(cmd)
-    cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
-    commands.getoutput(cmd) 
-    cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
-    commands.getoutput(cmd)
-    cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
-    commands.getoutput(cmd)
-    cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
-    commands.getoutput(cmd)
+    if env['WITH_OSX_STATICPYTHON']:
+        cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
+        commands.getoutput(cmd)
+        cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
+        commands.getoutput(cmd) 
+
+    if binary == 'blender':#not copy everything for blenderplayer
+        cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+        cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+        cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(installdir,binary, binary)
     commands.getoutput(cmd)
     cmd = 'find %s/%s.app -name .svn -prune -exec rm -rf {} \;'%(installdir, binary)
@@ -714,23 +775,19 @@ class BlenderEnvironment(SConsEnvironment):
         global vcp
         print bc.HEADER+'Configuring program '+bc.ENDC+bc.OKGREEN+progname+bc.ENDC
         lenv = self.Clone()
+        lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
         if lenv['OURPLATFORM'] in ('win32-vc', 'cygwin', 'win64-vc'):
-            lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
-            lenv.Append(LINKFLAGS = ['/FORCE:MULTIPLE'])
             if lenv['BF_DEBUG']:
-                lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb'])
-        if  lenv['OURPLATFORM']=='linux2':
-            lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
+                lenv.Prepend(LINKFLAGS = ['/DEBUG','/PDB:'+progname+'.pdb','/NODEFAULTLIB:libcmt'])
+        if  lenv['OURPLATFORM']=='linux':
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
         if  lenv['OURPLATFORM']=='sunos5':
-            lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
             if lenv['CXX'].endswith('CC'):
                  lenv.Replace(LINK = '$CXX')
         if  lenv['OURPLATFORM']=='darwin':
-            lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             if lenv['WITH_BF_PYTHON']:
                 lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_OPENGL_LINKFLAGS'])

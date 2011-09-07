@@ -400,7 +400,7 @@ static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Materi
 						sb[j] += vp->data_b[i];
 					
 					/* Displays progress every second */
-					if(time-lasttime>1.0f) {
+					if(time-lasttime>1.0) {
 						char str[64];
 						BLI_snprintf(str, sizeof(str), "Simulating multiple scattering: %d%%", (int)(100.0f * (c / total)));
 						re->i.infostr= str;
@@ -523,7 +523,6 @@ static void *vol_precache_part(void *data)
 					continue;
 				}
 				
-				/* this view coordinate is very wrong! */
 				copy_v3_v3(shi->view, cco);
 				normalize_v3(shi->view);
 				vol_get_scattering(shi, scatter_col, cco);
@@ -748,7 +747,7 @@ static void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *o
 			caching=0;
 		
 		time= PIL_check_seconds_timer();
-		if(time-lasttime>1.0f) {
+		if(time-lasttime>1.0) {
 			char str[64];
 			BLI_snprintf(str, sizeof(str), "Precaching volume: %d%%", (int)(100.0f * ((float)counter / (float)totparts)));
 			re->i.infostr= str;

@@ -139,7 +139,7 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 
 GPG_Application::~GPG_Application(void)
 {
-    if(m_pyGlobalDictString) {
+	if(m_pyGlobalDictString) {
 		delete [] m_pyGlobalDictString;
 		m_pyGlobalDictString = 0;
 		m_pyGlobalDictString_Length = 0;
@@ -192,7 +192,7 @@ static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wPara
 			LONG dx = scr_save_mouse_pos.x - pt.x;
 			LONG dy = scr_save_mouse_pos.y - pt.y;
 			if (abs(dx) > SCR_SAVE_MOUSE_MOVE_THRESHOLD
-			    || abs(dy) > SCR_SAVE_MOUSE_MOVE_THRESHOLD)
+			        || abs(dy) > SCR_SAVE_MOUSE_MOVE_THRESHOLD)
 			{
 				close = TRUE;
 			}
@@ -448,6 +448,7 @@ bool GPG_Application::processEvent(GHOST_IEvent* event)
 
 
 		case GHOST_kEventWindowClose:
+		case GHOST_kEventQuit:
 			m_exitRequested = KX_EXIT_REQUEST_OUTSIDE;
 			break;
 
@@ -544,6 +545,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", gm->flag & GAME_DISPLAY_LISTS) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 1) != 0);
+		bool restrictAnimFPS = gm->flag & GAME_RESTRICT_ANIM_UPDATES;
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
 			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
@@ -615,7 +617,6 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetCanvas(m_canvas);
 		m_ketsjiengine->SetRenderTools(m_rendertools);
 		m_ketsjiengine->SetRasterizer(m_rasterizer);
-		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
 
 		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
 #ifdef WITH_PYTHON
@@ -626,6 +627,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 		m_ketsjiengine->SetUseFixedTime(fixed_framerate);
 		m_ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
+		m_ketsjiengine->SetRestrictAnimationFPS(restrictAnimFPS);
 
 		m_engineInitialized = true;
 	}

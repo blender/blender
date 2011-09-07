@@ -1426,12 +1426,12 @@ void DirectDrawSurface::printInfo() const
 	if (header.flags & DDSD_LINEARSIZE) printf("\tDDSD_LINEARSIZE\n");
 	if (header.flags & DDSD_MIPMAPCOUNT) printf("\tDDSD_MIPMAPCOUNT\n");
 
-	printf("Height: %d\n", header.height);
-	printf("Width: %d\n", header.width);
-	printf("Depth: %d\n", header.depth);
-	if (header.flags & DDSD_PITCH) printf("Pitch: %d\n", header.pitch);
-	else if (header.flags & DDSD_LINEARSIZE) printf("Linear size: %d\n", header.pitch);
-	printf("Mipmap count: %d\n", header.mipmapcount);
+	printf("Height: %u\n", header.height);
+	printf("Width: %u\n", header.width);
+	printf("Depth: %u\n", header.depth);
+	if (header.flags & DDSD_PITCH) printf("Pitch: %u\n", header.pitch);
+	else if (header.flags & DDSD_LINEARSIZE) printf("Linear size: %u\n", header.pitch);
+	printf("Mipmap count: %u\n", header.mipmapcount);
 	
 	printf("Pixel Format:\n");
 	printf("\tFlags: 0x%.8X\n", header.pf.flags);
@@ -1468,7 +1468,7 @@ void DirectDrawSurface::printInfo() const
 	}
 	else
 	{
-		printf("\tBit count: %d\n", header.pf.bitcount);
+		printf("\tBit count: %u\n", header.pf.bitcount);
 	}
 
 	printf("\tRed mask: 0x%.8X\n", header.pf.rmask);
@@ -1522,7 +1522,7 @@ void DirectDrawSurface::printInfo() const
 
     if (header.reserved[7] == FOURCC_UVER)
     {
-        printf("User Version: %d\n", header.reserved[8]);
+        printf("User Version: %u\n", header.reserved[8]);
     }
 }
 

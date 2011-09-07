@@ -26,10 +26,11 @@
 
 set(INC 
 	.
-	../blenlib
 	../blenkernel
+	../blenlib
 	../makesdna
 	../makesrna
+	../nodes
 	../render/extern/include
 	../../../intern/guardedalloc
 )
@@ -55,7 +56,7 @@ set(SRC
 )
 
 if(WITH_BUILDINFO)
-	add_definitions(-DNAN_BUILDINFO)
+	add_definitions(-DWITH_BUILDINFO)
 endif()
 
 blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}")

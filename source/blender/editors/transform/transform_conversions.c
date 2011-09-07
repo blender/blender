@@ -87,6 +87,7 @@
 #include "ED_object.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
+#include "ED_node.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_curve.h" /* for ED_curve_editnurbs */
@@ -690,7 +691,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
 		if (PBONE_VISIBLE(arm, bone)) {
-			if ((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
+			if ((bone->flag & BONE_SELECTED))
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
@@ -2182,6 +2183,12 @@ void flushTransNodes(TransInfo *t)
 		td->loc2d[0]= td->loc[0];
 		td->loc2d[1]= td->loc[1];
 	}
+	
+	/* handle intersection with noodles */
+	if(t->total==1) {
+		ED_node_link_intersect_test(t->sa, 1);
+	}
+	
 }
 
 /* *** SEQUENCE EDITOR *** */
@@ -2479,6 +2486,7 @@ static short FrameOnMouseSide(char side, float frame, float cframe)
 static void createTransNlaData(bContext *C, TransInfo *t)
 {
 	Scene *scene= t->scene;
+	SpaceNla *snla = NULL;
 	TransData *td = NULL;
 	TransDataNla *tdn = NULL;
 	
@@ -2492,9 +2500,10 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return;
+	snla = (SpaceNla *)ac.sl;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* which side of the current frame should be allowed */
@@ -2577,7 +2586,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						tdn->strip= strip;
 						tdn->trackIndex= BLI_findindex(&adt->nla_tracks, nlt);
 						
-						yval= (float)(tdn->trackIndex * NLACHANNEL_STEP);
+						yval= (float)(tdn->trackIndex * NLACHANNEL_STEP(snla));
 						
 						tdn->h1[0]= strip->start;
 						tdn->h1[1]= yval;
@@ -2681,7 +2690,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 static void posttrans_gpd_clean (bGPdata *gpd)
 {
 	bGPDlayer *gpl;
-
+	
 	for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
 		ListBase sel_buffer = {NULL, NULL};
 		bGPDframe *gpf, *gpfn;
@@ -2834,7 +2843,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	int filter;
 
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
 	ANIM_animdata_filter(ac, &anim_data, filter, act, ANIMCONT_ACTION);
 
 	/* loop through relevant data, removing keyframes as appropriate
@@ -2842,7 +2851,7 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 	 */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-
+		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			posttrans_fcurve_clean(ale->key_data);
@@ -3036,9 +3045,9 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	
 	/* filter data */
 	if (ac.datatype == ANIMCONT_GPENCIL)
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 	else
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* which side of the current frame should be allowed */
@@ -3131,10 +3140,16 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		float min=999999999.0f, max=-999999999.0f;
 		int i;
 		
-		td= (t->data + 1);
-		for (i=1; i < count; i+=3, td+=3) {
+		td= t->data;
+		for (i=0; i < count; i++, td++) {
 			if (min > *(td->val)) min= *(td->val);
 			if (max < *(td->val)) max= *(td->val);
+		}
+		
+		if (min == max) {
+			/* just use the current frame ranges */
+			min = (float)PSFRA;
+			max = (float)PEFRA;
 		}
 		
 		/* minx/maxx values used by TimeSlide are stored as a
@@ -3257,7 +3272,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		return;
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* which side of the current frame should be allowed */
@@ -3437,7 +3452,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				 *	  then check if we're using auto-handles.
 				 *	- If so, change them auto-handles to aligned handles so that handles get affected too
 				 */
-				if ((bezt->h1 == HD_AUTO) && (bezt->h2 == HD_AUTO) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+				if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) && ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
 					if (hdata && (sel1) && (sel3)) {
 						bezt->h1= HD_ALIGN;
 						bezt->h2= HD_ALIGN;
@@ -3725,27 +3740,8 @@ void flushTransGraphData(TransInfo *t)
  * seq->depth must be set before running this function so we know if the strips
  * are root level or not
  */
-#define XXX_DURIAN_ANIM_TX_HACK
 static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count, int *flag)
 {
- 
-#ifdef XXX_DURIAN_ANIM_TX_HACK
-	/* hack */
-	if((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
-		Sequence *seq_t[3];
-		int i;
-
-		seq_t[0]= seq->seq1;
-		seq_t[1]= seq->seq2;
-		seq_t[2]= seq->seq3;
-
-		for(i=0; i<3; i++) {
-			if (seq_t[i] && ((seq_t[i])->flag & SELECT) && !(seq_t[i]->flag & SEQ_LOCK) && !(seq_t[i]->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)))
-				seq->flag |= SELECT;
-		}
-	}
-#endif
-
 	/* for extend we need to do some tricks */
 	if (t->mode == TFM_TIME_EXTEND) {
 
@@ -4105,6 +4101,7 @@ static void freeSeqData(TransInfo *t)
 
 static void createTransSeqData(bContext *C, TransInfo *t)
 {
+#define XXX_DURIAN_ANIM_TX_HACK
 
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= t->scene;
@@ -4135,6 +4132,24 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 		t->frame_side = 'B';
 	}
 
+#ifdef XXX_DURIAN_ANIM_TX_HACK
+	{
+		Sequence *seq;
+		for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+			/* hack */
+			if((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
+				Sequence *seq_user;
+				int i;
+				for(i=0; i<3; i++) {
+					seq_user= *((&seq->seq1) + i);
+					if (seq_user && (seq_user->flag & SELECT) && !(seq_user->flag & SEQ_LOCK) && !(seq_user->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL))) {
+						seq->flag |= SELECT;
+					}
+				}
+			}
+		}
+	}
+#endif
 
 	count = SeqTransCount(t, ed->seqbasep, 0);
 
@@ -4154,6 +4169,8 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 	/* loop 2: build transdata array */
 	SeqToTransData_Recursive(t, ed->seqbasep, td, td2d, tdsq);
+
+#undef XXX_DURIAN_ANIM_TX_HACK
 }
 
 
@@ -4754,7 +4771,14 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 	}
 	else if (t->spacetype == SPACE_NODE) {
-		/* pass */
+		SpaceNode *snode= (SpaceNode *)t->sa->spacedata.first;
+		ED_node_update_hierarchy(C, snode->edittree);
+		
+		if(cancelled == 0)
+			ED_node_link_insert(t->sa);
+		
+		/* clear link line */
+		ED_node_link_intersect_test(t->sa, 0);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -4769,7 +4793,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		if (ELEM(ac.datatype, ANIMCONT_DOPESHEET, ANIMCONT_SHAPEKEY)) {
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+			short filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -4836,7 +4860,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				// XXX: BAD! this get gpencil datablocks directly from main db...
 				// but that's how this currently works :/
 				for (gpd = G.main->gpencil.first; gpd; gpd = gpd->id.next) {
-					if (ID_REAL_USERS(gpd) > 1)
+					if (ID_REAL_USERS(gpd))
 						posttrans_gpd_clean(gpd);
 				}
 			}
@@ -4864,7 +4888,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		}
 		
 		/* make sure all F-Curves are set correctly */
-		ANIM_editkeyframes_refresh(&ac);
+		if (ac.datatype != ANIMCONT_GPENCIL)
+			ANIM_editkeyframes_refresh(&ac);
 		
 		/* clear flag that was set for time-slide drawing */
 		saction->flag &= ~SACTION_MOVING;
@@ -4881,7 +4906,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		{
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
+			short filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -4931,7 +4956,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		{
 			ListBase anim_data = {NULL, NULL};
 			bAnimListElem *ale;
-			short filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NLATRACKS);
+			short filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 			
 			/* get channels to work on */
 			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -4976,6 +5001,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			struct Object *pose_ob=t->poseobj;
 			where_is_pose(t->scene, pose_ob);
 		}
+
+		/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
+		if (!cancelled && (t->mode != TFM_DUMMY))
+			count_set_pose_transflags(&t->mode, t->around, ob);
 
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if (!cancelled && t->mode==TFM_TRANSLATION)
@@ -5077,10 +5106,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 #if 0 // TRANSFORM_FIX_ME
 	if(resetslowpar)
 		reset_slowparents();
-
-	/* note; should actually only be done for all objects when a lamp is moved... (ton) */
-	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
-		reshadeall_displist();
 #endif
 }
 
@@ -5171,6 +5196,11 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	td2d->loc2d = &node->locx; /* current location */
 
 	td->flag = 0;
+	/* exclude nodes whose parent is also transformed */
+	if (node->parent && (node->parent->flag & NODE_TRANSFORM)) {
+		td->flag |= TD_SKIP;
+	}
+
 	td->loc = td2d->loc;
 	VECCOPY(td->center, td->loc);
 	VECCOPY(td->iloc, td->loc);
@@ -5191,6 +5221,16 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 {
 	TransData *td;
 	TransData2D *td2d;
+	SpaceNode *snode= t->sa->spacedata.first;
+	bNode *node;
+
+	/* set transform flags on nodes */
+	for (node=snode->edittree->nodes.first; node; node=node->next) {
+		if ((node->flag & NODE_SELECT) || (node->parent && (node->parent->flag & NODE_TRANSFORM)))
+			node->flag |= NODE_TRANSFORM;
+		else
+			node->flag &= ~NODE_TRANSFORM;
+	}
 
 	t->total= CTX_DATA_COUNT(C, selected_nodes);
 

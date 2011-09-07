@@ -64,6 +64,7 @@ extern "C"
 #include "BKE_node.h"	
 #include "BKE_report.h"
 #include "BKE_library.h"
+#include "BLI_threads.h"
 #include "BLI_blenlib.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -379,12 +380,12 @@ int main(int argc, char** argv)
 #endif /* __linux__ */
 	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
 #ifdef __APPLE__
-    // Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
-    /*
-    IBNibRef 		nibRef;
-    WindowRef 		window;
-    OSStatus		err;
-	
+	// Can't use Carbon right now because of double defined type ID (In Carbon.h and DNA_ID.h, sigh)
+	/*
+	IBNibRef 		nibRef;
+	WindowRef 		window;
+	OSStatus		err;
+
 	  // Create a Nib reference passing the name of the nib file (without the .nib extension)
 	  // CreateNibReference only searches into the application bundle.
 	  err = ::CreateNibReference(CFSTR("main"), &nibRef);
@@ -397,9 +398,13 @@ int main(int argc, char** argv)
 		
 		  // We don't need the nib reference anymore.
 		  ::DisposeNibReference(nibRef);
-    */
+	*/
 #endif // __APPLE__
-
+	
+	// We don't use threads directly in the BGE, but we need to call this so things like
+	// freeing up GPU_Textures works correctly.
+	BLI_threadapi_init();
+	
 	RNA_init();
 
 	init_nodesystem();
@@ -408,6 +413,7 @@ int main(int argc, char** argv)
 
 	// We load our own G.main, so free the one that initglobals() gives us
 	free_main(G.main);
+	G.main = NULL;
 
 	IMB_init();
 
@@ -415,7 +421,7 @@ int main(int argc, char** argv)
 	BLF_init(11, U.dpi);
 	BLF_lang_init();
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
- 
+
 	// Parse command line options
 #if defined(DEBUG)
 	printf("argv[0] = '%s'\n", argv[0]);
@@ -449,6 +455,9 @@ int main(int argc, char** argv)
 	U.audiorate = 44100;
 	U.audioformat = 0x24;
 	U.audiochannels = 2;
+
+	// XXX this one too
+	U.anisotropic_filter = 2;
 
 	sound_init_once();
 
@@ -705,6 +714,8 @@ int main(int argc, char** argv)
 		{
 			GPU_set_mipmap(0);
 		}
+
+		GPU_set_anisotropic(U.anisotropic_filter);
 		
 		// Create the system
 		if (GHOST_ISystem::createSystem() == GHOST_kSuccess)

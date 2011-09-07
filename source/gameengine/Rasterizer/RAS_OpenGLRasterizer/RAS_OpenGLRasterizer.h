@@ -99,6 +99,8 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	bool			m_setfocallength;
 	int				m_noOfScanlines;
 
+	short			m_prevafvalue;
+
 	//motion blur
 	int	m_motionblur;
 	float	m_motionblurvalue;
@@ -312,6 +314,9 @@ public:
 
 	virtual void	SetBlendingMode(int blendmode);
 	virtual void	SetFrontFace(bool ccw);
+	
+	virtual void	SetAnisotropicFiltering(short level);
+	virtual short	GetAnisotropicFiltering();
 	
 	
 #ifdef WITH_CXX_GUARDEDALLOC

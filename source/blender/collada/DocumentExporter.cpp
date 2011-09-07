@@ -52,7 +52,7 @@ extern "C"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "ED_keyframing.h"
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 extern char build_rev[];
 #endif
 }
@@ -114,6 +114,7 @@ extern char build_rev[];
 #include "TransformWriter.h"
 
 #include "ArmatureExporter.h"
+#include "AnimationExporter.h"
 #include "CameraExporter.h"
 #include "EffectExporter.h"
 #include "GeometryExporter.h"
@@ -170,7 +171,7 @@ public:
 	SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm) : COLLADASW::LibraryVisualScenes(sw),
 																		arm_exporter(arm) {}
 	
-	void exportScene(Scene *sce) {
+	void exportScene(Scene *sce, bool export_selected) {
  		// <library_visual_scenes> <visual_scene>
 		std::string id_naming = id_name(sce);
 		openVisualScene(translate_id(id_naming), id_naming);
@@ -179,7 +180,7 @@ public:
 		//forEachMeshObjectInScene(sce, *this);
 		//forEachCameraObjectInScene(sce, *this);
 		//forEachLampObjectInScene(sce, *this);
-		exportHierarchy(sce);
+		exportHierarchy(sce, export_selected);
 
 		// </visual_scene> </library_visual_scenes>
 		closeVisualScene();
@@ -187,22 +188,27 @@ public:
 		closeLibrary();
 	}
 
-	void exportHierarchy(Scene *sce)
+	void exportHierarchy(Scene *sce, bool export_selected)
 	{
 		Base *base= (Base*) sce->base.first;
 		while(base) {
 			Object *ob = base->object;
 
 			if (!ob->parent) {
+				if(sce->lay & ob->lay) {
 				switch(ob->type) {
 				case OB_MESH:
 				case OB_CAMERA:
 				case OB_LAMP:
-				case OB_EMPTY:
 				case OB_ARMATURE:
+				case OB_EMPTY:
+					if (export_selected && !(ob->flag & SELECT)) {
+						break;
+					}
 					// write nodes....
 					writeNodes(ob, sce);
 					break;
+				}
 				}
 			}
 
@@ -298,638 +304,8 @@ public:
 // TODO: it would be better to instantiate animations rather than create a new one per object
 // COLLADA allows this through multiple <channel>s in <animation>.
 // For this to work, we need to know objects that use a certain action.
-class AnimationExporter: COLLADASW::LibraryAnimations
-{
-	Scene *scene;
-	COLLADASW::StreamWriter *sw;
 
-public:
-
-	AnimationExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryAnimations(sw) { this->sw = sw; }
-
-
-
-	void exportAnimations(Scene *sce)
-	{
-		if(hasAnimations(sce)) {
-			this->scene = sce;
-
-			openLibrary();
-
-			forEachObjectInScene(sce, *this);
-
-			closeLibrary();
-		}
-	}
-
-	// called for each exported object
-	void operator() (Object *ob) 
-	{
-		if (!ob->adt || !ob->adt->action) return;
-		
-		FCurve *fcu = (FCurve*)ob->adt->action->curves.first;
-		
-		if (ob->type == OB_ARMATURE) {
-			if (!ob->data) return;
-
-			bArmature *arm = (bArmature*)ob->data;
-			for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next)
-				write_bone_animation(ob, bone);
-		}
-		else {
-			while (fcu) {
-				// TODO "rotation_quaternion" is also possible for objects (although euler is default)
-				if ((!strcmp(fcu->rna_path, "location") || !strcmp(fcu->rna_path, "scale")) ||
-					(!strcmp(fcu->rna_path, "rotation_euler") && ob->rotmode == ROT_MODE_EUL))
-					dae_animation(fcu, id_name(ob));
-
-				fcu = fcu->next;
-			}
-		}
-	}
-
-protected:
-
-	void dae_animation(FCurve *fcu, std::string ob_name)
-	{
-		const char *axis_names[] = {"X", "Y", "Z"};
-		const char *axis_name = NULL;
-		char anim_id[200];
-		
-		if (fcu->array_index < 3)
-			axis_name = axis_names[fcu->array_index];
-
-		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
-					 fcu->rna_path, axis_names[fcu->array_index]);
-
-		// check rna_path is one of: rotation, scale, location
-
-		openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
-
-		// create input source
-		std::string input_id = create_source_from_fcurve(COLLADASW::InputSemantic::INPUT, fcu, anim_id, axis_name);
-
-		// create output source
-		std::string output_id = create_source_from_fcurve(COLLADASW::InputSemantic::OUTPUT, fcu, anim_id, axis_name);
-
-		// create interpolations source
-		std::string interpolation_id = create_interpolation_source(fcu->totvert, anim_id, axis_name);
-
-		std::string sampler_id = std::string(anim_id) + SAMPLER_ID_SUFFIX;
-		COLLADASW::LibraryAnimations::Sampler sampler(sw, sampler_id);
-		std::string empty;
-		sampler.addInput(COLLADASW::InputSemantic::INPUT, COLLADABU::URI(empty, input_id));
-		sampler.addInput(COLLADASW::InputSemantic::OUTPUT, COLLADABU::URI(empty, output_id));
-
-		// this input is required
-		sampler.addInput(COLLADASW::InputSemantic::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
-
-		addSampler(sampler);
-
-		std::string target = translate_id(ob_name)
-			+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
-		addChannel(COLLADABU::URI(empty, sampler_id), target);
-
-		closeAnimation();
-	}
-
-	void write_bone_animation(Object *ob_arm, Bone *bone)
-	{
-		if (!ob_arm->adt)
-			return;
-
-		for (int i = 0; i < 3; i++)
-			sample_and_write_bone_animation(ob_arm, bone, i);
-
-		for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next)
-			write_bone_animation(ob_arm, child);
-	}
-
-	void sample_and_write_bone_animation(Object *ob_arm, Bone *bone, int transform_type)
-	{
-		bArmature *arm = (bArmature*)ob_arm->data;
-		int flag = arm->flag;
-		std::vector<float> fra;
-		char prefix[256];
-
-		BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone->name);
-
-		bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
-		if (!pchan)
-			return;
-
-		switch (transform_type) {
-		case 0:
-			find_rotation_frames(ob_arm, fra, prefix, pchan->rotmode);
-			break;
-		case 1:
-			find_frames(ob_arm, fra, prefix, "scale");
-			break;
-		case 2:
-			find_frames(ob_arm, fra, prefix, "location");
-			break;
-		default:
-			return;
-		}
-
-		// exit rest position
-		if (flag & ARM_RESTPOS) {
-			arm->flag &= ~ARM_RESTPOS;
-			where_is_pose(scene, ob_arm);
-		}
-
-		if (fra.size()) {
-			float *v = (float*)MEM_callocN(sizeof(float) * 3 * fra.size(), "temp. anim frames");
-			sample_animation(v, fra, transform_type, bone, ob_arm);
-
-			if (transform_type == 0) {
-				// write x, y, z curves separately if it is rotation
-				float *c = (float*)MEM_callocN(sizeof(float) * fra.size(), "temp. anim frames");
-				for (int i = 0; i < 3; i++) {
-					for (unsigned int j = 0; j < fra.size(); j++)
-						c[j] = v[j * 3 + i];
-
-					dae_bone_animation(fra, c, transform_type, i, id_name(ob_arm), bone->name);
-				}
-				MEM_freeN(c);
-			}
-			else {
-				// write xyz at once if it is location or scale
-				dae_bone_animation(fra, v, transform_type, -1, id_name(ob_arm), bone->name);
-			}
-
-			MEM_freeN(v);
-		}
-
-		// restore restpos
-		if (flag & ARM_RESTPOS) 
-			arm->flag = flag;
-		where_is_pose(scene, ob_arm);
-	}
-
-	void sample_animation(float *v, std::vector<float> &frames, int type, Bone *bone, Object *ob_arm)
-	{
-		bPoseChannel *pchan, *parchan = NULL;
-		bPose *pose = ob_arm->pose;
-
-		pchan = get_pose_channel(pose, bone->name);
-
-		if (!pchan)
-			return;
-
-		parchan = pchan->parent;
-
-		enable_fcurves(ob_arm->adt->action, bone->name);
-
-		std::vector<float>::iterator it;
-		for (it = frames.begin(); it != frames.end(); it++) {
-			float mat[4][4], ipar[4][4];
-
-			float ctime = bsystem_time(scene, ob_arm, *it, 0.0f);
-
-			BKE_animsys_evaluate_animdata(&ob_arm->id, ob_arm->adt, *it, ADT_RECALC_ANIM);
-			where_is_pose_bone(scene, ob_arm, pchan, ctime, 1);
-
-			// compute bone local mat
-			if (bone->parent) {
-				invert_m4_m4(ipar, parchan->pose_mat);
-				mul_m4_m4m4(mat, pchan->pose_mat, ipar);
-			}
-			else
-				copy_m4_m4(mat, pchan->pose_mat);
-
-			switch (type) {
-			case 0:
-				mat4_to_eul(v, mat);
-				break;
-			case 1:
-				mat4_to_size(v, mat);
-				break;
-			case 2:
-				copy_v3_v3(v, mat[3]);
-				break;
-			}
-
-			v += 3;
-		}
-
-		enable_fcurves(ob_arm->adt->action, NULL);
-	}
-
-	// dae_bone_animation -> add_bone_animation
-	// (blend this into dae_bone_animation)
-	void dae_bone_animation(std::vector<float> &fra, float *v, int tm_type, int axis, std::string ob_name, std::string bone_name)
-	{
-		const char *axis_names[] = {"X", "Y", "Z"};
-		const char *axis_name = NULL;
-		char anim_id[200];
-		bool is_rot = tm_type == 0;
-		
-		if (!fra.size())
-			return;
-
-		char rna_path[200];
-		BLI_snprintf(rna_path, sizeof(rna_path), "pose.bones[\"%s\"].%s", bone_name.c_str(),
-					 tm_type == 0 ? "rotation_quaternion" : (tm_type == 1 ? "scale" : "location"));
-
-		if (axis > -1)
-			axis_name = axis_names[axis];
-		
-		std::string transform_sid = get_transform_sid(NULL, tm_type, axis_name, false);
-		
-		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
-					 (char*)translate_id(bone_name).c_str(), (char*)transform_sid.c_str());
-
-		openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
-
-		// create input source
-		std::string input_id = create_source_from_vector(COLLADASW::InputSemantic::INPUT, fra, is_rot, anim_id, axis_name);
-
-		// create output source
-		std::string output_id;
-		if (axis == -1)
-			output_id = create_xyz_source(v, fra.size(), anim_id);
-		else
-			output_id = create_source_from_array(COLLADASW::InputSemantic::OUTPUT, v, fra.size(), is_rot, anim_id, axis_name);
-
-		// create interpolations source
-		std::string interpolation_id = create_interpolation_source(fra.size(), anim_id, axis_name);
-
-		std::string sampler_id = std::string(anim_id) + SAMPLER_ID_SUFFIX;
-		COLLADASW::LibraryAnimations::Sampler sampler(sw, sampler_id);
-		std::string empty;
-		sampler.addInput(COLLADASW::InputSemantic::INPUT, COLLADABU::URI(empty, input_id));
-		sampler.addInput(COLLADASW::InputSemantic::OUTPUT, COLLADABU::URI(empty, output_id));
-
-		// TODO create in/out tangents source
-
-		// this input is required
-		sampler.addInput(COLLADASW::InputSemantic::INTERPOLATION, COLLADABU::URI(empty, interpolation_id));
-
-		addSampler(sampler);
-
-		std::string target = translate_id(ob_name + "_" + bone_name) + "/" + transform_sid;
-		addChannel(COLLADABU::URI(empty, sampler_id), target);
-
-		closeAnimation();
-	}
-
-	float convert_time(float frame)
-	{
-		return FRA2TIME(frame);
-	}
-
-	float convert_angle(float angle)
-	{
-		return COLLADABU::Math::Utils::radToDegF(angle);
-	}
-
-	std::string get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic)
-	{
-		switch(semantic) {
-		case COLLADASW::InputSemantic::INPUT:
-			return INPUT_SOURCE_ID_SUFFIX;
-		case COLLADASW::InputSemantic::OUTPUT:
-			return OUTPUT_SOURCE_ID_SUFFIX;
-		case COLLADASW::InputSemantic::INTERPOLATION:
-			return INTERPOLATION_SOURCE_ID_SUFFIX;
-		case COLLADASW::InputSemantic::IN_TANGENT:
-			return INTANGENT_SOURCE_ID_SUFFIX;
-		case COLLADASW::InputSemantic::OUT_TANGENT:
-			return OUTTANGENT_SOURCE_ID_SUFFIX;
-		default:
-			break;
-		}
-		return "";
-	}
-
-	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
-							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis)
-	{
-		switch(semantic) {
-		case COLLADASW::InputSemantic::INPUT:
-			param.push_back("TIME");
-			break;
-		case COLLADASW::InputSemantic::OUTPUT:
-			if (is_rot) {
-				param.push_back("ANGLE");
-			}
-			else {
-				if (axis) {
-					param.push_back(axis);
-				}
-				else {
-					param.push_back("X");
-					param.push_back("Y");
-					param.push_back("Z");
-				}
-			}
-			break;
-		case COLLADASW::InputSemantic::IN_TANGENT:
-		case COLLADASW::InputSemantic::OUT_TANGENT:
-			param.push_back("X");
-			param.push_back("Y");
-			break;
-		default:
-			break;
-		}
-	}
-
-	void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool rotation, float *values, int *length)
-	{
-		switch (semantic) {
-		case COLLADASW::InputSemantic::INPUT:
-			*length = 1;
-			values[0] = convert_time(bezt->vec[1][0]);
-			break;
-		case COLLADASW::InputSemantic::OUTPUT:
-			*length = 1;
-			if (rotation) {
-				values[0] = convert_angle(bezt->vec[1][1]);
-			}
-			else {
-				values[0] = bezt->vec[1][1];
-			}
-			break;
-		case COLLADASW::InputSemantic::IN_TANGENT:
-		case COLLADASW::InputSemantic::OUT_TANGENT:
-			// XXX
-			*length = 2;
-			break;
-		default:
-			*length = 0;
-			break;
-		}
-	}
-
-	std::string create_source_from_fcurve(COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id, const char *axis_name)
-	{
-		std::string source_id = anim_id + get_semantic_suffix(semantic);
-
-		//bool is_rotation = !strcmp(fcu->rna_path, "rotation");
-		bool is_rotation = false;
-		
-		if (strstr(fcu->rna_path, "rotation")) is_rotation = true;
-		
-		COLLADASW::FloatSourceF source(mSW);
-		source.setId(source_id);
-		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
-		source.setAccessorCount(fcu->totvert);
-		source.setAccessorStride(1);
-		
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, is_rotation, axis_name);
-
-		source.prepareToAppendValues();
-
-		for (unsigned int i = 0; i < fcu->totvert; i++) {
-			float values[3]; // be careful!
-			int length = 0;
-
-			get_source_values(&fcu->bezt[i], semantic, is_rotation, values, &length);
-			for (int j = 0; j < length; j++)
-				source.appendValues(values[j]);
-		}
-
-		source.finish();
-
-		return source_id;
-	}
-
-	std::string create_source_from_array(COLLADASW::InputSemantic::Semantics semantic, float *v, int tot, bool is_rot, const std::string& anim_id, const char *axis_name)
-	{
-		std::string source_id = anim_id + get_semantic_suffix(semantic);
-
-		COLLADASW::FloatSourceF source(mSW);
-		source.setId(source_id);
-		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
-		source.setAccessorCount(tot);
-		source.setAccessorStride(1);
-		
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, is_rot, axis_name);
-
-		source.prepareToAppendValues();
-
-		for (int i = 0; i < tot; i++) {
-			float val = v[i];
-			if (semantic == COLLADASW::InputSemantic::INPUT)
-				val = convert_time(val);
-			else if (is_rot)
-				val = convert_angle(val);
-			source.appendValues(val);
-		}
-
-		source.finish();
-
-		return source_id;
-	}
-
-	std::string create_source_from_vector(COLLADASW::InputSemantic::Semantics semantic, std::vector<float> &fra, bool is_rot, const std::string& anim_id, const char *axis_name)
-	{
-		std::string source_id = anim_id + get_semantic_suffix(semantic);
-
-		COLLADASW::FloatSourceF source(mSW);
-		source.setId(source_id);
-		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
-		source.setAccessorCount(fra.size());
-		source.setAccessorStride(1);
-		
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, is_rot, axis_name);
-
-		source.prepareToAppendValues();
-
-		std::vector<float>::iterator it;
-		for (it = fra.begin(); it != fra.end(); it++) {
-			float val = *it;
-			if (semantic == COLLADASW::InputSemantic::INPUT)
-				val = convert_time(val);
-			else if (is_rot)
-				val = convert_angle(val);
-			source.appendValues(val);
-		}
-
-		source.finish();
-
-		return source_id;
-	}
-
-	// only used for sources with OUTPUT semantic
-	std::string create_xyz_source(float *v, int tot, const std::string& anim_id)
-	{
-		COLLADASW::InputSemantic::Semantics semantic = COLLADASW::InputSemantic::OUTPUT;
-		std::string source_id = anim_id + get_semantic_suffix(semantic);
-
-		COLLADASW::FloatSourceF source(mSW);
-		source.setId(source_id);
-		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
-		source.setAccessorCount(tot);
-		source.setAccessorStride(3);
-		
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		add_source_parameters(param, semantic, false, NULL);
-
-		source.prepareToAppendValues();
-
-		for (int i = 0; i < tot; i++) {
-			source.appendValues(*v, *(v + 1), *(v + 2));
-			v += 3;
-		}
-
-		source.finish();
-
-		return source_id;
-	}
-
-	std::string create_interpolation_source(int tot, const std::string& anim_id, const char *axis_name)
-	{
-		std::string source_id = anim_id + get_semantic_suffix(COLLADASW::InputSemantic::INTERPOLATION);
-
-		COLLADASW::NameSource source(mSW);
-		source.setId(source_id);
-		source.setArrayId(source_id + ARRAY_ID_SUFFIX);
-		source.setAccessorCount(tot);
-		source.setAccessorStride(1);
-		
-		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
-		param.push_back("INTERPOLATION");
-
-		source.prepareToAppendValues();
-
-		for (int i = 0; i < tot; i++) {
-			source.appendValues(LINEAR_NAME);
-		}
-
-		source.finish();
-
-		return source_id;
-	}
-
-	// for rotation, axis name is always appended and the value of append_axis is ignored
-	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis)
-	{
-		std::string tm_name;
-
-		// when given rna_path, determine tm_type from it
-		if (rna_path) {
-			char *name = extract_transform_name(rna_path);
-
-			if (strstr(name, "rotation"))
-				tm_type = 0;
-			else if (!strcmp(name, "scale"))
-				tm_type = 1;
-			else if (!strcmp(name, "location"))
-				tm_type = 2;
-			else
-				tm_type = -1;
-		}
-
-		switch (tm_type) {
-		case 0:
-			return std::string("rotation") + std::string(axis_name) + ".ANGLE";
-		case 1:
-			tm_name = "scale";
-			break;
-		case 2:
-			tm_name = "location";
-			break;
-		default:
-			tm_name = "";
-			break;
-		}
-
-		if (tm_name.size()) {
-			if (append_axis)
-				return tm_name + std::string(".") + std::string(axis_name);
-			else
-				return tm_name;
-		}
-
-		return std::string("");
-	}
-
-	char *extract_transform_name(char *rna_path)
-	{
-		char *dot = strrchr(rna_path, '.');
-		return dot ? (dot + 1) : rna_path;
-	}
-
-	void find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name)
-	{
-		FCurve *fcu= (FCurve*)ob->adt->action->curves.first;
-
-		for (; fcu; fcu = fcu->next) {
-			if (prefix && strncmp(prefix, fcu->rna_path, strlen(prefix)))
-				continue;
-
-			char *name = extract_transform_name(fcu->rna_path);
-			if (!strcmp(name, tm_name)) {
-				for (unsigned int i = 0; i < fcu->totvert; i++) {
-					float f = fcu->bezt[i].vec[1][0];
-					if (std::find(fra.begin(), fra.end(), f) == fra.end())
-						fra.push_back(f);
-				}
-			}
-		}
-
-		// keep the keys in ascending order
-		std::sort(fra.begin(), fra.end());
-	}
-
-	void find_rotation_frames(Object *ob, std::vector<float> &fra, const char *prefix, int rotmode)
-	{
-		if (rotmode > 0)
-			find_frames(ob, fra, prefix, "rotation_euler");
-		else if (rotmode == ROT_MODE_QUAT)
-			find_frames(ob, fra, prefix, "rotation_quaternion");
-		/*else if (rotmode == ROT_MODE_AXISANGLE)
-			;*/
-	}
-
-	// enable fcurves driving a specific bone, disable all the rest
-	// if bone_name = NULL enable all fcurves
-	void enable_fcurves(bAction *act, char *bone_name)
-	{
-		FCurve *fcu;
-		char prefix[200];
-
-		if (bone_name)
-			BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone_name);
-
-		for (fcu = (FCurve*)act->curves.first; fcu; fcu = fcu->next) {
-			if (bone_name) {
-				if (!strncmp(fcu->rna_path, prefix, strlen(prefix)))
-					fcu->flag &= ~FCURVE_DISABLED;
-				else
-					fcu->flag |= FCURVE_DISABLED;
-			}
-			else {
-				fcu->flag &= ~FCURVE_DISABLED;
-			}
-		}
-	}
-	
-	bool hasAnimations(Scene *sce)
-	{
-		Base *base= (Base*) sce->base.first;
-		while(base) {
-			Object *ob = base->object;
-			
-			FCurve *fcu = 0;
-			if(ob->adt && ob->adt->action)
-				fcu = (FCurve*)ob->adt->action->curves.first;
-				
-			if ((ob->type == OB_ARMATURE && ob->data) || fcu) {
-				return true;
-			}
-			base= base->next;
-		}
-		return false;
-	}
-};
-
-void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
+void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename, bool selected)
 {
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
@@ -952,9 +328,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	//scale = RNA_struct_find_property(&unit_settings, "scale_length");
 
 	std::string unitname = "meter";
-	float linearmeasure = 1.0f;
-
-	linearmeasure = RNA_float_get(&unit_settings, "scale_length");
+	float linearmeasure = RNA_float_get(&unit_settings, "scale_length");
 
 	switch(RNA_property_enum_get(&unit_settings, system)) {
 		case USER_UNIT_NONE:
@@ -992,14 +366,13 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 
 	asset.setUnit(unitname, linearmeasure);
 	asset.setUpAxisType(COLLADASW::Asset::Z_UP);
-	// TODO: need an Author field in userpref
-	if(strlen(U.author) > 0) {
+	if(U.author[0] != '\0') {
 		asset.getContributor().mAuthor = U.author;
 	}
 	else {
 		asset.getContributor().mAuthor = "Blender User";
 	}
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 	char version_buf[128];
 	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION, build_rev);
 	asset.getContributor().mAuthoringTool = version_buf;
@@ -1011,31 +384,31 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	// <library_cameras>
 	if(has_object_type(sce, OB_CAMERA)) {
 		CamerasExporter ce(&sw);
-		ce.exportCameras(sce);
+		ce.exportCameras(sce, selected);
 	}
 	
 	// <library_lights>
 	if(has_object_type(sce, OB_LAMP)) {
 		LightsExporter le(&sw);
-		le.exportLights(sce);
+		le.exportLights(sce, selected);
 	}
 
 	// <library_images>
 	ImagesExporter ie(&sw, filename);
-	ie.exportImages(sce);
+	ie.exportImages(sce, selected);
 	
 	// <library_effects>
 	EffectsExporter ee(&sw);
-	ee.exportEffects(sce);
+	ee.exportEffects(sce, selected);
 	
 	// <library_materials>
 	MaterialsExporter me(&sw);
-	me.exportMaterials(sce);
+	me.exportMaterials(sce, selected);
 
 	// <library_geometries>
 	if(has_object_type(sce, OB_MESH)) {
 		GeometryExporter ge(&sw);
-		ge.exportGeom(sce);
+		ge.exportGeom(sce, selected);
 	}
 
 	// <library_animations>
@@ -1045,12 +418,12 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename)
 	// <library_controllers>
 	ArmatureExporter arm_exporter(&sw);
 	if(has_object_type(sce, OB_ARMATURE)) {
-		arm_exporter.export_controllers(sce);
+		arm_exporter.export_controllers(sce, selected);
 	}
 
 	// <library_visual_scenes>
 	SceneExporter se(&sw, &arm_exporter);
-	se.exportScene(sce);
+	se.exportScene(sce, selected);
 	
 	// <scene>
 	std::string scene_name(translate_id(id_name(sce)));

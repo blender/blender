@@ -68,11 +68,11 @@ extern struct Render R;
 
 /* Threshold for a 'full' pixel: pixels with alpha above this level are      */
 /* considered opaque This is the decimal value for 0xFFF0 / 0xFFFF           */
-#define RE_FULL_COLOR_FLOAT 0.9998
+#define RE_FULL_COLOR_FLOAT 0.9998f
 /* Threshold for an 'empty' pixel: pixels with alpha above this level are    */
 /* considered completely transparent. This is the decimal value              */
 /* for 0x000F / 0xFFFF                                                       */
-#define RE_EMPTY_COLOR_FLOAT 0.0002
+#define RE_EMPTY_COLOR_FLOAT 0.0002f
 
 
 /* ------------------------------------------------------------------------- */
@@ -82,7 +82,7 @@ void addAlphaOverFloat(float *dest, float *source)
 	/* d = s + (1-alpha_s)d*/
 	float mul;
 
-	mul= 1.0 - source[3];
+	mul= 1.0f - source[3];
 
 	dest[0]= (mul*dest[0]) + source[0];
 	dest[1]= (mul*dest[1]) + source[1];
@@ -98,7 +98,7 @@ void addAlphaUnderFloat(float *dest, float *source)
 {
 	float mul;
 
-	mul= 1.0 - dest[3];
+	mul= 1.0f - dest[3];
 
 	dest[0]+= (mul*source[0]);
 	dest[1]+= (mul*source[1]);
@@ -115,7 +115,7 @@ void addalphaAddfacFloat(float *dest, float *source, char addfac)
 
 	/* Addfac is a number between 0 and 1: rescale */
 	/* final target is to diminish the influence of dest when addfac rises */
-	m = 1.0 - ( source[3] * ((255.0 - addfac) / 255.0));
+	m = 1.0f - ( source[3] * ((255 - addfac) / 255.0f));
 
 	/* blend colors*/
 	c= (m * dest[0]) + source[0];
@@ -178,7 +178,7 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 		a= j;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0) {
+		if(val!=0.0f) {
 			rb1[0]+= val*r;
 			rb1[1]+= val*g;
 			rb1[2]+= val*b;
@@ -187,7 +187,7 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0) {
+		if(val!=0.0f) {
 			rb2[0]+= val*r;
 			rb2[1]+= val*g;
 			rb2[2]+= val*b;
@@ -196,7 +196,7 @@ void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w)
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0) {
+		if(val!=0.0f) {
 			rb3[0]+= val*r;
 			rb3[1]+= val*g;
 			rb3[2]+= val*b;
@@ -345,21 +345,21 @@ void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row
 		a= j;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0) {
+		if(val!=0.0f) {
 			for(i= 0; i<pixsize; i++)
 				rb1[i]+= val*in[i];
 		}
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0) {
+		if(val!=0.0f) {
 			for(i= 0; i<pixsize; i++)
 				rb2[i]+= val*in[i];
 		}
 		a+=3;
 		
 		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if(val!=0.0) {
+		if(val!=0.0f) {
 			for(i= 0; i<pixsize; i++)
 				rb3[i]+= val*in[i];
 		}
@@ -396,5 +396,3 @@ void addalphaAddFloat(float *dest, float *source)
 
 
 /* eof pixelblending.c */
-
-

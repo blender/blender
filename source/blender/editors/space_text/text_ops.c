@@ -36,6 +36,7 @@
 #include <string.h>
 #include <ctype.h> /* ispunct */
 #include <sys/stat.h>
+#include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -191,11 +192,12 @@ static int new_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "New";
+	ot->name= "Create Text Block";
 	ot->idname= "TEXT_OT_new";
 	ot->description= "Create a new text data block";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
 	ot->exec= new_exec;
 	ot->poll= text_new_poll;
 	
@@ -449,15 +451,14 @@ static void txt_write_file(Text *text, ReportList *reports)
 	FILE *fp;
 	TextLine *tmp;
 	struct stat st;
-	int res;
-	char file[FILE_MAXDIR+FILE_MAXFILE];
+	char filepath[FILE_MAXDIR+FILE_MAXFILE];
 	
-	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_path_abs(file, G.main->name);
+	BLI_strncpy(filepath, text->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_path_abs(filepath, G.main->name);
 	
-	fp= fopen(file, "w");
+	fp= fopen(filepath, "w");
 	if(fp==NULL) {
-		BKE_report(reports, RPT_ERROR, "Unable to save file.");
+		BKE_reportf(reports, RPT_ERROR, "Unable to save \"%s\": %s.", filepath, errno ? strerror(errno) : "Unknown error writing file");
 		return;
 	}
 
@@ -471,8 +472,13 @@ static void txt_write_file(Text *text, ReportList *reports)
 	
 	fclose (fp);
 
-	res= stat(file, &st);
-	text->mtime= st.st_mtime;
+	if(stat(filepath, &st) == 0) {
+		text->mtime= st.st_mtime;
+	}
+	else {
+		text->mtime= 0;
+		BKE_reportf(reports, RPT_WARNING, "Unable to stat \"%s\": %s.", filepath, errno ? strerror(errno) : "Unknown error starrng file");
+	}
 	
 	if(text->flags & TXT_ISDIRTY)
 		text->flags ^= TXT_ISDIRTY;

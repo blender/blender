@@ -39,17 +39,15 @@
 #include <libswscale/swscale.h>
 #include <libavcodec/opt.h>
 
-#if defined(WIN32) && (!(defined snprintf))
-#define snprintf _snprintf
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 
-#include "AUD_C-API.h" /* must be before BKE_sound.h for define */
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#endif
 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -89,7 +87,9 @@ static uint8_t* audio_output_buffer = 0;
 static int audio_outbuf_size = 0;
 static double audio_time = 0.0f;
 
+#ifdef WITH_AUDASPACE
 static AUD_Device* audio_mixdown_device = 0;
+#endif
 
 #define FFMPEG_AUTOSPLIT_SIZE 2000000000
 
@@ -103,6 +103,7 @@ static void delete_picture(AVFrame* f)
 	}
 }
 
+#ifdef WITH_AUDASPACE
 static int write_audio_frame(void) 
 {
 	AVCodecContext* c = NULL;
@@ -145,6 +146,7 @@ static int write_audio_frame(void)
 	}
 	return 0;
 }
+#endif // #ifdef WITH_AUDASPACE
 
 /* Allocate a temporary frame */
 static AVFrame* alloc_picture(int pix_fmt, int width, int height) 
@@ -549,7 +551,7 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 	c->sample_rate = rd->ffcodecdata.audio_mixrate;
 	c->bit_rate = ffmpeg_audio_bitrate*1000;
 	c->sample_fmt = SAMPLE_FMT_S16;
-	c->channels = 2;
+	c->channels = rd->ffcodecdata.audio_channels;
 	codec = avcodec_find_encoder(c->codec_id);
 	if (!codec) {
 		//XXX error("Couldn't find a valid audio codec");
@@ -574,12 +576,11 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 			audio_outbuf_size = c->frame_size * c->channels * sizeof(int16_t) * 4;
 	}
 
-	audio_output_buffer = (uint8_t*)MEM_mallocN(
-		audio_outbuf_size, "FFMPEG audio encoder input buffer");
+	audio_output_buffer = (uint8_t*)av_malloc(
+		audio_outbuf_size);
 
-	audio_input_buffer = (uint8_t*)MEM_mallocN(
-		audio_input_samples * c->channels * sizeof(int16_t),
-		"FFMPEG audio encoder output buffer");
+	audio_input_buffer = (uint8_t*)av_malloc(
+		audio_input_samples * c->channels * sizeof(int16_t));
 
 	audio_time = 0.0f;
 
@@ -647,14 +648,16 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 
 	fmt->audio_codec = ffmpeg_audio_codec;
 
-	snprintf(of->filename, sizeof(of->filename), "%s", name);
+	BLI_snprintf(of->filename, sizeof(of->filename), "%s", name);
 	/* set the codec to the user's selection */
 	switch(ffmpeg_type) {
 	case FFMPEG_AVI:
 	case FFMPEG_MOV:
-	case FFMPEG_OGG:
 	case FFMPEG_MKV:
 		fmt->video_codec = ffmpeg_codec;
+		break;
+	case FFMPEG_OGG:
+		fmt->video_codec = CODEC_ID_THEORA;
 		break;
 	case FFMPEG_DV:
 		fmt->video_codec = CODEC_ID_DVVIDEO;
@@ -701,7 +704,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	
 	if (ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
-		if (ffmpeg_audio_codec != CODEC_ID_NONE && rd->ffcodecdata.audio_mixrate != 48000) {
+		if (ffmpeg_audio_codec != CODEC_ID_NONE && rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2) {
 			BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
 			return 0;
 		}
@@ -851,7 +854,7 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 	ffmpeg_autosplit_count = 0;
 
 	success = start_ffmpeg_impl(rd, rectx, recty, reports);
-
+#ifdef WITH_AUDASPACE
 	if(audio_stream)
 	{
 		AVCodecContext* c = audio_stream->codec;
@@ -860,13 +863,18 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 		specs.format = AUD_FORMAT_S16;
 		specs.rate = rd->ffcodecdata.audio_mixrate;
 		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->ffcodecdata.audio_volume);
+#ifdef FFMPEG_CODEC_TIME_BASE
+		c->time_base.den = specs.rate;
+		c->time_base.num = 1;
+#endif
 	}
-
+#endif
 	return success;
 }
 
 void end_ffmpeg(void);
 
+#ifdef WITH_AUDASPACE
 static void write_audio_frames(double to_pts)
 {
 	int finished = 0;
@@ -878,6 +886,7 @@ static void write_audio_frames(double to_pts)
 		}
 	}
 }
+#endif
 
 int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports) 
 {
@@ -905,8 +914,9 @@ int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, 
 		}
 	}
 
+#ifdef WITH_AUDASPACE
 	write_audio_frames((frame - rd->sfra) / (((double)rd->frs_sec) / rd->frs_sec_base));
-
+#endif
 	return success;
 }
 
@@ -920,12 +930,14 @@ void end_ffmpeg(void)
 		write_audio_frames();
 	}*/
 
+#ifdef WITH_AUDASPACE
 	if(audio_mixdown_device)
 	{
 		AUD_closeReadDevice(audio_mixdown_device);
 		audio_mixdown_device = 0;
 	}
-	
+#endif
+
 	if (video_stream && video_stream->codec) {
 		fprintf(stderr, "Flushing delayed frames...\n");
 		flush_ffmpeg ();		
@@ -971,11 +983,11 @@ void end_ffmpeg(void)
 		video_buffer = 0;
 	}
 	if (audio_output_buffer) {
-		MEM_freeN(audio_output_buffer);
+		av_free(audio_output_buffer);
 		audio_output_buffer = 0;
 	}
 	if (audio_input_buffer) {
-		MEM_freeN(audio_input_buffer);
+		av_free(audio_input_buffer);
 		audio_input_buffer = 0;
 	}
 
@@ -1298,6 +1310,9 @@ void ffmpeg_verify_image_type(RenderData *rd)
 			rd->ffcodecdata.codec = CODEC_ID_MPEG2VIDEO;
 			/* Don't set preset, disturbs render resolution.
 			 * ffmpeg_set_preset(rd, FFMPEG_PRESET_DVD); */
+		}
+		if(rd->ffcodecdata.type == FFMPEG_OGG) {
+			rd->ffcodecdata.type = FFMPEG_MPEG2;
 		}
 
 		audio= 1;

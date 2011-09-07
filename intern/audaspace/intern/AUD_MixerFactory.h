@@ -48,7 +48,7 @@ protected:
 	/**
 	 * If there is no reader it is created out of this factory.
 	 */
-	AUD_IFactory* m_factory;
+	AUD_Reference<AUD_IFactory> m_factory;
 
 	/**
 	 * Returns the reader created out of the factory.
@@ -56,7 +56,7 @@ protected:
 	 * classes.
 	 * \return The reader to mix.
 	 */
-	AUD_IReader* getReader() const;
+	AUD_Reference<AUD_IReader> getReader() const;
 
 public:
 	/**
@@ -64,7 +64,7 @@ public:
 	 * \param factory The factory to create the readers to mix out of.
 	 * \param specs The target specification.
 	 */
-	AUD_MixerFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+	AUD_MixerFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
 	/**
 	 * Returns the target specification for resampling.
@@ -75,7 +75,7 @@ public:
 	 * Returns the saved factory.
 	 * \return The factory.
 	 */
-	AUD_IFactory* getFactory() const;
+	AUD_Reference<AUD_IFactory> getFactory() const;
 };
 
 #endif //AUD_MIXERFACTORY

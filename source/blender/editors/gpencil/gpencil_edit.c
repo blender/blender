@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -513,8 +511,8 @@ static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, C
 		copy_v3_v3(p3d_prev, p3d_cur);
 		copy_v3_v3(p3d_cur, p3d_next);
 
-		if (i + 1 < tot) {
-			gp_strokepoint_convertcoords(C, gps, pt+1, p3d_next, subrect);
+		if (i + 2 < tot) {
+			gp_strokepoint_convertcoords(C, gps, pt + 2, p3d_next, subrect);
 		}
 	}
 

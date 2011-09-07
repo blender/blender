@@ -130,7 +130,11 @@ typedef struct RegionView3D {
 	
 	float twangle[3];
 
-	float padf;
+	/* active rotation from NDOF or elsewhere */
+	float rot_angle;
+	float rot_axis[3];
+	
+	char pad2[4];
 
 } RegionView3D;
 
@@ -190,11 +194,10 @@ typedef struct View3D {
 	/* drawflags, denoting state */
 	short zbuf, transp, xray;
 
-	char ndofmode;			/* mode of transform for 6DOF devices -1 not found, 0 normal, 1 fly, 2 ob transform */
-	char ndoffilter;		/* filter for 6DOF devices 0 normal, 1 dominant */
-	
+	char pad3[2];
+
 	void *properties_storage;	/* Nkey panel stores stuff here (runtime only!) */
-	
+
 	/* XXX depricated? */
 	struct bGPdata *gpd;		/* Grease-Pencil Data (annotation layers) */
 
@@ -244,6 +247,7 @@ typedef struct View3D {
 #define V3D_SOLID_TEX			8
 #define V3D_DISPGP				16
 #define V3D_LOCK_CAMERA			32
+#define V3D_RENDER_SHADOW		64 /* This is a runtime only flag that's used to tell draw_mesh_object() that we're doing a shadow pass instead of a regular draw */
 
 /* View3D->around */
 #define V3D_CENTER		 0

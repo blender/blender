@@ -85,7 +85,9 @@ void RNA_init(void)
 void RNA_exit(void)
 {
 	StructRNA *srna;
-
+	
+	RNA_property_update_cache_free();
+	
 	for(srna=BLENDER_RNA.structs.first; srna; srna=srna->cont.next) {
 		if(srna->cont.prophash) {
 			BLI_ghash_free(srna->cont.prophash, NULL, NULL);
@@ -288,7 +290,7 @@ static int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 	}
 }
 
-static int rna_ensure_property_array_check(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+static int rna_ensure_property_array_check(PropertyRNA *prop)
 {
 	if(prop->magic == RNA_MAGIC) {
 		return (prop->getlength || prop->totarraylength) ? 1:0;
@@ -472,6 +474,17 @@ static const char *rna_ensure_property_name(PropertyRNA *prop)
 }
 
 /* Structs */
+
+StructRNA *RNA_struct_find(const char *identifier)
+{
+	StructRNA *type;
+	if (identifier) {
+		for (type = BLENDER_RNA.structs.first; type; type = type->cont.next)
+			if (strcmp(type->identifier, identifier)==0)
+				return type;
+	}
+	return NULL;
+}
 
 const char *RNA_struct_identifier(StructRNA *type)
 {
@@ -765,9 +778,9 @@ int RNA_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 	return rna_ensure_property_array_length(ptr, prop);
 }
 
-int RNA_property_array_check(PointerRNA *ptr, PropertyRNA *prop)
+int RNA_property_array_check(PropertyRNA *prop)
 {
-	return rna_ensure_property_array_check(ptr, prop);
+	return rna_ensure_property_array_check(prop);
 }
 
 /* used by BPY to make an array from the python object */
@@ -1364,13 +1377,13 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 		if(prop->noteflag)
 			WM_main_add_notifier(prop->noteflag, ptr->id.data);
 	}
-	else {
+	
+	if(!is_rna || (prop->flag & PROP_IDPROPERTY)) {
 		/* WARNING! This is so property drivers update the display!
 		 * not especially nice  */
 		DAG_id_tag_update(ptr->id.data, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME);
 		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
-
 }
 
 /* must keep in sync with 'rna_property_update'
@@ -1391,6 +1404,112 @@ void RNA_property_update_main(Main *bmain, Scene *scene, PointerRNA *ptr, Proper
 	rna_property_update(NULL, bmain, scene, ptr, prop);
 }
 
+
+/* RNA Updates Cache ------------------------ */
+/* Overview of RNA Update cache system:
+ *
+ * RNA Update calls need to be cached in order to maintain reasonable performance
+ * of the animation system (i.e. maintaining a somewhat interactive framerate)
+ * while still allowing updates to be called (necessary in particular for modifier
+ * property updates to actually work).
+ *
+ * The cache is structured with a dual-layer structure
+ * - L1 = PointerRNA used as key; id.data is used (it should always be defined,
+ *		 and most updates end up using just that anyways)
+ * - L2 = Update functions to be called on those PointerRNA's
+ */
+
+/* cache element */
+typedef struct tRnaUpdateCacheElem {
+	struct tRnaUpdateCacheElem *next, *prev;
+	
+	PointerRNA ptr; 	/* L1 key - id as primary, data secondary/ignored? */
+	ListBase L2Funcs;	/* L2 functions (LinkData<RnaUpdateFuncRef>) */
+} tRnaUpdateCacheElem;
+
+/* cache global (tRnaUpdateCacheElem's) - only accessible using these API calls */
+static ListBase rna_updates_cache = {NULL, NULL};
+
+/* ........................... */
+
+void RNA_property_update_cache_add(PointerRNA *ptr, PropertyRNA *prop)
+{
+	tRnaUpdateCacheElem *uce = NULL;
+	UpdateFunc fn = NULL;
+	LinkData *ld;
+	short is_rna = (prop->magic == RNA_MAGIC);
+	
+	/* sanity check */
+	if (ELEM(NULL, ptr, prop))
+		return;
+		
+	prop= rna_ensure_property(prop);
+	
+	/* we can only handle update calls with no context args for now (makes animsys updates easier) */
+	if ((is_rna == 0) || (prop->update == NULL) || (prop->flag & PROP_CONTEXT_UPDATE))
+		return;
+	fn = prop->update;
+		
+	/* find cache element for which key matches... */
+	for (uce = rna_updates_cache.first; uce; uce = uce->next) {
+		/* just match by id only for now, since most update calls that we'll encounter only really care about this */
+		// TODO: later, the cache might need to have some nesting on L1 to cope better with these problems + some tagging to indicate we need this
+		if (uce->ptr.id.data == ptr->id.data)
+			break;
+	}
+	if (uce == NULL) {
+		/* create new instance */
+		uce = MEM_callocN(sizeof(tRnaUpdateCacheElem), "tRnaUpdateCacheElem");
+		BLI_addtail(&rna_updates_cache, uce);
+		
+		/* copy pointer */
+		RNA_pointer_create(ptr->id.data, ptr->type, ptr->data, &uce->ptr);
+	}
+	
+	/* check on the update func */
+	for (ld = uce->L2Funcs.first; ld; ld = ld->next) {
+		/* stop on match - function already cached */
+		if (fn == ld->data)
+			return;
+	}
+	/* else... if still here, we need to add it */
+	BLI_addtail(&uce->L2Funcs, BLI_genericNodeN(fn));
+}
+
+void RNA_property_update_cache_flush(Main *bmain, Scene *scene)
+{
+	tRnaUpdateCacheElem *uce;
+	
+	// TODO: should we check that bmain and scene are valid? The above stuff doesn't!
+	
+	/* execute the cached updates */
+	for (uce = rna_updates_cache.first; uce; uce = uce->next) {
+		LinkData *ld;
+		
+		for (ld = uce->L2Funcs.first; ld; ld = ld->next) {
+			UpdateFunc fn = (UpdateFunc)ld->data;
+			fn(bmain, scene, &uce->ptr);
+		}
+	}
+}
+
+void RNA_property_update_cache_free(void)
+{
+	tRnaUpdateCacheElem *uce, *ucn;
+	
+	for (uce = rna_updates_cache.first; uce; uce = ucn) {
+		ucn = uce->next;
+		
+		/* free L2 cache */
+		BLI_freelistN(&uce->L2Funcs);
+		
+		/* remove self */
+		BLI_freelinkN(&rna_updates_cache, uce);
+	}
+}
+
+/* ---------------------------------------------------------------------- */
+
 /* Property Data */
 
 int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
@@ -1399,6 +1518,7 @@ int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
+	BLI_assert(RNA_property_array_check(prop) == 0);
 
 	if((idprop=rna_idproperty_check(&prop, ptr)))
 		return IDP_Int(idprop);
@@ -1414,6 +1534,7 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
+	BLI_assert(RNA_property_array_check(prop) == 0);
 
 	/* just incase other values are passed */
 	if(value) value= 1;
@@ -1440,6 +1561,7 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *val
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		if(prop->arraydimension == 0)
@@ -1463,6 +1585,7 @@ int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 	int len= rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_boolean_get_array(ptr, prop, tmp);
@@ -1486,6 +1609,7 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		if(prop->arraydimension == 0)
@@ -1519,6 +1643,7 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 	int len= rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_boolean_get_array(ptr, prop, tmp);
@@ -1541,6 +1666,7 @@ int RNA_property_boolean_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
+	BLI_assert(RNA_property_array_check(prop) == 0);
 
 	return bprop->defaultvalue;
 }
@@ -1550,6 +1676,7 @@ void RNA_property_boolean_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA
 	BooleanPropertyRNA *bprop= (BooleanPropertyRNA*)prop;
 	
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(prop->arraydimension == 0)
 		values[0]= bprop->defaultvalue;
@@ -1565,6 +1692,7 @@ int RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, i
 	int len= rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_boolean_get_default_array(ptr, prop, tmp);
@@ -1588,6 +1716,7 @@ int RNA_property_int_get(PointerRNA *ptr, PropertyRNA *prop)
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
+	BLI_assert(RNA_property_array_check(prop) == 0);
 
 	if((idprop=rna_idproperty_check(&prop, ptr)))
 		return IDP_Int(idprop);
@@ -1603,6 +1732,9 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
+	BLI_assert(RNA_property_array_check(prop) == 0);
+	/* useful to check on bad values but set function should clamp */
+	/* BLI_assert(RNA_property_int_clamp(ptr, prop, &value) == 0); */
 
 	if((idprop=rna_idproperty_check(&prop, ptr)))
 		IDP_Int(idprop)= value;
@@ -1626,6 +1758,7 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		if(prop->arraydimension == 0)
@@ -1643,12 +1776,50 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 		memset(values, 0, sizeof(int)*prop->totarraylength);
 }
 
+void RNA_property_int_get_array_range(PointerRNA *ptr, PropertyRNA *prop, int values[2])
+{
+	const int array_len= RNA_property_array_length(ptr, prop);
+
+	if(array_len <= 0) {
+		values[0]= 0;
+		values[1]= 0;
+	}
+	else if (array_len == 1) {
+		RNA_property_int_get_array(ptr, prop, values);
+		values[1]= values[0];
+	}
+	else {
+		int arr_stack[32];
+		int *arr;
+		int i;
+
+		if(array_len > 32) {
+			arr= MEM_mallocN(sizeof(int) * array_len, "RNA_property_int_get_array_range");
+		}
+		else {
+			arr= arr_stack;
+		}
+
+		RNA_property_int_get_array(ptr, prop, arr);
+		values[0]= values[1]= arr[0];
+		for(i= 1; i < array_len; i++) {
+			values[0]= MIN2(values[0], arr[i]);
+			values[1]= MAX2(values[1], arr[i]);
+		}
+
+		if(arr != arr_stack) {
+			MEM_freeN(arr);
+		}
+	}
+}
+
 int RNA_property_int_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	int tmp[RNA_MAX_ARRAY_LENGTH];
 	int len= rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_int_get_array(ptr, prop, tmp);
@@ -1672,6 +1843,7 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		if(prop->arraydimension == 0)
@@ -1705,6 +1877,7 @@ void RNA_property_int_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, i
 	int len= rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_int_get_array(ptr, prop, tmp);
@@ -1733,6 +1906,7 @@ void RNA_property_int_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *pr
 	IntPropertyRNA *iprop= (IntPropertyRNA*)prop;
 	
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(prop->arraydimension == 0)
 		values[0]= iprop->defaultvalue;
@@ -1769,6 +1943,7 @@ float RNA_property_float_get(PointerRNA *ptr, PropertyRNA *prop)
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	BLI_assert(RNA_property_array_check(prop) == 0);
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		if(idprop->type == IDP_FLOAT)
@@ -1788,6 +1963,9 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 	IDProperty *idprop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	BLI_assert(RNA_property_array_check(prop) == 0);
+	/* useful to check on bad values but set function should clamp */
+	/* BLI_assert(RNA_property_float_clamp(ptr, prop, &value) == 0); */
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		if(idprop->type == IDP_FLOAT)
@@ -1817,6 +1995,7 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
 	int i;
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		if(prop->arraydimension == 0)
@@ -1839,12 +2018,50 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
 		memset(values, 0, sizeof(float)*prop->totarraylength);
 }
 
+void RNA_property_float_get_array_range(PointerRNA *ptr, PropertyRNA *prop, float values[2])
+{
+	const int array_len= RNA_property_array_length(ptr, prop);
+
+	if(array_len <= 0) {
+		values[0]= 0.0f;
+		values[1]= 0.0f;
+	}
+	else if (array_len == 1) {
+		RNA_property_float_get_array(ptr, prop, values);
+		values[1]= values[0];
+	}
+	else {
+		float arr_stack[32];
+		float *arr;
+		int i;
+
+		if(array_len > 32) {
+			arr= MEM_mallocN(sizeof(float) * array_len, "RNA_property_float_get_array_range");
+		}
+		else {
+			arr= arr_stack;
+		}
+
+		RNA_property_float_get_array(ptr, prop, arr);
+		values[0]= values[1]= arr[0];
+		for(i= 1; i < array_len; i++) {
+			values[0]= MIN2(values[0], arr[i]);
+			values[1]= MAX2(values[1], arr[i]);
+		}
+
+		if(arr != arr_stack) {
+			MEM_freeN(arr);
+		}
+	}
+}
+
 float RNA_property_float_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	float tmp[RNA_MAX_ARRAY_LENGTH];
 	int len= rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_float_get_array(ptr, prop, tmp);
@@ -1870,6 +2087,7 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 	int i;
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if((idprop=rna_idproperty_check(&prop, ptr))) {
 		if(prop->arraydimension == 0) {
@@ -1913,6 +2131,7 @@ void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 	int len= rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_float_get_array(ptr, prop, tmp);
@@ -1935,6 +2154,7 @@ float RNA_property_float_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 	FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	BLI_assert(RNA_property_array_check(prop) == 0);
 
 	return fprop->defaultvalue;
 }
@@ -1944,6 +2164,7 @@ void RNA_property_float_get_default_array(PointerRNA *UNUSED(ptr), PropertyRNA *
 	FloatPropertyRNA *fprop= (FloatPropertyRNA*)prop;
 	
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(prop->arraydimension == 0)
 		values[0]= fprop->defaultvalue;
@@ -1959,6 +2180,7 @@ float RNA_property_float_get_default_index(PointerRNA *ptr, PropertyRNA *prop, i
 	int len= rna_ensure_property_array_length(ptr, prop);
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
 
 	if(len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_float_get_default_array(ptr, prop, tmp);
@@ -2003,9 +2225,18 @@ char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fi
 	if(length+1 < fixedlen)
 		buf= fixedbuf;
 	else
-		buf= MEM_callocN(sizeof(char)*(length+1), "RNA_string_get_alloc");
+		buf= MEM_mallocN(sizeof(char)*(length+1), "RNA_string_get_alloc");
+
+#ifndef NDEBUG
+	/* safety check to ensure the string is actually set */
+	buf[length]= 255;
+#endif
 
 	RNA_property_string_get(ptr, prop, buf);
+
+#ifndef NDEBUG
+	BLI_assert(buf[length] == '\0');
+#endif
 
 	return buf;
 }
@@ -2761,7 +2992,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 				}
 
 				/* editable check */
-				if(RNA_property_editable(&itemptr, iprop)) {
+				if(!set || RNA_property_editable(&itemptr, iprop)) {
 					if(a+itemlen > in.len) {
 						BKE_reportf(reports, RPT_ERROR, "Array length mismatch (got %d, expected more).", in.len);
 						err= 1;
@@ -3114,7 +3345,7 @@ static char *rna_path_token(const char **path, char *fixedbuf, int fixedlen, int
 		/* 2 kinds of lookups now, quoted or unquoted */
 		quote= *p;
 
-		if(quote != '"')
+		if(quote != '"') /* " - this comment is hack for Aligorith's text editor's sanity */
 			quote= 0;
 
 		if(quote==0) {
@@ -3929,10 +4160,13 @@ void RNA_string_get(PointerRNA *ptr, const char *name, char *value)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
 
-	if(prop)
+	if(prop) {
 		RNA_property_string_get(ptr, prop, value);
-	else
+	}
+	else {
 		printf("RNA_string_get: %s.%s not found.\n", ptr->type->identifier, name);
+		value[0]= '\0';
+	}
 }
 
 char *RNA_string_get_alloc(PointerRNA *ptr, const char *name, char *fixedbuf, int fixedlen)
@@ -4165,11 +4399,18 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 		break;
 	case PROP_STRING:
 	{
-		/* string arrays dont exist */
+		char *buf_esc;
 		char *buf;
-		buf = RNA_property_string_get_alloc(ptr, prop, NULL, -1);
-		BLI_dynstr_appendf(dynstr, "\"%s\"", buf);
+		int length;
+
+		length= RNA_property_string_length(ptr, prop);
+		buf= MEM_mallocN(sizeof(char)*(length+1), "RNA_property_as_string");
+		buf_esc= MEM_mallocN(sizeof(char)*(length*2+1), "RNA_property_as_string esc");
+		RNA_property_string_get(ptr, prop, buf);
+		BLI_strescape(buf_esc, buf, length*2+1);
 		MEM_freeN(buf);
+		BLI_dynstr_appendf(dynstr, "\"%s\"", buf_esc);
+		MEM_freeN(buf_esc);
 		break;
 	}
 	case PROP_ENUM:
@@ -4329,15 +4570,15 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *UNUSE
 		if(!(parm->flag & PROP_REQUIRED) && !(parm->flag & PROP_DYNAMIC)) {
 			switch(parm->type) {
 				case PROP_BOOLEAN:
-					if(parm->arraydimension) memcpy(data, &((BooleanPropertyRNA*)parm)->defaultarray, size);
+					if(parm->arraydimension) memcpy(data, ((BooleanPropertyRNA*)parm)->defaultarray, size);
 					else memcpy(data, &((BooleanPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_INT:
-					if(parm->arraydimension) memcpy(data, &((IntPropertyRNA*)parm)->defaultarray, size);
+					if(parm->arraydimension) memcpy(data, ((IntPropertyRNA*)parm)->defaultarray, size);
 					else memcpy(data, &((IntPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_FLOAT:
-					if(parm->arraydimension) memcpy(data, &((FloatPropertyRNA*)parm)->defaultarray, size);
+					if(parm->arraydimension) memcpy(data, ((FloatPropertyRNA*)parm)->defaultarray, size);
 					else memcpy(data, &((FloatPropertyRNA*)parm)->defaultvalue, size);
 					break;
 				case PROP_ENUM:
@@ -4403,7 +4644,8 @@ int  RNA_parameter_list_ret_count(ParameterList *parms)
 
 void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 {
-	RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr);
+	/* may be useful but unused now */
+	/* RNA_pointer_create(NULL, &RNA_Function, parms->func, &iter->funcptr); */ /*UNUSED*/
 
 	iter->parms= parms;
 	iter->parm= parms->func->cont.properties.first;

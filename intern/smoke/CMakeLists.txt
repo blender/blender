@@ -84,12 +84,14 @@ set(SRC
 )
 
 if(WITH_OPENMP)
-		add_definitions(-DPARALLEL=1)
+	add_definitions(-DPARALLEL=1)
 endif()
 
 if(WITH_FFTW3)
-	add_definitions(-DFFTW3=1)
-	list(APPEND INC ${FFTW3_INC})
+	add_definitions(-DWITH_FFTW3)
+	list(APPEND INC
+		${FFTW3_INCLUDE_DIRS}
+	)
 endif()
 
 blender_add_lib(bf_intern_smoke "${SRC}" "${INC}" "${INC_SYS}")

@@ -88,7 +88,7 @@ protected:
 	// --
 	int							m_tvtot;
 	BL_DeformableGameObject*	m_gameobj;
-	double					 	m_lastDeformUpdate;
+	double						m_lastDeformUpdate;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

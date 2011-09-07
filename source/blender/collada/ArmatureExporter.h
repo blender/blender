@@ -65,7 +65,7 @@ public:
 
 	void add_instance_controller(Object *ob);
 
-	void export_controllers(Scene *sce);
+	void export_controllers(Scene *sce, bool export_selected);
 
 	void operator()(Object *ob);
 
@@ -91,6 +91,8 @@ private:
 	void add_bone_node(Bone *bone, Object *ob_arm);
 
 	void add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node);
+
+	void add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node);
 
 	std::string get_controller_id(Object *ob_arm, Object *ob);
 

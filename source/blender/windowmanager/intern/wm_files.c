@@ -57,6 +57,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
+#include "BLI_callbacks.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_ipo_types.h" // XXX old animation system
@@ -223,6 +224,14 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			oldwm= oldwmlist->first;
 			wm= G.main->wm.first;
 
+			/* move addon key configuration to new wm, to preserve their keymaps */
+			if(oldwm->addonconf) {
+				wm->addonconf= oldwm->addonconf;
+				BLI_remlink(&oldwm->keyconfigs, oldwm->addonconf);
+				oldwm->addonconf= NULL;
+				BLI_addtail(&wm->keyconfigs, wm->addonconf);
+			}
+
 			/* ensure making new keymaps and set space types */
 			wm->initialized= 0;
 			wm->winactive= NULL;
@@ -342,6 +351,8 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 
 	WM_cursor_wait(1);
 
+	BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_PRE);
+
 	/* first try to append data from exotic file formats... */
 	/* it throws error box when file doesnt exist and returns -1 */
 	/* note; it should set some error message somewhere... (ton) */
@@ -392,6 +403,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_driver_reset();
+		BPY_app_handlers_reset();
 		BPY_modules_load_user(C);
 #endif
 		CTX_wm_window_set(C, NULL); /* exits queues */
@@ -411,7 +423,8 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		// XXX		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo(C, "original");	/* save current state */
-		
+
+		BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 	}
 	else if(retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
@@ -437,7 +450,7 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 /* called on startup,  (context entirely filled with NULLs) */
 /* or called for 'New File' */
 /* op can be NULL */
-int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
+int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory)
 {
 	ListBase wmbase;
 	char tstr[FILE_MAXDIR+FILE_MAXFILE];
@@ -453,7 +466,6 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 		} else {
 			tstr[0] = '\0';
 			from_memory = 1;
-			BKE_report(reports, RPT_INFO, "Config directory with "STRINGIFY(BLENDER_STARTUP_FILE)" file not found.");
 		}
 	}
 	
@@ -518,6 +530,7 @@ int WM_read_homefile(bContext *C, ReportList *reports, short from_memory)
 		BPY_string_exec(C, "__import__('addon_utils').reset_all()");
 
 		BPY_driver_reset();
+		BPY_app_handlers_reset();
 		BPY_modules_load_user(C);
 	}
 #endif
@@ -629,8 +642,9 @@ static ImBuf *blend_file_thumb(Scene *scene, int **thumb_pt)
 	char err_out[256]= "unknown";
 
 	*thumb_pt= NULL;
-	
-	if(G.background || scene->camera==NULL)
+
+	/* scene can be NULL if running a script at startup and calling the save operator */
+	if(G.background || scene==NULL || scene->camera==NULL)
 		return NULL;
 
 	/* gets scaled to BLEN_THUMB_SIZE */
@@ -716,6 +730,14 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 		}
 	}
 
+	/* blend file thumbnail */
+	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
+	if(U.flag & USER_SAVE_PREVIEWS) {
+		ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
+	}
+
+	BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_PRE);
+
 	/* operator now handles overwrite checks */
 
 	if (G.fileflags & G_AUTOPACK) {
@@ -728,9 +750,6 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 	/* don't forget not to return without! */
 	WM_cursor_wait(1);
 	
-	/* blend file thumbnail */
-	ibuf_thumb= blend_file_thumb(CTX_data_scene(C), &thumb);
-
 	fileflags |= G_FILE_HISTORY; /* write file history */
 
 	if (BLO_write_file(CTX_data_main(C), filepath, fileflags, reports, thumb)) {
@@ -747,7 +766,12 @@ int WM_write_file(bContext *C, const char *target, int fileflags, ReportList *re
 		if(fileflags & G_FILE_AUTOPLAY) G.fileflags |= G_FILE_AUTOPLAY;
 		else G.fileflags &= ~G_FILE_AUTOPLAY;
 
-		write_history();
+		/* prevent background mode scripts from clobbering history */
+		if(!G.background) {
+			write_history();
+		}
+
+		BLI_exec_cb(G.main, NULL, BLI_CB_EVT_SAVE_POST);
 
 		/* run this function after because the file cant be written before the blend is */
 		if (ibuf_thumb) {
@@ -777,10 +801,13 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	wmWindow *win= CTX_wm_window(C);
 	char filepath[FILE_MAXDIR+FILE_MAXFILE];
 	int fileflags;
-	
+
 	/* check current window and close it if temp */
 	if(win->screen->temp)
 		wm_window_close(C, wm, win);
+	
+	/* update keymaps in user preferences */
+	WM_keyconfig_update(wm);
 	
 	BLI_make_file_string("/", filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_STARTUP_FILE);
 	printf("trying to save homefile at %s ", filepath);

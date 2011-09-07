@@ -16,11 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 import bpy
+from bpy.types import Header, Menu, Panel
 
 
-class TEXT_HT_header(bpy.types.Header):
+class TEXT_HT_header(Header):
     bl_space_type = 'TEXT_EDITOR'
 
     def draw(self, context):
@@ -33,19 +34,21 @@ class TEXT_HT_header(bpy.types.Header):
         row.template_header()
 
         if context.area.show_menus:
-            sub = row.row(align=True)
-            sub.menu("TEXT_MT_view")
-            sub.menu("TEXT_MT_text")
+            row.menu("TEXT_MT_view")
+            row.menu("TEXT_MT_text")
+
             if text:
-                sub.menu("TEXT_MT_edit")
-                sub.menu("TEXT_MT_format")
+                row.menu("TEXT_MT_edit")
+                row.menu("TEXT_MT_format")
+
+            row.menu("TEXT_MT_templates")
 
         if text and text.is_modified:
-            row = layout.row()
-            row.alert = True
-            row.operator("text.resolve_conflict", text="", icon='HELP')
+            sub = row.row()
+            sub.alert = True
+            sub.operator("text.resolve_conflict", text="", icon='HELP')
 
-        layout.template_ID(st, "text", new="text.new", unlink="text.unlink")
+        row.template_ID(st, "text", new="text.new", unlink="text.unlink")
 
         row = layout.row(align=True)
         row.prop(st, "show_line_numbers", text="")
@@ -63,14 +66,16 @@ class TEXT_HT_header(bpy.types.Header):
             row = layout.row()
             if text.filepath:
                 if text.is_dirty:
-                    row.label(text="File: *%s (unsaved)" % text.filepath)
+                    row.label(text="File: *%r (unsaved)" % text.filepath)
                 else:
-                    row.label(text="File: %s" % text.filepath)
+                    row.label(text="File: %r" % text.filepath)
             else:
-                row.label(text="Text: External" if text.library else "Text: Internal")
+                row.label(text="Text: External"
+                          if text.library
+                          else "Text: Internal")
 
 
-class TEXT_PT_properties(bpy.types.Panel):
+class TEXT_PT_properties(Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Properties"
@@ -101,7 +106,7 @@ class TEXT_PT_properties(bpy.types.Panel):
         col.prop(st, "margin_column")
 
 
-class TEXT_PT_find(bpy.types.Panel):
+class TEXT_PT_find(Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Find"
@@ -135,7 +140,7 @@ class TEXT_PT_find(bpy.types.Panel):
         row.prop(st, "use_find_all", text="All")
 
 
-class TEXT_MT_view(bpy.types.Menu):
+class TEXT_MT_view(Menu):
     bl_label = "View"
 
     def draw(self, context):
@@ -150,11 +155,15 @@ class TEXT_MT_view(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("text.move", text="Top of File").type = 'FILE_TOP'
-        layout.operator("text.move", text="Bottom of File").type = 'FILE_BOTTOM'
+        layout.operator("text.move",
+                        text="Top of File",
+                        ).type = 'FILE_TOP'
+        layout.operator("text.move",
+                        text="Bottom of File",
+                        ).type = 'FILE_BOTTOM'
 
 
-class TEXT_MT_text(bpy.types.Menu):
+class TEXT_MT_text(Menu):
     bl_label = "Text"
 
     def draw(self, context):
@@ -163,8 +172,9 @@ class TEXT_MT_text(bpy.types.Menu):
         st = context.space_data
         text = st.text
 
-        layout.column()
+        layout.operator_context = 'EXEC_AREA'
         layout.operator("text.new")
+        layout.operator_context = 'INVOKE_AREA'
         layout.operator("text.open")
 
         if text:
@@ -180,27 +190,18 @@ class TEXT_MT_text(bpy.types.Menu):
             layout.column()
             layout.operator("text.run_script")
 
-            #ifdef WITH_PYTHON
-            # XXX if(BPY_is_pyconstraint(text))
-            # XXX   uiMenuItemO(head, 0, "text.refresh_pyconstraints");
-            #endif
 
-        layout.separator()
-
-        layout.menu("TEXT_MT_templates")
-
-
-class TEXT_MT_templates(bpy.types.Menu):
-    '''
-    Creates the menu items by scanning scripts/templates
-    '''
-    bl_label = "Script Templates"
+class TEXT_MT_templates(Menu):
+    bl_label = "Templates"
 
     def draw(self, context):
-        self.path_menu(bpy.utils.script_paths("templates"), "text.open", {"internal": True})
+        self.path_menu(bpy.utils.script_paths("templates"),
+                       "text.open",
+                       {"internal": True},
+                       )
 
 
-class TEXT_MT_edit_select(bpy.types.Menu):
+class TEXT_MT_edit_select(Menu):
     bl_label = "Select"
 
     def draw(self, context):
@@ -210,7 +211,7 @@ class TEXT_MT_edit_select(bpy.types.Menu):
         layout.operator("text.select_line")
 
 
-class TEXT_MT_edit_markers(bpy.types.Menu):
+class TEXT_MT_edit_markers(Menu):
     bl_label = "Markers"
 
     def draw(self, context):
@@ -221,7 +222,7 @@ class TEXT_MT_edit_markers(bpy.types.Menu):
         layout.operator("text.previous_marker")
 
 
-class TEXT_MT_format(bpy.types.Menu):
+class TEXT_MT_format(Menu):
     bl_label = "Format"
 
     def draw(self, context):
@@ -240,17 +241,21 @@ class TEXT_MT_format(bpy.types.Menu):
         layout.operator_menu_enum("text.convert_whitespace", "type")
 
 
-class TEXT_MT_edit_to3d(bpy.types.Menu):
+class TEXT_MT_edit_to3d(Menu):
     bl_label = "Text To 3D Object"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("text.to_3d_object", text="One Object").split_lines = False
-        layout.operator("text.to_3d_object", text="One Object Per Line").split_lines = True
+        layout.operator("text.to_3d_object",
+                        text="One Object",
+                        ).split_lines = False
+        layout.operator("text.to_3d_object",
+                        text="One Object Per Line",
+                        ).split_lines = True
 
 
-class TEXT_MT_edit(bpy.types.Menu):
+class TEXT_MT_edit(Menu):
     bl_label = "Edit"
 
     @classmethod
@@ -284,7 +289,7 @@ class TEXT_MT_edit(bpy.types.Menu):
         layout.menu("TEXT_MT_edit_to3d")
 
 
-class TEXT_MT_toolbox(bpy.types.Menu):
+class TEXT_MT_toolbox(Menu):
     bl_label = ""
 
     def draw(self, context):

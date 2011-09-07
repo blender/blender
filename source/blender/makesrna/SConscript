@@ -9,6 +9,7 @@ objs += o
 incs = '#/intern/guardedalloc #/intern/memutil #/intern/audaspace/intern ../blenkernel ../blenlib ../makesdna intern .'
 incs += ' ../windowmanager ../editors/include ../gpu ../imbuf ../ikplugin ../blenfont ../blenloader'
 incs += ' ../render/extern/include'
+incs += ' ../nodes'
 incs += ' #/extern/glew/include'
 
 defs = []
@@ -54,7 +55,7 @@ if env['WITH_BF_PYTHON']:
 if env['WITH_BF_COLLADA']:
     defs.append('WITH_COLLADA')
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 

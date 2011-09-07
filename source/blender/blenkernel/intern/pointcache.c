@@ -516,6 +516,7 @@ static int  ptcache_cloth_totpoint(void *cloth_v, int UNUSED(cfra))
 	return clmd->clothObject ? clmd->clothObject->numverts : 0;
 }
 
+#ifdef WITH_SMOKE
 /* Smoke functions */
 static int  ptcache_smoke_totpoint(void *smoke_v, int UNUSED(cfra))
 {
@@ -652,6 +653,11 @@ static void ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 		}
 	}
 }
+#else // WITH_SMOKE
+static int  ptcache_smoke_totpoint(void *UNUSED(smoke_v), int UNUSED(cfra)) { return 0; };
+static void ptcache_smoke_read(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) {}
+static int  ptcache_smoke_write(PTCacheFile *UNUSED(pf), void *UNUSED(smoke_v)) { return 0; }
+#endif // WITH_SMOKE
 
 /* Creating ID's */
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
@@ -911,14 +917,14 @@ static int ptcache_path(PTCacheID *pid, char *filename)
 		if (i > 6)
 			file[i-6] = '\0';
 		
-		snprintf(filename, MAX_PTCACHE_PATH, "//"PTCACHE_PATH"%s", file); /* add blend file name to pointcache dir */
+		BLI_snprintf(filename, MAX_PTCACHE_PATH, "//"PTCACHE_PATH"%s", file); /* add blend file name to pointcache dir */
 		BLI_path_abs(filename, blendfilename);
 		return BLI_add_slash(filename); /* new strlen() */
 	}
 	
 	/* use the temp path. this is weak but better then not using point cache at all */
 	/* btempdir is assumed to exist and ALWAYS has a trailing slash */
-	snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
+	BLI_snprintf(filename, MAX_PTCACHE_PATH, "%s"PTCACHE_PATH"%d", btempdir, abs(getpid()));
 	
 	return BLI_add_slash(filename); /* new strlen() */
 }
@@ -942,7 +948,7 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
 		idname = (pid->ob->id.name+2);
 		/* convert chars to hex so they are always a valid filename */
 		while('\0' != *idname) {
-			snprintf(newname, MAX_PTCACHE_FILE, "%02X", (char)(*idname++));
+			BLI_snprintf(newname, MAX_PTCACHE_FILE, "%02X", (char)(*idname++));
 			newname+=2;
 			len += 2;
 		}
@@ -961,12 +967,12 @@ static int ptcache_filename(PTCacheID *pid, char *filename, int cfra, short do_p
 
 		if(pid->cache->flag & PTCACHE_EXTERNAL) {
 			if(pid->cache->index >= 0)
-				snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02d"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
+				BLI_snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02u"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
 			else
-				snprintf(newname, MAX_PTCACHE_FILE, "_%06d"PTCACHE_EXT, cfra); /* always 6 chars */
+				BLI_snprintf(newname, MAX_PTCACHE_FILE, "_%06d"PTCACHE_EXT, cfra); /* always 6 chars */
 		}
 		else {
-			snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02d"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
+			BLI_snprintf(newname, MAX_PTCACHE_FILE, "_%06d_%02u"PTCACHE_EXT, cfra, pid->stack_index); /* always 6 chars */
 		}
 		len += 16;
 	}
@@ -1996,7 +2002,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 			if (dir==NULL)
 				return;
 
-			snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, pid->stack_index);
+			BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 			
 			while ((de = readdir(dir)) != NULL) {
 				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
@@ -2124,7 +2130,8 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 {
 	Object *ob;
 	PointCache *cache;
-	float offset, time, nexttime;
+	/* float offset; unused for now */
+	float time, nexttime;
 
 	/* TODO: this has to be sorter out once bsystem_time gets redone, */
 	/*       now caches can handle interpolating etc. too - jahka */
@@ -2152,13 +2159,18 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 		*startframe= cache->startframe;
 		*endframe= cache->endframe;
 
-		// XXX ipoflag is depreceated - old animation system stuff
-		if (/*(ob->ipoflag & OB_OFFS_PARENT) &&*/ (ob->partype & PARSLOW)==0) {
+		/* TODO: time handling with object offsets and simulated vs. cached
+		 * particles isn't particularly easy, so for now what you see is what
+		 * you get. In the future point cache could handle the whole particle
+		 * system timing. */
+#if 0
+		if ((ob->partype & PARSLOW)==0) {
 			offset= give_timeoffset(ob);
 
 			*startframe += (int)(offset+0.5f);
 			*endframe += (int)(offset+0.5f);
 		}
+#endif
 	}
 
 	/* verify cached_frames array is up to date */
@@ -2192,7 +2204,7 @@ void BKE_ptcache_id_time(PTCacheID *pid, Scene *scene, float cfra, int *startfra
 			if (dir==NULL)
 				return;
 
-			snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, pid->stack_index);
+			BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 			
 			while ((de = readdir(dir)) != NULL) {
 				if (strstr(de->d_name, ext)) { /* do we have the right extension?*/
@@ -2892,7 +2904,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, char *from, char *to)
 		return;
 	}
 
-	snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, pid->stack_index);
+	BLI_snprintf(ext, sizeof(ext), "_%02u"PTCACHE_EXT, pid->stack_index);
 
 	/* put new name into cache */
 	strcpy(pid->cache->name, to);
@@ -2948,7 +2960,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 		return;
 
 	if(cache->index >= 0)
-		snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, cache->index);
+		BLI_snprintf(ext, sizeof(ext), "_%02d"PTCACHE_EXT, cache->index);
 	else
 		strcpy(ext, PTCACHE_EXT);
 	

@@ -64,6 +64,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
+#include "BLI_callbacks.h"
 
 #include "IMB_imbuf.h"
 
@@ -81,6 +82,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
+#include "BKE_sound.h"
 
 
 #include "BLO_undofile.h"
@@ -89,6 +91,8 @@
 
 #include "BKE_utildefines.h"
 
+#include "RNA_access.h"
+
 #include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
 
 Global G;
@@ -96,7 +100,7 @@ UserDef U;
 /* ListBase = {NULL, NULL}; */
 short ENDIAN_ORDER;
 
-static char versionstr[48]= "";
+char versionstr[48]= "";
 
 /* ********** free ********** */
 
@@ -110,6 +114,9 @@ void free_blender(void)
 	BKE_spacetypes_free();		/* after free main, it uses space callbacks */
 	
 	IMB_exit();
+
+	BLI_cb_finalize();
+
 	seq_stripelem_cache_destruct();
 	
 	free_nodesystem();	
@@ -129,9 +136,9 @@ void initglobals(void)
 	ENDIAN_ORDER= (((char*)&ENDIAN_ORDER)[0])? L_ENDIAN: B_ENDIAN;
 
 	if(BLENDER_SUBVERSION)
-		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);
 	else
-		BLI_snprintf(versionstr, sizeof(versionstr), "www.blender.org %d", BLENDER_VERSION);
+		BLI_snprintf(versionstr, sizeof(versionstr), "blender.org %d", BLENDER_VERSION);
 
 #ifdef _WIN32	// FULLSCREEN
 	G.windowstate = G_WINDOWSTATE_USERDEF;
@@ -154,7 +161,6 @@ static void clear_global(void)
 {
 //	extern short winqueue_break;	/* screen.c */
 
-	fastshade_free_render();	/* lamps hang otherwise */
 	free_main(G.main);			/* free all lib data */
 	
 //	free_vertexpaint();
@@ -180,7 +186,6 @@ static void clean_paths(Main *main)
 	BLI_bpathIterator_free(bpi);
 
 	for(scene= main->scene.first; scene; scene= scene->id.next) {
-		BLI_clean(scene->r.backbuf);
 		BLI_clean(scene->r.pic);
 	}
 }
@@ -237,9 +242,14 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 //	CTX_wm_manager_set(C, NULL);
 	clear_global();	
 	
+	/* clear old property update cache, in case some old references are left dangling */
+	RNA_property_update_cache_free();
+	
 	G.main= bfd->main;
 
 	CTX_data_main_set(C, G.main);
+
+	sound_init_main(G.main);
 	
 	if (bfd->user) {
 		
@@ -328,28 +338,45 @@ static int handle_subversion_warning(Main *main)
 	return 1;
 }
 
+static void keymap_item_free(wmKeyMapItem *kmi)
+{
+	if(kmi->properties) {
+		IDP_FreeProperty(kmi->properties);
+		MEM_freeN(kmi->properties);
+	}
+	if(kmi->ptr)
+		MEM_freeN(kmi->ptr);
+}
+
 void BKE_userdef_free(void)
 {
 	wmKeyMap *km;
 	wmKeyMapItem *kmi;
+	wmKeyMapDiffItem *kmdi;
 
-	for(km=U.keymaps.first; km; km=km->next) {
-		for(kmi=km->items.first; kmi; kmi=kmi->next) {
-			if(kmi->properties) {
-				IDP_FreeProperty(kmi->properties);
-				MEM_freeN(kmi->properties);
+	for(km=U.user_keymaps.first; km; km=km->next) {
+		for(kmdi=km->diff_items.first; kmdi; kmdi=kmdi->next) {
+			if(kmdi->add_item) {
+				keymap_item_free(kmdi->add_item);
+				MEM_freeN(kmdi->add_item);
 			}
-			if(kmi->ptr)
-				MEM_freeN(kmi->ptr);
+			if(kmdi->remove_item) {
+				keymap_item_free(kmdi->remove_item);
+				MEM_freeN(kmdi->remove_item);
+			}
 		}
 
+		for(kmi=km->items.first; kmi; kmi=kmi->next)
+			keymap_item_free(kmi);
+
+		BLI_freelistN(&km->diff_items);
 		BLI_freelistN(&km->items);
 	}
 	
 	BLI_freelistN(&U.uistyles);
 	BLI_freelistN(&U.uifonts);
 	BLI_freelistN(&U.themes);
-	BLI_freelistN(&U.keymaps);
+	BLI_freelistN(&U.user_keymaps);
 	BLI_freelistN(&U.addons);
 }
 

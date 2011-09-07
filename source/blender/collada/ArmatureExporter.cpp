@@ -39,6 +39,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "ED_armature.h"
 
 #include "BLI_listbase.h"
 
@@ -89,14 +90,14 @@ void ArmatureExporter::add_instance_controller(Object *ob)
 	ins.add();
 }
 
-void ArmatureExporter::export_controllers(Scene *sce)
+void ArmatureExporter::export_controllers(Scene *sce, bool export_selected)
 {
 	scene = sce;
 
 	openLibrary();
 
 	GeometryFunctor gf;
-	gf.forEachMeshObjectInScene<ArmatureExporter>(sce, *this);
+	gf.forEachMeshObjectInScene<ArmatureExporter>(sce, *this, export_selected);
 
 	closeLibrary();
 }
@@ -177,6 +178,9 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 	node.setNodeName(node_name);
 	node.setNodeSid(node_sid);
 
+	/*if ( bone->childbase.first == NULL || BLI_countlist(&(bone->childbase))>=2)
+		add_blender_leaf_bone( bone, ob_arm , node );
+	else{*/
 	node.start();
 
 	add_bone_transform(ob_arm, bone, node);
@@ -184,10 +188,26 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm)
 	for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
 		add_bone_node(child, ob_arm);
 	}
-
 	node.end();
+	//}
 }
 
+void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node)
+{
+	node.start();
+	
+	add_bone_transform(ob_arm, bone, node);
+	
+	node.addExtraTechniqueParameter("blender", "tip_x", bone->tail[0] );
+	node.addExtraTechniqueParameter("blender", "tip_y", bone->tail[1] );
+	node.addExtraTechniqueParameter("blender", "tip_z", bone->tail[2] );
+	
+	for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
+		add_bone_node(child, ob_arm);
+	}
+	node.end();
+	
+}
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node)
 {
 	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
@@ -207,7 +227,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 		mul_m4_m4m4(mat, pchan->pose_mat, ob_arm->obmat);
 	}
 
-	TransformWriter::add_node_transform(node, mat, NULL);
+	TransformWriter::add_node_transform(node, mat,NULL );
 }
 
 std::string ArmatureExporter::get_controller_id(Object *ob_arm, Object *ob)
@@ -355,8 +375,8 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 			float world[4][4];
 			float inv_bind_mat[4][4];
 
-			// make world-space matrix, pose_mat is armature-space
-			mul_m4_m4m4(world, pchan->pose_mat, ob_arm->obmat);
+			// make world-space matrix, arm_mat is armature-space
+			mul_m4_m4m4(world, pchan->bone->arm_mat, ob_arm->obmat);
 			
 			invert_m4_m4(mat, world);
 			converter.mat4_to_dae(inv_bind_mat, mat);

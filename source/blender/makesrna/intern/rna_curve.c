@@ -47,9 +47,17 @@
 
 EnumPropertyItem beztriple_handle_type_items[] = {
 		{HD_FREE, "FREE", 0, "Free", ""},
-		{HD_AUTO, "AUTO", 0, "Auto", ""},
 		{HD_VECT, "VECTOR", 0, "Vector", ""},
 		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+		{HD_AUTO, "AUTO", 0, "Auto", ""},
+		{0, NULL, 0, NULL, NULL}};
+		
+EnumPropertyItem keyframe_handle_type_items[] = {
+		{HD_FREE, "FREE", 0, "Free", ""},
+		{HD_VECT, "VECTOR", 0, "Vector", ""},
+		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+		{HD_AUTO, "AUTO", 0, "Automatic", ""},
+		{HD_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot"},
 		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem beztriple_interpolation_mode_items[] = {
@@ -233,6 +241,7 @@ static void rna_Curve_material_index_range(PointerRNA *ptr, int *min, int *max)
 	Curve *cu= (Curve*)ptr->id.data;
 	*min= 0;
 	*max= cu->totcol-1;
+	*max= MAX2(0, *max);
 }
 
 static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int *max)
@@ -240,6 +249,7 @@ static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int 
 	Curve *cu= (Curve*)ptr->id.data;
 	*min= 0;
 	*max= cu->totbox-1;
+	*max= MAX2(0, *max);
 }
 
 
@@ -279,8 +289,7 @@ static int rna_Nurb_length(PointerRNA *ptr)
 static void rna_Nurb_type_set(PointerRNA *ptr, int value)
 {
 	Nurb *nu= (Nurb*)ptr->data;
-	nu->type = value;
-	// XXX - TODO change datatypes
+	ED_nurb_set_spline_type(nu, value);
 }
 
 static void rna_BPoint_array_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -650,7 +659,7 @@ static char *rna_TextBox_path(PointerRNA *ptr)
 	int index= (int)(tb - cu->tb);
 
 	if (index >= 0 && index < cu->totbox)
-		return BLI_sprintfN("textboxes[%d]", index);
+		return BLI_sprintfN("text_boxes[%d]", index);
 	else
 		return BLI_strdup("");
 }
@@ -979,19 +988,19 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 
 	prop= RNA_def_property(srna, "font_bold", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vfontb");
-	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_ui_text(prop, "Font Bold", "");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "font_italic", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vfonti");
-	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_ui_text(prop, "Font Italic", "");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "font_bold_italic", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vfontbi");
-	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_ui_text(prop, "Font Bold Italic", "");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
@@ -1003,7 +1012,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	/* flags */
 	prop= RNA_def_property(srna, "use_fast_edit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FAST);
-	RNA_def_property_ui_text(prop, "Fast", "Don't fill polygons while editing");
+	RNA_def_property_ui_text(prop, "Fast Editing", "Don't fill polygons while editing");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
@@ -1446,7 +1455,6 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Radius Interpolation", "The type of radius interpolation for Bezier curves");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	// XXX - switching type probably needs comprehensive recalc of data like in 2.4x
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, curve_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Nurb_type_set", NULL);

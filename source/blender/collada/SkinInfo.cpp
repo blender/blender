@@ -48,12 +48,12 @@
 #include "SkinInfo.h"
 #include "collada_utils.h"
 
-// use this for retrieving bone names, since these must be unique
+// use name, or fall back to original id if name not present (name is optional)
 template<class T>
 static const char *bc_get_joint_name(T *node)
 {
-	const std::string& id = node->getOriginalId();
-	return id.size() ? id.c_str() : node->getName().c_str();
+	const std::string& id = node->getName();
+	return id.size() ? id.c_str() : node->getOriginalId().c_str();
 }
 
 // This is used to store data passed in write_controller_data.
@@ -266,9 +266,9 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	// ^ bone index can be -1 meaning weight toward bind shape, how to express this in Blender?
 
 	// for each vertex in weight indices
-	//   for each bone index in vertex
-	//     add vertex to group at group index
-	//     treat group index -1 specially
+	//	for each bone index in vertex
+	//		add vertex to group at group index
+	//		treat group index -1 specially
 
 	// get def group by index with BLI_findlink
 
@@ -308,11 +308,15 @@ void SkinInfo::find_root_joints(const std::vector<COLLADAFW::Node*> &root_joints
 					  std::vector<COLLADAFW::Node*>& result)
 {
 	std::vector<COLLADAFW::Node*>::const_iterator it;
+	// for each root_joint
 	for (it = root_joints.begin(); it != root_joints.end(); it++) {
 		COLLADAFW::Node *root = *it;
 		std::vector<JointData>::iterator ji;
+		//for each joint_data in this skin
 		for (ji = joint_data.begin(); ji != joint_data.end(); ji++) {
+			//get joint node from joint map
 			COLLADAFW::Node *joint = joint_by_uid[(*ji).joint_uid];
+			//find if joint node is in the tree belonging to the root_joint
 			if (find_node_in_tree(joint, root)) {
 				if (std::find(result.begin(), result.end(), root) == result.end())
 					result.push_back(root);

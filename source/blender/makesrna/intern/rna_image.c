@@ -502,6 +502,11 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Generated Height", "Generated image height");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_generated_update");
 
+	prop= RNA_def_property(srna, "use_generated_float", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gen_flag", IMA_GEN_FLOAT);
+	RNA_def_property_ui_text(prop, "Float Buffer", "Generate floating point buffer");
+	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_generated_update");
+
 	/* realtime properties */
 	prop= RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");

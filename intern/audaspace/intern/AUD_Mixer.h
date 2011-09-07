@@ -34,36 +34,28 @@
 
 #include "AUD_ConverterFunctions.h"
 #include "AUD_Buffer.h"
+#include "AUD_Reference.h"
 class AUD_IReader;
-#include <list>
-
-struct AUD_MixerBuffer
-{
-	sample_t* buffer;
-	int start;
-	int length;
-	float volume;
-};
 
 /**
- * This abstract class is able to mix audiosignals of different channel count
+ * This abstract class is able to mix audiosignals with same channel count
  * and sample rate and convert it to a specific output format.
  */
 class AUD_Mixer
 {
 protected:
 	/**
-	 * The list of buffers to superpose.
-	 */
-	std::list<AUD_MixerBuffer> m_buffers;
-
-	/**
 	 * The output specification.
 	 */
-	const AUD_DeviceSpecs m_specs;
+	AUD_DeviceSpecs m_specs;
 
 	/**
-	 * The temporary mixing buffer.
+	 * The length of the mixing buffer.
+	 */
+	int m_length;
+
+	/**
+	 * The mixing buffer.
 	 */
 	AUD_Buffer m_buffer;
 
@@ -90,28 +82,32 @@ public:
 	AUD_DeviceSpecs getSpecs() const;
 
 	/**
-	 * This funuction prepares a reader for playback.
-	 * \param reader The reader to prepare.
-	 * \return The reader that should be used for playback.
+	 * Sets the target specification for superposing.
+	 * \param specs The target specification.
 	 */
-	virtual AUD_IReader* prepare(AUD_IReader* reader)=0;
+	void setSpecs(AUD_Specs specs);
 
 	/**
-	 * Adds a buffer for superposition.
+	 * Mixes a buffer.
 	 * \param buffer The buffer to superpose.
 	 * \param start The start sample of the buffer.
 	 * \param length The length of the buffer in samples.
 	 * \param volume The mixing volume. Must be a value between 0.0 and 1.0.
 	 */
-	virtual void add(sample_t* buffer, int start, int length, float volume);
+	void mix(sample_t* buffer, int start, int length, float volume);
 
 	/**
-	 * Superposes all added buffers into an output buffer.
+	 * Writes the mixing buffer into an output buffer.
 	 * \param buffer The target buffer for superposing.
-	 * \param length The length of the buffer in samples.
 	 * \param volume The mixing volume. Must be a value between 0.0 and 1.0.
 	 */
-	virtual void superpose(data_t* buffer, int length, float volume);
+	void read(data_t* buffer, float volume);
+
+	/**
+	 * Clears the mixing buffer.
+	 * \param length The length of the buffer in samples.
+	 */
+	void clear(int length);
 };
 
 #endif //AUD_MIXER

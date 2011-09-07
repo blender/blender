@@ -49,7 +49,7 @@ protected:
 	/**
 	 * If there is no reader it is created out of this factory.
 	 */
-	AUD_IFactory* m_factory;
+	AUD_Reference<AUD_IFactory> m_factory;
 
 	/**
 	 * Returns the reader created out of the factory.
@@ -57,7 +57,7 @@ protected:
 	 * classes.
 	 * \return The reader created out of the factory.
 	 */
-	inline AUD_IReader* getReader() const
+	inline AUD_Reference<AUD_IReader> getReader() const
 	{
 		return m_factory->createReader();
 	}
@@ -67,7 +67,7 @@ public:
 	 * Creates a new factory.
 	 * \param factory The input factory.
 	 */
-	AUD_EffectFactory(AUD_IFactory* factory);
+	AUD_EffectFactory(AUD_Reference<AUD_IFactory> factory);
 
 	/**
 	 * Destroys the factory.
@@ -78,7 +78,7 @@ public:
 	 * Returns the saved factory.
 	 * \return The factory or NULL if there has no factory been saved.
 	 */
-	AUD_IFactory* getFactory() const;
+	AUD_Reference<AUD_IFactory> getFactory() const;
 };
 
 #endif //AUD_EFFECTFACTORY

@@ -429,7 +429,7 @@ static int compare_len(const void *p1, const void *p2)
 		return -1;
 }
 
-void MEM_printmemlist_stats()
+void MEM_printmemlist_stats(void)
 {
 	MemHead *membl;
 	MemPrintBlock *pb, *printblock;

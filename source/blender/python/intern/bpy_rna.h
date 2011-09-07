@@ -62,6 +62,11 @@
 #if defined(USE_PYRNA_INVALIDATE_GC) && defined(USE_PYRNA_INVALIDATE_WEAKREF)
 #error "Only 1 reference check method at a time!"
 #endif
+
+/* only used by operator introspection get_rna(), this is only used for doc gen
+ * so prefer the leak to the memory bloat for now. */
+// #define PYRNA_FREE_SUPPORT
+
 /* --- end bpy build options --- */
 
 struct ID;
@@ -71,6 +76,7 @@ extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
 extern PyTypeObject pyrna_prop_array_Type;
 extern PyTypeObject pyrna_prop_collection_Type;
+extern PyTypeObject pyrna_func_Type;
 
 #define BPy_StructRNA_Check(v)			(PyObject_TypeCheck(v, &pyrna_struct_Type))
 #define BPy_StructRNA_CheckExact(v)		(Py_TYPE(v) == &pyrna_struct_Type)
@@ -107,7 +113,10 @@ typedef struct {
 	 * hold onto the collection iterator to prevent it from freeing allocated data we may use */
 	PyObject *reference;
 #endif /* !USE_PYRNA_STRUCT_REFERENCE */
+
+#ifdef PYRNA_FREE_SUPPORT
 	int freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
+#endif /* PYRNA_FREE_SUPPORT */
 } BPy_StructRNA;
 
 typedef struct {
@@ -141,6 +150,15 @@ typedef struct {
 	/* collection iterator spesific parts */
 	CollectionPropertyIterator iter;
 } BPy_PropertyCollectionIterRNA;
+
+typedef struct {
+	PyObject_HEAD /* required python macro   */
+#ifdef USE_WEAKREFS
+	PyObject *in_weakreflist;
+#endif
+	PointerRNA ptr;
+	FunctionRNA *func;
+} BPy_FunctionRNA;
 
 /* cheap trick */
 #define BPy_BaseTypeRNA BPy_PropertyRNA

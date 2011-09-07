@@ -159,7 +159,7 @@ typedef struct {
 static void multiresbake_get_normal(const MResolvePixelData *data, float norm[], const int face_num, const int vert_index)
 {
 	unsigned int indices[]= {data->mface[face_num].v1, data->mface[face_num].v2,
-                             data->mface[face_num].v3, data->mface[face_num].v4};
+	                         data->mface[face_num].v3, data->mface[face_num].v4};
 	const int smoothnormal= (data->mface[face_num].flag & ME_SMOOTH);
 
 	if(!smoothnormal)  { /* flat */
@@ -636,14 +636,14 @@ static void apply_heights_data(void *bake_data)
 			if(ibuf->rect_float) {
 				float *rrgbf= ibuf->rect_float + i*4;
 
-				if(max-min > 1e-5) height= (heights[i]-min)/(max-min);
+				if(max-min > 1e-5f) height= (heights[i]-min)/(max-min);
 				else height= 0;
 
 				rrgbf[0]=rrgbf[1]=rrgbf[2]= height;
 			} else {
 				char *rrgb= (char*)ibuf->rect + i*4;
 
-				if(max-min > 1e-5) height= (heights[i]-min)/(max-min);
+				if(max-min > 1e-5f) height= (heights[i]-min)/(max-min);
 				else height= 0;
 
 				rrgb[0]=rrgb[1]=rrgb[2]= FTOCHAR(height);
@@ -852,37 +852,18 @@ static void finish_images(MultiresBakeRender *bkr)
 
 	for(link= bkr->image.first; link; link= link->next) {
 		Image *ima= (Image*)link->data;
-		int i;
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
 		if(ibuf->x<=0 || ibuf->y<=0)
 			continue;
 
-		/* Margin */
-		if(bkr->bake_filter) {
-			char *temprect;
-
-			/* extend the mask +2 pixels from the image,
-			 * this is so colors dont blend in from outside */
-
-			for(i=0; i<bkr->bake_filter; i++)
-				IMB_mask_filter_extend((char *)ibuf->userdata, ibuf->x, ibuf->y);
-
-			temprect = MEM_dupallocN(ibuf->userdata);
-
-			/* expand twice to clear this many pixels, so they blend back in */
-			IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-			IMB_mask_filter_extend(temprect, ibuf->x, ibuf->y);
-
-			/* clear all pixels in the margin */
-			IMB_mask_clear(ibuf, temprect, FILTER_MASK_MARGIN);
-			MEM_freeN(temprect);
-
-			for(i= 0; i<bkr->bake_filter; i++)
-				IMB_filter_extend(ibuf, (char *)ibuf->userdata);
-		}
+		RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, bkr->bake_filter);
 
 		ibuf->userflags|= IB_BITMAPDIRTY;
+
+		if(ibuf->rect_float)
+			ibuf->userflags|= IB_RECT_INVALID;
+
 		if(ibuf->mipmap[0]) {
 			ibuf->userflags|= IB_MIPMAP_INVALID;
 			imb_freemipmapImBuf(ibuf);
@@ -989,9 +970,10 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 0);
 	Mesh *me= (Mesh*)ob->data;
 
-	*lvl= mmd->lvl;
+	if(ob->mode==OB_MODE_SCULPT) *lvl= mmd->sculptlvl;
+	else *lvl= mmd->lvl;
 
-	if(mmd->lvl==0) {
+	if(*lvl==0) {
 		DerivedMesh *tmp_dm= CDDM_from_mesh(me, ob);
 		dm= CDDM_copy(tmp_dm);
 		tmp_dm->release(tmp_dm);
@@ -999,7 +981,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 		MultiresModifierData tmp_mmd= *mmd;
 		DerivedMesh *cddm= CDDM_from_mesh(me, ob);
 
-		tmp_mmd.lvl= mmd->lvl;
+		tmp_mmd.lvl= *lvl;
 		dm= multires_dm_create_from_derived(&tmp_mmd, 1, cddm, ob, 0, 0);
 		cddm->release(cddm);
 	}
@@ -1028,7 +1010,8 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 static void clear_images(MTFace *mtface, int totface)
 {
 	int a;
-	float vec[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	const float vec_alpha[4]= {0.0f, 0.0f, 0.0f, 0.0f};
+	const float vec_solid[4]= {0.0f, 0.0f, 0.0f, 1.0f};
 
 	for(a= 0; a<totface; a++)
 		mtface[a].tpage->id.flag&= ~LIB_DOIT;
@@ -1039,7 +1022,7 @@ static void clear_images(MTFace *mtface, int totface)
 		if((ima->id.flag&LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 
-			IMB_rectfill(ibuf, vec);
+			IMB_rectfill(ibuf, (ibuf->depth == 32) ? vec_alpha : vec_solid);
 			ima->id.flag|= LIB_DOIT;
 		}
 	}
@@ -1332,7 +1315,6 @@ static void finish_bake_internal(BakeRender *bkr)
 
 					/* freed when baking is done, but if its canceled we need to free here */
 					if (ibuf->userdata) {
-						printf("freed\n");
 						MEM_freeN(ibuf->userdata);
 						ibuf->userdata= NULL;
 					}

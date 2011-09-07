@@ -32,13 +32,14 @@ in lost (i.e. unkeyed) animation.
 
 import bpy
 import keyingsets_utils
+from bpy.types import KeyingSetInfo
 
 ###############################
 # Built-In KeyingSets
 
 
 # Location
-class BUILTIN_KSI_Location(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_Location(KeyingSetInfo):
     bl_label = "Location"
 
     # poll - use predefined callback for selected bones/objects
@@ -52,7 +53,7 @@ class BUILTIN_KSI_Location(bpy.types.KeyingSetInfo):
 
 
 # Rotation
-class BUILTIN_KSI_Rotation(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_Rotation(KeyingSetInfo):
     bl_label = "Rotation"
 
     # poll - use predefined callback for selected bones/objects
@@ -66,7 +67,7 @@ class BUILTIN_KSI_Rotation(bpy.types.KeyingSetInfo):
 
 
 # Scale
-class BUILTIN_KSI_Scaling(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_Scaling(KeyingSetInfo):
     bl_label = "Scaling"
 
     # poll - use predefined callback for selected bones/objects
@@ -82,7 +83,7 @@ class BUILTIN_KSI_Scaling(bpy.types.KeyingSetInfo):
 
 
 # LocRot
-class BUILTIN_KSI_LocRot(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_LocRot(KeyingSetInfo):
     bl_label = "LocRot"
 
     # poll - use predefined callback for selected bones/objects
@@ -100,7 +101,7 @@ class BUILTIN_KSI_LocRot(bpy.types.KeyingSetInfo):
 
 
 # LocScale
-class BUILTIN_KSI_LocScale(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_LocScale(KeyingSetInfo):
     bl_label = "LocScale"
 
     # poll - use predefined callback for selected bones/objects
@@ -118,7 +119,7 @@ class BUILTIN_KSI_LocScale(bpy.types.KeyingSetInfo):
 
 
 # LocRotScale
-class BUILTIN_KSI_LocRotScale(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_LocRotScale(KeyingSetInfo):
     bl_label = "LocRotScale"
 
     # poll - use predefined callback for selected bones/objects
@@ -138,7 +139,7 @@ class BUILTIN_KSI_LocRotScale(bpy.types.KeyingSetInfo):
 
 
 # RotScale
-class BUILTIN_KSI_RotScale(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_RotScale(KeyingSetInfo):
     bl_label = "RotScale"
 
     # poll - use predefined callback for selected bones/objects
@@ -158,7 +159,7 @@ class BUILTIN_KSI_RotScale(bpy.types.KeyingSetInfo):
 
 
 # Location
-class BUILTIN_KSI_VisualLoc(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_VisualLoc(KeyingSetInfo):
     bl_label = "Visual Location"
 
     bl_options = {'INSERTKEY_VISUAL'}
@@ -174,7 +175,7 @@ class BUILTIN_KSI_VisualLoc(bpy.types.KeyingSetInfo):
 
 
 # Rotation
-class BUILTIN_KSI_VisualRot(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_VisualRot(KeyingSetInfo):
     bl_label = "Visual Rotation"
 
     bl_options = {'INSERTKEY_VISUAL'}
@@ -190,7 +191,7 @@ class BUILTIN_KSI_VisualRot(bpy.types.KeyingSetInfo):
 
 
 # VisualLocRot
-class BUILTIN_KSI_VisualLocRot(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_VisualLocRot(KeyingSetInfo):
     bl_label = "Visual LocRot"
 
     bl_options = {'INSERTKEY_VISUAL'}
@@ -212,7 +213,7 @@ class BUILTIN_KSI_VisualLocRot(bpy.types.KeyingSetInfo):
 
 
 # Available
-class BUILTIN_KSI_Available(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_Available(KeyingSetInfo):
     bl_label = "Available"
 
     # poll - selected objects or selected object with animation data
@@ -234,7 +235,7 @@ class BUILTIN_KSI_Available(bpy.types.KeyingSetInfo):
 
 
 # All properties that are likely to get animated in a character rig
-class BUILTIN_KSI_WholeCharacter(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
     bl_label = "Whole Character"
 
     # these prefixes should be avoided, as they are not really bones
@@ -265,7 +266,7 @@ class BUILTIN_KSI_WholeCharacter(bpy.types.KeyingSetInfo):
         # loc, rot, scale - only include unlocked ones
         ksi.doLoc(ks, bone)
 
-        if bone.rotation_mode in ('QUATERNION', 'AXIS_ANGLE'):
+        if bone.rotation_mode in {'QUATERNION', 'AXIS_ANGLE'}:
             ksi.doRot4d(ks, bone)
         else:
             ksi.doRot3d(ks, bone)
@@ -365,7 +366,7 @@ class BUILTIN_KSI_WholeCharacter(bpy.types.KeyingSetInfo):
 
 
 # Delta Location
-class BUILTIN_KSI_DeltaLocation(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_DeltaLocation(KeyingSetInfo):
     bl_label = "Delta Location"
 
     # poll - selected objects only (and only if active object in object mode)
@@ -390,7 +391,7 @@ class BUILTIN_KSI_DeltaLocation(bpy.types.KeyingSetInfo):
 
 
 # Delta Rotation
-class BUILTIN_KSI_DeltaRotation(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_DeltaRotation(KeyingSetInfo):
     bl_label = "Delta Rotation"
 
     # poll - selected objects only (and only if active object in object mode)
@@ -407,7 +408,7 @@ class BUILTIN_KSI_DeltaRotation(bpy.types.KeyingSetInfo):
         # add the property name to the base path
         #   rotation mode affects the property used
         if data.rotation_mode == 'QUATERNION':
-            path = path_add_property(base_path, "delta_rotation_quaternion")
+            path = keyingsets_utils.path_add_property(base_path, "delta_rotation_quaternion")
         elif data.rotation_mode == 'AXIS_ANGLE':
             # XXX: for now, this is not available yet
             #path = path_add_property(base_path, "delta_rotation_axis_angle")
@@ -423,7 +424,7 @@ class BUILTIN_KSI_DeltaRotation(bpy.types.KeyingSetInfo):
 
 
 # Delta Scale
-class BUILTIN_KSI_DeltaScale(bpy.types.KeyingSetInfo):
+class BUILTIN_KSI_DeltaScale(KeyingSetInfo):
     bl_label = "Delta Scale"
 
     # poll - selected objects only (and only if active object in object mode)

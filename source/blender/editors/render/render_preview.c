@@ -64,6 +64,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -171,6 +172,7 @@ static Main *pr_main= NULL;
 
 void ED_preview_init_dbase(void)
 {
+#ifndef WITH_HEADLESS
 	BlendFileData *bfd;
 	extern int datatoc_preview_blend_size;
 	extern char datatoc_preview_blend[];
@@ -184,6 +186,7 @@ void ED_preview_init_dbase(void)
 		MEM_freeN(bfd);
 	}
 	G.fileflags= fileflags;
+#endif
 }
 
 void ED_preview_free_dbase(void)

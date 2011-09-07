@@ -474,6 +474,7 @@ int main(int argc, char** argv)
 			200,
 			GHOST_kWindowStateNormal,
 			GHOST_kDrawingContextTypeOpenGL,
+			FALSE,
 			FALSE);
 		if (!sMainWindow)
 		{
@@ -490,6 +491,7 @@ int main(int argc, char** argv)
 			200,
 			GHOST_kWindowStateNormal,
 			GHOST_kDrawingContextTypeOpenGL,
+			FALSE,
 			FALSE);
 		if (!sSecondaryWindow)
 		{

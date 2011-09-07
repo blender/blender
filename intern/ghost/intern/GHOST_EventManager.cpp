@@ -42,7 +42,7 @@
 #include "GHOST_EventManager.h"
 #include <algorithm>
 #include "GHOST_Debug.h"
-
+#include <stdio.h> // [mce] temp debug
 
 GHOST_EventManager::GHOST_EventManager()
 {

@@ -91,8 +91,7 @@ bool KX_NetworkMessageActuator::Update()
 
 CValue* KX_NetworkMessageActuator::GetReplica()
 {
-	KX_NetworkMessageActuator* replica =
-	    new KX_NetworkMessageActuator(*this);
+	KX_NetworkMessageActuator* replica = new KX_NetworkMessageActuator(*this);
 	replica->ProcessReplica();
 
 	return replica;

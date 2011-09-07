@@ -38,13 +38,14 @@
 #include "collada_internal.h"
 
 template<class Functor>
-void forEachLampObjectInScene(Scene *sce, Functor &f)
+void forEachLampObjectInScene(Scene *sce, Functor &f, bool export_selected)
 {
 	Base *base= (Base*) sce->base.first;
 	while(base) {
 		Object *ob = base->object;
 			
-		if (ob->type == OB_LAMP && ob->data) {
+		if (ob->type == OB_LAMP && ob->data
+			&& !(export_selected && !(ob->flag & SELECT))) {
 			f(ob);
 		}
 		base= base->next;
@@ -53,59 +54,58 @@ void forEachLampObjectInScene(Scene *sce, Functor &f)
 
 LightsExporter::LightsExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryLights(sw){}
 
-void LightsExporter::exportLights(Scene *sce)
+void LightsExporter::exportLights(Scene *sce, bool export_selected)
 {
 	openLibrary();
 	
-	forEachLampObjectInScene(sce, *this);
+	forEachLampObjectInScene(sce, *this, export_selected);
 	
 	closeLibrary();
 }
+
 void LightsExporter::operator()(Object *ob)
 {
 	Lamp *la = (Lamp*)ob->data;
 	std::string la_id(get_light_id(ob));
 	std::string la_name(id_name(la));
 	COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
-	float e, d, constatt, linatt, quadatt;
-	float r;
+	float d, constatt, linatt, quadatt;
 	
 	d = la->dist;
-	r = d/2.0f;
 	
 	constatt = 1.0f;
 	
 	if(la->falloff_type==LA_FALLOFF_INVLINEAR) {
-		linatt = 1.0f / r;
+		linatt = 1.0f / d;
 		quadatt = 0.0f;
 	}
 	else {
 		linatt = 0.0f;
-		quadatt = 1.0f / r;
+		quadatt = 1.0f / (d * d);
 	}
 	
 	// sun
 	if (la->type == LA_SUN) {
-		COLLADASW::DirectionalLight cla(mSW, la_id, la_name, e);
-		cla.setColor(col);
+		COLLADASW::DirectionalLight cla(mSW, la_id, la_name);
+		cla.setColor(col,false,"color");
 		cla.setConstantAttenuation(constatt);
 		exportBlenderProfile(cla, la);
 		addLight(cla);
 	}
 	// hemi
 	else if (la->type == LA_HEMI) {
-		COLLADASW::AmbientLight cla(mSW, la_id, la_name, e);
-		cla.setColor(col);
+		COLLADASW::AmbientLight cla(mSW, la_id, la_name);
+		cla.setColor(col,false,"color");
 		cla.setConstantAttenuation(constatt);
 		exportBlenderProfile(cla, la);
 		addLight(cla);
 	}
 	// spot
 	else if (la->type == LA_SPOT) {
-		COLLADASW::SpotLight cla(mSW, la_id, la_name, e);
-		cla.setColor(col);
-		cla.setFallOffAngle(la->spotsize);
-		cla.setFallOffExponent(la->spotblend);
+		COLLADASW::SpotLight cla(mSW, la_id, la_name);
+		cla.setColor(col,false,"color");
+		cla.setFallOffAngle(la->spotsize,false,"fall_off_angle");
+		cla.setFallOffExponent(la->spotblend,false,"fall_off_exponent");
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);
@@ -114,8 +114,8 @@ void LightsExporter::operator()(Object *ob)
 	}
 	// lamp
 	else if (la->type == LA_LOCAL) {
-		COLLADASW::PointLight cla(mSW, la_id, la_name, e);
-		cla.setColor(col);
+		COLLADASW::PointLight cla(mSW, la_id, la_name);
+		cla.setColor(col,false,"color");
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);
@@ -125,8 +125,8 @@ void LightsExporter::operator()(Object *ob)
 	// area lamp is not supported
 	// it will be exported as a local lamp
 	else {
-		COLLADASW::PointLight cla(mSW, la_id, la_name, e);
-		cla.setColor(col);
+		COLLADASW::PointLight cla(mSW, la_id, la_name);
+		cla.setColor(col,false,"color");
 		cla.setConstantAttenuation(constatt);
 		cla.setLinearAttenuation(linatt);
 		cla.setQuadraticAttenuation(quadatt);
@@ -141,18 +141,18 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Lamp *la)
 	cla.addExtraTechniqueParameter("blender", "type", la->type);
 	cla.addExtraTechniqueParameter("blender", "flag", la->flag);
 	cla.addExtraTechniqueParameter("blender", "mode", la->mode);
-	cla.addExtraTechniqueParameter("blender", "gamma", la->k);
+	cla.addExtraTechniqueParameter("blender", "gamma", la->k, "blender_gamma");
 	cla.addExtraTechniqueParameter("blender", "red", la->r);
 	cla.addExtraTechniqueParameter("blender", "green", la->g);
 	cla.addExtraTechniqueParameter("blender", "blue", la->b);
-	cla.addExtraTechniqueParameter("blender", "shadow_r", la->shdwr);
-	cla.addExtraTechniqueParameter("blender", "shadow_g", la->shdwg);
-	cla.addExtraTechniqueParameter("blender", "shadow_b", la->shdwb);
-	cla.addExtraTechniqueParameter("blender", "energy", la->energy);
-	cla.addExtraTechniqueParameter("blender", "dist", la->dist);
+	cla.addExtraTechniqueParameter("blender", "shadow_r", la->shdwr, "blender_shadow_r");
+	cla.addExtraTechniqueParameter("blender", "shadow_g", la->shdwg, "blender_shadow_g");
+	cla.addExtraTechniqueParameter("blender", "shadow_b", la->shdwb, "blender_shadow_b");
+	cla.addExtraTechniqueParameter("blender", "energy", la->energy, "blender_energy");
+	cla.addExtraTechniqueParameter("blender", "dist", la->dist, "blender_dist");
 	cla.addExtraTechniqueParameter("blender", "spotsize", la->spotsize);
 	cla.addExtraTechniqueParameter("blender", "spotblend", la->spotblend);
-	cla.addExtraTechniqueParameter("blender", "halo_intensity", la->haint);
+	cla.addExtraTechniqueParameter("blender", "halo_intensity", la->haint, "blnder_halo_intensity");
 	cla.addExtraTechniqueParameter("blender", "att1", la->att1);
 	cla.addExtraTechniqueParameter("blender", "att2", la->att2);
 	// \todo figure out how we can have falloff curve supported here

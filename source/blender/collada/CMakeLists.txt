@@ -28,46 +28,30 @@ remove_strict_flags()
 
 set(INC
 	.
-	../blenlib
 	../blenkernel
+	../blenlib
 	../blenloader
-	../windowmanager
+	../editors/include
 	../makesdna
 	../makesrna
-	../editors/include
+	../windowmanager
 	../../../intern/guardedalloc
 )
 
 set(INC_SYS
-
+	${OPENCOLLADA_INCLUDE_DIRS}
 )
-
-if(APPLE)
-	list(APPEND INC_SYS
-		${OPENCOLLADA_INC}/COLLADAStreamWriter
-		${OPENCOLLADA_INC}/COLLADABaseUtils
-		${OPENCOLLADA_INC}/COLLADAFramework
-		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader
-		${OPENCOLLADA_INC}/GeneratedSaxParser 
-	)
-else()
-	list(APPEND INC_SYS
-		${OPENCOLLADA_INC}/COLLADAStreamWriter/include
-		${OPENCOLLADA_INC}/COLLADABaseUtils/include
-		${OPENCOLLADA_INC}/COLLADAFramework/include
-		${OPENCOLLADA_INC}/COLLADASaxFrameworkLoader/include 
-		${OPENCOLLADA_INC}/GeneratedSaxParser/include 
-	)
-endif()
 
 set(SRC
 	AnimationImporter.cpp
+	AnimationExporter.cpp
 	ArmatureExporter.cpp
 	ArmatureImporter.cpp
 	CameraExporter.cpp
 	DocumentExporter.cpp
 	DocumentImporter.cpp
 	EffectExporter.cpp
+	ErrorHandler.cpp
 	ExtraHandler.cpp
 	ExtraTags.cpp
 	GeometryExporter.cpp
@@ -84,12 +68,14 @@ set(SRC
 	collada_utils.cpp
 
 	AnimationImporter.h
+	AnimationExporter.h	
 	ArmatureExporter.h
 	ArmatureImporter.h
 	CameraExporter.h
 	DocumentExporter.h
 	DocumentImporter.h
 	EffectExporter.h
+	ErrorHandler.h
 	ExtraHandler.h
 	ExtraTags.h
 	GeometryExporter.h
@@ -107,7 +93,7 @@ set(SRC
 )
 
 if(WITH_BUILDINFO)
-	add_definitions(-DNAN_BUILDINFO)
+	add_definitions(-DWITH_BUILDINFO)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)

@@ -35,15 +35,18 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_vfont_types.h"
 
 #include "BLI_math.h"
@@ -63,15 +66,18 @@
 #include "BKE_group.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
+#include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
+#include "BKE_speaker.h"
 #include "BKE_texture.h"
 
 #include "RNA_access.h"
@@ -182,7 +188,7 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	}
 	
 	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object", -FLT_MAX, FLT_MAX);
-	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -FLT_MAX, FLT_MAX);
+	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", (float)-M_PI * 2.0f, (float)M_PI * 2.0f);
 	
 	prop = RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -270,8 +276,10 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc, floa
 		RNA_boolean_set(op->ptr, "view_align", view_align);
 	}
 	
-	if (view_align)
+	if (view_align) {
 		ED_object_rotation_from_view(C, rot);
+		RNA_float_set_array(op->ptr, "rotation", rot);
+	}
 	else
 		RNA_float_get_array(op->ptr, "rotation", rot);
 	
@@ -764,6 +772,61 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
+static int object_speaker_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob;
+	int enter_editmode;
+	unsigned int layer;
+	float loc[3], rot[3];
+	Scene *scene = CTX_data_scene(C);
+
+	object_add_generic_invoke_options(C, op);
+	if(!ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer))
+		return OPERATOR_CANCELLED;
+
+	ob= ED_object_add_type(C, OB_SPEAKER, loc, rot, FALSE, layer);
+	
+	/* to make it easier to start using this immediately in NLA, a default sound clip is created
+	 * ready to be moved around to retime the sound and/or make new sound clips
+	 */
+	{
+		/* create new data for NLA hierarchy */
+		AnimData *adt = BKE_id_add_animdata(&ob->id);
+		NlaTrack *nlt = add_nlatrack(adt, NULL);
+		NlaStrip *strip = add_nla_soundstrip(CTX_data_scene(C), ob->data);
+		strip->start = CFRA;
+		strip->end += strip->start;
+		
+		/* hook them up */
+		BKE_nlatrack_add_strip(nlt, strip);
+		
+		/* auto-name the strip, and give the track an interesting name  */
+		strcpy(nlt->name, "SoundTrack");
+		BKE_nlastrip_validate_name(adt, strip);
+		
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA|NA_EDITED, NULL);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_speaker_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Speaker";
+	ot->description = "Add a speaker object to the scene";
+	ot->idname= "OBJECT_OT_speaker_add";
+
+	/* api callbacks */
+	ot->exec= object_speaker_add_exec;
+	ot->poll= ED_operator_objectmode;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	ED_object_add_generic_props(ot, TRUE);
+}
+
 /* only used as menu */
 void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 {
@@ -806,14 +869,14 @@ static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	int islamp= 0;
+	/* int islamp= 0; */ /* UNUSED */
 	
 	if(CTX_data_edit_object(C)) 
 		return OPERATOR_CANCELLED;
 	
 	CTX_DATA_BEGIN(C, Base*, base, selected_bases) {
 
-		if(base->object->type==OB_LAMP) islamp= 1;
+		/* if(base->object->type==OB_LAMP) islamp= 1; */
 
 		/* deselect object -- it could be used in other scenes */
 		base->object->flag &= ~SELECT;
@@ -822,8 +885,6 @@ static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
 		ED_base_object_free_and_unlink(bmain, scene, base);
 	}
 	CTX_DATA_END;
-
-	if(islamp) reshadeall_displist(scene);	/* only frees displist */
 
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
@@ -1439,28 +1500,6 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 		}
 		
 		/* duplicates using userflags */
-#if 0 // XXX old animation system				
-		if(dupflag & USER_DUP_IPO) {
-			bConstraintChannel *chan;
-			id= (ID *)obn->ipo;
-			
-			if(id) {
-				ID_NEW_US( obn->ipo)
-				else obn->ipo= copy_ipo(obn->ipo);
-				id->us--;
-			}
-			/* Handle constraint ipos */
-			for (chan=obn->constraintChannels.first; chan; chan=chan->next){
-				id= (ID *)chan->ipo;
-				if(id) {
-					ID_NEW_US( chan->ipo)
-					else chan->ipo= copy_ipo(chan->ipo);
-					id->us--;
-				}
-			}
-		}
-#endif // XXX old animation system
-		
 		if(dupflag & USER_DUP_ACT) {
 			BKE_copy_animdata_id_action(&obn->id);
 		}
@@ -1602,12 +1641,26 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 					id->us--;
 				}
 				break;
+			case OB_SPEAKER:
+				if(dupflag!=0) {
+					ID_NEW_US2(obn->data )
+					else {
+						obn->data= copy_speaker(obn->data);
+						didit= 1;
+					}
+					id->us--;
+				}
+				break;
+
 		}
 
 		/* check if obdata is copied */
 		if(didit) {
+			Key *key = ob_get_key(obn);
+			
 			if(dupflag & USER_DUP_ACT) {
 				BKE_copy_animdata_id_action((ID *)obn->data);
+				if(key) BKE_copy_animdata_id_action((ID*)key);
 			}
 			
 			if(dupflag & USER_DUP_MAT) {

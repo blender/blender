@@ -1,6 +1,3 @@
-/** \file blender/editors/interface/resources.c
- *  \ingroup edinterface
- */
 /*
  * $Id$
  *
@@ -31,6 +28,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+
+/** \file blender/editors/interface/resources.c
+ *  \ingroup edinterface
  */
 
 #include <math.h>
@@ -249,6 +250,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->wire; break;
 			case TH_LAMP:
 				cp= ts->lamp; break;
+			case TH_SPEAKER:
+				cp= ts->speaker; break;
 			case TH_SELECT:
 				cp= ts->select; break;
 			case TH_ACTIVE:
@@ -325,6 +328,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->handle_free; break;
 			case TH_HANDLE_AUTO:
 				cp= ts->handle_auto; break;
+			case TH_HANDLE_AUTOCLAMP:
+				cp= ts->handle_auto_clamped; break;
 			case TH_HANDLE_VECT:
 				cp= ts->handle_vect; break;
 			case TH_HANDLE_ALIGN:
@@ -333,11 +338,13 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->handle_sel_free; break;
 			case TH_HANDLE_SEL_AUTO:
 				cp= ts->handle_sel_auto; break;
+			case TH_HANDLE_SEL_AUTOCLAMP:
+				cp= ts->handle_sel_auto_clamped; break;
 			case TH_HANDLE_SEL_VECT:
 				cp= ts->handle_sel_vect; break;
 			case TH_HANDLE_SEL_ALIGN:
 				cp= ts->handle_sel_align; break;
-
+		
 			case TH_SYNTAX_B:
 				cp= ts->syntaxb; break;
 			case TH_SYNTAX_V:
@@ -359,7 +366,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->syntaxv; break;
 			case TH_NODE_GROUP:
 				cp= ts->syntaxc; break;
-				
+			case TH_NODE_CURVING:
+				cp= &ts->noodle_curving; break;
+
 			case TH_SEQ_MOVIE:
 				cp= ts->movie; break;
 			case TH_SEQ_IMAGE:
@@ -584,6 +593,7 @@ void ui_theme_init_default(void)
 	SETCOLF(btheme->tv3d.grid,     0.251, 0.251, 0.251, 1.0);
 	SETCOL(btheme->tv3d.wire,       0x0, 0x0, 0x0, 255);
 	SETCOL(btheme->tv3d.lamp,       0, 0, 0, 40);
+	SETCOL(btheme->tv3d.speaker,    0, 0, 0, 255);
 	SETCOL(btheme->tv3d.select, 241, 88, 0, 255);
 	SETCOL(btheme->tv3d.active, 255, 170, 64, 255);
 	SETCOL(btheme->tv3d.group,      8, 48, 8, 255);
@@ -663,7 +673,9 @@ void ui_theme_init_default(void)
 
 	SETCOL(btheme->tipo.handle_vertex, 		0, 0, 0, 255);
 	SETCOL(btheme->tipo.handle_vertex_select, 255, 133, 0, 255);
-	btheme->tipo.handle_vertex_size= 3;
+	SETCOL(btheme->tipo.handle_auto_clamped, 0x99, 0x40, 0x30, 255);
+	SETCOL(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
+	btheme->tipo.handle_vertex_size= 4;
 	
 	SETCOL(btheme->tipo.ds_channel, 	82, 96, 110, 255);
 	SETCOL(btheme->tipo.ds_subchannel,	124, 137, 150, 255);
@@ -786,6 +798,7 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tnode.syntaxb, 108, 105, 111, 255);	/* operator */
 	SETCOL(btheme->tnode.syntaxv, 104, 106, 117, 255);	/* generator */
 	SETCOL(btheme->tnode.syntaxc, 105, 117, 110, 255);	/* group */
+	btheme->tnode.noodle_curving = 5;
 
 	/* space logic */
 	btheme->tlogic= btheme->tv3d;
@@ -1115,10 +1128,11 @@ void init_userdef_do_versions(void)
 	}
 	if(U.pad_rot_angle==0)
 		U.pad_rot_angle= 15;
-	
-	if(U.flag & USER_CUSTOM_RANGE) 
-		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
-	
+
+	/* signal for derivedmesh to use colorband */
+	/* run incase this was on and is now off in the user prefs [#28096] */
+	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight):NULL);
+
 	if (bmain->versionfile <= 191) {
 		strcpy(U.plugtexdir, U.textudir);
 		strcpy(U.sounddir, "/");
@@ -1420,7 +1434,7 @@ void init_userdef_do_versions(void)
 	if (bmain->versionfile < 250 || (bmain->versionfile == 250 && bmain->subversionfile < 8)) {
 		wmKeyMap *km;
 		
-		for(km=U.keymaps.first; km; km=km->next) {
+		for(km=U.user_keymaps.first; km; km=km->next) {
 			if (strcmp(km->idname, "Armature_Sketch")==0)
 				strcpy(km->idname, "Armature Sketch");
 			else if (strcmp(km->idname, "View3D")==0)
@@ -1551,7 +1565,37 @@ void init_userdef_do_versions(void)
 		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs, so that it doesn't linger around from old configs like a ghost */
 		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
 	}
+
+	if (bmain->versionfile < 258 || (bmain->versionfile == 258 && bmain->subversionfile < 2)) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			btheme->tnode.noodle_curving = 5;
+		}
+	}
+
+	if (bmain->versionfile < 258 || (bmain->versionfile == 258 && bmain->subversionfile < 1)) {
+		bTheme *btheme;
+		
+		/* if new keyframes handle default is stuff "auto", make it "auto-clamped" instead */
+		if (U.keyhandles_new == HD_AUTO) 
+			U.keyhandles_new = HD_AUTO_ANIM;
+			
+		/* theme color additions */
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* auto-clamped handles -> based on auto */
+			SETCOL(btheme->tipo.handle_auto_clamped, 0x99, 0x40, 0x30, 255);
+			SETCOL(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
+		}
+	}
 	
+	if (bmain->versionfile < 259 || (bmain->versionfile == 259 && bmain->subversionfile < 1)) {
+		bTheme *btheme;
+
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			btheme->tv3d.speaker[3] = 255;
+		}
+	}
+
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
 		U.texcollectrate = 60;
@@ -1580,6 +1624,14 @@ void init_userdef_do_versions(void)
 		U.dragthreshold= 5;
 	if (U.widget_unit==0)
 		U.widget_unit= (U.dpi * 20 + 36)/72;
+	if (U.anisotropic_filter <= 0)
+		U.anisotropic_filter = 1;
+
+	if (U.ndof_sensitivity == 0.0f) {
+		U.ndof_sensitivity = 1.0f;
+		U.ndof_flag = NDOF_LOCK_HORIZON |
+			NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE;
+	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

@@ -485,11 +485,8 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	if (extend == 0 && select)
 		EM_deselect_all(vc->em);
 
-	/* workaround: init mats first, EM_mask_init_backbuf_border can change
-	   view matrix to pixel space, breaking edge select with backbuf. fixes bug [#20936] */
-
-	/* [#21018] breaks zbuf select. run below. only if bbsel fails */
-	/* ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d) */
+	 /* for non zbuf projections, dont change the GL state */
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	glLoadMatrixf(vc->rv3d->viewmat);
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
@@ -497,15 +494,13 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
-		} else {
-			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+		}
+		else {
 			mesh_foreachScreenVert(vc, do_lasso_select_mesh__doSelectVert, &data, 1);
 		}
 	}
 	if(ts->selectmode & SCE_SELECT_EDGE) {
-			/* Does both bbsel and non-bbsel versions (need screen cos for both) */
-		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-
+		/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 		data.pass = 0;
 		mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, 0);
 
@@ -518,8 +513,8 @@ static void do_lasso_select_mesh(ViewContext *vc, int mcords[][2], short moves, 
 	if(ts->selectmode & SCE_SELECT_FACE) {
 		if (bbsel) {
 			EM_backbuf_checkAndSelectFaces(vc->em, select);
-		} else {
-			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+		}
+		else {
 			mesh_foreachScreenFace(vc, do_lasso_select_mesh__doSelectFace, &data);
 		}
 	}
@@ -894,14 +889,14 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 {
 	Base *base;
 	unsigned int *bufmin,*bufmax;
-	int a,b,rc,tel,aantal,dirvec[4][2],maxob;
+	int a,b,rc,tel,len,dirvec[4][2],maxob;
 	unsigned int retval=0;
 	
 	base= LASTBASE;
 	if(base==0) return 0;
 	maxob= base->selcol;
 
-	aantal= (size-1)/2;
+	len= (size-1)/2;
 	rc= 0;
 
 	dirvec[0][0]= 1;
@@ -915,7 +910,7 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 
 	bufmin= buf;
 	bufmax= buf+ size*size;
-	buf+= aantal*size+ aantal;
+	buf+= len*size+ len;
 
 	for(tel=1;tel<=size;tel++) {
 
@@ -1236,8 +1231,8 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 	if(BASACT && BASACT->next) startbase= BASACT->next;
 	
 	/* This block uses the control key to make the object selected by its center point rather than its contents */
-	/* XXX later on, in editmode do not activate */
-	if(vc.obedit==NULL && obcenter) {
+	/* in editmode do not activate */
+	if(obcenter) {
 		
 		/* note; shift+alt goes to group-flush-selecting */
 		if(enumerate) {
@@ -1340,9 +1335,9 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 			if(oldbasact != basact) {
 				ED_base_object_activate(C, basact); /* adds notifier */
 			}
-
-			WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 		}
+
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 	}
 
 	return retval;
@@ -1491,12 +1486,8 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 	if (extend == 0 && select)
 		EM_deselect_all(vc->em);
 
-	/* workaround: init mats first, EM_mask_init_backbuf_border can change
-	   view matrix to pixel space, breaking edge select with backbuf. fixes bug #20936 */
-	/*ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);*/ /* for foreach's screen/vert projection */
-
-	/* [#21018] breaks zbuf select. run below. only if bbsel fails */
-	/* ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d) */
+	/* for non zbuf projections, dont change the GL state */
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	glLoadMatrixf(vc->rv3d->viewmat);
 	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
@@ -1505,7 +1496,6 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 		if (bbsel) {
 			EM_backbuf_checkAndSelectVerts(vc->em, select);
 		} else {
-			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 			mesh_foreachScreenVert(vc, do_mesh_box_select__doSelectVert, &data, 1);
 		}
 	}
@@ -1525,7 +1515,6 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 		if(bbsel) {
 			EM_backbuf_checkAndSelectFaces(vc->em, select);
 		} else {
-			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 			mesh_foreachScreenFace(vc, do_mesh_box_select__doSelectFace, &data);
 		}
 	}
@@ -1776,9 +1765,15 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		case OB_CURVE:
 		case OB_SURF:
 			ret= do_nurbs_box_select(&vc, &rect, select, extend);
+			if(ret & OPERATOR_FINISHED) {
+				WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
+			}
 			break;
 		case OB_MBALL:
 			ret= do_meta_box_select(&vc, &rect, select, extend);
+			if(ret & OPERATOR_FINISHED) {
+				WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
+			}
 			break;
 		case OB_ARMATURE:
 			ret= do_armature_box_select(&vc, &rect, select, extend);
@@ -1849,11 +1844,22 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short extend= RNA_boolean_get(op->ptr, "extend");
 	short center= RNA_boolean_get(op->ptr, "center");
 	short enumerate= RNA_boolean_get(op->ptr, "enumerate");
+	short object= RNA_boolean_get(op->ptr, "object");
 	int	retval = 0;
 
 	view3d_operator_needs_opengl(C);
-	
-	if(obedit) {
+
+	if(object) {
+		obedit= NULL;
+		obact= NULL;
+
+		/* ack, this is incorrect but to do this correctly we would need an
+		 * alternative editmode/objectmode keymap, this copies the functionality
+		 * from 2.4x where Ctrl+Select in editmode does object select only */
+		center= FALSE;
+	}
+
+	if(obedit && object==FALSE) {
 		if(obedit->type==OB_MESH)
 			retval = mouse_mesh(C, event->mval, extend);
 		else if(obedit->type==OB_ARMATURE)
@@ -1900,8 +1906,9 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting (object mode only).");
+	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection.");
 	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only).");
+	RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only).");
 }
 
 

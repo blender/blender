@@ -766,7 +766,9 @@ Tex *copy_texture(Tex *tex)
 	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
 
 	if(tex->nodetree) {
-		ntreeEndExecTree(tex->nodetree);
+		if (tex->nodetree->execdata) {
+			ntreeTexEndExecTree(tex->nodetree->execdata, 1);
+		}
 		texn->nodetree= ntreeCopyTree(tex->nodetree); 
 	}
 	
@@ -1005,7 +1007,7 @@ void autotexname(Tex *tex)
 
 Tex *give_current_object_texture(Object *ob)
 {
-	Material *ma;
+	Material *ma, *node_ma;
 	Tex *tex= NULL;
 	
 	if(ob==NULL) return NULL;
@@ -1015,6 +1017,10 @@ Tex *give_current_object_texture(Object *ob)
 		tex= give_current_lamp_texture(ob->data);
 	} else {
 		ma= give_current_material(ob, ob->actcol);
+
+		if((node_ma=give_node_material(ma)))
+			ma= node_ma;
+
 		tex= give_current_material_texture(ma);
 	}
 	
@@ -1080,17 +1086,6 @@ Tex *give_current_material_texture(Material *ma)
 			tex= (Tex *)node->id;
 			ma= NULL;
 		}
-		else {
-			node= nodeGetActiveID(ma->nodetree, ID_MA);
-			if(node) {
-				ma= (Material*)node->id;
-				if(ma) {
-					mtex= ma->mtex[(int)(ma->texact)];
-					if(mtex) tex= mtex->tex;
-				}
-			}
-		}
-		return tex;
 	}
 
 	if(ma) {
@@ -1165,11 +1160,6 @@ void set_current_material_texture(Material *ma, Tex *newtex)
 			id_us_plus(&newtex->id);
 			ma= NULL;
 		}
-		else {
-			node= nodeGetActiveID(ma->nodetree, ID_MA);
-			if(node)
-				ma= (Material*)node->id;
-		}
 	}
 	if(ma) {
 		int act= (int)ma->texact;
@@ -1198,16 +1188,8 @@ int has_current_material_texture(Material *ma)
 	if(ma && ma->use_nodes && ma->nodetree) {
 		node= nodeGetActiveID(ma->nodetree, ID_TE);
 
-		if(node) {
+		if(node)
 			return 1;
-		}
-		else {
-			node= nodeGetActiveID(ma->nodetree, ID_MA);
-			if(node)
-				ma= (Material*)node->id;
-			else
-				ma= NULL;
-		}
 	}
 
 	return (ma != NULL);
@@ -1484,6 +1466,10 @@ int BKE_texture_dependsOnTime(const struct Tex *texture)
 	}
 	else if(texture->adt) {
 		// assume anything in adt means the texture is animated
+		return 1;
+	}
+	else if(texture->type == TEX_NOISE) {
+		// noise always varies with time
 		return 1;
 	}
 	return 0;

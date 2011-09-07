@@ -32,12 +32,12 @@
 #include "AUD_SumFactory.h"
 #include "AUD_IIRFilterReader.h"
 
-AUD_SumFactory::AUD_SumFactory(AUD_IFactory* factory) :
+AUD_SumFactory::AUD_SumFactory(AUD_Reference<AUD_IFactory> factory) :
 		AUD_EffectFactory(factory)
 {
 }
 
-AUD_IReader* AUD_SumFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SumFactory::createReader()
 {
 	std::vector<float> a, b;
 	a.push_back(1);

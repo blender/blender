@@ -44,6 +44,7 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
+#include "DNA_speaker_types.h"
 #include "DNA_brush_types.h"
 
 #include "BKE_context.h"
@@ -188,6 +189,7 @@ static int buttons_context_path_data(ButsContextPath *path, int type)
 	else if(RNA_struct_is_a(ptr->type, &RNA_Lattice) && (type == -1 || type == OB_LATTICE)) return 1;
 	else if(RNA_struct_is_a(ptr->type, &RNA_Camera) && (type == -1 || type == OB_CAMERA)) return 1;
 	else if(RNA_struct_is_a(ptr->type, &RNA_Lamp) && (type == -1 || type == OB_LAMP)) return 1;
+	else if(RNA_struct_is_a(ptr->type, &RNA_Speaker) && (type == -1 || type == OB_SPEAKER)) return 1;
 	/* try to get an object in the path, no pinning supported here */
 	else if(buttons_context_path_object(path)) {
 		ob= path->ptr[path->len-1].data;
@@ -218,7 +220,7 @@ static int buttons_context_path_modifier(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_material(ButsContextPath *path)
+static int buttons_context_path_material(ButsContextPath *path, int for_texture)
 {
 	Object *ob;
 	PointerRNA *ptr= &path->ptr[path->len-1];
@@ -236,6 +238,9 @@ static int buttons_context_path_material(ButsContextPath *path)
 			ma= give_current_material(ob, ob->actcol);
 			RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
 			path->len++;
+
+			if(for_texture && give_current_material_texture_node(ma))
+				return 1;
 			
 			ma= give_node_material(ma);
 			if(ma) {
@@ -432,7 +437,7 @@ static int buttons_context_path_texture(ButsContextPath *path)
 		}
 	}
 	/* try material */
-	if(buttons_context_path_material(path)) {
+	if(buttons_context_path_material(path, 1)) {
 		ma= path->ptr[path->len-1].data;
 
 		if(ma) {
@@ -524,7 +529,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_particle(path);
 			break;
 		case BCONTEXT_MATERIAL:
-			found= buttons_context_path_material(path);
+			found= buttons_context_path_material(path, 0);
 			break;
 		case BCONTEXT_TEXTURE:
 			found= buttons_context_path_texture(path);
@@ -645,7 +650,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 const char *buttons_context_dir[] = {
 	"world", "object", "mesh", "armature", "lattice", "curve",
-	"meta_ball", "lamp", "camera", "material", "material_slot",
+	"meta_ball", "lamp", "speaker", "camera", "material", "material_slot",
 	"texture", "texture_slot", "bone", "edit_bone", "pose_bone", "particle_system", "particle_system_editable",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
 
@@ -696,6 +701,10 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	}
 	else if(CTX_data_equals(member, "camera")) {
 		set_pointer_type(path, result, &RNA_Camera);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "speaker")) {
+		set_pointer_type(path, result, &RNA_Speaker);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "material")) {
@@ -901,6 +910,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	block= uiLayoutGetBlock(row);
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	but= uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag, 0, 0, 0, 0, "Follow context or keep fixed datablock displayed");
+	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	uiButSetFunc(but, pin_cb, NULL, NULL);
 
 	for(a=0; a<path->len; a++) {

@@ -187,6 +187,7 @@ static void buttons_operatortypes(void)
 {
 	WM_operatortype_append(BUTTONS_OT_toolbox);
 	WM_operatortype_append(BUTTONS_OT_file_browse);
+	WM_operatortype_append(BUTTONS_OT_directory_browse);
 }
 
 static void buttons_keymap(struct wmKeyConfig *keyconf)
@@ -268,6 +269,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					buttons_area_redraw(sa, BCONTEXT_DATA);	/* autotexpace flag */
 					break;
 				case ND_POSE:
+					buttons_area_redraw(sa, BCONTEXT_DATA);
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 					buttons_area_redraw(sa, BCONTEXT_BONE);

@@ -265,6 +265,7 @@ struct ARegion *ED_view3d_context_region_unlock(struct bContext *C);
 int ED_operator_rv3d_unlock_poll(struct bContext *C);
 
 void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d);
+void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d);
 
 int ED_view3d_scene_layer_set(int lay, const int *values, int *active);
 
@@ -287,7 +288,7 @@ unsigned int ED_viewedit_datamask(struct bScreen *screen);
 int ED_view3d_camera_lock_check(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the camera to the view before starting a view transformation */
 void ED_view3d_camera_lock_init(struct View3D *v3d, struct RegionView3D *rv3d);
-/* copy the view to the camera */
-void ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
+/* copy the view to the camera, return TRUE if */
+int ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
 
 #endif /* ED_VIEW3D_H */

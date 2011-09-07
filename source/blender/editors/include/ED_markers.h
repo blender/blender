@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -34,6 +32,7 @@
 #define ED_MARKERS_H
 
 struct wmKeyConfig;
+struct wmKeyMap;
 struct bContext;
 struct bAnimContext;
 struct Scene;
@@ -71,6 +70,9 @@ struct TimeMarker *ED_markers_get_first_selected(ListBase *markers);
 void ED_operatortypes_marker(void); 
 /* called in screen_ops.c:ED_keymap_screen() */
 void ED_marker_keymap(struct wmKeyConfig *keyconf);
+
+/* called in animation editors - keymap defines */
+void ED_marker_keymap_animedit_conflictfree(struct wmKeyMap *keymap);
 
 /* debugging only */
 void debug_markers_print_list(struct ListBase *markers);

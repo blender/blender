@@ -40,34 +40,34 @@ SCA_2DFilterActuator::~SCA_2DFilterActuator()
 }
 
 SCA_2DFilterActuator::SCA_2DFilterActuator(
-        SCA_IObject *gameobj, 
+        SCA_IObject *gameobj,
         RAS_2DFilterManager::RAS_2DFILTER_MODE type,
-		short flag,
-		float float_arg,
-		int int_arg,
-		RAS_IRasterizer* rasterizer,
-		SCA_IScene* scene)
+        short flag,
+        float float_arg,
+        int int_arg,
+        RAS_IRasterizer* rasterizer,
+        SCA_IScene* scene)
     : SCA_IActuator(gameobj, KX_ACT_2DFILTER),
-     m_type(type),
-	 m_disableMotionBlur(flag),
-	 m_float_arg(float_arg),
-	 m_int_arg(int_arg),
-	 m_rasterizer(rasterizer),
-	 m_scene(scene)
+      m_type(type),
+      m_disableMotionBlur(flag),
+      m_float_arg(float_arg),
+      m_int_arg(int_arg),
+      m_rasterizer(rasterizer),
+      m_scene(scene)
 {
-	m_gameObj = NULL;
+	m_gameobj = NULL;
 	if(gameobj){
 		m_propNames = gameobj->GetPropertyNames();
-		m_gameObj = gameobj;
+		m_gameobj = gameobj;
 	}
 }
 
 
 CValue* SCA_2DFilterActuator::GetReplica()
 {
-    SCA_2DFilterActuator* replica = new SCA_2DFilterActuator(*this);
-    replica->ProcessReplica();
-    return replica;
+	SCA_2DFilterActuator* replica = new SCA_2DFilterActuator(*this);
+	replica->ProcessReplica();
+	return replica;
 }
 
 
@@ -91,10 +91,10 @@ bool SCA_2DFilterActuator::Update()
 	}
 	else if(m_type < RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS)
 	{
-		m_scene->Update2DFilter(m_propNames, m_gameObj, m_type, m_int_arg, m_shaderText);
+		m_scene->Update2DFilter(m_propNames, m_gameobj, m_type, m_int_arg, m_shaderText);
 	}
 	// once the filter is in place, no need to update it again => disable the actuator
-    return false;
+	return false;
 }
 
 

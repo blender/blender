@@ -314,7 +314,7 @@ typedef enum eBezTriple_Handle {
 	HD_AUTO,
 	HD_VECT,
 	HD_ALIGN,
-	HD_AUTO_ANIM	/* not real handle type, but is just used as dummy item for anim code */
+	HD_AUTO_ANIM 	/* auto-clamped handles for animation */
 } eBezTriple_Handle;
 
 /* interpolation modes (used only for BezTriple->ipo) */

@@ -15,7 +15,7 @@ if env['CC'] == 'gcc':
     #cf.append('-Werror')
     pass
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 

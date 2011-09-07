@@ -180,7 +180,7 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	
 	glEnable(GL_BLEND);
 	glGetFloatv(GL_CURRENT_COLOR, color);
-	color[3]= 0.125;
+	color[3] *= 0.125f;
 	glColor4fv(color);
 	
 	/* for each AA step */
@@ -771,7 +771,6 @@ static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
 
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
-#define ICON_HEIGHT		UI_DPI_FAC*16.0f
 
 static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect)
 {
@@ -791,15 +790,15 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 	if(aspect != but->aspect) {
 		/* prevent scaling up icon in pupmenu */
 		if (aspect < 1.0f) {			
-			height= ICON_HEIGHT;
+			height= UI_DPI_ICON_SIZE;
 			aspect = 1.0f;
 			
 		}
 		else 
-			height= ICON_HEIGHT/aspect;
+			height= UI_DPI_ICON_SIZE/aspect;
 	}
 	else
-		height= ICON_HEIGHT;
+		height= UI_DPI_ICON_SIZE;
 	
 	/* calculate blend color */
 	if ELEM4(but->type, TOG, ROW, TOGN, LISTROW) {
@@ -866,7 +865,7 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	int border= (but->flag & UI_BUT_ALIGN_RIGHT)? 8: 10;
 	int okwidth= rect->xmax-rect->xmin - border;
 	
-	if (but->flag & UI_HAS_ICON) okwidth -= 16;
+	if (but->flag & UI_HAS_ICON) okwidth -= UI_DPI_ICON_SIZE;
 	
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
@@ -1149,7 +1148,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		if (but->flag & UI_HAS_ICON) {
 			widget_draw_icon(but, but->icon+but->iconadd, 1.0f, rect);
 			
-			rect->xmin += UI_icon_get_width(but->icon+but->iconadd);
+			rect->xmin += (int)((float)UI_icon_get_width(but->icon+but->iconadd) * UI_DPI_ICON_FAC);
 			
 			if(but->editstr || (but->flag & UI_TEXT_LEFT)) 
 				rect->xmin += 5;
@@ -2326,39 +2325,43 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	wtb.outline= 0;
 	widgetbase_draw(&wtb, wcol);
 	
-	/* slider part */
-	VECCOPY(outline, wcol->outline);
-	VECCOPY(wcol->outline, wcol->item);
-	VECCOPY(wcol->inner, wcol->item);
+	/* draw left/right parts only when not in text editing */
+	if(!(state & UI_TEXTINPUT)) {
+		
+			/* slider part */
+		VECCOPY(outline, wcol->outline);
+		VECCOPY(wcol->outline, wcol->item);
+		VECCOPY(wcol->inner, wcol->item);
 
-	if(!(state & UI_SELECT))
-		SWAP(short, wcol->shadetop, wcol->shadedown);
-	
-	rect1= *rect;
-	
-	value= ui_get_but_val(but);
-	fac= ((float)value-but->softmin)*(rect1.xmax - rect1.xmin - offs)/(but->softmax - but->softmin);
-	
-	/* left part of slider, always rounded */
-	rect1.xmax= rect1.xmin + ceil(offs+1.0f);
-	round_box_edges(&wtb1, roundboxalign & ~6, &rect1, offs);
-	wtb1.outline= 0;
-	widgetbase_draw(&wtb1, wcol);
-	
-	/* right part of slider, interpolate roundness */
-	rect1.xmax= rect1.xmin + fac + offs;
-	rect1.xmin+=  floor(offs-1.0f);
-	if(rect1.xmax + offs > rect->xmax)
-		offs*= (rect1.xmax + offs - rect->xmax)/offs;
-	else 
-		offs= 0.0f;
-	round_box_edges(&wtb1, roundboxalign & ~9, &rect1, offs);
-	
-	widgetbase_draw(&wtb1, wcol);
-	VECCOPY(wcol->outline, outline);
-	
-	if(!(state & UI_SELECT))
-		SWAP(short, wcol->shadetop, wcol->shadedown);
+		if(!(state & UI_SELECT))
+			SWAP(short, wcol->shadetop, wcol->shadedown);
+		
+		rect1= *rect;
+		
+		value= ui_get_but_val(but);
+		fac= ((float)value-but->softmin)*(rect1.xmax - rect1.xmin - offs)/(but->softmax - but->softmin);
+		
+		/* left part of slider, always rounded */
+		rect1.xmax= rect1.xmin + ceil(offs+1.0f);
+		round_box_edges(&wtb1, roundboxalign & ~6, &rect1, offs);
+		wtb1.outline= 0;
+		widgetbase_draw(&wtb1, wcol);
+		
+		/* right part of slider, interpolate roundness */
+		rect1.xmax= rect1.xmin + fac + offs;
+		rect1.xmin+=  floor(offs-1.0f);
+		if(rect1.xmax + offs > rect->xmax)
+			offs*= (rect1.xmax + offs - rect->xmax)/offs;
+		else 
+			offs= 0.0f;
+		round_box_edges(&wtb1, roundboxalign & ~9, &rect1, offs);
+		
+		widgetbase_draw(&wtb1, wcol);
+		VECCOPY(wcol->outline, outline);
+		
+		if(!(state & UI_SELECT))
+			SWAP(short, wcol->shadetop, wcol->shadedown);
+	}
 	
 	/* outline */
 	wtb.outline= 1;
@@ -2597,6 +2600,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	
 	/* store the box bg as gl clearcolor, to retrieve later when drawing semi-transparent rects
 	 * over the top to indicate disabled buttons */
+	/* XXX, this doesnt work right since the color applies to buttons outside the box too. */
 	glClearColor(wcol->inner[0]/255.0, wcol->inner[1]/255.0, wcol->inner[2]/255.0, 1.0);
 	
 	VECCOPY(wcol->inner, old_col);
@@ -2872,7 +2876,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	ThemeUI *tui= &btheme->tui;
 	uiFontStyle *fstyle= &style->widget;
 	uiWidgetType *wt= NULL;
-	
+
 	/* handle menus separately */
 	if(but->dt==UI_EMBOSSP) {
 		switch (but->type) {
@@ -3128,7 +3132,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 	
 	/* text location offset */
 	rect->xmin+=5;
-	if(iconid) rect->xmin+= ICON_HEIGHT;
+	if(iconid) rect->xmin+= UI_DPI_ICON_SIZE;
 
 	/* cut string in 2 parts? */
 	cpoin= strchr(name, '|');
@@ -3153,7 +3157,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 
 	if(iconid) {
 		int xs= rect->xmin+4;
-		int ys= 1 + (rect->ymin+rect->ymax- ICON_HEIGHT)/2;
+		int ys= 1 + (rect->ymin+rect->ymax- UI_DPI_ICON_SIZE)/2;
 		glEnable(GL_BLEND);
 		UI_icon_draw_aspect(xs, ys, iconid, 1.2f, 0.5f); /* XXX scale weak get from fstyle? */
 		glDisable(GL_BLEND);

@@ -22,14 +22,14 @@
 set(INC
 	../include
 	../../blenkernel
-	../../blenloader
-	../../imbuf
-	../../gpu
 	../../blenlib
+	../../blenloader
+	../../gpu
+	../../imbuf
 	../../makesdna
 	../../makesrna
-	../../windowmanager
 	../../render/extern/include
+	../../windowmanager
 	../../../../intern/guardedalloc
 )
 

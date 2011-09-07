@@ -1,7 +1,4 @@
-/* ipo.c
- * 
- * $Id$
- *
+/* 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -518,7 +515,7 @@ static const char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "alpha";
 			
 		case MA_REF:
-			return "diffuse_reflection";
+			return "diffuse_intensity";
 		
 		case MA_EMIT:
 			return "emit";
@@ -527,7 +524,7 @@ static const char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "ambient";
 		
 		case MA_SPEC:
-			return "specular_reflection";
+			return "specular_intensity";
 		
 		case MA_HARD:
 			return "specular_hardness";
@@ -551,13 +548,13 @@ static const char *material_adrcodes_to_paths (int adrcode, int *array_index)
 			return "raytrace_mirror.fresnel";
 			
 		case MA_FRESMIRI:
-			return "raytrace_mirror.fresnel_fac";
+			return "raytrace_mirror.fresnel_factor";
 			
 		case MA_FRESTRA:
 			return "raytrace_transparency.fresnel";
 			
 		case MA_FRESTRAI:
-			return "raytrace_transparency.fresnel_fac";
+			return "raytrace_transparency.fresnel_factor";
 			
 		case MA_ADD:
 			return "halo.add";
@@ -1157,7 +1154,6 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 	if (icu->flag & IPO_ACTIVE) fcu->flag |= FCURVE_ACTIVE;
 	if (icu->flag & IPO_MUTE) fcu->flag |= FCURVE_MUTED;
 	if (icu->flag & IPO_PROTECT) fcu->flag |= FCURVE_PROTECTED;
-	if (icu->flag & IPO_AUTO_HORIZ) fcu->flag |= FCURVE_AUTO_HANDLES;
 	
 	/* set extrapolation */
 	switch (icu->extrap) {
@@ -1242,6 +1238,12 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 					/* 'hide' flag is now used for keytype - only 'keyframes' existed before */
 					dst->hide= BEZT_KEYTYPE_KEYFRAME;
 					
+					/* auto-handles - per curve to per handle */
+					if (icu->flag & IPO_AUTO_HORIZ) {
+						if (dst->h1 == HD_AUTO) dst->h1 = HD_AUTO_ANIM;
+						if (dst->h2 == HD_AUTO) dst->h2 = HD_AUTO_ANIM;
+					}
+					
 					/* correct values, by checking if the flag of interest is set */
 					if ( ((int)(dst->vec[1][1])) & (abp->bit) )
 						dst->vec[0][1]= dst->vec[1][1]= dst->vec[2][1] = 1.0f;
@@ -1292,6 +1294,12 @@ static void icu_to_fcurves (ID *id, ListBase *groups, ListBase *list, IpoCurve *
 					
 				/* 'hide' flag is now used for keytype - only 'keyframes' existed before */
 				dst->hide= BEZT_KEYTYPE_KEYFRAME;
+				
+				/* auto-handles - per curve to per handle */
+				if (icu->flag & IPO_AUTO_HORIZ) {
+					if (dst->h1 == HD_AUTO) dst->h1 = HD_AUTO_ANIM;
+					if (dst->h2 == HD_AUTO) dst->h2 = HD_AUTO_ANIM;
+				}
 					
 				/* correct values for euler rotation curves 
 				 *	- they were degrees/10 

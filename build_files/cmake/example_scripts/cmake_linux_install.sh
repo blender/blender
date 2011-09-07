@@ -17,7 +17,7 @@ cd ~/blender-svn/build-cmake
 
 # cmake without copying files for fast rebuilds
 # the files from svn will be used in place
-cmake ../blender -DWITH_INSTALL:BOOL=FALSE
+cmake ../blender
 
 # make blender, will take some time
 make

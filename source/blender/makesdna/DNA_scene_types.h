@@ -126,6 +126,8 @@ typedef struct FFMpegCodecData {
 	int video_bitrate;
 	int audio_bitrate;
 	int audio_mixrate;
+	int audio_channels;
+	int audio_pad;
 	float audio_volume;
 	int gop_size;
 	int flags;
@@ -147,6 +149,8 @@ typedef struct AudioData {
 	int distance_model;
 	short flag;
 	short pad;
+	float volume;
+	float pad2;
 } AudioData;
 
 typedef struct SceneRenderLayer {
@@ -201,6 +205,7 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_RAYHITS		(1<<15)
 #define SCE_PASS_EMIT			(1<<16)
 #define SCE_PASS_ENVIRONMENT	(1<<17)
+#define SCE_PASS_INDEXMA	(1<<18)
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
@@ -253,19 +258,12 @@ typedef struct RenderData {
 	 */
 	short yparts;
         
-	short winpos, planes, imtype, subimtype;
-	
-	/** Mode bits:                                                           */
-	/* 0: Enable backbuffering for images                                    */
-	short bufflag;
-	 short quality;
+	short planes, imtype, subimtype, quality;
 	
 	/**
 	 * Render to image editor, fullscreen or to new window.
 	 */
 	short displaymode;
-	
-	short rpad1, rpad2;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -322,11 +320,7 @@ typedef struct RenderData {
 	/**
 	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
 	 */
-	float xasp;
-	/**
-	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
-	 */
-	float yasp;
+	float xasp, yasp;
 
 	float frs_sec_base;
 	
@@ -349,8 +343,8 @@ typedef struct RenderData {
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist, bake_pad;
 
-	/* paths to backbufffer, output */
-	char backbuf[160], pic[160];
+	/* path to render output */
+	char pic[240];
 
 	/* stamps flags. */
 	int stamp;
@@ -457,7 +451,8 @@ typedef struct GameData {
 	/*
 	 * Radius of the activity bubble, in Manhattan length. Objects
 	 * outside the box are activity-culled. */
-	float activityBoxRadius; //it's not being used ANYWHERE !!!!!!!!!!!!!!
+	float activityBoxRadius;
+
 	/*
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
@@ -477,7 +472,8 @@ typedef struct GameData {
 
 	/* stereo/dome mode */
 	struct GameDome dome;
-	short stereoflag, stereomode, xsch, ysch; //xsch and ysch used for backwards compat.
+	short stereoflag, stereomode;
+	short pad2, pad3;
 	float eyeseparation, pad1;
 	RecastData recastData;
 } GameData;
@@ -509,6 +505,7 @@ typedef struct GameData {
 #define OBSTSIMULATION_TOI_cells	2
 
 /* GameData.flag */
+#define GAME_RESTRICT_ANIM_UPDATES			(1 << 0)
 #define GAME_ENABLE_ALL_FRAMES				(1 << 1)
 #define GAME_SHOW_DEBUG_PROPS				(1 << 2)
 #define GAME_SHOW_FRAMERATE					(1 << 3)
@@ -525,6 +522,7 @@ typedef struct GameData {
 #define GAME_SHOW_MOUSE						(1 << 14)
 #define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 15)
 #define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
+/* Note: GameData.flag is a short (max 16 flags). To add more flags, GameData.flag needs to be an int */
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0
@@ -837,6 +835,7 @@ typedef struct Scene {
 	void *sound_scene;
 	void *sound_scene_handle;
 	void *sound_scrub_handle;
+	void *speaker_handles;
 	
 	void *fps_info;	 				/* (runtime) info/cache used for presenting playback framerate info to the user */
 	
@@ -1109,6 +1108,7 @@ typedef struct Scene {
 #define SCE_SNAP_ROTATE			2
 #define SCE_SNAP_PEEL_OBJECT	4
 #define SCE_SNAP_PROJECT		8
+#define SCE_SNAP_NO_SELF		16
 /* toolsettings->snap_target */
 #define SCE_SNAP_TARGET_CLOSEST	0
 #define SCE_SNAP_TARGET_CENTER	1
@@ -1141,7 +1141,8 @@ typedef struct Scene {
 #define PROP_SHARP             3
 #define PROP_LIN               4
 #define PROP_CONST             5
-#define PROP_RANDOM		6
+#define PROP_RANDOM            6
+#define PROP_MODE_MAX          7
 
 /* toolsettings->proportional */
 #define PROP_EDIT_OFF			0
@@ -1162,9 +1163,10 @@ typedef struct Scene {
 #define F_DUPLI			3
 
 /* audio->flag */
-#define AUDIO_MUTE		1
-#define AUDIO_SYNC		2
-#define AUDIO_SCRUB		4
+#define AUDIO_MUTE                (1<<0)
+#define AUDIO_SYNC                (1<<1)
+#define AUDIO_SCRUB		          (1<<2)
+#define AUDIO_VOLUME_ANIMATED     (1<<3)
 
 #define FFMPEG_MULTIPLEX_AUDIO  1 /* deprecated, you can choose none as audiocodec now */
 #define FFMPEG_AUTOSPLIT_OUTPUT 2

@@ -117,7 +117,11 @@ void draw_motion_path_instance(Scene *scene,
 		len = mpath->length;
 		mpv_start= mpath->points;
 	}
-	
+
+	if(len <= 0) {
+		return;
+	}
+
 	/* draw curve-line of path */
 	glShadeModel(GL_SMOOTH);
 	
@@ -389,7 +393,7 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 		colfac = (end - (float)CFRA) / range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		
-		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
+		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
 		draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
 	}
@@ -468,7 +472,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 		
 		CFRA= (int)ak->cfra;
 		
-		BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
+		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 		where_is_pose(scene, ob);
 		draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
 	}
@@ -538,7 +542,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			CFRA= (int)BKE_nla_tweakedit_remap(adt, actframe+ctime, NLATIME_CONVERT_MAP);
 			
 			if (CFRA != cfrao) {
-				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
+				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
 				draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
 			}
@@ -553,7 +557,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			CFRA= (int)BKE_nla_tweakedit_remap(adt, actframe-ctime, NLATIME_CONVERT_MAP);
 			
 			if (CFRA != cfrao) {
-				BKE_animsys_evaluate_animdata(&ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
+				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
 				where_is_pose(scene, ob);
 				draw_pose_bones(scene, v3d, ar, base, OB_WIRE);
 			}

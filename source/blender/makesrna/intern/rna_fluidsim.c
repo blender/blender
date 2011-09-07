@@ -184,7 +184,11 @@ static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *v
 
 static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *ptr)
 {
-	return 32;
+#ifdef DISABLE_ELBEEM
+	return 0;
+#else
+	return 31;
+#endif
 }
 
 static char *rna_FluidSettings_path(PointerRNA *ptr)
@@ -312,7 +316,7 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 
 	/* advanced settings */
 	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
-	RNA_def_property_float_sdna(prop, NULL, "gravx");
+	RNA_def_property_float_sdna(prop, NULL, "grav");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -1000.1, 1000.1);
 	RNA_def_property_ui_text(prop, "Gravity", "Gravity in X, Y and Z direction");
@@ -383,6 +387,12 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "domainNovecgen", 0);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Generate Speed Vectors", "Generate speed vectors for vector blur");
+
+	/* no collision object surface */
+	prop= RNA_def_property(srna, "surface_noobs", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "typeFlags", OB_FSSG_NOOBS);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Hide fluid surface", "");
 
 	/* particles */
 

@@ -301,7 +301,7 @@ int ED_operator_object_active_editable(bContext *C)
 int ED_operator_object_active_editable_mesh(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->type == OB_MESH);
+	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->type == OB_MESH && !(((ID *)ob->data)->lib));
 }
 
 int ED_operator_object_active_editable_font(bContext *C)
@@ -1544,8 +1544,7 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 	
 	/* subtractwidth of regions on opposite side 
 	 * prevents dragging regions into other opposite regions */
-	for (ar=sa->regionbase.first; ar; ar=ar->next)
-	{
+	for (ar=sa->regionbase.first; ar; ar=ar->next) {
 		if (ar == scalear)
 			continue;
 		
@@ -1703,7 +1702,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
+static int region_scale_cancel(bContext *UNUSED(C), wmOperator *op)
 {
 	MEM_freeN(op->customdata);
 	op->customdata = NULL;
@@ -1733,14 +1732,16 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int frame_offset_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 	int delta;
 	
 	delta = RNA_int_get(op->ptr, "delta");
 
-	CTX_data_scene(C)->r.cfra += delta;
-	CTX_data_scene(C)->r.subframe = 0.f;
+	scene->r.cfra += delta;
+	scene->r.subframe = 0.f;
 	
-	sound_seek_scene(C);
+	sound_seek_scene(bmain, scene);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
 	
@@ -1765,6 +1766,7 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int frame_jump_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
 
@@ -1788,7 +1790,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 		else
 			CFRA= PSFRA;
 		
-		sound_seek_scene(C);
+		sound_seek_scene(bmain, scene);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	}
@@ -1817,6 +1819,7 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int keyframe_jump_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bDopeSheet ads= {NULL};
@@ -1871,7 +1874,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
 	
-	sound_seek_scene(C);
+	sound_seek_scene(bmain, scene);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	
@@ -2021,12 +2024,12 @@ static void SCREEN_OT_screen_full_area(wmOperatorType *ot)
  */
 
 typedef struct sAreaJoinData
-	{
-		ScrArea *sa1;	/* first area to be considered */
-		ScrArea *sa2;	/* second area to be considered */
-		ScrArea *scr;	/* designed for removal */
-		
-	} sAreaJoinData;
+{
+	ScrArea *sa1;	/* first area to be considered */
+	ScrArea *sa2;	/* second area to be considered */
+	ScrArea *scr;	/* designed for removal */
+
+} sAreaJoinData;
 
 
 /* validate selection inside screen, set variables OK */
@@ -2461,13 +2464,7 @@ static void SCREEN_OT_repeat_history(wmOperatorType *ot)
 
 static int redo_last_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmOperator *lastop;
-	
-	/* only for operators that are registered and did an undo push */
-	for(lastop= wm->operators.last; lastop; lastop= lastop->prev)
-		if((lastop->type->flag & OPTYPE_REGISTER) && (lastop->type->flag & OPTYPE_UNDO))
-			break;
+	wmOperator *lastop= WM_operator_last_redo(C);
 	
 	if(lastop)
 		WM_operator_redo_popup(C, lastop);
@@ -2803,6 +2800,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 	bScreen *screen= CTX_wm_screen(C);
 
 	if(screen->animtimer && screen->animtimer==event->customdata) {
+		Main *bmain= CTX_data_main(C);
 		Scene *scene= CTX_data_scene(C);
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
@@ -2879,7 +2877,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		}
 		
 		if (sad->flag & ANIMPLAY_FLAG_JUMPED)
-			sound_seek_scene(C);
+			sound_seek_scene(bmain, scene);
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
 		ED_update_for_newframe(CTX_data_main(C), scene, screen, 1);
@@ -3477,21 +3475,21 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Frames", 0, 0);
 	
 	/* frame offsets */
-	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 10);
-	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -10);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "delta", 10);
+	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "delta", -10);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", -1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", WHEELDOWNMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", WHEELUPMOUSE, KM_PRESS, KM_ALT, 0)->ptr, "delta", -1);
 	
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", UPARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", UPARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", DOWNARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 0);
 	
-	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEUPKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", PAGEDOWNKEY, KM_PRESS, KM_CTRL, 0)->ptr, "next", 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", UPARROWKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "next", 0);
 	
 	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", MEDIALAST, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", MEDIAFIRST, KM_PRESS, 0, 0)->ptr, "next", 0);

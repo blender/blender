@@ -437,9 +437,18 @@ static void wm_operator_print(bContext *C, wmOperator *op)
 
 static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int popup)
 {
-	if(popup)
-		if(op->reports->list.first)
+	if(popup) {
+		if(op->reports->list.first) {
+			/* FIXME, temp setting window, see other call to uiPupMenuReports for why */
+			wmWindow *win_prev= CTX_wm_window(C);
+			if(win_prev==NULL)
+				CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
 			uiPupMenuReports(C, op->reports);
+
+			CTX_wm_window_set(C, win_prev);
+		}
+	}
 	
 	if(retval & OPERATOR_FINISHED) {
 		if(G.f & G_DEBUG)
@@ -531,6 +540,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 			wm->op_undo_depth++;
 
 		retval= op->type->exec(C, op);
+		OPERATOR_RETVAL_CHECK(retval);
 
 		if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 			wm->op_undo_depth--;
@@ -690,6 +700,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				wm->op_undo_depth++;
 
 			retval= op->type->invoke(C, op, event);
+			OPERATOR_RETVAL_CHECK(retval);
 
 			if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
@@ -699,6 +710,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				wm->op_undo_depth++;
 
 			retval= op->type->exec(C, op);
+			OPERATOR_RETVAL_CHECK(retval);
 
 			if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
@@ -874,8 +886,8 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
 				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
-				CTX_wm_region_set(C, ar);
 				CTX_wm_area_set(C, area);
+				CTX_wm_region_set(C, ar);
 
 				return retval;
 			}
@@ -917,6 +929,7 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 			wm->op_undo_depth++;
 
 		retval= op->type->exec(C, op);
+		OPERATOR_RETVAL_CHECK(retval);
 
 		if(op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 			wm->op_undo_depth--;
@@ -1203,6 +1216,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				wm->op_undo_depth++;
 
 			retval= ot->modal(C, op, event);
+			OPERATOR_RETVAL_CHECK(retval);
 
 			if(ot->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 				wm->op_undo_depth--;
@@ -1735,6 +1749,9 @@ void wm_event_do_handlers(bContext *C)
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
 
+	/* update key configuration before handling events */
+	WM_keyconfig_update(wm);
+
 	for(win= wm->windows.first; win; win= win->next) {
 		wmEvent *event;
 		
@@ -1815,7 +1832,10 @@ void wm_event_do_handlers(bContext *C)
 					/* for regions having custom cursors */
 					wm_paintcursor_test(C, event);
 				}
-				
+				else if (event->type==NDOF_MOTION) {
+					win->addmousemove = TRUE;
+				}
+
 				for(sa= win->screen->areabase.first; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->totrct)) {
 						CTX_wm_area_set(C, sa);
@@ -1879,7 +1899,10 @@ void wm_event_do_handlers(bContext *C)
 				if(doit && win->screen && win->screen->subwinactive != win->screen->mainwin) {
 					win->eventstate->prevx= event->x;
 					win->eventstate->prevy= event->y;
+					//printf("win->eventstate->prev = %d %d\n", event->x, event->y);
 				}
+				else
+					;//printf("not setting prev to %d %d\n", event->x, event->y);
 			}
 			
 			/* store last event for this window */
@@ -1922,6 +1945,7 @@ void wm_event_do_handlers(bContext *C)
 		/* only add mousemove when queue was read entirely */
 		if(win->addmousemove && win->eventstate) {
 			wmEvent tevent= *(win->eventstate);
+			//printf("adding MOUSEMOVE %d %d\n", tevent.x, tevent.y);
 			tevent.type= MOUSEMOVE;
 			tevent.prevx= tevent.x;
 			tevent.prevy= tevent.y;
@@ -1931,6 +1955,9 @@ void wm_event_do_handlers(bContext *C)
 		
 		CTX_wm_window_set(C, NULL);
 	}
+
+	/* update key configuration after handling events */
+	WM_keyconfig_update(wm);
 }
 
 /* ********** filesector handling ************ */
@@ -2309,6 +2336,50 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 	} 
 }
 
+/* adds customdata to event */
+static void attach_ndof_data(wmEvent* event, const GHOST_TEventNDOFMotionData* ghost)
+{
+	wmNDOFMotionData* data = MEM_mallocN(sizeof(wmNDOFMotionData), "customdata NDOF");
+
+	const float s = U.ndof_sensitivity;
+
+	data->tx = s * ghost->tx;
+
+	data->rx = s * ghost->rx;
+	data->ry = s * ghost->ry;
+	data->rz = s * ghost->rz;
+
+	if (U.ndof_flag & NDOF_ZOOM_UPDOWN)
+		{
+		/* rotate so Y is where Z was */
+		data->ty = s * ghost->tz;
+		data->tz = s * ghost->ty;
+		/* maintain handed-ness? or just do what feels right? */
+
+		/* should this affect rotation also?
+		 * initial guess is 'yes', but get user feedback immediately!
+		 */
+#if 0
+		/* after turning this on, my guess becomes 'no' */
+		data->ry = s * ghost->rz;
+		data->rz = s * ghost->ry;
+#endif
+		}
+	else
+		{
+		data->ty = s * ghost->ty;
+		data->tz = s * ghost->tz;
+		}
+
+	data->dt = ghost->dt;
+
+	data->progress = (wmProgress) ghost->progress;
+
+	event->custom = EVT_DATA_NDOF_MOTION;
+	event->customdata = data;
+	event->customdatafree = 1;
+}
+
 /* imperfect but probably usable... draw/enable drags to other windows */
 static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *evt)
 {
@@ -2355,7 +2426,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 {
 	wmWindow *owin;
 	wmEvent event, *evt= win->eventstate;
-	
+
 	/* initialize and copy state (only mouse x y and modifiers) */
 	event= *evt;
 	
@@ -2365,18 +2436,11 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
 				wmEvent *lastevent= win->queue.last;
-				
-#if defined(__APPLE__) && defined(GHOST_COCOA)
-				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
-				evt->x= cd->x;
-				evt->y= cd->y;
-#else
 				int cx, cy;
 				
 				GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
 				evt->x= cx;
 				evt->y= (win->sizey-1) - cy;
-#endif
 				
 				event.x= evt->x;
 				event.y= evt->y;
@@ -2391,6 +2455,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
+
+				//printf("sending MOUSEMOVE %d %d\n", event.x, event.y);
 				
 				/* also add to other window if event is there, this makes overdraws disappear nicely */
 				/* it remaps mousecoord to other window in event */
@@ -2423,21 +2489,17 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 					event.type= MOUSEPAN;
 					break;
 			}
-#if defined(__APPLE__) && defined(GHOST_COCOA)
-			//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
-			event.x= evt->x = pd->x;
-			event.y = evt->y = pd->y;
-#else
+
 			{
-			int cx, cy;
-			GHOST_ScreenToClient(win->ghostwin, pd->x, pd->y, &cx, &cy);
-			event.x= evt->x= cx;
-			event.y= evt->y= (win->sizey-1) - cy;
+				int cx, cy;
+				GHOST_ScreenToClient(win->ghostwin, pd->x, pd->y, &cx, &cy);
+				event.x= evt->x= cx;
+				event.y= evt->y= (win->sizey-1) - cy;
 			}
-#endif
+
 			// Use prevx/prevy so we can calculate the delta later
 			event.prevx= event.x - pd->deltaX;
-			event.prevy= event.y - pd->deltaY;
+			event.prevy= event.y - (-pd->deltaY);
 			
 			update_tablet_data(win, &event);
 			wm_event_add(win, &event);
@@ -2459,6 +2521,16 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.type= BUTTON5MOUSE;
 			else
 				event.type= MIDDLEMOUSE;
+			
+			if(win->active==0) {
+				int cx, cy;
+				
+				/* entering window, update mouse pos. (ghost sends win-activate *after* the mouseclick in window!) */
+				wm_get_cursor_position(win, &cx, &cy);
+
+				event.x= evt->x= cx;
+				event.y= evt->y= cy;
+			}
 			
 			/* add to other window if event is there (not to both!) */
 			owin= wm_event_cursor_other_windows(wm, win, &event);
@@ -2553,6 +2625,38 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.type= TIMER;
 			event.custom= EVT_DATA_TIMER;
 			event.customdata= customdata;
+			wm_event_add(win, &event);
+
+			break;
+		}
+
+		case GHOST_kEventNDOFMotion: {
+			event.type = NDOF_MOTION;
+			attach_ndof_data(&event, customdata);
+			wm_event_add(win, &event);
+
+			//printf("sending NDOF_MOTION, prev = %d %d\n", event.x, event.y);
+
+			break;
+		}
+
+		case GHOST_kEventNDOFButton: {
+			GHOST_TEventNDOFButtonData* e = customdata;
+
+			event.type = NDOF_BUTTON_NONE + e->button;
+
+			switch (e->action) {
+				case GHOST_kPress:
+					event.val = KM_PRESS;
+					break;
+				case GHOST_kRelease:
+					event.val = KM_RELEASE;
+					break;
+				}
+
+			event.custom = 0;
+			event.customdata = NULL;
+
 			wm_event_add(win, &event);
 
 			break;

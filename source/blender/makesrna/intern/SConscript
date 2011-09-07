@@ -54,6 +54,8 @@ if env['WITH_BF_CINEON']:
 if env['WITH_BF_HDR']:
     defs.append('WITH_HDR')
 
+defs.append('WITH_FRAMESERVER')  # TODO, make optional
+
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC']
@@ -69,7 +71,7 @@ if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
     
 if env['WITH_BF_FFTW3']:
-    defs.append('FFTW3=1')
+    defs.append('WITH_FFTW3')
 
 if env['WITH_BF_SDL']:
     defs.append('WITH_SDL')
@@ -89,7 +91,7 @@ if env['WITH_BF_PYTHON']:
 if env['WITH_BF_COLLADA']:
     defs.append('WITH_COLLADA')
 
-if env['OURPLATFORM'] == 'linux2':
+if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'
 
@@ -138,7 +140,7 @@ targetpath = root_build_dir+'/makesrna'
 if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
     targetpath = '#' + targetpath
 
-if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
+if env['OURPLATFORM'] == 'linux' and root_build_dir[0]==os.sep:
     makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_intern_guardedalloc', 'bf_dna', 'bf_blenlib'])
 else:
     makesrna = makesrna_tool.Program (target = targetpath, source = source_files, LIBS=['bf_intern_guardedalloc', 'bf_dna', 'bf_blenlib'])

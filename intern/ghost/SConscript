@@ -11,14 +11,27 @@ if window_system == 'darwin':
     sources += env.Glob('intern/*.mm')
 
 
-pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget']
+pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_SystemPaths', 'GHOST_Window', 'GHOST_DropTarget', 'GHOST_NDOFManager']
 defs=['_USE_MATH_DEFINES']
 
-if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'freebsd9', 'irix6', 'aix4', 'aix5'):
+incs = '. ../string #extern/glew/include #source/blender/imbuf #source/blender/makesdna ' + env['BF_OPENGL_INC']
+
+if env['WITH_GHOST_SDL']:
+    for f in pf:
+        try:
+            sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+            sources.remove('intern' + os.sep + f + 'Win32.cpp')
+            sources.remove('intern' + os.sep + f + 'X11.cpp')
+        except ValueError:
+            pass
+    incs += ' ' + env['BF_SDL_INC']
+    defs += ['WITH_GHOST_SDL']
+elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'freebsd9', 'irix6', 'aix4', 'aix5'):
     for f in pf:
         try:
             sources.remove('intern' + os.sep + f + 'Win32.cpp')
             sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+            sources.remove('intern' + os.sep + f + 'SDL.cpp')
         except ValueError:
             pass
     defs += ['PREFIX=\\"/usr/local/\\"']  # XXX, make an option
@@ -29,6 +42,7 @@ elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64
         try:
             sources.remove('intern' + os.sep + f + 'X11.cpp')
             sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+            sources.remove('intern' + os.sep + f + 'SDL.cpp')
         except ValueError:
             pass
 elif window_system == 'darwin':
@@ -42,6 +56,7 @@ elif window_system == 'darwin':
                 sources.remove('intern' + os.sep + f + 'Win32.cpp')
                 sources.remove('intern' + os.sep + f + 'X11.cpp')
                 sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+                sources.remove('intern' + os.sep + f + 'SDL.cpp')
             except ValueError:
                 pass
     else:
@@ -50,6 +65,7 @@ elif window_system == 'darwin':
                 sources.remove('intern' + os.sep + f + 'Win32.cpp')
                 sources.remove('intern' + os.sep + f + 'X11.cpp')
                 sources.remove('intern' + os.sep + f + 'Cocoa.mm')
+                sources.remove('intern' + os.sep + f + 'SDL.cpp')
             except ValueError:
                 pass
 
@@ -58,9 +74,28 @@ else:
     Exit()
 
 if env['BF_GHOST_DEBUG']:
-    defs.append('BF_GHOST_DEBUG')
+    defs.append('WITH_GHOST_DEBUG')
+else:
+    sources.remove('intern' + os.sep + 'GHOST_EventPrinter.cpp')
 
-incs = '. ../string #extern/glew/include #source/blender/imbuf #source/blender/makesdna ' + env['BF_OPENGL_INC']
+if env['WITH_BF_3DMOUSE']:
+    defs.append('WITH_INPUT_NDOF')
+
+    if env['OURPLATFORM']=='linux':
+        incs += ' ' + env['BF_3DMOUSE_INC']
+else:
+    sources.remove('intern' + os.sep + 'GHOST_NDOFManager.cpp')
+    try:
+        if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
+            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerWin32.cpp')
+        elif window_system=='darwin':
+            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerCocoa.mm')
+        else:
+            sources.remove('intern' + os.sep + 'GHOST_NDOFManagerX11.cpp')
+    except ValueError:
+        pass
+
+
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
     incs = env['BF_WINTAB_INC'] + ' ' + incs
 

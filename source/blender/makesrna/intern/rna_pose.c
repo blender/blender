@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -44,6 +42,20 @@
 #include "BLI_math.h"
 
 #include "WM_types.h"
+
+
+
+// XXX: this RNA enum define is currently duplicated for objects, since there is some text here which is not applicable
+EnumPropertyItem posebone_rotmode_items[] = {
+	{ROT_MODE_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
+	{ROT_MODE_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order. Prone to Gimbal Lock"},
+	{ROT_MODE_XZY, "XZY", 0, "XZY Euler", "XZY Rotation Order. Prone to Gimbal Lock"},
+	{ROT_MODE_YXZ, "YXZ", 0, "YXZ Euler", "YXZ Rotation Order. Prone to Gimbal Lock"},
+	{ROT_MODE_YZX, "YZX", 0, "YZX Euler", "YZX Rotation Order. Prone to Gimbal Lock"},
+	{ROT_MODE_ZXY, "ZXY", 0, "ZXY Euler", "ZXY Rotation Order. Prone to Gimbal Lock"},
+	{ROT_MODE_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
+	{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector"},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -585,6 +597,25 @@ static void rna_PoseChannel_matrix_basis_set(PointerRNA *ptr, const float *value
 	pchan_apply_mat4(pchan, (float (*)[4])values, FALSE); /* no compat for predictable result */
 }
 
+static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
+{
+	bPoseChannel *pchan= (bPoseChannel*)ptr->data;
+	Object *ob= (Object*)ptr->id.data;
+	float umat[4][4]= MAT4_UNITY;
+	float tmat[4][4];
+
+	/* recalculate pose matrix with only parent transformations,
+	 * bone loc/sca/rot is ignored, scene and frame are not used. */
+	where_is_pose_bone(NULL, ob, pchan, 0.0f, FALSE);
+
+	/* find the matrix, need to remove the bone transforms first so this is
+	 * calculated as a matrix to set rather then a difference ontop of whats
+	 * already there. */
+	pchan_apply_mat4(pchan, umat, FALSE);
+	armature_mat_pose_to_bone(pchan, (float (*)[4])values, tmat);
+	pchan_apply_mat4(pchan, tmat, FALSE); /* no compat for predictable result */
+}
+
 #else
 
 static void rna_def_bone_group(BlenderRNA *brna)
@@ -698,19 +729,7 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 }
 
 static void rna_def_pose_channel(BlenderRNA *brna)
-{
-	// XXX: this RNA enum define is currently duplicated for objects, since there is some text here which is not applicable
-	static EnumPropertyItem prop_rotmode_items[] = {
-		{ROT_MODE_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock (default)"},
-		{ROT_MODE_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order. Prone to Gimbal Lock"},
-		{ROT_MODE_XZY, "XZY", 0, "XZY Euler", "XZY Rotation Order. Prone to Gimbal Lock"},
-		{ROT_MODE_YXZ, "YXZ", 0, "YXZ Euler", "YXZ Rotation Order. Prone to Gimbal Lock"},
-		{ROT_MODE_YZX, "YZX", 0, "YZX Euler", "YZX Rotation Order. Prone to Gimbal Lock"},
-		{ROT_MODE_ZXY, "ZXY", 0, "ZXY Euler", "ZXY Rotation Order. Prone to Gimbal Lock"},
-		{ROT_MODE_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
-		{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector"},
-		{0, NULL, 0, NULL, NULL}};
-		
+{	
 	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
 	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
 	static float default_scale[3] = {1,1,1}; /* default scale values */
@@ -788,7 +807,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 		 * having a single one is better for Keyframing and other property-management situations...
 		 */
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
+	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_axis_angle_get", "rna_PoseChannel_rotation_axis_angle_set", NULL);
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
 	RNA_def_property_float_array_default(prop, default_axisAngle);
@@ -805,7 +824,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
-	RNA_def_property_enum_items(prop, prop_rotmode_items); // XXX move to using a single define of this someday
+	RNA_def_property_enum_items(prop, posebone_rotmode_items); // XXX move to using a single define of this someday
 	RNA_def_property_enum_funcs(prop, NULL, "rna_PoseChannel_rotation_mode_set", NULL);
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable"); // XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too
 	RNA_def_property_ui_text(prop, "Rotation Mode", "");
@@ -830,8 +849,9 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_float_sdna(prop, NULL, "pose_mat");
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE); 
+	RNA_def_property_float_funcs(prop, NULL, "rna_PoseChannel_matrix_set", NULL);
 	RNA_def_property_ui_text(prop, "Pose Matrix", "Final 4x4 matrix after constraints and drivers are applied (object space)");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	/* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */
 	prop= RNA_def_property(srna, "head", PROP_FLOAT, PROP_TRANSLATION);

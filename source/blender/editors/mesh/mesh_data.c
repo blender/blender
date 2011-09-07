@@ -235,7 +235,7 @@ int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 	return 1;
 }
 
-int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me, const char *name, int active_set)
+int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mesh *me, const char *name, int active_set)
 {
 	EditMesh *em;
 	MCol *mcol;
@@ -272,9 +272,6 @@ int ED_mesh_color_add(bContext *C, Scene *scene, Object *ob, Mesh *me, const cha
 			CustomData_set_layer_active(&me->fdata, CD_MCOL, layernum);
 
 		mesh_update_customdata_pointers(me);
-
-		if(!mcol)
-			shadeMeshMCol(scene, ob, me);
 	}
 
 	DAG_id_tag_update(&me->id, 0);

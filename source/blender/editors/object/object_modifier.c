@@ -399,6 +399,15 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 
 static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, ModifierData *md)
 {
+	ModifierTypeInfo *mti= modifierType_getInfo(md->type);
+
+	md->scene= scene;
+
+	if (mti->isDisabled && mti->isDisabled(md, 0)) {
+		BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
+		return 0;
+	}
+
 	if (ob->type==OB_MESH) {
 		DerivedMesh *dm;
 		Mesh *me= ob->data;
@@ -442,7 +451,9 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 {
 	ModifierTypeInfo *mti= modifierType_getInfo(md->type);
 
-	if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
+	md->scene= scene;
+
+	if (mti->isDisabled && mti->isDisabled(md, 0)) {
 		BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
 		return 0;
 	}
@@ -484,7 +495,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 				CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
 			}
 		}
-	} 
+	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu;
 		int numVerts;
@@ -530,6 +541,8 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 
 int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, ModifierData *md, int mode)
 {
+	int prev_mode;
+
 	if (scene->obedit) {
 		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in editmode");
 		return 0;
@@ -541,12 +554,20 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	if (md!=ob->modifiers.first)
 		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected.");
 
+	/* allow apply of a not-realtime modifier, by first re-enabling realtime. */
+	prev_mode= md->mode;
+	md->mode |= eModifierMode_Realtime;
+
 	if (mode == MODIFIER_APPLY_SHAPE) {
-		if (!modifier_apply_shape(reports, scene, ob, md))
+		if (!modifier_apply_shape(reports, scene, ob, md)) {
+			md->mode= prev_mode;
 			return 0;
+		}
 	} else {
-		if (!modifier_apply_obdata(reports, scene, ob, md))
+		if (!modifier_apply_obdata(reports, scene, ob, md)) {
+			md->mode= prev_mode;
 			return 0;
+		}
 	}
 
 	BLI_remlink(&ob->modifiers, md);
@@ -1045,7 +1066,12 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 
 	if (!mmd)
 		return OPERATOR_CANCELLED;
-	
+
+	if(mmd->lvl==0) {
+		BKE_report(op->reports, RPT_ERROR, "Reshape can work only with higher levels of subdivisions.");
+		return OPERATOR_CANCELLED;
+	}
+
 	CTX_DATA_BEGIN(C, Object*, selob, selected_editable_objects) {
 		if(selob->type == OB_MESH && selob != ob) {
 			secondob= selob;
@@ -1259,16 +1285,22 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(mmd->bindcagecos) {
-		if(mmd->bindweights) MEM_freeN(mmd->bindweights);
-		if(mmd->bindcagecos) MEM_freeN(mmd->bindcagecos);
+		MEM_freeN(mmd->bindcagecos);
 		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
 		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
+		if(mmd->bindinfluences) MEM_freeN(mmd->bindinfluences);
+		if(mmd->bindoffsets) MEM_freeN(mmd->bindoffsets);
 		if(mmd->dynverts) MEM_freeN(mmd->dynverts);
-		mmd->bindweights= NULL;
+		if(mmd->bindweights) MEM_freeN(mmd->bindweights); /* deprecated */
+		if(mmd->bindcos) MEM_freeN(mmd->bindcos); /* deprecated */
+
 		mmd->bindcagecos= NULL;
 		mmd->dyngrid= NULL;
 		mmd->dyninfluences= NULL;
+		mmd->bindoffsets= NULL;
 		mmd->dynverts= NULL;
+		mmd->bindweights= NULL; /* deprecated */
+		mmd->bindcos= NULL; /* deprecated */
 		mmd->totvert= 0;
 		mmd->totcagevert= 0;
 		mmd->totinfluence= 0;

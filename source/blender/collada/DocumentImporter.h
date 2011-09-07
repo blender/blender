@@ -38,6 +38,8 @@
 #include "COLLADAFWController.h"
 #include "COLLADAFWMorphController.h"
 #include "COLLADAFWSkinController.h"
+#include "COLLADAFWEffectCommon.h"
+
 
 #include "BKE_object.h"
 
@@ -45,7 +47,7 @@
 #include "AnimationImporter.h"
 #include "ArmatureImporter.h"
 #include "MeshImporter.h"
-#include "ExtraTags.h"
+
 
 
 struct Main;
@@ -72,7 +74,7 @@ public:
 	/** these should not be here */
 	Object* create_camera_object(COLLADAFW::InstanceCamera*, Scene*);
 	Object* create_lamp_object(COLLADAFW::InstanceLight*, Scene*);
-	Object* create_instance_node(Object*, COLLADAFW::Node*, COLLADAFW::Node*, Scene*, bool);
+	Object* create_instance_node(Object*, COLLADAFW::Node*, COLLADAFW::Node*, Scene*, Object*, bool);
 	void write_node(COLLADAFW::Node*, COLLADAFW::Node*, Scene*, Object*, bool);
 	MTex* create_texture(COLLADAFW::EffectCommon*, COLLADAFW::Texture&, Material*, int, TexIndexTextureArrayMap&);
 	void write_profile_COMMON(COLLADAFW::EffectCommon*, Material*);
@@ -155,8 +157,9 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> node_map;
 	std::vector<const COLLADAFW::VisualScene*> vscenes;
 	std::vector<Object*> libnode_ob;
-
+	
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> root_map; // find root joint by child joint uid, for bone tree evaluation during resampling
+	std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map;
 
 };
 

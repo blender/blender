@@ -51,13 +51,21 @@ set(SRC
 )
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC ../../quicktime)
-	list(APPEND INC_SYS ${QUICKTIME_INC})
+	list(APPEND INC
+		../../quicktime
+	)
+	list(APPEND INC_SYS
+		${QUICKTIME_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 
 if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
+endif()
+
+if(WITH_HEADLESS)
+	add_definitions(-DWITH_HEADLESS)
 endif()
 
 blender_add_lib(bf_editor_render "${SRC}" "${INC}" "${INC_SYS}")

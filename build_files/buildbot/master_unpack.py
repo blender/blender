@@ -64,10 +64,11 @@ def get_platform(filename):
 
     return '-'.join(platform_tokens)
 
+
 def get_branch(filename):
     tokens = filename.split("-")
     branch = ""
-    
+
     for token in tokens:
         if branch == "":
             branch = token

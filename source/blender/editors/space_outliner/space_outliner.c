@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -175,6 +173,13 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_DATA:
 					/* needed for vertex groups only, no special notifier atm so use NC_GEOM|ND_DATA */
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_ANIMATION:
+			switch(wmn->data) {
+				case ND_NLA_ACTCHANGE:
 					ED_region_tag_redraw(ar);
 					break;
 			}

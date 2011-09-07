@@ -34,6 +34,7 @@
 #include "BKE_unit.h"
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_winstuff.h"
 
 
@@ -136,7 +137,7 @@ static struct bUnitDef buImperialLenDef[] = {
 	{"yard", "yards",		"yd", NULL, "Yards",	UN_SC_YD, 0.0,	B_UNIT_DEF_NONE},
 	{"foot", "feet",		"'", "ft", "Feet",		UN_SC_FT, 0.0,	B_UNIT_DEF_NONE}, /* base unit */
 	{"inch", "inches",		"\"", "in", "Inches",	UN_SC_IN, 0.0,	B_UNIT_DEF_NONE},
-	{"thou", "thous",		"mil", NULL, "Thous",	UN_SC_MIL, 0.0,	B_UNIT_DEF_NONE},
+	{"thou", "thou",		"thou", "mil", "Thou",	UN_SC_MIL, 0.0,	B_UNIT_DEF_NONE}, /* plural for thou has no 's' */
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 4, 0, sizeof(buImperialLenDef)/sizeof(bUnitDef)};
@@ -344,7 +345,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 
 	/* Convert to a string */
 	{
-		len= snprintf(str, len_max, "%.*lf", prec, value_conv);
+		len= BLI_snprintf(str, len_max, "%.*lf", prec, value_conv);
 
 		if(len >= len_max)
 			len= len_max;
@@ -495,7 +496,7 @@ static int unit_scale_str(char *str, int len_max, char *str_tmp, double scale_pr
 
 		len_name = strlen(replace_str);
 		len_move= (len - (found_ofs+len_name)) + 1; /* 1+ to copy the string terminator */
-		len_num= snprintf(str_tmp, TEMP_STR_SIZE, "*%lg"SEP_STR, unit->scalar/scale_pref); /* # removed later */
+		len_num= BLI_snprintf(str_tmp, TEMP_STR_SIZE, "*%lg"SEP_STR, unit->scalar/scale_pref); /* # removed later */
 
 		if(len_num > len_max)
 			len_num= len_max;
@@ -629,12 +630,12 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 
 
 		/* add the unit prefix and re-run, use brackets incase there was an expression given */
-		if(snprintf(str_tmp, sizeof(str_tmp), "(%s)%s", str, unit->name) < sizeof(str_tmp)) {
+		if(BLI_snprintf(str_tmp, sizeof(str_tmp), "(%s)%s", str, unit->name) < sizeof(str_tmp)) {
 			strncpy(str, str_tmp, len_max);
 			return bUnit_ReplaceString(str, len_max, NULL, scale_pref, system, type);
 		}
 		else {
-			/* snprintf would not fit into str_tmp, cant do much in this case
+			/* BLI_snprintf would not fit into str_tmp, cant do much in this case
 			 * check for this because otherwise bUnit_ReplaceString could call its self forever */
 			return 0;
 		}
@@ -705,7 +706,7 @@ void bUnit_ToUnitAltName(char *str, int len_max, char *orig_str, int system, int
 
 				/* print the alt_name */
 				if(unit->name_alt)
-					len_name= snprintf(str, len_max, "%s", unit->name_alt);
+					len_name= BLI_snprintf(str, len_max, "%s", unit->name_alt);
 				else
 					len_name= 0;
 

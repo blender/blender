@@ -38,26 +38,29 @@
 #include "DNA_vec_types.h"
 #include "DNA_listBase.h"
 
+struct ID;
 struct ListBase;
 struct SpaceNode;
 struct bNodeLink;
 struct bNodeType;
-struct bNodeGroup;
+struct bNodeTreeExec;
 struct AnimData;
 struct bGPdata;
 struct uiBlock;
 
 #define NODE_MAXSTR 32
 
-
 typedef struct bNodeStack {
 	float vec[4];
-	float min, max;			/* min/max for values (UI writes it, execute might use it) */
+	float min, max;
 	void *data;
 	short hasinput;			/* when input has link, tagged before executing */
 	short hasoutput;		/* when output is linked, tagged before executing */
 	short datatype;			/* type of data pointer */
 	short sockettype;		/* type of socket stack comes from, to remap linking different sockets */
+	short is_copy;			/* data is a copy of external data (no freeing) */
+	short external;			/* data is used by external nodes (no freeing) */
+	short pad[2];
 } bNodeStack;
 
 /* ns->datatype, shadetree only */
@@ -68,57 +71,64 @@ typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev, *new_sock;
 	
 	char name[32];
-	bNodeStack ns;				/* custom data for inputs, only UI writes in this */
+	
+	void *storage;				/* custom storage */
 	
 	short type, flag;
 	short limit;				/* max. number of links */
-	
-	/* stack data info (only during execution!) */
-	short stack_type;			/* type of stack reference */
-	/* XXX only one of stack_ptr or stack_index is used (depending on stack_type).
-	 * could store the index in the pointer with SET_INT_IN_POINTER (a bit ugly).
-	 * (union won't work here, not supported by DNA)
-	 */
-	struct bNodeStack *stack_ptr;	/* constant input value */
-	short stack_index;			/* local stack index or external input number */
 	short pad1;
 	
 	float locx, locy;
 	
+	void *default_value;		/* default input value used for unlinked sockets */
+	
+	/* execution data */
+	short stack_index;			/* local stack index */
+	short pad2;
+	int pad3;
+	void *cache;				/* cached data from execution */
+	
 	/* internal data to retrieve relations and groups */
-	
 	int own_index;				/* group socket identifiers, to find matching pairs after reading files */
-	struct bNodeSocket *groupsock;
 	int to_index;				/* XXX deprecated, only used for restoring old group node links */
-	int pad2;
+	struct bNodeSocket *groupsock;
 	
-	struct bNodeLink *link;		/* a link pointer, set in nodeSolveOrder() */
+	struct bNodeLink *link;		/* a link pointer, set in ntreeUpdateTree */
+
+	/* DEPRECATED only needed for do_versions */
+	bNodeStack ns;				/* custom data for inputs, only UI writes in this */
 } bNodeSocket;
 
 /* sock->type */
-#define SOCK_VALUE		0
-#define SOCK_VECTOR		1
-#define SOCK_RGBA		2
+#define SOCK_FLOAT			0
+#define SOCK_VECTOR			1
+#define SOCK_RGBA			2
+#define SOCK_INT			3
+#define SOCK_BOOLEAN		4
+#define SOCK_MESH			5
+#define NUM_SOCKET_TYPES	6	/* must be last! */
+
+/* socket side (input/output) */
+#define SOCK_IN		1
+#define SOCK_OUT	2
 
 /* sock->flag, first bit is select */
-		/* hidden is user defined, to hide unused */
+	/* hidden is user defined, to hide unused */
 #define SOCK_HIDDEN				2
-		/* only used now for groups... */
-#define SOCK_IN_USE				4
-		/* unavailable is for dynamic sockets */
+	/* only used now for groups... */
+#define SOCK_IN_USE				4	/* XXX deprecated */
+	/* unavailable is for dynamic sockets */
 #define SOCK_UNAVAIL			8
-
-/* sock->stack_type */
-#define SOCK_STACK_LOCAL		1	/* part of the local tree stack */
-#define SOCK_STACK_EXTERN		2	/* use input stack pointer */
-#define SOCK_STACK_CONST		3	/* use pointer to constant input value */
+	/* dynamic socket (can be modified by user) */
+#define SOCK_DYNAMIC			16
+	/* group socket should not be exposed */
+#define SOCK_INTERNAL			32
 
 typedef struct bNodePreview {
 	unsigned char *rect;
 	short xsize, ysize;
 	int pad;
 } bNodePreview;
-
 
 /* limit data in bNode to what we want to see saved? */
 typedef struct bNode {
@@ -132,11 +142,14 @@ typedef struct bNode {
 	short nr;				/* number of this node in list, used for UI exec events */
 	
 	ListBase inputs, outputs;
+	struct bNode *parent;	/* parent node */
 	struct ID *id;			/* optional link to libdata */
 	void *storage;			/* custom data, must be struct, for storage in file */
 	
 	float locx, locy;		/* root offset for drawing */
-	float width, miniwidth;
+	float width, height;	/* node custom width and height */
+	float miniwidth;		/* node width if hidden */
+	int pad;
 	char label[32];			/* custom user-defined label */
 	short custom1, custom2;	/* to be abused for buttons */
 	float custom3, custom4;
@@ -151,7 +164,6 @@ typedef struct bNode {
 	struct uiBlock *block;	/* runtime during drawing */
 	
 	struct bNodeType *typeinfo;	/* lookup of callbacks and defaults */
-	
 } bNode;
 
 /* node->flag */
@@ -163,11 +175,17 @@ typedef struct bNode {
 #define NODE_ACTIVE_ID		32
 #define NODE_DO_OUTPUT		64
 #define NODE_GROUP_EDIT		128
-		/* free test flag, undefined */
+	/* free test flag, undefined */
 #define NODE_TEST			256
-		/* composite: don't do node but pass on buffer(s) */
+	/* composite: don't do node but pass on buffer(s) */
 #define NODE_MUTED			512
-#define NODE_CUSTOM_NAME		1024	/* deprecated! */
+#define NODE_CUSTOM_NAME	1024	/* deprecated! */
+	/* group node types: use const outputs by default */
+#define NODE_CONST_OUTPUT	(1<<11)
+	/* node is always behind others */
+#define NODE_BACKGROUND		(1<<12)
+	/* automatic flag for nodes included in transforms */
+#define NODE_TRANSFORM		(1<<13)
 
 typedef struct bNodeLink {
 	struct bNodeLink *next, *prev;
@@ -175,9 +193,13 @@ typedef struct bNodeLink {
 	bNode *fromnode, *tonode;
 	bNodeSocket *fromsock, *tosock;
 	
-	int flag, pad;
-	
+	int flag;
+	int pad;
 } bNodeLink;
+
+/* link->flag */
+#define NODE_LINK_VALID			1		/* link has been successfully validated */
+#define NODE_LINKFLAG_HILITE	2
 
 /* the basis for a Node tree, all links and nodes reside internal here */
 /* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
@@ -189,19 +211,24 @@ typedef struct bNodeTree {
 	
 	ListBase nodes, links;
 	
-	bNodeStack *stack;				/* stack is only while executing, no read/write in file */
-	struct ListBase *threadstack;	/* same as above */
-	
 	int type, init;					/* set init on fileread */
-	int stacksize;					/* amount of elements in stack */
 	int cur_index;					/* sockets in groups have unique identifiers, adding new sockets always 
 									   will increase this counter */
-	int flag, pad;					
+	int flag;
+	int update;						/* update flags */
 	
-	ListBase alltypes;				/* type definitions */
+	int nodetype;					/* specific node type this tree is used for */
+	
 	ListBase inputs, outputs;		/* external sockets for group nodes */
-
-	int pad2[2];
+	
+	/* execution data */
+	/* XXX It would be preferable to completely move this data out of the underlying node tree,
+	 * so node tree execution could finally run independent of the tree itself. This would allow node trees
+	 * to be merely linked by other data (materials, textures, etc.), as ID data is supposed to.
+	 * Execution data is generated from the tree once at execution start and can then be used
+	 * as long as necessary, even while the tree is being modified.
+	 */
+	struct bNodeTreeExec *execdata;
 	
 	/* callbacks */
 	void (*progress)(void *, float progress);
@@ -212,20 +239,59 @@ typedef struct bNodeTree {
 } bNodeTree;
 
 /* ntree->type, index */
-#define NTREE_SHADER	0
-#define NTREE_COMPOSIT	1
-#define NTREE_TEXTURE   2
+#define NTREE_SHADER		0
+#define NTREE_COMPOSIT		1
+#define NTREE_TEXTURE		2
+#define NUM_NTREE_TYPES		3
 
 /* ntree->init, flag */
-#define NTREE_TYPE_INIT	1
-#define NTREE_EXEC_INIT	2
+#define NTREE_TYPE_INIT		1
 
 /* ntree->flag */
 #define NTREE_DS_EXPAND		1	/* for animation editors */
-/* XXX not nice, but needed as a temporary flag
+/* XXX not nice, but needed as a temporary flags
  * for group updates after library linking.
  */
-#define NTREE_DO_VERSIONS	1024
+#define NTREE_DO_VERSIONS_GROUP_EXPOSE	1024
+
+/* ntree->update */
+#define NTREE_UPDATE			0xFFFF	/* generic update flag (includes all others) */
+#define NTREE_UPDATE_LINKS		1		/* links have been added or removed */
+#define NTREE_UPDATE_NODES		2		/* nodes or sockets have been added or removed */
+#define NTREE_UPDATE_GROUP_IN	16		/* group inputs have changed */
+#define NTREE_UPDATE_GROUP_OUT	32		/* group outputs have changed */
+#define NTREE_UPDATE_GROUP		48		/* group has changed (generic flag including all other group flags) */
+
+
+/* socket value structs for input buttons */
+
+typedef struct bNodeSocketValueInt {
+	int subtype;				/* RNA subtype */
+	int value;
+	int min, max;
+} bNodeSocketValueInt;
+
+typedef struct bNodeSocketValueFloat {
+	int subtype;				/* RNA subtype */
+	float value;
+	float min, max;
+} bNodeSocketValueFloat;
+
+typedef struct bNodeSocketValueBoolean {
+	char value;
+	char pad[3];
+} bNodeSocketValueBoolean;
+
+typedef struct bNodeSocketValueVector {
+	int subtype;				/* RNA subtype */
+	float value[3];
+	float min, max;
+} bNodeSocketValueVector;
+
+typedef struct bNodeSocketValueRGBA {
+	float value[4];
+} bNodeSocketValueRGBA;
+
 
 /* data structs, for node->storage */
 
@@ -349,7 +415,6 @@ typedef struct NodeColorspill {
 typedef struct TexNodeOutput {
 	char name[32];
 } TexNodeOutput;
-
 
 /* comp channel matte */
 #define CMP_NODE_CHANNEL_MATTE_CS_RGB	1

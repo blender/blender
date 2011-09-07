@@ -28,9 +28,9 @@ set(INC
 	.
 	..
 	../blenlib
+	../blenloader
 	../imbuf
 	../makesdna
-	../blenloader
 	../../../intern/guardedalloc
 )
 
@@ -50,7 +50,9 @@ set(SRC
 )
 
 if(WITH_CODEC_QUICKTIME)
-	list(APPEND INC_SYS ${QUICKTIME_INC})
+	list(APPEND INC_SYS
+		${QUICKTIME_INCLUDE_DIRS}
+	)
 	add_definitions(-DWITH_QUICKTIME)
 endif()
 

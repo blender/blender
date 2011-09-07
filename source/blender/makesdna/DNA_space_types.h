@@ -267,7 +267,7 @@ typedef struct SpaceImage {
 	float centx, centy;				/* storage for offset while render drawing */
 
 	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
-	short imtypenr;
+	short pad;
 	short lock;
 	short pin;
 	char dt_uv; /* UV draw type */
@@ -696,18 +696,19 @@ enum FileSortTypeE {
 #define FILE_OPENFILE		0
 #define FILE_SAVE			1
 
-/* sfile->flag and simasel->flag */
-#define FILE_SHOWSHORT		1
-#define FILE_RELPATH		2 /* was FILE_STRINGCODE */
-#define FILE_LINK			4
-#define FILE_HIDE_DOT		8
-#define FILE_AUTOSELECT		16
-#define FILE_ACTIVELAY		32
-#define FILE_ATCURSOR		64
-#define FILE_SYNCPOSE		128
-#define FILE_FILTER			256
-#define FILE_BOOKMARKS		512
-#define FILE_GROUP_INSTANCE	1024
+/* sfile->params->flag and simasel->flag */
+#define FILE_SHOWSHORT		(1<<0)
+#define FILE_RELPATH		(1<<1) /* was FILE_STRINGCODE */
+#define FILE_LINK			(1<<2)
+#define FILE_HIDE_DOT		(1<<3)
+#define FILE_AUTOSELECT		(1<<4)
+#define FILE_ACTIVELAY		(1<<5)
+/* #define FILE_ATCURSOR	(1<<6) */ /* deprecated */
+#define FILE_DIRSEL_ONLY	(1<<7)
+#define FILE_FILTER			(1<<8)
+#define FILE_BOOKMARKS		(1<<9)
+#define FILE_GROUP_INSTANCE	(1<<10)
+
 
 /* files in filesel list: file types */
 #define BLENDERFILE			(1<<2)
@@ -753,7 +754,7 @@ enum FileSortTypeE {
 #define SI_EDITTILE		(1<<1)
 #define SI_CLIP_UV		(1<<2)
 #define SI_DRAWTOOL		(1<<3)
-#define SI_DEPRECATED1  (1<<4)	/* stick UVs to others in the same location */
+#define SI_NO_DRAWFACES	(1<<4)
 #define SI_DRAWSHADOW   (1<<5)
 #define SI_SELACTFACE   (1<<6)	/* deprecated */
 #define SI_DEPRECATED2	(1<<7)
@@ -929,6 +930,7 @@ enum {
 #define SEQ_PROXY_RENDER_SIZE_25        25
 #define SEQ_PROXY_RENDER_SIZE_50        50
 #define SEQ_PROXY_RENDER_SIZE_75        75
+#define SEQ_PROXY_RENDER_SIZE_100       99
 #define SEQ_PROXY_RENDER_SIZE_FULL      100
 
 

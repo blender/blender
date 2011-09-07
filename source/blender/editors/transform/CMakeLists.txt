@@ -22,8 +22,8 @@
 set(INC
 	../include
 	../../blenkernel
-	../../blenloader
 	../../blenlib
+	../../blenloader
 	../../makesdna
 	../../makesrna
 	../../windowmanager
@@ -41,7 +41,6 @@ set(SRC
 	transform_generics.c
 	transform_input.c
 	transform_manipulator.c
-	transform_ndofinput.c
 	transform_ops.c
 	transform_orientations.c
 	transform_snap.c

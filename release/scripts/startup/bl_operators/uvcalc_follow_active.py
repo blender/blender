@@ -22,6 +22,7 @@
 # http://mediawiki.blender.org/index.php/Scripts/Manual/UV_Calculate/Follow_active_quads
 
 import bpy
+from bpy.types import Operator
 
 
 def extend(obj, operator, EXTEND_MODE):
@@ -42,7 +43,6 @@ def extend(obj, operator, EXTEND_MODE):
     edge_average_lengths = {}
 
     OTHER_INDEX = 2, 3, 0, 1
-    FAST_INDICIES = 0, 2, 1, 3  # order is faster
 
     def extend_uvs(face_source, face_target, edge_key):
         '''
@@ -227,7 +227,7 @@ def main(context, operator):
     extend(obj, operator, operator.properties.mode)
 
 
-class FollowActiveQuads(bpy.types.Operator):
+class FollowActiveQuads(Operator):
     '''Follow UVs from active quads along continuous face loops'''
     bl_idname = "uv.follow_active_quads"
     bl_label = "Follow Active Quads"

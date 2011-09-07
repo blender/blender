@@ -43,7 +43,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-EnumPropertyItem effector_shape_items[] = {
+static EnumPropertyItem effector_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface", ""},
@@ -51,20 +51,23 @@ EnumPropertyItem effector_shape_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem curve_shape_items[] = {
+#ifdef RNA_RUNTIME
+
+/* type spesific return values only used from functions */
+static EnumPropertyItem curve_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem empty_shape_items[] = {
+static EnumPropertyItem empty_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem vortex_shape_items[] = {
+static EnumPropertyItem vortex_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface falloff (New)", ""},
@@ -72,20 +75,18 @@ EnumPropertyItem vortex_shape_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem curve_vortex_shape_items[] = {
+static EnumPropertyItem curve_vortex_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve (New)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
-EnumPropertyItem empty_vortex_shape_items[] = {
+static EnumPropertyItem empty_vortex_shape_items[] = {
 	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
 	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{0, NULL, 0, NULL, NULL}
 };
-
-#ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
 
@@ -770,7 +771,6 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "compression", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, point_cache_compress_items);
 	RNA_def_property_ui_text(prop, "Cache Compression", "Compression method to be used");
-	RNA_def_property_update(prop, 0, NULL);
 
 	/* flags */
 	prop= RNA_def_property(srna, "is_baked", PROP_BOOLEAN, PROP_NONE);
@@ -910,13 +910,6 @@ static void rna_def_collision(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Damping", "Amount of damping during collision");
 	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
-	
-	/* Does this belong here?
-	prop= RNA_def_property(srna, "collision_stack", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "softflag", OB_SB_COLLFINAL);
-	RNA_def_property_ui_text(prop, "Collision from Stack", "Pick collision object from modifier stack (softbody only)");
-	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
-	*/
 
 	prop= RNA_def_property(srna, "absorption", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_range(prop, 0.0f, 1.0f);

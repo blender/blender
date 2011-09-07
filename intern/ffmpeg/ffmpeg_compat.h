@@ -40,7 +40,7 @@
 #define FFMPEG_HAVE_AVIO 1
 #endif
 
-#if (LIBAVCODEC_VERSION_MAJOR > 53) || ((LIBAVCODEC_VERSION_MAJOR == 53) && (LIBAVCODEC_VERSION_MINOR > 1)) || ((LIBAVCODEC_VERSION_MAJOR == 53) && (LIBAVCODEC_VERSION_MINOR == 1) && (LIBAVCODEC_VERSION_MICRO >= 1))
+#if (LIBAVCODEC_VERSION_MAJOR > 53) || ((LIBAVCODEC_VERSION_MAJOR == 53) && (LIBAVCODEC_VERSION_MINOR > 1)) || ((LIBAVCODEC_VERSION_MAJOR == 53) && (LIBAVCODEC_VERSION_MINOR == 1) && (LIBAVCODEC_VERSION_MICRO >= 1)) || ((LIBAVCODEC_VERSION_MAJOR == 52) && (LIBAVCODEC_VERSION_MINOR >= 121))
 #define FFMPEG_HAVE_DEFAULT_VAL_UNION 1
 #endif
 
@@ -71,6 +71,7 @@
 #define avio_open url_fopen
 #define avio_tell url_ftell
 #define avio_close url_fclose
+#define avio_size url_fsize
 #endif
 
 /* there are some version inbetween, which have avio_... functions but no
@@ -129,5 +130,20 @@ int avcodec_decode_video2(AVCodecContext *avctx, AVFrame *picture,
 				    avpkt->data, avpkt->size);
 }
 #endif
+
+static inline
+int64_t av_get_pts_from_frame(AVFormatContext *avctx, AVFrame * picture)
+{
+	int64_t pts = picture->pkt_pts;
+
+	if (pts == AV_NOPTS_VALUE) {
+		pts = picture->pkt_dts;
+	}
+	if (pts == AV_NOPTS_VALUE) {
+		pts = 0;
+	}
+	
+	return pts;
+}
 
 #endif

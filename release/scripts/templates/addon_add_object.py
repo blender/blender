@@ -35,7 +35,7 @@ def add_object(self, context):
     mesh.from_pydata(verts, edges, faces)
     # useful for development when the mesh may be invalid.
     # mesh.validate(verbose=True)
-    add_object_data(context, mesh_data, operator=self)
+    add_object_data(context, mesh, operator=self)
 
 
 class OBJECT_OT_add_object(bpy.types.Operator, AddObjectHelper):
@@ -45,10 +45,12 @@ class OBJECT_OT_add_object(bpy.types.Operator, AddObjectHelper):
     bl_description = "Create a new Mesh Object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    scale = FloatVectorProperty(name='scale',
-                                default=(1.0, 1.0, 1.0),
-                                subtype='TRANSLATION',
-                                description='scaling')
+    scale = FloatVectorProperty(
+            name='scale',
+            default=(1.0, 1.0, 1.0),
+            subtype='TRANSLATION',
+            description='scaling',
+            )
 
     def execute(self, context):
 

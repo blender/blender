@@ -42,9 +42,10 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
-#include "GHOST_EventNDOF.h"
-#include "GHOST_NDOFManager.h"
 #include "GHOST_DisplayManagerX11.h"
+#ifdef WITH_INPUT_NDOF
+#include "GHOST_NDOFManagerX11.h"
+#endif
 
 #include "GHOST_Debug.h"
 
@@ -76,18 +77,8 @@
 #include <stdio.h> // for fprintf only
 #include <cstdlib> // for exit
 
-typedef struct NDOFPlatformInfo {
-	Display *display;
-	Window window;
-	volatile GHOST_TEventNDOFData *currValues;
-	Atom cmdAtom;
-	Atom motionAtom;
-	Atom btnPressAtom;
-	Atom btnRelAtom;
-} NDOFPlatformInfo;
-
-static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL, 0, 0, 0, 0};
-
+static GHOST_TKey
+convertXKey(KeySym key);
 
 //these are for copy and select copy
 static char *txt_cut_buffer= NULL;
@@ -147,8 +138,9 @@ GHOST_SystemX11(
 	if (gettimeofday(&tv,NULL) == -1) {
 		GHOST_ASSERT(false,"Could not instantiate timer!");
 	}
-
-	m_start_time = GHOST_TUns64(tv.tv_sec*1000 + tv.tv_usec/1000);
+	
+	// Taking care not to overflow the tv.tv_sec*1000
+	m_start_time = GHOST_TUns64(tv.tv_sec)*1000 + tv.tv_usec/1000;
 	
 	
 	/* use detectable autorepeate, mac and windows also do this */
@@ -177,6 +169,9 @@ init(
 	GHOST_TSuccess success = GHOST_System::init();
 
 	if (success) {
+#ifdef WITH_INPUT_NDOF
+		m_ndofManager = new GHOST_NDOFManagerX11(*this);
+#endif
 		m_displayManager = new GHOST_DisplayManagerX11(this);
 
 		if (m_displayManager) {
@@ -196,7 +191,8 @@ getMilliSeconds(
 		GHOST_ASSERT(false,"Could not compute time!");
 	}
 
-	return  GHOST_TUns64(tv.tv_sec*1000 + tv.tv_usec/1000) - m_start_time;
+	// Taking care not to overflow the tv.tv_sec*1000
+	return  GHOST_TUns64(tv.tv_sec)*1000 + tv.tv_usec/1000 - m_start_time;
 }
 	
 	GHOST_TUns8 
@@ -270,7 +266,7 @@ createWindow(
 		if (window->getValid()) {
 			// Store the pointer to the window 
 			m_windowManager->addWindow(window);
-			
+			m_windowManager->setActiveWindow(window);
 			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
 		}
 		else {
@@ -381,8 +377,6 @@ lastEventTime(Time default_time) {
     return data.timestamp;
 }
 
-
-
 	bool 
 GHOST_SystemX11::
 processEvents(
@@ -423,6 +417,13 @@ processEvents(
 		if (generateWindowExposeEvents()) {
 			anyProcessed = true;
 		}
+
+#ifdef WITH_INPUT_NDOF
+		if (dynamic_cast<GHOST_NDOFManagerX11*>(m_ndofManager)->processEvents()) {
+			anyProcessed = true;
+		}
+#endif
+		
 	} while (waitForEvent && !anyProcessed);
 	
 	return anyProcessed;
@@ -606,6 +607,9 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		case FocusOut:
 		{
 			XFocusChangeEvent &xfe = xe->xfocus;
+
+			// TODO: make sure this is the correct place for activate/deactivate
+			// printf("X: focus %s for window %d\n", xfe.type == FocusIn ? "in" : "out", (int) xfe.window);
 		
 			// May have to look at the type of event and filter some
 			// out.
@@ -636,32 +640,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				);
 			} else 
 #endif
-			if (sNdofInfo.currValues) {
-				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
-				if (xcme.message_type == sNdofInfo.motionAtom)
-				{
-					data.changed = 1;
-					data.delta = xcme.data.s[8] - data.time;
-					data.time = xcme.data.s[8];
-					data.tx = xcme.data.s[2] >> 2;
-					data.ty = xcme.data.s[3] >> 2;
-					data.tz = xcme.data.s[4] >> 2;
-					data.rx = xcme.data.s[5];
-					data.ry = xcme.data.s[6];
-					data.rz =-xcme.data.s[7];
-					g_event = new GHOST_EventNDOF(getMilliSeconds(),
-					                              GHOST_kEventNDOFMotion,
-					                              window, data);
-				} else if (xcme.message_type == sNdofInfo.btnPressAtom) {
-					data.changed = 2;
-					data.delta = xcme.data.s[8] - data.time;
-					data.time = xcme.data.s[8];
-					data.buttons = xcme.data.s[2];
-					g_event = new GHOST_EventNDOF(getMilliSeconds(),
-					                              GHOST_kEventNDOFButton,
-					                              window, data);
-				}
-			} else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+
+			if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
 				XWindowAttributes attr;
 				Window fwin;
 				int revert_to;
@@ -718,6 +698,14 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					xce.y_root
 				);
 			}
+
+			// printf("X: %s window %d\n", xce.type == EnterNotify ? "entering" : "leaving", (int) xce.window);
+
+			if (xce.type == EnterNotify)
+				m_windowManager->setActiveWindow(window);
+			else
+				m_windowManager->setWindowInactive(window);
+
 			break;
 		}
 		case MapNotify:
@@ -829,18 +817,6 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	}
 }
 
-	void *
-GHOST_SystemX11::
-prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
-{
-	const vector<GHOST_IWindow*>& v(m_windowManager->getWindows());
-	if (v.size() > 0)
-		sNdofInfo.window = static_cast<GHOST_WindowX11*>(v[0])->getXWindow();
-	sNdofInfo.display = m_display;
-	sNdofInfo.currValues = currentNdofValues;
-	return (void*)&sNdofInfo;
-}
-
 	GHOST_TSuccess 
 GHOST_SystemX11::
 getModifierKeys(
@@ -856,60 +832,28 @@ getModifierKeys(
 	// now translate key symobols into keycodes and
 	// test with vector.
 
-	const KeyCode shift_l = XKeysymToKeycode(m_display,XK_Shift_L);
-	const KeyCode shift_r = XKeysymToKeycode(m_display,XK_Shift_R);
-	const KeyCode control_l = XKeysymToKeycode(m_display,XK_Control_L);
-	const KeyCode control_r = XKeysymToKeycode(m_display,XK_Control_R);
-	const KeyCode alt_l = XKeysymToKeycode(m_display,XK_Alt_L);
-	const KeyCode alt_r = XKeysymToKeycode(m_display,XK_Alt_R);
-	const KeyCode super_l = XKeysymToKeycode(m_display,XK_Super_L);
-	const KeyCode super_r = XKeysymToKeycode(m_display,XK_Super_R);
+	const static KeyCode shift_l = XKeysymToKeycode(m_display,XK_Shift_L);
+	const static KeyCode shift_r = XKeysymToKeycode(m_display,XK_Shift_R);
+	const static KeyCode control_l = XKeysymToKeycode(m_display,XK_Control_L);
+	const static KeyCode control_r = XKeysymToKeycode(m_display,XK_Control_R);
+	const static KeyCode alt_l = XKeysymToKeycode(m_display,XK_Alt_L);
+	const static KeyCode alt_r = XKeysymToKeycode(m_display,XK_Alt_R);
+	const static KeyCode super_l = XKeysymToKeycode(m_display,XK_Super_L);
+	const static KeyCode super_r = XKeysymToKeycode(m_display,XK_Super_R);
 
-	// Shift
-	if ((m_keyboard_vector[shift_l >> 3] >> (shift_l & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyLeftShift,true);
-	} else {
-		keys.set(GHOST_kModifierKeyLeftShift,false);
-	}
-	if ((m_keyboard_vector[shift_r >> 3] >> (shift_r & 7)) & 1) {
+	// shift
+	keys.set(GHOST_kModifierKeyLeftShift, ((m_keyboard_vector[shift_l >> 3] >> (shift_l & 7)) & 1) != 0);
+	keys.set(GHOST_kModifierKeyRightShift, ((m_keyboard_vector[shift_r >> 3] >> (shift_r & 7)) & 1) != 0);
+	// control
+	keys.set(GHOST_kModifierKeyLeftControl, ((m_keyboard_vector[control_l >> 3] >> (control_l & 7)) & 1) != 0);
+	keys.set(GHOST_kModifierKeyRightControl, ((m_keyboard_vector[control_r >> 3] >> (control_r & 7)) & 1) != 0);
+	// alt
+	keys.set(GHOST_kModifierKeyLeftAlt, ((m_keyboard_vector[alt_l >> 3] >> (alt_l & 7)) & 1) != 0);
+	keys.set(GHOST_kModifierKeyRightAlt, ((m_keyboard_vector[alt_r >> 3] >> (alt_r & 7)) & 1) != 0);
+	// super (windows) - only one GHOST-kModifierKeyOS, so mapping to either
+	keys.set(GHOST_kModifierKeyOS, ( ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) ||
+	                                 ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) ) != 0);
 
-		keys.set(GHOST_kModifierKeyRightShift,true);
-	} else {
-		keys.set(GHOST_kModifierKeyRightShift,false);
-	}
-
-	// control (weep)
-	if ((m_keyboard_vector[control_l >> 3] >> (control_l & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyLeftControl,true);
-	} else {
-		keys.set(GHOST_kModifierKeyLeftControl,false);
-	}
-	if ((m_keyboard_vector[control_r >> 3] >> (control_r & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyRightControl,true);
-	} else {
-		keys.set(GHOST_kModifierKeyRightControl,false);
-	}
-
-	// Alt (yawn)
-	if ((m_keyboard_vector[alt_l >> 3] >> (alt_l & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyLeftAlt,true);
-	} else {
-		keys.set(GHOST_kModifierKeyLeftAlt,false);
-	}	
-	if ((m_keyboard_vector[alt_r >> 3] >> (alt_r & 7)) & 1) {
-		keys.set(GHOST_kModifierKeyRightAlt,true);
-	} else {
-		keys.set(GHOST_kModifierKeyRightAlt,false);
-	}
-
-	// Super (Windows) - only one GHOST-kModifierKeyOS, so mapping
-	// to either
-	if ( ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) || 
-	     ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) ) {
-		keys.set(GHOST_kModifierKeyOS,true);
-	} else {
-		keys.set(GHOST_kModifierKeyOS,false);
-	}
 	return GHOST_kSuccess;
 }
 
@@ -923,35 +867,20 @@ getButtons(
 	int rx,ry,wx,wy;
 	unsigned int mask_return;
 
-	if (XQueryPointer(
-		m_display,
-		RootWindow(m_display,DefaultScreen(m_display)),
-		&root_return,
-		&child_return,
-		&rx,&ry,
-		&wx,&wy,
-		&mask_return
-	) == False) {
+	if (XQueryPointer(m_display,
+	                  RootWindow(m_display,DefaultScreen(m_display)),
+	                  &root_return,
+	                  &child_return,
+	                  &rx,&ry,
+	                  &wx,&wy,
+	                  &mask_return) == True)
+	{
+		buttons.set(GHOST_kButtonMaskLeft,   (mask_return & Button1Mask) != 0);
+		buttons.set(GHOST_kButtonMaskMiddle, (mask_return & Button2Mask) != 0);
+		buttons.set(GHOST_kButtonMaskRight,  (mask_return & Button3Mask) != 0);
+	}
+	else {
 		return GHOST_kFailure;
-	} else {
-
-		if (mask_return & Button1Mask) {
-			buttons.set(GHOST_kButtonMaskLeft,true);
-		} else {
-			buttons.set(GHOST_kButtonMaskLeft,false);
-		}
-
-		if (mask_return & Button2Mask) {
-			buttons.set(GHOST_kButtonMaskMiddle,true);
-		} else {
-			buttons.set(GHOST_kButtonMaskMiddle,false);
-		}
-
-		if (mask_return & Button3Mask) {
-			buttons.set(GHOST_kButtonMaskRight,true);
-		} else {
-			buttons.set(GHOST_kButtonMaskRight,false);
-		}
 	}	
 
 	return GHOST_kSuccess;
@@ -1056,11 +985,9 @@ generateWindowExposeEvents(
 
 #define GXMAP(k,x,y) case x: k = y; break; 
 
-	GHOST_TKey
-GHOST_SystemX11::
-convertXKey(
-	KeySym key
-){
+static GHOST_TKey
+convertXKey(KeySym key)
+{
 	GHOST_TKey type;
 
 	if ((key >= XK_A) && (key <= XK_Z)) {
@@ -1175,7 +1102,9 @@ convertXKey(
 			GXMAP(type,XF86XK_AudioPrev,    GHOST_kKeyMediaFirst);
 			GXMAP(type,XF86XK_AudioRewind,  GHOST_kKeyMediaFirst);
 			GXMAP(type,XF86XK_AudioNext,    GHOST_kKeyMediaLast);
+#ifdef XF86XK_AudioForward /* Debian lenny's XF86keysym.h has no XF86XK_AudioForward define */
 			GXMAP(type,XF86XK_AudioForward, GHOST_kKeyMediaLast);
+#endif
 #endif
 
 				/* some extra sun cruft (NICE KEYBOARD!) */

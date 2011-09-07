@@ -126,6 +126,12 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
+static void foreachTexLink(ModifierData *md, Object *ob,
+					   TexWalkFunc walk, void *userData)
+{
+	walk(userData, ob, md, "texture");
+}
+
 static void updateDepgraph(ModifierData *md, DagForest *forest,
 						Scene *UNUSED(scene),
 						Object *UNUSED(ob),
@@ -256,7 +262,7 @@ static void waveModifier_do(WaveModifierData *md,
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
 	MVert *mvert = NULL;
-	MDeformVert *dvert = NULL;
+	MDeformVert *dvert;
 	int defgrp_index;
 	float ctime = BKE_curframe(scene);
 	float minfac =
@@ -281,11 +287,7 @@ static void waveModifier_do(WaveModifierData *md,
 	}
 
 	/* get the index of the deform group */
-	defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
-
-	if(defgrp_index >= 0){
-		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	}
+	modifier_get_vgroup(ob, dm, wmd->defgrp_name, &dvert, &defgrp_index);
 
 	if(wmd->damp == 0) wmd->damp = 10.0f;
 
@@ -470,4 +472,5 @@ ModifierTypeInfo modifierType_Wave = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     foreachIDLink,
+	/* foreachTexLink */    foreachTexLink,
 };

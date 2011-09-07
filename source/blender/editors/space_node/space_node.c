@@ -200,6 +200,9 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 				else if(wmn->data==ND_SHADING_DRAW)
 					ED_area_tag_refresh(sa);
+				else if(wmn->action==NA_ADDED && snode->edittree)
+					nodeSetActiveID(snode->edittree, ID_MA, wmn->reference);
+					
 			}
 			break;
 		case NC_TEXTURE:
@@ -224,6 +227,13 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_refresh(sa);
 			else if (wmn->action == NA_SELECTED)
 				ED_area_tag_redraw(sa);
+			break;
+		case NC_SCREEN:
+			switch(wmn->data) {
+				case ND_ANIMPLAY:
+					ED_area_tag_refresh(sa);
+					break;
+			}
 			break;
 
 		case NC_IMAGE:
@@ -429,12 +439,28 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 	else if(CTX_data_equals(member, "selected_nodes")) {
 		bNode *node;
 		
-		for(next_node(snode->edittree); (node=next_node(NULL));) {
-			if(node->flag & NODE_SELECT) {
-				CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
+		if(snode->edittree) {
+			for(node=snode->edittree->nodes.last; node; node=node->prev) {
+				if(node->flag & NODE_SELECT) {
+					CTX_data_list_add(result, &snode->edittree->id, &RNA_Node, node);
+				}
 			}
 		}
 		CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "active_node")) {
+		bNode *node;
+		
+		if(snode->edittree) {
+			for(node=snode->edittree->nodes.last; node; node=node->prev) {
+				if(node->flag & NODE_ACTIVE) {
+					CTX_data_pointer_set(result, &snode->edittree->id, &RNA_Node, node);
+					break;
+				}
+			}
+		}
+		CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
 		return 1;
 	}
 	

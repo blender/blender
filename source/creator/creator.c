@@ -64,6 +64,7 @@
 #include "BLI_threads.h"
 #include "BLI_scanfill.h" // for BLI_setErrorCallBack, TODO, move elsewhere
 #include "BLI_utildefines.h"
+#include "BLI_callbacks.h"
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
@@ -177,20 +178,6 @@ static void blender_esc(int sig)
 		}
 		printf("\nSent an internal break event. Press ^C again to kill Blender\n");
 		count++;
-	}
-}
-#endif
-
-/* buildinfo can have quotes */
-#ifdef BUILD_DATE
-static void strip_quotes(char *str)
-{
-	if(str[0] == '"') {
-		int len= strlen(str) - 1;
-		memmove(str, str+1, len);
-		if(str[len-1] == '"') {
-			str[len-1]= '\0';
-		}
 	}
 }
 #endif
@@ -368,9 +355,9 @@ static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf(BLEND_VERSION_STRING_FMT);
 	MEM_set_memory_debug();
 
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 	printf("Build: %s %s %s %s\n", build_date, build_time, build_platform, build_type);
-#endif // NAN_BUILDINFO
+#endif // WITH_BUILDINFO
 
 	BLI_argsPrint(data);
 	return 0;
@@ -433,9 +420,12 @@ static int playback_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUS
 {
 	/* not if -b was given first */
 	if (G.background == 0) {
-
-// XXX				playanim(argc, argv); /* not the same argc and argv as before */
+#if 0	/* TODO, bring player back? */
+		playanim(argc, argv); /* not the same argc and argv as before */
+#else
+		fprintf(stderr, "Playback mode not supported in blender 2.5x\n");
 		exit(0);
+#endif
 	}
 
 	return -2;
@@ -538,7 +528,7 @@ static int set_output(int argc, const char **argv, void *data)
 	if (argc >= 1){
 		if (CTX_data_scene(C)) {
 			Scene *scene= CTX_data_scene(C);
-			BLI_strncpy(scene->r.pic, argv[1], FILE_MAXDIR);
+			BLI_strncpy(scene->r.pic, argv[1], sizeof(scene->r.pic));
 		} else {
 			printf("\nError: no blend loaded. cannot use '-o / --render-output'.\n");
 		}
@@ -767,7 +757,9 @@ static int render_frame(int argc, const char **argv, void *data)
 
 			frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 
-			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step, &reports);
+			RE_SetReports(re, &reports);
+			RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, frame, frame, scene->r.frame_step);
+			RE_SetReports(re, NULL);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-f / --render-frame'.\n");
@@ -788,7 +780,9 @@ static int render_animation(int UNUSED(argc), const char **UNUSED(argv), void *d
 		Render *re= RE_NewRender(scene->id.name);
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
-		RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
+		RE_SetReports(re, &reports);
+		RE_BlenderAnim(re, bmain, scene, NULL, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step);
+		RE_SetReports(re, NULL);
 	} else {
 		printf("\nError: no blend loaded. cannot use '-a'.\n");
 	}
@@ -990,6 +984,7 @@ static int load_file(int UNUSED(argc), const char **argv, void *data)
 #ifdef WITH_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_driver_reset();
+		BPY_app_handlers_reset();
 		BPY_modules_load_user(C);
 #endif
 
@@ -1128,7 +1123,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 #ifdef WITH_PYTHON_MODULE
 /* allow python module to call main */
-#define main main_python
+#define main main_python_enter
+static void *evil_C= NULL;
 #endif
 
 int main(int argc, const char **argv)
@@ -1139,6 +1135,7 @@ int main(int argc, const char **argv)
 
 #ifdef WITH_PYTHON_MODULE
 #undef main
+	evil_C= C;
 #endif
 
 #ifdef WITH_BINRELOC
@@ -1170,18 +1167,6 @@ int main(int argc, const char **argv)
 	// need this.
 
 	BLI_where_am_i(bprogname, sizeof(bprogname), argv[0]);
-	
-#ifdef BUILD_DATE	
-	strip_quotes(build_date);
-	strip_quotes(build_time);
-	strip_quotes(build_rev);
-	strip_quotes(build_platform);
-	strip_quotes(build_type);
-	strip_quotes(build_cflags);
-	strip_quotes(build_cxxflags);
-	strip_quotes(build_linkflags);
-	strip_quotes(build_system);
-#endif
 
 	BLI_threadapi_init();
 
@@ -1198,6 +1183,8 @@ int main(int argc, const char **argv)
 	initglobals();	/* blender.c */
 
 	IMB_init();
+
+	BLI_cb_init();
 
 #ifdef WITH_GAMEENGINE
 	syshandle = SYS_GetSystem();
@@ -1304,6 +1291,14 @@ int main(int argc, const char **argv)
 
 	return 0;
 } /* end of int main(argc,argv)	*/
+
+#ifdef WITH_PYTHON_MODULE
+void main_python_exit(void)
+{
+	WM_exit((bContext *)evil_C);
+	evil_C= NULL;
+}
+#endif
 
 static void error_cb(const char *err)
 {

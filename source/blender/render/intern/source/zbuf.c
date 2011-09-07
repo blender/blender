@@ -217,24 +217,24 @@ static short cliptestf(float p, float q, float *u1, float *u2)
 {
 	float r;
 	
-	if(p<0.0) {
+	if(p<0.0f) {
 		if(q<p) return 0;
-		else if(q<0.0) {
+		else if(q<0.0f) {
 			r= q/p;
 			if(r>*u2) return 0;
 			else if(r>*u1) *u1=r;
 		}
 	}
 	else {
-		if(p>0.0) {
-			if(q<0.0) return 0;
+		if(p>0.0f) {
+			if(q<0.0f) return 0;
 			else if(q<p) {
 				r= q/p;
 				if(r<*u1) return 0;
 				else if(r<*u2) *u2=r;
 			}
 		}
-		else if(q<0.0) return 0;
+		else if(q<0.0f) return 0;
 	}
 	return 1;
 }
@@ -344,7 +344,7 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 	y0= z1*x2-x1*z2;
 	z0= x1*y2-y1*x2;
 	
-	if(z0==0.0) return;
+	if(z0==0.0f) return;
 	
 	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
 	
@@ -715,7 +715,7 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 	}
 }
 
-static void zbufline_onlyZ(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
+static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), float *vec1, float *vec2)
 {
 	int *rectz, *rectz1= NULL;
 	int start, end, x, y, oldx, oldy, ofs;
@@ -859,8 +859,8 @@ static int clipline(float *v1, float *v2)	/* return 0: do not draw */
 		if(cliptestf(dz-dw, v1[3]-v1[2], &u1,&u2)) {
 			
 			dx= v2[0]-v1[0];
-			dz= 1.01*(v2[3]-v1[3]);
-			v13= 1.01*v1[3];
+			dz= 1.01f*(v2[3]-v1[3]);
+			v13= 1.01f*v1[3];
 			
 			if(cliptestf(-dx-dz, v1[0]+v13, &u1,&u2)) {
 				if(cliptestf(dx-dz, v13-v1[0], &u1,&u2)) {
@@ -870,13 +870,13 @@ static int clipline(float *v1, float *v2)	/* return 0: do not draw */
 					if(cliptestf(-dy-dz, v1[1]+v13, &u1,&u2)) {
 						if(cliptestf(dy-dz, v13-v1[1], &u1,&u2)) {
 							
-							if(u2<1.0) {
+							if(u2<1.0f) {
 								v2[0]= v1[0]+u2*dx;
 								v2[1]= v1[1]+u2*dy;
 								v2[2]= v1[2]+u2*dz;
 								v2[3]= v1[3]+u2*dw;
 							}
-							if(u1>0.0) {
+							if(u1>0.0f) {
 								v1[0]= v1[0]+u1*dx;
 								v1[1]= v1[1]+u1*dy;
 								v1[2]= v1[2]+u1*dz;
@@ -898,8 +898,8 @@ void hoco_to_zco(ZSpan *zspan, float *zco, float *hoco)
 	float div;
 	
 	div= 1.0f/hoco[3];
-	zco[0]= zspan->zmulx*(1.0+hoco[0]*div) + zspan->zofsx;
-	zco[1]= zspan->zmuly*(1.0+hoco[1]*div) + zspan->zofsy;
+	zco[0]= zspan->zmulx*(1.0f+hoco[0]*div) + zspan->zofsx;
+	zco[1]= zspan->zmuly*(1.0f+hoco[1]*div) + zspan->zofsy;
 	zco[2]= 0x7FFFFFFF *(hoco[2]*div);
 }
 
@@ -1083,7 +1083,7 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 	y0= z1*x2-x1*z2;
 	z0= x1*y2-y1*x2;
 	
-	if(z0==0.0) return;
+	if(z0==0.0f) return;
 	
 	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
 	
@@ -1203,7 +1203,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 	y0= z1*x2-x1*z2;
 	z0= x1*y2-y1*x2;
 	
-	if(z0==0.0) return;
+	if(z0==0.0f) return;
 
 	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
 
@@ -1287,7 +1287,7 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
  */
 
 /* now: filling two Z values, the closest and 2nd closest */
-static void zbuffillGL_onlyZ(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
+static void zbuffillGL_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), float *v1, float *v2, float *v3, float *v4)
 {
 	double zxd, zyd, zy0, zverg;
 	float x0,y0,z0;
@@ -1330,7 +1330,7 @@ static void zbuffillGL_onlyZ(ZSpan *zspan, int obi, int zvlnr, float *v1, float 
 	y0= z1*x2-x1*z2;
 	z0= x1*y2-y1*x2;
 	
-	if(z0==0.0) return;
+	if(z0==0.0f) return;
 	
 	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
 	
@@ -1627,12 +1627,12 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 	if(cliptestf(-da-dw, v13+v1[a], &u1,&u2)) {
 		if(cliptestf(da-dw, v13-v1[a], &u1,&u2)) {
 			*b3=1;
-			if(u2<1.0) {
+			if(u2<1.0f) {
 				labda[1]= u2;
 				*b2=1;
 			}
 			else labda[1]=1.0;  /* u2 */
-			if(u1>0.0) {
+			if(u1>0.0f) {
 				labda[0]= u1;
 				*b2=1;
 			} else labda[0]=0.0;
@@ -1662,8 +1662,8 @@ static void makevertpyra(float *vez, float *labda, float **trias, float *v1, flo
 	l1= labda[0];
 	l2= labda[1];
 
-	if(l1!= -1.0) {
-		if(l1!= 0.0) {
+	if(l1!= -1.0f) {
+		if(l1!= 0.0f) {
 			adr= vez+4*(*clve);
 			trias[*b1]=adr;
 			(*clve)++;
@@ -1676,8 +1676,8 @@ static void makevertpyra(float *vez, float *labda, float **trias, float *v1, flo
 		
 		(*b1)++;
 	}
-	if(l2!= -1.0) {
-		if(l2!= 1.0) {
+	if(l2!= -1.0f) {
+		if(l2!= 1.0f) {
 			adr= vez+4*(*clve);
 			trias[*b1]=adr;
 			(*clve)++;
@@ -2066,8 +2066,8 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 		zbuf_alloc_span(zspan, pa->rectx, pa->recty, R.clipcrop);
 		
 		/* needed for transform from hoco to zbuffer co */
-		zspan->zmulx= ((float)R.winx)/2.0;
-		zspan->zmuly= ((float)R.winy)/2.0;
+		zspan->zmulx= ((float)R.winx)/2.0f;
+		zspan->zmuly= ((float)R.winy)/2.0f;
 		
 		if(R.osa) {
 			zspan->zofsx= -pa->disprect.xmin - R.jit[pa->sample+zsample][0];
@@ -2290,8 +2290,8 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 
 	/* 1.0f for clipping in clippyra()... bad stuff actually */
 	zbuf_alloc_span(&zspan, size, size, 1.0f);
-	zspan.zmulx=  ((float)size)/2.0;
-	zspan.zmuly=  ((float)size)/2.0;
+	zspan.zmulx=  ((float)size)/2.0f;
+	zspan.zmuly=  ((float)size)/2.0f;
 	/* -0.5f to center the sample position */
 	zspan.zofsx= jitx - 0.5f;
 	zspan.zofsy= jity - 0.5f;
@@ -2527,8 +2527,8 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 	zspan.sss_func= func;
 	
 	/* needed for transform from hoco to zbuffer co */
-	zspan.zmulx=  ((float)R.winx)/2.0;
-	zspan.zmuly=  ((float)R.winy)/2.0;
+	zspan.zmulx=  ((float)R.winx)/2.0f;
+	zspan.zmuly=  ((float)R.winy)/2.0f;
 	
 	/* -0.5f to center the sample position */
 	zspan.zofsx= -pa->disprect.xmin - 0.5f;
@@ -2671,7 +2671,7 @@ static void zbuf_fill_in_rgba(ZSpan *zspan, DrawBufPixel *col, float *v1, float 
 	y0= z1*x2-x1*z2;
 	z0= x1*y2-y1*x2;
 	
-	if(z0==0.0) return;
+	if(z0==0.0f) return;
 	
 	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
 	
@@ -2840,8 +2840,8 @@ static void quad_bezier_2d(float *result, float *v1, float *v2, float *ipodata)
 	p1[1]= v1[1];
 	
 	/* official formula 2*p2 - .5*p1 - .5*p3 */
-	p2[0]= -0.5*p1[0] - 0.5*p3[0];
-	p2[1]= -0.5*p1[1] - 0.5*p3[1];
+	p2[0]= -0.5f*p1[0] - 0.5f*p3[0];
+	p2[1]= -0.5f*p1[1] - 0.5f*p3[1];
 	
 	result[0]= ipodata[0]*p1[0] + ipodata[1]*p2[0] + ipodata[2]*p3[0];
 	result[1]= ipodata[0]*p1[1] + ipodata[1]*p2[1] + ipodata[2]*p3[1];
@@ -2871,8 +2871,8 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	char *rectmove, *dm;
 	
 	zbuf_alloc_span(&zspan, xsize, ysize, 1.0f);
-	zspan.zmulx=  ((float)xsize)/2.0;
-	zspan.zmuly=  ((float)ysize)/2.0;
+	zspan.zmulx=  ((float)xsize)/2.0f;
+	zspan.zmuly=  ((float)ysize)/2.0f;
 	zspan.zofsx= 0.0f;
 	zspan.zofsy= 0.0f;
 	
@@ -3236,7 +3236,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
  * Do accumulation z buffering.
  */
 
-static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int samples, float (*jit)[2], float clipcrop, int shadow)
+static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int samples, float (*jit)[2], float UNUSED(clipcrop), int shadow)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
 	ZSpan zspans[16], *zspan;	/* MAX_OSA */
@@ -3258,8 +3258,8 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 		zbuf_alloc_span(zspan, pa->rectx, pa->recty, re->clipcrop);
 		
 		/* needed for transform from hoco to zbuffer co */
-		zspan->zmulx=  ((float)winx)/2.0;
-		zspan->zmuly=  ((float)winy)/2.0;
+		zspan->zmulx=  ((float)winx)/2.0f;
+		zspan->zmuly=  ((float)winy)/2.0f;
 		
 		/* the buffers */
 		zspan->arectz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "Arectz");
@@ -3344,15 +3344,15 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 
 					if(partclip==0) {
 						/* a little advantage for transp rendering (a z offset) */
-						if(!shadow && ma->zoffs != 0.0) {
+						if(!shadow && ma->zoffs != 0.0f) {
 							mul= 0x7FFFFFFF;
-							zval= mul*(1.0+ho1[2]/ho1[3]);
+							zval= mul*(1.0f+ho1[2]/ho1[3]);
 
 							VECCOPY(vec, v1->co);
 							/* z is negative, otherwise its being clipped */ 
 							vec[2]-= ma->zoffs;
 							projectverto(vec, obwinmat, hoco);
-							fval= mul*(1.0+hoco[2]/hoco[3]);
+							fval= mul*(1.0f+hoco[2]/hoco[3]);
 
 							polygon_offset= (int) fabs(zval - fval );
 						}
@@ -3497,7 +3497,7 @@ static void add_transp_obindex(RenderLayer *rl, int offset, Object *ob)
 	RenderPass *rpass;
 	
 	for(rpass= rl->passes.first; rpass; rpass= rpass->next) {
-		if(rpass->passtype == SCE_PASS_INDEXOB) {
+		if(rpass->passtype == SCE_PASS_INDEXOB||rpass->passtype == SCE_PASS_INDEXMA) {
 			float *fp= rpass->rect + offset;
 			*fp= (float)ob->index;
 			break;
@@ -3692,7 +3692,7 @@ static int vergzvlak(const void *a1, const void *a2)
 	return 0;
 }
 
-static void shade_strand_samples(StrandShadeCache *cache, ShadeSample *ssamp, int x, int y, ZTranspRow *row, int addpassflag)
+static void shade_strand_samples(StrandShadeCache *cache, ShadeSample *ssamp, int UNUSED(x), int UNUSED(y), ZTranspRow *row, int addpassflag)
 {
 	StrandSegment sseg;
 	StrandVert *svert;
@@ -3820,7 +3820,7 @@ static int shade_tra_samples(ShadeSample *ssamp, StrandShadeCache *cache, int x,
 		shade_samples_do_AO(ssamp);
 		
 		/* if shade (all shadepinputs have same passflag) */
-		if(shi->passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB)) {
+		if(shi->passflag & ~(SCE_PASS_Z|SCE_PASS_INDEXOB|SCE_PASS_INDEXMA)) {
 			for(samp=0; samp<ssamp->tot; samp++, shi++, shr++) {
 				shade_input_set_shade_texco(shi);
 				shade_input_do_shade(shi, shr);
@@ -3941,7 +3941,7 @@ static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf
 
 /* main render call to do the z-transparent layer */
 /* returns a mask, only if a) transp rendered and b) solid was rendered */
-unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass, ListBase *psmlist)
+unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pass, ListBase *UNUSED(psmlist))
 {
 	RenderResult *rr= pa->result;
 	ShadeSample ssamp;
@@ -4115,7 +4115,14 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 							add_transp_obindex(rlpp[a], od, obr->ob);
 					}
 				}
-				
+				if(addpassflag & SCE_PASS_INDEXMA) {
+					ObjectRen *obr= R.objectinstance[zrow[totface-1].obi].obr;
+					if(obr->ob) {
+						for(a= 0; a<totfullsample; a++)
+							add_transp_obindex(rlpp[a], od, obr->ob);
+					}
+				}
+
 				/* for each mask-sample we alpha-under colors. then in end it's added using filter */
 				memset(samp_shr, 0, sizeof(ShadeResult)*osa);
 				for(a=0; a<osa; a++) {
@@ -4233,7 +4240,3 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 
 
 /* end of zbuf.c */
-
-
-
-

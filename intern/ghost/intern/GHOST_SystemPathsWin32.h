@@ -38,6 +38,8 @@
 #error WIN32 only!
 #endif // WIN32
 
+#define _WIN32_WINNT 0x501 // require Windows XP or newer
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include "GHOST_SystemPaths.h"

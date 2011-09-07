@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from bpy.types import Panel
 
 
 class PhysicsButtonsPanel():
@@ -26,7 +27,7 @@ class PhysicsButtonsPanel():
     bl_context = "physics"
 
 
-class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -167,7 +168,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, bpy.types.Panel):
             layout.prop(ob, "hide_render", text="Invisible")
 
 
-class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, bpy.types.Panel):
+class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
     bl_label = "Collision Bounds"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -231,7 +232,7 @@ class RenderButtonsPanel():
         return (rd.engine in cls.COMPAT_ENGINES)
 
 
-class RENDER_PT_game(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_game(RenderButtonsPanel, Panel):
     bl_label = "Game"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -243,7 +244,7 @@ class RENDER_PT_game(RenderButtonsPanel, bpy.types.Panel):
         row.label()
 
 
-class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_game_player(RenderButtonsPanel, Panel):
     bl_label = "Standalone Player"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -276,7 +277,7 @@ class RENDER_PT_game_player(RenderButtonsPanel, bpy.types.Panel):
             col.prop(gs, "frame_color", text="")
 
 
-class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
     bl_label = "Stereo"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -330,7 +331,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, bpy.types.Panel):
             layout.prop(gs, "dome_text")
 
 
-class RENDER_PT_game_shading(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_game_shading(RenderButtonsPanel, Panel):
     bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -356,7 +357,7 @@ class RENDER_PT_game_shading(RenderButtonsPanel, bpy.types.Panel):
             col.prop(gs, "use_glsl_extra_textures", text="Extra Textures")
 
 
-class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_game_performance(RenderButtonsPanel, Panel):
     bl_label = "Performance"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -364,12 +365,15 @@ class RENDER_PT_game_performance(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         gs = context.scene.game_settings
-        row = layout.row()
+        col = layout.column()
+        row = col.row()
         row.prop(gs, "use_frame_rate")
         row.prop(gs, "use_display_lists")
+        
+        col.prop(gs, "restrict_animation_updates")
 
 
-class RENDER_PT_game_display(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_game_display(RenderButtonsPanel, Panel):
     bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -385,28 +389,13 @@ class RENDER_PT_game_display(RenderButtonsPanel, bpy.types.Panel):
         flow.prop(gs, "show_mouse", text="Mouse Cursor")
 
 
-class RENDER_PT_game_sound(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Sound"
-    COMPAT_ENGINES = {'BLENDER_GAME'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-
-        layout.prop(scene, "audio_distance_model")
-
-        layout.prop(scene, "audio_doppler_speed", text="Speed")
-        layout.prop(scene, "audio_doppler_factor")
-
-
 class WorldButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "world"
 
 
-class WORLD_PT_game_context_world(WorldButtonsPanel, bpy.types.Panel):
+class WORLD_PT_game_context_world(WorldButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
     COMPAT_ENGINES = {'BLENDER_GAME'}
@@ -430,7 +419,7 @@ class WORLD_PT_game_context_world(WorldButtonsPanel, bpy.types.Panel):
             split.template_ID(space, "pin_id")
 
 
-class WORLD_PT_game_world(WorldButtonsPanel, bpy.types.Panel):
+class WORLD_PT_game_world(WorldButtonsPanel, Panel):
     bl_label = "World"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -449,7 +438,7 @@ class WORLD_PT_game_world(WorldButtonsPanel, bpy.types.Panel):
         row.column().prop(world, "ambient_color")
 
 
-class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
+class WORLD_PT_game_mist(WorldButtonsPanel, Panel):
     bl_label = "Mist"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -475,7 +464,7 @@ class WORLD_PT_game_mist(WorldButtonsPanel, bpy.types.Panel):
         row.prop(world.mist_settings, "depth")
 
 
-class WORLD_PT_game_physics(WorldButtonsPanel, bpy.types.Panel):
+class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 

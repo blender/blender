@@ -84,7 +84,7 @@ static void console_scrollback_limit(SpaceConsole *sc)
 {
 	int tot;
 	
-	if (U.scrollback < 32) U.scrollback= 128; // XXX - save in user defaults
+	if (U.scrollback < 32) U.scrollback= 256; // XXX - save in user defaults
 	
 	for(tot= BLI_countlist(&sc->scrollback); tot > U.scrollback; tot--)
 		console_scrollback_free(sc, sc->scrollback.first);
@@ -675,7 +675,12 @@ static int scrollback_append_exec(bContext *C, wmOperator *op)
 	
 	console_scrollback_limit(sc);
 
-	console_textview_update_rect(sc, ar);
+	/* 'ar' can be null depending on the operator that runs
+	 * rendering with invoke default for eg causes this */
+	if(ar) {
+		console_textview_update_rect(sc, ar);
+	}
+
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
 	return OPERATOR_FINISHED;

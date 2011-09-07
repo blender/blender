@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -85,8 +83,6 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_autoside_names);
 	WM_operatortype_append(ARMATURE_OT_flip_names);
 	
-	WM_operatortype_append(ARMATURE_OT_flags_set);
-	
 	WM_operatortype_append(ARMATURE_OT_layers_show_all);
 	WM_operatortype_append(ARMATURE_OT_armature_layers);
 	WM_operatortype_append(ARMATURE_OT_bone_layers);
@@ -112,6 +108,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_loc_clear);
 	WM_operatortype_append(POSE_OT_scale_clear);
 	WM_operatortype_append(POSE_OT_transforms_clear);
+	WM_operatortype_append(POSE_OT_user_transforms_clear);
 	
 	WM_operatortype_append(POSE_OT_copy);
 	WM_operatortype_append(POSE_OT_paste);
@@ -128,6 +125,8 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(POSE_OT_group_add);
 	WM_operatortype_append(POSE_OT_group_remove);
+	WM_operatortype_append(POSE_OT_group_move);
+	WM_operatortype_append(POSE_OT_group_sort);
 	WM_operatortype_append(POSE_OT_group_assign);
 	WM_operatortype_append(POSE_OT_group_unassign);
 	WM_operatortype_append(POSE_OT_group_select);
@@ -138,10 +137,10 @@ void ED_operatortypes_armature(void)
 	
 	WM_operatortype_append(POSE_OT_autoside_names);
 	WM_operatortype_append(POSE_OT_flip_names);
+	
+	WM_operatortype_append(POSE_OT_rotation_mode_set);
 
 	WM_operatortype_append(POSE_OT_quaternions_flip);
-	
-	WM_operatortype_append(POSE_OT_flags_set);
 	
 	WM_operatortype_append(POSE_OT_armature_layers);
 	WM_operatortype_append(POSE_OT_bone_layers);
@@ -268,12 +267,9 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_separate", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	
 		/* set flags */
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_flags_set", WKEY, KM_PRESS, KM_SHIFT, 0);
-		RNA_enum_set(kmi->ptr, "mode", 2); // toggle
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_flags_set", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
-		RNA_enum_set(kmi->ptr, "mode", 1); // enable
-	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_flags_set", WKEY, KM_PRESS, KM_ALT, 0);
-		RNA_enum_set(kmi->ptr, "mode", 0); // clear
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_enable", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_disable", WKEY, KM_PRESS, KM_ALT, 0);
 		
 		/* armature/bone layers */
 	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
@@ -315,6 +311,8 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "POSE_OT_quaternions_flip", FKEY, KM_PRESS, KM_ALT, 0);
 	
+	WM_keymap_add_item(keymap, "POSE_OT_rotation_mode_set", RKEY, KM_PRESS, KM_CTRL, 0);
+	
 	WM_keymap_add_item(keymap, "POSE_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
@@ -349,13 +347,10 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_group", GKEY, KM_PRESS, KM_CTRL, 0);
 	
 		/* set flags */
-	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_SHIFT, 0);
-		RNA_enum_set(kmi->ptr, "mode", 2); // toggle
-	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
-		RNA_enum_set(kmi->ptr, "mode", 1); // enable
-	kmi= WM_keymap_add_item(keymap, "POSE_OT_flags_set", WKEY, KM_PRESS, KM_ALT, 0);
-		RNA_enum_set(kmi->ptr, "mode", 0); // clear
-		
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_toggle", WKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_enable", WKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_bone_options_disable", WKEY, KM_PRESS, KM_ALT, 0);
+
 		/* armature/bone layers */
 	WM_keymap_add_item(keymap, "ARMATURE_OT_layers_show_all", ACCENTGRAVEKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_armature_layers", MKEY, KM_PRESS, KM_SHIFT, 0);

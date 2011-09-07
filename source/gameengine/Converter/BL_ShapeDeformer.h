@@ -42,19 +42,12 @@
 #include "BL_DeformableGameObject.h"
 #include <vector>
 
-struct IpoCurve;
-
 class BL_ShapeDeformer : public BL_SkinDeformer  
 {
 public:
 	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
-                     Object *bmeshobj,
-                     RAS_MeshObject *mesh)
-					:	
-						BL_SkinDeformer(gameobj,bmeshobj, mesh),
-						m_lastShapeUpdate(-1)
-	{
-	};
+	                 Object *bmeshobj,
+	                 RAS_MeshObject *mesh);
 
 	/* this second constructor is needed for making a mesh deformable on the fly. */
 	BL_ShapeDeformer(BL_DeformableGameObject *gameobj,
@@ -63,12 +56,7 @@ public:
 					class RAS_MeshObject *mesh,
 					bool release_object,
 					bool recalc_normal,
-					BL_ArmatureObject* arma = NULL)
-					:
-						BL_SkinDeformer(gameobj, bmeshobj_old, bmeshobj_new, mesh, release_object, recalc_normal, arma),
-						m_lastShapeUpdate(-1)
-	{
-	};
+					BL_ArmatureObject* arma = NULL);
 
 	virtual RAS_Deformer *GetReplica();
 	virtual void ProcessReplica();
@@ -78,14 +66,18 @@ public:
 	bool LoadShapeDrivers(Object* arma);
 	bool ExecuteShapeDrivers(void);
 
+	struct Key *GetKey();
+	void SetKey(struct Key *key);
+
 	void ForceUpdate()
 	{
 		m_lastShapeUpdate = -1.0;
 	};
 
 protected:
-	vector<IpoCurve*>		 m_shapeDrivers;
-	double					 m_lastShapeUpdate;
+	bool			m_useShapeDrivers;	
+	double			m_lastShapeUpdate;
+	struct Key*		m_key;
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

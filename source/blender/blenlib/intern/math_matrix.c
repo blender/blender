@@ -451,6 +451,24 @@ void add_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 			m1[i][j]= m2[i][j] + m3[i][j];
 }
 
+void sub_m3_m3m3(float m1[][3], float m2[][3], float m3[][3])
+{
+	int i, j;
+
+	for(i=0;i<3;i++)
+		for(j=0;j<3;j++)
+			m1[i][j]= m2[i][j] - m3[i][j];
+}
+
+void sub_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
+{
+	int i, j;
+
+	for(i=0;i<4;i++)
+		for(j=0;j<4;j++)
+			m1[i][j]= m2[i][j] - m3[i][j];
+}
+
 int invert_m3(float m[3][3])
 {
 	float tmp[3][3];
@@ -820,7 +838,7 @@ void normalize_m4_m4(float rmat[][4], float mat[][4])
 	len= normalize_v3_v3(rmat[1], mat[1]);
 	if(len!=0.0f) rmat[1][3]= mat[1][3] / len;
 	len= normalize_v3_v3(rmat[2], mat[2]);
-	if(len!=0.0f) rmat[2][3]= mat[2][3] / len;;
+	if(len!=0.0f) rmat[2][3]= mat[2][3] / len;
 }
 
 void adjoint_m3_m3(float m1[][3], float m[][3])

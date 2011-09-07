@@ -16,11 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 __all__ = (
     "load_image",
-)
+    )
+
 
 # limited replacement for BPyImage.comprehensiveImageLoad
 def load_image(imagepath,
@@ -32,8 +33,8 @@ def load_image(imagepath,
                verbose=False,
                ):
     """
-    Return an image from the file path with options to search multiple paths and
-    return a placeholder if its not found.
+    Return an image from the file path with options to search multiple paths
+    and return a placeholder if its not found.
 
     :arg filepath: The image filename
        If a path precedes it, this will be searched as well.
@@ -50,13 +51,14 @@ def load_image(imagepath,
     :type recursive: bool
     :arg ncase_cmp: on non windows systems, find the correct case for the file.
     :type ncase_cmp: bool
-    :arg convert_callback: a function that takes an existing path and returns a new one.
-       Use this when loading image formats blender may not support, the CONVERT_CALLBACK
-       can take the path for a GIF (for example), convert it to a PNG and return the PNG's path.
+    :arg convert_callback: a function that takes an existing path and returns
+       a new one. Use this when loading image formats blender may not support,
+       the CONVERT_CALLBACK can take the path for a GIF (for example),
+       convert it to a PNG and return the PNG's path.
        For formats blender can read, simply return the path that is given.
     :type convert_callback: function
     :return: an image or None
-    :rtype: :class:`Image`
+    :rtype: :class:`bpy.types.Image`
     """
     import os
     import bpy
@@ -85,11 +87,15 @@ def load_image(imagepath,
     variants = [imagepath]
 
     if dirname:
-        variants += [os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
+        variants += [os.path.join(dirname, imagepath),
+                     os.path.join(dirname, bpy.path.basename(imagepath)),
+                     ]
 
     for filepath_test in variants:
         if ncase_cmp:
-            ncase_variants = filepath_test, bpy.path.resolve_ncase(filepath_test)
+            ncase_variants = (filepath_test,
+                              bpy.path.resolve_ncase(filepath_test),
+                              )
         else:
             ncase_variants = (filepath_test, )
 
@@ -98,7 +104,7 @@ def load_image(imagepath,
                 return _image_load(nfilepath)
 
     if place_holder:
-        image = bpy.data.images.new(os.path.basename(filepath), 128, 128)
+        image = bpy.data.images.new(bpy.path.basename(imagepath), 128, 128)
         # allow the path to be resolved later
         image.filepath = imagepath
         return image

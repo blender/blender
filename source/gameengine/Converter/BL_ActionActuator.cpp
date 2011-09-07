@@ -36,6 +36,7 @@
 #include "BL_ActionActuator.h"
 #include "BL_ArmatureObject.h"
 #include "BL_SkinDeformer.h"
+#include "BL_Action.h"
 #include "KX_GameObject.h"
 #include "STR_HashedString.h"
 #include "MEM_guardedalloc.h"
@@ -59,6 +60,49 @@ extern "C" {
 #include "RNA_access.h"
 #include "RNA_define.h"
 }
+
+BL_ActionActuator::BL_ActionActuator(SCA_IObject* gameobj,
+					const STR_String& propname,
+					const STR_String& framepropname,
+					float starttime,
+					float endtime,
+					struct bAction *action,
+					short	playtype,
+					short	blendin,
+					short	priority,
+					short	layer,
+					float	layer_weight,
+					short	ipo_flags,
+					short	end_reset,
+					float	stride) 
+	: SCA_IActuator(gameobj, KX_ACT_ACTION),
+		
+	m_lastpos(0, 0, 0),
+	m_blendframe(0),
+	m_flag(0),
+	m_startframe (starttime),
+	m_endframe(endtime) ,
+	m_starttime(0),
+	m_localtime(starttime),
+	m_lastUpdate(-1),
+	m_blendin(blendin),
+	m_blendstart(0),
+	m_stridelength(stride),
+	m_layer_weight(layer_weight),
+	m_playtype(playtype),
+	m_priority(priority),
+	m_layer(layer),
+	m_ipo_flags(ipo_flags),
+	m_pose(NULL),
+	m_blendpose(NULL),
+	m_userpose(NULL),
+	m_action(action),
+	m_propname(propname),
+	m_framepropname(framepropname)		
+{
+	if (!end_reset)
+		m_flag |= ACT_FLAG_CONTINUE;
+};
 
 BL_ActionActuator::~BL_ActionActuator()
 {
@@ -85,370 +129,220 @@ void BL_ActionActuator::SetBlendTime (float newtime){
 	m_blendframe = newtime;
 }
 
+void BL_ActionActuator::SetLocalTime(float curtime)
+{
+	float dt = (curtime-m_starttime)*KX_KetsjiEngine::GetAnimFrameRate();
+
+	if (m_endframe < m_startframe)
+		dt = -dt;
+
+	m_localtime = m_startframe + dt;
+	
+	// Handle wrap around
+	if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
+	{
+		switch(m_playtype)
+		{
+		case ACT_ACTION_PLAY:
+			// Clamp
+			m_localtime = m_endframe;
+			break;
+		case ACT_ACTION_LOOP_END:
+			// Put the time back to the beginning
+			m_localtime = m_startframe;
+			m_starttime = curtime;
+			break;
+		case ACT_ACTION_PINGPONG:
+			// Swap the start and end frames
+			float temp = m_startframe;
+			m_startframe = m_endframe;
+			m_endframe = temp;
+
+			m_starttime = curtime;
+
+			break;
+		}
+	}
+}
+
+void BL_ActionActuator::ResetStartTime(float curtime)
+{
+	float dt = m_localtime - m_startframe;
+
+	m_starttime = curtime - dt / (KX_KetsjiEngine::GetAnimFrameRate());
+	//SetLocalTime(curtime);
+}
+
 CValue* BL_ActionActuator::GetReplica() {
 	BL_ActionActuator* replica = new BL_ActionActuator(*this);//m_float,GetName());
 	replica->ProcessReplica();
 	return replica;
 }
 
-bool BL_ActionActuator::ClampLocalTime()
-{
-	if (m_startframe < m_endframe)
-	{
-		if (m_localtime < m_startframe)
-		{
-			m_localtime = m_startframe;
-			return true;
-		} 
-		else if (m_localtime > m_endframe)
-		{
-			m_localtime = m_endframe;
-			return true;
-		}
-	} else {
-		if (m_localtime > m_startframe)
-		{
-			m_localtime = m_startframe;
-			return true;
-		}
-		else if (m_localtime < m_endframe)
-		{
-			m_localtime = m_endframe;
-			return true;
-		}
-	}
-	return false;
-}
-
-void BL_ActionActuator::SetStartTime(float curtime)
-{
-	float direction = m_startframe < m_endframe ? 1.0 : -1.0;
-	
-	if (!(m_flag & ACT_FLAG_REVERSE))
-		m_starttime = curtime - direction*(m_localtime - m_startframe)/KX_KetsjiEngine::GetAnimFrameRate();
-	else
-		m_starttime = curtime - direction*(m_endframe - m_localtime)/KX_KetsjiEngine::GetAnimFrameRate();
-}
-
-void BL_ActionActuator::SetLocalTime(float curtime)
-{
-	float delta_time = (curtime - m_starttime)*KX_KetsjiEngine::GetAnimFrameRate();
-	
-	if (m_endframe < m_startframe)
-		delta_time = -delta_time;
-
-	if (!(m_flag & ACT_FLAG_REVERSE))
-		m_localtime = m_startframe + delta_time;
-	else
-		m_localtime = m_endframe - delta_time;
-}
-
-
 bool BL_ActionActuator::Update(double curtime, bool frame)
 {
 	bool bNegativeEvent = false;
 	bool bPositiveEvent = false;
-	bool keepgoing = true;
-	bool wrap = false;
-	bool apply=true;
-	int	priority;
-	float newweight;
+	bool bUseContinue = false;
+	KX_GameObject *obj = (KX_GameObject*)GetParent();
+	short playtype = BL_Action::ACT_MODE_PLAY;
+	float start = m_startframe;
+	float end = m_endframe;
 
-	curtime -= KX_KetsjiEngine::GetSuspendedDelta();
+	// If we don't have an action, we can't do anything
+	if (!m_action)
+		return false;
+
+	// Convert our playtype to one that BL_Action likes
+	switch(m_playtype)
+	{
+		case ACT_ACTION_LOOP_END:
+		case ACT_ACTION_LOOP_STOP:
+			playtype = BL_Action::ACT_MODE_LOOP;
+			break;
+
+		case ACT_ACTION_PINGPONG:
+			// We handle ping pong ourselves to increase compabitility
+			// with files made prior to animation changes from GSoC 2011.
+			playtype = BL_Action::ACT_MODE_PLAY;
+		
+			if (m_flag & ACT_FLAG_REVERSE)
+			{
+				m_localtime = start;
+				start = end;
+				end = m_localtime;
+			}
+
+			break;
+		case ACT_ACTION_FROM_PROP:
+			CValue* prop = GetParent()->GetProperty(m_propname);
+
+			// If we don't have a property, we can't do anything, so just bail
+			if (!prop) return false;
+
+			playtype = BL_Action::ACT_MODE_PLAY;
+			start = end = prop->GetNumber();
+
+			break;
+	}
+
+	// Continue only really makes sense for play stop and flipper. All other modes go until they are complete.
+	if (m_flag & ACT_FLAG_CONTINUE &&
+		(m_playtype == ACT_ACTION_LOOP_STOP ||
+		m_playtype == ACT_ACTION_FLIPPER))
+		bUseContinue = true;
 	
-	// result = true if animation has to be continued, false if animation stops
-	// maybe there are events for us in the queue !
+	
+	// Handle events
 	if (frame)
 	{
 		bNegativeEvent = m_negevent;
 		bPositiveEvent = m_posevent;
 		RemoveAllEvents();
-		
-		if (bPositiveEvent)
-			m_flag |= ACT_FLAG_ACTIVE;
-		
-		if (bNegativeEvent)
-		{
-			// dont continue where we left off when restarting
-			if (m_end_reset) {
-				m_flag &= ~ACT_FLAG_LOCKINPUT;
-			}
-			
-			if (!(m_flag & ACT_FLAG_ACTIVE))
-				return false;
-			m_flag &= ~ACT_FLAG_ACTIVE;
-		}
 	}
-	
-	/*	We know that action actuators have been discarded from all non armature objects:
-	if we're being called, we're attached to a BL_ArmatureObject */
-	BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
-	float length = m_endframe - m_startframe;
-	
-	priority = m_priority;
-	
-	/* Determine pre-incrementation behaviour and set appropriate flags */
-	switch (m_playtype){
-	case ACT_ACTION_MOTION:
-		if (bNegativeEvent){
-			keepgoing=false;
-			apply=false;
-		};
-		break;
-	case ACT_ACTION_FROM_PROP:
-		if (bNegativeEvent){
-			apply=false;
-			keepgoing=false;
-		}
-		break;
-	case ACT_ACTION_LOOP_END:
-		if (bPositiveEvent){
-			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
-				m_flag &= ~ACT_FLAG_KEYUP;
-				m_flag &= ~ACT_FLAG_REVERSE;
-				m_flag |= ACT_FLAG_LOCKINPUT;
-				m_localtime = m_startframe;
-				m_starttime = curtime;
-			}
-		}
-		if (bNegativeEvent){
-			m_flag |= ACT_FLAG_KEYUP;
-		}
-		break;
-	case ACT_ACTION_LOOP_STOP:
-		if (bPositiveEvent){
-			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
-				m_flag &= ~ACT_FLAG_REVERSE;
-				m_flag &= ~ACT_FLAG_KEYUP;
-				m_flag |= ACT_FLAG_LOCKINPUT;
-				SetStartTime(curtime);
-			}
-		}
-		if (bNegativeEvent){
-			m_flag |= ACT_FLAG_KEYUP;
-			m_flag &= ~ACT_FLAG_LOCKINPUT;
-			keepgoing=false;
-			apply=false;
-		}
-		break;
-	case ACT_ACTION_PINGPONG:
-		if (bPositiveEvent){
-			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
-				m_flag &= ~ACT_FLAG_KEYUP;
-				m_localtime = m_starttime;
-				m_starttime = curtime;
-				m_flag |= ACT_FLAG_LOCKINPUT;
-			}
-		}
-		break;
-	case ACT_ACTION_FLIPPER:
-		if (bPositiveEvent){
-			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
-				m_flag &= ~ACT_FLAG_REVERSE;
-				m_flag |= ACT_FLAG_LOCKINPUT;
-				SetStartTime(curtime);
-			}
-		}
-		else if (bNegativeEvent){
-			m_flag |= ACT_FLAG_REVERSE;
-			m_flag &= ~ACT_FLAG_LOCKINPUT;
-			SetStartTime(curtime);
-		}
-		break;
-	case ACT_ACTION_PLAY:
-		if (bPositiveEvent){
-			if (!(m_flag & ACT_FLAG_LOCKINPUT)){
-				m_flag &= ~ACT_FLAG_REVERSE;
-				m_localtime = m_starttime;
-				m_starttime = curtime;
-				m_flag |= ACT_FLAG_LOCKINPUT;
-			}
-		}
-		break;
-	default:
-		break;
-	}
-	
-	/* Perform increment */
-	if (keepgoing){
-		if (m_playtype == ACT_ACTION_MOTION){
-			MT_Point3	newpos;
-			MT_Point3	deltapos;
-			
-			newpos = obj->NodeGetWorldPosition();
-			
-			/* Find displacement */
-			deltapos = newpos-m_lastpos;
-			m_localtime += (length/m_stridelength) * deltapos.length();
-			m_lastpos = newpos;
-		}
-		else{
-			SetLocalTime(curtime);
-		}
-	}
-	
-	/* Check if a wrapping response is needed */
-	if (length){
-		if (m_localtime < m_startframe || m_localtime > m_endframe)
-		{
-			m_localtime = m_startframe + fmod(m_localtime, length);
-			wrap = true;
-		}
-	}
-	else
-		m_localtime = m_startframe;
-	
-	/* Perform post-increment tasks */
-	switch (m_playtype){
-	case ACT_ACTION_FROM_PROP:
-		{
-			CValue* propval = GetParent()->GetProperty(m_propname);
-			if (propval)
-				m_localtime = propval->GetNumber();
-			
-			if (bNegativeEvent){
-				keepgoing=false;
-			}
-		}
-		break;
-	case ACT_ACTION_MOTION:
-		break;
-	case ACT_ACTION_LOOP_STOP:
-		break;
-	case ACT_ACTION_PINGPONG:
-		if (wrap){
-			if (!(m_flag & ACT_FLAG_REVERSE))
-				m_localtime = m_endframe;
-			else 
-				m_localtime = m_startframe;
 
-			m_flag &= ~ACT_FLAG_LOCKINPUT;
-			m_flag ^= ACT_FLAG_REVERSE; //flip direction
-			keepgoing = false;
-		}
-		break;
-	case ACT_ACTION_FLIPPER:
-		if (wrap){
-			if (!(m_flag & ACT_FLAG_REVERSE)){
-				m_localtime=m_endframe;
-				//keepgoing = false;
-			}
-			else {
-				m_localtime=m_startframe;
-				keepgoing = false;
-			}
-		}
-		break;
-	case ACT_ACTION_LOOP_END:
-		if (wrap){
-			if (m_flag & ACT_FLAG_KEYUP){
-				keepgoing = false;
-				m_localtime = m_endframe;
-				m_flag &= ~ACT_FLAG_LOCKINPUT;
-			}
-			SetStartTime(curtime);
-		}
-		break;
-	case ACT_ACTION_PLAY:
-		if (wrap){
-			m_localtime = m_endframe;
-			keepgoing = false;
-			m_flag &= ~ACT_FLAG_LOCKINPUT;
-		}
-		break;
-	default:
-		keepgoing = false;
-		break;
+	if (m_flag & ACT_FLAG_ATTEMPT_PLAY)
+		SetLocalTime(curtime);
+
+	if (bUseContinue && (m_flag & ACT_FLAG_ACTIVE))
+	{
+		m_localtime = obj->GetActionFrame(m_layer);
+		ResetStartTime(curtime);
 	}
-	
-	/* Set the property if its defined */
-	if (m_framepropname[0] != '\0') {
-		CValue* propowner = GetParent();
-		CValue* oldprop = propowner->GetProperty(m_framepropname);
-		CValue* newval = new CFloatValue(m_localtime);
-		if (oldprop) {
+
+	// Handle a frame property if it's defined
+	if ((m_flag & ACT_FLAG_ACTIVE) && m_framepropname[0] != 0)
+	{
+		CValue* oldprop = obj->GetProperty(m_framepropname);
+		CValue* newval = new CFloatValue(obj->GetActionFrame(m_layer));
+		if (oldprop)
 			oldprop->SetValue(newval);
-		} else {
-			propowner->SetProperty(m_framepropname, newval);
-		}
+		else
+			obj->SetProperty(m_framepropname, newval);
+
 		newval->Release();
 	}
-	
-	if (bNegativeEvent)
-		m_blendframe=0.0;
-	
-	/* Apply the pose if necessary*/
-	if (apply){
 
-		/* Priority test */
-		if (obj->SetActiveAction(this, priority, curtime)){
-			
-			/* Get the underlying pose from the armature */
-			obj->GetPose(&m_pose);
-
-// 2.4x function, 
-			/* Override the necessary channels with ones from the action */
-			// XXX extract_pose_from_action(m_pose, m_action, m_localtime);
-			
-			
-// 2.5x - replacement for extract_pose_from_action(...) above.
-			{
-				struct PointerRNA id_ptr;
-				Object *arm= obj->GetArmatureObject();
-				bPose *pose_back= arm->pose;
-				
-				arm->pose= m_pose;
-				RNA_id_pointer_create((ID *)arm, &id_ptr);
-				animsys_evaluate_action(&id_ptr, m_action, NULL, m_localtime);
-				
-				arm->pose= pose_back;
-			
-// 2.5x - could also do this but looks too high level, constraints use this, it works ok.
-//				Object workob; /* evaluate using workob */
-//				what_does_obaction((Scene *)obj->GetScene(), obj->GetArmatureObject(), &workob, m_pose, m_action, NULL, m_localtime);
-			}
-
-			// done getting the pose from the action
-			
-			/* Perform the user override (if any) */
-			if (m_userpose){
-				extract_pose_from_pose(m_pose, m_userpose);
-				game_free_pose(m_userpose); //cant use MEM_freeN(m_userpose) because the channels need freeing too.
-				m_userpose = NULL;
-			}
-#if 1
-			/* Handle blending */
-			if (m_blendin && (m_blendframe<m_blendin)){
-				/* If this is the start of a blending sequence... */
-				if ((m_blendframe==0.0) || (!m_blendpose)){
-					obj->GetMRDPose(&m_blendpose);
-					m_blendstart = curtime;
-				}
-				
-				/* Find percentages */
-				newweight = (m_blendframe/(float)m_blendin);
-				game_blend_poses(m_pose, m_blendpose, 1.0 - newweight);
-
-				/* Increment current blending percentage */
-				m_blendframe = (curtime - m_blendstart)*KX_KetsjiEngine::GetAnimFrameRate();
-				if (m_blendframe>m_blendin)
-					m_blendframe = m_blendin;
-				
-			}
-#endif
-			m_lastUpdate = m_localtime;
-			obj->SetPose (m_pose);
-		}
-		else{
-			m_blendframe = 0.0;
-		}
+	// Handle a finished animation
+	if ((m_flag & ACT_FLAG_PLAY_END) && obj->IsActionDone(m_layer))
+	{
+		m_flag &= ~ACT_FLAG_ACTIVE;
+		m_flag &= ~ACT_FLAG_ATTEMPT_PLAY;
+		obj->StopAction(m_layer);
+		return false;
 	}
 	
-	if (!keepgoing){
-		m_blendframe = 0.0;
+	// If a different action is playing, we've been overruled and are no longer active
+	if (obj->GetCurrentAction(m_layer) != m_action)
+		m_flag &= ~ACT_FLAG_ACTIVE;
+
+	if (bPositiveEvent || (m_flag & ACT_FLAG_ATTEMPT_PLAY && !(m_flag & ACT_FLAG_ACTIVE)))
+	{
+		if (bPositiveEvent)
+			ResetStartTime(curtime);
+
+		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, playtype, m_layer_weight, m_ipo_flags))
+		{
+			m_flag |= ACT_FLAG_ACTIVE;
+			if (bUseContinue)
+				obj->SetActionFrame(m_layer, m_localtime);
+
+			if (m_playtype == ACT_ACTION_PLAY)
+				m_flag |= ACT_FLAG_PLAY_END;
+			else
+				m_flag &= ~ACT_FLAG_PLAY_END;
+		}
+		m_flag |= ACT_FLAG_ATTEMPT_PLAY;
 	}
-	return keepgoing;
-};
+	else if ((m_flag & ACT_FLAG_ACTIVE) && bNegativeEvent)
+	{	
+		m_flag &= ~ACT_FLAG_ATTEMPT_PLAY;
+		bAction *curr_action = obj->GetCurrentAction(m_layer);
+		if (curr_action && curr_action != m_action)
+		{
+			// Someone changed the action on us, so we wont mess with it
+			// Hopefully there wont be too many problems with two actuators using
+			// the same action...
+			m_flag &= ~ACT_FLAG_ACTIVE;
+			return false;
+		}
+
+		
+		m_localtime = obj->GetActionFrame(m_layer);
+		if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
+			m_localtime = m_startframe;
+
+		switch(m_playtype)
+		{
+			case ACT_ACTION_LOOP_STOP:
+				obj->StopAction(m_layer); // Stop the action after getting the frame
+
+				// We're done
+				m_flag &= ~ACT_FLAG_ACTIVE;
+				return false;
+			case ACT_ACTION_PINGPONG:
+				m_flag ^= ACT_FLAG_REVERSE;
+				// Now fallthrough to LOOP_END code
+			case ACT_ACTION_LOOP_END:
+				// Convert into a play and let it finish
+				obj->SetPlayMode(m_layer, BL_Action::ACT_MODE_PLAY);
+
+				m_flag |= ACT_FLAG_PLAY_END;
+				break;
+	
+			case ACT_ACTION_FLIPPER:
+				// Convert into a play action and play back to the beginning
+				end = start;
+				start = obj->GetActionFrame(m_layer);
+				obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, 0, BL_Action::ACT_MODE_PLAY, m_layer_weight, m_ipo_flags);
+
+				m_flag |= ACT_FLAG_PLAY_END;
+				break;
+		}
+	}
+
+	return true;
+}
 
 #ifdef WITH_PYTHON
 
@@ -633,10 +527,10 @@ PyAttributeDef BL_ActionActuator::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("action", BL_ActionActuator, pyattr_get_action, pyattr_set_action),
 	KX_PYATTRIBUTE_RO_FUNCTION("channelNames", BL_ActionActuator, pyattr_get_channel_names),
 	KX_PYATTRIBUTE_SHORT_RW("priority", 0, 100, false, BL_ActionActuator, m_priority),
-	KX_PYATTRIBUTE_FLOAT_RW_CHECK("frame", 0, MAXFRAMEF, BL_ActionActuator, m_localtime, CheckFrame),
+	KX_PYATTRIBUTE_RW_FUNCTION("frame", BL_ActionActuator, pyattr_get_frame, pyattr_set_frame),
 	KX_PYATTRIBUTE_STRING_RW("propName", 0, 31, false, BL_ActionActuator, m_propname),
 	KX_PYATTRIBUTE_STRING_RW("framePropName", 0, 31, false, BL_ActionActuator, m_framepropname),
-	KX_PYATTRIBUTE_BOOL_RW("useContinue", BL_ActionActuator, m_end_reset),
+	KX_PYATTRIBUTE_RW_FUNCTION("useContinue", BL_ActionActuator, pyattr_get_use_continue, pyattr_set_use_continue),
 	KX_PYATTRIBUTE_FLOAT_RW_CHECK("blendTime", 0, MAXFRAMEF, BL_ActionActuator, m_blendframe, CheckBlendTime),
 	KX_PYATTRIBUTE_SHORT_RW_CHECK("mode",0,100,false,BL_ActionActuator,m_playtype,CheckType),
 	{ NULL }	//Sentinel
@@ -694,6 +588,39 @@ PyObject* BL_ActionActuator::pyattr_get_channel_names(void *self_v, const KX_PYA
 	}
 	
 	return ret;
+}
+
+PyObject* BL_ActionActuator::pyattr_get_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	return PyBool_FromLong(self->m_flag & ACT_FLAG_CONTINUE);
+}
+
+int BL_ActionActuator::pyattr_set_use_continue(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	
+	if (PyObject_IsTrue(value))
+		self->m_flag |= ACT_FLAG_CONTINUE;
+	else
+		self->m_flag &= ~ACT_FLAG_CONTINUE;
+	
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* BL_ActionActuator::pyattr_get_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	return PyFloat_FromDouble(((KX_GameObject*)self->m_gameobj)->GetActionFrame(self->m_layer));
+}
+
+int BL_ActionActuator::pyattr_set_frame(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	BL_ActionActuator* self= static_cast<BL_ActionActuator*>(self_v);
+	
+	((KX_GameObject*)self->m_gameobj)->SetActionFrame(self->m_layer, PyFloat_AsDouble(value));
+	
+	return PY_SET_ATTR_SUCCESS;
 }
 
 #endif // WITH_PYTHON

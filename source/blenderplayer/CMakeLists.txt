@@ -121,6 +121,7 @@ endif()
 		bf_intern_guardedalloc 
 		bf_intern_memutil 
 		bf_python_ext
+		bf_python_mathutils
 		bf_blenlib 
 		bf_imbuf_cineon
 		bf_imbuf_openexr 
@@ -138,6 +139,10 @@ endif()
 		bf_blenkernel # duplicate for linking
 		bf_intern_mikktspace
 	)
+
+	if(WITH_MOD_CLOTH_ELTOPO)
+		list(APPEND BLENDER_SORTED_LIBS extern_eltopo)
+	endif()
 
 	if(WITH_BUILTIN_GLEW)
 		list(APPEND BLENDER_SORTED_LIBS extern_glew)
@@ -183,6 +188,12 @@ endif()
 		message(STATUS "Player Skipping: (${REM_MSG})")
 	endif()
 	target_link_libraries(blenderplayer ${BLENDER_SORTED_LIBS})
+
+	unset(SEARCHLIB)
+	unset(SORTLIB)
+	unset(REMLIB)
+	unset(REM_MSG)
+
 # else()
 # 	target_link_libraries(blenderplayer ${BLENDER_LINK_LIBS})
 # endif()

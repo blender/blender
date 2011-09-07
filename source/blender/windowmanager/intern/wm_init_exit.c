@@ -116,7 +116,7 @@ static void wm_free_reports(bContext *C)
 	BKE_reports_clear(CTX_wm_reports(C));
 }
 
-int wm_start_with_console = 0;
+int wm_start_with_console = 0; /* used in creator.c */
 
 /* only called once, for startup */
 void WM_init(bContext *C, int argc, const char **argv)
@@ -127,7 +127,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	}
 	GHOST_CreateSystemPaths();
 	wm_operatortype_init();
-	
+	WM_menutype_init();
+
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
 	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
 	DAG_editors_update_cb(ED_render_id_flush_update); /* depsgraph.c */
@@ -155,6 +156,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BPY_python_start(argc, argv);
 
 	BPY_driver_reset();
+	BPY_app_handlers_reset(); /* causes addon callbacks to be freed [#28068],
+	                           * but this is actually what we want. */
 	BPY_modules_load_user(C);
 #else
 	(void)argc; /* unused */
@@ -169,6 +172,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	if (!G.background) {
 		GPU_extensions_init();
 		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+		GPU_set_anisotropic(U.anisotropic_filter);
 	
 		UI_init();
 	}
@@ -179,8 +183,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 		
 	ED_preview_init_dbase();
-	
-	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
 	
 	WM_read_history();
 
@@ -328,7 +330,6 @@ static void free_openrecent(void)
 
 /* bad stuff*/
 
-extern ListBase editelems;
 extern wchar_t *copybuf;
 extern wchar_t *copybufinfo;
 
@@ -380,7 +381,6 @@ void WM_exit(bContext *C)
 	
 	BKE_freecubetable();
 	
-	fastshade_free_render();	/* shaded view */
 	ED_preview_free_dbase();	/* frees a Main dbase, before free_blender! */
 
 	if(C && CTX_wm_manager(C))
@@ -394,10 +394,6 @@ void WM_exit(bContext *C)
 	free_anim_drivers_copybuf();
 	free_fmodifiers_copybuf();
 	free_posebuf();
-//	free_vertexpaint();
-//	free_imagepaint();
-	
-//	fsmenu_free();
 
 	BLF_exit();
 	
@@ -420,11 +416,7 @@ void WM_exit(bContext *C)
 	BPY_python_end();
 #endif
 
-	if (!G.background) {
-// XXX		UI_filelist_free_icons();
-	}
-	
-	GPU_buffer_pool_free(NULL);
+	GPU_global_buffer_pool_free();
 	GPU_free_unused_buffers();
 	GPU_extensions_exit();
 	

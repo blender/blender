@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -135,6 +136,7 @@ static void rna_Texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 	DAG_id_tag_update(&tex->id, 0);
 	WM_main_add_notifier(NC_TEXTURE, tex);
+	WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, NULL);
 }
 
 static void rna_Texture_voxeldata_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -662,6 +664,13 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 5);
 	RNA_def_property_ui_text(prop, "Depth", "Number of times a map will be rendered recursively (mirror effects.)");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, 0);
+	RNA_def_property_boolean_sdna(prop, NULL, "ok", 2);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Validity", "True if this map is ready for use, False if it needs rendering.");
+
+	RNA_api_environment_map(srna);
 }
 
 static EnumPropertyItem prop_noise_basis_items[] = {
@@ -1145,6 +1154,12 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_normal_map", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_NORMALMAP);
 	RNA_def_property_ui_text(prop, "Normal Map", "Uses image RGB values for normal mapping");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	/* Derivative Map */
+	prop= RNA_def_property(srna, "use_derivative_map", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_DERIVATIVEMAP);
+	RNA_def_property_ui_text(prop, "Derivative Map", "Uses red and green as derivative values");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
@@ -1805,6 +1820,8 @@ static void rna_def_texture(BlenderRNA *brna)
 	rna_def_texture_pointdensity(brna);
 	rna_def_texture_voxeldata(brna);
 	/* XXX add more types here .. */
+
+	RNA_api_texture(srna);
 }
 
 void RNA_def_texture(BlenderRNA *brna)

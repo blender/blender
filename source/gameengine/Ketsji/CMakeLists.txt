@@ -26,33 +26,33 @@
 
 set(INC
 	.
-	../../../intern/string
-	../../../intern/guardedalloc
+	KXNetwork
+	../BlenderRoutines
+	../Converter
+	../Expressions
+	../GameLogic
+	../Network
+	../Network/LoopBackNetwork
+	../Physics/common
+	../Rasterizer
+	../Rasterizer/RAS_OpenGLRasterizer
+	../SceneGraph
+	../../blender
+	../../blender/blenfont
+	../../blender/blenkernel
+	../../blender/blenlib
+	../../blender/blenloader
+	../../blender/gpu
+	../../blender/imbuf
+	../../blender/makesdna
+	../../blender/makesrna
+	../../blender/python
+	../../blender/python/generic
+	../../blender/python/mathutils
 	../../../intern/container
-	../../../source/gameengine/Rasterizer/RAS_OpenGLRasterizer 
-	../../../source/gameengine/Converter
-	../../../source/gameengine/BlenderRoutines
-	../../../source/blender/imbuf
+	../../../intern/guardedalloc
 	../../../intern/moto/include
-	../../../source/gameengine/Ketsji 
-	../../../source/blender/blenlib
-	../../../source/blender/blenfont
-	../../../source/blender/blenkernel
-	../../../source/blender/python
-	../../../source/blender/python/generic
-	../../../source/blender 
-	../../../source/blender/makesdna 
-	../../../source/gameengine/Rasterizer 
-	../../../source/gameengine/GameLogic
-	../../../source/gameengine/Expressions 
-	../../../source/gameengine/Ketsji/KXNetwork
-	../../../source/gameengine/Network
-	../../../source/gameengine/SceneGraph 
-	../../../source/gameengine/Physics/common
-	../../../source/gameengine/Network/LoopBackNetwork
-	../../../intern/audaspace/intern
-	../../../source/blender/blenloader
-	../../../source/blender/gpu
+	../../../intern/string
 )
 
 set(INC_SYS
@@ -63,6 +63,8 @@ set(INC_SYS
 )
 
 set(SRC
+	BL_Action.cpp
+	BL_ActionManager.cpp
 	BL_BlenderShader.cpp
 	BL_Material.cpp
 	BL_Shader.cpp
@@ -135,6 +137,12 @@ set(SRC
 	KX_WorldInfo.cpp
 	KX_WorldIpoController.cpp
 
+	BL_Action.h
+	BL_ActionManager.h
+	BL_BlenderShader.h
+	BL_Material.h
+	BL_Shader.h
+	BL_Texture.h
 	KX_ArmatureSensor.h
 	KX_BlenderMaterial.h
 	KX_BulletPhysicsController.h
@@ -210,16 +218,14 @@ set(SRC
 	KX_VisibilityActuator.h
 	KX_WorldInfo.h
 	KX_WorldIpoController.h
-	BL_BlenderShader.h
-	BL_Material.h
-	BL_Shader.h
-	BL_Texture.h
 )
 
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_SDL)
-	list(APPEND INC_SYS ${SDL_INCLUDE_DIR})  
+	list(APPEND INC_SYS
+		${SDL_INCLUDE_DIR}
+	)
 else()
 	add_definitions(-DDISABLE_SDL)
 endif()
@@ -228,10 +234,18 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
+if(WITH_AUDASPACE)
+	list(APPEND INC
+		../../../intern/audaspace/intern
+		../../../intern/audaspace/FX
+	)
+	add_definitions(-DWITH_AUDASPACE)
+endif()
+
 if(WITH_BULLET)
 	list(APPEND INC
 		../../../extern/bullet2/src
-		../../../source/gameengine/Physics/Bullet
+		../Physics/Bullet
 	)
 	add_definitions(-DUSE_BULLET)
 endif()

@@ -271,18 +271,18 @@ void KX_Camera::ExtractFrustumSphere()
 	if (m_set_frustum_center)
 		return;
 
-    // compute sphere for the general case and not only symmetric frustum:
-    // the mirror code in ImageRender can use very asymmetric frustum.
-    // We will put the sphere center on the line that goes from origin to the center of the far clipping plane
-    // This is the optimal position if the frustum is symmetric or very asymmetric and probably close
-    // to optimal for the general case. The sphere center position is computed so that the distance to 
-    // the near and far extreme frustum points are equal.
+	// compute sphere for the general case and not only symmetric frustum:
+	// the mirror code in ImageRender can use very asymmetric frustum.
+	// We will put the sphere center on the line that goes from origin to the center of the far clipping plane
+	// This is the optimal position if the frustum is symmetric or very asymmetric and probably close
+	// to optimal for the general case. The sphere center position is computed so that the distance to
+	// the near and far extreme frustum points are equal.
 
-    // get the transformation matrix from device coordinate to camera coordinate
+	// get the transformation matrix from device coordinate to camera coordinate
 	MT_Matrix4x4 clip_camcs_matrix = m_projection_matrix;
 	clip_camcs_matrix.invert();
 
-	if (m_projection_matrix[3][3] == MT_Scalar(0.0)) 
+	if (m_projection_matrix[3][3] == MT_Scalar(0.0))
 	{
 		// frustrum projection
 		// detect which of the corner of the far clipping plane is the farthest to the origin
@@ -302,7 +302,7 @@ void KX_Camera::ExtractFrustumSphere()
 		MT_Scalar len;
 		for (int i=0; i<4; i++)
 		{
-    		hpoint = clip_camcs_matrix*npoint;
+			hpoint = clip_camcs_matrix*npoint;
 			point.setValue(hpoint[0]/hpoint[3], hpoint[1]/hpoint[3], hpoint[2]/hpoint[3]);
 			len = point.dot(point);
 			if (len > F)
@@ -321,7 +321,7 @@ void KX_Camera::ExtractFrustumSphere()
 		farcenter *= 0.25;
 		// the extreme near point is the opposite point on the near clipping plane
 		nfar.setValue(-nfar[0], -nfar[1], -1., 1.);
-   		nfar = clip_camcs_matrix*nfar;
+		nfar = clip_camcs_matrix*nfar;
 		nearpoint.setValue(nfar[0]/nfar[3], nfar[1]/nfar[3], nfar[2]/nfar[3]);
 		// this is a frustrum projection
 		N = nearpoint.dot(nearpoint);
@@ -340,7 +340,7 @@ void KX_Camera::ExtractFrustumSphere()
 		z = (F-N)/(2.0*(e-s+c*(f-n)));
 		m_frustum_center = MT_Point3(farcenter[0]*z/e, farcenter[1]*z/e, z);
 		m_frustum_radius = m_frustum_center.distance(farpoint);
-	} 
+	}
 	else
 	{
 		// orthographic projection
@@ -923,6 +923,8 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, getScreenPosition,
 
 	if (!PyVecTo(value, vect))
 	{
+		PyErr_Clear();
+
 		if(ConvertPythonToGameObject(value, &obj, true, ""))
 		{
 			PyErr_Clear();
@@ -1020,10 +1022,8 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, getScreenRay,
 		return NULL;
 
 	PyObject* argValue = PyTuple_New(2);
-	if (argValue) {
-		PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
-		PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
-	}
+	PyTuple_SET_ITEM(argValue, 0, PyFloat_FromDouble(x));
+	PyTuple_SET_ITEM(argValue, 1, PyFloat_FromDouble(y));
 
 	if(!PyVecTo(PygetScreenVect(argValue), vect))
 	{

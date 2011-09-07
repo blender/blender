@@ -742,6 +742,7 @@ static DrawInfo *icon_create_drawinfo(void)
 	return di;
 }
 
+/* note!, returns unscaled by DPI, may need to multiply result by UI_DPI_ICON_FAC */
 int UI_icon_get_width(int icon_id)
 {
 	Icon *icon = NULL;
@@ -952,7 +953,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
 	IconImage *iimg;
-	float fdraw_size= UI_DPI_FAC*draw_size;
+	float fdraw_size= UI_DPI_ICON_FAC*draw_size;
 	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
@@ -1102,8 +1103,7 @@ int ui_id_icon_get(bContext *C, ID *id, int big)
 	int iconid= 0;
 	
 	/* icon */
-	switch(GS(id->name))
-	{
+	switch(GS(id->name)) {
 		case ID_BR:
 			iconid= ui_id_brush_get_icon(C, id);
 			break;

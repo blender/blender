@@ -16,19 +16,24 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import bpy
+from bpy.types import Operator
 from bpy.props import StringProperty
 
 
-class EditExternally(bpy.types.Operator):
+class EditExternally(Operator):
     '''Edit image in an external application'''
     bl_idname = "image.external_edit"
     bl_label = "Image Edit Externally"
     bl_options = {'REGISTER'}
 
-    filepath = StringProperty(name="File Path", description="Path to an image file", maxlen=1024, default="")
+    filepath = StringProperty(
+            name="File Path",
+            description="Path to an image file",
+            maxlen=1024,
+            )
 
     def _editor_guess(self, context):
         import sys
@@ -57,10 +62,19 @@ class EditExternally(bpy.types.Operator):
     def execute(self, context):
         import os
         import subprocess
-        filepath = bpy.path.abspath(self.filepath)
+
+        filepath = self.filepath
+
+        if not filepath:
+            self.report({'ERROR'}, "Image path not set")
+            return {'CANCELLED'}
+
+        filepath = os.path.normpath(bpy.path.abspath(filepath))
 
         if not os.path.exists(filepath):
-            self.report({'ERROR'}, "Image path %r not found." % filepath)
+            self.report({'ERROR'},
+                        "Image path %r not found, image may be packed or "
+                        "unsaved." % filepath)
             return {'CANCELLED'}
 
         cmd = self._editor_guess(context) + [filepath]
@@ -70,7 +84,10 @@ class EditExternally(bpy.types.Operator):
         except:
             import traceback
             traceback.print_exc()
-            self.report({'ERROR'}, "Image editor not found, please specify in User Preferences > File")
+            self.report({'ERROR'},
+                        "Image editor not found, "
+                        "please specify in User Preferences > File")
+
             return {'CANCELLED'}
 
         return {'FINISHED'}
@@ -90,7 +107,7 @@ class EditExternally(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SaveDirty(bpy.types.Operator):
+class SaveDirty(Operator):
     """Save all modified textures"""
     bl_idname = "image.save_dirty"
     bl_label = "Save Dirty"
@@ -104,14 +121,16 @@ class SaveDirty(bpy.types.Operator):
                 if "\\" not in filepath and "/" not in filepath:
                     self.report({'WARNING'}, "Invalid path: " + filepath)
                 elif filepath in unique_paths:
-                    self.report({'WARNING'}, "Path used by more then one image: " + filepath)
+                    self.report({'WARNING'},
+                                "Path used by more then one image: %r" %
+                                filepath)
                 else:
                     unique_paths.add(filepath)
                     image.save()
         return {'FINISHED'}
 
 
-class ProjectEdit(bpy.types.Operator):
+class ProjectEdit(Operator):
     """Edit a snapshot of the viewport in an external image editor"""
     bl_idname = "image.project_edit"
     bl_label = "Project Edit"
@@ -121,7 +140,6 @@ class ProjectEdit(bpy.types.Operator):
 
     def execute(self, context):
         import os
-        import subprocess
 
         EXT = "png"  # could be made an option but for now ok
 
@@ -143,14 +161,14 @@ class ProjectEdit(bpy.types.Operator):
 
         filepath = os.path.basename(bpy.data.filepath)
         filepath = os.path.splitext(filepath)[0]
-        # filepath = bpy.path.clean_name(filepath) # fixes <memory> rubbish, needs checking
+        # fixes <memory> rubbish, needs checking
+        # filepath = bpy.path.clean_name(filepath)
 
-        if filepath.startswith(".") or filepath == "":
-            # TODO, have a way to check if the file is saved, assume startup.blend
+        if bpy.data.is_saved:
+            filepath = "//" + filepath
+        else:
             tmpdir = context.user_preferences.filepaths.temporary_directory
             filepath = os.path.join(tmpdir, "project_edit")
-        else:
-            filepath = "//" + filepath
 
         obj = context.object
 
@@ -164,7 +182,7 @@ class ProjectEdit(bpy.types.Operator):
             filepath_final = filepath + ("%.3d.%s" % (i, EXT))
             i += 1
 
-        image_new.name = os.path.basename(filepath_final)
+        image_new.name = bpy.path.basename(filepath_final)
         ProjectEdit._proj_hack[0] = image_new.name
 
         image_new.filepath_raw = filepath_final  # TODO, filepath raw is crummy
@@ -179,7 +197,7 @@ class ProjectEdit(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ProjectApply(bpy.types.Operator):
+class ProjectApply(Operator):
     """Project edited image back onto the object"""
     bl_idname = "image.project_apply"
     bl_label = "Project Apply"

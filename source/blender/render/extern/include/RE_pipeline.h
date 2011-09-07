@@ -51,6 +51,7 @@ struct ReportList;
 struct ReportList;
 struct Scene;
 struct SceneRenderLayer;
+struct EnvMap;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */
@@ -146,7 +147,7 @@ typedef struct RenderResult {
 typedef struct RenderStats {
 	int cfra;
 	int totface, totvert, totstrand, tothalo, totlamp, totpart;
-	short curfield, curblur, curpart, partsdone, convertdone;
+	short curfield, curblur, curpart, partsdone, convertdone, curfsa;
 	double starttime, lastframetime;
 	const char *infostr, *statstr;
 	char scenename[32];
@@ -218,14 +219,20 @@ void RE_TileProcessor(struct Render *re);
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene, struct SceneRenderLayer *srl, struct Object *camera_override, unsigned int lay, int frame, const short write_still);
-void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override, unsigned int lay, int sfra, int efra, int tfra, struct ReportList *reports);
+void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override, unsigned int lay, int sfra, int efra, int tfra);
+
+/* error reporting */
+void RE_SetReports(struct Render *re, struct ReportList *reports);
 
 /* main preview render call */
 void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene);
 
-void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
-void RE_WriteRenderResult(RenderResult *rr, const char *filename, int compress);
+int RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
+int RE_WriteRenderResult(struct ReportList *reports, RenderResult *rr, const char *filename, int compress);
 struct RenderResult *RE_MultilayerConvert(void *exrhandle, int rectx, int recty);
+
+extern const float default_envmap_layout[];
+int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, int imtype, float layout[12]);
 
 /* do a full sample buffer compo */
 void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce, struct bNodeTree *ntree);
@@ -242,7 +249,6 @@ void RE_stats_draw_cb	(struct Render *re, void *handle, void (*f)(void *handle, 
 void RE_progress_cb	(struct Render *re, void *handle, void (*f)(void *handle, float));
 void RE_draw_lock_cb		(struct Render *re, void *handle, void (*f)(void *handle, int));
 void RE_test_break_cb	(struct Render *re, void *handle, int (*f)(void *handle));
-void RE_error_cb		(struct Render *re, void *handle, void (*f)(void *handle, const char *str));
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);
@@ -264,7 +270,7 @@ void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, 
 #define RE_BAKE_ALPHA				11
 #define RE_BAKE_EMIT				12
 
-void RE_Database_Baking(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, int type, struct Object *actob);
+void RE_Database_Baking(struct Render *re, struct Main *bmain, struct Scene *scene, unsigned int lay, const int type, struct Object *actob);
 
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[][4]);
@@ -308,11 +314,12 @@ void RE_engine_end_result(RenderEngine *engine, struct RenderResult *result);
 
 int RE_engine_test_break(RenderEngine *engine);
 void RE_engine_update_stats(RenderEngine *engine, const char *stats, const char *info);
+void RE_engine_report(RenderEngine *engine, int type, const char *msg);
 
 void RE_engines_init(void);
 void RE_engines_exit(void);
 
-int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, void *erh, void (*error)(void *handle, const char *str));
+int RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);
 
 #endif /* RE_PIPELINE_H */
 

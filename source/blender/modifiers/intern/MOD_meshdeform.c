@@ -72,6 +72,8 @@ static void freeData(ModifierData *md)
 	if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
 	if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
 	if(mmd->dynverts) MEM_freeN(mmd->dynverts);
+	if(mmd->bindweights) MEM_freeN(mmd->bindweights); /* deprecated */
+	if(mmd->bindcos) MEM_freeN(mmd->bindcos); /* deprecated */
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
@@ -282,10 +284,7 @@ static void meshdeformModifier_do(
 			copy_v3_v3(dco[a], co);
 	}
 
-	defgrp_index = defgroup_name_index(ob, mmd->defgrp_name);
-
-	if(dm && defgrp_index >= 0)
-		dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	modifier_get_vgroup(ob, dm, mmd->defgrp_name, &dvert, &defgrp_index);
 
 	/* do deformation */
 	fac= 1.0f;
@@ -464,4 +463,5 @@ ModifierTypeInfo modifierType_MeshDeform = {
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
+	/* foreachTexLink */    NULL,
 };

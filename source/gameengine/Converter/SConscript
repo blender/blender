@@ -21,6 +21,7 @@ incs += ' #source/blender/windowmanager'
 incs += ' #source/blender/makesrna'
 incs += ' #source/blender/ikplugin'
 incs += ' #extern/recastnavigation/Detour/Include'
+incs += ' #extern/Eigen2'
 
 incs += ' ' + env['BF_BULLET_INC']
 

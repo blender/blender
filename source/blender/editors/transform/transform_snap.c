@@ -385,14 +385,14 @@ static void initSnappingMode(TransInfo *t)
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(obedit != NULL && ELEM4(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE, OB_LATTICE)) ) // Temporary limited to edit mode meshes, armature, curves
 		{
-			/* editmode meshes now supported */
-			if ((obedit->type != OB_MESH) && ((t->flag & T_PROP_EDIT) || t->tsnap.project)) /* also exclude edit for project, for now */
+			/* Exclude editmesh if using proportional edit */
+			if ((obedit->type == OB_MESH) && (t->flag & T_PROP_EDIT))
 			{
 				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
 			}
 			else
 			{
-				t->tsnap.modeSelect = SNAP_ALL;
+				t->tsnap.modeSelect = t->tsnap.snap_self ? SNAP_ALL : SNAP_NOT_OBEDIT;
 			}
 		}
 		/* Particles edit mode*/
@@ -457,18 +457,27 @@ void initSnapping(TransInfo *t, wmOperator *op)
 			{
 				t->tsnap.project = RNA_boolean_get(op->ptr, "use_snap_project");
 			}
+
+			if (RNA_struct_find_property(op->ptr, "use_snap_self"))
+			{
+				t->tsnap.snap_self = RNA_boolean_get(op->ptr, "use_snap_self");
+			}
 		}
 	}
 	/* use scene defaults only when transform is modal */
 	else if (t->flag & T_MODAL)
 	{
-		if (ts->snap_flag & SCE_SNAP) {
-			t->modifiers |= MOD_SNAP;
-		}
+		if(ELEM(t->spacetype, SPACE_VIEW3D, SPACE_IMAGE))
+		{
+			if (ts->snap_flag & SCE_SNAP) {
+				t->modifiers |= MOD_SNAP;
+			}
 
-		t->tsnap.align = ((t->settings->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
-		t->tsnap.project = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
-		t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
+			t->tsnap.align = ((t->settings->snap_flag & SCE_SNAP_ROTATE) == SCE_SNAP_ROTATE);
+			t->tsnap.project = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
+			t->tsnap.snap_self = !((t->settings->snap_flag & SCE_SNAP_NO_SELF) == SCE_SNAP_NO_SELF);
+			t->tsnap.peel = ((t->settings->snap_flag & SCE_SNAP_PROJECT) == SCE_SNAP_PROJECT);
+		}
 	}
 	
 	t->tsnap.target = snap_target;
@@ -1937,6 +1946,11 @@ static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], Gea
 {
 	int i;
 	float asp[3] = {1.0f, 1.0f, 1.0f}; // TODO: Remove hard coded limit here (3)
+
+	if(max_index > 2) {
+		printf("applyGrid: invalid index %d, clamping\n", max_index);
+		max_index= 2;
+	}
 
 	// Early bailing out if no need to snap
 	if (fac[action] == 0.0f)

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -216,7 +214,7 @@ void pose_remove_group(struct Object *ob);
 /* Assorted Evaluation ----------------- */	
 
 /* Used for the Action Constraint */
-void what_does_obaction(struct Scene *scene, struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, char groupname[], float cframe);
+void what_does_obaction(struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, char groupname[], float cframe);
 
 /* for proxy */
 void copy_pose_result(struct bPose *to, struct bPose *from);
