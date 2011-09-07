@@ -136,26 +136,26 @@ MINLINE void add_v3_v3(float *r, const float *a)
 	r[2] += a[2];
 }
 
-MINLINE void add_v3_v3v3(float *r, const float *a, const float *b)
+MINLINE void add_v3_v3v3(float r[3], const float a[3], const float b[3])
 {
 	r[0]= a[0] + b[0];
 	r[1]= a[1] + b[1];
 	r[2]= a[2] + b[2];
 }
 
-MINLINE void sub_v2_v2(float *r, const float *a)
+MINLINE void sub_v2_v2(float r[2], const float a[2])
 {
 	r[0] -= a[0];
 	r[1] -= a[1];
 }
 
-MINLINE void sub_v2_v2v2(float *r, const float *a, const float *b)
+MINLINE void sub_v2_v2v2(float r[2], const float a[2], const float b[2])
 {
 	r[0]= a[0] - b[0];
 	r[1]= a[1] - b[1];
 }
 
-MINLINE void sub_v3_v3(float *r, const float *a)
+MINLINE void sub_v3_v3(float r[3], const float a[3])
 {
 	r[0] -= a[0];
 	r[1] -= a[1];
@@ -177,7 +177,7 @@ MINLINE void sub_v4_v4(float r[4], const float a[4])
 	r[3] -= a[3];
 }
 
-MINLINE void sub_v4_v4v4(float r[3], const float a[3], const float b[3])
+MINLINE void sub_v4_v4v4(float r[4], const float a[4], const float b[4])
 {
 	r[0]= a[0] - b[0];
 	r[1]= a[1] - b[1];
@@ -186,10 +186,10 @@ MINLINE void sub_v4_v4v4(float r[3], const float a[3], const float b[3])
 }
 
 
-MINLINE void mul_v2_fl(float *v1, float f)
+MINLINE void mul_v2_fl(float r[2], float f)
 {
-	v1[0]*= f;
-	v1[1]*= f;
+	r[0]*= f;
+	r[1]*= f;
 }
 
 MINLINE void mul_v2_v2fl(float r[2], const float a[2], float f)
@@ -281,11 +281,11 @@ MINLINE void madd_v4_v4fl(float r[4], const float a[4], float f)
 	r[3] += a[3]*f;
 }
 
-MINLINE void mul_v3_v3v3(float *v, const float *v1, const float *v2)
+MINLINE void mul_v3_v3v3(float r[3], const float v1[3], const float v2[3])
 {
-	v[0] = v1[0] * v2[0];
-	v[1] = v1[1] * v2[1];
-	v[2] = v1[2] * v2[2];
+	r[0] = v1[0] * v2[0];
+	r[1] = v1[1] * v2[1];
+	r[2] = v1[2] * v2[2];
 }
 
 MINLINE void negate_v2(float r[3])
@@ -352,15 +352,15 @@ MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3])
 	r[2]= a[0]*b[1] - a[1]*b[0];
 }
 
-MINLINE void star_m3_v3(float mat[][3], float *vec)
+MINLINE void star_m3_v3(float rmat[][3], float a[3])
 {
-	mat[0][0]= mat[1][1]= mat[2][2]= 0.0;
-	mat[0][1]= -vec[2];	
-	mat[0][2]= vec[1];
-	mat[1][0]= vec[2];	
-	mat[1][2]= -vec[0];
-	mat[2][0]= -vec[1];	
-	mat[2][1]= vec[0];
+	rmat[0][0]= rmat[1][1]= rmat[2][2]= 0.0;
+	rmat[0][1]= -a[2];
+	rmat[0][2]=  a[1];
+	rmat[1][0]=  a[2];
+	rmat[1][2]= -a[0];
+	rmat[2][0]= -a[1];
+	rmat[2][1]=  a[0];
 }
 
 /*********************************** Length **********************************/
@@ -477,27 +477,27 @@ MINLINE int is_zero_v4(const float v[4])
 	return (v[0] == 0 && v[1] == 0 && v[2] == 0 && v[3] == 0);
 }
 
-MINLINE int is_one_v3(const float *v)
+MINLINE int is_one_v3(const float v[3])
 {
 	return (v[0] == 1 && v[1] == 1 && v[2] == 1);
 }
 
-MINLINE int equals_v2v2(const float *v1, const float *v2)
+MINLINE int equals_v2v2(const float v1[2], const float v2[2])
 {
 	return ((v1[0]==v2[0]) && (v1[1]==v2[1]));
 }
 
-MINLINE int equals_v3v3(const float *v1, const float *v2)
+MINLINE int equals_v3v3(const float v1[3], const float v2[3])
 {
 	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]));
 }
 
-MINLINE int equals_v4v4(const float *v1, const float *v2)
+MINLINE int equals_v4v4(const float v1[4], const float v2[4])
 {
 	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]) && (v1[3]==v2[3]));
 }
 
-MINLINE int compare_v3v3(const float *v1, const float *v2, const float limit)
+MINLINE int compare_v3v3(const float v1[3], const float v2[3], const float limit)
 {
 	if(fabsf(v1[0]-v2[0])<limit)
 		if(fabsf(v1[1]-v2[1])<limit)
@@ -507,7 +507,7 @@ MINLINE int compare_v3v3(const float *v1, const float *v2, const float limit)
 	return 0;
 }
 
-MINLINE int compare_len_v3v3(const float *v1, const float *v2, const float limit)
+MINLINE int compare_len_v3v3(const float v1[3], const float v2[3], const float limit)
 {
 	float x,y,z;
 
@@ -518,7 +518,7 @@ MINLINE int compare_len_v3v3(const float *v1, const float *v2, const float limit
 	return ((x*x + y*y + z*z) < (limit*limit));
 }
 
-MINLINE int compare_v4v4(const float *v1, const float *v2, const float limit)
+MINLINE int compare_v4v4(const float v1[4], const float v2[4], const float limit)
 {
 	if(fabsf(v1[0]-v2[0])<limit)
 		if(fabsf(v1[1]-v2[1])<limit)
@@ -529,7 +529,7 @@ MINLINE int compare_v4v4(const float *v1, const float *v2, const float limit)
 	return 0;
 }
 
-MINLINE float line_point_side_v2(const float *l1, const float *l2, const float *pt)
+MINLINE float line_point_side_v2(const float l1[2], const float l2[2], const float pt[2])
 {
 	return	((l1[0]-pt[0]) * (l2[1]-pt[1])) -
 			((l2[0]-pt[0]) * (l1[1]-pt[1]));

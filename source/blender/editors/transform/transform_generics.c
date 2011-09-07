@@ -326,11 +326,519 @@ static int fcu_test_selected(FCurve *fcu)
 	return 0;
 }
 
+/* helper for recalcData() - for Action Editor transforms */
+static void recalcData_actedit(TransInfo *t)
+{
+	Scene *scene= t->scene;
+	SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
+	
+	bAnimContext ac= {NULL};
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* initialise relevant anim-context 'context' data from TransInfo data */
+		/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+	ac.scene= t->scene;
+	ac.obact= OBACT;
+	ac.sa= t->sa;
+	ac.ar= t->ar;
+	ac.sl= (t->sa)? t->sa->spacedata.first : NULL;
+	ac.spacetype= (t->sa)? t->sa->spacetype : 0;
+	ac.regiontype= (t->ar)? t->ar->regiontype : 0;
+	
+	ANIM_animdata_context_getdata(&ac);
+	
+	/* perform flush */
+	if (ac.datatype == ANIMCONT_GPENCIL) {
+		/* flush transform values back to actual coordinates */
+		flushTransGPactionData(t);
+	}
+	else {
+		/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
+		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
+		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		/* just tag these animdata-blocks to recalc, assuming that some data there changed 
+		 * BUT only do this if realtime updates are enabled
+		 */
+		if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
+			for (ale= anim_data.first; ale; ale= ale->next) {
+				/* set refresh tags for objects using this animation */
+				ANIM_list_elem_update(t->scene, ale);
+			}
+		}
+		
+		/* now free temp channels */
+		BLI_freelistN(&anim_data);
+	}
+}
+
+/* helper for recalcData() - for Graph Editor transforms */
+static void recalcData_graphedit(TransInfo *t)
+{
+	SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+	Scene *scene;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimContext ac= {NULL};
+	int filter;
+	
+	bAnimListElem *ale;
+	int dosort = 0;
+	
+	
+	/* initialise relevant anim-context 'context' data from TransInfo data */
+		/* NOTE: sync this with the code in ANIM_animdata_get_context() */
+	scene= ac.scene= t->scene;
+	ac.obact= OBACT;
+	ac.sa= t->sa;
+	ac.ar= t->ar;
+	ac.sl= (t->sa)? t->sa->spacedata.first : NULL;
+	ac.spacetype= (t->sa)? t->sa->spacetype : 0;
+	ac.regiontype= (t->ar)? t->ar->regiontype : 0;
+	
+	ANIM_animdata_context_getdata(&ac);
+	
+	/* do the flush first */
+	flushTransGraphData(t);
+	
+	/* get curves to check if a re-sort is needed */
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* now test if there is a need to re-sort */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		/* ignore unselected fcurves */
+		if (!fcu_test_selected(fcu))
+			continue;
+		
+		// fixme: only do this for selected verts...
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS|ANIM_UNITCONV_RESTORE);
+		
+		
+		/* watch it: if the time is wrong: do not correct handles yet */
+		if (test_time_fcurve(fcu))
+			dosort++;
+		else
+			calchandles_fcurve(fcu);
+		
+		/* set refresh tags for objects using this animation,
+		 * BUT only if realtime updates are enabled  
+		 */
+		if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0)
+			ANIM_list_elem_update(t->scene, ale);
+	}
+	
+	/* do resort and other updates? */
+	if (dosort) remake_graph_transdata(t, &anim_data);
+	
+	/* now free temp channels */
+	BLI_freelistN(&anim_data);
+}
+
+/* helper for recalcData() - for NLA Editor transforms */
+static void recalcData_nla(TransInfo *t)
+{
+	TransDataNla *tdn= (TransDataNla *)t->customData;
+	SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
+	Scene *scene= t->scene;
+	double secf= FPS;
+	int i;
+	
+	/* for each strip we've got, perform some additional validation of the values that got set before
+	 * using RNA to set the value (which does some special operations when setting these values to make
+	 * sure that everything works ok)
+	 */
+	for (i = 0; i < t->total; i++, tdn++) {
+		NlaStrip *strip= tdn->strip;
+		PointerRNA strip_ptr;
+		short pExceeded, nExceeded, iter;
+		int delta_y1, delta_y2;
+		
+		/* if this tdn has no handles, that means it is just a dummy that should be skipped */
+		if (tdn->handle == 0)
+			continue;
+		
+		/* set refresh tags for objects using this animation,
+		 * BUT only if realtime updates are enabled  
+		 */
+		if ((snla->flag & SNLA_NOREALTIMEUPDATES) == 0)
+			ANIM_id_update(t->scene, tdn->id);
+		
+		/* if cancelling transform, just write the values without validating, then move on */
+		if (t->state == TRANS_CANCEL) {
+			/* clear the values by directly overwriting the originals, but also need to restore
+			 * endpoints of neighboring transition-strips
+			 */
+			
+			/* start */
+			strip->start= tdn->h1[0];
+			
+			if ((strip->prev) && (strip->prev->type == NLASTRIP_TYPE_TRANSITION))
+				strip->prev->end= tdn->h1[0];
+			
+			/* end */
+			strip->end= tdn->h2[0];
+			
+			if ((strip->next) && (strip->next->type == NLASTRIP_TYPE_TRANSITION))
+				strip->next->start= tdn->h2[0];
+			
+			/* flush transforms to child strips (since this should be a meta) */
+			BKE_nlameta_flush_transforms(strip);
+			
+			/* restore to original track (if needed) */
+			if (tdn->oldTrack != tdn->nlt) {
+				/* just append to end of list for now, since strips get sorted in special_aftertrans_update() */
+				BLI_remlink(&tdn->nlt->strips, strip);
+				BLI_addtail(&tdn->oldTrack->strips, strip);
+			}
+			
+			continue;
+		}
+		
+		/* firstly, check if the proposed transform locations would overlap with any neighbouring strips
+		 * (barring transitions) which are absolute barriers since they are not being moved
+		 *
+		 * this is done as a iterative procedure (done 5 times max for now)
+		 */
+		for (iter=0; iter < 5; iter++) {
+			pExceeded= ((strip->prev) && (strip->prev->type != NLASTRIP_TYPE_TRANSITION) && (tdn->h1[0] < strip->prev->end));
+			nExceeded= ((strip->next) && (strip->next->type != NLASTRIP_TYPE_TRANSITION) && (tdn->h2[0] > strip->next->start));
+			
+			if ((pExceeded && nExceeded) || (iter == 4) ) {
+				/* both endpoints exceeded (or iteration ping-pong'd meaning that we need a compromise)
+				 *	- simply crop strip to fit within the bounds of the strips bounding it
+				 *	- if there were no neighbours, clear the transforms (make it default to the strip's current values)
+				 */
+				if (strip->prev && strip->next) {
+					tdn->h1[0]= strip->prev->end;
+					tdn->h2[0]= strip->next->start;
+				}
+				else {
+					tdn->h1[0]= strip->start;
+					tdn->h2[0]= strip->end;
+				}
+			}
+			else if (nExceeded) {
+				/* move backwards */
+				float offset= tdn->h2[0] - strip->next->start;
+				
+				tdn->h1[0] -= offset;
+				tdn->h2[0] -= offset;
+			}
+			else if (pExceeded) {
+				/* more forwards */
+				float offset= strip->prev->end - tdn->h1[0];
+				
+				tdn->h1[0] += offset;
+				tdn->h2[0] += offset;
+			}
+			else /* all is fine and well */
+				break;
+		}
+		
+		/* handle auto-snapping */
+		switch (snla->autosnap) {
+			case SACTSNAP_FRAME: /* snap to nearest frame/time  */
+				if (snla->flag & SNLA_DRAWTIME) {
+					tdn->h1[0]= (float)( floor((tdn->h1[0]/secf) + 0.5f) * secf );
+					tdn->h2[0]= (float)( floor((tdn->h2[0]/secf) + 0.5f) * secf );
+				}
+				else {
+					tdn->h1[0]= (float)( floor(tdn->h1[0]+0.5f) );
+					tdn->h2[0]= (float)( floor(tdn->h2[0]+0.5f) );
+				}
+				break;
+			
+			case SACTSNAP_MARKER: /* snap to nearest marker */
+				tdn->h1[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h1[0]);
+				tdn->h2[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h2[0]);
+				break;
+		}
+		
+		/* use RNA to write the values... */
+		// TODO: do we need to write in 2 passes to make sure that no truncation goes on?
+		RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
+		
+		RNA_float_set(&strip_ptr, "frame_start", tdn->h1[0]);
+		RNA_float_set(&strip_ptr, "frame_end", tdn->h2[0]);
+		
+		/* flush transforms to child strips (since this should be a meta) */
+		BKE_nlameta_flush_transforms(strip);
+		
+		
+		/* now, check if we need to try and move track
+		 *	- we need to calculate both, as only one may have been altered by transform if only 1 handle moved
+		 */
+		delta_y1= ((int)tdn->h1[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
+		delta_y2= ((int)tdn->h2[1] / NLACHANNEL_STEP(snla) - tdn->trackIndex);
+		
+		if (delta_y1 || delta_y2) {
+			NlaTrack *track;
+			int delta = (delta_y2) ? delta_y2 : delta_y1;
+			int n;
+			
+			/* move in the requested direction, checking at each layer if there's space for strip to pass through,
+			 * stopping on the last track available or that we're able to fit in
+			 */
+			if (delta > 0) {
+				for (track=tdn->nlt->next, n=0; (track) && (n < delta); track=track->next, n++) {
+					/* check if space in this track for the strip */
+					if (BKE_nlatrack_has_space(track, strip->start, strip->end)) {
+						/* move strip to this track */
+						BLI_remlink(&tdn->nlt->strips, strip);
+						BKE_nlatrack_add_strip(track, strip);
+						
+						tdn->nlt= track;
+						tdn->trackIndex++;
+					}
+					else /* can't move any further */
+						break;
+				}
+			}
+			else {
+				/* make delta 'positive' before using it, since we now know to go backwards */
+				delta= -delta;
+				
+				for (track=tdn->nlt->prev, n=0; (track) && (n < delta); track=track->prev, n++) {
+					/* check if space in this track for the strip */
+					if (BKE_nlatrack_has_space(track, strip->start, strip->end)) {
+						/* move strip to this track */
+						BLI_remlink(&tdn->nlt->strips, strip);
+						BKE_nlatrack_add_strip(track, strip);
+						
+						tdn->nlt= track;
+						tdn->trackIndex--;
+					}
+					else /* can't move any further */
+						break;
+				}
+			}
+		}
+	}
+}
+
+/* helper for recalcData() - for 3d-view transforms */
+static void recalcData_view3d(TransInfo *t)
+{
+	Base *base = t->scene->basact;
+	
+	if (t->obedit) {
+		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
+			Curve *cu= t->obedit->data;
+			ListBase *nurbs= ED_curve_editnurbs(cu);
+			Nurb *nu= nurbs->first;
+			
+			if(t->state != TRANS_CANCEL) {
+				clipMirrorModifier(t, t->obedit);
+				applyProject(t);
+			}
+			
+			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
+				
+			if (t->state == TRANS_CANCEL) {
+				while(nu) {
+					calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+					nu= nu->next;
+				}
+			} 
+			else {
+				/* Normal updating */
+				while(nu) {
+					test2DNurb(nu);
+					calchandlesNurb(nu);
+					nu= nu->next;
+				}
+			}
+		}
+		else if(t->obedit->type==OB_LATTICE) {
+			Lattice *la= t->obedit->data;
+			
+			if(t->state != TRANS_CANCEL) {
+				applyProject(t);
+			}
+			
+			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
+			
+			if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
+		}
+		else if (t->obedit->type == OB_MESH) {
+			EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
+			/* mirror modifier clipping? */
+			if(t->state != TRANS_CANCEL) {
+				/* apply clipping after so we never project past the clip plane [#25423] */
+				applyProject(t);
+				clipMirrorModifier(t, t->obedit);
+			}
+			if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
+				editmesh_apply_to_mirror(t);
+				
+			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
+			
+			recalc_editnormals(em);
+		}
+		else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
+			bArmature *arm= t->obedit->data;
+			ListBase *edbo = arm->edbo;
+			EditBone *ebo;
+			TransData *td = t->data;
+			int i;
+			
+			if(t->state != TRANS_CANCEL) {
+				applyProject(t);
+			}
+			
+			/* Ensure all bones are correctly adjusted */
+			for (ebo = edbo->first; ebo; ebo = ebo->next){
+				
+				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
+					/* If this bone has a parent tip that has been moved */
+					if (ebo->parent->flag & BONE_TIPSEL){
+						VECCOPY (ebo->head, ebo->parent->tail);
+						if(t->mode==TFM_BONE_ENVELOPE) ebo->rad_head= ebo->parent->rad_tail;
+					}
+					/* If this bone has a parent tip that has NOT been moved */
+					else{
+						VECCOPY (ebo->parent->tail, ebo->head);
+						if(t->mode==TFM_BONE_ENVELOPE) ebo->parent->rad_tail= ebo->rad_head;
+					}
+				}
+				
+				/* on extrude bones, oldlength==0.0f, so we scale radius of points */
+				ebo->length= len_v3v3(ebo->head, ebo->tail);
+				if(ebo->oldlength==0.0f) {
+					ebo->rad_head= 0.25f*ebo->length;
+					ebo->rad_tail= 0.10f*ebo->length;
+					ebo->dist= 0.25f*ebo->length;
+					if(ebo->parent) {
+						if(ebo->rad_head > ebo->parent->rad_tail)
+							ebo->rad_head= ebo->parent->rad_tail;
+					}
+				}
+				else if(t->mode!=TFM_BONE_ENVELOPE) {
+					/* if bones change length, lets do that for the deform distance as well */
+					ebo->dist*= ebo->length/ebo->oldlength;
+					ebo->rad_head*= ebo->length/ebo->oldlength;
+					ebo->rad_tail*= ebo->length/ebo->oldlength;
+					ebo->oldlength= ebo->length;
+				}
+			}
+			
+			
+			if (t->mode != TFM_BONE_ROLL)
+			{
+				/* fix roll */
+				for(i = 0; i < t->total; i++, td++)
+				{
+					if (td->extra)
+					{
+						float vec[3], up_axis[3];
+						float qrot[4];
+						
+						ebo = td->extra;
+						VECCOPY(up_axis, td->axismtx[2]);
+						
+						if (t->mode != TFM_ROTATION)
+						{
+							sub_v3_v3v3(vec, ebo->tail, ebo->head);
+							normalize_v3(vec);
+							rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
+							mul_qt_v3(qrot, up_axis);
+						}
+						else
+						{
+							mul_m3_v3(t->mat, up_axis);
+						}
+						
+						ebo->roll = ED_rollBoneToVector(ebo, up_axis, FALSE);
+					}
+				}
+			}
+			
+			if(arm->flag & ARM_MIRROR_EDIT)
+				transform_armature_mirror_update(t->obedit);
+			
+		}
+		else
+		{
+			if(t->state != TRANS_CANCEL) {
+				applyProject(t);
+			}
+			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
+		}
+	}
+	else if( (t->flag & T_POSE) && t->poseobj) {
+		Object *ob= t->poseobj;
+		bArmature *arm= ob->data;
+		
+		/* if animtimer is running, and the object already has animation data,
+		 * check if the auto-record feature means that we should record 'samples'
+		 * (i.e. uneditable animation values)
+		 *
+		 * context is needed for keying set poll() functions.
+		 */
+		// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+		if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
+			int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
+			
+			animrecord_check_state(t->scene, &ob->id, t->animtimer);
+			autokeyframe_pose_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+		}
+		
+		/* old optimize trick... this enforces to bypass the depgraph */
+		if (!(arm->flag & ARM_DELAYDEFORM)) {
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+		}
+		else
+			where_is_pose(t->scene, ob);
+	}
+	else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, base->object)) {
+		if(t->state != TRANS_CANCEL) {
+			applyProject(t);
+		}
+		flushTransParticles(t);
+	}
+	else {
+		int i;
+		
+		if(t->state != TRANS_CANCEL) {
+			applyProject(t);
+		}
+		
+		for (i = 0; i < t->total; i++) {
+			TransData *td = t->data + i;
+			Object *ob = td->ob;
+			
+			if (td->flag & TD_NOACTION)
+				break;
+			
+			if (td->flag & TD_SKIP)
+				continue;
+			
+			/* if animtimer is running, and the object already has animation data,
+			 * check if the auto-record feature means that we should record 'samples'
+			 * (i.e. uneditable animation values)
+			 */
+			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+			if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+				animrecord_check_state(t->scene, &ob->id, t->animtimer);
+				autokeyframe_ob_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode);
+			}
+			
+			/* sets recalc flags fully, instead of flushing existing ones 
+			 * otherwise proxies don't function correctly
+			 */
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
+		}
+	}
+}
+
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
-	Base *base = t->scene->basact;
-
 	if (t->spacetype==SPACE_NODE) {
 		flushTransNodes(t);
 	}
@@ -338,290 +846,13 @@ void recalcData(TransInfo *t)
 		flushTransSeq(t);
 	}
 	else if (t->spacetype == SPACE_ACTION) {
-		Scene *scene= t->scene;
-		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-		
-		bAnimContext ac= {NULL};
-		ListBase anim_data = {NULL, NULL};
-		bAnimListElem *ale;
-		int filter;
-		
-		/* initialise relevant anim-context 'context' data from TransInfo data */
-			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
-		ac.scene= t->scene;
-		ac.obact= OBACT;
-		ac.sa= t->sa;
-		ac.ar= t->ar;
-		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
-		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
-		
-		ANIM_animdata_context_getdata(&ac);
-		
-		/* perform flush */
-		if (ac.datatype == ANIMCONT_GPENCIL) {
-			/* flush transform values back to actual coordinates */
-			flushTransGPactionData(t);
-		}
-		else {
-			/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
-			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
-			ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-			
-			/* just tag these animdata-blocks to recalc, assuming that some data there changed 
-			 * BUT only do this if realtime updates are enabled
-			 */
-			if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
-				for (ale= anim_data.first; ale; ale= ale->next) {
-					/* set refresh tags for objects using this animation */
-					ANIM_list_elem_update(t->scene, ale);
-				}
-			}
-			
-			/* now free temp channels */
-			BLI_freelistN(&anim_data);
-		}
+		recalcData_actedit(t);
 	}
 	else if (t->spacetype == SPACE_IPO) {
-		Scene *scene;
-		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
-		
-		ListBase anim_data = {NULL, NULL};
-		bAnimContext ac;
-		int filter;
-		
-		bAnimListElem *ale;
-		int dosort = 0;
-		
-		
-		/* initialise relevant anim-context 'context' data from TransInfo data */
-			/* NOTE: sync this with the code in ANIM_animdata_get_context() */
-		memset(&ac, 0, sizeof(bAnimContext));
-		
-		scene= ac.scene= t->scene;
-		ac.obact= OBACT;
-		ac.sa= t->sa;
-		ac.ar= t->ar;
-		ac.spacetype= (t->sa)? t->sa->spacetype : 0;
-		ac.regiontype= (t->ar)? t->ar->regiontype : 0;
-		
-		ANIM_animdata_context_getdata(&ac);
-		
-		/* do the flush first */
-		flushTransGraphData(t);
-		
-		/* get curves to check if a re-sort is needed */
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY | ANIMFILTER_CURVEVISIBLE);
-		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-		
-		/* now test if there is a need to re-sort */
-		for (ale= anim_data.first; ale; ale= ale->next) {
-			FCurve *fcu= (FCurve *)ale->key_data;
-			
-			/* ignore unselected fcurves */
-			if (!fcu_test_selected(fcu))
-				continue;
-			
-			// fixme: only do this for selected verts...
-			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS|ANIM_UNITCONV_RESTORE);
-			
-			
-			/* watch it: if the time is wrong: do not correct handles yet */
-			if (test_time_fcurve(fcu))
-				dosort++;
-			else
-				calchandles_fcurve(fcu);
-			
-			/* set refresh tags for objects using this animation,
-			 * BUT only if realtime updates are enabled  
-			 */
-			if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0)
-				ANIM_list_elem_update(t->scene, ale);
-		}
-		
-		/* do resort and other updates? */
-		if (dosort) remake_graph_transdata(t, &anim_data);
-		
-		/* now free temp channels */
-		BLI_freelistN(&anim_data);
+		recalcData_graphedit(t);
 	}
 	else if (t->spacetype == SPACE_NLA) {
-		TransDataNla *tdn= (TransDataNla *)t->customData;
-		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
-		Scene *scene= t->scene;
-		double secf= FPS;
-		int i;
-		
-		/* for each strip we've got, perform some additional validation of the values that got set before
-		 * using RNA to set the value (which does some special operations when setting these values to make
-		 * sure that everything works ok)
-		 */
-		for (i = 0; i < t->total; i++, tdn++) {
-			NlaStrip *strip= tdn->strip;
-			PointerRNA strip_ptr;
-			short pExceeded, nExceeded, iter;
-			int delta_y1, delta_y2;
-			
-			/* if this tdn has no handles, that means it is just a dummy that should be skipped */
-			if (tdn->handle == 0)
-				continue;
-			
-			/* set refresh tags for objects using this animation,
-			 * BUT only if realtime updates are enabled  
-			 */
-			if ((snla->flag & SNLA_NOREALTIMEUPDATES) == 0)
-				ANIM_id_update(t->scene, tdn->id);
-			
-			/* if cancelling transform, just write the values without validating, then move on */
-			if (t->state == TRANS_CANCEL) {
-				/* clear the values by directly overwriting the originals, but also need to restore
-				 * endpoints of neighboring transition-strips
-				 */
-				
-				/* start */
-				strip->start= tdn->h1[0];
-				
-				if ((strip->prev) && (strip->prev->type == NLASTRIP_TYPE_TRANSITION))
-					strip->prev->end= tdn->h1[0];
-				
-				/* end */
-				strip->end= tdn->h2[0];
-				
-				if ((strip->next) && (strip->next->type == NLASTRIP_TYPE_TRANSITION))
-					strip->next->start= tdn->h2[0];
-				
-				/* flush transforms to child strips (since this should be a meta) */
-				BKE_nlameta_flush_transforms(strip);
-				
-				/* restore to original track (if needed) */
-				if (tdn->oldTrack != tdn->nlt) {
-					/* just append to end of list for now, since strips get sorted in special_aftertrans_update() */
-					BLI_remlink(&tdn->nlt->strips, strip);
-					BLI_addtail(&tdn->oldTrack->strips, strip);
-				}
-				
-				continue;
-			}
-			
-			/* firstly, check if the proposed transform locations would overlap with any neighbouring strips
-			 * (barring transitions) which are absolute barriers since they are not being moved
-			 *
-			 * this is done as a iterative procedure (done 5 times max for now)
-			 */
-			for (iter=0; iter < 5; iter++) {
-				pExceeded= ((strip->prev) && (strip->prev->type != NLASTRIP_TYPE_TRANSITION) && (tdn->h1[0] < strip->prev->end));
-				nExceeded= ((strip->next) && (strip->next->type != NLASTRIP_TYPE_TRANSITION) && (tdn->h2[0] > strip->next->start));
-				
-				if ((pExceeded && nExceeded) || (iter == 4) ) {
-					/* both endpoints exceeded (or iteration ping-pong'd meaning that we need a compromise)
-					 *	- simply crop strip to fit within the bounds of the strips bounding it
-					 *	- if there were no neighbours, clear the transforms (make it default to the strip's current values)
-					 */
-					if (strip->prev && strip->next) {
-						tdn->h1[0]= strip->prev->end;
-						tdn->h2[0]= strip->next->start;
-					}
-					else {
-						tdn->h1[0]= strip->start;
-						tdn->h2[0]= strip->end;
-					}
-				}
-				else if (nExceeded) {
-					/* move backwards */
-					float offset= tdn->h2[0] - strip->next->start;
-					
-					tdn->h1[0] -= offset;
-					tdn->h2[0] -= offset;
-				}
-				else if (pExceeded) {
-					/* more forwards */
-					float offset= strip->prev->end - tdn->h1[0];
-					
-					tdn->h1[0] += offset;
-					tdn->h2[0] += offset;
-				}
-				else /* all is fine and well */
-					break;
-			}
-			
-			/* handle auto-snapping */
-			switch (snla->autosnap) {
-				case SACTSNAP_FRAME: /* snap to nearest frame/time  */
-					if (snla->flag & SNLA_DRAWTIME) {
-						tdn->h1[0]= (float)( floor((tdn->h1[0]/secf) + 0.5f) * secf );
-						tdn->h2[0]= (float)( floor((tdn->h2[0]/secf) + 0.5f) * secf );
-					}
-					else {
-						tdn->h1[0]= (float)( floor(tdn->h1[0]+0.5f) );
-						tdn->h2[0]= (float)( floor(tdn->h2[0]+0.5f) );
-					}
-					break;
-				
-				case SACTSNAP_MARKER: /* snap to nearest marker */
-					tdn->h1[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h1[0]);
-					tdn->h2[0]= (float)ED_markers_find_nearest_marker_time(&t->scene->markers, tdn->h2[0]);
-					break;
-			}
-			
-			/* use RNA to write the values... */
-			// TODO: do we need to write in 2 passes to make sure that no truncation goes on?
-			RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
-			
-			RNA_float_set(&strip_ptr, "frame_start", tdn->h1[0]);
-			RNA_float_set(&strip_ptr, "frame_end", tdn->h2[0]);
-			
-			/* flush transforms to child strips (since this should be a meta) */
-			BKE_nlameta_flush_transforms(strip);
-			
-			
-			/* now, check if we need to try and move track
-			 *	- we need to calculate both, as only one may have been altered by transform if only 1 handle moved
-			 */
-			delta_y1= ((int)tdn->h1[1] / NLACHANNEL_STEP - tdn->trackIndex);
-			delta_y2= ((int)tdn->h2[1] / NLACHANNEL_STEP - tdn->trackIndex);
-			
-			if (delta_y1 || delta_y2) {
-				NlaTrack *track;
-				int delta = (delta_y2) ? delta_y2 : delta_y1;
-				int n;
-				
-				/* move in the requested direction, checking at each layer if there's space for strip to pass through,
-				 * stopping on the last track available or that we're able to fit in
-				 */
-				if (delta > 0) {
-					for (track=tdn->nlt->next, n=0; (track) && (n < delta); track=track->next, n++) {
-						/* check if space in this track for the strip */
-						if (BKE_nlatrack_has_space(track, strip->start, strip->end)) {
-							/* move strip to this track */
-							BLI_remlink(&tdn->nlt->strips, strip);
-							BKE_nlatrack_add_strip(track, strip);
-							
-							tdn->nlt= track;
-							tdn->trackIndex++;
-						}
-						else /* can't move any further */
-							break;
-					}
-				}
-				else {
-					/* make delta 'positive' before using it, since we now know to go backwards */
-					delta= -delta;
-					
-					for (track=tdn->nlt->prev, n=0; (track) && (n < delta); track=track->prev, n++) {
-						/* check if space in this track for the strip */
-						if (BKE_nlatrack_has_space(track, strip->start, strip->end)) {
-							/* move strip to this track */
-							BLI_remlink(&tdn->nlt->strips, strip);
-							BKE_nlatrack_add_strip(track, strip);
-							
-							tdn->nlt= track;
-							tdn->trackIndex--;
-						}
-						else /* can't move any further */
-							break;
-					}
-				}
-			}
-		}
+		recalcData_nla(t);
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
 		if (t->obedit && t->obedit->type == OB_MESH) {
@@ -635,214 +866,7 @@ void recalcData(TransInfo *t)
 		}
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
-		
-		if (t->obedit) {
-			if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
-				Curve *cu= t->obedit->data;
-				ListBase *nurbs= ED_curve_editnurbs(cu);
-				Nurb *nu= nurbs->first;
-
-				if(t->state != TRANS_CANCEL) {
-					clipMirrorModifier(t, t->obedit);
-					applyProject(t);
-				}
-
-				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
-
-				if (t->state == TRANS_CANCEL) {
-					while(nu) {
-						calchandlesNurb(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
-						nu= nu->next;
-					}
-				} else {
-					/* Normal updating */
-					while(nu) {
-						test2DNurb(nu);
-						calchandlesNurb(nu);
-						nu= nu->next;
-					}
-				}
-			}
-			else if(t->obedit->type==OB_LATTICE) {
-				Lattice *la= t->obedit->data;
-
-				if(t->state != TRANS_CANCEL) {
-					applyProject(t);
-				}
-
-				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
-	
-				if(la->editlatt->latt->flag & LT_OUTSIDE) outside_lattice(la->editlatt->latt);
-			}
-			else if (t->obedit->type == OB_MESH) {
-				EditMesh *em = ((Mesh*)t->obedit->data)->edit_mesh;
-				/* mirror modifier clipping? */
-				if(t->state != TRANS_CANCEL) {
-					/* apply clipping after so we never project past the clip plane [#25423] */
-					applyProject(t);
-					clipMirrorModifier(t, t->obedit);
-				}
-				if((t->options & CTX_NO_MIRROR) == 0 && (t->flag & T_MIRROR))
-					editmesh_apply_to_mirror(t);
-					
-				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
-				
-				recalc_editnormals(em);
-			}
-			else if(t->obedit->type==OB_ARMATURE) { /* no recalc flag, does pose */
-				bArmature *arm= t->obedit->data;
-				ListBase *edbo = arm->edbo;
-				EditBone *ebo;
-				TransData *td = t->data;
-				int i;
-				
-				if(t->state != TRANS_CANCEL) {
-					applyProject(t);
-				}
-
-				/* Ensure all bones are correctly adjusted */
-				for (ebo = edbo->first; ebo; ebo = ebo->next){
-					
-					if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
-						/* If this bone has a parent tip that has been moved */
-						if (ebo->parent->flag & BONE_TIPSEL){
-							VECCOPY (ebo->head, ebo->parent->tail);
-							if(t->mode==TFM_BONE_ENVELOPE) ebo->rad_head= ebo->parent->rad_tail;
-						}
-						/* If this bone has a parent tip that has NOT been moved */
-						else{
-							VECCOPY (ebo->parent->tail, ebo->head);
-							if(t->mode==TFM_BONE_ENVELOPE) ebo->parent->rad_tail= ebo->rad_head;
-						}
-					}
-					
-					/* on extrude bones, oldlength==0.0f, so we scale radius of points */
-					ebo->length= len_v3v3(ebo->head, ebo->tail);
-					if(ebo->oldlength==0.0f) {
-						ebo->rad_head= 0.25f*ebo->length;
-						ebo->rad_tail= 0.10f*ebo->length;
-						ebo->dist= 0.25f*ebo->length;
-						if(ebo->parent) {
-							if(ebo->rad_head > ebo->parent->rad_tail)
-								ebo->rad_head= ebo->parent->rad_tail;
-						}
-					}
-					else if(t->mode!=TFM_BONE_ENVELOPE) {
-						/* if bones change length, lets do that for the deform distance as well */
-						ebo->dist*= ebo->length/ebo->oldlength;
-						ebo->rad_head*= ebo->length/ebo->oldlength;
-						ebo->rad_tail*= ebo->length/ebo->oldlength;
-						ebo->oldlength= ebo->length;
-					}
-				}
-				
-				
-				if (t->mode != TFM_BONE_ROLL)
-				{
-					/* fix roll */
-					for(i = 0; i < t->total; i++, td++)
-					{
-						if (td->extra)
-						{
-							float vec[3], up_axis[3];
-							float qrot[4];
-							
-							ebo = td->extra;
-							VECCOPY(up_axis, td->axismtx[2]);
-							
-							if (t->mode != TFM_ROTATION)
-							{
-								sub_v3_v3v3(vec, ebo->tail, ebo->head);
-								normalize_v3(vec);
-								rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
-								mul_qt_v3(qrot, up_axis);
-							}
-							else
-							{
-								mul_m3_v3(t->mat, up_axis);
-							}
-							
-							ebo->roll = ED_rollBoneToVector(ebo, up_axis, FALSE);
-						}
-					}
-				}
-				
-				if(arm->flag & ARM_MIRROR_EDIT)
-					transform_armature_mirror_update(t->obedit);
-				
-			}
-			else
-			{
-				if(t->state != TRANS_CANCEL) {
-					applyProject(t);
-				}
-				DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
-			}
-		}
-		else if( (t->flag & T_POSE) && t->poseobj) {
-			Object *ob= t->poseobj;
-			bArmature *arm= ob->data;
-			
-			/* if animtimer is running, and the object already has animation data,
-			 * check if the auto-record feature means that we should record 'samples'
-			 * (i.e. uneditable animation values)
-			 *
-			 * context is needed for keying set poll() functions.
-			 */
-			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-			if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
-				int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
-				
-				animrecord_check_state(t->scene, &ob->id, t->animtimer);
-				autokeyframe_pose_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
-			}
-			
-			/* old optimize trick... this enforces to bypass the depgraph */
-			if (!(arm->flag & ARM_DELAYDEFORM)) {
-				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
-			}
-			else
-				where_is_pose(t->scene, ob);
-		}
-		else if(base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, base->object)) {
-			if(t->state != TRANS_CANCEL) {
-				applyProject(t);
-			}
-			flushTransParticles(t);
-		}
-		else {
-			int i;
-			
-			if(t->state != TRANS_CANCEL) {
-				applyProject(t);
-			}
-
-			for (i = 0; i < t->total; i++) {
-				TransData *td = t->data + i;
-				Object *ob = td->ob;
-				
-				if (td->flag & TD_NOACTION)
-					break;
-				
-				if (td->flag & TD_SKIP)
-					continue;
-				
-				/* if animtimer is running, and the object already has animation data,
-				 * check if the auto-record feature means that we should record 'samples'
-				 * (i.e. uneditable animation values)
-				 */
-				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-					animrecord_check_state(t->scene, &ob->id, t->animtimer);
-					autokeyframe_ob_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode);
-				}
-				
-				/* sets recalc flags fully, instead of flushing existing ones 
-				 * otherwise proxies don't function correctly
-				 */
-				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
-			}
-		}
+		recalcData_view3d(t);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
 		SpaceClip *sc= t->sa->spacedata.first;

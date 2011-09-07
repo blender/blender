@@ -55,14 +55,14 @@ public:
 	 * \param factory The input factory.
 	 * \param delay The desired delay in seconds.
 	 */
-	AUD_DelayFactory(AUD_IFactory* factory, float delay = 0);
+	AUD_DelayFactory(AUD_Reference<AUD_IFactory> factory, float delay = 0);
 
 	/**
 	 * Returns the delay in seconds.
 	 */
 	float getDelay() const;
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_DELAYFACTORY

@@ -800,7 +800,7 @@ elseif(WIN32)
 	else()
 		# keep GCC spesific stuff here
 		if(CMAKE_COMPILER_IS_GNUCC)
-			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
+			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32")
 			set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
 			add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
@@ -846,11 +846,11 @@ elseif(WIN32)
 		if(WITH_OPENCOLLADA)
 			set(OPENCOLLADA ${LIBDIR}/gcc/opencollada)
 			set(OPENCOLLADA_INCLUDE_DIRS
-				${LIBDIR}/opencollada/include/COLLADAStreamWriter/include
-				${LIBDIR}/opencollada/include/COLLADABaseUtils/include
-				${LIBDIR}/opencollada/include/COLLADAFramework/include
-				${LIBDIR}/opencollada/include/COLLADASaxFrameworkLoader/include
-				${LIBDIR}/opencollada/include/GeneratedSaxParser/include			
+				${LIBDIR}/gcc/opencollada/include/COLLADAStreamWriter/include
+				${LIBDIR}/gcc/opencollada/include/COLLADABaseUtils/include
+				${LIBDIR}/gcc/opencollada/include/COLLADAFramework/include
+				${LIBDIR}/gcc/opencollada/include/COLLADASaxFrameworkLoader/include
+				${LIBDIR}/gcc/opencollada/include/GeneratedSaxParser/include			
 			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib ${OPENCOLLADA}/lib)
 			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa)
@@ -951,7 +951,7 @@ elseif(APPLE)
 		# we use precompiled libraries for py 3.2 and up by default
 
 		# normally cached but not since we include them with blender
-                set(PYTHON_VERSION 3.2)
+		set(PYTHON_VERSION 3.2)
 		set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}")
 		# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
 		set(PYTHON_LIBRARY python${PYTHON_VERSION})
@@ -1270,6 +1270,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEFINED -Wundef)
 	# disable because it gives warnings for printf() & friends.
 	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
@@ -1277,6 +1278,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 

@@ -49,27 +49,22 @@ public:
 	/**
 	 * Tells whether the source provides seeking functionality or not.
 	 * \warning This doesn't mean that the seeking always has to succeed.
-	 * \return Always returns true for readers of the buffer type.
-	 * \see getType
+	 * \return Always returns true for readers of buffering types.
 	 */
 	virtual bool isSeekable() const=0;
 
 	/**
 	 * Seeks to a specific position in the source.
-	 * This function must work for buffer type readers.
 	 * \param position The position to seek for measured in samples. To get
 	 *        from a given time to the samples you simply have to multiply the
 	 *        time value in seconds with the sample rate of the reader.
 	 * \warning This may work or not, depending on the actual reader.
-	 * \see getType
 	 */
 	virtual void seek(int position)=0;
 
 	/**
 	 * Returns an approximated length of the source in samples.
-	 * For readers of the type buffer this has to return a correct value!
 	 * \return The length as sample count. May be negative if unknown.
-	 * \see getType
 	 */
 	virtual int getLength() const=0;
 
@@ -77,10 +72,8 @@ public:
 	 * Returns the position of the source as a sample count value.
 	 * \return The current position in the source. A negative value indicates
 	 *         that the position is unknown.
-	 * \warning The value returned doesn't always have to be correct for readers
-	 *          of the stream type, especially after seeking, it must though for
-	 *          the buffer ones.
-	 * \see getType
+	 * \warning The value returned doesn't always have to be correct for readers,
+	 *          especially after seeking.
 	 */
 	virtual int getPosition() const=0;
 
@@ -92,15 +85,15 @@ public:
 
 	/**
 	 * Request to read the next length samples out of the source.
-	 * The buffer for reading has to stay valid until the next call of this
-	 * method or until the reader is deleted.
+	 * The buffer supplied has the needed size.
 	 * \param[in,out] length The count of samples that should be read. Shall
 	 *                contain the real count of samples after reading, in case
 	 *                there were only fewer samples available.
 	 *                A smaller value also indicates the end of the reader.
-	 * \param[out] buffer The pointer to the buffer with the samples.
+	 * \param[out] eos End of stream, whether the end is reached or not.
+	 * \param[in] buffer The pointer to the buffer to read into.
 	 */
-	virtual void read(int & length, sample_t* & buffer)=0;
+	virtual void read(int& length, bool& eos, sample_t* buffer)=0;
 };
 
 #endif //AUD_IREADER

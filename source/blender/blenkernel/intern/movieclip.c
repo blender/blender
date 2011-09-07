@@ -215,8 +215,8 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr, int flag)
 		else
 			BLI_path_abs(str, G.main->name);
 
-		clip->anim= openanim(str, IB_rect);
-
+		/* FIXME: make several stream accessible in image editor, too */
+		clip->anim= openanim(str, IB_rect, 0);
 
 		if(clip->anim) {
 			if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {

@@ -1066,7 +1066,12 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 
 	if (!mmd)
 		return OPERATOR_CANCELLED;
-	
+
+	if(mmd->lvl==0) {
+		BKE_report(op->reports, RPT_ERROR, "Reshape can work only with higher levels of subdivisions.");
+		return OPERATOR_CANCELLED;
+	}
+
 	CTX_DATA_BEGIN(C, Object*, selob, selected_editable_objects) {
 		if(selob->type == OB_MESH && selob != ob) {
 			secondob= selob;
@@ -1280,7 +1285,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(mmd->bindcagecos) {
-		if(mmd->bindcagecos) MEM_freeN(mmd->bindcagecos);
+		MEM_freeN(mmd->bindcagecos);
 		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
 		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
 		if(mmd->bindinfluences) MEM_freeN(mmd->bindinfluences);

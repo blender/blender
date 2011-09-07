@@ -31,8 +31,4 @@
 
 #define SEQ_ZOOM_FAC(szoom) ((szoom) > 0.0f)? (szoom) : ((szoom) == 0.0f)? (1.0f) : (-1.0f/(szoom))
 
-
-/* in space_sequencer.c, for rna update function */
-void ED_sequencer_update_view(bContext *C, int view);
-
 #endif /*  ED_SEQUENCER_H */

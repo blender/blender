@@ -51,6 +51,7 @@ set(INC
 	../../blender/makesrna
 	../../blender/windowmanager
 	../../../extern/bullet2/src
+	../../../extern/Eigen3
 	../../../intern/container
 	../../../intern/guardedalloc
 	../../../intern/moto/include

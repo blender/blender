@@ -437,9 +437,18 @@ static void wm_operator_print(bContext *C, wmOperator *op)
 
 static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int popup)
 {
-	if(popup)
-		if(op->reports->list.first)
+	if(popup) {
+		if(op->reports->list.first) {
+			/* FIXME, temp setting window, see other call to uiPupMenuReports for why */
+			wmWindow *win_prev= CTX_wm_window(C);
+			if(win_prev==NULL)
+				CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
 			uiPupMenuReports(C, op->reports);
+
+			CTX_wm_window_set(C, win_prev);
+		}
+	}
 	
 	if(retval & OPERATOR_FINISHED) {
 		if(G.f & G_DEBUG)
@@ -877,8 +886,8 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 				CTX_wm_region_set(C, NULL);
 				CTX_wm_area_set(C, NULL);
 				retval= wm_operator_invoke(C, ot, event, properties, reports, poll_only);
-				CTX_wm_region_set(C, ar);
 				CTX_wm_area_set(C, area);
+				CTX_wm_region_set(C, ar);
 
 				return retval;
 			}

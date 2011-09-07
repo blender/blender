@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -94,8 +92,12 @@ void NLA_OT_tweakmode_exit(wmOperatorType *ot);
 
 /* --- */
 
+void NLA_OT_view_all(wmOperatorType *ot);
+void NLA_OT_view_selected(wmOperatorType *ot);
+
 void NLA_OT_actionclip_add(wmOperatorType *ot);
 void NLA_OT_transition_add(wmOperatorType *ot);
+void NLA_OT_soundclip_add(wmOperatorType *ot);
 
 void NLA_OT_meta_add(wmOperatorType *ot);
 void NLA_OT_meta_remove(wmOperatorType *ot);

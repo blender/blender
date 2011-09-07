@@ -251,7 +251,7 @@ static float newPerlin(float x, float y, float z)
 /* for use with BLI_gNoise()/BLI_gTurbulence(), returns unsigned improved perlin noise */
 static float newPerlinU(float x, float y, float z)
 {
-	return (0.5+0.5*newPerlin(x, y, z));
+	return (0.5f+0.5f*newPerlin(x, y, z));
 }
 
 
@@ -263,13 +263,21 @@ static float newPerlinU(float x, float y, float z)
 static float orgBlenderNoise(float x, float y, float z)
 {
 	register float cn1, cn2, cn3, cn4, cn5, cn6, i, *h;
-	float ox, oy, oz, jx, jy, jz;
+	float fx, fy, fz, ox, oy, oz, jx, jy, jz;
 	float n= 0.5;
 	int ix, iy, iz, b00, b01, b10, b11, b20, b21;
 
-	ox= (x- (ix= (int)floor(x)) );
-	oy= (y- (iy= (int)floor(y)) );
-	oz= (z- (iz= (int)floor(z)) );
+	fx= floor(x);
+	fy= floor(y);
+	fz= floor(z);
+
+	ox= x- fx;
+	oy= y- fy;
+	oz= z- fz;
+
+	ix= (int)fx;
+	iy= (int)fy;
+	iz= (int)fz;
 
 	jx= ox-1;
 	jy= oy-1;
@@ -278,12 +286,12 @@ static float orgBlenderNoise(float x, float y, float z)
 	cn1=ox*ox; cn2=oy*oy; cn3=oz*oz;
 	cn4=jx*jx; cn5=jy*jy; cn6=jz*jz;
 
-	cn1= 1.0-3.0*cn1+2.0*cn1*ox;
-	cn2= 1.0-3.0*cn2+2.0*cn2*oy;
-	cn3= 1.0-3.0*cn3+2.0*cn3*oz;
-	cn4= 1.0-3.0*cn4-2.0*cn4*jx;
-	cn5= 1.0-3.0*cn5-2.0*cn5*jy;
-	cn6= 1.0-3.0*cn6-2.0*cn6*jz;
+	cn1= 1.0f-3.0f*cn1+2.0f*cn1*ox;
+	cn2= 1.0f-3.0f*cn2+2.0f*cn2*oy;
+	cn3= 1.0f-3.0f*cn3+2.0f*cn3*oz;
+	cn4= 1.0f-3.0f*cn4-2.0f*cn4*jx;
+	cn5= 1.0f-3.0f*cn5-2.0f*cn5*jy;
+	cn6= 1.0f-3.0f*cn6-2.0f*cn6*jz;
 
 	b00= hash[ hash[ix & 255]+(iy & 255)];
 	b10= hash[ hash[(ix+1) & 255]+(iy & 255)];
@@ -325,23 +333,23 @@ static float orgBlenderNoise(float x, float y, float z)
 		h=hashvectf+ 3*hash[b21+b11];
 		n+= i*(h[0]*jx+h[1]*jy+h[2]*jz);
 
-	if(n<0.0) n=0.0; else if(n>1.0) n=1.0;
+	if(n<0.0f) n=0.0f; else if(n>1.0f) n=1.0f;
 	return n;
 }
 
 /* as orgBlenderNoise(), returning signed noise */
 static float orgBlenderNoiseS(float x, float y, float z)
 {
-	return (2.0*orgBlenderNoise(x, y, z)-1.0);
+	return (2.0f*orgBlenderNoise(x, y, z)-1.0f);
 }
 
 /* separated from orgBlenderNoise above, with scaling */
 float BLI_hnoise(float noisesize, float x, float y, float z)
 {
-	if(noisesize==0.0) return 0.0;
-	x= (1.0+x)/noisesize;
-	y= (1.0+y)/noisesize;
-	z= (1.0+z)/noisesize;
+	if(noisesize==0.0f) return 0.0f;
+	x= (1.0f+x)/noisesize;
+	y= (1.0f+y)/noisesize;
+	z= (1.0f+z)/noisesize;
 	return orgBlenderNoise(x, y, z);
 }
 
@@ -357,7 +365,7 @@ float BLI_turbulence(float noisesize, float x, float y, float z, int nr)
 	
 		s+= d*BLI_hnoise(noisesize*d, x, y, z);
 		div+= d;
-		d*= 0.5;
+		d*= 0.5f;
 
 		nr--;
 	}
@@ -368,13 +376,13 @@ float BLI_turbulence1(float noisesize, float x, float y, float z, int nr)
 {
 	float s, d= 0.5, div=1.0;
 
-	s= fabs( (-1.0+2.0*BLI_hnoise(noisesize, x, y, z)));
+	s= fabsf( (-1.0f+2.0f*BLI_hnoise(noisesize, x, y, z)));
 	
 	while(nr>0) {
 	
-		s+= fabs(d* (-1.0+2.0*BLI_hnoise(noisesize*d, x, y, z)));
+		s+= fabsf(d* (-1.0f+2.0f*BLI_hnoise(noisesize*d, x, y, z)));
 		div+= d;
-		d*= 0.5;
+		d*= 0.5f;
 		
 		nr--;
 	}
@@ -917,11 +925,11 @@ static float g[512+2][3]= {
 #define DOT(a,b) (a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
 
 #define setup(i,b0,b1,r0,r1) \
-		t = vec[i] + 10000.; \
+		t = vec[i] + 10000.0f; \
 		b0 = ((int)t) & 255; \
 		b1 = (b0+1) & 255; \
-		r0 = t - (int)t; \
-		r1 = r0 - 1.;
+		r0 = t - floorf(t); \
+		r1 = r0 - 1.0f;
 
 
 static float noise3_perlin(float vec[3])
@@ -945,7 +953,7 @@ static float noise3_perlin(float vec[3])
 
 #define at(rx,ry,rz) ( rx * q[0] + ry * q[1] + rz * q[2] )
 
-#define surve(t) ( t * t * (3. - 2. * t) )
+#define surve(t) ( t * t * (3.0f - 2.0f * t) )
 
 /* lerp moved to improved perlin above */
 
@@ -982,7 +990,7 @@ static float noise3_perlin(float vec[3])
 
 	d = lerp(sy, a, b);          /* interpolate in y at hi x */
 
-	return 1.5 * lerp(sz, c, d); /* interpolate in z */
+	return 1.5f * lerp(sz, c, d); /* interpolate in z */
 }
 
 #if 0
@@ -996,7 +1004,7 @@ static float turbulence_perlin(float *point, float lofreq, float hifreq)
 
 	t = 0;
 	for (freq = lofreq ; freq < hifreq ; freq *= 2.) {
-		t += fabs(noise3_perlin(p)) / freq;
+		t += fabsf(noise3_perlin(p)) / freq;
 		p[0] *= 2.;
 		p[1] *= 2.;
 		p[2] *= 2.;
@@ -1024,7 +1032,7 @@ static float orgPerlinNoiseU(float x, float y, float z)
 	v[0] = x;
 	v[1] = y;
 	v[2] = z;
-	return (0.5+0.5*noise3_perlin(v));
+	return (0.5f+0.5f*noise3_perlin(v));
 }
 
 /* *************** CALL AS: *************** */
@@ -1061,18 +1069,18 @@ float BLI_hnoisep(float noisesize, float x, float y, float z)
 /* distance squared */
 static float dist_Squared(float x, float y, float z, float e) { (void)e; return (x*x + y*y + z*z); }
 /* real distance */
-static float dist_Real(float x, float y, float z, float e) { (void)e; return sqrt(x*x + y*y + z*z); }
+static float dist_Real(float x, float y, float z, float e) { (void)e; return sqrtf(x*x + y*y + z*z); }
 /* manhattan/taxicab/cityblock distance */
-static float dist_Manhattan(float x, float y, float z, float e) { (void)e; return (fabs(x) + fabs(y) + fabs(z)); }
+static float dist_Manhattan(float x, float y, float z, float e) { (void)e; return (fabsf(x) + fabsf(y) + fabsf(z)); }
 /* Chebychev */
 static float dist_Chebychev(float x, float y, float z, float e)
 {
 	float t;
 	(void)e;
 
-	x = fabs(x);
-	y = fabs(y);
-	z = fabs(z);
+	x = fabsf(x);
+	y = fabsf(y);
+	z = fabsf(z);
 	t = (x>y)?x:y;
 	return ((z>t)?z:t);
 }
@@ -1080,7 +1088,7 @@ static float dist_Chebychev(float x, float y, float z, float e)
 /* minkovsky preset exponent 0.5 */
 static float dist_MinkovskyH(float x, float y, float z, float e)
 {
-	float d = sqrt(fabs(x)) + sqrt(fabs(y)) + sqrt(fabs(z));
+	float d = sqrtf(fabsf(x)) + sqrtf(fabsf(y)) + sqrtf(fabsf(z));
 	(void)e;
 	return (d*d);
 }
@@ -1092,13 +1100,13 @@ static float dist_Minkovsky4(float x, float y, float z, float e)
 	x *= x;
 	y *= y;
 	z *= z;
-	return sqrt(sqrt(x*x + y*y + z*z));
+	return sqrtf(sqrtf(x*x + y*y + z*z));
 }
 
 /* Minkovsky, general case, slow, maybe too slow to be useful */
 static float dist_Minkovsky(float x, float y, float z, float e)
 {
-	return pow(pow(fabs(x), e) + pow(fabs(y), e) + pow(fabs(z), e), 1.0/e);
+	return powf(powf(fabsf(x), e) + powf(fabsf(y), e) + powf(fabsf(z), e), 1.0f/e);
 }
 
 
@@ -1224,35 +1232,35 @@ static float voronoi_F1S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
-	return (2.0*da[0]-1.0);
+	return (2.0f*da[0]-1.0f);
 }
 
 static float voronoi_F2S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
-	return (2.0*da[1]-1.0);
+	return (2.0f*da[1]-1.0f);
 }
 
 static float voronoi_F3S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
-	return (2.0*da[2]-1.0);
+	return (2.0f*da[2]-1.0f);
 }
 
 static float voronoi_F4S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
-	return (2.0*da[3]-1.0);
+	return (2.0f*da[3]-1.0f);
 }
 
 static float voronoi_F1F2S(float x, float y, float z)
 {
 	float da[4], pa[12];
 	voronoi(x, y, z, da, pa, 1, 0);
-	return (2.0*(da[1]-da[0])-1.0);
+	return (2.0f*(da[1]-da[0])-1.0f);
 }
 
 /* Crackle type pattern, just a scale/clamp of F2-F1 */
@@ -1260,7 +1268,7 @@ static float voronoi_CrS(float x, float y, float z)
 {
 	float t = 10*voronoi_F1F2(x, y, z);
 	if (t>1.f) return 1.f;
-	return (2.0*t-1.0);
+	return (2.0f*t-1.0f);
 }
 
 
@@ -1280,13 +1288,13 @@ static float cellNoiseU(float x, float y, float z)
 	int zi = (int)(floor(z));
 	unsigned int n = xi + yi*1301 + zi*314159;
 	n ^= (n<<13);
-	return ((float)(n*(n*n*15731 + 789221) + 1376312589) / 4294967296.0);
+	return ((float)(n*(n*n*15731 + 789221) + 1376312589) / 4294967296.0f);
 }
 
 /* idem, signed */
 float cellNoise(float x, float y, float z)
 {
-	return (2.0*cellNoiseU(x, y, z)-1.0);
+	return (2.0f*cellNoiseU(x, y, z)-1.0f);
 }
 
 /* returns a vector/point/color in ca, using point hasharray directly */
@@ -1349,14 +1357,14 @@ float BLI_gNoise(float noisesize, float x, float y, float z, int hard, int noise
 		}
 	}
 
-	if (noisesize!=0.0) {
-		noisesize = 1.0/noisesize;
+	if (noisesize!=0.0f) {
+		noisesize = 1.0f/noisesize;
 		x *= noisesize;
 		y *= noisesize;
 		z *= noisesize;
 	}
 	
-	if (hard) return fabs(2.0*noisefunc(x, y, z)-1.0);
+	if (hard) return fabsf(2.0f*noisefunc(x, y, z)-1.0f);
 	return noisefunc(x, y, z);
 }
 
@@ -1403,17 +1411,17 @@ float BLI_gTurbulence(float noisesize, float x, float y, float z, int oct, int h
 			z += 1;
 	}
 
-	if (noisesize!=0.0) {
-		noisesize = 1.0/noisesize;
+	if (noisesize!=0.0f) {
+		noisesize = 1.0f/noisesize;
 		x *= noisesize;
 		y *= noisesize;
 		z *= noisesize;
 	}
 
 	sum = 0;
-	for (i=0;i<=oct;i++, amp*=0.5, fscale*=2) {
+	for (i=0;i<=oct;i++, amp*=0.5f, fscale*=2.0f) {
 		t = noisefunc(fscale*x, fscale*y, fscale*z);
-		if (hard) t = fabs(2.0*t-1.0);
+		if (hard) t = fabsf(2.0f*t-1.0f);
 		sum += t * amp;
 	}
 	
@@ -1439,7 +1447,7 @@ float BLI_gTurbulence(float noisesize, float x, float y, float z, int oct, int h
  */
 float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
-	float	rmd, value=0.0, pwr=1.0, pwHL=pow(lacunarity, -H);
+	float	rmd, value=0.0, pwr=1.0, pwHL=powf(lacunarity, -H);
 	int	i;
 
 	float (*noisefunc)(float, float, float);
@@ -1485,7 +1493,7 @@ float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves
 		z *= lacunarity;
 	}
 
-	rmd = octaves - floor(octaves);
+	rmd = octaves - floorf(octaves);
 	if (rmd!=0.f) value += rmd * noisefunc(x, y, z) * pwr;
 
 	return value;
@@ -1508,9 +1516,9 @@ float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves
 	* I modified it to something that made sense to me, so it might be wrong... */
 float mg_MultiFractal(float x, float y, float z, float H, float lacunarity, float octaves, int noisebasis)
 {
-	float	rmd, value=1.0, pwr=1.0, pwHL=pow(lacunarity, -H);
+	float	rmd, value=1.0, pwr=1.0, pwHL=powf(lacunarity, -H);
 	int i;
-	
+
 	float (*noisefunc)(float, float, float);
 	switch (noisebasis) {
 		case 1:
@@ -1547,14 +1555,14 @@ float mg_MultiFractal(float x, float y, float z, float H, float lacunarity, floa
 	}
 
 	for (i=0; i<(int)octaves; i++) {
-		value *= (pwr * noisefunc(x, y, z) + 1.0);
+		value *= (pwr * noisefunc(x, y, z) + 1.0f);
 		pwr *= pwHL;
 		x *= lacunarity;
 		y *= lacunarity;
 		z *= lacunarity;
 	}
-	rmd = octaves - floor(octaves);
-	if (rmd!=0.0) value *= (rmd * noisefunc(x, y, z) * pwr + 1.0);
+	rmd = octaves - floorf(octaves);
+	if (rmd!=0.0f) value *= (rmd * noisefunc(x, y, z) * pwr + 1.0f);
 
 	return value;
 
@@ -1574,7 +1582,7 @@ float mg_HeteroTerrain(float x, float y, float z, float H, float lacunarity, flo
 {
 	float	value, increment, rmd;
 	int i;
-	float pwHL = pow(lacunarity, -H);
+	float pwHL = powf(lacunarity, -H);
 	float pwr = pwHL;	/* starts with i=1 instead of 0 */
 
 	float (*noisefunc)(float, float, float);
@@ -1627,8 +1635,8 @@ float mg_HeteroTerrain(float x, float y, float z, float H, float lacunarity, flo
 		z *= lacunarity;
 	}
 
-	rmd = octaves - floor(octaves);
-	if (rmd!=0.0) {
+	rmd = octaves - floorf(octaves);
+	if (rmd!=0.0f) {
 		increment = (noisefunc(x, y, z) + offset) * pwr * value;
 		value += rmd * increment;
 	}
@@ -1647,7 +1655,7 @@ float mg_HybridMultiFractal(float x, float y, float z, float H, float lacunarity
 {
 	float result, signal, weight, rmd;
 	int i;
-	float pwHL = pow(lacunarity, -H);
+	float pwHL = powf(lacunarity, -H);
 	float pwr = pwHL;	/* starts with i=1 instead of 0 */
 	float (*noisefunc)(float, float, float);
 
@@ -1691,8 +1699,8 @@ float mg_HybridMultiFractal(float x, float y, float z, float H, float lacunarity
 	y *= lacunarity;
 	z *= lacunarity;
 
-	for (i=1; (weight>0.001) && (i<(int)octaves); i++) {
-		if (weight>1.0)  weight=1.0;
+	for (i=1; (weight>0.001f) && (i<(int)octaves); i++) {
+		if (weight>1.0f)  weight=1.0f;
 		signal = (noisefunc(x, y, z) + offset) * pwr;
 		pwr *= pwHL;
 		result += weight * signal;
@@ -1702,7 +1710,7 @@ float mg_HybridMultiFractal(float x, float y, float z, float H, float lacunarity
 		z *= lacunarity;
 	}
 
-	rmd = octaves - floor(octaves);
+	rmd = octaves - floorf(octaves);
 	if (rmd!=0.f) result += rmd * ((noisefunc(x, y, z) + offset) * pwr);
 
 	return result;
@@ -1722,7 +1730,7 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 {
 	float result, signal, weight;
 	int	i;
-	float pwHL = pow(lacunarity, -H);
+	float pwHL = powf(lacunarity, -H);
 	float pwr = pwHL;	/* starts with i=1 instead of 0 */
 	
 	float (*noisefunc)(float, float, float);
@@ -1760,7 +1768,7 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 		}
 	}
 
-	signal = offset - fabs(noisefunc(x, y, z));
+	signal = offset - fabsf(noisefunc(x, y, z));
 	signal *= signal;
 	result = signal;
 
@@ -1770,8 +1778,8 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 		y *= lacunarity;
 		z *= lacunarity;
 		weight = signal * gain;
-		if (weight>1.0) weight=1.0; else if (weight<0.0) weight=0.0;
-		signal = offset - fabs(noisefunc(x, y, z));
+		if (weight>1.0f) weight=1.0f; else if (weight<0.0f) weight=0.0f;
+		signal = offset - fabsf(noisefunc(x, y, z));
 		signal *= signal;
 		signal *= weight;
 		result += signal * pwr;
@@ -1859,9 +1867,9 @@ float mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int nba
 	}
 
 	/* get a random vector and scale the randomization */
-	rv[0] = noisefunc1(x+13.5, y+13.5, z+13.5) * distortion;
+	rv[0] = noisefunc1(x+13.5f, y+13.5f, z+13.5f) * distortion;
 	rv[1] = noisefunc1(x, y, z) * distortion;
-	rv[2] = noisefunc1(x-13.5, y-13.5, z-13.5) * distortion;
+	rv[2] = noisefunc1(x-13.5f, y-13.5f, z-13.5f) * distortion;
 	return noisefunc2(x+rv[0], y+rv[1], z+rv[2]);	/* distorted-domain noise */
 }
 

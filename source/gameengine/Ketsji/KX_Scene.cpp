@@ -168,6 +168,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	m_lightlist= new CListValue();
 	m_inactivelist = new CListValue();
 	m_euthanasyobjects = new CListValue();
+	m_animatedlist = new CListValue();
 
 	m_logicmgr = new SCA_LogicManager();
 	
@@ -252,6 +253,9 @@ KX_Scene::~KX_Scene()
 
 	if (m_euthanasyobjects)
 		m_euthanasyobjects->Release();
+
+	if (m_animatedlist)
+		m_animatedlist->Release();
 
 	if (m_logicmgr)
 		delete m_logicmgr;
@@ -1502,7 +1506,22 @@ void KX_Scene::LogicBeginFrame(double curtime)
 	m_logicmgr->BeginFrame(curtime, 1.0/KX_KetsjiEngine::GetTicRate());
 }
 
+void KX_Scene::AddAnimatedObject(CValue* gameobj)
+{
+	m_animatedlist->Add(gameobj);
+}
 
+void KX_Scene::RemoveAnimatedObject(CValue* gameobj)
+{
+	m_animatedlist->RemoveValue(gameobj);
+}
+
+void KX_Scene::UpdateAnimations(double curtime)
+{
+	// Update any animations
+	for (int i=0; i<m_animatedlist->GetCount(); ++i)
+		((KX_GameObject*)GetObjectList()->GetValue(i))->UpdateActionManager(curtime);
+}
 
 void KX_Scene::LogicUpdateFrame(double curtime, bool frame)
 {
@@ -1666,6 +1685,11 @@ void KX_Scene::setSuspendedDelta(double suspendeddelta)
 double KX_Scene::getSuspendedDelta()
 {
 	return m_suspendeddelta;
+}
+
+short KX_Scene::GetAnimationFPS()
+{
+	return m_blenderScene->r.frs_sec;
 }
 
 #ifdef USE_BULLET

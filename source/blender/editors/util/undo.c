@@ -127,7 +127,8 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	Object *obact= CTX_data_active_object(C);
 	ScrArea *sa= CTX_wm_area(C);
 
-	if(G.f & G_GREASEPENCIL) {
+	/* grease pencil can be can be used in plenty of spaces, so check it first */
+	if(ED_gpencil_session_active()) {
 		return ED_undo_gpencil_step(C, step, undoname);
 	}
 

@@ -33,7 +33,7 @@
 #include "AUD_LimiterReader.h"
 #include "AUD_Space.h"
 
-AUD_LimiterFactory::AUD_LimiterFactory(AUD_IFactory* factory,
+AUD_LimiterFactory::AUD_LimiterFactory(AUD_Reference<AUD_IFactory> factory,
 									   float start, float end) :
 		AUD_EffectFactory(factory),
 		m_start(start),
@@ -51,7 +51,7 @@ float AUD_LimiterFactory::getEnd() const
 	return m_end;
 }
 
-AUD_IReader* AUD_LimiterFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_LimiterFactory::createReader()
 {
 	return new AUD_LimiterReader(getReader(), m_start, m_end);
 }

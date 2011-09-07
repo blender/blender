@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -209,95 +207,8 @@ void borderselect_gplayer_frames (bGPDlayer *gpl, float min, float max, short se
 	}
 }
 
-#if 0 // XXX disabled until grease pencil code stabilises again
-
-/* De-selects or inverts the selection of Layers for a grease-pencil block
- *	mode: 0 = default behaviour (select all), 1 = test if (de)select all, 2 = invert all 
- */
-void deselect_gpencil_layers (void *data, short mode)
-{
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale;
-	int filter, sel=1;
-	
-	/* filter data */
-	filter= ACTFILTER_VISIBLE;
-	actdata_filter(&act_data, filter, data, ACTCONT_GPENCIL);
-	
-	/* See if we should be selecting or deselecting */
-	if (mode == 1) {
-		for (ale= act_data.first; ale; ale= ale->next) {
-			if (sel == 0) 
-				break;
-			
-			if (ale->flag & GP_LAYER_SELECT)
-				sel= 0;
-		}
-	}
-	else
-		sel= 0;
-		
-	/* Now set the flags */
-	for (ale= act_data.first; ale; ale= ale->next) {
-		bGPDlayer *gpl= (bGPDlayer *)ale->data;
-		
-		if (mode == 2)
-			gpl->flag ^= GP_LAYER_SELECT;
-		else if (sel)
-			gpl->flag |= GP_LAYER_SELECT;
-		else
-			gpl->flag &= ~GP_LAYER_SELECT;
-			
-		gpl->flag &= ~GP_LAYER_ACTIVE;
-	}
-	
-	/* Cleanup */
-	BLI_freelistN(&act_data);
-}
-
-#endif // XXX disabled until Grease Pencil code stabilises again...
-
 /* ***************************************** */
 /* Frame Editing Tools */
-
-#if 0 // XXX disabled until grease pencil code stabilises again
-/* Delete selected grease-pencil layers */
-void delete_gpencil_layers (void)
-{
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale, *next;
-	void *data;
-	short datatype;
-	int filter;
-	
-	/* determine what type of data we are operating on */
-	data = get_action_context(&datatype);
-	if (data == NULL) return;
-	if (datatype != ACTCONT_GPENCIL) return;
-	
-	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_CHANNELS | ACTFILTER_SEL);
-	actdata_filter(&act_data, filter, data, datatype);
-	
-	/* clean up grease-pencil layers */
-	for (ale= act_data.first; ale; ale= next) {
-		bGPdata *gpd= (bGPdata *)ale->owner;
-		bGPDlayer *gpl= (bGPDlayer *)ale->data;
-		next= ale->next;
-		
-		/* free layer and its data */
-		if (SEL_GPL(gpl)) {
-			free_gpencil_frames(gpl);
-			BLI_freelinkN(&gpd->layers, gpl);
-		}
-		
-		/* free temp memory */
-		BLI_freelinkN(&act_data, ale);
-	}
-	
-	BIF_undo_push("Delete GPencil Layers");
-}
-#endif // XXX disabled until Grease Pencil code stabilises again...
 
 /* Delete selected frames */
 void delete_gplayer_frames (bGPDlayer *gpl)

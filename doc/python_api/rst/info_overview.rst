@@ -1,12 +1,12 @@
-###################
+*******************
 Python API Overview
-###################
+*******************
 
 This document is to give an understanding of how python and blender fit together, covering some of the functionality that isn't obvious from reading the API reference and example scripts.
 
-*****************
+
 Python in Blender
-*****************
+=================
 
 Blender embeds a python interpreter which is started with blender and stays active. This interpreter runs scripts to draw the user interface and is used for some of Blender's internal tools too.
 
@@ -22,18 +22,16 @@ Here is a simple example of moving a vertex of the object named **Cube**:
 This modifies Blender's internal data directly. When you run this in the interactive console you will see the 3D viewport update.
 
 
-***********************
 The Default Environment
-***********************
+=======================
 
 When developing your own scripts it may help to understand how blender sets up its python environment. Many python scripts come bundled with blender and can be used as a reference because they use the same API that script authors write tools in. Typical usage for scripts include: user interface, import/export, scene manipulation, automation, defining your own toolset and customization.
 
 On startup blender scans the ``scripts/startup/`` directory for python modules and imports them. The exact location of this directory depends on your installation. `See the directory layout docs <http://wiki.blender.org/index.php/Doc:2.5/Manual/Introduction/Installing_Blender/DirectoryLayout>`_
 
 
-**************
 Script Loading
-**************
+==============
 
 This may seem obvious but it's important to note the difference between executing a script directly or importing it as a module.
 
@@ -64,9 +62,8 @@ To run as modules:
 * define as an addon, enabling the addon will load it as a python module.
 
 
-======
 Addons
-======
+------
 
 Some of blenders functionality is best kept optional, alongside scripts loaded at startup we have addons which are kept in their own directory ``scripts/addons``, and only load on startup if selected from the user preferences.
 
@@ -77,9 +74,8 @@ The user preferences addon listing uses **bl_info** to display information about
 `See Addons <http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons>`_ for details on the **bl_info** dictionary.
 
 
-***************************
 Integration through Classes
-***************************
+===========================
 
 Running python scripts in the text editor is useful for testing but you’ll want to extend blender to make tools accessible like other built-in functionality.
 
@@ -159,14 +155,12 @@ To run operators you can call them through the operator api, eg:
 User interface classes are given a context in which to draw, buttons window, file header, toolbar etc, then they are drawn when that area is displayed so they are never called by python scripts directly.
 
 
-************
 Registration
-************
+============
 
 
-===================
 Module Registration
-===================
+-------------------
 
 Blender modules loaded at startup require ``register()`` and ``unregister()`` functions. These are the *only* functions that blender calls from your code, which is otherwise a regular python module.
 
@@ -206,9 +200,8 @@ This allows the script to be run directly in the text editor to test changes.
 This ``register()`` call won't run when the script is imported as a module since ``__main__`` is reserved for direct execution.
 
 
-==================
 Class Registration
-==================
+------------------
 
 Registering a class with blender results in the class definition being loaded into blender, where it becomes available alongside existing functionality.
 
@@ -227,9 +220,8 @@ Using ``bl_idname = 1`` will raise.
 ``TypeError: validating class error: Operator.bl_idname expected a string type, not int``
 
 
-----------------
 Multiple-Classes
-----------------
+^^^^^^^^^^^^^^^^
 
 Loading classes into blender is described above, for simple cases calling :mod:`bpy.utils.register_class` (SomeClass) is sufficient, but when there are many classes or a packages submodule has its own classes it can be tedious to list them all for registration.
 
@@ -248,9 +240,8 @@ A script which defines many of its own operators, panels menus etc. you only nee
 Internally blender collects subclasses on registrable types, storing them by the module in which they are defined. By passing the module name to :mod:`bpy.utils.register_module` blender can register all classes created by this module and its submodules.
 
 
---------------------------
 Inter Classes Dependencies
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When customizing blender you may want to group your own settings together, after all, they will likely have to co-exist with other scripts. To group these properties classes need to be defined, for groups within groups or collections within groups you can find yourself having to deal with order of registration/unregistration.
 
@@ -315,9 +306,8 @@ Say you want to store material settings for a custom engine.
    *The lower most class needs to be registered first and that unregister() is a mirror of register()*
 
 
---------------------
 Manipulating Classes
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 Properties can be added and removed as blender runs, normally happens on register or unregister but for some special cases it may be useful to modify types as the script runs.
 
@@ -346,9 +336,8 @@ This works just as well for PropertyGroup subclasses you define yourself.
        my_float = bpy.props.FloatProperty()
 
 
-----------------------------------
 Dynamic Defined-Classes (Advanced)
-----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In some cases the specifier for data may not be in blender, renderman shader definitions for example and it may be useful to define types and remove them on the fly.
 
@@ -373,8 +362,6 @@ In some cases the specifier for data may not be in blender, renderman shader def
 
 
 Calling these operators:
-
-.. code-block:: python
 
    >>> bpy.ops.object.operator_1()
    Hello World OBJECT_OT_operator_1

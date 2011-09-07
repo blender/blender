@@ -90,32 +90,28 @@ std::string ExtraTags::asString( std::string tag, bool *ok)
 void ExtraTags::setData(std::string tag, short *data)
 {
 	bool ok = false;
-	int tmp = 0;
-	tmp = asInt(tag, &ok);
+	int tmp = asInt(tag, &ok);
 	if(ok)
 		*data = (short)tmp;
 }
 void ExtraTags::setData(std::string tag, int *data)
 {
 	bool ok = false;
-	int tmp = 0;
-	tmp = asInt(tag, &ok);
+	int tmp = asInt(tag, &ok);
 	if(ok)
 		*data = tmp;
 }
 void ExtraTags::setData(std::string tag, float *data)
 {
 	bool ok = false;
-	float tmp = 0.0f;
-	tmp = asFloat(tag, &ok);
+	float tmp = asFloat(tag, &ok);
 	if(ok)
 		*data = tmp;
 }
 void ExtraTags::setData(std::string tag, char *data)
 {
 	bool ok = false;
-	int tmp = 0;
-	tmp = asInt(tag, &ok);
+	int tmp = asInt(tag, &ok);
 	if(ok)
 		*data = (char)tmp;
 }

@@ -115,6 +115,7 @@ EnumPropertyItem object_type_items[] = {
 	{0, "", 0, NULL, NULL},
 	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
 	{OB_LAMP, "LAMP", 0, "Lamp", ""},
+	{OB_SPEAKER, "SPEAKER", 0, "Speaker", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem object_type_curve_items[] = {
@@ -131,6 +132,7 @@ EnumPropertyItem object_type_curve_items[] = {
 #include "DNA_key_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_node_types.h"
 
 #include "BKE_armature.h"
 #include "BKE_bullet.h"
@@ -365,6 +367,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
 		case OB_CAMERA: return &RNA_Camera;
 		case OB_LATTICE: return &RNA_Lattice;
 		case OB_ARMATURE: return &RNA_Armature;
+		case OB_SPEAKER: return &RNA_Speaker;
 		default: return &RNA_ID;
 	}
 }
@@ -2033,17 +2036,18 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Matrix", "Inverse of object's parent matrix at time of parenting");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 
-	/* collections */
+	/* modifiers */
+	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Modifier");
+	RNA_def_property_ui_text(prop, "Modifiers", "Modifiers affecting the geometric data of the object");
+	rna_def_object_modifiers(brna, prop);
+
+	/* constraints */
 	prop= RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints affecting the transformation of the object");
 //	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, 0, "constraints__add", "constraints__remove");
 	rna_def_object_constraints(brna, prop);
-
-	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Modifier");
-	RNA_def_property_ui_text(prop, "Modifiers", "Modifiers affecting the geometric data of the object");
-	rna_def_object_modifiers(brna, prop);
 
 	/* game engine */
 	prop= RNA_def_property(srna, "game", PROP_POINTER, PROP_NONE);
@@ -2295,6 +2299,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
+	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 	
 	/* pose */
 	prop= RNA_def_property(srna, "pose_library", PROP_POINTER, PROP_NONE);

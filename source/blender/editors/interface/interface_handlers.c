@@ -1246,7 +1246,7 @@ static short test_special_char(char ch)
 		case ':':
 		case ';':
 		case '\'':
-		case '\"':
+		case '\"': // " - an extra closing one for Aligorith's text editor
 		case '<':
 		case '>':
 		case ',':
@@ -4327,6 +4327,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		
 		/* Keyframes */
 		if(but->flag & UI_BUT_ANIMATED_KEY) {
+			/* replace/delete keyfraemes */
 			if(length) {
 				uiItemBooleanO(layout, "Replace Keyframes", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
 				uiItemBooleanO(layout, "Replace Single Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
@@ -4337,6 +4338,11 @@ static int ui_but_menu(bContext *C, uiBut *but)
 				uiItemBooleanO(layout, "Replace Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
 				uiItemBooleanO(layout, "Delete Keyframe", ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 0);
 			}
+			
+			/* keyframe settings */
+			uiItemS(layout);
+			
+			
 		}
 		else if(but->flag & UI_BUT_DRIVEN);
 		else if(is_anim) {
@@ -4379,6 +4385,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		}
 		
 		/* Keying Sets */
+		// TODO: check on modifyability of Keying Set when doing this
 		if(is_anim) {
 			uiItemS(layout);
 

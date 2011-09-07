@@ -1,10 +1,9 @@
-#######################
+***********************
 Quickstart Introduction
-#######################
+***********************
 
-*****
 Intro
-*****
+=====
 
 This API is generally stable but some areas are still being added and improved.
 
@@ -38,9 +37,8 @@ The Blender/Python API **can't** (yet)...
 * Define callbacks or listeners to be notified when data is changed.
 
 
-***************
 Before Starting
-***************
+===============
 
 This document isn't intended to fully cover each topic. Rather, its purpose is to familiarize you with Blender 2.5's new Python API.
 
@@ -60,24 +58,18 @@ A quick list of helpful things to know before starting:
 * To examine further scripts distributed with Blender, see ``~/.blender/scripts/startup/bl_ui`` for the user interface and ``~/.blender/scripts/startup/bl_op`` for operators.
 
 
-************
 Key Concepts
-************
+============
 
-===========
 Data Access
-===========
+-----------
 
---------------------
 Accessing datablocks
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 Python accesses Blender's data in the same way as the animation system and user interface, which means any setting that is changed via a button can also be changed from Python.
 
 Accessing data from the currently loaded blend file is done with the module :mod:`bpy.data`. This gives access to library data. For example:
-
-
-.. code-block:: python
 
    >>> bpy.data.objects
    <bpy_collection[3], BlendDataObjects>
@@ -89,16 +81,12 @@ Accessing data from the currently loaded blend file is done with the module :mod
    <bpy_collection[1], BlendDataMaterials>
 
 
------------------
 About Collections
------------------
+^^^^^^^^^^^^^^^^^
 
 You'll notice that an index as well as a string can be used to access members of the collection.
 
 Unlike Python's dictionaries, both methods are acceptable; however, the index of a member may change while running Blender.
-
-
-.. code-block:: python
 
    >>> list(bpy.data.objects)
    [bpy.data.objects["Cube"], bpy.data.objects["Plane"]]
@@ -110,13 +98,10 @@ Unlike Python's dictionaries, both methods are acceptable; however, the index of
    bpy.data.objects["Cube"]
 
 
---------------------
 Accessing attributes
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 Once you have a data block such as a material, object, groups etc. its attributes can be accessed just like changing a setting in the interface; in fact, the button tooltip also displays the Python attribute which can help in finding what settings to change in a script.
-
-.. code-block:: python
 
    >>> bpy.data.objects[0].name 
    'Camera'
@@ -132,17 +117,14 @@ For testing what data to access it's useful to use the "Console", which is its o
 
 Example of a data path that can be quickly found via the console:
 
-.. code-block:: python
-
    >>> bpy.data.scenes[0].render.resolution_percentage
    100
    >>> bpy.data.scenes[0].objects["Torus"].data.vertices[0].co.x
    1.0
 
 
------------------
 Custom Properties
------------------
+^^^^^^^^^^^^^^^^^
 
 Python can access properties on any datablock that has an ID (data that can be linked in and accessed from :mod:`bpy.data`. When assigning a property, you can make up your own names, these will be created when needed or overwritten if they exist.
 
@@ -174,20 +156,17 @@ Note that these properties can only be assigned  basic Python types.
 
 * array of ints/floats
 
-* dictionary (only string keys types on this list)
+* dictionary (only string keys are supported, values must be basic types too)
 
 These properties are valid outside of Python. They can be animated by curves or used in driver paths.
 
 
-=======
 Context
-=======
+-------
 
 While it's useful to be able to access data directly by name or as a list, it's more common to operate on the user's selection. The context is always available from '''bpy.context''' and can be used to get the active object, scene, tool settings along with many other attributes.
 
 Common-use cases:
-
-.. code-block:: python
 
    >>> bpy.context.object
    >>> bpy.context.selected_objects
@@ -205,15 +184,12 @@ The context attributes change depending on where it is accessed. The 3D view has
 See :mod:`bpy.context` API reference
 
 
-=================
 Operators (Tools)
-=================
+-----------------
 
 Operators are tools generally accessed by the user from buttons, menu items or key shortcuts. From the user perspective they are a tool but Python can run these with its own settings through the :mod:`bpy.ops` module.
 
 Examples:
-
-.. code-block:: python
 
    >>> bpy.ops.mesh.flip_normals()
    {'FINISHED'}
@@ -227,9 +203,8 @@ Examples:
    The menu item: Help -> Operator Cheat Sheet" gives a list of all operators and their default values in Python syntax, along with the generated docs. This is a good way to get an overview of all blender's operators.
 
 
----------------
 Operator Poll()
----------------
+^^^^^^^^^^^^^^^
 
 Many operators have a "poll" function which may check that the mouse is a valid area or that the object is in the correct mode (Edit Mode, Weight Paint etc). When an operator's poll function fails within python, an exception is raised.
 
@@ -249,9 +224,8 @@ To avoid using try/except clauses wherever operators are called you can call the
        bpy.ops.view3d.render_border()
 
 
-***********
 Integration
-***********
+===========
 
 Python scripts can integrate with Blender in the following ways:
 
@@ -266,9 +240,9 @@ Python scripts can integrate with Blender in the following ways:
 
 In Python, this is done by defining a class, which is a subclass of an existing type.
 
-================
+
 Example Operator
-================
+----------------
 
 .. literalinclude:: ../../../release/scripts/templates/operator_simple.py
 
@@ -296,9 +270,8 @@ To run the script:
    reference :class:`bpy.types.Operator`
 
 
-=============
 Example Panel
-=============
+-------------
 
 Panels register themselves as a class, like an operator. Notice the extra **bl_** variables used to set the context they display in.
 
@@ -332,25 +305,22 @@ Note the row distribution and the label and properties that are available throug
 .. seealso:: :class:`bpy.types.Panel`
 
 
-*****
 Types
-*****
+=====
 
 Blender defines a number of Python types but also uses Python native types.
 
 Blender's Python API can be split up into 3 categories. 
 
-============
+
 Native Types
-============
+------------
 
 In simple cases returning a number or a string as a custom type would be cumbersome, so these are accessed as normal python types.
 
 * blender float/int/boolean -> float/int/boolean
 
 * blender enumerator -> string
-
-  .. code-block:: python
 
      >>> C.object.rotation_mode = 'AXIS_ANGLE'
 
@@ -366,17 +336,14 @@ In simple cases returning a number or a string as a custom type would be cumbers
      self.report({'WARNING', 'INFO'}, "Some message!")
 
 
-==============
 Internal Types
-==============
+--------------
 
 Used for Blender datablocks and collections: :class:`bpy.types.bpy_struct`
 
 For data that contains its own attributes groups/meshes/bones/scenes... etc.
 
 There are 2 main types that wrap Blenders data, one for datablocks (known internally as bpy_struct), another for properties.
-
-.. code-block:: python
 
    >>> bpy.context.object
    bpy.data.objects['Cube']
@@ -386,9 +353,9 @@ There are 2 main types that wrap Blenders data, one for datablocks (known intern
 
 Note that these types reference Blender's data so modifying them is immediately visible.
 
-===============
+
 Mathutils Types
-===============
+---------------
 
 Used for vectors, quaternion, eulers, matrix and color types, accessible from :mod:`mathutils`
 
@@ -422,9 +389,8 @@ Example of a matrix, vector multiplication:
       location = bpy.context.object.location.copy()
 
 
-*********
 Animation
-*********
+=========
 
 There are 2 ways to add keyframes through Python.
 
@@ -455,9 +421,8 @@ Using Low-Level Functions:
    fcu_z.keyframe_points[1].co = 20.0, 1.0
 
 
-*****************
 Style Conventions
-*****************
+=================
 
 For Blender 2.5 we have chosen to follow python suggested style guide to avoid mixing styles amongst our own scripts and make it easier to use python scripts from other projects.
 

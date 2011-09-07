@@ -878,6 +878,21 @@ static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurb
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Align handle selected color", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	if (incl_nurbs == 0) {
+		/* assume that when nurbs are off, this is for 2D (i.e. anim) editors */
+		prop= RNA_def_property(srna, "handle_auto_clamped", PROP_FLOAT, PROP_COLOR_GAMMA);
+		RNA_def_property_float_sdna(prop, NULL, "handle_auto_clamped");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Auto-Clamped handle color", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
+		
+		prop= RNA_def_property(srna, "handle_sel_auto_clamped", PROP_FLOAT, PROP_COLOR_GAMMA);
+		RNA_def_property_float_sdna(prop, NULL, "handle_sel_auto_clamped");
+		RNA_def_property_array(prop, 3);
+		RNA_def_property_ui_text(prop, "Auto-Clamped handle selected color", "");
+		RNA_def_property_update(prop, 0, "rna_userdef_update");
+	}
 
 	prop= RNA_def_property(srna, "lastsel_point", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "lastsel_point");
@@ -917,6 +932,11 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "lamp", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Lamp", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "speaker", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Speaker", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "object_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -2308,13 +2328,13 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	/* auto keyframing */	
 	prop= RNA_def_property(srna, "use_auto_keying", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_mode", AUTOKEY_ON);
-	RNA_def_property_ui_text(prop, "Auto Keying Enable", "Automatic keyframe insertion for Objects and Bones");
+	RNA_def_property_ui_text(prop, "Auto Keying Enable", "Automatic keyframe insertion for Objects and Bones (default setting used for new Scenes)");
 	RNA_def_property_ui_icon(prop, ICON_REC, 0);
 
 	prop= RNA_def_property(srna, "auto_keying_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, auto_key_modes);
 	RNA_def_property_enum_funcs(prop, "rna_userdef_autokeymode_get", "rna_userdef_autokeymode_set", NULL);
-	RNA_def_property_ui_text(prop, "Auto Keying Mode", "Mode of automatic keyframe insertion for Objects and Bones");
+	RNA_def_property_ui_text(prop, "Auto Keying Mode", "Mode of automatic keyframe insertion for Objects and Bones (default setting used for new Scenes)");
 
 	prop= RNA_def_property(srna, "use_keyframe_insert_available", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_INSERTAVAIL);
@@ -2336,12 +2356,12 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "keyframe_new_interpolation_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
-	RNA_def_property_ui_text(prop, "New Interpolation Type", "");
+	RNA_def_property_ui_text(prop, "New Interpolation Type", "Interpolation mode used for first keyframe on newly added F-Curves. Subsequent keyframes take interpolation from preceeding keyframe");
 	
 	prop= RNA_def_property(srna, "keyframe_new_handle_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_enum_items(prop, keyframe_handle_type_items);
 	RNA_def_property_enum_sdna(prop, NULL, "keyhandles_new");
-	RNA_def_property_ui_text(prop, "New Handles Type", "");
+	RNA_def_property_ui_text(prop, "New Handles Type", "Handle type for handles of new keyframes");
 	
 	/* frame numbers */
 	prop= RNA_def_property(srna, "use_negative_frames", PROP_BOOLEAN, PROP_NONE);

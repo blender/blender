@@ -169,7 +169,7 @@ static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
 
 	BLI_strescape(id_esc, id->name+2, sizeof(id_esc));
 
-	snprintf(text, sizeof(text), "bpy.data.%s[\"%s\"]", BKE_idcode_to_name_plural(GS(id->name)), id_esc);
+	BLI_snprintf(text, sizeof(text), "bpy.data.%s[\"%s\"]", BKE_idcode_to_name_plural(GS(id->name)), id_esc);
 
 	/* copy drag path to properties */
 	RNA_string_set(drop->ptr, "text", text);
@@ -186,7 +186,7 @@ static int path_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUSED(eve
 static void path_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	char pathname[FILE_MAXDIR+FILE_MAXFILE+2];
-	snprintf(pathname, sizeof(pathname), "\"%s\"", drag->path);
+	BLI_snprintf(pathname, sizeof(pathname), "\"%s\"", drag->path);
 	RNA_string_set(drop->ptr, "text", pathname);
 }
 

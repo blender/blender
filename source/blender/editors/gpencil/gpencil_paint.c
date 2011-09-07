@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -155,7 +153,7 @@ static int gpencil_draw_poll (bContext *C)
 		/* check if current context can support GPencil data */
 		if (gpencil_data_get_pointers(C, NULL) != NULL) {
 			/* check if Grease Pencil isn't already running */
-			if ((G.f & G_GREASEPENCIL) == 0)
+			if (ED_gpencil_session_active() == 0)
 				return 1;
 			else
 				CTX_wm_operator_poll_msg_set(C, "Grease Pencil operator is already active");
@@ -381,30 +379,39 @@ static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 	else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		/* get pointer to destination point */
 		pt= (tGPspoint *)(gpd->sbuffer);
-		
+
 		/* store settings */
 		pt->x= mval[0];
 		pt->y= mval[1];
 		pt->pressure= pressure;
-		
+
 		/* if there's stroke fir this poly line session add (or replace last) point
 		   to stroke. This allows to draw lines more interactively (see new segment
 		   during mouse slide, i.e.) */
 		if (p->flags & GP_PAINTFLAG_STROKEADDED) {
 			bGPDstroke *gps= p->gpf->strokes.last;
 			bGPDspoint *pts;
-			
+
 			/* first time point is adding to temporary buffer -- need to allocate new point in stroke */
 			if (gpd->sbuffer_size == 0) {
 				gps->points = MEM_reallocN(gps->points, sizeof(bGPDspoint)*(gps->totpoints+1));
 				gps->totpoints++;
 			}
-			
+
 			pts = &gps->points[gps->totpoints-1];
-			
+
+			/* special case for poly lines: normally, depth is needed only when creating new stroke from buffer,
+			   but poly lines are converting to stroke instantly, so initialize depth buffer before converting coordinates */
+			if (gpencil_project_check(p)) {
+				View3D *v3d= p->sa->spacedata.first;
+
+				view3d_region_operator_needs_opengl(p->win, p->ar);
+				ED_view3d_autodist_init(p->scene, p->ar, v3d, (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 1:0);
+			}
+
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &pt->x, &pts->x, NULL);
-			
+
 			/* copy pressure */
 			pts->pressure= pt->pressure;
 		}
@@ -412,7 +419,7 @@ static short gp_stroke_addpoint (tGPsdata *p, const int mval[2], float pressure)
 		/* increment counters */
 		if (gpd->sbuffer_size == 0)
 			gpd->sbuffer_size++;
-		
+
 		return GP_STROKEADD_NORMAL;
 	}
 	
@@ -574,7 +581,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 		if (p->flags & GP_PAINTFLAG_STROKEADDED)
 			return;
 	}
-	
+
 	/* allocate memory for a new stroke */
 	gps= MEM_callocN(sizeof(bGPDstroke), "gp_stroke");
 	
@@ -585,10 +592,10 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	
 	/* allocate enough memory for a continuous array for storage points */
 	gps->points= MEM_callocN(sizeof(bGPDspoint)*gps->totpoints, "gp_stroke_points");
-	
+
 	/* set pointer to first non-initialized point */
 	pt= gps->points + (gps->totpoints - totelem);
-	
+
 	/* copy points from the buffer to the stroke */
 	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
 		/* straight lines only -> only endpoints */
@@ -619,10 +626,10 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		/* first point */
 		ptc= gpd->sbuffer;
-		
+
 		/* convert screen-coordinates to appropriate coordinates (and store them) */
 		gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
-		
+
 		/* copy pressure */
 		pt->pressure= ptc->pressure;
 	}
@@ -706,7 +713,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	
 	p->flags |= GP_PAINTFLAG_STROKEADDED;
 
-	/* add stroke to frame */	
+	/* add stroke to frame */
 	BLI_addtail(&p->gpf->strokes, gps);
 }
 
@@ -1134,11 +1141,9 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 		p->gpd= *gpd_ptr;
 	}
 	
-	/* set edit flags - so that buffer will get drawn */
-	if((G.f & G_GREASEPENCIL)==0) {
-		G.f |= G_GREASEPENCIL;
-		
-		/* initialize undo stack */
+	if(ED_gpencil_session_active()==0) {
+		/* initialize undo stack,
+		   also, existing undo stack would make buffer drawn */
 		gpencil_undo_init(p->gpd);
 	}
 	
@@ -1158,10 +1163,10 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 static tGPsdata *gp_session_initpaint (bContext *C)
 {
 	tGPsdata *p = NULL;
-	
+
 	/* create new context data */
 	p= MEM_callocN(sizeof(tGPsdata), "GPencil Drawing Data");
-	
+
 	gp_session_initdata(C, p);
 	
 	/* return context data for running paint operator */
@@ -1371,9 +1376,6 @@ static void gp_paint_cleanup (tGPsdata *p)
 static void gpencil_draw_exit (bContext *C, wmOperator *op)
 {
 	tGPsdata *p= op->customdata;
-	
-	/* clear edit flags */
-	G.f &= ~G_GREASEPENCIL;
 	
 	/* clear undo stack */
 	gpencil_undo_finish();
@@ -1810,7 +1812,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			sketch|= GPENCIL_SKETCH_SESSIONS_ON(p->scene);
 			/* polyline drawig is also 'sketching' -- all knots should be added during one session */
 			sketch|= p->paintmode == GP_PAINTMODE_DRAW_POLY;
-			
+
 			if (sketch) {
 				/* end stroke only, and then wait to resume painting soon */
 				//printf("\t\tGP - end stroke only\n");
@@ -1852,7 +1854,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* finish painting operation if anything went wrong just now */
 			if (p->status == GP_STATUS_ERROR) {
-				//printf("\t\t\t\tGP - add error done! \n");
+				printf("\t\t\t\tGP - add error done! \n");
 				estate = OPERATOR_CANCELLED;
 			}
 			else {

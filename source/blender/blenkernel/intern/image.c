@@ -1371,12 +1371,12 @@ void BKE_makepicstring(char *string, const char *base, int frame, int imtype, co
 }
 
 /* used by sequencer too */
-struct anim *openanim(char *name, int flags)
+struct anim *openanim(char *name, int flags, int streamindex)
 {
 	struct anim *anim;
 	struct ImBuf *ibuf;
 	
-	anim = IMB_open_anim(name, flags);
+	anim = IMB_open_anim(name, flags, streamindex);
 	if (anim == NULL) return NULL;
 
 	ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -1773,7 +1773,8 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		else
 			BLI_path_abs(str, G.main->name);
 		
-		ima->anim = openanim(str, IB_rect);
+		/* FIXME: make several stream accessible in image editor, too*/
+		ima->anim = openanim(str, IB_rect, 0);
 		
 		/* let's initialize this user */
 		if(ima->anim && iuser && iuser->frames==0)

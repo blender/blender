@@ -122,12 +122,26 @@ private:
 	 */
 	pthread_t m_mixingThread;
 
+	/**
+	 * Mutex for mixing.
+	 */
 	pthread_mutex_t m_mixingLock;
 
+	/**
+	 * Condition for mixing.
+	 */
 	pthread_cond_t m_mixingCondition;
 
+	/**
+	 * Mixing thread function.
+	 * \param device The this pointer.
+	 * \return NULL.
+	 */
 	static void* runMixingThread(void* device);
 
+	/**
+	 * Updates the ring buffers.
+	 */
 	void updateRingBuffers();
 
 	// hide copy constructor and operator=
@@ -153,11 +167,39 @@ public:
 	 */
 	virtual ~AUD_JackDevice();
 
+	/**
+	 * Starts jack transport playback.
+	 */
 	void startPlayback();
+
+	/**
+	 * Stops jack transport playback.
+	 */
 	void stopPlayback();
+
+	/**
+	 * Seeks jack transport playback.
+	 * \param time The time to seek to.
+	 */
 	void seekPlayback(float time);
+
+	/**
+	 * Sets the sync callback for jack transport playback.
+	 * \param sync The callback function.
+	 * \param data The data for the function.
+	 */
 	void setSyncCallback(AUD_syncFunction sync, void* data);
+
+	/**
+	 * Retrieves the jack transport playback time.
+	 * \return The current time position.
+	 */
 	float getPlaybackPosition();
+
+	/**
+	 * Returns whether jack transport plays back.
+	 * \return Whether jack transport plays back.
+	 */
 	bool doesPlayback();
 };
 

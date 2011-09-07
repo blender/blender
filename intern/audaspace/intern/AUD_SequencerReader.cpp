@@ -30,115 +30,18 @@
 
 
 #include "AUD_SequencerReader.h"
-#include "AUD_DefaultMixer.h"
 
-#include <math.h>
+typedef std::list<AUD_Reference<AUD_SequencerHandle> >::iterator AUD_HandleIterator;
+typedef std::list<AUD_Reference<AUD_SequencerEntry> >::iterator AUD_EntryIterator;
 
-typedef std::list<AUD_SequencerStrip*>::iterator AUD_StripIterator;
-typedef std::list<AUD_SequencerEntry*>::iterator AUD_EntryIterator;
-
-AUD_SequencerReader::AUD_SequencerReader(AUD_SequencerFactory* factory,
-			std::list<AUD_SequencerEntry*> &entries, AUD_Specs specs,
-			void* data, AUD_volumeFunction volume)
+AUD_SequencerReader::AUD_SequencerReader(AUD_Reference<AUD_SequencerFactory> factory, bool quality) :
+	m_position(0), m_device(factory->m_specs), m_factory(factory), m_status(0), m_entry_status(0)
 {
-	AUD_DeviceSpecs dspecs;
-	dspecs.specs = specs;
-	dspecs.format = AUD_FORMAT_FLOAT32;
-
-	m_mixer = new AUD_DefaultMixer(dspecs);
-	m_factory = factory;
-	m_data = data;
-	m_volume = volume;
-
-	AUD_SequencerStrip* strip;
-
-	for(AUD_EntryIterator i = entries.begin(); i != entries.end(); i++)
-	{
-		strip = new AUD_SequencerStrip;
-		strip->entry = *i;
-		strip->old_sound = NULL;
-
-		if(strip->old_sound)
-			strip->reader = m_mixer->prepare(strip->old_sound->createReader());
-		else
-			strip->reader = NULL;
-
-		m_strips.push_front(strip);
-	}
-
-	m_position = 0;
+	m_device.setQuality(quality);
 }
 
 AUD_SequencerReader::~AUD_SequencerReader()
 {
-	if(m_factory != NULL)
-		m_factory->removeReader(this);
-
-	AUD_SequencerStrip* strip;
-
-	while(!m_strips.empty())
-	{
-		strip = m_strips.front();
-		m_strips.pop_front();
-		if(strip->reader)
-		{
-			delete strip->reader;
-		}
-		delete strip;
-	}
-
-	delete m_mixer;
-}
-
-void AUD_SequencerReader::destroy()
-{
-	m_factory = NULL;
-	AUD_SequencerStrip* strip;
-
-	while(!m_strips.empty())
-	{
-		strip = m_strips.front();
-		m_strips.pop_front();
-		delete strip;
-	}
-}
-
-void AUD_SequencerReader::add(AUD_SequencerEntry* entry)
-{
-	AUD_SequencerStrip* strip = new AUD_SequencerStrip;
-	strip->entry = entry;
-
-	if(*strip->entry->sound)
-	{
-		strip->old_sound = *strip->entry->sound;
-		strip->reader = m_mixer->prepare(strip->old_sound->createReader());
-	}
-	else
-	{
-		strip->reader = NULL;
-		strip->old_sound = NULL;
-	}
-	m_strips.push_front(strip);
-}
-
-void AUD_SequencerReader::remove(AUD_SequencerEntry* entry)
-{
-	AUD_SequencerStrip* strip;
-	for(AUD_StripIterator i = m_strips.begin(); i != m_strips.end(); i++)
-	{
-		strip = *i;
-		if(strip->entry == entry)
-		{
-			i++;
-			if(strip->reader)
-			{
-				delete strip->reader;
-			}
-			m_strips.remove(strip);
-			delete strip;
-			return;
-		}
-	}
 }
 
 bool AUD_SequencerReader::isSeekable() const
@@ -149,6 +52,11 @@ bool AUD_SequencerReader::isSeekable() const
 void AUD_SequencerReader::seek(int position)
 {
 	m_position = position;
+
+	for(AUD_HandleIterator it = m_handles.begin(); it != m_handles.end(); it++)
+	{
+		(*it)->seek(position / m_factory->m_specs.rate);
+	}
 }
 
 int AUD_SequencerReader::getLength() const
@@ -163,84 +71,120 @@ int AUD_SequencerReader::getPosition() const
 
 AUD_Specs AUD_SequencerReader::getSpecs() const
 {
-	return m_mixer->getSpecs().specs;
+	return m_factory->m_specs;
 }
 
-void AUD_SequencerReader::read(int & length, sample_t* & buffer)
+void AUD_SequencerReader::read(int& length, bool& eos, sample_t* buffer)
 {
-	AUD_DeviceSpecs specs = m_mixer->getSpecs();
-	int samplesize = AUD_SAMPLE_SIZE(specs);
-	int rate = specs.rate;
+	m_factory->lock();
 
-	int size = length * samplesize;
-
-	int start, end, current, skip, len;
-	AUD_SequencerStrip* strip;
-	sample_t* buf;
-
-	if(m_buffer.getSize() < size)
-		m_buffer.resize(size);
-	buffer = m_buffer.getBuffer();
-
-	if(!m_factory->getMute())
+	if(m_factory->m_status != m_status)
 	{
-		for(AUD_StripIterator i = m_strips.begin(); i != m_strips.end(); i++)
-		{
-			strip = *i;
-			if(!strip->entry->muted)
-			{
-				if(strip->old_sound != *strip->entry->sound)
-				{
-					strip->old_sound = *strip->entry->sound;
-					if(strip->reader)
-						delete strip->reader;
+		m_device.changeSpecs(m_factory->m_specs);
+		m_device.setSpeedOfSound(m_factory->m_speed_of_sound);
+		m_device.setDistanceModel(m_factory->m_distance_model);
+		m_device.setDopplerFactor(m_factory->m_doppler_factor);
 
-					if(strip->old_sound)
-					{
-						try
-						{
-							strip->reader = m_mixer->prepare(strip->old_sound->createReader());
-						}
-						catch(AUD_Exception)
-						{
-							strip->reader = NULL;
-						}
-					}
-					else
-						strip->reader = NULL;
-				}
-
-				if(strip->reader)
-				{
-					end = floor(strip->entry->end * rate);
-					if(m_position < end)
-					{
-						start = floor(strip->entry->begin * rate);
-						if(m_position + length > start)
-						{
-							current = m_position - start;
-							if(current < 0)
-							{
-								skip = -current;
-								current = 0;
-							}
-							else
-								skip = 0;
-							current += strip->entry->skip * rate;
-							len = length > end - m_position ? end - m_position : length;
-							len -= skip;
-							if(strip->reader->getPosition() != current)
-								strip->reader->seek(current);
-							strip->reader->read(len, buf);
-							m_mixer->add(buf, skip, len, m_volume(m_data, strip->entry->data, (float)m_position / (float)rate));
-						}
-					}
-				}
-			}
-		}
+		m_status = m_factory->m_status;
 	}
 
-	m_mixer->superpose((data_t*)buffer, length, 1.0f);
+	if(m_factory->m_entry_status != m_entry_status)
+	{
+		std::list<AUD_Reference<AUD_SequencerHandle> > handles;
+
+		AUD_HandleIterator hit = m_handles.begin();
+		AUD_EntryIterator  eit = m_factory->m_entries.begin();
+
+		int result;
+		AUD_Reference<AUD_SequencerHandle> handle;
+
+		while(hit != m_handles.end() && eit != m_factory->m_entries.end())
+		{
+			handle = *hit;
+			AUD_Reference<AUD_SequencerEntry> entry = *eit;
+
+			result = handle->compare(entry);
+
+			if(result < 0)
+			{
+				handle = new AUD_SequencerHandle(entry, m_device);
+				handles.push_front(handle);
+				eit++;
+			}
+			else if(result == 0)
+			{
+				handles.push_back(handle);
+				hit++;
+				eit++;
+			}
+			else
+			{
+				handle->stop();
+				hit++;
+			}
+		}
+
+		while(hit != m_handles.end())
+		{
+			(*hit)->stop();
+			hit++;
+		}
+
+		while(eit != m_factory->m_entries.end())
+		{
+			handle = new AUD_SequencerHandle(*eit, m_device);
+			handles.push_front(handle);
+			eit++;
+		}
+
+		m_handles = handles;
+
+		m_entry_status = m_factory->m_entry_status;
+	}
+
+	AUD_Specs specs = m_factory->m_specs;
+	int pos = 0;
+	float time = float(m_position) / float(specs.rate);
+	float volume, frame;
+	int len, cfra;
+	AUD_Vector3 v, v2;
+	AUD_Quaternion q;
+
+
+	while(pos < length)
+	{
+		frame = time * m_factory->m_fps;
+		cfra = int(floor(frame));
+
+		len = int(ceil((cfra + 1) / m_factory->m_fps * specs.rate)) - m_position;
+		len = AUD_MIN(length - pos, len);
+		len = AUD_MAX(len, 1);
+
+		for(AUD_HandleIterator it = m_handles.begin(); it != m_handles.end(); it++)
+		{
+			(*it)->update(time, frame);
+		}
+
+		m_factory->m_volume.read(frame, &volume);
+		m_device.setVolume(volume);
+
+		m_factory->m_orientation.read(frame, q.get());
+		m_device.setListenerOrientation(q);
+		m_factory->m_location.read(frame, v.get());
+		m_device.setListenerLocation(v);
+		m_factory->m_location.read(frame + 1, v2.get());
+		v2 -= v;
+		m_device.setListenerVelocity(v2);
+
+		m_device.read(reinterpret_cast<data_t*>(buffer + specs.channels * pos), len);
+
+		pos += len;
+		time += float(len) / float(specs.rate);
+	}
+
+	m_factory->unlock();
 
 	m_position += length;
+
+	eos = false;
 }

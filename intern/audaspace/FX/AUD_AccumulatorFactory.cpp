@@ -32,7 +32,7 @@
 #include "AUD_AccumulatorFactory.h"
 #include "AUD_CallbackIIRFilterReader.h"
 
-sample_t accumulatorFilterAdditive(AUD_CallbackIIRFilterReader* reader, void* useless)
+sample_t AUD_AccumulatorFactory::accumulatorFilterAdditive(AUD_CallbackIIRFilterReader* reader, void* useless)
 {
 	float in = reader->x(0);
 	float lastin = reader->x(-1);
@@ -42,7 +42,7 @@ sample_t accumulatorFilterAdditive(AUD_CallbackIIRFilterReader* reader, void* us
 	return out;
 }
 
-sample_t accumulatorFilter(AUD_CallbackIIRFilterReader* reader, void* useless)
+sample_t AUD_AccumulatorFactory::accumulatorFilter(AUD_CallbackIIRFilterReader* reader, void* useless)
 {
 	float in = reader->x(0);
 	float lastin = reader->x(-1);
@@ -52,14 +52,14 @@ sample_t accumulatorFilter(AUD_CallbackIIRFilterReader* reader, void* useless)
 	return out;
 }
 
-AUD_AccumulatorFactory::AUD_AccumulatorFactory(AUD_IFactory* factory,
+AUD_AccumulatorFactory::AUD_AccumulatorFactory(AUD_Reference<AUD_IFactory> factory,
 											   bool additive) :
 		AUD_EffectFactory(factory),
 		m_additive(additive)
 {
 }
 
-AUD_IReader* AUD_AccumulatorFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_AccumulatorFactory::createReader()
 {
 	return new AUD_CallbackIIRFilterReader(getReader(), 2, 2,
 							m_additive ? accumulatorFilterAdditive : accumulatorFilter);

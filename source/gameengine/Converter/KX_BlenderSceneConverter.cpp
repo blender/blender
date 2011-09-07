@@ -385,6 +385,12 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 	//This cache mecanism is buggy so I leave it disable and the memory leak
 	//that would result from this is fixed in RemoveScene()
 	m_map_mesh_to_gamemesh.clear();
+
+#ifndef USE_BULLET
+	/* quiet compiler warning */
+	(void)useDbvtCulling;
+#endif
+
 }
 
 // This function removes all entities stored in the converter for that scene
@@ -566,18 +572,18 @@ void KX_BlenderSceneConverter::RegisterPolyMaterial(RAS_IPolyMaterial *polymat)
 
 
 void KX_BlenderSceneConverter::RegisterInterpolatorList(
-									BL_InterpolatorList *adtList,
-									struct AnimData *for_adt)
+									BL_InterpolatorList *actList,
+									struct bAction *for_act)
 {
-	m_map_blender_to_gameAdtList.insert(CHashedPtr(for_adt), adtList);
+	m_map_blender_to_gameAdtList.insert(CHashedPtr(for_act), actList);
 }
 
 
 
 BL_InterpolatorList *KX_BlenderSceneConverter::FindInterpolatorList(
-									struct AnimData *for_adt)
+									struct bAction *for_act)
 {
-	BL_InterpolatorList **listp = m_map_blender_to_gameAdtList[CHashedPtr(for_adt)];
+	BL_InterpolatorList **listp = m_map_blender_to_gameAdtList[CHashedPtr(for_act)];
 		
 	return listp?*listp:NULL;
 }
@@ -679,7 +685,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 								MEM_freeN( tmpicu );
 								localDel_ipoCurve( tmpicu );
 							}
-					  	}
+						}
 					} else
 					{	ipo = NULL; // XXX add_ipo(blenderObject->id.name+2, ID_OB);
 						blenderObject->ipo = ipo;
@@ -1083,7 +1089,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
  * most are temp and NewRemoveObject frees m_map_gameobject_to_blender */
 bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 {
-	int maggie_index;
+	int maggie_index= -1;
 	int i=0;
 
 	if(maggie==NULL)
@@ -1100,6 +1106,10 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		}
 		i++;
 	}
+
+	/* should never happen but just to be safe */
+	if(maggie_index == -1)
+		return false;
 
 	m_DynamicMaggie.erase(m_DynamicMaggie.begin() + maggie_index);
 	tag_main(maggie, 1);

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -109,6 +107,7 @@ void snap_gplayer_frames(struct bGPDlayer *gpl, short mode);
 void mirror_gplayer_frames(struct bGPDlayer *gpl, short mode);
 
 /* ------------ Grease-Pencil Undo System ------------------ */
+int ED_gpencil_session_active(void);
 int ED_undo_gpencil_step(struct bContext *C, int step, const char *name);
 
 #endif /*  ED_GPENCIL_H */

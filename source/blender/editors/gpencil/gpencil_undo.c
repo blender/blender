@@ -28,6 +28,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -47,39 +48,45 @@
 
 #include "gpencil_intern.h"
 
+#define MAXUNDONAME	64
+
 typedef struct bGPundonode {
 	struct bGPundonode *next, *prev;
 
+	char name[MAXUNDONAME];
 	struct bGPdata *gpd;
 } bGPundonode;
 
 static ListBase undo_nodes = {NULL, NULL};
 static bGPundonode *cur_node = NULL;
 
+int ED_gpencil_session_active(void)
+{
+	return undo_nodes.first != NULL;
+}
+
 int ED_undo_gpencil_step(bContext *C, int step, const char *name)
 {
 	bGPdata **gpd_ptr= NULL, *new_gpd= NULL;
-	PointerRNA ptr;
-
-	if(name)	/* currently unsupported */
-		return OPERATOR_CANCELLED;
 
 	gpd_ptr= gpencil_data_get_pointers(C, NULL);
-
-	(void) step;
 
 	if(step==1) {	/* undo */
 		//printf("\t\tGP - undo step\n");
 		if(cur_node->prev) {
-			cur_node= cur_node->prev;
-			new_gpd= cur_node->gpd;
+			if(!name || strcmp(cur_node->name, name) == 0) {
+				cur_node= cur_node->prev;
+				new_gpd= cur_node->gpd;
+			}
 		}
 	}
 	else if (step==-1) {
 		//printf("\t\tGP - redo step\n");
 		if(cur_node->next) {
-			cur_node= cur_node->next;
-			new_gpd= cur_node->gpd;
+			if(!name || strcmp(cur_node->name, name) == 0) {
+				cur_node= cur_node->next;
+				new_gpd= cur_node->gpd;
+			}
 		}
 	}
 
@@ -115,28 +122,29 @@ void gpencil_undo_init(bGPdata *gpd)
 
 void gpencil_undo_push(bGPdata *gpd)
 {
-	bGPundonode *undo_node= MEM_callocN(sizeof(bGPundonode), "gpencil undo node");
-	bGPundonode *node, *next;
+	bGPundonode *undo_node;
 
 	//printf("\t\tGP - undo push\n");
 
-	undo_node->gpd= gpencil_data_duplicate(gpd);
-
 	if(cur_node) {
-		node= cur_node->next;
+		/* remove all un-done nodes from stack */
+		undo_node= cur_node->next;
 
-		while(node) {
-			next= node->next;
+		while(undo_node) {
+			bGPundonode *next_node= undo_node->next;
 
-			free_gpencil_data(node->gpd);
-			MEM_freeN(node->gpd);
+			free_gpencil_data(undo_node->gpd);
+			MEM_freeN(undo_node->gpd);
 
-			BLI_remlink(&undo_nodes, node);
-			MEM_freeN(node);
+			BLI_freelinkN(&undo_nodes, undo_node);
 
-			node= next;
+			undo_node= next_node;
 		}
 	}
+
+	/* create new undo node */
+	undo_node= MEM_callocN(sizeof(bGPundonode), "gpencil undo node");
+	undo_node->gpd= gpencil_data_duplicate(gpd);
 
 	cur_node= undo_node;
 
@@ -147,7 +155,7 @@ void gpencil_undo_finish(void)
 {
 	bGPundonode *undo_node= undo_nodes.first;
 
-	while (undo_node) {
+	while(undo_node) {
 		free_gpencil_data(undo_node->gpd);
 		MEM_freeN(undo_node->gpd);
 

@@ -338,7 +338,7 @@ void BLI_adddirstrings(void)
 			if ( pwuser ) {
 				BLI_strncpy(file->owner, pwuser->pw_name, sizeof(file->owner));
 			} else {
-				snprintf(file->owner, sizeof(file->owner), "%d", file->s.st_uid);
+				BLI_snprintf(file->owner, sizeof(file->owner), "%d", file->s.st_uid);
 			}
 		}
 #endif

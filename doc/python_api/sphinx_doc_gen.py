@@ -578,6 +578,7 @@ def pycontext2sphinx(BASEPATH):
         "sequences": ("Sequence", True),
         "smoke": ("SmokeModifier", False),
         "soft_body": ("SoftBodyModifier", False),
+        "speaker": ("Speaker", False),
         "texture": ("Texture", False),
         "texture_slot": ("MaterialTextureSlot", False),
         "vertex_paint_object": ("Object", False),
@@ -1221,7 +1222,6 @@ def rna2sphinx(BASEPATH):
         shutil.copy2(os.path.join(BASEPATH, "..", "rst", "bge.constraints.rst"), BASEPATH)
 
     shutil.copy2(os.path.join(BASEPATH, "..", "rst", "change_log.rst"), BASEPATH)
-
 
     if not EXCLUDE_INFO_DOCS:
         for info, info_desc in INFO_DOCS:

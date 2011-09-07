@@ -486,7 +486,8 @@ static void rna_Window_screen_update(bContext *C, PointerRNA *ptr)
 {
 	wmWindow *win= (wmWindow*)ptr->data;
 
-	/* exception: can't set screens inside of area/region handers */
+	/* exception: can't set screens inside of area/region handers, and must
+	   use context so notifier gets to the right window */
 	if(win->newscreen) {
 		WM_event_add_notifier(C, NC_SCREEN|ND_SCREENBROWSE, win->newscreen);
 		win->newscreen= NULL;
@@ -680,20 +681,14 @@ static void rna_wmKeyMapItem_name_get(PointerRNA *ptr, char *value)
 {
 	wmKeyMapItem *kmi= ptr->data;
 	wmOperatorType *ot= WM_operatortype_find(kmi->idname, 1);
-	
-	if (ot)
-		strcpy(value, ot->name);
+	strcpy(value, ot ? ot->name : kmi->idname);
 }
 
 static int rna_wmKeyMapItem_name_length(PointerRNA *ptr)
 {
 	wmKeyMapItem *kmi= ptr->data;
 	wmOperatorType *ot= WM_operatortype_find(kmi->idname, 1);
-	
-	if (ot)
-		return strlen(ot->name);
-	else
-		return 0;
+	return strlen(ot ? ot->name : kmi->idname);
 }
 
 static int rna_KeyMapItem_userdefined_get(PointerRNA *ptr)
@@ -1652,7 +1647,9 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_wmKeyMapItem_idname_get", "rna_wmKeyMapItem_idname_length", "rna_wmKeyMapItem_idname_set");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
-	
+
+	/* this is infact the operator name, but if the operator can't be found we
+	 * fallback on the operator ID */
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Name", "Name of operator to call on input event");

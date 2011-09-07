@@ -2292,7 +2292,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 
 	if(CFRA!=sc->user.framenr) {
 		CFRA= sc->user.framenr;
-		sound_seek_scene(C);
+		sound_seek_scene(CTX_data_main(C), CTX_data_scene(C));
 
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	}

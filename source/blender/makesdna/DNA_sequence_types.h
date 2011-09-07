@@ -135,11 +135,12 @@ typedef struct Sequence {
 	int startstill, endstill;
 	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */
 	int startdisp, enddisp;	/*starting and ending points in the sequence*/
-	float sat, pad;
+	float sat;
 	float mul, handsize;
 					/* is sfra needed anymore? - it looks like its only used in one place */
 	int sfra;		/* starting frame according to the timeline of the scene. */
 	int anim_preseek;
+	int streamindex;   /* streamindex for movie or sound files with several streams */
 
 	Strip *strip;
 
@@ -162,7 +163,7 @@ typedef struct Sequence {
 	void *scene_sound;
 	float volume;
 
-	float level, pan;	/* level in dB (0=full), pan -1..1 */
+	float pitch, pan;	/* pitch (-0.1..10), pan -2..2 */
 	int scenenr;          /* for scene selection */
 	int multicam_source;  /* for multicam source selection */
 	float strobe;
@@ -216,14 +217,9 @@ typedef struct GlowVars {
 typedef struct TransformVars {
 	float ScalexIni;
 	float ScaleyIni;
-	float ScalexFin; /* deprecated - old transform strip */
-	float ScaleyFin; /* deprecated - old transform strip */
 	float xIni;
-	float xFin; /* deprecated - old transform strip */
 	float yIni;
-	float yFin; /* deprecated - old transform strip */
 	float rotIni;
-	float rotFin; /* deprecated - old transform strip */
 	int percent;
 	int interpolation;
 	int uniform_scale; /* preserve aspect/ratio when scaling */
@@ -283,6 +279,12 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_PROXY_CUSTOM_FILE   (1<<21)
 #define SEQ_USE_EFFECT_DEFAULT_FADE (1<<22)
 
+// flags for whether those properties are animated or not
+#define SEQ_AUDIO_VOLUME_ANIMATED   (1<<24)
+#define SEQ_AUDIO_PITCH_ANIMATED    (1<<25)
+#define SEQ_AUDIO_PAN_ANIMATED      (1<<26)
+#define SEQ_AUDIO_DRAW_WAVEFORM     (1<<27)
+
 #define SEQ_INVALID_EFFECT          (1<<31)
 
 /* convenience define for all selection flags */
@@ -300,6 +302,7 @@ typedef struct SpeedControlVars {
 #define SEQ_PROXY_IMAGE_SIZE_25                 1
 #define SEQ_PROXY_IMAGE_SIZE_50                 2
 #define SEQ_PROXY_IMAGE_SIZE_75                 4
+#define SEQ_PROXY_IMAGE_SIZE_100                8
 
 #define SEQ_PROXY_TC_NONE                       0
 #define SEQ_PROXY_TC_RECORD_RUN                 1

@@ -51,6 +51,7 @@ struct Curve;
 struct EditBone;
 struct EditFace;
 struct EditMesh;
+struct EnvMap;
 struct ID;
 struct FCurve;
 struct ImBuf;
@@ -145,6 +146,7 @@ double elbeemEstimateMemreq(int res, float sx, float sy, float sz, int refine, c
 struct Render *RE_NewRender(const char *name){return (struct Render*) NULL;}
 void RE_SwapResult(struct Render *re, struct RenderResult **rr){}
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame){}
+int RE_WriteEnvmapResult(struct ReportList *reports, struct Scene *scene, struct EnvMap *env, const char *relpath, int imtype, float layout[12]) { return 0; }
 
 /* rna */
 float *give_cursor(struct Scene *scene, struct View3D *v3d){return (float *) NULL;}
@@ -182,6 +184,7 @@ void	ED_area_headerprint(struct ScrArea *sa, char *str){}
 
 struct EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, struct EditBone *ebo){return (struct EditBone *) NULL;}
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name){return (struct EditBone*) NULL;}
+struct Object *ED_object_pose_armature(struct Object *ob){ return (struct Object *)NULL; }
 struct ListBase *get_active_constraints (struct Object *ob){return (struct ListBase *) NULL;}
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r){return (struct ListBase *) NULL;}
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan){return 0;}
@@ -229,6 +232,7 @@ int ANIM_scene_get_keyingset_index(struct Scene *scene, struct KeyingSet *ks){re
 struct ListBase builtin_keyingsets;
 void ANIM_keyingset_info_register (struct KeyingSetInfo *ksi){}
 void ANIM_keyingset_info_unregister (const struct bContext *C, struct KeyingSetInfo *ksi){}
+short ANIM_validate_keyingset (struct bContext *C, struct ListBase *dsources, struct KeyingSet *ks){return 0;}
 short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, short flag, int type){return 0;}
 short ANIM_remove_driver (struct ID *id, const char rna_path[], int array_index, short flag){return 0;}
 void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock){}
@@ -244,6 +248,7 @@ void WM_cursor_wait (int val) {}
 void ED_node_texture_default(struct Tex *tx){}
 void ED_node_changed_update(struct bContext *C, struct bNode *node){}
 void ED_node_generic_update(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node){}
+void ED_node_tree_update(struct SpaceNode *snode, struct Scene *scene){}
 void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene){}
 int ED_view3d_scene_layer_set(int lay, const int *values){return 0;}
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar){}

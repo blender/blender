@@ -78,11 +78,6 @@
 #  include "AUD_C-API.h"
 #endif
 
-#ifdef WIN32
-#define snprintf _snprintf
-#endif
-
-
 static ImBuf* seq_render_strip_stack( 
 	SeqRenderData context, ListBase *seqbasep, float cfra, int chanshown);
 
@@ -545,7 +540,7 @@ void calc_sequence_disp(Scene *scene, Sequence *seq)
 		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
 	}
 
-	seq_update_sound(scene, seq);
+	seq_update_sound_bounds(scene, seq);
 }
 
 static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
@@ -695,7 +690,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq, int lock_range)
 	}
 	case SEQ_MOVIE:
 		if(seq->anim) IMB_free_anim(seq->anim);
-		seq->anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0));
+		seq->anim = openanim(str, IB_rect | ((seq->flag & SEQ_FILTERY) ? IB_animdeinterlace : 0), seq->streamindex);
 
 		if (!seq->anim) {
 			return;
@@ -1145,6 +1140,9 @@ static IMB_Proxy_Size seq_rendersize_to_proxysize(int size)
 	if (size >= 100) {
 		return IMB_PROXY_NONE;
 	}
+	if (size >= 99) {
+		return IMB_PROXY_100;
+	}
 	if (size >= 75) {
 		return IMB_PROXY_75;
 	}
@@ -1169,7 +1167,7 @@ static void seq_open_anim_file(Sequence * seq)
 	
 	seq->anim = openanim(name, IB_rect |
 			     ((seq->flag & SEQ_FILTERY) ? 
-			      IB_animdeinterlace : 0));
+			      IB_animdeinterlace : 0), seq->streamindex);
 
 	if (seq->anim == NULL) {
 		return;
@@ -1190,7 +1188,8 @@ static void seq_open_anim_file(Sequence * seq)
 static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, char * name)
 {
 	int frameno;
-	char dir[FILE_MAXDIR];
+	char dir[PROXY_MAXFILE];
+	int render_size = context.preview_render_size;
 
 	if (!seq->strip->proxy) {
 		return FALSE;
@@ -1207,7 +1206,7 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 	if (seq->flag & (SEQ_USE_PROXY_CUSTOM_DIR|SEQ_USE_PROXY_CUSTOM_FILE)) {
 		strcpy(dir, seq->strip->proxy->dir);
 	} else if (seq->type == SEQ_IMAGE) {
-		snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
+		BLI_snprintf(dir, PROXY_MAXFILE, "%s/BL_proxy", seq->strip->dir);
 	} else {
 		return FALSE;
 	}
@@ -1220,17 +1219,22 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 		return TRUE;
 	}
 
+	/* dirty hack to distinguish 100% render size from PROXY_100 */
+	if (render_size == 99) {
+		render_size = 100;
+	}
+
 	/* generate a separate proxy directory for each preview size */
 
 	if (seq->type == SEQ_IMAGE) {
-		snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir,
+		BLI_snprintf(name, PROXY_MAXFILE, "%s/images/%d/%s_proxy", dir,
 			 context.preview_render_size, 
 			 give_stripelem(seq, cfra)->name);
 		frameno = 1;
 	} else {
 		frameno = (int) give_stripelem_index(seq, cfra) 
 			+ seq->anim_startofs;
-		snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, 
+		BLI_snprintf(name, PROXY_MAXFILE, "%s/proxy_misc/%d/####", dir, 
 			 context.preview_render_size);
 	}
 
@@ -1245,13 +1249,18 @@ static int seq_proxy_get_fname(SeqRenderData context, Sequence * seq, int cfra, 
 static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int cfra)
 {
 	char name[PROXY_MAXFILE];
+	IMB_Proxy_Size psize = seq_rendersize_to_proxysize(
+		context.preview_render_size);
+	int size_flags;
 
 	if (!(seq->flag & SEQ_USE_PROXY)) {
 		return NULL;
 	}
 
-	/* rendering at 100% ? No real sense in proxy-ing, right? */
-	if (context.preview_render_size == 100) {
+	size_flags = seq->strip->proxy->build_size_flags;
+
+	/* only use proxies, if they are enabled (even if present!) */
+	if (psize != IMB_PROXY_NONE && ((size_flags & psize) != psize)) {
 		return NULL;
 	}
 
@@ -1262,7 +1271,7 @@ static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int
 				return NULL;
 			}
  
-			seq->strip->proxy->anim = openanim(name, IB_rect);
+			seq->strip->proxy->anim = openanim(name, IB_rect, 0);
 		}
 		if (seq->strip->proxy->anim==NULL) {
 			return NULL;
@@ -1311,10 +1320,7 @@ static void seq_proxy_build_frame(SeqRenderData context,
 		IMB_scalefastImBuf(ibuf, (short)rectx, (short)recty);
 	}
 
-	/* quality is fixed, otherwise one has to generate separate
-	   directories for every quality...
-
-	   depth = 32 is intentionally left in, otherwise ALPHA channels
+	/* depth = 32 is intentionally left in, otherwise ALPHA channels
 	   won't work... */
 	quality = seq->strip->proxy->quality;
 	ibuf->ftype= JPG | quality;
@@ -1393,8 +1399,12 @@ void seq_proxy_rebuild(struct Main * bmain, Scene *scene, Sequence * seq,
 		if (size_flags & IMB_PROXY_75) {
 			seq_proxy_build_frame(context, seq, cfra, 75);
 		}
+		if (size_flags & IMB_PROXY_100) {
+			seq_proxy_build_frame(context, seq, cfra, 100);
+		}
 
-		*progress= (float)cfra/(seq->enddisp - seq->endstill - seq->startdisp + seq->startstill);
+		*progress= (float)cfra/(seq->enddisp - seq->endstill 
+					- seq->startdisp + seq->startstill);
 		*do_update= 1;
 
 		if(*stop || G.afbreek)
@@ -1823,7 +1833,7 @@ static ImBuf* seq_render_effect_strip_impl(
 			facf= fac;
 	}
 	else {
-		fcu = id_data_find_fcurve(&context.scene->id, seq, &RNA_Sequence, "effect_fader", 0);
+		fcu = id_data_find_fcurve(&context.scene->id, seq, &RNA_Sequence, "effect_fader", 0, NULL);
 		if (fcu) {
 			fac = facf = evaluate_fcurve(fcu, cfra);
 			if( context.scene->r.mode & R_FIELDS ) {
@@ -2174,7 +2184,7 @@ static ImBuf * seq_render_strip(SeqRenderData context, Sequence * seq, float cfr
 			ibuf = seq_render_scene_strip_impl(context, seq, nr);
 
 			/* Scene strips update all animation, so we need to restore original state.*/
-			BKE_animsys_evaluate_all_animation(context.bmain, cfra);
+			BKE_animsys_evaluate_all_animation(context.bmain, context.scene, cfra);
 
 			copy_to_ibuf_still(context, seq, nr, ibuf);
 			break;
@@ -2251,7 +2261,7 @@ static ImBuf* seq_render_strip_stack(
 	if(scene->r.cfra != cfra) {
 		// XXX for prefetch and overlay offset!..., very bad!!!
 		AnimData *adt= BKE_animdata_from_id(&scene->id);
-		BKE_animsys_evaluate_animdata(&scene->id, adt, cfra, ADT_RECALC_ANIM);
+		BKE_animsys_evaluate_animdata(scene, &scene->id, adt, cfra, ADT_RECALC_ANIM);
 	}
 #endif
 
@@ -3196,16 +3206,33 @@ int shuffle_seq_time(ListBase * seqbasep, Scene *evil_scene)
 	return offset? 0:1;
 }
 
-void seq_update_sound(Scene* scene, Sequence *seq)
+void seq_update_sound_bounds_all(Scene *scene)
 {
-	if(seq->scene_sound)
-	{
+	Editing *ed = scene->ed;
+
+	if(ed) {
+		Sequence *seq;
+
+		for(seq = ed->seqbase.first; seq; seq = seq->next) {
+			if(seq->type == SEQ_META) {
+				seq_update_sound_bounds_recursive(scene, seq);
+			}
+			else if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
+				seq_update_sound_bounds(scene, seq);
+			}
+		}
+	}
+}
+
+void seq_update_sound_bounds(Scene* scene, Sequence *seq)
+{
+	if(seq->scene_sound) {
 		sound_move_scene_sound(scene, seq->scene_sound, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 		/* mute is set in seq_update_muting_recursive */
 	}
 }
 
-static void seq_update_muting_recursive(Scene *scene, ListBase *seqbasep, Sequence *metaseq, int mute)
+static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, int mute)
 {
 	Sequence *seq;
 	int seqmute;
@@ -3221,26 +3248,49 @@ static void seq_update_muting_recursive(Scene *scene, ListBase *seqbasep, Sequen
 			if(seq == metaseq)
 				seqmute= 0;
 
-			seq_update_muting_recursive(scene, &seq->seqbase, metaseq, seqmute);
+			seq_update_muting_recursive(&seq->seqbase, metaseq, seqmute);
 		}
 		else if(ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
 			if(seq->scene_sound) {
-				sound_mute_scene_sound(scene, seq->scene_sound, seqmute);
+				sound_mute_scene_sound(seq->scene_sound, seqmute);
 			}
 		}
 	}
 }
 
-void seq_update_muting(Scene *scene, Editing *ed)
+void seq_update_muting(Editing *ed)
 {
 	if(ed) {
 		/* mute all sounds up to current metastack list */
 		MetaStack *ms= ed->metastack.last;
 
 		if(ms)
-			seq_update_muting_recursive(scene, &ed->seqbase, ms->parseq, 1);
+			seq_update_muting_recursive(&ed->seqbase, ms->parseq, 1);
 		else
-			seq_update_muting_recursive(scene, &ed->seqbase, NULL, 0);
+			seq_update_muting_recursive(&ed->seqbase, NULL, 0);
+	}
+}
+
+static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
+{
+	Sequence *seq;
+
+	for(seq=seqbasep->first; seq; seq=seq->next) {
+		if(seq->type == SEQ_META) {
+			seq_update_sound_recursive(scene, &seq->seqbase, sound);
+		}
+		else if(seq->type == SEQ_SOUND) {
+			if(seq->scene_sound && sound == seq->sound) {
+				sound_update_scene_sound(seq->scene_sound, sound);
+			}
+		}
+	}
+}
+
+void seq_update_sound(struct Scene *scene, struct bSound *sound)
+{
+	if(scene->ed) {
+		seq_update_sound_recursive(scene, &scene->ed->seqbase, sound);
 	}
 }
 
@@ -3497,7 +3547,7 @@ void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 
 		if(seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
 			if(seq->sound)
-				sound_cache(seq->sound, 0);
+				sound_cache(seq->sound);
 		}
 
 		seq_load->tot_success++;
@@ -3524,6 +3574,7 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	seq->mul= 1.0;
 	seq->blend_opacity = 100.0;
 	seq->volume = 1.0f;
+	seq->pitch = 1.0f;
 	seq->scene_sound = NULL;
 
 	return seq;
@@ -3556,6 +3607,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 #ifdef WITH_AUDASPACE
 Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C); /* only for sound */
 	Editing *ed= seq_give_editing(scene, TRUE);
 	bSound *sound;
@@ -3577,7 +3629,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
-		sound_delete(C, sound);
+		sound_delete(bmain, sound);
 		//if(op)
 		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return NULL;
@@ -3635,7 +3687,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	BLI_strncpy(path, seq_load->path, sizeof(path));
 	BLI_path_abs(path, G.main->name);
 
-	an = openanim(path, IB_rect);
+	an = openanim(path, IB_rect, 0);
 
 	if(an==NULL)
 		return NULL;

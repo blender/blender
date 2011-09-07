@@ -91,73 +91,73 @@ public:
 	};
 
 	SG_QList() : SG_DList()
-    { 
-        m_fqlink = m_bqlink = this; 
-    }
+	{
+		m_fqlink = m_bqlink = this;
+	}
 	SG_QList(const SG_QList& other) : SG_DList()
 	{
-        m_fqlink = m_bqlink = this; 
+		m_fqlink = m_bqlink = this;
 	}
-    virtual ~SG_QList() 
-    {
+	virtual ~SG_QList()
+	{
 		QDelink();
-    }
+	}
 
-    inline bool QEmpty()               // Check for empty queue
-    {     
-        return ( m_fqlink == this ); 
-    }
-    bool QAddBack( SG_QList *item )  // Add to the back
-    {
+	inline bool QEmpty()               // Check for empty queue
+	{
+		return ( m_fqlink == this );
+	}
+	bool QAddBack( SG_QList *item )  // Add to the back
+	{
 		if (!item->QEmpty())
 			return false;
-        item->m_bqlink = m_bqlink;
-        item->m_fqlink = this;
-        m_bqlink->m_fqlink = item;
-        m_bqlink = item;
+		item->m_bqlink = m_bqlink;
+		item->m_fqlink = this;
+		m_bqlink->m_fqlink = item;
+		m_bqlink = item;
 		return true;
-    }
-    bool QAddFront( SG_QList *item )  // Add to the back
-    {
+	}
+	bool QAddFront( SG_QList *item )  // Add to the back
+	{
 		if (!item->Empty())
 			return false;
-        item->m_fqlink = m_fqlink;
-        item->m_bqlink = this;
-        m_fqlink->m_bqlink = item;
-        m_fqlink = item;
+		item->m_fqlink = m_fqlink;
+		item->m_bqlink = this;
+		m_fqlink->m_bqlink = item;
+		m_fqlink = item;
 		return true;
-    }
-    SG_QList *QRemove()           // Remove from the front
-    {
-        if (QEmpty()) 
-        {
-            return NULL;
-        }
-        SG_QList* item = m_fqlink;
-        m_fqlink = item->m_fqlink;
-        m_fqlink->m_bqlink = this;
-        item->m_fqlink = item->m_bqlink = item;
-        return item;
-    }
-    bool QDelink()             // Remove from the middle
-    {
+	}
+	SG_QList *QRemove()           // Remove from the front
+	{
+		if (QEmpty())
+		{
+			return NULL;
+		}
+		SG_QList* item = m_fqlink;
+		m_fqlink = item->m_fqlink;
+		m_fqlink->m_bqlink = this;
+		item->m_fqlink = item->m_bqlink = item;
+		return item;
+	}
+	bool QDelink()             // Remove from the middle
+	{
 		if (QEmpty())
 			return false;
 		m_bqlink->m_fqlink = m_fqlink;
 		m_fqlink->m_bqlink = m_bqlink;
 		m_fqlink = m_bqlink = this;
 		return true;
-    }
-    inline SG_QList *QPeek()			// Look at front without removing
-    { 
-        return m_fqlink; 
-    }  
-    inline SG_QList *QBack()			// Look at front without removing
-    { 
-        return m_bqlink; 
-    }  
-	
-	
+	}
+	inline SG_QList *QPeek()			// Look at front without removing
+	{
+		return m_fqlink;
+	}
+	inline SG_QList *QBack()			// Look at front without removing
+	{
+		return m_bqlink;
+	}
+
+
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
 	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:SG_QList"); }

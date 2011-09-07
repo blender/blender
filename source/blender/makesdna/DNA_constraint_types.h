@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -691,7 +689,10 @@ typedef enum eRotLimit_Flags {
 /* distance limit constraint */
 	/* bDistLimitConstraint->flag */
 typedef enum eDistLimit_Flag {
-	LIMITDIST_USESOFT	= (1<<0)
+	/* "soft" cushion effect when reaching the limit sphere */ // NOT IMPLEMENTED!
+	LIMITDIST_USESOFT	= (1<<0),
+	/* as for all Limit constraints - allow to be used during transform? */
+	LIMITDIST_TRANSFORM = (1<<1)
 } eDistLimit_Flag;
 
 	/* bDistLimitConstraint->mode */

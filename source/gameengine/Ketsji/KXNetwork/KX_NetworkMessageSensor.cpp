@@ -50,11 +50,11 @@
 #endif
 
 KX_NetworkMessageSensor::KX_NetworkMessageSensor(
-	class KX_NetworkEventManager* eventmgr,	// our eventmanager
-	class NG_NetworkScene *NetworkScene,	// our scene
-	SCA_IObject* gameobj,					// the sensor controlling object
-	const STR_String &subject
-) :
+        class KX_NetworkEventManager* eventmgr,	// our eventmanager
+        class NG_NetworkScene *NetworkScene,	// our scene
+        SCA_IObject* gameobj,					// the sensor controlling object
+        const STR_String &subject
+        ) :
     SCA_ISensor(gameobj,eventmgr),
     m_NetworkScene(NetworkScene),
     m_subject(subject),
@@ -67,7 +67,7 @@ KX_NetworkMessageSensor::KX_NetworkMessageSensor(
 
 void KX_NetworkMessageSensor::Init()
 {
-    m_IsUp = false;
+	m_IsUp = false;
 }
 
 KX_NetworkMessageSensor::~KX_NetworkMessageSensor()

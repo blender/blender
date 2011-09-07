@@ -79,6 +79,7 @@ set(DEFSRC
 	rna_smoke.c
 	rna_sound.c
 	rna_space.c
+	rna_speaker.c
 	rna_test.c
 	rna_text.c
 	rna_texture.c
@@ -102,6 +103,7 @@ set(APISRC
 	rna_main_api.c
 	rna_material_api.c
 	rna_mesh_api.c
+	rna_texture_api.c
 	rna_object_api.c
 	rna_pose_api.c
 	rna_scene_api.c
@@ -200,7 +202,7 @@ if(NOT WITH_MOD_FLUID)
 endif()
 
 if(WITH_FFTW3)
-	add_definitions(-DFFTW3=1)
+	add_definitions(-DWITH_FFTW3)
 endif()
 
 if(WITH_SDL)

@@ -80,7 +80,7 @@ static void edge_store_from_mface_quad(EdgeUUID es[4], MFace *mf)
 	edge_store_assign(es[3].verts, mf->v4, mf->v1);
 }
 
-static void edge_store_from_mface_tri(EdgeUUID es[3], MFace *mf)
+static void edge_store_from_mface_tri(EdgeUUID es[4], MFace *mf)
 {
 	edge_store_assign(es[0].verts, mf->v1, mf->v2);
 	edge_store_assign(es[1].verts, mf->v2, mf->v3);
@@ -143,30 +143,30 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 
 	BLI_assert(!(do_fixes && me == NULL));
 
-	PRINT("ED_mesh_validate: verts(%d), edges(%d), faces(%d)\n", totvert, totedge, totface);
+	PRINT("ED_mesh_validate: verts(%u), edges(%u), faces(%u)\n", totvert, totedge, totface);
 
 	if(totedge == 0 && totface != 0) {
-		PRINT("    locical error, %d faces and 0 edges\n", totface);
+		PRINT("    locical error, %u faces and 0 edges\n", totface);
 		do_edge_recalc= TRUE;
 	}
 
 	for(i=0, med= medges; i<totedge; i++, med++) {
 		int remove= FALSE;
 		if(med->v1 == med->v2) {
-			PRINT("    edge %d: has matching verts, both %d\n", i, med->v1);
+			PRINT("    edge %u: has matching verts, both %u\n", i, med->v1);
 			remove= do_fixes;
 		}
 		if(med->v1 >= totvert) {
-			PRINT("    edge %d: v1 index out of range, %d\n", i, med->v1);
+			PRINT("    edge %u: v1 index out of range, %u\n", i, med->v1);
 			remove= do_fixes;
 		}
 		if(med->v2 >= totvert) {
-			PRINT("    edge %d: v2 index out of range, %d\n", i, med->v2);
+			PRINT("    edge %u: v2 index out of range, %u\n", i, med->v2);
 			remove= do_fixes;
 		}
 
 		if(BLI_edgehash_haskey(edge_hash, med->v1, med->v2)) {
-			PRINT("    edge %d: is a duplicate of, %d\n", i, GET_INT_FROM_POINTER(BLI_edgehash_lookup(edge_hash, med->v1, med->v2)));
+			PRINT("    edge %u: is a duplicate of, %d\n", i, GET_INT_FROM_POINTER(BLI_edgehash_lookup(edge_hash, med->v1, med->v2)));
 			remove= do_fixes;
 		}
 
@@ -187,41 +187,41 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 		do {
 			fv[fidx]= *(&(mf->v1) + fidx);
 			if(fv[fidx] >= totvert) {
-				PRINT("    face %d: 'v%d' index out of range, %d\n", i, fidx + 1, fv[fidx]);
+				PRINT("    face %u: 'v%d' index out of range, %u\n", i, fidx + 1, fv[fidx]);
 				remove= do_fixes;
 			}
 		} while (fidx--);
 
 		if(remove == FALSE) {
 			if(mf->v4) {
-				if(mf->v1 == mf->v2) { PRINT("    face %d: verts invalid, v1/v2 both %d\n", i, mf->v1); remove= do_fixes; }
-				if(mf->v1 == mf->v3) { PRINT("    face %d: verts invalid, v1/v3 both %d\n", i, mf->v1); remove= do_fixes;  }
-				if(mf->v1 == mf->v4) { PRINT("    face %d: verts invalid, v1/v4 both %d\n", i, mf->v1); remove= do_fixes;  }
+				if(mf->v1 == mf->v2) { PRINT("    face %u: verts invalid, v1/v2 both %u\n", i, mf->v1); remove= do_fixes; }
+				if(mf->v1 == mf->v3) { PRINT("    face %u: verts invalid, v1/v3 both %u\n", i, mf->v1); remove= do_fixes;  }
+				if(mf->v1 == mf->v4) { PRINT("    face %u: verts invalid, v1/v4 both %u\n", i, mf->v1); remove= do_fixes;  }
 
-				if(mf->v2 == mf->v3) { PRINT("    face %d: verts invalid, v2/v3 both %d\n", i, mf->v2); remove= do_fixes;  }
-				if(mf->v2 == mf->v4) { PRINT("    face %d: verts invalid, v2/v4 both %d\n", i, mf->v2); remove= do_fixes;  }
+				if(mf->v2 == mf->v3) { PRINT("    face %u: verts invalid, v2/v3 both %u\n", i, mf->v2); remove= do_fixes;  }
+				if(mf->v2 == mf->v4) { PRINT("    face %u: verts invalid, v2/v4 both %u\n", i, mf->v2); remove= do_fixes;  }
 
-				if(mf->v3 == mf->v4) { PRINT("    face %d: verts invalid, v3/v4 both %d\n", i, mf->v3); remove= do_fixes;  }
+				if(mf->v3 == mf->v4) { PRINT("    face %u: verts invalid, v3/v4 both %u\n", i, mf->v3); remove= do_fixes;  }
 			}
 			else {
-				if(mf->v1 == mf->v2) { PRINT("    faceT %d: verts invalid, v1/v2 both %d\n", i, mf->v1); remove= do_fixes; }
-				if(mf->v1 == mf->v3) { PRINT("    faceT %d: verts invalid, v1/v3 both %d\n", i, mf->v1); remove= do_fixes; }
+				if(mf->v1 == mf->v2) { PRINT("    faceT %u: verts invalid, v1/v2 both %u\n", i, mf->v1); remove= do_fixes; }
+				if(mf->v1 == mf->v3) { PRINT("    faceT %u: verts invalid, v1/v3 both %u\n", i, mf->v1); remove= do_fixes; }
 
-				if(mf->v2 == mf->v3) { PRINT("    faceT %d: verts invalid, v2/v3 both %d\n", i, mf->v2); remove= do_fixes; }
+				if(mf->v2 == mf->v3) { PRINT("    faceT %u: verts invalid, v2/v3 both %u\n", i, mf->v2); remove= do_fixes; }
 			}
 
 			if(remove == FALSE) {
 				if(totedge) {
 					if(mf->v4) {
-						if(!BLI_edgehash_haskey(edge_hash, mf->v1, mf->v2)) { PRINT("    face %d: edge v1/v2 (%d,%d) is missing egde data\n", i, mf->v1, mf->v2); do_edge_recalc= TRUE; }
-						if(!BLI_edgehash_haskey(edge_hash, mf->v2, mf->v3)) { PRINT("    face %d: edge v2/v3 (%d,%d) is missing egde data\n", i, mf->v2, mf->v3); do_edge_recalc= TRUE; }
-						if(!BLI_edgehash_haskey(edge_hash, mf->v3, mf->v4)) { PRINT("    face %d: edge v3/v4 (%d,%d) is missing egde data\n", i, mf->v3, mf->v4); do_edge_recalc= TRUE; }
-						if(!BLI_edgehash_haskey(edge_hash, mf->v4, mf->v1)) { PRINT("    face %d: edge v4/v1 (%d,%d) is missing egde data\n", i, mf->v4, mf->v1); do_edge_recalc= TRUE; }
+						if(!BLI_edgehash_haskey(edge_hash, mf->v1, mf->v2)) { PRINT("    face %u: edge v1/v2 (%u,%u) is missing egde data\n", i, mf->v1, mf->v2); do_edge_recalc= TRUE; }
+						if(!BLI_edgehash_haskey(edge_hash, mf->v2, mf->v3)) { PRINT("    face %u: edge v2/v3 (%u,%u) is missing egde data\n", i, mf->v2, mf->v3); do_edge_recalc= TRUE; }
+						if(!BLI_edgehash_haskey(edge_hash, mf->v3, mf->v4)) { PRINT("    face %u: edge v3/v4 (%u,%u) is missing egde data\n", i, mf->v3, mf->v4); do_edge_recalc= TRUE; }
+						if(!BLI_edgehash_haskey(edge_hash, mf->v4, mf->v1)) { PRINT("    face %u: edge v4/v1 (%u,%u) is missing egde data\n", i, mf->v4, mf->v1); do_edge_recalc= TRUE; }
 					}
 					else {
-						if(!BLI_edgehash_haskey(edge_hash, mf->v1, mf->v2)) { PRINT("    face %d: edge v1/v2 (%d,%d) is missing egde data\n", i, mf->v1, mf->v2); do_edge_recalc= TRUE; }
-						if(!BLI_edgehash_haskey(edge_hash, mf->v2, mf->v3)) { PRINT("    face %d: edge v2/v3 (%d,%d) is missing egde data\n", i, mf->v2, mf->v3); do_edge_recalc= TRUE; }
-						if(!BLI_edgehash_haskey(edge_hash, mf->v3, mf->v1)) { PRINT("    face %d: edge v3/v1 (%d,%d) is missing egde data\n", i, mf->v3, mf->v1); do_edge_recalc= TRUE; }
+						if(!BLI_edgehash_haskey(edge_hash, mf->v1, mf->v2)) { PRINT("    face %u: edge v1/v2 (%u,%u) is missing egde data\n", i, mf->v1, mf->v2); do_edge_recalc= TRUE; }
+						if(!BLI_edgehash_haskey(edge_hash, mf->v2, mf->v3)) { PRINT("    face %u: edge v2/v3 (%u,%u) is missing egde data\n", i, mf->v2, mf->v3); do_edge_recalc= TRUE; }
+						if(!BLI_edgehash_haskey(edge_hash, mf->v3, mf->v1)) { PRINT("    face %u: edge v3/v1 (%u,%u) is missing egde data\n", i, mf->v3, mf->v1); do_edge_recalc= TRUE; }
 					}
 				}
 
@@ -261,10 +261,10 @@ int BKE_mesh_validate_arrays(Mesh *me, MVert *UNUSED(mverts), unsigned int totve
 			if(do_verbose) {
 				mf_prev= mfaces + sf_prev->index;
 				if(mf->v4) {
-					PRINT("    face %d & %d: are duplicates (%d,%d,%d,%d) (%d,%d,%d,%d)\n", sf->index, sf_prev->index, mf->v1, mf->v2, mf->v3, mf->v4, mf_prev->v1, mf_prev->v2, mf_prev->v3, mf_prev->v4);
+					PRINT("    face %u & %u: are duplicates (%u,%u,%u,%u) (%u,%u,%u,%u)\n", sf->index, sf_prev->index, mf->v1, mf->v2, mf->v3, mf->v4, mf_prev->v1, mf_prev->v2, mf_prev->v3, mf_prev->v4);
 				}
 				else {
-					PRINT("    face %d & %d: are duplicates (%d,%d,%d) (%d,%d,%d)\n", sf->index, sf_prev->index, mf->v1, mf->v2, mf->v3, mf_prev->v1, mf_prev->v2, mf_prev->v3);
+					PRINT("    face %u & %u: are duplicates (%u,%u,%u) (%u,%u,%u)\n", sf->index, sf_prev->index, mf->v1, mf->v2, mf->v3, mf_prev->v1, mf_prev->v2, mf_prev->v3);
 				}
 			}
 

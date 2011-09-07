@@ -92,6 +92,8 @@ private:
 
 	void add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node);
 
+	void add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node);
+
 	std::string get_controller_id(Object *ob_arm, Object *ob);
 
 	// ob should be of type OB_MESH

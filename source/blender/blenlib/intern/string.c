@@ -129,8 +129,7 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 	while(len < maxlen) {
 		switch(*src) {
 			case '\0':
-				*dst= '\0';
-				break;
+				goto escape_finish;
 			case '\\':
 			case '"':
 
@@ -144,7 +143,6 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 				}
 				else {
 					/* not enough space to escape */
-					*dst= '\0';
 					break;
 				}
 				/* intentionally pass through */
@@ -155,6 +153,10 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 		src++;
 		len++;
 	}
+
+escape_finish:
+
+	*dst= '\0';
 
 	return len;
 }

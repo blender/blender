@@ -21,3 +21,4 @@ bpy.context.scene.render.ffmpeg_muxrate = 10080000
 bpy.context.scene.render.ffmpeg_audio_codec = "AC3"
 bpy.context.scene.render.ffmpeg_audio_bitrate = 448
 bpy.context.scene.render.ffmpeg_audio_mixrate = 48000
+bpy.context.scene.render.ffmpeg_audio_channels = 6

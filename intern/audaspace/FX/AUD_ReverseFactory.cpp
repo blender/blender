@@ -33,12 +33,12 @@
 #include "AUD_ReverseReader.h"
 #include "AUD_Space.h"
 
-AUD_ReverseFactory::AUD_ReverseFactory(AUD_IFactory* factory) :
+AUD_ReverseFactory::AUD_ReverseFactory(AUD_Reference<AUD_IFactory> factory) :
 		AUD_EffectFactory(factory)
 {
 }
 
-AUD_IReader* AUD_ReverseFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_ReverseFactory::createReader()
 {
 	return new AUD_ReverseReader(getReader());
 }

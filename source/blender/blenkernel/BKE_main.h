@@ -77,6 +77,7 @@ typedef struct Main {
 	ListBase script;
 	ListBase vfont;
 	ListBase text;
+	ListBase speaker;
 	ListBase sound;
 	ListBase group;
 	ListBase armature;

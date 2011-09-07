@@ -51,6 +51,6 @@ void KX_OrientationInterpolator::Execute(float currentTime) const {
 	MT_Scalar ss = si*sh;
 
 	m_target.setValue(cj*ch, sj*sc-cs, sj*cc+ss,
-					  cj*sh, sj*ss+cc, sj*cs-sc, 
-					    -sj,    cj*si,    cj*ci);
+	                  cj*sh, sj*ss+cc, sj*cs-sc,
+	                  -sj,    cj*si,    cj*ci);
 }

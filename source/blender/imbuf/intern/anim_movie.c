@@ -67,6 +67,7 @@
 #include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
 							BLI_countlist BLI_stringdec */
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -75,8 +76,6 @@
 
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
-
-#include "BLI_math_base.h"
 
 #include "imbuf.h"
 
@@ -345,13 +344,14 @@ void IMB_close_anim(struct anim * anim) {
 }
 
 
-struct anim * IMB_open_anim( const char * name, int ib_flags) {
+struct anim * IMB_open_anim( const char * name, int ib_flags, int streamindex) {
 	struct anim * anim;
 
 	anim = (struct anim*)MEM_callocN(sizeof(struct anim), "anim struct");
 	if (anim != NULL) {
 		BLI_strncpy(anim->name, name, sizeof(anim->name));
 		anim->ib_flags = ib_flags;
+		anim->streamindex = streamindex;
 	}
 	return(anim);
 }
@@ -363,10 +363,13 @@ static int startavi (struct anim *anim) {
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	HRESULT	hr;
 	int i, firstvideo = -1;
+	int streamcount;
 	BYTE abFormat[1024];
 	LONG l;
 	LPBITMAPINFOHEADER lpbi;
 	AVISTREAMINFO avis;
+
+	streamcount = anim->streamindex;
 #endif
 
 	anim->avi = MEM_callocN (sizeof(AviMovie),"animavi");
@@ -391,6 +394,10 @@ static int startavi (struct anim *anim) {
 				
 				AVIStreamInfo(anim->pavi[i], &avis, sizeof(avis));
 				if ((avis.fccType == streamtypeVIDEO) && (firstvideo == -1)) {
+					if (streamcount > 0) {
+						streamcount--;
+						continue;
+					}
 					anim->pgf = AVIStreamGetFrameOpen(anim->pavi[i], NULL);
 					if (anim->pgf) {
 						firstvideo = i;
@@ -514,6 +521,7 @@ static int startffmpeg(struct anim * anim) {
 	AVCodecContext *pCodecCtx;
 	int frs_num;
 	double frs_den;
+	int streamcount;
 
 #ifdef FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
 	/* The following for color space determination */
@@ -523,6 +531,8 @@ static int startffmpeg(struct anim * anim) {
 #endif
 
 	if (anim == 0) return(-1);
+
+	streamcount = anim->streamindex;
 
 	do_init_ffmpeg();
 
@@ -538,12 +548,17 @@ static int startffmpeg(struct anim * anim) {
 	av_dump_format(pFormatCtx, 0, anim->name, 0);
 
 
-		/* Find the first video stream */
-	videoStream=-1;
-	for(i=0; i<pFormatCtx->nb_streams; i++)
-		if(pFormatCtx->streams[i]->codec->codec_type
+	/* Find the video stream */
+	videoStream = -1;
+
+	for(i = 0; i < pFormatCtx->nb_streams; i++)
+		if (pFormatCtx->streams[i]->codec->codec_type
 		   == AVMEDIA_TYPE_VIDEO) {
-			videoStream=i;
+			if (streamcount > 0) {
+				streamcount--;
+				continue;
+			}
+			videoStream = i;
 			break;
 		}
 
@@ -554,16 +569,16 @@ static int startffmpeg(struct anim * anim) {
 
 	pCodecCtx = pFormatCtx->streams[videoStream]->codec;
 
-		/* Find the decoder for the video stream */
-	pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
-	if(pCodec==NULL) {
+	/* Find the decoder for the video stream */
+	pCodec = avcodec_find_decoder(pCodecCtx->codec_id);
+	if(pCodec == NULL) {
 		av_close_input_file(pFormatCtx);
 		return -1;
 	}
 
 	pCodecCtx->workaround_bugs = 1;
 
-	if(avcodec_open(pCodecCtx, pCodec)<0) {
+	if(avcodec_open(pCodecCtx, pCodec) < 0) {
 		av_close_input_file(pFormatCtx);
 		return -1;
 	}
@@ -907,7 +922,7 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 static void ffmpeg_decode_video_frame_scan(
 	struct anim * anim, int64_t pts_to_search)
 {
-        /* there seem to exist *very* silly GOP lengths out in the wild... */
+	/* there seem to exist *very* silly GOP lengths out in the wild... */
 	int count = 1000;
 
 	av_log(anim->pFormatCtx,

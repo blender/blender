@@ -74,3 +74,9 @@ void AUD_Buffer::resize(int size, bool keep)
 
 	m_size = size;
 }
+
+void AUD_Buffer::assureSize(int size, bool keep)
+{
+	if(m_size < size)
+		resize(size, keep);
+}

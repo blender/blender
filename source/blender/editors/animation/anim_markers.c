@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -339,7 +337,7 @@ void debug_markers_print_list(ListBase *markers)
 	printf("List of markers follows: -----\n");
 	
 	for (marker = markers->first; marker; marker = marker->next) {
-		printf("\t'%s' on %d at %p with %d\n", marker->name, marker->frame, (void *)marker, marker->flag);
+		printf("\t'%s' on %d at %p with %u\n", marker->name, marker->frame, (void *)marker, marker->flag);
 	}
 	
 	printf("End of list ------------------\n");
@@ -1507,4 +1505,15 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 #ifdef DURIAN_CAMERA_SWITCH
 	WM_keymap_add_item(keymap, "MARKER_OT_camera_bind", BKEY, KM_PRESS, KM_CTRL, 0);
 #endif
+}
+
+/* to be called from animation editor keymaps, see note below */
+void ED_marker_keymap_animedit_conflictfree(wmKeyMap *keymap)
+{
+	/* duplicate of some marker-hotkeys but without the bounds checking
+	 * since these are handy to be able to do unrestricted and won't conflict
+	 * with primary function hotkeys (Usability tweak [#27469])
+	 */
+	WM_keymap_add_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MARKER_OT_rename", MKEY, KM_PRESS, KM_CTRL, 0);
 }

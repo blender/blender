@@ -220,7 +220,8 @@ typedef enum IMB_Proxy_Size {
 	IMB_PROXY_25 = 1,
 	IMB_PROXY_50 = 2,
 	IMB_PROXY_75 = 4,
-	IMB_PROXY_MAX_SLOT = 3
+	IMB_PROXY_100 = 8,
+	IMB_PROXY_MAX_SLOT = 4
 } IMB_Proxy_Size;
 
 /* defaults to BL_proxy within the directory of the animation */
@@ -253,7 +254,7 @@ int IMB_anim_get_fps(struct anim * anim,
  *
  * @attention Defined in anim.c
  */
-struct anim *IMB_open_anim(const char *name, int ib_flags);
+struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex);
 void IMB_close_anim(struct anim *anim);
 
 
@@ -498,7 +499,7 @@ void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, i
 void IMB_rectfill_alpha(struct ImBuf *ibuf, const float value);
 
 /* this should not be here, really, we needed it for operating on render data, IMB_rectfill_area calls it */
-void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2);
+void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, const float col[4], int x1, int y1, int x2, int y2);
 
 /* defined in metadata.c */
 int IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field);

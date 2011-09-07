@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory.
+ * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory , Sukhitha Jayathilake.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -37,10 +37,17 @@
 #include "COLLADAFWAnimationList.h"
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
+#include "COLLADAFWLight.h"
+#include "COLLADAFWCamera.h"
+#include "COLLADAFWMaterial.h"
+#include "COLLADAFWEffect.h"
+#include "COLLADAFWInstanceGeometry.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_camera_types.h"
 
 //#include "ArmatureImporter.h"
 #include "TransformReader.h"
@@ -79,6 +86,49 @@ private:
 	void fcurve_deg_to_rad(FCurve *cu);
 
 	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated);
+	
+	int typeFlag;
+
+	enum lightAnim
+	{
+//		INANIMATE = 0,
+		LIGHT_COLOR	= 2,
+		LIGHT_FOA = 4,
+		LIGHT_FOE = 8
+	};
+
+	enum cameraAnim
+	{
+//		INANIMATE = 0,
+		CAMERA_XFOV = 2,
+		CAMERA_XMAG = 4,
+		CAMERA_ZFAR = 8,
+		CAMERA_ZNEAR = 16
+	};
+
+	enum matAnim
+	{
+		MATERIAL_SHININESS = 2,
+		MATERIAL_SPEC_COLOR = 4,
+		MATERIAL_DIFF_COLOR = 1 << 3,
+		MATERIAL_TRANSPARENCY = 1 << 4,
+		MATERIAL_IOR = 1 << 5
+	};
+	
+	enum AnimationType
+		{
+			INANIMATE = 0,
+			NODE_TRANSFORM = 1,
+		};
+
+	struct AnimMix
+	{
+		int transform;
+		int light;
+		int camera;
+		int material;
+		int texture;
+	};
 public:
 
 	AnimationImporter(UnitConverter *conv, ArmatureImporter *arm, Scene *scene);
@@ -95,15 +145,37 @@ public:
 	virtual void change_eul_to_quat(Object *ob, bAction *act);
 #endif
 
+	void translate_Animations( COLLADAFW::Node * Node , 
+												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
+												   std::map<COLLADAFW::UniqueId, Object*>& object_map ,
+												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
+
+	AnimMix* get_animation_type( const COLLADAFW::Node * node , std::map<COLLADAFW::UniqueId,const COLLADAFW::Object*> FW_object_map ) ;
+
+	void apply_matrix_curves( Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node,
+									COLLADAFW::Transformation * tm );
+
+	void Assign_transform_animations(COLLADAFW::Transformation* transform , 
+									 const COLLADAFW::AnimationList::AnimationBinding * binding,
+									 std::vector<FCurve*>* curves, bool is_joint, char * joint_path);
+
+	void Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type);
+	void Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type);
+
+	int setAnimType ( const COLLADAFW::Animatable * prop , int type, int addition);
+	
+	void modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index );
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist
 	// curve_map - map anim id -> curve(s)
-	Object *translate_animation(COLLADAFW::Node *node,
+	Object * translate_animation_OLD(COLLADAFW::Node *node,
 								std::map<COLLADAFW::UniqueId, Object*>& object_map,
 								std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 								COLLADAFW::Transformation::TransformationType tm_type,
 								Object *par_job = NULL);
-
+	
+	void find_frames( std::vector<float>* frames , std::vector<FCurve*>* curves );
+	void find_frames_old( std::vector<float>* frames, COLLADAFW::Node * node, COLLADAFW::Transformation::TransformationType tm_type );
 	// internal, better make it private
 	// warning: evaluates only rotation
 	// prerequisites: animlist_map, curve_map
@@ -131,6 +203,8 @@ public:
 	void add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurve *fcu);
 
 	void add_bezt(FCurve *fcu, float fra, float value);
+
+	void extra_data_importer(std::string elementName);
 };
- 
- #endif
+
+#endif

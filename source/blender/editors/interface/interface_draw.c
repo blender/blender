@@ -771,17 +771,17 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	glColor4f(0.f, 0.f, 0.f, 0.3f);
 	uiSetRoundBox(15);
 	uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
-	
+
+	/* need scissor test, histogram can draw outside of boundary */
+	glGetIntegerv(GL_VIEWPORT, scissor);
+	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
+
 	glColor4f(1.f, 1.f, 1.f, 0.08f);
 	/* draw grid lines here */
 	for (i=1; i<4; i++) {
 		fdrawline(rect.xmin, rect.ymin+(i/4.f)*h, rect.xmax, rect.ymin+(i/4.f)*h);
 		fdrawline(rect.xmin+(i/4.f)*w, rect.ymin, rect.xmin+(i/4.f)*w, rect.ymax);
 	}
-	
-	/* need scissor test, histogram can draw outside of boundary */
-	glGetIntegerv(GL_VIEWPORT, scissor);
-	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
 	
 	if (hist->mode == HISTO_MODE_LUMA)
 		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_luma, res);

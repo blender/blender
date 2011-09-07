@@ -33,6 +33,7 @@
 #include "structmember.h"
 
 #include "AUD_I3DDevice.h"
+#include "AUD_I3DHandle.h"
 #include "AUD_NULLDevice.h"
 #include "AUD_DelayFactory.h"
 #include "AUD_DoubleFactory.h"
@@ -91,7 +92,7 @@ static void
 Factory_dealloc(Factory* self)
 {
 	if(self->factory)
-		delete self->factory;
+		delete reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory);
 	Py_XDECREF(self->child_list);
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
@@ -115,7 +116,7 @@ Factory_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 		try
 		{
-			self->factory = new AUD_FileFactory(filename);
+			self->factory = new AUD_Reference<AUD_IFactory>(new AUD_FileFactory(filename));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -143,9 +144,9 @@ static PyObject *
 Factory_sine(PyTypeObject* type, PyObject* args)
 {
 	float frequency;
-	int rate = 44100;
+	double rate = 44100;
 
-	if(!PyArg_ParseTuple(args, "f|i:sine", &frequency, &rate))
+	if(!PyArg_ParseTuple(args, "f|d:sine", &frequency, &rate))
 		return NULL;
 
 	Factory *self;
@@ -155,7 +156,7 @@ Factory_sine(PyTypeObject* type, PyObject* args)
 	{
 		try
 		{
-			self->factory = new AUD_SinusFactory(frequency, (AUD_SampleRate)rate);
+			self->factory = new AUD_Reference<AUD_IFactory>(new AUD_SinusFactory(frequency, (AUD_SampleRate)rate));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -194,7 +195,7 @@ Factory_file(PyTypeObject* type, PyObject* args)
 	{
 		try
 		{
-			self->factory = new AUD_FileFactory(filename);
+			self->factory = new AUD_Reference<AUD_IFactory>(new AUD_FileFactory(filename));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -237,7 +238,7 @@ Factory_lowpass(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_LowpassFactory(self->factory, frequency, Q);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_LowpassFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), frequency, Q));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -278,7 +279,7 @@ Factory_delay(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_DelayFactory(self->factory, delay);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_DelayFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), delay));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -322,7 +323,7 @@ Factory_join(Factory* self, PyObject* object)
 
 		try
 		{
-			parent->factory = new AUD_DoubleFactory(self->factory, child->factory);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_DoubleFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), *reinterpret_cast<AUD_Reference<AUD_IFactory>*>(child->factory)));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -365,7 +366,7 @@ Factory_highpass(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_HighpassFactory(self->factory, frequency, Q);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_HighpassFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), frequency, Q));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -406,7 +407,7 @@ Factory_limit(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_LimiterFactory(self->factory, start, end);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_LimiterFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), start, end));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -450,7 +451,7 @@ Factory_pitch(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_PitchFactory(self->factory, factor);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_PitchFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), factor));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -492,7 +493,7 @@ Factory_volume(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_VolumeFactory(self->factory, volume);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_VolumeFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), volume));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -535,7 +536,7 @@ Factory_fadein(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_FaderFactory(self->factory, AUD_FADE_IN, start, length);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_FaderFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), AUD_FADE_IN, start, length));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -579,7 +580,7 @@ Factory_fadeout(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_FaderFactory(self->factory, AUD_FADE_OUT, start, length);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_FaderFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), AUD_FADE_OUT, start, length));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -621,7 +622,7 @@ Factory_loop(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_LoopFactory(self->factory, loop);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_LoopFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), loop));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -664,7 +665,7 @@ Factory_mix(Factory* self, PyObject* object)
 
 		try
 		{
-			parent->factory = new AUD_SuperposeFactory(self->factory, child->factory);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_SuperposeFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), *reinterpret_cast<AUD_Reference<AUD_IFactory>*>(child->factory)));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -697,7 +698,7 @@ Factory_pingpong(Factory* self)
 
 		try
 		{
-			parent->factory = new AUD_PingPongFactory(self->factory);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_PingPongFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory)));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -736,7 +737,7 @@ Factory_reverse(Factory* self)
 
 		try
 		{
-			parent->factory = new AUD_ReverseFactory(self->factory);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_ReverseFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory)));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -771,7 +772,7 @@ Factory_buffer(Factory* self)
 	{
 		try
 		{
-			parent->factory = new AUD_StreamBufferFactory(self->factory);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_StreamBufferFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory)));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -813,7 +814,7 @@ Factory_square(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_SquareFactory(self->factory, threshold);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_SquareFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), threshold));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -910,7 +911,7 @@ Factory_filter(Factory* self, PyObject* args)
 
 		try
 		{
-			parent->factory = new AUD_IIRFilterFactory(self->factory, b, a);
+			parent->factory = new AUD_Reference<AUD_IFactory>(new AUD_IIRFilterFactory(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(self->factory), b, a));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -1033,7 +1034,8 @@ static PyTypeObject FactoryType = {
 static void
 Handle_dealloc(Handle* self)
 {
-	Py_XDECREF(self->device);
+	if(self->handle)
+		delete reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle);
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -1046,11 +1048,9 @@ PyDoc_STRVAR(M_aud_Handle_pause_doc,
 static PyObject *
 Handle_pause(Handle *self)
 {
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		return PyBool_FromLong((long)device->device->pause(self->handle));
+		return PyBool_FromLong((long)(*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->pause());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1068,11 +1068,9 @@ PyDoc_STRVAR(M_aud_Handle_resume_doc,
 static PyObject *
 Handle_resume(Handle *self)
 {
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		return PyBool_FromLong((long)device->device->resume(self->handle));
+		return PyBool_FromLong((long)(*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->resume());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1091,11 +1089,9 @@ PyDoc_STRVAR(M_aud_Handle_stop_doc,
 static PyObject *
 Handle_stop(Handle *self)
 {
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		return PyBool_FromLong((long)device->device->stop(self->handle));
+		return PyBool_FromLong((long)(*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->stop());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1123,11 +1119,9 @@ PyDoc_STRVAR(M_aud_Handle_position_doc,
 static PyObject *
 Handle_get_position(Handle *self, void* nothing)
 {
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		return Py_BuildValue("f", device->device->getPosition(self->handle));
+		return Py_BuildValue("f", (*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->getPosition());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1144,11 +1138,9 @@ Handle_set_position(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:position", &position))
 		return -1;
 
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		if(device->device->seek(self->handle, position))
+		if((*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->seek(position))
 			return 0;
 		PyErr_SetString(AUDError, "Couldn't seek the sound!");
 	}
@@ -1172,11 +1164,9 @@ PyDoc_STRVAR(M_aud_Handle_keep_doc,
 static PyObject *
 Handle_get_keep(Handle *self, void* nothing)
 {
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		return PyBool_FromLong((long)device->device->getKeep(self->handle));
+		return PyBool_FromLong((long)(*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->getKeep());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1195,11 +1185,10 @@ Handle_set_keep(Handle *self, PyObject* args, void* nothing)
 	}
 
 	bool keep = args == Py_True;
-	Device* device = (Device*)self->device;
 
 	try
 	{
-		if(device->device->setKeep(self->handle, keep))
+		if((*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->setKeep(keep))
 			return 0;
 		PyErr_SetString(AUDError, "Couldn't set keep of the sound!");
 	}
@@ -1217,11 +1206,9 @@ PyDoc_STRVAR(M_aud_Handle_status_doc,
 static PyObject *
 Handle_get_status(Handle *self, void* nothing)
 {
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		return PyBool_FromLong((long)device->device->getStatus(self->handle));
+		return PyBool_FromLong((long)(*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->getStatus());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1236,11 +1223,9 @@ PyDoc_STRVAR(M_aud_Handle_volume_doc,
 static PyObject *
 Handle_get_volume(Handle *self, void* nothing)
 {
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		return Py_BuildValue("f", device->device->getVolume(self->handle));
+		return Py_BuildValue("f", (*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->getVolume());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1257,11 +1242,9 @@ Handle_set_volume(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:volume", &volume))
 		return -1;
 
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		if(device->device->setVolume(self->handle, volume))
+		if((*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->setVolume(volume))
 			return 0;
 		PyErr_SetString(AUDError, "Couldn't set the sound volume!");
 	}
@@ -1279,11 +1262,9 @@ PyDoc_STRVAR(M_aud_Handle_pitch_doc,
 static PyObject *
 Handle_get_pitch(Handle *self, void* nothing)
 {
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		return Py_BuildValue("f", device->device->getPitch(self->handle));
+		return Py_BuildValue("f", (*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->getPitch());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1300,11 +1281,9 @@ Handle_set_pitch(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:pitch", &pitch))
 		return -1;
 
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		if(device->device->setPitch(self->handle, pitch))
+		if((*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->setPitch(pitch))
 			return 0;
 		PyErr_SetString(AUDError, "Couldn't set the sound pitch!");
 	}
@@ -1322,11 +1301,9 @@ PyDoc_STRVAR(M_aud_Handle_loop_count_doc,
 static PyObject *
 Handle_get_loop_count(Handle *self, void* nothing)
 {
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		return Py_BuildValue("i", device->device->getLoopCount(self->handle));
+		return Py_BuildValue("i", (*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->getLoopCount());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -1343,11 +1320,9 @@ Handle_set_loop_count(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "i:loop_count", &loops))
 		return -1;
 
-	Device* device = (Device*)self->device;
-
 	try
 	{
-		if(device->device->setLoopCount(self->handle, loops))
+		if((*reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle))->setLoopCount(loops))
 			return 0;
 		PyErr_SetString(AUDError, "Couldn't set the loop count!");
 	}
@@ -1365,14 +1340,12 @@ PyDoc_STRVAR(M_aud_Handle_location_doc,
 static PyObject *
 Handle_get_location(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			AUD_Vector3 v = device->getSourceLocation(self->handle);
+			AUD_Vector3 v = handle->getSourceLocation();
 			return Py_BuildValue("(fff)", v.x(), v.y(), v.z());
 		}
 		else
@@ -1396,15 +1369,13 @@ Handle_set_location(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "(fff):location", &x, &y, &z))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
 			AUD_Vector3 location(x, y, z);
-			if(device->setSourceLocation(self->handle, location))
+			if(handle->setSourceLocation(location))
 				return 0;
 			PyErr_SetString(AUDError, "Location couldn't be set!");
 		}
@@ -1425,14 +1396,12 @@ PyDoc_STRVAR(M_aud_Handle_velocity_doc,
 static PyObject *
 Handle_get_velocity(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			AUD_Vector3 v = device->getSourceVelocity(self->handle);
+			AUD_Vector3 v = handle->getSourceVelocity();
 			return Py_BuildValue("(fff)", v.x(), v.y(), v.z());
 		}
 		else
@@ -1456,15 +1425,13 @@ Handle_set_velocity(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "(fff):velocity", &x, &y, &z))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
 			AUD_Vector3 velocity(x, y, z);
-			if(device->setSourceVelocity(self->handle, velocity))
+			if(handle->setSourceVelocity(velocity))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the velocity!");
 		}
@@ -1485,14 +1452,12 @@ PyDoc_STRVAR(M_aud_Handle_orientation_doc,
 static PyObject *
 Handle_get_orientation(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			AUD_Quaternion o = device->getSourceOrientation(self->handle);
+			AUD_Quaternion o = handle->getSourceOrientation();
 			return Py_BuildValue("(ffff)", o.w(), o.x(), o.y(), o.z());
 		}
 		else
@@ -1516,15 +1481,13 @@ Handle_set_orientation(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "(ffff):orientation", &w, &x, &y, &z))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
 			AUD_Quaternion orientation(w, x, y, z);
-			if(device->setSourceOrientation(self->handle, orientation))
+			if(handle->setSourceOrientation(orientation))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the orientation!");
 		}
@@ -1545,14 +1508,12 @@ PyDoc_STRVAR(M_aud_Handle_relative_doc,
 static PyObject *
 Handle_get_relative(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			return PyBool_FromLong((long)device->isRelative(self->handle));
+			return PyBool_FromLong((long)handle->isRelative());
 		}
 		else
 		{
@@ -1577,14 +1538,13 @@ Handle_set_relative(Handle *self, PyObject* args, void* nothing)
 	}
 
 	bool relative = (args == Py_True);
-	Device* dev = (Device*)self->device;
 
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			if(device->setRelative(self->handle, relative))
+			if(handle->setRelative(relative))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the relativeness!");
 		}
@@ -1606,14 +1566,12 @@ PyDoc_STRVAR(M_aud_Handle_volume_minimum_doc,
 static PyObject *
 Handle_get_volume_minimum(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			return Py_BuildValue("f", device->getVolumeMinimum(self->handle));
+			return Py_BuildValue("f", handle->getVolumeMinimum());
 		}
 		else
 		{
@@ -1636,14 +1594,12 @@ Handle_set_volume_minimum(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:volume_minimum", &volume))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			if(device->setVolumeMinimum(self->handle, volume))
+			if(handle->setVolumeMinimum(volume))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the minimum volume!");
 		}
@@ -1665,14 +1621,12 @@ PyDoc_STRVAR(M_aud_Handle_volume_maximum_doc,
 static PyObject *
 Handle_get_volume_maximum(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			return Py_BuildValue("f", device->getVolumeMaximum(self->handle));
+			return Py_BuildValue("f", handle->getVolumeMaximum());
 		}
 		else
 		{
@@ -1695,14 +1649,12 @@ Handle_set_volume_maximum(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:volume_maximum", &volume))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			if(device->setVolumeMaximum(self->handle, volume))
+			if(handle->setVolumeMaximum(volume))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the maximum volume!");
 		}
@@ -1725,14 +1677,12 @@ PyDoc_STRVAR(M_aud_Handle_distance_reference_doc,
 static PyObject *
 Handle_get_distance_reference(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			return Py_BuildValue("f", device->getDistanceReference(self->handle));
+			return Py_BuildValue("f", handle->getDistanceReference());
 		}
 		else
 		{
@@ -1755,14 +1705,12 @@ Handle_set_distance_reference(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:distance_reference", &distance))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			if(device->setDistanceReference(self->handle, distance))
+			if(handle->setDistanceReference(distance))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the reference distance!");
 		}
@@ -1785,14 +1733,12 @@ PyDoc_STRVAR(M_aud_Handle_distance_maximum_doc,
 static PyObject *
 Handle_get_distance_maximum(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			return Py_BuildValue("f", device->getDistanceMaximum(self->handle));
+			return Py_BuildValue("f", handle->getDistanceMaximum());
 		}
 		else
 		{
@@ -1815,14 +1761,12 @@ Handle_set_distance_maximum(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:distance_maximum", &distance))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			if(device->setDistanceMaximum(self->handle, distance))
+			if(handle->setDistanceMaximum(distance))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the maximum distance!");
 		}
@@ -1845,14 +1789,12 @@ PyDoc_STRVAR(M_aud_Handle_attenuation_doc,
 static PyObject *
 Handle_get_attenuation(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			return Py_BuildValue("f", device->getAttenuation(self->handle));
+			return Py_BuildValue("f", handle->getAttenuation());
 		}
 		else
 		{
@@ -1875,14 +1817,12 @@ Handle_set_attenuation(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:attenuation", &factor))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			if(device->setAttenuation(self->handle, factor))
+			if(handle->setAttenuation(factor))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the attenuation!");
 		}
@@ -1910,14 +1850,12 @@ PyDoc_STRVAR(M_aud_Handle_cone_angle_inner_doc,
 static PyObject *
 Handle_get_cone_angle_inner(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			return Py_BuildValue("f", device->getConeAngleInner(self->handle));
+			return Py_BuildValue("f", handle->getConeAngleInner());
 		}
 		else
 		{
@@ -1940,14 +1878,12 @@ Handle_set_cone_angle_inner(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:cone_angle_inner", &angle))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			if(device->setConeAngleInner(self->handle, angle))
+			if(handle->setConeAngleInner(angle))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the cone inner angle!");
 		}
@@ -1969,14 +1905,12 @@ PyDoc_STRVAR(M_aud_Handle_cone_angle_outer_doc,
 static PyObject *
 Handle_get_cone_angle_outer(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			return Py_BuildValue("f", device->getConeAngleOuter(self->handle));
+			return Py_BuildValue("f", handle->getConeAngleOuter());
 		}
 		else
 		{
@@ -1999,14 +1933,12 @@ Handle_set_cone_angle_outer(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:cone_angle_outer", &angle))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			if(device->setConeAngleOuter(self->handle, angle))
+			if(handle->setConeAngleOuter(angle))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the cone outer angle!");
 		}
@@ -2028,14 +1960,12 @@ PyDoc_STRVAR(M_aud_Handle_cone_volume_outer_doc,
 static PyObject *
 Handle_get_cone_volume_outer(Handle *self, void* nothing)
 {
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			return Py_BuildValue("f", device->getConeVolumeOuter(self->handle));
+			return Py_BuildValue("f", handle->getConeVolumeOuter());
 		}
 		else
 		{
@@ -2058,14 +1988,12 @@ Handle_set_cone_volume_outer(Handle *self, PyObject* args, void* nothing)
 	if(!PyArg_Parse(args, "f:cone_volume_outer", &volume))
 		return -1;
 
-	Device* dev = (Device*)self->device;
-
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(dev->device);
-		if(device)
+		AUD_I3DHandle* handle = dynamic_cast<AUD_I3DHandle*>(reinterpret_cast<AUD_Reference<AUD_IHandle>*>(self->handle)->get());
+		if(handle)
 		{
-			if(device->setConeVolumeOuter(self->handle, volume))
+			if(handle->setConeVolumeOuter(volume))
 				return 0;
 			PyErr_SetString(AUDError, "Couldn't set the cone outer volume!");
 		}
@@ -2172,7 +2100,7 @@ static void
 Device_dealloc(Device* self)
 {
 	if(self->device)
-		delete self->device;
+		delete reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device);
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -2183,13 +2111,13 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 	static const char *kwlist[] = {"type", "rate", "channels", "format", "buffer_size", "name", NULL};
 	int device;
-	int rate = AUD_RATE_44100;
+	double rate = AUD_RATE_44100;
 	int channels = AUD_CHANNELS_STEREO;
 	int format = AUD_FORMAT_FLOAT32;
 	int buffersize = AUD_DEFAULT_BUFFER_SIZE;
 	const char* name = "Audaspace";
 
-	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|iiiis:Device", const_cast<char**>(kwlist),
+	if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|diiis:Device", const_cast<char**>(kwlist),
 									&device, &rate, &channels, &format, &buffersize, &name))
 		return NULL;
 
@@ -2215,21 +2143,21 @@ Device_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 			{
 			case AUD_DEVICE_NULL:
 				(void)specs; /* quiet warning when others disabled */
-				self->device = new AUD_NULLDevice();
+				self->device = new AUD_Reference<AUD_IDevice>(new AUD_NULLDevice());
 				break;
 			case AUD_DEVICE_OPENAL:
 #ifdef WITH_OPENAL
-				self->device = new AUD_OpenALDevice(specs, buffersize);
+				self->device = new AUD_Reference<AUD_IDevice>(new AUD_OpenALDevice(specs, buffersize));
 #endif
 				break;
 			case AUD_DEVICE_SDL:
 #ifdef WITH_SDL
-				self->device = new AUD_SDLDevice(specs, buffersize);
+				self->device = new AUD_Reference<AUD_IDevice>(new AUD_SDLDevice(specs, buffersize));
 #endif
 				break;
 			case AUD_DEVICE_JACK:
 #ifdef WITH_JACK
-				self->device = new AUD_JackDevice(name, specs, buffersize);
+				self->device = new AUD_Reference<AUD_IDevice>(new AUD_JackDevice(name, specs, buffersize));
 #endif
 				break;
 			case AUD_DEVICE_READ:
@@ -2302,12 +2230,9 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 	handle = (Handle*)HandleType.tp_alloc(&HandleType, 0);
 	if(handle != NULL)
 	{
-		handle->device = (PyObject*)self;
-		Py_INCREF(self);
-
 		try
 		{
-			handle->handle = self->device->play(sound->factory, keep);
+			handle->handle = new AUD_Reference<AUD_IHandle>((*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->play(*reinterpret_cast<AUD_Reference<AUD_IFactory>*>(sound->factory), keep));
 		}
 		catch(AUD_Exception& e)
 		{
@@ -2318,6 +2243,25 @@ Device_play(Device *self, PyObject *args, PyObject *kwds)
 	}
 
 	return (PyObject *)handle;
+}
+
+PyDoc_STRVAR(M_aud_Device_stopAll_doc,
+			 "stopAll()\n\n"
+			 "Stops all playing and paused sounds.");
+
+static PyObject *
+Device_stopAll(Device *self)
+{
+	try
+	{
+		(*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->stopAll();
+		Py_RETURN_NONE;
+	}
+	catch(AUD_Exception& e)
+	{
+		PyErr_SetString(AUDError, e.str);
+		return NULL;
+	}
 }
 
 PyDoc_STRVAR(M_aud_Device_lock_doc,
@@ -2336,7 +2280,7 @@ Device_lock(Device *self)
 {
 	try
 	{
-		self->device->lock();
+		(*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->lock();
 		Py_RETURN_NONE;
 	}
 	catch(AUD_Exception& e)
@@ -2356,7 +2300,7 @@ Device_unlock(Device *self)
 {
 	try
 	{
-		self->device->unlock();
+		(*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->unlock();
 		Py_RETURN_NONE;
 	}
 	catch(AUD_Exception& e)
@@ -2369,6 +2313,9 @@ Device_unlock(Device *self)
 static PyMethodDef Device_methods[] = {
 	{"play", (PyCFunction)Device_play, METH_VARARGS | METH_KEYWORDS,
 	 M_aud_Device_play_doc
+	},
+	{"stopAll", (PyCFunction)Device_stopAll, METH_NOARGS,
+	 M_aud_Device_stopAll_doc
 	},
 	{"lock", (PyCFunction)Device_lock, METH_NOARGS,
 	 M_aud_Device_lock_doc
@@ -2387,8 +2334,8 @@ Device_get_rate(Device *self, void* nothing)
 {
 	try
 	{
-		AUD_DeviceSpecs specs = self->device->getSpecs();
-		return Py_BuildValue("i", specs.rate);
+		AUD_DeviceSpecs specs = (*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->getSpecs();
+		return Py_BuildValue("d", specs.rate);
 	}
 	catch(AUD_Exception& e)
 	{
@@ -2405,7 +2352,7 @@ Device_get_format(Device *self, void* nothing)
 {
 	try
 	{
-		AUD_DeviceSpecs specs = self->device->getSpecs();
+		AUD_DeviceSpecs specs = (*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->getSpecs();
 		return Py_BuildValue("i", specs.format);
 	}
 	catch(AUD_Exception& e)
@@ -2423,7 +2370,7 @@ Device_get_channels(Device *self, void* nothing)
 {
 	try
 	{
-		AUD_DeviceSpecs specs = self->device->getSpecs();
+		AUD_DeviceSpecs specs = (*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->getSpecs();
 		return Py_BuildValue("i", specs.channels);
 	}
 	catch(AUD_Exception& e)
@@ -2441,7 +2388,7 @@ Device_get_volume(Device *self, void* nothing)
 {
 	try
 	{
-		return Py_BuildValue("f", self->device->getVolume());
+		return Py_BuildValue("f", (*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->getVolume());
 	}
 	catch(AUD_Exception& e)
 	{
@@ -2460,7 +2407,7 @@ Device_set_volume(Device *self, PyObject* args, void* nothing)
 
 	try
 	{
-		self->device->setVolume(volume);
+		(*reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device))->setVolume(volume);
 		return 0;
 	}
 	catch(AUD_Exception& e)
@@ -2478,7 +2425,7 @@ Device_get_listener_location(Device *self, void* nothing)
 {
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			AUD_Vector3 v = device->getListenerLocation();
@@ -2507,7 +2454,7 @@ Device_set_listener_location(Device *self, PyObject* args, void* nothing)
 
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			AUD_Vector3 location(x, y, z);
@@ -2533,7 +2480,7 @@ Device_get_listener_velocity(Device *self, void* nothing)
 {
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			AUD_Vector3 v = device->getListenerVelocity();
@@ -2562,7 +2509,7 @@ Device_set_listener_velocity(Device *self, PyObject* args, void* nothing)
 
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			AUD_Vector3 velocity(x, y, z);
@@ -2588,7 +2535,7 @@ Device_get_listener_orientation(Device *self, void* nothing)
 {
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			AUD_Quaternion o = device->getListenerOrientation();
@@ -2617,7 +2564,7 @@ Device_set_listener_orientation(Device *self, PyObject* args, void* nothing)
 
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			AUD_Quaternion orientation(w, x, y, z);
@@ -2644,7 +2591,7 @@ Device_get_speed_of_sound(Device *self, void* nothing)
 {
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			return Py_BuildValue("f", device->getSpeedOfSound());
@@ -2672,7 +2619,7 @@ Device_set_speed_of_sound(Device *self, PyObject* args, void* nothing)
 
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			device->setSpeedOfSound(speed);
@@ -2700,7 +2647,7 @@ Device_get_doppler_factor(Device *self, void* nothing)
 {
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			return Py_BuildValue("f", device->getDopplerFactor());
@@ -2728,7 +2675,7 @@ Device_set_doppler_factor(Device *self, PyObject* args, void* nothing)
 
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			device->setDopplerFactor(factor);
@@ -2754,7 +2701,7 @@ Device_get_distance_model(Device *self, void* nothing)
 {
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			return Py_BuildValue("i", int(device->getDistanceModel()));
@@ -2782,7 +2729,7 @@ Device_set_distance_model(Device *self, PyObject* args, void* nothing)
 
 	try
 	{
-		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(self->device);
+		AUD_I3DDevice* device = dynamic_cast<AUD_I3DDevice*>(reinterpret_cast<AUD_Reference<AUD_IDevice>*>(self->device)->get());
 		if(device)
 		{
 			device->setDistanceModel(AUD_DistanceModel(model));
@@ -2874,6 +2821,25 @@ Device_empty()
 {
 	return DeviceType.tp_alloc(&DeviceType, 0);
 }
+
+PyObject *
+Factory_empty()
+{
+	return FactoryType.tp_alloc(&FactoryType, 0);
+}
+
+Factory*
+checkFactory(PyObject* factory)
+{
+	if(!PyObject_TypeCheck(factory, &FactoryType))
+	{
+		PyErr_SetString(PyExc_TypeError, "Object is not of type Factory!");
+		return NULL;
+	}
+
+	return (Factory*)factory;
+}
+
 
 // ====================================================================
 

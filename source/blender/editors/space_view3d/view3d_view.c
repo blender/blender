@@ -625,8 +625,8 @@ void ED_view3d_win_to_3d(ARegion *ar, const float depth_pt[3], const float mval[
 		}
 	}
 	else {
-        const float dx= (2.0f * mval[0] / (float)ar->winx) - 1.0f;
-        const float dy= (2.0f * mval[1] / (float)ar->winy) - 1.0f;
+		const float dx= (2.0f * mval[0] / (float)ar->winx) - 1.0f;
+		const float dy= (2.0f * mval[1] / (float)ar->winy) - 1.0f;
 		line_sta[0]= (rv3d->persinv[0][0] * dx) + (rv3d->persinv[1][0] * dy) + rv3d->viewinv[3][0];
 		line_sta[1]= (rv3d->persinv[0][1] * dx) + (rv3d->persinv[1][1] * dy) + rv3d->viewinv[3][1];
 		line_sta[2]= (rv3d->persinv[0][2] * dx) + (rv3d->persinv[1][2] * dy) + rv3d->viewinv[3][2];

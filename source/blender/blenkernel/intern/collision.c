@@ -1091,7 +1091,7 @@ static int cloth_collision_response_moving ( ClothModifierData *clmd, CollisionM
 				
 				VECADDMUL(cloth1->verts[collpair->ap1].impulse, pimpulse, w1*2.0);
 				VECADDMUL(cloth1->verts[collpair->ap2].impulse, pimpulse, w2*2.0);
-				VECADDMUL(cloth1->verts[collpair->ap3].impulse, pimpulse, w3*2.0);;
+				VECADDMUL(cloth1->verts[collpair->ap3].impulse, pimpulse, w3*2.0);
 				cloth1->verts[collpair->ap1].impulse_count++;
 				cloth1->verts[collpair->ap2].impulse_count++;
 				cloth1->verts[collpair->ap3].impulse_count++;
@@ -1487,8 +1487,8 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2,
 		
 		sdis = clmd->coll_parms->distance_repel + epsilon2 + FLT_EPSILON;
 		
-		/*apply a repulsion force, to help the solver along.
-          this is kindof crude, it only tests one vert of the triangle*/
+		/* apply a repulsion force, to help the solver along.
+		 * this is kindof crude, it only tests one vert of the triangle */
 		if (isect_ray_plane_v3(cloth->verts[collpair->ap1].tx, n2, collmd->current_xnew[collpair->bp1].co, 
 			collmd->current_xnew[collpair->bp2].co,
 			collmd->current_xnew[collpair->bp3].co, &l, 0))

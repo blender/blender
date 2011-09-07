@@ -97,7 +97,8 @@ void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
 	}
 }
 
-void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
+/* return TRUE if the camera is moved */
+int ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 {
 	if(ED_view3d_camera_lock_check(v3d, rv3d)) {
 		Object *root_parent;
@@ -132,6 +133,11 @@ void ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 			WM_main_add_notifier(NC_OBJECT|ND_TRANSFORM, v3d->camera);
 		}
+
+		return TRUE;
+	}
+	else {
+		return FALSE;
 	}
 }
 
@@ -944,16 +950,21 @@ void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4])
 	axis_angle_to_quat(q, axis, angle);
 }
 
+/* -- "orbit" navigation (trackball/turntable)
+ * -- zooming
+ * -- panning in rotationally-locked views
+ */
 static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
-// -- "orbit" navigation (trackball/turntable)
-// -- zooming
-// -- panning in rotationally-locked views
 {
-	if (event->type != NDOF_MOTION)
+	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;
+	}
 	else {
+		View3D *v3d= CTX_wm_view3d(C);
 		RegionView3D* rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
+
+		ED_view3d_camera_lock_init(v3d, rv3d);
 
 		rv3d->rot_angle = 0.f; // off by default, until changed later this function
 
@@ -1064,6 +1075,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 			}
 		}
 
+		ED_view3d_camera_lock_sync(v3d, rv3d);
+
 		ED_region_tag_redraw(CTX_wm_region(C));
 
 		return OPERATOR_FINISHED;
@@ -1085,16 +1098,20 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 	ot->flag = 0;
 }
 
+/* -- "pan" navigation
+ * -- zoom or dolly?
+ */
 static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
-// -- "pan" navigation
-// -- zoom or dolly?
 {
-	if (event->type != NDOF_MOTION)
+	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;
+	}
 	else {
+		View3D *v3d= CTX_wm_view3d(C);
 		RegionView3D* rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData* ndof = (wmNDOFMotionData*) event->customdata;
 
+		ED_view3d_camera_lock_init(v3d, rv3d);
 
 		rv3d->rot_angle = 0.f; // we're panning here! so erase any leftover rotation from other operators
 
@@ -1140,6 +1157,8 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
 			sub_v3_v3(rv3d->ofs, pan_vec);
 		}
+
+		ED_view3d_camera_lock_sync(v3d, rv3d);
 
 		ED_region_tag_redraw(CTX_wm_region(C));
 
@@ -3456,7 +3475,7 @@ void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
 		copy_m3_m4(nmat, mat);
 		normalize_m3(nmat);
 
-		mul_m3_v3(nmat, vec);;
+		mul_m3_v3(nmat, vec);
 		sub_v3_v3(ofs, vec);
 	}
 }

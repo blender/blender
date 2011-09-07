@@ -1,12 +1,12 @@
-########
+********
 Gotcha's
-########
+********
 
 This document attempts to help you work with the Blender API in areas that can be troublesome and avoid practices that are known to give instability.
 
-***************
+
 Using Operators
-***************
+===============
 
 Blender's operators are tools for users to access, that python can access them too is very useful nevertheless operators have limitations that can make them cumbersome to script.
 
@@ -19,19 +19,13 @@ Main limits are...
 
 * Operators poll function can fail where an API function would raise an exception giving details on exactly why.
 
-=================================
+
 Why does an operator's poll fail?
-=================================
+---------------------------------
 
 When calling an operator gives an error like this:
 
-.. code-block:: python
-
    >>> bpy.ops.action.clean(threshold=0.001)
-   Traceback (most recent call last):
-     File "<blender_console>", line 1, in <module>
-     File "scripts/modules/bpy/ops.py", line 179, in __call__
-       ret = op_call(self.idname_py(), None, kw)
    RuntimeError: Operator bpy.ops.action.clean.poll() failed, context is incorrect
 
 Which raises the question as to what the correct context might be?
@@ -51,14 +45,12 @@ Downloading and searching the C code isn't so simple, especially if you're not f
 
    Blender does have the functionality for poll functions to describe why they fail, but its currently not used much, if you're interested to help improve our API feel free to add calls to ``CTX_wm_operator_poll_msg_set`` where its not obvious why poll fails.
 
-   .. code-block:: python
-
       >>> bpy.ops.gpencil.draw()
       RuntimeError: Operator bpy.ops.gpencil.draw.poll() Failed to find Grease Pencil data to draw into
 
-================================
+
 The operator still doesn't work!
-================================
+--------------------------------
 
 Certain operators in Blender are only intended for use in a specific context, some operators for example are only called from the properties window where they check the current material, modifier or constraint.
 
@@ -72,13 +64,11 @@ Examples of this are:
 Another possibility is that you are the first person to attempt to use this operator in a script and some modifications need to be made to the operator to run in a different context, if the operator should logically be able to run but fails when accessed from a script it should be reported to the bug tracker.
 
 
-**********
 Stale Data
-**********
+==========
 
-===============================
 No updates after setting values
-===============================
+-------------------------------
 
 Sometimes you want to modify values from python and immediately access the updated values, eg:
 
@@ -97,9 +87,9 @@ However, while the script runs you may want to access the updated values.
 
 This can be done by calling :class:`bpy.types.Scene.update` after modifying values which recalculates all data that is tagged to be updated.
 
-===============================
+
 Can I redraw during the script?
-===============================
+-------------------------------
 
 The official answer to this is no, or... *"You don't want to do that"*.
 
@@ -128,18 +118,16 @@ If you insist - yes its possible, but scripts that use this hack wont be conside
    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 
 
-******************************
 Matrix multiplication is wrong
-******************************
+==============================
 
 Every so often users complain that Blenders matrix math is wrong, the confusion comes from mathutils matrices being column-major to match OpenGL and the rest of Blenders matrix operations and stored matrix data.
 
 This is different to **numpy** which is row-major which matches what you would expect when using conventional matrix math notation.
 
 
-***********************************
 I can't edit the mesh in edit-mode!
-***********************************
+===================================
 
 Blenders EditMesh is an internal data structure (not saved and not exposed to python), this gives the main annoyance that you need to exit edit-mode to edit the mesh from python.
 
@@ -152,9 +140,91 @@ write useful tools in python which are also fast to execute while in edit-mode.
 For the time being this limitation just has to be worked around but we're aware its frustrating needs to be addressed.
 
 
-****************
+EditBones, PoseBones, Bone... Bones
+===================================
+
+Armature Bones in Blender have three distinct data structures that contain them. If you are accessing the bones through one of them, you may not have access to the properties you really need.
+
+.. note::
+
+	In the following examples ``bpy.context.object`` is assumed to be an armature object.
+
+
+Edit Bones
+----------
+
+``bpy.context.object.data.edit_bones`` contains a editbones; to access them you must set the armature mode to edit mode first (editbones do not exist in object or pose mode). Use these to create new bones, set their head/tail or roll, change their parenting relationships to other bones, etc.
+
+Example using :class:`bpy.types.EditBone` in armature editmode:
+
+This is only possible in edit mode.
+
+   >>> bpy.context.object.data.edit_bones["Bone"].head = Vector((1.0, 2.0, 3.0)) 
+
+This will be empty outside of editmode.
+
+	>>> mybones = bpy.context.selected_editable_bones
+
+Returns an editbone only in edit mode.
+
+	>>> bpy.context.active_bone
+
+
+Bones (Object Mode)
+-------------------
+
+``bpy.context.object.data.bones`` contains bones. These *live* in object mode, and have various properties you can change, note that the head and tail properties are read-only.
+
+Example using :class:`bpy.types.Bone` in object or pose mode:
+
+Returns a bone (not an editbone) outside of edit mode
+
+	>>> bpy.context.active_bone
+
+This works, as with blender the setting can be edited in any mode
+
+	>>> bpy.context.object.data.bones["Bone"].use_deform = True
+
+Accessible but read-only
+
+	>>> tail = myobj.data.bones["Bone"].tail
+
+
+Pose Bones
+----------
+
+``bpy.context.object.pose.bones`` contains pose bones. This is where animation data resides, i.e. animatable transformations are applied to pose bones, as are constraints and ik-settings.
+
+Examples using :class:`bpy.types.PoseBone` in object or pose mode:
+
+.. code-block:: python
+
+	# Gets the name of the first constraint (if it exists)
+	bpy.context.object.pose.bones["Bone"].constraints[0].name 
+
+	# Gets the last selected pose bone (pose mode only)
+	bpy.context.active_pose_bone
+
+
+.. note::
+
+	Notice the pose is accessed from the object rather than the object data, this is why blender can have 2 or more objects sharing the same armature in different poses.
+
+.. note::
+
+	Strictly speaking PoseBone's are not bones, they are just the state of the armature, stored in the :class:`bpy.types.Object` rather than the :class:`bpy.types.Armature`, the real bones are however accessible from the pose bones - :class:`bpy.types.PoseBone.bone`
+
+
+Armature Mode Switching
+-----------------------
+
+While writing scripts that deal with armatures you may find you have to switch between modes, when doing so take care when switching out of editmode not to keep references to the edit-bones or their head/tail vectors. Further access to these will crash blender so its important the script clearly separates sections of the code which operate in different modes.
+
+This is mainly an issue with editmode since pose data can be manipulated without having to be in pose mode, however for operator access you may still need to enter pose mode.
+
+
 Unicode Problems
-****************
+================
 
 Python supports many different encpdings so there is nothing stopping you from writing a script in latin1 or iso-8859-15.
 
@@ -170,8 +240,6 @@ Paths are an exception to this rule since we cannot ignore the existane of non-u
 
 This means seemingly harmless expressions can raise errors, eg.
 
-.. code-block:: python
-
    >>> print(bpy.data.filepath)
    UnicodeEncodeError: 'ascii' codec can't encode characters in position 10-21: ordinal not in range(128)
 
@@ -181,9 +249,7 @@ This means seemingly harmless expressions can raise errors, eg.
    TypeError: bpy_struct: item.attr= val: Object.name expected a string type, not str
 
 
-Here are 2 ways around filesystem encoding issues.
-
-.. code-block:: python
+Here are 2 ways around filesystem encoding issues:
 
    >>> print(repr(bpy.data.filepath))
 
@@ -206,9 +272,8 @@ Unicode encoding/decoding is a big topic with comprehensive python documentation
 * **Possibly** - use bytes instead of python strings, when reading some input its less trouble to read it as binary data though you will still need to deciede how to treat any strings you want to use with Blender, some importers do this.
 
 
-***************************************
 Strange errors using 'threading' module
-***************************************
+=======================================
 
 Python threading with Blender only works properly when the threads finish up before the script does. By using ``threading.join()`` for example.
 
@@ -275,9 +340,8 @@ So far no work has gone into making Blenders python integration thread safe, so 
    Pythons threads only allow co-currency and wont speed up you're scripts on multi-processor systems, the ``subprocess`` and ``multiprocess`` modules can be used with blender and make use of multiple CPU's too.
 
 
-*******************************
 Help! My script crashes Blender
-*******************************
+===============================
 
 Ideally it would be impossible to crash Blender from python however there are some problems with the API where it can be made to crash.
 
@@ -294,15 +358,12 @@ Here are some general hints to avoid running into these problems.
 * Crashes may not happen every time, they may happen more on some configurations/operating-systems.
 
 
-=========
 Undo/Redo
-=========
+---------
 
 Undo invalidates all :class:`bpy.types.ID` instances (Object, Scene, Mesh etc).
 
 This example shows how you can tell undo changes the memory locations.
-
-.. code-block:: python
 
    >>> hash(bpy.context.object)
    -9223372036849950810
@@ -317,9 +378,8 @@ This example shows how you can tell undo changes the memory locations.
 As suggested above, simply not holding references to data when Blender is used interactively by the user is the only way to ensure the script doesn't become unstable.
 
 
-===================
 Array Re-Allocation
-===================
+-------------------
 
 When adding new points to a curve or vertices's/edges/faces to a mesh, internally the array which stores this data is re-allocated.
 
@@ -337,9 +397,8 @@ This can be avoided by re-assigning the point variables after adding the new one
 The best way is to sidestep the problem altogether add all the points to the curve at once. This means you don't have to worry about array re-allocation and its faster too since reallocating the entire array for every point added is inefficient.
 
 
-=============
 Removing Data
-=============
+-------------
 
 **Any** data that you remove shouldn't be modified or accessed afterwards, this includes f-curves, drivers, render layers, timeline markers, modifiers, constraints along with objects, scenes, groups, bones.. etc.
 

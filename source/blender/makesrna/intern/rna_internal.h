@@ -168,6 +168,7 @@ void RNA_def_sensor(struct BlenderRNA *brna);
 void RNA_def_sequencer(struct BlenderRNA *brna);
 void RNA_def_smoke(struct BlenderRNA *brna);
 void RNA_def_space(struct BlenderRNA *brna);
+void RNA_def_speaker(struct BlenderRNA *brna);
 void RNA_def_test(struct BlenderRNA *brna);
 void RNA_def_text(struct BlenderRNA *brna);
 void RNA_def_texture(struct BlenderRNA *brna);
@@ -262,6 +263,8 @@ void RNA_api_wm(struct StructRNA *srna);
 void RNA_api_sensor(struct StructRNA *srna);
 void RNA_api_controller(struct StructRNA *srna);
 void RNA_api_actuator(struct StructRNA *srna);
+void RNA_api_texture(struct StructRNA *srna);
+void RNA_api_environment_map(struct StructRNA *srna);
 
 /* main collection functions */
 void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop);
@@ -284,6 +287,7 @@ void RNA_def_main_brushes(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_worlds(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_groups(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_def_main_speakers(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_sounds(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_armatures(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop);

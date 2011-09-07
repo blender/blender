@@ -44,12 +44,14 @@ set(INC_SYS
 
 set(SRC
 	AnimationImporter.cpp
+	AnimationExporter.cpp
 	ArmatureExporter.cpp
 	ArmatureImporter.cpp
 	CameraExporter.cpp
 	DocumentExporter.cpp
 	DocumentImporter.cpp
 	EffectExporter.cpp
+	ErrorHandler.cpp
 	ExtraHandler.cpp
 	ExtraTags.cpp
 	GeometryExporter.cpp
@@ -66,12 +68,14 @@ set(SRC
 	collada_utils.cpp
 
 	AnimationImporter.h
+	AnimationExporter.h	
 	ArmatureExporter.h
 	ArmatureImporter.h
 	CameraExporter.h
 	DocumentExporter.h
 	DocumentImporter.h
 	EffectExporter.h
+	ErrorHandler.h
 	ExtraHandler.h
 	ExtraTags.h
 	GeometryExporter.h

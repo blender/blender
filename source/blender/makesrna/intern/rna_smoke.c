@@ -121,7 +121,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_noise_type_items[] = {
 				{MOD_SMOKE_NOISEWAVE, "NOISEWAVE", 0, "Wavelet", ""},
-#if FFTW3 == 1
+#ifdef WITH_FFTW3
 				{MOD_SMOKE_NOISEFFT, "NOISEFFT", 0, "FFT", ""}, 
 #endif
 			/* 	{MOD_SMOKE_NOISECURL, "NOISECURL", 0, "Curl", ""}, */

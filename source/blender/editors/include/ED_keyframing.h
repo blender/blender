@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -178,6 +176,9 @@ typedef enum eModifyKey_Returns {
 	MODIFYKEY_MISSING_TYPEINFO = -2,
 } eModifyKey_Returns;
 
+/* poll the current KeyingSet, updating it's set of paths (if "builtin"/"relative") for context changes */
+short ANIM_validate_keyingset(struct bContext *C, ListBase *dsources, struct KeyingSet *ks);
+
 /* use the specified KeyingSet to add/remove various Keyframes on the specified frame */
 int ANIM_apply_keyingset(struct bContext *C, ListBase *dsources, struct bAction *act, struct KeyingSet *ks, short mode, float cfra);
 
@@ -222,6 +223,13 @@ short ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);
 typedef enum eCreateDriverFlags {
 	CREATEDRIVER_WITH_DEFAULT_DVAR 	= (1<<0),	/* create drivers with a default variable for nicer UI */
 } eCreateDriverFlags;
+
+/* -------- */
+
+/* Low-level call to add a new driver F-Curve. This shouldn't be used directly for most tools,
+ * although there are special cases where this approach is preferable.
+ */
+struct FCurve *verify_driver_fcurve(struct ID *id, const char rna_path[], const int array_index, short add);
 
 /* -------- */
 

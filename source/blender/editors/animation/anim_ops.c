@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -43,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_sound.h"
 
 #include "UI_view2d.h"
@@ -78,6 +77,7 @@ static int change_frame_poll(bContext *C)
 /* Set the new frame number */
 static void change_frame_apply(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	
 	/* set the new frame number */
@@ -86,7 +86,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	SUBFRA = 0.f;
 	
 	/* do updates */
-	sound_seek_scene(C);
+	sound_seek_scene(bmain, scene);
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 }
 

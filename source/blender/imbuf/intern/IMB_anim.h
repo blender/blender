@@ -151,6 +151,7 @@ struct anim {
 	size_t framesize;
 	int interlacing;
 	int preseek;
+	int streamindex;
 	
 		/* avi */
 	struct _AviMovie *avi;

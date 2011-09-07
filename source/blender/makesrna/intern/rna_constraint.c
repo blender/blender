@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1040,6 +1038,12 @@ static void rna_def_constraint_locked_track(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "LockedTrackConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Locked Track Constraint", "Points toward the target along the track axis, while locking the other axis");
+	
+	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
+	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
 	RNA_def_struct_sdna_from(srna, "bLockTrackConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
@@ -1384,7 +1388,7 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bClampToConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tar"); // TODO: curve only for set function!
+	RNA_def_property_pointer_sdna(prop, NULL, "tar");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_object_poll");
 	RNA_def_property_ui_text(prop, "Target", "Target Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
@@ -1777,6 +1781,12 @@ static void rna_def_constraint_distance_limit(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "LimitDistanceConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Limit Distance Constraint", "Limits the distance from target object");
+	
+	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
+	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
 	RNA_def_struct_sdna_from(srna, "bDistLimitConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
@@ -1800,6 +1810,11 @@ static void rna_def_constraint_distance_limit(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, constraint_distance_items);
 	RNA_def_property_ui_text(prop, "Limit Mode", "Distances in relation to sphere of influence to allow");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
+	prop= RNA_def_property(srna, "use_transform_limit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIMITDIST_TRANSFORM);
+	RNA_def_property_ui_text(prop, "For Transform", "Transforms are affected by this constraint as well");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
@@ -1869,6 +1884,12 @@ static void rna_def_constraint_damped_track(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "DampedTrackConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Damped Track Constraint", "Points toward target by taking the shortest rotation path");
+	
+	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
+	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+	
 	RNA_def_struct_sdna_from(srna, "bDampTrackConstraint", "data");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);

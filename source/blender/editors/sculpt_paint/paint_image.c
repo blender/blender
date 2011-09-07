@@ -60,6 +60,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
@@ -512,7 +513,7 @@ static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], 
 	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
 }
 
-static float VecZDepthPersp(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
+static float VecZDepthPersp(float pt[2], float v1[4], float v2[4], float v3[4], float w[3])
 {
 	float wtot_inv, wtot;
 	float w_tmp[3];
@@ -1193,7 +1194,7 @@ static void screen_px_from_ortho(
  * the perspective W coord for each vert */
 static void screen_px_from_persp(
 		float uv[2],
-		float v1co[3], float v2co[3], float v3co[3], /* screenspace coords */
+		float v1co[4], float v2co[4], float v3co[4], /* screenspace coords */
 		float uv1co[2], float uv2co[2], float uv3co[2],
 		float pixelScreenCo[4],
 		float w[3])
@@ -4663,7 +4664,7 @@ static void paint_brush_init_tex(Brush *brush)
 	if(brush) {
 		MTex *mtex= &brush->mtex;
 		if(mtex->tex && mtex->tex->nodetree)
-			ntreeBeginExecTree(mtex->tex->nodetree); /* has internal flag to detect it only does it once */
+			ntreeTexBeginExecTree(mtex->tex->nodetree, 1); /* has internal flag to detect it only does it once */
 	}
 	
 }
@@ -4805,7 +4806,7 @@ static void paint_brush_exit_tex(Brush *brush)
 	if(brush) {
 		MTex *mtex= &brush->mtex;
 		if(mtex->tex && mtex->tex->nodetree)
-			ntreeEndExecTree(mtex->tex->nodetree);
+			ntreeTexEndExecTree(mtex->tex->nodetree->execdata, 1);
 	}	
 }
 

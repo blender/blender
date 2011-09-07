@@ -41,6 +41,8 @@ set(SRC
 	FX/AUD_DelayReader.cpp
 	FX/AUD_DoubleFactory.cpp
 	FX/AUD_DoubleReader.cpp
+	FX/AUD_DynamicIIRFilterFactory.cpp
+	FX/AUD_DynamicIIRFilterReader.cpp
 	FX/AUD_EffectFactory.cpp
 	FX/AUD_EffectReader.cpp
 	FX/AUD_EnvelopeFactory.cpp
@@ -66,6 +68,8 @@ set(SRC
 	FX/AUD_SuperposeReader.cpp
 	FX/AUD_VolumeFactory.cpp
 	intern/AUD_3DMath.h
+	intern/AUD_AnimateableProperty.cpp
+	intern/AUD_AnimateableProperty.h
 	intern/AUD_Buffer.cpp
 	intern/AUD_Buffer.h
 	intern/AUD_BufferReader.cpp
@@ -82,14 +86,21 @@ set(SRC
 	intern/AUD_ConverterFunctions.h
 	intern/AUD_ConverterReader.cpp
 	intern/AUD_ConverterReader.h
-	intern/AUD_DefaultMixer.cpp
-	intern/AUD_DefaultMixer.h
 	intern/AUD_FileFactory.cpp
 	intern/AUD_FileFactory.h
+	intern/AUD_FileWriter.cpp
+	intern/AUD_FileWriter.h
 	intern/AUD_I3DDevice.h
+	intern/AUD_I3DHandle.h
 	intern/AUD_IDevice.h
 	intern/AUD_IFactory.h
+	intern/AUD_IHandle.h
 	intern/AUD_IReader.h
+	intern/AUD_IWriter.h
+	intern/AUD_JOSResampleFactory.cpp
+	intern/AUD_JOSResampleFactory.h
+	intern/AUD_JOSResampleReader.cpp
+	intern/AUD_JOSResampleReader.h
 	intern/AUD_LinearResampleFactory.cpp
 	intern/AUD_LinearResampleFactory.h
 	intern/AUD_LinearResampleReader.cpp
@@ -104,9 +115,16 @@ set(SRC
 	intern/AUD_ReadDevice.cpp
 	intern/AUD_ReadDevice.h
 	intern/AUD_Reference.h
+	intern/AUD_ReferenceHandler.cpp
 	intern/AUD_ResampleFactory.h
+	intern/AUD_ResampleReader.cpp
+	intern/AUD_ResampleReader.h
+	intern/AUD_SequencerEntry.cpp
+	intern/AUD_SequencerEntry.h
 	intern/AUD_SequencerFactory.cpp
 	intern/AUD_SequencerFactory.h
+	intern/AUD_SequencerHandle.cpp
+	intern/AUD_SequencerHandle.h
 	intern/AUD_SequencerReader.cpp
 	intern/AUD_SequencerReader.h
 	intern/AUD_SilenceFactory.cpp
@@ -131,6 +149,8 @@ set(SRC
 	FX/AUD_DelayReader.h
 	FX/AUD_DoubleFactory.h
 	FX/AUD_DoubleReader.h
+	FX/AUD_DynamicIIRFilterFactory.h
+	FX/AUD_DynamicIIRFilterReader.h
 	FX/AUD_EffectFactory.h
 	FX/AUD_EffectReader.h
 	FX/AUD_EnvelopeFactory.h
@@ -168,9 +188,11 @@ if(WITH_CODEC_FFMPEG)
 	list(APPEND SRC
 		ffmpeg/AUD_FFMPEGFactory.cpp
 		ffmpeg/AUD_FFMPEGReader.cpp
+		ffmpeg/AUD_FFMPEGWriter.cpp
 
 		ffmpeg/AUD_FFMPEGFactory.h
 		ffmpeg/AUD_FFMPEGReader.h
+		ffmpeg/AUD_FFMPEGWriter.h
 	)
 endif()
 
@@ -230,9 +252,11 @@ if(WITH_CODEC_SNDFILE)
 	list(APPEND SRC
 		sndfile/AUD_SndFileFactory.cpp
 		sndfile/AUD_SndFileReader.cpp
+		sndfile/AUD_SndFileWriter.cpp
 
 		sndfile/AUD_SndFileFactory.h
 		sndfile/AUD_SndFileReader.h
+		sndfile/AUD_SndFileWriter.h
 	)
 endif()
 

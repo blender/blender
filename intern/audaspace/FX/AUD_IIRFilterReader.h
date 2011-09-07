@@ -63,10 +63,13 @@ public:
 	 * \param b The input filter coefficients.
 	 * \param a The output filter coefficients.
 	 */
-	AUD_IIRFilterReader(AUD_IReader* reader, std::vector<float> b,
-						std::vector<float> a);
+	AUD_IIRFilterReader(AUD_Reference<AUD_IReader> reader, const std::vector<float>& b,
+						const std::vector<float>& a);
 
 	virtual sample_t filter();
+
+	void setCoefficients(const std::vector<float>& b,
+						 const std::vector<float>& a);
 };
 
 #endif //AUD_IIRFILTERREADER

@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory.
+ * Contributor(s): Chingiz Dyussenov, Arystanbek Dyussenov, Nathan Letwory, Sukhitha Jayathilake.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -50,6 +50,7 @@
 #include "collada_utils.h"
 #include "AnimationImporter.h"
 #include "ArmatureImporter.h"
+#include "MaterialExporter.h"
 
 #include <algorithm>
 
@@ -64,7 +65,6 @@ static const char *bc_get_joint_name(T *node)
 FCurve *AnimationImporter::create_fcurve(int array_index, const char *rna_path)
 {
 	FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
-	
 	fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
 	fcu->rna_path = BLI_strdupn(rna_path, strlen(rna_path));
 	fcu->array_index = array_index;
@@ -89,8 +89,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 {
 	COLLADAFW::FloatOrDoubleArray& input = curve->getInputValues();
 	COLLADAFW::FloatOrDoubleArray& output = curve->getOutputValues();
-	// COLLADAFW::FloatOrDoubleArray& intan = curve->getInTangentValues();
-	// COLLADAFW::FloatOrDoubleArray& outtan = curve->getOutTangentValues();
+
 	float fps = (float)FPS;
 	size_t dim = curve->getOutDimension();
 	unsigned int i;
@@ -100,36 +99,55 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 	switch (dim) {
 	case 1: // X, Y, Z or angle
 	case 3: // XYZ
+	case 4:
 	case 16: // matrix
 		{
 			for (i = 0; i < dim; i++ ) {
 				FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
-			
+
 				fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
 				// fcu->rna_path = BLI_strdupn(path, strlen(path));
 				fcu->array_index = 0;
-				//fcu->totvert = curve->getKeyCount();
-			
+				fcu->totvert = curve->getKeyCount();
+
 				// create beztriple for each key
 				for (unsigned int j = 0; j < curve->getKeyCount(); j++) {
 					BezTriple bez;
 					memset(&bez, 0, sizeof(BezTriple));
 
-					// intangent
-					// bez.vec[0][0] = get_float_value(intan, j * 6 + i + i) * fps;
-					// bez.vec[0][1] = get_float_value(intan, j * 6 + i + i + 1);
 
 					// input, output
 					bez.vec[1][0] = bc_get_float_value(input, j) * fps; 
 					bez.vec[1][1] = bc_get_float_value(output, j * dim + i);
 
-					// outtangent
-					// bez.vec[2][0] = get_float_value(outtan, j * 6 + i + i) * fps;
-					// bez.vec[2][1] = get_float_value(outtan, j * 6 + i + i + 1);
 
-					bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+					if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
+						curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP) 
+					{
+						COLLADAFW::FloatOrDoubleArray& intan = curve->getInTangentValues();
+						COLLADAFW::FloatOrDoubleArray& outtan = curve->getOutTangentValues();
+
+						// intangent
+						bez.vec[0][0] = bc_get_float_value(intan, (j * 2 * dim ) + (2 * i)) * fps;
+						bez.vec[0][1] = bc_get_float_value(intan, (j * 2 * dim )+ (2 * i) + 1);
+
+						// outtangent
+						bez.vec[2][0] = bc_get_float_value(outtan, (j * 2 * dim ) + (2 * i)) * fps;
+						bez.vec[2][1] = bc_get_float_value(outtan, (j * 2 * dim )+ (2 * i) + 1);
+						if(curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER) 
+							bez.ipo = BEZT_IPO_BEZ;
+						else 
+							bez.ipo = BEZT_IPO_CONST;
+						//bez.h1 = bez.h2 = HD_AUTO; 	
+					}
+					else 
+					{
+						bez.h1 = bez.h2 = HD_AUTO; 
+						bez.ipo = BEZT_IPO_LIN;
+					}
+					// bez.ipo = U.ipo_new; /* use default interpolation mode here... */
 					bez.f1 = bez.f2 = bez.f3 = SELECT;
-					bez.h1 = bez.h2 = HD_AUTO;
+
 					insert_bezt_fcurve(fcu, &bez, 0);
 				}
 
@@ -147,13 +165,17 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 		unused_curves.push_back(*it);
 }
 
+
 void AnimationImporter::fcurve_deg_to_rad(FCurve *cu)
 {
 	for (unsigned int i = 0; i < cu->totvert; i++) {
 		// TODO convert handles too
 		cu->bezt[i].vec[1][1] *= M_PI / 180.0f;
+		cu->bezt[i].vec[0][1] *= M_PI / 180.0f;
+		cu->bezt[i].vec[2][1] *= M_PI / 180.0f;
 	}
 }
+
 
 void AnimationImporter::add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated)
 {
@@ -253,11 +275,12 @@ bool AnimationImporter::write_animation(const COLLADAFW::Animation* anim)
 			switch (interp) {
 			case COLLADAFW::AnimationCurve::INTERPOLATION_LINEAR:
 			case COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER:
+			case COLLADAFW::AnimationCurve::INTERPOLATION_STEP:
 				animation_to_fcurves(curve);
 				break;
 			default:
 				// TODO there're also CARDINAL, HERMITE, BSPLINE and STEP types
-				fprintf(stderr, "CARDINAL, HERMITE, BSPLINE and STEP anim interpolation types not supported yet.\n");
+				fprintf(stderr, "CARDINAL, HERMITE and BSPLINE anim interpolation types not supported yet.\n");
 				break;
 			}
 		}
@@ -281,128 +304,17 @@ bool AnimationImporter::write_animation_list(const COLLADAFW::AnimationList* ani
 	animlist_map[animlist_id] = animlist;
 
 #if 0
+
 	// should not happen
 	if (uid_animated_map.find(animlist_id) == uid_animated_map.end()) {
 		return true;
 	}
 
 	// for bones rna_path is like: pose.bones["bone-name"].rotation
-	
-	// what does this AnimationList animate?
-	Animation& animated = uid_animated_map[animlist_id];
-	Object *ob = animated.ob;
 
-	char rna_path[100];
-	char joint_path[100];
-	bool is_joint = false;
 
-	// if ob is NULL, it should be a JOINT
-	if (!ob) {
-		ob = armature_importer->get_armature_for_joint(animated.node);
-
-		if (!ob) {
-			fprintf(stderr, "Cannot find armature for node %s\n", get_joint_name(animated.node));
-			return true;
-		}
-
-		armature_importer->get_rna_path_for_joint(animated.node, joint_path, sizeof(joint_path));
-
-		is_joint = true;
-	}
-	
-	const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
-
-	switch (animated.tm->getTransformationType()) {
-	case COLLADAFW::Transformation::TRANSLATE:
-	case COLLADAFW::Transformation::SCALE:
-		{
-			bool loc = animated.tm->getTransformationType() == COLLADAFW::Transformation::TRANSLATE;
-			if (is_joint)
-				BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, loc ? "location" : "scale");
-			else
-				BLI_strncpy(rna_path, loc ? "location" : "scale", sizeof(rna_path));
-
-			for (int i = 0; i < bindings.getCount(); i++) {
-				const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[i];
-				COLLADAFW::UniqueId anim_uid = binding.animation;
-
-				if (curve_map.find(anim_uid) == curve_map.end()) {
-					fprintf(stderr, "Cannot find FCurve by animation UID.\n");
-					continue;
-				}
-
-				std::vector<FCurve*>& fcurves = curve_map[anim_uid];
-				
-				switch (binding.animationClass) {
-				case COLLADAFW::AnimationList::POSITION_X:
-					add_fcurves_to_object(ob, fcurves, rna_path, 0, &animated);
-					break;
-				case COLLADAFW::AnimationList::POSITION_Y:
-					add_fcurves_to_object(ob, fcurves, rna_path, 1, &animated);
-					break;
-				case COLLADAFW::AnimationList::POSITION_Z:
-					add_fcurves_to_object(ob, fcurves, rna_path, 2, &animated);
-					break;
-				case COLLADAFW::AnimationList::POSITION_XYZ:
-					add_fcurves_to_object(ob, fcurves, rna_path, -1, &animated);
-					break;
-				default:
-					fprintf(stderr, "AnimationClass %d is not supported for %s.\n",
-							binding.animationClass, loc ? "TRANSLATE" : "SCALE");
-				}
-			}
-		}
-		break;
-	case COLLADAFW::Transformation::ROTATE:
-		{
-			if (is_joint)
-				BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation_euler", joint_path);
-			else
-				BLI_strncpy(rna_path, "rotation_euler", sizeof(rna_path));
-
-			COLLADAFW::Rotate* rot = (COLLADAFW::Rotate*)animated.tm;
-			COLLADABU::Math::Vector3& axis = rot->getRotationAxis();
-			
-			for (int i = 0; i < bindings.getCount(); i++) {
-				const COLLADAFW::AnimationList::AnimationBinding& binding = bindings[i];
-				COLLADAFW::UniqueId anim_uid = binding.animation;
-
-				if (curve_map.find(anim_uid) == curve_map.end()) {
-					fprintf(stderr, "Cannot find FCurve by animation UID.\n");
-					continue;
-				}
-
-				std::vector<FCurve*>& fcurves = curve_map[anim_uid];
-
-				switch (binding.animationClass) {
-				case COLLADAFW::AnimationList::ANGLE:
-					if (COLLADABU::Math::Vector3::UNIT_X == axis) {
-						add_fcurves_to_object(ob, fcurves, rna_path, 0, &animated);
-					}
-					else if (COLLADABU::Math::Vector3::UNIT_Y == axis) {
-						add_fcurves_to_object(ob, fcurves, rna_path, 1, &animated);
-					}
-					else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
-						add_fcurves_to_object(ob, fcurves, rna_path, 2, &animated);
-					}
-					break;
-				case COLLADAFW::AnimationList::AXISANGLE:
-					// TODO convert axis-angle to quat? or XYZ?
-				default:
-					fprintf(stderr, "AnimationClass %d is not supported for ROTATE transformation.\n",
-							binding.animationClass);
-				}
-			}
-		}
-		break;
-	case COLLADAFW::Transformation::MATRIX:
-	case COLLADAFW::Transformation::SKEW:
-	case COLLADAFW::Transformation::LOOKAT:
-		fprintf(stderr, "Animation of MATRIX, SKEW and LOOKAT transformations is not supported yet.\n");
-		break;
-	}
 #endif
-	
+
 	return true;
 }
 
@@ -512,52 +424,684 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 }
 #endif
 
-// prerequisites:
-// animlist_map - map animlist id -> animlist
-// curve_map - map anim id -> curve(s)
-Object *AnimationImporter::translate_animation(COLLADAFW::Node *node,
-							std::map<COLLADAFW::UniqueId, Object*>& object_map,
-							std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
-							COLLADAFW::Transformation::TransformationType tm_type,
-							Object *par_job)
+
+//sets the rna_path and array index to curve
+void AnimationImporter::modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index )
 {
-	bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
+	std::vector<FCurve*>::iterator it;
+	int i;
+	for (it = curves->begin(), i = 0; it != curves->end(); it++, i++) {
+		FCurve *fcu = *it;
+		fcu->rna_path = BLI_strdup(rna_path);
+		
+		if (array_index == -1) fcu->array_index = i;
+		else fcu->array_index = array_index;
+
+		unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), fcu), unused_curves.end());
+	}
+}
+
+void AnimationImporter::find_frames( std::vector<float>* frames , std::vector<FCurve*>* curves)
+{
+	std::vector<FCurve*>::iterator iter;
+	for (iter = curves->begin(); iter != curves->end(); iter++) {
+		FCurve *fcu = *iter;
+
+		for (unsigned int k = 0; k < fcu->totvert; k++) {
+			//get frame value from bezTriple
+			float fra = fcu->bezt[k].vec[1][0];
+			//if frame already not added add frame to frames
+			if (std::find(frames->begin(), frames->end(), fra) == frames->end())
+				frames->push_back(fra);
+
+		}
+	}
+}
+
+//creates the rna_paths and array indices of fcurves from animations using transformation and bound animation class of each animation.
+void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation * transform , 
+													 const COLLADAFW::AnimationList::AnimationBinding * binding,
+													 std::vector<FCurve*>* curves, bool is_joint, char * joint_path)
+{
+	COLLADAFW::Transformation::TransformationType tm_type = transform->getTransformationType();
 	bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
-	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
+	bool is_rotation = tm_type  == COLLADAFW::Transformation::ROTATE;
 
-	COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
-	Object *ob = is_joint ? armature_importer->get_armature_for_joint(node) : object_map[node->getUniqueId()];
-	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
+	//to check if the no of curves are valid
+	bool xyz = ((tm_type == COLLADAFW::Transformation::TRANSLATE ||tm_type  == COLLADAFW::Transformation::SCALE) && binding->animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
 
-	if (!ob) {
-		fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
-		return NULL;
+
+	if (!((!xyz && curves->size() == 1) || (xyz && curves->size() == 3) || is_matrix)) {
+		fprintf(stderr, "expected %d curves, got %d\n", xyz ? 3 : 1, (int)curves->size());
+		return;
 	}
 
-	// frames at which to sample
-	std::vector<float> frames;
+	char rna_path[100];
 
+	switch (tm_type) {
+		case COLLADAFW::Transformation::TRANSLATE:
+		case COLLADAFW::Transformation::SCALE:
+			{
+				bool loc = tm_type == COLLADAFW::Transformation::TRANSLATE;
+				if (is_joint)
+					BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, loc ? "location" : "scale");
+				else
+					BLI_strncpy(rna_path, loc ? "location" : "scale", sizeof(rna_path));
+
+				switch (binding->animationClass) {
+		case COLLADAFW::AnimationList::POSITION_X:
+			modify_fcurve(curves, rna_path, 0 );
+			break;
+		case COLLADAFW::AnimationList::POSITION_Y:
+			modify_fcurve(curves, rna_path, 1 );
+			break;
+		case COLLADAFW::AnimationList::POSITION_Z:
+			modify_fcurve(curves, rna_path, 2 );
+			break;
+		case COLLADAFW::AnimationList::POSITION_XYZ:
+			modify_fcurve(curves, rna_path, -1 );
+			break;
+		default:
+			fprintf(stderr, "AnimationClass %d is not supported for %s.\n",
+				binding->animationClass, loc ? "TRANSLATE" : "SCALE");
+				}
+				break;
+			}
+
+
+		case COLLADAFW::Transformation::ROTATE:
+			{
+				if (is_joint)
+					BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation_euler", joint_path);
+				else
+					BLI_strncpy(rna_path, "rotation_euler", sizeof(rna_path));
+				std::vector<FCurve*>::iterator iter;
+				for (iter = curves->begin(); iter != curves->end(); iter++) {
+					FCurve* fcu = *iter;
+
+					//if transform is rotation the fcurves values must be turned in to radian.
+					if (is_rotation)
+						fcurve_deg_to_rad(fcu);		 
+				}					
+				COLLADAFW::Rotate* rot = (COLLADAFW::Rotate*)transform;
+				COLLADABU::Math::Vector3& axis = rot->getRotationAxis();
+
+				switch (binding->animationClass) {
+		case COLLADAFW::AnimationList::ANGLE:
+			if (COLLADABU::Math::Vector3::UNIT_X == axis) {
+				modify_fcurve(curves, rna_path, 0 );
+			}
+			else if (COLLADABU::Math::Vector3::UNIT_Y == axis) {
+				modify_fcurve(curves, rna_path, 1 );
+			}
+			else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
+				modify_fcurve(curves, rna_path, 2 );
+			}
+			break;
+		case COLLADAFW::AnimationList::AXISANGLE:
+			// TODO convert axis-angle to quat? or XYZ?
+		default:
+			fprintf(stderr, "AnimationClass %d is not supported for ROTATE transformation.\n",
+				binding->animationClass);
+				}
+				break;
+			}
+
+		case COLLADAFW::Transformation::MATRIX:
+			/*{
+			COLLADAFW::Matrix* mat = (COLLADAFW::Matrix*)transform;
+			COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
+			switch (binding->animationClass) {
+			case COLLADAFW::AnimationList::TRANSFORM:
+
+			}
+			}*/
+			break;
+		case COLLADAFW::Transformation::SKEW:
+		case COLLADAFW::Transformation::LOOKAT:
+			fprintf(stderr, "Animation of SKEW and LOOKAT transformations is not supported yet.\n");
+			break;
+	}
+
+}
+
+//creates the rna_paths and array indices of fcurves from animations using color and bound animation class of each animation.
+void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves ,const char * anim_type)
+{
+	char rna_path[100];
+	BLI_strncpy(rna_path,anim_type, sizeof(rna_path));
+
+	const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+	const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+	//all the curves belonging to the current binding
+	std::vector<FCurve*> animcurves;
+	for (unsigned int j = 0; j < bindings.getCount(); j++) {
+		animcurves = curve_map[bindings[j].animation];
+
+		switch (bindings[j].animationClass) {
+		case COLLADAFW::AnimationList::COLOR_R:
+			modify_fcurve(&animcurves, rna_path, 0 );
+			break;
+		case COLLADAFW::AnimationList::COLOR_G:
+			modify_fcurve(&animcurves, rna_path, 1 );
+			break;
+		case COLLADAFW::AnimationList::COLOR_B:
+			modify_fcurve(&animcurves, rna_path, 2 );
+			break;
+		case COLLADAFW::AnimationList::COLOR_RGB:
+		case COLLADAFW::AnimationList::COLOR_RGBA: // to do-> set intensity
+			modify_fcurve(&animcurves, rna_path, -1 );
+			break;
+
+		default:
+			fprintf(stderr, "AnimationClass %d is not supported for %s.\n",
+				bindings[j].animationClass, "COLOR" );
+		}
+
+		std::vector<FCurve*>::iterator iter;
+		//Add the curves of the current animation to the object
+		for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+			FCurve * fcu = *iter;
+			BLI_addtail(AnimCurves, fcu);	
+		}	 			
+	}
+
+
+}
+
+void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type)
+{
+	char rna_path[100];
+	if (animlist_map.find(listid) == animlist_map.end()) return ;
+	else 
+	{
+		//anim_type has animations
+		const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+		const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+		//all the curves belonging to the current binding
+		std::vector<FCurve*> animcurves;
+		for (unsigned int j = 0; j < bindings.getCount(); j++) {
+			 animcurves = curve_map[bindings[j].animation];
+		
+			 BLI_strncpy(rna_path, anim_type , sizeof(rna_path));
+			 modify_fcurve(&animcurves, rna_path, 0 );
+			 std::vector<FCurve*>::iterator iter;
+				//Add the curves of the current animation to the object
+				for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+					FCurve * fcu = *iter;
+					BLI_addtail(AnimCurves, fcu);	
+				}	 			
+		}
+	}
+	
+}
+
+void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& animcurves, COLLADAFW::Node* root ,COLLADAFW::Node* node, 
+													COLLADAFW::Transformation * tm )
+{
+	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
+	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
+	char joint_path[200];
+	if ( is_joint ) 
+		armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
+
+	std::vector<float> frames;
+	find_frames(&frames, &animcurves);
+
+	float irest_dae[4][4];
+	float rest[4][4], irest[4][4];
+
+	if (is_joint) {
+		get_joint_rest_mat(irest_dae, root, node);
+		invert_m4(irest_dae);
+
+		Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
+		if (!bone) {
+			fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
+			return;
+		}
+
+		unit_m4(rest);
+		copy_m4_m4(rest, bone->arm_mat);
+		invert_m4_m4(irest, rest);
+	}
+	// new curves to assign matrix transform animation
+	FCurve *newcu[10]; // if tm_type is matrix, then create 10 curves: 4 rot, 3 loc, 3 scale
+	unsigned int totcu = 10 ;
+	const char *tm_str = NULL;
+	char rna_path[200];
+	for (int i = 0; i < totcu; i++) {
+
+		int axis = i;
+
+		if (i < 4) {
+			tm_str = "rotation_quaternion";
+			axis = i;
+		}
+		else if (i < 7) {
+			tm_str = "location";
+			axis = i - 4;
+		}
+		else {
+			tm_str = "scale";
+			axis = i - 7;
+		}
+
+
+		if (is_joint)
+			BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
+		else
+			strcpy(rna_path, tm_str);
+		newcu[i] = create_fcurve(axis, rna_path);
+		newcu[i]->totvert = frames.size();
+	}
+
+	if (frames.size() == 0)
+		return;
+
+	std::sort(frames.begin(), frames.end());
+
+	std::vector<float>::iterator it;
+
+	// sample values at each frame
+	for (it = frames.begin(); it != frames.end(); it++) {
+		float fra = *it;
+
+		float mat[4][4];
+		float matfra[4][4];
+
+		unit_m4(matfra);
+
+		// calc object-space mat
+		evaluate_transform_at_frame(matfra, node, fra);
+
+
+		// for joints, we need a special matrix
+		if (is_joint) {
+			// special matrix: iR * M * iR_dae * R
+			// where R, iR are bone rest and inverse rest mats in world space (Blender bones),
+			// iR_dae is joint inverse rest matrix (DAE) and M is an evaluated joint world-space matrix (DAE)
+			float temp[4][4], par[4][4];
+
+			// calc M
+			calc_joint_parent_mat_rest(par, NULL, root, node);
+			mul_m4_m4m4(temp, matfra, par);
+
+			// evaluate_joint_world_transform_at_frame(temp, NULL, , node, fra);
+
+			// calc special matrix
+			mul_serie_m4(mat, irest, temp, irest_dae, rest, NULL, NULL, NULL, NULL);
+		}
+		else {
+			copy_m4_m4(mat, matfra);
+		}
+
+		float  rot[4], loc[3], scale[3];
+
+		mat4_to_quat(rot, mat);
+		/*for ( int i = 0 ; i < 4  ;  i ++ )
+		{
+		rot[i] = rot[i] * (180 / M_PI); 
+		}*/
+		copy_v3_v3(loc, mat[3]);
+		mat4_to_size(scale, mat);
+
+		// add keys
+		for (int i = 0; i < totcu; i++) {
+			if (i < 4)
+				add_bezt(newcu[i], fra, rot[i]);
+			else if (i < 7)
+				add_bezt(newcu[i], fra, loc[i - 4]);
+			else
+				add_bezt(newcu[i], fra, scale[i - 7]);
+		}
+	}
+	verify_adt_action((ID*)&ob->id, 1);
+
+	ListBase *curves = &ob->adt->action->curves;
+
+	// add curves
+	for (int i= 0; i < totcu; i++) {
+		if (is_joint)
+			add_bone_fcurve(ob, node, newcu[i]);
+		else
+			BLI_addtail(curves, newcu[i]);
+	}
+
+	if (is_joint) {
+		bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+		chan->rotmode = ROT_MODE_QUAT;
+	}
+	else {
+		ob->rotmode = ROT_MODE_QUAT;
+	}
+
+	return;
+
+}
+
+void AnimationImporter::translate_Animations ( COLLADAFW::Node * node , 
+												   std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
+												   std::map<COLLADAFW::UniqueId, Object*>& object_map,
+												   std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map)
+{
+	AnimationImporter::AnimMix* animType = get_animation_type(node, FW_object_map );
+
+	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
+	COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
+	Object *ob = is_joint ? armature_importer->get_armature_for_joint(root) : object_map[node->getUniqueId()];
+	if (!ob)
+	{
+		fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
+		return;
+	}
+
+	bAction * act;
+
+	if ( (animType->transform) != 0 )
+	{
+		const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
+		char joint_path[200];
+
+		if ( is_joint ) 
+			armature_importer->get_rna_path_for_joint(node, joint_path, sizeof(joint_path));
+
+
+		if (!ob->adt || !ob->adt->action) act = verify_adt_action((ID*)&ob->id, 1);
+		else act = ob->adt->action;
+
+		//Get the list of animation curves of the object
+		ListBase *AnimCurves = &(act->curves);
+
+		const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
+
+		//for each transformation in node 
+		for (unsigned int i = 0; i < nodeTransforms.getCount(); i++) {
+			COLLADAFW::Transformation *transform = nodeTransforms[i];
+			COLLADAFW::Transformation::TransformationType tm_type = transform->getTransformationType();
+
+			bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
+			bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
+
+			const COLLADAFW::UniqueId& listid = transform->getAnimationList();
+
+			//check if transformation has animations
+			if (animlist_map.find(listid) == animlist_map.end()) continue ; 
+			else 
+			{
+				//transformation has animations
+				const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+				const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
+				//all the curves belonging to the current binding
+				std::vector<FCurve*> animcurves;
+				for (unsigned int j = 0; j < bindings.getCount(); j++) {
+					animcurves = curve_map[bindings[j].animation];
+					if ( is_matrix )
+						apply_matrix_curves(ob, animcurves, root , node,  transform  );
+					else {				
+						//calculate rnapaths and array index of fcurves according to transformation and animation class
+						Assign_transform_animations(transform, &bindings[j], &animcurves, is_joint, joint_path ); 
+
+						std::vector<FCurve*>::iterator iter;
+						//Add the curves of the current animation to the object
+						for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+							FCurve * fcu = *iter;
+							if ((ob->type == OB_ARMATURE))
+								add_bone_fcurve( ob, node , fcu );
+							else 
+								BLI_addtail(AnimCurves, fcu);	
+						}
+					}
+				}
+			}
+			if (is_rotation) {
+				if (is_joint) 
+				{
+					bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+					chan->rotmode = ROT_MODE_EUL;
+				}
+				else 
+				{
+					ob->rotmode = ROT_MODE_EUL;
+				}
+			}
+		}
+	}
+
+	if ((animType->light) != 0)
+	{
+		Lamp * lamp  = (Lamp*) ob->data;
+
+		if (!lamp->adt || !lamp->adt->action) act = verify_adt_action((ID*)&lamp->id, 1);
+		else act = lamp->adt->action;
+
+		ListBase *AnimCurves = &(act->curves);
+		const COLLADAFW::InstanceLightPointerArray& nodeLights = node->getInstanceLights();
+
+		for (unsigned int i = 0; i < nodeLights.getCount(); i++) {
+			const COLLADAFW::Light *light = (COLLADAFW::Light *) FW_object_map[nodeLights[i]->getInstanciatedObjectId()];
+
+			if ((animType->light & LIGHT_COLOR) != 0)
+			{
+				const COLLADAFW::Color *col =  &(light->getColor());
+				const COLLADAFW::UniqueId& listid = col->getAnimationList();
+
+				Assign_color_animations(listid, AnimCurves, "color"); 
+			}
+			if ((animType->light & LIGHT_FOA) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *foa =  &(light->getFallOffAngle());
+				const COLLADAFW::UniqueId& listid = foa->getAnimationList();
+
+				Assign_float_animations( listid ,AnimCurves, "spot_size"); 
+			}
+			if ( (animType->light & LIGHT_FOE) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *foe =  &(light->getFallOffExponent());
+				const COLLADAFW::UniqueId& listid = foe->getAnimationList();
+
+				Assign_float_animations( listid ,AnimCurves, "spot_blend"); 
+
+			}
+		}
+	}
+
+	if ( (animType->camera) != 0) 
+	{
+		Camera * camera  = (Camera*) ob->data;
+
+		if (!camera->adt || !camera->adt->action) act = verify_adt_action((ID*)&camera->id, 1);
+		else act = camera->adt->action;
+
+		ListBase *AnimCurves = &(act->curves);
+		const COLLADAFW::InstanceCameraPointerArray& nodeCameras= node->getInstanceCameras();
+
+		for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
+			const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
+
+			if ((animType->camera & CAMERA_XFOV) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *xfov =  &(camera->getXFov());
+				const COLLADAFW::UniqueId& listid = xfov->getAnimationList();
+				Assign_float_animations( listid ,AnimCurves, "lens"); 
+			}
+
+			else if ((animType->camera & CAMERA_XMAG) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *xmag =  &(camera->getXMag());
+				const COLLADAFW::UniqueId& listid = xmag->getAnimationList();
+				Assign_float_animations( listid ,AnimCurves, "ortho_scale"); 
+			}
+
+			if ((animType->camera & CAMERA_ZFAR) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *zfar =  &(camera->getFarClippingPlane());
+				const COLLADAFW::UniqueId& listid = zfar->getAnimationList();
+				Assign_float_animations( listid ,AnimCurves, "clip_end"); 
+			}
+
+			if ((animType->camera & CAMERA_ZNEAR) != 0 )
+			{
+				const COLLADAFW::AnimatableFloat *znear =  &(camera->getNearClippingPlane());
+				const COLLADAFW::UniqueId& listid = znear->getAnimationList();
+				Assign_float_animations( listid ,AnimCurves, "clip_start"); 
+			}
+
+		}
+	}
+	if ( animType->material != 0){
+		Material *ma = give_current_material(ob, 1);
+		if (!ma->adt || !ma->adt->action) act = verify_adt_action((ID*)&ma->id, 1);
+		else act = ma->adt->action;
+
+		ListBase *AnimCurves = &(act->curves);
+
+		const COLLADAFW::InstanceGeometryPointerArray& nodeGeoms = node->getInstanceGeometries();
+		for (unsigned int i = 0; i < nodeGeoms.getCount(); i++) {
+			const COLLADAFW::MaterialBindingArray& matBinds = nodeGeoms[i]->getMaterialBindings();
+			for (unsigned int j = 0; j < matBinds.getCount(); j++) {
+				const COLLADAFW::UniqueId & matuid = matBinds[j].getReferencedMaterial();
+				const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
+				const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
+				COLLADAFW::EffectCommon *efc = commonEffects[0];
+				if((animType->material & MATERIAL_SHININESS) != 0){
+					const COLLADAFW::FloatOrParam *shin = &(efc->getShininess());
+					const COLLADAFW::UniqueId& listid =  shin->getAnimationList();
+					Assign_float_animations( listid, AnimCurves , "specular_hardness" );
+				}
+
+				if((animType->material & MATERIAL_IOR) != 0){
+					const COLLADAFW::FloatOrParam *ior = &(efc->getIndexOfRefraction());
+					const COLLADAFW::UniqueId& listid =  ior->getAnimationList();
+					Assign_float_animations( listid, AnimCurves , "raytrace_transparency.ior" );
+				}
+
+				if((animType->material & MATERIAL_SPEC_COLOR) != 0){
+					const COLLADAFW::ColorOrTexture *cot = &(efc->getSpecular());
+					const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
+					Assign_color_animations( listid, AnimCurves , "specular_color" );
+				}
+
+				if((animType->material & MATERIAL_DIFF_COLOR) != 0){
+					const COLLADAFW::ColorOrTexture *cot = &(efc->getDiffuse());
+					const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
+					Assign_color_animations( listid, AnimCurves , "diffuse_color" );
+				}
+			}
+		}	
+	}
+}
+
+
+//Check if object is animated by checking if animlist_map holds the animlist_id of node transforms
+AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLADAFW::Node * node , 
+											std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map) 
+{
+	AnimMix *types = new AnimMix();
+
+	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
+
+	//for each transformation in node 
+	for (unsigned int i = 0; i < nodeTransforms.getCount(); i++) {
+		COLLADAFW::Transformation *transform = nodeTransforms[i];
+		const COLLADAFW::UniqueId& listid = transform->getAnimationList();
+
+		//check if transformation has animations
+		if (animlist_map.find(listid) == animlist_map.end()) continue ;
+		else 
+		{
+			types->transform = types->transform|NODE_TRANSFORM;
+			break;
+		}
+	}
+	const COLLADAFW::InstanceLightPointerArray& nodeLights = node->getInstanceLights();
+
+	for (unsigned int i = 0; i < nodeLights.getCount(); i++) {
+		const COLLADAFW::Light *light = (COLLADAFW::Light *) FW_object_map[nodeLights[i]->getInstanciatedObjectId()];
+		types->light = setAnimType(&(light->getColor()),(types->light), LIGHT_COLOR);
+		types->light = setAnimType(&(light->getFallOffAngle()),(types->light), LIGHT_FOA);
+		types->light = setAnimType(&(light->getFallOffExponent()),(types->light), LIGHT_FOE);
+
+		if ( types->light != 0) break;
+
+	}
+
+	const COLLADAFW::InstanceCameraPointerArray& nodeCameras = node->getInstanceCameras();
+	for (unsigned int i = 0; i < nodeCameras.getCount(); i++) {
+		const COLLADAFW::Camera *camera = (COLLADAFW::Camera *) FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
+
+		if ( camera->getCameraType() == COLLADAFW::Camera::PERSPECTIVE )
+		{
+			types->camera = setAnimType(&(camera->getXMag()),(types->camera), CAMERA_XFOV);
+		}
+		else
+		{
+			types->camera = setAnimType(&(camera->getXMag()),(types->camera), CAMERA_XMAG);
+		}
+		types->camera = setAnimType(&(camera->getFarClippingPlane()),(types->camera), CAMERA_ZFAR);
+		types->camera = setAnimType(&(camera->getNearClippingPlane()),(types->camera), CAMERA_ZNEAR);
+
+		if ( types->camera != 0) break;
+
+	}
+
+	const COLLADAFW::InstanceGeometryPointerArray& nodeGeoms = node->getInstanceGeometries();
+	for (unsigned int i = 0; i < nodeGeoms.getCount(); i++) {
+		const COLLADAFW::MaterialBindingArray& matBinds = nodeGeoms[i]->getMaterialBindings();
+		for (unsigned int j = 0; j < matBinds.getCount(); j++) {
+			const COLLADAFW::UniqueId & matuid = matBinds[j].getReferencedMaterial();
+			const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
+			const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
+			if(!commonEffects.empty()) {
+				COLLADAFW::EffectCommon *efc = commonEffects[0];
+				types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
+				types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
+				types->material =  setAnimType(&(efc->getDiffuse().getColor()),(types->material), MATERIAL_DIFF_COLOR);
+				// types->material =  setAnimType(&(efc->get()),(types->material), MATERIAL_TRANSPARENCY);
+				types->material =  setAnimType(&(efc->getIndexOfRefraction()),(types->material), MATERIAL_IOR);
+			}
+		}
+	}
+	return types;
+}
+
+int AnimationImporter::setAnimType ( const COLLADAFW::Animatable * prop , int types, int addition)
+{
+		const COLLADAFW::UniqueId& listid =  prop->getAnimationList();
+		if (animlist_map.find(listid) != animlist_map.end()) 
+				return types|addition;
+		else return types;
+}		
+
+// Is not used anymore.
+void AnimationImporter::find_frames_old(std::vector<float> * frames, COLLADAFW::Node * node , COLLADAFW::Transformation::TransformationType tm_type)
+{
+	bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
+	bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
 	// for each <rotate>, <translate>, etc. there is a separate Transformation
-	const COLLADAFW::TransformationPointerArray& tms = node->getTransformations();
+	const COLLADAFW::TransformationPointerArray& nodeTransforms = node->getTransformations();
 
 	unsigned int i;
-
 	// find frames at which to sample plus convert all rotation keys to radians
-	for (i = 0; i < tms.getCount(); i++) {
-		COLLADAFW::Transformation *tm = tms[i];
-		COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
+	for (i = 0; i < nodeTransforms.getCount(); i++) {
+		COLLADAFW::Transformation *transform = nodeTransforms[i];
+		COLLADAFW::Transformation::TransformationType nodeTmType = transform->getTransformationType();
 
-		if (type == tm_type) {
-			const COLLADAFW::UniqueId& listid = tm->getAnimationList();
 
+		if (nodeTmType == tm_type) {
+			//get animation bindings for the current transformation
+			const COLLADAFW::UniqueId& listid = transform->getAnimationList();
+			//if transform is animated its animlist must exist.
 			if (animlist_map.find(listid) != animlist_map.end()) {
+				
 				const COLLADAFW::AnimationList *animlist = animlist_map[listid];
 				const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
 
 				if (bindings.getCount()) {
+					//for each AnimationBinding get the fcurves which animate the transform
 					for (unsigned int j = 0; j < bindings.getCount(); j++) {
 						std::vector<FCurve*>& curves = curve_map[bindings[j].animation];
-						bool xyz = ((type == COLLADAFW::Transformation::TRANSLATE || type == COLLADAFW::Transformation::SCALE) && bindings[j].animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
+						bool xyz = ((nodeTmType == COLLADAFW::Transformation::TRANSLATE || nodeTmType == COLLADAFW::Transformation::SCALE) && bindings[j].animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
 
 						if ((!xyz && curves.size() == 1) || (xyz && curves.size() == 3) || is_matrix) {
 							std::vector<FCurve*>::iterator iter;
@@ -565,13 +1109,16 @@ Object *AnimationImporter::translate_animation(COLLADAFW::Node *node,
 							for (iter = curves.begin(); iter != curves.end(); iter++) {
 								FCurve *fcu = *iter;
 
+								//if transform is rotation the fcurves values must be turned in to radian.
 								if (is_rotation)
 									fcurve_deg_to_rad(fcu);
 
 								for (unsigned int k = 0; k < fcu->totvert; k++) {
+									//get frame value from bezTriple
 									float fra = fcu->bezt[k].vec[1][0];
-									if (std::find(frames.begin(), frames.end(), fra) == frames.end())
-										frames.push_back(fra);
+									//if frame already not added add frame to frames
+									if (std::find(frames->begin(), frames->end(), fra) == frames->end())
+										frames->push_back(fra);
 								}
 							}
 						}
@@ -583,7 +1130,39 @@ Object *AnimationImporter::translate_animation(COLLADAFW::Node *node,
 			}
 		}
 	}
+}
 
+
+
+// prerequisites:
+// animlist_map - map animlist id -> animlist
+// curve_map - map anim id -> curve(s)
+Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
+							std::map<COLLADAFW::UniqueId, Object*>& object_map,
+							std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
+							COLLADAFW::Transformation::TransformationType tm_type,
+							Object *par_job)
+{
+	
+	bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
+	bool is_matrix = tm_type == COLLADAFW::Transformation::MATRIX;
+	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
+	
+	COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
+	Object *ob = is_joint ? armature_importer->get_armature_for_joint(node) : object_map[node->getUniqueId()];
+	const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL;
+	if (!ob) {
+		fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
+		return NULL;
+	}
+
+	// frames at which to sample
+	std::vector<float> frames;
+	
+	find_frames_old(&frames, node , tm_type);
+	
+	unsigned int i;
+	
 	float irest_dae[4][4];
 	float rest[4][4], irest[4][4];
 
@@ -664,7 +1243,6 @@ Object *AnimationImporter::translate_animation(COLLADAFW::Node *node,
 			BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
 		else
 			strcpy(rna_path, tm_str);
-
 		newcu[i] = create_fcurve(axis, rna_path);
 
 #ifdef ARMATURE_TEST
@@ -812,7 +1390,7 @@ Object *AnimationImporter::translate_animation(COLLADAFW::Node *node,
 }
 
 // internal, better make it private
-// warning: evaluates only rotation
+// warning: evaluates only rotation and only assigns matrix transforms now
 // prerequisites: animlist_map, curve_map
 void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::Node *node, float fra)
 {
@@ -826,10 +1404,12 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::
 		float m[4][4];
 
 		unit_m4(m);
+		if ( type != COLLADAFW::Transformation::MATRIX )
+			continue;
 
 		std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
 		if (!evaluate_animation(tm, m, fra, nodename.c_str())) {
-			switch (type) {
+			/*switch (type) {
 			case COLLADAFW::Transformation::ROTATE:
 				dae_rotate_to_mat4(tm, m);
 				break;
@@ -844,7 +1424,9 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::
 				break;
 			default:
 				fprintf(stderr, "unsupported transformation type %d\n", type);
-			}
+			}*/
+			dae_matrix_to_mat4(tm, m);
+			
 		}
 
 		float temp[4][4];
@@ -861,9 +1443,9 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 	COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
 
 	if (type != COLLADAFW::Transformation::ROTATE &&
-	    type != COLLADAFW::Transformation::SCALE &&
-	    type != COLLADAFW::Transformation::TRANSLATE &&
-	    type != COLLADAFW::Transformation::MATRIX) {
+		type != COLLADAFW::Transformation::SCALE &&
+		type != COLLADAFW::Transformation::TRANSLATE &&
+		type != COLLADAFW::Transformation::MATRIX) {
 		fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
 		return false;
 	}
@@ -880,9 +1462,9 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 		bool is_scale = (type == COLLADAFW::Transformation::SCALE);
 		bool is_translate = (type == COLLADAFW::Transformation::TRANSLATE);
 
-		if (type == COLLADAFW::Transformation::SCALE)
+		if (is_scale)
 			dae_scale_to_v3(tm, vec);
-		else if (type == COLLADAFW::Transformation::TRANSLATE)
+		else if (is_translate)
 			dae_translate_to_v3(tm, vec);
 
 		for (unsigned int j = 0; j < bindings.getCount(); j++) {
@@ -910,7 +1492,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 
 			if (animclass == COLLADAFW::AnimationList::UNKNOWN_CLASS) {
 				fprintf(stderr, "%s: UNKNOWN animation class\n", path);
-				continue;
+				//continue;
 			}
 
 			if (type == COLLADAFW::Transformation::ROTATE) {
@@ -980,10 +1562,13 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 						i++;
 						j = 0;
 					}
+					unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), *it), unused_curves.end());
 				}
 
 				COLLADAFW::Matrix tm(matrix);
 				dae_matrix_to_mat4(&tm, mat);
+
+				std::vector<FCurve*>::iterator it;
 
 				return true;
 			}
@@ -1150,13 +1735,15 @@ void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurv
 
 void AnimationImporter::add_bezt(FCurve *fcu, float fra, float value)
 {
+	//float fps = (float)FPS;
 	BezTriple bez;
 	memset(&bez, 0, sizeof(BezTriple));
-	bez.vec[1][0] = fra;
+	bez.vec[1][0] = fra ;
 	bez.vec[1][1] = value;
-	bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+	bez.ipo = BEZT_IPO_LIN ;/* use default interpolation mode here... */
 	bez.f1 = bez.f2 = bez.f3 = SELECT;
 	bez.h1 = bez.h2 = HD_AUTO;
 	insert_bezt_fcurve(fcu, &bez, 0);
 	calchandles_fcurve(fcu);
 }
+
