@@ -362,7 +362,7 @@ static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 		int a;
 		node = nodeexec->node;
 		
-		node_get_stack(node, thd->stack, nsin, nsout);
+		node_get_stack(node, exec->stack, nsin, nsout);
 		
 		/* test the outputs */
 		/* skip value-only nodes (should be in type!) */
@@ -428,7 +428,7 @@ static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 			node = nodeexec->node;
 			if(node->need_exec==0 && node_only_value(node)) {
 				if(node->typeinfo->execfunc) {
-					node_get_stack(node, thd->stack, nsin, nsout);
+					node_get_stack(node, exec->stack, nsin, nsout);
 					node->typeinfo->execfunc(thd->rd, node, nsin, nsout);
 				}
 			}
