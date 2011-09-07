@@ -55,7 +55,7 @@ static std::string getActiveUVLayerName(Object *ob)
 	return "";
 }
 
-EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryEffects(sw){}
+EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryEffects(sw), export_settings(export_settings) {}
 
 bool EffectsExporter::hasEffects(Scene *sce)
 {
@@ -78,12 +78,12 @@ bool EffectsExporter::hasEffects(Scene *sce)
 	return false;
 }
 
-void EffectsExporter::exportEffects(Scene *sce, bool export_selected)
+void EffectsExporter::exportEffects(Scene *sce)
 {
 	if(hasEffects(sce)) {
 		openLibrary();
 		MaterialFunctor mf;
-		mf.forEachMaterialInScene<EffectsExporter>(sce, *this, export_selected);
+		mf.forEachMaterialInScene<EffectsExporter>(sce, *this, this->export_settings->selected);
 
 		closeLibrary();
 	}
