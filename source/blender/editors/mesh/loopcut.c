@@ -384,39 +384,6 @@ static int ringcut_cancel (bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
-{
-	tringselOpData *lcd;
-	BMEdge *edge;
-	int dist = 75;
-	
-	view3d_operator_needs_opengl(C);
-
-	if (!ringsel_init(C, op, 0))
-		return OPERATOR_CANCELLED;
-	
-	lcd = op->customdata;
-	
-	if (lcd->em->selectmode == SCE_SELECT_FACE) {
-		ringsel_exit(C, op);
-		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, NULL);
-		return OPERATOR_CANCELLED;
-	}
-
-	lcd->vc.mval[0] = evt->mval[0];
-	lcd->vc.mval[1] = evt->mval[1];
-	
-	edge = EDBM_findnearestedge(&lcd->vc, &dist);
-
-	lcd->eed = edge;
-	
-	ringsel_find_edge(lcd, 1);
-	ringsel_finish(C, op);
-	ringsel_exit(C, op);
-
-	return OPERATOR_FINISHED;
-}
-
 static int ringcut_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -532,23 +499,6 @@ static int loopcut_modal (bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* keep going until the user confirms */
 	return OPERATOR_RUNNING_MODAL;
-}
-
-void MESH_OT_edgering_select (wmOperatorType *ot)
-{
-	/* description */
-	ot->name= "Edge Ring Select";
-	ot->idname= "MESH_OT_edgering_select";
-	ot->description= "Select an edge ring";
-	
-	/* callbacks */
-	ot->invoke= ringsel_invoke;
-	ot->poll= ED_operator_editmesh_region_view3d; 
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 }
 
 void MESH_OT_loopcut (wmOperatorType *ot)

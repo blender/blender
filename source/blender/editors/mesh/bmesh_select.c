@@ -1040,6 +1040,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Loop Select";
 	ot->idname= "MESH_OT_loop_select";
+	ot->description= "Select a loop";
 	
 	/* api callbacks */
 	ot->invoke= mesh_select_loop_invoke;
@@ -1050,8 +1051,26 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
-	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "Extend the selection");
+	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "Select ring");
+}
+
+void MESH_OT_edgering_select (wmOperatorType *ot)
+{
+	/* description */
+	ot->name= "Edge Ring Select";
+	ot->idname= "MESH_OT_edgering_select";
+	ot->description= "Select an edge ring";
+	
+	/* callbacks */
+	ot->invoke= mesh_select_loop_invoke;
+	ot->poll= ED_operator_editmesh; 
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+	RNA_def_boolean(ot->srna, "ring", 1, "Select Ring", "Select ring");
 }
 
 /* ******************* edgetag_shortest_path and helpers ****************** */
