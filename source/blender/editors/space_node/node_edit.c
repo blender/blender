@@ -607,28 +607,45 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 static int compare_nodes(bNode *a, bNode *b)
 {
 	bNode *parent;
+	/* These tell if either the node or any of the parent nodes is selected.
+	 * A selected parent means an unselected node is also in foreground!
+	 */
+	int a_select=(a->flag & NODE_SELECT), b_select=(b->flag & NODE_SELECT);
+	int a_active=(a->flag & NODE_ACTIVE), b_active=(b->flag & NODE_ACTIVE);
 	
 	/* if one is an ancestor of the other */
 	/* XXX there might be a better sorting algorithm for stable topological sort, this is O(n^2) worst case */
 	for (parent = a->parent; parent; parent=parent->parent) {
+		/* if b is an ancestor, it is always behind a */
 		if (parent==b)
 			return 1;
+		/* any selected ancestor moves the node forward */
+		if (parent->flag & NODE_ACTIVE)
+			a_active = 1;
+		if (parent->flag & NODE_SELECT)
+			a_select = 1;
 	}
 	for (parent = b->parent; parent; parent=parent->parent) {
+		/* if a is an ancestor, it is always behind b */
 		if (parent==a)
 			return 0;
+		/* any selected ancestor moves the node forward */
+		if (parent->flag & NODE_ACTIVE)
+			b_active = 1;
+		if (parent->flag & NODE_SELECT)
+			b_select = 1;
 	}
 
 	/* if one of the nodes is in the background and the other not */
-	if ((a->flag & NODE_BACKGROUND) && !(b->typeinfo->flag & NODE_BACKGROUND))
+	if ((a->flag & NODE_BACKGROUND) && !(b->flag & NODE_BACKGROUND))
 		return 0;
-	else if (!(a->flag & NODE_BACKGROUND) && (b->typeinfo->flag & NODE_BACKGROUND))
+	else if (!(a->flag & NODE_BACKGROUND) && (b->flag & NODE_BACKGROUND))
 		return 1;
 	
 	/* if one has a higher selection state (active > selected > nothing) */
-	if (!(b->flag & NODE_ACTIVE) && (a->flag & NODE_ACTIVE))
+	if (!b_active && a_active)
 		return 1;
-	else if (!(b->flag & NODE_SELECT) && ((a->flag & NODE_ACTIVE) || (a->flag & NODE_SELECT)))
+	else if (!b_select && (a_active || a_select))
 		return 1;
 	
 	return 0;
