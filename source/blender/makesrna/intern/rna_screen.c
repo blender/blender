@@ -68,13 +68,14 @@ static void rna_Screen_scene_set(PointerRNA *ptr, PointerRNA value)
 	sc->newscene= value.data;
 }
 
-static void rna_Screen_scene_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
 {
 	bScreen *sc= (bScreen*)ptr->data;
 
-	/* exception: can't set screens inside of area/region handers */
+	/* exception: can't set screens inside of area/region handers, and must
+	   use context so notifier gets to the right window  */
 	if(sc->newscene) {
-		WM_main_add_notifier(NC_SCENE|ND_SCENEBROWSE, sc->newscene);
+		WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, sc->newscene);
 		sc->newscene= NULL;
 	}
 }
@@ -231,6 +232,7 @@ static void rna_def_screen(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Screen_scene_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Scene", "Active scene to be edited in the screen");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Screen_scene_update");
 
 	/* collections */

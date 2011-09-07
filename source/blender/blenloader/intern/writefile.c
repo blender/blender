@@ -135,6 +135,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_bpath.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
@@ -645,6 +646,38 @@ static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
 static void write_node_socket(WriteData *wd, bNodeSocket *sock)
 {
 	bNodeSocketType *stype= ntreeGetSocketType(sock->type);
+
+	/* forward compatibility code, so older blenders still open */
+	sock->stack_type = 1;
+
+	if(sock->default_value) {
+		bNodeSocketValueFloat *valfloat;
+		bNodeSocketValueVector *valvector;
+		bNodeSocketValueRGBA *valrgba;
+		
+		switch (sock->type) {
+		case SOCK_FLOAT:
+			valfloat = sock->default_value;
+			sock->ns.vec[0] = valfloat->value;
+			sock->ns.min = valfloat->min;
+			sock->ns.max = valfloat->max;
+			break;
+		case SOCK_VECTOR:
+			valvector = sock->default_value;
+			copy_v3_v3(sock->ns.vec, valvector->value);
+			sock->ns.min = valvector->min;
+			sock->ns.max = valvector->max;
+			break;
+		case SOCK_RGBA:
+			valrgba = sock->default_value;
+			copy_v4_v4(sock->ns.vec, valrgba->value);
+			sock->ns.min = 0.0f;
+			sock->ns.max = 1.0f;
+			break;
+		}
+	}
+
+	/* actual socket writing */
 	writestruct(wd, DATA, "bNodeSocket", 1, sock);
 	if (sock->default_value)
 		writestruct(wd, DATA, stype->value_structname, 1, sock->default_value);

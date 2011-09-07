@@ -108,11 +108,11 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
 	bNodeTreeExec *exec;
 
 	if(!ntree->execdata)
-		exec = ntreeShaderBeginExecTree(ntree);
+		exec = ntreeShaderBeginExecTree(ntree, 1);
 
 	ntreeExecGPUNodes(exec, mat, 1);
 
-	ntreeShaderEndExecTree(exec);
+	ntreeShaderEndExecTree(exec, 1);
 }
 
 /* **************** call to switch lamploop for material node ************ */
@@ -125,16 +125,21 @@ void set_node_shader_lamp_loop(void (*lamp_loop_func)(ShadeInput *, ShadeResult 
 }
 
 
-bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
+/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
+ * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
+ */
+bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree, int use_tree_data)
 {
 	bNodeTreeExec *exec;
 	bNode *node;
 	
-	/* XXX hack: prevent exec data from being generated twice.
-	 * this should be handled by the renderer!
-	 */
-	if (ntree->execdata)
-		return ntree->execdata;
+	if (use_tree_data) {
+		/* XXX hack: prevent exec data from being generated twice.
+		 * this should be handled by the renderer!
+		 */
+		if (ntree->execdata)
+			return ntree->execdata;
+	}
 	
 	/* ensures only a single output node is enabled */
 	ntreeSetOutput(ntree);
@@ -148,15 +153,20 @@ bNodeTreeExec *ntreeShaderBeginExecTree(bNodeTree *ntree)
 	for(node= exec->nodetree->nodes.first; node; node= node->next)
 		node->need_exec= 1;
 	
-	/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
-	 * which only store the ntree pointer. Should be fixed at some point!
-	 */
-	ntree->execdata = exec;
+	if (use_tree_data) {
+		/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
+		 * which only store the ntree pointer. Should be fixed at some point!
+		 */
+		ntree->execdata = exec;
+	}
 	
 	return exec;
 }
 
-void ntreeShaderEndExecTree(bNodeTreeExec *exec)
+/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
+ * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
+ */
+void ntreeShaderEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 {
 	if(exec) {
 		bNodeTree *ntree= exec->nodetree;
@@ -176,8 +186,10 @@ void ntreeShaderEndExecTree(bNodeTreeExec *exec)
 		
 		ntree_exec_end(exec);
 		
-		/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
-		ntree->execdata = NULL;
+		if (use_tree_data) {
+			/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
+			ntree->execdata = NULL;
+		}
 	}
 }
 
@@ -199,7 +211,7 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	memset(shr, 0, sizeof(ShadeResult));
 	
 	if (!exec)
-		exec = ntree->execdata = ntreeShaderBeginExecTree(exec->nodetree);
+		exec = ntree->execdata = ntreeShaderBeginExecTree(exec->nodetree, 1);
 	
 	nts= ntreeGetThreadStack(exec, shi->thread);
 	ntreeExecThreadNodes(exec, nts, &scd, shi->thread);

@@ -637,7 +637,7 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	float arrowbutw= 0.8f*UI_UNIT_X;
 	/* layout stuff for buttons on group left frame */
 	float colw= 0.6f*node_group_frame;
-	float col1= 6;
+	float col1= 6 - node_group_frame;
 	float col2= col1 + colw+6;
 	float col3= node_group_frame - arrowbutw - 6;
 	/* layout stuff for buttons on group right frame */

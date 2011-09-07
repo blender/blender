@@ -344,7 +344,7 @@ void bpy_text_clear_modules(int clear_all)
 	
 	/* looping over the dict */
 	PyObject *key, *value;
-	int pos= 0;
+	Py_ssize_t pos= 0;
 	
 	/* new list */
 	PyObject *list;
@@ -374,7 +374,7 @@ void bpy_text_clear_modules(int clear_all)
 	}
 	
 	/* remove all our modules */
-	for(pos=0; pos < PyList_Size(list); pos++) {
+	for(pos=0; pos < PyList_GET_SIZE(list); pos++) {
 		/* PyObject_Print(key, stderr, 0); */
 		key= PyList_GET_ITEM(list, pos);
 		PyDict_DelItem(modules, key);

@@ -4407,7 +4407,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 		buf= MEM_mallocN(sizeof(char)*(length+1), "RNA_property_as_string");
 		buf_esc= MEM_mallocN(sizeof(char)*(length*2+1), "RNA_property_as_string esc");
 		RNA_property_string_get(ptr, prop, buf);
-		BLI_strescape(buf_esc, buf, length*2);
+		BLI_strescape(buf_esc, buf, length*2+1);
 		MEM_freeN(buf);
 		BLI_dynstr_appendf(dynstr, "\"%s\"", buf_esc);
 		MEM_freeN(buf_esc);

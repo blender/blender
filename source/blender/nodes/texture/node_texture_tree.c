@@ -121,16 +121,21 @@ int ntreeTexTagAnimated(bNodeTree *ntree)
 	return 0;
 }
 
-bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
+/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
+ * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
+ */
+bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree, int use_tree_data)
 {
 	bNodeTreeExec *exec;
 	bNode *node;
 	
-	/* XXX hack: prevent exec data from being generated twice.
-	 * this should be handled by the renderer!
-	 */
-	if (ntree->execdata)
-		return ntree->execdata;
+	if (use_tree_data) {
+		/* XXX hack: prevent exec data from being generated twice.
+		 * this should be handled by the renderer!
+		 */
+		if (ntree->execdata)
+			return ntree->execdata;
+	}
 	
 	/* common base initialization */
 	exec = ntree_exec_begin(ntree);
@@ -141,10 +146,12 @@ bNodeTreeExec *ntreeTexBeginExecTree(bNodeTree *ntree)
 	for(node= exec->nodetree->nodes.first; node; node= node->next)
 		node->need_exec= 1;
 	
-	/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
-	 * which only store the ntree pointer. Should be fixed at some point!
-	 */
-	ntree->execdata = exec;
+	if (use_tree_data) {
+		/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
+		 * which only store the ntree pointer. Should be fixed at some point!
+		 */
+		ntree->execdata = exec;
+	}
 	
 	return exec;
 }
@@ -163,7 +170,10 @@ static void tex_free_delegates(bNodeTreeExec *exec)
 					MEM_freeN(ns->data);
 }
 
-void ntreeTexEndExecTree(bNodeTreeExec *exec)
+/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
+ * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
+ */
+void ntreeTexEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 {
 	if(exec) {
 		bNodeTree *ntree= exec->nodetree;
@@ -185,8 +195,10 @@ void ntreeTexEndExecTree(bNodeTreeExec *exec)
 		
 		ntree_exec_end(exec);
 		
-		/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
-		ntree->execdata = NULL;
+		if (use_tree_data) {
+			/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
+			ntree->execdata = NULL;
+		}
 	}
 }
 
@@ -223,7 +235,7 @@ int ntreeTexExecTree(
 	data.shi= shi;
 	
 	if (!exec)
-		exec = ntreeTexBeginExecTree(nodes);
+		exec = ntreeTexBeginExecTree(nodes, 1);
 	
 	nts= ntreeGetThreadStack(exec, thread);
 	ntreeExecThreadNodes(exec, nts, &data, thread);

@@ -767,7 +767,7 @@ Tex *copy_texture(Tex *tex)
 
 	if(tex->nodetree) {
 		if (tex->nodetree->execdata) {
-			ntreeTexEndExecTree(tex->nodetree->execdata);
+			ntreeTexEndExecTree(tex->nodetree->execdata, 1);
 		}
 		texn->nodetree= ntreeCopyTree(tex->nodetree); 
 	}

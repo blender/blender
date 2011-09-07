@@ -725,7 +725,7 @@ static PyObject *gLibNew(PyObject*, PyObject* args)
 	if(idcode==ID_ME) {
 		PyObject *ret= PyList_New(0);
 		PyObject *item;
-		for(int i= 0; i < PyList_GET_SIZE(names); i++) {
+		for(Py_ssize_t i= 0; i < PyList_GET_SIZE(names); i++) {
 			name= _PyUnicode_AsString(PyList_GET_ITEM(names, i));
 			if(name) {
 				RAS_MeshObject *meshobj= kx_scene->GetSceneConverter()->ConvertMeshSpecial(kx_scene, maggie, name);
@@ -1751,7 +1751,7 @@ static void initPySysObjects(Main *maggie)
 	
 	initPySysObjects__append(sys_path, gp_GamePythonPath);
 	
-//	fprintf(stderr, "\nNew Path: %d ", PyList_Size(sys_path));
+//	fprintf(stderr, "\nNew Path: %d ", PyList_GET_SIZE(sys_path));
 //	PyObject_Print(sys_path, stderr, 0);
 }
 
@@ -1775,7 +1775,7 @@ static void restorePySysObjects(void)
 	gp_OrigPythonSysModules= NULL;	
 	
 	
-//	fprintf(stderr, "\nRestore Path: %d ", PyList_Size(sys_path));
+//	fprintf(stderr, "\nRestore Path: %d ", PyList_GET_SIZE(sys_path));
 //	PyObject_Print(sys_path, stderr, 0);
 }
 
