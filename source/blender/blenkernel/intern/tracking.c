@@ -1403,24 +1403,25 @@ void BKE_get_tracking_mat(Scene *scene, float mat[4][4])
 void BKE_tracking_projection_matrix(MovieTracking *tracking, int framenr, int winx, int winy, float mat[4][4])
 {
 	MovieReconstructedCamera *camera;
-	float lens= tracking->camera.focal*32.0f/(float)winx;
+	float lens= tracking->camera.focal*tracking->camera.sensor_width/(float)winx;
 	float viewfac, pixsize, left, right, bottom, top, clipsta, clipend;
 	float winmat[4][4];
+	float ycor= 1.f/tracking->camera.pixel_aspect;
 
 	clipsta= 0.1f;
 	clipend= 1000.0f;
 
 	if(winx >= winy)
-		viewfac= (lens*winx)/32.0f;
+		viewfac= (lens*winx)/tracking->camera.sensor_width;
 	else
-		viewfac= (lens*winy)/32.0f;
+		viewfac= (ycor*lens*winy)/tracking->camera.sensor_width;
 
 	pixsize= clipsta/viewfac;
 
 	left= -0.5f*(float)winx*pixsize;
-	bottom= -0.5f*(float)winy*pixsize;
+	bottom= -0.5f*ycor*(float)winy*pixsize;
 	right=  0.5f*(float)winx*pixsize;
-	top=  0.5f*(float)winy*pixsize;
+	top=  0.5f*ycor*(float)winy*pixsize;
 
 	perspective_m4(winmat, left, right, bottom, top, clipsta, clipend);
 
@@ -1439,12 +1440,13 @@ void BKE_tracking_apply_intrinsics(MovieTracking *tracking, float co[2], float n
 
 #ifdef WITH_LIBMV
 	double x, y;
+	float aspy= 1.f/tracking->camera.pixel_aspect;
 
 	/* normalize coords */
 	x= (co[0]-camera->principal[0]) / camera->focal;
-	y= (co[1]-camera->principal[1]) / camera->focal;
+	y= (co[1]-camera->principal[1] * aspy) / camera->focal;
 
-	libmv_applyCameraIntrinsics(camera->focal, camera->principal[0], camera->principal[1],
+	libmv_applyCameraIntrinsics(camera->focal, camera->principal[0], camera->principal[1] * aspy,
 				camera->k1, camera->k2, camera->k3, x, y, &x, &y);
 
 	/* result is in image coords already */
@@ -1459,12 +1461,13 @@ void BKE_tracking_invert_intrinsics(MovieTracking *tracking, float co[2], float 
 
 #ifdef WITH_LIBMV
 	double x= co[0], y= co[1];
+	float aspy= 1.f/tracking->camera.pixel_aspect;
 
-	libmv_InvertIntrinsics(camera->focal, camera->principal[0], camera->principal[1],
+	libmv_InvertIntrinsics(camera->focal, camera->principal[0], camera->principal[1] * aspy,
 				camera->k1, camera->k2, camera->k3, x, y, &x, &y);
 
 	nco[0]= x * camera->focal + camera->principal[0];
-	nco[1]= y * camera->focal + camera->principal[1];
+	nco[1]= y * camera->focal + camera->principal[1] * aspy;
 #endif
 }
 

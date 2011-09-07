@@ -872,7 +872,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		glPointSize(3.0f);
 
 		aspy= 1.f/clip->tracking.camera.pixel_aspect;
-		BKE_tracking_projection_matrix(tracking, framenr, width, height*aspy, mat);
+		BKE_tracking_projection_matrix(tracking, framenr, width, height, mat);
 
 		track= tracking->tracks.first;
 		while(track) {
@@ -886,20 +886,23 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 					mul_v4_m4v4(pos, mat, vec);
 
 					pos[0]= (pos[0]/(pos[3]*2.0f)+0.5f)*width;
-					pos[1]= (pos[1]/(pos[3]*2.0f)+0.5f)*height;
+					pos[1]= (pos[1]/(pos[3]*2.0f)+0.5f)*height*aspy;
 
-					BKE_tracking_apply_intrinsics(tracking, pos, pos);
+					if(pos[0]>=0.f && pos[1]>=0.f && pos[0]<=width && pos[1]<=height*aspy) {
+						BKE_tracking_apply_intrinsics(tracking, pos, pos);
 
-					vec[0]= (marker->pos[0]+track->offset[0])*width;
-					vec[1]= (marker->pos[1]+track->offset[1])*height;
-					sub_v2_v2(vec, pos);
+						vec[0]= (marker->pos[0]+track->offset[0])*width;
+						vec[1]= (marker->pos[1]+track->offset[1])*height*aspy;
 
-					if(len_v2(vec)<3) glColor3f(0.0f, 1.0f, 0.0f);
-					else glColor3f(1.0f, 0.0f, 0.0f);
+						sub_v2_v2(vec, pos);
 
-					glBegin(GL_POINTS);
-						glVertex3f(pos[0]/width, pos[1]/height, 0);
-					glEnd();
+						if(len_v2(vec)<3) glColor3f(0.0f, 1.0f, 0.0f);
+						else glColor3f(1.0f, 0.0f, 0.0f);
+
+						glBegin(GL_POINTS);
+							glVertex3f(pos[0]/width, pos[1]/(height*aspy), 0);
+						glEnd();
+					}
 				}
 			}
 
@@ -939,8 +942,9 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 	const int n= 10;
 	int i, j, a;
 	float pos[2], tpos[2], grid[11][11][2];
-	float dx= (float)width/n, dy= (float)height/n;
 	MovieTracking *tracking= &clip->tracking;
+	float aspy= 1.f/tracking->camera.pixel_aspect;
+	float dx= (float)width/n, dy= (float)height/n*aspy;
 
 	if(sc->mode!=SC_MODE_DISTORTION)
 		return;
@@ -1016,7 +1020,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 				BKE_tracking_apply_intrinsics(tracking, pos, grid[i][j]);
 
 				grid[i][j][0]/= width;
-				grid[i][j][1]/= height;
+				grid[i][j][1]/= height*aspy;
 
 				pos[0]+= dx;
 			}
@@ -1066,10 +1070,10 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 									int steps;
 
 									pos[0]= stroke->points[i].x*width;
-									pos[1]= stroke->points[i].y*height;
+									pos[1]= stroke->points[i].y*height*aspy;
 
 									npos[0]= stroke->points[i+1].x*width;
-									npos[1]= stroke->points[i+1].y*height;
+									npos[1]= stroke->points[i+1].y*height*aspy;
 
 									len= len_v2v2(pos, npos);
 									steps= ceil(len/5.f);
@@ -1085,7 +1089,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 
 									for(j= 0; j<steps; j++) {
 										BKE_tracking_apply_intrinsics(tracking, pos, tpos);
-										glVertex2f(tpos[0]/width, tpos[1]/height);
+										glVertex2f(tpos[0]/width, tpos[1]/(height*aspy));
 
 										add_v2_v2(pos, dpos);
 									}
