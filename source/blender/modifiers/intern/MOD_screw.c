@@ -825,16 +825,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		med_new->crease= med_new_firstloop->crease;
 		med_new++;
 	}
-	
+
+	/* BMesh implimentation info - need to calculate polys before recalculating
+	 * normals, since normal calc overwrites MFaces from Polys */
+	CDDM_tessfaces_to_faces(result);
+
 	if((ltmd->flag & MOD_SCREW_NORMAL_CALC) == 0) {
 		CDDM_calc_normals(result);
 	}
 
-	dm = CDDM_copy(result, 1); /*builds ngon faces from tess (mface) faces*/
-	result->needsFree = 1;
-	result->release(result);
-	
-	return dm;
+	return result;
 }
 
 
