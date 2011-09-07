@@ -3382,18 +3382,13 @@ static void sculpt_flush_update(bContext *C)
 	ARegion *ar = CTX_wm_region(C);
 	MultiresModifierData *mmd = ss->multires;
 
-	if (!ss->cache) {
-		if(mmd)
-			multires_mark_as_modified(ob);
-	}
-
+	if(mmd)
+		multires_mark_as_modified(ob);
 	if(ob->derivedFinal) /* VBO no longer valid */
 		GPU_drawobject_free(ob->derivedFinal);
 
-	if (!ss->cache || !mmd)
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	
 	if(ss->modifiers_active) {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		ED_region_tag_redraw(ar);
 	}
 	else {

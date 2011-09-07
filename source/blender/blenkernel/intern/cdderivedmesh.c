@@ -239,7 +239,7 @@ static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 	if(deformed)
 		return 0;
 
-	return (cddm->mvert == me->mvert) || ob->sculpt->kb;
+	return dm->deformedOnly || ob->sculpt->kb;
 }
 
 static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
