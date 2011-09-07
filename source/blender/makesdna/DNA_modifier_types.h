@@ -796,7 +796,7 @@ typedef struct WeightVGEditModifierData {
 	char	defgrp_name[32];      /* Name of vertex group to edit. */
 
 	short	edit_flags;     /* Using MOD_WVG_EDIT_* flags. */
-	short	mapping_mode;   /* Using MOD_WVG_MAPPING_* defines. */
+	short	falloff_type;   /* Using MOD_WVG_MAPPING_* defines. */
 	float	default_weight; /* Weight for vertices not in vgroup. */
 
 	/* Mapping stuff. */
@@ -913,7 +913,7 @@ typedef struct WeightVGProximityModifierData {
 	float	min_dist, max_dist;        /* Distances mapping to 0.0/1.0 weights. */
 
 	/* Put here to avoid breaking existing struct... */
-	short	mapping_mode;              /* Using MOD_WVG_MAPPING_* defines. */
+	short	falloff_type;              /* Using MOD_WVG_MAPPING_* defines. */
 
 	/* Padding... */
 	short pad_s1;

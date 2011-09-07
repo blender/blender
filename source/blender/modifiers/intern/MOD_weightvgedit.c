@@ -62,7 +62,7 @@ static void initData(ModifierData *md)
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
 	wmd->edit_flags             = 0;
-	wmd->mapping_mode           = MOD_WVG_MAPPING_NONE;
+	wmd->falloff_type           = MOD_WVG_MAPPING_NONE;
 	wmd->default_weight         = 0.0f;
 
 	wmd->cmap_curve             = curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
@@ -90,7 +90,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, sizeof(twmd->defgrp_name));
 
 	twmd->edit_flags             = wmd->edit_flags;
-	twmd->mapping_mode           = wmd->mapping_mode;
+	twmd->falloff_type           = wmd->falloff_type;
 	twmd->default_weight         = wmd->default_weight;
 
 	twmd->cmap_curve             = curvemapping_copy(wmd->cmap_curve);
@@ -268,8 +268,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	}
 
 	/* Do mapping. */
-	if (wmd->mapping_mode != MOD_WVG_MAPPING_NONE) {
-		weightvg_do_map(numVerts, new_w, wmd->mapping_mode, wmd->cmap_curve);
+	if (wmd->falloff_type != MOD_WVG_MAPPING_NONE) {
+		weightvg_do_map(numVerts, new_w, wmd->falloff_type, wmd->cmap_curve);
 	}
 
 	/* Do masking. */
@@ -298,7 +298,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
 
 
 ModifierTypeInfo modifierType_WeightVGEdit = {
-	/* name */              "WeightVGEdit",
+	/* name */              "VertexWeightEdit",
 	/* structName */        "WeightVGEditModifierData",
 	/* structSize */        sizeof(WeightVGEditModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,

@@ -438,7 +438,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
 
 
 ModifierTypeInfo modifierType_WeightVGMix = {
-	/* name */              "WeightVGMix",
+	/* name */              "VertexWeightMix",
 	/* structName */        "WeightVGMixModifierData",
 	/* structSize */        sizeof(WeightVGMixModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,

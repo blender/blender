@@ -768,7 +768,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
                 elif md.mask_tex_mapping == 'UV' and ob.type == 'MESH':
                     layout.prop_search(md, "mask_tex_uv_layer", ob.data, "uv_textures")
 
-    def WEIGHT_VGEDIT(self, layout, ob, md):
+    def VERTEX_WEIGHT_EDIT(self, layout, ob, md):
         if ob.type == 'MESH':
             split = layout.split()
             col = split.column()
@@ -779,25 +779,28 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.label(text="Default Weight:")
             col.prop(md, "default_weight", text="")
 
-            layout.prop(md, "mapping_mode")
-            if md.mapping_mode == 'CURVE':
+            layout.prop(md, "falloff_type")
+            if md.falloff_type == 'CURVE':
                 col = layout.column()
                 col.template_curve_mapping(md, "map_curve")
 
-            row = layout.row()
-            row.prop(md, "use_add")
-            row.prop(md, "use_remove")
-            row = layout.row()
-            if md.use_add:
-                row.prop(md, "add_threshold")
-            if md.use_remove:
-                row.prop(md, "remove_threshold")
+            split = layout.split(percentage=0.4)
+            split.prop(md, "use_add")
+            row = split.row()
+            row.active = md.use_add
+            row.prop(md, "add_threshold")
+
+            split = layout.split(percentage=0.4)
+            split.prop(md, "use_remove")
+            row = split.row()
+            row.active = md.use_remove
+            row.prop(md, "remove_threshold")
 
             # Common mask options…
             layout.separator()
             self.weight_vg_mask(layout, ob, md)
 
-    def WEIGHT_VGMIX(self, layout, ob, md):
+    def VERTEX_WEIGHT_MIX(self, layout, ob, md):
         if ob.type == 'MESH':
             split = layout.split()
             col = split.column()
@@ -822,7 +825,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             layout.separator()
             self.weight_vg_mask(layout, ob, md)
 
-    def WEIGHT_VGPROXIMITY(self, layout, ob, md):
+    def VERTEX_WEIGHT_PROXIMITY(self, layout, ob, md):
         if ob.type == 'MESH':
             split = layout.split()
             col = split.column()
@@ -843,7 +846,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row.prop(md, "min_dist")
             row.prop(md, "max_dist")
 
-            layout.prop(md, "mapping_mode")
+            layout.prop(md, "falloff_type")
 
             # Common mask options…
             layout.separator()

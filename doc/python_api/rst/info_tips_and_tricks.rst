@@ -100,6 +100,22 @@ While this is not best practice - for testing you can extend the search path, th
 Don't Use Blender!
 ==================
 
+While developing your own scripts blenders interface can get in the way, manually reloading, running the scripts, opening file import etc is just overhead.
+
+For scripts that are not interactive it can end up being easier not to use blender at all and run blender from a terminal, without opening a window and execute the script on the command line.
+
+.. code-block::
+
+   blender --backgruond --python myscript.py
+
+
+You might want to run this with a blend file too.
+
+.. code-block::
+
+   blender myscene.blend --backgruond --python myscript.py
+
+
 
 Use External Tools
 ==================

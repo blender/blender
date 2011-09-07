@@ -63,16 +63,16 @@
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * cmap might be NULL, in which case curve mapping mode will return unmodified data.
  */
-void weightvg_do_map(int num, float *new_w, short mode, CurveMapping *cmap)
+void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cmap)
 {
 	int i;
 
 	/* Return immediately, if we have nothing to do! */
 	/* Also security checks... */
-	if(((mode == MOD_WVG_MAPPING_CURVE) && (cmap == NULL))
-	   || !ELEM7(mode, MOD_WVG_MAPPING_CURVE, MOD_WVG_MAPPING_SHARP, MOD_WVG_MAPPING_SMOOTH,
-	                   MOD_WVG_MAPPING_ROOT, MOD_WVG_MAPPING_SPHERE, MOD_WVG_MAPPING_RANDOM,
-	                   MOD_WVG_MAPPING_STEP))
+	if(((falloff_type == MOD_WVG_MAPPING_CURVE) && (cmap == NULL))
+	        || !ELEM7(falloff_type, MOD_WVG_MAPPING_CURVE, MOD_WVG_MAPPING_SHARP, MOD_WVG_MAPPING_SMOOTH,
+	                  MOD_WVG_MAPPING_ROOT, MOD_WVG_MAPPING_SPHERE, MOD_WVG_MAPPING_RANDOM,
+	                  MOD_WVG_MAPPING_STEP))
 		return;
 
 	/* Map each weight (vertex) to its new value, accordingly to the chosen mode. */
@@ -81,7 +81,7 @@ void weightvg_do_map(int num, float *new_w, short mode, CurveMapping *cmap)
 
 		/* Code borrowed from the warp modifier. */
 		/* Closely matches PROP_SMOOTH and similar. */
-		switch(mode) {
+		switch(falloff_type) {
 		case MOD_WVG_MAPPING_CURVE:
 			fac = curvemapping_evaluateF(cmap, 0, fac);
 			break;

@@ -220,7 +220,7 @@ static void initData(ModifierData *md)
 	wmd->proximity_mode       = MOD_WVG_PROXIMITY_OBJECT;
 	wmd->proximity_flags      = MOD_WVG_PROXIMITY_GEOM_VERTS;
 
-	wmd->mapping_mode         = MOD_WVG_MAPPING_NONE;
+	wmd->falloff_type         = MOD_WVG_MAPPING_NONE;
 
 	wmd->mask_constant        = 1.0f;
 	wmd->mask_tex_use_channel = MOD_WVG_MASK_TEX_USE_INT; /* Use intensity by default. */
@@ -238,7 +238,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->proximity_flags        = wmd->proximity_flags;
 	twmd->proximity_ob_target    = wmd->proximity_ob_target;
 
-	twmd->mapping_mode           = wmd->mapping_mode;
+	twmd->falloff_type           = wmd->falloff_type;
 
 	twmd->mask_constant          = wmd->mask_constant;
 	BLI_strncpy(twmd->mask_defgrp_name, wmd->mask_defgrp_name, sizeof(twmd->mask_defgrp_name));
@@ -498,7 +498,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Map distances to weights. */
-	do_map(org_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->mapping_mode);
+	do_map(org_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->falloff_type);
 
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
 	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);
@@ -522,7 +522,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
 
 
 ModifierTypeInfo modifierType_WeightVGProximity = {
-	/* name */              "WeightVGProximity",
+	/* name */              "VertexWeightProximity",
 	/* structName */        "WeightVGProximityModifierData",
 	/* structSize */        sizeof(WeightVGProximityModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,

@@ -69,9 +69,9 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
-	{eModifierType_WeightVGEdit, "WEIGHT_VGEDIT", ICON_MOD_WEIGHTVG, "WeightVG Edit", ""},
-	{eModifierType_WeightVGMix, "WEIGHT_VGMIX", ICON_MOD_WEIGHTVG, "WeightVG Mix", ""},
-	{eModifierType_WeightVGProximity, "WEIGHT_VGPROXIMITY", ICON_MOD_WEIGHTVG, "WeightVG Proximity", ""},
+	{eModifierType_WeightVGEdit, "VERTEX_WEIGHT_EDIT", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Edit", ""},
+	{eModifierType_WeightVGMix, "VERTEX_WEIGHT_MIX", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Mix", ""},
+	{eModifierType_WeightVGProximity, "VERTEX_WEIGHT_PROXIMITY", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Proximity", ""},
 	{0, "", 0, "Deform", ""},
 	{eModifierType_Armature, "ARMATURE", ICON_MOD_ARMATURE, "Armature", ""},
 	{eModifierType_Cast, "CAST", ICON_MOD_CAST, "Cast", ""},
@@ -188,11 +188,11 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 		case eModifierType_Warp:
 			return &RNA_WarpModifier;
 		case eModifierType_WeightVGEdit:
-			return &RNA_WeightVGEditModifier;
+			return &RNA_VertexWeightEditModifier;
 		case eModifierType_WeightVGMix:
-			return &RNA_WeightVGMixModifier;
+			return &RNA_VertexWeightMixModifier;
 		case eModifierType_WeightVGProximity:
-			return &RNA_WeightVGProximityModifier;
+			return &RNA_VertexWeightProximityModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -2552,7 +2552,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 
 static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 {
-	static EnumPropertyItem weightvg_edit_mapping_mode_items[] = {
+	static EnumPropertyItem weightvg_edit_falloff_type_items[] = {
 		{MOD_WVG_MAPPING_NONE, "LINEAR", ICON_LINCURVE, "Linear", ""},
 		{MOD_WVG_MAPPING_CURVE, "CURVE", ICON_RNDCURVE, "Custom Curve", ""},
 		{MOD_WVG_MAPPING_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
@@ -2566,11 +2566,11 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "WeightVGEditModifier", "Modifier");
+	srna= RNA_def_struct(brna, "VertexWeightEditModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "WeightVG Edit Modifier",
 	                       "Edit the weights of vertices in a group.");
 	RNA_def_struct_sdna(srna, "WeightVGEditModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_WEIGHTVG);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_VERTEX_WEIGHT);
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
@@ -2578,9 +2578,9 @@ static void rna_def_modifier_weightvgedit(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_WeightVGModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "mapping_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, weightvg_edit_mapping_mode_items);
-	RNA_def_property_ui_text(prop, "Mapping Mode", "How weights are mapped to there new values.");
+	prop= RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, weightvg_edit_falloff_type_items);
+	RNA_def_property_ui_text(prop, "Falloff Type", "How weights are mapped to there new values.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "use_add", PROP_BOOLEAN, PROP_NONE);
@@ -2650,11 +2650,11 @@ static void rna_def_modifier_weightvgmix(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "WeightVGMixModifier", "Modifier");
+	srna= RNA_def_struct(brna, "VertexWeightMixModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "WeightVG Mix Modifier",
 	                       "Mix the weights of two vertex groups.");
 	RNA_def_struct_sdna(srna, "WeightVGMixModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_WEIGHTVG);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_VERTEX_WEIGHT);
 
 	prop= RNA_def_property(srna, "vertex_group_a", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name_a");
@@ -2712,7 +2712,7 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 		{MOD_WVG_PROXIMITY_GEOM_FACES, "FACE", ICON_FACESEL, "Face", ""},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem weightvg_proximity_mapping_mode_items[] = {
+	static EnumPropertyItem weightvg_proximity_falloff_type_items[] = {
 		{MOD_WVG_MAPPING_NONE, "LINEAR", ICON_LINCURVE, "Linear", ""},
 		/* No curve mapping here! */
 		{MOD_WVG_MAPPING_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
@@ -2726,12 +2726,12 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "WeightVGProximityModifier", "Modifier");
+	srna= RNA_def_struct(brna, "VertexWeightProximityModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "WeightVG Proximity Modifier",
 	                       "Set the weights of vertices in a group from a target object's "
 	                       "distance.");
 	RNA_def_struct_sdna(srna, "WeightVGProximityModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_WEIGHTVG);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_VERTEX_WEIGHT);
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
@@ -2769,9 +2769,9 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Highest Dist", "Distance mapping to weight 1.0.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop= RNA_def_property(srna, "mapping_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, weightvg_proximity_mapping_mode_items);
-	RNA_def_property_ui_text(prop, "Mapping Mode", "How weights are mapped to there new values.");
+	prop= RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, weightvg_proximity_falloff_type_items);
+	RNA_def_property_ui_text(prop, "Falloff Type", "How weights are mapped to there new values.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	/* Common masking properties. */
