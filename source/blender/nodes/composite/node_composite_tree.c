@@ -526,7 +526,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	ListBase threads;
 	ThreadData thdata;
 	int totnode, curnode, rendering= 1, n;
-	bNodeTreeExec *exec= NULL;
+	bNodeTreeExec *exec= ntree->execdata;
 	
 	if(ntree==NULL) return;
 	
