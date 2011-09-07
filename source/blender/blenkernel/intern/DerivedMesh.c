@@ -1354,16 +1354,22 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	} else if(dm) {
 		finaldm = dm;
 	} else {
+		int recalc_normals= 0;
+
 		finaldm = CDDM_from_mesh(me, ob);
 		
-		if (build_shapekey_layers)
+		if(build_shapekey_layers) {
 			add_shapekey_layers(finaldm, me, ob);
+			recalc_normals= 1;
+		}
 		
 		if(deformedVerts) {
 			CDDM_apply_vert_coords(finaldm, deformedVerts);
+			recalc_normals= 1;
 		}
 
-		CDDM_calc_normals(finaldm);
+		if(recalc_normals)
+			CDDM_calc_normals(finaldm);
 		
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm);
