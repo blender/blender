@@ -447,9 +447,8 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		snode->id= &scene->id;
 		
-		/* bit clumsy but reliable way to see if we draw first time */
-		if(snode->nodetree==NULL)
-			ntreeCompositForceHidden(scene->nodetree, scene);
+		/* update output sockets based on available layers */
+		ntreeCompositForceHidden(scene->nodetree, scene);
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
 		Tex *tx= NULL;
