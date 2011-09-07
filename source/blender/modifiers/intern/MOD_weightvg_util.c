@@ -1,34 +1,34 @@
 /*
-* $Id$
-*
-* ***** BEGIN GPL LICENSE BLOCK *****
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software  Foundation,
-* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*
-* The Original Code is Copyright (C) 2011 by Bastien Montagne.
-* All rights reserved.
-*
-* Contributor(s): None yet.
-*
-* ***** END GPL LICENSE BLOCK *****
-*
-*/
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2011 by Bastien Montagne.
+ * All rights reserved.
+ *
+ * Contributor(s): None yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
- *     but couldn't figure a way to do this…
+ *     but couldn't figure a way to do this...
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -131,7 +131,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 	if (texture) {
 		/* The texture coordinates. */
 		float (*tex_co)[3];
-		/* See mapping note below… */
+		/* See mapping note below... */
 		MappingInfoModifierData t_map;
 		float (*v_co)[3];
 
@@ -158,7 +158,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 
 			texres.nor = NULL;
 			get_texture_value(texture, tex_co[idx], &texres);
-			/* Get the good channel value… */
+			/* Get the good channel value... */
 			switch(tex_use_channel) {
 			case MOD_WVG_MASK_TEX_USE_INT:
 				org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin*fact)));
