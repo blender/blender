@@ -72,6 +72,9 @@ extern ModifierTypeInfo modifierType_ShapeKey;
 extern ModifierTypeInfo modifierType_Solidify;
 extern ModifierTypeInfo modifierType_Screw;
 extern ModifierTypeInfo modifierType_Warp;
+extern ModifierTypeInfo modifierType_WeightVGEdit;
+extern ModifierTypeInfo modifierType_WeightVGMix;
+extern ModifierTypeInfo modifierType_WeightVGProximity;
 
 /* MOD_util.c */
 void modifier_type_init(ModifierTypeInfo *types[]);
