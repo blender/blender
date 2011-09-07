@@ -341,15 +341,15 @@ static void *exec_composite_node(void *nodeexec_v)
 }
 
 /* return total of executable nodes, for timecursor */
-static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
+static int setExecutableNodes(bNodeTreeExec *exec, ThreadData *thd)
 {
+	bNodeTree *ntree = exec->nodetree;
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
+	bNodeExec *nodeexec;
 	bNode *node;
 	bNodeSocket *sock;
-	int totnode= 0, group_edit= 0;
-	
-	/* note; do not add a dependency sort here, the stack was created already */
+	int n, totnode= 0, group_edit= 0;
 	
 	/* if we are in group edit, viewer nodes get skipped when group has viewer */
 	for(node= ntree->nodes.first; node; node= node->next)
@@ -357,8 +357,10 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 			if(ntreeHasType((bNodeTree *)node->id, CMP_NODE_VIEWER))
 				group_edit= 1;
 	
-	for(node= ntree->nodes.first; node; node= node->next) {
+	/* NB: using the exec data list here to have valid dependency sort */
+	for(n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 		int a;
+		node = nodeexec->node;
 		
 		node_get_stack(node, thd->stack, nsin, nsout);
 		
@@ -422,7 +424,8 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 	/* last step: set the stack values for only-value nodes */
 	/* just does all now, compared to a full buffer exec this is nothing */
 	if(totnode) {
-		for(node= ntree->nodes.first; node; node= node->next) {
+		for(n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+			node = nodeexec->node;
 			if(node->need_exec==0 && node_only_value(node)) {
 				if(node->typeinfo->execfunc) {
 					node_get_stack(node, thd->stack, nsin, nsout);
@@ -436,14 +439,17 @@ static int setExecutableNodes(bNodeTree *ntree, ThreadData *thd)
 }
 
 /* while executing tree, free buffers from nodes that are not needed anymore */
-static void freeExecutableNode(bNodeTree *ntree, bNodeTreeExec *exec)
+static void freeExecutableNode(bNodeTreeExec *exec)
 {
 	/* node outputs can be freed when:
 	- not a render result or image node
 	- when node outputs go to nodes all being set NODE_FINISHED
 	*/
+	bNodeTree *ntree = exec->nodetree;
+	bNodeExec *nodeexec;
 	bNode *node;
 	bNodeSocket *sock;
+	int n;
 	
 	/* set exec flag for finished nodes that might need freed */
 	for(node= ntree->nodes.first; node; node= node->next) {
@@ -451,8 +457,11 @@ static void freeExecutableNode(bNodeTree *ntree, bNodeTreeExec *exec)
 			if(node->exec & NODE_FINISHED)
 				node->exec |= NODE_FREEBUFS;
 	}
-	/* clear this flag for input links that are not done yet */
-	for(node= ntree->nodes.first; node; node= node->next) {
+	/* clear this flag for input links that are not done yet.
+	 * Using the exec data for valid dependency sort.
+	 */
+	for(n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+		node = nodeexec->node;
 		if((node->exec & NODE_FINISHED)==0) {
 			for(sock= node->inputs.first; sock; sock= sock->next)
 				if(sock->link)
@@ -551,7 +560,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	BLI_srandom(rd->cfra);
 
 	/* sets need_exec tags in nodes */
-	curnode = totnode= setExecutableNodes(ntree, &thdata);
+	curnode = totnode= setExecutableNodes(exec, &thdata);
 
 	BLI_init_threads(&threads, exec_composite_node, rd->threads);
 	
@@ -597,7 +606,7 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 					
 					/* freeing unused buffers */
 					if(rd->scemode & R_COMP_FREE)
-						freeExecutableNode(ntree, exec);
+						freeExecutableNode(exec);
 				}
 			}
 			else rendering= 1;
