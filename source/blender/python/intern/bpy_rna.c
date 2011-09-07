@@ -4608,7 +4608,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 
 
 #ifdef DEBUG_STRING_FREE
-	// if(PyList_Size(string_free_ls)) printf("%.200s.%.200s():  has %d strings\n", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), (int)PyList_Size(string_free_ls));
+	// if(PyList_GET_SIZE(string_free_ls)) printf("%.200s.%.200s():  has %d strings\n", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), (int)PyList_GET_SIZE(string_free_ls));
 	Py_DECREF(string_free_ls);
 #undef DEBUG_STRING_FREE
 #endif

@@ -466,8 +466,8 @@ struct ShadeResult;
 
 /* API */
 
-struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree);
-void			ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
+struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
+void			ntreeShaderEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);
 void			ntreeShaderExecTree(struct bNodeTree *ntree, struct ShadeInput *shi, struct ShadeResult *shr);
 void			ntreeShaderGetTexcoMode(struct bNodeTree *ntree, int osa, short *texco, int *mode);
 void			nodeShaderSynchronizeID(struct bNode *node, int copyto);
@@ -594,8 +594,8 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 
 /* API */
 struct CompBuf;
-struct bNodeTreeExec *ntreeCompositBeginExecTree(struct bNodeTree *ntree);
-void ntreeCompositEndExecTree(struct bNodeTreeExec *exec);
+struct bNodeTreeExec *ntreeCompositBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
+void ntreeCompositEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);
 void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int do_previews);
 void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
@@ -642,8 +642,8 @@ void ntreeTexSetPreviewFlag(int);
 void ntreeTexCheckCyclics(struct bNodeTree *ntree);
 char* ntreeTexOutputMenu(struct bNodeTree *ntree);
 
-struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree);
-void ntreeTexEndExecTree(struct bNodeTreeExec *exec);
+struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
+void ntreeTexEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);
 int ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target, float *coord, float *dxt, float *dyt, int osatex, short thread, struct Tex *tex, short which_output, int cfra, int preview, struct ShadeInput *shi, struct MTex *mtex);
 
 

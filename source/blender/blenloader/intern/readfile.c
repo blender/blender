@@ -2219,8 +2219,9 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		if(node->type == NODE_DYNAMIC) {
 			node->custom1= 0;
 			node->custom1= BSET(node->custom1, NODE_DYNAMIC_LOADED);
-			node->typeinfo= NULL;
 		}
+
+		node->typeinfo= NULL;
 		
 		link_list(fd, &node->inputs);
 		link_list(fd, &node->outputs);
@@ -7079,6 +7080,15 @@ static void do_versions_nodetree_default_value(bNodeTree *ntree)
 		do_versions_socket_default_value(sock);
 	for (sock=ntree->outputs.first; sock; sock=sock->next)
 		do_versions_socket_default_value(sock);
+}
+
+static void do_versions_nodetree_dynamic_sockets(bNodeTree *ntree)
+{
+	bNodeSocket *sock;
+	for (sock=ntree->inputs.first; sock; sock=sock->next)
+		sock->flag |= SOCK_DYNAMIC;
+	for (sock=ntree->outputs.first; sock; sock=sock->next)
+		sock->flag |= SOCK_DYNAMIC;
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -12037,6 +12047,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				do_versions_nodetree_default_value(tex->nodetree);
 				tex->nodetree->update |= NTREE_UPDATE;
 			}
+		}
+
+		/* add SOCK_DYNAMIC flag to existing group sockets */
+		{
+			bNodeTree *ntree;
+			/* only need to do this for trees in main, local trees are not used as groups */
+			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next) {
+				do_versions_nodetree_dynamic_sockets(ntree);
+				ntree->update |= NTREE_UPDATE;
+			}
+		}
+
+		{
+			/* Initialize group tree nodetypes.
+			 * These are used to distinguish tree types and
+			 * associate them with specific node types for polling.
+			 */
+			bNodeTree *ntree;
+			/* all node trees in main->nodetree are considered groups */
+			for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+				ntree->nodetype = NODE_GROUP;
 		}
 	}
 

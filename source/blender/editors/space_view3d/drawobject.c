@@ -2502,12 +2502,32 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 	/* useful for debugging index vs shape key index */
 #if 0
 	{
-		EditVert *eve;
-		int j;
+		BMIter iter;
+		BMVert *eve;
+		int j=0;
+
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
-		for(eve= em->verts.first, j= 0; eve; eve= eve->next, j++) {
-			sprintf(val, "%d:%d", j, eve->keyindex);
-			view3d_cached_text_draw_add(eve->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+
+		if(CustomData_has_layer(&em->bm->vdata, CD_SHAPE_KEYINDEX)) {
+			int *keyi;
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+				keyi = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+				if(keyi && *keyi != ORIGINDEX_NONE) {
+					sprintf(val, "%d:%d", j, *keyi);
+				}
+				else {
+					sprintf(val, "%d", j);
+				}
+				view3d_cached_text_draw_add(eve->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+				i++;
+			}
+		}
+		else {
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+				sprintf(val, "%d", j);
+				view3d_cached_text_draw_add(eve->co, val, 0, V3D_CACHE_TEXT_ASCII, col);
+				j++;
+			}
 		}
 	}
 #endif

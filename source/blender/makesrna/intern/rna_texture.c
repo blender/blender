@@ -1820,6 +1820,8 @@ static void rna_def_texture(BlenderRNA *brna)
 	rna_def_texture_pointdensity(brna);
 	rna_def_texture_voxeldata(brna);
 	/* XXX add more types here .. */
+
+	RNA_api_texture(srna);
 }
 
 void RNA_def_texture(BlenderRNA *brna)

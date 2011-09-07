@@ -897,13 +897,13 @@ void ntreeFreeTree(bNodeTree *ntree)
 	if (ntree->execdata) {
 		switch (ntree->type) {
 		case NTREE_COMPOSIT:
-			ntreeCompositEndExecTree(ntree->execdata);
+			ntreeCompositEndExecTree(ntree->execdata, 1);
 			break;
 		case NTREE_SHADER:
-			ntreeShaderEndExecTree(ntree->execdata);
+			ntreeShaderEndExecTree(ntree->execdata, 1);
 			break;
 		case NTREE_TEXTURE:
-			ntreeTexEndExecTree(ntree->execdata);
+			ntreeTexEndExecTree(ntree->execdata, 1);
 			break;
 		}
 	}
@@ -1524,20 +1524,24 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 {
 	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
 	
-	if (ntreetype->update_node)
+	/* extra null pointer checks here because this is called when unlinking
+	   unknown nodes on file load, so typeinfo pointers may not be set */
+	if (ntreetype && ntreetype->update_node)
 		ntreetype->update_node(ntree, node);
-	else if (node->typeinfo->updatefunc)
+	else if (node->typeinfo && node->typeinfo->updatefunc)
 		node->typeinfo->updatefunc(ntree, node);
 }
 
 int NodeTagIDChanged(bNodeTree *ntree, ID *id)
 {
-	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
+	bNodeTreeType *ntreetype;
 	bNode *node;
 	int change = FALSE;
 
 	if(ELEM(NULL, id, ntree))
 		return change;
+	
+	ntreetype = ntreeGetType(ntree->type);
 	
 	if (ntreetype->update_node) {
 		for(node= ntree->nodes.first; node; node= node->next) {

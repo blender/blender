@@ -84,7 +84,7 @@ typedef struct bNodeSocket {
 	
 	/* execution data */
 	short stack_index;			/* local stack index */
-	short pad2;
+	short stack_type;			/* deprecated, kept for forward compatibility */
 	int pad3;
 	void *cache;				/* cached data from execution */
 	
@@ -198,8 +198,8 @@ typedef struct bNodeLink {
 } bNodeLink;
 
 /* link->flag */
-#define NODE_LINK_VALID			1		/* link has been successfully validated */
-#define NODE_LINKFLAG_HILITE	2
+#define NODE_LINKFLAG_HILITE	1		/* link has been successfully validated */
+#define NODE_LINK_VALID			2
 
 /* the basis for a Node tree, all links and nodes reside internal here */
 /* only re-usable node trees are in the library though, materials and textures allocate own tree struct */

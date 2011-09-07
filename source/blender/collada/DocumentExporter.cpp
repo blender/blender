@@ -34,6 +34,7 @@ extern "C"
 {
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_group_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_image_types.h"
@@ -104,6 +105,7 @@ extern char build_rev[];
 #include "COLLADASWConstants.h"
 #include "COLLADASWLibraryControllers.h"
 #include "COLLADASWInstanceController.h"
+#include "COLLADASWInstanceNode.h"
 #include "COLLADASWBaseInputElement.h"
 
 #include "collada_internal.h"
@@ -113,6 +115,7 @@ extern char build_rev[];
 #include "InstanceWriter.h"
 #include "TransformWriter.h"
 
+#include "SceneExporter.h"
 #include "ArmatureExporter.h"
 #include "AnimationExporter.h"
 #include "CameraExporter.h"
@@ -141,165 +144,6 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
 
 	return data->layers[layer_index].name;
 }
-
-
-/*
-  Utilities to avoid code duplication.
-  Definition can take some time to understand, but they should be useful.
-*/
-
-
-template<class Functor>
-void forEachObjectInScene(Scene *sce, Functor &f)
-{
-	Base *base= (Base*) sce->base.first;
-	while(base) {
-		Object *ob = base->object;
-			
-		f(ob);
-
-		base= base->next;
-	}
-}
-
-
-
-class SceneExporter: COLLADASW::LibraryVisualScenes, protected TransformWriter, protected InstanceWriter
-{
-	ArmatureExporter *arm_exporter;
-public:
-	SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm) : COLLADASW::LibraryVisualScenes(sw),
-																		arm_exporter(arm) {}
-	
-	void exportScene(Scene *sce, bool export_selected) {
- 		// <library_visual_scenes> <visual_scene>
-		std::string id_naming = id_name(sce);
-		openVisualScene(translate_id(id_naming), id_naming);
-
-		// write <node>s
-		//forEachMeshObjectInScene(sce, *this);
-		//forEachCameraObjectInScene(sce, *this);
-		//forEachLampObjectInScene(sce, *this);
-		exportHierarchy(sce, export_selected);
-
-		// </visual_scene> </library_visual_scenes>
-		closeVisualScene();
-
-		closeLibrary();
-	}
-
-	void exportHierarchy(Scene *sce, bool export_selected)
-	{
-		Base *base= (Base*) sce->base.first;
-		while(base) {
-			Object *ob = base->object;
-
-			if (!ob->parent) {
-				if(sce->lay & ob->lay) {
-				switch(ob->type) {
-				case OB_MESH:
-				case OB_CAMERA:
-				case OB_LAMP:
-				case OB_ARMATURE:
-				case OB_EMPTY:
-					if (export_selected && !(ob->flag & SELECT)) {
-						break;
-					}
-					// write nodes....
-					writeNodes(ob, sce);
-					break;
-				}
-				}
-			}
-
-			base= base->next;
-		}
-	}
-
-
-	// called for each object
-	//void operator()(Object *ob) {
-	void writeNodes(Object *ob, Scene *sce)
-	{
-		COLLADASW::Node node(mSW);
-		node.setNodeId(translate_id(id_name(ob)));
-		node.setType(COLLADASW::Node::NODE);
-
-		node.start();
-
-		bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
-
-		if (ob->type == OB_MESH && is_skinned_mesh)
-			// for skinned mesh we write obmat in <bind_shape_matrix>
-			TransformWriter::add_node_transform_identity(node);
-		else
-			TransformWriter::add_node_transform_ob(node, ob);
-		
-		// <instance_geometry>
-		if (ob->type == OB_MESH) {
-			if (is_skinned_mesh) {
-				arm_exporter->add_instance_controller(ob);
-			}
-			else {
-				COLLADASW::InstanceGeometry instGeom(mSW);
-				instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
-
-				InstanceWriter::add_material_bindings(instGeom.getBindMaterial(), ob);
-			
-				instGeom.add();
-			}
-		}
-
-		// <instance_controller>
-		else if (ob->type == OB_ARMATURE) {
-			arm_exporter->add_armature_bones(ob, sce);
-
-			// XXX this looks unstable...
-			node.end();
-		}
-		
-		// <instance_camera>
-		else if (ob->type == OB_CAMERA) {
-			COLLADASW::InstanceCamera instCam(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_camera_id(ob)));
-			instCam.add();
-		}
-		
-		// <instance_light>
-		else if (ob->type == OB_LAMP) {
-			COLLADASW::InstanceLight instLa(mSW, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_light_id(ob)));
-			instLa.add();
-		}
-
-		// empty object
-		else if (ob->type == OB_EMPTY) {
-		}
-
-		// write nodes for child objects
-		Base *b = (Base*) sce->base.first;
-		while(b) {
-			// cob - child object
-			Object *cob = b->object;
-
-			if (cob->parent == ob) {
-				switch(cob->type) {
-				case OB_MESH:
-				case OB_CAMERA:
-				case OB_LAMP:
-				case OB_EMPTY:
-				case OB_ARMATURE:
-					// write node...
-					writeNodes(cob, sce);
-					break;
-				}
-			}
-
-			b = b->next;
-		}
-
-		if (ob->type != OB_ARMATURE)
-			node.end();
-	}
-};
 
 // TODO: it would be better to instantiate animations rather than create a new one per object
 // COLLADA allows this through multiple <channel>s in <animation>.

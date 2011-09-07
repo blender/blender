@@ -200,17 +200,22 @@ bNodeTreeType ntreeType_Composite = {
 };
 
 
-struct bNodeTreeExec *ntreeCompositBeginExecTree(bNodeTree *ntree)
+/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
+ * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
+ */
+struct bNodeTreeExec *ntreeCompositBeginExecTree(bNodeTree *ntree, int use_tree_data)
 {
 	bNodeTreeExec *exec;
 	bNode *node;
 	bNodeSocket *sock;
 	
-	/* XXX hack: prevent exec data from being generated twice.
-	 * this should be handled by the renderer!
-	 */
-	if (ntree->execdata)
-		return ntree->execdata;
+	if (use_tree_data) {
+		/* XXX hack: prevent exec data from being generated twice.
+		 * this should be handled by the renderer!
+		 */
+		if (ntree->execdata)
+			return ntree->execdata;
+	}
 	
 	/* ensures only a single output node is enabled */
 	ntreeSetOutput(ntree);
@@ -236,15 +241,20 @@ struct bNodeTreeExec *ntreeCompositBeginExecTree(bNodeTree *ntree)
 		}
 	}
 	
-	/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
+	if (use_tree_data) {
+		/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
 		 * which only store the ntree pointer. Should be fixed at some point!
 		 */
-	ntree->execdata = exec;
+		ntree->execdata = exec;
+	}
 	
 	return exec;
 }
 
-void ntreeCompositEndExecTree(bNodeTreeExec *exec)
+/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
+ * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
+ */
+void ntreeCompositEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 {
 	if(exec) {
 		bNodeTree *ntree= exec->nodetree;
@@ -269,8 +279,10 @@ void ntreeCompositEndExecTree(bNodeTreeExec *exec)
 	
 		ntree_exec_end(exec);
 		
-		/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
-		ntree->execdata = NULL;
+		if (use_tree_data) {
+			/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
+			ntree->execdata = NULL;
+		}
 	}
 }
 
@@ -495,10 +507,10 @@ static  void ntree_composite_texnode(bNodeTree *ntree, int init)
 				/* has internal flag to detect it only does it once */
 				if(init) {
 					if (!tex->nodetree->execdata)
-						tex->nodetree->execdata = ntreeTexBeginExecTree(tex->nodetree); 
+						tex->nodetree->execdata = ntreeTexBeginExecTree(tex->nodetree, 1); 
 				}
 				else
-					ntreeTexEndExecTree(tex->nodetree->execdata);
+					ntreeTexEndExecTree(tex->nodetree->execdata, 1);
 					tex->nodetree->execdata = NULL;
 			}
 		}
@@ -521,8 +533,10 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	if(do_preview)
 		ntreeInitPreview(ntree, 0, 0);
 	
-	if (!ntree->execdata)
-		exec = ntreeCompositBeginExecTree(ntree);
+	if (!ntree->execdata) {
+		/* XXX this is the top-level tree, so we use the ntree->execdata pointer. */
+		exec = ntreeCompositBeginExecTree(ntree, 1);
+	}
 	ntree_composite_texnode(ntree, 1);
 	
 	/* prevent unlucky accidents */
@@ -592,7 +606,8 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	
 	BLI_end_threads(&threads);
 	
-	ntreeCompositEndExecTree(exec);
+	/* XXX top-level tree uses the ntree->execdata pointer */
+	ntreeCompositEndExecTree(exec, 1);
 }
 
 /* *********************************************** */

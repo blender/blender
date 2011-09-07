@@ -122,7 +122,7 @@ static void *group_initexec(bNode *node)
 	bNodeStack *ns;
 	
 	/* initialize the internal node tree execution */
-	exec = ntreeCompositBeginExecTree(ngroup);
+	exec = ntreeCompositBeginExecTree(ngroup, 0);
 	
 	/* tag group outputs as external to prevent freeing */
 	for (sock=ngroup->outputs.first; sock; sock=sock->next) {
@@ -139,7 +139,7 @@ static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
 	bNodeTreeExec *gexec= (bNodeTreeExec*)nodedata;
 	
-	ntreeCompositEndExecTree(gexec);
+	ntreeCompositEndExecTree(gexec, 0);
 }
 
 /* Copy inputs to the internal stack.

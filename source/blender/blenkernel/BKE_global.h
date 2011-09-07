@@ -111,7 +111,7 @@ typedef struct Global {
 #define G_SCRIPT_OVERRIDE_PREF (1 << 14) /* when this flag is set ignore the userprefs */
 
 /* #define G_NOFROZEN	(1 << 17) also removed */
-#define G_GREASEPENCIL 	(1 << 17)
+/* #define G_GREASEPENCIL 	(1 << 17)   also removed */
 
 /* #define G_AUTOMATKEYS	(1 << 30)   also removed */
 
