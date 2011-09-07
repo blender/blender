@@ -46,6 +46,8 @@ static void node_composit_init_value(bNodeTree *UNUSED(ntree), bNode *node, bNod
 	bNodeSocketValueFloat *dval= (bNodeSocketValueFloat*)sock->default_value;
 	/* uses the default value of the output socket, must be initialized here */
 	dval->value = 0.5f;
+	dval->min = -FLT_MAX;
+	dval->max = FLT_MAX;
 }
 
 static void node_composit_exec_value(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
