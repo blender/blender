@@ -481,6 +481,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 					new_w[i] = dists_e ? minf(dists_e[i], new_w[i]) : new_w[i];
 					new_w[i] = dists_f ? minf(dists_f[i], new_w[i]) : new_w[i];
 				}
+				if(dists_v) MEM_freeN(dists_v);
+				if(dists_e) MEM_freeN(dists_e);
+				if(dists_f) MEM_freeN(dists_f);
 			}
 			/* Else, fall back to default obj2vert behavior. */
 			else {
