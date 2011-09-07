@@ -29,6 +29,10 @@
 #ifndef __SCENEEXPORTER_H__
 #define __SCENEEXPORTER_H__
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
 extern "C" {
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
