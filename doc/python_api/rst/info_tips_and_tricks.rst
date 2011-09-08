@@ -31,6 +31,7 @@ Blenders text editor is fine for small changes and writing tests but its not ful
 
 Editing a text file externally and having the same text open in blender does work but isn't that optimal so here are 2 ways you can easily use an external file from blender.
 
+Using the following examples you'll still need textblock in blender to execute, but reference an external file rather then including it directly.
 
 Executing External Scripts
 --------------------------
@@ -163,7 +164,7 @@ In the middle of a script you may want to inspect some variables, run some funct
 .. code-block:: python
 
    import code
-   code.interact(locals=locals())
+   code.interact(local=locals())
 
 
 If you want to access both global and local variables do this...
@@ -173,14 +174,14 @@ If you want to access both global and local variables do this...
    import code
    namespace = globals().copy()
    namespace.update(locals())
-   code.interact(locals=namespace)
+   code.interact(local=namespace)
 
 
 The next example is an equivalent single line version of the script above which is easier to paste into you're code:
 
 .. code-block:: python
 
-   __import__('code').interact(locals={k: v for ns in (globals(), locals()) for k, v in ns.items()})
+   __import__('code').interact(local={k: v for ns in (globals(), locals()) for k, v in ns.items()})
 
 
 `code.interact` can be added at any line in the script and will pause the script an launch an interactive interpreter in the terminal, when you're done you can quit the interpreter and the script will continue execution.
