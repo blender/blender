@@ -742,22 +742,23 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "narrowness", slider=True)
 
     @staticmethod
-    def weight_vg_mask(layout, ob, md):
+    def vertex_weight_mask(layout, ob, md):
         layout.label(text="Influence/Mask Options:")
-        split = layout.split()
-        col1 = split.column()
-        col2 = split.column()
+        row = layout.row()
 
-        col1.label(text="Global Influence:")
-        col2.prop(md, "mask_constant", text="")
+        split = layout.split(percentage=0.4)
+        split.label(text="Global Influence:")
+        split.prop(md, "mask_constant", text="")
 
         if not md.mask_texture:
-            col1.label(text="Vertex Group Mask:")
-            col2.prop_search(md, "mask_vertex_group", ob, "vertex_groups", text="")
+            split = layout.split(percentage=0.4)
+            split.label(text="Vertex Group Mask:")
+            split.prop_search(md, "mask_vertex_group", ob, "vertex_groups", text="")
 
         if not md.mask_vertex_group:
-            col1.label(text="Texture Mask:")
-            col2.template_ID(md, "mask_texture", new="texture.new")
+            split = layout.split(percentage=0.4)
+            split.label(text="Texture Mask:")
+            split.template_ID(md, "mask_texture", new="texture.new")
             if md.mask_texture:
                 split = layout.split()
                 col = split.column()
@@ -772,7 +773,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
                 elif md.mask_tex_mapping == 'UV' and ob.type == 'MESH':
                     layout.prop_search(md, "mask_tex_uv_layer", ob.data, "uv_textures")
 
-    def WEIGHT_VGEDIT(self, layout, ob, md):
+    def VERTEX_WEIGHT_EDIT(self, layout, ob, md):
         if ob.type == 'MESH':
             split = layout.split()
             col = split.column()
@@ -783,25 +784,28 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.label(text="Default Weight:")
             col.prop(md, "default_weight", text="")
 
-            layout.prop(md, "mapping_mode")
-            if md.mapping_mode == 'CURVE':
+            layout.prop(md, "falloff_type")
+            if md.falloff_type == 'CURVE':
                 col = layout.column()
                 col.template_curve_mapping(md, "map_curve")
 
-            row = layout.row()
-            row.prop(md, "use_add")
-            row.prop(md, "use_remove")
-            row = layout.row()
-            if md.use_add:
-                row.prop(md, "add_threshold")
-            if md.use_remove:
-                row.prop(md, "remove_threshold")
+            split = layout.split(percentage=0.4)
+            split.prop(md, "use_add")
+            row = split.row()
+            row.active = md.use_add
+            row.prop(md, "add_threshold")
+
+            split = layout.split(percentage=0.4)
+            split.prop(md, "use_remove")
+            row = split.row()
+            row.active = md.use_remove
+            row.prop(md, "remove_threshold")
 
             # Common mask options…
             layout.separator()
-            self.weight_vg_mask(layout, ob, md)
+            self.vertex_weight_mask(layout, ob, md)
 
-    def WEIGHT_VGMIX(self, layout, ob, md):
+    def VERTEX_WEIGHT_MIX(self, layout, ob, md):
         if ob.type == 'MESH':
             split = layout.split()
             col = split.column()
@@ -824,9 +828,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
             # Common mask options…
             layout.separator()
-            self.weight_vg_mask(layout, ob, md)
+            self.vertex_weight_mask(layout, ob, md)
 
-    def WEIGHT_VGPROXIMITY(self, layout, ob, md):
+    def VERTEX_WEIGHT_PROXIMITY(self, layout, ob, md):
         if ob.type == 'MESH':
             split = layout.split()
             col = split.column()
@@ -847,11 +851,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row.prop(md, "min_dist")
             row.prop(md, "max_dist")
 
-            layout.prop(md, "mapping_mode")
+            layout.prop(md, "falloff_type")
 
             # Common mask options…
             layout.separator()
-            self.weight_vg_mask(layout, ob, md)
+            self.vertex_weight_mask(layout, ob, md)
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

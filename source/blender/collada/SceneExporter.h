@@ -29,6 +29,10 @@
 #ifndef __SCENEEXPORTER_H__
 #define __SCENEEXPORTER_H__
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+
 extern "C" {
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -86,16 +90,20 @@ extern "C" {
 
 #include "ArmatureExporter.h"
 
+#include "ExportSettings.h"
+
 class SceneExporter: COLLADASW::LibraryVisualScenes, protected TransformWriter, protected InstanceWriter
 {
-	ArmatureExporter *arm_exporter;
 public:
-	SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm);
-	void exportScene(Scene *sce, bool export_selected);
+	SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings);
+	void exportScene(Scene *sce);
 
 private:
-	void exportHierarchy(Scene *sce, bool export_selected);
+	void exportHierarchy(Scene *sce);
 	void writeNodes(Object *ob, Scene *sce);
+	
+	ArmatureExporter *arm_exporter;
+	const ExportSettings *export_settings;
 };
 
 #endif

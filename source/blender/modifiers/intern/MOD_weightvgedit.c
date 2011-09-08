@@ -1,30 +1,30 @@
 /*
-* $Id$
-*
-* ***** BEGIN GPL LICENSE BLOCK *****
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software  Foundation,
-* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*
-* The Original Code is Copyright (C) 2011 by Bastien Montagne.
-* All rights reserved.
-*
-* Contributor(s): None yet.
-*
-* ***** END GPL LICENSE BLOCK *****
-*
-*/
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2011 by Bastien Montagne.
+ * All rights reserved.
+ *
+ * Contributor(s): None yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
@@ -62,7 +62,7 @@ static void initData(ModifierData *md)
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
 	wmd->edit_flags             = 0;
-	wmd->mapping_mode           = MOD_WVG_MAPPING_NONE;
+	wmd->falloff_type           = MOD_WVG_MAPPING_NONE;
 	wmd->default_weight         = 0.0f;
 
 	wmd->cmap_curve             = curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
@@ -90,7 +90,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, sizeof(twmd->defgrp_name));
 
 	twmd->edit_flags             = wmd->edit_flags;
-	twmd->mapping_mode           = wmd->mapping_mode;
+	twmd->falloff_type           = wmd->falloff_type;
 	twmd->default_weight         = wmd->default_weight;
 
 	twmd->cmap_curve             = curvemapping_copy(wmd->cmap_curve);
@@ -268,8 +268,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	}
 
 	/* Do mapping. */
-	if (wmd->mapping_mode != MOD_WVG_MAPPING_NONE) {
-		weightvg_do_map(numVerts, new_w, wmd->mapping_mode, wmd->cmap_curve);
+	if (wmd->falloff_type != MOD_WVG_MAPPING_NONE) {
+		weightvg_do_map(numVerts, new_w, wmd->falloff_type, wmd->cmap_curve);
 	}
 
 	/* Do masking. */
@@ -298,7 +298,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
 
 
 ModifierTypeInfo modifierType_WeightVGEdit = {
-	/* name */              "WeightVGEdit",
+	/* name */              "VertexWeightEdit",
 	/* structName */        "WeightVGEditModifierData",
 	/* structSize */        sizeof(WeightVGEditModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,

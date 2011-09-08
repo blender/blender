@@ -110,6 +110,7 @@ extern char build_rev[];
 
 #include "collada_internal.h"
 #include "DocumentExporter.h"
+#include "ExportSettings.h"
 
 // can probably go after refactor is complete
 #include "InstanceWriter.h"
@@ -145,11 +146,13 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
 	return data->layers[layer_index].name;
 }
 
+DocumentExporter::DocumentExporter(const ExportSettings *export_settings) : export_settings(export_settings) {}
+
 // TODO: it would be better to instantiate animations rather than create a new one per object
 // COLLADA allows this through multiple <channel>s in <animation>.
 // For this to work, we need to know objects that use a certain action.
 
-void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename, bool selected)
+void DocumentExporter::exportCurrentScene(Scene *sce)
 {
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
@@ -157,7 +160,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename, bool
 	clear_global_id_map();
 	
 	COLLADABU::NativeString native_filename =
-		COLLADABU::NativeString(std::string(filename));
+		COLLADABU::NativeString(std::string(this->export_settings->filepath));
 	COLLADASW::StreamWriter sw(native_filename);
 
 	// open <collada>
@@ -227,32 +230,32 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename, bool
 	
 	// <library_cameras>
 	if(has_object_type(sce, OB_CAMERA)) {
-		CamerasExporter ce(&sw);
-		ce.exportCameras(sce, selected);
+		CamerasExporter ce(&sw, this->export_settings);
+		ce.exportCameras(sce);
 	}
 	
 	// <library_lights>
 	if(has_object_type(sce, OB_LAMP)) {
-		LightsExporter le(&sw);
-		le.exportLights(sce, selected);
+		LightsExporter le(&sw, this->export_settings);
+		le.exportLights(sce);
 	}
 
 	// <library_images>
-	ImagesExporter ie(&sw, filename);
-	ie.exportImages(sce, selected);
+	ImagesExporter ie(&sw, this->export_settings);
+	ie.exportImages(sce);
 	
 	// <library_effects>
-	EffectsExporter ee(&sw);
-	ee.exportEffects(sce, selected);
+	EffectsExporter ee(&sw, this->export_settings);
+	ee.exportEffects(sce);
 	
 	// <library_materials>
-	MaterialsExporter me(&sw);
-	me.exportMaterials(sce, selected);
+	MaterialsExporter me(&sw, this->export_settings);
+	me.exportMaterials(sce);
 
 	// <library_geometries>
 	if(has_object_type(sce, OB_MESH)) {
-		GeometryExporter ge(&sw);
-		ge.exportGeom(sce, selected);
+		GeometryExporter ge(&sw, this->export_settings);
+		ge.exportGeom(sce);
 	}
 
 	// <library_animations>
@@ -260,14 +263,14 @@ void DocumentExporter::exportCurrentScene(Scene *sce, const char* filename, bool
 	ae.exportAnimations(sce);
 
 	// <library_controllers>
-	ArmatureExporter arm_exporter(&sw);
+	ArmatureExporter arm_exporter(&sw, this->export_settings);
 	if(has_object_type(sce, OB_ARMATURE)) {
-		arm_exporter.export_controllers(sce, selected);
+		arm_exporter.export_controllers(sce);
 	}
 
 	// <library_visual_scenes>
-	SceneExporter se(&sw, &arm_exporter);
-	se.exportScene(sce, selected);
+	SceneExporter se(&sw, &arm_exporter, this->export_settings);
+	se.exportScene(sce);
 	
 	// <scene>
 	std::string scene_name(translate_id(id_name(sce)));

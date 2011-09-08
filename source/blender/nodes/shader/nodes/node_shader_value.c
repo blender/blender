@@ -36,7 +36,8 @@
 
 /* **************** VALUE ******************** */
 static bNodeSocketTemplate sh_node_value_out[]= {
-	{	SOCK_FLOAT, 0, "Value"},
+	/* XXX value nodes use the output sockets for buttons, so we need explicit limits here! */
+	{	SOCK_FLOAT, 0, "Value", 0.0f, 0.0f, 0.0f, 0.0f, -FLT_MAX, FLT_MAX},
 	{	-1, 0, ""	}
 };
 

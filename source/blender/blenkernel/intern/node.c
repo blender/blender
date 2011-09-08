@@ -398,6 +398,11 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 		sock->stack_index= 0;
 		
 		sock->default_value = (oldsock->default_value ? MEM_dupallocN(oldsock->default_value) : NULL);
+		
+		/* XXX some compositor node (e.g. image, render layers) still store
+		 * some persistent buffer data here, need to clear this to avoid dangling pointers.
+		 */
+		sock->cache = NULL;
 	}
 	
 	BLI_duplicatelist(&nnode->outputs, &node->outputs);
@@ -407,6 +412,11 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 		sock->stack_index= 0;
 		
 		sock->default_value = (oldsock->default_value ? MEM_dupallocN(oldsock->default_value) : NULL);
+		
+		/* XXX some compositor node (e.g. image, render layers) still store
+		 * some persistent buffer data here, need to clear this to avoid dangling pointers.
+		 */
+		sock->cache = NULL;
 	}
 	
 	/* don't increase node->id users, freenode doesn't decrement either */

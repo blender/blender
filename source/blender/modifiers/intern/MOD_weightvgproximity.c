@@ -1,30 +1,30 @@
 /*
-* $Id$
-*
-* ***** BEGIN GPL LICENSE BLOCK *****
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software  Foundation,
-* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*
-* The Original Code is Copyright (C) 2011 by Bastien Montagne.
-* All rights reserved.
-*
-* Contributor(s): None yet.
-*
-* ***** END GPL LICENSE BLOCK *****
-*
-*/
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2011 by Bastien Montagne.
+ * All rights reserved.
+ *
+ * Contributor(s): None yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ *
+ */
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
@@ -199,10 +199,24 @@ void do_map(float *weights, const int nidx, const float min_d, const float max_d
 {
 	const float range_inv= 1.0f / (max_d - min_d); /* invert since multiplication is faster */
 	unsigned int i= nidx;
-	while (i-- > 0) {
-		if     (weights[i] >= max_d) weights[i]= 1.0f; /* most likely case first */
-		else if(weights[i] <= min_d) weights[i]= 0.0f;
-		else                         weights[i]= (weights[i] - min_d) * range_inv;
+	if(max_d == min_d) {
+		while (i-- > 0) {
+			weights[i] = (weights[i] >= max_d) ? 1.0f : 0.0f; /* "Step" behavior... */
+		}
+	}
+	else if(max_d > min_d) {
+		while (i-- > 0) {
+			if     (weights[i] >= max_d) weights[i]= 1.0f; /* most likely case first */
+			else if(weights[i] <= min_d) weights[i]= 0.0f;
+			else                         weights[i]= (weights[i] - min_d) * range_inv;
+		}
+	}
+	else {
+		while (i-- > 0) {
+			if     (weights[i] <= max_d) weights[i]= 1.0f; /* most likely case first */
+			else if(weights[i] >= min_d) weights[i]= 0.0f;
+			else                         weights[i]= (weights[i] - min_d) * range_inv;
+		}
 	}
 
 	if(!ELEM(mode, MOD_WVG_MAPPING_NONE, MOD_WVG_MAPPING_CURVE)) {
@@ -220,7 +234,7 @@ static void initData(ModifierData *md)
 	wmd->proximity_mode       = MOD_WVG_PROXIMITY_OBJECT;
 	wmd->proximity_flags      = MOD_WVG_PROXIMITY_GEOM_VERTS;
 
-	wmd->mapping_mode         = MOD_WVG_MAPPING_NONE;
+	wmd->falloff_type         = MOD_WVG_MAPPING_NONE;
 
 	wmd->mask_constant        = 1.0f;
 	wmd->mask_tex_use_channel = MOD_WVG_MASK_TEX_USE_INT; /* Use intensity by default. */
@@ -238,7 +252,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->proximity_flags        = wmd->proximity_flags;
 	twmd->proximity_ob_target    = wmd->proximity_ob_target;
 
-	twmd->mapping_mode           = wmd->mapping_mode;
+	twmd->falloff_type           = wmd->falloff_type;
 
 	twmd->mask_constant          = wmd->mask_constant;
 	BLI_strncpy(twmd->mask_defgrp_name, wmd->mask_defgrp_name, sizeof(twmd->mask_defgrp_name));
@@ -481,6 +495,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 					new_w[i] = dists_e ? minf(dists_e[i], new_w[i]) : new_w[i];
 					new_w[i] = dists_f ? minf(dists_f[i], new_w[i]) : new_w[i];
 				}
+				if(dists_v) MEM_freeN(dists_v);
+				if(dists_e) MEM_freeN(dists_e);
+				if(dists_f) MEM_freeN(dists_f);
 			}
 			/* Else, fall back to default obj2vert behavior. */
 			else {
@@ -492,13 +509,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		}
 	}
 
+	/* Map distances to weights. */
+	do_map(new_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->falloff_type);
+
 	/* Do masking. */
 	weightvg_do_mask(numIdx, indices, org_w, new_w, ob, ret, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, wmd->mask_texture, wmd->mask_tex_use_channel,
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
-
-	/* Map distances to weights. */
-	do_map(org_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->mapping_mode);
 
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
 	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);
@@ -522,7 +539,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
 
 
 ModifierTypeInfo modifierType_WeightVGProximity = {
-	/* name */              "WeightVGProximity",
+	/* name */              "VertexWeightProximity",
 	/* structName */        "WeightVGProximityModifierData",
 	/* structSize */        sizeof(WeightVGProximityModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,

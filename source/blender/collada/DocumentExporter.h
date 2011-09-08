@@ -29,13 +29,18 @@
 #ifndef __DOCUMENTEXPORTER_H__
 #define __DOCUMENTEXPORTER_H__
 
+#include "ExportSettings.h"
+
 struct Scene;
 
 class DocumentExporter
 {
  public:
-	void exportCurrentScene(Scene *sce, const char* filename, bool selected);
+	DocumentExporter(const ExportSettings *export_settings);
+	void exportCurrentScene(Scene *sce);
 	void exportScenes(const char* filename);
+private:
+	const ExportSettings *export_settings;
 };
 
 #endif

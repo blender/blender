@@ -220,7 +220,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	PointerRNA ptr;
 	bNodeSocket *nsock;
 	float locx, locy;
-	float dy= locy;
+	float dy;
 	int buty;
 	
 	/* get "global" coords */
