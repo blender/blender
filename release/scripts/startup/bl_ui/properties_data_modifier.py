@@ -608,32 +608,31 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.label(text="Settings can be found inside the Physics context")
 
     def UV_PROJECT(self, layout, ob, md):
-        if ob.type == 'MESH':
-            split = layout.split()
+        split = layout.split()
 
-            col = split.column()
-            col.label(text="Image:")
-            col.prop(md, "image", text="")
+        col = split.column()
+        col.label(text="Image:")
+        col.prop(md, "image", text="")
 
-            col = split.column()
-            col.label(text="UV Layer:")
-            col.prop_search(md, "uv_layer", ob.data, "uv_textures", text="")
+        col = split.column()
+        col.label(text="UV Layer:")
+        col.prop_search(md, "uv_layer", ob.data, "uv_textures", text="")
 
-            split = layout.split()
-            col = split.column()
-            col.prop(md, "use_image_override")
-            col.prop(md, "projector_count", text="Projectors")
-            for proj in md.projectors:
-                col.prop(proj, "object", text="")
+        split = layout.split()
+        col = split.column()
+        col.prop(md, "use_image_override")
+        col.prop(md, "projector_count", text="Projectors")
+        for proj in md.projectors:
+            col.prop(proj, "object", text="")
 
-            col = split.column()
-            sub = col.column(align=True)
-            sub.prop(md, "aspect_x", text="Aspect X")
-            sub.prop(md, "aspect_y", text="Aspect Y")
+        col = split.column()
+        sub = col.column(align=True)
+        sub.prop(md, "aspect_x", text="Aspect X")
+        sub.prop(md, "aspect_y", text="Aspect Y")
 
-            sub = col.column(align=True)
-            sub.prop(md, "scale_x", text="Scale X")
-            sub.prop(md, "scale_y", text="Scale Y")
+        sub = col.column(align=True)
+        sub.prop(md, "scale_x", text="Scale X")
+        sub.prop(md, "scale_y", text="Scale Y")
 
     def WARP(self, layout, ob, md):
         use_falloff = (md.falloff_type != 'NONE')
