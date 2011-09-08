@@ -245,7 +245,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	else
 		ret = dm;
 #else
-	ret = CDDM_copy(dm);
+	ret = CDDM_copy(dm, 0);
 	rel_ret = 1;
 	dvert = ret->getVertDataArray(ret, CD_MDEFORMVERT);
 	if (dvert == NULL) {
@@ -290,7 +290,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-                                    struct EditMesh *UNUSED(editData),
+                                    struct BMEditMesh *UNUSED(editData),
                                     DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
