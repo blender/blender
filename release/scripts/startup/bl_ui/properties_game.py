@@ -344,7 +344,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel, Panel):
         row = col.row()
         row.prop(gs, "use_frame_rate")
         row.prop(gs, "use_display_lists")
-        
+
         col.prop(gs, "restrict_animation_updates")
 
 
