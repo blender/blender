@@ -46,12 +46,13 @@ typedef struct BsdfMicrofacetGGXClosure {
 
 __device void bsdf_microfacet_ggx_setup(ShaderData *sd, float3 N, float ag, float eta, bool refractive)
 {
-	BsdfMicrofacetGGXClosure *self = (BsdfMicrofacetGGXClosure*)sd->svm_closure_data;
+	float m_ag = clamp(ag, 1e-5f, 1.0f);
+	float m_eta = eta;
+	int m_refractive = (refractive)? 1: 0;
 
-	//self->m_N = N;
-	self->m_ag = clamp(ag, 1e-5f, 1.0f);
-	self->m_eta = eta;
-	self->m_refractive = (refractive)? 1: 0;
+	sd->svm_closure_data0 = m_ag;
+	sd->svm_closure_data1 = m_eta;
+	sd->svm_closure_data2 = __int_as_float(m_refractive);
 
 	if(refractive)
 		sd->svm_closure = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
@@ -63,16 +64,19 @@ __device void bsdf_microfacet_ggx_setup(ShaderData *sd, float3 N, float ag, floa
 
 __device void bsdf_microfacet_ggx_blur(ShaderData *sd, float roughness)
 {
-	BsdfMicrofacetGGXClosure *self = (BsdfMicrofacetGGXClosure*)sd->svm_closure_data;
-	self->m_ag = fmaxf(roughness, self->m_ag);
+	float m_ag = sd->svm_closure_data0;
+	m_ag = fmaxf(roughness, m_ag);
+	sd->svm_closure_data0 = m_ag;
 }
 
 __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	const BsdfMicrofacetGGXClosure *self = (const BsdfMicrofacetGGXClosure*)sd->svm_closure_data;
+	float m_ag = sd->svm_closure_data0;
+	//float m_eta = sd->svm_closure_data1;
+	int m_refractive = __float_as_int(sd->svm_closure_data2);
 	float3 m_N = sd->N;
 
-	if(self->m_refractive == 1) return make_float3 (0, 0, 0);
+	if(m_refractive == 1) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
 	if(cosNI > 0 && cosNO > 0) {
@@ -80,7 +84,7 @@ __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderData *sd, const flo
 		float3 Hr = normalize(omega_in + I);
 		// eq. 20: (F*G*D)/(4*in*on)
 		// eq. 33: first we calculate D(m) with m=Hr:
-		float alpha2 = self->m_ag * self->m_ag;
+		float alpha2 = m_ag * m_ag;
 		float cosThetaM = dot(m_N, Hr);
 		float cosThetaM2 = cosThetaM * cosThetaM;
 		float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
@@ -104,22 +108,24 @@ __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderData *sd, const flo
 
 __device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	const BsdfMicrofacetGGXClosure *self = (const BsdfMicrofacetGGXClosure*)sd->svm_closure_data;
+	float m_ag = sd->svm_closure_data0;
+	float m_eta = sd->svm_closure_data1;
+	int m_refractive = __float_as_int(sd->svm_closure_data2);
 	float3 m_N = sd->N;
 
-	if(self->m_refractive == 0) return make_float3 (0, 0, 0);
+	if(m_refractive == 0) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
 	if(cosNO <= 0 || cosNI >= 0)
 		return make_float3 (0, 0, 0); // vectors on same side -- not possible
 	// compute half-vector of the refraction (eq. 16)
-	float3 ht = -(self->m_eta * omega_in + I);
+	float3 ht = -(m_eta * omega_in + I);
 	float3 Ht = normalize(ht);
 	float cosHO = dot(Ht, I);
 
 	float cosHI = dot(Ht, omega_in);
 	// eq. 33: first we calculate D(m) with m=Ht:
-	float alpha2 = self->m_ag * self->m_ag;
+	float alpha2 = m_ag * m_ag;
 	float cosThetaM = dot(m_N, Ht);
 	float cosThetaM2 = cosThetaM * cosThetaM;
 	float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
@@ -131,8 +137,8 @@ __device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderData *sd, const fl
 	float G = G1o * G1i;
 	// probability
 	float invHt2 = 1 / dot(ht, ht);
-	*pdf = D * fabsf(cosThetaM) * (fabsf(cosHI) * (self->m_eta * self->m_eta)) * invHt2;
-	float out = (fabsf(cosHI * cosHO) * (self->m_eta * self->m_eta) * (G * D) * invHt2) / cosNO;
+	*pdf = D * fabsf(cosThetaM) * (fabsf(cosHI) * (m_eta * m_eta)) * invHt2;
+	float out = (fabsf(cosHI * cosHO) * (m_eta * m_eta) * (G * D) * invHt2) / cosNO;
 	return make_float3 (out, out, out);
 }
 
@@ -143,7 +149,9 @@ __device float bsdf_microfacet_ggx_albedo(const ShaderData *sd, const float3 I)
 
 __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	const BsdfMicrofacetGGXClosure *self = (const BsdfMicrofacetGGXClosure*)sd->svm_closure_data;
+	float m_ag = sd->svm_closure_data0;
+	float m_eta = sd->svm_closure_data1;
+	int m_refractive = __float_as_int(sd->svm_closure_data2);
 	float3 m_N = sd->N;
 
 	float cosNO = dot(m_N, sd->I);
@@ -154,7 +162,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, float randu, float
 		// eq. 35,36:
 		// we take advantage of cos(atan(x)) == 1/sqrt(1+x^2)
 		//tttt  and sin(atan(x)) == x/sqrt(1+x^2)
-		float alpha2 = self->m_ag * self->m_ag;
+		float alpha2 = m_ag * m_ag;
 		float tanThetaM2 = alpha2 * randu / (1 - randu);
 		float cosThetaM  = 1 / sqrtf(1 + tanThetaM2);
 		float sinThetaM  = cosThetaM * sqrtf(tanThetaM2);
@@ -162,7 +170,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, float randu, float
 		float3 m = (cosf(phiM) * sinThetaM) * X +
 				 (sinf(phiM) * sinThetaM) * Y +
 							   cosThetaM  * Z;
-		if(self->m_refractive == 0) {
+		if(m_refractive == 0) {
 			float cosMO = dot(m, sd->I);
 			if(cosMO > 0) {
 				// eq. 39 - compute actual reflected direction
@@ -208,7 +216,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, float randu, float
 			float3 dRdx, dRdy, dTdx, dTdy;
 #endif
 			bool inside;
-			fresnel_dielectric(self->m_eta, m, sd->I, &R, &T,
+			fresnel_dielectric(m_eta, m, sd->I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
 				sd->dI.dx, sd->dI.dy, &dRdx, &dRdy, &dTdx, &dTdy,
 #endif
@@ -235,11 +243,11 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, float randu, float
 				// eq. 21
 				float cosHI = dot(m, *omega_in);
 				float cosHO = dot(m, sd->I);
-				float Ht2 = self->m_eta * cosHI + cosHO;
+				float Ht2 = m_eta * cosHI + cosHO;
 				Ht2 *= Ht2;
-				float out = (fabsf(cosHI * cosHO) * (self->m_eta * self->m_eta) * (G * D)) / (cosNO * Ht2);
+				float out = (fabsf(cosHI * cosHO) * (m_eta * m_eta) * (G * D)) / (cosNO * Ht2);
 				// eq. 38 and eq. 17
-				*pdf = pm * (self->m_eta * self->m_eta) * fabsf(cosHI) / Ht2;
+				*pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2;
 				*eval = make_float3(out, out, out);
 #ifdef __RAY_DIFFERENTIALS__
 				// Since there is some blur to this refraction, make the
@@ -252,7 +260,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, float randu, float
 			}
 		}
 	}
-	return (self->m_refractive == 1) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
+	return (m_refractive == 1) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
 }
 
 /* BECKMANN */
@@ -266,12 +274,13 @@ typedef struct BsdfMicrofacetBeckmannClosure {
 
 __device void bsdf_microfacet_beckmann_setup(ShaderData *sd, float3 N, float ab, float eta, bool refractive)
 {
-	BsdfMicrofacetBeckmannClosure *self = (BsdfMicrofacetBeckmannClosure*)sd->svm_closure_data;
+	float m_ab = clamp(ab, 1e-5f, 1.0f);
+	float m_eta = eta;
+	float m_refractive = (refractive)? 1: 0;
 
-	//self->m_N = N;
-	self->m_ab = clamp(ab, 1e-5f, 1.0f);
-	self->m_eta = eta;
-	self->m_refractive = (refractive)? 1: 0;
+	sd->svm_closure_data0 = m_ab;
+	sd->svm_closure_data1 = m_eta;
+	sd->svm_closure_data2 = __int_as_float(m_refractive);
 
 	if(refractive)
 		sd->svm_closure = CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
@@ -283,16 +292,19 @@ __device void bsdf_microfacet_beckmann_setup(ShaderData *sd, float3 N, float ab,
 
 __device void bsdf_microfacet_beckmann_blur(ShaderData *sd, float roughness)
 {
-	BsdfMicrofacetBeckmannClosure *self = (BsdfMicrofacetBeckmannClosure*)sd->svm_closure_data;
-	self->m_ab = fmaxf(roughness, self->m_ab);
+	float m_ab = sd->svm_closure_data0;
+	m_ab = fmaxf(roughness, m_ab);
+	sd->svm_closure_data0 = m_ab;
 }
 
 __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	const BsdfMicrofacetBeckmannClosure *self = (const BsdfMicrofacetBeckmannClosure*)sd->svm_closure_data;
+	float m_ab = sd->svm_closure_data0;
+	//float m_eta = sd->svm_closure_data1;
+	int m_refractive = __float_as_int(sd->svm_closure_data2);
 	float3 m_N = sd->N;
 
-	if(self->m_refractive == 1) return make_float3 (0, 0, 0);
+	if(m_refractive == 1) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
 	if(cosNO > 0 && cosNI > 0) {
@@ -300,15 +312,15 @@ __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderData *sd, cons
 	   float3 Hr = normalize(omega_in + I);
 	   // eq. 20: (F*G*D)/(4*in*on)
 	   // eq. 25: first we calculate D(m) with m=Hr:
-	   float alpha2 = self->m_ab * self->m_ab;
+	   float alpha2 = m_ab * m_ab;
 	   float cosThetaM = dot(m_N, Hr);
 	   float cosThetaM2 = cosThetaM * cosThetaM;
 	   float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
 	   float cosThetaM4 = cosThetaM2 * cosThetaM2;
 	   float D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 *  cosThetaM4);
 	   // eq. 26, 27: now calculate G1(i,m) and G1(o,m)
-	   float ao = 1 / (self->m_ab * sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
-	   float ai = 1 / (self->m_ab * sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
+	   float ao = 1 / (m_ab * sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
+	   float ai = 1 / (m_ab * sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
 	   float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 	   float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 	   float G = G1o * G1i;
@@ -326,37 +338,39 @@ __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderData *sd, cons
 
 __device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	const BsdfMicrofacetBeckmannClosure *self = (const BsdfMicrofacetBeckmannClosure*)sd->svm_closure_data;
+	float m_ab = sd->svm_closure_data0;
+	float m_eta = sd->svm_closure_data1;
+	int m_refractive = __float_as_int(sd->svm_closure_data2);
 	float3 m_N = sd->N;
 
-	if(self->m_refractive == 0) return make_float3 (0, 0, 0);
+	if(m_refractive == 0) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
 	if(cosNO <= 0 || cosNI >= 0)
 		return make_float3 (0, 0, 0);
 	// compute half-vector of the refraction (eq. 16)
-	float3 ht = -(self->m_eta * omega_in + I);
+	float3 ht = -(m_eta * omega_in + I);
 	float3 Ht = normalize(ht);
 	float cosHO = dot(Ht, I);
 
 	float cosHI = dot(Ht, omega_in);
 	// eq. 33: first we calculate D(m) with m=Ht:
-	float alpha2 = self->m_ab * self->m_ab;
+	float alpha2 = m_ab * m_ab;
 	float cosThetaM = dot(m_N, Ht);
 	float cosThetaM2 = cosThetaM * cosThetaM;
 	float tanThetaM2 = (1 - cosThetaM2) / cosThetaM2;
 	float cosThetaM4 = cosThetaM2 * cosThetaM2;
 	float D = expf(-tanThetaM2 / alpha2) / (M_PI_F * alpha2 *  cosThetaM4);
 	// eq. 26, 27: now calculate G1(i,m) and G1(o,m)
-	float ao = 1 / (self->m_ab * sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
-	float ai = 1 / (self->m_ab * sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
+	float ao = 1 / (m_ab * sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
+	float ai = 1 / (m_ab * sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
 	float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 	float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 	float G = G1o * G1i;
 	// probability
 	float invHt2 = 1 / dot(ht, ht);
-	*pdf = D * fabsf(cosThetaM) * (fabsf(cosHI) * (self->m_eta * self->m_eta)) * invHt2;
-	float out = (fabsf(cosHI * cosHO) * (self->m_eta * self->m_eta) * (G * D) * invHt2) / cosNO;
+	*pdf = D * fabsf(cosThetaM) * (fabsf(cosHI) * (m_eta * m_eta)) * invHt2;
+	float out = (fabsf(cosHI * cosHO) * (m_eta * m_eta) * (G * D) * invHt2) / cosNO;
 	return make_float3 (out, out, out);
 }
 
@@ -367,7 +381,9 @@ __device float bsdf_microfacet_beckmann_albedo(const ShaderData *sd, const float
 
 __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	const BsdfMicrofacetBeckmannClosure *self = (const BsdfMicrofacetBeckmannClosure*)sd->svm_closure_data;
+	float m_ab = sd->svm_closure_data0;
+	float m_eta = sd->svm_closure_data1;
+	int m_refractive = __float_as_int(sd->svm_closure_data2);
 	float3 m_N = sd->N;
 
 	float cosNO = dot(m_N, sd->I);
@@ -378,7 +394,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, 
 		// eq. 35,36:
 		// we take advantage of cos(atan(x)) == 1/sqrt(1+x^2)
 		//tttt  and sin(atan(x)) == x/sqrt(1+x^2)
-		float alpha2 = self->m_ab * self->m_ab;
+		float alpha2 = m_ab * m_ab;
 		float tanThetaM = sqrtf(-alpha2 * logf(1 - randu));
 		float cosThetaM = 1 / sqrtf(1 + tanThetaM * tanThetaM);
 		float sinThetaM = cosThetaM * tanThetaM;
@@ -387,7 +403,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, 
 				 (sinf(phiM) * sinThetaM) * Y +
 							   cosThetaM  * Z;
 
-		if(self->m_refractive == 0) {
+		if(m_refractive == 0) {
 			float cosMO = dot(m, sd->I);
 			if(cosMO > 0) {
 				// eq. 39 - compute actual reflected direction
@@ -408,8 +424,8 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, 
 					// Eval BRDF*cosNI
 					float cosNI = dot(m_N, *omega_in);
 					// eq. 26, 27: now calculate G1(i,m) and G1(o,m)
-					float ao = 1 / (self->m_ab * sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
-					float ai = 1 / (self->m_ab * sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
+					float ao = 1 / (m_ab * sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
+					float ai = 1 / (m_ab * sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
 					float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 					float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 					float G = G1o * G1i;
@@ -436,7 +452,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, 
 			float3 dRdx, dRdy, dTdx, dTdy;
 #endif
 			bool inside;
-			fresnel_dielectric(self->m_eta, m, sd->I, &R, &T,
+			fresnel_dielectric(m_eta, m, sd->I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
 				sd->dI.dx, sd->dI.dy, &dRdx, &dRdy, &dTdx, &dTdy,
 #endif
@@ -459,19 +475,19 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, 
 				// eval BRDF*cosNI
 				float cosNI = dot(m_N, *omega_in);
 				// eq. 26, 27: now calculate G1(i,m) and G1(o,m)
-				float ao = 1 / (self->m_ab * sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
-				float ai = 1 / (self->m_ab * sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
+				float ao = 1 / (m_ab * sqrtf((1 - cosNO * cosNO) / (cosNO * cosNO)));
+				float ai = 1 / (m_ab * sqrtf((1 - cosNI * cosNI) / (cosNI * cosNI)));
 				float G1o = ao < 1.6f ? (3.535f * ao + 2.181f * ao * ao) / (1 + 2.276f * ao + 2.577f * ao * ao) : 1.0f;
 				float G1i = ai < 1.6f ? (3.535f * ai + 2.181f * ai * ai) / (1 + 2.276f * ai + 2.577f * ai * ai) : 1.0f;
 				float G = G1o * G1i;
 				// eq. 21
 				float cosHI = dot(m, *omega_in);
 				float cosHO = dot(m, sd->I);
-				float Ht2 = self->m_eta * cosHI + cosHO;
+				float Ht2 = m_eta * cosHI + cosHO;
 				Ht2 *= Ht2;
-				float out = (fabsf(cosHI * cosHO) * (self->m_eta * self->m_eta) * (G * D)) / (cosNO * Ht2);
+				float out = (fabsf(cosHI * cosHO) * (m_eta * m_eta) * (G * D)) / (cosNO * Ht2);
 				// eq. 38 and eq. 17
-				*pdf = pm * (self->m_eta * self->m_eta) * fabsf(cosHI) / Ht2;
+				*pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2;
 				*eval = make_float3(out, out, out);
 #ifdef __RAY_DIFFERENTIALS__
 				// Since there is some blur to this refraction, make the
@@ -484,7 +500,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, 
 			}
 		}
 	}
-	return (self->m_refractive == 1) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
+	return (m_refractive == 1) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
 }
 
 CCL_NAMESPACE_END

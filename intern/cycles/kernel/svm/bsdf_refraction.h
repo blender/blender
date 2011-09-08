@@ -43,9 +43,7 @@ typedef struct BsdfRefractionClosure {
 
 __device void bsdf_refraction_setup(ShaderData *sd, float3 N, float eta)
 {
-	BsdfRefractionClosure *self = (BsdfRefractionClosure*)sd->svm_closure_data;
-
-	self->m_eta = eta;
+	sd->svm_closure_data0 = eta;
 
 	sd->svm_closure = CLOSURE_BSDF_REFRACTION_ID;
 	sd->flag |= SD_BSDF;
@@ -72,7 +70,7 @@ __device float bsdf_refraction_albedo(const ShaderData *sd, const float3 I)
 
 __device int bsdf_refraction_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	const BsdfRefractionClosure *self = (const BsdfRefractionClosure*)sd->svm_closure_data;
+	float m_eta = sd->svm_closure_data0;
 	float3 m_N = sd->N;
 
 	float3 R, T;
@@ -80,7 +78,7 @@ __device int bsdf_refraction_sample(const ShaderData *sd, float randu, float ran
 	float3 dRdx, dRdy, dTdx, dTdy;
 #endif
 	bool inside;
-	fresnel_dielectric(self->m_eta, m_N, sd->I, &R, &T,
+	fresnel_dielectric(m_eta, m_N, sd->I, &R, &T,
 #ifdef __RAY_DIFFERENTIALS__
 		sd->dI.dx, sd->dI.dy, &dRdx, &dRdy, &dTdx, &dTdy,
 #endif

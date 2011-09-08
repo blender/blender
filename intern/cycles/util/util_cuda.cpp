@@ -19,6 +19,8 @@
 #include "util_cuda.h"
 #include "util_debug.h"
 #include "util_dynlib.h"
+#include "util_path.h"
+#include "util_string.h"
 
 /* function defininitions */
 
@@ -373,6 +375,18 @@ bool cuLibraryInit()
 	result = true;
 
 	return result;
+}
+
+string cuCompilerPath()
+{
+		/* todo: better nvcc detection */
+#ifdef _WIN32
+	string nvcc = "C:/CUDA/bin/nvcc.exe";
+#else
+	string nvcc = "/usr/local/cuda/bin/nvcc";
+#endif
+
+	return (path_exists(nvcc))? nvcc: "";
 }
 
 CCL_NAMESPACE_END

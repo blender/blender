@@ -75,13 +75,7 @@ extern "C" {
 #define CL_API_CALL
 #endif
 
-#if defined(__APPLE__)
-#define CL_API_SUFFIX__VERSION_1_0   AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER
-#define CL_EXTENSION_WEAK_LINK       __attribute__((weak_import))       
-#else
 #define CL_API_SUFFIX__VERSION_1_0
-#define CL_EXTENSION_WEAK_LINK                         
-#endif
 
 #if defined(_WIN32) && defined(_MSC_VER)
 

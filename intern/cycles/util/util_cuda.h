@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include "util_opengl.h"
+#include "util_string.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -29,6 +30,7 @@ CCL_NAMESPACE_BEGIN
  * matrixMulDynlinkJIT in the CUDA SDK. */
 
 bool cuLibraryInit();
+string cuCompilerPath();
 
 CCL_NAMESPACE_END
 

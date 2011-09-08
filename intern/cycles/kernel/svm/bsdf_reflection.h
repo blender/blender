@@ -43,9 +43,6 @@ typedef struct BsdfReflectionClosure {
 
 __device void bsdf_reflection_setup(ShaderData *sd, float3 N)
 {
-	//BsdfReflectionClosure *self = (BsdfReflectionClosure*)sd->svm_closure_data;
-	//self->m_N = N;
-
 	sd->svm_closure = CLOSURE_BSDF_REFLECTION_ID;
 	sd->flag |= SD_BSDF;
 }

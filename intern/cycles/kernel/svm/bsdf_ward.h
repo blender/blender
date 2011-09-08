@@ -46,12 +46,11 @@ typedef struct BsdfWardClosure {
 
 __device void bsdf_ward_setup(ShaderData *sd, float3 N, float3 T, float ax, float ay)
 {
-	BsdfWardClosure *self = (BsdfWardClosure*)sd->svm_closure_data;
+	float m_ax = clamp(ax, 1e-5f, 1.0f);
+	float m_ay = clamp(ay, 1e-5f, 1.0f);
 
-	//self->m_N = N;
-	//self->m_T = T;
-	self->m_ax = clamp(ax, 1e-5f, 1.0f);
-	self->m_ay = clamp(ay, 1e-5f, 1.0f);
+	sd->svm_closure_data0 = m_ax;
+	sd->svm_closure_data1 = m_ay;
 
 	sd->svm_closure = CLOSURE_BSDF_WARD_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
@@ -59,35 +58,35 @@ __device void bsdf_ward_setup(ShaderData *sd, float3 N, float3 T, float ax, floa
 
 __device void bsdf_ward_blur(ShaderData *sd, float roughness)
 {
-	BsdfWardClosure *self = (BsdfWardClosure*)sd->svm_closure_data;
-
-	self->m_ax = fmaxf(roughness, self->m_ax);
-	self->m_ay = fmaxf(roughness, self->m_ay);
+	sd->svm_closure_data0 = fmaxf(roughness, sd->svm_closure_data0);
+	sd->svm_closure_data1 = fmaxf(roughness, sd->svm_closure_data1);
 }
 
 __device float3 bsdf_ward_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	const BsdfWardClosure *self = (const BsdfWardClosure*)sd->svm_closure_data;
+	float m_ax = sd->svm_closure_data0;
+	float m_ay = sd->svm_closure_data1;
 	float3 m_N = sd->N;
 	float3 m_T = normalize(sd->dPdu);
 
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
+
 	if(cosNI > 0 && cosNO > 0) {
 		// get half vector and get x,y basis on the surface for anisotropy
 		float3 H = normalize(omega_in + I); // normalize needed for pdf
 		float3 X, Y;
 		make_orthonormals_tangent(m_N, m_T, &X, &Y);
 		// eq. 4
-		float dotx = dot(H, X) / self->m_ax;
-		float doty = dot(H, Y) / self->m_ay;
+		float dotx = dot(H, X) / m_ax;
+		float doty = dot(H, Y) / m_ay;
 		float dotn = dot(H, m_N);
 		float exp_arg = (dotx * dotx + doty * doty) / (dotn * dotn);
-		float denom = (4 * M_PI_F * self->m_ax * self->m_ay * sqrtf(cosNO * cosNI));
+		float denom = (4 * M_PI_F * m_ax * m_ay * sqrtf(cosNO * cosNI));
 		float exp_val = expf(-exp_arg);
 		float out = cosNI * exp_val / denom;
 		float oh = dot(H, I);
-		denom = 4 * M_PI_F * self->m_ax * self->m_ay * oh * dotn * dotn * dotn;
+		denom = 4 * M_PI_F * m_ax * m_ay * oh * dotn * dotn * dotn;
 		*pdf = exp_val / denom;
 		return make_float3 (out, out, out);
 	}
@@ -106,7 +105,8 @@ __device float bsdf_ward_albedo(const ShaderData *sd, const float3 I)
 
 __device int bsdf_ward_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	const BsdfWardClosure *self = (const BsdfWardClosure*)sd->svm_closure_data;
+	float m_ax = sd->svm_closure_data0;
+	float m_ay = sd->svm_closure_data1;
 	float3 m_N = sd->N;
 	float3 m_T = normalize(sd->dPdu);
 
@@ -120,7 +120,7 @@ __device int bsdf_ward_sample(const ShaderData *sd, float randu, float randv, fl
 		//ttoutput angle in the right quadrant)
 		// we take advantage of cos(atan(x)) == 1/sqrt(1+x^2)
 		//tttt  and sin(atan(x)) == x/sqrt(1+x^2)
-		float alphaRatio = self->m_ay / self->m_ax;
+		float alphaRatio = m_ay / m_ax;
 		float cosPhi, sinPhi;
 		if(randu < 0.25f) {
 			float val = 4 * randu;
@@ -149,7 +149,7 @@ __device int bsdf_ward_sample(const ShaderData *sd, float randu, float randv, fl
 		// eq. 6
 		// we take advantage of cos(atan(x)) == 1/sqrt(1+x^2)
 		//tttt  and sin(atan(x)) == x/sqrt(1+x^2)
-		float thetaDenom = (cosPhi * cosPhi) / (self->m_ax * self->m_ax) + (sinPhi * sinPhi) / (self->m_ay * self->m_ay);
+		float thetaDenom = (cosPhi * cosPhi) / (m_ax * m_ax) + (sinPhi * sinPhi) / (m_ay * m_ay);
 		float tanTheta2 = -logf(1 - randv) / thetaDenom;
 		float cosTheta  = 1 / sqrtf(1 + tanTheta2);
 		float sinTheta  = cosTheta * sqrtf(tanTheta2);
@@ -159,8 +159,8 @@ __device int bsdf_ward_sample(const ShaderData *sd, float randu, float randv, fl
 		h.y = sinTheta * sinPhi;
 		h.z = cosTheta;
 		// compute terms that are easier in local space
-		float dotx = h.x / self->m_ax;
-		float doty = h.y / self->m_ay;
+		float dotx = h.x / m_ax;
+		float doty = h.y / m_ay;
 		float dotn = h.z;
 		// transform to world space
 		h = h.x * X + h.y * Y + h.z * m_N;
@@ -172,10 +172,10 @@ __device int bsdf_ward_sample(const ShaderData *sd, float randu, float randv, fl
 			if(cosNI > 0) {
 				// eq. 9
 				float exp_arg = (dotx * dotx + doty * doty) / (dotn * dotn);
-				float denom = 4 * M_PI_F * self->m_ax * self->m_ay * oh * dotn * dotn * dotn;
+				float denom = 4 * M_PI_F * m_ax * m_ay * oh * dotn * dotn * dotn;
 				*pdf = expf(-exp_arg) / denom;
 				// compiler will reuse expressions already computed
-				denom = (4 * M_PI_F * self->m_ax * self->m_ay * sqrtf(cosNO * cosNI));
+				denom = (4 * M_PI_F * m_ax * m_ay * sqrtf(cosNO * cosNI));
 				float power = cosNI * expf(-exp_arg) / denom;
 				*eval = make_float3(power, power, power);
 #ifdef __RAY_DIFFERENTIALS__

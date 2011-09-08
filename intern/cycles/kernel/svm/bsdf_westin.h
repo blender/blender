@@ -44,25 +44,24 @@ typedef struct BsdfWestinBackscatterClosure {
 
 __device void bsdf_westin_backscatter_setup(ShaderData *sd, float3 N, float roughness)
 {
-	BsdfWestinBackscatterClosure *self = (BsdfWestinBackscatterClosure*)sd->svm_closure_data;
-
-	//self->m_N = N;
 	roughness = clamp(roughness, 1e-5f, 1.0f);
-	self->m_invroughness = 1.0f/roughness;
+	float m_invroughness = 1.0f/roughness;
 
 	sd->svm_closure = CLOSURE_BSDF_WESTIN_BACKSCATTER_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	sd->svm_closure_data0 = m_invroughness;
 }
 
 __device void bsdf_westin_backscatter_blur(ShaderData *sd, float roughness)
 {
-	BsdfWestinBackscatterClosure *self = (BsdfWestinBackscatterClosure*)sd->svm_closure_data;
-	self->m_invroughness = min(1.0f/roughness, self->m_invroughness);
+	float m_invroughness = sd->svm_closure_data0;
+	m_invroughness = min(1.0f/roughness, m_invroughness);
+	sd->svm_closure_data0 = m_invroughness;
 }
 
 __device float3 bsdf_westin_backscatter_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	const BsdfWestinBackscatterClosure *self = (const BsdfWestinBackscatterClosure*)sd->svm_closure_data;
+	float m_invroughness = sd->svm_closure_data0;
 	float3 m_N = sd->N;
 
 	// pdf is implicitly 0 (no indirect sampling)
@@ -70,7 +69,7 @@ __device float3 bsdf_westin_backscatter_eval_reflect(const ShaderData *sd, const
 	float cosNI = dot(m_N, omega_in);
 	if(cosNO > 0 && cosNI > 0) {
 		float cosine = dot(I, omega_in);
-		*pdf = cosine > 0 ? (self->m_invroughness + 1) * powf(cosine, self->m_invroughness) : 0;
+		*pdf = cosine > 0 ? (m_invroughness + 1) * powf(cosine, m_invroughness) : 0;
 		*pdf *= 0.5f * M_1_PI_F;
 		return make_float3 (*pdf, *pdf, *pdf);
 	}
@@ -89,7 +88,7 @@ __device float bsdf_westin_backscatter_albedo(const ShaderData *sd, const float3
 
 __device int bsdf_westin_backscatter_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	const BsdfWestinBackscatterClosure *self = (const BsdfWestinBackscatterClosure*)sd->svm_closure_data;
+	float m_invroughness = sd->svm_closure_data0;
 	float3 m_N = sd->N;
 
 	float cosNO = dot(m_N, sd->I);
@@ -101,7 +100,7 @@ __device int bsdf_westin_backscatter_sample(const ShaderData *sd, float randu, f
 		float3 T, B;
 		make_orthonormals (sd->I, &T, &B);
 		float phi = 2 * M_PI_F * randu;
-		float cosTheta = powf(randv, 1 / (self->m_invroughness + 1));
+		float cosTheta = powf(randv, 1 / (m_invroughness + 1));
 		float sinTheta2 = 1 - cosTheta * cosTheta;
 		float sinTheta = sinTheta2 > 0 ? sqrtf(sinTheta2) : 0;
 		*omega_in = (cosf(phi) * sinTheta) * T +
@@ -114,8 +113,8 @@ __device int bsdf_westin_backscatter_sample(const ShaderData *sd, float randu, f
 			// make sure the direction we chose is still in the right hemisphere
 			if(cosNI > 0)
 			{
-				*pdf = 0.5f * M_1_PI_F * powf(cosTheta, self->m_invroughness);
-				*pdf = (self->m_invroughness + 1) * (*pdf);
+				*pdf = 0.5f * M_1_PI_F * powf(cosTheta, m_invroughness);
+				*pdf = (m_invroughness + 1) * (*pdf);
 				*eval = make_float3(*pdf, *pdf, *pdf);
 #ifdef __RAY_DIFFERENTIALS__
 				// Since there is some blur to this reflection, make the
@@ -140,13 +139,9 @@ typedef struct BsdfWestinSheenClosure {
 
 __device void bsdf_westin_sheen_setup(ShaderData *sd, float3 N, float edginess)
 {
-	BsdfWestinSheenClosure *self = (BsdfWestinSheenClosure*)sd->svm_closure_data;
-
-	//self->m_N = N;
-	self->m_edginess = edginess;
-
 	sd->svm_closure = CLOSURE_BSDF_WESTIN_SHEEN_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
+	sd->svm_closure_data0 = edginess;
 }
 
 __device void bsdf_westin_sheen_blur(ShaderData *sd, float roughness)
@@ -155,7 +150,7 @@ __device void bsdf_westin_sheen_blur(ShaderData *sd, float roughness)
 
 __device float3 bsdf_westin_sheen_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	const BsdfWestinSheenClosure *self = (const BsdfWestinSheenClosure*)sd->svm_closure_data;
+	float m_edginess = sd->svm_closure_data0;
 	float3 m_N = sd->N;
 
 	// pdf is implicitly 0 (no indirect sampling)
@@ -164,7 +159,7 @@ __device float3 bsdf_westin_sheen_eval_reflect(const ShaderData *sd, const float
 	if(cosNO > 0 && cosNI > 0) {
 		float sinNO2 = 1 - cosNO * cosNO;
 		*pdf = cosNI * M_1_PI_F;
-		float westin = sinNO2 > 0 ? powf(sinNO2, 0.5f * self->m_edginess) * (*pdf) : 0;
+		float westin = sinNO2 > 0 ? powf(sinNO2, 0.5f * m_edginess) * (*pdf) : 0;
 		return make_float3 (westin, westin, westin);
 	}
 	return make_float3 (0, 0, 0);
@@ -182,7 +177,7 @@ __device float bsdf_westin_sheen_albedo(const ShaderData *sd, const float3 I)
 
 __device int bsdf_westin_sheen_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	const BsdfWestinSheenClosure *self = (const BsdfWestinSheenClosure*)sd->svm_closure_data;
+	float m_edginess = sd->svm_closure_data0;
 	float3 m_N = sd->N;
 
 	// we are viewing the surface from the right side - send a ray out with cosine
@@ -192,7 +187,7 @@ __device int bsdf_westin_sheen_sample(const ShaderData *sd, float randu, float r
 		// TODO: account for sheen when sampling
 		float cosNO = dot(m_N, sd->I);
 		float sinNO2 = 1 - cosNO * cosNO;
-		float westin = sinNO2 > 0 ? powf(sinNO2, 0.5f * self->m_edginess) * (*pdf) : 0;
+		float westin = sinNO2 > 0 ? powf(sinNO2, 0.5f * m_edginess) * (*pdf) : 0;
 		*eval = make_float3(westin, westin, westin);
 #ifdef __RAY_DIFFERENTIALS__
 		// TODO: find a better approximation for the diffuse bounce

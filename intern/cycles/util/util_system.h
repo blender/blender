@@ -25,6 +25,7 @@ CCL_NAMESPACE_BEGIN
 
 int system_cpu_thread_count();
 string system_cpu_brand_string();
+int system_cpu_bits();
 
 CCL_NAMESPACE_END
 

@@ -35,6 +35,8 @@ string path_filename(const string& path);
 string path_dirname(const string& path);
 string path_join(const string& dir, const string& file);
 
+string path_escape(const string& path);
+bool path_exists(const string& path);
 string path_files_md5_hash(const string& dir);
 
 CCL_NAMESPACE_END

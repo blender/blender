@@ -42,15 +42,13 @@ typedef struct BsdfAshikhminVelvetClosure {
 
 __device void bsdf_ashikhmin_velvet_setup(ShaderData *sd, float3 N, float sigma)
 {
-	BsdfAshikhminVelvetClosure *self = (BsdfAshikhminVelvetClosure*)sd->svm_closure_data;
-
 	sigma = fmaxf(sigma, 0.01f);
 
-	//self->m_N = N;
-	self->m_invsigma2 = 1.0f/(sigma * sigma);
+	float m_invsigma2 = 1.0f/(sigma * sigma);
 
 	sd->svm_closure = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
+	sd->svm_closure_data0 = m_invsigma2;
 }
 
 __device void bsdf_ashikhmin_velvet_blur(ShaderData *sd, float roughness)
@@ -59,7 +57,7 @@ __device void bsdf_ashikhmin_velvet_blur(ShaderData *sd, float roughness)
 
 __device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	const BsdfAshikhminVelvetClosure *self = (const BsdfAshikhminVelvetClosure*)sd->svm_closure_data;
+	float m_invsigma2 = sd->svm_closure_data0;
 	float3 m_N = sd->N;
 
 	float cosNO = dot(m_N, I);
@@ -80,7 +78,7 @@ __device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const f
 		float sinNH4 = sinNH2 * sinNH2;
 		float cotangent2 = (cosNH * cosNH) / sinNH2;
 
-		float D = expf(-cotangent2 * self->m_invsigma2) * self->m_invsigma2 * M_1_PI_F / sinNH4;
+		float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
 		float G = min(1.0f, min(fac1, fac2)); // TODO: derive G from D analytically
 
 		float out = 0.25f * (D * G) / cosNO;
@@ -103,7 +101,7 @@ __device float bsdf_ashikhmin_velvet_albedo(const ShaderData *sd, const float3 I
 
 __device int bsdf_ashikhmin_velvet_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	const BsdfAshikhminVelvetClosure *self = (const BsdfAshikhminVelvetClosure*)sd->svm_closure_data;
+	float m_invsigma2 = sd->svm_closure_data0;
 	float3 m_N = sd->N;
 
 	// we are viewing the surface from above - send a ray out with uniform
@@ -128,7 +126,7 @@ __device int bsdf_ashikhmin_velvet_sample(const ShaderData *sd, float randu, flo
 		float sinNH4 = sinNH2 * sinNH2;
 		float cotangent2 =  (cosNH * cosNH) / sinNH2;
 
-		float D = expf(-cotangent2 * self->m_invsigma2) * self->m_invsigma2 * M_1_PI_F / sinNH4;
+		float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * M_1_PI_F / sinNH4;
 		float G = min(1.0f, min(fac1, fac2)); // TODO: derive G from D analytically
 
 		float power = 0.25f * (D * G) / cosNO;

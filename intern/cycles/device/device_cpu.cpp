@@ -194,10 +194,9 @@ public:
 
 	void task_add(DeviceTask& task)
 	{
-		if(task.type == DeviceTask::TONEMAP)
-			tasks.push(task);
-		else
-			task.split(tasks, threads.size());
+		/* split task into smaller ones, more than number of threads for uneven
+		   workloads where some parts of the image render slower than others */
+		task.split(tasks, threads.size()*10);
 	}
 
 	void task_wait()

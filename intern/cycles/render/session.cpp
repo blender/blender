@@ -79,6 +79,8 @@ Session::~Session()
 	}
 
 	if(params.output_path != "") {
+		tonemap();
+
 		progress.set_status("Writing Image", params.output_path);
 		display->write(device, params.output_path);
 	}
@@ -352,7 +354,8 @@ void Session::run_cpu()
 			/* update status and timing */
 			update_status_time();
 
-			need_tonemap = true;
+			if(!params.background)
+				need_tonemap = true;
 		}
 
 		device->task_wait();

@@ -113,5 +113,10 @@ string system_cpu_brand_string()
 	return "Unknown CPU";
 }
 
+int system_cpu_bits()
+{
+	return (sizeof(void*)*8);
+}
+
 CCL_NAMESPACE_END
 

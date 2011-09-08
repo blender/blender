@@ -24,6 +24,7 @@
 
 #include "util_cuda.h"
 #include "util_debug.h"
+#include "util_math.h"
 #include "util_opencl.h"
 #include "util_opengl.h"
 #include "util_types.h"
@@ -43,6 +44,8 @@ DeviceTask::DeviceTask(Type type_)
 void DeviceTask::split(ThreadQueue<DeviceTask>& tasks, int num)
 {
 	if(type == DISPLACE) {
+		num = min(displace_w, num);
+
 		for(int i = 0; i < num; i++) {
 			int tx = displace_x + (displace_w/num)*i;
 			int tw = (i == num-1)? displace_w - i*(displace_w/num): displace_w/num;
@@ -56,6 +59,8 @@ void DeviceTask::split(ThreadQueue<DeviceTask>& tasks, int num)
 		}
 	}
 	else {
+		num = min(h, num);
+
 		for(int i = 0; i < num; i++) {
 			int ty = y + (h/num)*i;
 			int th = (i == num-1)? h - i*(h/num): h/num;

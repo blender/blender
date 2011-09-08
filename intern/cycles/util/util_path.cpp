@@ -27,6 +27,7 @@ OIIO_NAMESPACE_USING
 #define BOOST_FILESYSTEM_VERSION 2
 
 #include <boost/filesystem.hpp> 
+#include <boost/algorithm/string.hpp>
 
 CCL_NAMESPACE_BEGIN
 
@@ -58,6 +59,18 @@ string path_dirname(const string& path)
 string path_join(const string& dir, const string& file)
 {
 	return (boost::filesystem::path(dir) / boost::filesystem::path(file)).string();
+}
+
+string path_escape(const string& path)
+{
+	string result = path;
+	boost::replace_all(result, " ", "\\ ");
+	return result;
+}
+
+bool path_exists(const string& path)
+{
+	return boost::filesystem::exists(path);
 }
 
 string path_files_md5_hash(const string& dir)

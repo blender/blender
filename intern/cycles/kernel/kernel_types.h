@@ -246,7 +246,9 @@ typedef struct ShaderData {
 	 * memory usage, svm_closure_data contains closure parameters. */
 	ClosureType svm_closure;
 	float3 svm_closure_weight;
-	float svm_closure_data[3]; /* CUDA gives compile error if out of bounds */
+	float svm_closure_data0;
+	float svm_closure_data1;
+	float svm_closure_data2;
 
 #if !defined(__KERNEL_GPU__) && defined(WITH_OSL)
 	/* OSL closure data and context. we store all closures flattened into

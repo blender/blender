@@ -43,9 +43,6 @@ typedef struct BsdfDiffuseClosure {
 
 __device void bsdf_diffuse_setup(ShaderData *sd, float3 N)
 {
-	//BsdfDiffuseClosure *self = (BsdfDiffuseClosure*)sd->svm_closure_data;
-	//self->m_N = N;
-
 	sd->svm_closure = CLOSURE_BSDF_DIFFUSE_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
 }
@@ -56,7 +53,6 @@ __device void bsdf_diffuse_blur(ShaderData *sd, float roughness)
 
 __device float3 bsdf_diffuse_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	//const BsdfDiffuseClosure *self = (const BsdfDiffuseClosure*)sd->svm_closure_data;
 	float3 m_N = sd->N;
 
 	float cos_pi = fmaxf(dot(m_N, omega_in), 0.0f) * M_1_PI_F;
@@ -76,7 +72,6 @@ __device float bsdf_diffuse_albedo(const ShaderData *sd, const float3 I)
 
 __device int bsdf_diffuse_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	//const BsdfDiffuseClosure *self = (const BsdfDiffuseClosure*)sd->svm_closure_data;
 	float3 m_N = sd->N;
 
 	// distribution over the hemisphere
@@ -106,9 +101,6 @@ typedef struct BsdfTranslucentClosure {
 
 __device void bsdf_translucent_setup(ShaderData *sd, float3 N)
 {
-	//BsdfTranslucentClosure *self = (BsdfTranslucentClosure*)sd->svm_closure_data;
-	//self->m_N = N;
-
 	sd->svm_closure = CLOSURE_BSDF_TRANSLUCENT_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
 }
@@ -124,7 +116,6 @@ __device float3 bsdf_translucent_eval_reflect(const ShaderData *sd, const float3
 
 __device float3 bsdf_translucent_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
 {
-	//const BsdfTranslucentClosure *self = (const BsdfTranslucentClosure*)sd->svm_closure_data;
 	float3 m_N = sd->N;
 
 	float cos_pi = fmaxf(-dot(m_N, omega_in), 0.0f) * M_1_PI_F;
@@ -139,7 +130,6 @@ __device float bsdf_translucent_albedo(const ShaderData *sd, const float3 I)
 
 __device int bsdf_translucent_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	//const BsdfTranslucentClosure *self = (const BsdfTranslucentClosure*)sd->svm_closure_data;
 	float3 m_N = sd->N;
 
 	// we are viewing the surface from the right side - send a ray out with cosine
