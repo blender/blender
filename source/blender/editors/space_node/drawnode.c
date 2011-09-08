@@ -660,6 +660,7 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	 * 1) input: not internal
 	 * 2) output: (node type uses const outputs) and (group output is unlinked)
 	 */
+	draw_value = 0;
 	switch (in_out) {
 	case SOCK_IN:
 		draw_value = !(gsock && (gsock->flag & SOCK_INTERNAL));
@@ -667,8 +668,6 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	case SOCK_OUT:
 		if (gnode->typeinfo->flag & NODE_CONST_OUTPUT)
 			draw_value = !(gsock && gsock->link);
-		else
-			draw_value = 0;
 		break;
 	}
 	if (draw_value) {

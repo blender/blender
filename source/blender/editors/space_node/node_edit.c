@@ -792,7 +792,7 @@ static int edit_node_invoke_properties(bContext *C, wmOperator *op)
 static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **rnode, bNodeSocket **rsock, int *rin_out)
 {
 	bNode *node;
-	bNodeSocket *sock;
+	bNodeSocket *sock=NULL;
 	char nodename[32];
 	int sockindex;
 	int in_out;
