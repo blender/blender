@@ -639,7 +639,7 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	float colw= 0.6f*node_group_frame;
 	float col1= 6 - node_group_frame;
 	float col2= col1 + colw+6;
-	float col3= node_group_frame - arrowbutw - 6;
+	float col3= - arrowbutw - 6;
 	/* layout stuff for buttons on group right frame */
 	float cor1= 6;
 	float cor2= cor1 + arrowbutw + 6;
@@ -660,6 +660,7 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	 * 1) input: not internal
 	 * 2) output: (node type uses const outputs) and (group output is unlinked)
 	 */
+	draw_value = 0;
 	switch (in_out) {
 	case SOCK_IN:
 		draw_value = !(gsock && (gsock->flag & SOCK_INTERNAL));
@@ -667,8 +668,6 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	case SOCK_OUT:
 		if (gnode->typeinfo->flag & NODE_CONST_OUTPUT)
 			draw_value = !(gsock && gsock->link);
-		else
-			draw_value = 0;
 		break;
 	}
 	if (draw_value) {
@@ -713,7 +712,7 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 		uiBlockSetDirection(gnode->block, 0);
 		
 		/* remove button */
-		offset = (in_out==SOCK_IN ? col3 : col1);
+		offset = (in_out==SOCK_IN ? col3 : cor1);
 		uiBlockSetEmboss(gnode->block, UI_EMBOSSN);
 		bt = uiDefIconButO(gnode->block, BUT, "NODE_OT_group_socket_remove", 0, ICON_X,
 						   gsock->locx+offset, gsock->locy-0.5f*arrowbutw, arrowbutw, arrowbutw, "");

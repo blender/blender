@@ -39,7 +39,7 @@
 
 #include "collada_internal.h"
 
-CamerasExporter::CamerasExporter(COLLADASW::StreamWriter *sw): COLLADASW::LibraryCameras(sw){}
+CamerasExporter::CamerasExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings): COLLADASW::LibraryCameras(sw), export_settings(export_settings) {}
 
 template<class Functor>
 void forEachCameraObjectInScene(Scene *sce, Functor &f, bool export_selected)
@@ -56,11 +56,11 @@ void forEachCameraObjectInScene(Scene *sce, Functor &f, bool export_selected)
 	}
 }
 
-void CamerasExporter::exportCameras(Scene *sce, bool export_selected)
+void CamerasExporter::exportCameras(Scene *sce)
 {
 	openLibrary();
 	
-	forEachCameraObjectInScene(sce, *this, export_selected);
+	forEachCameraObjectInScene(sce, *this, this->export_settings->selected);
 	
 	closeLibrary();
 }

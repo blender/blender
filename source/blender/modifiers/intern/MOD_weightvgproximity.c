@@ -199,10 +199,24 @@ void do_map(float *weights, const int nidx, const float min_d, const float max_d
 {
 	const float range_inv= 1.0f / (max_d - min_d); /* invert since multiplication is faster */
 	unsigned int i= nidx;
-	while (i-- > 0) {
-		if     (weights[i] >= max_d) weights[i]= 1.0f; /* most likely case first */
-		else if(weights[i] <= min_d) weights[i]= 0.0f;
-		else                         weights[i]= (weights[i] - min_d) * range_inv;
+	if(max_d == min_d) {
+		while (i-- > 0) {
+			weights[i] = (weights[i] >= max_d) ? 1.0f : 0.0f; /* "Step" behavior... */
+		}
+	}
+	else if(max_d > min_d) {
+		while (i-- > 0) {
+			if     (weights[i] >= max_d) weights[i]= 1.0f; /* most likely case first */
+			else if(weights[i] <= min_d) weights[i]= 0.0f;
+			else                         weights[i]= (weights[i] - min_d) * range_inv;
+		}
+	}
+	else {
+		while (i-- > 0) {
+			if     (weights[i] <= max_d) weights[i]= 1.0f; /* most likely case first */
+			else if(weights[i] >= min_d) weights[i]= 0.0f;
+			else                         weights[i]= (weights[i] - min_d) * range_inv;
+		}
 	}
 
 	if(!ELEM(mode, MOD_WVG_MAPPING_NONE, MOD_WVG_MAPPING_CURVE)) {
@@ -481,6 +495,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 					new_w[i] = dists_e ? minf(dists_e[i], new_w[i]) : new_w[i];
 					new_w[i] = dists_f ? minf(dists_f[i], new_w[i]) : new_w[i];
 				}
+				if(dists_v) MEM_freeN(dists_v);
+				if(dists_e) MEM_freeN(dists_e);
+				if(dists_f) MEM_freeN(dists_f);
 			}
 			/* Else, fall back to default obj2vert behavior. */
 			else {
@@ -492,13 +509,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		}
 	}
 
+	/* Map distances to weights. */
+	do_map(new_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->falloff_type);
+
 	/* Do masking. */
 	weightvg_do_mask(numIdx, indices, org_w, new_w, ob, ret, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, wmd->mask_texture, wmd->mask_tex_use_channel,
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
-
-	/* Map distances to weights. */
-	do_map(org_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->falloff_type);
 
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
 	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);

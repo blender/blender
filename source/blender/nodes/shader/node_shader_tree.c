@@ -211,7 +211,7 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	memset(shr, 0, sizeof(ShadeResult));
 	
 	if (!exec)
-		exec = ntree->execdata = ntreeShaderBeginExecTree(exec->nodetree, 1);
+		exec = ntree->execdata = ntreeShaderBeginExecTree(ntree, 1);
 	
 	nts= ntreeGetThreadStack(exec, shi->thread);
 	ntreeExecThreadNodes(exec, nts, &scd, shi->thread);
