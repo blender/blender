@@ -740,20 +740,21 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     @staticmethod
     def vertex_weight_mask(layout, ob, md):
         layout.label(text="Influence/Mask Options:")
-        split = layout.split()
-        col1 = split.column()
-        col2 = split.column()
+        row = layout.row()
 
-        col1.label(text="Global Influence:")
-        col2.prop(md, "mask_constant", text="")
+        split = layout.split(percentage=0.4)
+        split.label(text="Global Influence:")
+        split.prop(md, "mask_constant", text="")
 
         if not md.mask_texture:
-            col1.label(text="Vertex Group Mask:")
-            col2.prop_search(md, "mask_vertex_group", ob, "vertex_groups", text="")
+            split = layout.split(percentage=0.4)
+            split.label(text="Vertex Group Mask:")
+            split.prop_search(md, "mask_vertex_group", ob, "vertex_groups", text="")
 
         if not md.mask_vertex_group:
-            col1.label(text="Texture Mask:")
-            col2.template_ID(md, "mask_texture", new="texture.new")
+            split = layout.split(percentage=0.4)
+            split.label(text="Texture Mask:")
+            split.template_ID(md, "mask_texture", new="texture.new")
             if md.mask_texture:
                 split = layout.split()
                 col = split.column()
