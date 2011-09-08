@@ -927,7 +927,7 @@ void bmesh_similarverts_exec(BMesh *bm, BMOperator *op)
 				switch( type ) {
 				case SIMVERT_NORMAL:
 					/* compare the angle between the normals */
-					if( RAD2DEGF(angle_v3v3(v->no, vs->no) / 180.0f <= thresh )) {
+					if( RAD2DEGF(angle_v3v3(v->no, vs->no)) / 180.0f <= thresh ) {
 						BMO_SetFlag(bm, v, VERT_MARK);
 						cont = 0;
 					}
