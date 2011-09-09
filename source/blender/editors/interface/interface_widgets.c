@@ -188,6 +188,7 @@ GLubyte checker_stipple_sml[32*32/8] =
 
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3)
 {
+	float tri_arr[3][2]= {{x1, y1}, {x2, y2}, {x3, y3}};
 	float color[4];
 	int j;
 	
@@ -195,20 +196,18 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	glGetFloatv(GL_CURRENT_COLOR, color);
 	color[3] *= 0.125f;
 	glColor4fv(color);
-	
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 0, tri_arr);
+
 	/* for each AA step */
 	for(j=0; j<8; j++) {
 		glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
-
-		glBegin(GL_POLYGON);
-		glVertex2f(x1, y1);
-		glVertex2f(x2, y2);
-		glVertex2f(x3, y3);
-		glEnd();
-
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
 	}
 
+	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisable(GL_BLEND);
 	
 }
@@ -533,16 +532,13 @@ static void widget_scroll_circle(uiWidgetTrias *tria, rcti *rect, float triasize
 
 static void widget_trias_draw(uiWidgetTrias *tria)
 {
-	int a;
-	
-	glBegin(GL_TRIANGLES);
-	for(a=0; a<tria->tot; a++) {
-		glVertex2fv(tria->vec[ tria->index[a][0] ]);
-		glVertex2fv(tria->vec[ tria->index[a][1] ]);
-		glVertex2fv(tria->vec[ tria->index[a][2] ]);
-	}
-	glEnd();
-	
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_INDEX_ARRAY);
+	glIndexPointer(GL_INT, 0, tria->index);
+	glVertexPointer(2, GL_FLOAT, 0, tria->vec);
+	glDrawArrays(GL_TRIANGLES, 0, tria->tot*3);
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_INDEX_ARRAY);
 }
 
 static void widget_menu_trias(uiWidgetTrias *tria, rcti *rect)
@@ -618,19 +614,48 @@ static void round_box_shade_col4(const char col1[4], const char col2[4], const f
 	glColor4ubv(col);
 }
 
-static void widgetbase_outline(uiWidgetBase *wtb)
+static void round_box_shade_col4_r(unsigned char col_r[4], const char col1[4], const char col2[4], const float fac)
+{
+	const int faci= FTOCHAR(fac);
+	const int facm= 255-faci;
+
+	col_r[0]= (faci*col1[0] + facm*col2[0])>>8;
+	col_r[1]= (faci*col1[1] + facm*col2[1])>>8;
+	col_r[2]= (faci*col1[2] + facm*col2[2])>>8;
+	col_r[3]= (faci*col1[3] + facm*col2[3])>>8;
+}
+
+static void widget_verts_to_quad_strip(uiWidgetBase *wtb, const int totvert, float quad_strip[WIDGET_SIZE_MAX*2+2][2])
 {
 	int a;
-	
-	/* outline */
-	glBegin(GL_QUAD_STRIP);
-	for(a=0; a<wtb->totvert; a++) {
-		glVertex2fv(wtb->outer_v[a]);
-		glVertex2fv(wtb->inner_v[a]);
+	for(a=0; a<totvert; a++) {
+		copy_v2_v2(quad_strip[a*2], wtb->outer_v[a]);
+		copy_v2_v2(quad_strip[a*2+1], wtb->inner_v[a]);
 	}
-	glVertex2fv(wtb->outer_v[0]);
-	glVertex2fv(wtb->inner_v[0]);
-	glEnd();
+	copy_v2_v2(quad_strip[a*2], wtb->outer_v[0]);
+	copy_v2_v2(quad_strip[a*2+1], wtb->inner_v[0]);
+}
+
+static void widget_verts_to_quad_strip_open(uiWidgetBase *wtb, const int totvert, float quad_strip[WIDGET_SIZE_MAX*2][2])
+{
+	int a;
+	for(a=0; a<totvert; a++) {
+		quad_strip[a*2][0]= wtb->outer_v[a][0];
+		quad_strip[a*2][1]= wtb->outer_v[a][1];
+		quad_strip[a*2+1][0]= wtb->outer_v[a][0];
+		quad_strip[a*2+1][1]= wtb->outer_v[a][1] - 1.0f;
+	}
+}
+
+static void widgetbase_outline(uiWidgetBase *wtb)
+{
+	float quad_strip[WIDGET_SIZE_MAX*2+2][2]; /* + 2 because the last pair is wrapped */
+	widget_verts_to_quad_strip(wtb, wtb->totvert, quad_strip);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 0, quad_strip);
+	glDrawArrays(GL_QUAD_STRIP, 0, wtb->totvert*2 + 2);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
@@ -643,100 +668,124 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	if(wtb->inner) {
 		if(wcol->shaded==0) {
 			if (wcol->alpha_check) {
+				float inner_v_half[WIDGET_SIZE_MAX][2];
 				float x_mid= 0.0f; /* used for dumb clamping of values */
 
 				/* dark checkers */
 				glColor4ub(UI_TRANSP_DARK, UI_TRANSP_DARK, UI_TRANSP_DARK, 255);
-				glBegin(GL_POLYGON);
-				for(a=0; a<wtb->totvert; a++) {
-					glVertex2fv(wtb->inner_v[a]);
-				}
-				glEnd();
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
+				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
+				glDisableClientState(GL_VERTEX_ARRAY);
 
 				/* light checkers */
 				glEnable(GL_POLYGON_STIPPLE);
 				glColor4ub(UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, UI_TRANSP_LIGHT, 255);
 				glPolygonStipple(checker_stipple_sml);
-				glBegin(GL_POLYGON);
-				for(a=0; a<wtb->totvert; a++) {
-					glVertex2fv(wtb->inner_v[a]);
-				}
-				glEnd();
+
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
+				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
+				glDisableClientState(GL_VERTEX_ARRAY);
+
 				glDisable(GL_POLYGON_STIPPLE);
 
 				/* alpha fill */
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 				glColor4ubv((unsigned char*)wcol->inner);
-				glBegin(GL_POLYGON);
+				glEnableClientState(GL_VERTEX_ARRAY);
+
 				for(a=0; a<wtb->totvert; a++) {
-					glVertex2fv(wtb->inner_v[a]);
 					x_mid += wtb->inner_v[a][0];
 				}
 				x_mid /= wtb->totvert;
-				glEnd();
+
+				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
+				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
+				glDisableClientState(GL_VERTEX_ARRAY);
 
 				/* 1/2 solid color */
 				glColor4ub(wcol->inner[0], wcol->inner[1], wcol->inner[2], 255);
-				glBegin(GL_POLYGON);
-				for(a=0; a<wtb->totvert; a++)
-					glVertex2f(MIN2(wtb->inner_v[a][0], x_mid), wtb->inner_v[a][1]);
-				glEnd();
+
+				for(a=0; a<wtb->totvert; a++) {
+					inner_v_half[a][0]= MIN2(wtb->inner_v[a][0], x_mid);
+					inner_v_half[a][1]= wtb->inner_v[a][1];
+				}
+
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glVertexPointer(2, GL_FLOAT, 0, inner_v_half);
+				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
+				glDisableClientState(GL_VERTEX_ARRAY);
 			}
 			else {
 				/* simple fill */
 				glColor4ubv((unsigned char*)wcol->inner);
-				glBegin(GL_POLYGON);
-				for(a=0; a<wtb->totvert; a++)
-					glVertex2fv(wtb->inner_v[a]);
-				glEnd();
+
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
+				glDrawArrays(GL_POLYGON, 0, wtb->totvert);
+				glDisableClientState(GL_VERTEX_ARRAY);
 			}
 		}
 		else {
 			char col1[4], col2[4];
+			unsigned char col_array[WIDGET_SIZE_MAX * 4];
+			unsigned char *col_pt= col_array;
 			
 			shadecolors4(col1, col2, wcol->inner, wcol->shadetop, wcol->shadedown);
 			
 			glShadeModel(GL_SMOOTH);
-			glBegin(GL_POLYGON);
-			for(a=0; a<wtb->totvert; a++) {
-				round_box_shade_col4(col1, col2, wtb->inner_uv[a][wtb->shadedir]);
-				glVertex2fv(wtb->inner_v[a]);
+			for(a=0; a<wtb->totvert; a++, col_pt += 4) {
+				round_box_shade_col4_r(col_pt, col1, col2, wtb->inner_uv[a][wtb->shadedir]);
 			}
-			glEnd();
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(2, GL_FLOAT, 0, wtb->inner_v);
+			glColorPointer(4, GL_UNSIGNED_BYTE, 0, col_array);
+			glDrawArrays(GL_POLYGON, 0, wtb->totvert);
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
+
 			glShadeModel(GL_FLAT);
 		}
 	}
 	
 	/* for each AA step */
 	if(wtb->outline) {
+		float quad_strip[WIDGET_SIZE_MAX*2+2][2]; /* + 2 because the last pair is wrapped */
+		float quad_strip_emboss[WIDGET_SIZE_MAX*2][2]; /* only for emboss */
+
+		widget_verts_to_quad_strip(wtb, wtb->totvert, quad_strip);
+
+		if(wtb->emboss) {
+			widget_verts_to_quad_strip_open(wtb, wtb->halfwayvert, quad_strip_emboss);
+		}
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+
 		for(j=0; j<8; j++) {
 			glTranslatef(1.0f * jit[j][0], 1.0f * jit[j][1], 0.0f);
 			
 			/* outline */
 			glColor4ub(wcol->outline[0], wcol->outline[1], wcol->outline[2], 32);
-			glBegin(GL_QUAD_STRIP);
-			for(a=0; a<wtb->totvert; a++) {
-				glVertex2fv(wtb->outer_v[a]);
-				glVertex2fv(wtb->inner_v[a]);
-			}
-			glVertex2fv(wtb->outer_v[0]);
-			glVertex2fv(wtb->inner_v[0]);
-			glEnd();
+
+			glVertexPointer(2, GL_FLOAT, 0, quad_strip);
+			glDrawArrays(GL_QUAD_STRIP, 0, wtb->totvert*2 + 2);
 		
 			/* emboss bottom shadow */
 			if(wtb->emboss) {
 				glColor4f(1.0f, 1.0f, 1.0f, 0.02f);
-				glBegin(GL_QUAD_STRIP);
-				for(a=0; a<wtb->halfwayvert; a++) {
-					glVertex2fv(wtb->outer_v[a]);
-					glVertex2f(wtb->outer_v[a][0], wtb->outer_v[a][1]-1.0f);
-				}
-				glEnd();
+
+				glVertexPointer(2, GL_FLOAT, 0, quad_strip_emboss);
+				glDrawArrays(GL_QUAD_STRIP, 0, wtb->halfwayvert*2);
 			}
 			
 			glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
 		}
+
+		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 	
 	/* decoration */
@@ -1628,7 +1677,8 @@ static void widget_softshadow(rcti *rect, int roundboxalign, float radin, float 
 	uiWidgetBase wtb;
 	rcti rect1= *rect;
 	float alpha, alphastep;
-	int step, tot, a;
+	int step, totvert;
+	float quad_strip[WIDGET_SIZE_MAX*2][2];
 	
 	/* prevent tooltips to not show round shadow */
 	if( 2.0f*radout > 0.2f*(rect1.ymax-rect1.ymin) )
@@ -1637,25 +1687,26 @@ static void widget_softshadow(rcti *rect, int roundboxalign, float radin, float 
 		rect1.ymax -= 2.0f*radout;
 	
 	/* inner part */
-	tot= round_box_shadow_edges(wtb.inner_v, &rect1, radin, roundboxalign & (WIDGET_BOTTOM_RIGHT | WIDGET_BOTTOM_LEFT), 0.0f);
-	
+	totvert= round_box_shadow_edges(wtb.inner_v, &rect1, radin, roundboxalign & (WIDGET_BOTTOM_RIGHT | WIDGET_BOTTOM_LEFT), 0.0f);
+
 	/* inverse linear shadow alpha */
 	alpha= 0.15;
 	alphastep= 0.67;
 	
+	glEnableClientState(GL_VERTEX_ARRAY);
+
 	for(step= 1; step<=radout; step++, alpha*=alphastep) {
 		round_box_shadow_edges(wtb.outer_v, &rect1, radin, WIDGET_ALL_CORNERS, (float)step);
 		
 		glColor4f(0.0f, 0.0f, 0.0f, alpha);
-		
-		glBegin(GL_QUAD_STRIP);
-		for(a=0; a<tot; a++) {
-			glVertex2fv(wtb.outer_v[a]);
-			glVertex2fv(wtb.inner_v[a]);
-		}
-		glEnd();
+
+		widget_verts_to_quad_strip_open(&wtb, totvert, quad_strip);
+
+		glVertexPointer(2, GL_FLOAT, 0, quad_strip);
+		glDrawArrays(GL_QUAD_STRIP, 0, totvert*2);
 	}
-	
+
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int direction)
@@ -2124,17 +2175,15 @@ void ui_draw_link_bezier(rcti *rect)
 	if(ui_link_bezier_points(rect, coord_array, LINK_RESOL)) {
 		/* we can reuse the dist variable here to increment the GL curve eval amount*/
 		// const float dist= 1.0f/(float)LINK_RESOL; // UNUSED
-		int i;
 
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
-		
-		glBegin(GL_LINE_STRIP);
-		for(i=0; i<=LINK_RESOL; i++) {
-			glVertex2fv(coord_array[i]);
-		}
-		glEnd();
-		
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_FLOAT, 0, coord_array);
+		glDrawArrays(GL_LINE_STRIP, 0, LINK_RESOL);
+		glDisableClientState(GL_VERTEX_ARRAY);
+
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
 
