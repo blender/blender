@@ -423,7 +423,7 @@ static GPUTexture *GPU_texture_create_nD(int w, int h, int n, float *fpixels, in
 
 	if (tex->target != GL_TEXTURE_1D) {
 		/* CLAMP_TO_BORDER is an OpenGL 1.3 core feature */
-		GLenum wrapmode = (depth)? GL_CLAMP_TO_EDGE: GL_CLAMP_TO_BORDER;
+		GLenum wrapmode = (depth || tex->h == 1)? GL_CLAMP_TO_EDGE: GL_CLAMP_TO_BORDER;
 		glTexParameteri(tex->target, GL_TEXTURE_WRAP_S, wrapmode);
 		glTexParameteri(tex->target, GL_TEXTURE_WRAP_T, wrapmode);
 
@@ -683,6 +683,11 @@ int GPU_texture_opengl_width(GPUTexture *tex)
 int GPU_texture_opengl_height(GPUTexture *tex)
 {
 	return tex->h;
+}
+
+int GPU_texture_opengl_bindcode(GPUTexture *tex)
+{
+	return tex->bindcode;
 }
 
 GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex)

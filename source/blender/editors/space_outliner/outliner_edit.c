@@ -687,7 +687,7 @@ static void outliner_set_coordinates_element(SpaceOops *soops, TreeElement *te, 
 	te->ys= (float)(*starty);
 	*starty-= UI_UNIT_Y;
 	
-	if((tselem->flag & TSE_CLOSED)==0) {
+	if(TSELEM_OPEN(tselem,soops)) {
 		TreeElement *ten;
 		for(ten= te->subtree.first; ten; ten= ten->next) {
 			outliner_set_coordinates_element(soops, ten, startx+UI_UNIT_X, starty);
@@ -910,7 +910,7 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOops *soops, ListBase
 		}
 		else tselem->flag |= TSE_CLOSED;
 		
-		if(tselem->flag & TSE_CLOSED); else tree_element_show_hierarchy(scene, soops, &te->subtree);
+		if(TSELEM_OPEN(tselem,soops)) tree_element_show_hierarchy(scene, soops, &te->subtree);
 	}
 }
 
@@ -1175,7 +1175,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, ReportL
 		}
 		
 		/* go over sub-tree */
-		if ((tselem->flag & TSE_CLOSED)==0)
+		if (TSELEM_OPEN(tselem,soops))
 			do_outliner_drivers_editop(soops, &te->subtree, reports, mode);
 	}
 }
@@ -1343,7 +1343,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 		}
 		
 		/* go over sub-tree */
-		if ((tselem->flag & TSE_CLOSED)==0)
+		if (TSELEM_OPEN(tselem,soops))
 			do_outliner_keyingset_editop(soops, ks, &te->subtree, mode);
 	}
 }

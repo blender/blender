@@ -5383,6 +5383,11 @@ void _RNA_warning(const char *format, ...)
 	vprintf(format, args);
 	va_end(args);
 
+	/* gcc macro adds '\n', but cant use for other compilers */
+#ifndef __GNUC__
+	fputc('\n', stdout);
+#endif
+
 #ifdef WITH_PYTHON
 	{
 		extern void PyC_LineSpit(void);
