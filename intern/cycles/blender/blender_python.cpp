@@ -28,12 +28,12 @@ CCL_NAMESPACE_BEGIN
 
 static PyObject *init_func(PyObject *self, PyObject *args)
 {
-	const char *path;
+	const char *path, *user_path;
 
-	if(!PyArg_ParseTuple(args, "s", &path))
+	if(!PyArg_ParseTuple(args, "ss", &path, &user_path))
 		return NULL;
 	
-	path_init(path);
+	path_init(path, user_path);
 
 	Py_INCREF(Py_None);
 	return Py_None;

@@ -25,11 +25,13 @@
  * then makes all paths relative to that. */
 
 #include "util_string.h"
+#include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
-void path_init(const string& path = "");
+void path_init(const string& path = "", const string& user_path = "");
 string path_get(const string& sub = "");
+string path_user_get(const string& sub = "");
 
 string path_filename(const string& path);
 string path_dirname(const string& path);
@@ -38,6 +40,9 @@ string path_join(const string& dir, const string& file);
 string path_escape(const string& path);
 bool path_exists(const string& path);
 string path_files_md5_hash(const string& dir);
+
+bool path_write_binary(const string& path, const vector<uint8_t>& binary);
+bool path_read_binary(const string& path, vector<uint8_t>& binary);
 
 CCL_NAMESPACE_END
 

@@ -21,13 +21,13 @@
 
 #define __KERNEL_GPU__
 #define __KERNEL_CUDA__
+#define CCL_NAMESPACE_BEGIN
+#define CCL_NAMESPACE_END
 
 #include <cuda.h>
 #include <float.h>
 
 #include "util_types.h"
-
-CCL_NAMESPACE_BEGIN
 
 /* Qualifier wrappers for different names on different devices */
 
@@ -59,8 +59,6 @@ typedef texture<uchar4, 2, cudaReadModeNormalizedFloat> texture_image_uchar4;
 #define kernel_tex_image_interp(t, x, y) tex2D(t, x, y)
 
 #define kernel_data __data
-
-CCL_NAMESPACE_END
 
 #endif /* __KERNEL_COMPAT_CUDA_H__ */
 

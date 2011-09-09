@@ -21,7 +21,11 @@ import bpy
 def init():
     import libcycles_blender as lib
     import os.path
-    lib.init(os.path.dirname(__file__))
+
+    path = os.path.dirname(__file__)
+    user_path = os.path.dirname(os.path.abspath(bpy.utils.user_resource('CONFIG', '')))
+
+    lib.init(path, user_path)
 
 def create(engine, data, scene, region = 0, v3d = 0, rv3d = 0):
     import libcycles_blender as lib

@@ -384,7 +384,7 @@ void Session::run_cpu()
 void Session::run()
 {
 	/* load kernels */
-	progress.set_status("Loading render kernels (may take a few minutes)");
+	progress.set_status("Loading render kernels (may take a few minutes the first time)");
 
 	if(!device->load_kernels()) {
 		progress.set_status("Failed loading render kernel, see console for errors");

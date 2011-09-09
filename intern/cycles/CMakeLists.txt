@@ -46,7 +46,7 @@ if(WITH_CYCLES_MULTI)
 endif()
 
 if(WITH_CYCLES_CUDA)
-  add_definitions(-DWITH_CUDA)
+  add_definitions(-DWITH_CUDA_BINARIES)
 endif()
 
 if(WITH_CYCLES_OSL)
@@ -58,6 +58,7 @@ if(WITH_CYCLES_PARTIO)
 endif()
 
 add_definitions(-DWITH_OPENCL)
+add_definitions(-DWITH_CUDA)
 
 include_directories(
 	${BOOST_INCLUDE_DIR}

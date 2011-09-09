@@ -16,6 +16,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <stdlib.h>
+
 #include "util_cuda.h"
 #include "util_debug.h"
 #include "util_dynlib.h"
@@ -371,6 +373,11 @@ bool cuLibraryInit()
 	/* cuda 4.0 */
 	CUDA_LIBRARY_FIND(cuCtxSetCurrent);
 
+#ifndef WITH_CUDA_BINARIES
+	if(cuCompilerPath() == "")
+		return false;
+#endif
+
 	/* success */
 	result = true;
 
@@ -379,12 +386,22 @@ bool cuLibraryInit()
 
 string cuCompilerPath()
 {
-		/* todo: better nvcc detection */
 #ifdef _WIN32
-	string nvcc = "C:/CUDA/bin/nvcc.exe";
+	const char *defaultpath = "C:/CUDA/bin";
+	const char *executable = "nvcc.exe";
 #else
-	string nvcc = "/usr/local/cuda/bin/nvcc";
+	const char *defaultpath = "/usr/local/cuda/bin";
+	const char *executable = "nvcc";
 #endif
+
+	const char *binpath = getenv("CUDA_BIN_PATH");
+
+	string nvcc;
+
+	if(binpath)
+		nvcc = path_join(binpath, executable);
+	else
+		nvcc = path_join(defaultpath, executable);
 
 	return (path_exists(nvcc))? nvcc: "";
 }

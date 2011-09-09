@@ -28,7 +28,9 @@
 #include "util_map.h"
 #include "util_opengl.h"
 #include "util_path.h"
+#include "util_system.h"
 #include "util_types.h"
+#include "util_time.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -125,6 +127,15 @@ public:
 		} \
 	}
 
+	bool cuda_error(CUresult result)
+	{
+		if(result == CUDA_SUCCESS)
+			return false;
+
+		fprintf(stderr, "CUDA error: %s\n", cuda_error_string(result));
+		return true;
+	}
+
 	void cuda_push_context()
 	{
 		cuda_assert(cuCtxSetCurrent(cuContext))
@@ -140,17 +151,26 @@ public:
 		background = background_;
 
 		cuDevId = 0;
+		cuDevice = 0;
+		cuContext = 0;
 
 		/* intialize */
-		cuda_assert(cuInit(0))
+		if(cuda_error(cuInit(0)))
+			return;
 
 		/* setup device and context */
-		cuda_assert(cuDeviceGet(&cuDevice, cuDevId))
+		if(cuda_error(cuDeviceGet(&cuDevice, cuDevId)))
+			return;
+
+		CUresult result;
 
 		if(background)
-			cuda_assert(cuCtxCreate(&cuContext, 0, cuDevice))
+			result = cuCtxCreate(&cuContext, 0, cuDevice);
 		else
-			cuda_assert(cuGLCtxCreate(&cuContext, 0, cuDevice))
+			result = cuGLCtxCreate(&cuContext, 0, cuDevice);
+
+		if(cuda_error(result))
+			return;
 
 		cuda_pop_context();
 	}
@@ -173,21 +193,80 @@ public:
 		return string("CUDA ") + deviceName;
 	}
 
+	string compile_kernel()
+	{
+		/* compute cubin name */
+		int major, minor;
+		cuDeviceComputeCapability(&major, &minor, cuDevId);
+
+		/* attempt to use kernel provided with blender */
+		string cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
+		if(path_exists(cubin))
+			return cubin;
+
+		/* not found, try to use locally compiled kernel */
+		string kernel_path = path_get("kernel");
+		string md5 = path_files_md5_hash(kernel_path);
+
+		cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());;
+		cubin = path_user_get(path_join("cache", cubin));
+
+		/* if exists already, use it */
+		if(path_exists(cubin))
+			return cubin;
+
+		/* if not, find CUDA compiler */
+		string nvcc = cuCompilerPath();
+
+		if(nvcc == "") {
+			fprintf(stderr, "CUDA nvcc compiler not found. Install CUDA toolkit in default location.\n");
+			return "";
+		}
+
+		/* compile */
+		string kernel = path_join(kernel_path, "kernel.cu");
+		string include = kernel_path;
+		const int machine = system_cpu_bits();
+		const int maxreg = 24;
+
+		double starttime = time_dt();
+		printf("Compiling CUDA kernel ...\n");
+
+		string command = string_printf("%s -arch=sm_%d%d -m%d --cubin \"%s\" --use_fast_math "
+			"-o \"%s\" --ptxas-options=\"-v\" --maxrregcount=%d --opencc-options -OPT:Olimit=0 -I\"%s\" -DNVCC",
+			nvcc.c_str(), major, minor, machine, kernel.c_str(), cubin.c_str(), maxreg, include.c_str());
+
+		system(command.c_str());
+
+		/* verify if compilation succeeded */
+		if(!path_exists(cubin)) {
+			fprintf(stderr, "CUDA kernel compilation failed.\n");
+			return "";
+		}
+
+		printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
+
+		return cubin;
+	}
 
 	bool load_kernels()
 	{
-		CUresult result;
-		int major, minor;
+		/* check if cuda init succeeded */
+		if(cuContext == 0)
+			return false;
 
-		cuda_push_context();
+		/* get kernel */
+		string cubin = compile_kernel();
+
+		if(cubin == "")
+			return false;
 
 		/* open module */
-		cuDeviceComputeCapability(&major, &minor, cuDevId);
-		string cubin = path_get(string_printf("lib/kernel_sm_%d%d.cubin", major, minor));
+		cuda_push_context();
 
-		result = cuModuleLoad(&cuModule, cubin.c_str());
-		if(result != CUDA_SUCCESS)
-			fprintf(stderr, "Failed loading CUDA kernel %s (%s).\n", cubin.c_str(), cuda_error_string(result));
+		CUresult result = cuModuleLoad(&cuModule, cubin.c_str());
+		if(cuda_error(result))
+			fprintf(stderr, "Failed loading CUDA kernel %s.\n", cubin.c_str());
 
 		cuda_pop_context();
 

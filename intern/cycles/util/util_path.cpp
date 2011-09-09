@@ -24,6 +24,8 @@
 #include <OpenImageIO/sysutil.h>
 OIIO_NAMESPACE_USING
 
+#include <stdio.h>
+
 #define BOOST_FILESYSTEM_VERSION 2
 
 #include <boost/filesystem.hpp> 
@@ -32,10 +34,12 @@ OIIO_NAMESPACE_USING
 CCL_NAMESPACE_BEGIN
 
 static string cached_path = "";
+static string cached_user_path = "";
 
-void path_init(const string& path)
+void path_init(const string& path, const string& user_path)
 {
 	cached_path = path;
+	cached_user_path = user_path;
 }
 
 string path_get(const string& sub)
@@ -44,6 +48,14 @@ string path_get(const string& sub)
 		cached_path = path_dirname(Sysutil::this_program_path());
 
 	return path_join(cached_path, sub);
+}
+
+string path_user_get(const string& sub)
+{
+	if(cached_user_path == "")
+		cached_user_path = path_dirname(Sysutil::this_program_path());
+
+	return path_join(cached_user_path, sub);
 }
 
 string path_filename(const string& path)
@@ -95,6 +107,49 @@ string path_files_md5_hash(const string& dir)
 	}
 
 	return hash.get_hex();
+}
+
+bool path_write_binary(const string& path, const vector<uint8_t>& binary)
+{
+	/* write binary file from memory */
+	boost::filesystem::create_directories(path_dirname(path));
+
+	FILE *f = fopen(path.c_str(), "wb");
+
+	if(!f)
+		return false;
+
+	if(binary.size() > 0)
+		fwrite(&binary[0], sizeof(uint8_t), binary.size(), f);
+
+	fclose(f);
+
+	return true;
+}
+
+bool path_read_binary(const string& path, vector<uint8_t>& binary)
+{
+	binary.resize(boost::filesystem::file_size(path));
+
+	/* read binary file into memory */
+	FILE *f = fopen(path.c_str(), "rb");
+
+	if(!f)
+		return false;
+
+	if(binary.size() == 0) {
+		fclose(f);
+		return false;
+	}
+
+	if(fread(&binary[0], sizeof(uint8_t), binary.size(), f) != binary.size()) {
+		fclose(f);
+		return false;
+	}
+
+	fclose(f);
+
+	return true;
 }
 
 CCL_NAMESPACE_END

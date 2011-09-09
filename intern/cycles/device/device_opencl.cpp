@@ -27,6 +27,7 @@
 
 #include "util_map.h"
 #include "util_math.h"
+#include "util_md5.h"
 #include "util_opencl.h"
 #include "util_opengl.h"
 #include "util_path.h"
@@ -118,7 +119,7 @@ public:
 	void opencl_assert(cl_int err)
 	{
 		if(err != CL_SUCCESS) {
-			printf("error (%d): %s\n", err, opencl_error_string(err));
+			fprintf(stderr, "OpenCL error (%d): %s\n", err, opencl_error_string(err));
 #ifndef NDEBUG
 			abort();
 #endif
@@ -157,7 +158,7 @@ public:
 
 		cpPlatform = platform_ids[0]; /* todo: pick specified platform && device */
 
-		ciErr = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_ALL, 1, &cdDevice, NULL);
+		ciErr = clGetDeviceIDs(cpPlatform, CL_DEVICE_TYPE_GPU|CL_DEVICE_TYPE_ACCELERATOR, 1, &cdDevice, NULL);
 		if(opencl_error(ciErr))
 			return;
 
@@ -208,38 +209,67 @@ public:
 		return true;
 	}
 
-	bool load_kernels()
+	bool load_binary(const string& kernel_path, const string& clbin)
 	{
-		/* verify if device was initialized */
-		if(!device_initialized)
+		/* read binary into memory */
+		vector<uint8_t> binary;
+
+		if(!path_read_binary(clbin, binary)) {
+			fprintf(stderr, "OpenCL failed to read cached binary %s.\n", clbin.c_str());
+			return false;
+		}
+
+		/* create program */
+		cl_int status;
+		size_t size = binary.size();
+		const uint8_t *bytes = &binary[0];
+
+		cpProgram = clCreateProgramWithBinary(cxContext, 1, &cdDevice,
+			&size, &bytes, &status, &ciErr);
+
+		if(opencl_error(status) || opencl_error(ciErr)) {
+			fprintf(stderr, "OpenCL failed create program from cached binary %s.\n", clbin.c_str());
+			return false;
+		}
+
+		if(!build_kernel(kernel_path))
 			return false;
 
-		/* verify we have right opencl version */
-		if(!opencl_version_check())
+		return true;
+	}
+
+	bool save_binary(const string& clbin)
+	{
+		size_t size = 0;
+		clGetProgramInfo(cpProgram, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &size, NULL);
+
+		if(!size)
 			return false;
 
-		/* we compile kernels consisting of many files. unfortunately opencl
-		   kernel caches do not seem to recognize changes in included files.
-		   so we force recompile on changes by adding the md5 hash of all files */
-		string kernel_path = path_get("kernel");
-		string kernel_md5 = path_files_md5_hash(kernel_path);
+		vector<uint8_t> binary(size);
+		uint8_t *bytes = &binary[0];
 
-		string source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
-		size_t source_len = source.size();
-		const char *source_str = source.c_str();
+		clGetProgramInfo(cpProgram, CL_PROGRAM_BINARIES, sizeof(uint8_t*), &bytes, NULL);
 
+		if(!path_write_binary(clbin, binary)) {
+			fprintf(stderr, "OpenCL failed to write cached binary %s.\n", clbin.c_str());
+			return false;
+		}
+
+		return true;
+	}
+
+	bool build_kernel(const string& kernel_path)
+	{
 		string build_options = "";
 
 		build_options += "-I " + kernel_path + ""; /* todo: escape path */
 		build_options += " -cl-fast-relaxed-math -cl-strict-aliasing";
 
-		cpProgram = clCreateProgramWithSource(cxContext, 1, &source_str, &source_len, &ciErr);
-		if(opencl_error(ciErr))
-			return false;
-
 		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
 
 		if(ciErr != CL_SUCCESS) {
+			/* show build errors */
 			char *build_log;
 			size_t ret_val_size;
 
@@ -254,6 +284,87 @@ public:
 			delete[] build_log;
 
 			return false;
+		}
+
+		return true;
+	}
+
+	bool compile_kernel(const string& kernel_path, const string& kernel_md5)
+	{
+		/* we compile kernels consisting of many files. unfortunately opencl
+		   kernel caches do not seem to recognize changes in included files.
+		   so we force recompile on changes by adding the md5 hash of all files */
+		string source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
+		size_t source_len = source.size();
+		const char *source_str = source.c_str();
+
+		cpProgram = clCreateProgramWithSource(cxContext, 1, &source_str, &source_len, &ciErr);
+
+		if(opencl_error(ciErr))
+			return false;
+
+		double starttime = time_dt();
+		printf("Compiling OpenCL kernel ...\n");
+
+		if(!build_kernel(kernel_path))
+			return false;
+
+		printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
+
+		return true;
+	}
+
+	string device_md5_hash()
+	{
+		MD5Hash md5;
+		char version[256], driver[256], name[256], vendor[256];
+
+		clGetPlatformInfo(cpPlatform, CL_PLATFORM_VENDOR, sizeof(vendor), &vendor, NULL);
+		clGetDeviceInfo(cdDevice, CL_DEVICE_VERSION, sizeof(version), &version, NULL);
+		clGetDeviceInfo(cdDevice, CL_DEVICE_NAME, sizeof(name), &name, NULL);
+		clGetDeviceInfo(cdDevice, CL_DRIVER_VERSION, sizeof(driver), &driver, NULL);
+
+		md5.append((uint8_t*)vendor, strlen(vendor));
+		md5.append((uint8_t*)version, strlen(version));
+		md5.append((uint8_t*)name, strlen(name));
+		md5.append((uint8_t*)driver, strlen(driver));
+
+		return md5.get_hex();
+	}
+
+	bool load_kernels()
+	{
+		/* verify if device was initialized */
+		if(!device_initialized) {
+			fprintf(stderr, "OpenCL: failed to initialize device.\n");
+			return false;
+		}
+
+		/* verify we have right opencl version */
+		if(!opencl_version_check())
+			return false;
+
+		/* md5 hash to detect changes */
+		string kernel_path = path_get("kernel");
+		string kernel_md5 = path_files_md5_hash(kernel_path);
+		string device_md5 = device_md5_hash();
+
+		/* try to use cache binary */
+		string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());;
+		clbin = path_user_get(path_join("cache", clbin));
+
+		if(path_exists(clbin)) {
+			/* if exists already, try use it */
+			if(!load_binary(kernel_path, clbin))
+				return false;
+		}
+		else {
+			/* compile kernel */
+			if(!compile_kernel(kernel_path, kernel_md5))
+				return false;
+
+			/* save binary for reuse */
+			save_binary(clbin);
 		}
 
 		/* find kernels */
