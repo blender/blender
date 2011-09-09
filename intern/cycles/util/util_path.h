@@ -25,6 +25,7 @@
  * then makes all paths relative to that. */
 
 #include "util_string.h"
+#include "util_types.h"
 #include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN

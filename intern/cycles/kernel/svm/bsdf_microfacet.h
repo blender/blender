@@ -41,18 +41,15 @@ typedef struct BsdfMicrofacetGGXClosure {
 	//float3 m_N;
 	float m_ag;
 	float m_eta;
-	int m_refractive;
 } BsdfMicrofacetGGXClosure;
 
 __device void bsdf_microfacet_ggx_setup(ShaderData *sd, float3 N, float ag, float eta, bool refractive)
 {
 	float m_ag = clamp(ag, 1e-5f, 1.0f);
 	float m_eta = eta;
-	int m_refractive = (refractive)? 1: 0;
 
 	sd->svm_closure_data0 = m_ag;
 	sd->svm_closure_data1 = m_eta;
-	sd->svm_closure_data2 = __int_as_float(m_refractive);
 
 	if(refractive)
 		sd->svm_closure = CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
@@ -73,10 +70,10 @@ __device float3 bsdf_microfacet_ggx_eval_reflect(const ShaderData *sd, const flo
 {
 	float m_ag = sd->svm_closure_data0;
 	//float m_eta = sd->svm_closure_data1;
-	int m_refractive = __float_as_int(sd->svm_closure_data2);
+	int m_refractive = sd->svm_closure == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 m_N = sd->N;
 
-	if(m_refractive == 1) return make_float3 (0, 0, 0);
+	if(m_refractive) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
 	if(cosNI > 0 && cosNO > 0) {
@@ -110,10 +107,10 @@ __device float3 bsdf_microfacet_ggx_eval_transmit(const ShaderData *sd, const fl
 {
 	float m_ag = sd->svm_closure_data0;
 	float m_eta = sd->svm_closure_data1;
-	int m_refractive = __float_as_int(sd->svm_closure_data2);
+	int m_refractive = sd->svm_closure == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 m_N = sd->N;
 
-	if(m_refractive == 0) return make_float3 (0, 0, 0);
+	if(!m_refractive) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
 	if(cosNO <= 0 || cosNI >= 0)
@@ -151,7 +148,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, float randu, float
 {
 	float m_ag = sd->svm_closure_data0;
 	float m_eta = sd->svm_closure_data1;
-	int m_refractive = __float_as_int(sd->svm_closure_data2);
+	int m_refractive = sd->svm_closure == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID;
 	float3 m_N = sd->N;
 
 	float cosNO = dot(m_N, sd->I);
@@ -170,7 +167,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, float randu, float
 		float3 m = (cosf(phiM) * sinThetaM) * X +
 				 (sinf(phiM) * sinThetaM) * Y +
 							   cosThetaM  * Z;
-		if(m_refractive == 0) {
+		if(!m_refractive) {
 			float cosMO = dot(m, sd->I);
 			if(cosMO > 0) {
 				// eq. 39 - compute actual reflected direction
@@ -260,7 +257,7 @@ __device int bsdf_microfacet_ggx_sample(const ShaderData *sd, float randu, float
 			}
 		}
 	}
-	return (m_refractive == 1) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
+	return (m_refractive) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
 }
 
 /* BECKMANN */
@@ -269,18 +266,15 @@ typedef struct BsdfMicrofacetBeckmannClosure {
 	//float3 m_N;
 	float m_ab;
 	float m_eta;
-	int m_refractive;
 } BsdfMicrofacetBeckmannClosure;
 
 __device void bsdf_microfacet_beckmann_setup(ShaderData *sd, float3 N, float ab, float eta, bool refractive)
 {
 	float m_ab = clamp(ab, 1e-5f, 1.0f);
 	float m_eta = eta;
-	float m_refractive = (refractive)? 1: 0;
 
 	sd->svm_closure_data0 = m_ab;
 	sd->svm_closure_data1 = m_eta;
-	sd->svm_closure_data2 = __int_as_float(m_refractive);
 
 	if(refractive)
 		sd->svm_closure = CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
@@ -301,10 +295,10 @@ __device float3 bsdf_microfacet_beckmann_eval_reflect(const ShaderData *sd, cons
 {
 	float m_ab = sd->svm_closure_data0;
 	//float m_eta = sd->svm_closure_data1;
-	int m_refractive = __float_as_int(sd->svm_closure_data2);
+	int m_refractive = sd->svm_closure == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 m_N = sd->N;
 
-	if(m_refractive == 1) return make_float3 (0, 0, 0);
+	if(m_refractive) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
 	if(cosNO > 0 && cosNI > 0) {
@@ -340,10 +334,10 @@ __device float3 bsdf_microfacet_beckmann_eval_transmit(const ShaderData *sd, con
 {
 	float m_ab = sd->svm_closure_data0;
 	float m_eta = sd->svm_closure_data1;
-	int m_refractive = __float_as_int(sd->svm_closure_data2);
+	int m_refractive = sd->svm_closure == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 m_N = sd->N;
 
-	if(m_refractive == 0) return make_float3 (0, 0, 0);
+	if(!m_refractive) return make_float3 (0, 0, 0);
 	float cosNO = dot(m_N, I);
 	float cosNI = dot(m_N, omega_in);
 	if(cosNO <= 0 || cosNI >= 0)
@@ -383,7 +377,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, 
 {
 	float m_ab = sd->svm_closure_data0;
 	float m_eta = sd->svm_closure_data1;
-	int m_refractive = __float_as_int(sd->svm_closure_data2);
+	int m_refractive = sd->svm_closure == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID;
 	float3 m_N = sd->N;
 
 	float cosNO = dot(m_N, sd->I);
@@ -403,7 +397,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, 
 				 (sinf(phiM) * sinThetaM) * Y +
 							   cosThetaM  * Z;
 
-		if(m_refractive == 0) {
+		if(!m_refractive) {
 			float cosMO = dot(m, sd->I);
 			if(cosMO > 0) {
 				// eq. 39 - compute actual reflected direction
@@ -500,7 +494,7 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderData *sd, float randu, 
 			}
 		}
 	}
-	return (m_refractive == 1) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
+	return (m_refractive) ? LABEL_TRANSMIT|LABEL_GLOSSY : LABEL_REFLECT|LABEL_GLOSSY;
 }
 
 CCL_NAMESPACE_END

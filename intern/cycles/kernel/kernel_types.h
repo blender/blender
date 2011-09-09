@@ -80,7 +80,9 @@ enum PathRayFlag {
 	PATH_RAY_DIFFUSE = 16,
 	PATH_RAY_GLOSSY = 32,
 	PATH_RAY_SINGULAR = 64,
-	PATH_RAY_TRANSPARENT = 128
+	PATH_RAY_TRANSPARENT = 128,
+
+	PATH_RAY_ALL = (1|2|4|8|16|32|64|128)
 };
 
 /* Bidirectional Path Tracing */
@@ -248,7 +250,6 @@ typedef struct ShaderData {
 	float3 svm_closure_weight;
 	float svm_closure_data0;
 	float svm_closure_data1;
-	float svm_closure_data2;
 
 #if !defined(__KERNEL_GPU__) && defined(WITH_OSL)
 	/* OSL closure data and context. we store all closures flattened into

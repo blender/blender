@@ -52,8 +52,7 @@ void Film::device_free(Device *device, DeviceScene *dscene)
 
 bool Film::modified(const Film& film)
 {
-	return !(exposure == film.exposure &&
-		pass == film.pass);
+	return !(exposure == film.exposure);
 }
 
 void Film::tag_update(Scene *scene)

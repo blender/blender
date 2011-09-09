@@ -30,7 +30,6 @@ class Scene;
 class Film {
 public:
 	float exposure;
-	int pass;
 	bool need_update;
 
 	Film();
