@@ -33,6 +33,7 @@ set(INC
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../../../extern/recastnavigation/Recast/Include
 )
 
 set(INC_SYS
@@ -48,6 +49,7 @@ set(SRC
 	object_hook.c
 	object_lattice.c
 	object_modifier.c
+	object_navmesh.cpp
 	object_ops.c
 	object_relations.c
 	object_select.c

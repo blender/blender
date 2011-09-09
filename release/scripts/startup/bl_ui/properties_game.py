@@ -195,6 +195,31 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
         row.prop(game, "collision_margin", text="Margin", slider=True)
         row.prop(game, "use_collision_compound", text="Compound")
 
+class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel, bpy.types.Panel):
+    bl_label = "Create obstacle"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+ 
+    @classmethod
+    def poll(self, context):
+        game = context.object.game
+        rd = context.scene.render
+        return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC'))  and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        game = context.active_object.game
+
+        self.layout.prop(game, "create_obstacle", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        game = context.active_object.game
+
+        layout.active = game.create_obstacle
+
+        split = layout.split()
+        col = split.column()
+        col.prop(game, "obstacle_radius", text="Radius")		
 
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -486,6 +511,20 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
             col = split.column()
             col.label(text="Logic Steps:")
             col.prop(gs, "logic_step_max", text="Max")
+
+class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, bpy.types.Panel):
+    bl_label = "Obstacle simulation"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        gs = context.scene.game_settings
+
+        layout.prop(gs, "obstacle_simulation", text = "Type")
+        if gs.obstacle_simulation != 'None':
+            layout.prop(gs, "level_height")
+            layout.prop(gs, "show_obstacle_simulation")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

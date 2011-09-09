@@ -42,6 +42,7 @@ endif()
 if(WITH_BUILTIN_GLEW)
 	add_subdirectory(glew)
 endif()
+add_subdirectory(recastnavigation)
 
 if(WITH_IMAGE_OPENJPEG AND (NOT UNIX OR APPLE))
 	add_subdirectory(libopenjpeg)

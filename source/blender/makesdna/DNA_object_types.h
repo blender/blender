@@ -189,6 +189,8 @@ typedef struct Object {
 	float max_vel; /* clamp the maximum velocity 0.0 is disabled */
 	float min_vel; /* clamp the maximum velocity 0.0 is disabled */
 	float m_contactProcessingThreshold;
+	float obstacleRad;
+	char pad0[4];
 	
 	short rotmode;		/* rotation mode - uses defines set out in DNA_action_types.h for PoseChannel rotations... */
 	
@@ -473,6 +475,8 @@ typedef struct DupliObject {
 #define OB_SOFT_BODY	0x20000
 #define OB_OCCLUDER		0x40000
 #define OB_SENSOR		0x80000
+#define OB_NAVMESH		0x100000
+#define OB_HASOBSTACLE	0x200000
 
 /* ob->gameflag2 */
 #define OB_NEVER_DO_ACTIVITY_CULLING	1
@@ -493,6 +497,7 @@ typedef struct DupliObject {
 #define OB_BODY_TYPE_SOFT			4
 #define OB_BODY_TYPE_OCCLUDER		5
 #define OB_BODY_TYPE_SENSOR			6
+#define OB_BODY_TYPE_NAVMESH		7
 
 /* ob->scavisflag */
 #define OB_VIS_SENS		1

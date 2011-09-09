@@ -73,6 +73,7 @@ typedef unsigned long uint_ptr;
 #include "SCA_ISensor.h"
 #include "SCA_IController.h"
 #include "NG_NetworkScene.h" //Needed for sendMessage()
+#include "KX_ObstacleSimulation.h"
 
 #include "BL_ActionManager.h"
 
@@ -110,7 +111,8 @@ KX_GameObject::KX_GameObject(
       m_xray(false),
       m_pHitObject(NULL),
       m_actionManager(NULL),
-      m_isDeformable(false)
+      m_isDeformable(false),
+      m_pObstacleSimulation(NULL)
 #ifdef WITH_PYTHON
     , m_attr_dict(NULL)
 #endif
@@ -157,6 +159,12 @@ KX_GameObject::~KX_GameObject()
 	{
 		delete m_pGraphicController;
 	}
+
+	if (m_pObstacleSimulation)
+	{
+		m_pObstacleSimulation->DestroyObstacleForObj(this);
+	}
+
 	if (m_actionManager)
 	{
 		KX_GetActiveScene()->RemoveAnimatedObject(this);
@@ -427,6 +435,14 @@ void KX_GameObject::ProcessReplica()
 	if (m_actionManager)
 		m_actionManager = new BL_ActionManager(this);
 	m_state = 0;
+
+	KX_Scene* scene = KX_GetActiveScene();
+	KX_ObstacleSimulation* obssimulation = scene->GetObstacleSimulation();
+	struct Object* blenderobject = GetBlenderObject();
+	if (obssimulation && (blenderobject->gameflag & OB_HASOBSTACLE))
+	{
+		obssimulation->AddObstacleForObj(this);
+	}
 
 #ifdef WITH_PYTHON
 	if(m_attr_dict)

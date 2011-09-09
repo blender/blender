@@ -72,6 +72,9 @@ class KX_KetsjiEngine* KX_GetActiveEngine();
 #include "MT_Vector3.h"
 
 void		KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color);
+void		KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
+										 const MT_Vector3& normal, int nsector);
+
 
 #endif //__KX_PYTHON_INIT
 

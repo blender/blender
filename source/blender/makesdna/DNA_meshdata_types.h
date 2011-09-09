@@ -184,6 +184,10 @@ typedef struct PartialVisibility {
 	unsigned int totface, totedge, totvert, pad;
 } PartialVisibility;
 
+typedef struct MRecast{
+	int		i;
+} MRecast;
+
 /* mvert->flag (1=SELECT) */
 #define ME_SPHERETEST		2
 #define ME_VERT_TMP_TAG		4

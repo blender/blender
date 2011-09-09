@@ -24,6 +24,7 @@ set(INC
 	../../blenkernel
 	../../blenlib
 	../../blenloader
+	../../../../extern/recastnavigation/Recast/Include
 	../../makesdna
 	../../makesrna
 	../../windowmanager
@@ -39,6 +40,7 @@ set(SRC
 	editmode_undo.c
 	numinput.c
 	undo.c
+	navmesh_conversion.cpp
 	crazyspace.c
 
 	util_intern.h
@@ -62,6 +64,7 @@ set(SRC
 	../include/ED_markers.h
 	../include/ED_mball.h
 	../include/ED_mesh.h
+	../include/ED_navmesh_conversion.h
 	../include/ED_node.h
 	../include/ED_numinput.h
 	../include/ED_object.h
