@@ -205,7 +205,7 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 		glVertex2f(x2, y2);
 		glVertex2f(x3, y3);
 		glEnd();
-		
+
 		glTranslatef(-1.0f * jit[j][0], -1.0f * jit[j][1], 0.0f);
 	}
 
@@ -2841,7 +2841,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 }
 
 
-static int WIDGET_set(uiBut *but, rcti *rect)
+static int widget_roundbox_set(uiBut *but, rcti *rect)
 {
 	/* alignment */
 	if(but->flag & UI_BUT_ALIGN) {
@@ -3064,7 +3064,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 		rcti disablerect= *rect; /* rect gets clipped smaller for text */
 		int roundboxalign, state;
 		
-		roundboxalign= WIDGET_set(but, rect);
+		roundboxalign= widget_roundbox_set(but, rect);
 
 		state= but->flag;
 		if(but->editstr) state |= UI_TEXTINPUT;
