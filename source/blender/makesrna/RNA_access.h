@@ -974,7 +974,11 @@ int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *re
 short RNA_type_to_ID_code(StructRNA *type);
 StructRNA *ID_code_to_RNA_type(short idcode);
 
-void RNA_warning(const char *format, ...)
+
+/* macro which inserts the function name */
+#define RNA_warning(format, args...) _RNA_warning("%s: " format "\n", __func__, ##args)
+
+void _RNA_warning(const char *format, ...)
 #ifdef __GNUC__
 __attribute__ ((format (printf, 1, 2)))
 #endif
