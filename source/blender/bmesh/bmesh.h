@@ -153,6 +153,7 @@ BM_INLINE void BM_ClearHFlag(void *element, const int flag);
 
 /*stuff for dealing BM_ToggleHFlag header flags*/
 BM_INLINE void BM_ToggleHFlag(void *element, const int flag);
+BM_INLINE void BM_MergeHFlag(void *element_a, void *element_b);
 BM_INLINE void BM_SetIndex(void *element, const int index);
 BM_INLINE int BM_GetIndex(const void *element);
 

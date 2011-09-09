@@ -94,8 +94,12 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 	int a, b;
 
 	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		if (BMO_Get_MapPointer(bm, op, "targetmap", v))
+		if ((v2= BMO_Get_MapPointer(bm, op, "targetmap", v))) {
 			BMO_SetFlag(bm, v, ELE_DEL);
+
+			/* merge the vertex flags, else we get randomly selected/unselected verts */
+			BM_MergeHFlag(v, v2);
+		}
 	}
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {

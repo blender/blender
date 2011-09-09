@@ -8,22 +8,26 @@ BM_INLINE int BM_TestHFlag(const void *element, const int flag)
 	return ((BMHeader *)element)->flag & flag;
 }
 
-/*stuff for dealing with header flags*/
 BM_INLINE void BM_SetHFlag(void *element, const int flag)
 {
 	((BMHeader *)element)->flag |= flag;
 }
 
-/*stuff for dealing with header flags*/
 BM_INLINE void BM_ClearHFlag(void *element, const int flag)
 {
 	((BMHeader *)element)->flag &= ~flag;
 }
 
-/*stuff for dealing BM_ToggleHFlag header flags*/
 BM_INLINE void BM_ToggleHFlag(void *element, const int flag)
 {
 	((BMHeader *)element)->flag ^= flag;
+}
+
+BM_INLINE void BM_MergeHFlag(void *element_a, void *element_b)
+{
+	((BMHeader *)element_a)->flag =
+	((BMHeader *)element_b)->flag = (((BMHeader *)element_a)->flag |
+	                                 ((BMHeader *)element_b)->flag);
 }
 
 BM_INLINE void BM_SetIndex(void *element, const int index)
