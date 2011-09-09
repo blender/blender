@@ -398,6 +398,11 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 		sock->stack_index= 0;
 		
 		sock->default_value = (oldsock->default_value ? MEM_dupallocN(oldsock->default_value) : NULL);
+		
+		/* XXX some compositor node (e.g. image, render layers) still store
+		 * some persistent buffer data here, need to clear this to avoid dangling pointers.
+		 */
+		sock->cache = NULL;
 	}
 	
 	BLI_duplicatelist(&nnode->outputs, &node->outputs);
@@ -407,6 +412,11 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 		sock->stack_index= 0;
 		
 		sock->default_value = (oldsock->default_value ? MEM_dupallocN(oldsock->default_value) : NULL);
+		
+		/* XXX some compositor node (e.g. image, render layers) still store
+		 * some persistent buffer data here, need to clear this to avoid dangling pointers.
+		 */
+		sock->cache = NULL;
 	}
 	
 	/* don't increase node->id users, freenode doesn't decrement either */
@@ -1524,20 +1534,24 @@ void NodeTagChanged(bNodeTree *ntree, bNode *node)
 {
 	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
 	
-	if (ntreetype->update_node)
+	/* extra null pointer checks here because this is called when unlinking
+	   unknown nodes on file load, so typeinfo pointers may not be set */
+	if (ntreetype && ntreetype->update_node)
 		ntreetype->update_node(ntree, node);
-	else if (node->typeinfo->updatefunc)
+	else if (node->typeinfo && node->typeinfo->updatefunc)
 		node->typeinfo->updatefunc(ntree, node);
 }
 
 int NodeTagIDChanged(bNodeTree *ntree, ID *id)
 {
-	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
+	bNodeTreeType *ntreetype;
 	bNode *node;
 	int change = FALSE;
 
 	if(ELEM(NULL, id, ntree))
 		return change;
+	
+	ntreetype = ntreeGetType(ntree->type);
 	
 	if (ntreetype->update_node) {
 		for(node= ntree->nodes.first; node; node= node->next) {

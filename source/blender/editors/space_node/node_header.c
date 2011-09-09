@@ -232,6 +232,7 @@ static void node_menu_add(const bContext *C, Menu *menu)
 		uiItemMenuF(layout, "Convertor", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
 		uiItemMenuF(layout, "Group", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
 		uiItemMenuF(layout, "Dynamic", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_DYNAMIC));
+		uiItemMenuF(layout, "Layout", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_LAYOUT));
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {
 		uiItemMenuF(layout, "Input", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
@@ -243,6 +244,7 @@ static void node_menu_add(const bContext *C, Menu *menu)
 		uiItemMenuF(layout, "Matte", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_MATTE));
 		uiItemMenuF(layout, "Distort", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_DISTORT));
 		uiItemMenuF(layout, "Group", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
+		uiItemMenuF(layout, "Layout", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_LAYOUT));
 	}
 	else if(snode->treetype==NTREE_TEXTURE) {
 		uiItemMenuF(layout, "Input", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
@@ -253,6 +255,7 @@ static void node_menu_add(const bContext *C, Menu *menu)
 		uiItemMenuF(layout, "Convertor", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
 		uiItemMenuF(layout, "Distort", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_DISTORT));
 		uiItemMenuF(layout, "Group", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
+		uiItemMenuF(layout, "Layout", 0, node_add_menu, SET_INT_IN_POINTER(NODE_CLASS_LAYOUT));
 	}
 }
 

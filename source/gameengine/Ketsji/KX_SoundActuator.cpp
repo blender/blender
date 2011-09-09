@@ -108,7 +108,15 @@ void KX_SoundActuator::play()
 		break;
 	}
 
-	m_handle = AUD_getDevice()->play(sound, 0);
+	try
+	{
+		m_handle = AUD_getDevice()->play(sound, 0);
+	}
+	catch(AUD_Exception&)
+	{
+		// cannot play back, ignore
+		return;
+	}
 
 	AUD_Reference<AUD_I3DHandle> handle3d = AUD_Reference<AUD_I3DHandle>(m_handle);
 

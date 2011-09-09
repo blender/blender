@@ -74,6 +74,7 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
         if context.scene.render.engine == "BLENDER_GAME":
             layout.row().prop(arm, "vert_deformer", expand=True)
 
+
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
     bl_label = "Display"
 
@@ -185,11 +186,10 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
         layout.template_ID(ob, "pose_library", new="poselib.new", unlink="poselib.unlink")
 
         if poselib:
-            
-            # list of poses in pose library 
+            # list of poses in pose library
             row = layout.row()
             row.template_list(poselib, "pose_markers", poselib.pose_markers, "active_index", rows=5)
-            
+
             # column of operators for active pose
             # - goes beside list
             col = row.column(align=True)
@@ -206,9 +206,9 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
             if pose_marker_active is not None:
                 col.operator("poselib.pose_remove", icon='ZOOMOUT', text="").pose = pose_marker_active.name
                 col.operator("poselib.apply_pose", icon='ZOOM_SELECTED', text="").pose_index = poselib.pose_markers.active_index
-            
-            col.operator("poselib.action_sanitise", icon='HELP', text="") # XXX: put in menu?
-            
+
+            col.operator("poselib.action_sanitise", icon='HELP', text="")  # XXX: put in menu?
+
             # properties for active marker
             if pose_marker_active is not None:
                 layout.prop(pose_marker_active, "name")

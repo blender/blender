@@ -135,7 +135,7 @@ static void *group_initexec(bNode *node)
 	return exec;
 }
 
-static void group_freeexec(bNode *node, void *nodedata)
+static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
 	bNodeTreeExec *gexec= (bNodeTreeExec*)nodedata;
 	

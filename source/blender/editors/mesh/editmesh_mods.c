@@ -827,7 +827,7 @@ static int similar_face_select__internal(EditMesh *em, int mode, float thresh)
 				float angle;
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
-						angle= RAD2DEGF(angle_v2v2(base_efa->n, efa->n));
+						angle= RAD2DEGF(angle_v3v3(base_efa->n, efa->n));
 						if (angle/180.0f<=thresh) {
 							EM_select_face(efa, 1);
 							selcount++;
@@ -842,7 +842,7 @@ static int similar_face_select__internal(EditMesh *em, int mode, float thresh)
 				base_dot= dot_v3v3(base_efa->cent, base_efa->n);
 				for(efa= em->faces.first; efa; efa= efa->next) {
 					if (!(efa->f & SELECT) && !efa->h) {
-						angle= RAD2DEGF(angle_v2v2(base_efa->n, efa->n));
+						angle= RAD2DEGF(angle_v3v3(base_efa->n, efa->n));
 						if (angle/180.0f<=thresh) {
 							dot=dot_v3v3(efa->cent, base_efa->n);
 							if (fabsf(base_dot-dot) <= thresh) {
@@ -989,7 +989,7 @@ static int similar_edge_select__internal(EditMesh *em, int mode, float thresh)
 				for(eed= em->edges.first; eed; eed= eed->next) {
 					if (!(eed->f & SELECT) && !eed->h) {
 						sub_v3_v3v3(dir, eed->v1->co, eed->v2->co);
-						angle= RAD2DEGF(angle_v2v2(base_dir, dir));
+						angle= RAD2DEGF(angle_v3v3(base_dir, dir));
 						
 						if (angle>90.0f) /* use the smallest angle between the edges */
 							angle= fabsf(angle-180.0f);
@@ -1159,7 +1159,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 				float angle;
 				for(eve= em->verts.first; eve; eve= eve->next) {
 					if (!(eve->f & SELECT) && !eve->h) {
-						angle= RAD2DEGF(angle_v2v2(base_eve->no, eve->no));
+						angle= RAD2DEGF(angle_v3v3(base_eve->no, eve->no));
 						if (angle/180.0f<=thresh) {
 							eve->f |= SELECT;
 							selcount++;

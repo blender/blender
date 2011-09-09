@@ -441,12 +441,17 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, int pop
 		if(op->reports->list.first) {
 			/* FIXME, temp setting window, see other call to uiPupMenuReports for why */
 			wmWindow *win_prev= CTX_wm_window(C);
+			ScrArea *area_prev= CTX_wm_area(C);
+			ARegion *ar_prev= CTX_wm_region(C);
+
 			if(win_prev==NULL)
 				CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
 			uiPupMenuReports(C, op->reports);
 
 			CTX_wm_window_set(C, win_prev);
+			CTX_wm_area_set(C, area_prev);
+			CTX_wm_region_set(C, ar_prev);
 		}
 	}
 	
@@ -1394,6 +1399,9 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 							 * only have because lib linking errors need to be seen by users :(
 							 * it can be removed without breaking anything but then no linking errors - campbell */
 							wmWindow *win_prev= CTX_wm_window(C);
+							ScrArea *area_prev= CTX_wm_area(C);
+							ARegion *ar_prev= CTX_wm_region(C);
+
 							if(win_prev==NULL)
 								CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
 
@@ -1405,6 +1413,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 							BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
 							CTX_wm_window_set(C, win_prev);
+							CTX_wm_area_set(C, area_prev);
+							CTX_wm_region_set(C, ar_prev);
 						}
 
 						WM_operator_free(handler->op);
