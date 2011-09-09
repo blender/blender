@@ -1512,7 +1512,8 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	BMOperator bmop;
 	BMEdge *eed;
 	BMIter iter;
-	int ccw = RNA_int_get(op->ptr, "direction") == 1; // direction == 2 when clockwise and ==1 for counter CW.
+	const int do_ccw = RNA_enum_get(op->ptr, "direction") == 1;
+	int do_deselect= FALSE; /* do we deselect */
 	
 	if (!(em->bm->totfacesel == 2 || em->bm->totedgesel == 1)) {
 		BKE_report(op->reports, RPT_ERROR, "Select one edge or two adjacent faces");
@@ -1539,8 +1540,11 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 
 	if (!eed) {
 		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_TestHFlag(eed, BM_SELECT) && !BM_TestHFlag(eed, BM_HIDDEN))
+			if (BM_TestHFlag(eed, BM_SELECT) && !BM_TestHFlag(eed, BM_HIDDEN)) {
+				/* de-select the edge before */
+				do_deselect = TRUE;
 				break;
+			}
 		}
 	}
 
@@ -1548,9 +1552,14 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	if (!eed)
 		return OPERATOR_CANCELLED;
 	
-	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%e ccw=%d", eed, ccw);
-	BMO_Exec_Op(em->bm, &bmop);
+	EDBM_InitOpf(em, &bmop, op, "edgerotate edges=%e ccw=%d", eed, do_ccw);
 
+	/* avoid adding to the selection if we start off with only a selected edge,
+	 * we could also just deselect the single edge easily but use the BMO api
+	 * since it seems this is more 'correct' */
+	if(do_deselect) BMO_UnHeaderFlag_Buffer(em->bm, &bmop, "edges", BM_SELECT, BM_EDGE);
+
+	BMO_Exec_Op(em->bm, &bmop);
 	BMO_HeaderFlag_Buffer(em->bm, &bmop, "edgeout", BM_SELECT, BM_EDGE);
 
 	if (!EDBM_FinishOp(em, &bmop, op, 1))
