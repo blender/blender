@@ -32,6 +32,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+    ../../gpu
 	../../../../intern/guardedalloc
 )
 
@@ -40,6 +41,7 @@ set(INC_SYS
 )
 
 set(SRC
+    gpu.c
 	bpy.c
 	bpy_app.c
 	bpy_app_handlers.c
@@ -58,6 +60,7 @@ set(SRC
 	bpy_util.c
 	stubs.c
 
+    gpu.h
 	bpy.h
 	bpy_app.h
 	bpy_app_handlers.h
