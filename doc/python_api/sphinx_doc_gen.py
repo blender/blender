@@ -103,6 +103,7 @@ sphinx-build doc/python_api/sphinx-in doc/python_api/sphinx-out
 INFO_DOCS = (
     ("info_quickstart.rst", "Blender/Python Quickstart: new to blender/scripting and want to get you're feet wet?"),
     ("info_overview.rst", "Blender/Python API Overview: a more complete explanation of python integration"),
+    ("info_best_practice.rst", "Best Practice: Conventions to follow for writing good scripts"),
     ("info_tips_and_tricks.rst", "Tips and Tricks: Hints to help you while writeing scripts for blender"),
     ("info_gotcha.rst", "Gotcha's: some of the problems you may come up against when writing scripts"),
     )

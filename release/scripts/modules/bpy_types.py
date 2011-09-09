@@ -353,10 +353,7 @@ class Mesh(bpy_types.ID):
 
     @property
     def edge_keys(self):
-        return list({edge_key
-                     for face in self.faces
-                     for edge_key in face.edge_keys
-                     })
+        return [ed.key for ed in self.edges]
 
 
 class MeshEdge(StructRNA):

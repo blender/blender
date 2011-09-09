@@ -5374,7 +5374,8 @@ int RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, i
 	return 0;
 }
 
-void RNA_warning(const char *format, ...)
+/* use RNA_warning macro which includes __func__ suffix */
+void _RNA_warning(const char *format, ...)
 {
 	va_list args;
 
