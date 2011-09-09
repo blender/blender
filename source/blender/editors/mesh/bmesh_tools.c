@@ -3883,28 +3883,42 @@ void MESH_OT_edge_flip(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-//BMESH_TODO
-static int split_mesh(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int split_mesh_exec(bContext *C, wmOperator *op)
 {
-#if 0
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	Object *ob= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
+	BMOperator bmopDupe, bmopDel;
 
-	WM_cursor_wait(1);
+	/*Duplicate selected geometry*/
+	EDBM_InitOpf(em, &bmopDupe, op, "dupe geom=%hvef", BM_SELECT);
+	BMO_Exec_Op(em->bm, &bmopDupe);
 
-	/* make duplicate first */
-	adduplicateflag(em, SELECT);
-	/* old faces have flag 128 set, delete them */
-	delfaceflag(em, 128);
-	recalc_editnormals(em);
+	/*Duplicated geometry starts out selected. Deselect all duplicated
+	  geometry to return to the original selection.*/
+	BMO_UnHeaderFlag_Buffer(em->bm, &bmopDupe, "newout", BM_SELECT, BM_ALL);
 
-	WM_cursor_wait(0);
+	/*Delete selected faces*/
+	EDBM_InitOpf(em, &bmopDel, op, "del geom=%hvef context=%i", BM_SELECT, DEL_FACES);
+	BMO_Exec_Op(em->bm, &bmopDel);
+	if (!EDBM_FinishOp(em, &bmopDel, op, 1)) {
+		/*Also clean up the dupe op*/
+		EDBM_FinishOp(em, &bmopDupe, op, 1);
+		return OPERATOR_CANCELLED;
+	}
 
-	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	/*Clear prior selection and select the dupliated geometry*/
+	BM_clear_flag_all(em->bm, BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmopDupe, "newout", BM_SELECT, BM_ALL);
+	if (!EDBM_FinishOp(em, &bmopDupe, op, 1))
+		return OPERATOR_CANCELLED;
 
-	BKE_mesh_end_editmesh(obedit->data, em);
-#endif
+	/*Geometry has changed, need to recalc normals and looptris*/
+	BMEdit_RecalcTesselation(em);
+	EDBM_RecalcNormals(em);
+
+	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -3915,7 +3929,7 @@ void MESH_OT_split(wmOperatorType *ot)
 	ot->idname= "MESH_OT_split";
 
 	/* api callbacks */
-	ot->exec= split_mesh;
+	ot->exec= split_mesh_exec;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
