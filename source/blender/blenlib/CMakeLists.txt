@@ -79,6 +79,7 @@ set(SRC
 	intern/rand.c
 	intern/rct.c
 	intern/scanfill.c
+	intern/smallhash.c
 	intern/storage.c
 	intern/string.c
 	intern/threads.c

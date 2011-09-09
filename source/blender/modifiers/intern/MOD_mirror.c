@@ -33,6 +33,8 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_math.h"
 #include "BLI_smallhash.h"
 #include "BLI_array.h"
@@ -44,7 +46,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_tessmesh.h"
 
-#include "MEM_guardedalloc.h"
 #include "depsgraph_private.h"
 
 static void initData(ModifierData *md)

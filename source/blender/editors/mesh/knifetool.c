@@ -745,34 +745,6 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 	glEnable(GL_DEPTH_TEST);
 }
 
-static void _print_smhash(SmallHash *hash)
-{
-	int i, linecol=79, c=0;
-	
-	printf("{");
-	for (i=0; i<hash->size; i++) {
-		if (hash->table[i].val == CELL_UNUSED) {
-			printf("--u-");
-		} else if (hash->table[i].val == CELL_FREE) {
-			printf("--f-");
-		} else	{
-			printf("%2x", (unsigned int)hash->table[i].key);
-		}
-		
-		if (i != hash->size-1)
-			printf(", ");
-		
-		c += 6;
-		
-		if (c >= linecol) {
-			printf("\n ");
-			c = 0;
-		}
-	}
-	
-	fflush(stdout);
-}
-
 static int kfe_vert_in_edge(KnifeEdge *e, KnifeVert *v) {
 	return e->v1 == v || e->v2 == v;
 }
