@@ -28,7 +28,7 @@
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
- *     but couldn't figure a way to do this…
+ *     but couldn't figure a way to do this...
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -62,7 +62,7 @@ static float mix_weight(float weight, float weight2, char mix_mode)
 #if 0
 	/*
 	 * XXX Don't know why, but the switch version takes many CPU time,
-	 *     and produces lag in realtime playback…
+	 *     and produces lag in realtime playback...
 	 */
 	switch (mix_mode)
 	{
@@ -258,13 +258,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			return dm;
 	}
 
-	/* XXX All this to avoid copying dm when not needed… However, it nearly doubles compute
-	 *     time! See scene 5 of the WeighVG test file…
+	/* XXX All this to avoid copying dm when not needed... However, it nearly doubles compute
+	 *     time! See scene 5 of the WeighVG test file...
 	 */
 #if 0
 	/* Get actual dverts (ie vertex group data). */
 	dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	/* If no dverts, return unmodified data… */
+	/* If no dverts, return unmodified data... */
 	if (dvert == NULL)
 		return dm;
 
@@ -278,7 +278,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Create a copy of our dmesh, only if our affected cdata layer is the same as org mesh. */
 	if (dvert == CustomData_get_layer(&ob_m->vdata, CD_MDEFORMVERT)) {
 		/* XXX Seems to create problems with weightpaint mode???
-		 *     I'm missing something here, I guess…
+		 *     I'm missing something here, I guess...
 		 */
 //		DM_set_only_copy(dm, CD_MASK_MDEFORMVERT); /* Only copy defgroup layer. */
 		ret = CDDM_copy(dm);
