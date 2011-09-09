@@ -143,7 +143,7 @@ defining edges[0], and define the winding of the new face.*/
 struct BMFace *BM_Make_Ngon ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble );
 
 /*stuff for dealing with header flags*/
-BM_INLINE int BM_TestHFlag(void *element, const int flag);
+BM_INLINE int BM_TestHFlag(const void *element, const int flag);
 
 /*stuff for dealing with header flags*/
 BM_INLINE void BM_SetHFlag(void *element, const int flag);

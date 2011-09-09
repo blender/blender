@@ -61,7 +61,7 @@ struct Scene;
 extern "C" {
 #endif
 
-struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me, struct Object *ob);
+struct BMesh *BKE_mesh_to_bmesh(struct Object *ob);
 
 /*
   this function recreates a tesselation.

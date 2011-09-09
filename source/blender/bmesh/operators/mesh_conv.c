@@ -44,8 +44,8 @@
 */
 
 void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
-	Object *ob = BMO_Get_Pnt(op, "object");
-	Mesh *me = BMO_Get_Pnt(op, "mesh");
+	Object *ob = bm->ob;
+	Mesh *me = ob->data;
 	MVert *mvert;
 	BLI_array_declare(verts);
 	MEdge *medge;
@@ -347,12 +347,9 @@ static void loops_to_corners(BMesh *bm, Mesh *me, int findex,
 	}
 }
 
-void object_load_bmesh_exec(BMesh *bm, BMOperator *op) {
-	Object *ob = BMO_Get_Pnt(op, "object");
-	/* Scene *scene = BMO_Get_Pnt(op, "scene"); */
-	Mesh *me = ob->data;
-
-	BMO_CallOpf(bm, "bmesh_to_mesh mesh=%p object=%p", me, ob);
+void object_load_bmesh_exec(BMesh *bm, BMOperator *UNUSED(op))
+{
+	BMO_CallOpf(bm, "bmesh_to_mesh");
 }
 
 
@@ -396,8 +393,8 @@ static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
 }
 
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
-	Mesh *me = BMO_Get_Pnt(op, "mesh");
-	/* Object *ob = BMO_Get_Pnt(op, "object"); */
+	Object *ob = bm->ob;
+	Mesh *me = ob->data;
 	MLoop *mloop;
 	KeyBlock *block;
 	MPoly *mpoly;

@@ -497,7 +497,6 @@ static BMOpDefine def_transform = {
 static BMOpDefine def_object_load_bmesh = {
 	"object_load_bmesh",
 	{{BMOP_OPSLOT_PNT, "scene"},
-	{BMOP_OPSLOT_PNT, "object"},
 	{0, /*null-terminating sentinel*/}},
 	object_load_bmesh_exec,
 	0,
@@ -511,9 +510,7 @@ static BMOpDefine def_object_load_bmesh = {
 */
 static BMOpDefine def_bmesh_to_mesh = {
 	"bmesh_to_mesh",
-	{{BMOP_OPSLOT_PNT, "mesh"}, //pointer to a mesh structure to fill in
-	 {BMOP_OPSLOT_PNT, "object"}, //pointer to an object structure
-	 {BMOP_OPSLOT_INT, "notesselation"}, //don't calculate mfaces
+    {{BMOP_OPSLOT_INT, "notesselation"}, //don't calculate mfaces
 	 {0, /*null-terminating sentinel*/}},
 	bmesh_to_mesh_exec,
 	0,
@@ -527,9 +524,7 @@ static BMOpDefine def_bmesh_to_mesh = {
 */
 static BMOpDefine def_mesh_to_bmesh = {
 	"mesh_to_bmesh",
-	{{BMOP_OPSLOT_PNT, "mesh"}, //pointer to a Mesh structure
-	 {BMOP_OPSLOT_PNT, "object"}, //pointer to an Object structure
-	 {BMOP_OPSLOT_INT, "set_shapekey"}, //load active shapekey coordinates into verts
+    {{BMOP_OPSLOT_INT, "set_shapekey"}, //load active shapekey coordinates into verts
 	 {0, /*null-terminating sentinel*/}},
 	mesh_to_bmesh_exec,
 	0

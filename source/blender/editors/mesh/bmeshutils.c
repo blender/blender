@@ -270,9 +270,9 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 		printf("yeek!! bmesh conversion issue! may lose lots of geometry!\n");
 		
 		/*BMESH_TODO need to write smarter code here*/
-		bm = BKE_mesh_to_bmesh(me, ob);
+		bm = BKE_mesh_to_bmesh(ob);
 	} else {
-		bm = BKE_mesh_to_bmesh(me, ob);
+		bm = BKE_mesh_to_bmesh(ob);
 	}
 
 	me->edit_btmesh = BMEdit_Create(bm);
@@ -286,7 +286,7 @@ void EDBM_LoadEditBMesh(Scene *scene, Object *ob)
 	Mesh *me = ob->data;
 	BMesh *bm = me->edit_btmesh->bm;
 
-	BMO_CallOpf(bm, "object_load_bmesh scene=%p object=%p", scene, ob);
+	BMO_CallOpf(bm, "object_load_bmesh scene=%p", scene);
 }
 
 void EDBM_FreeEditBMesh(BMEditMesh *tm)
@@ -580,7 +580,7 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 	  BMEdit_RecalcTesselation throughout the code.*/
 	BMEdit_RecalcTesselation(em);
 
-	BMO_CallOpf(em->bm, "bmesh_to_mesh mesh=%p notesselation=%i", me, 1);
+	BMO_CallOpf(em->bm, "bmesh_to_mesh notesselation=%i", 1);
 	me->selectmode = em->selectmode;
 
 	return me;
@@ -600,7 +600,7 @@ static void undoMesh_to_editbtMesh(void *umv, void *emv, void *UNUSED(obdata))
 	BMEdit_Free(em);
 
 	bm = BM_Make_Mesh(ob, allocsize);
-	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", me, ob, 0);
+	BMO_CallOpf(bm, "mesh_to_bmesh set_shapekey=%i", 0);
 
 	em2 = BMEdit_Create(bm);
 	*em = *em2;
