@@ -1289,9 +1289,6 @@ static void bmDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 		face_r->v1 = BM_GetIndex(l[0]->v);
 		face_r->v2 = BM_GetIndex(l[1]->v);
 		face_r->v3 = BM_GetIndex(l[2]->v);
-		/*BMESH_TODO: zero is not the best way to signal that
-		  the face is a triangle and not a quad, since 0 is
-		  also the index assigned to a real vertex*/
 		face_r->v4 = 0;
 
 		test_index_face(face_r, NULL, 0, 3);

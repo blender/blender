@@ -1961,7 +1961,8 @@ void convert_mfaces_to_mpolys(Mesh *mesh)
 		bmesh_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
 	}
 
-	/*BMESH_TODO now to deal with fgons*/
+	/* note, we dont convert FGons at all, these are not even real ngons,
+	 * they have their own UV's, colors etc - its more an editing feature. */
 
 	BLI_edgehash_free(eh, NULL);
 }

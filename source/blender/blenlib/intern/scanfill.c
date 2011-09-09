@@ -818,8 +818,8 @@ int BLI_edgefill(short mat_nr)
 		float vec1[3], vec2[3];
 
 		eve = fillvertbase.first;
-		
-		if (1 && eve->next && eve->next->next && eve->next->next->next) { //BMESH_TODO) {
+		/* no need to check 'eve->next->next->next' is valid, already counted */
+		if (1) { //BMESH_TODO) {
 			/*use shortest diagonal for quad*/
 			sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
 			sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);
