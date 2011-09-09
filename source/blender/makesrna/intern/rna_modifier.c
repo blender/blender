@@ -2490,7 +2490,6 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 }
 
-<<<<<<< .working
 static void rna_def_modifier_navmesh(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2502,7 +2501,6 @@ static void rna_def_modifier_navmesh(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_MOD_DECIM);
 }
 
-=======
 static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 {
 	static EnumPropertyItem weightvg_mask_tex_map_items[] = {
@@ -2797,7 +2795,6 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	rna_def_modifier_weightvg_mask(brna, srna);
 }
 
->>>>>>> .merge-right.r40061
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2895,13 +2892,10 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_smoke(brna);
 	rna_def_modifier_solidify(brna);
 	rna_def_modifier_screw(brna);
-<<<<<<< .working
 	rna_def_modifier_navmesh(brna);
-=======
 	rna_def_modifier_weightvgedit(brna);
 	rna_def_modifier_weightvgmix(brna);
 	rna_def_modifier_weightvgproximity(brna);
->>>>>>> .merge-right.r40061
 }
 
 #endif
