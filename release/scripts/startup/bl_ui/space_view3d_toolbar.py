@@ -768,9 +768,9 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel, Panel):
             col = row.column()
 
             if brush.use_texture_overlay:
-                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='MUTE_IPO_OFF')
+                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
             else:
-                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='MUTE_IPO_ON')
+                col.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
 
             col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
 
