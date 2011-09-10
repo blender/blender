@@ -79,10 +79,10 @@
 /* it has outline, back, and two optional tria meshes */
 
 typedef struct uiWidgetTrias {
-	int tot;
+	unsigned int tot;
 	
 	float vec[32][2];
-	int (*index)[3];
+	unsigned int (*index)[3];
 	
 } uiWidgetTrias;
 
@@ -146,7 +146,7 @@ static float jit[8][2]= {{0.468813 , -0.481430}, {-0.155755 , -0.352820},
 static float num_tria_vert[3][2]= { 
 {-0.352077, 0.532607}, {-0.352077, -0.549313}, {0.330000, -0.008353}};
 
-static int num_tria_face[1][3]= {
+static unsigned int num_tria_face[1][3]= {
 {0, 1, 2}};
 
 static float scroll_circle_vert[16][2]= {
@@ -155,7 +155,7 @@ static float scroll_circle_vert[16][2]= {
 {-0.382683, -0.923880}, {0.000000, -1.000000}, {0.382684, -0.923880}, {0.707107, -0.707107},
 {0.923880, -0.382684}, {1.000000, -0.000000}, {0.923880, 0.382683}, {0.707107, 0.707107}};
 
-static int scroll_circle_face[14][3]= {
+static unsigned int scroll_circle_face[14][3]= {
 {0, 1, 2}, {2, 0, 3}, {3, 0, 15}, {3, 15, 4}, {4, 15, 14}, {4, 14, 5}, {5, 14, 13}, {5, 13, 6}, 
 {6, 13, 12}, {6, 12, 7}, {7, 12, 11}, {7, 11, 8}, {8, 11, 10}, {8, 10, 9}};
 
@@ -163,13 +163,13 @@ static float menu_tria_vert[6][2]= {
 {-0.41, 0.16}, {0.41, 0.16}, {0, 0.82}, 
 {0, -0.82}, {-0.41, -0.16}, {0.41, -0.16}};
 
-static int menu_tria_face[2][3]= {{2, 0, 1}, {3, 5, 4}};
+static unsigned int menu_tria_face[2][3]= {{2, 0, 1}, {3, 5, 4}};
 
 static float check_tria_vert[6][2]= {
 {-0.578579, 0.253369}, 	{-0.392773, 0.412794}, 	{-0.004241, -0.328551}, 
 {-0.003001, 0.034320}, 	{1.055313, 0.864744}, 	{0.866408, 1.026895}};
 
-static int check_tria_face[4][3]= {
+static unsigned int check_tria_face[4][3]= {
 {3, 2, 4}, {3, 4, 5}, {1, 0, 3}, {0, 2, 3}};
 
 GLubyte checker_stipple_sml[32*32/8] =
@@ -533,12 +533,9 @@ static void widget_scroll_circle(uiWidgetTrias *tria, rcti *rect, float triasize
 static void widget_trias_draw(uiWidgetTrias *tria)
 {
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_INDEX_ARRAY);
-	glIndexPointer(GL_INT, 0, tria->index);
 	glVertexPointer(2, GL_FLOAT, 0, tria->vec);
-	glDrawArrays(GL_TRIANGLES, 0, tria->tot*3);
+	glDrawElements(GL_TRIANGLES, tria->tot*3, GL_UNSIGNED_INT, tria->index);
 	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_INDEX_ARRAY);
 }
 
 static void widget_menu_trias(uiWidgetTrias *tria, rcti *rect)
