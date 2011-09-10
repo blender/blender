@@ -397,6 +397,11 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Navigation mesh"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_GAME'}
+    
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return (scene and scene.render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -572,6 +577,11 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
 class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, Panel):
     bl_label = "Obstacle simulation"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+    
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return (scene.world and scene.render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
