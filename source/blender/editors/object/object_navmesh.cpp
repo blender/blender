@@ -537,7 +537,7 @@ static int assign_navpolygon_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_assign_navpolygon(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Assign polygon index ";
+	ot->name= "Assign polygon index";
 	ot->description= "Assign polygon index to face by active face";
 	ot->idname= "OBJECT_OT_assign_navpolygon";
 
@@ -615,7 +615,7 @@ static int assign_new_navpolygon_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_assign_new_navpolygon(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Assign new polygon index ";
+	ot->name= "Assign new polygon index";
 	ot->description= "Assign new polygon index to face";
 	ot->idname= "OBJECT_OT_assign_new_navpolygon";
 
