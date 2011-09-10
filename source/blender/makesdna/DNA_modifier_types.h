@@ -71,10 +71,10 @@ typedef enum ModifierType {
 	eModifierType_Solidify,
 	eModifierType_Screw,
 	eModifierType_Warp,
-	eModifierType_NavMesh,
 	eModifierType_WeightVGEdit,
 	eModifierType_WeightVGMix,
 	eModifierType_WeightVGProximity,
+	eModifierType_NavMesh,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
