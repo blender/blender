@@ -100,7 +100,8 @@ typedef struct CustomData {
 #define CD_BWEIGHT		28
 #define CD_CREASE		29
 #define CD_WEIGHT_MLOOPCOL	30
-#define CD_NUMTYPES		31
+#define CD_RECAST		31
+#define CD_NUMTYPES		32
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
@@ -130,6 +131,7 @@ typedef struct CustomData {
 #define CD_MASK_SHAPE_KEYINDEX	(1 << CD_SHAPE_KEYINDEX)
 #define CD_MASK_SHAPEKEY	(1 << CD_SHAPEKEY)
 #define CD_MASK_CLOTH_ORCO	(1 << CD_CLOTH_ORCO)
+#define CD_MASK_RECAST		(1 << CD_RECAST)
 
 /* derivedmesh wants CustomDataMask for weightpaint too, is not customdata though */
 #define CD_MASK_WEIGHTPAINT	(1 << CD_WEIGHTPAINT)

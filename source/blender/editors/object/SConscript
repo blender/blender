@@ -1,12 +1,13 @@
 #!/usr/bin/python
 Import ('env')
 
-sources = env.Glob('*.c')
+sources = env.Glob('*.c') + env.Glob('*.cpp')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc ../../blenloader'
 incs += ' ../../makesrna ../../python ../../ikplugin ../../bmesh'
 incs += ' ../../render/extern/include ../../gpu' # for object_bake.c
+incs += ' #extern/recastnavigation/Recast/Include'
 
 defs = []
 
@@ -19,5 +20,8 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
 
 if env['WITH_BF_PYTHON']:
     defs.append('WITH_PYTHON')
+  
+if env['WITH_BF_GAMEENGINE']:
+    defs.append('WITH_GAMEENGINE')
 
 env.BlenderLib ( 'bf_editors_object', sources, Split(incs), defs, libtype=['core'], priority=[35] )

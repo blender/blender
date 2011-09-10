@@ -85,7 +85,7 @@ enum {
 	PCHAN_COLOR_SPHEREBONE_BASE,	/* for the 'stick' of sphere (envelope) bones */
 	PCHAN_COLOR_SPHEREBONE_END,		/* for the ends of sphere (envelope) bones */
 	PCHAN_COLOR_LINEBONE			/* for the middle of line-bones */
-};	
+};
 
 /* This function sets the color-set for coloring a certain bone */
 static void set_pchan_colorset (Object *ob, bPoseChannel *pchan)
@@ -437,43 +437,64 @@ static void draw_bonevert_solid(void)
 	glCallList(displist);
 }
 
+static float bone_octahedral_verts[6][3]= {
+    { 0.0f, 0.0f,  0.0f},
+    { 0.1f, 0.1f,  0.1f},
+    { 0.1f, 0.1f, -0.1f},
+    {-0.1f, 0.1f, -0.1f},
+    {-0.1f, 0.1f,  0.1f},
+    { 0.0f, 1.0f,  0.0f}
+};
+
+static unsigned int bone_octahedral_wire_sides[8]= {0, 1, 5, 3, 0, 4, 5, 2};
+static unsigned int bone_octahedral_wire_square[8]= {1, 2, 3, 4, 1};
+
+static unsigned int bone_octahedral_solid_tris[8][3]= {
+    {2, 1, 0}, /* bottom */
+    {3, 2, 0},
+    {4, 3, 0},
+    {1, 4, 0},
+
+    {5, 1, 2}, /* top */
+    {5, 2, 3},
+    {5, 3, 4},
+    {5, 4, 1}
+};
+
+/* aligned with bone_octahedral_solid_tris */
+static float bone_octahedral_solid_normals[8][3]= {
+    { 0.70710683f, -0.70710683f,  0.00000000f},
+    {-0.00000000f, -0.70710683f, -0.70710683f},
+    {-0.70710683f, -0.70710683f,  0.00000000f},
+    { 0.00000000f, -0.70710683f,  0.70710683f},
+    { 0.99388373f,  0.11043154f, -0.00000000f},
+    { 0.00000000f,  0.11043154f, -0.99388373f},
+    {-0.99388373f,  0.11043154f,  0.00000000f},
+    { 0.00000000f,  0.11043154f,  0.99388373f}
+};
+
 static void draw_bone_octahedral(void)
 {
 	static GLuint displist=0;
 	
 	if (displist == 0) {
-		float vec[6][3];	
-		
 		displist= glGenLists(1);
 		glNewList(displist, GL_COMPILE);
-		
-		vec[0][0]= vec[0][1]= vec[0][2]= 0.0f;
-		vec[5][0]= vec[5][2]= 0.0f; vec[5][1]= 1.0f;
-		
-		vec[1][0]= 0.1f; vec[1][2]= 0.1f; vec[1][1]= 0.1f;
-		vec[2][0]= 0.1f; vec[2][2]= -0.1f; vec[2][1]= 0.1f;
-		vec[3][0]= -0.1f; vec[3][2]= -0.1f; vec[3][1]= 0.1f;
-		vec[4][0]= -0.1f; vec[4][2]= 0.1f; vec[4][1]= 0.1f;
-		
+
 		/*	Section 1, sides */
-		glBegin(GL_LINE_LOOP);
-		glVertex3fv(vec[0]);
-		glVertex3fv(vec[1]);
-		glVertex3fv(vec[5]);
-		glVertex3fv(vec[3]);
-		glVertex3fv(vec[0]);
-		glVertex3fv(vec[4]);
-		glVertex3fv(vec[5]);
-		glVertex3fv(vec[2]);
-		glEnd();
-		
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, bone_octahedral_verts);
+		glDrawElements(GL_LINE_LOOP,
+		               sizeof(bone_octahedral_wire_sides)/sizeof(*bone_octahedral_wire_sides),
+		               GL_UNSIGNED_INT,
+		               bone_octahedral_wire_sides);
+
 		/*	Section 1, square */
-		glBegin(GL_LINE_LOOP);
-		glVertex3fv(vec[1]);
-		glVertex3fv(vec[2]);
-		glVertex3fv(vec[3]);
-		glVertex3fv(vec[4]);
-		glEnd();
+		glDrawElements(GL_LINE_LOOP,
+		               sizeof(bone_octahedral_wire_square)/sizeof(*bone_octahedral_wire_square),
+		               GL_UNSIGNED_INT,
+		               bone_octahedral_wire_square);
+		glDisableClientState(GL_VERTEX_ARRAY);
 		
 		glEndList();
 	}
@@ -484,59 +505,34 @@ static void draw_bone_octahedral(void)
 static void draw_bone_solid_octahedral(void)
 {
 	static GLuint displist=0;
-	
+
 	if (displist == 0) {
-		float vec[6][3], nor[3];	
-		
+		int i;
+
 		displist= glGenLists(1);
 		glNewList(displist, GL_COMPILE);
-		
-		vec[0][0]= vec[0][1]= vec[0][2]= 0.0f;
-		vec[5][0]= vec[5][2]= 0.0f; vec[5][1]= 1.0f;
-		
-		vec[1][0]= 0.1f; vec[1][2]= 0.1f; vec[1][1]= 0.1f;
-		vec[2][0]= 0.1f; vec[2][2]= -0.1f; vec[2][1]= 0.1f;
-		vec[3][0]= -0.1f; vec[3][2]= -0.1f; vec[3][1]= 0.1f;
-		vec[4][0]= -0.1f; vec[4][2]= 0.1f; vec[4][1]= 0.1f;
-		
-		
+
+#if 1
 		glBegin(GL_TRIANGLES);
-		/* bottom */
-		normal_tri_v3( nor,vec[2], vec[1], vec[0]);
-		glNormal3fv(nor);
-		glVertex3fv(vec[2]); glVertex3fv(vec[1]); glVertex3fv(vec[0]);
-		
-		normal_tri_v3( nor,vec[3], vec[2], vec[0]);
-		glNormal3fv(nor);
-		glVertex3fv(vec[3]); glVertex3fv(vec[2]); glVertex3fv(vec[0]);
-		
-		normal_tri_v3( nor,vec[4], vec[3], vec[0]);
-		glNormal3fv(nor);
-		glVertex3fv(vec[4]); glVertex3fv(vec[3]); glVertex3fv(vec[0]);
+		for(i= 0; i < 8; i++) {
+			glNormal3fv(bone_octahedral_solid_normals[i]);
+			glVertex3fv(bone_octahedral_verts[bone_octahedral_solid_tris[i][0]]);
+			glVertex3fv(bone_octahedral_verts[bone_octahedral_solid_tris[i][1]]);
+			glVertex3fv(bone_octahedral_verts[bone_octahedral_solid_tris[i][2]]);
+		}
 
-		normal_tri_v3( nor,vec[1], vec[4], vec[0]);
-		glNormal3fv(nor);
-		glVertex3fv(vec[1]); glVertex3fv(vec[4]); glVertex3fv(vec[0]);
-
-		/* top */
-		normal_tri_v3( nor,vec[5], vec[1], vec[2]);
-		glNormal3fv(nor);
-		glVertex3fv(vec[5]); glVertex3fv(vec[1]); glVertex3fv(vec[2]);
-		
-		normal_tri_v3( nor,vec[5], vec[2], vec[3]);
-		glNormal3fv(nor);
-		glVertex3fv(vec[5]); glVertex3fv(vec[2]); glVertex3fv(vec[3]);
-		
-		normal_tri_v3( nor,vec[5], vec[3], vec[4]);
-		glNormal3fv(nor);
-		glVertex3fv(vec[5]); glVertex3fv(vec[3]); glVertex3fv(vec[4]);
-		
-		normal_tri_v3( nor,vec[5], vec[4], vec[1]);
-		glNormal3fv(nor);
-		glVertex3fv(vec[5]); glVertex3fv(vec[4]); glVertex3fv(vec[1]);
-		
 		glEnd();
-		
+
+#else	/* not working because each vert needs a different normal */
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glNormalPointer(GL_FLOAT, 0, bone_octahedral_solid_normals);
+		glVertexPointer(3, GL_FLOAT, 0, bone_octahedral_verts);
+		glDrawElements(GL_TRIANGLES, sizeof(bone_octahedral_solid_tris)/sizeof(unsigned int), GL_UNSIGNED_INT, bone_octahedral_solid_tris);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
+#endif
+
 		glEndList();
 	}
 

@@ -1098,15 +1098,19 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MLoopCol), "MLoopCol", 1, "WeightLoopCol", NULL, NULL, layerInterp_mloopcol, NULL,
 	 layerDefault_mloopcol, layerEqual_mloopcol, layerMultiply_mloopcol, layerInitMinMax_mloopcol,
 	 layerAdd_mloopcol, layerDoMinMax_mloopcol, layerCopyValue_mloopcol},
+	/* 24: CD_RECAST */
+	{sizeof(MRecast), "MRecast", 1,"Recast",NULL,NULL,NULL,NULL}
 };
 
+/* note, numbers are from trunk and need updating for bmesh */
+
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
-	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
-	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
-	"CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
-	"CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol", "CDMPoly", 
-	"CDMLoop", "CDMClothOrco", "CDMLoopCol", "CDIDCol", "CDTextureCol",
-	"CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight", "CDSubSurfCrease"
+	/*   0-4 */ "CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
+	/*   5-9 */ "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty",
+	/* 10-14 */ "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco", "CDMTexPoly", "CDMLoopUV",
+	/* 15-19 */ "CDMloopCol", "CDTangent", "CDMDisps", "CDWeightMCol", "CDMPoly", 
+	/* 20-24 */ "CDMLoop", "CDMClothOrco", "CDMLoopCol", "CDIDCol", "CDTextureCol",
+	/* ?-? */ "CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight", "CDSubSurfCrease", "CDMRecast"
 };
 
 
@@ -1117,18 +1121,18 @@ const CustomDataMask CD_MASK_MESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL |
 	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS |
 	CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MPOLY | CD_MASK_MLOOP |
-	CD_MASK_MTEXPOLY | CD_MASK_NORMAL | CD_MASK_MDISPS;
+	CD_MASK_MTEXPOLY | CD_MASK_NORMAL | CD_MASK_MDISPS | CD_MASK_RECAST;
 const CustomDataMask CD_MASK_EDITMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MLOOPUV |
 	CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_SHAPE_KEYINDEX |
 	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR |
-	CD_MASK_MDISPS | CD_MASK_SHAPEKEY;
+	CD_MASK_MDISPS | CD_MASK_SHAPEKEY | CD_MASK_RECAST;
 const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_CLOTH_ORCO |
 	CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_WEIGHT_MLOOPCOL |
 	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | 
-	CD_MASK_WEIGHT_MCOL | CD_MASK_NORMAL | CD_MASK_SHAPEKEY;
+	CD_MASK_WEIGHT_MCOL | CD_MASK_NORMAL | CD_MASK_SHAPEKEY | CD_MASK_RECAST;
 const CustomDataMask CD_MASK_BMESH = CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | 
 	CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS;

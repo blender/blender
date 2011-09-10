@@ -215,6 +215,11 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_test_multires);
 
+#ifdef WITH_GAMEENGINE
+	WM_operatortype_append(OBJECT_OT_create_navmesh);
+	WM_operatortype_append(OBJECT_OT_assign_navpolygon);
+	WM_operatortype_append(OBJECT_OT_assign_new_navpolygon);
+#endif
 }
 
 void ED_operatormacros_object(void)

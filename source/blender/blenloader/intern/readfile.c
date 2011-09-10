@@ -3962,6 +3962,11 @@ static void lib_link_object(FileData *fd, Main *main)
 					arma->target= newlibadr(fd, ob->id.lib, arma->target);
 					arma->subtarget= newlibadr(fd, ob->id.lib, arma->subtarget);
 				}
+				else if(act->type==ACT_STEERING) {
+					bSteeringActuator *steeringa = act->data; 
+					steeringa->target = newlibadr(fd, ob->id.lib, steeringa->target);
+					steeringa->navmesh = newlibadr(fd, ob->id.lib, steeringa->navmesh);
+				}
 				act= act->next;
 			}
 			
@@ -11681,6 +11686,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	// init facing axis property of steering actuators
+	{					
+		Object *ob;
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			bActuator *act;
+			for(act= ob->actuators.first; act; act= act->next) {
+				if(act->type==ACT_STEERING) {
+					bSteeringActuator* stact = act->data;
+					if (stact->facingaxis==0)
+					{
+						stact->facingaxis=1;
+					}						
+				}
+			}
+		}
+	}
+	
 	if (main->versionfile < 256) {
 		bScreen *sc;
 		ScrArea *sa;
@@ -12084,6 +12106,43 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	}
 
+	//set defaults for obstacle avoidance, recast data
+	{
+		Scene *sce;
+		for(sce = main->scene.first; sce; sce = sce->id.next)
+		{
+			if (sce->gm.levelHeight == 0.f)
+				sce->gm.levelHeight = 2.f;
+
+			if(sce->gm.recastData.cellsize == 0.0f)
+				sce->gm.recastData.cellsize = 0.3f;
+			if(sce->gm.recastData.cellheight == 0.0f)
+				sce->gm.recastData.cellheight = 0.2f;
+			if(sce->gm.recastData.agentmaxslope == 0.0f)
+				sce->gm.recastData.agentmaxslope = M_PI/4;
+			if(sce->gm.recastData.agentmaxclimb == 0.0f)
+				sce->gm.recastData.agentmaxclimb = 0.9f;
+			if(sce->gm.recastData.agentheight == 0.0f)
+				sce->gm.recastData.agentheight = 2.0f;
+			if(sce->gm.recastData.agentradius == 0.0f)
+				sce->gm.recastData.agentradius = 0.6f;
+			if(sce->gm.recastData.edgemaxlen == 0.0f)
+				sce->gm.recastData.edgemaxlen = 12.0f;
+			if(sce->gm.recastData.edgemaxerror == 0.0f)
+				sce->gm.recastData.edgemaxerror = 1.3f;
+			if(sce->gm.recastData.regionminsize == 0.0f)
+				sce->gm.recastData.regionminsize = 50.f;
+			if(sce->gm.recastData.regionmergesize == 0.0f)
+				sce->gm.recastData.regionmergesize = 20.f;
+			if(sce->gm.recastData.vertsperpoly<3)
+				sce->gm.recastData.vertsperpoly = 6;
+			if(sce->gm.recastData.detailsampledist == 0.0f)
+				sce->gm.recastData.detailsampledist = 6.0f;
+			if(sce->gm.recastData.detailsamplemaxerror == 0.0f)
+				sce->gm.recastData.detailsamplemaxerror = 1.0f;
+		}			
+	}
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
@@ -12987,6 +13046,11 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		else if(act->type==ACT_ARMATURE) {
 			bArmatureActuator *arma= act->data;
 			expand_doit(fd, mainvar, arma->target);
+		}
+		else if(act->type==ACT_STEERING) {
+			bSteeringActuator *sta= act->data;
+			expand_doit(fd, mainvar, sta->target);
+			expand_doit(fd, mainvar, sta->navmesh);
 		}
 		act= act->next;
 	}

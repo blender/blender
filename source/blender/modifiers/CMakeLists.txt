@@ -35,12 +35,16 @@ set(INC
 	../makesrna
 	../bmesh
 	../render/extern/include
+	../editors/include
+	../gpu
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
+	../../../extern/recastnavigation/Recast/Include
 )
 
 set(INC_SYS
 	${ZLIB_INCLUDE_DIRS}
+	${GLEW_INCLUDE_PATH}
 )
 
 set(SRC
@@ -66,6 +70,7 @@ set(SRC
 	intern/MOD_mirror.c
 	intern/MOD_multires.c
 	intern/MOD_ngoninterp.c
+	intern/MOD_navmesh.cpp
 	intern/MOD_none.c
 	intern/MOD_particleinstance.c
 	intern/MOD_particlesystem.c
@@ -114,6 +119,10 @@ endif()
 
 if(NOT WITH_MOD_FLUID)
 	add_definitions(-DDISABLE_ELBEEM)
+endif()
+
+if(WITH_GAMEENGINE)
+	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
 blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}")

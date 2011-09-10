@@ -49,10 +49,15 @@ using namespace std;
 #define RAS_MAX_TEXCO	8	// match in BL_Material
 #define RAS_MAX_ATTRIB	16	// match in BL_BlenderShader
 
-struct	OglDebugLine
+struct	OglDebugShape
 {
-	MT_Vector3	m_from;
-	MT_Vector3	m_to;
+	enum SHAPE_TYPE{
+		LINE, CIRCLE
+	};
+	SHAPE_TYPE  m_type;
+	MT_Vector3	m_pos;
+	MT_Vector3	m_param;
+	MT_Vector3	m_param2;
 	MT_Vector3	m_color;
 };
 
@@ -256,18 +261,32 @@ public:
 
 	virtual void	SetPolygonOffset(float mult, float add);
 
-	virtual	void	FlushDebugLines();
+	virtual	void	FlushDebugShapes();
 
-	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
+	virtual	void DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
 	{
-		OglDebugLine line;
-		line.m_from = from;
-		line.m_to = to;
+		OglDebugShape line;
+		line.m_type = OglDebugShape::LINE;
+		line.m_pos= from;
+		line.m_param = to;
 		line.m_color = color;
-		m_debugLines.push_back(line);
+		m_debugShapes.push_back(line);
 	}
 
-	std::vector <OglDebugLine>	m_debugLines;
+	virtual	void DrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
+									const MT_Vector3& normal, int nsector)
+	{
+		OglDebugShape line;
+		line.m_type = OglDebugShape::CIRCLE;
+		line.m_pos= center;
+		line.m_param = normal;
+		line.m_color = color;	
+		line.m_param2.x() = radius;
+		line.m_param2.y() = (float) nsector;
+		m_debugShapes.push_back(line);
+	}
+
+	std::vector <OglDebugShape>	m_debugShapes;
 
 	virtual void SetTexCoordNum(int num);
 	virtual void SetAttribNum(int num);
