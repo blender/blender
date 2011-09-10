@@ -1,6 +1,6 @@
-********
-Gotcha's
-********
+*******
+Gotchas
+*******
 
 This document attempts to help you work with the Blender API in areas that can be troublesome and avoid practices that are known to give instability.
 
@@ -32,12 +32,12 @@ Which raises the question as to what the correct context might be?
 
 Typically operators check for the active area type, a selection or active object they can operate on, but some operators are more picky about when they run.
 
-In most cases you can figure out what context an operator needs simply be seeing how its used in Blender and thinking about what it does.
+In most cases you can figure out what context an operator needs simply be seeing how it's used in Blender and thinking about what it does.
 
 
 Unfortunately if you're still stuck - the only way to **really** know whats going on is to read the source code for the poll function and see what its checking.
 
-For python operators its not so hard to find the source since its included with with Blender and the source file/line is included in the operator reference docs.
+For python operators it's not so hard to find the source since it's included with Blender and the source file/line is included in the operator reference docs.
 
 Downloading and searching the C code isn't so simple, especially if you're not familiar with the C language but by searching the operator name or description you should be able to find the poll function with no knowledge of C.
 
@@ -74,7 +74,7 @@ Sometimes you want to modify values from python and immediately access the updat
 
 Once changing the objects :class:`bpy.types.Object.location` you may want to access its transformation right after from :class:`bpy.types.Object.matrix_world`, but this doesn't work as you might expect.
 
-Consider the calculations that might go into working out the objects final transformation, this includes:
+Consider the calculations that might go into working out the object's final transformation, this includes:
 
 * animation function curves.
 * drivers and their pythons expressions.
@@ -106,7 +106,7 @@ Modal operators execute on user input or setup their own timers to run frequentl
 
 Transform, Painting, Fly-Mode and File-Select are example of a modal operators.
 
-Writing modal operators takes more effort then a simple ``for`` loop that happens to redraw but is more flexible and integrates better with Blenders design.
+Writing modal operators takes more effort than a simple ``for`` loop that happens to redraw but is more flexible and integrates better with Blenders design.
 
 
 **Ok, Ok! I still want to draw from python**
@@ -129,7 +129,7 @@ This is different to **numpy** which is row-major which matches what you would e
 I can't edit the mesh in edit-mode!
 ===================================
 
-Blenders EditMesh is an internal data structure (not saved and not exposed to python), this gives the main annoyance that you need to exit edit-mode to edit the mesh from python.
+Blender's EditMesh is an internal data structure (not saved and not exposed to python), this gives the main annoyance that you need to exit edit-mode to edit the mesh from python.
 
 The reason we have not made much attempt to fix this yet is because we
 will likely move to BMesh mesh API eventually, so any work on the API now will be wasted effort.
@@ -226,13 +226,13 @@ This is mainly an issue with editmode since pose data can be manipulated without
 Unicode Problems
 ================
 
-Python supports many different encpdings so there is nothing stopping you from writing a script in latin1 or iso-8859-15.
+Python supports many different encodings so there is nothing stopping you from writing a script in latin1 or iso-8859-15.
 
 See `pep-0263 <http://www.python.org/dev/peps/pep-0263/>`_
 
-However this complicates things for the python api because blend files themselves dont have an encoding.
+However this complicates things for the python api because blend files themselves don't have an encoding.
 
-To simplify the problem for python integration and script authors we have decieded all strings in blend files **must** be UTF-8 or ASCII compatible.
+To simplify the problem for python integration and script authors we have decided all strings in blend files **must** be UTF-8 or ASCII compatible.
 
 This means assigning strings with different encodings to an object names for instance will raise an error.
 
@@ -331,13 +331,13 @@ This an example of a timer which runs many times a second and moves the default 
 
    my_timer()
 
-Use cases like the one above which leave the thread running once the script finishes may seem to work for a while but end up causing random crashes or errors in Blenders own drawing code.
+Use cases like the one above which leave the thread running once the script finishes may seem to work for a while but end up causing random crashes or errors in Blender's own drawing code.
 
-So far no work has gone into making Blenders python integration thread safe, so until its properly supported, best not make use of this.
+So far, no work has gone into making Blender's python integration thread safe, so until its properly supported, best not make use of this.
 
 .. note::
 
-   Pythons threads only allow co-currency and wont speed up you're scripts on multi-processor systems, the ``subprocess`` and ``multiprocess`` modules can be used with blender and make use of multiple CPU's too.
+   Pythons threads only allow co-currency and won't speed up your scripts on multi-processor systems, the ``subprocess`` and ``multiprocess`` modules can be used with blender and make use of multiple CPU's too.
 
 
 Help! My script crashes Blender
