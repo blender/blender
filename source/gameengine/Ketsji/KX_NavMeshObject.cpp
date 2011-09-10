@@ -237,7 +237,7 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 				copy_v3_v3(vert, pos);
 			else
 			{
-				memset(vert, NULL, 3*sizeof(float)); //vertex isn't in any poly, set dummy zero coordinates
+				memset(vert, 0, 3*sizeof(float)); //vertex isn't in any poly, set dummy zero coordinates
 			}
 			vert+=3;		
 		}

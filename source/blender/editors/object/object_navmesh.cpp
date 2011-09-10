@@ -312,7 +312,7 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 {
 	float co[3], rot[3];
 	EditMesh *em;
-	int i,j, k, polyverts;
+	int i,j, k;
 	unsigned short* v;
 	int face[3];
 	Main *bmain = CTX_data_main(C);
@@ -355,7 +355,6 @@ static Object* createRepresentation(bContext *C, rcPolyMesh*& pmesh, rcPolyMeshD
 		SWAP(float, co[1], co[2]);
 		addvertlist(em, co, NULL);
 	}
-	polyverts = pmesh->nverts;
 
 	//create custom data layer to save polygon idx
 	CustomData_add_layer_named(&em->fdata, CD_RECAST, CD_CALLOC, NULL, 0, "recastData");

@@ -2493,7 +2493,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 static void rna_def_modifier_navmesh(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
+	/* PropertyRNA *prop; */ /* UNUSED */
 
 	srna= RNA_def_struct(brna, "NavMeshModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "NavMesh Modifier", "NavMesh modifier");
