@@ -43,10 +43,9 @@ if(WITH_BUILTIN_GLEW)
 	add_subdirectory(glew)
 endif()
 
-## TODO MAKE GAME ENGINE ONLY
-# if(WITH_GAMEENGINE)
+if(WITH_GAMEENGINE)
    add_subdirectory(recastnavigation)
-# endif()
+endif()
 
 if(WITH_IMAGE_OPENJPEG AND (NOT UNIX OR APPLE))
 	add_subdirectory(libopenjpeg)

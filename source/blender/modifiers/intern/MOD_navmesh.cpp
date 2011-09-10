@@ -33,7 +33,10 @@ extern "C"{
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+
 #include "BLI_math.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -47,13 +50,13 @@ extern "C"{
 
 static void initData(ModifierData *md)
 {
-	NavMeshModifierData *nmmd = (NavMeshModifierData*) md;
+	/* NavMeshModifierData *nmmd = (NavMeshModifierData*) md; */ /* UNUSED */
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	NavMeshModifierData *nmmd = (NavMeshModifierData*) md;
-	NavMeshModifierData *tnmmd = (NavMeshModifierData*) target;
+	/* NavMeshModifierData *nmmd = (NavMeshModifierData*) md; */
+	/* NavMeshModifierData *tnmmd = (NavMeshModifierData*) target; */
 
 	//.todo - deep copy
 }
@@ -61,6 +64,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 /*
 static void (*drawFacesSolid_original)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
 					   int fast, int (*setMaterial)(int, void *attribs)) = NULL;*/
+
+#ifdef WITH_GAMEENGINE
 
 static void drawNavMeshColored(DerivedMesh *dm)
 {
@@ -122,9 +127,11 @@ static void navDM_drawFacesSolid(DerivedMesh *dm,
 	//drawFacesSolid_original(dm, partial_redraw_planes, fast, setMaterial);
 	drawNavMeshColored(dm);
 }
+#endif /* WITH_GAMEENGINE */
 
 static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,DerivedMesh *dm)
 {
+#ifdef WITH_GAMEENGINE
 	DerivedMesh *result;
 	int maxFaces = dm->getNumFaces(dm);
 
@@ -194,6 +201,9 @@ static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,Deriv
 		delete trisToFacesMap;		
 
 	return result;
+#else // WITH_GAMEENGINE
+	return dm;
+#endif // WITH_GAMEENGINE
 }
 
 /*

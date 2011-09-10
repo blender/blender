@@ -119,4 +119,8 @@ if(NOT WITH_MOD_FLUID)
 	add_definitions(-DDISABLE_ELBEEM)
 endif()
 
+if(WITH_GAMEENGINE)
+	add_definitions(-DWITH_GAMEENGINE)
+endif()
+
 blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}")

@@ -40,7 +40,6 @@ set(SRC
 	editmode_undo.c
 	numinput.c
 	undo.c
-	navmesh_conversion.cpp
 	crazyspace.c
 
 	util_intern.h
@@ -89,5 +88,11 @@ set(SRC
 	../include/UI_resources.h
 	../include/UI_view2d.h
 )
+
+if(WITH_GAMEENGINE)
+	list(APPEND SRC
+		navmesh_conversion.cpp
+	)
+endif()
 
 blender_add_lib(bf_editor_util "${SRC}" "${INC}" "${INC_SYS}")
