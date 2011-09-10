@@ -280,6 +280,8 @@ struct SortContext
 };
 #if defined(_MSC_VER)
 static int compareByData(void* data, const void * a, const void * b)
+#elif defined(__APPLE__)
+static int compareByData(void* data, const void * a, const void * b)
 #else
 static int compareByData(const void * a, const void * b, void* data)
 #endif
@@ -312,6 +314,8 @@ bool buildNavMeshData(const int nverts, const float* verts,
 	context.trisToFacesMap = trisToFacesMap;
 #if defined(_MSC_VER)
 	qsort_s(trisMapping, ntris, sizeof(int), compareByData, &context);
+#elif defined(__APPLE__)
+	qsort_r(trisMapping, ntris, sizeof(int), &context, compareByData);
 #else
 	qsort_r(trisMapping, ntris, sizeof(int), compareByData, &context);
 #endif

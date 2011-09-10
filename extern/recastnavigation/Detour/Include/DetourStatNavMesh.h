@@ -42,7 +42,7 @@ struct dtStatPolyDetail
 	unsigned short ntris;	// Number of triangles.
 };
 
-const int DT_STAT_NAVMESH_MAGIC = 'NAVM';
+const int DT_STAT_NAVMESH_MAGIC = (('N'<<24) | ('A'<<16) | ('V'<<8) | 'M');
 const int DT_STAT_NAVMESH_VERSION = 3;
 
 struct dtStatBVNode

@@ -97,6 +97,8 @@ static int circumCircle(const float xp, const float yp,
 
 #if defined(_MSC_VER)
 static int ptcmp(void* up, const void *v1, const void *v2)
+#elif defined(__APPLE__)
+static int ptcmp(void* up, const void *v1, const void *v2)
 #else
 static int ptcmp(const void *v1, const void *v2, void* up)
 #endif
@@ -122,6 +124,8 @@ static void delaunay(const int nv, float *verts, rcIntArray& idx, rcIntArray& tr
 		idx[i] = i;
 #if defined(_MSC_VER)
 	qsort_s(&idx[0], idx.size(), sizeof(int), ptcmp, verts);
+#elif defined(__APPLE__)
+	qsort_r(&idx[0], idx.size(), sizeof(int), verts, ptcmp);
 #else
 	qsort_r(&idx[0], idx.size(), sizeof(int), ptcmp, verts);
 #endif

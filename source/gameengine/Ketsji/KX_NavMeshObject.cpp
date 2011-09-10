@@ -520,6 +520,9 @@ void KX_NavMeshObject::DrawNavMesh(NavMeshRenderMode renderMode)
 			}
 		}
 		break;
+	default:
+		/* pass */
+		break;
 	}
 }
 

@@ -36,7 +36,7 @@ static const int DT_TILE_VERTS_PER_POLYGON = 6;
 static const int DT_MAX_TILES = 1 << DT_TILE_REF_TILE_BITS;
 static const int DT_MAX_POLYGONS = 1 << DT_TILE_REF_POLY_BITS;
 
-static const int DT_TILE_NAVMESH_MAGIC = 'NAVT';
+static const int DT_TILE_NAVMESH_MAGIC = (('N'<<24) | ('A'<<16) | ('V'<<8) | 'M');
 static const int DT_TILE_NAVMESH_VERSION = 2;
 
 // Structure holding the navigation polygon data.
