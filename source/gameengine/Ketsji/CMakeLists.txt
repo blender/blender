@@ -59,7 +59,7 @@ set(INC_SYS
 	${GLEW_INCLUDE_PATH}
 	../../../extern/recastnavigation/Recast/Include
 	../../../extern/recastnavigation/Detour/Include
-	../../../source/blender/editors/include
+	../../blender/editors/include
 )
 
 set(SRC

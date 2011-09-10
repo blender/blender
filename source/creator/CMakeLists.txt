@@ -819,6 +819,8 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		bf_intern_mikktspace
+		extern_recastnavigation
+		bf_editor_util          # --- BAD LEVEL CALL HERE --- XXX, this should be removed before release!
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)
