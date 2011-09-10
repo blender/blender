@@ -95,7 +95,11 @@ static int circumCircle(const float xp, const float yp,
 	return (drsqr <= rsqr) ? 1 : 0;
 }
 
+#if defined(_MSC_VER)
 static int ptcmp(void* up, const void *v1, const void *v2)
+#else
+static int ptcmp(const void *v1, const void *v2, void* up)
+#endif
 {
 	const float* verts = (const float*)up;
 	const float* p1 = &verts[(*(const int*)v1)*3];
@@ -116,10 +120,10 @@ static void delaunay(const int nv, float *verts, rcIntArray& idx, rcIntArray& tr
 	idx.resize(nv);
 	for (int i = 0; i < nv; ++i)
 		idx[i] = i;
-#ifdef WIN32
+#if defined(_MSC_VER)
 	qsort_s(&idx[0], idx.size(), sizeof(int), ptcmp, verts);
 #else
-	qsort_r(&idx[0], idx.size(), sizeof(int), verts, ptcmp);
+	qsort_r(&idx[0], idx.size(), sizeof(int), ptcmp, verts);
 #endif
 
 	// Find the maximum and minimum vertex bounds.
@@ -673,11 +677,15 @@ bool rcBuildPolyMeshDetail(const rcPolyMesh& mesh, const rcCompactHeightfield& c
 						   const float sampleDist, const float sampleMaxError,
 						   rcPolyMeshDetail& dmesh)
 {
-	rcTimeVal startTime = rcGetPerformanceTimer();
-	
 	if (mesh.nverts == 0 || mesh.npolys == 0)
 		return true;
-	
+
+	rcTimeVal startTime = rcGetPerformanceTimer();
+	rcTimeVal endTime;
+
+	int vcap;
+	int tcap;
+
 	const int nvp = mesh.nvp;
 	const float cs = mesh.cs;
 	const float ch = mesh.ch;
@@ -760,8 +768,8 @@ bool rcBuildPolyMeshDetail(const rcPolyMesh& mesh, const rcCompactHeightfield& c
 		goto failure;
 	}
 
-	int vcap = nPolyVerts+nPolyVerts/2;
-	int tcap = vcap*2;
+	vcap = nPolyVerts+nPolyVerts/2;
+	tcap = vcap*2;
 
 	dmesh.nverts = 0;
 	dmesh.verts = new float[vcap*3];
@@ -882,7 +890,7 @@ bool rcBuildPolyMeshDetail(const rcPolyMesh& mesh, const rcCompactHeightfield& c
 	delete [] bounds;
 	delete [] poly;
 	
-	rcTimeVal endTime = rcGetPerformanceTimer();
+	endTime = rcGetPerformanceTimer();
 	
 	if (rcGetBuildTimes())
 		rcGetBuildTimes()->buildDetailMesh += rcGetDeltaTimeUsec(startTime, endTime);

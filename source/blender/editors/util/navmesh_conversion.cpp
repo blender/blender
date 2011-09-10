@@ -146,7 +146,6 @@ bool buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
 										  const float* verts, const unsigned short* dtris, 
 										  const int* dtrisToPolysMap)
 {
-	bool res = false;
 	int capacity = vertsPerPoly;
 	unsigned short* newPoly =  new unsigned short[capacity];
 	memset(newPoly, 0xff, sizeof(unsigned short)*capacity);
@@ -268,7 +267,6 @@ bool buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
 			}
 		}
 	}
-	res = true;
 
 returnLabel:
 	delete newPoly;
@@ -280,8 +278,13 @@ struct SortContext
 	const int* recastData;
 	const int* trisToFacesMap;
 };
-static int compareByData(void* data, const void * a, const void * b){
-	SortContext* context = (SortContext*)data;
+#if defined(_MSC_VER)
+static int compareByData(const void* data, void * a, void * b)
+#else
+static int compareByData(const void * a, const void * b, void* data)
+#endif
+{
+	const SortContext* context = (const SortContext*)data;
 	return ( context->recastData[context->trisToFacesMap[*(int*)a]] - 
 		context->recastData[context->trisToFacesMap[*(int*)b]] );
 }
@@ -307,8 +310,11 @@ bool buildNavMeshData(const int nverts, const float* verts,
 	SortContext context;
 	context.recastData = recastData;
 	context.trisToFacesMap = trisToFacesMap;
+#if defined(_MSC_VER)
 	qsort_s(trisMapping, ntris, sizeof(int), compareByData, &context);
-
+#else
+	qsort_r(trisMapping, ntris, sizeof(int), compareByData, &context);
+#endif
 	//search first valid triangle - triangle of convex polygon
 	int validTriStart = -1;
 	for (int i=0; i< ntris; i++)

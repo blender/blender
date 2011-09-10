@@ -188,7 +188,7 @@ bool rcBuildCompactHeightfield(const int walkableHeight, const int walkableClimb
 				if (s->flags == flags)
 				{
 					const int bot = (int)s->smax;
-					const int top = (int)s->next ? (int)s->next->smin : MAX_HEIGHT;
+					const int top = s->next ? (int)s->next->smin : MAX_HEIGHT;
 					chf.spans[idx].y = (unsigned short)rcClamp(bot, 0, 0xffff);
 					chf.spans[idx].h = (unsigned char)rcClamp(top - bot, 0, 0xff);
 					idx++;

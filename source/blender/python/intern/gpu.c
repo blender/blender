@@ -147,7 +147,6 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 	PyObject* pymat;
 	PyObject* as_pointer;
 	PyObject* pointer;
-	PyObject* noargs;
 	PyObject* result;
 	PyObject* dict;
 	PyObject* val;
@@ -170,9 +169,7 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 		(as_pointer = PyObject_GetAttrString(pyscene, "as_pointer")) != NULL &&
 		PyCallable_Check(as_pointer)) {
 		// must be a scene object
-		noargs = PyTuple_New(0);
-		pointer = PyObject_CallObject(as_pointer, noargs);
-		Py_DECREF(noargs);
+		pointer = PyObject_CallObject(as_pointer, NULL);
 		if (!pointer) {
 			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
 			return NULL;
@@ -192,9 +189,7 @@ static PyObject* GPU_export_shader(PyObject* UNUSED(self), PyObject *args, PyObj
 		(as_pointer = PyObject_GetAttrString(pymat, "as_pointer")) != NULL &&
 		PyCallable_Check(as_pointer)) {
 		// must be a material object
-		noargs = PyTuple_New(0);
-		pointer = PyObject_CallObject(as_pointer, noargs);
-		Py_DECREF(noargs);
+		pointer = PyObject_CallObject(as_pointer, NULL);
 		if (!pointer) {
 			PyErr_SetString(PyExc_SystemError, "scene.as_pointer() failed");
 			return NULL;

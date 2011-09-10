@@ -445,6 +445,19 @@ typedef struct RecastData
 
 typedef struct GameData {
 
+	/*  standalone player */
+	struct GameFraming framing;
+	short fullscreen, xplay, yplay, freqplay;
+	short depth, attrib, rt1, rt2;
+
+	/* stereo/dome mode */
+	struct GameDome dome;
+	short stereoflag, stereomode;
+	short pad2, pad3;
+	float eyeseparation, pad1;
+	RecastData recastData;
+
+
 	/* physics (it was in world)*/
 	float gravity; /*Gravitation constant for the game world*/
 
@@ -463,19 +476,6 @@ typedef struct GameData {
 	short ticrate, maxlogicstep, physubstep, maxphystep;
 	short obstacleSimulation;
 	float levelHeight;
-
-
-	/*  standalone player */
-	struct GameFraming framing;
-	short fullscreen, xplay, yplay, freqplay;
-	short depth, attrib, rt1, rt2;
-
-	/* stereo/dome mode */
-	struct GameDome dome;
-	short stereoflag, stereomode;
-	short pad2, pad3;
-	float eyeseparation, pad1;
-	RecastData recastData;
 } GameData;
 
 #define STEREO_NOSTEREO		1

@@ -46,7 +46,7 @@ void rcFilterLedgeSpans(const int walkableHeight,
 					continue;
 				
 				const int bot = (int)s->smax;
-				const int top = (int)s->next ? (int)s->next->smin : MAX_HEIGHT;
+				const int top = s->next ? (int)s->next->smin : MAX_HEIGHT;
 				
 				// Find neighbours minimum height.
 				int minh = MAX_HEIGHT;
@@ -74,7 +74,7 @@ void rcFilterLedgeSpans(const int walkableHeight,
 					for (ns = solid.spans[dx + dy*w]; ns; ns = ns->next)
 					{
 						nbot = (int)ns->smax;
-						ntop = (int)ns->next ? (int)ns->next->smin : MAX_HEIGHT;
+						ntop = ns->next ? (int)ns->next->smin : MAX_HEIGHT;
 						// Skip neightbour if the gap between the spans is too small.
 						if (rcMin(top,ntop) - rcMax(bot,nbot) > walkableHeight)
 							minh = rcMin(minh, nbot - bot);
@@ -115,7 +115,7 @@ void rcFilterWalkableLowHeightSpans(int walkableHeight,
 			for (rcSpan* s = solid.spans[x + y*w]; s; s = s->next)
 			{
 				const int bot = (int)s->smax;
-				const int top = (int)s->next ? (int)s->next->smin : MAX_HEIGHT;
+				const int top = s->next ? (int)s->next->smin : MAX_HEIGHT;
 				if ((top - bot) <= walkableHeight)
 					s->flags &= ~RC_WALKABLE;
 			}
@@ -194,7 +194,7 @@ bool rcMarkReachableSpans(const int walkableHeight,
 				rcReachableSeed cur = stack[stackSize];
 				
 				const int bot = (int)cur.s->smax;
-				const int top = (int)cur.s->next ? (int)cur.s->next->smin : MAX_HEIGHT;
+				const int top = cur.s->next ? (int)cur.s->next->smin : MAX_HEIGHT;
 				
 				// Visit neighbours in all 4 directions.
 				for (int dir = 0; dir < 4; ++dir)
@@ -214,7 +214,7 @@ bool rcMarkReachableSpans(const int walkableHeight,
 							continue;
 						
 						const int nbot = (int)ns->smax;
-						const int ntop = (int)ns->next ? (int)ns->next->smin : MAX_HEIGHT;
+						const int ntop = ns->next ? (int)ns->next->smin : MAX_HEIGHT;
 						// Skip neightbour if the gap between the spans is too small.
 						if (rcMin(top,ntop) - rcMax(bot,nbot) < walkableHeight)
 							continue;

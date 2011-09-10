@@ -489,6 +489,9 @@ static void pushBack(int v, int* arr, int& an)
 
 static bool removeVertex(rcPolyMesh& mesh, const unsigned short rem, const int maxTris)
 {
+	unsigned short* tmpPoly;
+	int ntris;
+
 	static const int nvp = mesh.nvp;
 
 	int* edges = 0;
@@ -671,7 +674,7 @@ static bool removeVertex(rcPolyMesh& mesh, const unsigned short rem, const int m
 	}
 
 	// Triangulate the hole.
-	int ntris = triangulate(nhole, &tverts[0], &thole[0], tris);
+	ntris = triangulate(nhole, &tverts[0], &thole[0], tris);
 
 	// Merge the hole triangles back to polygons.
 	polys = new unsigned short[(ntris+1)*nvp];
@@ -689,7 +692,7 @@ static bool removeVertex(rcPolyMesh& mesh, const unsigned short rem, const int m
 		goto failure;
 	}
 	
-	unsigned short* tmpPoly = &polys[ntris*nvp];
+	tmpPoly = &polys[ntris*nvp];
 			
 	// Build initial polygons.
 	memset(polys, 0xff, ntris*nvp*sizeof(unsigned short));
@@ -793,7 +796,9 @@ failure:
 
 bool rcBuildPolyMesh(rcContourSet& cset, int nvp, rcPolyMesh& mesh)
 {
+	unsigned short* tmpPoly;
 	rcTimeVal startTime = rcGetPerformanceTimer();
+	rcTimeVal endTime;
 
 	vcopy(mesh.bmin, cset.bmin);
 	vcopy(mesh.bmax, cset.bmax);
@@ -902,7 +907,7 @@ bool rcBuildPolyMesh(rcContourSet& cset, int nvp, rcPolyMesh& mesh)
 			rcGetLog()->log(RC_LOG_ERROR, "rcBuildPolyMesh: Out of memory 'polys' (%d).", maxVertsPerCont*nvp);
 		goto failure;
 	}
-	unsigned short* tmpPoly = &polys[maxVertsPerCont*nvp];
+	tmpPoly = &polys[maxVertsPerCont*nvp];
 
 	for (int i = 0; i < cset.nconts; ++i)
 	{
@@ -1050,7 +1055,7 @@ bool rcBuildPolyMesh(rcContourSet& cset, int nvp, rcPolyMesh& mesh)
 		return false;
 	}
 	
-	rcTimeVal endTime = rcGetPerformanceTimer();
+	endTime = rcGetPerformanceTimer();
 	
 //	if (rcGetLog())
 //		rcGetLog()->log(RC_LOG_PROGRESS, "Build polymesh: %.3f ms", rcGetDeltaTimeUsec(startTime, endTime)/1000.0f);
@@ -1076,6 +1081,7 @@ bool rcMergePolyMeshes(rcPolyMesh** meshes, const int nmeshes, rcPolyMesh& mesh)
 		return true;
 
 	rcTimeVal startTime = rcGetPerformanceTimer();
+	rcTimeVal endTime;
 
 	int* nextVert = 0;
 	int* firstVert = 0;
@@ -1196,7 +1202,7 @@ bool rcMergePolyMeshes(rcPolyMesh** meshes, const int nmeshes, rcPolyMesh& mesh)
 	delete [] nextVert;
 	delete [] vremap;
 	
-	rcTimeVal endTime = rcGetPerformanceTimer();
+	endTime = rcGetPerformanceTimer();
 	
 	if (rcGetBuildTimes())
 		rcGetBuildTimes()->mergePolyMesh += rcGetDeltaTimeUsec(startTime, endTime);
