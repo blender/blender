@@ -1117,14 +1117,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					scol->col[3]= (l*((float)cp3[0]) - u*((float)cp1[0]) - v*((float)cp2[0]))/255.0f;
 					
 					/* try to prevent invalid color sampling of zero alpha points */
-					if (!cp1[0]) cp1 = cp2;
-					if (!cp1[0]) cp1 = cp3;
-
-					if (!cp2[0]) cp2 = cp1;
-					if (!cp2[0]) cp2 = cp3;
-
-					if (!cp3[0]) cp3 = cp1;
-					if (!cp3[0]) cp3 = cp2;
+					if (!cp1[0]) cp1 = cp2; if (!cp1[0]) cp1 = cp3;
+					if (!cp2[0]) cp2 = cp1; if (!cp2[0]) cp2 = cp3;
+					if (!cp3[0]) cp3 = cp1; if (!cp3[0]) cp3 = cp2;
 
 					/* sample color value */
 					scol->col[0]= (l*((float)cp3[3]) - u*((float)cp1[3]) - v*((float)cp2[3]))/255.0f;

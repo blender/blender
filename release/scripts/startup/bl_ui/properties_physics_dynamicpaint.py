@@ -202,40 +202,6 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, bpy.types.Panel):
         layout.label(text="Brush Group:")
         layout.prop(surface, "brush_group", text="")
 
-class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, bpy.types.Panel):
-    bl_label = "Dynamic Paint: Initial Color"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        md = context.dynamic_paint
-        if (not (md and (md.ui_type == "CANVAS") and (md.canvas_settings))):
-            return 0
-        surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
-        return (surface and surface.surface_type=="PAINT")
-
-    def draw(self, context):
-        layout = self.layout
-
-        canvas = context.dynamic_paint.canvas_settings
-        surface = canvas.canvas_surfaces.active
-        ob = context.object
-
-        layout.prop(surface, "init_color_type", expand=False)
-        layout.separator()
-
-        # dissolve
-        if (surface.init_color_type == "COLOR"):
-            layout.prop(surface, "init_color")
-            
-        if (surface.init_color_type == "TEXTURE"):
-            layout.prop(surface, "init_texture")
-            layout.prop_search(surface, "init_layername", ob.data, "uv_textures", text="UV Layer:")
-        
-        if (surface.init_color_type == "VERTEXCOLOR"):
-            layout.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer: ")
-
-
 class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Dynamic Paint: Output"
     bl_options = {'DEFAULT_CLOSED'}
@@ -323,7 +289,39 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, bpy.types.Panel):
             layout.operator("dpaint.bake", text="Bake Image Sequence", icon='MOD_DYNAMICPAINT')
             if len(canvas.ui_info) != 0:
                 layout.label(text=canvas.ui_info)
-		
+
+class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, bpy.types.Panel):
+    bl_label = "Dynamic Paint: Initial Color"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        md = context.dynamic_paint
+        if (not (md and (md.ui_type == "CANVAS") and (md.canvas_settings))):
+            return 0
+        surface = context.dynamic_paint.canvas_settings.canvas_surfaces.active
+        return (surface and surface.surface_type=="PAINT")
+
+    def draw(self, context):
+        layout = self.layout
+
+        canvas = context.dynamic_paint.canvas_settings
+        surface = canvas.canvas_surfaces.active
+        ob = context.object
+
+        layout.prop(surface, "init_color_type", expand=False)
+        layout.separator()
+
+        # dissolve
+        if (surface.init_color_type == "COLOR"):
+            layout.prop(surface, "init_color")
+            
+        if (surface.init_color_type == "TEXTURE"):
+            layout.prop(surface, "init_texture")
+            layout.prop_search(surface, "init_layername", ob.data, "uv_textures", text="UV Layer:")
+        
+        if (surface.init_color_type == "VERTEXCOLOR"):
+            layout.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer: ")
 
 class PHYSICS_PT_dp_effects(PhysicButtonsPanel, bpy.types.Panel):
     bl_label = "Dynamic Paint: Effects"
@@ -427,7 +425,7 @@ class PHYSICS_PT_dp_advanced_brush(PhysicButtonsPanel, bpy.types.Panel):
             split = layout.row().split(percentage=0.4)
             sub = split.column()
             sub.prop(brush, "accept_nonclosed")
-            if brush.accept_nonclosed:
+            if brush.prox_project:
                 sub = split.column()
                 sub.prop(brush, "ray_dir")
                 
@@ -436,13 +434,17 @@ class PHYSICS_PT_dp_advanced_brush(PhysicButtonsPanel, bpy.types.Panel):
             col.prop(brush, "paint_distance", text="Paint Distance")
             split = layout.row().split(percentage=0.4)
             sub = split.column()
-            if (brush.paint_source != 'POINT'):
-                sub.prop(brush, "prox_facealigned")
-            sub = split.column()
-            sub.prop(brush, "prox_falloff")
+            if brush.paint_source == 'DISTANCE':
+                sub.prop(brush, "prox_project")
             if brush.paint_source == "VOLDIST":
-                col = layout.row().column()
-                col.prop(brush, "prox_inverse")
+                sub.prop(brush, "prox_inverse")
+                
+            sub = split.column()
+            if brush.paint_source == 'DISTANCE':
+                column = sub.column()
+                column.active = brush.prox_project
+                column.prop(brush, "ray_dir")
+            sub.prop(brush, "prox_falloff")
             if brush.prox_falloff == "RAMP":
                 col = layout.row().column()
                 col.separator()

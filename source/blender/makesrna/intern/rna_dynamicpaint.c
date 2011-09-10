@@ -314,9 +314,9 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	/*  Initial color setting */
 	static EnumPropertyItem prop_dynamicpaint_init_color_type[] = {
 			{MOD_DPAINT_INITIAL_NONE, "NONE", 0, "None", ""},
-			{MOD_DPAINT_INITIAL_COLOR, "COLOR", 0, "Color", ""},
-			{MOD_DPAINT_INITIAL_TEXTURE, "TEXTURE", 0, "UV Texture", ""},
-			{MOD_DPAINT_INITIAL_VERTEXCOLOR, "VERTEXCOLOR", 0, "Vertex Color", ""},
+			{MOD_DPAINT_INITIAL_COLOR, "COLOR", ICON_COLOR, "Color", ""},
+			{MOD_DPAINT_INITIAL_TEXTURE, "TEXTURE", ICON_TEXTURE, "UV Texture", ""},
+			{MOD_DPAINT_INITIAL_VERTEXCOLOR, "VERTEXCOLOR", ICON_GROUP_VCOL, "Vertex Color", ""},
 			{0, NULL, 0, NULL, NULL}};
 
 	/*  Effect type
@@ -687,7 +687,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	static EnumPropertyItem prop_dynamicpaint_prox_falloff[] = {
 			{MOD_DPAINT_PRFALL_SMOOTH, "SMOOTH", ICON_SPHERECURVE, "Smooth", ""},
 			{MOD_DPAINT_PRFALL_SHARP, "SHARP", ICON_NOCURVE, "Sharp", ""},
-			{MOD_DPAINT_PRFALL_RAMP, "RAMP", 0, "Color Ramp", ""},
+			{MOD_DPAINT_PRFALL_RAMP, "RAMP", ICON_COLOR, "Color Ramp", ""},
 			{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_dynamicpaint_brush_wave_type[] = {
@@ -698,7 +698,8 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_dynamicpaint_brush_ray_dir[] = {
 			{MOD_DPAINT_RAY_CANVAS, "CANVAS", 0, "Canvas Normal", ""},
-			{MOD_DPAINT_RAY_ZPLUS, "ZPLUT", 0, "Z-Axis", ""},
+			{MOD_DPAINT_RAY_BRUSH_AVG, "BRUSH", 0, "Brush Normal", ""},
+			{MOD_DPAINT_RAY_ZPLUS, "ZPLUS", 0, "Z-Axis", ""},
 			{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem buttons_dynamicpaint_settings_menu[] = {
@@ -804,15 +805,6 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "collision");
 	RNA_def_property_enum_items(prop, prop_dynamicpaint_collisiontype);
 	RNA_def_property_ui_text(prop, "Paint Source", "");
-
-	prop= RNA_def_property(srna, "accept_nonclosed", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ACCEPT_NONCLOSED);
-	RNA_def_property_ui_text(prop, "Non-Closed", "Allows painting with non-closed meshes. Brush influence is defined by custom ray direction.");
-
-	prop= RNA_def_property(srna, "ray_dir", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "ray_dir");
-	RNA_def_property_enum_items(prop, prop_dynamicpaint_brush_ray_dir);
-	RNA_def_property_ui_text(prop, "Ray Dir", "Defines ray direction to use for non-closed meshes. If ray faces an opposite normal brush is processed.");
 	
 	prop= RNA_def_property(srna, "paint_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "paint_distance");
@@ -830,13 +822,18 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_dynamicpaint_prox_falloff);
 	RNA_def_property_ui_text(prop, "Falloff", "Proximity falloff type");
 	
-	prop= RNA_def_property(srna, "prox_facealigned", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_PROX_FACEALIGNED);
-	RNA_def_property_ui_text(prop, "Face Aligned", "Check proximity in canvas face normal direction only.");
+	prop= RNA_def_property(srna, "prox_project", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_PROX_PROJECT);
+	RNA_def_property_ui_text(prop, "Project", "Brush is projected to canvas from defined direction within brush proximity.");
+
+	prop= RNA_def_property(srna, "ray_dir", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ray_dir");
+	RNA_def_property_enum_items(prop, prop_dynamicpaint_brush_ray_dir);
+	RNA_def_property_ui_text(prop, "Ray Dir", "Defines ray direction to use for projection. If brush object is located in that direction it's painted.");
 
 	prop= RNA_def_property(srna, "prox_inverse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_INVERSE_PROX);
-	RNA_def_property_ui_text(prop, "Inner", "Proximity falloff is applied inside the volume.");
+	RNA_def_property_ui_text(prop, "Inner Proximity", "Proximity falloff is applied inside the volume.");
 	
 
 	/*

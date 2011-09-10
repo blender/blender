@@ -48,7 +48,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_bmesh.h" /* For BevelModifierData */
-#include "BKE_dynamicpaint.h" /* For dynamicPaint_Modifier_free & *_createType */
+#include "BKE_dynamicpaint.h"
 #include "BKE_multires.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 

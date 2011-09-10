@@ -751,9 +751,6 @@ typedef struct ScrewModifierData {
 typedef struct WarpModifierData {
 	ModifierData modifier;
 
-
-
-
 	/* keep in sync with MappingInfoModifierData */
 	struct Tex *texture;
 	struct Object *map_object;

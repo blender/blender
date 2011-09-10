@@ -298,44 +298,6 @@ static void dynamicPaint_setPreview(DynamicPaintSurface *t_surface)
 	}
 }
 
-/* change surface data to defaults on new type */
-void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface)
-{
-	if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
-		surface->output_name[0]='\0';
-		surface->output_name2[0]='\0';
-		surface->flags |= MOD_DPAINT_ANTIALIAS;
-		surface->disp_clamp = 1.0f;
-	}
-	else {
-		sprintf(surface->output_name, "dp_");
-		strcpy(surface->output_name2,surface->output_name);
-		surface->flags &= ~MOD_DPAINT_ANTIALIAS;
-		surface->disp_clamp = 0.0f;
-	}
-
-	if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
-		strcat(surface->output_name,"paintmap");
-		strcat(surface->output_name2,"wetmap");
-	}
-	else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
-		strcat(surface->output_name,"displace");
-	}
-	else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
-		strcat(surface->output_name,"weight");
-	}
-	else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
-		strcat(surface->output_name,"wave");
-		strcat(surface->output_name2,"foam");
-	}
-
-	/* update preview */
-	if (dynamicPaint_surfaceHasColorPreview(surface))
-		dynamicPaint_setPreview(surface);
-	else
-		dynamicPaint_resetPreview(surface->canvas);
-}
-
 int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *ob, int index)
 {
 	char *name;
@@ -359,7 +321,33 @@ int dynamicPaint_outputLayerExists(struct DynamicPaintSurface *surface, Object *
 	return 0;
 }
 
-static int surfaceDublicateNameExists(void *arg, const char *name)
+static int surface_duplicateOutputExists(void *arg, const char *name)
+{
+	DynamicPaintSurface *t_surface = (DynamicPaintSurface*)arg;
+	DynamicPaintSurface *surface = t_surface->canvas->surfaces.first;
+
+	for(; surface; surface=surface->next) {
+		if (surface!=t_surface && surface->type==t_surface->type &&
+			surface->format==t_surface->format) {
+			if (surface->output_name[0]!='\0' && !strcmp(name, surface->output_name)) return 1;
+			if (surface->output_name2[0]!='\0' && !strcmp(name, surface->output_name2)) return 1;
+		}
+	}
+	return 0;
+}
+
+void surface_setUniqueOutputName(DynamicPaintSurface *surface, char *basename, int output)
+{
+	char name[64];
+	strncpy(name, basename, 62); /* in case basename is surface->name use a copy */
+	if (!output)
+		BLI_uniquename_cb(surface_duplicateOutputExists, surface, name, '.', surface->output_name, sizeof(surface->output_name));
+	if (output)
+		BLI_uniquename_cb(surface_duplicateOutputExists, surface, name, '.', surface->output_name2, sizeof(surface->output_name2));
+}
+
+
+static int surface_duplicateNameExists(void *arg, const char *name)
 {
 	DynamicPaintSurface *t_surface = (DynamicPaintSurface*)arg;
 	DynamicPaintSurface *surface = t_surface->canvas->surfaces.first;
@@ -374,7 +362,48 @@ void dynamicPaintSurface_setUniqueName(DynamicPaintSurface *surface, char *basen
 {
 	char name[64];
 	strncpy(name, basename, 62); /* in case basename is surface->name use a copy */
-	BLI_uniquename_cb(surfaceDublicateNameExists, surface, name, '.', surface->name, sizeof(surface->name));
+	BLI_uniquename_cb(surface_duplicateNameExists, surface, name, '.', surface->name, sizeof(surface->name));
+}
+
+
+/* change surface data to defaults on new type */
+void dynamicPaintSurface_updateType(struct DynamicPaintSurface *surface)
+{
+	if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
+		surface->output_name[0]='\0';
+		surface->output_name2[0]='\0';
+		surface->flags |= MOD_DPAINT_ANTIALIAS;
+		surface->disp_clamp = 1.0f;
+	}
+	else {
+		sprintf(surface->output_name, "dp_");
+		strcpy(surface->output_name2,surface->output_name);
+		surface->flags &= ~MOD_DPAINT_ANTIALIAS;
+		surface->disp_clamp = 0.0f;
+	}
+
+	if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
+		strcat(surface->output_name,"paintmap");
+		strcat(surface->output_name2,"wetmap");
+		surface_setUniqueOutputName(surface, surface->output_name2, 1);
+	}
+	else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
+		strcat(surface->output_name,"displace");
+	}
+	else if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
+		strcat(surface->output_name,"weight");
+	}
+	else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
+		strcat(surface->output_name,"wave");
+	}
+
+	surface_setUniqueOutputName(surface, surface->output_name, 0);
+
+	/* update preview */
+	if (dynamicPaint_surfaceHasColorPreview(surface))
+		dynamicPaint_setPreview(surface);
+	else
+		dynamicPaint_resetPreview(surface->canvas);
 }
 
 static int surface_totalSamples(DynamicPaintSurface *surface)
@@ -1025,7 +1054,7 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 
 			pmd->brush->psys = NULL;
 
-			pmd->brush->flags = MOD_DPAINT_ABS_ALPHA;
+			pmd->brush->flags = MOD_DPAINT_ABS_ALPHA | MOD_DPAINT_RAMP_ALPHA;
 			pmd->brush->collision = MOD_DPAINT_COL_VOLUME;
 			
 			pmd->brush->mat = NULL;
@@ -1035,7 +1064,7 @@ int dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, stru
 			pmd->brush->alpha = 1.0f;
 			pmd->brush->wetness = 1.0f;
 
-			pmd->brush->paint_distance = 0.1f;
+			pmd->brush->paint_distance = 1.0f;
 			pmd->brush->proximity_falloff = MOD_DPAINT_PRFALL_SMOOTH;
 
 			pmd->brush->particle_radius = 0.2f;
@@ -3318,8 +3347,6 @@ static void dynamicPaint_updatePointData(DynamicPaintSurface *surface, unsigned 
 /* checks whether surface and brush bounds intersect depending on brush type */
 static int meshBrush_boundsIntersect(Bounds3D *b1, Bounds3D *b2, DynamicPaintBrushSettings *brush)
 {
-	if (brush->flags & MOD_DPAINT_ACCEPT_NONCLOSED)
-		return 1;
 	if (brush->collision == MOD_DPAINT_COL_VOLUME)
 		return boundsIntersect(b1, b2);
 	else if (brush->collision == MOD_DPAINT_COL_DIST || brush->collision == MOD_DPAINT_COL_VOLDIST)
@@ -3452,6 +3479,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 	if (!brush->dm) return 0;
 	{
 		BVHTreeFromMesh treeData = {0};
+		float avg_brushNor[3] = {0.0f};
 		int numOfVerts;
 		int ii;
 		Bounds3D mesh_bb = {0};
@@ -3468,6 +3496,25 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 		for (ii=0; ii<numOfVerts; ii++) {
 			mul_m4_v3(brushOb->obmat, mvert[ii].co);
 			boundInsert(&mesh_bb, mvert[ii].co);
+
+			/* for project brush calculate average normal */
+			if (brush->collision & MOD_DPAINT_COL_DIST && brush->flags & MOD_DPAINT_PROX_PROJECT) {
+				float nor[3];
+				normal_short_to_float_v3(nor, mvert[ii].no);
+				mul_mat3_m4_v3(brushOb->obmat, nor);
+				normalize_v3(nor);
+
+				VECADD(avg_brushNor, avg_brushNor, nor);
+			}
+		}
+
+		if (brush->collision & MOD_DPAINT_COL_DIST && brush->flags & MOD_DPAINT_PROX_PROJECT) {
+			VECMULVAL(avg_brushNor, 1.0f/(float)numOfVerts);
+			/* instead of null vector use positive z */
+			if (!(MIN3(avg_brushNor[0],avg_brushNor[1],avg_brushNor[2])))
+				avg_brushNor[2] = 1.0f;
+			else
+				normalize_v3(avg_brushNor);
 		}
 
 		/* check bounding box collision */
@@ -3510,7 +3557,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 					for (ss=0; ss<samples; ss++)
 					{
 
-						float ray_start[3], ray_dir[3] = {0.0f};
+						float ray_start[3], ray_dir[3];
 						float colorband[4] = {0.0f};
 						float sample_factor;
 						float sampleStrength = 0.0f;
@@ -3531,11 +3578,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 
 						/* Get current sample position in world coordinates	*/
 						VECCOPY(ray_start, bData->realCoord[bData->s_pos[index]+ss].v);
-						if (!(brush->flags & MOD_DPAINT_ACCEPT_NONCLOSED) || brush->ray_dir == MOD_DPAINT_RAY_CANVAS) {
-							VECCOPY(ray_dir, bData->bNormal[index].invNorm);
-						}
-						else /* MOD_DPAINT_RAY_ZPLUS */
-							ray_dir[2] = 1.0f;
+						VECCOPY(ray_dir, bData->bNormal[index].invNorm);
 
 						/* a simple hack to minimize chance of ray leaks at identical ray <-> edge locations */
 						VECADDVAL(ray_start, 0.001f);
@@ -3566,15 +3609,13 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 								float dist = hit.dist;
 								int f_index = hit.index;
 
-								/* In case of non-closed volumes, also cast a ray in opposite direction
-								*  to make sure point is at least between two brush faces*/
-								if (!(brush->flags & MOD_DPAINT_ACCEPT_NONCLOSED)) {
-									VECMULVAL(ray_dir, -1.0f);
-									hit.index = -1;
-									hit.dist = 9999;
+								/* Also cast a ray in opposite direction to make sure
+								*  point is at least surrounded by two brush faces */
+								VECMULVAL(ray_dir, -1.0f);
+								hit.index = -1;
+								hit.dist = 9999;
 
-									BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f, &hit, mesh_faces_spherecast_dp, &treeData);
-								}
+								BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f, &hit, mesh_faces_spherecast_dp, &treeData);
 
 								if(hit.index != -1) {
 									/* Add factor on supersample filter	*/
@@ -3603,7 +3644,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 							if (brush->flags & MOD_DPAINT_INVERSE_PROX && !hit_found) continue;
 
 							/* If pure distance proximity, find the nearest point on the mesh */
-							if (!(brush->flags & MOD_DPAINT_PROX_FACEALIGNED)) {
+							if (brush->collision != MOD_DPAINT_COL_DIST || !(brush->flags & MOD_DPAINT_PROX_PROJECT)) {
 								if (BLI_bvhtree_find_nearest(treeData.tree, ray_start, &nearest, mesh_faces_nearest_point_dp, &treeData) != -1) {
 									proxDist = sqrt(nearest.dist);
 									copy_v3_v3(hitCo, nearest.co);
@@ -3611,16 +3652,27 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface, DynamicPaintBrus
 									face = nearest.index;
 								}
 							}
-							else { /* else cast a ray in surface normal direction	*/
-								negate_v3(ray_dir);
+							else { /* else cast a ray in defined projection direction */
+								float proj_ray[3] = {0.0f};
+
+								if (brush->ray_dir == MOD_DPAINT_RAY_CANVAS) {
+									VECCOPY(proj_ray, bData->bNormal[index].invNorm);
+									negate_v3(proj_ray);
+								}
+								else if (brush->ray_dir == MOD_DPAINT_RAY_BRUSH_AVG) {
+									VECCOPY(proj_ray, avg_brushNor);
+								}
+								else  { /* MOD_DPAINT_RAY_ZPLUS */
+									proj_ray[2] = 1.0f;
+								}
 								hit.index = -1;
 								hit.dist = brush->paint_distance;
 
 								/* Do a face normal directional raycast, and use that distance	*/
-								if(BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_dir, 0.0f, &hit, mesh_faces_spherecast_dp, &treeData) != -1)
+								if(BLI_bvhtree_ray_cast(treeData.tree, ray_start, proj_ray, 0.0f, &hit, mesh_faces_spherecast_dp, &treeData) != -1)
 								{
 									proxDist = hit.dist;
-									VECADDFAC(hitCo, ray_start, ray_dir, hit.dist);	/* Calculate final hit coordinates */
+									VECADDFAC(hitCo, ray_start, proj_ray, hit.dist);	/* Calculate final hit coordinates */
 									hQuad = (hit.no[0] == 1.0f);
 									face = hit.index;
 								}

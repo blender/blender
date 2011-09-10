@@ -85,30 +85,30 @@ typedef struct DynamicPaintSurface {
 	char name[64];
 	short format, type;
 	short disp_type, image_fileformat;
-	short effect_ui;	/* just ui selection box */
+	short effect_ui;	/* ui selection box */
 	short preview_id;	/* surface output id to preview */
 	short init_color_type, pad_s;
 	int flags, effect;
 
 	int image_resolution, substeps;
 	int start_frame, end_frame;
-
-	int dry_speed, diss_speed;
-	float disp_clamp;
+	int pad;
 
 	/* initial color */
 	float init_color[4];
 	struct Tex *init_texture;
 	char init_layername[40];
-	int pad;
+
+	int dry_speed, diss_speed;
+	float disp_clamp;
 
 	float spread_speed, color_spread_speed, shrink_speed;
 	float drip_vel, drip_acc;
 
 	/* wave settings */
 	float wave_damping, wave_speed, wave_timescale, wave_spring;
-	char uvlayer_name[32];
 
+	char uvlayer_name[32];
 	char image_output_path[240];
 	char output_name[40];
 	char output_name2[40]; /* some surfaces have 2 outputs */
@@ -143,9 +143,8 @@ typedef struct DynamicPaintCanvasSettings {
 #define MOD_DPAINT_ERASE (1<<3) /* removes paint */
 
 #define MOD_DPAINT_RAMP_ALPHA (1<<4) /* only read falloff ramp alpha */
-#define MOD_DPAINT_PROX_FACEALIGNED (1<<5) /* do proximity check only in normal dir */
+#define MOD_DPAINT_PROX_PROJECT (1<<5) /* do proximity check only in defined dir */
 #define MOD_DPAINT_INVERSE_PROX (1<<6) /* inverse proximity painting */
-#define MOD_DPAINT_ACCEPT_NONCLOSED (1<<7) /* allows volume brushes to work with non-closed volumes */
 
 #define MOD_DPAINT_DO_SMUDGE (1<<8) /* brush smudges existing paint */
 #define MOD_DPAINT_VELOCITY_ALPHA (1<<9) /* multiply brush influence by velocity */
@@ -173,7 +172,8 @@ typedef struct DynamicPaintCanvasSettings {
 
 /* brush ray_dir */
 #define MOD_DPAINT_RAY_CANVAS 0
-#define MOD_DPAINT_RAY_ZPLUS 1
+#define MOD_DPAINT_RAY_BRUSH_AVG 1
+#define MOD_DPAINT_RAY_ZPLUS 2
 
 
 /* Brush settings */

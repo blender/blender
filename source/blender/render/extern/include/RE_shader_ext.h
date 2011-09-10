@@ -195,7 +195,6 @@ struct Tex;
 struct MTex;
 struct ImBuf;
 
-int multitex(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output);
 /* this one uses nodes */
 int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
 /* nodes disabled */
@@ -203,8 +202,6 @@ int multitex_ext_safe(struct Tex *tex, float *texvec, struct TexResult *texres);
 /* only for internal node usage */
 int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres,
 	short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex);
-
-void texco_mapping_ext(float *facenor, struct Tex* tex, struct MTex* mtex, float* co, float* dx, float* dy, float* texvec);
 
 /* shaded view and bake */
 struct Render;

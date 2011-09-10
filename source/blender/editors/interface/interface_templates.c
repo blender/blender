@@ -747,7 +747,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		uiBlockBeginAlign(block);
 		/* Softbody not allowed in this situation, enforce! */
 		if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
-			&& !ELEM(md->type, eModifierType_Surface, eModifierType_DynamicPaint) ) 
+			&& (md->type!=eModifierType_Surface) ) 
 		{
 			uiItemR(row, &ptr, "show_render", 0, "", ICON_NONE);
 			uiItemR(row, &ptr, "show_viewport", 0, "", ICON_NONE);
@@ -804,7 +804,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		box= uiLayoutBox(column);
 		row= uiLayoutRow(box, 0);
 		
-		if (!ELEM3(md->type, eModifierType_Collision, eModifierType_Surface, eModifierType_DynamicPaint)) {
+		if (!ELEM(md->type, eModifierType_Collision, eModifierType_Surface)) {
 			/* only here obdata, the rest of modifiers is ob level */
 			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 			
