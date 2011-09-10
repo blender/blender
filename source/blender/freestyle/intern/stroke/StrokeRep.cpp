@@ -255,14 +255,6 @@ Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
         _vertices.push_back(new StrokeVertexRep(p-thickness[0]*stripDir));
       ++i;
 
-      if((stripDir+stripDirPrev).norm() <= 1.e-06){
-        // the strip is most likely doing a U-turn, we can't compute the average vector.
-        // We just continue and hope it's ok
-        vPrev = v;
-        cerr << "Warning: problem in strip creation (the strip is most likely doing a U-turn).\n";
-        continue;
-      }
-      
       // if the angle is obtuse, we simply average the directions to avoid the singularity
       stripDir=stripDir+stripDirPrev;
       if ((dirNorm<ZERO) || (dirPrevNorm<ZERO) || (stripDir.norm() < ZERO)) {
