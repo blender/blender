@@ -9,4 +9,7 @@ incs += ' ../../makesrna'
 incs += ' #extern/recastnavigation/Recast/Include'
 incs += ' ../../blenloader'
 
+if not env['WITH_BF_GAMEENGINE']:
+    sources.remove('navmesh_conversion.cpp')
+
 env.BlenderLib ( 'bf_editors_util', sources, Split(incs), [], libtype=['core','player'], priority=[130,210] )
