@@ -71,6 +71,10 @@ typedef enum ModifierType {
 	eModifierType_Solidify,
 	eModifierType_Screw,
 	eModifierType_Warp,
+	eModifierType_WeightVGEdit,
+	eModifierType_WeightVGMix,
+	eModifierType_WeightVGProximity,
+	eModifierType_NavMesh,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -675,7 +679,6 @@ typedef struct ShrinkwrapModifierData {
 #define MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS		(1<<2)
 #define MOD_SHRINKWRAP_PROJECT_OVER_NORMAL			0	/* projection over normal is used if no axis is selected */
 
-
 typedef struct SimpleDeformModifierData {
 	ModifierData modifier;
 
@@ -747,6 +750,10 @@ typedef struct ScrewModifierData {
 #define MOD_SCREW_OBJECT_OFFSET	(1<<2)
 // #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
 
+typedef struct NavMeshModifierData {
+	ModifierData modifier;
+} NavMeshModifierData;
+
 typedef struct WarpModifierData {
 	ModifierData modifier;
 
@@ -784,5 +791,174 @@ typedef enum {
 	eWarp_Falloff_Sphere =		7, /* PROP_SPHERE */
 	/* PROP_RANDOM not used */
 } WarpModifierFalloff;
+
+typedef struct WeightVGEditModifierData {
+	ModifierData modifier;
+
+	/* Note: I tried to keep everything logically ordered - provided the
+	 * alignment constraints... */
+
+	char	defgrp_name[32];      /* Name of vertex group to edit. */
+
+	short	edit_flags;     /* Using MOD_WVG_EDIT_* flags. */
+	short	falloff_type;   /* Using MOD_WVG_MAPPING_* defines. */
+	float	default_weight; /* Weight for vertices not in vgroup. */
+
+	/* Mapping stuff. */
+	struct CurveMapping *cmap_curve;  /* The custom mapping curve! */
+
+ 	/* The add/remove vertices weight thresholds. */
+	float	add_threshold, rem_threshold;
+
+	/* Masking options. */
+	float	mask_constant; /* The global "influence", if no vgroup nor tex is used as mask. */
+	/* Name of mask vertex group from which to get weight factors. */
+	char	mask_defgrp_name[32];
+
+	/* Texture masking. */
+	int		mask_tex_use_channel;      /* Which channel to use as weightf. */
+	struct Tex *mask_texture;          /* The texture. */
+	struct Object *mask_tex_map_obj;   /* Name of the map object. */
+	/* How to map the texture (using MOD_DISP_MAP_* constants). */
+	int		mask_tex_mapping;
+	char	mask_tex_uvlayer_name[32]; /* Name of the UV layer. */
+
+	/* Padding... */
+	int pad_i1;
+} WeightVGEditModifierData;
+
+/* WeightVGEdit flags. */
+/* Use parametric mapping. */
+//#define MOD_WVG_EDIT_MAP					(1 << 0)
+/* Use curve mapping. */
+//#define MOD_WVG_EDIT_CMAP					(1 << 1)
+/* Reverse weights (in the [0.0, 1.0] standard range). */
+//#define MOD_WVG_EDIT_REVERSE_WEIGHTS		(1 << 2)
+/* Add vertices with higher weight than threshold to vgroup. */
+#define MOD_WVG_EDIT_ADD2VG					(1 << 3)
+/* Remove vertices with lower weight than threshold from vgroup. */
+#define MOD_WVG_EDIT_REMFVG					(1 << 4)
+/* Clamp weights. */
+//#define MOD_WVG_EDIT_CLAMP					(1 << 5)
+
+typedef struct WeightVGMixModifierData {
+	ModifierData modifier;
+
+	/* XXX Note: I tried to keep everything logically ordered – provided the
+	 *           alignment constraints... */
+
+	char	defgrp_name_a[32];      /* Name of vertex group to modify/weight. */
+	char	defgrp_name_b[32];     /* Name of other vertex group to mix in. */
+	float	default_weight_a;       /* Default weight value for first vgroup. */
+	float	default_weight_b;      /* Default weight value to mix in. */
+	char	mix_mode;             /* How second vgroups weights affect first ones */
+	char	mix_set;              /* What vertices to affect. */
+
+	char	pad_c1[6];
+
+	/* Masking options. */
+	float	mask_constant; /* The global "influence", if no vgroup nor tex is used as mask. */
+	/* Name of mask vertex group from which to get weight factors. */
+	char	mask_defgrp_name[32];
+
+	/* Texture masking. */
+	int		mask_tex_use_channel;      /* Which channel to use as weightf. */
+	struct Tex *mask_texture;          /* The texture. */
+	struct Object *mask_tex_map_obj;   /* Name of the map object. */
+	int		mask_tex_mapping;          /* How to map the texture! */
+	char	mask_tex_uvlayer_name[32]; /* Name of the UV layer. */
+
+	/* Padding... */
+	int pad_i1;
+} WeightVGMixModifierData;
+
+/* How second vgroup's weights affect first ones. */
+#define MOD_WVG_MIX_SET			1 /* Second weights replace weights. */
+#define MOD_WVG_MIX_ADD			2 /* Second weights are added to weights. */
+#define MOD_WVG_MIX_SUB			3 /* Second weights are subtracted from weights. */
+#define MOD_WVG_MIX_MUL			4 /* Second weights are multiplied with weights. */
+#define MOD_WVG_MIX_DIV			5 /* Second weights divide weights. */
+#define MOD_WVG_MIX_DIF			6 /* Difference between second weights and weights. */
+#define MOD_WVG_MIX_AVG			7 /* Average of both weights. */
+
+/* What vertices to affect. */
+#define MOD_WVG_SET_ALL			1 /* Affect all vertices. */
+#define MOD_WVG_SET_A			2 /* Affect only vertices in first vgroup. */
+#define MOD_WVG_SET_B			3 /* Affect only vertices in second vgroup. */
+#define MOD_WVG_SET_OR			4 /* Affect only vertices in one vgroup or the other. */
+#define MOD_WVG_SET_AND			5 /* Affect only vertices in both vgroups. */
+
+typedef struct WeightVGProximityModifierData {
+	ModifierData modifier;
+
+	/* Note: I tried to keep everything logically ordered - provided the
+	 * alignment constraints... */
+
+	char	defgrp_name[32];      /* Name of vertex group to modify/weight. */
+
+	/* Proximity modes. */
+	int		proximity_mode;
+	int		proximity_flags;
+
+	/* Target object from which to calculate vertices distances. */
+	struct Object *proximity_ob_target;
+
+	/* Masking options. */
+	float	mask_constant; /* The global "influence", if no vgroup nor tex is used as mask. */
+	/* Name of mask vertex group from which to get weight factors. */
+	char	mask_defgrp_name[32];
+
+	/* Texture masking. */
+	int		mask_tex_use_channel;      /* Which channel to use as weightf. */
+	struct Tex *mask_texture;          /* The texture. */
+	struct Object *mask_tex_map_obj;   /* Name of the map object. */
+	int		mask_tex_mapping;          /* How to map the texture! */
+	char	mask_tex_uvlayer_name[32]; /* Name of the UV layer. */
+
+	float	min_dist, max_dist;        /* Distances mapping to 0.0/1.0 weights. */
+
+	/* Put here to avoid breaking existing struct... */
+	short	falloff_type;              /* Using MOD_WVG_MAPPING_* defines. */
+
+	/* Padding... */
+	short pad_s1;
+} WeightVGProximityModifierData;
+
+/* Modes of proximity weighting. */
+/* Dist from target object to affected object. */
+#define MOD_WVG_PROXIMITY_OBJECT			1 /* source vertex to other location */
+/* Dist from target object to vertex. */
+#define MOD_WVG_PROXIMITY_GEOMETRY			2 /* source vertex to other geometry */
+
+/* Flags options for proximity weighting. */
+/* Use nearest vertices of target obj, in MOD_WVG_PROXIMITY_GEOMETRY mode. */
+#define MOD_WVG_PROXIMITY_GEOM_VERTS		(1 << 0)
+/* Use nearest edges of target obj, in MOD_WVG_PROXIMITY_GEOMETRY mode. */
+#define MOD_WVG_PROXIMITY_GEOM_EDGES		(1 << 1)
+/* Use nearest faces of target obj, in MOD_WVG_PROXIMITY_GEOMETRY mode. */
+#define MOD_WVG_PROXIMITY_GEOM_FACES		(1 << 2)
+
+/* Defines common to all WeightVG modifiers. */
+/* Mapping modes. */
+#define MOD_WVG_MAPPING_NONE				0
+#define MOD_WVG_MAPPING_CURVE				1
+#define MOD_WVG_MAPPING_SHARP				2 /* PROP_SHARP */
+#define MOD_WVG_MAPPING_SMOOTH				3 /* PROP_SMOOTH */
+#define MOD_WVG_MAPPING_ROOT				4 /* PROP_ROOT */
+/* PROP_LIN not used (same as NONE, here...). */
+/* PROP_CONST not used. */
+#define MOD_WVG_MAPPING_SPHERE				7 /* PROP_SPHERE */
+#define MOD_WVG_MAPPING_RANDOM				8 /* PROP_RANDOM */
+#define MOD_WVG_MAPPING_STEP				9 /* Median Step. */
+
+/* Tex channel to be used as mask. */
+#define MOD_WVG_MASK_TEX_USE_INT			1
+#define MOD_WVG_MASK_TEX_USE_RED			2
+#define MOD_WVG_MASK_TEX_USE_GREEN			3
+#define MOD_WVG_MASK_TEX_USE_BLUE			4
+#define MOD_WVG_MASK_TEX_USE_HUE			5
+#define MOD_WVG_MASK_TEX_USE_SAT			6
+#define MOD_WVG_MASK_TEX_USE_VAL			7
+#define MOD_WVG_MASK_TEX_USE_ALPHA			8
 
 #endif

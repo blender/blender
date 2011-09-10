@@ -126,6 +126,7 @@ GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex);
 int GPU_texture_target(GPUTexture *tex);
 int GPU_texture_opengl_width(GPUTexture *tex);
 int GPU_texture_opengl_height(GPUTexture *tex);
+int GPU_texture_opengl_bindcode(GPUTexture *tex);
 
 /* GPU Framebuffer
    - this is a wrapper for an OpenGL framebuffer object (FBO). in practice
@@ -179,6 +180,7 @@ typedef struct GPUVertexAttribs {
 		int type;
 		int glindex;
 		int gltexco;
+		int attribid;
 		char name[32];
 	} layer[GPU_MAX_ATTRIB];
 

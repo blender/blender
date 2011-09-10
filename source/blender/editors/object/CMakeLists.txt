@@ -33,6 +33,7 @@ set(INC
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
+	../../../../extern/recastnavigation/Recast/Include
 )
 
 set(INC_SYS
@@ -58,8 +59,18 @@ set(SRC
 	object_intern.h
 )
 
+if(WITH_GAMEENGINE)
+	list(APPEND SRC
+		object_navmesh.cpp
+	)
+endif()
+
 if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
+endif()
+
+if(WITH_GAMEENGINE)
+	add_definitions(-DWITH_GAMEENGINE)
 endif()
 
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}")

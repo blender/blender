@@ -201,7 +201,7 @@ if(NOT WITH_MOD_FLUID)
 endif()
 
 if(WITH_FFTW3)
-	add_definitions(-DFFTW3=1)
+	add_definitions(-DWITH_FFTW3)
 endif()
 
 if(WITH_SDL)

@@ -4608,7 +4608,7 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 
 
 #ifdef DEBUG_STRING_FREE
-	// if(PyList_Size(string_free_ls)) printf("%.200s.%.200s():  has %d strings\n", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), (int)PyList_Size(string_free_ls));
+	// if(PyList_GET_SIZE(string_free_ls)) printf("%.200s.%.200s():  has %d strings\n", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), (int)PyList_GET_SIZE(string_free_ls));
 	Py_DECREF(string_free_ls);
 #undef DEBUG_STRING_FREE
 #endif
@@ -5443,7 +5443,7 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 		if(bpy_types==NULL) {
 			PyErr_Print();
 			PyErr_Clear();
-			fprintf(stderr, "pyrna_srna_ExternalType: failed to find 'bpy_types' module\n");
+			fprintf(stderr, "%s: failed to find 'bpy_types' module\n", __func__);
 			return NULL;
 		}
 		bpy_types_dict= PyModule_GetDict(bpy_types); // borrow
@@ -5457,18 +5457,18 @@ static PyObject* pyrna_srna_ExternalType(StructRNA *srna)
 		PyObject *base_compare= pyrna_srna_PyBase(srna);
 		//PyObject *slots= PyObject_GetAttrString(newclass, "__slots__"); // cant do this because it gets superclasses values!
 		//PyObject *bases= PyObject_GetAttrString(newclass, "__bases__"); // can do this but faster not to.
-		PyObject *bases= ((PyTypeObject *)newclass)->tp_bases;
-		PyObject *slots= PyDict_GetItem(((PyTypeObject *)newclass)->tp_dict, bpy_intern_str___slots__);
+		PyObject *tp_bases= ((PyTypeObject *)newclass)->tp_bases;
+		PyObject *tp_slots= PyDict_GetItem(((PyTypeObject *)newclass)->tp_dict, bpy_intern_str___slots__);
 
-		if(slots==NULL) {
-			fprintf(stderr, "pyrna_srna_ExternalType: expected class '%s' to have __slots__ defined\n\nSee bpy_types.py\n", idname);
+		if(tp_slots==NULL) {
+			fprintf(stderr, "%s: expected class '%s' to have __slots__ defined\n\nSee bpy_types.py\n", __func__, idname);
 			newclass= NULL;
 		}
-		else if(PyTuple_GET_SIZE(bases)) {
-			PyObject *base= PyTuple_GET_ITEM(bases, 0);
+		else if(PyTuple_GET_SIZE(tp_bases)) {
+			PyObject *base= PyTuple_GET_ITEM(tp_bases, 0);
 
 			if(base_compare != base) {
-				fprintf(stderr, "pyrna_srna_ExternalType: incorrect subclassing of SRNA '%s'\nSee bpy_types.py\n", idname);
+				fprintf(stderr, "%s: incorrect subclassing of SRNA '%s'\nSee bpy_types.py\n", __func__, idname);
 				PyC_ObSpit("Expected! ", base_compare);
 				newclass= NULL;
 			}
@@ -5538,7 +5538,7 @@ static PyObject* pyrna_srna_Subtype(StructRNA *srna)
 		}
 		else {
 			/* this should not happen */
-			printf("Error registering '%s'\n", idname);
+			printf("%s: error registering '%s'\n", __func__, idname);
 			PyErr_Print();
 			PyErr_Clear();
 		}
@@ -5581,7 +5581,7 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 			Py_DECREF(tp); /* srna owns, cant hold a ref */
 		}
 		else {
-			fprintf(stderr, "Could not make type\n");
+			fprintf(stderr, "%s: could not make type\n", __func__);
 			pyrna= (BPy_StructRNA *) PyObject_GC_New(BPy_StructRNA, &pyrna_struct_Type);
 #ifdef USE_WEAKREFS
 			pyrna->in_weakreflist= NULL;
@@ -6231,10 +6231,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 #endif
 
 	py_class= RNA_struct_py_type_get(ptr->type);
-
 	/* rare case. can happen when registering subclasses */
 	if(py_class==NULL) {
-		fprintf(stderr, "bpy_class_call(): unable to get python class for rna struct '%.200s'\n", RNA_struct_identifier(ptr->type));
+		fprintf(stderr, "%s: unable to get python class for rna struct '%.200s'\n",
+		        __func__, RNA_struct_identifier(ptr->type));
 		return -1;
 	}
 

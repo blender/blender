@@ -56,9 +56,9 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    :type n: int
    :arg n: Specifies the number of textures to be queried.
-   :type textures: :class:`Buffer` object I{type GL_INT}
+   :type textures: :class:`bgl.Buffer` object I{type GL_INT}
    :arg textures: Specifies an array containing the names of the textures to be queried
-   :type residences: :class:`Buffer` object I{type GL_INT}(boolean)
+   :type residences: :class:`bgl.Buffer` object I{type GL_INT}(boolean)
    :arg residences: An array in which the texture residence status in returned.
       The residence status of a texture named by an element of textures is
       returned in the corresponding element of residences.
@@ -101,7 +101,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :type xmove, ymove: float
    :arg xmove, ymove: Specify the x and y offsets to be added to the current raster position after
       the bitmap is drawn.
-   :type bitmap: :class:`Buffer` object I{type GL_BYTE}
+   :type bitmap: :class:`bgl.Buffer` object I{type GL_BYTE}
    :arg bitmap: Specifies the address of the bitmap image.
 
 
@@ -139,7 +139,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg n: Specifies the number of display lists to be executed.
    :type type: Enumerated constant
    :arg type: Specifies the type of values in lists.
-   :type lists: :class:`Buffer` object
+   :type lists: :class:`bgl.Buffer` object
    :arg lists: Specifies the address of an array of name offsets in the display list.
       The pointer type is void because the offsets can be bytes, shorts, ints, or floats,
       depending on the value of type.
@@ -217,7 +217,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    :type plane: Enumerated constant
    :arg plane: Specifies which clipping plane is being positioned.
-   :type equation: :class:`Buffer` object I{type GL_FLOAT}(double)
+   :type equation: :class:`bgl.Buffer` object I{type GL_FLOAT}(double)
    :arg equation: Specifies the address of an array of four double- precision
       floating-point values. These values are interpreted as a plane equation.
 
@@ -340,7 +340,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    :type n: int
    :arg n: Specifies the number of textures to be deleted
-   :type textures: :class:`Buffer` I{GL_INT}
+   :type textures: :class:`bgl.Buffer` I{GL_INT}
    :arg textures: Specifies an array of textures to be deleted
 
 
@@ -413,7 +413,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg format: Specifies the format of the pixel data.
    :type type: Enumerated constant
    :arg type: Specifies the data type for pixels.
-   :type pixels: :class:`Buffer` object
+   :type pixels: :class:`bgl.Buffer` object
    :arg pixels: Specifies a pointer to the pixel data.
 
 
@@ -512,7 +512,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :type type: Enumerated constant
    :arg type: Specifies a symbolic constant that describes the information that
       will be returned for each vertex.
-   :type buffer: :class:`Buffer` object I{GL_FLOAT}
+   :type buffer: :class:`bgl.Buffer` object I{GL_FLOAT}
    :arg buffer: Returns the feedback data.
 
 
@@ -592,7 +592,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    :type n: int
    :arg n: Specifies the number of textures name to be generated.
-   :type textures: :class:`Buffer` object I{type GL_INT}
+   :type textures: :class:`bgl.Buffer` object I{type GL_INT}
    :arg textures: Specifies an array in which the generated textures names are stored.
 
 
@@ -620,7 +620,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg plane: Specifies a clipping plane. The number of clipping planes depends on the
       implementation, but at least six clipping planes are supported. They are identified by
       symbolic names of the form GL_CLIP_PLANEi where 0 < i < GL_MAX_CLIP_PLANES.
-   :type equation:  :class:`Buffer` object I{type GL_FLOAT}
+   :type equation:  :class:`bgl.Buffer` object I{type GL_FLOAT}
    :arg equation:  Returns four float (double)-precision values that are the coefficients of the
       plane equation of plane in eye coordinates. The initial value is (0, 0, 0, 0).
 
@@ -646,7 +646,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
       names of the form GL_LIGHTi where 0 < i < GL_MAX_LIGHTS.
    :type pname: Enumerated constant
    :arg pname: Specifies a light source parameter for light.
-   :type params:  :class:`Buffer` object. Depends on function prototype.
+   :type params:  :class:`bgl.Buffer` object. Depends on function prototype.
    :arg params: Returns the requested data.
 
 
@@ -662,7 +662,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg target: Specifies the symbolic name of a map.
    :type query: Enumerated constant
    :arg query: Specifies which parameter to return.
-   :type v: :class:`Buffer` object. Depends on function prototype.
+   :type v: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg v: Returns the requested data.
 
 
@@ -679,7 +679,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
       representing the front and back materials, respectively.
    :type pname: Enumerated constant
    :arg pname: Specifies the material parameter to return.
-   :type params: :class:`Buffer` object. Depends on function prototype.
+   :type params: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg params: Returns the requested data.
 
 
@@ -693,7 +693,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    :type map:  Enumerated constant
    :arg map: Specifies the name of the pixel map to return.
-   :type values: :class:`Buffer` object. Depends on function prototype.
+   :type values: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg values: Returns the pixel map contents.
 
 
@@ -703,7 +703,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    .. seealso:: `OpenGL Docs <http://www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/getpolygonstipple.html>`_
 
-   :type mask: :class:`Buffer` object I{type GL_BYTE}
+   :type mask: :class:`bgl.Buffer` object I{type GL_BYTE}
    :arg mask: Returns the stipple pattern. The initial value is all 1's.
 
 
@@ -730,7 +730,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg target: Specifies a texture environment. Must be GL_TEXTURE_ENV.
    :type pname: Enumerated constant
    :arg pname: Specifies the symbolic name of a texture environment parameter.
-   :type params: :class:`Buffer` object. Depends on function prototype.
+   :type params: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg params: Returns the requested data.
 
 
@@ -746,7 +746,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg coord: Specifies a texture coordinate.
    :type pname: Enumerated constant
    :arg pname: Specifies the symbolic name of the value(s) to be returned.
-   :type params: :class:`Buffer` object. Depends on function prototype.
+   :type params: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg params: Returns the requested data.
 
 
@@ -765,7 +765,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg format: Specifies a pixel format for the returned data.
    :type type: Enumerated constant
    :arg type: Specifies a pixel type for the returned data.
-   :type pixels: :class:`Buffer` object.
+   :type pixels: :class:`bgl.Buffer` object.
    :arg pixels: Returns the texture image. Should be a pointer to an array of the
       type specified by type
 
@@ -785,7 +785,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
       Level 0 is the base image level. Level n is the nth mipmap reduction image.
    :type pname: Enumerated constant
    :arg pname: Specifies the symbolic name of a texture parameter.
-   :type params: :class:`Buffer` object. Depends on function prototype.
+   :type params: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg params: Returns the requested data.
 
 
@@ -801,7 +801,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg target: Specifies the symbolic name of the target texture.
    :type pname: Enumerated constant
    :arg pname: Specifies the symbolic name the target texture.
-   :type params: :class:`Buffer` object. Depends on function prototype.
+   :type params: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg params: Returns the texture parameters.
 
 
@@ -826,7 +826,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    .. seealso:: `OpenGL Docs <http://www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/index_.html>`_
 
-   :type c: :class:`Buffer` object. Depends on function prototype.
+   :type c: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg c: Specifies a pointer to a one element array that contains the new value for
       the current color index.
 
@@ -956,7 +956,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    .. seealso:: `OpenGL Docs <http://www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/loadmatrix.html>`_
 
-   :type m: :class:`Buffer` object. Depends on function prototype.
+   :type m: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg m: Specifies a pointer to 16 consecutive values, which are used as the elements
       of a 4x4 column-major matrix.
 
@@ -1002,7 +1002,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
       occupy contiguous memory locations.
    :type order: int
    :arg order: Specifies the number of control points. Must be positive.
-   :type points: :class:`Buffer` object. Depends on function prototype.
+   :type points: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg points: Specifies a pointer to the array of control points.
 
 
@@ -1043,7 +1043,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :type vorder: int
    :arg vorder: Specifies the dimension of the control point array in the v axis.
       Must be positive. The initial value is 1.
-   :type points: :class:`Buffer` object. Depends on function prototype.
+   :type points: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg points: Specifies a pointer to the array of control points.
 
 
@@ -1103,7 +1103,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    .. seealso:: `OpenGL Docs <http://www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/multmatrix.html>`_
 
-   :type m: :class:`Buffer` object. Depends on function prototype.
+   :type m: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg m: Points to 16 consecutive values that are used as the elements of a 4x4 column
       major matrix.
 
@@ -1132,7 +1132,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :type nx, ny, nz: Depends on function prototype. (non - 'v' prototypes only)
    :arg nx, ny, nz: Specify the x, y, and z coordinates of the new current normal.
       The initial value of the current normal is the unit vector, (0, 0, 1).
-   :type v: :class:`Buffer` object. Depends on function prototype. ('v' prototypes)
+   :type v: :class:`bgl.Buffer` object. Depends on function prototype. ('v' prototypes)
    :arg v: Specifies a pointer to an array of three elements: the x, y, and z coordinates
       of the new current normal.
 
@@ -1177,7 +1177,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg map: Specifies a symbolic map name.
    :type mapsize: int
    :arg mapsize: Specifies the size of the map being defined.
-   :type values: :class:`Buffer` object. Depends on function prototype.
+   :type values: :class:`bgl.Buffer` object. Depends on function prototype.
    :arg values: Specifies an array of mapsize values.
 
 
@@ -1266,7 +1266,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    .. seealso:: `OpenGL Docs <http://www.opengl.org/documentation/specs/man_pages/hardcopy/GL/html/gl/polygonstipple.html>`_
 
-   :type mask: :class:`Buffer` object I{type GL_BYTE}
+   :type mask: :class:`bgl.Buffer` object I{type GL_BYTE}
    :arg mask: Specifies a pointer to a 32x32 stipple pattern that will be unpacked
       from memory in the same way that glDrawPixels unpacks pixels.
 
@@ -1307,9 +1307,9 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    :type n: int
    :arg n: Specifies the number of textures to be prioritized.
-   :type textures: :class:`Buffer` I{type GL_INT}
+   :type textures: :class:`bgl.Buffer` I{type GL_INT}
    :arg textures: Specifies an array containing the names of the textures to be prioritized.
-   :type priorities: :class:`Buffer` I{type GL_FLOAT}
+   :type priorities: :class:`bgl.Buffer` I{type GL_FLOAT}
    :arg priorities: Specifies an array containing the texture priorities.
       A priority given in an element of priorities applies to the texture named
       by the corresponding element of textures.
@@ -1417,7 +1417,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg format: Specifies the format of the pixel data.
    :type type: Enumerated constant
    :arg type: Specifies the data type of the pixel data.
-   :type pixels: :class:`Buffer` object
+   :type pixels: :class:`bgl.Buffer` object
    :arg pixels: Returns the pixel data.
 
 
@@ -1496,7 +1496,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    :type size: int
    :arg size: Specifies the size of buffer
-   :type buffer: :class:`Buffer` I{type GL_INT}
+   :type buffer: :class:`bgl.Buffer` I{type GL_INT}
    :arg buffer: Returns the selection data
 
 
@@ -1575,7 +1575,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :type s, t, r, q: Depends on function prototype. (r and q for '3' and '4' prototypes only)
    :arg s, t, r, q: Specify s, t, r, and q texture coordinates. Not all parameters are
       present in all forms of the command.
-   :type v: :class:`Buffer` object. Depends on function prototype. (for 'v' prototypes only)
+   :type v: :class:`bgl.Buffer` object. Depends on function prototype. (for 'v' prototypes only)
    :arg v: Specifies a pointer to an array of one, two, three, or four elements,
       which in turn specify the s, t, r, and q texture coordinates.
 
@@ -1642,7 +1642,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg format: Specifies the format of the pixel data.
    :type type: Enumerated constant
    :arg type: Specifies the data type of the pixel data.
-   :type pixels: :class:`Buffer` object.
+   :type pixels: :class:`bgl.Buffer` object.
    :arg pixels: Specifies a pointer to the image data in memory.
 
 
@@ -1673,7 +1673,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg format: Specifies the format of the pixel data.
    :type type: Enumerated constant
    :arg type: Specifies the data type of the pixel data.
-   :type pixels: :class:`Buffer` object.
+   :type pixels: :class:`bgl.Buffer` object.
    :arg pixels: Specifies a pointer to the image data in memory.
 
 
@@ -1720,7 +1720,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :type x, y, z, w: Depends on function prototype (z and w for '3' and '4' prototypes only)
    :arg x, y, z, w: Specify x, y, z, and w coordinates of a vertex. Not all parameters
       are present in all forms of the command.
-   :type v: :class:`Buffer` object. Depends of function prototype (for 'v'
+   :type v: :class:`bgl.Buffer` object. Depends of function prototype (for 'v'
       prototypes only)
    :arg v: Specifies a pointer to an array of two, three, or four elements. The
       elements of a two-element array are x and y; of a three-element array,
@@ -1795,7 +1795,7 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
    :arg x, y: Specify the center of a picking region in window coordinates.
    :type width, height: double
    :arg width, height: Specify the width and height, respectively, of the picking region in window coordinates.
-   :type viewport: :class:`Buffer` object. [int]
+   :type viewport: :class:`bgl.Buffer` object. [int]
    :arg viewport: Specifies the current viewport.
 
 
@@ -1807,13 +1807,13 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    :type objx, objy, objz: double
    :arg objx, objy, objz: Specify the object coordinates.
-   :type modelMatrix: :class:`Buffer` object. [double]
+   :type modelMatrix: :class:`bgl.Buffer` object. [double]
    :arg modelMatrix: Specifies the current modelview matrix (as from a glGetDoublev call).
-   :type projMatrix: :class:`Buffer` object. [double]
+   :type projMatrix: :class:`bgl.Buffer` object. [double]
    :arg projMatrix: Specifies the current projection matrix (as from a glGetDoublev call).
-   :type viewport: :class:`Buffer` object. [int]
+   :type viewport: :class:`bgl.Buffer` object. [int]
    :arg viewport: Specifies the current viewport (as from a glGetIntegerv call).
-   :type winx, winy, winz: :class:`Buffer` object. [double]
+   :type winx, winy, winz: :class:`bgl.Buffer` object. [double]
    :arg winx, winy, winz: Return the computed window coordinates.
 
 
@@ -1825,13 +1825,13 @@ OpenGL}" and the online NeHe tutorials are two of the best resources.
 
    :type winx, winy, winz: double
    :arg winx, winy, winz: Specify the window coordinates to be mapped.
-   :type modelMatrix: :class:`Buffer` object. [double]
+   :type modelMatrix: :class:`bgl.Buffer` object. [double]
    :arg modelMatrix: Specifies the current modelview matrix (as from a glGetDoublev call).
-   :type projMatrix: :class:`Buffer` object. [double]
+   :type projMatrix: :class:`bgl.Buffer` object. [double]
    :arg projMatrix: Specifies the current projection matrix (as from a glGetDoublev call).
-   :type viewport: :class:`Buffer` object. [int]
+   :type viewport: :class:`bgl.Buffer` object. [int]
    :arg viewport: Specifies the current viewport (as from a glGetIntegerv call).
-   :type objx, objy, objz: :class:`Buffer` object. [double]
+   :type objx, objy, objz: :class:`bgl.Buffer` object. [double]
    :arg objx, objy, objz: Return the computed object coordinates.
 
 

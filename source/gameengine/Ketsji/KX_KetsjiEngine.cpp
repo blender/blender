@@ -84,6 +84,8 @@
 #include "DNA_world_types.h"
 #include "DNA_scene_types.h"
 
+#include "KX_NavMeshObject.h"
+
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
 //#define NZC_GUARDED_OUTPUT
@@ -1343,7 +1345,7 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 #ifdef WITH_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
 #endif
-	m_rasterizer->FlushDebugLines();
+	m_rasterizer->FlushDebugShapes();
 }
 
 void KX_KetsjiEngine::StopEngine()

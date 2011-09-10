@@ -5,7 +5,7 @@
 Import ('env')
 
 incs = '. ../editors/include ../makesdna ../makesrna ../blenlib ../blenkernel ../nodes'
-incs += ' ../imbuf ../blenloader ../render/extern/include ../windowmanager'
+incs += ' ../imbuf ../blenloader ../gpu ../render/extern/include ../windowmanager'
 incs += ' ../freestyle/intern/python'
 incs += ' #intern/guardedalloc #intern/memutil #extern/glew/include'
 incs += ' #intern/audaspace/intern ' + env['BF_PYTHON_INC']

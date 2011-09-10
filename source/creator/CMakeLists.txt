@@ -719,7 +719,6 @@ if(WITH_MOD_FLUID)
 	list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
 endif()
 
-
 #if(UNIX)
 	# Sort libraries
 	set(BLENDER_SORTED_LIBS
@@ -800,6 +799,7 @@ endif()
 		bf_intern_smoke
 		extern_minilzo
 		extern_lzma
+		extern_recastnavigation
 		ge_logic_ketsji
 		ge_phys_common
 		ge_logic
@@ -821,6 +821,8 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		bf_intern_mikktspace
+		extern_recastnavigation
+		bf_editor_util          # --- BAD LEVEL CALL HERE --- XXX, this should be removed before release!
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)

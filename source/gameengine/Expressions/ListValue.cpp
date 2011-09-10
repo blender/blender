@@ -387,7 +387,7 @@ PyObject* listvalue_buffer_slice(PyObject* self,Py_ssize_t ilow, Py_ssize_t ihig
 static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
 {
 	CListValue *listval= static_cast<CListValue *>(BGE_PROXY_REF(self));
-	int i, numitems, numitems_orig;
+	Py_ssize_t i, numitems, numitems_orig;
 	
 	if (listval==NULL) {
 		PyErr_SetString(PyExc_SystemError, "CList+other, "BGE_PROXY_ERROR_MSG);
@@ -408,7 +408,7 @@ static PyObject *listvalue_buffer_concat(PyObject * self, PyObject * other)
 		CValue* listitemval;
 		bool error = false;
 		
-		numitems = PyList_Size(other);
+		numitems = PyList_GET_SIZE(other);
 		
 		/* copy the first part of the list */
 		listval_new->Resize(numitems_orig + numitems);

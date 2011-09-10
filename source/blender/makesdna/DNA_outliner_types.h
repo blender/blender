@@ -51,6 +51,8 @@ typedef struct TreeStore {
 #define TSE_CLOSED		1
 #define TSE_SELECTED	2
 #define TSE_TEXTBUT		4
+#define TSE_CHILDSEARCH 8
+#define TSE_SEARCHMATCH 16
 
 /* TreeStoreElem types in BIF_outliner.h */
 
