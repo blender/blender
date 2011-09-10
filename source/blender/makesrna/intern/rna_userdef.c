@@ -2471,7 +2471,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{3, "DUTCH", 0, N_("Dutch (Nederlandse taal)"), "nl_NL"},
 		{4, "ITALIAN", 0, N_("Italian (Italiano)"), "it_IT"},
 		{5, "GERMAN", 0, N_("German (Deutsch)"), "de_DE"},
-		{6, "FINNISH", 0, N_("Finnish (Suomalainen)"), "fi_FI"},
+		{6, "FINNISH", 0, N_("Finnish (Suomi)"), "fi_FI"},
 		{7, "SWEDISH", 0, N_("Swedish (Svenska)"), "sv_SE"},
 		{8, "FRENCH", 0, N_("French (Française)"), "fr_FR"},
 		{9, "SPANISH", 0, N_("Spanish (Español)"), "es_ES"},
