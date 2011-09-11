@@ -402,6 +402,10 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bl_use_postprocess", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "type->flag", RE_DO_ALL);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	
+	prop= RNA_def_property(srna, "bl_use_rendered", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", RE_DO_RENDERED);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	RNA_define_verify_sdna(1);
 }

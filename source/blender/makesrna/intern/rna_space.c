@@ -450,6 +450,30 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 	ED_view3d_from_m4((float (*)[4])values, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
 }
 
+static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	Scene *scene = ((bScreen*)ptr->id.data)->scene;
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	
+	EnumPropertyItem *item= NULL;
+	int totitem= 0;
+
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_BOUNDBOX);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_WIRE);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_SOLID);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_TEXTURE);
+	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_MATERIAL);
+	
+	if(type->flag & RE_DO_RENDERED) {
+		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_RENDER);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
 /* Space Image Editor */
 
 static PointerRNA rna_SpaceImageEditor_uvedit_get(PointerRNA *ptr)
@@ -1226,6 +1250,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "viewport_shade", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
 	RNA_def_property_enum_items(prop, viewport_shade_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_SpaceView3D_viewport_shade_itemf");
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 
