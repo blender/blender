@@ -236,7 +236,7 @@ Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 	      _vertices[i-2]->setPoint2d(p+thickness[1]*stripDir);
 		
       vec_tmp = _vertices[i-1]->point2d()-p;
-      if  ((vec_tmp.norm() > thickness[1]*MAX_RATIO_LENGTH_SINGU) ||
+      if  ((vec_tmp.norm() > thickness[0]*MAX_RATIO_LENGTH_SINGU) ||
 	        (dirNorm<ZERO) || (dirPrevNorm<ZERO) ||
 	        notValid(_vertices[i-1]->point2d())
 	        || (fabs(stripDir * dir)<EPS_SINGULARITY_RENDERER))
