@@ -1126,7 +1126,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 		float visifac= 1.0f, t;
 		
 		sub_v3_v3v3(lv, co, lar->co);
-		*dist= len_v3v3(lv, lv);
+		*dist= sqrtf(dot_v3v3(lv, lv));
 		t= 1.0f/dist[0];
 		mul_v3_fl(lv, t);
 		
@@ -1179,7 +1179,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 					float inpr;
 					
 					if(lar->mode & LA_SQUARE) {
-						if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0f) {
+						if(dot_v3v3(lv, lar->vec) > 0.0f) {
 							float lvrot[3], x;
 							
 							/* rotate view to lampspace */
@@ -1314,8 +1314,8 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	
 	/* dot product and reflectivity */
 	/* inp = dotproduct, is = shader result, i = lamp energy (with shadow), i_noshad = i without shadow */
-	inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
-	
+	inp= dot_v3v3(vn, lv);
+
 	/* phong threshold to prevent backfacing faces having artefacts on ray shadow (terminator problem) */
 	/* this complex construction screams for a nicer implementation! (ton) */
 	if(R.r.mode & R_SHADOW) {
