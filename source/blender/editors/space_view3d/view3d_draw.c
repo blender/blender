@@ -472,24 +472,21 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 		for(a= -gridlines;a<=gridlines;a++) {
 			glColor3ubv((a % 10) ? col_grid_light : col_grid_emphasise);
-			glBegin(GL_LINE_STRIP);
+
+			glBegin(GL_LINES);
+			/* Y axis */
 			vert[0]= a * grid_scale;
 			vert[1]= grid;
 			glVertex3fv(vert);
 			vert[1]= -grid;
 			glVertex3fv(vert);
-			glEnd();
-		}
 
-		/* draw the X axis and/or grid lines */
-		for(a= -gridlines;a<=gridlines;a++) {
-			glColor3ubv((a % 10) ? col_grid_light : col_grid_emphasise);
-			glBegin(GL_LINE_STRIP);
-			vert[1]= a * grid_scale;
-			vert[0]= grid;
-			glVertex3fv(vert );
-			vert[0]= -grid;
+			/* X axis */
+			SWAP(float, vert[0], vert[1]);
 			glVertex3fv(vert);
+			vert[0]= grid;
+			glVertex3fv(vert);
+
 			glEnd();
 		}
 	}
