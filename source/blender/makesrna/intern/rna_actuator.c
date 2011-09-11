@@ -1997,7 +1997,7 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_pointer_sdna(prop, NULL, "navmesh");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "NavMesh Object", "Navigation mesh");
+	RNA_def_property_ui_text(prop, "Navigation Mesh Object", "Navigation mesh");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SteeringActuator_navmesh_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
