@@ -1,5 +1,6 @@
 #!/usr/bin/python
 Import ('env')
+import os
 
 sources = env.Glob('intern/*.c') + env.Glob('intern/*.cpp')
 
@@ -94,7 +95,7 @@ if env['WITH_BF_GAMEENGINE']:
     incs += ' #/extern/recastnavigation/Recast/Include'
     defs.append('WITH_GAMEENGINE')
 else:
-    sources.remove('intern/navmesh_conversion.cpp')
+    sources.remove('intern' + os.sep + 'navmesh_conversion.cpp')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
