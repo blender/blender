@@ -122,7 +122,6 @@ if(WITH_GAMEENGINE)
 	list(APPEND INC
 		../gpu
 		../../../extern/recastnavigation/Recast/Include
-		../editors/include  # XXX - BAD LEVEL CALL, REMOVE BEFORE RELEASE
 	)
 endif()
 

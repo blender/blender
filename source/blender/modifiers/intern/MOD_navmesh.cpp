@@ -34,11 +34,10 @@
 extern "C"{
 
 #ifdef WITH_GAMEENGINE
-#  include "ED_navmesh_conversion.h"
-#  include "BIF_gl.h"
+#  include "BKE_navmesh_conversion.h"
+#  include "GL/glew.h"
 #  include "GPU_buffers.h"
 #  include "GPU_draw.h"
-#  include "UI_resources.h"
 #endif
 
 #include "DNA_mesh_types.h"
@@ -53,6 +52,22 @@ extern "C"{
 #include "BKE_particle.h"
 #include "BKE_customdata.h"
 #include "MEM_guardedalloc.h"
+
+inline int bit(int a, int b)
+{
+	return (a & (1 << b)) >> b;
+}
+
+inline void intToCol(int i, float* col)
+{
+	int	r = bit(i, 0) + bit(i, 3) * 2 + 1;
+	int	g = bit(i, 1) + bit(i, 4) * 2 + 1;
+	int	b = bit(i, 2) + bit(i, 5) * 2 + 1;
+	col[0] = 1 - r*63.0f/255.0f;
+	col[1] = 1 - g*63.0f/255.0f;
+	col[2] = 1 - b*63.0f/255.0f;
+}
+
 
 static void initData(ModifierData *md)
 {
