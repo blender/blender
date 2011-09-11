@@ -61,7 +61,8 @@ typedef struct LineStyleModifier {
 #define LS_MODIFIER_PERLIN_NOISE_2D        10
 #define LS_MODIFIER_BACKBONE_STRETCHER     11
 #define LS_MODIFIER_TIP_REMOVER            12
-#define LS_MODIFIER_NUM                    13
+#define LS_MODIFIER_CALLIGRAPHY            13
+#define LS_MODIFIER_NUM                    14
 
 /* LineStyleModifier::flags */
 #define LS_MODIFIER_ENABLED     1
@@ -293,6 +294,17 @@ typedef struct LineStyleGeometryModifier_TipRemover {
 	int pad;
 
 } LineStyleGeometryModifier_TipRemover;
+
+/* Calligraphic thickness modifier */
+
+typedef struct LineStyleThicknessModifier_Calligraphy {
+	struct LineStyleModifier modifier;
+
+	float min_thickness, max_thickness;
+	float orientation;
+	int pad;
+
+} LineStyleThicknessModifier_Calligraphy;
 
 /* FreestyleLineStyle::panel */
 #define LS_PANEL_STROKES      1

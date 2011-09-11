@@ -446,6 +446,12 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
                 box.prop(modifier, "material_attr", text="")
                 self.draw_modifier_curve_common(box, modifier, False, True)
 
+            elif modifier.type == "CALLIGRAPHY":
+                col = box.column()
+                col.prop(modifier, "orientation")
+                col.prop(modifier, "min_thickness")
+                col.prop(modifier, "max_thickness")
+
     def draw_geometry_modifier(self, context, modifier):
         layout = self.layout
 

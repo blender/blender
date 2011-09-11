@@ -55,6 +55,7 @@ EnumPropertyItem linestyle_thickness_modifier_type_items[] ={
 	{LS_MODIFIER_DISTANCE_FROM_CAMERA, "DISTANCE_FROM_CAMERA", ICON_MODIFIER, "Distance from Camera", ""},
 	{LS_MODIFIER_DISTANCE_FROM_OBJECT, "DISTANCE_FROM_OBJECT", ICON_MODIFIER, "Distance from Object", ""},
 	{LS_MODIFIER_MATERIAL, "MATERIAL", ICON_MODIFIER, "Material", ""},
+	{LS_MODIFIER_CALLIGRAPHY, "CALLIGRAPHY", ICON_MODIFIER, "Calligraphy", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem linestyle_geometry_modifier_type_items[] ={
@@ -119,6 +120,8 @@ static StructRNA *rna_LineStyle_thickness_modifier_refine(struct PointerRNA *ptr
 			return &RNA_LineStyleThicknessModifier_DistanceFromObject;
 		case LS_MODIFIER_MATERIAL:
 			return &RNA_LineStyleThicknessModifier_Material;
+		case LS_MODIFIER_CALLIGRAPHY:
+			return &RNA_LineStyleThicknessModifier_Calligraphy;
 		default:
 			return &RNA_LineStyleThicknessModifier;
 	}
@@ -484,6 +487,27 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	rna_def_thickness_modifier(srna);
 	rna_def_modifier_material_common(srna);
 	rna_def_modifier_curve_common(srna, 0, 1);
+
+	srna= RNA_def_struct(brna, "LineStyleThicknessModifier_Calligraphy", "LineStyleThicknessModifier");
+	RNA_def_struct_ui_text(srna, "Calligraphy", "Change line thickness so that stroke looks like made with a calligraphic pen.");
+	rna_def_thickness_modifier(srna);
+
+	prop= RNA_def_property(srna, "orientation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "orientation");
+	RNA_def_property_ui_text(prop, "Orientation", "Angle of the main direction.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "min_thickness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "min_thickness");
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
+	RNA_def_property_ui_text(prop, "Min Thickness", "Minimum thickness in the direction perpendicular to the main direction.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "max_thickness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "max_thickness");
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
+	RNA_def_property_ui_text(prop, "Max Thickness", "Maximum thickness in the main direction.");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* geometry modifiers */
 

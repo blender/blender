@@ -18,6 +18,7 @@
 
 import Freestyle
 import math
+import mathutils
 import time
 
 from freestyle_init import *
@@ -38,24 +39,12 @@ class ColorRampModifier(StrokeShader):
     def blend_ramp(self, a, b):
         return Freestyle.blendRamp(self.__blend, a, self.__influence, b)
 
-class CurveMappingModifier(StrokeShader):
-    def __init__(self, blend, influence, mapping, invert, curve):
+class ScalarBlendModifier(StrokeShader):
+    def __init__(self, blend, influence):
         StrokeShader.__init__(self)
         self.__blend = blend
         self.__influence = influence
-        assert mapping in ("LINEAR", "CURVE")
-        self.__mapping = getattr(self, mapping)
-        self.__invert = invert
-        self.__curve = curve
-    def LINEAR(self, t):
-        if self.__invert:
-            return 1.0 - t
-        return t
-    def CURVE(self, t):
-        return Freestyle.evaluateCurveMappingF(self.__curve, 0, t)
-    def evaluate(self, t):
-        return self.__mapping(t)
-    def blend_curve(self, v1, v2):
+    def blend(self, v1, v2):
         fac = self.__influence
         facm = 1.0 - fac
         if self.__blend == "MIX":
@@ -82,6 +71,22 @@ class CurveMappingModifier(StrokeShader):
         else:
             raise ValueError("unknown curve blend type: " + self.__blend)
         return v1
+
+class CurveMappingModifier(ScalarBlendModifier):
+    def __init__(self, blend, influence, mapping, invert, curve):
+        ScalarBlendModifier.__init__(self, blend, influence)
+        assert mapping in ("LINEAR", "CURVE")
+        self.__mapping = getattr(self, mapping)
+        self.__invert = invert
+        self.__curve = curve
+    def LINEAR(self, t):
+        if self.__invert:
+            return 1.0 - t
+        return t
+    def CURVE(self, t):
+        return Freestyle.evaluateCurveMappingF(self.__curve, 0, t)
+    def evaluate(self, t):
+        return self.__mapping(t)
 
 # Along Stroke modifiers
 
@@ -117,7 +122,7 @@ class AlphaAlongStrokeShader(CurveMappingModifier):
             attr = it.getObject().attribute()
             a = attr.getAlpha()
             b = self.evaluate(t)
-            c = self.blend_curve(a, b)
+            c = self.blend(a, b)
             attr.setAlpha(c)
 
 class ThicknessAlongStrokeShader(CurveMappingModifier):
@@ -133,7 +138,7 @@ class ThicknessAlongStrokeShader(CurveMappingModifier):
             a = attr.getThicknessRL()
             a = a[0] + a[1]
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
-            c = self.blend_curve(a, b)
+            c = self.blend(a, b)
             attr.setThickness(c/2, c/2)
 
 # Distance from Camera modifiers
@@ -180,7 +185,7 @@ class AlphaDistanceFromCameraShader(CurveMappingModifier):
             attr = it.getObject().attribute()
             a = attr.getAlpha()
             b = self.evaluate(t)
-            c = self.blend_curve(a, b)
+            c = self.blend(a, b)
             attr.setAlpha(c)
 
 class ThicknessDistanceFromCameraShader(CurveMappingModifier):
@@ -198,7 +203,7 @@ class ThicknessDistanceFromCameraShader(CurveMappingModifier):
             a = attr.getThicknessRL()
             a = a[0] + a[1]
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
-            c = self.blend_curve(a, b)
+            c = self.blend(a, b)
             attr.setThickness(c/2, c/2)
 
 # Distance from Object modifiers
@@ -255,7 +260,7 @@ class AlphaDistanceFromObjectShader(CurveMappingModifier):
             attr = it.getObject().attribute()
             a = attr.getAlpha()
             b = self.evaluate(t)
-            c = self.blend_curve(a, b)
+            c = self.blend(a, b)
             attr.setAlpha(c)
 
 class ThicknessDistanceFromObjectShader(CurveMappingModifier):
@@ -276,7 +281,7 @@ class ThicknessDistanceFromObjectShader(CurveMappingModifier):
             a = attr.getThicknessRL()
             a = a[0] + a[1]
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
-            c = self.blend_curve(a, b)
+            c = self.blend(a, b)
             attr.setThickness(c/2, c/2)
 
 # Material modifiers
@@ -368,7 +373,7 @@ class AlphaMaterialShader(CurveMappingModifier):
             attr = it.getObject().attribute()
             a = attr.getAlpha()
             b = self.evaluate(t)
-            c = self.blend_curve(a, b)
+            c = self.blend(a, b)
             attr.setAlpha(c)
 
 class ThicknessMaterialShader(CurveMappingModifier):
@@ -385,8 +390,34 @@ class ThicknessMaterialShader(CurveMappingModifier):
             a = attr.getThicknessRL()
             a = a[0] + a[1]
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
-            c = self.blend_curve(a, b)
+            c = self.blend(a, b)
             attr.setThickness(c/2, c/2)
+
+# Calligraphic thickness modifier
+
+class CalligraphicThicknessShader(ScalarBlendModifier):
+    def __init__(self, blend, influence, orientation, min_thickness, max_thickness):
+        ScalarBlendModifier.__init__(self, blend, influence)
+        rad = orientation / 180.0 * math.pi
+        self.__orientation = mathutils.Vector((math.cos(rad), math.sin(rad)))
+        self.__min_thickness = min_thickness
+        self.__max_thickness = max_thickness
+    def shade(self, stroke):
+        func = VertexOrientation2DF0D()
+        it = stroke.strokeVerticesBegin()
+        while not it.isEnd():
+            dir = func(it.castToInterface0DIterator())
+            orthDir = mathutils.Vector((-dir.y, dir.x))
+            orthDir.normalize()
+            fac = abs(orthDir * self.__orientation)
+            attr = it.getObject().attribute()
+            a = attr.getThicknessRL()
+            a = a[0] + a[1]
+            b = self.__min_thickness + fac * (self.__max_thickness - self.__min_thickness)
+            b = max(b, 0.0)
+            c = self.blend(a, b)
+            attr.setThickness(c/2, c/2)
+            it.increment()
 
 # Geometry modifiers
 
@@ -945,6 +976,10 @@ def process(layer_name, lineset_name):
             shaders_list.append(ThicknessMaterialShader(
                 m.blend, m.influence, m.mapping, m.invert, m.curve,
                 m.material_attr, m.value_min, m.value_max))
+        elif m.type == "CALLIGRAPHY":
+            shaders_list.append(CalligraphicThicknessShader(
+                m.blend, m.influence,
+                m.orientation, m.min_thickness, m.max_thickness))
     if linestyle.caps == "ROUND":
         shaders_list.append(RoundCapShader())
     elif linestyle.caps == "SQUARE":

@@ -60,7 +60,8 @@ static char *modifier_name[LS_MODIFIER_NUM] = {
 	"Perlin Noise 1D",
 	"Perlin Noise 2D",
 	"Backbone Stretcher",
-	"Tip Remover"};
+	"Tip Remover",
+	"Calligraphy"};
 
 static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 {
@@ -286,6 +287,9 @@ int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type
 	case LS_MODIFIER_MATERIAL:
 		size = sizeof(LineStyleThicknessModifier_Material);
 		break;
+	case LS_MODIFIER_CALLIGRAPHY:
+		size = sizeof(LineStyleThicknessModifier_Calligraphy);
+		break;
 	default:
 		return -1; /* unknown modifier type */
 	}
@@ -320,6 +324,11 @@ int FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, int type
 		((LineStyleThicknessModifier_Material *)m)->value_min = 0.0f;
 		((LineStyleThicknessModifier_Material *)m)->value_max = 1.0f;
 		break;
+	case LS_MODIFIER_CALLIGRAPHY:
+		((LineStyleThicknessModifier_Calligraphy *)m)->min_thickness = 1.0f;
+		((LineStyleThicknessModifier_Calligraphy *)m)->max_thickness = 10.0f;
+		((LineStyleThicknessModifier_Calligraphy *)m)->orientation = 60.0f;
+		break;
 	}
 	add_to_modifier_list(&linestyle->thickness_modifiers, m);
 
@@ -340,6 +349,8 @@ void FRS_remove_linestyle_thickness_modifier(FreestyleLineStyle *linestyle, Line
 		break;
 	case LS_MODIFIER_MATERIAL:
 		curvemapping_free(((LineStyleThicknessModifier_Material *)m)->curve);
+		break;
+	case LS_MODIFIER_CALLIGRAPHY:
 		break;
 	}
 	BLI_freelinkN(&linestyle->thickness_modifiers, m);

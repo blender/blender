@@ -2621,6 +2621,9 @@ static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifie
 		case LS_MODIFIER_MATERIAL:
 			struct_name = "LineStyleThicknessModifier_Material";
 			break;
+		case LS_MODIFIER_CALLIGRAPHY:
+			struct_name = "LineStyleThicknessModifier_Calligraphy";
+			break;
 		default:
 			struct_name = "LineStyleThicknessModifier"; // this should not happen
 		}

@@ -21,7 +21,7 @@ static char CalligraphicShader___doc__[] =
 "   Builds a CalligraphicShader object.\n"
 "\n"
 "   :arg iMinThickness: The minimum thickness in the direction\n"
-"      perpandicular to the main direction.\n"
+"      perpendicular to the main direction.\n"
 "   :type iMinThickness: float\n"
 "   :arg iMaxThickness: The maximum thickness in the main direction.\n"
 "   :type iMaxThickness: float\n"
