@@ -428,7 +428,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 {
-	float vert[3]= {0.0f, 0.0f, 0.0f}, grid, grid_scale;
+	float grid, grid_scale;
 	unsigned char col_grid[3];
 	const int gridlines= v3d->gridlines/2;
 
@@ -459,9 +459,11 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 	/* draw the Y axis and/or grid lines */
 	if(v3d->gridflag & V3D_SHOW_FLOOR) {
-		int a;
+		float vert[4][3]= {{0.0f}};
 		unsigned char col_bg[3];
 		unsigned char col_grid_emphasise[3], col_grid_light[3];
+		int a;
+		int prev_emphasise= -1;
 
 		UI_GetThemeColor3ubv(TH_BACK, col_bg);
 
@@ -470,34 +472,43 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		UI_GetColorPtrShade3ubv(col_grid, col_grid_emphasise,
 		                        (((col_grid[0]+col_grid[1]+col_grid[2])+30) > (col_bg[0]+col_bg[1]+col_bg[2])) ? 20 : -10);
 
+		/* set fixed axis */
+		vert[0][0]= vert[2][1]= grid;
+		vert[1][0]= vert[3][1]= -grid;
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, vert);
+
 		for(a= -gridlines;a<=gridlines;a++) {
-			glColor3ubv((a % 10) ? col_grid_light : col_grid_emphasise);
+			const float line= a * grid_scale;
+			const int is_emphasise= (a % 10) == 0;
 
-			glBegin(GL_LINES);
-			/* Y axis */
-			vert[0]= a * grid_scale;
-			vert[1]= grid;
-			glVertex3fv(vert);
-			vert[1]= -grid;
-			glVertex3fv(vert);
+			if(is_emphasise != prev_emphasise) {
+				glColor3ubv(is_emphasise ? col_grid_emphasise : col_grid_light);
+			}
+			prev_emphasise= is_emphasise;
 
-			/* X axis */
-			SWAP(float, vert[0], vert[1]);
-			glVertex3fv(vert);
-			vert[0]= grid;
-			glVertex3fv(vert);
+			/* set variable axis */
+			vert[0][1]= vert[1][1]=
+			vert[2][0]= vert[3][0]= line;
 
-			glEnd();
+			glDrawArrays(GL_LINES, 0, 4);
 		}
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+
+		GPU_print_error("sdsd");
 	}
 	
 	/* draw the Z axis line */	
 	/* check for the 'show Z axis' preference */
 	if (v3d->gridflag & (V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
-		unsigned char tcol[3];
 		int axis;
 		for(axis= 0; axis < 3; axis++)
 		if (v3d->gridflag & (V3D_SHOW_X << axis)) {
+			float vert[3];
+			unsigned char tcol[3];
+
 			UI_make_axis_color(col_grid, tcol, 'X' + axis);
 			glColor3ubv(tcol);
 
@@ -652,60 +663,63 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 		float scaled_axis[3];
 		const float scale = rv3d->dist;
 		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
-	
-		glBegin(GL_LINE_STRIP);
-			color[3] = 0.f; // more transparent toward the ends
-			glColor4fv(color);
-			add_v3_v3v3(end, o, scaled_axis);
-			glVertex3fv(end);
-	
-			// color[3] = 0.2f + fabsf(rv3d->rot_angle); // modulate opacity with angle
-			// ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2
 
-			color[3] = 0.5f; // more opaque toward the center
-			glColor4fv(color);
-			glVertex3fv(o);
-	
-			color[3] = 0.f;
-			glColor4fv(color);
-			sub_v3_v3v3(end, o, scaled_axis);
-			glVertex3fv(end);
+
+		glBegin(GL_LINE_STRIP);
+		color[3] = 0.f; // more transparent toward the ends
+		glColor4fv(color);
+		add_v3_v3v3(end, o, scaled_axis);
+		glVertex3fv(end);
+
+		// color[3] = 0.2f + fabsf(rv3d->rot_angle); // modulate opacity with angle
+		// ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2
+
+		color[3] = 0.5f; // more opaque toward the center
+		glColor4fv(color);
+		glVertex3fv(o);
+
+		color[3] = 0.f;
+		glColor4fv(color);
+		sub_v3_v3v3(end, o, scaled_axis);
+		glVertex3fv(end);
 		glEnd();
 		
 		// -- draw ring around rotation center --
 		{
-		#define ROT_AXIS_DETAIL 13
-		const float s = 0.05f * scale;
-		const float step = 2.f * (float)(M_PI / ROT_AXIS_DETAIL);
-		float angle;
-		int i;
+#define		ROT_AXIS_DETAIL 13
 
-		float q[4]; // rotate ring so it's perpendicular to axis
-		const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
-		if (!upright)
-			{
-			const float up[3] = {0.f, 0.f, 1.f};
-			float vis_angle, vis_axis[3];
+			const float s = 0.05f * scale;
+			const float step = 2.f * (float)(M_PI / ROT_AXIS_DETAIL);
+			float angle;
+			int i;
 
-			cross_v3_v3v3(vis_axis, up, rv3d->rot_axis);
-			vis_angle = acosf(dot_v3v3(up, rv3d->rot_axis));
-			axis_angle_to_quat(q, vis_axis, vis_angle);
+			float q[4]; // rotate ring so it's perpendicular to axis
+			const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
+			if (!upright) {
+				const float up[3] = {0.f, 0.f, 1.f};
+				float vis_angle, vis_axis[3];
+
+				cross_v3_v3v3(vis_axis, up, rv3d->rot_axis);
+				vis_angle = acosf(dot_v3v3(up, rv3d->rot_axis));
+				axis_angle_to_quat(q, vis_axis, vis_angle);
 			}
 
-		color[3] = 0.25f; // somewhat faint
-		glColor4fv(color);
-		glBegin(GL_LINE_LOOP);
-		for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step)
-			{
-			float p[3] = { s * cosf(angle), s * sinf(angle), 0.f };
+			color[3] = 0.25f; // somewhat faint
+			glColor4fv(color);
+			glBegin(GL_LINE_LOOP);
+			for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
+				float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
 
-			if (!upright)
-				mul_qt_v3(q, p);
+				if (!upright) {
+					mul_qt_v3(q, p);
+				}
 
-			add_v3_v3(p, o);
-			glVertex3fv(p);
+				add_v3_v3(p, o);
+				glVertex3fv(p);
 			}
-		glEnd();
+			glEnd();
+
+#undef		ROT_AXIS_DETAIL
 		}
 
 		color[3] = 1.f; // solid dot
