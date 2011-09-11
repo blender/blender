@@ -120,54 +120,19 @@ Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
   Vec2r orthDir(-dir[1], dir[0]);
   if (orthDir.norm() > ZERO)
     orthDir.normalize();
-   const float *thickness =  sv->attribute().getThickness();
-  _vertices.push_back(new StrokeVertexRep(sv->getPoint()+thickness[1]*orthDir)); 
-  _vertices.push_back(new StrokeVertexRep(sv->getPoint()-thickness[0]*orthDir)); 
-
   Vec2r stripDir(orthDir);
-  // check whether the orientation
-  // was user defined
+  // check whether the orientation was user defined
   if(sv->attribute().isAttributeAvailableVec2f("orientation")){
     Vec2r userDir = sv->attribute().getAttributeVec2f("orientation");
     userDir.normalize();
-    Vec2r t(orthDir[1], -orthDir[0]);
-    real dp1 = userDir*orthDir;
-    real dp2 = userDir*t;
-    real h = (thickness[1]+thickness[0])/dp1;
-    real x = fabs(h*dp2/2.0);
-    if(dp1>0){
-      //i'm in the upper part of the unit circle
-      if(dp2>0){
-        //i'm in the upper-right part of the unit circle
-        // i must move vertex 1
-        _vertices[1]->setPoint2d(_vertices[0]->point2d()-userDir*(h));
-        //_vertices[0]->setPoint2d(_vertices[0]->point2d()+t*x);
-        //_vertices[1]->setPoint2d(_vertices[1]->point2d()-t*x);
-      }else{
-        //i'm in the upper-left part of the unit circle
-        // i must move vertex 0
-        _vertices[0]->setPoint2d(_vertices[1]->point2d()+userDir*(h));
-        //_vertices[0]->setPoint2d(_vertices[0]->point2d()-t*x);
-        //_vertices[1]->setPoint2d(_vertices[1]->point2d()+t*x);
-      }
-    }else{
-      //i'm in the lower part of the unit circle
-      if(dp2>0){
-        //i'm in the lower-right part of the unit circle
-        // i must move vertex 0
-        //_vertices[0]->setPoint2d(_vertices[1]->point2d()-userDir*(h));
-        _vertices[0]->setPoint2d(_vertices[0]->point2d()-t*x);
-        //_vertices[1]->setPoint2d(_vertices[1]->point2d()+t*x);
-      }else{
-        //i'm in the lower-left part of the unit circle
-        // i must move vertex 1
-        _vertices[1]->setPoint2d(_vertices[0]->point2d()+userDir*(h));
-        //_vertices[0]->setPoint2d(_vertices[0]->point2d()-t*x);
-        //_vertices[1]->setPoint2d(_vertices[1]->point2d()-t*x);
-      }
-    }
+    real dp = userDir*orthDir;
+    if(dp<0)
+      userDir = userDir*(-1.f);
+	stripDir = userDir;
   }
-  
+  const float *thickness =  sv->attribute().getThickness();
+  _vertices.push_back(new StrokeVertexRep(sv->getPoint()+thickness[1]*stripDir)); 
+  _vertices.push_back(new StrokeVertexRep(sv->getPoint()-thickness[0]*stripDir)); 
   
   //  Vec2r userDir = _stroke->getBeginningOrientation();
   //  if(userDir != Vec2r(0,0)){
@@ -287,56 +252,22 @@ Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
   orthDir=Vec2r(-dir[1], dir[0]);
   if (orthDir.norm() > ZERO)
     orthDir.normalize();
-  const float *thicknessLast =  sv->attribute().getThickness();
-  _vertices.push_back(new StrokeVertexRep(sv->getPoint()+thicknessLast[1]*orthDir));
-  ++i;
-  _vertices.push_back(new StrokeVertexRep(sv->getPoint()-thicknessLast[0]*orthDir));
-  int n = i;
-  ++i;
-  
-  // check whether the orientation
-  // was user defined
+  Vec2r stripDirLast(orthDir);
+  // check whether the orientation was user defined
   if(sv->attribute().isAttributeAvailableVec2f("orientation")){
     Vec2r userDir = sv->attribute().getAttributeVec2f("orientation");
     userDir.normalize();
-    Vec2r t(orthDir[1], -orthDir[0]);
-    real dp1 = userDir*orthDir;
-    real dp2 = userDir*t;
-    real h = (thicknessLast[1]+thicknessLast[0])/dp1;
-    //soc unused - real x = fabs(h*dp2/2.0);
-    if(dp1>0){
-      //i'm in the upper part of the unit circle
-      if(dp2>0){
-        //i'm in the upper-right part of the unit circle
-        // i must move vertex n-1
-        _vertices[n-1]->setPoint2d(_vertices[n]->point2d()-userDir*(h));
-        //_vertices[n-1]->setPoint2d(_vertices[n-1]->point2d()+t*x);
-        //_vertices[n]->setPoint2d(_vertices[n]->point2d()-t*x);
-      }else{
-        //i'm in the upper-left part of the unit circle
-        // i must move vertex n
-        _vertices[n]->setPoint2d(_vertices[n-1]->point2d()+userDir*(h));
-        //_vertices[n-1]->setPoint2d(_vertices[n-1]->point2d()-t*x);
-        //_vertices[n]->setPoint2d(_vertices[n]->point2d()+t*x);
-      }
-    }else{
-      //i'm in the lower part of the unit circle
-      if(dp2>0){
-        //i'm in the lower-right part of the unit circle
-        // i must move vertex n
-        _vertices[n]->setPoint2d(_vertices[n-1]->point2d()-userDir*(h));
-        //_vertices[n-1]->setPoint2d(_vertices[n-1]->point2d()-t*x);
-        //_vertices[n]->setPoint2d(_vertices[n]->point2d()+t*x);
-      }else{
-        //i'm in the lower-left part of the unit circle
-        // i must move vertex n-1
-        _vertices[n-1]->setPoint2d(_vertices[n]->point2d()+userDir*(h));
-        //_vertices[n-1]->setPoint2d(_vertices[n-1]->point2d()+t*x);
-        //_vertices[n]->setPoint2d(_vertices[n]->point2d()-t*x);
-      }
-    }
+    real dp = userDir*orthDir;
+    if(dp<0)
+      userDir = userDir*(-1.f);
+	stripDirLast = userDir;
   }
-  
+  const float *thicknessLast =  sv->attribute().getThickness();
+  _vertices.push_back(new StrokeVertexRep(sv->getPoint()+thicknessLast[1]*stripDirLast));
+  ++i;
+  _vertices.push_back(new StrokeVertexRep(sv->getPoint()-thicknessLast[0]*stripDirLast));
+  int n = i;
+  ++i;
 	
   // check whether the orientation of the extremity 
   // was user defined
