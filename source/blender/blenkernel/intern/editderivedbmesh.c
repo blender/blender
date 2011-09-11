@@ -591,6 +591,12 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 	BMIter iter;
 	int i, draw;
 
+	const int skip_normals= !glIsEnabled(GL_LIGHTING); /* could be passed as an arg */
+
+	/* GL_ZERO is used to detect if drawing has started or not */
+	GLenum poly_prev= GL_ZERO;
+	GLenum shade_prev= GL_ZERO;
+
 	/*BMESH_TODO*/
 	(void)useColors;
 
@@ -600,6 +606,10 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 	(void)compareDrawOptions;
 
 	if (bmdm->vertexCos) {
+		/* add direct access */
+		float (*vertexCos)[3]= bmdm->vertexCos;
+		float (*vertexNos)[3]= bmdm->vertexNos;
+		float (*faceNos)[3]=   bmdm->faceNos;
 		BMVert *eve;
 		
 		eve = BMIter_New(&iter, bmdm->tc->bm, BM_VERTS_OF_MESH, NULL);
@@ -619,32 +629,56 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_GetIndex(efa), &drawSmooth);
 			if(draw) {
+				const GLenum poly_type= GL_TRIANGLES; /* BMESH NOTE, this is odd but keep it for now to match trunk */
 				if (draw==2) { /* enabled with stipple */
+
+					if(poly_prev != GL_ZERO) glEnd();
+					poly_prev= GL_ZERO; /* force glBegin */
+
 		  			glEnable(GL_POLYGON_STIPPLE);
 		  			glPolygonStipple(stipple_quarttone);
 				}
 				
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
-
-				glBegin(GL_TRIANGLES);
-
-				if (!drawSmooth) {
-					glNormal3fv(bmdm->faceNos[i]);
-					glVertex3fv(bmdm->vertexCos[(int) BM_GetIndex(l[0]->v)]);
-					glVertex3fv(bmdm->vertexCos[(int) BM_GetIndex(l[1]->v)]);
-					glVertex3fv(bmdm->vertexCos[(int) BM_GetIndex(l[2]->v)]);
-				} else {
-					glNormal3fv(bmdm->vertexNos[(int) BM_GetIndex(l[0]->v)]);
-					glVertex3fv(bmdm->vertexCos[(int) BM_GetIndex(l[0]->v)]);
-					glNormal3fv(bmdm->vertexNos[(int) BM_GetIndex(l[1]->v)]);
-					glVertex3fv(bmdm->vertexCos[(int) BM_GetIndex(l[1]->v)]);
-					glNormal3fv(bmdm->vertexNos[(int) BM_GetIndex(l[2]->v)]);
-					glVertex3fv(bmdm->vertexCos[(int) BM_GetIndex(l[2]->v)]);
+				if(skip_normals) {
+					if(poly_type != poly_prev) {
+						if(poly_prev != GL_ZERO) glEnd();
+						glBegin((poly_prev= poly_type)); /* BMesh: will always be GL_TRIANGLES */
+					}
+					glVertex3fv(vertexCos[(int) BM_GetIndex(l[0]->v)]);
+					glVertex3fv(vertexCos[(int) BM_GetIndex(l[1]->v)]);
+					glVertex3fv(vertexCos[(int) BM_GetIndex(l[2]->v)]);
 				}
-				glEnd();
+				else {
+					const GLenum shade_type= drawSmooth ? GL_SMOOTH : GL_FLAT;
+					if (shade_type != shade_prev) {
+						glShadeModel((shade_prev= shade_type));
+					}
+					if(poly_type != poly_prev) {
+						if(poly_prev != GL_ZERO) glEnd();
+						glBegin((poly_prev= poly_type)); /* BMesh: will always be GL_TRIANGLES */
+					}
 
-				if (draw==2)
+					if (!drawSmooth) {
+						glNormal3fv(faceNos[i]);
+						glVertex3fv(vertexCos[(int) BM_GetIndex(l[0]->v)]);
+						glVertex3fv(vertexCos[(int) BM_GetIndex(l[1]->v)]);
+						glVertex3fv(vertexCos[(int) BM_GetIndex(l[2]->v)]);
+					} else {
+						glNormal3fv(vertexNos[(int) BM_GetIndex(l[0]->v)]);
+						glVertex3fv(vertexCos[(int) BM_GetIndex(l[0]->v)]);
+						glNormal3fv(vertexNos[(int) BM_GetIndex(l[1]->v)]);
+						glVertex3fv(vertexCos[(int) BM_GetIndex(l[1]->v)]);
+						glNormal3fv(vertexNos[(int) BM_GetIndex(l[2]->v)]);
+						glVertex3fv(vertexCos[(int) BM_GetIndex(l[2]->v)]);
+					}
+				}
+
+				if (draw==2) {
+					glEnd();
+					poly_prev= GL_ZERO; /* force glBegin */
+
 					glDisable(GL_POLYGON_STIPPLE);
+				}
 			}
 		}
 	} else {
@@ -661,33 +695,61 @@ static void bmDM_drawMappedFaces(DerivedMesh *dm,
 			
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, BM_GetIndex(efa), &drawSmooth);
 			if(draw) {
+				const GLenum poly_type= GL_TRIANGLES; /* BMESH NOTE, this is odd but keep it for now to match trunk */
 				if (draw==2) { /* enabled with stipple */
+
+					if(poly_prev != GL_ZERO) glEnd();
+					poly_prev= GL_ZERO; /* force glBegin */
+
 		  			glEnable(GL_POLYGON_STIPPLE);
 		  			glPolygonStipple(stipple_quarttone);
 				}
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 				
-				glBegin(GL_TRIANGLES);
-				if (!drawSmooth) {
-					glNormal3fv(efa->no);
+				if(skip_normals) {
+					if(poly_type != poly_prev) {
+						if(poly_prev != GL_ZERO) glEnd();
+						glBegin((poly_prev= poly_type)); /* BMesh: will always be GL_TRIANGLES */
+					}
 					glVertex3fv(l[0]->v->co);
 					glVertex3fv(l[1]->v->co);
-					glVertex3fv(l[2]->v->co);
-				} else {
-					glNormal3fv(l[0]->v->no);
-					glVertex3fv(l[0]->v->co);
-					glNormal3fv(l[1]->v->no);
-					glVertex3fv(l[1]->v->co);
-					glNormal3fv(l[2]->v->no);
 					glVertex3fv(l[2]->v->co);
 				}
-				glEnd();
-				
-				if (draw==2)
+				else {
+					const GLenum shade_type= drawSmooth ? GL_SMOOTH : GL_FLAT;
+					if (shade_type != shade_prev) {
+						glShadeModel((shade_prev= shade_type));
+					}
+					if(poly_type != poly_prev) {
+						if(poly_prev != GL_ZERO) glEnd();
+						glBegin((poly_prev= poly_type)); /* BMesh: will always be GL_TRIANGLES */
+					}
+
+					if (!drawSmooth) {
+						glNormal3fv(efa->no);
+						glVertex3fv(l[0]->v->co);
+						glVertex3fv(l[1]->v->co);
+						glVertex3fv(l[2]->v->co);
+					} else {
+						glNormal3fv(l[0]->v->no);
+						glVertex3fv(l[0]->v->co);
+						glNormal3fv(l[1]->v->no);
+						glVertex3fv(l[1]->v->co);
+						glNormal3fv(l[2]->v->no);
+						glVertex3fv(l[2]->v->co);
+					}
+				}
+				if (draw==2) {
+					glEnd();
+					poly_prev= GL_ZERO; /* force glBegin */
+
 					glDisable(GL_POLYGON_STIPPLE);
+				}
 			}
 		}
 	}
+
+	/* if non zero we know a face was rendered */
+	if(poly_prev != GL_ZERO) glEnd();
 }
 
 static void bmdm_get_tri_tex(BMesh *bm, BMLoop **ls, MLoopUV *luv[3], MLoopCol *lcol[3], 
