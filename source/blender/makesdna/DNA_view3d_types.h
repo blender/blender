@@ -168,8 +168,8 @@ typedef struct View3D {
 	int layact;
 	
 	/**
-	 * The drawing mode for the 3d display. Set to OB_WIRE, OB_SOLID,
-	 * OB_SHADED or OB_TEXTURE */
+	 * The drawing mode for the 3d display. Set to OB_BOUNDBOX, OB_WIRE, OB_SOLID,
+	 * OB_TEXTURE, OB_MATERIAL or OB_RENDER */
 	short drawtype;
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
 	short scenelock, around;
