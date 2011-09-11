@@ -95,7 +95,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, float *co)
 			is.dir[2] = -lar->vec[2];
 			is.dist = R.maxdist;
 		} else {
-			VECSUB( is.dir, lar->co, is.start );
+			sub_v3_v3v3(is.dir, lar->co, is.start);
 			is.dist = normalize_v3( is.dir );
 		}
 

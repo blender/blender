@@ -167,14 +167,14 @@ CurveMapping *curvemapping_copy(CurveMapping *cumap)
 	return NULL;
 }
 
-void curvemapping_set_black_white(CurveMapping *cumap, float *black, float *white)
+void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], const float white[3])
 {
 	int a;
 	
 	if(white)
-		VECCOPY(cumap->white, white);
+		copy_v3_v3(cumap->white, white);
 	if(black)
-		VECCOPY(cumap->black, black);
+		copy_v3_v3(cumap->black, black);
 	
 	for(a=0; a<3; a++) {
 		if(cumap->white[a]==cumap->black[a])
@@ -432,7 +432,7 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 
 /* in X, out Y. 
    X is presumed to be outside first or last */
-static float curvemap_calc_extend(CurveMap *cuma, float x, float *first, float *last)
+static float curvemap_calc_extend(CurveMap *cuma, float x, const float first[2], const float last[2])
 {
 	if(x <= first[0]) {
 		if((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0) {
@@ -753,7 +753,7 @@ float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
 }
 
 /* vector case */
-void curvemapping_evaluate3F(CurveMapping *cumap, float *vecout, const float *vecin)
+void curvemapping_evaluate3F(CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
 	vecout[0]= curvemapping_evaluateF(cumap, 0, vecin[0]);
 	vecout[1]= curvemapping_evaluateF(cumap, 1, vecin[1]);
@@ -761,7 +761,7 @@ void curvemapping_evaluate3F(CurveMapping *cumap, float *vecout, const float *ve
 }
 
 /* RGB case, no black/white points, no premult */
-void curvemapping_evaluateRGBF(CurveMapping *cumap, float *vecout, const float *vecin)
+void curvemapping_evaluateRGBF(CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
 	vecout[0]= curvemapping_evaluateF(cumap, 0, curvemapping_evaluateF(cumap, 3, vecin[0]));
 	vecout[1]= curvemapping_evaluateF(cumap, 1, curvemapping_evaluateF(cumap, 3, vecin[1]));
@@ -770,7 +770,7 @@ void curvemapping_evaluateRGBF(CurveMapping *cumap, float *vecout, const float *
 
 
 /* RGB with black/white points and premult. tables are checked */
-void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float *vecout, const float *vecin)
+void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
 	float fac;
 	

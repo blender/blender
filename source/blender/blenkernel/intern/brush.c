@@ -555,7 +555,7 @@ void brush_imbuf_new(Brush *brush, short flt, short texfall, int bufsize, ImBuf 
 				if (texfall == 0) {
 					dist = sqrt(xy[0]*xy[0] + xy[1]*xy[1]);
 
-					VECCOPY(dstf, brush_rgb);
+					copy_v3_v3(dstf, brush_rgb);
 					dstf[3]= alpha*brush_curve_strength_clamp(brush, dist, radius);
 				}
 				else if (texfall == 1) {
@@ -754,7 +754,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf, i
 
 			for (x=origx; x < w; x++, bf+=4, mf+=4, tf+=4) {
 				if (dotexold) {
-					VECCOPY(tf, otf);
+					copy_v3_v3(tf, otf);
 					tf[3] = otf[3];
 					otf += 4;
 				}
@@ -926,7 +926,7 @@ static void brush_apply_pressure(BrushPainter *painter, Brush *brush, float pres
 		brush->spacing = MAX2(1.0f, painter->startspacing*(1.5f-pressure));
 }
 
-void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
+void brush_jitter_pos(Brush *brush, float pos[2], float jitterpos[2])
 {
 	int use_jitter= brush->jitter != 0;
 
@@ -949,7 +949,7 @@ void brush_jitter_pos(Brush *brush, float *pos, float *jitterpos)
 		jitterpos[1] = pos[1] + 2*rand_pos[1]*diameter*brush->jitter;
 	}
 	else {
-		VECCOPY2D(jitterpos, pos);
+		copy_v2_v2(jitterpos, pos);
 	}
 }
 

@@ -26,10 +26,20 @@
 *
 */
 #include <math.h>
-#include "Recast.h"
+
+#ifdef WITH_GAMEENGINE
+#  include "Recast.h"
+#endif
 
 extern "C"{
-#include "ED_navmesh_conversion.h"
+
+#ifdef WITH_GAMEENGINE
+#  include "ED_navmesh_conversion.h"
+#  include "BIF_gl.h"
+#  include "GPU_buffers.h"
+#  include "GPU_draw.h"
+#  include "UI_resources.h"
+#endif
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -43,10 +53,6 @@ extern "C"{
 #include "BKE_particle.h"
 #include "BKE_customdata.h"
 #include "MEM_guardedalloc.h"
-#include "BIF_gl.h"
-#include "GPU_buffers.h"
-#include "GPU_draw.h"
-#include "UI_resources.h"
 
 static void initData(ModifierData *md)
 {

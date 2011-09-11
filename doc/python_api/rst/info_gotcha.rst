@@ -378,6 +378,41 @@ This example shows how you can tell undo changes the memory locations.
 As suggested above, simply not holding references to data when Blender is used interactively by the user is the only way to ensure the script doesn't become unstable.
 
 
+Edit Mode / Memory Access
+-------------------------
+
+Switching edit-mode ``bpy.ops.object.mode_set(mode='EDIT')`` / ``bpy.ops.object.mode_set(mode='OBJECT')`` will re-allocate objects data, any references to a meshes vertices/faces/uvs, armatures bones, curves points etc cannot be accessed after switching edit-mode.
+
+Only the reference to the data its self can be re-accessed, the following example will crash.
+
+.. code-block:: python
+
+   mesh = bpy.context.active_object.data
+   faces = mesh.faces
+   bpy.ops.object.mode_set(mode='EDIT')
+   bpy.ops.object.mode_set(mode='OBJECT')
+
+   # this will crash
+   print(faces)
+
+
+So after switching edit-mode you need to re-access any object data variables, the following example shows how to avoid the crash above.
+
+.. code-block:: python
+
+   mesh = bpy.context.active_object.data
+   faces = mesh.faces
+   bpy.ops.object.mode_set(mode='EDIT')
+   bpy.ops.object.mode_set(mode='OBJECT')
+
+   # faces have been re-allocated
+   faces = mesh.faces
+   print(faces)
+
+
+These kinds of problems can happen for any functions which re-allocate the object data but are most common when switching edit-mode.
+
+
 Array Re-Allocation
 -------------------
 

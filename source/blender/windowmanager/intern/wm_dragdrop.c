@@ -256,7 +256,7 @@ static void wm_drop_operator_draw(char *name, int x, int y)
 	
 	glColor4ub(0, 0, 0, 50);
 	
-	uiSetRoundBox(15+16);	
+	uiSetRoundBox(UI_CNR_ALL | UI_RB_ALPHA);
 	uiRoundBox(x, y, x + width + 8, y + 15, 4);
 	
 	glColor4ub(255, 255, 255, 255);

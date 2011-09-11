@@ -239,7 +239,7 @@ static short cliptestf(float p, float q, float *u1, float *u2)
 	return 1;
 }
 
-int testclip(float *v)
+int testclip(const float v[3])
 {
 	float abs4;	/* WATCH IT: this function should do the same as cliptestf, otherwise troubles in zbufclip()*/
 	short c=0;
@@ -1692,7 +1692,7 @@ static void makevertpyra(float *vez, float *labda, float **trias, float *v1, flo
 
 /* ------------------------------------------------------------------------- */
 
-void projectverto(float *v1, float winmat[][4], float *adr)
+void projectverto(const float v1[3], float winmat[][4], float adr[4])
 {
 	/* calcs homogenic coord of vertex v1 */
 	float x,y,z;
@@ -1710,7 +1710,7 @@ void projectverto(float *v1, float winmat[][4], float *adr)
 
 /* ------------------------------------------------------------------------- */
 
-void projectvert(float *v1, float winmat[][4], float *adr)
+void projectvert(const float v1[3], float winmat[][4], float adr[4])
 {
 	/* calcs homogenic coord of vertex v1 */
 	float x,y,z;

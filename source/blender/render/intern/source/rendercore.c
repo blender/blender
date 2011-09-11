@@ -128,7 +128,7 @@ void calc_view_vector(float *view, float x, float y)
 	}
 }
 
-void calc_renderco_ortho(float *co, float x, float y, int z)
+void calc_renderco_ortho(float co[3], float x, float y, int z)
 {
 	/* x and y 3d coordinate can be derived from pixel coord and winmat */
 	float fx= 2.0f/(R.winx*R.winmat[0][0]);
@@ -142,7 +142,7 @@ void calc_renderco_ortho(float *co, float x, float y, int z)
 	co[2]= R.winmat[3][2]/( R.winmat[2][3]*zco - R.winmat[2][2] );
 }
 
-void calc_renderco_zbuf(float *co, float *view, int z)
+void calc_renderco_zbuf(float co[3], float *view, int z)
 {
 	float fac, zco;
 	

@@ -2526,7 +2526,7 @@ void do_material_tex(ShadeInput *shi)
 							nor[1]= Tnor*norfac*texres.nor[1];
 							nor[2]= Tnor*norfac*texres.nor[2];
 							
-							dot= 0.5f + 0.5f*INPR(nor, shi->vn);
+							dot= 0.5f + 0.5f * dot_v3v3(nor, shi->vn);
 							
 							shi->vn[0]+= dot*nor[0];
 							shi->vn[1]+= dot*nor[1];

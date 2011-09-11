@@ -369,7 +369,7 @@ void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spo
 		cross_v3_v3v3(shi->vn, cross, spoint->tan);
 		normalize_v3(shi->vn);
 
-		if(INPR(shi->vn, shi->view) < 0.0f)
+		if(dot_v3v3(shi->vn, shi->view) < 0.0f)
 			negate_v3(shi->vn);
 	}
 
@@ -586,7 +586,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 }
 
 /* from scanline pixel coordinates to 3d coordinates, requires set_triangle */
-void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *view, float *dxyview, float *co, float *dxco, float *dyco)
+void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float view[3], float dxyview[2], float co[3], float dxco[3], float dyco[3])
 {
 	/* returns not normalized, so is in viewplane coords */
 	calc_view_vector(view, x, y);

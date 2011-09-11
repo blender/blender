@@ -1936,4 +1936,14 @@ void KX_KetsjiEngine::GetOverrideFrameColor(float& r, float& g, float& b) const
 	b = m_overrideFrameColorB;
 }
 
+void KX_KetsjiEngine::SetGlobalSettings(GlobalSettings* gs)
+{
+	m_globalsettings.matmode = gs->matmode;
+	m_globalsettings.glslflag = gs->glslflag;
+}
+
+GlobalSettings* KX_KetsjiEngine::GetGlobalSettings(void)
+{
+	return &m_globalsettings;
+}
 

@@ -486,8 +486,8 @@ static float area_lamp_energy_multisample(LampRen *lar, float *co, float *vn)
 	int a= lar->ray_totsamp;
 
 	/* test if co is behind lamp */
-	VECSUB(vec, co, lar->co);
-	if(INPR(vec, lar->vec) < 0.0f)
+	sub_v3_v3v3(vec, co, lar->co);
+	if(dot_v3v3(vec, lar->vec) < 0.0f)
 		return 0.0f;
 
 	while(a--) {
@@ -1125,15 +1125,15 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 	else {
 		float visifac= 1.0f, t;
 		
-		VECSUB(lv, co, lar->co);
-		*dist= sqrt( INPR(lv, lv));
+		sub_v3_v3v3(lv, co, lar->co);
+		*dist= sqrtf(dot_v3v3(lv, lv));
 		t= 1.0f/dist[0];
-		VECMUL(lv, t);
+		mul_v3_fl(lv, t);
 		
 		/* area type has no quad or sphere option */
 		if(lar->type==LA_AREA) {
 			/* area is single sided */
-			//if(INPR(lv, lar->vec) > 0.0f)
+			//if(dot_v3v3(lv, lar->vec) > 0.0f)
 			//	visifac= 1.0f;
 			//else
 			//	visifac= 0.0f;
@@ -1179,7 +1179,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 					float inpr;
 					
 					if(lar->mode & LA_SQUARE) {
-						if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0f) {
+						if(dot_v3v3(lv, lar->vec) > 0.0f) {
 							float lvrot[3], x;
 							
 							/* rotate view to lampspace */
@@ -1279,7 +1279,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 			cross_v3_v3v3(cross, shi->surfnor, vn);
 			cross_v3_v3v3(nstrand, vn, cross);
 
-			blend= INPR(nstrand, shi->surfnor);
+			blend= dot_v3v3(nstrand, shi->surfnor);
 			blend= 1.0f - blend;
 			CLAMP(blend, 0.0f, 1.0f);
 
@@ -1314,8 +1314,8 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	
 	/* dot product and reflectivity */
 	/* inp = dotproduct, is = shader result, i = lamp energy (with shadow), i_noshad = i without shadow */
-	inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
-	
+	inp= dot_v3v3(vn, lv);
+
 	/* phong threshold to prevent backfacing faces having artefacts on ray shadow (terminator problem) */
 	/* this complex construction screams for a nicer implementation! (ton) */
 	if(R.r.mode & R_SHADOW) {
@@ -1383,7 +1383,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 				if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
 					
 					if(vn==vnor)	/* tangent trigger */
-						lamp_get_shadow(lar, shi, INPR(shi->vn, lv), shadfac, shi->depth);
+						lamp_get_shadow(lar, shi, dot_v3v3(shi->vn, lv), shadfac, shi->depth);
 					else
 						lamp_get_shadow(lar, shi, inp, shadfac, shi->depth);
 						
@@ -1531,7 +1531,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 
 					continue;
 				}
-				inpr= INPR(shi->vn, lv);
+				inpr= dot_v3v3(shi->vn, lv);
 				if(inpr <= 0.0f) {
 					if (shi->mat->shadowonly_flag == MA_SO_OLD)
 						accum+= 1.0f;
@@ -1864,7 +1864,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		result[2]= shi->mirb*shi->refcol[3] + (1.0f - shi->mirb*shi->refcol[0])*shr->combined[2];
 		
 		if(passflag & SCE_PASS_REFLECT)
-			VECSUB(shr->refl, result, shr->combined);
+			sub_v3_v3v3(shr->refl, result, shr->combined);
 		
 		if(shi->combinedflag & SCE_PASS_REFLECT)
 			VECCOPY(shr->combined, result);

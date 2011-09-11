@@ -35,11 +35,8 @@ set(INC
 	../makesrna
 	../bmesh
 	../render/extern/include
-	../editors/include
-	../gpu
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
-	../../../extern/recastnavigation/Recast/Include
 )
 
 set(INC_SYS
@@ -122,7 +119,13 @@ if(NOT WITH_MOD_FLUID)
 endif()
 
 if(WITH_GAMEENGINE)
+	# for MOD_navmesh.cpp
 	add_definitions(-DWITH_GAMEENGINE)
+	list(APPEND INC
+		../gpu
+		../../../extern/recastnavigation/Recast/Include
+		../editors/include  # XXX - BAD LEVEL CALL, REMOVE BEFORE RELEASE
+	)
 endif()
 
 blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}")

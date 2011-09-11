@@ -34,7 +34,6 @@ set(INC
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
-	../../../../extern/recastnavigation/Recast/Include
 )
 
 set(INC_SYS
@@ -61,6 +60,10 @@ set(SRC
 )
 
 if(WITH_GAMEENGINE)
+	list(APPEND INC
+		../../../../extern/recastnavigation/Recast/Include
+	)
+
 	list(APPEND SRC
 		object_navmesh.cpp
 	)

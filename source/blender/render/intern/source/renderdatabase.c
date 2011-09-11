@@ -1238,7 +1238,7 @@ static int panotestclip(Render *re, int do_pano, float *v)
   - shadow buffering (shadbuf.c)
 */
 
-void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs, int UNUSED(do_buckets))
+void project_renderdata(Render *re, void (*projectfunc)(const float *, float mat[][4], float *),  int do_pano, float xoffs, int UNUSED(do_buckets))
 {
 	ObjectRen *obr;
 	HaloRen *har = NULL;

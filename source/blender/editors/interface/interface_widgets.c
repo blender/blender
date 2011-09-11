@@ -90,15 +90,6 @@ typedef struct uiWidgetTrias {
 #define WIDGET_CURVE_RESOLU 9
 #define WIDGET_SIZE_MAX (WIDGET_CURVE_RESOLU*4)
 
-enum {
-	WIDGET_TOP_LEFT= 1,
-	WIDGET_TOP_RIGHT= 2,
-	WIDGET_BOTTOM_RIGHT= 4,
-	WIDGET_BOTTOM_LEFT= 8,
-	/* just for convenience */
-	WIDGET_ALL_CORNERS= (WIDGET_TOP_LEFT | WIDGET_TOP_RIGHT | WIDGET_BOTTOM_RIGHT | WIDGET_BOTTOM_LEFT)
-};
-
 typedef struct uiWidgetBase {
 	
 	int totvert, halfwayvert;
@@ -249,7 +240,7 @@ static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int r
 	}
 	
 	/* start with left-top, anti clockwise */
-	if(roundboxalign & WIDGET_TOP_LEFT) {
+	if(roundboxalign & UI_CNR_TOP_LEFT) {
 		for(a=0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
 			vert[tot][0]= minx+rad-vec[a][0];
 			vert[tot][1]= maxy-vec[a][1];
@@ -262,7 +253,7 @@ static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int r
 		}
 	}
 	
-	if(roundboxalign & WIDGET_BOTTOM_LEFT) {
+	if(roundboxalign & UI_CNR_BOTTOM_LEFT) {
 		for(a=0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
 			vert[tot][0]= minx+vec[a][1];
 			vert[tot][1]= miny+rad-vec[a][0];
@@ -275,7 +266,7 @@ static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int r
 		}
 	}
 	
-	if(roundboxalign & WIDGET_BOTTOM_RIGHT) {
+	if(roundboxalign & UI_CNR_BOTTOM_RIGHT) {
 		for(a=0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
 			vert[tot][0]= maxx-rad+vec[a][0];
 			vert[tot][1]= miny+vec[a][1];
@@ -288,7 +279,7 @@ static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int r
 		}
 	}
 	
-	if(roundboxalign & WIDGET_TOP_RIGHT) {
+	if(roundboxalign & UI_CNR_TOP_RIGHT) {
 		for(a=0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
 			vert[tot][0]= maxx-vec[a][1];
 			vert[tot][1]= maxy-rad+vec[a][0];
@@ -315,10 +306,10 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	float facxi= (maxxi!=minxi) ? 1.0f/(maxxi-minxi) : 0.0f; /* for uv, can divide by zero */
 	float facyi= (maxyi!=minyi) ? 1.0f/(maxyi-minyi) : 0.0f;
 	int a, tot= 0, minsize;
-	const int hnum= ((roundboxalign & (WIDGET_TOP_LEFT|WIDGET_TOP_RIGHT))==(WIDGET_TOP_LEFT|WIDGET_TOP_RIGHT) ||
-	                 (roundboxalign & (WIDGET_BOTTOM_RIGHT|WIDGET_BOTTOM_LEFT))==(WIDGET_BOTTOM_RIGHT|WIDGET_BOTTOM_LEFT)) ? 1 : 2;
-	const int vnum= ((roundboxalign & (WIDGET_TOP_LEFT|WIDGET_BOTTOM_LEFT))==(WIDGET_TOP_LEFT|WIDGET_BOTTOM_LEFT) ||
-	                 (roundboxalign & (WIDGET_TOP_RIGHT|WIDGET_BOTTOM_RIGHT))==(WIDGET_TOP_RIGHT|WIDGET_BOTTOM_RIGHT)) ? 1 : 2;
+	const int hnum= ((roundboxalign & (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT))==(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT) ||
+	                 (roundboxalign & (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT))==(UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)) ? 1 : 2;
+	const int vnum= ((roundboxalign & (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT))==(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT) ||
+	                 (roundboxalign & (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT))==(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT)) ? 1 : 2;
 
 	minsize= MIN2((rect->xmax-rect->xmin)*hnum, (rect->ymax-rect->ymin)*vnum);
 	
@@ -337,7 +328,7 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	}
 	
 	/* corner left-bottom */
-	if(roundboxalign & WIDGET_BOTTOM_LEFT) {
+	if(roundboxalign & UI_CNR_BOTTOM_LEFT) {
 		
 		for(a=0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
 			wt->inner_v[tot][0]= minxi+veci[a][1];
@@ -364,7 +355,7 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	}
 	
 	/* corner right-bottom */
-	if(roundboxalign & WIDGET_BOTTOM_RIGHT) {
+	if(roundboxalign & UI_CNR_BOTTOM_RIGHT) {
 		
 		for(a=0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
 			wt->inner_v[tot][0]= maxxi-radi+veci[a][0];
@@ -393,7 +384,7 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	wt->halfwayvert= tot;
 	
 	/* corner right-top */
-	if(roundboxalign & WIDGET_TOP_RIGHT) {
+	if(roundboxalign & UI_CNR_TOP_RIGHT) {
 		
 		for(a=0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
 			wt->inner_v[tot][0]= maxxi-veci[a][1];
@@ -420,7 +411,7 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	}
 	
 	/* corner left-top */
-	if(roundboxalign & WIDGET_TOP_LEFT) {
+	if(roundboxalign & UI_CNR_TOP_LEFT) {
 		
 		for(a=0; a < WIDGET_CURVE_RESOLU; a++, tot++) {
 			wt->inner_v[tot][0]= minxi+radi-veci[a][0];
@@ -1684,7 +1675,7 @@ static void widget_softshadow(rcti *rect, int roundboxalign, float radin, float 
 		rect1.ymax -= 2.0f*radout;
 	
 	/* inner part */
-	totvert= round_box_shadow_edges(wtb.inner_v, &rect1, radin, roundboxalign & (WIDGET_BOTTOM_RIGHT | WIDGET_BOTTOM_LEFT), 0.0f);
+	totvert= round_box_shadow_edges(wtb.inner_v, &rect1, radin, roundboxalign & (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT), 0.0f);
 
 	/* inverse linear shadow alpha */
 	alpha= 0.15;
@@ -1693,7 +1684,7 @@ static void widget_softshadow(rcti *rect, int roundboxalign, float radin, float 
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	for(step= 1; step<=radout; step++, alpha*=alphastep) {
-		round_box_shadow_edges(wtb.outer_v, &rect1, radin, WIDGET_ALL_CORNERS, (float)step);
+		round_box_shadow_edges(wtb.outer_v, &rect1, radin, UI_CNR_ALL, (float)step);
 		
 		glColor4f(0.0f, 0.0f, 0.0f, alpha);
 
@@ -1709,7 +1700,7 @@ static void widget_softshadow(rcti *rect, int roundboxalign, float radin, float 
 static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int direction)
 {
 	uiWidgetBase wtb;
-	int roundboxalign= WIDGET_ALL_CORNERS;
+	int roundboxalign= UI_CNR_ALL;
 	
 	widget_init(&wtb);
 	
@@ -1719,11 +1710,11 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 		//rect->ymax += 4.0;
 	}
 	else if (direction == UI_DOWN) {
-		roundboxalign= (WIDGET_BOTTOM_RIGHT | WIDGET_BOTTOM_LEFT);
+		roundboxalign= (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT);
 		rect->ymin -= 4.0;
 	} 
 	else if (direction == UI_TOP) {
-		roundboxalign= WIDGET_TOP_LEFT | WIDGET_TOP_RIGHT;
+		roundboxalign= UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
 		rect->ymax += 4.0;
 	}
 	
@@ -2073,7 +2064,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	widget_init(&wtb);
 	
 	/* fully rounded */
-	round_box_edges(&wtb, WIDGET_ALL_CORNERS, rect, rad);
+	round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 	
 	/* setup temp colors */
 	wcol_tmp.outline[0]= wcol_tmp.outline[1]= wcol_tmp.outline[2]= 0;
@@ -2211,7 +2202,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 	if(horizontal)
 		SWAP(short, wcol->shadetop, wcol->shadedown);
 	
-	round_box_edges(&wtb, WIDGET_ALL_CORNERS, rect, rad);
+	round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 	widgetbase_draw(&wtb, wcol);
 	
 	/* slider */
@@ -2239,7 +2230,7 @@ void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int stat
 		if (state & UI_SCROLL_NO_OUTLINE)	
 			SWAP(short, outline, wtb.outline);
 		
-		round_box_edges(&wtb, WIDGET_ALL_CORNERS, slider, rad);
+		round_box_edges(&wtb, UI_CNR_ALL, slider, rad);
 		
 		if(state & UI_SCROLL_ARROWS) {
 			if(wcol->item[0] > 48) wcol->item[0]-= 48;
@@ -2406,7 +2397,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 		
 		/* left part of slider, always rounded */
 		rect1.xmax= rect1.xmin + ceil(offs+1.0f);
-		round_box_edges(&wtb1, roundboxalign & ~(WIDGET_TOP_RIGHT | WIDGET_BOTTOM_RIGHT), &rect1, offs);
+		round_box_edges(&wtb1, roundboxalign & ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT), &rect1, offs);
 		wtb1.outline= 0;
 		widgetbase_draw(&wtb1, wcol);
 		
@@ -2417,7 +2408,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 			offs*= (rect1.xmax + offs - rect->xmax)/offs;
 		else 
 			offs= 0.0f;
-		round_box_edges(&wtb1, roundboxalign & ~(WIDGET_TOP_LEFT | WIDGET_BOTTOM_LEFT), &rect1, offs);
+		round_box_edges(&wtb1, roundboxalign & ~(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT), &rect1, offs);
 		
 		widgetbase_draw(&wtb1, wcol);
 		VECCOPY(wcol->outline, outline);
@@ -2499,7 +2490,7 @@ static void widget_icon_has_anim(uiBut *UNUSED(but), uiWidgetColors *wcol, rcti 
 		wtb.outline= 0;
 		
 		/* rounded */
-		round_box_edges(&wtb, WIDGET_ALL_CORNERS, rect, 10.0f);
+		round_box_edges(&wtb, UI_CNR_ALL, rect, 10.0f);
 		widgetbase_draw(&wtb, wcol);
 	}	
 }
@@ -2562,7 +2553,7 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 		widget_init(&wtb);
 		
 		/* half rounded */
-		round_box_edges(&wtb, WIDGET_ALL_CORNERS, rect, rad);
+		round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 		
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -2589,7 +2580,7 @@ static void widget_list_itembut(uiWidgetColors *wcol, rcti *rect, int UNUSED(sta
 	
 	/* rounded, but no outline */
 	wtb.outline= 0;
-	round_box_edges(&wtb, WIDGET_ALL_CORNERS, rect, 4.0f);
+	round_box_edges(&wtb, UI_CNR_ALL, rect, 4.0f);
 	
 	widgetbase_draw(&wtb, wcol);
 }
@@ -2613,7 +2604,7 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 	recttemp.ymax-= delta;
 	
 	/* half rounded */
-	round_box_edges(&wtb, WIDGET_ALL_CORNERS, &recttemp, 4.0f);
+	round_box_edges(&wtb, UI_CNR_ALL, &recttemp, 4.0f);
 	
 	/* decoration */
 	if(state & UI_SELECT) {
@@ -2713,12 +2704,12 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 		UI_GetThemeColor3ubv(TH_BACK, col);
 		glColor3ubv(col);
 		
-		round_box__edges(&wtb, WIDGET_ALL_CORNERS, rect, 0.0f, 4.0);
+		round_box__edges(&wtb, UI_CNR_ALL, rect, 0.0f, 4.0);
 		widgetbase_outline(&wtb);
 	}
 	
 	/* outline */
-	round_box_edges(&wtb, WIDGET_ALL_CORNERS, rect, 5.0f);
+	round_box_edges(&wtb, UI_CNR_ALL, rect, 5.0f);
 	wtb.outline= 1;
 	wtb.inner= 0;
 	widgetbase_draw(&wtb, &wt->wcol);
@@ -2899,27 +2890,27 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 		
 		switch(but->flag & UI_BUT_ALIGN) {
 			case UI_BUT_ALIGN_TOP:
-				return WIDGET_BOTTOM_LEFT | WIDGET_BOTTOM_RIGHT;
+				return UI_CNR_BOTTOM_LEFT | UI_CNR_BOTTOM_RIGHT;
 			case UI_BUT_ALIGN_DOWN:
-				return WIDGET_TOP_LEFT | WIDGET_TOP_RIGHT;
+				return UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT;
 			case UI_BUT_ALIGN_LEFT:
-				return WIDGET_TOP_RIGHT | WIDGET_BOTTOM_RIGHT;
+				return UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT;
 			case UI_BUT_ALIGN_RIGHT:
-				return WIDGET_TOP_LEFT | WIDGET_BOTTOM_LEFT;
+				return UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT;
 			case UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_RIGHT:
-				return WIDGET_TOP_LEFT;
+				return UI_CNR_TOP_LEFT;
 			case UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT:
-				return WIDGET_TOP_RIGHT;
+				return UI_CNR_TOP_RIGHT;
 			case UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_RIGHT:
-				return WIDGET_BOTTOM_LEFT;
+				return UI_CNR_BOTTOM_LEFT;
 			case UI_BUT_ALIGN_TOP | UI_BUT_ALIGN_LEFT:
-				return WIDGET_BOTTOM_RIGHT;
+				return UI_CNR_BOTTOM_RIGHT;
 			default:
 				return 0;
 		}
 	}
 
-	return WIDGET_ALL_CORNERS;
+	return UI_CNR_ALL;
 }
 
 /* conversion from old to new buttons, so still messy */
@@ -3157,14 +3148,14 @@ void ui_draw_search_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	uiWidgetType *wt= widget_type(UI_WTYPE_BOX);
 	
 	glEnable(GL_BLEND);
-	widget_softshadow(rect, WIDGET_ALL_CORNERS, 5.0f, 8.0f);
+	widget_softshadow(rect, UI_CNR_ALL, 5.0f, 8.0f);
 	glDisable(GL_BLEND);
 
 	wt->state(wt, 0);
 	if(block)
-		wt->draw(&wt->wcol, rect, block->flag, WIDGET_ALL_CORNERS);
+		wt->draw(&wt->wcol, rect, block->flag, UI_CNR_ALL);
 	else
-		wt->draw(&wt->wcol, rect, 0, WIDGET_ALL_CORNERS);
+		wt->draw(&wt->wcol, rect, 0, UI_CNR_ALL);
 	
 }
 

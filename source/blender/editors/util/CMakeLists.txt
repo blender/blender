@@ -24,7 +24,6 @@ set(INC
 	../../blenkernel
 	../../blenlib
 	../../blenloader
-	../../../../extern/recastnavigation/Recast/Include
 	../../bmesh
 	../../makesdna
 	../../makesrna
@@ -64,7 +63,6 @@ set(SRC
 	../include/ED_markers.h
 	../include/ED_mball.h
 	../include/ED_mesh.h
-	../include/ED_navmesh_conversion.h
 	../include/ED_node.h
 	../include/ED_numinput.h
 	../include/ED_object.h
@@ -92,8 +90,14 @@ set(SRC
 )
 
 if(WITH_GAMEENGINE)
+	list(APPEND INC
+		../../../../extern/recastnavigation/Recast/Include
+	)
+
 	list(APPEND SRC
 		navmesh_conversion.cpp
+
+		../include/ED_navmesh_conversion.h
 	)
 endif()
 
