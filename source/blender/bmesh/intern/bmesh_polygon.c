@@ -595,7 +595,7 @@ static int linecrossesf(float *v1, float *v2, float *v3, float *v4)
 int BM_Point_In_Face(BMesh *bm, BMFace *f, float co[3])
 {
 	int xn, yn, zn, ax, ay;
-	float co2[3], cent[3] = {0.0f, 0.0f}, out[3] = {FLT_MAX*0.5f, FLT_MAX*0.5f, 0};
+	float co2[3], cent[3] = {0.0f, 0.0f, 0.0f}, out[3] = {FLT_MAX*0.5f, FLT_MAX*0.5f, 0};
 	BMLoop *l;
 	int crosses = 0;
 	float eps = 1.0f+(float)FLT_EPSILON*150.0f;
