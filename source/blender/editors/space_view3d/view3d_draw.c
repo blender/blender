@@ -251,7 +251,7 @@ static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, flo
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-#define GRID_MIN_PX 1.0f
+#define GRID_MIN_PX 6.0f
 
 static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit)
 {
@@ -428,15 +428,10 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 {
-	float vert[3], grid, grid_scale;
-	int a, gridlines;
-	unsigned char col_grid[3], col_bg[3];
-	unsigned char col_grid_emphasise[3], col_grid_light[3]; /* cache */
-	short draw_line= FALSE;
-	const short show_floor= (v3d->gridflag & V3D_SHOW_FLOOR) != 0;
-	
-	vert[2]= 0.0;
-	
+	float vert[3]= {0.0f, 0.0f, 0.0f}, grid, grid_scale;
+	unsigned char col_grid[3];
+	const int gridlines= v3d->gridlines/2;
+
 	if(v3d->gridlines<3) return;
 	
 	grid_scale= v3d->grid;
@@ -455,54 +450,28 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 			 grid_scale = (grid_scale * (float)bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
 		}
 	}
-	
-	if(v3d->zbuf && scene->obedit) glDepthMask(0);	// for zbuffer-select
 
-	gridlines= v3d->gridlines/2;
 	grid= gridlines * grid_scale;
 
-	/* only draw center axis if there are no grid lines, saves loop for no reason */
-	if(show_floor == 0) {
-		gridlines= FALSE;
-	}
+	if(v3d->zbuf && scene->obedit) glDepthMask(0);	// for zbuffer-select
 
 	UI_GetThemeColor3ubv(TH_GRID, col_grid);
-	UI_GetThemeColor3ubv(TH_BACK, col_bg);
-
-	/* emphasise division lines lighter instead of darker, if background is darker than grid */
-	UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);
-	UI_GetColorPtrShade3ubv(col_grid, col_grid_emphasise,
-	                        (((col_grid[0]+col_grid[1]+col_grid[2])+30) > (col_bg[0]+col_bg[1]+col_bg[2])) ? 20 : -10);
 
 	/* draw the Y axis and/or grid lines */
-	for(a= -gridlines;a<=gridlines;a++) {
-		if(a==0) {
-			/* check for the 'show Y axis' preference */
-			if (v3d->gridflag & V3D_SHOW_Y) { 
-				UI_make_axis_color(col_grid, col_bg, 'Y');
-				glColor3ubv(col_bg);
+	if(v3d->gridflag & V3D_SHOW_FLOOR) {
+		int a;
+		unsigned char col_bg[3];
+		unsigned char col_grid_emphasise[3], col_grid_light[3];
 
-				draw_line = TRUE;
-			}
-			else if (show_floor) {
-				glColor3ubv(col_grid_emphasise);
-			}
-			else {
-				draw_line = FALSE;
-			}
-		}
-		else {
-			/* check for the 'show grid floor' preference */
-			if (show_floor) {
-				glColor3ubv((a % 10) ? col_grid_light : col_grid_emphasise);
-				draw_line = TRUE;
-			}
-			else {
-				draw_line = FALSE;
-			}
-		}
-		
-		if (draw_line) {
+		UI_GetThemeColor3ubv(TH_BACK, col_bg);
+
+		/* emphasise division lines lighter instead of darker, if background is darker than grid */
+		UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);
+		UI_GetColorPtrShade3ubv(col_grid, col_grid_emphasise,
+		                        (((col_grid[0]+col_grid[1]+col_grid[2])+30) > (col_bg[0]+col_bg[1]+col_bg[2])) ? 20 : -10);
+
+		for(a= -gridlines;a<=gridlines;a++) {
+			glColor3ubv((a % 10) ? col_grid_light : col_grid_emphasise);
 			glBegin(GL_LINE_STRIP);
 			vert[0]= a * grid_scale;
 			vert[1]= grid;
@@ -511,37 +480,10 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 			glVertex3fv(vert);
 			glEnd();
 		}
-	}
-	
-	/* draw the X axis and/or grid lines */
-	for(a= -gridlines;a<=gridlines;a++) {
-		if(a==0) {
-			/* check for the 'show X axis' preference */
-			if (v3d->gridflag & V3D_SHOW_X) { 
-				UI_make_axis_color(col_grid, col_bg, 'X');
-				glColor3ubv(col_bg);
 
-				draw_line = TRUE;
-			}
-			else if (show_floor) {
-				glColor3ubv(col_grid_emphasise);
-			}
-			else {
-				draw_line = FALSE;
-			}
-		}
-		else {
-			/* check for the 'show grid floor' preference */
-			if (show_floor) {
-				glColor3ubv((a % 10) ? col_grid_light : col_grid_emphasise);
-				draw_line = TRUE;
-			}
-			else {
-				draw_line = FALSE;
-			}
-		}
-		
-		if (draw_line) {
+		/* draw the X axis and/or grid lines */
+		for(a= -gridlines;a<=gridlines;a++) {
+			glColor3ubv((a % 10) ? col_grid_light : col_grid_emphasise);
 			glBegin(GL_LINE_STRIP);
 			vert[1]= a * grid_scale;
 			vert[0]= grid;
@@ -554,20 +496,27 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 	
 	/* draw the Z axis line */	
 	/* check for the 'show Z axis' preference */
-	if (v3d->gridflag & V3D_SHOW_Z) {
-		UI_make_axis_color(col_grid, col_bg, 'Z');
-		glColor3ubv(col_bg);
-		
-		glBegin(GL_LINE_STRIP);
-		vert[0]= 0.0f;
-		vert[1]= 0.0f;
-		vert[2]= grid;
-		glVertex3fv(vert );
-		vert[2]= -grid;
-		glVertex3fv(vert);
-		glEnd();
+	if (v3d->gridflag & (V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
+		unsigned char tcol[3];
+		int axis;
+		for(axis= 0; axis < 3; axis++)
+		if (v3d->gridflag & (V3D_SHOW_X << axis)) {
+			UI_make_axis_color(col_grid, tcol, 'X' + axis);
+			glColor3ubv(tcol);
+
+			glBegin(GL_LINE_STRIP);
+			zero_v3(vert);
+			vert[axis]= grid;
+			glVertex3fv(vert );
+			vert[axis]= -grid;
+			glVertex3fv(vert);
+			glEnd();
+		}
 	}
-	
+
+
+
+
 	if(v3d->zbuf && scene->obedit) glDepthMask(1);	
 	
 }
