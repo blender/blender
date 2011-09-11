@@ -150,20 +150,22 @@ void circ(float x, float y, float rad)
 static void view3d_draw_clipping(RegionView3D *rv3d)
 {
 	BoundBox *bb= rv3d->clipbb;
-	
+
 	if(bb) {
+		static unsigned int clipping_index[6][4]= {{0, 1, 2, 3},
+		                                           {0, 4, 5, 1},
+		                                           {4, 7, 6, 5},
+		                                           {7, 3, 2, 6},
+		                                           {1, 5, 6, 2},
+		                                           {7, 4, 0, 3}};
+
 		UI_ThemeColorShade(TH_BACK, -8);
-		
-		glBegin(GL_QUADS);
-		
-		glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[3]);
-		glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[1]);
-		glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[5]);
-		glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[3]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[6]);
-		glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[2]);
-		glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[3]);
-		
-		glEnd();
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, bb->vec);
+		glDrawElements(GL_QUADS, sizeof(clipping_index)/sizeof(unsigned int), GL_UNSIGNED_INT, clipping_index);
+		glDisableClientState(GL_VERTEX_ARRAY);
+
 	}
 }
 
@@ -194,11 +196,11 @@ static int test_clipping(const float vec[3], float clip[][4])
 {
 	float view[3];
 	copy_v3_v3(view, vec);
-	
-	if(0.0f < clip[0][3] + INPR(view, clip[0]))
-		if(0.0f < clip[1][3] + INPR(view, clip[1]))
-			if(0.0f < clip[2][3] + INPR(view, clip[2]))
-				if(0.0f < clip[3][3] + INPR(view, clip[3]))
+
+	if(0.0f < clip[0][3] + dot_v3v3(view, clip[0]))
+		if(0.0f < clip[1][3] + dot_v3v3(view, clip[1]))
+			if(0.0f < clip[2][3] + dot_v3v3(view, clip[2]))
+				if(0.0f < clip[3][3] + dot_v3v3(view, clip[3]))
 					return 0;
 
 	return 1;

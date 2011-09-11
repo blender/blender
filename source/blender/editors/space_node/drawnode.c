@@ -305,7 +305,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 
 	if(_sample_col) {
 		cumap->flag |= CUMA_DRAW_SAMPLE;
-		VECCOPY(cumap->sample, _sample_col);
+		copy_v3_v3(cumap->sample, _sample_col);
 	}
 	else 
 		cumap->flag &= ~CUMA_DRAW_SAMPLE;

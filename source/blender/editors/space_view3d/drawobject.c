@@ -139,7 +139,7 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 /* ************* only use while object drawing **************
  * or after running ED_view3d_init_mats_rv3d
  * */
-static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, int local)
+static void view3d_project_short_clip(ARegion *ar, const float vec[3], short *adr, int local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -174,7 +174,7 @@ static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, int l
 }
 
 /* only use while object drawing */
-static void view3d_project_short_noclip(ARegion *ar, float *vec, short *adr)
+static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short *adr)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -837,7 +837,7 @@ static void drawcube_size(float size)
 
 /* this is an unused (old) cube-drawing function based on a given size */
 #if 0
-static void drawcube_size(float *size)
+static void drawcube_size(const float size[3])
 {
 
 	glPushMatrix();
@@ -891,7 +891,7 @@ static void drawshadbuflimits(Lamp *la, float mat[][4])
 
 
 
-static void spotvolume(float *lvec, float *vvec, float inp)
+static void spotvolume(float lvec[3], float vvec[3], const float inp)
 {
 	/* camera is at 0,0,0 */
 	float temp[3],plane[3],mat1[3][3],mat2[3][3],mat3[3][3],mat4[3][3],q[4],co,si,angle;
@@ -920,8 +920,8 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	normalize_v3(&q[1]);
 
 	angle = saacos(plane[2])/2.0f;
-	co = cos(angle);
-	si = sqrt(1-co*co);
+	co = cosf(angle);
+	si = sqrtf(1-co*co);
 
 	q[0] =  co;
 	q[1] *= si;
@@ -935,7 +935,7 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 
 	unit_m3(mat2);
 	co = inp;
-	si = sqrt(1-inp*inp);
+	si = sqrtf(1.0f-inp*inp);
 
 	mat2[0][0] =  co;
 	mat2[1][0] = -si;
@@ -5035,7 +5035,7 @@ static void draw_textcurs(float textcurs[][2])
 	set_inverted_drawing(0);
 }
 
-static void drawspiral(float *cent, float rad, float tmat[][4], int start)
+static void drawspiral(const float cent[3], float rad, float tmat[][4], int start)
 {
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
@@ -5106,7 +5106,7 @@ static void drawcircle_size(float size)
 }
 
 /* needs fixing if non-identity matrice used */
-static void drawtube(float *vec, float radius, float height, float tmat[][4])
+static void drawtube(const float vec[3], float radius, float height, float tmat[][4])
 {
 	float cur[3];
 	drawcircball(GL_LINE_LOOP, vec, radius, tmat);
@@ -5128,7 +5128,7 @@ static void drawtube(float *vec, float radius, float height, float tmat[][4])
 	glEnd();
 }
 /* needs fixing if non-identity matrice used */
-static void drawcone(float *vec, float radius, float height, float tmat[][4])
+static void drawcone(const float vec[3], float radius, float height, float tmat[][4])
 {
 	float cur[3];
 
@@ -5404,7 +5404,7 @@ static void draw_box(float vec[8][3])
 
 /* uses boundbox, function used by Ketsji */
 #if 0
-static void get_local_bounds(Object *ob, float *center, float *size)
+static void get_local_bounds(Object *ob, float center[3], float size[3])
 {
 	BoundBox *bb= object_get_boundbox(ob);
 	

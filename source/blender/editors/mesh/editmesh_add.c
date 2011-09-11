@@ -210,7 +210,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 			
 			copy_v3_v3(vec, min);
 			normalize_v3(vec);
-			dot= INPR(vec, nor);
+			dot= dot_v3v3(vec, nor);
 
 			if( fabs(dot)<0.999) {
 				float cross[3], si, q1[4];
