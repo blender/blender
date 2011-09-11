@@ -485,8 +485,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 			if(is_emphasise != prev_emphasise) {
 				glColor3ubv(is_emphasise ? col_grid_emphasise : col_grid_light);
+				prev_emphasise= is_emphasise;
 			}
-			prev_emphasise= is_emphasise;
 
 			/* set variable axis */
 			vert[0][1]= vert[1][1]=
@@ -1206,7 +1206,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
 
-			uiSetRoundBox(15);
+			uiSetRoundBox(UI_CNR_ALL);
 			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 		}
 	}

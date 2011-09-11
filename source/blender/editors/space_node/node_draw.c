@@ -568,7 +568,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		return;
 	}
 	
-	uiSetRoundBox(15-4);
+	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_LEFT);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
 	
 	/* header */
@@ -580,7 +580,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if(node->flag & NODE_MUTED)
 	   UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 		
-	uiSetRoundBox(3);
+	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 	uiRoundBox(rct->xmin, rct->ymax-NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
 	/* show/hide icons, note this sequence is copied in do_header_node() node_state.c */
@@ -648,7 +648,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* body */
 	UI_ThemeColor4(TH_NODE);
 	glEnable(GL_BLEND);
-	uiSetRoundBox(8);
+	uiSetRoundBox(UI_CNR_BOTTOM_LEFT);
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax-NODE_DY, BASIS_RAD);
 	glDisable(GL_BLEND);
 
@@ -664,7 +664,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
 			else
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
-			uiSetRoundBox(15-4); // round all corners except lower right
+			uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_LEFT); // round all corners except lower right
 			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
 			
 		glDisable( GL_LINE_SMOOTH );
@@ -745,7 +745,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	char showname[128];	/* 128 is used below */
 	
 	/* shadow */
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	ui_dropshadow(rct, hiddenrad, snode->aspect, node->flag & SELECT);
 
 	/* body */

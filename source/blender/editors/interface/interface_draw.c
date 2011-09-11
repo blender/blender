@@ -58,10 +58,9 @@
 /* own include */
 #include "interface_intern.h"
 
-#define UI_RB_ALPHA 16
 #define UI_DISABLED_ALPHA_OFFS	-160
 
-static int roundboxtype= 15;
+static int roundboxtype= UI_CNR_ALL;
 
 void uiSetRoundBox(int type)
 {
@@ -69,13 +68,6 @@ void uiSetRoundBox(int type)
 	 * if this is undone, its not that big a deal, only makes curves edges
 	 * square for the  */
 	roundboxtype= type;
-
-	/* flags to set which corners will become rounded:
-
-	1------2
-	|      |
-	8------4
-	*/
 	
 }
 
@@ -98,7 +90,7 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	glBegin(mode);
 
 	/* start with corner right-bottom */
-	if(roundboxtype & 4) {
+	if(roundboxtype & UI_CNR_BOTTOM_RIGHT) {
 		glVertex2f(maxx-rad, miny);
 		for(a=0; a<7; a++) {
 			glVertex2f(maxx-rad+vec[a][0], miny+vec[a][1]);
@@ -108,7 +100,7 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	else glVertex2f(maxx, miny);
 	
 	/* corner right-top */
-	if(roundboxtype & 2) {
+	if(roundboxtype & UI_CNR_TOP_RIGHT) {
 		glVertex2f(maxx, maxy-rad);
 		for(a=0; a<7; a++) {
 			glVertex2f(maxx-vec[a][1], maxy-rad+vec[a][0]);
@@ -118,7 +110,7 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	else glVertex2f(maxx, maxy);
 	
 	/* corner left-top */
-	if(roundboxtype & 1) {
+	if(roundboxtype & UI_CNR_TOP_LEFT) {
 		glVertex2f(minx+rad, maxy);
 		for(a=0; a<7; a++) {
 			glVertex2f(minx+rad-vec[a][0], maxy-vec[a][1]);
@@ -128,7 +120,7 @@ void uiDrawBox(int mode, float minx, float miny, float maxx, float maxy, float r
 	else glVertex2f(minx, maxy);
 	
 	/* corner left-bottom */
-	if(roundboxtype & 8) {
+	if(roundboxtype & UI_CNR_BOTTOM_LEFT) {
 		glVertex2f(minx, miny+rad);
 		for(a=0; a<7; a++) {
 			glVertex2f(minx+vec[a][1], miny+rad-vec[a][0]);
@@ -180,7 +172,7 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	glBegin(mode);
 
 	/* start with corner right-bottom */
-	if(roundboxtype & 4) {
+	if(roundboxtype & UI_CNR_BOTTOM_RIGHT) {
 		
 		round_box_shade_col(coltop, coldown, 0.0);
 		glVertex2f(maxx-rad, miny);
@@ -199,7 +191,7 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	}
 	
 	/* corner right-top */
-	if(roundboxtype & 2) {
+	if(roundboxtype & UI_CNR_TOP_RIGHT) {
 		
 		round_box_shade_col(coltop, coldown, (div-rad)*idiv);
 		glVertex2f(maxx, maxy-rad);
@@ -217,7 +209,7 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	}
 	
 	/* corner left-top */
-	if(roundboxtype & 1) {
+	if(roundboxtype & UI_CNR_TOP_LEFT) {
 		
 		round_box_shade_col(coltop, coldown, 1.0);
 		glVertex2f(minx+rad, maxy);
@@ -236,7 +228,7 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 	}
 	
 	/* corner left-bottom */
-	if(roundboxtype & 8) {
+	if(roundboxtype & UI_CNR_BOTTOM_LEFT) {
 		
 		round_box_shade_col(coltop, coldown, rad*idiv);
 		glVertex2f(minx, miny+rad);
@@ -288,7 +280,7 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	glBegin(mode);
 
 	/* start with corner right-bottom */
-	if(roundboxtype & 4) {
+	if(roundboxtype & UI_CNR_BOTTOM_RIGHT) {
 		round_box_shade_col(colLeft, colRight, 0.0);
 		glVertex2f(maxx-rad, miny);
 		
@@ -306,7 +298,7 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	}
 	
 	/* corner right-top */
-	if(roundboxtype & 2) {
+	if(roundboxtype & UI_CNR_TOP_RIGHT) {
 		round_box_shade_col(colLeft, colRight, 0.0);
 		glVertex2f(maxx, maxy-rad);
 		
@@ -324,7 +316,7 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	}
 	
 	/* corner left-top */
-	if(roundboxtype & 1) {
+	if(roundboxtype & UI_CNR_TOP_LEFT) {
 		round_box_shade_col(colLeft, colRight, (div-rad)*idiv);
 		glVertex2f(minx+rad, maxy);
 		
@@ -342,7 +334,7 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 	}
 	
 	/* corner left-bottom */
-	if(roundboxtype & 8) {
+	if(roundboxtype & UI_CNR_BOTTOM_LEFT) {
 		round_box_shade_col(colLeft, colRight, 1.0);
 		glVertex2f(minx, miny+rad);
 		
@@ -709,7 +701,7 @@ static void draw_scope_end(rctf *rect, GLint *scissor)
 	
 	/* outline */
 	glColor4f(0.f, 0.f, 0.f, 0.5f);
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	uiDrawBox(GL_LINE_LOOP, rect->xmin-1, rect->ymin, rect->xmax+1, rect->ymax+1, 3.0f);
 }
 
@@ -768,7 +760,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
 	glColor4f(0.f, 0.f, 0.f, 0.3f);
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
 
 	/* need scissor test, histogram can draw outside of boundary */
@@ -837,7 +829,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
 	glColor4f(0.f, 0.f, 0.f, 0.3f);
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
 	
 
@@ -1048,7 +1040,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
 	glColor4f(0.f, 0.f, 0.f, 0.3f);
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	uiDrawBox(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
 
 	/* need scissor test, hvectorscope can draw outside of boundary */
@@ -1233,7 +1225,7 @@ void ui_draw_but_NORMAL(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		
 	/* backdrop */
 	glColor3ubv((unsigned char*)wcol->inner);
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	uiDrawBox(GL_POLYGON, rect->xmin, rect->ymin, rect->xmax, rect->ymax, 5.0f);
 	
 	/* sphere color */

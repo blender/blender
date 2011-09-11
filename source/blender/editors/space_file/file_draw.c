@@ -239,7 +239,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 static void draw_tile(int sx, int sy, int width, int height, int colorid, int shade)
 {	
 	UI_ThemeColorShade(colorid, shade);
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	uiRoundBox((float)sx, (float)(sy - height), (float)(sx + width), (float)sy, 5.0f);
 }
 
@@ -507,7 +507,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid, shade);
 			}
 		}
-		uiSetRoundBox(0);
+		uiSetRoundBox(UI_CNR_NONE);
 
 		if ( FILE_IMGDISPLAY == params->display ) {
 			is_icon = 0;
