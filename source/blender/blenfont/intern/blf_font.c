@@ -97,14 +97,52 @@ void blf_font_size(FontBLF *font, int size, int dpi)
 	}
 }
 
+static void blf_font_ensure_ascii_table(FontBLF *font)
+{
+	/* build ascii on demand */
+	if(font->glyph_ascii_table['0']==NULL) {
+		GlyphBLF *g;
+		unsigned int i;
+		for(i=0; i<256; i++) {
+			g= blf_glyph_search(font->glyph_cache, i);
+			if (!g) {
+				FT_UInt glyph_index= FT_Get_Char_Index(font->face, i);
+				g= blf_glyph_add(font, glyph_index, i);
+			}
+			font->glyph_ascii_table[i]= g;
+		}
+	}
+}
+
+/* Fast path for runs of ASCII characters. Given that common UTF-8
+ * input will consist of an overwhelming majority of ASCII
+ * characters.
+ */
+
+/* Note,
+ * blf_font_ensure_ascii_table(font); must be called before this macro */
+
+#define BLF_UTF8_NEXT_FAST(font, g, str, i, c)                                \
+	if(((c)= (str)[i]) < 0x80) {                                              \
+		g= (font)->glyph_ascii_table[c];                                      \
+		i++;                                                                  \
+	}                                                                         \
+	else if ((c= blf_utf8_next((unsigned char *)(str), &(i)))) {              \
+		if ((g= blf_glyph_search((font)->glyph_cache, c)) == NULL) {          \
+			g= blf_glyph_add(font, FT_Get_Char_Index((font)->face, c), c);    \
+		}                                                                     \
+	}                                                                         \
+
+
+
 void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 {
 	unsigned int c;
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
-	FT_UInt glyph_index;
 	int pen_x, pen_y;
-	int i, has_kerning, st;
+	int has_kerning, st;
+	unsigned int i;
 
 	if (!font->glyph_cache)
 		return;
@@ -115,16 +153,14 @@ void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
 
+	blf_font_ensure_ascii_table(font);
+
 	while (str[i] && i < len) {
-		c= blf_utf8_next((unsigned char *)str, &i);
+
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c);
+
 		if (c == 0)
 			break;
-
-		g= blf_glyph_search(font->glyph_cache, c);
-		if (!g) {
-			glyph_index= FT_Get_Char_Index(font->face, c);
-			g= blf_glyph_add(font, glyph_index, c);
-		}
 
 		/* if we don't found a glyph, skip it. */
 		if (!g)
@@ -157,9 +193,8 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
 	char c;
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
-	FT_UInt glyph_index;
 	int pen_x, pen_y;
-	int i, has_kerning, st;
+	int has_kerning, st;
 
 	if (!font->glyph_cache)
 		return;
@@ -169,18 +204,8 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
 	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
 
-	/* build ascii on demand */
-	if(font->glyph_ascii_table['0']==NULL) {
-		for(i=0; i<256; i++) {
-			g= blf_glyph_search(font->glyph_cache, i);
-			if (!g) {
-				glyph_index= FT_Get_Char_Index(font->face, i);
-				g= blf_glyph_add(font, glyph_index, i);
-			}
-			font->glyph_ascii_table[i]= g;
-		}
-	}
-	
+	blf_font_ensure_ascii_table(font);
+
 	while ((c= *(str++)) && len--) {
 		g= font->glyph_ascii_table[c];
 
@@ -216,10 +241,10 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	unsigned char b_col_char[4];
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
-	FT_UInt glyph_index;
 	float a, *fbuf;
 	int pen_x, y, x;
-	int i, has_kerning, st, chx, chy;
+	int has_kerning, st, chx, chy;
+	unsigned int i;
 
 	if (!font->glyph_cache || (!font->b_fbuf && !font->b_cbuf))
 		return;
@@ -234,17 +259,15 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	b_col_char[2]= font->b_col[2] * 255;
 	b_col_char[3]= font->b_col[3] * 255;
 
+	blf_font_ensure_ascii_table(font);
+
 	while (str[i]) {
 		int pen_y;
-		c= blf_utf8_next((unsigned char *)str, &i);
+
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c);
+
 		if (c == 0)
 			break;
-
-		g= blf_glyph_search(font->glyph_cache, c);
-		if (!g) {
-			glyph_index= FT_Get_Char_Index(font->face, c);
-			g= blf_glyph_add(font, glyph_index, c);
-		}
 
 		/* if we don't found a glyph, skip it. */
 		if (!g)
@@ -363,10 +386,10 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 	unsigned int c;
 	GlyphBLF *g, *g_prev;
 	FT_Vector delta;
-	FT_UInt glyph_index;
 	rctf gbox;
 	int pen_x, pen_y;
-	int i, has_kerning, st;
+	int has_kerning, st;
+	unsigned int i;
 
 	if (!font->glyph_cache)
 		return;
@@ -382,16 +405,14 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 	has_kerning= FT_HAS_KERNING(font->face);
 	g_prev= NULL;
 
+	blf_font_ensure_ascii_table(font);
+
 	while (str[i]) {
-		c= blf_utf8_next((unsigned char *)str, &i);
+
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c);
+
 		if (c == 0)
 			break;
-
-		g= blf_glyph_search(font->glyph_cache, c);
-		if (!g) {
-			glyph_index= FT_Get_Char_Index(font->face, c);
-			g= blf_glyph_add(font, glyph_index, c);
-		}
 
 		/* if we don't found a glyph, skip it. */
 		if (!g)
@@ -534,7 +555,7 @@ void blf_font_free(FontBLF *font)
 
 static void blf_font_fill(FontBLF *font)
 {
-	int i;
+	unsigned int i;
 
 	font->aspect[0]= 1.0f;
 	font->aspect[1]= 1.0f;

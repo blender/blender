@@ -72,7 +72,7 @@ unsigned int blf_hash(unsigned int val)
  * The original name: imlib_font_utf8_get_next
  * more info here: http://docs.enlightenment.org/api/imlib2/html/
  */
-int blf_utf8_next(unsigned char *buf, int *iindex)
+int blf_utf8_next(unsigned char *buf, unsigned int *iindex)
 {
 	/* Reads UTF8 bytes from 'buf', starting at 'index' and
 	 * returns the code point of the next valid code point.
