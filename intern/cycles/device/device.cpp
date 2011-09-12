@@ -84,7 +84,7 @@ void Device::pixels_alloc(device_memory& mem)
 
 void Device::pixels_copy_from(device_memory& mem, int y, int w, int h)
 {
-	mem_copy_from(mem, sizeof(uchar)*4*y*w, sizeof(uchar)*4*w*h);
+	mem_copy_from(mem, sizeof(uint8_t)*4*y*w, sizeof(uint8_t)*4*w*h);
 }
 
 void Device::pixels_free(device_memory& mem)
@@ -104,7 +104,13 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int width, in
 	glPixelZoom((float)width/(float)w, (float)height/(float)h);
 	glRasterPos2f(0, y);
 
-	glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)rgba.data_pointer);
+	uint8_t *pixels = (uint8_t*)rgba.data_pointer;
+
+	/* for multi devices, this assumes the ineffecient method that we allocate
+	   all pixels on the device even though we only render to a subset */
+	pixels += sizeof(uint8_t)*4*y*w;
+
+	glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
 	glRasterPos2f(0.0f, 0.0f);
 	glPixelZoom(1.0f, 1.0f);

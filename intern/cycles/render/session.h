@@ -58,7 +58,7 @@ public:
 		background = false;
 		output_path = "";
 
-		progressive = false;
+		progressive = true;
 		passes = INT_MAX;
 		tile_size = 64;
 		min_size = 64;

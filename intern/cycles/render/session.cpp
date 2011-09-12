@@ -35,7 +35,7 @@ Session::Session(const SessionParams& params_)
 : params(params_),
   tile_manager(params.progressive, params.passes, params.tile_size, params.min_size)
 {
-	device_use_gl = ((params.device_type == DEVICE_CUDA || params.device_type == DEVICE_OPENCL) && !params.background);
+	device_use_gl = ((params.device_type != DEVICE_CPU) && !params.background);
 
 	device = Device::create(params.device_type, params.background, params.threads);
 	buffers = new RenderBuffers(device);

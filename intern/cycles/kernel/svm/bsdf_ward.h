@@ -44,28 +44,28 @@ typedef struct BsdfWardClosure {
 	float m_ay;
 } BsdfWardClosure;
 
-__device void bsdf_ward_setup(ShaderData *sd, float3 N, float3 T, float ax, float ay)
+__device void bsdf_ward_setup(ShaderData *sd, ShaderClosure *sc, float3 T, float ax, float ay)
 {
 	float m_ax = clamp(ax, 1e-5f, 1.0f);
 	float m_ay = clamp(ay, 1e-5f, 1.0f);
 
-	sd->svm_closure_data0 = m_ax;
-	sd->svm_closure_data1 = m_ay;
+	sc->data0 = m_ax;
+	sc->data1 = m_ay;
 
-	sd->svm_closure = CLOSURE_BSDF_WARD_ID;
+	sc->type = CLOSURE_BSDF_WARD_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
 }
 
-__device void bsdf_ward_blur(ShaderData *sd, float roughness)
+__device void bsdf_ward_blur(ShaderClosure *sc, float roughness)
 {
-	sd->svm_closure_data0 = fmaxf(roughness, sd->svm_closure_data0);
-	sd->svm_closure_data1 = fmaxf(roughness, sd->svm_closure_data1);
+	sc->data0 = fmaxf(roughness, sc->data0);
+	sc->data1 = fmaxf(roughness, sc->data1);
 }
 
-__device float3 bsdf_ward_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_ward_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float m_ax = sd->svm_closure_data0;
-	float m_ay = sd->svm_closure_data1;
+	float m_ax = sc->data0;
+	float m_ay = sc->data1;
 	float3 m_N = sd->N;
 	float3 m_T = normalize(sd->dPdu);
 
@@ -93,20 +93,20 @@ __device float3 bsdf_ward_eval_reflect(const ShaderData *sd, const float3 I, con
 	return make_float3 (0, 0, 0);
 }
 
-__device float3 bsdf_ward_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_ward_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_ward_albedo(const ShaderData *sd, const float3 I)
+__device float bsdf_ward_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_ward_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_ward_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float m_ax = sd->svm_closure_data0;
-	float m_ay = sd->svm_closure_data1;
+	float m_ax = sc->data0;
+	float m_ay = sc->data1;
 	float3 m_N = sd->N;
 	float3 m_T = normalize(sd->dPdu);
 

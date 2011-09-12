@@ -55,6 +55,9 @@ LightManager::~LightManager()
 
 void LightManager::device_update_distribution(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
+	/* option to always sample all point lights */
+	bool multi_light = false;
+
 	/* count */
 	size_t num_lights = scene->lights.size();
 	size_t num_triangles = 0;
@@ -82,7 +85,10 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		}
 	}
 
-	size_t num_distribution = num_triangles + num_lights;
+	size_t num_distribution = num_triangles;
+
+	if(!multi_light)
+		num_distribution += num_lights;
 
 	/* emission area */
 	float4 *distribution = dscene->light_distribution.resize(num_distribution + 1);
@@ -137,14 +143,16 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	float trianglearea = totarea;
 
 	/* point lights */
-	float lightarea = (totarea > 0.0f)? totarea/scene->lights.size(): 1.0f;
+	if(!multi_light) {
+		float lightarea = (totarea > 0.0f)? totarea/scene->lights.size(): 1.0f;
 
-	for(size_t i = 0; i < scene->lights.size(); i++, offset++) {
-		distribution[offset].x = totarea;
-		distribution[offset].y = __int_as_float(-i-1);
-		distribution[offset].z = 1.0f;
-		distribution[offset].w = scene->lights[i]->radius;
-		totarea += lightarea;
+		for(size_t i = 0; i < scene->lights.size(); i++, offset++) {
+			distribution[offset].x = totarea;
+			distribution[offset].y = __int_as_float(-i-1);
+			distribution[offset].z = 1.0f;
+			distribution[offset].w = scene->lights[i]->radius;
+			totarea += lightarea;
+		}
 	}
 
 	/* normalize cumulative distribution functions */
@@ -163,28 +171,40 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	/* update device */
 	KernelIntegrator *kintegrator = &dscene->data.integrator;
-	kintegrator->use_emission = (totarea > 0.0f);
+	kintegrator->use_emission = (totarea > 0.0f) || (multi_light && num_lights);
 
 	if(kintegrator->use_emission) {
 		/* number of emissives */
-		kintegrator->num_triangles = num_triangles;
-		kintegrator->num_lights = num_lights;
-		kintegrator->num_distribution = num_distribution;
+		kintegrator->num_distribution = (totarea > 0.0f)? num_distribution: 0;
 
 		/* precompute pdfs */
 		kintegrator->pdf_triangles = 0.0f;
 		kintegrator->pdf_lights = 0.0f;
 
-		if(trianglearea > 0.0f) {
-			kintegrator->pdf_triangles = 1.0f/trianglearea;
-			if(num_lights)
-				kintegrator->pdf_triangles *= 0.5f;
-		}
+		if(multi_light) {
+			/* sample one of all triangles and all lights */
+			kintegrator->num_all_lights = num_lights;
 
-		if(num_lights) {
-			kintegrator->pdf_lights = 1.0f/num_lights;
 			if(trianglearea > 0.0f)
-				kintegrator->pdf_lights *= 0.5f;
+				kintegrator->pdf_triangles = 1.0f/trianglearea;
+			if(num_lights)
+				kintegrator->pdf_lights = 1.0f;
+		}
+		else {
+			/* sample one, with 0.5 probability of light or triangle */
+			kintegrator->num_all_lights = 0;
+
+			if(trianglearea > 0.0f) {
+				kintegrator->pdf_triangles = 1.0f/trianglearea;
+				if(num_lights)
+					kintegrator->pdf_triangles *= 0.5f;
+			}
+
+			if(num_lights) {
+				kintegrator->pdf_lights = 1.0f/num_lights;
+				if(trianglearea > 0.0f)
+					kintegrator->pdf_lights *= 0.5f;
+			}
 		}
 
 		/* CDF */

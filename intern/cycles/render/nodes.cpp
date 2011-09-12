@@ -1024,7 +1024,8 @@ void BsdfNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *
 	compiler.add_node(NODE_CLOSURE_BSDF,
 		compiler.encode_uchar4(closure,
 			(param1)? param1->stack_offset: SVM_STACK_INVALID,
-			(param2)? param2->stack_offset: SVM_STACK_INVALID),
+			(param2)? param2->stack_offset: SVM_STACK_INVALID,
+			compiler.closure_mix_weight_offset()),
 		__float_as_int((param1)? param1->value.x: 0.0f),
 		__float_as_int((param2)? param2->value.x: 0.0f));
 }
@@ -1222,8 +1223,6 @@ EmissionNode::EmissionNode()
 
 void EmissionNode::compile(SVMCompiler& compiler)
 {
-	compiler.add_node(NODE_CLOSURE_EMISSION, CLOSURE_EMISSION_ID);
-
 	ShaderInput *color_in = input("Color");
 	ShaderInput *strength_in = input("Strength");
 
@@ -1236,6 +1235,8 @@ void EmissionNode::compile(SVMCompiler& compiler)
 		compiler.add_node(NODE_EMISSION_SET_WEIGHT_TOTAL, color_in->value * strength_in->value.x);
 	else
 		compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color_in->value * strength_in->value.x);
+
+	compiler.add_node(NODE_CLOSURE_EMISSION, compiler.closure_mix_weight_offset());
 }
 
 void EmissionNode::compile(OSLCompiler& compiler)
@@ -1256,8 +1257,6 @@ BackgroundNode::BackgroundNode()
 
 void BackgroundNode::compile(SVMCompiler& compiler)
 {
-	compiler.add_node(NODE_CLOSURE_BACKGROUND, CLOSURE_BACKGROUND_ID);
-
 	ShaderInput *color_in = input("Color");
 	ShaderInput *strength_in = input("Strength");
 
@@ -1268,6 +1267,8 @@ void BackgroundNode::compile(SVMCompiler& compiler)
 	}
 	else
 		compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color_in->value*strength_in->value.x);
+
+	compiler.add_node(NODE_CLOSURE_BACKGROUND, CLOSURE_BACKGROUND_ID);
 }
 
 void BackgroundNode::compile(OSLCompiler& compiler)
@@ -1285,7 +1286,7 @@ HoldoutNode::HoldoutNode()
 
 void HoldoutNode::compile(SVMCompiler& compiler)
 {
-	compiler.add_node(NODE_CLOSURE_HOLDOUT, CLOSURE_HOLDOUT_ID);
+	compiler.add_node(NODE_CLOSURE_HOLDOUT, compiler.closure_mix_weight_offset());
 }
 
 void HoldoutNode::compile(OSLCompiler& compiler)

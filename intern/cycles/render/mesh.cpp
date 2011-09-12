@@ -21,6 +21,7 @@
 
 #include "device.h"
 #include "shader.h"
+#include "light.h"
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
@@ -250,6 +251,10 @@ void Mesh::tag_update(Scene *scene, bool rebuild)
 
 	scene->mesh_manager->need_update = true;
 	scene->object_manager->need_update = true;
+
+	foreach(uint sindex, used_shaders)
+		if(scene->shaders[sindex]->has_surface_emission)
+			scene->light_manager->need_update = true;
 }
 
 /* Mesh Manager */

@@ -129,7 +129,7 @@ __device void light_sample(KernelGlobals *kg, float randt, float randu, float ra
 	}
 }
 
-__device float light_pdf(KernelGlobals *kg, LightSample *ls, float3 I, float t)
+__device float light_sample_pdf(KernelGlobals *kg, LightSample *ls, float3 I, float t)
 {
 	float pdf;
 
@@ -139,6 +139,16 @@ __device float light_pdf(KernelGlobals *kg, LightSample *ls, float3 I, float t)
 		pdf = point_light_pdf(kg, t);
 	
 	return pdf;
+}
+
+__device void light_select(KernelGlobals *kg, int index, float randu, float randv, float3 P, LightSample *ls)
+{
+	point_light_sample(kg, index, randu, randv, P, ls);
+}
+
+__device float light_select_pdf(KernelGlobals *kg, LightSample *ls, float3 I, float t)
+{
+	return point_light_pdf(kg, t);
 }
 
 CCL_NAMESPACE_END

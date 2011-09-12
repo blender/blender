@@ -35,32 +35,32 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device void bsdf_transparent_setup(ShaderData *sd)
+__device void bsdf_transparent_setup(ShaderData *sd, ShaderClosure *sc)
 {
-	sd->svm_closure = CLOSURE_BSDF_TRANSPARENT_ID;
+	sc->type = CLOSURE_BSDF_TRANSPARENT_ID;
 	sd->flag |= SD_BSDF;
 }
 
-__device void bsdf_transparent_blur(ShaderData *sd, float roughness)
+__device void bsdf_transparent_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_transparent_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
-{
-	return make_float3(0.0f, 0.0f, 0.0f);
-}
-
-__device float3 bsdf_transparent_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_transparent_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_transparent_albedo(const ShaderData *sd, const float3 I)
+__device float3 bsdf_transparent_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+{
+	return make_float3(0.0f, 0.0f, 0.0f);
+}
+
+__device float bsdf_transparent_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_transparent_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_transparent_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	// only one direction is possible
 	*omega_in = -sd->I;

@@ -42,23 +42,6 @@ __device float3 emissive_eval(const float3 Ng, const float3 I)
 	return make_float3(res, res, res);
 }
 
-__device void emissive_sample(const float3 Ng, float randu, float randv, float3 *I, float *pdf)
-{
-	// We don't do anything sophisticated here for the step
-	// We just sample the whole cone uniformly to the cosine
-	float3 T, B;
-	make_orthonormals(Ng, &T, &B);
-	float phi = 2 * M_PI_F * randu;
-
-	float cosTheta = sqrtf(1.0f - 1.0f * randv);
-	float sinTheta = sqrtf(1.0f - cosTheta * cosTheta);
-	*I = (cosf(phi) * sinTheta) * T +
-				 (sinf(phi) * sinTheta) * B +
-							 cosTheta  * Ng;
-
-	*pdf = M_1_PI_F;
-}
-
 /// Return the probability distribution function in the direction I,
 /// given the parameters and the light's surface normal.  This MUST match
 /// the PDF computed by sample().
@@ -68,15 +51,9 @@ __device float emissive_pdf(const float3 Ng, const float3 I)
 	return (cosNO > 0.0f)? M_1_PI_F: 0.0f;
 }
 
-__device float3 svm_emissive_eval(ShaderData *sd)
+__device float3 svm_emissive_eval(ShaderData *sd, ShaderClosure *sc)
 {
-	return sd->svm_closure_weight*emissive_eval(sd->Ng, sd->I);
-}
-
-__device void svm_emissive_sample(ShaderData *sd, float randu, float randv, float3 *eval, float3 *I, float *pdf)
-{
-	*eval = sd->svm_closure_weight;
-	emissive_sample(sd->Ng, randu, randv, I, pdf);
+	return emissive_eval(sd->Ng, sd->I);
 }
 
 CCL_NAMESPACE_END

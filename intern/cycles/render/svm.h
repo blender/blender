@@ -24,6 +24,7 @@
 #include "shader.h"
 
 #include "util_set.h"
+#include "util_string.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -65,6 +66,7 @@ public:
 	uint attribute(ustring name);
 	uint attribute(Attribute::Standard std);
 	uint encode_uchar4(uint x, uint y = 0, uint z = 0, uint w = 0);
+	uint closure_mix_weight_offset() { return mix_weight_offset; }
 
 	ShaderType output_type() { return current_type; }
 
@@ -75,6 +77,8 @@ public:
 
 protected:
 	struct Stack {
+		Stack() { memset(users, 0, sizeof(users)); }
+
 		int users[SVM_STACK_SIZE];
 	};
 
@@ -88,6 +92,7 @@ protected:
 	void find_dependencies(set<ShaderNode*>& dependencies, const set<ShaderNode*>& done, ShaderInput *input);
 	void generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done);
 	void generate_closure(ShaderNode *node, set<ShaderNode*> done, Stack stack);
+	void generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, uint in_offset);
 
 	void compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
 
@@ -96,6 +101,7 @@ protected:
 	Shader *current_shader;
 	Stack active_stack;
 	int max_stack_use;
+	uint mix_weight_offset;
 };
 
 CCL_NAMESPACE_END

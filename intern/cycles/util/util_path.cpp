@@ -109,11 +109,16 @@ string path_files_md5_hash(const string& dir)
 	return hash.get_hex();
 }
 
+void path_create_directories(const string& path)
+{
+	boost::filesystem::create_directories(path_dirname(path));
+}
+
 bool path_write_binary(const string& path, const vector<uint8_t>& binary)
 {
-	/* write binary file from memory */
-	boost::filesystem::create_directories(path_dirname(path));
+	path_create_directories(path);
 
+	/* write binary file from memory */
 	FILE *f = fopen(path.c_str(), "wb");
 
 	if(!f)

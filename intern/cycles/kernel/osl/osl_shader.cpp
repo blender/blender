@@ -119,13 +119,13 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 		OSL::ClosurePrimitive *prim = (OSL::ClosurePrimitive*)comp->data();
 
 		if(prim) {
-			FlatClosure flat;
-			flat.prim = prim;
-			flat.weight = weight;
+			ShaderClosure sc;
+			sc.prim = prim;
+			sc.weight = weight;
 
 			switch(prim->category()) {
 				case ClosurePrimitive::BSDF: {
-					if(sd->osl_closure.num_bsdf == MAX_OSL_CLOSURE)
+					if(sd->num_closure == MAX_CLOSURE)
 						return;
 
 					OSL::BSDFClosure *bsdf = (OSL::BSDFClosure*)prim;
@@ -140,7 +140,8 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					float sample_weight = fabsf(average(weight))*albedo;
 					float sample_sum = sd->osl_closure.bsdf_sample_sum + sample_weight;
 
-					flat.sample_weight = sample_weight;
+					sc.sample_weight = sample_weight;
+					sc.type = CLOSURE_BSDF_ID;
 					sd->osl_closure.bsdf_sample_sum = sample_sum;
 
 					/* scattering flags */
@@ -152,29 +153,35 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 						sd->flag |= SD_BSDF;
 
 					/* add */
-					sd->osl_closure.bsdf[sd->osl_closure.num_bsdf++] = flat;
+					sd->closure[sd->num_closure++] = sc;
 					break;
 				}
 				case ClosurePrimitive::Emissive: {
-					if(sd->osl_closure.num_bsdf == MAX_OSL_CLOSURE)
+					if(sd->num_closure == MAX_CLOSURE)
 						return;
 
 					/* sample weight */
 					float sample_weight = fabsf(average(weight));
 					float sample_sum = sd->osl_closure.emissive_sample_sum + sample_weight;
 
-					flat.sample_weight = sample_weight;
+					sc.sample_weight = sample_weight;
+					sc.type = CLOSURE_EMISSION_ID;
 					sd->osl_closure.emissive_sample_sum = sample_sum;
 
 					/* flag */
 					sd->flag |= SD_EMISSION;
 
-					sd->osl_closure.emissive[sd->osl_closure.num_emissive++] = flat;
+					sd->closure[sd->num_closure++] = sc;
 					break;
 				}
 				case ClosurePrimitive::Holdout:
-					sd->osl_closure.holdout_weight += weight;
+					if(sd->num_closure == MAX_CLOSURE)
+						return;
+
+					sc.sample_weight = 0.0f;
+					sc.type = CLOSURE_HOLDOUT_ID;
 					sd->flag |= SD_HOLDOUT;
+					sd->closure[sd->num_closure++] = sc;
 					break;
 				case ClosurePrimitive::BSSRDF:
 				case ClosurePrimitive::Debug:
@@ -213,12 +220,8 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.surface_state[sd->shader]), *globals);
 
 	/* flatten closure tree */
-	sd->osl_closure.bsdf_sample_sum = 0.0f;
-	sd->osl_closure.emissive_sample_sum = 0.0f;
-	sd->osl_closure.num_bsdf = 0;
-	sd->osl_closure.num_emissive = 0;
-	sd->osl_closure.holdout_weight = make_float3(0.0f, 0.0f, 0.0f);
-	sd->osl_closure.randb = randb;
+	sd->num_closure = 0;
+	sd->randb_closure = randb;
 
 	if(globals->Ci) {
 		bool no_glossy = (path_flag & PATH_RAY_DIFFUSE) && kernel_data.integrator.no_caustics;
@@ -292,24 +295,25 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 		OSL::ClosurePrimitive *prim = (OSL::ClosurePrimitive*)comp->data();
 
 		if(prim) {
-			FlatClosure flat;
-			flat.prim = prim;
-			flat.weight = weight;
+			ShaderClosure sc;
+			sc.prim = prim;
+			sc.weight = weight;
 
 			switch(prim->category()) {
 				case ClosurePrimitive::Volume: {
-					if(sd->osl_closure.num_bsdf == MAX_OSL_CLOSURE)
+					if(sd->num_closure == MAX_CLOSURE)
 						return;
 
 					/* sample weight */
 					float sample_weight = fabsf(average(weight));
 					float sample_sum = sd->osl_closure.volume_sample_sum + sample_weight;
 
-					flat.sample_weight = sample_weight;
+					sc.sample_weight = sample_weight;
+					sc.type = CLOSURE_VOLUME_ID;
 					sd->osl_closure.volume_sample_sum = sample_sum;
 
 					/* add */
-					sd->osl_closure.volume[sd->osl_closure.num_volume++] = flat;
+					sd->closure[sd->num_closure++] = sc;
 					break;
 				}
 				case ClosurePrimitive::Holdout:
@@ -389,183 +393,76 @@ void OSLShader::release(KernelGlobals *kg, const ShaderData *sd)
 
 /* BSDF Closure */
 
-int OSLShader::bsdf_sample(const ShaderData *sd, float randu, float randv, float3& eval, float3& omega_in, differential3& domega_in, float& pdf)
+int OSLShader::bsdf_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3& eval, float3& omega_in, differential3& domega_in, float& pdf)
 {
-	OSL::BSDFClosure *sample_bsdf = NULL;
+	OSL::BSDFClosure *sample_bsdf = (OSL::BSDFClosure*)sc->prim;
 	int label = LABEL_NONE;
-	float r = sd->osl_closure.randb*sd->osl_closure.bsdf_sample_sum;
-	float sample_sum = 0.0f;
 
 	pdf = 0.0f;
 
-	if(sd->osl_closure.bsdf_sample_sum == 0.0f)
-		return LABEL_NONE;
+	/* sample BSDF closure */
+	ustring ulabel;
 
-	/* find a closure to sample */
-	for(int i = 0; i < sd->osl_closure.num_bsdf; i++) {
-		const FlatClosure *flat = &sd->osl_closure.bsdf[i];
-		sample_sum += flat->sample_weight;
+	ulabel = sample_bsdf->sample(TO_VEC3(sd->Ng),
+		TO_VEC3(sd->I), TO_VEC3(sd->dI.dx), TO_VEC3(sd->dI.dy),
+		randu, randv,
+		TO_VEC3(omega_in), TO_VEC3(domega_in.dx), TO_VEC3(domega_in.dy),
+		pdf, TO_COLOR3(eval));
 
-		if(r > sample_sum)
-			continue;
+	/* convert OSL label */
+	if(ulabel == OSL::Labels::REFLECT)
+		label = LABEL_REFLECT;
+	else if(ulabel == OSL::Labels::TRANSMIT)
+		label = LABEL_TRANSMIT;
+	else
+		return LABEL_NONE; /* sampling failed */
 
-		/* sample BSDF closure */
-		sample_bsdf = (OSL::BSDFClosure*)flat->prim;
-		ustring ulabel;
+	/* convert scattering to our bitflag label */
+	ustring uscattering = sample_bsdf->scattering();
 
-		ulabel = sample_bsdf->sample(TO_VEC3(sd->Ng),
-			TO_VEC3(sd->I), TO_VEC3(sd->dI.dx), TO_VEC3(sd->dI.dy),
-			randu, randv,
-			TO_VEC3(omega_in), TO_VEC3(domega_in.dx), TO_VEC3(domega_in.dy),
-			pdf, TO_COLOR3(eval));
-
-		/* convert OSL label */
-		if(ulabel == OSL::Labels::REFLECT)
-			label = LABEL_REFLECT;
-		else if(ulabel == OSL::Labels::TRANSMIT)
-			label = LABEL_TRANSMIT;
-		else
-			return LABEL_NONE; /* sampling failed */
-
-		/* convert scattering to our bitflag label */
-		ustring uscattering = sample_bsdf->scattering();
-
-		if(uscattering == OSL::Labels::DIFFUSE)
-			label |= LABEL_DIFFUSE;
-		else if(uscattering == OSL::Labels::GLOSSY)
-			label |= LABEL_GLOSSY;
-		else if(uscattering == OSL::Labels::SINGULAR)
-			label |= LABEL_SINGULAR;
-		else
-			label |= LABEL_TRANSPARENT;
-
-		/* eval + pdf */
-		eval *= flat->weight;
-		pdf *= flat->sample_weight;
-
-		break;
-	}
-
-	if(!sample_bsdf || pdf == 0.0f)
-		return LABEL_NONE;
-
-	/* add eval/pdf from other BSDF closures */
-	for(int i = 0; i < sd->osl_closure.num_bsdf; i++) {
-		const FlatClosure *flat = &sd->osl_closure.bsdf[i];
-		OSL::BSDFClosure *bsdf = (OSL::BSDFClosure*)flat->prim;
-
-		if(bsdf != sample_bsdf) {
-			OSL::Color3 bsdf_eval;
-			float bsdf_pdf = 0.0f;
-
-			if(dot(sd->Ng, omega_in) >= 0.0f)
-				bsdf_eval = bsdf->eval_reflect(TO_VEC3(sd->I), TO_VEC3(omega_in), bsdf_pdf);
-			else
-				bsdf_eval = bsdf->eval_transmit(TO_VEC3(sd->I), TO_VEC3(omega_in), bsdf_pdf);
-
-			if(bsdf_pdf != 0.0f) {
-				eval += TO_FLOAT3(bsdf_eval)*flat->weight;
-				pdf += bsdf_pdf*flat->sample_weight;
-			}
-		}
-	}
-
-	pdf *= 1.0f/(sd->osl_closure.bsdf_sample_sum);
+	if(uscattering == OSL::Labels::DIFFUSE)
+		label |= LABEL_DIFFUSE;
+	else if(uscattering == OSL::Labels::GLOSSY)
+		label |= LABEL_GLOSSY;
+	else if(uscattering == OSL::Labels::SINGULAR)
+		label |= LABEL_SINGULAR;
+	else
+		label |= LABEL_TRANSPARENT;
 
 	return label;
 }
 
-float3 OSLShader::bsdf_eval(const ShaderData *sd, const float3& omega_in, float& pdf)
+float3 OSLShader::bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, const float3& omega_in, float& pdf)
 {
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+	OSL::BSDFClosure *bsdf = (OSL::BSDFClosure*)sc->prim;
+	OSL::Color3 bsdf_eval;
 
-	pdf = 0.0f;
-
-	for(int i = 0; i < sd->osl_closure.num_bsdf; i++) {
-		const FlatClosure *flat = &sd->osl_closure.bsdf[i];
-		OSL::BSDFClosure *bsdf = (OSL::BSDFClosure*)flat->prim;
-		OSL::Color3 bsdf_eval;
-		float bsdf_pdf = 0.0f;
-
-		if(dot(sd->Ng, omega_in) >= 0.0f)
-			bsdf_eval = bsdf->eval_reflect(TO_VEC3(sd->I), TO_VEC3(omega_in), bsdf_pdf);
-		else
-			bsdf_eval = bsdf->eval_transmit(TO_VEC3(sd->I), TO_VEC3(omega_in), bsdf_pdf);
-
-		if(bsdf_pdf != 0.0f) {
-			eval += TO_FLOAT3(bsdf_eval)*flat->weight;
-			pdf += bsdf_pdf*flat->sample_weight;
-		}
-	}
-
-	pdf *= 1.0f/sd->osl_closure.bsdf_sample_sum;
-
-	return eval;
+	if(dot(sd->Ng, omega_in) >= 0.0f)
+		bsdf_eval = bsdf->eval_reflect(TO_VEC3(sd->I), TO_VEC3(omega_in), pdf);
+	else
+		bsdf_eval = bsdf->eval_transmit(TO_VEC3(sd->I), TO_VEC3(omega_in), pdf);
+	
+	return TO_FLOAT3(bsdf_eval);
 }
 
 /* Emissive Closure */
 
-float3 OSLShader::emissive_eval(const ShaderData *sd)
+float3 OSLShader::emissive_eval(const ShaderData *sd, const ShaderClosure *sc)
 {
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-
-	for(int i = 0; i < sd->osl_closure.num_emissive; i++) {
-		const FlatClosure *flat = &sd->osl_closure.emissive[i];
-		OSL::EmissiveClosure *emissive = (OSL::EmissiveClosure*)flat->prim;
-		OSL::Color3 emissive_eval = emissive->eval(TO_VEC3(sd->Ng), TO_VEC3(sd->I));
-		eval += TO_FLOAT3(emissive_eval)*flat->weight;
-	}
+	OSL::EmissiveClosure *emissive = (OSL::EmissiveClosure*)sc->prim;
+	OSL::Color3 emissive_eval = emissive->eval(TO_VEC3(sd->Ng), TO_VEC3(sd->I));
+	eval += TO_FLOAT3(emissive_eval);
 
 	return eval;
-}
-
-void OSLShader::emissive_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *I, float *pdf)
-{
-	float r = sd->osl_closure.randb*sd->osl_closure.emissive_sample_sum;
-	float sample_sum = 0.0f;
-
-	*pdf = 0.0f;
-
-	if(sd->osl_closure.emissive_sample_sum == 0.0f)
-		return;
-
-	/* find a closure to sample */
-	for(int i = 0; i < sd->osl_closure.num_emissive; i++) {
-		const FlatClosure *flat = &sd->osl_closure.emissive[i];
-		sample_sum += flat->sample_weight;
-
-		if(r <= sample_sum) {
-			/* sample emissive closure */
-			OSL::EmissiveClosure *emissive = (OSL::EmissiveClosure*)flat->prim;
-			emissive->sample(TO_VEC3(sd->Ng), randu, randv, TO_VEC3(*I), *pdf);
-			*eval = flat->weight;
-			*pdf *= flat->sample_weight/sd->osl_closure.emissive_sample_sum;
-			return;
-		}
-	}
 }
 
 /* Volume Closure */
 
-float3 OSLShader::volume_eval_phase(const ShaderData *sd, const float3 omega_in, const float3 omega_out)
+float3 OSLShader::volume_eval_phase(const ShaderData *sd, const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
 {
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-
-	for(int i = 0; i < sd->osl_closure.num_volume; i++) {
-		const FlatClosure *flat = &sd->osl_closure.volume[i];
-		OSL::VolumeClosure *volume = (OSL::VolumeClosure*)flat->prim;
-		OSL::Color3 volume_eval = volume->eval_phase(TO_VEC3(omega_in), TO_VEC3(omega_out));
-		eval += TO_FLOAT3(volume_eval)*flat->weight;
-	}
-
-	return eval;
-}
-
-/* Holdout Closure */
-
-float3 OSLShader::holdout_eval(const ShaderData *sd)
-{
-	return sd->osl_closure.holdout_weight;
+	OSL::VolumeClosure *volume = (OSL::VolumeClosure*)sc->prim;
+	OSL::Color3 volume_eval = volume->eval_phase(TO_VEC3(omega_in), TO_VEC3(omega_out));
+	return TO_FLOAT3(volume_eval)*sc->weight;
 }
 
 CCL_NAMESPACE_END

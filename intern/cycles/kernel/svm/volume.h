@@ -34,7 +34,7 @@ CCL_NAMESPACE_BEGIN
 
 /* VOLUME CLOSURE */
 
-__device float3 volume_eval_phase(ShaderData *sd, const float3 omega_in, const float3 omega_out)
+__device float3 volume_eval_phase(const ShaderData *sd, const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
 {
 	return make_float3(1.0f, 1.0f, 1.0f);
 }

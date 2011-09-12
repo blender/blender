@@ -207,11 +207,10 @@ option(WITH_API_INSTALL     "Copy API header files into the blender install fold
 # Cycles
 option(WITH_CYCLES			"Enable Cycles Render Engine" ON)
 OPTION(WITH_CYCLES_OSL		"Build with Open Shading Language support" OFF)
-OPTION(WITH_CYCLES_CUDA		"Build with CUDA support" OFF)
+OPTION(WITH_CYCLES_CUDA		"Build with CUDA binaries" OFF)
 OPTION(WITH_CYCLES_BLENDER	"Build Blender Python extension" ON)
 OPTION(WITH_CYCLES_PARTIO	"Build with Partio point cloud support (unfinished)" OFF)
 OPTION(WITH_CYCLES_NETWORK	"Build with network rendering support (unfinished)" OFF)
-OPTION(WITH_CYCLES_MULTI	"Build with network rendering support (unfinished)" OFF)
 OPTION(WITH_CYCLES_TEST		"Build cycles test application" OFF)
 
 # disable for now, but plan to support on all platforms eventually

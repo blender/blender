@@ -41,17 +41,17 @@ typedef struct BsdfDiffuseClosure {
 	//float3 m_N;
 } BsdfDiffuseClosure;
 
-__device void bsdf_diffuse_setup(ShaderData *sd, float3 N)
+__device void bsdf_diffuse_setup(ShaderData *sd, ShaderClosure *sc)
 {
-	sd->svm_closure = CLOSURE_BSDF_DIFFUSE_ID;
+	sc->type = CLOSURE_BSDF_DIFFUSE_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-__device void bsdf_diffuse_blur(ShaderData *sd, float roughness)
+__device void bsdf_diffuse_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_diffuse_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_diffuse_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float3 m_N = sd->N;
 
@@ -60,17 +60,17 @@ __device float3 bsdf_diffuse_eval_reflect(const ShaderData *sd, const float3 I, 
 	return make_float3(cos_pi, cos_pi, cos_pi);
 }
 
-__device float3 bsdf_diffuse_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_diffuse_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_diffuse_albedo(const ShaderData *sd, const float3 I)
+__device float bsdf_diffuse_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_diffuse_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_diffuse_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float3 m_N = sd->N;
 
@@ -99,22 +99,22 @@ typedef struct BsdfTranslucentClosure {
 	//float3 m_N;
 } BsdfTranslucentClosure;
 
-__device void bsdf_translucent_setup(ShaderData *sd, float3 N)
+__device void bsdf_translucent_setup(ShaderData *sd, ShaderClosure *sc)
 {
-	sd->svm_closure = CLOSURE_BSDF_TRANSLUCENT_ID;
+	sc->type = CLOSURE_BSDF_TRANSLUCENT_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
 }
 
-__device void bsdf_translucent_blur(ShaderData *sd, float roughness)
+__device void bsdf_translucent_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_translucent_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_translucent_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float3 bsdf_translucent_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_translucent_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	float3 m_N = sd->N;
 
@@ -123,12 +123,12 @@ __device float3 bsdf_translucent_eval_transmit(const ShaderData *sd, const float
 	return make_float3 (cos_pi, cos_pi, cos_pi);
 }
 
-__device float bsdf_translucent_albedo(const ShaderData *sd, const float3 I)
+__device float bsdf_translucent_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_translucent_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_translucent_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
 	float3 m_N = sd->N;
 

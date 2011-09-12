@@ -118,6 +118,7 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d)
 {
 	sync_integrator();
 	sync_film();
+	sync_render_layer(b_v3d);
 	sync_shaders();
 	sync_objects(b_v3d);
 }
@@ -170,6 +171,29 @@ void BlenderSync::sync_film()
 
 	if(filter->modified(prevfilter))
 		filter->tag_update(scene);
+}
+
+/* Render Layer */
+
+void BlenderSync::sync_render_layer(BL::SpaceView3D b_v3d)
+{
+	if(b_v3d) {
+		render_layer.scene_layer = get_layer(b_v3d.layers());
+		render_layer.layer = render_layer.scene_layer;
+		render_layer.material_override = PointerRNA_NULL;
+	}
+	else {
+		BL::RenderSettings r = b_scene.render();
+		BL::RenderSettings::layers_iterator b_rlay;
+
+		for(r.layers.begin(b_rlay); b_rlay != r.layers.end(); ++b_rlay) {
+			render_layer.scene_layer = get_layer(b_scene.layers());
+			render_layer.layer = get_layer(b_rlay->layers());
+			render_layer.material_override = b_rlay->material_override();
+
+			break; /* single layer for now */
+		}
+	}
 }
 
 /* Scene Parameters */

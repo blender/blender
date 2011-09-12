@@ -20,7 +20,7 @@
 
 #ifdef __KERNEL_CPU__
 
-#ifdef WITH_OSL
+#ifdef __OSL__
 #include "osl_globals.h"
 #endif
 
@@ -43,7 +43,7 @@ typedef struct KernelGlobals {
 
 	KernelData __data;
 
-#ifdef WITH_OSL
+#ifdef __OSL__
 	/* On the CPU, we also have the OSL globals here. Most data structures are shared
 	   with SVM, the difference is in the shaders and object/mesh attributes. */
 	OSLGlobals osl;

@@ -72,11 +72,12 @@ private:
 	void sync_integrator();
 	void sync_view();
 	void sync_world();
+	void sync_render_layer(BL::SpaceView3D b_v3d);
 	void sync_shaders();
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
-	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm);
+	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint visibility);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 
 	/* util */
@@ -99,6 +100,17 @@ private:
 
 	Scene *scene;
 	bool preview;
+
+	struct RenderLayerInfo {
+		RenderLayerInfo()
+		: scene_layer(0), layer(0),
+		  material_override(PointerRNA_NULL)
+		{}
+
+		uint scene_layer;
+		uint layer;
+		BL::Material material_override;
+	} render_layer;
 };
 
 CCL_NAMESPACE_END

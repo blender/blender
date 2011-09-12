@@ -105,6 +105,7 @@ SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_man
 	current_type = SHADER_TYPE_SURFACE;
 	current_shader = NULL;
 	background = false;
+	mix_weight_offset = SVM_STACK_INVALID;
 }
 
 int SVMCompiler::stack_size(ShaderSocketType type)
@@ -419,6 +420,84 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*> done, Stac
 	}
 }
 
+void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, uint in_offset)
+{
+	/* todo: the weaks point here is that unlike the single closure sampling 
+	   we will evaluate all nodes even if they are used as input for closures
+	   that are unused. it's not clear what would be the best way to skip such
+	   nodes at runtime, especially if they are tangled up  */
+
+	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
+		ShaderInput *fin = node->input("Fac");
+		ShaderInput *cl1in = node->input("Closure1");
+		ShaderInput *cl2in = node->input("Closure2");
+
+		uint out1_offset = SVM_STACK_INVALID;
+		uint out2_offset = SVM_STACK_INVALID;
+
+		if(fin) {
+			/* mix closure */
+			set<ShaderNode*> dependencies;
+			find_dependencies(dependencies, done, fin);
+			generate_svm_nodes(dependencies, done);
+
+			stack_assign(fin);
+
+			if(cl1in->link)
+				out1_offset = stack_find_offset(SHADER_SOCKET_FLOAT);
+			if(cl2in->link)
+				out2_offset = stack_find_offset(SHADER_SOCKET_FLOAT);
+
+			add_node(NODE_MIX_CLOSURE, 
+				encode_uchar4(fin->stack_offset, in_offset, out1_offset, out2_offset));
+		}
+		else {
+			/* add closure */
+			out1_offset = in_offset;
+			out2_offset = in_offset;
+		}
+
+		if(cl1in->link) {
+			generate_multi_closure(cl1in->link->parent, done, out1_offset);
+
+			if(fin)
+				active_stack.users[out1_offset]--;
+		}
+
+		if(cl2in->link) {
+			generate_multi_closure(cl2in->link->parent, done, out2_offset);
+
+			if(fin)
+				active_stack.users[out2_offset]--;
+		}
+	}
+	else {
+		/* execute dependencies for closure */
+		foreach(ShaderInput *in, node->inputs) {
+			if(!node_skip_input(node, in) && in->link) {
+				set<ShaderNode*> dependencies;
+				find_dependencies(dependencies, done, in);
+				generate_svm_nodes(dependencies, done);
+			}
+		}
+
+		mix_weight_offset = in_offset;
+
+		/* compile closure itself */
+		node->compile(*this);
+		stack_clear_users(node, done);
+		stack_clear_temporary(node);
+
+		mix_weight_offset = SVM_STACK_INVALID;
+
+		if(node->name == ustring("emission"))
+			current_shader->has_surface_emission = true;
+
+		/* end node is added outside of this */
+	}
+}
+
+
 void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType type)
 {
 	/* Converting a shader graph into svm_nodes that can be executed
@@ -464,20 +543,34 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 	}
 
 	if(clin->link) {
+		bool generate = false;
 		if(type == SHADER_TYPE_SURFACE) {
 			/* generate surface shader */
-			generate_closure(clin->link->parent, set<ShaderNode*>(), Stack());
+			generate = true;
 			shader->has_surface = true;
 		}
 		else if(type == SHADER_TYPE_VOLUME) {
 			/* generate volume shader */
-			generate_closure(clin->link->parent, set<ShaderNode*>(), Stack());
+			generate = true;
 			shader->has_volume = true;
 		}
 		else if(type == SHADER_TYPE_DISPLACEMENT) {
 			/* generate displacement shader */
-			generate_closure(clin->link->parent, set<ShaderNode*>(), Stack());
+			generate = true;
 			shader->has_displacement = true;
+		}
+
+		if(generate) {
+			set<ShaderNode*> done;
+			bool multi_closure = false; /* __MULTI_CLOSURE__ */
+
+			if(multi_closure) {
+				generate_multi_closure(clin->link->parent, done, SVM_STACK_INVALID);
+			}
+			else {
+				Stack stack;
+				generate_closure(clin->link->parent, done, stack);
+			}
 		}
 	}
 

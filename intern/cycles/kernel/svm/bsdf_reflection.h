@@ -41,34 +41,34 @@ typedef struct BsdfReflectionClosure {
 	//float3 m_N;
 } BsdfReflectionClosure;
 
-__device void bsdf_reflection_setup(ShaderData *sd, float3 N)
+__device void bsdf_reflection_setup(ShaderData *sd, ShaderClosure *sc)
 {
-	sd->svm_closure = CLOSURE_BSDF_REFLECTION_ID;
+	sc->type = CLOSURE_BSDF_REFLECTION_ID;
 	sd->flag |= SD_BSDF;
 }
 
-__device void bsdf_reflection_blur(ShaderData *sd, float roughness)
+__device void bsdf_reflection_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_reflection_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
-{
-	return make_float3(0.0f, 0.0f, 0.0f);
-}
-
-__device float3 bsdf_reflection_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_reflection_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_reflection_albedo(const ShaderData *sd, const float3 I)
+__device float3 bsdf_reflection_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
+{
+	return make_float3(0.0f, 0.0f, 0.0f);
+}
+
+__device float bsdf_reflection_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_reflection_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_reflection_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	//const BsdfReflectionClosure *self = (const BsdfReflectionClosure*)sd->svm_closure_data;
+	//const BsdfReflectionClosure *self = (const BsdfReflectionClosure*)sc->data;
 	float3 m_N = sd->N;
 
 	// only one direction is possible

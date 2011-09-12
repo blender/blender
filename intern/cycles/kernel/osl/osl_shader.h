@@ -46,6 +46,7 @@ namespace OSL = ::OSL;
 
 class OSLRenderServices;
 class Scene;
+class ShaderClosure;
 class ShaderData;
 class differential3;
 class KernelGlobals;
@@ -66,15 +67,16 @@ public:
 	static void eval_displacement(KernelGlobals *kg, ShaderData *sd);
 
 	/* sample & eval */
-	static int bsdf_sample(const ShaderData *sd, float randu, float randv,
+	static int bsdf_sample(const ShaderData *sd, const ShaderClosure *sc,
+		float randu, float randv,
 		float3& eval, float3& omega_in, differential3& domega_in, float& pdf);
-	static float3 bsdf_eval(const ShaderData *sd, const float3& omega_in, float& pdf);
-	static float3 emissive_eval(const ShaderData *sd);
-	static void emissive_sample(const ShaderData *sd, float randu, float randv,
-		float3 *eval, float3 *I, float *pdf);
-	static float3 volume_eval_phase(const ShaderData *sd, const float3 omega_in,
-		const float3 omega_out);
-	static float3 holdout_eval(const ShaderData *sd);
+	static float3 bsdf_eval(const ShaderData *sd, const ShaderClosure *sc,
+		const float3& omega_in, float& pdf);
+
+	static float3 emissive_eval(const ShaderData *sd, const ShaderClosure *sc);
+
+	static float3 volume_eval_phase(const ShaderData *sd, const ShaderClosure *sc,
+		const float3 omega_in, const float3 omega_out);
 
 	/* release */
 	static void release(KernelGlobals *kg, const ShaderData *sd);

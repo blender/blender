@@ -47,14 +47,14 @@ CCL_NAMESPACE_BEGIN
 
 /* Stack */
 
-__device float3 stack_load_float3(float *stack, uint a)
+__device_inline float3 stack_load_float3(float *stack, uint a)
 {
 	kernel_assert(a+2 < SVM_STACK_SIZE);
 
 	return make_float3(stack[a+0], stack[a+1], stack[a+2]);
 }
 
-__device void stack_store_float3(float *stack, uint a, float3 f)
+__device_inline void stack_store_float3(float *stack, uint a, float3 f)
 {
 	kernel_assert(a+2 < SVM_STACK_SIZE);
 
@@ -63,40 +63,40 @@ __device void stack_store_float3(float *stack, uint a, float3 f)
 	stack[a+2] = f.z;
 }
 
-__device float stack_load_float(float *stack, uint a)
+__device_inline float stack_load_float(float *stack, uint a)
 {
 	kernel_assert(a < SVM_STACK_SIZE);
 
 	return stack[a];
 }
 
-__device float stack_load_float_default(float *stack, uint a, uint value)
+__device_inline float stack_load_float_default(float *stack, uint a, uint value)
 {
 	return (a == (uint)SVM_STACK_INVALID)? __int_as_float(value): stack_load_float(stack, a);
 }
 
-__device void stack_store_float(float *stack, uint a, float f)
+__device_inline void stack_store_float(float *stack, uint a, float f)
 {
 	kernel_assert(a < SVM_STACK_SIZE);
 
 	stack[a] = f;
 }
 
-__device bool stack_valid(uint a)
+__device_inline bool stack_valid(uint a)
 {
 	return a != (uint)SVM_STACK_INVALID;
 }
 
 /* Reading Nodes */
 
-__device uint4 read_node(KernelGlobals *kg, int *offset)
+__device_inline uint4 read_node(KernelGlobals *kg, int *offset)
 {
 	uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
 	(*offset)++;
 	return node;
 }
 
-__device float4 read_node_float(KernelGlobals *kg, int *offset)
+__device_inline float4 read_node_float(KernelGlobals *kg, int *offset)
 {
 	uint4 node = kernel_tex_fetch(__svm_nodes, *offset);
 	float4 f = make_float4(__int_as_float(node.x), __int_as_float(node.y), __int_as_float(node.z), __int_as_float(node.w));
@@ -104,7 +104,7 @@ __device float4 read_node_float(KernelGlobals *kg, int *offset)
 	return f;
 }
 
-__device void decode_node_uchar4(uint i, uint *x, uint *y, uint *z, uint *w)
+__device_inline void decode_node_uchar4(uint i, uint *x, uint *y, uint *z, uint *w)
 {
 	if(x) *x = (i & 0xFF);
 	if(y) *y = ((i >> 8) & 0xFF);
@@ -154,8 +154,12 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 	float closure_weight = 1.0f;
 	int offset = sd->shader;
 
-	sd->svm_closure = NBUILTIN_CLOSURES;
-	sd->svm_closure_weight = make_float3(0.0f, 0.0f, 0.0f);
+#ifdef __MULTI_CLOSURE__
+	sd->num_closure = 0;
+	sd->randb_closure = randb;
+#else
+	sd->closure.type = NBUILTIN_CLOSURES;
+#endif
 
 	while(1) {
 		uint4 node = read_node(kg, &offset);
@@ -169,16 +173,16 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			}
 			case NODE_CLOSURE_BSDF:
-				svm_node_closure_bsdf(sd, stack, node, randb);
+				svm_node_closure_bsdf(kg, sd, stack, node, randb, path_flag);
 				break;
 			case NODE_CLOSURE_EMISSION:
-				svm_node_closure_emission(sd);
+				svm_node_closure_emission(sd, stack, node);
 				break;
 			case NODE_CLOSURE_BACKGROUND:
-				svm_node_closure_background(sd);
+				svm_node_closure_background(sd, node);
 				break;
 			case NODE_CLOSURE_HOLDOUT:
-				svm_node_closure_holdout(sd);
+				svm_node_closure_holdout(sd, stack, node);
 				break;
 			case NODE_CLOSURE_SET_WEIGHT:
 				svm_node_closure_set_weight(sd, node.y, node.z, node.w);
@@ -190,7 +194,7 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				svm_node_emission_weight(kg, sd, stack, node);
 				break;
 			case NODE_MIX_CLOSURE:
-				svm_node_mix_closure(sd, stack, node.y, node.z, &offset, &randb);
+				svm_node_mix_closure(sd, stack, node, &offset, &randb);
 				break;
 			case NODE_ADD_CLOSURE:
 				svm_node_add_closure(sd, stack, node.y, node.z, &offset, &randb, &closure_weight);
@@ -307,7 +311,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_END:
 			default:
-				sd->svm_closure_weight *= closure_weight;
+#ifndef __MULTI_CLOSURE__
+				sd->closure.weight *= closure_weight;
+#endif
 				return;
 		}
 	}

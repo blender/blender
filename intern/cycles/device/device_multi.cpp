@@ -47,9 +47,6 @@ public:
 	MultiDevice(bool background_)
 	: unique_ptr(1)
 	{
-		/* enforce background for now */
-		background = true;
-
 		Device *device;
 
 		/* add CPU device */
@@ -123,6 +120,15 @@ public:
 		}
 
 		return desc.str();
+	}
+
+	bool load_kernels()
+	{
+		foreach(SubDevice& sub, devices)
+			if(!sub.device->load_kernels())
+				return false;
+
+		return true;
 	}
 
 	void mem_alloc(device_memory& mem, MemoryType type)
@@ -219,12 +225,26 @@ public:
 
 	void pixels_alloc(device_memory& mem)
 	{
-		Device::pixels_alloc(mem);
+		foreach(SubDevice& sub, devices) {
+			mem.device_pointer = 0;
+			sub.device->pixels_alloc(mem);
+			sub.ptr_map[unique_ptr] = mem.device_pointer;
+		}
+
+		mem.device_pointer = unique_ptr++;
 	}
 
 	void pixels_free(device_memory& mem)
 	{
-		Device::pixels_free(mem);
+		device_ptr tmp = mem.device_pointer;
+
+		foreach(SubDevice& sub, devices) {
+			mem.device_pointer = sub.ptr_map[tmp];
+			sub.device->pixels_free(mem);
+			sub.ptr_map.erase(sub.ptr_map.find(tmp));
+		}
+
+		mem.device_pointer = 0;
 	}
 
 	void pixels_copy_from(device_memory& mem, int y, int w, int h)
@@ -248,14 +268,16 @@ public:
 	{
 		device_ptr tmp = rgba.device_pointer;
 		int i = 0, sub_h = h/devices.size();
+		int sub_height = height/devices.size();
 
 		foreach(SubDevice& sub, devices) {
 			int sy = y + i*sub_h;
 			int sh = (i == (int)devices.size() - 1)? h - sub_h*i: sub_h;
+			int sheight = (i == (int)devices.size() - 1)? height - sub_height*i: sub_height;
 			/* adjust math for w/width */
 
 			rgba.device_pointer = sub.ptr_map[tmp];
-			sub.device->draw_pixels(rgba, sy, w, sh, width, height, transparent);
+			sub.device->draw_pixels(rgba, sy, w, sh, width, sheight, transparent);
 			i++;
 		}
 

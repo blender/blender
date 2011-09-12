@@ -232,11 +232,16 @@ public:
 		double starttime = time_dt();
 		printf("Compiling CUDA kernel ...\n");
 
+		path_create_directories(cubin);
+
 		string command = string_printf("%s -arch=sm_%d%d -m%d --cubin \"%s\" --use_fast_math "
 			"-o \"%s\" --ptxas-options=\"-v\" --maxrregcount=%d --opencc-options -OPT:Olimit=0 -I\"%s\" -DNVCC",
 			nvcc.c_str(), major, minor, machine, kernel.c_str(), cubin.c_str(), maxreg, include.c_str());
 
-		system(command.c_str());
+		if(system(command.c_str()) == -1) {
+			fprintf(stderr, "Failed to execute compilation command.\n");
+			return "";
+		}
 
 		/* verify if compilation succeeded */
 		if(!path_exists(cubin)) {
@@ -708,9 +713,13 @@ public:
 
 			cuda_push_context();
 
+			/* for multi devices, this assumes the ineffecient method that we allocate
+			   all pixels on the device even though we only render to a subset */
+			size_t offset = sizeof(uint8_t)*4*y*w;
+
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pmem.cuPBO);
 			glBindTexture(GL_TEXTURE_2D, pmem.cuTexId);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, (void*)offset);
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
 			
 			glEnable(GL_TEXTURE_2D);
@@ -729,11 +738,11 @@ public:
 			
 			glTexCoord2f(0.0f, 0.0f);
 			glVertex2f(0.0f, 0.0f);
-			glTexCoord2f((float)w/(float)width, 0);
+			glTexCoord2f((float)w/(float)pmem.w, 0.0f);
 			glVertex2f((float)width, 0.0f);
-			glTexCoord2f((float)w/(float)width, (float)h/(float)height);
+			glTexCoord2f((float)w/(float)pmem.w, (float)h/(float)pmem.h);
 			glVertex2f((float)width, (float)height);
-			glTexCoord2f(0.0f, (float)h/(float)height);
+			glTexCoord2f(0.0f, (float)h/(float)pmem.h);
 			glVertex2f(0.0f, (float)height);
 
 			glEnd();

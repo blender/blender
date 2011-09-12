@@ -34,6 +34,9 @@ CCL_NAMESPACE_BEGIN
 #define __BACKGROUND__
 #define __CAUSTICS_TRICKS__
 #define __VISIBILITY_FLAG__
+#define __RAY_DIFFERENTIALS__
+#define __CAMERA_CLIPPING__
+#define __INTERSECTION_REFINE__
 
 #ifndef __KERNEL_OPENCL__
 #define __SVM__
@@ -42,9 +45,13 @@ CCL_NAMESPACE_BEGIN
 #define __HOLDOUT__
 #endif
 
-#define __RAY_DIFFERENTIALS__
-#define __CAMERA_CLIPPING__
-#define __INTERSECTION_REFINE__
+#ifdef __KERNEL_CPU__
+//#define __MULTI_CLOSURE__
+//#define __MULTI_LIGHT__
+//#define __TRANSPARENT_SHADOWS__
+//#define __OSL__
+#endif
+
 //#define __SOBOL_FULL_SCREEN__
 //#define __MODIFY_TP__
 //#define __QBVH__
@@ -179,19 +186,26 @@ typedef enum AttributeElement {
 	ATTR_ELEMENT_NONE
 } AttributeElement;
 
-/* OSL data */
+/* Closure data */
 
-#if !defined(__KERNEL_GPU__) && defined(WITH_OSL)
+#define MAX_CLOSURE 8
 
-#define MAX_OSL_CLOSURE 8
-
-struct FlatClosure {
-	void *prim;
+typedef struct ShaderClosure {
+	ClosureType type;
 	float3 weight;
-	float sample_weight;
-};
 
+#ifdef __MULTI_CLOSURE__
+	float sample_weight;
 #endif
+
+#ifdef __OSL__
+	void *prim;
+#else
+	float data0;
+	float data1;
+#endif
+
+} ShaderClosure;
 
 /* Shader Data
  *
@@ -244,34 +258,18 @@ typedef struct ShaderData {
 	float3 dPdu, dPdv;
 #endif
 
-	/* SVM closure data. we always sample a single closure, to get fixed
-	 * memory usage, svm_closure_data contains closure parameters. */
-	ClosureType svm_closure;
-	float3 svm_closure_weight;
-	float svm_closure_data0;
-	float svm_closure_data1;
+#ifdef __MULTI_CLOSURE__
+	/* Closure data, we store a fixed array of closures */
+	ShaderClosure closure[MAX_CLOSURE];
+	int num_closure;
+	float randb_closure;
+#else
+	/* Closure data, with a single sampled closure for low memory usage */
+	ShaderClosure closure;
+#endif
 
-#if !defined(__KERNEL_GPU__) && defined(WITH_OSL)
-	/* OSL closure data and context. we store all closures flattened into
-	 * lists per type, different from SVM. */
-	struct {
-		FlatClosure bsdf[MAX_OSL_CLOSURE];
-		FlatClosure emissive[MAX_OSL_CLOSURE];
-		FlatClosure volume[MAX_OSL_CLOSURE];
-		
-		int num_bsdf;
-		int num_emissive;
-		int num_volume;
-
-		float bsdf_sample_sum;
-		float emissive_sample_sum;
-		float volume_sample_sum;
-
-		float3 holdout_weight;
-
-		float randb;
-	} osl_closure;
-
+#ifdef __OSL__
+	/* OSL context */
 	void *osl_ctx;
 #endif
 } ShaderData;
@@ -352,11 +350,11 @@ typedef struct KernelSunSky {
 typedef struct KernelIntegrator {
 	/* emission */
 	int use_emission;
-	int num_triangles;
 	int num_distribution;
-	int num_lights;
+	int num_all_lights;
 	float pdf_triangles;
 	float pdf_lights;
+	float pdf_pad;
 
 	/* bounces */
 	int min_bounce;

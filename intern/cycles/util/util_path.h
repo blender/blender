@@ -42,6 +42,7 @@ string path_escape(const string& path);
 bool path_exists(const string& path);
 string path_files_md5_hash(const string& dir);
 
+void path_create_directories(const string& path);
 bool path_write_binary(const string& path, const vector<uint8_t>& binary);
 bool path_read_binary(const string& path, vector<uint8_t>& binary);
 

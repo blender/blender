@@ -46,26 +46,37 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 	return eval;
 }
 
-__device bool direct_emission(KernelGlobals *kg, ShaderData *sd, float randt, float rando,
-	float randu, float randv, Ray *ray, float3 *eval)
+__device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
+	float randt, float rando, float randu, float randv, Ray *ray, float3 *eval)
 {
-	/* sample a position on a light */
 	LightSample ls;
 
-	light_sample(kg, randt, randu, randv, sd->P, &ls);
+#ifdef __MULTI_LIGHT__
+	if(lindex != -1) {
+		/* sample position on a specified light */
+		light_select(kg, lindex, randu, randv, sd->P, &ls);
+	}
+	else
+#endif
+	{
+		/* sample a light and position on int */
+		light_sample(kg, randt, randu, randv, sd->P, &ls);
+	}
 
 	/* compute incoming direction and distance */
 	float t;
 	float3 omega_in = normalize_len(ls.P - sd->P, &t);
 
 	/* compute pdf */
-	float pdf = light_pdf(kg, &ls, -omega_in, t);
+	float pdf = light_sample_pdf(kg, &ls, -omega_in, t);
 
 	/* evaluate closure */
 	*eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -omega_in);
 
 	if(is_zero(*eval) || pdf == 0.0f)
 		return false;
+
+	/* todo: use visbility flag to skip lights */
 
 	/* evaluate BSDF at shading point */
 	float bsdf_pdf;
@@ -88,10 +99,22 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, float randt, fl
 		*eval *= 0.25f;
 	}
 
-	/* setup ray */
-	ray->P = ray_offset(sd->P, sd->Ng);
-	ray->D = ray_offset(ls.P, ls.Ng) - ray->P;
-	ray->D = normalize_len(ray->D, &ray->t);
+#if 0
+	/* todo: implement this in light */
+	bool no_shadow = true;
+
+	if(no_shadow) {
+		ray->t = 0.0f;
+	}
+	else {
+#endif
+		/* setup ray */
+		ray->P = ray_offset(sd->P, sd->Ng);
+		ray->D = ray_offset(ls.P, ls.Ng) - ray->P;
+		ray->D = normalize_len(ray->D, &ray->t);
+#if 0
+	}
+#endif
 
 	return true;
 }

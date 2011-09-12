@@ -40,24 +40,24 @@ typedef struct BsdfAshikhminVelvetClosure {
 	float m_invsigma2;
 } BsdfAshikhminVelvetClosure;
 
-__device void bsdf_ashikhmin_velvet_setup(ShaderData *sd, float3 N, float sigma)
+__device void bsdf_ashikhmin_velvet_setup(ShaderData *sd, ShaderClosure *sc, float sigma)
 {
 	sigma = fmaxf(sigma, 0.01f);
 
 	float m_invsigma2 = 1.0f/(sigma * sigma);
 
-	sd->svm_closure = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
+	sc->type = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL;
-	sd->svm_closure_data0 = m_invsigma2;
+	sc->data0 = m_invsigma2;
 }
 
-__device void bsdf_ashikhmin_velvet_blur(ShaderData *sd, float roughness)
+__device void bsdf_ashikhmin_velvet_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float m_invsigma2 = sd->svm_closure_data0;
+	float m_invsigma2 = sc->data0;
 	float3 m_N = sd->N;
 
 	float cosNO = dot(m_N, I);
@@ -89,19 +89,19 @@ __device float3 bsdf_ashikhmin_velvet_eval_reflect(const ShaderData *sd, const f
 	return make_float3(0, 0, 0);
 }
 
-__device float3 bsdf_ashikhmin_velvet_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_ashikhmin_velvet_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_ashikhmin_velvet_albedo(const ShaderData *sd, const float3 I)
+__device float bsdf_ashikhmin_velvet_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_ashikhmin_velvet_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_ashikhmin_velvet_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float m_invsigma2 = sd->svm_closure_data0;
+	float m_invsigma2 = sc->data0;
 	float3 m_N = sd->N;
 
 	// we are viewing the surface from above - send a ray out with uniform

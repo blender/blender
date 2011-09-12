@@ -17,6 +17,7 @@
  */
 
 #include "device.h"
+#include "light.h"
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
@@ -83,8 +84,15 @@ void Object::apply_transform()
 
 void Object::tag_update(Scene *scene)
 {
-	if(mesh && mesh->transform_applied)
-		mesh->need_update = true;
+	if(mesh) {
+		if(mesh->transform_applied)
+			mesh->need_update = true;
+
+		foreach(uint sindex, mesh->used_shaders)
+			if(scene->shaders[sindex]->has_surface_emission)
+				scene->light_manager->need_update = true;
+	}
+
 	scene->mesh_manager->need_update = true;
 	scene->object_manager->need_update = true;
 }

@@ -42,26 +42,26 @@ typedef struct BsdfWestinBackscatterClosure {
 	float m_invroughness;
 } BsdfWestinBackscatterClosure;
 
-__device void bsdf_westin_backscatter_setup(ShaderData *sd, float3 N, float roughness)
+__device void bsdf_westin_backscatter_setup(ShaderData *sd, ShaderClosure *sc, float roughness)
 {
 	roughness = clamp(roughness, 1e-5f, 1.0f);
 	float m_invroughness = 1.0f/roughness;
 
-	sd->svm_closure = CLOSURE_BSDF_WESTIN_BACKSCATTER_ID;
+	sc->type = CLOSURE_BSDF_WESTIN_BACKSCATTER_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
-	sd->svm_closure_data0 = m_invroughness;
+	sc->data0 = m_invroughness;
 }
 
-__device void bsdf_westin_backscatter_blur(ShaderData *sd, float roughness)
+__device void bsdf_westin_backscatter_blur(ShaderClosure *sc, float roughness)
 {
-	float m_invroughness = sd->svm_closure_data0;
+	float m_invroughness = sc->data0;
 	m_invroughness = min(1.0f/roughness, m_invroughness);
-	sd->svm_closure_data0 = m_invroughness;
+	sc->data0 = m_invroughness;
 }
 
-__device float3 bsdf_westin_backscatter_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_westin_backscatter_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float m_invroughness = sd->svm_closure_data0;
+	float m_invroughness = sc->data0;
 	float3 m_N = sd->N;
 
 	// pdf is implicitly 0 (no indirect sampling)
@@ -76,19 +76,19 @@ __device float3 bsdf_westin_backscatter_eval_reflect(const ShaderData *sd, const
 	return make_float3 (0, 0, 0);
 }
 
-__device float3 bsdf_westin_backscatter_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_westin_backscatter_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_westin_backscatter_albedo(const ShaderData *sd, const float3 I)
+__device float bsdf_westin_backscatter_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_westin_backscatter_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_westin_backscatter_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float m_invroughness = sd->svm_closure_data0;
+	float m_invroughness = sc->data0;
 	float3 m_N = sd->N;
 
 	float cosNO = dot(m_N, sd->I);
@@ -137,20 +137,20 @@ typedef struct BsdfWestinSheenClosure {
 	float m_edginess;
 } BsdfWestinSheenClosure;
 
-__device void bsdf_westin_sheen_setup(ShaderData *sd, float3 N, float edginess)
+__device void bsdf_westin_sheen_setup(ShaderData *sd, ShaderClosure *sc, float edginess)
 {
-	sd->svm_closure = CLOSURE_BSDF_WESTIN_SHEEN_ID;
+	sc->type = CLOSURE_BSDF_WESTIN_SHEEN_ID;
 	sd->flag |= SD_BSDF|SD_BSDF_HAS_EVAL|SD_BSDF_GLOSSY;
-	sd->svm_closure_data0 = edginess;
+	sc->data0 = edginess;
 }
 
-__device void bsdf_westin_sheen_blur(ShaderData *sd, float roughness)
+__device void bsdf_westin_sheen_blur(ShaderClosure *sc, float roughness)
 {
 }
 
-__device float3 bsdf_westin_sheen_eval_reflect(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_westin_sheen_eval_reflect(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
-	float m_edginess = sd->svm_closure_data0;
+	float m_edginess = sc->data0;
 	float3 m_N = sd->N;
 
 	// pdf is implicitly 0 (no indirect sampling)
@@ -165,19 +165,19 @@ __device float3 bsdf_westin_sheen_eval_reflect(const ShaderData *sd, const float
 	return make_float3 (0, 0, 0);
 }
 
-__device float3 bsdf_westin_sheen_eval_transmit(const ShaderData *sd, const float3 I, const float3 omega_in, float *pdf)
+__device float3 bsdf_westin_sheen_eval_transmit(const ShaderData *sd, const ShaderClosure *sc, const float3 I, const float3 omega_in, float *pdf)
 {
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-__device float bsdf_westin_sheen_albedo(const ShaderData *sd, const float3 I)
+__device float bsdf_westin_sheen_albedo(const ShaderData *sd, const ShaderClosure *sc, const float3 I)
 {
 	return 1.0f;
 }
 
-__device int bsdf_westin_sheen_sample(const ShaderData *sd, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
+__device int bsdf_westin_sheen_sample(const ShaderData *sd, const ShaderClosure *sc, float randu, float randv, float3 *eval, float3 *omega_in, float3 *domega_in_dx, float3 *domega_in_dy, float *pdf)
 {
-	float m_edginess = sd->svm_closure_data0;
+	float m_edginess = sc->data0;
 	float3 m_N = sd->N;
 
 	// we are viewing the surface from the right side - send a ray out with cosine

@@ -140,6 +140,42 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "debug_bvh_type", text="")
         sub.prop(cscene, "debug_use_spatial_splits")
 
+class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
+    bl_label = "Layers"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        # row = layout.row()
+        # row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
+
+        # col = row.column(align=True)
+        # col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
+        # col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
+
+        row = layout.row()
+        # rl = rd.layers.active
+        rl = rd.layers[0]
+        row.prop(rl, "name")
+        #row.prop(rd, "use_single_layer", text="", icon_only=True)
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(scene, "layers", text="Scene")
+
+        col = split.column()
+        col.prop(rl, "layers", text="Layer")
+
+        layout.separator()
+
+        layout.prop(rl, "material_override", text="Material")
+
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
     bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}

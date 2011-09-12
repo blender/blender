@@ -96,7 +96,7 @@ void TileManager::set_tiles()
 
 bool TileManager::done()
 {
-	return (state.pass+1 >= passes);
+	return (state.pass+1 >= passes && state.resolution == 1);
 }
 
 bool TileManager::next()

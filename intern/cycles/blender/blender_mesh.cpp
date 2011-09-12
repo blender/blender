@@ -223,8 +223,12 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 	vector<uint> used_shaders;
 
 	BL::Object::material_slots_iterator slot;
-	for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot)
-		find_shader(slot->material(), used_shaders);
+	for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
+		if(render_layer.material_override)
+			find_shader(render_layer.material_override, used_shaders);
+		else
+			find_shader(slot->material(), used_shaders);
+	}
 
 	if(used_shaders.size() == 0)
 		used_shaders.push_back(scene->default_surface);

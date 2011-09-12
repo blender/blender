@@ -108,7 +108,7 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 
 /* Object */
 
-void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm)
+void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint visibility)
 {
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
@@ -130,7 +130,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 		object->name = b_ob.name();
 		object->tfm = tfm;
 		
-		object->visibility = object_ray_visibility(b_ob);
+		object->visibility = object_ray_visibility(b_ob) & visibility;
 		if(b_parent.ptr.data != b_ob.ptr.data)
 			object->visibility &= object_ray_visibility(b_parent);
 
@@ -147,12 +147,8 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 {
 	/* layer data */
-	uint layer;
-	
-	if(b_v3d)
-		layer = get_layer(b_v3d.layers());
-	else
-		layer = get_layer(b_scene.layers());
+	uint scene_layer = render_layer.scene_layer;
+	uint layer = render_layer.layer;
 	
 	/* prepare for sync */
 	light_map.pre_sync();
@@ -165,8 +161,14 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 
 	for(b_scene.objects.begin(b_ob); b_ob != b_scene.objects.end(); ++b_ob) {
 		bool hide = (b_v3d)? b_ob->hide(): b_ob->hide_render();
+		uint ob_layer = get_layer(b_ob->layers());
 
-		if(!hide && get_layer(b_ob->layers()) & layer) {
+		if(!hide && (ob_layer & scene_layer)) {
+			uint visibility = PATH_RAY_ALL;
+			
+			if(!(ob_layer & layer))
+				visibility &= ~PATH_RAY_CAMERA;
+
 			if(b_ob->is_duplicator()) {
 				/* dupli objects */
 				object_create_duplilist(*b_ob, b_scene);
@@ -176,7 +178,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 
 				for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
 					Transform tfm = get_transform(b_dup->matrix());
-					sync_object(*b_ob, b_index, b_dup->object(), tfm);
+					sync_object(*b_ob, b_index, b_dup->object(), tfm, visibility);
 					b_index++;
 				}
 
@@ -185,7 +187,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 			else {
 				/* object itself */
 				Transform tfm = get_transform(b_ob->matrix_world());
-				sync_object(*b_ob, 0, *b_ob, tfm);
+				sync_object(*b_ob, 0, *b_ob, tfm, visibility);
 			}
 		}
 	}
