@@ -178,7 +178,11 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	// ambient
 	/* ma->ambX is calculated only on render, so lets do it here manually and not rely on ma->ambX. */
-	cot = getcol(this->scene->world->ambr*ma->amb, this->scene->world->ambg*ma->amb, this->scene->world->ambb*ma->amb, 1.0f);
+	if(this->scene->world)
+		cot = getcol(this->scene->world->ambr*ma->amb, this->scene->world->ambg*ma->amb, this->scene->world->ambb*ma->amb, 1.0f);
+	else
+		cot = getcol(ma->amb, ma->amb, ma->amb, 1.0f);
+
 	ep.setAmbient(cot, false , "ambient");
 
 	// reflective, reflectivity
