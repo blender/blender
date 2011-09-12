@@ -465,14 +465,11 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 {
 	BMesh *bm;
 	BMVert *v, *v2, **vtable = NULL;
-	BLI_array_declare(vtable);
 	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
 	BLI_array_declare(edges);
-	BLI_array_declare(etable);
 	BMLoop *l, /* *l2,*/ **loops = NULL;
 	BLI_array_declare(loops);
 	BMFace *f, *f2, **ftable = NULL;
-	BLI_array_declare(ftable);
 	BMEditSelection *ese;
 	BMIter iter, liter;
 	int allocsize[4] = {512,512,2048,512}, numTex, numCol;
@@ -495,17 +492,20 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 	numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 
+	vtable= MEM_mallocN(sizeof(BMVert *) * bmold->totvert, "BM_Copy_Mesh vtable");
+	etable= MEM_mallocN(sizeof(BMEdge *) * bmold->totedge, "BM_Copy_Mesh etable");
+	ftable= MEM_mallocN(sizeof(BMFace *) * bmold->totface, "BM_Copy_Mesh ftable");
+
 	v = BMIter_New(&iter, bmold, BM_VERTS_OF_MESH, NULL);
 	for (i=0; v; v=BMIter_Step(&iter), i++) {
 		v2 = BM_Make_Vert(bm, v->co, NULL); /* copy between meshes so cant use 'example' argument */
 		BM_Copy_Attributes(bmold, bm, v, v2);
-		BLI_array_growone(vtable);
-
-		vtable[BLI_array_count(vtable)-1] = v2;
-
+		vtable[i] = v2;
 		BM_SetIndex(v, i);
 		BM_SetIndex(v2, i);
 	}
+	/* safety check */
+	BLI_assert(i == bmold->totvert);
 	
 	e = BMIter_New(&iter, bmold, BM_EDGES_OF_MESH, NULL);
 	for (i=0; e; e=BMIter_Step(&iter), i++) {
@@ -513,12 +513,12 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 			          vtable[BM_GetIndex(e->v2)], e, 0);
 
 		BM_Copy_Attributes(bmold, bm, e, e2);
-		BLI_array_growone(etable);
-		etable[BLI_array_count(etable)-1] = e2;
-
+		etable[i] = e2;
 		BM_SetIndex(e, i);
 		BM_SetIndex(e2, i);
 	}
+	/* safety check */
+	BLI_assert(i == bmold->totedge);
 	
 	f = BMIter_New(&iter, bmold, BM_FACES_OF_MESH, NULL);
 	for (i=0; f; f=BMIter_Step(&iter), i++) {
@@ -543,11 +543,10 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 		f2 = BM_Make_Ngon(bm, v, v2, edges, f->len, 0);
 		if (!f2)
 			continue;
-		
+
 		BM_SetIndex(f, i);
-		BLI_array_growone(ftable);
 		ftable[i] = f2;
-		
+
 		BM_Copy_Attributes(bmold, bm, f, f2);
 		copy_v3_v3(f2->no, f->no);
 
@@ -558,6 +557,8 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 
 		if (f == bmold->act_face) bm->act_face = f2;
 	}
+	/* safety check */
+	BLI_assert(i == bmold->totface);
 
 	/*copy over edit selection history*/
 	for (ese=bmold->selected.first; ese; ese=ese->next) {
@@ -575,9 +576,9 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 			BM_store_selection(bm, ele);
 	}
 
-	BLI_array_free(etable);
-	BLI_array_free(vtable);
-	BLI_array_free(ftable);
+	MEM_freeN(etable);
+	MEM_freeN(vtable);
+	MEM_freeN(ftable);
 
 	BLI_array_free(loops);
 	BLI_array_free(edges);
