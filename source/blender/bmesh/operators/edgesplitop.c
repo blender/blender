@@ -207,8 +207,8 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_SEAM, BM_EDGE);
 	
-	/*single marked edges unconnected to any other marked edges
-	  are illegal, go through and unmark them*/
+	/* single marked edges unconnected to any other marked edges
+	 * are illegal, go through and unmark them */
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 		for (i=0; i<2; i++) {
 			BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, i ? e->v2 : e->v1) {
@@ -231,10 +231,10 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	}
 
 #ifdef ETV
-#undef ETV
+#  undef ETV
 #endif
 #ifdef SETETV
-#undef SETETV
+#  undef SETETV
 #endif
 
 #define ETV(et, v, l) (l->e->v1 == v ? et->newv1 : et->newv2)
@@ -271,9 +271,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 				if (BMO_TestFlag(bm, l2->e, EDGE_SEAM)) {
 					if (!verts[j ? (i+1) % f->len : i]) {
 						/*make unique vert here for this face only*/
-						v2 = BM_Make_Vert(bm, v->co, NULL);
-						copy_v3_v3(v2->no, v->no);
-						BM_Copy_Attributes(bm, bm, v, v2);
+						v2 = BM_Make_Vert(bm, v->co, v);
 
 						verts[j ? (i+1) % f->len : i] = v2;
 					} else v2 = verts[j ? (i+1) % f->len : i];
@@ -301,9 +299,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 					if (l3 == NULL || (BMO_TestFlag(bm, l3->e, EDGE_SEAM) && l3->e != l->e)) {
 						et = etags + BM_GetIndex(l2->e);
 						if (ETV(et, v, l2) == NULL) {
-							v2 = BM_Make_Vert(bm, v->co, NULL);
-							copy_v3_v3(v2->no, v->no);
-							BM_Copy_Attributes(bm, bm, v, v2);
+							v2 = BM_Make_Vert(bm, v->co, v);
 							
 							l3 = l2;
 							do {

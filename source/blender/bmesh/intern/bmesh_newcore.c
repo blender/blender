@@ -26,6 +26,7 @@ BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example) {
 
 	v->head.type = BM_VERT;
 
+	/* 'v->no' is handled by BM_Copy_Attributes */
 	if (co) copy_v3_v3(v->co, co);
 	
 	/*allocate flags*/

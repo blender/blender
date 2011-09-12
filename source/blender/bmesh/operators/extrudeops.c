@@ -39,8 +39,7 @@ void bmesh_extrude_face_indiv_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			BLI_array_growone(edges);
 
-			v = BM_Make_Vert(bm, l->v->co, NULL);
-			BM_Copy_Attributes(bm, bm, l->v, v);
+			v = BM_Make_Vert(bm, l->v->co, l->v);
 
 			if (lastv) {
 				e = BM_Make_Edge(bm, lastv, v, l->e, 0);
@@ -151,9 +150,7 @@ void extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 
 	v = BMO_IterNew(&siter, bm, op, "verts", BM_VERT);
 	for (; v; v=BMO_IterStep(&siter)) {
-		dupev = BM_Make_Vert(bm, v->co, NULL);
-		copy_v3_v3(dupev->no, v->no);
-		BM_Copy_Attributes(bm, bm, v, dupev);
+		dupev = BM_Make_Vert(bm, v->co, v);
 
 		e = BM_Make_Edge(bm, v, dupev, NULL, 0);
 

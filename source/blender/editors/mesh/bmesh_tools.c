@@ -2709,7 +2709,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BMEdge *e, *e2, *closest = NULL;
 	BMVert *v;
 	int side = 0, i, singlesel = 0;
-	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1], 0.0f};
+	float projectMat[4][4], fmval[3] = {event->mval[0], event->mval[1]};
 	float dist = FLT_MAX, d;
 
 	ED_view3d_ob_project_mat_get(rv3d, obedit, projectMat);
@@ -2803,34 +2803,31 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	for (i=0; i<2; i++) {
 		BMO_ITER(e, &siter, em->bm, &bmop, i ? "edgeout2":"edgeout1", BM_EDGE) {
-			float cent[3] = {0, 0, 0}, mid[4], vec[3];
+			float cent[3] = {0, 0, 0}, mid[3], vec[3];
 
 			if (!BMBVH_EdgeVisible(bvhtree, e, ar, v3d, obedit) || !e->l)
 				continue;
 
-			/*method for calculating distance:
-			
-			  for each edge: calculate face center, then made a vector
-			  from edge midpoint to face center.  offset edge midpoint
-			  by a small amount along this vector.*/
+			/* method for calculating distance:
+			 *
+			 * for each edge: calculate face center, then made a vector
+			 * from edge midpoint to face center.  offset edge midpoint
+			 * by a small amount along this vector. */
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, e->l->f) {
-				add_v3_v3v3(cent, cent, l->v->co);
+				add_v3_v3(cent, l->v->co);
 			}
 			mul_v3_fl(cent, 1.0f/(float)e->l->f->len);
 
-			add_v3_v3v3(mid, e->v1->co, e->v2->co);
-			mul_v3_fl(mid, 0.5f);
+			mid_v3_v3v3(mid, e->v1->co, e->v2->co);
 			sub_v3_v3v3(vec, cent, mid);
 			normalize_v3(vec);
 			mul_v3_fl(vec, 0.01f);
 			add_v3_v3v3(mid, mid, vec);
 
-			/*yay we have our comparison point, now project it*/
+			/* yay we have our comparison point, now project it */
 			ED_view3d_project_float(ar, mid, mid, projectMat);
 
-			vec[0] = fmval[0] - mid[0];
-			vec[1] = fmval[1] - mid[1];
-			d = vec[0]*vec[0] + vec[1]*vec[1];
+			d = len_squared_v2v2(fmval, mid);
 
 			if (d < dist) {
 				side = i;

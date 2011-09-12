@@ -497,10 +497,9 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 
 	v = BMIter_New(&iter, bmold, BM_VERTS_OF_MESH, NULL);
 	for (i=0; v; v=BMIter_Step(&iter), i++) {
-		v2 = BM_Make_Vert(bm, v->co, NULL);
+		v2 = BM_Make_Vert(bm, v->co, NULL); /* copy between meshes so cant use 'example' argument */
 		BM_Copy_Attributes(bmold, bm, v, v2);
 		BLI_array_growone(vtable);
-		copy_v3_v3(v2->no, v->no);
 
 		vtable[BLI_array_count(vtable)-1] = v2;
 

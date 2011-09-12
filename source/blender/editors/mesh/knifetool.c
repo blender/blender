@@ -1373,6 +1373,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 	BLI_mempool_iternew(kcd->kverts, &iter);
 	for (kfv=BLI_mempool_iterstep(&iter); kfv; kfv=BLI_mempool_iterstep(&iter)) {
 		if (!kfv->v) {
+			/* shouldn't we be at least copying the normal? - if not some comment here should explain why - campbell */
 			kfv->v = BM_Make_Vert(bm, kfv->co, NULL);
 			kfv->flag = 1;
 			BMO_SetFlag(bm, kfv->v, DEL);
