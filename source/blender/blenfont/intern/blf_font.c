@@ -100,7 +100,8 @@ void blf_font_size(FontBLF *font, int size, int dpi)
 static void blf_font_ensure_ascii_table(FontBLF *font)
 {
 	/* build ascii on demand */
-	if(font->glyph_ascii_table['0']==NULL) {
+	if(font->glyph_cache->glyph_ascii_table['0']==NULL) {
+		GlyphBLF **glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 		GlyphBLF *g;
 		unsigned int i;
 		for(i=0; i<256; i++) {
@@ -109,7 +110,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 				FT_UInt glyph_index= FT_Get_Char_Index(font->face, i);
 				g= blf_glyph_add(font, glyph_index, i);
 			}
-			font->glyph_ascii_table[i]= g;
+			glyph_ascii_table[i]= g;
 		}
 	}
 }
@@ -122,9 +123,9 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 /* Note,
  * blf_font_ensure_ascii_table(font); must be called before this macro */
 
-#define BLF_UTF8_NEXT_FAST(font, g, str, i, c)                                \
+#define BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table)             \
 	if(((c)= (str)[i]) < 0x80) {                                              \
-		g= (font)->glyph_ascii_table[c];                                      \
+		g= glyph_ascii_table[c];                                              \
 		i++;                                                                  \
 	}                                                                         \
 	else if ((c= blf_utf8_next((unsigned char *)(str), &(i)))) {              \
@@ -143,9 +144,11 @@ void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 	int pen_x, pen_y;
 	int has_kerning, st;
 	unsigned int i;
+	GlyphBLF **glyph_ascii_table;
 
 	if (!font->glyph_cache)
 		return;
+	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
 	i= 0;
 	pen_x= 0;
@@ -157,7 +160,7 @@ void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 
 	while (str[i] && i < len) {
 
-		BLF_UTF8_NEXT_FAST(font, g, str, i, c);
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
 		if (c == 0)
 			break;
@@ -195,9 +198,11 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
 	FT_Vector delta;
 	int pen_x, pen_y;
 	int has_kerning, st;
+	GlyphBLF **glyph_ascii_table;
 
 	if (!font->glyph_cache)
 		return;
+	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
 	pen_x= 0;
 	pen_y= 0;
@@ -207,7 +212,7 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
 	blf_font_ensure_ascii_table(font);
 
 	while ((c= *(str++)) && len--) {
-		g= font->glyph_ascii_table[c];
+		g= font->glyph_cache->glyph_ascii_table[c];
 
 		/* if we don't found a glyph, skip it. */
 		if (!g)
@@ -245,9 +250,11 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	int pen_x, y, x;
 	int has_kerning, st, chx, chy;
 	unsigned int i;
+	GlyphBLF **glyph_ascii_table;
 
 	if (!font->glyph_cache || (!font->b_fbuf && !font->b_cbuf))
 		return;
+	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 	
 	i= 0;
 	pen_x= (int)font->pos[0];
@@ -264,7 +271,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 	while (str[i]) {
 		int pen_y;
 
-		BLF_UTF8_NEXT_FAST(font, g, str, i, c);
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
 		if (c == 0)
 			break;
@@ -390,9 +397,11 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 	int pen_x, pen_y;
 	int has_kerning, st;
 	unsigned int i;
+	GlyphBLF **glyph_ascii_table;
 
 	if (!font->glyph_cache)
 		return;
+	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
 	box->xmin= 32000.0f;
 	box->xmax= -32000.0f;
@@ -409,7 +418,7 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 
 	while (str[i]) {
 
-		BLF_UTF8_NEXT_FAST(font, g, str, i, c);
+		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
 		if (c == 0)
 			break;
@@ -589,8 +598,6 @@ static void blf_font_fill(FontBLF *font)
 	font->b_col[2]= 0;
 	font->b_col[3]= 0;
 	font->ft_lib= ft_lib;
-
-	memset(font->glyph_ascii_table, 0, sizeof(font->glyph_ascii_table));
 }
 
 FontBLF *blf_font_new(const char *name, const char *filename)
