@@ -116,7 +116,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 		float tmp_co[3];
 
 		/* Convert the vertex to tree coordinates. */
-		VECCOPY(tmp_co, v_cos[i]);
+		copy_v3_v3(tmp_co, v_cos[i]);
 		space_transform_apply(loc2trgt, tmp_co);
 
 		/* Use local proximity heuristics (to reduce the nearest search).

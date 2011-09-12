@@ -505,7 +505,7 @@ static int stucci(Tex *tex, float *texvec, TexResult *texres)
 	
 	if(texres->nor) { 
 		
-		VECCOPY(texres->nor, nor);
+		copy_v3_v3(texres->nor, nor);
 		tex_normal_derivate(tex, texres);
 		
 		if(tex->stype==TEX_WALLOUT) {
@@ -755,9 +755,9 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 	if(pit && pit->doit) {
 		if(texres->nor) {
 			if (pit->version < 6) {
-				VECCOPY(pit->result+5, texres->nor);
+				copy_v3_v3(pit->result+5, texres->nor);
 			} else {
-				VECCOPY(result+5, texres->nor);
+				copy_v3_v3(result+5, texres->nor);
 			}
 		}
 		if (pit->version < 6) {
@@ -781,9 +781,9 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 		if(rgbnor & TEX_NOR) {
 			if(texres->nor) {
 				if (pit->version < 6) {
-					VECCOPY(texres->nor, pit->result+5);
+					copy_v3_v3(texres->nor, pit->result+5);
 				} else {
-					VECCOPY(texres->nor, result+5);
+					copy_v3_v3(texres->nor, result+5);
 				}
 			}
 		}
@@ -820,7 +820,7 @@ static int cubemap_glob(float *n, float x, float y, float z, float *adr1, float 
 		nor[0]= x; nor[1]= y; nor[2]= z;	// use local render coord
 	}
 	else {
-		VECCOPY(nor, n);
+		copy_v3_v3(nor, n);
 	}
 	mul_mat3_m4_v3(R.viewinv, nor);
 
@@ -914,7 +914,7 @@ static int cubemap_ob(Object *ob, float *n, float x, float y, float z, float *ad
 	
 	if(n==NULL) return 0;
 	
-	VECCOPY(nor, n);
+	copy_v3_v3(nor, n);
 	if(ob) mul_mat3_m4_v3(ob->imat, nor);
 	
 	x1= fabs(nor[0]);
@@ -1219,7 +1219,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		/* ton: added this, for Blender convention reason. 
 		 * artificer: added the use of tmpvec to avoid scaling texvec
 		 */
-		VECCOPY(tmpvec, texvec);
+		copy_v3_v3(tmpvec, texvec);
 		mul_v3_fl(tmpvec, 1.0f/tex->noisesize);
 		
 		switch(tex->stype) {
@@ -1241,7 +1241,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		/* ton: added this, for Blender convention reason.
 		 * artificer: added the use of tmpvec to avoid scaling texvec
 		 */
-		VECCOPY(tmpvec, texvec);
+		copy_v3_v3(tmpvec, texvec);
 		mul_v3_fl(tmpvec, 1.0f/tex->noisesize);
 		
 		retval= voronoiTex(tex, tmpvec, texres);
@@ -1250,7 +1250,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		/* ton: added this, for Blender convention reason.
 		 * artificer: added the use of tmpvec to avoid scaling texvec
 		 */
-		VECCOPY(tmpvec, texvec);
+		copy_v3_v3(tmpvec, texvec);
 		mul_v3_fl(tmpvec, 1.0f/tex->noisesize);
 		
 		retval= mg_distNoiseTex(tex, tmpvec, texres);
@@ -1477,32 +1477,32 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 		
 	case MTEX_BLEND_HUE:
 		fact*= facg;
-		VECCOPY(in, out);
+		copy_v3_v3(in, out);
 		ramp_blend(MA_RAMP_HUE, in, in+1, in+2, fact, tex);
 		break;
 	case MTEX_BLEND_SAT:
 		fact*= facg;
-		VECCOPY(in, out);
+		copy_v3_v3(in, out);
 		ramp_blend(MA_RAMP_SAT, in, in+1, in+2, fact, tex);
 		break;
 	case MTEX_BLEND_VAL:
 		fact*= facg;
-		VECCOPY(in, out);
+		copy_v3_v3(in, out);
 		ramp_blend(MA_RAMP_VAL, in, in+1, in+2, fact, tex);
 		break;
 	case MTEX_BLEND_COLOR:
 		fact*= facg;
-		VECCOPY(in, out);
+		copy_v3_v3(in, out);
 		ramp_blend(MA_RAMP_COLOR, in, in+1, in+2, fact, tex);
 		break;
 	case MTEX_SOFT_LIGHT: 
 		fact*= facg; 
-		VECCOPY(in, out); 
+		copy_v3_v3(in, out);
 		ramp_blend(MA_RAMP_SOFT, in, in+1, in+2, fact, tex); 
 		break; 
 	case MTEX_LIN_LIGHT: 
 		fact*= facg; 
-		VECCOPY(in, out); 
+		copy_v3_v3(in, out);
 		ramp_blend(MA_RAMP_LINEAR, in, in+1, in+2, fact, tex); 
 		break; 
 	}
@@ -1924,8 +1924,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		Hscale *= 0.1f; // factor 0.1 proved to look like the previous bump code
 
 	if( !ntap_bump->init_done ) {
-		VECCOPY(ntap_bump->vNacc, shi->vn);
-		VECCOPY(ntap_bump->vNorg, shi->vn);
+		copy_v3_v3(ntap_bump->vNacc, shi->vn);
+		copy_v3_v3(ntap_bump->vNorg, shi->vn);
 		ntap_bump->fPrevMagnitude = 1.0f;
 		ntap_bump->iPrevBumpSpace = 0;
 		
@@ -2056,9 +2056,9 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		float obj2view[3][3], view2obj[3][3], tmp[4][4];
 		// local copies of derivatives and normal
 		float dPdx[3], dPdy[3], vN[3];
-		VECCOPY(dPdx, shi->dxco);
-		VECCOPY(dPdy, shi->dyco);
-		VECCOPY(vN, ntap_bump->vNorg);
+		copy_v3_v3(dPdx, shi->dxco);
+		copy_v3_v3(dPdy, shi->dyco);
+		copy_v3_v3(vN, ntap_bump->vNorg);
 		
 		if( mtex->texflag & MTEX_BUMP_OBJECTSPACE ) {
 			// TODO: these calculations happen for every pixel!
@@ -2200,14 +2200,14 @@ void do_material_tex(ShadeInput *shi)
 					co= tempvec;
 					dx= dxt;
 					dy= dyt;
-					VECCOPY(tempvec, shi->co);
+					copy_v3_v3(tempvec, shi->co);
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG)
 						if(shi->obi && shi->obi->duplitexmat)
 							mul_m4_v3(shi->obi->duplitexmat, tempvec);
 					mul_m4_v3(ob->imat_ren, tempvec);
 					if(shi->osatex) {
-						VECCOPY(dxt, shi->dxco);
-						VECCOPY(dyt, shi->dyco);
+						copy_v3_v3(dxt, shi->dxco);
+						copy_v3_v3(dyt, shi->dyco);
 						mul_mat3_m4_v3(ob->imat_ren, dxt);
 						mul_mat3_m4_v3(ob->imat_ren, dyt);
 					}
@@ -2369,7 +2369,7 @@ void do_material_tex(ShadeInput *shi)
 					float *warpnor= texres.nor, warpnor_[3];
 					
 					if(use_ntap_bump) {
-						VECCOPY(warpnor_, texres.nor);
+						copy_v3_v3(warpnor_, texres.nor);
 						warpnor= warpnor_;
 						normalize_v3(warpnor_);
 					}
@@ -2485,7 +2485,7 @@ void do_material_tex(ShadeInput *shi)
 						else {
 							float nor[3];
 
-							VECCOPY(nor, texres.nor);
+							copy_v3_v3(nor, texres.nor);
 
 							if(mtex->normapspace == MTEX_NSPACE_CAMERA);
 							else if(mtex->normapspace == MTEX_NSPACE_WORLD) {
@@ -2687,7 +2687,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 			if(mtex->texco==TEXCO_OBJECT) { 
 				Object *ob= mtex->object;
 				if(ob) {						
-					VECCOPY(co, xyz);	
+					copy_v3_v3(co, xyz);
 					if(mtex->texflag & MTEX_OB_DUPLI_ORIG) {
 						if(shi->obi && shi->obi->duplitexmat)
 							mul_m4_v3(shi->obi->duplitexmat, co);					
@@ -2699,16 +2699,16 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 			else if(mtex->texco==TEXCO_ORCO) {
 				
 				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
-					VECCOPY(co, shi->duplilo);
+					copy_v3_v3(co, shi->duplilo);
 				}
 				else {
 					Object *ob= shi->obi->ob;
-					VECCOPY(co, xyz);
+					copy_v3_v3(co, xyz);
 					mul_m4_v3(ob->imat_ren, co);
 				}
 			}
 			else if(mtex->texco==TEXCO_GLOB) {							
-			   VECCOPY(co, xyz);
+			   copy_v3_v3(co, xyz);
 			   mul_m4_v3(R.viewinv, co);
 			}
 			else continue;	// can happen when texco defines disappear and it renders old files
@@ -3054,7 +3054,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 				break;
 			case TEXCO_OBJECT:
 				if(mtex->object) {
-					VECCOPY(tempvec, lo);
+					copy_v3_v3(tempvec, lo);
 					mul_m4_v3(mtex->object->imat_ren, tempvec);
 					co= tempvec;
 				}
@@ -3062,16 +3062,16 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 				
 			case TEXCO_GLOB:
 				if(rco) {
-					VECCOPY(tempvec, rco);
+					copy_v3_v3(tempvec, rco);
 					mul_m4_v3(R.viewinv, tempvec);
 					co= tempvec;
 				}
 				else
 					co= lo;
 				
-//				VECCOPY(shi->dxgl, shi->dxco);
+//				copy_v3_v3(shi->dxgl, shi->dxco);
 //				mul_m3_v3(R.imat, shi->dxco);
-//				VECCOPY(shi->dygl, shi->dyco);
+//				copy_v3_v3(shi->dygl, shi->dyco);
 //				mul_m3_v3(R.imat, shi->dyco);
 				break;
 			}
@@ -3203,11 +3203,11 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 					co= tempvec;
 					dx= dxt;
 					dy= dyt;
-					VECCOPY(tempvec, shi->co);
+					copy_v3_v3(tempvec, shi->co);
 					mul_m4_v3(ob->imat_ren, tempvec);
 					if(shi->osatex) {
-						VECCOPY(dxt, shi->dxco);
-						VECCOPY(dyt, shi->dyco);
+						copy_v3_v3(dxt, shi->dxco);
+						copy_v3_v3(dyt, shi->dyco);
 						mul_mat3_m4_v3(ob->imat_ren, dxt);
 						mul_mat3_m4_v3(ob->imat_ren, dyt);
 					}
@@ -3219,12 +3219,12 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 			}
 			else if(mtex->texco==TEXCO_GLOB) {
 				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
-				VECCOPY(shi->gl, shi->co);
+				copy_v3_v3(shi->gl, shi->co);
 				mul_m4_v3(R.viewinv, shi->gl);
 			}
 			else if(mtex->texco==TEXCO_VIEW) {
 				
-				VECCOPY(tempvec, lavec);
+				copy_v3_v3(tempvec, lavec);
 				mul_m3_v3(la->imat, tempvec);
 				
 				if(la->type==LA_SPOT) {
@@ -3238,8 +3238,8 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 				
 				dx= dxt; dy= dyt;	
 				if(shi->osatex) {
-					VECCOPY(dxt, shi->dxlv);
-					VECCOPY(dyt, shi->dylv);
+					copy_v3_v3(dxt, shi->dxlv);
+					copy_v3_v3(dyt, shi->dylv);
 					/* need some matrix conversion here? la->imat is a [3][3]  matrix!!! **/
 					mul_m3_v3(la->imat, dxt);
 					mul_m3_v3(la->imat, dyt);

@@ -1466,8 +1466,8 @@ static void alter_co(float *co, EditEdge *edge, float smooth, float fractal, int
 		sub_v3_v3v3(nor, edge->v1->co, edge->v2->co);
 		len= 0.5f*normalize_v3(nor);
 
-		VECCOPY(nor1, edge->v1->no);
-		VECCOPY(nor2, edge->v2->no);
+		copy_v3_v3(nor1, edge->v1->no);
+		copy_v3_v3(nor2, edge->v2->no);
 
 		/* cosine angle */
 		fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;

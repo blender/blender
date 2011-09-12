@@ -1096,13 +1096,13 @@ short extrudeflag_face_indiv(EditMesh *em, short UNUSED(flag), float *UNUSED(nor
 			v3= addvertlist(em, efa->v3->co, efa->v3);
 			
 			v1->f1= v2->f1= v3->f1= 1;
-			VECCOPY(v1->no, efa->n);
-			VECCOPY(v2->no, efa->n);
-			VECCOPY(v3->no, efa->n);
+			copy_v3_v3(v1->no, efa->n);
+			copy_v3_v3(v2->no, efa->n);
+			copy_v3_v3(v3->no, efa->n);
 			if(efa->v4) {
 				v4= addvertlist(em, efa->v4->co, efa->v4); 
 				v4->f1= 1;
-				VECCOPY(v4->no, efa->n);
+				copy_v3_v3(v4->no, efa->n);
 			}
 			else v4= NULL;
 			
@@ -1648,8 +1648,8 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 			sel= 1;
 			v1= addvertlist(em, 0, NULL);
 			
-			VECCOPY(v1->co, eve->co);
-			VECCOPY(v1->no, eve->no);
+			copy_v3_v3(v1->co, eve->co);
+			copy_v3_v3(v1->no, eve->no);
 			v1->f= eve->f;
 			eve->f &= ~flag;
 			eve->tmp.v = v1;
@@ -2482,7 +2482,7 @@ void EM_make_hq_normals(EditMesh *em)
 			/* only one face attached to that edge */
 			/* an edge without another attached- the weight on this is
 			 * undefined, M_PI/2 is 90d in radians and that seems good enough */
-			VECCOPY(edge_normal, EM_get_face_for_index(edge_ref->f1)->n)
+			copy_v3_v3(edge_normal, EM_get_face_for_index(edge_ref->f1)->n);
 			mul_v3_fl(edge_normal, M_PI/2);
 		}
 		add_v3_v3(EM_get_vert_for_index(ed_v1)->no, edge_normal );
@@ -2499,7 +2499,7 @@ void EM_make_hq_normals(EditMesh *em)
 		if(normalize_v3(eve->no) == 0.0f && eve->tmp.l < 0) {
 			/* exceptional case, totally flat */
 			efa= EM_get_face_for_index(-(eve->tmp.l) - 1);
-			VECCOPY(eve->no, efa->n);
+			copy_v3_v3(eve->no, efa->n);
 		}	
 	}
 

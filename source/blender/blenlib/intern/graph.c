@@ -591,7 +591,7 @@ static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring,
 		node1 = BLI_otherNode(ring[i].arc, root_node);
 		node2 = BLI_otherNode(ring[j].arc, root_node);
 
-		VECCOPY(p, node2->p);
+		copy_v3_v3(p, node2->p);
 		BLI_mirrorAlongAxis(p, root_node->p, normal);
 		
 		/* check if it's within limit before continuing */
@@ -605,7 +605,7 @@ static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring,
 	if (symmetric)
 	{
 		/* mark node as symmetric physically */
-		VECCOPY(root_node->symmetry_axis, axis);
+		copy_v3_v3(root_node->symmetry_axis, axis);
 		root_node->symmetry_flag |= SYM_PHYSICAL;
 		root_node->symmetry_flag |= SYM_RADIAL;
 		
