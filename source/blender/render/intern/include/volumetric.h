@@ -36,7 +36,7 @@ struct ShadeInput;
 struct ShadeResult;
 
 float vol_get_density(struct ShadeInput *shi, float *co);
-void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co_);
+void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co_, float *view);
 
 void shade_volume_outside(ShadeInput *shi, ShadeResult *shr);
 void shade_volume_inside(ShadeInput *shi, ShadeResult *shr);

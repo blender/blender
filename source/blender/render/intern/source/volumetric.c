@@ -464,7 +464,7 @@ static void vol_get_transmittance(ShadeInput *shi, float *tr, float *co, float *
 	tr[2] = expf(-tau[2]);
 }
 
-static void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *lacol)
+static void vol_shade_one_lamp(struct ShadeInput *shi, float *co, float *view, LampRen *lar, float *lacol)
 {
 	float visifac, lv[3], lampdist;
 	float tr[3]={1.0,1.0,1.0};
@@ -535,7 +535,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, 
 	if (luminance(lacol) < 0.001f) return;
 	
 	normalize_v3(lv);
-	p = vol_get_phasefunc(shi, shi->mat->vol.asymmetry, shi->view, lv);
+	p = vol_get_phasefunc(shi, shi->mat->vol.asymmetry, view, lv);
 	
 	/* physically based scattering with non-physically based RGB gain */
 	vol_get_reflection_color(shi, ref_col, co);
@@ -546,7 +546,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, 
 }
 
 /* single scattering only for now */
-void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co)
+void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co, float *view)
 {
 	ListBase *lights;
 	GroupObject *go;
@@ -561,7 +561,7 @@ void vol_get_scattering(ShadeInput *shi, float *scatter_col, float *co)
 		lar= go->lampren;
 		
 		if (lar) {
-			vol_shade_one_lamp(shi, co, lar, lacol);
+			vol_shade_one_lamp(shi, co, view, lar, lacol);
 			add_v3_v3(scatter_col, lacol);
 		}
 	}
@@ -629,7 +629,7 @@ static void volumeintegrate(struct ShadeInput *shi, float *col, float *co, float
 				
 				vol_get_precached_scattering(&R, shi, scatter_col, p2);
 			} else
-				vol_get_scattering(shi, scatter_col, p);
+				vol_get_scattering(shi, scatter_col, p, shi->view);
 			
 			radiance[0] += stepd * tr[0] * (emit_col[0] + scatter_col[0]);
 			radiance[1] += stepd * tr[1] * (emit_col[1] + scatter_col[1]);
