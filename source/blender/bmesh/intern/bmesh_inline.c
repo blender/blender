@@ -3,10 +3,9 @@
 
 #include "bmesh.h"
 
-BM_INLINE int BM_TestHFlag(void *element, const int flag)
+BM_INLINE int BM_TestHFlag(const void *element, const int flag)
 {
-	BMHeader *e = element;
-	return e->flag & flag;
+	return ((const BMHeader *)element)->flag & flag;
 }
 
 BM_INLINE void BM_SetHFlag(void *element, const int flag)

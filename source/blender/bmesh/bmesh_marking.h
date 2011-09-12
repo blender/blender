@@ -25,7 +25,7 @@ void BM_Select(struct BMesh *bm, void *element, int select);
 /*I don't use this function anywhere, been using BM_TestHFlag instead.
   Need to decide either to keep it and convert everything over, or
   chuck it.*/
-int BM_Selected(BMesh *bm, void *element);
+int BM_Selected(BMesh *bm, const void *element);
 
 void BM_clear_flag_all(BMesh *bm, int flag);
 

@@ -127,23 +127,23 @@ void BM_Free_Mesh_Data ( BMesh *bm );
 void BM_Compute_Normals ( struct BMesh *bm );
 
 /*Construction*/
-struct BMVert *BM_Make_Vert ( struct BMesh *bm, float co[3], struct BMVert *example );
-struct BMEdge *BM_Make_Edge ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge *example, int nodouble );
-struct BMFace *BM_Make_Quadtriangle ( struct BMesh *bm, struct BMVert **verts, BMEdge **edges, int len, struct BMFace *example, int nodouble );
+struct BMVert *BM_Make_Vert ( struct BMesh *bm, float co[3], const struct BMVert *example );
+struct BMEdge *BM_Make_Edge ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, const struct BMEdge *example, int nodouble );
+struct BMFace *BM_Make_Quadtriangle ( struct BMesh *bm, struct BMVert **verts, BMEdge **edges, int len, const struct BMFace *example, int nodouble );
 
 BMFace *BM_Make_Face(BMesh *bm, BMVert **verts, BMEdge **edges, int len);
 
 /*more easier to use version of BM_Make_Quadtriangle.
   creates edges if necassary.*/
 BMFace *BM_Make_QuadTri ( BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3,
-                          BMVert *v4, BMFace *example, int nodouble );
+                          BMVert *v4, const BMFace *example, int nodouble );
 
 /*makes an ngon from an unordered list of edges.  v1 and v2 must be the verts
 defining edges[0], and define the winding of the new face.*/
 struct BMFace *BM_Make_Ngon ( struct BMesh *bm, struct BMVert *v1, struct BMVert *v2, struct BMEdge **edges, int len, int nodouble );
 
 /*stuff for dealing with header flags*/
-BM_INLINE int BM_TestHFlag(void *element, const int flag);
+BM_INLINE int BM_TestHFlag(const void *element, const int flag);
 
 /*stuff for dealing with header flags*/
 BM_INLINE void BM_SetHFlag(void *element, const int flag);
@@ -162,7 +162,7 @@ void BM_Face_CopyShared ( BMesh *bm, BMFace *f );
 
 /*copies attributes, e.g. customdata, header flags, etc, from one element
   to another of the same type.*/
-void BM_Copy_Attributes ( struct BMesh *source_mesh, struct BMesh *target_mesh, void *source, void *target );
+void BM_Copy_Attributes ( struct BMesh *source_mesh, struct BMesh *target_mesh, const void *source, void *target );
 
 /*Modification*/
 /*join two adjacent faces together along an edge.  note that

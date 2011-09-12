@@ -333,9 +333,9 @@ void BM_Select(struct BMesh *bm, void *element, int select)
 	else if(head->type == BM_FACE) BM_Select_Face(bm, (BMFace*)element, select);
 }
 
-int BM_Selected(BMesh *UNUSED(bm), void *element)
+int BM_Selected(BMesh *UNUSED(bm), const void *element)
 {
-	BMHeader *head = element;
+	const BMHeader *head = element;
 	return BM_TestHFlag(head, BM_SELECT);
 }
 

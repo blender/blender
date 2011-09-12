@@ -55,7 +55,7 @@
 
 /*prototypes*/
 static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh,
-                                    BMLoop *source_loop, BMLoop *target_loop);
+                                    const BMLoop *source_loop, BMLoop *target_loop);
 #if 0
 
 /*
@@ -137,7 +137,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 */
 
 BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3, 
-			BMVert *v4, BMFace *example, int nodouble)
+			BMVert *v4, const BMFace *example, int nodouble)
 {
 	BMEdge *edar[4];
 	BMVert *vtar[4];
@@ -162,7 +162,7 @@ BMFace *BM_Make_QuadTri(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v3,
 }
 
 /*remove the edge array bits from this. Its not really needed?*/
-BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len, BMFace *example, int nodouble)
+BMFace *BM_Make_Quadtriangle(BMesh *bm, BMVert **verts, BMEdge **edges, int len, const BMFace *example, int nodouble)
 {
 	BMEdge *edar[4];
 	BMFace *f = NULL;
@@ -411,23 +411,23 @@ void BM_remove_tagged_verts(BMesh *bm, int flag)
 	}
 }
 
-static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh, BMVert *source_vertex, BMVert *target_vertex)
+static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMVert *source_vertex, BMVert *target_vertex)
 {
 	copy_v3_v3(target_vertex->no, source_vertex->no);
 	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->head.data, &target_vertex->head.data);	
 }
 
-static void bm_copy_edge_attributes(BMesh *source_mesh, BMesh *target_mesh, BMEdge *source_edge, BMEdge *target_edge)
+static void bm_copy_edge_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMEdge *source_edge, BMEdge *target_edge)
 {
 	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->head.data, &target_edge->head.data);
 }
 
-static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh, BMLoop *source_loop, BMLoop *target_loop)
+static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMLoop *source_loop, BMLoop *target_loop)
 {
 	CustomData_bmesh_copy_data(&source_mesh->ldata, &target_mesh->ldata, source_loop->head.data, &target_loop->head.data);
 }
 
-static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh, BMFace *source_face, BMFace *target_face)
+static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMFace *source_face, BMFace *target_face)
 {
 	copy_v3_v3(target_face->no, source_face->no);
 	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata, source_face->head.data, &target_face->head.data);	
@@ -436,9 +436,10 @@ static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh, BMFa
 
 /*BMESH_TODO: Special handling for hide flags?*/
 
-void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, void *source, void *target)
+void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, const void *source, void *target)
 {
-	BMHeader *sheader = source, *theader = target;
+	const BMHeader *sheader = source;
+	BMHeader *theader = target;
 	
 	if(sheader->type != theader->type)
 		return;
@@ -451,13 +452,13 @@ void BM_Copy_Attributes(BMesh *source_mesh, BMesh *target_mesh, void *source, vo
 	
 	/*Copy specific attributes*/
 	if(theader->type == BM_VERT)
-		bm_copy_vert_attributes(source_mesh, target_mesh, (BMVert*)source, (BMVert*)target);
+		bm_copy_vert_attributes(source_mesh, target_mesh, (const BMVert*)source, (BMVert*)target);
 	else if(theader->type == BM_EDGE)
-		bm_copy_edge_attributes(source_mesh, target_mesh, (BMEdge*)source, (BMEdge*)target);
+		bm_copy_edge_attributes(source_mesh, target_mesh, (const BMEdge*)source, (BMEdge*)target);
 	else if(theader->type == BM_LOOP)
-		bm_copy_loop_attributes(source_mesh, target_mesh, (BMLoop*)source, (BMLoop*)target);
+		bm_copy_loop_attributes(source_mesh, target_mesh, (const BMLoop*)source, (BMLoop*)target);
 	else if(theader->type == BM_FACE)
-		bm_copy_face_attributes(source_mesh, target_mesh, (BMFace*)source, (BMFace*)target);
+		bm_copy_face_attributes(source_mesh, target_mesh, (const BMFace*)source, (BMFace*)target);
 }
 
 BMesh *BM_Copy_Mesh(BMesh *bmold)

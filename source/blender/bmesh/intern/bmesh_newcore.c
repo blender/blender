@@ -19,7 +19,7 @@
 #include "bmesh_iterators.h"
 #include "bmesh_private.h"
 
-BMVert *BM_Make_Vert(BMesh *bm, float co[3], struct BMVert *example) {
+BMVert *BM_Make_Vert(BMesh *bm, float co[3], const struct BMVert *example) {
 	BMVert *v = BLI_mempool_calloc(bm->vpool);
 	
 	bm->totvert += 1;
@@ -66,7 +66,7 @@ BMEdge *BM_Edge_Exist(BMVert *v1, BMVert *v2)
 	return NULL;
 }
 
-BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nodouble) {
+BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble) {
 	BMEdge *e;
 	
 	if (nodouble && (e=(BMEdge*)BM_Edge_Exist(v1, v2)))
@@ -96,7 +96,7 @@ BMEdge *BM_Make_Edge(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge *example, int nod
 	return (BMEdge*) e;
 }
 
-static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, BMLoop *example){
+static BMLoop *bmesh_create_loop(BMesh *bm, BMVert *v, BMEdge *e, BMFace *f, const BMLoop *example){
 	BMLoop *l=NULL;
 
 	l = BLI_mempool_calloc(bm->lpool);
