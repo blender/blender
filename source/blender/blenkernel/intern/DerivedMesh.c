@@ -2517,13 +2517,13 @@ static void make_vertexcosnos__mapFunc(void *userData, int index, float *co, flo
 	/* check if we've been here before (normal should not be 0) */
 	if(vec[3] || vec[4] || vec[5]) return;
 
-	VECCOPY(vec, co);
+	copy_v3_v3(vec, co);
 	vec+= 3;
 	if(no_f) {
-		VECCOPY(vec, no_f);
+		copy_v3_v3(vec, no_f);
 	}
 	else {
-		VECCOPY(vec, no_s);
+		normal_short_to_float_v3(vec, no_s);
 	}
 }
 
