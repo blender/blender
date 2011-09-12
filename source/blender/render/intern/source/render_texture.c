@@ -1374,7 +1374,7 @@ int multitex_ext_safe(Tex *tex, float *texvec, TexResult *texres)
 
 /* in = destination, tex = texture, out = previous color */
 /* fact = texture strength, facg = button strength value */
-void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype)
+void texture_rgb_blend(float in[3], const float tex[3], const float out[3], float fact, float facg, int blendtype)
 {
 	float facm, col;
 	
@@ -2658,7 +2658,7 @@ void do_material_tex(ShadeInput *shi)
 }
 
 
-void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val)
+void do_volume_tex(ShadeInput *shi, const float xyz[3], int mapto_flag, float col[3], float *val)
 {
 	MTex *mtex;
 	Tex *tex;
@@ -2838,7 +2838,7 @@ void do_volume_tex(ShadeInput *shi, float *xyz, int mapto_flag, float *col, floa
 
 /* ------------------------------------------------------------------------- */
 
-void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
+void do_halo_tex(HaloRen *har, float xn, float yn, float col_r[4])
 {
 	MTex *mtex;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
@@ -2945,23 +2945,23 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 		if(mtex->blendtype==MTEX_SUB) fact= -fact;
 
 		if(mtex->blendtype==MTEX_BLEND) {
-			colf[0]= (fact*texres.tr + facm*har->r);
-			colf[1]= (fact*texres.tg + facm*har->g);
-			colf[2]= (fact*texres.tb + facm*har->b);
+			col_r[0]= (fact*texres.tr + facm*har->r);
+			col_r[1]= (fact*texres.tg + facm*har->g);
+			col_r[2]= (fact*texres.tb + facm*har->b);
 		}
 		else if(mtex->blendtype==MTEX_MUL) {
-			colf[0]= (facm+fact*texres.tr)*har->r;
-			colf[1]= (facm+fact*texres.tg)*har->g;
-			colf[2]= (facm+fact*texres.tb)*har->b;
+			col_r[0]= (facm+fact*texres.tr)*har->r;
+			col_r[1]= (facm+fact*texres.tg)*har->g;
+			col_r[2]= (facm+fact*texres.tb)*har->b;
 		}
 		else {
-			colf[0]= (fact*texres.tr + har->r);
-			colf[1]= (fact*texres.tg + har->g);
-			colf[2]= (fact*texres.tb + har->b);
+			col_r[0]= (fact*texres.tr + har->r);
+			col_r[1]= (fact*texres.tg + har->g);
+			col_r[2]= (fact*texres.tb + har->b);
 			
-			CLAMP(colf[0], 0.0f, 1.0f);
-			CLAMP(colf[1], 0.0f, 1.0f);
-			CLAMP(colf[2], 0.0f, 1.0f);
+			CLAMP(col_r[0], 0.0f, 1.0f);
+			CLAMP(col_r[1], 0.0f, 1.0f);
+			CLAMP(col_r[2], 0.0f, 1.0f);
 		}
 	}
 	if(mtex->mapto & MAP_ALPHA) {
@@ -2970,14 +2970,14 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 			else texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
 		}
 				
-		colf[3]*= texres.tin;
+		col_r[3]*= texres.tin;
 	}
 }
 
 /* ------------------------------------------------------------------------- */
 
 /* hor and zen are RGB vectors, blend is 1 float, should all be initialized */
-void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag, short thread)
+void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float hor[3], float zen[3], float *blend, int skyflag, short thread)
 {
 	MTex *mtex;
 	Tex *tex;
@@ -3172,9 +3172,9 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 }
 
 /* ------------------------------------------------------------------------- */
-/* colf supposed to be initialized with la->r,g,b */
+/* col_r supposed to be initialized with la->r,g,b */
 
-void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int effect)
+void do_lamp_tex(LampRen *la, const float lavec[3], ShadeInput *shi, float col_r[3], int effect)
 {
 	Object *ob;
 	MTex *mtex;
@@ -3356,7 +3356,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 				col[1]= texres.tg*la->energy;
 				col[2]= texres.tb*la->energy;
 				
-				texture_rgb_blend(colf, col, colf, texres.tin, mtex->colfac, mtex->blendtype);
+				texture_rgb_blend(col_r, col, col_r, texres.tin, mtex->colfac, mtex->blendtype);
 			}
 		}
 	}
@@ -3364,7 +3364,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf, int ef
 
 /* ------------------------------------------------------------------------- */
 
-int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta, const int thread)
+int externtex(MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, float *tb, float *ta, const int thread)
 {
 	Tex *tex;
 	TexResult texr;

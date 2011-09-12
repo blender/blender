@@ -1122,7 +1122,7 @@ int object_remove_material_slot(Object *ob)
 
 /* r g b = current value, col = new value, fac==0 is no change */
 /* if g==NULL, it only does r channel */
-void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
+void ramp_blend(int type, float *r, float *g, float *b, float fac, const float col[3])
 {
 	float tmp, facm= 1.0f-fac;
 	

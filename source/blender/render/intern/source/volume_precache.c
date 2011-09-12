@@ -490,7 +490,7 @@ static void *vol_precache_part(void *data)
 	RayObject *tree = pa->tree;
 	ShadeInput *shi = pa->shi;
 	float scatter_col[3] = {0.f, 0.f, 0.f};
-	float co[3], cco[3];
+	float co[3], cco[3], view[3];
 	int x, y, z, i;
 	int res[3];
 
@@ -523,9 +523,9 @@ static void *vol_precache_part(void *data)
 					continue;
 				}
 				
-				copy_v3_v3(shi->view, cco);
-				normalize_v3(shi->view);
-				vol_get_scattering(shi, scatter_col, cco);
+				copy_v3_v3(view, cco);
+				normalize_v3(view);
+				vol_get_scattering(shi, scatter_col, cco, view);
 			
 				obi->volume_precache->data_r[i] = scatter_col[0];
 				obi->volume_precache->data_g[i] = scatter_col[1];
