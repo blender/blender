@@ -149,8 +149,7 @@ BMEditMesh *CDDM_To_BMesh(Object *ob, DerivedMesh *dm, BMEditMesh *existing)
 	mv = mvert = dm->dupVertArray(dm);
 	for (i=0; i<totvert; i++, mv++) {
 		v = BM_Make_Vert(bm, mv->co, NULL);
-		
-		VECCOPY(v->no, mv->no);
+		normal_short_to_float_v3(v->no, mv->no);
 		v->head.flag = MEFlags_To_BMFlags(mv->flag, BM_VERT);
 
 		CustomData_to_bmesh_block(&dm->vertData, &bm->vdata, i, &v->head.data);
