@@ -70,6 +70,8 @@ private:
 	bool hasEffects(Scene *sce);
 	
 	const ExportSettings *export_settings;
+	
+	Scene *scene;
 };
 
 #endif
