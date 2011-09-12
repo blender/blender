@@ -40,7 +40,6 @@ from cycles import presets
 class CyclesRender(bpy.types.RenderEngine):
     bl_idname = 'CYCLES'
     bl_label = "Cycles"
-    bl_use_rendered = True
 
     def __init__(self):
         engine.init()

@@ -52,7 +52,6 @@ struct Scene;
 #define RE_GAME				2
 #define RE_DO_PREVIEW		4
 #define RE_DO_ALL			8
-#define RE_DO_RENDERED 		16
 
 extern ListBase R_engines;
 
