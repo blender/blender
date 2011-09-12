@@ -214,7 +214,7 @@ static short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag,
 
 		/*set face vertex normals to face normal*/
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
-			VECCOPY(l->v->no, f->no);
+			copy_v3_v3(l->v->no, f->no);
 		}
 	}
 
@@ -262,13 +262,13 @@ short EDBM_Extrude_face_indiv(BMEditMesh *em, wmOperator *op, short flag, float 
 			v3= addvertlist(em, efa->v3->co, efa->v3);
 			
 			v1->f1= v2->f1= v3->f1= 1;
-			VECCOPY(v1->no, efa->n);
-			VECCOPY(v2->no, efa->n);
-			VECCOPY(v3->no, efa->n);
+			copy_v3_v3(v1->no, efa->n);
+			copy_v3_v3(v2->no, efa->n);
+			copy_v3_v3(v3->no, efa->n);
 			if(efa->v4) {
 				v4= addvertlist(em, efa->v4->co, efa->v4); 
 				v4->f1= 1;
-				VECCOPY(v4->no, efa->n);
+				copy_v3_v3(v4->no, efa->n);
 			}
 			else v4= NULL;
 			
@@ -2241,7 +2241,7 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 
 	if (target) {
 		vco = give_cursor(scene, v3d);
-		VECCOPY(co, vco);
+		copy_v3_v3(co, vco);
 		mul_m4_v3(ob->imat, co);
 	}
 	else {
@@ -2919,7 +2919,7 @@ static void shape_propagate(Object *obedit, BMEditMesh *em, wmOperator *op)
 
 		for (i=0; i<totshape; i++) {
 			co = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, i);
-			VECCOPY(co, eve->co);
+			copy_v3_v3(co, eve->co);
 		}
 	}
 
@@ -2990,7 +2990,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 			continue;
 
 		sco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, shape);
-		VECCOPY(co, sco);
+		copy_v3_v3(co, sco);
 
 
 		if(add) {
@@ -3000,7 +3000,7 @@ static int blend_from_shape_exec(bContext *C, wmOperator *op)
 		else
 			interp_v3_v3v3(eve->co, eve->co, co, blend);
 		
-		VECCOPY(sco, co);
+		copy_v3_v3(sco, co);
 	}
 
 	DAG_id_tag_update(&me->id, OB_RECALC_DATA);
@@ -3437,7 +3437,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife cut exec");
 	for(bv=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);bv;bv=BMIter_Step(&iter)){
 		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
-		VECCOPY(co, bv->co);
+		copy_v3_v3(co, bv->co);
 		co[3]= 1.0;
 		mul_m4_v4(obedit->obmat, co);
 		project_float(ar, co, scr);
@@ -4255,7 +4255,7 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 		if (!BM_GetIndex(v1) || BM_TestHFlag(v1, BM_HIDDEN))
 			continue;
 
-		VECCOPY(mirror_co, v1->co);
+		copy_v3_v3(mirror_co, v1->co);
 		mirror_co[0] *= -1.0f;
 
 		v2 = BMBVH_FindClosestVertTopo(tree, mirror_co, MIRROR_THRESH, v1);

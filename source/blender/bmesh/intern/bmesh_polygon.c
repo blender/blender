@@ -101,9 +101,9 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	verts[0][2] += 0.0001f;
 
 	for(i = 0; i < nverts; i++){
-		VECCOPY(u, verts[i]);
-		VECCOPY(v, verts[(i+1) % nverts]);
-		VECCOPY(w, verts[(i+2) % nverts]);
+		copy_v3_v3(u, verts[i]);
+		copy_v3_v3(v, verts[(i+1) % nverts]);
+		copy_v3_v3(w, verts[(i+2) % nverts]);
 		
 #if 0
 		VECSUB(v1, w, v);
@@ -221,7 +221,7 @@ float BM_face_area(BMFace *f)
 
 	i = 0;
 	BM_ITER(l, &iter, NULL, BM_LOOPS_OF_FACE, f) {
-		VECCOPY(verts[i], l->v->co);
+		copy_v3_v3(verts[i], l->v->co);
 		i++;
 	}
 
@@ -301,7 +301,7 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 	
 	for(i = 0; i < nverts; i++){
 		v1 = verts[i];
-		VECCOPY(temp, v1);
+		copy_v3_v3(temp, v1);
 		mag = 0.0;
 		mag += (temp[0] * avgn[0]);
 		mag += (temp[1] * avgn[1]);
@@ -408,7 +408,7 @@ void BM_Face_UpdateNormal(BMesh *bm, BMFace *f)
 	if (f->len < 3) return;
 	
 	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-		VECCOPY(proj[i], l->v->co);
+		copy_v3_v3(proj[i], l->v->co);
 		i += 1;
 	}
 
@@ -477,7 +477,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 	if(f->len > 4) {
 		i = 0;
 		BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-			VECCOPY(projectverts[i], l->v->co);
+			copy_v3_v3(projectverts[i], l->v->co);
 			l = l->next;
 			i += 1;
 		}
@@ -758,7 +758,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	i = 0;
 	l = bm_firstfaceloop(f);
 	do{
-		VECCOPY(projectverts[i], l->v->co);
+		copy_v3_v3(projectverts[i], l->v->co);
 		BM_SetIndex(l->v, i);
 		i++;
 		l = (BMLoop*)(l->next);
@@ -786,7 +786,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			f = BM_Split_Face(bm, l->f, ((BMLoop*)(l->prev))->v, 
 			                  ((BMLoop*)(l->next))->v, 
 			                  &newl, NULL);
-			VECCOPY(f->no, l->f->no);
+			copy_v3_v3(f->no, l->f->no);
 
 			if (!f) {
 				printf("yeek! triangulator failed to split face!\n");
@@ -861,19 +861,19 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	l = BMIter_New(&iter, bm, BM_LOOPS_OF_FACE, f);
 	for (; l; l=BMIter_Step(&iter)) {
 		BM_SetIndex(l, i);
-		VECCOPY(projverts[i], l->v->co);
+		copy_v3_v3(projverts[i], l->v->co);
 		i++;
 	}
 	
 	for (i=0; i<len; i++) {
-		VECCOPY(v1, loops[i][0]->v->co);
-		VECCOPY(v2, loops[i][1]->v->co);
+		copy_v3_v3(v1, loops[i][0]->v->co);
+		copy_v3_v3(v2, loops[i][1]->v->co);
 
 		shrink_edgef(v1, v2, fac2);
 		
-		VECCOPY(edgeverts[a], v1);
+		copy_v3_v3(edgeverts[a], v1);
 		a++;
-		VECCOPY(edgeverts[a], v2);
+		copy_v3_v3(edgeverts[a], v2);
 		a++;
 	}
 	
@@ -889,7 +889,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		out[2] = 0.0f;
 		p1[2] = 0.0f;
 
-		//VECCOPY(l->v->co, p1);
+		//copy_v3_v3(l->v->co, p1);
 
 		l = (BMLoop*) l->next;
 	}
@@ -901,8 +901,8 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 
 	/*do convexity test*/
 	for (i=0; i<len; i++) {
-		VECCOPY(v2, edgeverts[i*2]);
-		VECCOPY(v3, edgeverts[i*2+1]);
+		copy_v3_v3(v2, edgeverts[i*2]);
+		copy_v3_v3(v3, edgeverts[i*2+1]);
 
 		mid_v3_v3v3(mid, v2, v3);
 		
@@ -911,8 +911,8 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			p1 = projverts[j];
 			p2 = projverts[(j+1)%f->len];
 			
-			VECCOPY(v1, p1);
-			VECCOPY(v2, p2);
+			copy_v3_v3(v1, p1);
+			copy_v3_v3(v2, p2);
 
 			shrink_edgef(v1, v2, fac1);
 
@@ -929,8 +929,8 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		p1 = projverts[i];
 		p2 = projverts[(i+1)%f->len];
 		
-		VECCOPY(v1, p1);
-		VECCOPY(v2, p2);
+		copy_v3_v3(v1, p1);
+		copy_v3_v3(v2, p2);
 
 		shrink_edgef(v1, v2, fac1);
 
@@ -958,8 +958,8 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			p3 = edgeverts[j*2];
 			p4 = edgeverts[j*2+1];
 
-			VECCOPY(v1, p1);
-			VECCOPY(v2, p2);
+			copy_v3_v3(v1, p1);
+			copy_v3_v3(v2, p2);
 
 			shrink_edgef(v1, v2, fac1);
 

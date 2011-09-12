@@ -1187,7 +1187,7 @@ static int bmDM_getNumFaces(DerivedMesh *dm)
 
 static int bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *vert_r)
 {
-	VECCOPY(vert_r->co, ev->co);
+	copy_v3_v3(vert_r->co, ev->co);
 
 	vert_r->no[0] = (short)(ev->no[0] * 32767.0f);
 	vert_r->no[1] = (short)(ev->no[1] * 32767.0f);
@@ -1278,7 +1278,7 @@ static void bmDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 
 	ev = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
 	for( ; ev; ev = BMIter_Step(&iter), ++vert_r) {
-		VECCOPY(vert_r->co, ev->co);
+		copy_v3_v3(vert_r->co, ev->co);
 
 		vert_r->no[0] = (short) (ev->no[0] * 32767.0);
 		vert_r->no[1] = (short) (ev->no[1] * 32767.0);
@@ -1638,7 +1638,7 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
 			/* following Mesh convention; we use vertex coordinate itself
 			 * for normal in this case */
 			if (normalize_v3(no)==0.0) {
-				VECCOPY(no, vertexCos[i]);
+				copy_v3_v3(no, vertexCos[i]);
 				normalize_v3(no);
 			}
 		}
