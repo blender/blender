@@ -2187,7 +2187,7 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
 	cddm->mvert = vert;
 
 	for(i = 0; i < dm->numVertData; ++i, ++vert)
-		VECCOPY(vert->no, vertNormals[i]);
+		copy_v3_v3_short(vert->no, vertNormals[i]);
 }
 
 void CDDM_calc_normals(DerivedMesh *dm)

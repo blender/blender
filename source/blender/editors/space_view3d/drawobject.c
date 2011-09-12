@@ -5929,46 +5929,68 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* which wire color */
 	if((flag & DRAW_CONSTCOLOR) == 0) {
+		/* confusing logic here, there are 2 methods of setting the color
+		 * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.
+		 *
+		 * note: no theme yet for 'colindex' */
+		int theme_id= TH_WIRE;
+		int theme_shade= 0;
+
 		project_short(ar, ob->obmat[3], &base->sx);
 
-		if( (!scene->obedit) && (G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) UI_ThemeColor(TH_TRANSFORM);
+		if(		(scene->obedit == NULL) &&
+		        (G.moving & G_TRANSFORM_OBJ) &&
+		        (base->flag & (SELECT+BA_WAS_SEL)))
+		{
+			theme_id= TH_TRANSFORM;
+		}
 		else {
-
-			if(ob->type==OB_LAMP) UI_ThemeColor(TH_LAMP);
-			else if(ob->type==OB_SPEAKER) UI_ThemeColor(TH_SPEAKER);
-			else UI_ThemeColor(TH_WIRE);
-
-			if((scene->basact)==base) {
-				if(base->flag & (SELECT+BA_WAS_SEL)) UI_ThemeColor(TH_ACTIVE);
-			}
-			else {
-				if(base->flag & (SELECT+BA_WAS_SEL)) UI_ThemeColor(TH_SELECT);
-			}
-
-			// no theme yet
+			/* Sets the 'colindex' */
 			if(ob->id.lib) {
-				if(base->flag & (SELECT+BA_WAS_SEL)) colindex = 4;
-				else colindex = 3;
+				colindex= (base->flag & (SELECT+BA_WAS_SEL)) ? 4 : 3;
 			}
 			else if(warning_recursive==1) {
 				if(base->flag & (SELECT+BA_WAS_SEL)) {
-					if(scene->basact==base) colindex = 8;
-					else colindex= 7;
+					colindex= (scene->basact==base) ? 8 : 7;
 				}
-				else colindex = 6;
-			}
-			else if(ob->flag & OB_FROMGROUP) {
-				if(base->flag & (SELECT+BA_WAS_SEL)) {
-					if(scene->basact==base) UI_ThemeColor(TH_GROUP_ACTIVE);
-					else UI_ThemeColorShade(TH_GROUP_ACTIVE, -16); 
+				else {
+					colindex = 6;
 				}
-				else UI_ThemeColor(TH_GROUP);
-				colindex= 0;
 			}
+			/* Sets the 'theme_id' or fallback to wire */
+			else {
+				if(ob->flag & OB_FROMGROUP) {
+					if(base->flag & (SELECT+BA_WAS_SEL)) {
+						/* uses darker active color for non-active + selected*/
+						theme_id= TH_GROUP_ACTIVE;
 
-		}	
+						if(scene->basact != base) {
+							theme_shade= -16;
+						}
+					}
+					else {
+						theme_id= TH_GROUP;
+					}
+				}
+				else {
+					if(base->flag & (SELECT+BA_WAS_SEL)) {
+						theme_id= scene->basact == base ? TH_ACTIVE : TH_SELECT;
+					}
+					else {
+						if(ob->type==OB_LAMP) theme_id= TH_LAMP;
+						else if(ob->type==OB_SPEAKER) theme_id= TH_SPEAKER;
+						/* fallback to TH_WIRE */
+					}
+				}
+			}
+		}
 
-		if(colindex) {
+		/* finally set the color */
+		if(colindex == 0) {
+			if(theme_shade == 0) UI_ThemeColor(theme_id);
+			else                 UI_ThemeColorShade(theme_id, theme_shade);
+		}
+		else {
 			col= colortab[colindex];
 			cpack(col);
 		}
@@ -6053,7 +6075,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				}
 
 				if (cu->linewidth != 0.0f) {
-					cpack(0xff44ff);
 					UI_ThemeColor(TH_WIRE);
 					copy_v3_v3(vec1, ob->orig);
 					copy_v3_v3(vec2, ob->orig);
@@ -6072,10 +6093,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				setlinestyle(3);
 				for (i=0; i<cu->totbox; i++) {
 					if (cu->tb[i].w != 0.0f) {
-						if (i == (cu->actbox-1))
-							UI_ThemeColor(TH_ACTIVE);
-						else
-							UI_ThemeColor(TH_WIRE);
+						UI_ThemeColor(i == (cu->actbox-1) ? TH_ACTIVE : TH_WIRE);
 						vec1[0] = (cu->xof * cu->fsize) + cu->tb[i].x;
 						vec1[1] = (cu->yof * cu->fsize) + cu->tb[i].y + cu->fsize;
 						vec1[2] = 0.001;

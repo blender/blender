@@ -120,13 +120,11 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 			normalize_v3(shi->vn);
 		}
 		else
-			VECCOPY(shi->vn, shi->vno);
+			copy_v3_v3(shi->vn, shi->vno);
 		
 		/* custom option to flip normal */
 		if(node->custom1 & SH_NODE_MAT_NEG) {
-			shi->vn[0]= -shi->vn[0];
-			shi->vn[1]= -shi->vn[1];
-			shi->vn[2]= -shi->vn[2];
+			negate_v3(shi->vn);
 		}
 		
 		if (node->type == SH_NODE_MATERIAL_EXT) {
