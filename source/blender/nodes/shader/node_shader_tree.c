@@ -107,8 +107,7 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat)
 {
 	bNodeTreeExec *exec;
 
-	if(!ntree->execdata)
-		exec = ntreeShaderBeginExecTree(ntree, 1);
+	exec = ntreeShaderBeginExecTree(ntree, 1);
 
 	ntreeExecGPUNodes(exec, mat, 1);
 

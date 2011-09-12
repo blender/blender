@@ -334,7 +334,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 }
 
 /* create buttons for an item with an RNA array */
-static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int h, int expand, int slider, int toggle, int icon_only)
+static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int UNUSED(h), int expand, int slider, int toggle, int icon_only)
 {
 	uiStyle *style= layout->root->style;
 	uiBut *but;
@@ -407,7 +407,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		if (totdim != 2) return;	/* only 2D matrices supported in UI so far */
 		
 		w /= dim_size[0];
-		h /= dim_size[1];
+		/* h /= dim_size[1]; */ /* UNUSED */
 
 		for(a=0; a<len; a++) {
 			col= a % dim_size[0];
