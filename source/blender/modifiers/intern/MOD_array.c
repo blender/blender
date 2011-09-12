@@ -317,11 +317,8 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	int i, j, indexLen;
 	/* offset matrix */
 	float offset[4][4];
-	float final_offset[4][4];
-	float tmp_mat[4][4];
 	float length = amd->length;
 	int count = amd->count, maxVerts;
-	int finalVerts, finalEdges, finalFaces;
 	int *indexMap = NULL;
 	DerivedMesh *start_cap = NULL, *end_cap = NULL;
 	MVert *src_mvert;
@@ -397,35 +394,10 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	if(count < 1)
 		count = 1;
 
-	/* allocate memory for count duplicates (including original) plus
-		  * start and end caps
-	*/
-	finalVerts = dm->getNumVerts(dm) * count;
-	finalEdges = dm->getNumEdges(dm) * count;
-	finalFaces = dm->getNumFaces(dm) * count;
-	if(start_cap) {
-		finalVerts += start_cap->getNumVerts(start_cap);
-		finalEdges += start_cap->getNumEdges(start_cap);
-		finalFaces += start_cap->getNumFaces(start_cap);
-	}
-	if(end_cap) {
-		finalVerts += end_cap->getNumVerts(end_cap);
-		finalEdges += end_cap->getNumEdges(end_cap);
-		finalFaces += end_cap->getNumFaces(end_cap);
-	}
-
-	/* calculate the offset matrix of the final copy (for merging) */
-	unit_m4(final_offset);
-
-	for(j=0; j < count - 1; j++) {
-		mul_m4_m4m4(tmp_mat, final_offset, offset);
-		copy_m4_m4(final_offset, tmp_mat);
-	}
-
 	BMO_Init_Op(&weldop, "weldverts");
 	BMO_InitOpf(em->bm, &op, "dupe geom=%avef");
 	oldop = op;
-	for (j=0; j < count; j++) {
+	for (j=0; j < count - 1; j++) {
 		BMVert *v, *v2;
 		BMOpSlot *s1;
 		BMOpSlot *s2;
