@@ -94,7 +94,7 @@
 
 BMEditMesh *BMEdit_Create(BMesh *bm)
 {
-	BMEditMesh *tm = MEM_callocN(sizeof(BMEditMesh), "tm");
+	BMEditMesh *tm = MEM_callocN(sizeof(BMEditMesh), __func__);
 	
 	tm->bm = bm;
 
@@ -105,7 +105,7 @@ BMEditMesh *BMEdit_Create(BMesh *bm)
 
 BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 {
-	BMEditMesh *tm2 = MEM_callocN(sizeof(BMEditMesh), "tm2");
+	BMEditMesh *tm2 = MEM_callocN(sizeof(BMEditMesh), __func__);
 	*tm2 = *tm;
 	
 	tm2->derivedCage = tm2->derivedFinal = NULL;
@@ -1532,7 +1532,7 @@ static CustomData *bmDm_getFaceDataLayout(DerivedMesh *dm)
 DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *UNUSED(ob),
                                            float (*vertexCos)[3])
 {
-	EditDerivedBMesh *bmdm = MEM_callocN(sizeof(*bmdm), "bmdm");
+	EditDerivedBMesh *bmdm = MEM_callocN(sizeof(*bmdm), __func__);
 	BMesh *bm = em->bm;
 	
 	bmdm->tc = em;

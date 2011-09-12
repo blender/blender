@@ -480,6 +480,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 	cddm = CDDM_from_BMEditMesh(em, NULL, 0);
 
 	BMEdit_Free(em);
+	MEM_freeN(em);
 	MEM_freeN(indexMap);
 
 	return cddm;
