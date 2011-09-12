@@ -96,7 +96,7 @@ void ambient_occlusion(struct ShadeInput *shi);
 void environment_lighting_apply(struct ShadeInput *shi, struct ShadeResult *shr);
 
 ListBase *get_lights(struct ShadeInput *shi);
-float lamp_get_visibility(struct LampRen *lar, float *co, float *lv, float *dist);
+float lamp_get_visibility(struct LampRen *lar, const float co[3], float *lv, float *dist);
 void lamp_get_shadow(struct LampRen *lar, ShadeInput *shi, float inp, float *shadfac, int do_real);
 
 float	fresnel_fac(float *view, float *vn, float fresnel, float fac);
