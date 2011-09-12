@@ -569,14 +569,14 @@ Mesh *copy_mesh(Mesh *me)
 	return men;
 }
 
-BMesh *BKE_mesh_to_bmesh(Object *ob)
+BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
 {
 	BMesh *bm;
 	int allocsize[4] = {512,512,2048,512};
 
 	bm = BM_Make_Mesh(ob, allocsize);
 
-	BMO_CallOpf(bm, "mesh_to_bmesh set_shapekey=%i", 1);
+	BMO_CallOpf(bm, "mesh_to_bmesh mesh=%p object=%p set_shapekey=%i", me, ob, 1);
 
 	return bm;
 }

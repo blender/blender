@@ -44,8 +44,8 @@
 */
 
 void mesh_to_bmesh_exec(BMesh *bm, BMOperator *op) {
-	Object *ob = bm->ob;
-	Mesh *me = ob->data;
+	Object *ob = BMO_Get_Pnt(op, "object");
+	Mesh *me = BMO_Get_Pnt(op, "mesh");
 	MVert *mvert;
 	BLI_array_declare(verts);
 	MEdge *medge;
@@ -347,9 +347,12 @@ static void loops_to_corners(BMesh *bm, Mesh *me, int findex,
 	}
 }
 
-void object_load_bmesh_exec(BMesh *bm, BMOperator *UNUSED(op))
-{
-	BMO_CallOpf(bm, "bmesh_to_mesh");
+void object_load_bmesh_exec(BMesh *bm, BMOperator *op) {
+	Object *ob = BMO_Get_Pnt(op, "object");
+	/* Scene *scene = BMO_Get_Pnt(op, "scene"); */
+	Mesh *me = ob->data;
+
+	BMO_CallOpf(bm, "bmesh_to_mesh mesh=%p object=%p", me, ob);
 }
 
 
@@ -393,8 +396,8 @@ static BMVert **bmesh_to_mesh_vertex_map(BMesh *bm, int ototvert)
 }
 
 void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
-	Object *ob = bm->ob;
-	Mesh *me = ob->data;
+	Mesh *me = BMO_Get_Pnt(op, "mesh");
+	/* Object *ob = BMO_Get_Pnt(op, "object"); */
 	MLoop *mloop;
 	KeyBlock *block;
 	MPoly *mpoly;
@@ -405,8 +408,7 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	BMEdge *e;
 	BMLoop *l;
 	BMFace *f;
-	BMIter iter, liter;
-	float *facenors = NULL;
+	BMIter iter, liter; float *facenors = NULL;
 	int i, j, *keyi, ototvert, totloop, totface, numTex, numCol;
 	int dotess = !BMO_Get_Int(op, "notesselation");
 
@@ -456,6 +458,10 @@ void bmesh_to_mesh_exec(BMesh *bm, BMOperator *op) {
 	me->totedge= bm->totedge;
 	me->totloop= totloop;
 	me->totpoly= bm->totface;
+	/* will be overwritten with a valid value if 'dotess' is set, otherwise we
+	 * end up with 'me->totface' and me->mface == NULL which can crash [#28625]
+	 */
+	me->totface= 0;
 
 	CustomData_copy(&bm->vdata, &me->vdata, CD_MASK_MESH, CD_CALLOC, me->totvert);
 	CustomData_copy(&bm->edata, &me->edata, CD_MASK_MESH, CD_CALLOC, me->totedge);
