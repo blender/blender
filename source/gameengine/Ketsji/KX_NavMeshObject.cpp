@@ -38,9 +38,7 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
-
-
-#include "ED_navmesh_conversion.h"
+#include "BKE_navmesh_conversion.h"
 }
 
 #include "KX_PythonInit.h"

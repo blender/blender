@@ -5309,9 +5309,13 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 {
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
+
+#if 0   /* 'doTime' disabled for now */
+
 		const Scene *scene= t->scene;
 		const short doTime= 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behaviour given the option's label, hence disabled
 		const double secf= FPS;
+#endif
 		double val;
 		
 		/* convert frame to nla-action time (if needed) */
@@ -5320,11 +5324,17 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 		else
 			val= *(td->val);
 		
+#if 0	/* 'doTime' disabled for now */
+
 		/* do the snapping to nearest frame/second */
-		if (doTime)
+		if (doTime) {
 			val= (float)( floor((val/secf) + 0.5f) * secf );
+		}
 		else
+#endif
+		{
 			val= (float)( floor(val+0.5f) );
+		}
 		
 		/* convert frame out of nla-action time */
 		if (adt)

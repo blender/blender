@@ -7,8 +7,7 @@ incs = '. ./intern'
 incs += ' #/intern/guardedalloc #/intern/decimation/extern #/intern/bsp/extern #/intern/elbeem/extern #/extern/glew/include'
 incs += ' ../render/extern/include ../blenloader ../bmesh'
 incs += ' ../include ../blenlib ../makesdna ../makesrna ../blenkernel ../blenkernel/intern'
-incs += ' ../editors/include ../gpu'
-incs += ' #extern/recastnavigation/Recast/Include'
+incs += ' ../gpu'
 
 incs += ' ' + env['BF_ZLIB_INC']
 
@@ -20,6 +19,10 @@ defs += ['WITH_MOD_DECIMATE']
 
 if env['BF_NO_ELBEEM']:
     defs.append('DISABLE_ELBEEM')
+
+if env['WITH_BF_GAMEENGINE']:
+    incs += ' #/extern/recastnavigation/Recast/Include'
+    defs.append('WITH_GAMEENGINE')
 
 env.BlenderLib ( libname = 'bf_modifiers', sources = sources,
                  includes = Split(incs), defines=defs,

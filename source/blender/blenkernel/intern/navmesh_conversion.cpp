@@ -26,16 +26,26 @@
 *
 * ***** END GPL LICENSE BLOCK *****
 */
+
 #include <math.h>
 #include "Recast.h"
 
-
 extern "C"{
-#include "ED_navmesh_conversion.h"
+#include "BKE_navmesh_conversion.h"
 
 #include "DNA_meshdata_types.h"
 #include "BKE_cdderivedmesh.h"
 #include "BLI_math.h"
+}
+
+inline float area2(const float* a, const float* b, const float* c)
+{
+	return (b[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (b[2] - a[2]);
+}
+
+inline bool left(const float* a, const float* b, const float* c)
+{
+	return area2(a, b, c) < 0;
 }
 
 int polyNumVerts(const unsigned short* p, const int vertsPerPoly)

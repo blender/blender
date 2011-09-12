@@ -763,11 +763,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             split.template_ID(md, "mask_texture", new="texture.new")
             if md.mask_texture:
                 split = layout.split()
-                
+
                 col = split.column()
                 col.label(text="Texture Coordinates:")
                 col.prop(md, "mask_tex_mapping", text="")
-                
+
                 col = split.column()
                 col.label(text="Use Channel:")
                 col.prop(md, "mask_tex_use_channel", text="")
@@ -810,7 +810,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def VERTEX_WEIGHT_MIX(self, layout, ob, md):
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Vertex Group A:")
         col.prop_search(md, "vertex_group_a", ob, "vertex_groups", text="")
@@ -835,7 +835,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def VERTEX_WEIGHT_PROXIMITY(self, layout, ob, md):
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")

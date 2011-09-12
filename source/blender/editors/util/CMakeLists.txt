@@ -89,16 +89,4 @@ set(SRC
 	../include/UI_view2d.h
 )
 
-if(WITH_GAMEENGINE)
-	list(APPEND INC
-		../../../../extern/recastnavigation/Recast/Include
-	)
-
-	list(APPEND SRC
-		navmesh_conversion.cpp
-
-		../include/ED_navmesh_conversion.h
-	)
-endif()
-
 blender_add_lib(bf_editor_util "${SRC}" "${INC}" "${INC_SYS}")

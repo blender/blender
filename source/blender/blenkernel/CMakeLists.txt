@@ -357,6 +357,16 @@ if(WITH_LZMA)
 	add_definitions(-DWITH_LZMA)
 endif()
 
+if(WITH_GAMEENGINE)
+	list(APPEND INC_SYS
+        ../../../extern/recastnavigation/Recast/Include
+	)
+	list(APPEND SRC
+		intern/navmesh_conversion.cpp
+		BKE_navmesh_conversion.h
+	)
+endif()
+
 if(MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif()

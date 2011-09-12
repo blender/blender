@@ -21,7 +21,6 @@ incs += ' #source/gameengine/SceneGraph #source/gameengine/Physics/common'
 incs += ' #source/gameengine/Physics/Dummy'
 incs += ' #source/blender/misc #source/blender/blenloader #extern/glew/include #source/blender/gpu'
 incs += ' #extern/recastnavigation/Recast/Include #extern/recastnavigation/Detour/Include'
-incs +=	' #source/blender/editors/include'
 
 incs += ' ' + env['BF_BULLET_INC']
 incs += ' ' + env['BF_OPENGL_INC']

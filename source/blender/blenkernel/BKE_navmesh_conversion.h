@@ -27,12 +27,8 @@
 * ***** END GPL LICENSE BLOCK *****
 */
 
-#ifndef NAVMESH_CONVERSION_H
-#define NAVMESH_CONVERSION_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef BKE_NAVMESH_CONVERSION_H
+#define BKE_NAVMESH_CONVERSION_H
 
 struct DerivedMesh;
 
@@ -65,32 +61,4 @@ bool polyIsConvex(const unsigned short* p, const int vertsPerPoly, const float* 
 int polyFindVertex(const unsigned short* p, const int vertsPerPoly, unsigned short vertexIdx);
 float distPointToSegmentSq(const float* point, const float* a, const float* b);
 
-
-inline int bit(int a, int b)
-{
-	return (a & (1 << b)) >> b;
-}
-
-inline void intToCol(int i, float* col)
-{
-	int	r = bit(i, 0) + bit(i, 3) * 2 + 1;
-	int	g = bit(i, 1) + bit(i, 4) * 2 + 1;
-	int	b = bit(i, 2) + bit(i, 5) * 2 + 1;
-	col[0] = 1 - r*63.0f/255.0f;
-	col[1] = 1 - g*63.0f/255.0f;
-	col[2] = 1 - b*63.0f/255.0f;
-}
-
-inline float area2(const float* a, const float* b, const float* c)
-{
-	return (b[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (b[2] - a[2]);
-}
-inline bool left(const float* a, const float* b, const float* c)
-{
-	return area2(a, b, c) < 0;
-}
-
-#ifdef __cplusplus
-}
-#endif
 #endif //NAVMESH_CONVERSION_H
