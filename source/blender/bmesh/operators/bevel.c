@@ -594,7 +594,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				
 				if (!v1)
 					v1 = tag->newv;
-				else if (!v2);
+				else if (!v2)
 					v2 = tag->newv;
 			}
 			
