@@ -106,7 +106,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 		/*handle specific case for three-valence.  solve it by
 		  increasing valence to four.  this may be hackish. . .*/
 		loop = e->l;
-		if (loop->v == v) loop = (BMLoop*) loop->next;
+		if (loop->v == v) loop = loop->next;
 		if (!BM_Split_Face(bm, loop->f, v, loop->v, NULL, NULL))
 			return 0;
 
@@ -115,7 +115,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 	} else if (keepedge == NULL && len == 2) {
 		/*handle two-valence*/
 		f = v->e->l->f;
-		f2 = ((BMLoop*)v->e->l->radial_next)->f;
+		f2 = v->e->l->radial_next->f;
 		
 		/*collapse the vertex*/
 		BM_Collapse_Vert(bm, v->e, v, 1.0);
@@ -135,7 +135,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 				f = NULL;
 				len = bmesh_radial_length(e->l);
 				if(len == 2 && (e!=baseedge) && (e!=keepedge)) {
-					f = BM_Join_TwoFaces(bm, e->l->f, ((BMLoop*)(e->l->radial_next))->f, e);
+					f = BM_Join_TwoFaces(bm, e->l->f, e->l->radial_next->f, e);
 					/*return if couldn't join faces in manifold
 					  conditions.*/
 					//!disabled for testing why bad things happen
@@ -152,7 +152,7 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 
 		/*get remaining two faces*/
 		f = v->e->l->f;
-		f2 = ((BMLoop*)v->e->l->radial_next)->f;
+		f2 = v->e->l->radial_next->f;
 
 		/*collapse the vertex*/
 		BM_Collapse_Vert(bm, baseedge, v, 1.0);
@@ -218,11 +218,11 @@ BMFace *BM_Join_TwoFaces(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e) {
 		/*search for an edge that has both these faces in its radial cycle*/
 		l1 = bm_firstfaceloop(f1);
 		do{
-			if( ((BMLoop*)l1->radial_next)->f == f2 ){
+			if(l1->radial_next->f == f2 ) {
 				jed = l1->e;
 				break;
 			}
-			l1 = ((BMLoop*)(l1->next));
+			l1 = l1->next;
 		}while(l1!=bm_firstfaceloop(f1));
 	}
 
@@ -360,9 +360,9 @@ void BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 	if(ke->l){
 		l = ke->l;
 		do{
-			if(l->v == tv && ((BMLoop*)(l->next))->v == kv){
+			if(l->v == tv && l->next->v == kv) {
 				tvloop = l;
-				kvloop = ((BMLoop*)(l->next));
+				kvloop = l->next;
 
 				src[0] = kvloop->head.data;
 				src[1] = tvloop->head.data;
@@ -660,7 +660,7 @@ BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw)
 	if (BM_Edge_FaceCount(e) != 2)
 		return NULL;
 
-	f = BM_Join_TwoFaces(bm, e->l->f, ((BMLoop*)e->l->radial_next)->f, e);
+	f = BM_Join_TwoFaces(bm, e->l->f, e->l->radial_next->f, e);
 	
 	BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 		if (l->v == v1)
@@ -670,11 +670,11 @@ BMEdge *BM_Rotate_Edge(BMesh *bm, BMEdge *e, int ccw)
 	}
 	
 	if (ccw) {
-		l1 = (BMLoop*) l1->prev;
-		l2 = (BMLoop*) l2->prev;
+		l1 = l1->prev;
+		l2 = l2->prev;
 	} else {
-		l1 = (BMLoop*) l1->next;
-		l2 = (BMLoop*) l2->next;
+		l1 = l1->next;
+		l2 = l2->next;
 	}
 
 	if (!BM_Split_Face(bm, f, l1->v, l2->v, &nl, NULL))

@@ -112,17 +112,17 @@ static int compareFaceAttribs(BMesh *bm, BMEdge *e, int douvs, int dovcols)
 	int mergeok_uvs=!douvs, mergeok_vcols=!dovcols;
 	
 	l1 = e->l;
-	l3 = (BMLoop*)e->l->radial_next;
+	l3 = e->l->radial_next;
 	
 	/*match up loops on each side of an edge corrusponding to each vert*/
 	if (l1->v == l3->v) {
-		l2 = (BMLoop*)l1->next;
-		l4 = (BMLoop*)l2->next;
+		l2 = l1->next;
+		l4 = l2->next;
 	} else {
-		l2 = (BMLoop*)l1->next;
+		l2 = l1->next;
 
 		l4 = l3;
-		l3 = (BMLoop*)l4->next;
+		l3 = l4->next;
 	}
 
 	lcol1 = CustomData_bmesh_get(&bm->ldata, l1->head.data, CD_MLOOPCOL);
@@ -241,7 +241,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 		}
 
 		f1 = e->l->f;
-		f2 = ((BMLoop*)e->l->radial_next)->f;
+		f2 = e->l->radial_next->f;
 
 		if (f1->len != 3 || f2->len != 3) {
 			BMO_ClearFlag(bm, e, EDGE_MARK);
@@ -264,12 +264,12 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 			continue;
 
 		f1 = e->l->f;
-		f2 = ((BMLoop*)e->l->radial_next)->f;
+		f2 = e->l->radial_next->f;
 
 		v1 = e->l->v;
-		v2 = ((BMLoop*)e->l->prev)->v;
-		v3 = ((BMLoop*)e->l->next)->v;
-		v4 = ((BMLoop*)((BMLoop*)e->l->radial_next)->prev)->v;
+		v2 = e->l->prev->v;
+		v3 = e->l->next->v;
+		v4 = e->l->radial_next->prev->v;
 
 		if (dosharp && BM_TestHFlag(e, BM_SHARP))
 			continue;
@@ -302,7 +302,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 
 		e = jedges[i].e;
 		f1 = e->l->f;
-		f2 = ((BMLoop*)e->l->radial_next)->f;
+		f2 = e->l->radial_next->f;
 
 		if (BMO_TestFlag(bm, f1, FACE_MARK) || BMO_TestFlag(bm, f2, FACE_MARK))
 			continue;
@@ -317,7 +317,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 			continue;
 
 		f1 = e->l->f;
-		f2 = ((BMLoop*)e->l->radial_next)->f;
+		f2 = e->l->radial_next->f;
 
 		BM_Join_TwoFaces(bm, f1, f2, e);
 	}
@@ -328,7 +328,7 @@ void bmesh_jointriangles_exec(BMesh *bm, BMOperator *op)
 			  in a 2-tri-pair island, and if so merge*/
 
 			f1 = e->l->f;
-			f2 = ((BMLoop*)e->l->radial_next)->f;
+			f2 = e->l->radial_next->f;
 			
 			if (f1->len != 3 || f2->len != 3)
 				continue;

@@ -665,18 +665,18 @@ static int goodline(float (*projectverts)[3], BMFace *f, int v1i,
 	do {
 		i = BM_GetIndex(l->v);
 		if (i == v1i || i == v2i || i == v3i) {
-			l = (BMLoop*)l->next;
+			l = l->next;
 			continue;
 		}
 		
 		VECCOPY(pv1, projectverts[BM_GetIndex(l->v)]);
-		VECCOPY(pv2, projectverts[BM_GetIndex(((BMLoop*)l->next)->v)]);
+		VECCOPY(pv2, projectverts[BM_GetIndex(l->next->v)]);
 		
 		//if (linecrosses(pv1, pv2, v1, v3)) return 0;
 		if (point_in_triangle(v1, v2, v3, pv1)) return 0;
 		if (point_in_triangle(v3, v2, v1, pv1)) return 0;
 
-		l = (BMLoop*)l->next;
+		l = l->next;
 	} while (l != bm_firstfaceloop(f));
 	return 1;
 }
@@ -701,9 +701,9 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 	do {
 		isear = 1;
 		
-		v1 = ((BMLoop*)(l->prev))->v;
+		v1 = l->prev->v;
 		v2 = l->v;
-		v3 = ((BMLoop*)(l->next))->v;
+		v3 = l->next->v;
 
 		if (BM_Edge_Exist(v1, v3)) isear = 0;
 
@@ -724,7 +724,7 @@ static BMLoop *find_ear(BMesh *UNUSED(bm), BMFace *f, float (*verts)[3],
 			bestear = l;
 			break;
 		}
-		l = (BMLoop*)(l->next);
+		l = l->next;
 	}
 	while(l != bm_firstfaceloop(f));
 
@@ -761,7 +761,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		copy_v3_v3(projectverts[i], l->v->co);
 		BM_SetIndex(l->v, i);
 		i++;
-		l = (BMLoop*)(l->next);
+		l = l->next;
 	}while(l != bm_firstfaceloop(f));
 	
 	///bmesh_update_face_normal(bm, f, projectverts);
@@ -783,8 +783,8 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		if(l) {
 			done = 0;
 			v = l->v;
-			f = BM_Split_Face(bm, l->f, ((BMLoop*)(l->prev))->v, 
-			                  ((BMLoop*)(l->next))->v, 
+			f = BM_Split_Face(bm, l->f, l->prev->v,
+			                  l->next->v,
 			                  &newl, NULL);
 			copy_v3_v3(f->no, l->f->no);
 
@@ -812,7 +812,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 	if (f->len > 3){
 		l = bm_firstfaceloop(f);
 		while (l->f->len > 3){
-			nextloop = ((BMLoop*)(l->next->next));
+			nextloop = l->next->next;
 			f = BM_Split_Face(bm, l->f, l->v, nextloop->v, 
 			                  &newl, NULL);
 			if (!f) {
@@ -891,7 +891,7 @@ void BM_LegalSplits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 
 		//copy_v3_v3(l->v->co, p1);
 
-		l = (BMLoop*) l->next;
+		l = l->next;
 	}
 	
 	for (i=0; i<len; i++) {

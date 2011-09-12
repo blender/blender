@@ -147,7 +147,7 @@ int BM_Edge_In_Face(BMFace *f, BMEdge *e)
 	do{
 
 		if(l->e == e) return 1;
-		l = ((BMLoop*)(l->next));
+		l = l->next;
 	}while(l != bm_firstfaceloop(f));
 
 	return 0;
@@ -325,8 +325,7 @@ int BM_Nonmanifold_Vert(BMesh *UNUSED(bm), BMVert *v) {
 	oe = v->e;
 	l = oe->l;
 	while(e != oe) {
-		if (l->v == v) l = ((BMLoop*)(l->prev));
-		else l = ((BMLoop*)(l->next));
+		l = (l->v == v) ? l->prev : l->next;
 		e = l->e;
 		count++; /* count the edges */
 
@@ -409,7 +408,7 @@ int BM_Face_Sharededges(BMFace *f1, BMFace *f2){
 	l = bm_firstfaceloop(f1);
 	do{
 		if(bmesh_radial_find_face(l->e,f2)) count++;
-		l = ((BMLoop*)(l->next));
+		l = l->next;
 	}while(l != bm_firstfaceloop(f1));
 	
 	return count;
@@ -435,7 +434,7 @@ int BM_Edge_Share_Faces(BMEdge *e1, BMEdge *e2)
 			if(bmesh_radial_find_face(e2,f)){
 				return 1;
 			}
-			l = (BMLoop*)(l->radial_next);
+			l = l->radial_next;
 		}while(l != e1->l);
 	}
 	return 0;

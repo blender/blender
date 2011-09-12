@@ -605,8 +605,9 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 						if(BM_TestHFlag(efa, BM_SELECT)) {
 							VECADD(normal, normal, efa->no);
-							sub_v3_v3v3(vec, ((BMLoopList*)efa->loops.first)->first->v->co, 
-							        (((BMLoopList*)efa->loops.first)->first->next)->v->co);
+							sub_v3_v3v3(vec,
+							            ((BMLoopList*)efa->loops.first)->first->v->co,
+							            (((BMLoopList*)efa->loops.first)->first->next)->v->co);
 							VECADD(plane, plane, vec);
 						}
 					}

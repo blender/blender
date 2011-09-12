@@ -259,9 +259,9 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 		do{
 			if(l->e->head.flag & BM_FGON) { 
 				if (l->f->head.flag & BM_ACTIVE) act = BM_ACTIVE;
-				if (((BMLoop*)l->radial.next->data)->f->head.flag & BM_ACTIVE) act = BM_ACTIVE;
+				if (l->radial.next->data->f->head.flag & BM_ACTIVE) act = BM_ACTIVE;
 
-				sf = BM_Join_TwoFaces(bm,l->f, ((BMLoop*)l->radial.next->data)->f, l->e);
+				sf = BM_Join_TwoFaces(bm,l->f, l->radial.next->data->f, l->e);
 				if (!sf) {
 					//tesselation error
 					break;
@@ -275,7 +275,7 @@ static void fuse_fgon(BMesh *bm, BMFace *f)
 					return;
 				}
 			}
-			l = ((BMLoop*)(l->next));
+			l = l->next;
 		}while(l != sf->loopbase);
 	}
 }

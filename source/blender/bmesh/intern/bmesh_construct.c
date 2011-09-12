@@ -233,7 +233,7 @@ void BM_Face_CopyShared(BMesh *bm, BMFace *f) {
 			if (l2->v == l->v) {
 				bm_copy_loop_attributes(bm, bm, l2, l);
 			} else {
-				l2 = (BMLoop*) l2->next;
+				l2 = l2->next;
 				bm_copy_loop_attributes(bm, bm, l2, l);
 			}
 		}

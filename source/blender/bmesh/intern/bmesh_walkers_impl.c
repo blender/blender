@@ -732,9 +732,9 @@ static void *uvedgeWalker_step(BMWalker *walker)
 						continue;
 				}
 				
-				l3 = l2->v != cl->v ? (BMLoop*)l2->next : l2;
-				d2 = CustomData_bmesh_get_layer_n(&walker->bm->ldata, 
-					     l3->head.data, walker->flag);
+				l3 = l2->v != cl->v ? l2->next : l2;
+				d2 = CustomData_bmesh_get_layer_n(&walker->bm->ldata,
+				                                  l3->head.data, walker->flag);
 
 				if (!CustomData_data_equals(type, d1, d2))
 					continue;

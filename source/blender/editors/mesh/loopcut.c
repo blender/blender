@@ -162,9 +162,9 @@ static void edgering_find_order(BMEditMesh *em, BMEdge *lasteed, BMEdge *eed,
 	}
 	
 	l2 = BM_OtherFaceLoop(l->e, l->f, eed->v1);
-	rev = (l2 == (BMLoop*)l->prev);
+	rev = (l2 == l->prev);
 	while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
-		l2 = rev ? (BMLoop*)l2->prev : (BMLoop*)l2->next;
+		l2 = rev ? l2->prev : l2->next;
 	}
 
 	if (l2->v == lastv1) {

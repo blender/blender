@@ -78,7 +78,7 @@ void BM_SelectMode_Flush(BMesh *bm)
 			do{
 				if(BM_TestHFlag(l->v, BM_SELECT)) 
 					totsel++;
-				l = ((BMLoop*)(l->next));
+				l = l->next;
 			} while(l != bm_firstfaceloop(f));
 			
 			if(totsel == f->len) 
@@ -90,11 +90,11 @@ void BM_SelectMode_Flush(BMesh *bm)
 	else if(bm->selectmode & SCE_SELECT_EDGE) {
 		for(f = BMIter_New(&faces, bm, BM_FACES_OF_MESH, bm ); f; f= BMIter_Step(&faces)) {
 			totsel = 0;
-			l=(BMLoop*) bm_firstfaceloop(f);
+			l = bm_firstfaceloop(f);
 			do{
 				if(BM_TestHFlag(&(l->e->head), BM_SELECT)) 
 					totsel++;
-				l = ((BMLoop*)(l->next));
+				l = l->next;
 			}while(l!=bm_firstfaceloop(f));
 			
 			if(totsel == f->len) 
@@ -206,7 +206,7 @@ void BM_Select_Face(BMesh *bm, BMFace *f, int select)
 		do{
 			BM_Select_Vert(bm, l->v, 1);
 			BM_Select_Edge(bm, l->e, 1);
-			l = ((BMLoop*)(l->next));
+			l = l->next;
 		}while(l != bm_firstfaceloop(f));
 	}
 	else{ 

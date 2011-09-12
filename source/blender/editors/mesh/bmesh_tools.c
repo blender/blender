@@ -1523,8 +1523,8 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	/*first see if we have two adjacent faces*/
 	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
 		if (BM_Edge_FaceCount(eed) == 2) {
-			if ((BM_TestHFlag(eed->l->f, BM_SELECT) && BM_TestHFlag(((BMLoop*)eed->l->radial_next)->f, BM_SELECT))
-				 && !(BM_TestHFlag(eed->l->f, BM_HIDDEN) || BM_TestHFlag(((BMLoop*)eed->l->radial_next)->f, BM_HIDDEN)))
+			if ((BM_TestHFlag(eed->l->f, BM_SELECT) && BM_TestHFlag(eed->l->radial_next->f, BM_SELECT))
+				 && !(BM_TestHFlag(eed->l->f, BM_HIDDEN) || BM_TestHFlag(eed->l->radial_next->f, BM_HIDDEN)))
 			{
 				break;
 			}
@@ -2783,7 +2783,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			
 			if (i == 1 && e2->l) {
 				l = BM_OtherFaceLoop(e2, e2->l->f, v);
-				l = (BMLoop*)l->radial_next;
+				l = l->radial_next;
 				l = BM_OtherFaceLoop(l->e, l->f, v);
 
 				if (l)

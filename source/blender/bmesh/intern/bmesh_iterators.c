@@ -305,7 +305,7 @@ static void *vert_of_face_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->nextloop) iter->nextloop = ((BMLoop*)(iter->nextloop->next));
+	if(iter->nextloop) iter->nextloop = iter->nextloop->next;
 	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 
 	if(current) return current->v;
@@ -327,7 +327,7 @@ static void *edge_of_face_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->nextloop) iter->nextloop = ((BMLoop*)(iter->nextloop->next));
+	if(iter->nextloop) iter->nextloop = iter->nextloop->next;
 	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 	
 	if(current) return current->e;
@@ -349,7 +349,7 @@ static void *loop_of_face_step(BMIter *iter)
 {
 	BMLoop *current = iter->nextloop;
 
-	if(iter->nextloop) iter->nextloop = ((BMLoop*)(iter->nextloop->next));
+	if(iter->nextloop) iter->nextloop = iter->nextloop->next;
 	if(iter->nextloop == iter->firstloop) iter->nextloop = NULL;
 
 	return current;

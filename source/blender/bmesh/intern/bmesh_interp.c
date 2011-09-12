@@ -110,12 +110,12 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVe
 	do{
 		if(l->v == v1){ 
 			v1loop = l;
-			vloop = (BMLoop*)(v1loop->next);
-			v2loop = (BMLoop*)(vloop->next);
+			vloop = v1loop->next;
+			v2loop = vloop->next;
 		}else if(l->v == v){
-			v1loop = (BMLoop*)(l->next);
+			v1loop = l->next;
 			vloop = l;
-			v2loop = (BMLoop*)(l->prev);
+			v2loop = l->prev;
 			
 		}
 		

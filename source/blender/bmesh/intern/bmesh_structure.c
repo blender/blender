@@ -786,7 +786,7 @@ BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2){
 /*end disk cycle routines*/
 
 BMLoop *bmesh_radial_nextloop(BMLoop *l){
-	return (BMLoop*)(l->radial_next);
+	return l->radial_next;
 }
 
 void bmesh_radial_append(BMEdge *e, BMLoop *l){
@@ -946,7 +946,7 @@ struct BMLoop *bmesh_loop_find_loop(struct BMFace *f, struct BMVert *v) {
 	int i, len;
 	
 	len = bmesh_cycle_length(f->lbase);
-	for (i = 0, l=f->loopbase; i < len; i++, l=((BMLoop*)(l->next)) ) {
+	for (i = 0, l=f->loopbase; i < len; i++, l= l->next) {
 		if (l->v == v) return l;
 	}
 	return NULL;

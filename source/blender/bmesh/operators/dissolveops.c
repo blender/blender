@@ -151,8 +151,8 @@ void dissolve_edgeloop_exec(BMesh *bm, BMOperator *op)
 			BMO_SetFlag(bm, e->v2, VERT_MARK);
 
 			BM_Join_TwoFaces(bm, e->l->f,
-				      ((BMLoop*)e->l->radial_next)->f,
-				      e);
+			                 e->l->radial_next->f,
+			                 e);
 		}
 	}
 
@@ -195,8 +195,8 @@ void dissolveedges_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER(e, &oiter, bm, op, "edges", BM_EDGE) {
 		if (BM_Edge_FaceCount(e) == 2) {
 			BM_Join_TwoFaces(bm, e->l->f,
-				      ((BMLoop*)e->l->radial_next)->f,
-				      e);
+			                 e->l->radial_next->f,
+			                 e);
 		}
 	}
 }

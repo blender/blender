@@ -297,7 +297,7 @@ int uvedit_edge_selected(BMEditMesh *em, Scene *scene, BMLoop *l)
 			return BM_TestHFlag(l->e, BM_SELECT);
 		} else
 			return BM_TestHFlag(l->v, BM_SELECT) && 
-			       BM_TestHFlag(((BMLoop*)l->next)->v, BM_SELECT);
+			       BM_TestHFlag(l->next->v, BM_SELECT);
 	}
 	else {
 		MLoopUV *luv1, *luv2;
@@ -634,12 +634,12 @@ static void find_nearest_uv_edge(Scene *scene, Image *ima, BMEditMesh *em, float
 				hit->efa= efa;
 				
 				hit->l = l;
-				hit->nextl = (BMLoop*)l->next;
+				hit->nextl = l->next;
 				hit->luv = luv;
 				hit->nextluv = nextluv;
 				hit->lindex = i;
 				hit->vert1 = BM_GetIndex(hit->l->v);
-				hit->vert2 = BM_GetIndex(((BMLoop*)hit->l->next)->v);
+				hit->vert2 = BM_GetIndex(hit->l->next->v);
 
 				mindist = dist;
 			}
@@ -786,7 +786,7 @@ static void find_nearest_uv_vert(Scene *scene, Image *ima, BMEditMesh *em,
 				mindist= dist;
 
 				hit->l = l;
-				hit->nextl = (BMLoop*)l->next;
+				hit->nextl = l->next;
 				hit->luv = luv;
 				hit->nextluv = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 				hit->tf= tf;

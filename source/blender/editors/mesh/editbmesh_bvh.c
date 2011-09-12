@@ -427,8 +427,8 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2)
 	l1 = cure1->l;
 	l2 = cure2->l;
 
-	lastv1 = l1->v == v1 ? ((BMLoop*)l1->next)->v : ((BMLoop*)l1->prev)->v;
-	lastv2 = l2->v == v2 ? ((BMLoop*)l2->next)->v : ((BMLoop*)l2->prev)->v;
+	lastv1 = l1->v == v1 ? l1->next->v : l1->prev->v;
+	lastv2 = l2->v == v2 ? l2->next->v : l2->prev->v;
 
 	/*we can only provide meaningful comparisons if v1 and v2 have the same valence*/
 	if (BM_Vert_EdgeCount(v1) != BM_Vert_EdgeCount(v2))
@@ -479,23 +479,23 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2)
 			l2 = BM_OtherFaceLoop(s2->curl->e, s2->curl->f, s2->lastv);
 
 			if (l1->v == s2->lastv) {
-				l1 = (BMLoop*) l1->next;
+				l1 = l1->next;
 				if (l1->v == s2->v)
-					l1 = (BMLoop*) l1->prev->prev;
+					l1 = l1->prev->prev;
 			} else if (l1->v == s2->v) {
-				l1 = (BMLoop*) l1->next;
+				l1 = l1->next;
 				if (l1->v == s2->lastv)
-					l1 = (BMLoop*) l1->prev->prev;
+					l1 = l1->prev->prev;
 			}
 
 			if (l2->v == s2->lastv) {
-				l2 = (BMLoop*) l2->next;
+				l2 = l2->next;
 				if (l2->v == s2->v)
-					l2 = (BMLoop*) l2->prev->prev;
+					l2 = l2->prev->prev;
 			} else if (l2->v == s2->v) {
-				l2 = (BMLoop*) l2->next;
+				l2 = l2->next;
 				if (l2->v == s2->lastv)
-					l2 = (BMLoop*) l2->prev->prev;
+					l2 = l2->prev->prev;
 			}
 
 			wind1 = winding(s1->v->co, s1->lastv->co, l1->v->co);
@@ -509,13 +509,13 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2)
 			l2 = BM_OtherFaceLoop(l2->e, l2->f, s2->lastv);
 			
 			if (l2->v == s2->lastv) {
-				l2 = (BMLoop*) l2->next;
+				l2 = l2->next;
 				if (l2->v == s2->v)
-					l2 = (BMLoop*) l2->prev->prev;
+					l2 = l2->prev->prev;
 			} else if (l2->v == s2->v) {
-				l2 = (BMLoop*) l2->next;
+				l2 = l2->next;
 				if (l2->v == s2->lastv)
-					l2 = (BMLoop*) l2->prev->prev;
+					l2 = l2->prev->prev;
 			}
 
 			normal_tri_v3(no1, s2->v->co, s2->lastv->co, l1->v->co);
@@ -536,8 +536,8 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2)
 		  nodes, or the valence mismatching between v1 and v2, or we hit max
 		  recursion depth*/
 		term |= s1->valence != s2->valence || lvl+1 > maxlevel;
-		term |= s1->curl->radial_next == (BMLoop*)l1;
-		term |= s2->curl->radial_next == (BMLoop*)l2;
+		term |= s1->curl->radial_next == l1;
+		term |= s2->curl->radial_next == l2;
 
 		if (!term) {
 			lastv1 = s1->v;
@@ -567,11 +567,11 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2)
 				s2 = stack2 + lvl - 2;
 			}
 
-			s1->curl = s1->curl->v == s1->v ? (BMLoop*) s1->curl->prev : (BMLoop*) s1->curl->next;
-			s2->curl = s2->curl->v == s2->v ? (BMLoop*) s2->curl->prev : (BMLoop*) s2->curl->next;
+			s1->curl = s1->curl->v == s1->v ? s1->curl->prev : s1->curl->next;
+			s2->curl = s2->curl->v == s2->v ? s2->curl->prev : s2->curl->next;
 		
-			s1->curl = (BMLoop*) s1->curl->radial_next;
-			s2->curl = (BMLoop*) s2->curl->radial_next;
+			s1->curl = s1->curl->radial_next;
+			s2->curl = s2->curl->radial_next;
 		}
 
 #define WADD(stack, s)\

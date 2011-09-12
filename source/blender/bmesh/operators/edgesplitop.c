@@ -150,7 +150,7 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 		for (i=0; i<2; i++) {
 			l = e->l;
 			
-			v = i ? ((BMLoop*)l->next)->v : l->v;
+			v = i ? l->next->v : l->v;
 
 			while (1) {
 				et = etags + BM_GetIndex(l->e);
@@ -179,14 +179,14 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 					l = BM_OtherFaceLoop(l->e, l->f, v);
 					if (BM_Edge_FaceCount(l->e) != 2)
 						break;
-					l = (BMLoop*) l->radial_next;
+					l = l->radial_next;
 				} while (l != startl && !BMO_TestFlag(bm, l->e, EDGE_SEAM));
 				
 				if (l == startl || !BMO_TestFlag(bm, l->e, EDGE_SEAM))
 					break;
 
 				if (l->v == v) {
-					v = ((BMLoop*)l->next)->v;
+					v = l->next->v;
 				} else v = l->v;
 			}
 		}
@@ -261,8 +261,8 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			nextl = (BMLoop*) l->next;
-			prevl = (BMLoop*) l->prev;
+			nextl = l->next;
+			prevl = l->prev;
 			
 			for (j=0; j<2; j++) {
 				l2 = j ? nextl : prevl;
@@ -292,7 +292,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 							break;
 						}
 
-						l3 = (BMLoop*)l3->radial_next;
+						l3 = l3->radial_next;
 						l3 = BM_OtherFaceLoop(l3->e, l3->f, v);
 					} while (l3 != l2 && !BMO_TestFlag(bm, l3->e, EDGE_SEAM));
 
@@ -307,7 +307,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 								if (BM_Edge_FaceCount(l3->e) != 2)
 									break;
 
-								l3 = (BMLoop*)l3->radial_next;
+								l3 = l3->radial_next;
 								l3 = BM_OtherFaceLoop(l3->e, l3->f, v);
 								
 								et = etags + BM_GetIndex(l3->e);

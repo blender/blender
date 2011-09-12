@@ -287,8 +287,8 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 				BM_Copy_Attributes(bm, bm, l2->f, l->f);
 
 				BM_Copy_Attributes(bm, bm, l2, l);
-				l2 = (BMLoop*) l2->next;
-				l = (BMLoop*) l->next;
+				l2 = l2->next;
+				l = l->next;
 				BM_Copy_Attributes(bm, bm, l2, l);
 			} else {
 				BM_Copy_Attributes(bm, bm, l2->f, l->f);
@@ -296,14 +296,14 @@ void extrude_edge_context_exec(BMesh *bm, BMOperator *op)
 				/*copy data*/
 				if (l2->v == l->v) {
 					BM_Copy_Attributes(bm, bm, l2, l);
-					l2 = (BMLoop*) l2->next;
-					l = (BMLoop*) l->next;
+					l2 = l2->next;
+					l = l->next;
 					BM_Copy_Attributes(bm, bm, l2, l);
 				} else {
-					l2 = (BMLoop*) l2->next;
+					l2 = l2->next;
 					BM_Copy_Attributes(bm, bm, l2, l);
-					l2 = (BMLoop*) l2->prev;
-					l = (BMLoop*) l->next;
+					l2 = l2->prev;
+					l = l->next;
 					BM_Copy_Attributes(bm, bm, l2, l);
 				}
 			}
