@@ -181,6 +181,8 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
   ++wv){
     if((*wv)->isBoundary())
       continue;
+	if ((*wv)->GetEdges().size() == 0) // This means that the WVertex has no incoming edges... (12-Sep-2011 T.K.)
+	  continue;
     normalsSet.clear();
     WVertex::face_iterator fit = (*wv)->faces_begin();
     WVertex::face_iterator fitend = (*wv)->faces_end();
