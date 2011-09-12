@@ -519,7 +519,10 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 			to_name = b_to_sock.name();
 		}
 
-		graph->connect(from_node->output(from_name.c_str()), to_node->input(to_name.c_str()));
+		/* in case of groups there may not actually be a node inside the group
+		   that the group socket connects to, so from_node or to_node may be NULL */
+		if(from_node && to_node)
+			graph->connect(from_node->output(from_name.c_str()), to_node->input(to_name.c_str()));
 	}
 }
 
