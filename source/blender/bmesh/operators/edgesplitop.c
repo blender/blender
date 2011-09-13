@@ -282,18 +282,19 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 			prevl = l->prev;
 			
 			for (j=0; j<2; j++) {
+				/* correct as long as i & j dont change during the loop */
+				const int fv_index= j ? (i+1) % f->len : i; /* face vert index */
 				l2 = j ? nextl : prevl;
 				v = j ? l2->v : l->v;
 
 				if (BMO_TestFlag(bm, l2->e, EDGE_SEAM)) {
-					if (!verts[j ? (i+1) % f->len : i]) {
+					if (verts[fv_index] == NULL) {
 						/*make unique vert here for this face only*/
 						v2 = BM_Make_Vert(bm, v->co, v);
-
-						verts[j ? (i+1) % f->len : i] = v2;
+						verts[fv_index] = v2;
 					}
 					else {
-						v2 = verts[j ? (i+1) % f->len : i];
+						v2 = verts[fv_index];
 					}
 				}
 				else {
@@ -340,10 +341,10 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 							v2 = ETV(et, v, l2);
 						}
 
-						verts[j ? (i+1) % f->len : i] = v2;
+						verts[fv_index] = v2;
 					}
 					else {
-						verts[j ? (i+1) % f->len : i] = v;
+						verts[fv_index] = v;
 					}
 				}
 			}
@@ -351,7 +352,31 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 			i++;
 		}
 
-		f2 = remake_face(bm, etags, f, verts);
+		/* debugging code, quick way to find the face/vert combination
+		 * which is failing assuming quads start planer - campbell */
+#if 0
+		if(f->len == 4) {
+			float no1[3];
+			float no2[3];
+			float angle_error;
+			printf(" ** found QUAD\n");
+			normal_tri_v3(no1, verts[0]->co, verts[1]->co, verts[2]->co);
+			normal_tri_v3(no2, verts[0]->co, verts[2]->co, verts[3]->co);
+			if((angle_error= angle_v3v3(no1, no2)) > 0.05) {
+				printf("     ERROR %.4f\n", angle_error);
+				print_v3("0", verts[0]->co);
+				print_v3("1", verts[1]->co);
+				print_v3("2", verts[2]->co);
+				print_v3("3", verts[3]->co);
+
+			}
+		}
+		else {
+			printf(" ** fount %d len face\n", f->len);
+		}
+#endif
+
+		f2 = remake_face(bm, etags, f, verts); /* clobbers 'verts', */
 		if (!f2) {
 			continue;
 		}
@@ -362,8 +387,8 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	
 	BMO_CallOpf(bm, "del geom=%ff context=%i", FACE_DEL, DEL_ONLYFACES);
 
-	/*test EDGE_MARK'd edges if we need to delete them, EDGE_MARK
-	  is set in remake_face*/
+	/* test EDGE_MARK'd edges if we need to delete them, EDGE_MARK
+	 * is set in remake_face */
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_TestFlag(bm, e, EDGE_MARK)) {
 			if (!e->l) {
