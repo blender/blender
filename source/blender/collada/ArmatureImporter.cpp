@@ -87,7 +87,7 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	if ( it != finished_joints.end()) return; 
 
 	float mat[4][4];
-    float obmat[4][4];
+	float obmat[4][4];
 
 	// object-space
 	get_node_mat(obmat, node, NULL, NULL);
@@ -296,7 +296,7 @@ void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW:
 		et->setData("tip_z",&z);
 		float vec[3] = {x,y,z};
 		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
-	    add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
+		add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
 	}else
 		leaf_bones.push_back(leaf);
 }
@@ -310,9 +310,10 @@ void ArmatureImporter::fix_leaf_bones( )
 		LeafBone& leaf = *it;
 
 		// pointing up
-		float vec[3] = {0.0f, 0.0f, 1.0f};
+		float vec[3] = {0.0f, 0.0f, 0.1f};
 		
-		//mul_v3_fl(vec, leaf_bone_length);
+		// if parent: take parent length and direction
+		if(leaf.bone->parent) sub_v3_v3v3(vec, leaf.bone->parent->tail, leaf.bone->parent->head);
 
 		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
 		add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);

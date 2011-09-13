@@ -135,7 +135,7 @@ PyObject * setWeight (PyImage * self, PyObject * args)
 		if (!getImageMix(self)->setWeight(id, weight))
 		{
 			// if not set, report error
-			PyErr_SetString(PyExc_RuntimeError, "Invalid id of source");;
+			PyErr_SetString(PyExc_RuntimeError, "Invalid id of source");
 			return NULL;
 		}
 	// return none

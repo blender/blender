@@ -70,7 +70,7 @@ GHOST_TSuccess GHOST_ISystemPaths::create()
 #		ifdef GHOST_COCOA
 			m_systemPaths = new GHOST_SystemPathsCocoa ();
 #		else
-			m_systemPaths = new GHOST_SystemPathsarbon ();
+			m_systemPaths = new GHOST_SystemPathsCarbon ();
 #		endif
 #	else 
 		m_systemPaths = new GHOST_SystemPathsX11 ();

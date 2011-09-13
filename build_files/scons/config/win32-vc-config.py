@@ -40,7 +40,7 @@ BF_JACK_INC = '${BF_JACK}/include ${BF_FFMPEG}/include/msvc'
 BF_JACK_LIB = 'libjack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
 
-WITH_BF_SNDFILE = False
+WITH_BF_SNDFILE = True
 BF_SNDFILE = LIBDIR + '/sndfile'
 BF_SNDFILE_INC = '${BF_SNDFILE}/include'
 BF_SNDFILE_LIB = 'libsndfile-1'

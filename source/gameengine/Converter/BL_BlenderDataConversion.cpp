@@ -1483,7 +1483,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 		{
 			objprop.m_gamesoftFlag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
 			
-			objprop.m_soft_linStiff = 0.5;;
+			objprop.m_soft_linStiff = 0.5;
 			objprop.m_soft_angStiff = 1.f;		/* angular stiffness 0..1 */
 			objprop.m_soft_volume= 1.f;			/* volume preservation 0..1 */
 
@@ -1911,11 +1911,11 @@ void RBJconstraints(Object *ob)//not used
 
 KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc){//not used
 
-    for (int j=0;j<sumolist->GetCount();j++)
+	for (int j=0;j<sumolist->GetCount();j++)
 	{
-	    KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
-	    if (gameobje->GetName()==busc)
-            return gameobje->GetPhysicsController();
+		KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
+		if (gameobje->GetName()==busc)
+			return gameobje->GetPhysicsController();
 	}
 
 	return 0;
@@ -1924,11 +1924,11 @@ KX_IPhysicsController* getPhId(CListValue* sumolist,STR_String busc){//not used
 
 KX_GameObject* getGameOb(STR_String busc,CListValue* sumolist){
 
-    for (int j=0;j<sumolist->GetCount();j++)
+	for (int j=0;j<sumolist->GetCount();j++)
 	{
-	    KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
-	    if (gameobje->GetName()==busc)
-            return gameobje;
+		KX_GameObject* gameobje = (KX_GameObject*) sumolist->GetValue(j);
+		if (gameobje->GetName()==busc)
+			return gameobje;
 	}
 	
 	return 0;
@@ -2629,7 +2629,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 						{
 							PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
 							//we need to pass a full constraint frame, not just axis
-	                            
+
 							//localConstraintFrameBasis
 							MT_Matrix3x3 localCFrame(MT_Vector3(dat->axX,dat->axY,dat->axZ));
 							MT_Vector3 axis0 = localCFrame.getColumn(0);

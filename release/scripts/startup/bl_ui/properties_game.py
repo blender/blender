@@ -340,10 +340,12 @@ class RENDER_PT_game_performance(RenderButtonsPanel, Panel):
         layout = self.layout
 
         gs = context.scene.game_settings
-        row = layout.row()
+        col = layout.column()
+        row = col.row()
         row.prop(gs, "use_frame_rate")
         row.prop(gs, "use_display_lists")
-        row.prop(gs, "restrict_animation_updates")
+        
+        col.prop(gs, "restrict_animation_updates")
 
 
 class RENDER_PT_game_display(RenderButtonsPanel, Panel):

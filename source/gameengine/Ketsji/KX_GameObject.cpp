@@ -87,32 +87,32 @@ typedef unsigned long uint_ptr;
 
 static MT_Point3 dummy_point= MT_Point3(0.0, 0.0, 0.0);
 static MT_Vector3 dummy_scaling = MT_Vector3(1.0, 1.0, 1.0);
-static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(	1.0, 0.0, 0.0,
-														0.0, 1.0, 0.0,
-														0.0, 0.0, 1.0);
+static MT_Matrix3x3 dummy_orientation = MT_Matrix3x3(1.0, 0.0, 0.0,
+                                                     0.0, 1.0, 0.0,
+                                                     0.0, 0.0, 1.0);
 
 KX_GameObject::KX_GameObject(
-	void* sgReplicationInfo,
-	SG_Callbacks callbacks)
-	: SCA_IObject(),
-	m_bDyna(false),
-	m_layer(0),
-	m_pBlenderObject(NULL),
-	m_pBlenderGroupObject(NULL),
-	m_bSuspendDynamics(false),
-	m_bUseObjectColor(false),
-	m_bIsNegativeScaling(false),
-	m_bVisible(true),
-	m_bCulled(true),
-	m_bOccluder(false),
-	m_pPhysicsController1(NULL),
-	m_pGraphicController(NULL),
-	m_xray(false),
-	m_pHitObject(NULL),
-    m_actionManager(NULL),
-	m_isDeformable(false)
+        void* sgReplicationInfo,
+        SG_Callbacks callbacks)
+    : SCA_IObject(),
+      m_bDyna(false),
+      m_layer(0),
+      m_pBlenderObject(NULL),
+      m_pBlenderGroupObject(NULL),
+      m_bSuspendDynamics(false),
+      m_bUseObjectColor(false),
+      m_bIsNegativeScaling(false),
+      m_bVisible(true),
+      m_bCulled(true),
+      m_bOccluder(false),
+      m_pPhysicsController1(NULL),
+      m_pGraphicController(NULL),
+      m_xray(false),
+      m_pHitObject(NULL),
+      m_actionManager(NULL),
+      m_isDeformable(false)
 #ifdef WITH_PYTHON
-	, m_attr_dict(NULL)
+    , m_attr_dict(NULL)
 #endif
 {
 	m_ignore_activity_culling = false;
@@ -159,6 +159,7 @@ KX_GameObject::~KX_GameObject()
 	}
 	if (m_actionManager)
 	{
+		KX_GetActiveScene()->RemoveAnimatedObject(this);
 		delete m_actionManager;
 	}
 #ifdef WITH_PYTHON
@@ -355,8 +356,8 @@ BL_ActionManager* KX_GameObject::GetActionManager()
 {
 	// We only want to create an action manager if we need it
 	if (!m_actionManager)
-		m_actionManager = new BL_ActionManager(this);
-
+	{		KX_GetActiveScene()->AddAnimatedObject(this);		m_actionManager = new BL_ActionManager(this);
+	}
 	return m_actionManager;
 }
 
@@ -3124,7 +3125,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, getActionFrame,
 
 	layer_check(layer, "getActionFrame");
 
-	return PyLong_FromLong(GetActionFrame(layer));
+	return PyFloat_FromDouble(GetActionFrame(layer));
 }
 
 KX_PYMETHODDEF_DOC(KX_GameObject, setActionFrame,

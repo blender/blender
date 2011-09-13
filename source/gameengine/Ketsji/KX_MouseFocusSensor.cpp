@@ -121,14 +121,14 @@ bool KX_MouseFocusSensor::Evaluate()
 			}
 		} 
 		if (reset) {
-			// force an event 
+			// force an event
 			result = true;
 		}
 	} else {
 		/* No focus behaviour required: revert to the basic mode. This
-         * mode is never used, because the converter never makes this
-         * sensor for a mouse-key event. It is here for
-         * completeness. */
+		 * mode is never used, because the converter never makes this
+		 * sensor for a mouse-key event. It is here for
+		 * completeness. */
 		result = SCA_MouseSensor::Evaluate();
 		m_positive_event = (m_val!=0);
 	}

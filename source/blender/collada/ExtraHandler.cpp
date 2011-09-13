@@ -56,7 +56,7 @@ bool ExtraHandler::textData(const char* text, size_t textLength)
 {
 	char buf[1024];
 	
-	if(currentElement.length() == 0) return false;
+	if(currentElement.length() == 0 || currentExtraTags == 0) return false;
 	
 	BLI_snprintf(buf, textLength+1, "%s", text);
 	currentExtraTags->addTag(currentElement, std::string(buf));

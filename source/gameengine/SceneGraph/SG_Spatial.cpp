@@ -109,18 +109,17 @@ SetParentRelation(
  */
 
 
-	bool 
+	bool
 SG_Spatial::
 UpdateSpatialData(
-	const SG_Spatial *parent,
-	double time,
-	bool& parentUpdated
-){
-
-    bool bComputesWorldTransform = false;
+	        const SG_Spatial *parent,
+	        double time,
+	        bool& parentUpdated
+	        ){
+	bool bComputesWorldTransform = false;
 
 	// update spatial controllers
-	
+
 	SGControllerList::iterator cit = GetSGControllerList().begin();
 	SGControllerList::const_iterator c_end = GetSGControllerList().end();
 
@@ -131,7 +130,7 @@ UpdateSpatialData(
 	}
 
 	// If none of the objects updated our values then we ask the
-	// parent_relation object owned by this class to update 
+	// parent_relation object owned by this class to update
 	// our world coordinates.
 
 	if (!bComputesWorldTransform)

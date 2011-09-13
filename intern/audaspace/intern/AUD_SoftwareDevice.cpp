@@ -516,7 +516,7 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::setVolumeMaximum(float volume)
 float AUD_SoftwareDevice::AUD_SoftwareHandle::getVolumeMinimum()
 {
 	if(!m_status)
-		return std::numeric_limits<float>::quiet_NaN();;
+		return std::numeric_limits<float>::quiet_NaN();
 
 	return m_volume_min;
 }
@@ -634,7 +634,7 @@ bool AUD_SoftwareDevice::AUD_SoftwareHandle::setConeAngleInner(float angle)
 float AUD_SoftwareDevice::AUD_SoftwareHandle::getConeVolumeOuter()
 {
 	if(!m_status)
-		return std::numeric_limits<float>::quiet_NaN();;
+		return std::numeric_limits<float>::quiet_NaN();
 
 	return m_cone_volume_outer;
 }

@@ -43,7 +43,7 @@ class KX_NetworkEventManager : public SCA_EventManager
 
 public:
 	KX_NetworkEventManager(class SCA_LogicManager* logicmgr,
-			       class NG_NetworkDeviceInterface *ndi);
+	                       class NG_NetworkDeviceInterface *ndi);
 	virtual ~KX_NetworkEventManager ();
 
 	virtual void NextFrame();
@@ -51,7 +51,7 @@ public:
 
 	SCA_LogicManager* GetLogicManager() { return m_logicmgr; }
 	class NG_NetworkDeviceInterface* GetNetworkDevice() {
-	    return m_ndi; }
+		return m_ndi; }
 };
 
 #endif //KX_NETWORK_EVENTMANAGER_H

@@ -139,7 +139,7 @@ GPG_Application::GPG_Application(GHOST_ISystem* system)
 
 GPG_Application::~GPG_Application(void)
 {
-    if(m_pyGlobalDictString) {
+	if(m_pyGlobalDictString) {
 		delete [] m_pyGlobalDictString;
 		m_pyGlobalDictString = 0;
 		m_pyGlobalDictString_Length = 0;
@@ -192,7 +192,7 @@ static LRESULT CALLBACK screenSaverWindowProc(HWND hwnd, UINT uMsg, WPARAM wPara
 			LONG dx = scr_save_mouse_pos.x - pt.x;
 			LONG dy = scr_save_mouse_pos.y - pt.y;
 			if (abs(dx) > SCR_SAVE_MOUSE_MOVE_THRESHOLD
-			    || abs(dy) > SCR_SAVE_MOUSE_MOVE_THRESHOLD)
+			        || abs(dy) > SCR_SAVE_MOUSE_MOVE_THRESHOLD)
 			{
 				close = TRUE;
 			}

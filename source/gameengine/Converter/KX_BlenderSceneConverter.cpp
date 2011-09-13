@@ -679,7 +679,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 								MEM_freeN( tmpicu );
 								localDel_ipoCurve( tmpicu );
 							}
-					  	}
+						}
 					} else
 					{	ipo = NULL; // XXX add_ipo(blenderObject->id.name+2, ID_OB);
 						blenderObject->ipo = ipo;
