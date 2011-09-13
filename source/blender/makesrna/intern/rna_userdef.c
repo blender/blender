@@ -1959,6 +1959,7 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	static float default_dir[3] = {0.f, 1.f, 0.f};
 
 	srna= RNA_def_struct(brna, "UserSolidLight", NULL);
 	RNA_def_struct_sdna(srna, "SolidLight");
@@ -1972,6 +1973,7 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "direction", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
 	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_dir);
 	RNA_def_property_ui_text(prop, "Direction", "The direction that the OpenGL light is shining");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
@@ -2790,6 +2792,36 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ORBIT_INVERT_AXES);
 	RNA_def_property_ui_text(prop, "Invert Axes", "Toggle between moving the viewpoint or moving the scene being viewed");
 	/* in 3Dx docs, this is called 'object mode' vs. 'target camera mode' */
+
+	/* 3D view: roll */
+	prop= RNA_def_property(srna, "ndof_roll_invert_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ROLL_INVERT_AXIS);
+	RNA_def_property_ui_text(prop, "Invert roll Axis", "Invert roll axis");
+
+	/* 3D view: tilt */
+	prop= RNA_def_property(srna, "ndof_tilt_invert_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_TILT_INVERT_AXIS);
+	RNA_def_property_ui_text(prop, "Invert tilt Axis", "Invert tilt axis");
+
+	/* 3D view: rotate */
+	prop= RNA_def_property(srna, "ndof_rotate_invert_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_ROTATE_INVERT_AXIS);
+	RNA_def_property_ui_text(prop, "Invert rotation Axis", "Invert rotation axis");
+
+	/* 3D view: pan x */
+	prop= RNA_def_property(srna, "ndof_panx_invert_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_PANX_INVERT_AXIS);
+	RNA_def_property_ui_text(prop, "Invert x Axis", "Invert x axis");
+
+	/* 3D view: pan y */
+	prop= RNA_def_property(srna, "ndof_pany_invert_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_PANY_INVERT_AXIS);
+	RNA_def_property_ui_text(prop, "Invert y Axis", "Invert y axis");
+
+	/* 3D view: pan z */
+	prop= RNA_def_property(srna, "ndof_panz_invert_axis", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "ndof_flag", NDOF_PANZ_INVERT_AXIS);
+	RNA_def_property_ui_text(prop, "Invert z Axis", "Invert z axis");
 
 	/* 3D view: fly */
 	prop= RNA_def_property(srna, "ndof_lock_horizon", PROP_BOOLEAN, PROP_NONE);

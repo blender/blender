@@ -576,7 +576,7 @@ void ArmatureImporter::set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node
    float obmat[4][4];
 
 	float ax[3];
-	float angle = NULL;
+	float angle = 0.0f;
 	
 	// object-space
 	get_node_mat(obmat, root_node, NULL, NULL);

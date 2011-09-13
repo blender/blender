@@ -1190,7 +1190,7 @@ static void draw_textscroll(SpaceText *st, rcti *scroll, rcti *back)
 
 	uiWidgetScrollDraw(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT)?UI_SCROLL_PRESSED:0);
 
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	rad= 0.4f*MIN2(st->txtscroll.xmax - st->txtscroll.xmin, st->txtscroll.ymax - st->txtscroll.ymin);
 	UI_GetThemeColor3ubv(TH_HILITE, col);
 	col[3]= 48;

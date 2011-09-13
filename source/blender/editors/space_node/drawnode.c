@@ -305,7 +305,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 
 	if(_sample_col) {
 		cumap->flag |= CUMA_DRAW_SAMPLE;
-		VECCOPY(cumap->sample, _sample_col);
+		copy_v3_v3(cumap->sample, _sample_col);
 	}
 	else 
 		cumap->flag &= ~CUMA_DRAW_SAMPLE;
@@ -639,7 +639,7 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	float colw= 0.6f*node_group_frame;
 	float col1= 6 - node_group_frame;
 	float col2= col1 + colw+6;
-	float col3= node_group_frame - arrowbutw - 6;
+	float col3= - arrowbutw - 6;
 	/* layout stuff for buttons on group right frame */
 	float cor1= 6;
 	float cor2= cor1 + arrowbutw + 6;
@@ -660,6 +660,7 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	 * 1) input: not internal
 	 * 2) output: (node type uses const outputs) and (group output is unlinked)
 	 */
+	draw_value = 0;
 	switch (in_out) {
 	case SOCK_IN:
 		draw_value = !(gsock && (gsock->flag & SOCK_INTERNAL));
@@ -667,8 +668,6 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	case SOCK_OUT:
 		if (gnode->typeinfo->flag & NODE_CONST_OUTPUT)
 			draw_value = !(gsock && gsock->link);
-		else
-			draw_value = 0;
 		break;
 	}
 	if (draw_value) {
@@ -713,7 +712,7 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 		uiBlockSetDirection(gnode->block, 0);
 		
 		/* remove button */
-		offset = (in_out==SOCK_IN ? col3 : col1);
+		offset = (in_out==SOCK_IN ? col3 : cor1);
 		uiBlockSetEmboss(gnode->block, UI_EMBOSSN);
 		bt = uiDefIconButO(gnode->block, BUT, "NODE_OT_group_socket_remove", 0, ICON_X,
 						   gsock->locx+offset, gsock->locy-0.5f*arrowbutw, arrowbutw, arrowbutw, "");
@@ -742,23 +741,23 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		
 		/* backdrop header */
 		glEnable(GL_BLEND);
-		uiSetRoundBox(3);
+		uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 		UI_ThemeColorShadeAlpha(TH_NODE_GROUP, 0, -70);
 		uiDrawBox(GL_POLYGON, rect.xmin-node_group_frame, rect.ymax, rect.xmax+node_group_frame, rect.ymax+group_header, BASIS_RAD);
 		
 		/* backdrop body */
 		UI_ThemeColorShadeAlpha(TH_BACK, -8, -70);
-		uiSetRoundBox(0);
+		uiSetRoundBox(UI_CNR_NONE);
 		uiDrawBox(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, BASIS_RAD);
 	
 		/* input column */
 		UI_ThemeColorShadeAlpha(TH_BACK, 10, -50);
-		uiSetRoundBox(8);
+		uiSetRoundBox(UI_CNR_BOTTOM_LEFT);
 		uiDrawBox(GL_POLYGON, rect.xmin-node_group_frame, rect.ymin, rect.xmin, rect.ymax, BASIS_RAD);
 	
 		/* output column */
 		UI_ThemeColorShadeAlpha(TH_BACK, 10, -50);
-		uiSetRoundBox(4);
+		uiSetRoundBox(UI_CNR_BOTTOM_RIGHT);
 		uiDrawBox(GL_POLYGON, rect.xmax, rect.ymin, rect.xmax+node_group_frame, rect.ymax, BASIS_RAD);
 	
 		/* input column separator */
@@ -776,7 +775,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		glEnd();
 	
 		/* group node outline */
-		uiSetRoundBox(15);
+		uiSetRoundBox(UI_CNR_ALL);
 		glColor4ub(200, 200, 200, 140);
 		glEnable( GL_LINE_SMOOTH );
 		uiDrawBox(GL_LINE_LOOP, rect.xmin-node_group_frame, rect.ymin, rect.xmax+node_group_frame, rect.ymax+group_header, BASIS_RAD);

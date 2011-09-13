@@ -58,7 +58,7 @@ void AnimationExporter::operator() (Object *ob)
 {
 	FCurve *fcu;
 	char * transformName ;
-	bool isMatAnim = false;
+	/* bool isMatAnim = false; */ /* UNUSED */
 
 	//Export transform animations
 	if(ob->adt && ob->adt->action)
@@ -125,7 +125,7 @@ void AnimationExporter::operator() (Object *ob)
 		if (!ma) continue;
 		if(ma->adt && ma->adt->action)
 		{
-			isMatAnim = true;
+			/* isMatAnim = true; */
 			fcu = (FCurve*)ma->adt->action->curves.first;
 			while (fcu) {
 				transformName = extract_transform_name( fcu->rna_path );

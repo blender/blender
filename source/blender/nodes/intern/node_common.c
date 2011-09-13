@@ -878,7 +878,7 @@ static void loop_sync(bNodeTree *ntree, int sync_in_out)
 		while (sync && ((sync->flag & SOCK_INTERNAL) || !(sync->flag & SOCK_DYNAMIC)))
 			sync = sync->next;
 		
-		if (!(sync->flag & SOCK_INTERNAL) && (sync->flag & SOCK_DYNAMIC)) {
+		if (sync && !(sync->flag & SOCK_INTERNAL) && (sync->flag & SOCK_DYNAMIC)) {
 			if (sock->storage==NULL) {
 				/* if mirror index is 0, the sockets is newly added and a new mirror must be created. */
 				mirror = node_group_expose_socket(ntree, sock, sync_in_out);

@@ -150,20 +150,22 @@ void circ(float x, float y, float rad)
 static void view3d_draw_clipping(RegionView3D *rv3d)
 {
 	BoundBox *bb= rv3d->clipbb;
-	
+
 	if(bb) {
+		static unsigned int clipping_index[6][4]= {{0, 1, 2, 3},
+		                                           {0, 4, 5, 1},
+		                                           {4, 7, 6, 5},
+		                                           {7, 3, 2, 6},
+		                                           {1, 5, 6, 2},
+		                                           {7, 4, 0, 3}};
+
 		UI_ThemeColorShade(TH_BACK, -8);
-		
-		glBegin(GL_QUADS);
-		
-		glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[3]);
-		glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[1]);
-		glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[5]);
-		glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[3]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[6]);
-		glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[2]);
-		glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[3]);
-		
-		glEnd();
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, bb->vec);
+		glDrawElements(GL_QUADS, sizeof(clipping_index)/sizeof(unsigned int), GL_UNSIGNED_INT, clipping_index);
+		glDisableClientState(GL_VERTEX_ARRAY);
+
 	}
 }
 
@@ -194,11 +196,11 @@ static int test_clipping(const float vec[3], float clip[][4])
 {
 	float view[3];
 	copy_v3_v3(view, vec);
-	
-	if(0.0f < clip[0][3] + INPR(view, clip[0]))
-		if(0.0f < clip[1][3] + INPR(view, clip[1]))
-			if(0.0f < clip[2][3] + INPR(view, clip[2]))
-				if(0.0f < clip[3][3] + INPR(view, clip[3]))
+
+	if(0.0f < clip[0][3] + dot_v3v3(view, clip[0]))
+		if(0.0f < clip[1][3] + dot_v3v3(view, clip[1]))
+			if(0.0f < clip[2][3] + dot_v3v3(view, clip[2]))
+				if(0.0f < clip[3][3] + dot_v3v3(view, clip[3]))
 					return 0;
 
 	return 1;
@@ -216,36 +218,37 @@ int ED_view3d_test_clipping(RegionView3D *rv3d, const float vec[3], const int lo
 
 static void drawgrid_draw(ARegion *ar, float wx, float wy, float x, float y, float dx)
 {	
-	float v1[2], v2[2];
+	float verts[2][2];
 
 	x+= (wx); 
 	y+= (wy);
 
-	v1[1]= 0.0f;
-	v2[1]= (float)ar->winy;
+	/* set fixed 'Y' */
+	verts[0][1]= 0.0f;
+	verts[1][1]= (float)ar->winy;
 
-	v1[0] = v2[0] = x-dx*floorf(x/dx);
-	
-	glBegin(GL_LINES);
-	
-	while(v1[0] < ar->winx) {
-		glVertex2fv(v1);
-		glVertex2fv(v2);
-		v1[0] = v2[0] = v1[0] + dx;
+	/* iter over 'X' */
+	verts[0][0] = verts[1][0] = x-dx*floorf(x/dx);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 0, verts);
+
+	while(verts[0][0] < ar->winx) {
+		glDrawArrays(GL_LINES, 0, 2);
+		verts[0][0] = verts[1][0] = verts[0][0] + dx;
 	}
 
-	v1[0]= 0.0f;
-	v2[0]= (float)ar->winx;
+	/* set fixed 'X' */
+	verts[0][0]= 0.0f;
+	verts[1][0]= (float)ar->winx;
 
-	v1[1]= v2[1]= y-dx*floorf(y/dx);
-
-	while(v1[1] < ar->winy) {
-		glVertex2fv(v1);
-		glVertex2fv(v2);
-		v1[1] = v2[1] = v1[1] + dx;
+	/* iter over 'Y' */
+	verts[0][1]= verts[1][1]= y-dx*floorf(y/dx);
+	while(verts[0][1] < ar->winy) {
+		glDrawArrays(GL_LINES, 0, 2);
+		verts[0][1] = verts[1][1] = verts[0][1] + dx;
 	}
 
-	glEnd();
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 #define GRID_MIN_PX 6.0f
@@ -425,13 +428,10 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 
 static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 {
-	float vert[3], grid, grid_scale;
-	int a, gridlines, emphasise;
-	unsigned char col[3], col2[3];
-	short draw_line = 0;
-	
-	vert[2]= 0.0;
-	
+	float grid, grid_scale;
+	unsigned char col_grid[3];
+	const int gridlines= v3d->gridlines/2;
+
 	if(v3d->gridlines<3) return;
 	
 	grid_scale= v3d->grid;
@@ -450,115 +450,81 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 			 grid_scale = (grid_scale * (float)bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
 		}
 	}
-	
-	if(v3d->zbuf && scene->obedit) glDepthMask(0);	// for zbuffer-select
-	
-	gridlines= v3d->gridlines/2;
+
 	grid= gridlines * grid_scale;
 
-	UI_GetThemeColor3ubv(TH_GRID, col);
-	UI_GetThemeColor3ubv(TH_BACK, col2);
-	
-	/* emphasise division lines lighter instead of darker, if background is darker than grid */
-	if ( ((col[0]+col[1]+col[2])/3+10) > (col2[0]+col2[1]+col2[2])/3 )
-		emphasise = 20;
-	else
-		emphasise = -10;
-	
+	if(v3d->zbuf && scene->obedit) glDepthMask(0);	// for zbuffer-select
+
+	UI_GetThemeColor3ubv(TH_GRID, col_grid);
+
 	/* draw the Y axis and/or grid lines */
-	for(a= -gridlines;a<=gridlines;a++) {
-		if(a==0) {
-			/* check for the 'show Y axis' preference */
-			if (v3d->gridflag & V3D_SHOW_Y) { 
-				UI_make_axis_color(col, col2, 'Y');
-				glColor3ubv(col2);
-				
-				draw_line = 1;
-			} else if (v3d->gridflag & V3D_SHOW_FLOOR) {
-				UI_ThemeColorShade(TH_GRID, emphasise);
-			} else {
-				draw_line = 0;
+	if(v3d->gridflag & V3D_SHOW_FLOOR) {
+		float vert[4][3]= {{0.0f}};
+		unsigned char col_bg[3];
+		unsigned char col_grid_emphasise[3], col_grid_light[3];
+		int a;
+		int prev_emphasise= -1;
+
+		UI_GetThemeColor3ubv(TH_BACK, col_bg);
+
+		/* emphasise division lines lighter instead of darker, if background is darker than grid */
+		UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);
+		UI_GetColorPtrShade3ubv(col_grid, col_grid_emphasise,
+		                        (((col_grid[0]+col_grid[1]+col_grid[2])+30) > (col_bg[0]+col_bg[1]+col_bg[2])) ? 20 : -10);
+
+		/* set fixed axis */
+		vert[0][0]= vert[2][1]= grid;
+		vert[1][0]= vert[3][1]= -grid;
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 0, vert);
+
+		for(a= -gridlines;a<=gridlines;a++) {
+			const float line= a * grid_scale;
+			const int is_emphasise= (a % 10) == 0;
+
+			if(is_emphasise != prev_emphasise) {
+				glColor3ubv(is_emphasise ? col_grid_emphasise : col_grid_light);
+				prev_emphasise= is_emphasise;
 			}
-		} else {
-			/* check for the 'show grid floor' preference */
-			if (v3d->gridflag & V3D_SHOW_FLOOR) {
-				if( (a % 10)==0) {
-					UI_ThemeColorShade(TH_GRID, emphasise);
-				}
-				else UI_ThemeColorShade(TH_GRID, 10);
-				
-				draw_line = 1;
-			} else {
-				draw_line = 0;
-			}
+
+			/* set variable axis */
+			vert[0][1]= vert[1][1]=
+			vert[2][0]= vert[3][0]= line;
+
+			glDrawArrays(GL_LINES, 0, 4);
 		}
-		
-		if (draw_line) {
-			glBegin(GL_LINE_STRIP);
-			vert[0]= a * grid_scale;
-			vert[1]= grid;
-			glVertex3fv(vert);
-			vert[1]= -grid;
-			glVertex3fv(vert);
-			glEnd();
-		}
-	}
-	
-	/* draw the X axis and/or grid lines */
-	for(a= -gridlines;a<=gridlines;a++) {
-		if(a==0) {
-			/* check for the 'show X axis' preference */
-			if (v3d->gridflag & V3D_SHOW_X) { 
-				UI_make_axis_color(col, col2, 'X');
-				glColor3ubv(col2);
-				
-				draw_line = 1;
-			} else if (v3d->gridflag & V3D_SHOW_FLOOR) {
-				UI_ThemeColorShade(TH_GRID, emphasise);
-			} else {
-				draw_line = 0;
-			}
-		} else {
-			/* check for the 'show grid floor' preference */
-			if (v3d->gridflag & V3D_SHOW_FLOOR) {
-				if( (a % 10)==0) {
-					UI_ThemeColorShade(TH_GRID, emphasise);
-				}
-				else UI_ThemeColorShade(TH_GRID, 10);
-				
-				draw_line = 1;
-			} else {
-				draw_line = 0;
-			}
-		}
-		
-		if (draw_line) {
-			glBegin(GL_LINE_STRIP);
-			vert[1]= a * grid_scale;
-			vert[0]= grid;
-			glVertex3fv(vert );
-			vert[0]= -grid;
-			glVertex3fv(vert);
-			glEnd();
-		}
+
+		glDisableClientState(GL_VERTEX_ARRAY);
+
+		GPU_print_error("sdsd");
 	}
 	
 	/* draw the Z axis line */	
 	/* check for the 'show Z axis' preference */
-	if (v3d->gridflag & V3D_SHOW_Z) {
-		UI_make_axis_color(col, col2, 'Z');
-		glColor3ubv(col2);
-		
-		glBegin(GL_LINE_STRIP);
-		vert[0]= 0;
-		vert[1]= 0;
-		vert[2]= grid;
-		glVertex3fv(vert );
-		vert[2]= -grid;
-		glVertex3fv(vert);
-		glEnd();
+	if (v3d->gridflag & (V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_Z)) {
+		int axis;
+		for(axis= 0; axis < 3; axis++)
+		if (v3d->gridflag & (V3D_SHOW_X << axis)) {
+			float vert[3];
+			unsigned char tcol[3];
+
+			UI_make_axis_color(col_grid, tcol, 'X' + axis);
+			glColor3ubv(tcol);
+
+			glBegin(GL_LINE_STRIP);
+			zero_v3(vert);
+			vert[axis]= grid;
+			glVertex3fv(vert );
+			vert[axis]= -grid;
+			glVertex3fv(vert);
+			glEnd();
+		}
 	}
-	
+
+
+
+
 	if(v3d->zbuf && scene->obedit) glDepthMask(1);	
 	
 }
@@ -697,60 +663,63 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 		float scaled_axis[3];
 		const float scale = rv3d->dist;
 		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
-	
-		glBegin(GL_LINE_STRIP);
-			color[3] = 0.f; // more transparent toward the ends
-			glColor4fv(color);
-			add_v3_v3v3(end, o, scaled_axis);
-			glVertex3fv(end);
-	
-			// color[3] = 0.2f + fabsf(rv3d->rot_angle); // modulate opacity with angle
-			// ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2
 
-			color[3] = 0.5f; // more opaque toward the center
-			glColor4fv(color);
-			glVertex3fv(o);
-	
-			color[3] = 0.f;
-			glColor4fv(color);
-			sub_v3_v3v3(end, o, scaled_axis);
-			glVertex3fv(end);
+
+		glBegin(GL_LINE_STRIP);
+		color[3] = 0.f; // more transparent toward the ends
+		glColor4fv(color);
+		add_v3_v3v3(end, o, scaled_axis);
+		glVertex3fv(end);
+
+		// color[3] = 0.2f + fabsf(rv3d->rot_angle); // modulate opacity with angle
+		// ^^ neat idea, but angle is frame-rate dependent, so it's usually close to 0.2
+
+		color[3] = 0.5f; // more opaque toward the center
+		glColor4fv(color);
+		glVertex3fv(o);
+
+		color[3] = 0.f;
+		glColor4fv(color);
+		sub_v3_v3v3(end, o, scaled_axis);
+		glVertex3fv(end);
 		glEnd();
 		
 		// -- draw ring around rotation center --
 		{
-		#define ROT_AXIS_DETAIL 13
-		const float s = 0.05f * scale;
-		const float step = 2.f * (float)(M_PI / ROT_AXIS_DETAIL);
-		float angle;
-		int i;
+#define		ROT_AXIS_DETAIL 13
 
-		float q[4]; // rotate ring so it's perpendicular to axis
-		const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
-		if (!upright)
-			{
-			const float up[3] = {0.f, 0.f, 1.f};
-			float vis_angle, vis_axis[3];
+			const float s = 0.05f * scale;
+			const float step = 2.f * (float)(M_PI / ROT_AXIS_DETAIL);
+			float angle;
+			int i;
 
-			cross_v3_v3v3(vis_axis, up, rv3d->rot_axis);
-			vis_angle = acosf(dot_v3v3(up, rv3d->rot_axis));
-			axis_angle_to_quat(q, vis_axis, vis_angle);
+			float q[4]; // rotate ring so it's perpendicular to axis
+			const int upright = fabsf(rv3d->rot_axis[2]) >= 0.95f;
+			if (!upright) {
+				const float up[3] = {0.f, 0.f, 1.f};
+				float vis_angle, vis_axis[3];
+
+				cross_v3_v3v3(vis_axis, up, rv3d->rot_axis);
+				vis_angle = acosf(dot_v3v3(up, rv3d->rot_axis));
+				axis_angle_to_quat(q, vis_axis, vis_angle);
 			}
 
-		color[3] = 0.25f; // somewhat faint
-		glColor4fv(color);
-		glBegin(GL_LINE_LOOP);
-		for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step)
-			{
-			float p[3] = { s * cosf(angle), s * sinf(angle), 0.f };
+			color[3] = 0.25f; // somewhat faint
+			glColor4fv(color);
+			glBegin(GL_LINE_LOOP);
+			for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
+				float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
 
-			if (!upright)
-				mul_qt_v3(q, p);
+				if (!upright) {
+					mul_qt_v3(q, p);
+				}
 
-			add_v3_v3(p, o);
-			glVertex3fv(p);
+				add_v3_v3(p, o);
+				glVertex3fv(p);
 			}
-		glEnd();
+			glEnd();
+
+#undef		ROT_AXIS_DETAIL
 		}
 
 		color[3] = 1.f; // solid dot
@@ -1237,7 +1206,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 			UI_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
 
-			uiSetRoundBox(15);
+			uiSetRoundBox(UI_CNR_ALL);
 			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 		}
 	}

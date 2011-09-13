@@ -14,7 +14,7 @@ def createTexture(cont):
     object = cont.owner
 
     # get the reference pointer (ID) of the internal texture
-    ID = texture.materialID(obj, 'IMoriginal.png')
+    ID = texture.materialID(object, 'IMoriginal.png')
 
     # create a texture object
     object_texture = texture.Texture(object, ID)

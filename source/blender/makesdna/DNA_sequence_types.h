@@ -238,6 +238,8 @@ typedef struct SpeedControlVars {
 	int lastValidFrame;
 } SpeedControlVars;
 
+#define MAXSEQ          32
+
 #define SELECT 1
 
 /* Editor->over_flag */

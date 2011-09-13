@@ -44,16 +44,18 @@
 
 #include "GeometryExporter.h"
 #include "collada_internal.h"
+#include "ExportSettings.h"
 
 class MaterialsExporter: COLLADASW::LibraryMaterials
 {
 public:
-	MaterialsExporter(COLLADASW::StreamWriter *sw);
-	void exportMaterials(Scene *sce, bool export_selected);
+	MaterialsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
+	void exportMaterials(Scene *sce);
 	void operator()(Material *ma, Object *ob);
 
 private:
 	bool hasMaterials(Scene *sce);
+	const ExportSettings *export_settings;
 };
 
 // used in forEachMaterialInScene

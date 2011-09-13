@@ -88,6 +88,7 @@ class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
 struct KX_ClientObjectInfo;
+class KX_ObstacleSimulation;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -293,6 +294,9 @@ protected:
 	struct Scene* m_blenderScene;
 
 	RAS_2DFilterManager m_filtermanager;
+
+	KX_ObstacleSimulation* m_obstacleSimulation;
+
 public:	
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
@@ -585,6 +589,8 @@ public:
 	void Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 	void Render2DFilters(RAS_ICanvas* canvas);
 
+	KX_ObstacleSimulation* GetObstacleSimulation() {return m_obstacleSimulation;};
+
 #ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -597,6 +603,8 @@ public:
 	KX_PYMETHOD_DOC(KX_Scene, suspend);
 	KX_PYMETHOD_DOC(KX_Scene, resume);
 	KX_PYMETHOD_DOC(KX_Scene, get);
+	KX_PYMETHOD_DOC(KX_Scene, drawObstacleSimulation);
+
 
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

@@ -28,7 +28,7 @@
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
- *     but couldn't figure a way to do this…
+ *     but couldn't figure a way to do this...
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -61,16 +61,6 @@
 
 /* Util macro. */
 #define OUT_OF_MEMORY() ((void)printf("WeightVGProximity: Out of memory.\n"))
-
-/**
- * Returns the squared distance between two given points.
- */
-static float squared_dist(const float *a, const float *b)
-{
-	float tmp[3];
-	VECSUB(tmp, a, b);
-	return INPR(tmp, tmp);
-}
 
 /**
  * Find nearest vertex and/or edge and/or face, for each vertex (adapted from shrinkwrap.c).
@@ -126,7 +116,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 		float tmp_co[3];
 
 		/* Convert the vertex to tree coordinates. */
-		VECCOPY(tmp_co, v_cos[i]);
+		copy_v3_v3(tmp_co, v_cos[i]);
 		space_transform_apply(loc2trgt, tmp_co);
 
 		/* Use local proximity heuristics (to reduce the nearest search).
@@ -137,19 +127,19 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 		 * This will lead in prunning of the search tree.
 		 */
 		if (dist_v) {
-			nearest_v.dist = nearest_v.index != -1 ? squared_dist(tmp_co, nearest_v.co) : FLT_MAX;
+			nearest_v.dist = nearest_v.index != -1 ? len_squared_v3v3(tmp_co, nearest_v.co) : FLT_MAX;
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(treeData_v.tree, tmp_co, &nearest_v, treeData_v.nearest_callback, &treeData_v);
 			dist_v[i] = sqrtf(nearest_v.dist);
 		}
 		if (dist_e) {
-			nearest_e.dist = nearest_e.index != -1 ? squared_dist(tmp_co, nearest_e.co) : FLT_MAX;
+			nearest_e.dist = nearest_e.index != -1 ? len_squared_v3v3(tmp_co, nearest_e.co) : FLT_MAX;
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(treeData_e.tree, tmp_co, &nearest_e, treeData_e.nearest_callback, &treeData_e);
 			dist_e[i] = sqrtf(nearest_e.dist);
 		}
 		if (dist_f) {
-			nearest_f.dist = nearest_f.index != -1 ? squared_dist(tmp_co, nearest_f.co) : FLT_MAX;
+			nearest_f.dist = nearest_f.index != -1 ? len_squared_v3v3(tmp_co, nearest_f.co) : FLT_MAX;
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(treeData_f.tree, tmp_co, &nearest_f, treeData_f.nearest_callback, &treeData_f);
 			dist_f[i] = sqrtf(nearest_f.dist);
@@ -199,10 +189,24 @@ void do_map(float *weights, const int nidx, const float min_d, const float max_d
 {
 	const float range_inv= 1.0f / (max_d - min_d); /* invert since multiplication is faster */
 	unsigned int i= nidx;
-	while (i-- > 0) {
-		if     (weights[i] >= max_d) weights[i]= 1.0f; /* most likely case first */
-		else if(weights[i] <= min_d) weights[i]= 0.0f;
-		else                         weights[i]= (weights[i] - min_d) * range_inv;
+	if(max_d == min_d) {
+		while (i-- > 0) {
+			weights[i] = (weights[i] >= max_d) ? 1.0f : 0.0f; /* "Step" behavior... */
+		}
+	}
+	else if(max_d > min_d) {
+		while (i-- > 0) {
+			if     (weights[i] >= max_d) weights[i]= 1.0f; /* most likely case first */
+			else if(weights[i] <= min_d) weights[i]= 0.0f;
+			else                         weights[i]= (weights[i] - min_d) * range_inv;
+		}
+	}
+	else {
+		while (i-- > 0) {
+			if     (weights[i] <= max_d) weights[i]= 1.0f; /* most likely case first */
+			else if(weights[i] >= min_d) weights[i]= 0.0f;
+			else                         weights[i]= (weights[i] - min_d) * range_inv;
+		}
 	}
 
 	if(!ELEM(mode, MOD_WVG_MAPPING_NONE, MOD_WVG_MAPPING_CURVE)) {
@@ -371,13 +375,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	if (defgrp_idx < 0)
 		return dm;
 
-	/* XXX All this to avoid copying dm when not needed… However, it nearly doubles compute
-	 *     time! See scene 5 of the WeighVG test file…
+	/* XXX All this to avoid copying dm when not needed... However, it nearly doubles compute
+	 *     time! See scene 5 of the WeighVG test file...
 	 */
 #if 0
 	/* Get actual dverts (ie vertex group data). */
 	dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	/* If no dverts, return unmodified data… */
+	/* If no dverts, return unmodified data... */
 	if (dvert == NULL)
 		return dm;
 
@@ -391,7 +395,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Create a copy of our dmesh, only if our affected cdata layer is the same as org mesh. */
 	if (dvert == CustomData_get_layer(&ob_m->vdata, CD_MDEFORMVERT)) {
 		/* XXX Seems to create problems with weightpaint mode???
-		 *     I'm missing something here, I guess…
+		 *     I'm missing something here, I guess...
 		 */
 //		DM_set_only_copy(dm, CD_MASK_MDEFORMVERT); /* Only copy defgroup layer. */
 		ret = CDDM_copy(dm);
@@ -481,6 +485,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 					new_w[i] = dists_e ? minf(dists_e[i], new_w[i]) : new_w[i];
 					new_w[i] = dists_f ? minf(dists_f[i], new_w[i]) : new_w[i];
 				}
+				if(dists_v) MEM_freeN(dists_v);
+				if(dists_e) MEM_freeN(dists_e);
+				if(dists_f) MEM_freeN(dists_f);
 			}
 			/* Else, fall back to default obj2vert behavior. */
 			else {
@@ -492,13 +499,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		}
 	}
 
+	/* Map distances to weights. */
+	do_map(new_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->falloff_type);
+
 	/* Do masking. */
 	weightvg_do_mask(numIdx, indices, org_w, new_w, ob, ret, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, wmd->mask_texture, wmd->mask_tex_use_channel,
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
-
-	/* Map distances to weights. */
-	do_map(org_w, numIdx, wmd->min_dist, wmd->max_dist, wmd->falloff_type);
 
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
 	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);

@@ -306,7 +306,7 @@ void mul_serie_m4(float answ[][4], float m1[][4],
 	}
 }
 
-void mul_m4_v3(float mat[][4], float *vec)
+void mul_m4_v3(float mat[][4], float vec[3])
 {
 	float x,y;
 
@@ -317,7 +317,7 @@ void mul_m4_v3(float mat[][4], float *vec)
 	vec[2]=x*mat[0][2] + y*mat[1][2] + mat[2][2]*vec[2] + mat[3][2];
 }
 
-void mul_v3_m4v3(float *in, float mat[][4], float *vec)
+void mul_v3_m4v3(float in[3], float mat[][4], const float vec[3])
 {
 	float x,y;
 
@@ -329,7 +329,7 @@ void mul_v3_m4v3(float *in, float mat[][4], float *vec)
 }
 
 /* same as mul_m4_v3() but doesnt apply translation component */
-void mul_mat3_m4_v3(float mat[][4], float *vec)
+void mul_mat3_m4_v3(float mat[][4], float vec[3])
 {
 	float x,y;
 
@@ -384,7 +384,7 @@ void mul_m3_v3(float M[3][3], float r[3])
 	copy_v3_v3(r, tmp);
 }
 
-void mul_transposed_m3_v3(float mat[][3], float *vec)
+void mul_transposed_m3_v3(float mat[][3], float vec[3])
 {
 	float x,y;
 
@@ -422,7 +422,7 @@ void mul_mat3_m4_fl(float m[4][4], float f)
 			m[i][j] *= f;
 }
 
-void mul_m3_v3_double(float mat[][3], double *vec)
+void mul_m3_v3_double(float mat[][3], double vec[3])
 {
 	double x,y;
 
@@ -979,14 +979,14 @@ void size_to_mat4(float mat[][4], const float size[3])
 	copy_m4_m3(mat, tmat);
 }
 
-void mat3_to_size(float *size, float mat[][3])
+void mat3_to_size(float size[3], float mat[][3])
 {
 	size[0]= len_v3(mat[0]);
 	size[1]= len_v3(mat[1]);
 	size[2]= len_v3(mat[2]);
 }
 
-void mat4_to_size(float *size, float mat[][4])
+void mat4_to_size(float size[3], float mat[][4])
 {
 	size[0]= len_v3(mat[0]);
 	size[1]= len_v3(mat[1]);

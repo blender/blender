@@ -691,7 +691,7 @@ static int bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 
 	update_animation_flags_exec(C, NULL);
 
-	for(cfra = scene->r.sfra; cfra <= scene->r.efra; cfra++)
+	for(cfra = scene->r.sfra > 0 ? scene->r.sfra - 1 : 0; cfra <= scene->r.efra + 1; cfra++)
 	{
 		scene->r.cfra = cfra;
 		scene_update_for_newframe(bmain, scene, scene->lay);

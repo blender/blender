@@ -1659,8 +1659,8 @@ static void *editMesh_to_undoMesh(void *emv)
 	/* now copy vertices */
 	a = 0;
 	for(eve=em->verts.first; eve; eve= eve->next, evec++, a++) {
-		VECCOPY(evec->co, eve->co);
-		VECCOPY(evec->no, eve->no);
+		copy_v3_v3(evec->co, eve->co);
+		copy_v3_v3(evec->no, eve->no);
 
 		evec->f= eve->f;
 		evec->h= eve->h;
@@ -1761,7 +1761,7 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 		eve= addvertlist(em, evec->co, NULL);
 		evar[a]= eve;
 
-		VECCOPY(eve->no, evec->no);
+		copy_v3_v3(eve->no, evec->no);
 		eve->f= evec->f;
 		eve->h= evec->h;
 		eve->keyindex= evec->keyindex;

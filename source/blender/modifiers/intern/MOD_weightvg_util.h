@@ -44,7 +44,7 @@ struct Tex;
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
- *     but couldn't figure a way to do this…
+ *     but couldn't figure a way to do this...
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -53,7 +53,7 @@ struct Tex;
  * Util functions.                    *
  **************************************/
 
-/* We cannot divide by zero (what a surprise…).
+/* We cannot divide by zero (what a surprise...).
  * So if -MOD_WEIGHTVGROUP_DIVMODE_ZEROFLOOR < weightf < MOD_WEIGHTVGROUP_DIVMODE_ZEROFLOOR,
  * we clamp weightf to this value (or its negative version).
  * Also used to avoid null power factor.

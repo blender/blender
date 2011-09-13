@@ -43,11 +43,13 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "ExportSettings.h"
+
 class EffectsExporter: COLLADASW::LibraryEffects
 {
 public:
-	EffectsExporter(COLLADASW::StreamWriter *sw);
-	void exportEffects(Scene *sce, bool export_selected);
+	EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
+	void exportEffects(Scene *sce);
 
 	void operator()(Material *ma, Object *ob);
 	
@@ -66,6 +68,10 @@ private:
 	void writePhong(COLLADASW::EffectProfile &ep, Material *ma);
 	
 	bool hasEffects(Scene *sce);
+	
+	const ExportSettings *export_settings;
+	
+	Scene *scene;
 };
 
 #endif

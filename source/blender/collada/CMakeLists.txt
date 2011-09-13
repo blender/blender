@@ -52,6 +52,7 @@ set(SRC
 	DocumentImporter.cpp
 	EffectExporter.cpp
 	ErrorHandler.cpp
+	ExportSettings.cpp
 	ExtraHandler.cpp
 	ExtraTags.cpp
 	GeometryExporter.cpp
@@ -77,6 +78,7 @@ set(SRC
 	DocumentImporter.h
 	EffectExporter.h
 	ErrorHandler.h
+	ExportSettings.h
 	ExtraHandler.h
 	ExtraTags.h
 	GeometryExporter.h

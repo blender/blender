@@ -452,15 +452,8 @@ if(UNIX AND NOT APPLE)
 	if(WITH_OPENCOLLADA)
 		find_package(OpenCOLLADA)
 		if(OPENCOLLADA_FOUND)
-			set(PCRE /usr CACHE PATH "PCRE Directory")
-			mark_as_advanced(PCRE)
-			set(PCRE_LIBPATH ${PCRE}/lib)
-			set(PCRE_LIB pcre)
-
-			set(EXPAT /usr CACHE PATH "Expat Directory")
-			mark_as_advanced(EXPAT)
-			set(EXPAT_LIBPATH ${EXPAT}/lib)
-			set(EXPAT_LIB expat)
+			find_package(XML2)
+			find_package(PCRE)
 		else()
 			set(WITH_OPENCOLLADA OFF)
 		endif()
@@ -709,7 +702,7 @@ elseif(WIN32)
 				${LIBDIR}/opencollada/lib/ftoa.lib
 				${LIBDIR}/opencollada/lib/UTF.lib
 			)
-			set(PCRE_LIB
+			set(PCRE_LIBRARIES
 				${LIBDIR}/opencollada/lib/pcre.lib
 			)
 		endif()
@@ -851,7 +844,7 @@ elseif(WIN32)
 			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib ${OPENCOLLADA}/lib)
 			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa)
-			set(PCRE_LIB pcre)
+			set(PCRE_LIBRARIES pcre)
 		endif()
 		
 		if(WITH_CODEC_FFMPEG)
@@ -1073,7 +1066,7 @@ elseif(APPLE)
 		#pcre is bundled with openCollada
 		#set(PCRE ${LIBDIR}/pcre)
 		#set(PCRE_LIBPATH ${PCRE}/lib)
-		set(PCRE_LIB pcre)
+		set(PCRE_LIBRARIES pcre)
 		#libxml2 is used
 		#set(EXPAT ${LIBDIR}/expat)
 		#set(EXPAT_LIBPATH ${EXPAT}/lib)

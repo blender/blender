@@ -40,6 +40,7 @@
 #include "RNA_types.h"
 
 #include "bpy.h"
+#include "gpu.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"
 #include "bpy_traceback.h"
@@ -181,6 +182,7 @@ static struct _inittab bpy_internal_modules[]= {
 #ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
 #endif
+	{(char *)"gpu", GPU_initPython},
 	{NULL, NULL}
 };
 

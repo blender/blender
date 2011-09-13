@@ -121,6 +121,20 @@ void ED_base_object_activate(bContext *C, Base *base)
 
 /********************** Selection Operators **********************/
 
+static int objects_selectable_poll(bContext *C)
+{
+	/* we don't check for linked scenes here, selection is
+	   still allowed then for inspection of scene */
+	Object *obact= CTX_data_active_object(C);
+
+	if(CTX_data_edit_object(C))
+		return 0;
+	if(obact && obact->mode)
+		return 0;
+	
+	return 1;
+}
+
 /************************ Select by Type *************************/
 
 static int object_select_by_type_exec(bContext *C, wmOperator *op)
@@ -159,7 +173,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_select_by_type_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -341,7 +355,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_select_linked_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -667,7 +681,7 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_select_grouped_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -716,7 +730,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	/* api callbacks */
 	/*ot->invoke = XXX - need a int grid popup*/
 	ot->exec= object_select_by_layer_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -754,7 +768,7 @@ void OBJECT_OT_select_inverse(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_select_inverse_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -815,7 +829,7 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_select_all_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -864,7 +878,7 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_select_same_group_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -917,7 +931,7 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_select_mirror_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -974,7 +988,7 @@ void OBJECT_OT_select_name(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= object_select_name_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1022,7 +1036,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	/* api callbacks */
 	/*ot->invoke= object_select_random_invoke XXX - need a number popup ;*/
 	ot->exec = object_select_random_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

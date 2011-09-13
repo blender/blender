@@ -827,6 +827,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	check_persistant(soops, te, id, type, index);
 	tselem= TREESTORE(te);	
 	
+	/* if we are searching for something expand to see child elements */
+	if(SEARCHING_OUTLINER(soops))
+		tselem->flag |= TSE_CHILDSEARCH;
+	
 	te->parent= parent;
 	te->index= index;	// for data arays
 	if(ELEM3(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP));
@@ -981,6 +985,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else
 				te->name= (char*)RNA_struct_ui_name(ptr->type);
 
+			/* If searching don't expand RNA entries */
+			if(SEARCHING_OUTLINER(soops) && BLI_strcasecmp("RNA",te->name)==0) tselem->flag &= ~TSE_CHILDSEARCH;
+
 			iterprop= RNA_struct_iterator_property(ptr->type);
 			tot= RNA_property_collection_length(ptr, iterprop);
 
@@ -989,7 +996,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				if(!tselem->used)
 					tselem->flag &= ~TSE_CLOSED;
 
-			if(!(tselem->flag & TSE_CLOSED)) {
+			if(TSELEM_OPEN(tselem,soops)) {
 				for(a=0; a<tot; a++)
 					outliner_add_element(soops, &te->subtree, (void*)ptr, te, TSE_RNA_PROPERTY, a);
 			}
@@ -1010,11 +1017,14 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			te->directdata= prop;
 			te->rnaptr= *ptr;
 
+			/* If searching don't expand RNA entries */
+			if(SEARCHING_OUTLINER(soops) && BLI_strcasecmp("RNA",te->name)==0) tselem->flag &= ~TSE_CHILDSEARCH;
+
 			if(proptype == PROP_POINTER) {
 				pptr= RNA_property_pointer_get(ptr, prop);
 
 				if(pptr.data) {
-					if(!(tselem->flag & TSE_CLOSED))
+					if(TSELEM_OPEN(tselem,soops))
 						outliner_add_element(soops, &te->subtree, (void*)&pptr, te, TSE_RNA_STRUCT, -1);
 					else
 						te->flag |= TE_LAZY_CLOSED;
@@ -1023,7 +1033,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else if(proptype == PROP_COLLECTION) {
 				tot= RNA_property_collection_length(ptr, prop);
 
-				if(!(tselem->flag & TSE_CLOSED)) {
+				if(TSELEM_OPEN(tselem,soops)) {
 					for(a=0; a<tot; a++) {
 						RNA_property_collection_lookup_int(ptr, prop, a, &pptr);
 						outliner_add_element(soops, &te->subtree, (void*)&pptr, te, TSE_RNA_STRUCT, a);
@@ -1035,7 +1045,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else if(ELEM3(proptype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
 				tot= RNA_property_array_length(ptr, prop);
 
-				if(!(tselem->flag & TSE_CLOSED)) {
+				if(TSELEM_OPEN(tselem,soops)) {
 					for(a=0; a<tot; a++)
 						outliner_add_element(soops, &te->subtree, (void*)ptr, te, TSE_RNA_ARRAY_ELEM, a);
 				}
@@ -1068,7 +1078,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		te->directdata= idv;
 		te->name= km->idname;
 		
-		if(!(tselem->flag & TSE_CLOSED)) {
+		if(TSELEM_OPEN(tselem,soops)) {
 			a= 0;
 			
 			for (kmi= km->items.first; kmi; kmi= kmi->next, a++) {
@@ -1368,7 +1378,10 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 			 */
 			tselem= TREESTORE(te);
 			
-			if ((tselem->flag & TSE_CLOSED) || outliner_filter_tree(soops, &te->subtree)==0) { 
+			/* flag as not a found item */
+			tselem->flag &= ~TSE_SEARCHMATCH;
+			
+			if ((!TSELEM_OPEN(tselem,soops)) || outliner_filter_tree(soops, &te->subtree)==0) { 
 				outliner_free_tree(&te->subtree);
 				BLI_remlink(lb, te);
 				
@@ -1377,6 +1390,11 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 			}
 		}
 		else {
+			tselem= TREESTORE(te);
+			
+			/* flag as a found item - we can then highlight it */
+			tselem->flag |= TSE_SEARCHMATCH;
+			
 			/* filter subtree too */
 			outliner_filter_tree(soops, &te->subtree);
 		}
@@ -1398,6 +1416,14 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	TreeElement *te=NULL, *ten;
 	TreeStoreElem *tselem;
 	int show_opened= (soops->treestore==NULL); /* on first view, we open scenes */
+
+	/* Are we looking for something - we want to tag parents to filter child matches
+	 - NOT in datablocks view - searching all datablocks takes way too long to be useful
+	 - this variable is only set once per tree build */
+	if(soops->search_string[0]!=0 && soops->outlinevis!=SO_DATABLOCKS)
+		soops->search_flags |= SO_SEARCH_RECURSIVE;
+	else
+		soops->search_flags &= ~SO_SEARCH_RECURSIVE;
 
 	if(soops->tree.first && (soops->storeflag & SO_TREESTORE_REDRAW))
 		return;

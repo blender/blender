@@ -68,6 +68,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Screw, "SCREW", ICON_MOD_SCREW, "Screw", ""},
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
+	{0, "", 0, "Modify", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
 	{eModifierType_WeightVGEdit, "VERTEX_WEIGHT_EDIT", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Edit", ""},
 	{eModifierType_WeightVGMix, "VERTEX_WEIGHT_MIX", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Mix", ""},
@@ -90,6 +91,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Collision, "COLLISION", ICON_MOD_PHYSICS, "Collision", ""},
 	{eModifierType_Explode, "EXPLODE", ICON_MOD_EXPLODE, "Explode", ""},
 	{eModifierType_Fluidsim, "FLUID_SIMULATION", ICON_MOD_FLUIDSIM, "Fluid Simulation", ""},
+	{eModifierType_NavMesh, "NAVMESH", ICON_MOD_PHYSICS, "Navigation mesh", ""},
 	{eModifierType_ParticleInstance, "PARTICLE_INSTANCE", ICON_MOD_PARTICLES, "Particle Instance", ""},
 	{eModifierType_ParticleSystem, "PARTICLE_SYSTEM", ICON_MOD_PARTICLES, "Particle System", ""},
 	{eModifierType_Smoke, "SMOKE", ICON_MOD_SMOKE, "Smoke", ""},
@@ -187,6 +189,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_ScrewModifier;
 		case eModifierType_Warp:
 			return &RNA_WarpModifier;
+		case eModifierType_NavMesh:
+			return &RNA_NavMeshModifier;
 		case eModifierType_WeightVGEdit:
 			return &RNA_VertexWeightEditModifier;
 		case eModifierType_WeightVGMix:
@@ -2486,6 +2490,17 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 }
 
+static void rna_def_modifier_navmesh(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	/* PropertyRNA *prop; */ /* UNUSED */
+
+	srna= RNA_def_struct(brna, "NavMeshModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "NavMesh Modifier", "NavMesh modifier");
+	RNA_def_struct_sdna(srna, "NavMeshModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_DECIM);
+}
+
 static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 {
 	static EnumPropertyItem weightvg_mask_tex_map_items[] = {
@@ -2510,7 +2525,7 @@ static void rna_def_modifier_weightvg_mask(BlenderRNA *brna, StructRNA *srna)
 
 	prop= RNA_def_property(srna, "mask_constant", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, -1.0, 1.0, 10, 0);
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 10, 0);
 	RNA_def_property_ui_text(prop, "Influence", "Global influence of current modifications on vgroup.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -2707,9 +2722,9 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem proximity_geometry_items[] = {
-		{MOD_WVG_PROXIMITY_GEOM_VERTS, "VERTEX", ICON_VERTEXSEL, "Vertex", ""},
-		{MOD_WVG_PROXIMITY_GEOM_EDGES, "EDGE", ICON_EDGESEL, "Edge", ""},
-		{MOD_WVG_PROXIMITY_GEOM_FACES, "FACE", ICON_FACESEL, "Face", ""},
+		{MOD_WVG_PROXIMITY_GEOM_VERTS, "VERTEX", ICON_VERTEXSEL, "Vertex", "Compute distance to nearest vertex."},
+		{MOD_WVG_PROXIMITY_GEOM_EDGES, "EDGE", ICON_EDGESEL, "Edge", "Compute distance to nearest edge."},
+		{MOD_WVG_PROXIMITY_GEOM_FACES, "FACE", ICON_FACESEL, "Face", "Compute distance to nearest face."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem weightvg_proximity_falloff_type_items[] = {
@@ -2748,7 +2763,9 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "proximity_flags");
 	RNA_def_property_enum_items(prop, proximity_geometry_items);
 	RNA_def_property_flag(prop, PROP_ENUM_FLAG); /* important to run before default set */
-	RNA_def_property_ui_text(prop, "Proximity Geometry", "Use shortest distance to target object's geometry as weight");
+	RNA_def_property_ui_text(prop, "Proximity Geometry",
+	                         "Use the shortest computed distance to target object's geometry "
+	                         "as weight.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
@@ -2760,13 +2777,13 @@ static void rna_def_modifier_weightvgproximity(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "min_dist", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0, 1000.0, 10, 0);
-	RNA_def_property_ui_text(prop, "Lowest Dist", "Distance mapping to weight 0.0.");
+	RNA_def_property_ui_text(prop, "Lowest Dist", "Distance mapping to weight 0.0 (or weight 1.0 if above Highest Dist).");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "max_dist", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0, 1000.0, 10, 0);
-	RNA_def_property_ui_text(prop, "Highest Dist", "Distance mapping to weight 1.0.");
+	RNA_def_property_ui_text(prop, "Highest Dist", "Distance mapping to weight 1.0 (or weight 0.0 if below Lowest Dist).");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
@@ -2875,6 +2892,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_smoke(brna);
 	rna_def_modifier_solidify(brna);
 	rna_def_modifier_screw(brna);
+	rna_def_modifier_navmesh(brna);
 	rna_def_modifier_weightvgedit(brna);
 	rna_def_modifier_weightvgmix(brna);
 	rna_def_modifier_weightvgproximity(brna);
