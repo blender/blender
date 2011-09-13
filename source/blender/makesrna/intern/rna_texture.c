@@ -48,7 +48,7 @@
 
 #include "BKE_node.h"
 
-static EnumPropertyItem texture_filter_items[] = {
+EnumPropertyItem texture_filter_items[] = {
 	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
 	{TXF_FELINE, "FELINE", 0, "FELINE", ""},
@@ -1820,6 +1820,8 @@ static void rna_def_texture(BlenderRNA *brna)
 	rna_def_texture_pointdensity(brna);
 	rna_def_texture_voxeldata(brna);
 	/* XXX add more types here .. */
+
+	RNA_api_texture(srna);
 }
 
 void RNA_def_texture(BlenderRNA *brna)

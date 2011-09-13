@@ -54,6 +54,9 @@ def draw_gpencil_tools(context, layout):
     row = col.row()
     row.operator("gpencil.draw", text="Draw").mode = 'DRAW'
     row.operator("gpencil.draw", text="Line").mode = 'DRAW_STRAIGHT'
+
+    row = col.row()
+    row.operator("gpencil.draw", text="Poly").mode = 'DRAW_POLY'
     row.operator("gpencil.draw", text="Erase").mode = 'ERASER'
 
     row = col.row()

@@ -220,7 +220,7 @@ void MeshImporter::set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
 
 	if (quad) uvs.getUV(indices[index + 3], mtface->uv[3]);
 
-#if 1 // #ifdef COLLADA_DEBUG
+#ifdef COLLADA_DEBUG
 	if (quad) {
 		fprintf(stderr, "face uv:\n"
 				"((%d, %d, %d, %d))\n"
@@ -796,7 +796,7 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId>::iterator it;
 	it=materials_mapped_to_geom.find(*geom_uid);
 	while(it!=materials_mapped_to_geom.end()) {
-		if(it->second == ma_uid) return NULL; // do nothing if already found
+		if(it->second == ma_uid && it->first == *geom_uid) return NULL; // do nothing if already found
 		it++;
 	}
 	// first time we get geom_uid, ma_uid pair. Save for later check.

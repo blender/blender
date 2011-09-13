@@ -1678,7 +1678,14 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	if (RNA_property_is_set(op->ptr, "value"))
 	{
 		float values[4]= {0}; /* incase value isn't length 4, avoid uninitialized memory  */
-		RNA_float_get_array(op->ptr, "value", values);
+		PropertyRNA *prop= RNA_struct_find_property(op->ptr, "value");
+
+		if(RNA_property_array_check(prop)) {
+			RNA_float_get_array(op->ptr, "value", values);
+		} else {
+			values[0]= RNA_float_get(op->ptr, "value");
+		}
+
 		QUATCOPY(t->values, values);
 		QUATCOPY(t->auto_values, values);
 		t->flag |= T_AUTOVALUES;

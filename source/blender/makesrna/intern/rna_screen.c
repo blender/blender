@@ -72,7 +72,8 @@ static void rna_Screen_scene_update(bContext *C, PointerRNA *ptr)
 {
 	bScreen *sc= (bScreen*)ptr->data;
 
-	/* exception: can't set screens inside of area/region handers */
+	/* exception: can't set screens inside of area/region handers, and must
+	   use context so notifier gets to the right window  */
 	if(sc->newscene) {
 		WM_event_add_notifier(C, NC_SCENE|ND_SCENEBROWSE, sc->newscene);
 		sc->newscene= NULL;

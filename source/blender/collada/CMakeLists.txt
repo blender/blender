@@ -51,6 +51,7 @@ set(SRC
 	DocumentExporter.cpp
 	DocumentImporter.cpp
 	EffectExporter.cpp
+	ErrorHandler.cpp
 	ExtraHandler.cpp
 	ExtraTags.cpp
 	GeometryExporter.cpp
@@ -60,6 +61,7 @@ set(SRC
 	MaterialExporter.cpp
 	MeshImporter.cpp
 	SkinInfo.cpp
+	SceneExporter.cpp
 	TransformReader.cpp
 	TransformWriter.cpp
 	collada.cpp
@@ -74,6 +76,7 @@ set(SRC
 	DocumentExporter.h
 	DocumentImporter.h
 	EffectExporter.h
+	ErrorHandler.h
 	ExtraHandler.h
 	ExtraTags.h
 	GeometryExporter.h
@@ -83,6 +86,7 @@ set(SRC
 	MaterialExporter.h
 	MeshImporter.h
 	SkinInfo.h
+	SceneExporter.h
 	TransformReader.h
 	TransformWriter.h
 	collada.h

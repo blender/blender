@@ -32,6 +32,7 @@ set(INC
 	../blenlib
 	../blenloader
 	../makesdna
+	../makesrna
 	../render/extern/include
 	../../../intern/elbeem/extern
 	../../../intern/guardedalloc
@@ -80,11 +81,16 @@ set(SRC
 	intern/MOD_uvproject.c
 	intern/MOD_warp.c
 	intern/MOD_wave.c
+	intern/MOD_weightvg_util.c
+	intern/MOD_weightvgedit.c
+	intern/MOD_weightvgmix.c
+	intern/MOD_weightvgproximity.c
 
 	MOD_modifiertypes.h
 	intern/MOD_boolean_util.h
 	intern/MOD_fluidsim_util.h
 	intern/MOD_util.h
+	intern/MOD_weightvg_util.h
 )
 
 if(WITH_MOD_BOOLEAN)

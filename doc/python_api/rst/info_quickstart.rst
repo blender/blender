@@ -156,7 +156,7 @@ Note that these properties can only be assigned  basic Python types.
 
 * array of ints/floats
 
-* dictionary (only string keys types on this list)
+* dictionary (only string keys are supported, values must be basic types too)
 
 These properties are valid outside of Python. They can be animated by curves or used in driver paths.
 

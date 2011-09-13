@@ -90,12 +90,6 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 	COLLADAFW::FloatOrDoubleArray& input = curve->getInputValues();
 	COLLADAFW::FloatOrDoubleArray& output = curve->getOutputValues();
 
-	if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
-		curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP ) {
-			COLLADAFW::FloatOrDoubleArray& intan = curve->getInTangentValues();
-			COLLADAFW::FloatOrDoubleArray& outtan = curve->getOutTangentValues();
-	}
-
 	float fps = (float)FPS;
 	size_t dim = curve->getOutDimension();
 	unsigned int i;
@@ -572,7 +566,7 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 }
 
 //creates the rna_paths and array indices of fcurves from animations using color and bound animation class of each animation.
-void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves ,char * anim_type)
+void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves ,const char * anim_type)
 {
 	char rna_path[100];
 	BLI_strncpy(rna_path,anim_type, sizeof(rna_path));
@@ -615,7 +609,7 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 
 }
 
-void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, char * anim_type)
+void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type)
 {
 	char rna_path[100];
 	if (animlist_map.find(listid) == animlist_map.end()) return ;
@@ -803,7 +797,6 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 	}
 
 	bAction * act;
-	bActionGroup *grp = NULL;
 
 	if ( (animType->transform) != 0 )
 	{
@@ -1059,12 +1052,14 @@ AnimationImporter::AnimMix* AnimationImporter::get_animation_type ( const COLLAD
 			const COLLADAFW::UniqueId & matuid = matBinds[j].getReferencedMaterial();
 			const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
 			const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
-			COLLADAFW::EffectCommon *efc = commonEffects[0];
-			types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
-			types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
-			types->material =  setAnimType(&(efc->getDiffuse().getColor()),(types->material), MATERIAL_DIFF_COLOR);
-			// types->material =  setAnimType(&(efc->get()),(types->material), MATERIAL_TRANSPARENCY);
-			types->material =  setAnimType(&(efc->getIndexOfRefraction()),(types->material), MATERIAL_IOR);
+			if(!commonEffects.empty()) {
+				COLLADAFW::EffectCommon *efc = commonEffects[0];
+				types->material =  setAnimType(&(efc->getShininess()),(types->material), MATERIAL_SHININESS);
+				types->material =  setAnimType(&(efc->getSpecular().getColor()),(types->material), MATERIAL_SPEC_COLOR);
+				types->material =  setAnimType(&(efc->getDiffuse().getColor()),(types->material), MATERIAL_DIFF_COLOR);
+				// types->material =  setAnimType(&(efc->get()),(types->material), MATERIAL_TRANSPARENCY);
+				types->material =  setAnimType(&(efc->getIndexOfRefraction()),(types->material), MATERIAL_IOR);
+			}
 		}
 	}
 	return types;

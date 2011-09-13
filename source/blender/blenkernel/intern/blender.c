@@ -324,17 +324,14 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	MEM_freeN(bfd);
 }
 
-static int handle_subversion_warning(Main *main)
+static int handle_subversion_warning(Main *main, ReportList *reports)
 {
 	if(main->minversionfile > BLENDER_VERSION ||
 	   (main->minversionfile == BLENDER_VERSION && 
 		 main->minsubversionfile > BLENDER_SUBVERSION)) {
-		
-		char str[128];
-		
-		BLI_snprintf(str, sizeof(str), "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
-// XXX		error(str);
+		BKE_reportf(reports, RPT_ERROR, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
 	}
+
 	return 1;
 }
 
@@ -392,7 +389,7 @@ int BKE_read_file(bContext *C, const char *filepath, ReportList *reports)
 	if (bfd) {
 		if(bfd->user) retval= BKE_READ_FILE_OK_USERPREFS;
 		
-		if(0==handle_subversion_warning(bfd->main)) {
+		if(0==handle_subversion_warning(bfd->main, reports)) {
 			free_main(bfd->main);
 			MEM_freeN(bfd);
 			bfd= NULL;
