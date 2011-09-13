@@ -104,11 +104,11 @@ BVHTree *bvhtree_build_from_mvert ( MFace *mfaces, unsigned int numfaces, MVert 
 	// fill tree
 	for ( i = 0; i < numfaces; i++, tface++ )
 	{
-		VECCOPY ( &co[0*3], x[tface->v1].co );
-		VECCOPY ( &co[1*3], x[tface->v2].co );
-		VECCOPY ( &co[2*3], x[tface->v3].co );
+		copy_v3_v3 ( &co[0*3], x[tface->v1].co );
+		copy_v3_v3 ( &co[1*3], x[tface->v2].co );
+		copy_v3_v3 ( &co[2*3], x[tface->v3].co );
 		if ( tface->v4 )
-			VECCOPY ( &co[3*3], x[tface->v4].co );
+			copy_v3_v3 ( &co[3*3], x[tface->v4].co );
 
 		BLI_bvhtree_insert ( tree, i, co, ( mfaces->v4 ? 4 : 3 ) );
 	}
@@ -133,21 +133,21 @@ void bvhtree_update_from_mvert ( BVHTree * bvhtree, MFace *faces, int numfaces, 
 	{
 		for ( i = 0; i < numfaces; i++, mfaces++ )
 		{
-			VECCOPY ( &co[0*3], x[mfaces->v1].co );
-			VECCOPY ( &co[1*3], x[mfaces->v2].co );
-			VECCOPY ( &co[2*3], x[mfaces->v3].co );
+			copy_v3_v3 ( &co[0*3], x[mfaces->v1].co );
+			copy_v3_v3 ( &co[1*3], x[mfaces->v2].co );
+			copy_v3_v3 ( &co[2*3], x[mfaces->v3].co );
 			if ( mfaces->v4 )
-				VECCOPY ( &co[3*3], x[mfaces->v4].co );
+				copy_v3_v3 ( &co[3*3], x[mfaces->v4].co );
 
 			// copy new locations into array
 			if ( moving && xnew )
 			{
 				// update moving positions
-				VECCOPY ( &co_moving[0*3], xnew[mfaces->v1].co );
-				VECCOPY ( &co_moving[1*3], xnew[mfaces->v2].co );
-				VECCOPY ( &co_moving[2*3], xnew[mfaces->v3].co );
+				copy_v3_v3 ( &co_moving[0*3], xnew[mfaces->v1].co );
+				copy_v3_v3 ( &co_moving[1*3], xnew[mfaces->v2].co );
+				copy_v3_v3 ( &co_moving[2*3], xnew[mfaces->v3].co );
 				if ( mfaces->v4 )
-					VECCOPY ( &co_moving[3*3], xnew[mfaces->v4].co );
+					copy_v3_v3 ( &co_moving[3*3], xnew[mfaces->v4].co );
 
 				ret = BLI_bvhtree_update_node ( bvhtree, i, co, co_moving, ( mfaces->v4 ? 4 : 3 ) );
 			}
@@ -550,7 +550,7 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			float temp[3], spf;
 
 			// calculate tangential velocity
-			VECCOPY ( temp, collpair->normal );
+			copy_v3_v3 ( temp, collpair->normal );
 			mul_v3_fl( temp, magrelVel );
 			VECSUB ( vrel_t_pre, relativeVelocity, temp );
 
@@ -2346,7 +2346,7 @@ static int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, Collision
 					if ( verts[i].impulse_count )
 					{
 						VECADDMUL ( verts[i].tv, verts[i].impulse, 1.0f / verts[i].impulse_count );
-						VECCOPY ( verts[i].impulse, tnull );
+						copy_v3_v3 ( verts[i].impulse, tnull );
 						verts[i].impulse_count = 0;
 
 						ret++;

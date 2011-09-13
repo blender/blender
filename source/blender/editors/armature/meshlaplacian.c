@@ -518,7 +518,7 @@ static float heat_source_distance(LaplacianSystem *sys, int vertex, int source)
 	dist= normalize_v3(d);
 
 	/* if the vertex normal does not point along the bone, increase distance */
-	cosine= INPR(d, sys->heat.vnors[vertex]);
+	cosine= dot_v3v3(d, sys->heat.vnors[vertex]);
 
 	return dist/(0.5f*(cosine + 1.001f));
 }
@@ -1120,7 +1120,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	cross_v3_v3v3(pvec, dir, edge2);
 
 	/* if determinant is near zero, ray lies in plane of triangle */
-	det = INPR(edge1, pvec);
+	det = dot_v3v3(edge1, pvec);
 
 	if (det == 0.0f)
 		return 0;
@@ -1130,7 +1130,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	sub_v3_v3v3(tvec, orig, vert0);
 
 	/* calculate U parameter and test bounds */
-	u = INPR(tvec, pvec) * inv_det;
+	u = dot_v3v3(tvec, pvec) * inv_det;
 	if (u < -EPSILON || u > 1.0f+EPSILON)
 		return 0;
 
@@ -1138,7 +1138,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	cross_v3_v3v3(qvec, tvec, edge1);
 
 	/* calculate V parameter and test bounds */
-	v = INPR(dir, qvec) * inv_det;
+	v = dot_v3v3(dir, qvec) * inv_det;
 	if (v < -EPSILON || u + v > 1.0f+EPSILON)
 		return 0;
 
@@ -1153,10 +1153,10 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	/* check if it is within the length of the line segment */
 	sub_v3_v3v3(isectdir, isectco, orig);
 
-	if(INPR(dir, isectdir) < -EPSILON)
+	if(dot_v3v3(dir, isectdir) < -EPSILON)
 		return 0;
 	
-	if(INPR(dir, dir) + EPSILON < INPR(isectdir, isectdir))
+	if(dot_v3v3(dir, dir) + EPSILON < dot_v3v3(isectdir, isectdir))
 		return 0;
 
 	return 1;
@@ -1202,7 +1202,7 @@ static int meshdeform_intersect(MeshDeformBind *mdb, MeshDeformIsect *isec)
 			if(len < isec->labda) {
 				isec->labda= len;
 				isec->face = mface;
-				isec->isect= (INPR(isec->vec, nor) <= 0.0f);
+				isec->isect= (dot_v3v3(isec->vec, nor) <= 0.0f);
 				is= 1;
 			}
 		}

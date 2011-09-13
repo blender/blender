@@ -74,7 +74,6 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
 	GlyphCacheBLF *gc;
-	int i;
 
 	gc= (GlyphCacheBLF *)MEM_mallocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
 	gc->next= NULL;
@@ -82,10 +81,8 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 	gc->size= font->size;
 	gc->dpi= font->dpi;
 
-	for (i= 0; i < 257; i++) {
-		gc->bucket[i].first= NULL;
-		gc->bucket[i].last= NULL;
-	}
+	memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
+	memset(gc->bucket, 0, sizeof(gc->bucket));
 
 	gc->textures= (GLuint *)malloc(sizeof(GLuint)*256);
 	gc->ntex= 256;
@@ -136,7 +133,9 @@ void blf_glyph_cache_clear(FontBLF *font)
 		}
 	}
 
-	memset(font->glyph_ascii_table, 0, sizeof(font->glyph_ascii_table));
+	if(font->glyph_cache) {
+		memset(font->glyph_cache->glyph_ascii_table, 0, sizeof(font->glyph_cache->glyph_ascii_table));
+	}
 }
 
 void blf_glyph_cache_free(GlyphCacheBLF *gc)

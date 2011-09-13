@@ -428,7 +428,7 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 	surfnor= RE_vlakren_get_surfnor(obr, vlr, 0);
 	if(surfnor) {
 		surfnor1= RE_vlakren_get_surfnor(obr, vlr1, 1);
-		VECCOPY(surfnor1, surfnor);
+		copy_v3_v3(surfnor1, surfnor);
 	}
 
 	tangent= RE_vlakren_get_nmap_tangent(obr, vlr, 0);
@@ -451,13 +451,12 @@ void RE_vlakren_get_normal(Render *UNUSED(re), ObjectInstanceRen *obi, VlakRen *
 	float (*nmat)[3]= obi->nmat;
 
 	if(obi->flag & R_TRANSFORMED) {
-		VECCOPY(nor, vlr->n);
-		
-		mul_m3_v3(nmat, nor);
+		mul_v3_m3v3(nor, nmat, vlr->n);
 		normalize_v3(nor);
 	}
-	else
-		VECCOPY(nor, vlr->n);
+	else {
+		copy_v3_v3(nor, vlr->n);
+	}
 }
 
 void RE_set_customdata_names(ObjectRen *obr, CustomData *data)
@@ -953,7 +952,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 	}
 
 	har= RE_findOrAddHalo(obr, obr->tothalo++);
-	VECCOPY(har->co, vec);
+	copy_v3_v3(har->co, vec);
 	har->hasize= hasize;
 
 	/* actual projectvert is done in function project_renderdata() because of parts/border/pano */
@@ -1009,7 +1008,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 		else {
 
 			mtex= ma->mtex[0];
-			VECCOPY(texvec, vec);
+			copy_v3_v3(texvec, vec);
 
 			if(mtex->texco & TEXCO_NORM) {
 				;
@@ -1022,7 +1021,7 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 			}
 			else {
 				if(orco) {
-					VECCOPY(texvec, orco);
+					copy_v3_v3(texvec, orco);
 				}
 			}
 
@@ -1067,7 +1066,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 	}
 
 	har= RE_findOrAddHalo(obr, obr->tothalo++);
-	VECCOPY(har->co, vec);
+	copy_v3_v3(har->co, vec);
 	har->hasize= hasize;
 
 	/* actual projectvert is done in function project_renderdata() because of parts/border/pano */
@@ -1123,7 +1122,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 	for(i=0; i<MAX_MTEX; i++)
 		if(ma->mtex[i] && (ma->septex & (1<<i))==0) {
 			mtex= ma->mtex[i];
-			VECCOPY(texvec, vec);
+			copy_v3_v3(texvec, vec);
 
 			if(mtex->texco & TEXCO_NORM) {
 				;
@@ -1133,7 +1132,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 					mul_m4_v3(mtex->object->imat_ren,texvec);
 			}
 			else if(mtex->texco & TEXCO_GLOB){
-				VECCOPY(texvec,vec);
+				copy_v3_v3(texvec,vec);
 			}
 			else if(mtex->texco & TEXCO_UV && uvco){
 				int uv_index=CustomData_get_named_layer_index(&dm->faceData,CD_MTFACE,mtex->uvname);
@@ -1153,7 +1152,7 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 				texvec[2] = pa_co[2];
 			}
 			else if(orco) {
-				VECCOPY(texvec, orco);
+				copy_v3_v3(texvec, orco);
 			}
 
 			hasrgb = externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta, 0);
@@ -1238,7 +1237,7 @@ static int panotestclip(Render *re, int do_pano, float *v)
   - shadow buffering (shadbuf.c)
 */
 
-void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs, int UNUSED(do_buckets))
+void project_renderdata(Render *re, void (*projectfunc)(const float *, float mat[][4], float *),  int do_pano, float xoffs, int UNUSED(do_buckets))
 {
 	ObjectRen *obr;
 	HaloRen *har = NULL;
@@ -1264,7 +1263,7 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 				vec[2]= -re->panosi*har->co[0] + re->panoco*har->co[2];
 			}
 			else {
-				VECCOPY(vec, har->co);
+				copy_v3_v3(vec, har->co);
 			}
 
 			projectfunc(vec, re->winmat, hoco);

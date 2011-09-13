@@ -151,7 +151,7 @@ GPG_Application::~GPG_Application(void)
 
 
 
-bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene, int argc, char **argv)
+bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene, GlobalSettings *gs, int argc, char **argv)
 {
 	bool result = false;
 
@@ -167,6 +167,9 @@ bool GPG_Application::SetGameEngineData(struct Main* maggie, Scene *scene, int a
 	/* Python needs these */
 	m_argc= argc;
 	m_argv= argv;
+
+	/* Global Settings */
+	m_globalSettings= gs;
 
 	return result;
 }
@@ -511,6 +514,12 @@ int GPG_Application::getExitRequested(void)
 }
 
 
+GlobalSettings* GPG_Application::getGlobalSettings(void)
+{
+	return m_ketsjiengine->GetGlobalSettings();
+}
+
+
 
 const STR_String& GPG_Application::getExitString(void)
 {
@@ -552,7 +561,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 		if(GPU_glsl_support())
 			m_blenderglslmat = (SYS_GetCommandLineInt(syshandle, "blender_glsl_material", 1) != 0);
-		else if(gm->matmode == GAME_MAT_GLSL)
+		else if(m_globalSettings->matmode == GAME_MAT_GLSL)
 			m_blendermat = false;
 
 		// create the canvas, rasterizer and rendertools
@@ -629,6 +638,9 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
 		m_ketsjiengine->SetRestrictAnimationFPS(restrictAnimFPS);
 
+		//set the global settings (carried over if restart/load new files)
+		m_ketsjiengine->SetGlobalSettings(m_globalSettings);
+
 		m_engineInitialized = true;
 	}
 
@@ -685,9 +697,9 @@ bool GPG_Application::startEngine(void)
 
 		//	if (always_use_expand_framing)
 		//		sceneconverter->SetAlwaysUseExpandFraming(true);
-		if(m_blendermat && (m_startScene->gm.matmode != GAME_MAT_TEXFACE))
+		if(m_blendermat && (m_globalSettings->matmode != GAME_MAT_TEXFACE))
 			m_sceneconverter->SetMaterials(true);
-		if(m_blenderglslmat && (m_startScene->gm.matmode == GAME_MAT_GLSL))
+		if(m_blenderglslmat && (m_globalSettings->matmode == GAME_MAT_GLSL))
 			m_sceneconverter->SetGLSLMaterials(true);
 
 		KX_Scene* startscene = new KX_Scene(m_keyboard,

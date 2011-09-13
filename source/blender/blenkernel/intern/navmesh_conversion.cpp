@@ -26,16 +26,27 @@
 *
 * ***** END GPL LICENSE BLOCK *****
 */
+
 #include <math.h>
+#include <stdlib.h>
 #include "Recast.h"
 
-
 extern "C"{
-#include "ED_navmesh_conversion.h"
+#include "BKE_navmesh_conversion.h"
 
 #include "DNA_meshdata_types.h"
 #include "BKE_cdderivedmesh.h"
 #include "BLI_math.h"
+}
+
+inline float area2(const float* a, const float* b, const float* c)
+{
+	return (b[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (b[2] - a[2]);
+}
+
+inline bool left(const float* a, const float* b, const float* c)
+{
+	return area2(a, b, c) < 0;
 }
 
 int polyNumVerts(const unsigned short* p, const int vertsPerPoly)
@@ -278,7 +289,18 @@ struct SortContext
 	const int* recastData;
 	const int* trisToFacesMap;
 };
+
+#ifdef FREE_WINDOWS
+static SortContext *_mingw_context;
+static int compareByData(const void * a, const void * b)
+{
+	return ( _mingw_context->recastData[_mingw_context->trisToFacesMap[*(int*)a]] -
+			_mingw_context->recastData[_mingw_context->trisToFacesMap[*(int*)b]] );
+}
+#else
 #if defined(_MSC_VER)
+static int compareByData(void* data, const void * a, const void * b)
+#elif defined(__APPLE__) || defined(__FreeBSD__)
 static int compareByData(void* data, const void * a, const void * b)
 #else
 static int compareByData(const void * a, const void * b, void* data)
@@ -288,6 +310,7 @@ static int compareByData(const void * a, const void * b, void* data)
 	return ( context->recastData[context->trisToFacesMap[*(int*)a]] - 
 		context->recastData[context->trisToFacesMap[*(int*)b]] );
 }
+#endif
 
 bool buildNavMeshData(const int nverts, const float* verts, 
 							 const int ntris, const unsigned short *tris, 
@@ -312,6 +335,11 @@ bool buildNavMeshData(const int nverts, const float* verts,
 	context.trisToFacesMap = trisToFacesMap;
 #if defined(_MSC_VER)
 	qsort_s(trisMapping, ntris, sizeof(int), compareByData, &context);
+#elif defined(__APPLE__) || defined(__FreeBSD__)
+	qsort_r(trisMapping, ntris, sizeof(int), &context, compareByData);
+#elif defined(FREE_WINDOWS)
+	_mingw_context = &context;
+	qsort(trisMapping, ntris, sizeof(int), compareByData);
 #else
 	qsort_r(trisMapping, ntris, sizeof(int), compareByData, &context);
 #endif

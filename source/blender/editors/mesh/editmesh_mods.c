@@ -4148,7 +4148,7 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 	 * are within tolerance of the plane(s) of reflection 
 	 */
 	for(md=obedit->modifiers.first; md; md=md->next) {
-		if(md->type==eModifierType_Mirror) {
+		if((md->type==eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {

@@ -115,9 +115,9 @@ void getViewVector(TransInfo *t, float coord[3], float vec[3])
 	{
 		float p1[4], p2[4];
 		
-		VECCOPY(p1, coord);
+		copy_v3_v3(p1, coord);
 		p1[3] = 1.0f;
-		VECCOPY(p2, p1);
+		copy_v3_v3(p2, p1);
 		p2[3] = 1.0f;
 		mul_m4_v4(t->viewmat, p2);
 		
@@ -130,7 +130,7 @@ void getViewVector(TransInfo *t, float coord[3], float vec[3])
 		sub_v3_v3v3(vec, p1, p2);
 	}
 	else {
-		VECCOPY(vec, t->viewinv[2]);
+		copy_v3_v3(vec, t->viewinv[2]);
 	}
 	normalize_v3(vec);
 }
@@ -144,7 +144,7 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 	int axis = 0;
 	
 	for (; md; md=md->next) {
-		if (md->type==eModifierType_Mirror) {
+		if ((md->type==eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;
 			
 			if(mmd->flag & MOD_MIR_CLIPPING) {
@@ -694,12 +694,12 @@ static void recalcData_view3d(TransInfo *t)
 				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
 					/* If this bone has a parent tip that has been moved */
 					if (ebo->parent->flag & BONE_TIPSEL){
-						VECCOPY (ebo->head, ebo->parent->tail);
+						copy_v3_v3 (ebo->head, ebo->parent->tail);
 						if(t->mode==TFM_BONE_ENVELOPE) ebo->rad_head= ebo->parent->rad_tail;
 					}
 					/* If this bone has a parent tip that has NOT been moved */
 					else{
-						VECCOPY (ebo->parent->tail, ebo->head);
+						copy_v3_v3 (ebo->parent->tail, ebo->head);
 						if(t->mode==TFM_BONE_ENVELOPE) ebo->parent->rad_tail= ebo->rad_head;
 					}
 				}
@@ -736,7 +736,7 @@ static void recalcData_view3d(TransInfo *t)
 						float qrot[4];
 						
 						ebo = td->extra;
-						VECCOPY(up_axis, td->axismtx[2]);
+						copy_v3_v3(up_axis, td->axismtx[2]);
 						
 						if (t->mode != TFM_ROTATION)
 						{
@@ -1259,12 +1259,12 @@ void applyTransObjects(TransInfo *t)
 	TransData *td;
 	
 	for (td = t->data; td < t->data + t->total; td++) {
-		VECCOPY(td->iloc, td->loc);
+		copy_v3_v3(td->iloc, td->loc);
 		if (td->ext->rot) {
-			VECCOPY(td->ext->irot, td->ext->rot);
+			copy_v3_v3(td->ext->irot, td->ext->rot);
 		}
 		if (td->ext->size) {
-			VECCOPY(td->ext->isize, td->ext->size);
+			copy_v3_v3(td->ext->isize, td->ext->size);
 		}
 	}
 	recalcData(t);
@@ -1273,7 +1273,7 @@ void applyTransObjects(TransInfo *t)
 static void restoreElement(TransData *td) {
 	/* TransData for crease has no loc */
 	if (td->loc) {
-		VECCOPY(td->loc, td->iloc);
+		copy_v3_v3(td->loc, td->iloc);
 	}
 	if (td->val) {
 		*td->val = td->ival;
@@ -1281,17 +1281,17 @@ static void restoreElement(TransData *td) {
 
 	if (td->ext && (td->flag&TD_NO_EXT)==0) {
 		if (td->ext->rot) {
-			VECCOPY(td->ext->rot, td->ext->irot);
+			copy_v3_v3(td->ext->rot, td->ext->irot);
 		}
 		if(td->ext->rotAngle) {
 			*td->ext->rotAngle= td->ext->irotAngle;
 		}
 		if(td->ext->rotAxis) {
-			VECCOPY(td->ext->rotAxis, td->ext->irotAxis);
+			copy_v3_v3(td->ext->rotAxis, td->ext->irotAxis);
 		}
 		/* XXX, drotAngle & drotAxis not used yet */
 		if (td->ext->size) {
-			VECCOPY(td->ext->size, td->ext->isize);
+			copy_v3_v3(td->ext->size, td->ext->isize);
 		}
 		if (td->ext->quat) {
 			QUATCOPY(td->ext->quat, td->ext->iquat);
@@ -1335,7 +1335,7 @@ void calculateCenter2D(TransInfo *t)
 		Object *ob= t->obedit?t->obedit:t->poseobj;
 		float vec[3];
 		
-		VECCOPY(vec, t->center);
+		copy_v3_v3(vec, t->center);
 		mul_m4_v3(ob->obmat, vec);
 		projectIntView(t, vec, t->center2d);
 	}
@@ -1349,7 +1349,7 @@ void calculateCenterCursor(TransInfo *t)
 	float *cursor;
 	
 	cursor = give_cursor(t->scene, t->view);
-	VECCOPY(t->center, cursor);
+	copy_v3_v3(t->center, cursor);
 	
 	/* If edit or pose mode, move cursor in local space */
 	if (t->flag & (T_EDIT|T_POSE)) {
@@ -1421,7 +1421,7 @@ void calculateCenterMedian(TransInfo *t)
 	}
 	if(i)
 		mul_v3_fl(partial, 1.0f / total);
-	VECCOPY(t->center, partial);
+	copy_v3_v3(t->center, partial);
 	
 	calculateCenter2D(t);
 }
@@ -1446,8 +1446,8 @@ void calculateCenterBound(TransInfo *t)
 			}
 		}
 		else {
-			VECCOPY(max, t->data[i].center);
-			VECCOPY(min, t->data[i].center);
+			copy_v3_v3(max, t->data[i].center);
+			copy_v3_v3(min, t->data[i].center);
 		}
 	}
 	add_v3_v3v3(t->center, min, max);
@@ -1501,7 +1501,7 @@ void calculateCenter(TransInfo *t)
 			Object *ob= OBACT;
 			if(ob)
 			{
-				VECCOPY(t->center, ob->obmat[3]);
+				copy_v3_v3(t->center, ob->obmat[3]);
 				projectIntView(t, t->center, t->center2d);
 			}
 		}
@@ -1510,7 +1510,7 @@ void calculateCenter(TransInfo *t)
 	}
 	
 	/* setting constraint center */
-	VECCOPY(t->con.center, t->center);
+	copy_v3_v3(t->con.center, t->center);
 	if(t->flag & (T_EDIT|T_POSE))
 	{
 		Object *ob= t->obedit?t->obedit:t->poseobj;
@@ -1530,7 +1530,7 @@ void calculateCenter(TransInfo *t)
 			{
 				float axis[3];
 				/* persinv is nasty, use viewinv instead, always right */
-				VECCOPY(axis, t->viewinv[2]);
+				copy_v3_v3(axis, t->viewinv[2]);
 				normalize_v3(axis);
 				
 				/* 6.0 = 6 grid units */
@@ -1543,8 +1543,8 @@ void calculateCenter(TransInfo *t)
 				/* rotate only needs correct 2d center, grab needs initgrabz() value */
 				if(t->mode==TFM_TRANSLATION)
 				{
-					VECCOPY(t->center, axis);
-					VECCOPY(t->con.center, t->center);
+					copy_v3_v3(t->center, axis);
+					copy_v3_v3(t->con.center, t->center);
 				}
 			}
 		}
@@ -1557,7 +1557,7 @@ void calculateCenter(TransInfo *t)
 			Object *ob= t->obedit?t->obedit:t->poseobj;
 			float vec[3];
 			
-			VECCOPY(vec, t->center);
+			copy_v3_v3(vec, t->center);
 			mul_m4_v3(ob->obmat, vec);
 			initgrabz(t->ar->regiondata, vec[0], vec[1], vec[2]);
 		}

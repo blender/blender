@@ -89,13 +89,28 @@ set(SRC
 	intern/utilities.h
 )
 
-add_definitions(-DNOGUI -DELBEEM_BLENDER=1)
+add_definitions(
+	-DNOGUI
+	-DELBEEM_BLENDER=1
+)
+
+# not essential but quiet gcc's -Wundef
+add_definitions(
+	-DLBM_PRECISION=1
+	-DLBM_INCLUDE_TESTSOLVERS=0
+	-DFSGR_STRICT_DEBUG=0
+	-DELBEEM_MPI=0
+	-DNEWDIRVELMOTEST=0
+)
+
 if(WINDOWS)
 	add_definitions(-DUSE_MSVC6FIXES)
 endif()
 
 if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
+else()
+	add_definitions(-DPARALLEL=0)
 endif()
 
 blender_add_lib_nolist(bf_intern_elbeem "${SRC}" "${INC}" "${INC_SYS}")

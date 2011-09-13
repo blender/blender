@@ -1113,7 +1113,7 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 											PyObject* args,
 											PyObject*)
 {
-	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
+	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	char *setting;
 	int enable, flag, sceneflag;
 
@@ -1127,15 +1127,15 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 		return NULL;
 	}
 
-	sceneflag= gm->flag;
+	sceneflag= gs->glslflag;
 	
 	if (enable)
-		gm->flag &= ~flag;
+		gs->glslflag &= ~flag;
 	else
-		gm->flag |= flag;
+		gs->glslflag |= flag;
 
 	/* display lists and GLSL materials need to be remade */
-	if(sceneflag != gm->flag) {
+	if(sceneflag != gs->glslflag) {
 		GPU_materials_free();
 		if(gp_KetsjiEngine) {
 			KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
@@ -1156,7 +1156,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 									 PyObject* args, 
 									 PyObject*)
 {
-	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
+	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	char *setting;
 	int enabled = 0, flag;
 
@@ -1170,7 +1170,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 		return NULL;
 	}
 
-	enabled = ((gm->flag & flag) != 0);
+	enabled = ((gs->glslflag & flag) != 0);
 	return PyLong_FromSsize_t(enabled);
 }
 
@@ -1182,18 +1182,18 @@ static PyObject* gPySetMaterialType(PyObject*,
 									PyObject* args,
 									PyObject*)
 {
-	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
+	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	int type;
 
 	if (!PyArg_ParseTuple(args,"i:setMaterialType",&type))
 		return NULL;
 
 	if(type == KX_BLENDER_GLSL_MATERIAL)
-		gm->matmode= GAME_MAT_GLSL;
+		gs->matmode= GAME_MAT_GLSL;
 	else if(type == KX_BLENDER_MULTITEX_MATERIAL)
-		gm->matmode= GAME_MAT_MULTITEX;
+		gs->matmode= GAME_MAT_MULTITEX;
 	else if(type == KX_TEXFACE_MATERIAL)
-		gm->matmode= GAME_MAT_TEXFACE;
+		gs->matmode= GAME_MAT_TEXFACE;
 	else {
 		PyErr_SetString(PyExc_ValueError, "Rasterizer.setMaterialType(int): material type is not known");
 		return NULL;
@@ -1204,12 +1204,12 @@ static PyObject* gPySetMaterialType(PyObject*,
 
 static PyObject* gPyGetMaterialType(PyObject*)
 {
-	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
+	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	int flag;
 
-	if(gm->matmode == GAME_MAT_GLSL)
+	if(gs->matmode == GAME_MAT_GLSL)
 		flag = KX_BLENDER_GLSL_MATERIAL;
-	else if(gm->matmode == GAME_MAT_MULTITEX)
+	else if(gs->matmode == GAME_MAT_MULTITEX)
 		flag = KX_BLENDER_MULTITEX_MATERIAL;
 	else
 		flag = KX_TEXFACE_MATERIAL;

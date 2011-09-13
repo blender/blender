@@ -195,10 +195,11 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
         row.prop(game, "collision_margin", text="Margin", slider=True)
         row.prop(game, "use_collision_compound", text="Compound")
 
+
 class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel, Panel):
     bl_label = "Create Obstacle"
     COMPAT_ENGINES = {'BLENDER_GAME'}
- 
+
     @classmethod
     def poll(cls, context):
         game = context.object.game
@@ -220,6 +221,7 @@ class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel, Panel):
         row = layout.row()
         row.prop(game, "obstacle_radius", text="Radius")
         row.label()
+
 
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -387,17 +389,19 @@ class RENDER_PT_game_display(RenderButtonsPanel, Panel):
         flow.prop(gs, "show_physics_visualization", text="Physics Visualization")
         flow.prop(gs, "use_deprecation_warnings")
         flow.prop(gs, "show_mouse", text="Mouse Cursor")
-        
+
+
 class SceneButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
-        
+
+
 class SCENE_PT_game_navmesh(SceneButtonsPanel, bpy.types.Panel):
     bl_label = "Navigation mesh"
     bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_GAME'}
-    
+
     @classmethod
     def poll(cls, context):
         scene = context.scene
@@ -437,13 +441,13 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, bpy.types.Panel):
         col = layout.column()
         col.label(text="Polygonization:")
         split = col.split()
-        
+
         col = split.column()
         col.prop(rd, "edge_max_len")
         col.prop(rd, "edge_max_error")
 
         split.prop(rd, "verts_per_poly")
-        
+
         col = layout.column()
         col.label(text="Detail Mesh:")
         row = col.row()
@@ -574,10 +578,11 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
             col.label(text="Logic Steps:")
             col.prop(gs, "logic_step_max", text="Max")
 
+
 class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, Panel):
     bl_label = "Obstacle simulation"
     COMPAT_ENGINES = {'BLENDER_GAME'}
-    
+
     @classmethod
     def poll(cls, context):
         scene = context.scene
@@ -588,7 +593,7 @@ class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, Panel):
 
         gs = context.scene.game_settings
 
-        layout.prop(gs, "obstacle_simulation", text = "Type")
+        layout.prop(gs, "obstacle_simulation", text="Type")
         if gs.obstacle_simulation != 'NONE':
             layout.prop(gs, "level_height")
             layout.prop(gs, "show_obstacle_simulation")

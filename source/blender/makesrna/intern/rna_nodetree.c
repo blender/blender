@@ -922,7 +922,7 @@ static void def_whileloop(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "max_iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom1");
-	RNA_def_property_range(prop, 0.0f, 10000000.0f);
+	RNA_def_property_range(prop, 0.0f, SHRT_MAX);
 	RNA_def_property_ui_text(prop, "Max. Iterations", "Limit for number of iterations");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeGroup_update");
 }

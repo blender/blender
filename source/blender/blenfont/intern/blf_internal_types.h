@@ -46,6 +46,9 @@ typedef struct GlyphCacheBLF {
 	/* and the glyphs. */
 	ListBase bucket[257];
 
+	/* fast ascii lookup */
+	struct GlyphBLF *glyph_ascii_table[256];
+
 	/* texture array, to draw the glyphs. */
 	GLuint *textures;
 
@@ -184,9 +187,6 @@ typedef struct FontBLF {
 
 	/* current glyph cache, size and dpi. */
 	GlyphCacheBLF *glyph_cache;
-	
-	/* fast ascii lookip */
-	GlyphBLF *glyph_ascii_table[256];
 
 	/* freetype2 lib handle. */
 	FT_Library ft_lib;

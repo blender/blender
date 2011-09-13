@@ -38,9 +38,7 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
-
-
-#include "ED_navmesh_conversion.h"
+#include "BKE_navmesh_conversion.h"
 }
 
 #include "KX_PythonInit.h"
@@ -519,6 +517,9 @@ void KX_NavMeshObject::DrawNavMesh(NavMeshRenderMode renderMode)
 					KX_RasterizerDrawDebugLine(tri[k], tri[(k+1)%3], color);
 			}
 		}
+		break;
+	default:
+		/* pass */
 		break;
 	}
 }

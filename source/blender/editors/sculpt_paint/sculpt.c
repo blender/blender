@@ -3330,7 +3330,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 				BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
 					copy_v3_v3(vd.co, unode->co[vd.i]);
-					if(vd.no) VECCOPY(vd.no, unode->no[vd.i])
+					if(vd.no) copy_v3_v3_short(vd.no, unode->no[vd.i]);
 					else normal_short_to_float_v3(vd.fno, unode->no[vd.i]);
 
 					if(vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;

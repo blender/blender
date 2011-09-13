@@ -264,7 +264,7 @@ void applyProject(TransInfo *t)
 			if (td->flag & TD_SKIP)
 				continue;
 			
-			VECCOPY(iloc, td->loc);
+			copy_v3_v3(iloc, td->loc);
 			if (t->flag & (T_EDIT|T_POSE))
 			{
 				Object *ob = t->obedit?t->obedit:t->poseobj;
@@ -274,7 +274,7 @@ void applyProject(TransInfo *t)
 			{
 				td->ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
 				object_handle_update(t->scene, td->ob);
-				VECCOPY(iloc, td->ob->obmat[3]);
+				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 			
 			project_float(t->ar, iloc, mval);
@@ -543,7 +543,7 @@ void addSnapPoint(TransInfo *t)
 	if (t->tsnap.status & POINT_INIT) {
 		TransSnapPoint *p = MEM_callocN(sizeof(TransSnapPoint), "SnapPoint");
 
-		VECCOPY(p->co, t->tsnap.snapPoint);
+		copy_v3_v3(p->co, t->tsnap.snapPoint);
 
 		BLI_addtail(&t->tsnap.points, p);
 
@@ -580,7 +580,7 @@ void getSnapPoint(TransInfo *t, float vec[3])
 
 		mul_v3_fl(vec, 1.0f / total);
 	} else {
-		VECCOPY(vec, t->tsnap.snapPoint)
+		copy_v3_v3(vec, t->tsnap.snapPoint);
 	}
 }
 
@@ -628,7 +628,7 @@ float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 {
 	float angle, start[3], end[3], center[3];
 	
-	VECCOPY(center, t->center);	
+	copy_v3_v3(center, t->center);	
 	if(t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= t->obedit?t->obedit:t->poseobj;
 		mul_m4_v3(ob->obmat, center);
@@ -684,7 +684,7 @@ float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 {
 	float d1[3], d2[3], center[3];
 	
-	VECCOPY(center, t->center);	
+	copy_v3_v3(center, t->center);	
 	if(t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= t->obedit?t->obedit:t->poseobj;
 		mul_m4_v3(ob->obmat, center);
@@ -784,12 +784,12 @@ void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 					}
 					else
 					{
-						VECCOPY(vec, p1->p);
+						copy_v3_v3(vec, p1->p);
 					}
 					
 					if (last_p == NULL)
 					{
-						VECCOPY(p, vec);
+						copy_v3_v3(p, vec);
 						max_dist = 0;
 						break;
 					}
@@ -798,7 +798,7 @@ void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 					
 					if (new_dist < max_dist)
 					{
-						VECCOPY(p, vec);
+						copy_v3_v3(p, vec);
 						max_dist = new_dist;
 					}
 				}
@@ -806,7 +806,7 @@ void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 			
 			if (max_dist != FLT_MAX)
 			{
-				VECCOPY(loc, p);
+				copy_v3_v3(loc, p);
 				/* XXX, is there a correct normal in this case ???, for now just z up */
 				no[0]= 0.0;
 				no[1]= 0.0;
@@ -830,11 +830,11 @@ void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 			
 			if (dot_v3v3(tangent, tangent) > 0)
 			{
-				VECCOPY(t->tsnap.snapTangent, tangent);
+				copy_v3_v3(t->tsnap.snapTangent, tangent);
 			}
 			
-			VECCOPY(t->tsnap.snapPoint, loc);
-			VECCOPY(t->tsnap.snapNormal, no);
+			copy_v3_v3(t->tsnap.snapPoint, loc);
+			copy_v3_v3(t->tsnap.snapNormal, no);
 
 			t->tsnap.status |=  POINT_INIT;
 		}
@@ -873,7 +873,7 @@ void TargetSnapCenter(TransInfo *t)
 	// Only need to calculate once
 	if ((t->tsnap.status & TARGET_INIT) == 0)
 	{
-		VECCOPY(t->tsnap.snapTarget, t->center);	
+		copy_v3_v3(t->tsnap.snapTarget, t->center);	
 		if(t->flag & (T_EDIT|T_POSE)) {
 			Object *ob= t->obedit?t->obedit:t->poseobj;
 			mul_m4_v3(ob->obmat, t->tsnap.snapTarget);
@@ -903,7 +903,7 @@ void TargetSnapActive(TransInfo *t)
 
 		if (active_td)
 		{	
-			VECCOPY(t->tsnap.snapTarget, active_td->center);
+			copy_v3_v3(t->tsnap.snapTarget, active_td->center);
 				
 			if(t->flag & (T_EDIT|T_POSE)) {
 				Object *ob= t->obedit?t->obedit:t->poseobj;
@@ -974,14 +974,14 @@ void TargetSnapClosest(TransInfo *t)
 						float loc[3];
 						float dist;
 						
-						VECCOPY(loc, bb->vec[j]);
+						copy_v3_v3(loc, bb->vec[j]);
 						mul_m4_v3(td->ext->obmat, loc);
 						
 						dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 						
 						if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist))
 						{
-							VECCOPY(t->tsnap.snapTarget, loc);
+							copy_v3_v3(t->tsnap.snapTarget, loc);
 							closest = td;
 							t->tsnap.dist = dist; 
 						}
@@ -993,13 +993,13 @@ void TargetSnapClosest(TransInfo *t)
 					float loc[3];
 					float dist;
 					
-					VECCOPY(loc, td->center);
+					copy_v3_v3(loc, td->center);
 					
 					dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 					
 					if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist))
 					{
-						VECCOPY(t->tsnap.snapTarget, loc);
+						copy_v3_v3(t->tsnap.snapTarget, loc);
 						closest = td;
 						t->tsnap.dist = dist; 
 					}
@@ -1014,7 +1014,7 @@ void TargetSnapClosest(TransInfo *t)
 				float loc[3];
 				float dist;
 				
-				VECCOPY(loc, td->center);
+				copy_v3_v3(loc, td->center);
 				
 				if(t->flag & (T_EDIT|T_POSE)) {
 					Object *ob= t->obedit?t->obedit:t->poseobj;
@@ -1025,7 +1025,7 @@ void TargetSnapClosest(TransInfo *t)
 				
 				if (closest == NULL || fabs(dist) < fabs(t->tsnap.dist))
 				{
-					VECCOPY(t->tsnap.snapTarget, loc);
+					copy_v3_v3(t->tsnap.snapTarget, loc);
 					closest = td;
 					t->tsnap.dist = dist; 
 				}
@@ -1052,11 +1052,11 @@ static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], fl
 		int screen_loc[2];
 		int new_dist;
 		
-		VECCOPY(intersect, ray_normal_local);
+		copy_v3_v3(intersect, ray_normal_local);
 		mul_v3_fl(intersect, lambda);
 		add_v3_v3(intersect, ray_start_local);
 		
-		VECCOPY(location, intersect);
+		copy_v3_v3(location, intersect);
 		
 		if (v4co)
 			normal_quad_v3( normal,v1co, v2co, v3co, v4co);
@@ -1075,8 +1075,8 @@ static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], fl
 			*depth = new_depth;
 			retval = 1;
 			
-			VECCOPY(loc, location);
-			VECCOPY(no, normal);
+			copy_v3_v3(loc, location);
+			copy_v3_v3(no, normal);
 			
 			mul_m3_v3(timat, no);
 			normalize_v3(no);
@@ -1095,7 +1095,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 	int result;
 	int retval = 0;
 	
-	VECCOPY(ray_end, ray_normal_local);
+	copy_v3_v3(ray_end, ray_normal_local);
 	mul_v3_fl(ray_end, 2000);
 	add_v3_v3v3(ray_end, ray_start_local, ray_end);
 	
@@ -1116,11 +1116,11 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 		
 		if (mul > 1) {
 			mul = 1;
-			VECCOPY(intersect, v1co);
+			copy_v3_v3(intersect, v1co);
 		}
 		else if (mul < 0) {
 			mul = 0;
-			VECCOPY(intersect, v2co);
+			copy_v3_v3(intersect, v2co);
 		}
 
 		if (dot_v3v3(ray_normal_local, dvec) > 0)
@@ -1130,7 +1130,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 			int screen_loc[2];
 			int new_dist;
 			
-			VECCOPY(location, intersect);
+			copy_v3_v3(location, intersect);
 			
 			mul_m4_v3(obmat, location);
 			
@@ -1164,7 +1164,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 					normalize_v3(no);
 				}			
 
-				VECCOPY(loc, location);
+				copy_v3_v3(loc, location);
 				
 				*dist = new_dist;
 			} 
@@ -1188,7 +1188,7 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float mval[2], fl
 		int screen_loc[2];
 		int new_dist;
 		
-		VECCOPY(location, vco);
+		copy_v3_v3(location, vco);
 		
 		mul_m4_v3(obmat, location);
 		
@@ -1202,7 +1202,7 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float mval[2], fl
 			*depth = new_depth;
 			retval = 1;
 			
-			VECCOPY(loc, location);
+			copy_v3_v3(loc, location);
 			
 			if (no)
 			{
@@ -1226,8 +1226,8 @@ static int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm
 
 	invert_m4_m4(imat, obmat);
 
-	VECCOPY(ray_start_local, ray_start);
-	VECCOPY(ray_normal_local, ray_normal);
+	copy_v3_v3(ray_start_local, ray_start);
+	copy_v3_v3(ray_normal_local, ray_normal);
 	
 	mul_m4_v3(imat, ray_start_local);
 	mul_mat3_m4_v3(imat, ray_normal_local);
@@ -1300,8 +1300,8 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 		copy_m3_m4(timat, imat);
 		transpose_m3(timat);
 		
-		VECCOPY(ray_start_local, ray_start);
-		VECCOPY(ray_normal_local, ray_normal);
+		copy_v3_v3(ray_start_local, ray_start);
+		copy_v3_v3(ray_normal_local, ray_normal);
 		
 		mul_m4_v3(imat, ray_start_local);
 		mul_mat3_m4_v3(imat, ray_normal_local);
@@ -1699,8 +1699,8 @@ static void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float n
 	
 	peel->depth = depth;
 	peel->ob = ob;
-	VECCOPY(peel->p, p);
-	VECCOPY(peel->no, no);
+	copy_v3_v3(peel->p, p);
+	copy_v3_v3(peel->no, no);
 	
 	BLI_addtail(depth_peels, peel);
 	
@@ -1724,8 +1724,8 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float 
 		copy_m3_m4(timat, imat);
 		transpose_m3(timat);
 		
-		VECCOPY(ray_start_local, ray_start);
-		VECCOPY(ray_normal_local, ray_normal);
+		copy_v3_v3(ray_start_local, ray_start);
+		copy_v3_v3(ray_normal_local, ray_normal);
 		
 		mul_m4_v3(imat, ray_start_local);
 		mul_mat3_m4_v3(imat, ray_normal_local);
@@ -1757,11 +1757,11 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float 
 					float intersect[3];
 					float new_depth;
 					
-					VECCOPY(intersect, ray_normal_local);
+					copy_v3_v3(intersect, ray_normal_local);
 					mul_v3_fl(intersect, lambda);
 					add_v3_v3(intersect, ray_start_local);
 					
-					VECCOPY(location, intersect);
+					copy_v3_v3(location, intersect);
 					
 					if (f->v4)
 						normal_quad_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co);
@@ -1787,11 +1787,11 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4], float 
 						float intersect[3];
 						float new_depth;
 						
-						VECCOPY(intersect, ray_normal_local);
+						copy_v3_v3(intersect, ray_normal_local);
 						mul_v3_fl(intersect, lambda);
 						add_v3_v3(intersect, ray_start_local);
 						
-						VECCOPY(location, intersect);
+						copy_v3_v3(location, intersect);
 						
 						if (f->v4)
 							normal_quad_v3( normal,verts[f->v1].co, verts[f->v2].co, verts[f->v3].co, verts[f->v4].co);

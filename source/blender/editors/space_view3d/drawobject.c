@@ -139,7 +139,7 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 /* ************* only use while object drawing **************
  * or after running ED_view3d_init_mats_rv3d
  * */
-static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, int local)
+static void view3d_project_short_clip(ARegion *ar, const float vec[3], short *adr, int local)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -174,7 +174,7 @@ static void view3d_project_short_clip(ARegion *ar, float *vec, short *adr, int l
 }
 
 /* only use while object drawing */
-static void view3d_project_short_noclip(ARegion *ar, float *vec, short *adr)
+static void view3d_project_short_noclip(ARegion *ar, const float vec[3], short *adr)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
@@ -837,7 +837,7 @@ static void drawcube_size(float size)
 
 /* this is an unused (old) cube-drawing function based on a given size */
 #if 0
-static void drawcube_size(float *size)
+static void drawcube_size(const float size[3])
 {
 
 	glPushMatrix();
@@ -891,7 +891,7 @@ static void drawshadbuflimits(Lamp *la, float mat[][4])
 
 
 
-static void spotvolume(float *lvec, float *vvec, float inp)
+static void spotvolume(float lvec[3], float vvec[3], const float inp)
 {
 	/* camera is at 0,0,0 */
 	float temp[3],plane[3],mat1[3][3],mat2[3][3],mat3[3][3],mat4[3][3],q[4],co,si,angle;
@@ -920,8 +920,8 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	normalize_v3(&q[1]);
 
 	angle = saacos(plane[2])/2.0f;
-	co = cos(angle);
-	si = sqrt(1-co*co);
+	co = cosf(angle);
+	si = sqrtf(1-co*co);
 
 	q[0] =  co;
 	q[1] *= si;
@@ -935,7 +935,7 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 
 	unit_m3(mat2);
 	co = inp;
-	si = sqrt(1-inp*inp);
+	si = sqrtf(1.0f-inp*inp);
 
 	mat2[0][0] =  co;
 	mat2[1][0] = -si;
@@ -5035,7 +5035,7 @@ static void draw_textcurs(float textcurs[][2])
 	set_inverted_drawing(0);
 }
 
-static void drawspiral(float *cent, float rad, float tmat[][4], int start)
+static void drawspiral(const float cent[3], float rad, float tmat[][4], int start)
 {
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
@@ -5106,7 +5106,7 @@ static void drawcircle_size(float size)
 }
 
 /* needs fixing if non-identity matrice used */
-static void drawtube(float *vec, float radius, float height, float tmat[][4])
+static void drawtube(const float vec[3], float radius, float height, float tmat[][4])
 {
 	float cur[3];
 	drawcircball(GL_LINE_LOOP, vec, radius, tmat);
@@ -5128,7 +5128,7 @@ static void drawtube(float *vec, float radius, float height, float tmat[][4])
 	glEnd();
 }
 /* needs fixing if non-identity matrice used */
-static void drawcone(float *vec, float radius, float height, float tmat[][4])
+static void drawcone(const float vec[3], float radius, float height, float tmat[][4])
 {
 	float cur[3];
 
@@ -5404,7 +5404,7 @@ static void draw_box(float vec[8][3])
 
 /* uses boundbox, function used by Ketsji */
 #if 0
-static void get_local_bounds(Object *ob, float *center, float *size)
+static void get_local_bounds(Object *ob, float center[3], float size[3])
 {
 	BoundBox *bb= object_get_boundbox(ob);
 	
@@ -5841,46 +5841,68 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* which wire color */
 	if((flag & DRAW_CONSTCOLOR) == 0) {
+		/* confusing logic here, there are 2 methods of setting the color
+		 * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.
+		 *
+		 * note: no theme yet for 'colindex' */
+		int theme_id= TH_WIRE;
+		int theme_shade= 0;
+
 		project_short(ar, ob->obmat[3], &base->sx);
 
-		if( (!scene->obedit) && (G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) UI_ThemeColor(TH_TRANSFORM);
+		if(		(scene->obedit == NULL) &&
+		        (G.moving & G_TRANSFORM_OBJ) &&
+		        (base->flag & (SELECT+BA_WAS_SEL)))
+		{
+			theme_id= TH_TRANSFORM;
+		}
 		else {
-
-			if(ob->type==OB_LAMP) UI_ThemeColor(TH_LAMP);
-			else if(ob->type==OB_SPEAKER) UI_ThemeColor(TH_SPEAKER);
-			else UI_ThemeColor(TH_WIRE);
-
-			if((scene->basact)==base) {
-				if(base->flag & (SELECT+BA_WAS_SEL)) UI_ThemeColor(TH_ACTIVE);
-			}
-			else {
-				if(base->flag & (SELECT+BA_WAS_SEL)) UI_ThemeColor(TH_SELECT);
-			}
-
-			// no theme yet
+			/* Sets the 'colindex' */
 			if(ob->id.lib) {
-				if(base->flag & (SELECT+BA_WAS_SEL)) colindex = 4;
-				else colindex = 3;
+				colindex= (base->flag & (SELECT+BA_WAS_SEL)) ? 4 : 3;
 			}
 			else if(warning_recursive==1) {
 				if(base->flag & (SELECT+BA_WAS_SEL)) {
-					if(scene->basact==base) colindex = 8;
-					else colindex= 7;
+					colindex= (scene->basact==base) ? 8 : 7;
 				}
-				else colindex = 6;
-			}
-			else if(ob->flag & OB_FROMGROUP) {
-				if(base->flag & (SELECT+BA_WAS_SEL)) {
-					if(scene->basact==base) UI_ThemeColor(TH_GROUP_ACTIVE);
-					else UI_ThemeColorShade(TH_GROUP_ACTIVE, -16); 
+				else {
+					colindex = 6;
 				}
-				else UI_ThemeColor(TH_GROUP);
-				colindex= 0;
 			}
+			/* Sets the 'theme_id' or fallback to wire */
+			else {
+				if(ob->flag & OB_FROMGROUP) {
+					if(base->flag & (SELECT+BA_WAS_SEL)) {
+						/* uses darker active color for non-active + selected*/
+						theme_id= TH_GROUP_ACTIVE;
 
-		}	
+						if(scene->basact != base) {
+							theme_shade= -16;
+						}
+					}
+					else {
+						theme_id= TH_GROUP;
+					}
+				}
+				else {
+					if(base->flag & (SELECT+BA_WAS_SEL)) {
+						theme_id= scene->basact == base ? TH_ACTIVE : TH_SELECT;
+					}
+					else {
+						if(ob->type==OB_LAMP) theme_id= TH_LAMP;
+						else if(ob->type==OB_SPEAKER) theme_id= TH_SPEAKER;
+						/* fallback to TH_WIRE */
+					}
+				}
+			}
+		}
 
-		if(colindex) {
+		/* finally set the color */
+		if(colindex == 0) {
+			if(theme_shade == 0) UI_ThemeColor(theme_id);
+			else                 UI_ThemeColorShade(theme_id, theme_shade);
+		}
+		else {
 			col= colortab[colindex];
 			cpack(col);
 		}
@@ -5965,7 +5987,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				}
 
 				if (cu->linewidth != 0.0f) {
-					cpack(0xff44ff);
 					UI_ThemeColor(TH_WIRE);
 					copy_v3_v3(vec1, ob->orig);
 					copy_v3_v3(vec2, ob->orig);
@@ -5984,10 +6005,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				setlinestyle(3);
 				for (i=0; i<cu->totbox; i++) {
 					if (cu->tb[i].w != 0.0f) {
-						if (i == (cu->actbox-1))
-							UI_ThemeColor(TH_ACTIVE);
-						else
-							UI_ThemeColor(TH_WIRE);
+						UI_ThemeColor(i == (cu->actbox-1) ? TH_ACTIVE : TH_WIRE);
 						vec1[0] = (cu->xof * cu->fsize) + cu->tb[i].x;
 						vec1[1] = (cu->yof * cu->fsize) + cu->tb[i].y + cu->fsize;
 						vec1[2] = 0.001;

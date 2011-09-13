@@ -114,10 +114,8 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 		float fac= shi->translucency;
 		
 		shade_input_init_material(shi);
-
-		VECCOPY(shi->vn, shi->vno);
-		VECMUL(shi->vn, -1.0f);
-		VECMUL(shi->facenor, -1.0f);
+		negate_v3_v3(shi->vn, shi->vno);
+		negate_v3(shi->facenor);
 		shi->depth++;	/* hack to get real shadow now */
 		shade_lamp_loop(shi, &shr_t);
 		shi->depth--;
@@ -184,8 +182,8 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	
 	/* copy additional passes */
 	if(shi->passflag & (SCE_PASS_VECTOR|SCE_PASS_NORMAL)) {
-		QUATCOPY(shr->winspeed, shi->winspeed);
-		VECCOPY(shr->nor, shi->vn);
+		copy_v4_v4(shr->winspeed, shi->winspeed);
+		copy_v3_v3(shr->nor, shi->vn);
 	}
 	
 	/* MIST */
@@ -286,9 +284,9 @@ void shade_input_set_triangle_i(ShadeInput *shi, ObjectInstanceRen *obi, VlakRen
 	
 	/* calculate vertexnormals */
 	if(vlr->flag & R_SMOOTH) {
-		VECCOPY(shi->n1, shi->v1->n);
-		VECCOPY(shi->n2, shi->v2->n);
-		VECCOPY(shi->n3, shi->v3->n);
+		copy_v3_v3(shi->n1, shi->v1->n);
+		copy_v3_v3(shi->n2, shi->v2->n);
+		copy_v3_v3(shi->n3, shi->v3->n);
 
 		if(obi->flag & R_TRANSFORMED) {
 			mul_m3_v3(obi->nmat, shi->n1); normalize_v3(shi->n1);
@@ -341,26 +339,26 @@ void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spo
 	shi->mode= shi->mat->mode_l;		/* or-ed result for all nodes */
 
 	/* shade_input_set_viewco equivalent */
-	VECCOPY(shi->co, spoint->co);
-	VECCOPY(shi->view, shi->co);
+	copy_v3_v3(shi->co, spoint->co);
+	copy_v3_v3(shi->view, shi->co);
 	normalize_v3(shi->view);
 
 	shi->xs= (int)spoint->x;
 	shi->ys= (int)spoint->y;
 
 	if(shi->osatex || (R.r.mode & R_SHADOW)) {
-		VECCOPY(shi->dxco, spoint->dtco);
-		VECCOPY(shi->dyco, spoint->dsco);
+		copy_v3_v3(shi->dxco, spoint->dtco);
+		copy_v3_v3(shi->dyco, spoint->dsco);
 	}
 
 	/* dxview, dyview, not supported */
 
 	/* facenormal, simply viewco flipped */
-	VECCOPY(shi->facenor, spoint->nor);
+	copy_v3_v3(shi->facenor, spoint->nor);
 
 	/* shade_input_set_normals equivalent */
 	if(shi->mat->mode & MA_TANGENT_STR) {
-		VECCOPY(shi->vn, spoint->tan)
+		copy_v3_v3(shi->vn, spoint->tan);
 	}
 	else {
 		float cross[3];
@@ -369,11 +367,11 @@ void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spo
 		cross_v3_v3v3(shi->vn, cross, spoint->tan);
 		normalize_v3(shi->vn);
 
-		if(INPR(shi->vn, shi->view) < 0.0f)
+		if(dot_v3v3(shi->vn, shi->view) < 0.0f)
 			negate_v3(shi->vn);
 	}
 
-	VECCOPY(shi->vno, shi->vn);
+	copy_v3_v3(shi->vno, shi->vn);
 }
 
 void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert *svert, StrandPoint *spoint)
@@ -393,17 +391,17 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 	}
 
 	if(mode & (MA_TANGENT_V|MA_NORMAP_TANG)) {
-		VECCOPY(shi->tang, spoint->tan);
-		VECCOPY(shi->nmaptang, spoint->tan);
+		copy_v3_v3(shi->tang, spoint->tan);
+		copy_v3_v3(shi->nmaptang, spoint->tan);
 	}
 
 	if(mode & MA_STR_SURFDIFF) {
 		float *surfnor= RE_strandren_get_surfnor(obr, strand, 0);
 
 		if(surfnor)
-			VECCOPY(shi->surfnor, surfnor)
+			copy_v3_v3(shi->surfnor, surfnor);
 		else
-			VECCOPY(shi->surfnor, shi->vn)
+			copy_v3_v3(shi->surfnor, shi->vn);
 
 		if(shi->mat->strand_surfnor > 0.0f) {
 			shi->surfdist= 0.0f;
@@ -418,7 +416,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 		
 		speed= RE_strandren_get_winspeed(shi->obi, strand, 0);
 		if(speed)
-			QUATCOPY(shi->winspeed, speed)
+			copy_v4_v4(shi->winspeed, speed);
 		else
 			shi->winspeed[0]= shi->winspeed[1]= shi->winspeed[2]= shi->winspeed[3]= 0.0f;
 	}
@@ -426,18 +424,18 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 	/* shade_input_set_shade_texco equivalent */
 	if(texco & NEED_UV) {
 		if(texco & TEXCO_ORCO) {
-			VECCOPY(shi->lo, strand->orco);
+			copy_v3_v3(shi->lo, strand->orco);
 			/* no shi->osatex, orco derivatives are zero */
 		}
 
 		if(texco & TEXCO_GLOB) {
-			VECCOPY(shi->gl, shi->co);
+			copy_v3_v3(shi->gl, shi->co);
 			mul_m4_v3(R.viewinv, shi->gl);
 			
 			if(shi->osatex) {
-				VECCOPY(shi->dxgl, shi->dxco); 
+				copy_v3_v3(shi->dxgl, shi->dxco);
 				mul_mat3_m4_v3(R.viewinv, shi->dxgl); 
-				VECCOPY(shi->dygl, shi->dyco); 
+				copy_v3_v3(shi->dygl, shi->dyco);
 				mul_mat3_m4_v3(R.viewinv, shi->dygl);
 			}
 		}
@@ -586,7 +584,7 @@ void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert
 }
 
 /* from scanline pixel coordinates to 3d coordinates, requires set_triangle */
-void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *view, float *dxyview, float *co, float *dxco, float *dyco)
+void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float view[3], float dxyview[2], float co[3], float dxco[3], float dyco[3])
 {
 	/* returns not normalized, so is in viewplane coords */
 	calc_view_vector(view, x, y);
@@ -603,7 +601,7 @@ void shade_input_calc_viewco(ShadeInput *shi, float x, float y, float z, float *
 		/* for non-wire, intersect with the triangle to get the exact coord */
 		float fac, dface, v1[3];
 		
-		VECCOPY(v1, shi->v1->co);
+		copy_v3_v3(v1, shi->v1->co);
 		if(shi->obi->flag & R_TRANSFORMED)
 			mul_m4_v3(shi->obi->mat, v1);
 		
@@ -721,9 +719,9 @@ void shade_input_set_uv(ShadeInput *shi)
 	if((vlr->flag & R_SMOOTH) || (shi->mat->texco & NEED_UV) || (shi->passflag & SCE_PASS_UV)) {
 		float v1[3], v2[3], v3[3];
 
-		VECCOPY(v1, shi->v1->co);
-		VECCOPY(v2, shi->v2->co);
-		VECCOPY(v3, shi->v3->co);
+		copy_v3_v3(v1, shi->v1->co);
+		copy_v3_v3(v2, shi->v2->co);
+		copy_v3_v3(v3, shi->v3->co);
 
 		if(shi->obi->flag & R_TRANSFORMED) {
 			mul_m4_v3(shi->obi->mat, v1);
@@ -822,18 +820,18 @@ void shade_input_set_normals(ShadeInput *shi)
 		shi->vn[2]= l*n3[2]-u*n1[2]-v*n2[2];
 
 		// use unnormalized normal (closer to games)
-		VECCOPY(shi->nmapnorm, shi->vn);
+		copy_v3_v3(shi->nmapnorm, shi->vn);
 		
 		normalize_v3(shi->vn);
 	}
 	else
 	{
-		VECCOPY(shi->vn, shi->facenor);
-		VECCOPY(shi->nmapnorm, shi->vn);
+		copy_v3_v3(shi->vn, shi->facenor);
+		copy_v3_v3(shi->nmapnorm, shi->vn);
 	}
 	
 	/* used in nodes */
-	VECCOPY(shi->vno, shi->vn);
+	copy_v3_v3(shi->vno, shi->vn);
 
 	/* flip normals to viewing direction */
 	if(!(shi->vlr->flag & R_TANGENT))
@@ -856,18 +854,18 @@ void shade_input_set_vertex_normals(ShadeInput *shi)
 		shi->vn[2]= l*n3[2]-u*n1[2]-v*n2[2];
 		
 		// use unnormalized normal (closer to games)
-		VECCOPY(shi->nmapnorm, shi->vn);
+		copy_v3_v3(shi->nmapnorm, shi->vn);
 		
 		normalize_v3(shi->vn);
 	}
 	else
 	{
-		VECCOPY(shi->vn, shi->facenor);
-		VECCOPY(shi->nmapnorm, shi->vn);
+		copy_v3_v3(shi->vn, shi->facenor);
+		copy_v3_v3(shi->nmapnorm, shi->vn);
 	}
 	
 	/* used in nodes */
-	VECCOPY(shi->vno, shi->vn);
+	copy_v3_v3(shi->vno, shi->vn);
 }
 
 
@@ -956,7 +954,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					mul_m3_v3(obi->nmat, shi->tang);
 
 				normalize_v3(shi->tang);
-				VECCOPY(shi->nmaptang, shi->tang);
+				copy_v3_v3(shi->nmaptang, shi->tang);
 			}
 		}
 
@@ -969,9 +967,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 
 				vlr_set_uv_indices(shi->vlr, &j1, &j2, &j3);
 
-				VECCOPY(c0, &tangent[j1*4]);
-				VECCOPY(c1, &tangent[j2*4]);
-				VECCOPY(c2, &tangent[j3*4]);
+				copy_v3_v3(c0, &tangent[j1*4]);
+				copy_v3_v3(c1, &tangent[j2*4]);
+				copy_v3_v3(c2, &tangent[j3*4]);
 
 				// keeping tangents normalized at vertex level
 				// corresponds better to how it's done in game engines
@@ -999,12 +997,12 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		float *surfnor= RE_vlakren_get_surfnor(obr, shi->vlr, 0);
 
 		if(surfnor) {
-			VECCOPY(shi->surfnor, surfnor)
+			copy_v3_v3(shi->surfnor, surfnor);
 			if(obi->flag & R_TRANSFORMED)
 				mul_m3_v3(obi->nmat, shi->surfnor);
 		}
 		else
-			VECCOPY(shi->surfnor, shi->vn)
+			copy_v3_v3(shi->surfnor, shi->vn);
 
 		shi->surfdist= 0.0f;
 	}
@@ -1057,16 +1055,16 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				}
 			}
 
-			VECCOPY(shi->duplilo, obi->dupliorco);
+			copy_v3_v3(shi->duplilo, obi->dupliorco);
 		}
 		
 		if(texco & TEXCO_GLOB) {
-			VECCOPY(shi->gl, shi->co);
+			copy_v3_v3(shi->gl, shi->co);
 			mul_m4_v3(R.viewinv, shi->gl);
 			if(shi->osatex) {
-				VECCOPY(shi->dxgl, shi->dxco); 
+				copy_v3_v3(shi->dxgl, shi->dxco);
 				mul_mat3_m4_v3(R.viewinv, shi->dxgl); 
-				VECCOPY(shi->dygl, shi->dyco); 
+				copy_v3_v3(shi->dygl, shi->dyco);
 				mul_mat3_m4_v3(R.viewinv, shi->dygl);
 			}
 		}

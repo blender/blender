@@ -827,7 +827,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 	if (0.0f != normalize_v3(dirvec)) {
 		float norvech[3], norvect[3], vec[3];
 		
-		VECCOPY(vec, dirvec);
+		copy_v3_v3(vec, dirvec);
 		
 		mul_v3_fl(dirvec, head);
 		cross_v3_v3v3(norvech, dirvec, imat[2]);
@@ -1544,7 +1544,7 @@ static void draw_pose_dofs(Object *ob)
 							/* in parent-bone pose, but own restspace */
 							glPushMatrix();
 							
-							VECCOPY(posetrans, pchan->pose_mat[3]);
+							copy_v3_v3(posetrans, pchan->pose_mat[3]);
 							glTranslatef(posetrans[0], posetrans[1], posetrans[2]);
 							
 							if (pchan->parent) {
@@ -1642,7 +1642,7 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 {
 	float trans[3];
 
-	VECCOPY(trans, mat[1]);
+	copy_v3_v3(trans, mat[1]);
 	mul_v3_fl(trans, y);
 	add_v3_v3(mat[3], trans);
 }

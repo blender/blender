@@ -2547,9 +2547,9 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 				sub_v3_v3v3(h2, p2, p2+3);
 				len1= normalize_v3(h1);
 				len2= normalize_v3(h2);
-				
-				vz= INPR(h1, h2);
-				
+
+				vz= dot_v3v3(h1, h2);
+
 				if(leftviolate) {
 					*(p2+3)= *(p2)   - vz*len2*h1[0];
 					*(p2+4)= *(p2+1) - vz*len2*h1[1];

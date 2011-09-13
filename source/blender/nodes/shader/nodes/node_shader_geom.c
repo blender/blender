@@ -72,12 +72,12 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **UNUSED(i
 		}
 
 		/* out: global, local, view, orco, uv, normal, vertex color */
-		VECCOPY(out[GEOM_OUT_GLOB]->vec, shi->gl);
-		VECCOPY(out[GEOM_OUT_LOCAL]->vec, shi->co);
-		VECCOPY(out[GEOM_OUT_VIEW]->vec, shi->view);
-		VECCOPY(out[GEOM_OUT_ORCO]->vec, shi->lo);
-		VECCOPY(out[GEOM_OUT_UV]->vec, suv->uv);
-		VECCOPY(out[GEOM_OUT_NORMAL]->vec, shi->vno);
+		copy_v3_v3(out[GEOM_OUT_GLOB]->vec, shi->gl);
+		copy_v3_v3(out[GEOM_OUT_LOCAL]->vec, shi->co);
+		copy_v3_v3(out[GEOM_OUT_VIEW]->vec, shi->view);
+		copy_v3_v3(out[GEOM_OUT_ORCO]->vec, shi->lo);
+		copy_v3_v3(out[GEOM_OUT_UV]->vec, suv->uv);
+		copy_v3_v3(out[GEOM_OUT_NORMAL]->vec, shi->vno);
 
 		if (shi->totcol) {
 			/* find vertex color layer by name */

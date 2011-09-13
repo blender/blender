@@ -376,7 +376,7 @@ static void nla_draw_strip (SpaceNla *snla, AnimData *adt, NlaTrack *nlt, NlaStr
 	if (nonSolo == 0) {
 		/* strip is in normal track */
 		glColor3fv(color);
-		uiSetRoundBox(15); /* all corners rounded */
+		uiSetRoundBox(UI_CNR_ALL); /* all corners rounded */
 		
 		uiDrawBoxShade(GL_POLYGON, strip->start, yminc, strip->end, ymaxc, 0.0, 0.5, 0.1);
 	}
@@ -811,7 +811,7 @@ static void draw_nla_channel_list_gl (bAnimContext *ac, ListBase *anim_data, Vie
 					offset += 7 * indent;
 					
 					/* only on top two corners, to show that this channel sits on top of the preceding ones */
-					uiSetRoundBox((1|2)); 
+					uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 					
 					/* draw slightly shifted up vertically to look like it has more separtion from other channels,
 					 * but we then need to slightly shorten it so that it doesn't look like it overlaps

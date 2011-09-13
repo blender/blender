@@ -533,7 +533,7 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 
 static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C), *sce;
 	SceneRenderLayer *rl;
 	int act= scene->r.actlay;
 
@@ -545,15 +545,17 @@ static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	MEM_freeN(rl);
 
 	scene->r.actlay= 0;
-	
-	if(scene->nodetree) {
-		bNode *node;
-		for(node= scene->nodetree->nodes.first; node; node= node->next) {
-			if(node->type==CMP_NODE_R_LAYERS && node->id==NULL) {
-				if(node->custom1==act)
-					node->custom1= 0;
-				else if(node->custom1>act)
-					node->custom1--;
+
+	for(sce = CTX_data_main(C)->scene.first; sce; sce = sce->id.next) {
+		if(sce->nodetree) {
+			bNode *node;
+			for(node = sce->nodetree->nodes.first; node; node = node->next) {
+				if(node->type==CMP_NODE_R_LAYERS && (Scene*)node->id==scene) {
+					if(node->custom1==act)
+						node->custom1= 0;
+					else if(node->custom1>act)
+						node->custom1--;
+				}
 			}
 		}
 	}

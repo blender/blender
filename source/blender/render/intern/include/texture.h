@@ -64,11 +64,11 @@ struct ImBuf;
 
 /* texture.h */
 
-void do_halo_tex(struct HaloRen *har, float xn, float yn, float *colf);
-void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend, int skyflag, short thread);
+void do_halo_tex(struct HaloRen *har, float xn, float yn, float col_r[4]);
+void do_sky_tex(const float rco[3], float lo[3], const float dxyview[2], float hor[3], float zen[3], float *blend, int skyflag, short thread);
 void do_material_tex(struct ShadeInput *shi);
-void do_lamp_tex(LampRen *la, float *lavec, struct ShadeInput *shi, float *colf, int effect);
-void do_volume_tex(struct ShadeInput *shi, float *xyz, int mapto_flag, float *col, float *val);
+void do_lamp_tex(LampRen *la, const float lavec[3], struct ShadeInput *shi, float col_r[3], int effect);
+void do_volume_tex(struct ShadeInput *shi, const float xyz[3], int mapto_flag, float col[3], float *val);
 
 void init_render_textures(Render *re);
 void end_render_textures(Render *re);
@@ -77,8 +77,8 @@ void render_realtime_texture(struct ShadeInput *shi, struct Image *ima);
 
 /* imagetexture.h */
 
-int imagewraposa(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, float *texvec, float *dxt, float *dyt, struct TexResult *texres);
-int imagewrap(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, float *texvec, struct TexResult *texres);
+int imagewraposa(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], const float dxt[3], const float dyt[3], struct TexResult *texres);
+int imagewrap(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], struct TexResult *texres);
 void image_sample(struct Image *ima, float fx, float fy, float dx, float dy, float *result);
 
 #endif /* TEXTURE_EXT_H */

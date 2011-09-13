@@ -1777,11 +1777,11 @@ void sample_occ(Render *re, ShadeInput *shi)
 
 				if(cache->sample && cache->step) {
 					sample= &cache->sample[(shi->ys-cache->y)*cache->w + (shi->xs-cache->x)];
-					VECCOPY(sample->co, shi->co);
-					VECCOPY(sample->n, shi->vno);
-					VECCOPY(sample->ao, shi->ao);
-					VECCOPY(sample->env, shi->env);
-					VECCOPY(sample->indirect, shi->indirect);
+					copy_v3_v3(sample->co, shi->co);
+					copy_v3_v3(sample->n, shi->vno);
+					copy_v3_v3(sample->ao, shi->ao);
+					copy_v3_v3(sample->env, shi->env);
+					copy_v3_v3(sample->indirect, shi->indirect);
 					sample->intensity= MAX3(sample->ao[0], sample->ao[1], sample->ao[2]);
 					sample->intensity= MAX2(sample->intensity, MAX3(sample->env[0], sample->env[1], sample->env[2]));
 					sample->intensity= MAX2(sample->intensity, MAX3(sample->indirect[0], sample->indirect[1], sample->indirect[2]));
@@ -1872,11 +1872,11 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 				exclude.facenr= shi->vlr->index;
 				sample_occ_tree(re, tree, &exclude, shi->co, shi->vno, shi->thread, onlyshadow, shi->ao, shi->env, shi->indirect);
 
-				VECCOPY(sample->co, shi->co);
-				VECCOPY(sample->n, shi->vno);
-				VECCOPY(sample->ao, shi->ao);
-				VECCOPY(sample->env, shi->env);
-				VECCOPY(sample->indirect, shi->indirect);
+				copy_v3_v3(sample->co, shi->co);
+				copy_v3_v3(sample->n, shi->vno);
+				copy_v3_v3(sample->ao, shi->ao);
+				copy_v3_v3(sample->env, shi->env);
+				copy_v3_v3(sample->indirect, shi->indirect);
 				sample->intensity= MAX3(sample->ao[0], sample->ao[1], sample->ao[2]);
 				sample->intensity= MAX2(sample->intensity, MAX3(sample->env[0], sample->env[1], sample->env[2]));
 				sample->intensity= MAX2(sample->intensity, MAX3(sample->indirect[0], sample->indirect[1], sample->indirect[2]));

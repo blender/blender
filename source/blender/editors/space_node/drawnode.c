@@ -305,7 +305,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 
 	if(_sample_col) {
 		cumap->flag |= CUMA_DRAW_SAMPLE;
-		VECCOPY(cumap->sample, _sample_col);
+		copy_v3_v3(cumap->sample, _sample_col);
 	}
 	else 
 		cumap->flag &= ~CUMA_DRAW_SAMPLE;
@@ -741,23 +741,23 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		
 		/* backdrop header */
 		glEnable(GL_BLEND);
-		uiSetRoundBox(3);
+		uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 		UI_ThemeColorShadeAlpha(TH_NODE_GROUP, 0, -70);
 		uiDrawBox(GL_POLYGON, rect.xmin-node_group_frame, rect.ymax, rect.xmax+node_group_frame, rect.ymax+group_header, BASIS_RAD);
 		
 		/* backdrop body */
 		UI_ThemeColorShadeAlpha(TH_BACK, -8, -70);
-		uiSetRoundBox(0);
+		uiSetRoundBox(UI_CNR_NONE);
 		uiDrawBox(GL_POLYGON, rect.xmin, rect.ymin, rect.xmax, rect.ymax, BASIS_RAD);
 	
 		/* input column */
 		UI_ThemeColorShadeAlpha(TH_BACK, 10, -50);
-		uiSetRoundBox(8);
+		uiSetRoundBox(UI_CNR_BOTTOM_LEFT);
 		uiDrawBox(GL_POLYGON, rect.xmin-node_group_frame, rect.ymin, rect.xmin, rect.ymax, BASIS_RAD);
 	
 		/* output column */
 		UI_ThemeColorShadeAlpha(TH_BACK, 10, -50);
-		uiSetRoundBox(4);
+		uiSetRoundBox(UI_CNR_BOTTOM_RIGHT);
 		uiDrawBox(GL_POLYGON, rect.xmax, rect.ymin, rect.xmax+node_group_frame, rect.ymax, BASIS_RAD);
 	
 		/* input column separator */
@@ -775,7 +775,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		glEnd();
 	
 		/* group node outline */
-		uiSetRoundBox(15);
+		uiSetRoundBox(UI_CNR_ALL);
 		glColor4ub(200, 200, 200, 140);
 		glEnable( GL_LINE_SMOOTH );
 		uiDrawBox(GL_LINE_LOOP, rect.xmin-node_group_frame, rect.ymin, rect.xmax+node_group_frame, rect.ymax+group_header, BASIS_RAD);

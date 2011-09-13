@@ -24,7 +24,6 @@ set(INC
 	../../blenkernel
 	../../blenlib
 	../../blenloader
-	../../../../extern/recastnavigation/Recast/Include
 	../../makesdna
 	../../makesrna
 	../../windowmanager
@@ -63,7 +62,6 @@ set(SRC
 	../include/ED_markers.h
 	../include/ED_mball.h
 	../include/ED_mesh.h
-	../include/ED_navmesh_conversion.h
 	../include/ED_node.h
 	../include/ED_numinput.h
 	../include/ED_object.h
@@ -88,11 +86,5 @@ set(SRC
 	../include/UI_resources.h
 	../include/UI_view2d.h
 )
-
-if(WITH_GAMEENGINE)
-	list(APPEND SRC
-		navmesh_conversion.cpp
-	)
-endif()
 
 blender_add_lib(bf_editor_util "${SRC}" "${INC}" "${INC_SYS}")
