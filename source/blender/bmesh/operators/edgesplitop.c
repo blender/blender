@@ -266,11 +266,18 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (!BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
 				if (!verts[i]) {
+
+					/* WARNING, commented because of bug [#28581] in rip tool
+					 * I couldn't find any cases where this is needed, without
+					 * it rip tool at least works fine - campbell */
+#if 0
 					et = etags + BM_GetIndex(l->e);
 					if (ETV(et, l->v, l)) {
 						verts[i] = ETV(et, l->v, l);
 					}
-					else {
+					else
+#endif
+					{
 						verts[i] = l->v;
 					}
 				}
