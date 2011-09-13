@@ -94,7 +94,20 @@ static int circumCircle(const float xp, const float yp,
 	
 	return (drsqr <= rsqr) ? 1 : 0;
 }
-
+#ifdef FREE_WINDOWS
+static float *_mingw_verts;
+static int ptcmp(const void *v1, const void *v2)
+{
+	const float* p1 = &_mingw_verts[(*(const int*)v1)*3];
+	const float* p2 = &_mingw_verts[(*(const int*)v2)*3];
+	if (p1[0] < p2[0])
+		return -1;
+	else if (p1[0] > p2[0])
+		return 1;
+	else
+		return 0;
+}
+#else
 #if defined(_MSC_VER)
 static int ptcmp(void* up, const void *v1, const void *v2)
 #elif defined(__APPLE__) || defined(__FreeBSD__)
@@ -113,6 +126,7 @@ static int ptcmp(const void *v1, const void *v2, void* up)
 	else
 		return 0;
 }
+#endif
 
 // Based on Paul Bourke's triangulate.c
 //  http://astronomy.swin.edu.au/~pbourke/terrain/triangulate/triangulate.c
@@ -126,6 +140,9 @@ static void delaunay(const int nv, float *verts, rcIntArray& idx, rcIntArray& tr
 	qsort_s(&idx[0], idx.size(), sizeof(int), ptcmp, verts);
 #elif defined(__APPLE__) || defined(__FreeBSD__)
 	qsort_r(&idx[0], idx.size(), sizeof(int), verts, ptcmp);
+#elif defined(FREE_WINDOWS)
+	_mingw_verts = verts;
+	qsort(&idx[0], idx.size(), sizeof(int), ptcmp);
 #else
 	qsort_r(&idx[0], idx.size(), sizeof(int), ptcmp, verts);
 #endif

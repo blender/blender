@@ -289,6 +289,15 @@ struct SortContext
 	const int* recastData;
 	const int* trisToFacesMap;
 };
+
+#ifdef FREE_WINDOWS
+static SortContext *_mingw_context;
+static int compareByData(const void * a, const void * b)
+{
+	return ( _mingw_context->recastData[_mingw_context->trisToFacesMap[*(int*)a]] -
+			_mingw_context->recastData[_mingw_context->trisToFacesMap[*(int*)b]] );
+}
+#else
 #if defined(_MSC_VER)
 static int compareByData(void* data, const void * a, const void * b)
 #elif defined(__APPLE__) || defined(__FreeBSD__)
@@ -301,6 +310,7 @@ static int compareByData(const void * a, const void * b, void* data)
 	return ( context->recastData[context->trisToFacesMap[*(int*)a]] - 
 		context->recastData[context->trisToFacesMap[*(int*)b]] );
 }
+#endif
 
 bool buildNavMeshData(const int nverts, const float* verts, 
 							 const int ntris, const unsigned short *tris, 
@@ -327,6 +337,9 @@ bool buildNavMeshData(const int nverts, const float* verts,
 	qsort_s(trisMapping, ntris, sizeof(int), compareByData, &context);
 #elif defined(__APPLE__) || defined(__FreeBSD__)
 	qsort_r(trisMapping, ntris, sizeof(int), &context, compareByData);
+#elif defined(FREE_WINDOWS)
+	_mingw_context = &context;
+	qsort(trisMapping, ntris, sizeof(int), compareByData);
 #else
 	qsort_r(trisMapping, ntris, sizeof(int), compareByData, &context);
 #endif
