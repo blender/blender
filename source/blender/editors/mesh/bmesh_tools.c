@@ -2516,8 +2516,8 @@ static int select_vertex_path_exec(bContext *C, wmOperator *op)
 
 	s = t = NULL;
 
-	ese = ((EditSelection*)em->selected.last);
-	if(ese && ese->type == EDITVERT && ese->prev && ese->prev->type == EDITVERT){
+	ese = ((BMEditSelection*)em->selected.last);
+	if(ese && ese->type == BM_VERT && ese->prev && ese->prev->type == BM_VERT) {
 		physical= pupmenu("Distance Method? %t|Edge Length%x1|Topological%x0");
 
 		t = (EditVert*)ese->data;

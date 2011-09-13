@@ -141,7 +141,6 @@ void EDBM_free_index_arrays(struct BMEditMesh *em);
 struct BMVert *EDBM_get_vert_for_index(struct BMEditMesh *em, int index);
 struct BMEdge *EDBM_get_edge_for_index(struct BMEditMesh *em, int index);
 struct BMFace *EDBM_get_face_for_index(struct BMEditMesh *em, int index);
-struct BMFace *EDBM_get_actFace(struct BMEditMesh *em, int sloppy);
 
 int EDBM_CallAndSelectOpf(struct BMEditMesh *em, struct wmOperator *op, 
 						  const char *selectslot, const char *fmt, ...);
@@ -181,7 +180,6 @@ int			EDBM_init_backbuf_circle(struct ViewContext *vc, short xs, short ys, short
 void EDBM_deselect_by_material(struct BMEditMesh *em, const short index, const short select);
 
 void EDBM_select_swap(struct BMEditMesh *em); /* exported for UV */
-void EDBM_set_actFace(struct BMEditMesh *em, struct BMFace *efa);
 
 int EDBM_texFaceCheck(struct BMEditMesh *em);
 struct MTexPoly *EDBM_get_active_mtexpoly(struct BMEditMesh *em, struct BMFace **act_efa, int sloppy);

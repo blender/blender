@@ -371,43 +371,6 @@ BMFace *EDBM_get_face_for_index(BMEditMesh *tm, int index)
 	return (tm->face_index && index<tm->bm->totface && index>=0) ? tm->face_index[index] : NULL;
 }
 
-/* this replaces the active flag used in uv/face mode */
-void EDBM_set_actFace(BMEditMesh *em, BMFace *efa)
-{
-	em->bm->act_face = efa;
-}
-
-BMFace *EDBM_get_actFace(BMEditMesh *em, int sloppy)
-{
-	if (em->bm->act_face) {
-		return em->bm->act_face;
-	} else if (sloppy) {
-		BMFace *efa= NULL;
-		BMEditSelection *ese;
-		
-		ese = em->bm->selected.last;
-		for (; ese; ese=ese->prev){
-			if(ese->type == BM_FACE) {
-				efa = (BMFace *)ese->data;
-				
-				if (BM_TestHFlag(efa, BM_HIDDEN)) efa= NULL;
-				else break;
-			}
-		}
-		if (efa==NULL) {
-			BMIter iter;
-			efa = BMIter_New(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-			for ( ; efa; efa=BMIter_Step(&iter)) {
-				if (BM_TestHFlag(efa, BM_SELECT))
-					break;
-			}
-		}
-		return efa; /* can still be null */
-	}
-	return NULL;
-
-}
-
 void EDBM_select_flush(BMEditMesh *em, int selectmode)
 {
 	em->bm->selectmode = selectmode;
@@ -462,7 +425,7 @@ static void EDBM_select_less(BMEditMesh *em)
 int EDBM_get_actSelection(BMEditMesh *em, BMEditSelection *ese)
 {
 	BMEditSelection *ese_last = em->bm->selected.last;
-	BMFace *efa = EDBM_get_actFace(em, 0);
+	BMFace *efa = BM_get_actFace(em->bm, 0);
 
 	ese->next = ese->prev = NULL;
 	
@@ -788,7 +751,7 @@ MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **act_efa, int sloppy)
 	if(!EDBM_texFaceCheck(em))
 		return NULL;
 	
-	efa = EDBM_get_actFace(em, sloppy);
+	efa = BM_get_actFace(em->bm, sloppy);
 	
 	if (efa) {
 		if (act_efa) *act_efa = efa; 

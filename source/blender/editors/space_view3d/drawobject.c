@@ -2562,18 +2562,18 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 
 {
 	Mesh *me = ob->data;
-	BMFace *efa_act = EDBM_get_actFace(em, 0); /* annoying but active faces is stored differently */
+	BMFace *efa_act = BM_get_actFace(em->bm, 0); /* annoying but active faces is stored differently */
 	BMEdge *eed_act = NULL;
 	BMVert *eve_act = NULL;
 	
 	if (em->bm->selected.last) {
 		BMEditSelection *ese = em->bm->selected.last;
 		/* face is handeled above */
-		/*if (ese->type == EDITFACE ) {
-			efa_act = (EditFace *)ese->data;
-		} else */ if ( ese->type == EDITEDGE ) {
+		/*if (ese->type == BM_FACE ) {
+			efa_act = (BMFace *)ese->data;
+		} else */ if ( ese->type == BM_EDGE ) {
 			eed_act = (BMEdge *)ese->data;
-		} else if ( ese->type == EDITVERT ) {
+		} else if ( ese->type == BM_VERT ) {
 			eve_act = (BMVert *)ese->data;
 		}
 	}

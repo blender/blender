@@ -41,6 +41,8 @@ void BM_Selectmode_Set(struct BMesh *bm, int selectmode);
 int BM_CountFlag(struct BMesh *bm, int type, int flag, int respectflag);
 
 /*edit selection stuff*/
+void BM_set_actFace(BMesh *em, BMFace *f);
+BMFace *BM_get_actFace(BMesh *bm, int sloppy);
 void BM_editselection_center(BMesh *bm, float *center, BMEditSelection *ese);
 void BM_editselection_normal(float *normal, BMEditSelection *ese);
 void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese);

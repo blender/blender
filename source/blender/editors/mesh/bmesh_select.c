@@ -888,6 +888,9 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	BMW_Init(&walker, bm, walkercode, 0, 0);
 	h = BMW_Begin(&walker, start);
 	for (; h; h=BMW_Step(&walker)) {
+		if (!select) {
+			BM_remove_selection(bm, h);
+		}
 		BM_Select(bm, h, select);
 	}
 	BMW_End(&walker);
@@ -1447,7 +1450,7 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 		
 		if(efa) {
 			/* set the last selected face */
-			EDBM_set_actFace(vc.em, efa);
+			BM_set_actFace(vc.em->bm, efa);
 			
 			if(!BM_TestHFlag(efa, BM_SELECT)) {
 				EDBM_store_selection(vc.em, efa);
@@ -2109,37 +2112,6 @@ static void em_deselect_nth_vert(BMEditMesh *em, int nth, BMVert *v_act)
 	EDBM_select_flush(em, SCE_SELECT_VERTEX);
 }
 
-BMFace *EM_get_actFace(BMEditMesh *em, int sloppy)
-{
-	if (em->bm->act_face) {
-		return em->bm->act_face;
-	} else if (sloppy) {
-		BMIter iter;
-		BMFace *f= NULL;
-		BMEditSelection *ese;
-		
-		/* Find the latest non-hidden face from the BMEditSelection */
-		ese = em->bm->selected.last;
-		for (; ese; ese=ese->prev){
-			if(ese->type == BM_FACE) {
-				f = (BMFace *)ese->data;
-				
-				if (BM_TestHFlag(f, BM_HIDDEN))	f= NULL;
-				else		break;
-			}
-		}
-		/* Last attempt: try to find any selected face */
-		if (f==NULL) {
-			BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-				if (BM_TestHFlag(f, BM_SELECT))
-					break;
-			}
-		}
-		return f; /* can still be null */
-	}
-	return NULL;
-}
-
 static void deselect_nth_active(BMEditMesh *em, BMVert **v_p, BMEdge **e_p, BMFace **f_p)
 {
 	BMVert *v;
@@ -2186,7 +2158,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **v_p, BMEdge **e_p, BMFa
 		}
 	}
 	else if(em->selectmode & SCE_SELECT_FACE) {
-		f= EM_get_actFace(em, 1);
+		f= BM_get_actFace(em->bm, 1);
 		if(f) {
 			*f_p= f;
 			return;

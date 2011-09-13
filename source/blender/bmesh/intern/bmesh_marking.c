@@ -104,6 +104,9 @@ void BM_SelectMode_Flush(BMesh *bm)
 		}
 	}
 
+	/*Remove any deselected elements from the BMEditSelection*/
+	BM_validate_selections(bm);
+
 	recount_totsels(bm);
 }
 
@@ -339,6 +342,47 @@ int BM_Selected(BMesh *UNUSED(bm), const void *element)
 	return BM_TestHFlag(head, BM_SELECT);
 }
 
+/* this replaces the active flag used in uv/face mode */
+void BM_set_actFace(BMesh *bm, BMFace *efa)
+{
+	bm->act_face = efa;
+}
+
+BMFace *BM_get_actFace(BMesh *bm, int sloppy)
+{
+	if (bm->act_face) {
+		return bm->act_face;
+	} else if (sloppy) {
+		BMIter iter;
+		BMFace *f= NULL;
+		BMEditSelection *ese;
+		
+		/* Find the latest non-hidden face from the BMEditSelection */
+		ese = bm->selected.last;
+		for (; ese; ese=ese->prev){
+			if(ese->type == BM_FACE) {
+				f = (BMFace *)ese->data;
+				
+				if (BM_TestHFlag(f, BM_HIDDEN)) {
+					f= NULL;
+				}
+				else {
+					break;
+				}
+			}
+		}
+		/* Last attempt: try to find any selected face */
+		if (f==NULL) {
+			BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
+				if (BM_TestHFlag(f, BM_SELECT)) {
+					break;
+				}
+			}
+		}
+		return f; /* can still be null */
+	}
+	return NULL;
+}
 
 /* generic way to get data from an EditSelection type 
 These functions were written to be used by the Modifier widget when in Rotate about active mode,
@@ -347,7 +391,7 @@ EM_editselection_center
 EM_editselection_normal
 EM_editselection_plane
 */
-void BM_editselection_center(BMesh *em, float *center, BMEditSelection *ese)
+void BM_editselection_center(BMesh *bm, float *center, BMEditSelection *ese)
 {
 	if (ese->type==BM_VERT) {
 		BMVert *eve= ese->data;
@@ -358,7 +402,7 @@ void BM_editselection_center(BMesh *em, float *center, BMEditSelection *ese)
 		mul_v3_fl(center, 0.5);
 	} else if (ese->type==BM_FACE) {
 		BMFace *efa= ese->data;
-		BM_Compute_Face_Center(em, efa, center);
+		BM_Compute_Face_Center(bm, efa, center);
 	}
 }
 
@@ -392,14 +436,14 @@ void BM_editselection_normal(float *normal, BMEditSelection *ese)
 /* Calculate a plane that is rightangles to the edge/vert/faces normal
 also make the plane run allong an axis that is related to the geometry,
 because this is used for the manipulators Y axis.*/
-void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
+void BM_editselection_plane(BMesh *bm, float *plane, BMEditSelection *ese)
 {
 	if (ese->type==BM_VERT) {
 		BMVert *eve= ese->data;
 		float vec[3]={0,0,0};
 		
 		if (ese->prev) { /*use previously selected data to make a usefull vertex plane */
-			BM_editselection_center(em, vec, ese->prev);
+			BM_editselection_center(bm, vec, ese->prev);
 			sub_v3_v3v3(plane, vec, eve->co);
 		} else {
 			/* make a fake  plane thats at rightangles to the normal
@@ -471,54 +515,56 @@ void BM_editselection_plane(BMesh *em, float *plane, BMEditSelection *ese)
 	normalize_v3(plane);
 }
 
-static int BM_check_selection(BMesh *em, void *data)
+static int BM_check_selection(BMesh *bm, void *data)
 {
 	BMEditSelection *ese;
 	
-	for(ese = em->selected.first; ese; ese = ese->next){
+	for(ese = bm->selected.first; ese; ese = ese->next){
 		if(ese->data == data) return 1;
 	}
 	
 	return 0;
 }
 
-void BM_remove_selection(BMesh *em, void *data)
+void BM_remove_selection(BMesh *bm, void *data)
 {
 	BMEditSelection *ese;
-	for(ese=em->selected.first; ese; ese = ese->next){
+	for(ese=bm->selected.first; ese; ese = ese->next){
 		if(ese->data == data){
-			BLI_freelinkN(&(em->selected),ese);
+			BLI_freelinkN(&(bm->selected),ese);
 			break;
 		}
 	}
 }
 
-void BM_clear_selection_history(BMesh *em)
+void BM_clear_selection_history(BMesh *bm)
 {
-	BLI_freelistN(&em->selected);
-	em->selected.first = em->selected.last = NULL;
+	BLI_freelistN(&bm->selected);
+	bm->selected.first = bm->selected.last = NULL;
 }
 
-void BM_store_selection(BMesh *em, void *data)
+void BM_store_selection(BMesh *bm, void *data)
 {
 	BMEditSelection *ese;
-	if(!BM_check_selection(em, data)){
+	if(!BM_check_selection(bm, data)){
 		ese = (BMEditSelection*) MEM_callocN( sizeof(BMEditSelection), "BMEdit Selection");
 		ese->type = ((BMHeader*)data)->type;
 		ese->data = data;
-		BLI_addtail(&(em->selected),ese);
+		BLI_addtail(&(bm->selected),ese);
 	}
 }
 
-void BM_validate_selections(BMesh *em)
+void BM_validate_selections(BMesh *bm)
 {
 	BMEditSelection *ese, *nextese;
 
-	ese = em->selected.first;
+	ese = bm->selected.first;
 
-	while(ese){
+	while(ese) {
 		nextese = ese->next;
-		if (!BM_TestHFlag(ese->data, BM_SELECT)) BLI_freelinkN(&(em->selected), ese);
+		if (!BM_TestHFlag(ese->data, BM_SELECT)) {
+			BLI_freelinkN(&(bm->selected), ese);
+		}
 		ese = nextese;
 	}
 }
@@ -656,5 +702,3 @@ void BM_Hide(BMesh *bm, void *element, int hide)
 			break;
 	}
 }
-
-

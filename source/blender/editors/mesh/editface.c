@@ -147,7 +147,7 @@ static MTexPoly *EDBM_get_active_mtface(BMEditMesh *em, BMFace **act_efa, int sl
 	if(!EDBM_texFaceCheck(em))
 		return NULL;
 	
-	efa = EDBM_get_actFace(em, sloppy);
+	efa = BM_get_actFace(em->bm, sloppy);
 	
 	if (efa) {
 		if (act_efa) *act_efa = efa; 

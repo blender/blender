@@ -1904,7 +1904,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		}
 		
 		/* make active */
-		EDBM_set_actFace(em, hit.efa);
+		BM_set_actFace(em->bm, hit.efa);
 
 		/* mark all face vertices as being hit */
 		i = 0;
