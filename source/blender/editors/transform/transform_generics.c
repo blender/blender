@@ -144,7 +144,7 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 	int axis = 0;
 	
 	for (; md; md=md->next) {
-		if (md->type==eModifierType_Mirror) {
+		if ((md->type==eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;
 			
 			if(mmd->flag & MOD_MIR_CLIPPING) {

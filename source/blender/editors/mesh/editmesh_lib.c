@@ -1310,7 +1310,7 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short UNUSED(flag), 
 	 * of the cases above to handle edges on the line of symmetry.
 	 */
 	for (; md; md=md->next) {
-		if (md->type==eModifierType_Mirror) {
+		if ((md->type==eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
@@ -1597,7 +1597,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 	 * of the cases above to handle edges on the line of symmetry.
 	 */
 	for (; md; md=md->next) {
-		if (md->type==eModifierType_Mirror) {
+		if ((md->type==eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {

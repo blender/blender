@@ -2675,7 +2675,7 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 	}
 
 	for (; md; md=md->next) {
-		if (md->type==eModifierType_Mirror) {
+		if ((md->type==eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;
 
 			if(mmd->flag & MOD_MIR_CLIPPING) {
