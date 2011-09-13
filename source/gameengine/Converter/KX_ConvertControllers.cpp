@@ -210,7 +210,11 @@ void BL_ConvertControllers(
 			CIntValue* uniqueval = new CIntValue(uniqueint);
 			uniquename += uniqueval->GetText();
 			uniqueval->Release();
-			gamecontroller->SetName(uniquename);
+			//unique name was never implemented for sensors and actuators, only for controllers
+			//and it's producing difference in the keys for the lists: obj.controllers/sensors/actuators
+			//at some point it should either be implemented globally (and saved as a separate var) or removed.
+			//gamecontroller->SetName(uniquename);
+			gamecontroller->SetName(bcontr->name);
 			gameobj->AddController(gamecontroller);
 			
 			converter->RegisterGameController(gamecontroller, bcontr);

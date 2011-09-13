@@ -80,6 +80,16 @@ public:
 	 *        the data at the end will be lost.
 	 */
 	void resize(int size, bool keep = false);
+
+	/**
+	 * Makes sure the buffer has a minimum size.
+	 * If size is >= current size, nothing will happen.
+	 * Otherwise the buffer is resized with keep as parameter.
+	 * \param size The new minimum size of the buffer, measured in bytes.
+	 * \param keep Whether to keep the old data. If the new buffer is smaller,
+	 *        the data at the end will be lost.
+	 */
+	void assureSize(int size, bool keep = false);
 };
 
 #endif //AUD_BUFFER

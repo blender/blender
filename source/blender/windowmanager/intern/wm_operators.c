@@ -213,6 +213,7 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 		
 		if(opm->type->exec) {
 			retval= opm->type->exec(C, opm);
+			OPERATOR_RETVAL_CHECK(retval);
 		
 			if (retval & OPERATOR_FINISHED) {
 				MacroData *md = op->customdata;
@@ -236,6 +237,8 @@ static int wm_macro_invoke_internal(bContext *C, wmOperator *op, wmEvent *event,
 			retval= opm->type->invoke(C, opm, event);
 		else if(opm->type->exec)
 			retval= opm->type->exec(C, opm);
+
+		OPERATOR_RETVAL_CHECK(retval);
 
 		BLI_movelisttolist(&op->reports->list, &opm->reports->list);
 		
@@ -265,6 +268,7 @@ static int wm_macro_modal(bContext *C, wmOperator *op, wmEvent *event)
 		printf("macro error, calling NULL modal()\n");
 	else {
 		retval = opm->type->modal(C, opm, event);
+		OPERATOR_RETVAL_CHECK(retval);
 
 		/* if this one is done but it's not the last operator in the macro */
 		if ((retval & OPERATOR_FINISHED) && opm->next) {
@@ -655,7 +659,9 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 		printf("WM_menu_invoke: %s \"%s\" is not an enum property\n", op->type->idname, RNA_property_identifier(prop));
 	}
 	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
-		return op->type->exec(C, op);
+		const int retval= op->type->exec(C, op);
+		OPERATOR_RETVAL_CHECK(retval);
+		return retval;
 	}
 	else {
 		pup= uiPupMenuBegin(C, op->type->name, ICON_NONE);
@@ -1202,7 +1208,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);
 	char url[96];
 	
-#ifdef NAN_BUILDINFO
+#ifdef WITH_BUILDINFO
 	int ver_width, rev_width;
 	char *version_str = NULL;
 	char *revision_str = NULL;
@@ -1219,7 +1225,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
 	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_str) + 5;
 	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_str) + 5;
-#endif //NAN_BUILDINFO
+#endif //WITH_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
@@ -1228,10 +1234,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
 	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
-#ifdef NAN_BUILDINFO	
+#ifdef WITH_BUILDINFO	
 	uiDefBut(block, LABEL, 0, version_str, 494-ver_width, 282-24, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 	uiDefBut(block, LABEL, 0, revision_str, 494-rev_width, 282-36, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-#endif //NAN_BUILDINFO
+#endif //WITH_BUILDINFO
 	
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, 480, 110, style);
 	
@@ -2345,7 +2351,6 @@ static void gesture_circle_apply(bContext *C, wmOperator *op)
 	
 	if(op->type->exec)
 		op->type->exec(C, op);
-
 #ifdef GESTURE_MEMORY
 	circle_select_size= rect->xmax;
 #endif
@@ -2566,7 +2571,6 @@ static void gesture_lasso_apply(bContext *C, wmOperator *op)
 		
 	if(op->type->exec)
 		op->type->exec(C, op);
-	
 }
 
 int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)

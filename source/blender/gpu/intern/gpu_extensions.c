@@ -484,7 +484,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	//if (fpixels)
 	//	pixels = GPU_texture_convert_pixels(w*h*depth, fpixels);
 
-	glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, 0);
+	glTexImage3D(tex->target, 0, internalformat, tex->w, tex->h, tex->depth, 0, format, type, NULL);
 
 	GPU_print_error("3D glTexImage3D");
 

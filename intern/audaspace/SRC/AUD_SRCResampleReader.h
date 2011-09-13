@@ -32,7 +32,7 @@
 #ifndef AUD_SRCRESAMPLEREADER
 #define AUD_SRCRESAMPLEREADER
 
-#include "AUD_EffectReader.h"
+#include "AUD_ResampleReader.h"
 #include "AUD_Buffer.h"
 
 #include <samplerate.h>
@@ -40,28 +40,18 @@
 /**
  * This resampling reader uses libsamplerate for resampling.
  */
-class AUD_SRCResampleReader : public AUD_EffectReader
+class AUD_SRCResampleReader : public AUD_ResampleReader
 {
 private:
-	/**
-	 * The sample specification of the source.
-	 */
-	const AUD_Specs m_sspecs;
-
-	/**
-	 * The resampling factor.
-	 */
-	const double m_factor;
-
 	/**
 	 * The sound output buffer.
 	 */
 	AUD_Buffer m_buffer;
 
 	/**
-	 * The target specification.
+	 * The reader channels.
 	 */
-	AUD_Specs m_tspecs;
+	AUD_Channels m_channels;
 
 	/**
 	 * The src state structure.
@@ -72,6 +62,11 @@ private:
 	 * The current playback position;
 	 */
 	int m_position;
+
+	/**
+	 * Whether reader reached end of stream.
+	 */
+	bool m_eos;
 
 	// hide copy constructor and operator=
 	AUD_SRCResampleReader(const AUD_SRCResampleReader&);
@@ -85,7 +80,7 @@ public:
 	 * \exception AUD_Exception Thrown if the source specification cannot be
 	 *            resampled to the target specification.
 	 */
-	AUD_SRCResampleReader(AUD_IReader* reader, AUD_Specs specs);
+	AUD_SRCResampleReader(AUD_Reference<AUD_IReader> reader, AUD_Specs specs);
 
 	/**
 	 * Destroys the reader.
@@ -104,7 +99,7 @@ public:
 	virtual int getLength() const;
 	virtual int getPosition() const;
 	virtual AUD_Specs getSpecs() const;
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_SRCRESAMPLEREADER

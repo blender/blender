@@ -113,6 +113,7 @@ extern "C" {
 #include "NG_NetworkScene.h" //Needed for sendMessage()
 
 #include "BL_Shader.h"
+#include "BL_Action.h"
 
 #include "KX_PyMath.h"
 
@@ -1627,6 +1628,11 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, ROT_MODE_YZX, ROT_MODE_YZX);
 	KX_MACRO_addTypesToDict(d, ROT_MODE_ZXY, ROT_MODE_ZXY);
 	KX_MACRO_addTypesToDict(d, ROT_MODE_ZYX, ROT_MODE_ZYX);
+
+	/* BL_Action play modes */
+	KX_MACRO_addTypesToDict(d, KX_ACTION_MODE_PLAY, BL_Action::ACT_MODE_PLAY);
+	KX_MACRO_addTypesToDict(d, KX_ACTION_MODE_LOOP, BL_Action::ACT_MODE_LOOP);
+	KX_MACRO_addTypesToDict(d, KX_ACTION_MODE_PING_PONG, BL_Action::ACT_MODE_PING_PONG);
 
 	// Check for errors
 	if (PyErr_Occurred())

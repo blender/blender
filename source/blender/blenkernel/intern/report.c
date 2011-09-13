@@ -44,12 +44,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef _WIN32
-#ifndef vsnprintf
-#define vsnprintf _vsnprintf
-#endif
-#endif
-
 static const char *report_type_str(int type)
 {
 	switch(type) {

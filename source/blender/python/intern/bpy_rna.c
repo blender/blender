@@ -814,34 +814,40 @@ static PyObject *pyrna_struct_str(BPy_StructRNA *self)
 static PyObject *pyrna_struct_repr(BPy_StructRNA *self)
 {
 	ID *id= self->ptr.id.data;
+	PyObject *tmp_str;
+	PyObject *ret;
+
 	if(id == NULL || !PYRNA_STRUCT_IS_VALID(self))
 		return pyrna_struct_str(self); /* fallback */
 
+	tmp_str= PyUnicode_FromString(id->name+2);
+
 	if(RNA_struct_is_ID(self->ptr.type)) {
-		return PyUnicode_FromFormat("bpy.data.%s[\"%s\"]",
+		ret= PyUnicode_FromFormat("bpy.data.%s[%R]",
 		                            BKE_idcode_to_name_plural(GS(id->name)),
-		                            id->name+2);
+		                            tmp_str);
 	}
 	else {
-		PyObject *ret;
 		const char *path;
 		path= RNA_path_from_ID_to_struct(&self->ptr);
 		if(path) {
-			ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"].%s",
+			ret= PyUnicode_FromFormat("bpy.data.%s[%R].%s",
 			                          BKE_idcode_to_name_plural(GS(id->name)),
-			                          id->name+2,
+			                          tmp_str,
 			                          path);
 			MEM_freeN((void *)path);
 		}
 		else { /* cant find, print something sane */
-			ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"]...%s",
+			ret= PyUnicode_FromFormat("bpy.data.%s[%R]...%s",
 			                          BKE_idcode_to_name_plural(GS(id->name)),
-			                          id->name+2,
+			                          tmp_str,
 			                          RNA_struct_identifier(self->ptr.type));
 		}
-
-		return ret;
 	}
+
+	Py_DECREF(tmp_str);
+
+	return ret;
 }
 
 static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
@@ -911,26 +917,34 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
 
 static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 {
-	ID *id;
+	ID *id= self->ptr.id.data;
+	PyObject *tmp_str;
 	PyObject *ret;
 	const char *path;
 
 	PYRNA_PROP_CHECK_OBJ(self)
 
-	if((id= self->ptr.id.data) == NULL)
+	if(id == NULL)
 		return pyrna_prop_str(self); /* fallback */
+
+	tmp_str= PyUnicode_FromString(id->name+2);
 
 	path= RNA_path_from_ID_to_property(&self->ptr, self->prop);
 	if(path) {
-		ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"].%s", BKE_idcode_to_name_plural(GS(id->name)), id->name+2, path);
+		ret= PyUnicode_FromFormat("bpy.data.%s[%R].%s",
+		                          BKE_idcode_to_name_plural(GS(id->name)),
+		                          tmp_str,
+		                          path);
 		MEM_freeN((void *)path);
 	}
 	else { /* cant find, print something sane */
-		ret= PyUnicode_FromFormat("bpy.data.%s[\"%s\"]...%s",
+		ret= PyUnicode_FromFormat("bpy.data.%s[%R]...%s",
 		                          BKE_idcode_to_name_plural(GS(id->name)),
-		                          id->name+2,
+		                          tmp_str,
 		                          RNA_property_identifier(self->prop));
 	}
+
+	Py_DECREF(tmp_str);
 
 	return ret;
 }
@@ -1103,6 +1117,7 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 	return 1;
 }
 
+/* 'value' _must_ be a set type, error check before calling */
 int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_value, const char *error_prefix)
 {
 	/* set of enum items, concatenate all values with OR */
@@ -1124,8 +1139,10 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 			             error_prefix, Py_TYPE(key)->tp_name);
 			return -1;
 		}
-		if(pyrna_enum_value_from_id(items, param, &ret, error_prefix) < 0)
+
+		if(pyrna_enum_value_from_id(items, param, &ret, error_prefix) < 0) {
 			return -1;
+		}
 
 		flag |= ret;
 	}
@@ -1141,6 +1158,14 @@ static int pyrna_prop_to_enum_bitfield(PointerRNA *ptr, PropertyRNA *prop, PyObj
 	int free= FALSE;
 
 	*r_value= 0;
+
+	if (!PyAnySet_Check(value)) {
+		PyErr_Format(PyExc_TypeError,
+		             "%.200s, %.200s.%.200s expected a set, not a %.200s",
+		             error_prefix, RNA_struct_identifier(ptr->type),
+		             RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+		return -1;
+	}
 
 	RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
 
@@ -1226,7 +1251,7 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 
 #if 0			// gives python decoding errors while generating docs :(
 				char error_str[256];
-				snprintf(error_str, sizeof(error_str), "RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
+				BLI_snprintf(error_str, sizeof(error_str), "RNA Warning: Current value \"%d\" matches no enum in '%s', '%s', '%s'", val, RNA_struct_identifier(ptr->type), ptr_name, RNA_property_identifier(prop));
 				PyErr_Warn(PyExc_RuntimeWarning, error_str);
 #endif
 
@@ -1515,33 +1540,18 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 		{
 			int val= 0;
 
-			if (PyUnicode_Check(value)) {
-				if (!pyrna_string_to_enum(value, ptr, prop, &val, error_prefix))
-					return -1;
-			}
-			else if (PyAnySet_Check(value)) {
-				if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
-					/* set of enum items, concatenate all values with OR */
-					if(pyrna_prop_to_enum_bitfield(ptr, prop, value, &val, error_prefix) < 0)
-						return -1;
-				}
-				else {
-					PyErr_Format(PyExc_TypeError,
-					             "%.200s, %.200s.%.200s is not a bitflag enum type",
-					             error_prefix, RNA_struct_identifier(ptr->type),
-					             RNA_property_identifier(prop));
+			/* type checkins is done by each function */
+			if(RNA_property_flag(prop) & PROP_ENUM_FLAG) {
+				/* set of enum items, concatenate all values with OR */
+				if(pyrna_prop_to_enum_bitfield(ptr, prop, value, &val, error_prefix) < 0) {
 					return -1;
 				}
 			}
 			else {
-				const char *enum_str= pyrna_enum_as_string(ptr, prop);
-				PyErr_Format(PyExc_TypeError,
-				             "%.200s %.200s.%.200s expected a string enum or a set of strings in (%.2000s), not %.200s",
-				             error_prefix, RNA_struct_identifier(ptr->type),
-				             RNA_property_identifier(prop), enum_str,
-				             Py_TYPE(value)->tp_name);
-				MEM_freeN((void *)enum_str);
-				return -1;
+				/* simple enum string */
+				if (!pyrna_string_to_enum(value, ptr, prop, &val, error_prefix) < 0) {
+					return -1;
+				}
 			}
 
 			if(data)	*((int*)data)= val;
@@ -4306,7 +4316,6 @@ static PyObject *small_dict_get_item_string(PyObject *dict, const char *key_look
 	Py_ssize_t pos = 0;
 	PyObject *value = NULL;
 
-	/* case not, search for it in the script's global dictionary */
 	while (PyDict_Next(dict, &pos, &key, &value)) {
 		if(PyUnicode_Check(key)) {
 			if(strcmp(key_lookup, _PyUnicode_AsString(key))==0) {
@@ -6408,7 +6417,21 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			err= -1;
 		}
 		else if(ret_len==1) {
-			err= pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "calling class function:");
+			err= pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "");
+
+			/* when calling operator funcs only gives Function.result with
+			 * no line number since the func has finished calling on error,
+			 * re-raise the exception with more info since it would be slow to
+			 * create prefix on every call (when there are no errors) */
+			if(err == -1 && PyErr_Occurred()) {
+				PyObject *error_type, *error_value, *error_traceback;
+				PyErr_Fetch(&error_type, &error_value, &error_traceback);
+
+				PyErr_Format(error_type,
+				             "class %.200s, function %.200s: incompatible return value%S",
+				             RNA_struct_identifier(ptr->type), RNA_function_identifier(func),
+				             error_value);
+			}
 		}
 		else if (ret_len > 1) {
 
@@ -6568,9 +6591,9 @@ void pyrna_free_types(void)
 PyDoc_STRVAR(pyrna_register_class_doc,
 ".. method:: register_class(cls)\n"
 "\n"
-"   Register a subclass of a blender type in (:class:`Panel`,\n"
-"   :class:`Menu`, :class:`Header`, :class:`Operator`,\n"
-"   :class:`KeyingSetInfo`, :class:`RenderEngine`).\n"
+"   Register a subclass of a blender type in (:class:`bpy.types.Panel`,\n"
+"   :class:`bpy.types.Menu`, :class:`bpy.types.Header`, :class:`bpy.types.Operator`,\n"
+"   :class:`bpy.types.KeyingSetInfo`, :class:`bpy.types.RenderEngine`).\n"
 "\n"
 "   If the class has a *register* class method it will be called\n"
 "   before registration.\n"

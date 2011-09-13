@@ -46,6 +46,7 @@ extern "C" {
 #include "MeshImporter.h"
 #include "SkinInfo.h"
 #include "TransformReader.h"
+#include "ExtraTags.h"
 
 #include <map>
 #include <vector>
@@ -88,7 +89,9 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::UniqueId> geom_uid_by_controller_uid;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> joint_by_uid; // contains all joints
 	std::vector<COLLADAFW::Node*> root_joints;
+	std::vector<COLLADAFW::Node*> finished_joints;
 	std::map<COLLADAFW::UniqueId, Object*> joint_parent_map;
+	std::map<COLLADAFW::UniqueId, Object*> unskinned_armature_map;
 
 	MeshImporterBase *mesh_importer;
 	AnimationImporterBase *anim_importer;
@@ -105,9 +108,15 @@ private:
 	void create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
 					 float parent_mat[][4], bArmature *arm);
 
-	void add_leaf_bone(float mat[][4], EditBone *bone);
+	void create_unskinned_bone(COLLADAFW::Node *node, EditBone *parent, int totchild,
+				 float parent_mat[][4], Object * ob_arm);
+
+	void add_leaf_bone(float mat[][4], EditBone *bone, COLLADAFW::Node * node);
 
 	void fix_leaf_bones();
+	
+    void set_pose ( Object * ob_arm ,  COLLADAFW::Node * root_node ,char * parentname, float parent_mat[][4]);
+
 
 #if 0
 	void set_leaf_bone_shapes(Object *ob_arm);
@@ -123,7 +132,11 @@ private:
 #endif
 
 	void create_armature_bones(SkinInfo& skin);
+	void create_armature_bones( );
 
+	/** TagsMap typedef for uid_tags_map. */
+	typedef std::map<std::string, ExtraTags*> TagsMap;
+	TagsMap uid_tags_map;
 public:
 
 	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, AnimationImporterBase *anim, Scene *sce);
@@ -132,7 +145,7 @@ public:
 	// root - if this joint is the top joint in hierarchy, if a joint
 	// is a child of a node (not joint), root should be true since
 	// this is where we build armature bones from
-	void add_joint(COLLADAFW::Node *node, bool root, Object *parent);
+	void add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce);
 
 #if 0
 	void add_root_joint(COLLADAFW::Node *node);
@@ -151,13 +164,16 @@ public:
 	bool write_controller(const COLLADAFW::Controller* controller);
 
 	COLLADAFW::UniqueId *get_geometry_uid(const COLLADAFW::UniqueId& controller_uid);
-
+	
 	Object *get_armature_for_joint(COLLADAFW::Node *node);
 
 	void get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t count);
 	
 	// gives a world-space mat
 	bool get_joint_bind_mat(float m[][4], COLLADAFW::Node *joint);
+    
+	void set_tags_map( TagsMap& tags_map);
+	
 };
 
 #endif

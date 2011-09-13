@@ -41,7 +41,7 @@
 #include "BKE_sound.h"
 #include "BKE_context.h"
 
-static void rna_Sound_filepath_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Sound_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	sound_load(bmain, (bSound*)ptr->data);
 }
@@ -49,16 +49,21 @@ static void rna_Sound_filepath_update(Main *bmain, Scene *scene, PointerRNA *ptr
 static int rna_Sound_caching_get(PointerRNA *ptr)
 {
 	bSound *sound = (bSound*)(ptr->data);
-	return sound->cache != NULL;
+	return (sound->flags & SOUND_FLAGS_CACHING) != 0;
 }
 
 static void rna_Sound_caching_set(PointerRNA *ptr, const int value)
 {
 	bSound *sound = (bSound*)(ptr->data);
 	if(value)
-		sound_cache(sound, 0);
+		sound_cache(sound);
 	else
 		sound_delete_cache(sound);
+}
+
+static void rna_Sound_caching_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	sound_update_sequencer(bmain, (bSound*)(ptr->data));
 }
 
 #else
@@ -78,7 +83,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "File Path", "Sound sample file used by this Sound datablock");
-	RNA_def_property_update(prop, 0, "rna_Sound_filepath_update");
+	RNA_def_property_update(prop, 0, "rna_Sound_update");
 
 	prop= RNA_def_property(srna, "packed_file", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "packedfile");
@@ -87,7 +92,12 @@ static void rna_def_sound(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_memory_cache", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Sound_caching_get", "rna_Sound_caching_set");
 	RNA_def_property_ui_text(prop, "Caching", "The sound file is decoded and loaded into RAM");
-	RNA_def_property_update(prop, 0, "rna_Sound_filepath_update");
+	RNA_def_property_update(prop, 0, "rna_Sound_caching_update");
+
+	prop= RNA_def_property(srna, "mono", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SOUND_FLAGS_MONO);
+	RNA_def_property_ui_text(prop, "Mono", "If the file contains multiple audio channels they are rendered to a single one.");
+	RNA_def_property_update(prop, 0, "rna_Sound_update");
 }
 
 void RNA_def_sound(BlenderRNA *brna)

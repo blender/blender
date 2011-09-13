@@ -74,11 +74,11 @@ class MeshMirrorUV(Operator):
     bl_label = "Copy Mirrored UV coords"
     bl_options = {'REGISTER', 'UNDO'}
 
-    direction = EnumProperty(items=(
-                        ('POSITIVE', "Positive", ""),
-                        ('NEGATIVE', "Negative", "")),
-                name="Axis Direction",
-                description="")
+    direction = EnumProperty(
+            name="Axis Direction",
+            items=(('POSITIVE', "Positive", ""),
+                   ('NEGATIVE', "Negative", "")),
+            )
 
     @classmethod
     def poll(cls, context):

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -45,6 +43,7 @@
 #include "BKE_screen.h"
 
 #include "ED_anim_api.h"
+#include "ED_markers.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -129,12 +128,17 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_select_all_toggle);
 	WM_operatortype_append(NLA_OT_select_leftright);
 	
+	/* view */
+	WM_operatortype_append(NLA_OT_view_all);
+	WM_operatortype_append(NLA_OT_view_selected);
+	
 	/* edit */
 	WM_operatortype_append(NLA_OT_tweakmode_enter);
 	WM_operatortype_append(NLA_OT_tweakmode_exit);
 	
 	WM_operatortype_append(NLA_OT_actionclip_add);
 	WM_operatortype_append(NLA_OT_transition_add);
+	WM_operatortype_append(NLA_OT_soundclip_add);
 	
 	WM_operatortype_append(NLA_OT_meta_add);
 	WM_operatortype_append(NLA_OT_meta_remove);
@@ -211,6 +215,11 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "NLA_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0)->ptr, "axis_range", 1);
 	
+	/* view*/
+		/* auto-set range */
+	//WM_keymap_add_item(keymap, "NLA_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	
 	/* editing */
 		/* tweakmode 
@@ -223,6 +232,7 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* add strips */
 	WM_keymap_add_item(keymap, "NLA_OT_actionclip_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NLA_OT_transition_add", TKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "NLA_OT_soundclip_add", KKEY, KM_PRESS, KM_SHIFT, 0);
 	
 		/* meta-strips */
 	WM_keymap_add_item(keymap, "NLA_OT_meta_add", GKEY, KM_PRESS, KM_SHIFT, 0);
@@ -262,6 +272,9 @@ static void nla_keymap_main (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	
 	/* transform system */
 	transform_keymap_for_space(keyconf, keymap, SPACE_NLA);
+	
+	/* special markers hotkeys for anim editors: see note in definition of this function */
+	ED_marker_keymap_animedit_conflictfree(keymap);
 }
 
 /* --------------- */

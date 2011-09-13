@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -80,7 +78,7 @@ void free_anim_drivers_copybuf (void);
  *			1 - add new Driver FCurve, 
  *			-1 - add new Driver FCurve without driver stuff (for pasting)
  */
-static FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_index, short add)
+FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int array_index, short add)
 {
 	AnimData *adt;
 	FCurve *fcu;
@@ -108,7 +106,7 @@ static FCurve *verify_driver_fcurve (ID *id, const char rna_path[], const int ar
 		/* use default settings to make a F-Curve */
 		fcu= MEM_callocN(sizeof(FCurve), "FCurve");
 		
-		fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+		fcu->flag = (FCURVE_VISIBLE|FCURVE_SELECTED);
 		
 		/* store path - make copy, and store that */
 		fcu->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
@@ -385,11 +383,6 @@ short ANIM_paste_driver (ReportList *reports, ID *id, const char rna_path[], int
 			/* modifiers */
 		copy_fmodifiers(&fcu->modifiers, &channeldriver_copypaste_buf->modifiers);
 		
-			/* flags - on a per-relevant-flag basis */
-		if (channeldriver_copypaste_buf->flag & FCURVE_AUTO_HANDLES)
-			fcu->flag |= FCURVE_AUTO_HANDLES;
-		else
-			fcu->flag &= ~FCURVE_AUTO_HANDLES;
 			/* extrapolation mode */
 		fcu->extend= channeldriver_copypaste_buf->extend;
 			

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -174,7 +172,7 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 		/* use default settings to make a F-Curve */
 		fcu= MEM_callocN(sizeof(FCurve), "FCurve");
 		
-		fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
+		fcu->flag = (FCURVE_VISIBLE|FCURVE_SELECTED);
 		if (act->curves.first==NULL) 
 			fcu->flag |= FCURVE_ACTIVE;	/* first one added active */
 			
@@ -661,41 +659,72 @@ static float visualkey_get_value (PointerRNA *ptr, PropertyRNA *prop, int array_
 				mat4_to_eulO(eul, ob->rotmode, ob->obmat);
 				return eul[array_index];
 			}
-			// FIXME: other types of rotation don't work
+			else if (strstr(identifier, "rotation_quaternion")) {
+				float trimat[3][3], quat[4];
+				
+				copy_m3_m4(trimat, ob->obmat);
+				mat3_to_quat_is_ok(quat, trimat);
+				
+				return quat[array_index];
+			}
+			else if (strstr(identifier, "rotation_axis_angle")) {
+				float axis[3], angle;
+				
+				mat4_to_axis_angle(axis, &angle, ob->obmat);
+				
+				/* w = 0, x,y,z = 1,2,3 */
+				if (array_index == 0)
+					return angle;
+				else
+					return axis[array_index - 1];
+			}
 		}
 	}
 	else if (ptr->type == &RNA_PoseBone) {
+		Object *ob = (Object *)ptr->id.data; /* we assume that this is always set, and is an object */
 		bPoseChannel *pchan= (bPoseChannel *)ptr->data;
-		bPoseChannel tchan;
+		float tmat[4][4];
 		
-		/* make a copy of pchan so that we can apply and decompose its chan_mat, thus getting the 
-		 * rest-pose to pose-mode transform that got stored there at the end of posing calculations
-		 * for B-Bone deforms to use
-		 *	- it should be safe to just make a local copy like this, since we're not doing anything with the copied pointers
+		/* Although it is not strictly required for this particular space conversion, 
+		 * arg1 must not be null, as there is a null check for the other conversions to
+		 * be safe. Therefore, the active object is passed here, and in many cases, this
+		 * will be what owns the pose-channel that is getting this anyway.
 		 */
-		memcpy(&tchan, pchan, sizeof(bPoseChannel));
-		pchan_apply_mat4(&tchan, pchan->chan_mat, TRUE);
+		copy_m4_m4(tmat, pchan->pose_mat);
+		constraint_mat_convertspace(ob, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
 		
 		/* Loc, Rot/Quat keyframes are supported... */
 		if (strstr(identifier, "location")) {
 			/* only use for non-connected bones */
 			if ((pchan->bone->parent) && !(pchan->bone->flag & BONE_CONNECTED))
-				return tchan.loc[array_index];
+				return tmat[3][array_index];
 			else if (pchan->bone->parent == NULL)
-				return tchan.loc[array_index];
+				return tmat[3][array_index];
 		}
 		else if (strstr(identifier, "rotation_euler")) {
-			return tchan.eul[array_index];
+			float eul[3];
+			
+			mat4_to_eulO(eul, pchan->rotmode, tmat);
+			return eul[array_index];
 		}
 		else if (strstr(identifier, "rotation_quaternion")) {
-			return tchan.quat[array_index];
+			float trimat[3][3], quat[4];
+			
+			copy_m3_m4(trimat, tmat);
+			mat3_to_quat_is_ok(quat, trimat);
+			
+			return quat[array_index];
 		}
-		else if (strstr(identifier, "rotation_axisangle")) {
+		else if (strstr(identifier, "rotation_axis_angle")) {
+			float axis[3], angle;
+			
+			mat4_to_axis_angle(axis, &angle, tmat);
+			
 			/* w = 0, x,y,z = 1,2,3 */
 			if (array_index == 0)
-				return tchan.rotAngle;
+				return angle;
 			else
-				return tchan.rotAxis[array_index - 1];
+				return axis[array_index - 1];
 		}
 	}
 	

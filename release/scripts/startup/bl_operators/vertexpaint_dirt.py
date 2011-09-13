@@ -151,11 +151,35 @@ class VertexPaintDirt(Operator):
     bl_label = "Dirty Vertex Colors"
     bl_options = {'REGISTER', 'UNDO'}
 
-    blur_strength = FloatProperty(name="Blur Strength", description="Blur strength per iteration", default=1.0, min=0.01, max=1.0)
-    blur_iterations = IntProperty(name="Blur Iterations", description="Number times to blur the colors. (higher blurs more)", default=1, min=0, max=40)
-    clean_angle = FloatProperty(name="Highlight Angle", description="Less then 90 limits the angle used in the tonal range", default=180.0, min=0.0, max=180.0)
-    dirt_angle = FloatProperty(name="Dirt Angle", description="Less then 90 limits the angle used in the tonal range", default=0.0, min=0.0, max=180.0)
-    dirt_only = BoolProperty(name="Dirt Only", description="Dont calculate cleans for convex areas", default=False)
+    blur_strength = FloatProperty(
+            name="Blur Strength",
+            description="Blur strength per iteration",
+            min=0.01, max=1.0,
+            default=1.0,
+            )
+    blur_iterations = IntProperty(
+            name="Blur Iterations",
+            description="Number times to blur the colors. (higher blurs more)",
+            min=0, max=40,
+            default=1,
+            )
+    clean_angle = FloatProperty(
+            name="Highlight Angle",
+            description="Less then 90 limits the angle used in the tonal range",
+            min=0.0, max=180.0,
+            default=180.0,
+            )
+    dirt_angle = FloatProperty(
+            name="Dirt Angle",
+            description="Less then 90 limits the angle used in the tonal range",
+            min=0.0, max=180.0,
+            default=0.0,
+            )
+    dirt_only = BoolProperty(
+            name="Dirt Only",
+            description="Dont calculate cleans for convex areas",
+            default=False,
+            )
 
     def execute(self, context):
         import time

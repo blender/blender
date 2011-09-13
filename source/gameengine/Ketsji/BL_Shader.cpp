@@ -690,7 +690,7 @@ void BL_Shader::SetUniform(int uniform, const MT_Matrix3x3& vec, bool transpose)
 		float value[9];
 		value[0] = (float)vec[0][0]; value[1] = (float)vec[1][0]; value[2] = (float)vec[2][0]; 
 		value[3] = (float)vec[0][1]; value[4] = (float)vec[1][1]; value[5] = (float)vec[2][1]; 
-		value[6] = (float)vec[0][2]; value[7] = (float)vec[1][2]; value[7] = (float)vec[2][2]; 
+		value[6] = (float)vec[0][2]; value[7] = (float)vec[1][2]; value[8] = (float)vec[2][2];
 		glUniformMatrix3fvARB(uniform, 1, transpose?GL_TRUE:GL_FALSE, value);
 	}
 }

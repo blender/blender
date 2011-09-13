@@ -35,7 +35,7 @@ def mesh_linked_faces(mesh):
     other mesh elements within 1 mesh datablock.
 
     :arg mesh: the mesh used to group with.
-    :type mesh: :class:`Mesh`
+    :type mesh: :class:`bpy.types.Mesh`
     :return: lists of lists containing faces.
     :rtype: list
     """
@@ -125,9 +125,9 @@ def edge_loops_from_faces(mesh, faces=None, seams=()):
     [[(0, 1), (4, 8), (3, 8)], ...]
 
     :arg mesh: the mesh used to get edge loops from.
-    :type mesh: :class:`Mesh`
+    :type mesh: :class:`bpy.types.Mesh`
     :arg faces: optional face list to only use some of the meshes faces.
-    :type faces: :class:`MeshFaces`, sequence or or NoneType
+    :type faces: :class:`bpy.types.MeshFaces`, sequence or or NoneType
     :return: return a list of edge vertex index lists.
     :rtype: list
     """
@@ -426,7 +426,7 @@ def ngon_tesselate(from_data, indices, fix_loops=True):
         # See if its flipped the wrong way.
         flip = None
         for fi in fill:
-            if flip != None:
+            if flip is not None:
                 break
             for i, vi in enumerate(fi):
                 if vi == 0 and fi[i - 1] == 1:
@@ -450,7 +450,7 @@ def face_random_points(num_points, faces):
     :arg num_points: the number of random points to generate on each face.
     :type int:
     :arg faces: list of the faces to generate points on.
-    :type faces: :class:`MeshFaces`, sequence
+    :type faces: :class:`bpy.types.MeshFaces`, sequence
     :return: list of random points over all faces.
     :rtype: list
     """

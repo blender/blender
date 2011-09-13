@@ -180,6 +180,10 @@ class VIEW3D_MT_transform(Menu):
         layout.operator("object.randomize_transform")
         layout.operator("object.align")
 
+        layout.separator()
+
+        layout.operator("object.anim_transforms_to_deltas")
+
 
 class VIEW3D_MT_mirror(Menu):
     bl_label = "Mirror"
@@ -1261,11 +1265,15 @@ class VIEW3D_MT_pose_transform(Menu):
 
         layout.operator("pose.transforms_clear", text="All")
 
+        layout.separator()
+
         layout.operator("pose.loc_clear", text="Location")
         layout.operator("pose.rot_clear", text="Rotation")
         layout.operator("pose.scale_clear", text="Scale")
 
-        layout.label(text="Origin")
+        layout.separator()
+
+        layout.operator("pose.user_transforms_clear", text="Reset unkeyed")
 
 
 class VIEW3D_MT_pose_slide(Menu):
@@ -2075,9 +2083,11 @@ class VIEW3D_PT_view3d_properties(Panel):
         col.prop(view, "lens")
         col.label(text="Lock to Object:")
         col.prop(view, "lock_object", text="")
-        if view.lock_object and view.lock_object.type == 'ARMATURE':
-            col.prop_search(view, "lock_bone", view.lock_object.data, "bones", text="")
-        elif not view.lock_object:
+        lock_object = view.lock_object
+        if lock_object:
+            if lock_object.type == 'ARMATURE':
+                col.prop_search(view, "lock_bone", lock_object.data, "edit_bones" if lock_object.mode == 'EDIT' else "bones", text="")
+        else:
             col.prop(view, "lock_cursor", text="Lock to Cursor")
 
         col = layout.column()

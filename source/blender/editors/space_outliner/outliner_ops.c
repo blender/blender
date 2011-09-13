@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -58,12 +56,7 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_id_operation);
 	WM_operatortype_append(OUTLINER_OT_data_operation);
 	WM_operatortype_append(OUTLINER_OT_animdata_operation);
-
-#if 0 // GSOC_PEPPER
-
 	WM_operatortype_append(OUTLINER_OT_action_set);
-
-#endif // GSOC_PEPPER
 
 	WM_operatortype_append(OUTLINER_OT_show_one_level);
 	WM_operatortype_append(OUTLINER_OT_show_active);
@@ -90,8 +83,8 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "OUTLINER_OT_item_rename", LEFTMOUSE, KM_DBL_CLICK, 0, 0);
 	
-	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_RELEASE, 0, 0)->ptr, "extend", 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_CLICK, 0, 0)->ptr, "extend", 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_activate", LEFTMOUSE, KM_CLICK, KM_SHIFT, 0)->ptr, "extend", 1);
 	
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_openclose", RETKEY, KM_PRESS, 0, 0)->ptr, "all", 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "OUTLINER_OT_item_openclose", RETKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "all", 1);

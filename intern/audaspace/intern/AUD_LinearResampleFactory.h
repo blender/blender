@@ -32,12 +32,12 @@
 #ifndef AUD_LINEARRESAMPLEFACTORY
 #define AUD_LINEARRESAMPLEFACTORY
 
-#include "AUD_ResampleFactory.h"
+#include "AUD_MixerFactory.h"
 
 /**
  * This factory creates a resampling reader that does simple linear resampling.
  */
-class AUD_LinearResampleFactory : public AUD_ResampleFactory
+class AUD_LinearResampleFactory : public AUD_MixerFactory
 {
 private:
 	// hide copy constructor and operator=
@@ -45,9 +45,14 @@ private:
 	AUD_LinearResampleFactory& operator=(const AUD_LinearResampleFactory&);
 
 public:
-	AUD_LinearResampleFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+	/**
+	 * Creates a new factory.
+	 * \param factory The input factory.
+	 * \param specs The target specifications.
+	 */
+	AUD_LinearResampleFactory(AUD_Reference<AUD_IFactory> factory, AUD_DeviceSpecs specs);
 
-	virtual AUD_IReader* createReader() const;
+	virtual AUD_Reference<AUD_IReader> createReader();
 };
 
 #endif //AUD_LINEARRESAMPLEFACTORY

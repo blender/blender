@@ -117,6 +117,49 @@ char *BLI_sprintfN(const char *format, ...)
 	return n;
 }
 
+
+/* match pythons string escaping, assume double quotes - (")
+ * TODO: should be used to create RNA animation paths.
+ * TODO: support more fancy string escaping. current code is primitive
+ *    this basically is an ascii version of PyUnicode_EncodeUnicodeEscape()
+ *    which is a useful reference. */
+size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
+{
+	size_t len= 0;
+	while(len < maxlen) {
+		switch(*src) {
+			case '\0':
+				break;
+			case '\\':
+			case '"':
+
+				/* less common but should also be support */
+			case '\t':
+			case '\n':
+			case '\r':
+				if(len + 1 <  maxlen) {
+					*dst++ = '\\';
+					len++;
+				}
+				else {
+					/* not enough space to escape */
+					break;
+				}
+				/* intentionally pass through */
+			default:
+				*dst = *src;
+		}
+		dst++;
+		src++;
+		len++;
+	}
+
+	*dst= '\0';
+
+	return len;
+}
+
+
 /* Makes a copy of the text within the "" that appear after some text 'blahblah'
  * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
  * 

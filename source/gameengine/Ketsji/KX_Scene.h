@@ -340,6 +340,7 @@ public:
 	 */
 	void LogicBeginFrame(double curtime);
 	void LogicUpdateFrame(double curtime, bool frame);
+	void UpdateAnimations(double curtime);
 
 		void						
 	LogicEndFrame(
@@ -565,6 +566,8 @@ public:
 	void SetPhysicsEnvironment(class PHY_IPhysicsEnvironment*	physEnv);
 
 	void	SetGravity(const MT_Vector3& gravity);
+
+	short GetAnimationFPS();
 	
 	/**
 	 * Sets the node tree for this scene.

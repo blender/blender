@@ -1335,8 +1335,8 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 	if(BASACT && BASACT->next) startbase= BASACT->next;
 	
 	/* This block uses the control key to make the object selected by its center point rather than its contents */
-	/* XXX later on, in editmode do not activate */
-	if(vc.obedit==NULL && obcenter) {
+	/* in editmode do not activate */
+	if(obcenter) {
 		
 		/* note; shift+alt goes to group-flush-selecting */
 		if(enumerate) {
@@ -1869,9 +1869,15 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 		case OB_CURVE:
 		case OB_SURF:
 			ret= do_nurbs_box_select(&vc, &rect, select, extend);
+			if(ret & OPERATOR_FINISHED) {
+				WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
+			}
 			break;
 		case OB_MBALL:
 			ret= do_meta_box_select(&vc, &rect, select, extend);
+			if(ret & OPERATOR_FINISHED) {
+				WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
+			}
 			break;
 		case OB_ARMATURE:
 			ret= do_armature_box_select(&vc, &rect, select, extend);
@@ -1996,6 +2002,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short extend= RNA_boolean_get(op->ptr, "extend");
 	short center= RNA_boolean_get(op->ptr, "center");
 	short enumerate= RNA_boolean_get(op->ptr, "enumerate");
+	short object= RNA_boolean_get(op->ptr, "object");
 	int	retval = 0;
 	// Jason
 	Mesh *me;
@@ -2003,7 +2010,17 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	view3d_operator_needs_opengl(C);
 
-	if(obedit && center==FALSE) {
+	if(object) {
+		obedit= NULL;
+		obact= NULL;
+
+		/* ack, this is incorrect but to do this correctly we would need an
+		 * alternative editmode/objectmode keymap, this copies the functionality
+		 * from 2.4x where Ctrl+Select in editmode does object select only */
+		center= FALSE;
+	}
+
+	if(obedit && object==FALSE) {
 		if(obedit->type==OB_MESH)
 			retval = mouse_mesh(C, event->mval, extend);
 		else if(obedit->type==OB_ARMATURE)
@@ -2056,6 +2073,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection.");
 	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only).");
+	RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only).");
 }
 
 

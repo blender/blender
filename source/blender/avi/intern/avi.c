@@ -87,17 +87,17 @@ unsigned int GET_TCC (FILE *fp) {
 }
 
 char *fcc_to_char (unsigned int fcc) {
-	DEBUG_FCC[0]= (fcc)&0177;
-	DEBUG_FCC[1]= (fcc>>8)&0177;
-	DEBUG_FCC[2]= (fcc>>16)&0177;
-	DEBUG_FCC[3]= (fcc>>24)&0177;
+	DEBUG_FCC[0]= (fcc)&127;
+	DEBUG_FCC[1]= (fcc>>8)&127;
+	DEBUG_FCC[2]= (fcc>>16)&127;
+	DEBUG_FCC[3]= (fcc>>24)&127;
 
 	return DEBUG_FCC;	
 }
 
 char *tcc_to_char (unsigned int tcc) {
-	DEBUG_FCC[0]= (tcc)&0177;
-	DEBUG_FCC[1]= (tcc>>8)&0177;
+	DEBUG_FCC[0]= (tcc)&127;
+	DEBUG_FCC[1]= (tcc>>8)&127;
 	DEBUG_FCC[2]= 0;
 	DEBUG_FCC[3]= 0;
 

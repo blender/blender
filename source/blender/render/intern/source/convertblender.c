@@ -1046,9 +1046,9 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 		float fac;
 		if(ma->strand_ease!=0.0f) {
 			if(ma->strand_ease<0.0f)
-				fac= pow(sd->time, 1.0+ma->strand_ease);
+				fac= pow(sd->time, 1.0f+ma->strand_ease);
 			else
-				fac= pow(sd->time, 1.0/(1.0f-ma->strand_ease));
+				fac= pow(sd->time, 1.0f/(1.0f-ma->strand_ease));
 		}
 		else fac= sd->time;
 
@@ -1063,7 +1063,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, Par
 				width= w;
 
 			/*cross is the radius of the strand so we want it to be half of full width */
-			mul_v3_fl(cross,0.5/crosslen);
+			mul_v3_fl(cross,0.5f/crosslen);
 		}
 		else
 			width/=w;
@@ -1345,8 +1345,11 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 	VlakRen *vlr;
 	MTFace *mtf;
 	float xvec[3], yvec[3], zvec[3], bb_center[3];
+	/* Number of tiles */
 	int totsplit = bb->uv_split * bb->uv_split;
-	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
+	int tile, x, y;
+	/* Tile offsets */
+ 	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
 
 	vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 	vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
@@ -1420,11 +1423,14 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 		else if(bb->split_offset==PART_BB_OFF_RANDOM)
 			time = (float)fmod(time + bb->random, 1.0f);
 
-		uvx = uvdx * floor((float)(bb->uv_split * bb->uv_split) * (float)fmod((double)time, (double)uvdx));
-		uvy = uvdy * floor((1.0f - time) * (float)bb->uv_split);
-
-		if(fmod(time, 1.0f / bb->uv_split) == 0.0f)
-			uvy -= uvdy;
+		/* Find the coordinates in tile space (integer), then convert to UV
+		 * space (float). Note that Y is flipped. */
+		tile = (int)((time + FLT_EPSILON10) * totsplit);
+		x = tile % bb->uv_split;
+		y = tile / bb->uv_split;
+		y = (bb->uv_split - 1) - y;
+		uvx = uvdx * x;
+		uvy = uvdy * y;
 	}
 
 	/* normal UVs */
@@ -1984,8 +1990,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		else {
 			/* render normal particles */
 			if(part->trail_count > 1) {
-				float length = part->path_end * (1.0 - part->randlength * r_length);
-				int trail_count = part->trail_count * (1.0 - part->randlength * r_length);
+				float length = part->path_end * (1.0f - part->randlength * r_length);
+				int trail_count = part->trail_count * (1.0f - part->randlength * r_length);
 				float ct = (part->draw & PART_ABS_PATH_TIME) ? cfra : pa_time;
 				float dt = length / (trail_count ? (float)trail_count : 1.0f);
 
@@ -2159,7 +2165,7 @@ static void make_render_halos(Render *re, ObjectRen *obr, Mesh *UNUSED(me), int 
 				normalize_v3(view);
 
 				zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
-				if(zn>=0.0) hasize= 0.0;
+				if(zn>=0.0f) hasize= 0.0f;
 				else hasize*= zn*zn*zn*zn;
 			}
 
@@ -3599,7 +3605,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	
 	/* bias is percentage, made 2x larger because of correction for angle of incidence */
 	/* when a ray is closer to parallel of a face, bias value is increased during render */
-	shb->bias= (0.02*lar->bias)*0x7FFFFFFF;
+	shb->bias= (0.02f*lar->bias)*0x7FFFFFFF;
 	
 	/* halfway method (average of first and 2nd z) reduces bias issues */
 	if(ELEM(lar->buftype, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP))
@@ -3610,7 +3616,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 
 static void area_lamp_vectors(LampRen *lar)
 {
-	float xsize= 0.5*lar->area_size, ysize= 0.5*lar->area_sizey, multifac;
+	float xsize= 0.5f*lar->area_size, ysize= 0.5f*lar->area_sizey, multifac;
 
 	/* make it smaller, so area light can be multisampled */
 	multifac= 1.0f/sqrt((float)lar->ray_totsamp);
@@ -3637,7 +3643,7 @@ static void area_lamp_vectors(LampRen *lar)
 	lar->area[3][1]= lar->co[1] + xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
 	lar->area[3][2]= lar->co[2] + xsize*lar->mat[0][2] - ysize*lar->mat[1][2];	
 	/* only for correction button size, matrix size works on energy */
-	lar->areasize= lar->dist*lar->dist/(4.0*xsize*ysize);
+	lar->areasize= lar->dist*lar->dist/(4.0f*xsize*ysize);
 }
 
 /* If lar takes more lamp data, the decoupling will be better. */
@@ -3791,10 +3797,10 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	
 	lar->spotsi= la->spotsize;
 	if(lar->mode & LA_HALO) {
-		if(lar->spotsi>170.0) lar->spotsi= 170.0;
+		if(lar->spotsi>170.0f) lar->spotsi= 170.0f;
 	}
-	lar->spotsi= cos( M_PI*lar->spotsi/360.0 );
-	lar->spotbl= (1.0-lar->spotsi)*la->spotblend;
+	lar->spotsi= cos( M_PI*lar->spotsi/360.0f );
+	lar->spotbl= (1.0f-lar->spotsi)*la->spotblend;
 
 	memcpy(lar->mtex, la->mtex, MAX_MTEX*sizeof(void *));
 
@@ -3813,7 +3819,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 		xn= saacos(lar->spotsi);
 		xn= sin(xn)/cos(xn);
-		lar->spottexfac= 1.0/(xn);
+		lar->spottexfac= 1.0f/(xn);
 
 		if(lar->mode & LA_ONLYSHADOW) {
 			if((lar->mode & (LA_SHAD_BUF|LA_SHAD_RAY))==0) lar->mode -= LA_ONLYSHADOW;
@@ -3823,7 +3829,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 	/* set flag for spothalo en initvars */
 	if(la->type==LA_SPOT && (la->mode & LA_HALO) && (la->buftype != LA_SHADBUF_DEEP)) {
-		if(la->haint>0.0) {
+		if(la->haint>0.0f) {
 			re->flag |= R_LAMPHALO;
 
 			/* camera position (0,0,0) rotate around lamp */
@@ -3990,9 +3996,9 @@ void init_render_world(Render *re)
 		
 		cp= (char *)&re->wrld.fastcol;
 		
-		cp[0]= 255.0*re->wrld.horr;
-		cp[1]= 255.0*re->wrld.horg;
-		cp[2]= 255.0*re->wrld.horb;
+		cp[0]= 255.0f*re->wrld.horr;
+		cp[1]= 255.0f*re->wrld.horg;
+		cp[2]= 255.0f*re->wrld.horb;
 		cp[3]= 1;
 		
 		VECCOPY(re->grvec, re->viewmat[2]);
@@ -4047,25 +4053,25 @@ static void set_phong_threshold(ObjectRen *obr)
 		if(vlr->flag & R_SMOOTH) {
 			dot= INPR(vlr->n, vlr->v1->n);
 			dot= ABS(dot);
-			if(dot>0.9) {
+			if(dot>0.9f) {
 				thresh+= dot; tot++;
 			}
 			dot= INPR(vlr->n, vlr->v2->n);
 			dot= ABS(dot);
-			if(dot>0.9) {
+			if(dot>0.9f) {
 				thresh+= dot; tot++;
 			}
 
 			dot= INPR(vlr->n, vlr->v3->n);
 			dot= ABS(dot);
-			if(dot>0.9) {
+			if(dot>0.9f) {
 				thresh+= dot; tot++;
 			}
 
 			if(vlr->v4) {
 				dot= INPR(vlr->n, vlr->v4->n);
 				dot= ABS(dot);
-				if(dot>0.9) {
+				if(dot>0.9f) {
 					thresh+= dot; tot++;
 				}
 			}
@@ -4105,7 +4111,7 @@ static void set_fullsample_trace_flag(Render *re, ObjectRen *obr)
 				else if((mode & MA_RAYMIRROR) || ((mode & MA_TRANSP) && (mode & MA_RAYTRANSP))) {
 					/* for blurry reflect/refract, better to take more samples 
 					 * inside the raytrace than as OSA samples */
-					if ((vlr->mat->gloss_mir == 1.0) && (vlr->mat->gloss_tra == 1.0)) 
+					if ((vlr->mat->gloss_mir == 1.0f) && (vlr->mat->gloss_tra == 1.0f))
 						vlr->flag |= R_FULL_OSA;
 				}
 			}
@@ -4221,11 +4227,11 @@ static void check_non_flat_quads(ObjectRen *obr)
 				
 				/* render normals are inverted in render! we calculate normal of single tria here */
 				flen= normal_tri_v3( nor,vlr->v4->co, vlr->v3->co, vlr->v1->co);
-				if(flen==0.0) normal_tri_v3( nor,vlr->v4->co, vlr->v2->co, vlr->v1->co);
+				if(flen==0.0f) normal_tri_v3( nor,vlr->v4->co, vlr->v2->co, vlr->v1->co);
 				
 				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
 
-				if(ABS(xn) < 0.999995 ) {	// checked on noisy fractal grid
+				if(ABS(xn) < 0.999995f ) {	// checked on noisy fractal grid
 					
 					float d1, d2;
 
@@ -5461,7 +5467,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 		for(j=0;j<3;j++) fsvec[j] = velarray[a].vel[j];
 		
 		/* (bad) HACK insert average velocity if none is there (see previous comment) */
-		if((fsvec[0] == 0.0) && (fsvec[1] == 0.0) && (fsvec[2] == 0.0))
+		if((fsvec[0] == 0.0f) && (fsvec[1] == 0.0f) && (fsvec[2] == 0.0f))
 		{
 			fsvec[0] = avgvel[0];
 			fsvec[1] = avgvel[1];

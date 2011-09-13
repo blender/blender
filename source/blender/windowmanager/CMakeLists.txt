@@ -130,7 +130,7 @@ if(APPLE)
 endif()
 
 if(WITH_BUILDINFO)
-	add_definitions(-DNAN_BUILDINFO)
+	add_definitions(-DWITH_BUILDINFO)
 endif()
 
 blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}")

@@ -28,13 +28,14 @@
 
 #include <Python.h>
 
+#include "bpy_intern_string.h"
+
 PyObject *bpy_intern_str_register;
 PyObject *bpy_intern_str_unregister;
 PyObject *bpy_intern_str_bl_rna;
 PyObject *bpy_intern_str_order;
 PyObject *bpy_intern_str_attr;
 PyObject *bpy_intern_str___slots__;
-PyObject *bpy_intern_str___bases__;
 
 void bpy_intern_string_init(void)
 {

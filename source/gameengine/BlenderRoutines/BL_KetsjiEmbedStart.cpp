@@ -95,10 +95,6 @@ extern float BKE_screen_view3d_zoom_to_fac(float camzoom);
 #include "BKE_ipo.h"
 	/***/
 
-#ifdef WITH_AUDASPACE
-#  include "AUD_C-API.h"
-#endif
-
 //XXX #include "BSE_headerbuttons.h"
 #include "BKE_context.h"
 #include "../../blender/windowmanager/WM_types.h"
@@ -108,6 +104,11 @@ extern float BKE_screen_view3d_zoom_to_fac(float camzoom);
 }
 #endif
 
+#ifdef WITH_AUDASPACE
+#  include "AUD_C-API.h"
+#  include "AUD_I3DDevice.h"
+#  include "AUD_IDevice.h"
+#endif
 
 static BlendFileData *load_game_data(char *filename)
 {
@@ -186,6 +187,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 #endif
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
 		bool mouse_state = startscene->gm.flag & GAME_SHOW_MOUSE;
+		bool restrictAnimFPS = startscene->gm.flag & GAME_RESTRICT_ANIM_UPDATES;
 
 		if(animation_record) usefixed= true; /* override since you's always want fixed time for sim recording */
 
@@ -233,9 +235,9 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		ketsjiengine->SetCanvas(canvas);
 		ketsjiengine->SetRenderTools(rendertools);
 		ketsjiengine->SetRasterizer(rasterizer);
-		ketsjiengine->SetNetworkDevice(networkdevice);
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
+		ketsjiengine->SetRestrictAnimationFPS(restrictAnimFPS);
 
 #ifdef WITH_PYTHON
 		CValue::SetDeprecationWarnings(nodepwarnings);
@@ -394,9 +396,13 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				ketsjiengine->InitDome(scene->gm.dome.res, scene->gm.dome.mode, scene->gm.dome.angle, scene->gm.dome.resbuf, scene->gm.dome.tilt, scene->gm.dome.warptext);
 
 			// initialize 3D Audio Settings
-			AUD_setSpeedOfSound(scene->audio.speed_of_sound);
-			AUD_setDopplerFactor(scene->audio.doppler_factor);
-			AUD_setDistanceModel(AUD_DistanceModel(scene->audio.distance_model));
+			AUD_I3DDevice* dev = AUD_get3DDevice();
+			if(dev)
+			{
+				dev->setSpeedOfSound(scene->audio.speed_of_sound);
+				dev->setDopplerFactor(scene->audio.doppler_factor);
+				dev->setDistanceModel(AUD_DistanceModel(scene->audio.distance_model));
+			}
 
 			// from see blender.c:
 			// FIXME: this version patching should really be part of the file-reading code,
@@ -581,7 +587,10 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		{
 			delete canvas;
 			canvas = NULL;
-                }
+		}
+
+		// stop all remaining playing sounds
+		AUD_getDevice()->stopAll();
 	
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 	

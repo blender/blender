@@ -351,33 +351,34 @@ class AlignObjects(Operator):
             description=("Enables high quality calculation of the "
                          "bounding box for perfect results on complex "
                          "shape meshes with rotation/scale (Slow)"),
-            default=True)
-
-    align_mode = EnumProperty(items=(
-            ('OPT_1', "Negative Sides", ""),
-            ('OPT_2', "Centers", ""),
-            ('OPT_3', "Positive Sides", "")),
-        name="Align Mode:",
-        description="",
-        default='OPT_2')
-
-    relative_to = EnumProperty(items=(
-            ('OPT_1', "Scene Origin", ""),
-            ('OPT_2', "3D Cursor", ""),
-            ('OPT_3', "Selection", ""),
-            ('OPT_4', "Active", "")),
-        name="Relative To:",
-        description="",
-        default='OPT_4')
-
-    align_axis = EnumProperty(items=(
-            ('X', "X", ""),
-            ('Y', "Y", ""),
-            ('Z', "Z", ""),
-            ),
-                name="Align",
-                description="Align to axis",
-                options={'ENUM_FLAG'})
+            default=True,
+            )
+    align_mode = EnumProperty(
+            name="Align Mode:",
+            items=(('OPT_1', "Negative Sides", ""),
+                   ('OPT_2', "Centers", ""),
+                   ('OPT_3', "Positive Sides", ""),
+                   ),
+            default='OPT_2',
+            )
+    relative_to = EnumProperty(
+            name="Relative To:",
+            items=(('OPT_1', "Scene Origin", ""),
+                   ('OPT_2', "3D Cursor", ""),
+                   ('OPT_3', "Selection", ""),
+                   ('OPT_4', "Active", ""),
+                   ),
+            default='OPT_4',
+            )
+    align_axis = EnumProperty(
+            name="Align",
+            description="Align to axis",
+            items=(('X', "X", ""),
+                   ('Y', "Y", ""),
+                   ('Z', "Z", ""),
+                   ),
+            options={'ENUM_FLAG'},
+            )
 
     @classmethod
     def poll(cls, context):

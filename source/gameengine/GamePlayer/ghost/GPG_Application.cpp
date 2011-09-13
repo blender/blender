@@ -545,6 +545,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
 		bool useLists = (SYS_GetCommandLineInt(syshandle, "displaylists", gm->flag & GAME_DISPLAY_LISTS) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 1) != 0);
+		bool restrictAnimFPS = gm->flag & GAME_RESTRICT_ANIM_UPDATES;
 
 		if(GLEW_ARB_multitexture && GLEW_VERSION_1_1)
 			m_blendermat = (SYS_GetCommandLineInt(syshandle, "blender_material", 1) != 0);
@@ -616,7 +617,6 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		m_ketsjiengine->SetCanvas(m_canvas);
 		m_ketsjiengine->SetRenderTools(m_rendertools);
 		m_ketsjiengine->SetRasterizer(m_rasterizer);
-		m_ketsjiengine->SetNetworkDevice(m_networkdevice);
 
 		m_ketsjiengine->SetTimingDisplay(frameRate, false, false);
 #ifdef WITH_PYTHON
@@ -627,6 +627,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 
 		m_ketsjiengine->SetUseFixedTime(fixed_framerate);
 		m_ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
+		m_ketsjiengine->SetRestrictAnimationFPS(restrictAnimFPS);
 
 		m_engineInitialized = true;
 	}

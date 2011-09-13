@@ -122,6 +122,8 @@ __attribute__ ((format (printf, 1, 2)))
 #endif
 ;
 
+size_t BLI_strescape(char *dst, const char *src, const size_t maxlen);
+
 	/**
 	 * Compare two strings without regard to case.
 	 * 

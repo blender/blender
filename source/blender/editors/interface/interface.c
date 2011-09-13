@@ -1721,6 +1721,10 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 		/* driver expression */
 		return 1;
 	}
+	else if(str[0]=='#') {
+		/* shortcut to create new driver expression (versus immediate Py-execution) */
+		return ui_but_anim_expression_create(but, str+1);
+	}
 	else {
 		/* number editing */
 		double value;
@@ -3242,11 +3246,17 @@ void uiButSetUnitType(uiBut *but, const int unit_type)
 
 int uiButGetUnitType(uiBut *but)
 {
-	if(but->rnaprop) {
-		return RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
+	int ownUnit = (int)but->unit_type;
+	
+	/* own unit define always takes precidence over RNA provided, allowing for overriding 
+	 * default value provided in RNA in a few special cases (i.e. Active Keyframe in Graph Edit)
+	 */
+	// XXX: this doesn't allow clearing unit completely, though the same could be said for icons
+	if ((ownUnit != 0) || (but->rnaprop == NULL)) {
+		return ownUnit << 16;
 	}
 	else {
-		return ((int)but->unit_type)<<16;
+		return RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
 	}
 }
 

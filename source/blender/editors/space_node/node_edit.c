@@ -550,14 +550,16 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				}
 			}
 			else if(node->type==CMP_NODE_COMPOSITE) {
-				bNode *tnode;
-				
-				for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
-					if( tnode->type==CMP_NODE_COMPOSITE)
-						tnode->flag &= ~NODE_DO_OUTPUT;
-				
-				node->flag |= NODE_DO_OUTPUT;
-				ED_node_generic_update(bmain, ntree, node);
+				if (was_output==0) {
+					bNode *tnode;
+					
+					for(tnode= ntree->nodes.first; tnode; tnode= tnode->next)
+						if( tnode->type==CMP_NODE_COMPOSITE)
+							tnode->flag &= ~NODE_DO_OUTPUT;
+					
+					node->flag |= NODE_DO_OUTPUT;
+					ED_node_generic_update(bmain, ntree, node);
+				}
 			}
 		}
 		else if(ntree->type==NTREE_TEXTURE) {
@@ -3078,78 +3080,115 @@ void NODE_OT_delete(wmOperatorType *ot)
 }
 
 /* ****************** Delete with reconnect ******************* */
+static int is_connected_to_input_socket(bNode* node, bNodeLink* link) {
+	bNodeSocket *sock;
+	if (link->tonode == node) {
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			if (link->tosock == sock) {
+				return sock->type;
+			}
+		}		
+	}
+	return -1;
+}
 
-/* note: in cmp_util.c is similar code, for node_compo_pass_on() */
-/* used for disabling node  (similar code in node_draw.c for disable line) */
 static void node_delete_reconnect(bNodeTree* tree, bNode* node) 
 {
-	bNodeLink *link, *next;
+	bNodeLink *link, *next, *first = NULL;
 	bNodeSocket *valsocket= NULL, *colsocket= NULL, *vecsocket= NULL;
 	bNodeSocket *deliveringvalsocket= NULL, *deliveringcolsocket= NULL, *deliveringvecsocket= NULL;
 	bNode *deliveringvalnode= NULL, *deliveringcolnode= NULL, *deliveringvecnode= NULL;
 	bNodeSocket *sock;
+	int type;
+	int numberOfConnectedOutputSockets = 0;
+	int numberOfReconnections = 0;
+	int numberOfConnectedInputSockets = 0;
 
-	/* test the inputs */
-	for(sock= node->inputs.first; sock; sock= sock->next) {
-		int type = sock->type;
-		if(type==SOCK_VALUE && valsocket==NULL) valsocket = sock;
-		if(type==SOCK_VECTOR && vecsocket==NULL) vecsocket = sock;
-		if(type==SOCK_RGBA && colsocket==NULL) colsocket = sock;
-	}
-	// we now have the input sockets for the 'data types'
-	// now find the output sockets (and nodes) in the tree that delivers data to these input sockets
+	/* 
+		test the inputs, not really correct when a node has multiple input sockets of the same type
+		the first link evaluated will be used to determine the possible connection.
+	*/
 	for(link= tree->links.first; link; link=link->next) {
-		if (valsocket != NULL) {
-			if (link->tosock == valsocket) {
-				deliveringvalnode = link->fromnode;
-				deliveringvalsocket = link->fromsock;
-			}
-		}
-		if (vecsocket != NULL) {
-			if (link->tosock == vecsocket) {
-				deliveringvecnode = link->fromnode;
-				deliveringvecsocket = link->fromsock;
-			}
-		}
-		if (colsocket != NULL) {
-			if (link->tosock == colsocket) {
+		if (link->tonode == node)  { numberOfConnectedInputSockets++; }
+		type = is_connected_to_input_socket(node, link);
+		switch (type) {
+		case SOCK_RGBA:
+			if (colsocket == NULL) {
+				colsocket = link->tosock;
 				deliveringcolnode = link->fromnode;
 				deliveringcolsocket = link->fromsock;
 			}
+			break;
+		case SOCK_VECTOR:
+			if (vecsocket == NULL) {
+				vecsocket = link->tosock;
+				deliveringvecnode = link->fromnode;
+				deliveringvecsocket = link->fromsock;
+			}
+			break;
+		case SOCK_VALUE:
+			if (valsocket == NULL) {
+				valsocket = link->tosock;
+				deliveringvalnode = link->fromnode;
+				deliveringvalsocket = link->fromsock;
+			}
+			break;
+		default:
+			break;
 		}
 	}
+	
 	// we now have the sockets+nodes that fill the inputsockets be aware for group nodes these can be NULL
 	// now make the links for all outputlinks of the node to be reconnected
 	for(link= tree->links.first; link; link=next) {
 		next= link->next;
 		if (link->fromnode == node) {
 			sock = link->fromsock;
+			numberOfConnectedOutputSockets ++;
+			if (!first) first = link;
 			switch(sock->type) {
 			case SOCK_VALUE:
 				if (deliveringvalsocket) {
 					link->fromnode = deliveringvalnode;
 					link->fromsock = deliveringvalsocket;
+					numberOfReconnections++;
 				}
 				break;
 			case SOCK_VECTOR:
 				if (deliveringvecsocket) {
 					link->fromnode = deliveringvecnode;
 					link->fromsock = deliveringvecsocket;
+					numberOfReconnections++;
 				}
 				break;
 			case SOCK_RGBA:
 				if (deliveringcolsocket) {
 					link->fromnode = deliveringcolnode;
 					link->fromsock = deliveringcolsocket;
+					numberOfReconnections++;
 				}
 				break;
 			}
 		}
 	}
+
+	/* when no connections have been made, and if only one delivering input socket type and one output socket we will connect those two */
+	if (numberOfConnectedOutputSockets == 1 && numberOfReconnections == 0 && numberOfConnectedInputSockets == 1) {
+		if (deliveringcolsocket) {
+			first->fromnode = deliveringcolnode;
+			first->fromsock = deliveringcolsocket;
+		} else if (deliveringvecsocket) {
+			first->fromnode = deliveringvecnode;
+			first->fromsock = deliveringvecsocket;
+		} else if (deliveringvalsocket) {
+			first->fromnode = deliveringvalnode;
+			first->fromsock = deliveringvalsocket;
+		}
+	}
+
 	if(node->id)
 		node->id->us--;
 	nodeFreeNode(tree, node);
-
 }
 
 static int node_delete_reconnect_exec(bContext *C, wmOperator *UNUSED(op))

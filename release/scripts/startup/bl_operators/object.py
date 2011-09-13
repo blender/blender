@@ -195,8 +195,12 @@ class SubdivisionSet(Operator):
     bl_label = "Subdivision Set"
     bl_options = {'REGISTER', 'UNDO'}
 
-    level = IntProperty(name="Level",
-            default=1, min=-100, max=100, soft_min=-6, soft_max=6)
+    level = IntProperty(
+            name="Level",
+            min=-100, max=100,
+            soft_min=-6, soft_max=6,
+            default=1,
+            )
 
     relative = BoolProperty(
             name="Relative",
@@ -680,4 +684,50 @@ class ClearAllRestrictRender(Operator):
     def execute(self, context):
         for obj in context.scene.objects:
             obj.hide_render = False
+        return {'FINISHED'}
+
+
+class TransformsToDeltasAnim(Operator):
+    '''Convert object animation for normal transforms to delta transforms'''
+    bl_idname = "object.anim_transforms_to_deltas"
+    bl_label = "Animated Transforms to Deltas"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        obs = context.selected_editable_objects
+        return (obs is not None)
+
+    def execute(self, context):
+        for obj in context.selected_editable_objects:
+            # get animation data
+            adt = obj.animation_data
+            if (adt is None) or (adt.action is None):
+                self.report({'WARNING'},
+                            "No animation data to convert on object: %r" %
+                            obj.name)
+                continue
+
+            # if F-Curve uses standard transform path
+            # just append "delta_" to this path
+            for fcu in adt.action.fcurves:
+                if fcu.data_path == "location":
+                    fcu.data_path = "delta_location"
+                    obj.location.zero()
+                elif fcu.data_path == "rotation_euler":
+                    fcu.data_path = "delta_rotation_euler"
+                    obj.rotation_euler.zero()
+                elif fcu.data_path == "rotation_quaternion":
+                    fcu.data_path = "delta_rotation_quaternion"
+                    obj.rotation_quaternion.identity()
+                # XXX: currently not implemented
+                # elif fcu.data_path == "rotation_axis_angle":
+                #    fcu.data_path = "delta_rotation_axis_angle"
+                elif fcu.data_path == "scale":
+                    fcu.data_path = "delta_scale"
+                    obj.scale = 1.0, 1.0, 1.0
+
+        # hack: force animsys flush by changing frame, so that deltas get run
+        context.scene.frame_set(context.scene.frame_current)
+
         return {'FINISHED'}

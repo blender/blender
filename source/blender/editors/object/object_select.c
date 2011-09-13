@@ -37,6 +37,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -65,6 +66,7 @@
 
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_keyframing.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -363,6 +365,7 @@ static EnumPropertyItem prop_select_grouped_types[] = {
 	{9, "PASS", 0, "Pass", "Render pass Index"},
 	{10, "COLOR", 0, "Color", "Object Color"},
 	{11, "PROPERTIES", 0, "Properties", "Game Properties"},
+	{12, "KEYINGSET", 0, "Keying Set", "Objects included in active Keying Set"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -574,6 +577,42 @@ static short select_grouped_gameprops(bContext *C, Object *ob)
 	return changed;
 }
 
+static short select_grouped_keyingset(bContext *C, Object *UNUSED(ob))
+{
+	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
+	short changed = 0;
+	
+	/* firstly, validate KeyingSet */
+	if ((ks == NULL) || (ANIM_validate_keyingset(C, NULL, ks) != 0))
+		return 0;
+	
+	/* select each object that Keying Set refers to */
+	// TODO: perhaps to be more in line with the rest of these, we should only take objects 
+	// if the passed in object is included in this too
+	CTX_DATA_BEGIN(C, Base*, base, selectable_bases) 
+	{
+		/* only check for this object if it isn't selected already, to limit time wasted */
+		if ((base->flag & SELECT) == 0) {
+			KS_Path *ksp;
+			
+			/* this is the slow way... we could end up with > 500 items here, 
+			 * with none matching, but end up doing this on 1000 objects...
+			 */
+			for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
+				/* if id matches, select then stop looping (match found) */
+				if (ksp->id == (ID *)base->object) {
+					ED_base_object_select(base, BA_SELECT);
+					changed = 1;
+					break;
+				}
+			}
+		}
+	}
+	CTX_DATA_END;
+		
+	return changed;
+}
+
 static int object_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -608,6 +647,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	else if(nr==9)	changed |= select_grouped_index_object(C, ob);
 	else if(nr==10)	changed |= select_grouped_color(C, ob);
 	else if(nr==11)	changed |= select_grouped_gameprops(C, ob);
+	else if(nr==12) changed |= select_grouped_keyingset(C, ob);
 	
 	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));

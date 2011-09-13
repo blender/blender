@@ -84,7 +84,7 @@ def bake(frame_start,
          do_pose=True,
          do_object=True,
          do_constraint_clear=False,
-         ):
+         action=None):
 
     scene = bpy.context.scene
     obj = bpy.context.object
@@ -121,7 +121,8 @@ def bake(frame_start,
 
     # incase animation data hassnt been created
     atd = obj.animation_data_create()
-    action = bpy.data.actions.new("Action")
+    if action is None:
+        action = bpy.data.actions.new("Action")
     atd.action = action
 
     if do_pose:
@@ -198,19 +199,32 @@ class BakeAction(Operator):
     bl_label = "Bake Action"
     bl_options = {'REGISTER', 'UNDO'}
 
-    frame_start = IntProperty(name="Start Frame",
+    frame_start = IntProperty(
+            name="Start Frame",
             description="Start frame for baking",
-            default=1, min=1, max=300000)
-    frame_end = IntProperty(name="End Frame",
+            min=0, max=300000,
+            default=1,
+            )
+    frame_end = IntProperty(
+            name="End Frame",
             description="End frame for baking",
-            default=250, min=1, max=300000)
-    step = IntProperty(name="Frame Step",
+            min=1, max=300000,
+            default=250,
+            )
+    step = IntProperty(
+            name="Frame Step",
             description="Frame Step",
-            default=1, min=1, max=120)
-    only_selected = BoolProperty(name="Only Selected",
-            default=True)
-    clear_consraints = BoolProperty(name="Clear Constraints",
-            default=False)
+            min=1, max=120,
+            default=1,
+            )
+    only_selected = BoolProperty(
+            name="Only Selected",
+            default=True,
+            )
+    clear_consraints = BoolProperty(
+            name="Clear Constraints",
+            default=False,
+            )
     bake_types = EnumProperty(
             name="Bake Data",
             options={'ENUM_FLAG'},
@@ -254,3 +268,36 @@ class BakeAction(Operator):
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
+
+
+class ClearUselessActions(Operator):
+    '''Mark actions with no F-Curves for deletion after save+reload of file preserving "action libraries"'''
+    bl_idname = "anim.clear_useless_actions"
+    bl_label = "Clear Useless Actions"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    only_unused = BoolProperty(name="Only Unused",
+            description="Only unused (Fake User only) actions get considered",
+            default=True)
+
+    @classmethod
+    def poll(cls, context):
+        return len(bpy.data.actions) != 0
+
+    def execute(self, context):
+        removed = 0
+
+        for action in bpy.data.actions:
+            # if only user is "fake" user...
+            if ((self.only_unused is False) or
+                (action.use_fake_user and action.users == 1)):
+
+                # if it has F-Curves, then it's a "action library" (i.e. walk, wave, jump, etc.)
+                # and should be left alone as that's what fake users are for!
+                if not action.fcurves:
+                    # mark action for deletion
+                    action.user_clear()
+                    removed += 1
+
+        self.report({'INFO'}, "Removed %d empty and/or fake-user only Actions" % (removed))
+        return {'FINISHED'}

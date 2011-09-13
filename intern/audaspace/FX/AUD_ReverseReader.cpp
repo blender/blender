@@ -36,7 +36,7 @@
 static const char* props_error = "AUD_ReverseReader: The reader has to be "
 								 "seekable and a finite length.";
 
-AUD_ReverseReader::AUD_ReverseReader(AUD_IReader* reader) :
+AUD_ReverseReader::AUD_ReverseReader(AUD_Reference<AUD_IReader> reader) :
 		AUD_EffectReader(reader),
 		m_length(reader->getLength()),
 		m_position(0)
@@ -60,7 +60,7 @@ int AUD_ReverseReader::getPosition() const
 	return m_position;
 }
 
-void AUD_ReverseReader::read(int & length, sample_t* & buffer)
+void AUD_ReverseReader::read(int& length, bool& eos, sample_t* buffer)
 {
 	// first correct the length
 	if(m_position + length > m_length)
@@ -69,39 +69,39 @@ void AUD_ReverseReader::read(int & length, sample_t* & buffer)
 	if(length <= 0)
 	{
 		length = 0;
+		eos = true;
 		return;
 	}
 
-	AUD_Specs specs = getSpecs();
-	int samplesize = AUD_SAMPLE_SIZE(specs);
+	const AUD_Specs specs = getSpecs();
+	const int samplesize = AUD_SAMPLE_SIZE(specs);
 
-	// resize buffer if needed
-	if(m_buffer.getSize() < length * samplesize)
-		m_buffer.resize(length * samplesize);
+	sample_t temp[AUD_CHANNEL_MAX];
 
-	buffer = m_buffer.getBuffer();
-
-	sample_t* buf;
 	int len = length;
 
 	// read from reader
 	m_reader->seek(m_length - m_position - len);
-	m_reader->read(len, buf);
+	m_reader->read(len, eos, buffer);
 
 	// set null if reader didn't give enough data
 	if(len < length)
-	{
 		memset(buffer, 0, (length - len) * samplesize);
-		buffer += (length - len) * specs.channels;
-	}
 
 	// copy the samples reverted
-	for(int i = 0; i < len; i++)
-		memcpy(buffer + i * specs.channels,
-			   buf + (len - 1 - i) * specs.channels,
+	for(int i = 0; i < length / 2; i++)
+	{
+		memcpy(temp,
+			   buffer + (len - 1 - i) * specs.channels,
 			   samplesize);
+		memcpy(buffer + (len - 1 - i) * specs.channels,
+			   buffer + i * specs.channels,
+			   samplesize);
+		memcpy(buffer + i * specs.channels,
+			   temp,
+			   samplesize);
+	}
 
 	m_position += length;
-
-	buffer = m_buffer.getBuffer();
+	eos = false;
 }

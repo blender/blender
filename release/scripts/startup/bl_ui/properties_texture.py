@@ -415,6 +415,10 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
             row.active = tex.use_normal_map
             row.prop(slot, "normal_map_space", text="")
 
+            row = col.row()
+            row.active = not tex.use_normal_map
+            row.prop(tex, "use_derivative_map")
+
         col.prop(tex, "use_mipmap")
         row = col.row()
         row.active = tex.use_mipmap
@@ -1025,12 +1029,14 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
 
             # only show bump settings if activated but not for normalmap images
             row = layout.row()
-            row.active = (tex.use_map_normal or tex.use_map_warp) and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map)
-
-            row.prop(tex, "bump_method", text="Method")
 
             sub = row.row()
-            sub.active = tex.bump_method in {'BUMP_DEFAULT', 'BUMP_BEST_QUALITY'}
+            sub.active = (tex.use_map_normal or tex.use_map_warp) and not (tex.texture.type == 'IMAGE' and (tex.texture.use_normal_map or tex.texture.use_derivative_map))
+            sub.prop(tex, "bump_method", text="Method")
+
+            # the space setting is supported for: derivmaps + bumpmaps (DEFAULT,BEST_QUALITY), not for normalmaps
+            sub = row.row()
+            sub.active = (tex.use_map_normal or tex.use_map_warp) and not (tex.texture.type == 'IMAGE' and tex.texture.use_normal_map) and ((tex.bump_method in {'BUMP_DEFAULT', 'BUMP_BEST_QUALITY'}) or (tex.texture.type == 'IMAGE' and tex.texture.use_derivative_map))
             sub.prop(tex, "bump_objectspace", text="Space")
 
 

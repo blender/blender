@@ -31,7 +31,7 @@
 
 #include "AUD_CallbackIIRFilterReader.h"
 
-AUD_CallbackIIRFilterReader::AUD_CallbackIIRFilterReader(AUD_IReader* reader,
+AUD_CallbackIIRFilterReader::AUD_CallbackIIRFilterReader(AUD_Reference<AUD_IReader> reader,
 														 int in, int out,
 														 doFilterIIR doFilter,
 														 endFilterIIR endFilter,

@@ -37,7 +37,7 @@ AUD_SilenceFactory::AUD_SilenceFactory()
 {
 }
 
-AUD_IReader* AUD_SilenceFactory::createReader() const
+AUD_Reference<AUD_IReader> AUD_SilenceFactory::createReader()
 {
 	return new AUD_SilenceReader();
 }

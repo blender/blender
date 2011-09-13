@@ -225,7 +225,7 @@ static wmKeyConfig *wm_keyconfig_list_find(ListBase *lb, char *idname)
 	return NULL;
 }
 
-wmKeyConfig *WM_keyconfig_active(wmWindowManager *wm)
+static wmKeyConfig *WM_keyconfig_active(wmWindowManager *wm)
 {
 	wmKeyConfig *keyconf;
 

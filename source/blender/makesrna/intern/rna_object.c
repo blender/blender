@@ -115,6 +115,7 @@ EnumPropertyItem object_type_items[] = {
 	{0, "", 0, NULL, NULL},
 	{OB_CAMERA, "CAMERA", 0, "Camera", ""},
 	{OB_LAMP, "LAMP", 0, "Lamp", ""},
+	{OB_SPEAKER, "SPEAKER", 0, "Speaker", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem object_type_curve_items[] = {
@@ -375,6 +376,7 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
 		case OB_CAMERA: return &RNA_Camera;
 		case OB_LATTICE: return &RNA_Lattice;
 		case OB_ARMATURE: return &RNA_Armature;
+		case OB_SPEAKER: return &RNA_Speaker;
 		default: return &RNA_ID;
 	}
 }

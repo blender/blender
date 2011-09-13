@@ -586,6 +586,9 @@ bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_I
 	RAS_IRenderTools *rendertools)
 {
 	bool uselights;
+	
+	if(rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW && !m_material->CastsShadows())
+		return false;
 
 	if(!rasty->SetMaterial(*m_material))
 		return false;

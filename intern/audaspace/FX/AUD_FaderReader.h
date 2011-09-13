@@ -58,16 +58,6 @@ private:
 	 */
 	const float m_length;
 
-	/**
-	 * The playback buffer.
-	 */
-	AUD_Buffer m_buffer;
-
-	/**
-	 * Whether the buffer is empty.
-	 */
-	bool m_empty;
-
 	// hide copy constructor and operator=
 	AUD_FaderReader(const AUD_FaderReader&);
 	AUD_FaderReader& operator=(const AUD_FaderReader&);
@@ -79,10 +69,10 @@ public:
 	 * \param start The time where fading should start in seconds.
 	 * \param length How long fading should last in seconds.
 	 */
-	AUD_FaderReader(AUD_IReader* reader, AUD_FadeType type,
+	AUD_FaderReader(AUD_Reference<AUD_IReader> reader, AUD_FadeType type,
 					float start,float length);
 
-	virtual void read(int & length, sample_t* & buffer);
+	virtual void read(int& length, bool& eos, sample_t* buffer);
 };
 
 #endif //AUD_FADERREADER

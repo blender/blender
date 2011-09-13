@@ -70,6 +70,7 @@
 
 #ifdef WITH_AUDASPACE
 #  include "AUD_C-API.h"
+#  include "AUD_I3DDevice.h"
 #endif
 
 #include "NG_NetworkScene.h"
@@ -91,10 +92,10 @@
 
 const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 	"Physics:",		// tc_physics
-	"Logic",		// tc_logic
+	"Logic:",		// tc_logic
+	"Animations:",	// tc_animations
 	"Network:",		// tc_network
 	"Scenegraph:",	// tc_scenegraph
-	"Sound:",		// tc_sound
 	"Rasterizer:",	// tc_rasterizer
 	"Services:",	// tc_services
 	"Overhead:",	// tc_overhead
@@ -108,6 +109,7 @@ double KX_KetsjiEngine::m_anim_framerate = 25.0;
 double KX_KetsjiEngine::m_suspendedtime = 0.0;
 double KX_KetsjiEngine::m_suspendeddelta = 0.0;
 double KX_KetsjiEngine::m_average_framerate = 0.0;
+bool   KX_KetsjiEngine::m_restrict_anim_fps = false;
 
 
 /**
@@ -137,6 +139,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_frameTime(0.f),
 	m_clockTime(0.f),
 	m_previousClockTime(0.f),
+	m_previousAnimTime(0.f),
 
 
 	m_exitcode(KX_EXIT_REQUEST_NO_REQUEST),
@@ -578,7 +581,7 @@ else
 		framestep = (frames*timestep)/m_maxLogicFrame;
 		frames = m_maxLogicFrame;
 	}
-		
+
 	while (frames)
 	{
 	
@@ -657,7 +660,14 @@ else
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_ACTUATOR_UPDATE);
 				scene->UpdateParents(m_frameTime);
-				
+
+				if (!GetRestrictAnimationFPS())
+				{
+					m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+					SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
+					scene->UpdateAnimations(m_frameTime);
+				}
+
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_PHYSICS2);
 				scene->GetPhysicsEnvironment()->beginFrame();
@@ -681,8 +691,6 @@ else
 			else
 				if(scene->getSuspendedTime()==0.0)
 					scene->setSuspendedTime(m_clockTime);
-	
-			DoSound(scene);
 			
 			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
 		}
@@ -758,14 +766,30 @@ else
  				if(scene->getSuspendedTime()==0.0)
  					scene->setSuspendedTime(m_clockTime);
 
-			DoSound(scene);
-
 			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
 		}
 	}
 
+		
+	// Handle the animations independently of the logic time step
+	if (GetRestrictAnimationFPS())
+	{
+		m_logger->StartLog(tc_animations, m_kxsystem->GetTimeInSeconds(), true);
+		SG_SetActiveStage(SG_STAGE_ANIMATION_UPDATE);
 
-	m_previousClockTime = m_clockTime;
+		double anim_timestep = 1.0/KX_GetActiveScene()->GetAnimationFPS();
+		if (m_clockTime - m_previousAnimTime > anim_timestep)
+		{
+			// Sanity/debug print to make sure we're actually going at the fps we want (should be close to anim_timestep)
+			// printf("Anim fps: %f\n", 1.0/(m_clockTime - m_previousAnimTime));
+			m_previousAnimTime = m_clockTime;
+			for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
+			{
+				(*sceneit)->UpdateAnimations(m_frameTime);
+			}
+		}
+		m_previousClockTime = m_clockTime;
+	}
 	
 	// Start logging time spend outside main loop
 	m_logger->StartLog(tc_outside, m_kxsystem->GetTimeInSeconds(), true);
@@ -862,6 +886,8 @@ void KX_KetsjiEngine::Render()
 		{
 			if((*it)->GetViewport())
 			{
+				// Change the active camera so Python scripts can figure out what viewport they're in
+				scene->SetActiveCamera(*it);
 				if (scene->IsClearingZBuffer())
 					m_rasterizer->ClearDepthBuffer();
 		
@@ -873,6 +899,10 @@ void KX_KetsjiEngine::Render()
 			
 			it++;
 		}
+
+		// Now change the camera back
+		scene->SetActiveCamera(cam);
+
 		PostRenderScene(scene);
 	}
 
@@ -972,29 +1002,6 @@ const STR_String& KX_KetsjiEngine::GetExitString()
 {
 	return m_exitstring;
 }
-
-
-
-void KX_KetsjiEngine::DoSound(KX_Scene* scene)
-{
-	m_logger->StartLog(tc_sound, m_kxsystem->GetTimeInSeconds(), true);
-
-	KX_Camera* cam = scene->GetActiveCamera();
-	if (!cam)
-		return;
-
-	float f[4];
-
-	cam->NodeGetWorldPosition().getValue(f);
-	AUD_setListenerLocation(f);
-
-	cam->GetLinearVelocity().getValue(f);
-	AUD_setListenerVelocity(f);
-
-	cam->NodeGetWorldOrientation().getRotation().getValue(f);
-	AUD_setListenerOrientation(f);
-}
-
 
 
 void KX_KetsjiEngine::SetBackGround(KX_WorldInfo* wi)
@@ -1315,6 +1322,10 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
+
+#ifdef WITH_PYTHON
+	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
+#endif
 }
 
 void KX_KetsjiEngine::RenderFonts(KX_Scene* scene)
@@ -1336,9 +1347,6 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
 	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
-#ifdef WITH_PYTHON
-	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
-#endif
 	m_rasterizer->FlushDebugLines();
 }
 
@@ -1797,6 +1805,16 @@ int KX_KetsjiEngine::GetMaxPhysicsFrame()
 void KX_KetsjiEngine::SetMaxPhysicsFrame(int frame)
 {
 	m_maxPhysicsFrame = frame;
+}
+
+bool KX_KetsjiEngine::GetRestrictAnimationFPS()
+{
+	return m_restrict_anim_fps;
+}
+
+void KX_KetsjiEngine::SetRestrictAnimationFPS(bool bRestrictAnimFPS)
+{
+	m_restrict_anim_fps = bRestrictAnimFPS;
 }
 
 double KX_KetsjiEngine::GetAnimFrameRate()
