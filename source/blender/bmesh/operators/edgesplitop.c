@@ -83,16 +83,18 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts)
 	for (i=0; i<f->len-1; i++) {
 		edges[i] = BM_Make_Edge(bm, verts[i], verts[i+1], NULL, 1);
 
-		if (!edges[i])
+		if (!edges[i]) {
 			return NULL;
+		}
 	}
-	
+
 	edges[i] = BM_Make_Edge(bm, lastv1, lastv2, NULL, 1);
 
 	f2 = BM_Make_Ngon(bm, v1, v2, edges, f->len, 0);
-	if (!f2)
+	if (!f2) {
 		return NULL;
-	
+	}
+
 	BM_Copy_Attributes(bm, bm, f, f2);
 
 	l = BMIter_New(&liter1, bm, BM_LOOPS_OF_FACE, f);
@@ -105,11 +107,16 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts)
 			BM_SetIndex(l2->e, BM_GetIndex(l->e));
 			et = etags + BM_GetIndex(l->e);
 			
-			if (!et->newe1) et->newe1 = l2->e;
-			else et->newe2 = l2->e;
+			if (!et->newe1) {
+				et->newe1 = l2->e;
+			}
+			else {
+				et->newe2 = l2->e;
+			}
 
-			if (BMO_TestFlag(bm, l->e, EDGE_SEAM))
+			if (BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
 				BMO_SetFlag(bm, l2->e, EDGE_SEAM);
+			}
 
 			BM_Copy_Attributes(bm, bm, l->e, l2->e);
 		}
@@ -163,7 +170,8 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 						BMO_SetFlag(bm, et->newe2, EDGE_RET2);
 						BMO_ClearFlag(bm, et->newe2, EDGE_SEAM);
 					}
-				} else {
+				}
+				else {
 					if (et->newe1) {
 						BMO_SetFlag(bm, et->newe1, EDGE_RET2);
 						BMO_ClearFlag(bm, et->newe1, EDGE_SEAM);
@@ -177,17 +185,17 @@ static void tag_out_edges(BMesh *bm, EdgeTag *etags, BMOperator *UNUSED(op))
 				startl = l;
 				do {
 					l = BM_OtherFaceLoop(l->e, l->f, v);
-					if (BM_Edge_FaceCount(l->e) != 2)
+					if (BM_Edge_FaceCount(l->e) != 2) {
 						break;
+					}
 					l = l->radial_next;
 				} while (l != startl && !BMO_TestFlag(bm, l->e, EDGE_SEAM));
 				
-				if (l == startl || !BMO_TestFlag(bm, l->e, EDGE_SEAM))
+				if (l == startl || !BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
 					break;
+				}
 
-				if (l->v == v) {
-					v = l->next->v;
-				} else v = l->v;
+				v = (l->v == v) ? l->next->v : l->v;
 			}
 		}
 	}
@@ -212,14 +220,18 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	BMO_ITER(e, &siter, bm, op, "edges", BM_EDGE) {
 		for (i=0; i<2; i++) {
 			BM_ITER(e2, &iter, bm, BM_EDGES_OF_VERT, i ? e->v2 : e->v1) {
-				if (e != e2 && BMO_TestFlag(bm, e2, EDGE_SEAM))
+				if (e != e2 && BMO_TestFlag(bm, e2, EDGE_SEAM)) {
 					break;
+				}
 			}
-			if (e2)
+			if (e2) {
 				break;
+			}
 		}
-		if (!e2)
+
+		if (!e2) {
 			BMO_ClearFlag(bm, e, EDGE_SEAM);
+		}
 	}
 
 	etags = MEM_callocN(sizeof(EdgeTag)*bm->totedge, "EdgeTag");
@@ -241,9 +253,11 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 #define SETETV(et, v, l, vs) l->e->v1 == v ? (et->newv1 = vs) : (et->newv2 = vs)
 
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		if (BMO_TestFlag(bm, f, FACE_NEW))
+
+		if (BMO_TestFlag(bm, f, FACE_NEW)) {
 			continue;
-		
+		}
+
 		BLI_array_empty(verts);
 		BLI_array_growitems(verts, f->len);
 		memset(verts, 0, sizeof(BMVert*)*f->len);
@@ -253,9 +267,12 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 			if (!BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
 				if (!verts[i]) {
 					et = etags + BM_GetIndex(l->e);
-					if (ETV(et, l->v, l))
+					if (ETV(et, l->v, l)) {
 						verts[i] = ETV(et, l->v, l);
-					else verts[i] = l->v;
+					}
+					else {
+						verts[i] = l->v;
+					}
 				}
 				i++;
 				continue;
@@ -274,21 +291,26 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 						v2 = BM_Make_Vert(bm, v->co, v);
 
 						verts[j ? (i+1) % f->len : i] = v2;
-					} else v2 = verts[j ? (i+1) % f->len : i];
-				} else {
-					/*generate unique vert for non-seam edge(s)
-					  around the manifold vert fan if necassary*/
+					}
+					else {
+						v2 = verts[j ? (i+1) % f->len : i];
+					}
+				}
+				else {
+					/* generate unique vert for non-seam edge(s)
+					 * around the manifold vert fan if necassary */
 
-					/*first check that we have two seam edges
-					  somewhere within this fan*/
+					/* first check that we have two seam edges
+					 * somewhere within this fan*/
 					l3 = l2;
 					do {
 						if (BM_Edge_FaceCount(l3->e) != 2) {
-							/*if we hit a boundary edge, tag
-							  l3 as null so we know to disconnect
-							  it*/
-							if (BM_Edge_FaceCount(l3->e) == 1)
+							/* if we hit a boundary edge, tag
+							 * l3 as null so we know to disconnect
+							 * it */
+							if (BM_Edge_FaceCount(l3->e) == 1) {
 								l3 = NULL;
+							}
 							break;
 						}
 
@@ -304,18 +326,25 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 							l3 = l2;
 							do {
 								SETETV(et, v, l3, v2);
-								if (BM_Edge_FaceCount(l3->e) != 2)
+								if (BM_Edge_FaceCount(l3->e) != 2) {
 									break;
+								}
 
 								l3 = l3->radial_next;
 								l3 = BM_OtherFaceLoop(l3->e, l3->f, v);
 								
 								et = etags + BM_GetIndex(l3->e);
 							} while (l3 != l2 && !BMO_TestFlag(bm, l3->e, EDGE_SEAM));
-						} else v2 = ETV(et, v, l2);
+						}
+						else {
+							v2 = ETV(et, v, l2);
+						}
 
 						verts[j ? (i+1) % f->len : i] = v2;
-					} else verts[j ? (i+1) % f->len : i] = v;
+					}
+					else {
+						verts[j ? (i+1) % f->len : i] = v;
+					}
 				}
 			}
 
@@ -323,8 +352,9 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		}
 
 		f2 = remake_face(bm, etags, f, verts);
-		if (!f2)
+		if (!f2) {
 			continue;
+		}
 
 		BMO_SetFlag(bm, f, FACE_DEL);
 		BMO_SetFlag(bm, f2, FACE_NEW);
@@ -336,8 +366,9 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	  is set in remake_face*/
 	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 		if (BMO_TestFlag(bm, e, EDGE_MARK)) {
-			if (!e->l)
+			if (!e->l) {
 				BMO_SetFlag(bm, e, EDGE_DEL);
+			}
 		}
 	}
 
