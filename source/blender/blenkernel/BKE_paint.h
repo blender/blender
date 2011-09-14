@@ -98,5 +98,6 @@ typedef struct SculptSession {
 } SculptSession;
 
 void free_sculptsession(struct Object *ob);
+void free_sculptsession_deformMats(struct SculptSession *ss);
 
 #endif

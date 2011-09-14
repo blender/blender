@@ -81,6 +81,7 @@ struct SculptSession;
 struct ShadeInput;
 struct ShadeResult;
 struct SpaceImage;
+struct SpaceNode;
 struct Tex;
 struct TexResult;
 struct Text;
@@ -104,7 +105,6 @@ struct bPythonConstraint;
 struct bConstraintOb;
 struct Context;
 struct ChannelDriver;
-
 
 /*new render funcs */
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return (float *) NULL;}
@@ -298,8 +298,6 @@ void ED_sequencer_update_view(struct bContext *C, int view){}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.0f;}
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
 
-struct ListBase *ED_curve_editnurbs(struct Curve *cu){return NULL;}
-void free_curve_editNurb (struct Curve *cu){}
 void ED_nurb_set_spline_type(struct Nurb *nu, int type){}
 
 void EM_selectmode_set(struct EditMesh *em){}

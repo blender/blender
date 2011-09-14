@@ -235,6 +235,17 @@ void object_free_display(Object *ob)
 	freedisplist(&ob->disp);
 }
 
+void free_sculptsession_deformMats(SculptSession *ss)
+{
+	if(ss->orig_cos) MEM_freeN(ss->orig_cos);
+	if(ss->deform_cos) MEM_freeN(ss->deform_cos);
+	if(ss->deform_imats) MEM_freeN(ss->deform_imats);
+
+	ss->orig_cos = NULL;
+	ss->deform_cos = NULL;
+	ss->deform_imats = NULL;
+}
+
 void free_sculptsession(Object *ob)
 {
 	if(ob && ob->sculpt) {
@@ -264,6 +275,7 @@ void free_sculptsession(Object *ob)
 		ob->sculpt = NULL;
 	}
 }
+
 
 /* do not free object itself */
 void free_object(Object *ob)
@@ -2756,6 +2768,33 @@ void object_handle_update(Scene *scene, Object *ob)
 	if(ob->proxy) {
 		ob->proxy->proxy_from= ob;
 		// printf("set proxy pointer for later group stuff %s\n", ob->id.name);
+	}
+}
+
+void object_sculpt_modifiers_changed(Object *ob)
+{
+	SculptSession *ss= ob->sculpt;
+
+	if(!ss->cache) {
+		/* we free pbvh on changes, except during sculpt since it can't deal with
+		   changing PVBH node organization, we hope topology does not change in
+		   the meantime .. weak */
+		if(ss->pbvh) {
+				BLI_pbvh_free(ss->pbvh);
+				ss->pbvh= NULL;
+		}
+
+		free_sculptsession_deformMats(ob->sculpt);
+	} else {
+		PBVHNode **nodes;
+		int n, totnode;
+
+		BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+
+		for(n = 0; n < totnode; n++)
+			BLI_pbvh_node_mark_update(nodes[n]);
+
+		MEM_freeN(nodes);
 	}
 }
 
