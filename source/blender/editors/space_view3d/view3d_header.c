@@ -505,7 +505,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 			// Jason
 			row= uiLayoutRow(layout, 1);
 			uiItemR(row, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-			uiItemR(row, &meshptr, "wp_vert_sel", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+			uiItemR(row, &meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		}
 	} else {
 		const char *str_menu;

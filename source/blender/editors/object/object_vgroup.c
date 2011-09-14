@@ -706,7 +706,7 @@ static void vgroup_normalize(Object *ob)
 	// Jason
 	Mesh *me = ob->data;
 	MVert *mv = me->mvert;
-	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -719,7 +719,7 @@ static void vgroup_normalize(Object *ob)
 
 		for(i = 0; i < dvert_tot; i++) {
 			// Jason
-			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+			if(use_vert_sel && !((mv+i)->flag & SELECT)) {
 				continue;
 			}
 
@@ -733,7 +733,7 @@ static void vgroup_normalize(Object *ob)
 		if(weight_max > 0.0f) {
 			for(i = 0; i < dvert_tot; i++) {
 				// Jason
-				if(selectedVerts && !((mv+i)->flag & SELECT)) {
+				if(use_vert_sel && !((mv+i)->flag & SELECT)) {
 					continue;
 				}
 
@@ -1114,11 +1114,11 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 
 	Mesh *me = ob->data;
 	MVert *mv = me->mvert;
-	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 	int *verts = NULL;
 	for(i = 0; i < me->totvert && mv; i++, mv++) {
 		// Jason
-		if(selectedVerts && (mv->flag & SELECT)) {
+		if(use_vert_sel && (mv->flag & SELECT)) {
 			
 			int count=0;
 			if((verts = getSurroundingVerts(me, i, &count))) {
@@ -1168,7 +1168,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	// Jason
 	Mesh *me = ob->data;
 	MVert *mv = me->mvert;
-	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 	
@@ -1179,7 +1179,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 		
 		for(i = 0; i < dvert_tot; i++) {
 			// Jason
-			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+			if(use_vert_sel && !((mv+i)->flag & SELECT)) {
 				continue;
 			}
 
@@ -1207,7 +1207,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	// Jason
 	Mesh *me = ob->data;
 	MVert *mv = me->mvert;
-	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -1219,7 +1219,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 				float lock_iweight= 1.0f;
 				int j;
 				// Jason
-				if(selectedVerts && !((mv+i)->flag & SELECT)) {
+				if(use_vert_sel && !((mv+i)->flag & SELECT)) {
 					continue;
 				}
 
@@ -1263,7 +1263,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 			for(i = 0; i < dvert_tot; i++) {
 				int j;
 				// Jason
-				if(selectedVerts && !((mv+i)->flag & SELECT)) {
+				if(use_vert_sel && !((mv+i)->flag & SELECT)) {
 					continue;
 				}
 
@@ -1332,7 +1332,7 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 	// Jason
 	Mesh *me = ob->data;
 	MVert *mv = me->mvert;
-	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -1344,7 +1344,7 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 
 		for(i = 0; i < dvert_tot; i++) {
 			// Jason
-			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+			if(use_vert_sel && !((mv+i)->flag & SELECT)) {
 				continue;
 			}
 			dvert = dvert_array[i];
@@ -1462,7 +1462,7 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 	// Jason
 	Mesh *me = ob->data;
 	MVert *mv = me->mvert;
-	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -1473,7 +1473,7 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 
 		for(i = 0; i < dvert_tot; i++) {
 			// Jason
-			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+			if(use_vert_sel && !((mv+i)->flag & SELECT)) {
 				continue;
 			}
 			dvert = dvert_array[i];
@@ -1500,7 +1500,7 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	// Jason
 	Mesh *me = ob->data;
 	MVert *mv = me->mvert;
-	int selectedVerts = me->editflag & ME_EDIT_VERT_SEL;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -1508,7 +1508,7 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 		for(i = 0; i < dvert_tot; i++) {
 			int j;
 			// Jason
-			if(selectedVerts && !((mv+i)->flag & SELECT)) {
+			if(use_vert_sel && !((mv+i)->flag & SELECT)) {
 				continue;
 			}
 

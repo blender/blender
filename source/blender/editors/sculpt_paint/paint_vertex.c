@@ -400,14 +400,14 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	int vgroup_mirror= -1;
 	int selected;
 	// Jason
-	int selectedVerts;
+	int use_vert_sel;
 
 	me= ob->data;
 	if(me==NULL || me->totface==0 || me->dvert==NULL || !me->mface) return;
 	
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 	// Jason
-	selectedVerts = (me->editflag & ME_EDIT_VERT_SEL);
+	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	indexar= get_indexarray(me);
 
@@ -444,7 +444,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			for (i=0; i<3 || faceverts[i]; i++) {
 				if(me->dvert[faceverts[i]].flag) {
 					// Jason
-					if(selectedVerts && ((me->mvert[faceverts[i]].flag & SELECT) == 0)) {
+					if(use_vert_sel && ((me->mvert[faceverts[i]].flag & SELECT) == 0)) {
 						continue;
 					}
 
@@ -1900,7 +1900,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mval[2], pressure;
 	
 	// Jason
-	int selectedVerts;
+	int use_vert_sel;
 
 	/* cannot paint if there is no stroke data */
 	if (wpd == NULL) {
@@ -1950,7 +1950,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		}
 	}
 	// Jason
-	selectedVerts = (me->editflag & ME_EDIT_VERT_SEL);
+	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 			
 	if((me->editflag & ME_EDIT_PAINT_MASK) && me->mface) {
 		for(index=0; index<totindex; index++) {
@@ -1976,7 +1976,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		if(indexar[index] && indexar[index]<=me->totface) {
 			MFace *mface= me->mface + (indexar[index]-1);
 
-			if(selectedVerts) {
+			if(use_vert_sel) {
 				me->dvert[mface->v1].flag = (me->mvert[mface->v1].flag & SELECT);
 				me->dvert[mface->v2].flag = (me->mvert[mface->v2].flag & SELECT);
 				me->dvert[mface->v3].flag = (me->mvert[mface->v3].flag & SELECT);
