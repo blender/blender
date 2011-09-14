@@ -713,7 +713,6 @@ add_dependencies(blender makesdna)
 get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
 
 set(BLENDER_LINK_LIBS
-	bf_nodes
 	${BLENDER_LINK_LIBS}
 	bf_windowmanager
 	bf_render
