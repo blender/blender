@@ -2172,7 +2172,7 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 	Object *ob= vc->obact;
 	Mesh *me = ob?ob->data:NULL;
 	int bbsel;
-	struct {ViewContext *vc; short select; int mval[2]; float radius; } data = {NULL};
+	/* struct {ViewContext *vc; short select; int mval[2]; float radius; } data = {NULL}; */ /* UNUSED */
 	if (me) {
 		em_vertoffs= me->totvert+1;	/* max index array */
 

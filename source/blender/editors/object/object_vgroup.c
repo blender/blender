@@ -49,6 +49,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_particle_types.h"
 
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_utildefines.h"
@@ -866,20 +867,17 @@ static void getSingleCoordinate(MVert **points, int count, float *coord) {
 /* coord is a point on the plane */
 /* point is the point that you want the nearest of */
 /* norm is the plane's normal, and d is the last number in the plane equation 0 = ax + by + cz + d */
-static void getNearestPointOnPlane(float *norm, float d, float *coord, float *point, float *dst) {
-	float *temp = MEM_callocN(sizeof(float)*3, "temp");
-	int i;
-	float dotprod = 0;
-	for(i = 0; i < 3; i++) {
-		temp[i] = point[i]-coord[i];
-	}
-	for(i = 0; i < 3; i++) {
-		dotprod += temp[i]*norm[i];
-	}
-	MEM_freeN(temp);
-	for(i = 0; i < 3; i++) {
-		dst[i] = point[i] - dotprod*norm[i];
-	}
+static void getNearestPointOnPlane(const float norm[3], const float coord[3], const float point[3], float dst_r[3])
+{
+	float temp[3];
+	float dotprod;
+
+	sub_v3_v3v3(temp, point, coord);
+	dotprod= dot_v3v3(temp, norm);
+
+	dst_r[0] = point[0] - (norm[0] * dotprod);
+	dst_r[1] = point[1] - (norm[1] * dotprod);
+	dst_r[2] = point[2] - (norm[2] * dotprod);
 }
 /* Jason */
 /* distance of two vectors a and b of size length */
@@ -902,8 +900,8 @@ static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, f
 	float *projA, *projB;
 	projA = MEM_callocN(sizeof(float)*3, "projectedA");
 	projB = MEM_callocN(sizeof(float)*3, "projectedB");
-	getNearestPointOnPlane(norm, d, coord, start, projA);
-	getNearestPointOnPlane(norm, d, coord, end, projB);
+	getNearestPointOnPlane(norm, coord, start, projA);
+	getNearestPointOnPlane(norm, coord, end, projB);
 	// (vertical and horizontal refer to the plane's y and xz respectively)
 	// vertical distance
 	dists[index] = norm[0]*end[0] + norm[1]*end[1] + norm[2]*end[2] + d;
@@ -918,12 +916,10 @@ static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, f
 }
 // Jason
 // I need the derived mesh to be forgotten so the positions are recalculated with weight changes (see dm_deform_recalc)
-static int dm_deform_clear(DerivedMesh *dm, Object *ob) {
+static void dm_deform_clear(DerivedMesh *dm, Object *ob) {
 	dm->needsFree = 1;
 	dm->release(dm);
 	ob->derivedDeform=NULL;
-	// dm = NULL;
-	return NULL;
 }
 // Jason
 // recalculate the deformation
@@ -986,7 +982,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 			}
 			for(k = 0; k < 2; k++) {
 				if(dm) {
-					dm = dm_deform_clear(dm, ob);
+					dm_deform_clear(dm, ob); dm = NULL;
 				}
 				oldw = dw->weight;
 				if(k) {
@@ -1096,7 +1092,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 				wasChange = FALSE;
 			}
 			if(dm) {
-				dm = dm_deform_clear(dm, ob);
+				dm_deform_clear(dm, ob); dm = NULL;
 			}
 		}
 	}while(wasChange && (distToStart-distToBe)/fabs(distToStart-distToBe) == (dists[bestIndex]-distToBe)/fabs(dists[bestIndex]-distToBe));
@@ -1137,7 +1133,7 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 				}
 				
 				if(count >= 3) {
-					float d, dist, mag;
+					float d /*, dist */ /* UNUSED */, mag;
 					float *coord = MEM_callocN(sizeof(float)*3, "deformedCoord");
 					float *norm = MEM_callocN(sizeof(float)*3, "planeNorm");
 					getSingleCoordinate(p, count, coord);
@@ -1150,7 +1146,7 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 						norm[k]/=mag;
 					}
 					d = -norm[0]*coord[0] -norm[1]*coord[1] -norm[2]*coord[2];
-					dist = (norm[0]*m.co[0] + norm[1]*m.co[1] + norm[2]*m.co[2] + d);
+					/* dist = (norm[0]*m.co[0] + norm[1]*m.co[1] + norm[2]*m.co[2] + d); */ /* UNUSED */
 					moveCloserToDistanceFromPlane(scene, ob, me, i, norm, coord, d, distToBe, strength, cp);
 					MEM_freeN(coord);
 					MEM_freeN(norm);
@@ -2380,7 +2376,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "cp", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower.", 0.05f, 1.f);
 }
 /* Jason was here */
-static int vertex_group_invert_locks_exec(bContext *C, wmOperator *op)
+static int vertex_group_invert_locks_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
@@ -2403,7 +2399,7 @@ void OBJECT_OT_vertex_group_invert_locks(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 /* Jason was here */
-static int vertex_group_lock_all_exec(bContext *C, wmOperator *op)
+static int vertex_group_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
@@ -2426,7 +2422,7 @@ void OBJECT_OT_vertex_group_lock_all(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 /* Jason was here */
-static int vertex_group_unlock_all_exec(bContext *C, wmOperator *op)
+static int vertex_group_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 

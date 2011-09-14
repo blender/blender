@@ -6538,9 +6538,9 @@ static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co,
 	//}
 }
 /* Jason */
-static void bbs_obmode_mesh_verts(Scene* scene, Object *ob, DerivedMesh *dm, int offset)
+static void bbs_obmode_mesh_verts(Object *UNUSED(ob), DerivedMesh *dm, int offset)
 {
-	Mesh *me = (Mesh*)ob->data;
+	/* Mesh *me = (Mesh*)ob->data; */ /* UNUSED */
 
 	glPointSize( UI_GetThemeValuef(TH_VERTEX_SIZE) );
 	bglBegin(GL_POINTS);
@@ -6725,7 +6725,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 				dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, me, 0, GPU_enable_material, NULL);
 
 				
-				bbs_obmode_mesh_verts(scene, ob, dm, 1);
+				bbs_obmode_mesh_verts(ob, dm, 1);
 				em_vertoffs = me->totvert+1;
 				dm->release(dm);
 			}
