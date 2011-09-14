@@ -2125,10 +2125,10 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	/* Jason was here: I need the RNA struct for vertex groups */
-	else if(RNA_struct_is_a(itemptr->type, &RNA_VertexGroup)) {
+	else if(itemptr->type == &RNA_VertexGroup) {
 		uiItemL(sub, name, icon);
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "flag", 0, 0, 0, 0, 0,  NULL);
+		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "lock_weight", 0, 0, 0, 0, 0,  NULL);
 	}
 	else if(itemptr->type == &RNA_KeyingSetPath) {
 		KS_Path *ksp = (KS_Path*)itemptr->data;

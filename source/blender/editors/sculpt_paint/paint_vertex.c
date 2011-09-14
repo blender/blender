@@ -363,7 +363,7 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	MFace *mf;
 	unsigned int *mcol;
 	int i, selected;
-	
+
 	me= get_mesh(ob);
 	if(me==NULL || me->totface==0) return;
 
@@ -442,9 +442,9 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			faceverts[2]= mface->v3;
 			faceverts[3]= mface->v4;
 			for (i=0; i<3 || faceverts[i]; i++) {
-				if(!((me->dvert+faceverts[i])->flag)) {
+				if(me->dvert[faceverts[i]].flag) {
 					// Jason
-					if(selectedVerts && !((me->mvert+faceverts[i])->flag & SELECT)) {
+					if(selectedVerts && ((me->mvert[faceverts[i]].flag & SELECT) == 0)) {
 						continue;
 					}
 
@@ -1167,10 +1167,8 @@ static char *gen_lck_flags(Object* ob, int defbase_len)
 	bDeformGroup *defgroup;
 
 	for(i = 0, defgroup = ob->defbase.first; i < defbase_len && defgroup; defgroup = defgroup->next, i++) {
-		flags[i] = defgroup->flag;
-		if(flags[i]) {
-			is_locked = TRUE;
-		}
+		flags[i] = ((defgroup->flag & DG_LOCK_WEIGHT) != 0);
+		is_locked |= flags[i];
 	}
 	if(is_locked){
 		return flags;
@@ -1519,7 +1517,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	//						Jason: tdw, tuw
 	MDeformWeight *dw, *uw, *tdw = NULL, *tuw;
 	int vgroup= ob->actdef-1;
-
+	
 	/* Jason was here */
 	char *flags;
 	char *bone_groups;
@@ -1569,7 +1567,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 		dv = MEM_mallocN(sizeof (*(me->dvert+index)), "prevMDeformVert");
 
 		dv->dw= MEM_dupallocN((me->dvert+index)->dw);
-		dv->flag = (me->dvert+index)->flag;
+		dv->flag = me->dvert[index].flag;
 		dv->totweight = (me->dvert+index)->totweight;
 		tdw = dw;
 		tuw = uw;
@@ -1646,6 +1644,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 		MEM_freeN(bone_groups);
 	}
 }
+
 
 /* *************** set wpaint operator ****************** */
 
@@ -1808,7 +1807,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	struct WPaintData *wpd;
 	Mesh *me;
 	float mat[4][4], imat[4][4];
-
+	
 	if(scene->obedit) return OPERATOR_CANCELLED;
 	
 	me= get_mesh(ob);
@@ -1819,14 +1818,13 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 		ED_vgroup_data_create(&me->id);
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
 	}
-
-
+	
 	/* make mode data storage */
 	wpd= MEM_callocN(sizeof(struct WPaintData), "WPaintData");
 	paint_stroke_set_mode_data(stroke, wpd);
 	view3d_set_viewcontext(C, &wpd->vc);
 	wpd->vgroup_mirror= -1;
-
+	
 	/*set up auto-normalize, and generate map for detecting which
 	  vgroups affect deform bones*/
 	wpd->auto_normalize = ts->auto_normalize;
@@ -1881,7 +1879,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	if(me->editflag & ME_EDIT_MIRROR_X) {
 		wpaint_mirror_vgroup_ensure(ob, &wpd->vgroup_mirror);
 	}
-
+	
 	return 1;
 }
 
@@ -1977,11 +1975,19 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	for(index=0; index<totindex; index++) {
 		if(indexar[index] && indexar[index]<=me->totface) {
 			MFace *mface= me->mface + (indexar[index]-1);
-					
-			(me->dvert+mface->v1)->flag= selectedVerts ? ((me->mvert+mface->v1)->flag & SELECT): 1;
-			(me->dvert+mface->v2)->flag= selectedVerts ? ((me->mvert+mface->v2)->flag & SELECT): 1;
-			(me->dvert+mface->v3)->flag= selectedVerts ? ((me->mvert+mface->v3)->flag & SELECT): 1;
-			if(mface->v4) (me->dvert+mface->v4)->flag= selectedVerts ? ((me->mvert+mface->v4)->flag & SELECT): 1;
+
+			if(selectedVerts) {
+				me->dvert[mface->v1].flag = (me->mvert[mface->v1].flag & SELECT);
+				me->dvert[mface->v2].flag = (me->mvert[mface->v2].flag & SELECT);
+				me->dvert[mface->v3].flag = (me->mvert[mface->v3].flag & SELECT);
+				if(mface->v4) me->dvert[mface->v4].flag = (me->mvert[mface->v4].flag & SELECT);
+			}
+			else {
+				me->dvert[mface->v1].flag= 1;
+				me->dvert[mface->v2].flag= 1;
+				me->dvert[mface->v3].flag= 1;
+				if(mface->v4) me->dvert[mface->v4].flag= 1;
+			}
 					
 			if(brush->vertexpaint_tool==VP_BLUR) {
 				MDeformWeight *dw, *(*dw_func)(MDeformVert *, const int);
@@ -2304,15 +2310,14 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index
 	Brush *brush = paint_brush(&vp->paint);
 	Mesh *me = get_mesh(ob);
 	MFace *mface= ((MFace*)me->mface) + index;
-
 	unsigned int *mcol= ((unsigned int*)me->mcol) + 4*index;
 	unsigned int *mcolorig= ((unsigned int*)vp->vpaint_prev) + 4*index;
 	float alpha;
 	int i;
-
+	
 	if((vp->flag & VP_COLINDEX && mface->mat_nr!=ob->actcol-1) ||
 	   ((me->editflag & ME_EDIT_PAINT_MASK) && !(mface->flag & ME_FACE_SEL)))
-		   return;
+		return;
 
 	if(brush->vertexpaint_tool==VP_BLUR) {
 		unsigned int fcol1= mcol_blend( mcol[0], mcol[1], 128);

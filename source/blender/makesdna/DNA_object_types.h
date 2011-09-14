@@ -67,6 +67,9 @@ typedef struct bDeformGroup {
 } bDeformGroup;
 #define MAX_VGROUP_NAME 32
 
+/* bDeformGroup->flag */
+#define DG_LOCK_WEIGHT 1
+
 /**
  * The following illustrates the orientation of the 
  * bounding box in local space

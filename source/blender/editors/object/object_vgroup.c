@@ -1306,7 +1306,7 @@ static void vgroup_lock_all(Object *ob)
 {
 	bDeformGroup *dg = ob->defbase.first;
 	while(dg) {
-		dg->flag = TRUE;
+		dg->flag |= DG_LOCK_WEIGHT;
 		dg = dg->next;
 	}
 }
@@ -1315,7 +1315,7 @@ static void vgroup_unlock_all(Object *ob)
 {
 	bDeformGroup *dg = ob->defbase.first;
 	while(dg) {
-		dg->flag = FALSE;
+		dg->flag &= ~DG_LOCK_WEIGHT;
 		dg = dg->next;
 	}
 }
