@@ -52,6 +52,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -176,7 +177,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Nurb *nu;
-			ListBase *nurbs= ED_curve_editnurbs((Curve*)ob->data);
+			ListBase *nurbs= curve_editnurbs((Curve*)ob->data);
 
 			if(nurbs) {
 				for(nu= nurbs->first; nu; nu= nu->next)
@@ -234,7 +235,7 @@ static int material_slot_de_select(bContext *C, int select)
 		}
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-		ListBase *nurbs= ED_curve_editnurbs((Curve*)ob->data);
+		ListBase *nurbs= curve_editnurbs((Curve*)ob->data);
 		Nurb *nu;
 		BPoint *bp;
 		BezTriple *bezt;

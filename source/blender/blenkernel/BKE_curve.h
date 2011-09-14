@@ -34,14 +34,16 @@
  *  \since March 2001
  *  \author nzc
  */
+
+struct BevList;
+struct BezTriple;
 struct Curve;
+struct EditNurb;
 struct ListBase;
+struct ListBase;
+struct Nurb;
 struct Object;
 struct Scene;
-struct Nurb;
-struct ListBase;
-struct BezTriple;
-struct BevList;
 
 #define KNOTSU(nu)	    ( (nu)->orderu+ (nu)->pntsu+ (((nu)->flagu & CU_NURB_CYCLIC) ? ((nu)->orderu-1) : 0) )
 #define KNOTSV(nu)	    ( (nu)->orderv+ (nu)->pntsv+ (((nu)->flagv & CU_NURB_CYCLIC) ? ((nu)->orderv-1) : 0) )
@@ -55,11 +57,14 @@ struct BevList;
 
 
 void unlink_curve( struct Curve *cu);
+void free_curve_editNurb_keyIndex(struct EditNurb *editnurb);
+void free_curve_editNurb(struct Curve *cu);
 void free_curve( struct Curve *cu);
 void BKE_free_editfont(struct Curve *cu);
 struct Curve *add_curve(const char *name, int type);
 struct Curve *copy_curve( struct Curve *cu);
 void make_local_curve( struct Curve *cu);
+struct ListBase *curve_editnurbs(struct Curve *cu);
 short curve_type( struct Curve *cu);
 void test_curve_type( struct Object *ob);
 void tex_space_curve( struct Curve *cu);

@@ -210,7 +210,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		BPoint *bp;
 		BezTriple *bezt;
 		int a;
-		ListBase *nurbs= ED_curve_editnurbs(cu);
+		ListBase *nurbs= curve_editnurbs(cu);
 
 		nu= nurbs->first;
 		while(nu) {
@@ -457,7 +457,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			BPoint *bp;
 			BezTriple *bezt;
 			int a;
-			ListBase *nurbs= ED_curve_editnurbs(cu);
+			ListBase *nurbs= curve_editnurbs(cu);
 
 			nu= nurbs->first;
 			while(nu) {

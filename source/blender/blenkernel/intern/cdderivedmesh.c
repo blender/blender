@@ -36,10 +36,7 @@
  *  \ingroup bke
  */
  
-
-/* TODO maybe BIF_gl.h should include string.h? */
-#include <string.h>
-#include "BIF_gl.h"
+#include "GL/glew.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
