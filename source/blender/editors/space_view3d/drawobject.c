@@ -6719,7 +6719,6 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			Mesh *me= ob->data;
 			if(me->editflag & ME_EDIT_VERT_SEL) {
 				DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
-				WM_set_framebuffer_index_color(me->totvert+2);
 				glColor3ub(0, 0, 0);
 
 				dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, me, 0, GPU_enable_material, NULL);

@@ -442,7 +442,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			faceverts[2]= mface->v3;
 			faceverts[3]= mface->v4;
 			for (i=0; i<3 || faceverts[i]; i++) {
-				if(me->dvert[faceverts[i]].flag) {
+				if(!me->dvert[faceverts[i]].flag) {
 					// Jason
 					if(use_vert_sel && ((me->mvert[faceverts[i]].flag & SELECT) == 0)) {
 						continue;
@@ -1927,10 +1927,16 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mval[1]-= vc->ar->winrct.ymin;
 			
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
-			
+
+	// Jason
+	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+
 	/* which faces are involved */
 	if(wp->flag & VP_AREA) {
+		// Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell
+		me->editflag &= ~ME_EDIT_VERT_SEL;
 		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush_size(brush));
+		me->editflag |= use_vert_sel ? ME_EDIT_VERT_SEL : 0;
 	}
 	else {
 		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -1949,9 +1955,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			}
 		}
 	}
-	// Jason
-	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
-			
+
 	if((me->editflag & ME_EDIT_PAINT_MASK) && me->mface) {
 		for(index=0; index<totindex; index++) {
 			if(indexar[index] && indexar[index]<=me->totface) {
