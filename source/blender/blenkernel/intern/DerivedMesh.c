@@ -62,6 +62,7 @@
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_multires.h"
+#include "BKE_armature.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -73,8 +74,6 @@
 #include "GPU_material.h"
 
 extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
-// Jason was here, this is for multi-paint
-#include "ED_armature.h"
 
 ///////////////////////////////////
 ///////////////////////////////////
@@ -1678,47 +1677,58 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 	}
 }
 
-static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int unselected, int multipaint, int auto_normalize)
+/* draw_flag's for calc_weightpaint_vert_color */
+enum {
+	CALC_WP_MULTIPAINT= (1<<0),
+	CALC_WP_AUTO_NORMALIZE= (1<<1),
+};
+
+static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int UNUSED(unselected), const int draw_flag)
 {
 	Mesh *me = ob->data;
-	float colf[4], input = 0.0f;// Jason
+	float colf[4], input = 0.0f;
 	int i;
-	char make_black = FALSE;
-	char was_a_nonzero = FALSE;
+
+	// Jason was here
+	int make_black= FALSE;
 
 	if (me->dvert) {
-		for (i=0; i<me->dvert[vert].totweight; i++) {
+		if ((selected > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
 			// Jason was here
-			// in multipaint, get the average if auto normalize is inactive
-			// get the sum if it is active
-			if(multipaint && selected > 1) {
+			int was_a_nonzero= FALSE;
+			for (i=0; i<me->dvert[vert].totweight; i++) {
+				/* in multipaint, get the average if auto normalize is inactive
+				 * get the sum if it is active */
 				if(dg_flags[me->dvert[vert].dw[i].def_nr]) {
 					if(me->dvert[vert].dw[i].weight) {
-						input+=me->dvert[vert].dw[i].weight;
-						was_a_nonzero = TRUE;
+						input+= me->dvert[vert].dw[i].weight;
+						was_a_nonzero= TRUE;
 					}
 				}
-			} else if (me->dvert[vert].dw[i].def_nr==ob->actdef-1) {
-				input+=me->dvert[vert].dw[i].weight;
-			}
-		}
-		
-		// Jason was here
-		// make it black if the selected groups have no weight on a vertex
-		if(!make_black && multipaint && selected > 1) {
-			if(!was_a_nonzero) {
-				make_black = TRUE;
-			} else if (!auto_normalize){
-				// get the average
-				input /= selected;
 			}
 
+			/* make it black if the selected groups have no weight on a vertex */
+			if(was_a_nonzero == FALSE) {
+				make_black = TRUE;
+			}
+			else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
+				input /= selected; /* get the average */
+			}
+		}
+		else {
+			/* default, non tricky behavior */
+			for (i=0; i<me->dvert[vert].totweight; i++) {
+				if (me->dvert[vert].dw[i].def_nr==ob->actdef-1) {
+					input+=me->dvert[vert].dw[i].weight;
+				}
+			}
 		}
 	}
 	
-	if(make_black) {
+	if (make_black) {
 		input = -1;
-	}else {
+	}
+	else {
 		CLAMP(input, 0.0f, 1.0f);
 	}
 	
@@ -1740,65 +1750,30 @@ void vDM_ColorBand_store(ColorBand *coba)
 {
 	stored_cb= coba;
 }
-/* TODO move duplicates to header */
-/* Jason was here duplicate function in paint_vertex.c*/
-static char* get_selected_defgroups(Object *ob, int defcnt) {
-	bPoseChannel *chan;
-	bPose *pose;
-	bDeformGroup *defgroup;
-	//Bone *bone;
-	char *dg_flags = MEM_callocN(defcnt*sizeof(char), "dg_selected_flags");
-	int i;
-	Object *armob = ED_object_pose_armature(ob);
 
-	if(armob) {
-		pose = armob->pose;
-		for (chan=pose->chanbase.first; chan; chan=chan->next) {
-			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
-				if(!strcmp(defgroup->name, chan->bone->name)) {
-					dg_flags[i] = (chan->bone->flag & BONE_SELECTED);
-				}
-			}
-		}
-	}
-	
-	return dg_flags;
-}
-/* TODO move duplicates to header */
-/* Jason was here duplicate function */
-static int count_true(char *list, int len)
-{
-	int i;
-	int cnt = 0;
-	for(i = 0; i < len; i++) {
-		if (list[i]) {
-			cnt++;
-		}
-	}
-	return cnt;
-}
-static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int multipaint, int auto_normalize)
+static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 {
 	Mesh *me = ob->data;
 	MFace *mf = me->mface;
 	ColorBand *coba= stored_cb;	/* warning, not a local var */
 	unsigned char *wtcol;
 	int i;
+
 	// Jason was here
 	int defcnt = BLI_countlist(&ob->defbase);
 	char *dg_flags = get_selected_defgroups(ob, defcnt);
-	int selected = count_true(dg_flags, defcnt);
+	int selected = count_selected_defgroups(dg_flags, defcnt);
 	int unselected = defcnt - selected;
 
 	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
 	
 	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
 	for (i=0; i<me->totface; i++, mf++) {
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], dg_flags, selected, unselected, multipaint, auto_normalize); 
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], dg_flags, selected, unselected, multipaint, auto_normalize); 
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], dg_flags, selected, unselected, multipaint, auto_normalize); 
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], dg_flags, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], dg_flags, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], dg_flags, selected, unselected, draw_flag);
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], dg_flags, selected, unselected, multipaint, auto_normalize); 
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], dg_flags, selected, unselected, draw_flag);
 	}
 	// Jason
 	MEM_freeN(dg_flags);
@@ -1829,6 +1804,10 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 0);
 	int has_multires = mmd != NULL, multires_applied = 0;
 	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
+
+	// Jason
+	int draw_flag= ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
+	                (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
 
 	if(mmd && !mmd->sculptlvl)
 		has_multires = 0;
@@ -2009,7 +1988,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 
 				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-					add_weight_mcol_dm(ob, dm, scene->toolsettings->multipaint, scene->toolsettings->auto_normalize);// Jason
+					add_weight_mcol_dm(ob, dm, draw_flag); // Jason
 
 				/* Constructive modifiers need to have an origindex
 				 * otherwise they wont have anywhere to copy the data from.
@@ -2121,7 +2100,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		CDDM_calc_normals(finaldm);
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm, scene->toolsettings->multipaint, scene->toolsettings->auto_normalize);// Jason
+			add_weight_mcol_dm(ob, finaldm, draw_flag);// Jason
 	} else if(dm) {
 		finaldm = dm;
 	} else {
@@ -2133,7 +2112,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		}
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm, scene->toolsettings->multipaint, scene->toolsettings->auto_normalize);// Jason
+			add_weight_mcol_dm(ob, finaldm, draw_flag);// Jason
 	}
 
 	/* add an orco layer if needed */

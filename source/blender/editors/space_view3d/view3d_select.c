@@ -2004,9 +2004,6 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short enumerate= RNA_boolean_get(op->ptr, "enumerate");
 	short object= RNA_boolean_get(op->ptr, "object");
 	int	retval = 0;
-	// Jason
-	Mesh *me;
-	Scene *scene = CTX_data_scene(C);
 
 	view3d_operator_needs_opengl(C);
 
@@ -2040,8 +2037,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if(obact && paint_facesel_test(obact))
 		retval = paintface_mouse_select(C, obact, event->mval, extend);
 	/*Jason*/
-	else if (paint_vertsel_test(obact) && (me = (Mesh*)(obact->data))) {
-		retval = mouse_wp_select(C, event->mval, extend, obact, me);
+	else if (paint_vertsel_test(obact)) {
+		retval = mouse_wp_select(C, event->mval, extend, obact, obact->data);
 	} else {
 		retval = mouse_select(C, event->mval, extend, center, enumerate);
 	}

@@ -135,8 +135,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
         ob = context.object
         group = ob.vertex_groups.active
-        
-        
+
         rows = 2
         if group:
             rows = 5

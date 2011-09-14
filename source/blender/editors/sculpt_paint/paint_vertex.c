@@ -64,6 +64,7 @@
 #include "RNA_enum_types.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -1493,42 +1494,6 @@ static int apply_mp_lcks_normalize(Object *ob, Mesh *me, int index, MDeformWeigh
 	return FALSE;
 }
 
-/* Jason was here duplicate function I used in DerivedMesh.c*/
-static char* get_selected_defgroups(Object *ob, int defcnt) {
-	bPoseChannel *chan;
-	bPose *pose;
-	bDeformGroup *defgroup;
-	//Bone *bone;
-	char *dg_flags = MEM_callocN(defcnt*sizeof(char), "dg_selected_flags");
-	int i;
-	Object *armob = ED_object_pose_armature(ob);
-
-	if(armob) {
-		pose = armob->pose;
-		for (chan=pose->chanbase.first; chan; chan=chan->next) {
-			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
-				if(!strcmp(defgroup->name, chan->bone->name)) {
-					dg_flags[i] = (chan->bone->flag & BONE_SELECTED);
-				}
-			}
-		}
-	}
-	// the array has whether or not the corresponding group is selected
-	return dg_flags;
-}
-/* TODO move duplicates to header */
-/* Jason was here duplicate function */
-static int count_true(char *list, int len)
-{
-	int i;
-	int cnt = 0;
-	for(i = 0; i < len; i++) {
-		if (list[i]) {
-			cnt++;
-		}
-	}
-	return cnt;
-}
 // within the current dvert index, get the dw that is selected and has a weight above 0
 // this helps multi-paint
 static int get_first_selected_nonzero_weight(MDeformVert *dvert, char *selection) {
@@ -1588,7 +1553,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	/* Jason was here */
 	flags = gen_lck_flags(ob, defcnt = BLI_countlist(&ob->defbase), bone_groups);
 	selection = get_selected_defgroups(ob, defcnt);
-	selected = count_true(selection, defcnt);
+	selected = count_selected_defgroups(selection, defcnt);
 	if(!selected && ob->actdef) {
 		selected = 1;
 	}

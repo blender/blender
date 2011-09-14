@@ -2465,3 +2465,42 @@ void where_is_pose (Scene *scene, Object *ob)
 		}
 	}
 }
+
+/* Jason was here */
+char* get_selected_defgroups(Object *ob, int defcnt)
+{
+	bPoseChannel *chan;
+	bPose *pose;
+	bDeformGroup *defgroup;
+	//Bone *bone;
+	char *dg_flags = MEM_callocN(defcnt*sizeof(char), "dg_selected_flags");
+	int i;
+	Object *armob = object_pose_armature_get(ob);
+
+	if(armob) {
+		pose = armob->pose;
+		for (chan=pose->chanbase.first; chan; chan=chan->next) {
+			for (i = 0, defgroup = ob->defbase.first; i < defcnt && defgroup; defgroup = defgroup->next, i++) {
+				if(!strcmp(defgroup->name, chan->bone->name)) {
+					dg_flags[i] = (chan->bone->flag & BONE_SELECTED);
+				}
+			}
+		}
+	}
+
+	return dg_flags;
+}
+
+/* TODO move duplicates to header */
+/* Jason was here duplicate function */
+int count_selected_defgroups(const char *list, int len)
+{
+	int i;
+	int cnt = 0;
+	for(i = 0; i < len; i++) {
+		if (list[i]) {
+			cnt++;
+		}
+	}
+	return cnt;
+}
