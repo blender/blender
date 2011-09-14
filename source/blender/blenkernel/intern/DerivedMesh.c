@@ -1760,23 +1760,23 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	int i;
 
 	// Jason was here
-	int defcnt = BLI_countlist(&ob->defbase);
-	char *dg_flags = get_selected_defgroups(ob, defcnt);
-	int selected = count_selected_defgroups(dg_flags, defcnt);
-	int unselected = defcnt - selected;
+	int defbase_len = BLI_countlist(&ob->defbase);
+	char *defbase_sel = MEM_mallocN(defbase_len * sizeof(char), __func__);
+	int selected = get_selected_defgroups(ob, defbase_sel, defbase_len);
+	int unselected = defbase_len - selected;
 
 	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
 	
 	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
 	for (i=0; i<me->totface; i++, mf++) {
-		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], dg_flags, selected, unselected, draw_flag);
-		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], dg_flags, selected, unselected, draw_flag);
-		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], dg_flags, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], defbase_sel, selected, unselected, draw_flag);
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], dg_flags, selected, unselected, draw_flag);
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], defbase_sel, selected, unselected, draw_flag);
 	}
 	// Jason
-	MEM_freeN(dg_flags);
+	MEM_freeN(defbase_sel);
 
 	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, dm->numFaceData);
 }
