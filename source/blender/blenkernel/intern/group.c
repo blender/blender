@@ -81,6 +81,7 @@ void unlink_group(Group *group)
 	Object *ob;
 	Scene *sce;
 	SceneRenderLayer *srl;
+	FreestyleLineSet *lineset;
 	ParticleSystem *psys;
 	
 	for(ma= bmain->mat.first; ma; ma= ma->id.next) {
@@ -105,6 +106,11 @@ void unlink_group(Group *group)
 		for(srl= sce->r.layers.first; srl; srl= srl->next) {
 			if (srl->light_override==group)
 				srl->light_override= NULL;
+
+			for(lineset= srl->freestyleConfig.linesets.first; lineset; lineset= lineset->next) {
+				if (lineset->group == group)
+					lineset->group= NULL;
+			}
 		}
 	}
 	
