@@ -108,6 +108,7 @@ void object_to_mat4(struct Object *ob, float mat[][4]);
 void object_apply_mat4(struct Object *ob, float mat[][4], const short use_compat, const short use_parent);
 
 void set_no_parent_ipo(int val);
+struct Object *object_pose_armature_get(struct Object *ob);
 
 void where_is_object_time(struct Scene *scene, struct Object *ob, float ctime);
 void where_is_object(struct Scene *scene, struct Object *ob);
