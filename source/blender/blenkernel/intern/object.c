@@ -1310,6 +1310,37 @@ static void copy_object_pose(Object *obn, Object *ob)
 	}
 }
 
+static int object_pose_context(Object *ob)
+{
+	if(	(ob) &&
+		(ob->type == OB_ARMATURE) &&
+		(ob->pose) &&
+		(ob->mode & OB_MODE_POSE)
+	) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+//Object *object_pose_armature_get(Object *ob)
+Object *object_pose_armature_get(struct Object *ob)
+{
+	if(ob==NULL)
+		return NULL;
+
+	if(object_pose_context(ob))
+		return ob;
+
+	ob= modifiers_isDeformedByArmature(ob);
+
+	if(object_pose_context(ob))
+		return ob;
+
+	return NULL;
+}
+
 static void copy_object_transform(Object *ob_tar, Object *ob_src)
 {
 	copy_v3_v3(ob_tar->loc, ob_src->loc);
