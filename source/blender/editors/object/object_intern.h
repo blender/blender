@@ -201,9 +201,7 @@ void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize_all(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
 /* Jason was here */
-void OBJECT_OT_vertex_group_lock_all(struct wmOperatorType *ot);
-void OBJECT_OT_vertex_group_invert_locks(struct wmOperatorType *ot);
-void OBJECT_OT_vertex_group_unlock_all(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_lock(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_fix(struct wmOperatorType *ot);
 
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);

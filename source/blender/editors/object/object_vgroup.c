@@ -1292,31 +1292,34 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 
 	if (dvert_array) MEM_freeN(dvert_array);
 }
+
 /* Jason was here */
-static void vgroup_invert_locks(Object *ob)
+static void vgroup_lock_all(Object *ob, int action)
 {
-	bDeformGroup *dg = ob->defbase.first;
-	while(dg) {
-		dg->flag = !dg->flag;
-		dg = dg->next;
+	bDeformGroup *dg;
+
+	if(action == SEL_TOGGLE) {
+		action= SEL_SELECT;
+		for(dg= ob->defbase.first; dg; dg= dg->next) {
+			if(dg->flag & DG_LOCK_WEIGHT) {
+				action= SEL_DESELECT;
+				break;
+			}
+		}
 	}
-}
-/* Jason was here */
-static void vgroup_lock_all(Object *ob)
-{
-	bDeformGroup *dg = ob->defbase.first;
-	while(dg) {
-		dg->flag |= DG_LOCK_WEIGHT;
-		dg = dg->next;
-	}
-}
-/* Jason was here */
-static void vgroup_unlock_all(Object *ob)
-{
-	bDeformGroup *dg = ob->defbase.first;
-	while(dg) {
-		dg->flag &= ~DG_LOCK_WEIGHT;
-		dg = dg->next;
+
+	for(dg= ob->defbase.first; dg; dg= dg->next) {
+		switch(action) {
+			case SEL_SELECT:
+				dg->flag |= DG_LOCK_WEIGHT;
+				break;
+			case SEL_DESELECT:
+				dg->flag &= ~DG_LOCK_WEIGHT;
+				break;
+			case SEL_INVERT:
+				dg->flag ^= DG_LOCK_WEIGHT;
+				break;
+		}
 	}
 }
 
@@ -2375,75 +2378,35 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength", "The distance moved can be changed by this multiplier.", -2.0f, 2.0f);
 	RNA_def_float(ot->srna, "cp", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower.", 0.05f, 1.f);
 }
+
 /* Jason was here */
-static int vertex_group_invert_locks_exec(bContext *C, wmOperator *UNUSED(op))
+static int vertex_group_lock_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	vgroup_invert_locks(ob);
+	int action = RNA_enum_get(op->ptr, "action");
+
+	vgroup_lock_all(ob, action);
 
 	return OPERATOR_FINISHED;
 }
 /* Jason was here */
-void OBJECT_OT_vertex_group_invert_locks(wmOperatorType *ot)
+void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Invert All Vertex Group Locks";
-	ot->idname= "OBJECT_OT_vertex_group_invert_locks";
+	ot->name= "Change the Lock On Vertex Groups";
+	ot->idname= "OBJECT_OT_vertex_group_lock";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_invert_locks_exec;
+	ot->exec= vertex_group_lock_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
-/* Jason was here */
-static int vertex_group_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	vgroup_lock_all(ob);
-
-	return OPERATOR_FINISHED;
-}
-/* Jason was here */
-void OBJECT_OT_vertex_group_lock_all(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Turn on all Vertex Group Locks";
-	ot->idname= "OBJECT_OT_vertex_group_lock_all";
-
-	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_lock_all_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-/* Jason was here */
-static int vertex_group_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-
-	vgroup_unlock_all(ob);
-
-	return OPERATOR_FINISHED;
-}
-/* Jason was here */
-void OBJECT_OT_vertex_group_unlock_all(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Turn off all Vertex Group Locks";
-	ot->idname= "OBJECT_OT_vertex_group_unlock_all";
-
-	/* api callbacks */
-	ot->poll= vertex_group_poll;
-	ot->exec= vertex_group_unlock_all_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
 static int vertex_group_invert_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;

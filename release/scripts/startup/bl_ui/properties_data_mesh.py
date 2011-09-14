@@ -35,6 +35,10 @@ class MESH_MT_vertex_group_specials(Menu):
         layout.operator("object.vertex_group_copy_to_selected", icon='LINK_AREA')
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT')
         layout.operator("object.vertex_group_remove", icon='X', text="Delete All").all = True
+        layout.separator()
+        layout.operator("object.vertex_group_lock", icon='LOCK', text="Lock All").action = 'SELECT'
+        layout.operator("object.vertex_group_lock", icon='UNLOCK', text="UnLock All").action = 'DESELECT'
+        layout.operator("object.vertex_group_lock", icon='LOCK', text="Lock Invert All").action = 'INVERT'
 
 
 class MESH_MT_shape_key_specials(Menu):
@@ -144,9 +148,6 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
         row.template_list(ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
-        # Jason was here, this was replaced by hardcoded list view checkboxes. #
-        #col.prop(group, "flag")
-        
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
         col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
         col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")
@@ -157,14 +158,6 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
         if group:
             row = layout.row()
             row.prop(group, "name")
-        #Jason was here
-        # add buttons to make it faster to lock/unlock vgroups
-        if ob.mode == 'WEIGHT_PAINT' and len(ob.vertex_groups) > 0:
-            row = layout.row()
-            sub = row.row(align=True)
-            sub.operator("object.vertex_group_lock_all", text="Lock All")
-            sub.operator("object.vertex_group_invert_locks", text="Invert Locks")
-            sub.operator("object.vertex_group_unlock_all", text="Unlock All")
 
         if ob.mode == 'EDIT' and len(ob.vertex_groups) > 0:
             row = layout.row()
