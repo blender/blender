@@ -8,7 +8,7 @@ include(cmake/external_libs.cmake)
 # Build Flags
 
 set(GCC_WARNING_FLAGS "-Wall -Wextra -Wno-unused-parameter -Wno-long-long")
-set(GCC_OPTIM_FLAGS "-ffast-math -fPIC -msse -msse2 -msse3 -mtune=native")
+set(GCC_OPTIM_FLAGS "-ffast-math -msse -msse2 -msse3 -mtune=native")
 
 if(APPLE)
 	set(CMAKE_CXX_FLAGS "${GCC_WARNING_FLAGS} ${GCC_OPTIM_FLAGS}")

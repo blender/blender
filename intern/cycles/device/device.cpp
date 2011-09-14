@@ -108,7 +108,7 @@ void Device::draw_pixels(device_memory& rgba, int y, int w, int h, int width, in
 
 	/* for multi devices, this assumes the ineffecient method that we allocate
 	   all pixels on the device even though we only render to a subset */
-	pixels += sizeof(uint8_t)*4*y*w;
+	pixels += 4*y*w;
 
 	glDrawPixels(w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 

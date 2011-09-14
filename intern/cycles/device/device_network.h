@@ -19,6 +19,8 @@
 #ifndef __DEVICE_NETWORK_H__
 #define __DEVICE_NETWORK_H__
 
+#ifdef WITH_NETWORK
+
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/array.hpp>
@@ -299,6 +301,8 @@ private:
 };
 
 CCL_NAMESPACE_END
+
+#endif
 
 #endif /* __DEVICE_NETWORK_H__ */
 
