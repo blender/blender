@@ -53,8 +53,6 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
@@ -182,15 +180,15 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	PropertyRNA *prop;
 	
 	/* note: this property gets hidden for add-camera operator */
-	RNA_def_boolean(ot->srna, "view_align", 0, _("Align to View"), _("Align the new object to the view"));
+	RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view");
 
 	if(do_editmode) {
-		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, _("Enter Editmode"), _("Enter editmode when adding this object"));
+		prop= RNA_def_boolean(ot->srna, "enter_editmode", 0, "Enter Editmode", "Enter editmode when adding this object");
 		RNA_def_property_flag(prop, PROP_HIDDEN);
 	}
 	
-	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, _("Location"), _("Location for the newly added object"), -FLT_MAX, FLT_MAX);
-	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, _("Rotation"), _("Rotation for the newly added object"), (float)-M_PI * 2.0f, (float)M_PI * 2.0f);
+	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object", -FLT_MAX, FLT_MAX);
+	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", (float)-M_PI * 2.0f, (float)M_PI * 2.0f);
 	
 	prop = RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -346,8 +344,8 @@ static int object_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Object");
-	ot->description = _("Add an object to the scene");
+	ot->name= "Add Object";
+	ot->description = "Add an object to the scene";
 	ot->idname= "OBJECT_OT_add";
 	
 	/* api callbacks */
@@ -359,7 +357,7 @@ void OBJECT_OT_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(object_type_items), 0, _("Type"), "");
+	RNA_def_enum(ot->srna, "type", object_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -367,18 +365,18 @@ void OBJECT_OT_add(wmOperatorType *ot)
 /********************* Add Effector Operator ********************/
 /* copy from rna_object_force.c*/
 static EnumPropertyItem field_type_items[] = {
-	{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, N_("Force"), ""},
-	{PFIELD_WIND, "WIND", ICON_FORCE_WIND, N_("Wind"), ""},
-	{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, N_("Vortex"), ""},
-	{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, N_("Magnetic"), ""},
-	{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, N_("Harmonic"), ""},
-	{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, N_("Charge"), ""},
-	{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, N_("Lennard-Jones"), ""},
-	{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, N_("Texture"), ""},
-	{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, N_("Curve Guide"), ""},
-	{PFIELD_BOID, "BOID", ICON_FORCE_BOID, N_("Boid"), ""},
-	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, N_("Turbulence"), ""},
-	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, N_("Drag"), ""},
+	{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", ""},
+	{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", ""},
+	{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", ""},
+	{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", ""},
+	{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic", ""},
+	{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge", ""},
+	{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones", ""},
+	{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", ""},
+	{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, "Curve Guide", ""},
+	{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
+	{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
+	{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* for effector add primitive operators */
@@ -438,8 +436,8 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_effector_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Effector");
-	ot->description = _("Add an empty object with a physics effector to the scene");
+	ot->name= "Add Effector";
+	ot->description = "Add an empty object with a physics effector to the scene";
 	ot->idname= "OBJECT_OT_effector_add";
 	
 	/* api callbacks */
@@ -451,7 +449,7 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(field_type_items), 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -493,8 +491,8 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= _("Add Camera");
-	ot->description = _("Add a camera object to the scene");
+	ot->name= "Add Camera";
+	ot->description = "Add a camera object to the scene";
 	ot->idname= "OBJECT_OT_camera_add";
 	
 	/* api callbacks */
@@ -571,8 +569,8 @@ static int object_metaball_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUS
 void OBJECT_OT_metaball_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Metaball");
-	ot->description= _("Add an metaball object to the scene");
+	ot->name= "Add Metaball";
+	ot->description= "Add an metaball object to the scene";
 	ot->idname= "OBJECT_OT_metaball_add";
 
 	/* api callbacks */
@@ -583,7 +581,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(metaelem_type_items), 0, _("Primitive"), "");
+	RNA_def_enum(ot->srna, "type", metaelem_type_items, 0, "Primitive", "");
 	ED_object_add_generic_props(ot, TRUE);
 }
 
@@ -611,8 +609,8 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_text_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Text");
-	ot->description = _("Add a text object to the scene");
+	ot->name= "Add Text";
+	ot->description = "Add a text object to the scene";
 	ot->idname= "OBJECT_OT_text_add";
 	
 	/* api callbacks */
@@ -666,8 +664,8 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_armature_add(wmOperatorType *ot)
 {	
 	/* identifiers */
-	ot->name= _("Add Armature");
-	ot->description = _("Add an armature object to the scene");
+	ot->name= "Add Armature";
+	ot->description = "Add an armature object to the scene";
 	ot->idname= "OBJECT_OT_armature_add";
 	
 	/* api callbacks */
@@ -716,16 +714,16 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_lamp_add(wmOperatorType *ot)
 {	
 	static EnumPropertyItem lamp_type_items[] = {
-		{LA_LOCAL, "POINT", ICON_LAMP_POINT, N_("Point"), N_("Omnidirectional point light source")},
-		{LA_SUN, "SUN", ICON_LAMP_SUN, N_("Sun"), N_("Constant direction parallel ray light source")},
-		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, N_("Spot"), N_("Directional cone light source")},
-		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, N_("Hemi"), N_("180 degree constant light source")},
-		{LA_AREA, "AREA", ICON_LAMP_AREA, N_("Area"), N_("Directional area light source")},
+		{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source"},
+		{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source"},
+		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source"},
+		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemi", "180 degree constant light source"},
+		{LA_AREA, "AREA", ICON_LAMP_AREA, "Area", "Directional area light source"},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Add Lamp");
-	ot->description = _("Add a lamp object to the scene");
+	ot->name= "Add Lamp";
+	ot->description = "Add a lamp object to the scene";
 	ot->idname= "OBJECT_OT_lamp_add";
 	
 	/* api callbacks */
@@ -737,7 +735,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(lamp_type_items), 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, FALSE);
 }
@@ -835,8 +833,8 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= _("Add Group Instance");
-	ot->description = _("Add a dupligroup instance");
+	ot->name= "Add Group Instance";
+	ot->description = "Add a dupligroup instance";
 	ot->idname= "OBJECT_OT_group_instance_add";
 
 	/* api callbacks */
@@ -849,7 +847,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, _("Group"), "");
+	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
 	RNA_def_enum_funcs(prop, RNA_group_itemf);
 	ot->prop= prop;
 	ED_object_add_generic_props(ot, FALSE);
@@ -900,8 +898,8 @@ static int object_delete_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Delete");
-	ot->description = _("Delete selected objects");
+	ot->name= "Delete";
+	ot->description = "Delete selected objects";
 	ot->idname= "OBJECT_OT_delete";
 	
 	/* api callbacks */
@@ -1080,8 +1078,8 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Make Duplicates Real");
-	ot->description = _("Make dupli objects attached to this object real");
+	ot->name= "Make Duplicates Real";
+	ot->description = "Make dupli objects attached to this object real";
 	ot->idname= "OBJECT_OT_duplicates_make_real";
 	
 	/* api callbacks */
@@ -1096,8 +1094,8 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 /**************************** Convert **************************/
 
 static EnumPropertyItem convert_target_items[]= {
-	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, N_("Curve from Mesh/Text"), ""},
-	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, N_("Mesh from Curve/Meta/Surf/Text"), ""},
+	{OB_CURVE, "CURVE", ICON_OUTLINER_OB_CURVE, "Curve from Mesh/Text", ""},
+	{OB_MESH, "MESH", ICON_OUTLINER_OB_MESH, "Mesh from Curve/Meta/Surf/Text", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static void curvetomesh(Scene *scene, Object *ob) 
@@ -1445,8 +1443,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_convert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Convert to");
-	ot->description = _("Convert selected objects to another type");
+	ot->name= "Convert to";
+	ot->description = "Convert selected objects to another type";
 	ot->idname= "OBJECT_OT_convert";
 	
 	/* api callbacks */
@@ -1458,8 +1456,8 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "target", RNA_enum_items_gettexted(convert_target_items), OB_MESH, _("Target"), _("Type of object to convert to"));
-	RNA_def_boolean(ot->srna, "keep_original", 0, _("Keep Original"), _("Keep original objects instead of replacing them"));
+	ot->prop= RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to");
+	RNA_def_boolean(ot->srna, "keep_original", 0, "Keep Original", "Keep original objects instead of replacing them");
 }
 
 /**************************** Duplicate ************************/
@@ -1759,8 +1757,8 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= _("Duplicate Objects");
-	ot->description = _("Duplicate selected objects");
+	ot->name= "Duplicate Objects";
+	ot->description = "Duplicate selected objects";
 	ot->idname= "OBJECT_OT_duplicate";
 	
 	/* api callbacks */
@@ -1771,8 +1769,8 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* to give to transform */
-	RNA_def_boolean(ot->srna, "linked", 0, _("Linked"), _("Duplicate object but not object data, linking to the original data"));
-	prop= RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
+	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
+	prop= RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
@@ -1830,8 +1828,8 @@ static int add_named_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_add_named(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Named Object");
-	ot->description = _("Add named object");
+	ot->name= "Add Named Object";
+	ot->description = "Add named object";
 	ot->idname= "OBJECT_OT_add_named";
 	
 	/* api callbacks */
@@ -1841,8 +1839,8 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "linked", 0, _("Linked"), _("Duplicate object but not object data, linking to the original data"));
-	RNA_def_string(ot->srna, "name", "Cube", 24, _("Name"), _("Object name to add"));
+	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data");
+	RNA_def_string(ot->srna, "name", "Cube", 24, "Name", "Object name to add");
 }
 
 
@@ -1888,8 +1886,8 @@ static int join_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_join(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Join");
-	ot->description = _("Join selected objects into active object");
+	ot->name= "Join";
+	ot->description = "Join selected objects into active object";
 	ot->idname= "OBJECT_OT_join";
 	
 	/* api callbacks */
@@ -1937,8 +1935,8 @@ static int join_shapes_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_join_shapes(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Join as Shapes");
-	ot->description = _("Merge selected objects to shapes of active object");
+	ot->name= "Join as Shapes";
+	ot->description = "Merge selected objects to shapes of active object";
 	ot->idname= "OBJECT_OT_join_shapes";
 	
 	/* api callbacks */

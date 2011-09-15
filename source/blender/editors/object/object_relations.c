@@ -55,8 +55,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
@@ -253,8 +251,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Make Vertex Parent");
-	ot->description = _("Parent selected objects to the selected vertices");
+	ot->name= "Make Vertex Parent";
+	ot->description = "Parent selected objects to the selected vertices";
 	ot->idname= "OBJECT_OT_vertex_parent_set";
 	
 	/* api callbacks */
@@ -393,9 +391,9 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= _("Make Proxy");
+	ot->name= "Make Proxy";
 	ot->idname= "OBJECT_OT_proxy_make";
-	ot->description= _("Add empty object to become local replacement data of a library-linked object");
+	ot->description= "Add empty object to become local replacement data of a library-linked object";
 	
 	/* callbacks */
 	ot->invoke= make_proxy_invoke;
@@ -406,8 +404,8 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "object", "", MAX_ID_NAME-2, _("Proxy Object"), _("Name of lib-linked/grouped object to make a proxy for."));
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, _("Type"), _("Group object")); /* XXX, relies on hard coded ID at the moment */
+	RNA_def_string(ot->srna, "object", "", MAX_ID_NAME-2, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Type", "Group object"); /* XXX, relies on hard coded ID at the moment */
 	RNA_def_enum_funcs(prop, proxy_group_object_itemf);
 	ot->prop= prop;
 }
@@ -415,9 +413,9 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 /********************** Clear Parent Operator ******************* */
 
 static EnumPropertyItem prop_clear_parent_types[] = {
-	{0, "CLEAR", 0, N_("Clear Parent"), ""},
-	{1, "CLEAR_KEEP_TRANSFORM", 0, N_("Clear and Keep Transformation"), ""},
-	{2, "CLEAR_INVERSE", 0, N_("Clear Parent Inverse"), ""},
+	{0, "CLEAR", 0, "Clear Parent", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation", ""},
+	{2, "CLEAR_INVERSE", 0, "Clear Parent Inverse", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -458,8 +456,8 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Parent");
-	ot->description = _("Clear the object's parenting");
+	ot->name= "Clear Parent";
+	ot->description = "Clear the object's parenting";
 	ot->idname= "OBJECT_OT_parent_clear";
 	
 	/* api callbacks */
@@ -471,7 +469,7 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_clear_parent_types), 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
 }
 
 /* ******************** Make Parent Operator *********************** */
@@ -490,18 +488,18 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 #define PAR_TRIA				11
 
 static EnumPropertyItem prop_make_parent_types[] = {
-	{PAR_OBJECT, "OBJECT", 0, N_("Object"), ""},
-	{PAR_ARMATURE, "ARMATURE", 0, N_("Armature Deform"), ""},
-	{PAR_ARMATURE_NAME, "ARMATURE_NAME", 0, N_("   With Empty Groups"), ""},
-	{PAR_ARMATURE_AUTO, "ARMATURE_AUTO", 0, N_("   With Automatic Weights"), ""},
-	{PAR_ARMATURE_ENVELOPE, "ARMATURE_ENVELOPE", 0, N_("   With Envelope Weights"), ""},
-	{PAR_BONE, "BONE", 0, N_("Bone"), ""},
-	{PAR_CURVE, "CURVE", 0, N_("Curve Deform"), ""},
-	{PAR_FOLLOW, "FOLLOW", 0, N_("Follow Path"), ""},
-	{PAR_PATH_CONST, "PATH_CONST", 0, N_("Path Constraint"), ""},
-	{PAR_LATTICE, "LATTICE", 0, N_("Lattice Deform"), ""},
-	{PAR_VERTEX, "VERTEX", 0, N_("Vertex"), ""},
-	{PAR_TRIA, "TRIA", 0, N_("Triangle"), ""},
+	{PAR_OBJECT, "OBJECT", 0, "Object", ""},
+	{PAR_ARMATURE, "ARMATURE", 0, "Armature Deform", ""},
+	{PAR_ARMATURE_NAME, "ARMATURE_NAME", 0, "   With Empty Groups", ""},
+	{PAR_ARMATURE_AUTO, "ARMATURE_AUTO", 0, "   With Automatic Weights", ""},
+	{PAR_ARMATURE_ENVELOPE, "ARMATURE_ENVELOPE", 0, "   With Envelope Weights", ""},
+	{PAR_BONE, "BONE", 0, "Bone", ""},
+	{PAR_CURVE, "CURVE", 0, "Curve Deform", ""},
+	{PAR_FOLLOW, "FOLLOW", 0, "Follow Path", ""},
+	{PAR_PATH_CONST, "PATH_CONST", 0, "Path Constraint", ""},
+	{PAR_LATTICE, "LATTICE", 0, "Lattice Deform", ""},
+	{PAR_VERTEX, "VERTEX", 0, "Vertex", ""},
+	{PAR_TRIA, "TRIA", 0, "Triangle", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -731,8 +729,8 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Make Parent");
-	ot->description = _("Set the object's parenting");
+	ot->name= "Make Parent";
+	ot->description = "Set the object's parenting";
 	ot->idname= "OBJECT_OT_parent_set";
 	
 	/* api callbacks */
@@ -744,7 +742,7 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_make_parent_types), 0, _("Type"), "");
+	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
 /* ************ Make Parent Without Inverse Operator ******************* */
@@ -788,8 +786,8 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Make Parent without Inverse");
-	ot->description = _("Set the object's parenting without setting the inverse parent correction");
+	ot->name= "Make Parent without Inverse";
+	ot->description = "Set the object's parenting without setting the inverse parent correction";
 	ot->idname= "OBJECT_OT_parent_no_inverse_set";
 	
 	/* api callbacks */
@@ -830,8 +828,8 @@ void OBJECT_OT_slow_parent_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Clear Slow Parent");
-	ot->description = _("Clear the object's slow parent");
+	ot->name= "Clear Slow Parent";
+	ot->description = "Clear the object's slow parent";
 	ot->idname= "OBJECT_OT_slow_parent_clear";
 	
 	/* api callbacks */
@@ -869,8 +867,8 @@ void OBJECT_OT_slow_parent_set(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Set Slow Parent");
-	ot->description = _("Set the object's slow parent");
+	ot->name= "Set Slow Parent";
+	ot->description = "Set the object's slow parent";
 	ot->idname= "OBJECT_OT_slow_parent_set";
 	
 	/* api callbacks */
@@ -885,8 +883,8 @@ void OBJECT_OT_slow_parent_set(wmOperatorType *ot)
 /* ******************** Clear Track Operator ******************* */
 
 static EnumPropertyItem prop_clear_track_types[] = {
-	{0, "CLEAR", 0, N_("Clear Track"), ""},
-	{1, "CLEAR_KEEP_TRANSFORM", 0, N_("Clear and Keep Transformation (Clear Track)"), ""},
+	{0, "CLEAR", 0, "Clear Track", ""},
+	{1, "CLEAR_KEEP_TRANSFORM", 0, "Clear and Keep Transformation (Clear Track)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -930,8 +928,8 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_track_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear track");
-	ot->description = _("Clear tracking constraint or flag from object");
+	ot->name= "Clear track";
+	ot->description = "Clear tracking constraint or flag from object";
 	ot->idname= "OBJECT_OT_track_clear";
 	
 	/* api callbacks */
@@ -943,15 +941,15 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_clear_track_types), 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_clear_track_types, 0, "Type", "");
 }
 
 /************************** Make Track Operator *****************************/
 
 static EnumPropertyItem prop_make_track_types[] = {
-	{1, "DAMPTRACK", 0, N_("Damped Track Constraint"), ""},
-	{2, "TRACKTO", 0, N_("Track To Constraint"), ""},
-	{3, "LOCKTRACK", 0, N_("Lock Track Constraint"), ""},
+	{1, "DAMPTRACK", 0, "Damped Track Constraint", ""},
+	{2, "TRACKTO", 0, "Track To Constraint", ""},
+	{3, "LOCKTRACK", 0, "Lock Track Constraint", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1035,8 +1033,8 @@ static int track_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_track_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Make Track");
-	ot->description = _("Make the object track another object, either by constraint or old way or locked track");
+	ot->name= "Make Track";
+	ot->description = "Make the object track another object, either by constraint or old way or locked track";
 	ot->idname= "OBJECT_OT_track_set";
 	
 	/* api callbacks */
@@ -1049,7 +1047,7 @@ void OBJECT_OT_track_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_make_track_types), 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_make_track_types, 0, "Type", "");
 }
 
 /************************** Move to Layer Operator *****************************/
@@ -1146,8 +1144,8 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Move to Layer");
-	ot->description = _("Move the object to different layers");
+	ot->name= "Move to Layer";
+	ot->description = "Move the object to different layers";
 	ot->idname= "OBJECT_OT_move_to_layer";
 	
 	/* api callbacks */
@@ -1159,7 +1157,7 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, _("Layer"), "");
+	RNA_def_boolean_layer_member(ot->srna, "layers", 20, NULL, "Layer", "");
 }
 
 /************************** Link to Scene Operator *****************************/
@@ -1322,8 +1320,8 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= _("Link Objects to Scene");
-	ot->description = _("Link selection to another scene");
+	ot->name= "Link Objects to Scene";
+	ot->description = "Link selection to another scene";
 	ot->idname= "OBJECT_OT_make_links_scene";
 
 	/* api callbacks */
@@ -1335,7 +1333,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, _("Scene"), "");
+	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
 	RNA_def_enum_funcs(prop, RNA_scene_local_itemf);
 	ot->prop= prop;
 }
@@ -1343,16 +1341,16 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 void OBJECT_OT_make_links_data(wmOperatorType *ot)
 {
 	static EnumPropertyItem make_links_items[]= {
-		{MAKE_LINKS_OBDATA,		"OBDATA", 0, N_("Object Data"), ""},
-		{MAKE_LINKS_MATERIALS,	"MATERIAL", 0, N_("Materials"), ""},
-		{MAKE_LINKS_ANIMDATA,	"ANIMATION", 0, N_("Animation Data"), ""},
-		{MAKE_LINKS_DUPLIGROUP,	"DUPLIGROUP", 0, N_("DupliGroup"), ""},
-		{MAKE_LINKS_MODIFIERS,	"MODIFIERS", 0, N_("Modifiers"), ""},
+		{MAKE_LINKS_OBDATA,		"OBDATA", 0, "Object Data", ""},
+		{MAKE_LINKS_MATERIALS,	"MATERIAL", 0, "Materials", ""},
+		{MAKE_LINKS_ANIMDATA,	"ANIMATION", 0, "Animation Data", ""},
+		{MAKE_LINKS_DUPLIGROUP,	"DUPLIGROUP", 0, "DupliGroup", ""},
+		{MAKE_LINKS_MODIFIERS,	"MODIFIERS", 0, "Modifiers", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Link Data");
-	ot->description = _("Make links from the active object to other selected objects");
+	ot->name= "Link Data";
+	ot->description = "Make links from the active object to other selected objects";
 	ot->idname= "OBJECT_OT_make_links_data";
 
 	/* api callbacks */
@@ -1363,7 +1361,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(make_links_items), 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", make_links_items, 0, "Type", "");
 }
 
 
@@ -1804,14 +1802,14 @@ static int make_local_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_make_local(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{1, "SELECTED_OBJECTS", 0, N_("Selected Objects"), ""},
-		{2, "SELECTED_OBJECTS_DATA", 0, N_("Selected Objects and Data"), ""},
-		{3, "ALL", 0, N_("All"), ""},
+		{1, "SELECTED_OBJECTS", 0, "Selected Objects", ""},
+		{2, "SELECTED_OBJECTS_DATA", 0, "Selected Objects and Data", ""},
+		{3, "ALL", 0, "All", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Make Local");
-	ot->description = _("Make library linked datablocks local to this file");
+	ot->name= "Make Local";
+	ot->description = "Make library linked datablocks local to this file";
 	ot->idname= "OBJECT_OT_make_local";
 	
 	/* api callbacks */
@@ -1823,7 +1821,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(type_items), 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
 static int make_single_user_exec(bContext *C, wmOperator *op)
@@ -1858,13 +1856,13 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_make_single_user(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{SELECT, "SELECTED_OBJECTS", 0, N_("Selected Objects"), ""},
-		{0, "ALL", 0, N_("All"), ""},
+		{SELECT, "SELECTED_OBJECTS", 0, "Selected Objects", ""},
+		{0, "ALL", 0, "All", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Make Single User");
-	ot->description = _("Make linked data local to each object");
+	ot->name= "Make Single User";
+	ot->description = "Make linked data local to each object";
 	ot->idname= "OBJECT_OT_make_single_user";
 
 	/* api callbacks */
@@ -1876,13 +1874,13 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(type_items), SELECT, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, SELECT, "Type", "");
 
-	RNA_def_boolean(ot->srna, "object", 0, _("Object"), _("Make single user objects"));
-	RNA_def_boolean(ot->srna, "obdata", 0, _("Object Data"), _("Make single user object data"));
-	RNA_def_boolean(ot->srna, "material", 0, _("Materials"), _("Make materials local to each datablock"));
-	RNA_def_boolean(ot->srna, "texture", 0, _("Textures"), _("Make textures local to each material"));
-	RNA_def_boolean(ot->srna, "animation", 0, _("Object Animation"), _("Make animation data local to each object"));
+	RNA_def_boolean(ot->srna, "object", 0, "Object", "Make single user objects");
+	RNA_def_boolean(ot->srna, "obdata", 0, "Object Data", "Make single user object data");
+	RNA_def_boolean(ot->srna, "material", 0, "Materials", "Make materials local to each datablock");
+	RNA_def_boolean(ot->srna, "texture", 0, "Textures", "Make textures local to each material");
+	RNA_def_boolean(ot->srna, "animation", 0, "Object Animation", "Make animation data local to each object");
 }
 
 static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1911,7 +1909,7 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= _("Drop Named Material on Object");
+	ot->name= "Drop Named Material on Object";
 	ot->description = "";
 	ot->idname= "OBJECT_OT_drop_named_material";
 	
@@ -1923,5 +1921,5 @@ void OBJECT_OT_drop_named_material(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Material", 24, _("Name"), _("Material name to assign."));
+	RNA_def_string(ot->srna, "name", "Material", 24, "Name", "Material name to assign.");
 }

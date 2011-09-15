@@ -122,21 +122,11 @@ int wm_start_with_console = 0; /* used in creator.c */
 /* only called once, for startup */
 void WM_init(bContext *C, int argc, const char **argv)
 {
-	ListBase wmbase;
 	if (!G.background) {
 		wm_ghost_init(C);	/* note: it assigns C to ghost! */
 		wm_init_cursor_data();
 	}
 	GHOST_CreateSystemPaths();
-	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
-	BLF_lang_init();
-	// use default settings
-	BLF_lang_encoding("");
-	/* get the default database, plus a wm */
-	WM_read_homefile(C, NULL, G.factory_startup, &wmbase);
-	BLF_lang_set(NULL);
-
-	RNA_types_init_gettext();
 
 	wm_operatortype_init();
 	WM_menutype_init();
@@ -150,7 +140,13 @@ void WM_init(bContext *C, int argc, const char **argv)
 	ED_file_init();			/* for fsmenu */
 	ED_init_node_butfuncs();	
 
-	WM_read_homefile_proc(C, &wmbase);
+	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
+	BLF_lang_init();
+	/* get the default database, plus a wm */
+	WM_read_homefile(C, NULL, G.factory_startup);
+
+	BLF_lang_set(NULL);
+
 	/* note: there is a bug where python needs initializing before loading the
 	 * startup.blend because it may contain PyDrivers. It also needs to be after
 	 * initializing space types and other internal data.

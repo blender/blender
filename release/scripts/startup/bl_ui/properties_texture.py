@@ -24,7 +24,7 @@ from blf import gettext as _
 
 
 class TEXTURE_MT_specials(Menu):
-    bl_label = _("Texture Specials")
+    bl_label = "Texture Specials"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -35,7 +35,7 @@ class TEXTURE_MT_specials(Menu):
 
 
 class TEXTURE_MT_envmap_specials(Menu):
-    bl_label = _("Environment Map Specials")
+    bl_label = "Environment Map Specials"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -153,7 +153,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
 
 
 class TEXTURE_PT_preview(TextureButtonsPanel, Panel):
-    bl_label = _("Preview")
+    bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -170,7 +170,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel, Panel):
 
 
 class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
-    bl_label = _("Colors")
+    bl_label = "Colors"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -226,7 +226,7 @@ class TextureTypePanel(TextureButtonsPanel):
 
 
 class TEXTURE_PT_clouds(TextureTypePanel, Panel):
-    bl_label = _("Clouds")
+    bl_label = "Clouds"
     tex_type = 'CLOUDS'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -250,7 +250,7 @@ class TEXTURE_PT_clouds(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_wood(TextureTypePanel, Panel):
-    bl_label = _("Wood")
+    bl_label = "Wood"
     tex_type = 'WOOD'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -279,7 +279,7 @@ class TEXTURE_PT_wood(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_marble(TextureTypePanel, Panel):
-    bl_label = _("Marble")
+    bl_label = "Marble"
     tex_type = 'MARBLE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -306,7 +306,7 @@ class TEXTURE_PT_marble(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_magic(TextureTypePanel, Panel):
-    bl_label = _("Magic")
+    bl_label = "Magic"
     tex_type = 'MAGIC'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -321,7 +321,7 @@ class TEXTURE_PT_magic(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_blend(TextureTypePanel, Panel):
-    bl_label = _("Blend")
+    bl_label = "Blend"
     tex_type = 'BLEND'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -339,7 +339,7 @@ class TEXTURE_PT_blend(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_stucci(TextureTypePanel, Panel):
-    bl_label = _("Stucci")
+    bl_label = "Stucci"
     tex_type = 'STUCCI'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -359,7 +359,7 @@ class TEXTURE_PT_stucci(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_image(TextureTypePanel, Panel):
-    bl_label = _("Image")
+    bl_label = "Image"
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -385,7 +385,7 @@ def texture_filter_common(tex, layout):
 
 
 class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
-    bl_label = _("Image Sampling")
+    bl_label = "Image Sampling"
     bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -430,7 +430,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
-    bl_label = _("Image Mapping")
+    bl_label = "Image Mapping"
     bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -486,7 +486,7 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_envmap(TextureTypePanel, Panel):
-    bl_label = _("Environment Map")
+    bl_label = "Environment Map"
     tex_type = 'ENVIRONMENT_MAP'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -524,7 +524,7 @@ class TEXTURE_PT_envmap(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_envmap_sampling(TextureTypePanel, Panel):
-    bl_label = _("Environment Map Sampling")
+    bl_label = "Environment Map Sampling"
     bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'ENVIRONMENT_MAP'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -538,7 +538,7 @@ class TEXTURE_PT_envmap_sampling(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_musgrave(TextureTypePanel, Panel):
-    bl_label = _("Musgrave")
+    bl_label = "Musgrave"
     tex_type = 'MUSGRAVE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -575,7 +575,7 @@ class TEXTURE_PT_musgrave(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_voronoi(TextureTypePanel, Panel):
-    bl_label = _("Voronoi")
+    bl_label = "Voronoi"
     tex_type = 'VORONOI'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -611,7 +611,7 @@ class TEXTURE_PT_voronoi(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_distortednoise(TextureTypePanel, Panel):
-    bl_label = _("Distorted Noise")
+    bl_label = "Distorted Noise"
     tex_type = 'DISTORTED_NOISE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -633,7 +633,7 @@ class TEXTURE_PT_distortednoise(TextureTypePanel, Panel):
 
 
 class TEXTURE_PT_voxeldata(TextureButtonsPanel, Panel):
-    bl_label = _("Voxel Data")
+    bl_label = "Voxel Data"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -673,7 +673,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel, Panel):
 
 
 class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
-    bl_label = _("Point Density")
+    bl_label = "Point Density"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -739,7 +739,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
 
 
 class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, Panel):
-    bl_label = _("Turbulence")
+    bl_label = "Turbulence"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -776,7 +776,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, Panel):
 
 
 class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
-    bl_label = _("Mapping")
+    bl_label = "Mapping"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -864,7 +864,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
 
 
 class TEXTURE_PT_influence(TextureSlotPanel, Panel):
-    bl_label = _("Influence")
+    bl_label = "Influence"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod

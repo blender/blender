@@ -39,8 +39,6 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 #include "BKE_node.h"
 
@@ -196,9 +194,9 @@ static int node_toggle_visibility_invoke(bContext *C, wmOperator *op, wmEvent *e
 void NODE_OT_visibility_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Toggle Visibility");
+	ot->name= "Toggle Visibility";
 	ot->idname= "NODE_OT_visibility_toggle";
-	ot->description= _("Handle clicks on node header buttons");
+	ot->description= "Handle clicks on node header buttons";
 	
 	/* api callbacks */
 	ot->invoke= node_toggle_visibility_invoke;
@@ -207,8 +205,8 @@ void NODE_OT_visibility_toggle(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, _("Mouse X"), "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, _("Mouse Y"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
 }
 
 /* **************** View All Operator ************** */
@@ -279,9 +277,9 @@ static int node_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("View All");
+	ot->name= "View All";
 	ot->idname= "NODE_OT_view_all";
-	ot->description= _("Resize view so you can see all nodes");
+	ot->description= "Resize view so you can see all nodes";
 	
 	/* api callbacks */
 	ot->exec= node_view_all_exec;

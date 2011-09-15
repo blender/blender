@@ -41,8 +41,6 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
@@ -602,8 +600,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void RENDER_OT_render(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Render");
-	ot->description= _("Render active scene");
+	ot->name= "Render";
+	ot->description= "Render active scene";
 	ot->idname= "RENDER_OT_render";
 
 	/* api callbacks */
@@ -613,9 +611,9 @@ void RENDER_OT_render(wmOperatorType *ot)
 
 	/*ot->poll= ED_operator_screenactive;*/ /* this isnt needed, causes failer in background mode */
 
-	RNA_def_boolean(ot->srna, "animation", 0, _("Animation"), _("Render files from the animation range of this scene"));
-	RNA_def_boolean(ot->srna, "write_still", 0, _("Write Image"), _("Save rendered the image to the output path (used only when animation is disabled)"));
-	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, _("Render Layer"), _("Single render layer to re-render"));
-	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, _("Scene"), _("Re-render single layer in this scene"));
+	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
+	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
+	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render");
+	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene", "Re-render single layer in this scene");
 }
 

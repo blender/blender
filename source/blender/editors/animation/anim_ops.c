@@ -35,7 +35,6 @@
 #include "BLO_sys_types.h"
 
 #include "BLI_utildefines.h"
-#include "BLF_api.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -162,9 +161,9 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void ANIM_OT_change_frame(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Change frame");
+	ot->name= "Change frame";
 	ot->idname= "ANIM_OT_change_frame";
-	ot->description= _("Interactively change the current frame number");
+	ot->description= "Interactively change the current frame number";
 	
 	/* api callbacks */
 	ot->exec= change_frame_exec;
@@ -176,7 +175,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_UNDO;
 
 	/* rna */
-	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, _("Frame"), "", MINAFRAME, MAXFRAME);
+	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
 }
 
 /* ****************** set preview range operator ****************************/
@@ -217,9 +216,9 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Preview Range");
+	ot->name= "Set Preview Range";
 	ot->idname= "ANIM_OT_previewrange_set";
-	ot->description= _("Interactively define frame range used for playback");
+	ot->description= "Interactively define frame range used for playback";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -234,11 +233,11 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 	
 	/* rna */
 		/* used to define frame range */
-	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, _("X Min"), "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, _("X Max"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmin", 0, INT_MIN, INT_MAX, "X Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "xmax", 0, INT_MIN, INT_MAX, "X Max", "", INT_MIN, INT_MAX);
 		/* these are not used, but are needed by borderselect gesture operator stuff */
-	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, _("Y Min"), "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, _("Y Max"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymin", 0, INT_MIN, INT_MAX, "Y Min", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 }
 
 /* ****************** clear preview range operator ****************************/
@@ -265,9 +264,9 @@ static int previewrange_clear_exec(bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Preview Range");
+	ot->name= "Clear Preview Range";
 	ot->idname= "ANIM_OT_previewrange_clear";
-	ot->description= _("Clear Preview Range");
+	ot->description= "Clear Preview Range";
 	
 	/* api callbacks */
 	ot->exec= previewrange_clear_exec;
@@ -333,9 +332,9 @@ static int toggle_time_exec(bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_time_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Toggle Frames/Seconds");
+	ot->name= "Toggle Frames/Seconds";
 	ot->idname= "ANIM_OT_time_toggle";
-	ot->description= _("Toggle whether timing is displayed in frames or seconds for active timeline view");
+	ot->description= "Toggle whether timing is displayed in frames or seconds for active timeline view";
 	
 	/* api callbacks */
 	ot->exec= toggle_time_exec;

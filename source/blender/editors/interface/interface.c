@@ -90,23 +90,6 @@
 
 static void ui_free_but(const bContext *C, uiBut *but);
 
-/* ************* translation ************** */
-
-int ui_translate_buttons(void)
-{
-	return (U.transopts & USER_TR_BUTTONS);
-}
-
-int ui_translate_menus(void)
-{
-	return (U.transopts & USER_TR_MENUS);
-}
-
-int ui_translate_tooltips(void)
-{
-	return (U.transopts & USER_TR_TOOLTIPS);
-}
-
 /* ************* window matrix ************** */
 
 void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y)
@@ -237,9 +220,6 @@ static void ui_text_bounds_block(uiBlock *block, float offset)
 	
 	for(bt= block->buttons.first; bt; bt= bt->next) {
 		if(bt->type!=SEPR) {
-			//int transopts= ui_translate_buttons();
-			//if(bt->type==TEX || bt->type==IDPOIN) transopts= 0;
-			
 			j= BLF_width(style->widget.uifont_id, bt->drawstr);
 
 			if(j > i) i = j;
@@ -2030,12 +2010,9 @@ void ui_check_but(uiBut *but)
 	/* if something changed in the button */
 	double value= UI_BUT_VALUE_UNSET;
 //	float okwidth; // UNUSED
-//	int transopts= ui_translate_buttons();
 	
 	ui_is_but_sel(but, &value);
 	
-//	if(but->type==TEX || but->type==IDPOIN) transopts= 0;
-
 	/* only update soft range while not editing */
 	if(but->rnaprop && !(but->editval || but->editstr || but->editvec)) {
 		UI_GET_BUT_VALUE_INIT(but, value)
@@ -2544,7 +2521,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 			DynStr *dynstr;
 			int i, totitem, value, free;
 
-			RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
+			RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
 			value= RNA_property_enum_get(ptr, prop);
 
 			dynstr= BLI_dynstr_new();
@@ -2579,7 +2556,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 			EnumPropertyItem *item;
 			int i, totitem, free;
 
-			RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
+			RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
 			for(i=0; i<totitem; i++) {
 				if(item[i].identifier[0] && item[i].value == (int)max) {
 					str= item[i].name;
@@ -2707,6 +2684,11 @@ static uiBut *ui_def_but_operator(uiBlock *block, int type, const char *opname, 
 	
 	if ((!tip || tip[0]=='\0') && ot && ot->description) {
 		tip= ot->description;
+
+#ifdef INTERNATIONAL
+		if((U.transopts&USER_DOTRANSLATE) && (U.transopts|USER_TR_TOOLTIPS))
+			tip= BLF_gettext(tip);
+#endif
 	}
 
 	but= ui_def_but(block, type, -1, str, x1, y1, x2, y2, NULL, 0, 0, 0, 0, tip);

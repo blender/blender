@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#update all mo files in the LANGS
+# update all mo files in the LANGS
 
 import os
 

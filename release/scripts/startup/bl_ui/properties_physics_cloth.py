@@ -35,7 +35,7 @@ class CLOTH_MT_presets(Menu):
     '''
     Creates the menu items by scanning scripts/templates
     '''
-    bl_label = _("Cloth Presets")
+    bl_label = "Cloth Presets"
     preset_subdir = "cloth"
     preset_operator = "script.execute_preset"
     draw = Menu.draw_preset
@@ -54,7 +54,7 @@ class PhysicButtonsPanel():
 
 
 class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
-    bl_label = _("Cloth")
+    bl_label = "Cloth"
 
     def draw(self, context):
         layout = self.layout
@@ -119,7 +119,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
-    bl_label = _("Cloth Cache")
+    bl_label = "Cloth Cache"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -132,7 +132,7 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
-    bl_label = _("Cloth Collision")
+    bl_label = "Cloth Collision"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -173,7 +173,7 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
-    bl_label = _("Cloth Stiffness Scaling")
+    bl_label = "Cloth Stiffness Scaling"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -209,7 +209,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
-    bl_label = _("Cloth Field Weights")
+    bl_label = "Cloth Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod

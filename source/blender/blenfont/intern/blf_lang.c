@@ -39,6 +39,11 @@
 #ifdef INTERNATIONAL
 
 #include <locale.h>
+
+#if defined (_WIN32)
+#include <windows.h>
+#endif
+
 #include "libintl.h"
 
 #include "DNA_userdef_types.h"
@@ -51,11 +56,6 @@
 #include "BLI_linklist.h"	/* linknode */
 #include "BLI_string.h"
 #include "BLI_path_util.h"
-
-
-#ifdef __APPLE__
-
-#endif
 
 #define DOMAIN_NAME "blender"
 #define SYSTEM_ENCODING_DEFAULT "UTF-8"
@@ -113,9 +113,13 @@ void BLF_lang_set(const char *str)
 {
 	char *locreturn;
 	const char *short_locale;
+	int ok= 1;
 #if defined (_WIN32)
 	char *long_locale = locales[ 2 * U.language];
 #endif
+
+	if((U.transopts&USER_DOTRANSLATE)==0)
+		return;
 
 	if(str)
 		short_locale = str;
@@ -123,49 +127,67 @@ void BLF_lang_set(const char *str)
 		short_locale = locales[ 2 * U.language + 1];
 
 #if defined (_WIN32)
-	if(short_locale)
-	{
+	if(short_locale) {
 		char *envStr;
+
 		if( U.language==0 )/* use system setting */
 			envStr = BLI_sprintfN( "LANG=%s", getenv("LANG") );
 		else
 			envStr = BLI_sprintfN( "LANG=%s", short_locale );
+
 		gettext_putenv(envStr);
 		MEM_freeN(envStr);
 	}
+
 	locreturn= setlocale(LC_ALL, long_locale);
+
 	if (locreturn == NULL) {
 		printf("Could not change locale to %s\n", long_locale);
+		ok= 0;
 	}
 #else
-	if(short_locale)
 	{
-		BLI_setenv("LANG", short_locale);
-		BLI_setenv("LANGUAGE", short_locale);
-	}
+		const char *locale;
+		static char default_locale[64]="\0";
 
-	locreturn= setlocale(LC_ALL, short_locale);
-	if (locreturn == NULL) {
-		char *short_locale_utf8 = BLI_sprintfN("%s.UTF-8", short_locale);
+		if(default_locale[0]==0) /* store defaul locale */
+			strncpy(default_locale, getenv("LANGUAGE"), sizeof(default_locale));
 
-		locreturn= setlocale(LC_ALL, short_locale_utf8);
+		if(short_locale[0])
+			locale= short_locale;
+		else
+			locale= default_locale;
+
+		BLI_setenv("LANG", locale);
+		BLI_setenv("LANGUAGE", locale);
+
+		locreturn= setlocale(LC_ALL, locale);
+
 		if (locreturn == NULL) {
-			printf("Could not change locale to %s nor %s\n", short_locale, short_locale_utf8);
-		}
+			char *short_locale_utf8= BLI_sprintfN("%s", short_locale);
 
-		MEM_freeN(short_locale_utf8);
+			locreturn= setlocale(LC_ALL, short_locale_utf8);
+
+			if (locreturn == NULL) {
+				printf("Could not change locale to %s nor %s\n", short_locale, short_locale_utf8);
+				ok= 0;
+			}
+
+			MEM_freeN(short_locale_utf8);
+		}
 	}
 #endif
-	else
-	{
-		printf("Change locale to %s\n", locreturn );
+
+	if(ok) {
+		//printf("Change locale to %s\n", locreturn );
 		BLI_strncpy(global_language, locreturn, sizeof(global_language));
 	}
+
 	setlocale(LC_NUMERIC, "C");
 
 	textdomain(DOMAIN_NAME);
 	bindtextdomain(DOMAIN_NAME, global_messagepath);
-	/* bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name); */	
+	bind_textdomain_codeset(DOMAIN_NAME, global_encoding_name);
 }
 
 void BLF_lang_encoding(const char *str)

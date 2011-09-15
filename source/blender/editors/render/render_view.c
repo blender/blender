@@ -36,8 +36,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_scene_types.h"
 
 #include "BKE_blender.h"
@@ -282,8 +280,8 @@ static int render_view_cancel_exec(bContext *C, wmOperator *UNUSED(op))
 void RENDER_OT_view_cancel(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Cancel Render View");
-	ot->description= _("Cancel show render view");
+	ot->name= "Cancel Render View";
+	ot->description= "Cancel show render view";
 	ot->idname= "RENDER_OT_view_cancel";
 
 	/* api callbacks */
@@ -349,8 +347,8 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent 
 void RENDER_OT_view_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Show/Hide Render View");
-	ot->description= _("Toggle show render view");
+	ot->name= "Show/Hide Render View";
+	ot->description= "Toggle show render view";
 	ot->idname= "RENDER_OT_view_show";
 
 	/* api callbacks */

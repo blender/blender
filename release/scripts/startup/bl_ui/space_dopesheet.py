@@ -140,7 +140,7 @@ class DOPESHEET_HT_header(Header):
 
 
 class DOPESHEET_MT_view(Menu):
-    bl_label = _("View")
+    bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
@@ -174,7 +174,7 @@ class DOPESHEET_MT_view(Menu):
 
 
 class DOPESHEET_MT_select(Menu):
-    bl_label = _("Select")
+    bl_label = "Select"
 
     def draw(self, context):
         layout = self.layout
@@ -209,7 +209,7 @@ class DOPESHEET_MT_select(Menu):
 
 
 class DOPESHEET_MT_marker(Menu):
-    bl_label = _("Marker")
+    bl_label = "Marker"
 
     def draw(self, context):
         layout = self.layout
@@ -239,7 +239,7 @@ class DOPESHEET_MT_marker(Menu):
 # Keyframe Editing
 
 class DOPESHEET_MT_channel(Menu):
-    bl_label = _("Channel")
+    bl_label = "Channel"
 
     def draw(self, context):
         layout = self.layout
@@ -269,7 +269,7 @@ class DOPESHEET_MT_channel(Menu):
 
 
 class DOPESHEET_MT_key(Menu):
-    bl_label = _("Key")
+    bl_label = "Key"
 
     def draw(self, context):
         layout = self.layout
@@ -301,7 +301,7 @@ class DOPESHEET_MT_key(Menu):
 
 
 class DOPESHEET_MT_key_transform(Menu):
-    bl_label = _("Transform")
+    bl_label = "Transform"
 
     def draw(self, context):
         layout = self.layout
@@ -316,7 +316,7 @@ class DOPESHEET_MT_key_transform(Menu):
 # Grease Pencil Editing
 
 class DOPESHEET_MT_gpencil_channel(Menu):
-    bl_label = _("Channel")
+    bl_label = "Channel"
 
     def draw(self, context):
         layout = self.layout
@@ -343,7 +343,7 @@ class DOPESHEET_MT_gpencil_channel(Menu):
 
 
 class DOPESHEET_MT_gpencil_frame(Menu):
-    bl_label = _("Frame")
+    bl_label = "Frame"
 
     def draw(self, context):
         layout = self.layout

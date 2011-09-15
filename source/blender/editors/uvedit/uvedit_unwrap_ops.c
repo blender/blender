@@ -49,8 +49,6 @@
 #include "BLI_uvproject.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -463,10 +461,10 @@ static int minimize_stretch_cancel(bContext *C, wmOperator *op)
 void UV_OT_minimize_stretch(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Minimize Stretch");
+	ot->name= "Minimize Stretch";
 	ot->idname= "UV_OT_minimize_stretch";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	ot->description=_("Reduce UV stretching by relaxing angles");
+	ot->description="Reduce UV stretching by relaxing angles";
 	
 	/* api callbacks */
 	ot->exec= minimize_stretch_exec;
@@ -476,9 +474,9 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "fill_holes", 1, _("Fill Holes"), _("Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry."));
-	RNA_def_float_factor(ot->srna, "blend", 0.0f, 0.0f, 1.0f, _("Blend"), _("Blend factor between stretch minimized and original."), 0.0f, 1.0f);
-	RNA_def_int(ot->srna, "iterations", 0, 0, INT_MAX, _("Iterations"), _("Number of iterations to run, 0 is unlimited when run interactively."), 0, 100);
+	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry.");
+	RNA_def_float_factor(ot->srna, "blend", 0.0f, 0.0f, 1.0f, "Blend", "Blend factor between stretch minimized and original.", 0.0f, 1.0f);
+	RNA_def_int(ot->srna, "iterations", 0, 0, INT_MAX, "Iterations", "Number of iterations to run, 0 is unlimited when run interactively.", 0, 100);
 }
 
 /* ******************** Pack Islands operator **************** */
@@ -518,7 +516,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 void UV_OT_pack_islands(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Pack Islands");
+	ot->name= "Pack Islands";
 	ot->idname= "UV_OT_pack_islands";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -527,7 +525,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_float_factor(ot->srna, "margin", 0.0f, 0.0f, 1.0f, _("Margin"), _("Space between islands"), 0.0f, 1.0f);
+	RNA_def_float_factor(ot->srna, "margin", 0.0f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
 /* ******************** Average Islands Scale operator **************** */
@@ -560,7 +558,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 void UV_OT_average_islands_scale(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Average Islands Scale");
+	ot->name= "Average Islands Scale";
 	ot->idname= "UV_OT_average_islands_scale";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -743,21 +741,21 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 static void uv_transform_properties(wmOperatorType *ot, int radius)
 {
 	static EnumPropertyItem direction_items[]= {
-		{VIEW_ON_EQUATOR, "VIEW_ON_EQUATOR", 0, N_("View on Equator"), N_("3D view is on the equator")},
-		{VIEW_ON_POLES, "VIEW_ON_POLES", 0, N_("View on Poles"), N_("3D view is on the poles")},
-		{ALIGN_TO_OBJECT, "ALIGN_TO_OBJECT", 0, N_("Align to Object"), N_("Align according to object transform")},
+		{VIEW_ON_EQUATOR, "VIEW_ON_EQUATOR", 0, "View on Equator", "3D view is on the equator"},
+		{VIEW_ON_POLES, "VIEW_ON_POLES", 0, "View on Poles", "3D view is on the poles"},
+		{ALIGN_TO_OBJECT, "ALIGN_TO_OBJECT", 0, "Align to Object", "Align according to object transform"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem align_items[]= {
-		{POLAR_ZX, "POLAR_ZX", 0, N_("Polar ZX"), N_("Polar 0 is X")},
-		{POLAR_ZY, "POLAR_ZY", 0, N_("Polar ZY"), N_("Polar 0 is Y")},
+		{POLAR_ZX, "POLAR_ZX", 0, "Polar ZX", "Polar 0 is X"},
+		{POLAR_ZY, "POLAR_ZY", 0, "Polar ZY", "Polar 0 is Y"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	RNA_def_enum(ot->srna, "direction", RNA_enum_items_gettexted(direction_items), VIEW_ON_EQUATOR, _("Direction"), _("Direction of the sphere or cylinder."));
-	RNA_def_enum(ot->srna, "align", RNA_enum_items_gettexted(align_items), VIEW_ON_EQUATOR, _("Align"), _("How to determine rotation around the pole."));
+	RNA_def_enum(ot->srna, "direction", direction_items, VIEW_ON_EQUATOR, "Direction", "Direction of the sphere or cylinder.");
+	RNA_def_enum(ot->srna, "align", align_items, VIEW_ON_EQUATOR, "Align", "How to determine rotation around the pole.");
 	if(radius)
-		RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, _("Radius"), _("Radius of the sphere or cylinder."), 0.0001f, 100.0f);
+		RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, "Radius", "Radius of the sphere or cylinder.", 0.0001f, 100.0f);
 }
 
 static void correct_uv_aspect(EditMesh *em)
@@ -810,9 +808,9 @@ static void correct_uv_aspect(EditMesh *em)
 
 static void uv_map_clip_correct_properties(wmOperatorType *ot)
 {
-	RNA_def_boolean(ot->srna, "correct_aspect", 1, _("Correct Aspect"), _("Map UV's taking image aspect ratio into account."));
-	RNA_def_boolean(ot->srna, "clip_to_bounds", 0, _("Clip to Bounds"), _("Clip UV coordinates to bounds after unwrapping."));
-	RNA_def_boolean(ot->srna, "scale_to_bounds", 0, _("Scale to Bounds"), _("Scale UV coordinates to bounds after unwrapping."));
+	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect", "Map UV's taking image aspect ratio into account.");
+	RNA_def_boolean(ot->srna, "clip_to_bounds", 0, "Clip to Bounds", "Clip UV coordinates to bounds after unwrapping.");
+	RNA_def_boolean(ot->srna, "scale_to_bounds", 0, "Scale to Bounds", "Scale UV coordinates to bounds after unwrapping.");
 }
 
 static void uv_map_clip_correct(EditMesh *em, wmOperator *op)
@@ -954,13 +952,13 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 void UV_OT_unwrap(wmOperatorType *ot)
 {
 	static EnumPropertyItem method_items[] = {
-		{0, "ANGLE_BASED", 0, N_("Angle Based"), ""},
-		{1, "CONFORMAL", 0, N_("Conformal"), ""},
+		{0, "ANGLE_BASED", 0, "Angle Based", ""},
+		{1, "CONFORMAL", 0, "Conformal", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Unwrap");
-	ot->description= _("Unwrap the mesh of the object being edited");
+	ot->name= "Unwrap";
+	ot->description= "Unwrap the mesh of the object being edited";
 	ot->idname= "UV_OT_unwrap";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -969,9 +967,9 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	ot->poll= ED_operator_uvmap;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "method", RNA_enum_items_gettexted(method_items), 0, _("Method"), _("Unwrapping method. Angle Based usually gives better results than Conformal, while being somewhat slower."));
-	RNA_def_boolean(ot->srna, "fill_holes", 1, _("Fill Holes"), _("Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry."));
-	RNA_def_boolean(ot->srna, "correct_aspect", 1, _("Correct Aspect"), _("Map UV's taking image aspect ratio into account."));
+	RNA_def_enum(ot->srna, "method", method_items, 0, "Method", "Unwrapping method. Angle Based usually gives better results than Conformal, while being somewhat slower.");
+	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry.");
+	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect", "Map UV's taking image aspect ratio into account.");
 }
 
 /**************** Project From View operator **************/
@@ -1071,7 +1069,7 @@ static int uv_from_view_poll(bContext *C)
 void UV_OT_from_view(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Project From View");
+	ot->name= "Project From View";
 	ot->idname= "UV_OT_project_from_view";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1080,7 +1078,7 @@ void UV_OT_from_view(wmOperatorType *ot)
 	ot->poll= uv_from_view_poll;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "orthographic", 0, _("Orthographic"), _("Use orthographic projection."));
+	RNA_def_boolean(ot->srna, "orthographic", 0, "Orthographic", "Use orthographic projection.");
 	uv_map_clip_correct_properties(ot);
 }
 
@@ -1128,7 +1126,7 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 void UV_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Reset");
+	ot->name= "Reset";
 	ot->idname= "UV_OT_reset";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1216,7 +1214,7 @@ static int sphere_project_exec(bContext *C, wmOperator *op)
 void UV_OT_sphere_project(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Sphere Projection");
+	ot->name= "Sphere Projection";
 	ot->idname= "UV_OT_sphere_project";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1288,7 +1286,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 void UV_OT_cylinder_project(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Cylinder Projection");
+	ot->name= "Cylinder Projection";
 	ot->idname= "UV_OT_cylinder_project";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1375,7 +1373,7 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 void UV_OT_cube_project(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Cube Projection");
+	ot->name= "Cube Projection";
 	ot->idname= "UV_OT_cube_project";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
@@ -1384,6 +1382,6 @@ void UV_OT_cube_project(wmOperatorType *ot)
 	ot->poll= ED_operator_uvmap;
 
 	/* properties */
-	RNA_def_float(ot->srna, "cube_size", 1.0f, 0.0f, FLT_MAX, _("Cube Size"), _("Size of the cube to project on."), 0.001f, 100.0f);
+	RNA_def_float(ot->srna, "cube_size", 1.0f, 0.0f, FLT_MAX, "Cube Size", "Size of the cube to project on.", 0.001f, 100.0f);
 	uv_map_clip_correct_properties(ot);
 }

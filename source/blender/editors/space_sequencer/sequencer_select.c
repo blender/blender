@@ -44,8 +44,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
@@ -248,9 +246,9 @@ static int sequencer_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select or Deselect All");
+	ot->name= "Select or Deselect All";
 	ot->idname= "SEQUENCER_OT_select_all_toggle";
-	ot->description=_("Select or deselect all strips");
+	ot->description="Select or deselect all strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_deselect_exec;
@@ -286,9 +284,9 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Inverse");
+	ot->name= "Select Inverse";
 	ot->idname= "SEQUENCER_OT_select_inverse";
-	ot->description=_("Select unselected strips");
+	ot->description="Select unselected strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_inverse_exec;
@@ -509,9 +507,9 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void SEQUENCER_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Activate/Select");
+	ot->name= "Activate/Select";
 	ot->idname= "SEQUENCER_OT_select";
-	ot->description=_("Select a strip (last selected becomes the \"active strip\")");
+	ot->description="Select a strip (last selected becomes the \"active strip\")";
 	
 	/* api callbacks */
 	ot->invoke= sequencer_select_invoke;
@@ -521,11 +519,11 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Extend the selection."));
-	RNA_def_boolean(ot->srna, "linked_handle", 0, _("Linked Handle"), _("Select handles next to the active strip."));
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection.");
+	RNA_def_boolean(ot->srna, "linked_handle", 0, "Linked Handle", "Select handles next to the active strip.");
 	/* for animation this is an enum but atm having an enum isnt useful for us */
-	RNA_def_boolean(ot->srna, "left_right", 0, _("Left/Right"), _("select based on the frame side the cursor is on."));
-	RNA_def_boolean(ot->srna, "linked_time", 0, _("Linked Time"), _("Select other strips at the same time."));
+	RNA_def_boolean(ot->srna, "left_right", 0, "Left/Right", "select based on the frame side the cursor is on.");
+	RNA_def_boolean(ot->srna, "linked_time", 0, "Linked Time", "Select other strips at the same time.");
 }
 
 
@@ -598,9 +596,9 @@ static int sequencer_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select More");
+	ot->name= "Select More";
 	ot->idname= "SEQUENCER_OT_select_more";
-	ot->description=_("Select more strips adjacent to the current selection");
+	ot->description="Select more strips adjacent to the current selection";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_more_exec;
@@ -629,9 +627,9 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select less");
+	ot->name= "Select less";
 	ot->idname= "SEQUENCER_OT_select_less";
-	ot->description=_("Shrink the current selection of adjacent selected strips");
+	ot->description="Shrink the current selection of adjacent selected strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_less_exec;
@@ -679,9 +677,9 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select pick linked");
+	ot->name= "Select pick linked";
 	ot->idname= "SEQUENCER_OT_select_linked_pick";
-	ot->description=_("Select a chain of linked strips nearest to the mouse pointer");
+	ot->description="Select a chain of linked strips nearest to the mouse pointer";
 	
 	/* api callbacks */
 	ot->invoke= sequencer_select_linked_pick_invoke;
@@ -691,7 +689,7 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("extend the selection"));
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "extend the selection");
 }
 
 
@@ -714,9 +712,9 @@ static int sequencer_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select linked");
+	ot->name= "Select linked";
 	ot->idname= "SEQUENCER_OT_select_linked";
-	ot->description=_("Select all strips adjacent to the current selection");
+	ot->description="Select all strips adjacent to the current selection";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_linked_exec;
@@ -764,9 +762,9 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Handles");
+	ot->name= "Select Handles";
 	ot->idname= "SEQUENCER_OT_select_handles";
-	ot->description=_("Select manipulator handles on the sides of the selected strip");
+	ot->description="Select manipulator handles on the sides of the selected strip";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_handles_exec;
@@ -776,7 +774,7 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, _("Side"), _("The side of the handle that is selected"));
+	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side of the handle that is selected");
 }
 
 /* select side operator */
@@ -801,9 +799,9 @@ static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Active Side");
+	ot->name= "Select Active Side";
 	ot->idname= "SEQUENCER_OT_select_active_side";
-	ot->description=_("Select strips on the nominated side of the active strip");
+	ot->description="Select strips on the nominated side of the active strip";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_active_side_exec;
@@ -813,7 +811,7 @@ void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, _("Side"), _("The side of the handle that is selected"));
+	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side of the handle that is selected");
 }
 
 
@@ -865,9 +863,9 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 void SEQUENCER_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Border Select");
+	ot->name= "Border Select";
 	ot->idname= "SEQUENCER_OT_select_border";
-	ot->description=_("Enable border select mode");
+	ot->description="Enable border select mode";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;

@@ -116,7 +116,7 @@ class USERPREF_PT_tabs(Panel):
 
 
 class USERPREF_MT_interaction_presets(Menu):
-    bl_label = _("Presets")
+    bl_label = "Presets"
     preset_subdir = "interaction"
     preset_operator = "script.execute_preset"
     draw = Menu.draw_preset
@@ -153,7 +153,7 @@ class USERPREF_MT_splash(Menu):
 
 class USERPREF_PT_interface(Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = _("Interface")
+    bl_label = "Interface"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
@@ -250,7 +250,7 @@ class USERPREF_PT_interface(Panel):
 
 class USERPREF_PT_edit(Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = _("Edit")
+    bl_label = "Edit"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
@@ -363,7 +363,7 @@ class USERPREF_PT_edit(Panel):
 
 class USERPREF_PT_system(Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = _("System")
+    bl_label = "System"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
@@ -417,20 +417,6 @@ class USERPREF_PT_system(Panel):
         col.separator()
         col.separator()
         col.separator()
-
-        #column = split.column()
-        #colsplit = column.split(percentage=0.85)
-
-        # No translation in 2.5 yet
-        #col.prop(system, "language")
-        #col.label(text="Translate:")
-        #col.prop(system, "use_translate_tooltips", text="Tooltips")
-        #col.prop(system, "use_translate_buttons", text="Labels")
-        #col.prop(system, "use_translate_toolbox", text="Toolbox")
-
-        #col.separator()
-
-        #col.prop(system, "use_textured_fonts")
 
         # 2. Column
         column = split.column()
@@ -486,9 +472,6 @@ class USERPREF_PT_system(Panel):
         column.label(text=_("Color Picker Type:"))
         column.row().prop(system, "color_picker_type", text="")
 
-        column.label(text=_("Select Language:"))
-        column.row().prop(system, "language", text="")
-
         column.separator()
 
         column.prop(system, "use_weight_color_range", text=_("Custom Weight Paint Range"))
@@ -496,10 +479,21 @@ class USERPREF_PT_system(Panel):
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
 
+        column.separator()
+
+        column.prop(system, "use_international_fonts")
+        if system.use_international_fonts:
+            column.label(text=_("Select Language:"))
+            column.prop(system, "language", text="")
+            column.label(text="Translate:")
+            row = column.row()
+            row.prop(system, "use_translate_interface", text="Interface")
+            row.prop(system, "use_translate_tooltips", text="Tooltips")
+
 
 class USERPREF_PT_theme(Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = _("Themes")
+    bl_label = "Themes"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
@@ -682,7 +676,7 @@ class USERPREF_PT_theme(Panel):
 
 class USERPREF_PT_file(Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = _("Files")
+    bl_label = "Files"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
@@ -758,7 +752,7 @@ from bl_ui.space_userpref_keymap import InputKeyMapPanel
 
 class USERPREF_MT_ndof_settings(Menu):
     # accessed from the window keybindings in C (only)
-    bl_label = _("3D Mouse Settings")
+    bl_label = "3D Mouse Settings"
 
     def draw(self, context):
         layout = self.layout
@@ -794,7 +788,7 @@ class USERPREF_MT_ndof_settings(Menu):
 
 class USERPREF_PT_input(Panel, InputKeyMapPanel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = _("Input")
+    bl_label = "Input"
 
     @classmethod
     def poll(cls, context):
@@ -883,7 +877,7 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
 
 
 class USERPREF_MT_addons_dev_guides(Menu):
-    bl_label = _("Development Guides")
+    bl_label = "Development Guides"
 
     # menu to open webpages with addons development guides
     def draw(self, context):
@@ -895,7 +889,7 @@ class USERPREF_MT_addons_dev_guides(Menu):
 
 class USERPREF_PT_addons(Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = _("Addons")
+    bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
@@ -1086,11 +1080,11 @@ class USERPREF_PT_addons(Panel):
 class WM_OT_addon_enable(Operator):
     "Enable an addon"
     bl_idname = "wm.addon_enable"
-    bl_label = _("Enable Add-On")
+    bl_label = "Enable Add-On"
 
     module = StringProperty(
-            name=_("Module"),
-            description=_("Module name of the addon to enable"),
+            name="Module",
+            description="Module name of the addon to enable",
             )
 
     def execute(self, context):
@@ -1115,11 +1109,11 @@ class WM_OT_addon_enable(Operator):
 class WM_OT_addon_disable(Operator):
     "Disable an addon"
     bl_idname = "wm.addon_disable"
-    bl_label = _("Disable Add-On")
+    bl_label = "Disable Add-On"
 
     module = StringProperty(
-            name=_("Module"),
-            description=_("Module name of the addon to disable"),
+            name="Module",
+            description="Module name of the addon to disable",
             )
 
     def execute(self, context):
@@ -1130,11 +1124,11 @@ class WM_OT_addon_disable(Operator):
 class WM_OT_addon_install(Operator):
     "Install an addon"
     bl_idname = "wm.addon_install"
-    bl_label = _("Install Add-On...")
+    bl_label = "Install Add-On..."
 
     overwrite = BoolProperty(
-            name=_("Overwrite"),
-            description=_("Remove existing addons with the same ID"),
+            name="Overwrite",
+            description="Remove existing addons with the same ID",
             default=True,
             )
     target = EnumProperty(
@@ -1144,16 +1138,16 @@ class WM_OT_addon_install(Operator):
             )
 
     filepath = StringProperty(
-            name=_("File Path"),
-            description=_("File path to write file to"),
+            name="File Path",
+            description="File path to write file to",
             )
     filter_folder = BoolProperty(
-            name=_("Filter folders"),
+            name="Filter folders",
             default=True,
             options={'HIDDEN'},
             )
     filter_python = BoolProperty(
-            name=_("Filter python"),
+            name="Filter python",
             default=True,
             options={'HIDDEN'},
             )
@@ -1295,11 +1289,11 @@ class WM_OT_addon_install(Operator):
 class WM_OT_addon_remove(Operator):
     "Disable an addon"
     bl_idname = "wm.addon_remove"
-    bl_label = _("Remove Add-On")
+    bl_label = "Remove Add-On"
 
     module = StringProperty(
-            name=_("Module"),
-            description=_("Module name of the addon to remove"),
+            name="Module",
+            description="Module name of the addon to remove",
             )
 
     @staticmethod
@@ -1349,8 +1343,8 @@ class WM_OT_addon_expand(Operator):
     bl_label = ""
 
     module = StringProperty(
-            name=_("Module"),
-            description=_("Module name of the addon to expand"),
+            name="Module",
+            description="Module name of the addon to expand",
             )
 
     def execute(self, context):

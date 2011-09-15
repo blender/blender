@@ -56,8 +56,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -1404,7 +1402,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 void CURVE_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Separate");
+	ot->name= "Separate";
 	ot->idname= "CURVE_OT_separate";
 	
 	/* api callbacks */
@@ -2012,8 +2010,8 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_switch_direction(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Switch Direction");
-	ot->description= _("Switch direction of selected splines");
+	ot->name= "Switch Direction";
+	ot->description= "Switch direction of selected splines";
 	ot->idname= "CURVE_OT_switch_direction";
 	
 	/* api callbacks */
@@ -2060,8 +2058,8 @@ static int set_goal_weight_exec(bContext *C, wmOperator *op)
 void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Goal Weight");
-	ot->description= _("Set softbody goal weight for selected points");
+	ot->name= "Set Goal Weight";
+	ot->description= "Set softbody goal weight for selected points";
 	ot->idname= "CURVE_OT_spline_weight_set";
 	
 	/* api callbacks */
@@ -2073,7 +2071,7 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_factor(ot->srna, "weight", 1.0f, 0.0f, 1.0f, _("Weight"), "", 0.0f, 1.0f);
+	RNA_def_float_factor(ot->srna, "weight", 1.0f, 0.0f, 1.0f, "Weight", "", 0.0f, 1.0f);
 }
 
 /******************* set radius operator ******************/
@@ -2112,8 +2110,8 @@ static int set_radius_exec(bContext *C, wmOperator *op)
 void CURVE_OT_radius_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Curve Radius");
-	ot->description= _("Set per-point radius which is used for bevel tapering");
+	ot->name= "Set Curve Radius";
+	ot->description= "Set per-point radius which is used for bevel tapering";
 	ot->idname= "CURVE_OT_radius_set";
 	
 	/* api callbacks */
@@ -2125,7 +2123,7 @@ void CURVE_OT_radius_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, _("Radius"), "", 0.0001f, 10.0f);
+	RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, "Radius", "", 0.0001f, 10.0f);
 }
 
 /********************* smooth operator ********************/
@@ -2188,8 +2186,8 @@ static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Smooth");
-	ot->description= _("Flatten angles of selected points");
+	ot->name= "Smooth";
+	ot->description= "Flatten angles of selected points";
 	ot->idname= "CURVE_OT_smooth";
 	
 	/* api callbacks */
@@ -2354,8 +2352,8 @@ static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_smooth_radius(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Smooth Curve Radius");
-	ot->description= _("Flatten radiuses of selected points");
+	ot->name= "Smooth Curve Radius";
+	ot->description= "Flatten radiuses of selected points";
 	ot->idname= "CURVE_OT_smooth_radius";
 	
 	/* api clastbacks */
@@ -2508,7 +2506,7 @@ static int de_select_first_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_de_select_first(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select or Deselect First");
+	ot->name= "Select or Deselect First";
 	ot->idname= "CURVE_OT_de_select_first";
 	
 	/* api cfirstbacks */
@@ -2532,7 +2530,7 @@ static int de_select_last_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_de_select_last(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select or Deselect Last");
+	ot->name= "Select or Deselect Last";
 	ot->idname= "CURVE_OT_de_select_last";
 	
 	/* api clastbacks */
@@ -2610,7 +2608,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select or Deselect All");
+	ot->name= "Select or Deselect All";
 	ot->idname= "CURVE_OT_select_all";
 	
 	/* api callbacks */
@@ -2684,7 +2682,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 void CURVE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Hide Selected");
+	ot->name= "Hide Selected";
 	ot->idname= "CURVE_OT_hide";
 	
 	/* api callbacks */
@@ -2695,7 +2693,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
 }
 
 /********************** reveal operator *********************/
@@ -2744,7 +2742,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Reveal Hidden");
+	ot->name= "Reveal Hidden";
 	ot->idname= "CURVE_OT_reveal";
 	
 	/* api callbacks */
@@ -2802,7 +2800,7 @@ static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Inverse");
+	ot->name= "Select Inverse";
 	ot->idname= "CURVE_OT_select_inverse";
 	
 	/* api callbacks */
@@ -3241,8 +3239,8 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 void CURVE_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Subdivide");
-	ot->description= _("Subdivide selected segments");
+	ot->name= "Subdivide";
+	ot->description= "Subdivide selected segments";
 	ot->idname= "CURVE_OT_subdivide";
 	
 	/* api callbacks */
@@ -3252,7 +3250,7 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, _("Number of cuts"), "", 1, 10);
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of cuts", "", 1, 10);
 }
 
 /******************** find nearest ************************/
@@ -3555,16 +3553,16 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 void CURVE_OT_spline_type_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[]= {
-		{CU_POLY, "POLY", 0, N_("Poly"), ""},
-		{CU_BEZIER, "BEZIER", 0, N_("Bezier"), ""},
-//		{CU_CARDINAL, "CARDINAL", 0, N_("Cardinal"), ""},
-//		{CU_BSPLINE, "B_SPLINE", 0, N_("B-Spline"), ""},
-		{CU_NURBS, "NURBS", 0, N_("NURBS"), ""},
+		{CU_POLY, "POLY", 0, "Poly", ""},
+		{CU_BEZIER, "BEZIER", 0, "Bezier", ""},
+//		{CU_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
+//		{CU_BSPLINE, "B_SPLINE", 0, "B-Spline", ""},
+		{CU_NURBS, "NURBS", 0, "NURBS", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Set Spline Type");
-	ot->description = _("Set type of active spline");
+	ot->name= "Set Spline Type";
+	ot->description = "Set type of active spline";
 	ot->idname= "CURVE_OT_spline_type_set";
 	
 	/* api callbacks */
@@ -3576,7 +3574,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(type_items), CU_POLY, _("Type"), _("Spline type"));
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, CU_POLY, "Type", "Spline type");
 }
 
 /***************** set handle type operator *******************/
@@ -3598,16 +3596,16 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 {
 	/* keep in sync with graphkeys_handle_type_items */
 	static EnumPropertyItem editcurve_handle_type_items[]= {
-		{HD_AUTO, "AUTOMATIC", 0, N_("Automatic"), ""},
-		{HD_VECT, "VECTOR", 0, N_("Vector"), ""},
-		{5, "ALIGNED", 0, N_("Aligned"), ""},
-		{6, "FREE_ALIGN", 0, N_("Free"), ""},
-		{3, "TOGGLE_FREE_ALIGN", 0, N_("Toggle Free/Align"), ""},
+		{HD_AUTO, "AUTOMATIC", 0, "Automatic", ""},
+		{HD_VECT, "VECTOR", 0, "Vector", ""},
+		{5, "ALIGNED", 0, "Aligned", ""},
+		{6, "FREE_ALIGN", 0, "Free", ""},
+		{3, "TOGGLE_FREE_ALIGN", 0, "Toggle Free/Align", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Set Handle Type");
-	ot->description = _("Set type of handles for selected control points");
+	ot->name= "Set Handle Type";
+	ot->description = "Set type of handles for selected control points";
 	ot->idname= "CURVE_OT_handle_type_set";
 	
 	/* api callbacks */
@@ -3619,7 +3617,7 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(editcurve_handle_type_items), 1, _("Type"), _("Spline type"));
+	ot->prop= RNA_def_enum(ot->srna, "type", editcurve_handle_type_items, 1, "Type", "Spline type");
 }
 
 /***************** make segment operator **********************/
@@ -4141,7 +4139,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 void CURVE_OT_make_segment(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Make Segment");
+	ot->name= "Make Segment";
 	ot->idname= "CURVE_OT_make_segment";
 	
 	/* api callbacks */
@@ -4371,7 +4369,7 @@ static int spin_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_spin(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Spin");
+	ot->name= "Spin";
 	ot->idname= "CURVE_OT_spin";
 	
 	/* api callbacks */
@@ -4382,8 +4380,8 @@ void CURVE_OT_spin(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, _("Center"), _("Center in global view space"), -FLT_MAX, FLT_MAX);
-	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, _("Axis"), _("Axis in global view space"), -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
 }
 
 /***************** add vertex operator **********************/
@@ -4682,7 +4680,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void CURVE_OT_vertex_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Vertex");
+	ot->name= "Add Vertex";
 	ot->idname= "CURVE_OT_vertex_add";
 	
 	/* api callbacks */
@@ -4694,7 +4692,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, _("Location"), _("Location to add new vertex at."), -1e4, 1e4);
+	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at.", -1e4, 1e4);
 }
 
 /***************** extrude operator **********************/
@@ -4742,8 +4740,8 @@ static int extrude_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Extrude");
-	ot->description = _("Extrude selected control point(s) and move");
+	ot->name= "Extrude";
+	ot->description = "Extrude selected control point(s) and move";
 	ot->idname= "CURVE_OT_extrude";
 	
 	/* api callbacks */
@@ -4755,7 +4753,7 @@ void CURVE_OT_extrude(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /***************** make cyclic operator **********************/
@@ -4866,13 +4864,13 @@ static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-		{0, "CYCLIC_U", 0, N_("Cyclic U"), ""},
-		{1, "CYCLIC_V", 0, N_("Cyclic V"), ""},
+		{0, "CYCLIC_U", 0, "Cyclic U", ""},
+		{1, "CYCLIC_V", 0, "Cyclic V", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Toggle Cyclic");
-	ot->description = _("Make active spline closed/opened loop");
+	ot->name= "Toggle Cyclic";
+	ot->description = "Make active spline closed/opened loop";
 	ot->idname= "CURVE_OT_cyclic_toggle";
 	
 	/* api callbacks */
@@ -4884,7 +4882,7 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "direction", direction_items, 0, _("Direction"), _("Direction to make surface cyclic in."));
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to make surface cyclic in.");
 }
 
 /***************** select linked operator ******************/
@@ -4948,7 +4946,7 @@ static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 void CURVE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Linked All");
+	ot->name= "Select Linked All";
 	ot->idname= "CURVE_OT_select_linked";
 
 	/* api callbacks */
@@ -5008,7 +5006,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Linked");
+	ot->name= "Select Linked";
 	ot->idname= "CURVE_OT_select_linked_pick";
 
 	/* api callbacks */
@@ -5019,7 +5017,7 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "deselect", 0, _("Deselect"), _("Deselect linked control points rather than selecting them."));
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked control points rather than selecting them.");
 }
 
 /***************** select row operator **********************/
@@ -5086,7 +5084,7 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_row(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Control Point Row");
+	ot->name= "Select Control Point Row";
 	ot->idname= "CURVE_OT_select_row";
 	
 	/* api callbacks */
@@ -5113,7 +5111,7 @@ static int select_next_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_next(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Next");
+	ot->name= "Select Next";
 	ot->idname= "CURVE_OT_select_next";
 	
 	/* api callbacks */
@@ -5140,7 +5138,7 @@ static int select_previous_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_previous(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Previous");
+	ot->name= "Select Previous";
 	ot->idname= "CURVE_OT_select_previous";
 	
 	/* api callbacks */
@@ -5227,7 +5225,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select More");
+	ot->name= "Select More";
 	ot->idname= "CURVE_OT_select_more";
 	
 	/* api callbacks */
@@ -5388,7 +5386,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Less");
+	ot->name= "Select Less";
 	ot->idname= "CURVE_OT_select_less";
 	
 	/* api callbacks */
@@ -5451,7 +5449,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Random");
+	ot->name= "Select Random";
 	ot->idname= "CURVE_OT_select_random";
 	
 	/* api callbacks */
@@ -5462,8 +5460,8 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, _("Percent"), _("Percentage of elements to select randomly."), 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend Selection"), _("Extend selection instead of deselecting everything first."));
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
 /********************* every nth number of point *******************/
@@ -5576,7 +5574,7 @@ static int select_nth_exec(bContext *C, wmOperator *op)
 void CURVE_OT_select_nth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Nth");
+	ot->name= "Select Nth";
 	ot->description= "";
 	ot->idname= "CURVE_OT_select_nth";
 
@@ -5587,7 +5585,7 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "nth", 2, 2, 100, _("Nth Selection"), "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
 }
 
 /********************** add duplicate operator *********************/
@@ -5615,8 +5613,8 @@ static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Duplicate Curve");
-	ot->description = _("Duplicate selected control points and segments between them");
+	ot->name= "Duplicate Curve";
+	ot->description = "Duplicate selected control points and segments between them";
 	ot->idname= "CURVE_OT_duplicate";
 	
 	/* api callbacks */
@@ -5628,7 +5626,7 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* to give to transform */
-	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, _("Mode"), "");
+	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
 }
 
 /********************** delete operator *********************/
@@ -5975,14 +5973,14 @@ static int delete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void CURVE_OT_delete(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
-		{0, "SELECTED", 0, N_("Select"), ""},
-		{1, "SEGMENT", 0, N_("Segment"), ""},
-		{2, "ALL", 0, N_("All"), ""},
+		{0, "SELECTED", 0, "Select", ""},
+		{1, "SEGMENT", 0, "Segment", ""},
+		{2, "ALL", 0, "All", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Delete");
-	ot->description = _("Delete selected control points or segments");
+	ot->name= "Delete";
+	ot->description = "Delete selected control points or segments";
 	ot->idname= "CURVE_OT_delete";
 	
 	/* api callbacks */
@@ -5994,7 +5992,7 @@ void CURVE_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, 0, _("Type"), _("Which elements to delete."));
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete.");
 }
 
 /********************** shade smooth/flat operator *********************/
@@ -6025,7 +6023,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 void CURVE_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Shade Smooth");
+	ot->name= "Shade Smooth";
 	ot->idname= "CURVE_OT_shade_smooth";
 	
 	/* api callbacks */
@@ -6039,7 +6037,7 @@ void CURVE_OT_shade_smooth(wmOperatorType *ot)
 void CURVE_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Shade Flat");
+	ot->name= "Shade Flat";
 	ot->idname= "CURVE_OT_shade_flat";
 	
 	/* api callbacks */
@@ -6621,8 +6619,8 @@ static int add_primitive_bezier_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_bezier_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Bezier");
-	ot->description= _("Construct a Bezier Curve");
+	ot->name= "Add Bezier";
+	ot->description= "Construct a Bezier Curve";
 	ot->idname= "CURVE_OT_primitive_bezier_curve_add";
 	
 	/* api callbacks */
@@ -6644,8 +6642,8 @@ static int add_primitive_bezier_circle_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_bezier_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Bezier Circle");
-	ot->description= _("Construct a Bezier Circle");
+	ot->name= "Add Bezier Circle";
+	ot->description= "Construct a Bezier Circle";
 	ot->idname= "CURVE_OT_primitive_bezier_circle_add";
 	
 	/* api callbacks */
@@ -6667,8 +6665,8 @@ static int add_primitive_nurbs_curve_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_nurbs_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Nurbs Curve");
-	ot->description= _("Construct a Nurbs Curve");
+	ot->name= "Add Nurbs Curve";
+	ot->description= "Construct a Nurbs Curve";
 	ot->idname= "CURVE_OT_primitive_nurbs_curve_add";
 	
 	/* api callbacks */
@@ -6690,8 +6688,8 @@ static int add_primitive_nurbs_circle_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_nurbs_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Nurbs Circle");
-	ot->description= _("Construct a Nurbs Circle");
+	ot->name= "Add Nurbs Circle";
+	ot->description= "Construct a Nurbs Circle";
 	ot->idname= "CURVE_OT_primitive_nurbs_circle_add";
 	
 	/* api callbacks */
@@ -6713,8 +6711,8 @@ static int add_primitive_curve_path_exec(bContext *C, wmOperator *op)
 void CURVE_OT_primitive_nurbs_path_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Path");
-	ot->description= _("Construct a Path");
+	ot->name= "Add Path";
+	ot->description= "Construct a Path";
 	ot->idname= "CURVE_OT_primitive_nurbs_path_add";
 	
 	/* api callbacks */
@@ -6737,8 +6735,8 @@ static int add_primitive_nurbs_surface_curve_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_curve_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Surface Curve");
-	ot->description= _("Construct a Nurbs surface Curve");
+	ot->name= "Add Surface Curve";
+	ot->description= "Construct a Nurbs surface Curve";
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_curve_add";
 	
 	/* api callbacks */
@@ -6760,8 +6758,8 @@ static int add_primitive_nurbs_surface_circle_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Surface Circle");
-	ot->description= _("Construct a Nurbs surface Circle");
+	ot->name= "Add Surface Circle";
+	ot->description= "Construct a Nurbs surface Circle";
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_circle_add";
 	
 	/* api callbacks */
@@ -6783,8 +6781,8 @@ static int add_primitive_nurbs_surface_surface_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_surface_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Surface Patch");
-	ot->description= _("Construct a Nurbs surface Patch");
+	ot->name= "Add Surface Patch";
+	ot->description= "Construct a Nurbs surface Patch";
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_surface_add";
 	
 	/* api callbacks */
@@ -6806,8 +6804,8 @@ static int add_primitive_nurbs_surface_cylinder_exec(bContext *C, wmOperator *op
 void SURFACE_OT_primitive_nurbs_surface_cylinder_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Surface Cylinder");
-	ot->description= _("Construct a Nurbs surface Cylinder");
+	ot->name= "Add Surface Cylinder";
+	ot->description= "Construct a Nurbs surface Cylinder";
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_cylinder_add";
 	
 	/* api callbacks */
@@ -6829,8 +6827,8 @@ static int add_primitive_nurbs_surface_sphere_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Surface Sphere");
-	ot->description= _("Construct a Nurbs surface Sphere");
+	ot->name= "Add Surface Sphere";
+	ot->description= "Construct a Nurbs surface Sphere";
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_sphere_add";
 	
 	/* api callbacks */
@@ -6852,8 +6850,8 @@ static int add_primitive_nurbs_surface_torus_exec(bContext *C, wmOperator *op)
 void SURFACE_OT_primitive_nurbs_surface_torus_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Surface Torus");
-	ot->description= _("Construct a Nurbs surface Torus");
+	ot->name= "Add Surface Torus";
+	ot->description= "Construct a Nurbs surface Torus";
 	ot->idname= "SURFACE_OT_primitive_nurbs_surface_torus_add";
 	
 	/* api callbacks */
@@ -6907,7 +6905,7 @@ static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 void CURVE_OT_tilt_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Tilt");
+	ot->name= "Clear Tilt";
 	ot->idname= "CURVE_OT_tilt_clear";
 	
 	/* api callbacks */

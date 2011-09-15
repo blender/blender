@@ -33,7 +33,7 @@ class SceneButtonsPanel():
 
 
 class SCENE_PT_scene(SceneButtonsPanel, Panel):
-    bl_label = _("Scene")
+    bl_label = "Scene"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -45,7 +45,7 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_audio(SceneButtonsPanel, Panel):
-    bl_label = _("Audio")
+    bl_label = "Audio"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -73,7 +73,7 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_unit(SceneButtonsPanel, Panel):
-    bl_label = _("Units")
+    bl_label = "Units"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -91,7 +91,7 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
-    bl_label = _("Keying Sets")
+    bl_label = "Keying Sets"
 
     def draw(self, context):
         layout = self.layout
@@ -124,7 +124,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
-    bl_label = _("Active Keying Set")
+    bl_label = "Active Keying Set"
 
     @classmethod
     def poll(cls, context):
@@ -174,7 +174,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_physics(SceneButtonsPanel, Panel):
-    bl_label = _("Gravity")
+    bl_label = "Gravity"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -191,7 +191,7 @@ class SCENE_PT_physics(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_simplify(SceneButtonsPanel, Panel):
-    bl_label = _("Simplify")
+    bl_label = "Simplify"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -230,12 +230,12 @@ class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
 class ANIM_OT_keying_set_export(Operator):
     "Export Keying Set to a python script."
     bl_idname = "anim.keying_set_export"
-    bl_label = _("Export Keying Set...")
+    bl_label = "Export Keying Set..."
 
-    filepath = bpy.props.StringProperty(name=_("File Path"), description=_("Filepath to write file to."))
-    filter_folder = bpy.props.BoolProperty(name=_("Filter folders"), description="", default=True, options={'HIDDEN'})
-    filter_text = bpy.props.BoolProperty(name=_("Filter text"), description="", default=True, options={'HIDDEN'})
-    filter_python = bpy.props.BoolProperty(name=_("Filter python"), description="", default=True, options={'HIDDEN'})
+    filepath = bpy.props.StringProperty(name="File Path", description="Filepath to write file to.")
+    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
+    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         if not self.filepath:

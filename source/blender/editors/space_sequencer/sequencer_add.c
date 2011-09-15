@@ -47,8 +47,6 @@
 #include "BLI_storage_types.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -93,16 +91,16 @@
 static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 {
 	if(flag & SEQPROP_STARTFRAME)
-		RNA_def_int(ot->srna, "frame_start", 0, INT_MIN, INT_MAX, _("Start Frame"), _("Start frame of the sequence strip"), INT_MIN, INT_MAX);
+		RNA_def_int(ot->srna, "frame_start", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame of the sequence strip", INT_MIN, INT_MAX);
 	
 	if(flag & SEQPROP_ENDFRAME)
-		RNA_def_int(ot->srna, "frame_end", 0, INT_MIN, INT_MAX, _("End Frame"), _("End frame for the color strip"), INT_MIN, INT_MAX); /* not useual since most strips have a fixed length */
+		RNA_def_int(ot->srna, "frame_end", 0, INT_MIN, INT_MAX, "End Frame", "End frame for the color strip", INT_MIN, INT_MAX); /* not useual since most strips have a fixed length */
 	
-	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, _("Channel"), _("Channel to place this strip into"), 1, MAXSEQ);
+	RNA_def_int(ot->srna, "channel", 1, 1, MAXSEQ, "Channel", "Channel to place this strip into", 1, MAXSEQ);
 	
-	RNA_def_boolean(ot->srna, "replace_sel", 1, _("Replace Selection"), _("replace the current selection"));
+	RNA_def_boolean(ot->srna, "replace_sel", 1, "Replace Selection", "replace the current selection");
 
-	RNA_def_boolean(ot->srna, "overlap", 0, _("Allow Overlap"), _("Don't correct overlap on new sequence strips"));
+	RNA_def_boolean(ot->srna, "overlap", 0, "Allow Overlap", "Don't correct overlap on new sequence strips");
 }
 
 static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op, const char *identifier)
@@ -283,9 +281,9 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	/* identifiers */
-	ot->name= _("Add Scene Strip");
+	ot->name= "Add Scene Strip";
 	ot->idname= "SEQUENCER_OT_scene_strip_add";
-	ot->description= _("Add a strip to the sequencer using a blender scene as a source");
+	ot->description= "Add a strip to the sequencer using a blender scene as a source";
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_scene_strip_invoke;
@@ -297,7 +295,7 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, _("Scene"), "");
+	prop= RNA_def_enum(ot->srna, "scene", DummyRNA_NULL_items, 0, "Scene", "");
 	RNA_def_enum_funcs(prop, RNA_scene_itemf);
 	ot->prop= prop;
 }
@@ -396,9 +394,9 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Add Movie Strip");
+	ot->name= "Add Movie Strip";
 	ot->idname= "SEQUENCER_OT_movie_strip_add";
-	ot->description= _("Add a movie strip to the sequencer");
+	ot->description= "Add a movie strip to the sequencer";
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_movie_strip_invoke;
@@ -411,7 +409,7 @@ void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH|WM_FILESEL_FILES);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_boolean(ot->srna, "sound", TRUE, _("Sound"), _("Load sound with the movie"));
+	RNA_def_boolean(ot->srna, "sound", TRUE, "Sound", "Load sound with the movie");
 }
 
 /* add sound operator */
@@ -451,9 +449,9 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Add Sound Strip");
+	ot->name= "Add Sound Strip";
 	ot->idname= "SEQUENCER_OT_sound_strip_add";
-	ot->description= _("Add a sound strip to the sequencer");
+	ot->description= "Add a sound strip to the sequencer";
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_sound_strip_invoke;
@@ -466,7 +464,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH|WM_FILESEL_FILES);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_boolean(ot->srna, "cache", FALSE, _("Cache"), _("Cache the sound in memory."));
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
 }
 
 /* add image operator */
@@ -558,9 +556,9 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Add Image Strip");
+	ot->name= "Add Image Strip";
 	ot->idname= "SEQUENCER_OT_image_strip_add";
-	ot->description= _("Add an image or image sequence to the sequencer");
+	ot->description= "Add an image or image sequence to the sequencer";
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_image_strip_invoke;
@@ -738,9 +736,9 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Effect Strip");
+	ot->name= "Add Effect Strip";
 	ot->idname= "SEQUENCER_OT_effect_strip_add";
-	ot->description= _("Add an effect to the sequencer, most are applied on top of existing strips");
+	ot->description= "Add an effect to the sequencer, most are applied on top of existing strips";
 
 	/* api callbacks */
 	ot->invoke= sequencer_add_effect_strip_invoke;
@@ -753,6 +751,6 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME);
-	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, _("Type"), _("Sequencer effect type"));
-	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, _("Color"), _("Initialize the strip with this color (only used when type='COLOR')"), 0.0f, 1.0f);
+	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, "Type", "Sequencer effect type");
+	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, "Color", "Initialize the strip with this color (only used when type='COLOR')", 0.0f, 1.0f);
 }

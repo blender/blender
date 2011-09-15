@@ -55,7 +55,7 @@ class DATA_PT_context_camera(CameraButtonsPanel, Panel):
 
 
 class DATA_PT_camera(CameraButtonsPanel, Panel):
-    bl_label = _("Lens")
+    bl_label = "Lens"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -113,7 +113,7 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
-    bl_label = _("Display")
+    bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):

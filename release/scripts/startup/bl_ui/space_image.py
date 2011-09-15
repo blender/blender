@@ -34,7 +34,7 @@ class BrushButtonsPanel():
 
 
 class IMAGE_MT_view(Menu):
-    bl_label = _("View")
+    bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
@@ -82,7 +82,7 @@ class IMAGE_MT_view(Menu):
 
 
 class IMAGE_MT_select(Menu):
-    bl_label = _("Select")
+    bl_label = "Select"
 
     def draw(self, context):
         layout = self.layout
@@ -103,7 +103,7 @@ class IMAGE_MT_select(Menu):
 
 
 class IMAGE_MT_image(Menu):
-    bl_label = _("Image")
+    bl_label = "Image"
 
     def draw(self, context):
         layout = self.layout
@@ -154,7 +154,7 @@ class IMAGE_MT_image(Menu):
 
 
 class IMAGE_MT_image_invert(Menu):
-    bl_label = _("Invert")
+    bl_label = "Invert"
 
     def draw(self, context):
         layout = self.layout
@@ -180,7 +180,7 @@ class IMAGE_MT_image_invert(Menu):
 
 
 class IMAGE_MT_uvs_showhide(Menu):
-    bl_label = _("Show/Hide Faces")
+    bl_label = "Show/Hide Faces"
 
     def draw(self, context):
         layout = self.layout
@@ -191,7 +191,7 @@ class IMAGE_MT_uvs_showhide(Menu):
 
 
 class IMAGE_MT_uvs_transform(Menu):
-    bl_label = _("Transform")
+    bl_label = "Transform"
 
     def draw(self, context):
         layout = self.layout
@@ -206,7 +206,7 @@ class IMAGE_MT_uvs_transform(Menu):
 
 
 class IMAGE_MT_uvs_snap(Menu):
-    bl_label = _("Snap")
+    bl_label = "Snap"
 
     def draw(self, context):
         layout = self.layout
@@ -223,7 +223,7 @@ class IMAGE_MT_uvs_snap(Menu):
 
 
 class IMAGE_MT_uvs_mirror(Menu):
-    bl_label = _("Mirror")
+    bl_label = "Mirror"
 
     def draw(self, context):
         layout = self.layout
@@ -234,7 +234,7 @@ class IMAGE_MT_uvs_mirror(Menu):
 
 
 class IMAGE_MT_uvs_weldalign(Menu):
-    bl_label = _("Weld/Align")
+    bl_label = "Weld/Align"
 
     def draw(self, context):
         layout = self.layout
@@ -289,7 +289,7 @@ class IMAGE_MT_uvs(Menu):
 
 
 class IMAGE_MT_uvs_select_mode(Menu):
-    bl_label = _("UV Select Mode")
+    bl_label = "UV Select Mode"
 
     def draw(self, context):
         layout = self.layout
@@ -417,7 +417,7 @@ class IMAGE_HT_header(Header):
 class IMAGE_PT_image_properties(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = _("Image")
+    bl_label = "Image"
 
     @classmethod
     def poll(cls, context):
@@ -436,7 +436,7 @@ class IMAGE_PT_image_properties(Panel):
 class IMAGE_PT_game_properties(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = _("Game Properties")
+    bl_label = "Game Properties"
 
     @classmethod
     def poll(cls, context):
@@ -478,7 +478,7 @@ class IMAGE_PT_game_properties(Panel):
 class IMAGE_PT_view_histogram(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = _("Histogram")
+    bl_label = "Histogram"
 
     @classmethod
     def poll(cls, context):
@@ -497,7 +497,7 @@ class IMAGE_PT_view_histogram(Panel):
 class IMAGE_PT_view_waveform(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = _("Waveform")
+    bl_label = "Waveform"
 
     @classmethod
     def poll(cls, context):
@@ -518,7 +518,7 @@ class IMAGE_PT_view_waveform(Panel):
 class IMAGE_PT_view_vectorscope(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = _("Vectorscope")
+    bl_label = "Vectorscope"
 
     @classmethod
     def poll(cls, context):
@@ -536,7 +536,7 @@ class IMAGE_PT_view_vectorscope(Panel):
 class IMAGE_PT_sample_line(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = _("Sample Line")
+    bl_label = "Sample Line"
 
     @classmethod
     def poll(cls, context):
@@ -556,7 +556,7 @@ class IMAGE_PT_sample_line(Panel):
 class IMAGE_PT_scope_sample(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
-    bl_label = _("Scope Samples")
+    bl_label = "Scope Samples"
 
     @classmethod
     def poll(cls, context):
@@ -578,7 +578,7 @@ class IMAGE_PT_scope_sample(Panel):
 class IMAGE_PT_view_properties(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = _("Display")
+    bl_label = "Display"
 
     @classmethod
     def poll(cls, context):
@@ -637,7 +637,7 @@ class IMAGE_PT_view_properties(Panel):
 class IMAGE_PT_paint(Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = _("Paint")
+    bl_label = "Paint"
 
     @classmethod
     def poll(cls, context):
@@ -679,7 +679,7 @@ class IMAGE_PT_paint(Panel):
 
 
 class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
-    bl_label = _("Texture")
+    bl_label = "Texture"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -694,7 +694,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
 
 
 class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, Panel):
-    bl_label = _("Tool")
+    bl_label = "Tool"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -712,7 +712,7 @@ class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, Panel):
 
 
 class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
-    bl_label = _("Paint Stroke")
+    bl_label = "Paint Stroke"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -736,7 +736,7 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
 
 
 class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
-    bl_label = _("Paint Curve")
+    bl_label = "Paint Curve"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):

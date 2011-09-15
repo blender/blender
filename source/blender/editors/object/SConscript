@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('*.c') + env.Glob('*.cpp')
 
-incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc ../../blenloader'
 incs += ' ../../makesrna ../../python ../../ikplugin'
 incs += ' ../../render/extern/include ../../gpu' # for object_bake.c

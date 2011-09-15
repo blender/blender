@@ -42,8 +42,6 @@
 
 #include "RNA_access.h"
 
-#include "BLF_api.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -107,17 +105,17 @@ void ED_operatormacros_node(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *mot;
 	
-	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", _("Duplicate"), OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
 	/* modified operator call for duplicating with input links */
-	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", _("Duplicate"), OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 		RNA_boolean_set(mot->ptr, "keep_inputs", 1);
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
-	ot= WM_operatortype_append_macro("NODE_OT_select_link_viewer", _("Link Viewer"), OPTYPE_UNDO);
+	ot= WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer", OPTYPE_UNDO);
 	WM_operatortype_macro_define(ot, "NODE_OT_select");
 	WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
 	}

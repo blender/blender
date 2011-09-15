@@ -53,8 +53,6 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 
@@ -1358,7 +1356,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Selection of all particles");
+	ot->name= "Selection of all particles";
 	ot->idname= "PARTICLE_OT_select_all";
 	
 	/* api callbacks */
@@ -1432,7 +1430,7 @@ static int select_roots_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_select_roots(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Roots");
+	ot->name= "Select Roots";
 	ot->idname= "PARTICLE_OT_select_roots";
 	
 	/* api callbacks */
@@ -1472,7 +1470,7 @@ static int select_tips_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_select_tips(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Tips");
+	ot->name= "Select Tips";
 	ot->idname= "PARTICLE_OT_select_tips";
 	
 	/* api callbacks */
@@ -1516,7 +1514,7 @@ static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void PARTICLE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Linked");
+	ot->name= "Select Linked";
 	ot->idname= "PARTICLE_OT_select_linked";
 	
 	/* api callbacks */
@@ -1528,8 +1526,8 @@ void PARTICLE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "deselect", 0, _("Deselect"), _("Deselect linked keys rather than selecting them."));
-	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, _("Location"), "", 0, 16384);
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked keys rather than selecting them.");
+	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "", 0, 16384);
 }
 
 /************************ border select operator ************************/
@@ -1704,7 +1702,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Hide Selected");
+	ot->name= "Hide Selected";
 	ot->idname= "PARTICLE_OT_hide";
 	
 	/* api callbacks */
@@ -1715,7 +1713,7 @@ void PARTICLE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
 }
 
 /*************************** reveal operator **************************/
@@ -1746,7 +1744,7 @@ static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Reveal");
+	ot->name= "Reveal";
 	ot->idname= "PARTICLE_OT_reveal";
 	
 	/* api callbacks */
@@ -1804,7 +1802,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Less");
+	ot->name= "Select Less";
 	ot->idname= "PARTICLE_OT_select_less";
 	
 	/* api callbacks */
@@ -1865,7 +1863,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select More");
+	ot->name= "Select More";
 	ot->idname= "PARTICLE_OT_select_more";
 	
 	/* api callbacks */
@@ -1902,7 +1900,7 @@ static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Inverse");
+	ot->name= "Select Inverse";
 	ot->idname= "PARTICLE_OT_select_inverse";
 
 	/* api callbacks */
@@ -1998,7 +1996,7 @@ static int rekey_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_rekey(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Rekey");
+	ot->name= "Rekey";
 	ot->idname= "PARTICLE_OT_rekey";
 	
 	/* api callbacks */
@@ -2010,7 +2008,7 @@ void PARTICLE_OT_rekey(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "keys", 2, 2, INT_MAX, _("Number of Keys"), "", 2, 100);
+	RNA_def_int(ot->srna, "keys", 2, 2, INT_MAX, "Number of Keys", "", 2, 100);
 }
 
 static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float path_time)
@@ -2328,7 +2326,7 @@ static int subdivide_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Subdivide");
+	ot->name= "Subdivide";
 	ot->idname= "PARTICLE_OT_subdivide";
 	
 	/* api callbacks */
@@ -2416,7 +2414,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_remove_doubles(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Remove Doubles");
+	ot->name= "Remove Doubles";
 	ot->idname= "PARTICLE_OT_remove_doubles";
 	
 	/* api callbacks */
@@ -2427,7 +2425,7 @@ void PARTICLE_OT_remove_doubles(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float(ot->srna, "threshold", 0.0002f, 0.0f, FLT_MAX, _("Threshold"), _("Threshold distance withing which particles are removed"), 0.00001f, 0.1f);
+	RNA_def_float(ot->srna, "threshold", 0.0002f, 0.0f, FLT_MAX, "Threshold", "Threshold distance withing which particles are removed", 0.00001f, 0.1f);
 }
 
 
@@ -2466,7 +2464,7 @@ static int weight_set_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_weight_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Weight Set");
+	ot->name= "Weight Set";
 	ot->idname= "PARTICLE_OT_weight_set";
 
 	/* api callbacks */
@@ -2476,7 +2474,7 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "factor", 1, 0, 1, _("Factor"), "", 0, 1);
+	RNA_def_float(ot->srna, "factor", 1, 0, 1, "Factor", "", 0, 1);
 }
 
 /************************ cursor drawing *******************************/
@@ -2569,7 +2567,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 void PARTICLE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Delete");
+	ot->name= "Delete";
 	ot->idname= "PARTICLE_OT_delete";
 	
 	/* api callbacks */
@@ -2581,7 +2579,7 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", delete_type_items, DEL_PARTICLE, _("Type"), _("Delete a full particle or only keys."));
+	ot->prop= RNA_def_enum(ot->srna, "type", delete_type_items, DEL_PARTICLE, "Type", "Delete a full particle or only keys.");
 }
 
 /*************************** mirror operator **************************/
@@ -2729,7 +2727,7 @@ static int mirror_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Mirror");
+	ot->name= "Mirror";
 	ot->idname= "PARTICLE_OT_mirror";
 	
 	/* api callbacks */
@@ -3746,7 +3744,7 @@ static int brush_edit_cancel(bContext *UNUSED(C), wmOperator *op)
 void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Brush Edit");
+	ot->name= "Brush Edit";
 	ot->idname= "PARTICLE_OT_brush_edit";
 	
 	/* api callbacks */
@@ -3760,7 +3758,7 @@ void PARTICLE_OT_brush_edit(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
-	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, _("Stroke"), "");
+	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
 /*********************** undo ***************************/
@@ -4236,7 +4234,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_particle_edit_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Particle Edit Toggle");
+	ot->name= "Particle Edit Toggle";
 	ot->idname= "PARTICLE_OT_particle_edit_toggle";
 	
 	/* api callbacks */
@@ -4285,7 +4283,7 @@ static int clear_edited_exec(bContext *C, wmOperator *UNUSED(op))
 void PARTICLE_OT_edited_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Edited");
+	ot->name= "Clear Edited";
 	ot->idname= "PARTICLE_OT_edited_clear";
 	
 	/* api callbacks */

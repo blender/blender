@@ -44,7 +44,7 @@ class OBJECT_PT_context_object(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
-    bl_label = _("Transform")
+    bl_label = "Transform"
 
     def draw(self, context):
         layout = self.layout
@@ -70,7 +70,7 @@ class OBJECT_PT_transform(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
-    bl_label = _("Delta Transform")
+    bl_label = "Delta Transform"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -96,7 +96,7 @@ class OBJECT_PT_delta_transform(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_transform_locks(ObjectButtonsPanel, Panel):
-    bl_label = _("Transform Locks")
+    bl_label = "Transform Locks"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -122,7 +122,7 @@ class OBJECT_PT_transform_locks(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
-    bl_label = _("Relations")
+    bl_label = "Relations"
 
     def draw(self, context):
         layout = self.layout
@@ -149,7 +149,7 @@ class OBJECT_PT_relations(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
-    bl_label = _("Groups")
+    bl_label = "Groups"
 
     def draw(self, context):
         layout = self.layout
@@ -188,7 +188,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):
-    bl_label = _("Display")
+    bl_label = "Display"
 
     def draw(self, context):
         layout = self.layout
@@ -222,7 +222,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
-    bl_label = _("Duplication")
+    bl_label = "Duplication"
 
     def draw(self, context):
         layout = self.layout
@@ -260,7 +260,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
 # XXX: the following options are all quite buggy, ancient hacks that should be dropped
 
 class OBJECT_PT_animation(ObjectButtonsPanel, Panel):
-    bl_label = _("Animation Hacks")
+    bl_label = "Animation Hacks"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):

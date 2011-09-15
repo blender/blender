@@ -54,8 +54,6 @@
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_armature.h"
@@ -864,8 +862,8 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 {
-	ot->name= _("Lasso Select");
-	ot->description= _("Select items using lasso selection");
+	ot->name= "Lasso Select";
+	ot->description= "Select items using lasso selection";
 	ot->idname= "VIEW3D_OT_select_lasso";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
@@ -878,8 +876,8 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", 0, _("Deselect"), _("Deselect rather than select items."));
-	RNA_def_boolean(ot->srna, "extend", 1, _("Extend"), _("Extend selection instead of deselecting everything first."));
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items.");
+	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 
@@ -1818,8 +1816,8 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Border Select");
-	ot->description= _("Select items using border selection");
+	ot->name= "Border Select";
+	ot->description= "Select items using border selection";
 	ot->idname= "VIEW3D_OT_select_border";
 	
 	/* api callbacks */
@@ -1895,8 +1893,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void VIEW3D_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Activate/Select");
-	ot->description= _("Activate/select item(s)");
+	ot->name= "Activate/Select";
+	ot->description= "Activate/select item(s)";
 	ot->idname= "VIEW3D_OT_select";
 	
 	/* api callbacks */
@@ -1907,10 +1905,10 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Extend selection instead of deselecting everything first."));
-	RNA_def_boolean(ot->srna, "center", 0, _("Center"), _("Use the object center when selecting, in editmode used to extend object selection."));
-	RNA_def_boolean(ot->srna, "enumerate", 0, _("Enumerate"), _("List objects under the mouse (object mode only)."));
-	RNA_def_boolean(ot->srna, "object", 0, _("Object"), _("Use object selection (editmode only)."));
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection.");
+	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only).");
+	RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only).");
 }
 
 
@@ -2311,8 +2309,8 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
-	ot->name= _("Circle Select");
-	ot->description= _("Select items using circle selection");
+	ot->name= "Circle Select";
+	ot->description= "Select items using circle selection";
 	ot->idname= "VIEW3D_OT_select_circle";
 	
 	ot->invoke= WM_gesture_circle_invoke;
@@ -2326,6 +2324,6 @@ void VIEW3D_OT_select_circle(wmOperatorType *ot)
 	
 	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, _("Radius"), "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, _("Event Type"), "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Event Type", "", INT_MIN, INT_MAX);
 }

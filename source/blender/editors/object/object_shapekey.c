@@ -45,8 +45,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -299,9 +297,9 @@ static int shape_key_add_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Shape Key");
+	ot->name= "Add Shape Key";
 	ot->idname= "OBJECT_OT_shape_key_add";
-	ot->description= _("Add shape key to the object");
+	ot->description= "Add shape key to the object";
 	
 	/* api callbacks */
 	ot->poll= shape_key_mode_poll;
@@ -311,7 +309,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "from_mix", 1, _("From Mix"), _("Create the new shape key from the existing mix of keys."));
+	RNA_def_boolean(ot->srna, "from_mix", 1, "From Mix", "Create the new shape key from the existing mix of keys.");
 }
 
 static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))
@@ -327,9 +325,9 @@ static int shape_key_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Remove Shape Key");
+	ot->name= "Remove Shape Key";
 	ot->idname= "OBJECT_OT_shape_key_remove";
-	ot->description= _("Remove shape key from the object");
+	ot->description= "Remove shape key from the object";
 	
 	/* api callbacks */
 	ot->poll= shape_key_mode_poll;
@@ -360,8 +358,8 @@ static int shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Shape Keys");
-	ot->description= _("Clear weights for all shape keys");
+	ot->name= "Clear Shape Keys";
+	ot->description= "Clear weights for all shape keys";
 	ot->idname= "OBJECT_OT_shape_key_clear";
 	
 	/* api callbacks */
@@ -385,7 +383,7 @@ static int shape_key_mirror_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Mirror Shape Key");
+	ot->name= "Mirror Shape Key";
 	ot->idname= "OBJECT_OT_shape_key_mirror";
 
 	/* api callbacks */
@@ -448,13 +446,13 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 {
 	static EnumPropertyItem slot_move[] = {
-		{-1, "UP", 0, N_("Up"), ""},
-		{1, "DOWN", 0, N_("Down"), ""},
+		{-1, "UP", 0, "Up", ""},
+		{1, "DOWN", 0, "Down", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
-	ot->name= _("Move Shape Key");
+	ot->name= "Move Shape Key";
 	ot->idname= "OBJECT_OT_shape_key_move";
 
 	/* api callbacks */
@@ -464,6 +462,6 @@ void OBJECT_OT_shape_key_move(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(slot_move), 0, _("Type"), "");
+	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
 

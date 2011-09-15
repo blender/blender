@@ -21,7 +21,6 @@
 
 set(INC
 	../include
-	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader

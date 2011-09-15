@@ -42,8 +42,6 @@
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "ED_node.h"
 #include "ED_screen.h"
 #include "ED_types.h"
@@ -141,9 +139,9 @@ static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void NODE_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select");
+	ot->name= "Select";
 	ot->idname= "NODE_OT_select";
-	ot->description= _("Select node under cursor");
+	ot->description= "Select node under cursor";
 	
 	/* api callbacks */
 	ot->invoke= node_select_invoke;
@@ -153,9 +151,9 @@ void NODE_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, _("Mouse X"), "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, _("Mouse Y"), "", INT_MIN, INT_MAX);
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), "");
+	RNA_def_int(ot->srna, "mouse_x", 0, INT_MIN, INT_MAX, "Mouse X", "", INT_MIN, INT_MAX);
+	RNA_def_int(ot->srna, "mouse_y", 0, INT_MIN, INT_MAX, "Mouse Y", "", INT_MIN, INT_MAX);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
 }
 
 /* ****** Border Select ****** */
@@ -216,9 +214,9 @@ static int node_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event
 void NODE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Border Select");
+	ot->name= "Border Select";
 	ot->idname= "NODE_OT_select_border";
-	ot->description= _("Use box selection to select nodes");
+	ot->description= "Use box selection to select nodes";
 	
 	/* api callbacks */
 	ot->invoke= node_border_select_invoke;
@@ -233,7 +231,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
-	RNA_def_boolean(ot->srna, "tweak", 0, _("Tweak"), _("Only activate when mouse is not over a node - useful for tweak gesture"));
+	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
 }
 
 /* ****** Select/Deselect All ****** */
@@ -267,8 +265,8 @@ static int node_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = _("Select or Deselect All");
-	ot->description = _("(De)select all nodes");
+	ot->name = "Select or Deselect All";
+	ot->description = "(De)select all nodes";
 	ot->idname = "NODE_OT_select_all";
 	
 	/* api callbacks */
@@ -309,8 +307,8 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_select_linked_to(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = _("Select Linked To");
-	ot->description = _("Select nodes linked to the selected ones");
+	ot->name = "Select Linked To";
+	ot->description = "Select nodes linked to the selected ones";
 	ot->idname = "NODE_OT_select_linked_to";
 	
 	/* api callbacks */
@@ -351,8 +349,8 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_select_linked_from(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = _("Select Linked From");
-	ot->description = _("Select nodes linked from the selected ones");
+	ot->name = "Select Linked From";
+	ot->description = "Select nodes linked from the selected ones";
 	ot->idname = "NODE_OT_select_linked_from";
 	
 	/* api callbacks */
@@ -380,8 +378,8 @@ static int node_select_same_type_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_select_same_type(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = _("Select Same Type");
-	ot->description = _("Select all the same type");
+	ot->name = "Select Same Type";
+	ot->description = "Select all the same type";
 	ot->idname = "NODE_OT_select_same_type";
 	
 	/* api callbacks */
@@ -410,8 +408,8 @@ static int node_select_same_type_next_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_select_same_type_next(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = _("Select Same Type Next");
-	ot->description = _("Select the next node of the same type.");
+	ot->name = "Select Same Type Next";
+	ot->description = "Select the next node of the same type.";
 	ot->idname = "NODE_OT_select_same_type_next";
 	
 	/* api callbacks */
@@ -437,8 +435,8 @@ static int node_select_same_type_prev_exec(bContext *C, wmOperator *UNUSED(op))
 void NODE_OT_select_same_type_prev(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = _("Select Same Type Prev");
-	ot->description = _("Select the prev node of the same type.");
+	ot->name = "Select Same Type Prev";
+	ot->description = "Select the prev node of the same type.";
 	ot->idname = "NODE_OT_select_same_type_prev";
 	
 	/* api callbacks */

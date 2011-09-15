@@ -374,7 +374,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			EnumPropertyItem *item;
 			int i, totitem, free;
 
-			RNA_property_enum_items(C, &but->rnapoin, but->rnaprop, &item, &totitem, &free);
+			RNA_property_enum_items_gettexted(C, &but->rnapoin, but->rnaprop, &item, &totitem, &free);
 
 			for(i=0; i<totitem; i++) {
 				if(item[i].identifier[0] && item[i].value == (int)but->hardmax) {

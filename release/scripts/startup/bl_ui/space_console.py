@@ -38,7 +38,7 @@ class CONSOLE_HT_header(Header):
 
 
 class CONSOLE_MT_console(Menu):
-    bl_label = _("Console")
+    bl_label = "Console"
 
     def draw(self, context):
         layout = self.layout
@@ -55,7 +55,7 @@ class CONSOLE_MT_console(Menu):
 
 
 class CONSOLE_MT_language(Menu):
-    bl_label = _("Languages...")
+    bl_label = "Languages..."
 
     def draw(self, context):
         import sys
@@ -84,7 +84,7 @@ def add_scrollback(text, text_type):
 class ConsoleExec(Operator):
     '''Execute the current console line as a python expression'''
     bl_idname = "console.execute"
-    bl_label = _("Console Execute")
+    bl_label = "Console Execute"
 
     def execute(self, context):
         sc = context.space_data
@@ -102,7 +102,7 @@ class ConsoleExec(Operator):
 class ConsoleAutocomplete(Operator):
     '''Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one'''
     bl_idname = "console.autocomplete"
-    bl_label = _("Console Autocomplete")
+    bl_label = "Console Autocomplete"
 
     def execute(self, context):
         sc = context.space_data
@@ -119,7 +119,7 @@ class ConsoleAutocomplete(Operator):
 class ConsoleBanner(Operator):
     '''Print a message whem the terminal initializes'''
     bl_idname = "console.banner"
-    bl_label = _("Console Banner")
+    bl_label = "Console Banner"
 
     def execute(self, context):
         sc = context.space_data
@@ -141,10 +141,10 @@ class ConsoleBanner(Operator):
 class ConsoleLanguage(Operator):
     '''Set the current language for this console'''
     bl_idname = "console.language"
-    bl_label = _("Console Language")
+    bl_label = "Console Language"
 
     language = StringProperty(
-            name=_("Language"),
+            name="Language",
             maxlen=32,
             )
 

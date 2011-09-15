@@ -23,21 +23,21 @@ from blf import gettext as _
 
 
 class RENDER_MT_presets(Menu):
-    bl_label = _("Render Presets")
+    bl_label = "Render Presets"
     preset_subdir = "render"
     preset_operator = "script.execute_preset"
     draw = Menu.draw_preset
 
 
 class RENDER_MT_ffmpeg_presets(Menu):
-    bl_label = _("FFMPEG Presets")
+    bl_label = "FFMPEG Presets"
     preset_subdir = "ffmpeg"
     preset_operator = "script.python_file_run"
     draw = Menu.draw_preset
 
 
 class RENDER_MT_framerate_presets(Menu):
-    bl_label = _("Frame Rate Presets")
+    bl_label = "Frame Rate Presets"
     preset_subdir = "framerate"
     preset_operator = "script.execute_preset"
     draw = Menu.draw_preset
@@ -56,7 +56,7 @@ class RenderButtonsPanel():
 
 
 class RENDER_PT_render(RenderButtonsPanel, Panel):
-    bl_label = _("Render")
+    bl_label = "Render"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -72,7 +72,7 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_layers(RenderButtonsPanel, Panel):
-    bl_label = _("Layers")
+    bl_label = "Layers"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -176,7 +176,7 @@ class RENDER_PT_layers(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
-    bl_label = _("Dimensions")
+    bl_label = "Dimensions"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -212,9 +212,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         col = split.column()
         sub = col.column(align=True)
         sub.label(text=_("Frame Range:"))
-        sub.prop(scene, "frame_start", text=_("Start"))
-        sub.prop(scene, "frame_end", text=_("End"))
-        sub.prop(scene, "frame_step", text=_("Step"))
+        sub.prop(scene, "frame_start")
+        sub.prop(scene, "frame_end")
+        sub.prop(scene, "frame_step")
 
         sub.label(text=_("Frame Rate:"))
         if rd.fps_base == 1:
@@ -243,7 +243,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_antialiasing(RenderButtonsPanel, Panel):
-    bl_label = _("Anti-Aliasing")
+    bl_label = "Anti-Aliasing"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -271,7 +271,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_motion_blur(RenderButtonsPanel, Panel):
-    bl_label = _("Sampled Motion Blur")
+    bl_label = "Sampled Motion Blur"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -297,7 +297,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_shading(RenderButtonsPanel, Panel):
-    bl_label = _("Shading")
+    bl_label = "Shading"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -321,7 +321,7 @@ class RENDER_PT_shading(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_performance(RenderButtonsPanel, Panel):
-    bl_label = _("Performance")
+    bl_label = "Performance"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -364,7 +364,7 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
-    bl_label = _("Post Processing")
+    bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -401,7 +401,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_stamp(RenderButtonsPanel, Panel):
-    bl_label = _("Stamp")
+    bl_label = "Stamp"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -446,7 +446,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_output(RenderButtonsPanel, Panel):
-    bl_label = _("Output")
+    bl_label = "Output"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -546,7 +546,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_encoding(RenderButtonsPanel, Panel):
-    bl_label = _("Encoding")
+    bl_label = "Encoding"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -599,7 +599,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_bake(RenderButtonsPanel, Panel):
-    bl_label = _("Bake")
+    bl_label = "Bake"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 

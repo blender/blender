@@ -128,7 +128,7 @@ def _merge_keymaps(kc1, kc2):
 
 
 class USERPREF_MT_keyconfigs(Menu):
-    bl_label = _("KeyPresets")
+    bl_label = "KeyPresets"
     preset_subdir = "keyconfig"
     preset_operator = "wm.keyconfig_activate"
 
@@ -143,7 +143,7 @@ class USERPREF_MT_keyconfigs(Menu):
 
 class InputKeyMapPanel:
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = _("Input")
+    bl_label = "Input"
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
@@ -263,7 +263,7 @@ class InputKeyMapPanel:
         if km.is_modal:
             row.prop(kmi, "propvalue", text="")
         else:
-            row.label(text=kmi.name)
+            row.label(text=_(kmi.name))
 
         row = split.row()
         row.prop(kmi, "map_type", text="")
@@ -426,7 +426,6 @@ class WM_OT_keyconfig_test(Operator):
     "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
     bl_label = _("Test Key Configuration for Conflicts")
-    __doc__ = _("Test keyconfig for conflicts")
 
     def testEntry(self, kc, entry, src=None, parent=None):
         result = False
@@ -534,32 +533,31 @@ def _string_value(value):
 class WM_OT_keyconfig_import(Operator):
     "Import key configuration from a python script"
     bl_idname = "wm.keyconfig_import"
-    bl_label = _("Import Key Configuration...")
-    __doc__ = _("Import key configuration from a python script")
+    bl_label = "Import Key Configuration..."
 
     filepath = StringProperty(
-            name=_("File Path"),
-            description=_("Filepath to write file to"),
+            name="File Path",
+            description="Filepath to write file to",
             default="keymap.py",
             )
     filter_folder = BoolProperty(
-            name=_("Filter folders"),
+            name="Filter folders",
             default=True,
             options={'HIDDEN'},
             )
     filter_text = BoolProperty(
-            name=_("Filter text"),
+            name="Filter text",
             default=True,
             options={'HIDDEN'},
             )
     filter_python = BoolProperty(
-            name=_("Filter python"),
+            name="Filter python",
             default=True,
             options={'HIDDEN'},
             )
     keep_original = BoolProperty(
-            name=_("Keep original"),
-            description=_("Keep original file after copying to configuration folder"),
+            name="Keep original",
+            description="Keep original file after copying to configuration folder",
             default=True,
             )
 
@@ -602,25 +600,24 @@ class WM_OT_keyconfig_export(Operator):
     "Export key configuration to a python script"
     bl_idname = "wm.keyconfig_export"
     bl_label = _("Export Key Configuration...")
-    __doc__ = _("Export key configuration to a python script")
 
     filepath = StringProperty(
-            name=_("File Path"),
-            description=_("Filepath to write file to"),
+            name="File Path",
+            description="Filepath to write file to",
             default="keymap.py",
             )
     filter_folder = BoolProperty(
-            name=_("Filter folders"),
+            name="Filter folders",
             default=True,
             options={'HIDDEN'},
             )
     filter_text = BoolProperty(
-            name=_("Filter text"),
+            name="Filter text",
             default=True,
             options={'HIDDEN'},
             )
     filter_python = BoolProperty(
-            name=_("Filter python"),
+            name="Filter python",
             default=True,
             options={'HIDDEN'},
             )
@@ -711,12 +708,11 @@ class WM_OT_keyconfig_export(Operator):
 class WM_OT_keymap_restore(Operator):
     "Restore key map(s)"
     bl_idname = "wm.keymap_restore"
-    bl_label = _("Restore Key Map(s)")
-    __doc__ = _("Restore key map(s)")
+    bl_label = "Restore Key Map(s)"
 
     all = BoolProperty(
-            name=_("All Keymaps"),
-            description=_("Restore all keymaps to default"),
+            name="All Keymaps",
+            description="Restore all keymaps to default",
             )
 
     def execute(self, context):
@@ -735,12 +731,11 @@ class WM_OT_keymap_restore(Operator):
 class WM_OT_keyitem_restore(Operator):
     "Restore key map item"
     bl_idname = "wm.keyitem_restore"
-    bl_label = _("Restore Key Map Item")
-    __doc__ = _("Restore key map item")
+    bl_label = "Restore Key Map Item"
 
     item_id = IntProperty(
-            name=_("Item Identifier"),
-            description=_("Identifier of the item to remove"),
+            name="Item Identifier",
+            description="Identifier of the item to remove",
             )
 
     @classmethod
@@ -761,8 +756,7 @@ class WM_OT_keyitem_restore(Operator):
 class WM_OT_keyitem_add(Operator):
     "Add key map item"
     bl_idname = "wm.keyitem_add"
-    bl_label = _("Add Key Map Item")
-    __doc__ = _("Add key map item")
+    bl_label = "Add Key Map Item"
 
     def execute(self, context):
         km = context.keymap
@@ -784,12 +778,11 @@ class WM_OT_keyitem_add(Operator):
 class WM_OT_keyitem_remove(Operator):
     "Remove key map item"
     bl_idname = "wm.keyitem_remove"
-    bl_label = _("Remove Key Map Item")
-    __doc__ = _("Remove key map item")
+    bl_label = "Remove Key Map Item"
 
     item_id = IntProperty(
-            name=_("Item Identifier"),
-            description=_("Identifier of the item to remove"),
+            name="Item Identifier",
+            description="Identifier of the item to remove",
             )
 
     @classmethod
@@ -806,8 +799,7 @@ class WM_OT_keyitem_remove(Operator):
 class WM_OT_keyconfig_remove(Operator):
     "Remove key config"
     bl_idname = "wm.keyconfig_remove"
-    bl_label = _("Remove Key Config")
-    __doc__ = _("Remove key config")
+    bl_label = "Remove Key Config"
 
     @classmethod
     def poll(cls, context):

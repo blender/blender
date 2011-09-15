@@ -43,8 +43,6 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_context.h"
@@ -358,9 +356,9 @@ void VIEW3D_OT_smoothview(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Smooth View");
+	ot->name= "Smooth View";
 	ot->idname= "VIEW3D_OT_smoothview";
-	ot->description=_("The time to animate the change of view (in milliseconds)");
+	ot->description="The time to animate the change of view (in milliseconds)";
 	
 	/* api callbacks */
 	ot->invoke= view3d_smoothview_invoke;
@@ -408,8 +406,8 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Align Camera To View");
-	ot->description= _("Set camera view to active view");
+	ot->name= "Align Camera To View";
+	ot->description= "Set camera view to active view";
 	ot->idname= "VIEW3D_OT_camera_to_view";
 	
 	/* api callbacks */
@@ -454,8 +452,8 @@ void VIEW3D_OT_object_as_camera(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Set Active Object as Camera");
-	ot->description= _("Set the active object as the active camera for this view or scene");
+	ot->name= "Set Active Object as Camera";
+	ot->description= "Set the active object as the active camera for this view or scene";
 	ot->idname= "VIEW3D_OT_object_as_camera";
 	
 	/* api callbacks */
@@ -1620,8 +1618,8 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Local View");
-	ot->description= _("Toggle display of selected object(s) separately and centered in view");
+	ot->name= "Local View";
+	ot->description= "Toggle display of selected object(s) separately and centered in view";
 	ot->idname= "VIEW3D_OT_localview";
 	
 	/* api callbacks */
@@ -1846,8 +1844,8 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Start Game Engine");
-	ot->description= _("Start game engine");
+	ot->name= "Start Game Engine";
+	ot->description= "Start game engine";
 	ot->idname= "VIEW3D_OT_game_start";
 	
 	/* api callbacks */

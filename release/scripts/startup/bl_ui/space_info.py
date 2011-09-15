@@ -89,7 +89,7 @@ class INFO_HT_header(Header):
 
 
 class INFO_MT_report(Menu):
-    bl_label = _("Report")
+    bl_label = "Report"
 
     def draw(self, context):
         layout = self.layout
@@ -101,7 +101,7 @@ class INFO_MT_report(Menu):
 
 
 class INFO_MT_file(Menu):
-    bl_label = _("File");
+    bl_label = "File"
 
     def draw(self, context):
         layout = self.layout
@@ -156,7 +156,7 @@ class INFO_MT_file(Menu):
 
 class INFO_MT_file_import(Menu):
     bl_idname = "INFO_MT_file_import"
-    bl_label = _("Import")
+    bl_label = "Import"
 
     def draw(self, context):
         if hasattr(bpy.types, "WM_OT_collada_import"):
@@ -165,7 +165,7 @@ class INFO_MT_file_import(Menu):
 
 class INFO_MT_file_export(Menu):
     bl_idname = "INFO_MT_file_export"
-    bl_label = _("Export")
+    bl_label = "Export"
 
     def draw(self, context):
         if hasattr(bpy.types, "WM_OT_collada_export"):
@@ -173,7 +173,7 @@ class INFO_MT_file_export(Menu):
 
 
 class INFO_MT_file_external_data(Menu):
-    bl_label = _("External Data")
+    bl_label = "External Data"
 
     def draw(self, context):
         layout = self.layout
@@ -191,7 +191,7 @@ class INFO_MT_file_external_data(Menu):
 
 class INFO_MT_mesh_add(Menu):
     bl_idname = "INFO_MT_mesh_add"
-    bl_label = _("Mesh")
+    bl_label = "Mesh"
 
     def draw(self, context):
         layout = self.layout
@@ -212,7 +212,7 @@ class INFO_MT_mesh_add(Menu):
 
 class INFO_MT_curve_add(Menu):
     bl_idname = "INFO_MT_curve_add"
-    bl_label = _("Curve")
+    bl_label = "Curve"
 
     def draw(self, context):
         layout = self.layout
@@ -227,7 +227,7 @@ class INFO_MT_curve_add(Menu):
 
 class INFO_MT_edit_curve_add(Menu):
     bl_idname = "INFO_MT_edit_curve_add"
-    bl_label = _("Add")
+    bl_label = "Add"
 
     def draw(self, context):
         is_surf = context.active_object.type == 'SURFACE'
@@ -243,7 +243,7 @@ class INFO_MT_edit_curve_add(Menu):
 
 class INFO_MT_surface_add(Menu):
     bl_idname = "INFO_MT_surface_add"
-    bl_label = _("Surface")
+    bl_label = "Surface"
 
     def draw(self, context):
         layout = self.layout
@@ -259,7 +259,7 @@ class INFO_MT_surface_add(Menu):
 
 class INFO_MT_armature_add(Menu):
     bl_idname = "INFO_MT_armature_add"
-    bl_label = _("Armature")
+    bl_label = "Armature"
 
     def draw(self, context):
         layout = self.layout
@@ -269,7 +269,7 @@ class INFO_MT_armature_add(Menu):
 
 
 class INFO_MT_add(Menu):
-    bl_label = _("Add")
+    bl_label = "Add"
 
     def draw(self, context):
         layout = self.layout
@@ -312,7 +312,7 @@ class INFO_MT_add(Menu):
 
 
 class INFO_MT_game(Menu):
-    bl_label = _("Game")
+    bl_label = "Game"
 
     def draw(self, context):
         layout = self.layout
@@ -333,7 +333,7 @@ class INFO_MT_game(Menu):
 
 
 class INFO_MT_render(Menu):
-    bl_label = _("Render")
+    bl_label = "Render"
 
     def draw(self, context):
         layout = self.layout
@@ -353,7 +353,7 @@ class INFO_MT_render(Menu):
 
 
 class INFO_MT_help(Menu):
-    bl_label = _("Help")
+    bl_label = "Help"
 
     def draw(self, context):
         import sys
@@ -390,7 +390,7 @@ class INFO_MT_help(Menu):
 
 class HELP_OT_operator_cheat_sheet(Operator):
     bl_idname = "help.operator_cheat_sheet"
-    bl_label = _("Operator Cheat Sheet")
+    bl_label = "Operator Cheat Sheet"
 
     def execute(self, context):
         op_strings = []

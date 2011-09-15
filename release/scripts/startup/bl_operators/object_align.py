@@ -21,7 +21,6 @@
 import bpy
 from bpy.types import Operator
 from mathutils import Vector
-from blf import gettext as _
 
 
 def GlobalBB_LQ(bb_world):
@@ -344,16 +343,18 @@ from bpy.props import EnumProperty, BoolProperty
 class AlignObjects(Operator):
     '''Align Objects'''
     bl_idname = "object.align"
-    bl_label = _("Align Objects")
+    bl_label = "Align Objects"
     bl_options = {'REGISTER', 'UNDO'}
 
     bb_quality = BoolProperty(
-            name=_("High Quality"),
-            description=_("Enables high quality calculation of the bounding box for perfect results on complex shape meshes with rotation/scale (Slow)"),
+            name="High Quality",
+            description=("Enables high quality calculation of the "
+                         "bounding box for perfect results on complex "
+                         "shape meshes with rotation/scale (Slow)"),
             default=True,
             )
     align_mode = EnumProperty(
-            name=_("Align Mode:"),
+            name="Align Mode:",
             items=(('OPT_1', "Negative Sides", ""),
                    ('OPT_2', "Centers", ""),
                    ('OPT_3', "Positive Sides", ""),
@@ -361,7 +362,7 @@ class AlignObjects(Operator):
             default='OPT_2',
             )
     relative_to = EnumProperty(
-            name=_("Relative To:"),
+            name="Relative To:",
             items=(('OPT_1', "Scene Origin", ""),
                    ('OPT_2', "3D Cursor", ""),
                    ('OPT_3', "Selection", ""),
@@ -370,8 +371,8 @@ class AlignObjects(Operator):
             default='OPT_4',
             )
     align_axis = EnumProperty(
-            name=_("Align"),
-            description=_("Align to axis"),
+            name="Align",
+            description="Align to axis",
             items=(('X', "X", ""),
                    ('Y', "Y", ""),
                    ('Z', "Z", ""),

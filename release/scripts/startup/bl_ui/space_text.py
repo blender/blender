@@ -79,7 +79,7 @@ class TEXT_HT_header(Header):
 class TEXT_PT_properties(Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
-    bl_label = _("Properties")
+    bl_label = "Properties"
 
     def draw(self, context):
         layout = self.layout
@@ -110,7 +110,7 @@ class TEXT_PT_properties(Panel):
 class TEXT_PT_find(Panel):
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
-    bl_label = _("Find")
+    bl_label = "Find"
 
     def draw(self, context):
         layout = self.layout
@@ -142,7 +142,7 @@ class TEXT_PT_find(Panel):
 
 
 class TEXT_MT_view(Menu):
-    bl_label = _("View")
+    bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
@@ -165,7 +165,7 @@ class TEXT_MT_view(Menu):
 
 
 class TEXT_MT_text(Menu):
-    bl_label = _("Text")
+    bl_label = "Text"
 
     def draw(self, context):
         layout = self.layout
@@ -193,7 +193,7 @@ class TEXT_MT_text(Menu):
 
 
 class TEXT_MT_templates(Menu):
-    bl_label = _("Templates")
+    bl_label = "Templates"
 
     def draw(self, context):
         self.path_menu(bpy.utils.script_paths("templates"),
@@ -203,7 +203,7 @@ class TEXT_MT_templates(Menu):
 
 
 class TEXT_MT_edit_select(Menu):
-    bl_label = _("Select")
+    bl_label = "Select"
 
     def draw(self, context):
         layout = self.layout
@@ -213,7 +213,7 @@ class TEXT_MT_edit_select(Menu):
 
 
 class TEXT_MT_edit_markers(Menu):
-    bl_label = _("Markers")
+    bl_label = "Markers"
 
     def draw(self, context):
         layout = self.layout
@@ -224,7 +224,7 @@ class TEXT_MT_edit_markers(Menu):
 
 
 class TEXT_MT_format(Menu):
-    bl_label = _("Format")
+    bl_label = "Format"
 
     def draw(self, context):
         layout = self.layout
@@ -243,7 +243,7 @@ class TEXT_MT_format(Menu):
 
 
 class TEXT_MT_edit_to3d(Menu):
-    bl_label = _("Text To 3D Object")
+    bl_label = "Text To 3D Object"
 
     def draw(self, context):
         layout = self.layout
@@ -257,7 +257,7 @@ class TEXT_MT_edit_to3d(Menu):
 
 
 class TEXT_MT_edit(Menu):
-    bl_label = _("Edit")
+    bl_label = "Edit"
 
     @classmethod
     def poll(cls, context):

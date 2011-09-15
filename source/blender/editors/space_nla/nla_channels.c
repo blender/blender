@@ -43,8 +43,6 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
@@ -346,9 +344,9 @@ static int nlachannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *e
 void NLA_OT_channels_click (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Mouse Click on NLA Channels");
+	ot->name= "Mouse Click on NLA Channels";
 	ot->idname= "NLA_OT_channels_click";
-	ot->description= _("Handle clicks to select NLA channels");
+	ot->description= "Handle clicks to select NLA channels";
 	
 	/* api callbacks */
 	ot->invoke= nlachannels_mouseclick_invoke;
@@ -358,7 +356,7 @@ void NLA_OT_channels_click (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
 }
 
 /* *********************************************** */
@@ -420,9 +418,9 @@ static int nlaedit_add_tracks_exec (bContext *C, wmOperator *op)
 void NLA_OT_tracks_add (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Track(s)");
+	ot->name= "Add Track(s)";
 	ot->idname= "NLA_OT_tracks_add";
-	ot->description= _("Add NLA-Tracks above/after the selected tracks");
+	ot->description= "Add NLA-Tracks above/after the selected tracks";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_add_tracks_exec;
@@ -432,7 +430,7 @@ void NLA_OT_tracks_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "above_selected", 0, _("Above Selected"), _("Add a new NLA Track above every existing selected one."));
+	RNA_def_boolean(ot->srna, "above_selected", 0, "Above Selected", "Add a new NLA Track above every existing selected one.");
 }
 
 /* ******************** Delete Tracks Operator ***************************** */
@@ -484,9 +482,9 @@ static int nlaedit_delete_tracks_exec (bContext *C, wmOperator *UNUSED(op))
 void NLA_OT_delete_tracks (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Delete Tracks");
+	ot->name= "Delete Tracks";
 	ot->idname= "NLA_OT_delete_tracks";
-	ot->description= _("Delete selected NLA-Tracks and the strips they contain");
+	ot->description= "Delete selected NLA-Tracks and the strips they contain";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_delete_tracks_exec;

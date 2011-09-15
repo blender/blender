@@ -37,8 +37,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 
 #include "ED_screen.h"
@@ -77,9 +75,9 @@ static int time_set_sfra_exec (bContext *C, wmOperator *UNUSED(op))
 static void TIME_OT_start_frame_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Start Frame");
+	ot->name= "Set Start Frame";
 	ot->idname= "TIME_OT_start_frame_set";
-	ot->description=_("Set the start frame");
+	ot->description="Set the start frame";
 	
 	/* api callbacks */
 	ot->exec= time_set_sfra_exec;
@@ -119,9 +117,9 @@ static int time_set_efra_exec (bContext *C, wmOperator *UNUSED(op))
 static void TIME_OT_end_frame_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set End Frame");
+	ot->name= "Set End Frame";
 	ot->idname= "TIME_OT_end_frame_set";
-	ot->description=_("Set the end frame");
+	ot->description="Set the end frame";
 	
 	/* api callbacks */
 	ot->exec= time_set_efra_exec;
@@ -161,9 +159,9 @@ static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
 static void TIME_OT_view_all (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("View All");
+	ot->name= "View All";
 	ot->idname= "TIME_OT_view_all";
-	ot->description= _("Show the entire playable frame range");
+	ot->description= "Show the entire playable frame range";
 	
 	/* api callbacks */
 	ot->exec= time_view_all_exec;

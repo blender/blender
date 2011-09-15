@@ -27,7 +27,7 @@ from bpy.props import (BoolProperty,
                        FloatProperty,
                        FloatVectorProperty,
                        )
-from blf import gettext as _
+
 
 def object_ensure_material(obj, mat_name):
     """ Use an existing material or add a new one.
@@ -306,8 +306,8 @@ class QuickSmoke(Operator):
             )
 
     show_flows = BoolProperty(
-            name=_("Render Smoke Objects"),
-            description=_("Keep the smoke objects visible during rendering."),
+            name="Render Smoke Objects",
+            description="Keep the smoke objects visible during rendering.",
             default=False,
             )
 
@@ -420,20 +420,21 @@ class QuickFluid(Operator):
             default='BASIC',
             )
     initial_velocity = FloatVectorProperty(
-            name=_("Initial Velocity"),
-            description=_("Initial velocity of the fluid"),
+            name="Initial Velocity",
+            description="Initial velocity of the fluid",
             min=-100.0, max=100.0,
             default=(0.0, 0.0, 0.0),
             subtype='VELOCITY',
             )
     show_flows = BoolProperty(
-            name=_("Render Fluid Objects"),
-            description=_("Keep the fluid objects visible during rendering."),
+            name="Render Fluid Objects",
+            description="Keep the fluid objects visible during rendering.",
             default=False,
             )
     start_baking = BoolProperty(
-            name=_("Start Fluid Bake"),
-            description=_("Start baking the fluid immediately after creating the domain object"),
+            name="Start Fluid Bake",
+            description=("Start baking the fluid immediately "
+                         "after creating the domain object"),
             default=False,
             )
 

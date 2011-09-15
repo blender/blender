@@ -39,8 +39,6 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -243,8 +241,8 @@ static int select_all_exec(bContext *C, wmOperator *op)
 void LATTICE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select or Deselect All");
-	ot->description= _("Change selection of all UVW control points");
+	ot->name= "Select or Deselect All";
+	ot->description= "Change selection of all UVW control points";
 	ot->idname= "LATTICE_OT_select_all";
 	
 	/* api callbacks */
@@ -291,8 +289,8 @@ static int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 void LATTICE_OT_make_regular(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Make Regular");
-	ot->description= _("Set UVW control points a uniform distance apart");
+	ot->name= "Make Regular";
+	ot->description= "Set UVW control points a uniform distance apart";
 	ot->idname= "LATTICE_OT_make_regular";
 	
 	/* api callbacks */

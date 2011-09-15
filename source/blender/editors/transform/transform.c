@@ -53,7 +53,6 @@
 #include "DNA_scene_types.h"		/* PET modes			*/
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -85,8 +84,6 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
-
-#include "BLF_api.h"
 
 #include "UI_resources.h"
 
@@ -492,29 +489,29 @@ static void view_editmove(unsigned short UNUSED(event))
 wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{TFM_MODAL_CANCEL, "CANCEL", 0, N_("Cancel"), ""},
-	{TFM_MODAL_CONFIRM, "CONFIRM", 0, N_("Confirm"), ""},
-	{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, N_("Translate"), ""},
-	{TFM_MODAL_ROTATE, "ROTATE", 0, N_("Rotate"), ""},
-	{TFM_MODAL_RESIZE, "RESIZE", 0, N_("Resize"), ""},
-	{TFM_MODAL_SNAP_INV_ON, "SNAP_INV_ON", 0, N_("Invert Snap On"), ""},
-	{TFM_MODAL_SNAP_INV_OFF, "SNAP_INV_OFF", 0, N_("Invert Snap Off"), ""},
-	{TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, N_("Snap Toggle"), ""},
-	{TFM_MODAL_AXIS_X, "AXIS_X", 0, N_("Orientation X axis"), ""},
-	{TFM_MODAL_AXIS_Y, "AXIS_Y", 0, N_("Orientation Y axis"), ""},
-	{TFM_MODAL_AXIS_Z, "AXIS_Z", 0, N_("Orientation Z axis"), ""},
-	{TFM_MODAL_PLANE_X, "PLANE_X", 0, N_("Orientation X plane"), ""},
-	{TFM_MODAL_PLANE_Y, "PLANE_Y", 0, N_("Orientation Y plane"), ""},
-	{TFM_MODAL_PLANE_Z, "PLANE_Z", 0, N_("Orientation Z plane"), ""},
-	{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, N_("Remove Constraints"), ""},
-	{TFM_MODAL_ADD_SNAP, "ADD_SNAP", 0, N_("Add Snap Point"), ""},
-	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, N_("Remove Last Snap Point"), ""},
-	{NUM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, N_("Numinput Increment Up"), ""},
-	{NUM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, N_("Numinput Increment Down"), ""},
-	{TFM_MODAL_PROPSIZE_UP, "PROPORTIONAL_SIZE_UP", 0, N_("Increase Proportional Influence"), ""},
-	{TFM_MODAL_PROPSIZE_DOWN, "PROPORTIONAL_SIZE_DOWN", 0, N_("Decrease Poportional Influence"), ""},
-	{TFM_MODAL_AUTOIK_LEN_INC, "AUTOIK_CHAIN_LEN_UP", 0, N_("Increase Max AutoIK Chain Length"), ""},
-	{TFM_MODAL_AUTOIK_LEN_DEC, "AUTOIK_CHAIN_LEN_DOWN", 0, N_("Decrease Max AutoIK Chain Length"), ""},
+	{TFM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
+	{TFM_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
+	{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+	{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
+	{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
+	{TFM_MODAL_SNAP_INV_ON, "SNAP_INV_ON", 0, "Invert Snap On", ""},
+	{TFM_MODAL_SNAP_INV_OFF, "SNAP_INV_OFF", 0, "Invert Snap Off", ""},
+	{TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
+	{TFM_MODAL_AXIS_X, "AXIS_X", 0, "Orientation X axis", ""},
+	{TFM_MODAL_AXIS_Y, "AXIS_Y", 0, "Orientation Y axis", ""},
+	{TFM_MODAL_AXIS_Z, "AXIS_Z", 0, "Orientation Z axis", ""},
+	{TFM_MODAL_PLANE_X, "PLANE_X", 0, "Orientation X plane", ""},
+	{TFM_MODAL_PLANE_Y, "PLANE_Y", 0, "Orientation Y plane", ""},
+	{TFM_MODAL_PLANE_Z, "PLANE_Z", 0, "Orientation Z plane", ""},
+	{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Remove Constraints", ""},
+	{TFM_MODAL_ADD_SNAP, "ADD_SNAP", 0, "Add Snap Point", ""},
+	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
+	{NUM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
+	{NUM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
+	{TFM_MODAL_PROPSIZE_UP, "PROPORTIONAL_SIZE_UP", 0, "Increase Proportional Influence", ""},
+	{TFM_MODAL_PROPSIZE_DOWN, "PROPORTIONAL_SIZE_DOWN", 0, "Decrease Poportional Influence", ""},
+	{TFM_MODAL_AUTOIK_LEN_INC, "AUTOIK_CHAIN_LEN_UP", 0, "Increase Max AutoIK Chain Length", ""},
+	{TFM_MODAL_AUTOIK_LEN_DEC, "AUTOIK_CHAIN_LEN_DOWN", 0, "Decrease Max AutoIK Chain Length", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -522,7 +519,7 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return NULL;
 	
-	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", RNA_enum_items_gettexted(modal_items));
+	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
 	
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, TFM_MODAL_CANCEL);

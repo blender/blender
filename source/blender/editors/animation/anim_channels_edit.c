@@ -38,8 +38,6 @@
 #include "BLI_utildefines.h"
 #include "BKE_library.h"
 
-#include "BLF_api.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -611,10 +609,10 @@ enum {
 
 /* defines for rearranging channels */
 static EnumPropertyItem prop_animchannel_rearrange_types[] = {
-	{REARRANGE_ANIMCHAN_TOP, "TOP", 0, N_("To Top"), ""},
-	{REARRANGE_ANIMCHAN_UP, "UP", 0, N_("Up"), ""},
-	{REARRANGE_ANIMCHAN_DOWN, "DOWN", 0, N_("Down"), ""},
-	{REARRANGE_ANIMCHAN_BOTTOM, "BOTTOM", 0, N_("To Bottom"), ""},
+	{REARRANGE_ANIMCHAN_TOP, "TOP", 0, "To Top", ""},
+	{REARRANGE_ANIMCHAN_UP, "UP", 0, "Up", ""},
+	{REARRANGE_ANIMCHAN_DOWN, "DOWN", 0, "Down", ""},
+	{REARRANGE_ANIMCHAN_BOTTOM, "BOTTOM", 0, "To Bottom", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1107,9 +1105,9 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 static void ANIM_OT_channels_move (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Move Channels");
+	ot->name= "Move Channels";
 	ot->idname= "ANIM_OT_channels_move";
-	ot->description = _("Rearrange selected animation channels");
+	ot->description = "Rearrange selected animation channels";
 	
 	/* api callbacks */
 	ot->exec= animchannels_rearrange_exec;
@@ -1119,7 +1117,7 @@ static void ANIM_OT_channels_move (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "direction", RNA_enum_items_gettexted(prop_animchannel_rearrange_types), REARRANGE_ANIMCHAN_DOWN, _("Direction"), "");
+	ot->prop= RNA_def_enum(ot->srna, "direction", prop_animchannel_rearrange_types, REARRANGE_ANIMCHAN_DOWN, "Direction", "");
 }
 
 /* ******************** Delete Channel Operator *********************** */
@@ -1223,9 +1221,9 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_channels_delete (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Delete Channels");
+	ot->name= "Delete Channels";
 	ot->idname= "ANIM_OT_channels_delete";
-	ot->description= _("Delete all selected animation channels");
+	ot->description= "Delete all selected animation channels";
 	
 	/* api callbacks */
 	ot->exec= animchannels_delete_exec;
@@ -1315,9 +1313,9 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_channels_visibility_set (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Visibility");
+	ot->name= "Set Visibility";
 	ot->idname= "ANIM_OT_channels_visibility_set";
-	ot->description= _("Make only the selected animation channels visible in the Graph Editor");
+	ot->description= "Make only the selected animation channels visible in the Graph Editor";
 	
 	/* api callbacks */
 	ot->exec= animchannels_visibility_set_exec;
@@ -1392,9 +1390,9 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(o
 static void ANIM_OT_channels_visibility_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Toggle Visibility");
+	ot->name= "Toggle Visibility";
 	ot->idname= "ANIM_OT_channels_visibility_toggle";
-	ot->description= _("Toggle visibility in Graph Editor of all selected animation channels");
+	ot->description= "Toggle visibility in Graph Editor of all selected animation channels";
 	
 	/* api callbacks */
 	ot->exec= animchannels_visibility_toggle_exec;
@@ -1408,18 +1406,18 @@ static void ANIM_OT_channels_visibility_toggle (wmOperatorType *ot)
 
 /* defines for setting animation-channel flags */
 static EnumPropertyItem prop_animchannel_setflag_types[] = {
-	{ACHANNEL_SETFLAG_TOGGLE, "TOGGLE", 0, N_("Toggle"), ""},
-	{ACHANNEL_SETFLAG_CLEAR, "DISABLE", 0, N_("Disable"), ""},
-	{ACHANNEL_SETFLAG_ADD, "ENABLE", 0, N_("Enable"), ""},
-	{ACHANNEL_SETFLAG_INVERT, "INVERT", 0, N_("Invert"), ""},
+	{ACHANNEL_SETFLAG_TOGGLE, "TOGGLE", 0, "Toggle", ""},
+	{ACHANNEL_SETFLAG_CLEAR, "DISABLE", 0, "Disable", ""},
+	{ACHANNEL_SETFLAG_ADD, "ENABLE", 0, "Enable", ""},
+	{ACHANNEL_SETFLAG_INVERT, "INVERT", 0, "Invert", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
 /* defines for set animation-channel settings */
 // TODO: could add some more types, but those are really quite dependent on the mode...
 static EnumPropertyItem prop_animchannel_settings_types[] = {
-	{ACHANNEL_SETTING_PROTECT, "PROTECT", 0, N_("Protect"), ""},
-	{ACHANNEL_SETTING_MUTE, "MUTE", 0, N_("Mute"), ""},
+	{ACHANNEL_SETTING_PROTECT, "PROTECT", 0, "Protect", ""},
+	{ACHANNEL_SETTING_MUTE, "MUTE", 0, "Mute", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1535,9 +1533,9 @@ static int animchannels_setflag_exec(bContext *C, wmOperator *op)
 static void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Enable Channel Setting");
+	ot->name= "Enable Channel Setting";
 	ot->idname= "ANIM_OT_channels_setting_enable";
-	ot->description= _("Enable specified setting on all selected animation channels");
+	ot->description= "Enable specified setting on all selected animation channels";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1549,17 +1547,17 @@ static void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 	
 	/* props */
 		/* flag-setting mode */
-	RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(prop_animchannel_setflag_types), ACHANNEL_SETFLAG_ADD, _("Mode"), "");
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_ADD, "Mode", "");
 		/* setting to set */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_animchannel_settings_types), 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 static void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Disable Channel Setting");
+	ot->name= "Disable Channel Setting";
 	ot->idname= "ANIM_OT_channels_setting_disable";
-	ot->description= _("Disable specified setting on all selected animation channels");
+	ot->description= "Disable specified setting on all selected animation channels";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1571,17 +1569,17 @@ static void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 	
 	/* props */
 		/* flag-setting mode */
-	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_CLEAR, _("Mode"), "");
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_CLEAR, "Mode", "");
 		/* setting to set */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 static void ANIM_OT_channels_setting_invert (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Invert Channel Setting");
+	ot->name= "Invert Channel Setting";
 	ot->idname= "ANIM_OT_channels_setting_toggle";
-	ot->description= _("Invert specified setting on all selected animation channels");
+	ot->description= "Invert specified setting on all selected animation channels";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1593,17 +1591,17 @@ static void ANIM_OT_channels_setting_invert (wmOperatorType *ot)
 	
 	/* props */
 		/* flag-setting mode */
-	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_INVERT, _("Mode"), "");
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_INVERT, "Mode", "");
 		/* setting to set */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 static void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Toggle Channel Setting");
+	ot->name= "Toggle Channel Setting";
 	ot->idname= "ANIM_OT_channels_setting_toggle";
-	ot->description= _("Toggle specified setting on all selected animation channels");
+	ot->description= "Toggle specified setting on all selected animation channels";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1615,17 +1613,17 @@ static void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
 	
 	/* props */
 		/* flag-setting mode */
-	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, _("Mode"), "");
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
 		/* setting to set */
-	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 static void ANIM_OT_channels_editable_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Toggle Channel Editability");
+	ot->name= "Toggle Channel Editability";
 	ot->idname= "ANIM_OT_channels_editable_toggle";
-	ot->description= _("Toggle editability of selected channels");
+	ot->description= "Toggle editability of selected channels";
 	
 	/* api callbacks */
 	ot->exec= animchannels_setflag_exec;
@@ -1636,9 +1634,9 @@ static void ANIM_OT_channels_editable_toggle (wmOperatorType *ot)
 	
 	/* props */
 		/* flag-setting mode */
-	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, _("Mode"), "");
+	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
 		/* setting to set */
-	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, ACHANNEL_SETTING_PROTECT, _("Type"), "");
+	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, ACHANNEL_SETTING_PROTECT, "Type", "");
 }
 
 /* ********************** Expand Channels Operator *********************** */
@@ -1668,9 +1666,9 @@ static int animchannels_expand_exec (bContext *C, wmOperator *op)
 static void ANIM_OT_channels_expand (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Expand Channels");
+	ot->name= "Expand Channels";
 	ot->idname= "ANIM_OT_channels_expand";
-	ot->description= _("Expand (i.e. open) all selected expandable animation channels");
+	ot->description= "Expand (i.e. open) all selected expandable animation channels";
 	
 	/* api callbacks */
 	ot->exec= animchannels_expand_exec;
@@ -1680,7 +1678,7 @@ static void ANIM_OT_channels_expand (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Expand all channels (not just selected ones)"));
+	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
 }
 
 /* ********************** Collapse Channels Operator *********************** */
@@ -1710,9 +1708,9 @@ static int animchannels_collapse_exec (bContext *C, wmOperator *op)
 static void ANIM_OT_channels_collapse (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Collapse Channels");
+	ot->name= "Collapse Channels";
 	ot->idname= "ANIM_OT_channels_collapse";
-	ot->description= _("Collapse (i.e. close) all selected expandable animation channels");
+	ot->description= "Collapse (i.e. close) all selected expandable animation channels";
 	
 	/* api callbacks */
 	ot->exec= animchannels_collapse_exec;
@@ -1722,7 +1720,7 @@ static void ANIM_OT_channels_collapse (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Collapse all channels (not just selected ones)"));
+	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
 }
 
 /* ******************* Reenable Disabled Operator ******************* */
@@ -1786,9 +1784,9 @@ static int animchannels_enable_exec (bContext *C, wmOperator *UNUSED(op))
 static void ANIM_OT_channels_fcurves_enable (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Revive Disabled F-Curves");
+	ot->name= "Revive Disabled F-Curves";
 	ot->idname= "ANIM_OT_channels_fcurves_enable";
-	ot->description= _("Clears 'disabled' tag from all F-Curves to get broken F-Curves working again");
+	ot->description= "Clears 'disabled' tag from all F-Curves to get broken F-Curves working again";
 	
 	/* api callbacks */
 	ot->exec= animchannels_enable_exec;
@@ -1823,9 +1821,9 @@ static int animchannels_deselectall_exec (bContext *C, wmOperator *op)
 static void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select All");
+	ot->name= "Select All";
 	ot->idname= "ANIM_OT_channels_select_all_toggle";
-	ot->description= _("Toggle selection of all animation channels");
+	ot->description= "Toggle selection of all animation channels";
 	
 	/* api callbacks */
 	ot->exec= animchannels_deselectall_exec;
@@ -1835,7 +1833,7 @@ static void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, _("Invert"), "");
+	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Borderselect Operator *********************** */
@@ -1949,9 +1947,9 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Border Select");
+	ot->name= "Border Select";
 	ot->idname= "ANIM_OT_channels_select_border";
-	ot->description= _("Select all animation channels within the specified region");
+	ot->description= "Select all animation channels within the specified region";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -2369,9 +2367,9 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 static void ANIM_OT_channels_click (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Mouse Click on Channels");
+	ot->name= "Mouse Click on Channels";
 	ot->idname= "ANIM_OT_channels_click";
-	ot->description= _("Handle mouse-clicks over animation channels");
+	ot->description= "Handle mouse-clicks over animation channels";
 	
 	/* api callbacks */
 	ot->invoke= animchannels_mouseclick_invoke;
@@ -2381,8 +2379,8 @@ static void ANIM_OT_channels_click (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "children_only", 0, _("Select Children Only"), ""); // CTRLKEY|SHIFTKEY
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "children_only", 0, "Select Children Only", ""); // CTRLKEY|SHIFTKEY
 }
 
 /* ************************************************************************** */

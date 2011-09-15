@@ -826,9 +826,9 @@ static int graph_properties(bContext *C, wmOperator *UNUSED(op))
 
 void GRAPH_OT_properties(wmOperatorType *ot)
 {
-	ot->name= _("Properties");
+	ot->name= "Properties";
 	ot->idname= "GRAPH_OT_properties";
-	ot->description= _("Toggle display properties panel");
+	ot->description= "Toggle display properties panel";
 	
 	ot->exec= graph_properties;
 	ot->poll= ED_operator_graphedit_active;

@@ -67,7 +67,7 @@ class DATA_PT_context_lamp(DataButtonsPanel, Panel):
 
 
 class DATA_PT_preview(DataButtonsPanel, Panel):
-    bl_label = _("Preview")
+    bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -75,7 +75,7 @@ class DATA_PT_preview(DataButtonsPanel, Panel):
 
 
 class DATA_PT_lamp(DataButtonsPanel, Panel):
-    bl_label = _("Lamp")
+    bl_label = "Lamp"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -117,7 +117,7 @@ class DATA_PT_lamp(DataButtonsPanel, Panel):
 
 
 class DATA_PT_sunsky(DataButtonsPanel, Panel):
-    bl_label = _("Sky & Atmosphere")
+    bl_label = "Sky & Atmosphere"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -189,7 +189,7 @@ class DATA_PT_sunsky(DataButtonsPanel, Panel):
 
 
 class DATA_PT_shadow(DataButtonsPanel, Panel):
-    bl_label = _("Shadow")
+    bl_label = "Shadow"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -304,7 +304,7 @@ class DATA_PT_shadow(DataButtonsPanel, Panel):
 
 
 class DATA_PT_area(DataButtonsPanel, Panel):
-    bl_label = _("Area Shape")
+    bl_label = "Area Shape"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -330,7 +330,7 @@ class DATA_PT_area(DataButtonsPanel, Panel):
 
 
 class DATA_PT_spot(DataButtonsPanel, Panel):
-    bl_label = _("Spot Shape")
+    bl_label = "Spot Shape"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -364,7 +364,7 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
 
 
 class DATA_PT_falloff_curve(DataButtonsPanel, Panel):
-    bl_label = _("Falloff Curve")
+    bl_label = "Falloff Curve"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 

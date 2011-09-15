@@ -254,8 +254,8 @@ static int view3d_layers_poll(bContext *C)
 void VIEW3D_OT_layers(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Layers");
-	ot->description= _("Toggle layer(s) visibility");
+	ot->name= "Layers";
+	ot->description= "Toggle layer(s) visibility";
 	ot->idname= "VIEW3D_OT_layers";
 	
 	/* api callbacks */
@@ -266,9 +266,9 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "nr", 1, 0, 20, _("Number"), _("The layer number to set, zero for all layers"), 0, 20);
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Add this layer to the current view layers"));
-	RNA_def_boolean(ot->srna, "toggle", 1, _("Toggle"), _("Toggle the layer"));
+	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "The layer number to set, zero for all layers", 0, 20);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Add this layer to the current view layers");
+	RNA_def_boolean(ot->srna, "toggle", 1, "Toggle", "Toggle the layer");
 }
 
 static char *view3d_modeselect_pup(Scene *scene)

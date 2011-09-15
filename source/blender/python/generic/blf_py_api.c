@@ -34,6 +34,9 @@
 
 #include "BLI_utildefines.h"
 
+#ifdef INTERNATIONAL
+#include "DNA_userdef_types.h"	/* is it bad level? */
+#endif
 
 
 PyDoc_STRVAR(py_blf_position_doc,
@@ -367,6 +370,7 @@ static PyObject *py_blf_load(PyObject *UNUSED(self), PyObject *args)
 	return PyLong_FromLong(BLF_load(filename));
 }
 
+#ifdef INTERNATIONAL
 PyDoc_STRVAR(py_blf_gettext_doc,
 ".. function:: gettext(msgid)\n"
 "\n"
@@ -380,9 +384,17 @@ PyDoc_STRVAR(py_blf_gettext_doc,
 static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *args)
 {
 	char* msgid;
+	const char *text;
+
 	if (!PyArg_ParseTuple(args, "s:blf.gettext", &msgid))
 		return NULL;
-	return PyUnicode_FromString( BLF_gettext( msgid ) );
+
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
+		text = BLF_gettext( msgid );
+	else
+		text = msgid;
+
+	return PyUnicode_FromString( text );
 }
 
 PyDoc_STRVAR(py_blf_fake_gettext_doc,
@@ -403,6 +415,7 @@ static PyObject *py_blf_fake_gettext(PyObject *UNUSED(self), PyObject *args)
 
 	return PyUnicode_FromString( msgid );
 }
+#endif
 
 /*----------------------------MODULE INIT-------------------------*/
 static PyMethodDef BLF_methods[] = {
@@ -419,8 +432,10 @@ static PyMethodDef BLF_methods[] = {
 	{"shadow_offset", (PyCFunction) py_blf_shadow_offset, METH_VARARGS, py_blf_shadow_offset_doc},
 	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
 	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
+#ifdef INTERNATIONAL
 	{"gettext", (PyCFunction) py_blf_gettext, METH_VARARGS, py_blf_gettext_doc},
 	{"fake_gettext", (PyCFunction) py_blf_fake_gettext, METH_VARARGS, py_blf_fake_gettext_doc},
+#endif
 	{NULL, NULL, 0, NULL}
 };
 

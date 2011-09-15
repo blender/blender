@@ -25,7 +25,7 @@ from blf import gettext as _
 class LOGIC_PT_properties(Panel):
     bl_space_type = 'LOGIC_EDITOR'
     bl_region_type = 'UI'
-    bl_label = _("Properties")
+    bl_label = "Properties"
 
     @classmethod
     def poll(cls, context):
@@ -52,7 +52,7 @@ class LOGIC_PT_properties(Panel):
 
 
 class LOGIC_MT_logicbricks_add(Menu):
-    bl_label = _("Add")
+    bl_label = "Add"
 
     def draw(self, context):
         layout = self.layout
@@ -75,7 +75,7 @@ class LOGIC_HT_header(Header):
 
 
 class LOGIC_MT_view(Menu):
-    bl_label = _("View")
+    bl_label = "View"
 
     def draw(self, context):
         layout = self.layout

@@ -52,14 +52,14 @@ def simple_material(mat):
 
 
 class MATERIAL_MT_sss_presets(Menu):
-    bl_label = _("SSS Presets")
+    bl_label = "SSS Presets"
     preset_subdir = "sss"
     preset_operator = "script.execute_preset"
     draw = Menu.draw_preset
 
 
 class MATERIAL_MT_specials(Menu):
-    bl_label = _("Material Specials")
+    bl_label = "Material Specials"
 
     def draw(self, context):
         layout = self.layout
@@ -146,7 +146,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_preview(MaterialButtonsPanel, Panel):
-    bl_label = _("Preview")
+    bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -154,7 +154,7 @@ class MATERIAL_PT_preview(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_pipeline(MaterialButtonsPanel, Panel):
-    bl_label = _("Render Pipeline Options")
+    bl_label = "Render Pipeline Options"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -205,7 +205,7 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel, Panel):
-    bl_label = _("Diffuse")
+    bl_label = "Diffuse"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -262,7 +262,7 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_specular(MaterialButtonsPanel, Panel):
-    bl_label = _("Specular")
+    bl_label = "Specular"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -315,7 +315,7 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_shading(MaterialButtonsPanel, Panel):
-    bl_label = _("Shading")
+    bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -349,7 +349,7 @@ class MATERIAL_PT_shading(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_transp(MaterialButtonsPanel, Panel):
-    bl_label = _("Transparency")
+    bl_label = "Transparency"
     # bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -415,7 +415,7 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_mirror(MaterialButtonsPanel, Panel):
-    bl_label = _("Mirror")
+    bl_label = "Mirror"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -473,7 +473,7 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_sss(MaterialButtonsPanel, Panel):
-    bl_label = _("Subsurface Scattering")
+    bl_label = "Subsurface Scattering"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -525,7 +525,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_halo(MaterialButtonsPanel, Panel):
-    bl_label = _("Halo")
+    bl_label = "Halo"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -578,7 +578,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_flare(MaterialButtonsPanel, Panel):
-    bl_label = _("Flare")
+    bl_label = "Flare"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -613,7 +613,7 @@ class MATERIAL_PT_flare(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_physics(MaterialButtonsPanel, Panel):
-    bl_label = _("Physics")
+    bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod
@@ -643,7 +643,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
-    bl_label = _("Strand")
+    bl_label = "Strand"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -690,7 +690,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
-    bl_label = _("Options")
+    bl_label = "Options"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -739,7 +739,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_shadow(MaterialButtonsPanel, Panel):
-    bl_label = _("Shadow")
+    bl_label = "Shadow"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -783,7 +783,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, Panel):
 
 
 class MATERIAL_PT_transp_game(MaterialButtonsPanel, Panel):
-    bl_label = _("Transparency")
+    bl_label = "Transparency"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
@@ -826,7 +826,7 @@ class VolumeButtonsPanel():
 
 
 class MATERIAL_PT_volume_density(VolumeButtonsPanel, Panel):
-    bl_label = _("Density")
+    bl_label = "Density"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -840,7 +840,7 @@ class MATERIAL_PT_volume_density(VolumeButtonsPanel, Panel):
 
 
 class MATERIAL_PT_volume_shading(VolumeButtonsPanel, Panel):
-    bl_label = _("Shading")
+    bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -865,7 +865,7 @@ class MATERIAL_PT_volume_shading(VolumeButtonsPanel, Panel):
 
 
 class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, Panel):
-    bl_label = _("Lighting")
+    bl_label = "Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -900,7 +900,7 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, Panel):
 
 
 class MATERIAL_PT_volume_transp(VolumeButtonsPanel, Panel):
-    bl_label = _("Transparency")
+    bl_label = "Transparency"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -918,7 +918,7 @@ class MATERIAL_PT_volume_transp(VolumeButtonsPanel, Panel):
 
 
 class MATERIAL_PT_volume_integration(VolumeButtonsPanel, Panel):
-    bl_label = _("Integration")
+    bl_label = "Integration"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -940,7 +940,7 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel, Panel):
 
 
 class MATERIAL_PT_volume_options(VolumeButtonsPanel, Panel):
-    bl_label = _("Options")
+    bl_label = "Options"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     bl_options = {'DEFAULT_CLOSED'}
 

@@ -39,7 +39,7 @@ class PhysicButtonsPanel():
 
 
 class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
-    bl_label = _("Force Fields")
+    bl_label = "Force Fields"
 
     @classmethod
     def poll(cls, context):
@@ -166,7 +166,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
-    bl_label = _("Collision")
+    bl_label = "Collision"
     #bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod

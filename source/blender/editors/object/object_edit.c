@@ -46,8 +46,6 @@
 #include "BLI_ghash.h"
 #include "BLI_rand.h"
 
-#include "BLF_api.h"
-
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
@@ -160,8 +158,8 @@ void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Clear Restrict View");
-	ot->description = _("Reveal the object by setting the hide flag");
+	ot->name= "Clear Restrict View";
+	ot->description = "Reveal the object by setting the hide flag";
 	ot->idname= "OBJECT_OT_hide_view_clear";
 	
 	/* api callbacks */
@@ -213,8 +211,8 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Restrict View");
-	ot->description = _("Hide the object by setting the hide flag");
+	ot->name= "Set Restrict View";
+	ot->description = "Hide the object by setting the hide flag";
 	ot->idname= "OBJECT_OT_hide_view_set";
 	
 	/* api callbacks */
@@ -224,7 +222,7 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected objects."));
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
 	
 }
 
@@ -252,8 +250,8 @@ void OBJECT_OT_hide_render_clear(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name= _("Clear Restrict Render");
-	ot->description = _("Reveal the render object by setting the hide render flag");
+	ot->name= "Clear Restrict Render";
+	ot->description = "Reveal the render object by setting the hide render flag";
 	ot->idname= "OBJECT_OT_hide_render_clear";
 
 	/* api callbacks */
@@ -288,8 +286,8 @@ static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Restrict Render");
-	ot->description = _("Hide the render object by setting the hide render flag");
+	ot->name= "Set Restrict Render";
+	ot->description = "Hide the render object by setting the hide render flag";
 	ot->idname= "OBJECT_OT_hide_render_set";
 
 	/* api callbacks */
@@ -299,7 +297,7 @@ void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected objects."));
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
 }
 
 /* ******************* toggle editmode operator  ***************** */
@@ -547,8 +545,8 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Toggle Editmode");
-	ot->description = _("Toggle object's editmode");
+	ot->name= "Toggle Editmode";
+	ot->description = "Toggle object's editmode";
 	ot->idname= "OBJECT_OT_editmode_toggle";
 	
 	/* api callbacks */
@@ -585,9 +583,9 @@ static int posemode_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_posemode_toggle(wmOperatorType *ot) 
 {
 	/* identifiers */
-	ot->name= _("Toggle Pose Mode");
+	ot->name= "Toggle Pose Mode";
 	ot->idname= "OBJECT_OT_posemode_toggle";
-	ot->description= _("Enables or disables posing/selecting bones");
+	ot->description= "Enables or disables posing/selecting bones";
 	
 	/* api callbacks */
 	ot->exec= posemode_exec;
@@ -1422,8 +1420,8 @@ void OBJECT_OT_forcefield_toggle(wmOperatorType *ot)
 {
 	
 	/* identifiers */
-	ot->name= _("Toggle Force Field");
-	ot->description = _("Toggle object's force field");
+	ot->name= "Toggle Force Field";
+	ot->description = "Toggle object's force field";
 	ot->idname= "OBJECT_OT_forcefield_toggle";
 	
 	/* api callbacks */
@@ -1488,9 +1486,9 @@ static int object_calculate_paths_exec (bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_paths_calculate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Calculate Object Paths");
+	ot->name= "Calculate Object Paths";
 	ot->idname= "OBJECT_OT_paths_calculate";
-	ot->description= _("Calculate paths for the selected bones");
+	ot->description= "Calculate paths for the selected bones";
 	
 	/* api callbacks */
 	ot->exec= object_calculate_paths_exec;
@@ -1532,9 +1530,9 @@ static int object_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_paths_clear (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Object Paths");
+	ot->name= "Clear Object Paths";
 	ot->idname= "OBJECT_OT_paths_clear";
-	ot->description= _("Clear path caches for selected bones");
+	ot->description= "Clear path caches for selected bones";
 	
 	/* api callbacks */
 	ot->exec= object_clear_paths_exec;
@@ -1591,8 +1589,8 @@ static int shade_poll(bContext *C)
 void OBJECT_OT_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Shade Flat");
-	ot->description= _("Display faces 'flat'");
+	ot->name= "Shade Flat";
+	ot->description= "Display faces 'flat'";
 	ot->idname= "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
@@ -1606,8 +1604,8 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Shade Smooth");
-	ot->description= _("Display faces 'smooth' (using vertex normals)");
+	ot->name= "Shade Smooth";
+	ot->description= "Display faces 'smooth' (using vertex normals)";
 	ot->idname= "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
@@ -1897,8 +1895,8 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= _("Set Object Mode");
-	ot->description = _("Sets the object interaction mode");
+	ot->name= "Set Object Mode";
+	ot->description = "Sets the object interaction mode";
 	ot->idname= "OBJECT_OT_mode_set";
 	
 	/* api callbacks */
@@ -1909,10 +1907,10 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= 0; /* no register/undo here, leave it to operators being called */
 	
-	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, _("Mode"), "");
+	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, "Mode", "");
 	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
 
-	RNA_def_boolean(ot->srna, "toggle", 0, _("Toggle"), "");
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
 }
 
 
@@ -1957,8 +1955,8 @@ static int game_property_new(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_game_property_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("New Game Property");
-	ot->description= _("Create a new property available to the game engine");
+	ot->name= "New Game Property";
+	ot->description= "Create a new property available to the game engine";
 	ot->idname= "OBJECT_OT_game_property_new";
 
 	/* api callbacks */
@@ -1995,8 +1993,8 @@ static int game_property_remove(bContext *C, wmOperator *op)
 void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Remove Game Property");
-	ot->description= _("Remove game property");
+	ot->name= "Remove Game Property";
+	ot->description= "Remove game property";
 	ot->idname= "OBJECT_OT_game_property_remove";
 
 	/* api callbacks */
@@ -2006,7 +2004,7 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, _("Index"), _("Property index to remove "), 0, INT_MAX);
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Property index to remove ", 0, INT_MAX);
 }
 
 #define COPY_PROPERTIES_REPLACE	1
@@ -2014,9 +2012,9 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 #define COPY_PROPERTIES_COPY	3
 
 static EnumPropertyItem game_properties_copy_operations[] ={
-	{COPY_PROPERTIES_REPLACE, "REPLACE", 0, N_("Replace Properties"), ""},
-	{COPY_PROPERTIES_MERGE, "MERGE", 0, N_("Merge Properties"), ""},
-	{COPY_PROPERTIES_COPY, "COPY", 0, N_("Copy a Property"), ""},
+	{COPY_PROPERTIES_REPLACE, "REPLACE", 0, "Replace Properties", ""},
+	{COPY_PROPERTIES_MERGE, "MERGE", 0, "Merge Properties", ""},
+	{COPY_PROPERTIES_COPY, "COPY", 0, "Copy a Property", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem gameprops_items[]= {
@@ -2092,7 +2090,7 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	/* identifiers */
-	ot->name= _("Copy Game Property");
+	ot->name= "Copy Game Property";
 	ot->idname= "OBJECT_OT_game_property_copy";
 
 	/* api callbacks */
@@ -2102,8 +2100,8 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "operation", game_properties_copy_operations, 3, _("Operation"), "");
-	prop=RNA_def_enum(ot->srna, "property", gameprops_items, 0, _("Property"), _("Properties to copy"));
+	RNA_def_enum(ot->srna, "operation", game_properties_copy_operations, 3, "Operation", "");
+	prop=RNA_def_enum(ot->srna, "property", gameprops_items, 0, "Property", "Properties to copy");
 	RNA_def_enum_funcs(prop, gameprops_itemf);
 	ot->prop=prop;
 }
@@ -2121,7 +2119,7 @@ static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_game_property_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Game Property");
+	ot->name= "Clear Game Property";
 	ot->idname= "OBJECT_OT_game_property_clear";
 
 	/* api callbacks */
@@ -2178,8 +2176,8 @@ static int logicbricks_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_logic_bricks_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Copy Logic Bricks to Selected");
-	ot->description = _("Copy logic bricks to other selected objects.");
+	ot->name= "Copy Logic Bricks to Selected";
+	ot->description = "Copy logic bricks to other selected objects.";
 	ot->idname= "OBJECT_OT_logic_bricks_copy";
 
 	/* api callbacks */

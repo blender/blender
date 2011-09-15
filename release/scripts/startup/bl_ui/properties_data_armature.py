@@ -50,7 +50,7 @@ class DATA_PT_context_arm(ArmatureButtonsPanel, Panel):
 
 
 class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
-    bl_label = _("Skeleton")
+    bl_label = "Skeleton"
 
     def draw(self, context):
         layout = self.layout
@@ -76,7 +76,7 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
 
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
-    bl_label = _("Display")
+    bl_label = "Display"
 
     def draw(self, context):
         layout = self.layout
@@ -101,7 +101,7 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
 
 
 class DATA_PT_bone_group_specials(Menu):
-    bl_label = _("Bone Group Specials")
+    bl_label = "Bone Group Specials"
 
     def draw(self, context):
         layout = self.layout
@@ -110,7 +110,7 @@ class DATA_PT_bone_group_specials(Menu):
 
 
 class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
-    bl_label = _("Bone Groups")
+    bl_label = "Bone Groups"
 
     @classmethod
     def poll(cls, context):
@@ -170,7 +170,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
 
 
 class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
-    bl_label = _("Pose Library")
+    bl_label = "Pose Library"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -216,7 +216,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
 
 # TODO: this panel will soon be depreceated too
 class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
-    bl_label = _("Ghost")
+    bl_label = "Ghost"
 
     def draw(self, context):
         layout = self.layout
@@ -243,7 +243,7 @@ class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
 
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
-    bl_label = _("iTaSC parameters")
+    bl_label = "iTaSC parameters"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod

@@ -64,7 +64,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_preview(WorldButtonsPanel, Panel):
-    bl_label = _("Preview")
+    bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
@@ -77,7 +77,7 @@ class WORLD_PT_preview(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_world(WorldButtonsPanel, Panel):
-    bl_label = _("World")
+    bl_label = "World"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -102,7 +102,7 @@ class WORLD_PT_world(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_ambient_occlusion(WorldButtonsPanel, Panel):
-    bl_label = _("Ambient Occlusion")
+    bl_label = "Ambient Occlusion"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -140,7 +140,7 @@ class WORLD_PT_environment_lighting(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_indirect_lighting(WorldButtonsPanel, Panel):
-    bl_label = _("Indirect Lighting")
+    bl_label = "Indirect Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -162,7 +162,7 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_gather(WorldButtonsPanel, Panel):
-    bl_label = _("Gather")
+    bl_label = "Gather"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
@@ -210,7 +210,7 @@ class WORLD_PT_gather(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_mist(WorldButtonsPanel, Panel):
-    bl_label = _("Mist")
+    bl_label = "Mist"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
@@ -239,7 +239,7 @@ class WORLD_PT_mist(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_stars(WorldButtonsPanel, Panel):
-    bl_label = _("Stars")
+    bl_label = "Stars"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 

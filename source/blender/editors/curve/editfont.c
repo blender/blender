@@ -47,8 +47,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_vfont_types.h"
@@ -317,8 +315,8 @@ static int insert_lorem_exec(bContext *C, wmOperator *UNUSED(op))
 void FONT_OT_insert_lorem(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Insert Lorem");
-	ot->description= _("Insert placeholder text");
+	ot->name= "Insert Lorem";
+	ot->description= "Insert placeholder text";
 	ot->idname= "FONT_OT_insert_lorem";
 	
 	/* api callbacks */
@@ -405,8 +403,8 @@ static int paste_file_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 void FONT_OT_file_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Paste File");
-	ot->description= _("Paste contents from file");
+	ot->name= "Paste File";
+	ot->description= "Paste contents from file";
 	ot->idname= "FONT_OT_file_paste";
 	
 	/* api callbacks */
@@ -454,8 +452,8 @@ static int paste_buffer_exec(bContext *C, wmOperator *UNUSED(op))
 void FONT_OT_buffer_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Paste Buffer");
-	ot->description= _("Paste text from OS buffer");
+	ot->name= "Paste Buffer";
+	ot->description= "Paste text from OS buffer";
 	ot->idname= "FONT_OT_buffer_paste";
 	
 	/* api callbacks */
@@ -612,10 +610,10 @@ static int kill_selection(Object *obedit, int ins)	/* 1 == new character */
 /******************* set style operator ********************/
 
 static EnumPropertyItem style_items[]= {
-	{CU_CHINFO_BOLD, "BOLD", 0, N_("Bold"), ""},
-	{CU_CHINFO_ITALIC, "ITALIC", 0, N_("Italic"), ""},
-	{CU_CHINFO_UNDERLINE, "UNDERLINE", 0, N_("Underline"), ""},
-	{CU_CHINFO_SMALLCAPS, "SMALL_CAPS", 0, N_("Small Caps"), ""},
+	{CU_CHINFO_BOLD, "BOLD", 0, "Bold", ""},
+	{CU_CHINFO_ITALIC, "ITALIC", 0, "Italic", ""},
+	{CU_CHINFO_UNDERLINE, "UNDERLINE", 0, "Underline", ""},
+	{CU_CHINFO_SMALLCAPS, "SMALL_CAPS", 0, "Small Caps", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static int set_style(bContext *C, const int style, const int clear)
@@ -652,8 +650,8 @@ static int set_style_exec(bContext *C, wmOperator *op)
 void FONT_OT_style_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Style");
-	ot->description= _("Set font style");
+	ot->name= "Set Style";
+	ot->description= "Set font style";
 	ot->idname= "FONT_OT_style_set";
 	
 	/* api callbacks */
@@ -664,8 +662,8 @@ void FONT_OT_style_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "style", RNA_enum_items_gettexted(style_items), CU_CHINFO_BOLD, _("Style"), _("Style to set selection to."));
-	RNA_def_boolean(ot->srna, "clear", 0, _("Clear"), _("Clear style rather than setting it."));
+	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, "Style", "Style to set selection to.");
+	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear style rather than setting it.");
 }
 
 /******************* toggle style operator ********************/
@@ -690,8 +688,8 @@ static int toggle_style_exec(bContext *C, wmOperator *op)
 void FONT_OT_style_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Toggle Style");
-	ot->description= _("Toggle font style");
+	ot->name= "Toggle Style";
+	ot->description= "Toggle font style";
 	ot->idname= "FONT_OT_style_toggle";
 	
 	/* api callbacks */
@@ -702,7 +700,7 @@ void FONT_OT_style_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, _("Style"), _("Style to set selection to."));
+	RNA_def_enum(ot->srna, "style", style_items, CU_CHINFO_BOLD, "Style", "Style to set selection to.");
 }
 
 /******************* copy text operator ********************/
@@ -733,8 +731,8 @@ static int copy_text_exec(bContext *C, wmOperator *UNUSED(op))
 void FONT_OT_text_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Copy Text");
-	ot->description= _("Copy selected text to clipboard");
+	ot->name= "Copy Text";
+	ot->description= "Copy selected text to clipboard";
 	ot->idname= "FONT_OT_text_copy";
 	
 	/* api callbacks */
@@ -764,8 +762,8 @@ static int cut_text_exec(bContext *C, wmOperator *UNUSED(op))
 void FONT_OT_text_cut(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Cut Text");
-	ot->description= _("Cut selected text to clipboard");
+	ot->name= "Cut Text";
+	ot->description= "Cut selected text to clipboard";
 	ot->idname= "FONT_OT_text_cut";
 	
 	/* api callbacks */
@@ -822,8 +820,8 @@ static int paste_text_exec(bContext *C, wmOperator *op)
 void FONT_OT_text_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Paste Text");
-	ot->description= _("Paste text from clipboard");
+	ot->name= "Paste Text";
+	ot->description= "Paste text from clipboard";
 	ot->idname= "FONT_OT_text_paste";
 	
 	/* api callbacks */
@@ -837,16 +835,16 @@ void FONT_OT_text_paste(wmOperatorType *ot)
 /************************ move operator ************************/
 
 static EnumPropertyItem move_type_items[]= {
-	{LINE_BEGIN, "LINE_BEGIN", 0, N_("Line Begin"), ""},
-	{LINE_END, "LINE_END", 0, N_("Line End"), ""},
-	{PREV_CHAR, "PREVIOUS_CHARACTER", 0, N_("Previous Character"), ""},
-	{NEXT_CHAR, "NEXT_CHARACTER", 0, N_("Next Character"), ""},
-	{PREV_WORD, "PREVIOUS_WORD", 0, N_("Previous Word"), ""},
-	{NEXT_WORD, "NEXT_WORD", 0, N_("Next Word"), ""},
-	{PREV_LINE, "PREVIOUS_LINE", 0, N_("Previous Line"), ""},
-	{NEXT_LINE, "NEXT_LINE", 0, N_("Next Line"), ""},
-	{PREV_PAGE, "PREVIOUS_PAGE", 0, N_("Previous Page"), ""},
-	{NEXT_PAGE, "NEXT_PAGE", 0, N_("Next Page"), ""},
+	{LINE_BEGIN, "LINE_BEGIN", 0, "Line Begin", ""},
+	{LINE_END, "LINE_END", 0, "Line End", ""},
+	{PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
+	{NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
+	{PREV_WORD, "PREVIOUS_WORD", 0, "Previous Word", ""},
+	{NEXT_WORD, "NEXT_WORD", 0, "Next Word", ""},
+	{PREV_LINE, "PREVIOUS_LINE", 0, "Previous Line", ""},
+	{NEXT_LINE, "NEXT_LINE", 0, "Next Line", ""},
+	{PREV_PAGE, "PREVIOUS_PAGE", 0, "Previous Page", ""},
+	{NEXT_PAGE, "NEXT_PAGE", 0, "Next Page", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static int move_cursor(bContext *C, int type, int select)
@@ -958,8 +956,8 @@ static int move_exec(bContext *C, wmOperator *op)
 void FONT_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Move Cursor");
-	ot->description= _("Move cursor to position type");
+	ot->name= "Move Cursor";
+	ot->description= "Move cursor to position type";
 	ot->idname= "FONT_OT_move";
 	
 	/* api callbacks */
@@ -970,7 +968,7 @@ void FONT_OT_move(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(move_type_items), LINE_BEGIN, _("Type"), _("Where to move cursor to."));
+	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to.");
 }
 
 /******************* move select operator ********************/
@@ -985,8 +983,8 @@ static int move_select_exec(bContext *C, wmOperator *op)
 void FONT_OT_move_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Move Select");
-	ot->description= _("Make selection from current cursor position to new cursor position type");
+	ot->name= "Move Select";
+	ot->description= "Make selection from current cursor position to new cursor position type";
 	ot->idname= "FONT_OT_move_select";
 	
 	/* api callbacks */
@@ -997,7 +995,7 @@ void FONT_OT_move_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(move_type_items), LINE_BEGIN, _("Type"), _("Where to move cursor to, to make a selection."));
+	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to, to make a selection.");
 }
 
 /************************* change spacing **********************/
@@ -1027,8 +1025,8 @@ static int change_spacing_exec(bContext *C, wmOperator *op)
 void FONT_OT_change_spacing(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Change Spacing");
-	ot->description= _("Change font spacing");
+	ot->name= "Change Spacing";
+	ot->description= "Change font spacing";
 	ot->idname= "FONT_OT_change_spacing";
 	
 	/* api callbacks */
@@ -1039,7 +1037,7 @@ void FONT_OT_change_spacing(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "delta", 1, -20, 20, _("Delta"), _("Amount to decrease or increasing character spacing with."), -20, 20);
+	RNA_def_int(ot->srna, "delta", 1, -20, 20, "Delta", "Amount to decrease or increasing character spacing with.", -20, 20);
 }
 
 /************************* change character **********************/
@@ -1072,8 +1070,8 @@ static int change_character_exec(bContext *C, wmOperator *op)
 void FONT_OT_change_character(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Change Character");
-	ot->description= _("Change font character code");
+	ot->name= "Change Character";
+	ot->description= "Change font character code";
 	ot->idname= "FONT_OT_change_character";
 	
 	/* api callbacks */
@@ -1084,7 +1082,7 @@ void FONT_OT_change_character(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "delta", 1, -255, 255, _("Delta"), _("Number to increase or decrease character code with."), -255, 255);
+	RNA_def_int(ot->srna, "delta", 1, -255, 255, "Delta", "Number to increase or decrease character code with.", -255, 255);
 }
 
 /******************* line break operator ********************/
@@ -1115,8 +1113,8 @@ static int line_break_exec(bContext *C, wmOperator *op)
 void FONT_OT_line_break(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Line Break");
-	ot->description= _("Insert line break at cursor position");
+	ot->name= "Line Break";
+	ot->description= "Insert line break at cursor position";
 	ot->idname= "FONT_OT_line_break";
 	
 	/* api callbacks */
@@ -1133,12 +1131,12 @@ void FONT_OT_line_break(wmOperatorType *ot)
 /******************* delete operator **********************/
 
 static EnumPropertyItem delete_type_items[]= {
-	{DEL_ALL, "ALL", 0, N_("All"), ""},
-	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, N_("Next Character"), ""},
-	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, N_("Previous Character"), ""},
-	{DEL_SELECTION, "SELECTION", 0, N_("Selection"), ""},
-	{DEL_NEXT_SEL, "NEXT_OR_SELECTION", 0, N_("Next or Selection"), ""},
-	{DEL_PREV_SEL, "PREVIOUS_OR_SELECTION", 0, N_("Previous or Selection"), ""},
+	{DEL_ALL, "ALL", 0, "All", ""},
+	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
+	{DEL_PREV_CHAR, "PREVIOUS_CHARACTER", 0, "Previous Character", ""},
+	{DEL_SELECTION, "SELECTION", 0, "Selection", ""},
+	{DEL_NEXT_SEL, "NEXT_OR_SELECTION", 0, "Next or Selection", ""},
+	{DEL_PREV_SEL, "PREVIOUS_OR_SELECTION", 0, "Previous or Selection", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static int delete_exec(bContext *C, wmOperator *op)
@@ -1205,8 +1203,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 void FONT_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Delete");
-	ot->description= _("Delete text by cursor position");
+	ot->name= "Delete";
+	ot->description= "Delete text by cursor position";
 	ot->idname= "FONT_OT_delete";
 	
 	/* api callbacks */
@@ -1217,7 +1215,7 @@ void FONT_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(delete_type_items), DEL_ALL, _("Type"), _("Which part of the text to delete."));
+	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_ALL, "Type", "Which part of the text to delete.");
 }
 
 /*********************** insert text operator *************************/
@@ -1354,8 +1352,8 @@ static int insert_text_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 void FONT_OT_text_insert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Insert Text");
-	ot->description= _("Insert text at cursor position");
+	ot->name= "Insert Text";
+	ot->description= "Insert text at cursor position";
 	ot->idname= "FONT_OT_text_insert";
 	
 	/* api callbacks */
@@ -1367,8 +1365,8 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "text", "", 0, _("Text"), _("Text to insert at the cursor position."));
-	RNA_def_boolean(ot->srna, "accent", 0, _("Accent mode"), _("Next typed character will strike through previous, for special character input."));
+	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
+	RNA_def_boolean(ot->srna, "accent", 0, "Accent mode", "Next typed character will strike through previous, for special character input.");
 }
 
 
@@ -1393,8 +1391,8 @@ static int textbox_add_exec(bContext *C, wmOperator *UNUSED(op))
 void FONT_OT_textbox_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Textbox");
-	ot->description= _("Add a new text box");
+	ot->name= "Add Textbox";
+	ot->description= "Add a new text box";
 	ot->idname= "FONT_OT_textbox_add";
 	
 	/* api callbacks */
@@ -1436,8 +1434,8 @@ static int textbox_remove_exec(bContext *C, wmOperator *op)
 void FONT_OT_textbox_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Remove Textbox");
-	ot->description= _("Remove the textbox");
+	ot->name= "Remove Textbox";
+	ot->description= "Remove the textbox";
 	ot->idname= "FONT_OT_textbox_remove";
 	
 	/* api callbacks */
@@ -1447,7 +1445,7 @@ void FONT_OT_textbox_remove(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, _("Index"), _("The current text box."), 0, INT_MAX);
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "The current text box.", 0, INT_MAX);
 	
 	
 }
@@ -1527,8 +1525,8 @@ void free_editText(Object *obedit)
 /********************** set case operator *********************/
 
 static EnumPropertyItem case_items[]= {
-	{CASE_LOWER, "LOWER", 0, N_("Lower"), ""},
-	{CASE_UPPER, "UPPER", 0, N_("Upper"), ""},
+	{CASE_LOWER, "LOWER", 0, "Lower", ""},
+	{CASE_UPPER, "UPPER", 0, "Upper", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 static int set_case(bContext *C, int ccase)
@@ -1574,8 +1572,8 @@ static int set_case_exec(bContext *C, wmOperator *op)
 void FONT_OT_case_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Case");
-	ot->description= _("Set font case");
+	ot->name= "Set Case";
+	ot->description= "Set font case";
 	ot->idname= "FONT_OT_case_set";
 	
 	/* api callbacks */
@@ -1586,7 +1584,7 @@ void FONT_OT_case_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "case", RNA_enum_items_gettexted(case_items), CASE_LOWER, _("Case"), _("Lower or upper case."));
+	RNA_def_enum(ot->srna, "case", case_items, CASE_LOWER, "Case", "Lower or upper case.");
 }
 
 /********************** toggle case operator *********************/
@@ -1617,8 +1615,8 @@ static int toggle_case_exec(bContext *C, wmOperator *UNUSED(op))
 void FONT_OT_case_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Toggle Case");
-	ot->description= _("Toggle font case");
+	ot->name= "Toggle Case";
+	ot->description= "Toggle font case";
 	ot->idname= "FONT_OT_case_toggle";
 	
 	/* api callbacks */
@@ -1717,7 +1715,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void FONT_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Open Font");
+	ot->name= "Open Font";
 	ot->idname= "FONT_OT_open";
 	
 	/* api callbacks */
@@ -1760,9 +1758,9 @@ static int font_unlink_exec(bContext *C, wmOperator *op)
 void FONT_OT_unlink(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Unlink");
+	ot->name= "Unlink";
 	ot->idname= "FONT_OT_unlink";
-	ot->description= _("Unlink active font data block");
+	ot->description= "Unlink active font data block";
 	
 	/* api callbacks */
 	ot->exec= font_unlink_exec;

@@ -79,7 +79,7 @@ class SEQUENCER_HT_header(Header):
 
 
 class SEQUENCER_MT_view_toggle(Menu):
-    bl_label = _("View Type")
+    bl_label = "View Type"
 
     def draw(self, context):
         layout = self.layout
@@ -90,7 +90,7 @@ class SEQUENCER_MT_view_toggle(Menu):
 
 
 class SEQUENCER_MT_view(Menu):
-    bl_label = _("View")
+    bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
@@ -134,7 +134,7 @@ class SEQUENCER_MT_view(Menu):
 
 
 class SEQUENCER_MT_select(Menu):
-    bl_label = _("Select")
+    bl_label = "Select"
 
     def draw(self, context):
         layout = self.layout
@@ -152,7 +152,7 @@ class SEQUENCER_MT_select(Menu):
 
 
 class SEQUENCER_MT_marker(Menu):
-    bl_label = _("Marker")
+    bl_label = "Marker"
 
     def draw(self, context):
         layout = self.layout
@@ -172,7 +172,7 @@ class SEQUENCER_MT_marker(Menu):
 
 
 class SEQUENCER_MT_change(Menu):
-    bl_label = _("Change")
+    bl_label = "Change"
 
     def draw(self, context):
         layout = self.layout
@@ -185,7 +185,7 @@ class SEQUENCER_MT_change(Menu):
 
 
 class SEQUENCER_MT_add(Menu):
-    bl_label = _("Add")
+    bl_label = "Add"
 
     def draw(self, context):
         layout = self.layout
@@ -205,7 +205,7 @@ class SEQUENCER_MT_add(Menu):
 
 
 class SEQUENCER_MT_add_effect(Menu):
-    bl_label = _("Effect Strip...")
+    bl_label = "Effect Strip..."
 
     def draw(self, context):
         layout = self.layout
@@ -230,7 +230,7 @@ class SEQUENCER_MT_add_effect(Menu):
 
 
 class SEQUENCER_MT_strip(Menu):
-    bl_label = _("Strip")
+    bl_label = "Strip"
 
     def draw(self, context):
         layout = self.layout
@@ -336,7 +336,7 @@ class SequencerButtonsPanel_Output():
 
 
 class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
-    bl_label = _("Edit Strip")
+    bl_label = "Edit Strip"
 
     def draw(self, context):
         layout = self.layout
@@ -394,7 +394,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
-    bl_label = _("Effect Strip")
+    bl_label = "Effect Strip"
 
     @classmethod
     def poll(cls, context):
@@ -532,7 +532,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
-    bl_label = _("Strip Input")
+    bl_label = "Strip Input"
 
     @classmethod
     def poll(cls, context):
@@ -617,7 +617,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
-    bl_label = _("Sound")
+    bl_label = "Sound"
 
     @classmethod
     def poll(cls, context):
@@ -660,7 +660,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
-    bl_label = _("Scene")
+    bl_label = "Scene"
 
     @classmethod
     def poll(cls, context):
@@ -694,7 +694,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
-    bl_label = _("Filter")
+    bl_label = "Filter"
 
     @classmethod
     def poll(cls, context):
@@ -756,7 +756,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
 
 
 class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
-    bl_label = _("Proxy / Timecode")
+    bl_label = "Proxy / Timecode"
 
     @classmethod
     def poll(cls, context):
@@ -831,7 +831,7 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
 
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
-    bl_label = _("View Settings")
+    bl_label = "View Settings"
 
     def draw(self, context):
         layout = self.layout

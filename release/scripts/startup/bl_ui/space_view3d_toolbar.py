@@ -68,7 +68,7 @@ def draw_gpencil_tools(context, layout):
 
 class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
     bl_context = "objectmode"
-    bl_label = _("Object Tools")
+    bl_label = "Object Tools"
 
     def draw(self, context):
         layout = self.layout

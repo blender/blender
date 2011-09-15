@@ -44,8 +44,6 @@
 #include "BLI_graph.h"
 #include "BLI_ghash.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 #include "BKE_sketch.h"
 
@@ -2843,7 +2841,7 @@ int ED_operator_sketch_mode(const bContext *C)
 void SKETCH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("delete");
+	ot->name= "delete";
 	ot->idname= "SKETCH_OT_delete";
 
 	/* api callbacks */
@@ -2858,7 +2856,7 @@ void SKETCH_OT_delete(wmOperatorType *ot)
 void SKETCH_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("select");
+	ot->name= "select";
 	ot->idname= "SKETCH_OT_select";
 
 	/* api callbacks */
@@ -2873,7 +2871,7 @@ void SKETCH_OT_select(wmOperatorType *ot)
 void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("cancel stroke");
+	ot->name= "cancel stroke";
 	ot->idname= "SKETCH_OT_cancel_stroke";
 
 	/* api callbacks */
@@ -2888,7 +2886,7 @@ void SKETCH_OT_cancel_stroke(wmOperatorType *ot)
 void SKETCH_OT_convert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("convert");
+	ot->name= "convert";
 	ot->idname= "SKETCH_OT_convert";
 
 	/* api callbacks */
@@ -2903,7 +2901,7 @@ void SKETCH_OT_convert(wmOperatorType *ot)
 void SKETCH_OT_finish_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("end stroke");
+	ot->name= "end stroke";
 	ot->idname= "SKETCH_OT_finish_stroke";
 
 	/* api callbacks */
@@ -2918,7 +2916,7 @@ void SKETCH_OT_finish_stroke(wmOperatorType *ot)
 void SKETCH_OT_draw_preview(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("draw preview");
+	ot->name= "draw preview";
 	ot->idname= "SKETCH_OT_draw_preview";
 
 	/* api callbacks */
@@ -2926,7 +2924,7 @@ void SKETCH_OT_draw_preview(wmOperatorType *ot)
 
 	ot->poll= ED_operator_sketch_mode_active_stroke;
 
-	RNA_def_boolean(ot->srna, "snap", 0, _("Snap"), "");
+	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
 //	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2935,7 +2933,7 @@ void SKETCH_OT_draw_preview(wmOperatorType *ot)
 void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("draw stroke");
+	ot->name= "draw stroke";
 	ot->idname= "SKETCH_OT_draw_stroke";
 
 	/* api callbacks */
@@ -2945,7 +2943,7 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 
 	ot->poll= (int (*)(bContext *))ED_operator_sketch_mode;
 
-	RNA_def_boolean(ot->srna, "snap", 0, _("Snap"), "");
+	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING; // OPTYPE_REGISTER|OPTYPE_UNDO
@@ -2954,7 +2952,7 @@ void SKETCH_OT_draw_stroke(wmOperatorType *ot)
 void SKETCH_OT_gesture(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("gesture");
+	ot->name= "gesture";
 	ot->idname= "SKETCH_OT_gesture";
 
 	/* api callbacks */
@@ -2964,7 +2962,7 @@ void SKETCH_OT_gesture(wmOperatorType *ot)
 
 	ot->poll= ED_operator_sketch_mode_gesture;
 
-	RNA_def_boolean(ot->srna, "snap", 0, _("Snap"), "");
+	RNA_def_boolean(ot->srna, "snap", 0, "Snap", "");
 
 	/* flags */
 	ot->flag= OPTYPE_BLOCKING; // OPTYPE_UNDO

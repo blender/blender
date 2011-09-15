@@ -40,8 +40,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_gpencil.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -1878,19 +1876,19 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 /* ------------------------------- */
 
 static EnumPropertyItem prop_gpencil_drawmodes[] = {
-	{GP_PAINTMODE_DRAW, "DRAW", 0, N_("Draw Freehand"), ""},
-	{GP_PAINTMODE_DRAW_STRAIGHT, "DRAW_STRAIGHT", 0, N_("Draw Straight Lines"), ""},
-	{GP_PAINTMODE_DRAW_POLY, "DRAW_POLY", 0, N_("Dtaw Poly Line"), ""},
-	{GP_PAINTMODE_ERASER, "ERASER", 0, N_("Eraser"), ""},
+	{GP_PAINTMODE_DRAW, "DRAW", 0, "Draw Freehand", ""},
+	{GP_PAINTMODE_DRAW_STRAIGHT, "DRAW_STRAIGHT", 0, "Draw Straight Lines", ""},
+	{GP_PAINTMODE_DRAW_POLY, "DRAW_POLY", 0, "Dtaw Poly Line", ""},
+	{GP_PAINTMODE_ERASER, "ERASER", 0, "Eraser", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
 void GPENCIL_OT_draw (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Grease Pencil Draw");
+	ot->name= "Grease Pencil Draw";
 	ot->idname= "GPENCIL_OT_draw";
-	ot->description= _("Make annotations on the active data");
+	ot->description= "Make annotations on the active data";
 	
 	/* api callbacks */
 	ot->exec= gpencil_draw_exec;
@@ -1903,7 +1901,7 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
-	RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(prop_gpencil_drawmodes), 0, _("Mode"), _("Way to intepret mouse movements."));
+	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
 	
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }

@@ -40,7 +40,7 @@ class PhysicButtonsPanel():
 
 
 class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
-    bl_label = _("Smoke")
+    bl_label = "Smoke"
 
     def draw(self, context):
         layout = self.layout
@@ -105,7 +105,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
-    bl_label = _("Smoke Groups")
+    bl_label = "Smoke Groups"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -133,7 +133,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
-    bl_label = _("Smoke High Resolution")
+    bl_label = "Smoke High Resolution"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -170,7 +170,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
-    bl_label = _("Smoke Cache")
+    bl_label = "Smoke Cache"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -191,7 +191,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, Panel):
-    bl_label = _("Smoke Field Weights")
+    bl_label = "Smoke Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod

@@ -42,8 +42,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 
 #include "RNA_access.h"
@@ -174,52 +172,52 @@ void ED_operatormacros_mesh(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", _("Loop Cut and Slide"), OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = _("Cut mesh loop and slide it");
+	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loop Cut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Cut mesh loop and slide it";
 	WM_operatortype_macro_define(ot, "MESH_OT_loopcut");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_edge_slide");
 	RNA_struct_idprops_unset(otmacro->ptr, "release_confirm");
 
-	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", _("Add Duplicate"), OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = _("Duplicate mesh and move");
+	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Duplicate mesh and move";
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
-	ot= WM_operatortype_append_macro("MESH_OT_rip_move", _("Rip"), OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = _("Rip polygons and move the result");
+	ot= WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Rip polygons and move the result";
 	WM_operatortype_macro_define(ot, "MESH_OT_rip");
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
-	ot= WM_operatortype_append_macro("MESH_OT_extrude_region_move", _("Extrude Region and Move"), OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = _("Extrude region and move result");
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_region_move", "Extrude Region and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Extrude region and move result";
 	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	RNA_enum_set(otmacro->ptr, "type", 1);
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
-	ot= WM_operatortype_append_macro("MESH_OT_extrude_faces_move", _("Extrude Individual Faces and Move"), OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = _("Extrude faces and move result");
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_faces_move", "Extrude Individual Faces and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Extrude faces and move result";
 	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	RNA_enum_set(otmacro->ptr, "type", 2);
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_shrink_fatten");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
-	ot= WM_operatortype_append_macro("MESH_OT_extrude_edges_move", _("Extrude Only Edges and Move"), OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = _("Extrude edges and move result");
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_edges_move", "Extrude Only Edges and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Extrude edges and move result";
 	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	RNA_enum_set(otmacro->ptr, "type", 3);
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", 0);
 
-	ot= WM_operatortype_append_macro("MESH_OT_extrude_vertices_move", _("Extrude Only Vertices and Move"), OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = _("Extrude vertices and move result");
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_vertices_move", "Extrude Only Vertices and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Extrude vertices and move result";
 	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude");
 	RNA_enum_set(otmacro->ptr, "type", 4);
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");

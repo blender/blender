@@ -28,7 +28,7 @@ from blf import gettext as _
 class MotionPathButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
-    bl_label = _("Motion Paths")
+    bl_label = "Motion Paths"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_settings(self, context, avs, bones=False):
@@ -66,7 +66,7 @@ class MotionPathButtonsPanel():
 class OnionSkinButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
-    bl_label = _("Onion Skinning")
+    bl_label = "Onion Skinning"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):

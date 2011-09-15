@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-#update all po files in the LANGS
+# update all po files in the LANGS
 
 import os
 

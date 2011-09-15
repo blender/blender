@@ -50,7 +50,7 @@ class DATA_PT_context_metaball(DataButtonsPanel, Panel):
 
 
 class DATA_PT_metaball(DataButtonsPanel, Panel):
-    bl_label = _("Metaball")
+    bl_label = "Metaball"
 
     def draw(self, context):
         layout = self.layout
@@ -74,7 +74,7 @@ class DATA_PT_metaball(DataButtonsPanel, Panel):
 
 
 class DATA_PT_mball_texture_space(DataButtonsPanel, Panel):
-    bl_label = _("Texture Space")
+    bl_label = "Texture Space"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -91,7 +91,7 @@ class DATA_PT_mball_texture_space(DataButtonsPanel, Panel):
 
 
 class DATA_PT_metaball_element(DataButtonsPanel, Panel):
-    bl_label = _("Active Element")
+    bl_label = "Active Element"
 
     @classmethod
     def poll(cls, context):

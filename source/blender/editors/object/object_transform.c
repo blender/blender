@@ -46,8 +46,6 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -272,8 +270,8 @@ static int object_location_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Location");
-	ot->description = _("Clear the object's location");
+	ot->name= "Clear Location";
+	ot->description = "Clear the object's location";
 	ot->idname= "OBJECT_OT_location_clear";
 	
 	/* api callbacks */
@@ -292,8 +290,8 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Rotation");
-	ot->description = _("Clear the object's rotation");
+	ot->name= "Clear Rotation";
+	ot->description = "Clear the object's rotation";
 	ot->idname= "OBJECT_OT_rotation_clear";
 	
 	/* api callbacks */
@@ -312,8 +310,8 @@ static int object_scale_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Scale");
-	ot->description = _("Clear the object's scale");
+	ot->name= "Clear Scale";
+	ot->description = "Clear the object's scale";
 	ot->idname= "OBJECT_OT_scale_clear";
 	
 	/* api callbacks */
@@ -358,8 +356,8 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Origin");
-	ot->description = _("Clear the object's origin");
+	ot->name= "Clear Origin";
+	ot->description = "Clear the object's origin";
 	ot->idname= "OBJECT_OT_origin_clear";
 	
 	/* api callbacks */
@@ -587,8 +585,8 @@ static int visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Apply Visual Transform");
-	ot->description = _("Apply the object's visual transformation to its data");
+	ot->name= "Apply Visual Transform";
+	ot->description = "Apply the object's visual transformation to its data";
 	ot->idname= "OBJECT_OT_visual_transform_apply";
 	
 	/* api callbacks */
@@ -616,8 +614,8 @@ static int object_transform_apply_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Apply Object Transform");
-	ot->description = _("Apply the object's transformation to its data");
+	ot->name= "Apply Object Transform";
+	ot->description = "Apply the object's transformation to its data";
 	ot->idname= "OBJECT_OT_transform_apply";
 
 	/* api callbacks */
@@ -627,9 +625,9 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "location", 0, _("Location"), "");
-	RNA_def_boolean(ot->srna, "rotation", 0, _("Rotation"), "");
-	RNA_def_boolean(ot->srna, "scale", 0, _("Scale"), "");
+	RNA_def_boolean(ot->srna, "location", 0, "Location", "");
+	RNA_def_boolean(ot->srna, "rotation", 0, "Rotation", "");
+	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "");
 }
 
 /********************* Set Object Center ************************/
@@ -917,21 +915,21 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_origin_set(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_set_center_types[] = {
-		{GEOMETRY_TO_ORIGIN, "GEOMETRY_ORIGIN", 0, N_("Geometry to Origin"), N_("Move object geometry to object origin")},
-		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, N_("Origin to Geometry"), N_("Move object origin to center of object geometry")},
-		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, N_("Origin to 3D Cursor"), N_("Move object origin to position of the 3d cursor")},
+		{GEOMETRY_TO_ORIGIN, "GEOMETRY_ORIGIN", 0, "Geometry to Origin", "Move object geometry to object origin"},
+		{ORIGIN_TO_GEOMETRY, "ORIGIN_GEOMETRY", 0, "Origin to Geometry", "Move object origin to center of object geometry"},
+		{ORIGIN_TO_CURSOR, "ORIGIN_CURSOR", 0, "Origin to 3D Cursor", "Move object origin to position of the 3d cursor"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
 	static EnumPropertyItem prop_set_bounds_types[] = {
-		{V3D_CENTROID, "MEDIAN", 0, N_("Median Center"), ""},
-		{V3D_CENTER, "BOUNDS", 0, N_("Bounds Center"), ""},
+		{V3D_CENTROID, "MEDIAN", 0, "Median Center", ""},
+		{V3D_CENTER, "BOUNDS", 0, "Bounds Center", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
 	/* identifiers */
-	ot->name= _("Set Origin");
-	ot->description = _("Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor");
+	ot->name= "Set Origin";
+	ot->description = "Set the object's origin, by either moving the data, or set to center of data, or use 3d cursor";
 	ot->idname= "OBJECT_OT_origin_set";
 	
 	/* api callbacks */
@@ -943,7 +941,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_set_center_types), 0, _("Type"), "");
-	RNA_def_enum(ot->srna, "center", RNA_enum_items_gettexted(prop_set_bounds_types), V3D_CENTROID, _("Center"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
+	RNA_def_enum(ot->srna, "center", prop_set_bounds_types, V3D_CENTROID, "Center", "");
 }
 

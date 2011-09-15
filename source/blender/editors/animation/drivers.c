@@ -38,8 +38,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_material_types.h"
@@ -529,7 +527,7 @@ void ANIM_OT_driver_button_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Create drivers for all elements of the array."));
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Create drivers for all elements of the array.");
 }
 
 /* Remove Driver Button Operator ------------------------ */
@@ -581,7 +579,7 @@ void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, _("All"), _("Delete drivers for all elements of the array."));
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete drivers for all elements of the array.");
 }
 
 /* Copy Driver Button Operator ------------------------ */

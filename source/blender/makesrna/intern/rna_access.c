@@ -100,114 +100,6 @@ void RNA_exit(void)
 	RNA_free(&BLENDER_RNA);
 }
 
-/* make every name and description field surrounded by gettext */
-EnumPropertyItem* RNA_enum_items_gettexted(EnumPropertyItem *item)
-{
-	if( item )
-	{
-		int i;
-		for(i=0; item[i].identifier; i++)
-		{
-			if( item[i].name )
-				item[i].name = _(item[i].name);
-			if( item[i].description )
-				item[i].description = _(item[i].description);
-		}
-	}
-	return item;
-}
-
-void RNA_struct_gettexted( StructRNA* ptr )
-{
-	PropertyRNA *temp_property, *end_property;
-
-	ptr->name = _(ptr->name);
-	ptr->description = _(ptr->description);
-
-	temp_property = (PropertyRNA*)ptr->cont.properties.first;
-	end_property = (PropertyRNA*)ptr->cont.properties.last;
-	while( temp_property!=end_property )
-	{
-		temp_property->name = _(temp_property->name);
-		temp_property->description = _(temp_property->description);
-		if( temp_property->type == PROP_ENUM )
-			RNA_enum_items_gettexted( ((EnumPropertyRNA*)temp_property)->item );
-		temp_property = temp_property->next;
-	}
-	if( end_property!=NULL )
-	{
-		end_property->name = _(end_property->name);
-		end_property->description = _(end_property->description);
-		if( end_property->type == PROP_ENUM )
-			RNA_enum_items_gettexted( ((EnumPropertyRNA*)end_property)->item );
-	}
-}
-
-void RNA_types_init_gettext(void)
-{
-	StructRNA* target_struct[] = {
-			&RNA_Action, &RNA_ActionFCurves, &RNA_ActionGroup, &RNA_ActionGroups, &RNA_ActionPoseMarkers,
-			&RNA_BackgroundImage,
-			&RNA_ConsoleLine,
-			&RNA_Constraint,
-			&RNA_DopeSheet,
-			&RNA_Event,
-			&RNA_FileSelectParams,
-			&RNA_ID,
-			&RNA_KeyMap, &RNA_KeyMapItem, &RNA_KeyMapItems, 
-			&RNA_KeyboardSensor,
-			&RNA_KeyingSetsAll,
-			&RNA_Macro,
-
-			&RNA_Material, &RNA_MaterialHalo, &RNA_MaterialRaytraceMirror, &RNA_MaterialRaytraceTransparency,
-			&RNA_MaterialSlot, &RNA_MaterialStrand, &RNA_MaterialSubsurfaceScattering,
-			&RNA_MaterialTextureSlot, &RNA_MaterialVolume,
-			&RNA_Mesh,
-			&RNA_Modifier,
-
-			&RNA_Object,
-			&RNA_ParticleSettingsTextureSlot,
-			&RNA_RenderLayer, &RNA_RenderSettings,
-
-			&RNA_Scene, &RNA_SceneRenderLayer,
-			&RNA_Scopes,
-
-			&RNA_Space,
-			&RNA_SpaceConsole,
-			&RNA_SpaceDopeSheetEditor,
-			&RNA_SpaceFileBrowser,
-			&RNA_SpaceGraphEditor,
-			&RNA_SpaceImageEditor,
-			&RNA_SpaceInfo,
-			&RNA_SpaceLogicEditor,
-			&RNA_SpaceNLA,
-			&RNA_SpaceNodeEditor,
-			&RNA_SpaceOutliner,
-			&RNA_SpaceProperties,
-			&RNA_SpaceSequenceEditor,
-			&RNA_SpaceTextEditor,
-			&RNA_SpaceTimeline,
-			&RNA_SpaceView3D,
-			&RNA_SpaceUVEditor,
-			&RNA_SpaceUserPreferences,
-
-			&RNA_Texture, &RNA_TextureSlot,
-			&RNA_Theme, &RNA_ThemeBoneColorSet, &RNA_ThemeWidgetColors,
-			&RNA_ToolSettings,			
-			&RNA_UserPreferences, &RNA_UserPreferencesEdit, &RNA_UserPreferencesFilePaths,
-			&RNA_UserPreferencesInput, &RNA_UserPreferencesSystem, &RNA_UserPreferencesView,
-			&RNA_UnitSettings,
-			&RNA_World, &RNA_WorldLighting,
-			/* for test */
-			NULL
-	};
-	int i=0;
-	for( i=0; target_struct[i]!=NULL; i++ )
-	{
-		RNA_struct_gettexted( target_struct[i] );
-	}
-}
-
 /* Pointer */
 
 void RNA_main_pointer_create(struct Main *main, PointerRNA *r_ptr)
@@ -559,8 +451,10 @@ static const char *rna_ensure_property_identifier(PropertyRNA *prop)
 
 static const char *rna_ensure_property_description(PropertyRNA *prop)
 {
+	const char *description= NULL;
+
 	if(prop->magic == RNA_MAGIC)
-		return prop->description;
+		description= prop->description;
 	else {
 		/* attempt to get the local ID values */
 		IDProperty *idp_ui= rna_idproperty_ui(prop);
@@ -568,19 +462,36 @@ static const char *rna_ensure_property_description(PropertyRNA *prop)
 		if(idp_ui) {
 			IDProperty *item= IDP_GetPropertyTypeFromGroup(idp_ui, "description", IDP_STRING);
 			if(item)
-				return IDP_String(item);
+				description= IDP_String(item);
 		}
 
-		return ((IDProperty*)prop)->name; /* XXX - not correct */
+		if(description == NULL)
+			description= ((IDProperty*)prop)->name; /* XXX - not correct */
 	}
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_TOOLTIPS))
+		description= BLF_gettext(description);
+#endif
+
+	return description;
 }
 
 static const char *rna_ensure_property_name(PropertyRNA *prop)
 {
+	const char *name;
+
 	if(prop->magic == RNA_MAGIC)
-		return prop->name;
+		name= prop->name;
 	else
-		return ((IDProperty*)prop)->name;
+		name= ((IDProperty*)prop)->name;
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
+		name= BLF_gettext(name);
+#endif
+
+	return name;
 }
 
 /* Structs */
@@ -1235,6 +1146,7 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 
 			*totitem= tot;
 		}
+
 	}
 	else {
 		*item= eprop->item;
@@ -1242,6 +1154,45 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 			*totitem= eprop->totitem;
 	}
 }
+
+void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free)
+{
+	RNA_property_enum_items(C, ptr, prop, item, totitem, free);
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE)) {
+		int i;
+		EnumPropertyItem *nitem;
+
+		if(*free) {
+			nitem= *item;
+		} else {
+			int totitem= 0;
+
+			/* count */
+			for(i=0; (*item)[i].identifier; i++)
+				totitem++;
+
+			nitem= MEM_callocN(sizeof(EnumPropertyItem)*(totitem+1), "enum_items_gettexted");
+
+			for(i=0; (*item)[i].identifier; i++)
+				nitem[i]= (*item)[i];
+
+			*free= 1;
+		}
+
+		for(i=0; nitem[i].identifier; i++) {
+			if( nitem[i].name )
+				nitem[i].name = BLF_gettext(nitem[i].name);
+			if( nitem[i].description )
+				nitem[i].description = BLF_gettext(nitem[i].description);
+		}
+
+		*item= nitem;
+	}
+#endif
+}
+
 
 int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
 {	

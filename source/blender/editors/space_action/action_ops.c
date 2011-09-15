@@ -37,8 +37,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "BLF_api.h"
-
 #include "ED_anim_api.h"
 #include "ED_markers.h"
 #include "ED_transform.h"
@@ -94,7 +92,7 @@ void ED_operatormacros_action(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("ACTION_OT_duplicate_move", _("Duplicate"), OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("ACTION_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if (ot) {
 		WM_operatortype_macro_define(ot, "ACTION_OT_duplicate");
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");

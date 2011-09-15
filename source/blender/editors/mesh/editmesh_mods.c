@@ -55,8 +55,6 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"
@@ -714,22 +712,22 @@ static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, 
 #define SIMFACE_TOT			207
 
 static EnumPropertyItem prop_similar_types[] = {
-	{SIMVERT_NORMAL, "NORMAL", 0, N_("Normal"), ""},
-	{SIMVERT_FACE, "FACE", 0, N_("Amount of Vertices in Face"), ""},
-	{SIMVERT_VGROUP, "VGROUP", 0, N_("Vertex Groups"), ""},
-	{SIMEDGE_LENGTH, "LENGTH", 0, N_("Length"), ""},
-	{SIMEDGE_DIR, "DIR", 0, N_("Direction"), ""},
-	{SIMEDGE_FACE, "FACE", 0, N_("Amount of Vertices in Face"), ""},
-	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, N_("Face Angles"), ""},
-	{SIMEDGE_CREASE, "CREASE", 0, N_("Crease"), ""},
-	{SIMEDGE_SEAM, "SEAM", 0, N_("Seam"), ""},
-	{SIMEDGE_SHARP, "SHARP", 0, N_("Sharpness"), ""},
-	{SIMFACE_MATERIAL, "MATERIAL", 0, N_("Material"), ""},
-	{SIMFACE_IMAGE, "IMAGE", 0, N_("Image"), ""},
-	{SIMFACE_AREA, "AREA", 0, N_("Area"), ""},
-	{SIMFACE_PERIMETER, "PERIMETER", 0, N_("Perimeter"), ""},
-	{SIMFACE_NORMAL, "NORMAL", 0, N_("Normal"), ""},
-	{SIMFACE_COPLANAR, "COPLANAR", 0, N_("Co-planar"), ""},
+	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
+	{SIMVERT_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
+	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
+	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
+	{SIMEDGE_FACE, "FACE", 0, "Amount of Vertices in Face", ""},
+	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
+	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
+	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
+	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
+	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
+	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
+	{SIMFACE_AREA, "AREA", 0, "Area", ""},
+	{SIMFACE_PERIMETER, "PERIMETER", 0, "Perimeter", ""},
+	{SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
+	{SIMFACE_COPLANAR, "COPLANAR", 0, "Co-planar", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1290,8 +1288,8 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= _("Select Similar");
-	ot->description= _("Select similar vertices, edges or faces by property types");
+	ot->name= "Select Similar";
+	ot->description= "Select similar vertices, edges or faces by property types";
 	ot->idname= "MESH_OT_select_similar";
 	
 	/* api callbacks */
@@ -1303,10 +1301,10 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_similar_types), SIMVERT_NORMAL, _("Type"), "");
+	prop= RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
 	ot->prop= prop;
-	RNA_def_float(ot->srna, "threshold", 0.01f, 0.0f, FLT_MAX, _("Threshold"), "", 0.0f, 100.f);
+	RNA_def_float(ot->srna, "threshold", 0.01f, 0.0f, FLT_MAX, "Threshold", "", 0.0f, 100.f);
 }
 
 /* ******************************************* */
@@ -2042,8 +2040,8 @@ static int loop_multiselect(bContext *C, wmOperator *op)
 void MESH_OT_loop_multi_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Multi Select Loops");
-	ot->description= _("Select a loop of connected edges by connection type");
+	ot->name= "Multi Select Loops";
+	ot->description= "Select a loop of connected edges by connection type";
 	ot->idname= "MESH_OT_loop_multi_select";
 	
 	/* api callbacks */
@@ -2054,7 +2052,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "ring", 0, _("Ring"), "");
+	RNA_def_boolean(ot->srna, "ring", 0, "Ring", "");
 }
 
 		
@@ -2132,8 +2130,8 @@ static int mesh_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void MESH_OT_loop_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Loop Select");
-	ot->description= _("Select a loop of connected edges");
+	ot->name= "Loop Select";
+	ot->description= "Select a loop of connected edges";
 	ot->idname= "MESH_OT_loop_select";
 	
 	/* api callbacks */
@@ -2144,8 +2142,8 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
-	RNA_def_boolean(ot->srna, "ring", 0, _("Select Ring"), "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "");
 }
 
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
@@ -2263,8 +2261,8 @@ static int mesh_shortest_path_select_poll(bContext *C)
 void MESH_OT_select_shortest_path(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Shortest Path Select");
-	ot->description= _("Select shortest path between two selections");
+	ot->name= "Shortest Path Select";
+	ot->description= "Select shortest path between two selections";
 	ot->idname= "MESH_OT_select_shortest_path";
 	
 	/* api callbacks */
@@ -2275,7 +2273,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
 }
 
 
@@ -2571,8 +2569,8 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 void MESH_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Linked");
-	ot->description= _("(un)select all vertices linked to the active mesh");
+	ot->name= "Select Linked";
+	ot->description= "(un)select all vertices linked to the active mesh";
 	ot->idname= "MESH_OT_select_linked_pick";
 	
 	/* api callbacks */
@@ -2582,8 +2580,8 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "deselect", 0, _("Deselect"), "");
-	RNA_def_boolean(ot->srna, "limit", 0, _("Limit by Seams"), _("Limit selection by seam boundaries (faces only)"));
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "Limit selection by seam boundaries (faces only)");
 }
 
 
@@ -2660,8 +2658,8 @@ static int select_linked_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(eve
 void MESH_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Linked All");
-	ot->description= _("Select all vertices linked to the active mesh");
+	ot->name= "Select Linked All";
+	ot->description= "Select all vertices linked to the active mesh";
 	ot->idname= "MESH_OT_select_linked";
 	
 	/* api callbacks */
@@ -2672,7 +2670,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "limit", 0, _("Limit by Seams"), _("Limit selection by seam boundaries (faces only)"));
+	RNA_def_boolean(ot->srna, "limit", 0, "Limit by Seams", "Limit selection by seam boundaries (faces only)");
 }
 
 
@@ -2797,8 +2795,8 @@ static int hide_mesh_exec(bContext *C, wmOperator *op)
 void MESH_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Hide Selection");
-	ot->description= _("Hide (un)selected vertices, edges or faces");
+	ot->name= "Hide Selection";
+	ot->description= "Hide (un)selected vertices, edges or faces";
 	ot->idname= "MESH_OT_hide";
 	
 	/* api callbacks */
@@ -2809,7 +2807,7 @@ void MESH_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
 }
 
 void EM_reveal_mesh(EditMesh *em)
@@ -2864,8 +2862,8 @@ static int reveal_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Reveal Hidden");
-	ot->description= _("Reveal all hidden vertices, edges and faces");
+	ot->name= "Reveal Hidden";
+	ot->description= "Reveal all hidden vertices, edges and faces";
 	ot->idname= "MESH_OT_reveal";
 	
 	/* api callbacks */
@@ -2915,14 +2913,14 @@ static int select_by_number_vertices_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 {
 	static const EnumPropertyItem type_items[]= {
-		{3, "TRIANGLES", 0, N_("Triangles"), NULL},
-		{4, "QUADS", 0, N_("Quads"), NULL},
-		{5, "OTHER", 0, N_("Other"), NULL},
+		{3, "TRIANGLES", 0, "Triangles", NULL},
+		{4, "QUADS", 0, "Quads", NULL},
+		{5, "OTHER", 0, "Other", NULL},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
-	ot->name= _("Select by Number of Vertices");
-	ot->description= _("Select vertices or faces by vertex count");
+	ot->name= "Select by Number of Vertices";
+	ot->description= "Select vertices or faces by vertex count";
 	ot->idname= "MESH_OT_select_by_number_vertices";
 	
 	/* api callbacks */
@@ -2934,7 +2932,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 3, _("Type"), _("Type of elements to select."));
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
 }
 
 
@@ -2955,8 +2953,8 @@ static int select_mirror_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Mirror");
-	ot->description= _("Select mesh items at mirrored locations");
+	ot->name= "Select Mirror";
+	ot->description= "Select mesh items at mirrored locations";
 	ot->idname= "MESH_OT_select_mirror";
 
 	/* api callbacks */
@@ -2967,7 +2965,7 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend"), _("Extend the existing selection"));
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
 }
 
 static int select_sharp_edges_exec(bContext *C, wmOperator *op)
@@ -3076,8 +3074,8 @@ static int select_sharp_edges_exec(bContext *C, wmOperator *op)
 void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Sharp Edges");
-	ot->description= _("Marked selected edges as sharp");
+	ot->name= "Select Sharp Edges";
+	ot->description= "Marked selected edges as sharp";
 	ot->idname= "MESH_OT_edges_select_sharp";
 	
 	/* api callbacks */
@@ -3088,7 +3086,7 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float(ot->srna, "sharpness", 0.01f, 0.0f, FLT_MAX, _("sharpness"), "", 0.0f, 180.0f);
+	RNA_def_float(ot->srna, "sharpness", 0.01f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
 }
 
 
@@ -3244,8 +3242,8 @@ static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Linked Flat Faces");
-	ot->description= _("Select linked faces by angle");
+	ot->name= "Select Linked Flat Faces";
+	ot->description= "Select linked faces by angle";
 	ot->idname= "MESH_OT_faces_select_linked_flat";
 	
 	/* api callbacks */
@@ -3256,7 +3254,7 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float(ot->srna, "sharpness", 135.0f, 0.0f, FLT_MAX, _("sharpness"), "", 0.0f, 180.0f);
+	RNA_def_float(ot->srna, "sharpness", 135.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
 }
 
 static void select_non_manifold(EditMesh *em, wmOperator *op )
@@ -3345,8 +3343,8 @@ static int select_non_manifold_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_non_manifold(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Non Manifold");
-	ot->description= _("Select all non-manifold vertices or edges");
+	ot->name= "Select Non Manifold";
+	ot->description= "Select all non-manifold vertices or edges";
 	ot->idname= "MESH_OT_select_non_manifold";
 	
 	/* api callbacks */
@@ -3409,8 +3407,8 @@ static int select_inverse_mesh_exec(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Inverse");
-	ot->description= _("Select inverse of (un)selected vertices, edges or faces");
+	ot->name= "Select Inverse";
+	ot->description= "Select inverse of (un)selected vertices, edges or faces";
 	ot->idname= "MESH_OT_select_inverse";
 	
 	/* api callbacks */
@@ -3471,8 +3469,8 @@ static int select_all_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select or Deselect All");
-	ot->description= _("Change selection of all vertices, edges or faces");
+	ot->name= "Select or Deselect All";
+	ot->description= "Change selection of all vertices, edges or faces";
 	ot->idname= "MESH_OT_select_all";
 	
 	/* api callbacks */
@@ -3544,8 +3542,8 @@ static int select_more(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select More");
-	ot->description= _("Select more vertices, edges or faces connected to initial selection");
+	ot->name= "Select More";
+	ot->description= "Select more vertices, edges or faces connected to initial selection";
 	ot->idname= "MESH_OT_select_more";
 
 	/* api callbacks */
@@ -3634,8 +3632,8 @@ static int select_less(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Less");
-	ot->description= _("Select less vertices, edges or faces connected to initial selection");
+	ot->name= "Select Less";
+	ot->description= "Select less vertices, edges or faces connected to initial selection";
 	ot->idname= "MESH_OT_select_less";
 
 	/* api callbacks */
@@ -3704,8 +3702,8 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Random");
-	ot->description= _("Randomly select vertices");
+	ot->name= "Select Random";
+	ot->description= "Randomly select vertices";
 	ot->idname= "MESH_OT_select_random";
 
 	/* api callbacks */
@@ -3716,8 +3714,8 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, _("Percent"), _("Percentage of elements to select randomly."), 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend Selection"), _("Extend selection instead of deselecting everything first."));
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
 void EM_select_by_material(EditMesh *em, int index) 
@@ -3799,8 +3797,8 @@ static int editmesh_mark_seam(bContext *C, wmOperator *op)
 void MESH_OT_mark_seam(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Mark Seam");
-	ot->description= _("(un)mark selected edges as a seam");
+	ot->name= "Mark Seam";
+	ot->description= "(un)mark selected edges as a seam";
 	ot->idname= "MESH_OT_mark_seam";
 	
 	/* api callbacks */
@@ -3810,7 +3808,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "clear", 0, _("Clear"), "");
+	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
 
 static int editmesh_mark_sharp(bContext *C, wmOperator *op)
@@ -3851,8 +3849,8 @@ static int editmesh_mark_sharp(bContext *C, wmOperator *op)
 void MESH_OT_mark_sharp(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Mark Sharp");
-	ot->description= _("(un)mark selected edges as sharp");
+	ot->name= "Mark Sharp";
+	ot->description= "(un)mark selected edges as sharp";
 	ot->idname= "MESH_OT_mark_sharp";
 	
 	/* api callbacks */
@@ -3862,7 +3860,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "clear", 0, _("Clear"), "");
+	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
 
 /* **************** NORMALS ************** */
@@ -4095,8 +4093,8 @@ static int normals_make_consistent_exec(bContext *C, wmOperator *op)
 void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Make Normals Consistent");
-	ot->description= _("Flip all selected vertex and face normals in a consistent direction");
+	ot->name= "Make Normals Consistent";
+	ot->description= "Flip all selected vertex and face normals in a consistent direction";
 	ot->idname= "MESH_OT_normals_make_consistent";
 	
 	/* api callbacks */
@@ -4106,7 +4104,7 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "inside", 0, _("Inside"), "");
+	RNA_def_boolean(ot->srna, "inside", 0, "Inside", "");
 }
 
 /* **************** VERTEX DEFORMS *************** */
@@ -4273,8 +4271,8 @@ static int smooth_vertex_exec(bContext *C, wmOperator *op)
 void MESH_OT_vertices_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Smooth Vertex");
-	ot->description= _("Flatten angles of selected vertices");
+	ot->name= "Smooth Vertex";
+	ot->description= "Flatten angles of selected vertices";
 	ot->idname= "MESH_OT_vertices_smooth";
 	
 	/* api callbacks */
@@ -4284,10 +4282,10 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "repeat", 1, 1, 100, _("Smooth Iterations"), "", 1, INT_MAX);
-	RNA_def_boolean(ot->srna, "xaxis", 1, _("X-Axis"), _("Smooth along the X axis."));
-	RNA_def_boolean(ot->srna, "yaxis", 1, _("Y-Axis"), _("Smooth along the Y axis."));
-	RNA_def_boolean(ot->srna, "zaxis", 1, _("Z-Axis"), _("Smooth along the Z axis."));
+	RNA_def_int(ot->srna, "repeat", 1, 1, 100, "Smooth Iterations", "", 1, INT_MAX);
+	RNA_def_boolean(ot->srna, "xaxis", 1, "X-Axis", "Smooth along the X axis.");
+	RNA_def_boolean(ot->srna, "yaxis", 1, "Y-Axis", "Smooth along the Y axis.");
+	RNA_def_boolean(ot->srna, "zaxis", 1, "Z-Axis", "Smooth along the Z axis.");
 }
 
 static int mesh_noise_exec(bContext *C, wmOperator *op)
@@ -4347,8 +4345,8 @@ static int mesh_noise_exec(bContext *C, wmOperator *op)
 void MESH_OT_noise(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Noise");
-	ot->description= _("Use vertex coordinate as texture coordinate");
+	ot->name= "Noise";
+	ot->description= "Use vertex coordinate as texture coordinate";
 	ot->idname= "MESH_OT_noise";
 
 	/* api callbacks */
@@ -4358,7 +4356,7 @@ void MESH_OT_noise(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, _("Factor"), "", 0.0f, 1.0f);
+	RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
 }
 
 void flipface(EditMesh *em, EditFace *efa)
@@ -4409,8 +4407,8 @@ static int flip_normals(bContext *C, wmOperator *UNUSED(op))
 void MESH_OT_flip_normals(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Flip Normals");
-	ot->description= _("Toggle the direction of selected face's vertex and face normals");
+	ot->name= "Flip Normals";
+	ot->description= "Toggle the direction of selected face's vertex and face normals";
 	ot->idname= "MESH_OT_flip_normals";
 	
 	/* api callbacks */
@@ -4451,8 +4449,8 @@ void MESH_OT_solidify(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	/* identifiers */
-	ot->name= _("Solidify");
-	ot->description= _("Create a solid skin by extruding, compensating for sharp angles");
+	ot->name= "Solidify";
+	ot->description= "Create a solid skin by extruding, compensating for sharp angles";
 	ot->idname= "MESH_OT_solidify";
 
 	/* api callbacks */
@@ -4462,7 +4460,7 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	prop= RNA_def_float(ot->srna, "thickness", 0.01f, -FLT_MAX, FLT_MAX, _("Thickness"), "", -10.0f, 10.0f);
+	prop= RNA_def_float(ot->srna, "thickness", 0.01f, -FLT_MAX, FLT_MAX, "Thickness", "", -10.0f, 10.0f);
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
 }
 
@@ -4486,7 +4484,7 @@ static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_nth(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Nth");
+	ot->name= "Select Nth";
 	ot->description= "";
 	ot->idname= "MESH_OT_select_nth";
 
@@ -4497,6 +4495,6 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_int(ot->srna, "nth", 2, 2, 100, _("Nth Selection"), "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
 }
 

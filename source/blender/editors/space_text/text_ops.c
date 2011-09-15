@@ -46,8 +46,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "PIL_time.h"
 
 #include "BKE_context.h"
@@ -194,9 +192,9 @@ static int new_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Create Text Block");
+	ot->name= "Create Text Block";
 	ot->idname= "TEXT_OT_new";
-	ot->description= _("Create a new text data block");
+	ot->description= "Create a new text data block";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -294,9 +292,9 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void TEXT_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Open Text Block");
+	ot->name= "Open Text Block";
 	ot->idname= "TEXT_OT_open";
-	ot->description= _("Open a new text data block");
+	ot->description= "Open a new text data block";
 
 	/* api callbacks */
 	ot->exec= open_exec;
@@ -309,7 +307,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
-	RNA_def_boolean(ot->srna, "internal", 0, _("Make internal"), _("Make text file internal after loading"));
+	RNA_def_boolean(ot->srna, "internal", 0, "Make internal", "Make text file internal after loading");
 }
 
 /******************* reload operator *********************/
@@ -339,9 +337,9 @@ static int reload_exec(bContext *C, wmOperator *op)
 void TEXT_OT_reload(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Reload");
+	ot->name= "Reload";
 	ot->idname= "TEXT_OT_reload";
-	ot->description= _("Reload active text data block from its file");
+	ot->description= "Reload active text data block from its file";
 	
 	/* api callbacks */
 	ot->exec= reload_exec;
@@ -389,9 +387,9 @@ static int unlink_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_unlink(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Unlink");
+	ot->name= "Unlink";
 	ot->idname= "TEXT_OT_unlink";
-	ot->description= _("Unlink active text data block");
+	ot->description= "Unlink active text data block";
 	
 	/* api callbacks */
 	ot->exec= unlink_exec;
@@ -424,9 +422,9 @@ static int make_internal_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_make_internal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Make Internal");
+	ot->name= "Make Internal";
 	ot->idname= "TEXT_OT_make_internal";
-	ot->description= _("Make active text file internal");
+	ot->description= "Make active text file internal";
 
 	/* api callbacks */
 	ot->exec= make_internal_exec;
@@ -501,9 +499,9 @@ static int save_exec(bContext *C, wmOperator *op)
 void TEXT_OT_save(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Save");
+	ot->name= "Save";
 	ot->idname= "TEXT_OT_save";
-	ot->description= _("Save active text data block");
+	ot->description= "Save active text data block";
 
 	/* api callbacks */
 	ot->exec= save_exec;
@@ -558,9 +556,9 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void TEXT_OT_save_as(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Save As");
+	ot->name= "Save As";
 	ot->idname= "TEXT_OT_save_as";
-	ot->description= _("Save active text file with options");
+	ot->description= "Save active text file with options";
 	
 	/* api callbacks */
 	ot->exec= save_as_exec;
@@ -628,9 +626,9 @@ static int run_script_exec(bContext *C, wmOperator *op)
 void TEXT_OT_run_script(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Run Script");
+	ot->name= "Run Script";
 	ot->idname= "TEXT_OT_run_script";
-	ot->description= _("Run active script");
+	ot->description= "Run active script";
 	
 	/* api callbacks */
 	ot->poll= run_script_poll;
@@ -688,9 +686,9 @@ static int refresh_pyconstraints_exec(bContext *UNUSED(C), wmOperator *UNUSED(op
 void TEXT_OT_refresh_pyconstraints(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Refresh PyConstraints");
+	ot->name= "Refresh PyConstraints";
 	ot->idname= "TEXT_OT_refresh_pyconstraints";
-	ot->description= _("Refresh all pyconstraints");
+	ot->description= "Refresh all pyconstraints";
 	
 	/* api callbacks */
 	ot->exec= refresh_pyconstraints_exec;
@@ -812,16 +810,16 @@ static int paste_exec(bContext *C, wmOperator *op)
 void TEXT_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Paste");
+	ot->name= "Paste";
 	ot->idname= "TEXT_OT_paste";
-	ot->description= _("Paste text from clipboard");
+	ot->description= "Paste text from clipboard";
 	
 	/* api callbacks */
 	ot->exec= paste_exec;
 	ot->poll= text_edit_poll;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "selection", 0, _("Selection"), _("Paste text selected elsewhere rather than copied, X11 only."));
+	RNA_def_boolean(ot->srna, "selection", 0, "Selection", "Paste text selected elsewhere rather than copied, X11 only.");
 }
 
 /******************* copy operator *********************/
@@ -850,9 +848,9 @@ static int copy_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Copy");
+	ot->name= "Copy";
 	ot->idname= "TEXT_OT_copy";
-	ot->description= _("Copy selected text to clipboard");
+	ot->description= "Copy selected text to clipboard";
 
 	/* api callbacks */
 	ot->exec= copy_exec;
@@ -883,9 +881,9 @@ static int cut_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_cut(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Cut");
+	ot->name= "Cut";
 	ot->idname= "TEXT_OT_cut";
-	ot->description= _("Cut selected text to clipboard");
+	ot->description= "Cut selected text to clipboard";
 	
 	/* api callbacks */
 	ot->exec= cut_exec;
@@ -918,9 +916,9 @@ static int indent_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_indent(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Indent");
+	ot->name= "Indent";
 	ot->idname= "TEXT_OT_indent";
-	ot->description= _("Indent selected text");
+	ot->description= "Indent selected text";
 	
 	/* api callbacks */
 	ot->exec= indent_exec;
@@ -953,9 +951,9 @@ static int unindent_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_unindent(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Unindent");
+	ot->name= "Unindent";
 	ot->idname= "TEXT_OT_unindent";
-	ot->description= _("Unindent selected text");
+	ot->description= "Unindent selected text";
 	
 	/* api callbacks */
 	ot->exec= unindent_exec;
@@ -1000,9 +998,9 @@ static int line_break_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_line_break(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Line Break");
+	ot->name= "Line Break";
 	ot->idname= "TEXT_OT_line_break";
-	ot->description= _("Insert line break at cursor position");
+	ot->description= "Insert line break at cursor position";
 	
 	/* api callbacks */
 	ot->exec= line_break_exec;
@@ -1033,9 +1031,9 @@ static int comment_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_comment(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Comment");
+	ot->name= "Comment";
 	ot->idname= "TEXT_OT_comment";
-	ot->description= _("Convert selected text to comment");
+	ot->description= "Convert selected text to comment";
 	
 	/* api callbacks */
 	ot->exec= comment_exec;
@@ -1067,9 +1065,9 @@ static int uncomment_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_uncomment(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Uncomment");
+	ot->name= "Uncomment";
 	ot->idname= "TEXT_OT_uncomment";
-	ot->description= _("Convert selected comment to text");
+	ot->description= "Convert selected comment to text";
 	
 	/* api callbacks */
 	ot->exec= uncomment_exec;
@@ -1207,16 +1205,16 @@ static int convert_whitespace_exec(bContext *C, wmOperator *op)
 void TEXT_OT_convert_whitespace(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Convert Whitespace");
+	ot->name= "Convert Whitespace";
 	ot->idname= "TEXT_OT_convert_whitespace";
-	ot->description= _("Convert whitespaces by type");
+	ot->description= "Convert whitespaces by type";
 	
 	/* api callbacks */
 	ot->exec= convert_whitespace_exec;
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", whitespace_type_items, TO_SPACES, _("type"), _("Type of whitespace to convert to."));
+	RNA_def_enum(ot->srna, "type", whitespace_type_items, TO_SPACES, "type", "Type of whitespace to convert to.");
 }
 
 /******************* select all operator *********************/
@@ -1236,9 +1234,9 @@ static int select_all_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select All");
+	ot->name= "Select All";
 	ot->idname= "TEXT_OT_select_all";
-	ot->description= _("Select all text");
+	ot->description= "Select all text";
 	
 	/* api callbacks */
 	ot->exec= select_all_exec;
@@ -1262,9 +1260,9 @@ static int select_line_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_select_line(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Line");
+	ot->name= "Select Line";
 	ot->idname= "TEXT_OT_select_line";
-	ot->description= _("Select text by line");
+	ot->description= "Select text by line";
 	
 	/* api callbacks */
 	ot->exec= select_line_exec;
@@ -1289,9 +1287,9 @@ static int select_word_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_select_word(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Word");
+	ot->name= "Select Word";
 	ot->idname= "TEXT_OT_select_word";
-	ot->description= _("Select word under cursor");
+	ot->description= "Select word under cursor";
 
 	/* api callbacks */
 	ot->exec= select_word_exec;
@@ -1325,9 +1323,9 @@ static int previous_marker_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_previous_marker(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Previous Marker");
+	ot->name= "Previous Marker";
 	ot->idname= "TEXT_OT_previous_marker";
-	ot->description= _("Move to previous marker");
+	ot->description= "Move to previous marker";
 	
 	/* api callbacks */
 	ot->exec= previous_marker_exec;
@@ -1361,9 +1359,9 @@ static int next_marker_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_next_marker(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Next Marker");
+	ot->name= "Next Marker";
 	ot->idname= "TEXT_OT_next_marker";
-	ot->description= _("Move to next marker");
+	ot->description= "Move to next marker";
 	
 	/* api callbacks */
 	ot->exec= next_marker_exec;
@@ -1387,9 +1385,9 @@ static int clear_all_markers_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_markers_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear All Markers");
+	ot->name= "Clear All Markers";
 	ot->idname= "TEXT_OT_markers_clear";
-	ot->description= _("Clear all markers");
+	ot->description= "Clear all markers";
 	
 	/* api callbacks */
 	ot->exec= clear_all_markers_exec;
@@ -1900,16 +1898,16 @@ static int move_exec(bContext *C, wmOperator *op)
 void TEXT_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Move Cursor");
+	ot->name= "Move Cursor";
 	ot->idname= "TEXT_OT_move";
-	ot->description= _("Move cursor to position type");
+	ot->description= "Move cursor to position type";
 	
 	/* api callbacks */
 	ot->exec= move_exec;
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, _("Type"), _("Where to move cursor to."));
+	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to.");
 }
 
 /******************* move select operator ********************/
@@ -1924,16 +1922,16 @@ static int move_select_exec(bContext *C, wmOperator *op)
 void TEXT_OT_move_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Move Select");
+	ot->name= "Move Select";
 	ot->idname= "TEXT_OT_move_select";
-	ot->description= _("Make selection from current cursor position to new cursor position type");
+	ot->description= "Make selection from current cursor position to new cursor position type";
 	
 	/* api callbacks */
 	ot->exec= move_select_exec;
 	ot->poll= text_space_edit_poll;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, _("Type"), _("Where to move cursor to, to make a selection."));
+	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to, to make a selection.");
 }
 
 /******************* jump operator *********************/
@@ -1966,9 +1964,9 @@ static int jump_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 void TEXT_OT_jump(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Jump");
+	ot->name= "Jump";
 	ot->idname= "TEXT_OT_jump";
-	ot->description= _("Jump cursor to line");
+	ot->description= "Jump cursor to line";
 	
 	/* api callbacks */
 	ot->invoke= jump_invoke;
@@ -1976,7 +1974,7 @@ void TEXT_OT_jump(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	RNA_def_int(ot->srna, "line", 1, 1, INT_MAX, _("Line"), _("Line number to jump to."), 1, 10000);
+	RNA_def_int(ot->srna, "line", 1, 1, INT_MAX, "Line", "Line number to jump to.", 1, 10000);
 }
 
 /******************* delete operator **********************/
@@ -2019,16 +2017,16 @@ static int delete_exec(bContext *C, wmOperator *op)
 void TEXT_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Delete");
+	ot->name= "Delete";
 	ot->idname= "TEXT_OT_delete";
-	ot->description= _("Delete text by cursor position");
+	ot->description= "Delete text by cursor position";
 	
 	/* api callbacks */
 	ot->exec= delete_exec;
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, _("Type"), _("Which part of the text to delete."));
+	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete.");
 }
 
 /******************* toggle overwrite operator **********************/
@@ -2047,9 +2045,9 @@ static int toggle_overwrite_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Toggle Overwrite");
+	ot->name= "Toggle Overwrite";
 	ot->idname= "TEXT_OT_overwrite_toggle";
-	ot->description= _("Toggle overwrite while typing");
+	ot->description= "Toggle overwrite while typing";
 	
 	/* api callbacks */
 	ot->exec= toggle_overwrite_exec;
@@ -2247,12 +2245,12 @@ static int scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void TEXT_OT_scroll(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Scroll");
+	ot->name= "Scroll";
 	/*don't really see the difference between this and
 	  scroll_bar. Both do basically the same thing (aside 
 	  from keymaps).*/
 	ot->idname= "TEXT_OT_scroll";
-	ot->description= _("Scroll text screen");
+	ot->description= "Scroll text screen";
 	
 	/* api callbacks */
 	ot->exec= scroll_exec;
@@ -2265,7 +2263,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
 	/* properties */
-	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, _("Lines"), _("Number of lines to scroll."), -100, 100);
+	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
 
 /******************** scroll bar operator *******************/
@@ -2330,12 +2328,12 @@ static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void TEXT_OT_scroll_bar(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Scrollbar");
+	ot->name= "Scrollbar";
 	/*don't really see the difference between this and
 	  scroll. Both do basically the same thing (aside 
 	  from keymaps).*/
 	ot->idname= "TEXT_OT_scroll_bar";
-	ot->description= _("Scroll text screen");
+	ot->description= "Scroll text screen";
 	
 	/* api callbacks */
 	ot->invoke= scroll_bar_invoke;
@@ -2347,7 +2345,7 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 
 	/* properties */
-	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, _("Lines"), _("Number of lines to scroll."), -100, 100);
+	RNA_def_int(ot->srna, "lines", 1, INT_MIN, INT_MAX, "Lines", "Number of lines to scroll.", -100, 100);
 }
 
 /******************* set selection operator **********************/
@@ -2627,9 +2625,9 @@ static int set_selection_cancel(bContext *C, wmOperator *op)
 void TEXT_OT_selection_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Selection");
+	ot->name= "Set Selection";
 	ot->idname= "TEXT_OT_selection_set";
-	ot->description= _("Set cursor selection");
+	ot->description= "Set cursor selection";
 
 	/* api callbacks */
 	ot->invoke= set_selection_invoke;
@@ -2638,7 +2636,7 @@ void TEXT_OT_selection_set(wmOperatorType *ot)
 	ot->poll= text_region_edit_poll;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "select", 0, _("Select"), _("Set selection end rather than cursor."));
+	RNA_def_boolean(ot->srna, "select", 0, "Select", "Set selection end rather than cursor.");
 }
 
 /******************* set cursor operator **********************/
@@ -2681,9 +2679,9 @@ static int set_cursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void TEXT_OT_cursor_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Cursor");
+	ot->name= "Set Cursor";
 	ot->idname= "TEXT_OT_cursor_set";
-	ot->description= _("Set cursor position");
+	ot->description= "Set cursor position";
 
 	/* api callbacks */
 	ot->invoke= set_cursor_invoke;
@@ -2737,9 +2735,9 @@ static int line_number_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *even
 void TEXT_OT_line_number(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Line Number");
+	ot->name= "Line Number";
 	ot->idname= "TEXT_OT_line_number";
-	ot->description= _("The current line number");
+	ot->description= "The current line number";
 	
 	/* api callbacks */
 	ot->invoke= line_number_invoke;
@@ -2812,9 +2810,9 @@ static int insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void TEXT_OT_insert(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Insert");
+	ot->name= "Insert";
 	ot->idname= "TEXT_OT_insert";
-	ot->description= _("Insert text at cursor position");
+	ot->description= "Insert text at cursor position";
 	
 	/* api callbacks */
 	ot->exec= insert_exec;
@@ -2822,7 +2820,7 @@ void TEXT_OT_insert(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	RNA_def_string(ot->srna, "text", "", 0, _("Text"), _("Text to insert at the cursor position."));
+	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
 }
 
 /******************* find operator *********************/
@@ -2931,9 +2929,9 @@ static int find_exec(bContext *C, wmOperator *op)
 void TEXT_OT_find(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Find");
+	ot->name= "Find";
 	ot->idname= "TEXT_OT_find";
-	ot->description= _("Find specified text");
+	ot->description= "Find specified text";
 	
 	/* api callbacks */
 	ot->exec= find_exec;
@@ -2950,9 +2948,9 @@ static int replace_exec(bContext *C, wmOperator *op)
 void TEXT_OT_replace(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Replace");
+	ot->name= "Replace";
 	ot->idname= "TEXT_OT_replace";
-	ot->description= _("Replace text with the specified text");
+	ot->description= "Replace text with the specified text";
 
 	/* api callbacks */
 	ot->exec= replace_exec;
@@ -2969,9 +2967,9 @@ static int mark_all_exec(bContext *C, wmOperator *op)
 void TEXT_OT_mark_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Mark All");
+	ot->name= "Mark All";
 	ot->idname= "TEXT_OT_mark_all";
-	ot->description= _("Mark all specified text");
+	ot->description= "Mark all specified text";
 	
 	/* api callbacks */
 	ot->exec= mark_all_exec;
@@ -2999,9 +2997,9 @@ static int find_set_selected_exec(bContext *C, wmOperator *op)
 void TEXT_OT_find_set_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Find Set Selected");
+	ot->name= "Find Set Selected";
 	ot->idname= "TEXT_OT_find_set_selected";
-	ot->description= _("Find specified text and set as selected");
+	ot->description= "Find specified text and set as selected";
 	
 	/* api callbacks */
 	ot->exec= find_set_selected_exec;
@@ -3026,9 +3024,9 @@ static int replace_set_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Replace Set Selected");
+	ot->name= "Replace Set Selected";
 	ot->idname= "TEXT_OT_replace_set_selected";
-	ot->description= _("Replace text with specified text and set as selected");
+	ot->description= "Replace text with specified text and set as selected";
 	
 	/* api callbacks */
 	ot->exec= replace_set_selected_exec;
@@ -3161,9 +3159,9 @@ static int resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(
 void TEXT_OT_resolve_conflict(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Resolve Conflict");
+	ot->name= "Resolve Conflict";
 	ot->idname= "TEXT_OT_resolve_conflict";
-	ot->description= _("When external text is out of sync, resolve the conflict");
+	ot->description= "When external text is out of sync, resolve the conflict";
 
 	/* api callbacks */
 	ot->exec= resolve_conflict_exec;
@@ -3171,7 +3169,7 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot)
 	ot->poll= save_poll;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "resolution", resolution_items, RESOLVE_IGNORE, _("Resolution"), _("How to solve conflict due to different in internal and external text."));
+	RNA_def_enum(ot->srna, "resolution", resolution_items, RESOLVE_IGNORE, "Resolution", "How to solve conflict due to different in internal and external text.");
 }
 
 /********************** to 3d object operator *****************/
@@ -3189,9 +3187,9 @@ static int to_3d_object_exec(bContext *C, wmOperator *op)
 void TEXT_OT_to_3d_object(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("To 3D Object");
+	ot->name= "To 3D Object";
 	ot->idname= "TEXT_OT_to_3d_object";
-	ot->description= _("Create 3d text object from active text data block");
+	ot->description= "Create 3d text object from active text data block";
 	
 	/* api callbacks */
 	ot->exec= to_3d_object_exec;
@@ -3201,7 +3199,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "split_lines", 0, _("Split Lines"), _("Create one object per line in the text."));
+	RNA_def_boolean(ot->srna, "split_lines", 0, "Split Lines", "Create one object per line in the text.");
 }
 
 

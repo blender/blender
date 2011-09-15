@@ -38,7 +38,7 @@ class MESH_MT_vertex_group_specials(Menu):
 
 
 class MESH_MT_shape_key_specials(Menu):
-    bl_label = _("Shape Key Specials")
+    bl_label = "Shape Key Specials"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -81,7 +81,7 @@ class DATA_PT_context_mesh(MeshButtonsPanel, Panel):
 
 
 class DATA_PT_normals(MeshButtonsPanel, Panel):
-    bl_label = _("Normals")
+    bl_label = "Normals"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -101,7 +101,7 @@ class DATA_PT_normals(MeshButtonsPanel, Panel):
 
 
 class DATA_PT_texture_space(MeshButtonsPanel, Panel):
-    bl_label = _("Texture Space")
+    bl_label = "Texture Space"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -121,7 +121,7 @@ class DATA_PT_texture_space(MeshButtonsPanel, Panel):
 
 
 class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
-    bl_label = _("Vertex Groups")
+    bl_label = "Vertex Groups"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -170,7 +170,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
 
 class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
-    bl_label = _("Shape Keys")
+    bl_label = "Shape Keys"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -263,7 +263,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
 
 class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
-    bl_label = _("UV Texture")
+    bl_label = "UV Texture"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
@@ -286,7 +286,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
 
 
 class DATA_PT_texface(MeshButtonsPanel, Panel):
-    bl_label = _("Texture Face")
+    bl_label = "Texture Face"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     @classmethod
@@ -333,7 +333,7 @@ class DATA_PT_texface(MeshButtonsPanel, Panel):
 
 
 class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
-    bl_label = _("Vertex Colors")
+    bl_label = "Vertex Colors"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):

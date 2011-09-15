@@ -41,8 +41,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
@@ -180,8 +178,8 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void SOUND_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Open Sound");
-	ot->description= _("Load a sound file");
+	ot->name= "Open Sound";
+	ot->description= "Load a sound file";
 	ot->idname= "SOUND_OT_open";
 
 	/* api callbacks */
@@ -194,15 +192,15 @@ void SOUND_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH);
-	RNA_def_boolean(ot->srna, "cache", FALSE, _("Cache"), _("Cache the sound in memory."));
-	RNA_def_boolean(ot->srna, "mono", FALSE, _("Mono"), _("Mixdown the sound to mono."));
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
+	RNA_def_boolean(ot->srna, "mono", FALSE, "Mono", "Mixdown the sound to mono.");
 }
 
 void SOUND_OT_open_mono(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Open Sound Mono");
-	ot->description= _("Load a sound file as mono");
+	ot->name= "Open Sound Mono";
+	ot->description= "Load a sound file as mono";
 	ot->idname= "SOUND_OT_open_mono";
 
 	/* api callbacks */
@@ -215,8 +213,8 @@ void SOUND_OT_open_mono(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH);
-	RNA_def_boolean(ot->srna, "cache", FALSE, _("Cache"), _("Cache the sound in memory."));
-	RNA_def_boolean(ot->srna, "mono", TRUE, _("Mono"), _("Mixdown the sound to mono."));
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
+	RNA_def_boolean(ot->srna, "mono", TRUE, "Mono", "Mixdown the sound to mono.");
 }
 
 /******************** mixdown operator ********************/
@@ -671,8 +669,8 @@ void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 	*/
 
 	/* identifiers */
-	ot->name= _("Update animation");
-	ot->description= _("Update animation flags");
+	ot->name= "Update animation";
+	ot->description= "Update animation flags";
 	ot->idname= "SOUND_OT_update_animation_flags";
 
 	/* api callbacks */
@@ -708,8 +706,8 @@ static int bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 void SOUND_OT_bake_animation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Update animation cache");
-	ot->description= _("Updates the audio animation cache so that it's up to date");
+	ot->name= "Update animation cache";
+	ot->description= "Updates the audio animation cache so that it's up to date";
 	ot->idname= "SOUND_OT_bake_animation";
 
 	/* api callbacks */

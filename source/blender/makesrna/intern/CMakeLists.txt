@@ -219,6 +219,10 @@ if(WITH_OPENCOLLADA)
 	add_definitions(-DWITH_COLLADA)
 endif()
 
+if(WITH_INTERNATIONAL)
+	add_definitions(-DINTERNATIONAL)
+endif()
+
 # Build makesrna executable
 blender_include_dirs(
 	.

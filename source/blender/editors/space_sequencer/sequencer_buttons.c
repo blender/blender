@@ -38,8 +38,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -111,9 +109,9 @@ static int sequencer_properties(bContext *C, wmOperator *UNUSED(op))
 
 void SEQUENCER_OT_properties(wmOperatorType *ot)
 {
-	ot->name= _("Properties");
+	ot->name= "Properties";
 	ot->idname= "SEQUENCER_OT_properties";
-	ot->description= _("Open sequencer properties panel");
+	ot->description= "Open sequencer properties panel";
 	
 	ot->exec= sequencer_properties;
 	ot->poll= ED_operator_sequencer_active;

@@ -1018,7 +1018,6 @@ static void ui_text_label_rightclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 
 static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *but, rcti *rect)
 {
-//	int transopts;
 	char *cpoin = NULL;
 	
 	/* for underline drawing */
@@ -1087,10 +1086,6 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	
 	if (fstyle->kerning == 1)
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-	
-	//	ui_rasterpos_safe(x, y, but->aspect);
-//	if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
-//	else transopts= ui_translate_buttons();
 	
 	/* cut string in 2 parts - only for menu entries */
 	if((but->block->flag & UI_BLOCK_LOOP)) {

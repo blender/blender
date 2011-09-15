@@ -28,7 +28,7 @@ class ModifierButtonsPanel():
 
 
 class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
-    bl_label = _("Modifiers")
+    bl_label = "Modifiers"
 
     def draw(self, context):
         layout = self.layout

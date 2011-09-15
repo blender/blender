@@ -36,8 +36,6 @@
 
 #include "rna_internal.h"
 
-#include "BLF_api.h"
-
 #include "RE_pipeline.h"
 
 #include "BKE_utildefines.h"
@@ -54,10 +52,10 @@
 /* RenderEngine */
 
 static RenderEngineType internal_render_type = {
-	NULL, NULL, "BLENDER_RENDER", N_("Blender Render"), RE_INTERNAL, NULL, {NULL, NULL, NULL, NULL}};
+	NULL, NULL, "BLENDER_RENDER", "Blender Render", RE_INTERNAL, NULL, {NULL, NULL, NULL, NULL}};
 #ifdef WITH_GAMEENGINE
 static RenderEngineType internal_game_type = {
-	NULL, NULL, "BLENDER_GAME", N_("Blender Game"), RE_INTERNAL|RE_GAME, NULL, {NULL, NULL, NULL, NULL}};
+	NULL, NULL, "BLENDER_GAME", "Blender Game", RE_INTERNAL|RE_GAME, NULL, {NULL, NULL, NULL, NULL}};
 #endif
 
 ListBase R_engines = {NULL, NULL};

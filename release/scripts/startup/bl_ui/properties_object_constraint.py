@@ -758,7 +758,7 @@ class ConstraintButtonsPanel():
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
-    bl_label = _("Object Constraints")
+    bl_label = "Object Constraints"
     bl_context = "constraint"
 
     @classmethod
@@ -782,7 +782,7 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
 
 
 class BONE_PT_constraints(ConstraintButtonsPanel, Panel):
-    bl_label = _("Bone Constraints")
+    bl_label = "Bone Constraints"
     bl_context = "bone_constraint"
 
     @classmethod

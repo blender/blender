@@ -51,8 +51,6 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
-#include "BLF_api.h"
-
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -731,9 +729,9 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 void POSE_OT_armature_apply (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Apply Pose as Rest Pose");
+	ot->name= "Apply Pose as Rest Pose";
 	ot->idname= "POSE_OT_armature_apply";
-	ot->description= _("Apply the current pose as the new rest pose");
+	ot->description= "Apply the current pose as the new rest pose";
 	
 	/* callbacks */
 	ot->exec= apply_armature_pose2bones_exec;
@@ -782,9 +780,9 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 void POSE_OT_visual_transform_apply (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Apply Visual Transform to Pose");
+	ot->name= "Apply Visual Transform to Pose";
 	ot->idname= "POSE_OT_visual_transform_apply";
-	ot->description= _("Apply final constrained position of pose bones to their transform.");
+	ot->description= "Apply final constrained position of pose bones to their transform.";
 	
 	/* callbacks */
 	ot->exec= pose_visual_transform_apply_exec;
@@ -1245,9 +1243,9 @@ static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_separate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Separate Bones");
+	ot->name= "Separate Bones";
 	ot->idname= "ARMATURE_OT_separate";
-	ot->description= _("Isolate selected bones into a separate armature");
+	ot->description= "Isolate selected bones into a separate armature";
 	
 	/* callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -1469,9 +1467,9 @@ static int pose_select_linked_poll(bContext *C)
 void POSE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Connected");
+	ot->name= "Select Connected";
 	ot->idname= "POSE_OT_select_linked";
-	ot->description= _("Select bones related to selected ones by parent/child relationships");
+	ot->description= "Select bones related to selected ones by parent/child relationships";
 	
 	/* api callbacks */
 	ot->exec= NULL;
@@ -1482,7 +1480,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */	
-	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 /* **************** END Posemode stuff ********************** */
@@ -1563,9 +1561,9 @@ static int armature_select_linked_poll(bContext *C)
 void ARMATURE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Connected");
+	ot->name= "Select Connected";
 	ot->idname= "ARMATURE_OT_select_linked";
-	ot->description= _("Select bones related to selected ones by parent/child relationships");
+	ot->description= "Select bones related to selected ones by parent/child relationships";
 	
 	/* api callbacks */
 	ot->exec= NULL;
@@ -1576,7 +1574,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties s*/
-	RNA_def_boolean(ot->srna, "extend", FALSE, _("Extend"), _("Extend selection instead of deselecting everything first."));
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 /* does bones and points */
@@ -1748,9 +1746,9 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Delete Selected Bone(s)");
+	ot->name= "Delete Selected Bone(s)";
 	ot->idname= "ARMATURE_OT_delete";
-	ot->description= _("Remove selected bones from the armature");
+	ot->description= "Remove selected bones from the armature";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
@@ -1997,12 +1995,12 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const short
 
 
 static EnumPropertyItem prop_calc_roll_types[] = {
-	{0, "X", 0, N_("X Axis"), ""},
-	{1, "Y", 0, N_("Y Axis"), ""},
-	{2, "Z", 0, N_("Z Axis"), ""},
-	{5, "ACTIVE", 0, N_("Active Bone"), ""},
-	{6, "VIEW", 0, N_("View Axis"), ""},
-	{7, "CURSOR", 0, N_("Cursor"), ""},
+	{0, "X", 0, "X Axis", ""},
+	{1, "Y", 0, "Y Axis", ""},
+	{2, "Z", 0, "Z Axis", ""},
+	{5, "ACTIVE", 0, "Active Bone", ""},
+	{6, "VIEW", 0, "View Axis", ""},
+	{7, "CURSOR", 0, "Cursor", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -2103,9 +2101,9 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Recalculate Roll");
+	ot->name= "Recalculate Roll";
 	ot->idname= "ARMATURE_OT_calculate_roll";
-	ot->description= _("Automatically fix alignment of select bones' axes");
+	ot->description= "Automatically fix alignment of select bones' axes";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -2116,9 +2114,9 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_calc_roll_types), 0, _("Type"), "");
-	RNA_def_boolean(ot->srna, "axis_flip", 0, _("Flip Axis"), _("Negate the alignment axis."));
-	RNA_def_boolean(ot->srna, "axis_only", 0, _("Shortest Rotation"), _("Ignore the axis direction, use the shortest rotation to align."));
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
+	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis.");
+	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align.");
 }
 
 /* **************** undo for armatures ************** */
@@ -2410,9 +2408,9 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 void ARMATURE_OT_click_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Click-Extrude");
+	ot->name= "Click-Extrude";
 	ot->idname= "ARMATURE_OT_click_extrude";
-	ot->description= _("Create a new bone going from the last selected joint to the mouse position");
+	ot->description= "Create a new bone going from the last selected joint to the mouse position";
 	
 	/* api callbacks */
 	ot->invoke = armature_click_extrude_invoke;
@@ -2679,9 +2677,9 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Duplicate Selected Bone(s)");
+	ot->name= "Duplicate Selected Bone(s)";
 	ot->idname= "ARMATURE_OT_duplicate";
-	ot->description= _("Make copies of the selected bones within the same armature");
+	ot->description= "Make copies of the selected bones within the same armature";
 	
 	/* api callbacks */
 	ot->exec = armature_duplicate_selected_exec;
@@ -2953,9 +2951,9 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 void ARMATURE_OT_fill (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Fill Between Joints");
+	ot->name= "Fill Between Joints";
 	ot->idname= "ARMATURE_OT_fill";
-	ot->description= _("Add bone between selected joint(s) and/or 3D-Cursor");
+	ot->description= "Add bone between selected joint(s) and/or 3D-Cursor";
 	
 	/* callbacks */
 	ot->exec= armature_fill_bones_exec;
@@ -3132,14 +3130,14 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 void ARMATURE_OT_merge (wmOperatorType *ot)
 {
 	static EnumPropertyItem merge_types[] = {
-		{1, "WITHIN_CHAIN", 0, N_("Within Chains"), ""},
+		{1, "WITHIN_CHAIN", 0, "Within Chains", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
-	ot->name= _("Merge Bones");
+	ot->name= "Merge Bones";
 	ot->idname= "ARMATURE_OT_merge";
-	ot->description= _("Merge continuous chains of selected bones");
+	ot->description= "Merge continuous chains of selected bones";
 	
 	/* callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -3150,7 +3148,7 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(merge_types), 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
 }
 
 /* ************** END Add/Remove stuff in editmode ************ */
@@ -3186,9 +3184,9 @@ static int armature_hide_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Hide Selected Bones");
+	ot->name= "Hide Selected Bones";
 	ot->idname= "ARMATURE_OT_hide";
-	ot->description= _("Tag selected bones to not be visible in Edit Mode");
+	ot->description= "Tag selected bones to not be visible in Edit Mode";
 	
 	/* api callbacks */
 	ot->exec= armature_hide_exec;
@@ -3198,7 +3196,7 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), _("Hide unselected rather than selected."));
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
 }
 
 static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
@@ -3226,9 +3224,9 @@ static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Reveal Bones");
+	ot->name= "Reveal Bones";
 	ot->idname= "ARMATURE_OT_reveal";
-	ot->description= _("Unhide all bones that have been tagged to be hidden in Edit Mode");
+	ot->description= "Unhide all bones that have been tagged to be hidden in Edit Mode";
 	
 	/* api callbacks */
 	ot->exec= armature_reveal_exec;
@@ -3435,9 +3433,9 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Extrude");
+	ot->name= "Extrude";
 	ot->idname= "ARMATURE_OT_extrude";
-	ot->description= _("Create new bones from the selected joints");
+	ot->description= "Create new bones from the selected joints";
 	
 	/* api callbacks */
 	ot->exec= armature_extrude_exec;
@@ -3447,7 +3445,7 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "forked", 0, _("Forked"), "");
+	RNA_def_boolean(ot->srna, "forked", 0, "Forked", "");
 }
 /* ********************** Bone Add ********************/
 
@@ -3498,9 +3496,9 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Bone");
+	ot->name= "Add Bone";
 	ot->idname= "ARMATURE_OT_bone_primitive_add";
-	ot->description= _("Add a new bone located at the 3D-Cursor");
+	ot->description= "Add a new bone located at the 3D-Cursor";
 	
 	/* api callbacks */
 	ot->exec = armature_bone_primitive_add_exec;
@@ -3509,7 +3507,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_string(ot->srna, "name", "Bone", 32, _("Name"), _("Name of the newly created bone"));
+	RNA_def_string(ot->srna, "name", "Bone", 32, "Name", "Name of the newly created bone");
 	
 }
 
@@ -3588,9 +3586,9 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Subdivide Multi");
+	ot->name= "Subdivide Multi";
 	ot->idname= "ARMATURE_OT_subdivide";
-	ot->description= _("Break selected bones into chains of smaller bones");
+	ot->description= "Break selected bones into chains of smaller bones";
 	
 	/* api callbacks */
 	ot->exec = armature_subdivide_exec;
@@ -3600,7 +3598,7 @@ void ARMATURE_OT_subdivide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* Properties */
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, _("Number of Cuts"), "", 1, 10);
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
 }
 
 /* ----------- */
@@ -3690,9 +3688,9 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_switch_direction(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Switch Direction");
+	ot->name= "Switch Direction";
 	ot->idname= "ARMATURE_OT_switch_direction";
-	ot->description= _("Change the direction that a chain of bones points in (head <-> tail swap)");
+	ot->description= "Change the direction that a chain of bones points in (head <-> tail swap)";
 	
 	/* api callbacks */
 	ot->exec = armature_switch_direction_exec;
@@ -3764,8 +3762,8 @@ static void bone_connect_to_new_parent(ListBase *edbo, EditBone *selbone, EditBo
 }
 
 static EnumPropertyItem prop_editarm_make_parent_types[] = {
-	{ARM_PAR_CONNECT, "CONNECTED", 0, N_("Connected"), ""},
-	{ARM_PAR_OFFSET, "OFFSET", 0, N_("Keep Offset"), ""},
+	{ARM_PAR_CONNECT, "CONNECTED", 0, "Connected", ""},
+	{ARM_PAR_OFFSET, "OFFSET", 0, "Keep Offset", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3865,9 +3863,9 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEve
 void ARMATURE_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Make Parent");
+	ot->name= "Make Parent";
 	ot->idname= "ARMATURE_OT_parent_set";
-	ot->description= _("Set the active bone as the parent of the selected bones");
+	ot->description= "Set the active bone as the parent of the selected bones";
 	
 	/* api callbacks */
 	ot->invoke = armature_parent_set_invoke;
@@ -3877,12 +3875,12 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_editarm_make_parent_types), 0, _("ParentType"), _("Type of parenting"));
+	RNA_def_enum(ot->srna, "type", prop_editarm_make_parent_types, 0, "ParentType", "Type of parenting");
 }
 
 static EnumPropertyItem prop_editarm_clear_parent_types[] = {
-	{1, "CLEAR", 0, N_("Clear Parent"), ""},
-	{2, "DISCONNECT", 0, N_("Disconnect Bone"), ""},
+	{1, "CLEAR", 0, "Clear Parent", ""},
+	{2, "DISCONNECT", 0, "Disconnect Bone", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3919,9 +3917,9 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Parent");
+	ot->name= "Clear Parent";
 	ot->idname= "ARMATURE_OT_parent_clear";
-	ot->description= _("Remove the parent-child relationship between selected bones and their parents");
+	ot->description= "Remove the parent-child relationship between selected bones and their parents";
 	
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -3931,7 +3929,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_editarm_clear_parent_types), 0, _("ClearType"), _("What way to clear parenting"));
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
 }
 
 /* ****************  Selections  ******************/
@@ -3956,9 +3954,9 @@ static int armature_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Inverse");
+	ot->name= "Select Inverse";
 	ot->idname= "ARMATURE_OT_select_inverse";
-	ot->description= _("Flip the selection status of bones (selected -> unselected, unselected -> selected)");
+	ot->description= "Flip the selection status of bones (selected -> unselected, unselected -> selected)";
 	
 	/* api callbacks */
 	ot->exec= armature_select_inverse_exec;
@@ -4016,9 +4014,9 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select or Deselect All");
+	ot->name= "Select or Deselect All";
 	ot->idname= "ARMATURE_OT_select_all";
-	ot->description= _("Toggle selection status of all bones");
+	ot->description= "Toggle selection status of all bones";
 	
 	/* api callbacks */
 	ot->exec= armature_de_select_all_exec;
@@ -4091,15 +4089,15 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 {
 	static EnumPropertyItem direction_items[]= {
-	{BONE_SELECT_PARENT, "PARENT", 0, N_("Select Parent"), ""},
-	{BONE_SELECT_CHILD, "CHILD", 0, N_("Select Child"), ""},
+	{BONE_SELECT_PARENT, "PARENT", 0, "Select Parent", ""},
+	{BONE_SELECT_CHILD, "CHILD", 0, "Select Child", ""},
 	{0, NULL, 0, NULL, NULL}
 	};
 	
 	/* identifiers */
-	ot->name= _("Select Hierarchy");
+	ot->name= "Select Hierarchy";
 	ot->idname= "ARMATURE_OT_select_hierarchy";
-	ot->description= _("Select immediate parent/children of selected bones");
+	ot->description= "Select immediate parent/children of selected bones";
 	
 	/* api callbacks */
 	ot->exec= armature_select_hierarchy_exec;
@@ -4109,9 +4107,9 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", RNA_enum_items_gettexted(direction_items),
-			 BONE_SELECT_PARENT, _("Direction"), "");
-	RNA_def_boolean(ot->srna, "extend", 0, _("Add to Selection"), "");
+	RNA_def_enum(ot->srna, "direction", direction_items,
+			 BONE_SELECT_PARENT, "Direction", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
 }
 
 /* ***************** EditBone Alignment ********************* */
@@ -4236,9 +4234,9 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 void ARMATURE_OT_align(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Align Bones");
+	ot->name= "Align Bones";
 	ot->idname= "ARMATURE_OT_align";
-	ot->description= _("Align selected bones to the active bone (or to their parent)");
+	ot->description= "Align selected bones to the active bone (or to their parent)";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
@@ -4951,9 +4949,9 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 void POSE_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Pose Scale");
+	ot->name= "Clear Pose Scale";
 	ot->idname= "POSE_OT_scale_clear";
-	ot->description = _("Reset scaling of selected bones to their default values");
+	ot->description = "Reset scaling of selected bones to their default values";
 	
 	/* api callbacks */
 	ot->exec = pose_clear_scale_exec;
@@ -4972,9 +4970,9 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 void POSE_OT_rot_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Pose Rotation");
+	ot->name= "Clear Pose Rotation";
 	ot->idname= "POSE_OT_rot_clear";
-	ot->description = _("Reset rotations of selected bones to their default values");
+	ot->description = "Reset rotations of selected bones to their default values";
 	
 	/* api callbacks */
 	ot->exec = pose_clear_rot_exec;
@@ -4993,9 +4991,9 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 void POSE_OT_loc_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Pose Location");
+	ot->name= "Clear Pose Location";
 	ot->idname= "POSE_OT_loc_clear";
-	ot->description = _("Reset locations of selected bones to their default values");
+	ot->description = "Reset locations of selected bones to their default values";
 	
 	/* api callbacks */
 	ot->exec = pose_clear_loc_exec;
@@ -5014,9 +5012,9 @@ static int pose_clear_transforms_exec(bContext *C, wmOperator *op)
 void POSE_OT_transforms_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Clear Pose Transforms");
+	ot->name= "Clear Pose Transforms";
 	ot->idname= "POSE_OT_transforms_clear";
-	ot->description = _("Reset location, rotation, and scaling of selected bones to their default values");
+	ot->description = "Reset location, rotation, and scaling of selected bones to their default values";
 	
 	/* api callbacks */
 	ot->exec = pose_clear_transforms_exec;
@@ -5048,9 +5046,9 @@ static int pose_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_select_inverse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Inverse");
+	ot->name= "Select Inverse";
 	ot->idname= "POSE_OT_select_inverse";
-	ot->description= _("Flip the selection status of bones (selected -> unselected, unselected -> selected)");
+	ot->description= "Flip the selection status of bones (selected -> unselected, unselected -> selected)";
 	
 	/* api callbacks */
 	ot->exec= pose_select_inverse_exec;
@@ -5099,9 +5097,9 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 void POSE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select or Deselect All");
+	ot->name= "Select or Deselect All";
 	ot->idname= "POSE_OT_select_all";
-	ot->description= _("Toggle selection status of all bones");
+	ot->description= "Toggle selection status of all bones";
 	
 	/* api callbacks */
 	ot->exec= pose_de_select_all_exec;
@@ -5143,9 +5141,9 @@ static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_select_parent(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Parent Bone");
+	ot->name= "Select Parent Bone";
 	ot->idname= "POSE_OT_select_parent";
-	ot->description= _("Select bones that are parents of the currently selected bones");
+	ot->description= "Select bones that are parents of the currently selected bones";
 
 	/* api callbacks */
 	ot->exec= pose_select_parent_exec;
@@ -5208,9 +5206,9 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 void POSE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Hide Selected");
+	ot->name= "Hide Selected";
 	ot->idname= "POSE_OT_hide";
-	ot->description= _("Tag selected bones to not be visible in Pose Mode");
+	ot->description= "Tag selected bones to not be visible in Pose Mode";
 	
 	/* api callbacks */
 	ot->exec= pose_hide_exec;
@@ -5220,7 +5218,7 @@ void POSE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, _("Unselected"), "");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "");
 }
 
 static int show_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr)) 
@@ -5254,9 +5252,9 @@ static int pose_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 void POSE_OT_reveal(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Reveal Selected");
+	ot->name= "Reveal Selected";
 	ot->idname= "POSE_OT_reveal";
-	ot->description= _("Unhide all bones that have been tagged to be hidden in Pose Mode");
+	ot->description= "Unhide all bones that have been tagged to be hidden in Pose Mode";
 	
 	/* api callbacks */
 	ot->exec= pose_reveal_exec;
@@ -5471,9 +5469,9 @@ static int armature_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 void ARMATURE_OT_flip_names (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Flip Names");
+	ot->name= "Flip Names";
 	ot->idname= "ARMATURE_OT_flip_names";
-	ot->description= _("Flips (and corrects) the axis suffixes of the names of selected bones");
+	ot->description= "Flips (and corrects) the axis suffixes of the names of selected bones";
 	
 	/* api callbacks */
 	ot->exec= armature_flip_names_exec;
@@ -5517,15 +5515,15 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[]= {
-		 {0, "XAXIS", 0, N_("X-Axis"), N_("Left/Right")},
-		{1, "YAXIS", 0, N_("Y-Axis"), N_("Front/Back")},
-		{2, "ZAXIS", 0, N_("Z-Axis"), N_("Top/Bottom")},
+		 {0, "XAXIS", 0, "X-Axis", "Left/Right"},
+		{1, "YAXIS", 0, "Y-Axis", "Front/Back"},
+		{2, "ZAXIS", 0, "Z-Axis", "Top/Bottom"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* identifiers */
-	ot->name= _("AutoName by Axis");
+	ot->name= "AutoName by Axis";
 	ot->idname= "ARMATURE_OT_autoside_names";
-	ot->description= _("Automatically renames the selected bones according to which side of the target axis they fall on");
+	ot->description= "Automatically renames the selected bones according to which side of the target axis they fall on";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -5536,7 +5534,7 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, _("Axis"), _("Axis tag names with."));
+	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with.");
 }
 
 

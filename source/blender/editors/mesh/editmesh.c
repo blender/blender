@@ -50,8 +50,6 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -1314,9 +1312,9 @@ void remake_editMesh(Scene *scene, Object *ob)
 /* *************** Operator: separate parts *************/
 
 static EnumPropertyItem prop_separate_types[] = {
-	{0, "SELECTED", 0, N_("Selection"), ""},
-	{1, "MATERIAL", 0, N_("By Material"), ""},
-	{2, "LOOSE", 0, N_("By loose parts"), ""},
+	{0, "SELECTED", 0, "Selection", ""},
+	{1, "MATERIAL", 0, "By Material", ""},
+	{2, "LOOSE", 0, "By loose parts", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1542,8 +1540,8 @@ static int mesh_separate_exec(bContext *C, wmOperator *op)
 void MESH_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Separate");
-	ot->description= _("Separate selected geometry into a new mesh");
+	ot->name= "Separate";
+	ot->description= "Separate selected geometry into a new mesh";
 	ot->idname= "MESH_OT_separate";
 	
 	/* api callbacks */
@@ -1554,7 +1552,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	ot->prop= RNA_def_enum(ot->srna, "type", RNA_enum_items_gettexted(prop_separate_types), 0, _("Type"), "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
 }
 
 

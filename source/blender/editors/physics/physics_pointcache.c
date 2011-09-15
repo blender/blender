@@ -39,8 +39,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
@@ -157,8 +155,8 @@ static int ptcache_free_bake_all_exec(bContext *C, wmOperator *UNUSED(op))
 void PTCACHE_OT_bake_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Bake All Physics");
-	ot->description= _("Bake all physics");
+	ot->name= "Bake All Physics";
+	ot->description= "Bake all physics";
 	ot->idname= "PTCACHE_OT_bake_all";
 	
 	/* api callbacks */
@@ -168,7 +166,7 @@ void PTCACHE_OT_bake_all(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "bake", 1, _("Bake"), "");
+	RNA_def_boolean(ot->srna, "bake", 1, "Bake", "");
 }
 void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 {
@@ -270,8 +268,8 @@ static int ptcache_bake_from_cache_exec(bContext *C, wmOperator *UNUSED(op))
 void PTCACHE_OT_bake(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Bake Physics");
-	ot->description= _("Bake physics");
+	ot->name= "Bake Physics";
+	ot->description= "Bake physics";
 	ot->idname= "PTCACHE_OT_bake";
 	
 	/* api callbacks */
@@ -281,7 +279,7 @@ void PTCACHE_OT_bake(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "bake", 0, _("Bake"), "");
+	RNA_def_boolean(ot->srna, "bake", 0, "Bake", "");
 }
 void PTCACHE_OT_free_bake(wmOperatorType *ot)
 {

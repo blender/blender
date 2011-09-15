@@ -28,13 +28,12 @@ from bpy.props import (StringProperty,
                        )
 
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
-from blf import gettext as _
 
 
 class MESH_OT_delete_edgeloop(Operator):
     '''Delete an edge loop by merging the faces on each side to a single face loop'''
     bl_idname = "mesh.delete_edgeloop"
-    bl_label = _("Delete Edge Loop")
+    bl_label = "Delete Edge Loop"
 
     def execute(self, context):
         if 'FINISHED' in bpy.ops.transform.edge_slide(value=1.0):
@@ -45,20 +44,20 @@ class MESH_OT_delete_edgeloop(Operator):
         return {'CANCELLED'}
 
 rna_path_prop = StringProperty(
-        name=_("Context Attributes"),
-        description=_("rna context string"),
+        name="Context Attributes",
+        description="rna context string",
         maxlen=1024,
         )
 
 rna_reverse_prop = BoolProperty(
-        name=_("Reverse"),
-        description=_("Cycle backwards"),
+        name="Reverse",
+        description="Cycle backwards",
         default=False,
         )
 
 rna_relative_prop = BoolProperty(
-        name=_("Relative"),
-        description=_("Apply relative to the current value (delta)"),
+        name="Relative",
+        description="Apply relative to the current value (delta)",
         default=False,
         )
 
@@ -141,16 +140,16 @@ def execute_context_assign(self, context):
 class BRUSH_OT_active_index_set(Operator):
     '''Set active sculpt/paint brush from it's number'''
     bl_idname = "brush.active_index_set"
-    bl_label = _("Set Brush Number")
+    bl_label = "Set Brush Number"
 
     mode = StringProperty(
-            name=_("mode"),
-            description=_("Paint mode to set brush for"),
+            name="mode",
+            description="Paint mode to set brush for",
             maxlen=1024,
             )
     index = IntProperty(
-            name=_("number"),
-            description=_("Brush number"),
+            name="number",
+            description="Brush number",
             )
 
     _attr_dict = {"sculpt": "use_paint_sculpt",
@@ -175,13 +174,13 @@ class BRUSH_OT_active_index_set(Operator):
 class WM_OT_context_set_boolean(Operator):
     '''Set a context value.'''
     bl_idname = "wm.context_set_boolean"
-    bl_label = _("Context Set Boolean")
+    bl_label = "Context Set Boolean"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
     value = BoolProperty(
-            name=_("Value"),
-            description=_("Assignment value"),
+            name="Value",
+            description="Assignment value",
             default=True,
             )
 
@@ -191,13 +190,13 @@ class WM_OT_context_set_boolean(Operator):
 class WM_OT_context_set_int(Operator):  # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_int"
-    bl_label = _("Context Set")
+    bl_label = "Context Set"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
     value = IntProperty(
-            name=_("Value"),
-            description=_("Assign value"),
+            name="Value",
+            description="Assign value",
             default=0,
             )
     relative = rna_relative_prop
@@ -208,18 +207,18 @@ class WM_OT_context_set_int(Operator):  # same as enum
 class WM_OT_context_scale_int(Operator):
     '''Scale an int context value.'''
     bl_idname = "wm.context_scale_int"
-    bl_label = _("Context Set")
+    bl_label = "Context Set"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
     value = FloatProperty(
-            name=_("Value"),
-            description=_("Assign value"),
+            name="Value",
+            description="Assign value",
             default=1.0,
             )
     always_step = BoolProperty(
-            name=_("Always Step"),
-            description=_("Always adjust the value by a minimum of 1 when 'value' is not 1.0."),
+            name="Always Step",
+            description="Always adjust the value by a minimum of 1 when 'value' is not 1.0.",
             default=True,
             )
 
@@ -251,13 +250,13 @@ class WM_OT_context_scale_int(Operator):
 class WM_OT_context_set_float(Operator):  # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_float"
-    bl_label = _("Context Set Float")
+    bl_label = "Context Set Float"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
     value = FloatProperty(
-            name=_("Value"),
-            description=_("Assignment value"),
+            name="Value",
+            description="Assignment value",
             default=0.0,
             )
     relative = rna_relative_prop
@@ -268,13 +267,13 @@ class WM_OT_context_set_float(Operator):  # same as enum
 class WM_OT_context_set_string(Operator):  # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_string"
-    bl_label = _("Context Set String")
+    bl_label = "Context Set String"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
     value = StringProperty(
-            name=_("Value"),
-            description=_("Assign value"),
+            name="Value",
+            description="Assign value",
             maxlen=1024,
             )
 
@@ -284,13 +283,13 @@ class WM_OT_context_set_string(Operator):  # same as enum
 class WM_OT_context_set_enum(Operator):
     '''Set a context value.'''
     bl_idname = "wm.context_set_enum"
-    bl_label = _("Context Set Enum")
+    bl_label = "Context Set Enum"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
     value = StringProperty(
-            name=_("Value"),
-            description=_("Assignment value (as a string)"),
+            name="Value",
+            description="Assignment value (as a string)",
             maxlen=1024,
             )
 
@@ -300,13 +299,13 @@ class WM_OT_context_set_enum(Operator):
 class WM_OT_context_set_value(Operator):
     '''Set a context value.'''
     bl_idname = "wm.context_set_value"
-    bl_label = _("Context Set Value")
+    bl_label = "Context Set Value"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
     value = StringProperty(
-            name=_("Value"),
-            description=_("Assignment value (as a string)"),
+            name="Value",
+            description="Assignment value (as a string)",
             maxlen=1024,
             )
 
@@ -321,7 +320,7 @@ class WM_OT_context_set_value(Operator):
 class WM_OT_context_toggle(Operator):
     '''Toggle a context value.'''
     bl_idname = "wm.context_toggle"
-    bl_label = _("Context Toggle")
+    bl_label = "Context Toggle"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
@@ -340,18 +339,18 @@ class WM_OT_context_toggle(Operator):
 class WM_OT_context_toggle_enum(Operator):
     '''Toggle a context value.'''
     bl_idname = "wm.context_toggle_enum"
-    bl_label = _("Context Toggle Values")
+    bl_label = "Context Toggle Values"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
     value_1 = StringProperty(
-            name=_("Value"),
-            description=_("Toggle enum"),
+            name="Value",
+            description="Toggle enum",
             maxlen=1024,
             )
     value_2 = StringProperty(
-            name=_("Value"),
-            description=_("Toggle enum"),
+            name="Value",
+            description="Toggle enum",
             maxlen=1024,
             )
 
@@ -374,7 +373,7 @@ class WM_OT_context_cycle_int(Operator):
     '''Set a context value. Useful for cycling active material, '''
     '''vertex keys, groups' etc.'''
     bl_idname = "wm.context_cycle_int"
-    bl_label = _("Context Int Cycle")
+    bl_label = "Context Int Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
@@ -408,7 +407,7 @@ class WM_OT_context_cycle_int(Operator):
 class WM_OT_context_cycle_enum(Operator):
     '''Toggle a context value.'''
     bl_idname = "wm.context_cycle_enum"
-    bl_label = _("Context Enum Cycle")
+    bl_label = "Context Enum Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
@@ -461,7 +460,7 @@ class WM_OT_context_cycle_array(Operator):
     '''Set a context array value.
     Useful for cycling the active mesh edit mode.'''
     bl_idname = "wm.context_cycle_array"
-    bl_label = _("Context Array Cycle")
+    bl_label = "Context Array Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
@@ -507,7 +506,7 @@ class WM_MT_context_menu_enum(Menu):
 
 class WM_OT_context_menu_enum(Operator):
     bl_idname = "wm.context_menu_enum"
-    bl_label = _("Context Enum Menu")
+    bl_label = "Context Enum Menu"
     bl_options = {'UNDO', 'INTERNAL'}
     data_path = rna_path_prop
 
@@ -521,13 +520,13 @@ class WM_OT_context_menu_enum(Operator):
 class WM_OT_context_set_id(Operator):
     '''Toggle a context value.'''
     bl_idname = "wm.context_set_id"
-    bl_label = _("Set Library ID")
+    bl_label = "Set Library ID"
     bl_options = {'UNDO', 'INTERNAL'}
 
     data_path = rna_path_prop
     value = StringProperty(
-            name=_("Value"),
-            description=_("Assign value"),
+            name="Value",
+            description="Assign value",
             maxlen=1024,
             )
 
@@ -557,13 +556,13 @@ class WM_OT_context_set_id(Operator):
 
 
 doc_id = StringProperty(
-        name=_("Doc ID"),
+        name="Doc ID",
         maxlen=1024,
         options={'HIDDEN'},
         )
 
 doc_new = StringProperty(
-        name=_("Edit Description"),
+        name="Edit Description",
         maxlen=1024,
         )
 
@@ -636,18 +635,18 @@ class WM_OT_context_collection_boolean_set(Operator):
 class WM_OT_context_modal_mouse(Operator):
     '''Adjust arbitrary values with mouse input'''
     bl_idname = "wm.context_modal_mouse"
-    bl_label = _("Context Modal Mouse")
+    bl_label = "Context Modal Mouse"
     bl_options = {'GRAB_POINTER', 'BLOCKING', 'UNDO', 'INTERNAL'}
 
     data_path_iter = data_path_iter
     data_path_item = data_path_item
 
     input_scale = FloatProperty(
-            description=_("Scale the mouse movement by this value before applying the delta"),
+            description="Scale the mouse movement by this value before applying the delta",
             default=0.01,
             )
     invert = BoolProperty(
-            description=_("Invert the mouse input"),
+            description="Invert the mouse input",
             default=False,
             )
     initial_x = IntProperty(options={'HIDDEN'})
@@ -729,7 +728,6 @@ class WM_OT_context_modal_mouse(Operator):
 
 class WM_OT_url_open(Operator):
     "Open a website in the Webbrowser"
-    __doc__ = _("Open a website in the Webbrowser")
     bl_idname = "wm.url_open"
     bl_label = ""
 
@@ -750,7 +748,7 @@ class WM_OT_path_open(Operator):
     bl_label = ""
 
     filepath = StringProperty(
-            name=_("File Path"),
+            name="File Path",
             maxlen=1024,
             subtype='FILE_PATH',
             )
@@ -784,7 +782,7 @@ class WM_OT_path_open(Operator):
 class WM_OT_doc_view(Operator):
     '''Load online reference docs'''
     bl_idname = "wm.doc_view"
-    bl_label = _("View Documentation")
+    bl_label = "View Documentation"
 
     doc_id = doc_id
     if bpy.app.version_cycle == "release":
@@ -839,7 +837,7 @@ class WM_OT_doc_view(Operator):
 class WM_OT_doc_edit(Operator):
     '''Load online reference docs'''
     bl_idname = "wm.doc_edit"
-    bl_label = _("Edit Documentation")
+    bl_label = "Edit Documentation"
 
     doc_id = doc_id
     doc_new = doc_new
@@ -899,7 +897,7 @@ class WM_OT_doc_edit(Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text=_("Descriptor ID")+": '%s'" % self.doc_id)
+        layout.label(text="Descriptor ID: '%s'" % self.doc_id)
         layout.prop(self, "doc_new", text="")
 
     def invoke(self, context, event):
@@ -908,26 +906,26 @@ class WM_OT_doc_edit(Operator):
 
 
 rna_path = StringProperty(
-        name=_("Property Edit"),
-        description=_("Property data_path edit"),
+        name="Property Edit",
+        description="Property data_path edit",
         maxlen=1024,
         options={'HIDDEN'},
         )
 
 rna_value = StringProperty(
-        name=_("Property Value"),
-        description=_("Property value edit"),
+        name="Property Value",
+        description="Property value edit",
         maxlen=1024,
         )
 
 rna_property = StringProperty(
-        name=_("Property Name"),
-        description=_("Property name edit"),
+        name="Property Name",
+        description="Property name edit",
         maxlen=1024,
         )
 
 rna_min = FloatProperty(
-        name=_("Min"),
+        name="Min",
         default=0.0,
         precision=3,
         )
@@ -942,8 +940,7 @@ rna_max = FloatProperty(
 class WM_OT_properties_edit(Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_edit"
-    bl_label = _("Edit Property")
-    __doc__ = _("Internal use (edit a property data_path)")
+    bl_label = "Edit Property"
     bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
     data_path = rna_path
@@ -952,7 +949,7 @@ class WM_OT_properties_edit(Operator):
     min = rna_min
     max = rna_max
     description = StringProperty(
-            name=_("Tip"),
+            name="Tip",
             )
 
     def execute(self, context):
@@ -1030,8 +1027,7 @@ class WM_OT_properties_edit(Operator):
 class WM_OT_properties_add(Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_add"
-    bl_label = _("Add Property")
-    __doc__ = _("Internal use (edit a property data_path)")
+    bl_label = "Add Property"
 
     data_path = rna_path
 
@@ -1061,7 +1057,7 @@ class WM_OT_properties_context_change(Operator):
     bl_label = ""
 
     context = StringProperty(
-            name=_("Context"),
+            name="Context",
             maxlen=32,
             )
 
@@ -1073,8 +1069,7 @@ class WM_OT_properties_context_change(Operator):
 class WM_OT_properties_remove(Operator):
     '''Internal use (edit a property data_path)'''
     bl_idname = "wm.properties_remove"
-    bl_label = _("Remove Property")
-    __doc__ = _("Internal use (edit a property data_path)")
+    bl_label = "Remove Property"
 
     data_path = rna_path
     property = rna_property
@@ -1088,10 +1083,10 @@ class WM_OT_properties_remove(Operator):
 
 class WM_OT_keyconfig_activate(Operator):
     bl_idname = "wm.keyconfig_activate"
-    bl_label = _("Activate Keyconfig")
+    bl_label = "Activate Keyconfig"
 
     filepath = StringProperty(
-            name=_("File Path"),
+            name="File Path",
             maxlen=1024,
             )
 
@@ -1102,7 +1097,7 @@ class WM_OT_keyconfig_activate(Operator):
 
 class WM_OT_appconfig_default(Operator):
     bl_idname = "wm.appconfig_default"
-    bl_label = _("Default Application Configuration")
+    bl_label = "Default Application Configuration"
 
     def execute(self, context):
         import os
@@ -1119,7 +1114,7 @@ class WM_OT_appconfig_default(Operator):
 
 class WM_OT_appconfig_activate(Operator):
     bl_idname = "wm.appconfig_activate"
-    bl_label = _("Activate Application Configuration")
+    bl_label = "Activate Application Configuration"
 
     filepath = StringProperty(
             name="File Path",
@@ -1141,8 +1136,7 @@ class WM_OT_appconfig_activate(Operator):
 class WM_OT_sysinfo(Operator):
     '''Generate System Info'''
     bl_idname = "wm.sysinfo"
-    bl_label = _("System Info")
-    __doc__ = _("Generate System Info")
+    bl_label = "System Info"
 
     def execute(self, context):
         import sys_info
@@ -1150,10 +1144,60 @@ class WM_OT_sysinfo(Operator):
         return {'FINISHED'}
 
 
+class WM_OT_get_messages(Operator):
+    bl_idname = "wm.get_messages"
+    bl_label = "Get Messages"
+
+    def _putMessage(self, messages, msg):
+        if len(msg):
+            messages[msg] = True
+
+    def _walkProperties(self, properties, messages):
+        for prop in properties:
+            self._putMessage(messages, prop.name)
+            self._putMessage(messages, prop.description)
+
+            if isinstance(prop, bpy.types.EnumProperty):
+                for item in prop.enum_items:
+                    self._putMessage(messages, item.name)
+                    self._putMessage(messages, item.description)
+
+    def _walkRNA(self, bl_rna, messages):
+        if bl_rna.name and bl_rna.name != bl_rna.identifier:
+            self._putMessage(messages, bl_rna.name)
+
+        if bl_rna.description:
+            self._putMessage(messages, bl_rna.description)
+
+        self._walkProperties(bl_rna.properties, messages)
+
+    def _walkClass(self, cls, messages):
+        self._walkRNA(cls.bl_rna, messages)
+
+    def execute(self, context):
+        messages = {}
+
+        for cls in type(bpy.context).__base__.__subclasses__():
+            self._walkClass(cls, messages)
+
+        for cls in bpy.types.Space.__subclasses__():
+            self._walkClass(cls, messages)
+
+        for cls in bpy.types.Operator.__subclasses__():
+            self._walkClass(cls, messages)
+
+        text = bpy.data.texts.new(name="messages.txt")
+        for message in messages:
+            text.write(message + "\n")
+        self._walkClass(bpy.types.SpaceDopeSheetEditor, messages)
+
+        return {'FINISHED'}
+
+
 class WM_OT_copy_prev_settings(Operator):
     '''Copy settings from previous version'''
     bl_idname = "wm.copy_prev_settings"
-    bl_label = _("Copy Previous Settings")
+    bl_label = "Copy Previous Settings"
 
     def execute(self, context):
         import os

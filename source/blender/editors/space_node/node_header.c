@@ -267,7 +267,7 @@ void node_menus_register(void)
 
 	mt= MEM_callocN(sizeof(MenuType), "spacetype node menu add");
 	strcpy(mt->idname, "NODE_MT_add");
-	strcpy(mt->label, _("Add"));
+	strcpy(mt->label, "Add");
 	mt->draw= node_menu_add;
 	WM_menutype_add(mt);
 }

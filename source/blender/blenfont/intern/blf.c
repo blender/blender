@@ -307,7 +307,7 @@ void BLF_enable(int fontid, int option)
 const char* BLF_gettext(const char *msgid)
 {
 #ifdef INTERNATIONAL
-	if( msgid!=NULL && strlen(msgid)>0 )
+	if( msgid[0] )
 		return gettext( msgid );
 	return "";
 #else

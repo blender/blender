@@ -93,7 +93,7 @@ class TIME_HT_header(Header):
 
 
 class TIME_MT_view(Menu):
-    bl_label = _("View")
+    bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
@@ -118,7 +118,7 @@ class TIME_MT_view(Menu):
 
 
 class TIME_MT_cache(Menu):
-    bl_label = _("Cache")
+    bl_label = "Cache"
 
     def draw(self, context):
         layout = self.layout
@@ -138,7 +138,7 @@ class TIME_MT_cache(Menu):
 
 
 class TIME_MT_frame(Menu):
-    bl_label = _("Frame")
+    bl_label = "Frame"
 
     def draw(self, context):
         layout = self.layout
@@ -164,7 +164,7 @@ class TIME_MT_frame(Menu):
 
 
 class TIME_MT_playback(Menu):
-    bl_label = _("Playback")
+    bl_label = "Playback"
 
     def draw(self, context):
         layout = self.layout
@@ -189,7 +189,7 @@ class TIME_MT_playback(Menu):
 
 
 class TIME_MT_autokey(Menu):
-    bl_label = _("Auto-Keyframing Mode")
+    bl_label = "Auto-Keyframing Mode"
 
     def draw(self, context):
         layout = self.layout

@@ -33,8 +33,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "BLF_api.h"
-
 #include "DNA_ID.h"
 #include "DNA_vfont_types.h"
 #include "DNA_material_types.h"
@@ -48,33 +46,33 @@
  * NOTE: need to keep this in line with the other defines for these
  */
 EnumPropertyItem id_type_items[] = {
-	{ID_AC, "ACTION", ICON_ACTION, N_("Action"), ""},
-	{ID_AR, "ARMATURE", ICON_ARMATURE_DATA, N_("Armature"), ""},
-	{ID_BR, "BRUSH", ICON_BRUSH_DATA, N_("Brush"), ""},
-	{ID_CA, "CAMERA", ICON_CAMERA_DATA, N_("Camera"), ""},
-	{ID_CU, "CURVE", ICON_CURVE_DATA, N_("Curve"), ""},
-	{ID_VF, "FONT", ICON_FONT_DATA, N_("Font"), ""},
-	{ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, N_("Grease Pencil"), ""},
-	{ID_GR, "GROUP", ICON_GROUP, N_("Group"), ""},
-	{ID_IM, "IMAGE", ICON_IMAGE_DATA, N_("Image"), ""},
-	{ID_KE, "KEY", ICON_SHAPEKEY_DATA, N_("Key"), ""},
-	{ID_LA, "LAMP", ICON_LAMP_DATA, N_("Lamp"), ""},
-	{ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, N_("Library"), ""},
-	{ID_LT, "LATTICE", ICON_LATTICE_DATA, N_("Lattice"), ""},
-	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, N_("Material"), ""},
-	{ID_MB, "META", ICON_META_DATA, N_("MetaBall"), ""},
-	{ID_ME, "MESH", ICON_MESH_DATA, N_("Mesh"), ""},
-	{ID_NT, "NODETREE", ICON_NODETREE, N_("NodeTree"), ""},
-	{ID_OB, "OBJECT", ICON_OBJECT_DATA, N_("Object"), ""},
-	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, N_("Particle"), ""},
-	{ID_SCE, "SCENE", ICON_SCENE_DATA, N_("Scene"), ""},
-	{ID_SCR, "SCREEN", ICON_SPLITSCREEN, N_("Screen"), ""},
-	{ID_SPK, "SPEAKER", ICON_SPEAKER, N_("Speaker"), ""},
-	{ID_SO, "SOUND", ICON_PLAY_AUDIO, N_("Sound"), ""},
-	{ID_TXT, "TEXT", ICON_TEXT, N_("Text"), ""},
-	{ID_TE, "TEXTURE", ICON_TEXTURE_DATA, N_("Texture"), ""},
-	{ID_WO, "WORLD", ICON_WORLD_DATA, N_("World"), ""},
-	{ID_WM, "WINDOWMANAGER", ICON_FULLSCREEN, N_("Window Manager"), ""},
+	{ID_AC, "ACTION", ICON_ACTION, "Action", ""},
+	{ID_AR, "ARMATURE", ICON_ARMATURE_DATA, "Armature", ""},
+	{ID_BR, "BRUSH", ICON_BRUSH_DATA, "Brush", ""},
+	{ID_CA, "CAMERA", ICON_CAMERA_DATA, "Camera", ""},
+	{ID_CU, "CURVE", ICON_CURVE_DATA, "Curve", ""},
+	{ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
+	{ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
+	{ID_GR, "GROUP", ICON_GROUP, "Group", ""},
+	{ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
+	{ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
+	{ID_LA, "LAMP", ICON_LAMP_DATA, "Lamp", ""},
+	{ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, "Library", ""},
+	{ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
+	{ID_MA, "MATERIAL", ICON_MATERIAL_DATA, "Material", ""},
+	{ID_MB, "META", ICON_META_DATA, "MetaBall", ""},
+	{ID_ME, "MESH", ICON_MESH_DATA, "Mesh", ""},
+	{ID_NT, "NODETREE", ICON_NODETREE, "NodeTree", ""},
+	{ID_OB, "OBJECT", ICON_OBJECT_DATA, "Object", ""},
+	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
+	{ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
+	{ID_SCR, "SCREEN", ICON_SPLITSCREEN, "Screen", ""},
+	{ID_SPK, "SPEAKER", ICON_SPEAKER, "Speaker", ""},
+	{ID_SO, "SOUND", ICON_PLAY_AUDIO, "Sound", ""},
+	{ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
+	{ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
+	{ID_WO, "WORLD", ICON_WORLD_DATA, "World", ""},
+	{ID_WM, "WINDOWMANAGER", ICON_FULLSCREEN, "Window Manager", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -436,19 +434,19 @@ static void rna_def_ID(BlenderRNA *brna)
 	PropertyRNA *prop, *parm;
 
 	static EnumPropertyItem update_flag_items[] = {
-		{OB_RECALC_OB, "OBJECT", 0, N_("Object"), ""},
-		{OB_RECALC_DATA, "DATA", 0, N_("Data"), ""},
-		{OB_RECALC_TIME, "TIME", 0, N_("Time"), ""},
+		{OB_RECALC_OB, "OBJECT", 0, "Object", ""},
+		{OB_RECALC_DATA, "DATA", 0, "Data", ""},
+		{OB_RECALC_TIME, "TIME", 0, "Time", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ID", NULL);
-	RNA_def_struct_ui_text(srna, "ID", N_("Base type for datablocks, defining a unique name, linking from other libraries and garbage collection"));
+	RNA_def_struct_ui_text(srna, "ID", "Base type for datablocks, defining a unique name, linking from other libraries and garbage collection");
 	RNA_def_struct_flag(srna, STRUCT_ID|STRUCT_ID_REFCOUNT);
 	RNA_def_struct_refine_func(srna, "rna_ID_refine");
 	RNA_def_struct_idprops_func(srna, "rna_ID_idprops");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, N_("Name"), N_("Unique datablock ID name"));
+	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME-2);
 	RNA_def_property_editable_func(prop, "rna_ID_name_editable");
@@ -458,44 +456,44 @@ static void rna_def_ID(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "users", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "us");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, N_("Users"), N_("Number of times this datablock is referenced"));
+	RNA_def_property_ui_text(prop, "Users", "Number of times this datablock is referenced");
 
 	prop= RNA_def_property(srna, "use_fake_user", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_FAKEUSER);
-	RNA_def_property_ui_text(prop, N_("Fake User"), N_("Saves this datablock even if it has no users"));
+	RNA_def_property_ui_text(prop, "Fake User", "Saves this datablock even if it has no users");
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_ID_fake_user_set");
 
 	prop= RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_DOIT);
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	RNA_def_property_ui_text(prop, N_("Tag"), N_("Tools can use this to tag data, (initial state is undefined)"));
+	RNA_def_property_ui_text(prop, "Tag", "Tools can use this to tag data, (initial state is undefined)");
 
 	prop= RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, N_("Library"), N_("Library file the datablock is linked from"));
+	RNA_def_property_ui_text(prop, "Library", "Library file the datablock is linked from");
 
 	/* functions */
 	func= RNA_def_function(srna, "copy", "rna_ID_copy");
 	RNA_def_function_ui_description(func, "Create a copy of this datablock (not supported for all datablocks).");
-	parm= RNA_def_pointer(func, "id", "ID", "", N_("New copy of the ID."));
+	parm= RNA_def_pointer(func, "id", "ID", "", "New copy of the ID.");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "user_clear", "rna_ID_user_clear");
-	RNA_def_function_ui_description(func, N_("Clears the user count of a datablock so its not saved, on reload the data will be removed."));
+	RNA_def_function_ui_description(func, "Clears the user count of a datablock so its not saved, on reload the data will be removed.");
 
 	func= RNA_def_function(srna, "animation_data_create", "BKE_id_add_animdata");
-	RNA_def_function_ui_description(func, N_("Create animation data to this ID, note that not all ID types support this."));
-	parm= RNA_def_pointer(func, "anim_data", "AnimData", "", N_("New animation data or NULL."));
+	RNA_def_function_ui_description(func, "Create animation data to this ID, note that not all ID types support this.");
+	parm= RNA_def_pointer(func, "anim_data", "AnimData", "", "New animation data or NULL.");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "animation_data_clear", "BKE_free_animdata");
-	RNA_def_function_ui_description(func, N_("Clear animation on this this ID."));
+	RNA_def_function_ui_description(func, "Clear animation on this this ID.");
 
 	func= RNA_def_function(srna, "update_tag", "rna_ID_update_tag");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, N_("Tag the id to update its display data."));
-	RNA_def_enum_flag(func, "refresh", update_flag_items, 0, "", N_("Type of updates to perform."));
+	RNA_def_function_ui_description(func, "Tag the id to update its display data.");
+	RNA_def_enum_flag(func, "refresh", update_flag_items, 0, "", "Type of updates to perform.");
 }
 
 static void rna_def_library(BlenderRNA *brna)

@@ -49,7 +49,7 @@ class NLA_HT_header(Header):
 
 
 class NLA_MT_view(Menu):
-    bl_label = _("View")
+    bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
@@ -81,7 +81,7 @@ class NLA_MT_view(Menu):
 
 
 class NLA_MT_select(Menu):
-    bl_label = _("Select")
+    bl_label = "Select"
 
     def draw(self, context):
         layout = self.layout
@@ -118,7 +118,7 @@ class NLA_MT_marker(Menu):
 
 
 class NLA_MT_edit(Menu):
-    bl_label = _("Edit")
+    bl_label = "Edit"
 
     def draw(self, context):
         layout = self.layout
@@ -160,7 +160,7 @@ class NLA_MT_edit(Menu):
 
 
 class NLA_MT_add(Menu):
-    bl_label = _("Add")
+    bl_label = "Add"
 
     def draw(self, context):
         layout = self.layout
@@ -179,7 +179,7 @@ class NLA_MT_add(Menu):
 
 
 class NLA_MT_edit_transform(Menu):
-    bl_label = _("Transform")
+    bl_label = "Transform"
 
     def draw(self, context):
         layout = self.layout

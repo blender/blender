@@ -43,8 +43,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
-#include "BLF_api.h"
-
 #include "RNA_define.h"
 
 #include "rna_internal.h"

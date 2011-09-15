@@ -37,8 +37,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_group_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -97,8 +95,8 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 void GROUP_OT_objects_add_active(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Selected To Active Group");
-	ot->description = _("Add the object to an object group that contains the active object");
+	ot->name= "Add Selected To Active Group";
+	ot->description = "Add the object to an object group that contains the active object";
 	ot->idname= "GROUP_OT_objects_add_active";
 	
 	/* api callbacks */
@@ -144,8 +142,8 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Remove Selected From Active Group");
-	ot->description = _("Remove the object from an object group that contains the active object");
+	ot->name= "Remove Selected From Active Group";
+	ot->description = "Remove the object from an object group that contains the active object";
 	ot->idname= "GROUP_OT_objects_remove_active";
 	
 	/* api callbacks */
@@ -178,8 +176,8 @@ static int group_objects_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void GROUP_OT_objects_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Remove From Groups");
-	ot->description = _("Remove selected objects from all groups");
+	ot->name= "Remove From Groups";
+	ot->description = "Remove selected objects from all groups";
 	ot->idname= "GROUP_OT_objects_remove";
 	
 	/* api callbacks */
@@ -215,8 +213,8 @@ static int group_create_exec(bContext *C, wmOperator *op)
 void GROUP_OT_create(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Create New Group");
-	ot->description = _("Create an object group from selected objects");
+	ot->name= "Create New Group";
+	ot->description = "Create an object group from selected objects";
 	ot->idname= "GROUP_OT_create";
 	
 	/* api callbacks */
@@ -226,7 +224,7 @@ void GROUP_OT_create(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_string(ot->srna, "name", "Group", 32, _("Name"), _("Name of the new group"));
+	RNA_def_string(ot->srna, "name", "Group", 32, "Name", "Name of the new group");
 }
 
 /****************** properties window operators *********************/
@@ -251,9 +249,9 @@ static int group_add_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_group_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add to Group");
+	ot->name= "Add to Group";
 	ot->idname= "OBJECT_OT_group_add";
-	ot->description = _("Add an object to a new group");
+	ot->description = "Add an object to a new group";
 	
 	/* api callbacks */
 	ot->exec= group_add_exec;
@@ -283,9 +281,9 @@ void OBJECT_OT_group_link(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= _("Link to Group");
+	ot->name= "Link to Group";
 	ot->idname= "OBJECT_OT_group_link";
-	ot->description = _("Add an object to an existing group");
+	ot->description = "Add an object to an existing group";
 	
 	/* api callbacks */
 	ot->exec= group_link_exec;
@@ -295,7 +293,7 @@ void OBJECT_OT_group_link(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, _("Group"), "");
+	prop= RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
 	RNA_def_enum_funcs(prop, RNA_group_local_itemf);
 	ot->prop= prop;
 }
@@ -319,7 +317,7 @@ static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_group_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Remove Group");
+	ot->name= "Remove Group";
 	ot->idname= "OBJECT_OT_group_remove";
 	
 	/* api callbacks */

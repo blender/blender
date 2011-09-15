@@ -50,7 +50,7 @@ class BONE_PT_context_bone(BoneButtonsPanel, Panel):
 
 
 class BONE_PT_transform(BoneButtonsPanel, Panel):
-    bl_label = _("Transform")
+    bl_label = "Transform"
 
     @classmethod
     def poll(cls, context):
@@ -104,7 +104,7 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
 
 
 class BONE_PT_transform_locks(BoneButtonsPanel, Panel):
-    bl_label = _("Transform Locks")
+    bl_label = "Transform Locks"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -137,7 +137,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel, Panel):
 
 
 class BONE_PT_relations(BoneButtonsPanel, Panel):
-    bl_label = _("Relations")
+    bl_label = "Relations"
 
     def draw(self, context):
         layout = self.layout
@@ -182,7 +182,7 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
 
 
 class BONE_PT_display(BoneButtonsPanel, Panel):
-    bl_label = _("Display")
+    bl_label = "Display"
 
     @classmethod
     def poll(cls, context):
@@ -219,7 +219,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
 
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
-    bl_label = _("Inverse Kinematics")
+    bl_label = "Inverse Kinematics"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -310,7 +310,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
 
 
 class BONE_PT_deform(BoneButtonsPanel, Panel):
-    bl_label = _("Deform")
+    bl_label = "Deform"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):

@@ -21,29 +21,28 @@
 import bpy
 from bpy.types import Operator
 from bpy.props import StringProperty, BoolProperty, EnumProperty, IntProperty
-from blf import gettext as _
 
 
 class SelectPattern(Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_pattern"
-    bl_label = _("Select Pattern")
+    bl_label = "Select Pattern"
     bl_options = {'REGISTER', 'UNDO'}
 
     pattern = StringProperty(
-            name=_("Pattern"),
-            description=_("Name filter using '*' and '?' wildcard chars"),
+            name="Pattern",
+            description="Name filter using '*' and '?' wildcard chars",
             maxlen=32,
             default="*",
             )
     case_sensitive = BoolProperty(
-            name=_("Case Sensitive"),
-            description=_("Do a case sensitive compare"),
+            name="Case Sensitive",
+            description="Do a case sensitive compare",
             default=False,
             )
     extend = BoolProperty(
-            name=_("Extend"),
-            description=_("Extend the existing selection"),
+            name="Extend",
+            description="Extend the existing selection",
             default=True,
             )
 
@@ -104,7 +103,7 @@ class SelectPattern(Operator):
 class SelectCamera(Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_camera"
-    bl_label = _("Select Camera")
+    bl_label = "Select Camera"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -126,20 +125,20 @@ class SelectHierarchy(Operator):
     '''Select object relative to the active objects position''' \
     '''in the hierarchy'''
     bl_idname = "object.select_hierarchy"
-    bl_label = _("Select Hierarchy")
+    bl_label = "Select Hierarchy"
     bl_options = {'REGISTER', 'UNDO'}
 
     direction = EnumProperty(
-            items=(('PARENT', _("Parent"), ""),
-                   ('CHILD', _("Child"), "")
+            items=(('PARENT', "Parent", ""),
+                   ('CHILD', "Child", ""),
                    ),
-            name=_("Direction"),
-            description=_("Direction to select in the hierarchy"),
+            name="Direction",
+            description="Direction to select in the hierarchy",
             default='PARENT')
 
     extend = BoolProperty(
-            name=_("Extend"),
-            description=_("Extend the existing selection"),
+            name="Extend",
+            description="Extend the existing selection",
             default=False,
             )
 
@@ -193,19 +192,20 @@ class SubdivisionSet(Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
     bl_idname = "object.subdivision_set"
-    bl_label = _("Subdivision Set")
+    bl_label = "Subdivision Set"
     bl_options = {'REGISTER', 'UNDO'}
 
     level = IntProperty(
-            name=_("Level"),
+            name="Level",
             min=-100, max=100,
             soft_min=-6, soft_max=6,
             default=1,
             )
 
     relative = BoolProperty(
-            name=_("Relative"),
-            description=_("Apply the subsurf level as an offset relative to the current level"),
+            name="Relative",
+            description=("Apply the subsurf level as an offset "
+                         "relative to the current level"),
             default=False,
             )
 
@@ -273,30 +273,31 @@ class ShapeTransfer(Operator):
     '''applying the relative offsets'''
 
     bl_idname = "object.shape_key_transfer"
-    bl_label = _("Transfer Shape Key")
+    bl_label = "Transfer Shape Key"
     bl_options = {'REGISTER', 'UNDO'}
 
     mode = EnumProperty(
             items=(('OFFSET',
-                    _("Offset"),
-                    _("Apply the relative positional offset")
+                    "Offset",
+                    "Apply the relative positional offset",
                     ),
                    ('RELATIVE_FACE',
-                    _("Relative Face"),
-                    _("Calculate relative position (using faces)."),
+                    "Relative Face",
+                    "Calculate relative position (using faces).",
                     ),
                    ('RELATIVE_EDGE',
-                   _("Relative Edge"),
-                   _("Calculate relative position (using edges)."),
+                   "Relative Edge",
+                   "Calculate relative position (using edges).",
                    ),
                    ),
-            name=_("Transformation Mode"),
-            description=_("Relative shape positions to the new shape method"),
+            name="Transformation Mode",
+            description="Relative shape positions to the new shape method",
             default='OFFSET',
             )
     use_clamp = BoolProperty(
-            name=_("Clamp Offset"),
-            description=_("Clamp the transformation to the distance each vertex moves in the original shape."),
+            name="Clamp Offset",
+            description=("Clamp the transformation to the distance each "
+                         "vertex moves in the original shape."),
             default=False,
             )
 
@@ -514,7 +515,7 @@ class ShapeTransfer(Operator):
 class JoinUVs(Operator):
     '''Copy UV Layout to objects with matching geometry'''
     bl_idname = "object.join_uvs"
-    bl_label = _("Join as UVs")
+    bl_label = "Join as UVs"
 
     @classmethod
     def poll(cls, context):
@@ -582,7 +583,7 @@ class JoinUVs(Operator):
 class MakeDupliFace(Operator):
     '''Make linked objects into dupli-faces'''
     bl_idname = "object.make_dupli_face"
-    bl_label = _("Make Dupli-Face")
+    bl_label = "Make Dupli-Face"
 
     @classmethod
     def poll(cls, context):
@@ -657,7 +658,7 @@ class IsolateTypeRender(Operator):
     '''Hide unselected render objects of same type as active ''' \
     '''by setting the hide render flag'''
     bl_idname = "object.isolate_type_render"
-    bl_label = _("Restrict Render Unselected")
+    bl_label = "Restrict Render Unselected"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -677,7 +678,7 @@ class IsolateTypeRender(Operator):
 class ClearAllRestrictRender(Operator):
     '''Reveal all render objects by setting the hide render flag'''
     bl_idname = "object.hide_render_clear_all"
-    bl_label = _("Clear All Restrict Render")
+    bl_label = "Clear All Restrict Render"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

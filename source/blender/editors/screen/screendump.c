@@ -38,8 +38,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -205,7 +203,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
-	ot->name= _("Save Screenshot"); /* weak: opname starting with 'save' makes filewindow give save-over */
+	ot->name= "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
 	ot->idname= "SCREEN_OT_screenshot";
 	
 	ot->invoke= screenshot_invoke;
@@ -216,7 +214,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	ot->flag= 0;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);
-	prop= RNA_def_boolean(ot->srna, "full", 1, _("Full Screen"), "");
+	prop= RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN); /* hide because once the file sel is displayed, the option no longer does anything */
 }
 
@@ -377,7 +375,7 @@ static int screencast_exec(bContext *C, wmOperator *op)
 
 void SCREEN_OT_screencast(wmOperatorType *ot)
 {
-	ot->name= _("Make Screencast");
+	ot->name= "Make Screencast";
 	ot->idname= "SCREEN_OT_screencast";
 	
 	ot->invoke= WM_operator_confirm;
@@ -386,8 +384,8 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_property(ot->srna, _("filepath"), PROP_STRING, PROP_FILEPATH);
-	RNA_def_boolean(ot->srna, "full", 1, _("Full Screen"), "");
+	RNA_def_property(ot->srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
 }
 
 

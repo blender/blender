@@ -53,6 +53,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BLF_api.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -442,8 +444,13 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	Panel *panel= block->panel;
 	rcti hrect;
 	int  pnl_icons;
-	char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
-	
+	const char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
+		activename= BLF_gettext(activename);
+#endif
+
 	/* + 0.001f to avoid flirting with float inaccuracy */
 	if(panel->control & UI_PNL_CLOSE) pnl_icons=(panel->labelofs+2*PNL_ICON+5)/block->aspect + 0.001f;
 	else pnl_icons= (panel->labelofs+PNL_ICON+5)/block->aspect + 0.001f;

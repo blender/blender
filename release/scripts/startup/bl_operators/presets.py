@@ -20,7 +20,6 @@
 
 import bpy
 from bpy.types import Menu, Operator
-from blf import gettext as _
 
 
 class AddPresetBase():
@@ -33,8 +32,8 @@ class AddPresetBase():
     bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
     name = bpy.props.StringProperty(
-            name=_("Name"),
-            description=_("Name of the preset, used to make the path name"),
+            name="Name",
+            description="Name of the preset, used to make the path name",
             maxlen=64,
             )
     remove_active = bpy.props.BoolProperty(
@@ -145,17 +144,16 @@ class AddPresetBase():
 class ExecutePreset(Operator):
     ''' Executes a preset '''
     bl_idname = "script.execute_preset"
-    bl_label = _("Execute a Python Preset")
-    __doc__ = _(" Executes a preset ")
+    bl_label = "Execute a Python Preset"
 
     filepath = bpy.props.StringProperty(
-            name=_("Path"),
-            description=_("Path of the Python file to execute"),
+            name="Path",
+            description="Path of the Python file to execute",
             maxlen=512,
             )
     menu_idname = bpy.props.StringProperty(
-            name=_("Menu ID Name"),
-            description=_("ID name of the menu this was called from"),
+            name="Menu ID Name",
+            description="ID name of the menu this was called from",
             )
 
     def execute(self, context):
@@ -174,7 +172,7 @@ class ExecutePreset(Operator):
 class AddPresetRender(AddPresetBase, Operator):
     '''Add a Render Preset'''
     bl_idname = "render.preset_add"
-    bl_label = _("Add Render Preset")
+    bl_label = "Add Render Preset"
     preset_menu = "RENDER_MT_presets"
 
     preset_defines = [
@@ -200,9 +198,8 @@ class AddPresetRender(AddPresetBase, Operator):
 class AddPresetSSS(AddPresetBase, Operator):
     '''Add a Subsurface Scattering Preset'''
     bl_idname = "material.sss_preset_add"
-    bl_label = _("Add SSS Preset")
+    bl_label = "Add SSS Preset"
     preset_menu = "MATERIAL_MT_sss_presets"
-    __doc__ = _("Add a Subsurface Scattering Preset")
 
     preset_defines = [
         ("material = "
@@ -229,7 +226,7 @@ class AddPresetSSS(AddPresetBase, Operator):
 class AddPresetCloth(AddPresetBase, Operator):
     '''Add a Cloth Preset'''
     bl_idname = "cloth.preset_add"
-    bl_label = _("Add Cloth Preset")
+    bl_label = "Add Cloth Preset"
     preset_menu = "CLOTH_MT_presets"
 
     preset_defines = [
@@ -251,7 +248,7 @@ class AddPresetCloth(AddPresetBase, Operator):
 class AddPresetSunSky(AddPresetBase, Operator):
     '''Add a Sky & Atmosphere Preset'''
     bl_idname = "lamp.sunsky_preset_add"
-    bl_label = _("Add Sunsky Preset")
+    bl_label = "Add Sunsky Preset"
     preset_menu = "LAMP_MT_sunsky_presets"
 
     preset_defines = [
@@ -280,9 +277,8 @@ class AddPresetSunSky(AddPresetBase, Operator):
 class AddPresetInteraction(AddPresetBase, Operator):
     '''Add an Application Interaction Preset'''
     bl_idname = "wm.interaction_preset_add"
-    bl_label = _("Add Interaction Preset")
+    bl_label = "Add Interaction Preset"
     preset_menu = "USERPREF_MT_interaction_presets"
-    __doc__ = _('Add an Application Interaction Preset')
 
     preset_defines = [
         "user_preferences = bpy.context.user_preferences"
@@ -307,10 +303,9 @@ class AddPresetInteraction(AddPresetBase, Operator):
 class AddPresetKeyconfig(AddPresetBase, Operator):
     '''Add a Keyconfig Preset'''
     bl_idname = "wm.keyconfig_preset_add"
-    bl_label = _("Add Keyconfig Preset")
+    bl_label = "Add Keyconfig Preset"
     preset_menu = "USERPREF_MT_keyconfigs"
     preset_subdir = "keyconfig"
-    __doc__ = _('Add a Keyconfig Preset')
 
     def add(self, context, filepath):
         bpy.ops.wm.keyconfig_export(filepath=filepath)
@@ -331,12 +326,11 @@ class AddPresetKeyconfig(AddPresetBase, Operator):
 class AddPresetOperator(AddPresetBase, Operator):
     '''Add an Application Interaction Preset'''
     bl_idname = "wm.operator_preset_add"
-    bl_label = _("Operator Preset")
+    bl_label = "Operator Preset"
     preset_menu = "WM_MT_operator_presets"
-    __doc__ = _("Add an Application Interaction Preset")
 
     operator = bpy.props.StringProperty(
-            name=_("Operator"),
+            name="Operator",
             maxlen=64,
             options={'HIDDEN'},
             )
@@ -375,7 +369,7 @@ class AddPresetOperator(AddPresetBase, Operator):
 
 
 class WM_MT_operator_presets(Menu):
-    bl_label = _("Operator Presets")
+    bl_label = "Operator Presets"
 
     def draw(self, context):
         self.operator = context.space_data.operator.bl_idname

@@ -116,7 +116,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
 
 
 class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
-    bl_label = _("Texture Space")
+    bl_label = "Texture Space"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
@@ -135,7 +135,7 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
 
 
 class DATA_PT_geometry_curve(CurveButtonsPanel, Panel):
-    bl_label = _("Geometry")
+    bl_label = "Geometry"
 
     @classmethod
     def poll(cls, context):
@@ -168,7 +168,7 @@ class DATA_PT_geometry_curve(CurveButtonsPanel, Panel):
 
 
 class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
-    bl_label = _("Path Animation")
+    bl_label = "Path Animation"
 
     def draw_header(self, context):
         curve = context.curve
@@ -199,7 +199,7 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
 
 
 class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
-    bl_label = _("Active Spline")
+    bl_label = "Active Spline"
 
     def draw(self, context):
         layout = self.layout
@@ -270,7 +270,7 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
 
 
 class DATA_PT_font(CurveButtonsPanel, Panel):
-    bl_label = _("Font")
+    bl_label = "Font"
 
     @classmethod
     def poll(cls, context):
@@ -334,7 +334,7 @@ class DATA_PT_font(CurveButtonsPanel, Panel):
 
 
 class DATA_PT_paragraph(CurveButtonsPanel, Panel):
-    bl_label = _("Paragraph")
+    bl_label = "Paragraph"
 
     @classmethod
     def poll(cls, context):
@@ -363,7 +363,7 @@ class DATA_PT_paragraph(CurveButtonsPanel, Panel):
 
 
 class DATA_PT_text_boxes(CurveButtonsPanel, Panel):
-    bl_label = _("Text Boxes")
+    bl_label = "Text Boxes"
 
     @classmethod
     def poll(cls, context):

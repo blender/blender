@@ -43,8 +43,6 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
@@ -599,8 +597,8 @@ static int screen_opengl_render_exec(bContext *C, wmOperator *op)
 void RENDER_OT_opengl(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("OpenGL Render");
-	ot->description= _("OpenGL render active viewport");
+	ot->name= "OpenGL Render";
+	ot->description= "OpenGL render active viewport";
 	ot->idname= "RENDER_OT_opengl";
 
 	/* api callbacks */
@@ -611,9 +609,9 @@ void RENDER_OT_opengl(wmOperatorType *ot)
 
 	ot->poll= ED_operator_screenactive;
 
-	RNA_def_boolean(ot->srna, "animation", 0, _("Animation"), _("Render files from the animation range of this scene"));
-	RNA_def_boolean(ot->srna, "write_still", 0, _("Write Image"), _("Save rendered the image to the output path (used only when animation is disabled)"));
-	RNA_def_boolean(ot->srna, "view_context", 1, _("View Context"), _("Use the current 3D view for rendering, else use scene settings."));
+	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
+	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
+	RNA_def_boolean(ot->srna, "view_context", 1, "View Context", "Use the current 3D view for rendering, else use scene settings.");
 }
 
 /* function for getting an opengl buffer from a View3D, used by sequencer */

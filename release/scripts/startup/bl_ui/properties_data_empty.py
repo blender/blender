@@ -32,7 +32,7 @@ class DataButtonsPanel():
 
 
 class DATA_PT_empty(DataButtonsPanel, Panel):
-    bl_label = _("Empty")
+    bl_label = "Empty"
 
     def draw(self, context):
         layout = self.layout

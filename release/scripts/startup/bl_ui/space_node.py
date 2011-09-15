@@ -75,7 +75,7 @@ class NODE_HT_header(Header):
 
 
 class NODE_MT_view(Menu):
-    bl_label = _("View")
+    bl_label = "View"
 
     def draw(self, context):
         layout = self.layout
@@ -104,7 +104,7 @@ class NODE_MT_view(Menu):
 
 
 class NODE_MT_select(Menu):
-    bl_label = _("Select")
+    bl_label = "Select"
 
     def draw(self, context):
         layout = self.layout
@@ -121,7 +121,7 @@ class NODE_MT_select(Menu):
 
 
 class NODE_MT_node(Menu):
-    bl_label = _("Node")
+    bl_label = "Node"
 
     def draw(self, context):
         layout = self.layout
@@ -164,7 +164,7 @@ class NODE_MT_node(Menu):
 class NODE_PT_properties(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-    bl_label = _("Backdrop")
+    bl_label = "Backdrop"
 
     @classmethod
     def poll(cls, context):

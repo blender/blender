@@ -28,7 +28,7 @@ class PhysicsButtonsPanel():
 
 
 class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
-    bl_label = _("Physics")
+    bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod
@@ -169,7 +169,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
 
 
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
-    bl_label = _("Collision Bounds")
+    bl_label = "Collision Bounds"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod
@@ -235,7 +235,7 @@ class RenderButtonsPanel():
 
 
 class RENDER_PT_game(RenderButtonsPanel, Panel):
-    bl_label = _("Game")
+    bl_label = "Game"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     def draw(self, context):
@@ -247,7 +247,7 @@ class RENDER_PT_game(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_game_player(RenderButtonsPanel, Panel):
-    bl_label = _("Standalone Player")
+    bl_label = "Standalone Player"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     def draw(self, context):
@@ -280,7 +280,7 @@ class RENDER_PT_game_player(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
-    bl_label = _("Stereo")
+    bl_label = "Stereo"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     def draw(self, context):
@@ -334,7 +334,7 @@ class RENDER_PT_game_stereo(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_game_shading(RenderButtonsPanel, Panel):
-    bl_label = _("Shading")
+    bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     def draw(self, context):
@@ -360,7 +360,7 @@ class RENDER_PT_game_shading(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_game_performance(RenderButtonsPanel, Panel):
-    bl_label = _("Performance")
+    bl_label = "Performance"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     def draw(self, context):
@@ -376,7 +376,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_game_display(RenderButtonsPanel, Panel):
-    bl_label = _("Display")
+    bl_label = "Display"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     def draw(self, context):
@@ -486,7 +486,7 @@ class WORLD_PT_game_context_world(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_game_world(WorldButtonsPanel, Panel):
-    bl_label = _("World")
+    bl_label = "World"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod
@@ -505,7 +505,7 @@ class WORLD_PT_game_world(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_game_mist(WorldButtonsPanel, Panel):
-    bl_label = _("Mist")
+    bl_label = "Mist"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod
@@ -531,7 +531,7 @@ class WORLD_PT_game_mist(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
-    bl_label = _("Physics")
+    bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     @classmethod

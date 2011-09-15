@@ -29,8 +29,6 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
@@ -78,8 +76,8 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 static void BRUSH_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Add Brush");
-	ot->description= _("Add brush by mode type");
+	ot->name= "Add Brush";
+	ot->description= "Add brush by mode type";
 	ot->idname= "BRUSH_OT_add";
 	
 	/* api callbacks */
@@ -133,8 +131,8 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 static void BRUSH_OT_scale_size(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Scale Sculpt/Paint Brush Size");
-	ot->description= _("Change brush size by a scalar");
+	ot->name= "Scale Sculpt/Paint Brush Size";
+	ot->description= "Change brush size by a scalar";
 	ot->idname= "BRUSH_OT_scale_size";
 	
 	/* api callbacks */
@@ -143,7 +141,7 @@ static void BRUSH_OT_scale_size(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "scalar", 1, 0, 2, _("Scalar"), _("Factor to scale brush size by"), 0, 2);
+	RNA_def_float(ot->srna, "scalar", 1, 0, 2, "Scalar", "Factor to scale brush size by", 0, 2);
 }
 
 static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
@@ -160,7 +158,7 @@ static int vertex_color_set_exec(bContext *C, wmOperator *UNUSED(op))
 static void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Vertex Colors");
+	ot->name= "Set Vertex Colors";
 	ot->idname= "PAINT_OT_vertex_color_set";
 	
 	/* api callbacks */
@@ -189,8 +187,8 @@ static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 static void BRUSH_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Reset Brush");
-	ot->description= _("Return brush to defaults based on current tool");
+	ot->name= "Reset Brush";
+	ot->description= "Return brush to defaults based on current tool";
 	ot->idname= "BRUSH_OT_reset";
 	
 	/* api callbacks */
@@ -252,8 +250,8 @@ static int brush_sculpt_tool_set_exec(bContext *C, wmOperator *op)
 static void BRUSH_OT_sculpt_tool_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Sculpt Tool Set");
-	ot->description= _("Set the sculpt tool");
+	ot->name= "Sculpt Tool Set";
+	ot->description= "Set the sculpt tool";
 	ot->idname= "BRUSH_OT_sculpt_tool_set";
 
 	/* api callbacks */
@@ -263,7 +261,7 @@ static void BRUSH_OT_sculpt_tool_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "tool", brush_sculpt_tool_items, 0, _("Tool"), "");
+	ot->prop= RNA_def_enum(ot->srna, "tool", brush_sculpt_tool_items, 0, "Tool", "");
 }
 
 static int brush_vertex_tool_set_exec(bContext *C, wmOperator *op)
@@ -277,8 +275,8 @@ static int brush_vertex_tool_set_exec(bContext *C, wmOperator *op)
 static void BRUSH_OT_vertex_tool_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Vertex Paint Tool Set");
-	ot->description= _("Set the vertex paint tool");
+	ot->name= "Vertex Paint Tool Set";
+	ot->description= "Set the vertex paint tool";
 	ot->idname= "BRUSH_OT_vertex_tool_set";
 
 	/* api callbacks */
@@ -288,7 +286,7 @@ static void BRUSH_OT_vertex_tool_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "tool", brush_vertex_tool_items, 0, _("Tool"), "");
+	ot->prop= RNA_def_enum(ot->srna, "tool", brush_vertex_tool_items, 0, "Tool", "");
 }
 
 static int brush_weight_tool_set_exec(bContext *C, wmOperator *op)
@@ -302,8 +300,8 @@ static int brush_weight_tool_set_exec(bContext *C, wmOperator *op)
 static void BRUSH_OT_weight_tool_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Weight Paint Tool Set");
-	ot->description= _("Set the weight paint tool");
+	ot->name= "Weight Paint Tool Set";
+	ot->description= "Set the weight paint tool";
 	ot->idname= "BRUSH_OT_weight_tool_set";
 
 	/* api callbacks */
@@ -313,7 +311,7 @@ static void BRUSH_OT_weight_tool_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "tool", brush_vertex_tool_items, 0, _("Tool"), "");
+	ot->prop= RNA_def_enum(ot->srna, "tool", brush_vertex_tool_items, 0, "Tool", "");
 }
 
 static int brush_image_tool_set_exec(bContext *C, wmOperator *op)
@@ -327,8 +325,8 @@ static int brush_image_tool_set_exec(bContext *C, wmOperator *op)
 static void BRUSH_OT_image_tool_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Image Paint Tool Set");
-	ot->description= _("Set the image tool");
+	ot->name= "Image Paint Tool Set";
+	ot->description= "Set the image tool";
 	ot->idname= "BRUSH_OT_image_tool_set";
 
 	/* api callbacks */

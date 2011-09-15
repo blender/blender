@@ -34,7 +34,7 @@ class PhysicButtonsPanel():
 
 
 class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
-    bl_label = _("Fluid")
+    bl_label = "Fluid"
 
     def draw(self, context):
         layout = self.layout
@@ -188,7 +188,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
-    bl_label = _("Domain World")
+    bl_label = "Domain World"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -238,7 +238,7 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
-    bl_label = _("Domain Boundary")
+    bl_label = "Domain Boundary"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -267,7 +267,7 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
-    bl_label = _("Domain Particles")
+    bl_label = "Domain Particles"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod

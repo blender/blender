@@ -47,8 +47,6 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "BLF_api.h"
-
 #include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -3540,14 +3538,14 @@ static int sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
 static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 {
 	static EnumPropertyItem stroke_mode_items[] = {
-		{BRUSH_STROKE_NORMAL, "NORMAL", 0, N_("Normal"), N_("Apply brush normally")},
-		{BRUSH_STROKE_INVERT, "INVERT", 0, N_("Invert"), N_("Invert action of brush for duration of stroke")},
-		{BRUSH_STROKE_SMOOTH, "SMOOTH", 0, N_("Smooth"), N_("Switch brush to smooth mode for duration of stroke")},
+		{BRUSH_STROKE_NORMAL, "NORMAL", 0, "Normal", "Apply brush normally"},
+		{BRUSH_STROKE_INVERT, "INVERT", 0, "Invert", "Invert action of brush for duration of stroke"},
+		{BRUSH_STROKE_SMOOTH, "SMOOTH", 0, "Smooth", "Switch brush to smooth mode for duration of stroke"},
 		{0}
 	};
 
 	/* identifiers */
-	ot->name= _("Sculpt Mode");
+	ot->name= "Sculpt Mode";
 	ot->idname= "SCULPT_OT_brush_stroke";
 	
 	/* api callbacks */
@@ -3563,15 +3561,15 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	/* properties */
 
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement,
-			_("Stroke"), "");
+			"Stroke", "");
 
-	RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(stroke_mode_items), BRUSH_STROKE_NORMAL, 
-			_("Sculpt Stroke Mode"),
-			_("Action taken when a sculpt stroke is made"));
+	RNA_def_enum(ot->srna, "mode", stroke_mode_items, BRUSH_STROKE_NORMAL, 
+			"Sculpt Stroke Mode",
+			"Action taken when a sculpt stroke is made");
 
 	RNA_def_boolean(ot->srna, "ignore_background_click", 0,
-			_("Ignore Background Click"),
-			_("Clicks on the background do not start the stroke"));
+			"Ignore Background Click",
+			"Clicks on the background do not start the stroke");
 }
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/
@@ -3592,7 +3590,7 @@ static int sculpt_set_persistent_base(bContext *C, wmOperator *UNUSED(op))
 static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Set Persistent Base");
+	ot->name= "Set Persistent Base";
 	ot->idname= "SCULPT_OT_set_persistent_base";
 	
 	/* api callbacks */
@@ -3670,7 +3668,7 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Sculpt Mode");
+	ot->name= "Sculpt Mode";
 	ot->idname= "SCULPT_OT_sculptmode_toggle";
 	
 	/* api callbacks */

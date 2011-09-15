@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
-from blf import gettext as _
+
 
 class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -53,7 +53,7 @@ class DATA_PT_context_lattice(DataButtonsPanel, Panel):
 
 
 class DATA_PT_lattice(DataButtonsPanel, Panel):
-    bl_label = _("Lattice")
+    bl_label = "Lattice"
 
     def draw(self, context):
         layout = self.layout

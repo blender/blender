@@ -33,8 +33,6 @@
 
 #include "rna_internal.h"
 
-#include "BLF_api.h"
-
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
@@ -48,23 +46,23 @@
 #include "ED_curve.h"
 
 EnumPropertyItem beztriple_handle_type_items[] = {
-		{HD_FREE, "FREE", 0, N_("Free"), ""},
-		{HD_VECT, "VECTOR", 0, N_("Vector"), ""},
-		{HD_ALIGN, "ALIGNED", 0, N_("Aligned"), ""},
-		{HD_AUTO, "AUTO", 0, N_("Auto"), ""},
+		{HD_FREE, "FREE", 0, "Free", ""},
+		{HD_VECT, "VECTOR", 0, "Vector", ""},
+		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+		{HD_AUTO, "AUTO", 0, "Auto", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 EnumPropertyItem keyframe_handle_type_items[] = {
-		{HD_FREE, "FREE", 0, N_("Free"), ""},
-		{HD_VECT, "VECTOR", 0, N_("Vector"), ""},
-		{HD_ALIGN, "ALIGNED", 0, N_("Aligned"), ""},
-		{HD_AUTO, "AUTO", 0, N_("Automatic"), ""},
-		{HD_AUTO_ANIM, "AUTO_CLAMPED", 0, N_("Auto Clamped"), N_("Auto handles clamped to not overshoot")},
+		{HD_FREE, "FREE", 0, "Free", ""},
+		{HD_VECT, "VECTOR", 0, "Vector", ""},
+		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+		{HD_AUTO, "AUTO", 0, "Automatic", ""},
+		{HD_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot"},
 		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem beztriple_interpolation_mode_items[] = {
-		{BEZT_IPO_CONST, "CONSTANT", 0, N_("Constant"), ""},
-		{BEZT_IPO_LIN, "LINEAR", 0, N_("Linear"), ""},
+		{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", ""},
+		{BEZT_IPO_LIN, "LINEAR", 0, "Linear", ""},
 		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
 		{0, NULL, 0, NULL, NULL}};
 

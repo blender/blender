@@ -40,8 +40,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -169,9 +167,9 @@ static int graphkeys_deselectall_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select All");
+	ot->name= "Select All";
 	ot->idname= "GRAPH_OT_select_all_toggle";
-	ot->description= _("Toggle selection of all keyframes");
+	ot->description= "Toggle selection of all keyframes";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_deselectall_exec;
@@ -181,7 +179,7 @@ void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, _("Invert"), "");
+	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -338,9 +336,9 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Border Select");
+	ot->name= "Border Select";
 	ot->idname= "GRAPH_OT_select_border";
-	ot->description= _("Select all keyframes within the specified region");
+	ot->description= "Select all keyframes within the specified region";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -356,8 +354,8 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
 	
-	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, _("Axis Range"), "");
-	RNA_def_boolean(ot->srna, "include_handles", 0, _("Include Handles"), _("Are handles tested individually against the selection criteria"));
+	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+	RNA_def_boolean(ot->srna, "include_handles", 0, "Include Handles", "Are handles tested individually against the selection criteria");
 }
 
 /* ******************** Column Select Operator **************************** */
@@ -370,10 +368,10 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 
 /* defines for column-select mode */
 static EnumPropertyItem prop_column_select_types[] = {
-	{GRAPHKEYS_COLUMNSEL_KEYS, "KEYS", 0, N_("On Selected Keyframes"), ""},
-	{GRAPHKEYS_COLUMNSEL_CFRA, "CFRA", 0, N_("On Current Frame"), ""},
-	{GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", 0, N_("On Selected Markers"), ""},
-	{GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN, "MARKERS_BETWEEN", 0, N_("Between Min/Max Selected Markers"), ""},
+	{GRAPHKEYS_COLUMNSEL_KEYS, "KEYS", 0, "On Selected Keyframes", ""},
+	{GRAPHKEYS_COLUMNSEL_CFRA, "CFRA", 0, "On Current Frame", ""},
+	{GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN, "MARKERS_COLUMN", 0, "On Selected Markers", ""},
+	{GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN, "MARKERS_BETWEEN", 0, "Between Min/Max Selected Markers", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -527,9 +525,9 @@ static int graphkeys_columnselect_exec(bContext *C, wmOperator *op)
 void GRAPH_OT_select_column (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select All");
+	ot->name= "Select All";
 	ot->idname= "GRAPH_OT_select_column";
-	ot->description= _("Select all keyframes on the specified frame(s)");
+	ot->description= "Select all keyframes on the specified frame(s)";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_columnselect_exec;
@@ -539,7 +537,7 @@ void GRAPH_OT_select_column (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(prop_column_select_types), 0, _("Mode"), "");
+	ot->prop= RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
 }
 
 /* ******************** Select Linked Operator *********************** */
@@ -585,9 +583,9 @@ static int graphkeys_select_linked_exec (bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_select_linked (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = _("Select Linked");
+	ot->name = "Select Linked";
 	ot->idname= "GRAPH_OT_select_linked";
-	ot->description = _("Select keyframes occurring the same F-Curves as selected ones");
+	ot->description = "Select keyframes occurring the same F-Curves as selected ones";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_select_linked_exec;
@@ -663,9 +661,9 @@ static int graphkeys_select_more_exec (bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_select_more (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = _("Select More");
+	ot->name = "Select More";
 	ot->idname= "GRAPH_OT_select_more";
-	ot->description = _("Select keyframes beside already selected ones");
+	ot->description = "Select keyframes beside already selected ones";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_select_more_exec;
@@ -697,9 +695,9 @@ static int graphkeys_select_less_exec (bContext *C, wmOperator *UNUSED(op))
 void GRAPH_OT_select_less (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = _("Select Less");
+	ot->name = "Select Less";
 	ot->idname= "GRAPH_OT_select_less";
-	ot->description = _("Deselect keyframes on ends of selection islands");
+	ot->description = "Deselect keyframes on ends of selection islands";
 	
 	/* api callbacks */
 	ot->exec= graphkeys_select_less_exec;
@@ -714,9 +712,9 @@ void GRAPH_OT_select_less (wmOperatorType *ot)
 
 /* defines for left-right select tool */
 static EnumPropertyItem prop_graphkeys_leftright_select_types[] = {
-	{GRAPHKEYS_LRSEL_TEST, "CHECK", 0, N_("Check if Select Left or Right"), ""},
-	{GRAPHKEYS_LRSEL_LEFT, "LEFT", 0, N_("Before current frame"), ""},
-	{GRAPHKEYS_LRSEL_RIGHT, "RIGHT", 0, N_("After current frame"), ""},
+	{GRAPHKEYS_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
+	{GRAPHKEYS_LRSEL_LEFT, "LEFT", 0, "Before current frame", ""},
+	{GRAPHKEYS_LRSEL_RIGHT, "RIGHT", 0, "After current frame", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -837,9 +835,9 @@ static int graphkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEve
 void GRAPH_OT_select_leftright (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Select Left/Right");
+	ot->name= "Select Left/Right";
 	ot->idname= "GRAPH_OT_select_leftright";
-	ot->description= _("Select keyframes to the left or the right of the current frame");
+	ot->description= "Select keyframes to the left or the right of the current frame";
 	
 	/* api callbacks  */
 	ot->invoke=	graphkeys_select_leftright_invoke;
@@ -850,8 +848,8 @@ void GRAPH_OT_select_leftright (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(prop_graphkeys_leftright_select_types), GRAPHKEYS_LRSEL_TEST, _("Mode"), "");
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), "");
+	ot->prop= RNA_def_enum(ot->srna, "mode", prop_graphkeys_leftright_select_types, GRAPHKEYS_LRSEL_TEST, "Mode", "");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
 }
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -1330,18 +1328,18 @@ static int graphkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *ev
 void GRAPH_OT_clickselect (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Mouse Select Keys");
+	ot->name= "Mouse Select Keys";
 	ot->idname= "GRAPH_OT_clickselect";
-	ot->description= _("Select keyframes by clicking on them");
+	ot->description= "Select keyframes by clicking on them";
 	
 	/* api callbacks */
 	ot->invoke= graphkeys_clickselect_invoke;
 	ot->poll= graphop_visible_keyframes_poll;
 	
 	/* id-props */
-	RNA_def_boolean(ot->srna, "extend", 0, _("Extend Select"), ""); // SHIFTKEY
-	RNA_def_boolean(ot->srna, "column", 0, _("Column Select"), _("Select all keyframes that occur on the same frame as the one under the mouse")); // ALTKEY
-	RNA_def_boolean(ot->srna, "curves", 0, _("Only Curves"), _("Select all the keyframes in the curve")); // CTRLKEY + ALTKEY
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", ""); // SHIFTKEY
+	RNA_def_boolean(ot->srna, "column", 0, "Column Select", "Select all keyframes that occur on the same frame as the one under the mouse"); // ALTKEY
+	RNA_def_boolean(ot->srna, "curves", 0, "Only Curves", "Select all the keyframes in the curve"); // CTRLKEY + ALTKEY
 }
 
 /* ************************************************************************** */

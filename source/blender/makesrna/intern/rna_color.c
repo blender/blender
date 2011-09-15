@@ -33,8 +33,6 @@
 #include "RNA_define.h"
 #include "rna_internal.h"
 
-#include "BLF_api.h"
-
 #include "DNA_color_types.h"
 #include "DNA_texture_types.h"
 
@@ -565,40 +563,40 @@ static void rna_def_scopes(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Scopes", NULL);
-	RNA_def_struct_ui_text(srna, N_("Scopes"), N_("Scopes for statistical view of an image"));
+	RNA_def_struct_ui_text(srna, "Scopes", "Scopes for statistical view of an image");
 	
 	prop= RNA_def_property(srna, "use_full_resolution", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, "Scopes", "sample_full", 1);
-	RNA_def_property_ui_text(prop, N_("Full Sample"), N_("Sample every pixel of the image"));
+	RNA_def_property_ui_text(prop, "Full Sample", "Sample every pixel of the image");
 	RNA_def_property_update(prop, 0, "rna_Scopes_update");
 	
 	prop= RNA_def_property(srna, "accuracy", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, "Scopes", "accuracy");
 	RNA_def_property_range(prop, 0.0, 100.0);
 	RNA_def_property_ui_range(prop, 0.0, 100.0, 10, 1);
-	RNA_def_property_ui_text(prop, N_("Accuracy"), N_("Proportion of original image source pixel lines to sample"));
+	RNA_def_property_ui_text(prop, "Accuracy", "Proportion of original image source pixel lines to sample");
 	RNA_def_property_update(prop, 0, "rna_Scopes_update");
 
 	prop= RNA_def_property(srna, "histogram", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, "Scopes", "hist");
 	RNA_def_property_struct_type(prop, "Histogram");
-	RNA_def_property_ui_text(prop, N_("Histogram"), N_("Histogram for viewing image statistics"));
+	RNA_def_property_ui_text(prop, "Histogram", "Histogram for viewing image statistics");
 
 	prop= RNA_def_property(srna, "waveform_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, "Scopes", "wavefrm_mode");
 	RNA_def_property_enum_items(prop, prop_wavefrm_mode_items);
-	RNA_def_property_ui_text(prop, N_("Waveform Mode"), "");
+	RNA_def_property_ui_text(prop, "Waveform Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Scopes_update");
 
 	prop= RNA_def_property(srna, "waveform_alpha", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, "Scopes", "wavefrm_alpha");
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, N_("Waveform Opacity"), N_("Opacity of the points"));
+	RNA_def_property_ui_text(prop, "Waveform Opacity", "Opacity of the points");
 
 	prop= RNA_def_property(srna, "vectorscope_alpha", PROP_FLOAT, PROP_PERCENTAGE);
 	RNA_def_property_float_sdna(prop, "Scopes", "vecscope_alpha");
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, N_("Vectorscope Opacity"), N_("Opacity of the points"));
+	RNA_def_property_ui_text(prop, "Vectorscope Opacity", "Opacity of the points");
 }
 
 

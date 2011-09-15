@@ -35,8 +35,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
@@ -120,8 +118,8 @@ static int logic_properties(bContext *C, wmOperator *UNUSED(op))
 
 void LOGIC_OT_properties(wmOperatorType *ot)
 {
-	ot->name= _("Properties");
-	ot->description= _("Toggle display properties panel");
+	ot->name= "Properties";
+	ot->description= "Toggle display properties panel";
 	ot->idname= "LOGIC_OT_properties";
 	
 	ot->exec= logic_properties;
@@ -201,9 +199,9 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	ot->name= _("Cut links");
+	ot->name= "Cut links";
 	ot->idname= "LOGIC_OT_links_cut";
-	ot->description= _("Remove logic brick connections");
+	ot->description= "Remove logic brick connections";
 	
 	ot->invoke= WM_gesture_lines_invoke;
 	ot->modal= WM_gesture_lines_modal;
@@ -218,6 +216,6 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
 	/* internal */
-	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, _("Cursor"), "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
 

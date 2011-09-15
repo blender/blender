@@ -43,8 +43,6 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
@@ -720,9 +718,9 @@ static int pose_slide_exec_common (bContext *C, wmOperator *op, tPoseSlideOp *ps
 /* common code for defining RNA properties */
 static void pose_slide_opdef_properties (wmOperatorType *ot)
 {
-	RNA_def_int(ot->srna, "prev_frame", 0, MINAFRAME, MAXFRAME, _("Previous Keyframe"), _("Frame number of keyframe immediately before the current frame."), 0, 50);
-	RNA_def_int(ot->srna, "next_frame", 0, MINAFRAME, MAXFRAME, _("Next Keyframe"), _("Frame number of keyframe immediately after the current frame."), 0, 50);
-	RNA_def_float_percentage(ot->srna, "percentage", 0.5f, 0.0f, 1.0f, _("Percentage"), _("Weighting factor for the sliding operation"), 0.3, 0.7);
+	RNA_def_int(ot->srna, "prev_frame", 0, MINAFRAME, MAXFRAME, "Previous Keyframe", "Frame number of keyframe immediately before the current frame.", 0, 50);
+	RNA_def_int(ot->srna, "next_frame", 0, MINAFRAME, MAXFRAME, "Next Keyframe", "Frame number of keyframe immediately after the current frame.", 0, 50);
+	RNA_def_float_percentage(ot->srna, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Weighting factor for the sliding operation", 0.3, 0.7);
 }
 
 /* ------------------------------------ */
@@ -764,9 +762,9 @@ static int pose_slide_push_exec (bContext *C, wmOperator *op)
 void POSE_OT_push (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Push Pose");
+	ot->name= "Push Pose";
 	ot->idname= "POSE_OT_push";
-	ot->description= _("Exaggerate the current pose");
+	ot->description= "Exaggerate the current pose";
 	
 	/* callbacks */
 	ot->exec= pose_slide_push_exec;
@@ -821,9 +819,9 @@ static int pose_slide_relax_exec (bContext *C, wmOperator *op)
 void POSE_OT_relax (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Relax Pose");
+	ot->name= "Relax Pose";
 	ot->idname= "POSE_OT_relax";
-	ot->description= _("Make the current pose more similar to its surrounding ones");
+	ot->description= "Make the current pose more similar to its surrounding ones";
 	
 	/* callbacks */
 	ot->exec= pose_slide_relax_exec;
@@ -878,9 +876,9 @@ static int pose_slide_breakdown_exec (bContext *C, wmOperator *op)
 void POSE_OT_breakdown (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= _("Pose Breakdowner");
+	ot->name= "Pose Breakdowner";
 	ot->idname= "POSE_OT_breakdown";
-	ot->description= _("Create a suitable breakdown pose on the current frame");
+	ot->description= "Create a suitable breakdown pose on the current frame";
 	
 	/* callbacks */
 	ot->exec= pose_slide_breakdown_exec;
@@ -1233,18 +1231,18 @@ static int pose_propagate_exec (bContext *C, wmOperator *op)
 void POSE_OT_propagate (wmOperatorType *ot)
 {
 	static EnumPropertyItem terminate_items[]= {
-		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, N_("While Held"), N_("Propagate pose to all keyframes after current frame that don't change (Default behaviour)")},
-		{POSE_PROPAGATE_NEXT_KEY, "NEXT_KEY", 0, N_("To Next Keyframe"), N_("Propagate pose to first keyframe following the current frame only")},
-		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, N_("To Last Keyframe"), N_("Propagate pose to the last keyframe only (i.e. making action cyclic)")},
-		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, N_("Before Frame"), N_("Propagate pose to all keyframes between current frame and 'Frame' property")},
-		{POSE_PROPAGATE_BEFORE_END, "BEFORE_END", 0, N_("Before Last Keyframe"), N_("Propagate pose to all keyframes from current frame until no more are found")},
-		{POSE_PROPAGATE_SELECTED_MARKERS, "SELECTED_MARKERS", 0, N_("On Selected Markers"), N_("Propagate pose to all keyframes occurring on frames with Scene Markers after the current frame")},
+		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held", "Propagate pose to all keyframes after current frame that don't change (Default behaviour)"},
+		{POSE_PROPAGATE_NEXT_KEY, "NEXT_KEY", 0, "To Next Keyframe", "Propagate pose to first keyframe following the current frame only"},
+		{POSE_PROPAGATE_LAST_KEY, "LAST_KEY", 0, "To Last Keyframe", "Propagate pose to the last keyframe only (i.e. making action cyclic)"},
+		{POSE_PROPAGATE_BEFORE_FRAME, "BEFORE_FRAME", 0, "Before Frame", "Propagate pose to all keyframes between current frame and 'Frame' property"},
+		{POSE_PROPAGATE_BEFORE_END, "BEFORE_END", 0, "Before Last Keyframe", "Propagate pose to all keyframes from current frame until no more are found"},
+		{POSE_PROPAGATE_SELECTED_MARKERS, "SELECTED_MARKERS", 0, "On Selected Markers", "Propagate pose to all keyframes occurring on frames with Scene Markers after the current frame"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	/* identifiers */
-	ot->name= _("Propagate Pose");
+	ot->name= "Propagate Pose";
 	ot->idname= "POSE_OT_propagate";
-	ot->description= _("Copy selected aspects of the current pose to subsequent poses already keyframed");
+	ot->description= "Copy selected aspects of the current pose to subsequent poses already keyframed";
 	
 	/* callbacks */
 	ot->exec= pose_propagate_exec;
@@ -1255,8 +1253,8 @@ void POSE_OT_propagate (wmOperatorType *ot)
 	
 	/* properties */
 	// TODO: add "fade out" control for tapering off amount of propagation as time goes by?
-	ot->prop= RNA_def_enum(ot->srna, "mode", RNA_enum_items_gettexted(terminate_items), POSE_PROPAGATE_SMART_HOLDS, _("Terminate Mode"), _("Method used to determine when to stop propagating pose to keyframes"));
-	RNA_def_float(ot->srna, "end_frame", 250.0, FLT_MIN, FLT_MAX, _("End Frame"), _("Frame to stop propagating frames to (for 'Before Frame' mode)"), 1.0, 250.0);
+	ot->prop= RNA_def_enum(ot->srna, "mode", terminate_items, POSE_PROPAGATE_SMART_HOLDS, "Terminate Mode", "Method used to determine when to stop propagating pose to keyframes");
+	RNA_def_float(ot->srna, "end_frame", 250.0, FLT_MIN, FLT_MAX, "End Frame", "Frame to stop propagating frames to (for 'Before Frame' mode)", 1.0, 250.0);
 }
 
 /* **************************************************** */
