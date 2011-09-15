@@ -508,7 +508,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
-	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);
+	weightvg_update_vg(dvert, defgrp_idx, NULL, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);
 
 	/* Freeing stuff. */
 	MEM_freeN(org_w);

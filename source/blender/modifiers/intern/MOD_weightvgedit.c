@@ -278,7 +278,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Update/add/remove from vgroup. */
-	weightvg_update_vg(dvert, defgrp_idx, numVerts, NULL, org_w, do_add, wmd->add_threshold,
+	weightvg_update_vg(dvert, defgrp_idx, NULL, numVerts, NULL, org_w, do_add, wmd->add_threshold,
 	                   do_rem, wmd->rem_threshold);
 
 	/* Freeing stuff. */
