@@ -440,12 +440,12 @@ elseif(WIN32)
 			DESTINATION ${TARGETDIR}
 		)
 
-               if(NOT CMAKE_CL_64)
-                       install(
-                               FILES ${LIBDIR}/iconv/lib/iconv.dll
-                               DESTINATION ${TARGETDIR}
-                       )
-               endif()
+		if(NOT CMAKE_CL_64)
+			install(
+				FILES ${LIBDIR}/iconv/lib/iconv.dll
+				DESTINATION ${TARGETDIR}
+			)
+		endif()
 	endif()
 
 	install( # same as linux!, deduplicate
