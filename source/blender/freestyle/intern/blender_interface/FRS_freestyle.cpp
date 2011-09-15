@@ -16,6 +16,7 @@ extern "C" {
 
 #include "DNA_camera_types.h"
 #include "DNA_text_types.h"
+#include "DNA_group_types.h"
 #include "DNA_freestyle_types.h"
 
 #include "BKE_global.h"
@@ -418,6 +419,10 @@ extern "C" {
 		FreestyleLineSet *lineset;
 
 		for(lineset=(FreestyleLineSet *)srl->freestyleConfig.linesets.first; lineset; lineset=lineset->next) {
+			if (lineset->group) {
+				lineset->group->id.us--;
+				lineset->group = NULL;
+			}
 			lineset->linestyle->id.us--;
 			lineset->linestyle = NULL;
 		}
@@ -479,6 +484,10 @@ extern "C" {
 		FreestyleLineSet *lineset = FRS_get_active_lineset(config);
 
 		if (lineset) {
+			if (lineset->group) {
+				lineset->group->id.us--;
+				lineset->group = NULL;
+			}
 			lineset->linestyle->id.us--;
 			lineset->linestyle = NULL;
 			BLI_remlink(&config->linesets, lineset);

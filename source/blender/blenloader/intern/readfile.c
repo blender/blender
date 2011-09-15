@@ -13188,6 +13188,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 {
 	Base *base;
 	SceneRenderLayer *srl;
+	FreestyleLineSet *lineset;
 
 	for(base= sce->base.first; base; base= base->next) {
 		expand_doit(fd, mainvar, base->object);
@@ -13208,6 +13209,12 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	for(srl= sce->r.layers.first; srl; srl= srl->next) {
 		expand_doit(fd, mainvar, srl->mat_override);
 		expand_doit(fd, mainvar, srl->light_override);
+
+		for (lineset= srl->freestyleConfig.linesets.first; lineset; lineset= lineset->next) {
+			if (lineset->group)
+				expand_doit(fd, mainvar, lineset->group);
+			expand_doit(fd, mainvar, lineset->linestyle);
+		}
 	}
 
 	if(sce->r.dometext)
