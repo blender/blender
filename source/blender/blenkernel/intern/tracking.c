@@ -969,6 +969,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			double x1, y1, x2, y2;
 			ImBuf *ibuf= NULL;
 			MovieTrackingMarker marker_new, *marker_keyed;
+			int onbound= 0;
 
 			if(!context->settings.adjframes) need_readjust= context->first_time;
 			else need_readjust= context->frames%context->settings.adjframes == 0;
@@ -982,6 +983,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			/* do not track markers which are too close to boundary */
 			if(marker->pos[0]<margin[0] || marker->pos[0]>1.f-margin[0] ||
 			   marker->pos[1]<margin[1] || marker->pos[1]>1.f-margin[1]) {
+				onbound= 1;
 			}
 			else if(context->settings.tracker==TRACKER_KLT) {
 				int wndx, wndy;
@@ -1104,8 +1106,14 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				}
 
 				memset(&marker_new, 0, sizeof(marker_new));
-				marker_new.pos[0]= (origin[0]+x2)/ibuf_new->x;
-				marker_new.pos[1]= (origin[1]+y2)/ibuf_new->y;
+
+				if(!onbound) {
+					marker_new.pos[0]= (origin[0]+x2)/ibuf_new->x;
+					marker_new.pos[1]= (origin[1]+y2)/ibuf_new->y;
+				} else {
+					copy_v2_v2(marker_new.pos, marker->pos);
+				}
+
 				marker_new.flag|= MARKER_TRACKED;
 
 				if(context->backwards) marker_new.framenr= curfra-1;
