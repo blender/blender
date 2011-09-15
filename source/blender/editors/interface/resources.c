@@ -1077,6 +1077,23 @@ void UI_ColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char c
 	glColor3ub(r, g, b);
 }
 
+void UI_GetColorPtrShade3ubv(const unsigned char cp[3], unsigned char col[3], int offset)
+{
+	int r, g, b;
+
+	r= offset+(int)cp[0];
+	g= offset+(int)cp[1];
+	b= offset+(int)cp[2];
+
+	CLAMP(r, 0, 255);
+	CLAMP(g, 0, 255);
+	CLAMP(b, 0, 255);
+
+	col[0] = r;
+	col[1] = g;
+	col[2] = b;
+}
+
 // get a 3 byte color, blended and shaded between two other char color pointers
 void UI_GetColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], unsigned char col[3], float fac, int offset)
 {

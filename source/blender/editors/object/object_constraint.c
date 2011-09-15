@@ -1005,7 +1005,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* free constraints for all selected bones */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
@@ -1443,7 +1443,7 @@ static int object_constraint_add_exec(bContext *C, wmOperator *op)
 /* dummy operator callback */
 static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_pose_armature(ED_object_active_context(C));
+	Object *ob= object_pose_armature_get(ED_object_active_context(C));
 	int type= RNA_enum_get(op->ptr, "type");
 	short with_targets= 0;
 	
@@ -1546,7 +1546,7 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
 /* present menu with options + validation for targets to use */
 static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	bPoseChannel *pchan= get_active_posechannel(ob);
 	bConstraint *con= NULL;
 	
@@ -1630,7 +1630,7 @@ void POSE_OT_ik_add(wmOperatorType *ot)
 /* remove IK constraints from selected bones */
 static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only remove IK Constraints */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 

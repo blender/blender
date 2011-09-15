@@ -440,12 +440,12 @@ elseif(WIN32)
 			PATTERN ".svn" EXCLUDE
 		)
 
-		if(NOT CMAKE_CL_64)
-			install(
-				FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
-				DESTINATION ${TARGETDIR}
-			)
+		install(
+			FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
+			DESTINATION ${TARGETDIR}
+		)
 
+		if(NOT CMAKE_CL_64)
 			install(
 				FILES ${LIBDIR}/iconv/lib/iconv.dll
 				DESTINATION ${TARGETDIR}
@@ -717,7 +717,11 @@ add_dependencies(blender makesdna)
 
 get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
 
-set(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_render)
+set(BLENDER_LINK_LIBS
+	${BLENDER_LINK_LIBS}
+	bf_windowmanager
+	bf_render
+)
 
 if(WITH_MOD_FLUID)
 	list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
@@ -805,6 +809,7 @@ endif()
 		extern_lzma
 		extern_colamd
 		ge_logic_ketsji
+		extern_recastnavigation
 		ge_phys_common
 		ge_logic
 		ge_rasterizer
@@ -812,7 +817,6 @@ endif()
 		ge_logic_expressions
 		ge_scenegraph
 		ge_logic_network
-		bf_python # duplicate for BPY_driver_exec
 		ge_logic_ngnetwork
 		extern_bullet
 		ge_logic_loopbacknetwork

@@ -888,6 +888,7 @@ enum {
 /* outliner search flags (SpaceOops->search_flags) */
 #define SO_FIND_CASE_SENSITIVE		(1<<0)
 #define SO_FIND_COMPLETE			(1<<1)
+#define SO_SEARCH_RECURSIVE		(1<<2)
 
 /* headerbuttons: 450-499 */
 

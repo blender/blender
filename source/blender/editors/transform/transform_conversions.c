@@ -95,7 +95,6 @@
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_clip.h"
-#include "ED_curve.h" /* for ED_curve_editnurbs */
 #include "ED_util.h"  /* for crazyspace correction */
 
 #include "WM_api.h"		/* for WM_event_add_notifier to deal with stabilization nodes */
@@ -277,7 +276,7 @@ static void createTransTexspace(TransInfo *t)
 	td->ext= t->ext= MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
 
 	td->flag= TD_SELECTED;
-	VECCOPY(td->center, ob->obmat[3]);
+	copy_v3_v3(td->center, ob->obmat[3]);
 	td->ob = ob;
 
 	copy_m3_m4(td->mtx, ob->obmat);
@@ -290,9 +289,9 @@ static void createTransTexspace(TransInfo *t)
 		*texflag &= ~AUTOSPACE;
 	}
 
-	VECCOPY(td->iloc, td->loc);
-	VECCOPY(td->ext->irot, td->ext->rot);
-	VECCOPY(td->ext->isize, td->ext->size);
+	copy_v3_v3(td->iloc, td->loc);
+	copy_v3_v3(td->ext->irot, td->ext->rot);
+	copy_v3_v3(td->ext->isize, td->ext->size);
 }
 
 /* ********************* edge (for crease) ***** */
@@ -428,7 +427,7 @@ static short apply_targetless_ik(Object *ob)
 					copy_m4_m3(offs_bone, bone->bone_mat);
 
 					/* The bone's root offset (is in the parent's coordinate system) */
-					VECCOPY(offs_bone[3], bone->head);
+					copy_v3_v3(offs_bone[3], bone->head);
 
 					/* Get the length translation of parent (length along y axis) */
 					offs_bone[3][1]+= parbone->length;
@@ -439,7 +438,7 @@ static short apply_targetless_ik(Object *ob)
 						copy_m4_m4(rmat, parbone->arm_mat);	/* rmat used as temp */
 
 						/* the location of actual parent transform */
-						VECCOPY(rmat[3], offs_bone[3]);
+						copy_v3_v3(rmat[3], offs_bone[3]);
 						offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
 						mul_m4_v3(parchan->parent->pose_mat, rmat[3]);
 
@@ -457,7 +456,7 @@ static short apply_targetless_ik(Object *ob)
 				else {
 					copy_m4_m3(tmat, bone->bone_mat);
 
-					VECCOPY(tmat[3], bone->head);
+					copy_v3_v3(tmat[3], bone->head);
 					invert_m4_m4(imat, tmat);
 				}
 				/* result matrix */
@@ -499,7 +498,7 @@ static short apply_targetless_ik(Object *ob)
 					
 					/* causes problems with some constraints (e.g. childof), so disable this */
 					/* as it is IK shouldn't affect location directly */
-					/* VECCOPY(parchan->loc, rmat[3]); */
+					/* copy_v3_v3(parchan->loc, rmat[3]); */
 				}
 
 			}
@@ -519,8 +518,8 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	float cmat[3][3], tmat[3][3];
 	float vec[3];
 
-	VECCOPY(vec, pchan->pose_mat[3]);
-	VECCOPY(td->center, vec);
+	copy_v3_v3(vec, pchan->pose_mat[3]);
+	copy_v3_v3(td->center, vec);
 
 	td->ob = ob;
 	td->flag = TD_SELECTED;
@@ -538,10 +537,10 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	td->protectflag= pchan->protectflag;
 
 	td->loc = pchan->loc;
-	VECCOPY(td->iloc, pchan->loc);
+	copy_v3_v3(td->iloc, pchan->loc);
 
 	td->ext->size= pchan->size;
-	VECCOPY(td->ext->isize, pchan->size);
+	copy_v3_v3(td->ext->isize, pchan->size);
 
 	if (pchan->rotmode > 0) {
 		td->ext->rot= pchan->eul;
@@ -549,7 +548,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		td->ext->rotAngle= NULL;
 		td->ext->quat= NULL;
 		
-		VECCOPY(td->ext->irot, pchan->eul);
+		copy_v3_v3(td->ext->irot, pchan->eul);
 	}
 	else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 		td->ext->rot= NULL;
@@ -558,7 +557,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		td->ext->quat= NULL;
 		
 		td->ext->irotAngle= pchan->rotAngle;
-		VECCOPY(td->ext->irotAxis, pchan->rotAxis);
+		copy_v3_v3(td->ext->irotAxis, pchan->rotAxis);
 	}
 	else {
 		td->ext->rot= NULL;
@@ -634,7 +633,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		else {
 			// abusive storage of scale in the loc pointer :)
 			td->loc= &bone->xwidth;
-			VECCOPY (td->iloc, td->loc);
+			copy_v3_v3(td->iloc, td->loc);
 			td->val= NULL;
 		}
 	}
@@ -644,13 +643,13 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		bKinematicConstraint *data= has_targetless_ik(pchan);
 		if(data) {
 			if(data->flag & CONSTRAINT_IK_TIP) {
-				VECCOPY(data->grabtarget, pchan->pose_tail);
+				copy_v3_v3(data->grabtarget, pchan->pose_tail);
 			}
 			else {
-				VECCOPY(data->grabtarget, pchan->pose_head);
+				copy_v3_v3(data->grabtarget, pchan->pose_head);
 			}
 			td->loc = data->grabtarget;
-			VECCOPY(td->iloc, td->loc);
+			copy_v3_v3(td->iloc, td->loc);
 			data->flag |= CONSTRAINT_IK_AUTO;
 
 			/* only object matrix correction */
@@ -893,7 +892,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	else
 		data->flag= CONSTRAINT_IK_TIP;
 	data->flag |= CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
-	VECCOPY(data->grabtarget, pchan->pose_tail);
+	copy_v3_v3(data->grabtarget, pchan->pose_tail);
 	data->rootbone= 0; /* watch-it! has to be 0 here, since we're still on the same bone for the first time through the loop [#25885] */
 	
 	/* we only include bones that are part of a continual connected chain */
@@ -1117,7 +1116,7 @@ static void createTransArmatureVerts(TransInfo *t)
 					td->val= &ebo->rad_head;
 					td->ival= *td->val;
 
-					VECCOPY (td->center, ebo->head);
+					copy_v3_v3(td->center, ebo->head);
 					td->flag= TD_SELECTED;
 
 					copy_m3_m3(td->smtx, smtx);
@@ -1133,7 +1132,7 @@ static void createTransArmatureVerts(TransInfo *t)
 				{
 					td->val= &ebo->rad_tail;
 					td->ival= *td->val;
-					VECCOPY (td->center, ebo->tail);
+					copy_v3_v3(td->center, ebo->tail);
 					td->flag= TD_SELECTED;
 
 					copy_m3_m3(td->smtx, smtx);
@@ -1160,10 +1159,10 @@ static void createTransArmatureVerts(TransInfo *t)
 					{
 						// abusive storage of scale in the loc pointer :)
 						td->loc= &ebo->xwidth;
-						VECCOPY (td->iloc, td->loc);
+						copy_v3_v3(td->iloc, td->loc);
 						td->val= NULL;
 					}
-					VECCOPY (td->center, ebo->head);
+					copy_v3_v3(td->center, ebo->head);
 					td->flag= TD_SELECTED;
 
 					/* use local bone matrix */
@@ -1189,7 +1188,7 @@ static void createTransArmatureVerts(TransInfo *t)
 					td->val= &(ebo->roll);
 					td->ival= ebo->roll;
 
-					VECCOPY (td->center, ebo->head);
+					copy_v3_v3(td->center, ebo->head);
 					td->flag= TD_SELECTED;
 
 					td->ext = NULL;
@@ -1202,8 +1201,8 @@ static void createTransArmatureVerts(TransInfo *t)
 			{
 				if (ebo->flag & BONE_TIPSEL)
 				{
-					VECCOPY (td->iloc, ebo->tail);
-					VECCOPY (td->center, td->iloc);
+					copy_v3_v3(td->iloc, ebo->tail);
+					copy_v3_v3(td->center, td->iloc);
 					td->loc= ebo->tail;
 					td->flag= TD_SELECTED;
 					if (ebo->flag & BONE_EDITMODE_LOCKED)
@@ -1228,8 +1227,8 @@ static void createTransArmatureVerts(TransInfo *t)
 				}
 				if (ebo->flag & BONE_ROOTSEL)
 				{
-					VECCOPY (td->iloc, ebo->head);
-					VECCOPY (td->center, td->iloc);
+					copy_v3_v3(td->iloc, ebo->head);
+					copy_v3_v3(td->center, td->iloc);
 					td->loc= ebo->head;
 					td->flag= TD_SELECTED;
 					if (ebo->flag & BONE_EDITMODE_LOCKED)
@@ -1287,8 +1286,8 @@ static void createTransMBallVerts(TransInfo *t)
 	for(ml= mb->editelems->first; ml; ml= ml->next) {
 		if(propmode || (ml->flag & SELECT)) {
 			td->loc= &ml->x;
-			VECCOPY(td->iloc, td->loc);
-			VECCOPY(td->center, td->loc);
+			copy_v3_v3(td->iloc, td->loc);
+			copy_v3_v3(td->center, td->loc);
 
 			if(ml->flag & SELECT) td->flag= TD_SELECTED | TD_USEQUAT | TD_SINGLESIZE;
 			else td->flag= TD_USEQUAT;
@@ -1403,7 +1402,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	if(cu->editnurb==NULL) return;
 
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
-	nurbs= ED_curve_editnurbs(cu);
+	nurbs= curve_editnurbs(cu);
 	for(nu= nurbs->first; nu; nu= nu->next) {
 		if(nu->type == CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
@@ -1452,9 +1451,9 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 							((bezt->f2 & SELECT) && hide_handles) ||
 							((bezt->f1 & SELECT) && hide_handles == 0)
 					  ) {
-						VECCOPY(td->iloc, bezt->vec[0]);
+						copy_v3_v3(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
-						VECCOPY(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:0]);
+						copy_v3_v3(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:0]);
 						if (hide_handles) {
 							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 							else td->flag= 0;
@@ -1477,9 +1476,9 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 
 					/* This is the Curve Point, the other two are handles */
 					if(propmode || (bezt->f2 & SELECT)) {
-						VECCOPY(td->iloc, bezt->vec[1]);
+						copy_v3_v3(td->iloc, bezt->vec[1]);
 						td->loc= bezt->vec[1];
-						VECCOPY(td->center, td->loc);
+						copy_v3_v3(td->center, td->loc);
 						if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
@@ -1511,9 +1510,9 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 							((bezt->f2 & SELECT) && hide_handles) ||
 							((bezt->f3 & SELECT) && hide_handles == 0)
 					  ) {
-						VECCOPY(td->iloc, bezt->vec[2]);
+						copy_v3_v3(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
-						VECCOPY(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:2]);
+						copy_v3_v3(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:2]);
 						if (hide_handles) {
 							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 							else td->flag= 0;
@@ -1555,9 +1554,9 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 			for(a= nu->pntsu*nu->pntsv, bp= nu->bp; a>0; a--, bp++) {
 				if(bp->hide==0) {
 					if(propmode || (bp->f1 & SELECT)) {
-						VECCOPY(td->iloc, bp->vec);
+						copy_v3_v3(td->iloc, bp->vec);
 						td->loc= bp->vec;
-						VECCOPY(td->center, td->loc);
+						copy_v3_v3(td->center, td->loc);
 						if(bp->f1 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
@@ -1627,9 +1626,9 @@ static void createTransLatticeVerts(TransInfo *t)
 	while(a--) {
 		if(propmode || (bp->f1 & SELECT)) {
 			if(bp->hide==0) {
-				VECCOPY(td->iloc, bp->vec);
+				copy_v3_v3(td->iloc, bp->vec);
 				td->loc= bp->vec;
-				VECCOPY(td->center, td->loc);
+				copy_v3_v3(td->center, td->loc);
 				if(bp->f1 & SELECT) td->flag= TD_SELECTED;
 				else td->flag= 0;
 				copy_m3_m3(td->smtx, smtx);
@@ -1722,15 +1721,15 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 
 		for(k=0, key=point->keys; k<point->totkey; k++, key++) {
 			if(key->flag & PEK_USE_WCO) {
-				VECCOPY(key->world_co, key->co);
+				copy_v3_v3(key->world_co, key->co);
 				mul_m4_v3(mat, key->world_co);
 				td->loc = key->world_co;
 			}
 			else
 				td->loc = key->co;
 
-			VECCOPY(td->iloc, td->loc);
-			VECCOPY(td->center, td->loc);
+			copy_v3_v3(td->iloc, td->loc);
+			copy_v3_v3(td->center, td->loc);
 
 			if(key->flag & PEK_SELECT)
 				td->flag |= TD_SELECTED;
@@ -1795,13 +1794,13 @@ void flushTransParticles(TransInfo *t)
 			invert_m4_m4(imat,mat);
 
 			for(k=0, key=point->keys; k<point->totkey; k++, key++) {
-				VECCOPY(co, key->world_co);
+				copy_v3_v3(co, key->world_co);
 				mul_m4_v3(imat, co);
 
 
 				/* optimization for proportional edit */
 				if(!propmode || !compare_v3v3(key->co, co, 0.0001f)) {
-					VECCOPY(key->co, co);
+					copy_v3_v3(key->co, co);
 					point->flag |= PEP_EDIT_RECALC;
 				}
 			}
@@ -1918,7 +1917,7 @@ static void get_face_center(float *cent, EditMesh *em, EditVert *eve)
 			if(efa->v1==eve || efa->v2==eve || efa->v3==eve || efa->v4==eve)
 				break;
 	if(efa) {
-		VECCOPY(cent, efa->cent);
+		copy_v3_v3(cent, efa->cent);
 	}
 }
 
@@ -1932,13 +1931,13 @@ static void VertsToTransData(TransInfo *t, TransData *td, EditMesh *em, EditVert
 	//else
 	td->loc = eve->co;
 
-	VECCOPY(td->center, td->loc);
+	copy_v3_v3(td->center, td->loc);
 	if(t->around==V3D_LOCAL && (em->selectmode & SCE_SELECT_FACE))
 		get_face_center(td->center, em, eve);
-	VECCOPY(td->iloc, td->loc);
+	copy_v3_v3(td->iloc, td->loc);
 
 	// Setting normals
-	VECCOPY(td->axismtx[2], eve->no);
+	copy_v3_v3(td->axismtx[2], eve->no);
 	td->axismtx[0][0]		=
 		td->axismtx[0][1]	=
 		td->axismtx[0][2]	=
@@ -1968,9 +1967,9 @@ static void createTransBMeshVerts(TransInfo *t, BME_Mesh *bm, BME_TransData_Head
 		if ( (vtd = BME_get_transdata(td,v)) ) {
 			tob->loc = vtd->loc;
 			tob->val = &vtd->factor;
-			VECCOPY(tob->iloc,vtd->co);
-			VECCOPY(tob->center,vtd->org);
-			VECCOPY(tob->axismtx[0],vtd->vec);
+			copy_v3_v3(tob->iloc,vtd->co);
+			copy_v3_v3(tob->center,vtd->org);
+			copy_v3_v3(tob->axismtx[0],vtd->vec);
 			tob->axismtx[1][0] = vtd->max ? *vtd->max : 0;
 			tob++;
 			i++;
@@ -2313,8 +2312,8 @@ static void UVsToTransData(SpaceImage *sima, TransData *td, TransData2D *td2d, f
 
 	td->flag = 0;
 	td->loc = td2d->loc;
-	VECCOPY(td->center, td->loc);
-	VECCOPY(td->iloc, td->loc);
+	copy_v3_v3(td->center, td->loc);
+	copy_v3_v3(td->iloc, td->loc);
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
@@ -2614,10 +2613,10 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 							/* now, link the transform data up to this data */
 							if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
 								td->loc= tdn->h1;
-								VECCOPY(td->iloc, tdn->h1);
+								copy_v3_v3(td->iloc, tdn->h1);
 								
 								/* store all the other gunk that is required by transform */
-								VECCOPY(td->center, center);
+								copy_v3_v3(td->center, center);
 								memset(td->axismtx, 0, sizeof(td->axismtx));
 								td->axismtx[2][2] = 1.0f;
 								
@@ -2646,10 +2645,10 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 							/* now, link the transform data up to this data */
 							if (ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_EXTEND)) {
 								td->loc= tdn->h2;
-								VECCOPY(td->iloc, tdn->h2);
+								copy_v3_v3(td->iloc, tdn->h2);
 								
 								/* store all the other gunk that is required by transform */
-								VECCOPY(td->center, center);
+								copy_v3_v3(td->center, center);
 								memset(td->axismtx, 0, sizeof(td->axismtx));
 								td->axismtx[2][2] = 1.0f;
 								
@@ -3202,7 +3201,7 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 		td->center[1] = cent[1];
 		td->center[2] = 0.0f;
 		
-		VECCOPY(td->iloc, td->loc);
+		copy_v3_v3(td->iloc, td->loc);
 	}
 	else {
 		td2d->loc[0] = loc[0];
@@ -3211,8 +3210,8 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 		td2d->loc2d = loc;
 		
 		td->loc = td2d->loc;
-		VECCOPY(td->center, cent);
-		VECCOPY(td->iloc, td->loc);
+		copy_v3_v3(td->center, cent);
+		copy_v3_v3(td->iloc, td->loc);
 	}
 
 	if (td->flag & TD_MOVEHANDLE1) {
@@ -3911,8 +3910,8 @@ static TransData *SeqToTransData(TransData *td, TransData2D *td2d, TransDataSeq 
 
 	td->flag = 0;
 	td->loc = td2d->loc;
-	VECCOPY(td->center, td->loc);
-	VECCOPY(td->iloc, td->loc);
+	copy_v3_v3(td->center, td->loc);
+	copy_v3_v3(td->iloc, td->loc);
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
@@ -4263,7 +4262,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	td->ob = ob;
 
 	td->loc = ob->loc;
-	VECCOPY(td->iloc, td->loc);
+	copy_v3_v3(td->iloc, td->loc);
 	
 	if (ob->rotmode > 0) {
 		td->ext->rot= ob->rot;
@@ -4271,8 +4270,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		td->ext->rotAngle= NULL;
 		td->ext->quat= NULL;
 		
-		VECCOPY(td->ext->irot, ob->rot);
-		VECCOPY(td->ext->drot, ob->drot);
+		copy_v3_v3(td->ext->irot, ob->rot);
+		copy_v3_v3(td->ext->drot, ob->drot);
 	}
 	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
 		td->ext->rot= NULL;
@@ -4281,9 +4280,9 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		td->ext->quat= NULL;
 		
 		td->ext->irotAngle= ob->rotAngle;
-		VECCOPY(td->ext->irotAxis, ob->rotAxis);
+		copy_v3_v3(td->ext->irotAxis, ob->rotAxis);
 		// td->ext->drotAngle= ob->drotAngle;			// XXX, not implimented
-		// VECCOPY(td->ext->drotAxis, ob->drotAxis);	// XXX, not implimented
+		// copy_v3_v3(td->ext->drotAxis, ob->drotAxis);	// XXX, not implimented
 	}
 	else {
 		td->ext->rot= NULL;
@@ -4297,10 +4296,10 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	td->ext->rotOrder=ob->rotmode;
 
 	td->ext->size = ob->size;
-	VECCOPY(td->ext->isize, ob->size);
-	VECCOPY(td->ext->dsize, ob->dsize);
+	copy_v3_v3(td->ext->isize, ob->size);
+	copy_v3_v3(td->ext->dsize, ob->dsize);
 
-	VECCOPY(td->center, ob->obmat[3]);
+	copy_v3_v3(td->center, ob->obmat[3]);
 
 	copy_m4_m4(td->ext->obmat, ob->obmat);
 
@@ -5221,8 +5220,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	}
 
 	td->loc = td2d->loc;
-	VECCOPY(td->center, td->loc);
-	VECCOPY(td->iloc, td->loc);
+	copy_v3_v3(td->center, td->loc);
+	copy_v3_v3(td->iloc, td->loc);
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;

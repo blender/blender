@@ -54,6 +54,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
+#include "BKE_object.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -170,7 +171,7 @@ static Object *get_poselib_object (bContext *C)
 	if (sa && (sa->spacetype == SPACE_BUTS)) 
 		return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	else
-		return ED_object_pose_armature(CTX_data_active_object(C));
+		return object_pose_armature_get(CTX_data_active_object(C));
 }
 
 /* Poll callback for operators that require existing PoseLib data (with poses) to work */
@@ -632,7 +633,7 @@ static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int poselib_rename_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	char newname[64];
@@ -1438,9 +1439,7 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 	pld->pose->flag &= ~POSE_DO_UNLOCK;
 	
 	/* clear strings + search */
-	strcpy(pld->headerstr, "");
-	strcpy(pld->searchstr, "");
-	strcpy(pld->searchold, "");
+	pld->headerstr[0]= pld->searchstr[0]= pld->searchold[0]= '\0';
 	pld->search_cursor= 0;
 }
 

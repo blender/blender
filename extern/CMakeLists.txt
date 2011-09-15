@@ -45,6 +45,10 @@ if(WITH_BUILTIN_GLEW)
 	add_subdirectory(glew)
 endif()
 
+if(WITH_GAMEENGINE)
+   add_subdirectory(recastnavigation)
+endif()
+
 if(WITH_IMAGE_OPENJPEG AND (NOT UNIX OR APPLE))
 	add_subdirectory(libopenjpeg)
 endif()

@@ -67,7 +67,7 @@
 #include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
-#include "ED_curve.h" /* for ED_curve_editnurbs */
+#include "ED_curve.h" /* for curve_editnurbs */
 
 #include "view3d_intern.h"
 
@@ -103,7 +103,7 @@ static void special_transvert_update(Object *obedit)
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu= obedit->data;
-			ListBase *nurbs= ED_curve_editnurbs(cu);
+			ListBase *nurbs= curve_editnurbs(cu);
 			Nurb *nu= nurbs->first;
 
 			while(nu) {
@@ -313,7 +313,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		Curve *cu= obedit->data;
 		int totmalloc= 0;
-		ListBase *nurbs= ED_curve_editnurbs(cu);
+		ListBase *nurbs= curve_editnurbs(cu);
 
 		for(nu= nurbs->first; nu; nu= nu->next) {
 			if(nu->type == CU_BEZIER)

@@ -138,6 +138,7 @@ endif()
 		bf_intern_ghost # duplicate for linking
 		bf_blenkernel # duplicate for linking
 		bf_intern_mikktspace
+		extern_recastnavigation
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)

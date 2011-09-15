@@ -28,7 +28,7 @@
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
- *     but couldn't figure a way to do this…
+ *     but couldn't figure a way to do this...
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -62,7 +62,7 @@ static float mix_weight(float weight, float weight2, char mix_mode)
 #if 0
 	/*
 	 * XXX Don't know why, but the switch version takes many CPU time,
-	 *     and produces lag in realtime playback…
+	 *     and produces lag in realtime playback...
 	 */
 	switch (mix_mode)
 	{
@@ -229,13 +229,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	Mesh *ob_m = NULL;
 #endif
 	MDeformVert *dvert = NULL;
+	MDeformWeight **dw1, **tdw1, **dw2, **tdw2;
 	int numVerts;
 	int defgrp_idx, defgrp_idx2 = -1;
 	float *org_w;
 	float *new_w;
 	int *tidx, *indices = NULL;
 	int numIdx = 0;
-	int i, j;
+	int i;
 	char rel_ret = 0; /* Boolean, whether we have to release ret dm or not, when not using it! */
 
 	/* Get number of verts. */
@@ -258,13 +259,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			return dm;
 	}
 
-	/* XXX All this to avoid copying dm when not needed… However, it nearly doubles compute
-	 *     time! See scene 5 of the WeighVG test file…
+	/* XXX All this to avoid copying dm when not needed... However, it nearly doubles compute
+	 *     time! See scene 5 of the WeighVG test file...
 	 */
 #if 0
 	/* Get actual dverts (ie vertex group data). */
 	dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	/* If no dverts, return unmodified data… */
+	/* If no dverts, return unmodified data... */
 	if (dvert == NULL)
 		return dm;
 
@@ -278,7 +279,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Create a copy of our dmesh, only if our affected cdata layer is the same as org mesh. */
 	if (dvert == CustomData_get_layer(&ob_m->vdata, CD_MDEFORMVERT)) {
 		/* XXX Seems to create problems with weightpaint mode???
-		 *     I'm missing something here, I guess…
+		 *     I'm missing something here, I guess...
 		 */
 //		DM_set_only_copy(dm, CD_MASK_MDEFORMVERT); /* Only copy defgroup layer. */
 		ret = CDDM_copy(dm);
@@ -304,78 +305,91 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* Find out which vertices to work on. */
 	tidx = MEM_mallocN(sizeof(int) * numVerts, "WeightVGMix Modifier, tidx");
+	tdw1 = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGMix Modifier, tdw1");
+	tdw2 = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGMix Modifier, tdw2");
 	switch (wmd->mix_set) {
 	case MOD_WVG_SET_A:
 		/* All vertices in first vgroup. */
 		for (i = 0; i < numVerts; i++) {
-			for (j = 0; j < dvert[i].totweight; j++) {
-				if(dvert[i].dw[j].def_nr == defgrp_idx) {
-					tidx[numIdx++] = i;
-					break;
-				}
+			MDeformWeight *dw = defvert_find_index(&dvert[i], defgrp_idx);
+			if(dw) {
+				tdw1[numIdx] = dw;
+				tdw2[numIdx] = defvert_find_index(&dvert[i], defgrp_idx2);
+				tidx[numIdx++] = i;
 			}
 		}
 		break;
 	case MOD_WVG_SET_B:
 		/* All vertices in second vgroup. */
 		for (i = 0; i < numVerts; i++) {
-			for (j = 0; j < dvert[i].totweight; j++) {
-				if(dvert[i].dw[j].def_nr == defgrp_idx2) {
-					tidx[numIdx++] = i;
-					break;
-				}
+			MDeformWeight *dw = defvert_find_index(&dvert[i], defgrp_idx2);
+			if(dw) {
+				tdw1[numIdx] = defvert_find_index(&dvert[i], defgrp_idx);
+				tdw2[numIdx] = dw;
+				tidx[numIdx++] = i;
 			}
 		}
 		break;
 	case MOD_WVG_SET_OR:
 		/* All vertices in one vgroup or the other. */
 		for (i = 0; i < numVerts; i++) {
-			for (j = 0; j < dvert[i].totweight; j++) {
-				if(dvert[i].dw[j].def_nr == defgrp_idx || dvert[i].dw[j].def_nr == defgrp_idx2) {
-					tidx[numIdx++] = i;
-					break;
-				}
+			MDeformWeight *adw = defvert_find_index(&dvert[i], defgrp_idx);
+			MDeformWeight *bdw = defvert_find_index(&dvert[i], defgrp_idx2);
+			if(adw || bdw) {
+				tdw1[numIdx] = adw;
+				tdw2[numIdx] = bdw;
+				tidx[numIdx++] = i;
 			}
 		}
 		break;
 	case MOD_WVG_SET_AND:
 		/* All vertices in both vgroups. */
 		for (i = 0; i < numVerts; i++) {
-			int idx1 = FALSE;
-			int idx2 = FALSE;
-			for (j = 0; j < dvert[i].totweight; j++) {
-				if(dvert[i].dw[j].def_nr == defgrp_idx) {
-					if (idx2 == TRUE) {
-						tidx[numIdx++] = i;
-						break;
-					}
-					else {
-						idx1 = TRUE;
-					}
-				}
-				else if(dvert[i].dw[j].def_nr == defgrp_idx2) {
-					if (idx1 == TRUE) {
-						tidx[numIdx++] = i;
-						break;
-					}
-					else {
-						idx2 = TRUE;
-					}
-				}
+			MDeformWeight *adw = defvert_find_index(&dvert[i], defgrp_idx);
+			MDeformWeight *bdw = defvert_find_index(&dvert[i], defgrp_idx2);
+			if(adw && bdw) {
+				tdw1[numIdx] = adw;
+				tdw2[numIdx] = bdw;
+				tidx[numIdx++] = i;
 			}
 		}
 		break;
 	case MOD_WVG_SET_ALL:
 	default:
-		/* Use all vertices, no need to do anything here. */
+		/* Use all vertices. */
+		for (i = 0; i < numVerts; i++) {
+			tdw1[i] = defvert_find_index(&dvert[i], defgrp_idx);
+			tdw2[i] = defvert_find_index(&dvert[i], defgrp_idx2);
+		}
+		numIdx = -1;
 		break;
 	}
-	if (numIdx) {
+	if(numIdx == 0) {
+		/* Use no vertices! Hence, return org data. */
+		MEM_freeN(tdw1);
+		MEM_freeN(tdw2);
+		MEM_freeN(tidx);
+		if (rel_ret)
+			ret->release(ret);
+		return dm;
+	}
+	if (numIdx != -1) {
 		indices = MEM_mallocN(sizeof(int) * numIdx, "WeightVGMix Modifier, indices");
 		memcpy(indices, tidx, sizeof(int) * numIdx);
+		dw1 = MEM_mallocN(sizeof(MDeformWeight*) * numIdx, "WeightVGMix Modifier, dw1");
+		memcpy(dw1, tdw1, sizeof(MDeformWeight*) * numIdx);
+		MEM_freeN(tdw1);
+		dw2 = MEM_mallocN(sizeof(MDeformWeight*) * numIdx, "WeightVGMix Modifier, dw2");
+		memcpy(dw2, tdw2, sizeof(MDeformWeight*) * numIdx);
+		MEM_freeN(tdw2);
 	}
-	else
+	else {
+		/* Use all vertices. */
 		numIdx = numVerts;
+		/* Just copy MDeformWeight pointers arrays, they will be freed at the end. */
+		dw1 = tdw1;
+		dw2 = tdw2;
+	}
 	MEM_freeN(tidx);
 
 	org_w = MEM_mallocN(sizeof(float) * numIdx, "WeightVGMix Modifier, org_w");
@@ -384,27 +398,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Mix weights. */
 	for (i = 0; i < numIdx; i++) {
 		float weight2 = 0.0;
-		int w1 = FALSE;
-		int w2 = FALSE;
-		int idx = indices ? indices[i] : i;
-		for (j = 0; j < dvert[idx].totweight; j++) {
-			if(dvert[idx].dw[j].def_nr == defgrp_idx) {
-				org_w[i] = dvert[idx].dw[j].weight;
-				w1 = TRUE;
-				if (w2 == TRUE)
-					break;
-			}
-			else if(dvert[idx].dw[j].def_nr == defgrp_idx2) {
-				weight2 = dvert[idx].dw[j].weight;
-				w2 = TRUE;
-				if (w1 == TRUE)
-					break;
-			}
-		}
-		if (w1 == FALSE)
-			org_w[i] = wmd->default_weight_a;
-		if (w2 == FALSE)
-			weight2 = wmd->default_weight_b;
+		org_w[i] = dw1[i] ? dw1[i]->weight : wmd->default_weight_a;
+		weight2  = dw2[i] ? dw2[i]->weight : wmd->default_weight_b;
+
 		new_w[i] = mix_weight(org_w[i], weight2, wmd->mix_mode);
 	}
 
@@ -416,11 +412,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Update (add to) vgroup.
 	 * XXX Depending on the MOD_WVG_SET_xxx option chosen, we might have to add vertices to vgroup.
 	 */
-	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, TRUE, -FLT_MAX, 0, 0.0f);
+	weightvg_update_vg(dvert, defgrp_idx, dw1, numIdx, indices, org_w, TRUE, -FLT_MAX, FALSE, 0.0f);
 
 	/* Freeing stuff. */
 	MEM_freeN(org_w);
 	MEM_freeN(new_w);
+	MEM_freeN(dw1);
+	MEM_freeN(dw2);
 
 	if (indices)
 		MEM_freeN(indices);

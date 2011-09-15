@@ -10,18 +10,26 @@ Some of these are just python features that scripters may not have thought to us
 Use The Terminal
 ================
 
-When writing python scripts, its useful to have a terminal open, this is not the built-in python console but a terminal application which is used to start blender.
+When writing python scripts, it's useful to have a terminal open, this is not the built-in python console but a terminal application which is used to start blender.
 
 There are 3 main uses for the terminal, these are:
 
-* You can see the output of `print()` as you're script runs, which is useful to view debug info.
+* You can see the output of ``print()`` as you're script runs, which is useful to view debug info.
 
-* The error trace-back is printed in full to the terminal which wont always generate an error popup in blenders user interface (depending on how the script is executed).
+* The error trace-back is printed in full to the terminal which won't always generate an error popup in blender's user interface (depending on how the script is executed).
 
 * If the script runs for too long or you accidentally enter an infinite loop, Ctrl+C in the terminal (Ctrl+Break on Windows) will quit the script early.
 
 .. note::
    For Linux and OSX users this means starting the terminal first, then running blender from within it. On Windows the terminal can be enabled from the help menu.
+
+
+Show All Operators
+==================
+
+While blender logs operators in the Info space, this only reports operators with the ``REGISTER`` option enabeld so as not to flood the Info view with calls to ``bpy.ops.view3d.smoothview`` and ``bpy.ops.view3d.zoom``.
+
+However, for testing it can be useful to see **every** operator called in a terminal, do this by enabling the debug option either by passing the ``--debug`` argument when starting blender or by setting :mod:`bpy.app.debug` to True while blender is running.
 
 
 Use an External Editor
@@ -69,9 +77,9 @@ This example shows loading a script in as a module and executing a module functi
    myscript.main()
 
 
-Notice that the script is reloaded every time, this forces use of the modified version otherwise the cached one in `sys.modules` would be used until blender was restarted.
+Notice that the script is reloaded every time, this forces use of the modified version, otherwise the cached one in ``sys.modules`` would be used until blender was restarted.
 
-The important difference between this and executing the script directly is it has to call a function in the module, in this case `main()` but it can be any function, an advantage with this is you can pass arguments to the function from this small script which is often useful for testing different settings quickly.
+The important difference between this and executing the script directly is it has to call a function in the module, in this case ``main()`` but it can be any function, an advantage with this is you can pass arguments to the function from this small script which is often useful for testing different settings quickly.
 
 The other issue with this is the script has to be in pythons module search path.
 While this is not best practice - for testing you can extend the search path, this example adds the current blend files directory to the search path, then loads the script as a module.
@@ -113,7 +121,7 @@ You might want to run this with a blend file so the script has some data to oper
 
 .. note::
 
-   Depending on you're setup you might have to enter the full path to the blender executable.
+   Depending on your setup you might have to enter the full path to the blender executable.
 
 
 Once the script is running properly in background mode, you'll want to check the output of the script, this depends completely on the task at hand however here are some suggestions.
@@ -131,7 +139,7 @@ This can take a little time to setup, but it can be well worth the effort to red
 Use External Tools
 ==================
 
-When there are no readily available python modules to perform specific tasks its worth keeping in mind you may be able to have python execute an external command on you're data and read the result back in.
+When there are no readily available python modules to perform specific tasks it's worth keeping in mind you may be able to have python execute an external command on you're data and read the result back in.
 
 Using external programs adds an extra dependency and may limit who can use the script but to quickly setup you're own custom pipeline or writing one-off scripts this can be handy.
 
@@ -184,7 +192,7 @@ The next example is an equivalent single line version of the script above which 
    __import__('code').interact(local={k: v for ns in (globals(), locals()) for k, v in ns.items()})
 
 
-`code.interact` can be added at any line in the script and will pause the script an launch an interactive interpreter in the terminal, when you're done you can quit the interpreter and the script will continue execution.
+``code.interact`` can be added at any line in the script and will pause the script an launch an interactive interpreter in the terminal, when you're done you can quit the interpreter and the script will continue execution.
 
 
 Admittedly this highlights the lack of any python debugging support built into blender, but its still handy to know.
@@ -201,7 +209,7 @@ Advanced
 Blender as a module
 -------------------
 
-From a python perspective its nicer to have everything as an extension which lets the python script combine many components.
+From a python perspective it's nicer to have everything as an extension which lets the python script combine many components.
 
 Advantages include:
 
@@ -220,9 +228,8 @@ For instructions on building see `Building blender as a python module <http://wi
 Python Safety (Build Option)
 ----------------------------
 
-Since its possible to accessed data which has been removed (see Gotcha's), this can be a hard to track down the cause of crashes.
+Since it's possible to access data which has been removed (see Gotcha's), this can be hard to track down the cause of crashes.
 
 To raise python exceptions on accessing freed data (rather then crashing), enable the CMake build option WITH_PYTHON_SAFETY.
 
 This enables data tracking which makes data access about 2x slower which is why the option is not enabled in release builds.
-

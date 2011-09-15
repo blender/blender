@@ -61,15 +61,15 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
+#include "GL/glew.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 
 #include "CCGSubSurf.h"
+
+extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 
 static int ccgDM_getVertMapIndex(CCGSubSurf *ss, CCGVert *v);
 static int ccgDM_getEdgeMapIndex(CCGSubSurf *ss, CCGEdge *e);

@@ -52,6 +52,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -346,7 +347,7 @@ int ED_operator_posemode(bContext *C)
 
 	if (obact && !(obact->mode & OB_MODE_EDIT)) {
 		Object *obpose;
-		if((obpose= ED_object_pose_armature(obact))) {
+		if((obpose= object_pose_armature_get(obact))) {
 			if((obact == obpose) || (obact->mode & OB_MODE_WEIGHT_PAINT)) {
 				return 1;
 			}
@@ -3498,8 +3499,8 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", UPARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", DOWNARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 0);
 	
 	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", UPARROWKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "next", 0);

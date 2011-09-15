@@ -65,6 +65,7 @@ class PHY_IGraphicController;
 class PHY_IPhysicsEnvironment;
 class BL_ActionManager;
 struct Object;
+class KX_ObstacleSimulation;
 struct bAction;
 
 #ifdef WITH_PYTHON
@@ -114,6 +115,9 @@ protected:
 	SG_Node*							m_pSGNode;
 
 	MT_CmMatrix4x4						m_OpenGL_4x4Matrix;
+
+	KX_ObstacleSimulation*				m_pObstacleSimulation;
+
 
 	// The action manager is used to play/stop/update actions
 	BL_ActionManager*				m_actionManager;
@@ -863,6 +867,16 @@ public:
 			m_pPhysicsController1->RestoreDynamics();
 		}
 		m_bSuspendDynamics = false;
+	}
+
+	void RegisterObstacle(KX_ObstacleSimulation* obstacleSimulation)
+	{
+		m_pObstacleSimulation = obstacleSimulation;
+	}
+
+	void UnregisterObstacle()
+	{
+		m_pObstacleSimulation = NULL;
 	}
 	
 	KX_ClientObjectInfo* getClientInfo() { return m_pClient_info; }

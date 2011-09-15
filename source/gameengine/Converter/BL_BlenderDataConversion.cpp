@@ -180,6 +180,9 @@ extern Material defmaterial;	/* material.c */
 #include "BL_ArmatureObject.h"
 #include "BL_DeformableGameObject.h"
 
+#include "KX_NavMeshObject.h"
+#include "KX_ObstacleSimulation.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1741,7 +1744,14 @@ static KX_GameObject *gameobject_from_blenderobject(
 		
 		// needed for python scripting
 		kxscene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
-	
+
+		if (ob->gameflag & OB_NAVMESH)
+		{
+			gameobj = new KX_NavMeshObject(kxscene,KX_Scene::m_callbacks);
+			gameobj->AddMesh(meshobj);
+			break;
+		}
+
 		gameobj = new BL_DeformableGameObject(ob,kxscene,KX_Scene::m_callbacks);
 	
 		// set transformation
@@ -2709,6 +2719,46 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	KX_WorldInfo* worldinfo = new BlenderWorldInfo(blenderscene, blenderscene->world);
 	converter->RegisterWorldInfo(worldinfo);
 	kxscene->SetWorldInfo(worldinfo);
+
+	//create object representations for obstacle simulation
+	KX_ObstacleSimulation* obssimulation = kxscene->GetObstacleSimulation();
+	if (obssimulation)
+	{
+		for ( i=0;i<objectlist->GetCount();i++)
+		{
+			KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
+			struct Object* blenderobject = gameobj->GetBlenderObject();
+			if (blenderobject->gameflag & OB_HASOBSTACLE)
+			{
+				obssimulation->AddObstacleForObj(gameobj);
+			}
+		}
+	}
+
+	//process navigation mesh objects
+	for ( i=0; i<objectlist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = static_cast<KX_GameObject*>(objectlist->GetValue(i));
+		struct Object* blenderobject = gameobj->GetBlenderObject();
+		if (blenderobject->type==OB_MESH && (blenderobject->gameflag & OB_NAVMESH))
+		{
+			KX_NavMeshObject* navmesh = static_cast<KX_NavMeshObject*>(gameobj);
+			navmesh->SetVisible(0, true);
+			navmesh->BuildNavMesh();
+			if (obssimulation)
+				obssimulation->AddObstaclesForNavMesh(navmesh);
+		}
+	}
+	for ( i=0; i<inactivelist->GetCount();i++)
+	{
+		KX_GameObject* gameobj = static_cast<KX_GameObject*>(inactivelist->GetValue(i));
+		struct Object* blenderobject = gameobj->GetBlenderObject();
+		if (blenderobject->type==OB_MESH && (blenderobject->gameflag & OB_NAVMESH))
+		{
+			KX_NavMeshObject* navmesh = static_cast<KX_NavMeshObject*>(gameobj);
+			navmesh->SetVisible(0, true);
+		}
+	}
 
 #define CONVERT_LOGIC
 #ifdef CONVERT_LOGIC

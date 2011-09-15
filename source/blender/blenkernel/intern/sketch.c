@@ -245,13 +245,13 @@ void sk_straightenStroke(SK_Stroke *stk, int start, int end, float p_start[3], f
 	prev = stk->points + start;
 	next = stk->points + end;
 
-	VECCOPY(pt1.p, p_start);
-	VECCOPY(pt1.no, prev->no);
+	copy_v3_v3(pt1.p, p_start);
+	copy_v3_v3(pt1.no, prev->no);
 	pt1.mode = prev->mode;
 	pt1.type = prev->type;
 
-	VECCOPY(pt2.p, p_end);
-	VECCOPY(pt2.no, next->no);
+	copy_v3_v3(pt2.p, p_end);
+	copy_v3_v3(pt2.no, next->no);
 	pt2.mode = next->mode;
 	pt2.type = next->type;
 
@@ -323,7 +323,7 @@ void sk_flattenStroke(SK_Stroke *stk, int start, int end)
 
 	total = end - start + 1;
 
-	VECCOPY(normal, stk->points[start].no);
+	copy_v3_v3(normal, stk->points[start].no);
 
 	sub_v3_v3v3(distance, stk->points[end].p, stk->points[start].p);
 	project_v3_v3v3(normal, distance, normal);

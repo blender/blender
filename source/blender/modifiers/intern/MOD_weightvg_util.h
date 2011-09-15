@@ -44,7 +44,7 @@ struct Tex;
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
- *     but couldn't figure a way to do this…
+ *     but couldn't figure a way to do this...
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -53,7 +53,7 @@ struct Tex;
  * Util functions.                    *
  **************************************/
 
-/* We cannot divide by zero (what a surprise…).
+/* We cannot divide by zero (what a surprise...).
  * So if -MOD_WEIGHTVGROUP_DIVMODE_ZEROFLOOR < weightf < MOD_WEIGHTVGROUP_DIVMODE_ZEROFLOOR,
  * we clamp weightf to this value (or its negative version).
  * Also used to avoid null power factor.
@@ -83,7 +83,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
  * If indices is not NULL, it must be a table of same length as weights, mapping to the real
  * vertex index (in case the weight table does not cover the whole vertices...).
  */
-void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num,
+void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws, int num,
                         const int *indices, const float *weights, int do_add,
                         float add_thresh, int do_rem, float rem_thresh);
 

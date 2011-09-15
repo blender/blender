@@ -79,6 +79,28 @@ MINLINE void copy_v4_v4(float r[4], const float a[4])
 	r[3]= a[3];
 }
 
+/* short */
+MINLINE void copy_v2_v2_short(short r[2], const short a[2])
+{
+	r[0]= a[0];
+	r[1]= a[1];
+}
+
+MINLINE void copy_v3_v3_short(short r[3], const short a[3])
+{
+	r[0]= a[0];
+	r[1]= a[1];
+	r[2]= a[2];
+}
+
+MINLINE void copy_v4_v4_short(short r[4], const short a[4])
+{
+	r[0]= a[0];
+	r[1]= a[1];
+	r[2]= a[2];
+	r[3]= a[3];
+}
+
 MINLINE void swap_v2_v2(float a[2], float b[2])
 {
 	SWAP(float, a[0], b[0]);

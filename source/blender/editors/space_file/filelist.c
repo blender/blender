@@ -1158,8 +1158,8 @@ void filelist_from_main(struct FileList *filelist)
 		
 		/* XXXXX TODO: if databrowse F4 or append/link filelist->hide_parent has to be set */
 		if (!filelist->hide_parent) filelist->numfiles+= 1;
-		filelist->filelist= (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
-		
+		filelist->filelist= filelist->numfiles > 0 ? (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry)) : NULL;
+
 		files = filelist->filelist;
 		
 		if (!filelist->hide_parent) {

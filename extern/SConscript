@@ -5,6 +5,9 @@ Import('env')
 SConscript(['glew/SConscript'])
 SConscript(['colamd/SConscript'])
 
+if env['WITH_BF_GAMEENGINE']:
+    SConscript(['recastnavigation/SConscript'])
+
 if env['WITH_BF_ELTOPO']:
     SConscript(['eltopo/SConscript'])
 

@@ -199,7 +199,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			Mesh *me= ob->data;
 			mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 
-			sculpt_free_deformMats(ss);
+			free_sculptsession_deformMats(ss);
 			tag_update|= 1;
 		}
 
@@ -300,7 +300,7 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node)
 
 		BLI_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL) {
 			copy_v3_v3(unode->co[vd.i], vd.co);
-			if(vd.no) VECCOPY(unode->no[vd.i], vd.no)
+			if(vd.no) copy_v3_v3_short(unode->no[vd.i], vd.no);
 			else normal_float_to_short_v3(unode->no[vd.i], vd.fno);
 			if(vd.vert_indices) unode->index[vd.i]= vd.vert_indices[vd.i];
 

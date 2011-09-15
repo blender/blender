@@ -942,7 +942,7 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 		sprintf(buf, "sequence_editor.sequences_all[\"%s\"]", seq->name+2);
 	}
 	else
-		strcpy(buf, ""); /* empty string */
+		buf[0]= '\0'; /* empty string */
 	BLI_dynstr_append(path, buf);
 	
 	/* need to add dot before property if there was anything precceding this */

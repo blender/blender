@@ -690,7 +690,7 @@ static void rna_MeshTextureFaceLayer_name_set(PointerRNA *ptr, const char *value
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomData *fdata= rna_mesh_fdata(me);
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
-	BLI_strncpy(cdl->name, value, sizeof(cdl->name));
+	BLI_strncpy_utf8(cdl->name, value, sizeof(cdl->name));
 	CustomData_set_layer_unique_name(fdata, cdl - fdata->layers);
 }
 
@@ -802,7 +802,7 @@ static void rna_MeshColorLayer_name_set(PointerRNA *ptr, const char *value)
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomData *fdata= rna_mesh_fdata(me);
 	CustomDataLayer *cdl= (CustomDataLayer*)ptr->data;
-	BLI_strncpy(cdl->name, value, sizeof(cdl->name));
+	BLI_strncpy_utf8(cdl->name, value, sizeof(cdl->name));
 	CustomData_set_layer_unique_name(fdata, cdl - fdata->layers);
 }
 

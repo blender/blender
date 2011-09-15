@@ -134,16 +134,6 @@ static void space_transform_invert_normal(const SpaceTransform *data, float *no)
 }
 
 /*
- * Returns the squared distance between two given points
- */
-static float squared_dist(const float *a, const float *b)
-{
-	float tmp[3];
-	VECSUB(tmp, a, b);
-	return INPR(tmp, tmp);
-}
-
-/*
  * Shrinkwrap to the nearest vertex
  *
  * it builds a kdtree of vertexs we can attach to and then
@@ -195,7 +185,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		//so we can initiate the "nearest.dist" with the expected value to that last hit.
 		//This will lead in prunning of the search tree.
 		if(nearest.index != -1)
-			nearest.dist = squared_dist(tmp_co, nearest.co);
+			nearest.dist = len_squared_v3v3(tmp_co, nearest.co);
 		else
 			nearest.dist = FLT_MAX;
 
@@ -328,7 +318,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		normalize_v3(proj_axis);
 
 		//Invalid projection direction
-		if(INPR(proj_axis, proj_axis) < FLT_EPSILON)
+		if(dot_v3v3(proj_axis, proj_axis) < FLT_EPSILON)
 			return; 
 	}
 
@@ -469,7 +459,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 		//so we can initiate the "nearest.dist" with the expected value to that last hit.
 		//This will lead in prunning of the search tree.
 		if(nearest.index != -1)
-			nearest.dist = squared_dist(tmp_co, nearest.co);
+			nearest.dist = len_squared_v3v3(tmp_co, nearest.co);
 		else
 			nearest.dist = FLT_MAX;
 

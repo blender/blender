@@ -45,8 +45,6 @@ struct Strip;
 struct StripElem;
 struct bSound;
 
-#define MAXSEQ          32
-
 #define BUILD_SEQAR_COUNT_NOTHING  0
 #define BUILD_SEQAR_COUNT_CURRENT  1
 #define BUILD_SEQAR_COUNT_CHILDREN 2

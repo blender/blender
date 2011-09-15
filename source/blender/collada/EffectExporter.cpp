@@ -37,6 +37,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_customdata.h"
 
@@ -81,6 +82,7 @@ bool EffectsExporter::hasEffects(Scene *sce)
 void EffectsExporter::exportEffects(Scene *sce)
 {
 	if(hasEffects(sce)) {
+		this->scene = sce;
 		openLibrary();
 		MaterialFunctor mf;
 		mf.forEachMaterialInScene<EffectsExporter>(sce, *this, this->export_settings->selected);
@@ -175,7 +177,12 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	ep.setDiffuse(cot, false , "diffuse");
 
 	// ambient
-	cot = getcol(ma->ambr, ma->ambg, ma->ambb, 1.0f);
+	/* ma->ambX is calculated only on render, so lets do it here manually and not rely on ma->ambX. */
+	if(this->scene->world)
+		cot = getcol(this->scene->world->ambr*ma->amb, this->scene->world->ambg*ma->amb, this->scene->world->ambb*ma->amb, 1.0f);
+	else
+		cot = getcol(ma->amb, ma->amb, ma->amb, 1.0f);
+
 	ep.setAmbient(cot, false , "ambient");
 
 	// reflective, reflectivity

@@ -522,11 +522,14 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(f, "	%s(ptr, value);\n", manualfunc);
 			}
 			else {
+				const PropertySubType subtype= prop->subtype;
+				const char *string_copy_func= (subtype==PROP_FILEPATH || subtype==PROP_DIRPATH || subtype==PROP_FILENAME) ? "BLI_strncpy" : "BLI_strncpy_utf8";
+
 				rna_print_data_get(f, dp);
 				if(sprop->maxlength)
-					fprintf(f, "	BLI_strncpy(value, data->%s, %d);\n", dp->dnaname, sprop->maxlength);
+					fprintf(f, "	%s(value, data->%s, %d);\n", string_copy_func, dp->dnaname, sprop->maxlength);
 				else
-					fprintf(f, "	BLI_strncpy(value, data->%s, sizeof(data->%s));\n", dp->dnaname, dp->dnaname);
+					fprintf(f, "	%s(value, data->%s, sizeof(data->%s));\n", string_copy_func, dp->dnaname, dp->dnaname);
 			}
 			fprintf(f, "}\n\n");
 			break;
@@ -734,11 +737,14 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				fprintf(f, "	%s(ptr, value);\n", manualfunc);
 			}
 			else {
+				const PropertySubType subtype= prop->subtype;
+				const char *string_copy_func= (subtype==PROP_FILEPATH || subtype==PROP_DIRPATH || subtype==PROP_FILENAME) ? "BLI_strncpy" : "BLI_strncpy_utf8";
+
 				rna_print_data_get(f, dp);
 				if(sprop->maxlength)
-					fprintf(f, "	BLI_strncpy(data->%s, value, %d);\n", dp->dnaname, sprop->maxlength);
+					fprintf(f, "	%s(data->%s, value, %d);\n", string_copy_func, dp->dnaname, sprop->maxlength);
 				else
-					fprintf(f, "	BLI_strncpy(data->%s, value, sizeof(data->%s));\n", dp->dnaname, dp->dnaname);
+					fprintf(f, "	%s(data->%s, value, sizeof(data->%s));\n", string_copy_func, dp->dnaname, dp->dnaname);
 			}
 			fprintf(f, "}\n\n");
 			break;

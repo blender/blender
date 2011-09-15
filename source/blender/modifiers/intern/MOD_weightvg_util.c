@@ -135,7 +135,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 		MappingInfoModifierData t_map;
 		float (*v_co)[3];
 
-		/* Use new generic get_texture_coords, but do not modify our DNA struct for it…
+		/* Use new generic get_texture_coords, but do not modify our DNA struct for it...
 		 * XXX Why use a ModifierData stuff here ? Why not a simple, generic struct for parameters ?
 		 *     What e.g. if a modifier wants to use several textures ?
 		 *     Why use only v_co, and not MVert (or both) ?
@@ -212,7 +212,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 		/* For each weight (vertex), make the mix between org and new weights. */
 		for (i = 0; i < num; i++) {
 			int idx = indices ? indices[i] : i;
-			const float f= defvert_find_weight(&dvert[idx], ref_didx) * fact;
+			const float f = defvert_find_weight(&dvert[idx], ref_didx) * fact;
 			org_w[i] = (new_w[i] * f) + (org_w[i] * (1.0f-f));
 			/* If that vertex is not in ref vgroup, assume null factor, and hence do nothing! */
 		}
@@ -220,87 +220,107 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 	else {
 		/* Default "influence" behavior. */
 		/* For each weight (vertex), make the mix between org and new weights. */
-		const float ifact= 1.0f - fact;
+		const float ifact = 1.0f - fact;
 		for (i = 0; i < num; i++) {
 			org_w[i] = (new_w[i] * fact) + (org_w[i] * ifact);
 		}
 	}
 }
 
+/* Adds the given vertex to the specified vertex group, with given weight. */
+void defvert_add_to_group(MDeformVert *dv, int defgrp_idx, const float weight) {
+	/* TODO, move into deform.c as a generic function. This assumes the vertex
+	 * groups have already been checked, so this has to remain low level. */
+	MDeformWeight *newdw;
+
+	newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), "defvert_add_to group, new deformWeight");
+	if(dv->dw) {
+		memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
+		MEM_freeN(dv->dw);
+	}
+	dv->dw = newdw;
+	dv->dw[dv->totweight].weight = weight;
+	dv->dw[dv->totweight].def_nr = defgrp_idx;
+	dv->totweight++;
+}
+
+/* Removes the given vertex from the vertex group, specified either by its defgrp_idx,
+ * or directly by its MDeformWeight pointer, if dw is not NULL.
+ * WARNING: This function frees the given MDeformWeight, do not use it afterward! */
+void defvert_remove_from_group(MDeformVert *dv, int defgrp_idx, MDeformWeight *dw) {
+	/* TODO, move this into deform.c as a generic function. */
+	MDeformWeight *newdw;
+	int i;
+
+	/* Get index of removed MDeformWeight. */
+	if(dw == NULL) {
+		dw = dv->dw;
+		for (i = dv->totweight; i > 0; i--, dw++) {
+			if (dw->def_nr == defgrp_idx)
+				break;
+		}
+		i--;
+	}
+	else {
+		i = dw - dv->dw;
+		/* Security check! */
+		if(i < 0 || i >= dv->totweight)
+			return;
+	}
+
+	dv->totweight--;
+	/* If there are still other deform weights attached to this vert then remove
+	 * this deform weight, and reshuffle the others.
+	 */
+	if(dv->totweight) {
+		newdw = MEM_mallocN(sizeof(MDeformWeight)*(dv->totweight), "defvert_remove_from_group, new deformWeight");
+		if(dv->dw){
+			memcpy(newdw, dv->dw, sizeof(MDeformWeight)*i);
+			memcpy(newdw+i, dv->dw+i+1, sizeof(MDeformWeight)*(dv->totweight-i));
+			MEM_freeN(dv->dw);
+		}
+		dv->dw = newdw;
+	}
+	/* If there are no other deform weights left then just remove this one. */
+	else {
+		MEM_freeN(dv->dw);
+		dv->dw = NULL;
+	}
+}
+
+
 /* Applies weights to given vgroup (defgroup), and optionnaly add/remove vertices from the group.
- * If indices is not NULL, it must be a table of same length as weights, mapping to the real
- * vertex index (in case the weight table does not cover the whole vertices...).
+ * If dws is not NULL, it must be an array of MDeformWeight pointers of same length as weights (and
+ * defgrp_idx can then have any value).
+ * If indices is not NULL, it must be an array of same length as weights, mapping to the real
+ * vertex index (in case the weight array does not cover the whole vertices...).
  */
-void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, int num,
+void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws, int num,
                         const int *indices, const float *weights, int do_add,
                         float add_thresh, int do_rem, float rem_thresh)
 {
 	int i;
 
-	for (i = 0; i < num; i++) {
-		int j;
-		int add2vg = do_add;
+	for(i = 0; i < num; i++) {
 		float w = weights[i];
 		MDeformVert *dv = &dvert[indices ? indices[i] : i];
-		MDeformWeight *newdw;
+		MDeformWeight *dw = dws ? dws[i] : defvert_find_index(dv, defgrp_idx);
 
 		/* Never allow weights out of [0.0, 1.0] range. */
 		CLAMP(w, 0.0f, 1.0f);
 
-		/* Let's first check to see if this vert is already in the weight group – if so
-		 * let's update it, or remove it if needed.
-		 */
-		for (j = 0; j < dv->totweight; j++) {
-			/* If this weight corresponds to the deform group, update the value or,
-			 * if lower than rem_threshold, remove the vertex from the vgroup.
-			 */
-			if (dv->dw[j].def_nr == defgrp_idx) {
-				/* Remove the vertex from this vgroup if needed. */
-				if (do_rem && w < rem_thresh) {
-					/* TODO, move this into deform.c to make into a generic function */
-
-					dv->totweight--;
-					/* If there are still other deform weights attached to this vert then remove
-					 * this deform weight, and reshuffle the others.
-					 */
-					if(dv->totweight) {
-						newdw = MEM_mallocN(sizeof(MDeformWeight)*(dv->totweight), "deformWeight");
-						if(dv->dw){
-							memcpy(newdw, dv->dw, sizeof(MDeformWeight)*j);
-							memcpy(newdw+j, dv->dw+j+1, sizeof(MDeformWeight)*(dv->totweight-j));
-							MEM_freeN(dv->dw);
-						}
-						dv->dw = newdw;
-					}
-					/* If there are no other deform weights left then just remove this one. */
-					else {
-						MEM_freeN(dv->dw);
-						dv->dw = NULL;
-					}
-				}
-				/* Else, just set the new computed weight. */
-				else {
-					dv->dw[j].weight = w;
-				}
-				add2vg = FALSE;
-				break;
+		/* If the vertex is in this vgroup, remove it if needed, or just update it. */
+		if(dw != NULL) {
+			if(do_rem && w < rem_thresh) {
+				defvert_remove_from_group(dv, defgrp_idx, dw);
+			}
+			else {
+				dw->weight = w;
 			}
 		}
-
-		/* If the vert wasn't in the deform group, add it if needed!
-		 */
-		if ((add2vg == TRUE) && w > add_thresh) {
-			/* TODO, mvoe into deform.c and make into a generic function, this assumes the vertex
-			 * groups have already been checked, so this has to remain low level */
-			newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), "WeightVGEdit Modifier, deformWeight");
-			if(dv->dw) {
-				memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
-				MEM_freeN(dv->dw);
-			}
-			dv->dw = newdw;
-			dv->dw[dv->totweight].weight = w;
-			dv->dw[dv->totweight].def_nr = defgrp_idx;
-			dv->totweight++;
+		/* Else, add it if needed! */
+		else if(do_add && w > add_thresh) {
+			defvert_add_to_group(dv, defgrp_idx, w);
 		}
 	}
 }

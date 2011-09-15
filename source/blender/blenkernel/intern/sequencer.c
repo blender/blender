@@ -1260,7 +1260,7 @@ static struct ImBuf * seq_proxy_fetch(SeqRenderData context, Sequence * seq, int
 	size_flags = seq->strip->proxy->build_size_flags;
 
 	/* only use proxies, if they are enabled (even if present!) */
-	if (psize != IMB_PROXY_NONE && ((size_flags & psize) != psize)) {
+	if (psize == IMB_PROXY_NONE || ((size_flags & psize) != psize)) {
 		return NULL;
 	}
 

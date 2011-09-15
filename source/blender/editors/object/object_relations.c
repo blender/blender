@@ -140,7 +140,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		BKE_mesh_end_editmesh(me, em);
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
-		ListBase *editnurb= curve_get_editcurve(obedit);
+		ListBase *editnurb= object_editcurve_get(obedit);
 		
 		cu= obedit->data;
 

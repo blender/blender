@@ -28,7 +28,7 @@
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
- *     but couldn't figure a way to do this…
+ *     but couldn't figure a way to do this...
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -187,6 +187,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	Mesh *ob_m = NULL;
 #endif
 	MDeformVert *dvert = NULL;
+	MDeformWeight **dw = NULL;
 	float *org_w; /* Array original weights. */
 	float *new_w; /* Array new weights. */
 	int numVerts;
@@ -211,13 +212,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	if (defgrp_idx < 0)
 		return dm;
 
-	/* XXX All this to avoid copying dm when not needed… However, it nearly doubles compute
-	 *     time! See scene 5 of the WeighVG test file…
+	/* XXX All this to avoid copying dm when not needed... However, it nearly doubles compute
+	 *     time! See scene 5 of the WeighVG test file...
 	 */
 #if 0
 	/* Get actual dverts (ie vertex group data). */
 	dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	/* If no dverts, return unmodified data… */
+	/* If no dverts, return unmodified data... */
 	if (dvert == NULL)
 		return dm;
 
@@ -231,7 +232,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Create a copy of our dmesh, only if our affected cdata layer is the same as org mesh. */
 	if (dvert == CustomData_get_layer(&ob_m->vdata, CD_MDEFORMVERT)) {
 		/* XXX Seems to create problems with weightpaint mode???
-		 *     I'm missing something here, I guess…
+		 *     I'm missing something here, I guess...
 		 */
 //		DM_set_only_copy(dm, CD_MASK_MDEFORMVERT); /* Only copy defgroup layer. */
 		ret = CDDM_copy(dm);
@@ -257,13 +258,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* Get org weights, assuming 0.0 for vertices not in given vgroup. */
 	org_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
-	new_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
+	new_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, new_w");
+	dw = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGEdit Modifier, dw");
 	for (i = 0; i < numVerts; i++) {
-		MDeformWeight *dw= defvert_find_index(&dvert[i], defgrp_idx);
-		org_w[i] = new_w[i] = wmd->default_weight;
-
-		if(dw) {
-			org_w[i] = new_w[i] = dw->weight;
+		dw[i] = defvert_find_index(&dvert[i], defgrp_idx);
+		if(dw[i]) {
+			org_w[i] = new_w[i] = dw[i]->weight;
+		}
+		else {
+			org_w[i] = new_w[i] = wmd->default_weight;
 		}
 	}
 
@@ -278,12 +281,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Update/add/remove from vgroup. */
-	weightvg_update_vg(dvert, defgrp_idx, numVerts, NULL, org_w, do_add, wmd->add_threshold,
+	weightvg_update_vg(dvert, defgrp_idx, dw, numVerts, NULL, org_w, do_add, wmd->add_threshold,
 	                   do_rem, wmd->rem_threshold);
 
 	/* Freeing stuff. */
 	MEM_freeN(org_w);
 	MEM_freeN(new_w);
+	MEM_freeN(dw);
 
 	/* Return the vgroup-modified mesh. */
 	return ret;

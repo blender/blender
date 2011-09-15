@@ -28,7 +28,7 @@
 
 /*
  * XXX I'd like to make modified weights visible in WeightPaint mode,
- *     but couldn't figure a way to do this…
+ *     but couldn't figure a way to do this...
  *     Maybe this will need changes in mesh_calc_modifiers (DerivedMesh.c)?
  *     Or the WeightPaint mode code itself?
  */
@@ -61,16 +61,6 @@
 
 /* Util macro. */
 #define OUT_OF_MEMORY() ((void)printf("WeightVGProximity: Out of memory.\n"))
-
-/**
- * Returns the squared distance between two given points.
- */
-static float squared_dist(const float *a, const float *b)
-{
-	float tmp[3];
-	VECSUB(tmp, a, b);
-	return INPR(tmp, tmp);
-}
 
 /**
  * Find nearest vertex and/or edge and/or face, for each vertex (adapted from shrinkwrap.c).
@@ -126,7 +116,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 		float tmp_co[3];
 
 		/* Convert the vertex to tree coordinates. */
-		VECCOPY(tmp_co, v_cos[i]);
+		copy_v3_v3(tmp_co, v_cos[i]);
 		space_transform_apply(loc2trgt, tmp_co);
 
 		/* Use local proximity heuristics (to reduce the nearest search).
@@ -137,19 +127,19 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 		 * This will lead in prunning of the search tree.
 		 */
 		if (dist_v) {
-			nearest_v.dist = nearest_v.index != -1 ? squared_dist(tmp_co, nearest_v.co) : FLT_MAX;
+			nearest_v.dist = nearest_v.index != -1 ? len_squared_v3v3(tmp_co, nearest_v.co) : FLT_MAX;
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(treeData_v.tree, tmp_co, &nearest_v, treeData_v.nearest_callback, &treeData_v);
 			dist_v[i] = sqrtf(nearest_v.dist);
 		}
 		if (dist_e) {
-			nearest_e.dist = nearest_e.index != -1 ? squared_dist(tmp_co, nearest_e.co) : FLT_MAX;
+			nearest_e.dist = nearest_e.index != -1 ? len_squared_v3v3(tmp_co, nearest_e.co) : FLT_MAX;
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(treeData_e.tree, tmp_co, &nearest_e, treeData_e.nearest_callback, &treeData_e);
 			dist_e[i] = sqrtf(nearest_e.dist);
 		}
 		if (dist_f) {
-			nearest_f.dist = nearest_f.index != -1 ? squared_dist(tmp_co, nearest_f.co) : FLT_MAX;
+			nearest_f.dist = nearest_f.index != -1 ? len_squared_v3v3(tmp_co, nearest_f.co) : FLT_MAX;
 			/* Compute and store result. If invalid (-1 idx), keep FLT_MAX dist. */
 			BLI_bvhtree_find_nearest(treeData_f.tree, tmp_co, &nearest_f, treeData_f.nearest_callback, &treeData_f);
 			dist_f[i] = sqrtf(nearest_f.dist);
@@ -354,6 +344,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	Mesh *ob_m = NULL;
 #endif
 	MDeformVert *dvert = NULL;
+	MDeformWeight **dw, **tdw;
 	int numVerts;
 	float (*v_cos)[3] = NULL; /* The vertices coordinates. */
 	Object *obr = NULL; /* Our target object. */
@@ -363,7 +354,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	float *new_w =NULL;
 	int *tidx, *indices = NULL;
 	int numIdx = 0;
-	int i, j;
+	int i;
 	char rel_ret = 0; /* Boolean, whether we have to release ret dm or not, when not using it! */
 
 	/* Get number of verts. */
@@ -385,13 +376,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	if (defgrp_idx < 0)
 		return dm;
 
-	/* XXX All this to avoid copying dm when not needed… However, it nearly doubles compute
-	 *     time! See scene 5 of the WeighVG test file…
+	/* XXX All this to avoid copying dm when not needed... However, it nearly doubles compute
+	 *     time! See scene 5 of the WeighVG test file...
 	 */
 #if 0
 	/* Get actual dverts (ie vertex group data). */
 	dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	/* If no dverts, return unmodified data… */
+	/* If no dverts, return unmodified data... */
 	if (dvert == NULL)
 		return dm;
 
@@ -405,7 +396,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Create a copy of our dmesh, only if our affected cdata layer is the same as org mesh. */
 	if (dvert == CustomData_get_layer(&ob_m->vdata, CD_MDEFORMVERT)) {
 		/* XXX Seems to create problems with weightpaint mode???
-		 *     I'm missing something here, I guess…
+		 *     I'm missing something here, I guess...
 		 */
 //		DM_set_only_copy(dm, CD_MASK_MDEFORMVERT); /* Only copy defgroup layer. */
 		ret = CDDM_copy(dm);
@@ -433,22 +424,34 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	 */
 	tidx = MEM_mallocN(sizeof(int) * numVerts, "WeightVGProximity Modifier, tidx");
 	tw = MEM_mallocN(sizeof(float) * numVerts, "WeightVGProximity Modifier, tw");
+	tdw = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGProximity Modifier, tdw");
 	for (i = 0; i < numVerts; i++) {
-		for (j = 0; j < dvert[i].totweight; j++) {
-			if(dvert[i].dw[j].def_nr == defgrp_idx) {
-				tidx[numIdx] = i;
-				tw[numIdx++] = dvert[i].dw[j].weight;
-				break;
-			}
+		MDeformWeight *_dw = defvert_find_index(&dvert[i], defgrp_idx);
+		if(_dw) {
+			tidx[numIdx] = i;
+			tw[numIdx] = _dw->weight;
+			tdw[numIdx++] = _dw;
 		}
+	}
+	/* If no vertices found, return org data! */
+	if(numIdx == 0) {
+		MEM_freeN(tidx);
+		MEM_freeN(tw);
+		MEM_freeN(tdw);
+		if (rel_ret)
+			ret->release(ret);
+		return dm;
 	}
 	indices = MEM_mallocN(sizeof(int) * numIdx, "WeightVGProximity Modifier, indices");
 	memcpy(indices, tidx, sizeof(int) * numIdx);
 	org_w = MEM_mallocN(sizeof(float) * numIdx, "WeightVGProximity Modifier, org_w");
 	new_w = MEM_mallocN(sizeof(float) * numIdx, "WeightVGProximity Modifier, new_w");
 	memcpy(org_w, tw, sizeof(float) * numIdx);
+	dw = MEM_mallocN(sizeof(MDeformWeight*) * numIdx, "WeightVGProximity Modifier, dw");
+	memcpy(dw, tdw, sizeof(MDeformWeight*) * numIdx);
 	MEM_freeN(tidx);
 	MEM_freeN(tw);
+	MEM_freeN(tdw);
 
 	/* Get our vertex coordinates. */
 	v_cos = MEM_mallocN(sizeof(float[3]) * numIdx, "WeightVGProximity Modifier, v_cos");
@@ -457,7 +460,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* Compute wanted distances. */
 	if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJECT) {
-		float dist = get_ob2ob_distance(ob, obr);
+		const float dist = get_ob2ob_distance(ob, obr);
 		for(i = 0; i < numIdx; i++)
 			new_w[i] = dist;
 	}
@@ -492,8 +495,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 				                       target_dm, &loc2trgt);
 				for(i = 0; i < numIdx; i++) {
 					new_w[i] = dists_v ? dists_v[i] : FLT_MAX;
-					new_w[i] = dists_e ? minf(dists_e[i], new_w[i]) : new_w[i];
-					new_w[i] = dists_f ? minf(dists_f[i], new_w[i]) : new_w[i];
+					if(dists_e)
+						new_w[i] = minf(dists_e[i], new_w[i]);
+					if(dists_f)
+						new_w[i] = minf(dists_f[i], new_w[i]);
 				}
 				if(dists_v) MEM_freeN(dists_v);
 				if(dists_e) MEM_freeN(dists_e);
@@ -518,11 +523,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Update vgroup. Note we never add nor remove vertices from vgroup here. */
-	weightvg_update_vg(dvert, defgrp_idx, numIdx, indices, org_w, 0, 0.0f, 0, 0.0f);
+	weightvg_update_vg(dvert, defgrp_idx, dw, numIdx, indices, org_w, FALSE, 0.0f, FALSE, 0.0f);
 
 	/* Freeing stuff. */
 	MEM_freeN(org_w);
 	MEM_freeN(new_w);
+	MEM_freeN(dw);
 	MEM_freeN(indices);
 	MEM_freeN(v_cos);
 
