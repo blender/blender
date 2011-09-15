@@ -93,6 +93,7 @@ static const char *locales[] = {
 	"bulgarian", "bg_BG",
 	"greek", "el_GR",
 	"korean" "ko_KR",
+	"nepali" "ne_NP",
 };
 
 void BLF_lang_init(void)
