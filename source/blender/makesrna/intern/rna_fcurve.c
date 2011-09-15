@@ -215,7 +215,7 @@ static void rna_DriverTarget_RnaPath_get(PointerRNA *ptr, char *value)
 	if (dtar->rna_path)
 		strcpy(value, dtar->rna_path);
 	else
-		strcpy(value, "");
+		value[0]= '\0';
 }
 
 static int rna_DriverTarget_RnaPath_length(PointerRNA *ptr)
@@ -309,7 +309,7 @@ static void rna_FCurve_RnaPath_get(PointerRNA *ptr, char *value)
 	if (fcu->rna_path)
 		strcpy(value, fcu->rna_path);
 	else
-		strcpy(value, "");
+		value[0]= '\0';
 }
 
 static int rna_FCurve_RnaPath_length(PointerRNA *ptr)

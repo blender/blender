@@ -418,7 +418,7 @@ void unlink_object(Object *ob)
 						for (ct= targets.first; ct; ct= ct->next) {
 							if (ct->tar == ob) {
 								ct->tar = NULL;
-								strcpy(ct->subtarget, "");
+								ct->subtarget[0]= '\0';
 								obt->recalc |= OB_RECALC_DATA;
 							}
 						}
@@ -448,7 +448,7 @@ void unlink_object(Object *ob)
 				for (ct= targets.first; ct; ct= ct->next) {
 					if (ct->tar == ob) {
 						ct->tar = NULL;
-						strcpy(ct->subtarget, "");
+						ct->subtarget[0]= '\0';
 						obt->recalc |= OB_RECALC_DATA;
 					}
 				}

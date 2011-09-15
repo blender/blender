@@ -466,7 +466,7 @@ void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob= (Object *)ptr->id.data;
 	bDeformGroup *dg= (bDeformGroup *)ptr->data;
-	BLI_strncpy(dg->name, value, sizeof(dg->name));
+	BLI_strncpy_utf8(dg->name, value, sizeof(dg->name));
 	defgroup_unique_name(dg, ob);
 }
 
@@ -512,7 +512,7 @@ void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
 	dg= BLI_findlink(&ob->defbase, index-1);
 
 	if(dg) BLI_strncpy(value, dg->name, sizeof(dg->name));
-	else BLI_strncpy(value, "", sizeof(dg->name));
+	else value[0]= '\0';
 }
 
 int rna_object_vgroup_name_index_length(PointerRNA *ptr, int index)
@@ -535,7 +535,7 @@ void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result
 	Object *ob= (Object*)ptr->id.data;
 	bDeformGroup *dg= defgroup_find_name(ob, value);
 	if(dg) {
-		BLI_strncpy(result, value, maxlen);
+		BLI_strncpy(result, value, maxlen); /* no need for BLI_strncpy_utf8, since this matches an existing group */
 		return;
 	}
 
@@ -562,7 +562,7 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *resul
 		}
 	}
 
-	BLI_strncpy(result, "", maxlen);
+	result[0]= '\0';
 }
 
 void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
@@ -585,7 +585,7 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *res
 		}
 	}
 
-	BLI_strncpy(result, "", maxlen);
+	result[0]= '\0';
 }
 
 static int rna_Object_active_material_index_get(PointerRNA *ptr)
@@ -836,7 +836,7 @@ static void rna_MaterialSlot_name_get(PointerRNA *ptr, char *str)
 	if(ma)
 		strcpy(str, ma->id.name+2);
 	else
-		strcpy(str, "");
+		str[0]= '\0';
 }
 
 static void rna_MaterialSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)

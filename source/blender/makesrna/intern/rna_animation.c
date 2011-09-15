@@ -252,7 +252,7 @@ static void rna_ksPath_RnaPath_get(PointerRNA *ptr, char *value)
 	if (ksp->rna_path)
 		strcpy(value, ksp->rna_path);
 	else
-		strcpy(value, "");
+		value[0]= '\0';
 }
 
 static int rna_ksPath_RnaPath_length(PointerRNA *ptr)
