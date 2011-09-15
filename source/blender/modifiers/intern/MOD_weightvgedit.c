@@ -259,7 +259,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	org_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
 	new_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
 	for (i = 0; i < numVerts; i++) {
-		MDeformWeight *dw= defvert_find_index(&dvert[i], defgrp_idx);
+		MDeformWeight *dw = defvert_find_index(&dvert[i], defgrp_idx);
 		org_w[i] = new_w[i] = wmd->default_weight;
 
 		if(dw) {
