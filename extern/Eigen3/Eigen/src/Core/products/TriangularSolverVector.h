@@ -60,7 +60,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
         IsLower ? pi<size : pi>0;
         IsLower ? pi+=PanelWidth : pi-=PanelWidth)
     {
-      Index actualPanelWidth = std::min(IsLower ? size - pi : pi, PanelWidth);
+      Index actualPanelWidth = (std::min)(IsLower ? size - pi : pi, PanelWidth);
 
       Index r = IsLower ? pi : size - pi; // remaining size
       if (r > 0)
@@ -114,7 +114,7 @@ struct triangular_solve_vector<LhsScalar, RhsScalar, Index, OnTheLeft, Mode, Con
         IsLower ? pi<size : pi>0;
         IsLower ? pi+=PanelWidth : pi-=PanelWidth)
     {
-      Index actualPanelWidth = std::min(IsLower ? size - pi : pi, PanelWidth);
+      Index actualPanelWidth = (std::min)(IsLower ? size - pi : pi, PanelWidth);
       Index startBlock = IsLower ? pi : pi-actualPanelWidth;
       Index endBlock = IsLower ? pi + actualPanelWidth : 0;
 

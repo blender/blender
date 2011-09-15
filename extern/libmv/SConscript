@@ -45,8 +45,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
             cflags_libmv = Split(env['REL_CFLAGS'])
             ccflags_libmv = Split(env['REL_CCFLAGS'])
             cxxflags_libmv = Split(env['REL_CXXFLAGS'])
-
-    defs.append('EIGEN_DONT_ALIGN_STATICALLY')
 else:
     src += env.Glob("third_party/glog/src/*.cc")
     incs += ' ./third_party/glog/src'

@@ -45,7 +45,7 @@ static void sparse_product_impl2(const Lhs& lhs, const Rhs& rhs, ResultType& res
   // estimate the number of non zero entries
   float ratioLhs = float(lhs.nonZeros())/(float(lhs.rows())*float(lhs.cols()));
   float avgNnzPerRhsColumn = float(rhs.nonZeros())/float(cols);
-  float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
+  float ratioRes = (std::min)(ratioLhs * avgNnzPerRhsColumn, 1.f);
 
 //  int t200 = rows/(log2(200)*1.39);
 //  int t = (rows*100)/139;
@@ -131,7 +131,7 @@ static void sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   // estimate the number of non zero entries
   float ratioLhs = float(lhs.nonZeros())/(float(lhs.rows())*float(lhs.cols()));
   float avgNnzPerRhsColumn = float(rhs.nonZeros())/float(cols);
-  float ratioRes = std::min(ratioLhs * avgNnzPerRhsColumn, 1.f);
+  float ratioRes = (std::min)(ratioLhs * avgNnzPerRhsColumn, 1.f);
 
   // mimics a resizeByInnerOuter:
   if(ResultType::IsRowMajor)
@@ -143,7 +143,7 @@ static void sparse_product_impl(const Lhs& lhs, const Rhs& rhs, ResultType& res)
   for (Index j=0; j<cols; ++j)
   {
     // let's do a more accurate determination of the nnz ratio for the current column j of res
-    //float ratioColRes = std::min(ratioLhs * rhs.innerNonZeros(j), 1.f);
+    //float ratioColRes = (std::min)(ratioLhs * rhs.innerNonZeros(j), 1.f);
     // FIXME find a nice way to get the number of nonzeros of a sub matrix (here an inner vector)
     float ratioColRes = ratioRes;
     tempVector.init(ratioColRes);

@@ -70,7 +70,7 @@ static EIGEN_DONT_INLINE void product_selfadjoint_vector(
       rhs[i] = *it;
   }
 
-  Index bound = std::max(Index(0),size-8) & 0xfffffffe;
+  Index bound = (std::max)(Index(0),size-8) & 0xfffffffe;
   if (FirstTriangular)
     bound = size - bound;
 

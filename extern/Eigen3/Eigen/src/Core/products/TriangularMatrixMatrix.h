@@ -112,7 +112,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     Scalar alpha)
   {
     // strip zeros
-    Index diagSize  = std::min(_rows,_depth);
+    Index diagSize  = (std::min)(_rows,_depth);
     Index rows      = IsLower ? _rows : diagSize;
     Index depth     = IsLower ? diagSize : _depth;
     Index cols      = _cols;
@@ -145,7 +145,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
         IsLower ? k2>0 : k2<depth;
         IsLower ? k2-=kc : k2+=kc)
     {
-      Index actual_kc = std::min(IsLower ? k2 : depth-k2, kc);
+      Index actual_kc = (std::min)(IsLower ? k2 : depth-k2, kc);
       Index actual_k2 = IsLower ? k2-actual_kc : k2;
 
       // align blocks with the end of the triangular part for trapezoidal lhs
@@ -203,10 +203,10 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,true,
       // the part below (lower case) or above (upper case) the diagonal => GEPP
       {
         Index start = IsLower ? k2 : 0;
-        Index end   = IsLower ? rows : std::min(actual_k2,rows);
+        Index end   = IsLower ? rows : (std::min)(actual_k2,rows);
         for(Index i2=start; i2<end; i2+=mc)
         {
-          const Index actual_mc = std::min(i2+mc,end)-i2;
+          const Index actual_mc = (std::min)(i2+mc,end)-i2;
           gemm_pack_lhs<Scalar, Index, Traits::mr,Traits::LhsProgress, LhsStorageOrder,false>()
             (blockA, &lhs(i2, actual_k2), lhsStride, actual_kc, actual_mc);
 
@@ -240,7 +240,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     Scalar alpha)
   {
     // strip zeros
-    Index diagSize  = std::min(_cols,_depth);
+    Index diagSize  = (std::min)(_cols,_depth);
     Index rows      = _rows;
     Index depth     = IsLower ? _depth : diagSize;
     Index cols      = IsLower ? diagSize : _cols;
@@ -275,7 +275,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
         IsLower ? k2<depth  : k2>0;
         IsLower ? k2+=kc   : k2-=kc)
     {
-      Index actual_kc = std::min(IsLower ? depth-k2 : k2, kc);
+      Index actual_kc = (std::min)(IsLower ? depth-k2 : k2, kc);
       Index actual_k2 = IsLower ? k2 : k2-actual_kc;
 
       // align blocks with the end of the triangular part for trapezoidal rhs
@@ -286,7 +286,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
       }
 
       // remaining size
-      Index rs = IsLower ? std::min(cols,actual_k2) : cols - k2;
+      Index rs = IsLower ? (std::min)(cols,actual_k2) : cols - k2;
       // size of the triangular part
       Index ts = (IsLower && actual_k2>=cols) ? 0 : actual_kc;
 
@@ -327,7 +327,7 @@ struct product_triangular_matrix_matrix<Scalar,Index,Mode,false,
 
       for (Index i2=0; i2<rows; i2+=mc)
       {
-        const Index actual_mc = std::min(mc,rows-i2);
+        const Index actual_mc = (std::min)(mc,rows-i2);
         pack_lhs(blockA, &lhs(i2, actual_k2), lhsStride, actual_kc, actual_mc);
 
         // triangular kernel

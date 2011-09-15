@@ -288,8 +288,17 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 		ok= 1;
 	} else if(event==B_MARKER_OFFSET) {
-		cb->track->offset[0]= cb->track_offset[0]/width;
-		cb->track->offset[1]= cb->track_offset[1]/height;
+		float offset[2], delta[2];
+		int i;
+
+		offset[0]= cb->track_offset[0]/width;
+		offset[1]= cb->track_offset[1]/height;
+
+		sub_v2_v2v2(delta, offset, cb->track->offset);
+		copy_v2_v2(cb->track->offset, offset);
+
+		for(i=0; i<cb->track->markersnr; i++)
+			sub_v2_v2(cb->track->markers[i].pos, delta);
 
 		/* to update position of "parented" objects */
 		DAG_id_tag_update(&cb->clip->id, 0);

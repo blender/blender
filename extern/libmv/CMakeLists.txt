@@ -170,8 +170,6 @@ IF(WIN32)
 			string(REPLACE "" "Od" CMAKE_C_FLAGS_RELWITHDEBINFO "")
 		endforeach()
 	ENDIF(MSVC)
-
-	add_definitions(-DEIGEN_DONT_ALIGN_STATICALLY)
 ELSE(WIN32)
 	list(APPEND SRC
 		third_party/glog/src/utilities.cc

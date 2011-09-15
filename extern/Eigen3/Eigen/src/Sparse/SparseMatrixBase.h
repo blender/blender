@@ -223,7 +223,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
       // thanks to shallow copies, we always eval to a tempary
       Derived temp(other.rows(), other.cols());
 
-      temp.reserve(std::max(this->rows(),this->cols())*2);
+      temp.reserve((std::max)(this->rows(),this->cols())*2);
       for (Index j=0; j<outerSize; ++j)
       {
         temp.startVec(j);
@@ -253,7 +253,7 @@ template<typename Derived> class SparseMatrixBase : public EigenBase<Derived>
         // eval without temporary
         derived().resize(other.rows(), other.cols());
         derived().setZero();
-        derived().reserve(std::max(this->rows(),this->cols())*2);
+        derived().reserve((std::max)(this->rows(),this->cols())*2);
         for (Index j=0; j<outerSize; ++j)
         {
           derived().startVec(j);

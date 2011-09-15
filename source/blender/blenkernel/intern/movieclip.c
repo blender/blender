@@ -712,7 +712,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				if(ibuf && ibuf->rect) {
 					ImBuf *tmpibuf;
 
-					tmpibuf= BKE_tracking_acquire_pattern_imbuf(ibuf, track, marker, 1, scopes->track_pos, NULL);
+					tmpibuf= BKE_tracking_acquire_pattern_imbuf(ibuf, track, marker, 1, 1, scopes->track_pos, NULL);
 
 					if(tmpibuf->rect_float)
 						IMB_rect_from_float(tmpibuf);

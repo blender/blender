@@ -533,7 +533,7 @@ template<typename MatrixType>
 MatrixType FullPivLU<MatrixType>::reconstructedMatrix() const
 {
   eigen_assert(m_isInitialized && "LU is not initialized.");
-  const Index smalldim = std::min(m_lu.rows(), m_lu.cols());
+  const Index smalldim = (std::min)(m_lu.rows(), m_lu.cols());
   // LU
   MatrixType res(m_lu.rows(),m_lu.cols());
   // FIXME the .toDenseMatrix() should not be needed...
@@ -695,7 +695,7 @@ struct solve_retval<FullPivLU<_MatrixType>, Rhs>
     const Index rows = dec().rows(), cols = dec().cols(),
               nonzero_pivots = dec().nonzeroPivots();
     eigen_assert(rhs().rows() == rows);
-    const Index smalldim = std::min(rows, cols);
+    const Index smalldim = (std::min)(rows, cols);
 
     if(nonzero_pivots == 0)
     {

@@ -383,6 +383,12 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			RNA_float_set_array(op->ptr, "offset", offset);
 			view_pan_exec(C, op);
 			break;
+		case ESCKEY:
+			view_pan_exit(C, op, 1);
+			return OPERATOR_CANCELLED;
+		case SPACEKEY:
+			view_pan_exit(C, op, 0);
+			return OPERATOR_FINISHED;
 		default:
 			if(event->type==vpd->event_type &&  event->val==KM_RELEASE) {
 				view_pan_exit(C, op, 0);
@@ -397,6 +403,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 static int view_pan_cancel(bContext *C, wmOperator *op)
 {
 	view_pan_exit(C, op, 1);
+
 	return OPERATOR_CANCELLED;
 }
 

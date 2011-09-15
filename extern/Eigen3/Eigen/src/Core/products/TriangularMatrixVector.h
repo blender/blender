@@ -56,7 +56,7 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
 
     for (Index pi=0; pi<cols; pi+=PanelWidth)
     {
-      Index actualPanelWidth = std::min(PanelWidth, cols-pi);
+      Index actualPanelWidth = (std::min)(PanelWidth, cols-pi);
       for (Index k=0; k<actualPanelWidth; ++k)
       {
         Index i = pi + k;
@@ -107,7 +107,7 @@ struct product_triangular_matrix_vector<Index,Mode,LhsScalar,ConjLhs,RhsScalar,C
     
     for (Index pi=0; pi<cols; pi+=PanelWidth)
     {
-      Index actualPanelWidth = std::min(PanelWidth, cols-pi);
+      Index actualPanelWidth = (std::min)(PanelWidth, cols-pi);
       for (Index k=0; k<actualPanelWidth; ++k)
       {
         Index i = pi + k;

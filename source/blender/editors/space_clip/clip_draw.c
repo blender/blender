@@ -354,7 +354,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker, int width, int height)
 {
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
-	int show_pat= 0;
+	int show_search= 0;
 	float px[2];
 
 	UI_ThemeColor(TH_MARKER_OUTLINE);
@@ -401,8 +401,7 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 
 	if(!tiny) glLineWidth(3.0f);
 
-	show_pat= ((marker->flag&MARKER_DISABLED)==0 || (sc->flag&SC_SHOW_MARKER_SEARCH)==0);
-	if(sc->flag&SC_SHOW_MARKER_PATTERN && show_pat) {
+	if(sc->flag&SC_SHOW_MARKER_PATTERN) {
 		glBegin(GL_LINE_LOOP);
 			glVertex2f(track->pat_min[0], track->pat_min[1]);
 			glVertex2f(track->pat_max[0], track->pat_min[1]);
@@ -411,7 +410,8 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 		glEnd();
 	}
 
-	if(sc->flag&SC_SHOW_MARKER_SEARCH) {
+	show_search= TRACK_VIEW_SELECTED(sc, track) && ((marker->flag&MARKER_DISABLED)==0 || (sc->flag&SC_SHOW_MARKER_PATTERN)==0);
+	if(sc->flag&SC_SHOW_MARKER_SEARCH && show_search) {
 		glBegin(GL_LINE_LOOP);
 			glVertex2f(track->search_min[0], track->search_min[1]);
 			glVertex2f(track->search_max[0], track->search_min[1]);
@@ -442,7 +442,7 @@ static void track_colors(MovieTrackingTrack *track, int act, float col[3], float
 static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker, int width, int height, int act, int sel)
 {
 	int tiny= sc->flag&SC_SHOW_TINY_MARKER;
-	int show_pat= 0;
+	int show_search= 0;
 	float col[3], scol[3], px[2];
 
 	track_colors(track, act, col, scol);
@@ -515,8 +515,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		glEnable(GL_LINE_STIPPLE);
 	}
 
-	show_pat= ((marker->flag&MARKER_DISABLED)==0 || (sc->flag&SC_SHOW_MARKER_SEARCH)==0);
-	if((track->pat_flag&SELECT)==sel && show_pat) {
+	if((track->pat_flag&SELECT)==sel && (sc->flag&SC_SHOW_MARKER_PATTERN)) {
 		if(track->flag&TRACK_LOCKED) {
 			if(act) UI_ThemeColor(TH_ACT_MARKER);
 			else if(track->pat_flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);
@@ -531,18 +530,17 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			else glColor3fv(col);
 		}
 
-		if(sc->flag&SC_SHOW_MARKER_PATTERN) {
-			glBegin(GL_LINE_LOOP);
-				glVertex2f(track->pat_min[0], track->pat_min[1]);
-				glVertex2f(track->pat_max[0], track->pat_min[1]);
-				glVertex2f(track->pat_max[0], track->pat_max[1]);
-				glVertex2f(track->pat_min[0], track->pat_max[1]);
-			glEnd();
-		}
+		glBegin(GL_LINE_LOOP);
+			glVertex2f(track->pat_min[0], track->pat_min[1]);
+			glVertex2f(track->pat_max[0], track->pat_min[1]);
+			glVertex2f(track->pat_max[0], track->pat_max[1]);
+			glVertex2f(track->pat_min[0], track->pat_max[1]);
+		glEnd();
 	}
 
 	/* search */
-	if((track->search_flag&SELECT)==sel) {
+	show_search= TRACK_VIEW_SELECTED(sc, track) && ((marker->flag&MARKER_DISABLED)==0 || (sc->flag&SC_SHOW_MARKER_PATTERN)==0);
+	if((track->search_flag&SELECT)==sel && (sc->flag&SC_SHOW_MARKER_SEARCH) && show_search) {
 		if(track->flag&TRACK_LOCKED) {
 			if(act) UI_ThemeColor(TH_ACT_MARKER);
 			else if(track->search_flag&SELECT) UI_ThemeColorShade(TH_LOCK_MARKER, 64);
@@ -557,14 +555,12 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			else glColor3fv(col);
 		}
 
-		if(sc->flag&SC_SHOW_MARKER_SEARCH) {
-			glBegin(GL_LINE_LOOP);
-				glVertex2f(track->search_min[0], track->search_min[1]);
-				glVertex2f(track->search_max[0], track->search_min[1]);
-				glVertex2f(track->search_max[0], track->search_max[1]);
-				glVertex2f(track->search_min[0], track->search_max[1]);
-			glEnd();
-		}
+		glBegin(GL_LINE_LOOP);
+			glVertex2f(track->search_min[0], track->search_min[1]);
+			glVertex2f(track->search_max[0], track->search_min[1]);
+			glVertex2f(track->search_max[0], track->search_max[1]);
+			glVertex2f(track->search_min[0], track->search_max[1]);
+		glEnd();
 	}
 
 	if(tiny)

@@ -182,7 +182,7 @@ AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived
   }
   else
   {
-    m_angle = Scalar(2)*acos(min(max(Scalar(-1),q.w()),Scalar(1)));
+    m_angle = Scalar(2)*acos((min)((max)(Scalar(-1),q.w()),Scalar(1)));
     m_axis = q.vec() / internal::sqrt(n2);
   }
   return *this;

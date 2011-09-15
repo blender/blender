@@ -93,21 +93,21 @@ template<typename _MatrixType> class FullPivHouseholderQR
       */
     FullPivHouseholderQR(Index rows, Index cols)
       : m_qr(rows, cols),
-        m_hCoeffs(std::min(rows,cols)),
+        m_hCoeffs((std::min)(rows,cols)),
         m_rows_transpositions(rows),
         m_cols_transpositions(cols),
         m_cols_permutation(cols),
-        m_temp(std::min(rows,cols)),
+        m_temp((std::min)(rows,cols)),
         m_isInitialized(false),
         m_usePrescribedThreshold(false) {}
 
     FullPivHouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
-        m_hCoeffs(std::min(matrix.rows(), matrix.cols())),
+        m_hCoeffs((std::min)(matrix.rows(), matrix.cols())),
         m_rows_transpositions(matrix.rows()),
         m_cols_transpositions(matrix.cols()),
         m_cols_permutation(matrix.cols()),
-        m_temp(std::min(matrix.rows(), matrix.cols())),
+        m_temp((std::min)(matrix.rows(), matrix.cols())),
         m_isInitialized(false),
         m_usePrescribedThreshold(false)
     {
@@ -379,7 +379,7 @@ FullPivHouseholderQR<MatrixType>& FullPivHouseholderQR<MatrixType>::compute(cons
 {
   Index rows = matrix.rows();
   Index cols = matrix.cols();
-  Index size = std::min(rows,cols);
+  Index size = (std::min)(rows,cols);
 
   m_qr = matrix;
   m_hCoeffs.resize(size);
@@ -493,7 +493,7 @@ struct solve_retval<FullPivHouseholderQR<_MatrixType>, Rhs>
       RealScalar biggest_in_upper_part_of_c = c.topRows(   dec().rank()     ).cwiseAbs().maxCoeff();
       RealScalar biggest_in_lower_part_of_c = c.bottomRows(rows-dec().rank()).cwiseAbs().maxCoeff();
       // FIXME brain dead
-      const RealScalar m_precision = NumTraits<Scalar>::epsilon() * std::min(rows,cols);
+      const RealScalar m_precision = NumTraits<Scalar>::epsilon() * (std::min)(rows,cols);
       // this internal:: prefix is needed by at least gcc 3.4 and ICC
       if(!internal::isMuchSmallerThan(biggest_in_lower_part_of_c, biggest_in_upper_part_of_c, m_precision))
         return;
@@ -520,7 +520,7 @@ typename FullPivHouseholderQR<MatrixType>::MatrixQType FullPivHouseholderQR<Matr
   // and v_k is the k-th Householder vector [1,m_qr(k+1,k), m_qr(k+2,k), ...]
   Index rows = m_qr.rows();
   Index cols = m_qr.cols();
-  Index size = std::min(rows,cols);
+  Index size = (std::min)(rows,cols);
   MatrixQType res = MatrixQType::Identity(rows, rows);
   Matrix<Scalar,1,MatrixType::RowsAtCompileTime> temp(rows);
   for (Index k = size-1; k >= 0; k--)

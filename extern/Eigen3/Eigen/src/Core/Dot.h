@@ -116,7 +116,9 @@ MatrixBase<Derived>::eigen2_dot(const MatrixBase<OtherDerived>& other) const
 
 //---------- implementation of L2 norm and related functions ----------
 
-/** \returns the squared \em l2 norm of *this, i.e., for vectors, the dot product of *this with itself.
+/** \returns, for vectors, the squared \em l2 norm of \c *this, and for matrices the Frobenius norm.
+  * In both cases, it consists in the sum of the square of all the matrix entries.
+  * For vectors, this is also equals to the dot product of \c *this with itself.
   *
   * \sa dot(), norm()
   */
@@ -126,7 +128,9 @@ EIGEN_STRONG_INLINE typename NumTraits<typename internal::traits<Derived>::Scala
   return internal::real((*this).cwiseAbs2().sum());
 }
 
-/** \returns the \em l2 norm of *this, i.e., for vectors, the square root of the dot product of *this with itself.
+/** \returns, for vectors, the \em l2 norm of \c *this, and for matrices the Frobenius norm.
+  * In both cases, it consists in the square root of the sum of the square of all the matrix entries.
+  * For vectors, this is also equals to the square root of the dot product of \c *this with itself.
   *
   * \sa dot(), squaredNorm()
   */

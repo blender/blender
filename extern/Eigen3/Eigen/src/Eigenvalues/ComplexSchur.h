@@ -423,7 +423,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
     JacobiRotation<ComplexScalar> rot;
     rot.makeGivens(m_matT.coeff(il,il) - shift, m_matT.coeff(il+1,il));
     m_matT.rightCols(m_matT.cols()-il).applyOnTheLeft(il, il+1, rot.adjoint());
-    m_matT.topRows(std::min(il+2,iu)+1).applyOnTheRight(il, il+1, rot);
+    m_matT.topRows((std::min)(il+2,iu)+1).applyOnTheRight(il, il+1, rot);
     if(computeU) m_matU.applyOnTheRight(il, il+1, rot);
 
     for(Index i=il+1 ; i<iu ; i++)
@@ -431,7 +431,7 @@ void ComplexSchur<MatrixType>::reduceToTriangularForm(bool computeU)
       rot.makeGivens(m_matT.coeffRef(i,i-1), m_matT.coeffRef(i+1,i-1), &m_matT.coeffRef(i,i-1));
       m_matT.coeffRef(i+1,i-1) = ComplexScalar(0);
       m_matT.rightCols(m_matT.cols()-i).applyOnTheLeft(i, i+1, rot.adjoint());
-      m_matT.topRows(std::min(i+2,iu)+1).applyOnTheRight(i, i+1, rot);
+      m_matT.topRows((std::min)(i+2,iu)+1).applyOnTheRight(i, i+1, rot);
       if(computeU) m_matU.applyOnTheRight(i, i+1, rot);
     }
   }

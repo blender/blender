@@ -111,7 +111,7 @@ template<typename Derived> class MatrixBase
 
     /** \returns the size of the main diagonal, which is min(rows(),cols()).
       * \sa rows(), cols(), SizeAtCompileTime. */
-    inline Index diagonalSize() const { return std::min(rows(),cols()); }
+    inline Index diagonalSize() const { return (std::min)(rows(),cols()); }
 
     /** \brief The plain matrix type corresponding to this expression.
       *

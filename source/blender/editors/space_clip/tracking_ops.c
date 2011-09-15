@@ -1256,7 +1256,7 @@ static void track_markers_initjob(bContext *C, TrackMarkersJob *tmj, int backwar
 
 	track_init_markers(sc, clip);
 
-	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards);
+	tmj->context= BKE_tracking_context_new(clip, &sc->user, backwards, 1);
 
 	clip->tracking_context= tmj->context;
 
@@ -1361,7 +1361,8 @@ static int track_markers_exec(bContext *C, wmOperator *op)
 
 	track_init_markers(sc, clip);
 
-	context= BKE_tracking_context_new(clip, &sc->user, backwards);
+	/* do not disable tracks due to threshold when tracking frame-by-frame */
+	context= BKE_tracking_context_new(clip, &sc->user, backwards, sequence);
 
 	while(framenr != efra) {
 		if(!BKE_tracking_next(context))

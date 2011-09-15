@@ -233,7 +233,7 @@ template<> struct llt_inplace<Lower>
 
     Index blockSize = size/8;
     blockSize = (blockSize/16)*16;
-    blockSize = std::min(std::max(blockSize,Index(8)), Index(128));
+    blockSize = (std::min)((std::max)(blockSize,Index(8)), Index(128));
 
     for (Index k=0; k<size; k+=blockSize)
     {
@@ -241,7 +241,7 @@ template<> struct llt_inplace<Lower>
       //       A00 |  -  |  -
       // lu  = A10 | A11 |  -
       //       A20 | A21 | A22
-      Index bs = std::min(blockSize, size-k);
+      Index bs = (std::min)(blockSize, size-k);
       Index rs = size - k - bs;
       Block<MatrixType,Dynamic,Dynamic> A11(m,k,   k,   bs,bs);
       Block<MatrixType,Dynamic,Dynamic> A21(m,k+bs,k,   rs,bs);

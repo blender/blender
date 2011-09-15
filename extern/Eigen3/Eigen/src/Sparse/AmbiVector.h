@@ -97,7 +97,7 @@ class AmbiVector
     void reallocateSparse()
     {
       Index copyElements = m_allocatedElements;
-      m_allocatedElements = std::min(Index(m_allocatedElements*1.5),m_size);
+      m_allocatedElements = (std::min)(Index(m_allocatedElements*1.5),m_size);
       Index allocSize = m_allocatedElements * sizeof(ListEl);
       allocSize = allocSize/sizeof(Scalar) + (allocSize%sizeof(Scalar)>0?1:0);
       Scalar* newBuffer = new Scalar[allocSize];

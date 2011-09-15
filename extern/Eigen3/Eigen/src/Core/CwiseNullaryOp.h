@@ -742,7 +742,7 @@ struct setIdentity_impl<Derived, true>
   static EIGEN_STRONG_INLINE Derived& run(Derived& m)
   {
     m.setZero();
-    const Index size = std::min(m.rows(), m.cols());
+    const Index size = (std::min)(m.rows(), m.cols());
     for(Index i = 0; i < size; ++i) m.coeffRef(i,i) = typename Derived::Scalar(1);
     return m;
   }

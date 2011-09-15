@@ -93,7 +93,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
       */
     ColPivHouseholderQR(Index rows, Index cols)
       : m_qr(rows, cols),
-        m_hCoeffs(std::min(rows,cols)),
+        m_hCoeffs((std::min)(rows,cols)),
         m_colsPermutation(cols),
         m_colsTranspositions(cols),
         m_temp(cols),
@@ -103,7 +103,7 @@ template<typename _MatrixType> class ColPivHouseholderQR
 
     ColPivHouseholderQR(const MatrixType& matrix)
       : m_qr(matrix.rows(), matrix.cols()),
-        m_hCoeffs(std::min(matrix.rows(),matrix.cols())),
+        m_hCoeffs((std::min)(matrix.rows(),matrix.cols())),
         m_colsPermutation(matrix.cols()),
         m_colsTranspositions(matrix.cols()),
         m_temp(matrix.cols()),

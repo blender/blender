@@ -494,11 +494,11 @@ typedef struct MovieTrackingContext {
 	GHash *hash;
 	MovieTrackingSettings settings;
 
-	int backwards;
+	short backwards, disable_failed;
 	int sync_frame;
 } MovieTrackingContext;
 
-MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, int backwards)
+MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *user, short backwards, short disable_failed)
 {
 	MovieTrackingContext *context= MEM_callocN(sizeof(MovieTrackingContext), "trackingContext");
 	MovieTracking *tracking= &clip->tracking;
@@ -508,6 +508,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 
 	context->settings= *settings;
 	context->backwards= backwards;
+	context->disable_failed= disable_failed;
 	context->hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "tracking trackHash");
 	context->sync_frame= user->framenr;
 	context->first_time= 1;
@@ -640,14 +641,19 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track)
 }
 
 static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-			float min[2], float max[2], int margin, float pos[2], int origin[2])
+			float min[2], float max[2], int margin, int anchored, float pos[2], int origin[2])
 {
 	ImBuf *tmpibuf;
 	int x, y;
 	int x1, y1, x2, y2, w, h;
+	float mpos[2];
 
-	x= marker->pos[0]*ibuf->x;
-	y= marker->pos[1]*ibuf->y;
+	copy_v2_v2(mpos, marker->pos);
+	if(anchored)
+		add_v2_v2(mpos, track->offset);
+
+	x= mpos[0]*ibuf->x;
+	y= mpos[1]*ibuf->y;
 	x1= x-(int)(-min[0]*ibuf->x);
 	y1= y-(int)(-min[1]*ibuf->y);
 	x2= x+(int)(max[0]*ibuf->x);
@@ -665,8 +671,8 @@ static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTr
 	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1-margin, y1-margin, w+margin*2, h+margin*2);
 
 	if(pos != NULL) {
-		pos[0]= x-x1+(marker->pos[0]*ibuf->x-x)+margin;
-		pos[1]= y-y1+(marker->pos[1]*ibuf->y-y)+margin;
+		pos[0]= x-x1+(mpos[0]*ibuf->x-x)+margin;
+		pos[1]= y-y1+(mpos[1]*ibuf->y-y)+margin;
 	}
 
 	if(origin != NULL) {
@@ -680,15 +686,15 @@ static ImBuf *acquire_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTr
 }
 
 ImBuf *BKE_tracking_acquire_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-			int margin, float pos[2], int origin[2])
+			int margin, int anchored, float pos[2], int origin[2])
 {
-	return acquire_area_imbuf(ibuf, track, marker, track->pat_min, track->pat_max, margin, pos, origin);
+	return acquire_area_imbuf(ibuf, track, marker, track->pat_min, track->pat_max, margin, anchored, pos, origin);
 }
 
 ImBuf *BKE_tracking_acquire_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-			int margin, float pos[2], int origin[2])
+			int margin, int anchored, float pos[2], int origin[2])
 {
-	return acquire_area_imbuf(ibuf, track, marker, track->search_min, track->search_max, margin, pos, origin);
+	return acquire_area_imbuf(ibuf, track, marker, track->search_min, track->search_max, margin, anchored, pos, origin);
 }
 
 #ifdef WITH_LIBMV
@@ -702,7 +708,7 @@ static float *acquire_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
 	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
 
-	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, 0, pos, origin);
+	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, 0, 0, pos, origin);
 	disable_imbuf_channels(tmpibuf, track);
 
 	*width_r= width;
@@ -742,7 +748,7 @@ static unsigned char *acquire_search_bytebuf(ImBuf *ibuf, MovieTrackingTrack *tr
 	width= (track->search_max[0]-track->search_min[0])*ibuf->x;
 	height= (track->search_max[1]-track->search_min[1])*ibuf->y;
 
-	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, 0, pos, origin);
+	tmpibuf= BKE_tracking_acquire_search_imbuf(ibuf, track, marker, 0, 0, pos, origin);
 	disable_imbuf_channels(tmpibuf, track);
 
 	*width_r= width;
@@ -950,7 +956,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	if(!ibuf_new)
 		return 0;
 
-	//#pragma omp parallel for private(a) shared(ibuf_new, ok) if(context->num_tracks>1)
+	#pragma omp parallel for private(a) shared(ibuf_new, ok) if(context->num_tracks>1)
 	for(a= 0; a<context->num_tracks; a++) {
 		TrackContext *track_context= &context->track_context[a];
 		MovieTrackingTrack *track= track_context->track;
@@ -1075,7 +1081,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				MEM_freeN(image_new);
 			}
 
-			if(tracked) {
+			if(tracked || !context->disable_failed) {
 				if(context->first_time) {
 					int prevframe;
 

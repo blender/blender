@@ -141,7 +141,7 @@ class DynamicSparseMatrix
     {
       if (outerSize()>0)
       {
-        Index reserveSizePerVector = std::max(reserveSize/outerSize(),Index(4));
+        Index reserveSizePerVector = (std::max)(reserveSize/outerSize(),Index(4));
         for (Index j=0; j<outerSize(); ++j)
         {
           m_data[j].reserve(reserveSizePerVector);

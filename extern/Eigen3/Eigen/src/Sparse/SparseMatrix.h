@@ -257,7 +257,7 @@ class SparseMatrix
           // furthermore we bound the realloc ratio to:
           //   1) reduce multiple minor realloc when the matrix is almost filled
           //   2) avoid to allocate too much memory when the matrix is almost empty
-          reallocRatio = std::min(std::max(reallocRatio,1.5f),8.f);
+          reallocRatio = (std::min)((std::max)(reallocRatio,1.5f),8.f);
         }
       }
       m_data.resize(m_data.size()+1,reallocRatio);

@@ -134,7 +134,7 @@ EIGEN_DONT_INLINE static void run(
     }
     else
     {
-      skipColumns = std::min(skipColumns,cols);
+      skipColumns = (std::min)(skipColumns,cols);
       // note that the skiped columns are processed later.
     }
 
@@ -386,7 +386,7 @@ EIGEN_DONT_INLINE static void run(
     }
     else
     {
-      skipRows = std::min(skipRows,Index(rows));
+      skipRows = (std::min)(skipRows,Index(rows));
       // note that the skiped columns are processed later.
     }
     eigen_internal_assert(  alignmentPattern==NoneAligned

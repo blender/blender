@@ -78,7 +78,7 @@ static void run(Index rows, Index cols, Index depth,
   typedef gebp_traits<LhsScalar,RhsScalar> Traits;
 
   Index kc = blocking.kc();                 // cache block size along the K direction
-  Index mc = std::min(rows,blocking.mc());  // cache block size along the M direction
+  Index mc = (std::min)(rows,blocking.mc());  // cache block size along the M direction
   //Index nc = blocking.nc(); // cache block size along the N direction
 
   gemm_pack_lhs<LhsScalar, Index, Traits::mr, Traits::LhsProgress, LhsStorageOrder> pack_lhs;
@@ -103,7 +103,7 @@ static void run(Index rows, Index cols, Index depth,
     // For each horizontal panel of the rhs, and corresponding vertical panel of the lhs...
     for(Index k=0; k<depth; k+=kc)
     {
-      const Index actual_kc = std::min(k+kc,depth)-k; // => rows of B', and cols of the A'
+      const Index actual_kc = (std::min)(k+kc,depth)-k; // => rows of B', and cols of the A'
 
       // In order to reduce the chance that a thread has to wait for the other,
       // let's start by packing A'.
@@ -140,7 +140,7 @@ static void run(Index rows, Index cols, Index depth,
       // Then keep going as usual with the remaining A'
       for(Index i=mc; i<rows; i+=mc)
       {
-        const Index actual_mc = std::min(i+mc,rows)-i;
+        const Index actual_mc = (std::min)(i+mc,rows)-i;
 
         // pack A_i,k to A'
         pack_lhs(blockA, &lhs(i,k), lhsStride, actual_kc, actual_mc);
@@ -174,7 +174,7 @@ static void run(Index rows, Index cols, Index depth,
     // (==GEMM_VAR1)
     for(Index k2=0; k2<depth; k2+=kc)
     {
-      const Index actual_kc = std::min(k2+kc,depth)-k2;
+      const Index actual_kc = (std::min)(k2+kc,depth)-k2;
 
       // OK, here we have selected one horizontal panel of rhs and one vertical panel of lhs.
       // => Pack rhs's panel into a sequential chunk of memory (L2 caching)
@@ -187,7 +187,7 @@ static void run(Index rows, Index cols, Index depth,
       // (==GEPP_VAR1)
       for(Index i2=0; i2<rows; i2+=mc)
       {
-        const Index actual_mc = std::min(i2+mc,rows)-i2;
+        const Index actual_mc = (std::min)(i2+mc,rows)-i2;
 
         // We pack the lhs's block into a sequential chunk of memory (L1 caching)
         // Note that this block will be read a very high number of times, which is equal to the number of

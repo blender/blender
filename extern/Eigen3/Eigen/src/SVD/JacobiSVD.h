@@ -569,7 +569,7 @@ void JacobiSVD<MatrixType, QRPreconditioner>::allocate(Index rows, Index cols, u
               "JacobiSVD: can't compute thin U or thin V with the FullPivHouseholderQR preconditioner. "
               "Use the ColPivHouseholderQR preconditioner instead.");
   }
-  m_diagSize = std::min(m_rows, m_cols);
+  m_diagSize = (std::min)(m_rows, m_cols);
   m_singularValues.resize(m_diagSize);
   m_matrixU.resize(m_rows, m_computeFullU ? m_rows
                           : m_computeThinU ? m_diagSize
@@ -619,8 +619,8 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
         // keep us iterating forever.
         using std::max;
-        if(max(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p)))
-            > max(internal::abs(m_workMatrix.coeff(p,p)),internal::abs(m_workMatrix.coeff(q,q)))*precision)
+        if((max)(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p)))
+            > (max)(internal::abs(m_workMatrix.coeff(p,p)),internal::abs(m_workMatrix.coeff(q,q)))*precision)
         {
           finished = false;
 
@@ -689,7 +689,7 @@ struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
     // A = U S V^*
     // So A^{-1} = V S^{-1} U^*
 
-    Index diagSize = std::min(dec().rows(), dec().cols());
+    Index diagSize = (std::min)(dec().rows(), dec().cols());
     typename JacobiSVDType::SingularValuesType invertedSingVals(diagSize);
 
     Index nonzeroSingVals = dec().nonzeroSingularValues();

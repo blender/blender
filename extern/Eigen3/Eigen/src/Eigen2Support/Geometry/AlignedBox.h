@@ -63,7 +63,7 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==
   ~AlignedBox() {}
 
   /** \returns the dimension in which the box holds */
-  inline int dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size()-1 : AmbientDimAtCompileTime; }
+  inline int dim() const { return AmbientDimAtCompileTime==Dynamic ? m_min.size()-1 : int(AmbientDimAtCompileTime); }
 
   /** \returns true if the box is null, i.e, empty. */
   inline bool isNull() const { return (m_min.cwise() > m_max).any(); }
@@ -71,18 +71,18 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==
   /** Makes \c *this a null/empty box. */
   inline void setNull()
   {
-    m_min.setConstant( std::numeric_limits<Scalar>::max());
-    m_max.setConstant(-std::numeric_limits<Scalar>::max());
+    m_min.setConstant( (std::numeric_limits<Scalar>::max)());
+    m_max.setConstant(-(std::numeric_limits<Scalar>::max)());
   }
 
   /** \returns the minimal corner */
-  inline const VectorType& min() const { return m_min; }
+  inline const VectorType& (min)() const { return m_min; }
   /** \returns a non const reference to the minimal corner */
-  inline VectorType& min() { return m_min; }
+  inline VectorType& (min)() { return m_min; }
   /** \returns the maximal corner */
-  inline const VectorType& max() const { return m_max; }
+  inline const VectorType& (max)() const { return m_max; }
   /** \returns a non const reference to the maximal corner */
-  inline VectorType& max() { return m_max; }
+  inline VectorType& (max)() { return m_max; }
 
   /** \returns true if the point \a p is inside the box \c *this. */
   inline bool contains(const VectorType& p) const
@@ -90,19 +90,19 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==
 
   /** \returns true if the box \a b is entirely inside the box \c *this. */
   inline bool contains(const AlignedBox& b) const
-  { return (m_min.cwise()<=b.min()).all() && (b.max().cwise()<=m_max).all(); }
+  { return (m_min.cwise()<=(b.min)()).all() && ((b.max)().cwise()<=m_max).all(); }
 
   /** Extends \c *this such that it contains the point \a p and returns a reference to \c *this. */
   inline AlignedBox& extend(const VectorType& p)
-  { m_min = m_min.cwise().min(p); m_max = m_max.cwise().max(p); return *this; }
+  { m_min = (m_min.cwise().min)(p); m_max = (m_max.cwise().max)(p); return *this; }
 
   /** Extends \c *this such that it contains the box \a b and returns a reference to \c *this. */
   inline AlignedBox& extend(const AlignedBox& b)
-  { m_min = m_min.cwise().min(b.m_min); m_max = m_max.cwise().max(b.m_max); return *this; }
+  { m_min = (m_min.cwise().min)(b.m_min); m_max = (m_max.cwise().max)(b.m_max); return *this; }
 
   /** Clamps \c *this by the box \a b and returns a reference to \c *this. */
   inline AlignedBox& clamp(const AlignedBox& b)
-  { m_min = m_min.cwise().max(b.m_min); m_max = m_max.cwise().min(b.m_max); return *this; }
+  { m_min = (m_min.cwise().max)(b.m_min); m_max = (m_max.cwise().min)(b.m_max); return *this; }
 
   /** Translate \c *this by the vector \a t and returns a reference to \c *this. */
   inline AlignedBox& translate(const VectorType& t)
@@ -138,8 +138,8 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(_Scalar,_AmbientDim==
   template<typename OtherScalarType>
   inline explicit AlignedBox(const AlignedBox<OtherScalarType,AmbientDimAtCompileTime>& other)
   {
-    m_min = other.min().template cast<Scalar>();
-    m_max = other.max().template cast<Scalar>();
+    m_min = (other.min)().template cast<Scalar>();
+    m_max = (other.max)().template cast<Scalar>();
   }
 
   /** \returns \c true if \c *this is approximately equal to \a other, within the precision

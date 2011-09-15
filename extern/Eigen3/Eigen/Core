@@ -175,13 +175,6 @@
   #include <new>
 #endif
 
-// this needs to be done after all possible windows C header includes and before any Eigen source includes
-// (system C++ includes are supposed to be able to deal with this already):
-// windows.h defines min and max macros which would make Eigen fail to compile.
-#if defined(min) || defined(max)
-#error The preprocessor symbols 'min' or 'max' are defined. If you are compiling on Windows, do #define NOMINMAX to prevent windows.h from defining these symbols.
-#endif
-
 // defined in bits/termios.h
 #undef B0
 

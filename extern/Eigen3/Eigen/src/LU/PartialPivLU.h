@@ -253,7 +253,7 @@ struct partial_lu_impl
   {
     const Index rows = lu.rows();
     const Index cols = lu.cols();
-    const Index size = std::min(rows,cols);
+    const Index size = (std::min)(rows,cols);
     nb_transpositions = 0;
     int first_zero_pivot = -1;
     for(Index k = 0; k < size; ++k)
@@ -313,7 +313,7 @@ struct partial_lu_impl
     MapLU lu1(lu_data,StorageOrder==RowMajor?rows:luStride,StorageOrder==RowMajor?luStride:cols);
     MatrixType lu(lu1,0,0,rows,cols);
 
-    const Index size = std::min(rows,cols);
+    const Index size = (std::min)(rows,cols);
 
     // if the matrix is too small, no blocking:
     if(size<=16)
@@ -327,14 +327,14 @@ struct partial_lu_impl
     {
       blockSize = size/8;
       blockSize = (blockSize/16)*16;
-      blockSize = std::min(std::max(blockSize,Index(8)), maxBlockSize);
+      blockSize = (std::min)((std::max)(blockSize,Index(8)), maxBlockSize);
     }
 
     nb_transpositions = 0;
     int first_zero_pivot = -1;
     for(Index k = 0; k < size; k+=blockSize)
     {
-      Index bs = std::min(size-k,blockSize); // actual size of the block
+      Index bs = (std::min)(size-k,blockSize); // actual size of the block
       Index trows = rows - k - bs; // trailing rows
       Index tsize = size - k - bs; // trailing size
 

@@ -64,9 +64,9 @@ template<typename MatrixType> class SVD
     SVD() {} // a user who relied on compiler-generated default compiler reported problems with MSVC in 2.0.7
     
     SVD(const MatrixType& matrix)
-      : m_matU(matrix.rows(), std::min(matrix.rows(), matrix.cols())),
+      : m_matU(matrix.rows(), (std::min)(matrix.rows(), matrix.cols())),
         m_matV(matrix.cols(),matrix.cols()),
-        m_sigma(std::min(matrix.rows(),matrix.cols()))
+        m_sigma((std::min)(matrix.rows(),matrix.cols()))
     {
       compute(matrix);
     }
@@ -108,13 +108,13 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
 {
   const int m = matrix.rows();
   const int n = matrix.cols();
-  const int nu = std::min(m,n);
+  const int nu = (std::min)(m,n);
   ei_assert(m>=n && "In Eigen 2.0, SVD only works for MxN matrices with M>=N. Sorry!");
   ei_assert(m>1 && "In Eigen 2.0, SVD doesn't work on 1x1 matrices");
 
   m_matU.resize(m, nu);
   m_matU.setZero();
-  m_sigma.resize(std::min(m,n));
+  m_sigma.resize((std::min)(m,n));
   m_matV.resize(n,n);
 
   RowVector e(n);
@@ -126,9 +126,9 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
 
   // Reduce A to bidiagonal form, storing the diagonal elements
   // in s and the super-diagonal elements in e.
-  int nct = std::min(m-1,n);
-  int nrt = std::max(0,std::min(n-2,m));
-  for (k = 0; k < std::max(nct,nrt); ++k)
+  int nct = (std::min)(m-1,n);
+  int nrt = (std::max)(0,(std::min)(n-2,m));
+  for (k = 0; k < (std::max)(nct,nrt); ++k)
   {
     if (k < nct)
     {
@@ -193,7 +193,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
 
 
   // Set up the final bidiagonal matrix or order p.
-  int p = std::min(n,m+1);
+  int p = (std::min)(n,m+1);
   if (nct < n)
     m_sigma[nct] = matA(nct,nct);
   if (m < p)
@@ -380,7 +380,7 @@ void SVD<MatrixType>::compute(const MatrixType& matrix)
       case 3:
       {
         // Calculate the shift.
-        Scalar scale = std::max(std::max(std::max(std::max(
+        Scalar scale = (std::max)((std::max)((std::max)((std::max)(
                         ei_abs(m_sigma[p-1]),ei_abs(m_sigma[p-2])),ei_abs(e[p-2])),
                         ei_abs(m_sigma[k])),ei_abs(e[k]));
         Scalar sp = m_sigma[p-1]/scale;

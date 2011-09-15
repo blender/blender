@@ -37,7 +37,7 @@ struct isApprox_selector
     using std::min;
     const typename internal::nested<Derived,2>::type nested(x);
     const typename internal::nested<OtherDerived,2>::type otherNested(y);
-    return (nested - otherNested).cwiseAbs2().sum() <= prec * prec * min(nested.cwiseAbs2().sum(), otherNested.cwiseAbs2().sum());
+    return (nested - otherNested).cwiseAbs2().sum() <= prec * prec * (min)(nested.cwiseAbs2().sum(), otherNested.cwiseAbs2().sum());
   }
 };
 

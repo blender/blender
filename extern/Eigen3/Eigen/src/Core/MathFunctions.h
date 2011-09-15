@@ -378,8 +378,8 @@ struct hypot_impl
     using std::min;
     RealScalar _x = abs(x);
     RealScalar _y = abs(y);
-    RealScalar p = max(_x, _y);
-    RealScalar q = min(_x, _y);
+    RealScalar p = (max)(_x, _y);
+    RealScalar q = (min)(_x, _y);
     RealScalar qp = q/p;
     return p * sqrt(RealScalar(1) + qp*qp);
   }
@@ -737,7 +737,7 @@ struct scalar_fuzzy_default_impl<Scalar, false, false>
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
     using std::min;
-    return abs(x - y) <= min(abs(x), abs(y)) * prec;
+    return abs(x - y) <= (min)(abs(x), abs(y)) * prec;
   }
   static inline bool isApproxOrLessThan(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
@@ -776,7 +776,7 @@ struct scalar_fuzzy_default_impl<Scalar, true, false>
   static inline bool isApprox(const Scalar& x, const Scalar& y, const RealScalar& prec)
   {
     using std::min;
-    return abs2(x - y) <= min(abs2(x), abs2(y)) * prec * prec;
+    return abs2(x - y) <= (min)(abs2(x), abs2(y)) * prec * prec;
   }
 };
 

@@ -205,11 +205,10 @@ class CLIP_PT_tools_tracking(Panel):
         row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
 
         col = layout.column(align=True)
-        op = col.operator("clip.clear_track_path", \
-             text="Clear Remained Path")
+        op = col.operator("clip.clear_track_path", text="Clear After")
         op.action = 'REMAINED'
 
-        op = col.operator("clip.clear_track_path", text="Clear Path Up To")
+        op = col.operator("clip.clear_track_path", text="Clear Before")
         op.action = 'UPTO'
 
         op = col.operator("clip.clear_track_path", text="Clear Track Path")

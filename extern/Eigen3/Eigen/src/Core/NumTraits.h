@@ -87,8 +87,8 @@ template<typename T> struct GenericNumTraits
     // make sure to override this for floating-point types
     return Real(0);
   }
-  inline static T highest() { return std::numeric_limits<T>::max(); }
-  inline static T lowest()  { return IsInteger ? std::numeric_limits<T>::min() : (-std::numeric_limits<T>::max()); }
+  inline static T highest() { return (std::numeric_limits<T>::max)(); }
+  inline static T lowest()  { return IsInteger ? (std::numeric_limits<T>::min)() : (-(std::numeric_limits<T>::max)()); }
   
 #ifdef EIGEN2_SUPPORT
   enum {

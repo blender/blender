@@ -435,7 +435,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
   Scalar norm = 0.0;
   for (Index j = 0; j < size; ++j)
   {
-    norm += m_matT.row(j).segment(std::max(j-1,Index(0)), size-std::max(j-1,Index(0))).cwiseAbs().sum();
+    norm += m_matT.row(j).segment((std::max)(j-1,Index(0)), size-(std::max)(j-1,Index(0))).cwiseAbs().sum();
   }
   
   // Backsubstitute to find vectors of upper triangular form
@@ -564,7 +564,7 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
 
           // Overflow control
           using std::max;
-          Scalar t = max(internal::abs(m_matT.coeff(i,n-1)),internal::abs(m_matT.coeff(i,n)));
+          Scalar t = (max)(internal::abs(m_matT.coeff(i,n-1)),internal::abs(m_matT.coeff(i,n)));
           if ((eps * t) * t > Scalar(1))
             m_matT.block(i, n-1, size-i, 2) /= t;
 

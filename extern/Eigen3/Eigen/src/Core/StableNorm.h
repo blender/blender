@@ -69,7 +69,7 @@ MatrixBase<Derived>::stableNorm() const
   if (bi>0)
     internal::stable_norm_kernel(this->head(bi), ssq, scale, invScale);
   for (; bi<n; bi+=blockSize)
-    internal::stable_norm_kernel(this->segment(bi,min(blockSize, n - bi)).template forceAlignedAccessIf<Alignment>(), ssq, scale, invScale);
+    internal::stable_norm_kernel(this->segment(bi,(min)(blockSize, n - bi)).template forceAlignedAccessIf<Alignment>(), ssq, scale, invScale);
   return scale * internal::sqrt(ssq);
 }
 
@@ -103,12 +103,12 @@ MatrixBase<Derived>::blueNorm() const
     // For portability, the PORT subprograms "ilmaeh" and "rlmach"
     // are used. For any specific computer, each of the assignment
     // statements can be replaced
-    nbig  = std::numeric_limits<Index>::max();            // largest integer
+    nbig  = (std::numeric_limits<Index>::max)();            // largest integer
     ibeta = std::numeric_limits<RealScalar>::radix;         // base for floating-point numbers
     it    = std::numeric_limits<RealScalar>::digits;        // number of base-beta digits in mantissa
     iemin = std::numeric_limits<RealScalar>::min_exponent;  // minimum exponent
     iemax = std::numeric_limits<RealScalar>::max_exponent;  // maximum exponent
-    rbig  = std::numeric_limits<RealScalar>::max();         // largest floating-point number
+    rbig  = (std::numeric_limits<RealScalar>::max)();         // largest floating-point number
 
     iexp  = -((1-iemin)/2);
     b1    = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));  // lower boundary of midrange
@@ -167,8 +167,8 @@ MatrixBase<Derived>::blueNorm() const
   }
   else
     return internal::sqrt(amed);
-  asml = min(abig, amed);
-  abig = max(abig, amed);
+  asml = (min)(abig, amed);
+  abig = (max)(abig, amed);
   if(asml <= abig*relerr)
     return abig;
   else
