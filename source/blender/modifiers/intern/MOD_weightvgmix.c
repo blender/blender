@@ -412,7 +412,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	/* Update (add to) vgroup.
 	 * XXX Depending on the MOD_WVG_SET_xxx option chosen, we might have to add vertices to vgroup.
 	 */
-	weightvg_update_vg(dvert, defgrp_idx, dw1, numIdx, indices, org_w, TRUE, -FLT_MAX, 0, 0.0f);
+	weightvg_update_vg(dvert, defgrp_idx, dw1, numIdx, indices, org_w, TRUE, -FLT_MAX, FALSE, 0.0f);
 
 	/* Freeing stuff. */
 	MEM_freeN(org_w);
