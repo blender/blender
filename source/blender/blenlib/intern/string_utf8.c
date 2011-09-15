@@ -141,3 +141,43 @@ int BLI_utf8_invalid_strip(char *str, int length)
 
 	return tot;
 }
+
+
+/* compatible with BLI_strncpy, but esnure no partial utf8 chars */
+
+/* array copied from glib's glib's gutf8.c,
+ * note: this looks to be at odd's with 'trailingBytesForUTF8',
+ * need to find out what gives here! - campbell */
+static const size_t utf8_skip_data[256] = {
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+  3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,6,6,1,1
+};
+
+char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
+{
+	char *dst_r= dst;
+	size_t utf8_size;
+
+	/* note: currently we dont attempt to deal with invalid utf8 chars */
+
+	while(*src != '\0' && (utf8_size= utf8_skip_data[*src]) < maxncpy) {
+		maxncpy -= utf8_size;
+		switch(utf8_size) {
+			case 6: *dst ++ = *src ++;
+			case 5: *dst ++ = *src ++;
+			case 4: *dst ++ = *src ++;
+			case 3: *dst ++ = *src ++;
+			case 2: *dst ++ = *src ++;
+			case 1: *dst ++ = *src ++;
+		}
+	}
+	*dst= '\0';
+	return dst_r;
+}
+
