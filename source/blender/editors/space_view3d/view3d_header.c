@@ -498,6 +498,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		/* Manipulators aren't used in weight paint mode */
 		
 		PointerRNA meshptr;
+
 		RNA_pointer_create(&ob->id, &RNA_Mesh, ob->data, &meshptr);
 		if(ob->mode & (OB_MODE_TEXTURE_PAINT|OB_MODE_VERTEX_PAINT)) {
 			uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);

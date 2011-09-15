@@ -1120,14 +1120,14 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "WPaint Auto-Normalize", 
 		"Ensure all bone-deforming vertex groups add up to 1.0 while "
 		 "weight painting");
-	RNA_def_property_update(prop, 0, "rna_update_active_object");
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA, 0);
 
 	prop = RNA_def_property(srna, "use_multipaint", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "multipaint", 1);
 	RNA_def_property_ui_text(prop, "WPaint Multi-Paint", 
 		"Paint across all selected bones while "
 		 "weight painting");
-	RNA_def_property_update(prop, 0, "rna_update_active_object");
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA, 0);
 
 	prop= RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");

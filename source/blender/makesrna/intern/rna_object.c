@@ -220,16 +220,6 @@ void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ptr->id.data);
 }
-// Jason
-void rna_update_active_object(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	Object *ob;
-	Base *basact = scene->basact;
-	if(basact && (ob = basact->object)) {
-		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		WM_main_add_notifier(NC_OBJECT|ND_DRAW, &ob->id);
-	}
-}
 
 void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {

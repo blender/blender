@@ -646,6 +646,7 @@ static void do_lasso_select_curve(ViewContext *vc, int mcords[][2], short moves,
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	nurbs_foreachScreenVert(vc, do_lasso_select_curve__doSelect, &data);
 }
+
 static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x, int y)
 {
 	struct { int (*mcords)[2]; short moves; short select; } *data = userData;
@@ -2086,7 +2087,6 @@ static void mesh_circle_doSelectVert(void *userData, EditVert *eve, int x, int y
 		eve->f = data->select?(eve->f|1):(eve->f&~1);
 	}
 }
-
 static void mesh_circle_doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int UNUSED(index))
 {
 	struct {ViewContext *vc; short select; int mval[2]; float radius; } *data = userData;
