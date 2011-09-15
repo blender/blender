@@ -31,6 +31,13 @@ remove_strict_flags()
 # and debug gives a lot of prints on UV unwrapping. developers can enable if they need to.
 remove_flag("-DDEBUG")
 
+
+# quiet compiler warnings about undefined defines
+add_definitions(
+	-DDEBUGlevel=0
+	-DPRNTlevel=0
+)
+
 set(INC
 	extern
 	superlu

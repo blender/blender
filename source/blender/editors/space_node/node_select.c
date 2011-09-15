@@ -64,7 +64,7 @@ static bNode *node_under_mouse(bNodeTree *ntree, int mx, int my)
 {
 	bNode *node;
 	
-	for(next_node(ntree); (node=next_node(NULL));) {
+	for(node=ntree->nodes.last; node; node=node->prev) {
 		/* node body (header and scale are in other operators) */
 		if (BLI_in_rctf(&node->totr, mx, my))
 			return node;
@@ -95,8 +95,10 @@ static bNode *node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, cons
 		}
 		else
 			node->flag ^= SELECT;
-			
+		
 		ED_node_set_active(bmain, snode->edittree, node);
+		
+		node_sort(snode->edittree);
 	}
 
 	return node;
@@ -184,6 +186,8 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
+	node_sort(snode->edittree);
+	
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 
 	return OPERATOR_FINISHED;
@@ -254,6 +258,8 @@ static int node_select_all_exec(bContext *C, wmOperator *UNUSED(op))
 			node->flag |= NODE_SELECT;
 	}
 	
+	node_sort(snode->edittree);
+	
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -293,6 +299,8 @@ static int node_select_linked_to_exec(bContext *C, wmOperator *UNUSED(op))
 		if (node->flag & NODE_TEST)
 			node->flag |= NODE_SELECT;
 	}
+	
+	node_sort(snode->edittree);
 	
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
@@ -334,6 +342,8 @@ static int node_select_linked_from_exec(bContext *C, wmOperator *UNUSED(op))
 			node->flag |= NODE_SELECT;
 	}
 	
+	node_sort(snode->edittree);
+	
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -360,6 +370,9 @@ static int node_select_same_type_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	node_select_same_type(snode);
+
+	node_sort(snode->edittree);
+
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -386,7 +399,11 @@ static int node_select_same_type_next_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	node_select_same_type_np(snode, 0);
+
+	node_sort(snode->edittree);
+
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -410,6 +427,9 @@ static int node_select_same_type_prev_exec(bContext *C, wmOperator *UNUSED(op))
 	SpaceNode *snode = CTX_wm_space_node(C);
 
 	node_select_same_type_np(snode, 1);
+
+	node_sort(snode->edittree);
+
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }

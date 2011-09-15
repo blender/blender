@@ -653,6 +653,25 @@ void UI_exit(void);
 #define UI_LAYOUT_OP_SHOW_TITLE 1
 #define UI_LAYOUT_OP_SHOW_EMPTY 2
 
+/* flags to set which corners will become rounded:
+ *
+ * 1------2
+ * |      |
+ * 8------4 */
+
+enum {
+	UI_CNR_TOP_LEFT= 1,
+	UI_CNR_TOP_RIGHT= 2,
+	UI_CNR_BOTTOM_RIGHT= 4,
+	UI_CNR_BOTTOM_LEFT= 8,
+	/* just for convenience */
+	UI_CNR_NONE= 0,
+	UI_CNR_ALL= (UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT)
+};
+
+/* not apart of the corner flags but mixed in some functions  */
+#define UI_RB_ALPHA (UI_CNR_ALL + 1)
+
 uiLayout *uiBlockLayout(uiBlock *block, int dir, int type, int x, int y, int size, int em, struct uiStyle *style);
 void uiBlockSetCurLayout(uiBlock *block, uiLayout *layout);
 void uiBlockLayoutResolve(uiBlock *block, int *x, int *y);

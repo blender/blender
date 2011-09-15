@@ -118,10 +118,12 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	uiItemS(layout);
 	uiItemR(layout, &ptr, "name", 0, NULL, ICON_NODE);
 	uiItemS(layout);
-	
+
 	/* draw this node's settings */
 	if (node->typeinfo && node->typeinfo->uifuncbut)
 		node->typeinfo->uifuncbut(layout, (bContext *)C, &ptr);
+	else if (node->typeinfo && node->typeinfo->uifunc)
+		node->typeinfo->uifunc(layout, (bContext *)C, &ptr);
 }
 
 /* ******************* node buttons registration ************** */

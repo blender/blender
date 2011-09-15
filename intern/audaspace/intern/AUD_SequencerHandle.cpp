@@ -66,7 +66,7 @@ void AUD_SequencerHandle::stop()
 		m_handle->stop();
 }
 
-void AUD_SequencerHandle::update(float position, float frame)
+void AUD_SequencerHandle::update(float position, float frame, float fps)
 {
 	if(!m_handle.isNull())
 	{
@@ -132,7 +132,7 @@ void AUD_SequencerHandle::update(float position, float frame)
 		m_3dhandle->setSourceLocation(v);
 		m_entry->m_location.read(frame + 1, v2.get());
 		v2 -= v;
-		m_3dhandle->setSourceVelocity(v2);
+		m_3dhandle->setSourceVelocity(v2 * fps);
 
 		if(m_entry->m_muted)
 			m_handle->setVolume(0);

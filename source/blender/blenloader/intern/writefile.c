@@ -135,6 +135,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_bpath.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
@@ -642,6 +643,46 @@ static void write_curvemapping(WriteData *wd, CurveMapping *cumap)
 		writestruct(wd, DATA, "CurveMapPoint", cumap->cm[a].totpoint, cumap->cm[a].curve);
 }
 
+static void write_node_socket(WriteData *wd, bNodeSocket *sock)
+{
+	bNodeSocketType *stype= ntreeGetSocketType(sock->type);
+
+	/* forward compatibility code, so older blenders still open */
+	sock->stack_type = 1;
+
+	if(sock->default_value) {
+		bNodeSocketValueFloat *valfloat;
+		bNodeSocketValueVector *valvector;
+		bNodeSocketValueRGBA *valrgba;
+		
+		switch (sock->type) {
+		case SOCK_FLOAT:
+			valfloat = sock->default_value;
+			sock->ns.vec[0] = valfloat->value;
+			sock->ns.min = valfloat->min;
+			sock->ns.max = valfloat->max;
+			break;
+		case SOCK_VECTOR:
+			valvector = sock->default_value;
+			copy_v3_v3(sock->ns.vec, valvector->value);
+			sock->ns.min = valvector->min;
+			sock->ns.max = valvector->max;
+			break;
+		case SOCK_RGBA:
+			valrgba = sock->default_value;
+			copy_v4_v4(sock->ns.vec, valrgba->value);
+			sock->ns.min = 0.0f;
+			sock->ns.max = 1.0f;
+			break;
+		}
+	}
+
+	/* actual socket writing */
+	writestruct(wd, DATA, "bNodeSocket", 1, sock);
+	if (sock->default_value)
+		writestruct(wd, DATA, stype->value_structname, 1, sock->default_value);
+}
+
 /* this is only direct data, tree itself should have been written */
 static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 {
@@ -657,6 +698,12 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 		writestruct(wd, DATA, "bNode", 1, node);
 
 	for(node= ntree->nodes.first; node; node= node->next) {
+		for(sock= node->inputs.first; sock; sock= sock->next)
+			write_node_socket(wd, sock);
+		for(sock= node->outputs.first; sock; sock= sock->next)
+			write_node_socket(wd, sock);
+
+		
 		if(node->storage && node->type!=NODE_DYNAMIC) {
 			/* could be handlerized at some point, now only 1 exception still */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
@@ -665,13 +712,9 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
-			else 
+			else
 				writestruct(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 		}
-		for(sock= node->inputs.first; sock; sock= sock->next)
-			writestruct(wd, DATA, "bNodeSocket", 1, sock);
-		for(sock= node->outputs.first; sock; sock= sock->next)
-			writestruct(wd, DATA, "bNodeSocket", 1, sock);
 	}
 	
 	for(link= ntree->links.first; link; link= link->next)
@@ -679,9 +722,9 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	
 	/* external sockets */
 	for(sock= ntree->inputs.first; sock; sock= sock->next)
-		writestruct(wd, DATA, "bNodeSocket", 1, sock);
+		write_node_socket(wd, sock);
 	for(sock= ntree->outputs.first; sock; sock= sock->next)
-		writestruct(wd, DATA, "bNodeSocket", 1, sock);
+		write_node_socket(wd, sock);
 }
 
 static void current_screen_compat(Main *mainvar, bScreen **screen)
@@ -933,7 +976,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 			writestruct(wd, DATA, "ClothSimSettings", 1, psys->clmd->sim_parms);
 			writestruct(wd, DATA, "ClothCollSettings", 1, psys->clmd->coll_parms);
 		}
-		
+
 		write_pointcaches(wd, &psys->ptcaches);
 	}
 }
@@ -1102,6 +1145,9 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 			break;
 		case ACT_ARMATURE:
 			writestruct(wd, DATA, "bArmatureActuator", 1, act->data);
+			break;
+		case ACT_STEERING:
+			writestruct(wd, DATA, "bSteeringActuator", 1, act->data);
 			break;
 		default:
 			; /* error: don't know how to write this file */
@@ -1308,6 +1354,12 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			if(tmd->curfalloff) {
 				write_curvemapping(wd, tmd->curfalloff);
 			}
+		}
+		else if (md->type==eModifierType_WeightVGEdit) {
+			WeightVGEditModifierData *wmd = (WeightVGEditModifierData*) md;
+
+			if (wmd->cmap_curve)
+				write_curvemapping(wd, wmd->cmap_curve);
 		}
 	}
 }

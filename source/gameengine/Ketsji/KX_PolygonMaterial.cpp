@@ -187,7 +187,7 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 			rasty->SetCullFace(true);
 
 		if ((m_drawingmode & RAS_IRasterizer::KX_LINES) ||
-		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
+		        (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
 			rasty->SetLines(true);
 		else
 			rasty->SetLines(false);

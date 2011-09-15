@@ -56,6 +56,7 @@
 #include "ED_armature.h"
 #include "ED_particle.h"
 #include "ED_curve.h"
+#include "ED_gpencil.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -127,6 +128,11 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	Object *obedit= CTX_data_edit_object(C);
 	Object *obact= CTX_data_active_object(C);
 	ScrArea *sa= CTX_wm_area(C);
+
+	/* grease pencil can be can be used in plenty of spaces, so check it first */
+	if(ED_gpencil_session_active()) {
+		return ED_undo_gpencil_step(C, step, undoname);
+	}
 
 	if(sa && sa->spacetype==SPACE_IMAGE) {
 		SpaceImage *sima= (SpaceImage *)sa->spacedata.first;

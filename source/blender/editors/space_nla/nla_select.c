@@ -228,7 +228,7 @@ static void borderselect_nla_strips (bAnimContext *ac, rcti rect, short mode, sh
 	SpaceNla *snla = (SpaceNla *)ac->sl;
 	View2D *v2d= &ac->ar->v2d;
 	rctf rectf;
-	float ymin=(float)(-NLACHANNEL_HEIGHT(snla)), ymax=0;
+	float ymin /* =(float)(-NLACHANNEL_HEIGHT(snla)) */ /* UNUSED */, ymax=0;
 	
 	/* convert border-region to view coordinates */
 	UI_view2d_region_to_view(v2d, rect.xmin, rect.ymin+2, &rectf.xmin, &rectf.ymin);

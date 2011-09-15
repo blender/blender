@@ -154,10 +154,10 @@ static int convex(float *p0, float *up, float *a, float *b)
 {
 	// Vec3 va = a-p0, vb = b-p0;
 	float va[3], vb[3], tmp[3];
-	VECSUB(va, a, p0);
-	VECSUB(vb, b, p0);
+	sub_v3_v3v3(va, a, p0);
+	sub_v3_v3v3(vb, b, p0);
 	cross_v3_v3v3(tmp, va, vb);
-	return INPR(up, tmp) >= 0;
+	return dot_v3v3(up, tmp) >= 0;
 }
 
 // copied from gpu_extension.c
@@ -280,20 +280,20 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 	cv[7][1] = min[1];
 	cv[7][2] = min[2];
 
-	VECCOPY(edges[0][0], cv[4]); // maxx, maxy, minz
-	VECCOPY(edges[1][0], cv[5]); // minx, maxy, minz
-	VECCOPY(edges[2][0], cv[6]); // minx, miny, minz
-	VECCOPY(edges[3][0], cv[7]); // maxx, miny, minz
+	copy_v3_v3(edges[0][0], cv[4]); // maxx, maxy, minz
+	copy_v3_v3(edges[1][0], cv[5]); // minx, maxy, minz
+	copy_v3_v3(edges[2][0], cv[6]); // minx, miny, minz
+	copy_v3_v3(edges[3][0], cv[7]); // maxx, miny, minz
 
-	VECCOPY(edges[4][0], cv[3]); // maxx, miny, maxz
-	VECCOPY(edges[5][0], cv[2]); // minx, miny, maxz
-	VECCOPY(edges[6][0], cv[6]); // minx, miny, minz
-	VECCOPY(edges[7][0], cv[7]); // maxx, miny, minz
+	copy_v3_v3(edges[4][0], cv[3]); // maxx, miny, maxz
+	copy_v3_v3(edges[5][0], cv[2]); // minx, miny, maxz
+	copy_v3_v3(edges[6][0], cv[6]); // minx, miny, minz
+	copy_v3_v3(edges[7][0], cv[7]); // maxx, miny, minz
 
-	VECCOPY(edges[8][0], cv[1]); // minx, maxy, maxz
-	VECCOPY(edges[9][0], cv[2]); // minx, miny, maxz
-	VECCOPY(edges[10][0], cv[6]); // minx, miny, minz
-	VECCOPY(edges[11][0], cv[5]); // minx, maxy, minz
+	copy_v3_v3(edges[8][0], cv[1]); // minx, maxy, maxz
+	copy_v3_v3(edges[9][0], cv[2]); // minx, miny, maxz
+	copy_v3_v3(edges[10][0], cv[6]); // minx, miny, minz
+	copy_v3_v3(edges[11][0], cv[5]); // minx, maxy, minz
 
 	// printf("size x: %f, y: %f, z: %f\n", size[0], size[1], size[2]);
 	// printf("min[2]: %f, max[2]: %f\n", min[2], max[2]);
@@ -332,7 +332,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 	*/
 
 	// get view vector
-	VECCOPY(viewnormal, rv3d->viewinv[2]);
+	copy_v3_v3(viewnormal, rv3d->viewinv[2]);
 	normalize_v3(viewnormal);
 
 	// find cube vertex that is closest to the viewer
@@ -407,10 +407,10 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 		if(dd*(float)n > ds)
 			break;
 
-		VECCOPY(tmp_point, viewnormal);
+		copy_v3_v3(tmp_point, viewnormal);
 		mul_v3_fl(tmp_point, -dd*((ds/dd)-(float)n));
-		VECADD(tmp_point2, cv[good_index], tmp_point);
-		d = INPR(tmp_point2, viewnormal);
+		add_v3_v3v3(tmp_point2, cv[good_index], tmp_point);
+		d = dot_v3v3(tmp_point2, viewnormal);
 
 		// printf("my d: %f\n", d);
 
@@ -421,7 +421,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 		// printf("points: %d\n", numpoints);
 
 		if (numpoints > 2) {
-			VECCOPY(p0, points);
+			copy_v3_v3(p0, points);
 
 			// sort points to get a convex polygon
 			for(i = 1; i < numpoints - 1; i++)
@@ -431,9 +431,9 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 					if(!convex(p0, viewnormal, &points[j * 3], &points[i * 3]))
 					{
 						float tmp2[3];
-						VECCOPY(tmp2, &points[j * 3]);
-						VECCOPY(&points[j * 3], &points[i * 3]);
-						VECCOPY(&points[i * 3], tmp2);
+						copy_v3_v3(tmp2, &points[j * 3]);
+						copy_v3_v3(&points[j * 3], &points[i * 3]);
+						copy_v3_v3(&points[i * 3], tmp2);
 					}
 				}
 			}

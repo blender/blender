@@ -585,6 +585,17 @@ static const char *rna_ensure_property_name(PropertyRNA *prop)
 
 /* Structs */
 
+StructRNA *RNA_struct_find(const char *identifier)
+{
+	StructRNA *type;
+	if (identifier) {
+		for (type = BLENDER_RNA.structs.first; type; type = type->cont.next)
+			if (strcmp(type->identifier, identifier)==0)
+				return type;
+	}
+	return NULL;
+}
+
 const char *RNA_struct_identifier(StructRNA *type)
 {
 	return type->identifier;
@@ -2326,7 +2337,16 @@ char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fi
 	else
 		buf= MEM_mallocN(sizeof(char)*(length+1), "RNA_string_get_alloc");
 
+#ifndef NDEBUG
+	/* safety check to ensure the string is actually set */
+	buf[length]= 255;
+#endif
+
 	RNA_property_string_get(ptr, prop, buf);
+
+#ifndef NDEBUG
+	BLI_assert(buf[length] == '\0');
+#endif
 
 	return buf;
 }
@@ -4497,7 +4517,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 		buf= MEM_mallocN(sizeof(char)*(length+1), "RNA_property_as_string");
 		buf_esc= MEM_mallocN(sizeof(char)*(length*2+1), "RNA_property_as_string esc");
 		RNA_property_string_get(ptr, prop, buf);
-		BLI_strescape(buf_esc, buf, length*2);
+		BLI_strescape(buf_esc, buf, length*2+1);
 		MEM_freeN(buf);
 		BLI_dynstr_appendf(dynstr, "\"%s\"", buf_esc);
 		MEM_freeN(buf_esc);
@@ -5464,13 +5484,19 @@ int RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, i
 	return 0;
 }
 
-void RNA_warning(const char *format, ...)
+/* use RNA_warning macro which includes __func__ suffix */
+void _RNA_warning(const char *format, ...)
 {
 	va_list args;
 
 	va_start(args, format);
 	vprintf(format, args);
 	va_end(args);
+
+	/* gcc macro adds '\n', but cant use for other compilers */
+#ifndef __GNUC__
+	fputc('\n', stdout);
+#endif
 
 #ifdef WITH_PYTHON
 	{

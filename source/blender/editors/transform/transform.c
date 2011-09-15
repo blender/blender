@@ -1094,7 +1094,7 @@ int calculateTransformCenter(bContext *C, int centerMode, float *vec)
 		calculateCenter(t);
 
 		// Copy center from constraint center. Transform center can be local
-		VECCOPY(vec, t->con.center);
+		copy_v3_v3(vec, t->con.center);
 	}
 
 
@@ -1213,7 +1213,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 		mval[0]= x;
 		mval[1]= y;
 
-		VECCOPY(vecrot, t->center);
+		copy_v3_v3(vecrot, t->center);
 		if(t->flag & T_EDIT) {
 			Object *ob= t->obedit;
 			if(ob) mul_m4_v3(ob->obmat, vecrot);
@@ -1681,7 +1681,14 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	if (RNA_property_is_set(op->ptr, "value"))
 	{
 		float values[4]= {0}; /* incase value isn't length 4, avoid uninitialized memory  */
-		RNA_float_get_array(op->ptr, "value", values);
+		PropertyRNA *prop= RNA_struct_find_property(op->ptr, "value");
+
+		if(RNA_property_array_check(prop)) {
+			RNA_float_get_array(op->ptr, "value", values);
+		} else {
+			values[0]= RNA_float_get(op->ptr, "value");
+		}
+
 		QUATCOPY(t->values, values);
 		QUATCOPY(t->auto_values, values);
 		t->flag |= T_AUTOVALUES;
@@ -1959,7 +1966,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		 *	- current space should be local
 		 */
 		unit_m4(cob.matrix);
-		VECCOPY(cob.matrix[3], td->loc);
+		copy_v3_v3(cob.matrix[3], td->loc);
 		
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
@@ -2018,7 +2025,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 		}
 		
 		/* copy results from cob->matrix */
-		VECCOPY(td->loc, cob.matrix[3]);
+		copy_v3_v3(td->loc, cob.matrix[3]);
 	}
 }
 
@@ -2288,8 +2295,8 @@ int Warp(TransInfo *t, const int UNUSED(mval[2]))
 	 * It needs to be in view space, but we need to take object's offset
 	 * into account if in Edit mode.
 	 */
-	VECCOPY(cursor, curs);
-	VECCOPY(gcursor, cursor);
+	copy_v3_v3(cursor, curs);
+	copy_v3_v3(gcursor, cursor);
 	if (t->flag & T_EDIT) {
 		sub_v3_v3(cursor, t->obedit->obmat[3]);
 		sub_v3_v3(gcursor, t->obedit->obmat[3]);
@@ -2332,7 +2339,7 @@ int Warp(TransInfo *t, const int UNUSED(mval[2]))
 			continue;
 		
 		/* translate point to center, rotate in such a way that outline==distance */
-		VECCOPY(vec, td->iloc);
+		copy_v3_v3(vec, td->iloc);
 		mul_m3_v3(td->mtx, vec);
 		mul_m4_v3(t->viewmat, vec);
 		sub_v3_v3(vec, t->viewmat[3]);
@@ -2599,23 +2606,23 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	/* local constraint shouldn't alter center */
 	if (t->around == V3D_LOCAL) {
 		if (t->flag & T_OBJECT) {
-			VECCOPY(center, td->center);
+			copy_v3_v3(center, td->center);
 		}
 		else if (t->flag & T_EDIT) {
 			
 			if(t->around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
-				VECCOPY(center, td->center);
+				copy_v3_v3(center, td->center);
 			}
 			else {
-				VECCOPY(center, t->center);
+				copy_v3_v3(center, t->center);
 			}
 		}
 		else {
-			VECCOPY(center, t->center);
+			copy_v3_v3(center, t->center);
 		}
 	}
 	else {
-		VECCOPY(center, t->center);
+		copy_v3_v3(center, t->center);
 	}
 	
 	if (td->ext) {
@@ -2715,10 +2722,10 @@ int Resize(TransInfo *t, const int mval[2])
 	
 	if (t->flag & T_AUTOVALUES)
 	{
-		VECCOPY(size, t->auto_values);
+		copy_v3_v3(size, t->auto_values);
 	}
 	
-	VECCOPY(t->values, size);
+	copy_v3_v3(t->values, size);
 	
 	size_to_mat3( mat,size);
 	
@@ -3016,7 +3023,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				mul_m3_m3m3(smat, td->smtx, totmat);
 				
 				/* calculate the total rotatation in eulers */
-				VECCOPY(eul, td->ext->irot);
+				copy_v3_v3(eul, td->ext->irot);
 				eulO_to_mat3( eulmat,eul, td->ext->rotOrder);
 				
 				/* mat = transform, obmat = bone rotation */
@@ -3026,7 +3033,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				/* and apply (to end result only) */
 				protectedRotateBits(td->protectflag, eul, td->ext->irot);
-				VECCOPY(td->ext->rot, eul);
+				copy_v3_v3(td->ext->rot, eul);
 			}
 			
 			constraintRotLim(t, td);
@@ -3096,7 +3103,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				/* and apply */
 				protectedRotateBits(td->protectflag, eul, td->ext->irot);
-				VECCOPY(td->ext->rot, eul);
+				copy_v3_v3(td->ext->rot, eul);
 			}
 			
 			constraintRotLim(t, td);
@@ -3240,8 +3247,8 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 	float mat[3][3], totmat[3][3], smat[3][3];
 	float phi[2];
 
-	VECCOPY(axis1, t->persinv[0]);
-	VECCOPY(axis2, t->persinv[1]);
+	copy_v3_v3(axis1, t->persinv[0]);
+	copy_v3_v3(axis2, t->persinv[1]);
 	normalize_v3(axis1);
 	normalize_v3(axis2);
 
@@ -3337,7 +3344,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 	else {
 		float dvec[3];
 
-		VECCOPY(dvec, vec);
+		copy_v3_v3(dvec, vec);
 		applyAspectRatio(t, dvec);
 
 		dist = len_v3(vec);
@@ -3444,7 +3451,7 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 			t->con.applyVec(t, td, vec, tvec, pvec);
 		}
 		else {
-			VECCOPY(tvec, vec);
+			copy_v3_v3(tvec, vec);
 		}
 		
 		mul_m3_v3(td->smtx, tvec);
@@ -3471,7 +3478,7 @@ int Translation(TransInfo *t, const int UNUSED(mval[2]))
 		}
 		applySnapping(t, t->values);
 		t->con.applyVec(t, NULL, t->values, tvec, pvec);
-		VECCOPY(t->values, tvec);
+		copy_v3_v3(t->values, tvec);
 		headerTranslation(t, pvec, str);
 	}
 	else {
@@ -3560,7 +3567,7 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		if (td->flag & TD_SKIP)
 			continue;
 
-		VECCOPY(vec, td->axismtx[2]);
+		copy_v3_v3(vec, td->axismtx[2]);
 		mul_v3_fl(vec, distance);
 		mul_v3_fl(vec, td->factor);
 
@@ -4604,7 +4611,7 @@ static int createSlideVerts(TransInfo *t)
 
 	add_v3_v3(start, end);
 	mul_v3_fl(start, 0.5f*(1.0f/totvec));
-	VECCOPY(vec, start);
+	copy_v3_v3(vec, start);
 	start[0] = t->mval[0];
 	start[1] = t->mval[1];
 	add_v3_v3v3(end, start, vec);
@@ -5211,7 +5218,7 @@ int Align(TransInfo *t, const int UNUSED(mval[2]))
 	int i;
 
 	/* saving original center */
-	VECCOPY(center, t->center);
+	copy_v3_v3(center, t->center);
 
 	for(i = 0 ; i < t->total; i++, td++)
 	{
@@ -5225,11 +5232,11 @@ int Align(TransInfo *t, const int UNUSED(mval[2]))
 
 		/* around local centers */
 		if (t->flag & (T_OBJECT|T_POSE)) {
-			VECCOPY(t->center, td->center);
+			copy_v3_v3(t->center, td->center);
 		}
 		else {
 			if(t->settings->selectmode & SCE_SELECT_FACE) {
-				VECCOPY(t->center, td->center);
+				copy_v3_v3(t->center, td->center);
 			}
 		}
 
@@ -5241,7 +5248,7 @@ int Align(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	/* restoring original center */
-	VECCOPY(t->center, center);
+	copy_v3_v3(t->center, center);
 
 	recalcData(t);
 
@@ -5313,7 +5320,7 @@ int SeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
 		float tvec[3];
 		t->con.applyVec(t, NULL, t->values, tvec, pvec);
-		VECCOPY(t->values, tvec);
+		copy_v3_v3(t->values, tvec);
 	}
 	else {
 		snapGrid(t, t->values);
@@ -5419,9 +5426,13 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 {
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
+
+#if 0   /* 'doTime' disabled for now */
+
 		const Scene *scene= t->scene;
 		const short doTime= 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behaviour given the option's label, hence disabled
 		const double secf= FPS;
+#endif
 		double val;
 		
 		/* convert frame to nla-action time (if needed) */
@@ -5430,11 +5441,17 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 		else
 			val= *(td->val);
 		
+#if 0	/* 'doTime' disabled for now */
+
 		/* do the snapping to nearest frame/second */
-		if (doTime)
+		if (doTime) {
 			val= (float)( floor((val/secf) + 0.5f) * secf );
+		}
 		else
+#endif
+		{
 			val= (float)( floor(val+0.5f) );
+		}
 		
 		/* convert frame out of nla-action time */
 		if (adt)

@@ -94,8 +94,9 @@ public:
 	 * Updates the handle for playback.
 	 * \param position The current time during playback.
 	 * \param frame The current frame during playback.
+	 * \param fps The animation frames per second.
 	 */
-	void update(float position, float frame);
+	void update(float position, float frame, float fps);
 
 	/**
 	 * Seeks the handle to a specific time position.

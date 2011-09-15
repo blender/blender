@@ -67,7 +67,7 @@ static char global_language[32];
 static char global_encoding_name[32];
 
 /* map from the rna_userdef.c:rna_def_userdef_system(BlenderRNA *brna):language_items */
-static char *locales[] = {
+static const char *locales[] = {
 	"", "",
 	"english", "en_US",
 	"japanese", "ja_JP",
@@ -112,7 +112,7 @@ void BLF_lang_init(void)
 void BLF_lang_set(const char *str)
 {
 	char *locreturn;
-	char *short_locale;
+	const char *short_locale;
 #if defined (_WIN32)
 	char *long_locale = locales[ 2 * U.language];
 #endif

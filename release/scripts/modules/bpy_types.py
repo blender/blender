@@ -356,7 +356,7 @@ class Mesh(bpy_types.ID):
 
     @property
     def edge_keys(self):
-        return [edge_key for face in self.faces for edge_key in face.edge_keys]
+        return [ed.key for ed in self.edges]
 
 
 class MeshEdge(StructRNA):
@@ -376,17 +376,31 @@ class MeshFace(StructRNA):
         face_verts = self.vertices[:]
         mesh_verts = self.id_data.vertices
         if len(face_verts) == 3:
-            return (mesh_verts[face_verts[0]].co + mesh_verts[face_verts[1]].co + mesh_verts[face_verts[2]].co) / 3.0
+            return (mesh_verts[face_verts[0]].co +
+                    mesh_verts[face_verts[1]].co +
+                    mesh_verts[face_verts[2]].co
+                    ) / 3.0
         else:
-            return (mesh_verts[face_verts[0]].co + mesh_verts[face_verts[1]].co + mesh_verts[face_verts[2]].co + mesh_verts[face_verts[3]].co) / 4.0
+            return (mesh_verts[face_verts[0]].co +
+                    mesh_verts[face_verts[1]].co +
+                    mesh_verts[face_verts[2]].co +
+                    mesh_verts[face_verts[3]].co
+                    ) / 4.0
 
     @property
     def edge_keys(self):
         verts = self.vertices[:]
         if len(verts) == 3:
-            return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[0])
-
-        return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[3]), ord_ind(verts[3], verts[0])
+            return (ord_ind(verts[0], verts[1]),
+                    ord_ind(verts[1], verts[2]),
+                    ord_ind(verts[2], verts[0]),
+                    )
+        else:
+            return (ord_ind(verts[0], verts[1]),
+                    ord_ind(verts[1], verts[2]),
+                    ord_ind(verts[2], verts[3]),
+                    ord_ind(verts[3], verts[0]),
+                    )
 
 
 class Text(bpy_types.ID):

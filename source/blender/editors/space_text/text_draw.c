@@ -1190,7 +1190,7 @@ static void draw_textscroll(SpaceText *st, rcti *scroll, rcti *back)
 
 	uiWidgetScrollDraw(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT)?UI_SCROLL_PRESSED:0);
 
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	rad= 0.4f*MIN2(st->txtscroll.xmax - st->txtscroll.xmin, st->txtscroll.ymax - st->txtscroll.ymin);
 	UI_GetThemeColor3ubv(TH_HILITE, col);
 	col[3]= 48;
@@ -1821,12 +1821,10 @@ void text_update_character_width(SpaceText *st)
 
 /* Moves the view to the cursor location,
   also used to make sure the view isnt outside the file */
-void text_update_cursor_moved(bContext *C)
+void text_scroll_to_cursor(SpaceText *st, ScrArea *sa)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	SpaceText *st= CTX_wm_space_text(C);
 	Text *text;
-	ARegion *ar;
+	ARegion *ar= NULL;
 	int i, x, winx= 0;
 
 	if(ELEM3(NULL, st, st->text, st->text->curl)) return;
@@ -1834,8 +1832,10 @@ void text_update_cursor_moved(bContext *C)
 	text= st->text;
 
 	for(ar=sa->regionbase.first; ar; ar= ar->next)
-		if(ar->regiontype==RGN_TYPE_WINDOW)
+		if(ar->regiontype==RGN_TYPE_WINDOW) {
 			winx= ar->winx;
+			break;
+		}
 	
 	winx -= TXT_SCROLL_WIDTH;
 
@@ -1844,7 +1844,7 @@ void text_update_cursor_moved(bContext *C)
 	i= txt_get_span(text->lines.first, text->sell);
 	if(st->wordwrap) {
 		int offl, offc;
-		wrap_offset(st, CTX_wm_region(C), text->sell, text->selc, &offl, &offc);
+		wrap_offset(st, ar, text->sell, text->selc, &offl, &offc);
 		i+= offl;
 	}
 
@@ -1865,3 +1865,10 @@ void text_update_cursor_moved(bContext *C)
 	if(st->left <0) st->left= 0;
 }
 
+void text_update_cursor_moved(bContext *C)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceText *st= CTX_wm_space_text(C);
+
+	text_scroll_to_cursor(st, sa);
+}

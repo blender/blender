@@ -983,7 +983,7 @@ static PyObject *M_Geometry_tesselate_polygon(PyObject *UNUSED(self), PyObject *
 
 static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 {
-	int len, i;
+	Py_ssize_t len, i;
 	PyObject *list_item, *item_1, *item_2;
 	boxPack *box;
 
@@ -995,14 +995,14 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 		return -1;
 	}
 
-	len= PyList_Size(value);
+	len= PyList_GET_SIZE(value);
 
 	(*boxarray)= MEM_mallocN(len*sizeof(boxPack), "boxPack box");
 
 
 	for(i= 0; i < len; i++) {
 		list_item= PyList_GET_ITEM(value, i);
-		if(!PyList_Check(list_item) || PyList_Size(list_item) < 4) {
+		if(!PyList_Check(list_item) || PyList_GET_SIZE(list_item) < 4) {
 			MEM_freeN(*boxarray);
 			PyErr_SetString(PyExc_TypeError,
 			                "can only pack a list of [x, y, w, h]");
@@ -1034,11 +1034,11 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 
 static void boxPack_ToPyObject(PyObject *value, boxPack **boxarray)
 {
-	int len, i;
+	Py_ssize_t len, i;
 	PyObject *list_item;
 	boxPack *box;
 
-	len= PyList_Size(value);
+	len= PyList_GET_SIZE(value);
 
 	for(i= 0; i < len; i++) {
 		box= (*boxarray)+i;
@@ -1062,7 +1062,7 @@ PyDoc_STRVAR(M_Geometry_box_pack_2d_doc,
 static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlist)
 {
 	float tot_width= 0.0f, tot_height= 0.0f;
-	int len;
+	Py_ssize_t len;
 
 	PyObject *ret;
 

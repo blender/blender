@@ -411,10 +411,10 @@ static ReebNode *sk_pointToNode(SK_Point *pt, float imat[][4], float tmat[][3])
 	ReebNode *node;
 
 	node = MEM_callocN(sizeof(ReebNode), "reeb node");
-	VECCOPY(node->p, pt->p);
+	copy_v3_v3(node->p, pt->p);
 	mul_m4_v3(imat, node->p);
 
-	VECCOPY(node->no, pt->no);
+	copy_v3_v3(node->no, pt->no);
 	mul_m3_v3(tmat, node->no);
 
 	return node;
@@ -434,10 +434,10 @@ static ReebArc *sk_strokeToArc(SK_Stroke *stk, float imat[][4], float tmat[][3])
 
 	for (i = 0; i < arc->bcount; i++)
 	{
-		VECCOPY(arc->buckets[i].p, stk->points[i + 1].p);
+		copy_v3_v3(arc->buckets[i].p, stk->points[i + 1].p);
 		mul_m4_v3(imat, arc->buckets[i].p);
 
-		VECCOPY(arc->buckets[i].no, stk->points[i + 1].no);
+		copy_v3_v3(arc->buckets[i].no, stk->points[i + 1].no);
 		mul_m3_v3(tmat, arc->buckets[i].no);
 	}
 
@@ -1804,8 +1804,8 @@ void sk_applyCutGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UNUSED
 
 		pt.type = PT_EXACT;
 		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
-		VECCOPY(pt.p, isect->p);
-		VECCOPY(pt.no, isect->stroke->points[isect->before].no);
+		copy_v3_v3(pt.p, isect->p);
+		copy_v3_v3(pt.no, isect->stroke->points[isect->before].no);
 
 		sk_insertStrokePoint(isect->stroke, &pt, isect->after);
 	}
@@ -1846,8 +1846,8 @@ void sk_applyTrimGesture(bContext *UNUSED(C), SK_Gesture *gest, SK_Sketch *UNUSE
 
 		pt.type = PT_EXACT;
 		pt.mode = PT_PROJECT; /* take mode from neighbouring points */
-		VECCOPY(pt.p, isect->p);
-		VECCOPY(pt.no, isect->stroke->points[isect->before].no);
+		copy_v3_v3(pt.p, isect->p);
+		copy_v3_v3(pt.no, isect->stroke->points[isect->before].no);
 
 		sub_v3_v3v3(stroke_dir, isect->stroke->points[isect->after].p, isect->stroke->points[isect->before].p);
 

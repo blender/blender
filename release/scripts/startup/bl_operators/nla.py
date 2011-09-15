@@ -271,7 +271,8 @@ class BakeAction(Operator):
 
 
 class ClearUselessActions(Operator):
-    '''Mark actions with no F-Curves for deletion after save+reload of file preserving "action libraries"'''
+    '''Mark actions with no F-Curves for deletion after save+reload of ''' \
+    '''file preserving "action libraries"'''
     bl_idname = "anim.clear_useless_actions"
     bl_label = "Clear Useless Actions"
     bl_options = {'REGISTER', 'UNDO'}
@@ -292,12 +293,14 @@ class ClearUselessActions(Operator):
             if ((self.only_unused is False) or
                 (action.use_fake_user and action.users == 1)):
 
-                # if it has F-Curves, then it's a "action library" (i.e. walk, wave, jump, etc.)
+                # if it has F-Curves, then it's a "action library"
+                # (i.e. walk, wave, jump, etc.)
                 # and should be left alone as that's what fake users are for!
                 if not action.fcurves:
                     # mark action for deletion
                     action.user_clear()
                     removed += 1
 
-        self.report({'INFO'}, "Removed %d empty and/or fake-user only Actions" % (removed))
+        self.report({'INFO'}, "Removed %d empty and/or fake-user only Actions"
+                              % removed)
         return {'FINISHED'}

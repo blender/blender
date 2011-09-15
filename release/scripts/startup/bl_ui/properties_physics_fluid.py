@@ -46,7 +46,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
 
             row = layout.row()
             if fluid is None:
-                row.label(_("built without fluids"))
+                row.label(_("Built without fluids"))
                 return
 
             row.prop(fluid, "type")

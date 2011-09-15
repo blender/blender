@@ -257,7 +257,7 @@ SG_Controller *BL_CreateCameraIPO(struct bAction *action, KX_GameObject*  camera
 	ipocontr->m_clipstart = blendercamera->clipsta;
 	ipocontr->m_clipend = blendercamera->clipend;
 
-	BL_InterpolatorList *adtList= GetAdtList(blendercamera->adt->action, converter);
+	BL_InterpolatorList *adtList= GetAdtList(action, converter);
 
 	// For each active channel in the adtList add an
 	// interpolator to the game object.

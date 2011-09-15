@@ -71,30 +71,14 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
 			sock->flag &= ~SOCK_HIDDEN;
 	}
 	else {
-		bNode *gnode= node_tree_get_editgroup(snode->nodetree);
-
-		/* hiding inside group should not break links in other group users */
-		if(gnode) {
-			nodeGroupSocketUseFlags((bNodeTree *)gnode->id);
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(!(sock->flag & SOCK_IN_USE))
-					if(sock->link==NULL)
-						sock->flag |= SOCK_HIDDEN;
-			for(sock= node->outputs.first; sock; sock= sock->next)
-				if(!(sock->flag & SOCK_IN_USE))
-					if(nodeCountSocketLinks(snode->edittree, sock)==0)
-						sock->flag |= SOCK_HIDDEN;
+		/* hide unused sockets */
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			if(sock->link==NULL)
+				sock->flag |= SOCK_HIDDEN;
 		}
-		else {
-			/* hide unused sockets */
-			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(sock->link==NULL)
-					sock->flag |= SOCK_HIDDEN;
-			}
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(nodeCountSocketLinks(snode->edittree, sock)==0)
-					sock->flag |= SOCK_HIDDEN;
-			}
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			if(nodeCountSocketLinks(snode->edittree, sock)==0)
+				sock->flag |= SOCK_HIDDEN;
 		}
 	}
 }
@@ -102,7 +86,7 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
 static void node_hide_unhide_sockets(SpaceNode *snode, bNode *node)
 {
 	node_set_hidden_sockets(snode, node, !node_has_hidden_sockets(node));
-	node_tree_verify_groups(snode->nodetree);
+	ntreeUpdateTree(snode->edittree);
 }
 
 static int do_header_node(SpaceNode *snode, bNode *node, float mx, float my)
@@ -170,7 +154,7 @@ static int node_toggle_visibility(SpaceNode *snode, ARegion *ar, const int mval[
 	
 	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &mx, &my);
 	
-	for(next_node(snode->edittree); (node=next_node(NULL));) {
+	for(node=snode->edittree->nodes.last; node; node=node->prev) {
 		if(node->flag & NODE_HIDDEN) {
 			if(do_header_hidden_node(node, mx, my)) {
 				ED_region_tag_redraw(ar);

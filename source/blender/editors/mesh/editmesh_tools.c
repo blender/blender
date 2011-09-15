@@ -1469,8 +1469,8 @@ static void alter_co(float *co, EditEdge *edge, float smooth, float fractal, int
 		sub_v3_v3v3(nor, edge->v1->co, edge->v2->co);
 		len= 0.5f*normalize_v3(nor);
 
-		VECCOPY(nor1, edge->v1->no);
-		VECCOPY(nor2, edge->v2->no);
+		copy_v3_v3(nor1, edge->v1->no);
+		copy_v3_v3(nor2, edge->v2->no);
 
 		/* cosine angle */
 		fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;
@@ -2678,7 +2678,7 @@ void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float 
 	}
 
 	for (; md; md=md->next) {
-		if (md->type==eModifierType_Mirror) {
+		if ((md->type==eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;
 
 			if(mmd->flag & MOD_MIR_CLIPPING) {
@@ -3237,13 +3237,13 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 	normal_tri_v3( noA2,v1->co, v3->co, v4->co);
 
 	if(noA1[0] == noA2[0] && noA1[1] == noA2[1] && noA1[2] == noA2[2]) normalADiff = 0.0;
-	else normalADiff = RAD2DEGF(angle_v2v2(noA1, noA2));
+	else normalADiff = RAD2DEGF(angle_v3v3(noA1, noA2));
 		//if(!normalADiff) normalADiff = 179;
 	normal_tri_v3( noB1,v2->co, v3->co, v4->co);
 	normal_tri_v3( noB2,v4->co, v1->co, v2->co);
 
 	if(noB1[0] == noB2[0] && noB1[1] == noB2[1] && noB1[2] == noB2[2]) normalBDiff = 0.0;
-	else normalBDiff = RAD2DEGF(angle_v2v2(noB1, noB2));
+	else normalBDiff = RAD2DEGF(angle_v3v3(noB1, noB2));
 		//if(!normalBDiff) normalBDiff = 179;
 
 	measure += (normalADiff/360) + (normalBDiff/360);
@@ -3258,10 +3258,10 @@ static float measure_facepair(EditVert *v1, EditVert *v2, EditVert *v3, EditVert
 	diff = 0.0;
 
 	diff = (
-		fabsf(RAD2DEGF(angle_v2v2(edgeVec1, edgeVec2)) - 90) +
-		fabsf(RAD2DEGF(angle_v2v2(edgeVec2, edgeVec3)) - 90) +
-		fabsf(RAD2DEGF(angle_v2v2(edgeVec3, edgeVec4)) - 90) +
-		fabsf(RAD2DEGF(angle_v2v2(edgeVec4, edgeVec1)) - 90)) / 360;
+		fabsf(RAD2DEGF(angle_v3v3(edgeVec1, edgeVec2)) - 90) +
+		fabsf(RAD2DEGF(angle_v3v3(edgeVec2, edgeVec3)) - 90) +
+		fabsf(RAD2DEGF(angle_v3v3(edgeVec3, edgeVec4)) - 90) +
+		fabsf(RAD2DEGF(angle_v3v3(edgeVec4, edgeVec1)) - 90)) / 360;
 	if(!diff) return 0.0;
 
 	measure +=  diff;
@@ -4872,7 +4872,7 @@ void mesh_set_face_flags(EditMesh *em, short mode)
 /* helper to find edge for edge_rip */
 static float mesh_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const int mval[2])
 {
-	float vec1[3], vec2[3], mvalf[2];
+	float vec1[2], vec2[2], mvalf[2];
 
 	ED_view3d_project_float(ar, co1, vec1, mat);
 	ED_view3d_project_float(ar, co2, vec2, mat);

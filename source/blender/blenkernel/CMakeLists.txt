@@ -35,7 +35,6 @@ set(INC
 	../blenfont
 	../blenlib
 	../blenloader
-	../editors/include
 	../gpu
 	../ikplugin
 	../imbuf
@@ -351,6 +350,16 @@ if(WITH_LZMA)
 		../../../extern/lzma
 	)
 	add_definitions(-DWITH_LZMA)
+endif()
+
+if(WITH_GAMEENGINE)
+	list(APPEND INC_SYS
+        ../../../extern/recastnavigation/Recast/Include
+	)
+	list(APPEND SRC
+		intern/navmesh_conversion.cpp
+		BKE_navmesh_conversion.h
+	)
 endif()
 
 if(MSVC)

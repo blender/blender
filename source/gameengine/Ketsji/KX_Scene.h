@@ -88,6 +88,7 @@ class SCA_JoystickManager;
 class btCollisionShape;
 class KX_BlenderSceneConverter;
 struct KX_ClientObjectInfo;
+class KX_ObstacleSimulation;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -130,6 +131,7 @@ protected:
 	CListValue*			m_parentlist; // all 'root' parents
 	CListValue*			m_lightlist;
 	CListValue*			m_inactivelist;	// all objects that are not in the active layer
+	CListValue*			m_animatedlist; // all animated objects
 	
 	SG_QList			m_sghead;		// list of nodes that needs scenegraph update
 										// the Dlist is not object that must be updated
@@ -292,6 +294,9 @@ protected:
 	struct Scene* m_blenderScene;
 
 	RAS_2DFilterManager m_filtermanager;
+
+	KX_ObstacleSimulation* m_obstacleSimulation;
+
 public:	
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
@@ -334,6 +339,10 @@ public:
 	int NewRemoveObject(CValue* gameobj);
 	void ReplaceMesh(CValue* gameobj,
 					 void* meshob, bool use_gfx, bool use_phys);
+
+	void AddAnimatedObject(CValue* gameobj);
+	void RemoveAnimatedObject(CValue* gameobj);
+
 	/**
 	 * @section Logic stuff
 	 * Initiate an update of the logic system.
@@ -580,6 +589,8 @@ public:
 	void Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
 	void Render2DFilters(RAS_ICanvas* canvas);
 
+	KX_ObstacleSimulation* GetObstacleSimulation() {return m_obstacleSimulation;};
+
 #ifdef WITH_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
@@ -592,6 +603,8 @@ public:
 	KX_PYMETHOD_DOC(KX_Scene, suspend);
 	KX_PYMETHOD_DOC(KX_Scene, resume);
 	KX_PYMETHOD_DOC(KX_Scene, get);
+	KX_PYMETHOD_DOC(KX_Scene, drawObstacleSimulation);
+
 
 	/* attributes */
 	static PyObject*	pyattr_get_name(void* self_v, const KX_PYATTRIBUTE_DEF *attrdef);

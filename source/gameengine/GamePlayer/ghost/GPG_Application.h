@@ -39,6 +39,8 @@
 #include <wtypes.h>
 #endif
 
+#include "KX_KetsjiEngine.h"
+
 class KX_KetsjiEngine;
 class KX_ISceneConverter;
 class NG_LoopBackNetworkDeviceInterface;
@@ -61,7 +63,7 @@ public:
 	GPG_Application(GHOST_ISystem* system);
 	~GPG_Application(void);
 
-			bool SetGameEngineData(struct Main* maggie, struct Scene* scene, int argc, char** argv);
+			bool SetGameEngineData(struct Main* maggie, struct Scene* scene, GlobalSettings* gs, int argc, char** argv);
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
 			const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
 			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
@@ -74,6 +76,7 @@ public:
 	virtual	bool processEvent(GHOST_IEvent* event);
 			int getExitRequested(void);
 			const STR_String& getExitString(void);
+			GlobalSettings* getGlobalSettings(void);
 			bool StartGameEngine(int stereoMode);
 			void StopGameEngine();
 
@@ -111,6 +114,8 @@ protected:
 	/* Exit state. */
 	int						m_exitRequested;
 	STR_String				m_exitString;
+	GlobalSettings*	m_globalSettings;
+
 	/* GHOST system abstraction. */
 	GHOST_ISystem*			m_system;
 	/* Main window. */

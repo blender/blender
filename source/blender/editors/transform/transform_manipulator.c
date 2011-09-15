@@ -57,6 +57,7 @@
 
 #include "BKE_action.h"
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
@@ -75,7 +76,6 @@
 #include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_view3d.h"
-#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "UI_resources.h"
 
@@ -395,7 +395,7 @@ int calc_manipulator_stats(const bContext *C)
 			Nurb *nu;
 			BezTriple *bezt;
 			BPoint *bp;
-			ListBase *nurbs= ED_curve_editnurbs(cu);
+			ListBase *nurbs= curve_editnurbs(cu);
 
 			nu= nurbs->first;
 			while(nu) {
@@ -884,7 +884,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 
 	if(arcs) {
 		/* clipplane makes nice handles, calc here because of multmatrix but with translate! */
-		VECCOPY(plane, rv3d->viewinv[2]);
+		VECCOPY(plane, rv3d->viewinv[2]); /* float -> double */
 		plane[3]= -0.02f*size; // clip just a bit more
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
@@ -1498,15 +1498,15 @@ void BIF_draw_manipulator(const bContext *C)
 			if(v3d->around==V3D_ACTIVE && scene->obedit==NULL) {
 				Object *ob= OBACT;
 				if(ob && !(ob->mode & OB_MODE_POSE))
-					VECCOPY(rv3d->twmat[3], ob->obmat[3]);
+					copy_v3_v3(rv3d->twmat[3], ob->obmat[3]);
 			}
 			break;
 		case V3D_LOCAL:
 		case V3D_CENTROID:
-			VECCOPY(rv3d->twmat[3], scene->twcent);
+			copy_v3_v3(rv3d->twmat[3], scene->twcent);
 			break;
 		case V3D_CURSOR:
-			VECCOPY(rv3d->twmat[3], give_cursor(scene, v3d));
+			copy_v3_v3(rv3d->twmat[3], give_cursor(scene, v3d));
 			break;
 		}
 

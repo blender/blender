@@ -773,7 +773,18 @@ class USERPREF_MT_ndof_settings(Menu):
 
             layout.separator()
             layout.label(text="orbit options")
-            layout.prop(input_prefs, "ndof_orbit_invert_axes")
+            if input_prefs.view_rotate_method == 'TRACKBALL':
+                layout.prop(input_prefs, "ndof_roll_invert_axis")
+                layout.prop(input_prefs, "ndof_tilt_invert_axis")
+                layout.prop(input_prefs, "ndof_rotate_invert_axis")
+            else:
+                layout.prop(input_prefs, "ndof_orbit_invert_axes")
+
+            layout.separator()
+            layout.label(text="pan options")
+            layout.prop(input_prefs, "ndof_panx_invert_axis")
+            layout.prop(input_prefs, "ndof_pany_invert_axis")
+            layout.prop(input_prefs, "ndof_panz_invert_axis")
 
             layout.separator()
             layout.label(text="fly options")

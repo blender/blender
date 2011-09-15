@@ -751,6 +751,11 @@ int main(int argc, char** argv)
 				if(filename[0])
 					BLI_path_cwd(filename);
 				
+
+				// fill the GlobalSettings with the first scene files
+				// those may change during the game and persist after using Game Actuator
+				GlobalSettings gs;
+
 				do
 				{
 					// Read the Blender file
@@ -804,8 +809,12 @@ int main(int argc, char** argv)
 						Scene *scene = bfd->curscene;
 						G.main = maggie;
 
-						if (firstTimeRunning)
+						if (firstTimeRunning) {
 							G.fileflags  = bfd->fileflags;
+
+							gs.matmode= scene->gm.matmode;
+							gs.glslflag= scene->gm.flag;
+						}
 
 						//Seg Fault; icon.c gIcons == 0
 						BKE_icons_init(1);
@@ -866,7 +875,7 @@ int main(int argc, char** argv)
 						}
 						
 						//					GPG_Application app (system, maggie, startscenename);
-						app.SetGameEngineData(maggie, scene, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
+						app.SetGameEngineData(maggie, scene, &gs, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
 						if(G.main != maggie) {
 							BLI_strncpy(G.main->name, maggie->name, sizeof(G.main->name));
@@ -962,6 +971,7 @@ int main(int argc, char** argv)
 							{
 								run = false;
 								exitstring = app.getExitString();
+								gs = *app.getGlobalSettings();
 							}
 						}
 						app.StopGameEngine();

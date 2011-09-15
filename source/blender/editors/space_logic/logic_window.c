@@ -718,6 +718,8 @@ static const char *actuator_name(int type)
 		return "State";
 	case ACT_ARMATURE:
 		return "Armature";
+	case ACT_STEERING:
+		return "Steering";		
 	}
 	return "unknown";
 }
@@ -3989,40 +3991,6 @@ static void draw_actuator_game(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(layout, ptr, "filename", 0, NULL, ICON_NONE);
 }
 
-/* The IPO/Fcurve actuator has been deprecated, so this is no longer used */
-static void draw_actuator_ipo(uiLayout *layout, PointerRNA *ptr)
-{
-	Object *ob;
-	PointerRNA settings_ptr;
-	uiLayout *row, *subrow, *col;
-
-	ob = (Object *)ptr->id.data;
-	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
-
-	row= uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "play_type", 0, "", ICON_NONE);
-	subrow= uiLayoutRow(row, 1);
-	uiItemR(subrow, ptr, "use_force", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
-	uiItemR(subrow, ptr, "use_additive", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
-
-	col = uiLayoutColumn(subrow, 0);
-	uiLayoutSetActive(col, (RNA_boolean_get(ptr, "use_additive") || RNA_boolean_get(ptr, "use_force")));
-	uiItemR(col, ptr, "use_local", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
-
-	row= uiLayoutRow(layout, 0);
-	if((RNA_enum_get(ptr, "play_type") == ACT_IPO_FROM_PROP))
-		uiItemPointerR(row, ptr, "property", &settings_ptr, "properties", NULL, ICON_NONE);
-
-	else {
-		uiItemR(row, ptr, "frame_start", 0, NULL, ICON_NONE);
-		uiItemR(row, ptr, "frame_end", 0, NULL, ICON_NONE);
-	}
-	uiItemR(row, ptr, "apply_to_children", 0, NULL, ICON_NONE);
-
-	row= uiLayoutRow(layout, 0);
-	uiItemPointerR(row, ptr, "frame_property", &settings_ptr, "properties", NULL, ICON_NONE);
-}
-
 static void draw_actuator_message(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	Object *ob;
@@ -4379,6 +4347,48 @@ static void draw_actuator_visibility(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "apply_to_children", 0, NULL, ICON_NONE);
 }
 
+static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row;
+	uiLayout *col;
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	uiItemR(layout, ptr, "target", 0, NULL, 0);
+	uiItemR(layout, ptr, "navmesh", 0, NULL, 0);	
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "distance", 0, NULL, 0);
+	uiItemR(row, ptr, "velocity", 0, NULL, 0);
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "acceleration", 0, NULL, 0);
+	uiItemR(row, ptr, "turn_speed", 0, NULL, 0);
+
+	row = uiLayoutRow(layout, 0);
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "facing", 0, NULL, 0);
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "facing_axis", 0, NULL, 0);
+	if (!RNA_boolean_get(ptr, "facing"))
+	{
+		uiLayoutSetActive(col, 0);
+	}
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "normal_up", 0, NULL, 0);
+	if (!RNA_pointer_get(ptr, "navmesh").data)
+	{
+		uiLayoutSetActive(col, 0);
+	}
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "self_terminated", 0, NULL, 0);
+	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING)
+	{
+		uiItemR(row, ptr, "update_period", 0, NULL, 0);	
+		row = uiLayoutRow(layout, 0);
+	}
+	uiItemR(row, ptr, "show_visualization", 0, NULL, 0);	
+}
+
 static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *box;
@@ -4440,6 +4450,8 @@ static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 		case ACT_VISIBILITY:
 			draw_actuator_visibility(box, ptr);
 			break;
+		case ACT_STEERING:
+			draw_actuator_steering(box, ptr);
 	}
 }
 

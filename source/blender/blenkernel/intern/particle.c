@@ -2090,10 +2090,10 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 			data = eff->guide_data + p;
 
 			VECSUB(efd.vec_to_point, state.co, eff->guide_loc);
-			VECCOPY(efd.nor, eff->guide_dir);
+			copy_v3_v3(efd.nor, eff->guide_dir);
 			efd.distance = len_v3(efd.vec_to_point);
 
-			VECCOPY(data->vec_to_point, efd.vec_to_point);
+			copy_v3_v3(data->vec_to_point, efd.vec_to_point);
 			data->strength = effector_falloff(eff, &efd, &point, weights);
 		}
 	}

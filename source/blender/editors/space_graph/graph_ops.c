@@ -43,6 +43,7 @@
 #include "BLF_api.h"
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_sound.h"
 
 #include "UI_view2d.h"
@@ -72,6 +73,7 @@
 /* Set the new frame number */
 static void graphview_cursor_apply(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	
@@ -80,7 +82,7 @@ static void graphview_cursor_apply(bContext *C, wmOperator *op)
 	 */
 	CFRA= RNA_int_get(op->ptr, "frame");
 	SUBFRA=0.f;
-	sound_seek_scene(C);
+	sound_seek_scene(bmain, scene);
 	
 	/* set the cursor value */
 	sipo->cursorVal= RNA_float_get(op->ptr, "value");

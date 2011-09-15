@@ -394,8 +394,8 @@ static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int
 		for(i=0; i<node->totpoint; i++) {
 			ScatterPoint *p= &node->points[i];
 
-			VECSUB(sub, co, p->co);
-			dist= INPR(sub, sub);
+			sub_v3_v3v3(sub, co, p->co);
+			dist= dot_v3v3(sub, sub);
 
 			if(p->back)
 				add_radiance(tree, NULL, p->rad, 0.0f, p->area, dist, result);
@@ -418,8 +418,8 @@ static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int
 				}
 				else {
 					/* decide subnode traversal based on maximum solid angle */
-					VECSUB(sub, co, subnode->co);
-					dist= INPR(sub, sub);
+					sub_v3_v3v3(sub, co, subnode->co);
+					dist= dot_v3v3(sub, sub);
 
 					/* actually area/dist > error, but this avoids division */
 					if(subnode->area+subnode->backarea>tree->error*dist) {

@@ -99,7 +99,7 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 		UI_GetThemeColor3ubv(TH_SEQ_SCENE, col);
 		
 		if(seq->scene==curscene) {
-			UI_GetColorPtrBlendShade3ubv(col, col, col, 1.0, 20);
+			UI_GetColorPtrShade3ubv(col, col, 20);
 		}
 		break;
 		
@@ -299,7 +299,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 
 			glRectf(x1_chan,  y1_chan, x2_chan,  y2_chan);
 
-			UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -30);
+			UI_GetColorPtrShade3ubv(col, col, -30);
 			glColor4ubv(col);
 			fdrawbox(x1_chan,  y1_chan, x2_chan,  y2_chan);
 
@@ -473,7 +473,7 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 		/* feint pinstripes, helps see exactly which is extended and which isn't,
 		* especially when the extension is very small */ 
 		if (seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 24);
-		else UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -16);
+		else UI_GetColorPtrShade3ubv(col, col, -16);
 		
 		glColor3ubv((GLubyte *)col);
 		
@@ -490,8 +490,8 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 		
 		/* feint pinstripes, helps see exactly which is extended and which isn't,
 		* especially when the extension is very small */ 
-		if (seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 24);
-		else UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -16);
+		if (seq->flag & SELECT) UI_GetColorPtrShade3ubv(col, col, 24);
+		else UI_GetColorPtrShade3ubv(col, col, -16);
 		
 		glColor3ubv((GLubyte *)col);
 		
@@ -584,8 +584,8 @@ static void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, floa
 	glBegin(GL_QUADS);
 	
 	if(seq->flag & SEQ_INVALID_EFFECT) { col[0]= 255; col[1]= 0; col[2]= 255; }
-	else if(seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -50);
-	else UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 0);
+	else if(seq->flag & SELECT) UI_GetColorPtrShade3ubv(col, col, -50);
+	/* else UI_GetColorPtrShade3ubv(col, col, 0); */ /* DO NOTHING */
 	
 	glColor3ubv(col);
 	
@@ -594,7 +594,7 @@ static void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, floa
 
 	if(seq->flag & SEQ_INVALID_EFFECT) { col[0]= 255; col[1]= 0; col[2]= 255; }
 	else if(seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 5);
-	else UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -5);
+	else UI_GetColorPtrShade3ubv(col, col, -5);
 
 	glColor3ubv((GLubyte *)col);
 	
@@ -610,8 +610,8 @@ static void draw_shadedstrip(Sequence *seq, unsigned char col[3], float x1, floa
 	glVertex2f(x1,ymid2);
 	glVertex2f(x2,ymid2);
 	
-	if(seq->flag & SELECT) UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -15);
-	else UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 25);
+	if(seq->flag & SELECT) UI_GetColorPtrShade3ubv(col, col, -15);
+	else UI_GetColorPtrShade3ubv(col, col, 25);
 	
 	glColor3ubv((GLubyte *)col);
 	
@@ -697,10 +697,10 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 			col[0]= 255; col[1]= col[2]= 40;
 		}
 		else
-			UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 120+outline_tint);
+			UI_GetColorPtrShade3ubv(col, col, 120+outline_tint);
 	}
 	else
-		UI_GetColorPtrBlendShade3ubv(col, col, col, 0.0, outline_tint);
+		UI_GetColorPtrShade3ubv(col, col, outline_tint);
 	
 	glColor3ubv((GLubyte *)col);
 	
@@ -914,7 +914,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-			uiSetRoundBox(15);
+			uiSetRoundBox(UI_CNR_ALL);
 			uiDrawBox(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

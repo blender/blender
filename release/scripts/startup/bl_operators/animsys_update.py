@@ -686,7 +686,6 @@ data_path_update = [
     ]
 
 
-import bpy
 from bpy.types import Operator
 
 

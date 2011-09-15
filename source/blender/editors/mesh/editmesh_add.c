@@ -212,7 +212,7 @@ static int dupli_extrude_cursor(bContext *C, wmOperator *op, wmEvent *event)
 			
 			copy_v3_v3(vec, min);
 			normalize_v3(vec);
-			dot= INPR(vec, nor);
+			dot= dot_v3v3(vec, nor);
 
 			if( fabs(dot)<0.999) {
 				float cross[3], si, q1[4];
@@ -1488,9 +1488,9 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, _("Vertices"), "", 3, 500);
+	RNA_def_int(ot->srna, "vertices", 32, 3, INT_MAX, _("Vertices"), "", 3, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, _("Radius"), "", 0.001, 100.00);
-	RNA_def_boolean(ot->srna, "fill", 0, _("Fill"), "");
+	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -1529,7 +1529,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, _("Vertices"), "", 2, 500);
+	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, _("Vertices"), "", 2, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, _("Radius"), "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, _("Depth"), "", 0.001, 100.00);
 	RNA_def_boolean(ot->srna, "cap_ends", 1, _("Cap Ends"), "");
@@ -1570,7 +1570,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "vertices", 32, INT_MIN, INT_MAX, _("Vertices"), "", 2, 500);
+	RNA_def_int(ot->srna, "vertices", 32, 2, INT_MAX, _("Vertices"), "", 2, 500);
 	RNA_def_float(ot->srna, "radius", 1.0f, 0.0, FLT_MAX, _("Radius"), "", 0.001, 100.00);
 	RNA_def_float(ot->srna, "depth", 2.0f, 0.0, FLT_MAX, _("Depth"), "", 0.001, 100.00);
 	RNA_def_boolean(ot->srna, "cap_end", 1, _("Cap End"), "");
@@ -1611,8 +1611,8 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "x_subdivisions", 10, INT_MIN, INT_MAX, _("X Subdivisions"), "", 3, 1000);
-	RNA_def_int(ot->srna, "y_subdivisions", 10, INT_MIN, INT_MAX, _("Y Subdivisions"), "", 3, 1000);
+	RNA_def_int(ot->srna, "x_subdivisions", 10, 3, INT_MAX, _("X Subdivisions"), "", 3, 1000);
+	RNA_def_int(ot->srna, "y_subdivisions", 10, 3, INT_MAX, _("Y Subdivisions"), "", 3, 1000);
 	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, _("Size"), "", 0.001, FLT_MAX);
 
 	ED_object_add_generic_props(ot, TRUE);
@@ -1684,8 +1684,8 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "segments", 32, INT_MIN, INT_MAX, _("Segments"), "", 3, 500);
-	RNA_def_int(ot->srna, "ring_count", 16, INT_MIN, INT_MAX, _("Rings"), "", 3, 500);
+	RNA_def_int(ot->srna, "segments", 32, 3, INT_MAX, _("Segments"), "", 3, 500);
+	RNA_def_int(ot->srna, "ring_count", 16, 3, INT_MAX, _("Rings"), "", 3, 500);
 	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, _("Size"), "", 0.001, 100.00);
 
 	ED_object_add_generic_props(ot, TRUE);
@@ -1723,7 +1723,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_int(ot->srna, "subdivisions", 2, 0, INT_MAX, _("Subdivisions"), "", 0, 8);
+	RNA_def_int(ot->srna, "subdivisions", 2, 1, INT_MAX, _("Subdivisions"), "", 1, 8);
 	RNA_def_float(ot->srna, "size", 1.0f, 0.0f, FLT_MAX, _("Size"), "", 0.001f, 100.00);
 
 	ED_object_add_generic_props(ot, TRUE);

@@ -196,6 +196,33 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
         row.prop(game, "use_collision_compound", text=_("Compound"))
 
 
+class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel, Panel):
+    bl_label = "Create Obstacle"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @classmethod
+    def poll(cls, context):
+        game = context.object.game
+        rd = context.scene.render
+        return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC'))  and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        game = context.active_object.game
+
+        self.layout.prop(game, "create_obstacle", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        game = context.active_object.game
+
+        layout.active = game.create_obstacle
+
+        row = layout.row()
+        row.prop(game, "obstacle_radius", text="Radius")
+        row.label()
+
+
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -344,7 +371,7 @@ class RENDER_PT_game_performance(RenderButtonsPanel, Panel):
         row = col.row()
         row.prop(gs, "use_frame_rate")
         row.prop(gs, "use_display_lists")
-        
+
         col.prop(gs, "restrict_animation_updates")
 
 
@@ -363,6 +390,69 @@ class RENDER_PT_game_display(RenderButtonsPanel, Panel):
         flow.prop(gs, "use_deprecation_warnings")
         flow.prop(gs, "show_mouse", text=_("Mouse Cursor"))
 
+
+class SceneButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "scene"
+
+
+class SCENE_PT_game_navmesh(SceneButtonsPanel, bpy.types.Panel):
+    bl_label = "Navigation mesh"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return (scene and scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.game_settings.recast_data
+
+        layout.operator("object.create_navmesh", text='Build navigation mesh')
+
+        col = layout.column()
+        col.label(text="Rasterization:")
+        row = col.row()
+        row.prop(rd, "cell_size")
+        row.prop(rd, "cell_height")
+
+        col = layout.column()
+        col.label(text="Agent:")
+        split = col.split()
+
+        col = split.column()
+        col.prop(rd, "agent_height", text="Height")
+        col.prop(rd, "agent_radius", text="Radius")
+
+        col = split.column()
+        col.prop(rd, "max_slope")
+        col.prop(rd, "max_climb")
+
+        col = layout.column()
+        col.label(text="Region:")
+        row = col.row()
+        row.prop(rd, "region_min_size")
+        row.prop(rd, "region_merge_size")
+
+        col = layout.column()
+        col.label(text="Polygonization:")
+        split = col.split()
+
+        col = split.column()
+        col.prop(rd, "edge_max_len")
+        col.prop(rd, "edge_max_error")
+
+        split.prop(rd, "verts_per_poly")
+
+        col = layout.column()
+        col.label(text="Detail Mesh:")
+        row = col.row()
+        row.prop(rd, "sample_dist")
+        row.prop(rd, "sample_max_error")
 
 
 class WorldButtonsPanel():
@@ -487,6 +577,26 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
             col = split.column()
             col.label(text=_("Logic Steps:"))
             col.prop(gs, "logic_step_max", text=_("Max"))
+
+
+class WORLD_PT_game_physics_obstacles(WorldButtonsPanel, Panel):
+    bl_label = "Obstacle simulation"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return (scene.world and scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+
+        gs = context.scene.game_settings
+
+        layout.prop(gs, "obstacle_simulation", text="Type")
+        if gs.obstacle_simulation != 'NONE':
+            layout.prop(gs, "level_height")
+            layout.prop(gs, "show_obstacle_simulation")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

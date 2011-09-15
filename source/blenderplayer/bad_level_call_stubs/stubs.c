@@ -81,6 +81,7 @@ struct SculptSession;
 struct ShadeInput;
 struct ShadeResult;
 struct SpaceImage;
+struct SpaceNode;
 struct Tex;
 struct TexResult;
 struct Text;
@@ -104,7 +105,6 @@ struct bPythonConstraint;
 struct bConstraintOb;
 struct Context;
 struct ChannelDriver;
-
 
 /*new render funcs */
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return (float *) NULL;}
@@ -184,7 +184,6 @@ void	ED_area_headerprint(struct ScrArea *sa, char *str){}
 
 struct EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, struct EditBone *ebo){return (struct EditBone *) NULL;}
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name){return (struct EditBone*) NULL;}
-struct Object *ED_object_pose_armature(struct Object *ob){ return (struct Object *)NULL; }
 struct ListBase *get_active_constraints (struct Object *ob){return (struct ListBase *) NULL;}
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r){return (struct ListBase *) NULL;}
 int ED_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan){return 0;}
@@ -247,6 +246,7 @@ void WM_cursor_wait (int val) {}
 void ED_node_texture_default(struct Tex *tx){}
 void ED_node_changed_update(struct bContext *C, struct bNode *node){}
 void ED_node_generic_update(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node){}
+void ED_node_tree_update(struct SpaceNode *snode, struct Scene *scene){}
 void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene){}
 int ED_view3d_scene_layer_set(int lay, const int *values){return 0;}
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar){}
@@ -297,8 +297,6 @@ void ED_sequencer_update_view(struct bContext *C, int view){}
 float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.0f;}
 void ED_space_image_size(struct SpaceImage *sima, int *width, int *height){}
 
-struct ListBase *ED_curve_editnurbs(struct Curve *cu){return NULL;}
-void free_curve_editNurb (struct Curve *cu){}
 void ED_nurb_set_spline_type(struct Nurb *nu, int type){}
 
 void EM_selectmode_set(struct EditMesh *em){}

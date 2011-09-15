@@ -84,6 +84,8 @@
 #include "DNA_world_types.h"
 #include "DNA_scene_types.h"
 
+#include "KX_NavMeshObject.h"
+
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
 //#define NZC_GUARDED_OUTPUT
@@ -886,8 +888,6 @@ void KX_KetsjiEngine::Render()
 		{
 			if((*it)->GetViewport())
 			{
-				// Change the active camera so Python scripts can figure out what viewport they're in
-				scene->SetActiveCamera(*it);
 				if (scene->IsClearingZBuffer())
 					m_rasterizer->ClearDepthBuffer();
 		
@@ -899,10 +899,6 @@ void KX_KetsjiEngine::Render()
 			
 			it++;
 		}
-
-		// Now change the camera back
-		scene->SetActiveCamera(cam);
-
 		PostRenderScene(scene);
 	}
 
@@ -1322,10 +1318,6 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
-
-#ifdef WITH_PYTHON
-	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
-#endif
 }
 
 void KX_KetsjiEngine::RenderFonts(KX_Scene* scene)
@@ -1345,9 +1337,15 @@ To run once per scene
 */
 void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
+	// We need to first make sure our viewport is correct (enabling multiple viewports can mess this up)
+	m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
+
 	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
-	m_rasterizer->FlushDebugLines();
+#ifdef WITH_PYTHON
+	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
+#endif
+	m_rasterizer->FlushDebugShapes();
 }
 
 void KX_KetsjiEngine::StopEngine()
@@ -1938,4 +1936,14 @@ void KX_KetsjiEngine::GetOverrideFrameColor(float& r, float& g, float& b) const
 	b = m_overrideFrameColorB;
 }
 
+void KX_KetsjiEngine::SetGlobalSettings(GlobalSettings* gs)
+{
+	m_globalsettings.matmode = gs->matmode;
+	m_globalsettings.glslflag = gs->glslflag;
+}
+
+GlobalSettings* KX_KetsjiEngine::GetGlobalSettings(void)
+{
+	return &m_globalsettings;
+}
 

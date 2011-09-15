@@ -232,8 +232,8 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 				dv = &dvert[i];
 
 				if(dv) {
-					weight = defvert_find_weight(dv, defgrp_index) * wmd->strength;
-					if(weight <= 0.0f)
+					weight = defvert_find_weight(dv, defgrp_index) * strength;
+					if(weight <= 0.0f) /* Should never occure... */
 						continue;
 				}
 			}

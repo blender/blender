@@ -83,7 +83,7 @@ typedef unsigned long uintptr_t;
 #define _UINTPTR_T_DEFINED
 #endif
 
-#elif defined(__linux__) || defined(__NetBSD__)
+#elif defined(__linux__) || defined(__NetBSD__) || defined(__OpenBSD__)
 
 	/* Linux-i386, Linux-Alpha, Linux-ppc */
 #include <stdint.h>
@@ -93,7 +93,8 @@ typedef unsigned long uintptr_t;
 #include <inttypes.h>
 
 #elif defined(FREE_WINDOWS)
-
+/* define htoln here, there must be a syntax error in winsock2.h in MinGW */
+unsigned long __attribute__((__stdcall__)) htonl(unsigned long);
 #include <stdint.h>
 
 #else
@@ -105,8 +106,14 @@ typedef unsigned long uintptr_t;
 
 
 #ifdef _WIN32
+#ifndef FREE_WINDOWS
+#ifndef htonl
 #define htonl(x) correctByteOrder(x)
+#endif
+#ifndef ntohl
 #define ntohl(x) correctByteOrder(x)
+#endif
+#endif
 #elif defined (__FreeBSD__) || defined (__OpenBSD__) 
 #include <sys/param.h>
 #elif defined (__APPLE__)

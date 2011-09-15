@@ -231,10 +231,10 @@ BL_ArmatureObject::BL_ArmatureObject(
 	m_timestep(0.040),
 	m_activeAct(NULL),
 	m_activePriority(999),
+	m_vert_deform_type(vert_deform_type),
 	m_constraintNumber(0),
 	m_channelNumber(0),
-	m_lastapplyframe(0.0),
-	m_vert_deform_type(vert_deform_type)
+	m_lastapplyframe(0.0)
 {
 	m_armature = (bArmature *)armature->data;
 

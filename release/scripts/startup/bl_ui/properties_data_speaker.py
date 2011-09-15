@@ -81,7 +81,7 @@ class DATA_PT_distance(DataButtonsPanel, bpy.types.Panel):
         speaker = context.speaker
 
         split = layout.split()
-        
+
         col = split.column()
         col.label("Volume:")
         col.prop(speaker, "volume_min", text="Minimum")
