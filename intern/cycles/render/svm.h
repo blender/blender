@@ -78,6 +78,27 @@ public:
 protected:
 	struct Stack {
 		Stack() { memset(users, 0, sizeof(users)); }
+		Stack(const Stack& other) { memcpy(users, other.users, sizeof(users)); }
+		Stack& operator=(const Stack& other) { memcpy(users, other.users, sizeof(users)); return *this; }
+
+		bool empty()
+		{
+			for(int i = 0; i < SVM_STACK_SIZE; i++)
+				if(users[i])
+					return false;
+
+			return true;
+		}
+
+		void print()
+		{
+			printf("stack <");
+
+			for(int i = 0; i < SVM_STACK_SIZE; i++)
+				printf((users[i])? "*": " ");
+
+			printf(">\n");
+		}
 
 		int users[SVM_STACK_SIZE];
 	};

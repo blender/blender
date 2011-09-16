@@ -230,6 +230,11 @@ void SVMCompiler::stack_clear_users(ShaderNode *node, set<ShaderNode*>& done)
 
 				for(int i = 0; i < size; i++)
 					active_stack.users[output->stack_offset + i]--;
+
+				output->stack_offset = SVM_STACK_INVALID;
+
+				foreach(ShaderInput *in, output->links)
+					in->stack_offset = SVM_STACK_INVALID;
 			}
 		}
 	}
@@ -243,6 +248,8 @@ void SVMCompiler::stack_clear_temporary(ShaderNode *node)
 
 			for(int i = 0; i < size; i++)
 				active_stack.users[input->stack_offset + i]--;
+
+			input->stack_offset = SVM_STACK_INVALID;
 		}
 	}
 }
@@ -397,6 +404,10 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*> done, Stac
 		/* set jump for mix node, -1 because offset is already
 		   incremented when this jump is added to it */
 		svm_nodes[mix_offset].z = cl2_offset - mix_offset - 1;
+
+		done.insert(node);
+		stack_clear_users(node, done);
+		stack_clear_temporary(node);
 	}
 	else {
 		/* execute dependencies for closure */
