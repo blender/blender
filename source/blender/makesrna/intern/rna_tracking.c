@@ -224,8 +224,8 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem tracker_items[] = {
-		{TRACKER_KLT, "KLT", 0, "KLT", "Kanade–Lucas–Tomasi racker"},
 		{TRACKER_SAD, "SAD", 0, "SAD", "Sum of Absolute Differences tracker"},
+		{TRACKER_KLT, "KLT", 0, "KLT", "Kanade–Lucas–Tomasi racker"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem speed_items[] = {
