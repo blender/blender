@@ -390,7 +390,7 @@ void splitop_exec(BMesh *bm, BMOperator *op)
 	BMO_Exec_Op(bm, &delop);
 
 	/*now we make our outputs by copying the dupe outputs*/
-	BMO_CopySlot(&dupeop, splitop, "newout", "geom");
+	BMO_CopySlot(&dupeop, splitop, "newout", "geomout");
 	BMO_CopySlot(&dupeop, splitop, "boundarymap",
 	             "boundarymap");
 	BMO_CopySlot(&dupeop, splitop, "isovertmap",

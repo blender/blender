@@ -3566,7 +3566,7 @@ static int mesh_separate_selected(Main *bmain, Scene *scene, Base *editbase, wmO
 	}
 
 	EDBM_CallOpf(em, wmop, "del geom=%hvef context=%i", BM_SELECT, DEL_VERTS);
-	
+
 	BM_Compute_Normals(bmnew);
 	BMO_CallOpf(bmnew, "bmesh_to_mesh mesh=%p object=%p", basenew->object->data, basenew->object);
 		
@@ -3884,30 +3884,15 @@ static int split_mesh_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh*)ob->data)->edit_btmesh;
-	BMOperator bmopDupe, bmopDel;
+	BMOperator bmop;
 
-	/*Duplicate selected geometry*/
-	EDBM_InitOpf(em, &bmopDupe, op, "dupe geom=%hvef", BM_SELECT);
-	BMO_Exec_Op(em->bm, &bmopDupe);
-
-	/*Duplicated geometry starts out selected. Deselect all duplicated
-	  geometry to return to the original selection.*/
-	BMO_UnHeaderFlag_Buffer(em->bm, &bmopDupe, "newout", BM_SELECT, BM_ALL);
-
-	/*Delete selected faces*/
-	EDBM_InitOpf(em, &bmopDel, op, "del geom=%hvef context=%i", BM_SELECT, DEL_FACES);
-	BMO_Exec_Op(em->bm, &bmopDel);
-	if (!EDBM_FinishOp(em, &bmopDel, op, 1)) {
-		/*Also clean up the dupe op*/
-		EDBM_FinishOp(em, &bmopDupe, op, 1);
+	EDBM_InitOpf(em, &bmop, op, "split geom=%hvef", BM_SELECT);
+	BMO_Exec_Op(em->bm, &bmop);
+	BM_clear_flag_all(em->bm, BM_SELECT);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, "geomout", BM_SELECT, BM_ALL);
+	if (!EDBM_FinishOp(em, &bmop, op, 1)) {
 		return OPERATOR_CANCELLED;
 	}
-
-	/*Clear prior selection and select the dupliated geometry*/
-	BM_clear_flag_all(em->bm, BM_SELECT);
-	BMO_HeaderFlag_Buffer(em->bm, &bmopDupe, "newout", BM_SELECT, BM_ALL);
-	if (!EDBM_FinishOp(em, &bmopDupe, op, 1))
-		return OPERATOR_CANCELLED;
 
 	/*Geometry has changed, need to recalc normals and looptris*/
 	BMEdit_RecalcTesselation(em);
@@ -4662,7 +4647,7 @@ static int mesh_export_obj_exec(bContext *C, wmOperator *op)
 	MPoly *mpoly, *mp;
 	MTexPoly *mtexpoly;
 	MLoopUV *luv, *mloopuv;
-	MLoopCol *mloopcol;
+	/*MLoopCol *mloopcol;*/
 	FILE *file, *matfile;
 	int *face_mat_group;
 	struct {Material *mat; MTexPoly poly; int end;} **matlists;
