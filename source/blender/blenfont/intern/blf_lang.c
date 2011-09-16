@@ -150,9 +150,10 @@ void BLF_lang_set(const char *str)
 	{
 		const char *locale;
 		static char default_locale[64]="\0";
+		static char *env_language = getenv("LANGUAGE");
 
-		if(default_locale[0]==0) /* store defaul locale */
-			strncpy(default_locale, getenv("LANGUAGE"), sizeof(default_locale));
+		if(default_locale[0]==0 && env_language!=NULL) /* store defaul locale */
+			strncpy(default_locale, env_language, sizeof(default_locale));
 
 		if(short_locale[0])
 			locale= short_locale;
