@@ -43,7 +43,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
-
+#include "BKE_tessmesh.h"
 
 #include "BLI_math.h"
 #include "MEM_guardedalloc.h"
@@ -576,46 +576,82 @@ BVHTree* bvhtree_from_mesh_faces(BVHTreeFromMesh *data, DerivedMesh *mesh, float
 	{
 		int i;
 		int numFaces= mesh->getNumTessFaces(mesh);
-		MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
-		MFace *face = mesh->getTessFaceDataArray(mesh, CD_MFACE);
 
-		if(vert != NULL && face != NULL)
+		if(numFaces != 0)
 		{
 			/* Create a bvh-tree of the given target */
 			tree = BLI_bvhtree_new(numFaces, epsilon, tree_type, axis);
 			if(tree != NULL)
 			{
 				/* XXX, for snap only, em & dm are assumed to be aligned, since dm is the em's cage */
-#if 0 //BMESH_TODO
-				EditMesh *em= data->em_evil;
+				BMEditMesh *em= data->em_evil;
 				if(em) {
-					EditFace *efa= em->faces.first;
-					for(i = 0; i < numFaces; i++, efa= efa->next) {
-						if(!(efa->f & 1) && efa->h==0 && !((efa->v1->f&1)+(efa->v2->f&1)+(efa->v3->f&1)+(efa->v4?efa->v4->f&1:0))) {
+					/*Insert BMesh-tesselation triangles into the bvh tree, unless they are hidden
+					  and/or selected. Even if the faces themselves are not selected for the snapped
+					  transform, having a vertex selected means the face (and thus it's tesselated
+					  triangles) will be moving and will not be a good snap targets.*/
+					for (i = 0; i < em->tottri; i++) {
+						BMLoop **tri = em->looptris[i];
+						BMFace *f;
+						BMVert *v;
+						BMIter iter;
+						int insert;
+
+						/*Each loop of the triangle points back to the BMFace it was tesselated from.
+						  All three should point to the same face, so just use the face from the first
+						  loop.*/
+						f = tri[0]->f;
+
+						/*If the looptris is ordered such that all triangles tesselated from a single
+						  faces are consecutive elements in the array, then we could speed up the tests
+						  below by using the insert value from the previous iteration.*/
+
+						/*Start with the assumption the triangle should be included for snapping.*/
+						insert = 1;
+
+						if (BM_TestHFlag(f, BM_SELECT) || BM_TestHFlag(f, BM_HIDDEN)) {
+							/*Don't insert triangles tesselated from faces that are hidden
+							  or selected*/
+							insert = 0;
+						}
+						else {
+							BM_ITER(v, &iter, em->bm, BM_VERTS_OF_FACE, f) {
+								if (BM_TestHFlag(v, BM_SELECT)) {
+									/*Don't insert triangles tesselated from faces that have
+									  any selected verts.*/
+									insert = 0;
+								}
+							}
+						}
+
+						if (insert)
+						{
+							/*No reason found to block hit-testing the triangle for snap,
+							  so insert it now.*/
+							float co[4][3];
+							VECCOPY(co[0], tri[0]->v->co);
+							VECCOPY(co[1], tri[1]->v->co);
+							VECCOPY(co[2], tri[2]->v->co);
+					
+							BLI_bvhtree_insert(tree, i, co[0], 3);
+						}
+					}
+				}
+				else {
+					MVert *vert	= mesh->getVertDataArray(mesh, CD_MVERT);
+					MFace *face = mesh->getTessFaceDataArray(mesh, CD_MFACE);
+
+					if (vert != NULL && face != NULL) {
+						for(i = 0; i < numFaces; i++) {
 							float co[4][3];
 							VECCOPY(co[0], vert[ face[i].v1 ].co);
 							VECCOPY(co[1], vert[ face[i].v2 ].co);
 							VECCOPY(co[2], vert[ face[i].v3 ].co);
 							if(face[i].v4)
 								VECCOPY(co[3], vert[ face[i].v4 ].co);
-					
+				
 							BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 						}
-					}
-#else
-				if (0) {
-#endif
-				}
-				else {
-					for(i = 0; i < numFaces; i++) {
-						float co[4][3];
-						VECCOPY(co[0], vert[ face[i].v1 ].co);
-						VECCOPY(co[1], vert[ face[i].v2 ].co);
-						VECCOPY(co[2], vert[ face[i].v3 ].co);
-						if(face[i].v4)
-							VECCOPY(co[3], vert[ face[i].v4 ].co);
-				
-						BLI_bvhtree_insert(tree, i, co[0], face[i].v4 ? 4 : 3);
 					}
 				}
 				BLI_bvhtree_balance(tree);
