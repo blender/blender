@@ -775,7 +775,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 					ebone->temp= ten;
 				}
 				/* make hierarchy */
-				ten= te->subtree.first;
+				ten= ((EditBone *)arm->edbo->first)->temp;
 				while(ten) {
 					TreeElement *nten= ten->next, *par;
 					ebone= (EditBone *)ten->directdata;
