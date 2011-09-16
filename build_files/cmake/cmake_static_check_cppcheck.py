@@ -36,7 +36,9 @@ CHECKER_IGNORE_PREFIX = [
 CHECKER_BIN = "cppcheck"
 
 CHECKER_ARGS = [
-    "-I" + os.join(project_source_info.SORCE_DIR, "blender/extern/glew/include"),
+    # not sure why this is needed, but it is.
+    "-I" + os.path.join(project_source_info.SOURCE_DIR, "extern/glew/include"),
+
     #  "--check-config", # when includes are missing
     #  "--enable=all",  # if you want sixty hundred pedantic suggestions
     ]
