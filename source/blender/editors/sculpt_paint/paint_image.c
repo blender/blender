@@ -749,7 +749,7 @@ static int project_paint_occlude_ptv(float pt[3], float v1[3], float v2[3], floa
 
 static int project_paint_occlude_ptv_clip(
 		const ProjPaintState *ps, const MFace *mf,
-		float pt[3], float v1[3], float v2[3], float v3[3],
+		float pt[3], float v1[4], float v2[4], float v3[4],
 		const int side )
 {
 	float w[3], wco[3];

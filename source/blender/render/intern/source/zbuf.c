@@ -239,7 +239,7 @@ static short cliptestf(float p, float q, float *u1, float *u2)
 	return 1;
 }
 
-int testclip(const float v[3])
+int testclip(const float v[4])
 {
 	float abs4;	/* WATCH IT: this function should do the same as cliptestf, otherwise troubles in zbufclip()*/
 	short c=0;
