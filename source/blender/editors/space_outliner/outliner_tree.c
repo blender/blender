@@ -473,7 +473,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 				ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSE_CHANNEL, a);
 				ten->name= pchan->name;
 				ten->directdata= pchan;
-				pchan->prev= (bPoseChannel *)ten;
+				pchan->temp= (void *)ten;
 				
 				if(pchan->constraints.first) {
 					//Object *target;
@@ -506,18 +506,12 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 					pchan= (bPoseChannel *)ten->directdata;
 					if(pchan->parent) {
 						BLI_remlink(&tenla->subtree, ten);
-						par= (TreeElement *)pchan->parent->prev;
+						par= (TreeElement *)pchan->parent->temp;
 						BLI_addtail(&par->subtree, ten);
 						ten->parent= par;
 					}
 				}
 				ten= nten;
-			}
-			/* restore prev pointers */
-			pchan= ob->pose->chanbase.first;
-			if(pchan) pchan->prev= NULL;
-			for(; pchan; pchan= pchan->next) {
-				if(pchan->next) pchan->next->prev= pchan;
 			}
 		}
 		

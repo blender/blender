@@ -524,7 +524,6 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 		if (copycon) {
 			copy_constraints(&listb, &pchan->constraints, TRUE);  // copy_constraints NULLs listb
 			pchan->constraints= listb;
-			pchan->path= NULL; // XXX remove this line when the new motionpaths are ready... (depreceated code)
 			pchan->mpath= NULL; /* motion paths should not get copied yet... */
 		}
 		
@@ -595,17 +594,12 @@ void free_pose_channels_hash(bPose *pose)
 
 void free_pose_channel(bPoseChannel *pchan)
 {
-	// XXX this case here will need to be removed when the new motionpaths are ready
-	if (pchan->path) {
-		MEM_freeN(pchan->path);
-		pchan->path= NULL;
-	}
-	
+
 	if (pchan->mpath) {
 		animviz_free_motionpath(pchan->mpath);
 		pchan->mpath= NULL;
 	}
-	
+
 	free_constraints(&pchan->constraints);
 	
 	if (pchan->prop) {
