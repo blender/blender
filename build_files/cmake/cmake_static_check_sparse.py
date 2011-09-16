@@ -23,7 +23,7 @@
 
 # <pep8 compliant>
 
-CHECKER_IGNORE_SUFFIX = [
+CHECKER_IGNORE_PREFIX = [
     "extern",
     "intern/moto",
     ]

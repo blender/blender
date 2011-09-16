@@ -23,6 +23,11 @@
 
 # <pep8 compliant>
 
+import project_source_info
+import subprocess
+import sys
+import os
+
 CHECKER_IGNORE_PREFIX = [
     "extern",
     "intern/moto",
@@ -31,14 +36,10 @@ CHECKER_IGNORE_PREFIX = [
 CHECKER_BIN = "cppcheck"
 
 CHECKER_ARGS = [
-    "-I/dsk/data/src/blender/blender/extern/glew/include",
+    "-I" + os.join(project_source_info.SORCE_DIR, "blender/extern/glew/include"),
     #  "--check-config", # when includes are missing
     #  "--enable=all",  # if you want sixty hundred pedantic suggestions
     ]
-
-import project_source_info
-import subprocess
-import sys
 
 def main():
     source_info = project_source_info.build_info(ignore_prefix_list=CHECKER_IGNORE_PREFIX)

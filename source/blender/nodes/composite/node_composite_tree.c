@@ -337,7 +337,7 @@ static void *exec_composite_node(void *nodeexec_v)
 		node->typeinfo->newexecfunc(thd->rd, 0, node, nodeexec->data, nsin, nsout);
 	
 	node->exec |= NODE_READY;
-	return 0;
+	return NULL;
 }
 
 /* return total of executable nodes, for timecursor */

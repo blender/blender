@@ -32,6 +32,8 @@
 
 #include <string.h>
 
+#include "BLI_string.h"
+
 /* from libswish3, originally called u8_isvalid(),
  * modified to return the index of the bad character (byte index not utf).
  * http://svn.swish-e.org/libswish3/trunk/src/libswish3/utf8.c r3044 - campbell */

@@ -893,7 +893,7 @@ static size_t skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner
  */
 static short skip_fcurve_with_name (bDopeSheet *ads, FCurve *fcu, ID *owner_id)
 {
-	bAnimListElem ale_dummy = {0};
+	bAnimListElem ale_dummy = {NULL};
 	bAnimChannelType *acf;
 	
 	/* create a dummy wrapper for the F-Curve */

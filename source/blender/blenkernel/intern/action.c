@@ -117,7 +117,7 @@ static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
 	
 	if (adt->action == mlac->act) {
-		if (id->lib==0) {
+		if (id->lib == NULL) {
 			adt->action = mlac->actn;
 			
 			id_us_plus(&mlac->actn->id);
