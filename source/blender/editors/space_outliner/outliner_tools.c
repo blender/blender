@@ -342,7 +342,7 @@ static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement 
 	
 	if (id) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)tsep->id;
-		PointerRNA ptr = {{0}};
+		PointerRNA ptr = {{NULL}};
 		PropertyRNA *prop;
 		
 		RNA_pointer_create(&iat->id, &RNA_AnimData, iat->adt, &ptr);

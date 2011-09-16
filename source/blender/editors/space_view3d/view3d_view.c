@@ -525,8 +525,8 @@ void ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2]
 		ED_view3d_win_to_vector(ar, mval, vec);
 
 		copy_v3_v3(ray_start, rv3d->viewinv[3]);
-		VECADDFAC(ray_start, rv3d->viewinv[3], vec, v3d->near);
-		VECADDFAC(ray_end, rv3d->viewinv[3], vec, v3d->far);
+		madd_v3_v3v3fl(ray_start, rv3d->viewinv[3], vec, v3d->near);
+		madd_v3_v3v3fl(ray_end, rv3d->viewinv[3], vec, v3d->far);
 	}
 	else {
 		float vec[4];
@@ -537,8 +537,8 @@ void ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2]
 		
 		mul_m4_v4(rv3d->persinv, vec);
 		
-		VECADDFAC(ray_start, vec, rv3d->viewinv[2],  1000.0f);
-		VECADDFAC(ray_end, vec, rv3d->viewinv[2], -1000.0f);
+		madd_v3_v3v3fl(ray_start, vec, rv3d->viewinv[2],  1000.0f);
+		madd_v3_v3v3fl(ray_end, vec, rv3d->viewinv[2], -1000.0f);
 	}
 
 	/* clipping */

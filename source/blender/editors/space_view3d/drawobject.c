@@ -5249,7 +5249,7 @@ static void curve_draw_speed(Scene *scene, Object *ob)
 #endif // XXX old animation system stuff
 
 
-static void draw_textcurs(float textcurs[][2])
+static void draw_textcurs(float textcurs[4][2])
 {
 	cpack(0);
 	
@@ -5266,12 +5266,14 @@ static void draw_textcurs(float textcurs[][2])
 static void drawspiral(const float cent[3], float rad, float tmat[][4], int start)
 {
 	float vec[3], vx[3], vy[3];
-	int a, tot=32;
-	char inverse=0;
-		
+	const int tot=32;
+	const float tot_inv= (1.0f / 32.0f);
+	int a;
+	char inverse= FALSE;
+
 	if (start < 0) {
-		inverse = 1;
-		start *= -1;
+		inverse = TRUE;
+		start= -start;
 	}
 
 	mul_v3_v3fl(vx, tmat[0], rad);
@@ -5285,26 +5287,26 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)a/(float)tot) + *(cosval+a+start) * (vy[0] * (float)a/(float)tot);
-			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)a/(float)tot) + *(cosval+a+start) * (vy[1] * (float)a/(float)tot);
-			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)a/(float)tot) + *(cosval+a+start) * (vy[2] * (float)a/(float)tot);
+			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)a * tot_inv) + *(cosval+a+start) * (vy[0] * (float)a * tot_inv);
+			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)a * tot_inv) + *(cosval+a+start) * (vy[1] * (float)a * tot_inv);
+			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)a * tot_inv) + *(cosval+a+start) * (vy[2] * (float)a * tot_inv);
 			glVertex3fv(vec);
 			glEnd();
 		}
 	}
 	else {
 		a=0;
-		vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
-		vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
-		vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
+		vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[0] * (float)(-a+31) * tot_inv);
+		vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[1] * (float)(-a+31) * tot_inv);
+		vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[2] * (float)(-a+31) * tot_inv);
 		for(a=0; a<tot; a++) {
 			if (a+start>31)
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
-			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
-			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
+			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[0] * (float)(-a+31) * tot_inv);
+			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[1] * (float)(-a+31) * tot_inv);
+			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[2] * (float)(-a+31) * tot_inv);
 			glVertex3fv(vec);
 			glEnd();
 		}

@@ -188,18 +188,13 @@ typedef struct bPoseChannel {
 	char				name[32];	/* Channels need longer names than normal blender objects */
 	
 	short				flag;		/* dynamic, for detecting transform changes */
-	short				constflag;  /* for quick detecting which constraints affect this channel */
 	short				ikflag;		/* settings for IK bones */
-	short               selectflag;	/* copy of bone flag, so you can work with library armatures, not for runtime use */
 	short				protectflag; /* protect channels from being transformed */
 	short				agrp_index; /* index of action-group this bone belongs to (0 = default/no group) */
-	
-// XXX depreceated.... old animation system (armature only viz) ----
-	int				    pathlen;	/* for drawing paths, the amount of frames */
-	int 				pathsf;		/* for drawing paths, the start frame number */
-	int					pathef;		/* for drawing paths, the end frame number */
-// XXX end of depreceated code -------------------------------------
-	
+	char				constflag;  /* for quick detecting which constraints affect this channel */
+	char                selectflag;	/* copy of bone flag, so you can work with library armatures, not for runtime use */
+	char				pad0[6];
+
 	struct Bone			*bone;		/* set on read file or rebuild pose */
 	struct bPoseChannel *parent;	/* set on read file or rebuild pose */
 	struct bPoseChannel *child;		/* set on read file or rebuild pose, the 'ik' child, for b-bones */
@@ -233,7 +228,7 @@ typedef struct bPoseChannel {
 	float		ikrotweight;		/* weight of joint rotation constraint */
 	float		iklinweight;		/* weight of joint stretch constraint */
 
-	float		*path;				/* totpath x 3 x float */		// XXX depreceated... old animation system (armature only viz)
+	void		*temp;				/* use for outliner */
 } bPoseChannel;
 
 

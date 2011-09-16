@@ -621,7 +621,7 @@ def pycontext2sphinx(BASEPATH):
     file.close()
 
 
-def pyrna_enum2sphinx(prop, use_empty_descriptions=True):
+def pyrna_enum2sphinx(prop, use_empty_descriptions=False):
     """ write a bullet point list of enum + descrptons
     """
 

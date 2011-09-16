@@ -592,7 +592,7 @@ void BKE_image_print_memlist(void)
 	for(ima= G.main->image.first; ima; ima= ima->id.next)
 		totsize += image_mem_size(ima);
 
-	printf("\ntotal image memory len: %.3lf MB\n", (double)totsize/(double)(1024*1024));
+	printf("\ntotal image memory len: %.3f MB\n", (double)totsize/(double)(1024*1024));
 
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		size= image_mem_size(ima);

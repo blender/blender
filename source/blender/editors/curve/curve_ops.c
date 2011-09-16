@@ -46,6 +46,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_curve.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_transform.h"

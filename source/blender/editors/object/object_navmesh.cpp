@@ -575,7 +575,7 @@ static int findFreeNavPolyIndex(EditMesh* em)
 		else if (indices[i]>freeIdx)
 			break;
 	}
-	delete indices;
+	delete [] indices;
 	return freeIdx;
 }
 

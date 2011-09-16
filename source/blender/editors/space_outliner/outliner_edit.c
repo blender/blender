@@ -218,7 +218,7 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 
 /* Rename --------------------------------------------------- */
 
-void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, ReportList *reports)
+static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, ReportList *reports)
 {
 	/* can't rename rna datablocks entries */
 	if(ELEM3(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))

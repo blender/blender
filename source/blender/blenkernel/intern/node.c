@@ -1051,9 +1051,9 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	
 	if(ntree->id.lib==NULL) return;
 	if(ntree->id.us==1) {
-		ntree->id.lib= 0;
+		ntree->id.lib= NULL;
 		ntree->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)ntree, 0);
+		new_id(NULL, (ID *)ntree, NULL);
 		return;
 	}
 	
@@ -1069,7 +1069,7 @@ void ntreeMakeLocal(bNodeTree *ntree)
 	if(cd.local && cd.lib==0) {
 		ntree->id.lib= NULL;
 		ntree->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)ntree, 0);
+		new_id(NULL, (ID *)ntree, NULL);
 	}
 	else if(cd.local && cd.lib) {
 		/* this is the mixed case, we copy the tree and assign it to local users */
@@ -1438,7 +1438,7 @@ static void ntree_update_link_pointers(bNodeTree *ntree)
 	}
 }
 
-void ntree_validate_links(bNodeTree *ntree)
+static void ntree_validate_links(bNodeTree *ntree)
 {
 	bNodeTreeType *ntreetype = ntreeGetType(ntree->type);
 	bNodeLink *link;
