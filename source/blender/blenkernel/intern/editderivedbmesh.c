@@ -109,10 +109,17 @@ BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 	*tm2 = *tm;
 	
 	tm2->derivedCage = tm2->derivedFinal = NULL;
-	
-	tm2->looptris = NULL;
+
 	tm2->bm = BM_Copy_Mesh(tm->bm);
-	BMEdit_RecalcTesselation(tm2);
+
+	/*The tesselation is NOT calculated on the copy here,
+	  because currently all the callers of this function use
+	  it to make a backup copy of the BMEditMesh to restore
+	  it in the case of errors in an operation. For perf
+	  reasons, in that case it makes more sense to do the
+	  tesselation only when/if that copy ends up getting
+	  used.*/
+	tm2->looptris = NULL;
 
 	tm2->vert_index = NULL;
 	tm2->edge_index = NULL;

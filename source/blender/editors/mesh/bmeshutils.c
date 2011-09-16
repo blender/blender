@@ -156,6 +156,7 @@ int EDBM_FinishOp(BMEditMesh *em, BMOperator *bmop, wmOperator *op, int report) 
 
 		BMEdit_Free(em);
 		*em = *emcopy;
+		BMEdit_RecalcTesselation(em);
 
 		MEM_freeN(emcopy);
 		em->emcopyusers = 0;
