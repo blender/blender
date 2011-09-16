@@ -241,6 +241,7 @@ void ObjectManager::tag_update(Scene *scene)
 {
 	need_update = true;
 	scene->mesh_manager->need_update = true;
+	scene->light_manager->need_update = true;
 }
 
 CCL_NAMESPACE_END
