@@ -35,9 +35,9 @@ class Progress {
 public:
 	Progress()
 	{
-		pass = 0;
+		sample = 0;
 		total_time = 0.0f;
-		pass_time = 0.0f;
+		sample_time = 0.0f;
 		status = "Initializing";
 		substatus = "";
 		update_cb = NULL;
@@ -55,7 +55,7 @@ public:
 	{
 		thread_scoped_lock lock(progress.progress_mutex);
 
-		progress.get_pass(pass, total_time, pass_time);
+		progress.get_sample(sample, total_time, sample_time);
 		progress.get_status(status, substatus);
 
 		return *this;
@@ -88,24 +88,24 @@ public:
 		cancel_cb = function;
 	}
 
-	/* pass and timing information */
+	/* sample and timing information */
 
-	void set_pass(int pass_, double total_time_, double pass_time_)
+	void set_sample(int sample_, double total_time_, double sample_time_)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
-		pass = pass_;
+		sample = sample_;
 		total_time = total_time_;
-		pass_time = pass_time_;
+		sample_time = sample_time_;
 	}
 
-	void get_pass(int& pass_, double& total_time_, double& pass_time_)
+	void get_sample(int& sample_, double& total_time_, double& sample_time_)
 	{
 		thread_scoped_lock lock(progress_mutex);
 
-		pass_ = pass;
+		sample_ = sample;
 		total_time_ = total_time;
-		pass_time_ = pass_time;
+		sample_time_ = sample_time;
 	}
 
 	/* status messages */
@@ -156,10 +156,10 @@ protected:
 	boost::function<void(void)> update_cb;
 	boost::function<void(void)> cancel_cb;
 
-	int pass;
+	int sample;
 
 	double total_time;
-	double pass_time;
+	double sample_time;
 
 	string status;
 	string substatus;

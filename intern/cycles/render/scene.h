@@ -99,6 +99,7 @@ public:
 class SceneParams {
 public:
 	enum { OSL, SVM } shadingsystem;
+	bool use_multi_closure;
 	enum BVHType { BVH_DYNAMIC, BVH_STATIC } bvh_type;
 	bool use_bvh_cache;
 	bool use_bvh_spatial_split;
@@ -107,6 +108,7 @@ public:
 	SceneParams()
 	{
 		shadingsystem = SVM;
+		use_multi_closure = false;
 		bvh_type = BVH_DYNAMIC;
 		use_bvh_cache = false;
 		use_bvh_spatial_split = false;

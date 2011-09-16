@@ -23,12 +23,12 @@ shader node_glass_bsdf(
 	color Color = color(0.8, 0.8, 0.8),
 	string distribution = "Sharp",
 	float Roughness = 0.2,
-	float Fresnel = 0.3,
+	float IOR = 1.45,
 	normal Normal = N,
 	output closure color BSDF = diffuse(Normal))
 {
-	float f = clamp(1.0 - Fresnel, 1e-5, 1.0 - 1e-5);
-	float eta = backfacing()? f: 1.0/f;
+	float f = max(IOR, 1.0 + 1e-5);
+	float eta = backfacing()? 1.0/f: f;
 	float Fr = fresnel_dielectric(I, Normal, eta);
 
 	if(distribution == "Sharp")

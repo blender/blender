@@ -1,5 +1,5 @@
 /**
- * $Id: SHD_output.c 32517 2010-10-16 14:32:17Z campbellbarton $
+ * $Id: SHD_blend_weight.c 32517 2010-10-16 14:32:17Z campbellbarton $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,41 +29,39 @@
 
 #include "../SHD_util.h"
 
-/* **************** OUTPUT ******************** */
-
-static bNodeSocketType sh_node_bsdf_glossy_in[]= {
-	{	SOCK_RGBA,  1, "Color",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Roughness",	0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+/* **************** BlendWeight ******************** */
+static bNodeSocketType sh_node_blend_weight_in[]= {
+	{	SOCK_VALUE, 1, "Blend",		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketType sh_node_bsdf_glossy_out[]= {
-	{	SOCK_SHADER, 0, "BSDF",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+static bNodeSocketType sh_node_blend_weight_out[]= {
+	{	SOCK_VALUE, 0, "Fresnel",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Facing",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_bsdf_glossy(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
+static void node_shader_exec_blend_weight(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 
-static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_blend_weight(GPUMaterial *UNUSED(mat), bNode *UNUSED(node), GPUNodeStack *UNUSED(in), GPUNodeStack *UNUSED(out))
 {
-	/* todo: is incoming vector normalized? */
-	return GPU_stack_link(mat, "node_bsdf_glossy", in, out, GPU_builtin(GPU_VIEW_NORMAL), GPU_builtin(GPU_VIEW_POSITION));
+	return 0;
 }
 
 /* node type definition */
-void register_node_type_sh_bsdf_glossy(ListBase *lb)
+void register_node_type_sh_blend_weight(ListBase *lb)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_BSDF_GLOSSY, "Glossy BSDF", NODE_CLASS_SHADER, 0,
-		sh_node_bsdf_glossy_in, sh_node_bsdf_glossy_out);
+	node_type_base(&ntype, SH_NODE_BLEND_WEIGHT, "Blend Weight", NODE_CLASS_INPUT, 0,
+		sh_node_blend_weight_in, sh_node_blend_weight_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_bsdf_glossy);
-	node_type_gpu(&ntype, node_shader_gpu_bsdf_glossy);
+	node_type_exec(&ntype, node_shader_exec_blend_weight);
+	node_type_gpu(&ntype, node_shader_gpu_blend_weight);
 
 	nodeRegisterType(lb, &ntype);
 };

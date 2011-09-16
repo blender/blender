@@ -282,6 +282,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_FRESNEL:
 				svm_node_fresnel(sd, stack, node.y, node.z, node.w);
 				break;
+			case NODE_BLEND_WEIGHT:
+				svm_node_blend_weight(sd, stack, node);
+				break;
 			case NODE_SET_DISPLACEMENT:
 				svm_node_set_displacement(sd, stack, node.y);
 				break;

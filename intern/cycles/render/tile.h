@@ -42,16 +42,16 @@ public:
 	struct State {
 		int width;
 		int height;
-		int pass;
+		int sample;
 		int resolution;
 		list<Tile> tiles;
 	} state;
 
-	TileManager(bool progressive, int passes, int tile_size, int min_size);
+	TileManager(bool progressive, int samples, int tile_size, int min_size);
 	~TileManager();
 
-	void reset(int width, int height, int passes);
-	void set_passes(int passes);
+	void reset(int width, int height, int samples);
+	void set_samples(int samples);
 	bool next();
 	bool done();
 
@@ -59,7 +59,7 @@ protected:
 	void set_tiles();
 
 	bool progressive;
-	int passes;
+	int samples;
 	int tile_size;
 	int min_size;
 

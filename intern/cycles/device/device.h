@@ -58,7 +58,7 @@ public:
 	device_ptr rng_state;
 	device_ptr rgba;
 	device_ptr buffer;
-	int pass;
+	int sample;
 	int resolution;
 
 	device_ptr displace_input;

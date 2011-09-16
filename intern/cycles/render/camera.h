@@ -39,8 +39,10 @@ public:
 	float shutterclose;
 
 	/* depth of field */
-	float lensradius;
 	float focaldistance;
+	float aperturesize;
+	uint blades;
+	float bladesrotation;
 
 	/* orthographic/perspective */
 	bool ortho;

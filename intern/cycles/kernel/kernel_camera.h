@@ -20,6 +20,21 @@ CCL_NAMESPACE_BEGIN
 
 /* Perspective Camera */
 
+__device float2 camera_sample_aperture(KernelGlobals *kg, float u, float v)
+{
+	float blades = kernel_data.cam.blades;
+
+	if(blades == 0.0f) {
+		/* sample disk */
+		return concentric_sample_disk(u, v);
+	}
+	else {
+		/* sample polygon */
+		float rotation = kernel_data.cam.bladesrotation;
+		return regular_polygon_sample(blades, rotation, u, v);
+	}
+}
+
 __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, Ray *ray)
 {
 	/* create ray form raster position */
@@ -30,14 +45,11 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 	ray->D = Pcamera;
 
 	/* modify ray for depth of field */
-	float lensradius = kernel_data.cam.lensradius;
+	float aperturesize = kernel_data.cam.aperturesize;
 
-	if(lensradius > 0.0f) {
-		/* sample point on lens */
-		float2 lensuv;
-
-		lensuv = concentric_sample_disk(lens_u, lens_v);
-		lensuv *= lensradius;
+	if(aperturesize > 0.0f) {
+		/* sample point on aperture */
+		float2 lensuv = camera_sample_aperture(kg, lens_u, lens_v)*aperturesize;
 
 		/* compute point on plane of focus */
 		float ft = kernel_data.cam.focaldistance/ray->D.z;

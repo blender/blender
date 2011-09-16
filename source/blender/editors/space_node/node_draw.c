@@ -882,7 +882,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			socket_circle_draw(sock, socket_size);
 			
 			if(node->block && sock->link==NULL) {
-				if((stype && stype->flag & SOCK_NO_VALUE) || sock->type==SOCK_CLOSURE) {
+				if((stype && stype->flag & SOCK_NO_VALUE) || sock->type==SOCK_SHADER) {
 					uiDefBut(node->block, LABEL, 0, sock->name, (short)(sock->locx+7), (short)(sock->locy-9.0f), 
 							 (short)(node->width-NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
 				}

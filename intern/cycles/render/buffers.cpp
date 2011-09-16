@@ -85,7 +85,7 @@ void RenderBuffers::reset(Device *device, int width_, int height_)
 	device->mem_copy_to(rng_state);
 }
 
-float4 *RenderBuffers::copy_from_device(float exposure, int pass)
+float4 *RenderBuffers::copy_from_device(float exposure, int sample)
 {
 	if(!buffer.device_pointer)
 		return NULL;
@@ -94,7 +94,7 @@ float4 *RenderBuffers::copy_from_device(float exposure, int pass)
 
 	float4 *out = new float4[width*height];
 	float4 *in = (float4*)buffer.data_pointer;
-	float scale = 1.0f/(float)pass;
+	float scale = 1.0f/(float)sample;
 	
 	for(int i = width*height - 1; i >= 0; i--) {
 		float4 rgba = in[i]*scale;

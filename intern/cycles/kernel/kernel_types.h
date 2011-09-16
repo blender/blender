@@ -288,14 +288,6 @@ typedef struct KernelCamera {
 	Transform cameratoworld;
 	Transform rastertocamera;
 
-	/* depth of field */
-	float lensradius;
-	float focaldistance;
-
-	/* motion blur */
-	float shutteropen;
-	float shutterclose;
-
 	/* differentials */
 	float3 dx;
 #ifndef WITH_OPENCL
@@ -306,10 +298,19 @@ typedef struct KernelCamera {
 	float pad2;
 #endif
 
+	/* depth of field */
+	float aperturesize;
+	float blades;
+	float bladesrotation;
+	float focaldistance;
+
+	/* motion blur */
+	float shutteropen;
+	float shutterclose;
+
 	/* clipping */
 	float nearclip;
 	float cliplength;
-	float pad3, pad4;
 
 	/* more matrices */
 	Transform screentoworld;

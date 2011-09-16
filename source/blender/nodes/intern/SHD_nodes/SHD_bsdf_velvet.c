@@ -34,12 +34,11 @@
 static bNodeSocketType sh_node_bsdf_velvet_in[]= {
 	{	SOCK_RGBA, 1, "Color",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 1, "Sigma",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Fresnel",	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketType sh_node_bsdf_velvet_out[]= {
-	{	SOCK_CLOSURE, 0, "BSDF",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_SHADER, 0, "BSDF",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -57,7 +56,7 @@ void register_node_type_sh_bsdf_velvet(ListBase *lb)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_BSDF_VELVET, "Velvet BSDF", NODE_CLASS_CLOSURE, 0,
+	node_type_base(&ntype, SH_NODE_BSDF_VELVET, "Velvet BSDF", NODE_CLASS_SHADER, 0,
 		sh_node_bsdf_velvet_in, sh_node_bsdf_velvet_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);

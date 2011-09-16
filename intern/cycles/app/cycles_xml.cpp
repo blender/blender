@@ -272,7 +272,7 @@ static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
 
 	xml_read_float(&cam->nearclip, node, "nearclip");
 	xml_read_float(&cam->farclip, node, "farclip");
-	xml_read_float(&cam->lensradius, node, "lensradius"); // 0.5*focallength/fstop
+	xml_read_float(&cam->aperturesize, node, "aperturesize"); // 0.5*focallength/fstop
 	xml_read_float(&cam->focaldistance, node, "focaldistance");
 	xml_read_float(&cam->shutteropen, node, "shutteropen");
 	xml_read_float(&cam->shutterclose, node, "shutterclose");

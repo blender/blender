@@ -47,7 +47,7 @@ public:
 	~RenderBuffers();
 
 	void reset(Device *device, int width, int height);
-	float4 *copy_from_device(float exposure, int pass);
+	float4 *copy_from_device(float exposure, int sample);
 
 protected:
 	void device_free();

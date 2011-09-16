@@ -172,6 +172,30 @@ __device float2 concentric_sample_disk(float u1, float u2)
 	return make_float2(r * cosf(theta), r * sinf(theta));
 }
 
+__device float2 regular_polygon_sample(float corners, float rotation, float u, float v)
+{
+	/* sample corner number and reuse u */
+	float corner = floorf(u*corners);
+	u = u*corners - corner;
+
+	/* uniform sampled triangle weights */
+	u = sqrtf(u);
+	v = v*u;
+	u = 1.0f - u;
+
+	/* point in triangle */
+	float angle = M_PI_F/corners;
+	float2 p = make_float2((u + v)*cosf(angle), (u - v)*sinf(angle));
+
+	/* rotate */
+	rotation += corner*2.0f*angle;
+
+	float cr = cosf(rotation);
+	float sr = sinf(rotation);
+
+	return make_float2(cr*p.x - sr*p.y, sr*p.x + cr*p.y);
+}
+
 /* Spherical coordinates <-> Cartesion direction  */
 
 __device float2 direction_to_spherical(float3 dir)

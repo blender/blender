@@ -185,13 +185,17 @@ void BlenderSync::sync_render_layer(BL::SpaceView3D b_v3d)
 	else {
 		BL::RenderSettings r = b_scene.render();
 		BL::RenderSettings::layers_iterator b_rlay;
+		bool first = true;
 
 		for(r.layers.begin(b_rlay); b_rlay != r.layers.end(); ++b_rlay) {
-			render_layer.scene_layer = get_layer(b_scene.layers());
-			render_layer.layer = get_layer(b_rlay->layers());
-			render_layer.material_override = b_rlay->material_override();
+			/* single layer for now */
+			if(first) {
+				render_layer.scene_layer = get_layer(b_scene.layers());
+				render_layer.layer = get_layer(b_rlay->layers());
+				render_layer.material_override = b_rlay->material_override();
 
-			break; /* single layer for now */
+				first = false;
+			}
 		}
 	}
 }
@@ -255,14 +259,14 @@ SessionParams BlenderSync::get_session_params(BL::Scene b_scene, bool background
 	/* Background */
 	params.background = background;
 			
-	/* passes */
+	/* samples */
 	if(background) {
-		params.passes = get_int(cscene, "passes");
+		params.samples = get_int(cscene, "samples");
 	}
 	else {
-		params.passes = get_int(cscene, "preview_passes");
-		if(params.passes == 0)
-			params.passes = INT_MAX;
+		params.samples = get_int(cscene, "preview_samples");
+		if(params.samples == 0)
+			params.samples = INT_MAX;
 	}
 
 	/* other parameters */

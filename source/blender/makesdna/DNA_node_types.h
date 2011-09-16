@@ -100,7 +100,7 @@ typedef struct bNodeSocket {
 #define SOCK_VALUE		0
 #define SOCK_VECTOR		1
 #define SOCK_RGBA		2
-#define	SOCK_CLOSURE	3
+#define	SOCK_SHADER		3
 
 /* sock->flag, first bit is select */
 		/* hidden is user defined, to hide unused */

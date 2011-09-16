@@ -147,9 +147,9 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 __device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
 	uint id = node.y;
-	uint co_offset, out_offset, srgb;
+	uint co_offset, out_offset, alpha_offset, srgb;
 
-	decode_node_uchar4(node.z, &co_offset, &out_offset, &srgb, NULL);
+	decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
 
 	float3 co = stack_load_float3(stack, co_offset);
 	float4 f = svm_image_texture(kg, id, co.x, co.y);
@@ -161,15 +161,18 @@ __device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack
 		r.z = color_srgb_to_scene_linear(r.z);
 	}
 
-	stack_store_float3(stack, out_offset, r);
+	if(stack_valid(out_offset))
+		stack_store_float3(stack, out_offset, r);
+	if(stack_valid(alpha_offset))
+		stack_store_float(stack, alpha_offset, f.w);
 }
 
 __device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {
 	uint id = node.y;
-	uint co_offset, out_offset, srgb;
+	uint co_offset, out_offset, alpha_offset, srgb;
 
-	decode_node_uchar4(node.z, &co_offset, &out_offset, &srgb, NULL);
+	decode_node_uchar4(node.z, &co_offset, &out_offset, &alpha_offset, &srgb);
 
 	float3 co = stack_load_float3(stack, co_offset);
 	float u = (atan2f(co.y, co.x) + M_PI_F)/(2*M_PI_F);
@@ -183,7 +186,10 @@ __device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, float 
 		r.z = color_srgb_to_scene_linear(r.z);
 	}
 
-	stack_store_float3(stack, out_offset, r);
+	if(stack_valid(out_offset))
+		stack_store_float3(stack, out_offset, r);
+	if(stack_valid(alpha_offset))
+		stack_store_float(stack, alpha_offset, f.w);
 }
 
 CCL_NAMESPACE_END

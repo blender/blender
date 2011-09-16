@@ -23,23 +23,15 @@ shader node_glossy_bsdf(
 	color Color = color(0.8, 0.8, 0.8),
 	string distribution = "Beckmann",
 	float Roughness = 0.2,
-	float Fresnel = 1.0,
 	normal Normal = N,
 	output closure color BSDF = diffuse(Normal))
 {
-	float Fr = 1.0;
-
-	if(Fresnel < 1.0) {
-		float eta = 1.0/clamp(1.0 - Fresnel, 1e-5, 1.0 - 1e-5);
-		Fr = fresnel_dielectric(I, Normal, eta);
-	}
-
 	if(distribution == "Sharp")
-		BSDF = (Fr*Color)*reflection(Normal);
+		BSDF = Color*reflection(Normal);
 	else if(distribution == "Beckmann")
-		BSDF = (Fr*Color)*microfacet_beckmann(Normal, Roughness);
+		BSDF = Color*microfacet_beckmann(Normal, Roughness);
 	else if(distribution == "GGX")
-		BSDF = (Fr*Color)*microfacet_ggx(Normal, Roughness);
+		BSDF = Color*microfacet_ggx(Normal, Roughness);
 
 }
 

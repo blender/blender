@@ -37,7 +37,7 @@ __kernel void kernel_ocl_path_trace(
 	int name##_width,
 #include "kernel_textures.h"
 
-	int pass,
+	int sample,
 	int sx, int sy, int sw, int sh)
 {
 	KernelGlobals kglobals, *kg = &kglobals;
@@ -53,7 +53,7 @@ __kernel void kernel_ocl_path_trace(
 	int y = sy + get_global_id(1);
 
 	if(x < sx + sw && y < sy + sh)
-		kernel_path_trace(kg, buffer, rng_state, pass, x, y);
+		kernel_path_trace(kg, buffer, rng_state, sample, x, y);
 }
 
 __kernel void kernel_ocl_tonemap(
@@ -66,7 +66,7 @@ __kernel void kernel_ocl_tonemap(
 	int name##_width,
 #include "kernel_textures.h"
 
-	int pass, int resolution,
+	int sample, int resolution,
 	int sx, int sy, int sw, int sh)
 {
 	KernelGlobals kglobals, *kg = &kglobals;
@@ -82,7 +82,7 @@ __kernel void kernel_ocl_tonemap(
 	int y = sy + get_global_id(1);
 
 	if(x < sx + sw && y < sy + sh)
-		kernel_film_tonemap(kg, rgba, buffer, pass, resolution, x, y);
+		kernel_film_tonemap(kg, rgba, buffer, sample, resolution, x, y);
 }
 
 /*__kernel void kernel_ocl_displace(__global uint4 *input, __global float3 *offset, int sx)

@@ -43,7 +43,7 @@ public:
 	string output_path;
 
 	bool progressive;
-	int passes;
+	int samples;
 	int tile_size;
 	int min_size;
 	int threads;
@@ -59,7 +59,7 @@ public:
 		output_path = "";
 
 		progressive = false;
-		passes = INT_MAX;
+		samples = INT_MAX;
 		tile_size = 64;
 		min_size = 64;
 		threads = 0;
@@ -73,7 +73,7 @@ public:
 	{ return !(device_type == params.device_type
 		&& background == params.background
 		&& output_path == params.output_path
-		/* && passes == params.passes */
+		/* && samples == params.samples */
 		&& progressive == params.progressive
 		&& tile_size == params.tile_size
 		&& min_size == params.min_size
@@ -97,7 +97,7 @@ public:
 	DisplayBuffer *display;
 	Progress progress;
 	SessionParams params;
-	int pass;
+	int sample;
 
 	Session(const SessionParams& params);
 	~Session();
@@ -107,8 +107,8 @@ public:
 	void wait();
 
 	bool ready_to_reset();
-	void reset(int w, int h, int passes);
-	void set_passes(int passes);
+	void reset(int w, int h, int samples);
+	void set_samples(int samples);
 	void set_pause(bool pause);
 
 protected:
@@ -116,7 +116,7 @@ protected:
 		thread_mutex mutex;
 		bool do_reset;
 		int w, h;
-		int passes;
+		int samples;
 	} delayed_reset;
 
 	void run();
@@ -126,15 +126,15 @@ protected:
 
 	void tonemap();
 	void path_trace(Tile& tile);
-	void reset_(int w, int h, int passes);
+	void reset_(int w, int h, int samples);
 
 	void run_cpu();
 	bool draw_cpu(int w, int h);
-	void reset_cpu(int w, int h, int passes);
+	void reset_cpu(int w, int h, int samples);
 
 	void run_gpu();
 	bool draw_gpu(int w, int h);
-	void reset_gpu(int w, int h, int passes);
+	void reset_gpu(int w, int h, int samples);
 
 	TileManager tile_manager;
 	bool device_use_gl;

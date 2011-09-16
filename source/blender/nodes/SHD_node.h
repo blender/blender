@@ -56,6 +56,7 @@ void register_node_type_sh_attribute(ListBase *lb);
 void register_node_type_sh_geometry(ListBase *lb);
 void register_node_type_sh_light_path(ListBase *lb);
 void register_node_type_sh_fresnel(ListBase *lb);
+void register_node_type_sh_blend_weight(ListBase *lb);
 void register_node_type_sh_tex_coord(ListBase *lb);
 
 void register_node_type_sh_background(ListBase *lb);
@@ -68,8 +69,8 @@ void register_node_type_sh_bsdf_transparent(ListBase *lb);
 void register_node_type_sh_bsdf_velvet(ListBase *lb);
 void register_node_type_sh_emission(ListBase *lb);
 void register_node_type_sh_holdout(ListBase *lb);
-void register_node_type_sh_mix_closure(ListBase *lb);
-void register_node_type_sh_add_closure(ListBase *lb);
+void register_node_type_sh_mix_shader(ListBase *lb);
+void register_node_type_sh_add_shader(ListBase *lb);
 
 void register_node_type_sh_output_lamp(ListBase *lb);
 void register_node_type_sh_output_material(ListBase *lb);

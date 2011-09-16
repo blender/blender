@@ -31,38 +31,38 @@
 
 /* **************** OUTPUT ******************** */
 
-static bNodeSocketType sh_node_add_closure_in[]= {
-	{	SOCK_CLOSURE, 1, "Closure1",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_CLOSURE, 1, "Closure2",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+static bNodeSocketType sh_node_add_shader_in[]= {
+	{	SOCK_SHADER, 1, "Shader1",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_SHADER, 1, "Shader2",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static bNodeSocketType sh_node_add_closure_out[]= {
-	{	SOCK_CLOSURE, 0, "Closure",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+static bNodeSocketType sh_node_add_shader_out[]= {
+	{	SOCK_SHADER, 0, "Shader",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
-static void node_shader_exec_add_closure(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
+static void node_shader_exec_add_shader(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
 }
 
-static int node_shader_gpu_add_closure(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
+static int node_shader_gpu_add_shader(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, "node_add_closure", in, out);
+	return GPU_stack_link(mat, "node_add_shader", in, out);
 }
 
 /* node type definition */
-void register_node_type_sh_add_closure(ListBase *lb)
+void register_node_type_sh_add_shader(ListBase *lb)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_ADD_CLOSURE, "Add Closure", NODE_CLASS_CLOSURE, 0,
-		sh_node_add_closure_in, sh_node_add_closure_out);
+	node_type_base(&ntype, SH_NODE_ADD_SHADER, "Add Shader", NODE_CLASS_SHADER, 0,
+		sh_node_add_shader_in, sh_node_add_shader_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
-	node_type_exec(&ntype, node_shader_exec_add_closure);
-	node_type_gpu(&ntype, node_shader_gpu_add_closure);
+	node_type_exec(&ntype, node_shader_exec_add_shader);
+	node_type_gpu(&ntype, node_shader_gpu_add_shader);
 
 	nodeRegisterType(lb, &ntype);
 };

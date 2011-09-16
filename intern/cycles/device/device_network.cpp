@@ -178,22 +178,22 @@ public:
 #endif
 	}
 
-	void path_trace(int x, int y, int w, int h, device_ptr buffer, device_ptr rng_state, int pass)
+	void path_trace(int x, int y, int w, int h, device_ptr buffer, device_ptr rng_state, int sample)
 	{
 #if 0
 		RPCSend snd(socket, "path_trace");
 
-		snd.archive & x & y & w & h & buffer & rng_state & pass;
+		snd.archive & x & y & w & h & buffer & rng_state & sample;
 		snd.write();
 #endif
 	}
 
-	void tonemap(int x, int y, int w, int h, device_ptr rgba, device_ptr buffer, int pass, int resolution)
+	void tonemap(int x, int y, int w, int h, device_ptr rgba, device_ptr buffer, int sample, int resolution)
 	{
 #if 0
 		RPCSend snd(socket, "tonemap");
 
-		snd.archive & x & y & w & h & rgba & buffer & pass & resolution;
+		snd.archive & x & y & w & h & rgba & buffer & sample & resolution;
 		snd.write();
 #endif
 	}
@@ -201,9 +201,9 @@ public:
 	void task_add(DeviceTask& task)
 	{
 		if(task.type == DeviceTask::TONEMAP)
-			tonemap(task.x, task.y, task.w, task.h, task.rgba, task.buffer, task.pass, task.resolution);
+			tonemap(task.x, task.y, task.w, task.h, task.rgba, task.buffer, task.sample, task.resolution);
 		else if(task.type == DeviceTask::PATH_TRACE)
-			path_trace(task.x, task.y, task.w, task.h, task.buffer, task.rng_state, task.pass);
+			path_trace(task.x, task.y, task.w, task.h, task.buffer, task.rng_state, task.sample);
 	}
 
 	void task_wait()
@@ -355,20 +355,20 @@ void Device::server_run()
 #if 0
 					device_ptr buffer, rng_state;
 					int x, y, w, h;
-					int pass;
+					int sample;
 
-					*rcv.archive & x & y & w & h & buffer & rng_state & pass;
-					path_trace(x, y, w, h, buffer, rng_state, pass);
+					*rcv.archive & x & y & w & h & buffer & rng_state & sample;
+					path_trace(x, y, w, h, buffer, rng_state, sample);
 #endif
 				}
 				else if(rcv.name == "tonemap") {
 #if 0
 					device_ptr rgba, buffer;
 					int x, y, w, h;
-					int pass, resolution;
+					int sample, resolution;
 
-					*rcv.archive & x & y & w & h & rgba & buffer & pass & resolution;
-					tonemap(x, y, w, h, rgba, buffer, pass, resolution);
+					*rcv.archive & x & y & w & h & rgba & buffer & sample & resolution;
+					tonemap(x, y, w, h, rgba, buffer, sample, resolution);
 #endif
 				}
 			}

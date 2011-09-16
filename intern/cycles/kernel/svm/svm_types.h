@@ -82,7 +82,8 @@ typedef enum NodeType {
 	NODE_ATTR_BUMP_DX = 4400,
 	NODE_ATTR_BUMP_DY = 4500,
 	NODE_TEX_ENVIRONMENT = 4600,
-	NODE_CLOSURE_HOLDOUT = 4700
+	NODE_CLOSURE_HOLDOUT = 4700,
+	NODE_BLEND_WEIGHT = 4800
 } NodeType;
 
 typedef enum NodeAttributeType {
@@ -248,6 +249,11 @@ typedef enum NodeVoronoiColoring {
 	NODE_VORONOI_POSITION_OUTLINE,
 	NODE_VORONOI_POSITION_OUTLINE_INTENSITY
 } NodeVoronoiColoring;
+
+typedef enum NodeBlendWeightType {
+	NODE_BLEND_WEIGHT_FRESNEL,
+	NODE_BLEND_WEIGHT_FACING
+} NodeBlendWeightType;
 
 typedef enum ShaderType {
 	SHADER_TYPE_SURFACE,

@@ -455,11 +455,11 @@ public:
 		cuda_assert(cuParamSetv(cuPathTrace, offset, &d_rng_state, sizeof(d_rng_state)))
 		offset += sizeof(d_rng_state);
 
-		int pass = task.pass;
-		offset = cuda_align_up(offset, __alignof(pass));
+		int sample = task.sample;
+		offset = cuda_align_up(offset, __alignof(sample));
 
-		cuda_assert(cuParamSeti(cuPathTrace, offset, task.pass))
-		offset += sizeof(task.pass);
+		cuda_assert(cuParamSeti(cuPathTrace, offset, task.sample))
+		offset += sizeof(task.sample);
 
 		cuda_assert(cuParamSeti(cuPathTrace, offset, task.x))
 		offset += sizeof(task.x);
@@ -513,11 +513,11 @@ public:
 		cuda_assert(cuParamSetv(cuFilmConvert, offset, &d_buffer, sizeof(d_buffer)))
 		offset += sizeof(d_buffer);
 
-		int pass = task.pass;
-		offset = cuda_align_up(offset, __alignof(pass));
+		int sample = task.sample;
+		offset = cuda_align_up(offset, __alignof(sample));
 
-		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.pass))
-		offset += sizeof(task.pass);
+		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.sample))
+		offset += sizeof(task.sample);
 
 		cuda_assert(cuParamSeti(cuFilmConvert, offset, task.resolution))
 		offset += sizeof(task.resolution);

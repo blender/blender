@@ -36,7 +36,7 @@ CCL_NAMESPACE_BEGIN
 
 DeviceTask::DeviceTask(Type type_)
 : type(type_), x(0), y(0), w(0), h(0), rng_state(0), rgba(0), buffer(0),
-  pass(0), resolution(0),
+  sample(0), resolution(0),
   displace_input(0), displace_offset(0), displace_x(0), displace_w(0)
 {
 }

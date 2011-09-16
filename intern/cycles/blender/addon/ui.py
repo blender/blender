@@ -59,9 +59,9 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
 
         col = split.column()
         sub = col.column(align=True)
-        sub.label(text="Passes:")
-        sub.prop(cscene, "passes", text="Render")
-        sub.prop(cscene, "preview_passes", text="Preview")
+        sub.label(text="Samples:")
+        sub.prop(cscene, "samples", text="Render")
+        sub.prop(cscene, "preview_samples", text="Preview")
 
         sub = col.column(align=True)
         sub.label("Tranparency:")
@@ -194,21 +194,38 @@ class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
         col = split.column()
         col.prop(rd, "dither_intensity", text="Dither", slider=True)
 
-class Cycles_PT_camera(CyclesButtonsPanel, Panel):
-    bl_label = "Cycles"
+class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
+    bl_label = "Depth of Field"
     bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        return context.camera
+        return context.camera and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
 
-        camera = context.camera
-        ccamera = camera.cycles
+        cam = context.camera
+        ccam = cam.cycles
 
-        layout.prop(ccamera, "lens_radius")
+        split = layout.split()
+
+        col = split.column()
+        col.label("Focus:")
+        col.prop(cam, "dof_object", text="")
+
+        sub = col.row()
+        sub.active = cam.dof_object is None
+        sub.prop(cam, "dof_distance", text="Distance")
+
+        col = split.column()
+
+        col.label("Aperture:")
+        col.prop(ccam, "aperture_size", text="Size")
+
+        sub = col.column(align=True)
+        sub.prop(ccam, "aperture_blades", text="Blades")
+        sub.prop(ccam, "aperture_rotation", text="Rotation")
 
 class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
@@ -550,7 +567,7 @@ class CyclesTexture_PT_color(CyclesButtonsPanel, Panel):
         layout = self.layout
         layout.label("Color modification options go here.");
         layout.label("Ramp, brightness, contrast, saturation.")
-    
+
 def draw_device(self, context):
     scene = context.scene
     layout = self.layout

@@ -1853,7 +1853,7 @@ void node_bsdf_diffuse(vec4 color, vec3 N, out vec4 result)
 	result = vec4(L*color.rgb, 1.0);
 }
 
-void node_bsdf_glossy(vec4 color, float roughness, float fresnel, vec3 N, vec3 I, out vec4 result)
+void node_bsdf_glossy(vec4 color, float roughness, vec3 N, vec3 I, out vec4 result)
 {
 	vec3 L = vec3(0.0);
 
@@ -1874,7 +1874,7 @@ void node_bsdf_anisotropic(vec4 color, float roughnessU, float roughnessV, vec3 
 	node_bsdf_diffuse(color, N, result);
 }
 
-void node_bsdf_glass(vec4 color, float roughness, float fresnel, vec3 N, vec3 I, out vec4 result)
+void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, vec3 I, out vec4 result)
 {
 	node_bsdf_diffuse(color, N, result);
 }
@@ -1893,7 +1893,7 @@ void node_bsdf_transparent(vec4 color, out vec4 result)
 	result.a = 0.0;
 }
 
-void node_bsdf_velvet(vec4 color, float sigma, float fresnel, vec3 N, out vec4 result)
+void node_bsdf_velvet(vec4 color, float sigma, vec3 N, out vec4 result)
 {
 	node_bsdf_diffuse(color, N, result);
 }
@@ -1907,22 +1907,22 @@ void node_emission(vec4 color, float strength, vec3 N, out vec4 result)
 
 /* closures */
 
-void node_mix_closure(float fac, vec4 closure1, vec4 closure2, out vec4 closure)
+void node_mix_shader(float fac, vec4 shader1, vec4 shader2, out vec4 shader)
 {
-	closure = mix(closure1, closure2, fac);
+	shader = mix(shader1, shader2, fac);
 }
 
-void node_add_closure(vec4 closure1, vec4 closure2, out vec4 closure)
+void node_add_shader(vec4 shader1, vec4 shader2, out vec4 shader)
 {
-	closure = closure1 + closure2;
+	shader = shader1 + shader2;
 }
 
 /* fresnel */
 
-void node_fresnel(float f, vec3 N, vec3 I, out float result)
+void node_fresnel(float ior, vec3 N, vec3 I, out float result)
 {
-	f = max(1.0 - f, 0.00001);
-	result = fresnel_dielectric(I, N, 1.0/f); //backfacing()? f: 1.0/f);
+	float eta = max(ior, 0.00001);
+	result = fresnel_dielectric(I, N, eta); //backfacing()? 1.0/eta: eta);
 }
 
 /* geometry */

@@ -34,22 +34,22 @@
 CCL_NAMESPACE_BEGIN
 
 #ifdef __MODIFY_TP__
-__device float3 path_terminate_modified_throughput(KernelGlobals *kg, __global float3 *buffer, int x, int y, int pass)
+__device float3 path_terminate_modified_throughput(KernelGlobals *kg, __global float3 *buffer, int x, int y, int sample)
 {
 	/* modify throughput to influence path termination probability, to avoid
 	   darker regions receiving fewer samples than lighter regions. also RGB
 	   are weighted differently. proper validation still remains to be done. */
 	const float3 weights = make_float3(1.0f, 1.33f, 0.66f);
 	const float3 one = make_float3(1.0f, 1.0f, 1.0f);
-	const int minpass = 5;
+	const int minsample = 5;
 	const float minL = 0.1f;
 
-	if(pass >= minpass) {
+	if(sample >= minsample) {
 		float3 L = buffer[x + y*kernel_data.cam.width];
 		float3 Lmin = make_float3(minL, minL, minL);
-		float correct = (float)(pass+1)/(float)pass;
+		float correct = (float)(sample+1)/(float)sample;
 
-		L = film_map(L*correct, pass);
+		L = film_map(L*correct, sample);
 
 		return weights/clamp(L, Lmin, one);
 	}
@@ -242,7 +242,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 	return result;
 }
 
-__device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray ray, float3 throughput)
+__device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, Ray ray, float3 throughput)
 {
 	/* initialize */
 	float3 L = make_float3(0.0f, 0.0f, 0.0f);
@@ -284,7 +284,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		/* setup shading */
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
-		float rbsdf = path_rng(kg, rng, pass, rng_offset + PRNG_BSDF);
+		float rbsdf = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF);
 		shader_eval_surface(kg, &sd, rbsdf, state.flag);
 
 #ifdef __HOLDOUT__
@@ -308,7 +308,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		   mainly due to the mixed in MIS that we use. gives too many unneeded
 		   shader evaluations, only need emission if we are going to terminate */
 		float probability = path_state_terminate_probability(kg, &state, throughput);
-		float terminate = path_rng(kg, rng, pass, rng_offset + PRNG_TERMINATE);
+		float terminate = path_rng(kg, rng, sample, rng_offset + PRNG_TERMINATE);
 
 		if(terminate >= probability)
 			break;
@@ -319,10 +319,10 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		if(kernel_data.integrator.use_emission) {
 			/* sample illumination from lights to find path contribution */
 			if(sd.flag & SD_BSDF_HAS_EVAL) {
-				float light_t = path_rng(kg, rng, pass, rng_offset + PRNG_LIGHT);
-				float light_o = path_rng(kg, rng, pass, rng_offset + PRNG_LIGHT_F);
-				float light_u = path_rng(kg, rng, pass, rng_offset + PRNG_LIGHT_U);
-				float light_v = path_rng(kg, rng, pass, rng_offset + PRNG_LIGHT_V);
+				float light_t = path_rng(kg, rng, sample, rng_offset + PRNG_LIGHT);
+				float light_o = path_rng(kg, rng, sample, rng_offset + PRNG_LIGHT_F);
+				float light_u = path_rng(kg, rng, sample, rng_offset + PRNG_LIGHT_U);
+				float light_v = path_rng(kg, rng, sample, rng_offset + PRNG_LIGHT_V);
 
 				Ray light_ray;
 				float3 light_L;
@@ -356,8 +356,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 		float3 bsdf_eval;
 		float3 bsdf_omega_in;
 		differential3 bsdf_domega_in;
-		float bsdf_u = path_rng(kg, rng, pass, rng_offset + PRNG_BSDF_U);
-		float bsdf_v = path_rng(kg, rng, pass, rng_offset + PRNG_BSDF_V);
+		float bsdf_u = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF_U);
+		float bsdf_v = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF_V);
 		int label;
 
 		label = shader_bsdf_sample(kg, &sd, bsdf_u, bsdf_v, &bsdf_eval,
@@ -392,7 +392,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int pass, Ray
 	return make_float4(L.x, L.y, L.z, 1.0f - Ltransparent);
 }
 
-__device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __global uint *rng_state, int pass, int x, int y)
+__device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __global uint *rng_state, int sample, int x, int y)
 {
 	/* initialize random numbers */
 	RNG rng;
@@ -400,29 +400,29 @@ __device void kernel_path_trace(KernelGlobals *kg, __global float4 *buffer, __gl
 	float filter_u;
 	float filter_v;
 
-	path_rng_init(kg, rng_state, pass, &rng, x, y, &filter_u, &filter_v);
+	path_rng_init(kg, rng_state, sample, &rng, x, y, &filter_u, &filter_v);
 
 	/* sample camera ray */
 	Ray ray;
 
-	float lens_u = path_rng(kg, &rng, pass, PRNG_LENS_U);
-	float lens_v = path_rng(kg, &rng, pass, PRNG_LENS_V);
+	float lens_u = path_rng(kg, &rng, sample, PRNG_LENS_U);
+	float lens_v = path_rng(kg, &rng, sample, PRNG_LENS_V);
 
 	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, &ray);
 
 	/* integrate */
 #ifdef __MODIFY_TP__
-	float3 throughput = path_terminate_modified_throughput(kg, buffer, x, y, pass);
-	float4 L = kernel_path_integrate(kg, &rng, pass, ray, throughput)/throughput;
+	float3 throughput = path_terminate_modified_throughput(kg, buffer, x, y, sample);
+	float4 L = kernel_path_integrate(kg, &rng, sample, ray, throughput)/throughput;
 #else
 	float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
-	float4 L = kernel_path_integrate(kg, &rng, pass, ray, throughput);
+	float4 L = kernel_path_integrate(kg, &rng, sample, ray, throughput);
 #endif
 
 	/* accumulate result in output buffer */
 	int index = x + y*kernel_data.cam.width;
 
-	if(pass == 0)
+	if(sample == 0)
 		buffer[index] = L;
 	else
 		buffer[index] += L;

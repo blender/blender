@@ -28,8 +28,10 @@ Camera::Camera()
 	shutteropen = 0.0f;
 	shutterclose = 1.0f;
 
-	lensradius = 0.0f;
+	aperturesize = 0.0f;
 	focaldistance = 10.0f;
+	blades = 0;
+	bladesrotation = 0.0f;
 
 	matrix = transform_identity();
 
@@ -134,8 +136,10 @@ void Camera::device_update(Device *device, DeviceScene *dscene)
 	kcam->worldtocamera = transform_inverse(cameratoworld);
 
 	/* depth of field */
-	kcam->lensradius = lensradius;
+	kcam->aperturesize = aperturesize;
 	kcam->focaldistance = focaldistance;
+	kcam->blades = (blades < 3)? 0.0f: blades;
+	kcam->bladesrotation = bladesrotation;
 
 	/* motion blur */
 	kcam->shutteropen = shutteropen;
@@ -168,7 +172,9 @@ bool Camera::modified(const Camera& cam)
 {
 	return !((shutteropen == cam.shutteropen) &&
 		(shutterclose == cam.shutterclose) &&
-		(lensradius == cam.lensradius) &&
+		(aperturesize == cam.aperturesize) &&
+		(blades == cam.blades) &&
+		(bladesrotation == cam.bladesrotation) &&
 		(focaldistance == cam.focaldistance) &&
 		(ortho == cam.ortho) &&
 		(fov == cam.fov) &&

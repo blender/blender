@@ -32,7 +32,7 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketType sh_node_output_lamp_in[]= {
-	{	SOCK_CLOSURE, 1, "Surface",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_SHADER, 1, "Surface",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

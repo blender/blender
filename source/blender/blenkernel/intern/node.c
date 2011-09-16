@@ -3122,7 +3122,7 @@ static void gpu_from_node_stack(ListBase *sockets, bNodeStack **ns, GPUNodeStack
 			gs[i].type= GPU_VEC3;
 		else if (sock->type == SOCK_RGBA)
 			gs[i].type= GPU_VEC4;
-		else if (sock->type == SOCK_CLOSURE)
+		else if (sock->type == SOCK_SHADER)
 			gs[i].type= GPU_VEC4;
 		else
 			gs[i].type= GPU_NONE;
@@ -3219,9 +3219,9 @@ static void ntreeGPUOutputLink(GPUMaterial *mat, bNode *node, bNodeStack *nsout[
 		if(nsout[i]->data) {
 			GPUNodeLink *result= nsout[i]->data;
 
-			/* for closures, we can output the color directly, for others we
+			/* for shader sockets, we can output the color directly, for others we
 			   apply diffuse shading so we don't have flat colors */
-			if(sock->type != SOCK_CLOSURE)
+			if(sock->type != SOCK_SHADER)
 				GPU_link(mat, "node_bsdf_diffuse", result, GPU_builtin(GPU_VIEW_NORMAL), &result);
 
 			GPU_material_output_link(mat, result);
@@ -3690,6 +3690,7 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_geometry(ntypelist);
 	register_node_type_sh_light_path(ntypelist);
 	register_node_type_sh_fresnel(ntypelist);
+	register_node_type_sh_blend_weight(ntypelist);
 	register_node_type_sh_tex_coord(ntypelist);
 
 	register_node_type_sh_background(ntypelist);
@@ -3700,8 +3701,8 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_bsdf_transparent(ntypelist);
 	register_node_type_sh_bsdf_velvet(ntypelist);
 	register_node_type_sh_emission(ntypelist);
-	register_node_type_sh_mix_closure(ntypelist);
-	register_node_type_sh_add_closure(ntypelist);
+	register_node_type_sh_mix_shader(ntypelist);
+	register_node_type_sh_add_shader(ntypelist);
 	register_node_type_sh_holdout(ntypelist);
 
 	register_node_type_sh_output_lamp(ntypelist);

@@ -190,11 +190,15 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = new FresnelNode();
 			break;
 		}
-		case BL::ShaderNode::type_ADD_CLOSURE: {
+		case BL::ShaderNode::type_BLEND_WEIGHT: {
+			node = new BlendWeightNode();
+			break;
+		}
+		case BL::ShaderNode::type_ADD_SHADER: {
 			node = new AddClosureNode();
 			break;
 		}
-		case BL::ShaderNode::type_MIX_CLOSURE: {
+		case BL::ShaderNode::type_MIX_SHADER: {
 			node = new MixClosureNode();
 			break;
 		}
@@ -402,6 +406,20 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 	return node;
 }
 
+static const char *node_socket_map_name(const char *name)
+{
+	if(strstr(name, "Shader")) {
+		if(strcmp(name, "Shader") == 0)
+			return "Closure";
+		if(strcmp(name, "Shader1") == 0)
+			return "Closure1";
+		if(strcmp(name, "Shader2") == 0)
+			return "Closure2";
+	}
+
+	return name;
+}
+
 static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, BL::Node *b_group_node, PtrSockMap& sockets_map)
 {
 	/* add nodes */
@@ -427,7 +445,7 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 				node_map[b_node->ptr.data] = node;
 
 				for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
-					ShaderInput *input = node->input(b_input->name().c_str());
+					ShaderInput *input = node->input(node_socket_map_name(b_input->name().c_str()));
 					BL::NodeSocket sock(get_node_input(b_group_node, *b_node, b_input->name()));
 
 					assert(input);
@@ -522,7 +540,7 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 		/* in case of groups there may not actually be a node inside the group
 		   that the group socket connects to, so from_node or to_node may be NULL */
 		if(from_node && to_node)
-			graph->connect(from_node->output(from_name.c_str()), to_node->input(to_name.c_str()));
+			graph->connect(from_node->output(node_socket_map_name(from_name.c_str())), to_node->input(node_socket_map_name(to_name.c_str())));
 	}
 }
 

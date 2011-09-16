@@ -127,11 +127,12 @@ set(SRC
 	intern/SHD_nodes/SHD_bsdf_velvet.c
 	intern/SHD_nodes/SHD_emission.c
 	intern/SHD_nodes/SHD_fresnel.c
+	intern/SHD_nodes/SHD_blend_weight.c
 	intern/SHD_nodes/SHD_geometry.c
 	intern/SHD_nodes/SHD_holdout.c
 	intern/SHD_nodes/SHD_light_path.c
-	intern/SHD_nodes/SHD_mix_closure.c
-	intern/SHD_nodes/SHD_add_closure.c
+	intern/SHD_nodes/SHD_mix_shader.c
+	intern/SHD_nodes/SHD_add_shader.c
 	intern/SHD_nodes/SHD_output_lamp.c
 	intern/SHD_nodes/SHD_output_material.c
 	intern/SHD_nodes/SHD_output_texture.c

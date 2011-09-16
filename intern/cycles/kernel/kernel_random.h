@@ -95,7 +95,7 @@ __device uint sobol_lookup(const uint m, const uint frame, const uint ex, const 
 	return index;
 }
 
-__device_inline float path_rng(KernelGlobals *kg, RNG *rng, int pass, int dimension)
+__device_inline float path_rng(KernelGlobals *kg, RNG *rng, int sample, int dimension)
 {
 #ifdef __SOBOL_FULL_SCREEN__
 	uint result = sobol_dimension(kg, *rng, dimension);
@@ -103,7 +103,7 @@ __device_inline float path_rng(KernelGlobals *kg, RNG *rng, int pass, int dimens
 	return r;
 #else
 	/* compute sobol sequence value using direction vectors */
-	uint result = sobol_dimension(kg, pass, dimension);
+	uint result = sobol_dimension(kg, sample, dimension);
 	float r = (float)result * (1.0f/(float)0xFFFFFFFF);
 
 	/* Cranly-Patterson rotation using rng seed */
@@ -118,13 +118,13 @@ __device_inline float path_rng(KernelGlobals *kg, RNG *rng, int pass, int dimens
 #endif
 }
 
-__device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int pass, RNG *rng, int x, int y, float *fx, float *fy)
+__device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sample, RNG *rng, int x, int y, float *fx, float *fy)
 {
 #ifdef __SOBOL_FULL_SCREEN__
 	uint px, py;
 	uint bits = 16; /* limits us to 65536x65536 and 65536 samples */
 	uint size = 1 << bits;
-	uint frame = pass;
+	uint frame = sample;
 
 	*rng = sobol_lookup(bits, frame, x, y, &px, &py);
 
@@ -133,8 +133,8 @@ __device_inline void path_rng_init(KernelGlobals *kg, __global uint *rng_state, 
 #else
 	*rng = rng_state[x + y*kernel_data.cam.width];
 
-	*fx = path_rng(kg, rng, pass, PRNG_FILTER_U);
-	*fy = path_rng(kg, rng, pass, PRNG_FILTER_V);
+	*fx = path_rng(kg, rng, sample, PRNG_FILTER_U);
+	*fy = path_rng(kg, rng, sample, PRNG_FILTER_V);
 #endif
 }
 
@@ -147,25 +147,25 @@ __device void path_rng_end(KernelGlobals *kg, __global uint *rng_state, RNG rng,
 
 /* Linear Congruential Generator */
 
-__device float path_rng(KernelGlobals *kg, RNG *rng, int pass, int dimension)
+__device float path_rng(KernelGlobals *kg, RNG *rng, int sample, int dimension)
 {
 	/* implicit mod 2^32 */
 	*rng = (1103515245*(*rng) + 12345);
 	return (float)*rng * (1.0f/(float)0xFFFFFFFF);
 }
 
-__device void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int pass, RNG *rng, int x, int y, float *fx, float *fy)
+__device void path_rng_init(KernelGlobals *kg, __global uint *rng_state, int sample, RNG *rng, int x, int y, float *fx, float *fy)
 {
 	/* load state */
 	*rng = rng_state[x + y*kernel_data.cam.width];
 
-	*fx = path_rng(kg, rng, pass, PRNG_FILTER_U);
-	*fy = path_rng(kg, rng, pass, PRNG_FILTER_V);
+	*fx = path_rng(kg, rng, sample, PRNG_FILTER_U);
+	*fy = path_rng(kg, rng, sample, PRNG_FILTER_V);
 }
 
 __device void path_rng_end(KernelGlobals *kg, __global uint *rng_state, RNG rng, int x, int y)
 {
-	/* store state for next pass */
+	/* store state for next sample */
 	rng_state[x + y*kernel_data.cam.width] = rng;
 }
 

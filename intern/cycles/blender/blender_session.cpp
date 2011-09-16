@@ -96,7 +96,7 @@ void BlenderSession::create_session()
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* start rendering */
-	session->reset(width, height, session_params.passes);
+	session->reset(width, height, session_params.samples);
 	session->start();
 }
 
@@ -122,11 +122,11 @@ void BlenderSession::write_render_result()
 	/* get result */
 	RenderBuffers *buffers = session->buffers;
 	float exposure = scene->film->exposure;
-	double total_time, pass_time;
-	int pass;
-	session->progress.get_pass(pass, total_time, pass_time);
+	double total_time, sample_time;
+	int sample;
+	session->progress.get_sample(sample, total_time, sample_time);
 
-	float4 *pixels = buffers->copy_from_device(exposure, pass);
+	float4 *pixels = buffers->copy_from_device(exposure, sample);
 
 	if(!pixels)
 		return;
@@ -158,8 +158,8 @@ void BlenderSession::synchronize()
 		return;
 	}
 
-	/* increase passes, but never decrease */
-	session->set_passes(session_params.passes);
+	/* increase samples, but never decrease */
+	session->set_samples(session_params.samples);
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* copy recalc flags, outside of mutex so we can decide to do the real
@@ -185,7 +185,7 @@ void BlenderSession::synchronize()
 
 	/* reset if needed */
 	if(scene->need_reset())
-		session->reset(width, height, session_params.passes);
+		session->reset(width, height, session_params.samples);
 }
 
 bool BlenderSession::draw(int w, int h)
@@ -221,7 +221,7 @@ bool BlenderSession::draw(int w, int h)
 		/* reset if requested */
 		if(reset) {
 			SessionParams session_params = BlenderSync::get_session_params(b_scene, background);
-			session->reset(width, height, session_params.passes);
+			session->reset(width, height, session_params.samples);
 		}
 	}
 
@@ -239,11 +239,11 @@ void BlenderSession::get_status(string& status, string& substatus)
 
 void BlenderSession::get_progress(float& progress, double& total_time)
 {
-	double pass_time;
-	int pass;
+	double sample_time;
+	int sample;
 
-	session->progress.get_pass(pass, total_time, pass_time);
-	progress = ((float)pass/(float)session->params.passes);
+	session->progress.get_sample(sample, total_time, sample_time);
+	progress = ((float)sample/(float)session->params.samples);
 }
 
 void BlenderSession::update_status_progress()

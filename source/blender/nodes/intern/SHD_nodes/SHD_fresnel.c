@@ -31,12 +31,12 @@
 
 /* **************** Fresnel ******************** */
 static bNodeSocketType sh_node_fresnel_in[]= {
-	{	SOCK_VALUE, 1, "Fresnel",	0.3f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "IOR",	1.45f, 0.0f, 0.0f, 0.0f, 1.0f, 1000.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketType sh_node_fresnel_out[]= {
-	{	SOCK_VALUE, 0, "Fac",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Fac",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

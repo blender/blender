@@ -55,8 +55,9 @@ DefNode( ShaderNode,     SH_NODE_OUTPUT_LAMP,     0,                      "OUTPU
 //DefNode( ShaderNode,     SH_NODE_OUTPUT_TEXTURE,  0,                      "OUTPUT_TEXTURE", OutputTexture,    "Texture Output",    ""              )
 DefNode( ShaderNode,     SH_NODE_OUTPUT_WORLD,    0,                      "OUTPUT_WORLD",   OutputWorld,      "World Output",      ""              )
 DefNode( ShaderNode,     SH_NODE_FRESNEL,         0,                      "FRESNEL",        Fresnel,          "Fresnel",           ""              )
-DefNode( ShaderNode,     SH_NODE_MIX_CLOSURE,     0,                      "MIX_CLOSURE",    MixClosure,       "Mix Closure",       ""              )
-DefNode( ShaderNode,     SH_NODE_ADD_CLOSURE,     0,                      "ADD_CLOSURE",    AddClosure,       "Add Closure",       ""              )
+DefNode( ShaderNode,     SH_NODE_BLEND_WEIGHT,    0,                      "BLEND_WEIGHT",   BlendWeight,      "BlendWeight",       ""              )
+DefNode( ShaderNode,     SH_NODE_MIX_SHADER,      0,                      "MIX_SHADER",     MixShader,        "Mix Shader",        ""              )
+DefNode( ShaderNode,     SH_NODE_ADD_SHADER,      0,                      "ADD_SHADER",     AddShader,        "Add Shader",        ""              )
 
 DefNode( ShaderNode,     SH_NODE_ATTRIBUTE, 0, "ATTRIBUTE", Attribute, "Attribute", "")
 DefNode( ShaderNode,     SH_NODE_BACKGROUND, 0, "BACKGROUND", Background, "Background", "")

@@ -323,6 +323,11 @@ public:
 	SHADER_NODE_CLASS(FresnelNode)
 };
 
+class BlendWeightNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(BlendWeightNode)
+};
+
 class MathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MathNode)

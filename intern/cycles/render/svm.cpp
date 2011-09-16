@@ -69,7 +69,8 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		if(shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 
-		SVMCompiler compiler(scene->shader_manager, scene->image_manager);
+		SVMCompiler compiler(scene->shader_manager, scene->image_manager,
+			scene->params.use_multi_closure);
 		compiler.sunsky = (sunsky_done)? NULL: &dscene->data.sunsky;
 		compiler.background = ((int)i == scene->default_background);
 		compiler.compile(shader, svm_nodes, i);
@@ -96,7 +97,7 @@ void SVMShaderManager::device_free(Device *device, DeviceScene *dscene)
 
 /* Graph Compiler */
 
-SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_manager_)
+SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_manager_, bool use_multi_closure_)
 {
 	shader_manager = shader_manager_;
 	image_manager = image_manager_;
@@ -106,6 +107,7 @@ SVMCompiler::SVMCompiler(ShaderManager *shader_manager_, ImageManager *image_man
 	current_shader = NULL;
 	background = false;
 	mix_weight_offset = SVM_STACK_INVALID;
+	use_multi_closure = use_multi_closure_;
 }
 
 int SVMCompiler::stack_size(ShaderSocketType type)
@@ -573,9 +575,8 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 
 		if(generate) {
 			set<ShaderNode*> done;
-			bool multi_closure = false; /* __MULTI_CLOSURE__ */
 
-			if(multi_closure) {
+			if(use_multi_closure) {
 				generate_multi_closure(clin->link->parent, done, SVM_STACK_INVALID);
 			}
 			else {

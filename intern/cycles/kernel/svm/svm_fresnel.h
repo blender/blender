@@ -20,12 +20,48 @@ CCL_NAMESPACE_BEGIN
 
 /* Fresnel Node */
 
-__device void svm_node_fresnel(ShaderData *sd, float *stack, uint fresnel_offset, uint fresnel_value, uint out_offset)
+__device void svm_node_fresnel(ShaderData *sd, float *stack, uint ior_offset, uint ior_value, uint out_offset)
 {
-	float fresnel = (stack_valid(fresnel_offset))? stack_load_float(stack, fresnel_offset): __int_as_float(fresnel_value);
-	fresnel = fmaxf(1.0f - fresnel, 0.00001f);
+	float eta = (stack_valid(ior_offset))? stack_load_float(stack, ior_offset): __int_as_float(ior_value);
+	eta = fmaxf(eta, 1.0f + 1e-5f);
+	eta = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
-	float f = fresnel_dielectric_cos(dot(sd->I, sd->N), (sd->flag & SD_BACKFACING)? fresnel: 1.0f/fresnel);
+	float f = fresnel_dielectric_cos(dot(sd->I, sd->N), eta);
+
+	stack_store_float(stack, out_offset, f);
+}
+
+/* Blend Weight Node */
+
+__device void svm_node_blend_weight(ShaderData *sd, float *stack, uint4 node)
+{
+	uint blend_offset = node.y;
+	uint blend_value = node.z;
+	float blend = (stack_valid(blend_offset))? stack_load_float(stack, blend_offset): __int_as_float(blend_value);
+
+	uint type, out_offset;
+	decode_node_uchar4(node.w, &type, &out_offset, NULL, NULL);
+
+	float f;
+
+	if(type == NODE_BLEND_WEIGHT_FRESNEL) {
+		float eta = fmaxf(1.0f - blend, 1e-5f);
+		eta = (sd->flag & SD_BACKFACING)? eta: 1.0f/eta;
+
+		f = fresnel_dielectric_cos(dot(sd->I, sd->N), eta);
+	}
+	else {
+		f = fabsf(dot(sd->I, sd->N));
+
+		if(blend != 0.5f) {
+			blend = clamp(blend, 0.0f, 1.0f);
+			blend = (blend < 0.5f)? 2.0f*blend: 0.5f/(1.0f - blend);
+
+			f = powf(f, blend);
+		}
+
+		f = 1.0f - f;
+	}
 
 	stack_store_float(stack, out_offset, f);
 }

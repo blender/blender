@@ -36,7 +36,7 @@ static bNodeSocketType sh_node_holdout_in[]= {
 };
 
 static bNodeSocketType sh_node_holdout_out[]= {
-	{	SOCK_CLOSURE, 0, "Holdout",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_SHADER, 0, "Holdout",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -50,7 +50,7 @@ void register_node_type_sh_holdout(ListBase *lb)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_HOLDOUT, "Holdout", NODE_CLASS_CLOSURE, 0,
+	node_type_base(&ntype, SH_NODE_HOLDOUT, "Holdout", NODE_CLASS_SHADER, 0,
 		sh_node_holdout_in, sh_node_holdout_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);

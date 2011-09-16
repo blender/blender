@@ -18,9 +18,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-__device float4 film_map(KernelGlobals *kg, float4 irradiance, int pass)
+__device float4 film_map(KernelGlobals *kg, float4 irradiance, int sample)
 {
-	float scale = 1.0f/(float)(pass+1);
+	float scale = 1.0f/(float)(sample+1);
 	float exposure = kernel_data.film.exposure;
 	float4 result = irradiance*scale;
 
@@ -48,13 +48,13 @@ __device uchar4 film_float_to_byte(float4 color)
 	return result;
 }
 
-__device void kernel_film_tonemap(KernelGlobals *kg, __global uchar4 *rgba, __global float4 *buffer, int pass, int resolution, int x, int y)
+__device void kernel_film_tonemap(KernelGlobals *kg, __global uchar4 *rgba, __global float4 *buffer, int sample, int resolution, int x, int y)
 {
 	int w = kernel_data.cam.width;
 	int index = x + y*w;
 	float4 irradiance = buffer[index];
 
-	float4 float_result = film_map(kg, irradiance, pass);
+	float4 float_result = film_map(kg, irradiance, sample);
 	uchar4 byte_result = film_float_to_byte(float_result);
 
 	rgba[index] = byte_result;

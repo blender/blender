@@ -66,26 +66,26 @@ static void session_print(const string& str)
 
 static void session_print_status()
 {
-	int pass;
-	double total_time, pass_time;
+	int sample;
+	double total_time, sample_time;
 	string status, substatus;
 
 	/* get status */
-	options.session->progress.get_pass(pass, total_time, pass_time);
+	options.session->progress.get_sample(sample, total_time, sample_time);
 	options.session->progress.get_status(status, substatus);
 
 	if(substatus != "")
 		status += ": " + substatus;
 
 	/* print status */
-	status = string_printf("Pass %d   %s", pass, status.c_str());
+	status = string_printf("Sample %d   %s", sample, status.c_str());
 	session_print(status);
 }
 
 static void session_init()
 {
 	options.session = new Session(options.session_params);
-	options.session->reset(options.width, options.height, options.session_params.passes);
+	options.session->reset(options.width, options.height, options.session_params.samples);
 	options.session->scene = options.scene;
 	
 	if(options.session_params.background && !options.quiet)
@@ -133,18 +133,18 @@ static void display_info(Progress& progress)
 	latency = (elapsed - last);
 	last = elapsed;
 
-	int pass;
-	double total_time, pass_time;
+	int sample;
+	double total_time, sample_time;
 	string status, substatus;
 
-	progress.get_pass(pass, total_time, pass_time);
+	progress.get_sample(sample, total_time, sample_time);
 	progress.get_status(status, substatus);
 
 	if(substatus != "")
 		status += ": " + substatus;
 
-	str = string_printf("latency: %.4f        pass: %d        total: %.4f        average: %.4f        %s",
-		latency, pass, total_time, pass_time, status.c_str());
+	str = string_printf("latency: %.4f        sample: %d        total: %.4f        average: %.4f        %s",
+		latency, sample, total_time, sample_time, status.c_str());
 
 	view_display_info(str.c_str());
 }
@@ -162,13 +162,13 @@ static void resize(int width, int height)
 	options.height= height;
 
 	if(options.session)
-		options.session->reset(options.width, options.height, options.session_params.passes);
+		options.session->reset(options.width, options.height, options.session_params.samples);
 }
 
 void keyboard(unsigned char key)
 {
 	if(key == 'r')
-		options.session->reset(options.width, options.height, options.session_params.passes);
+		options.session->reset(options.width, options.height, options.session_params.samples);
 	else if(key == 27) // escape
 		options.session->progress.set_cancel("Cancelled");
 }
@@ -220,7 +220,7 @@ static void options_parse(int argc, const char **argv)
 		"--shadingsys %s", &ssname, "Shading system to use: svm, osl",
 		"--background", &options.session_params.background, "Render in background, without user interface",
 		"--quiet", &options.quiet, "In background mode, don't print progress messages",
-		"--passes %d", &options.session_params.passes, "Number of passes to render",
+		"--samples %d", &options.session_params.samples, "Number of samples to render",
 		"--output %s", &options.session_params.output_path, "File path to write output image",
 		"--threads %d", &options.session_params.threads, "CPU Rendering Threads",
 		"--help", &help, "Print help message",
@@ -266,8 +266,8 @@ static void options_parse(int argc, const char **argv)
 		fprintf(stderr, "OSL shading system only works with CPU device\n");
 		exit(EXIT_FAILURE);
 	}
-	else if(options.session_params.passes < 0) {
-		fprintf(stderr, "Invalid number of passes: %d\n", options.session_params.passes);
+	else if(options.session_params.samples < 0) {
+		fprintf(stderr, "Invalid number of samples: %d\n", options.session_params.samples);
 		exit(EXIT_FAILURE);
 	}
 	else if(options.filepath == "") {

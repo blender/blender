@@ -49,6 +49,7 @@ ImageTextureNode::ImageTextureNode()
 
 	add_input("Vector", SHADER_SOCKET_POINT, ShaderInput::TEXTURE_COORDINATE);
 	add_output("Color", SHADER_SOCKET_COLOR);
+	add_output("Alpha", SHADER_SOCKET_FLOAT);
 }
 
 ImageTextureNode::~ImageTextureNode()
@@ -69,12 +70,16 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *vector_in = input("Vector");
 	ShaderOutput *color_out = output("Color");
+	ShaderOutput *alpha_out = output("Alpha");
 
 	image_manager = compiler.image_manager;
 	if(slot == -1)
 		slot = image_manager->add_image(filename);
 
-	compiler.stack_assign(color_out);
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+	if(!alpha_out->links.empty())
+		compiler.stack_assign(alpha_out);
 
 	if(slot != -1) {
 		compiler.stack_assign(vector_in);
@@ -83,12 +88,17 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 			compiler.encode_uchar4(
 				vector_in->stack_offset,
 				color_out->stack_offset,
+				alpha_out->stack_offset,
 				color_space_enum[color_space]));
 	}
 	else {
 		/* image not found */
-		compiler.add_node(NODE_VALUE_V, color_out->stack_offset);
-		compiler.add_node(NODE_VALUE_V, make_float3(0, 0, 0));
+		if(!color_out->links.empty()) {
+			compiler.add_node(NODE_VALUE_V, color_out->stack_offset);
+			compiler.add_node(NODE_VALUE_V, make_float3(0, 0, 0));
+		}
+		if(!alpha_out->links.empty())
+			compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), alpha_out->stack_offset);
 	}
 }
 
@@ -113,6 +123,7 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 
 	add_input("Vector", SHADER_SOCKET_VECTOR, ShaderInput::POSITION);
 	add_output("Color", SHADER_SOCKET_COLOR);
+	add_output("Alpha", SHADER_SOCKET_FLOAT);
 }
 
 EnvironmentTextureNode::~EnvironmentTextureNode()
@@ -133,12 +144,16 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *vector_in = input("Vector");
 	ShaderOutput *color_out = output("Color");
+	ShaderOutput *alpha_out = output("Alpha");
 
 	image_manager = compiler.image_manager;
 	if(slot == -1)
 		slot = image_manager->add_image(filename);
 
-	compiler.stack_assign(color_out);
+	if(!color_out->links.empty())
+		compiler.stack_assign(color_out);
+	if(!alpha_out->links.empty())
+		compiler.stack_assign(alpha_out);
 
 	if(slot != -1) {
 		compiler.stack_assign(vector_in);
@@ -147,12 +162,17 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 			compiler.encode_uchar4(
 				vector_in->stack_offset,
 				color_out->stack_offset,
+				alpha_out->stack_offset,
 				color_space_enum[color_space]));
 	}
 	else {
 		/* image not found */
-		compiler.add_node(NODE_VALUE_V, color_out->stack_offset);
-		compiler.add_node(NODE_VALUE_V, make_float3(0, 0, 0));
+		if(!color_out->links.empty()) {
+			compiler.add_node(NODE_VALUE_V, color_out->stack_offset);
+			compiler.add_node(NODE_VALUE_V, make_float3(0, 0, 0));
+		}
+		if(!alpha_out->links.empty())
+			compiler.add_node(NODE_VALUE_F, __float_as_int(0.0f), alpha_out->stack_offset);
 	}
 }
 
@@ -1080,7 +1100,6 @@ GlossyBsdfNode::GlossyBsdfNode()
 	distribution = ustring("Beckmann");
 
 	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.2f);
-	add_input("Fresnel", SHADER_SOCKET_FLOAT, 1.0f);
 }
 
 void GlossyBsdfNode::compile(SVMCompiler& compiler)
@@ -1088,9 +1107,9 @@ void GlossyBsdfNode::compile(SVMCompiler& compiler)
 	closure = (ClosureType)distribution_enum[distribution];
 
 	if(closure == CLOSURE_BSDF_REFLECTION_ID)
-		BsdfNode::compile(compiler, NULL, input("Fresnel"));
+		BsdfNode::compile(compiler, NULL, NULL);
 	else
-		BsdfNode::compile(compiler, input("Roughness"), input("Fresnel"));
+		BsdfNode::compile(compiler, input("Roughness"), NULL);
 }
 
 void GlossyBsdfNode::compile(OSLCompiler& compiler)
@@ -1119,7 +1138,7 @@ GlassBsdfNode::GlassBsdfNode()
 	distribution = ustring("Sharp");
 
 	add_input("Roughness", SHADER_SOCKET_FLOAT, 0.0f);
-	add_input("Fresnel", SHADER_SOCKET_FLOAT, 0.3f);
+	add_input("IOR", SHADER_SOCKET_FLOAT, 0.3f);
 }
 
 void GlassBsdfNode::compile(SVMCompiler& compiler)
@@ -1127,9 +1146,9 @@ void GlassBsdfNode::compile(SVMCompiler& compiler)
 	closure = (ClosureType)distribution_enum[distribution];
 
 	if(closure == CLOSURE_BSDF_REFRACTION_ID)
-		BsdfNode::compile(compiler, NULL, input("Fresnel"));
+		BsdfNode::compile(compiler, NULL, input("IOR"));
 	else
-		BsdfNode::compile(compiler, input("Roughness"), input("Fresnel"));
+		BsdfNode::compile(compiler, input("Roughness"), input("IOR"));
 }
 
 void GlassBsdfNode::compile(OSLCompiler& compiler)
@@ -1145,12 +1164,11 @@ VelvetBsdfNode::VelvetBsdfNode()
 	closure = CLOSURE_BSDF_ASHIKHMIN_VELVET_ID;
 
 	add_input("Sigma", SHADER_SOCKET_FLOAT, 1.0f);
-	add_input("Fresnel", SHADER_SOCKET_FLOAT, 1.0f);
 }
 
 void VelvetBsdfNode::compile(SVMCompiler& compiler)
 {
-	BsdfNode::compile(compiler, input("Sigma"), input("Fresnel"));
+	BsdfNode::compile(compiler, input("Sigma"), NULL);
 }
 
 void VelvetBsdfNode::compile(OSLCompiler& compiler)
@@ -1781,23 +1799,62 @@ FresnelNode::FresnelNode()
 : ShaderNode("Fresnel")
 {
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
-	add_input("Fresnel", SHADER_SOCKET_FLOAT, 0.3f);
+	add_input("IOR", SHADER_SOCKET_FLOAT, 1.45f);
 	add_output("Fac", SHADER_SOCKET_FLOAT);
 }
 
 void FresnelNode::compile(SVMCompiler& compiler)
 {
-	ShaderInput *fresnel_in = input("Fresnel");
+	ShaderInput *ior_in = input("IOR");
 	ShaderOutput *fac_out = output("Fac");
 
-	compiler.stack_assign(fresnel_in);
+	compiler.stack_assign(ior_in);
 	compiler.stack_assign(fac_out);
-	compiler.add_node(NODE_FRESNEL, fresnel_in->stack_offset, __float_as_int(fresnel_in->value.x), fac_out->stack_offset);
+	compiler.add_node(NODE_FRESNEL, ior_in->stack_offset, __float_as_int(ior_in->value.x), fac_out->stack_offset);
 }
 
 void FresnelNode::compile(OSLCompiler& compiler)
 {
 	compiler.add(this, "node_fresnel");
+}
+
+/* Blend Weight */
+
+BlendWeightNode::BlendWeightNode()
+: ShaderNode("BlendWeight")
+{
+	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
+	add_input("Blend", SHADER_SOCKET_FLOAT, 0.5f);
+
+	add_output("Fresnel", SHADER_SOCKET_FLOAT);
+	add_output("Facing", SHADER_SOCKET_FLOAT);
+}
+
+void BlendWeightNode::compile(SVMCompiler& compiler)
+{
+	ShaderInput *blend_in = input("Blend");
+
+	if(blend_in->link)
+		compiler.stack_assign(blend_in);
+
+	ShaderOutput *fresnel_out = output("Fresnel");
+	if(!fresnel_out->links.empty()) {
+		compiler.stack_assign(fresnel_out);
+		compiler.add_node(NODE_BLEND_WEIGHT, blend_in->stack_offset, __float_as_int(blend_in->value.x),
+			compiler.encode_uchar4(NODE_BLEND_WEIGHT_FRESNEL, fresnel_out->stack_offset));
+	}
+
+	ShaderOutput *facing_out = output("Facing");
+	if(!facing_out->links.empty()) {
+		compiler.stack_assign(facing_out);
+		compiler.add_node(NODE_BLEND_WEIGHT, blend_in->stack_offset, __float_as_int(blend_in->value.x),
+			compiler.encode_uchar4(NODE_BLEND_WEIGHT_FACING, facing_out->stack_offset));
+	}
+}
+
+void BlendWeightNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_blend_weight");
 }
 
 /* Output */

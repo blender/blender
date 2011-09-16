@@ -22,7 +22,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-TileManager::TileManager(bool progressive_, int passes_, int tile_size_, int min_size_)
+TileManager::TileManager(bool progressive_, int samples_, int tile_size_, int min_size_)
 {
 	progressive = progressive_;
 	tile_size = tile_size_;
@@ -35,7 +35,7 @@ TileManager::~TileManager()
 {
 }
 
-void TileManager::reset(int width_, int height_, int passes_)
+void TileManager::reset(int width_, int height_, int samples_)
 {
 	full_width = width_;
 	full_height = height_;
@@ -53,18 +53,18 @@ void TileManager::reset(int width_, int height_, int passes_)
 		}
 	}
 
-	passes = passes_;
+	samples = samples_;
 
 	state.width = 0;
 	state.height = 0;
-	state.pass = -1;
+	state.sample = -1;
 	state.resolution = start_resolution;
 	state.tiles.clear();
 }
 
-void TileManager::set_passes(int passes_)
+void TileManager::set_samples(int samples_)
 {
-	passes = passes_;
+	samples = samples_;
 }
 
 void TileManager::set_tiles()
@@ -96,7 +96,7 @@ void TileManager::set_tiles()
 
 bool TileManager::done()
 {
-	return (state.pass+1 >= passes);
+	return (state.sample+1 >= samples && state.resolution == 1);
 }
 
 bool TileManager::next()
@@ -105,12 +105,12 @@ bool TileManager::next()
 		return false;
 
 	if(progressive && state.resolution > 1) {
-		state.pass = 0;
+		state.sample = 0;
 		state.resolution /= 2;
 		set_tiles();
 	}
 	else {
-		state.pass++;
+		state.sample++;
 		state.resolution = 1;
 		set_tiles();
 	}

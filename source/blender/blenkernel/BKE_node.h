@@ -128,7 +128,7 @@ typedef struct bNodeType {
 #define NODE_CLASS_OP_DYNAMIC	11
 #define NODE_CLASS_PATTERN 		12
 #define NODE_CLASS_TEXTURE 		13
-#define NODE_CLASS_CLOSURE 		14
+#define NODE_CLASS_SHADER 		14
 
 /* bNodeSocketType flag */
 #define SOCK_NO_VALUE			1
@@ -282,7 +282,7 @@ struct ShadeResult;
 #define SH_NODE_OUTPUT_WORLD			125
 #define SH_NODE_OUTPUT_LAMP				126
 #define SH_NODE_FRESNEL					127
-#define SH_NODE_MIX_CLOSURE				128
+#define SH_NODE_MIX_SHADER				128
 #define SH_NODE_ATTRIBUTE				129
 #define SH_NODE_BACKGROUND				130
 #define SH_NODE_BSDF_ANISOTROPIC		131
@@ -308,10 +308,11 @@ struct ShadeResult;
 #define SH_NODE_TEX_STUCCI				153
 #define SH_NODE_TEX_DISTNOISE			154
 #define SH_NODE_TEX_COORD				155
-#define SH_NODE_ADD_CLOSURE				156
+#define SH_NODE_ADD_SHADER				156
 #define SH_NODE_TEX_ENVIRONMENT			157
 #define SH_NODE_OUTPUT_TEXTURE			158
 #define SH_NODE_HOLDOUT					159
+#define SH_NODE_BLEND_WEIGHT			160
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

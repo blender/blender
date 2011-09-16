@@ -53,7 +53,8 @@ public:
 
 class SVMCompiler {
 public:
-	SVMCompiler(ShaderManager *shader_manager, ImageManager *image_manager);
+	SVMCompiler(ShaderManager *shader_manager, ImageManager *image_manager,
+		bool use_multi_closure_);
 	void compile(Shader *shader, vector<int4>& svm_nodes, int index);
 
 	void stack_assign(ShaderOutput *output);
@@ -123,6 +124,7 @@ protected:
 	Stack active_stack;
 	int max_stack_use;
 	uint mix_weight_offset;
+	bool use_multi_closure;
 };
 
 CCL_NAMESPACE_END

@@ -33,7 +33,7 @@ CCL_NAMESPACE_BEGIN
 
 Session::Session(const SessionParams& params_)
 : params(params_),
-  tile_manager(params.progressive, params.passes, params.tile_size, params.min_size)
+  tile_manager(params.progressive, params.samples, params.tile_size, params.min_size)
 {
 	device_use_gl = ((params.device_type != DEVICE_CPU) && !params.background);
 
@@ -48,12 +48,12 @@ Session::Session(const SessionParams& params_)
 	reset_time = 0.0;
 	preview_time = 0.0;
 	paused_time = 0.0;
-	pass = 0;
+	sample = 0;
 
 	delayed_reset.do_reset = false;
 	delayed_reset.w = 0;
 	delayed_reset.h = 0;
-	delayed_reset.passes = 0;
+	delayed_reset.samples = 0;
 
 	display_outdated = false;
 	gpu_draw_ready = false;
@@ -108,7 +108,7 @@ bool Session::ready_to_reset()
 
 /* GPU Session */
 
-void Session::reset_gpu(int w, int h, int passes)
+void Session::reset_gpu(int w, int h, int samples)
 {
 	/* block for buffer acces and reset immediately. we can't do this
 	   in the thread, because we need to allocate an OpenGL buffer, and
@@ -119,7 +119,7 @@ void Session::reset_gpu(int w, int h, int passes)
 	display_outdated = true;
 	reset_time = time_dt();
 
-	reset_(w, h, passes);
+	reset_(w, h, samples);
 
 	gpu_need_tonemap = false;
 	gpu_need_tonemap_cond.notify_all();
@@ -207,7 +207,7 @@ void Session::run_gpu()
 
 		if(!no_tiles) {
 			/* buffers mutex is locked entirely while rendering each
-			   pass, and released/reacquired on each iteration to allow
+			   sample, and released/reacquired on each iteration to allow
 			   reset and draw in between */
 			thread_scoped_lock buffers_lock(buffers->mutex);
 
@@ -249,7 +249,7 @@ void Session::run_gpu()
 
 /* CPU Session */
 
-void Session::reset_cpu(int w, int h, int passes)
+void Session::reset_cpu(int w, int h, int samples)
 {
 	thread_scoped_lock reset_lock(delayed_reset.mutex);
 
@@ -258,7 +258,7 @@ void Session::reset_cpu(int w, int h, int passes)
 
 	delayed_reset.w = w;
 	delayed_reset.h = h;
-	delayed_reset.passes = passes;
+	delayed_reset.samples = samples;
 	delayed_reset.do_reset = true;
 	device->task_cancel();
 
@@ -294,7 +294,7 @@ void Session::run_cpu()
 		thread_scoped_lock buffers_lock(buffers->mutex);
 		thread_scoped_lock display_lock(display->mutex);
 
-		reset_(delayed_reset.w, delayed_reset.h, delayed_reset.passes);
+		reset_(delayed_reset.w, delayed_reset.h, delayed_reset.samples);
 		delayed_reset.do_reset = false;
 	}
 
@@ -335,7 +335,7 @@ void Session::run_cpu()
 
 		if(!no_tiles) {
 			/* buffers mutex is locked entirely while rendering each
-			   pass, and released/reacquired on each iteration to allow
+			   sample, and released/reacquired on each iteration to allow
 			   reset and draw in between */
 			thread_scoped_lock buffers_lock(buffers->mutex);
 
@@ -368,11 +368,11 @@ void Session::run_cpu()
 			if(delayed_reset.do_reset) {
 				/* reset rendering if request from main thread */
 				delayed_reset.do_reset = false;
-				reset_(delayed_reset.w, delayed_reset.h, delayed_reset.passes);
+				reset_(delayed_reset.w, delayed_reset.h, delayed_reset.samples);
 			}
 			else if(need_tonemap) {
 				/* tonemap only if we do not reset, we don't we don't
-				   want to show the result of an incomplete pass*/
+				   want to show the result of an incomplete sample*/
 				tonemap();
 			}
 		}
@@ -418,7 +418,7 @@ bool Session::draw(int w, int h)
 		return draw_cpu(w, h);
 }
 
-void Session::reset_(int w, int h, int passes)
+void Session::reset_(int w, int h, int samples)
 {
 	if(w != buffers->width || h != buffers->height) {
 		gpu_draw_ready = false;
@@ -426,27 +426,27 @@ void Session::reset_(int w, int h, int passes)
 		display->reset(device, w, h);
 	}
 
-	tile_manager.reset(w, h, passes);
+	tile_manager.reset(w, h, samples);
 
 	start_time = time_dt();
 	preview_time = 0.0;
 	paused_time = 0.0;
-	pass = 0;
+	sample = 0;
 }
 
-void Session::reset(int w, int h, int passes)
+void Session::reset(int w, int h, int samples)
 {
 	if(device_use_gl)
-		reset_gpu(w, h, passes);
+		reset_gpu(w, h, samples);
 	else
-		reset_cpu(w, h, passes);
+		reset_cpu(w, h, samples);
 }
 
-void Session::set_passes(int passes)
+void Session::set_samples(int samples)
 {
-	if(passes != params.passes) {
-		params.passes = passes;
-		tile_manager.set_passes(passes);
+	if(samples != params.samples) {
+		params.samples = samples;
+		tile_manager.set_samples(samples);
 
 		{
 			thread_scoped_lock pause_lock(pause_mutex);
@@ -504,7 +504,7 @@ void Session::update_scene()
 
 void Session::update_status_time(bool show_pause, bool show_done)
 {
-	int pass = tile_manager.state.pass;
+	int sample = tile_manager.state.sample;
 	int resolution = tile_manager.state.resolution;
 
 	/* update status */
@@ -512,10 +512,10 @@ void Session::update_status_time(bool show_pause, bool show_done)
 
 	if(!params.progressive)
 		substatus = "Path Tracing";
-	else if(params.passes == INT_MAX)
-		substatus = string_printf("Path Tracing Pass %d", pass+1);
+	else if(params.samples == INT_MAX)
+		substatus = string_printf("Path Tracing Sample %d", sample+1);
 	else
-		substatus = string_printf("Path Tracing Pass %d/%d", pass+1, params.passes);
+		substatus = string_printf("Path Tracing Sample %d/%d", sample+1, params.samples);
 	
 	if(show_pause)
 		status = "Paused";
@@ -531,13 +531,13 @@ void Session::update_status_time(bool show_pause, bool show_done)
 		preview_time = time_dt();
 
 	double total_time = time_dt() - start_time - paused_time;
-	double pass_time = (pass == 0)? 0.0: (time_dt() - preview_time - paused_time)/(pass);
+	double sample_time = (sample == 0)? 0.0: (time_dt() - preview_time - paused_time)/(sample);
 
 	/* negative can happen when we pause a bit before rendering, can discard that */
 	if(total_time < 0.0) total_time = 0.0;
 	if(preview_time < 0.0) preview_time = 0.0;
 
-	progress.set_pass(pass + 1, total_time, pass_time);
+	progress.set_sample(sample + 1, total_time, sample_time);
 }
 
 void Session::path_trace(Tile& tile)
@@ -551,7 +551,7 @@ void Session::path_trace(Tile& tile)
 	task.h = tile.h;
 	task.buffer = buffers->buffer.device_pointer;
 	task.rng_state = buffers->rng_state.device_pointer;
-	task.pass = tile_manager.state.pass;
+	task.sample = tile_manager.state.sample;
 	task.resolution = tile_manager.state.resolution;
 
 	device->task_add(task);
@@ -568,7 +568,7 @@ void Session::tonemap()
 	task.h = tile_manager.state.height;
 	task.rgba = display->rgba.device_pointer;
 	task.buffer = buffers->buffer.device_pointer;
-	task.pass = tile_manager.state.pass;
+	task.sample = tile_manager.state.sample;
 	task.resolution = tile_manager.state.resolution;
 
 	if(task.w > 0 && task.h > 0) {

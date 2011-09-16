@@ -149,7 +149,7 @@ static void ui_node_sock_name(bNodeSocket *sock, char name[UI_MAX_NAME_STR])
 		   !(node->typeinfo->flag & NODE_OPTIONS))
 			BLI_snprintf(name, UI_MAX_NAME_STR, "%s | %s", name, sock->link->fromsock->name);
 	}
-	else if(sock->type == SOCK_CLOSURE)
+	else if(sock->type == SOCK_SHADER)
 		BLI_strncpy(name, "None", UI_MAX_NAME_STR);
 	else
 		BLI_strncpy(name, "Default", UI_MAX_NAME_STR);
@@ -252,7 +252,7 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 
 static int ui_compatible_sockets(int typeA, int typeB)
 {
-	if(typeA == SOCK_CLOSURE || typeB == SOCK_CLOSURE)
+	if(typeA == SOCK_SHADER || typeB == SOCK_SHADER)
 		return (typeA == typeB);
 	
 	return (typeA == typeB);
@@ -396,7 +396,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 
 	ui_node_menu_column(bmain, arg, split, "Input", NODE_CLASS_INPUT);
 	ui_node_menu_column(bmain, arg, split, "Output", NODE_CLASS_OUTPUT);
-	ui_node_menu_column(bmain, arg, split, "Closure", NODE_CLASS_CLOSURE);
+	ui_node_menu_column(bmain, arg, split, "Shader", NODE_CLASS_SHADER);
 	ui_node_menu_column(bmain, arg, split, "Texture", NODE_CLASS_TEXTURE);
 	ui_node_menu_column(bmain, arg, split, "Color", NODE_CLASS_OP_COLOR);
 	ui_node_menu_column(bmain, arg, split, "Vector", NODE_CLASS_OP_VECTOR);
@@ -438,7 +438,7 @@ void uiTemplateNodeLink(uiLayout *layout, bNodeTree *ntree, bNode *node, bNodeSo
 
 	uiBlockSetCurLayout(block, layout);
 
-	if(sock->link || sock->type == SOCK_CLOSURE || (stype && (stype->flag & SOCK_NO_VALUE))) {
+	if(sock->link || sock->type == SOCK_SHADER || (stype && (stype->flag & SOCK_NO_VALUE))) {
 		char name[UI_MAX_NAME_STR];
 		ui_node_sock_name(sock, name);
 		but= uiDefMenuBut(block, ui_template_node_link_menu, NULL, name, 0, 0, UI_UNIT_X*4, UI_UNIT_Y, "");
@@ -543,7 +543,7 @@ static void ui_node_draw_input(uiLayout *layout, bContext *C, bNodeTree *ntree, 
 		bNodeSocketType *stype = ui_node_input_socket_type(node, input);
 
 		/* input not linked, show value */
-		if(input->type != SOCK_CLOSURE && (!stype || !(stype->flag & SOCK_NO_VALUE))) {
+		if(input->type != SOCK_SHADER && (!stype || !(stype->flag & SOCK_NO_VALUE))) {
 			if(input->type == SOCK_VECTOR) {
 				row = uiLayoutRow(split, 0);
 				col = uiLayoutColumn(row, 0);

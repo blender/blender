@@ -2103,6 +2103,44 @@ static void lib_nodetree_do_versions_group(bNodeTree *ntree)
 	}
 }
 
+static void ntree_tmp_cycles_version_patch(bNodeTree *ntree)
+{
+	bNode *node;
+	bNodeSocket *sock;
+
+	for(node=ntree->nodes.first; node; node=node->next) {
+		if(node->type == SH_NODE_FRESNEL) {
+			node->type = SH_NODE_BLEND_WEIGHT;
+
+			for(sock=node->inputs.first; sock; sock=sock->next)
+				if(strcmp(sock->name, "Fresnel") == 0)
+					strcpy(sock->name, "Blend");
+
+			for(sock=node->outputs.first; sock; sock=sock->next)
+				if(strcmp(sock->name, "Fac") == 0)
+					strcpy(sock->name, "Fresnel");
+		}
+		else {
+			for(sock=node->inputs.first; sock; sock=sock->next) {
+				if(strcmp(sock->name, "Closure1") == 0)
+					strcpy(sock->name, "Shader1");
+
+				if(strcmp(sock->name, "Closure2") == 0)
+					strcpy(sock->name, "Shader2");
+
+				if(strcmp(sock->name, "Fresnel") == 0) {
+					strcpy(sock->name, "IOR");
+					sock->ns.vec[0] = 1.0f/MAX2(1.0f - sock->ns.vec[0], 1e-5f);
+				}
+			}
+
+			for(sock=node->outputs.first; sock; sock=sock->next)
+				if(strcmp(sock->name, "Closure") == 0)
+					strcpy(sock->name, "Shader");
+		}
+	}
+}
+
 /* verify types for nodes and groups, all data has to be read */
 /* open = 0: appending/linking, open = 1: open new file (need to clean out dynamic
 * typedefs*/
@@ -2123,6 +2161,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 	/* now create the own typeinfo structs an verify nodes */
 	/* here we still assume no groups in groups */
 	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next) {
+		ntree_tmp_cycles_version_patch(ntree);
 		ntreeVerifyTypes(ntree);		/* internal nodes, no groups! */
 	}
 	
@@ -2142,8 +2181,10 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 		}
 		/* now verify all types in material trees, groups are set OK now */
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
-			if(ma->nodetree)
+			if(ma->nodetree) {
+				ntree_tmp_cycles_version_patch(ma->nodetree);
 				lib_nodetree_do_versions_group(ma->nodetree);
+			}
 		}
 		/* and scene trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
@@ -2155,7 +2196,21 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 			if(tx->nodetree)
 				lib_nodetree_do_versions_group(tx->nodetree);
 		}
-		
+		/* and world trees */
+		for(wrld= main->world.first; wrld; wrld= wrld->id.next) {
+			if(wrld->nodetree) {
+				ntree_tmp_cycles_version_patch(wrld->nodetree);
+				lib_nodetree_do_versions_group(wrld->nodetree);
+			}
+		}
+		/* and lamp trees */
+		for(la= main->lamp.first; la; la= la->id.next) {
+			if(la->nodetree) {
+				ntree_tmp_cycles_version_patch(la->nodetree);
+				lib_nodetree_do_versions_group(la->nodetree);
+			}
+		}
+			
 		for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
 			ntree->flag &= ~NTREE_DO_VERSIONS;
 	}

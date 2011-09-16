@@ -19,6 +19,8 @@
 import bpy
 from bpy.props import *
 
+import math
+
 from cycles import enums
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
@@ -35,9 +37,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.shading_system = EnumProperty(name="Shading System", description="Shading system to use for rendering",
             items=enums.shading_systems, default="GPU_COMPATIBLE")
 
-        cls.passes = IntProperty(name="Passes", description="Number of passes to render",
+        cls.samples = IntProperty(name="Samples", description="Number of samples to render for each pixel",
             default=10, min=1, max=2147483647)
-        cls.preview_passes = IntProperty(name="Preview Passes", description="Number of passes to render in the viewport, unlimited if 0",
+        cls.preview_samples = IntProperty(name="Preview Samples", description="Number of samples to render in the viewport, unlimited if 0",
             default=0, min=0, max=2147483647)
         cls.preview_pause = BoolProperty(name="Pause Preview", description="Pause all viewport preview renders",
             default=False)
@@ -99,8 +101,12 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
     def register(cls):
         bpy.types.Camera.cycles = PointerProperty(type=cls, name="Cycles Camera Settings", description="Cycles camera settings")
 
-        cls.lens_radius = FloatProperty(name="Lens radius", description="Lens radius for depth of field",
+        cls.aperture_size = FloatProperty(name="Aperture Size", description="Radius of the aperture for depth of field",
             default=0.0, min=0.0, max=10.0)
+        cls.aperture_blades = IntProperty(name="Aperture Blades", description="Number of blades in aperture for polygonal bokeh (need 3 or more)",
+            default=0, min=0, max=100)
+        cls.aperture_rotation = FloatProperty(name="Aperture Rotation", description="Rotation of blades in aperture",
+            default=0, soft_min=-math.pi, soft_max=math.pi, subtype='ANGLE')
     
     @classmethod
     def unregister(cls):

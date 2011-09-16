@@ -35,7 +35,10 @@ struct BlenderCamera {
 	float ortho_scale;
 
 	float lens;
-	float lensradius;
+
+	float aperturesize;
+	uint apertureblades;
+	float aperturerotation;
 	float focaldistance;
 
 	float2 shift;
@@ -90,7 +93,9 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob)
 		bcam->ortho_scale = b_camera.ortho_scale();
 
 		bcam->lens = b_camera.lens();
-		bcam->lensradius = RNA_float_get(&ccamera, "lens_radius");
+		bcam->aperturesize = RNA_float_get(&ccamera, "aperture_size");
+		bcam->apertureblades = RNA_int_get(&ccamera, "aperture_blades");
+		bcam->aperturerotation = RNA_float_get(&ccamera, "aperture_rotation");
 		bcam->focaldistance = blender_camera_focal_distance(b_ob, b_camera);
 
 		bcam->shift.x = b_camera.shift_x();
@@ -162,7 +167,9 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	/* perspective */
 	cam->fov = 2.0f*atan(16.0f/bcam->lens/aspectratio);
 	cam->focaldistance = bcam->focaldistance;
-	cam->lensradius = bcam->lensradius;
+	cam->aperturesize = bcam->aperturesize;
+	cam->blades = bcam->apertureblades;
+	cam->bladesrotation = bcam->aperturerotation;
 
 	/* transform, note the blender camera points along the negative z-axis */
 	cam->matrix = bcam->matrix * transform_scale(1.0f, 1.0f, -1.0f);

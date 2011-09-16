@@ -20,11 +20,12 @@
 #include "node_fresnel.h"
 
 shader node_fresnel(
-	float Fresnel = 0.3,
+	float IOR = 1.45,
 	normal Normal = N,
 	output float Fac = 0.0)
 {
-	float f = max(1.0 - Fresnel, 0.00001);
-	Fac = fresnel_dielectric(I, Normal, backfacing()? f: 1.0/f);
+	float f = max(IOR, 1.0 + 1e-5);
+	float eta = backfacing()? 1.0/f: f;
+	Fac = fresnel_dielectric(I, Normal, eta);
 }
 

@@ -102,23 +102,19 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
 				break;
 #endif
-
 			ShaderClosure *sc = svm_node_closure_get(sd);
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
-			/* index of refraction */
-			float eta = clamp(1.0f-param2, 1e-5f, 1.0f - 1e-5f);
-			eta = 1.0f/eta;
-
-			/* fresnel */
-			float cosNO = dot(sd->N, sd->I);
-			float fresnel = fresnel_dielectric_cos(cosNO, eta);
 			float roughness = param1;
 
-			sc->weight *= fresnel;
-
 			/* setup bsdf */
-			svm_node_glossy_setup(sd, sc, type, eta, roughness, false);
+			if(type == CLOSURE_BSDF_REFLECTION_ID)
+				bsdf_reflection_setup(sd, sc);
+			else if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_ID)
+				bsdf_microfacet_beckmann_setup(sd, sc, roughness, 1.0f, false);
+			else
+				bsdf_microfacet_ggx_setup(sd, sc, roughness, 1.0f, false);
+
 			break;
 		}
 		case CLOSURE_BSDF_REFRACTION_ID:
@@ -128,10 +124,9 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
 				break;
 #endif
-
 			/* index of refraction */
-			float eta = clamp(1.0f-param2, 1e-5f, 1.0f - 1e-5f);
-			eta = (sd->flag & SD_BACKFACING)? eta: 1.0f/eta;
+			float eta = fmaxf(param2, 1.0f + 1e-5f);
+			eta = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
 			/* fresnel */
 			float cosNO = dot(sd->N, sd->I);
@@ -173,7 +168,6 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 			if(kernel_data.integrator.no_caustics && (path_flag & PATH_RAY_DIFFUSE))
 				break;
 #endif
-
 			ShaderClosure *sc = svm_node_closure_get(sd);
 			svm_node_closure_set_mix_weight(sc, mix_weight);
 
@@ -190,17 +184,6 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 
 			/* sigma */
 			float sigma = clamp(param1, 0.0f, 1.0f);
-
-			/* index of refraction */
-			float eta = clamp(1.0f-param2, 1e-5f, 1.0f - 1e-5f);
-			eta = 1.0f/eta;
-
-			/* fresnel */
-			float cosNO = dot(sd->N, sd->I);
-			float fresnel = fresnel_dielectric_cos(cosNO, eta);
-
-			sc->weight *= fresnel;
-
 			bsdf_ashikhmin_velvet_setup(sd, sc, sigma);
 			break;
 		}
@@ -308,7 +291,8 @@ __device void svm_node_emission_weight(KernelGlobals *kg, ShaderData *sd, float 
 	uint strength_offset = node.z;
 	uint total_power = node.w;
 
-	float3 weight = stack_load_float3(stack, color_offset)*stack_load_float(stack, strength_offset);
+	float strength = stack_load_float(stack, strength_offset);
+	float3 weight = stack_load_float3(stack, color_offset)*strength;
 
 	if(total_power && sd->object != ~0)
 		weight /= object_surface_area(kg, sd->object);

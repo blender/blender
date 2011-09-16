@@ -186,13 +186,13 @@ static void node_menu_add(const bContext *C, Menu *menu)
 		uiItemMenuF(layout, "Input", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_INPUT));
 		uiItemMenuF(layout, "Output", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OUTPUT));
 		if(scene_use_new_shading_system(scene))
-			uiItemMenuF(layout, "Closure", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CLOSURE));
+			uiItemMenuF(layout, "Shader", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_SHADER));
+		if(scene_use_new_shading_system(scene))
+			uiItemMenuF(layout, "Texture", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_TEXTURE));
 		uiItemMenuF(layout, "Color", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_COLOR));
 		uiItemMenuF(layout, "Vector", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_VECTOR));
 		uiItemMenuF(layout, "Convertor", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_CONVERTOR));
 		uiItemMenuF(layout, "Group", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_GROUP));
-		if(scene_use_new_shading_system(scene))
-			uiItemMenuF(layout, "Texture", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_TEXTURE));
 		//uiItemMenuF(layout, "Dynamic", 0, node_auto_add_menu, SET_INT_IN_POINTER(NODE_CLASS_OP_DYNAMIC));
 	}
 	else if(snode->treetype==NTREE_COMPOSIT) {

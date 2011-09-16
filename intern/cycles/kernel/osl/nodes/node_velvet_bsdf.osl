@@ -22,19 +22,11 @@
 shader node_velvet_bsdf(
 	color Color = color(0.8, 0.8, 0.8),
 	float Sigma = 0.0,
-	float Fresnel = 0.3,
 	normal Normal = N,
 	output closure color BSDF = diffuse(Normal))
 {
-	float Fr = 1.0;
-
-	if(Fresnel < 1.0) {
-		float eta = 1.0/clamp(1.0 - Fresnel, 1e-5, 1.0 - 1e-5);
-		Fr = fresnel_dielectric(I, Normal, eta);
-	}
-
 	float sigma = clamp(Sigma, 0.0, 1.0);
 
-	BSDF = (Fr*Color)*ashikhmin_velvet(Normal, sigma);
+	BSDF = Color*ashikhmin_velvet(Normal, sigma);
 }
 

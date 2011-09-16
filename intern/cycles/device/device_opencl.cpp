@@ -502,9 +502,9 @@ public:
 		cl_int d_y = task.y;
 		cl_int d_w = task.w;
 		cl_int d_h = task.h;
-		cl_int d_pass = task.pass;
+		cl_int d_sample = task.sample;
 
-		/* pass arguments */
+		/* sample arguments */
 		int narg = 0;
 		ciErr = 0;
 
@@ -516,7 +516,7 @@ public:
 	ciErr |= set_kernel_arg_mem(ckPathTraceKernel, &narg, #name);
 #include "kernel_textures.h"
 
-		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_pass), (void*)&d_pass);
+		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_sample), (void*)&d_sample);
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_x), (void*)&d_x);
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_y), (void*)&d_y);
 		ciErr |= clSetKernelArg(ckPathTraceKernel, narg++, sizeof(d_w), (void*)&d_w);
@@ -575,10 +575,10 @@ public:
 		cl_int d_y = task.y;
 		cl_int d_w = task.w;
 		cl_int d_h = task.h;
-		cl_int d_pass = task.pass;
+		cl_int d_sample = task.sample;
 		cl_int d_resolution = task.resolution;
 
-		/* pass arguments */
+		/* sample arguments */
 		int narg = 0;
 		ciErr = 0;
 
@@ -590,7 +590,7 @@ public:
 	ciErr |= set_kernel_arg_mem(ckFilmConvertKernel, &narg, #name);
 #include "kernel_textures.h"
 
-		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_pass), (void*)&d_pass);
+		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_sample), (void*)&d_sample);
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_resolution), (void*)&d_resolution);
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_x), (void*)&d_x);
 		ciErr |= clSetKernelArg(ckFilmConvertKernel, narg++, sizeof(d_y), (void*)&d_y);

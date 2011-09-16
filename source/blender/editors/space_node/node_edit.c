@@ -274,7 +274,7 @@ void ED_node_shader_default(ID *id)
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock;
 	bNodeTree *ntree;
-	int output_type, closure_type;
+	int output_type, shader_type;
 	
 	ntree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, FALSE);
 
@@ -282,22 +282,22 @@ void ED_node_shader_default(ID *id)
 		case ID_MA:
 			((Material*)id)->nodetree = ntree;
 			output_type = SH_NODE_OUTPUT_MATERIAL;
-			closure_type = SH_NODE_BSDF_DIFFUSE;
+			shader_type = SH_NODE_BSDF_DIFFUSE;
 			break;
 		case ID_WO:
 			((World*)id)->nodetree = ntree;
 			output_type = SH_NODE_OUTPUT_WORLD;
-			closure_type = SH_NODE_BACKGROUND;
+			shader_type = SH_NODE_BACKGROUND;
 			break;
 		case ID_LA:
 			((Lamp*)id)->nodetree = ntree;
 			output_type = SH_NODE_OUTPUT_LAMP;
-			closure_type = SH_NODE_EMISSION;
+			shader_type = SH_NODE_EMISSION;
 			break;
 		case ID_TE:
 			((Tex*)id)->nodetree = ntree;
 			output_type = SH_NODE_OUTPUT_TEXTURE;
-			closure_type = SH_NODE_TEX_CLOUDS;
+			shader_type = SH_NODE_TEX_CLOUDS;
 			break;
 		default:
 			printf("ED_node_shader_default called on wrong ID type.\n");
@@ -307,7 +307,7 @@ void ED_node_shader_default(ID *id)
 	out= nodeAddNodeType(ntree, output_type, NULL, NULL);
 	out->locx= 300.0f; out->locy= 300.0f;
 	
-	in= nodeAddNodeType(ntree, closure_type, NULL, NULL);
+	in= nodeAddNodeType(ntree, shader_type, NULL, NULL);
 	in->locx= 10.0f; in->locy= 300.0f;
 	nodeSetActive(ntree, in);
 	

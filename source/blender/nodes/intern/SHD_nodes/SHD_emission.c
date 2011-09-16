@@ -33,12 +33,12 @@
 
 static bNodeSocketType sh_node_emission_in[]= {
 	{	SOCK_RGBA, 1, "Color",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_VALUE, 1, "Strength",	100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
+	{	SOCK_VALUE, 1, "Strength",	30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketType sh_node_emission_out[]= {
-	{	SOCK_CLOSURE, 0, "Emission",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_SHADER, 0, "Emission",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -56,7 +56,7 @@ void register_node_type_sh_emission(ListBase *lb)
 {
 	static bNodeType ntype;
 
-	node_type_base(&ntype, SH_NODE_EMISSION, "Emission", NODE_CLASS_CLOSURE, 0,
+	node_type_base(&ntype, SH_NODE_EMISSION, "Emission", NODE_CLASS_SHADER, 0,
 		sh_node_emission_in, sh_node_emission_out);
 	node_type_size(&ntype, 150, 60, 200);
 	node_type_init(&ntype, NULL);

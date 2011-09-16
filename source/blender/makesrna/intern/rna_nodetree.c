@@ -164,8 +164,8 @@ static StructRNA *rna_NodeSocketType_refine(struct PointerRNA *ptr)
 			return &RNA_VectorNodeSocket;
 		case SOCK_RGBA:
 			return &RNA_RGBANodeSocket;
-		case SOCK_CLOSURE:
-			return &RNA_ClosureNodeSocket;
+		case SOCK_SHADER:
+			return &RNA_ShaderNodeSocket;
 		default:
 			return &RNA_NodeSocket;
 	}
@@ -2979,12 +2979,12 @@ static void rna_def_node_socket_rgba(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocket_defvalue_range");
 }
 
-static void rna_def_node_socket_closure(BlenderRNA *brna)
+static void rna_def_node_socket_shader(BlenderRNA *brna)
 {
 	StructRNA *srna;
 
-	srna = RNA_def_struct(brna, "ClosureNodeSocket", "NodeSocket");
-	RNA_def_struct_ui_text(srna, "Closure Node Socket", "Input or output socket of a node");
+	srna = RNA_def_struct(brna, "ShaderNodeSocket", "NodeSocket");
+	RNA_def_struct_ui_text(srna, "Shader Node Socket", "Input or output socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
 	RNA_def_struct_ui_icon(srna, ICON_PLUG);
 	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
@@ -3224,7 +3224,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_node_socket_value(brna);
 	rna_def_node_socket_vector(brna);
 	rna_def_node_socket_rgba(brna);
-	rna_def_node_socket_closure(brna);
+	rna_def_node_socket_shader(brna);
 	rna_def_node(brna);
 	rna_def_node_link(brna);
 	rna_def_shader_node(brna);

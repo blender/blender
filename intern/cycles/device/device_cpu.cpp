@@ -152,7 +152,7 @@ public:
 
 		for(int y = task.y; y < task.y + task.h; y++) {
 			for(int x = task.x; x < task.x + task.w; x++)
-				kernel_cpu_path_trace(kg, (float4*)task.buffer, (unsigned int*)task.rng_state, task.pass, x, y);
+				kernel_cpu_path_trace(kg, (float4*)task.buffer, (unsigned int*)task.rng_state, task.sample, x, y);
 
 			if(tasks.worker_cancel())
 				break;
@@ -168,7 +168,7 @@ public:
 	{
 		for(int y = task.y; y < task.y + task.h; y++) {
 			for(int x = task.x; x < task.x + task.w; x++)
-				kernel_cpu_tonemap(kg, (uchar4*)task.rgba, (float4*)task.buffer, task.pass, task.resolution, x, y);
+				kernel_cpu_tonemap(kg, (uchar4*)task.rgba, (float4*)task.buffer, task.sample, task.resolution, x, y);
 		}
 	}
 
