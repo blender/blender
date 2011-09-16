@@ -48,6 +48,9 @@
 
 #include "depsgraph_private.h"
 
+/*from MOD_array.c*/
+void vertgroup_flip_name (char *name, int strip_number);
+
 static void initData(ModifierData *md)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
@@ -65,7 +68,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tmmd->axis = mmd->axis;
 	tmmd->flag = mmd->flag;
 	tmmd->tolerance = mmd->tolerance;
-	tmmd->mirror_ob = mmd->mirror_ob;;
+	tmmd->mirror_ob = mmd->mirror_ob;
 }
 
 static void foreachObjectLink(
@@ -96,18 +99,17 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, struct Scene *UN
 /* Mirror */
 #define VERT_NEW	1
 
-void vertgroup_flip_name (char *name, int strip_number);
 DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		Object *ob,
 		DerivedMesh *dm,
 		int UNUSED(initFlags),
 		int axis)
 {
-	float tolerance = mmd->tolerance;
+	float tolerance_sq;
 	DerivedMesh *cddm, *origdm;
 	bDeformGroup *def, *defb;
 	bDeformGroup **vector_def = NULL;
-	MVert *mv;
+	MVert *mv, *ov;
 	MEdge *me;
 	MLoop *ml;
 	MPoly *mp;
@@ -115,6 +117,8 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int i, j, *vtargetmap = NULL;
 	BLI_array_declare(vtargetmap);
 	int vector_size=0, a, b, totshape;
+
+	tolerance_sq = mmd->tolerance * mmd->tolerance;
 	
 	origdm = dm;
 	if (!CDDM_Check(dm))
@@ -134,13 +138,27 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		}
 	}
 
-	if (mmd->mirror_ob) {
-		float mtx2[4][4];
+	/*mtx is the mirror transformation*/
+	unit_m4(mtx);
+	mtx[axis][axis] = -1.0;
 
-		invert_m4_m4(mtx2, mmd->mirror_ob->obmat);
-		mul_m4_m4m4(mtx, ob->obmat, mtx2);
-	} else {
-		unit_m4(mtx);
+	if (mmd->mirror_ob) {
+		float tmp[4][4];
+		float itmp[4][4];
+
+		/*tmp is a transform from coords relative to the object's own origin, to
+		  coords relative to the mirror object origin*/
+		invert_m4_m4(tmp, mmd->mirror_ob->obmat);
+		mul_m4_m4m4(tmp, ob->obmat, tmp);
+
+		/*itmp is the reverse transform back to origin-relative coordiantes*/
+		invert_m4_m4(itmp, tmp);
+
+		/*combine matrices to get a single matrix that translates coordinates into
+		  mirror-object-relative space, does the mirror, and translates back to
+		  origin-relative space*/
+		mul_m4_m4m4(mtx, tmp, mtx);
+		mul_m4_m4m4(mtx, mtx, itmp);
 	}
 	
 	cddm = CDDM_from_template(dm, dm->numVertData*2, dm->numEdgeData*2, 0, dm->numLoopData*2, dm->numPolyData*2);
@@ -157,12 +175,18 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	CustomData_copy_data(&dm->polyData, &cddm->polyData, 0, dm->numPolyData, dm->numPolyData);
 	
 	/*mirror vertex coordinates*/
-	mv = CDDM_get_verts(cddm) + dm->numVertData;
-	for (i=0; i<dm->numVertData; i++, mv++) {
-		mv->co[axis] = -mv->co[axis];
-		if (fabs(mv->co[axis]) < tolerance) {
+	ov = CDDM_get_verts(cddm);
+	mv = ov + dm->numVertData;
+	for (i=0; i<dm->numVertData; i++, mv++, ov++) {
+		mul_m4_v3(mtx, mv->co);
+		/*compare location of the original and mirrored vertex, to see if they
+		  should be mapped for merging*/
+		if (len_squared_v3v3(ov->co, mv->co) < tolerance_sq) {
 			BLI_array_append(vtargetmap, i+dm->numVertData);
-		} else BLI_array_append(vtargetmap, -1);
+		}
+		else {
+			BLI_array_append(vtargetmap, -1);
+		}
 	}
 	
 	/*handle shape keys*/
@@ -170,7 +194,7 @@ DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	for (a=0; a<totshape; a++) {
 		float (*cos)[3] = CustomData_get_layer_n(&cddm->vertData, CD_SHAPEKEY, a);
 		for (i=dm->numVertData; i<cddm->numVertData; i++) {
-			cos[i][axis] = -cos[i][axis];
+			mul_m4_v3(mtx, cos[i]);
 		}
 	}
 	
