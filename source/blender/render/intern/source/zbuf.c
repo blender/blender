@@ -843,7 +843,7 @@ static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), flo
 }
 
 
-static int clipline(float *v1, float *v2)	/* return 0: do not draw */
+static int clipline(float v1[4], float v2[4])	/* return 0: do not draw */
 {
 	float dz,dw, u1=0.0, u2=1.0;
 	float dx, dy, v13;
@@ -893,7 +893,7 @@ static int clipline(float *v1, float *v2)	/* return 0: do not draw */
 	return 0;
 }
 
-void hoco_to_zco(ZSpan *zspan, float *zco, float *hoco)
+void hoco_to_zco(ZSpan *zspan, float zco[3], const float hoco[4])
 {
 	float div;
 	
@@ -998,7 +998,7 @@ void zbufclipwire(ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *h
 
 }
 
-void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, float *ho1, float *ho2)
+void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const float ho2[4])
 {
 	float f1[4], f2[4];
 	int c1, c2;
@@ -1008,8 +1008,8 @@ void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, float *ho1, float *ho2)
 
 	if(c1 | c2) {	/* not in the middle */
 		if(!(c1 & c2)) {	/* not out completely */
-			QUATCOPY(f1, ho1);
-			QUATCOPY(f2, ho2);
+			copy_v4_v4(f1, ho1);
+			copy_v4_v4(f2, ho2);
 
 			if(clipline(f1, f2)) {
 				hoco_to_zco(zspan, f1, f1);
