@@ -353,23 +353,19 @@ public:
 		string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());;
 		clbin = path_user_get(path_join("cache", clbin));
 
-#ifndef __APPLE__
 		if(path_exists(clbin)) {
 			/* if exists already, try use it */
 			if(!load_binary(kernel_path, clbin))
 				return false;
 		}
 		else {
-#endif
 			/* compile kernel */
 			if(!compile_kernel(kernel_path, kernel_md5))
 				return false;
 
-#ifndef __APPLE__
 			/* save binary for reuse */
 			save_binary(clbin);
 		}
-#endif
 
 		/* find kernels */
 		ckPathTraceKernel = clCreateKernel(cpProgram, "kernel_ocl_path_trace", &ciErr);
