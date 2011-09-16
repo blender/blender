@@ -118,6 +118,8 @@ void register_node_type_cmp_displace(ListBase *lb);
 void register_node_type_cmp_mapuv(ListBase *lb);
 void register_node_type_cmp_transform(ListBase *lb);
 void register_node_type_cmp_stabilize2d(ListBase *lb);
+void register_node_type_cmp_moviedistort(ListBase *lb);
+void register_node_type_cmp_movieundistort(ListBase *lb);
 
 void register_node_type_cmp_glare(ListBase *lb);
 void register_node_type_cmp_tonemap(ListBase *lb);

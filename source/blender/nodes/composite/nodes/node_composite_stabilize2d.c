@@ -28,7 +28,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/nodes/intern/CMP_nodes/CMP_translate.c
+/** \file blender/nodes/composite/nodes/node_composite_stabilize2d.c
  *  \ingroup cmpnodes
  */
 

@@ -376,19 +376,19 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "k1");
 	RNA_def_property_ui_range(prop, -10, 10, .1, 3);
 	RNA_def_property_ui_text(prop, "K1", "");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_flushUpdate");
 
 	prop= RNA_def_property(srna, "k2", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k2");
 	RNA_def_property_ui_range(prop, -10, 10, .1, 3);
 	RNA_def_property_ui_text(prop, "K2", "");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_flushUpdate");
 
 	prop= RNA_def_property(srna, "k3", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k3");
 	RNA_def_property_ui_range(prop, -10, 10, .1, 3);
 	RNA_def_property_ui_text(prop, "K3", "");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_flushUpdate");
 
 	/* pixel aspect */
 	prop= RNA_def_property(srna, "pixel_aspect", PROP_FLOAT, PROP_XYZ);
@@ -396,7 +396,7 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.1f, 5000.0f);
 	RNA_def_property_ui_range(prop, 0.1f, 5000.0f, 1, 2);
 	RNA_def_property_ui_text(prop, "Pixel Aspect", "Pixel aspect ratio");
-	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, "rna_tracking_flushUpdate");
 }
 
 static void rna_def_trackingMarker(BlenderRNA *brna)

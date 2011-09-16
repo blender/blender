@@ -81,6 +81,8 @@ set(SRC
 	composite/nodes/node_composite_math.c
 	composite/nodes/node_composite_mixrgb.c
 	composite/nodes/node_composite_movieclip.c
+	composite/nodes/node_composite_moviedistort.c
+	composite/nodes/node_composite_movieundistort.c
 	composite/nodes/node_composite_normal.c
 	composite/nodes/node_composite_normalize.c
 	composite/nodes/node_composite_outputFile.c
