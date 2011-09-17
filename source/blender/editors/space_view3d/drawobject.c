@@ -4538,16 +4538,22 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 {
 	BezTriple *bezt;
 	float *fp;
-	int basecol;
 	int a;
-	
+
 	if(nu->hide || hide_handles) return;
 
 	glBegin(GL_LINES); 
-	
+
 	if(nu->type == CU_BEZIER) {
-		if(sel) basecol= TH_HANDLE_SEL_FREE;
-		else basecol= TH_HANDLE_FREE;
+
+#define TH_HANDLE_COL_TOT ((TH_HANDLE_SEL_FREE - TH_HANDLE_FREE) + 1)
+		/* use MIN2 when indexing to ensure newer files dont read outside the array */
+		unsigned char handle_cols[TH_HANDLE_COL_TOT][3];
+		const int basecol= sel ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
+
+		for (a=0; a < TH_HANDLE_COL_TOT; a++) {
+			UI_GetThemeColor3ubv(basecol + a, handle_cols[a]);
+		}
 
 		bezt= nu->bezt;
 		a= nu->pntsu;
@@ -4556,31 +4562,34 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 				if( (bezt->f2 & SELECT)==sel) {
 					fp= bezt->vec[0];
 
-					UI_ThemeColor(basecol + bezt->h1);
+					glColor3ubv(handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT-1)]);
 					glVertex3fv(fp);
 					glVertex3fv(fp+3); 
 
-					UI_ThemeColor(basecol + bezt->h2);
+					glColor3ubv(handle_cols[MIN2(bezt->h2, TH_HANDLE_COL_TOT-1)]);
 					glVertex3fv(fp+3); 
 					glVertex3fv(fp+6); 
 				}
 				else if( (bezt->f1 & SELECT)==sel) {
 					fp= bezt->vec[0];
 
-					UI_ThemeColor(basecol + bezt->h1);
+					glColor3ubv(handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT-1)]);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
 				else if( (bezt->f3 & SELECT)==sel) {
 					fp= bezt->vec[1];
 
-					UI_ThemeColor(basecol + bezt->h2);
+					glColor3ubv(handle_cols[MIN2(bezt->h2, TH_HANDLE_COL_TOT-1)]);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
 			}
 			bezt++;
 		}
+
+#undef TH_HANDLE_COL_TOT
+
 	}
 	glEnd();
 }
