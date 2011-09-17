@@ -52,6 +52,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -179,7 +180,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Nurb *nu;
-			ListBase *nurbs= ED_curve_editnurbs((Curve*)ob->data);
+			ListBase *nurbs= curve_editnurbs((Curve*)ob->data);
 
 			if(nurbs) {
 				for(nu= nurbs->first; nu; nu= nu->next)
@@ -234,7 +235,7 @@ static int material_slot_de_select(bContext *C, int select)
 		}
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-		ListBase *nurbs= ED_curve_editnurbs((Curve*)ob->data);
+		ListBase *nurbs= curve_editnurbs((Curve*)ob->data);
 		Nurb *nu;
 		BPoint *bp;
 		BezTriple *bezt;
@@ -529,7 +530,7 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 
 static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C), *sce;
 	SceneRenderLayer *rl;
 	int act= scene->r.actlay;
 
@@ -541,15 +542,17 @@ static int render_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	MEM_freeN(rl);
 
 	scene->r.actlay= 0;
-	
-	if(scene->nodetree) {
-		bNode *node;
-		for(node= scene->nodetree->nodes.first; node; node= node->next) {
-			if(node->type==CMP_NODE_R_LAYERS && node->id==NULL) {
-				if(node->custom1==act)
-					node->custom1= 0;
-				else if(node->custom1>act)
-					node->custom1--;
+
+	for(sce = CTX_data_main(C)->scene.first; sce; sce = sce->id.next) {
+		if(sce->nodetree) {
+			bNode *node;
+			for(node = sce->nodetree->nodes.first; node; node = node->next) {
+				if(node->type==CMP_NODE_R_LAYERS && (Scene*)node->id==scene) {
+					if(node->custom1==act)
+						node->custom1= 0;
+					else if(node->custom1>act)
+						node->custom1--;
+				}
 			}
 		}
 	}

@@ -514,8 +514,7 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	if (pixels)
 		MEM_freeN(pixels);
 
-	if (tex)
-		GPU_texture_unbind(tex);
+	GPU_texture_unbind(tex);
 
 	return tex;
 }

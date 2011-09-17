@@ -1165,8 +1165,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 						shi->vcol[2]= 1.0f;
 						shi->vcol[3]= 1.0f;
 					}
-					if(tface && tface->tpage)
+					if(tface->tpage) {
 						render_realtime_texture(shi, tface->tpage);
+					}
 				}
 
 

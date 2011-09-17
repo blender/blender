@@ -41,9 +41,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"  
-#include "BLI_math.h"  
+#include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 
 #include "DNA_curve_types.h"  
 #include "DNA_material_types.h"  
@@ -66,9 +67,6 @@
 #include "BKE_main.h"  
 #include "BKE_object.h"
 #include "BKE_material.h"
-
-
-#include "ED_curve.h"
 
 /* globals */
 
@@ -116,6 +114,25 @@ void BKE_free_editfont(Curve *cu)
 		
 		MEM_freeN(ef);
 		cu->editfont= NULL;
+	}
+}
+
+void free_curve_editNurb_keyIndex(EditNurb *editnurb)
+{
+	if (!editnurb->keyindex) {
+		return;
+	}
+	BLI_ghash_free(editnurb->keyindex, NULL, (GHashValFreeFP)MEM_freeN);
+	editnurb->keyindex= NULL;
+}
+
+void free_curve_editNurb (Curve *cu)
+{
+	if(cu->editnurb) {
+		freeNurblist(&cu->editnurb->nurbs);
+		free_curve_editNurb_keyIndex(cu->editnurb);
+		MEM_freeN(cu->editnurb);
+		cu->editnurb= NULL;
 	}
 }
 
@@ -282,6 +299,16 @@ void make_local_curve(Curve *cu)
 	}
 }
 
+/* Get list of nurbs from editnurbs structure */
+ListBase *curve_editnurbs(Curve *cu)
+{
+	if (cu->editnurb) {
+		return &cu->editnurb->nurbs;
+	}
+
+	return NULL;
+}
+
 short curve_type(Curve *cu)
 {
 	Nurb *nu;
@@ -358,7 +385,6 @@ void tex_space_curve(Curve *cu)
 
 	}
 }
-
 
 int count_curveverts(ListBase *nurb)
 {
@@ -2050,7 +2076,7 @@ void makeBevelList(Object *ob)
 
 	BLI_freelistN(&(cu->bev));
 	if(cu->editnurb && ob->type!=OB_FONT) {
-		ListBase *nurbs= ED_curve_editnurbs(cu);
+		ListBase *nurbs= curve_editnurbs(cu);
 		nu= nurbs->first;
 	} else nu= cu->nurb.first;
 	
@@ -3158,7 +3184,7 @@ int clamp_nurb_order_v( struct Nurb *nu)
 ListBase *BKE_curve_nurbs(Curve *cu)
 {
 	if (cu->editnurb) {
-		return ED_curve_editnurbs(cu);
+		return curve_editnurbs(cu);
 	}
 
 	return &cu->nurb;

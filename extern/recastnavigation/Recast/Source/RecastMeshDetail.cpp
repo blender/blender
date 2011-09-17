@@ -95,17 +95,11 @@ static int circumCircle(const float xp, const float yp,
 	return (drsqr <= rsqr) ? 1 : 0;
 }
 
-#if defined(_MSC_VER)
-static int ptcmp(void* up, const void *v1, const void *v2)
-#elif defined(__APPLE__) || defined(__FreeBSD__)
-static int ptcmp(void* up, const void *v1, const void *v2)
-#else
-static int ptcmp(const void *v1, const void *v2, void* up)
-#endif
+static float *_qsort_verts;
+static int ptcmp(const void *v1, const void *v2)
 {
-	const float* verts = (const float*)up;
-	const float* p1 = &verts[(*(const int*)v1)*3];
-	const float* p2 = &verts[(*(const int*)v2)*3];
+	const float* p1 = &_qsort_verts[(*(const int*)v1)*3];
+	const float* p2 = &_qsort_verts[(*(const int*)v2)*3];
 	if (p1[0] < p2[0])
 		return -1;
 	else if (p1[0] > p2[0])
@@ -122,13 +116,8 @@ static void delaunay(const int nv, float *verts, rcIntArray& idx, rcIntArray& tr
 	idx.resize(nv);
 	for (int i = 0; i < nv; ++i)
 		idx[i] = i;
-#if defined(_MSC_VER)
-	qsort_s(&idx[0], idx.size(), sizeof(int), ptcmp, verts);
-#elif defined(__APPLE__) || defined(__FreeBSD__)
-	qsort_r(&idx[0], idx.size(), sizeof(int), verts, ptcmp);
-#else
-	qsort_r(&idx[0], idx.size(), sizeof(int), ptcmp, verts);
-#endif
+	_qsort_verts = verts;
+	qsort(&idx[0], idx.size(), sizeof(int), ptcmp);
 
 	// Find the maximum and minimum vertex bounds.
 	// This is to allow calculation of the bounding triangle

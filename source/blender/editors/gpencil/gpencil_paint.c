@@ -1877,7 +1877,7 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 static EnumPropertyItem prop_gpencil_drawmodes[] = {
 	{GP_PAINTMODE_DRAW, "DRAW", 0, "Draw Freehand", ""},
 	{GP_PAINTMODE_DRAW_STRAIGHT, "DRAW_STRAIGHT", 0, "Draw Straight Lines", ""},
-	{GP_PAINTMODE_DRAW_POLY, "DRAW_POLY", 0, "Dtaw Poly Line", ""},
+	{GP_PAINTMODE_DRAW_POLY, "DRAW_POLY", 0, "Draw Poly Line", ""},
 	{GP_PAINTMODE_ERASER, "ERASER", 0, "Eraser", ""},
 	{0, NULL, 0, NULL, NULL}
 };

@@ -240,7 +240,7 @@ GPUBuffer *GPU_buffer_alloc(int size)
 		   size */
 		glGenBuffersARB(1, &buf->id);
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buf->id);
-		glBufferDataARB(GL_ARRAY_BUFFER_ARB, size, 0, GL_STATIC_DRAW_ARB);
+		glBufferDataARB(GL_ARRAY_BUFFER_ARB, size, NULL, GL_STATIC_DRAW_ARB);
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 	}
 	else {
@@ -493,7 +493,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 
 	/* nothing to do for legacy mode */
 	if(dm->drawObject->legacy)
-		return 0;
+		return NULL;
 
 	cur_index_per_mat = MEM_mallocN(sizeof(int)*object->totmaterial,
 					"GPU_buffer_setup.cur_index_per_mat");
@@ -513,7 +513,7 @@ static GPUBuffer *gpu_buffer_setup(DerivedMesh *dm, GPUDrawObject *object,
 			/* bind the buffer and discard previous data,
 			   avoids stalling gpu */
 			glBindBufferARB(target, buffer->id);
-			glBufferDataARB(target, buffer->size, 0, GL_STATIC_DRAW_ARB);
+			glBufferDataARB(target, buffer->size, NULL, GL_STATIC_DRAW_ARB);
 
 			/* attempt to map the buffer */
 			if(!(varray = glMapBufferARB(target, GL_WRITE_ONLY_ARB))) {

@@ -4033,7 +4033,6 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 			direct_link_motionpath(fd, pchan->mpath);
 		
 		pchan->iktree.first= pchan->iktree.last= NULL;
-		pchan->path= NULL;
 		
 		/* incase this value changes in future, clamp else we get undefined behavior */
 		CLAMP(pchan->rotmode, ROT_MODE_MIN, ROT_MODE_MAX);
@@ -9298,7 +9297,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							simasel->prv_w = 96;
 							simasel->flag = 7; /* ??? elubie */
 							strcpy (simasel->dir,  U.textudir);	/* TON */
-							strcpy (simasel->file, "");
+							simasel->file[0]= '\0';
 							
 							simasel->returnfunc     =  NULL;
 							simasel->title[0]       =  0;
@@ -9528,7 +9527,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								
 								/* clear old targets to avoid problems */
 								data->tar = NULL;
-								strcpy(data->subtarget, "");
+								data->subtarget[0]= '\0';
 							}
 						}
 						else if (con->type == CONSTRAINT_TYPE_LOCLIKE) {
@@ -9558,7 +9557,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						
 						/* clear old targets to avoid problems */
 						data->tar = NULL;
-						strcpy(data->subtarget, "");
+						data->subtarget[0]= '\0';
 					}
 				}
 				else if (con->type == CONSTRAINT_TYPE_LOCLIKE) {

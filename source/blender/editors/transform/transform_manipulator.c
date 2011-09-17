@@ -57,6 +57,7 @@
 
 #include "BKE_action.h"
 #include "BKE_context.h"
+#include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_particle.h"
@@ -76,7 +77,6 @@
 #include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_view3d.h"
-#include "ED_curve.h" /* for ED_curve_editnurbs */
 
 #include "UI_resources.h"
 
@@ -387,7 +387,7 @@ int calc_manipulator_stats(const bContext *C)
 			Nurb *nu;
 			BezTriple *bezt;
 			BPoint *bp;
-			ListBase *nurbs= ED_curve_editnurbs(cu);
+			ListBase *nurbs= curve_editnurbs(cu);
 
 			nu= nurbs->first;
 			while(nu) {

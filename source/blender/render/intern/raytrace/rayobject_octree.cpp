@@ -264,7 +264,7 @@ static int face_in_node(RayFace *face, short x, short y, short z, float rtf[][3]
 	return 0;
 }
 
-static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short z, float rtf[][3])
+static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short z, float rtf[4][3])
 {
 	Branch *br;
 	Node *no;

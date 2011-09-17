@@ -88,9 +88,9 @@ static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *
 
 static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	CompBuf *outbuf=0;
-	CompBuf *imbuf1=0;
-	CompBuf *imbuf2=0;
+	CompBuf *outbuf= NULL;
+	CompBuf *imbuf1= NULL;
+	CompBuf *imbuf2= NULL;
 	NodeChroma *c;
 
 	/*is anything connected?*/

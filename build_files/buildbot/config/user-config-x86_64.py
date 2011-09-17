@@ -87,6 +87,10 @@ WITH_BF_STATIC3DMOUSE = True
 BF_3DMOUSE = '/home/sources/staticlibs/spnav'
 BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib64'
 
+# FFT
+WITH_BF_FFTW3 = True
+WITH_BF_STATICFFTW3 = True
+
 # Compilation and optimization
 BF_DEBUG = False
 REL_CFLAGS = ['-O2']

@@ -102,33 +102,6 @@ void ED_sculpt_force_update(bContext *C)
 		multires_force_update(ob);
 }
 
-void ED_sculpt_modifiers_changed(Object *ob)
-{
-	SculptSession *ss= ob->sculpt;
-
-	if(!ss->cache) {
-		/* we free pbvh on changes, except during sculpt since it can't deal with
-		   changing PVBH node organization, we hope topology does not change in
-		   the meantime .. weak */
-		if(ss->pbvh) {
-				BLI_pbvh_free(ss->pbvh);
-				ss->pbvh= NULL;
-		}
-
-		sculpt_free_deformMats(ob->sculpt);
-	} else {
-		PBVHNode **nodes;
-		int n, totnode;
-
-		BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
-
-		for(n = 0; n < totnode; n++)
-			BLI_pbvh_node_mark_update(nodes[n]);
-
-		MEM_freeN(nodes);
-	}
-}
-
 /* Sculpt mode handles multires differently from regular meshes, but only if
    it's the last modifier on the stack and it is not on the first level */
 struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
@@ -2712,17 +2685,6 @@ static void sculpt_update_tex(Sculpt *sd, SculptSession *ss)
 	}
 }
 
-void sculpt_free_deformMats(SculptSession *ss)
-{
-	if(ss->orig_cos) MEM_freeN(ss->orig_cos);
-	if(ss->deform_cos) MEM_freeN(ss->deform_cos);
-	if(ss->deform_imats) MEM_freeN(ss->deform_imats);
-
-	ss->orig_cos = NULL;
-	ss->deform_cos = NULL;
-	ss->deform_imats = NULL;
-}
-
 void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_fmap)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
@@ -2759,7 +2721,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 		if(!ss->orig_cos) {
 			int a;
 
-			sculpt_free_deformMats(ss);
+			free_sculptsession_deformMats(ss);
 
 			if(ss->kb) ss->orig_cos = key_to_vertcos(ob, ss->kb);
 			else ss->orig_cos = mesh_getVertexCos(ob->data, NULL);
@@ -2770,7 +2732,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 			for(a = 0; a < ((Mesh*)ob->data)->totvert; ++a)
 				invert_m3(ss->deform_imats[a]);
 		}
-	} else sculpt_free_deformMats(ss);
+	} else free_sculptsession_deformMats(ss);
 
 	/* if pbvh is deformed, key block is already applied to it */
 	if (ss->kb && !BLI_pbvh_isDeformed(ss->pbvh)) {
@@ -3057,7 +3019,7 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 			copy_v3_v3(cache->true_location, cache->orig_grab_location);
 
 			sd->draw_anchored = 1;
-			copy_v3_v3(sd->anchored_initial_mouse, cache->initial_mouse);
+			copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);
 			sd->anchored_size = cache->pixel_radius;
 		}
 	}

@@ -3375,10 +3375,10 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		if(chainlen)
 			sprintf(autoik, "AutoIK-Len: %d", chainlen);
 		else
-			strcpy(autoik, "");
+			autoik[0]= '\0';
 	}
 	else
-		strcpy(autoik, "");
+		autoik[0]= '\0';
 
 	if (t->con.mode & CON_APPLY) {
 		switch(t->num.idx_max) {

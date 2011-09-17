@@ -222,7 +222,7 @@ static void select_editlattice_hook(Object *obedit, HookModifierData *hmd)
 
 static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, float *cent)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
@@ -332,7 +332,7 @@ static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char
 
 static void select_editcurve_hook(Object *obedit, HookModifierData *hmd)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;

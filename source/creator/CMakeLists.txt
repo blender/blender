@@ -435,12 +435,12 @@ elseif(WIN32)
 			PATTERN ".svn" EXCLUDE
 		)
 
-		if(NOT CMAKE_CL_64)
-			install(
-				FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
-				DESTINATION ${TARGETDIR}
-			)
+		install(
+			FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
+			DESTINATION ${TARGETDIR}
+		)
 
+		if(NOT CMAKE_CL_64)
 			install(
 				FILES ${LIBDIR}/iconv/lib/iconv.dll
 				DESTINATION ${TARGETDIR}
@@ -712,7 +712,11 @@ add_dependencies(blender makesdna)
 
 get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
 
-set(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_render)
+set(BLENDER_LINK_LIBS
+	${BLENDER_LINK_LIBS}
+	bf_windowmanager
+	bf_render
+)
 
 if(WITH_MOD_FLUID)
 	list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
@@ -798,8 +802,8 @@ endif()
 		bf_intern_smoke
 		extern_minilzo
 		extern_lzma
-		extern_recastnavigation
 		ge_logic_ketsji
+		extern_recastnavigation
 		ge_phys_common
 		ge_logic
 		ge_rasterizer
@@ -807,7 +811,6 @@ endif()
 		ge_logic_expressions
 		ge_scenegraph
 		ge_logic_network
-		bf_python # duplicate for BPY_driver_exec
 		ge_logic_ngnetwork
 		extern_bullet
 		ge_logic_loopbacknetwork
@@ -820,8 +823,6 @@ endif()
 		bf_blenfont
 		bf_intern_audaspace
 		bf_intern_mikktspace
-		extern_recastnavigation
-		bf_editor_util          # --- BAD LEVEL CALL HERE --- XXX, this should be removed before release!
 	)
 
 	if(WITH_MOD_CLOTH_ELTOPO)

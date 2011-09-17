@@ -289,17 +289,15 @@ struct SortContext
 	const int* recastData;
 	const int* trisToFacesMap;
 };
-#if defined(_MSC_VER)
-static int compareByData(void* data, const void * a, const void * b)
-#elif defined(__APPLE__) || defined(__FreeBSD__)
-static int compareByData(void* data, const void * a, const void * b)
-#else
-static int compareByData(const void * a, const void * b, void* data)
-#endif
+
+/* XXX: not thread-safe, but it's called only from modifiers stack
+        which isn't threaded. Anyway, better to avoid this in the future */
+static SortContext *_qsort_context;
+
+static int compareByData(const void * a, const void * b)
 {
-	const SortContext* context = (const SortContext*)data;
-	return ( context->recastData[context->trisToFacesMap[*(int*)a]] - 
-		context->recastData[context->trisToFacesMap[*(int*)b]] );
+	return ( _qsort_context->recastData[_qsort_context->trisToFacesMap[*(int*)a]] -
+			_qsort_context->recastData[_qsort_context->trisToFacesMap[*(int*)b]] );
 }
 
 bool buildNavMeshData(const int nverts, const float* verts, 
@@ -323,13 +321,8 @@ bool buildNavMeshData(const int nverts, const float* verts,
 	SortContext context;
 	context.recastData = recastData;
 	context.trisToFacesMap = trisToFacesMap;
-#if defined(_MSC_VER)
-	qsort_s(trisMapping, ntris, sizeof(int), compareByData, &context);
-#elif defined(__APPLE__) || defined(__FreeBSD__)
-	qsort_r(trisMapping, ntris, sizeof(int), &context, compareByData);
-#else
-	qsort_r(trisMapping, ntris, sizeof(int), compareByData, &context);
-#endif
+	_qsort_context = &context;
+	qsort(trisMapping, ntris, sizeof(int), compareByData);
 	//search first valid triangle - triangle of convex polygon
 	int validTriStart = -1;
 	for (int i=0; i< ntris; i++)

@@ -359,7 +359,7 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(oldname, seq->name+2, sizeof(seq->name)-2);
 	
 	/* copy the new name into the name slot */
-	BLI_strncpy(seq->name+2, value, sizeof(seq->name)-2);
+	BLI_strncpy_utf8(seq->name+2, value, sizeof(seq->name)-2);
 	
 	/* make sure the name is unique */
 	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);

@@ -9,6 +9,10 @@
 
 # disable for testing
 DO_UPLOAD=true
+DO_EXE_BLENDER=true
+DO_OUT_HTML=true
+DO_OUT_PDF=true
+
 
 BLENDER="./blender.bin"
 SSH_USER="ideasman42"
@@ -36,28 +40,39 @@ fi
 
 SSH_UPLOAD_FULL=$SSH_UPLOAD/"blender_python_api_"$BLENDER_VERSION
 
-SPHINXBASE=doc/python_api/
+SPHINXBASE=doc/python_api
 
 
 # ----------------------------------------------------------------------------
 # Generate reStructuredText (blender/python only)
 
-# dont delete existing docs, now partial updates are used for quick builds.
-$BLENDER --background --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
+if $DO_EXE_BLENDER ; then
+	# dont delete existing docs, now partial updates are used for quick builds.
+	$BLENDER --background --factory-startup --python $SPHINXBASE/sphinx_doc_gen.py
+fi
 
 
 # ----------------------------------------------------------------------------
 # Generate HTML (sphinx)
 
-sphinx-build -n -b html $SPHINXBASE/sphinx-in $SPHINXBASE/sphinx-out
+if $DO_OUT_HTML ; then
+	# sphinx-build -n -b html $SPHINXBASE/sphinx-in $SPHINXBASE/sphinx-out
+
+	# annoying bug in sphinx makes it very slow unless we do this. should report.
+	cd $SPHINXBASE
+	sphinx-build -n -b html sphinx-in sphinx-out
+	cd -
+fi
 
 
 # ----------------------------------------------------------------------------
 # Generate PDF (sphinx/laytex)
 
-sphinx-build -n -b latex $SPHINXBASE/sphinx-in $SPHINXBASE/sphinx-out
-make -C $SPHINXBASE/sphinx-out
-mv $SPHINXBASE/sphinx-out/contents.pdf $SPHINXBASE/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf
+if $DO_OUT_PDF ; then
+	sphinx-build -n -b latex $SPHINXBASE/sphinx-in $SPHINXBASE/sphinx-out
+	make -C $SPHINXBASE/sphinx-out
+	mv $SPHINXBASE/sphinx-out/contents.pdf $SPHINXBASE/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf
+fi
 
 # ----------------------------------------------------------------------------
 # Upload to blender servers, comment this section for testing
@@ -85,5 +100,5 @@ fi
 
 echo ""
 echo "Finished! view the docs from: "
-echo "  html:" $SPHINXBASE/sphinx-out/contents.html
-echo "   pdf:" $SPHINXBASE/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf
+if $DO_OUT_HTML ; then echo "  html:" $SPHINXBASE/sphinx-out/contents.html ; fi
+if $DO_OUT_PDF ; then  echo "   pdf:" $SPHINXBASE/sphinx-out/blender_python_reference_$BLENDER_VERSION.pdf ; fi

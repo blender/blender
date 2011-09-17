@@ -99,9 +99,10 @@ void blf_font_size(FontBLF *font, int size, int dpi)
 
 static void blf_font_ensure_ascii_table(FontBLF *font)
 {
+	GlyphBLF **glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
+
 	/* build ascii on demand */
-	if(font->glyph_cache->glyph_ascii_table['0']==NULL) {
-		GlyphBLF **glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
+	if(glyph_ascii_table['0']==NULL) {
 		GlyphBLF *g;
 		unsigned int i;
 		for(i=0; i<256; i++) {
@@ -125,7 +126,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 
 #define BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table)             \
 	if(((c)= (str)[i]) < 0x80) {                                              \
-		g= glyph_ascii_table[c];                                              \
+		g= (glyph_ascii_table)[c];                                            \
 		i++;                                                                  \
 	}                                                                         \
 	else if ((c= blf_utf8_next((unsigned char *)(str), &(i)))) {              \
@@ -212,7 +213,7 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
 	blf_font_ensure_ascii_table(font);
 
 	while ((c= *(str++)) && len--) {
-		g= font->glyph_cache->glyph_ascii_table[c];
+		g= glyph_ascii_table[c];
 
 		/* if we don't found a glyph, skip it. */
 		if (!g)
@@ -401,7 +402,6 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 
 	if (!font->glyph_cache)
 		return;
-	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
 	box->xmin= 32000.0f;
 	box->xmax= -32000.0f;
@@ -415,6 +415,7 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 	g_prev= NULL;
 
 	blf_font_ensure_ascii_table(font);
+	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
 	while (str[i]) {
 

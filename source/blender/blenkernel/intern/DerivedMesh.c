@@ -64,18 +64,16 @@
 #include "BKE_tessmesh.h"
 #include "BKE_bvhutils.h"
 
-
 #include "BLO_sys_types.h" // for intptr_t support
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
+#include "GL/glew.h"
 
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 
-#include "ED_sculpt.h" /* for ED_sculpt_modifiers_changed */
+extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 
 static void add_shapekey_layers(DerivedMesh *dm, Mesh *me, Object *ob);
 static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape_uid);
@@ -1642,7 +1640,7 @@ static void clear_mesh_caches(Object *ob)
 	}
 
 	if(ob->sculpt) {
-		ED_sculpt_modifiers_changed(ob);
+		object_sculpt_modifiers_changed(ob);
 	}
 }
 

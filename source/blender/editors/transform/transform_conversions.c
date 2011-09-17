@@ -91,7 +91,6 @@
 #include "ED_node.h"
 #include "ED_types.h"
 #include "ED_uvedit.h"
-#include "ED_curve.h" /* for ED_curve_editnurbs */
 #include "ED_util.h"  /* for crazyspace correction */
 
 #include "UI_view2d.h"
@@ -1404,7 +1403,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	if(cu->editnurb==NULL) return;
 
 	/* count total of vertices, check identical as in 2nd loop for making transdata! */
-	nurbs= ED_curve_editnurbs(cu);
+	nurbs= curve_editnurbs(cu);
 	for(nu= nurbs->first; nu; nu= nu->next) {
 		if(nu->type == CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {

@@ -1488,8 +1488,8 @@ static void particle_normal_ren(short ren_as, ParticleSettings *part, Render *re
 			if(part->draw & PART_DRAW_VEL_LENGTH)
 				mul_v3_fl(vel, len_v3(state->vel));
 
-			VECADDFAC(loc0, loc, vel, -part->draw_line[0]);
-			VECADDFAC(loc1, loc, vel, part->draw_line[1]);
+			madd_v3_v3v3fl(loc0, loc, vel, -part->draw_line[0]);
+			madd_v3_v3v3fl(loc1, loc, vel, part->draw_line[1]);
 
 			particle_curve(re, obr, dm, ma, sd, loc0, loc1, seed, pa_co);
 

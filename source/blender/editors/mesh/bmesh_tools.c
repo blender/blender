@@ -434,7 +434,7 @@ static short EDBM_Extrude_edge(Object *obedit, BMEditMesh *em, int flag, float *
 	 */
 	md = obedit->modifiers.first;
 	for (; md; md=md->next) {
-		if (md->type==eModifierType_Mirror) {
+		if ((md->type==eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
@@ -1758,7 +1758,7 @@ static int do_smooth_vertex(bContext *C, wmOperator *op)
 	 * are within tolerance of the plane(s) of reflection 
 	 */
 	for(md=obedit->modifiers.first; md; md=md->next) {
-		if(md->type==eModifierType_Mirror) {
+		if(md->type==eModifierType_Mirror && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {

@@ -1034,6 +1034,8 @@ int KX_Scene::NewRemoveObject(class CValue* gameobj)
 		ret = newobj->Release();
 	if (m_euthanasyobjects->RemoveValue(newobj))
 		ret = newobj->Release();
+	if (m_animatedlist->RemoveValue(newobj))
+		ret = newobj->Release();
 		
 	if (newobj == m_active_camera)
 	{
@@ -1525,6 +1527,7 @@ void KX_Scene::LogicBeginFrame(double curtime)
 
 void KX_Scene::AddAnimatedObject(CValue* gameobj)
 {
+	gameobj->AddRef();
 	m_animatedlist->Add(gameobj);
 }
 
@@ -1537,7 +1540,7 @@ void KX_Scene::UpdateAnimations(double curtime)
 {
 	// Update any animations
 	for (int i=0; i<m_animatedlist->GetCount(); ++i)
-		((KX_GameObject*)GetObjectList()->GetValue(i))->UpdateActionManager(curtime);
+		((KX_GameObject*)m_animatedlist->GetValue(i))->UpdateActionManager(curtime);
 }
 
 void KX_Scene::LogicUpdateFrame(double curtime, bool frame)
