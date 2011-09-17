@@ -89,6 +89,10 @@ void wcs2utf8s(char *dst, const wchar_t *src);
 size_t wcsleninu8(wchar_t *src);
 size_t utf8towchar(wchar_t *w, const char *c);
 
+#ifdef INTERNATIONAL
+unsigned char *BKE_font_get_unifont(int *unifont_size);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

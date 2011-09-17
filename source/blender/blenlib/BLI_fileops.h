@@ -53,7 +53,7 @@ int   BLI_exists(const char *file);
 int   BLI_copy_fileops(const char *file, const char *to);
 int   BLI_rename(const char *from, const char *to);
 int   BLI_gzip(const char *from, const char *to);
-int   BLI_ungzip_to_mem(const char *from_file, char *to_mem, const int size);
+char *BLI_ungzip_to_mem(const char *from_file, int *size_r);
 int   BLI_delete(const char *file, int dir, int recursive);
 int   BLI_move(const char *file, const char *to);
 int   BLI_touch(const char *file);

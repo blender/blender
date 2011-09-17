@@ -32,7 +32,6 @@ set(INC_SYS
 set(SRC
 	Bfont.c
 	bfont.ttf.c
-	bunifont.ttf.c
 )
 
 if(WITH_BLENDER)

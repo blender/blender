@@ -92,8 +92,8 @@ static const char *locales[] = {
 	"arabic", "ar_EG",
 	"bulgarian", "bg_BG",
 	"greek", "el_GR",
-	"korean" "ko_KR",
-	"nepali" "ne_NP",
+	"korean", "ko_KR",
+	"nepali", "ne_NP",
 };
 
 void BLF_lang_init(void)
@@ -150,10 +150,21 @@ void BLF_lang_set(const char *str)
 	{
 		const char *locale;
 		static char default_locale[64]="\0";
-		static char *env_language = getenv("LANGUAGE");
 
-		if(default_locale[0]==0 && env_language!=NULL) /* store defaul locale */
-			strncpy(default_locale, env_language, sizeof(default_locale));
+		if(default_locale[0]==0) {
+			char *env_language= getenv("LANGUAGE");
+
+			if(env_language) {
+				char *s;
+
+				/* store defaul locale */
+				strncpy(default_locale, env_language, sizeof(default_locale));
+
+				/* use first language as default */
+				s= strchr(default_locale, ':');
+				if(s) s[0]= 0;
+			}
+		}
 
 		if(short_locale[0])
 			locale= short_locale;
@@ -166,7 +177,7 @@ void BLF_lang_set(const char *str)
 		locreturn= setlocale(LC_ALL, locale);
 
 		if (locreturn == NULL) {
-			char *short_locale_utf8= BLI_sprintfN("%s", short_locale);
+			char *short_locale_utf8= BLI_sprintfN("%s.UTF-8", short_locale);
 
 			locreturn= setlocale(LC_ALL, short_locale_utf8);
 
