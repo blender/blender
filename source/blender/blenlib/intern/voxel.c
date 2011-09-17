@@ -36,7 +36,7 @@
 
 
 
-BM_INLINE float D(float *data,  int *res, int x, int y, int z)
+BM_INLINE float D(float *data, const int res[3], int x, int y, int z)
 {
 	CLAMP(x, 0, res[0]-1);
 	CLAMP(y, 0, res[1]-1);
@@ -46,7 +46,7 @@ BM_INLINE float D(float *data,  int *res, int x, int y, int z)
 
 /* *** nearest neighbour *** */
 /* input coordinates must be in bounding box 0.0 - 1.0 */
-float voxel_sample_nearest(float *data, int *res, float *co)
+float voxel_sample_nearest(float *data, const int res[3], const float co[3])
 {
 	int xi, yi, zi;
 	
@@ -71,7 +71,7 @@ BM_INLINE int _clamp(int a, int b, int c)
 	return (a < b) ? b : ((a > c) ? c : a);
 }
 
-float voxel_sample_trilinear(float *data, int *res, float *co)
+float voxel_sample_trilinear(float *data, const int res[3], const float co[3])
 {
 	if (data) {
 	
@@ -103,7 +103,7 @@ float voxel_sample_trilinear(float *data, int *res, float *co)
 }
 	
 
-float voxel_sample_triquadratic(float *data, int *res, float *co)
+float voxel_sample_triquadratic(float *data, const int res[3], const float co[3])
 {
 	if (data) {
 
@@ -133,7 +133,7 @@ float voxel_sample_triquadratic(float *data, int *res, float *co)
 	return 0.f;
 }
 
-float voxel_sample_tricubic(float *data, int *res, float *co, int bspline)
+float voxel_sample_tricubic(float *data, const int res[3], const float co[3], int bspline)
 {
 	if (data) {
 

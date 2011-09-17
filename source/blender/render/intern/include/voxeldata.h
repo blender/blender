@@ -45,6 +45,6 @@ typedef struct VoxelDataHeader
 
 void make_voxeldata(struct Render *re);
 void free_voxeldata(struct Render *re);
-int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres);
+int voxeldatatex(struct Tex *tex, const float texvec[3], struct TexResult *texres);
 
 #endif /* VOXELDATA_H */
