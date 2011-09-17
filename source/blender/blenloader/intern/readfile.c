@@ -2144,7 +2144,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 			ntreetype->foreach_nodetree(main, NULL, lib_nodetree_init_types_cb);
 	}
 	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
-		ntreeInitTypes(ntree);
+		lib_nodetree_init_types_cb(NULL, NULL, ntree);
 	
 	{
 		int has_old_groups=0;

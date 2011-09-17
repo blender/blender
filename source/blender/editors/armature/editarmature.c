@@ -361,7 +361,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 			print_m4("premat", premat);
 			print_m4("postmat", postmat);
 			print_m4("difmat", difmat);
-			printf ("Roll = %f\n",  (-atan2(difmat[2][0], difmat[2][2]) * (180.0/M_PI)));
+			printf ("Roll = %f\n",  RAD2DEGF(-atan2(difmat[2][0], difmat[2][2])));
 #endif
 			curBone->roll = (float)-atan2(difmat[2][0], difmat[2][2]);
 			

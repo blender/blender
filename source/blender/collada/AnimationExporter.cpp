@@ -577,7 +577,7 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 		case COLLADASW::InputSemantic::OUTPUT:
 			*length = 1;
 			if (rotation) {
-				values[0] = (bezt->vec[1][1]) * 180.0f/M_PI;
+				values[0] = RAD2DEGF(bezt->vec[1][1]);
 			}
 			else {
 				values[0] = bezt->vec[1][1];
@@ -593,7 +593,7 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 				values[1] = 0; 	
 			}
 			else if (rotation) {
-				values[1] = (bezt->vec[0][1]) * 180.0f/M_PI;
+				values[1] = RAD2DEGF(bezt->vec[0][1]);
 			} else {
 				values[1] = bezt->vec[0][1];
 			}
@@ -608,7 +608,7 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 				values[1] = 0;	
 			}
 			else if (rotation) {
-				values[1] = (bezt->vec[2][1]) * 180.0f/M_PI;
+				values[1] = RAD2DEGF(bezt->vec[2][1]);
 			} else {
 				values[1] = bezt->vec[2][1];
 			}
@@ -688,7 +688,7 @@ std::string AnimationExporter::create_source_from_array(COLLADASW::InputSemantic
 		//	val = convert_time(val);
 		//else
 		if (is_rot)
-			val *= 180.0f / M_PI;
+			val = RAD2DEGF(val);
 		source.appendValues(val);
 	}
 

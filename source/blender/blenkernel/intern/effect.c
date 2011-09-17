@@ -571,7 +571,7 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 			if(falloff == 0.0f)
 				break;
 
-			r_fac=saacos(fac/len_v3(efd->vec_to_point))*180.0f/(float)M_PI;
+			r_fac= RAD2DEGF(saacos(fac/len_v3(efd->vec_to_point)));
 			falloff*= falloff_func_rad(eff->pd, r_fac);
 
 			break;

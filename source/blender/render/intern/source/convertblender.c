@@ -822,7 +822,7 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[][4], int d
 	if(obr->totvert==0) return;
 	asverts= MEM_callocN(sizeof(ASvert)*obr->totvert, "all smooth verts");
 	
-	thresh= cosf((float)M_PI*(0.5f+(float)degr)/180.0f );
+	thresh= cosf(DEG2RADF((0.5f + (float)degr)));
 	
 	/* step zero: give faces normals of original mesh, if this is provided */
 	
@@ -1717,7 +1717,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		if(part->draw & PART_DRAW_REN_ADAPT) {
 			sd.adapt = 1;
 			sd.adapt_pix = (float)part->adapt_pix;
-			sd.adapt_angle = cos((float)part->adapt_angle * (float)(M_PI / 180.0));
+			sd.adapt_angle = cosf(DEG2RADF((float)part->adapt_angle));
 		}
 
 		if(re->r.renderer==R_INTERN && part->draw&PART_DRAW_REN_STRAND) {
@@ -1728,7 +1728,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			strandbuf->winx= re->winx;
 			strandbuf->winy= re->winy;
 			strandbuf->maxdepth= 2;
-			strandbuf->adaptcos= cos((float)part->adapt_angle*(float)(M_PI/180.0));
+			strandbuf->adaptcos= cosf(DEG2RADF((float)part->adapt_angle));
 			strandbuf->overrideuv= sd.override_uv;
 			strandbuf->minwidth= ma->strand_min;
 

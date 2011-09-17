@@ -717,7 +717,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
  *  1	: occluded
 	2	: occluded with w[3] weights set (need to know in some cases) */
 
-static int project_paint_occlude_ptv(float pt[3], float v1[3], float v2[3], float v3[3], float w[3], int is_ortho)
+static int project_paint_occlude_ptv(float pt[3], float v1[4], float v2[4], float v3[4], float w[3], int is_ortho)
 {
 	/* if all are behind us, return false */
 	if(v1[2] > pt[2] && v2[2] > pt[2] && v3[2] > pt[2])
