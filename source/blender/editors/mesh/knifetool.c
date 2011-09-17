@@ -90,7 +90,7 @@
 /* this code here is kindof messy. . .I might need to eventually rework it - joeedh*/
 
 #define MAXGROUP	30
-#define KMAXDIST	25	/*max mouse distance from edge before not detecting it*/
+#define KMAXDIST	10	/*max mouse distance from edge before not detecting it*/
 
 /* knifetool operator */
 typedef struct KnifeVert {
@@ -774,7 +774,7 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 	BLI_array_declare(edges);
 	BVHTreeOverlap *results, *result;
 	BMLoop **ls;
-	float cos[9], uv[3], lambda;
+	float cos[9], uv[3], lambda, depsilon;
 	unsigned int tot=0;
 	int i, j;
 	
@@ -782,6 +782,9 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 	copy_v3_v3(cos+3, v2);
 	copy_v3_v3(cos+6, v3);
 	
+	/* for comparing distances, error of intersection depends on triangle scale */
+	depsilon = 50*FLT_EPSILON*MAX3(len_v3v3(v1, v2), len_v3v3(v1, v3), len_v3v3(v2, v3));
+
 	BLI_bvhtree_insert(tree2, 0, cos, 3);
 	BLI_bvhtree_balance(tree2);
 	
@@ -807,17 +810,13 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 				if (isect_line_tri_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3, &lambda, uv)) {
 					float no[3], view[3], sp[3];
 					
-					sub_v3_v3v3(p, kfe->v2->cageco, kfe->v1->cageco);
-					mul_v3_fl(p, lambda);
-					add_v3_v3(p, kfe->v1->cageco);
+					interp_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco, lambda);
 					
-					if (lambda < 0.0f-FLT_EPSILON*10 || lambda > 1.0 + FLT_EPSILON*10)
+					if (kcd->curvert && len_v3v3(kcd->curvert->cageco, p) < depsilon)
 						continue;
-					if (kcd->curvert && len_v3v3(kcd->curvert->cageco, p) < FLT_EPSILON*50)
+					if (kcd->prevvert && len_v3v3(kcd->prevvert->cageco, p) < depsilon)
 						continue;
-					if (kcd->prevvert && len_v3v3(kcd->prevvert->cageco, p) < FLT_EPSILON*50)
-						continue;
-					if (len_v3v3(kcd->prevcage, p) < FLT_EPSILON*50 || len_v3v3(kcd->vertcage, p) < FLT_EPSILON*50)
+					if (len_v3v3(kcd->prevcage, p) < depsilon || len_v3v3(kcd->vertcage, p) < depsilon)
 						continue;
 					
 					/*check if this point is visible in the viewport*/
@@ -841,7 +840,7 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 					if (!hitf && !BLI_smallhash_haskey(ehash, (intptr_t)kfe)) {
 						BMEdgeHit hit;
 						
-						if (len_v3v3(p, kcd->vertco) < FLT_EPSILON*50 || len_v3v3(p, kcd->prevco) < FLT_EPSILON*50)
+						if (len_v3v3(p, kcd->vertco) < depsilon || len_v3v3(p, kcd->prevco) < depsilon)
 							continue;
 						
 						hit.kfe = kfe;
