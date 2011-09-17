@@ -186,7 +186,7 @@ static void shade_intersection(ShadeInput *shi, float col_r[4], Isect *is)
 	col_r[3] = shr_new.alpha;
 }
 
-static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, const float co[3], float col[3])
+static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, const float co[3], float col_r[4])
 {
 	Isect isect;
 	
@@ -204,10 +204,10 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, const float co[3], f
 	
 	/* check to see if there's anything behind the volume, otherwise shade the sky */
 	if(RE_rayobject_raycast(R.raytree, &isect)) {
-		shade_intersection(shi, col, &isect);
+		shade_intersection(shi, col_r, &isect);
 	} else {
-		shadeSkyView(col, co, shi->view, NULL, shi->thread);
-		shadeSunView(col, shi->view);
+		shadeSkyView(col_r, co, shi->view, NULL, shi->thread);
+		shadeSunView(col_r, shi->view);
 	} 
 }
 
@@ -699,7 +699,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 		} else {
 			/* we're tracing through the volume between the camera 
 			 * and a solid surface, so use that pre-shaded radiance */
-			QUATCOPY(col, shr->combined);
+			copy_v4_v4(col, shr->combined);
 		}
 		
 		/* shade volume from 'camera' to 1st hit point */
