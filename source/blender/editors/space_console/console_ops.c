@@ -604,7 +604,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "reverse", 0, "Reverse", "reverse cycle history");
+	RNA_def_boolean(ot->srna, "reverse", 0, "Reverse", "Reverse cycle history");
 }
 
 
