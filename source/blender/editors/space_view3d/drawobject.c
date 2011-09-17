@@ -259,7 +259,7 @@ static float cube[8][3] = {
 /* 32 values of sin function (still same result!) */
 #define CIRCLE_RESOL 32
 
-static float sinval[CIRCLE_RESOL] = {
+static const float sinval[CIRCLE_RESOL] = {
 	0.00000000,
 	0.20129852,
 	0.39435585,
@@ -295,7 +295,7 @@ static float sinval[CIRCLE_RESOL] = {
 };
 
 /* 32 values of cos function (still same result!) */
-static float cosval[CIRCLE_RESOL] = {
+static const float cosval[CIRCLE_RESOL] = {
 	1.00000000,
 	0.97952994,
 	0.91895781,
@@ -613,28 +613,39 @@ static void draw_empty_image(Object *ob)
 	glPopMatrix();
 }
 
-void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
+static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3], float rad, float tmat[][4])
 {
-	float vec[3], vx[3], vy[3];
-	int a;
+	float vx[3], vy[3];
+	float *viter= (float *)verts;
+	unsigned int a;
 
 	mul_v3_v3fl(vx, tmat[0], rad);
 	mul_v3_v3fl(vy, tmat[1], rad);
 
-	glBegin(mode);
-	for(a=0; a < CIRCLE_RESOL; a++) {
-		vec[0]= cent[0] + sinval[a] * vx[0] + cosval[a] * vy[0];
-		vec[1]= cent[1] + sinval[a] * vx[1] + cosval[a] * vy[1];
-		vec[2]= cent[2] + sinval[a] * vx[2] + cosval[a] * vy[2];
-		glVertex3fv(vec);
+	for (a=0; a < CIRCLE_RESOL; a++, viter += 3) {
+		viter[0]= cent[0] + sinval[a] * vx[0] + cosval[a] * vy[0];
+		viter[1]= cent[1] + sinval[a] * vx[1] + cosval[a] * vy[1];
+		viter[2]= cent[2] + sinval[a] * vx[2] + cosval[a] * vy[2];
 	}
-	glEnd();
+}
+
+void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
+{
+	float verts[CIRCLE_RESOL][3];
+
+	circball_array_fill(verts, cent, rad, tmat);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, verts);
+	glDrawArrays(mode, 0, CIRCLE_RESOL);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 /* circle for object centers, special_color is for library or ob users */
 static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3], int selstate, int special_color)
 {
 	const float size= ED_view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
+	float verts[CIRCLE_RESOL][3];
 
 	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
 	if(v3d->zbuf)  glDepthFunc(GL_ALWAYS);
@@ -650,12 +661,25 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3],
 		else if (selstate == SELECT) UI_ThemeColorShadeAlpha(TH_SELECT, 0, -80);
 		else if (selstate == DESELECT) UI_ThemeColorShadeAlpha(TH_TRANSFORM, 0, -80);
 	}
-	drawcircball(GL_POLYGON, co, size, rv3d->viewinv);
-	
+
+	circball_array_fill(verts, co, size, rv3d->viewinv);
+
+	/* enable vertex array */
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, verts);
+
+	/* 1. draw filled, blended polygon */
+	glDrawArrays(GL_POLYGON, 0, CIRCLE_RESOL);
+
+	/* 2. draw outline */
 	UI_ThemeColorShadeAlpha(TH_WIRE, 0, -30);
-	drawcircball(GL_LINE_LOOP, co, size, rv3d->viewinv);
-	
+	glDrawArrays(GL_LINE_LOOP, 0, CIRCLE_RESOL);
+
+	/* finishe up */
+	glDisableClientState(GL_VERTEX_ARRAY);
+
 	glDisable(GL_BLEND);
+
 	if(v3d->zbuf)  glDepthFunc(GL_LEQUAL);
 }
 
