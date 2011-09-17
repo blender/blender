@@ -695,16 +695,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 							continue;
 
 						glBegin(GL_LINE_LOOP);
-						i = 0;
 						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 							sel = (uvedit_uv_selected(em, scene, l)? 1 : 0);
-							if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+							glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 
 							luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 							glVertex2fv(luv->uv);
-							luv = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
-							glVertex2fv(luv->uv);
-							i += 1;
 						}
 						glEnd();
 					}
