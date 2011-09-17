@@ -257,7 +257,9 @@ static float cube[8][3] = {
 
 /* ----------------- OpenGL Circle Drawing - Tables for Optimised Drawing Speed ------------------ */
 /* 32 values of sin function (still same result!) */
-static float sinval[32] = {
+#define CIRCLE_RESOL 32
+
+static float sinval[CIRCLE_RESOL] = {
 	0.00000000,
 	0.20129852,
 	0.39435585,
@@ -293,7 +295,7 @@ static float sinval[32] = {
 };
 
 /* 32 values of cos function (still same result!) */
-static float cosval[32] ={
+static float cosval[CIRCLE_RESOL] = {
 	1.00000000,
 	0.97952994,
 	0.91895781,
@@ -614,16 +616,16 @@ static void draw_empty_image(Object *ob)
 void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
 {
 	float vec[3], vx[3], vy[3];
-	int a, tot=32;
+	int a;
 
 	mul_v3_v3fl(vx, tmat[0], rad);
 	mul_v3_v3fl(vy, tmat[1], rad);
 
 	glBegin(mode);
-	for(a=0; a<tot; a++) {
-		vec[0]= cent[0] + *(sinval+a) * vx[0] + *(cosval+a) * vy[0];
-		vec[1]= cent[1] + *(sinval+a) * vx[1] + *(cosval+a) * vy[1];
-		vec[2]= cent[2] + *(sinval+a) * vx[2] + *(cosval+a) * vy[2];
+	for(a=0; a < CIRCLE_RESOL; a++) {
+		vec[0]= cent[0] + sinval[a] * vx[0] + cosval[a] * vy[0];
+		vec[1]= cent[1] + sinval[a] * vx[1] + cosval[a] * vy[1];
+		vec[2]= cent[2] + sinval[a] * vx[2] + cosval[a] * vy[2];
 		glVertex3fv(vec);
 	}
 	glEnd();
@@ -5039,8 +5041,7 @@ static void draw_textcurs(float textcurs[4][2])
 static void drawspiral(const float cent[3], float rad, float tmat[][4], int start)
 {
 	float vec[3], vx[3], vy[3];
-	const int tot=32;
-	const float tot_inv= (1.0f / 32.0f);
+	const float tot_inv= (1.0f / (float)CIRCLE_RESOL);
 	int a;
 	char inverse= FALSE;
 
@@ -5055,31 +5056,31 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 	copy_v3_v3(vec, cent);
 
 	if (inverse==0) {
-		for(a=0; a<tot; a++) {
+		for(a=0; a<CIRCLE_RESOL; a++) {
 			if (a+start>31)
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)a * tot_inv) + *(cosval+a+start) * (vy[0] * (float)a * tot_inv);
-			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)a * tot_inv) + *(cosval+a+start) * (vy[1] * (float)a * tot_inv);
-			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)a * tot_inv) + *(cosval+a+start) * (vy[2] * (float)a * tot_inv);
+			vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)a * tot_inv) + cosval[a+start] * (vy[0] * (float)a * tot_inv);
+			vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)a * tot_inv) + cosval[a+start] * (vy[1] * (float)a * tot_inv);
+			vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)a * tot_inv) + cosval[a+start] * (vy[2] * (float)a * tot_inv);
 			glVertex3fv(vec);
 			glEnd();
 		}
 	}
 	else {
 		a=0;
-		vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[0] * (float)(-a+31) * tot_inv);
-		vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[1] * (float)(-a+31) * tot_inv);
-		vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[2] * (float)(-a+31) * tot_inv);
-		for(a=0; a<tot; a++) {
+		vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[0] * (float)(-a+31) * tot_inv);
+		vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[1] * (float)(-a+31) * tot_inv);
+		vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[2] * (float)(-a+31) * tot_inv);
+		for(a=0; a<CIRCLE_RESOL; a++) {
 			if (a+start>31)
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[0] * (float)(-a+31) * tot_inv);
-			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[1] * (float)(-a+31) * tot_inv);
-			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31) * tot_inv) + *(cosval+a+start) * (vy[2] * (float)(-a+31) * tot_inv);
+			vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[0] * (float)(-a+31) * tot_inv);
+			vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[1] * (float)(-a+31) * tot_inv);
+			vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[2] * (float)(-a+31) * tot_inv);
 			glVertex3fv(vec);
 			glEnd();
 		}
@@ -5097,9 +5098,9 @@ static void drawcircle_size(float size)
 	glBegin(GL_LINE_LOOP);
 
 	/* coordinates are: cos(degrees*11.25)=x, sin(degrees*11.25)=y, 0.0f=z */
-	for (degrees=0; degrees<32; degrees++) {
-		x= *(cosval + degrees);
-		y= *(sinval + degrees);
+	for (degrees=0; degrees<CIRCLE_RESOL; degrees++) {
+		x= cosval[degrees];
+		y= sinval[degrees];
 		
 		glVertex3f(x*size, 0.0f, y*size);
 	}
