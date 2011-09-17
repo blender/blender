@@ -959,13 +959,13 @@ static float polar_to_y(float center, float diam, float ampli, float angle)
 	return center + diam * ampli * sinf(angle);
 }
 
-static void vectorscope_draw_target(float centerx, float centery, float diam, float r, float g, float b)
+static void vectorscope_draw_target(float centerx, float centery, float diam, const float colf[3])
 {
 	float y,u,v;
 	float tangle=0.f, tampli;
 	float dangle, dampli, dangle2, dampli2;
 
-	rgb_to_yuv(r,g,b, &y, &u, &v);
+	rgb_to_yuv(colf[0], colf[1], colf[2], &y, &u, &v);
 	if (u>0 && v>=0) tangle=atanf(v/u);
 	else if (u>0 && v<0) tangle= atanf(v/u) + 2.0f * (float)M_PI;
 	else if (u<0) tangle=atanf(v/u) + (float)M_PI;
@@ -975,7 +975,7 @@ static void vectorscope_draw_target(float centerx, float centery, float diam, fl
 
 	/* small target vary by 2.5 degree and 2.5 IRE unit */
 	glColor4f(1.0f, 1.0f, 1.0, 0.12f);
-	dangle= 2.5f*(float)M_PI/180.0f;
+	dangle= DEG2RADF(2.5f);
 	dampli= 2.5f/200.0f;
 	glBegin(GL_LINE_STRIP);
 	glVertex2f(polar_to_x(centerx,diam,tampli+dampli,tangle+dangle), polar_to_y(centery,diam,tampli+dampli,tangle+dangle));
@@ -986,9 +986,9 @@ static void vectorscope_draw_target(float centerx, float centery, float diam, fl
 	glEnd();
 	/* big target vary by 10 degree and 20% amplitude */
 	glColor4f(1.0f, 1.0f, 1.0, 0.12f);
-	dangle= 10.0f*(float)M_PI/180.0f;
+	dangle= DEG2RADF(10.0f);
 	dampli= 0.2f*tampli;
-	dangle2= 5.0f*(float)M_PI/180.0f;
+	dangle2= DEG2RADF(5.0f);
 	dampli2= 0.5f*dampli;
 	glBegin(GL_LINE_STRIP);
 	glVertex2f(polar_to_x(centerx,diam,tampli+dampli-dampli2,tangle+dangle), polar_to_y(centery,diam,tampli+dampli-dampli2,tangle+dangle));
@@ -1014,13 +1014,13 @@ static void vectorscope_draw_target(float centerx, float centery, float diam, fl
 
 void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
 {
+	const float skin_rad= DEG2RADF(123.0f); /* angle in radians of the skin tone line */
 	Scopes *scopes = (Scopes *)but->poin;
 	rctf rect;
 	int i, j;
-	int skina= 123; /* angle in degree of the skin tone line */
 	float w, h, centerx, centery, diam;
 	float alpha;
-	float colors[6][3]={{.75,0,0},{.75,.75,0},{0,.75,0},{0,.75,.75},{0,0,.75},{.75,0,.75}};
+	const float colors[6][3]={{.75,0,0},{.75,.75,0},{0,.75,0},{0,.75,.75},{0,0,.75},{.75,0,.75}};
 	GLint scissor[4];
 	
 	rect.xmin = (float)recti->xmin+1;
@@ -1056,19 +1056,19 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	for(j=0; j<5; j++) {
 		glBegin(GL_LINE_STRIP);
 		for(i=0; i<=360; i=i+15) {
-			float a= i*M_PI/180.0;
-			float r= (j+1)/10.0f;
-			glVertex2f( polar_to_x(centerx,diam,r,a), polar_to_y(centery,diam,r,a));
+			const float a= DEG2RADF((float)i);
+			const float r= (j+1)/10.0f;
+			glVertex2f(polar_to_x(centerx,diam,r,a), polar_to_y(centery,diam,r,a));
 		}
 		glEnd();
 	}
 	/* skin tone line */
 	glColor4f(1.f, 0.4f, 0.f, 0.2f);
-	fdrawline(	polar_to_x(centerx, diam, 0.5f, skina*M_PI/180.0), polar_to_y(centery,diam,0.5,skina*M_PI/180.0),
-				polar_to_x(centerx, diam, 0.1f, skina*M_PI/180.0), polar_to_y(centery,diam,0.1,skina*M_PI/180.0));
+	fdrawline(polar_to_x(centerx, diam, 0.5f, skin_rad), polar_to_y(centery,diam,0.5,skin_rad),
+	          polar_to_x(centerx, diam, 0.1f, skin_rad), polar_to_y(centery,diam,0.1,skin_rad));
 	/* saturation points */
 	for(i=0; i<6; i++)
-		vectorscope_draw_target(centerx, centery, diam, colors[i][0], colors[i][1], colors[i][2]);
+		vectorscope_draw_target(centerx, centery, diam, colors[i]);
 	
 	if (scopes->ok && scopes->vecscope != NULL) {
 		/* pixel point cloud */

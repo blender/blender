@@ -84,7 +84,7 @@
 #include "ED_space_api.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
-#include "ED_curve.h" /* for ED_curve_editnurbs */
+#include "ED_curve.h" /* for curve_editnurbs */
 
 //#include "BDR_unwrapper.h"
 
@@ -626,7 +626,7 @@ static void recalcData_view3d(TransInfo *t)
 	if (t->obedit) {
 		if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 			Curve *cu= t->obedit->data;
-			ListBase *nurbs= ED_curve_editnurbs(cu);
+			ListBase *nurbs= curve_editnurbs(cu);
 			Nurb *nu= nurbs->first;
 			
 			if(t->state != TRANS_CANCEL) {
@@ -1666,13 +1666,13 @@ void calculatePropRatio(TransInfo *t)
 			strcpy(t->proptext, "(Random)");
 			break;
 		default:
-			strcpy(t->proptext, "");
+			t->proptext[0]= '\0';
 		}
 	}
 	else {
 		for(i = 0 ; i < t->total; i++, td++) {
 			td->factor = 1.0;
 		}
-		strcpy(t->proptext, "");
+		t->proptext[0]= '\0';
 	}
 }

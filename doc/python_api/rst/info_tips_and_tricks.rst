@@ -24,6 +24,14 @@ There are 3 main uses for the terminal, these are:
    For Linux and OSX users this means starting the terminal first, then running blender from within it. On Windows the terminal can be enabled from the help menu.
 
 
+Show All Operators
+==================
+
+While blender logs operators in the Info space, this only reports operators with the ``REGISTER`` option enabeld so as not to flood the Info view with calls to ``bpy.ops.view3d.smoothview`` and ``bpy.ops.view3d.zoom``.
+
+However, for testing it can be useful to see **every** operator called in a terminal, do this by enabling the debug option either by passing the ``--debug`` argument when starting blender or by setting :mod:`bpy.app.debug` to True while blender is running.
+
+
 Use an External Editor
 ======================
 

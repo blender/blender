@@ -1,6 +1,4 @@
 """
-User Clear
-++++++++++
 This function is for advanced use only, misuse can crash blender since the user
 count is used to prevent data being removed when it is used.
 """

@@ -208,6 +208,44 @@ PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 	return item;
 }
 
+/* similar to PyErr_Format(),
+ *
+ * implimentation - we cant actually preprend the existing exception,
+ * because it could have _any_ argiments given to it, so instead we get its
+ * __str__ output and raise our own exception including it.
+ */
+PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...)
+{
+	PyObject *error_value_prefix;
+	va_list args;
+
+	va_start(args, format);
+	error_value_prefix= PyUnicode_FromFormatV(format, args); /* can fail and be NULL */
+	va_end(args);
+
+	if(PyErr_Occurred()) {
+		PyObject *error_type, *error_value, *error_traceback;
+		PyErr_Fetch(&error_type, &error_value, &error_traceback);
+		PyErr_Format(exception_type_prefix,
+		             "%S, %.200s(%S)",
+		             error_value_prefix,
+		             Py_TYPE(error_value)->tp_name,
+		             error_value
+		             );
+	}
+	else {
+		PyErr_SetObject(exception_type_prefix,
+		                error_value_prefix
+		                );
+	}
+
+	Py_XDECREF(error_value_prefix);
+
+	/* dumb to always return NULL but matches PyErr_Format */
+	return NULL;
+}
+
+
 /* returns the exception string as a new PyUnicode object, depends on external traceback module */
 #if 0
 

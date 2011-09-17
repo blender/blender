@@ -199,7 +199,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			Mesh *me= ob->data;
 			mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 
-			sculpt_free_deformMats(ss);
+			free_sculptsession_deformMats(ss);
 			tag_update|= 1;
 		}
 

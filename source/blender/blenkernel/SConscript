@@ -4,7 +4,7 @@ import os
 
 sources = env.Glob('intern/*.c') + env.Glob('intern/*.cpp')
 
-incs = '. #/intern/guardedalloc #/intern/memutil ../editors/include'
+incs = '. #/intern/guardedalloc #/intern/memutil'
 incs += ' ../blenlib ../blenfont ../makesdna ../windowmanager'
 incs += ' ../render/extern/include #/intern/decimation/extern ../makesrna'
 incs += ' ../imbuf ../ikplugin ../avi #/intern/elbeem/extern ../nodes ../modifiers'

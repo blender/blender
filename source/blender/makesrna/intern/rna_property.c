@@ -88,7 +88,7 @@ static void rna_GameProperty_type_set(PointerRNA *ptr, int value)
 static void rna_GameProperty_name_set(PointerRNA *ptr, const char *value)
 {
 	bProperty *prop= (bProperty*)(ptr->data);
-	BLI_strncpy(prop->name, value, sizeof(prop->name));
+	BLI_strncpy_utf8(prop->name, value, sizeof(prop->name));
 	unique_property(NULL, prop, 1);
 }
 

@@ -1931,9 +1931,9 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
 		{3, "Z", 0, "Z", ""},
-		{4, "-X", 0, "-X", ""},
-		{5, "-Y", 0, "-Y", ""},
-		{6, "-Z", 0, "-Z", ""},
+		{4, "NEG_X", 0, "-X", ""},
+		{5, "NEG_Y", 0, "-Y", ""},
+		{6, "NEG_Z", 0, "-Z", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SteeringActuator", "Actuator");

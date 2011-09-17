@@ -81,6 +81,7 @@ set(SRC
 	intern/scanfill.c
 	intern/storage.c
 	intern/string.c
+	intern/string_utf8.c
 	intern/threads.c
 	intern/time.c
 	intern/uvproject.c

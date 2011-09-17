@@ -2234,21 +2234,17 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 		maxdist= R.r.bake_maxdist;
 	else
 		maxdist= RE_RAYTRACE_MAXDIST + R.r.bake_biasdist;
-	
-	/* 'dir' is always normalized */
-	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);					
 
-	isect->dir[0] = dir[0]*sign;
-	isect->dir[1] = dir[1]*sign;
-	isect->dir[2] = dir[2]*sign;
+	/* 'dir' is always normalized */
+	madd_v3_v3v3fl(isect->start, start, dir, -R.r.bake_biasdist);
+
+	mul_v3_v3fl(isect->dir, dir, sign);
 
 	isect->dist = maxdist;
 
 	hit = RE_rayobject_raycast(raytree, isect);
 	if(hit) {
-		hitco[0] = isect->start[0] + isect->dist*isect->dir[0];
-		hitco[1] = isect->start[1] + isect->dist*isect->dir[1];
-		hitco[2] = isect->start[2] + isect->dist*isect->dir[2];
+		madd_v3_v3v3fl(hitco, isect->start, isect->dir, isect->dist);
 
 		*dist= isect->dist;
 	}

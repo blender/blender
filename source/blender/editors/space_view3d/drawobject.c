@@ -58,6 +58,7 @@
 
 #include "BKE_anim.h"			//for the where_on_path function
 #include "BKE_constraint.h" // for the get_constraint_target function
+#include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_deform.h"
 #include "BKE_displist.h"
@@ -92,7 +93,7 @@
 #include "ED_screen.h"
 #include "ED_sculpt.h"
 #include "ED_types.h"
-#include "ED_curve.h" /* for ED_curve_editnurbs */
+#include "ED_curve.h" /* for curve_editnurbs */
 
 #include "UI_resources.h"
 
@@ -256,7 +257,9 @@ static float cube[8][3] = {
 
 /* ----------------- OpenGL Circle Drawing - Tables for Optimised Drawing Speed ------------------ */
 /* 32 values of sin function (still same result!) */
-static float sinval[32] = {
+#define CIRCLE_RESOL 32
+
+static const float sinval[CIRCLE_RESOL] = {
 	0.00000000,
 	0.20129852,
 	0.39435585,
@@ -292,7 +295,7 @@ static float sinval[32] = {
 };
 
 /* 32 values of cos function (still same result!) */
-static float cosval[32] ={
+static const float cosval[CIRCLE_RESOL] = {
 	1.00000000,
 	0.97952994,
 	0.91895781,
@@ -610,28 +613,39 @@ static void draw_empty_image(Object *ob)
 	glPopMatrix();
 }
 
-void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
+static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3], float rad, float tmat[][4])
 {
-	float vec[3], vx[3], vy[3];
-	int a, tot=32;
+	float vx[3], vy[3];
+	float *viter= (float *)verts;
+	unsigned int a;
 
 	mul_v3_v3fl(vx, tmat[0], rad);
 	mul_v3_v3fl(vy, tmat[1], rad);
 
-	glBegin(mode);
-	for(a=0; a<tot; a++) {
-		vec[0]= cent[0] + *(sinval+a) * vx[0] + *(cosval+a) * vy[0];
-		vec[1]= cent[1] + *(sinval+a) * vx[1] + *(cosval+a) * vy[1];
-		vec[2]= cent[2] + *(sinval+a) * vx[2] + *(cosval+a) * vy[2];
-		glVertex3fv(vec);
+	for (a=0; a < CIRCLE_RESOL; a++, viter += 3) {
+		viter[0]= cent[0] + sinval[a] * vx[0] + cosval[a] * vy[0];
+		viter[1]= cent[1] + sinval[a] * vx[1] + cosval[a] * vy[1];
+		viter[2]= cent[2] + sinval[a] * vx[2] + cosval[a] * vy[2];
 	}
-	glEnd();
+}
+
+void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
+{
+	float verts[CIRCLE_RESOL][3];
+
+	circball_array_fill(verts, cent, rad, tmat);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, verts);
+	glDrawArrays(mode, 0, CIRCLE_RESOL);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 /* circle for object centers, special_color is for library or ob users */
 static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3], int selstate, int special_color)
 {
 	const float size= ED_view3d_pixel_size(rv3d, co) * (float)U.obcenter_dia * 0.5f;
+	float verts[CIRCLE_RESOL][3];
 
 	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
 	if(v3d->zbuf)  glDepthFunc(GL_ALWAYS);
@@ -647,12 +661,25 @@ static void drawcentercircle(View3D *v3d, RegionView3D *rv3d, const float co[3],
 		else if (selstate == SELECT) UI_ThemeColorShadeAlpha(TH_SELECT, 0, -80);
 		else if (selstate == DESELECT) UI_ThemeColorShadeAlpha(TH_TRANSFORM, 0, -80);
 	}
-	drawcircball(GL_POLYGON, co, size, rv3d->viewinv);
-	
+
+	circball_array_fill(verts, co, size, rv3d->viewinv);
+
+	/* enable vertex array */
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 0, verts);
+
+	/* 1. draw filled, blended polygon */
+	glDrawArrays(GL_POLYGON, 0, CIRCLE_RESOL);
+
+	/* 2. draw outline */
 	UI_ThemeColorShadeAlpha(TH_WIRE, 0, -30);
-	drawcircball(GL_LINE_LOOP, co, size, rv3d->viewinv);
-	
+	glDrawArrays(GL_LINE_LOOP, 0, CIRCLE_RESOL);
+
+	/* finishe up */
+	glDisableClientState(GL_VERTEX_ARRAY);
+
 	glDisable(GL_BLEND);
+
 	if(v3d->zbuf)  glDepthFunc(GL_LEQUAL);
 }
 
@@ -1796,7 +1823,7 @@ void nurbs_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, Nurb 
 	short s[2] = {IS_CLIPPED, 0};
 	Nurb *nu;
 	int i;
-	ListBase *nurbs= ED_curve_editnurbs(cu);
+	ListBase *nurbs= curve_editnurbs(cu);
 
 	ED_view3d_local_clipping(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
@@ -4511,16 +4538,22 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 {
 	BezTriple *bezt;
 	float *fp;
-	int basecol;
 	int a;
-	
+
 	if(nu->hide || hide_handles) return;
 
 	glBegin(GL_LINES); 
-	
+
 	if(nu->type == CU_BEZIER) {
-		if(sel) basecol= TH_HANDLE_SEL_FREE;
-		else basecol= TH_HANDLE_FREE;
+
+#define TH_HANDLE_COL_TOT ((TH_HANDLE_SEL_FREE - TH_HANDLE_FREE) + 1)
+		/* use MIN2 when indexing to ensure newer files dont read outside the array */
+		unsigned char handle_cols[TH_HANDLE_COL_TOT][3];
+		const int basecol= sel ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
+
+		for (a=0; a < TH_HANDLE_COL_TOT; a++) {
+			UI_GetThemeColor3ubv(basecol + a, handle_cols[a]);
+		}
 
 		bezt= nu->bezt;
 		a= nu->pntsu;
@@ -4529,31 +4562,34 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 				if( (bezt->f2 & SELECT)==sel) {
 					fp= bezt->vec[0];
 
-					UI_ThemeColor(basecol + bezt->h1);
+					glColor3ubv(handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT-1)]);
 					glVertex3fv(fp);
 					glVertex3fv(fp+3); 
 
-					UI_ThemeColor(basecol + bezt->h2);
+					glColor3ubv(handle_cols[MIN2(bezt->h2, TH_HANDLE_COL_TOT-1)]);
 					glVertex3fv(fp+3); 
 					glVertex3fv(fp+6); 
 				}
 				else if( (bezt->f1 & SELECT)==sel) {
 					fp= bezt->vec[0];
 
-					UI_ThemeColor(basecol + bezt->h1);
+					glColor3ubv(handle_cols[MIN2(bezt->h1, TH_HANDLE_COL_TOT-1)]);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
 				else if( (bezt->f3 & SELECT)==sel) {
 					fp= bezt->vec[1];
 
-					UI_ThemeColor(basecol + bezt->h2);
+					glColor3ubv(handle_cols[MIN2(bezt->h2, TH_HANDLE_COL_TOT-1)]);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
 			}
 			bezt++;
 		}
+
+#undef TH_HANDLE_COL_TOT
+
 	}
 	glEnd();
 }
@@ -5021,7 +5057,7 @@ static void curve_draw_speed(Scene *scene, Object *ob)
 #endif // XXX old animation system stuff
 
 
-static void draw_textcurs(float textcurs[][2])
+static void draw_textcurs(float textcurs[4][2])
 {
 	cpack(0);
 	
@@ -5038,12 +5074,13 @@ static void draw_textcurs(float textcurs[][2])
 static void drawspiral(const float cent[3], float rad, float tmat[][4], int start)
 {
 	float vec[3], vx[3], vy[3];
-	int a, tot=32;
-	char inverse=0;
-		
+	const float tot_inv= (1.0f / (float)CIRCLE_RESOL);
+	int a;
+	char inverse= FALSE;
+
 	if (start < 0) {
-		inverse = 1;
-		start *= -1;
+		inverse = TRUE;
+		start= -start;
 	}
 
 	mul_v3_v3fl(vx, tmat[0], rad);
@@ -5052,31 +5089,31 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 	copy_v3_v3(vec, cent);
 
 	if (inverse==0) {
-		for(a=0; a<tot; a++) {
+		for(a=0; a<CIRCLE_RESOL; a++) {
 			if (a+start>31)
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)a/(float)tot) + *(cosval+a+start) * (vy[0] * (float)a/(float)tot);
-			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)a/(float)tot) + *(cosval+a+start) * (vy[1] * (float)a/(float)tot);
-			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)a/(float)tot) + *(cosval+a+start) * (vy[2] * (float)a/(float)tot);
+			vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)a * tot_inv) + cosval[a+start] * (vy[0] * (float)a * tot_inv);
+			vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)a * tot_inv) + cosval[a+start] * (vy[1] * (float)a * tot_inv);
+			vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)a * tot_inv) + cosval[a+start] * (vy[2] * (float)a * tot_inv);
 			glVertex3fv(vec);
 			glEnd();
 		}
 	}
 	else {
 		a=0;
-		vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
-		vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
-		vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
-		for(a=0; a<tot; a++) {
+		vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[0] * (float)(-a+31) * tot_inv);
+		vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[1] * (float)(-a+31) * tot_inv);
+		vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[2] * (float)(-a+31) * tot_inv);
+		for(a=0; a<CIRCLE_RESOL; a++) {
 			if (a+start>31)
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
-			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
-			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
+			vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[0] * (float)(-a+31) * tot_inv);
+			vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[1] * (float)(-a+31) * tot_inv);
+			vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[2] * (float)(-a+31) * tot_inv);
 			glVertex3fv(vec);
 			glEnd();
 		}
@@ -5094,9 +5131,9 @@ static void drawcircle_size(float size)
 	glBegin(GL_LINE_LOOP);
 
 	/* coordinates are: cos(degrees*11.25)=x, sin(degrees*11.25)=y, 0.0f=z */
-	for (degrees=0; degrees<32; degrees++) {
-		x= *(cosval + degrees);
-		y= *(sinval + degrees);
+	for (degrees=0; degrees<CIRCLE_RESOL; degrees++) {
+		x= cosval[degrees];
+		y= sinval[degrees];
 		
 		glVertex3f(x*size, 0.0f, y*size);
 	}
@@ -5364,8 +5401,7 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 
 		unit_m4(tmat);
 
-		radius=(pd->flag&PFIELD_USEMAXR)?pd->maxrad:1.0f;
-		radius*=(float)M_PI/180.0f;
+		radius= DEG2RADF((pd->flag&PFIELD_USEMAXR) ? pd->maxrad : 1.0f);
 		distance=(pd->flag&PFIELD_USEMAX)?pd->maxdist:0.0f;
 
 		if(pd->flag & (PFIELD_USEMAX|PFIELD_USEMAXR)){
@@ -5374,8 +5410,7 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 				drawcone(vec, distance * sinf(radius),-distance * cosf(radius),tmat);
 		}
 
-		radius=(pd->flag&PFIELD_USEMINR)?pd->minrad:1.0f;
-		radius*=(float)M_PI/180.0f;
+		radius= DEG2RADF((pd->flag&PFIELD_USEMINR) ? pd->minrad : 1.0f);
 		distance=(pd->flag&PFIELD_USEMIN)?pd->mindist:0.0f;
 
 		if(pd->flag & (PFIELD_USEMIN|PFIELD_USEMINR)){
@@ -6065,7 +6100,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			cu= ob->data;
 
 			if(cu->editnurb) {
-				ListBase *nurbs= ED_curve_editnurbs(cu);
+				ListBase *nurbs= curve_editnurbs(cu);
 				drawnurb(scene, v3d, rv3d, base, nurbs->first, dt);
 			}
 			else if(dt==OB_BOUNDBOX) {

@@ -164,22 +164,26 @@ static FileSelect file_select_do(bContext* C, int selected_idx)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
 	int numfiles = filelist_numfiles(sfile->files);
+	struct direntry* file;
 
 	/* make the selected file active */
-	if ( (selected_idx >= 0) && (selected_idx < numfiles)) {
-		struct direntry* file = filelist_file(sfile->files, selected_idx);
+	if (		(selected_idx >= 0) &&
+	            (selected_idx < numfiles) &&
+	            (file= filelist_file(sfile->files, selected_idx)))
+	{
 		params->active_file = selected_idx;
 
-		if(file && S_ISDIR(file->type)) {
+		if(S_ISDIR(file->type)) {
 			/* the path is too long and we are not going up! */
-			if (strcmp(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX ) 
-			{
+			if (strcmp(file->relname, "..") && strlen(params->dir) + strlen(file->relname) >= FILE_MAX )  {
 				// XXX error("Path too long, cannot enter this directory");
-			} else {
-				if (strcmp(file->relname, "..")==0) { 	 
-					/* avoids /../../ */ 	 
-					BLI_parent_dir(params->dir); 	 
-				} else {
+			}
+			else {
+				if (strcmp(file->relname, "..")==0) {
+					/* avoids /../../ */
+					BLI_parent_dir(params->dir);
+				}
+				else {
 					BLI_cleanup_dir(G.main->name, params->dir);
 					strcat(params->dir, file->relname);
 					BLI_add_slash(params->dir);
@@ -189,8 +193,7 @@ static FileSelect file_select_do(bContext* C, int selected_idx)
 				retval = FILE_SELECT_DIR;
 			}
 		}
-		else if (file)
-		{
+		else  {
 			if (file->relname) {
 				BLI_strncpy(params->file, file->relname, FILE_MAXFILE);
 			}

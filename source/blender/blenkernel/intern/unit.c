@@ -345,7 +345,7 @@ static int unit_as_string(char *str, int len_max, double value, int prec, bUnitC
 
 	/* Convert to a string */
 	{
-		len= BLI_snprintf(str, len_max, "%.*lf", prec, value_conv);
+		len= BLI_snprintf(str, len_max, "%.*f", prec, value_conv);
 
 		if(len >= len_max)
 			len= len_max;

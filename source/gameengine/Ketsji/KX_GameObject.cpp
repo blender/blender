@@ -364,7 +364,9 @@ BL_ActionManager* KX_GameObject::GetActionManager()
 {
 	// We only want to create an action manager if we need it
 	if (!m_actionManager)
-	{		KX_GetActiveScene()->AddAnimatedObject(this);		m_actionManager = new BL_ActionManager(this);
+	{		
+		KX_GetActiveScene()->AddAnimatedObject(this);
+		m_actionManager = new BL_ActionManager(this);
 	}
 	return m_actionManager;
 }

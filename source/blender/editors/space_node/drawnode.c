@@ -97,7 +97,7 @@ static void node_sync_cb(bContext *UNUSED(C), void *snode_v, void *node_v)
 	}
 }
 
-void node_socket_button_default(const bContext *C, uiBlock *block,
+static void node_socket_button_default(const bContext *C, uiBlock *block,
 								bNodeTree *ntree, bNode *node, bNodeSocket *sock,
 								const char *name, int x, int y, int width)
 {
@@ -135,7 +135,7 @@ static uiBlock *socket_component_menu(bContext *C, ARegion *ar, void *args_v)
 	
 	return block;
 }
-void node_socket_button_components(const bContext *C, uiBlock *block,
+static void node_socket_button_components(const bContext *C, uiBlock *block,
 								   bNodeTree *ntree, bNode *node, bNodeSocket *sock,
 								   const char *name, int x, int y, int width)
 {
@@ -157,7 +157,7 @@ void node_socket_button_components(const bContext *C, uiBlock *block,
 	uiDefBlockButN(block, socket_component_menu, args, name, x, y+1, width, NODE_DY-2, "");
 }
 
-void node_socket_button_color(const bContext *C, uiBlock *block,
+static void node_socket_button_color(const bContext *C, uiBlock *block,
 							  bNodeTree *ntree, bNode *node, bNodeSocket *sock,
 							  const char *name, int x, int y, int width)
 {
@@ -179,7 +179,7 @@ void node_socket_button_color(const bContext *C, uiBlock *block,
 
 /* ****************** BASE DRAW FUNCTIONS FOR NEW OPERATOR NODES ***************** */
 
-void node_draw_socket_new(bNodeSocket *sock, float size)
+static void node_draw_socket_new(bNodeSocket *sock, float size)
 {
 	float x=sock->locx, y=sock->locy;
 	

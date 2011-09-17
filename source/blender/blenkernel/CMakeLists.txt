@@ -35,7 +35,6 @@ set(INC
 	../blenfont
 	../blenlib
 	../blenloader
-	../editors/include
 	../freestyle
 	../gpu
 	../ikplugin

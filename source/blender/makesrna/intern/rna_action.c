@@ -137,7 +137,7 @@ static TimeMarker *rna_Action_pose_markers_new(bAction *act, ReportList *reports
 	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag= 1;
 	marker->frame= 1;
-	BLI_strncpy(marker->name, name, sizeof(marker->name));
+	BLI_strncpy_utf8(marker->name, name, sizeof(marker->name));
 	BLI_addtail(&act->markers, marker);
 	return marker;
 }
