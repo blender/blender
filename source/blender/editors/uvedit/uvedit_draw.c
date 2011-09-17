@@ -684,7 +684,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			glColor4ubv((unsigned char *)col2); 
 			
 			if(me->drawflag & ME_DRAWEDGES) {
-				int lastsel= 0, sel;
+				int sel;
 				UI_GetThemeColor4ubv(TH_VERTEX_SELECT, col1);
 
 				if(interpedges) {
@@ -712,17 +712,15 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 						if (!BM_GetIndex(efa))
 							continue;
 
-						glBegin(GL_LINE_LOOP);
-						i = 0;
+						glBegin(GL_LINES);
 						BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 							sel = (uvedit_edge_selected(em, scene, l)? 1 : 0);
-							if(sel != lastsel) { glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2); lastsel = sel; }
+							glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 
 							luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 							glVertex2fv(luv->uv);
 							luv = CustomData_bmesh_get(&em->bm->ldata, l->next->head.data, CD_MLOOPUV);
 							glVertex2fv(luv->uv);
-							i += 1;
 						}
 						glEnd();
 					}
