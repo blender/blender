@@ -83,14 +83,16 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
+#include "GL/glew.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 
 #include "bmesh.h"
+
+extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
+
 
 BMEditMesh *BMEdit_Create(BMesh *bm)
 {
