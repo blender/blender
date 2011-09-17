@@ -461,19 +461,14 @@ void uiEmboss(float x1, float y1, float x2, float y2, int sel)
 
 /* ************** SPECIAL BUTTON DRAWING FUNCTIONS ************* */
 
-void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *UNUSED(but), uiWidgetColors *UNUSED(wcol), rcti *rect)
+void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect)
 {
 #ifdef WITH_HEADLESS
 	(void)rect;
 #else
-	extern char datatoc_splash_png[];
-	extern int datatoc_splash_png_size;
-	ImBuf *ibuf;
+	ImBuf *ibuf= (ImBuf *)but->poin;
 	//GLint scissor[4];
 	//int w, h;
-	
-	/* hardcoded to splash, loading and freeing every draw, eek! */
-	ibuf= IMB_ibImageFromMemory((unsigned char*)datatoc_splash_png, datatoc_splash_png_size, IB_rect);
 
 	if (!ibuf) return;
 	
@@ -501,7 +496,6 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *UNUSED(but), uiWidgetColors *
 	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 	*/
 	
-	IMB_freeImBuf(ibuf);
 #endif
 }
 
