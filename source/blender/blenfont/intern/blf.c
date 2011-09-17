@@ -486,6 +486,13 @@ static void blf_draw__start(FontBLF *font)
 
 	if (font->flags & BLF_ROTATION)
 		glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
+
+	if(font->shadow || font->blur)
+		glGetFloatv(GL_CURRENT_COLOR, font->orig_col);
+
+	/* always bind the texture for the first glyph */
+	font->tex_bind_state= -1;
+
 }
 
 static void blf_draw__end(void)
