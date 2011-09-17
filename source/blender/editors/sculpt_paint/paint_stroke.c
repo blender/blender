@@ -447,9 +447,9 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 		if(brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
 			/* brush rotation */
 			glTranslatef(0.5, 0.5, 0);
-			glRotatef((double)((brush->flag & BRUSH_RAKE) ?
-				   sd->last_angle : sd->special_rotation) * (180.0/M_PI),
-				  0.0, 0.0, 1.0);
+			glRotatef((double)RAD2DEGF((brush->flag & BRUSH_RAKE) ?
+			                           sd->last_angle : sd->special_rotation),
+			                           0.0, 0.0, 1.0);
 			glTranslatef(-0.5f, -0.5f, 0);
 
 			/* scale based on tablet pressure */

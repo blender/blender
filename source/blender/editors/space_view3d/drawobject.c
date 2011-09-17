@@ -5401,8 +5401,7 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 
 		unit_m4(tmat);
 
-		radius=(pd->flag&PFIELD_USEMAXR)?pd->maxrad:1.0f;
-		radius*=(float)M_PI/180.0f;
+		radius= DEG2RADF((pd->flag&PFIELD_USEMAXR) ? pd->maxrad : 1.0f);
 		distance=(pd->flag&PFIELD_USEMAX)?pd->maxdist:0.0f;
 
 		if(pd->flag & (PFIELD_USEMAX|PFIELD_USEMAXR)){
@@ -5411,8 +5410,7 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 				drawcone(vec, distance * sinf(radius),-distance * cosf(radius),tmat);
 		}
 
-		radius=(pd->flag&PFIELD_USEMINR)?pd->minrad:1.0f;
-		radius*=(float)M_PI/180.0f;
+		radius= DEG2RADF((pd->flag&PFIELD_USEMINR) ? pd->minrad : 1.0f);
 		distance=(pd->flag&PFIELD_USEMIN)?pd->mindist:0.0f;
 
 		if(pd->flag & (PFIELD_USEMIN|PFIELD_USEMINR)){
