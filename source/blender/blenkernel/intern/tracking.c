@@ -553,7 +553,7 @@ MovieTrackingContext *BKE_tracking_context_new(MovieClip *clip, MovieClipUser *u
 							float pattern_size_x= (track->pat_max[0]-track->pat_min[0])*width;
 							float pattern_size_y= (track->pat_max[1]-track->pat_min[1])*height;
 
-							int level= log(2.0f * MIN2(search_size_x, search_size_y) / MAX2(pattern_size_x, pattern_size_y))/M_LN2;
+							int level= (log(2.0f * MIN2(search_size_x, search_size_y) / MAX2(pattern_size_x, pattern_size_y))/M_LN2+0.5f);
 
 							track_context->region_tracker= libmv_regionTrackerNew(100, level, 0.2);
 						}
