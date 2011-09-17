@@ -37,14 +37,17 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "ExportSettings.h"
+
 class LightsExporter: COLLADASW::LibraryLights
 {
 public:
-	LightsExporter(COLLADASW::StreamWriter *sw);
-	void exportLights(Scene *sce, bool export_selected);
+	LightsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
+	void exportLights(Scene *sce);
 	void operator()(Object *ob);
 private:
 	bool exportBlenderProfile(COLLADASW::Light &cla, Lamp *la);
+	const ExportSettings *export_settings;
 };
 
 #endif

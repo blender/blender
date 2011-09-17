@@ -60,18 +60,16 @@
 #include "BKE_texture.h"
 #include "BKE_multires.h"
 
-
 #include "BLO_sys_types.h" // for intptr_t support
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
+#include "GL/glew.h"
 
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 
-#include "ED_sculpt.h" /* for ED_sculpt_modifiers_changed */
+extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 
 ///////////////////////////////////
 ///////////////////////////////////
@@ -643,13 +641,22 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
 	int i, draw;
-	
+	const int skip_normals= !glIsEnabled(GL_LIGHTING); /* could be passed as an arg */
+
+	/* GL_ZERO is used to detect if drawing has started or not */
+	GLenum poly_prev= GL_ZERO;
+	GLenum shade_prev= GL_ZERO;
+
 	(void)setMaterial; /* unused */
 
 	/* currently unused -- each original face is handled separately */
 	(void)compareDrawOptions;
 
 	if (emdm->vertexCos) {
+		/* add direct access */
+		float (*vertexCos)[3]= emdm->vertexCos;
+		float (*vertexNos)[3]= emdm->vertexNos;
+		float (*faceNos)[3]=   emdm->faceNos;
 		EditVert *eve;
 
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
@@ -659,75 +666,134 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			int drawSmooth = (efa->flag & ME_SMOOTH);
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
 			if(draw) {
+				const GLenum poly_type= efa->v4 ? GL_QUADS:GL_TRIANGLES;
 				if (draw==2) { /* enabled with stipple */
-					  glEnable(GL_POLYGON_STIPPLE);
-					  glPolygonStipple(stipple_quarttone);
+
+					if(poly_prev != GL_ZERO) glEnd();
+					poly_prev= GL_ZERO; /* force glBegin */
+
+					glEnable(GL_POLYGON_STIPPLE);
+					glPolygonStipple(stipple_quarttone);
 				}
 				
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				if(skip_normals) {
+					if(poly_type != poly_prev) {
+						if(poly_prev != GL_ZERO) glEnd();
+						glBegin((poly_prev= poly_type));
+					}
+					glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+					glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+					glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+					if(poly_type == GL_QUADS) glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
+				}
+				else {
+					const GLenum shade_type= drawSmooth ? GL_SMOOTH : GL_FLAT;
+					if (shade_type != shade_prev) {
+						glShadeModel((shade_prev= shade_type));
+					}
+					if(poly_type != poly_prev) {
+						if(poly_prev != GL_ZERO) glEnd();
+						glBegin((poly_prev= poly_type));
+					}
 
-				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-				if (!drawSmooth) {
-					glNormal3fv(emdm->faceNos[i]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v1->tmp.l]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v2->tmp.l]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v3->tmp.l]);
-					if(efa->v4) glVertex3fv(emdm->vertexCos[(int) efa->v4->tmp.l]);
-				} else {
-					glNormal3fv(emdm->vertexNos[(int) efa->v1->tmp.l]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v1->tmp.l]);
-					glNormal3fv(emdm->vertexNos[(int) efa->v2->tmp.l]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v2->tmp.l]);
-					glNormal3fv(emdm->vertexNos[(int) efa->v3->tmp.l]);
-					glVertex3fv(emdm->vertexCos[(int) efa->v3->tmp.l]);
-					if(efa->v4) {
-						glNormal3fv(emdm->vertexNos[(int) efa->v4->tmp.l]);
-						glVertex3fv(emdm->vertexCos[(int) efa->v4->tmp.l]);
+					if (!drawSmooth) {
+						glNormal3fv(faceNos[i]);
+						glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+						glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+						glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+						if(poly_type == GL_QUADS) glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
+					} else {
+						glNormal3fv(vertexNos[(int) efa->v1->tmp.l]);
+						glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+						glNormal3fv(vertexNos[(int) efa->v2->tmp.l]);
+						glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+						glNormal3fv(vertexNos[(int) efa->v3->tmp.l]);
+						glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+						if(poly_type == GL_QUADS) {
+							glNormal3fv(vertexNos[(int) efa->v4->tmp.l]);
+							glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
+						}
 					}
 				}
-				glEnd();
+
 				
-				if (draw==2)
+				if (draw==2) {
+					glEnd();
+					poly_prev= GL_ZERO; /* force glBegin */
+
 					glDisable(GL_POLYGON_STIPPLE);
+				}
 			}
 		}
-	} else {
+	}
+	else {
 		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			int drawSmooth = (efa->flag & ME_SMOOTH);
 			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
 			if(draw) {
+				const GLenum poly_type= efa->v4 ? GL_QUADS:GL_TRIANGLES;
 				if (draw==2) { /* enabled with stipple */
+
+					if(poly_prev != GL_ZERO) glEnd();
+					poly_prev= GL_ZERO; /* force glBegin */
+
 					glEnable(GL_POLYGON_STIPPLE);
 					glPolygonStipple(stipple_quarttone);
 				}
-				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
-				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-				if (!drawSmooth) {
-					glNormal3fv(efa->n);
+				if(skip_normals) {
+					if(poly_type != poly_prev) {
+						if(poly_prev != GL_ZERO) glEnd();
+						glBegin((poly_prev= poly_type));
+					}
 					glVertex3fv(efa->v1->co);
 					glVertex3fv(efa->v2->co);
 					glVertex3fv(efa->v3->co);
-					if(efa->v4) glVertex3fv(efa->v4->co);
-				} else {
-					glNormal3fv(efa->v1->no);
-					glVertex3fv(efa->v1->co);
-					glNormal3fv(efa->v2->no);
-					glVertex3fv(efa->v2->co);
-					glNormal3fv(efa->v3->no);
-					glVertex3fv(efa->v3->co);
-					if(efa->v4) {
-						glNormal3fv(efa->v4->no);
-						glVertex3fv(efa->v4->co);
+					if(poly_type == GL_QUADS) glVertex3fv(efa->v4->co);
+				}
+				else {
+					const GLenum shade_type= drawSmooth ? GL_SMOOTH : GL_FLAT;
+					if (shade_type != shade_prev) {
+						glShadeModel((shade_prev= shade_type));
+					}
+					if(poly_type != poly_prev) {
+						if(poly_prev != GL_ZERO) glEnd();
+						glBegin((poly_prev= poly_type));
+					}
+
+					if (!drawSmooth) {
+						glNormal3fv(efa->n);
+						glVertex3fv(efa->v1->co);
+						glVertex3fv(efa->v2->co);
+						glVertex3fv(efa->v3->co);
+						if(poly_type == GL_QUADS) glVertex3fv(efa->v4->co);
+					} else {
+						glNormal3fv(efa->v1->no);
+						glVertex3fv(efa->v1->co);
+						glNormal3fv(efa->v2->no);
+						glVertex3fv(efa->v2->co);
+						glNormal3fv(efa->v3->no);
+						glVertex3fv(efa->v3->co);
+						if(poly_type == GL_QUADS) {
+							glNormal3fv(efa->v4->no);
+							glVertex3fv(efa->v4->co);
+						}
 					}
 				}
-				glEnd();
+
 				
-				if (draw==2)
+				if (draw==2) {
+					glEnd();
+					poly_prev= GL_ZERO;
+
 					glDisable(GL_POLYGON_STIPPLE);
+				}
 			}
 		}
 	}
+
+	/* if non zero we know a face was rendered */
+	if(poly_prev != GL_ZERO) glEnd();
 }
 
 static void emDM_drawFacesTex_common(DerivedMesh *dm,
@@ -2389,7 +2455,7 @@ static void clear_mesh_caches(Object *ob)
 	}
 
 	if(ob->sculpt) {
-		ED_sculpt_modifiers_changed(ob);
+		object_sculpt_modifiers_changed(ob);
 	}
 }
 
@@ -2584,13 +2650,13 @@ static void make_vertexcosnos__mapFunc(void *userData, int index, float *co, flo
 	/* check if we've been here before (normal should not be 0) */
 	if(vec[3] || vec[4] || vec[5]) return;
 
-	VECCOPY(vec, co);
+	copy_v3_v3(vec, co);
 	vec+= 3;
 	if(no_f) {
-		VECCOPY(vec, no_f);
+		copy_v3_v3(vec, no_f);
 	}
 	else {
-		VECCOPY(vec, no_s);
+		normal_short_to_float_v3(vec, no_s);
 	}
 }
 

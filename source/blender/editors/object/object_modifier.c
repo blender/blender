@@ -724,7 +724,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
-	int mode_orig = ob->mode;
+	int mode_orig = ob ? ob->mode : 0;
 	
 	if(!ob || !md || !ED_object_modifier_remove(op->reports, bmain, scene, ob, md))
 		return OPERATOR_CANCELLED;
@@ -1066,7 +1066,12 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 
 	if (!mmd)
 		return OPERATOR_CANCELLED;
-	
+
+	if(mmd->lvl==0) {
+		BKE_report(op->reports, RPT_ERROR, "Reshape can work only with higher levels of subdivisions.");
+		return OPERATOR_CANCELLED;
+	}
+
 	CTX_DATA_BEGIN(C, Object*, selob, selected_editable_objects) {
 		if(selob->type == OB_MESH && selob != ob) {
 			secondob= selob;

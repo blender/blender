@@ -115,7 +115,7 @@ UpdateSpatialData(
 	        const SG_Spatial *parent,
 	        double time,
 	        bool& parentUpdated
-){
+	        ){
 	bool bComputesWorldTransform = false;
 
 	// update spatial controllers

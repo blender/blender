@@ -97,14 +97,14 @@ static BL::NodeSocket get_node_output(BL::Node b_node, const string& name)
 
 static float3 get_node_output_rgba(BL::Node b_node, const string& name)
 {
-	BL::RGBANodeSocket sock(get_node_output(b_node, name));
+	BL::NodeSocketRGBA sock(get_node_output(b_node, name));
 	return get_float3(sock.default_value());
 }
 
 static float get_node_output_value(BL::Node b_node, const string& name)
 {
-	BL::ValueNodeSocket sock(get_node_output(b_node, name));
-	return sock.default_value()[0];
+	BL::NodeSocketFloatNone sock(get_node_output(b_node, name));
+	return sock.default_value();
 }
 
 static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *b_group_node, BL::ShaderNode b_node)
@@ -400,7 +400,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 		}
 	}
 
-	if(node != graph->output())
+	if(node && node != graph->output())
 		graph->add(node);
 
 	return node;
@@ -453,19 +453,19 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 					/* copy values for non linked inputs */
 					switch(input->type) {
 						case SHADER_SOCKET_FLOAT: {
-							BL::ValueNodeSocket value_sock(sock);
-							input->set(value_sock.default_value()[0]);
+							BL::NodeSocketFloatNone value_sock(sock);
+							input->set(value_sock.default_value());
 							break;
 						}
 						case SHADER_SOCKET_COLOR: {
-							BL::RGBANodeSocket rgba_sock(sock);
+							BL::NodeSocketRGBA rgba_sock(sock);
 							input->set(get_float3(rgba_sock.default_value()));
 							break;
 						}
 						case SHADER_SOCKET_NORMAL:
 						case SHADER_SOCKET_POINT:
 						case SHADER_SOCKET_VECTOR: {
-							BL::VectorNodeSocket vec_sock(sock);
+							BL::NodeSocketVectorNone vec_sock(sock);
 							input->set(get_float3(vec_sock.default_value()));
 							break;
 						}

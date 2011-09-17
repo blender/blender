@@ -375,7 +375,7 @@ void Image_dealloc (PyImage * self)
 		if (self->m_image->m_exports > 0)
 		{
 			PyErr_SetString(PyExc_SystemError,
-				            "deallocated Image object has exported buffers");
+			                "deallocated Image object has exported buffers");
 			PyErr_Print();
 		}
 		// if release requires deleting of object, do it

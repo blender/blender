@@ -215,9 +215,7 @@ void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material
 
 struct bNodeTree *rna_Main_nodetree_new(Main *UNUSED(bmain), const char *name, int type)
 {
-	bNodeTree *tree = ntreeAddTree(name, type, TRUE);
-
-//	ntreeMakeGroupSockets(tree);
+	bNodeTree *tree = ntreeAddTree(name, type, NODE_GROUP);
 
 	id_us_min(&tree->id);
 	return tree;

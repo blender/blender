@@ -87,6 +87,8 @@ extern "C" {
 #include "KX_GameActuator.h"
 #include "KX_ParentActuator.h"
 #include "KX_SCA_DynamicActuator.h"
+#include "KX_SteeringActuator.h"
+#include "KX_NavMeshObject.h"
 
 #include "SCA_IInputDevice.h"
 #include "SCA_PropertySensor.h"
@@ -179,6 +181,13 @@ void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,cons
 {
 	if (gp_Rasterizer)
 		gp_Rasterizer->DrawDebugLine(from,to,color);
+}
+
+void	KX_RasterizerDrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
+									 const MT_Vector3& normal, int nsector)
+{
+	if (gp_Rasterizer)
+		gp_Rasterizer->DrawDebugCircle(center, radius, color, normal, nsector);
 }
 
 #ifdef WITH_PYTHON
@@ -725,7 +734,7 @@ static PyObject *gLibNew(PyObject*, PyObject* args)
 	if(idcode==ID_ME) {
 		PyObject *ret= PyList_New(0);
 		PyObject *item;
-		for(int i= 0; i < PyList_GET_SIZE(names); i++) {
+		for(Py_ssize_t i= 0; i < PyList_GET_SIZE(names); i++) {
 			name= _PyUnicode_AsString(PyList_GET_ITEM(names, i));
 			if(name) {
 				RAS_MeshObject *meshobj= kx_scene->GetSceneConverter()->ConvertMeshSpecial(kx_scene, maggie, name);
@@ -1104,7 +1113,7 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 											PyObject* args,
 											PyObject*)
 {
-	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
+	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	char *setting;
 	int enable, flag, sceneflag;
 
@@ -1118,15 +1127,15 @@ static PyObject* gPySetGLSLMaterialSetting(PyObject*,
 		return NULL;
 	}
 
-	sceneflag= gm->flag;
+	sceneflag= gs->glslflag;
 	
 	if (enable)
-		gm->flag &= ~flag;
+		gs->glslflag &= ~flag;
 	else
-		gm->flag |= flag;
+		gs->glslflag |= flag;
 
 	/* display lists and GLSL materials need to be remade */
-	if(sceneflag != gm->flag) {
+	if(sceneflag != gs->glslflag) {
 		GPU_materials_free();
 		if(gp_KetsjiEngine) {
 			KX_SceneList *scenes = gp_KetsjiEngine->CurrentScenes();
@@ -1147,7 +1156,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 									 PyObject* args, 
 									 PyObject*)
 {
-	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
+	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	char *setting;
 	int enabled = 0, flag;
 
@@ -1161,7 +1170,7 @@ static PyObject* gPyGetGLSLMaterialSetting(PyObject*,
 		return NULL;
 	}
 
-	enabled = ((gm->flag & flag) != 0);
+	enabled = ((gs->glslflag & flag) != 0);
 	return PyLong_FromSsize_t(enabled);
 }
 
@@ -1173,18 +1182,18 @@ static PyObject* gPySetMaterialType(PyObject*,
 									PyObject* args,
 									PyObject*)
 {
-	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
+	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	int type;
 
 	if (!PyArg_ParseTuple(args,"i:setMaterialType",&type))
 		return NULL;
 
 	if(type == KX_BLENDER_GLSL_MATERIAL)
-		gm->matmode= GAME_MAT_GLSL;
+		gs->matmode= GAME_MAT_GLSL;
 	else if(type == KX_BLENDER_MULTITEX_MATERIAL)
-		gm->matmode= GAME_MAT_MULTITEX;
+		gs->matmode= GAME_MAT_MULTITEX;
 	else if(type == KX_TEXFACE_MATERIAL)
-		gm->matmode= GAME_MAT_TEXFACE;
+		gs->matmode= GAME_MAT_TEXFACE;
 	else {
 		PyErr_SetString(PyExc_ValueError, "Rasterizer.setMaterialType(int): material type is not known");
 		return NULL;
@@ -1195,12 +1204,12 @@ static PyObject* gPySetMaterialType(PyObject*,
 
 static PyObject* gPyGetMaterialType(PyObject*)
 {
-	GameData *gm= &(gp_KetsjiScene->GetBlenderScene()->gm);
+	GlobalSettings *gs= gp_KetsjiEngine->GetGlobalSettings();
 	int flag;
 
-	if(gm->matmode == GAME_MAT_GLSL)
+	if(gs->matmode == GAME_MAT_GLSL)
 		flag = KX_BLENDER_GLSL_MATERIAL;
-	else if(gm->matmode == GAME_MAT_MULTITEX)
+	else if(gs->matmode == GAME_MAT_MULTITEX)
 		flag = KX_BLENDER_MULTITEX_MATERIAL;
 	else
 		flag = KX_TEXFACE_MATERIAL;
@@ -1655,6 +1664,16 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, ROT_MODE_ZXY, ROT_MODE_ZXY);
 	KX_MACRO_addTypesToDict(d, ROT_MODE_ZYX, ROT_MODE_ZYX);
 
+	/* Steering actuator */
+	KX_MACRO_addTypesToDict(d, KX_STEERING_SEEK, KX_SteeringActuator::KX_STEERING_SEEK);
+	KX_MACRO_addTypesToDict(d, KX_STEERING_FLEE, KX_SteeringActuator::KX_STEERING_FLEE);
+	KX_MACRO_addTypesToDict(d, KX_STEERING_PATHFOLLOWING, KX_SteeringActuator::KX_STEERING_PATHFOLLOWING);
+
+	/* KX_NavMeshObject render mode */
+	KX_MACRO_addTypesToDict(d, RM_WALLS, KX_NavMeshObject::RM_WALLS);
+	KX_MACRO_addTypesToDict(d, RM_POLYS, KX_NavMeshObject::RM_POLYS);
+	KX_MACRO_addTypesToDict(d, RM_TRIS, KX_NavMeshObject::RM_TRIS);
+
 	/* BL_Action play modes */
 	KX_MACRO_addTypesToDict(d, KX_ACTION_MODE_PLAY, BL_Action::ACT_MODE_PLAY);
 	KX_MACRO_addTypesToDict(d, KX_ACTION_MODE_LOOP, BL_Action::ACT_MODE_LOOP);
@@ -1751,7 +1770,7 @@ static void initPySysObjects(Main *maggie)
 	
 	initPySysObjects__append(sys_path, gp_GamePythonPath);
 	
-//	fprintf(stderr, "\nNew Path: %d ", PyList_Size(sys_path));
+//	fprintf(stderr, "\nNew Path: %d ", PyList_GET_SIZE(sys_path));
 //	PyObject_Print(sys_path, stderr, 0);
 }
 
@@ -1775,7 +1794,7 @@ static void restorePySysObjects(void)
 	gp_OrigPythonSysModules= NULL;	
 	
 	
-//	fprintf(stderr, "\nRestore Path: %d ", PyList_Size(sys_path));
+//	fprintf(stderr, "\nRestore Path: %d ", PyList_GET_SIZE(sys_path));
 //	PyObject_Print(sys_path, stderr, 0);
 }
 

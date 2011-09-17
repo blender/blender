@@ -21,7 +21,7 @@ class HelloWorldOperator(bpy.types.Operator):
         print("Hello World")
         return {'FINISHED'}
 
-bpy.utils.register_class(SimpleOperator)
+bpy.utils.register_class(HelloWorldOperator)
 
 # test call to the newly defined operator
 bpy.ops.wm.hello_world()

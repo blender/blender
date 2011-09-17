@@ -67,8 +67,6 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-#include "ED_curve.h" /* for BKE_curve_nurbs */
-
 extern Material defmaterial;	/* material.c */
 
 static void boundbox_displist(Object *ob);
@@ -1102,7 +1100,7 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 	float (*deformedVerts)[3];
 
 	if(!forRender && cu->editnurb)
-		nubase= ED_curve_editnurbs(cu);
+		nubase= curve_editnurbs(cu);
 	else
 		nubase= &cu->nurb;
 

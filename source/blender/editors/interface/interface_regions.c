@@ -1235,7 +1235,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	ysize= block->maxy - block->miny+4;
 	/*aspect/= (float)xsize;*/ /*UNUSED*/
 
-	if(but) {
+	{
 		int left=0, right=0, top=0, down=0;
 		int winx, winy;
 		// int offscreen;

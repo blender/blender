@@ -110,7 +110,6 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 	for (pchan=(bPoseChannel*)out->chanbase.first; pchan; pchan=(bPoseChannel*)pchan->next) {
 		pchan->parent= (bPoseChannel*)BLI_ghash_lookup(ghash, pchan->parent);
 		pchan->child= (bPoseChannel*)BLI_ghash_lookup(ghash, pchan->child);
-		pchan->path= NULL;
 
 		if (copy_constraint) {
 			ListBase listb;
@@ -231,10 +230,10 @@ BL_ArmatureObject::BL_ArmatureObject(
 	m_timestep(0.040),
 	m_activeAct(NULL),
 	m_activePriority(999),
+	m_vert_deform_type(vert_deform_type),
 	m_constraintNumber(0),
 	m_channelNumber(0),
-	m_lastapplyframe(0.0),
-	m_vert_deform_type(vert_deform_type)
+	m_lastapplyframe(0.0)
 {
 	m_armature = (bArmature *)armature->data;
 

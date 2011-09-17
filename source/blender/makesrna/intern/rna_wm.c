@@ -348,20 +348,20 @@ EnumPropertyItem keymap_modifiers_items[] = {
 		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem operator_flag_items[] = {
-		{OPTYPE_REGISTER, "REGISTER", 0, "Register", ""},
-		{OPTYPE_UNDO, "UNDO", 0, "Undo", ""},
-		{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", ""},
-		{OPTYPE_MACRO, "MACRO", 0, "Macro", ""},
-		{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", ""},
-		{OPTYPE_PRESET, "PRESET", 0, "Preset", ""},
-		{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", ""},
+		{OPTYPE_REGISTER, "REGISTER", 0, "Register", "Display in the info window and support the redo toolbar panel"},
+		{OPTYPE_UNDO, "UNDO", 0, "Undo", "Push an undo event (needed for operator redo)"},
+		{OPTYPE_BLOCKING, "BLOCKING", 0, "Blocking", "Block anything else from using the cursor"},
+		{OPTYPE_MACRO, "MACRO", 0, "Macro", "Use to check if an operator is a macro"},
+		{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", "Use so the operator grabs the mouse focus, enables wrapping when continuous grab is enabled"},
+		{OPTYPE_PRESET, "PRESET", 0, "Preset", "Display a preset button with the operators settings"},
+		{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
 		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem operator_return_items[] = {
-		{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", ""},
-		{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", ""},
-		{OPERATOR_FINISHED, "FINISHED", 0, "Finished", ""},
-		{OPERATOR_PASS_THROUGH, "PASS_THROUGH", 0, "Pass Through", ""}, // used as a flag
+		{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", "Keep the operator running with blender"},
+		{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", "When no action has been taken, operator exits"},
+		{OPERATOR_FINISHED, "FINISHED", 0, "Finished", "When the operator is complete, operator exits"},
+		{OPERATOR_PASS_THROUGH, "PASS_THROUGH", 0, "Pass Through", "Do nothing and pass the event on"}, // used as a flag
 		{0, NULL, 0, NULL, NULL}};
 
 /* flag/enum */
@@ -486,7 +486,8 @@ static void rna_Window_screen_update(bContext *C, PointerRNA *ptr)
 {
 	wmWindow *win= (wmWindow*)ptr->data;
 
-	/* exception: can't set screens inside of area/region handers */
+	/* exception: can't set screens inside of area/region handers, and must
+	   use context so notifier gets to the right window */
 	if(win->newscreen) {
 		WM_event_add_notifier(C, NC_SCREEN|ND_SCREENBROWSE, win->newscreen);
 		win->newscreen= NULL;

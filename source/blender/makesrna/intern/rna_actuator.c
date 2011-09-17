@@ -60,6 +60,7 @@ EnumPropertyItem actuator_type_items[] ={
 	{ACT_SOUND, "SOUND", 0, "Sound", ""},
 	{ACT_STATE, "STATE", 0, "State", ""},
 	{ACT_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
+	{ACT_STEERING, "STEERING", 0, "Steering", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -103,6 +104,8 @@ static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
 			return &RNA_StateActuator;
 		case ACT_ARMATURE:
 			return &RNA_ArmatureActuator;
+		case ACT_STEERING:
+			return &RNA_SteeringActuator;
 		default:
 			return &RNA_Actuator;
 	}
@@ -323,30 +326,6 @@ static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, 
 	}
 }
 
-static void rna_FcurveActuator_add_set(struct PointerRNA *ptr, int value)
-{
-	bActuator *act = (bActuator *)ptr->data;
-	bIpoActuator *ia = act->data;
-
-	if(value == 1){
-		ia->flag &= ~ACT_IPOFORCE;
-		ia->flag |= ACT_IPOADD;
-	}else
-		ia->flag &= ~ACT_IPOADD;
-}
-
-static void rna_FcurveActuator_force_set(struct PointerRNA *ptr, int value)
-{
-	bActuator *act = (bActuator *)ptr->data;
-	bIpoActuator *ia = act->data;
-
-	if(value == 1){
-		ia->flag &= ~ACT_IPOADD;
-		ia->flag |= ACT_IPOFORCE;
-	}else
-		ia->flag &= ~ACT_IPOFORCE;
-}
-
 static void rna_ActionActuator_add_set(struct PointerRNA *ptr, int value)
 {
 	bActuator *act = (bActuator *)ptr->data;
@@ -459,6 +438,7 @@ EnumPropertyItem *rna_Actuator_type_itemf(bContext *C, PointerRNA *ptr, Property
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_PROPERTY);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_RANDOM);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SCENE);
+	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_STEERING);
 
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_SOUND);
 	RNA_enum_items_add_value(&item, &totitem, actuator_type_items, ACT_STATE);
@@ -502,6 +482,18 @@ static void rna_Actuator_Armature_update(Main *bmain, Scene *scene, PointerRNA *
 	/* didn't find any */
 	posechannel[0] = 0;
 	constraint[0] = 0;
+}
+
+static void rna_SteeringActuator_navmesh_set(PointerRNA *ptr, PointerRNA value)
+{
+	bActuator *act = (bActuator*)ptr->data;
+	bSteeringActuator *sa = (bSteeringActuator*) act->data;
+
+	Object* obj = value.data;
+	if (obj && obj->body_type==OB_BODY_TYPE_NAVMESH)
+		sa->navmesh = obj;
+	else
+		sa->navmesh = NULL;
 }
 
 /* note: the following set functions exists only to avoid id refcounting */
@@ -855,77 +847,6 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_servo_limit_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_SERVO_LIMIT_Z);
 	RNA_def_property_ui_text(prop, "Z", "Set limit to force along the Z axis");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-}
-
-/* The fcurve actuator has been replace with the action actuator, so this is no longer used */
-static void rna_def_fcurve_actuator(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	static EnumPropertyItem prop_type_items[] ={
-		{ACT_IPO_PLAY, "PLAY", 0, "Play", ""},
-		{ACT_IPO_PINGPONG, "PINGPONG", 0, "Ping Pong", ""},
-		{ACT_IPO_FLIPPER, "FLIPPER", 0, "Flipper", ""},
-		{ACT_IPO_LOOP_STOP, "STOP", 0, "Loop Stop", ""},
-		{ACT_IPO_LOOP_END, "END", 0, "Loop End", ""},
-//		{ACT_IPO_KEY2KEY, "IPOCHILD", 0, "Key to Key", ""},
-		{ACT_IPO_FROM_PROP, "PROP", 0, "Property", ""},
-		{0, NULL, 0, NULL, NULL}};
-	
-	srna= RNA_def_struct(brna, "FCurveActuator", "Actuator");
-	RNA_def_struct_ui_text(srna, "F-Curve Actuator", "Actuator to animate the object");
-	RNA_def_struct_sdna_from(srna, "bIpoActuator", "data");
-
-	prop= RNA_def_property(srna, "play_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "F-Curve Type", "Specify the way you want to play the animation");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
-	prop= RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "sta");
-	RNA_def_property_ui_range(prop, 1.0, MAXFRAME, 100, 2);
-	RNA_def_property_ui_text(prop, "Start Frame", "");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-
-	prop= RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "end");
-	RNA_def_property_ui_range(prop, 1.0, MAXFRAME, 100, 2);
-	RNA_def_property_ui_text(prop, "End Frame", "");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
-	prop= RNA_def_property(srna, "property", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Property", "Use this property to define the F-Curve position");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "frame_property", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "frameProp");
-	RNA_def_property_ui_text(prop, "Frame Property", "Assign the action's current frame number to this property");
-
-	/* booleans */
-	prop= RNA_def_property(srna, "use_additive", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOADD);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_FcurveActuator_add_set");
-	RNA_def_property_ui_text(prop, "Add", "F-Curve is added to the current loc/rot/scale in global or local coordinate according to Local flag");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "use_force", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOFORCE);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_FcurveActuator_force_set");
-	RNA_def_property_ui_text(prop, "Force", "Apply F-Curve as a global or local force depending on the local option (dynamic objects only)");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-	
-	prop= RNA_def_property(srna, "use_local", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOLOCAL);
-	RNA_def_property_ui_text(prop, "L", "Let the F-Curve act in local coordinates, used in Force and Add mode");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop= RNA_def_property(srna, "apply_to_children", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_IPOCHILD);
-	RNA_def_property_ui_text(prop, "Child", "Update F-Curve on all children Objects as well");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
@@ -1995,6 +1916,108 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 
+static void rna_def_steering_actuator(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_type_items[] ={
+		{ACT_STEERING_SEEK, "SEEK", 0, "Seek", ""},
+		{ACT_STEERING_FLEE, "FLEE", 0, "Flee", ""},
+		{ACT_STEERING_PATHFOLLOWING, "PATHFOLLOWING", 0, "Path following", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem facingaxis_items[] ={
+		{1, "X", 0, "X", ""},
+		{2, "Y", 0, "Y", ""},
+		{3, "Z", 0, "Z", ""},
+		{4, "NEG_X", 0, "-X", ""},
+		{5, "NEG_Y", 0, "-Y", ""},
+		{6, "NEG_Z", 0, "-Z", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	srna= RNA_def_struct(brna, "SteeringActuator", "Actuator");
+	RNA_def_struct_ui_text(srna, "Steering Actuator", "");
+	RNA_def_struct_sdna_from(srna, "bSteeringActuator", "data");
+
+	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_ui_text(prop, "Behavior", "");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "velocity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "velocity");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Velocity", "Velocity magnitude");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "acceleration", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "acceleration");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Acceleration", "Max acceleration");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "turn_speed", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "turnspeed");
+	RNA_def_property_range(prop, 0.0, 720.0);
+	RNA_def_property_ui_text(prop, "Turn Speed", "Max turn speed");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dist");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Dist", "Relax distance");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_sdna(prop, NULL, "target");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Target Object", "Set target object");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "self_terminated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_SELFTERMINATED);
+	RNA_def_property_ui_text(prop, "Self Terminated", "Terminate when target is reached");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "show_visualization", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_ENABLEVISUALIZATION);
+	RNA_def_property_ui_text(prop, "Visualize", "Enable debug visualization");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "update_period", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "updateTime");
+	RNA_def_property_ui_range(prop, -1, 100000, 1, 1);
+	RNA_def_property_ui_text(prop, "Update period", "Path update period");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "navmesh", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Object");
+	RNA_def_property_pointer_sdna(prop, NULL, "navmesh");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Navigation Mesh Object", "Navigation mesh");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SteeringActuator_navmesh_set", NULL, NULL);
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "facing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_AUTOMATICFACING);
+	RNA_def_property_ui_text(prop, "Facing", "Enable automatic facing");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "facing_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "facingaxis");
+	RNA_def_property_enum_items(prop, facingaxis_items);
+	RNA_def_property_ui_text(prop, "Axis", "Axis for automatic facing");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+
+	prop= RNA_def_property(srna, "normal_up", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_STEERING_NORMALUP);
+	RNA_def_property_ui_text(prop, "N", "Use normal of the navmesh to set \"UP\" vector");
+	RNA_def_property_update(prop, NC_LOGIC, NULL);
+}
+
 void RNA_def_actuator(BlenderRNA *brna)
 {
 	rna_def_actuator(brna);
@@ -2016,6 +2039,7 @@ void RNA_def_actuator(BlenderRNA *brna)
 	rna_def_shape_action_actuator(brna);
 	rna_def_state_actuator(brna);
 	rna_def_armature_actuator(brna);
+	rna_def_steering_actuator(brna);
 }
 
 #endif

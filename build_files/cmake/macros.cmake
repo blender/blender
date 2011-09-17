@@ -307,10 +307,10 @@ macro(setup_liblinks
 			target_link_libraries_optimized(${target} "${OPENCOLLADA_LIBRARIES}")
 			unset(OPENCOLLADA_LIBRARIES_DEBUG)
 
-			file_list_suffix(PCRE_LIB_DEBUG "${PCRE_LIB}" "_d")
-			target_link_libraries_debug(${target} "${PCRE_LIB_DEBUG}")
-			target_link_libraries_optimized(${target} "${PCRE_LIB}")
-			unset(PCRE_LIB_DEBUG)
+			file_list_suffix(PCRE_LIBRARIES_DEBUG "${PCRE_LIBRARIES}" "_d")
+			target_link_libraries_debug(${target} "${PCRE_LIBRARIES_DEBUG}")
+			target_link_libraries_optimized(${target} "${PCRE_LIBRARIES}")
+			unset(PCRE_LIBRARIES_DEBUG)
 
 			if(EXPAT_LIB)
 				file_list_suffix(EXPAT_LIB_DEBUG "${EXPAT_LIB}" "_d")
@@ -321,7 +321,8 @@ macro(setup_liblinks
 		else()
 			target_link_libraries(${target}
 					${OPENCOLLADA_LIBRARIES}
-					${PCRE_LIB}
+					${PCRE_LIBRARIES}
+					${XML2_LIBRARIES}
 					${EXPAT_LIB})
 		endif()
 	endif()
@@ -404,6 +405,7 @@ macro(remove_strict_flags)
 		remove_flag("-Wstrict-prototypes")
 		remove_flag("-Wunused-parameter")
 		remove_flag("-Wwrite-strings")
+		remove_flag("-Wundef")
 		remove_flag("-Wshadow")
 		remove_flag("-Werror=[^ ]+")
 		remove_flag("-Werror")

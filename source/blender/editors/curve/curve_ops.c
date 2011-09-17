@@ -53,7 +53,6 @@
 
 #include "curve_intern.h"
 
-
 /************************* registration ****************************/
 
 void ED_operatortypes_curve(void)

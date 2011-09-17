@@ -145,7 +145,7 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 				}
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
+		if(TSELEM_OPEN(tselem,soops)) {
 			set_operation_types(soops, &te->subtree,
 								scenelevel, objectlevel, idlevel, datalevel);
 		}
@@ -250,7 +250,7 @@ static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *
 				operation_cb(C, scene, te, tsep, tselem);
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
+		if(TSELEM_OPEN(tselem,soops)) {
 			outliner_do_libdata_operation(C, scene, soops, &te->subtree, operation_cb);
 		}
 	}
@@ -287,6 +287,8 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 	if(base==NULL) 
 		base= object_in_scene((Object *)tselem->id, scene);
 	if(base) {
+		SpaceOops *soops= CTX_wm_space_outliner(C);
+
 		// check also library later
 		if(scene->obedit==base->object) 
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR|EM_DO_UNDO);
@@ -294,6 +296,13 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 		ED_base_object_free_and_unlink(CTX_data_main(C), scene, base);
 		te->directdata= NULL;
 		tselem->id= NULL;
+
+		/* XXX: tree management normally happens from draw_outliner(), but when
+		        you're clicking to fast on Delete object from context menu in
+		        outliner several mouse events can be handled in one cycle without
+		        handling notifiers/redraw which leads to deleting the same object twice.
+		        cleanup tree here to prevent such cases. */
+		outliner_cleanup_tree(soops);
 	}
 
 }
@@ -333,7 +342,7 @@ static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement 
 	
 	if (id) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)tsep->id;
-		PointerRNA ptr = {{0}};
+		PointerRNA ptr = {{NULL}};
 		PropertyRNA *prop;
 		
 		RNA_pointer_create(&iat->id, &RNA_AnimData, iat->adt, &ptr);
@@ -388,7 +397,7 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 				operation_cb(C, scene_owner ? scene_owner : scene_act, te, NULL, tselem);
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
+		if(TSELEM_OPEN(tselem,soops)) {
 			outliner_do_object_operation(C, scene_act, soops, &te->subtree, operation_cb);
 		}
 	}
@@ -495,7 +504,7 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 				operation_cb(event, te, tselem);
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
+		if(TSELEM_OPEN(tselem,soops)) {
 			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb);
 		}
 	}
@@ -848,7 +857,7 @@ static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *l
 				operation_cb(te, tselem, tsep, newid);
 			}
 		}
-		if ((tselem->flag & TSE_CLOSED)==0) {
+		if (TSELEM_OPEN(tselem,soops)) {
 			outliner_do_id_set_operation(soops, type, &te->subtree, newid, operation_cb);
 		}
 	}

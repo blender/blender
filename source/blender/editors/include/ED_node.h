@@ -39,6 +39,7 @@ struct Material;
 struct Scene;
 struct Tex;
 struct bContext;
+struct bNodeTree;
 struct bNode;
 struct bNodeTree;
 struct ScrArea;
@@ -47,6 +48,7 @@ struct ScrArea;
 void ED_init_node_butfuncs(void);
 
 /* node_draw.c */
+void ED_node_tree_update(struct SpaceNode *snode, struct Scene *scene);
 void ED_node_changed_update(struct ID *id, struct bNode *node);
 void ED_node_generic_update(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
 
@@ -57,8 +59,9 @@ void ED_node_texture_default(struct Tex *tex);
 void ED_node_link_intersect_test(struct ScrArea *sa, int test);
 void ED_node_link_insert(struct ScrArea *sa);
 
-void ED_node_set_active(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
+void ED_node_update_hierarchy(struct bContext *C, struct bNodeTree *ntree);
 
+void ED_node_set_active(struct Main *bmain, struct bNodeTree *ntree, struct bNode *node);
 /* node_layout.c */
 void ED_node_tree_auto_layout(struct bNodeTree *ntree, struct bNode *root);
 

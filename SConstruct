@@ -645,7 +645,7 @@ else:
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     dllsources = []
 
-    if not env['OURPLATFORM'] in ('win32-mingw', 'win64-vc', 'linuxcross'):
+    if not env['OURPLATFORM'] in ('win32-mingw', 'linuxcross'):
         # For MinGW and linuxcross static linking will be used
         dllsources += ['${LCGDIR}/gettext/lib/gnu_gettext.dll']
 

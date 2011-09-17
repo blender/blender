@@ -188,7 +188,7 @@ static void proxy_endjob(void *UNUSED(customdata))
 
 }
 
-void seq_proxy_build_job(const bContext *C, Sequence * seq)
+static void seq_proxy_build_job(const bContext *C, Sequence * seq)
 {
 	wmJob * steve;
 	ProxyJob *pj;
@@ -2174,7 +2174,7 @@ static int sequencer_view_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	sseq->view++;
 	if (sseq->view > SEQ_VIEW_SEQUENCE_PREVIEW) sseq->view = SEQ_VIEW_SEQUENCE;
 
-	ED_sequencer_update_view(C, sseq->view);
+	ED_area_tag_refresh(CTX_wm_area(C));
 
 	return OPERATOR_FINISHED;
 }

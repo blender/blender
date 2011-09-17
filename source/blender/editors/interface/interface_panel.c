@@ -536,8 +536,8 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		
 		/* in some occasions, draw a border */
 		if(panel->flag & PNL_SELECT) {
-			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(15);
-			else uiSetRoundBox(0);
+			if(panel->control & UI_PNL_SOLID) uiSetRoundBox(UI_CNR_ALL);
+			else uiSetRoundBox(UI_CNR_NONE);
 			
 			UI_ThemeColorShade(TH_BACK, -120);
 			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax+1, 8);

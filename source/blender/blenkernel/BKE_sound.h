@@ -39,7 +39,6 @@
 
 struct PackedFile;
 struct bSound;
-struct bContext;
 struct ListBase;
 struct Main;
 struct Sequence;
@@ -65,12 +64,12 @@ struct bSound* sound_new_file(struct Main *main, const char *filename);
 
 // XXX unused currently
 #if 0
-struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source);
+struct bSound* sound_new_buffer(struct Main *bmain, struct bSound *source);
 
-struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, float start, float end);
+struct bSound* sound_new_limiter(struct Main *bmain, struct bSound *source, float start, float end);
 #endif
 
-void sound_delete(struct bContext *C, struct bSound* sound);
+void sound_delete(struct Main *bmain, struct bSound* sound);
 
 void sound_cache(struct bSound* sound);
 
@@ -124,7 +123,7 @@ void sound_play_scene(struct Scene *scene);
 
 void sound_stop_scene(struct Scene *scene);
 
-void sound_seek_scene(struct bContext *C);
+void sound_seek_scene(struct Main *bmain, struct Scene *scene);
 
 float sound_sync_scene(struct Scene *scene);
 

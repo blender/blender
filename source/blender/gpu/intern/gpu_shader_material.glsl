@@ -309,22 +309,22 @@ void normal(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
 	outdot = -dot(dir, nor);
 }
 
-void curves_vec(float fac, vec3 vec, sampler1D curvemap, out vec3 outvec)
+void curves_vec(float fac, vec3 vec, sampler2D curvemap, out vec3 outvec)
 {
-	outvec.x = texture1D(curvemap, (vec.x + 1.0)*0.5).x;
-	outvec.y = texture1D(curvemap, (vec.y + 1.0)*0.5).y;
-	outvec.z = texture1D(curvemap, (vec.z + 1.0)*0.5).z;
+	outvec.x = texture2D(curvemap, vec2((vec.x + 1.0)*0.5, 0.0)).x;
+	outvec.y = texture2D(curvemap, vec2((vec.y + 1.0)*0.5, 0.0)).y;
+	outvec.z = texture2D(curvemap, vec2((vec.z + 1.0)*0.5, 0.0)).z;
 
 	if (fac != 1.0)
 		outvec = (outvec*fac) + (vec*(1.0-fac));
 
 }
 
-void curves_rgb(float fac, vec4 col, sampler1D curvemap, out vec4 outcol)
+void curves_rgb(float fac, vec4 col, sampler2D curvemap, out vec4 outcol)
 {
-	outcol.r = texture1D(curvemap, texture1D(curvemap, col.r).a).r;
-	outcol.g = texture1D(curvemap, texture1D(curvemap, col.g).a).g;
-	outcol.b = texture1D(curvemap, texture1D(curvemap, col.b).a).b;
+	outcol.r = texture2D(curvemap, vec2(texture2D(curvemap, vec2(col.r, 0.0)).a, 0.0)).r;
+	outcol.g = texture2D(curvemap, vec2(texture2D(curvemap, vec2(col.g, 0.0)).a, 0.0)).g;
+	outcol.b = texture2D(curvemap, vec2(texture2D(curvemap, vec2(col.b, 0.0)).a, 0.0)).b;
 
 	if (fac != 1.0)
 		outcol = (outcol*fac) + (col*(1.0-fac));
@@ -636,9 +636,9 @@ void mix_linear(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 		outcol.b= col1.b + fac*(2.0*(col2.b) - 1.0);
 }
 
-void valtorgb(float fac, sampler1D colormap, out vec4 outcol, out float outalpha)
+void valtorgb(float fac, sampler2D colormap, out vec4 outcol, out float outalpha)
 {
-	outcol = texture1D(colormap, fac);
+	outcol = texture2D(colormap, vec2(fac, 0.0));
 	outalpha = outcol.a;
 }
 
@@ -1321,9 +1321,9 @@ void lamp_falloff_sliders(float lampdist, float ld1, float ld2, float dist, out 
 	visifac *= lampdistkw/(lampdistkw + ld2*dist*dist);
 }
 
-void lamp_falloff_curve(float lampdist, sampler1D curvemap, float dist, out float visifac)
+void lamp_falloff_curve(float lampdist, sampler2D curvemap, float dist, out float visifac)
 {
-	visifac = texture1D(curvemap, dist/lampdist).x;
+	visifac = texture2D(curvemap, vec2(dist/lampdist, 0.0)).x;
 }
 
 void lamp_visibility_sphere(float lampdist, float dist, float visifac, out float outvisifac)

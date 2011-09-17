@@ -156,8 +156,8 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 		if(rule->type == eBoidRuleType_Goal && boids->options & BOID_ALLOW_CLIMB && surface!=0.0f) {
 			if(!bbd->goal_ob || bbd->goal_priority < priority) {
 				bbd->goal_ob = eob;
-				VECCOPY(bbd->goal_co, efd.loc);
-				VECCOPY(bbd->goal_nor, efd.nor);
+				copy_v3_v3(bbd->goal_co, efd.loc);
+				copy_v3_v3(bbd->goal_nor, efd.nor);
 			}
 		}
 		else if(rule->type == eBoidRuleType_Avoid && bpa->data.mode == eBoidMode_Climbing &&
@@ -869,7 +869,7 @@ static void boid_climb(BoidSettings *boids, ParticleData *pa, float *surface_co,
 {
 	BoidParticle *bpa = pa->boid;
 	float nor[3], vel[3];
-	VECCOPY(nor, surface_nor);
+	copy_v3_v3(nor, surface_nor);
 
 	/* gather apparent gravity */
 	VECADDFAC(bpa->gravity, bpa->gravity, surface_nor, -1.0f);
@@ -1345,7 +1345,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		{
 			boid_climb(boids, pa, ground_co, ground_nor);
 			//float nor[3];
-			//VECCOPY(nor, ground_nor);
+			//copy_v3_v3(nor, ground_nor);
 
 			///* gather apparent gravity to r_ve */
 			//VECADDFAC(pa->r_ve, pa->r_ve, ground_nor, -1.0);

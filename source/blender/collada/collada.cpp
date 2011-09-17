@@ -30,6 +30,7 @@
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"
 
+#include "ExportSettings.h"
 #include "DocumentExporter.h"
 #include "DocumentImporter.h"
 
@@ -46,14 +47,17 @@ extern "C"
 	int collada_import(bContext *C, const char *filepath)
 	{
 		DocumentImporter imp (C, filepath);
-		imp.import();
+		if(imp.import()) return 1;
 
-		return 1;
+		return 0;
 	}
 
 	int collada_export(Scene *sce, const char *filepath, int selected)
 	{
-		DocumentExporter exp;
+		ExportSettings export_settings;
+		
+		export_settings.selected = selected != 0;
+		export_settings.filepath = (char *)filepath;
 
 		/* annoying, collada crashes if file cant be created! [#27162] */
 		if(!BLI_exist(filepath)) {
@@ -64,7 +68,8 @@ extern "C"
 		}
 		/* end! */
 
-		exp.exportCurrentScene(sce, filepath, selected);
+		DocumentExporter exporter(&export_settings);
+		exporter.exportCurrentScene(sce);
 
 		return 1;
 	}

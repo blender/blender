@@ -52,6 +52,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -346,7 +347,7 @@ int ED_operator_posemode(bContext *C)
 
 	if (obact && !(obact->mode & OB_MODE_EDIT)) {
 		Object *obpose;
-		if((obpose= ED_object_pose_armature(obact))) {
+		if((obpose= object_pose_armature_get(obact))) {
 			if((obact == obpose) || (obact->mode & OB_MODE_WEIGHT_PAINT)) {
 				return 1;
 			}
@@ -1732,14 +1733,16 @@ static void SCREEN_OT_region_scale(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int frame_offset_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 	int delta;
 	
 	delta = RNA_int_get(op->ptr, "delta");
 
-	CTX_data_scene(C)->r.cfra += delta;
-	CTX_data_scene(C)->r.subframe = 0.f;
+	scene->r.cfra += delta;
+	scene->r.subframe = 0.f;
 	
-	sound_seek_scene(C);
+	sound_seek_scene(bmain, scene);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
 	
@@ -1764,6 +1767,7 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int frame_jump_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
 
@@ -1787,7 +1791,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 		else
 			CFRA= PSFRA;
 		
-		sound_seek_scene(C);
+		sound_seek_scene(bmain, scene);
 
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	}
@@ -1816,6 +1820,7 @@ static void SCREEN_OT_frame_jump(wmOperatorType *ot)
 /* function to be called outside UI context, or for redo */
 static int keyframe_jump_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bDopeSheet ads= {NULL};
@@ -1870,7 +1875,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
 	
-	sound_seek_scene(C);
+	sound_seek_scene(bmain, scene);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	
@@ -2796,6 +2801,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 	bScreen *screen= CTX_wm_screen(C);
 
 	if(screen->animtimer && screen->animtimer==event->customdata) {
+		Main *bmain= CTX_data_main(C);
 		Scene *scene= CTX_data_scene(C);
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
@@ -2872,7 +2878,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		}
 		
 		if (sad->flag & ANIMPLAY_FLAG_JUMPED)
-			sound_seek_scene(C);
+			sound_seek_scene(bmain, scene);
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
 		ED_update_for_newframe(CTX_data_main(C), scene, screen, 1);
@@ -3480,8 +3486,8 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", UPARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 1);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", DOWNARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 0);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "end", 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "end", 0);
 	
 	WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", UPARROWKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "SCREEN_OT_keyframe_jump", DOWNARROWKEY, KM_PRESS, 0, 0)->ptr, "next", 0);

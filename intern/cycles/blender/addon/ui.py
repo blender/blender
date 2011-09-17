@@ -333,7 +333,7 @@ def find_node(material, nodetype):
         ntree = material.node_tree
 
         for node in ntree.nodes:
-            if type(node) is not bpy.types.NodeGroup and node.type == nodetype:
+            if hasattr(node, 'type') and node.type == nodetype:
                 return node
     
     return None

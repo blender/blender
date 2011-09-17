@@ -50,7 +50,7 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[][4], 
 
 	double dmat[4][4];
 	UnitConverter* converter = new UnitConverter();
-    converter->mat4_to_dae_double(dmat,local);
+	converter->mat4_to_dae_double(dmat,local);
 
 	TransformBase::decompose(local, loc, rot, NULL, scale);
 	if ( node.getType() == COLLADASW::Node::JOINT)

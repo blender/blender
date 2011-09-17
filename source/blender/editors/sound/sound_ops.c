@@ -119,7 +119,7 @@ static int open_exec(bContext *C, wmOperator *op)
 	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
-		sound_delete(C, sound);
+		sound_delete(bmain, sound);
 		if(op->customdata) MEM_freeN(op->customdata);
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;
@@ -175,7 +175,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return WM_operator_filesel(C, op, event);
 }
 
-void SOUND_OT_open(wmOperatorType *ot)
+static void SOUND_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Open Sound";
@@ -196,7 +196,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mono", FALSE, "Mono", "Mixdown the sound to mono.");
 }
 
-void SOUND_OT_open_mono(wmOperatorType *ot)
+static void SOUND_OT_open_mono(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Open Sound Mono";
@@ -659,7 +659,7 @@ static int update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void SOUND_OT_update_animation_flags(wmOperatorType *ot)
+static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 {
 	/*
 	  This operator is needed to set a correct state of the sound animation
@@ -691,7 +691,7 @@ static int bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 
 	update_animation_flags_exec(C, NULL);
 
-	for(cfra = scene->r.sfra; cfra <= scene->r.efra; cfra++)
+	for(cfra = scene->r.sfra > 0 ? scene->r.sfra - 1 : 0; cfra <= scene->r.efra + 1; cfra++)
 	{
 		scene->r.cfra = cfra;
 		scene_update_for_newframe(bmain, scene, scene->lay);
@@ -703,7 +703,7 @@ static int bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void SOUND_OT_bake_animation(wmOperatorType *ot)
+static void SOUND_OT_bake_animation(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Update animation cache";

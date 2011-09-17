@@ -36,10 +36,7 @@
  *  \ingroup bke
  */
  
-
-/* TODO maybe BIF_gl.h should include string.h? */
-#include <string.h>
-#include "BIF_gl.h"
+#include "GL/glew.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
@@ -1933,7 +1930,7 @@ void CDDM_apply_vert_normals(DerivedMesh *dm, short (*vertNormals)[3])
 	cddm->mvert = vert;
 
 	for(i = 0; i < dm->numVertData; ++i, ++vert)
-		VECCOPY(vert->no, vertNormals[i]);
+		copy_v3_v3_short(vert->no, vertNormals[i]);
 }
 
 void CDDM_calc_normals(DerivedMesh *dm)

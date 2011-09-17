@@ -33,6 +33,8 @@
 #ifndef ED_NODE_INTERN_H
 #define ED_NODE_INTERN_H
 
+#include "UI_interface.h"
+
 /* internal exports only */
 
 struct ARegion;
@@ -40,6 +42,7 @@ struct ARegionType;
 struct View2D;
 struct bContext;
 struct wmWindowManager;
+struct bNodeTemplate;
 struct bNode;
 struct bNodeSocket;
 struct bNodeLink;
@@ -64,6 +67,11 @@ void node_header_buttons(const bContext *C, ARegion *ar);
 void node_menus_register(void);
 
 /* node_draw.c */
+void node_socket_circle_draw(struct bNodeTree *ntree, struct bNodeSocket *sock, float size);
+void node_draw_default(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode, struct bNodeTree *ntree, struct bNode *node);
+void node_update_default(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node);
+void node_update_nodetree(const struct bContext *C, struct bNodeTree *ntree, float offsetx, float offsety);
+void node_draw_nodetree(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode, struct bNodeTree *ntree);
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
 
 /* node_buttons.c */
@@ -90,6 +98,7 @@ void NODE_OT_select_same_type_prev(wmOperatorType *ot);
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link);
 void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
+void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3 );
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage);
 void draw_nodespace_color_info(struct ARegion *ar, int color_manage, int channels, int x, int y, char *cp, float *fp);
 
@@ -97,10 +106,10 @@ void draw_nodespace_color_info(struct ARegion *ar, int color_manage, int channel
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
 void snode_notify(bContext *C, SpaceNode *snode);
 void snode_dag_update(bContext *C, SpaceNode *snode);
-bNode *next_node(bNodeTree *ntree);
-bNode *node_add_node(SpaceNode *snode, struct Main *bmain, Scene *scene, int type, float locx, float locy);
+bNode *node_add_node(struct SpaceNode *snode, struct Main *bmain, struct Scene *scene, struct bNodeTemplate *ntemp, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);
 void snode_make_group_editable(SpaceNode *snode, bNode *gnode);
+void node_sort(struct bNodeTree *ntree);
 void node_deselectall(SpaceNode *snode);
 int node_select_same_type(SpaceNode *snode);
 int node_select_same_type_np(SpaceNode *snode, int dir);
@@ -147,6 +156,8 @@ void NODE_OT_backimage_sample(wmOperatorType *ot);
 void NODE_OT_add_file(struct wmOperatorType *ot);
 
 void NODE_OT_auto_layout(struct wmOperatorType *ot);
+
+void NODE_OT_new_node_tree(struct wmOperatorType *ot);
 
 extern const char *node_context_dir[];
 

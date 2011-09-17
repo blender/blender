@@ -76,6 +76,13 @@ int bpy_pydriver_create_dict(void)
 		Py_DECREF(mod);
 	}
 
+	/* add noise to global namespace */
+	mod= PyImport_ImportModuleLevel((char *)"noise", NULL, NULL, NULL, 0);
+	if (mod) {
+		PyDict_SetItemString(bpy_pydriver_Dict, "noise", mod);
+		Py_DECREF(mod);
+	}
+
 	return 0;
 }
 
