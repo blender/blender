@@ -38,8 +38,8 @@
 
 /* **************** VECTOR MATH ******************** */ 
 static bNodeSocketTemplate sh_node_vect_math_in[]= { 
-	{ SOCK_VECTOR, 1, "Vector", 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f, PROP_NONE}, 
-	{ SOCK_VECTOR, 1, "Vector", 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f, PROP_NONE}, 
+	{ SOCK_VECTOR, 1, "Vector1", 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f, PROP_NONE}, 
+	{ SOCK_VECTOR, 1, "Vector2", 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f, PROP_NONE}, 
 	{ -1, 0, "" } 
 };
 
