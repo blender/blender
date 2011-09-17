@@ -301,29 +301,28 @@ BMFace *BM_Split_Face(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **nl,
 	if (nf) {
 		BM_Copy_Attributes(bm, bm, f, nf);
 		copy_v3_v3(nf->no, f->no);
-	}
 	
-	/*handle multires update*/
-	if (nf && nf != f && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		BMLoop *l;
-		
-		l = bm_firstfaceloop(f);
-		do {
-			BM_loop_interp_from_face(bm, l, of, 0, 1);
-			l = l->next;
-		} while (l != bm_firstfaceloop(f));
+		/*handle multires update*/
+		if (nf != f && CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
+			BMLoop *l;
 
-		l = bm_firstfaceloop(nf);
-		do {
-			BM_loop_interp_from_face(bm, l, of, 0, 1);
-			l = l->next;
-		} while (l != bm_firstfaceloop(nf));
-		
-		BM_Kill_Face(bm, of);
-		
-		BM_multires_smooth_bounds(bm, f);
-		if (nf) 
+			l = bm_firstfaceloop(f);
+			do {
+				BM_loop_interp_from_face(bm, l, of, 0, 1);
+				l = l->next;
+			} while (l != bm_firstfaceloop(f));
+
+			l = bm_firstfaceloop(nf);
+			do {
+				BM_loop_interp_from_face(bm, l, of, 0, 1);
+				l = l->next;
+			} while (l != bm_firstfaceloop(nf));
+
+			BM_Kill_Face(bm, of);
+
+			BM_multires_smooth_bounds(bm, f);
 			BM_multires_smooth_bounds(bm, nf);
+		}
 	}
 
 	return nf;
