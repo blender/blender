@@ -1811,8 +1811,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	static EnumPropertyItem obstacle_simulation_items[] = {
 		{OBSTSIMULATION_NONE, "NONE", 0, "None", ""},
-		{OBSTSIMULATION_TOI_rays, "RVO (rays)", 0, "RVO (rays)", ""},
-		{OBSTSIMULATION_TOI_cells, "RVO (cells)", 0, "RVO (cells)", ""},
+		{OBSTSIMULATION_TOI_rays, "RVO_RAYS", 0, "RVO (rays)", ""},
+		{OBSTSIMULATION_TOI_cells, "RVO_CELLS", 0, "RVO (cells)", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SceneGameData", NULL);
