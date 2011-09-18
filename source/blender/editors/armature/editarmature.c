@@ -4276,74 +4276,35 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 	
 	return count;
 }
-/* Radish */
-Bone* get_other_selected_bone(Object *ob) {
-	Bone *bone;
-	int i;
-	bone = get_indexed_bone(ob, 0);
-	for(i = 0; bone;){
-		if(bone->flag & BONE_SELECTED) {
-			return bone;
-		}
-		i++;
-		bone = get_indexed_bone(ob, i);
-	}
 
-	return NULL;
-}
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
 int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short extend)
 {
 	Object *ob= base->object;
 	Bone *nearBone;
-
+	
 	if (!ob || !ob->pose) return 0;
 
 	nearBone= get_bone_from_selectbuffer(scene, base, buffer, hits, 1);
-
+	
 	/* if the bone cannot be affected, don't do anything */
 	if ((nearBone) && !(nearBone->flag & BONE_UNSELECTABLE)) {
+		Object *ob_act= OBACT;
 		bArmature *arm= ob->data;
 		
-		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
-		/* Radish, I'm doing a select for multibone painting */
-		if (scene->toolsettings->multipaint && (base != scene->basact)) {//if (!(extend) || (base != scene->basact)) {
-			Bone *new_act_bone;
-			/* Radish */
-			/* only deselect all if they aren't using 'shift' */
-			if(!extend) {
-				ED_pose_deselectall(ob, 0);
-				nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-				arm->act_bone= nearBone;
-				ED_vgroup_select_by_name(OBACT, nearBone->name);
-			}
-			else {
-				/* Radish deselect this bone specifically if it is selected already */
-				if (nearBone->flag & BONE_SELECTED) {
-					nearBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-					if(nearBone == arm->act_bone) {
-						// make a different bone the active one if it exists
-						new_act_bone = get_other_selected_bone(ob);
-						if(new_act_bone) {
-							new_act_bone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-							arm->act_bone = new_act_bone;
-							ED_vgroup_select_by_name(OBACT, new_act_bone->name);
-						}
-					}
-				// or select the bone if they are using shift
-				} else {
-					nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-					arm->act_bone= nearBone;
-				}
-			} 
-			DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
-				// XXX old cruft! use notifiers instead
-			//select_actionchannel_by_name(ob->action, nearBone->name, 1);
-		} else if (!(extend) || (base != scene->basact)) {
+		/* since we do unified select, we don't shift+select a bone if the
+		 * armature object was not active yet.
+		 * note, special exception for armature mode so we can do multi-select
+		 * we could check for multi-select explicitly but think its fine to
+		 * always give pradictable behavior in weight paint mode - campbell */
+		if (!(extend) || (base->object != ob_act && !(ob_act->mode & OB_MODE_WEIGHT_PAINT))) {
 			ED_pose_deselectall(ob, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 			arm->act_bone= nearBone;
+			
+				// XXX old cruft! use notifiers instead
+			//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 		}
 		else {
 			if (nearBone->flag & BONE_SELECTED) {
@@ -4368,7 +4329,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		}
 		
 		/* in weightpaint we select the associated vertex group too */
-		if (OBACT && OBACT->mode & OB_MODE_WEIGHT_PAINT) {
+		if (ob_act && ob_act->mode & OB_MODE_WEIGHT_PAINT) {
 			if (nearBone == arm->act_bone) {
 				ED_vgroup_select_by_name(OBACT, nearBone->name);
 				DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
