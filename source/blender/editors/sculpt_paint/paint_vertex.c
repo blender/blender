@@ -399,14 +399,14 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	unsigned char i;
 	int vgroup_mirror= -1;
 	int selected;
-	// Jason
+	/* Radish */
 	int use_vert_sel;
 
 	me= ob->data;
 	if(me==NULL || me->totface==0 || me->dvert==NULL || !me->mface) return;
 	
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
-	// Jason
+	/* Radish */
 	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	indexar= get_indexarray(me);
@@ -443,7 +443,7 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			faceverts[3]= mface->v4;
 			for (i=0; i<3 || faceverts[i]; i++) {
 				if(!me->dvert[faceverts[i]].flag) {
-					// Jason
+					/* Radish */
 					if(use_vert_sel && ((me->mvert[faceverts[i]].flag & SELECT) == 0)) {
 						continue;
 					}
@@ -840,7 +840,7 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 		if (dw->weight > paintval)
 			dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
 	}
-	// Jason delay clamping until the end so multi-paint can function when the active group is at the limits
+	/* Radish delay clamping until the end so multi-paint can function when the active group is at the limits */
 	//CLAMP(dw->weight, 0.0f, 1.0f);
 	
 	/* if no spray, clip result with orig weight & orig alpha */
@@ -1111,7 +1111,7 @@ static void do_weight_paint_auto_normalize(MDeformVert *dvert,
 }
 #endif
 
-// Jason was here: the active group should be involved in auto normalize
+/* Radish: the active group should be involved in auto normalize */
 static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, char *map)
 {
 //	MDeformWeight *dw = dvert->dw;
@@ -1140,7 +1140,7 @@ static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, char *
 		}
 	}
 }
-/* Jason was here */
+/* Radish */
 /*
 See if the current deform vertex has a locked group
 */
@@ -1154,7 +1154,7 @@ static char has_locked_group(MDeformVert *dvert, char *flags)
 	}
 	return FALSE;
 }
-/* Jason was here
+/* Radish
  * gen_lck_flags gets the status of "flag" for each bDeformGroup
  *in ob->defbase and returns an array containing them
  */
@@ -1177,7 +1177,7 @@ static char *gen_lck_flags(Object* ob, int defbase_len)
 	MEM_freeN(flags);
 	return NULL;
 }
-/* Jason was here */
+/* Radish */
 static int has_locked_group_selected(int defbase_len, char *defbase_sel, char *flags) {
 	int i;
 	for(i = 0; i < defbase_len; i++) {
@@ -1188,7 +1188,7 @@ static int has_locked_group_selected(int defbase_len, char *defbase_sel, char *f
 	return FALSE;
 }
 
-/* Jason was here */
+/* Radish */
 #if 0 /* UNUSED */
 static int has_unselected_unlocked_bone_group(int defbase_len, char *defbase_sel, int selected, char *flags, char *bone_groups) {
 	int i;
@@ -1204,7 +1204,7 @@ static int has_unselected_unlocked_bone_group(int defbase_len, char *defbase_sel
 }
 #endif
 
-/*Jason*/
+/* Radish */
 static void multipaint_selection(MDeformVert *dvert, float change, char *defbase_sel, int defbase_len) {
 	int i;
 	MDeformWeight *dw;
@@ -1216,7 +1216,7 @@ static void multipaint_selection(MDeformVert *dvert, float change, char *defbase
 			if(dw && dw->weight) {
 				val = dw->weight * change;
 				if(val > 1) {
-					// Jason TODO: when the change is reduced, you need to recheck the earlier values to make sure they are not 0 (precision error)
+					/* Radish TODO: when the change is reduced, you need to recheck the earlier values to make sure they are not 0 (precision error) */
 					change = 1.0f/dw->weight;
 				}
 				// the value should never reach zero while multi-painting if it was nonzero beforehand
@@ -1236,7 +1236,7 @@ static void multipaint_selection(MDeformVert *dvert, float change, char *defbase
 		}
 	}
 }
-/*Jason*/
+/* Radish */
 // move all change onto valid, unchanged groups.  If there is change left over, then return it.
 // assumes there are valid groups to shift weight onto
 static float redistribute_change(MDeformVert *ndv, char *change_status, int changeme, int changeto, char *validmap, float totchange, float total_valid) {
@@ -1282,7 +1282,7 @@ static float redistribute_change(MDeformVert *ndv, char *change_status, int chan
 	// left overs
 	return totchange;
 }
-/*Jason*/
+/* Radish */
 // observe the changes made to the weights of groups.
 // make sure all locked groups on the vertex have the same deformation
 // by moving the changes made to groups onto other unlocked groups
@@ -1406,7 +1406,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_len, c
 
 	MEM_freeN(change_status);
 }
-/*Jason*/
+/* Radish */
 // multi-paint's initial, potential change is computed here based on the user's stroke
 static float get_mp_change(MDeformVert *odv, char *defbase_sel, float brush_change) {
 	float selwsum = 0.0f;
@@ -1422,7 +1422,7 @@ static float get_mp_change(MDeformVert *odv, char *defbase_sel, float brush_chan
 	}
 	return 0.0f;
 }
-/*Jason*/
+/* Radish */
 // change the weights back to the wv's weights
 // it assumes you already have the correct pointer index
 static void reset_to_prev(MDeformVert *wv, MDeformVert *dv) {
@@ -1440,14 +1440,14 @@ static void reset_to_prev(MDeformVert *wv, MDeformVert *dv) {
 		}
 	}
 }
-/* Jason */
+/* Radish */
 static void clamp_weights(MDeformVert *dvert) {
 	int i;
 	for (i = 0; i < dvert->totweight; i++) {
 		CLAMP((dvert->dw+i)->weight, 0.0f, 1.0f);
 	}
 }
-/*Jason*/
+/* Radish */
 /* fresh start to make multi-paint and locking modular */
 /* returns TRUE if it thinks you need to reset the weights due to normalizing while multi-painting */
 static int apply_mp_lcks_normalize(Mesh *me, int index, MDeformWeight *dw, MDeformWeight *tdw, int defbase_len, float change, float oldChange, float oldw, float neww, char *defbase_sel, int selected, char *bone_groups, char *validmap, char *flags, int multipaint) {
@@ -1506,7 +1506,7 @@ static int get_first_selected_nonzero_weight(MDeformVert *dvert, char *defbase_s
 	}
 	return -1;
 }
-// Jason
+/* Radish */
 static char *wpaint_make_validmap(Object *ob);
 
 static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, 
@@ -1514,11 +1514,11 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 				   int vgroup_mirror, char *validmap, int multipaint)
 {
 	Mesh *me= ob->data;
-	//						Jason: tdw, tuw
+	//						Radish: tdw, tuw
 	MDeformWeight *dw, *uw, *tdw = NULL, *tuw;
 	int vgroup= ob->actdef-1;
 	
-	/* Jason was here */
+	/* Radish */
 	char *flags;
 	char *bone_groups;
 	char *defbase_sel;
@@ -1549,7 +1549,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	}
 	if(dw==NULL || uw==NULL)
 		return;
-	/* Jason was here */
+	/* Radish */
 	flags = gen_lck_flags(ob, defbase_len = BLI_countlist(&ob->defbase));
 	defbase_sel = MEM_mallocN(defbase_len * sizeof(char), "dg_selected_flags");
 	selected = get_selected_defgroups(ob, defbase_sel, defbase_len);
@@ -1608,7 +1608,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 			}
 		}
 	}
-	/* Jason was here */
+	/* Radish */
 	if(apply_mp_lcks_normalize(me, index, dw, tdw, defbase_len, change, oldChange, oldw, neww, defbase_sel, selected, bone_groups, validmap, flags, multipaint)) {
 		reset_to_prev(dv, me->dvert+index);
 		change = 0;
@@ -1629,13 +1629,13 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 				uw= defvert_verify_index(me->dvert+j, vgroup_mirror);
 			else
 				uw= defvert_verify_index(me->dvert+j, vgroup);
-			/* Jason */
+			/* Radish */
 			//uw->weight= dw->weight;
-			/* Jason */
+			/* Radish */
 			apply_mp_lcks_normalize(me, j, uw, tdw, defbase_len, change, oldChange, oldw, neww, defbase_sel, selected, bone_groups, validmap, flags, multipaint);
 		}
 	}
-	/* Jason */
+	/* Radish */
 	if(flags) {
 		MEM_freeN(flags);
 	}
@@ -1899,7 +1899,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float alpha;
 	float mval[2], pressure;
 	
-	// Jason
+	/* Radish */
 	int use_vert_sel;
 
 	/* cannot paint if there is no stroke data */
@@ -1928,7 +1928,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
-	// Jason
+	/* Radish */
 	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	/* which faces are involved */
@@ -2172,7 +2172,7 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= weight_paint_set_exec;
-	ot->poll= mask_paint_poll; // Jason, it was facemask_paint_poll
+	ot->poll= mask_paint_poll; /* Radish, it was facemask_paint_poll */
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

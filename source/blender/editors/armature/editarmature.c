@@ -4276,7 +4276,7 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 	
 	return count;
 }
-// Jason
+/* Radish */
 Bone* get_other_selected_bone(Object *ob) {
 	Bone *bone;
 	int i;
@@ -4307,10 +4307,10 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		bArmature *arm= ob->data;
 		
 		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
-		/* Jason was here, I'm doing a select for multibone painting */
+		/* Radish, I'm doing a select for multibone painting */
 		if (scene->toolsettings->multipaint && (base != scene->basact)) {//if (!(extend) || (base != scene->basact)) {
 			Bone *new_act_bone;
-			/* Jason was here */
+			/* Radish */
 			/* only deselect all if they aren't using 'shift' */
 			if(!extend) {
 				ED_pose_deselectall(ob, 0);
@@ -4319,7 +4319,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 				ED_vgroup_select_by_name(OBACT, nearBone->name);
 			}
 			else {
-				// Jason deselect this bone specifically if it is selected already
+				/* Radish deselect this bone specifically if it is selected already */
 				if (nearBone->flag & BONE_SELECTED) {
 					nearBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 					if(nearBone == arm->act_bone) {
@@ -5105,7 +5105,7 @@ void POSE_OT_select_inverse(wmOperatorType *ot)
 static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int action = RNA_enum_get(op->ptr, "action");
-	//Jason
+	//Radish
 	Object *ob = NULL;
 	Scene *scene= CTX_data_scene(C);
 	int multipaint = scene->toolsettings->multipaint;
@@ -5138,7 +5138,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
-	// Jason
+	/* Radish */
 	if(multipaint) {
 		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

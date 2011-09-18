@@ -174,7 +174,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize_all);
-	/* Jason was here */
+	/* Radish */
 	WM_operatortype_append(OBJECT_OT_vertex_group_lock);
 	WM_operatortype_append(OBJECT_OT_vertex_group_fix);
 

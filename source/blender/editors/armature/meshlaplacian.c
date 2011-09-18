@@ -657,7 +657,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	int *vertsflipped = NULL, *mask= NULL;
 	int a, totface, j, bbone, firstsegment, lastsegment;
 
-	// Jason
+	/* Radish */
 	MVert *mv = me->mvert;
 	int use_vert_sel= FALSE;
 
@@ -670,7 +670,7 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	for(totface=0, a=0, mface=me->mface; a<me->totface; a++, mface++) {
 		totface++;
 		if(mface->v4) totface++;
-		// Jason (added selectedVerts content for vertex mask, they used to just equal 1)
+		/* Radish (added selectedVerts content for vertex mask, they used to just equal 1) */
 		if(mask && ((mface->flag & ME_FACE_SEL) || use_vert_sel)) {
 			mask[mface->v1]= use_vert_sel ? ((mv+mface->v1)->flag & 1): 1;
 			mask[mface->v2]= use_vert_sel ? ((mv+mface->v2)->flag & 1): 1;

@@ -373,7 +373,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_weight_sample);
 	WM_operatortype_append(PAINT_OT_weight_sample_group);
 
-	/* Jason, vertex selection */
+	/* Radish, vertex selection */
 	WM_operatortype_append(PAINT_OT_vert_select_all);
 	WM_operatortype_append(PAINT_OT_vert_select_inverse);
 
@@ -611,7 +611,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	WM_keymap_verify_item(keymap, "PAINT_OT_weight_from_bones", WKEY, KM_PRESS, 0, 0);
 
-	// Jason
+	/* Radish */
 	/*Weight paint's Vertex Selection Mode */
 	keymap= WM_keymap_find(keyconf, "Weight Paint Vertex Selection", 0, 0);
 	keymap->poll= vert_paint_poll;

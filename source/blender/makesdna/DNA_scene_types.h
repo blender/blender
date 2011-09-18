@@ -763,7 +763,7 @@ typedef struct ToolSettings {
 
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 
-	//Jason
+	//Radish
 	char multipaint; /* paint multiple bones in wpaint */
 
 	short sculpt_paint_settings; /* user preferences for sculpt and paint */

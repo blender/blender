@@ -200,7 +200,7 @@ void OBJECT_OT_vertex_group_copy(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize_all(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
-/* Jason was here */
+/* Radish */
 void OBJECT_OT_vertex_group_lock(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_fix(struct wmOperatorType *ot);
 

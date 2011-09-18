@@ -90,7 +90,7 @@ void rna_Mesh_update_draw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA 
 	}
 }
 
-/* Jason */
+/* Radish */
 void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Mesh* me = ptr->data;
@@ -99,7 +99,7 @@ void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 	}
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
-/* Jason */
+/* Radish */
 void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Mesh* me = ptr->data;
@@ -2095,7 +2095,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_FACESEL_HLT, 0);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_facemask");
 
-	/* Jason */
+	/* Radish */
 	prop= RNA_def_property(srna, "use_paint_mask_vertex", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_VERT_SEL);
 	RNA_def_property_ui_text(prop, "Vertex Selection", "Vertex selection masking for painting (weight paint only)");

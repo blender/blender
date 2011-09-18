@@ -1960,7 +1960,7 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 }
 
 
-/* Jason (similar to void paintface_flush_flags(Object *ob))
+/* Radish (similar to void paintface_flush_flags(Object *ob))
  * copy the vertex flags, most importantly selection from the mesh to the final derived mesh,
  * use in object mode when selecting vertices (while painting) */
 void paintvert_flush_flags(Object *ob)
@@ -1992,7 +1992,7 @@ void paintvert_flush_flags(Object *ob)
 		}
 	}
 }
-/* Jason note: if the caller passes FALSE to flush_flags, then they will need to run paintvert_flush_flags(ob) themselves */
+/* Radish note: if the caller passes FALSE to flush_flags, then they will need to run paintvert_flush_flags(ob) themselves */
 void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 {
 	Mesh *me;
