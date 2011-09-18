@@ -1530,7 +1530,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	float change = 0;
 	float oldChange = 0;
 	int i;
-	MDeformVert *dv = NULL;
+	MDeformVert dv= {NULL};
 
 	// Need to know which groups are bone groups
 	if(validmap) {
@@ -1564,11 +1564,9 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	
 	// setup multi-paint
 	if(selected > 1 && multipaint) {
-		dv = MEM_mallocN(sizeof (*(me->dvert+index)), "prevMDeformVert");
-
-		dv->dw= MEM_dupallocN((me->dvert+index)->dw);
-		dv->flag = me->dvert[index].flag;
-		dv->totweight = (me->dvert+index)->totweight;
+		dv.dw= MEM_dupallocN((me->dvert+index)->dw);
+		dv.flag = me->dvert[index].flag;
+		dv.totweight = (me->dvert+index)->totweight;
 		tdw = dw;
 		tuw = uw;
 		change = get_mp_change(wp->wpaint_prev+index, defbase_sel, neww-oldw);
@@ -1610,13 +1608,12 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	}
 	/* Radish */
 	if(apply_mp_lcks_normalize(me, index, dw, tdw, defbase_len, change, oldChange, oldw, neww, defbase_sel, selected, bone_groups, validmap, flags, multipaint)) {
-		reset_to_prev(dv, me->dvert+index);
+		reset_to_prev(&dv, me->dvert+index);
 		change = 0;
 		oldChange = 0;
 	}
-	if(dv) {
-		MEM_freeN(dv->dw);
-		MEM_freeN(dv);
+	if(dv.dw) {
+		MEM_freeN(dv.dw);
 	}
 	// dvert may have been altered greatly
 	dw = defvert_find_index(me->dvert+index, vgroup);
