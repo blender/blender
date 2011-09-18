@@ -736,6 +736,23 @@ class AndBP1D(BinaryPredicate1D):
     def __call__(self, i1, i2):
         return self.__pred1(i1, i2) and self.__pred2(i1, i2)
 
+# predicates for selection
+
+class LengthThresholdUP1D(UnaryPredicate1D):
+    def __init__(self, min_length=None, max_length=None):
+        UnaryPredicate1D.__init__(self)
+        self._min_length = min_length
+        self._max_length = max_length
+    def getName(self):
+        return "LengthThresholdUP1D"
+    def __call__(self, inter):
+        length = inter.getLength2D()
+        if self._min_length is not None and length < self._min_length:
+            return False
+        if self._max_length is not None and length > self._max_length:
+            return False
+        return True
+
 # predicates for splitting
 
 class MaterialBoundaryUP0D(UnaryPredicate0D):
@@ -858,16 +875,24 @@ def process(layer_name, lineset_name):
             ymin, ymax = 0.0, float(h)
         upred = WithinImageBorderUP1D(xmin, xmax, ymin, ymax)
         selection_criteria.append(upred)
-    # do feature edge selection
+    # select feature edges
     upred = join_unary_predicates(selection_criteria, AndUP1D)
     if upred is None:
         upred = TrueUP1D()
     Operators.select(upred)
-    # join feature edges
+    # join feature edges to form chains
     bpred = AngleLargerThanBP1D(1.0) # XXX temporary fix for occasional unexpected long lines
     if linestyle.same_object:
         bpred = AndBP1D(bpred, SameShapeIdBP1D())
     Operators.bidirectionalChain(ChainPredicateIterator(upred, bpred), NotUP1D(upred))
+    # split chains
+    if linestyle.material_boundary:
+        Operators.sequentialSplit(MaterialBoundaryUP0D())
+    # select chains
+    if linestyle.use_min_length or linestyle.use_max_length:
+        min_length = linestyle.min_length if linestyle.use_min_length else None
+        max_length = linestyle.max_length if linestyle.use_max_length else None
+        Operators.select(LengthThresholdUP1D(min_length, max_length))
     # dashed line
     if linestyle.use_dashed_line:
         pattern = []
@@ -886,9 +911,6 @@ def process(layer_name, lineset_name):
             Operators.sequentialSplit(DashedLineStartingUP0D(controller),
                                       DashedLineStoppingUP0D(controller),
                                       sampling)
-    # split chains of feature edges
-    if linestyle.material_boundary:
-        Operators.sequentialSplit(MaterialBoundaryUP0D())
     # prepare a list of stroke shaders
     shaders_list = []
     for m in linestyle.geometry_modifiers:

@@ -511,13 +511,30 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
         row = layout.row(align=True)
         row.prop(linestyle, "panel", expand=True)
         if linestyle.panel == "STROKES":
+            # Chaining
             col = layout.column()
             col.label(text="Chaining:")
             col.prop(linestyle, "same_object")
+            # Splitting
             col = layout.column()
             col.label(text="Splitting:")
             row = col.row(align=True)
             row.prop(linestyle, "material_boundary")
+            # Selection
+            col = layout.column()
+            col.label(text="Selection:")
+            sub = col.row()
+            subcol = sub.column()
+            subcol.prop(linestyle, "use_min_length", text="Min Length")
+            subsub = subcol.split()
+            subsub.prop(linestyle, "min_length", text="")
+            subsub.enabled = linestyle.use_min_length
+            subcol = sub.column()
+            subcol.prop(linestyle, "use_max_length", text="Max Length")
+            subsub = subcol.split()
+            subsub.prop(linestyle, "max_length", text="")
+            subsub.enabled = linestyle.use_max_length
+            # Caps
             col = layout.column()
             col.label(text="Caps:")
             row = col.row(align=True)

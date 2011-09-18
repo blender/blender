@@ -69,6 +69,8 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->r = linestyle->g = linestyle->b = 0.0;
 	linestyle->alpha = 1.0;
 	linestyle->thickness = 1.0;
+	linestyle->min_length = 0.0f;
+	linestyle->max_length = 10000.0f;
 
 	linestyle->color_modifiers.first = linestyle->color_modifiers.last = NULL;
 	linestyle->alpha_modifiers.first = linestyle->alpha_modifiers.last = NULL;
