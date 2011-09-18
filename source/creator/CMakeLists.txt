@@ -435,12 +435,12 @@ elseif(WIN32)
 			PATTERN ".svn" EXCLUDE
 		)
 
-		if(NOT CMAKE_CL_64)
-			install(
-				FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
-				DESTINATION ${TARGETDIR}
-			)
+		install(
+			FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
+			DESTINATION ${TARGETDIR}
+		)
 
+		if(NOT CMAKE_CL_64)
 			install(
 				FILES ${LIBDIR}/iconv/lib/iconv.dll
 				DESTINATION ${TARGETDIR}

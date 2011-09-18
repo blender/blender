@@ -1439,9 +1439,7 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 	pld->pose->flag &= ~POSE_DO_UNLOCK;
 	
 	/* clear strings + search */
-	strcpy(pld->headerstr, "");
-	strcpy(pld->searchstr, "");
-	strcpy(pld->searchold, "");
+	pld->headerstr[0]= pld->searchstr[0]= pld->searchold[0]= '\0';
 	pld->search_cursor= 0;
 }
 

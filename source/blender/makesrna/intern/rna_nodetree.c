@@ -361,7 +361,7 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	/* make a copy of the old name first */
 	BLI_strncpy(oldname, node->name, sizeof(node->name));
 	/* set new name */
-	BLI_strncpy(node->name, value, sizeof(node->name));
+	BLI_strncpy_utf8(node->name, value, sizeof(node->name));
 	
 	nodeUniqueName(ntree, node);
 	

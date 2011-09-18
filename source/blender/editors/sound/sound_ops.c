@@ -175,7 +175,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return WM_operator_filesel(C, op, event);
 }
 
-void SOUND_OT_open(wmOperatorType *ot)
+static void SOUND_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Open Sound";
@@ -196,7 +196,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mono", FALSE, "Mono", "Mixdown the sound to mono.");
 }
 
-void SOUND_OT_open_mono(wmOperatorType *ot)
+static void SOUND_OT_open_mono(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Open Sound Mono";
@@ -659,7 +659,7 @@ static int update_animation_flags_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void SOUND_OT_update_animation_flags(wmOperatorType *ot)
+static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 {
 	/*
 	  This operator is needed to set a correct state of the sound animation
@@ -703,7 +703,7 @@ static int bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void SOUND_OT_bake_animation(wmOperatorType *ot)
+static void SOUND_OT_bake_animation(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Update animation cache";

@@ -404,9 +404,9 @@ float ANIM_unit_mapping_get_factor (Scene *scene, ID *id, FCurve *fcu, short res
 				/* if the radians flag is not set, default to using degrees which need conversions */
 				if ((scene) && (scene->unit.system_rotation == USER_UNIT_ROT_RADIANS) == 0) {
 					if (restore)
-						return M_PI / 180.0;	/* degrees to radians */
+						return DEG2RADF(1.0f);	/* degrees to radians */
 					else
-						return 180.0 / M_PI;	/* radians to degrees */
+						return RAD2DEGF(1.0f);	/* radians to degrees */
 				}
 			}
 			

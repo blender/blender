@@ -327,6 +327,8 @@ void KX_KetsjiEngine::RenderDome()
 		
 				// do the rendering
 				m_dome->RenderDomeFrame(scene,cam, i);
+				//render all the font objects for this scene
+				RenderFonts(scene);
 			}
 			
 			list<class KX_Camera*>* cameras = scene->GetCameras();
@@ -344,6 +346,8 @@ void KX_KetsjiEngine::RenderDome()
 			
 					// do the rendering
 					m_dome->RenderDomeFrame(scene, (*it),i);
+					//render all the font objects for this scene
+					RenderFonts(scene);
 				}
 				
 				it++;

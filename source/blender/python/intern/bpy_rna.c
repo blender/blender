@@ -1525,10 +1525,22 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 #endif // USE_STRING_COERCE
 
 			if (param==NULL) {
-				PyErr_Format(PyExc_TypeError,
-				             "%.200s %.200s.%.200s expected a string type, not %.200s",
-				             error_prefix, RNA_struct_identifier(ptr->type),
-				             RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+				if(PyUnicode_Check(value)) {
+					/* there was an error assigning a string type,
+					 * rather than setting a new error, prefix the existing one
+					 */
+					PyC_Err_Format_Prefix(PyExc_TypeError,
+					                      "%.200s %.200s.%.200s error assigning string",
+										  error_prefix, RNA_struct_identifier(ptr->type),
+										  RNA_property_identifier(prop));
+				}
+				else {
+					PyErr_Format(PyExc_TypeError,
+								 "%.200s %.200s.%.200s expected a string type, not %.200s",
+								 error_prefix, RNA_struct_identifier(ptr->type),
+								 RNA_property_identifier(prop), Py_TYPE(value)->tp_name);
+				}
+
 				return -1;
 			}
 			else {
@@ -6427,14 +6439,11 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 			 * no line number since the func has finished calling on error,
 			 * re-raise the exception with more info since it would be slow to
 			 * create prefix on every call (when there are no errors) */
-			if(err == -1 && PyErr_Occurred()) {
-				PyObject *error_type, *error_value, *error_traceback;
-				PyErr_Fetch(&error_type, &error_value, &error_traceback);
-
-				PyErr_Format(error_type,
-				             "class %.200s, function %.200s: incompatible return value%S",
-				             RNA_struct_identifier(ptr->type), RNA_function_identifier(func),
-				             error_value);
+			if(err == -1) {
+				PyC_Err_Format_Prefix(PyExc_RuntimeError,
+				                      "class %.200s, function %.200s: incompatible return value ",
+						              RNA_struct_identifier(ptr->type), RNA_function_identifier(func)
+				                      );
 			}
 		}
 		else if (ret_len > 1) {

@@ -207,7 +207,7 @@ class InfoPropertyRNA:
             self.fixed_type = None
 
         if self.type == "enum":
-            self.enum_items[:] = rna_prop.enum_items.keys()
+            self.enum_items[:] = [(item.identifier, item.name, item.description) for item in rna_prop.enum_items]
             self.is_enum_flag = rna_prop.is_enum_flag
         else:
             self.is_enum_flag = False
@@ -264,9 +264,9 @@ class InfoPropertyRNA:
                 type_str += " in [%s, %s]" % (range_str(self.min), range_str(self.max))
             elif self.type == "enum":
                 if self.is_enum_flag:
-                    type_str += " set in {%s}" % ", ".join(("'%s'" % s) for s in self.enum_items)
+                    type_str += " set in {%s}" % ", ".join(("'%s'" % s[0]) for s in self.enum_items)
                 else:
-                    type_str += " in [%s]" % ", ".join(("'%s'" % s) for s in self.enum_items)
+                    type_str += " in [%s]" % ", ".join(("'%s'" % s[0]) for s in self.enum_items)
 
             if not (as_arg or as_ret):
                 # write default property, ignore function args for this

@@ -76,7 +76,7 @@ void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(oldname, kb->name, sizeof(kb->name));
 	
 	/* copy the new name into the name slot */
-	BLI_strncpy(kb->name, value, sizeof(kb->name));
+	BLI_strncpy_utf8(kb->name, value, sizeof(kb->name));
 	
 	/* make sure the name is truly unique */
 	if (ptr->id.data) {

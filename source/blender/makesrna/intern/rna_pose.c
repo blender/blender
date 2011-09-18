@@ -222,7 +222,7 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 	char oldname[sizeof(pchan->name)], newname[sizeof(pchan->name)];
 
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, sizeof(pchan->name));
+	BLI_strncpy_utf8(newname, value, sizeof(pchan->name));
 	BLI_strncpy(oldname, pchan->name, sizeof(pchan->name));
 
 	ED_armature_bone_rename(ob->data, oldname, newname);
@@ -411,7 +411,7 @@ static void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int ind
 	grp= BLI_findlink(&pose->agroups, index-1);
 
 	if(grp) BLI_strncpy(value, grp->name, sizeof(grp->name));
-	else BLI_strncpy(value, "", sizeof(grp->name)); // XXX if invalid pointer, won't this crash?
+	else value[0]= '\0';
 }
 
 static int rna_pose_bgroup_name_index_length(PointerRNA *ptr, int index)
@@ -451,7 +451,7 @@ static void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *r
 		}
 	}
 	
-	BLI_strncpy(result, "", maxlen);
+	result[0]= '\0';
 }
 #endif
 

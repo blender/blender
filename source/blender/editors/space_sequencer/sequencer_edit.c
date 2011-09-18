@@ -188,7 +188,7 @@ static void proxy_endjob(void *UNUSED(customdata))
 
 }
 
-void seq_proxy_build_job(const bContext *C, Sequence * seq)
+static void seq_proxy_build_job(const bContext *C, Sequence * seq)
 {
 	wmJob * steve;
 	ProxyJob *pj;

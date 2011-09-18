@@ -53,7 +53,7 @@ static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 	if(text->name)
 		strcpy(value, text->name);
 	else
-		strcpy(value, "");
+		value[0]= '\0';
 }
 
 static int rna_Text_filename_length(PointerRNA *ptr)
@@ -88,7 +88,7 @@ static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 	if(line->line)
 		strcpy(value, line->line);
 	else
-		strcpy(value, "");
+		value[0]= '\0';
 }
 
 static int rna_TextLine_body_length(PointerRNA *ptr)

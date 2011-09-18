@@ -2996,7 +2996,7 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 			copy_v3_v3(cache->true_location, cache->orig_grab_location);
 
 			sd->draw_anchored = 1;
-			copy_v3_v3(sd->anchored_initial_mouse, cache->initial_mouse);
+			copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);
 			sd->anchored_size = cache->pixel_radius;
 		}
 	}

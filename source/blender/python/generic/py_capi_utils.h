@@ -34,6 +34,7 @@ void			PyC_ObSpit(const char *name, PyObject *var);
 void			PyC_LineSpit(void);
 PyObject *		PyC_ExceptionBuffer(void);
 PyObject *		PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
+PyObject *		PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
 void			PyC_FileAndNum(const char **filename, int *lineno);
 int				PyC_AsArray(void *array, PyObject *value, const int length, const PyTypeObject *type, const short is_double, const char *error_prefix);
 

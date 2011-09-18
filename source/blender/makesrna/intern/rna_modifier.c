@@ -211,7 +211,7 @@ void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
 	BLI_strncpy(oldname, md->name, sizeof(md->name));
 	
 	/* copy the new name into the name slot */
-	BLI_strncpy(md->name, value, sizeof(md->name));
+	BLI_strncpy_utf8(md->name, value, sizeof(md->name));
 	
 	/* make sure the name is truly unique */
 	if (ptr->id.data) {
