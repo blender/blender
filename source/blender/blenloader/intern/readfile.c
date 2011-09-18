@@ -4028,8 +4028,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
-			fluidmd->fss->fmd= fluidmd;
-			fluidmd->fss->meshVelocities = NULL;
+			if(fluidmd->fss) {
+				fluidmd->fss->fmd= fluidmd;
+				fluidmd->fss->meshVelocities = NULL;
+			}
 		}
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
