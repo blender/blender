@@ -40,7 +40,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
-/* Radish */
+
 #include "DNA_armature_types.h"
 
 #include "DNA_object_types.h"
@@ -1689,12 +1689,12 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 	float colf[4], input = 0.0f;
 	int i;
 
-	/* Radish */
+	
 	int make_black= FALSE;
 
 	if (me->dvert) {
 		if ((selected > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
-			/* Radish */
+			
 			int was_a_nonzero= FALSE;
 			for (i=0; i<me->dvert[vert].totweight; i++) {
 				/* in multipaint, get the average if auto normalize is inactive
@@ -1761,7 +1761,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	unsigned char *wtcol;
 	int i;
 
-	/* Radish */
+	
 	int defbase_len = BLI_countlist(&ob->defbase);
 	char *defbase_sel = MEM_mallocN(defbase_len * sizeof(char), __func__);
 	int selected = get_selected_defgroups(ob, defbase_sel, defbase_len);
@@ -1777,7 +1777,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 		if (mf->v4)
 			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], defbase_sel, selected, unselected, draw_flag);
 	}
-	/* Radish */
+	
 	MEM_freeN(defbase_sel);
 
 	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, dm->numFaceData);
@@ -1807,7 +1807,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	int has_multires = mmd != NULL, multires_applied = 0;
 	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
 
-	/* Radish */
+	
 	int draw_flag= ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
 	                (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
 
@@ -1990,7 +1990,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 
 				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-					add_weight_mcol_dm(ob, dm, draw_flag); /* Radish */
+					add_weight_mcol_dm(ob, dm, draw_flag); 
 
 				/* Constructive modifiers need to have an origindex
 				 * otherwise they wont have anywhere to copy the data from.
@@ -2102,7 +2102,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		CDDM_calc_normals(finaldm);
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm, draw_flag);/* Radish */
+			add_weight_mcol_dm(ob, finaldm, draw_flag);
 	} else if(dm) {
 		finaldm = dm;
 	} else {
@@ -2114,7 +2114,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		}
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm, draw_flag);/* Radish */
+			add_weight_mcol_dm(ob, finaldm, draw_flag);
 	}
 
 	/* add an orco layer if needed */
@@ -2387,7 +2387,7 @@ static void clear_mesh_caches(Object *ob)
 static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Object *obact = scene->basact?scene->basact->object:NULL;
-	int editing = paint_facesel_test(ob) || paint_vertsel_test(ob);/* Radish: paint_vertsel_test */
+	int editing = paint_facesel_test(ob) || paint_vertsel_test(ob);/* paint_vertsel_test */
 	/* weight paint and face select need original indices because of selection buffer drawing */
 	int needMapping = (ob==obact) && (editing || (ob->mode & (OB_MODE_WEIGHT_PAINT|OB_MODE_VERTEX_PAINT)));
 

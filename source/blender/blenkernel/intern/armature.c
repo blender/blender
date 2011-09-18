@@ -2465,7 +2465,7 @@ void where_is_pose (Scene *scene, Object *ob)
 	}
 }
 
-/* Radish */
+
 /* Returns total selected vgroups */
 int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_len)
 {

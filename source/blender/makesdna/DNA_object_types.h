@@ -62,7 +62,7 @@ struct bGPdata;
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
 	char name[32];
-	/* Radish: need this flag for locking weights */
+	/* need this flag for locking weights */
 	char flag, pad[7];
 } bDeformGroup;
 #define MAX_VGROUP_NAME 32

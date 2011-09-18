@@ -5408,12 +5408,12 @@ int facemask_paint_poll(bContext *C)
 {
 	return paint_facesel_test(CTX_data_active_object(C));
 }
-/* Radish */
+
 int vert_paint_poll(bContext *C)
 {
 	return paint_vertsel_test(CTX_data_active_object(C));
 }
-/* Radish */
+
 int mask_paint_poll(bContext *C)
 {
 	return paint_facesel_test(CTX_data_active_object(C)) || paint_vertsel_test(CTX_data_active_object(C));

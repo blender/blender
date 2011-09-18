@@ -86,7 +86,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "GPU_buffers.h"/* Radish */
+#include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
@@ -1741,7 +1741,7 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 
 	dm->release(dm);
 }
-/* Radish */
+
 static void mesh_obmode_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	struct { void (*func)(void *userData, MVert *mv, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
@@ -1762,7 +1762,7 @@ static void mesh_obmode_foreachScreenVert__mapFunc(void *userData, int index, fl
 			data->func(data->userData, mv, s[0], s[1], index);
 	}
 }
-/* Radish */
+
 void mesh_obmode_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, MVert *mv, int x, int y, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, MVert *mv, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } data;
@@ -1781,7 +1781,7 @@ void mesh_obmode_foreachScreenVert(ViewContext *vc, void (*func)(void *userData,
 	dm->release(dm);
 }
 
-/* Radish draw callback */
+/*  draw callback */
 static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
 	MVert *mv = userData;
@@ -1800,7 +1800,7 @@ static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, 
 		glVertex3fv(co);
 	}
 }
-/* Radish */
+
 static void drawSelectedVertices(DerivedMesh *dm, Mesh *me) {
 	glBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
@@ -2990,7 +2990,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			bglPolygonOffset(rv3d->dist, 0.0);
 		}
 	}
-	/* Radish */
+	
 	if(paint_vertsel_test(ob)) {
 		
 		glColor3f(0.0f, 0.0f, 0.0f);
@@ -6590,7 +6590,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 }
 
 /* ***************** BACKBUF SEL (BBS) ********* */
-/* Radish */
+
 static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	struct {void* offset; MVert *mvert;} *data = userData;
@@ -6602,7 +6602,7 @@ static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co,
 		bglVertex3fv(co);
 	}
 }
-/* Radish */
+
 static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 {
 	struct {void* offset; struct MVert *mvert;} data;
@@ -6714,7 +6714,7 @@ static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *UNUS
 		return 0;
 	}
 }
-/* Radish */
+
 // must have called WM_set_framebuffer_index_color beforehand
 static int bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index, int *UNUSED(drawSmooth_r))
 {

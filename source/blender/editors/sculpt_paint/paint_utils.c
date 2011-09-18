@@ -358,7 +358,7 @@ void PAINT_OT_face_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-/* Radish */
+
 static int vert_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -367,7 +367,7 @@ static int vert_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/* Radish */
+
 void PAINT_OT_vert_select_all(wmOperatorType *ot)
 {
 	ot->name= "Vertex Selection";
@@ -381,7 +381,7 @@ void PAINT_OT_vert_select_all(wmOperatorType *ot)
 
 	WM_operator_properties_select_all(ot);
 }
-/* Radish */
+
 static int vert_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);
@@ -389,7 +389,7 @@ static int vert_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }
-/* Radish */
+
 void PAINT_OT_vert_select_inverse(wmOperatorType *ot)
 {
 	ot->name= "Vertex Select Invert";

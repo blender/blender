@@ -125,7 +125,7 @@ typedef struct TFace {
 
 #define ME_EDIT_PAINT_MASK (1 << 3)
 #define ME_EDIT_MIRROR_TOPO (1 << 4)
-#define ME_EDIT_VERT_SEL (1 << 5)/* Radish */
+#define ME_EDIT_VERT_SEL (1 << 5)
 
 /* me->flag */
 /* #define ME_ISDONE		1 */

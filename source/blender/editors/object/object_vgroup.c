@@ -61,7 +61,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
-#include "BKE_DerivedMesh.h"//Radish
+#include "BKE_DerivedMesh.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -703,7 +703,7 @@ static void vgroup_normalize(Object *ob)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
-	/* Radish */
+	
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
@@ -718,7 +718,7 @@ static void vgroup_normalize(Object *ob)
 		def_nr= ob->actdef-1;
 
 		for(i = 0; i < dvert_tot; i++) {
-			/* Radish */
+			
 			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
 				continue;
 			}
@@ -732,7 +732,7 @@ static void vgroup_normalize(Object *ob)
 
 		if(weight_max > 0.0f) {
 			for(i = 0; i < dvert_tot; i++) {
-				/* Radish */
+				
 				if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
 					continue;
 				}
@@ -751,7 +751,7 @@ static void vgroup_normalize(Object *ob)
 
 	if (dvert_array) MEM_freeN(dvert_array);
 }
-/* Radish */
+
 /* This adds the indices of vertices to a list if they are not already present
 It returns the number that it added (0-2)
 It relies on verts having -1 for unassigned indices
@@ -780,7 +780,7 @@ static int tryToAddVerts(int *verts, int length, int a, int b) {
 	}
 	return added;
 }
-//Radish
+
 /* This finds all of the vertices connected to vert by an edge
 and returns an array of indices of size count
 
@@ -844,7 +844,7 @@ static int* getSurroundingVerts(Mesh *me, int vert, int *count) {
 	MEM_freeN(tverts);
 	return verts;
 }
-/* Radish */
+
 /* get a single point in space by averaging a point cloud (vectors of size 3)
 coord is the place the average is stored, points is the point cloud, count is the number of points in the cloud
 */
@@ -856,7 +856,7 @@ static void getSingleCoordinate(MVert *points, int count, float coord[3]) {
 	}
 	mul_v3_fl(coord, 1.0f/count);
 }
-/* Radish */
+
 /* find the closest point on a plane to another point and store it in dst */
 /* coord is a point on the plane */
 /* point is the point that you want the nearest of */
@@ -873,7 +873,7 @@ static void getNearestPointOnPlane(const float norm[3], const float coord[3], co
 	dst_r[1] = point[1] - (norm[1] * dotprod);
 	dst_r[2] = point[2] - (norm[2] * dotprod);
 }
-/* Radish */
+
 /* distance of two vectors a and b of size length */
 static float distance(float* a, float *b, int length) {
 	int i;
@@ -883,7 +883,7 @@ static float distance(float* a, float *b, int length) {
 	}
 	return sqrt(sum);
 }
-/* Radish */
+
 /* given a plane and a start and end position,
 compute the amount of vertical distance relative to the plane and store it in dists,
 then get the horizontal and vertical change and store them in changes
@@ -904,7 +904,7 @@ static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, f
 	// horizontal change
 	changes[index][1] = distance(projA, projB, 3);
 }
-/* Radish */
+
 // I need the derived mesh to be forgotten so the positions are recalculated with weight changes (see dm_deform_recalc)
 static void dm_deform_clear(DerivedMesh *dm, Object *ob) {
 	if(ob->derivedDeform && (ob->derivedDeform)==dm) {
@@ -917,12 +917,12 @@ static void dm_deform_clear(DerivedMesh *dm, Object *ob) {
 		dm->release(dm);
 	}
 }
-/* Radish */
+
 // recalculate the deformation
 static DerivedMesh* dm_deform_recalc(Scene *scene, Object *ob) {
 	return mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 }
-/* Radish */
+
 /* by changing nonzero weights, try to move a vertex in me->mverts with index 'index' to distToBe distance away from the provided plane
 strength can change distToBe so that it moves towards distToBe by that percentage
 cp changes how much the weights are adjusted to check the distance
@@ -1094,7 +1094,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 	MEM_freeN(dists);
 	MEM_freeN(dwIndices);
 }
-/* Radish */
+
 /* this is used to try to smooth a surface by only adjusting the nonzero weights of a vertex 
 but it could be used to raise or lower an existing 'bump.' */
 static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength, float cp)
@@ -1106,7 +1106,7 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 	int *verts = NULL;
 	for(i = 0; i < me->totvert && mvert; i++, mvert++) {
-		/* Radish */
+		
 		if(use_vert_sel && (mvert->flag & SELECT)) {
 			
 			int count=0;
@@ -1153,7 +1153,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
-	/* Radish */
+	
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
@@ -1166,7 +1166,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 		def_nr= ob->actdef-1;
 		
 		for(i = 0; i < dvert_tot; i++) {
-			/* Radish */
+			
 			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
 				continue;
 			}
@@ -1192,7 +1192,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	int i, dvert_tot=0;
 	float tot_weight;
 
-	/* Radish */
+	
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
@@ -1206,7 +1206,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 			for(i = 0; i < dvert_tot; i++) {
 				float lock_iweight= 1.0f;
 				int j;
-				/* Radish */
+				
 				if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
 					continue;
 				}
@@ -1250,7 +1250,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 		else {
 			for(i = 0; i < dvert_tot; i++) {
 				int j;
-				/* Radish */
+				
 				if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
 					continue;
 				}
@@ -1281,7 +1281,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	if (dvert_array) MEM_freeN(dvert_array);
 }
 
-/* Radish */
+
 static void vgroup_lock_all(Object *ob, int action)
 {
 	bDeformGroup *dg;
@@ -1317,7 +1317,7 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
-	/* Radish */
+	
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
@@ -1331,7 +1331,7 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 
 
 		for(i = 0; i < dvert_tot; i++) {
-			/* Radish */
+			
 			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
 				continue;
 			}
@@ -1447,7 +1447,7 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
-	/* Radish */
+	
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
@@ -1460,7 +1460,7 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 		def_nr= ob->actdef-1;
 
 		for(i = 0; i < dvert_tot; i++) {
-			/* Radish */
+			
 			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
 				continue;
 			}
@@ -1485,7 +1485,7 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, dvert_tot=0;
-	/* Radish */
+	
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
@@ -1495,7 +1495,7 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	if(dvert_array) {
 		for(i = 0; i < dvert_tot; i++) {
 			int j;
-			/* Radish */
+			
 			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
 				continue;
 			}
@@ -2319,7 +2319,7 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active", "Keep the values of the active group while normalizing others.");
 }
-/* Radish */
+
 static int vertex_group_fix_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -2355,6 +2355,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Fix Vertex Group Deform";
 	ot->idname= "OBJECT_OT_vertex_group_fix";
+	ot->description= "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices).";
 	
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -2367,7 +2368,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "cp", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower.", 0.05f, 1.f);
 }
 
-/* Radish */
+
 static int vertex_group_lock_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
@@ -2378,7 +2379,7 @@ static int vertex_group_lock_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
-/* Radish */
+
 void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
 {
 	/* identifiers */

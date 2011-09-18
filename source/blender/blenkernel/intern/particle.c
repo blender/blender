@@ -2870,7 +2870,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 	PARTICLE_P;
 	
 	float birthtime = 0.0, dietime = 0.0;
-	float t, time = 0.0, dfra = 1.0 /* , frs_sec = sim->scene->r.frs_sec*/ /*UNUSED*/;
+	float t, time = 0.0, dfra = 1.0 /* frs_sec = sim->scene->r.frs_sec*/ /*UNUSED*/;
 	float col[4] = {0.5f, 0.5f, 0.5f, 1.0f};
 	float prev_tangent[3] = {0.0f, 0.0f, 0.0f}, hairmat[4][4];
 	float rotmat[3][3];

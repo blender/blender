@@ -59,7 +59,7 @@ void paint_brush_set(struct Paint *paint, struct Brush *br);
  * Texture paint could be removed since selected faces are not used
  * however hiding faces is useful */
 int paint_facesel_test(struct Object *ob);
-/* Radish */
+
 int paint_vertsel_test(struct Object *ob);
 /* Session data (mode-specific) */
 

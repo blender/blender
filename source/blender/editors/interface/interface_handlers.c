@@ -3778,7 +3778,7 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 	Scopes *scopes = (Scopes *)but->poin;
 	/* rcti rect; */
 	int changed= 1;
-	float /* dx, */ dy /* , yfac=1.f */; /* UNUSED */
+	float /* dx, */ dy /* yfac=1.f */; /* UNUSED */
 
 	/* rect.xmin= but->x1; rect.xmax= but->x2; */
 	/* rect.ymin= but->y1; rect.ymax= but->y2; */

@@ -5066,7 +5066,7 @@ void POSE_OT_select_inverse(wmOperatorType *ot)
 static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int action = RNA_enum_get(op->ptr, "action");
-	//Radish
+	
 	Object *ob = NULL;
 	Scene *scene= CTX_data_scene(C);
 	int multipaint = scene->toolsettings->multipaint;
@@ -5099,7 +5099,7 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
-	/* Radish */
+	
 	if(multipaint) {
 		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

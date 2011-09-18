@@ -1044,7 +1044,7 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 	}
 }
 
-/* Radish */
+
 
 /* note: without this, when Multi-Paint is activated/deactivated, the colors
  * will not change right away when multiple bones are selected, this function

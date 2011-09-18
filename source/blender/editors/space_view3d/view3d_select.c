@@ -54,7 +54,7 @@
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
-/* Radish--vertex box select */
+/* vertex box select */
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "BKE_global.h"
@@ -203,7 +203,7 @@ static void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 	}
 }
 
-/* Radish */
+
 /* object mode, EM_ prefix is confusing here, rename? */
 static void EM_backbuf_checkAndSelectVerts_obmode(Mesh *me, int select)
 {
@@ -254,7 +254,7 @@ static int view3d_selectable_data(bContext *C)
 			if (ob->mode & OB_MODE_SCULPT) {
 				return 0;
 			}
-			if (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT) && !paint_facesel_test(ob) && !paint_vertsel_test(ob)) {//Radish
+			if (ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT) && !paint_facesel_test(ob) && !paint_vertsel_test(ob)) {
 				return 0;
 			}
 		}
@@ -749,7 +749,7 @@ static void do_lasso_select_meta(ViewContext *vc, int mcords[][2], short moves, 
 		}
 	}
 }
-/* Radish */
+
 int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 {
 	Mesh *me;
@@ -809,7 +809,7 @@ int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 
 	return OPERATOR_FINISHED;
 }
-/* Radish */
+
 static void do_lasso_select_paintvert(ViewContext *vc, int mcords[][2], short moves, short extend, short select)
 {
 	Object *ob= vc->obact;
@@ -1943,7 +1943,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, TRUE);
 }
-/* Radish */
+
 /* much like facesel_face_pick()*/
 /* returns 0 if not found, otherwise 1 */
 static int vertsel_vert_pick(struct bContext *C, Mesh *me, const int mval[2], unsigned int *index, short rect)
@@ -1973,7 +1973,7 @@ static int vertsel_vert_pick(struct bContext *C, Mesh *me, const int mval[2], un
 	
 	return 1;
 }
-/* Radish */
+
 /* mouse selection in weight paint */
 /* gets called via generic mouse select operator */
 int mouse_wp_select(bContext *C, const int mval[2], short extend, Object *obact, Mesh* me)
@@ -2039,7 +2039,7 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return PE_mouse_particles(C, event->mval, extend);
 	else if(obact && paint_facesel_test(obact))
 		retval = paintface_mouse_select(C, obact, event->mval, extend);
-	/* Radish */
+	
 	else if (paint_vertsel_test(obact)) {
 		retval = mouse_wp_select(C, event->mval, extend, obact, obact->data);
 	} else {
@@ -2168,7 +2168,7 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 	}
 }
 
-/* Radish */
+
 static void paint_vertsel_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
 	Object *ob= vc->obact;
@@ -2440,7 +2440,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int select;
 	
 	select= (gesture_mode==GESTURE_MODAL_SELECT);
-																/* Radish */
+																
 	if( CTX_data_edit_object(C) || paint_facesel_test(obact) || paint_vertsel_test(obact) ||
 		(obact && (obact->mode & (OB_MODE_PARTICLE_EDIT|OB_MODE_POSE))) )
 	{
@@ -2460,7 +2460,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		else if(paint_facesel_test(obact)) {
 			paint_facesel_circle_select(&vc, select, mval, (float)radius);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
-		}/* Radish */
+		}
 		else if(paint_vertsel_test(obact)) {
 			paint_vertsel_circle_select(&vc, select, mval, (float)radius);
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
