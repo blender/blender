@@ -222,9 +222,6 @@ struct DerivedMesh {
 	/* Draw all vertices as bgl points (no options) */
 	void (*drawVerts)(DerivedMesh *dm);
 
-	/* Jason Draw all selected vertices as bgl points (no options) */
-	void (*drawSelectedVerts)(DerivedMesh *dm);
-
 	/* Draw edges in the UV mesh (if exists) */
 	void (*drawUVEdges)(DerivedMesh *dm);
 

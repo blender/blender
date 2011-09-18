@@ -375,6 +375,7 @@ void ED_operatortypes_paint(void)
 
 	/* Jason, vertex selection */
 	WM_operatortype_append(PAINT_OT_vert_select_all);
+	WM_operatortype_append(PAINT_OT_vert_select_inverse);
 
 	/* vertex */
 	WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
@@ -615,6 +616,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Weight Paint Vertex Selection", 0, 0);
 	keymap->poll= vert_paint_poll;
 	WM_keymap_add_item(keymap, "PAINT_OT_vert_select_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_vert_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT|KM_CTRL, 0)->ptr, "deselect", 1);

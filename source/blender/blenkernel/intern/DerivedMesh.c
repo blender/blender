@@ -1726,13 +1726,15 @@ static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, u
 	}
 	
 	if (make_black) {
-		input = -1;
+		col[3] = 0;
+		col[2] = 0;
+		col[1] = 0;
+		col[0] = 255;
+		return;
 	}
-	else {
-		CLAMP(input, 0.0f, 1.0f);
-	}
-	
-	
+
+	CLAMP(input, 0.0f, 1.0f);	
+
 	if(coba)
 		do_colorband(coba, input, colf);
 	else

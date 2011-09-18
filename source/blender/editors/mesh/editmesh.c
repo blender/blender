@@ -1992,7 +1992,7 @@ void paintvert_flush_flags(Object *ob)
 		}
 	}
 }
-/* Jason note: caller needs to run paintvert_flush_flags(ob) after this */
+/* Jason note: if the caller passes FALSE to flush_flags, then they will need to run paintvert_flush_flags(ob) themselves */
 void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 {
 	Mesh *me;

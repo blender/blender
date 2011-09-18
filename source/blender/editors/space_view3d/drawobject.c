@@ -77,6 +77,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_unit.h"
 
+
 #include "smoke_API.h"
 
 #include "IMB_imbuf.h"
@@ -85,6 +86,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "GPU_buffers.h"// Jason
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
@@ -1752,6 +1754,32 @@ void mesh_obmode_foreachScreenVert(ViewContext *vc, void (*func)(void *userData,
 
 	dm->release(dm);
 }
+
+/* Jason draw callback */
+static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+{
+	MVert *mv = userData;
+	mv+=index;
+	//printf("%d\n", index);
+	if(!(mv->flag & ME_HIDE)) {
+		const char sel= mv->flag & 1;
+
+		// TODO define selected color
+		if(sel) {
+			glColor3f(1.0f, 1.0f, 0.0f);
+		}else {
+			glColor3f(0.0f, 0.0f, 0.0f);
+		}
+
+		glVertex3fv(co);
+	}
+}
+/* Jason */
+static void drawSelectedVertices(DerivedMesh *dm, Mesh *me) {
+	glBegin(GL_POINTS);
+	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
+	glEnd();
+}
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
@@ -2937,10 +2965,13 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	// Jason
-	if(paint_vertsel_test(ob) && dm->drawSelectedVerts) {
+	if(paint_vertsel_test(ob)) {
+		
 		glColor3f(0.0f, 0.0f, 0.0f);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-		dm->drawSelectedVerts(dm);
+		
+		drawSelectedVertices(dm, ob->data);
+		
 		glPointSize(1.0f);
 	}
 	dm->release(dm);
@@ -6528,23 +6559,26 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 /* Jason */
 static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
-	// TODO: support hidden vertices
-	int offset = (intptr_t) userData;
-	//EditVert *eve = EM_get_vert_for_index(index);
+	struct {void* offset; MVert *mvert;} *data = userData;
+	MVert *mv = data->mvert+index;
+	int offset = (intptr_t) data->offset;
 
-	//if (eve->h==0) {
-	WM_set_framebuffer_index_color(offset+index);
-	bglVertex3fv(co);
-	//}
+	if (!(mv->flag & ME_HIDE)) {
+		WM_set_framebuffer_index_color(offset+index);
+		bglVertex3fv(co);
+	}
 }
 /* Jason */
-static void bbs_obmode_mesh_verts(Object *UNUSED(ob), DerivedMesh *dm, int offset)
+static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 {
-	/* Mesh *me = (Mesh*)ob->data; */ /* UNUSED */
-
+	struct {void* offset; struct MVert *mvert;} data;
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	data.mvert = mvert;
+	data.offset = (void*)(intptr_t) offset;
 	glPointSize( UI_GetThemeValuef(TH_VERTEX_SIZE) );
 	bglBegin(GL_POINTS);
-	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, (void*)(intptr_t) offset);
+	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data);
 	bglEnd();
 	glPointSize(1.0);
 }

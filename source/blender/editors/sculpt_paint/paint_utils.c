@@ -381,7 +381,26 @@ void PAINT_OT_vert_select_all(wmOperatorType *ot)
 
 	WM_operator_properties_select_all(ot);
 }
+/* Jason */
+static int vert_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob= CTX_data_active_object(C);
+	paintvert_deselect_all_visible(ob, SEL_INVERT, TRUE);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+/* Jason */
+void PAINT_OT_vert_select_inverse(wmOperatorType *ot)
+{
+	ot->name= "Vertex Select Invert";
+	ot->description= "Invert selection of vertices";
+	ot->idname= "PAINT_OT_vert_select_inverse";
 
+	ot->exec= vert_select_inverse_exec;
+	ot->poll= vert_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);

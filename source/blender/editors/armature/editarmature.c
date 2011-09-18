@@ -4297,8 +4297,6 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 {
 	Object *ob= base->object;
 	Bone *nearBone;
-	// Jason
-	Bone *new_act_bone;
 
 	if (!ob || !ob->pose) return 0;
 
@@ -4310,7 +4308,8 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		
 		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
 		/* Jason was here, I'm doing a select for multibone painting */
-		if ((base != scene->basact)) {//if (!(extend) || (base != scene->basact)) {
+		if (scene->toolsettings->multipaint && (base != scene->basact)) {//if (!(extend) || (base != scene->basact)) {
+			Bone *new_act_bone;
 			/* Jason was here */
 			/* only deselect all if they aren't using 'shift' */
 			if(!extend) {
@@ -4341,6 +4340,10 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 			DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 				// XXX old cruft! use notifiers instead
 			//select_actionchannel_by_name(ob->action, nearBone->name, 1);
+		} else if (!(extend) || (base != scene->basact)) {
+			ED_pose_deselectall(ob, 0);
+			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			arm->act_bone= nearBone;
 		}
 		else {
 			if (nearBone->flag & BONE_SELECTED) {
