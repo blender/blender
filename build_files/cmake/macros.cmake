@@ -279,7 +279,7 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${TIFF_LIBRARY})
 	endif()
 	if(WITH_OPENIMAGEIO)
-		target_link_libraries(${target} ${OPENIMAGEIO_LIBRARY})
+		target_link_libraries(${target} ${OPENIMAGEIO_LIBRARIES})
 	endif()
 	if(WITH_BOOST)
 		target_link_libraries(${target} ${BOOST_LIBRARIES})

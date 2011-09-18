@@ -59,8 +59,8 @@ add_definitions(-DWITH_MULTI)
 
 include_directories(
 	${BOOST_INCLUDE_DIR}
-	${OPENIMAGEIO_INCLUDE_DIR}
-	${OPENIMAGEIO_INCLUDE_DIR}/OpenImageIO)
+	${OPENIMAGEIO_INCLUDE_DIRS}
+	${OPENIMAGEIO_INCLUDE_DIRS}/OpenImageIO)
 
 # Subdirectories
 
