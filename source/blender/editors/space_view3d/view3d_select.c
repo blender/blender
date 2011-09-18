@@ -202,8 +202,10 @@ static void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 		}
 	}
 }
+
 /* Jason */
-static void EM_backbuf_checkAndSelectTVerts(Mesh *me, int select)
+/* object mode, EM_ prefix is confusing here, rename? */
+static void EM_backbuf_checkAndSelectVerts_obmode(Mesh *me, int select)
 {
 	MVert *mv = me->mvert;
 	int a;
@@ -218,7 +220,7 @@ static void EM_backbuf_checkAndSelectTVerts(Mesh *me, int select)
 		}
 	}
 }
-
+/* object mode, EM_ prefix is confusing here, rename? */
 static void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 {
 	MFace *mface = me->mface;
@@ -824,7 +826,7 @@ static void do_lasso_select_paintvert(ViewContext *vc, int mcords[][2], short mo
 	lasso_select_boundbox(&rect, mcords, moves);
 	EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
-	EM_backbuf_checkAndSelectTVerts(me, select);
+	EM_backbuf_checkAndSelectVerts_obmode(me, select);
 
 	EM_free_backbuf();
 
@@ -2177,7 +2179,7 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 		em_vertoffs= me->totvert+1;	/* max index array */
 
 		bbsel= EM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
-		EM_backbuf_checkAndSelectTVerts(me, select==LEFTMOUSE);
+		EM_backbuf_checkAndSelectVerts_obmode(me, select==LEFTMOUSE);
 		EM_free_backbuf();
 
 		paintvert_flush_flags(ob);
