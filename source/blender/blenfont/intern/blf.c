@@ -78,8 +78,8 @@ int blf_mono_font_render= -1;
 static FontBLF *BLF_get(int fontid)
 {
 	if (fontid >= 0 && fontid < BLF_MAX_FONT)
-		return(global_font[fontid]);
-	return(NULL);
+		return global_font[fontid];
+	return NULL;
 }
 
 int BLF_init(int points, int dpi)
@@ -91,7 +91,7 @@ int BLF_init(int points, int dpi)
 
 	global_font_points= points;
 	global_font_dpi= dpi;
-	return(blf_font_init());
+	return blf_font_init();
 }
 
 void BLF_exit(void)
@@ -128,9 +128,9 @@ static int blf_search(const char *name)
 	for (i= 0; i < BLF_MAX_FONT; i++) {
 		font= global_font[i];
 		if (font && (!strcmp(font->name, name)))
-			return(i);
+			return i;
 	}
-	return(-1);
+	return -1;
 }
 
 int BLF_load(const char *name)
@@ -140,24 +140,24 @@ int BLF_load(const char *name)
 	int i;
 
 	if (!name)
-		return(-1);
+		return -1;
 
 	/* check if we already load this font. */
 	i= blf_search(name);
 	if (i >= 0) {
 		/*font= global_font[i];*/ /*UNUSED*/
-		return(i);
+		return i;
 	}
 
 	if (global_font_num+1 >= BLF_MAX_FONT) {
 		printf("Too many fonts!!!\n");
-		return(-1);
+		return -1;
 	}
 
 	filename= blf_dir_search(name);
 	if (!filename) {
 		printf("Can't find font: %s\n", name);
-		return(-1);
+		return -1;
 	}
 
 	font= blf_font_new(name, filename);
@@ -165,13 +165,13 @@ int BLF_load(const char *name)
 
 	if (!font) {
 		printf("Can't load font: %s\n", name);
-		return(-1);
+		return -1;
 	}
 
 	global_font[global_font_num]= font;
 	i= global_font_num;
 	global_font_num++;
-	return(i);
+	return i;
 }
 
 int BLF_load_unique(const char *name)
@@ -181,20 +181,20 @@ int BLF_load_unique(const char *name)
 	int i;
 
 	if (!name)
-		return(-1);
+		return -1;
 
 	/* Don't search in the cache!! make a new
 	 * object font, this is for keep fonts threads safe.
 	 */
 	if (global_font_num+1 >= BLF_MAX_FONT) {
 		printf("Too many fonts!!!\n");
-		return(-1);
+		return -1;
 	}
 
 	filename= blf_dir_search(name);
 	if (!filename) {
 		printf("Can't find font: %s\n", name);
-		return(-1);
+		return -1;
 	}
 
 	font= blf_font_new(name, filename);
@@ -202,13 +202,13 @@ int BLF_load_unique(const char *name)
 
 	if (!font) {
 		printf("Can't load font: %s\n", name);
-		return(-1);
+		return -1;
 	}
 
 	global_font[global_font_num]= font;
 	i= global_font_num;
 	global_font_num++;
-	return(i);
+	return i;
 }
 
 void BLF_metrics_attach(int fontid, unsigned char *mem, int mem_size)
@@ -226,34 +226,34 @@ int BLF_load_mem(const char *name, unsigned char *mem, int mem_size)
 	int i;
 
 	if (!name)
-		return(-1);
+		return -1;
 
 	i= blf_search(name);
 	if (i >= 0) {
 		/*font= global_font[i];*/ /*UNUSED*/
-		return(i);
+		return i;
 	}
 
 	if (global_font_num+1 >= BLF_MAX_FONT) {
 		printf("Too many fonts!!!\n");
-		return(-1);
+		return -1;
 	}
 
 	if (!mem || !mem_size) {
 		printf("Can't load font: %s from memory!!\n", name);
-		return(-1);
+		return -1;
 	}
 
 	font= blf_font_new_from_mem(name, mem, mem_size);
 	if (!font) {
 		printf("Can't load font: %s from memory!!\n", name);
-		return(-1);
+		return -1;
 	}
 
 	global_font[global_font_num]= font;
 	i= global_font_num;
 	global_font_num++;
-	return(i);
+	return i;
 }
 
 int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size)
@@ -262,7 +262,7 @@ int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size)
 	int i;
 
 	if (!name)
-		return(-1);
+		return -1;
 
 	/*
 	 * Don't search in the cache, make a new object font!
@@ -270,24 +270,24 @@ int BLF_load_mem_unique(const char *name, unsigned char *mem, int mem_size)
 	 */
 	if (global_font_num+1 >= BLF_MAX_FONT) {
 		printf("Too many fonts!!!\n");
-		return(-1);
+		return -1;
 	}
 
 	if (!mem || !mem_size) {
 		printf("Can't load font: %s from memory!!\n", name);
-		return(-1);
+		return -1;
 	}
 
 	font= blf_font_new_from_mem(name, mem, mem_size);
 	if (!font) {
 		printf("Can't load font: %s from memory!!\n", name);
-		return(-1);
+		return -1;
 	}
 
 	global_font[global_font_num]= font;
 	i= global_font_num;
 	global_font_num++;
-	return(i);
+	return i;
 }
 
 void BLF_enable(int fontid, int option)
@@ -338,26 +338,25 @@ void BLF_aspect(int fontid, float x, float y, float z)
 	}
 }
 
-void BLF_matrix(int fontid, double *m)
+void BLF_matrix(int fontid, const double m[16])
 {
 	FontBLF *font;
-	int i;
 
 	font= BLF_get(fontid);
 	if (font) {
-		for (i= 0; i < 16; i++)
-			font->m[i]= m[i];
+		memcpy(font->m, m, sizeof(font->m));
 	}
 }
 
 void BLF_position(int fontid, float x, float y, float z)
 {
 	FontBLF *font;
-	float remainder;
-	float xa, ya, za;
 
 	font= BLF_get(fontid);
 	if (font) {
+		float xa, ya, za;
+		float remainder;
+
 		if (font->flags & BLF_ASPECT) {
 			xa= font->aspect[0];
 			ya= font->aspect[1];
@@ -546,8 +545,8 @@ float BLF_width(int fontid, const char *str)
 
 	font= BLF_get(fontid);
 	if (font && font->glyph_cache)
-		return(blf_font_width(font, str));
-	return(0.0f);
+		return blf_font_width(font, str);
+	return 0.0f;
 }
 
 float BLF_fixed_width(int fontid)
@@ -562,19 +561,16 @@ float BLF_fixed_width(int fontid)
 
 float BLF_width_default(const char *str)
 {
-	float width;
-
 	if (global_font_default == -1)
 		global_font_default= blf_search("default");
 
 	if (global_font_default == -1) {
 		printf("Error: Can't found default font!!\n");
-		return(0.0f);
+		return 0.0f;
 	}
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
-	width= BLF_width(global_font_default, str);
-	return(width);
+	return BLF_width(global_font_default, str);
 }
 
 float BLF_height(int fontid, const char *str)
@@ -583,8 +579,8 @@ float BLF_height(int fontid, const char *str)
 
 	font= BLF_get(fontid);
 	if (font && font->glyph_cache)
-		return(blf_font_height(font, str));
-	return(0.0f);
+		return blf_font_height(font, str);
+	return 0.0f;
 }
 
 float BLF_height_max(int fontid)
@@ -593,8 +589,8 @@ float BLF_height_max(int fontid)
 
 	font= BLF_get(fontid);
 	if (font && font->glyph_cache)
-		return(font->glyph_cache->max_glyph_height);
-	return(0.0f);
+		return font->glyph_cache->max_glyph_height;
+	return 0.0f;
 }
 
 float BLF_width_max(int fontid)
@@ -602,11 +598,10 @@ float BLF_width_max(int fontid)
 	FontBLF *font;
 
 	font= BLF_get(fontid);
-	if (font) {
-		if(font->glyph_cache)
-			return(font->glyph_cache->max_glyph_width);
+	if (font && font->glyph_cache) {
+		return font->glyph_cache->max_glyph_width;
 	}
-	return(0.0f);
+	return 0.0f;
 }
 
 float BLF_descender(int fontid)
@@ -614,11 +609,10 @@ float BLF_descender(int fontid)
 	FontBLF *font;
 
 	font= BLF_get(fontid);
-	if (font) {
-		if(font->glyph_cache)
-			return(font->glyph_cache->descender);
+	if (font && font->glyph_cache) {
+		return font->glyph_cache->descender;
 	}
-	return(0.0f);
+	return 0.0f;
 }
 
 float BLF_ascender(int fontid)
@@ -626,28 +620,25 @@ float BLF_ascender(int fontid)
 	FontBLF *font;
 
 	font= BLF_get(fontid);
-	if (font) {
-		if(font->glyph_cache)
-			return(font->glyph_cache->ascender);
+	if (font && font->glyph_cache) {
+		return font->glyph_cache->ascender;
 	}
-	return(0.0f);
+	return 0.0f;
 }
 
 float BLF_height_default(const char *str)
 {
-	float height;
-
 	if (global_font_default == -1)
 		global_font_default= blf_search("default");
 
 	if (global_font_default == -1) {
 		printf("Error: Can't found default font!!\n");
-		return(0.0f);
+		return 0.0f;
 	}
 
 	BLF_size(global_font_default, global_font_points, global_font_dpi);
-	height= BLF_height(global_font_default, str);
-	return(height);
+
+	return BLF_height(global_font_default, str);
 }
 
 void BLF_rotation(int fontid, float angle)
