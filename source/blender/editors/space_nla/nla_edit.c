@@ -1619,7 +1619,7 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Sync Action Length";
 	ot->idname= "NLA_OT_action_sync_length";
-	ot->description= "Synchronise the length of the referenced Action with the lengths used in the strip";
+	ot->description= "Synchronise the length of the referenced Action with the length used in the strip.";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_sync_actlen_exec;
@@ -2042,7 +2042,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add F-Modifier";
 	ot->idname= "NLA_OT_fmodifier_add";
-	ot->description= "Add F-Modifier of the specified type to the selected NLA-Strips";
+	ot->description= "Add a F-Modifier of the specified type to the selected NLA-Strips.";
 	
 	/* api callbacks */
 	ot->invoke= nla_fmodifier_add_invoke;
@@ -2054,7 +2054,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add F-Modifier of the specified type to the active strip.");
+	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add a F-Modifier of the specified type to the active strip.");
 }
 
 /* ******************** Copy F-Modifiers Operator *********************** */
