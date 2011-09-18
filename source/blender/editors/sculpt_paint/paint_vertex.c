@@ -1533,11 +1533,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	MDeformVert dv= {NULL};
 
 	// Need to know which groups are bone groups
-	if(validmap) {
-		bone_groups = validmap;
-	}else {
-		bone_groups = wpaint_make_validmap(ob);
-	}
+	bone_groups = validmap ? validmap : wpaint_make_validmap(ob);
 
 	if(wp->flag & VP_ONLYVGROUP) {
 		dw= defvert_find_index(me->dvert+index, vgroup);
@@ -1576,7 +1572,8 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 				if(i>=0) {
 					tdw = ((me->dvert+index)->dw+i);
 					tuw = defvert_verify_index(wp->wpaint_prev+index, tdw->def_nr);
-				} else {
+				}
+				else {
 					change = 0;
 				}
 			}
@@ -1588,20 +1585,24 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 						if(change > oldChange) {
 							// reset the weights and use the new change
 							reset_to_prev(wp->wpaint_prev+index, me->dvert+index);
-						} else {
+						}
+						else {
 							// the old change was more significant,
 							// so set the change to 0 so that it will not do another multi-paint
 							change = 0;
 						}
-					} else {
+					}
+					else {
 						if(change < oldChange) {
 							reset_to_prev(wp->wpaint_prev+index, me->dvert+index);
-						} else {
+						}
+						else {
 							change = 0;
 						}
 					}
 				}
-			} else {
+			}
+			else {
 				change = 0;
 			}
 		}
@@ -1622,10 +1623,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 		int j= mesh_get_x_mirror_vert(ob, index);
 		if(j>=0) {
 			/* copy, not paint again */
-			if(vgroup_mirror != -1)
-				uw= defvert_verify_index(me->dvert+j, vgroup_mirror);
-			else
-				uw= defvert_verify_index(me->dvert+j, vgroup);
+			uw= defvert_verify_index(me->dvert+j, (vgroup_mirror != -1) ? vgroup_mirror : vgroup);
 			/* Radish */
 			//uw->weight= dw->weight;
 			/* Radish */
