@@ -505,7 +505,7 @@ static void blf_draw__end(void)
 void BLF_draw(int fontid, const char *str, size_t len)
 {
 	FontBLF *font= BLF_get(fontid);
-	if (font) {
+	if (font && font->glyph_cache) {
 		blf_draw__start(font);
 		blf_font_draw(font, str, len);
 		blf_draw__end();
@@ -515,7 +515,7 @@ void BLF_draw(int fontid, const char *str, size_t len)
 void BLF_draw_ascii(int fontid, const char *str, size_t len)
 {
 	FontBLF *font= BLF_get(fontid);
-	if (font) {
+	if (font && font->glyph_cache) {
 		blf_draw__start(font);
 		blf_font_draw_ascii(font, str, len);
 		blf_draw__end();
@@ -536,7 +536,7 @@ void BLF_width_and_height(int fontid, const char *str, float *width, float *heig
 	FontBLF *font;
 
 	font= BLF_get(fontid);
-	if (font)
+	if (font && font->glyph_cache)
 		blf_font_width_and_height(font, str, width, height);
 }
 
@@ -545,7 +545,7 @@ float BLF_width(int fontid, const char *str)
 	FontBLF *font;
 
 	font= BLF_get(fontid);
-	if (font)
+	if (font && font->glyph_cache)
 		return(blf_font_width(font, str));
 	return(0.0f);
 }
@@ -555,9 +555,9 @@ float BLF_fixed_width(int fontid)
 	FontBLF *font;
 
 	font= BLF_get(fontid);
-	if (font)
-		return(blf_font_fixed_width(font));
-	return(0.0f);
+	if (font && font->glyph_cache)
+		return blf_font_fixed_width(font);
+	return 0.0f;
 }
 
 float BLF_width_default(const char *str)
@@ -582,7 +582,7 @@ float BLF_height(int fontid, const char *str)
 	FontBLF *font;
 
 	font= BLF_get(fontid);
-	if (font)
+	if (font && font->glyph_cache)
 		return(blf_font_height(font, str));
 	return(0.0f);
 }
@@ -592,10 +592,8 @@ float BLF_height_max(int fontid)
 	FontBLF *font;
 
 	font= BLF_get(fontid);
-	if (font) {
-		if(font->glyph_cache)
-			return(font->glyph_cache->max_glyph_height);
-	}
+	if (font && font->glyph_cache)
+		return(font->glyph_cache->max_glyph_height);
 	return(0.0f);
 }
 
@@ -741,9 +739,8 @@ void BLF_buffer_col(int fontid, float r, float g, float b, float a)
 
 void BLF_draw_buffer(int fontid, const char *str)
 {
-	FontBLF *font;
-
-	font= BLF_get(fontid);
-	if (font)
+	FontBLF *font= BLF_get(fontid);
+	if (font && font->glyph_cache && (font->b_fbuf || font->b_cbuf)) {
 		blf_font_buffer(font, str);
+	}
 }
