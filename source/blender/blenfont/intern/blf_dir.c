@@ -188,7 +188,7 @@ char *blf_dir_metrics_search(const char *filename)
 	mfile= BLI_strdup(filename);
 	s= strrchr(mfile, '.');
 	if (s) {
-		if (strnlen(s, 4) < 4) {
+		if (BLI_strnlen(s, 4) < 4) {
 			MEM_freeN(mfile);
 			return NULL;
 		}

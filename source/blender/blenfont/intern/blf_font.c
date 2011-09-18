@@ -341,7 +341,7 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 	FT_Vector delta;
 	int pen_x= 0, pen_y= 0;
 	unsigned int i= 0;
-	GlyphBLF **glyph_ascii_table;
+	GlyphBLF **glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
 	rctf gbox;
 
@@ -353,7 +353,6 @@ void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 	box->ymax= -32000.0f;
 
 	blf_font_ensure_ascii_table(font);
-	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
 	while (str[i]) {
 
