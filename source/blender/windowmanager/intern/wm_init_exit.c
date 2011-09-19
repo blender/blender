@@ -296,6 +296,8 @@ int WM_init_game(bContext *C)
 
 		WM_operator_name_call(C, "VIEW3D_OT_game_start", WM_OP_EXEC_DEFAULT, NULL);
 
+		sound_exit();
+
 		return 1;
 	}
 	else

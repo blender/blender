@@ -51,11 +51,6 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 
-
-#ifdef __APPLE__
-
-#endif
-
 #define DOMAIN_NAME "blender"
 #define SYSTEM_ENCODING_DEFAULT "UTF-8"
 #define FONT_SIZE_DEFAULT 12

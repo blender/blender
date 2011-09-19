@@ -62,10 +62,10 @@ static DirBLF *blf_dir_find(const char *path)
 	p= global_font_dir.first;
 	while (p) {
 		if (BLI_path_cmp(p->path, path) == 0)
-			return(p);
+			return p;
 		p= p->next;
 	}
-	return(NULL);
+	return NULL;
 }
 
 void BLF_dir_add(const char *path)
@@ -102,7 +102,7 @@ char **BLF_dir_get(int *ndir)
 	
 	count= BLI_countlist(&global_font_dir);
 	if (!count)
-		return(NULL);
+		return NULL;
 	
 	dirs= (char **)MEM_mallocN(sizeof(char *) * count, "BLF_dir_get");
 	p= global_font_dir.first;
@@ -113,7 +113,7 @@ char **BLF_dir_get(int *ndir)
 		p= p->next;
 	}
 	*ndir= i;
-	return(dirs);
+	return dirs;
 }
 
 void BLF_dir_free(char **dirs, int count)
@@ -147,8 +147,8 @@ char *blf_dir_search(const char *file)
 		if (BLI_exist(file))
 			s= BLI_strdup(file);
 	}
-	
-	return(s);
+
+	return s;
 }
 
 #if 0 // UNUSED
@@ -171,9 +171,9 @@ int blf_dir_split(const char *str, char *file, int *size)
 		file[i+4]= '\0';
 		s++;
 		*size= atoi(s);
-		return(1);
+		return 1;
 	}
-	return(0);
+	return 0;
 }
 #endif
 
@@ -188,9 +188,9 @@ char *blf_dir_metrics_search(const char *filename)
 	mfile= BLI_strdup(filename);
 	s= strrchr(mfile, '.');
 	if (s) {
-		if (strlen(s) < 4) {
+		if (BLI_strnlen(s, 4) < 4) {
 			MEM_freeN(mfile);
-			return(NULL);
+			return NULL;
 		}
 		s++;
 		s[0]= 'a';
@@ -199,14 +199,14 @@ char *blf_dir_metrics_search(const char *filename)
 
 		/* first check .afm */
 		if (BLI_exist(s))
-			return(s);
+			return s;
 
 		/* and now check .pfm */
 		s[0]= 'p';
 
 		if (BLI_exist(s))
-			return(s);
+			return s;
 	}
 	MEM_freeN(mfile);
-	return(NULL);
+	return NULL;
 }

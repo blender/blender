@@ -62,7 +62,7 @@ static FT_Library ft_lib;
 
 int blf_font_init(void)
 {
-	return(FT_Init_FreeType(&ft_lib));
+	return FT_Init_FreeType(&ft_lib);
 }
 
 void blf_font_exit(void)
@@ -136,26 +136,33 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 	}                                                                         \
 
 
+#define BLF_KERNING_VARS(_font, _has_kerning, _kern_mode)                     \
+	const short has_kerning= FT_HAS_KERNING((_font)->face);                   \
+	const FT_UInt kern_mode= (has_kerning == 0) ? 0 :                         \
+	                         (((_font)->flags & BLF_KERNING_DEFAULT) ?        \
+	                          ft_kerning_default : FT_KERNING_UNFITTED)       \
+	                                                                          \
+
+
+#define BLF_KERNING_STEP(_font, kern_mode, g_prev, g, delta, pen_x)           \
+{                                                                             \
+	if (g_prev) {                                                             \
+		delta.x= delta.y= 0;                                                  \
+		if (FT_Get_Kerning((_font)->face, g_prev->idx, g->idx, kern_mode, &delta) == 0) \
+			pen_x += delta.x >> 6;                                            \
+	}                                                                         \
+}                                                                             \
 
 void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 {
 	unsigned int c;
-	GlyphBLF *g, *g_prev;
+	GlyphBLF *g, *g_prev= NULL;
 	FT_Vector delta;
-	int pen_x, pen_y;
-	int has_kerning, st;
-	unsigned int i;
-	GlyphBLF **glyph_ascii_table;
+	int pen_x= 0, pen_y= 0;
+	unsigned int i= 0;
+	GlyphBLF **glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
-	if (!font->glyph_cache)
-		return;
-	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
-
-	i= 0;
-	pen_x= 0;
-	pen_y= 0;
-	has_kerning= FT_HAS_KERNING(font->face);
-	g_prev= NULL;
+	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
 	blf_font_ensure_ascii_table(font);
 
@@ -163,25 +170,9 @@ void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
-		if (c == 0)
-			break;
-
-		/* if we don't found a glyph, skip it. */
-		if (!g)
-			continue;
-
-		if (has_kerning && g_prev) {
-			delta.x= 0;
-			delta.y= 0;
-
-			if (font->flags & BLF_KERNING_DEFAULT)
-				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, ft_kerning_default, &delta);
-			else
-				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNFITTED, &delta);
-
-			if (st == 0)
-				pen_x += delta.x >> 6;
-		}
+		if (c == 0)      break;
+		if (g == NULL)   continue;
+		if (has_kerning) BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
 
 		/* do not return this loop if clipped, we want every character tested */
 		blf_glyph_render(font, g, (float)pen_x, (float)pen_y);
@@ -194,43 +185,19 @@ void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 /* faster version of blf_font_draw, ascii only for view dimensions */
 void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
 {
-	char c;
-	GlyphBLF *g, *g_prev;
+	unsigned char c;
+	GlyphBLF *g, *g_prev= NULL;
 	FT_Vector delta;
-	int pen_x, pen_y;
-	int has_kerning, st;
-	GlyphBLF **glyph_ascii_table;
+	int pen_x= 0, pen_y= 0;
+	GlyphBLF **glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
-	if (!font->glyph_cache)
-		return;
-	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
-
-	pen_x= 0;
-	pen_y= 0;
-	has_kerning= FT_HAS_KERNING(font->face);
-	g_prev= NULL;
+	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
 	blf_font_ensure_ascii_table(font);
 
 	while ((c= *(str++)) && len--) {
-		g= glyph_ascii_table[c];
-
-		/* if we don't found a glyph, skip it. */
-		if (!g)
-			continue;
-
-		if (has_kerning && g_prev) {
-			delta.x= 0;
-			delta.y= 0;
-
-			if (font->flags & BLF_KERNING_DEFAULT)
-				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, ft_kerning_default, &delta);
-			else
-				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNFITTED, &delta);
-
-			if (st == 0)
-				pen_x += delta.x >> 6;
-		}
+		if ((g= glyph_ascii_table[c]) == NULL) continue;
+		if (has_kerning) BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
 
 		/* do not return this loop if clipped, we want every character tested */
 		blf_glyph_render(font, g, (float)pen_x, (float)pen_y);
@@ -240,59 +207,37 @@ void blf_font_draw_ascii(FontBLF *font, const char *str, unsigned int len)
 	}
 }
 
+/* Sanity checks are done by BLF_draw_buffer() */
 void blf_font_buffer(FontBLF *font, const char *str)
 {
-	unsigned char *cbuf;
 	unsigned int c;
-	unsigned char b_col_char[4];
-	GlyphBLF *g, *g_prev;
+	GlyphBLF *g, *g_prev= NULL;
 	FT_Vector delta;
-	float a, *fbuf;
-	int pen_x, y, x;
-	int has_kerning, st, chx, chy;
-	unsigned int i;
-	GlyphBLF **glyph_ascii_table;
+	int pen_x= (int)font->pos[0], pen_y= 0;
+	unsigned int i= 0;
+	GlyphBLF **glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
-	if (!font->glyph_cache || (!font->b_fbuf && !font->b_cbuf))
-		return;
-	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
-	
-	i= 0;
-	pen_x= (int)font->pos[0];
-	has_kerning= FT_HAS_KERNING(font->face);
-	g_prev= NULL;
-	
-	b_col_char[0]= font->b_col[0] * 255;
-	b_col_char[1]= font->b_col[1] * 255;
-	b_col_char[2]= font->b_col[2] * 255;
-	b_col_char[3]= font->b_col[3] * 255;
+	/* buffer spesific vars*/
+	const unsigned char b_col_char[4]= {font->b_col[0] * 255,
+	                                    font->b_col[1] * 255,
+	                                    font->b_col[2] * 255,
+	                                    font->b_col[3] * 255};
+	unsigned char *cbuf;
+	int chx, chy;
+	int y, x;
+	float a, *fbuf;
+
+	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
 	blf_font_ensure_ascii_table(font);
 
 	while (str[i]) {
-		int pen_y;
 
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
-		if (c == 0)
-			break;
-
-		/* if we don't found a glyph, skip it. */
-		if (!g)
-			continue;
-
-		if (has_kerning && g_prev) {
-			delta.x= 0;
-			delta.y= 0;
-
-			if (font->flags & BLF_KERNING_DEFAULT)
-				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, ft_kerning_default, &delta);
-			else
-				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNFITTED, &delta);
-
-			if (st == 0)
-				pen_x += delta.x >> 6;
-		}
+		if (c == 0)      break;
+		if (g == NULL)   continue;
+		if (has_kerning) BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
 
 		chx= pen_x + ((int)g->pos_x);
 		chy= (int)font->pos[1] + g->height;
@@ -392,69 +337,41 @@ void blf_font_buffer(FontBLF *font, const char *str)
 void blf_font_boundbox(FontBLF *font, const char *str, rctf *box)
 {
 	unsigned int c;
-	GlyphBLF *g, *g_prev;
+	GlyphBLF *g, *g_prev= NULL;
 	FT_Vector delta;
-	rctf gbox;
-	int pen_x, pen_y;
-	int has_kerning, st;
-	unsigned int i;
-	GlyphBLF **glyph_ascii_table;
+	int pen_x= 0, pen_y= 0;
+	unsigned int i= 0;
+	GlyphBLF **glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
-	if (!font->glyph_cache)
-		return;
+	rctf gbox;
+
+	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
 	box->xmin= 32000.0f;
 	box->xmax= -32000.0f;
 	box->ymin= 32000.0f;
 	box->ymax= -32000.0f;
 
-	i= 0;
-	pen_x= 0;
-	pen_y= 0;
-	has_kerning= FT_HAS_KERNING(font->face);
-	g_prev= NULL;
-
 	blf_font_ensure_ascii_table(font);
-	glyph_ascii_table= font->glyph_cache->glyph_ascii_table;
 
 	while (str[i]) {
 
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
 
-		if (c == 0)
-			break;
-
-		/* if we don't found a glyph, skip it. */
-		if (!g)
-			continue;
-
-		if (has_kerning && g_prev) {
-			delta.x= 0;
-			delta.y= 0;
-
-			if (font->flags & BLF_KERNING_DEFAULT)
-				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, ft_kerning_default, &delta);
-			else
-				st= FT_Get_Kerning(font->face, g_prev->idx, g->idx, FT_KERNING_UNFITTED, &delta);
-
-			if (st == 0)
-				pen_x += delta.x >> 6;
-		}
+		if (c == 0)      break;
+		if (g == NULL)   continue;
+		if (has_kerning) BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
 
 		gbox.xmin= pen_x;
 		gbox.xmax= pen_x + g->advance;
 		gbox.ymin= g->box.ymin + pen_y;
 		gbox.ymax= g->box.ymax + pen_y;
 
-		if (gbox.xmin < box->xmin)
-			box->xmin= gbox.xmin;
-		if (gbox.ymin < box->ymin)
-			box->ymin= gbox.ymin;
+		if (gbox.xmin < box->xmin) box->xmin= gbox.xmin;
+		if (gbox.ymin < box->ymin) box->ymin= gbox.ymin;
 
-		if (gbox.xmax > box->xmax)
-			box->xmax= gbox.xmax;
-		if (gbox.ymax > box->ymax)
-			box->ymax= gbox.ymax;
+		if (gbox.xmax > box->xmax) box->xmax= gbox.xmax;
+		if (gbox.ymax > box->ymax) box->ymax= gbox.ymax;
 
 		pen_x += g->advance;
 		g_prev= g;
@@ -473,20 +390,18 @@ void blf_font_width_and_height(FontBLF *font, const char *str, float *width, flo
 	float xa, ya;
 	rctf box;
 
-	if (font->glyph_cache) {
-		if (font->flags & BLF_ASPECT) {
-			xa= font->aspect[0];
-			ya= font->aspect[1];
-		}
-		else {
-			xa= 1.0f;
-			ya= 1.0f;
-		}
-
-		blf_font_boundbox(font, str, &box);
-		*width= ((box.xmax - box.xmin) * xa);
-		*height= ((box.ymax - box.ymin) * ya);
+	if (font->flags & BLF_ASPECT) {
+		xa= font->aspect[0];
+		ya= font->aspect[1];
 	}
+	else {
+		xa= 1.0f;
+		ya= 1.0f;
+	}
+
+	blf_font_boundbox(font, str, &box);
+	*width= ((box.xmax - box.xmin) * xa);
+	*height= ((box.ymax - box.ymin) * ya);
 }
 
 float blf_font_width(FontBLF *font, const char *str)
@@ -494,16 +409,13 @@ float blf_font_width(FontBLF *font, const char *str)
 	float xa;
 	rctf box;
 
-	if (!font->glyph_cache)
-		return(0.0f);
-
 	if (font->flags & BLF_ASPECT)
 		xa= font->aspect[0];
 	else
 		xa= 1.0f;
 
 	blf_font_boundbox(font, str, &box);
-	return((box.xmax - box.xmin) * xa);
+	return (box.xmax - box.xmin) * xa;
 }
 
 float blf_font_height(FontBLF *font, const char *str)
@@ -511,36 +423,28 @@ float blf_font_height(FontBLF *font, const char *str)
 	float ya;
 	rctf box;
 
-	if (!font->glyph_cache)
-		return(0.0f);
-
 	if (font->flags & BLF_ASPECT)
 		ya= font->aspect[1];
 	else
 		ya= 1.0f;
 
 	blf_font_boundbox(font, str, &box);
-	return((box.ymax - box.ymin) * ya);
+	return (box.ymax - box.ymin) * ya;
 }
 
 float blf_font_fixed_width(FontBLF *font)
 {
-	GlyphBLF *g;
-	FT_UInt glyph_index;
-	unsigned int c = ' ';
+	const unsigned int c = ' ';
+	GlyphBLF *g= blf_glyph_search(font->glyph_cache, c);
+	if (!g) {
+		g= blf_glyph_add(font, FT_Get_Char_Index(font->face, c), c);
 
-	if (!font->glyph_cache)
-		return 0.0f;
+		/* if we don't find the glyph. */
+		if (!g) {
+			return 0.0f;
+		}
+	}
 
-	glyph_index= FT_Get_Char_Index(font->face, c);
-	g= blf_glyph_search(font->glyph_cache, c);
-	if (!g)
-		g= blf_glyph_add(font, glyph_index, c);
-
-	/* if we don't find the glyph. */
-	if (!g)
-		return 0.0f;
-	
 	return g->advance;
 }
 
@@ -611,7 +515,7 @@ FontBLF *blf_font_new(const char *name, const char *filename)
 	err= FT_New_Face(ft_lib, filename, 0, &font->face);
 	if (err) {
 		MEM_freeN(font);
-		return(NULL);
+		return NULL;
 	}
 
 	err= FT_Select_Charmap(font->face, ft_encoding_unicode);
@@ -619,7 +523,7 @@ FontBLF *blf_font_new(const char *name, const char *filename)
 		printf("Can't set the unicode character map!\n");
 		FT_Done_Face(font->face);
 		MEM_freeN(font);
-		return(NULL);
+		return NULL;
 	}
 
 	mfile= blf_dir_metrics_search(filename);
@@ -631,7 +535,7 @@ FontBLF *blf_font_new(const char *name, const char *filename)
 	font->name= BLI_strdup(name);
 	font->filename= BLI_strdup(filename);
 	blf_font_fill(font);
-	return(font);
+	return font;
 }
 
 void blf_font_attach_from_mem(FontBLF *font, const unsigned char *mem, int mem_size)
@@ -653,7 +557,7 @@ FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_siz
 	err= FT_New_Memory_Face(ft_lib, mem, mem_size, 0, &font->face);
 	if (err) {
 		MEM_freeN(font);
-		return(NULL);
+		return NULL;
 	}
 
 	err= FT_Select_Charmap(font->face, ft_encoding_unicode);
@@ -661,11 +565,11 @@ FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_siz
 		printf("Can't set the unicode character map!\n");
 		FT_Done_Face(font->face);
 		MEM_freeN(font);
-		return(NULL);
+		return NULL;
 	}
 
 	font->name= BLI_strdup(name);
 	font->filename= NULL;
 	blf_font_fill(font);
-	return(font);
+	return font;
 }

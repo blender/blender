@@ -983,7 +983,7 @@ void NODE_OT_group_socket_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Group Socket";
-	ot->description = "Removed node group socket";
+	ot->description = "Remove a node group socket.";
 	ot->idname = "NODE_OT_group_socket_remove";
 	
 	/* api callbacks */
