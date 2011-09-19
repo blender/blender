@@ -511,7 +511,7 @@ FontBLF *blf_font_new(const char *name, const char *filename)
 	FT_Error err;
 	char *mfile;
 
-	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new");
+	font= (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new");
 	err= FT_New_Face(ft_lib, filename, 0, &font->face);
 	if (err) {
 		MEM_freeN(font);
@@ -553,7 +553,7 @@ FontBLF *blf_font_new_from_mem(const char *name, unsigned char *mem, int mem_siz
 	FontBLF *font;
 	FT_Error err;
 
-	font= (FontBLF *)MEM_mallocN(sizeof(FontBLF), "blf_font_new_from_mem");
+	font= (FontBLF *)MEM_callocN(sizeof(FontBLF), "blf_font_new_from_mem");
 	err= FT_New_Memory_Face(ft_lib, mem, mem_size, 0, &font->face);
 	if (err) {
 		MEM_freeN(font);

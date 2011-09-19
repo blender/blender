@@ -1465,7 +1465,7 @@ static void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 		break;
 	case 2:	/* copy image */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1486,7 +1486,7 @@ static void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 
 	case 3: /* copy UV's */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1499,7 +1499,7 @@ static void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 		break;
 	case 4: /* mode's */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1512,7 +1512,7 @@ static void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 		break;
 	case 5: /* copy transp's */
 		if (!tf_act) {
-			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers");
 			return;
 		}
 		for(efa=em->faces.first; efa; efa=efa->next) {
@@ -1526,7 +1526,7 @@ static void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 
 	case 6: /* copy vcols's */
 		if (!mcol_act) {
-			BKE_report(op->reports, RPT_WARNING, "Mesh has no color layers.");
+			BKE_report(op->reports, RPT_WARNING, "Mesh has no color layers");
 			return;
 		} else {
 			/* guess the 4th color if needs be */
@@ -2809,7 +2809,7 @@ void MESH_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
 void EM_reveal_mesh(EditMesh *em)
@@ -2934,7 +2934,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select");
 }
 
 
@@ -3716,8 +3716,8 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first");
 }
 
 void EM_select_by_material(EditMesh *em, int index) 
@@ -4285,9 +4285,9 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_int(ot->srna, "repeat", 1, 1, 100, "Smooth Iterations", "", 1, INT_MAX);
-	RNA_def_boolean(ot->srna, "xaxis", 1, "X-Axis", "Smooth along the X axis.");
-	RNA_def_boolean(ot->srna, "yaxis", 1, "Y-Axis", "Smooth along the Y axis.");
-	RNA_def_boolean(ot->srna, "zaxis", 1, "Z-Axis", "Smooth along the Z axis.");
+	RNA_def_boolean(ot->srna, "xaxis", 1, "X-Axis", "Smooth along the X axis");
+	RNA_def_boolean(ot->srna, "yaxis", 1, "Y-Axis", "Smooth along the Y axis");
+	RNA_def_boolean(ot->srna, "zaxis", 1, "Z-Axis", "Smooth along the Z axis");
 }
 
 static int mesh_noise_exec(bContext *C, wmOperator *op)
@@ -4303,7 +4303,7 @@ static int mesh_noise_exec(bContext *C, wmOperator *op)
 
 	ma= give_current_material(obedit, obedit->actcol);
 	if(ma==0 || ma->mtex[0]==0 || ma->mtex[0]->tex==0) {
-		BKE_report(op->reports, RPT_WARNING, "Mesh has no material or texture assigned.");
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no material or texture assigned");
 		return OPERATOR_FINISHED;
 	}
 	tex= give_current_material_texture(ma);

@@ -228,22 +228,22 @@ class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
 
 
 class ANIM_OT_keying_set_export(Operator):
-    "Export Keying Set to a python script."
+    "Export Keying Set to a python script"
     bl_idname = "anim.keying_set_export"
     bl_label = "Export Keying Set..."
 
-    filepath = bpy.props.StringProperty(name="File Path", description="Filepath to write file to.")
+    filepath = bpy.props.StringProperty(name="File Path", description="Filepath to write file to")
     filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         if not self.filepath:
-            raise Exception("Filepath not set.")
+            raise Exception("Filepath not set")
 
         f = open(self.filepath, "w")
         if not f:
-            raise Exception("Could not open file.")
+            raise Exception("Could not open file")
 
         scene = context.scene
         ks = scene.keying_sets.active

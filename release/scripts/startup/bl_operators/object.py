@@ -283,11 +283,11 @@ class ShapeTransfer(Operator):
                     ),
                    ('RELATIVE_FACE',
                     "Relative Face",
-                    "Calculate relative position (using faces).",
+                    "Calculate relative position (using faces)",
                     ),
                    ('RELATIVE_EDGE',
                    "Relative Edge",
-                   "Calculate relative position (using edges).",
+                   "Calculate relative position (using edges)",
                    ),
                    ),
             name="Transformation Mode",
@@ -297,7 +297,7 @@ class ShapeTransfer(Operator):
     use_clamp = BoolProperty(
             name="Clamp Offset",
             description=("Clamp the transformation to the distance each "
-                         "vertex moves in the original shape."),
+                         "vertex moves in the original shape"),
             default=False,
             )
 
@@ -503,7 +503,7 @@ class ShapeTransfer(Operator):
             ob_act, objects = objects[0], [ob_act]
 
         if ob_act.type != 'MESH':
-            self.report({'ERROR'}, "Other object is not a mesh.")
+            self.report({'ERROR'}, "Other object is not a mesh")
             return {'CANCELLED'}
 
         if ob_act.active_shape_key is None:

@@ -1719,7 +1719,7 @@ static void rna_def_mesh_vertices(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_vertices_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
 }
 
 /* mesh.edges */
@@ -1738,7 +1738,7 @@ static void rna_def_mesh_edges(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_edges_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
 }
 
 /* mesh.faces */
@@ -1767,7 +1767,7 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_faces_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
 }
 
 /* mesh.vertex_colors */
@@ -1786,16 +1786,16 @@ static void rna_def_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	
 	func= RNA_def_function(srna, "new", "rna_Mesh_vertex_color_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh.");
-	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name.");
-	parm= RNA_def_pointer(func, "layer", "MeshColorLayer", "", "The newly created layer.");
+	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
+	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
+	parm= RNA_def_pointer(func, "layer", "MeshColorLayer", "", "The newly created layer");
 	RNA_def_function_return(func, parm);
 	
 /*
 	func= RNA_def_function(srna, "remove", "rna_Mesh_vertex_color_remove");
-	RNA_def_function_ui_description(func, "Remove a vertex color layer.");
+	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove.");
+	parm= RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
@@ -1827,16 +1827,16 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	
 	func= RNA_def_function(srna, "new", "rna_Mesh_uv_texture_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Add a UV texture layer to Mesh.");
-	RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
-	parm= RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer.");
+	RNA_def_function_ui_description(func, "Add a UV texture layer to Mesh");
+	RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name");
+	parm= RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer");
 	RNA_def_function_return(func, parm);
 
 /*
 	func= RNA_def_function(srna, "remove", "rna_Mesh_uv_layers_remove");
-	RNA_def_function_ui_description(func, "Remove a vertex color layer.");
+	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove.");
+	parm= RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);

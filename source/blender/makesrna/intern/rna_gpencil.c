@@ -280,16 +280,16 @@ static void rna_def_gpencil_layers(BlenderRNA *brna, PropertyRNA *cprop)
 
 #if 0
 	func= RNA_def_function(srna, "new", "rna_GPencil_layer_new");
-	RNA_def_function_ui_description(func, "Add a new spline to the curve.");
-	parm= RNA_def_enum(func, "type", curve_type_items, CU_POLY, "", "type for the new spline.");
+	RNA_def_function_ui_description(func, "Add a new spline to the curve");
+	parm= RNA_def_enum(func, "type", curve_type_items, CU_POLY, "", "type for the new spline");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_pointer(func, "spline", "Spline", "", "The newly created spline.");
+	parm= RNA_def_pointer(func, "spline", "Spline", "", "The newly created spline");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "remove", "rna_GPencil_layer_remove");
-	RNA_def_function_ui_description(func, "Remove a spline from a curve.");
+	RNA_def_function_ui_description(func, "Remove a spline from a curve");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove.");
+	parm= RNA_def_pointer(func, "spline", "Spline", "", "The spline to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 #endif
 

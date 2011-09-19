@@ -376,7 +376,7 @@ float file_shorten_string(char* string, float w, int front)
 			shortened = 1;
 		}
 		if (shortened) {
-			int slen = strlen(s);			
+			int slen = strlen(s);
 			BLI_strncpy(temp+3, s, slen+1);
 			temp[slen+4] = '\0';
 			BLI_strncpy(string, temp, slen+4);
@@ -393,7 +393,7 @@ float file_shorten_string(char* string, float w, int front)
 		if (shortened) {
 			int slen = strlen(string);
 			if (slen > 3) {
-				BLI_strncpy(string+slen-3, "...", 4);				
+				BLI_strncpy(string+slen-3, "...", 4);
 			}
 		}
 	}

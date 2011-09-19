@@ -74,7 +74,7 @@ class EditExternally(Operator):
         if not os.path.exists(filepath):
             self.report({'ERROR'},
                         "Image path %r not found, image may be packed or "
-                        "unsaved." % filepath)
+                        "unsaved" % filepath)
             return {'CANCELLED'}
 
         cmd = self._editor_guess(context) + [filepath]

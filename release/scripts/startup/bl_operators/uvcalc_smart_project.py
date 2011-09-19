@@ -1070,11 +1070,11 @@ def main(context,
 
     # We want to pack all in 1 go, so pack now
     if USER_SHARE_SPACE:
-#XXX		Window.DrawProgressBar(0.9, "Box Packing for all objects...")
+#XXX        Window.DrawProgressBar(0.9, "Box Packing for all objects...")
         packIslands(collected_islandList)
 
     print("Smart Projection time: %.2f" % (time.time() - time1))
-    # Window.DrawProgressBar(0.9, "Smart Projections done, time: %.2f sec." % (time.time() - time1))
+    # Window.DrawProgressBar(0.9, "Smart Projections done, time: %.2f sec" % (time.time() - time1))
 
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT')

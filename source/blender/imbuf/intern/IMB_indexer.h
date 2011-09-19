@@ -28,7 +28,7 @@
 #define IMB_INDEXER_H
 
 #ifdef WIN32
-#include <io.h>
+#  include <io.h>
 #endif
 
 #include <stdlib.h>

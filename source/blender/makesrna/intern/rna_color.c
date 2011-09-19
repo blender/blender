@@ -464,13 +464,13 @@ static void rna_def_color_ramp_element_api(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_float(func, "position", 0.0f, 0.0f, 1.0f, "Position", "Position to add element", 0.0f, 1.0f);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm= RNA_def_pointer(func, "element", "ColorRampElement", "", "New element.");
+	parm= RNA_def_pointer(func, "element", "ColorRampElement", "", "New element");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_ColorRampElement_remove");
 	RNA_def_function_ui_description(func, "Delete element from ColorRamp");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "element", "ColorRampElement", "", "Element to remove.");
+	parm= RNA_def_pointer(func, "element", "ColorRampElement", "", "Element to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 

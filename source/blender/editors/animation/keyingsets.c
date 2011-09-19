@@ -382,7 +382,7 @@ void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Add all elements of the array to a Keying Set.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Add all elements of the array to a Keying Set");
 }
 
 /* Remove from KeyingSet Button Operator ------------------------ */

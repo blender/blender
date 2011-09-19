@@ -181,7 +181,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		but = uiDefButTextO(block, TEX, "FILE_OT_directory", 0, "",
 				 min_x, line1_y, line1_w-chan_offs, btn_h, 
 				 params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
-				 "File path.");
+				 "File path");
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiButSetFlag(but, UI_BUT_NO_UTF8);
 
@@ -189,7 +189,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 			but = uiDefBut(block, TEX, B_FS_FILENAME, "",
 					 min_x, line2_y, line2_w-chan_offs, btn_h,
 					 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0,
-					 overwrite_alert ?"File name, overwrite existing." : "File name.");
+					 overwrite_alert ?"File name, overwrite existing" : "File name");
 			uiButSetCompleteFunc(but, autocomplete_file, NULL);
 			uiButSetFlag(but, UI_BUT_NO_UTF8);
 
