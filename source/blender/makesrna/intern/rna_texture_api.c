@@ -107,20 +107,23 @@ void RNA_api_environment_map(StructRNA *srna)
 	static const float default_layout[] = { 0,0, 1,0, 2,0, 0,1, 1,1, 2,1 };
 
 	func= RNA_def_function(srna, "clear", "clear_envmap");
-	RNA_def_function_ui_description(func, "Discard the environment map and free it from memory.");
+	RNA_def_function_ui_description(func, "Discard the environment map and free it from memory");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 
 	func= RNA_def_function(srna,"save", "save_envmap");
-	RNA_def_function_ui_description(func, "Save the environment map to disc using the scene render settings.");
+	RNA_def_function_ui_description(func, "Save the environment map to disc using the scene render settings");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 
 	parm= RNA_def_string_file_name(func,"filepath","",FILE_MAX,"File path","Location of the output file");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	RNA_def_pointer(func, "scene", "Scene", "", "Overrides the scene from which image parameters are taken.");
+	RNA_def_pointer(func, "scene", "Scene", "", "Overrides the scene from which image parameters are taken");
 
-	parm = RNA_def_float_array(func, "layout", 12, default_layout, 0.0f, 0.0f, "File layout", "Flat array describing the X,Y position of each cube face in the output image, where 1 is the size of a face. Order is [+Z -Z +Y -X -Y +X]. Use -1 to skip a face.", 0.0f, 0.0f);
+	parm = RNA_def_float_array(func, "layout", 12, default_layout, 0.0f, 0.0f, "File layout",
+	                           "Flat array describing the X,Y position of each cube face in the "
+	                           "output image, where 1 is the size of a face - order is [+Z -Z +Y -X -Y +X] "
+	                           "(use -1 to skip a face)", 0.0f, 0.0f);
 }
 
 #endif

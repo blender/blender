@@ -299,7 +299,7 @@ static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *repo
 	NlaStrip *strip = add_nlastrip(action);
 	
 	if (strip == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to create new strip.");
+		BKE_reportf(reports, RPT_ERROR, "Unable to create new strip");
 		return NULL;
 	}
 	
@@ -307,7 +307,7 @@ static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *repo
 	strip->start = start;
 	
 	if (BKE_nlastrips_add_strip(&track->strips, strip) == 0) {
-		BKE_reportf(reports, RPT_ERROR, "Unable to add strip. Track doesn't have any space to accommodate this new strip.");
+		BKE_reportf(reports, RPT_ERROR, "Unable to add strip. Track doesn't have any space to accommodate this new strip");
 		free_nlastrip(NULL, strip);
 		return NULL;
 	}
@@ -565,20 +565,20 @@ static void rna_api_nlatrack_strips(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_NlaStrip_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new Action-Clip strip to the track");
-	parm= RNA_def_string(func, "name", "NlaStrip", 0, "", "Name for the NLA Strips.");
+	parm= RNA_def_string(func, "name", "NlaStrip", 0, "", "Name for the NLA Strips");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int(func, "start", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame for this strip.", INT_MIN, INT_MAX);
+	parm = RNA_def_int(func, "start", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame for this strip", INT_MIN, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_pointer(func, "action", "Action", "", "Action to assign to this strip.");
+	parm = RNA_def_pointer(func, "action", "Action", "", "Action to assign to this strip");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	/* return type */
-	parm = RNA_def_pointer(func, "strip", "NlaStrip", "", "New NLA Strip.");
+	parm = RNA_def_pointer(func, "strip", "NlaStrip", "", "New NLA Strip");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_NlaStrip_remove");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Remove a NLA Strip.");
-	parm = RNA_def_pointer(func, "strip", "NlaStrip", "", "NLA Strip to remove.");
+	RNA_def_function_ui_description(func, "Remove a NLA Strip");
+	parm = RNA_def_pointer(func, "strip", "NlaStrip", "", "NLA Strip to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
