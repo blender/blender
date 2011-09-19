@@ -75,7 +75,7 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
 	GlyphCacheBLF *gc;
 
-	gc= (GlyphCacheBLF *)MEM_mallocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
+	gc= (GlyphCacheBLF *)MEM_callocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
 	gc->next= NULL;
 	gc->prev= NULL;
 	gc->size= font->size;
@@ -131,10 +131,8 @@ void blf_glyph_cache_clear(FontBLF *font)
 				blf_glyph_free(g);
 			}
 		}
-	}
 
-	if(font->glyph_cache) {
-		memset(font->glyph_cache->glyph_ascii_table, 0, sizeof(font->glyph_cache->glyph_ascii_table));
+		memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
 	}
 }
 
@@ -250,20 +248,11 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	if (err || slot->format != FT_GLYPH_FORMAT_BITMAP)
 		return NULL;
 
-	g= (GlyphBLF *)MEM_mallocN(sizeof(GlyphBLF), "blf_glyph_add");
-	g->next= NULL;
-	g->prev= NULL;
+	g= (GlyphBLF *)MEM_callocN(sizeof(GlyphBLF), "blf_glyph_add");
 	g->c= c;
 	g->idx= (FT_UInt)index;
-	g->tex= 0;
-	g->build_tex= 0;
-	g->bitmap= NULL;
 	g->xoff= -1;
 	g->yoff= -1;
-	g->uv[0][0]= 0.0f;
-	g->uv[0][1]= 0.0f;
-	g->uv[1][0]= 0.0f;
-	g->uv[1][1]= 0.0f;
 	bitmap= slot->bitmap;
 	g->width= bitmap.width;
 	g->height= bitmap.rows;

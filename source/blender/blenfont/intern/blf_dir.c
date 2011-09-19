@@ -76,7 +76,7 @@ void BLF_dir_add(const char *path)
 	if (dir) /* already in the list ? just return. */
 		return;
 	
-	dir= (DirBLF *)MEM_mallocN(sizeof(DirBLF), "BLF_dir_add");
+	dir= (DirBLF *)MEM_callocN(sizeof(DirBLF), "BLF_dir_add");
 	dir->path= BLI_strdup(path);
 	BLI_addhead(&global_font_dir, dir);
 }
@@ -104,7 +104,7 @@ char **BLF_dir_get(int *ndir)
 	if (!count)
 		return NULL;
 	
-	dirs= (char **)MEM_mallocN(sizeof(char *) * count, "BLF_dir_get");
+	dirs= (char **)MEM_callocN(sizeof(char *) * count, "BLF_dir_get");
 	p= global_font_dir.first;
 	i= 0;
 	while (p) {
