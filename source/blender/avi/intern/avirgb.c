@@ -42,8 +42,8 @@
 #include "MEM_guardedalloc.h"
 #include "avirgb.h"
 
-#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
-#define WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN
 #endif
 
 

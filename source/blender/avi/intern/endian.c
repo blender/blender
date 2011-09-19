@@ -43,11 +43,7 @@
 #include "endian.h"
 #include "avi_intern.h"
 
-#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
-#define WORDS_BIGENDIAN
-#endif
-
-#ifdef WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
 static void invert (int *num) {
 	int new=0,i,j;
 
@@ -79,7 +75,7 @@ static void Ichunk (AviChunk *chunk) {
 }
 #endif
 
-#ifdef WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
 static void Ilist (AviList *list){
 	invert (&list->fcc);
 	invert (&list->size);
@@ -159,10 +155,10 @@ static void Iindexe (AviIndexEntry *indexe) {
 	invert (&indexe->Offset);
 	invert (&indexe->Size);
 }
-#endif /* WORDS_BIGENDIAN */
+#endif /* __BIG_ENDIAN__ */
 
 void awrite (AviMovie *movie, void *datain, int block, int size, FILE *fp, int type) {
-#ifdef WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
 	void *data;
 
 	data = MEM_mallocN (size, "avi endian");
@@ -209,9 +205,9 @@ void awrite (AviMovie *movie, void *datain, int block, int size, FILE *fp, int t
 	}
 
 	MEM_freeN (data);
-#else /* WORDS_BIGENDIAN */
+#else /* __BIG_ENDIAN__ */
 	(void)movie; /* unused */
 	(void)type; /* unused */
 	fwrite (datain, block, size, fp);
-#endif /* WORDS_BIGENDIAN */
+#endif /* __BIG_ENDIAN__ */
 }

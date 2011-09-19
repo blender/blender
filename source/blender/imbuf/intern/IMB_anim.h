@@ -108,12 +108,12 @@
 #define SWAP_S(x) (((x << 8) & 0xff00) | ((x >> 8) & 0xff))
 
 /* more endianness... should move to a separate file... */
-#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
-#define GET_ID GET_BIG_LONG
-#define LITTLE_LONG SWAP_LONG
+#ifdef __BIG_ENDIAN__
+#  define GET_ID GET_BIG_LONG
+#  define LITTLE_LONG SWAP_LONG
 #else
-#define GET_ID GET_LITTLE_LONG
-#define LITTLE_LONG ENDIAN_NOP
+#  define GET_ID GET_LITTLE_LONG
+#  define LITTLE_LONG ENDIAN_NOP
 #endif
 
 /* anim.curtype, runtime only */
