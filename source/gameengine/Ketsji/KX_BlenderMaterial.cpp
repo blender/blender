@@ -34,6 +34,8 @@
 #include "DNA_meshdata_types.h"
 #include "BKE_mesh.h"
 // ------------------------------------
+#include "BLI_utildefines.h"
+
 #define spit(x) std::cout << x << std::endl;
 
 BL_Shader *KX_BlenderMaterial::mLastShader = NULL;
@@ -56,21 +58,24 @@ KX_BlenderMaterial::KX_BlenderMaterial()
 }
 
 void KX_BlenderMaterial::Initialize(
-        KX_Scene *scene,
-        BL_Material *data)
+	KX_Scene *scene,
+	BL_Material *data,
+	GameSettings *game)
 {
 	RAS_IPolyMaterial::Initialize(
-	            data->texname[0],
-	            data->matname,
-	            data->materialindex,
-	            data->tile,
-	            data->tilexrep[0],
-	            data->tileyrep[0],
-	            data->mode,
-	            data->transp,
-	            ((data->ras_mode &ALPHA)!=0),
-	            ((data->ras_mode &ZSORT)!=0)
-	            );
+		data->texname[0],
+		data->matname,
+		data->materialindex,
+		data->tile,
+		data->tilexrep[0],
+		data->tileyrep[0],
+		data->alphablend,
+		((data->ras_mode &ALPHA)!=0),
+		((data->ras_mode &ZSORT)!=0),
+		((data->ras_mode &USE_LIGHT)!=0),
+		((data->ras_mode &TEX)),
+		game
+	);
 	mMaterial = data;
 	mShader = 0;
 	mBlenderShader = 0;
@@ -99,7 +104,7 @@ void KX_BlenderMaterial::Initialize(
 	for(int i=0; i<mMaterial->num_enabled; i++) {
 		m_multimode	+= (mMaterial->flag[i] + mMaterial->blend_mode[i]);
 	}
-	m_multimode += mMaterial->IdMode+ (mMaterial->ras_mode & ~(COLLIDER|USE_LIGHT));
+	m_multimode += mMaterial->IdMode+ (mMaterial->ras_mode & ~(USE_LIGHT));
 }
 
 KX_BlenderMaterial::~KX_BlenderMaterial()
@@ -231,7 +236,7 @@ void KX_BlenderMaterial::OnExit()
 	}
 
 	if( mMaterial->tface ) 
-		GPU_set_tpage(mMaterial->tface, 1);
+		GPU_set_tpage(mMaterial->tface, 1, mMaterial->alphablend);
 }
 
 
@@ -247,7 +252,7 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 			mLastShader = NULL;
 		}
 
-		ras->SetBlendingMode(TF_SOLID);
+		ras->SetAlphaBlend(TF_SOLID);
 		BL_Texture::DisableAllTextures();
 		return;
 	}
@@ -268,11 +273,11 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 	}
 
 	if(!mUserDefBlend) {
-		ras->SetBlendingMode(mMaterial->transp);
+		ras->SetAlphaBlend(mMaterial->alphablend);
 	}
 	else {
-		ras->SetBlendingMode(TF_SOLID);
-		ras->SetBlendingMode(-1); // indicates custom mode
+		ras->SetAlphaBlend(TF_SOLID);
+		ras->SetAlphaBlend(-1); // indicates custom mode
 
 		// tested to be valid enums
 		glEnable(GL_BLEND);
@@ -283,7 +288,7 @@ void KX_BlenderMaterial::setShaderData( bool enable, RAS_IRasterizer *ras)
 void KX_BlenderMaterial::setBlenderShaderData( bool enable, RAS_IRasterizer *ras)
 {
 	if( !enable || !mBlenderShader->Ok() ) {
-		ras->SetBlendingMode(TF_SOLID);
+		ras->SetAlphaBlend(TF_SOLID);
 
 		// frame cleanup.
 		if(mLastBlenderShader) {
@@ -297,7 +302,7 @@ void KX_BlenderMaterial::setBlenderShaderData( bool enable, RAS_IRasterizer *ras
 	}
 
 	if(!mBlenderShader->Equals(mLastBlenderShader)) {
-		ras->SetBlendingMode(mMaterial->transp);
+		ras->SetAlphaBlend(mMaterial->alphablend);
 
 		if(mLastBlenderShader)
 			mLastBlenderShader->SetProg(false);
@@ -314,14 +319,14 @@ void KX_BlenderMaterial::setTexData( bool enable, RAS_IRasterizer *ras)
 	BL_Texture::DisableAllTextures();
 
 	if( !enable ) {
-		ras->SetBlendingMode(TF_SOLID);
+		ras->SetAlphaBlend(TF_SOLID);
 		return;
 	}
 
 	BL_Texture::ActivateFirst();
 
 	if( mMaterial->IdMode == DEFAULT_BLENDER ) {
-		ras->SetBlendingMode(mMaterial->transp);
+		ras->SetAlphaBlend(mMaterial->alphablend);
 		return;
 	}
 
@@ -331,7 +336,7 @@ void KX_BlenderMaterial::setTexData( bool enable, RAS_IRasterizer *ras)
 			mTextures[0].ActivateTexture();
 			mTextures[0].setTexEnv(0, true);
 			mTextures[0].SetMapping(mMaterial->mapping[0].mapping);
-			ras->SetBlendingMode(mMaterial->transp);
+			ras->SetAlphaBlend(mMaterial->alphablend);
 		}
 		return;
 	}
@@ -354,11 +359,11 @@ void KX_BlenderMaterial::setTexData( bool enable, RAS_IRasterizer *ras)
 	}
 
 	if(!mUserDefBlend) {
-		ras->SetBlendingMode(mMaterial->transp);
+		ras->SetAlphaBlend(mMaterial->alphablend);
 	}
 	else {
-		ras->SetBlendingMode(TF_SOLID);
-		ras->SetBlendingMode(-1); // indicates custom mode
+		ras->SetAlphaBlend(TF_SOLID);
+		ras->SetAlphaBlend(-1); // indicates custom mode
 
 		glEnable(GL_BLEND);
 		glBlendFunc(mBlendFunc[0], mBlendFunc[1]);
@@ -393,15 +398,15 @@ KX_BlenderMaterial::ActivatShaders(
 		else
 			tmp->setShaderData(false, rasty);
 
-		if(mMaterial->mode & RAS_IRasterizer::KX_TWOSIDE)
+		if (mMaterial->ras_mode &TWOSIDED)
 			rasty->SetCullFace(false);
 		else
 			rasty->SetCullFace(true);
 
-		if (((mMaterial->ras_mode &WIRE)!=0) || (mMaterial->mode & RAS_IRasterizer::KX_LINES) ||
+		if ((mMaterial->ras_mode &WIRE) ||
 		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
 		{		
-			if((mMaterial->ras_mode &WIRE)!=0) 
+			if (mMaterial->ras_mode &WIRE) 
 				rasty->SetCullFace(false);
 			rasty->SetLines(true);
 		}
@@ -438,15 +443,15 @@ KX_BlenderMaterial::ActivateBlenderShaders(
 		else
 			tmp->setBlenderShaderData(false, rasty);
 
-		if(mMaterial->mode & RAS_IRasterizer::KX_TWOSIDE)
+		if (mMaterial->ras_mode &TWOSIDED)
 			rasty->SetCullFace(false);
 		else
 			rasty->SetCullFace(true);
 
-		if (((mMaterial->ras_mode & WIRE)!=0) || (mMaterial->mode & RAS_IRasterizer::KX_LINES) ||
+		if ((mMaterial->ras_mode &WIRE) ||
 		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
 		{		
-			if((mMaterial->ras_mode &WIRE)!=0) 
+			if (mMaterial->ras_mode &WIRE) 
 				rasty->SetCullFace(false);
 			rasty->SetLines(true);
 		}
@@ -487,15 +492,15 @@ KX_BlenderMaterial::ActivateMat(
 		else
 			tmp->setTexData( false,rasty);
 
-		if(mMaterial->mode & RAS_IRasterizer::KX_TWOSIDE)
+		if (mMaterial->ras_mode &TWOSIDED)
 			rasty->SetCullFace(false);
 		else
 			rasty->SetCullFace(true);
 
-		if (((mMaterial->ras_mode &WIRE)!=0) || (mMaterial->mode & RAS_IRasterizer::KX_LINES) ||
+		if ((mMaterial->ras_mode &WIRE) ||
 		    (rasty->GetDrawingMode() <= RAS_IRasterizer::KX_WIREFRAME))
 		{		
-			if((mMaterial->ras_mode &WIRE)!=0) 
+			if (mMaterial->ras_mode &WIRE) 
 				rasty->SetCullFace(false);
 			rasty->SetLines(true);
 		}
@@ -570,17 +575,17 @@ void KX_BlenderMaterial::ActivateMeshSlot(const RAS_MeshSlot & ms, RAS_IRasteriz
 		mShader->Update(ms, rasty);
 	}
 	else if(mBlenderShader && GLEW_ARB_shader_objects) {
-		int blendmode;
+		int alphablend;
 
 		mBlenderShader->Update(ms, rasty);
 
 		/* we do blend modes here, because they can change per object
 		 * with the same material due to obcolor/obalpha */
-		blendmode = mBlenderShader->GetBlendMode();
-		if((blendmode == TF_SOLID || blendmode == TF_ALPHA) && mMaterial->transp != TF_SOLID)
-			blendmode = mMaterial->transp;
+		alphablend = mBlenderShader->GetAlphaBlend();
+		if(ELEM3(alphablend, GEMAT_SOLID, GEMAT_ALPHA, GEMAT_ALPHA_SORT) && mMaterial->alphablend != GEMAT_SOLID)
+			alphablend = mMaterial->alphablend;
 
-		rasty->SetBlendingMode(blendmode);
+		rasty->SetAlphaBlend(alphablend);
 	}
 }
 

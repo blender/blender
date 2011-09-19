@@ -1473,10 +1473,8 @@ static void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if (tf_act->tpage) {
 					tf->tpage = tf_act->tpage;
-					tf->mode |= TF_TEX;
 				} else {
 					tf->tpage = NULL;
-					tf->mode &= ~TF_TEX;
 				}
 				tf->tile= tf_act->tile;
 				change = 1;
@@ -1656,10 +1654,8 @@ void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type)
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if (tf_from->tpage) {
 					tf->tpage = tf_from->tpage;
-					tf->mode |= TF_TEX;
 				} else {
 					tf->tpage = NULL;
-					tf->mode &= ~TF_TEX;
 				}
 				tf->tile= tf_from->tile;
 				change = 1;

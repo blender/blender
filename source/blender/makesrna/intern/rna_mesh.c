@@ -1420,6 +1420,9 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
+	//XXX to be deleted soon -- left for now in case we need it for debug
+	//XXX it should be out before Blender 2.6 (after texface to material patch)
+
 	prop= RNA_def_property(srna, "use_image", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TEX);
 	RNA_def_property_ui_text(prop, "Tex", "Render face with texture");
@@ -1485,6 +1488,9 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, transp_items);
 	RNA_def_property_ui_text(prop, "Transparency", "Transparency blending mode");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	//XXX to be deleted soon -- left for now in case we need it for debug
+	//XXX it should be out before Blender 2.6 (after texface to material patch)
 
 	prop= RNA_def_property(srna, "select_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TF_SEL1);

@@ -595,7 +595,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 			
 			tf = EM_get_active_mtface(em, NULL, NULL, 1); /* partially selected face is ok */
 			
-			if(tf && (tf->mode & TF_TEX)) {
+			if(tf) {
 				/* don't need to check for pin here, see above */
 				sima->image= tf->tpage;
 				

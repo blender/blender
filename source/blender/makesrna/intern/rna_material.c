@@ -742,6 +742,61 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 }
 
+static void rna_def_material_gamesettings(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem prop_alpha_blend_items[] = {
+		{GEMAT_SOLID, "OPAQUE", 0, "Opaque", "Render color of textured face as color"},
+		{GEMAT_ADD, "ADD", 0, "Add", "Render face transparent and add color of face"},
+		{GEMAT_CLIP, "CLIP", 0, "Alpha Clip", "Use the image alpha values clipped with no blending (binary alpha)"},
+		{GEMAT_ALPHA, "ALPHA", 0, "Alpha Blend", "Render polygon transparent, depending on alpha channel of the texture"},
+		{GEMAT_ALPHA_SORT, "ALPHA_SORT", 0, "Alpha Sort", "Sort faces for correct alpha drawing (slow, use Alpha Clip instead when possible)"},		
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem prop_face_orientation_items[] = {
+		{GEMAT_NORMAL,"NORMAL",0,"Normal","No tranformation"},
+		{GEMAT_HALO, "HALO", 0, "Halo", "Screen aligned billboard"},
+		{GEMAT_BILLBOARD, "BILLBOARD", 0, "Billboard", "Billboard with Z-axis constraint"},
+		{GEMAT_SHADOW, "SHADOW", 0, "Shadow", "Faces are used for shadow"},		
+		{0, NULL, 0, NULL, NULL}};
+	
+	srna= RNA_def_struct(brna, "MaterialGameSettings", NULL);
+	RNA_def_struct_sdna(srna, "GameSettings");
+	RNA_def_struct_nested(brna, srna, "Material");
+	RNA_def_struct_ui_text(srna, "Material Game Settings", "Game Engine settings for a Material datablock");
+	
+	prop= RNA_def_property(srna, "back_culling", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GEMAT_BACKCULL); /* use bitflags */
+	RNA_def_property_ui_text(prop, "Back Culling", "Hide Back of the face in Game Engine ");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+	prop= RNA_def_property(srna, "text", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GEMAT_TEXT); /* use bitflags */
+	RNA_def_property_ui_text(prop, "Text", "Use material as text in Game Engine ");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+	prop= RNA_def_property(srna, "invisible", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GEMAT_INVISIBLE); /* use bitflags */
+	RNA_def_property_ui_text(prop, "Invisible", "Make face invisible");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+	prop= RNA_def_property(srna, "alpha_blend", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "alpha_blend");
+	RNA_def_property_enum_items(prop, prop_alpha_blend_items);
+	RNA_def_property_ui_text(prop, "Blend Mode", "Blend Mode for Transparent Faces");
+	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
+
+	prop= RNA_def_property(srna, "face_orientation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_face_orientation_items);
+	RNA_def_property_ui_text(prop, "Face Orientations", "Especial face orientation options");
+
+	prop= RNA_def_property(srna, "physics", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GEMAT_NOPHYSICS); /* use bitflags */
+	RNA_def_property_ui_text(prop, "Physics", "Use physics properties of materials ");
+}
+
 static void rna_def_material_colors(StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -1887,6 +1942,13 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Material_physics_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Physics", "Game physics settings");
 
+	/* game settings */
+	prop= RNA_def_property(srna, "game_settings", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "game");
+	RNA_def_property_struct_type(prop, "MaterialGameSettings");
+	RNA_def_property_ui_text(prop, "Game Settings", "Game material settings");
+
 	/* nodetree */
 	prop= RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "nodetree");
@@ -1932,6 +1994,7 @@ void RNA_def_material(BlenderRNA *brna)
 	rna_def_material_mtex(brna);
 	rna_def_material_strand(brna);
 	rna_def_material_physics(brna);
+	rna_def_material_gamesettings(brna);
 
 	RNA_api_material(srna);
 }

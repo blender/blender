@@ -80,15 +80,15 @@ void GPU_end_object_materials(void);
 int GPU_enable_material(int nr, void *attribs);
 void GPU_disable_material(void);
 
-void GPU_set_material_blend_mode(int blendmode);
-int GPU_get_material_blend_mode(void);
+void GPU_set_material_alpha_blend(int alphablend);
+int GPU_get_material_alpha_blend(void);
 
 /* TexFace drawing
  * - this is mutually exclusive with material drawing, a mesh should
  *   be drawn using one or the other
  * - passing NULL clears the state again */
 
-int GPU_set_tpage(struct MTFace *tface, int mipmap);
+int GPU_set_tpage(struct MTFace *tface, int mipmap, int transp);
 
 /* Lights
  * - returns how many lights were enabled

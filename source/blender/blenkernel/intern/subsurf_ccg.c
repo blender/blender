@@ -1378,7 +1378,6 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
-	int transp, orig_transp, new_transp;
 	char *faceFlags = ccgdm->faceFlags;
 	int a, b, i, doDraw, numVerts, matnr, new_matnr, totface;
 
@@ -1386,8 +1385,6 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 
 	doDraw = 0;
 	matnr = -1;
-	transp = GPU_get_material_blend_mode();
-	orig_transp = transp;
 
 #define PASSATTRIB(dx, dy, vert) {												\
 	if(attribs.totorco) {														\
@@ -1437,18 +1434,6 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 		if(!doDraw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) && !setDrawOptions(userData, origIndex))) {
 			a += gridFaces*gridFaces*numVerts;
 			continue;
-		}
-
-		if(tf) {
-			new_transp = tf[i].transp;
-
-			if(new_transp != transp) {
-				if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
-					GPU_set_material_blend_mode(orig_transp);
-				else
-					GPU_set_material_blend_mode(new_transp);
-				transp = new_transp;
-			}
 		}
 
 		glShadeModel(drawSmooth? GL_SMOOTH: GL_FLAT);

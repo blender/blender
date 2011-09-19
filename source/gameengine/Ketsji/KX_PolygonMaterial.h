@@ -78,10 +78,10 @@ public:
 		int tile,
 		int tilexrep,
 		int tileyrep,
-		int mode,
-		int transp,
+		int alphablend,
 		bool alpha,
 		bool zsort,
+		bool light,
 		int lightlayer,
 		struct MTFace* tface,
 		unsigned int* mcol);
