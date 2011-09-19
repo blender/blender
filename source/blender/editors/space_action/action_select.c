@@ -580,7 +580,7 @@ void ACTION_OT_select_linked (wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked";
 	ot->idname= "ACTION_OT_select_linked";
-	ot->description = "Select keyframes occurring the same F-Curves as selected ones";
+	ot->description = "Select keyframes occurring in the same F-Curves as selected ones";
 	
 	/* api callbacks */
 	ot->exec= actkeys_select_linked_exec;

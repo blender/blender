@@ -188,7 +188,8 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 		return NULL;
 
 	if(strlen(identifier) >= sizeof(dummyet.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering render engine class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummyet.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering render engine class: '%s' is too long, maximum length is %d",
+		                                identifier, (int)sizeof(dummyet.idname));
 		return NULL;
 	}
 
@@ -416,9 +417,10 @@ static void rna_def_render_result(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Render Result", "Result of rendering, including all layers and passes");
 
 	func= RNA_def_function(srna, "load_from_file", "RE_result_load_from_file");
-	RNA_def_function_ui_description(func, "Copies the pixels of this render result from an image file.");
+	RNA_def_function_ui_description(func, "Copies the pixels of this render result from an image file");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_string_file_name(func, "filename", "", FILE_MAX, "File Name", "Filename to load into this render tile, must be no smaller than the render result");
+	parm= RNA_def_string_file_name(func, "filename", "", FILE_MAX, "File Name",
+	                               "Filename to load into this render tile, must be no smaller than the render result");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	RNA_define_verify_sdna(0);
@@ -433,7 +435,8 @@ static void rna_def_render_result(BlenderRNA *brna)
 
 	parm= RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(parm, "RenderLayer");
-	RNA_def_property_collection_funcs(parm, "rna_RenderResult_layers_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(parm, "rna_RenderResult_layers_begin", "rna_iterator_listbase_next",
+	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 
 	RNA_define_verify_sdna(1);
 }
@@ -448,12 +451,15 @@ static void rna_def_render_layer(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Render Layer", "");
 
 	func= RNA_def_function(srna, "load_from_file", "RE_layer_load_from_file");
-	RNA_def_function_ui_description(func, "Copies the pixels of this renderlayer from an image file.");
+	RNA_def_function_ui_description(func, "Copies the pixels of this renderlayer from an image file");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	prop= RNA_def_string(func, "filename", "", 0, "Filename", "Filename to load into this render tile, must be no smaller than the renderlayer");
+	prop= RNA_def_string(func, "filename", "", 0, "Filename",
+	                     "Filename to load into this render tile, must be no smaller than the renderlayer");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
-	RNA_def_int(func, "x", 0, 0, INT_MAX, "Offset X", "Offset the position to copy from if the image is larger than the render layer", 0, INT_MAX);
-	RNA_def_int(func, "y", 0, 0, INT_MAX, "Offset Y", "Offset the position to copy from if the image is larger than the render layer", 0, INT_MAX);
+	RNA_def_int(func, "x", 0, 0, INT_MAX, "Offset X",
+	            "Offset the position to copy from if the image is larger than the render layer", 0, INT_MAX);
+	RNA_def_int(func, "y", 0, 0, INT_MAX, "Offset Y",
+	            "Offset the position to copy from if the image is larger than the render layer", 0, INT_MAX);
 
 	RNA_define_verify_sdna(0);
 
@@ -461,7 +467,8 @@ static void rna_def_render_layer(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "passes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "RenderPass");
-	RNA_def_property_collection_funcs(prop, "rna_RenderLayer_passes_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_RenderLayer_passes_begin", "rna_iterator_listbase_next",
+	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
 
 	prop= RNA_def_property(srna, "rect", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);

@@ -266,42 +266,19 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 
 		axis_angle_to_mat3((float (*)[3])mat, tvec, angle);
 	}
-	else if(matSize == 2) {
+	else if (matSize == 2) {
+		const float angle_cos= cosf(angle);
+		const float angle_sin= sinf(angle);
+
 		//2D rotation matrix
-		mat[0] = (float) cos (angle);
-		mat[1] = (float) sin (angle);
-		mat[2] = -((float) sin(angle));
-		mat[3] = (float) cos(angle);
-	}
-	else if(strcmp(axis, "X") == 0) {
-		//rotation around X
-		mat[0] = 1.0f;
-		mat[4] = (float) cos(angle);
-		mat[5] = (float) sin(angle);
-		mat[7] = -((float) sin(angle));
-		mat[8] = (float) cos(angle);
-	}
-	else if(strcmp(axis, "Y") == 0) {
-		//rotation around Y
-		mat[0] = (float) cos(angle);
-		mat[2] = -((float) sin(angle));
-		mat[4] = 1.0f;
-		mat[6] = (float) sin(angle);
-		mat[8] = (float) cos(angle);
-	}
-	else if(strcmp(axis, "Z") == 0) {
-		//rotation around Z
-		mat[0] = (float) cos(angle);
-		mat[1] = (float) sin(angle);
-		mat[3] = -((float) sin(angle));
-		mat[4] = (float) cos(angle);
-		mat[8] = 1.0f;
+		mat[0] =  angle_cos;
+		mat[1] =  angle_sin;
+		mat[2] = -angle_sin;
+		mat[3] =  angle_cos;
 	}
 	else {
-		/* should never get here */
-		PyErr_SetString(PyExc_ValueError,
-		                "mathutils.RotationMatrix(): unknown error");
-		return NULL;
+		/* valid axis checked above */
+		single_axis_angle_to_mat3((float (*)[3])mat, axis[0], angle);
 	}
 
 	if(matSize == 4) {

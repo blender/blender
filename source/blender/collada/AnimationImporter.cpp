@@ -170,9 +170,9 @@ void AnimationImporter::fcurve_deg_to_rad(FCurve *cu)
 {
 	for (unsigned int i = 0; i < cu->totvert; i++) {
 		// TODO convert handles too
-		cu->bezt[i].vec[1][1] *= M_PI / 180.0f;
-		cu->bezt[i].vec[0][1] *= M_PI / 180.0f;
-		cu->bezt[i].vec[2][1] *= M_PI / 180.0f;
+		cu->bezt[i].vec[1][1] *= DEG2RADF(1.0f);
+		cu->bezt[i].vec[0][1] *= DEG2RADF(1.0f);
+		cu->bezt[i].vec[2][1] *= DEG2RADF(1.0f);
 	}
 }
 
@@ -741,7 +741,7 @@ void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& 
 		mat4_to_quat(rot, mat);
 		/*for ( int i = 0 ; i < 4  ;  i ++ )
 		{
-		rot[i] = rot[i] * (180 / M_PI); 
+		rot[i] = RAD2DEGF(rot[i]);
 		}*/
 		copy_v3_v3(loc, mat[3]);
 		mat4_to_size(scale, mat);

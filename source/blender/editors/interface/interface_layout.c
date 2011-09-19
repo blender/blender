@@ -815,7 +815,7 @@ void uiItemEnumO_value(uiLayout *layout, const char *name, int icon, const char 
 		/* pass */
 	}
 	else {
-		RNA_warning("%s.%s not found.", RNA_struct_identifier(ptr.type), propname);
+		RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), propname);
 		return;
 	}
 
@@ -844,7 +844,7 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 		RNA_property_enum_items(layout->root->block->evil_C, &ptr, prop, &item, NULL, &free);
 		if(item==NULL || RNA_enum_value_from_id(item, value_str, &value)==0) {
 			if(free) MEM_freeN(item);
-			RNA_warning("%s.%s, enum %s not found.", RNA_struct_identifier(ptr.type), propname, value_str);
+			RNA_warning("%s.%s, enum %s not found", RNA_struct_identifier(ptr.type), propname, value_str);
 			return;
 		}
 
@@ -852,7 +852,7 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 			MEM_freeN(item);
 	}
 	else {
-		RNA_warning("%s.%s not found.", RNA_struct_identifier(ptr.type), propname);
+		RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), propname);
 		return;
 	}
 	
@@ -1320,7 +1320,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 	
 	type= RNA_property_type(prop);
 	if(!ELEM(type, PROP_POINTER, PROP_STRING)) {
-		RNA_warning("property %s must be a pointer or string.", propname);
+		RNA_warning("Property %s must be a pointer or string", propname);
 		return;
 	}
 
@@ -2794,7 +2794,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op,in
 		empty= uiDefAutoButsRNA(layout, &ptr, check_prop, label_align) == 0;
 
 		if(empty && (flag & UI_LAYOUT_OP_SHOW_EMPTY)) {
-			uiItemL(layout, "No Properties.", ICON_NONE);
+			uiItemL(layout, "No Properties", ICON_NONE);
 		}
 	}
 	

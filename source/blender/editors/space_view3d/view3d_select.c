@@ -876,8 +876,8 @@ void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items.");
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
+	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 
@@ -1905,10 +1905,10 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection.");
-	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only).");
-	RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only).");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection");
+	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only)");
+	RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only)");
 }
 
 

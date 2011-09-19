@@ -494,7 +494,7 @@ static int removedoublesflag_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 	}
 
-	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s.", count, (count==1)?"ex":"ices");
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s", count, (count==1)?"ex":"ices");
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -3887,7 +3887,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate the edge around.");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate the edge around");
 }
 
 
@@ -5313,10 +5313,10 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending.");
+	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending");
 	RNA_def_enum_funcs(prop, shape_itemf);
-	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor.", -2.0f, 2.0f);
-	RNA_def_boolean(ot->srna, "add", 0, "Add", "Add rather than blend between shapes.");
+	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor", -2.0f, 2.0f);
+	RNA_def_boolean(ot->srna, "add", 0, "Add", "Add rather than blend between shapes");
 }
 
 /************************ Merge Operator *************************/
@@ -5957,7 +5957,7 @@ static int merge_exec(bContext *C, wmOperator *op)
 
 	recalc_editnormals(em);
 	
-	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s.", count, (count==1)?"ex":"ices");
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vert%s", count, (count==1)?"ex":"ices");
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -6029,10 +6029,10 @@ void MESH_OT_merge(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use.");
+	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use");
 	RNA_def_enum_funcs(prop, merge_type_itemf);
 	ot->prop= prop;
-	RNA_def_boolean(ot->srna, "uvs", 0, "UVs", "Move UVs according to merge.");
+	RNA_def_boolean(ot->srna, "uvs", 0, "UVs", "Move UVs according to merge");
 }
 
 /************************ Vertex Path Operator *************************/
@@ -6236,7 +6236,7 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", type_items, PATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance.");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, PATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance");
 }
 
 /********************** Region/Loop Operators *************************/
@@ -6491,7 +6491,7 @@ static int mesh_rotate_uvs(bContext *C, wmOperator *op)
 	int dir= RNA_enum_get(op->ptr, "direction");
 
 	if (!EM_texFaceCheck(em)) {
-		BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -6565,7 +6565,7 @@ static int mesh_mirror_uvs(bContext *C, wmOperator *op)
 	int axis= RNA_enum_get(op->ptr, "axis");
 
 	if (!EM_texFaceCheck(em)) {
-		BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers.");
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no uv/image layers");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -6653,7 +6653,7 @@ static int mesh_rotate_colors(bContext *C, wmOperator *op)
 	int dir= RNA_enum_get(op->ptr, "direction");
 
 	if (!EM_vertColorCheck(em)) {
-		BKE_report(op->reports, RPT_WARNING, "Mesh has no color layers.");
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no color layers");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -6769,7 +6769,7 @@ void MESH_OT_uvs_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate UVs around.");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate UVs around");
 }
 
 void MESH_OT_uvs_mirror(wmOperatorType *ot)
@@ -6787,7 +6787,7 @@ void MESH_OT_uvs_mirror(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "axis", axis_items_xy, DIRECTION_CW, "Axis", "Axis to mirror UVs around.");
+	RNA_def_enum(ot->srna, "axis", axis_items_xy, DIRECTION_CW, "Axis", "Axis to mirror UVs around");
 }
 
 void MESH_OT_colors_rotate(wmOperatorType *ot)
@@ -6805,7 +6805,7 @@ void MESH_OT_colors_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around.");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around");
 }
 
 void MESH_OT_colors_mirror(wmOperatorType *ot)
@@ -6823,7 +6823,7 @@ void MESH_OT_colors_mirror(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "axis", axis_items_xy, DIRECTION_CW, "Axis", "Axis to mirror colors around.");
+	RNA_def_enum(ot->srna, "axis", axis_items_xy, DIRECTION_CW, "Axis", "Axis to mirror colors around");
 }
 
 /********************** Subdivide Operator *************************/
@@ -6868,8 +6868,8 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
-	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor.", 0.0f, 1.0f);
-	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor", 0.0f, 1.0f);
+	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
 	RNA_def_enum(ot->srna, "corner_cut_pattern", corner_type_items, SUBDIV_CORNER_INNERVERT, "Corner Cut Pattern", "Topology pattern to use to fill a face after cutting across its corner");
 }
 
@@ -7343,7 +7343,7 @@ void MESH_OT_sort_faces(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Sort Faces"; // XXX (Ctrl to reverse)%t|
-	ot->description= "The faces of the active Mesh Object are sorted, based on the current view.";
+	ot->description= "The faces of the active Mesh Object are sorted, based on the current view";
 	ot->idname= "MESH_OT_sort_faces";
 
 	/* api callbacks */

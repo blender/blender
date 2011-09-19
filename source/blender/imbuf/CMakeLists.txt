@@ -58,14 +58,12 @@ set(SRC
 	intern/indexer.c
 	intern/indexer_dv.c
 	intern/iris.c
-	intern/jp2.c
 	intern/jpeg.c
 	intern/md5.c
 	intern/metadata.c
 	intern/module.c
 	intern/openimageio.cpp
 	intern/png.c
-	intern/radiance_hdr.c
 	intern/readimage.c
 	intern/rectop.c
 	intern/rotate.c
@@ -73,7 +71,6 @@ set(SRC
 	intern/targa.c
 	intern/thumbs.c
 	intern/thumbs_blend.c
-	intern/tiff.c
 	intern/util.c
 	intern/writeimage.c
 
@@ -120,6 +117,10 @@ if(WITH_IMAGE_TIFF)
 	list(APPEND INC_SYS
 		${TIFF_INCLUDE_DIR}
 	)
+	list(APPEND SRC
+		intern/tiff.c
+	)
+
 	add_definitions(-DWITH_TIFF)
 endif()
 
@@ -127,6 +128,10 @@ if(WITH_IMAGE_OPENJPEG)
 	list(APPEND INC_SYS
 		${OPENJPEG_INCLUDE_DIRS}
 	)
+	list(APPEND SRC
+		intern/jp2.c
+	)
+
 	add_definitions(-DWITH_OPENJPEG)
 endif()
 
@@ -166,6 +171,9 @@ if(WITH_IMAGE_CINEON)
 endif()
 
 if(WITH_IMAGE_HDR)
+	list(APPEND SRC
+		intern/radiance_hdr.c
+	)
 	add_definitions(-DWITH_HDR)
 endif()
 

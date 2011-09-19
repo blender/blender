@@ -61,16 +61,16 @@
 
 /* XXX, could be better implemented... this is for endian issues
 */
-#if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
-#define RCOMP	3
-#define GCOMP	2
-#define BCOMP	1
-#define ACOMP	0
+#ifdef __BIG_ENDIAN__
+#  define RCOMP	3
+#  define GCOMP	2
+#  define BCOMP	1
+#  define ACOMP	0
 #else
-#define RCOMP	0
-#define GCOMP	1
-#define BCOMP	2
-#define ACOMP	3
+#  define RCOMP	0
+#  define GCOMP	1
+#  define BCOMP	2
+#  define ACOMP	3
 #endif
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

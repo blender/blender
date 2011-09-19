@@ -1335,7 +1335,7 @@ static int mesh_separate_selected(wmOperator *op, Main *bmain, Scene *scene, Bas
 	me= obedit->data;
 	em= BKE_mesh_get_editmesh(me);
 	if(me->key) {
-		BKE_report(op->reports, RPT_WARNING, "Can't separate mesh with shape keys.");
+		BKE_report(op->reports, RPT_WARNING, "Can't separate mesh with shape keys");
 		BKE_mesh_end_editmesh(me, em);
 		return 0;
 	}

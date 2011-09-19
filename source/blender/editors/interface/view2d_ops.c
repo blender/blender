@@ -444,7 +444,7 @@ static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
-	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll down one page.");
+	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll down one page");
 }
 
 
@@ -494,7 +494,7 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
-	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll up one page.");
+	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll up one page");
 }
 
 /* ********************************************************* */

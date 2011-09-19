@@ -107,9 +107,9 @@ void TransformWriter::add_transform(COLLADASW::Node& node, float loc[3], float r
 	/*node.addRotateZ("rotationZ", COLLADABU::Math::Utils::radToDegF(rot[2]));
 	node.addRotateY("rotationY", COLLADABU::Math::Utils::radToDegF(rot[1]));
 	node.addRotateX("rotationX", COLLADABU::Math::Utils::radToDegF(rot[0]));*/
-	node.addRotateZ("rotationZ", rot[2] * 180.0f/M_PI);
-	node.addRotateY("rotationY", (rot[1]* 180.0f/M_PI));
-	node.addRotateX("rotationX", (rot[0]* 180.0f/M_PI));
+	node.addRotateZ("rotationZ", RAD2DEGF(rot[2]));
+	node.addRotateY("rotationY", RAD2DEGF(rot[1]));
+	node.addRotateX("rotationX", RAD2DEGF(rot[0]));
 
 	node.addScale("scale", scale[0], scale[1], scale[2]);
 }

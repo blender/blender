@@ -46,7 +46,7 @@ unsigned int blf_next_p2(unsigned int x)
 	x |= (x >> 2);
 	x |= (x >> 1);
 	x += 1;
-	return(x);
+	return x;
 }
 
 unsigned int blf_hash(unsigned int val)
@@ -60,7 +60,7 @@ unsigned int blf_hash(unsigned int val)
 	key ^= (key >> 13);
 	key += ~(key << 9);
 	key ^= (key >> 17);
-	return(key % 257);
+	return key % 257;
 }
 
 /*
@@ -85,7 +85,7 @@ int blf_utf8_next(unsigned char *buf, unsigned int *iindex)
 
 	d= buf[index++];
 	if (!d)
-		return(0);
+		return 0;
 
 	while (buf[index] && ((buf[index] & 0xc0) == 0x80))
 		index++;
@@ -124,5 +124,5 @@ int blf_utf8_next(unsigned char *buf, unsigned int *iindex)
 		r |= (d4 & 0x3f);
 	}
 	*iindex= index;
-	return(r);
+	return r;
 }

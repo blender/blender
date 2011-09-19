@@ -142,7 +142,7 @@ void NODE_OT_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select";
 	ot->idname= "NODE_OT_select";
-	ot->description= "Select node under cursor";
+	ot->description= "Select the node under the cursor";
 	
 	/* api callbacks */
 	ot->invoke= node_select_invoke;
@@ -380,7 +380,7 @@ void NODE_OT_select_same_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Same Type";
-	ot->description = "Select all the same type";
+	ot->description = "Select all the nodes of the same type";
 	ot->idname = "NODE_OT_select_same_type";
 	
 	/* api callbacks */
@@ -410,7 +410,7 @@ void NODE_OT_select_same_type_next(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Same Type Next";
-	ot->description = "Select the next node of the same type.";
+	ot->description = "Select the next node of the same type";
 	ot->idname = "NODE_OT_select_same_type_next";
 	
 	/* api callbacks */
@@ -437,7 +437,7 @@ void NODE_OT_select_same_type_prev(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Same Type Prev";
-	ot->description = "Select the prev node of the same type.";
+	ot->description = "Select the prev node of the same type";
 	ot->idname = "NODE_OT_select_same_type_prev";
 	
 	/* api callbacks */

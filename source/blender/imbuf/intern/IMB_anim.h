@@ -38,21 +38,21 @@
 #define IMB_ANIM_H
 
 #ifdef _WIN32
-#define INC_OLE2
-#include <windows.h>
-#include <windowsx.h>
-#include <mmsystem.h>
-#include <memory.h>
-#include <commdlg.h>
+#  define INC_OLE2
+#  include <windows.h>
+#  include <windowsx.h>
+#  include <mmsystem.h>
+#  include <memory.h>
+#  include <commdlg.h>
 
-#ifndef FREE_WINDOWS
-#include <vfw.h>
-#endif
+#  ifndef FREE_WINDOWS
+#    include <vfw.h>
+#  endif
 
-#undef AVIIF_KEYFRAME // redefined in AVI_avi.h
-#undef AVIIF_LIST // redefined in AVI_avi.h
+#  undef AVIIF_KEYFRAME // redefined in AVI_avi.h
+#  undef AVIIF_LIST // redefined in AVI_avi.h
 
-#define FIXCC(fcc)  if (fcc == 0)	fcc = mmioFOURCC('N', 'o', 'n', 'e'); \
+#  define FIXCC(fcc)  if (fcc == 0)	fcc = mmioFOURCC('N', 'o', 'n', 'e'); \
 		if (fcc == BI_RLE8) fcc = mmioFOURCC('R', 'l', 'e', '8');
 #endif
 
@@ -60,10 +60,11 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
-#ifndef _WIN32
-#include <dirent.h>
+
+#ifdef _WIN32
+#  include <io.h>
 #else
-#include <io.h>
+#  include <dirent.h>
 #endif
 
 #include "BLI_blenlib.h" /* BLI_remlink BLI_filesize BLI_addtail
@@ -74,23 +75,23 @@
 #include "AVI_avi.h"
 
 #ifdef WITH_QUICKTIME
-#if defined(_WIN32) || defined(__APPLE__)
-#include "quicktime_import.h"
-#endif /* _WIN32 || __APPLE__ */
+#  if defined(_WIN32) || defined(__APPLE__)
+#    include "quicktime_import.h"
+#  endif /* _WIN32 || __APPLE__ */
 #endif /* WITH_QUICKTIME */
 
 #ifdef WITH_FFMPEG
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-#include <libswscale/swscale.h>
+#  include <libavformat/avformat.h>
+#  include <libavcodec/avcodec.h>
+#  include <libswscale/swscale.h>
 #endif
 
 #ifdef WITH_REDCODE
-#ifdef _WIN32 /* on windows we use the one in extern instead */
-#include "libredcode/format.h"
-#else
-#include "libredcode/format.h"
-#endif
+#  ifdef _WIN32 /* on windows we use the one in extern instead */
+#    include "libredcode/format.h"
+#  else
+#    include "libredcode/format.h"
+#  endif
 #endif
 
 #include "IMB_imbuf_types.h"
@@ -107,12 +108,12 @@
 #define SWAP_S(x) (((x << 8) & 0xff00) | ((x >> 8) & 0xff))
 
 /* more endianness... should move to a separate file... */
-#if defined(__sgi) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || defined (__ppc__) || defined (__hppa__) || defined (__BIG_ENDIAN__)
-#define GET_ID GET_BIG_LONG
-#define LITTLE_LONG SWAP_LONG
+#ifdef __BIG_ENDIAN__
+#  define GET_ID GET_BIG_LONG
+#  define LITTLE_LONG SWAP_LONG
 #else
-#define GET_ID GET_LITTLE_LONG
-#define LITTLE_LONG ENDIAN_NOP
+#  define GET_ID GET_LITTLE_LONG
+#  define LITTLE_LONG ENDIAN_NOP
 #endif
 
 /* anim.curtype, runtime only */

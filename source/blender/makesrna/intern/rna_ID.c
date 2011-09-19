@@ -235,7 +235,7 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain), ReportList *reports, 
 	 * owns the string pointer which it could potentually free while blender
 	 * is running. */
 	if(BLI_strnlen(identifier, MAX_IDPROP_NAME) == MAX_IDPROP_NAME) {
-		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is " STRINGIFY(MAX_IDPROP_NAME) ".", identifier);
+		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is " STRINGIFY(MAX_IDPROP_NAME), identifier);
 		return NULL;
 	}
 
@@ -414,16 +414,16 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "ID Materials", "Collection of materials");
 
 	func= RNA_def_function(srna, "append", "material_append_id");
-	RNA_def_function_ui_description(func, "Add a new material to the data block.");
-	parm= RNA_def_pointer(func, "material", "Material", "", "Material to add.");
+	RNA_def_function_ui_description(func, "Add a new material to the data block");
+	parm= RNA_def_pointer(func, "material", "Material", "", "Material to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	
 	func= RNA_def_function(srna, "pop", "material_pop_id");
-	RNA_def_function_ui_description(func, "Remove a material from the data block.");
-	parm= RNA_def_int(func, "index", 0, 0, MAXMAT, "", "Index of material to remove.", 0, MAXMAT);
+	RNA_def_function_ui_description(func, "Remove a material from the data block");
+	parm= RNA_def_int(func, "index", 0, 0, MAXMAT, "", "Index of material to remove", 0, MAXMAT);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_boolean(func, "update_data", 0, "", "Update data by re-adjusting the material slots assigned.");
-	parm= RNA_def_pointer(func, "material", "Material", "", "Material to remove.");
+	RNA_def_boolean(func, "update_data", 0, "", "Update data by re-adjusting the material slots assigned");
+	parm= RNA_def_pointer(func, "material", "Material", "", "Material to remove");
 	RNA_def_function_return(func, parm);
 }
 
@@ -485,25 +485,26 @@ static void rna_def_ID(BlenderRNA *brna)
 
 	/* functions */
 	func= RNA_def_function(srna, "copy", "rna_ID_copy");
-	RNA_def_function_ui_description(func, "Create a copy of this datablock (not supported for all datablocks).");
-	parm= RNA_def_pointer(func, "id", "ID", "", "New copy of the ID.");
+	RNA_def_function_ui_description(func, "Create a copy of this datablock (not supported for all datablocks)");
+	parm= RNA_def_pointer(func, "id", "ID", "", "New copy of the ID");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "user_clear", "rna_ID_user_clear");
-	RNA_def_function_ui_description(func, "Clears the user count of a datablock so its not saved, on reload the data will be removed.");
+	RNA_def_function_ui_description(func, "Clears the user count of a datablock so its not saved, "
+	                                "on reload the data will be removed");
 
 	func= RNA_def_function(srna, "animation_data_create", "BKE_id_add_animdata");
-	RNA_def_function_ui_description(func, "Create animation data to this ID, note that not all ID types support this.");
-	parm= RNA_def_pointer(func, "anim_data", "AnimData", "", "New animation data or NULL.");
+	RNA_def_function_ui_description(func, "Create animation data to this ID, note that not all ID types support this");
+	parm= RNA_def_pointer(func, "anim_data", "AnimData", "", "New animation data or NULL");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "animation_data_clear", "BKE_free_animdata");
-	RNA_def_function_ui_description(func, "Clear animation on this this ID.");
+	RNA_def_function_ui_description(func, "Clear animation on this this ID");
 
 	func= RNA_def_function(srna, "update_tag", "rna_ID_update_tag");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Tag the id to update its display data.");
-	RNA_def_enum_flag(func, "refresh", update_flag_items, 0, "", "Type of updates to perform.");
+	RNA_def_function_ui_description(func, "Tag the id to update its display data");
+	RNA_def_enum_flag(func, "refresh", update_flag_items, 0, "", "Type of updates to perform");
 }
 
 static void rna_def_library(BlenderRNA *brna)

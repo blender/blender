@@ -2169,31 +2169,55 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				/* reset this value, it is for handling the event */
 				sa->sndnr = 0;
 				uiDefButS(block, MENU, B_SOUNDACT_BROWSE, str, xco+10,yco-22,20,19, &(sa->sndnr), 0, 0, 0, 0, "");	
-				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+wval+10, yco-22, wval, 19, "Load a sound file. Remember to set caching on for small sounds that are played often.");
+				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+wval+10, yco-22, wval, 19,
+				          "Load a sound file (remember to set caching on for small sounds that are played often)");
 
 				if(sa->sound) {
-					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
-					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,wval-20,19, ((ID *)sa->sound)->name+2,    0.0, 21.0, 0, 0, "");
-					uiDefButS(block, MENU, 1, dummy_str,xco+10,yco-44,width-20, 19, &sa->type, 0.0, 0.0, 0, 0, "");
-					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
-					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");
-					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19, &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space.");
+					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|"
+					                   "Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
+					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,wval-20,19,
+					         ((ID *)sa->sound)->name+2, 0.0, 21.0, 0, 0, "");
+					uiDefButS(block, MENU, 1, dummy_str,xco+10,yco-44,width-20, 19,
+					          &sa->type, 0.0, 0.0, 0, 0, "");
+					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->volume,
+					          0.0, 1.0, 0, 0, "Sets the volume of this sound");
+					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->pitch,-12.0,
+					          12.0, 0, 0, "Sets the pitch of this sound");
+					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19,
+					          &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space");
 					if(sa->flag & ACT_SND_3D_SOUND)
 					{
-						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19, &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0, "The minimum gain of the sound, no matter how far it is away.");
-						uiDefButF(block, NUM, 0, "Maximum Gain: ", xco+10, yco-132, wval, 19, &sa->sound3D.max_gain, 0.0, 1.0, 0.0, 0.0, "The maximum gain of the sound, no matter how near it is.");
-						uiDefButF(block, NUM, 0, "Reference Distance: ", xco+10, yco-154, wval, 19, &sa->sound3D.reference_distance, 0.0, FLT_MAX, 0.0, 0.0, "The reference distance is the distance where the sound has a gain of 1.0.");
-						uiDefButF(block, NUM, 0, "Maximum Distance: ", xco+10, yco-176, wval, 19, &sa->sound3D.max_distance, 0.0, FLT_MAX, 0.0, 0.0, "The maximum distance at which you can hear the sound.");
-						uiDefButF(block, NUM, 0, "Rolloff: ", xco+wval+10, yco-110, wval, 19, &sa->sound3D.rolloff_factor, 0.0, 5.0, 0.0, 0.0, "The rolloff factor defines the influence factor on volume depending on distance.");
-						uiDefButF(block, NUM, 0, "Cone Outer Gain: ", xco+wval+10, yco-132, wval, 19, &sa->sound3D.cone_outer_gain, 0.0, 1.0, 0.0, 0.0, "The gain outside the outer cone. The gain in the outer cone will be interpolated between this value and the normal gain in the inner cone.");
-						uiDefButF(block, NUM, 0, "Cone Outer Angle: ", xco+wval+10, yco-154, wval, 19, &sa->sound3D.cone_outer_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the outer cone.");
-						uiDefButF(block, NUM, 0, "Cone Inner Angle: ", xco+wval+10, yco-176, wval, 19, &sa->sound3D.cone_inner_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the inner cone.");
+						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19,
+						          &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0,
+						          "The minimum gain of the sound, no matter how far it is away");
+						uiDefButF(block, NUM, 0, "Maximum Gain: ", xco+10, yco-132, wval, 19,
+						          &sa->sound3D.max_gain, 0.0, 1.0, 0.0, 0.0,
+						          "The maximum gain of the sound, no matter how near it is");
+						uiDefButF(block, NUM, 0, "Reference Distance: ", xco+10, yco-154, wval, 19,
+						          &sa->sound3D.reference_distance, 0.0, FLT_MAX, 0.0, 0.0,
+						          "The reference distance is the distance where the sound has a gain of 1.0");
+						uiDefButF(block, NUM, 0, "Maximum Distance: ", xco+10, yco-176, wval, 19,
+						          &sa->sound3D.max_distance, 0.0, FLT_MAX, 0.0, 0.0,
+						          "The maximum distance at which you can hear the sound");
+						uiDefButF(block, NUM, 0, "Rolloff: ", xco+wval+10, yco-110, wval, 19,
+						          &sa->sound3D.rolloff_factor, 0.0, 5.0, 0.0, 0.0,
+						          "The rolloff factor defines the influence factor on volume depending on distance");
+						uiDefButF(block, NUM, 0, "Cone Outer Gain: ", xco+wval+10, yco-132, wval, 19,
+						          &sa->sound3D.cone_outer_gain, 0.0, 1.0, 0.0, 0.0,
+						          "The gain outside the outer cone. The gain in the outer cone will be "
+						          "interpolated between this value and the normal gain in the inner cone");
+						uiDefButF(block, NUM, 0, "Cone Outer Angle: ", xco+wval+10, yco-154, wval,
+						          19, &sa->sound3D.cone_outer_angle, 0.0, 360.0, 0.0, 0.0,
+						          "The angle of the outer cone");
+						uiDefButF(block, NUM, 0, "Cone Inner Angle: ", xco+wval+10, yco-176, wval,
+						          19, &sa->sound3D.cone_inner_angle, 0.0, 360.0, 0.0, 0.0,
+						          "The angle of the inner cone");
 					}
 				}
 				MEM_freeN((void *)str);
 			} 
 			else {
-				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+10, yco-22, width-20, 19, "Load a sound file.");
+				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+10, yco-22, width-20, 19, "Load a sound file");
 			}
 					
 			yco-= ysize;

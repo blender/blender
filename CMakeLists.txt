@@ -106,6 +106,7 @@ set(INCLUDE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/include CACHE INTERNAL "" FORCE )
 
 get_blender_version()
 
+
 # Blender internal features
 option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
 mark_as_advanced(WITH_BLENDER)
@@ -1272,6 +1273,18 @@ if(WITH_RAYOPTIMIZATION)
 	unset(_sse)
 	unset(_sse2)
 endif()
+
+
+# set the endian define
+include(TestBigEndian)
+test_big_endian(_SYSTEM_BIG_ENDIAN)
+if(_SYSTEM_BIG_ENDIAN)
+	add_definitions(-D__BIG_ENDIAN__)
+else()
+	add_definitions(-D__LITTLE_ENDIAN__)
+endif()
+unset(_SYSTEM_BIG_ENDIAN)
+
 
 if(WITH_IMAGE_OPENJPEG)
 	if(UNIX AND NOT APPLE)
