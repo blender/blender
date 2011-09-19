@@ -42,11 +42,6 @@
 #include "MEM_guardedalloc.h"
 #include "avirgb.h"
 
-#ifdef __BIG_ENDIAN__
-#  define WORDS_BIGENDIAN
-#endif
-
-
 /* implementation */
 
 void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *buffer, int *size) {
@@ -63,9 +58,9 @@ void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *bu
 	if (bits==16) {
 		unsigned short *pxl;
 		unsigned char *to;
-		#ifdef WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
 		unsigned char  *pxla;
-		#endif		  
+#endif		  
 		
 		buf = MEM_mallocN (movie->header->Height * movie->header->Width * 3, "fromavirgbbuf");
 
@@ -75,19 +70,19 @@ void *avi_converter_from_avi_rgb (AviMovie *movie, int stream, unsigned char *bu
 		while (y--) {
 			pxl= (unsigned short *) (buffer + y * movie->header->Width * 2);
 			
-			#ifdef WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
 			pxla= (unsigned char *)pxl;
-			#endif
+#endif
 
 			x= movie->header->Width;
 			while (x--) {
-				#ifdef WORDS_BIGENDIAN
+#ifdef __BIG_ENDIAN__
 				i= pxla[0];
 				pxla[0]= pxla[1];
 				pxla[1]= i;
 	
 				pxla+=2;
-				#endif
+#endif
 			
 				*(to++)= ((*pxl>>10)&0x1f)*8;
 				*(to++)= ((*pxl>>5)&0x1f)*8;
