@@ -936,7 +936,7 @@ void rigid_deform_iteration()
 		}
 		else {
 			if(!sys->rigid.thrownerror) {
-				error("RigidDeform: failed to find solution.");
+				error("RigidDeform: failed to find solution");
 				sys->rigid.thrownerror= 1;
 			}
 			break;
@@ -1693,7 +1693,7 @@ static void meshdeform_matrix_solve(MeshDeformBind *mdb)
 			}
 		}
 		else {
-			error("Mesh Deform: failed to find solution.");
+			error("Mesh Deform: failed to find solution");
 			break;
 		}
 

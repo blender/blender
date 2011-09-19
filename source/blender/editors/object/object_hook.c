@@ -490,7 +490,7 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	if (!obsel) {
-		BKE_report(op->reports, RPT_ERROR, "Can't add hook with no other selected objects.");
+		BKE_report(op->reports, RPT_ERROR, "Can't add hook with no other selected objects");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -613,7 +613,7 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 	ot->prop= prop;
 }
@@ -680,7 +680,7 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
@@ -736,7 +736,7 @@ void OBJECT_OT_hook_recenter(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
@@ -799,7 +799,7 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
@@ -848,7 +848,7 @@ void OBJECT_OT_hook_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 

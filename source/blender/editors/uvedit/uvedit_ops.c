@@ -1221,7 +1221,7 @@ static void UV_OT_align(wmOperatorType *ot)
 	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "axis", axis_items, 'a', "Axis", "Axis to align UV locations on.");
+	RNA_def_enum(ot->srna, "axis", axis_items, 'a', "Axis", "Axis to align UV locations on");
 }
 
 /* ******************** weld operator **************** */
@@ -1433,8 +1433,8 @@ static void UV_OT_stitch(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "use_limit", 1, "Use Limit", "Stitch UVs within a specified limit distance.");
-	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, FLT_MAX, "Limit", "Limit distance in normalized coordinates.", -FLT_MAX, FLT_MAX);
+	RNA_def_boolean(ot->srna, "use_limit", 1, "Use Limit", "Stitch UVs within a specified limit distance");
+	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, FLT_MAX, "Limit", "Limit distance in normalized coordinates", -FLT_MAX, FLT_MAX);
 }
 
 /* ******************** (de)select all operator **************** */
@@ -1868,9 +1868,9 @@ static void UV_OT_select(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection.");
+		"Extend", "Extend selection rather than clearing the existing selection");
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
 /* ******************** loop select operator **************** */
@@ -1913,9 +1913,9 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection.");
+		"Extend", "Extend selection rather than clearing the existing selection");
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
 /* ******************** linked select operator **************** */
@@ -1934,7 +1934,7 @@ static int select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, i
 	NearestHit hit, *hit_p= NULL;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled.");
+		BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -1989,7 +1989,7 @@ static void UV_OT_select_linked(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection.");
+		"Extend", "Extend selection rather than clearing the existing selection");
 }
 
 static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -2017,10 +2017,10 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection.");
+		"Extend", "Extend selection rather than clearing the existing selection");
 
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
 /* ******************** unlink selection operator **************** */
@@ -2036,7 +2036,7 @@ static int unlink_selection_exec(bContext *C, wmOperator *op)
 	MTFace *tf;
 
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		BKE_report(op->reports, RPT_ERROR, "Can't unlink selection when sync selection is enabled.");
+		BKE_report(op->reports, RPT_ERROR, "Can't unlink selection when sync selection is enabled");
 		BKE_mesh_end_editmesh(obedit->data, em);
 		return OPERATOR_CANCELLED;
 	}
@@ -2358,7 +2358,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only.");
+	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only");
 
 	WM_operator_properties_gesture_border(ot, FALSE);
 }
@@ -2519,7 +2519,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to.");
+	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to");
 }
 
 /* ******************** snap selection operator **************** */
@@ -2761,7 +2761,7 @@ static void UV_OT_snap_selected(wmOperatorType *ot)
 	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to.");
+	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to");
 }
 
 /* ******************** pin operator **************** */
@@ -2816,7 +2816,7 @@ static void UV_OT_pin(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear pinning for the selection instead of setting it.");
+	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "Clear pinning for the selection instead of setting it");
 }
 
 /******************* select pinned operator ***************/
@@ -3001,7 +3001,7 @@ static void UV_OT_hide(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
 /****************** reveal operator ******************/
@@ -3181,7 +3181,7 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in 0.0-1.0 coordinates.", -10.0f, 10.0f);
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in 0.0-1.0 coordinates", -10.0f, 10.0f);
 }
 
 /********************** set tile operator **********************/
@@ -3247,7 +3247,7 @@ static void UV_OT_tile_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int_vector(ot->srna, "tile", 2, NULL, 0, INT_MAX, "Tile", "Tile coordinate.", 0, 10);
+	RNA_def_int_vector(ot->srna, "tile", 2, NULL, 0, INT_MAX, "Tile", "Tile coordinate", 0, 10);
 }
 
 /* ************************** registration **********************************/

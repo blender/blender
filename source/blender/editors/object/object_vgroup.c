@@ -1591,7 +1591,7 @@ void OBJECT_OT_vertex_group_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups.");
+	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups");
 }
 
 static int vertex_group_assign_exec(bContext *C, wmOperator *op)
@@ -1623,7 +1623,7 @@ void OBJECT_OT_vertex_group_assign(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "new", 0, "New", "Assign vertex to new vertex group.");
+	RNA_def_boolean(ot->srna, "new", 0, "New", "Assign vertex to new vertex group");
 }
 
 static int vertex_group_remove_from_exec(bContext *C, wmOperator *op)
@@ -1662,7 +1662,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups.");
+	RNA_def_boolean(ot->srna, "all", 0, "All", "Remove from all vertex groups");
 }
 
 static int vertex_group_select_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1771,8 +1771,8 @@ void OBJECT_OT_vertex_group_levels(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_float(ot->srna, "offset", 0.f, -1.0, 1.0, "Offset", "Value to add to weights.", -1.0f, 1.f);
-	RNA_def_float(ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by.", 0.0f, 10.f);
+	RNA_def_float(ot->srna, "offset", 0.f, -1.0, 1.0, "Offset", "Value to add to weights", -1.0f, 1.f);
+	RNA_def_float(ot->srna, "gain", 1.f, 0.f, FLT_MAX, "Gain", "Value to multiply weights by", 0.0f, 10.f);
 }
 
 static int vertex_group_normalize_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1829,7 +1829,7 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active", "Keep the values of the active group while normalizing others.");
+	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active", "Keep the values of the active group while normalizing others");
 }
 
 static int vertex_group_invert_exec(bContext *C, wmOperator *op)
@@ -1859,8 +1859,8 @@ void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "auto_assign", TRUE, "Add Weights", "Add verts from groups that have zero weight before inverting.");
-	RNA_def_boolean(ot->srna, "auto_remove", TRUE, "Remove Weights", "Remove verts from groups that have zero weight after inverting.");
+	RNA_def_boolean(ot->srna, "auto_assign", TRUE, "Add Weights", "Add verts from groups that have zero weight before inverting");
+	RNA_def_boolean(ot->srna, "auto_remove", TRUE, "Remove Weights", "Remove verts from groups that have zero weight after inverting");
 }
 
 
@@ -1925,9 +1925,9 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, 1.0, "Limit", "Remove weights under this limit.", 0.001f, 0.99f);
-	RNA_def_boolean(ot->srna, "all_groups", FALSE, "All Groups", "Clean all vertex groups.");
-	RNA_def_boolean(ot->srna, "keep_single", FALSE, "Keep Single", "Keep verts assigned to at least one group when cleaning.");
+	RNA_def_float(ot->srna, "limit", 0.01f, 0.0f, 1.0, "Limit", "Remove weights under this limit", 0.001f, 0.99f);
+	RNA_def_boolean(ot->srna, "all_groups", FALSE, "All Groups", "Clean all vertex groups");
+	RNA_def_boolean(ot->srna, "keep_single", FALSE, "Keep Single", "Keep verts assigned to at least one group when cleaning");
 }
 
 
@@ -1959,8 +1959,8 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "mirror_weights", TRUE, "Mirror Weights", "Mirror weights.");
-	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names.");
+	RNA_def_boolean(ot->srna, "mirror_weights", TRUE, "Mirror Weights", "Mirror weights");
+	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names");
 
 }
 
@@ -2102,7 +2102,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active.");
+	prop= RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active");
 	RNA_def_enum_funcs(prop, vgroup_itemf);
 	ot->prop= prop;
 }
@@ -2154,7 +2154,7 @@ static int vgroup_do_remap(Object *ob, char *name_array, wmOperator *op)
 			}
 		}
 		else {
-			BKE_report(op->reports, RPT_ERROR, "Editmode lattice isnt supported yet.");
+			BKE_report(op->reports, RPT_ERROR, "Editmode lattice isnt supported yet");
 			MEM_freeN(sort_map_update);
 			return OPERATOR_CANCELLED;
 		}

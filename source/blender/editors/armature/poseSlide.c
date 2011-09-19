@@ -600,7 +600,7 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 		}
 	}
 	else {
-		BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between.");
+		BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between");
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
 	}
@@ -718,8 +718,8 @@ static int pose_slide_exec_common (bContext *C, wmOperator *op, tPoseSlideOp *ps
 /* common code for defining RNA properties */
 static void pose_slide_opdef_properties (wmOperatorType *ot)
 {
-	RNA_def_int(ot->srna, "prev_frame", 0, MINAFRAME, MAXFRAME, "Previous Keyframe", "Frame number of keyframe immediately before the current frame.", 0, 50);
-	RNA_def_int(ot->srna, "next_frame", 0, MINAFRAME, MAXFRAME, "Next Keyframe", "Frame number of keyframe immediately after the current frame.", 0, 50);
+	RNA_def_int(ot->srna, "prev_frame", 0, MINAFRAME, MAXFRAME, "Previous Keyframe", "Frame number of keyframe immediately before the current frame", 0, 50);
+	RNA_def_int(ot->srna, "next_frame", 0, MINAFRAME, MAXFRAME, "Next Keyframe", "Frame number of keyframe immediately after the current frame", 0, 50);
 	RNA_def_float_percentage(ot->srna, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Weighting factor for the sliding operation", 0.3, 0.7);
 }
 

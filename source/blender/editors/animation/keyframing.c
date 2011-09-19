@@ -763,7 +763,7 @@ short insert_keyframe_direct (ReportList *reports, PointerRNA ptr, PropertyRNA *
 	/* F-Curve not editable? */
 	if (fcurve_is_keyframable(fcu) == 0) {
 		BKE_reportf(reports, RPT_ERROR, 
-			"F-Curve with path = '%s' [%d] cannot be keyframed. Ensure that it is not locked or sampled. Also, try removing F-Modifiers.",
+			"F-Curve with path = '%s' [%d] cannot be keyframed. Ensure that it is not locked or sampled. Also, try removing F-Modifiers",
 			fcu->rna_path, fcu->array_index);
 		return 0;
 	}
@@ -1460,7 +1460,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 		else {
 			if (G.f & G_DEBUG)
 				printf("Button Insert-Key: no path to property \n");
-			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead.");
+			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead");
 		}
 	}
 	else if (G.f & G_DEBUG) {
@@ -1498,7 +1498,7 @@ void ANIM_OT_keyframe_insert_button (wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array");
 }
 
 /* Delete Key Button Operator ------------------------ */
@@ -1570,7 +1570,7 @@ void ANIM_OT_keyframe_delete_button (wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array");
 }
 
 /* ******************************************* */
