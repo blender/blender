@@ -44,7 +44,7 @@
 #include <stdio.h> 
 
 #ifndef WIN32
-#include <unistd.h> 
+#  include <unistd.h>
 #endif
 
 #include <fcntl.h>
@@ -53,11 +53,8 @@
 #include <math.h>
 
 #ifndef WIN32
-#include <sys/mman.h>
-#endif
-
-#if !defined(WIN32)
-#define O_BINARY 0
+#  include <sys/mman.h>
+#  define O_BINARY 0
 #endif
 
 #define SWAP_SHORT(x) (((x & 0xff) << 8) | ((x >> 8) & 0xff))
@@ -66,15 +63,15 @@
 #define ENDIAN_NOP(x) (x)
 
 #if defined(__sgi) || defined(__sparc) || defined(__sparc__) || defined (__PPC__) || defined (__hppa__) || (defined (__APPLE__) && !defined(__LITTLE_ENDIAN__))
-#define LITTLE_SHORT SWAP_SHORT
-#define LITTLE_LONG SWAP_LONG
-#define BIG_SHORT ENDIAN_NOP
-#define BIG_LONG ENDIAN_NOP
+#  define LITTLE_SHORT SWAP_SHORT
+#  define LITTLE_LONG SWAP_LONG
+#  define BIG_SHORT ENDIAN_NOP
+#  define BIG_LONG ENDIAN_NOP
 #else
-#define LITTLE_SHORT ENDIAN_NOP
-#define LITTLE_LONG ENDIAN_NOP
-#define BIG_SHORT SWAP_SHORT
-#define BIG_LONG SWAP_LONG
+#  define LITTLE_SHORT ENDIAN_NOP
+#  define LITTLE_LONG ENDIAN_NOP
+#  define BIG_SHORT SWAP_SHORT
+#  define BIG_LONG SWAP_LONG
 #endif
 
 typedef unsigned char uchar;

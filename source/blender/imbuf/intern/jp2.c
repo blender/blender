@@ -25,9 +25,6 @@
  *  \ingroup imbuf
  */
 
-
-#ifdef WITH_OPENJPEG
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -751,5 +748,3 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags) {
 	
 	return 1;
 }
-
-#endif /* WITH_OPENJPEG */
