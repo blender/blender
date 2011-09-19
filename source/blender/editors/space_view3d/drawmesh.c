@@ -523,7 +523,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	if(ob->mode & OB_MODE_EDIT)
 		return;
 	else if(ob==OBACT)
-		if(paint_facesel_test(ob))
+		if(paint_facesel_test(ob) || paint_vertsel_test(ob))
 			return;
 
 	ddm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
