@@ -12264,6 +12264,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->gm.recastData.detailsamplemaxerror = 1.0f;
 		}			
 	}
+
+	/* default values in Freestyle settings */
+	{
+		Scene *sce;
+		SceneRenderLayer *srl;
+		FreestyleLineStyle *linestyle;
+
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			for(srl= sce->r.layers.first; srl; srl= srl->next) {
+				if (srl->freestyleConfig.mode == 0)
+					srl->freestyleConfig.mode= FREESTYLE_CONTROL_EDITOR_MODE;
+				if (srl->freestyleConfig.raycasting_algorithm == 0)
+					srl->freestyleConfig.raycasting_algorithm= FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE;
+			}
+		}
+		for(linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
+			if (linestyle->chaining == 0)
+				linestyle->chaining= LS_CHAINING_NATURAL;
+			if (linestyle->rounds == 0)
+				linestyle->rounds= 3;
+		}
+	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
