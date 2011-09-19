@@ -30,6 +30,11 @@ CCL_NAMESPACE_BEGIN
 
 typedef struct Transform {
 	float4 x, y, z, w; /* rows */
+
+#ifndef __KERNEL_GPU__
+	float4 operator[](int i) const { return *(&x + i); }
+	float4& operator[](int i) { return *(&x + i); }
+#endif
 } Transform;
 
 __device_inline float3 transform(const Transform *t, const float3 a)

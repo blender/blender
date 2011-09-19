@@ -264,7 +264,7 @@ public:
 		string build_options = "";
 
 		build_options += "-I " + kernel_path + ""; /* todo: escape path */
-		build_options += " -cl-fast-relaxed-math -cl-strict-aliasing";
+		build_options += " -cl-fast-relaxed-math ";
 
 		ciErr = clBuildProgram(cpProgram, 0, NULL, build_options.c_str(), NULL, NULL);
 

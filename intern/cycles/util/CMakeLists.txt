@@ -9,6 +9,7 @@ set(sources
 	util_cuda.cpp
 	util_dynlib.cpp
 	util_md5.cpp
+	util_memarena.cpp
 	util_opencl.c
 	util_path.cpp
 	util_string.cpp
@@ -35,6 +36,7 @@ set(headers
 	util_map.h
 	util_math.h
 	util_md5.h
+	util_memarena.h
 	util_opencl.h
 	util_opengl.h
 	util_param.h

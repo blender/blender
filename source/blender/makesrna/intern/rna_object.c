@@ -284,6 +284,8 @@ static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, Base *b
 	else {
 		DAG_scene_sort(bmain, scene);
 	}
+
+	DAG_id_type_tag(bmain, ID_OB);
 }
 
 static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
