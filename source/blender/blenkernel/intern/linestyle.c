@@ -69,6 +69,8 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->r = linestyle->g = linestyle->b = 0.0;
 	linestyle->alpha = 1.0;
 	linestyle->thickness = 1.0;
+	linestyle->chaining = LS_CHAINING_NATURAL;
+	linestyle->rounds = 3;
 	linestyle->min_length = 0.0f;
 	linestyle->max_length = 10000.0f;
 

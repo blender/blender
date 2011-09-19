@@ -322,6 +322,11 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_MIN_2D_LENGTH      16
 #define LS_MAX_2D_LENGTH      32
 
+/* FreestyleLineStyle::chaining */
+#define LS_CHAINING_NATURAL                     1
+#define LS_CHAINING_SKETCHY_TOPOLOGY_PRESERVED  2
+#define LS_CHAINING_SKETCHY_TOPOLOGY_BROKEN     3
+
 /* FreestyleLineStyle::caps */
 #define LS_CAPS_BUTT    1
 #define LS_CAPS_ROUND   2
@@ -334,6 +339,8 @@ typedef struct FreestyleLineStyle {
 	float r, g, b, alpha;
 	float thickness;
 	int flag, caps;
+	int chaining;
+	unsigned int rounds;
 	float min_length, max_length;
 	unsigned short dash1, gap1, dash2, gap2, dash3, gap3;
 	int panel; /* for UI */

@@ -881,10 +881,15 @@ def process(layer_name, lineset_name):
         upred = TrueUP1D()
     Operators.select(upred)
     # join feature edges to form chains
-    bpred = AngleLargerThanBP1D(1.0) # XXX temporary fix for occasional unexpected long lines
-    if linestyle.same_object:
-        bpred = AndBP1D(bpred, SameShapeIdBP1D())
-    Operators.bidirectionalChain(ChainPredicateIterator(upred, bpred), NotUP1D(upred))
+    if linestyle.chaining == "NATURAL":
+        bpred = AngleLargerThanBP1D(1.0) # XXX temporary fix for occasional unexpected long lines
+        if linestyle.same_object:
+            bpred = AndBP1D(bpred, SameShapeIdBP1D())
+        Operators.bidirectionalChain(ChainPredicateIterator(upred, bpred), NotUP1D(upred))
+    elif linestyle.chaining == "SKETCHY_TOPOLOGY_PRESERVED":
+        Operators.bidirectionalChain(pySketchyChainSilhouetteIterator(linestyle.rounds))
+    elif linestyle.chaining == "SKETCHY_TOPOLOGY_BROKEN":
+        Operators.bidirectionalChain(pySketchyChainingIterator(linestyle.rounds))
     # split chains
     if linestyle.material_boundary:
         Operators.sequentialSplit(MaterialBoundaryUP0D())
