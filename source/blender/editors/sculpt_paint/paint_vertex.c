@@ -1147,7 +1147,7 @@ static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, char *
 /*
 See if the current deform vertex has a locked group
 */
-static char has_locked_group(MDeformVert *dvert, char *lock_flags)
+static char has_locked_group(MDeformVert *dvert, const char *lock_flags)
 {
 	int i;
 	for(i = 0; i < dvert->totweight; i++) {
@@ -1193,13 +1193,13 @@ static int has_locked_group_selected(int defbase_tot, char *defbase_sel, char *l
 
 
 #if 0 /* UNUSED */
-static int has_unselected_unlocked_bone_group(int defbase_tot, char *defbase_sel, int selected, char *lock_flags, char *bone_groups) {
+static int has_unselected_unlocked_bone_group(int defbase_tot, char *defbase_sel, int selected, char *lock_flags, char *vgroup_validmap) {
 	int i;
 	if(defbase_tot == selected) {
 		return FALSE;
 	}
 	for(i = 0; i < defbase_tot; i++) {
-		if(bone_groups[i] && !defbase_sel[i] && !lock_flags[i]) {
+		if(vgroup_validmap[i] && !defbase_sel[i] && !lock_flags[i]) {
 			return TRUE;
 		}
 	}
@@ -1242,7 +1242,7 @@ static void multipaint_selection(MDeformVert *dvert, float change, char *defbase
 
 // move all change onto valid, unchanged groups.  If there is change left over, then return it.
 // assumes there are valid groups to shift weight onto
-static float redistribute_change(MDeformVert *ndv, char *change_status, int changeme, int changeto, char *validmap, float totchange, float total_valid) {
+static float redistribute_change(MDeformVert *ndv, char *change_status, int changeme, int changeto, const char *vgroup_validmap, float totchange, float total_valid) {
 	float was_change;
 	float change;
 	float oldval;
@@ -1259,7 +1259,7 @@ static float redistribute_change(MDeformVert *ndv, char *change_status, int chan
 			if(change_status[ndw->def_nr] == changeme) {
 				oldval = ndw->weight;
 				// if auto normalize is active, don't worry about upper bounds
-				if(!validmap && ndw->weight + change > 1) {
+				if(!vgroup_validmap && ndw->weight + change > 1) {
 					totchange -= 1-ndw->weight;
 					ndw->weight = 1;
 					// stop the changes to this group
@@ -1289,7 +1289,9 @@ static float redistribute_change(MDeformVert *ndv, char *change_status, int chan
 // observe the changes made to the weights of groups.
 // make sure all locked groups on the vertex have the same deformation
 // by moving the changes made to groups onto other unlocked groups
-static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, char *lock_flags, char *bone_groups, char *validmap) {
+static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
+                          const char *lock_flags, const char *vgroup_validmap)
+{
 	float totchange = 0.0f;
 	float totchange_allowed = 0.0f;
 	float left_over;
@@ -1318,7 +1320,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, c
 		odw = defvert_find_index(odv, i);
 		// the weights are zero, so we can assume a lot
 		if(!ndw || !odw) {
-			if (!lock_flags[i] && bone_groups[i]){
+			if (!lock_flags[i] && vgroup_validmap[i]){
 				defvert_verify_index(odv, i);
 				defvert_verify_index(ndv, i);
 				total_valid++;
@@ -1341,7 +1343,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, c
 				designatedw = i;
 			}
 		} // unchanged, unlocked bone groups are handled here
-		else if (bone_groups[i]){
+		else if (vgroup_validmap[i]){
 			totchange_allowed += ndw->weight;
 			total_valid++;
 			change_status[i] = 1; // can be altered while redistributing
@@ -1350,7 +1352,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, c
 	// if there was any change, redistribute it
 	if(total_changed) {
 		// auto normalize will allow weights to temporarily go above 1 in redistribution
-		if(validmap && total_changed < 0 && total_valid) {
+		if(vgroup_validmap && total_changed < 0 && total_valid) {
 			totchange_allowed = total_valid;
 		}
 		// there needs to be change allowed, or you should not bother
@@ -1376,7 +1378,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, c
 				totchange_allowed = -totchange;
 			}
 			// move the weight evenly between the allowed groups, move excess back onto the used groups based on the change
-			totchange_allowed = redistribute_change(ndv, change_status, 1, -1, validmap, totchange_allowed, total_valid);
+			totchange_allowed = redistribute_change(ndv, change_status, 1, -1, vgroup_validmap, totchange_allowed, total_valid);
 			left_over += totchange_allowed;
 			if(left_over) {
 				// more than one nonzero weights were changed with the same ratio, so keep them changed that way!
@@ -1400,7 +1402,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot, c
 				// a weight was changed to zero, only one weight was changed, or designatedw is still -1
 				// put weight back as evenly as possible
 				else {
-					redistribute_change(ndv, change_status, 2, -2, validmap, left_over, total_changed);
+					redistribute_change(ndv, change_status, 2, -2, vgroup_validmap, left_over, total_changed);
 				}
 			}
 		}
@@ -1452,7 +1454,10 @@ static void clamp_weights(MDeformVert *dvert) {
 	}
 }
 
-/* struct to avoid passing many args each call to do_weight_paint_vertex() */
+/* struct to avoid passing many args each call to do_weight_paint_vertex()
+ * this _could_ be made a part of the operators 'WPaintData' struct, or at
+ * least a member, but for now keep its own struct, initialized on every
+ * paint stroke update - campbell */
 typedef struct WeightPaintInfo {
 
 	int defbase_tot;
@@ -1468,16 +1473,8 @@ typedef struct WeightPaintInfo {
 	char *defbase_sel; /* boolean array for selected bones,
 						* length of defbase_tot */
 
-
-	/* TODO, both are the result of wpaint_make_validmap() buy I'm not
-	 * convinced they must be separated like this, nevertheless there are
-	 * possible side-effects with merging them which need to be looked into
-	 * carefully, for now keep both since theres not too much harm in it
-	 * but review at some point if bone_group's var can use validmap instead.
-	 * - campbell */
-	char *vgroup_validmap;
-	char *bone_groups;
-
+	char *vgroup_validmap; /* same as WeightPaintData.vgroup_validmap,
+	                        * only added here for convenience */
 
 	char do_flip;
 	char do_multipaint;
@@ -1486,7 +1483,7 @@ typedef struct WeightPaintInfo {
 /* fresh start to make multi-paint and locking modular */
 /* returns TRUE if it thinks you need to reset the weights due to
  * normalizing while multi-painting */
-static int apply_mp_locks_normalize(Mesh *me, WeightPaintInfo *wpi,
+static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
                                     const int index,
                                     MDeformWeight *dw, MDeformWeight *tdw,
                                     float change, float oldChange,
@@ -1512,7 +1509,7 @@ static int apply_mp_locks_normalize(Mesh *me, WeightPaintInfo *wpi,
 	}
 	clamp_weights(dv);
 
-	enforce_locks(&dv_test, dv, wpi->defbase_tot, wpi->lock_flags, wpi->vgroup_validmap, wpi->vgroup_validmap);
+	enforce_locks(&dv_test, dv, wpi->defbase_tot, wpi->lock_flags, wpi->vgroup_validmap);
 
 	do_weight_paint_auto_normalize_all_groups(dv, wpi->vgroup_validmap);
 
@@ -1554,9 +1551,8 @@ static int get_first_selected_nonzero_weight(MDeformVert *dvert, char *defbase_s
 static char *wpaint_make_validmap(Object *ob);
 
 
-// int flip,  int vgroup_mirror, char *validmap, int multipaint
 static void do_weight_paint_vertex( /* vars which remain the same for every vert */
-                                   VPaint *wp, Object *ob, WeightPaintInfo *wpi,
+                                   VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
                                     /* vars which change on each stroke */
                                    int index, float alpha, float paintweight
                                    )
@@ -1609,11 +1605,6 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		MDeformWeight *tdw = NULL, *tuw;
 		MDeformVert dv= {NULL};
 
-		/* Need to know which groups are bone groups */
-		if(wpi->bone_groups == NULL) {
-			wpi->bone_groups= wpi->vgroup_validmap ? wpi->vgroup_validmap : wpaint_make_validmap(ob);
-		}
-
 		oldw = dw->weight;
 		wpaint_blend(wp, dw, uw, alpha, paintweight, wpi->do_flip, wpi->do_multipaint && wpi->defbase_tot_sel >1);
 		neww = dw->weight;
@@ -1644,12 +1635,12 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 						testw = tuw->weight*change;
 						if( testw > tuw->weight ) {
 							if(change > oldChange) {
-								// reset the weights and use the new change
+								/* reset the weights and use the new change */
 								reset_to_prev(wp->wpaint_prev+index, me->dvert+index);
 							}
 							else {
-								// the old change was more significant,
-								// so set the change to 0 so that it will not do another multi-paint
+								/* the old change was more significant, so set
+								 * the change to 0 so that it will not do another multi-paint */
 								change = 0;
 							}
 						}
@@ -1792,7 +1783,7 @@ static char *wpaint_make_validmap(Object *ob)
 {
 	bDeformGroup *dg;
 	ModifierData *md;
-	char *validmap;
+	char *vgroup_validmap;
 	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "wpaint_make_validmap gh");
 	int i = 0, step1=1;
 
@@ -1804,7 +1795,7 @@ static char *wpaint_make_validmap(Object *ob)
 	if (!i)
 		return NULL;
 
-	validmap = MEM_callocN(i, "wpaint valid map");
+	vgroup_validmap= MEM_callocN(i, "wpaint valid map");
 
 	/*now loop through the armature modifiers and identify deform bones*/
 	for (md = ob->modifiers.first; md; md= !md->next && step1 ? (step1=0), modifiers_getVirtualModifierList(ob) : md->next) {
@@ -1835,13 +1826,13 @@ static char *wpaint_make_validmap(Object *ob)
 	/*add all names to a hash table*/
 	for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
 		if (BLI_ghash_lookup(gh, dg->name) != NULL) {
-			validmap[i] = 1;
+			vgroup_validmap[i] = TRUE;
 		}
 	}
 
 	BLI_ghash_free(gh, NULL, NULL);
 
-	return validmap;
+	return vgroup_validmap;
 }
 
 static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
@@ -1875,7 +1866,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	/*set up auto-normalize, and generate map for detecting which
 	  vgroups affect deform bones*/
 	wpd->auto_normalize = ts->auto_normalize;
-	if (wpd->auto_normalize)
+	if (wpd->auto_normalize || ts->multipaint)
 		wpd->vgroup_validmap = wpaint_make_validmap(ob);
 	
 	//	if(qual & LR_CTRLKEY) {
@@ -1983,8 +1974,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	wpi.defbase_tot_unsel=  wpi.defbase_tot - wpi.defbase_tot_sel;
 	wpi.vgroup_mirror=      wpd->vgroup_mirror;
 	wpi.lock_flags=         gen_lock_flags(ob, wpi.defbase_tot);
-	wpi.vgroup_validmap=           wpd->vgroup_validmap;
-	wpi.bone_groups=        NULL; /* initialized on the fly */
+	wpi.vgroup_validmap=    wpd->vgroup_validmap;
 	wpi.do_flip=            RNA_boolean_get(itemptr, "pen_flip");
 	wpi.do_multipaint=      (ts->multipaint != 0);
 	/* *** done setting up WeightPaintInfo *** */
@@ -2105,9 +2095,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* *** free wpi members */
 	if(wpi.lock_flags) {
 		MEM_freeN(wpi.lock_flags);
-	}
-	if(wpi.bone_groups && (wpi.bone_groups != wpi.vgroup_validmap)) {
-		MEM_freeN(wpi.bone_groups);
 	}
 	MEM_freeN(wpi.defbase_sel);
 	/* *** dont freeing wpi members */
