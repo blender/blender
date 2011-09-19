@@ -181,7 +181,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		but = uiDefButTextO(block, TEX, "FILE_OT_directory", 0, "",
 				 min_x, line1_y, line1_w-chan_offs, btn_h, 
 				 params->dir, 0.0, (float)FILE_MAX-1, 0, 0, 
-				 _("File path."));
+				 UI_translate_do_tooltip(N_("File path.")));
 		uiButSetCompleteFunc(but, autocomplete_directory, NULL);
 		uiButSetFlag(but, UI_BUT_NO_UTF8);
 
@@ -189,7 +189,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 			but = uiDefBut(block, TEX, B_FS_FILENAME, "",
 					 min_x, line2_y, line2_w-chan_offs, btn_h,
 					 params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0,
-					 overwrite_alert ?_("File name, overwrite existing.") : _("File name."));
+					 UI_translate_do_tooltip(overwrite_alert ?N_("File name, overwrite existing.") : N_("File name.")));
 			uiButSetCompleteFunc(but, autocomplete_file, NULL);
 			uiButSetFlag(but, UI_BUT_NO_UTF8);
 
@@ -209,13 +209,13 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
 				min_x + line2_w + separator - chan_offs, line2_y, 
 				btn_fn_w, btn_h, 
-				_("Decrement the filename number"));    
+				UI_translate_do_tooltip(N_("Decrement the filename number")));    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1); 
 	
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMIN, 
 				min_x + line2_w + separator + btn_fn_w - chan_offs, line2_y, 
 				btn_fn_w, btn_h, 
-				_("Increment the filename number"));    
+				UI_translate_do_tooltip(N_("Increment the filename number")));    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", 1); 
 		uiBlockEndAlign(block);
 	}
@@ -226,9 +226,9 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, params->title,
 			max_x - loadbutton, line1_y, loadbutton, btn_h, 
 			params->title);
-		uiDefButO(block, BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, _("Cancel"),
+		uiDefButO(block, BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, UI_translate_do_iface(N_("Cancel")),
 			max_x - loadbutton, line2_y, loadbutton, btn_h, 
-			_("Cancel"));
+			UI_translate_do_tooltip(N_("Cancel")));
 	}
 	
 	uiEndBlock(C, block);

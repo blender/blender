@@ -1,5 +1,5 @@
 /*
- * $Id: rna_texture_api.c 39762 2011-08-28 23:44:43Z gsrb3d $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

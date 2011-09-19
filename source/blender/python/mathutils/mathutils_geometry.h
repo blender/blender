@@ -1,5 +1,5 @@
 /* 
- * $Id: mathutils_geometry.h 38409 2011-07-15 04:01:47Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

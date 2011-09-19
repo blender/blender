@@ -447,8 +447,7 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, rcti *r
 	const char *activename= panel->drawname[0]?panel->drawname:panel->panelname;
 
 #ifdef INTERNATIONAL
-	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
-		activename= BLF_gettext(activename);
+	activename= UI_translate_do_iface(activename);
 #endif
 
 	/* + 0.001f to avoid flirting with float inaccuracy */

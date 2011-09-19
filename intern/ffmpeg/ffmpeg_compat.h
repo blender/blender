@@ -2,7 +2,7 @@
 #define __ffmpeg_compat_h_included__ 1
 
 /*
- * $Id: ffmpeg_compat.h 36982 2011-05-28 14:16:56Z schlaile $
+ * $Id$
  *
  * compatibility macros to make every ffmpeg installation appear
  * like the most current installation (wrapping some functionality sometimes)

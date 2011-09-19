@@ -454,8 +454,8 @@ elseif(WIN32)
 
 	install( # same as linux!, deduplicate
 		DIRECTORY
-          ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-          ${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+			${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 		DESTINATION ${TARGETDIR_VER}/datafiles
 		PATTERN ".svn" EXCLUDE
 	)

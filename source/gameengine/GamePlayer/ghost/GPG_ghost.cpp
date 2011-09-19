@@ -104,7 +104,6 @@ extern char datatoc_bfont_ttf[];
 #include "BKE_utildefines.h"
 
 #include "RNA_define.h"
-#include "RNA_access.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -405,12 +404,6 @@ int main(int argc, char** argv)
 	// We don't use threads directly in the BGE, but we need to call this so things like
 	// freeing up GPU_Textures works correctly.
 	BLI_threadapi_init();
-	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
-	BLF_init(11, U.dpi);
-	BLF_lang_init();
-	// use default settings
-	BLF_lang_encoding("");
-	BLF_lang_set("");
 
 	RNA_init();
 
@@ -423,6 +416,12 @@ int main(int argc, char** argv)
 	G.main = NULL;
 
 	IMB_init();
+
+	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
+	BLF_init(11, U.dpi);
+	BLF_lang_init();
+	BLF_lang_encoding("");
+	BLF_lang_set("");
 
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 

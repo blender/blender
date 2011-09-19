@@ -275,7 +275,7 @@ static int modeselect_addmode(char *str, const char *title, int id, int icon)
 {
 	static char formatstr[] = "|%s %%x%d %%i%d";
 
-	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
+	if(UI_translate_iface())
 		return sprintf(str, formatstr, BLF_gettext(title), id, icon);
 	else
 		return sprintf(str, formatstr, title, id, icon);

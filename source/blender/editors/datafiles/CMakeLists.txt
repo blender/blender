@@ -20,8 +20,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	../../blenlib
-	../../../../intern/guardedalloc
+
 )
 
 set(INC_SYS

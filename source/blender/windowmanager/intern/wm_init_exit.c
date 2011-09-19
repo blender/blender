@@ -79,7 +79,6 @@
 #include "GHOST_C-api.h"
 
 #include "RNA_define.h"
-#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -127,7 +126,6 @@ void WM_init(bContext *C, int argc, const char **argv)
 		wm_init_cursor_data();
 	}
 	GHOST_CreateSystemPaths();
-
 	wm_operatortype_init();
 	WM_menutype_init();
 
@@ -139,7 +137,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	
 	ED_file_init();			/* for fsmenu */
 	ED_init_node_butfuncs();	
-
+	
 	BLF_init(11, U.dpi); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
 	BLF_lang_init();
 	/* get the default database, plus a wm */
@@ -382,6 +380,7 @@ void WM_exit(bContext *C)
 	BIF_freeTemplates(C);
 	
 	free_ttfont(); /* bke_font.h */
+
 	free_openrecent();
 	
 	BKE_freecubetable();

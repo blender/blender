@@ -91,6 +91,42 @@
 
 static void ui_free_but(const bContext *C, uiBut *but);
 
+/* ************* translation ************** */
+
+int UI_translate_iface(void)
+{
+	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_IFACE);
+}
+
+int UI_translate_tooltips(void)
+{
+	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_TOOLTIPS);
+}
+
+const char *UI_translate_do_iface(const char *msgid)
+{
+#ifdef INTERNATIONAL
+	if(UI_translate_iface())
+		return BLF_gettext(msgid);
+	else
+		return msgid;
+#else
+	return msgid;
+#endif
+}
+
+const char *UI_translate_do_tooltip(const char *msgid)
+{
+#ifdef INTERNATIONAL
+	if(UI_translate_tooltips())
+		return BLF_gettext(msgid);
+	else
+		return msgid;
+#else
+	return msgid;
+#endif
+}
+
 /* ************* window matrix ************** */
 
 void ui_block_to_window_fl(const ARegion *ar, uiBlock *block, float *x, float *y)
@@ -2689,7 +2725,7 @@ static uiBut *ui_def_but_operator(uiBlock *block, int type, const char *opname, 
 		tip= ot->description;
 
 #ifdef INTERNATIONAL
-		if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_TOOLTIPS))
+		if(UI_translate_tooltips())
 			tip= BLF_gettext(tip);
 #endif
 	}

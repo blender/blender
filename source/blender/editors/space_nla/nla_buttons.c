@@ -448,7 +448,8 @@ static void nla_panel_modifiers(const bContext *C, Panel *pa)
 		
 		// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
 		// FIXME: we need to set the only-active property so that this will only add modifiers for the active strip (not all selected)
-		uiDefButO(block, BUT, "NLA_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, _("Add Modifier"), 10, 0, 150, 20, _("Adds a new F-Modifier for the active NLA Strip"));
+		uiDefButO(block, BUT, "NLA_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, UI_translate_do_iface(N_("Add Modifier")), 10, 0, 150, 20,
+				UI_translate_do_tooltip(N_("Adds a new F-Modifier for the active NLA Strip")));
 		
 		/* copy/paste (as sub-row)*/
 		row= uiLayoutRow(row, 1);

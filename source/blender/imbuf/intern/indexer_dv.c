@@ -1,5 +1,5 @@
 /*
- * $Id: indexer_dv.c 39833 2011-09-01 01:48:50Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

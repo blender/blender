@@ -1,5 +1,5 @@
 /*
- * $Id: indexer.c 39764 2011-08-29 01:00:14Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

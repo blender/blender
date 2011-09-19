@@ -1,5 +1,5 @@
 /*
- * $Id: callbacks.c 37799 2011-06-24 23:14:26Z gsrb3d $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -62,6 +62,8 @@
 
 #include "RNA_define.h"
 
+#include "UI_interface.h"
+
 #include "transform.h"
 
 /* *********************** TransSpace ************************** */
@@ -419,7 +421,7 @@ const char * BIF_menustringTransformOrientation(const bContext *C, const char *t
 		menu= BLF_gettext(menu);
 	}
 	
-	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + 40 * BIF_countTransformOrientation(C), _("UserTransSpace from matrix"));
+	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + 40 * BIF_countTransformOrientation(C), UI_translate_do_tooltip(N_("UserTransSpace from matrix")));
 	p = str_menu;
 	
 	p += sprintf(str_menu, "%s", title);

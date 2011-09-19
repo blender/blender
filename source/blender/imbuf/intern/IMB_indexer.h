@@ -1,5 +1,5 @@
 /**
- * $Id: IMB_indexer.h 39759 2011-08-28 21:48:52Z gsrb3d $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

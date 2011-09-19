@@ -803,5 +803,11 @@ uiStyle* UI_GetStyle(void);
 /* linker workaround ack! */
 void UI_template_fix_linking(void);
 
+/* translation */
+int UI_translate_iface(void);
+int UI_translate_tooltips(void);
+const char *UI_translate_do_iface(const char *msgid);
+const char *UI_translate_do_tooltip(const char *msgid);
+
 #endif /*  UI_INTERFACE_H */
 

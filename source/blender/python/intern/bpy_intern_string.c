@@ -1,5 +1,5 @@
 /*
- * $Id: bpy_intern_string.c 37626 2011-06-18 23:22:55Z gsrb3d $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

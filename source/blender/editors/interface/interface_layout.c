@@ -640,8 +640,7 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 		name= ot->name;
 
 #ifdef INTERNATIONAL
-		if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
-			name= BLF_gettext(name);
+		name= UI_translate_do_iface(name);
 #endif
 	}
 
@@ -1434,8 +1433,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 		name= mt->label;
 
 #ifdef INTERNATIONAL
-		if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
-			name= BLF_gettext(name);
+		name= UI_translate_do_iface(name);
 #endif
 	}
 

@@ -1349,7 +1349,43 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 
 static const char *editortype_pup(void)
 {
-	return _("Editor type:%t|3D View %x1|%l|Timeline %x15|Graph Editor %x2|DopeSheet %x12|NLA Editor %x13|%l|UV/Image Editor %x6|Video Sequence Editor %x8|Text Editor %x9|Node Editor %x16|Logic Editor %x17|%l|Properties %x4|Outliner %x3|User Preferences %x19|Info%x7|%l|File Browser %x5|%l|Python Console %x18");
+	const char *types= N_(
+		   "Editor type:%t"
+		   "|3D View %x1"
+
+		   "|%l"
+		   
+		   "|Timeline %x15"
+		   "|Graph Editor %x2"
+		   "|DopeSheet %x12"
+		   "|NLA Editor %x13"
+		   
+		   "|%l"
+		   
+		   "|UV/Image Editor %x6"
+		   
+		   "|Video Sequence Editor %x8"
+		   "|Text Editor %x9" 
+		   "|Node Editor %x16"
+		   "|Logic Editor %x17"
+		   
+		   "|%l"
+		   
+		   "|Properties %x4"
+		   "|Outliner %x3"
+		   "|User Preferences %x19"
+		   "|Info%x7"
+		    		   
+		   "|%l"
+		   
+		   "|File Browser %x5"
+		   
+		   "|%l"
+		   
+		   "|Python Console %x18"
+		   );
+
+	return UI_translate_do_iface(types);
 }
 
 static void spacefunc(struct bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
@@ -1371,7 +1407,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 						   editortype_pup(), xco, yco, UI_UNIT_X+10, UI_UNIT_Y, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-						   _("Displays current editor type. Click for menu of available types"));
+						   UI_translate_do_tooltip(N_("Displays current editor type. Click for menu of available types")));
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	

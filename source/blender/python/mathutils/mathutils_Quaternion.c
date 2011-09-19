@@ -1,5 +1,5 @@
 /*
- * $Id: mathutils_Quaternion.c 38674 2011-07-25 01:44:19Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

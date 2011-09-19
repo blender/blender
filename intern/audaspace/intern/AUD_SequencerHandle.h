@@ -1,5 +1,5 @@
 /*
- * $Id: AUD_SequencerHandle.h 39792 2011-08-30 09:15:55Z nexyon $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
