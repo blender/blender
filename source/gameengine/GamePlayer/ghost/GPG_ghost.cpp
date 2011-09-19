@@ -413,7 +413,6 @@ int main(int argc, char** argv)
 	BLF_lang_set("");
 
 	RNA_init();
-	RNA_types_init_gettext();
 
 	init_nodesystem();
 	

@@ -590,9 +590,6 @@ extern StructRNA RNA_XorController;
 /* make every name and description field surrounded by gettext */
 EnumPropertyItem* RNA_enum_items_gettexted(EnumPropertyItem *item);
 
-/* make all types gettexted */
-void RNA_types_init_gettext(void);
-
 /* Pointer
  *
  * These functions will fill in RNA pointers, this can be done in three ways:
