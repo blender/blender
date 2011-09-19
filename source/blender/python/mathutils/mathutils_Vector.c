@@ -159,13 +159,13 @@ static PyObject *Vector_resize_2d(VectorObject *self)
 {
 	if(self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError,
-		                "vector.resize_2d(): "
+		                "Vector.resize_2d(): "
 		                "cannot resize wrapped data - only python vectors");
 		return NULL;
 	}
 	if(self->cb_user) {
 		PyErr_SetString(PyExc_TypeError,
-		                "vector.resize_2d(): "
+		                "Vector.resize_2d(): "
 		                "cannot resize a vector that has an owner");
 		return NULL;
 	}
@@ -173,7 +173,7 @@ static PyObject *Vector_resize_2d(VectorObject *self)
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 2));
 	if(self->vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-		                "vector.resize_2d(): "
+		                "Vector.resize_2d(): "
 		                "problem allocating pointer space");
 		return NULL;
 	}
@@ -194,13 +194,13 @@ static PyObject *Vector_resize_3d(VectorObject *self)
 {
 	if (self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError,
-		                "vector.resize_3d(): "
+		                "Vector.resize_3d(): "
 		                "cannot resize wrapped data - only python vectors");
 		return NULL;
 	}
 	if(self->cb_user) {
 		PyErr_SetString(PyExc_TypeError,
-		                "vector.resize_3d(): "
+		                "Vector.resize_3d(): "
 		                "cannot resize a vector that has an owner");
 		return NULL;
 	}
@@ -208,7 +208,7 @@ static PyObject *Vector_resize_3d(VectorObject *self)
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 3));
 	if(self->vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-		                "vector.resize_3d(): "
+		                "Vector.resize_3d(): "
 		                "problem allocating pointer space");
 		return NULL;
 	}
@@ -232,13 +232,13 @@ static PyObject *Vector_resize_4d(VectorObject *self)
 {
 	if(self->wrapped==Py_WRAP) {
 		PyErr_SetString(PyExc_TypeError,
-		                "vector.resize_4d(): "
+		                "Vector.resize_4d(): "
 		                "cannot resize wrapped data - only python vectors");
 		return NULL;
 	}
 	if(self->cb_user) {
 		PyErr_SetString(PyExc_TypeError,
-		                "vector.resize_4d(): "
+		                "Vector.resize_4d(): "
 		                "cannot resize a vector that has an owner");
 		return NULL;
 	}
@@ -246,7 +246,7 @@ static PyObject *Vector_resize_4d(VectorObject *self)
 	self->vec = PyMem_Realloc(self->vec, (sizeof(float) * 4));
 	if(self->vec == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-		                "vector.resize_4d(): "
+		                "Vector.resize_4d(): "
 		                "problem allocating pointer space");
 		return NULL;
 	}
@@ -354,7 +354,7 @@ static PyObject *Vector_to_tuple(VectorObject *self, PyObject *args)
 
 	if(ndigits > 22 || ndigits < 0) {
 		PyErr_SetString(PyExc_ValueError,
-		                "vector.to_tuple(ndigits): "
+		                "Vector.to_tuple(ndigits): "
 		                "ndigits must be between 0 and 21");
 		return NULL;
 	}
@@ -391,7 +391,7 @@ static PyObject *Vector_to_track_quat(VectorObject *self, PyObject *args)
 
 	if (self->size != 3) {
 		PyErr_SetString(PyExc_TypeError,
-		                "vector.to_track_quat(): "
+		                "Vector.to_track_quat(): "
 		                "only for 3D vectors");
 		return NULL;
 	}
@@ -512,7 +512,7 @@ static PyObject *Vector_reflect(VectorObject *self, PyObject *value)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if((value_size= mathutils_array_parse(tvec, 2, 4, value, "vector.reflect(other), invalid 'other' arg")) == -1)
+	if((value_size= mathutils_array_parse(tvec, 2, 4, value, "Vector.reflect(other), invalid 'other' arg")) == -1)
 		return NULL;
 
 	mirror[0] = tvec[0];
@@ -551,7 +551,7 @@ static PyObject *Vector_cross(VectorObject *self, PyObject *value)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_array_parse(tvec, self->size, self->size, value, "vector.cross(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(tvec, self->size, self->size, value, "Vector.cross(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	ret= (VectorObject *)newVectorObject(NULL, 3, Py_NEW, Py_TYPE(self));
@@ -578,7 +578,7 @@ static PyObject *Vector_dot(VectorObject *self, PyObject *value)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_array_parse(tvec, self->size, self->size, value, "vector.dot(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(tvec, self->size, self->size, value, "Vector.dot(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	for(x = 0; x < self->size; x++) {
@@ -618,7 +618,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_array_parse(tvec, size, size, value, "vector.angle(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(tvec, size, size, value, "Vector.angle(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	for(x = 0; x < size; x++) {
@@ -633,7 +633,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 		}
 		else {
 			PyErr_SetString(PyExc_ValueError,
-			                "vector.angle(other): "
+			                "Vector.angle(other): "
 			                "zero length vectors have no valid angle");
 			return NULL;
 		}
@@ -675,7 +675,7 @@ static PyObject *Vector_rotation_difference(VectorObject *self, PyObject *value)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_array_parse(vec_b, 3, MAX_DIMENSIONS, value, "vector.difference(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(vec_b, 3, MAX_DIMENSIONS, value, "Vector.difference(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	normalize_v3_v3(vec_a, self->vec);
@@ -707,7 +707,7 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_array_parse(tvec, size, size, value, "vector.project(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(tvec, size, size, value, "Vector.project(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	if(BaseMath_ReadCallback(self) == -1)
@@ -749,7 +749,7 @@ static PyObject *Vector_lerp(VectorObject *self, PyObject *args)
 	if(!PyArg_ParseTuple(args, "Of:lerp", &value, &fac))
 		return NULL;
 
-	if(mathutils_array_parse(tvec, size, size, value, "vector.lerp(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(tvec, size, size, value, "Vector.lerp(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	if(BaseMath_ReadCallback(self) == -1)
@@ -778,7 +778,7 @@ static PyObject *Vector_rotate(VectorObject *self, PyObject *value)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_any_to_rotmat(other_rmat, value, "vector.rotate(value)") == -1)
+	if(mathutils_any_to_rotmat(other_rmat, value, "Vector.rotate(value)") == -1)
 		return NULL;
 
 	if(self->size < 3) {
@@ -839,7 +839,7 @@ static PyObject *vector_item_internal(VectorObject *self, int i, const int is_at
 	if(i < 0 || i >= self->size) {
 		if(is_attr)	{
 			PyErr_Format(PyExc_AttributeError,
-			             "vector.%c: unavailable on %dd vector",
+			             "Vector.%c: unavailable on %dd vector",
 			             *(((char *)"xyzw") + i), self->size);
 		}
 		else {
@@ -875,7 +875,7 @@ static int vector_ass_item_internal(VectorObject *self, int i, PyObject *value, 
 	if(i < 0 || i >= self->size){
 		if(is_attr) {
 			PyErr_Format(PyExc_AttributeError,
-			             "vector.%c = x: unavailable on %dd vector",
+			             "Vector.%c = x: unavailable on %dd vector",
 			             *(((char *)"xyzw") + i), self->size);
 		}
 		else {
