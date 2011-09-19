@@ -2466,7 +2466,8 @@ void where_is_pose (Scene *scene, Object *ob)
 }
 
 
-/* Returns total selected vgroups */
+/* Returns total selected vgroups,
+ * wpi.defbase_sel is assumed malloc'd, all values are set */
 int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_len)
 {
 	bDeformGroup *defgroup;
