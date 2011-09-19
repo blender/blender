@@ -77,7 +77,6 @@
 #include "BKE_pointcache.h"
 #include "BKE_unit.h"
 
-
 #include "smoke_API.h"
 
 #include "IMB_imbuf.h"
@@ -86,7 +85,6 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 
@@ -1742,58 +1740,19 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 	dm->release(dm);
 }
 
-static void mesh_obmode_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
-{
-	struct { void (*func)(void *userData, MVert *mv, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
-	Mesh *me = data->vc.obact->data;
-	MVert *mv = me->mvert+index;
-	//MVert *dmv = CDDM_get_verts(data->vc.obact->derivedFinal)+index;
-	//MVert *mv = CDDM_get_verts(data->vc.obact->derivedFinal)+index;
-	if ((mv->flag & ME_HIDE)==0) {
-		short s[2]= {IS_CLIPPED, 0};
-
-		if (data->clipVerts) {
-			view3d_project_short_clip(data->vc.ar, co, s, 1);
-		} else {
-			view3d_project_short_noclip(data->vc.ar, co, s);
-		}
-
-		if (s[0]!=IS_CLIPPED)
-			data->func(data->userData, mv, s[0], s[1], index);
-	}
-}
-
-void mesh_obmode_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, MVert *mv, int x, int y, int index), void *userData, int clipVerts)
-{
-	struct { void (*func)(void *userData, MVert *mv, int x, int y, int index); void *userData; ViewContext vc; int clipVerts; } data;
-	DerivedMesh *dm = mesh_get_derived_final(vc->scene, vc->obact, CD_MASK_BAREMESH);
-
-	data.vc= *vc;
-	data.func = func;
-	data.userData = userData;
-	data.clipVerts = clipVerts;
-	
-	if(clipVerts)
-		ED_view3d_local_clipping(vc->rv3d, vc->obact->obmat); /* for local clipping lookups */
-
-	dm->foreachMappedVert(dm, mesh_obmode_foreachScreenVert__mapFunc, &data);
-
-	dm->release(dm);
-}
-
 /*  draw callback */
-static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
-	MVert *mv = userData;
-	mv+=index;
-	//printf("%d\n", index);
+	MVert *mv = &((MVert *)userData)[index];
+
 	if(!(mv->flag & ME_HIDE)) {
-		const char sel= mv->flag & 1;
+		const char sel= mv->flag & SELECT;
 
 		// TODO define selected color
 		if(sel) {
 			glColor3f(1.0f, 1.0f, 0.0f);
-		}else {
+		}
+		else {
 			glColor3f(0.0f, 0.0f, 0.0f);
 		}
 
@@ -6594,7 +6553,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	struct {void* offset; MVert *mvert;} *data = userData;
-	MVert *mv = data->mvert+index;
+	MVert *mv = &data->mvert[index];
 	int offset = (intptr_t) data->offset;
 
 	if (!(mv->flag & ME_HIDE)) {
@@ -6720,7 +6679,7 @@ static int bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index, int *UNU
 {
 	Mesh *me = userData;
 
-	if (!(me->mface[index].flag&ME_HIDE)) {
+	if (!(me->mface[index].flag & ME_HIDE)) {
 		return 1;
 	} else {
 		return 0;

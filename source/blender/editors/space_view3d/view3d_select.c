@@ -2440,7 +2440,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 	int select;
 	
 	select= (gesture_mode==GESTURE_MODAL_SELECT);
-																
+
 	if( CTX_data_edit_object(C) || paint_facesel_test(obact) || paint_vertsel_test(obact) ||
 		(obact && (obact->mode & (OB_MODE_PARTICLE_EDIT|OB_MODE_POSE))) )
 	{

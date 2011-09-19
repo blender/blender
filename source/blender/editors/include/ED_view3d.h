@@ -216,9 +216,6 @@ void ED_view3d_project_float(struct ARegion *a, const float vec[3], float adr[2]
 void ED_view3d_calc_camera_border(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, struct RegionView3D *rv3d, struct rctf *viewborder_r, short do_shift);
 
 /* drawobject.c iterators */
-
-void mesh_obmode_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct MVert *mv, int x, int y, int index), void *userData, int clipVerts);
-
 void mesh_foreachScreenVert(struct ViewContext *vc, void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
 void mesh_foreachScreenEdge(struct ViewContext *vc, void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
 void mesh_foreachScreenFace(struct ViewContext *vc, void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);

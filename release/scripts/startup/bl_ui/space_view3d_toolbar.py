@@ -646,7 +646,6 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
         elif context.weight_paint_object and brush:
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
             layout.prop(context.tool_settings, "use_auto_normalize", text="Auto Normalize")
-            # Radish
             layout.prop(context.tool_settings, "use_multipaint", text="Multi-Paint")
 
             col = layout.column()

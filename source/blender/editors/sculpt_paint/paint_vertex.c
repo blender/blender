@@ -443,8 +443,8 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			faceverts[3]= mface->v4;
 			for (i=0; i<3 || faceverts[i]; i++) {
 				if(!me->dvert[faceverts[i]].flag) {
-					
-					if(use_vert_sel && ((me->mvert[faceverts[i]].flag & SELECT) == 0)) {
+
+					if(use_vert_sel && !(me->mvert[faceverts[i]].flag & SELECT)) {
 						continue;
 					}
 
@@ -1147,11 +1147,11 @@ static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, char *
 /*
 See if the current deform vertex has a locked group
 */
-static char has_locked_group(MDeformVert *dvert, char *flags)
+static char has_locked_group(MDeformVert *dvert, char *lock_flags)
 {
 	int i;
 	for(i = 0; i < dvert->totweight; i++) {
-		if(flags[(dvert->dw+i)->def_nr] && (dvert->dw+i)->weight > 0.0f) {
+		if(lock_flags[dvert->dw[i].def_nr] && dvert->dw[i].weight > 0.0f) {
 			return TRUE;
 		}
 	}
@@ -1166,25 +1166,25 @@ static char *gen_lck_flags(Object* ob, int defbase_len)
 	char is_locked = FALSE;
 	int i;
 	//int defbase_len = BLI_countlist(&ob->defbase);
-	char *flags = MEM_mallocN(defbase_len*sizeof(char), "defflags");
+	char *lock_flags = MEM_mallocN(defbase_len*sizeof(char), "defflags");
 	bDeformGroup *defgroup;
 
 	for(i = 0, defgroup = ob->defbase.first; i < defbase_len && defgroup; defgroup = defgroup->next, i++) {
-		flags[i] = ((defgroup->flag & DG_LOCK_WEIGHT) != 0);
-		is_locked |= flags[i];
+		lock_flags[i] = ((defgroup->flag & DG_LOCK_WEIGHT) != 0);
+		is_locked |= lock_flags[i];
 	}
 	if(is_locked){
-		return flags;
+		return lock_flags;
 	}
 	// don't forget to free it if it is unneeded
-	MEM_freeN(flags);
+	MEM_freeN(lock_flags);
 	return NULL;
 }
 
-static int has_locked_group_selected(int defbase_len, char *defbase_sel, char *flags) {
+static int has_locked_group_selected(int defbase_len, char *defbase_sel, char *lock_flags) {
 	int i;
 	for(i = 0; i < defbase_len; i++) {
-		if(defbase_sel[i] && flags[i]) {
+		if(defbase_sel[i] && lock_flags[i]) {
 			return TRUE;
 		}
 	}
@@ -1193,13 +1193,13 @@ static int has_locked_group_selected(int defbase_len, char *defbase_sel, char *f
 
 
 #if 0 /* UNUSED */
-static int has_unselected_unlocked_bone_group(int defbase_len, char *defbase_sel, int selected, char *flags, char *bone_groups) {
+static int has_unselected_unlocked_bone_group(int defbase_len, char *defbase_sel, int selected, char *lock_flags, char *bone_groups) {
 	int i;
 	if(defbase_len == selected) {
 		return FALSE;
 	}
 	for(i = 0; i < defbase_len; i++) {
-		if(bone_groups[i] && !defbase_sel[i] && !flags[i]) {
+		if(bone_groups[i] && !defbase_sel[i] && !lock_flags[i]) {
 			return TRUE;
 		}
 	}
@@ -1289,7 +1289,7 @@ static float redistribute_change(MDeformVert *ndv, char *change_status, int chan
 // observe the changes made to the weights of groups.
 // make sure all locked groups on the vertex have the same deformation
 // by moving the changes made to groups onto other unlocked groups
-static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_len, char *flags, char *bone_groups, char *validmap) {
+static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_len, char *lock_flags, char *bone_groups, char *validmap) {
 	float totchange = 0.0f;
 	float totchange_allowed = 0.0f;
 	float left_over;
@@ -1307,7 +1307,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_len, c
 	char *change_status;
 	char new_weight_has_zero = FALSE;
 
-	if(!flags || !has_locked_group(ndv, flags)) {
+	if(!lock_flags || !has_locked_group(ndv, lock_flags)) {
 		return;
 	}
 	// record if a group was changed, unlocked and not changed, or locked
@@ -1318,7 +1318,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_len, c
 		odw = defvert_find_index(odv, i);
 		// the weights are zero, so we can assume a lot
 		if(!ndw || !odw) {
-			if (!flags[i] && bone_groups[i]){
+			if (!lock_flags[i] && bone_groups[i]){
 				defvert_verify_index(odv, i);
 				defvert_verify_index(ndv, i);
 				total_valid++;
@@ -1327,15 +1327,17 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_len, c
 			continue;
 		}
 		// locked groups should not be changed
-		if(flags[i]) {
+		if(lock_flags[i]) {
 			ndw->weight = odw->weight;
-		} else if(ndw->weight != odw->weight) { // changed groups are handled here
-			totchange += ndw->weight-odw->weight;
+		}
+		else if(ndw->weight != odw->weight) { // changed groups are handled here
+			totchange += ndw->weight - odw->weight;
 			change_status[i] = 2; // was altered already
 			total_changed++;
 			if(ndw->weight == 0) {
 				new_weight_has_zero = TRUE;
-			} else if(designatedw == -1){
+			}
+			else if(designatedw == -1){
 				designatedw = i;
 			}
 		} // unchanged, unlocked bone groups are handled here
@@ -1357,17 +1359,19 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_len, c
 			// on whether or not you are painting the weight(s) up or down
 			if(totchange < 0) {
 				totchange_allowed = total_valid - totchange_allowed;
-			} else {
+			}
+			else {
 				totchange_allowed *= -1;
 			}
 			left_over = 0;
-			if(fabs(totchange_allowed) < fabs(totchange)) {
+			if(fabsf(totchange_allowed) < fabsf(totchange)) {
 				// this amount goes back onto the changed, unlocked weights
-				left_over = fabs(fabs(totchange)-fabs(totchange_allowed));
+				left_over = fabsf(fabsf(totchange) - fabsf(totchange_allowed));
 				if(totchange > 0) {
 					left_over *= -1;
 				}
-			}else {
+			}
+			else {
 				// all of the change will be permitted
 				totchange_allowed = -totchange;
 			}
@@ -1389,7 +1393,7 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_len, c
 								ndw->weight = (totchange_allowed + odw->weight + odw2->weight)/(1 + ndw2->weight/ndw->weight);
 								designatedw_changed = TRUE;
 							}
-							ndw2->weight = ndw->weight*ndw2->weight/storedw;
+							ndw2->weight = ndw->weight * ndw2->weight / storedw;
 						}
 					}
 				}
@@ -1399,10 +1403,11 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_len, c
 					redistribute_change(ndv, change_status, 2, -2, validmap, left_over, total_changed);
 				}
 			}
-		} else {
+		}
+		else {
 			// reset the weights
 			for(i = 0; i < ndv->totweight; i++) {
-				(ndv->dw+i)->weight = (odv->dw+i)->weight;
+				ndv->dw[i].weight = odv->dw[i].weight;
 			}
 		}
 	}
@@ -1416,7 +1421,7 @@ static float get_mp_change(MDeformVert *odv, char *defbase_sel, float brush_chan
 	int i;
 	MDeformWeight *dw;
 	for(i=0; i < odv->totweight; i++) {
-		if(defbase_sel[(dw = (odv->dw+i))->def_nr]) {
+		if(defbase_sel[(dw= &odv->dw[i])->def_nr]) {
 			selwsum += dw->weight;
 		}
 	}
@@ -1433,14 +1438,10 @@ static void reset_to_prev(MDeformVert *wv, MDeformVert *dv) {
 	MDeformWeight *d;
 	MDeformWeight *w;
 	for(i = 0; i < dv->totweight; i++) {
-		d = dv->dw+i;
-		w = defvert_find_index(wv, d->def_nr);
-		// if there was no w when there is a d, then the old weight was 0
-		if(w) {
-			d->weight = w->weight;
-		} else {
-			d->weight = 0;
-		}
+		d= &dv->dw[i];
+		w= defvert_find_index(wv, d->def_nr);
+		/* if there was no w when there is a d, then the old weight was 0 */
+		d->weight = w ? w->weight : 0.0f;
 	}
 }
 
@@ -1453,38 +1454,41 @@ static void clamp_weights(MDeformVert *dvert) {
 
 /* fresh start to make multi-paint and locking modular */
 /* returns TRUE if it thinks you need to reset the weights due to normalizing while multi-painting */
-static int apply_mp_lcks_normalize(Mesh *me, int index, MDeformWeight *dw, MDeformWeight *tdw, int defbase_len, float change, float oldChange, float oldw, float neww, char *defbase_sel, int selected, char *bone_groups, char *validmap, char *flags, int multipaint) {
+static int apply_mp_lcks_normalize(Mesh *me, int index, MDeformWeight *dw, MDeformWeight *tdw, int defbase_len, float change, float oldChange, float oldw, float neww, char *defbase_sel, int selected, char *bone_groups, char *validmap, char *lock_flags, int multipaint)
+{
 	MDeformVert *dvert = me->dvert+index;
 	MDeformVert dv= {NULL};
 
 	dv.dw= MEM_dupallocN(dvert->dw);
 	dv.flag = dvert->flag;
 	dv.totweight = dvert->totweight;
-	// do not multi-paint if a locked group is selected or the active group is locked
-	// !flags[dw->def_nr] helps if nothing is selected, but active group is locked
-	if((flags == NULL) || (has_locked_group_selected(defbase_len, defbase_sel, flags) == FALSE && flags[dw->def_nr] == FALSE)) {
+	/* do not multi-paint if a locked group is selected or the active group is locked
+	 * !lock_flags[dw->def_nr] helps if nothing is selected, but active group is locked */
+	if((lock_flags == NULL) || (lock_flags[dw->def_nr] == FALSE && has_locked_group_selected(defbase_len, defbase_sel, lock_flags) == FALSE)) {
 		if(multipaint && selected > 1) {
 			if(change && change!=1) {
 				multipaint_selection(dvert, change, defbase_sel, defbase_len);
 			}
-		} else {// this lets users paint normally, but don't let them paint locked groups
+		}
+		else { /* this lets users paint normally, but don't let them paint locked groups */
 			dw->weight = neww;
 		}
 	}
 	clamp_weights(dvert);
 
-	enforce_locks(&dv, dvert, defbase_len, flags, bone_groups, validmap);
+	enforce_locks(&dv, dvert, defbase_len, lock_flags, bone_groups, validmap);
 
 	do_weight_paint_auto_normalize_all_groups(dvert, validmap);
 
 	if(oldChange && multipaint && selected > 1) {
 		if(tdw->weight != oldw) {
-			if( neww > oldw ) {
+			if(neww > oldw) {
 				if(tdw->weight <= oldw) {
 					MEM_freeN(dv.dw);
 					return TRUE;
 				}
-			} else {
+			}
+			else {
 				if(tdw->weight >= oldw) {
 					MEM_freeN(dv.dw);
 					return TRUE;
@@ -1496,13 +1500,13 @@ static int apply_mp_lcks_normalize(Mesh *me, int index, MDeformWeight *dw, MDefo
 	return FALSE;
 }
 
-// within the current dvert index, get the dw that is selected and has a weight above 0
-// this helps multi-paint
+/* within the current dvert index, get the dw that is selected and has a weight
+ * above 0, this helps multi-paint */
 static int get_first_selected_nonzero_weight(MDeformVert *dvert, char *defbase_sel) {
 	int i;
 	MDeformWeight *dw;
 	for(i=0; i< dvert->totweight; i++) {
-		dw = dvert->dw+i;
+		dw = &dvert->dw[i];
 		if(defbase_sel[dw->def_nr] && dw->weight > 0) {
 			return i;
 		}
@@ -1521,7 +1525,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	MDeformWeight *dw, *uw;
 	int vgroup= ob->actdef-1;
 	
-	char *flags;
+	char *lock_flags;
 	
 	char *defbase_sel;
 	int selected;
@@ -1539,15 +1543,18 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	if(dw==NULL || uw==NULL)
 		return;
 
-	flags = gen_lck_flags(ob, defbase_len = BLI_countlist(&ob->defbase));
+	lock_flags = gen_lck_flags(ob, defbase_len = BLI_countlist(&ob->defbase));
 	defbase_sel = MEM_mallocN(defbase_len * sizeof(char), "dg_selected_flags");
 	selected = get_selected_defgroups(ob, defbase_sel, defbase_len);
 	if(!selected && ob->actdef) {
 		selected = 1;
 	}
-	// TODO: De-duplicate the simple weight paint
-	// If there are no locks or multipaint, then there is no need to run the more complicated checks
-	if((multipaint == FALSE || selected <= 1) && (flags == NULL || has_locked_group(me->dvert+index, flags) == FALSE)) {
+
+	/* TODO: De-duplicate the simple weight paint */
+
+	/* If there are no locks or multipaint,
+	 * then there is no need to run the more complicated checks */
+	if((multipaint == FALSE || selected <= 1) && (lock_flags == NULL || has_locked_group(&me->dvert[index], lock_flags) == FALSE)) {
 		wpaint_blend(wp, dw, uw, alpha, paintweight, flip, FALSE);
 		do_weight_paint_auto_normalize_all_groups(me->dvert+index, validmap);
 
@@ -1562,9 +1569,10 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 				do_weight_paint_auto_normalize_all_groups(me->dvert+j, validmap);
 			}
 		}
-	} else {
-		// use locks and/or multipaint
-		// Need to know which groups are bone groups
+	}
+	else { /* use locks and/or multipaint */
+
+		/* Need to know which groups are bone groups */
 		char *bone_groups = validmap ? validmap : wpaint_make_validmap(ob);
 
 		float oldw;
@@ -1593,7 +1601,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 				if(!tdw->weight) {
 					i = get_first_selected_nonzero_weight(me->dvert+index, defbase_sel);
 					if(i>=0) {
-						tdw = ((me->dvert+index)->dw+i);
+						tdw = &(me->dvert[index].dw[i]);
 						tuw = defvert_verify_index(wp->wpaint_prev+index, tdw->def_nr);
 					}
 					else {
@@ -1631,7 +1639,7 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 			}
 		}
 		
-		if(apply_mp_lcks_normalize(me, index, dw, tdw, defbase_len, change, oldChange, oldw, neww, defbase_sel, selected, bone_groups, validmap, flags, multipaint)) {
+		if(apply_mp_lcks_normalize(me, index, dw, tdw, defbase_len, change, oldChange, oldw, neww, defbase_sel, selected, bone_groups, validmap, lock_flags, multipaint)) {
 			reset_to_prev(&dv, me->dvert+index);
 			change = 0;
 			oldChange = 0;
@@ -1650,15 +1658,15 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 				
 				//uw->weight= dw->weight;
 				
-				apply_mp_lcks_normalize(me, j, uw, tdw, defbase_len, change, oldChange, oldw, neww, defbase_sel, selected, bone_groups, validmap, flags, multipaint);
+				apply_mp_lcks_normalize(me, j, uw, tdw, defbase_len, change, oldChange, oldw, neww, defbase_sel, selected, bone_groups, validmap, lock_flags, multipaint);
 			}
 		}
 		if(!validmap) {
 			MEM_freeN(bone_groups);
 		}
 	}
-	if(flags) {
-		MEM_freeN(flags);
+	if(lock_flags) {
+		MEM_freeN(lock_flags);
 	}
 	MEM_freeN(defbase_sel);
 }
@@ -1916,8 +1924,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	int totindex, index, totw, flip;
 	float alpha;
 	float mval[2], pressure;
-	
-	
 	int use_vert_sel;
 
 	/* cannot paint if there is no stroke data */
@@ -1946,7 +1952,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
-	
 	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	/* which faces are involved */
@@ -1973,7 +1978,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			}
 		}
 	}
-
+			
 	if((me->editflag & ME_EDIT_PAINT_MASK) && me->mface) {
 		for(index=0; index<totindex; index++) {
 			if(indexar[index] && indexar[index]<=me->totface) {

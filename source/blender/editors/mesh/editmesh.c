@@ -1967,28 +1967,33 @@ void paintvert_flush_flags(Object *ob)
 {
 	Mesh *me= get_mesh(ob);
 	DerivedMesh *dm= ob->derivedFinal;
-	MVert *verts, *mv, *mv_orig;
+	MVert *dm_mvert, *dm_mv;
 	int *index_array = NULL;
 	int totvert;
 	int i;
-	
+
 	if(me==NULL || dm==NULL)
 		return;
 
 	index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-	
-	verts = dm->getVertArray(dm);
+
+	dm_mvert = dm->getVertArray(dm);
 	totvert = dm->getNumVerts(dm);
-	
-	mv= verts;
-	
-	for (i= 0; i<totvert; i++, mv++) { /* loop over derived mesh faces */
-		if(index_array) {
-			mv_orig= me->mvert + index_array[i];
-			mv->flag= mv_orig->flag;
-		} else {
-			mv_orig= me->mvert + i;
-			mv->flag= mv_orig->flag;
+
+	dm_mv= dm_mvert;
+
+	if(index_array) {
+		int orig_index;
+		for (i= 0; i<totvert; i++, dm_mv++) {
+			orig_index= index_array[i];
+			if(orig_index != ORIGINDEX_NONE) {
+				dm_mv->flag= me->mvert[index_array[i]].flag;
+			}
+		}
+	}
+	else {
+		for (i= 0; i<totvert; i++, dm_mv++) {
+			dm_mv->flag= me->mvert[i].flag;
 		}
 	}
 }

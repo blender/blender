@@ -762,8 +762,6 @@ typedef struct ToolSettings {
 	char pad[5];
 
 	char auto_normalize; /*auto normalizing mode in wpaint*/
-
-	
 	char multipaint; /* paint multiple bones in wpaint */
 
 	short sculpt_paint_settings; /* user preferences for sculpt and paint */

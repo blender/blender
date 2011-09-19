@@ -2124,7 +2124,6 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		//uiItemR(row, itemptr, "mute", 0, "", ICON_MUTE_IPO_OFF);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
-	/* I need the RNA struct for vertex groups */
 	else if(itemptr->type == &RNA_VertexGroup) {
 		bDeformGroup *dg= (bDeformGroup *)itemptr->data;
 		uiItemL(sub, name, icon);

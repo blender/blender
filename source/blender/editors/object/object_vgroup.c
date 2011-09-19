@@ -719,7 +719,7 @@ static void vgroup_normalize(Object *ob)
 
 		for(i = 0; i < dvert_tot; i++) {
 			
-			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
 				continue;
 			}
 
@@ -733,7 +733,7 @@ static void vgroup_normalize(Object *ob)
 		if(weight_max > 0.0f) {
 			for(i = 0; i < dvert_tot; i++) {
 				
-				if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
+				if(use_vert_sel && !(mvert[i].flag & SELECT)) {
 					continue;
 				}
 
@@ -1167,7 +1167,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 		
 		for(i = 0; i < dvert_tot; i++) {
 			
-			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
 				continue;
 			}
 
@@ -1207,7 +1207,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 				float lock_iweight= 1.0f;
 				int j;
 				
-				if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
+				if(use_vert_sel && !(mvert[i].flag & SELECT)) {
 					continue;
 				}
 
@@ -1251,7 +1251,7 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 			for(i = 0; i < dvert_tot; i++) {
 				int j;
 				
-				if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
+				if(use_vert_sel && !(mvert[i].flag & SELECT)) {
 					continue;
 				}
 
@@ -1332,7 +1332,7 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 
 		for(i = 0; i < dvert_tot; i++) {
 			
-			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
 				continue;
 			}
 			dvert = dvert_array[i];
@@ -1461,7 +1461,7 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 
 		for(i = 0; i < dvert_tot; i++) {
 			
-			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
 				continue;
 			}
 			dvert = dvert_array[i];
@@ -1496,7 +1496,7 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 		for(i = 0; i < dvert_tot; i++) {
 			int j;
 			
-			if(use_vert_sel && !((mvert+i)->flag & SELECT)) {
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
 				continue;
 			}
 
@@ -2325,10 +2325,10 @@ static int vertex_group_fix_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
 	
-	float distToBe= RNA_float_get(op->ptr,"dist");
-	float strength= RNA_float_get(op->ptr,"strength");
-	float cp= RNA_float_get(op->ptr,"cp");
-	ModifierData *md = ob->modifiers.first;
+	float distToBe= RNA_float_get(op->ptr, "dist");
+	float strength= RNA_float_get(op->ptr, "strength");
+	float cp= RNA_float_get(op->ptr, "accuracy");
+	ModifierData *md= ob->modifiers.first;
 
 	while(md) {
 		if(md->type == eModifierType_Mirror && (md->mode&eModifierMode_Realtime)) {
@@ -2365,7 +2365,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	RNA_def_float(ot->srna, "dist", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "The distance to move to.", -10.0f, 10.0f);	
 	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength", "The distance moved can be changed by this multiplier.", -2.0f, 2.0f);
-	RNA_def_float(ot->srna, "cp", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower.", 0.05f, 1.f);
+	RNA_def_float(ot->srna, "accuracy", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower.", 0.05f, 1.f);
 }
 
 

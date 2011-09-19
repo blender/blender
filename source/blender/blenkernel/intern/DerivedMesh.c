@@ -40,9 +40,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
-
 #include "DNA_armature_types.h"
-
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h" // N_T
 
@@ -1760,7 +1758,6 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 	ColorBand *coba= stored_cb;	/* warning, not a local var */
 	unsigned char *wtcol;
 	int i;
-
 	
 	int defbase_len = BLI_countlist(&ob->defbase);
 	char *defbase_sel = MEM_mallocN(defbase_len * sizeof(char), __func__);
@@ -1807,7 +1804,6 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	int has_multires = mmd != NULL, multires_applied = 0;
 	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
 
-	
 	int draw_flag= ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
 	                (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
 
