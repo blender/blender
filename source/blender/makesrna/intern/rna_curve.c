@@ -74,6 +74,20 @@ EnumPropertyItem curve_type_items[] = {
 	{CU_NURBS, "NURBS", 0, "Ease", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+static const EnumPropertyItem curve3d_fill_mode_items[]= {
+	{0, "FULL", 0, "Full", ""},
+	{CU_BACK, "BACK", 0, "Back", ""},
+	{CU_FRONT, "FRONT", 0, "Front", ""},
+	{CU_FRONT|CU_BACK, "HALF", 0, "Half", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+static const EnumPropertyItem curve2d_fill_mode_items[]= {
+	{0, "NONE", 0, "None", ""},
+	{CU_BACK, "BACK", 0, "Back", ""},
+	{CU_FRONT, "FRONT", 0, "Front", ""},
+	{CU_FRONT|CU_BACK, "BOTH", 0, "Both", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "BLI_math.h"
@@ -278,6 +292,12 @@ static void rna_Curve_dimension_set(PointerRNA *ptr, int value)
 	}
 }
 
+static EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), int *free)
+{
+	Curve *cu= (Curve*)ptr->id.data;
+
+	return (cu->flag&CU_3D)  ? curve3d_fill_mode_items : curve2d_fill_mode_items;
+}
 
 static int rna_Nurb_length(PointerRNA *ptr)
 {
@@ -1345,14 +1365,11 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dimensions", "Select 2D or 3D curve type");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
-	prop= RNA_def_property(srna, "use_fill_front", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FRONT);
-	RNA_def_property_ui_text(prop, "Front", "Draw filled front for extruded/beveled curves");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
-	
-	prop= RNA_def_property(srna, "use_fill_back", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_BACK);
-	RNA_def_property_ui_text(prop, "Back", "Draw filled back for extruded/beveled curves");
+	prop= RNA_def_property(srna, "fill_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, curve3d_fill_mode_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Curve_fill_mode_itemf");
+	RNA_def_property_ui_text(prop, "Fill Mode", "Mode of filling curve");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "twist_mode", PROP_ENUM, PROP_NONE);

@@ -110,8 +110,7 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             col.label(text="Fill:")
             sub = col.column()
             sub.active = (curve.dimensions == '2D' or (curve.bevel_object is None and curve.dimensions == '3D'))
-            sub.prop(curve, "use_fill_front")
-            sub.prop(curve, "use_fill_back")
+            sub.prop(curve, "fill_mode", text="")
             col.prop(curve, "use_fill_deform", text="Fill Deformed")
 
 
