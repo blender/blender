@@ -1097,8 +1097,8 @@ class WM_OT_addon_enable(Operator):
             if info_ver > bpy.app.version:
                 self.report({'WARNING'}, ("This script was written Blender "
                                           "version %d.%d.%d and might not "
-                                          "function (correctly).\n"
-                                          "The script is enabled though.") %
+                                          "function (correctly), "
+                                          "though it is enabled") %
                                          info_ver)
             return {'FINISHED'}
         else:

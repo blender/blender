@@ -147,7 +147,7 @@ static int nlaedit_enable_tweakmode_exec (bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_ACTCHANGE, NULL);
 	}
 	else {
-		BKE_report(op->reports, RPT_ERROR, "No active strip(s) to enter tweakmode on.");
+		BKE_report(op->reports, RPT_ERROR, "No active strip(s) to enter tweakmode on");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -398,7 +398,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	act= BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "action"));
 	
 	if (act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No valid Action to add.");
+		BKE_report(op->reports, RPT_ERROR, "No valid Action to add");
 		//printf("Add strip - actname = '%s' \n", actname);
 		return OPERATOR_CANCELLED;
 	}
@@ -416,7 +416,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	items= ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	if (items == 0) {
-		BKE_report(op->reports, RPT_ERROR, "No active track(s) to add strip to.");
+		BKE_report(op->reports, RPT_ERROR, "No active track(s) to add strip to");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -590,7 +590,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		BKE_report(op->reports, RPT_ERROR, "Needs at least a pair of adjacent selected strips with a gap between them.");
+		BKE_report(op->reports, RPT_ERROR, "Needs at least a pair of adjacent selected strips with a gap between them");
 		return OPERATOR_CANCELLED;
 	}
 }
@@ -1315,7 +1315,7 @@ static int nlaedit_swap_exec (bContext *C, wmOperator *op)
 		if (strip) {
 			/* too many selected warning */
 			BKE_reportf(op->reports, RPT_WARNING, 
-				"Too many clusters of strips selected in NLA Track (%s). Needs exactly 2 to be selected.",
+				"Too many clusters of strips selected in NLA Track (%s): needs exactly 2 to be selected",
 				nlt->name);
 		}
 		else if (sa == NULL) {
@@ -1324,7 +1324,7 @@ static int nlaedit_swap_exec (bContext *C, wmOperator *op)
 		else if (sb == NULL) {
 			/* too few selected warning */
 			BKE_reportf(op->reports, RPT_WARNING,
-				"Too few clusters of strips selected in NLA Track (%s). Needs exactly 2 to be selected.",
+				"Too few clusters of strips selected in NLA Track (%s): needs exactly 2 to be selected",
 				nlt->name);
 		}
 		else {
@@ -1619,7 +1619,7 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Sync Action Length";
 	ot->idname= "NLA_OT_action_sync_length";
-	ot->description= "Synchronise the length of the referenced Action with the length used in the strip.";
+	ot->description= "Synchronise the length of the referenced Action with the length used in the strip";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_sync_actlen_exec;
@@ -1629,7 +1629,7 @@ void NLA_OT_action_sync_length (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	ot->prop= RNA_def_boolean(ot->srna, "active", 1, "Active Strip Only", "Only sync the active length for the active strip.");
+	ot->prop= RNA_def_boolean(ot->srna, "active", 1, "Active Strip Only", "Only sync the active length for the active strip");
 }
 
 /* ******************** Apply Scale Operator ***************************** */
@@ -2021,7 +2021,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 				set_active_fmodifier(&strip->modifiers, fcm);
 			else {
 				BKE_reportf(op->reports, RPT_ERROR,
-					"Modifier couldn't be added to (%s : %s). See console for details.", 
+					"Modifier couldn't be added to (%s : %s) (see console for details)",
 					nlt->name, strip->name);
 			}
 		}
@@ -2042,7 +2042,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add F-Modifier";
 	ot->idname= "NLA_OT_fmodifier_add";
-	ot->description= "Add a F-Modifier of the specified type to the selected NLA-Strips.";
+	ot->description= "Add a F-Modifier of the specified type to the selected NLA-Strips";
 	
 	/* api callbacks */
 	ot->invoke= nla_fmodifier_add_invoke;
@@ -2054,7 +2054,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add a F-Modifier of the specified type to the active strip.");
+	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add a F-Modifier of the specified type to the active strip");
 }
 
 /* ******************** Copy F-Modifiers Operator *********************** */

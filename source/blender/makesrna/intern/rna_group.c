@@ -56,7 +56,7 @@ static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 static void rna_Group_objects_link(Group *group, bContext *C, ReportList *reports, Object *object)
 {
 	if(!add_to_group(group, object, CTX_data_scene(C), NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" already in group \"%s\".", object->id.name+2, group->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" already in group \"%s\"", object->id.name+2, group->id.name+2);
 		return;
 	}
 
@@ -66,7 +66,7 @@ static void rna_Group_objects_link(Group *group, bContext *C, ReportList *report
 static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *reports, Object *object)
 {
 	if(!rem_from_group(group, object, CTX_data_scene(C), NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" not in group \"%s\".", object->id.name+2, group->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" not in group \"%s\"", object->id.name+2, group->id.name+2);
 		return;
 	}
 
@@ -94,7 +94,7 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add this object to a group");
 	/* object to add */
-	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add.");
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	/* remove object */
@@ -102,7 +102,7 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove this object to a group");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	/* object to remove */
-	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove.");
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 

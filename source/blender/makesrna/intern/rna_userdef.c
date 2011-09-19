@@ -3008,13 +3008,13 @@ void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_NO_SELF);
 	RNA_def_function_ui_description(func, "Add a new addon");
 	/* return type */
-	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon datablock.");
+	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon datablock");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "remove", "rna_userdef_addon_remove");
 	RNA_def_function_flag(func, FUNC_NO_SELF);
-	RNA_def_function_ui_description(func, "Remove addon.");
-	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon to remove.");
+	RNA_def_function_ui_description(func, "Remove addon");
+	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 

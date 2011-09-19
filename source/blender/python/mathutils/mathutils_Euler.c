@@ -196,16 +196,18 @@ PyDoc_STRVAR(Euler_rotate_axis_doc,
 static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 {
 	float angle = 0.0f;
-	const char *axis;
+	int axis; /* actually a character */
 
-	if(!PyArg_ParseTuple(args, "sf:rotate", &axis, &angle)){
+	if(!PyArg_ParseTuple(args, "Cf:rotate", &axis, &angle)){
 		PyErr_SetString(PyExc_TypeError,
-		                "euler.rotate(): "
-		                "expected angle (float) and axis (x, y, z)");
+		                "Euler.rotate_axis(): "
+		                "expected an axis 'X', 'Y', 'Z' and an angle (float)");
 		return NULL;
 	}
-	if(!(ELEM3(*axis, 'X', 'Y', 'Z') && axis[1]=='\0')){
-		PyErr_SetString(PyExc_ValueError, "euler.rotate(): "
+
+	if(!(ELEM3(axis, 'X', 'Y', 'Z'))){
+		PyErr_SetString(PyExc_ValueError,
+		                "Euler.rotate_axis(): "
 		                "expected axis to be 'X', 'Y' or 'Z'");
 		return NULL;
 	}
@@ -214,7 +216,7 @@ static PyObject *Euler_rotate_axis(EulerObject * self, PyObject *args)
 		return NULL;
 
 
-	rotate_eulO(self->eul, self->order, *axis, angle);
+	rotate_eulO(self->eul, self->order, (char)axis, angle);
 
 	(void)BaseMath_WriteCallback(self);
 

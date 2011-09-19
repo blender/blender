@@ -1354,7 +1354,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	oldedit= oldcu->editnurb;
 
 	if(oldcu->key) {
-		BKE_report(op->reports, RPT_ERROR, "Can't separate a curve with vertex keys.");
+		BKE_report(op->reports, RPT_ERROR, "Can't separate a curve with vertex keys");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2693,7 +2693,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
 /********************** reveal operator *********************/
@@ -3912,7 +3912,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 	
 	if(nsortbase.first == nsortbase.last) {
 		BLI_freelistN(&nsortbase);
-		BKE_report(op->reports, RPT_ERROR, "Too few selections to merge.");
+		BKE_report(op->reports, RPT_ERROR, "Too few selections to merge");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -4692,7 +4692,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at.", -1e4, 1e4);
+	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at", -1e4, 1e4);
 }
 
 /***************** extrude operator **********************/
@@ -4882,7 +4882,7 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to make surface cyclic in.");
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to make surface cyclic in");
 }
 
 /***************** select linked operator ******************/
@@ -5017,7 +5017,7 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked control points rather than selecting them.");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked control points rather than selecting them");
 }
 
 /***************** select row operator **********************/
@@ -5460,8 +5460,8 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first");
 }
 
 /********************* every nth number of point *******************/
@@ -5992,7 +5992,7 @@ void CURVE_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete.");
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete");
 }
 
 /********************** shade smooth/flat operator *********************/

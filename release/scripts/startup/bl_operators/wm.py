@@ -218,7 +218,7 @@ class WM_OT_context_scale_int(Operator):
             )
     always_step = BoolProperty(
             name="Always Step",
-            description="Always adjust the value by a minimum of 1 when 'value' is not 1.0.",
+            description="Always adjust the value by a minimum of 1 when 'value' is not 1.0",
             default=True,
             )
 
@@ -567,7 +567,7 @@ doc_new = StringProperty(
         )
 
 data_path_iter = StringProperty(
-        description="The data path relative to the context, must point to an iterable.")
+        description="The data path relative to the context, must point to an iterable")
 
 data_path_item = StringProperty(
         description="The data path from each iterable to the value (int or float)")
@@ -1225,7 +1225,7 @@ class WM_OT_copy_prev_settings(Operator):
             if bpy.data.is_saved is bpy.data.is_dirty is False:
                 bpy.ops.wm.read_homefile()
             else:
-                self.report({'INFO'}, "Reload Start-Up file to restore settings.")
+                self.report({'INFO'}, "Reload Start-Up file to restore settings")
             return {'FINISHED'}
 
         return {'CANCELLED'}

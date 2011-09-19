@@ -109,7 +109,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             layout.template_ID(context.space_data, "pin_id")
 
             if part.is_fluid:
-                layout.label(text=_("Settings used for fluid."))
+                layout.label(text=_("Settings used for fluid"))
                 return
 
             layout.prop(part, "type", text=_("Type"))
@@ -146,7 +146,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             #row.label(text=_("Render"))
 
             if part.is_fluid:
-                layout.label(text=str(part.count) + " fluid particles for this frame.")
+                layout.label(text=str(part.count) + " fluid particles for this frame")
                 return
 
             row = col.row()
@@ -722,7 +722,7 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
                 row.prop(rule, "use_predict")
                 row.prop(rule, "fear_factor")
             elif rule.type == 'FOLLOW_PATH':
-                row.label(text=_("Not yet functional."))
+                row.label(text=_("Not yet functional"))
             elif rule.type == 'AVOID_COLLISION':
                 row.prop(rule, "use_avoid")
                 row.prop(rule, "use_avoid_collision")
@@ -1051,7 +1051,7 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
             sub = col.column(align=True)
             sub.label(text=_("Parting not"))
             sub.label(text=_("available with"))
-            sub.label(text=_("virtual parents."))
+            sub.label(text=_("virtual parents"))
         else:
             sub = col.column(align=True)
             sub.prop(part, "child_parting_factor", text=_("Parting"), slider=True)

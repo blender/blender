@@ -317,7 +317,7 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
 }
 
 /* Copy To Selected Operator ------------------------ */
@@ -409,7 +409,7 @@ static void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
 }
 
 /* Reports to Textblock Operator ------------------------ */

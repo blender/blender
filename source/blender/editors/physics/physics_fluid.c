@@ -594,7 +594,7 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 			}
 			/* if there's more than one domain, cancel */
 			else if (fsDomain && ob != fsDomain) {
-				BKE_report(reports, RPT_ERROR, "There should be only one domain object.");
+				BKE_report(reports, RPT_ERROR, "There should be only one domain object");
 				return 0;
 			}
 		}
@@ -612,17 +612,17 @@ static int fluid_validate_scene(ReportList *reports, Scene *scene, Object *fsDom
 		fsDomain = newdomain;
 	
 	if (!fsDomain) {
-		BKE_report(reports, RPT_ERROR, "No domain object found.");
+		BKE_report(reports, RPT_ERROR, "No domain object found");
 		return 0;
 	}
 	
 	if (channelObjCount>=255) {
-		BKE_report(reports, RPT_ERROR, "Cannot bake with more then 256 objects.");
+		BKE_report(reports, RPT_ERROR, "Cannot bake with more then 256 objects");
 		return 0;
 	}
 	
 	if (fluidInputCount == 0) {
-		BKE_report(reports, RPT_ERROR, "No fluid input objects in the scene.");
+		BKE_report(reports, RPT_ERROR, "No fluid input objects in the scene");
 		return 0;
 	}
 	
@@ -889,7 +889,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	/* make sure it corresponds to startFrame setting (old: noFrames = scene->r.efra - scene->r.sfra +1) */;
 	noFrames = scene->r.efra - 0;
 	if(noFrames<=0) {
-		BKE_report(reports, RPT_ERROR, "No frames to export - check your animation range settings.");
+		BKE_report(reports, RPT_ERROR, "No frames to export - check your animation range settings");
 		fluidbake_free_data(channels, fobjects, fsset, fb);
 		return 0;
 	}
@@ -993,7 +993,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain)
 	if(!invert_m4_m4(invDomMat, domainMat)) {
 		BLI_snprintf(debugStrBuffer,256,"fluidsimBake::error - Invalid obj matrix?\n"); 
 		elbeemDebugOut(debugStrBuffer);
-		BKE_report(reports, RPT_ERROR, "Invalid object matrix."); 
+		BKE_report(reports, RPT_ERROR, "Invalid object matrix"); 
 
 		fluidbake_free_data(channels, fobjects, fsset, fb);
 		return 0;

@@ -653,7 +653,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	if (ob->type!=OB_ARMATURE)
 		return OPERATOR_CANCELLED;
 	if (object_data_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature."); //error_libdata();
+		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); //error_libdata();
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -782,7 +782,7 @@ void POSE_OT_visual_transform_apply (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Apply Visual Transform to Pose";
 	ot->idname= "POSE_OT_visual_transform_apply";
-	ot->description= "Apply final constrained position of pose bones to their transform.";
+	ot->description= "Apply final constrained position of pose bones to their transform";
 	
 	/* callbacks */
 	ot->exec= pose_visual_transform_apply_exec;
@@ -1480,7 +1480,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */	
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /* **************** END Posemode stuff ********************** */
@@ -1574,7 +1574,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties s*/
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /* does bones and points */
@@ -2115,8 +2115,8 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis.");
-	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align.");
+	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis");
+	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align");
 }
 
 /* **************** undo for armatures ************** */
@@ -3196,7 +3196,7 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
 static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
@@ -5534,7 +5534,7 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with.");
+	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
 }
 
 

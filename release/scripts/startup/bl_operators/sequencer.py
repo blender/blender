@@ -51,7 +51,7 @@ class SequencerCrossfadeSounds(Operator):
                     seq2 = None
                     break
         if seq2 is None:
-            self.report({'ERROR'}, "Select 2 sound strips.")
+            self.report({'ERROR'}, "Select 2 sound strips")
             return {'CANCELLED'}
         if seq1.frame_final_start > seq2.frame_final_start:
             s = seq1
@@ -71,7 +71,7 @@ class SequencerCrossfadeSounds(Operator):
             context.scene.frame_current = tempcfra
             return {'FINISHED'}
         else:
-            self.report({'ERROR'}, "The selected strips don't overlap.")
+            self.report({'ERROR'}, "The selected strips don't overlap")
             return {'CANCELLED'}
 
 

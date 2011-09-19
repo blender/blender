@@ -675,7 +675,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 				
 				/* remove button */
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-					but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
+					but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable");
 					uiButSetFunc(but, driver_delete_var_cb, driver, dvar);
 				uiBlockSetEmboss(block, UI_EMBOSS);
 			
