@@ -48,6 +48,7 @@
 
 static PyObject *Vector_copy(VectorObject *self);
 static PyObject *Vector_to_tuple_ext(VectorObject *self, int ndigits);
+static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat);
 
 /* Supports 2D, 3D, and 4D vector objects both int and float values
  * accepted. Mixed float and int values accepted. Ints are parsed to float
@@ -1159,28 +1160,16 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 	}
 	else if (vec1) {
 		if (MatrixObject_Check(v2)) {
-
-/* ------ to be removed ------*/
-#if 1
-			PyErr_SetString(PyExc_ValueError,
-			                "(Vector * Matrix) is now removed, reverse the "
-			                "order (promoted to an Error for Debug builds)");
-			return NULL;
-#else
-
 			/* VEC * MATRIX */
-			/* this is deprecated!, use the reverse instead */
 			float tvec[MAX_DIMENSIONS];
 
 			if(BaseMath_ReadCallback((MatrixObject *)v2) == -1)
 				return NULL;
-			if(column_vector_multiplication(tvec, vec1, (MatrixObject*)v2) == -1) {
+			if(row_vector_multiplication(tvec, vec1, (MatrixObject*)v2) == -1) {
 				return NULL;
 			}
 
 			return newVectorObject(tvec, vec1->size, Py_NEW, Py_TYPE(vec1));
-#endif
-/* ------ to be removed ------*/
 		}
 		else if (QuaternionObject_Check(v2)) {
 			/* VEC * QUAT */
@@ -2219,20 +2208,19 @@ if len(unique) != len(items):
 	print "ERROR"
 */
 
-#if 0
-//ROW VECTOR Multiplication - Vector X Matrix
-//[x][y][z] *  [1][4][7]
-//             [2][5][8]
-//             [3][6][9]
-//vector/matrix multiplication IS NOT COMMUTATIVE!!!!
-static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObject * mat)
+/* ROW VECTOR Multiplication - Vector X Matrix
+ * [x][y][z] *  [1][4][7]
+ *             [2][5][8]
+ *             [3][6][9]
+ * vector/matrix multiplication IS NOT COMMUTATIVE!!!! */
+static int row_vector_multiplication(float rvec[MAX_DIMENSIONS], VectorObject *vec, MatrixObject *mat)
 {
-	float vec_cpy[4];
+	float vec_cpy[MAX_DIMENSIONS];
 	double dot = 0.0f;
-	int x, y, z = 0, vec_size = vec->size;
+	int x, y, z= 0, vec_size= vec->size;
 
-	if(mat->colSize != vec_size){
-		if(mat->colSize == 4 && vec_size != 3){
+	if(mat->col_size != vec_size){
+		if(mat->col_size == 4 && vec_size != 3){
 			PyErr_SetString(PyExc_ValueError,
 			                "vector * matrix: matrix column size "
 			                "and the vector size must be the same");
@@ -2247,11 +2235,11 @@ static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObj
 		return -1;
 
 	memcpy(vec_cpy, vec->vec, vec_size * sizeof(float));
-
+printf("asasas\n");
 	rvec[3] = 1.0f;
 	//muliplication
-	for(x = 0; x < mat->rowSize; x++) {
-		for(y = 0; y < mat->colSize; y++) {
+	for(x = 0; x < mat->row_size; x++) {
+		for(y = 0; y < mat->col_size; y++) {
 			dot += mat->matrix[x][y] * vec_cpy[y];
 		}
 		rvec[z++] = (float)dot;
@@ -2259,7 +2247,6 @@ static int row_vector_multiplication(float rvec[4], VectorObject* vec, MatrixObj
 	}
 	return 0;
 }
-#endif
 
 /*----------------------------Vector.negate() -------------------- */
 PyDoc_STRVAR(Vector_negate_doc,
