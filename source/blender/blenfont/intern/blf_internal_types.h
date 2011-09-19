@@ -161,7 +161,10 @@ typedef struct FontBLF {
 
 	/* shadow color. */
 	float shadow_col[4];
-	
+
+	/* store color here when drawing shadow or blur. */
+	float orig_col[4];
+
 	/* Multiplied this matrix with the current one before
 	 * draw the text! see blf_draw__start.
 	 */
@@ -178,6 +181,9 @@ typedef struct FontBLF {
 
 	/* max texture size. */
 	int max_tex_size;
+
+	/* current opengl texture  bind, avoids calling glGet */
+	int tex_bind_state;
 
 	/* font options. */
 	int flags;

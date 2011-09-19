@@ -36,7 +36,5 @@
 
 struct wmOperatorType;
 
-void SOUND_OT_open(wmOperatorType *ot);
-
 #endif /* ED_SOUND_INTERN_H */
 

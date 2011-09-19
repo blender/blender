@@ -292,7 +292,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 	return totvert;
 }
 
-static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
+static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
 {
 	*indexar= NULL;
 	*tot= 0;
@@ -302,7 +302,12 @@ static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;
-			EditMesh *em = BKE_mesh_get_editmesh(me);
+			EditMesh *em;
+
+			load_editMesh(scene, obedit);
+			make_editMesh(scene, obedit);
+
+			em = BKE_mesh_get_editmesh(me);
 
 			/* check selected vertices first */
 			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
@@ -427,7 +432,7 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	int tot, ok, *indexar;
 	char name[32];
 	
-	ok = object_hook_index_array(obedit, &tot, &indexar, name, cent);
+	ok = object_hook_index_array(scene, obedit, &tot, &indexar, name, cent);
 	
 	if (!ok) return;	// XXX error("Requires selected vertices or active Vertex Group");
 	
@@ -760,7 +765,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	
 	/* assign functionality */
 	
-	if(!object_hook_index_array(ob, &tot, &indexar, name, cent)) {
+	if(!object_hook_index_array(CTX_data_scene(C), ob, &tot, &indexar, name, cent)) {
 		BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
 		return OPERATOR_CANCELLED;
 	}

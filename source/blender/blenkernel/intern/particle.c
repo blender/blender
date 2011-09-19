@@ -2542,7 +2542,7 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 						normalize_v3(v1);
 						normalize_v3(v2);
 
-						d = saacos(dot_v3v3(v1, v2)) * 180.0f/(float)M_PI;
+						d = RAD2DEGF(saacos(dot_v3v3(v1, v2)));
 					}
 
 					if(p_max > p_min)

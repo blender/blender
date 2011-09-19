@@ -2021,7 +2021,7 @@ static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModi
 			{
 				if(edgecollpair.p21==6 || edgecollpair.p22 == 6)
 				{
-					printf("dist: %f, sol[k]: %lf, sol2[k]: %lf\n", distance, solution[k], solution2[k]);
+					printf("dist: %f, sol[k]: %f, sol2[k]: %f\n", distance, solution[k], solution2[k]);
 					printf("a1: %f, a2: %f, b1: %f, b2: %f\n", x1[0], x2[0], x3[0], v1[0]);
 					printf("b21: %d, b22: %d\n", edgecollpair.p21, edgecollpair.p22);
 				}

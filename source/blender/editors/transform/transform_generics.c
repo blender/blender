@@ -1666,13 +1666,13 @@ void calculatePropRatio(TransInfo *t)
 			strcpy(t->proptext, "(Random)");
 			break;
 		default:
-			strcpy(t->proptext, "");
+			t->proptext[0]= '\0';
 		}
 	}
 	else {
 		for(i = 0 ; i < t->total; i++, td++) {
 			td->factor = 1.0;
 		}
-		strcpy(t->proptext, "");
+		t->proptext[0]= '\0';
 	}
 }

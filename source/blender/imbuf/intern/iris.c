@@ -515,14 +515,15 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 		
 	}
 
-	ibuf->ftype = IMAGIC;
-	ibuf->profile = IB_PROFILE_SRGB;
-	
-	test_endian_zbuf(ibuf);
-	
 	if (ibuf) {
-		if (ibuf->rect) 
+		ibuf->ftype = IMAGIC;
+		ibuf->profile = IB_PROFILE_SRGB;
+
+		test_endian_zbuf(ibuf);
+
+		if (ibuf->rect) {
 			IMB_convert_rgba_to_abgr(ibuf);
+		}
 	}
 
 	return(ibuf);

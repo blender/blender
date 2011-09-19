@@ -126,6 +126,11 @@ help:
 	@echo "  * test_pep8       - checks all python script are pep8 which are tagged to use the stricter formatting"
 	@echo "  * test_deprecated - checks for deprecation tags in our code which may need to be removed"
 	@echo ""
+	@echo "Static Source Code Checking (not assosiated with building blender)"
+	@echo "  * check_cppcheck  - run blender source through cppcheck (C & C++)"
+	@echo "  * check_splint    - run blenders source through splint (C only)"
+	@echo "  * check_sparse    - run blenders source through sparse (C only)"
+	@echo ""
 
 # -----------------------------------------------------------------------------
 # Packages
@@ -174,6 +179,20 @@ project_netbeans:
 
 project_eclipse:
 	cmake -G"Eclipse CDT4 - Unix Makefiles" -H$(BLENDER_DIR) -B$(BUILD_DIR)
+
+
+# -----------------------------------------------------------------------------
+# Static Checking
+#
+
+check_cppcheck:
+	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py
+
+check_splint:
+	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py
+
+check_sparse:
+	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py
 
 
 clean:

@@ -45,8 +45,6 @@
  * used to compress images.
  */
 
-#ifdef WITH_TIFF
-
 #include <string.h>
 
 #include "imbuf.h"
@@ -836,5 +834,3 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	if(pixels16) _TIFFfree(pixels16);
 	return (1);
 }
-
-#endif /* WITH_TIFF */

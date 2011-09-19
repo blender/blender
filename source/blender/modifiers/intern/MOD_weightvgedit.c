@@ -187,6 +187,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	Mesh *ob_m = NULL;
 #endif
 	MDeformVert *dvert = NULL;
+	MDeformWeight **dw = NULL;
 	float *org_w; /* Array original weights. */
 	float *new_w; /* Array new weights. */
 	int numVerts;
@@ -257,13 +258,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* Get org weights, assuming 0.0 for vertices not in given vgroup. */
 	org_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
-	new_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");
+	new_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, new_w");
+	dw = MEM_mallocN(sizeof(MDeformWeight*) * numVerts, "WeightVGEdit Modifier, dw");
 	for (i = 0; i < numVerts; i++) {
-		MDeformWeight *dw= defvert_find_index(&dvert[i], defgrp_idx);
-		org_w[i] = new_w[i] = wmd->default_weight;
-
-		if(dw) {
-			org_w[i] = new_w[i] = dw->weight;
+		dw[i] = defvert_find_index(&dvert[i], defgrp_idx);
+		if(dw[i]) {
+			org_w[i] = new_w[i] = dw[i]->weight;
+		}
+		else {
+			org_w[i] = new_w[i] = wmd->default_weight;
 		}
 	}
 
@@ -278,12 +281,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 	                 wmd->mask_tex_mapping, wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
 
 	/* Update/add/remove from vgroup. */
-	weightvg_update_vg(dvert, defgrp_idx, numVerts, NULL, org_w, do_add, wmd->add_threshold,
+	weightvg_update_vg(dvert, defgrp_idx, dw, numVerts, NULL, org_w, do_add, wmd->add_threshold,
 	                   do_rem, wmd->rem_threshold);
 
 	/* Freeing stuff. */
 	MEM_freeN(org_w);
 	MEM_freeN(new_w);
+	MEM_freeN(dw);
 
 	/* Return the vgroup-modified mesh. */
 	return ret;

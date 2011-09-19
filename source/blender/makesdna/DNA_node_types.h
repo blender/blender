@@ -103,10 +103,11 @@ typedef struct bNodeSocket {
 #define SOCK_FLOAT			0
 #define SOCK_VECTOR			1
 #define SOCK_RGBA			2
-#define SOCK_INT			3
+#define SOCK_SHADER			3
 #define SOCK_BOOLEAN		4
 #define SOCK_MESH			5
-#define NUM_SOCKET_TYPES	6	/* must be last! */
+#define SOCK_INT			6
+#define NUM_SOCKET_TYPES	7	/* must be last! */
 
 /* socket side (input/output) */
 #define SOCK_IN		1
@@ -123,6 +124,10 @@ typedef struct bNodeSocket {
 #define SOCK_DYNAMIC			16
 	/* group socket should not be exposed */
 #define SOCK_INTERNAL			32
+	/* socket collapsed in UI */
+#define SOCK_COLLAPSED			64
+	/* hide socket value, if it gets auto default */
+#define SOCK_HIDE_VALUE			128
 
 typedef struct bNodePreview {
 	unsigned char *rect;

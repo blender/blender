@@ -260,7 +260,7 @@ static void rna_TextureSlot_name_get(PointerRNA *ptr, char *str)
 	if(mtex->tex)
 		strcpy(str, mtex->tex->id.name+2);
 	else
-		strcpy(str, "");
+		str[0]= '\0';
 }
 
 static int rna_TextureSlot_output_node_get(PointerRNA *ptr)

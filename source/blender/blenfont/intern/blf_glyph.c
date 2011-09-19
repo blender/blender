@@ -64,10 +64,10 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 	p= (GlyphCacheBLF *)font->cache.first;
 	while (p) {
 		if (p->size == size && p->dpi == dpi)
-			return(p);
+			return p;
 		p= p->next;
 	}
-	return(NULL);
+	return NULL;
 }
 
 /* Create a new glyph cache for the current size and dpi. */
@@ -114,7 +114,7 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 	gc->p2_height= 0;
 
 	BLI_addhead(&font->cache, gc);
-	return(gc);
+	return gc;
 }
 
 void blf_glyph_cache_clear(FontBLF *font)
@@ -185,7 +185,7 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	memset((void *)buf, 0, tot_mem);
 
 	glGenTextures(1, &gc->textures[gc->cur_tex]);
-	glBindTexture(GL_TEXTURE_2D, gc->textures[gc->cur_tex]);
+	glBindTexture(GL_TEXTURE_2D, (font->tex_bind_state= gc->textures[gc->cur_tex]));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -204,10 +204,10 @@ GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c)
 	p= gc->bucket[key].first;
 	while (p) {
 		if (p->c == c)
-			return(p);
+			return p;
 		p= p->next;
 	}
-	return(NULL);
+	return NULL;
 }
 
 GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
@@ -222,14 +222,14 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 
 	g= blf_glyph_search(font->glyph_cache, c);
 	if (g)
-		return(g);
+		return g;
 
 	if (sharp)
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_MONO);
 	else
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP); /* Sure about NO_* flags? */
 	if (err)
-		return(NULL);
+		return NULL;
 
 	/* get the glyph. */
 	slot= font->face->glyph;
@@ -248,7 +248,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	}
 
 	if (err || slot->format != FT_GLYPH_FORMAT_BITMAP)
-		return(NULL);
+		return NULL;
 
 	g= (GlyphBLF *)MEM_mallocN(sizeof(GlyphBLF), "blf_glyph_add");
 	g->next= NULL;
@@ -294,7 +294,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 
 	key= blf_hash(g->c);
 	BLI_addhead(&(font->glyph_cache->bucket[key]), g);
-	return(g);
+	return g;
 }
 
 void blf_glyph_free(GlyphBLF *g)
@@ -326,23 +326,25 @@ static void blf_texture_draw(float uv[2][2], float dx, float y1, float dx1, floa
 	
 }
 
-static void blf_texture5_draw(float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture5_draw(const float shadow_col[4], float uv[2][2], float x1, float y1, float x2, float y2)
 {
-	float soft[25]= {
-		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f, 
-		1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f, 
-		2/60.0f, 5/60.0f, 8/60.0f, 5/60.0f, 2/60.0f, 
-		1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f, 
-		1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f};
+	float soft[25]= {1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f,
+	                 1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f,
+	                 2/60.0f, 5/60.0f, 8/60.0f, 5/60.0f, 2/60.0f,
+	                 1/60.0f, 3/60.0f, 5/60.0f, 3/60.0f, 1/60.0f,
+	                 1/60.0f, 1/60.0f, 2/60.0f, 1/60.0f, 1/60.0f};
 	
 	float color[4], *fp= soft;
 	int dx, dy;
-	
-	glGetFloatv(GL_CURRENT_COLOR, color);
+
+	color[0]= shadow_col[0];
+	color[1]= shadow_col[1];
+	color[2]= shadow_col[2];
 	
 	for(dx=-2; dx<3; dx++) {
 		for(dy=-2; dy<3; dy++, fp++) {
-			glColor4f(color[0], color[1], color[2], fp[0]*color[3]);
+			color[3]= *(fp) * shadow_col[3];
+			glColor4fv(color);
 			blf_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
 		}
 	}
@@ -350,17 +352,23 @@ static void blf_texture5_draw(float uv[2][2], float x1, float y1, float x2, floa
 	glColor4fv(color);
 }
 
-static void blf_texture3_draw(float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture3_draw(const float shadow_col[4], float uv[2][2], float x1, float y1, float x2, float y2)
 {
-	float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f};
+	float soft[9]= {1/16.0f, 2/16.0f, 1/16.0f,
+	                2/16.0f,4/16.0f, 2/16.0f,
+	                1/16.0f, 2/16.0f, 1/16.0f};
+
 	float color[4], *fp= soft;
 	int dx, dy;
-	
-	glGetFloatv(GL_CURRENT_COLOR, color);
-	
+
+	color[0]= shadow_col[0];
+	color[1]= shadow_col[1];
+	color[2]= shadow_col[2];
+
 	for(dx=-1; dx<2; dx++) {
 		for(dy=-1; dy<2; dy++, fp++) {
-			glColor4f(color[0], color[1], color[2], fp[0]*color[3]);
+			color[3]= *(fp) * shadow_col[3];
+			glColor4fv(color);
 			blf_texture_draw(uv, x1+dx, y1+dy, x2+dx, y2+dy);
 		}
 	}
@@ -370,18 +378,15 @@ static void blf_texture3_draw(float uv[2][2], float x1, float y1, float x2, floa
 
 int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 {
-	GlyphCacheBLF *gc;
-	GLint cur_tex;
 	float dx, dx1;
 	float y1, y2;
 	float xo, yo;
-	float color[4];
 
 	if ((!g->width) || (!g->height))
-		return(1);
+		return 1;
 
 	if (g->build_tex == 0) {
-		gc= font->glyph_cache;
+		GlyphCacheBLF *gc= font->glyph_cache;
 
 		if (font->max_tex_size == -1)
 			glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&font->max_tex_size);
@@ -444,31 +449,36 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 
 	if (font->flags & BLF_CLIPPING) {
 		if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], y1 + font->pos[1]))
-			return(0);
+			return 0;
 		if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], y2 + font->pos[1]))
-			return(0);
+			return 0;
 		if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], y2 + font->pos[1]))
-			return(0);
+			return 0;
 		if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], y1 + font->pos[1]))
-			return(0);
+			return 0;
 	}
 
-	glGetIntegerv(GL_TEXTURE_2D_BINDING_EXT, &cur_tex);
-	if (cur_tex != g->tex)
-		glBindTexture(GL_TEXTURE_2D, g->tex);
+	if (font->tex_bind_state != g->tex) {
+		glBindTexture(GL_TEXTURE_2D, (font->tex_bind_state= g->tex));
+	}
 
 	if (font->flags & BLF_SHADOW) {
-		glGetFloatv(GL_CURRENT_COLOR, color);
-		glColor4fv(font->shadow_col);
 
-		if (font->shadow == 3)
-			blf_texture3_draw(g->uv, dx, y1, dx1, y2);
-		else if (font->shadow == 5)
-			blf_texture5_draw(g->uv, dx, y1, dx1, y2);
-		else
-			blf_texture_draw(g->uv, dx, y1, dx1, y2);
+		switch(font->shadow) {
+			case 3:
+				blf_texture3_draw(font->shadow_col, g->uv, dx, y1, dx1, y2);
+				break;
+			case 5:
+				blf_texture5_draw(font->shadow_col, g->uv, dx, y1, dx1, y2);
+				break;
+			default:
+				glColor4fv(font->shadow_col);
+				blf_texture_draw(g->uv, dx, y1, dx1, y2);
+				break;
+		}
 
-		glColor4fv(color);
+		glColor4fv(font->orig_col);
+
 		x= xo;
 		y= yo;
 
@@ -478,12 +488,17 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		y2= y + g->pos_y - g->height;
 	}
 
-	if (font->blur==3)
-		blf_texture3_draw(g->uv, dx, y1, dx1, y2);
-	else if (font->blur==5)
-		blf_texture5_draw(g->uv, dx, y1, dx1, y2);
-	else
-		blf_texture_draw(g->uv, dx, y1, dx1, y2);
+	switch(font->blur) {
+		case 3:
+			blf_texture3_draw(font->orig_col, g->uv, dx, y1, dx1, y2);
+			break;
+		case 5:
+			blf_texture5_draw(font->orig_col, g->uv, dx, y1, dx1, y2);
+			break;
+		default:
+			blf_texture_draw(g->uv, dx, y1, dx1, y2);
+			break;
+	}
 
-	return(1);
+	return 1;
 }

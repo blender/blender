@@ -737,7 +737,7 @@ static void rna_RenderSettings_engine_set(PointerRNA *ptr, int value)
 	RenderEngineType *type= BLI_findlink(&R_engines, value);
 
 	if(type)
-		BLI_strncpy(rd->engine, type->idname, sizeof(rd->engine));
+		BLI_strncpy_utf8(rd->engine, type->idname, sizeof(rd->engine));
 }
 
 static EnumPropertyItem *rna_RenderSettings_engine_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
@@ -810,7 +810,7 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 	Scene *scene= (Scene*)ptr->id.data;
 	SceneRenderLayer *rl= (SceneRenderLayer*)ptr->data;
 
-	BLI_strncpy(rl->name, value, sizeof(rl->name));
+	BLI_strncpy_utf8(rl->name, value, sizeof(rl->name));
 
 	if(scene->nodetree) {
 		bNode *node;
@@ -1011,7 +1011,7 @@ static TimeMarker *rna_TimeLine_add(Scene *scene, const char name[])
 	TimeMarker *marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag= SELECT;
 	marker->frame= 1;
-	BLI_strncpy(marker->name, name, sizeof(marker->name));
+	BLI_strncpy_utf8(marker->name, name, sizeof(marker->name));
 	BLI_addtail(&scene->markers, marker);
 	return marker;
 }
@@ -1811,8 +1811,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	static EnumPropertyItem obstacle_simulation_items[] = {
 		{OBSTSIMULATION_NONE, "NONE", 0, "None", ""},
-		{OBSTSIMULATION_TOI_rays, "RVO (rays)", 0, "RVO (rays)", ""},
-		{OBSTSIMULATION_TOI_cells, "RVO (cells)", 0, "RVO (cells)", ""},
+		{OBSTSIMULATION_TOI_rays, "RVO_RAYS", 0, "RVO (rays)", ""},
+		{OBSTSIMULATION_TOI_cells, "RVO_CELLS", 0, "RVO (cells)", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SceneGameData", NULL);

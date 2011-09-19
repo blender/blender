@@ -159,24 +159,24 @@ struct anim_index * IMB_indexer_open(const char * name)
 	int i;
 
 	if (!fp) {
-		return 0;
+		return NULL;
 	}
 
 	if (fread(header, 12, 1, fp) != 1) {
 		fclose(fp);
-		return 0;
+		return NULL;
 	}
 
 	header[12] = 0;
 
 	if (memcmp(header, magic, 8) != 0) {
 		fclose(fp);
-		return 0;
+		return NULL;
 	}
 
 	if (atoi(header+9) != INDEX_FILE_VERSION) {
 		fclose(fp);
-		return 0;
+		return NULL;
 	}
 
 	idx = MEM_callocN( sizeof(struct anim_index), "anim_index");
@@ -916,7 +916,7 @@ static AviMovie * alloc_proxy_output_avi(
 
 	if (AVI_open_compress (filename, avi, 1, format) != AVI_ERROR_NONE) {
 		MEM_freeN(avi);
-		return 0;
+		return NULL;
 	}
 			
 	AVI_set_compress_option (avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_WIDTH, &x);
@@ -1000,7 +1000,7 @@ static void index_rebuild_fallback(struct anim * anim,
 						 s_ibuf->rect, x * y * 4);
 
 				/* note that libavi free's the buffer... */
-				s_ibuf->rect = 0;
+				s_ibuf->rect = NULL;
 
 				IMB_freeImBuf(s_ibuf);
 			}
@@ -1056,14 +1056,14 @@ void IMB_free_indices(struct anim * anim)
 	for (i = 0; i < IMB_PROXY_MAX_SLOT; i++) {
 		if (anim->proxy_anim[i]) {
 			IMB_close_anim(anim->proxy_anim[i]);
-			anim->proxy_anim[i] = 0;
+			anim->proxy_anim[i] = NULL;
 		}
 	}
 
 	for (i = 0; i < IMB_TC_MAX_SLOT; i++) {
 		if (anim->curr_idx[i]) {
 			IMB_indexer_close(anim->curr_idx[i]);
-			anim->curr_idx[i] = 0;
+			anim->curr_idx[i] = NULL;
 		}
 	}
 
@@ -1116,7 +1116,7 @@ struct anim_index * IMB_anim_open_index(
 	}
 
 	if (anim->indices_tried & tc) {
-		return 0;
+		return NULL;
 	}
 
 	get_tc_filename(anim, tc, fname);

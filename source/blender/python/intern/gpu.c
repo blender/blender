@@ -55,6 +55,8 @@
 
 #include "bpy_rna.h"
 
+#include "gpu.h"
+
 #define PY_MODULE_ADD_CONSTANT(module, name) PyModule_AddIntConstant(module, #name, name)
 
 PyDoc_STRVAR(M_gpu_doc,

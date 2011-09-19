@@ -179,7 +179,6 @@ set(SRC
 	BKE_depsgraph.h
 	BKE_displist.h
 	BKE_effect.h
-	BKE_endian.h
 	BKE_fcurve.h
 	BKE_fluidsim.h
 	BKE_font.h

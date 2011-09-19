@@ -63,7 +63,7 @@ static PyStructSequence_Desc app_cb_info_desc= {
 #endif
 */
 
-static PyObject *py_cb_array[BLI_CB_EVT_TOT]= {0};
+static PyObject *py_cb_array[BLI_CB_EVT_TOT]= {NULL};
 
 static PyObject *make_app_cb_info(void)
 {
@@ -102,7 +102,7 @@ PyObject *BPY_app_handlers_struct(void)
 
 	/* assign the C callbacks */
 	if(ret) {
-		static bCallbackFuncStore funcstore_array[BLI_CB_EVT_TOT]= {{0}};
+		static bCallbackFuncStore funcstore_array[BLI_CB_EVT_TOT]= {{NULL}};
 		bCallbackFuncStore *funcstore;
 		int pos= 0;
 

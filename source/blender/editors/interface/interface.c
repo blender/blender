@@ -58,6 +58,7 @@
 
 #include "UI_interface.h"
 
+#include "IMB_imbuf.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -1873,6 +1874,8 @@ static void ui_free_but(const bContext *C, uiBut *but)
 	}
 	if(but->str && but->str != but->strdata) MEM_freeN(but->str);
 	ui_free_link(but->link);
+
+	if((but->type == BUT_IMAGE) && but->poin) IMB_freeImBuf((struct ImBuf *)but->poin);
 
 	MEM_freeN(but);
 }

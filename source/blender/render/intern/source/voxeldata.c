@@ -383,7 +383,7 @@ void make_voxeldata(struct Render *re)
 	
 }
 
-int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
+int voxeldatatex(struct Tex *tex, const float texvec[3], struct TexResult *texres)
 {	 
 	int retval = TEX_INT;
 	VoxelData *vd = tex->vd;	
