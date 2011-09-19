@@ -483,10 +483,9 @@ class USERPREF_PT_system(Panel):
 
         column.prop(system, "use_international_fonts")
         if system.use_international_fonts:
-            column.label(text=_("Select Language:"))
-            column.prop(system, "language", text="")
-            column.label(text="Translate:")
+            column.prop(system, "language")
             row = column.row()
+            row.label(text="Translate:")
             row.prop(system, "use_translate_interface", text="Interface")
             row.prop(system, "use_translate_tooltips", text="Tooltips")
 

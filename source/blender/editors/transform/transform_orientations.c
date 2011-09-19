@@ -408,12 +408,16 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 }
 
 const char * BIF_menustringTransformOrientation(const bContext *C, const char *title) {
-	const char* menu = _("%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3");
+	const char* menu = N_("%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3");
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
 	char *str_menu, *p;
 	
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE)) {
+		title= BLF_gettext(title);
+		menu= BLF_gettext(menu);
+	}
 	
 	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + 40 * BIF_countTransformOrientation(C), _("UserTransSpace from matrix"));
 	p = str_menu;

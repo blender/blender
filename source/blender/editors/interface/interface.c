@@ -2686,7 +2686,7 @@ static uiBut *ui_def_but_operator(uiBlock *block, int type, const char *opname, 
 		tip= ot->description;
 
 #ifdef INTERNATIONAL
-		if((U.transopts&USER_DOTRANSLATE) && (U.transopts|USER_TR_TOOLTIPS))
+		if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_TOOLTIPS))
 			tip= BLF_gettext(tip);
 #endif
 	}
