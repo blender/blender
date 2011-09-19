@@ -515,12 +515,12 @@ class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
             col = layout.column()
             col.label(text="Chaining:")
             col.prop(linestyle, "chaining", text="")
-            if linestyle.chaining == "NATURAL":
+            if linestyle.chaining == "PLAIN":
                 col.prop(linestyle, "same_object")
-            elif linestyle.chaining == "SKETCHY_TOPOLOGY_PRESERVED":
-                col.prop(linestyle, "rounds")
-            elif linestyle.chaining == "SKETCHY_TOPOLOGY_BROKEN":
-                col.prop(linestyle, "rounds")
+            elif linestyle.chaining == "SKETCHY":
+                sub = col.row()
+                sub.prop(linestyle, "same_object")
+                sub.prop(linestyle, "rounds")
             # Splitting
             col = layout.column()
             col.label(text="Splitting:")

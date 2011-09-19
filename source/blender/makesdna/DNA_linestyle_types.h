@@ -323,9 +323,8 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_MAX_2D_LENGTH      32
 
 /* FreestyleLineStyle::chaining */
-#define LS_CHAINING_NATURAL                     1
-#define LS_CHAINING_SKETCHY_TOPOLOGY_PRESERVED  2
-#define LS_CHAINING_SKETCHY_TOPOLOGY_BROKEN     3
+#define LS_CHAINING_PLAIN    1
+#define LS_CHAINING_SKETCHY  2
 
 /* FreestyleLineStyle::caps */
 #define LS_CAPS_BUTT    1

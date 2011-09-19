@@ -12281,7 +12281,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		for(linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
 			if (linestyle->chaining == 0)
-				linestyle->chaining= LS_CHAINING_NATURAL;
+				linestyle->chaining= LS_CHAINING_PLAIN;
 			if (linestyle->rounds == 0)
 				linestyle->rounds= 3;
 		}

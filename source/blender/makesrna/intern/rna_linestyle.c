@@ -675,9 +675,8 @@ static void rna_def_linestyle(BlenderRNA *brna)
 		{LS_PANEL_MISC, "MISC", 0, "Misc", "Show the panel for miscellaneous options."},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem chaining_items[] = {
-		{LS_CHAINING_NATURAL, "NATURAL", 0, "Natural", "Natural chaining."},
-		{LS_CHAINING_SKETCHY_TOPOLOGY_PRESERVED, "SKETCHY_TOPOLOGY_PRESERVED", 0, "Sketchy: Topology Preserved", "Natural chaining with a sketchy multiple touch."},
-		{LS_CHAINING_SKETCHY_TOPOLOGY_BROKEN, "SKETCHY_TOPOLOGY_BROKEN", 0, "Sketchy: Topology Broken", "Sketchy chaining with a broken topology of objects."},
+		{LS_CHAINING_PLAIN, "PLAIN", 0, "Plain", "Plain chaining."},
+		{LS_CHAINING_SKETCHY, "SKETCHY", 0, "Sketchy", "Sketchy chaining with a multiple touch."},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem cap_items[] = {
 		{LS_CAPS_BUTT, "BUTT", 0, "Butt", "Butt cap (flat)."},
@@ -737,7 +736,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rounds", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "rounds");
 	RNA_def_property_range(prop, 1, 1000);
-	RNA_def_property_ui_text(prop, "Rounds", "Number of rounds in a sketch multiple touch.");
+	RNA_def_property_ui_text(prop, "Rounds", "Number of rounds in a sketchy multiple touch.");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "geometry_modifiers", PROP_COLLECTION, PROP_NONE);
