@@ -95,6 +95,7 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_mesh.h"
 
 #include "object_intern.h"
 
@@ -122,7 +123,12 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
+		EditMesh *em;
+
+		load_editMesh(scene, obedit);
+		make_editMesh(scene, obedit);
+
+		em = BKE_mesh_get_editmesh(me);
 
 		eve= em->verts.first;
 		while(eve) {
