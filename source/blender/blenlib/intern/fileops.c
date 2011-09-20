@@ -136,7 +136,11 @@ char *BLI_ungzip_to_mem(const char *from_file, int *size_r)
 		else break;
 	}
 
-	if(mem && alloc_size!=size)
+	if(size==0) {
+		MEM_freeN(mem);
+		mem= NULL;
+	}
+	else if(alloc_size!=size)
 		mem= MEM_reallocN(mem, size);
 
 	*size_r= size;
