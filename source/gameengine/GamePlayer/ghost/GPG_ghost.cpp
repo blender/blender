@@ -81,6 +81,7 @@ extern char btempdir[];		/* use this to store a valid temp directory */
 
 // For BLF
 #include "BLF_api.h"
+#include "BLF_translation.h"
 extern int datatoc_bfont_ttf_size;
 extern char datatoc_bfont_ttf[];
 

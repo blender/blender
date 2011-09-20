@@ -514,6 +514,8 @@ scriptinstall = []
 
 if env['OURPLATFORM']!='darwin':
         for dp, dn, df in os.walk('release/bin/.blender'):
+            dp = os.path.normpath(dp)
+
             if '.svn' in dn:
                 dn.remove('.svn')
             if '_svn' in dn:
