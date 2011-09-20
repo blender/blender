@@ -1807,7 +1807,7 @@ void flushTransParticles(TransInfo *t)
 /* ********************* mesh ****************** */
 
 /* proportional distance based on connectivity  */
-#define THRESHOLD	0.000000000000001f
+#define THRESHOLD	0.0001f
 
 static int connectivity_edge(float mtx[][3], EditVert *v1, EditVert *v2)
 {
