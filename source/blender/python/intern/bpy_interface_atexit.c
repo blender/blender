@@ -79,7 +79,7 @@ static void atexit_func_call(const char *func_name, PyObject *atexit_func_arg)
 void BPY_atexit_register(void)
 {
 	/* atexit module owns this new function reference */
-	BLI_assert(func_bpy_atregister ==NULL);
+	BLI_assert(func_bpy_atregister == NULL);
 
 	func_bpy_atregister= (PyObject *)PyCFunction_New(&meth_bpy_atexit, NULL);
 	atexit_func_call("register", func_bpy_atregister);
@@ -87,6 +87,8 @@ void BPY_atexit_register(void)
 
 void BPY_atexit_unregister(void)
 {
+	BLI_assert(func_bpy_atregister != NULL);
+
 	atexit_func_call("unregister", func_bpy_atregister);
 	func_bpy_atregister= NULL; /* don't really need to set but just incase */
 }

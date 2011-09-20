@@ -1,50 +1,61 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
+# $Id:
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ***** END GPL LICENSE BLOCK *****
+
+# <pep8 compliant>
 
 # update the pot file according the POTFILES.in
 
+import subprocess
 import os
 
-GETTEXT_XGETTEXT_EXECUTABLE="xgettext"
-SOURCE_DIR=".."
-DOMAIN="blender"
+GETTEXT_XGETTEXT_EXECUTABLE = "xgettext"
+CURRENT_DIR = os.path.dirname(__file__)
+SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(CURRENT_DIR, "..")))
+DOMAIN = "blender"
 
-cmd = "%s --files-from=%s/po/POTFILES.in --keyword=_ --keyword=N_ --directory=%s --output=%s/po/%s.pot --from-code=utf-8" % (
-    GETTEXT_XGETTEXT_EXECUTABLE, SOURCE_DIR, SOURCE_DIR, SOURCE_DIR, DOMAIN)
+FILE_NAME_POT = os.path.join(CURRENT_DIR, "blender.pot")
+FILE_NAME_MESSAGES = os.path.join(CURRENT_DIR, "messages.txt")
 
-os.system( cmd )
 
-def stripeol(s):
-    if line.endswith("\n"):
-        s = s[:-1]
+def main():
+    cmd = (GETTEXT_XGETTEXT_EXECUTABLE,
+           "--files-from=%s" % os.path.join(SOURCE_DIR, "po", "POTFILES.in"),
+           "--keyword=_",
+           "--keyword=N_",
+           "--directory=%s" % SOURCE_DIR,
+           "--output=%s" % os.path.join(SOURCE_DIR, "po", "%s.pot" % DOMAIN),
+           "--from-code=utf-8",
+           )
 
-    if line.endswith("\r"):
-        s = s[:-1]
+    print(" ".join(cmd))
+    process = subprocess.Popen(cmd)
+    process.wait()
 
-    return s
+    def stripeol(s):
+        return s.rstrip("\n\r")
 
-pot_messages = {}
-reading_message = False
-message = ""
-with open("blender.pot", 'r') as handle:
-    while True:
-        line = handle.readline()
-
-        if not line:
-            break
-
-        line = stripeol(line)
-        if line.startswith("msgid"):
-            reading_message = True
-            message = line[7:-1]
-        elif line.startswith("msgstr"):
-            reading_message = False
-            pot_messages[message] = True
-        elif reading_message:
-            message += line[1:-1]
-
-# add messages collected automatically from RNA
-with open("blender.pot", "a") as pot_handle:
-    with open("messages.txt", 'r') as handle:
+    pot_messages = {}
+    reading_message = False
+    message = ""
+    with open(FILE_NAME_POT, 'r') as handle:
         while True:
             line = handle.readline()
 
@@ -52,10 +63,33 @@ with open("blender.pot", "a") as pot_handle:
                 break
 
             line = stripeol(line)
-            line = line.replace("\\", "\\\\")
-            line = line.replace("\"", "\\\"")
+            if line.startswith("msgid"):
+                reading_message = True
+                message = line[7:-1]
+            elif line.startswith("msgstr"):
+                reading_message = False
+                pot_messages[message] = True
+            elif reading_message:
+                message += line[1:-1]
 
-            if not pot_messages.get(line):
-                pot_handle.write("\n#: Automatically collected from RNA\n")
-                pot_handle.write("msgid \"%s\"\n" % (line))
-                pot_handle.write("msgstr \"\"\n")
+    # add messages collected automatically from RNA
+    with open(FILE_NAME_POT, "a") as pot_handle:
+        with open(FILE_NAME_MESSAGES, 'r') as handle:
+            while True:
+                line = handle.readline()
+
+                if not line:
+                    break
+
+                line = stripeol(line)
+                line = line.replace("\\", "\\\\")
+                line = line.replace("\"", "\\\"")
+
+                if not pot_messages.get(line):
+                    pot_handle.write("\n#: Automatically collected from RNA\n")
+                    pot_handle.write("msgid \"%s\"\n" % (line))
+                    pot_handle.write("msgstr \"\"\n")
+
+
+if __name__ == "__main__":
+    main()

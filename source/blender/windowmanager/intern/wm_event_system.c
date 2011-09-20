@@ -85,7 +85,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 
 void wm_event_add(wmWindow *win, wmEvent *event_to_add)
 {
-	wmEvent *event= MEM_callocN(sizeof(wmEvent), "event");
+	wmEvent *event= MEM_callocN(sizeof(wmEvent), "wmEvent");
 	
 	*event= *event_to_add;
 	BLI_addtail(&win->queue, event);
