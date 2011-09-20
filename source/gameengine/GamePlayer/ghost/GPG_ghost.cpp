@@ -998,7 +998,11 @@ int main(int argc, char** argv)
 	// Cleanup
 	RNA_exit();
 	BLF_exit();
+
+#ifdef INTERNATIONAL
 	BLF_free_unifont();
+#endif
+
 	IMB_exit();
 	free_nodesystem();
 

@@ -402,7 +402,10 @@ void WM_exit_ext(bContext *C, const short do_python)
 	free_posebuf();
 
 	BLF_exit();
+
+#ifdef INTERNATIONAL
 	BLF_free_unifont();
+#endif
 	
 	ANIM_keyingset_infos_exit();
 	
