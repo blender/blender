@@ -48,7 +48,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"

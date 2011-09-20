@@ -255,29 +255,6 @@ static PackedFile *get_builtin_packedfile(void)
 	}
 }
 
-#ifdef INTERNATIONAL
-const char unifont_filename[]="droidsans.ttf.gz";
-static unsigned char *unifont_ttf= NULL;
-static int unifont_size= 0;
-
-unsigned char *BKE_font_get_unifont(int *unifont_size_r)
-{
-	if(unifont_ttf==NULL) {
-		char *fontpath = BLI_get_folder(BLENDER_DATAFILES, "fonts");
-		char unifont_path[1024];
-
-		BLI_snprintf(unifont_path, sizeof(unifont_path), "%s/%s", fontpath, unifont_filename);
-
-		unifont_ttf= BLI_ungzip_to_mem(unifont_path, &unifont_size);
-	}
-
-	*unifont_size_r= unifont_size;
-
-	return unifont_ttf;
-}
-
-#endif
-
 void free_ttfont(void)
 {
 	struct TmpFont *tf;
@@ -288,11 +265,6 @@ void free_ttfont(void)
 		tf->vfont= NULL;
 	}
 	BLI_freelistN(&ttfdata);
-
-#ifdef INTERNATIONAL
-	if(unifont_ttf)
-		MEM_freeN(unifont_ttf);
-#endif
 }
 
 struct TmpFont *vfont_find_tmpfont(VFont *vfont)

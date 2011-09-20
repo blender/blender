@@ -44,10 +44,10 @@
 #include "BLI_string.h"
 
 #include "BKE_global.h"
-#include "BKE_font.h"
 
 
 #include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "UI_interface.h"
 
@@ -324,7 +324,7 @@ void uiStyleInit(void)
 		if(font->uifont_id==UIFONT_DEFAULT) {
 #ifdef INTERNATIONAL
 			int unifont_size;
-			unsigned char *unifont_ttf= BKE_font_get_unifont(&unifont_size);
+			unsigned char *unifont_ttf= BLF_get_unifont(&unifont_size);
 
 			if(unifont_ttf)
 				font->blf_id= BLF_load_mem_unique("default", unifont_ttf, unifont_size);

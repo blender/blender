@@ -31,6 +31,7 @@
 #include "blf_py_api.h"
 
 #include "../../blenfont/BLF_api.h"
+#include "../../blenfont/BLF_translation.h"
 
 #include "BLI_utildefines.h"
 

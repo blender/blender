@@ -37,7 +37,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"

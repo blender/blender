@@ -68,6 +68,7 @@
 #include "interface_intern.h"
 
 #include "BLF_api.h"
+#include "BLF_translation.h"
 
 void UI_template_fix_linking(void)
 {

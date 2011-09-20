@@ -45,7 +45,7 @@
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "BKE_nla.h"
 #include "BKE_context.h"

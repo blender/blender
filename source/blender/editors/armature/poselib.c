@@ -43,7 +43,7 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
-#include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"

@@ -55,6 +55,7 @@
 #include "BIF_gl.h"
 
 #include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "UI_interface.h"
 

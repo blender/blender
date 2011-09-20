@@ -49,7 +49,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "PIL_time.h"
 

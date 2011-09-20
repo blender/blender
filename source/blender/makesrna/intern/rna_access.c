@@ -44,6 +44,7 @@
 #include "BLI_ghash.h"
 
 #include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "BKE_animsys.h"
 #include "BKE_context.h"

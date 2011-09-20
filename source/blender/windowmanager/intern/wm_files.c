@@ -59,7 +59,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
 
-#include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_ipo_types.h" // XXX old animation system

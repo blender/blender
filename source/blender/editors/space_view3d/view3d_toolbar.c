@@ -48,7 +48,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
-#include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_idprop.h"

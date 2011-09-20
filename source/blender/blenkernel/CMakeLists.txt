@@ -361,10 +361,6 @@ if(WITH_GAMEENGINE)
 	)
 endif()
 
-if(WITH_INTERNATIONAL)
-	add_definitions(-DINTERNATIONAL)
-endif()
-
 if(MSVC)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
 endif()

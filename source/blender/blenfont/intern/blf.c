@@ -34,11 +34,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef INTERNATIONAL
-#include <libintl.h>
-#endif
-
 #include <math.h>
 
 #include <ft2build.h>
@@ -302,17 +297,6 @@ void BLF_enable(int fontid, int option)
 	if (font) {
 		font->flags |= option;
 	}
-}
-
-const char* BLF_gettext(const char *msgid)
-{
-#ifdef INTERNATIONAL
-	if( msgid[0] )
-		return gettext( msgid );
-	return "";
-#else
-	return msgid;
-#endif
 }
 
 void BLF_disable(int fontid, int option)

@@ -34,15 +34,12 @@
 #ifndef BLF_API_H
 #define BLF_API_H
 
-#include <stdlib.h>
 struct rctf;
 
 int BLF_init(int points, int dpi);
 void BLF_exit(void);
 
 void BLF_cache_clear(void);
-
-const char* BLF_gettext(const char *msgid);
 
 int BLF_load(const char *name);
 int BLF_load_mem(const char *name, unsigned char *mem, int mem_size);
@@ -181,20 +178,6 @@ void BLF_buffer_col(int fontid, float r, float g, float b, float a);
  */
 void BLF_draw_buffer(int fontid, const char *str);
 
-/*
- * Search the path directory to the locale files, this try all
- * the case for Linux, Win and Mac.
- */
-void BLF_lang_init(void);
-
-/* Set the current locale. */
-void BLF_lang_set(const char *);
-
-/* Set the current encoding name. */
-void BLF_lang_encoding_name(const char *str);
-
-void BLF_lang_encoding(const char *str);
-
 /* Add a path to the font dir paths. */
 void BLF_dir_add(const char *path);
 
@@ -218,8 +201,5 @@ void BLF_dir_free(char **dirs, int count);
 // XXX, bad design
 extern int blf_mono_font;
 extern int blf_mono_font_render; // dont mess drawing with render threads.
-
-#define _(msgid) BLF_gettext(msgid)
-#define N_(msgid) msgid
 
 #endif /* BLF_API_H */

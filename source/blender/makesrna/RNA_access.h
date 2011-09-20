@@ -587,9 +587,6 @@ extern StructRNA RNA_WorldTextureSlot;
 extern StructRNA RNA_XnorController;
 extern StructRNA RNA_XorController;
 
-/* make every name and description field surrounded by gettext */
-EnumPropertyItem* RNA_enum_items_gettexted(EnumPropertyItem *item);
-
 /* Pointer
  *
  * These functions will fill in RNA pointers, this can be done in three ways:

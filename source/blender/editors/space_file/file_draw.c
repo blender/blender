@@ -50,6 +50,7 @@
 #include "BKE_main.h"
 
 #include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "IMB_imbuf_types.h"
  

@@ -99,6 +99,7 @@
 
 #include "UI_interface.h"
 #include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "GPU_buffers.h"
 #include "GPU_extensions.h"
@@ -400,6 +401,7 @@ void WM_exit(bContext *C)
 	free_posebuf();
 
 	BLF_exit();
+	BLF_free_unifont();
 	
 	ANIM_keyingset_infos_exit();
 	
