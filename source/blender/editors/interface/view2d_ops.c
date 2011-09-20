@@ -51,6 +51,7 @@
 #include "ED_screen.h"
 
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "PIL_time.h" /* USER_ZOOM_CONT */
 
@@ -1587,7 +1588,7 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
 	int winx, winy;

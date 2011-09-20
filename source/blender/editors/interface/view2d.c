@@ -168,7 +168,7 @@ static void view2d_masks(View2D *v2d)
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
 	short tot_changed= 0, init= 0;
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 
 	/* initialise data if there is a need for such */
 	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {

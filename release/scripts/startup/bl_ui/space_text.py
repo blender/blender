@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from blf import gettext as _
 
 
 class TEXT_HT_header(Header):
@@ -66,13 +67,13 @@ class TEXT_HT_header(Header):
             row = layout.row()
             if text.filepath:
                 if text.is_dirty:
-                    row.label(text="File: *%r (unsaved)" % text.filepath)
+                    row.label(text=_("File")+": *%r " % text.filepath+_("(unsaved)"))
                 else:
-                    row.label(text="File: %r" % text.filepath)
+                    row.label(text=_("File")+": %r" % text.filepath)
             else:
-                row.label(text="Text: External"
+                row.label(text=_("Text: External")
                           if text.library
-                          else "Text: Internal")
+                          else _("Text: Internal"))
 
 
 class TEXT_PT_properties(Panel):
@@ -136,8 +137,8 @@ class TEXT_PT_find(Panel):
         # settings
         layout.prop(st, "use_match_case")
         row = layout.row()
-        row.prop(st, "use_find_wrap", text="Wrap")
-        row.prop(st, "use_find_all", text="All")
+        row.prop(st, "use_find_wrap", text=_("Wrap"))
+        row.prop(st, "use_find_all", text=_("All"))
 
 
 class TEXT_MT_view(Menu):
@@ -156,10 +157,10 @@ class TEXT_MT_view(Menu):
         layout.separator()
 
         layout.operator("text.move",
-                        text="Top of File",
+                        text=_("Top of File"),
                         ).type = 'FILE_TOP'
         layout.operator("text.move",
-                        text="Bottom of File",
+                        text=_("Bottom of File"),
                         ).type = 'FILE_BOTTOM'
 
 
@@ -248,10 +249,10 @@ class TEXT_MT_edit_to3d(Menu):
         layout = self.layout
 
         layout.operator("text.to_3d_object",
-                        text="One Object",
+                        text=_("One Object"),
                         ).split_lines = False
         layout.operator("text.to_3d_object",
-                        text="One Object Per Line",
+                        text=_("One Object Per Line"),
                         ).split_lines = True
 
 
@@ -282,7 +283,7 @@ class TEXT_MT_edit(Menu):
         layout.separator()
 
         layout.operator("text.jump")
-        layout.operator("text.properties", text="Find...")
+        layout.operator("text.properties", text=_("Find..."))
 
         layout.separator()
 

@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
-
+from blf import gettext as _
 
 def active_node_mat(mat):
     # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
@@ -114,9 +114,9 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
 
             if ob.mode == 'EDIT':
                 row = layout.row(align=True)
-                row.operator("object.material_slot_assign", text="Assign")
-                row.operator("object.material_slot_select", text="Select")
-                row.operator("object.material_slot_deselect", text="Deselect")
+                row.operator("object.material_slot_assign", text=_("Assign"))
+                row.operator("object.material_slot_select", text=_("Select"))
+                row.operator("object.material_slot_deselect", text=_("Deselect"))
 
         split = layout.split(percentage=0.65)
 
@@ -142,7 +142,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
                 if mat.active_node_material:
                     row.prop(mat.active_node_material, "name", text="")
                 else:
-                    row.label(text="No material node selected")
+                    row.label(text=_("No material node selected"))
 
 
 class MATERIAL_PT_preview(MaterialButtonsPanel, Panel):
@@ -197,8 +197,8 @@ class MATERIAL_PT_pipeline(MaterialButtonsPanel, Panel):
         col = split.column()
         col.active = mat_type
 
-        col.prop(mat, "use_cast_shadows_only", text="Cast Only")
-        col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
+        col.prop(mat, "use_cast_shadows_only", text=_("Cast Only"))
+        col.prop(mat, "shadow_cast_alpha", text=_("Casting Alpha"))
         col.prop(mat, "use_cast_buffer_shadows")
         col.prop(mat, "use_cast_approximate")
         col.prop(mat, "pass_index")
@@ -225,12 +225,12 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, Panel):
         col.prop(mat, "diffuse_color", text="")
         sub = col.column()
         sub.active = (not mat.use_shadeless)
-        sub.prop(mat, "diffuse_intensity", text="Intensity")
+        sub.prop(mat, "diffuse_intensity", text=_("Intensity"))
 
         col = split.column()
         col.active = (not mat.use_shadeless)
         col.prop(mat, "diffuse_shader", text="")
-        col.prop(mat, "use_diffuse_ramp", text="Ramp")
+        col.prop(mat, "use_diffuse_ramp", text=_("Ramp"))
 
         col = layout.column()
         col.active = (not mat.use_shadeless)
@@ -240,12 +240,12 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, Panel):
             col.prop(mat, "darkness")
         elif mat.diffuse_shader == 'TOON':
             row = col.row()
-            row.prop(mat, "diffuse_toon_size", text="Size")
-            row.prop(mat, "diffuse_toon_smooth", text="Smooth")
+            row.prop(mat, "diffuse_toon_size", text=_("Size"))
+            row.prop(mat, "diffuse_toon_smooth", text=_("Smooth"))
         elif mat.diffuse_shader == 'FRESNEL':
             row = col.row()
-            row.prop(mat, "diffuse_fresnel", text="Fresnel")
-            row.prop(mat, "diffuse_fresnel_factor", text="Factor")
+            row.prop(mat, "diffuse_fresnel", text=_("Fresnel"))
+            row.prop(mat, "diffuse_fresnel_factor", text=_("Factor"))
 
         if mat.use_diffuse_ramp:
             col = layout.column()
@@ -255,10 +255,10 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel, Panel):
             col.separator()
 
             row = col.row()
-            row.prop(mat, "diffuse_ramp_input", text="Input")
-            row.prop(mat, "diffuse_ramp_blend", text="Blend")
+            row.prop(mat, "diffuse_ramp_input", text=_("Input"))
+            row.prop(mat, "diffuse_ramp_blend", text=_("Blend"))
 
-            col.prop(mat, "diffuse_ramp_factor", text="Factor")
+            col.prop(mat, "diffuse_ramp_factor", text=_("Factor"))
 
 
 class MATERIAL_PT_specular(MaterialButtonsPanel, Panel):
@@ -282,25 +282,25 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, Panel):
 
         col = split.column()
         col.prop(mat, "specular_color", text="")
-        col.prop(mat, "specular_intensity", text="Intensity")
+        col.prop(mat, "specular_intensity", text=_("Intensity"))
 
         col = split.column()
         col.prop(mat, "specular_shader", text="")
-        col.prop(mat, "use_specular_ramp", text="Ramp")
+        col.prop(mat, "use_specular_ramp", text=_("Ramp"))
 
         col = layout.column()
         if mat.specular_shader in {'COOKTORR', 'PHONG'}:
-            col.prop(mat, "specular_hardness", text="Hardness")
+            col.prop(mat, "specular_hardness", text=_("Hardness"))
         elif mat.specular_shader == 'BLINN':
             row = col.row()
-            row.prop(mat, "specular_hardness", text="Hardness")
-            row.prop(mat, "specular_ior", text="IOR")
+            row.prop(mat, "specular_hardness", text=_("Hardness"))
+            row.prop(mat, "specular_ior", text=_("IOR"))
         elif mat.specular_shader == 'WARDISO':
-            col.prop(mat, "specular_slope", text="Slope")
+            col.prop(mat, "specular_slope", text=_("Slope"))
         elif mat.specular_shader == 'TOON':
             row = col.row()
-            row.prop(mat, "specular_toon_size", text="Size")
-            row.prop(mat, "specular_toon_smooth", text="Smooth")
+            row.prop(mat, "specular_toon_size", text=_("Size"))
+            row.prop(mat, "specular_toon_smooth", text=_("Smooth"))
 
         if mat.use_specular_ramp:
             layout.separator()
@@ -308,10 +308,10 @@ class MATERIAL_PT_specular(MaterialButtonsPanel, Panel):
             layout.separator()
 
             row = layout.row()
-            row.prop(mat, "specular_ramp_input", text="Input")
-            row.prop(mat, "specular_ramp_blend", text="Blend")
+            row.prop(mat, "specular_ramp_input", text=_("Input"))
+            row.prop(mat, "specular_ramp_blend", text=_("Blend"))
 
-            layout.prop(mat, "specular_ramp_factor", text="Factor")
+            layout.prop(mat, "specular_ramp_factor", text=_("Factor"))
 
 
 class MATERIAL_PT_shading(MaterialButtonsPanel, Panel):
@@ -384,14 +384,14 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, Panel):
         col.prop(mat, "alpha")
         row = col.row()
         row.active = (base_mat.transparency_method != 'MASK') and (not mat.use_shadeless)
-        row.prop(mat, "specular_alpha", text="Specular")
+        row.prop(mat, "specular_alpha", text=_("Specular"))
 
         col = split.column()
         col.active = (not mat.use_shadeless)
         col.prop(rayt, "fresnel")
         sub = col.column()
         sub.active = rayt.fresnel > 0
-        sub.prop(rayt, "fresnel_factor", text="Blend")
+        sub.prop(rayt, "fresnel_factor", text=_("Blend"))
 
         if base_mat.transparency_method == 'RAYTRACE':
             layout.separator()
@@ -406,12 +406,12 @@ class MATERIAL_PT_transp(MaterialButtonsPanel, Panel):
             col.prop(rayt, "depth")
 
             col = split.column()
-            col.label(text="Gloss:")
-            col.prop(rayt, "gloss_factor", text="Amount")
+            col.label(text=_("Gloss:"))
+            col.prop(rayt, "gloss_factor", text=_("Amount"))
             sub = col.column()
             sub.active = rayt.gloss_factor < 1.0
-            sub.prop(rayt, "gloss_threshold", text="Threshold")
-            sub.prop(rayt, "gloss_samples", text="Samples")
+            sub.prop(rayt, "gloss_threshold", text=_("Threshold"))
+            sub.prop(rayt, "gloss_samples", text=_("Samples"))
 
 
 class MATERIAL_PT_mirror(MaterialButtonsPanel, Panel):
@@ -448,28 +448,28 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel, Panel):
         col.prop(raym, "fresnel")
         sub = col.column()
         sub.active = raym.fresnel > 0
-        sub.prop(raym, "fresnel_factor", text="Blend")
+        sub.prop(raym, "fresnel_factor", text=_("Blend"))
 
         split = layout.split()
 
         col = split.column()
         col.separator()
         col.prop(raym, "depth")
-        col.prop(raym, "distance", text="Max Dist")
+        col.prop(raym, "distance", text=_("Max Dist"))
         col.separator()
         sub = col.split(percentage=0.4)
         sub.active = raym.distance > 0.0
-        sub.label(text="Fade To:")
+        sub.label(text=_("Fade To:"))
         sub.prop(raym, "fade_to", text="")
 
         col = split.column()
-        col.label(text="Gloss:")
-        col.prop(raym, "gloss_factor", text="Amount")
+        col.label(text=_("Gloss:"))
+        col.prop(raym, "gloss_factor", text=_("Amount"))
         sub = col.column()
         sub.active = raym.gloss_factor < 1.0
-        sub.prop(raym, "gloss_threshold", text="Threshold")
-        sub.prop(raym, "gloss_samples", text="Samples")
-        sub.prop(raym, "gloss_anisotropic", text="Anisotropic")
+        sub.prop(raym, "gloss_threshold", text=_("Threshold"))
+        sub.prop(raym, "gloss_samples", text=_("Samples"))
+        sub.prop(raym, "gloss_anisotropic", text=_("Anisotropic"))
 
 
 class MATERIAL_PT_sss(MaterialButtonsPanel, Panel):
@@ -510,18 +510,18 @@ class MATERIAL_PT_sss(MaterialButtonsPanel, Panel):
         col.prop(sss, "ior")
         col.prop(sss, "scale")
         col.prop(sss, "color", text="")
-        col.prop(sss, "radius", text="RGB Radius", expand=True)
+        col.prop(sss, "radius", text=_("RGB Radius"), expand=True)
 
         col = split.column()
         sub = col.column(align=True)
-        sub.label(text="Blend:")
-        sub.prop(sss, "color_factor", text="Color")
-        sub.prop(sss, "texture_factor", text="Texture")
-        sub.label(text="Scattering Weight:")
+        sub.label(text=_("Blend:"))
+        sub.prop(sss, "color_factor", text=_("Color"))
+        sub.prop(sss, "texture_factor", text=_("Texture"))
+        sub.label(text=_("Scattering Weight:"))
         sub.prop(sss, "front")
         sub.prop(sss, "back")
         col.separator()
-        col.prop(sss, "error_threshold", text="Error")
+        col.prop(sss, "error_threshold", text=_("Error"))
 
 
 class MATERIAL_PT_halo(MaterialButtonsPanel, Panel):
@@ -561,7 +561,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, Panel):
         col.prop(halo, "hardness")
         col.prop(halo, "add")
 
-        layout.label(text="Options:")
+        layout.label(text=_("Options:"))
 
         split = layout.split()
         col = split.column()
@@ -603,13 +603,13 @@ class MATERIAL_PT_flare(MaterialButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(halo, "flare_size", text="Size")
-        col.prop(halo, "flare_boost", text="Boost")
-        col.prop(halo, "flare_seed", text="Seed")
+        col.prop(halo, "flare_size", text=_("Size"))
+        col.prop(halo, "flare_boost", text=_("Boost"))
+        col.prop(halo, "flare_seed", text=_("Seed"))
 
         col = split.column()
-        col.prop(halo, "flare_subflare_count", text="Subflares")
-        col.prop(halo, "flare_subflare_size", text="Subsize")
+        col.prop(halo, "flare_subflare_count", text=_("Subflares"))
+        col.prop(halo, "flare_subflare_size", text=_("Subsize"))
 
 
 class MATERIAL_PT_game_settings(MaterialButtonsPanel, bpy.types.Panel):
@@ -660,7 +660,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
         row.prop(phys, "elasticity", slider=True)
 
         row = layout.row()
-        row.label(text="Force Field:")
+        row.label(text=_("Force Field:"))
 
         row = layout.row()
         row.prop(phys, "fh_force")
@@ -692,10 +692,10 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
 
         col = split.column()
         sub = col.column(align=True)
-        sub.label(text="Size:")
-        sub.prop(tan, "root_size", text="Root")
-        sub.prop(tan, "tip_size", text="Tip")
-        sub.prop(tan, "size_min", text="Minimum")
+        sub.label(text=_("Size:"))
+        sub.prop(tan, "root_size", text=_("Root"))
+        sub.prop(tan, "tip_size", text=_("Tip"))
+        sub.prop(tan, "size_min", text=_("Minimum"))
         sub.prop(tan, "use_blender_units")
         sub = col.column()
         sub.active = (not mat.use_shadeless)
@@ -703,7 +703,7 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
         col.prop(tan, "shape")
 
         col = split.column()
-        col.label(text="Shading:")
+        col.label(text=_("Shading:"))
         col.prop(tan, "width_fade")
         ob = context.object
         if ob and ob.type == 'MESH':
@@ -713,9 +713,9 @@ class MATERIAL_PT_strand(MaterialButtonsPanel, Panel):
         col.separator()
         sub = col.column()
         sub.active = (not mat.use_shadeless)
-        sub.label("Surface diffuse:")
+        sub.label(_("Surface diffuse:"))
         sub = col.column()
-        sub.prop(tan, "blend_distance", text="Distance")
+        sub.prop(tan, "blend_distance", text=_("Distance"))
 
 
 class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
@@ -748,11 +748,11 @@ class MATERIAL_PT_options(MaterialButtonsPanel, Panel):
             sub.prop(mat, "offset_z")
             sub.active = mat.use_transparency and mat.transparency_method == 'Z_TRANSPARENCY'
         sub = col.column(align=True)
-        sub.label(text="Light Group:")
+        sub.label(text=_("Light Group:"))
         sub.prop(mat, "light_group", text="")
         row = sub.row()
         row.active = bool(mat.light_group)
-        row.prop(mat, "use_light_group_exclusive", text="Exclusive")
+        row.prop(mat, "use_light_group_exclusive", text=_("Exclusive"))
 
         col = split.column()
         col.prop(mat, "use_face_texture")
@@ -787,12 +787,12 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(mat, "use_shadows", text="Receive")
-        col.prop(mat, "use_transparent_shadows", text="Receive Transparent")
+        col.prop(mat, "use_shadows", text=_("Receive"))
+        col.prop(mat, "use_transparent_shadows", text=_("Receive Transparent"))
         if simple_material(base_mat):
-            col.prop(mat, "use_cast_shadows_only", text="Cast Only")
-            col.prop(mat, "shadow_cast_alpha", text="Casting Alpha")
-        col.prop(mat, "use_only_shadow", text="Shadows Only")
+            col.prop(mat, "use_cast_shadows_only", text=_("Cast Only"))
+            col.prop(mat, "shadow_cast_alpha", text=_("Casting Alpha"))
+        col.prop(mat, "use_only_shadow", text=_("Shadows Only"))
         sub = col.column()
         sub.active = mat.use_only_shadow
         sub.prop(mat, "shadow_only_type", text="")
@@ -802,11 +802,11 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel, Panel):
             col.prop(mat, "use_cast_buffer_shadows")
         sub = col.column()
         sub.active = mat.use_cast_buffer_shadows
-        sub.prop(mat, "shadow_buffer_bias", text="Buffer Bias")
-        col.prop(mat, "use_ray_shadow_bias", text="Auto Ray Bias")
+        sub.prop(mat, "shadow_buffer_bias", text=_("Buffer Bias"))
+        col.prop(mat, "use_ray_shadow_bias", text=_("Auto Ray Bias"))
         sub = col.column()
         sub.active = (not mat.use_ray_shadow_bias)
-        sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
+        sub.prop(mat, "shadow_ray_bias", text=_("Ray Bias"))
         if simple_material(base_mat):
             col.prop(mat, "use_cast_approximate")
 
@@ -919,7 +919,7 @@ class MATERIAL_PT_volume_lighting(VolumeButtonsPanel, Panel):
             sub = col.column()
             sub.enabled = True
             sub.active = False
-            sub.label("Light Cache Enabled")
+            sub.label(_("Light Cache Enabled"))
             col.prop(vol, "cache_resolution")
 
             sub = col.column(align=True)
@@ -958,7 +958,7 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Step Calculation:")
+        col.label(text=_("Step Calculation:"))
         col.prop(vol, "step_method", text="")
         col = col.column(align=True)
         col.prop(vol, "step_size")
@@ -993,11 +993,11 @@ class MATERIAL_PT_volume_options(VolumeButtonsPanel, Panel):
         col.prop(mat, "use_mist")
 
         col = split.column()
-        col.label(text="Light Group:")
+        col.label(text=_("Light Group:"))
         col.prop(mat, "light_group", text="")
         row = col.row()
         row.active = bool(mat.light_group)
-        row.prop(mat, "use_light_group_exclusive", text="Exclusive")
+        row.prop(mat, "use_light_group_exclusive", text=_("Exclusive"))
 
 
 class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel, Panel):

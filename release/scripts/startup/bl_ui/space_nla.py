@@ -20,6 +20,7 @@
 
 import bpy
 from bpy.types import Header, Menu
+from blf import gettext as _
 
 
 class NLA_HT_header(Header):
@@ -62,7 +63,7 @@ class NLA_MT_view(Menu):
         layout.prop(st, "use_realtime_update")
         layout.prop(st, "show_frame_indicator")
 
-        layout.operator("anim.time_toggle", text="Show Frames" if st.show_seconds else "Show Seconds")
+        layout.operator("anim.time_toggle", text=_("Show Frames") if st.show_seconds else _("Show Seconds"))
 
         layout.prop(st, "show_strip_curves")
 
@@ -87,33 +88,33 @@ class NLA_MT_select(Menu):
 
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
         layout.operator("nla.select_all_toggle")
-        layout.operator("nla.select_all_toggle", text="Invert Selection").invert = True
+        layout.operator("nla.select_all_toggle", text=_("Invert Selection")).invert = True
 
         layout.separator()
         layout.operator("nla.select_border")
-        layout.operator("nla.select_border", text="Border Axis Range").axis_range = True
+        layout.operator("nla.select_border", text=_("Border Axis Range")).axis_range = True
 
         layout.separator()
-        layout.operator("nla.select_leftright", text="Before Current Frame").mode = 'LEFT'
-        layout.operator("nla.select_leftright", text="After Current Frame").mode = 'RIGHT'
+        layout.operator("nla.select_leftright", text=_("Before Current Frame")).mode = 'LEFT'
+        layout.operator("nla.select_leftright", text=_("After Current Frame")).mode = 'RIGHT'
 
 
 class NLA_MT_marker(Menu):
-    bl_label = "Marker"
+    bl_label = _("Marker")
 
     def draw(self, context):
         layout = self.layout
 
         #layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.operator("marker.add", "Add Marker")
-        layout.operator("marker.duplicate", text="Duplicate Marker")
-        layout.operator("marker.delete", text="Delete Marker")
+        layout.operator("marker.add", _("Add Marker"))
+        layout.operator("marker.duplicate", text=_("Duplicate Marker"))
+        layout.operator("marker.delete", text=_("Delete Marker"))
 
         layout.separator()
 
-        layout.operator("marker.rename", text="Rename Marker")
-        layout.operator("marker.move", text="Grab/Move Marker")
+        layout.operator("marker.rename", text=_("Rename Marker"))
+        layout.operator("marker.move", text=_("Grab/Move Marker"))
 
 
 class NLA_MT_edit(Menu):
@@ -124,9 +125,9 @@ class NLA_MT_edit(Menu):
 
         scene = context.scene
 
-        layout.menu("NLA_MT_edit_transform", text="Transform")
+        layout.menu("NLA_MT_edit_transform", text=_("Transform"))
 
-        layout.operator_menu_enum("nla.snap", "type", text="Snap")
+        layout.operator_menu_enum("nla.snap", "type", text=_("Snap"))
 
         layout.separator()
         layout.operator("nla.duplicate")
@@ -148,14 +149,14 @@ class NLA_MT_edit(Menu):
 
         # TODO: this really belongs more in a "channel" (or better, "track") menu
         layout.separator()
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Track Ordering...")
+        layout.operator_menu_enum("anim.channels_move", "direction", text=_("Track Ordering..."))
 
         layout.separator()
         # TODO: names of these tools for 'tweakmode' need changing?
         if scene.is_nla_tweakmode:
-            layout.operator("nla.tweakmode_exit", text="Stop Tweaking Strip Actions")
+            layout.operator("nla.tweakmode_exit", text=_("Stop Tweaking Strip Actions"))
         else:
-            layout.operator("nla.tweakmode_enter", text="Start Tweaking Strip Actions")
+            layout.operator("nla.tweakmode_enter", text=_("Start Tweaking Strip Actions"))
 
 
 class NLA_MT_add(Menu):
@@ -174,7 +175,7 @@ class NLA_MT_add(Menu):
 
         layout.separator()
         layout.operator("nla.tracks_add")
-        layout.operator("nla.tracks_add", text="Add Tracks Above Selected").above_selected = True
+        layout.operator("nla.tracks_add", text=_("Add Tracks Above Selected")).above_selected = True
 
 
 class NLA_MT_edit_transform(Menu):
@@ -183,9 +184,9 @@ class NLA_MT_edit_transform(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("transform.translate", text="Grab/Move")
-        layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
-        layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
+        layout.operator("transform.translate", text=_("Grab/Move"))
+        layout.operator("transform.transform", text=_("Extend")).mode = 'TIME_EXTEND'
+        layout.operator("transform.transform", text=_("Scale")).mode = 'TIME_SCALE'
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

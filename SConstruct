@@ -512,8 +512,10 @@ datafilestargetlist = []
 dottargetlist = []
 scriptinstall = []
 
-if  env['OURPLATFORM']!='darwin':
-        for dp, dn, df in os.walk('bin/.blender'):
+if env['OURPLATFORM']!='darwin':
+        for dp, dn, df in os.walk('release/bin/.blender'):
+            dp = os.path.normpath(dp)
+
             if '.svn' in dn:
                 dn.remove('.svn')
             if '_svn' in dn:
@@ -529,14 +531,14 @@ if  env['OURPLATFORM']!='darwin':
                     if f.endswith('.ttf'):
                         continue
                 
-                if 'locale' in dp:
+                if 'locale' in dp or 'fonts' in dp:
                     datafileslist.append(os.path.join(dp,f))
-                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[1:]))    # skip bin
+                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[3:]))    # skip bin
                     datafilestargetlist.append(dir + os.sep + f)
 
                 else:
                     dotblendlist.append(os.path.join(dp, f))
-                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[1:]))    # skip bin
+                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[3:]))    # skip bin
                     dottargetlist.append(dir + os.sep + f)
                     
         dotblenderinstall = []
