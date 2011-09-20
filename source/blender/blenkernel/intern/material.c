@@ -1932,6 +1932,9 @@ int do_version_tface(Main *main, int fileload)
 			
 					/* loop over all the faces and stop at the ones that use the material*/
 					for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
+						/* texface data for this face */
+						tf = ((MTFace*)cdl->data) + a;
+
 						if(me->mat[(int)mf->mat_nr] != ma) continue;
 						else tf->mode |= TF_CONVERTED;
 					}

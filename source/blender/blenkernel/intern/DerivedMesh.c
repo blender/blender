@@ -988,14 +988,14 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	EditFace *efa;
 	DMVertexAttribs attribs= {{{0}}};
 	GPUVertexAttribs gattribs;
-	int tfoffset;
+	/* int tfoffset; */ /* UNUSED */
 	int i, b, matnr, new_matnr, dodraw, layer;
 
 	dodraw = 0;
 	matnr = -1;
 
 	layer = CustomData_get_layer_index(&em->fdata, CD_MTFACE);
-	tfoffset = (layer == -1)? -1: em->fdata.layers[layer].offset;
+	/* tfoffset = (layer == -1)? -1: em->fdata.layers[layer].offset; */
 
 	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
 	glShadeModel(GL_SMOOTH);
