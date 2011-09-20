@@ -306,7 +306,7 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 
 	/* soften the halo if it intersects geometry */
 	if(har->mat && har->mat->mode & MA_HALO_SOFT) {
-		float segment_length, halo_depth, distance_from_z, visible_depth, soften;
+		float segment_length, halo_depth, distance_from_z /* , visible_depth */ /* UNUSED */, soften;
 		
 		/* calculate halo depth */
 		segment_length= har->hasize*sasqrt(1.0f - dist/(har->rad*har->rad));
@@ -317,7 +317,7 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 
 		/* calculate how much of this depth is visible */
 		distance_from_z = haloZtoDist(zz) - haloZtoDist(har->zs);
-		visible_depth = halo_depth;
+		/* visible_depth = halo_depth; */ /* UNUSED */
 		if(distance_from_z < segment_length) {
 			soften= (segment_length + distance_from_z)/halo_depth;
 

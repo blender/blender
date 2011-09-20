@@ -1515,7 +1515,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult shr;
-	float texfac, orthoarea, nor[3], alpha, sx, sy;
+	float /* texfac,*/ /* UNUSED */ orthoarea, nor[3], alpha, sx, sy;
 
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
@@ -1578,7 +1578,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	VECCOPY(color, shr.combined);
 
 	/* texture blending */
-	texfac= shi->mat->sss_texfac;
+	/* texfac= shi->mat->sss_texfac; */ /* UNUSED */
 
 	alpha= shr.combined[3];
 	*area *= alpha;

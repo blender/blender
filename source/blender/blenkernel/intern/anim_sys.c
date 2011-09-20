@@ -1557,7 +1557,7 @@ static NlaEvalChannel *nlaevalchan_verify (PointerRNA *ptr, ListBase *channels, 
 	PropertyRNA *prop;
 	PointerRNA new_ptr;
 	char *path = NULL;
-	short free_path=0;
+	/* short free_path=0; */
 	
 	/* sanity checks */
 	if (channels == NULL)
@@ -1565,7 +1565,7 @@ static NlaEvalChannel *nlaevalchan_verify (PointerRNA *ptr, ListBase *channels, 
 	
 	/* get RNA pointer+property info from F-Curve for more convenient handling */
 		/* get path, remapped as appropriate to work in its new environment */
-	free_path= animsys_remap_path(strip->remap, fcu->rna_path, &path);
+	/* free_path= */ /* UNUSED */ animsys_remap_path(strip->remap, fcu->rna_path, &path);
 	
 		/* a valid property must be available, and it must be animateable */
 	if (RNA_path_resolve(ptr, path, &new_ptr, &prop) == 0) {

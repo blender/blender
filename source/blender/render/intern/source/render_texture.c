@@ -1994,7 +1994,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	else {
 		/* same as above, but doing 5 taps, increasing quality at cost of speed */
 		float STc[3], STl[3], STr[3], STd[3], STu[3];
-		float Hc, Hl, Hr, Hd, Hu;
+		float /* Hc, */ /* UNUSED */  Hl, Hr, Hd, Hu;
 
 		texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
 
@@ -2017,7 +2017,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 		// use texres for the center sample, set rgbnor
 		rgbnor = multitex_mtex(shi, mtex, STc, dxt, dyt, texres);
-		Hc = (fromrgb)? RGBTOBW(texres->tr, texres->tg, texres->tb) : texres->tin;
+		/* Hc = (fromrgb)? RGBTOBW(texres->tr, texres->tg, texres->tb) : texres->tin; */ /* UNUSED */
 
 		// use ttexr for the other taps
 		multitex_mtex(shi, mtex, STl, dxt, dyt, &ttexr);

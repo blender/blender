@@ -757,6 +757,8 @@ void ED_node_update_hierarchy(bContext *UNUSED(C), bNodeTree *ntree)
 
 /* ***************** generic operator functions for nodes ***************** */
 
+#if 0 /* UNUSED */
+
 static int edit_node_poll(bContext *C)
 {
 	return ED_operator_node_active(C);
@@ -815,6 +817,7 @@ static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **r
 	if (rin_out)
 		*rin_out = in_out;
 }
+#endif
 
 /* ***************** Edit Group operator ************* */
 
@@ -902,7 +905,7 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 	char name[32]= "";
 	int type= SOCK_FLOAT;
 	bNodeTree *ngroup= snode->edittree;
-	bNodeSocket *sock;
+	/* bNodeSocket *sock; */ /* UNUSED */
 	
 	ED_preview_kill_jobs(C);
 	
@@ -918,7 +921,7 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* using placeholder subtype first */
-	sock = node_group_add_socket(ngroup, name, type, in_out);
+	/* sock = */ /* UNUSED */ node_group_add_socket(ngroup, name, type, in_out);
 	
 	ntreeUpdateTree(ngroup);
 	
