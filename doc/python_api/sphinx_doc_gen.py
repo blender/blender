@@ -765,7 +765,7 @@ def pyrna2sphinx(BASEPATH):
                 fw("   .. attribute:: %s\n\n" % prop.identifier)
             if prop.description:
                 fw("      %s\n\n" % prop.description)
-            
+
             # special exception, cant use genric code here for enums
             if prop.type == "enum":
                 enum_text = pyrna_enum2sphinx(prop)

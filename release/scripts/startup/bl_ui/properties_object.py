@@ -22,6 +22,7 @@ from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
+
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

@@ -27,17 +27,11 @@ __all__ = (
     )
 
 import os
-import sys
 from os.path import join, dirname, normpath, abspath
 
 SOURCE_DIR = join(dirname(__file__), "..", "..")
 SOURCE_DIR = normpath(SOURCE_DIR)
 SOURCE_DIR = abspath(SOURCE_DIR)
-
-
-def is_c_header(filename):
-    ext = os.path.splitext(filename)[1]
-    return (ext in (".h", ".hpp", ".hxx"))
 
 
 def is_c_header(filename):
@@ -79,6 +73,7 @@ def do_ignore(filepath, ignore_prefix_list):
 
 def makefile_log():
     import subprocess
+    import time
     # Check blender is not 2.5x until it supports playback again
     print("running make with --dry-run ...")
     process = subprocess.Popen(["make", "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],

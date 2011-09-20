@@ -25,6 +25,7 @@
 # dont register these classes since they are only helpers.
 from blf import gettext as _
 
+
 class MotionPathButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

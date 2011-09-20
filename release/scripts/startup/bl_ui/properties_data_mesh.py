@@ -22,6 +22,7 @@ from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
+
 class MESH_MT_vertex_group_specials(Menu):
     bl_label = _("Vertex Group Specials")
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}

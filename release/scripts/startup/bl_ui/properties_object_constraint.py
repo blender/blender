@@ -21,6 +21,7 @@ import bpy
 from bpy.types import Panel
 from blf import gettext as _
 
+
 class ConstraintButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -754,7 +755,7 @@ class ConstraintButtonsPanel():
         col.prop(con, "rotation_range", text=_("Pivot When"))
 
     def SCRIPT(self, context, layout, con):
-        layout.label( _("Blender 2.5 has no py-constraints") )
+        layout.label(_("Blender 2.5 has no py-constraints"))
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):

@@ -22,6 +22,7 @@ from bpy.types import Operator, Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
+
 class SceneButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'

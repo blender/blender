@@ -21,6 +21,7 @@ import bpy
 from bpy.types import Panel
 from blf import gettext as _
 
+
 class ModifierButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -203,7 +204,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def DECIMATE(self, layout, ob, md):
         layout.prop(md, "ratio")
-        layout.label(text=_("Face Count")+": %s" % str(md.face_count))
+        layout.label(text=_("Face Count") + ": %d" % md.face_count)
 
     def DISPLACE(self, layout, ob, md):
         split = layout.split()

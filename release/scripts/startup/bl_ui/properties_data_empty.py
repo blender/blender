@@ -21,6 +21,7 @@ import bpy
 from bpy.types import Panel
 from blf import gettext as _
 
+
 class DataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
