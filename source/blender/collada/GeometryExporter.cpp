@@ -44,16 +44,16 @@
 #include "collada_internal.h"
 
 // TODO: optimize UV sets by making indexed list with duplicates removed
-GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryGeometries(sw) {}
+GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryGeometries(sw), export_settings(export_settings) {}
 
 
-void GeometryExporter::exportGeom(Scene *sce, bool export_selected)
+void GeometryExporter::exportGeom(Scene *sce)
 {
 	openLibrary();
 
 	mScene = sce;
 	GeometryFunctor gf;
-	gf.forEachMeshObjectInScene<GeometryExporter>(sce, *this, export_selected);
+	gf.forEachMeshObjectInScene<GeometryExporter>(sce, *this, this->export_settings->selected);
 
 	closeLibrary();
 }
@@ -129,7 +129,7 @@ void GeometryExporter::operator()(Object *ob)
 }
 
 // powerful because it handles both cases when there is material and when there's not
-void GeometryExporter::createPolylist(int material_index,
+void GeometryExporter::createPolylist(short material_index,
 					bool has_uvs,
 					bool has_color,
 					Object *ob,

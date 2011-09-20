@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Panel
-
+from blf import gettext as _
 
 from bl_ui.properties_physics_common import (
     point_cache_ui,
@@ -62,13 +62,13 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
             split.enabled = softbody_panel_enabled(md)
 
             col = split.column()
-            col.label(text="Object:")
+            col.label(text=_("Object:"))
             col.prop(softbody, "friction")
             col.prop(softbody, "mass")
-            col.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Mass:")
+            col.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text=_("Mass:"))
 
             col = split.column()
-            col.label(text="Simulation:")
+            col.label(text=_("Simulation:"))
             col.prop(softbody, "speed")
 
 
@@ -114,18 +114,18 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Goal Strengths:")
-        col.prop(softbody, "goal_default", text="Default")
+        col.label(text=_("Goal Strengths:"))
+        col.prop(softbody, "goal_default", text=_("Default"))
         sub = col.column(align=True)
-        sub.prop(softbody, "goal_min", text="Minimum")
-        sub.prop(softbody, "goal_max", text="Maximum")
+        sub.prop(softbody, "goal_min", text=_("Minimum"))
+        sub.prop(softbody, "goal_max", text=_("Maximum"))
 
         col = split.column()
-        col.label(text="Goal Settings:")
-        col.prop(softbody, "goal_spring", text="Stiffness")
-        col.prop(softbody, "goal_friction", text="Damping")
+        col.label(text=_("Goal Settings:"))
+        col.prop(softbody, "goal_spring", text=_("Stiffness"))
+        col.prop(softbody, "goal_friction", text=_("Damping"))
 
-        layout.prop_search(softbody, "vertex_group_goal", ob, "vertex_groups", text="Vertex Group")
+        layout.prop_search(softbody, "vertex_group_goal", ob, "vertex_groups", text=_("Vertex Group"))
 
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
@@ -154,14 +154,14 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Springs:")
+        col.label(text=_("Springs:"))
         col.prop(softbody, "pull")
         col.prop(softbody, "push")
         col.prop(softbody, "damping")
         col.prop(softbody, "plastic")
         col.prop(softbody, "bend")
-        col.prop(softbody, "spring_length", text="Length")
-        col.prop_search(softbody, "vertex_group_spring", ob, "vertex_groups", text="Springs:")
+        col.prop(softbody, "spring_length", text=_("Length"))
+        col.prop_search(softbody, "vertex_group_spring", ob, "vertex_groups", text=_("Springs:"))
 
         col = split.column()
         col.prop(softbody, "use_stiff_quads")
@@ -169,16 +169,16 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
         sub.active = softbody.use_stiff_quads
         sub.prop(softbody, "shear")
 
-        col.label(text="Aerodynamics:")
+        col.label(text=_("Aerodynamics:"))
         col.row().prop(softbody, "aerodynamics_type", expand=True)
-        col.prop(softbody, "aero", text="Factor")
+        col.prop(softbody, "aero", text=_("Factor"))
 
         #sub = col.column()
         #sub.enabled = softbody.aero > 0
 
-        col.label(text="Collision:")
-        col.prop(softbody, "use_edge_collision", text="Edge")
-        col.prop(softbody, "use_face_collision", text="Face")
+        col.label(text=_("Collision:"))
+        col.prop(softbody, "use_edge_collision", text=_("Edge"))
+        col.prop(softbody, "use_face_collision", text=_("Face"))
 
 
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
@@ -203,14 +203,14 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
 
         layout.active = softbody.use_self_collision and softbody_panel_enabled(md)
 
-        layout.label(text="Collision Ball Size Calculation:")
+        layout.label(text=_("Collision Ball Size Calculation:"))
         layout.prop(softbody, "collision_type", expand=True)
 
         col = layout.column(align=True)
-        col.label(text="Ball:")
-        col.prop(softbody, "ball_size", text="Size")
-        col.prop(softbody, "ball_stiff", text="Stiffness")
-        col.prop(softbody, "ball_damp", text="Dampening")
+        col.label(text=_("Ball:"))
+        col.prop(softbody, "ball_size", text=_("Size"))
+        col.prop(softbody, "ball_stiff", text=_("Stiffness"))
+        col.prop(softbody, "ball_damp", text=_("Dampening"))
 
 
 class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, Panel):
@@ -233,18 +233,18 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column(align=True)
-        col.label(text="Step Size:")
+        col.label(text=_("Step Size:"))
         col.prop(softbody, "step_min")
         col.prop(softbody, "step_max")
-        col.prop(softbody, "use_auto_step", text="Auto-Step")
+        col.prop(softbody, "use_auto_step", text=_("Auto-Step"))
 
         col = split.column()
         col.prop(softbody, "error_threshold")
-        col.label(text="Helpers:")
+        col.label(text=_("Helpers:"))
         col.prop(softbody, "choke")
         col.prop(softbody, "fuzzy")
 
-        layout.label(text="Diagnostics:")
+        layout.label(text=_("Diagnostics:"))
         layout.prop(softbody, "use_diagnose")
         layout.prop(softbody, "use_estimate_matrix")
 

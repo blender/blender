@@ -65,8 +65,9 @@ void RNA_api_sequence_strip(StructRNA *srna)
 	PropertyRNA *parm;
 
 	func= RNA_def_function(srna, "getStripElem", "give_stripelem");
-	RNA_def_function_ui_description(func, "Return the strip element from a given frame or None.");
-	parm= RNA_def_int(func, "frame", 0, -MAXFRAME, MAXFRAME, "Frame", "The frame to get the strip element from", -MAXFRAME, MAXFRAME);
+	RNA_def_function_ui_description(func, "Return the strip element from a given frame or None");
+	parm= RNA_def_int(func, "frame", 0, -MAXFRAME, MAXFRAME, "Frame",
+	                  "The frame to get the strip element from", -MAXFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_function_return(func, RNA_def_pointer(func, "elem", "SequenceElement", "", "strip element of the current frame"));
 

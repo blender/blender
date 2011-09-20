@@ -542,22 +542,17 @@ static int set_output(int argc, const char **argv, void *data)
 static int set_engine(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
-	if (argc >= 1)
-	{
-		if (!strcmp(argv[1],"help"))
-		{
+	if (argc >= 2) {
+		if (!strcmp(argv[1], "help")) {
 			RenderEngineType *type = NULL;
-
-			for( type = R_engines.first; type; type = type->next )
-			{
+			printf("Blender Engine Listing:\n");
+			for( type = R_engines.first; type; type = type->next ) {
 				printf("\t%s\n", type->idname);
 			}
 			exit(0);
 		}
-		else
-		{
-			if (CTX_data_scene(C)==NULL)
-			{
+		else {
+			if (CTX_data_scene(C)==NULL) {
 				printf("\nError: no blend loaded. order the arguments so '-E  / --engine ' is after a blend is loaded.\n");
 			}
 			else {
@@ -565,7 +560,7 @@ static int set_engine(int argc, const char **argv, void *data)
 				RenderData *rd = &scene->r;
 
 				if(BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
-					BLI_strncpy(rd->engine, argv[1], sizeof(rd->engine));
+					BLI_strncpy_utf8(rd->engine, argv[1], sizeof(rd->engine));
 				}
 			}
 		}
@@ -574,7 +569,7 @@ static int set_engine(int argc, const char **argv, void *data)
 	}
 	else
 	{
-		printf("\nEngine not specified.\n");
+		printf("\nEngine not specified, give 'help' for a list of available engines.\n");
 		return 0;
 	}
 }

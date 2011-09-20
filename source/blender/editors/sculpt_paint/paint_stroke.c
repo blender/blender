@@ -322,8 +322,8 @@ static int load_tex(Sculpt *sd, Brush* br, ViewContext* vc)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	}
 
 	return 1;
@@ -447,9 +447,9 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 		if(brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
 			/* brush rotation */
 			glTranslatef(0.5, 0.5, 0);
-			glRotatef((double)((brush->flag & BRUSH_RAKE) ?
-				   sd->last_angle : sd->special_rotation) * (180.0/M_PI),
-				  0.0, 0.0, 1.0);
+			glRotatef((double)RAD2DEGF((brush->flag & BRUSH_RAKE) ?
+			                           sd->last_angle : sd->special_rotation),
+			                           0.0, 0.0, 1.0);
 			glTranslatef(-0.5f, -0.5f, 0);
 
 			/* scale based on tablet pressure */
@@ -683,7 +683,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	/* TODO: as sculpt and other paint modes are unified, this
 	   separation will go away */
 	if(stroke->vc.obact->sculpt) {
-		float delta[3];
+		float delta[2];
 
 		brush_jitter_pos(brush, mouse_in, mouse);
 
@@ -691,13 +691,14 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 		   brush_jitter_pos isn't written in the best way to
 		   be reused here */
 		if(brush->flag & BRUSH_JITTER_PRESSURE) {
-			sub_v3_v3v3(delta, mouse, mouse_in);
-			mul_v3_fl(delta, pressure);
-			add_v3_v3v3(mouse, mouse_in, delta);
+			sub_v2_v2v2(delta, mouse, mouse_in);
+			mul_v2_fl(delta, pressure);
+			add_v2_v2v2(mouse, mouse_in, delta);
 		}
 	}
-	else
-		copy_v3_v3(mouse, mouse_in);
+	else {
+		copy_v2_v2(mouse, mouse_in);
+	}
 
 	/* TODO: can remove the if statement once all modes have this */
 	if(stroke->get_location)

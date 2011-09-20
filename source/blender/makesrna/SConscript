@@ -9,6 +9,7 @@ objs += o
 incs = '#/intern/guardedalloc #/intern/memutil #/intern/audaspace/intern ../blenkernel ../blenlib ../makesdna intern .'
 incs += ' ../windowmanager ../editors/include ../gpu ../imbuf ../ikplugin ../blenfont ../blenloader'
 incs += ' ../render/extern/include'
+incs += ' ../nodes'
 incs += ' #/extern/glew/include'
 
 defs = []
@@ -60,5 +61,8 @@ if env['OURPLATFORM'] == 'linux':
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('INTERNATIONAL')
 
 env.BlenderLib ( 'bf_rna', objs, Split(incs), defines=defs, libtype=['core','player'], priority = [165,20] )

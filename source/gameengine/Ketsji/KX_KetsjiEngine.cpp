@@ -84,6 +84,8 @@
 #include "DNA_world_types.h"
 #include "DNA_scene_types.h"
 
+#include "KX_NavMeshObject.h"
+
 // If define: little test for Nzc: guarded drawing. If the canvas is
 // not valid, skip rendering this frame.
 //#define NZC_GUARDED_OUTPUT
@@ -325,6 +327,8 @@ void KX_KetsjiEngine::RenderDome()
 		
 				// do the rendering
 				m_dome->RenderDomeFrame(scene,cam, i);
+				//render all the font objects for this scene
+				RenderFonts(scene);
 			}
 			
 			list<class KX_Camera*>* cameras = scene->GetCameras();
@@ -342,6 +346,8 @@ void KX_KetsjiEngine::RenderDome()
 			
 					// do the rendering
 					m_dome->RenderDomeFrame(scene, (*it),i);
+					//render all the font objects for this scene
+					RenderFonts(scene);
 				}
 				
 				it++;
@@ -1343,7 +1349,7 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 #ifdef WITH_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
 #endif
-	m_rasterizer->FlushDebugLines();
+	m_rasterizer->FlushDebugShapes();
 }
 
 void KX_KetsjiEngine::StopEngine()
@@ -1934,4 +1940,14 @@ void KX_KetsjiEngine::GetOverrideFrameColor(float& r, float& g, float& b) const
 	b = m_overrideFrameColorB;
 }
 
+void KX_KetsjiEngine::SetGlobalSettings(GlobalSettings* gs)
+{
+	m_globalsettings.matmode = gs->matmode;
+	m_globalsettings.glslflag = gs->glslflag;
+}
+
+GlobalSettings* KX_KetsjiEngine::GetGlobalSettings(void)
+{
+	return &m_globalsettings;
+}
 

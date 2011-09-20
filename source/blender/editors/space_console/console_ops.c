@@ -54,6 +54,14 @@
 
 #include "console_intern.h"
 
+/* so when we type - the view scrolls to the bottom */
+static void console_scroll_bottom(ARegion *ar)
+{
+	View2D *v2d= &ar->v2d;
+	v2d->cur.ymin = 0.0;
+	v2d->cur.ymax =(float)v2d->winy;
+}
+
 static void console_textview_update_rect(SpaceConsole *sc, ARegion *ar)
 {
 	View2D *v2d= &ar->v2d;
@@ -339,9 +347,14 @@ static int move_exec(bContext *C, wmOperator *op)
 	}
 	
 	if(done) {
-		ED_area_tag_redraw(CTX_wm_area(C));
+		ScrArea *sa= CTX_wm_area(C);
+		ARegion *ar= CTX_wm_region(C);
+
+		ED_area_tag_redraw(sa);
+		console_scroll_bottom(ar);
 	}
-	
+
+
 	return OPERATOR_FINISHED;
 }
 
@@ -357,7 +370,7 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to.");
+	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to");
 }
 
 #define TAB_LENGTH 4
@@ -391,7 +404,9 @@ static int insert_exec(bContext *C, wmOperator *op)
 
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
-	
+
+	console_scroll_bottom(ar);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -427,7 +442,7 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 
 	/* properties */
-	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
+	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");
 }
 
 
@@ -478,6 +493,8 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
+
+	console_scroll_bottom(ar);
 	
 	return OPERATOR_FINISHED;
 }
@@ -495,7 +512,7 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete.");
+	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete");
 }
 
 
@@ -589,6 +606,8 @@ static int history_cycle_exec(bContext *C, wmOperator *op)
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
 
+	console_scroll_bottom(ar);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -604,7 +623,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "reverse", 0, "Reverse", "reverse cycle history");
+	RNA_def_boolean(ot->srna, "reverse", 0, "Reverse", "Reverse cycle history");
 }
 
 
@@ -612,6 +631,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 static int history_append_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
+	ARegion *ar= CTX_wm_region(C);
 	ScrArea *sa= CTX_wm_area(C);
 	ConsoleLine *ci= console_history_verify(C);
 	char *str= RNA_string_get_alloc(op->ptr, "text", NULL, 0); /* own this text in the new line, dont free */
@@ -637,6 +657,8 @@ static int history_append_exec(bContext *C, wmOperator *op)
 
 	ED_area_tag_redraw(sa);
 
+	console_scroll_bottom(ar);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -652,8 +674,8 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
-	RNA_def_int(ot->srna, "current_character", 0, 0, INT_MAX, "Cursor", "The index of the cursor.", 0, 10000);
+	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");	
+	RNA_def_int(ot->srna, "current_character", 0, 0, INT_MAX, "Cursor", "The index of the cursor", 0, 10000);
 	RNA_def_boolean(ot->srna, "remove_duplicates", 0, "Remove Duplicates", "Remove duplicate items in the history");
 }
 
@@ -706,8 +728,8 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 	ot->poll= ED_operator_console_active;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
-	RNA_def_enum(ot->srna, "type", console_line_type_items, CONSOLE_LINE_OUTPUT, "Type", "Console output type.");
+	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position");
+	RNA_def_enum(ot->srna, "type", console_line_type_items, CONSOLE_LINE_OUTPUT, "Type", "Console output type");
 }
 
 
@@ -824,6 +846,8 @@ static int paste_exec(bContext *C, wmOperator *UNUSED(op))
 
 	console_textview_update_rect(sc, ar);
 	ED_area_tag_redraw(CTX_wm_area(C));
+
+	console_scroll_bottom(ar);
 
 	return OPERATOR_FINISHED;
 }

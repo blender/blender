@@ -686,7 +686,7 @@ static void rna_def_dynamic_paint_brush_settings(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_dynamicpaint_prox_falloff[] = {
 			{MOD_DPAINT_PRFALL_SMOOTH, "SMOOTH", ICON_SPHERECURVE, "Smooth", ""},
-			{MOD_DPAINT_PRFALL_SHARP, "SHARP", ICON_NOCURVE, "Sharp", ""},
+			{MOD_DPAINT_PRFALL_SHARP, "SHARP", ICON_SHARPCURVE, "Sharp", ""},
 			{MOD_DPAINT_PRFALL_RAMP, "RAMP", ICON_COLOR, "Color Ramp", ""},
 			{0, NULL, 0, NULL, NULL}};
 

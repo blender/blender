@@ -1483,7 +1483,6 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.next= pchan->next;
 			pchanw.parent= pchan->parent;
 			pchanw.child= pchan->child;
-			pchanw.path= NULL;
 			
 			/* this is freed so copy a copy, else undo crashes */
 			if(pchanw.prop) {
@@ -2464,4 +2463,34 @@ void where_is_pose (Scene *scene, Object *ob)
 			mul_m4_m4m4(pchan->chan_mat, imat, pchan->pose_mat);
 		}
 	}
+}
+
+
+/* Returns total selected vgroups,
+ * wpi.defbase_sel is assumed malloc'd, all values are set */
+int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_len)
+{
+	bDeformGroup *defgroup;
+	unsigned int i;
+	Object *armob= object_pose_armature_get(ob);
+	int dg_flags_sel_tot= 0;
+
+	if(armob) {
+		bPose *pose= armob->pose;
+		for (i= 0, defgroup= ob->defbase.first; i < defbase_len && defgroup; defgroup = defgroup->next, i++) {
+			bPoseChannel *pchan= get_pose_channel(pose, defgroup->name);
+			if(pchan && (pchan->bone->flag & BONE_SELECTED)) {
+				dg_selection[i]= TRUE;
+				dg_flags_sel_tot++;
+			}
+			else {
+				dg_selection[i]= FALSE;
+			}
+		}
+	}
+	else {
+		memset(dg_selection, FALSE, sizeof(char) * defbase_len);
+	}
+
+	return dg_flags_sel_tot;
 }

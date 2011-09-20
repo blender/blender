@@ -338,7 +338,7 @@ typedef struct ObjectInstanceRen {
 	
 	struct VolumePrecache *volume_precache;
 	
-	float *vectors;
+	float *vectors; /* (RE_WINSPEED_ELEMS * VertRen.index) */
 	int totvector;
 	
 	/* used on makeraytree */
@@ -354,8 +354,8 @@ typedef struct VertRen
 	float co[3];
 	float n[3];
 	float *orco;
-	short clip;
-	unsigned short flag;		/* in use for clipping zbuffer parts, temp setting stuff in convertblender.c */
+	unsigned int flag;	/* in use for clipping zbuffer parts, temp setting stuff in convertblender.c
+						 * only an 'int' because of alignment, could be a char too */
 	float accum;		/* accum for radio weighting, and for strand texco static particles */
 	int index;			/* index allows extending vertren with any property */
 } VertRen;

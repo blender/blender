@@ -385,6 +385,12 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 	//This cache mecanism is buggy so I leave it disable and the memory leak
 	//that would result from this is fixed in RemoveScene()
 	m_map_mesh_to_gamemesh.clear();
+
+#ifndef USE_BULLET
+	/* quiet compiler warning */
+	(void)useDbvtCulling;
+#endif
+
 }
 
 // This function removes all entities stored in the converter for that scene

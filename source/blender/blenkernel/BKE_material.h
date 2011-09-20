@@ -42,6 +42,8 @@ struct Main;
 struct Material;
 struct ID;
 struct Object;
+struct Mesh;
+struct MTFace;
 
 /* materials */
 
@@ -50,6 +52,7 @@ void free_material(struct Material *sc);
 void test_object_materials(struct ID *id);
 void resize_object_material(struct Object *ob, const short totcol);
 void init_material(struct Material *ma);
+struct Material *add_material_main(struct Main *main, const char *name);
 struct Material *add_material(const char *name);
 struct Material *copy_material(struct Material *ma);
 struct Material *localize_material(struct Material *ma);
@@ -66,19 +69,19 @@ short *give_totcolp(struct Object *ob);
 struct Material ***give_matarar_id(struct ID *id); /* same but for ID's */
 short *give_totcolp_id(struct ID *id);
 
-struct Material *give_current_material(struct Object *ob, int act);
-struct ID *material_from(struct Object *ob, int act);
-void assign_material(struct Object *ob, struct Material *ma, int act);
-void assign_matarar(struct Object *ob, struct Material ***matar, int totcol);
+struct Material *give_current_material(struct Object *ob, short act);
+struct ID *material_from(struct Object *ob, short act);
+void assign_material(struct Object *ob, struct Material *ma, short act);
+void assign_matarar(struct Object *ob, struct Material ***matar, short totcol);
 
-int find_material_index(struct Object *ob, struct Material *ma);
+short find_material_index(struct Object *ob, struct Material *ma);
 
 int object_add_material_slot(struct Object *ob);
 int object_remove_material_slot(struct Object *ob);
 
 /* rna api */
 void material_append_id(struct ID *id, struct Material *ma);
-struct Material *material_pop_id(struct ID *id, int index, int remove_material_slot);
+struct Material *material_pop_id(struct ID *id, int index, int remove_material_slot); /* index is an int because of RNA */
 
 /* rendering */
 
@@ -89,7 +92,7 @@ void end_render_materials(struct Main *);
 
 int material_in_material(struct Material *parmat, struct Material *mat);
 
-void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col);
+void ramp_blend(int type, float *r, float *g, float *b, float fac, const float col[3]);
 
 /* copy/paste */
 void clear_matcopybuf(void);
@@ -100,6 +103,9 @@ void paste_matcopybuf(struct Material *ma);
 void clear_mat_mtex_copybuf(void);
 void copy_mat_mtex_copybuf(struct ID *id);
 void paste_mat_mtex_copybuf(struct ID *id);
+
+/* handle backward compatibility for tface/materials called from doversion (fileload=1) or Help Menu (fileload=0) */	
+int do_version_tface(struct Main *main, int fileload);
 
 #ifdef __cplusplus
 }

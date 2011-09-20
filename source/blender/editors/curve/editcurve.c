@@ -117,7 +117,7 @@ static float nurbcircle[8][2]= {
 	{0.0,  1.0}, { 1.0,  1.0}, { 1.0, 0.0}, { 1.0, -1.0}
 };
 
-ListBase *curve_get_editcurve(Object *ob)
+ListBase *object_editcurve_get(Object *ob)
 {
 	if(ob && ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu= ob->data;
@@ -134,7 +134,7 @@ static void set_actNurb(Object *obedit, Nurb *nu)
 	if(nu==NULL)
 		cu->actnu = -1;
 	else {
-		ListBase *nurbs= ED_curve_editnurbs(cu);
+		ListBase *nurbs= curve_editnurbs(cu);
 		cu->actnu = BLI_findindex(nurbs, nu);
 	}
 }
@@ -142,7 +142,7 @@ static void set_actNurb(Object *obedit, Nurb *nu)
 static Nurb *get_actNurb(Object *obedit)
 {
 	Curve *cu= obedit->data;
-	ListBase *nurbs= ED_curve_editnurbs(cu);
+	ListBase *nurbs= curve_editnurbs(cu);
 
 	return BLI_findlink(nurbs, cu->actnu);
 }
@@ -268,7 +268,7 @@ static int isNurbsel_count(Curve *cu, Nurb *nu)
 
 void printknots(Object *obedit)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	int a, num;
 
@@ -300,11 +300,6 @@ static CVKeyIndex *init_cvKeyIndex(void *cv, int key_index, int nu_index, int pt
 	cvIndex->orig_nu= orig_nu;
 
 	return cvIndex;
-}
-
-static void free_cvKeyIndex(CVKeyIndex *pointIndex)
-{
-	MEM_freeN(pointIndex);
 }
 
 static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
@@ -358,15 +353,6 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 	editnurb->keyindex= gh;
 }
 
-static void free_editNurb_keyIndex(EditNurb *editnurb)
-{
-	if (!editnurb->keyindex) {
-		return;
-	}
-	BLI_ghash_free(editnurb->keyindex, NULL, (GHashValFreeFP)free_cvKeyIndex);
-	editnurb->keyindex= NULL;
-}
-
 static CVKeyIndex *getCVKeyIndex(EditNurb *editnurb, void *cv)
 {
 	return BLI_ghash_lookup(editnurb->keyindex, cv);
@@ -411,7 +397,7 @@ static void keyIndex_delCV(EditNurb *editnurb, void *cv)
 		return;
 	}
 
-	BLI_ghash_remove(editnurb->keyindex, cv, NULL, (GHashValFreeFP)free_cvKeyIndex);
+	BLI_ghash_remove(editnurb->keyindex, cv, NULL, (GHashValFreeFP)MEM_freeN);
 }
 
 static void keyIndex_delBezt(EditNurb *editnurb, BezTriple *bezt)
@@ -437,7 +423,7 @@ static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
 		a= nu->pntsu;
 
 		while (a--) {
-			BLI_ghash_remove(editnurb->keyindex, bezt, NULL, (GHashValFreeFP)free_cvKeyIndex);
+			BLI_ghash_remove(editnurb->keyindex, bezt, NULL, (GHashValFreeFP)MEM_freeN);
 			++bezt;
 		}
 	} else {
@@ -445,7 +431,7 @@ static void keyIndex_delNurb(EditNurb *editnurb, Nurb *nu)
 		a= nu->pntsu * nu->pntsv;
 
 		while (a--) {
-			BLI_ghash_remove(editnurb->keyindex, bp, NULL, (GHashValFreeFP)free_cvKeyIndex);
+			BLI_ghash_remove(editnurb->keyindex, bp, NULL, (GHashValFreeFP)MEM_freeN);
 			++bp;
 		}
 	}
@@ -1198,7 +1184,7 @@ int ED_curve_updateAnimPaths(Object *obedit)
 /* load editNurb in object */
 void load_editNurb(Object *obedit)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 
 	if(obedit==NULL) return;
 
@@ -1251,7 +1237,7 @@ void make_editNurb(Object *obedit)
 
 		if(editnurb) {
 			freeNurblist(&editnurb->nurbs);
-			free_editNurb_keyIndex(editnurb);
+			free_curve_editNurb_keyIndex(editnurb);
 			editnurb->keyindex= NULL;
 		} else {
 			editnurb= MEM_callocN(sizeof(EditNurb), "editnurb");
@@ -1283,16 +1269,6 @@ void make_editNurb(Object *obedit)
 	}
 }
 
-void free_curve_editNurb (Curve *cu)
-{
-	if(cu->editnurb) {
-		freeNurblist(&cu->editnurb->nurbs);
-		free_editNurb_keyIndex(cu->editnurb);
-		MEM_freeN(cu->editnurb);
-		cu->editnurb= NULL;
-	}
-}
-
 void free_editNurb(Object *obedit)
 {
 	Curve *cu= obedit->data;
@@ -1302,7 +1278,7 @@ void free_editNurb(Object *obedit)
 
 void CU_deselect_all(Object *obedit)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 
 	if (editnurb) {
 		selectend_nurb(obedit, FIRST, 0, DESELECT); /* set first control points as unselected */
@@ -1312,7 +1288,7 @@ void CU_deselect_all(Object *obedit)
 
 void CU_select_all(Object *obedit)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 
 	if (editnurb) {
 		selectend_nurb(obedit, FIRST, 0, SELECT); /* set first control points as unselected */
@@ -1322,7 +1298,7 @@ void CU_select_all(Object *obedit)
 
 void CU_select_swap(Object *obedit)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 
 	if (editnurb) {
 		Curve *cu= obedit->data;
@@ -1378,7 +1354,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	oldedit= oldcu->editnurb;
 
 	if(oldcu->key) {
-		BKE_report(op->reports, RPT_ERROR, "Can't separate a curve with vertex keys.");
+		BKE_report(op->reports, RPT_ERROR, "Can't separate a curve with vertex keys");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1397,7 +1373,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	make_editNurb(newob);
 	newedit= newcu->editnurb;
 	freeNurblist(&newedit->nurbs);
-	free_editNurb_keyIndex(newedit);
+	free_curve_editNurb_keyIndex(newedit);
 
 	/* 3. move over parts from old object */
 	for(nu= oldedit->nurbs.first; nu; nu=nu1) {
@@ -1588,7 +1564,7 @@ static int deleteflagNurb(bContext *C, wmOperator *UNUSED(op), int flag)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu, *next;
 	BPoint *bp, *bpn, *newbp;
 	int a, b, newu, newv, sel;
@@ -1835,7 +1811,7 @@ static short extrudeflagNurb(EditNurb *editnurb, int flag)
 
 static void adduplicateflagNurb(Object *obedit, short flag)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu, *newnu;
 	BezTriple *bezt, *bezt1;
 	BPoint *bp, *bp1;
@@ -2051,7 +2027,7 @@ void CURVE_OT_switch_direction(wmOperatorType *ot)
 static int set_goal_weight_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -2103,7 +2079,7 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
 static int set_radius_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -2155,7 +2131,7 @@ void CURVE_OT_radius_set(wmOperatorType *ot)
 static int smooth_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BezTriple *bezt, *beztOrig;
 	BPoint *bp, *bpOrig;
@@ -2228,7 +2204,7 @@ void CURVE_OT_smooth(wmOperatorType *ot)
 static int smooth_radius_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -2461,7 +2437,7 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 /* selstatus: selection status in case doswap is false				    */
 void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatus)
 {
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
@@ -2603,7 +2579,7 @@ static short nurb_has_selected_cps(ListBase *editnurb)
 static int de_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	int action = RNA_enum_get(op->ptr, "action");
 
 	if (action == SEL_TOGGLE) {
@@ -2652,7 +2628,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
@@ -2717,7 +2693,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
 /********************** reveal operator *********************/
@@ -2725,7 +2701,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
 static int reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
@@ -2783,7 +2759,7 @@ static int select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
@@ -3542,7 +3518,7 @@ void ED_nurb_set_spline_type(Nurb *nu, int type)
 static int set_spline_type_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	int changed=0, type= RNA_enum_get(op->ptr, "type");
 
@@ -3606,7 +3582,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 static int set_handle_type_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 
 	sethandlesNurb(editnurb, RNA_enum_get(op->ptr, "type"));
 
@@ -3928,7 +3904,7 @@ static void merge_2_nurb(wmOperator *op, ListBase *editnurb, Nurb *nu1, Nurb *nu
 static int merge_nurb(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	NurbSort *nus1, *nus2;
 	int ok= 1;
 	
@@ -3936,7 +3912,7 @@ static int merge_nurb(bContext *C, wmOperator *op)
 	
 	if(nsortbase.first == nsortbase.last) {
 		BLI_freelistN(&nsortbase);
-		BKE_report(op->reports, RPT_ERROR, "Too few selections to merge.");
+		BKE_report(op->reports, RPT_ERROR, "Too few selections to merge");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3984,7 +3960,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	/* joins 2 curves */
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *nubase= curve_get_editcurve(obedit);
+	ListBase *nubase= object_editcurve_get(obedit);
 	Nurb *nu, *nu1=NULL, *nu2=NULL;
 	BPoint *bp;
 	float *fp, offset;
@@ -4180,7 +4156,7 @@ int mouse_nurb(bContext *C, const int mval[2], int extend)
 {
 	Object *obedit= CTX_data_edit_object(C); 
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	ViewContext vc;
 	Nurb *nu;
 	BezTriple *bezt=NULL;
@@ -4264,7 +4240,7 @@ int mouse_nurb(bContext *C, const int mval[2], int extend)
 static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cent)
 {
 	Curve *cu= (Curve*)obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	float si,phi,n[3],q[4],cmat[3][3],tmat[3][3],imat[3][3];
 	float bmat[3][3], rotmat[3][3], scalemat1[3][3], scalemat2[3][3];
@@ -4716,7 +4692,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at.", -1e4, 1e4);
+	RNA_def_float_vector_xyz(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location to add new vertex at", -1e4, 1e4);
 }
 
 /***************** extrude operator **********************/
@@ -4786,7 +4762,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -4863,7 +4839,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 static int toggle_cyclic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	Nurb *nu;
@@ -4906,7 +4882,7 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to make surface cyclic in.");
+	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to make surface cyclic in");
 }
 
 /***************** select linked operator ******************/
@@ -5041,7 +5017,7 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked control points rather than selecting them.");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked control points rather than selecting them");
 }
 
 /***************** select row operator **********************/
@@ -5050,7 +5026,7 @@ static int select_row_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	static BPoint *last= NULL;
 	static int direction=0;
 	Nurb *nu;
@@ -5124,7 +5100,7 @@ void CURVE_OT_select_row(wmOperatorType *ot)
 static int select_next_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	
 	select_adjacent_cp(editnurb, 1, 0, SELECT);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
@@ -5151,7 +5127,7 @@ void CURVE_OT_select_next(wmOperatorType *ot)
 static int select_previous_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	
 	select_adjacent_cp(editnurb, -1, 0, SELECT);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
@@ -5178,7 +5154,7 @@ void CURVE_OT_select_previous(wmOperatorType *ot)
 static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp, *tempbp;
 	int a;
@@ -5266,7 +5242,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp;
 	BezTriple *bezt;
@@ -5458,7 +5434,7 @@ static void selectrandom_curve(ListBase *editnurb, float randfac)
 static int select_random_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 
 	if(!RNA_boolean_get(op->ptr, "extend"))
 		CU_deselect_all(obedit);
@@ -5484,8 +5460,8 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first");
 }
 
 /********************* every nth number of point *******************/
@@ -5550,7 +5526,7 @@ static void select_nth_bp(Nurb *nu, BPoint *bp, int nth)
 int CU_select_nth(Object *obedit, int nth)
 {
 	Curve *cu= (Curve*)obedit->data;
-	ListBase *nubase= ED_curve_editnurbs(cu);
+	ListBase *nubase= curve_editnurbs(cu);
 	Nurb *nu;
 	int ok=0;
 
@@ -6016,7 +5992,7 @@ void CURVE_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete.");
+	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Which elements to delete");
 }
 
 /********************** shade smooth/flat operator *********************/
@@ -6024,7 +6000,7 @@ void CURVE_OT_delete(wmOperatorType *ot)
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	int clear= (strcmp(op->idname, "CURVE_OT_shade_flat") == 0);
 	
@@ -6196,7 +6172,7 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 {
 	static int xzproj= 0;	/* this function calls itself... */
 	Object *obedit= CTX_data_edit_object(C);
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	View3D *v3d= CTX_wm_view3d(C);
 	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
 	Nurb *nu = NULL;
@@ -6612,7 +6588,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 
 	nu= add_nurbs_primitive(C, mat, type, newob);
-	editnurb= curve_get_editcurve(obedit);
+	editnurb= object_editcurve_get(obedit);
 	BLI_addtail(editnurb, nu);
 
 	/* userdef */
@@ -6895,7 +6871,7 @@ static int clear_tilt_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
-	ListBase *editnurb= curve_get_editcurve(obedit);
+	ListBase *editnurb= object_editcurve_get(obedit);
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
@@ -6965,7 +6941,7 @@ static void undoCurve_to_editCurve(void *ucu, void *obe)
 	Curve *cu= (Curve*)obedit->data;
 	UndoCurve *undoCurve= ucu;
 	ListBase *undobase= &undoCurve->nubase;
-	ListBase *editbase= ED_curve_editnurbs(cu);
+	ListBase *editbase= curve_editnurbs(cu);
 	Nurb *nu, *newnu;
 	EditNurb *editnurb= cu->editnurb;
 	void *lastsel= NULL;
@@ -6974,7 +6950,7 @@ static void undoCurve_to_editCurve(void *ucu, void *obe)
 	freeNurblist(editbase);
 
 	if (undoCurve->undoIndex) {
-		BLI_ghash_free(editnurb->keyindex, NULL, (GHashValFreeFP)free_cvKeyIndex);
+		BLI_ghash_free(editnurb->keyindex, NULL, (GHashValFreeFP)MEM_freeN);
 		editnurb->keyindex= dupli_keyIndexHash(undoCurve->undoIndex);
 	}
 
@@ -7013,7 +6989,7 @@ static void *editCurve_to_undoCurve(void *obe)
 {
 	Object *obedit= obe;
 	Curve *cu= (Curve*)obedit->data;
-	ListBase *nubase= ED_curve_editnurbs(cu);
+	ListBase *nubase= curve_editnurbs(cu);
 	UndoCurve *undoCurve;
 	EditNurb *editnurb= cu->editnurb, tmpEditnurb;
 	Nurb *nu, *newnu;
@@ -7062,7 +7038,7 @@ static void free_undoCurve(void *ucv)
 	freeNurblist(&undoCurve->nubase);
 
 	if(undoCurve->undoIndex)
-		BLI_ghash_free(undoCurve->undoIndex, NULL, (GHashValFreeFP)free_cvKeyIndex);
+		BLI_ghash_free(undoCurve->undoIndex, NULL, (GHashValFreeFP)MEM_freeN);
 
 	free_fcurves(&undoCurve->fcurves);
 	free_fcurves(&undoCurve->drivers);
@@ -7082,15 +7058,6 @@ void undo_push_curve(bContext *C, const char *name)
 	undo_editmode_push(C, name, get_data, free_undoCurve, undoCurve_to_editCurve, editCurve_to_undoCurve, NULL);
 }
 
-/* Get list of nurbs from editnurbs structure */
-ListBase *ED_curve_editnurbs(Curve *cu)
-{
-	if (cu->editnurb) {
-		return &cu->editnurb->nurbs;
-	}
-
-	return NULL;
-}
 void ED_curve_beztcpy(EditNurb *editnurb, BezTriple *dst, BezTriple *src, int count)
 {
 	memcpy(dst, src, count*sizeof(BezTriple));

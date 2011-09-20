@@ -62,7 +62,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "ED_screen.h"
+#include "../editors/include/ED_screen.h"
 #include "WM_api.h"
 
 /* for image output	*/

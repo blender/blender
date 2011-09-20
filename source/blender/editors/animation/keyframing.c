@@ -531,7 +531,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 	bConstraint *con= NULL;
 	short searchtype= VISUALKEY_NONE;
 	short has_parent = FALSE;
-	char *identifier= NULL;
+	const char *identifier= NULL;
 	
 	/* validate data */
 	// TODO: this check is probably not needed, but it won't hurt
@@ -548,7 +548,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		Object *ob= (Object *)ptr->data;
 		
 		con= ob->constraints.first;
-		identifier= (char *)RNA_property_identifier(prop);
+		identifier= RNA_property_identifier(prop);
 		has_parent= (ob->parent != NULL);
 	}
 	else if (ptr->type == &RNA_PoseBone) {
@@ -556,7 +556,7 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		bPoseChannel *pchan= (bPoseChannel *)ptr->data;
 		
 		con= pchan->constraints.first;
-		identifier= (char *)RNA_property_identifier(prop);
+		identifier= RNA_property_identifier(prop);
 		has_parent= (pchan->parent != NULL);
 	}
 	
@@ -565,12 +565,18 @@ static short visualkey_can_use (PointerRNA *ptr, PropertyRNA *prop)
 		return 0;
 		
 	/* location or rotation identifiers only... */
-	if (strstr(identifier, "location"))
+	if(identifier == NULL) {
+		printf("%s failed: NULL identifier\n", __func__);
+		return 0;
+	}
+	else if (strstr(identifier, "location")) {
 		searchtype= VISUALKEY_LOC;
-	else if (strstr(identifier, "rotation"))
+	}
+	else if (strstr(identifier, "rotation")) {
 		searchtype= VISUALKEY_ROT;
+	}
 	else {
-		printf("visualkey_can_use() failed: identifier - '%s' \n", identifier);
+		printf("%s failed: identifier - '%s' \n", __func__, identifier);
 		return 0;
 	}
 	
@@ -757,7 +763,7 @@ short insert_keyframe_direct (ReportList *reports, PointerRNA ptr, PropertyRNA *
 	/* F-Curve not editable? */
 	if (fcurve_is_keyframable(fcu) == 0) {
 		BKE_reportf(reports, RPT_ERROR, 
-			"F-Curve with path = '%s' [%d] cannot be keyframed. Ensure that it is not locked or sampled. Also, try removing F-Modifiers.",
+			"F-Curve with path = '%s' [%d] cannot be keyframed. Ensure that it is not locked or sampled. Also, try removing F-Modifiers",
 			fcu->rna_path, fcu->array_index);
 		return 0;
 	}
@@ -1454,7 +1460,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 		else {
 			if (G.f & G_DEBUG)
 				printf("Button Insert-Key: no path to property \n");
-			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead.");
+			BKE_report(op->reports, RPT_WARNING, "Failed to resolve path to property. Try using a Keying Set instead");
 		}
 	}
 	else if (G.f & G_DEBUG) {
@@ -1492,7 +1498,7 @@ void ANIM_OT_keyframe_insert_button (wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Insert a keyframe for all element of the array");
 }
 
 /* Delete Key Button Operator ------------------------ */
@@ -1564,7 +1570,7 @@ void ANIM_OT_keyframe_delete_button (wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete keyfames from all elements of the array");
 }
 
 /* ******************************************* */

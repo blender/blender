@@ -110,7 +110,6 @@ void game_copy_pose(bPose **dst, bPose *src, int copy_constraint)
 	for (pchan=(bPoseChannel*)out->chanbase.first; pchan; pchan=(bPoseChannel*)pchan->next) {
 		pchan->parent= (bPoseChannel*)BLI_ghash_lookup(ghash, pchan->parent);
 		pchan->child= (bPoseChannel*)BLI_ghash_lookup(ghash, pchan->child);
-		pchan->path= NULL;
 
 		if (copy_constraint) {
 			ListBase listb;

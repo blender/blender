@@ -136,8 +136,8 @@ void ED_setflagsLatt(struct Object *obedit, int flag);
 /* object_modifier.c */
 enum {
 	MODIFIER_APPLY_DATA=1,
-	MODIFIER_APPLY_SHAPE,
-} eModifier_Apply_Mode;
+	MODIFIER_APPLY_SHAPE
+};
 
 struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name, int type);
 int ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct ModifierData *md);

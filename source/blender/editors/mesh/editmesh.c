@@ -1335,7 +1335,7 @@ static int mesh_separate_selected(wmOperator *op, Main *bmain, Scene *scene, Bas
 	me= obedit->data;
 	em= BKE_mesh_get_editmesh(me);
 	if(me->key) {
-		BKE_report(op->reports, RPT_WARNING, "Can't separate mesh with shape keys.");
+		BKE_report(op->reports, RPT_WARNING, "Can't separate mesh with shape keys");
 		BKE_mesh_end_editmesh(me, em);
 		return 0;
 	}
@@ -1659,8 +1659,8 @@ static void *editMesh_to_undoMesh(void *emv)
 	/* now copy vertices */
 	a = 0;
 	for(eve=em->verts.first; eve; eve= eve->next, evec++, a++) {
-		VECCOPY(evec->co, eve->co);
-		VECCOPY(evec->no, eve->no);
+		copy_v3_v3(evec->co, eve->co);
+		copy_v3_v3(evec->no, eve->no);
 
 		evec->f= eve->f;
 		evec->h= eve->h;
@@ -1761,7 +1761,7 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 		eve= addvertlist(em, evec->co, NULL);
 		evar[a]= eve;
 
-		VECCOPY(eve->no, evec->no);
+		copy_v3_v3(eve->no, evec->no);
 		eve->f= evec->f;
 		eve->h= evec->h;
 		eve->keyindex= evec->keyindex;
@@ -1956,5 +1956,103 @@ void em_setup_viewcontext(bContext *C, ViewContext *vc)
 	if(vc->obedit) {
 		Mesh *me= vc->obedit->data;
 		vc->em= me->edit_mesh;
+	}
+}
+
+
+/*  (similar to void paintface_flush_flags(Object *ob))
+ * copy the vertex flags, most importantly selection from the mesh to the final derived mesh,
+ * use in object mode when selecting vertices (while painting) */
+void paintvert_flush_flags(Object *ob)
+{
+	Mesh *me= get_mesh(ob);
+	DerivedMesh *dm= ob->derivedFinal;
+	MVert *dm_mvert, *dm_mv;
+	int *index_array = NULL;
+	int totvert;
+	int i;
+
+	if(me==NULL || dm==NULL)
+		return;
+
+	index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
+
+	dm_mvert = dm->getVertArray(dm);
+	totvert = dm->getNumVerts(dm);
+
+	dm_mv= dm_mvert;
+
+	if(index_array) {
+		int orig_index;
+		for (i= 0; i<totvert; i++, dm_mv++) {
+			orig_index= index_array[i];
+			if(orig_index != ORIGINDEX_NONE) {
+				dm_mv->flag= me->mvert[index_array[i]].flag;
+			}
+		}
+	}
+	else {
+		for (i= 0; i<totvert; i++, dm_mv++) {
+			dm_mv->flag= me->mvert[i].flag;
+		}
+	}
+}
+/*  note: if the caller passes FALSE to flush_flags, then they will need to run paintvert_flush_flags(ob) themselves */
+void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
+{
+	Mesh *me;
+	MVert *mvert;
+	int a;
+
+	me= get_mesh(ob);
+	if(me==NULL) return;
+	
+	if(action == SEL_INVERT) {
+		mvert= me->mvert;
+		a= me->totvert;
+		while(a--) {
+			if((mvert->flag & ME_HIDE) == 0) {
+				mvert->flag ^= SELECT;
+			}
+			mvert++;
+		}
+	}
+	else {
+		if (action == SEL_TOGGLE) {
+			action = SEL_SELECT;
+
+			mvert= me->mvert;
+			a= me->totvert;
+			while(a--) {
+				if((mvert->flag & ME_HIDE) == 0 && mvert->flag & SELECT) {
+					action = SEL_DESELECT;
+					break;
+				}
+				mvert++;
+			}
+		}
+
+		mvert= me->mvert;
+		a= me->totvert;
+		while(a--) {
+			if((mvert->flag & ME_HIDE) == 0) {
+				switch (action) {
+				case SEL_SELECT:
+					mvert->flag |= SELECT;
+					break;
+				case SEL_DESELECT:
+					mvert->flag &= ~SELECT;
+					break;
+				case SEL_INVERT:
+					mvert->flag ^= SELECT;
+					break;
+				}
+			}
+			mvert++;
+		}
+	}
+
+	if(flush_flags) {
+		paintvert_flush_flags(ob);
 	}
 }

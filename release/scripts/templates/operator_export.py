@@ -41,7 +41,7 @@ class ExportSomeData(bpy.types.Operator, ExportHelper):
             name="Example Enum",
             description="Choose between two items",
             items=(('OPT_A', "First Option", "Description one"),
-                   ('OPT_B', "Second Option", "Description two.")),
+                   ('OPT_B', "Second Option", "Description two")),
             default='OPT_A',
             )
 

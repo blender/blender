@@ -111,7 +111,7 @@ static void ibuf_get_color(float *col, struct ImBuf *ibuf, int x, int y)
 	}	
 }
 
-int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texres)
+int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResult *texres)
 {
 	float fx, fy, val1, val2, val3;
 	int x, y, retval;
@@ -1019,7 +1019,7 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 	
 }
 
-static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, float *dyt, TexResult *texres)
+static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], float dxt[3], float dyt[3], TexResult *texres)
 {
 	TexResult texr;
 	float fx, fy, minx, maxx, miny, maxy;
@@ -1409,7 +1409,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 }
 
 
-int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, float *DYT, TexResult *texres)
+int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const float DXT[3], const float DYT[3], TexResult *texres)
 {
 	TexResult texr;
 	float fx, fy, minx, maxx, miny, maxy, dx, dy, dxt[3], dyt[3];
@@ -1418,8 +1418,8 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 
 	// TXF: since dxt/dyt might be modified here and since they might be needed after imagewraposa() call,
 	// make a local copy here so that original vecs remain untouched
-	VECCOPY(dxt, DXT);
-	VECCOPY(dyt, DYT);
+	copy_v3_v3(dxt, DXT);
+	copy_v3_v3(dyt, DYT);
 
 	// anisotropic filtering
 	if (tex->texfilter != TXF_BOX)

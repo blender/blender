@@ -1,9 +1,10 @@
 #!/usr/bin/python
 Import ('env')
+import os
 
 sources = env.Glob('intern/*.c')
 
-incs = '. #/intern/guardedalloc #/intern/memutil ../editors/include'
+incs = '. #/intern/guardedalloc #/intern/memutil'
 incs += ' ../blenlib ../blenfont ../makesdna ../windowmanager'
 incs += ' ../render/extern/include #/intern/decimation/extern ../makesrna'
 incs += ' ../imbuf ../ikplugin ../avi #/intern/elbeem/extern ../nodes ../modifiers'
@@ -89,6 +90,12 @@ if env['WITH_BF_LZO']:
 if env['WITH_BF_LZMA']:
     incs += ' #/extern/lzma'
     defs.append('WITH_LZMA')
+
+if env['WITH_BF_GAMEENGINE']:
+    incs += ' #/extern/recastnavigation'
+    defs.append('WITH_GAMEENGINE')
+else:
+    sources.remove('intern' + os.sep + 'navmesh_conversion.c')
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']

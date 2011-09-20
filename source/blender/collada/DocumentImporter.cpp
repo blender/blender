@@ -76,6 +76,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "ExtraHandler.h"
+#include "ErrorHandler.h"
 #include "DocumentImporter.h"
 #include "TransformReader.h"
 
@@ -113,15 +114,17 @@ DocumentImporter::~DocumentImporter()
 
 bool DocumentImporter::import()
 {
-	/** TODO Add error handler (implement COLLADASaxFWL::IErrorHandler */
-	COLLADASaxFWL::Loader loader;
+	ErrorHandler errorHandler;
+	COLLADASaxFWL::Loader loader(&errorHandler);
 	COLLADAFW::Root root(&loader, this);
 	ExtraHandler *ehandler = new ExtraHandler(this, &(this->anim_importer));
 	
 	loader.registerExtraDataCallbackHandler(ehandler);
-	
 
 	if (!root.loadDocument(mFilename))
+		return false;
+	
+	if(errorHandler.hasError())
 		return false;
 	
 	/** TODO set up scene graph and such here */
@@ -240,15 +243,15 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 			root_map[node->getUniqueId()] = root_map[par->getUniqueId()];
 	}
 
-	COLLADAFW::Transformation::TransformationType types[] = {
+	/*COLLADAFW::Transformation::TransformationType types[] = {
 		COLLADAFW::Transformation::ROTATE,
 		COLLADAFW::Transformation::SCALE,
 		COLLADAFW::Transformation::TRANSLATE,
 		COLLADAFW::Transformation::MATRIX
 	};
 
+	Object *ob;*/
 	unsigned int i;
-	Object *ob;
 
 	//for (i = 0; i < 4; i++)
 		//ob = 
@@ -813,7 +816,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 						double aspect = camera->getAspectRatio().getValue();
 						double xfov = aspect*yfov;
 						// xfov is in degrees, cam->lens is in millimiters
-						cam->lens = angle_to_lens((float)xfov*(M_PI/180.0f));
+						cam->lens = angle_to_lens(DEG2RADF(xfov));;
 					}
 					break;
 			}
@@ -834,7 +837,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 					{
 						double x = camera->getXFov().getValue();
 						// x is in degrees, cam->lens is in millimiters
-						cam->lens = angle_to_lens((float)x*(M_PI/180.0f));
+						cam->lens = angle_to_lens(DEG2RADF(x));
 					}
 					break;
 			}
@@ -851,7 +854,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 					{
 					double yfov = camera->getYFov().getValue();
 					// yfov is in degrees, cam->lens is in millimiters
-					cam->lens = angle_to_lens((float)yfov*(M_PI/180.0f));
+					cam->lens = angle_to_lens(DEG2RADF(yfov));
 					}
 					break;
 			}

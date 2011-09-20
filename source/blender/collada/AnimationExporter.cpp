@@ -58,7 +58,7 @@ void AnimationExporter::operator() (Object *ob)
 {
 	FCurve *fcu;
 	char * transformName ;
-	bool isMatAnim = false;
+	/* bool isMatAnim = false; */ /* UNUSED */
 
 	//Export transform animations
 	if(ob->adt && ob->adt->action)
@@ -125,7 +125,7 @@ void AnimationExporter::operator() (Object *ob)
 		if (!ma) continue;
 		if(ma->adt && ma->adt->action)
 		{
-			isMatAnim = true;
+			/* isMatAnim = true; */
 			fcu = (FCurve*)ma->adt->action->curves.first;
 			while (fcu) {
 				transformName = extract_transform_name( fcu->rna_path );
@@ -577,7 +577,7 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 		case COLLADASW::InputSemantic::OUTPUT:
 			*length = 1;
 			if (rotation) {
-				values[0] = (bezt->vec[1][1]) * 180.0f/M_PI;
+				values[0] = RAD2DEGF(bezt->vec[1][1]);
 			}
 			else {
 				values[0] = bezt->vec[1][1];
@@ -593,7 +593,7 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 				values[1] = 0; 	
 			}
 			else if (rotation) {
-				values[1] = (bezt->vec[0][1]) * 180.0f/M_PI;
+				values[1] = RAD2DEGF(bezt->vec[0][1]);
 			} else {
 				values[1] = bezt->vec[0][1];
 			}
@@ -608,7 +608,7 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 				values[1] = 0;	
 			}
 			else if (rotation) {
-				values[1] = (bezt->vec[2][1]) * 180.0f/M_PI;
+				values[1] = RAD2DEGF(bezt->vec[2][1]);
 			} else {
 				values[1] = bezt->vec[2][1];
 			}
@@ -642,6 +642,8 @@ std::string AnimationExporter::create_source_from_fcurve(COLLADASW::InputSemanti
 		case COLLADASW::InputSemantic::IN_TANGENT:
 		case COLLADASW::InputSemantic::OUT_TANGENT:
 			source.setAccessorStride(2);			
+			break;
+		default:
 			break;
 	}
 
@@ -686,7 +688,7 @@ std::string AnimationExporter::create_source_from_array(COLLADASW::InputSemantic
 		//	val = convert_time(val);
 		//else
 		if (is_rot)
-			val *= 180.0f / M_PI;
+			val = RAD2DEGF(val);
 		source.appendValues(val);
 	}
 
@@ -913,7 +915,7 @@ std::string AnimationExporter::get_light_param_sid(char *rna_path, int tm_type, 
 	}
 
 	if (tm_name.size()) {
-		if (axis_name != "")
+		if (axis_name[0])
 			return tm_name + "." + std::string(axis_name);
 		else 
 			return tm_name;
@@ -962,7 +964,7 @@ std::string AnimationExporter::get_camera_param_sid(char *rna_path, int tm_type,
 	}
 
 	if (tm_name.size()) {
-		if (axis_name != "")
+		if (axis_name[0])
 			return tm_name + "." + std::string(axis_name);
 		else 
 			return tm_name;
@@ -1041,7 +1043,7 @@ std::string AnimationExporter::get_transform_sid(char *rna_path, int tm_type, co
 		if (is_rotation)
 			return tm_name + std::string(axis_name) + ".ANGLE";
 		else
-			if (axis_name != "")
+			if (axis_name[0])
 				return tm_name + "." + std::string(axis_name);
 			else 
 				return tm_name;

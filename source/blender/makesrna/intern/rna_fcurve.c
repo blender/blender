@@ -215,7 +215,7 @@ static void rna_DriverTarget_RnaPath_get(PointerRNA *ptr, char *value)
 	if (dtar->rna_path)
 		strcpy(value, dtar->rna_path);
 	else
-		strcpy(value, "");
+		value[0]= '\0';
 }
 
 static int rna_DriverTarget_RnaPath_length(PointerRNA *ptr)
@@ -309,7 +309,7 @@ static void rna_FCurve_RnaPath_get(PointerRNA *ptr, char *value)
 	if (fcu->rna_path)
 		strcpy(value, fcu->rna_path);
 	else
-		strcpy(value, "");
+		value[0]= '\0';
 }
 
 static int rna_FCurve_RnaPath_length(PointerRNA *ptr)
@@ -410,7 +410,7 @@ DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
 void rna_Driver_remove_variable(ChannelDriver *driver, ReportList *reports, DriverVar *dvar)
 {
 	if(BLI_findindex(&driver->variables, dvar) == -1) {
-		BKE_report(reports, RPT_ERROR, "Variable does not exist in this driver.");
+		BKE_report(reports, RPT_ERROR, "Variable does not exist in this driver");
 		return;
 	}
 
@@ -439,7 +439,7 @@ static FModifier *rna_FCurve_modifiers_new(FCurve *fcu, int type)
 static void rna_FCurve_modifiers_remove(FCurve *fcu, ReportList *reports, FModifier *fcm)
 {
 	if(BLI_findindex(&fcu->modifiers, fcm) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "FCurveModifier '%s' not found in fcurve.", fcm->name);
+		BKE_reportf(reports, RPT_ERROR, "F-Curve modifier '%s' not found in F-Curve", fcm->name);
 		return;
 	}
 	remove_fmodifier(&fcu->modifiers, fcm);
@@ -612,7 +612,7 @@ static void rna_FKeyframe_points_remove(FCurve *fcu, ReportList *reports, BezTri
 {
 	int index= (int)(bezt - fcu->bezt);
 	if (index < 0 || index >= fcu->totvert) {
-		BKE_report(reports, RPT_ERROR, "Keyframe not in F-Curve.");
+		BKE_report(reports, RPT_ERROR, "Keyframe not in F-Curve");
 		return;
 	}
 
@@ -1212,17 +1212,17 @@ static void rna_def_channeldriver_variables(BlenderRNA *brna, PropertyRNA *cprop
 	
 	/* add variable */
 	func= RNA_def_function(srna, "new", "rna_Driver_new_variable");
-	RNA_def_function_ui_description(func, "Add a new variable for the driver.");
+	RNA_def_function_ui_description(func, "Add a new variable for the driver");
 		/* return type */
-	parm= RNA_def_pointer(func, "var", "DriverVariable", "", "Newly created Driver Variable.");
+	parm= RNA_def_pointer(func, "var", "DriverVariable", "", "Newly created Driver Variable");
 		RNA_def_function_return(func, parm);
 
 	/* remove variable */
 	func= RNA_def_function(srna, "remove", "rna_Driver_remove_variable");
-	RNA_def_function_ui_description(func, "Remove an existing variable from the driver.");
+	RNA_def_function_ui_description(func, "Remove an existing variable from the driver");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	/* target to remove */
-	parm= RNA_def_pointer(func, "variable", "DriverVariable", "", "Variable to remove from the driver.");
+	parm= RNA_def_pointer(func, "variable", "DriverVariable", "", "Variable to remove from the driver");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
@@ -1402,17 +1402,17 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_FCurve_modifiers_new");
 	RNA_def_function_ui_description(func, "Add a constraint to this object");
 	/* return type */
-	parm= RNA_def_pointer(func, "fmodifier", "FModifier", "", "New fmodifier.");
+	parm= RNA_def_pointer(func, "fmodifier", "FModifier", "", "New fmodifier");
 	RNA_def_function_return(func, parm);
 	/* object to add */
-	parm= RNA_def_enum(func, "type", fmodifier_type_items, 1, "", "Constraint type to add.");
+	parm= RNA_def_enum(func, "type", fmodifier_type_items, 1, "", "Constraint type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "remove", "rna_FCurve_modifiers_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Remove a modifier from this fcurve.");
+	RNA_def_function_ui_description(func, "Remove a modifier from this F-Curve");
 	/* modifier to remove */
-	parm= RNA_def_pointer(func, "modifier", "FModifier", "", "Removed modifier.");
+	parm= RNA_def_pointer(func, "modifier", "FModifier", "", "Removed modifier");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
@@ -1436,25 +1436,25 @@ static void rna_def_fcurve_keyframe_points(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Keyframe Points", "Collection of keyframe points");
 
 	func= RNA_def_function(srna, "insert", "rna_FKeyframe_points_insert");
-	RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve.");
+	RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve");
 	parm= RNA_def_float(func, "frame", 0.0f, -FLT_MAX, FLT_MAX, "", "X Value of this keyframe point", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_float(func, "value", 0.0f, -FLT_MAX, FLT_MAX, "", "Y Value of this keyframe point", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	RNA_def_enum_flag(func, "options", keyframe_flag_items, 0, "", "Keyframe options.");
+	RNA_def_enum_flag(func, "options", keyframe_flag_items, 0, "", "Keyframe options");
 
 	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Newly created keyframe");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "add", "rna_FKeyframe_points_add");
-	RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve.");
+	RNA_def_function_ui_description(func, "Add a keyframe point to a F-Curve");
 	RNA_def_int(func, "count", 1, 1, INT_MAX, "Number", "Number of points to add to the spline", 1, INT_MAX);
 
 	func= RNA_def_function(srna, "remove", "rna_FKeyframe_points_remove");
-	RNA_def_function_ui_description(func, "Remove keyframe from an fcurve.");
+	RNA_def_function_ui_description(func, "Remove keyframe from an F-Curve");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Keyframe to remove.");
+	parm= RNA_def_pointer(func, "keyframe", "Keyframe", "", "Keyframe to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 	/* optional */
 	RNA_def_boolean(func, "fast", 0, "Fast", "Fast keyframe removal to avoid recalculating the curve each time");
@@ -1569,15 +1569,15 @@ static void rna_def_fcurve(BlenderRNA *brna)
 
 	/* Functions */
 	func= RNA_def_function(srna, "evaluate", "evaluate_fcurve"); /* calls the C/API direct */
-	RNA_def_function_ui_description(func, "Evaluate fcurve.");
-	parm= RNA_def_float(func, "frame", 1.0f, -FLT_MAX, FLT_MAX, "Frame", "Evaluate fcurve at given frame", -FLT_MAX, FLT_MAX);
+	RNA_def_function_ui_description(func, "Evaluate F-Curve");
+	parm= RNA_def_float(func, "frame", 1.0f, -FLT_MAX, FLT_MAX, "Frame", "Evaluate F-Curve at given frame", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return value */
-	parm= RNA_def_float(func, "position", 0, -FLT_MAX, FLT_MAX, "Position", "FCurve position", -FLT_MAX, FLT_MAX);
+	parm= RNA_def_float(func, "position", 0, -FLT_MAX, FLT_MAX, "Position", "F-Curve position", -FLT_MAX, FLT_MAX);
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "range", "rna_fcurve_range");
-	RNA_def_function_ui_description(func, "Get the time extents for F-Curve.");
+	RNA_def_function_ui_description(func, "Get the time extents for F-Curve");
 	/* return value */
 	parm= RNA_def_float_vector(func, "range", 2, NULL, -FLT_MAX, FLT_MAX, "Range", "Min/Max values", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);

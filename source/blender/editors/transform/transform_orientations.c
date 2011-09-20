@@ -41,6 +41,7 @@
 
 
 #include "BKE_armature.h"
+#include "BKE_curve.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
 
@@ -49,6 +50,8 @@
 #include "BLI_editVert.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 //#include "BIF_editmesh.h"
 //#include "BIF_interface.h"
 //#include "BIF_space.h"
@@ -56,10 +59,10 @@
 
 #include "ED_armature.h"
 #include "ED_mesh.h"
-#include "ED_curve.h" /* for ED_curve_editnurbs */
-
 
 #include "RNA_define.h"
+
+#include "UI_interface.h"
 
 #include "transform.h"
 
@@ -222,7 +225,7 @@ int createSpaceNormal(float mat[3][3], float normal[3])
 {
 	float tangent[3] = {0.0f, 0.0f, 1.0f};
 	
-	VECCOPY(mat[2], normal);
+	copy_v3_v3(mat[2], normal);
 	if (normalize_v3(mat[2]) == 0.0f) {
 		return 0; /* error return */
 	}
@@ -243,7 +246,7 @@ int createSpaceNormal(float mat[3][3], float normal[3])
 
 int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 {
-	VECCOPY(mat[2], normal);
+	copy_v3_v3(mat[2], normal);
 	if (normalize_v3(mat[2]) == 0.0f) {
 		return 0; /* error return */
 	}
@@ -407,14 +410,18 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 }
 
 const char * BIF_menustringTransformOrientation(const bContext *C, const char *title) {
-	char menu[] = "%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3";
+	const char* menu = N_("%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3");
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
 	char *str_menu, *p;
+
+	if(UI_translate_iface()) {
+		title= BLF_gettext(title);
+		menu= BLF_gettext(menu);
+	}
 	
-	
-	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + 40 * BIF_countTransformOrientation(C), "UserTransSpace from matrix");
+	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + 40 * BIF_countTransformOrientation(C), UI_translate_do_tooltip(N_("UserTransSpace from matrix")));
 	p = str_menu;
 	
 	p += sprintf(str_menu, "%s", title);
@@ -659,7 +666,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					for(eed= em->edges.first; eed; eed= eed->next) {
 						if(eed->f & SELECT) {
 							/* use average vert normals as plane and edge vector as normal */
-							VECCOPY(plane, eed->v1->no);
+							copy_v3_v3(plane, eed->v1->no);
 							VECADD(plane, plane, eed->v2->no);
 							sub_v3_v3v3(normal, eed->v2->co, eed->v1->co);
 							break;
@@ -680,7 +687,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 							else {
 								v2 = eve;
 								
-								VECCOPY(plane, v1->no);
+								copy_v3_v3(plane, v1->no);
 								VECADD(plane, plane, v2->no);
 								sub_v3_v3v3(normal, v2->co, v1->co);
 								break; 
@@ -694,7 +701,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					for (eve = em->verts.first; eve; eve = eve->next)
 					{
 						if ( eve->f & SELECT ) {
-							VECCOPY(normal, eve->no);
+							copy_v3_v3(normal, eve->no);
 							break;
 						}
 					}
@@ -721,7 +728,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			Nurb *nu;
 			BezTriple *bezt;
 			int a;
-			ListBase *nurbs= ED_curve_editnurbs(cu);
+			ListBase *nurbs= curve_editnurbs(cu);
 
 			for (nu = nurbs->first; nu; nu = nu->next)
 			{
@@ -792,7 +799,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				/* Rotation of MetaElem is stored in quat */
 				 quat_to_mat4( mat,ml_sel->quat);
 
-				VECCOPY(normal, mat[2]);
+				copy_v3_v3(normal, mat[2]);
 
 				negate_v3_v3(plane, mat[1]);
 				
@@ -893,8 +900,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		}
 		
 		if (ob) {
-			VECCOPY(normal, ob->obmat[2]);
-			VECCOPY(plane, ob->obmat[1]);
+			copy_v3_v3(normal, ob->obmat[2]);
+			copy_v3_v3(plane, ob->obmat[1]);
 		}
 		result = ORIENTATION_NORMAL;
 	}

@@ -43,6 +43,7 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_sca.h"
+#include "BKE_material.h" //for texface convert
 
 #include "ED_logic.h"
 #include "ED_object.h"
@@ -56,6 +57,11 @@
 #include "WM_types.h"
 
 #include "logic_intern.h"
+
+// temporary new includes for texface functions
+#include "DNA_mesh_types.h"
+#include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
 
 /* ************* Generic Operator Helpers ************* */
 static int edit_sensor_poll(bContext *C)
@@ -322,7 +328,7 @@ static void LOGIC_OT_sensor_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
+	ot->prop= prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
 	RNA_def_enum_funcs(prop, rna_Sensor_type_itemf);
 	RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Sensor to add");
 	RNA_def_string(ot->srna, "object", "", 32, "Object", "Name of the Object to add the Sensor to");
@@ -437,7 +443,7 @@ static void LOGIC_OT_controller_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
+	ot->prop= RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
 	RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Controller to add");
 	RNA_def_string(ot->srna, "object", "", 32, "Object", "Name of the Object to add the Controller to");
 }
@@ -539,7 +545,7 @@ static void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
+	ot->prop= prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
 	RNA_def_enum_funcs(prop, rna_Actuator_type_itemf);
 	RNA_def_string(ot->srna, "name", "", 32, "Name", "Name of the Actuator to add");
 	RNA_def_string(ot->srna, "object", "", 32, "Object", "Name of the Object to add the Actuator to");
@@ -687,6 +693,36 @@ static void LOGIC_OT_actuator_move(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "direction", logicbricks_move_direction, 1, "Direction", "Move Up or Down");
 }
 
+/* ************* TexFace Converter Operator ************* */
+static int texface_convert_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main *bmain= CTX_data_main(C);
+	do_version_tface(bmain, 0);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int texface_convert_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	return texface_convert_exec(C, op);
+}
+
+ static void LOGIC_OT_texface_convert(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "TexFace to Material Converter";
+	ot->description = "Convert old texface settings into material. It may create new materials if needed";
+	ot->idname= "LOGIC_OT_texface_convert";
+
+	/* api callbacks */
+	ot->invoke= texface_convert_invoke;
+	ot->exec= texface_convert_exec;
+//	ot->poll= texface_convert_poll;
+ 
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 
 void ED_operatortypes_logic(void)
 {
@@ -699,4 +735,5 @@ void ED_operatortypes_logic(void)
 	WM_operatortype_append(LOGIC_OT_actuator_remove);
 	WM_operatortype_append(LOGIC_OT_actuator_add);
 	WM_operatortype_append(LOGIC_OT_actuator_move);
+	WM_operatortype_append(LOGIC_OT_texface_convert);
 }

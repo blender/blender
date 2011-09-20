@@ -326,7 +326,7 @@ static void layerSwap_tface(void *data, const int *corner_indices)
 static void layerDefault_tface(void *data, int count)
 {
 	static MTFace default_tf = {{{0, 0}, {1, 0}, {1, 1}, {0, 1}}, NULL,
-							   0, 0, TF_DYNAMIC, 0, 0};
+							   0, 0, TF_DYNAMIC|TF_CONVERTED, 0, 0};
 	MTFace *tf = (MTFace*)data;
 	int i;
 
@@ -867,7 +867,9 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MCol)*4, "MCol", 4, "TexturedCol", NULL, NULL, layerInterp_mcol,
 	 layerSwap_mcol, layerDefault_mcol},
 	/* 23: CD_CLOTH_ORCO */
-	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL}
+	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	/* 24: CD_RECAST */
+	{sizeof(MRecast), "MRecast", 1,"Recast",NULL,NULL,NULL,NULL}
 };
 
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
@@ -875,7 +877,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	/*   5-9 */ "CDMTFace", "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags",
 	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco",
 	/* 15-19 */ "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent", "CDMDisps",
-	/* 20-23 */"CDWeightMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco"
+	/* 20-24 */"CDWeightMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco", "CDMRecast"
 };
 
 const CustomDataMask CD_MASK_BAREMESH =
@@ -883,14 +885,14 @@ const CustomDataMask CD_MASK_BAREMESH =
 const CustomDataMask CD_MASK_MESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE |
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL |
-	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS;
+	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS | CD_MASK_RECAST;
 const CustomDataMask CD_MASK_EDITMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
-	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS;
+	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS | CD_MASK_RECAST;
 const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_CLOTH_ORCO |
-	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | CD_MASK_WEIGHT_MCOL;
+	CD_MASK_PROP_STR | CD_MASK_ORIGSPACE | CD_MASK_ORCO | CD_MASK_TANGENT | CD_MASK_WEIGHT_MCOL | CD_MASK_RECAST;
 const CustomDataMask CD_MASK_BMESH = 
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
 const CustomDataMask CD_MASK_FACECORNERS =

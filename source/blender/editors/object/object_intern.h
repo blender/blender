@@ -200,6 +200,8 @@ void OBJECT_OT_vertex_group_copy(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize_all(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_lock(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_fix(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_blend(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
@@ -222,6 +224,11 @@ void OBJECT_OT_group_remove(struct wmOperatorType *ot);
 
 /* object_bake.c */
 void OBJECT_OT_bake_image(wmOperatorType *ot);
+
+/* object_navmesh.cpp */
+void OBJECT_OT_create_navmesh(struct wmOperatorType *ot);
+void OBJECT_OT_assign_navpolygon(struct wmOperatorType *ot);
+void OBJECT_OT_assign_new_navpolygon(struct wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

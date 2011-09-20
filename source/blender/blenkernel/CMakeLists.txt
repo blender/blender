@@ -35,7 +35,6 @@ set(INC
 	../blenfont
 	../blenlib
 	../blenloader
-	../editors/include
 	../gpu
 	../ikplugin
 	../imbuf
@@ -181,7 +180,6 @@ set(SRC
 	BKE_depsgraph.h
 	BKE_displist.h
 	BKE_effect.h
-	BKE_endian.h
 	BKE_fcurve.h
 	BKE_fluidsim.h
 	BKE_font.h
@@ -352,6 +350,16 @@ if(WITH_LZMA)
 		../../../extern/lzma
 	)
 	add_definitions(-DWITH_LZMA)
+endif()
+
+if(WITH_GAMEENGINE)
+	list(APPEND INC_SYS
+	../../../extern/recastnavigation
+	)
+	list(APPEND SRC
+		intern/navmesh_conversion.c
+		BKE_navmesh_conversion.h
+	)
 endif()
 
 if(MSVC)

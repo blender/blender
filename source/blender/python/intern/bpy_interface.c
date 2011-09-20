@@ -30,7 +30,7 @@
  
 /* grr, python redefines */
 #ifdef _POSIX_C_SOURCE
-#undef _POSIX_C_SOURCE
+#  undef _POSIX_C_SOURCE
 #endif
 
 #include <Python.h>
@@ -40,6 +40,7 @@
 #include "RNA_types.h"
 
 #include "bpy.h"
+#include "gpu.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"
 #include "bpy_traceback.h"
@@ -181,6 +182,7 @@ static struct _inittab bpy_internal_modules[]= {
 #ifdef WITH_AUDASPACE
 	{(char *)"aud", AUD_initPython},
 #endif
+	{(char *)"gpu", GPU_initPython},
 	{NULL, NULL}
 };
 
@@ -239,6 +241,8 @@ void BPY_python_start(int argc, const char **argv)
 	
 	pyrna_alloc_types();
 
+	BPY_atexit_register(); /* this can init any time */
+
 #ifndef WITH_PYTHON_MODULE
 	py_tstate= PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
@@ -257,6 +261,8 @@ void BPY_python_end(void)
 	/* clear all python data from structs */
 
 	bpy_intern_string_exit();
+
+	BPY_atexit_unregister(); /* without this we get recursive calls to WM_exit */
 
 	Py_Finalize();
 	

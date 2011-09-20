@@ -121,7 +121,7 @@ static void acf_generic_root_backdrop(bAnimContext *ac, bAnimListElem *ale, floa
 	glColor3fv(color);
 	
 	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
-	uiSetRoundBox((expanded)? (1):(1|8));
+	uiSetRoundBox(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
 	uiDrawBox(GL_POLYGON, offset,  yminc, v2d->cur.xmax+EXTRA_SCROLL_PAD, ymaxc, 8);
 }
 
@@ -401,7 +401,7 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
 	 *	- top and bottom 
 	 *	- special hack: make the top a bit higher, since we are first... 
 	 */
-	uiSetRoundBox((1|8));
+	uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
 	uiDrawBox(GL_POLYGON, 0,  yminc-2, v2d->cur.xmax+EXTRA_SCROLL_PAD, ymaxc, 8);
 }
 
@@ -756,7 +756,7 @@ static void acf_group_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc
 	glColor3fv(color);
 	
 	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
-	uiSetRoundBox((expanded)? (1):(1|8));
+	uiSetRoundBox(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
 	uiDrawBox(GL_POLYGON, offset,  yminc, v2d->cur.xmax+EXTRA_SCROLL_PAD, ymaxc, 8);
 }
 
@@ -3069,21 +3069,21 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 			icon= ICON_VISIBLE_IPO_OFF;
 			
 			if (ale->type == ANIMTYPE_FCURVE)
-				tooltip= "Channel is visible in Graph Editor for editing.";
+				tooltip= "Channel is visible in Graph Editor for editing";
 			else
-				tooltip= "Channel(s) are visible in Graph Editor for editing.";
+				tooltip= "Channel(s) are visible in Graph Editor for editing";
 			break;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded triangle */
 			//icon= ((enabled)? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
 			icon= ICON_TRIA_RIGHT;
-			tooltip= "Make channels grouped under this channel visible.";
+			tooltip= "Make channels grouped under this channel visible";
 			break;
 			
 		case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
 			//icon= ((enabled)? ICON_LAYER_ACTIVE : ICON_LAYER_USED);
 			icon= ICON_LAYER_USED;
-			tooltip= "NLA Track is the only one evaluated for the AnimData block it belongs to.";
+			tooltip= "NLA Track is the only one evaluated for the AnimData block it belongs to";
 			break;
 		
 		/* --- */
@@ -3092,7 +3092,7 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 			// TODO: what about when there's no protect needed?
 			//icon= ((enabled)? ICON_LOCKED : ICON_UNLOCKED);
 			icon= ICON_UNLOCKED;
-			tooltip= "Editability of keyframes for this channel.";
+			tooltip= "Editability of keyframes for this channel";
 			break;
 			
 		case ACHANNEL_SETTING_MUTE: /* muted speaker */
@@ -3100,9 +3100,9 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 			icon= ICON_MUTE_IPO_OFF;
 			
 			if (ale->type == ALE_FCURVE) 
-				tooltip= "Does F-Curve contribute to result.";
+				tooltip= "Does F-Curve contribute to result";
 			else
-				tooltip= "Do channels contribute to result.";
+				tooltip= "Do channels contribute to result";
 			break;
 			
 		default:

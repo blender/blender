@@ -213,12 +213,12 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_outliner_active;
 	
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Close or open all items.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Close or open all items");
 }
 
 /* Rename --------------------------------------------------- */
 
-void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, ReportList *reports)
+static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, ReportList *reports)
 {
 	/* can't rename rna datablocks entries */
 	if(ELEM3(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))
@@ -669,7 +669,7 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 	ot->poll= ED_operator_outliner_active;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page.");
+	RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page");
 }
 
 /* Search ------------------------------------------------------- */
@@ -687,7 +687,7 @@ static void outliner_set_coordinates_element(SpaceOops *soops, TreeElement *te, 
 	te->ys= (float)(*starty);
 	*starty-= UI_UNIT_Y;
 	
-	if((tselem->flag & TSE_CLOSED)==0) {
+	if(TSELEM_OPEN(tselem,soops)) {
 		TreeElement *ten;
 		for(ten= te->subtree.first; ten; ten= ten->next) {
 			outliner_set_coordinates_element(soops, ten, startx+UI_UNIT_X, starty);
@@ -765,7 +765,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 	}
 	else {
 		/* pop up panel - no previous, or user didn't want search after previous */
-		strcpy(name, "");
+		name[0]= '\0';
 // XXX		if (sbutton(name, 0, sizeof(name)-1, "Find: ") && name[0]) {
 //			te= outliner_find_named(soops, &soops->tree, name, flags, NULL, &prevFound);
 //		}
@@ -869,7 +869,7 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 	/* no undo or registry, UI option */
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep.");
+	RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep");
 }
 
 /* Show Hierarchy ----------------------------------------------- */
@@ -910,7 +910,7 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOops *soops, ListBase
 		}
 		else tselem->flag |= TSE_CLOSED;
 		
-		if(tselem->flag & TSE_CLOSED); else tree_element_show_hierarchy(scene, soops, &te->subtree);
+		if(TSELEM_OPEN(tselem,soops)) tree_element_show_hierarchy(scene, soops, &te->subtree);
 	}
 }
 
@@ -969,7 +969,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 	ListBase hierarchy = {NULL, NULL};
 	LinkData *ld;
 	TreeElement *tem, *temnext, *temsub;
-	TreeStoreElem *tse, *tsenext;
+	TreeStoreElem *tse /* , *tsenext */ /* UNUSED */;
 	PointerRNA *ptr, *nextptr;
 	PropertyRNA *prop;
 	char *newpath=NULL;
@@ -1018,7 +1018,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					char buf[128], *name;
 					
 					temnext= (TreeElement*)(ld->next->data);
-					tsenext= TREESTORE(temnext);
+					/* tsenext= TREESTORE(temnext); */ /* UNUSED */
 					
 					nextptr= &temnext->rnaptr;
 					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf));
@@ -1175,7 +1175,7 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, ReportL
 		}
 		
 		/* go over sub-tree */
-		if ((tselem->flag & TSE_CLOSED)==0)
+		if (TSELEM_OPEN(tselem,soops))
 			do_outliner_drivers_editop(soops, &te->subtree, reports, mode);
 	}
 }
@@ -1343,7 +1343,7 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 		}
 		
 		/* go over sub-tree */
-		if ((tselem->flag & TSE_CLOSED)==0)
+		if (TSELEM_OPEN(tselem,soops))
 			do_outliner_keyingset_editop(soops, ks, &te->subtree, mode);
 	}
 }

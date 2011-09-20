@@ -222,7 +222,7 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 	char oldname[sizeof(pchan->name)], newname[sizeof(pchan->name)];
 
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, sizeof(pchan->name));
+	BLI_strncpy_utf8(newname, value, sizeof(pchan->name));
 	BLI_strncpy(oldname, pchan->name, sizeof(pchan->name));
 
 	ED_armature_bone_rename(ob->data, oldname, newname);
@@ -411,7 +411,7 @@ static void rna_pose_bgroup_name_index_get(PointerRNA *ptr, char *value, int ind
 	grp= BLI_findlink(&pose->agroups, index-1);
 
 	if(grp) BLI_strncpy(value, grp->name, sizeof(grp->name));
-	else BLI_strncpy(value, "", sizeof(grp->name)); // XXX if invalid pointer, won't this crash?
+	else value[0]= '\0';
 }
 
 static int rna_pose_bgroup_name_index_length(PointerRNA *ptr, int index)
@@ -451,7 +451,7 @@ static void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *r
 		}
 	}
 	
-	BLI_strncpy(result, "", maxlen);
+	result[0]= '\0';
 }
 #endif
 
@@ -479,7 +479,7 @@ static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, int typ
 static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, ReportList *reports, bConstraint *con)
 {
 	if(BLI_findindex(&pchan->constraints, con) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in pose bone '%s'.", con->name, pchan->name);
+		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in pose bone '%s'", con->name, pchan->name);
 		return;
 	}
 	else {
@@ -714,17 +714,17 @@ static void rna_def_pose_channel_constraints(BlenderRNA *brna, PropertyRNA *cpro
 	func= RNA_def_function(srna, "new", "rna_PoseChannel_constraints_new");
 	RNA_def_function_ui_description(func, "Add a constraint to this object");
 	/* return type */
-	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint");
 	RNA_def_function_return(func, parm);
 	/* constraint to add */
-	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
+	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "remove", "rna_PoseChannel_constraints_remove");
-	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
+	RNA_def_function_ui_description(func, "Remove a constraint from this object");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS|FUNC_USE_SELF_ID); /* ID needed for refresh */
 	/* constraint to remove */
-	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint.");
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
@@ -840,7 +840,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	/* writable because it touches loc/scale/rot directly */
 	prop= RNA_def_property(srna, "matrix_basis", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
-	RNA_def_property_ui_text(prop, "Basis Matrix", "Provides an alternative access to loc/scale/rotation relative to the parent and own rest bone.");
+	RNA_def_property_ui_text(prop, "Basis Matrix",
+	                         "Provides an alternative access to loc/scale/rotation relative to the parent and own rest bone");
 	RNA_def_property_float_funcs(prop, "rna_PoseChannel_matrix_basis_get", "rna_PoseChannel_matrix_basis_set", NULL);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");

@@ -36,7 +36,7 @@ OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
 BLENDER_DIR:=$(shell pwd -P)
 BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
 BUILD_TYPE:=Release
-BUILD_CMAKE_ARGS:=""
+BUILD_CMAKE_ARGS:=
 
 
 # -----------------------------------------------------------------------------
@@ -77,6 +77,16 @@ ifeq ($(OS), NetBSD)
 	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3 )
 endif
 
+
+# -----------------------------------------------------------------------------
+# Macro for configuring cmake
+
+CMAKE_CONFIG = cmake $(BUILD_CMAKE_ARGS) \
+                     -H$(BLENDER_DIR) \
+                     -B$(BUILD_DIR) \
+                     -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE)
+
+
 # -----------------------------------------------------------------------------
 # Build Blender
 all:
@@ -84,7 +94,7 @@ all:
 	@echo Configuring Blender ...
 
 	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
-		cmake $(BUILD_CMAKE_ARGS) -H$(BLENDER_DIR) -B$(BUILD_DIR) -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE); \
+		$(CMAKE_CONFIG); \
 	fi
 
 	@echo
@@ -120,11 +130,20 @@ help:
 	@echo "  * package_pacman  - build an arch linux pacmanpackage"
 	@echo "  * package_archive - build an archive package"
 	@echo ""
+	@echo "Other Targets"
+	@echo "  * translations  - update blenders translation files in po/"
+	# TODO, doxygen and sphinx docs
+	@echo ""
 	@echo "Testing Targets (not assosiated with building blender)"
 	@echo "  * test            - run ctest, currently tests import/export, operator execution and that python modules load"
 	@echo "  * test_cmake      - runs our own cmake file checker which detects errors in the cmake file list definitions"
 	@echo "  * test_pep8       - checks all python script are pep8 which are tagged to use the stricter formatting"
 	@echo "  * test_deprecated - checks for deprecation tags in our code which may need to be removed"
+	@echo ""
+	@echo "Static Source Code Checking (not assosiated with building blender)"
+	@echo "  * check_cppcheck  - run blender source through cppcheck (C & C++)"
+	@echo "  * check_splint    - run blenders source through splint (C only)"
+	@echo "  * check_sparse    - run blenders source through sparse (C only)"
 	@echo ""
 
 # -----------------------------------------------------------------------------
@@ -139,6 +158,15 @@ package_pacman:
 package_archive:
 	make -C $(BUILD_DIR) -s package_archive
 	@echo archive in "$(BUILD_DIR)/release"
+
+
+# -----------------------------------------------------------------------------
+# Other Targets
+#
+translations:
+	python3 po/update_pot.py
+	python3 po/update_po.py
+	python3 po/update_mo.py
 
 
 # -----------------------------------------------------------------------------
@@ -174,6 +202,23 @@ project_netbeans:
 
 project_eclipse:
 	cmake -G"Eclipse CDT4 - Unix Makefiles" -H$(BLENDER_DIR) -B$(BUILD_DIR)
+
+
+# -----------------------------------------------------------------------------
+# Static Checking
+#
+
+check_cppcheck:
+	$(CMAKE_CONFIG)
+	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py
+
+check_splint:
+	$(CMAKE_CONFIG)
+	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py
+
+check_sparse:
+	$(CMAKE_CONFIG)
+	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py
 
 
 clean:

@@ -277,8 +277,7 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 		ar->v2d.tab_offset= NULL;
 	}
 
-	if(ar)
-		BLI_freelistN(&ar->panels);
+	BLI_freelistN(&ar->panels);
 }
 
 /* not area itself */

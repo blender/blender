@@ -299,7 +299,7 @@ public:
     double data[9];
 
     inline Rotation() {
-		*this = Rotation::Identity();
+		*this = Identity();
 	}
     inline Rotation(double Xx,double Yx,double Zx,
                 double Xy,double Yy,double Zy,

@@ -60,6 +60,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
@@ -716,7 +717,7 @@ static int project_paint_PickColor(const ProjPaintState *ps, float pt[2], float 
  *  1	: occluded
 	2	: occluded with w[3] weights set (need to know in some cases) */
 
-static int project_paint_occlude_ptv(float pt[3], float v1[3], float v2[3], float v3[3], float w[3], int is_ortho)
+static int project_paint_occlude_ptv(float pt[3], float v1[4], float v2[4], float v3[4], float w[3], int is_ortho)
 {
 	/* if all are behind us, return false */
 	if(v1[2] > pt[2] && v2[2] > pt[2] && v3[2] > pt[2])
@@ -748,7 +749,7 @@ static int project_paint_occlude_ptv(float pt[3], float v1[3], float v2[3], floa
 
 static int project_paint_occlude_ptv_clip(
 		const ProjPaintState *ps, const MFace *mf,
-		float pt[3], float v1[3], float v2[3], float v3[3],
+		float pt[3], float v1[4], float v2[4], float v3[4],
 		const int side )
 {
 	float w[3], wco[3];
@@ -4663,7 +4664,7 @@ static void paint_brush_init_tex(Brush *brush)
 	if(brush) {
 		MTex *mtex= &brush->mtex;
 		if(mtex->tex && mtex->tex->nodetree)
-			ntreeBeginExecTree(mtex->tex->nodetree); /* has internal flag to detect it only does it once */
+			ntreeTexBeginExecTree(mtex->tex->nodetree, 1); /* has internal flag to detect it only does it once */
 	}
 	
 }
@@ -4805,7 +4806,7 @@ static void paint_brush_exit_tex(Brush *brush)
 	if(brush) {
 		MTex *mtex= &brush->mtex;
 		if(mtex->tex && mtex->tex->nodetree)
-			ntreeEndExecTree(mtex->tex->nodetree);
+			ntreeTexEndExecTree(mtex->tex->nodetree->execdata, 1);
 	}	
 }
 
@@ -5177,7 +5178,7 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "delta", 2, NULL, -FLT_MAX, FLT_MAX, "Delta", "Delta offset of clone image in 0.0..1.0 coordinates.", -1.0f, 1.0f);
+	RNA_def_float_vector(ot->srna, "delta", 2, NULL, -FLT_MAX, FLT_MAX, "Delta", "Delta offset of clone image in 0.0..1.0 coordinates", -1.0f, 1.0f);
 }
 
 /******************** sample color operator ********************/
@@ -5258,7 +5259,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "Cursor location in region coordinates.", 0, 16384);
+	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "Cursor location in region coordinates", 0, 16384);
 }
 
 /******************** set clone cursor operator ********************/
@@ -5308,7 +5309,7 @@ void PAINT_OT_clone_cursor_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in world space coordinates.", -10000.0f, 10000.0f);
+	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in world space coordinates", -10000.0f, 10000.0f);
 }
 
 /******************** texture paint toggle operator ********************/
@@ -5333,14 +5334,14 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	if (object_data_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
+		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
 
 	me= get_mesh(ob);
 
 	if(!(ob->mode & OB_MODE_TEXTURE_PAINT) && !me) {
-		BKE_report(op->reports, RPT_ERROR, "Can only enter texture paint mode for mesh objects.");
+		BKE_report(op->reports, RPT_ERROR, "Can only enter texture paint mode for mesh objects");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -5408,6 +5409,15 @@ int facemask_paint_poll(bContext *C)
 	return paint_facesel_test(CTX_data_active_object(C));
 }
 
+int vert_paint_poll(bContext *C)
+{
+	return paint_vertsel_test(CTX_data_active_object(C));
+}
+
+int mask_paint_poll(bContext *C)
+{
+	return paint_facesel_test(CTX_data_active_object(C)) || paint_vertsel_test(CTX_data_active_object(C));
+}
 /* use project paint to re-apply an image */
 static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 {
@@ -5421,12 +5431,12 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	project_state_init(C, OBACT, &ps);
 
 	if(ps.ob==NULL || ps.ob->type != OB_MESH) {
-		BKE_report(op->reports, RPT_ERROR, "No active mesh object.");
+		BKE_report(op->reports, RPT_ERROR, "No active mesh object");
 		return OPERATOR_CANCELLED;
 	}
 
 	if(image==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Image could not be found.");
+		BKE_report(op->reports, RPT_ERROR, "Image could not be found");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -5434,7 +5444,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	ps.reproject_ibuf= BKE_image_get_ibuf(image, NULL);
 
 	if(ps.reproject_ibuf==NULL || ps.reproject_ibuf->rect==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Image data could not be found.");
+		BKE_report(op->reports, RPT_ERROR, "Image data could not be found");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -5445,7 +5455,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 
 		/* type check to make sure its ok */
 		if(view_data->len != PROJ_VIEW_DATA_SIZE || view_data->subtype != IDP_FLOAT) {
-			BKE_report(op->reports, RPT_ERROR, "Image project data invalid.");
+			BKE_report(op->reports, RPT_ERROR, "Image project data invalid");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -5458,7 +5468,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 		ps.source= PROJ_SRC_IMAGE_CAM;
 
 		if(scene->camera==NULL) {
-			BKE_report(op->reports, RPT_ERROR, "No active camera set.");
+			BKE_report(op->reports, RPT_ERROR, "No active camera set");
 			return OPERATOR_CANCELLED;
 		}
 	}

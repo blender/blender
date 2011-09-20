@@ -121,6 +121,20 @@ void ED_base_object_activate(bContext *C, Base *base)
 
 /********************** Selection Operators **********************/
 
+static int objects_selectable_poll(bContext *C)
+{
+	/* we don't check for linked scenes here, selection is
+	   still allowed then for inspection of scene */
+	Object *obact= CTX_data_active_object(C);
+
+	if(CTX_data_edit_object(C))
+		return 0;
+	if(obact && obact->mode)
+		return 0;
+	
+	return 1;
+}
+
 /************************ Select by Type *************************/
 
 static int object_select_by_type_exec(bContext *C, wmOperator *op)
@@ -159,13 +173,13 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_select_by_type_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop= RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
 }
 
@@ -341,13 +355,13 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_select_linked_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
 }
 
@@ -667,13 +681,13 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= object_select_grouped_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
@@ -716,13 +730,13 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	/* api callbacks */
 	/*ot->invoke = XXX - need a int grid popup*/
 	ot->exec= object_select_by_layer_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 	RNA_def_int(ot->srna, "layers", 1, 1, 20, "Layer", "", 1, 20);
 }
 
@@ -754,7 +768,7 @@ void OBJECT_OT_select_inverse(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_select_inverse_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -815,7 +829,7 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_select_all_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -864,12 +878,12 @@ void OBJECT_OT_select_same_group(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_select_same_group_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "group", "", 32, "Group", "Name of the group to select.");
+	RNA_def_string(ot->srna, "group", "", 32, "Group", "Name of the group to select");
 }
 
 /**************************** Select Mirror ****************************/
@@ -917,12 +931,12 @@ void OBJECT_OT_select_mirror(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= object_select_mirror_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 
@@ -974,13 +988,13 @@ void OBJECT_OT_select_name(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= object_select_name_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "name", "", 0, "Name", "Object name to select.");
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_string(ot->srna, "name", "", 0, "Name", "Object name to select");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /**************************** Select Random ****************************/
@@ -1022,14 +1036,14 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	/* api callbacks */
 	/*ot->invoke= object_select_random_invoke XXX - need a number popup ;*/
 	ot->exec = object_select_random_exec;
-	ot->poll= ED_operator_objectmode;
+	ot->poll= objects_selectable_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of objects to select randomly", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first");
 }
 
 

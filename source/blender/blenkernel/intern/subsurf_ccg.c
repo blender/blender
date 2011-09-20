@@ -61,15 +61,15 @@
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
+#include "GL/glew.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_material.h"
 
 #include "CCGSubSurf.h"
+
+extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 
 static int ccgDM_getVertMapIndex(CCGSubSurf *ss, CCGVert *v);
 static int ccgDM_getEdgeMapIndex(CCGSubSurf *ss, CCGEdge *e);
@@ -968,8 +968,9 @@ static void ccgDM_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)
 	for(index = 0; index < totface; index++) {
 		CCGFace *f = ccgdm->faceMap[index].face;
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
-		int flag = (faceFlags)? faceFlags[index*2]: ME_SMOOTH;
-		int mat_nr = (faceFlags)? faceFlags[index*2+1]: 0;
+		/* keep types in sync with MFace, avoid many conversions */
+		char flag = (faceFlags)? faceFlags[index*2]: ME_SMOOTH;
+		short mat_nr = (faceFlags)? faceFlags[index*2+1]: 0;
 
 		for(S = 0; S < numVerts; S++) {
 			for(y = 0; y < gridSize - 1; y++) {
@@ -1374,11 +1375,10 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
 	GPUVertexAttribs gattribs;
 	DMVertexAttribs attribs= {{{NULL}}};
-	MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE);
+	/* MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
-	int transp, orig_transp, new_transp;
 	char *faceFlags = ccgdm->faceFlags;
 	int a, b, i, doDraw, numVerts, matnr, new_matnr, totface;
 
@@ -1386,8 +1386,6 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 
 	doDraw = 0;
 	matnr = -1;
-	transp = GPU_get_material_blend_mode();
-	orig_transp = transp;
 
 #define PASSATTRIB(dx, dy, vert) {												\
 	if(attribs.totorco) {														\
@@ -1437,18 +1435,6 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 		if(!doDraw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) && !setDrawOptions(userData, origIndex))) {
 			a += gridFaces*gridFaces*numVerts;
 			continue;
-		}
-
-		if(tf) {
-			new_transp = tf[i].transp;
-
-			if(new_transp != transp) {
-				if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
-					GPU_set_material_blend_mode(orig_transp);
-				else
-					GPU_set_material_blend_mode(new_transp);
-				transp = new_transp;
-			}
 		}
 
 		glShadeModel(drawSmooth? GL_SMOOTH: GL_FLAT);

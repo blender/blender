@@ -52,6 +52,8 @@
 #include <sys/param.h>
 #endif
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 
 #include "BKE_utildefines.h"
@@ -103,6 +105,49 @@ int BLI_gzip(const char *from, const char *to) {
 
 	return rval;
 }
+
+/* gzip the file in from_file and write it to memery to_mem, at most size bytes.
+   return the unziped size
+  */
+char *BLI_ungzip_to_mem(const char *from_file, int *size_r)
+{
+	gzFile gzfile;
+	int readsize, size, alloc_size=0;
+	char *mem= NULL;
+	const int chunk_size= 512*1024;
+
+	size= 0;
+
+	gzfile = gzopen( from_file, "rb" );
+
+	for(;;) {
+		if(mem==NULL) {
+			mem= MEM_callocN(chunk_size, "BLI_ungzip_to_mem");
+			alloc_size= chunk_size;
+		} else {
+			mem= MEM_reallocN(mem, size+chunk_size);
+			alloc_size+= chunk_size;
+		}
+
+		readsize= gzread(gzfile, mem+size, chunk_size);
+		if(readsize>0) {
+			size+= readsize;
+		}
+		else break;
+	}
+
+	if(size==0) {
+		MEM_freeN(mem);
+		mem= NULL;
+	}
+	else if(alloc_size!=size)
+		mem= MEM_reallocN(mem, size);
+
+	*size_r= size;
+
+	return mem;
+}
+
 
 /* return 1 when file can be written */
 int BLI_is_writable(const char *filename)

@@ -59,6 +59,7 @@ void paint_brush_set(struct Paint *paint, struct Brush *br);
  * Texture paint could be removed since selected faces are not used
  * however hiding faces is useful */
 int paint_facesel_test(struct Object *ob);
+int paint_vertsel_test(struct Object *ob);
 
 /* Session data (mode-specific) */
 
@@ -97,5 +98,6 @@ typedef struct SculptSession {
 } SculptSession;
 
 void free_sculptsession(struct Object *ob);
+void free_sculptsession_deformMats(struct SculptSession *ss);
 
 #endif

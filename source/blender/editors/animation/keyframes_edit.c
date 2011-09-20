@@ -204,8 +204,8 @@ static short ob_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, Object *o
 	int filter;
 	int ret=0;
 	
-	bAnimListElem dummychan = {0};
-	Base dummybase = {0};
+	bAnimListElem dummychan = {NULL};
+	Base dummybase = {NULL};
 	
 	if (ob == NULL)
 		return 0;
@@ -249,7 +249,7 @@ static short scene_keyframes_loop(KeyframeEditData *ked, bDopeSheet *ads, Scene 
 	int filter;
 	int ret=0;
 	
-	bAnimListElem dummychan = {0};
+	bAnimListElem dummychan = {NULL};
 	
 	if (sce == NULL)
 		return 0;

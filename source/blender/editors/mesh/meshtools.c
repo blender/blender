@@ -217,7 +217,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			
 			if(me->totvert) {
 				/* Add this object's materials to the base one's if they don't exist already (but only if limits not exceeded yet) */
-				if(totcol < MAXMAT-1) {
+				if(totcol < MAXMAT) {
 					for(a=1; a<=base->object->totcol; a++) {
 						ma= give_current_material(base->object, a);
 
@@ -231,7 +231,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							}
 							totcol++;
 						}
-						if(totcol>=MAXMAT-1) 
+						if(totcol >= MAXMAT)
 							break;
 					}
 				}
@@ -574,9 +574,9 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	
 	if (!ok) {
 		if (nonequal_verts)
-			BKE_report(op->reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices.");
+			BKE_report(op->reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices");
 		else
-			BKE_report(op->reports, RPT_WARNING, "No additional selected meshes with equal vertex count to join.");
+			BKE_report(op->reports, RPT_WARNING, "No additional selected meshes with equal vertex count to join");
 		return OPERATOR_CANCELLED;
 	}
 	

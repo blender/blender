@@ -37,9 +37,6 @@
 AUD_Mixer::AUD_Mixer(AUD_DeviceSpecs specs) :
 	m_specs(specs)
 {
-	int bigendian = 1;
-	bigendian = (((char*)&bigendian)[0]) ? 0: 1; // 1 if Big Endian
-
 	switch(m_specs.format)
 	{
 	case AUD_FORMAT_U8:
@@ -49,10 +46,12 @@ AUD_Mixer::AUD_Mixer(AUD_DeviceSpecs specs) :
 		m_convert = AUD_convert_float_s16;
 		break;
 	case AUD_FORMAT_S24:
-		if(bigendian)
-			m_convert = AUD_convert_float_s24_be;
-		else
-			m_convert = AUD_convert_float_s24_le;
+
+#ifdef __BIG_ENDIAN__
+		m_convert = AUD_convert_float_s24_be;
+#else
+		m_convert = AUD_convert_float_s24_le;
+#endif
 		break;
 	case AUD_FORMAT_S32:
 		m_convert = AUD_convert_float_s32;

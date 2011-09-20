@@ -571,7 +571,7 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 			if(falloff == 0.0f)
 				break;
 
-			r_fac=saacos(fac/len_v3(efd->vec_to_point))*180.0f/(float)M_PI;
+			r_fac= RAD2DEGF(saacos(fac/len_v3(efd->vec_to_point)));
 			falloff*= falloff_func_rad(eff->pd, r_fac);
 
 			break;
@@ -590,16 +590,16 @@ int closest_point_on_surface(SurfaceModifierData *surmd, float *co, float *surfa
 	BLI_bvhtree_find_nearest(surmd->bvhtree->tree, co, &nearest, surmd->bvhtree->nearest_callback, surmd->bvhtree);
 
 	if(nearest.index != -1) {
-		VECCOPY(surface_co, nearest.co);
+		copy_v3_v3(surface_co, nearest.co);
 
 		if(surface_nor) {
-			VECCOPY(surface_nor, nearest.no);
+			copy_v3_v3(surface_nor, nearest.no);
 		}
 
 		if(surface_vel) {
 			MFace *mface = CDDM_get_face(surmd->dm, nearest.index);
 			
-			VECCOPY(surface_vel, surmd->v[mface->v1].co);
+			copy_v3_v3(surface_vel, surmd->v[mface->v1].co);
 			add_v3_v3(surface_vel, surmd->v[mface->v2].co);
 			add_v3_v3(surface_vel, surmd->v[mface->v3].co);
 			if(mface->v4)
@@ -705,7 +705,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 				sub_v3_v3v3(efd->loc, point->loc, translate);
 		}
 		else {
-			VECCOPY(efd->loc, ob->obmat[3]);
+			copy_v3_v3(efd->loc, ob->obmat[3]);
 		}
 
 		if(real_velocity)
@@ -727,8 +727,8 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 			mul_v3_fl(efd->vec_to_point, (efd->distance-eff->pd->f_size)/efd->distance);
 
 		if(eff->flag & PE_USE_NORMAL_DATA) {
-			VECCOPY(efd->vec_to_point2, efd->vec_to_point);
-			VECCOPY(efd->nor2, efd->nor);
+			copy_v3_v3(efd->vec_to_point2, efd->vec_to_point);
+			copy_v3_v3(efd->nor2, efd->nor);
 		}
 		else {
 			/* for some effectors we need the object center every time */
@@ -800,7 +800,7 @@ static void do_texture_effector(EffectorCache *eff, EffectorData *efd, EffectedP
 
 	strength= eff->pd->f_strength * efd->falloff;
 
-	VECCOPY(tex_co,point->loc);
+	copy_v3_v3(tex_co,point->loc);
 
 	if(eff->pd->flag & PFIELD_TEX_2D) {
 		float fac=-dot_v3v3(tex_co, efd->nor);
@@ -878,11 +878,11 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 			damp += wind_func(rng, noise_factor);
 	}
 
-	VECCOPY(force, efd->vec_to_point);
+	copy_v3_v3(force, efd->vec_to_point);
 
 	switch(pd->forcefield){
 		case PFIELD_WIND:
-			VECCOPY(force, efd->nor);
+			copy_v3_v3(force, efd->nor);
 			mul_v3_fl(force, strength * efd->falloff);
 			break;
 		case PFIELD_FORCE:
@@ -944,7 +944,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 			return;
 		case PFIELD_TURBULENCE:
 			if(pd->flag & PFIELD_GLOBAL_CO) {
-				VECCOPY(temp, point->loc);
+				copy_v3_v3(temp, point->loc);
 			}
 			else {
 				VECADD(temp, efd->vec_to_point2, efd->nor2);
@@ -955,7 +955,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 			mul_v3_fl(force, strength * efd->falloff);
 			break;
 		case PFIELD_DRAG:
-			VECCOPY(force, point->vel);
+			copy_v3_v3(force, point->vel);
 			fac = normalize_v3(force) * point->vel_to_sec;
 
 			strength = MIN2(strength, 2.0f);
@@ -1039,7 +1039,7 @@ void pdDoEffectors(ListBase *effectors, ListBase *colliders, EffectorWeights *we
 					do_texture_effector(eff, &efd, point, force);
 				else {
 					float temp1[3]={0,0,0}, temp2[3];
-					VECCOPY(temp1, force);
+					copy_v3_v3(temp1, force);
 
 					do_physical_effector(eff, &efd, point, force);
 					

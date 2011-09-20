@@ -56,6 +56,12 @@ MINLINE void swap_v2_v2(float a[2], float b[2]);
 MINLINE void swap_v3_v3(float a[3], float b[3]);
 MINLINE void swap_v4_v4(float a[4], float b[4]);
 
+/* short */
+MINLINE void copy_v2_v2_short(short r[2], const short a[2]);
+MINLINE void copy_v3_v3_short(short r[3], const short a[3]);
+MINLINE void copy_v4_v4_short(short r[4], const short a[4]);
+
+
 /********************************* Arithmetic ********************************/
 
 MINLINE void add_v3_fl(float r[3], float f);
@@ -124,6 +130,7 @@ void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const fl
 void interp_v3_v3v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float w[4]);
 void interp_v4_v4v4(float r[4], const float a[4], const float b[4], const float t);
 void interp_v4_v4v4v4(float p[4], const float v1[4], const float v2[4], const float v3[4], const float w[3]);
+void interp_v4_v4v4v4v4(float p[4], const float v1[4], const float v2[4], const float v3[4], const float v4[4], const float w[4]);
 
 void mid_v3_v3v3(float r[3], const float a[3], const float b[3]);
 

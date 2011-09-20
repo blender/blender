@@ -917,7 +917,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 				mface->v2= startvert+index[2];
 				mface->v3= startvert+index[1];
 				mface->v4= 0;
-				mface->mat_nr= (unsigned char)dl->col;
+				mface->mat_nr= dl->col;
 				test_index_face(mface, NULL, 0, 3);
 
 				if(smooth) mface->flag |= ME_SMOOTH;
@@ -966,7 +966,7 @@ int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int
 					mface->v2= p3;
 					mface->v3= p4;
 					mface->v4= p2;
-					mface->mat_nr= (unsigned char)dl->col;
+					mface->mat_nr= dl->col;
 					test_index_face(mface, NULL, 0, 4);
 
 					if(smooth) mface->flag |= ME_SMOOTH;
@@ -1252,7 +1252,7 @@ void mesh_to_curve(Scene *scene, Object *ob)
 	}
 }
 
-void mesh_delete_material_index(Mesh *me, int index)
+void mesh_delete_material_index(Mesh *me, short index)
 {
 	MFace *mf;
 	int i;

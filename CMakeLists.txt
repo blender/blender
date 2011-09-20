@@ -105,6 +105,7 @@ set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE )
 
 get_blender_version()
 
+
 # Blender internal features
 option(WITH_BLENDER "Build blender (disable to build only the blender player)" ON)
 mark_as_advanced(WITH_BLENDER)
@@ -452,15 +453,8 @@ if(UNIX AND NOT APPLE)
 	if(WITH_OPENCOLLADA)
 		find_package(OpenCOLLADA)
 		if(OPENCOLLADA_FOUND)
-			set(PCRE /usr CACHE PATH "PCRE Directory")
-			mark_as_advanced(PCRE)
-			set(PCRE_LIBPATH ${PCRE}/lib)
-			set(PCRE_LIB pcre)
-
-			set(EXPAT /usr CACHE PATH "Expat Directory")
-			mark_as_advanced(EXPAT)
-			set(EXPAT_LIBPATH ${EXPAT}/lib)
-			set(EXPAT_LIB expat)
+			find_package(XML2)
+			find_package(PCRE)
 		else()
 			set(WITH_OPENCOLLADA OFF)
 		endif()
@@ -649,11 +643,7 @@ elseif(WIN32)
 			set(GETTEXT ${LIBDIR}/gettext)
 			set(GETTEXT_INC ${GETTEXT}/include)
 			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
-			if(CMAKE_CL_64)
-				set(GETTEXT_LIB gettext)
-			else()
-				set(GETTEXT_LIB gnu_gettext)
-			endif()
+			set(GETTEXT_LIB gnu_gettext)
 		endif()
 
 		if(CMAKE_CL_64)
@@ -709,7 +699,7 @@ elseif(WIN32)
 				${LIBDIR}/opencollada/lib/ftoa.lib
 				${LIBDIR}/opencollada/lib/UTF.lib
 			)
-			set(PCRE_LIB
+			set(PCRE_LIBRARIES
 				${LIBDIR}/opencollada/lib/pcre.lib
 			)
 		endif()
@@ -797,7 +787,7 @@ elseif(WIN32)
 	else()
 		# keep GCC spesific stuff here
 		if(CMAKE_COMPILER_IS_GNUCC)
-			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid")
+			set(PLATFORM_LINKLIBS "-lshell32 -lshfolder -lgdi32 -lmsvcrt -lwinmm -lmingw32 -lm -lws2_32 -lz -lstdc++ -lole32 -luuid -lwsock32")
 			set(PLATFORM_CFLAGS "-pipe -funsigned-char -fno-strict-aliasing")
 
 			add_definitions(-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE64_SOURCE)
@@ -851,7 +841,7 @@ elseif(WIN32)
 			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib ${OPENCOLLADA}/lib)
 			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa)
-			set(PCRE_LIB pcre)
+			set(PCRE_LIBRARIES pcre)
 		endif()
 		
 		if(WITH_CODEC_FFMPEG)
@@ -1073,7 +1063,7 @@ elseif(APPLE)
 		#pcre is bundled with openCollada
 		#set(PCRE ${LIBDIR}/pcre)
 		#set(PCRE_LIBPATH ${PCRE}/lib)
-		set(PCRE_LIB pcre)
+		set(PCRE_LIBRARIES pcre)
 		#libxml2 is used
 		#set(EXPAT ${LIBDIR}/expat)
 		#set(EXPAT_LIBPATH ${EXPAT}/lib)
@@ -1160,6 +1150,18 @@ if(WITH_RAYOPTIMIZATION)
 	unset(_sse)
 	unset(_sse2)
 endif()
+
+
+# set the endian define
+include(TestBigEndian)
+test_big_endian(_SYSTEM_BIG_ENDIAN)
+if(_SYSTEM_BIG_ENDIAN)
+	add_definitions(-D__BIG_ENDIAN__)
+else()
+	add_definitions(-D__LITTLE_ENDIAN__)
+endif()
+unset(_SYSTEM_BIG_ENDIAN)
+
 
 if(WITH_IMAGE_OPENJPEG)
 	if(UNIX AND NOT APPLE)
@@ -1267,6 +1269,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEFINED -Wundef)
 	# disable because it gives warnings for printf() & friends.
 	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
@@ -1274,6 +1277,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 

@@ -81,6 +81,7 @@ extern char btempdir[];		/* use this to store a valid temp directory */
 
 // For BLF
 #include "BLF_api.h"
+#include "BLF_translation.h"
 extern int datatoc_bfont_ttf_size;
 extern char datatoc_bfont_ttf[];
 
@@ -404,7 +405,7 @@ int main(int argc, char** argv)
 	// We don't use threads directly in the BGE, but we need to call this so things like
 	// freeing up GPU_Textures works correctly.
 	BLI_threadapi_init();
-	
+
 	RNA_init();
 
 	init_nodesystem();
@@ -420,6 +421,9 @@ int main(int argc, char** argv)
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
 	BLF_init(11, U.dpi);
 	BLF_lang_init();
+	BLF_lang_encoding("");
+	BLF_lang_set("");
+
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 
 	// Parse command line options
@@ -746,6 +750,11 @@ int main(int argc, char** argv)
 				if(filename[0])
 					BLI_path_cwd(filename);
 				
+
+				// fill the GlobalSettings with the first scene files
+				// those may change during the game and persist after using Game Actuator
+				GlobalSettings gs;
+
 				do
 				{
 					// Read the Blender file
@@ -799,8 +808,12 @@ int main(int argc, char** argv)
 						Scene *scene = bfd->curscene;
 						G.main = maggie;
 
-						if (firstTimeRunning)
+						if (firstTimeRunning) {
 							G.fileflags  = bfd->fileflags;
+
+							gs.matmode= scene->gm.matmode;
+							gs.glslflag= scene->gm.flag;
+						}
 
 						//Seg Fault; icon.c gIcons == 0
 						BKE_icons_init(1);
@@ -861,7 +874,7 @@ int main(int argc, char** argv)
 						}
 						
 						//					GPG_Application app (system, maggie, startscenename);
-						app.SetGameEngineData(maggie, scene, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
+						app.SetGameEngineData(maggie, scene, &gs, argc, argv); /* this argc cant be argc_py_clamped, since python uses it */
 						BLI_strncpy(pathname, maggie->name, sizeof(pathname));
 						if(G.main != maggie) {
 							BLI_strncpy(G.main->name, maggie->name, sizeof(G.main->name));
@@ -957,6 +970,7 @@ int main(int argc, char** argv)
 							{
 								run = false;
 								exitstring = app.getExitString();
+								gs = *app.getGlobalSettings();
 							}
 						}
 						app.StopGameEngine();
@@ -984,6 +998,11 @@ int main(int argc, char** argv)
 	// Cleanup
 	RNA_exit();
 	BLF_exit();
+
+#ifdef INTERNATIONAL
+	BLF_free_unifont();
+#endif
+
 	IMB_exit();
 	free_nodesystem();
 

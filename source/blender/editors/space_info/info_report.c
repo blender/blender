@@ -160,7 +160,7 @@ void INFO_OT_select_pick(wmOperatorType *ot)
 	/* ot->flag= OPTYPE_REGISTER; */
 
 	/* properties */
-	RNA_def_int(ot->srna, "report_index", 0, 0, INT_MAX, "Report", "The index of the report.", 0, INT_MAX);
+	RNA_def_int(ot->srna, "report_index", 0, 0, INT_MAX, "Report", "The index of the report", 0, INT_MAX);
 }
 
 

@@ -1452,10 +1452,12 @@ void RE_test_break_cb(Render *re, void *handle, int (*f)(void *handle))
 
 /* object is considered fully prepared on correct time etc */
 /* includes lights */
+#if 0
 void RE_AddObject(Render *UNUSED(re), Object *UNUSED(ob))
 {
 	
 }
+#endif
 
 /* *************************************** */
 

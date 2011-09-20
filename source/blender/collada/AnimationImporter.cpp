@@ -90,12 +90,6 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 	COLLADAFW::FloatOrDoubleArray& input = curve->getInputValues();
 	COLLADAFW::FloatOrDoubleArray& output = curve->getOutputValues();
 
-	if( curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
-		curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP ) {
-			COLLADAFW::FloatOrDoubleArray& intan = curve->getInTangentValues();
-			COLLADAFW::FloatOrDoubleArray& outtan = curve->getOutTangentValues();
-	}
-
 	float fps = (float)FPS;
 	size_t dim = curve->getOutDimension();
 	unsigned int i;
@@ -176,9 +170,9 @@ void AnimationImporter::fcurve_deg_to_rad(FCurve *cu)
 {
 	for (unsigned int i = 0; i < cu->totvert; i++) {
 		// TODO convert handles too
-		cu->bezt[i].vec[1][1] *= M_PI / 180.0f;
-		cu->bezt[i].vec[0][1] *= M_PI / 180.0f;
-		cu->bezt[i].vec[2][1] *= M_PI / 180.0f;
+		cu->bezt[i].vec[1][1] *= DEG2RADF(1.0f);
+		cu->bezt[i].vec[0][1] *= DEG2RADF(1.0f);
+		cu->bezt[i].vec[2][1] *= DEG2RADF(1.0f);
 	}
 }
 
@@ -572,7 +566,7 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 }
 
 //creates the rna_paths and array indices of fcurves from animations using color and bound animation class of each animation.
-void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves ,char * anim_type)
+void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves ,const char * anim_type)
 {
 	char rna_path[100];
 	BLI_strncpy(rna_path,anim_type, sizeof(rna_path));
@@ -615,7 +609,7 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 
 }
 
-void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, char * anim_type)
+void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& listid, ListBase *AnimCurves, const char * anim_type)
 {
 	char rna_path[100];
 	if (animlist_map.find(listid) == animlist_map.end()) return ;
@@ -747,7 +741,7 @@ void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& 
 		mat4_to_quat(rot, mat);
 		/*for ( int i = 0 ; i < 4  ;  i ++ )
 		{
-		rot[i] = rot[i] * (180 / M_PI); 
+		rot[i] = RAD2DEGF(rot[i]);
 		}*/
 		copy_v3_v3(loc, mat[3]);
 		mat4_to_size(scale, mat);
@@ -803,7 +797,6 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node ,
 	}
 
 	bAction * act;
-	bActionGroup *grp = NULL;
 
 	if ( (animType->transform) != 0 )
 	{

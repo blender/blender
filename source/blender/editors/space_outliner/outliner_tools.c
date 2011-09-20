@@ -145,7 +145,7 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 				}
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
+		if(TSELEM_OPEN(tselem,soops)) {
 			set_operation_types(soops, &te->subtree,
 								scenelevel, objectlevel, idlevel, datalevel);
 		}
@@ -250,7 +250,7 @@ static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *
 				operation_cb(C, scene, te, tsep, tselem);
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
+		if(TSELEM_OPEN(tselem,soops)) {
 			outliner_do_libdata_operation(C, scene, soops, &te->subtree, operation_cb);
 		}
 	}
@@ -342,7 +342,7 @@ static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement 
 	
 	if (id) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)tsep->id;
-		PointerRNA ptr = {{0}};
+		PointerRNA ptr = {{NULL}};
 		PropertyRNA *prop;
 		
 		RNA_pointer_create(&iat->id, &RNA_AnimData, iat->adt, &ptr);
@@ -397,7 +397,7 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 				operation_cb(C, scene_owner ? scene_owner : scene_act, te, NULL, tselem);
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
+		if(TSELEM_OPEN(tselem,soops)) {
 			outliner_do_object_operation(C, scene_act, soops, &te->subtree, operation_cb);
 		}
 	}
@@ -504,7 +504,7 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 				operation_cb(event, te, tselem);
 			}
 		}
-		if((tselem->flag & TSE_CLOSED)==0) {
+		if(TSELEM_OPEN(tselem,soops)) {
 			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb);
 		}
 	}
@@ -857,7 +857,7 @@ static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *l
 				operation_cb(te, tselem, tsep, newid);
 			}
 		}
-		if ((tselem->flag & TSE_CLOSED)==0) {
+		if (TSELEM_OPEN(tselem,soops)) {
 			outliner_do_id_set_operation(soops, type, &te->subtree, newid, operation_cb);
 		}
 	}
@@ -899,7 +899,7 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	act= BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "action"));
 	
 	if (act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No valid Action to add.");
+		BKE_report(op->reports, RPT_ERROR, "No valid Action to add");
 		return OPERATOR_CANCELLED;
 	}
 	else if (act->idroot == 0) {

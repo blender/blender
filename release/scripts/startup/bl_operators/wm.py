@@ -218,7 +218,7 @@ class WM_OT_context_scale_int(Operator):
             )
     always_step = BoolProperty(
             name="Always Step",
-            description="Always adjust the value by a minimum of 1 when 'value' is not 1.0.",
+            description="Always adjust the value by a minimum of 1 when 'value' is not 1.0",
             default=True,
             )
 
@@ -567,7 +567,7 @@ doc_new = StringProperty(
         )
 
 data_path_iter = StringProperty(
-        description="The data path relative to the context, must point to an iterable.")
+        description="The data path relative to the context, must point to an iterable")
 
 data_path_item = StringProperty(
         description="The data path from each iterable to the value (int or float)")
@@ -1144,6 +1144,67 @@ class WM_OT_sysinfo(Operator):
         return {'FINISHED'}
 
 
+class WM_OT_get_messages(Operator):
+    bl_idname = "wm.get_messages"
+    bl_label = "Get Messages"
+
+    def _putMessage(self, messages, msg):
+        if len(msg):
+            messages[msg] = True
+
+    def _walkProperties(self, properties, messages):
+        for prop in properties:
+            self._putMessage(messages, prop.name)
+            self._putMessage(messages, prop.description)
+
+            if isinstance(prop, bpy.types.EnumProperty):
+                for item in prop.enum_items:
+                    self._putMessage(messages, item.name)
+                    self._putMessage(messages, item.description)
+
+    def _walkRNA(self, bl_rna, messages):
+        if bl_rna.name and bl_rna.name != bl_rna.identifier:
+            self._putMessage(messages, bl_rna.name)
+
+        if bl_rna.description:
+            self._putMessage(messages, bl_rna.description)
+
+        self._walkProperties(bl_rna.properties, messages)
+
+    def _walkClass(self, cls, messages):
+        self._walkRNA(cls.bl_rna, messages)
+
+    def _walk_keymap_hierarchy(self, hier, messages):
+        for lvl in hier:
+            self._putMessage(messages, lvl[0])
+
+            if lvl[3]:
+                self._walk_keymap_hierarchy(lvl[3], messages)
+
+    def execute(self, context):
+        messages = {}
+
+        for cls in type(bpy.context).__base__.__subclasses__():
+            self._walkClass(cls, messages)
+
+        for cls in bpy.types.Space.__subclasses__():
+            self._walkClass(cls, messages)
+
+        for cls in bpy.types.Operator.__subclasses__():
+            self._walkClass(cls, messages)
+
+        from bl_ui.space_userpref_keymap import KM_HIERARCHY
+
+        self._walk_keymap_hierarchy(KM_HIERARCHY, messages)
+
+        text = bpy.data.texts.new(name="messages.txt")
+        for message in messages:
+            text.write(message + "\n")
+        self._walkClass(bpy.types.SpaceDopeSheetEditor, messages)
+
+        return {'FINISHED'}
+
+
 class WM_OT_copy_prev_settings(Operator):
     '''Copy settings from previous version'''
     bl_idname = "wm.copy_prev_settings"
@@ -1175,7 +1236,7 @@ class WM_OT_copy_prev_settings(Operator):
             if bpy.data.is_saved is bpy.data.is_dirty is False:
                 bpy.ops.wm.read_homefile()
             else:
-                self.report({'INFO'}, "Reload Start-Up file to restore settings.")
+                self.report({'INFO'}, "Reload Start-Up file to restore settings")
             return {'FINISHED'}
 
         return {'CANCELLED'}

@@ -128,7 +128,7 @@ void calc_view_vector(float *view, float x, float y)
 	}
 }
 
-void calc_renderco_ortho(float *co, float x, float y, int z)
+void calc_renderco_ortho(float co[3], float x, float y, int z)
 {
 	/* x and y 3d coordinate can be derived from pixel coord and winmat */
 	float fx= 2.0f/(R.winx*R.winmat[0][0]);
@@ -142,7 +142,7 @@ void calc_renderco_ortho(float *co, float x, float y, int z)
 	co[2]= R.winmat[3][2]/( R.winmat[2][3]*zco - R.winmat[2][2] );
 }
 
-void calc_renderco_zbuf(float *co, float *view, int z)
+void calc_renderco_zbuf(float co[3], float *view, int z)
 {
 	float fac, zco;
 	
@@ -992,7 +992,7 @@ static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
 }
 
 /* adds only alpha values */
-void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
+static void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
 {
 	/* use zbuffer to define edges, add it to the image */
 	int y, x, col, *rz, *rz1, *rz2, *rz3;
@@ -1133,7 +1133,7 @@ typedef struct ZbufSolidData {
 	float *edgerect;
 } ZbufSolidData;
 
-void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
+static void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 {
 	ZbufSolidData *sdata= (ZbufSolidData*)data;
 	ListBase *lb= sdata->psmlist;
@@ -1515,7 +1515,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult shr;
-	float texfac, orthoarea, nor[3], alpha, sx, sy;
+	float /* texfac,*/ /* UNUSED */ orthoarea, nor[3], alpha, sx, sy;
 
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
@@ -1578,7 +1578,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	VECCOPY(color, shr.combined);
 
 	/* texture blending */
-	texfac= shi->mat->sss_texfac;
+	/* texfac= shi->mat->sss_texfac; */ /* UNUSED */
 
 	alpha= shr.combined[3];
 	*area *= alpha;
@@ -2234,21 +2234,17 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 		maxdist= R.r.bake_maxdist;
 	else
 		maxdist= RE_RAYTRACE_MAXDIST + R.r.bake_biasdist;
-	
-	/* 'dir' is always normalized */
-	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);					
 
-	isect->dir[0] = dir[0]*sign;
-	isect->dir[1] = dir[1]*sign;
-	isect->dir[2] = dir[2]*sign;
+	/* 'dir' is always normalized */
+	madd_v3_v3v3fl(isect->start, start, dir, -R.r.bake_biasdist);
+
+	mul_v3_v3fl(isect->dir, dir, sign);
 
 	isect->dist = maxdist;
 
 	hit = RE_rayobject_raycast(raytree, isect);
 	if(hit) {
-		hitco[0] = isect->start[0] + isect->dist*isect->dir[0];
-		hitco[1] = isect->start[1] + isect->dist*isect->dir[1];
-		hitco[2] = isect->start[2] + isect->dist*isect->dir[2];
+		madd_v3_v3v3fl(hitco, isect->start, isect->dir, isect->dist);
 
 		*dist= isect->dist;
 	}

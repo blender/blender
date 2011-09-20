@@ -68,11 +68,7 @@ class RAS_IRasterizer
 public:
 	RAS_IRasterizer(RAS_ICanvas* canv){};
 	virtual ~RAS_IRasterizer(){};
-	/**
-	 */
-	enum	{
-			RAS_RENDER_3DPOLYGON_TEXT = 16384	/* TF_BMFONT */
-	};
+
 	/**
 	 * Drawing types
 	 */
@@ -106,9 +102,9 @@ public:
 	/**
 	 */
 	enum    { 	 
-			KX_TEX = 4,			/* TF_TEX */
-			KX_LIGHT = 16,		/* TF_LIGHT */
-			KX_TWOSIDE = 512,	/* TF_TWOSIDE */
+			RAS_RENDER_3DPOLYGON_TEXT = 64,	/* GEMAT_TEXT */
+			KX_BACKCULL = 16,		/* GEMAT_BACKCULL */
+			KX_TEX = 4096,			/* GEMAT_TEX */
 			KX_LINES = 32768 	 
 	};
 
@@ -393,7 +389,9 @@ public:
 	virtual void	SetPolygonOffset(float mult, float add) = 0;
 	
 	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)=0;
-	virtual	void	FlushDebugLines()=0;
+	virtual	void	DrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
+									const MT_Vector3& normal, int nsector)=0;
+	virtual	void	FlushDebugShapes()=0;
 	
 
 
@@ -415,7 +413,7 @@ public:
 	virtual int		GetMotionBlurState()=0;
 	virtual void	SetMotionBlurState(int newstate)=0;
 
-	virtual void	SetBlendingMode(int blendmode)=0;
+	virtual void	SetAlphaBlend(int alphablend)=0;
 	virtual void	SetFrontFace(bool ccw)=0;
 
 	virtual void	SetAnisotropicFiltering(short level)=0;

@@ -43,6 +43,8 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
@@ -54,6 +56,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
+#include "BKE_object.h"
 
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -170,7 +173,7 @@ static Object *get_poselib_object (bContext *C)
 	if (sa && (sa->spacetype == SPACE_BUTS)) 
 		return CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 	else
-		return ED_object_pose_armature(CTX_data_active_object(C));
+		return object_pose_armature_get(CTX_data_active_object(C));
 }
 
 /* Poll callback for operators that require existing PoseLib data (with poses) to work */
@@ -406,15 +409,15 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *UNUSED
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 	
 	/* add new (adds to the first unoccupied frame) */
-	uiItemIntO(layout, "Add New", ICON_NONE, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
+	uiItemIntO(layout, UI_translate_do_iface(N_("Add New")), ICON_NONE, "POSELIB_OT_pose_add", "frame", poselib_get_free_index(ob->poselib));
 	
 	/* check if we have any choices to add a new pose in any other way */
 	if ((ob->poselib) && (ob->poselib->markers.first)) {
 		/* add new (on current frame) */
-		uiItemIntO(layout, "Add New (Current Frame)", ICON_NONE, "POSELIB_OT_pose_add", "frame", CFRA);
+		uiItemIntO(layout, UI_translate_do_iface(N_("Add New (Current Frame)")), ICON_NONE, "POSELIB_OT_pose_add", "frame", CFRA);
 		
 		/* replace existing - submenu */
-		uiItemMenuF(layout, "Replace Existing...", 0, poselib_add_menu_invoke__replacemenu, NULL);
+		uiItemMenuF(layout, UI_translate_do_iface(N_("Replace Existing...")), 0, poselib_add_menu_invoke__replacemenu, NULL);
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -632,7 +635,7 @@ static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int poselib_rename_exec (bContext *C, wmOperator *op)
 {
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	bAction *act= (ob) ? ob->poselib : NULL;
 	TimeMarker *marker;
 	char newname[64];
@@ -1438,9 +1441,7 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 	pld->pose->flag &= ~POSE_DO_UNLOCK;
 	
 	/* clear strings + search */
-	strcpy(pld->headerstr, "");
-	strcpy(pld->searchstr, "");
-	strcpy(pld->searchold, "");
+	pld->headerstr[0]= pld->searchstr[0]= pld->searchold[0]= '\0';
 	pld->search_cursor= 0;
 }
 

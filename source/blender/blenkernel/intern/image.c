@@ -592,7 +592,7 @@ void BKE_image_print_memlist(void)
 	for(ima= G.main->image.first; ima; ima= ima->id.next)
 		totsize += image_mem_size(ima);
 
-	printf("\ntotal image memory len: %.3lf MB\n", (double)totsize/(double)(1024*1024));
+	printf("\ntotal image memory len: %.3f MB\n", (double)totsize/(double)(1024*1024));
 
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		size= image_mem_size(ima);
@@ -2290,3 +2290,20 @@ void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
 	iuser->framenr= framenr;
 	if(iuser->ok==0) iuser->ok= 1;
 }
+
+int BKE_image_has_alpha(struct Image *image)
+{
+	ImBuf *ibuf;
+	void *lock;
+	int depth;
+	
+	ibuf= BKE_image_acquire_ibuf(image, NULL, &lock);
+	depth = (ibuf?ibuf->depth:0);
+	BKE_image_release_ibuf(image, lock);
+
+	if (depth == 32)
+		return 1;
+	else
+		return 0;
+}
+

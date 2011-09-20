@@ -510,8 +510,8 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)
-#define	USER_TR_BUTTONS			(1 << 1)
-#define USER_TR_MENUS			(1 << 2)
+#define	USER_TR_IFACE			(1 << 1)
+/*#define USER_TR_MENUS			(1 << 2)	deprecated*/
 /*#define USER_TR_FILESELECT	(1 << 3)	deprecated*/
 /*#define USER_TR_TEXTEDIT		(1 << 4)	deprecated*/
 #define USER_DOTRANSLATE		(1 << 5)
@@ -607,6 +607,12 @@ extern UserDef U; /* from blenkernel blender.c */
 /* zoom is up/down if this flag is set (otherwise forward/backward) */
 #define NDOF_ZOOM_UPDOWN (1 << 7)
 #define NDOF_ZOOM_INVERT (1 << 8)
+#define NDOF_ROTATE_INVERT_AXIS (1 << 9)
+#define NDOF_TILT_INVERT_AXIS (1 << 10)
+#define NDOF_ROLL_INVERT_AXIS (1 << 11)
+#define NDOF_PANX_INVERT_AXIS (1 << 12)
+#define NDOF_PANY_INVERT_AXIS (1 << 13)
+#define NDOF_PANZ_INVERT_AXIS (1 << 14)
 
 
 #ifdef __cplusplus

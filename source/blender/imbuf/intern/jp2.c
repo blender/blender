@@ -25,9 +25,6 @@
  *  \ingroup imbuf
  */
 
-
-#ifdef WITH_OPENJPEG
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -97,7 +94,7 @@ static void info_callback(const char *msg, void *client_data) {
 
 struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 {
-	struct ImBuf *ibuf = 0;
+	struct ImBuf *ibuf = NULL;
 	int use_float = 0; /* for precision higher then 8 use float */
 	
 	long signed_offsets[4]= {0, 0, 0, 0};
@@ -117,7 +114,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 	opj_dinfo_t* dinfo = NULL;	/* handle to a decompressor */
 	opj_cio_t *cio = NULL;
 
-	if (check_jp2(mem) == 0) return(0);
+	if (check_jp2(mem) == 0) return(NULL);
 
 	/* configure the event callbacks (not required) */
 	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
@@ -751,5 +748,3 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags) {
 	
 	return 1;
 }
-
-#endif /* WITH_OPENJPEG */

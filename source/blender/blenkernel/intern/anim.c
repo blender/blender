@@ -1143,11 +1143,11 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 							w= (mv4)? 0.25f: 1.0f/3.0f;
 
 							if(orco) {
-								VECADDFAC(dob->orco, dob->orco, orco[mv1], w);
-								VECADDFAC(dob->orco, dob->orco, orco[mv2], w);
-								VECADDFAC(dob->orco, dob->orco, orco[mv3], w);
+								madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv1], w);
+								madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv2], w);
+								madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv3], w);
 								if(mv4)
-									VECADDFAC(dob->orco, dob->orco, orco[mv4], w);
+									madd_v3_v3v3fl(dob->orco, dob->orco, orco[mv4], w);
 							}
 
 							if(mtface) {

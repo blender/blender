@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
-
+from blf import gettext as _
 
 class ArmatureButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -60,19 +60,20 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
         layout.prop(arm, "pose_position", expand=True)
 
         col = layout.column()
-        col.label(text="Layers:")
+        col.label(text=_("Layers:"))
         col.prop(arm, "layers", text="")
-        col.label(text="Protected Layers:")
+        col.label(text=_("Protected Layers:"))
         col.prop(arm, "layers_protected", text="")
 
         layout.label(text="Deform:")
         flow = layout.column_flow()
-        flow.prop(arm, "use_deform_vertex_groups", text="Vertex Groups")
-        flow.prop(arm, "use_deform_envelopes", text="Envelopes")
-        flow.prop(arm, "use_deform_preserve_volume", text="Quaternion")
+        flow.prop(arm, "use_deform_vertex_groups", text=_("Vertex Groups"))
+        flow.prop(arm, "use_deform_envelopes", text=_("Envelopes"))
+        flow.prop(arm, "use_deform_preserve_volume", text=_("Quaternion"))
 
         if context.scene.render.engine == "BLENDER_GAME":
             layout.row().prop(arm, "vert_deformer", expand=True)
+
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
     bl_label = "Display"
@@ -88,15 +89,15 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(arm, "show_names", text="Names")
-        col.prop(arm, "show_axes", text="Axes")
-        col.prop(arm, "show_bone_custom_shapes", text="Shapes")
+        col.prop(arm, "show_names", text=_("Names"))
+        col.prop(arm, "show_axes", text=_("Axes"))
+        col.prop(arm, "show_bone_custom_shapes", text=_("Shapes"))
 
         col = split.column()
-        col.prop(arm, "show_group_colors", text="Colors")
+        col.prop(arm, "show_group_colors", text=_("Colors"))
         if ob:
-            col.prop(ob, "show_x_ray", text="X-Ray")
-        col.prop(arm, "use_deform_delay", text="Delay Refresh")
+            col.prop(ob, "show_x_ray", text=_("X-Ray"))
+        col.prop(arm, "use_deform_delay", text=_("Delay Refresh"))
 
 
 class DATA_PT_bone_group_specials(Menu):
@@ -160,12 +161,12 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
         row.active = (ob.proxy is None)
 
         sub = row.row(align=True)
-        sub.operator("pose.group_assign", text="Assign")
-        sub.operator("pose.group_unassign", text="Remove")  # row.operator("pose.bone_group_remove_from", text="Remove")
+        sub.operator("pose.group_assign", text=_("Assign"))
+        sub.operator("pose.group_unassign", text=_("Remove"))  # row.operator("pose.bone_group_remove_from", text=_("Remove"))
 
         sub = row.row(align=True)
-        sub.operator("pose.group_select", text="Select")
-        sub.operator("pose.group_deselect", text="Deselect")
+        sub.operator("pose.group_select", text=_("Select"))
+        sub.operator("pose.group_deselect", text=_("Deselect"))
 
 
 class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
@@ -185,11 +186,10 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
         layout.template_ID(ob, "pose_library", new="poselib.new", unlink="poselib.unlink")
 
         if poselib:
-            
-            # list of poses in pose library 
+            # list of poses in pose library
             row = layout.row()
             row.template_list(poselib, "pose_markers", poselib.pose_markers, "active_index", rows=5)
-            
+
             # column of operators for active pose
             # - goes beside list
             col = row.column(align=True)
@@ -206,9 +206,9 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
             if pose_marker_active is not None:
                 col.operator("poselib.pose_remove", icon='ZOOMOUT', text="").pose = pose_marker_active.name
                 col.operator("poselib.apply_pose", icon='ZOOM_SELECTED', text="").pose_index = poselib.pose_markers.active_index
-            
-            col.operator("poselib.action_sanitise", icon='HELP', text="") # XXX: put in menu?
-            
+
+            col.operator("poselib.action_sanitise", icon='HELP', text="")  # XXX: put in menu?
+
             # properties for active marker
             if pose_marker_active is not None:
                 layout.prop(pose_marker_active, "name")
@@ -230,16 +230,16 @@ class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
         col = split.column(align=True)
 
         if arm.ghost_type == 'RANGE':
-            col.prop(arm, "ghost_frame_start", text="Start")
-            col.prop(arm, "ghost_frame_end", text="End")
-            col.prop(arm, "ghost_size", text="Step")
+            col.prop(arm, "ghost_frame_start", text=_("Start"))
+            col.prop(arm, "ghost_frame_end", text=_("End"))
+            col.prop(arm, "ghost_size", text=_("Step"))
         elif arm.ghost_type == 'CURRENT_FRAME':
-            col.prop(arm, "ghost_step", text="Range")
-            col.prop(arm, "ghost_size", text="Step")
+            col.prop(arm, "ghost_step", text=_("Range"))
+            col.prop(arm, "ghost_size", text=_("Step"))
 
         col = split.column()
-        col.label(text="Display:")
-        col.prop(arm, "show_only_ghost_selected", text="Selected Only")
+        col.label(text=_("Display:"))
+        col.prop(arm, "show_only_ghost_selected", text=_("Selected Only"))
 
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
@@ -263,7 +263,7 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
             layout.prop(itasc, "mode", expand=True)
             simulation = (itasc.mode == 'SIMULATION')
             if simulation:
-                layout.label(text="Reiteration:")
+                layout.label(text=_("Reiteration:"))
                 layout.prop(itasc, "reiteration_method", expand=True)
 
             row = layout.row()
@@ -275,8 +275,8 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
                 layout.prop(itasc, "use_auto_step")
                 row = layout.row()
                 if itasc.use_auto_step:
-                    row.prop(itasc, "step_min", text="Min")
-                    row.prop(itasc, "step_max", text="Max")
+                    row.prop(itasc, "step_min", text=_("Min"))
+                    row.prop(itasc, "step_max", text=_("Max"))
                 else:
                     row.prop(itasc, "step_count")
 
@@ -286,7 +286,7 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
                 layout.prop(itasc, "velocity_max")
             if itasc.solver == 'DLS':
                 row = layout.row()
-                row.prop(itasc, "damping_max", text="Damp", slider=True)
+                row.prop(itasc, "damping_max", text=_("Damp"), slider=True)
                 row.prop(itasc, "damping_epsilon", text="Eps", slider=True)
 
 from bl_ui.properties_animviz import (
@@ -314,8 +314,8 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
         layout.separator()
 
         split = layout.split()
-        split.operator("pose.paths_calculate", text="Calculate Paths")
-        split.operator("pose.paths_clear", text="Clear Paths")
+        split.operator("pose.paths_calculate", text=_("Calculate Paths"))
+        split.operator("pose.paths_clear", text=_("Clear Paths"))
 
 
 class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from panel when ready

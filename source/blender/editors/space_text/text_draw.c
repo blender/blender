@@ -1190,7 +1190,7 @@ static void draw_textscroll(SpaceText *st, rcti *scroll, rcti *back)
 
 	uiWidgetScrollDraw(&wcol, scroll, &st->txtbar, (st->flags & ST_SCROLL_SELECT)?UI_SCROLL_PRESSED:0);
 
-	uiSetRoundBox(15);
+	uiSetRoundBox(UI_CNR_ALL);
 	rad= 0.4f*MIN2(st->txtscroll.xmax - st->txtscroll.xmin, st->txtscroll.ymax - st->txtscroll.ymin);
 	UI_GetThemeColor3ubv(TH_HILITE, col);
 	col[3]= 48;
@@ -1291,7 +1291,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 	TextLine *tmp;
 	char *docs, buf[DOC_WIDTH+1], *p;
 	int i, br, lines;
-	int boxw, boxh, l, x, y, top;
+	int boxw, boxh, l, x, y /* , top */ /* UNUSED */;
 	
 	if(!st || !st->text) return;
 	if(!texttool_text_is_active(st->text)) return;
@@ -1314,7 +1314,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 		x += SUGG_LIST_WIDTH*st->cwidth + 50;
 	}
 
-	top= y= ar->winy - st->lheight*l - 2;
+	/* top= */ /* UNUSED */ y= ar->winy - st->lheight*l - 2;
 	boxw= DOC_WIDTH*st->cwidth + 20;
 	boxh= (DOC_HEIGHT+1)*st->lheight;
 

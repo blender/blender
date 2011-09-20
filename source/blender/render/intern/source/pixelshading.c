@@ -76,7 +76,7 @@ extern struct Render R;
 
 extern float hashvectf[];
 
-static void render_lighting_halo(HaloRen *har, float *colf)
+static void render_lighting_halo(HaloRen *har, float col_r[3])
 {
 	GroupObject *go;
 	LampRen *lar;
@@ -246,9 +246,9 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 	if(ig<0.0f) ig= 0.0f;
 	if(ib<0.0f) ib= 0.0f;
 
-	colf[0]*= ir;
-	colf[1]*= ig;
-	colf[2]*= ib;
+	col_r[0]*= ir;
+	col_r[1]*= ig;
+	col_r[2]*= ib;
 	
 }
 
@@ -306,7 +306,7 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 
 	/* soften the halo if it intersects geometry */
 	if(har->mat && har->mat->mode & MA_HALO_SOFT) {
-		float segment_length, halo_depth, distance_from_z, visible_depth, soften;
+		float segment_length, halo_depth, distance_from_z /* , visible_depth */ /* UNUSED */, soften;
 		
 		/* calculate halo depth */
 		segment_length= har->hasize*sasqrt(1.0f - dist/(har->rad*har->rad));
@@ -317,7 +317,7 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 
 		/* calculate how much of this depth is visible */
 		distance_from_z = haloZtoDist(zz) - haloZtoDist(har->zs);
-		visible_depth = halo_depth;
+		/* visible_depth = halo_depth; */ /* UNUSED */
 		if(distance_from_z < segment_length) {
 			soften= (segment_length + distance_from_z)/halo_depth;
 
@@ -502,8 +502,8 @@ int shadeHaloFloat(HaloRen *har,  float *col, int zz,
 
 /* ------------------------------------------------------------------------- */
 
-/* Only view vector is important here. Result goes to colf[3] */
-void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short thread)
+/* Only view vector is important here. Result goes to col_r[3] */
+void shadeSkyView(float col_r[3], const float rco[3], const float view[3], const float dxyview[2], short thread)
 {
 	float lo[3], zen[3], hor[3], blend, blendm;
 	int skyflag;
@@ -528,13 +528,13 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short th
 		blend= fabs(0.5f + view[1]);
 	}
 
-	VECCOPY(hor, &R.wrld.horr);
-	VECCOPY(zen, &R.wrld.zenr);
+	copy_v3_v3(hor, &R.wrld.horr);
+	copy_v3_v3(zen, &R.wrld.zenr);
 
 	/* Careful: SKYTEX and SKYBLEND are NOT mutually exclusive! If           */
 	/* SKYBLEND is active, the texture and color blend are added.           */
 	if(R.wrld.skytype & WO_SKYTEX) {
-		VECCOPY(lo, view);
+		copy_v3_v3(lo, view);
 		if(R.wrld.skytype & WO_SKYREAL) {
 			
 			mul_m3_v3(R.imat, lo);
@@ -550,19 +550,19 @@ void shadeSkyView(float *colf, float *rco, float *view, float *dxyview, short th
 	
 	/* No clipping, no conversion! */
 	if(R.wrld.skytype & WO_SKYBLEND) {
-		colf[0] = (blendm*hor[0] + blend*zen[0]);
-		colf[1] = (blendm*hor[1] + blend*zen[1]);
-		colf[2] = (blendm*hor[2] + blend*zen[2]);
+		col_r[0] = (blendm*hor[0] + blend*zen[0]);
+		col_r[1] = (blendm*hor[1] + blend*zen[1]);
+		col_r[2] = (blendm*hor[2] + blend*zen[2]);
 	} else {
 		/* Done when a texture was grabbed. */
-		colf[0]= hor[0];
-		colf[1]= hor[1];
-		colf[2]= hor[2];
+		col_r[0]= hor[0];
+		col_r[1]= hor[1];
+		col_r[2]= hor[2];
 	}
 }
 
 /* shade sky according to sun lamps, all parameters are like shadeSkyView except sunsky*/
-void shadeSunView(float *colf, float *view)
+void shadeSunView(float col_r[3], const float view[3])
 {
 	GroupObject *go;
 	LampRen *lar;
@@ -576,9 +576,8 @@ void shadeSunView(float *colf, float *view)
 			float colorxyz[3];
 			
 			if(do_init) {
-				
-				VECCOPY(sview, view);
-				normalize_v3(sview);
+
+				normalize_v3_v3(sview, view);
 				mul_m3_v3(R.imat, sview);
 				if (sview[2] < 0.0f)
 					sview[2] = 0.0f;
@@ -590,7 +589,7 @@ void shadeSunView(float *colf, float *view)
 			xyz_to_rgb(colorxyz[0], colorxyz[1], colorxyz[2], &sun_collector[0], &sun_collector[1], &sun_collector[2], 
 					   lar->sunsky->sky_colorspace);
 			
-			ramp_blend(lar->sunsky->skyblendtype, colf, colf+1, colf+2, lar->sunsky->skyblendfac, sun_collector);
+			ramp_blend(lar->sunsky->skyblendtype, col_r, col_r+1, col_r+2, lar->sunsky->skyblendfac, sun_collector);
 		}
 	}
 }
@@ -599,7 +598,7 @@ void shadeSunView(float *colf, float *view)
 /*
   Stuff the sky color into the collector.
  */
-void shadeSkyPixel(float *collector, float fx, float fy, short thread) 
+void shadeSkyPixel(float collector[4], float fx, float fy, short thread)
 {
 	float view[3], dxyview[2];
 
@@ -649,10 +648,10 @@ void shadeSkyPixel(float *collector, float fx, float fy, short thread)
 }
 
 /* aerial perspective */
-void shadeAtmPixel(struct SunSky *sunsky, float *collector, float fx, float fy, float distance)
+void shadeAtmPixel(struct SunSky *sunsky, float collector[3], float fx, float fy, float distance)
 {
 	float view[3];
-		
+
 	calc_view_vector(view, fx, fy);
 	normalize_v3(view);
 	/*mul_m3_v3(R.imat, view);*/

@@ -47,16 +47,15 @@
 #include "TransformWriter.h"
 #include "InstanceWriter.h"
 
+#include "ExportSettings.h"
+
 // XXX exporter writes wrong data for shared armatures.  A separate
 // controller should be written for each armature-mesh binding how do
 // we make controller ids then?
 class ArmatureExporter: public COLLADASW::LibraryControllers, protected TransformWriter, protected InstanceWriter
 {
-private:
-	Scene *scene;
-
 public:
-	ArmatureExporter(COLLADASW::StreamWriter *sw);
+	ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
 
 	// write bone nodes
 	void add_armature_bones(Object *ob_arm, Scene *sce);
@@ -65,13 +64,14 @@ public:
 
 	void add_instance_controller(Object *ob);
 
-	void export_controllers(Scene *sce, bool export_selected);
+	void export_controllers(Scene *sce);
 
 	void operator()(Object *ob);
 
 private:
-
+	Scene *scene;
 	UnitConverter converter;
+	const ExportSettings *export_settings;
 
 #if 0
 	std::vector<Object*> written_armatures;
@@ -118,26 +118,5 @@ private:
 	void add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id, Mesh *me,
 									Object *ob_arm, ListBase *defbase);
 };
-
-/*
-struct GeometryFunctor {
-	// f should have
-	// void operator()(Object* ob)
-	template<class Functor>
-	void forEachMeshObjectInScene(Scene *sce, Functor &f)
-	{
-		
-		Base *base= (Base*) sce->base.first;
-		while(base) {
-			Object *ob = base->object;
-			
-			if (ob->type == OB_MESH && ob->data) {
-				f(ob);
-			}
-			base= base->next;
-			
-		}
-	}
-};*/
 
 #endif

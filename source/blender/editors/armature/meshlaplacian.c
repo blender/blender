@@ -518,7 +518,7 @@ static float heat_source_distance(LaplacianSystem *sys, int vertex, int source)
 	dist= normalize_v3(d);
 
 	/* if the vertex normal does not point along the bone, increase distance */
-	cosine= INPR(d, sys->heat.vnors[vertex]);
+	cosine= dot_v3v3(d, sys->heat.vnors[vertex]);
 
 	return dist/(0.5f*(cosine + 1.001f));
 }
@@ -657,22 +657,41 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
 	int *vertsflipped = NULL, *mask= NULL;
 	int a, totface, j, bbone, firstsegment, lastsegment;
 
+	MVert *mvert = me->mvert;
+	int use_vert_sel= FALSE;
+	int use_face_sel= FALSE;
+
 	*err_str= NULL;
 
 	/* count triangles and create mask */
-	if(me->editflag & ME_EDIT_PAINT_MASK)
+	if(     (use_face_sel= (me->editflag & ME_EDIT_PAINT_MASK) != 0) ||
+	        (use_vert_sel= ((me->editflag & ME_EDIT_VERT_SEL) != 0)))
+	{
 		mask= MEM_callocN(sizeof(int)*me->totvert, "heat_bone_weighting mask");
+	}
 
 	for(totface=0, a=0, mface=me->mface; a<me->totface; a++, mface++) {
 		totface++;
 		if(mface->v4) totface++;
 
-		if(mask && (mface->flag & ME_FACE_SEL)) {
-			mask[mface->v1]= 1;
-			mask[mface->v2]= 1;
-			mask[mface->v3]= 1;
-			if(mface->v4)
-				mask[mface->v4]= 1;
+		/*  (added selectedVerts content for vertex mask, they used to just equal 1) */
+		if(use_vert_sel) {
+			mask[mface->v1]= (mvert[mface->v1].flag & SELECT) != 0;
+			mask[mface->v2]= (mvert[mface->v2].flag & SELECT) != 0;
+			mask[mface->v3]= (mvert[mface->v3].flag & SELECT) != 0;
+			if(mface->v4) {
+				mask[mface->v4]= (mvert[mface->v4].flag & SELECT) != 0;
+			}
+		}
+		else {
+			if(use_face_sel) {
+				mask[mface->v1]= 1;
+				mask[mface->v2]= 1;
+				mask[mface->v3]= 1;
+				if(mface->v4) {
+					mask[mface->v4]= 1;
+				}
+			}
 		}
 	}
 
@@ -936,7 +955,7 @@ void rigid_deform_iteration()
 		}
 		else {
 			if(!sys->rigid.thrownerror) {
-				error("RigidDeform: failed to find solution.");
+				error("RigidDeform: failed to find solution");
 				sys->rigid.thrownerror= 1;
 			}
 			break;
@@ -1120,7 +1139,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	cross_v3_v3v3(pvec, dir, edge2);
 
 	/* if determinant is near zero, ray lies in plane of triangle */
-	det = INPR(edge1, pvec);
+	det = dot_v3v3(edge1, pvec);
 
 	if (det == 0.0f)
 		return 0;
@@ -1130,7 +1149,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	sub_v3_v3v3(tvec, orig, vert0);
 
 	/* calculate U parameter and test bounds */
-	u = INPR(tvec, pvec) * inv_det;
+	u = dot_v3v3(tvec, pvec) * inv_det;
 	if (u < -EPSILON || u > 1.0f+EPSILON)
 		return 0;
 
@@ -1138,7 +1157,7 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	cross_v3_v3v3(qvec, tvec, edge1);
 
 	/* calculate V parameter and test bounds */
-	v = INPR(dir, qvec) * inv_det;
+	v = dot_v3v3(dir, qvec) * inv_det;
 	if (v < -EPSILON || u + v > 1.0f+EPSILON)
 		return 0;
 
@@ -1153,10 +1172,10 @@ static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
 	/* check if it is within the length of the line segment */
 	sub_v3_v3v3(isectdir, isectco, orig);
 
-	if(INPR(dir, isectdir) < -EPSILON)
+	if(dot_v3v3(dir, isectdir) < -EPSILON)
 		return 0;
 	
-	if(INPR(dir, dir) + EPSILON < INPR(isectdir, isectdir))
+	if(dot_v3v3(dir, dir) + EPSILON < dot_v3v3(isectdir, isectdir))
 		return 0;
 
 	return 1;
@@ -1202,7 +1221,7 @@ static int meshdeform_intersect(MeshDeformBind *mdb, MeshDeformIsect *isec)
 			if(len < isec->labda) {
 				isec->labda= len;
 				isec->face = mface;
-				isec->isect= (INPR(isec->vec, nor) <= 0.0f);
+				isec->isect= (dot_v3v3(isec->vec, nor) <= 0.0f);
 				is= 1;
 			}
 		}
@@ -1693,7 +1712,7 @@ static void meshdeform_matrix_solve(MeshDeformBind *mdb)
 			}
 		}
 		else {
-			error("Mesh Deform: failed to find solution.");
+			error("Mesh Deform: failed to find solution");
 			break;
 		}
 

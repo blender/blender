@@ -356,7 +356,9 @@ if(UNIX AND NOT APPLE)
 		)
 
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			DIRECTORY
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
@@ -430,17 +432,19 @@ elseif(WIN32)
 			DESTINATION ${TARGETDIR_VER}
 		)
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			DIRECTORY
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
 
-		if(NOT CMAKE_CL_64)
-			install(
-				FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
-				DESTINATION ${TARGETDIR}
-			)
+		install(
+			FILES ${LIBDIR}/gettext/lib/gnu_gettext.dll
+			DESTINATION ${TARGETDIR}
+		)
 
+		if(NOT CMAKE_CL_64)
 			install(
 				FILES ${LIBDIR}/iconv/lib/iconv.dll
 				DESTINATION ${TARGETDIR}
@@ -449,8 +453,10 @@ elseif(WIN32)
 	endif()
 
 	install( # same as linux!, deduplicate
-		DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-		DESTINATION ${TARGETDIR_VER}/datafiles/locale
+		DIRECTORY
+			${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+		DESTINATION ${TARGETDIR_VER}/datafiles
 		PATTERN ".svn" EXCLUDE
 	)
 
@@ -662,9 +668,12 @@ elseif(APPLE)
 			DESTINATION ${TARGETDIR_VER}/datafiles
 		)
 
-		install_dir(
-			${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
-			\${TARGETDIR_VER}/datafiles/locale
+		install(
+			DIRECTORY
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			DESTINATION ${TARGETDIR_VER}/datafiles
+			PATTERN ".svn" EXCLUDE
 		)
 	endif()
 
@@ -712,12 +721,15 @@ add_dependencies(blender makesdna)
 
 get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
 
-set(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_render)
+set(BLENDER_LINK_LIBS
+	${BLENDER_LINK_LIBS}
+	bf_windowmanager
+	bf_render
+)
 
 if(WITH_MOD_FLUID)
 	list(APPEND BLENDER_LINK_LIBS bf_intern_elbeem)
 endif()
-
 
 #if(UNIX)
 	# Sort libraries
@@ -799,6 +811,7 @@ endif()
 		extern_minilzo
 		extern_lzma
 		ge_logic_ketsji
+		extern_recastnavigation
 		ge_phys_common
 		ge_logic
 		ge_rasterizer
@@ -806,7 +819,6 @@ endif()
 		ge_logic_expressions
 		ge_scenegraph
 		ge_logic_network
-		bf_python # duplicate for BPY_driver_exec
 		ge_logic_ngnetwork
 		extern_bullet
 		ge_logic_loopbacknetwork

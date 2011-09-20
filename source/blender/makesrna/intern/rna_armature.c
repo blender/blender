@@ -103,7 +103,7 @@ static void rna_Armature_act_edit_bone_set(PointerRNA *ptr, PointerRNA value)
 EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const char *name)
 {
 	if(arm->edbo==NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant add an editbone.", arm->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant add an editbone", arm->id.name+2);
 		return NULL;
 	}
 	return ED_armature_edit_bone_add(arm, name);
@@ -112,12 +112,12 @@ EditBone *rna_Armature_edit_bone_new(bArmature *arm, ReportList *reports, const 
 void rna_Armature_edit_bone_remove(bArmature *arm, ReportList *reports, EditBone *ebone)
 {
 	if(arm->edbo==NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant remove an editbone.", arm->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' not in editmode, cant remove an editbone", arm->id.name+2);
 		return;
 	}
 
 	if(BLI_findindex(arm->edbo, ebone) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Armature '%s' doesn't contain bone '%s'.", arm->id.name+2, ebone->name);
+		BKE_reportf(reports, RPT_ERROR, "Armature '%s' doesn't contain bone '%s'", arm->id.name+2, ebone->name);
 		return;
 	}
 
@@ -253,7 +253,7 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
 	char oldname[sizeof(ebone->name)], newname[sizeof(ebone->name)];
 	
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, sizeof(ebone->name));
+	BLI_strncpy_utf8(newname, value, sizeof(ebone->name));
 	BLI_strncpy(oldname, ebone->name, sizeof(ebone->name));
 	
 	ED_armature_bone_rename(arm, oldname, newname);
@@ -266,7 +266,7 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
 	char oldname[sizeof(bone->name)], newname[sizeof(bone->name)];
 	
 	/* need to be on the stack */
-	BLI_strncpy(newname, value, sizeof(bone->name));
+	BLI_strncpy_utf8(newname, value, sizeof(bone->name));
 	BLI_strncpy(oldname, bone->name, sizeof(bone->name));
 
 	ED_armature_bone_rename(arm, oldname, newname);
@@ -787,7 +787,7 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	/* add target */
 	func= RNA_def_function(srna, "new", "rna_Armature_edit_bone_new");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Add a new bone.");
+	RNA_def_function_ui_description(func, "Add a new bone");
 	parm= RNA_def_string(func, "name", "Object", 0, "", "New name for the bone");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 

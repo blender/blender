@@ -63,7 +63,7 @@ def _test_import(module_name, loaded_modules):
         return None
     if "." in module_name:
         print("Ignoring '%s', can't import files containing "
-              "multiple periods." % module_name)
+              "multiple periods" % module_name)
         return None
 
     if use_time:
@@ -159,7 +159,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 traceback.print_exc()
         else:
             print("\nWarning! '%s' has no register function, "
-                  "this is now a requirement for registerable scripts." %
+                  "this is now a requirement for registerable scripts" %
                   mod.__file__)
 
     def unregister_module_call(mod):

@@ -43,6 +43,9 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 
+#include "BLF_api.h"
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -449,8 +452,10 @@ static const char *rna_ensure_property_identifier(PropertyRNA *prop)
 
 static const char *rna_ensure_property_description(PropertyRNA *prop)
 {
+	const char *description= NULL;
+
 	if(prop->magic == RNA_MAGIC)
-		return prop->description;
+		description= prop->description;
 	else {
 		/* attempt to get the local ID values */
 		IDProperty *idp_ui= rna_idproperty_ui(prop);
@@ -458,22 +463,50 @@ static const char *rna_ensure_property_description(PropertyRNA *prop)
 		if(idp_ui) {
 			IDProperty *item= IDP_GetPropertyTypeFromGroup(idp_ui, "description", IDP_STRING);
 			if(item)
-				return IDP_String(item);
+				description= IDP_String(item);
 		}
 
-		return ((IDProperty*)prop)->name; /* XXX - not correct */
+		if(description == NULL)
+			description= ((IDProperty*)prop)->name; /* XXX - not correct */
 	}
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_TOOLTIPS))
+		description= BLF_gettext(description);
+#endif
+
+	return description;
 }
 
 static const char *rna_ensure_property_name(PropertyRNA *prop)
 {
+	const char *name;
+
 	if(prop->magic == RNA_MAGIC)
-		return prop->name;
+		name= prop->name;
 	else
-		return ((IDProperty*)prop)->name;
+		name= ((IDProperty*)prop)->name;
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
+		name= BLF_gettext(name);
+#endif
+
+	return name;
 }
 
 /* Structs */
+
+StructRNA *RNA_struct_find(const char *identifier)
+{
+	StructRNA *type;
+	if (identifier) {
+		for (type = BLENDER_RNA.structs.first; type; type = type->cont.next)
+			if (strcmp(type->identifier, identifier)==0)
+				return type;
+	}
+	return NULL;
+}
 
 const char *RNA_struct_identifier(StructRNA *type)
 {
@@ -1114,6 +1147,7 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 
 			*totitem= tot;
 		}
+
 	}
 	else {
 		*item= eprop->item;
@@ -1121,6 +1155,45 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 			*totitem= eprop->totitem;
 	}
 }
+
+void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free)
+{
+	RNA_property_enum_items(C, ptr, prop, item, totitem, free);
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE)) {
+		int i;
+		EnumPropertyItem *nitem;
+
+		if(*free) {
+			nitem= *item;
+		} else {
+			int totitem= 0;
+
+			/* count */
+			for(i=0; (*item)[i].identifier; i++)
+				totitem++;
+
+			nitem= MEM_callocN(sizeof(EnumPropertyItem)*(totitem+1), "enum_items_gettexted");
+
+			for(i=0; (*item)[i].identifier; i++)
+				nitem[i]= (*item)[i];
+
+			*free= 1;
+		}
+
+		for(i=0; nitem[i].identifier; i++) {
+			if( nitem[i].name )
+				nitem[i].name = BLF_gettext(nitem[i].name);
+			if( nitem[i].description )
+				nitem[i].description = BLF_gettext(nitem[i].description);
+		}
+
+		*item= nitem;
+	}
+#endif
+}
+
 
 int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
 {	
@@ -2901,7 +2974,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 		itemtype= RNA_property_type(itemprop);
 
 		if(!ELEM3(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
-			BKE_report(reports, RPT_ERROR, "Only boolean, int and float properties supported.");
+			BKE_report(reports, RPT_ERROR, "Only boolean, int and float properties supported");
 			return 0;
 		}
 
@@ -2912,7 +2985,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 		if(RNA_property_collection_raw_array(ptr, prop, itemprop, &out)) {
 			int arraylen = (itemlen == 0) ? 1 : itemlen;
 			if(in.len != arraylen*out.len) {
-				BKE_reportf(reports, RPT_ERROR, "Array length mismatch (expected %d, got %d).", out.len*arraylen, in.len);
+				BKE_reportf(reports, RPT_ERROR, "Array length mismatch (expected %d, got %d)", out.len*arraylen, in.len);
 				return 0;
 			}
 			
@@ -2968,13 +3041,13 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 						itemtype= RNA_property_type(iprop);
 					}
 					else {
-						BKE_reportf(reports, RPT_ERROR, "Property named %s not found.", propname);
+						BKE_reportf(reports, RPT_ERROR, "Property named %s not found", propname);
 						err= 1;
 						break;
 					}
 
 					if(!ELEM3(itemtype, PROP_BOOLEAN, PROP_INT, PROP_FLOAT)) {
-						BKE_report(reports, RPT_ERROR, "Only boolean, int and float properties supported.");
+						BKE_report(reports, RPT_ERROR, "Only boolean, int and float properties supported");
 						err= 1;
 						break;
 					}
@@ -2983,7 +3056,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 				/* editable check */
 				if(!set || RNA_property_editable(&itemptr, iprop)) {
 					if(a+itemlen > in.len) {
-						BKE_reportf(reports, RPT_ERROR, "Array length mismatch (got %d, expected more).", in.len);
+						BKE_reportf(reports, RPT_ERROR, "Array length mismatch (got %d, expected more)", in.len);
 						err= 1;
 						break;
 					}
@@ -4396,7 +4469,7 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 		buf= MEM_mallocN(sizeof(char)*(length+1), "RNA_property_as_string");
 		buf_esc= MEM_mallocN(sizeof(char)*(length*2+1), "RNA_property_as_string esc");
 		RNA_property_string_get(ptr, prop, buf);
-		BLI_strescape(buf_esc, buf, length*2);
+		BLI_strescape(buf_esc, buf, length*2+1);
 		MEM_freeN(buf);
 		BLI_dynstr_appendf(dynstr, "\"%s\"", buf_esc);
 		MEM_freeN(buf_esc);
@@ -5363,13 +5436,19 @@ int RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, i
 	return 0;
 }
 
-void RNA_warning(const char *format, ...)
+/* use RNA_warning macro which includes __func__ suffix */
+void _RNA_warning(const char *format, ...)
 {
 	va_list args;
 
 	va_start(args, format);
 	vprintf(format, args);
 	va_end(args);
+
+	/* gcc macro adds '\n', but cant use for other compilers */
+#ifndef __GNUC__
+	fputc('\n', stdout);
+#endif
 
 #ifdef WITH_PYTHON
 	{

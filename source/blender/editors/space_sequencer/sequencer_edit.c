@@ -188,7 +188,7 @@ static void proxy_endjob(void *UNUSED(customdata))
 
 }
 
-void seq_proxy_build_job(const bContext *C, Sequence * seq)
+static void seq_proxy_build_job(const bContext *C, Sequence * seq)
 {
 	wmJob * steve;
 	ProxyJob *pj;
@@ -1161,7 +1161,7 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Mute unselected rather than selected strips.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Mute unselected rather than selected strips");
 }
 
 
@@ -1208,7 +1208,7 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "UnMute unselected rather than selected strips.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "UnMute unselected rather than selected strips");
 }
 
 
@@ -1386,7 +1386,7 @@ void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reassign Inputs";
 	ot->idname= "SEQUENCER_OT_reassign_inputs";
-	ot->description="Reassign the inputs for the effects strip";
+	ot->description="Reassign the inputs for the effect strip";
 
 	/* api callbacks */
 	ot->exec= sequencer_reassign_inputs_exec;
@@ -1422,7 +1422,7 @@ void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Swap Inputs";
 	ot->idname= "SEQUENCER_OT_swap_inputs";
-	ot->description="Swap the first two inputs for the effects strip";
+	ot->description="Swap the first two inputs for the effect strip";
 
 	/* api callbacks */
 	ot->exec= sequencer_swap_inputs_exec;
@@ -1483,9 +1483,13 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 		sort_seq(scene);
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
-	
-	return OPERATOR_FINISHED;
+	if(changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 
@@ -1801,7 +1805,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Separate Images";
 	ot->idname= "SEQUENCER_OT_images_separate";
-	ot->description="On image sequences strips, it return a strip for each image";
+	ot->description="On image sequence strips, it returns a strip for each image";
 	
 	/* api callbacks */
 	ot->exec= sequencer_separate_images_exec;
@@ -2154,7 +2158,7 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 1.0f, 0.0f, FLT_MAX,
-		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out.", -FLT_MAX, FLT_MAX);
+		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 
 
@@ -2174,7 +2178,7 @@ static int sequencer_view_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	sseq->view++;
 	if (sseq->view > SEQ_VIEW_SEQUENCE_PREVIEW) sseq->view = SEQ_VIEW_SEQUENCE;
 
-	ED_sequencer_update_view(C, sseq->view);
+	ED_area_tag_refresh(CTX_wm_area(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -2483,7 +2487,7 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Swap Strip";
 	ot->idname= "SEQUENCER_OT_swap";
-	ot->description="Swap active strip with strip to the left";
+	ot->description="Swap active strip with strip to the right or left";
 	
 	/* api callbacks */
 	ot->exec= sequencer_swap_exec;

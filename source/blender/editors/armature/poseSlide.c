@@ -51,6 +51,7 @@
 #include "BKE_fcurve.h"
 
 #include "BKE_context.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 
 #include "RNA_access.h"
@@ -129,7 +130,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	
 	/* get info from context */
 	pso->scene= CTX_data_scene(C);
-	pso->ob= ED_object_pose_armature(CTX_data_active_object(C));
+	pso->ob= object_pose_armature_get(CTX_data_active_object(C));
 	pso->arm= (pso->ob)? pso->ob->data : NULL;
 	pso->sa= CTX_wm_area(C); /* only really needed when doing modal() */
 	pso->ar= CTX_wm_region(C); /* only really needed when doing modal() */
@@ -599,7 +600,7 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 		}
 	}
 	else {
-		BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between.");
+		BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between");
 		pose_slide_exit(op);
 		return OPERATOR_CANCELLED;
 	}
@@ -717,8 +718,8 @@ static int pose_slide_exec_common (bContext *C, wmOperator *op, tPoseSlideOp *ps
 /* common code for defining RNA properties */
 static void pose_slide_opdef_properties (wmOperatorType *ot)
 {
-	RNA_def_int(ot->srna, "prev_frame", 0, MINAFRAME, MAXFRAME, "Previous Keyframe", "Frame number of keyframe immediately before the current frame.", 0, 50);
-	RNA_def_int(ot->srna, "next_frame", 0, MINAFRAME, MAXFRAME, "Next Keyframe", "Frame number of keyframe immediately after the current frame.", 0, 50);
+	RNA_def_int(ot->srna, "prev_frame", 0, MINAFRAME, MAXFRAME, "Previous Keyframe", "Frame number of keyframe immediately before the current frame", 0, 50);
+	RNA_def_int(ot->srna, "next_frame", 0, MINAFRAME, MAXFRAME, "Next Keyframe", "Frame number of keyframe immediately after the current frame", 0, 50);
 	RNA_def_float_percentage(ot->srna, "percentage", 0.5f, 0.0f, 1.0f, "Percentage", "Weighting factor for the sliding operation", 0.3, 0.7);
 }
 
@@ -1164,7 +1165,7 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, FCurve *fcu,
 static int pose_propagate_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob= ED_object_pose_armature(CTX_data_active_object(C));
+	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	bAction *act= (ob && ob->adt)? ob->adt->action : NULL;
 	
 	ListBase pflinks = {NULL, NULL};

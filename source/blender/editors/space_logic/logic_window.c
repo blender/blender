@@ -718,6 +718,8 @@ static const char *actuator_name(int type)
 		return "State";
 	case ACT_ARMATURE:
 		return "Armature";
+	case ACT_STEERING:
+		return "Steering";		
 	}
 	return "unknown";
 }
@@ -2167,31 +2169,55 @@ static short draw_actuatorbuttons(Main *bmain, Object *ob, bActuator *act, uiBlo
 				/* reset this value, it is for handling the event */
 				sa->sndnr = 0;
 				uiDefButS(block, MENU, B_SOUNDACT_BROWSE, str, xco+10,yco-22,20,19, &(sa->sndnr), 0, 0, 0, 0, "");	
-				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+wval+10, yco-22, wval, 19, "Load a sound file. Remember to set caching on for small sounds that are played often.");
+				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+wval+10, yco-22, wval, 19,
+				          "Load a sound file (remember to set caching on for small sounds that are played often)");
 
 				if(sa->sound) {
-					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
-					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,wval-20,19, ((ID *)sa->sound)->name+2,    0.0, 21.0, 0, 0, "");
-					uiDefButS(block, MENU, 1, dummy_str,xco+10,yco-44,width-20, 19, &sa->type, 0.0, 0.0, 0, 0, "");
-					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->volume, 0.0,  1.0, 0, 0, "Sets the volume of this sound");
-					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->pitch,-12.0, 12.0, 0, 0, "Sets the pitch of this sound");
-					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19, &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space.");
+					char dummy_str[] = "Sound mode %t|Play Stop %x0|Play End %x1|Loop Stop %x2|"
+					                   "Loop End %x3|Loop Ping Pong Stop %x5|Loop Ping Pong %x4";
+					uiDefBut(block, TEX, B_IDNAME, "SO:",xco+30,yco-22,wval-20,19,
+					         ((ID *)sa->sound)->name+2, 0.0, 21.0, 0, 0, "");
+					uiDefButS(block, MENU, 1, dummy_str,xco+10,yco-44,width-20, 19,
+					          &sa->type, 0.0, 0.0, 0, 0, "");
+					uiDefButF(block, NUM, 0, "Volume:", xco+10,yco-66,wval, 19, &sa->volume,
+					          0.0, 1.0, 0, 0, "Sets the volume of this sound");
+					uiDefButF(block, NUM, 0, "Pitch:",xco+wval+10,yco-66,wval, 19, &sa->pitch,-12.0,
+					          12.0, 0, 0, "Sets the pitch of this sound");
+					uiDefButS(block, TOG | BIT, 0, "3D Sound", xco+10, yco-88, width-20, 19,
+					          &sa->flag, 0.0, 1.0, 0.0, 0.0, "Plays the sound positioned in 3D space");
 					if(sa->flag & ACT_SND_3D_SOUND)
 					{
-						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19, &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0, "The minimum gain of the sound, no matter how far it is away.");
-						uiDefButF(block, NUM, 0, "Maximum Gain: ", xco+10, yco-132, wval, 19, &sa->sound3D.max_gain, 0.0, 1.0, 0.0, 0.0, "The maximum gain of the sound, no matter how near it is.");
-						uiDefButF(block, NUM, 0, "Reference Distance: ", xco+10, yco-154, wval, 19, &sa->sound3D.reference_distance, 0.0, FLT_MAX, 0.0, 0.0, "The reference distance is the distance where the sound has a gain of 1.0.");
-						uiDefButF(block, NUM, 0, "Maximum Distance: ", xco+10, yco-176, wval, 19, &sa->sound3D.max_distance, 0.0, FLT_MAX, 0.0, 0.0, "The maximum distance at which you can hear the sound.");
-						uiDefButF(block, NUM, 0, "Rolloff: ", xco+wval+10, yco-110, wval, 19, &sa->sound3D.rolloff_factor, 0.0, 5.0, 0.0, 0.0, "The rolloff factor defines the influence factor on volume depending on distance.");
-						uiDefButF(block, NUM, 0, "Cone Outer Gain: ", xco+wval+10, yco-132, wval, 19, &sa->sound3D.cone_outer_gain, 0.0, 1.0, 0.0, 0.0, "The gain outside the outer cone. The gain in the outer cone will be interpolated between this value and the normal gain in the inner cone.");
-						uiDefButF(block, NUM, 0, "Cone Outer Angle: ", xco+wval+10, yco-154, wval, 19, &sa->sound3D.cone_outer_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the outer cone.");
-						uiDefButF(block, NUM, 0, "Cone Inner Angle: ", xco+wval+10, yco-176, wval, 19, &sa->sound3D.cone_inner_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the inner cone.");
+						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19,
+						          &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0,
+						          "The minimum gain of the sound, no matter how far it is away");
+						uiDefButF(block, NUM, 0, "Maximum Gain: ", xco+10, yco-132, wval, 19,
+						          &sa->sound3D.max_gain, 0.0, 1.0, 0.0, 0.0,
+						          "The maximum gain of the sound, no matter how near it is");
+						uiDefButF(block, NUM, 0, "Reference Distance: ", xco+10, yco-154, wval, 19,
+						          &sa->sound3D.reference_distance, 0.0, FLT_MAX, 0.0, 0.0,
+						          "The reference distance is the distance where the sound has a gain of 1.0");
+						uiDefButF(block, NUM, 0, "Maximum Distance: ", xco+10, yco-176, wval, 19,
+						          &sa->sound3D.max_distance, 0.0, FLT_MAX, 0.0, 0.0,
+						          "The maximum distance at which you can hear the sound");
+						uiDefButF(block, NUM, 0, "Rolloff: ", xco+wval+10, yco-110, wval, 19,
+						          &sa->sound3D.rolloff_factor, 0.0, 5.0, 0.0, 0.0,
+						          "The rolloff factor defines the influence factor on volume depending on distance");
+						uiDefButF(block, NUM, 0, "Cone Outer Gain: ", xco+wval+10, yco-132, wval, 19,
+						          &sa->sound3D.cone_outer_gain, 0.0, 1.0, 0.0, 0.0,
+						          "The gain outside the outer cone. The gain in the outer cone will be "
+						          "interpolated between this value and the normal gain in the inner cone");
+						uiDefButF(block, NUM, 0, "Cone Outer Angle: ", xco+wval+10, yco-154, wval,
+						          19, &sa->sound3D.cone_outer_angle, 0.0, 360.0, 0.0, 0.0,
+						          "The angle of the outer cone");
+						uiDefButF(block, NUM, 0, "Cone Inner Angle: ", xco+wval+10, yco-176, wval,
+						          19, &sa->sound3D.cone_inner_angle, 0.0, 360.0, 0.0, 0.0,
+						          "The angle of the inner cone");
 					}
 				}
 				MEM_freeN((void *)str);
 			} 
 			else {
-				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+10, yco-22, width-20, 19, "Load a sound file.");
+				uiDefButO(block, BUT, "sound.open", 0, "Load Sound", xco+10, yco-22, width-20, 19, "Load a sound file");
 			}
 					
 			yco-= ysize;
@@ -3989,40 +4015,6 @@ static void draw_actuator_game(uiLayout *layout, PointerRNA *ptr)
 		uiItemR(layout, ptr, "filename", 0, NULL, ICON_NONE);
 }
 
-/* The IPO/Fcurve actuator has been deprecated, so this is no longer used */
-static void draw_actuator_ipo(uiLayout *layout, PointerRNA *ptr)
-{
-	Object *ob;
-	PointerRNA settings_ptr;
-	uiLayout *row, *subrow, *col;
-
-	ob = (Object *)ptr->id.data;
-	RNA_pointer_create((ID *)ob, &RNA_GameObjectSettings, ob, &settings_ptr);
-
-	row= uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "play_type", 0, "", ICON_NONE);
-	subrow= uiLayoutRow(row, 1);
-	uiItemR(subrow, ptr, "use_force", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
-	uiItemR(subrow, ptr, "use_additive", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
-
-	col = uiLayoutColumn(subrow, 0);
-	uiLayoutSetActive(col, (RNA_boolean_get(ptr, "use_additive") || RNA_boolean_get(ptr, "use_force")));
-	uiItemR(col, ptr, "use_local", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
-
-	row= uiLayoutRow(layout, 0);
-	if((RNA_enum_get(ptr, "play_type") == ACT_IPO_FROM_PROP))
-		uiItemPointerR(row, ptr, "property", &settings_ptr, "properties", NULL, ICON_NONE);
-
-	else {
-		uiItemR(row, ptr, "frame_start", 0, NULL, ICON_NONE);
-		uiItemR(row, ptr, "frame_end", 0, NULL, ICON_NONE);
-	}
-	uiItemR(row, ptr, "apply_to_children", 0, NULL, ICON_NONE);
-
-	row= uiLayoutRow(layout, 0);
-	uiItemPointerR(row, ptr, "frame_property", &settings_ptr, "properties", NULL, ICON_NONE);
-}
-
 static void draw_actuator_message(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	Object *ob;
@@ -4379,6 +4371,48 @@ static void draw_actuator_visibility(uiLayout *layout, PointerRNA *ptr)
 	uiItemR(row, ptr, "apply_to_children", 0, NULL, ICON_NONE);
 }
 
+static void draw_actuator_steering(uiLayout *layout, PointerRNA *ptr)
+{
+	uiLayout *row;
+	uiLayout *col;
+
+	uiItemR(layout, ptr, "mode", 0, NULL, 0);
+	uiItemR(layout, ptr, "target", 0, NULL, 0);
+	uiItemR(layout, ptr, "navmesh", 0, NULL, 0);	
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "distance", 0, NULL, 0);
+	uiItemR(row, ptr, "velocity", 0, NULL, 0);
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "acceleration", 0, NULL, 0);
+	uiItemR(row, ptr, "turn_speed", 0, NULL, 0);
+
+	row = uiLayoutRow(layout, 0);
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "facing", 0, NULL, 0);
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "facing_axis", 0, NULL, 0);
+	if (!RNA_boolean_get(ptr, "facing"))
+	{
+		uiLayoutSetActive(col, 0);
+	}
+	col = uiLayoutColumn(row, 0);
+	uiItemR(col, ptr, "normal_up", 0, NULL, 0);
+	if (!RNA_pointer_get(ptr, "navmesh").data)
+	{
+		uiLayoutSetActive(col, 0);
+	}
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "self_terminated", 0, NULL, 0);
+	if (RNA_enum_get(ptr, "mode")==ACT_STEERING_PATHFOLLOWING)
+	{
+		uiItemR(row, ptr, "update_period", 0, NULL, 0);	
+		row = uiLayoutRow(layout, 0);
+	}
+	uiItemR(row, ptr, "show_visualization", 0, NULL, 0);	
+}
+
 static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 {
 	uiLayout *box;
@@ -4440,6 +4474,8 @@ static void draw_brick_actuator(uiLayout *layout, PointerRNA *ptr, bContext *C)
 		case ACT_VISIBILITY:
 			draw_actuator_visibility(box, ptr);
 			break;
+		case ACT_STEERING:
+			draw_actuator_steering(box, ptr);
 	}
 }
 
@@ -4512,7 +4548,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	/* ****************** Controllers ****************** */
 	
 	xco= 420; yco= 170; width= 300;
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, 1);
 	
 	uiDefBlockBut(block, controller_menu, NULL, "Controllers", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
@@ -4615,7 +4651,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	/* ****************** Sensors ****************** */
 	
 	xco= 10; yco= 170; width= 340;
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, 1);
 	
 	uiDefBlockBut(block, sensor_menu, NULL, "Sensors", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
@@ -4681,7 +4717,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 	/* ****************** Actuators ****************** */
 	
 	xco= 800; yco= 170; width= 340;
-	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, U.uistyles.first);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, 1);
 	
 	uiDefBlockBut(block, actuator_menu, NULL, "Actuators", xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */

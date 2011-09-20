@@ -51,6 +51,7 @@
 #include "ED_screen.h"
 
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "PIL_time.h" /* USER_ZOOM_CONT */
 
@@ -444,7 +445,7 @@ static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
-	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll down one page.");
+	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll down one page");
 }
 
 
@@ -494,7 +495,7 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
-	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll up one page.");
+	RNA_def_boolean(ot->srna, "page", 0, "Page", "Scroll up one page");
 }
 
 /* ********************************************************* */
@@ -1587,7 +1588,7 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 
 static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
 	int winx, winy;

@@ -139,11 +139,14 @@ size_t BLI_strnlen(const char *str, size_t maxlen);
 
 void BLI_timestr(double _time, char *str); /* time var is global */
 
-int BLI_utf8_invalid_byte(const char *str, int length);
-int BLI_utf8_invalid_strip(char *str, int length);
-
 void BLI_ascii_strtolower(char *str, int len);
 void BLI_ascii_strtoupper(char *str, int len);
+
+
+/* string_utf8.c - may move these into their own header some day - campbell */
+char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy);
+int BLI_utf8_invalid_byte(const char *str, int length);
+int BLI_utf8_invalid_strip(char *str, int length);
 
 #ifdef __cplusplus
 }

@@ -20,6 +20,7 @@
 
 import bpy
 from bpy.types import Header, Menu
+from blf import gettext as _
 
 
 #######################################
@@ -117,7 +118,7 @@ class DOPESHEET_HT_header(Header):
                 row.menu("DOPESHEET_MT_gpencil_frame")
 
         layout.prop(st, "mode", text="")
-        layout.prop(st.dopesheet, "show_summary", text="Summary")
+        layout.prop(st.dopesheet, "show_summary", text=_("Summary"))
 
         if st.mode == 'DOPESHEET':
             dopesheet_filter(layout, context)
@@ -153,9 +154,9 @@ class DOPESHEET_MT_view(Menu):
         layout.prop(st, "use_marker_sync")
 
         if st.show_seconds:
-            layout.operator("anim.time_toggle", text="Show Frames")
+            layout.operator("anim.time_toggle", text=_("Show Frames"))
         else:
-            layout.operator("anim.time_toggle", text="Show Seconds")
+            layout.operator("anim.time_toggle", text=_("Show Seconds"))
 
         layout.separator()
         layout.operator("anim.previewrange_set")
@@ -180,22 +181,22 @@ class DOPESHEET_MT_select(Menu):
 
         # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
         layout.operator("action.select_all_toggle")
-        layout.operator("action.select_all_toggle", text="Invert Selection").invert = True
+        layout.operator("action.select_all_toggle", text=_("Invert Selection")).invert = True
 
         layout.separator()
         layout.operator("action.select_border")
-        layout.operator("action.select_border", text="Border Axis Range").axis_range = True
+        layout.operator("action.select_border", text=_("Border Axis Range")).axis_range = True
 
         layout.separator()
-        layout.operator("action.select_column", text="Columns on Selected Keys").mode = 'KEYS'
-        layout.operator("action.select_column", text="Column on Current Frame").mode = 'CFRA'
+        layout.operator("action.select_column", text=_("Columns on Selected Keys")).mode = 'KEYS'
+        layout.operator("action.select_column", text=_("Column on Current Frame")).mode = 'CFRA'
 
-        layout.operator("action.select_column", text="Columns on Selected Markers").mode = 'MARKERS_COLUMN'
-        layout.operator("action.select_column", text="Between Selected Markers").mode = 'MARKERS_BETWEEN'
+        layout.operator("action.select_column", text=_("Columns on Selected Markers")).mode = 'MARKERS_COLUMN'
+        layout.operator("action.select_column", text=_("Between Selected Markers")).mode = 'MARKERS_BETWEEN'
 
         layout.separator()
-        layout.operator("action.select_leftright", text="Before Current Frame").mode = 'LEFT'
-        layout.operator("action.select_leftright", text="After Current Frame").mode = 'RIGHT'
+        layout.operator("action.select_leftright", text=_("Before Current Frame")).mode = 'LEFT'
+        layout.operator("action.select_leftright", text=_("After Current Frame")).mode = 'RIGHT'
 
         # FIXME: grease pencil mode isn't supported for these yet, so skip for that mode only
         if context.space_data.mode != 'GPENCIL':
@@ -217,14 +218,14 @@ class DOPESHEET_MT_marker(Menu):
 
         #layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.operator("marker.add", "Add Marker")
-        layout.operator("marker.duplicate", text="Duplicate Marker")
-        layout.operator("marker.delete", text="Delete Marker")
+        layout.operator("marker.add", _("Add Marker"))
+        layout.operator("marker.duplicate", text=_("Duplicate Marker"))
+        layout.operator("marker.delete", text=_("Delete Marker"))
 
         layout.separator()
 
-        layout.operator("marker.rename", text="Rename Marker")
-        layout.operator("marker.move", text="Grab/Move Marker")
+        layout.operator("marker.rename", text=_("Rename Marker"))
+        layout.operator("marker.move", text=_("Grab/Move Marker"))
 
         if st.mode in {'ACTION', 'SHAPEKEY'} and st.action:
             layout.separator()
@@ -254,14 +255,14 @@ class DOPESHEET_MT_channel(Menu):
 
         layout.separator()
         layout.operator("anim.channels_editable_toggle")
-        layout.operator_menu_enum("action.extrapolation_type", "type", text="Extrapolation Mode")
+        layout.operator_menu_enum("action.extrapolation_type", "type", text=_("Extrapolation Mode"))
 
         layout.separator()
         layout.operator("anim.channels_expand")
         layout.operator("anim.channels_collapse")
 
         layout.separator()
-        layout.operator_menu_enum("anim.channels_move", "direction", text="Move...")
+        layout.operator_menu_enum("anim.channels_move", "direction", text=_("Move..."))
 
         layout.separator()
         layout.operator("anim.channels_fcurves_enable")
@@ -273,10 +274,10 @@ class DOPESHEET_MT_key(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.menu("DOPESHEET_MT_key_transform", text="Transform")
+        layout.menu("DOPESHEET_MT_key_transform", text=_("Transform"))
 
-        layout.operator_menu_enum("action.snap", "type", text="Snap")
-        layout.operator_menu_enum("action.mirror", "type", text="Mirror")
+        layout.operator_menu_enum("action.snap", "type", text=_("Snap"))
+        layout.operator_menu_enum("action.mirror", "type", text=_("Mirror"))
 
         layout.separator()
         layout.operator("action.keyframe_insert")
@@ -286,9 +287,9 @@ class DOPESHEET_MT_key(Menu):
         layout.operator("action.delete")
 
         layout.separator()
-        layout.operator_menu_enum("action.keyframe_type", "type", text="Keyframe Type")
-        layout.operator_menu_enum("action.handle_type", "type", text="Handle Type")
-        layout.operator_menu_enum("action.interpolation_type", "type", text="Interpolation Mode")
+        layout.operator_menu_enum("action.keyframe_type", "type", text=_("Keyframe Type"))
+        layout.operator_menu_enum("action.handle_type", "type", text=_("Handle Type"))
+        layout.operator_menu_enum("action.interpolation_type", "type", text=_("Interpolation Mode"))
 
         layout.separator()
         layout.operator("action.clean")
@@ -305,10 +306,10 @@ class DOPESHEET_MT_key_transform(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("transform.transform", text="Grab/Move").mode = 'TIME_TRANSLATE'
-        layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
-        layout.operator("transform.transform", text="Slide").mode = 'TIME_SLIDE'
-        layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
+        layout.operator("transform.transform", text=_("Grab/Move")).mode = 'TIME_TRANSLATE'
+        layout.operator("transform.transform", text=_("Extend")).mode = 'TIME_EXTEND'
+        layout.operator("transform.transform", text=_("Slide")).mode = 'TIME_SLIDE'
+        layout.operator("transform.transform", text=_("Scale")).mode = 'TIME_SCALE'
 
 
 #######################################
@@ -347,7 +348,7 @@ class DOPESHEET_MT_gpencil_frame(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.menu("DOPESHEET_MT_key_transform", text="Transform")
+        layout.menu("DOPESHEET_MT_key_transform", text=_("Transform"))
 
         #layout.operator_menu_enum("action.snap", "type", text="Snap")
         #layout.operator_menu_enum("action.mirror", "type", text="Mirror")

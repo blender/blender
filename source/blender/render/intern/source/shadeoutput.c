@@ -85,7 +85,7 @@ static void fogcolor(float *colf, float *rco, float *view)
 	hor[0]= R.wrld.horr; hor[1]= R.wrld.horg; hor[2]= R.wrld.horb;
 	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zeng; zen[2]= R.wrld.zenb;
 	
-	VECCOPY(vec, rco);
+	copy_v3_v3(vec, rco);
 	
 	/* we loop from cur coord to mist start in steps */
 	stepsize= 1.0f;
@@ -486,8 +486,8 @@ static float area_lamp_energy_multisample(LampRen *lar, float *co, float *vn)
 	int a= lar->ray_totsamp;
 
 	/* test if co is behind lamp */
-	VECSUB(vec, co, lar->co);
-	if(INPR(vec, lar->vec) < 0.0f)
+	sub_v3_v3v3(vec, co, lar->co);
+	if(dot_v3v3(vec, lar->vec) < 0.0f)
 		return 0.0f;
 
 	while(a--) {
@@ -1125,21 +1125,21 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 {
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 		*dist= 1.0f;
-		VECCOPY(lv, lar->vec);
+		copy_v3_v3(lv, lar->vec);
 		return 1.0f;
 	}
 	else {
 		float visifac= 1.0f, t;
 		
-		VECSUB(lv, co, lar->co);
-		*dist= sqrt( INPR(lv, lv));
+		sub_v3_v3v3(lv, co, lar->co);
+		*dist= sqrtf(dot_v3v3(lv, lv));
 		t= 1.0f/dist[0];
-		VECMUL(lv, t);
+		mul_v3_fl(lv, t);
 		
 		/* area type has no quad or sphere option */
 		if(lar->type==LA_AREA) {
 			/* area is single sided */
-			//if(INPR(lv, lar->vec) > 0.0f)
+			//if(dot_v3v3(lv, lar->vec) > 0.0f)
 			//	visifac= 1.0f;
 			//else
 			//	visifac= 0.0f;
@@ -1185,11 +1185,11 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 					float inpr;
 					
 					if(lar->mode & LA_SQUARE) {
-						if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0f) {
+						if(dot_v3v3(lv, lar->vec) > 0.0f) {
 							float lvrot[3], x;
 							
 							/* rotate view to lampspace */
-							VECCOPY(lvrot, lv);
+							copy_v3_v3(lvrot, lv);
 							mul_m3_v3(lar->imat, lvrot);
 							
 							x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
@@ -1285,7 +1285,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 			cross_v3_v3v3(cross, shi->surfnor, vn);
 			cross_v3_v3v3(nstrand, vn, cross);
 
-			blend= INPR(nstrand, shi->surfnor);
+			blend= dot_v3v3(nstrand, shi->surfnor);
 			blend= 1.0f - blend;
 			CLAMP(blend, 0.0f, 1.0f);
 
@@ -1320,8 +1320,8 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	
 	/* dot product and reflectivity */
 	/* inp = dotproduct, is = shader result, i = lamp energy (with shadow), i_noshad = i without shadow */
-	inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
-	
+	inp= dot_v3v3(vn, lv);
+
 	/* phong threshold to prevent backfacing faces having artefacts on ray shadow (terminator problem) */
 	/* this complex construction screams for a nicer implementation! (ton) */
 	if(R.r.mode & R_SHADOW) {
@@ -1389,7 +1389,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 				if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
 					
 					if(vn==vnor)	/* tangent trigger */
-						lamp_get_shadow(lar, shi, INPR(shi->vn, lv), shadfac, shi->depth);
+						lamp_get_shadow(lar, shi, dot_v3v3(shi->vn, lv), shadfac, shi->depth);
 					else
 						lamp_get_shadow(lar, shi, inp, shadfac, shi->depth);
 						
@@ -1431,7 +1431,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 					add_to_diffuse(shr->diff, shi, is, i_noshad*lacol[0], i_noshad*lacol[1], i_noshad*lacol[2]);
 				}
 				else
-					VECCOPY(shr->diff, shr->shad);
+					copy_v3_v3(shr->diff, shr->shad);
 			}
 		}
 		
@@ -1508,12 +1508,12 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 		LampRen *lar;
 		GroupObject *go;
 		float inpr, lv[3];
-		float *view, shadfac[4];
+		float /* *view, */ shadfac[4];
 		float ir, accum, visifac, lampdist;
 		float shaded = 0.0f, lightness = 0.0f;
 		
 
-		view= shi->view;
+		/* view= shi->view; */ /* UNUSED */
 		accum= ir= 0.0f;
 		
 		lights= get_lights(shi);
@@ -1537,7 +1537,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 
 					continue;
 				}
-				inpr= INPR(shi->vn, lv);
+				inpr= dot_v3v3(shi->vn, lv);
 				if(inpr <= 0.0f) {
 					if (shi->mat->shadowonly_flag == MA_SO_OLD)
 						accum+= 1.0f;
@@ -1724,9 +1724,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				/* AO was calculated for scanline already */
 				if(shi->depth || shi->volume_depth)
 					ambient_occlusion(shi);
-				VECCOPY(shr->ao, shi->ao);
-				VECCOPY(shr->env, shi->env); // XXX multiply
-				VECCOPY(shr->indirect, shi->indirect); // XXX multiply
+				copy_v3_v3(shr->ao, shi->ao);
+				copy_v3_v3(shr->env, shi->env); // XXX multiply
+				copy_v3_v3(shr->indirect, shi->indirect); // XXX multiply
 			}
 		}
 	}
@@ -1771,7 +1771,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				invalpha= (shr->col[3] > FLT_EPSILON)? 1.0f/shr->col[3]: 1.0f;
 
 				if(texfac==0.0f) {
-					VECCOPY(col, shr->col);
+					copy_v3_v3(col, shr->col);
 					mul_v3_fl(col, invalpha);
 				}
 				else if(texfac==1.0f) {
@@ -1779,7 +1779,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					mul_v3_fl(col, invalpha);
 				}
 				else {
-					VECCOPY(col, shr->col);
+					copy_v3_v3(col, shr->col);
 					mul_v3_fl(col, invalpha);
 					col[0]= pow(col[0], 1.0f-texfac);
 					col[1]= pow(col[1], 1.0f-texfac);
@@ -1799,9 +1799,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		}
 		
 		if(shi->combinedflag & SCE_PASS_SHADOW)	
-			VECCOPY(shr->combined, shr->shad) 	/* note, no ';' ! */
+			copy_v3_v3(shr->combined, shr->shad); 	/* note, no ';' ! */
 		else
-			VECCOPY(shr->combined, shr->diff);
+			copy_v3_v3(shr->combined, shr->diff);
 			
 		/* calculate shadow pass, we use a multiplication mask */
 		/* if diff = 0,0,0 it doesn't matter what the shadow pass is, so leave it as is */
@@ -1876,10 +1876,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		result[2]= shi->mirb*shi->refcol[3] + (1.0f - shi->mirb*shi->refcol[0])*shr->combined[2];
 		
 		if(passflag & SCE_PASS_REFLECT)
-			VECSUB(shr->refl, result, shr->combined);
+			sub_v3_v3v3(shr->refl, result, shr->combined);
 		
 		if(shi->combinedflag & SCE_PASS_REFLECT)
-			VECCOPY(shr->combined, result);
+			copy_v3_v3(shr->combined, result);
 			
 	}
 	

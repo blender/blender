@@ -58,7 +58,7 @@ void CU_select_swap(struct Object *obedit);
 
 
 void	undo_push_curve	(struct bContext *C, const char *name);
-ListBase *curve_get_editcurve(struct Object *ob);
+ListBase *object_editcurve_get(struct Object *ob);
 
 void	load_editNurb	(struct Object *obedit);
 void	make_editNurb	(struct Object *obedit);

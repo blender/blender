@@ -48,7 +48,7 @@
 
 #include "BKE_node.h"
 
-static EnumPropertyItem texture_filter_items[] = {
+EnumPropertyItem texture_filter_items[] = {
 	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
 	{TXF_FELINE, "FELINE", 0, "FELINE", ""},
@@ -260,7 +260,7 @@ static void rna_TextureSlot_name_get(PointerRNA *ptr, char *str)
 	if(mtex->tex)
 		strcpy(str, mtex->tex->id.name+2);
 	else
-		strcpy(str, "");
+		str[0]= '\0';
 }
 
 static int rna_TextureSlot_output_node_get(PointerRNA *ptr)
@@ -668,22 +668,31 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, 0);
 	RNA_def_property_boolean_sdna(prop, NULL, "ok", 2);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Validity", "True if this map is ready for use, False if it needs rendering.");
+	RNA_def_property_ui_text(prop, "Validity", "True if this map is ready for use, False if it needs rendering");
 
 	RNA_api_environment_map(srna);
 }
 
 static EnumPropertyItem prop_noise_basis_items[] = {
-	{TEX_BLENDER, "BLENDER_ORIGINAL", 0, "Blender Original", "Noise algorithm - Blender original: Smooth interpolated noise"},
-	{TEX_STDPERLIN, "ORIGINAL_PERLIN", 0, "Original Perlin", "Noise algorithm - Original Perlin: Smooth interpolated noise"},
-	{TEX_NEWPERLIN, "IMPROVED_PERLIN", 0, "Improved Perlin", "Noise algorithm - Improved Perlin: Smooth interpolated noise"},
-	{TEX_VORONOI_F1, "VORONOI_F1", 0, "Voronoi F1", "Noise algorithm - Voronoi F1: Returns distance to the closest feature point"},
-	{TEX_VORONOI_F2, "VORONOI_F2", 0, "Voronoi F2", "Noise algorithm - Voronoi F2: Returns distance to the 2nd closest feature point"},
-	{TEX_VORONOI_F3, "VORONOI_F3", 0, "Voronoi F3", "Noise algorithm - Voronoi F3: Returns distance to the 3rd closest feature point"},
-	{TEX_VORONOI_F4, "VORONOI_F4", 0, "Voronoi F4", "Noise algorithm - Voronoi F4: Returns distance to the 4th closest feature point"},
+	{TEX_BLENDER, "BLENDER_ORIGINAL", 0, "Blender Original",
+	              "Noise algorithm - Blender original: Smooth interpolated noise"},
+	{TEX_STDPERLIN, "ORIGINAL_PERLIN", 0, "Original Perlin",
+	                "Noise algorithm - Original Perlin: Smooth interpolated noise"},
+	{TEX_NEWPERLIN, "IMPROVED_PERLIN", 0, "Improved Perlin",
+	                "Noise algorithm - Improved Perlin: Smooth interpolated noise"},
+	{TEX_VORONOI_F1, "VORONOI_F1", 0, "Voronoi F1",
+	                 "Noise algorithm - Voronoi F1: Returns distance to the closest feature point"},
+	{TEX_VORONOI_F2, "VORONOI_F2", 0, "Voronoi F2",
+	                 "Noise algorithm - Voronoi F2: Returns distance to the 2nd closest feature point"},
+	{TEX_VORONOI_F3, "VORONOI_F3", 0, "Voronoi F3",
+	                 "Noise algorithm - Voronoi F3: Returns distance to the 3rd closest feature point"},
+	{TEX_VORONOI_F4, "VORONOI_F4", 0, "Voronoi F4",
+	                 "Noise algorithm - Voronoi F4: Returns distance to the 4th closest feature point"},
 	{TEX_VORONOI_F2F1, "VORONOI_F2_F1", 0, "Voronoi F2-F1", "Noise algorithm - Voronoi F1-F2"},
-	{TEX_VORONOI_CRACKLE, "VORONOI_CRACKLE", 0, "Voronoi Crackle", "Noise algorithm - Voronoi Crackle: Voronoi tessellation with sharp edges"},
-	{TEX_CELLNOISE, "CELL_NOISE", 0, "Cell Noise", "Noise algorithm - Cell Noise: Square cell tessallation"},
+	{TEX_VORONOI_CRACKLE, "VORONOI_CRACKLE", 0, "Voronoi Crackle",
+	                      "Noise algorithm - Voronoi Crackle: Voronoi tessellation with sharp edges"},
+	{TEX_CELLNOISE, "CELL_NOISE", 0, "Cell Noise",
+	                "Noise algorithm - Cell Noise: Square cell tessallation"},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem prop_noise_type[] = {
@@ -1820,6 +1829,8 @@ static void rna_def_texture(BlenderRNA *brna)
 	rna_def_texture_pointdensity(brna);
 	rna_def_texture_voxeldata(brna);
 	/* XXX add more types here .. */
+
+	RNA_api_texture(srna);
 }
 
 void RNA_def_texture(BlenderRNA *brna)

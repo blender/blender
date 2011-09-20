@@ -36,9 +36,9 @@
 #define V_I(x, y, z, res) ( (z)*(res)[1]*(res)[0] + (y)*(res)[0] + (x) )
 
 /* all input coordinates must be in bounding box 0.0 - 1.0 */
-float voxel_sample_nearest(float *data, int *res, float *co);
-float voxel_sample_trilinear(float *data, int *res, float *co);
-float voxel_sample_triquadratic(float *data, int *res, float *co);
-float voxel_sample_tricubic(float *data, int *res, float *co, int bspline);
+float voxel_sample_nearest(float *data, const int res[3], const float co[3]);
+float voxel_sample_trilinear(float *data, const int res[3], const float co[3]);
+float voxel_sample_triquadratic(float *data, const int res[3], const float co[3]);
+float voxel_sample_tricubic(float *data, const int res[3], const float co[3], int bspline);
 
 #endif /* BLI_VOXEL_H */

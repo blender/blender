@@ -100,22 +100,22 @@ void RNA_api_scene(StructRNA *srna)
 	PropertyRNA *parm;
 
 	func= RNA_def_function(srna, "frame_set", "rna_Scene_frame_set");
-	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately.");
-	parm= RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set.", MINAFRAME, MAXFRAME);
+	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately");
+	parm= RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set", MINAFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_float(func, "subframe", 0.0, 0.0, 1.0, "", "Sub-frame time, between 0.0 and 1.0", 0.0, 1.0);
 
 	func= RNA_def_function(srna, "update", "rna_Scene_update_tagged");
-	RNA_def_function_ui_description(func, "Update data tagged to be updated from previous access to data or operators.");
+	RNA_def_function_ui_description(func, "Update data tagged to be updated from previous access to data or operators");
 
 #ifdef WITH_COLLADA
 	/* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 	func= RNA_def_function(srna, "collada_export", "rna_Scene_collada_export");
-	RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file.");
-	parm= RNA_def_boolean(func, "selected", 0, "Export only selected", "Export only selected elements.");
+	RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file");
+	parm= RNA_def_boolean(func, "selected", 0, "Export only selected", "Export only selected elements");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
-	RNA_def_function_ui_description(func, "Export to collada file.");
+	RNA_def_function_ui_description(func, "Export to collada file");
 #endif
 }
 
@@ -126,9 +126,11 @@ void RNA_api_scene_render(StructRNA *srna)
 	PropertyRNA *parm;
 
 	func= RNA_def_function(srna, "frame_path", "rna_SceneRender_get_frame_path");
-	RNA_def_function_ui_description(func, "Return the absolute path to the filename to be written for a given frame.");
-	RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "", "Frame number to use, if unset the current frame will be used.", MINAFRAME, MAXFRAME);
-	parm= RNA_def_string_file_path(func, "filepath", "", FILE_MAX, "File Path", "the resulting filepath from the scenes render settings.");
+	RNA_def_function_ui_description(func, "Return the absolute path to the filename to be written for a given frame");
+	RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "",
+	            "Frame number to use, if unset the current frame will be used", MINAFRAME, MAXFRAME);
+	parm= RNA_def_string_file_path(func, "filepath", "", FILE_MAX, "File Path",
+	                               "The resulting filepath from the scenes render settings");
 	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
 	RNA_def_function_output(func, parm);
 }
