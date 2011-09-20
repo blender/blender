@@ -92,4 +92,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print("\n\n *** Running %r *** \n" % __file__)
     main()
