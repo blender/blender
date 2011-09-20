@@ -1771,18 +1771,17 @@ int do_version_tface(Main *main, int fileload)
 	int a;
 	int flag;
 	int index;
-	int nummat;
 
  	/* sometimes mesh has no materials but will need a new one. In those
 	 * cases we need to ignore the mf->mat_nr and only look at the face
-	 * mode because it can be zero as unitialized or the 1st created material
+	 * mode because it can be zero as uninitialized or the 1st created material
 	 */
 	int nomaterialslots;
 
 	/* alert to user to check the console */
 	int nowarning = 1;
 
-	/* mark all the materials to convertion with a flag
+	/* mark all the materials to conversion with a flag
 	 * if there is tface create a complete flag for that storing in flag
 	 * if there is tface and flag > 0: creates a new flag based on this face
 	 * if flags are different set flag to -1  
@@ -1869,7 +1868,7 @@ int do_version_tface(Main *main, int fileload)
 						ma->game.flag = -flag;
 						
 						/* some people uses multitexture with TexFace by creating a texture
-						 * channel which not necessarly the tf->tpage image. But the game engine
+						 * channel which not neccessarly the tf->tpage image. But the game engine
 						 * was enabling it. Now it's required to set "Face Texture [Alpha] in the
 						 * material settings. */
 						if(!fileload)
