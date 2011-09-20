@@ -421,14 +421,6 @@ class PHYSICS_PT_dp_advanced_brush(PhysicButtonsPanel, bpy.types.Panel):
                 sub.prop(brush, "solid_radius", text="Solid Radius")
                 col.prop(brush, "use_part_radius", text="Use Particle's Radius")
                 col.prop(brush, "smooth_radius", text="Smooth radius")
-        elif brush.paint_source in {'VOLUME', 'VOLDIST'}:
-            split = layout.row().split(percentage=0.4)
-            sub = split.column()
-            sub.prop(brush, "accept_nonclosed")
-            if brush.prox_project:
-                sub = split.column()
-                sub.prop(brush, "ray_dir")
-                
                 
         if brush.paint_source in {'DISTANCE', 'VOLDIST', 'POINT'}:
             col.prop(brush, "paint_distance", text="Paint Distance")
