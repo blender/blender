@@ -1,21 +1,23 @@
 The edited object
-Texture datablocks.
 Bezier curve point with two handles defining a Keyframe on an F-Curve
+Max Climb
 Media Stop
 System & OpenGL
 Strips Selected
 Active Keying Set
 Action Blending
 Bone is able to be selected
+Defines where the color of the environment light comes from
 Display files as short list
 Build 75% proxy resolution
 Right Mouse
-Restrict the number of animation updates to the animation FPS. This is better for performance, but can cause issues with smooth playback.
+Cubic Catmull-Rom
 Particle system can be edited in particle mode
 UV editor data for the image editor space
 Editing hair
 Zoom using opposite direction
 Graph Editor space data
+Create obstacle
 Tiles
 Align newly added objects to the world coordinates
 Index of custom color set
@@ -37,14 +39,15 @@ Sun Size
 Set modifier expanded in the user interface
 Multiple Scattering
 ID Name
-Square (SV + H)
+Steering
 Animation Visualisation
 Keyed States
 Fixed size vertex indices array
 Normal Size
 Track To
+Time since last access of a GL texture in seconds after which it is freed. (Set to 0 to keep textures allocated.)
 Collection of keymaps
-Channel Group
+Texture datablocks
 Number of vertical pixels in the screen
 Fluid Simulation
 Zooms in and out like scaling the view, mouse movements relative to center
@@ -59,15 +62,15 @@ Small Caps
 UV Project
 UV Sync Selection
 Cloth dynamics for hair
+File Browser Main
 Sensitivity
 Amount of rotation around side vector
 Specify how many frames the Map Old will last
 Start Still
-All Object Origins
 Unique datablock ID name
 Active pose marker for this Action
 Draw Channels
-Control how much mist density decreases with height
+Smoothens emitted smoke to avoid blockiness
 Tool Settings
 Text Line
 Bone Constraints
@@ -77,7 +80,6 @@ Only use case sensitive matches of search string
 Screw
 Region Text
 Representation of alpha information in the RGBA pixels
-Smoothens emitted smoke to avoid blockiness.
 Edges receive a drag force from surrounding media
 Sequence Transform
 Over Drop
@@ -111,12 +113,15 @@ Game
 Minimal Spring length * Ball Size
 16384
 Line in which the marker is located
+Offset X
+Rasterized cell height
 Edge Threshold
 -Z
 Set audio channels to mono
 Jump Speed
 HuffYUV
 Active Bone
+View3D Fly Modal
 Sets the audio channel count
 Rotation Damping
 Max Air Acceleration
@@ -149,22 +154,22 @@ Filter Movies
 Material datablock used by this material slot
 Smooth Emitter
 Catalan (CatalÃ )
-Proxy parameters for a sequence strip
+RVO (cells)
 Home
 Action Mouse
 Show Debug Info
 Loads a saved environment map image from disk
 is_baking
-Falloff power (real gravitational falloff = 2)
+Scene datablocks
 Wire
 Group
 On Land
-Maximum distance of reflected rays. Reflections further than this range fade to sky color or material color
 Group Objects
 Time Step
 Keep UI
 Bone inherits rotation or scale from parent bone
 Show Selected Object
+Theme settings for the Outliner
 Time of key over the simulation
 Header Text
 Health
@@ -180,6 +185,7 @@ Strength of force field
 Space that target is evaluated in
 F11
 Star
+Library datablocks
 Line Input
 Lighten
 In Range
@@ -188,6 +194,7 @@ F17
 Node Socket
 Quad-Buffer
 Sets scaling for the texture's X, Y and Z sizes
+F14
 Motion Path settings for animation visualisation
 Make hairs longer
 Set audio sample format to 32 bit float
@@ -215,12 +222,11 @@ Image File
 Preset configs for external animation players
 Maximum Value
 Make this nurbs curve or surface act like a Bezier spline in the U direction (Order U must be 3 or 4, Cyclic U must be disabled)
-Factor Repulsion
 uk_UA
 3x3 bone matrix
 Vertex Weight
 Display Material
-Show UV editing related properties
+Use a custom transform orientation
 GLSL Shaders
 Text
 Deliver shadow pass
@@ -237,7 +243,7 @@ Active Strip
 Initial Rest Length
 User defined layer of string text values
 Edge Tag Mode
-Active camera used in this view (when unlocked from the scene's active camera)
+Invert tilt Axis
 Deliver emission pass
 Face Selected
 Xor
@@ -255,7 +261,7 @@ Set audio sample format to 32 bit signed integer
 Scene render size
 Multiplier to convert blender units to physical distance
 Free Image Textures
-High quality interpolation, but slower
+Metaball datablocks
 DPI
 Fill in Z values for solid faces in invisible layers, for masking
 Active Action for this datablock
@@ -277,8 +283,8 @@ A
 Renders star shaped lines over halo
 Fade-out Color
 Syntax Built-in
-Panel Style
-Material datablocks.
+Samples below this threshold will be considered fully shadowed/unshadowed and skipped (for Raytrace Adaptive QMC)
+Camera datablocks
 Bounding Box Center
 Middle Mouse
 Framerate base
@@ -298,7 +304,7 @@ All
 Serbian (Ð¡ÑÐ¿ÑÐºÐ¾Ð¼ ÑÐµÐ·Ð¸ÐºÑ)
 Sample Method
 Text Anti-aliasing
-Luma Waveform
+Only allows given density value in emitter area
 Sequencer Preview Shading
 Lower field first
 File Name
@@ -318,7 +324,7 @@ An object instance in a scene
 User Interface
 Alt
 Vertex group name
-Number of cone samples averaged for blurry refractions
+PNG
 Animated Selected
 Blue
 Damping of the spring force, when inside the physics distance area
@@ -333,6 +339,7 @@ Draw only faces with the currently displayed image assigned
 Record Run
 Pixel width over which the reconstruction filter combines samples
 Global Scene
+Defines the structure of the header in the UI
 Source List Text Highlight
 User-editable keyframes
 Scaling factor for action
@@ -359,7 +366,6 @@ Item
 In/Out Node
 Frame that modifier's influence ends (if Restrict Frame Range is in use)
 Premultiplied
-Samples below this threshold will be considered fully shadowed/unshadowed and skipped (for Raytrace Adaptive QMC)
 Number of frames cached
 Description of the Struct's purpose
 Tilt in 3D View
@@ -368,7 +374,8 @@ Offsets image horizontally from the world origin
 region_data
 Protect layer from further editing and/or frame changes
 File Format
-Use this files path when library linked into another file.
+Retarget roll mode
+IK rot control
 Upper bound of envelope at this control-point
 Interaction Radius
 Syntax String
@@ -399,13 +406,13 @@ True when the property is not saved in presets
 Images are rendered in new Window
 Theme Timeline
 If this is set, the header gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is "OBJECT_HT_hello", and bl_idname is not set by the script, then bl_idname = "OBJECT_HT_hello"
-Stamp Text Color
+The color that rays with no intersection within the Max Distance take (material color can be best for indoor scenes, sky color for outdoor)
 Show Cursor
 Goal Default
 Shape Key Point
 Object Origin Size
 Orthographic
-Black
+Invert y axis
 Unit Scale
 Collection of points for Bezier curves only
 Mouse
@@ -427,10 +434,9 @@ Numpad 4
 Type
 Action Groups
 Styles
-Buoyancy
 rv
+Recast data for a Game datablock
 Number of frames to show before the current frame (only for 'Around Current Frame' Onion-skinning method)
-Only allows given density value in emitter area.
 Description of the property for tooltips
 Area in a subdivided screen, containing an editor
 IK Z Maximum
@@ -468,6 +474,7 @@ Show Menus
 W
 Inverse Kinematics
 Number of times a map will be rendered recursively (mirror effects.)
+Face Mask
 Density is calculated as a factor of default density (depends on particle size)
 Soft
 Use a maximum distance for the field to work
@@ -496,6 +503,7 @@ Set audio mixing buffer size to 256 samples
 Bake normals
 Uses direction of strands as normal for tangent-shading
 Textbox Width
+Pose
 Plasticity
 Object scale factor
 Boid effector weight
@@ -504,14 +512,17 @@ Fight
 Adjust the offset to the beginning/end
 Bone Solid
 NLA Strip representing a sound event for speakers
+Maximum contour edge length
 Build free run time code index using Record Date/Time
 End frame displayed in the sequence editor after offsets are applied
 NLA Strip acts as a container for adjacent strips
 Offsets image vertically from the world origin
+Block anything else from using the cursor
 Inverse Lift
 Maximum for slider
 Mode of automatic keyframe insertion for Objects and Bones (default setting used for new Scenes)
 Render Solid faces in this Layer
+Vertex Weight Edit
 Rotation style in the viewport
 Active Vertex Color Index
 Show the active object's smoke cache
@@ -532,6 +543,7 @@ Luma
 Blend Out
 B
 B-Bone X size
+Anti-Aliasing Level
 Handle Vertex Size
 IK Lin Weight
 Negative
@@ -561,12 +573,13 @@ Operating system key pressed
 14 - Theme Color Set
 Grease pencil data for this space
 Child particle interpolated from simulated or edited particles
-Frequency
+Editor header containing UI elements
 Select Head
 Catmull-Rom
 GLSL Nodes
 Make edges 'sail'
 Scattering
+Wire Select
 Unit
 Bezier Points
 Frame on which the simulation starts
@@ -609,14 +622,14 @@ Marker is temporary
 Collection of screens
 Lock X Axis
 Octree Resolution
+Control how much mist density decreases with height
 Custom Color Set
 Texture Context
 Active Vertex Group
-Bounding box of this object represents the computational domain of the fluid simulation
+Disallow movement around the Y axis
 Edge Color
 Datablocks
 Channels of the image to draw
-Adjust simulation speed.
 2D Cursor
 Constant QMC
 Shape Key Curve Point
@@ -633,7 +646,6 @@ Tag Sharp
 Is part of an IK chain
 Output image in JPEG format
 Main Groups
-Group datablocks.
 Slider Min
 Side
 Bone
@@ -672,23 +684,21 @@ Opaque
 Goal (vertex target position) friction
 All rules are averaged
 Grease Pencil Stroke
-Text datablocks.
 Display Object Info
 The maximum distance from which a boid can attack
-Metaball datablocks.
+Curve interpolation at this point: Bezier or vector
 Both Z
 Textbox Y Offset
-Particle Brush
+Node group datablocks
 Ogg Theora
 Logic And
 Identifier of operator to call on input event
-Uses the vertex normal to specify the dimension of the halo
+Spaces contained in this area, the first being the active space. NOTE: Useful for example to restore a previously used 3d view space in a certain area to get the old view orientation
 Set audio channels to stereo
 Order V
 View & Controls
 Rec Run
 Upward spring force, when inside the physics distance area
-Active index in vertex group array
 Mesh Texture Face Layer
 Transformation orientation
 Gives a radial field toward the center of object
@@ -753,12 +763,13 @@ Find All
 Activate or deactivate item
 Blobby element in a MetaBall datablock
 Only Render
+Radius of the agent
 Show Navigation Guide
 Default Colors
 Sets the dimension of the sub-flares, dots and circles
 Dynamic Friction
 fi_FI
-NodeTree
+Viewpoint Object
 Display the object solid, lit with default OpenGL lights
 Use Global Coordinates
 Use the initial length as spring rest length instead of 2 * particle size
@@ -771,6 +782,7 @@ Vertex group to control clump
 Enable/Disable Constraint
 Object is detected by the Near and Radar sensor
 VBOs
+When false, this (sub)layout is greyed out
 Select Mouse
 The Drivers/Expressions for this datablock
 Individual Centers
@@ -807,14 +819,12 @@ Manoeuvre to avoid collisions with other boids and deflector objects in near fut
 Global gravity weight
 Curve or Surface subdivisions per segment
 The nominal number of game frames per second. Physics fixed timestep = 1/fps, independently of actual frame rate
-Object datablocks.
 Back scattering (-1.0) to Forward scattering (1.0) and the range in between
 Library Path
 Calculate shadows while rendering
 Defines the strength of environment light
 Mux packet size (byte)
 Croatian (Hrvatski)
-Gimbal
 Separate Colors
 Collider Friction
 Goal minimum, vertex group weights are scaled to match this range
@@ -827,6 +837,7 @@ Draw F-Curves using Anti-Aliasing and other fancy effects. Disable for better pe
 Keying Set
 UV Local View
 Changing edges seam re-calculates UV unwrap
+View3D Move Modal
 Any Type
 Image Paint
 Set audio mixing buffer size to 16384 samples
@@ -835,14 +846,17 @@ Active EditBone
 Brush
 Show only sensors connected to active states
 Disable simulation of angular  motion along the Z axis
+3D View Generic
 Shape used as a relative key
 World Stars
 Use Environment Lighting
 X Location
 Auto Save Temporary Files
+Surface subdivisions per segment
 Output image in OpenEXR format
 Center
 Air has normally some thickness which slows falling things down
+Defines if the panel has to be open or collapsed at the time of its creation
 Parameters for the function
 Keep root keys unmodified
 Interpolate new particles from the existing ones
@@ -874,7 +888,7 @@ Auto handles clamped to not overshoot
 How much the spring has to be stretched/compressed in order to change it's rest length
 Show Brush On Surface
 .
-Error Limit
+Defines the structure of the panel in the UI
 Handle 2 selected
 Use lights for GLSL rendering
 Groups
@@ -900,6 +914,7 @@ Add directed noise to the density at render-time
 Physics Sub Steps
 Mesh Faces
 Apply on spline
+Armature Sketch
 Render Halos in this Layer (on top of Solid)
 Nla Strips
 Weight used by the Bevel modifier
@@ -913,9 +928,11 @@ Theora
 Hook
 Collection of materials
 Lifetime mapped as 0.0 - 1.0 intensity
+Property Editor
 Vorbis
 Allow Land
 Tip select mode
+Navigation Mesh
 Limit the texture size to save graphics memory
 Game engine user defined object property
 Sticky vertex selection disabled
@@ -929,10 +946,10 @@ Numpad +
 Menu
 Active Point Cache Index
 Starting frame of the stored range
-Bake displacement
+Panel Style
 Emphasize position of keyframes on Motion Paths
 Libraries
-Brush datablocks.
+Restrict Frame Range
 Quadratic Drag
 Display X Axis
 Copy of the colors associated with the group's color set
@@ -958,6 +975,7 @@ Meta strip stack, last is currently edited meta strip
 Noise algorithm - Voronoi F2: Returns distance to the 2nd closest feature point
 Auto Keyframe Insert Keying Set
 2D Cursor Location
+Vertex Weight Mix
 Group Index
 Add hairs
 Bake textures
@@ -967,10 +985,10 @@ When rendering animations, save JPG preview images in same directory
 The number of grid lines to display in perspective view
 Worlds
 The distance between 3D View grid lines
+Vector font datablocks
 Tag Bevel
 Negate the effect of the kink vertex group
 Use viscoelastic springs instead of Hooke's springs
-Theme settings for the 3D View
 Frameserver Port for Frameserver Rendering
 Shows actuators for this object in the user interface
 Show Info
@@ -989,7 +1007,6 @@ To node
 Puff Mode
 Root
 Deliver Z values pass
-Mesh datablocks.
 Coordinates of the control point
 Transforms don't include parenting/restpose or constraints
 Keying Set Path
@@ -1039,7 +1056,7 @@ Weight to assign in vertex groups
 Bone Armature-Relative Matrix
 Rest length of the harmonic force
 user_preferences
-Scopes to visualize image statistics.
+Gimbal
 Alpha Under
 RNA property definition
 YXZ Euler
@@ -1050,10 +1067,11 @@ Editor menu containing buttons
 Right handle selection status
 Minimum Value
 Action referenced by this strip
+Display and edit the grease pencil freehand annotations overlay
 Path edit mode
 Smooth falloff
 Preferences related to viewing data
-Lock to Cursor
+Max Edge Error
 A square showing Hue/Value, with Saturation slider
 D
 Material slot in an object
@@ -1089,7 +1107,7 @@ Which style to use for font kerning
 Fall-Off
 Render voxels from a Blender smoke simulation
 Draw the points which make up the strokes (for debugging purposes)
-Motion
+Frames
 Original image height
 Use face for collision and ray-sensor detection
 Around Frame
@@ -1099,7 +1117,8 @@ Device up/down directly controls your Z position
 The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed
 Original image width
 Show Margin
-Viewpoint Object
+Transform Modal Map
+Stiff Quads
 System
 Spherical Panoramic
 Onion Skinning settings for animation visualisation
@@ -1121,6 +1140,7 @@ Use Min
 Display the center and axis during rotation
 Multiplier for intensity values
 Render Edge-enhance in this Layer (only works for Solid faces)
+Material datablocks
 /
 Arabic (Ø§ÙØ¹Ø±Ø¨ÙØ©)
 Most compact representation. Uses '+' as separator for sub-second frame numbers, with left and right truncation of the timecode as necessary
@@ -1129,10 +1149,12 @@ Lift
 Lighting for a World datablock
 External
 Collection of metaballs
+Sets the hardness of the halo
 General rotation damping
 Constraint name
 Hardness
 Syntax highlight for scripting
+Parameters and Settings for the Filebrowser
 Edit Path
 Rot Matrix
 Global Time
@@ -1145,7 +1167,7 @@ Flare
 Control Point selected
 Freehand curves defining the sketch on this frame
 Make this nurbs surface act like a Bezier spline in the V direction (Order V must be 3 or 4, Cyclic V must be disabled)
-Frames
+Operator
 Near
 Use the pinned context
 Display files as a detailed list
@@ -1174,7 +1196,7 @@ Static
 AVI
 Internal Friction
 Global Hair
-Traditional Chinese (ç¹é«ä¸­æ)
+Level height
 Bake Specular colors
 DopeSheet space data
 Registered Optionally
@@ -1200,7 +1222,7 @@ Directory/name to save animations, # characters defines the position and length 
 Follow Path
 Use a cubic filter for anti-aliasing
 Media First
-Tree Type
+Use so the operator grabs the mouse focus, enables wrapping when continuous grab is enabled
 Draw Frames
 Length of rays, defines how far away other faces give occlusion effect
 Lock Scale
@@ -1211,16 +1233,13 @@ Point Source
 cs_CZ
 Pose Space
 Sort the file list alphabetically
-Use a custom transform orientation
-Maximum number of frames on either side of the active frame to show (0 = show the 'first' available sketch on either side)
-Restrict Frame Range
+Provides an alternative access to loc/scale/rotation relative to the parent and own rest bone
 Collision Type
 Collection of node trees
-Stiff Quads
 Occlusion Resolution
 Apply sun effect on sky
 Stamp Note Text
-Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)
+Traditional Chinese (ç¹é«ä¸­æ)
 Scene layers included in this render layer
 Weight used by the Bevel modifier 'Only Vertices' option
 IK Y Stiffness
@@ -1246,6 +1265,7 @@ Show Error
 Left
 Property that stores arbitrary, user defined properties
 UV 4
+Resolution %
 Scattering color
 UV 1
 UV 3
@@ -1253,7 +1273,7 @@ UV 2
 Handle 2
 Display datablocks in visible layers
 Handle 1
-True if this map is ready for use, False if it needs rendering.
+Left handle selection status
 Active Keying Set Index
 SMPTE (Full)
 Use textures to affect material properties
@@ -1261,7 +1281,7 @@ Draw Modified Edges
 Maximum caused damage on attack per second
 Shape Key
 Enable file compression when saving .blend files
-Anti-Aliasing Level
+Script datablocks (DEPRECATED)
 Frame rate for the screencast to be played back
 MPEG-1
 Use Sketching Sessions
@@ -1276,7 +1296,7 @@ Keyed timing
 Free Run (rec date)
 Use a 3D manipulator widget for controlling transforms
 Insert Keyframes - Only Needed
-Scale factor along the X for items in this (sub)layout.
+Show handles of Bezier control points
 Bone is not visible when it is not in Edit Mode (i.e. in Object or Pose Modes)
 Inverse Quadratic
 ru_RU
@@ -1349,6 +1369,7 @@ Button 9
 Collection of speakers
 Adaptive QMC
 Layers the object base is on
+NLA Generic
 Sort by size
 Friend
 Velocity Min
@@ -1366,6 +1387,7 @@ Global child particles percentage
 Faces collide too, can be very slow
 Disable collision for this object
 Disable the time difference between fields
+The default directory to search for loading fonts
 Automatic keyframe insertion in available curves
 Bake the normals in camera space
 Show Header
@@ -1391,7 +1413,7 @@ Bitrate
 Back scattering weight
 Select where rendered images will be displayed
 The shape of the reflection, from 0.0 (circular) to 1.0 (fully stretched along the tangent
-A random rule is selected for each boid
+Gamma Corrected Color
 AutoMerge Keyframes
 Hold the first frame if no previous strips in track, and always hold last frame
 Active PoseChannel constraint
@@ -1412,7 +1434,7 @@ Plus
 Coordinates
 Roll CW
 Envelope Control Point
-Maximum number of lines to store for the console buffer
+Invert roll Axis
 Source List Text
 The file extension used for saving renders
 Last selected element
@@ -1438,13 +1460,13 @@ Tab
 Default Closed
 SPH Fluid Settings
 Dome physical configurations
-Percentage scale for render resolution
+Theme settings for the User Preferences
 Front-Truncated
 Has the current session been saved to disk as a .blend file
 12 - Theme Color Set
 Box
 Constraint modifying the transformation of objects and bones
-How much density effects smoke motion, higher value results in faster rising smoke
+Curve datablocks
 Adjustment Layer
 Velocity Scale
 Field of View of the Dome - it only works in mode Fisheye and Truncated
@@ -1485,7 +1507,7 @@ Sequence editor space data
 The context in which the panel belongs to. (TODO: explain the possible combinations bl_context/bl_region_type/bl_space_type)
 Bake from Multires
 Start size of strands in pixels or Blender units
-Curve datablocks.
+Shape Key datablocks
 Targa
 Particle Instance
 Bezier V
@@ -1535,7 +1557,6 @@ F8
 Filter Sound
 Mass of cloth material
 Matrix
-Add light coming from the environment
 Action Group that this F-Curve belongs to
 Subdivide stroke adaptively, with more subdivision in curvier parts
 How many steps to draw the path with
@@ -1557,6 +1578,7 @@ Image Pin
 Accuracy of attack
 Continuously unwrap the selected UV island while transforming pinned vertices
 Collection of grease pencils
+Gesture Border
 Exclude raytraced reflection pass from combined
 Choose normal space for baking
 Boid state for boid physics
@@ -1565,8 +1587,7 @@ Axis Angle
 Field settings for an object in physics simulation
 Rotation Mode
 Active Spline
-Provides an alternative access to loc/scale/rotation relative to the parent and own rest bone.
-The region where the panel is going to be used in.
+Buoyancy
 Element of a curve, either Nurbs, Bezier or Polyline or a character with text objects
 Start player with a visible mouse cursor
 Bars
@@ -1585,14 +1606,13 @@ Constraint
 Display Hidden
 Receive shadows from sources outside the volume (temporary)
 Required
-No Ghosts
+Domain
 Display Speaker
 GLSL Ramps
 Point data to use as renderable point density
 Keyframe insertion only when keyframe needed
 Audio Sample Rate
 Area width
-Whether to draw the sound's waveform.
 Time
 Texture datablock used by this texture slot
 Draw Waveform
@@ -1621,12 +1641,12 @@ Zoom To Mouse Position
 Shadows
 Use High Quality Drawing
 Exclude emission pass from combined
-Vertex Group Size
+Invert rotation axis
 Plane
 Drivers
 Particle system in an object
 Shader Nodes
-Deliver environment lighting pass
+Z-Buffer
 Soft to Soft Body
 Expanded in the user interface
 After Current
@@ -1652,6 +1672,7 @@ Data type of the property
 Gain
 Scale X
 Is Perspective
+Metaball
 IK Z Stiffness
 B-Bone Display X Width
 Space Console
@@ -1661,7 +1682,7 @@ Macro
 Average
 Curve
 Sketches for this layer on different frames
-Vector font datablocks.
+User interface layout in a panel or header
 Error Tolerance
 Axis of mouse movement to zoom in or out on
 Disable auto (de)activation in physics simulation
@@ -1700,17 +1721,20 @@ Lock editing of four component rotations by components (instead of as Eulers)
 NLA Track is evaluated itself (i.e. active Action and all other NLA Tracks in the same AnimData block are disabled)
 The diffuse color of the OpenGL light
 Do not calculate lighting and shadows
+Max Sample Error
 Cut
 Starting distance of the mist, measured from the camera
 Damping
-Movie Format
+Push an undo event (needed for operator redo)
 White
 Sets the strength of the add effect
 Collection of lamps
+Animation
 Parent bone (in same Armature)
 Environment Maps
 Inputs
 Direction
+Max difference in heights of obstacles to enable their interaction
 group
 75%
 Hide this curve in editmode
@@ -1743,7 +1767,7 @@ Boid state name
 Simulation value to be used as a texture
 64-bit Float
 Domain Object
-Surface subdivisions per segment
+Right
 Shape of clumping
 XZY Euler
 Group Sockets
@@ -1756,7 +1780,7 @@ Number of frames to show after the current frame (only for 'Around Current Frame
 Placeholders
 name
 Unfitted
-Simple
+Minimum regions size. Smaller regions will be merged
 Mesh Selection Mode
 Method to draw in the sequencer view
 Mute
@@ -1769,6 +1793,7 @@ Main Images
 Weight for cloth simulation
 Index number of the vertex group
 Collection of NLA Tracks
+Sequence strip data for a single frame
 Sculpt/Paint Use Unified Strength
 Audio Mixing Buffer
 ID-block that the specific property used can be found from (id_type property must be set first)
@@ -1822,9 +1847,11 @@ G
 Collection of group objects
 Make hairs shorter
 Show properties marked for debugging while the game runs
+Invert x axis
 Greek (ÎÎ»Î»Î·Î½Î¹ÎºÎ¬)
 Smooth
 Sync view position between side views
+Used Layers
 Active File Text
 F18
 F19
@@ -1837,7 +1864,7 @@ F10
 Display Meshes
 F16
 Options
-F14
+Grease Pencil datablocks
 F15
 Output video in AVI JPEG format
 Sky Color
@@ -1893,8 +1920,9 @@ REC709
 Smooth the normals of the surface or beveled curve
 2D View Minimum Grid Spacing
 Font Style
-2
+Image datablocks
 3D region in this space, in case of quad view the camera region
+Sound datablocks
 Auto Velocity
 Data
 Bake the normals in world space
@@ -1920,12 +1948,13 @@ Main Worlds
 Shadowed
 11
 Atmosphere
-12
+Create representation for obstacle simulation
 Estimated rotation matrix
 16
 Pose 
 Sun size
-Defines if the panel has to be open or collapsed at the time of its creation.
+NodeTree
+RGB
 2048
 Anaglyph
 Active Object
@@ -1944,7 +1973,6 @@ Sets the maximum number of physics step per game frame if graphics slows down th
 Keying Sets All
 Boid
 Numpad 6
-Scene datablocks.
 Snap Element
 it_IT
 Include the name of the foreground sequence strip in image metadata
@@ -1968,11 +1996,13 @@ Numpad 1
 Edge Sharp
 Unit Settings
 Stamp Frame
-Numpad 0
+Brush datablocks
+use global timestamp written by recording device
 Mapping
 Snap active onto target
 Rigid Body Joint
 Rate control: buffer size (kb)
+Scale factor along the Y for items in this (sub)layout
 RGBA
 Half
 Sets the number of rings rendered over the halo
@@ -1987,6 +2017,7 @@ Off
 Seam
 Sculpt
 Sequences
+Stiff viscosity is a factor of normal viscosity
 Curve Guide
 Proportional Editing disabled
 Rotate Around Selection
@@ -2003,7 +2034,7 @@ Stamp Scene
 Collection of grease pencil layers
 Choose Collision Type
 Amount to blend in the material's diffuse color in raytraced transparency (simulating absorption)
-Mode of automatic keyframe insertion for Objects and Bones
+Particle system has been edited in particle mode
 Stroke conversion method
 Properties acting as inputs for this driver
 Point Cache
@@ -2013,7 +2044,7 @@ Don't use a physics engine
 Material Override
 Temperature difference to ambient temperature
 State determining which controllers are displayed
-PNG
+All Object Origins
 Uses extreme alpha
 Node Tree
 Before Current
@@ -2024,7 +2055,7 @@ F-Curves for controlling the strip's influence and timing
 Field Order
 Hide Dot Files/Datablocks
 Loose
-Node tree type to display and edit
+Use Game Engine
 Onion Skinning (ghosting) settings for visualisation
 Draw dashed black-white edges
 Align handle selected color
@@ -2053,10 +2084,12 @@ Use the scene's active camera and layers in this view, rather than local layers
 Every point is effected by multiple springs
 Vertex
 Include the filename of the .blend file in image metadata
+Maximum distance error from contour to cells
 Output video in H.264 format
 Action displayed and edited in this space
 History
 Local View
+Stamp Text Color
 Translation
 IK Y Maximum
 File Select Parameters
@@ -2073,7 +2106,7 @@ H
 Main Lamps
 Approximate
 Controllers
-Separate Units
+Deliver specular pass
 The number of old versions to maintain in the current directory, when manually saving
 Theme settings for the NLA Editor
 Nearest Marker
@@ -2083,7 +2116,8 @@ Index of refraction (higher values are denser)
 Local Location
 Default Key Configuration
 Show background image while looking to the right
-Right
+The space where the header is going to be used in
+Max number of vertices per polygon
 Quality of JPEG images, AVI Jpeg and SGI movies, Compression for PNG's
 Averaged Value
 Use a box filter for anti-aliasing
@@ -2095,6 +2129,7 @@ New Interpolation Type
 Main data structure representing a .blend file and all its datablocks
 Calculate bone paths from heads
 Layer of vertex colors in a Mesh datablock
+Is this keymap item user defined (doesn't just replace a builtin item)
 Main Textures
 Enable soft body shape matching goal
 How many self collision iterations should be done. (higher is better quality but slower)
@@ -2112,7 +2147,7 @@ Color Ramp Elements
 Charge
 Thickness
 Zmask Layers
-RGB
+The panel label, shows up in the panel header at the right of the triangle used to collapse the panel
 Spread
 Cluster Iterations
 Location
@@ -2129,12 +2164,14 @@ Minimum Size
 Path to a custom animation/frame sequence player
 Smoke inherits it's velocity from the emitter particle
 Display Lists
+Maximum number of frames on either side of the active frame to show (0 = show the 'first' available sketch on either side)
 Compress File
 Bezier U
 Displace
 Velocity Max
 Use Right Mouse Button for selection
 Box Backdrop Colors
+Exec Default
 3
 Path point is selected for editing
 Bone Group
@@ -2147,8 +2184,9 @@ Realtime Updates
 Shutter
 How strongly the fluid tries to keep from clustering (factor of stiffness)
 Target
+Scrollbar
 Show controllers of all selected objects
-Exec Default
+Instead of per brush radius, the radius is shared across brushes
 screen
 Use large mouse cursors when available
 Keymap is defined by the user
@@ -2188,6 +2226,7 @@ Show the entire viewport in the display window, viewing more horizontally or ver
 Pixel distance around the handles to accept mouse clicks
 Initial State
 Sum Values
+Channel Group
 Tools can use this to tag data, (initial state is undefined)
 The default directory to search for textures
 Lin error
@@ -2197,6 +2236,7 @@ Release confirms
 64
 Title for the file browser
 Sets the audio sample format
+Invert y Axis
 Include the name of the last marker in image metadata
 Collection of keyframe points
 3D View space data
@@ -2216,17 +2256,18 @@ Point coordinates
 Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector
 Text Editor
 Use display lists to speed up rendering by keeping geometry on the GPU
-Multiplier
+Actuators
 Make this nurbs curve or surface meet the endpoints in the U direction (Cyclic U must be disabled)
 es_ES
 Auto Run Python Scripts
 Subtract
+Screen Editing
 Properties in the struct
 Set audio sampling rate to 96000 samples per second
 Scale to use when converting between blender units and dimensions
 Mouse/Trackpad Zoom
 X Ray
-Use the manipulator for scale transformations
+Maximum distance of reflected rays (reflections further than this range fade to sky color or material color)
 True when this property is an output value from an RNA function
 False when F-Curve could not be evaluated in past, so should be skipped when evaluating
 Fresnel Factor
@@ -2242,7 +2283,6 @@ Path
 Action
 Sets the number of sub-flares
 Used State
-Show handles of Bezier control points
 Update other affected window spaces automatically to reflect changes during interactive operations such as transform
 Filter Script
 Method to interpolate/smooth values between voxel cells
@@ -2256,16 +2296,16 @@ Channels Selected
 plugin
 Spline IK
 The frame on which the timeline marker appears
-Lamp datablocks.
+Snap to 1.0 frame/second intervals
 Handle 1 selected
 Free all image texture from memory after render, to save memory before compositing
 Method used for combining Active Action's result with result of NLA stack
 If enabled, stiffness can be scaled along a weight painted vertex group
-Snap to 1.0 frame/second intervals
+Invert z Axis
+Minimum regions size. Smaller regions will be deleted
 Display Mode
 Text bounding box for layout
 Onion Skinning
-When false, this (sub)layout is greyed out.
 Open
 User Add-Ons
 Output file format
@@ -2284,7 +2324,7 @@ Whether to use minimum clipping value
 Main Actions
 Editing context being displayed
 Raytraced refraction settings for a Material datablock
-Retarget roll mode
+Enable image painting mode
 Hidden
 When adding objects from a 3D View menu, either align them to that view's direction or the world coordinates
 Only show and edit handles of selected keyframes
@@ -2296,7 +2336,8 @@ Global maximum subdivision level
 Use this object's coordinate system instead of global coordinate system
 Viscosity
 Theme Properties
-Add/Replace
+Boolean Property
+UV Selection Mode
 Force the curve view to fit a defined boundary
 Objects
 Default (Default)
@@ -2304,7 +2345,7 @@ Shade Down
 Grease Pencil Layers
 Current Keying Set index
 Shadow Exclude
-Spring force
+Root Size
 Rest Shade Key
 Framerate, expressed in frames per second
 Scrollback
@@ -2312,7 +2353,6 @@ Overlay Lock
 Duplicate Text
 Russian (Ð ÑÑÑÐºÐ¸Ð¹)
 10 - Theme Color Set
-Left handle selection status
 Collection of texture slots
 ID Materials
 I
@@ -2327,13 +2367,14 @@ Theme Sequence Editor
 ID From
 All Scenes
 Make hairs longer or shorter
+Handle Vertex Select
 With displacement normalize to the distance, with ambient occlusion normalize without using material settings
 Physics
 ID
 Mesh Vertex Color Layer
 Use curve weights to influence the particle influence along the curve
 Cached location on path
-Show background image while looking to the left
+Motion
 Node tree being displayed and edited
 Tangent Shading
 Mesh Vertex Color
@@ -2348,14 +2389,14 @@ Live Edit
 The length of the contents of this strip before the handles are applied
 Display Armature
 Length Mode
-Camera datablocks.
+Display datablocks of active object
 SDL
 Collection of Nla Strips
 Amount the Active Action contributes to the result of the NLA stack
 Show only actuators connected to active states
 Vertex group for fine control over bending stiffness
 4 Channels
-Diffusion factor, the strength of the blurring effect
+Bake displacement
 Acceleration
 Angular Velocity
 Boid Rule
@@ -2376,14 +2417,14 @@ International Fonts
 5.1 Surround
 Linear
 Settings that should be keyframed together
-The shininess of the reflection. Values < 1.0 give diffuse, blurry reflections
+Factor Repulsion
 Overlap Flip
 The active face for this mesh
 Turn on SB diagnose console prints
 Dome
 Brazilian Portuguese (PortuguÃªs do Brasil)
 Make hairs stand up
-Maximal # solver steps/frame
+Uses the vertex normal to specify the dimension of the halo
 Key maps configured as part of this configuration
 Active Space
 4
@@ -2408,7 +2449,6 @@ Free handle selected color
 Maximum depth for light to travel through the transparent material before becoming fully filtered (0.0 is disabled)
 Button 10
 Amplitude
-Defines the structure of the panel in the UI.
 Show Active States
 Space Nla Editor
 Vertex group to control length
@@ -2428,9 +2468,9 @@ Minimal # solver steps/frame
 Have recent edits been saved to disk
 Keying Set Paths to define settings that get keyframed together
 Pressure of tablet at point when drawing it
-Use a tent filter for anti-aliasing
+Show background image while looking to the left
 Sharp
-Node group datablocks.
+Only include F-Curves with names containing search text
 Number of spaces to display tabs with
 Puff Volume
 Video bitrate(kb/s)
@@ -2469,6 +2509,7 @@ Envelope Deform Distance
 Invoke Area
 Theme Info
 Current Keying Set index (negative for 'builtin' and positive for 'absolute')
+Black
 Lock editing of location in the interface
 Interface
 Auto Keying Enable
@@ -2495,6 +2536,7 @@ Nurb active V-lines
 Set position of selected color stop
 Fixed size UV coordinates array
 Reactor Target Object
+Node tree type to display and edit
 Display datablocks in current scene
 Color and Alpha
 Causes texture data to be duplicated with the object
@@ -2516,6 +2558,7 @@ Ray
 Theme Bone Color Set
 Redraw all overlapping regions, minimal memory usage but more redraws (for graphics drivers that do flipping)
 IK stiffness around the Y axis
+Edge spring stiffness when shorter than rest length
 Menu Backdrop Colors
 50%
 Heads
@@ -2527,6 +2570,7 @@ Direct conversion of frame numbers to seconds
 Log conversion reference whitepoint
 Radius
 Linear stiffness of the soft body links
+View3D Rotate Modal
 SMPTE
 Add
 Show framerate and profiling information while the game runs
@@ -2561,7 +2605,6 @@ Output image in bitmap format
 OpenAL
 Particle Systems
 Display the user preference datablocks
-User interface layout in a panel or header
 Size of packed file in bytes
 Ukrainian (Ð£ÐºÑÐ°ÑÐ½ÑÑÐºÐ¸Ð¹)
 Mono
@@ -2582,7 +2625,7 @@ Bulgarian (ÐÑÐ»Ð³Ð°ÑÑÐºÐ¸)
 Light
 Maximal Spring length * Ball Size
 Emulates Middle Mouse with Alt+Left Mouse (doesn't work with Left Mouse Select option)
-Axis-Angle Rotation
+Text datablocks
 Welding
 Heavy
 Quick Sketching
@@ -2613,9 +2656,10 @@ Collection of spline bezirt points
 Layout
 Show Physics Visualization
 Number of bones in the subdivided stroke
-Stiff viscosity is a factor of normal viscosity
+Vertex Group Clump Negate
 Negate the effect of the tangent vertex group
 Base type for IK solver parameters
+Active camera used in this view (when unlocked from the scene's active camera)
 Re-render and composite changed layer on 3D edits
 ISO 2
 Active Layer Index
@@ -2624,7 +2668,7 @@ Show Frame Number Indicator
 End Offset
 Use active Viewer Node output as backdrop for compositing nodes
 Blender command line animation playback - path to Blender 2.4
-Scroll Handle
+Frequency
 Pivot around the median point of selected objects
 Blend vertex colors across face when vertices are shared
 Game engine logic brick to detect events
@@ -2635,24 +2679,27 @@ Show Operator
 Max Logic Steps
 Damping of the harmonic force
 Vertex of a simulated fluid mesh
+Graph Editor Generic
 18 - Theme Color Set
 Average Speed
 Console
 Total number points for the surface on the V direction
+Use the manipulator for scale transformations
 Disable
 5
 13 - Theme Color Set
 Vertex group to control field
+12
 Shared Location
 Transparent pixels are filled with sky color
 Atmosphere Turbidity
 Widget Style
 RNA function definition
 NLA Strip is not evaluated
-Edge spring stiffness when shorter than rest length
+Recast Data
 4096
 Right Handle Selected
-Defines the structure of the menu in the UI.
+Cyclic
 Color Ramp
 Self Collision Quality
 Index of active pose marker
@@ -2673,9 +2720,9 @@ Draw preview using full resolution or different proxy resolutions
 Paint Lock
 Sets the number of samples used by the audio mixing buffer
 Source List
-use global timestamp written by recording device
 Around Current Frame
-NLA Track
+Scroll Handle
+Add light coming from the environment
 Color of the F-Curve in the Graph Editor
 Exclude indirect pass from combined
 Selection of IK solver for IK chain, current choice is 0 for Legacy, 1 for iTaSC
@@ -2702,7 +2749,6 @@ Groups of F-Curves
 Display the object solid, with face-assigned textures
 Quadratic
 ID-Block that keyframes for Keying Set should be added to (for Absolute Keying Sets only)
-Image datablocks.
 Inaccurate, but faster and without noise
 Unique ID for this region
 Lock Y Axis
@@ -2729,6 +2775,7 @@ Action Clip
 Use 16 bit floats instead of 32 bit floats per channel
 Stamp Camera
 Texture Nodes
+Falloff power (real gravitational falloff = 2)
 3D View near clipping distance
 Color Randomization
 Snap Peel Object
@@ -2754,7 +2801,6 @@ Draw actual particles
 XYZ
 Collection of spaces
 Bake Mode
-The space where the panel is going to be used in.
 Sub
 Enable Stereo environment
 F-Curve defining values of a period of time
@@ -2767,7 +2813,7 @@ Allow Climbing
 Syntax Highlight
 ASCII
 Properties space data
-Handle Vertex Select
+Lamp datablocks
 Pivot around bounding box center of selected object(s)
 Max Res
 Mouse Previous X Position
@@ -2777,6 +2823,7 @@ OS Key
 Function is optionally registered as callback part of type registration
 Ease
 Renders halo as a star
+NLA Channels
 Use the speed vector pass to reduce AO samples in fast moving pixels. Higher values result in more aggressive sample reduction. Requires Vec pass enabled (for Raytrace Adaptive QMC)
 nl_NL
 Alt key pressed
@@ -2872,7 +2919,6 @@ Dolly
 8 bit greyscale binary data
 Chroma Vectorscope
 Active bone group for this pose
-Mesh String Property Layer
 Repulsion Factor
 Object Constraints
 Filter Text
@@ -2881,6 +2927,7 @@ Default builtin key configuration
 Show folders
 Page Down
 Elements
+View3D Zoom Modal
 Show Actuators
 Deletes smoke from simulation
 Filter File Extensions
@@ -2922,11 +2969,11 @@ Banking
 Texture Plugin Directory
 Mass
 Mist settings for a World data-block
+Show column
 Tool Widget Colors
 Clip Alpha
 Retarget
 Drag component proportional to velocity
-Enable image painting mode
 Blocking
 Mirror Colors
 Number of frames between ghosts shown (not for 'On Keyframes' Onion-skinning method)
@@ -2947,6 +2994,7 @@ Self Minimum Distance
 Keying set paths
 Invoke Region Preview
 Causes material data to be duplicated with the object
+Sample Distance
 Vertex Group Field
 Multiplier to make out-scattered light brighter or darker (non-physically correct)
 Object Selected
@@ -2958,12 +3006,13 @@ Strip Time
 Number of frames from start frame for influence to fade out
 Codec
 Speaker
+Image Generic
 3D Region
 Copy Scale
 Duplicate Surface
 Particle key for hair particle system
 Particle Edit
-Spaces contained in this area, the first being the active space. NOTE: Useful for example to restore a previously used 3d view space in a certain area to get the old view orientation.
+Number of cone samples averaged for blurry refractions
 Keep from going through other boids
 Output image in DDS format
 Orig Height
@@ -2982,6 +3031,7 @@ Vertex Group Length
 SDL device - simple direct media layer, recommended for sequencer usage
 Pixel Aspect Y
 Shadow
+Show the active object's softbody point cache
 ZIP (lossless)
 Collection of Compositor Nodes
 Viewport Shading
@@ -3018,7 +3068,6 @@ Variables
 Show the active object's particle point cache
 Cinema 24fps 2048x1080
 The default directory for rendering output, for new scenes
-Number of seconds between each run of the GL texture garbage collector
 Audio bitrate(kb/s)
 Font Size
 File
@@ -3026,10 +3075,12 @@ Automatically converts all new tabs into spaces for new and loaded text files
 Search again from the start of the file when reaching the end
 Driver variable type
 Search term for filtering in the UI
-If set to True, the panel shows a header, which contains a clickable arrow to collapse the panel and the label (see bl_label).
+Show UV editing related properties
 Subdivision Surface
+Mipmaps
 Simplified Chinese (ç®ä½ä¸­æ)
 Edge Length Text
+View2D
 Step Size
 All effector's weight
 GOP Size
@@ -3047,7 +3098,7 @@ Collection of Shader Nodes
 Show Brush
 Save Preview Images
 Use Influence
-Parameters and Settings for the Filebrowser
+Add/Replace
 Enable direct editing of modifier control cage
 Overwrite characters when typing rather than inserting them
 Multitexture
@@ -3068,6 +3119,7 @@ Air Personal Space
 Which axis to use for offset
 Sound
 Include Animation Data blocks with no NLA data. (NLA Editor only)
+Tree Type
 The index of particle system on the target object
 Noise algorithm - Voronoi F1-F2
 Autosplit Output
@@ -3077,7 +3129,7 @@ Enable this OpenGL light in solid draw mode
 Explode
 Tilt CW
 ID-Block
-World datablocks.
+Diffusion factor, the strength of the blurring effect
 Rate control: min rate(kb/s)
 Alter spring length to shrink/blow up (unit %) 0 to disable
 Object is made a particle system to display particles generated by a fluidsim domain object
@@ -3086,6 +3138,7 @@ channels
 Head Select
 Nearest Frame
 WPaint Auto-Normalize
+View3D Gesture Circle
 Active index in render layer array
 True when the Cmd key is held
 When an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used
@@ -3107,6 +3160,7 @@ Transparency along the width of the strand
 Name of UV layer to override
 Custom animation player executable path
 Spring Vertex Group
+Luma Waveform
 Goal Damping
 French (FranÃ§aise)
 tool_settings
@@ -3141,7 +3195,7 @@ Exclude environment pass from combined
 Display an additional 'summary' line. (DopeSheet Editors only)
 Blend factor with sky
 BMP
-Align handle color
+Obstacle simulation
 Relative friction coefficient in the in the X, Y and Z directions, when anisotropic friction is enabled
 7
 Enable naive vertex ball self collision
@@ -3165,6 +3219,7 @@ Strand settings for a Material datablock
 Material Index
 Targa Raw
 Name that will be used in exported files when format supports such feature
+F-Curve is not evaluated
 Texture Collection Rate
 Blend
 Stop ray marching early if transmission drops below this luminance - higher values give speedups in dense volumes at the expense of accuracy
@@ -3179,7 +3234,6 @@ Syntax Numbers
 Images get saved in 8 bits grayscale (only PNG, JPEG, TGA, TIF)
 Global Space
 Save the z-depth per pixel (32 bit unsigned int z-buffer)
-The panel label, shows up in the panel header at the right of the triangle used to collapse the panel.
 Curving of the noodle
 View Type
 Children Expanded
@@ -3211,6 +3265,7 @@ Find Text
 Inverse Gamma
 Smooth hairs
 Graphics driver and operating system settings
+How much density effects smoke motion, higher value results in faster rising smoke
 passes
 Boid rule name
 Maximum number of recently opened files to remember
@@ -3235,6 +3290,7 @@ Particle system name
 Don't adjust roll
 Bevel
 UI Layout
+Movie Format
 Fast but not so effective compression
 Use linear workflow - gamma corrected imaging pipeline
 Delta
@@ -3247,11 +3303,12 @@ Show the Y axis line in perspective view
 Action End Frame
 Settings for input devices
 Joystick
+Window manager datablocks
 Left Handle Type
 Points U
 bl_description
 Collection of mesh edges
-Screen datablocks.
+Clip objects based on what's visible in other side views
 Object Grouped
 Backscattered Light
 Active grease pencil layer
@@ -3263,6 +3320,7 @@ Active Vertex Color Layer
 Spaces
 Properties of particle editing mode
 Area height
+Material nodes
 Collection of armature bones
 Resolution U
 Click
@@ -3281,7 +3339,7 @@ Use Max
 Window
 File browser space data
 AVI JPEG
-Editor header containing UI elements.
+Friction Coefficients
 Object base selection state
 Bone Pose
 Sequence strip in the sequence editor
@@ -3318,7 +3376,7 @@ Layer Membership
 Render layer
 ro_RO
 Vector Coordinates
-Attenuation falloff strength, the higher, the less influence distant objects have
+Spring force
 Flare Boost
 Scopes
 Description of the item's purpose
@@ -3336,11 +3394,11 @@ Edit drivers
 F-Curve Modifier is the one being edited 
 Channel Matrix
 Has Ghost Curves
-Resolution %
-Noise Method
+Threshold for adaptive sampling (if a sample contributes less than this amount [as a percentage], sampling is stopped)
+Selects which domain border will be treated as collision object
 Object that defines custom draw type for this bone
 Still Frame Only
-Displays bit depth of full screen display
+Invert tilt axis
 The name of the active key configuration
 Apply sun effect on atmosphere
 Spacebar
@@ -3369,6 +3427,7 @@ Convert to logarithmic color space
 Show keyframes for active Object and/or its selected bones only
 Use Visual keying automatically for constrained objects
 Game Property
+Merged Region Size
 Material Halo
 Flare Seed
 No Gimbal Lock (default)
@@ -3388,6 +3447,7 @@ Search string is sensitive to uppercase and lowercase letters
 Region Text Titles
 Flow Settings
 Texture Slot
+Enable debug visualization for obstacle simulation
 Wrinkle coefficient. (higher = less smaller but more big wrinkles)
 Action to take for gaps past the Active Action's range (when evaluating with NLA)
 Spring rest length is a factor of 2 * particle size
@@ -3412,7 +3472,7 @@ Deprecation Warnings
 Source List Title
 Collection of fonts
 Effector weights for physics simulation
-Indirect Exclude
+2
 Input line for the interactive console
 ;
 Soft body
@@ -3420,7 +3480,6 @@ Display Lamp
 Tail Select
 Rotation in Quaternions
 Main MetaBall
-Clip objects based on what's visible in other side views
 Right Alt
 Waveform Mode
 Audio samplerate(samples/s)
@@ -3435,6 +3494,7 @@ double
 Negate
 Mute this shape key
 Fgon
+RVO (rays)
 External file packed into the .blend file
 Causes text data to be duplicated with the object
 Include visualization of Speaker related Animation data
@@ -3462,6 +3522,7 @@ Draw Axes
 Space data type
 Subsurface Scattering
 Mesh Vertex
+Max Slope
 Specular Intensity
 Smoke collision settings
 Cubic
@@ -3507,6 +3568,7 @@ Resolution of the voxel grid
 Physics Gravity
 bl_idname
 Name of the key configuration
+Agent Radius
 Keyed particles target is valid
 Use force fields when growing hair
 Point in the lattice grid
@@ -3514,6 +3576,7 @@ The amplitude of the offset
 End Frame
 Lets halo receive light and shadows from external objects
 Pivot
+Maximum walkable slope angle in degrees
 Permeability
 User defined floating point number value in a float properties layer
 Render Result
@@ -3541,21 +3604,22 @@ Preview
 ObData
 Emulate Numpad
 Theme settings for the Timeline
-Scrollbar
+Cell Size
 Clamp velocity to this minimum speed (except when totally still)
 Specify old mapping value in frames
 Type of texture data to display and edit
 Show ghosts for the specified frame range
 Radius for bevelling
+Maximal # solver steps/frame
 Copy Rotation
-Amount of turbulence/rotation in fluid.
 07 - Theme Color Set
 Use object/global coordinates for texture
+If set to True, the panel shows a header, which contains a clickable arrow to collapse the panel and the label (see bl_label)
 Sequence Element
 Use rule when boid is flying
 Simplify Shadow Samples
 Deliver indirect lighting pass
-Window manager datablocks.
+Particle Key
 Time since last step in seconds
 Properties
 Y Scale
@@ -3574,7 +3638,7 @@ Use multi-sampled 3D scene motion blur
 Type of active data to display and edit
 Permanent deform
 Onion Skinning Settings
-Defines where the color of the environment light comes from
+Mode of automatic keyframe insertion for Objects and Bones
 Theme settings for bone color sets
 Scopes for statistical view of an image
 Push
@@ -3600,10 +3664,10 @@ Fuzziness while on collision, high values make collision handling faster but les
 Tweak
 Marker
 Shadeless
+Align handle color
 Mist
 Scene Render Layer
 Sequence editing data for a Scene datablock
-Friction Coefficients
 Structural Stiffness Vertex Group
 Meta Stack
 Duplicate F-Curve
@@ -3623,6 +3687,7 @@ Causes F-curve data to be duplicated with the object
 Stationary object
 el_GR
 Compression method to be used
+Speaker datablocks
 B-Bone Ease In
 Relative Paths
 Mesh Int Property Layer
@@ -3635,7 +3700,7 @@ The object that has the target particle system (empty if same object)
 Maximum acceleration on land (relative to maximum speed)
 Legacy
 Clip alpha below this threshold in the 3D textured view
-IK rot control
+Display a preset button with the operators settings
 Force gets absorbed by collision objects
 9
 Noise method which is used for creating the high resolution
@@ -3681,7 +3746,7 @@ Quality
 A container referencing an existing Action
 Layer name
 Auto Start
-Show column
+Visualization
 Show text files
 Draw faces colored according to the difference in shape between UVs and their 3D coordinates (blue for low distortion, red for high distortion)
 Snap Align Rotation
@@ -3715,17 +3780,20 @@ Locked Track
 File Browser
 Vertex weight group, to blend with basis shape
 The type of keyframe (for visual purposes only
+Obstacle Radius
 Drawing method used by the window manager
 Active Particle Target Index
 Front
 Enable starfield generation
+Particle datablocks
 Show an outline highlight around selected objects in non-wireframe views
 Zooms in and out based on vertical mouse movement
 Calculate sub-surface scattering in materials rendering
+Parent this node is attached to
 ar_EG
 Include the render frame as HH:MM:SS.FF in image metadata
 Line of text in a Text datablock
-Mipmaps
+Detail mesh sample spacing
 Active Theme Area
 Theme Widget Color Set
 Boid height relative to particle size
@@ -3738,10 +3806,10 @@ Position
 Buffersize
 Adapt To Speed
 Or
-Display and edit the grease pencil freehand annotations overlay
+World datablocks
 Effect Strip
 Group of ID properties
-Duplicate Material
+Proxy size 75%
 Vertex Paint
 Hair Dynamics
 Stroke Points
@@ -3755,7 +3823,8 @@ Collection of vertex groups
 Coordinates of the first handle
 Sky Blend Mode
 Mesh Edge
-Disallow movement around the Y axis
+Adjust simulation speed
+Bounding box of this object represents the computational domain of the fluid simulation
 Color balance gain (highlights)
 Normal Space
 Layers
@@ -3775,6 +3844,7 @@ Wavelet
 Color used for the surface of bones
 Window Managers
 Occlude objects with the environment color as they are further away
+Attenuation falloff strength, the higher, the less influence distant objects have
 Driven Selected
 Surface Edit
 Causes metaball data to be duplicated with the object
@@ -3814,19 +3884,21 @@ Mark controller for execution before all non-marked controllers (good for startu
 FFMpeg audio codec to use
 ZTransp
 Location (Object Space)
-Armature datablocks.
 IK Z Lock
 Display size for normals in the 3D view
+Use a tent filter for anti-aliasing
 Original IK solver
 Use velocities for automagic step sizes
-Type of range to show for Motion Paths
+Multiplier
+Constraint Target
+Draw Repeated
 For RGB curves, the color that white is mapped to
 Noise algorithm - Voronoi F1: Returns distance to the closest feature point
 IK Y Minimum
 Pin Stiffness
 Cache Info
-Domain
-Only include F-Curves with names containing search text
+No Ghosts
+Duplicate Material
 Nurbs order in the V direction (For surfaces only), Higher values let points influence a greater area
 Spanish (EspaÃ±ol)
 Sets the dimension of the halo
@@ -3845,13 +3917,13 @@ Interlaced
 Space type
 Display the operator log
 Show background image in front view
-Goal Vertex Group
+Simple
 Storage of a sub operator in a macro after it has been added
 Collision Bounds
 Maximum value for clipping
 Transparency
 Armature-Relative Tail
-Is this keymap item user defined (doesn't just replace a builtin item)
+Display in the info window and support the redo toolbar panel
 FFMpeg codec to use
 Show frame numbers on Motion Paths
 Maximum allowed number of light inter-refractions
@@ -3860,7 +3932,7 @@ Game engine logic brick to process events, connecting sensors to actuators
 Layer in multilayer image
 Depth Cutoff
 Mesh Edges
-Sequence strip data for a single frame
+Max Edge Length
 The number of lines scrolled at a time with the mouse wheel
 Root Texture Coordinates
 Tag Seam
@@ -3884,7 +3956,7 @@ Collection of keymap items
 Shadow Y Offset
 Fuzzy
 Comb
-Theme settings for the User Preferences
+Theme settings for the 3D View
 End frame of the stored range
 Grid Subdivisions
 Layers bone exists in
@@ -3894,7 +3966,8 @@ face area
 Clip Start
 Numpad 2
 Tweak Action
-Shape Key datablocks.
+Numpad 0
+Use this files path when library linked into another file
 GL Texture Limit
 Only keyframes of selected F-Curves are visible and editable
 Numpad 9
@@ -3932,7 +4005,6 @@ Fgon edge
 Perspective
 Bone rotation around head-tail axis
 Pan/Zoom
-Speaker datablocks.
 Add a new NLA Track + Strip for every loop/pass made over the animation to allow non-destructive tweaking
 No Auto-Snap
 Active Texture Face
@@ -3944,7 +4016,7 @@ Enable All Codecs
 Auto Blend In/Out
 Show Python Tooltips
 Show menus in the header
-Actuators
+Action datablocks
 Edit texture nodes from World
 Cross
 Particle target name
@@ -3958,7 +4030,7 @@ Cine-Flat 48fps 1998x1080
 Snap
 Extreme Alpha
 2x
-UV Selection Mode
+Group datablocks
 Overall sensitivity of the 3D Mouse
 Images are rendered in full Screen
 Activity culling is enabled
@@ -3974,6 +4046,7 @@ Reconstruction filter used for combining anti-aliasing samples
 Minimal
 Active Face
 Scripts
+Scale factor along the X for items in this (sub)layout
 Image Axis
 Orig Width
 Pose Head Position
@@ -3985,6 +4058,7 @@ Constrain to Image Bounds
 Arrangement of the panels
 Length of second Bezier Handle (for B-Bones only)
 Median
+Indirect Exclude
 AO
 Node in a node tree
 Cast
@@ -4002,10 +4076,12 @@ Generate point density from a particle system
 How much of effector force gets lost during collision with this object (in percent)
 Deliver AO pass
 Group that included Object should be a member of
+Cell Height
 Shear Stiffness
 Material Volume
-The rotation step for numerical pad keys (2 4 6 8)
+Maximum number of lines to store for the console buffer
 Include visualization of Mesh related Animation data
+Object Non-modal
 Maximum acceleration in air (relative to maximum speed)
 Pin ID
 Radar
@@ -4013,7 +4089,8 @@ Render color of textured face as color
 Parts Y
 Parts X
 Collection of F-Curve Modifiers
-Time since last access of a GL texture in seconds after which it is freed. (Set to 0 to keep textures allocated.)
+Verts Per Poly
+Lock to Cursor
 Theme Image Editor
 Graph Editor 2D-Value cursor - Y-Value component
 Automatically merge vertices moved to the same location
@@ -4066,8 +4143,7 @@ Offsets image horizontally from the view center
 Negate the effect of the roughness 2 vertex group
 Invoke Screen
 A square showing Hue/Saturation, with Value slider
-3D cursor location for this view (dependent on local view setting)
-The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor
+NLA Track
 Outer Thickness
 Format of Time Codes displayed when not displaying timing in terms of frames
 Display Node
@@ -4082,7 +4158,6 @@ Mouse Y Position
 Input properties of an Operator
 Fixed
 Current windowmanager and data context
-Curve interpolation at this point: Bezier or vector
 Collection of actions
 Tab Width
 Theme 3D View
@@ -4100,9 +4175,10 @@ Pre Roll
 Strand
 The transformation of the target bone is evaluated relative its local coordinate system, with the parent transformation added
 Disables non-planer quads being triangulated
+Particle Brush
 Smoke doesn't collide with any border
 Ghost frames on either side of frame
-Root Size
+Frame
 Select
 ID-Block representing source data, currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil)
 Index
@@ -4179,7 +4255,7 @@ Length of first Bezier Handle (for B-Bones only)
 Theme settings for style sets
 Ctrl
 Show intermediate values for the driver calculations to allow debugging of drivers
-F-Curve is not evaluated
+Apply this and all preceding deformation modifiers on splines' points rather than on filled curve/surface
 Vertex indices
 Lens angle (mm) in perspective view
 Back
@@ -4204,7 +4280,7 @@ Window Draw Method
 Set audio sampling rate to 44100 samples per second
 Causes particle systems to be duplicated with the object
 Scripts Window
-Boolean Property
+The space where the panel is going to be used in
 SMPTE (Compact)
 Automatically merge nearby keyframes
 Fast in high-contrast areas
@@ -4237,6 +4313,7 @@ Active Keying Set used to insert/delete keyframes
 Lock Rotations (4D)
 Sets the audio output device
 Channels to display when drawing the histogram
+Displays bit depth of full screen display
 Sky Blend
 Reflection
 Vertex group to control roughness 1
@@ -4245,7 +4322,6 @@ Language use for translation
 Atmosphere Distance Factor
 Emit Object Space
 Motion Path Points
-Z-Buffer
 IK Solver
 F-Curves
 Semantic interpretation of the property
@@ -4264,7 +4340,7 @@ F6
 F7
 Fonts Directory
 Single ASCII character for this event
-Frame
+Invert x Axis
 Allow boids to move in air
 Zoom Style
 Library
@@ -4277,7 +4353,7 @@ Voronoi F1
 Rigid Body
 operator_context
 Rotation Units
-Apply this and all preceding deformation modifiers on splines' points rather than on filled curve/surface
+Defines the structure of the menu in the UI
 idp_array
 XYZ velocity mapped to RGB colors
 Editmode
@@ -4296,7 +4372,7 @@ Density
 Exclude raytraced refraction pass from combined
 Charge effector weight
 Limit colliders to this Group
-Draw Repeated
+Square (SV + H)
 Space currently being displayed in this area
 Show frame number beside the current frame indicator line
 Face
@@ -4333,7 +4409,7 @@ Display Transforms
 Texture Time Out
 Output image in TIFF format
 Key Map
-Particle systems emitted from the object
+Navigation mesh
 Fade effect using the built-in default (usually make transition as long as effect strip)
 Include visualization of ShapeKey related Animation data
 Manual adjust
@@ -4345,6 +4421,8 @@ Red Green Blue
 Radiance HDR
 Active object base in the scene
 User defined layer of integer number values
+Object Mode
+Maximum height between grid cells the agent can climb
 Texts
 Sort the file list by extension
 Settings for filtering animation data
@@ -4374,7 +4452,7 @@ Update simulation with cache steps
 Relationship Lines
 RNA Path to property affected by F-Curve
 Median Point
-Vertex Group Clump Negate
+Mesh datablocks
 Sets angular index of refraction for raytraced refraction
 Node Socket type
 Outliner space data
@@ -4423,7 +4501,7 @@ Drag Threshold
 Factor Rest Length
 Which style to use for viewport scaling
 Data to derive color results from
-Lattice datablocks.
+3D cursor location for this view (dependent on local view setting)
 Nested
 MultiLayer
 Display Curve
@@ -4447,7 +4525,7 @@ Horizon brightness
 Language
 Sound Clip
 Light used for OpenGL lighting in solid draw mode
-Instead of per brush radius, the radius is shared across brushes
+Screen datablocks
 NLA Editor
 Vertex group to control velocity
 input_count
@@ -4464,6 +4542,7 @@ matrix
 channel_id
 Only render the active layer
 Material
+Standard Modal Map
 No TC in use
 Output image in multilayer OpenEXR format
 Empty
@@ -4477,7 +4556,7 @@ Custom Warp Mesh data file
 Audio Channels
 Available as GameObject attributes in the game engine's python API
 Offset Y
-Offset X
+Min Region Size
 Pre-calculate the raytrace accelerator and render raytracing effects
 For multires, show low resolution while navigating the view
 Active curve spline
@@ -4493,7 +4572,6 @@ When true the format is a movie
 Read cache from an external location
 Object Index
 Print warnings when using deprecated features in the python API
-Library datablocks.
 Option Widget Colors
 Auto Depth
 Goal Minimum
@@ -4501,13 +4579,12 @@ Display size for proportional editing circle
 Point
 NLA Strip
 Strokes
-Proxy size 75%
 Lock editing of scale in the interface
 Sensor name
 Point in a shape key
 Dutch (Nederlandse taal)
 Only Objects in Group
-Method used to adjust the roll of bones when retargeting
+The shininess of the reflection (values < 1.0 give diffuse, blurry reflections)
 Default relative path option for the file selector
 Proportional editing object mode
 Sampled animation data
@@ -4521,6 +4598,7 @@ Pause
 Maximum speed in air
 Backdrop Y offset
 Ellipsoid
+Separate Units
 Object is a fixed obstacle
 scene
 Load user interface setup when loading .blend files
@@ -4528,9 +4606,10 @@ Load user interface setup when loading .blend files
 Bake everything
 Lamp
 Negate the effect of the length vertex group
-Material nodes
-Particle system has been edited in particle mode
+Invert z axis
+Armature datablocks
 Shadow size in pixels (0, 3 and 5 supported)
+Rasterized cell size
 Collection of timeline markers
 Local
 Old style zoom, continues while moving mouse up or down
@@ -4558,7 +4637,7 @@ General movement damping
 Estimate matrix
 Global Pivot
 IK X Lock
-Show the active object's softbody point cache
+Keep UV and edit mode mesh selection in sync
 Vector Handle
 Number of frames from start frame for influence to take effect
 int_array
@@ -4573,6 +4652,7 @@ Edge UV Face Select
 Clamp To
 NDOF
 The transformation of the target is only evaluated in the Pose Space, the target armature object transformation is ignored
+Particle systems emitted from the object
 Wheel Up
 Linear falloff
 Show the status of cached frames in the timeline
@@ -4591,6 +4671,7 @@ Draw Z-buffer associated with image (mapped from camera clip start to end)
 Filter Size
 Density is constant within lookup radius
 Clear Images before baking
+Animation Channels
 Snap closest point onto target
 Cloth Collision Settings
 Sequence Plugin Directory
@@ -4614,6 +4695,7 @@ Separate color channels in preview
 Absolute Density
 Target Particle System
 When transforming keyframes, changes to the animation data are flushed to other views
+Markers
 Amount of pixels you have to drag before dragging UI items happens
 Manipulator Hotspot
 Nurb U-lines
@@ -4650,7 +4732,6 @@ Stricky texture coordinate
 Max Land Angular Velocity
 Struct definition used for properties assigned to this item
 RGB to Intensity
-Operator
 Mapping settings
 Name of Shape Key
 Shadow Alpha
@@ -4665,7 +4746,8 @@ Forcefield depends on the speed of the particles
 Mode
 Stiffness
 Radial
-Display World
+Noise Method
+Number of seconds between each run of the GL texture garbage collector
 Gravitational constant used for physics simulation in the game engine
 Logic Editor
 Text Selected
@@ -4673,7 +4755,7 @@ Point Caches
 No compression
 Vertex coordinates are stored localy on each primitive. Increases memory usage, but may have impact on speed
 Edge Crease
-Sets the hardness of the halo
+Invert rotation Axis
 Use Ambient Occlusion to add shadowing based on distance between objects
 Frame that modifier's influence starts (if Restrict Frame Range is in use)
 active_strip
@@ -4692,17 +4774,18 @@ Button 2
 Maximum angles for IK Limit
 Render Pass
 Selected Text
+Whether to draw the sound's waveform
 Data Path
 Enum Flag
 Soft Light
 Define forces for vertices to stick to animated position
 Sample every pixel of the image
-The default directory to search for loading fonts
+Invert roll axis
 Goal
 Dissolve Speed
 Textbox X Offset
 Sky turbidity
-Gamma Corrected Color
+A random rule is selected for each boid
 OpenAL device - supports 3D audio, recommended for game engine usage
 Console Input
 Invert the level(output) of this sensor
@@ -4710,6 +4793,7 @@ Memory Cache Limit
 Point Cache List
 Motion Path settings for visualisation
 Endpoint V
+The rotation step for numerical pad keys (2 4 6 8)
 Linear and angular physics
 NLA Strip is selected
 The channel number shown in the image preview. 0 is the result of all strips combined
@@ -4720,27 +4804,26 @@ Display debug reporting info
 Collection of action fcurves
 Bone inherits scaling from parent bone
 Lock current frame displayed by layer
-Selects which domain border will be treated as collision object.
 Type of stretch to draw
 Friction/damping with self contact
 Undo
 ZYX Euler
 Scaling factor for the background image
 vBVH
+Axis-Angle Rotation
 Bone deformation weight (for Envelope deform only)
 Interaction radius is a factor of 4 * particle size
 Shape key to use the rest spring lengths from
 Use this texture as a blending value on the next texture
-Particle datablocks.
+Deliver environment lighting pass
 Show Python references in tooltips
 Theme NLA Editor
 Above-Below
 Transition Strip
 NLA Strips on this NLA-track
 Draw black edges
-Use Game Engine
+Removes the operator from search results
 Light Override
-Current frame number can be manually set to a negative value
 Only include channels from Objects in the specified Group
 Compositing
 128
@@ -4770,6 +4853,7 @@ Duplicate Mesh
 Keying Set Info
 Map Type
 Use BLI K-Dop BVH.c
+Amount of turbulence/rotation in fluid
 Add light and shadow
 Random falloff
 Script
@@ -4801,9 +4885,10 @@ Show Mini Axis
 Previous Particle Velocity
 Edge in a Mesh datablock
 Function Definition
+Physics engine used for physics simulation in the game engine
 Softbody
 Theme settings for the DopeSheet
-Deliver specular pass
+Vertex Group Size
 Add the file format extensions to the rendered file name (eg: filename + .jpg)
 Collection of KeyConfigs
 Active Element
@@ -4844,7 +4929,7 @@ Screens
 Window Background
 current_character
 Meta
-Action datablocks.
+Theme settings for the Logic Editor
 Floating-Point Property
 Structural Stiffness
 Particle system settings
@@ -4854,6 +4939,7 @@ Forces the current Scene to be displayed in all Screens
 Indicates that a keymap is used for translate modal events for an operator
 Environment map created by the renderer and cached for subsequent renders
 Rotational Difference
+Goal Vertex Group
 Use shaders for GLSL rendering
 Multiple Springs
 Emitter Distance
@@ -4866,6 +4952,7 @@ Set the distance between the eyes - the camera focal length/30 should be fine
 Draw Other Objects
 Mouse Previous Y Position
 Flare Size
+Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)
 Maintain Volume
 Display mode for the file list
 Max Step
@@ -4911,11 +4998,13 @@ Extrapolated
 Force
 Active Brush
 Distance will be used to attenuate shadows
+Method used to adjust the roll of bones when retargeting
 Form Factor
-The space where the header is going to be used in.
+Scopes to visualize image statistics
 Number
 Shade Top
 Number of frames to render ahead during playback
+High quality interpolation, but slower
 Current view matrix of the 3D region
 Handle 1 Location
 Vertex Group Density
@@ -4927,8 +5016,9 @@ Simulation starts on this frame
 Properties to set when the operator is called
 Result of rendering, including all layers and passes
 iTaSC
-Sound datablocks.
+Mesh String Property Layer
 Tweak Left
+True if this map is ready for use, False if it needs rendering
 X Scale
 Bone in an Armature datablock
 Output image in Targa format
@@ -4947,6 +5037,7 @@ Relative Key
 Motion Paths
 Return
 Stiffness defines how much of the element to fill
+Detail mesh simplification max sample error
 Meta Strip
 Bake Alpha values (transparency)
 Memory cache limit in sequencer (megabytes)
@@ -4967,7 +5058,7 @@ Main Libraries
 Edit Edit
 Get away from assigned object or loudest assigned signal source
 Darken
-Script datablocks (DEPRECATED).
+Active index in vertex group array
 Average Separation
 F-Curve Modifiers
 RNA type used for pointers to any possible data
@@ -4984,12 +5075,11 @@ Rotation in Eulers
 On Cage
 Bone that defines the display transform of this custom shape
 Main Node Trees
-Used Layers
+Undo Steps
 Cube Map
 Point cache for physics simulations
 Interactive python console
 Use environment map with six cube sides
-Grease Pencil datablocks.
 Show .blend files
 Kill Particles
 Sets maximum X value for the render border
@@ -5015,6 +5105,7 @@ Pixel Aspect X
 Filename
 Use Ambient Occlusion
 The transformation of the target is evaluated relative to its local coordinate system
+The region where the panel is going to be used in
 BW
 Bake Specular values
 Tool
@@ -5022,6 +5113,7 @@ Margin Column
 Maximum distance from active object to other object (in blender units
 Final transformation value of object or bone
 Group Name
+Proxy parameters for a sequence strip
 fr_FR
 Kill collided particles
 Disable simulation of angular  motion along the Y axis
@@ -5074,7 +5166,7 @@ Use Bone Heads
 Actuator to apply actions in the game engine
 Mp3
 Go to closest enemy and attack when in range
-Constraint Target
+Type of range to show for Motion Paths
 Use trackball style rotation in the viewport
 32768
 Overwrite
@@ -5087,13 +5179,14 @@ Parameters
 Material Mode
 Avoid
 Cache is outdated
+File Browser Buttons
 Actor
 Bone Group Index
 Toolbox Column Layout
 Show the frames per second screen refresh rate, while animation is played back
 Image Editor
 Mesh Vertex Sticky Texture Coordinate
-Physics engine used for physics simulation in the game engine
+Vertex Weight Proximity
 Average Spring length * Ball Size
 Renders rings over halo
 Offset in the random number table for child particles, to get a different randomized result
@@ -5110,9 +5203,8 @@ Make this curve or surface a closed loop in the U direction
 Command history
 XYZ Rotation Order. Prone to Gimbal Lock
 Draw Stretch Type
-Cyclic
+Percentage scale for render resolution
 F-Curve and its keyframes are hidden in the Graph Editor graphs
-Scale factor along the Y for items in this (sub)layout.
 F-Curve Editor
 Area distortion between UV and 3D faces
 YXZ Rotation Order. Prone to Gimbal Lock
@@ -5121,8 +5213,8 @@ Fields
 For bone motion paths, search whole Action for keyframes instead of in group with matching name only (is slower)
 Process the render result through the compositing pipeline, if compositing nodes are enabled
 Co-ordinate system to cache particles in
+Error Limit
 Curve guide effector weight
-Theme settings for the Logic Editor
 Default
 Black Level
 ISO 1
@@ -5143,6 +5235,7 @@ Automatic saving of temporary files in temp directory, uses process ID
 Cubic B-Spline
 Logic editor space data
 Open menu buttons and pulldowns automatically when the mouse is hovering
+Use to check if an operator is a macro
 Display zoom level
 Stamp Filename
 Weight
@@ -5150,7 +5243,7 @@ Bias (in radians) to prevent smoothed faces from showing banding (for Raytrace C
 Auto XYZ to RGB
 UV
 Audio volume
-Wire Select
+Restrict the number of animation updates to the animation FPS. This is better for performance, but can cause issues with smooth playback
 Replace
 Show paint related properties
 Target Space
@@ -5177,7 +5270,7 @@ Rule Fuzziness
 YZX Rotation Order. Prone to Gimbal Lock
 Amount of residual error in radiant for constraints that work on orientation
 GLSL Shadows
-Undo Steps
+Radius of object representation in obstacle simulation
 Show the entire viewport in the display window, using bar horizontally or vertically
 Dissolve Smoke
 Internal
@@ -5221,7 +5314,7 @@ Sync Markers
 Object being duplicated
 Face in a Mesh datablock
 Calculate bone paths from tails
-Defines the structure of the header in the UI.
+Display World
 UV Pinned
 No Collision
 Active Channel Group
@@ -5229,16 +5322,17 @@ Make face invisible
 Number of subdivisions of bone (for B-Bones only)
 Renders halo as a lens flare
 Only Selected Channels
-Theme settings for the Outliner
+Minimum height where the agent can still walk
 Stroke data points
 Multiply Vertex Group with Envelope
 Inner face thickness
 Set actuator expanded in the user interface
 Low values are slower and higher quality
 Vertices Cache
-Keep UV and edit mode mesh selection in sync
-Particle Key
+Lattice datablocks
+Current frame number can be manually set to a negative value
 Set controller expanded in the user interface
+Simulation used for obstacle avoidance in the game engine
 Duplicate Curve
 List of background images
 Manipulator Handle Size
@@ -5254,6 +5348,7 @@ Linear Light
 Live Unwrap
 Radiosity
 Turbulence Influence
+Object datablocks
 Left Shift
 The source of this force field is the zero point of a harmonic oscillator
 Driver Target
@@ -5268,11 +5363,13 @@ World Space
 Game data for a Scene datablock
 Blender 2.4
 Coordinates of the right handle (after the control point)
+View2D Buttons List
 F-Curves in this group
 Point cache list
 3D View Region
 Show the X axis line in perspective view
 Matroska
+Node Generic
 Extinction scattering contribution factor
 Callback function defines for builtin Keying Sets
 Generate point density from an object's vertices
@@ -5290,7 +5387,6 @@ Mux rate (bits/s(!))
 Weight value of a vertex in a vertex group
 Log conversion reference blackpoint
 Point density settings
-Display datablocks of active object
 Show Mouse
 Name of Action Group to assign setting(s) for this path to
 Rotate
@@ -5317,12 +5413,12 @@ Display groups and their datablocks
 Include visualization of Curve related Animation data
 User Modified
 Statistical view of the levels of color in an image
-Cubic Catmull-Rom
 Anisotropic Friction
 4x
 Inverse Gain
 Fade Time
 Visual Keying
+Agent Height
 Underline
 Translate Interface
 Property Definition

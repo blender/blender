@@ -397,26 +397,6 @@ static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *value)
 		return Py_INCREF(value), value;
 	}
 }
-
-PyDoc_STRVAR(py_blf_fake_gettext_doc,
-".. function:: fake_gettext(msgid)\n"
-"\n"
-"   Just tag the msgid.\n"
-"\n"
-"   :arg msgid: the source string.\n"
-"   :type msgid: string\n"
-"   :return: the source string.\n"
-"   :rtype: string\n"
-);
-static PyObject *py_blf_fake_gettext(PyObject *UNUSED(self), PyObject *value)
-{
-	if (!PyUnicode_Check(value)) {
-		PyErr_SetString(PyExc_TypeError, "blf.fake_gettext expects a single string argument");
-		return NULL;
-	}
-
-	return Py_INCREF(value), value;
-}
 #endif /* INTERNATIONAL */
 
 /*----------------------------MODULE INIT-------------------------*/
@@ -436,7 +416,6 @@ static PyMethodDef BLF_methods[] = {
 	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
 #ifdef INTERNATIONAL
 	{"gettext", (PyCFunction) py_blf_gettext, METH_O, py_blf_gettext_doc},
-	{"fake_gettext", (PyCFunction) py_blf_fake_gettext, METH_O, py_blf_fake_gettext_doc},
 #endif
 	{NULL, NULL, 0, NULL}
 };

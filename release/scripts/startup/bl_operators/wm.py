@@ -1174,6 +1174,13 @@ class WM_OT_get_messages(Operator):
     def _walkClass(self, cls, messages):
         self._walkRNA(cls.bl_rna, messages)
 
+    def _walk_keymap_hierarchy(self, hier, messages):
+        for lvl in hier:
+            self._putMessage(messages, lvl[0])
+
+            if lvl[3]:
+                self._walk_keymap_hierarchy(lvl[3], messages)
+
     def execute(self, context):
         messages = {}
 
@@ -1185,6 +1192,10 @@ class WM_OT_get_messages(Operator):
 
         for cls in bpy.types.Operator.__subclasses__():
             self._walkClass(cls, messages)
+
+        from bl_ui.space_userpref_keymap import KM_HIERARCHY
+
+        self._walk_keymap_hierarchy(KM_HIERARCHY, messages)
 
         text = bpy.data.texts.new(name="messages.txt")
         for message in messages:
