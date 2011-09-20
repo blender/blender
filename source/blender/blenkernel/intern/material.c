@@ -524,7 +524,7 @@ short *give_totcolp_id(ID *id)
 	return NULL;
 }
 
-static void data_delete_material_index_id(ID *id, int index)
+static void data_delete_material_index_id(ID *id, short index)
 {
 	switch(GS(id->name)) {
 	case ID_ME:
@@ -556,8 +556,9 @@ void material_append_id(ID *id, Material *ma)
 	}
 }
 
-Material *material_pop_id(ID *id, int index, int remove_material_slot)
+Material *material_pop_id(ID *id, int index_i, int remove_material_slot)
 {
+	short index= (short)index_i;
 	Material *ret= NULL;
 	Material ***matar;
 	if((matar= give_matarar_id(id))) {
@@ -600,7 +601,7 @@ Material *material_pop_id(ID *id, int index, int remove_material_slot)
 	return ret;
 }
 
-Material *give_current_material(Object *ob, int act)
+Material *give_current_material(Object *ob, short act)
 {
 	Material ***matarar, *ma;
 	short *totcolp;
@@ -638,7 +639,7 @@ Material *give_current_material(Object *ob, int act)
 	return ma;
 }
 
-ID *material_from(Object *ob, int act)
+ID *material_from(Object *ob, short act)
 {
 
 	if(ob==NULL) return NULL;
@@ -722,7 +723,7 @@ void test_object_materials(ID *id)
 	}
 }
 
-void assign_material(Object *ob, Material *ma, int act)
+void assign_material(Object *ob, Material *ma, short act)
 {
 	Material *mao, **matar, ***matarar;
 	char *matbits;
@@ -793,9 +794,10 @@ void assign_material(Object *ob, Material *ma, int act)
 }
 
 /* XXX - this calls many more update calls per object then are needed, could be optimized */
-void assign_matarar(struct Object *ob, struct Material ***matar, int totcol)
+void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
 {
-	int i, actcol_orig= ob->actcol;
+	int actcol_orig= ob->actcol;
+	short i;
 
 	while(object_remove_material_slot(ob)) {};
 
@@ -810,7 +812,7 @@ void assign_matarar(struct Object *ob, struct Material ***matar, int totcol)
 }
 
 
-int find_material_index(Object *ob, Material *ma)
+short find_material_index(Object *ob, Material *ma)
 {
 	Material ***matarar;
 	short a, *totcolp;
@@ -1062,7 +1064,7 @@ int object_remove_material_slot(Object *ob)
 	Material *mao, ***matarar;
 	Object *obt;
 	short *totcolp;
-	int a, actcol;
+	short a, actcol;
 	
 	if(ob==NULL || ob->totcol==0) return FALSE;
 	
@@ -1600,18 +1602,21 @@ static void calculate_tface_materialname(char *matname, char *newname, int flag)
 }
 
 /* returns -1 if no match */
-static int mesh_getmaterialnumber(Mesh *me, Material *ma) {
-	int a;
+static short mesh_getmaterialnumber(Mesh *me, Material *ma)
+{
+	short a;
 
-	for (a=0; a<me->totcol; a++)
-		if (me->mat[a] == ma)
+	for (a=0; a<me->totcol; a++) {
+		if (me->mat[a] == ma) {
 			return a;
+		}
+	}
 
 	return -1;
 }
 
 /* append material */
-static int mesh_addmaterial(Mesh *me, Material *ma)
+static short mesh_addmaterial(Mesh *me, Material *ma)
 {
 	material_append_id(&me->id, NULL);
 	me->mat[me->totcol-1]= ma;
@@ -1633,11 +1638,11 @@ static void set_facetexture_flags(Material *ma, Image *image)
 }
 
 /* returns material number */
-static int convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
+static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 {
 	Material *ma;
 	char idname[MAX_ID_NAME];
-	int mat_nr= -1;
+	short mat_nr= -1;
 	
 	/* new material, the name uses the flag*/
 	sprintf(idname, "MAMaterial.TF.%0*d", integer_getdigits(flag), flag);
@@ -1684,7 +1689,8 @@ static void convert_tfacematerial(Main *main, Material *ma)
 	MFace *mf;
 	MTFace *tf;
 	int flag, index;
-	int a, mat_nr;
+	int a;
+	short mat_nr;
 	CustomDataLayer *cdl;
 	char idname[MAX_ID_NAME];
 
@@ -1703,7 +1709,7 @@ static void convert_tfacematerial(Main *main, Material *ma)
 
 		/* loop over all the faces and stop at the ones that use the material*/
 		for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
-			if(me->mat[(int)mf->mat_nr] != ma) continue;
+			if(me->mat[mf->mat_nr] != ma) continue;
 
 			/* texface data for this face */
 			tf = ((MTFace*)cdl->data) + a;
@@ -1751,6 +1757,9 @@ static void convert_tfacematerial(Main *main, Material *ma)
 			if(me->mat[a] == ma) material_pop_id(&me->id, a, 1);else a++;
 	}
 }
+
+
+#define MAT_BGE_DISPUTED -99999
 
 int do_version_tface(Main *main, int fileload)
 {
@@ -1807,15 +1816,16 @@ int do_version_tface(Main *main, int fileload)
 				flag = encode_tfaceflag(tf, 1);
 				
 				/* create/find a new material and assign to the face */
-				if (check_tfaceneedmaterial(flag))
+				if (check_tfaceneedmaterial(flag)) {
 					mf->mat_nr= convert_tfacenomaterial(main, me, tf, flag);
-					
-			/* else mark them as no-material to be reverted to 0 later */
-				else
+				}
+				/* else mark them as no-material to be reverted to 0 later */
+				else {
 					mf->mat_nr = -1;
+				}
 			}
 			else if(mf->mat_nr < me->totcol) {
-				ma= me->mat[(int)mf->mat_nr];
+				ma= me->mat[mf->mat_nr];
 				
 				/* no material create one if necessary */
 				if(!ma) {
@@ -1837,7 +1847,7 @@ int do_version_tface(Main *main, int fileload)
 					continue;
 				
 				/* material already marked as disputed */
-				else if(ma->game.flag == -99999)
+				else if(ma->game.flag == MAT_BGE_DISPUTED)
 					continue;
 
 				/* found a material */
@@ -1850,7 +1860,7 @@ int do_version_tface(Main *main, int fileload)
 			
 					/* mark material as disputed */
 					else if (ma->game.flag != -flag) {
-						ma->game.flag = -99999;
+						ma->game.flag = MAT_BGE_DISPUTED;
 						continue;
 					}
 			
@@ -1882,9 +1892,11 @@ int do_version_tface(Main *main, int fileload)
 						mf->mat_nr= convert_tfacenomaterial(main, me, tf, encode_tfaceflag(tf, 1));
 					}
 				}
-			} else {
-				for(a=0, mf=me->mface; a<me->totface; a++, mf++)
+			}
+			else {
+				for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
 					mf->mat_nr=0;
+				}
 			}
 		}
 
@@ -1898,7 +1910,7 @@ int do_version_tface(Main *main, int fileload)
 		if (ma->id.lib) continue;
 
 		/* disputed material */
-		if (ma->game.flag == -99999) {
+		if (ma->game.flag == MAT_BGE_DISPUTED) {
 			ma->game.flag = 0;
 			if (fileload) {
 				printf("Warning: material \"%s\" skipped - to convert old game texface to material go to the Help menu.\n", ma->id.name+2);
@@ -1911,7 +1923,7 @@ int do_version_tface(Main *main, int fileload)
 	
 		/* no conflicts in this material - 90% of cases
 		 * convert from tface system to material */
-		else if (ma->game.flag < 0){
+		else if (ma->game.flag < 0) {
 			decode_tfaceflag(ma, -(ma->game.flag), 1);
 
 			/* material is good make sure all faces using
@@ -1932,8 +1944,7 @@ int do_version_tface(Main *main, int fileload)
 			
 					/* loop over all the faces and stop at the ones that use the material*/
 					for (a=0, mf=me->mface; a<me->totface; a++, mf++) {
-						if (me->mat[(int)mf->mat_nr] != ma) continue;
-						else {
+						if (me->mat[mf->mat_nr] == ma) {
 							/* texface data for this face */
 							tf = ((MTFace*)cdl->data) + a;
 							tf->mode |= TF_CONVERTED;

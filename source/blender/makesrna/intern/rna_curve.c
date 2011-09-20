@@ -296,7 +296,8 @@ static EnumPropertyItem *rna_Curve_fill_mode_itemf(bContext *UNUSED(C), PointerR
 {
 	Curve *cu= (Curve*)ptr->id.data;
 
-	return (cu->flag&CU_3D)  ? curve3d_fill_mode_items : curve2d_fill_mode_items;
+	/* cast to quiet warning it IS a const still */
+	return (EnumPropertyItem *)((cu->flag & CU_3D) ? curve3d_fill_mode_items : curve2d_fill_mode_items);
 }
 
 static int rna_Nurb_length(PointerRNA *ptr)
