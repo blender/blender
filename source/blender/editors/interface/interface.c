@@ -96,12 +96,20 @@ static void ui_free_but(const bContext *C, uiBut *but);
 
 int UI_translate_iface(void)
 {
+#ifdef INTERNATIONAL
 	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_IFACE);
+#else
+	return 0;
+#endif
 }
 
 int UI_translate_tooltips(void)
 {
+#ifdef INTERNATIONAL
 	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_TOOLTIPS);
+#else
+	return 0;
+#endif
 }
 
 const char *UI_translate_do_iface(const char *msgid)

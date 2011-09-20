@@ -415,8 +415,8 @@ const char * BIF_menustringTransformOrientation(const bContext *C, const char *t
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
 	char *str_menu, *p;
-	
-	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE)) {
+
+	if(UI_translate_iface()) {
 		title= BLF_gettext(title);
 		menu= BLF_gettext(menu);
 	}

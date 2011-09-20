@@ -470,7 +470,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
 	}
 }
 
-#define TIP_(msgid) (((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_TOOLTIPS))?BLF_gettext(msgid):(msgid))
+#define TIP_(msgid) UI_translate_do_tooltip(msgid)
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 {
 	bScreen *screen= CTX_wm_screen(C);
