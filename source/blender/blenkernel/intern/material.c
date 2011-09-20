@@ -37,6 +37,7 @@
 
 #include <string.h>
 #include <math.h>
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -1480,7 +1481,7 @@ void paste_matcopybuf(Material *ma)
 
 /*********************** texface to material convert functions **********************/
 /* encode all the TF information into a single int */
-int encode_tfaceflag(MTFace *tf, int convertall)
+static int encode_tfaceflag(MTFace *tf, int convertall)
 {
 	/* calculate the flag */
 	int flag = tf->mode;
@@ -1507,7 +1508,7 @@ int encode_tfaceflag(MTFace *tf, int convertall)
 }
 
 /* set the material options based in the tface flag */
-void decode_tfaceflag(Material *ma, int flag, int convertall)
+static void decode_tfaceflag(Material *ma, int flag, int convertall)
 {
 	int alphablend;	
 	GameSettings *game= &ma->game;
@@ -1544,7 +1545,7 @@ void decode_tfaceflag(Material *ma, int flag, int convertall)
 }
 
 /* boolean check to see if the mesh needs a material */
-int check_tfaceneedmaterial(int flag)
+static int check_tfaceneedmaterial(int flag)
 {
 	// check if the flags we have are not deprecated != than default material options
 	// also if only flags are visible and collision see if all objects using this mesh have this option in physics
@@ -1575,7 +1576,7 @@ int check_tfaceneedmaterial(int flag)
 
 /* return number of digits of an integer */
 // XXX to be optmized or replaced by an equivalent blender internal function
-int integer_getdigits(int number)
+static int integer_getdigits(int number)
 {
 	int i=0;
 	if (number == 0) return 1;
@@ -1587,7 +1588,7 @@ int integer_getdigits(int number)
 	return i;
 }
 
-void calculate_tface_materialname(char *matname, char *newname, int flag)
+static void calculate_tface_materialname(char *matname, char *newname, int flag)
 {
 	// if flag has only light and collision and material matches those values
 	// you can do strcpy(name, mat_name);
@@ -1599,7 +1600,7 @@ void calculate_tface_materialname(char *matname, char *newname, int flag)
 }
 
 /* returns -1 if no match */
-int mesh_getmaterialnumber(Mesh *me, Material *ma) {
+static int mesh_getmaterialnumber(Mesh *me, Material *ma) {
 	int a;
 
 	for (a=0; a<me->totcol; a++)
@@ -1610,7 +1611,7 @@ int mesh_getmaterialnumber(Mesh *me, Material *ma) {
 }
 
 /* append material */
-int mesh_addmaterial(Mesh *me, Material *ma)
+static int mesh_addmaterial(Mesh *me, Material *ma)
 {
 	material_append_id(&me->id, NULL);
 	me->mat[me->totcol-1]= ma;
@@ -1620,17 +1621,7 @@ int mesh_addmaterial(Mesh *me, Material *ma)
 	return me->totcol-1;
 }
 
-Material *materialbyname(Main *main, char *name)
-{
-	Material *mat = NULL;
-	for (mat=main->mat.first;mat;mat=mat->id.next) {
-		if (strcmp(mat->id.name, name)==0)
-			return mat; 
-	}
-	return NULL;
-}
-
-void set_facetexture_flags(Material *ma, Image *image)
+static void set_facetexture_flags(Material *ma, Image *image)
 {
 	if(image) {
 		ma->mode |= MA_FACETEXTURE;
@@ -1642,17 +1633,17 @@ void set_facetexture_flags(Material *ma, Image *image)
 }
 
 /* returns material number */
-int convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
+static int convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 {
 	Material *ma;
-	char name[MAX_ID_NAME];
+	char idname[MAX_ID_NAME];
 	int mat_nr= -1;
 	
 	/* new material, the name uses the flag*/
-	sprintf(name, "MAMaterial.TF.%0*d", integer_getdigits(flag), flag);
+	sprintf(idname, "MAMaterial.TF.%0*d", integer_getdigits(flag), flag);
 	
-	if ((ma=materialbyname(main, name))) {
-		mat_nr = mesh_getmaterialnumber(me, ma);
+	if ((ma= BLI_findstring(&main->mat, idname+2, offsetof(ID, name)+2))) {
+		mat_nr= mesh_getmaterialnumber(me, ma);
 		/* assign the material to the mesh */
 		if(mat_nr == -1) mat_nr= mesh_addmaterial(me, ma);
 
@@ -1661,10 +1652,10 @@ int convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 	}
 	/* create a new material */
 	else {
-		ma=add_material(name+2);
+		ma= add_material(idname+2);
 
 		if(ma){
-			printf("TexFace Convert: Material \"%s\" created.\n", name+2);
+			printf("TexFace Convert: Material \"%s\" created.\n", idname+2);
 			mat_nr= mesh_addmaterial(me, ma);
 			
 			/* if needed set "Face Textures [Alpha]" Material options */
@@ -1677,7 +1668,7 @@ int convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 			ma->game.flag = -flag;
 			id_us_min((ID *)ma);	
 		}
-		else printf("Error: Unable to create Material \"%s\" for Mesh \"%s\".", name+2, me->id.name+2);
+		else printf("Error: Unable to create Material \"%s\" for Mesh \"%s\".", idname+2, me->id.name+2);
 	}
 
 	/* set as converted, no need to go bad to this face */
@@ -1686,7 +1677,7 @@ int convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 }
 
 /* Function to fully convert materials */
-void convert_tfacematerial(Main *main, Material *ma)
+static void convert_tfacematerial(Main *main, Material *ma)
 {
 	Mesh *me;
 	Material *mat_new;
@@ -1695,7 +1686,7 @@ void convert_tfacematerial(Main *main, Material *ma)
 	int flag, index;
 	int a, mat_nr;
 	CustomDataLayer *cdl;
-	char name[MAX_ID_NAME];
+	char idname[MAX_ID_NAME];
 
 	for(me=main->mesh.first; me; me=me->id.next){
 		/* check if this mesh uses this material */
@@ -1719,9 +1710,9 @@ void convert_tfacematerial(Main *main, Material *ma)
 			flag = encode_tfaceflag(tf, 1);
 
 			/* the name of the new material */
-			calculate_tface_materialname(ma->id.name, (char *)&name, flag);
+			calculate_tface_materialname(ma->id.name, (char *)&idname, flag);
 
-			if ((mat_new=materialbyname(main, name))) {
+			if ((mat_new= BLI_findstring(&main->mat, idname+2, offsetof(ID, name)+2))) {
 				/* material already existent, see if the mesh has it */
 				mat_nr = mesh_getmaterialnumber(me, mat_new);
 				/* material is not in the mesh, add it */
@@ -1732,14 +1723,14 @@ void convert_tfacematerial(Main *main, Material *ma)
 				mat_new=copy_material(ma);
 				if(mat_new){
 					/* rename the material*/
-					strcpy(mat_new->id.name, name);
+					strcpy(mat_new->id.name, idname);
 					id_us_min((ID *)mat_new);	
 
 					mat_nr= mesh_addmaterial(me, mat_new);
 					decode_tfaceflag(mat_new, flag, 1);
 				}
 				else {
-					printf("Error: Unable to create Material \"%s\" for Mesh \"%s.", name+2, me->id.name+2);
+					printf("Error: Unable to create Material \"%s\" for Mesh \"%s.", idname+2, me->id.name+2);
 					mat_nr = mf->mat_nr;
 					continue;
 				}

@@ -992,7 +992,7 @@ static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
 }
 
 /* adds only alpha values */
-void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
+static void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
 {
 	/* use zbuffer to define edges, add it to the image */
 	int y, x, col, *rz, *rz1, *rz2, *rz3;
@@ -1133,7 +1133,7 @@ typedef struct ZbufSolidData {
 	float *edgerect;
 } ZbufSolidData;
 
-void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
+static void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 {
 	ZbufSolidData *sdata= (ZbufSolidData*)data;
 	ListBase *lb= sdata->psmlist;
