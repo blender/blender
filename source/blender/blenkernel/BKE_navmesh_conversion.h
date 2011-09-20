@@ -32,33 +32,34 @@
 
 struct DerivedMesh;
 
-/* navmesh_conversion.cpp */
-bool buildNavMeshDataByDerivedMesh(DerivedMesh *dm, int& vertsPerPoly, 
-								   int &nverts, float *&verts,
-								   int &ndtris, unsigned short *&dtris,
-								   int& npolys, unsigned short *&dmeshes,
-								   unsigned short*& polys, int *&dtrisToPolysMap,
-								   int *&dtrisToTrisMap, int *&trisToFacesMap);
+/* navmesh_conversion.c */
+int buildNavMeshDataByDerivedMesh(struct DerivedMesh *dm, int *vertsPerPoly,
+								   int *nverts, float **verts,
+								   int *ndtris, unsigned short **dtris,
+								   int *npolys, unsigned short **dmeshes,
+								   unsigned short **polys, int **dtrisToPolysMap,
+								   int **dtrisToTrisMap, int **trisToFacesMap);
 
-bool buildRawVertIndicesData(DerivedMesh* dm, int &nverts, float *&verts, 
-				int &ntris, unsigned short *&tris, int *&trisToFacesMap,
-				int *&recastData);
+int buildRawVertIndicesData(struct DerivedMesh* dm, int *nverts, float **verts,
+				int *ntris, unsigned short **tris, int **trisToFacesMap,
+				int **recastData);
 
-bool buildNavMeshData(const int nverts, const float* verts, 
-					  const int ntris, const unsigned short *tris, 
+int buildNavMeshData(const int nverts, const float* verts,
+					  const int ntris, const unsigned short *tris,
 					  const int* recastData, const int* trisToFacesMap,
-					  int &ndtris, unsigned short *&dtris,
-					  int &npolys, unsigned short *&dmeshes, unsigned short *&polys,
-					  int &vertsPerPoly, int *&dtrisToPolysMap, int *&dtrisToTrisMap);
+					  int *ndtris, unsigned short **dtris,
+					  int *npolys, unsigned short **dmeshes, unsigned short **polys,
+					  int *vertsPerPoly, int **dtrisToPolysMap, int **dtrisToTrisMap);
 
-bool buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys, 
-				unsigned short* polys, const unsigned short* dmeshes, 
-				const float* verts, const unsigned short* dtris, 
+int buildPolygonsByDetailedMeshes(const int vertsPerPoly, const int npolys,
+				unsigned short* polys, const unsigned short* dmeshes,
+				const float* verts, const unsigned short* dtris,
 				const int* dtrisToPolysMap);
 
 int polyNumVerts(const unsigned short* p, const int vertsPerPoly);
-bool polyIsConvex(const unsigned short* p, const int vertsPerPoly, const float* verts);
+int polyIsConvex(const unsigned short* p, const int vertsPerPoly, const float* verts);
 int polyFindVertex(const unsigned short* p, const int vertsPerPoly, unsigned short vertexIdx);
 float distPointToSegmentSq(const float* point, const float* a, const float* b);
+
 
 #endif //NAVMESH_CONVERSION_H

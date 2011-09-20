@@ -773,7 +773,7 @@ def pyrna2sphinx(BASEPATH):
                 fw("   .. attribute:: %s\n\n" % prop.identifier)
             if prop.description:
                 fw("      %s\n\n" % prop.description)
-            
+
             # special exception, cant use genric code here for enums
             if prop.type == "enum":
                 enum_text = pyrna_enum2sphinx(prop)
@@ -1044,8 +1044,12 @@ def rna2sphinx(BASEPATH):
     fw("copyright = u'Blender Foundation'\n")
     fw("version = '%s - API'\n" % version_string)
     fw("release = '%s - API'\n" % version_string)
-    fw("html_theme = 'blender-org'\n")
-    fw("html_theme_path = ['../']\n")
+
+    # until we get a theme for 'Naiad'
+    if 0:
+        fw("html_theme = 'blender-org'\n")
+        fw("html_theme_path = ['../']\n")
+
     fw("html_favicon = 'favicon.ico'\n")
     # not helpful since the source us generated, adds to upload size.
     fw("html_copy_source = False\n")

@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Menu, Operator, OperatorProperties
 import os
+from blf import gettext as _
 
 
 KM_HIERARCHY = [
@@ -131,7 +132,7 @@ class USERPREF_MT_keyconfigs(Menu):
     preset_operator = "wm.keyconfig_activate"
 
     def draw(self, context):
-        props = self.layout.operator("wm.context_set_value", text="Blender (default)")
+        props = self.layout.operator("wm.context_set_value", text=_("Blender (default)"))
         props.data_path = "window_manager.keyconfigs.active"
         props.value = "context.window_manager.keyconfigs.default"
 
@@ -182,7 +183,7 @@ class InputKeyMapPanel:
 
         row = col.row()
         row.prop(km, "show_expanded_children", text="", emboss=False)
-        row.label(text=km.name)
+        row.label(text=_(km.name))
 
         row.label()
         row.label()
@@ -190,7 +191,7 @@ class InputKeyMapPanel:
         if km.is_modal:
             row.label(text="", icon='LINKED')
         if km.is_user_modified:
-            row.operator("wm.keymap_restore", text="Restore")
+            row.operator("wm.keymap_restore", text=_("Restore"))
         else:
             row.label()
 
@@ -201,7 +202,7 @@ class InputKeyMapPanel:
                 subcol = self.indented_layout(col, level + 1)
                 subrow = subcol.row()
                 subrow.prop(km, "show_expanded_items", text="", emboss=False)
-                subrow.label(text="%s (Global)" % km.name)
+                subrow.label(text="%s " % _(km.name) + _("(Global)"))
             else:
                 km.show_expanded_items = True
 
@@ -213,7 +214,7 @@ class InputKeyMapPanel:
                 # "Add New" at end of keymap item list
                 col = self.indented_layout(col, level + 1)
                 subcol = col.split(percentage=0.2).column()
-                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                subcol.operator("wm.keyitem_add", text=_("Add New"), icon='ZOOMIN')
 
             col.separator()
 
@@ -261,7 +262,7 @@ class InputKeyMapPanel:
         if km.is_modal:
             row.prop(kmi, "propvalue", text="")
         else:
-            row.label(text=kmi.name)
+            row.label(text=_(kmi.name))
 
         row = split.row()
         row.prop(kmi, "map_type", text="")
@@ -350,7 +351,7 @@ class InputKeyMapPanel:
                 row.label()
 
                 if km.is_user_modified:
-                    row.operator("wm.keymap_restore", text="Restore")
+                    row.operator("wm.keymap_restore", text=_("Restore"))
                 else:
                     row.label()
 
@@ -360,7 +361,7 @@ class InputKeyMapPanel:
                 # "Add New" at end of keymap item list
                 col = self.indented_layout(layout, 1)
                 subcol = col.split(percentage=0.2).column()
-                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                subcol.operator("wm.keyitem_add", text=_("Add New"), icon='ZOOMIN')
 
     def draw_hierarchy(self, display_keymaps, layout):
         for entry in KM_HIERARCHY:
@@ -381,7 +382,7 @@ class InputKeyMapPanel:
         #row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
         text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
         if not text:
-            text = "Blender (default)"
+            text = _("Blender (default)")
         row.menu("USERPREF_MT_keyconfigs", text=text)
         row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMIN")
         row.operator("wm.keyconfig_preset_add", text="", icon="ZOOMOUT").remove_active = True
@@ -423,7 +424,7 @@ def export_properties(prefix, properties, lines=None):
 class WM_OT_keyconfig_test(Operator):
     "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
-    bl_label = "Test Key Configuration for Conflicts"
+    bl_label = _("Test Key Configuration for Conflicts")
 
     def testEntry(self, kc, entry, src=None, parent=None):
         result = False
@@ -597,7 +598,7 @@ class WM_OT_keyconfig_import(Operator):
 class WM_OT_keyconfig_export(Operator):
     "Export key configuration to a python script"
     bl_idname = "wm.keyconfig_export"
-    bl_label = "Export Key Configuration..."
+    bl_label = _("Export Key Configuration...")
 
     filepath = StringProperty(
             name="File Path",

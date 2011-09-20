@@ -192,8 +192,8 @@ static void SOUND_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH);
-	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
-	RNA_def_boolean(ot->srna, "mono", FALSE, "Mono", "Mixdown the sound to mono.");
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory");
+	RNA_def_boolean(ot->srna, "mono", FALSE, "Mono", "Mixdown the sound to mono");
 }
 
 static void SOUND_OT_open_mono(wmOperatorType *ot)
@@ -213,8 +213,8 @@ static void SOUND_OT_open_mono(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH);
-	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
-	RNA_def_boolean(ot->srna, "mono", TRUE, "Mono", "Mixdown the sound to mono.");
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory");
+	RNA_def_boolean(ot->srna, "mono", TRUE, "Mono", "Mixdown the sound to mono");
 }
 
 /******************** mixdown operator ********************/
@@ -436,7 +436,7 @@ static void mixdown_draw(bContext *C, wmOperator *op)
 }
 #endif // WITH_AUDASPACE
 
-void SOUND_OT_mixdown(wmOperatorType *ot)
+static void SOUND_OT_mixdown(wmOperatorType *ot)
 {
 #ifdef WITH_AUDASPACE
 	static EnumPropertyItem format_items[] = {
@@ -496,7 +496,7 @@ void SOUND_OT_mixdown(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);
 #ifdef WITH_AUDASPACE
-	RNA_def_int(ot->srna, "accuracy", 1024, 1, 16777216, "Accuracy", "Sample accuracy. Important for animation data. The lower the value, the more accurate.", 1, 16777216);
+	RNA_def_int(ot->srna, "accuracy", 1024, 1, 16777216, "Accuracy", "Sample accuracy, important for animation data (the lower the value, the more accurate)", 1, 16777216);
 	RNA_def_enum(ot->srna, "container", container_items, AUD_CONTAINER_FLAC, "Container", "File format");
 	RNA_def_enum(ot->srna, "codec", codec_items, AUD_CODEC_FLAC, "Codec", "Audio Codec");
 	RNA_def_enum(ot->srna, "format", format_items, AUD_FORMAT_S16, "Format", "Sample format");
@@ -569,7 +569,7 @@ static int sound_unpack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(G.fileflags & G_AUTOPACK)
-		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
+		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save");
 
 	unpackSound(CTX_data_main(C), op->reports, sound, method);
 
@@ -593,7 +593,7 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 		return OPERATOR_CANCELLED;
 
 	if(G.fileflags & G_AUTOPACK)
-		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
+		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save");
 
 	unpack_menu(C, "SOUND_OT_unpack", sound->id.name+2, sound->name, "sounds", sound->packedfile);
 
@@ -616,8 +616,8 @@ static void SOUND_OT_unpack(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
-	RNA_def_string(ot->srna, "id", "", MAX_ID_NAME-2, "Sound Name", "Sound datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */
+	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
+	RNA_def_string(ot->srna, "id", "", MAX_ID_NAME-2, "Sound Name", "Sound datablock name to unpack"); /* XXX, weark!, will fail with library, name collisions */
 }
 
 /* ******************************************************* */

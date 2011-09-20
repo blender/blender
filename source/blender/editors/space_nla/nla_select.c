@@ -479,7 +479,7 @@ void NLA_OT_select_leftright (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Left/Right";
 	ot->idname= "NLA_OT_select_leftright";
-	ot->description= "Select strips to the left or the right of the current frame ";
+	ot->description= "Select strips to the left or the right of the current frame";
 	
 	/* api callbacks  */
 	ot->invoke= nlaedit_select_leftright_invoke;
@@ -606,8 +606,8 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, const int mval[2], 
 static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	Scene *scene;
-	ARegion *ar;
+	/* Scene *scene; */ /* UNUSED */
+	/* ARegion *ar; */ /* UNUSED */
 	// View2D *v2d; /*UNUSED*/
 	short selectmode;
 
@@ -616,8 +616,8 @@ static int nlaedit_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
-	scene= ac.scene;
-	ar= ac.ar;
+	/* scene= ac.scene; */ /* UNUSED */
+	/* ar= ac.ar; */ /* UNUSED */
 	// v2d= &ar->v2d;
 
 	/* select mode is either replace (deselect all, then add) or add/extend */

@@ -303,7 +303,7 @@ static void TRANSFORM_OT_create_orientation(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_areaactive;
 	ot->flag   = OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_string(ot->srna, "name", "", 35, "Name", "Text to insert at the cursor position.");
+	RNA_def_string(ot->srna, "name", "", 35, "Name", "Text to insert at the cursor position");
 	RNA_def_boolean(ot->srna, "use", 0, "Use after creation", "Select orientation after its creation");
 	RNA_def_boolean(ot->srna, "overwrite", 0, "Overwrite previous", "Overwrite previously created orientation with same name");
 }
@@ -476,7 +476,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	if (flags & P_PROPORTIONAL)
 	{
 		RNA_def_enum(ot->srna, "proportional", proportional_editing_items, 0, "Proportional Editing", "");
-		RNA_def_enum(ot->srna, "proportional_edit_falloff", proportional_falloff_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
+		RNA_def_enum(ot->srna, "proportional_edit_falloff", proportional_falloff_items, 0, "Proportional Editing Falloff", "Falloff type for proportional editing mode");
 		RNA_def_float(ot->srna, "proportional_size", 1, 0.00001f, FLT_MAX, "Proportional Size", "", 0.001, 100);
 	}
 
@@ -601,8 +601,8 @@ void TRANSFORM_OT_tilt(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name   = "Tilt";
 	/*optionals - 
-		"Tilt selected vertices."
-		"Specify an extra axis rotation for selected vertices of 3d curve." */
+		"Tilt selected vertices"
+		"Specify an extra axis rotation for selected vertices of 3d curve" */
 	ot->description= "Tilt selected control vertices of 3d curve"; 
 	ot->idname = OP_TILT;
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
@@ -795,7 +795,7 @@ void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
 	ot->cancel  = transform_cancel;
 	ot->poll   = ED_operator_sequencer_active;
 
-	RNA_def_float_vector(ot->srna, "value", 2, VecOne, -FLT_MAX, FLT_MAX, "angle", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "value", 2, VecOne, -FLT_MAX, FLT_MAX, "Angle", "", -FLT_MAX, FLT_MAX);
 
 	Transform_Properties(ot, P_SNAP);
 }

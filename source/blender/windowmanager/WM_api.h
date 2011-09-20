@@ -72,6 +72,7 @@ void		WM_setinitialstate_fullscreen(void);
 void		WM_setinitialstate_normal(void);
 
 void		WM_init				(struct bContext *C, int argc, const char **argv);
+void		WM_exit_ext			(struct bContext *C, const short do_python);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 

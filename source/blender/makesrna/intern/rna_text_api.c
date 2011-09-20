@@ -42,11 +42,11 @@ void RNA_api_text(StructRNA *srna)
 	PropertyRNA *prop;
 
 	func= RNA_def_function(srna, "clear", "clear_text");
-	RNA_def_function_ui_description(func, "clear the text block.");
+	RNA_def_function_ui_description(func, "clear the text block");
 
 	func= RNA_def_function(srna, "write", "write_text");
-	RNA_def_function_ui_description(func, "write text at the cursor location and advance to the end of the text block.");
-	prop= RNA_def_string(func, "text", "Text", 0, "", "New text for this datablock.");
+	RNA_def_function_ui_description(func, "write text at the cursor location and advance to the end of the text block");
+	prop= RNA_def_string(func, "text", "Text", 0, "", "New text for this datablock");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 }
 

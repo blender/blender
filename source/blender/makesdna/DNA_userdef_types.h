@@ -510,8 +510,8 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* transopts */
 #define	USER_TR_TOOLTIPS		(1 << 0)
-#define	USER_TR_BUTTONS			(1 << 1)
-#define USER_TR_MENUS			(1 << 2)
+#define	USER_TR_IFACE			(1 << 1)
+/*#define USER_TR_MENUS			(1 << 2)	deprecated*/
 /*#define USER_TR_FILESELECT	(1 << 3)	deprecated*/
 /*#define USER_TR_TEXTEDIT		(1 << 4)	deprecated*/
 #define USER_DOTRANSLATE		(1 << 5)

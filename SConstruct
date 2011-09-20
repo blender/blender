@@ -337,6 +337,17 @@ if env['BF_NO_ELBEEM'] == 1:
     env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
     env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
+
+if btools.ENDIAN == "big":
+    env['CPPFLAGS'].append('-D__BIG_ENDIAN__')
+    env['CXXFLAGS'].append('-D__BIG_ENDIAN__')
+    env['CCFLAGS'].append('-D__BIG_ENDIAN__')
+else:
+    env['CPPFLAGS'].append('-D__LITTLE_ENDIAN__')
+    env['CXXFLAGS'].append('-D__LITTLE_ENDIAN__')
+    env['CCFLAGS'].append('-D__LITTLE_ENDIAN__')	
+
+
 # TODO, make optional
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
 env['CXXFLAGS'].append('-DWITH_AUDASPACE')
@@ -501,31 +512,35 @@ datafilestargetlist = []
 dottargetlist = []
 scriptinstall = []
 
-if  env['OURPLATFORM']!='darwin':
-        for dp, dn, df in os.walk('bin/.blender'):
+if env['OURPLATFORM']!='darwin':
+        for dp, dn, df in os.walk('release/bin/.blender'):
+            dp = os.path.normpath(dp)
+
             if '.svn' in dn:
                 dn.remove('.svn')
             if '_svn' in dn:
                 dn.remove('_svn')
             
             for f in df:
+                # This files aren't used anymore
+                if f in ['.Blanguages', '.bfont.ttf']:
+                    continue
+
                 if not env['WITH_BF_INTERNATIONAL']:
                     if 'locale' in dp:
-                        continue
-                    if f == '.Blanguages':
                         continue
                 if not env['WITH_BF_FREETYPE']:
                     if f.endswith('.ttf'):
                         continue
                 
-                if 'locale' in dp:
+                if 'locale' in dp or 'fonts' in dp:
                     datafileslist.append(os.path.join(dp,f))
-                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[1:]))    # skip bin
+                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['datafiles'] + dp.split(os.sep)[3:]))    # skip bin
                     datafilestargetlist.append(dir + os.sep + f)
 
                 else:
                     dotblendlist.append(os.path.join(dp, f))
-                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[1:]))    # skip bin
+                    dir= os.path.join(*([env['BF_INSTALLDIR']] + [VERSION] + ['config'] + dp.split(os.sep)[3:]))    # skip bin
                     dottargetlist.append(dir + os.sep + f)
                     
         dotblenderinstall = []

@@ -43,6 +43,7 @@ CHECKER_ARGS = [
     #  "--enable=all",  # if you want sixty hundred pedantic suggestions
     ]
 
+
 def main():
     source_info = project_source_info.build_info(ignore_prefix_list=CHECKER_IGNORE_PREFIX)
 
@@ -58,12 +59,12 @@ def main():
         check_commands.append((c, cmd))
 
     for i, (c, cmd) in enumerate(check_commands):
-        percent = 100.0 * (i / (len(check_commands)-1))
+        percent = 100.0 * (i / (len(check_commands) - 1))
         percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
-        
+
         # if percent < 27.9:
         #    continue
-        
+
         # let cppcheck finish the line off...
         sys.stdout.write("%s " % percent_str)
 

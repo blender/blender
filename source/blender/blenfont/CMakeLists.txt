@@ -42,9 +42,11 @@ set(SRC
 	intern/blf_font.c
 	intern/blf_glyph.c
 	intern/blf_lang.c
+	intern/blf_translation.c
 	intern/blf_util.c
 
 	BLF_api.h
+	BLF_translation.h
 	intern/blf_internal.h
 	intern/blf_internal_types.h
 )
@@ -54,10 +56,6 @@ if(WITH_INTERNATIONAL)
 		${GETTEXT_INC}
 	)
 	add_definitions(-DINTERNATIONAL)
-endif()
-
-if(WIN32 AND NOT UNIX)
-	add_definitions(-DUSE_GETTEXT_DLL)
 endif()
 
 blender_add_lib(bf_blenfont "${SRC}" "${INC}" "${INC_SYS}")

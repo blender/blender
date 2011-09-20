@@ -39,4 +39,7 @@ if env['OURPLATFORM'] != 'darwin' or env['WITH_GHOST_COCOA']:
 if env['BF_BUILDINFO']:
     defs.append('WITH_BUILDINFO')
 
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('INTERNATIONAL')
+
 env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defines=defs, libtype=['core'], priority=[5] )

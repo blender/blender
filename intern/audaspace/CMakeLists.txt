@@ -67,6 +67,7 @@ set(SRC
 	FX/AUD_SuperposeFactory.cpp
 	FX/AUD_SuperposeReader.cpp
 	FX/AUD_VolumeFactory.cpp
+
 	intern/AUD_3DMath.h
 	intern/AUD_AnimateableProperty.cpp
 	intern/AUD_AnimateableProperty.h
@@ -99,6 +100,7 @@ set(SRC
 	intern/AUD_IWriter.h
 	intern/AUD_JOSResampleFactory.cpp
 	intern/AUD_JOSResampleFactory.h
+	intern/AUD_JOSResampleReaderCoeff.cpp
 	intern/AUD_JOSResampleReader.cpp
 	intern/AUD_JOSResampleReader.h
 	intern/AUD_LinearResampleFactory.cpp

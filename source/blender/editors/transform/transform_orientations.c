@@ -50,6 +50,8 @@
 #include "BLI_editVert.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 //#include "BIF_editmesh.h"
 //#include "BIF_interface.h"
 //#include "BIF_space.h"
@@ -59,6 +61,8 @@
 #include "ED_mesh.h"
 
 #include "RNA_define.h"
+
+#include "UI_interface.h"
 
 #include "transform.h"
 
@@ -406,14 +410,18 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 }
 
 const char * BIF_menustringTransformOrientation(const bContext *C, const char *title) {
-	char menu[] = "%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3";
+	const char* menu = N_("%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3");
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
 	char *str_menu, *p;
+
+	if(UI_translate_iface()) {
+		title= BLF_gettext(title);
+		menu= BLF_gettext(menu);
+	}
 	
-	
-	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + 40 * BIF_countTransformOrientation(C), "UserTransSpace from matrix");
+	str_menu = MEM_callocN(strlen(menu) + strlen(title) + 1 + 40 * BIF_countTransformOrientation(C), UI_translate_do_tooltip(N_("UserTransSpace from matrix")));
 	p = str_menu;
 	
 	p += sprintf(str_menu, "%s", title);

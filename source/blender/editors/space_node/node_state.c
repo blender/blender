@@ -214,12 +214,11 @@ void NODE_OT_visibility_toggle(wmOperatorType *ot)
 static void snode_home(ScrArea *UNUSED(sa), ARegion *ar, SpaceNode* snode)
 {
 	bNode *node;
-	rctf *cur, *tot;
+	rctf *cur;
 	float oldwidth, oldheight, width, height;
 	int first= 1;
 	
 	cur= &ar->v2d.cur;
-	tot= &ar->v2d.tot;
 	
 	oldwidth= cur->xmax - cur->xmin;
 	oldheight= cur->ymax - cur->ymin;

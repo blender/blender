@@ -119,7 +119,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
 	if(kwds && PyDict_Size(kwds)) {
 		PyErr_SetString(PyExc_TypeError,
-		                "mathutils.Matrix(): "
+		                "Matrix(): "
 		                "takes no keyword args");
 		return NULL;
 	}
@@ -155,7 +155,7 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 
 	/* will overwrite error */
 	PyErr_SetString(PyExc_TypeError,
-	                "mathutils.Matrix(): "
+	                "Matrix(): "
 	                "expects no args or 2-4 numeric sequences");
 	return NULL;
 }
@@ -216,7 +216,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 
 	if(!PyArg_ParseTuple(args, "di|O", &angle, &matSize, &vec)) {
 		PyErr_SetString(PyExc_TypeError,
-		                "mathutils.RotationMatrix(angle, size, axis): "
+		                "Matrix.Rotation(angle, size, axis): "
 		                "expected float int and a string or vector");
 		return NULL;
 	}
@@ -225,7 +225,7 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 		axis= _PyUnicode_AsString((PyObject *)vec);
 		if(axis==NULL || axis[0]=='\0' || axis[1]!='\0' || axis[0] < 'X' || axis[0] > 'Z') {
 			PyErr_SetString(PyExc_ValueError,
-			                "mathutils.RotationMatrix(): "
+			                "Matrix.Rotation(): "
 			                "3rd argument axis value must be a 3D vector "
 			                "or a string in 'X', 'Y', 'Z'");
 			return NULL;
@@ -240,19 +240,19 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_ValueError,
-		                "mathutils.RotationMatrix(): "
+		                "Matrix.Rotation(): "
 		                "can only return a 2x2 3x3 or 4x4 matrix");
 		return NULL;
 	}
 	if(matSize == 2 && (vec != NULL)) {
 		PyErr_SetString(PyExc_ValueError,
-		                "mathutils.RotationMatrix(): "
+		                "Matrix.Rotation(): "
 		                "cannot create a 2x2 rotation matrix around arbitrary axis");
 		return NULL;
 	}
 	if((matSize == 3 || matSize == 4) && (axis == NULL) && (vec == NULL)) {
 		PyErr_SetString(PyExc_ValueError,
-		                "mathutils.RotationMatrix(): "
+		                "Matrix.Rotation(): "
 		                "axis of rotation for 3d and 4d matrices is required");
 		return NULL;
 	}
@@ -261,47 +261,24 @@ static PyObject *C_Matrix_Rotation(PyObject *cls, PyObject *args)
 	if(vec) {
 		float tvec[3];
 
-		if (mathutils_array_parse(tvec, 3, 3, vec, "mathutils.RotationMatrix(angle, size, axis), invalid 'axis' arg") == -1)
+		if (mathutils_array_parse(tvec, 3, 3, vec, "Matrix.Rotation(angle, size, axis), invalid 'axis' arg") == -1)
 			return NULL;
 
 		axis_angle_to_mat3((float (*)[3])mat, tvec, angle);
 	}
-	else if(matSize == 2) {
+	else if (matSize == 2) {
+		const float angle_cos= cosf(angle);
+		const float angle_sin= sinf(angle);
+
 		//2D rotation matrix
-		mat[0] = (float) cos (angle);
-		mat[1] = (float) sin (angle);
-		mat[2] = -((float) sin(angle));
-		mat[3] = (float) cos(angle);
-	}
-	else if(strcmp(axis, "X") == 0) {
-		//rotation around X
-		mat[0] = 1.0f;
-		mat[4] = (float) cos(angle);
-		mat[5] = (float) sin(angle);
-		mat[7] = -((float) sin(angle));
-		mat[8] = (float) cos(angle);
-	}
-	else if(strcmp(axis, "Y") == 0) {
-		//rotation around Y
-		mat[0] = (float) cos(angle);
-		mat[2] = -((float) sin(angle));
-		mat[4] = 1.0f;
-		mat[6] = (float) sin(angle);
-		mat[8] = (float) cos(angle);
-	}
-	else if(strcmp(axis, "Z") == 0) {
-		//rotation around Z
-		mat[0] = (float) cos(angle);
-		mat[1] = (float) sin(angle);
-		mat[3] = -((float) sin(angle));
-		mat[4] = (float) cos(angle);
-		mat[8] = 1.0f;
+		mat[0] =  angle_cos;
+		mat[1] =  angle_sin;
+		mat[2] = -angle_sin;
+		mat[3] =  angle_cos;
 	}
 	else {
-		/* should never get here */
-		PyErr_SetString(PyExc_ValueError,
-		                "mathutils.RotationMatrix(): unknown error");
-		return NULL;
+		/* valid axis checked above */
+		single_axis_angle_to_mat3((float (*)[3])mat, axis[0], angle);
 	}
 
 	if(matSize == 4) {
@@ -451,7 +428,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_ValueError,
-		                "mathutils.Matrix.OrthoProjection(): "
+		                "Matrix.OrthoProjection(): "
 		                "can only return a 2x2 3x3 or 4x4 matrix");
 		return NULL;
 	}
@@ -468,7 +445,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 			}
 			else {
 				PyErr_Format(PyExc_ValueError,
-				             "mathutils.Matrix.OrthoProjection(): "
+				             "Matrix.OrthoProjection(): "
 				             "unknown plane, expected: X, Y, not '%.200s'",
 				             plane);
 				return NULL;
@@ -489,7 +466,7 @@ static PyObject *C_Matrix_OrthoProjection(PyObject *cls, PyObject *args)
 			}
 			else {
 				PyErr_Format(PyExc_ValueError,
-				             "mathutils.Matrix.OrthoProjection(): "
+				             "Matrix.OrthoProjection(): "
 				             "unknown plane, expected: XY, XZ, YZ, not '%.200s'",
 				             plane);
 				return NULL;
@@ -568,7 +545,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 	}
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_ValueError,
-		                "mathutils.Matrix.Shear(): "
+		                "Matrix.Shear(): "
 		                "can only return a 2x2 3x3 or 4x4 matrix");
 		return NULL;
 	}
@@ -578,7 +555,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 
 		if(factor==-1.0f && PyErr_Occurred()) {
 			PyErr_SetString(PyExc_TypeError,
-			                "mathutils.Matrix.Shear(): "
+			                "Matrix.Shear(): "
 			                "the factor to be a float");
 			return NULL;
 		}
@@ -627,7 +604,7 @@ static PyObject *C_Matrix_Shear(PyObject *cls, PyObject *args)
 		}
 		else {
 			PyErr_SetString(PyExc_ValueError,
-			                "mathutils.Matrix.Shear(): "
+			                "Matrix.Shear(): "
 			                "expected: X, Y, XY, XZ, YZ");
 			return NULL;
 		}
@@ -686,7 +663,7 @@ static PyObject *Matrix_to_quaternion(MatrixObject *self)
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if((self->col_size < 3) || (self->row_size < 3) || (self->col_size != self->row_size)) {
 		PyErr_SetString(PyExc_ValueError,
-		                "matrix.to_quat(): "
+		                "Matrix.to_quat(): "
 		                "inappropriate matrix size - expects 3x3 or 4x4 matrix");
 		return NULL;
 	}
@@ -750,13 +727,13 @@ static PyObject *Matrix_to_euler(MatrixObject *self, PyObject *args)
 	}
 	else {
 		PyErr_SetString(PyExc_ValueError,
-		                "matrix.to_euler(): "
+		                "Matrix.to_euler(): "
 		                "inappropriate matrix size - expects 3x3 or 4x4 matrix");
 		return NULL;
 	}
 
 	if(order_str) {
-		order= euler_order_from_string(order_str, "matrix.to_euler()");
+		order= euler_order_from_string(order_str, "Matrix.to_euler()");
 
 		if(order == -1)
 			return NULL;
@@ -785,11 +762,13 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
 
 	if(self->wrapped==Py_WRAP){
 		PyErr_SetString(PyExc_TypeError,
+		                "Matrix.resize_4x4(): "
 		                "cannot resize wrapped data - make a copy and resize that");
 		return NULL;
 	}
 	if(self->cb_user){
 		PyErr_SetString(PyExc_TypeError,
+		                "Matrix.resize_4x4(): "
 		                "cannot resize owned data - make a copy and resize that");
 		return NULL;
 	}
@@ -797,7 +776,8 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
 	self->contigPtr = PyMem_Realloc(self->contigPtr, (sizeof(float) * 16));
 	if(self->contigPtr == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-		                "matrix.resize_4x4(): problem allocating pointer space");
+		                "Matrix.resize_4x4(): "
+		                "problem allocating pointer space");
 		return NULL;
 	}
 	/*set row pointers*/
@@ -858,7 +838,8 @@ static PyObject *Matrix_to_4x4(MatrixObject *self)
 	/* TODO, 2x2 matrix */
 
 	PyErr_SetString(PyExc_TypeError,
-	                "matrix.to_4x4(): inappropriate matrix size");
+	                "Matrix.to_4x4(): "
+	                "inappropriate matrix size");
 	return NULL;
 }
 
@@ -879,7 +860,7 @@ static PyObject *Matrix_to_3x3(MatrixObject *self)
 
 	if((self->col_size < 3) || (self->row_size < 3)) {
 		PyErr_SetString(PyExc_TypeError,
-		                "matrix.to_3x3(): inappropriate matrix size");
+		                "Matrix.to_3x3(): inappropriate matrix size");
 		return NULL;
 	}
 
@@ -903,7 +884,7 @@ static PyObject *Matrix_to_translation(MatrixObject *self)
 
 	if((self->col_size < 3) || self->row_size < 4){
 		PyErr_SetString(PyExc_TypeError,
-		                "matrix.to_translation(): "
+		                "Matrix.to_translation(): "
 		                "inappropriate matrix size");
 		return NULL;
 	}
@@ -933,7 +914,7 @@ static PyObject *Matrix_to_scale(MatrixObject *self)
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if((self->col_size < 3) || (self->row_size < 3)) {
 		PyErr_SetString(PyExc_TypeError,
-		                "matrix.to_scale(): "
+		                "Matrix.to_scale(): "
 		                "inappropriate matrix size, 3x3 minimum size");
 		return NULL;
 	}
@@ -969,7 +950,7 @@ static PyObject *Matrix_invert(MatrixObject *self)
 
 	if(self->row_size != self->col_size){
 		PyErr_SetString(PyExc_TypeError,
-		                "matrix.invert(ed): "
+		                "Matrix.invert(ed): "
 		                "only square matrices are supported");
 		return NULL;
 	}
@@ -1005,6 +986,7 @@ static PyObject *Matrix_invert(MatrixObject *self)
 	}
 	else {
 		PyErr_SetString(PyExc_ValueError,
+		                "Matrix.invert(ed): "
 		                "matrix does not have an inverse");
 		return NULL;
 	}
@@ -1050,7 +1032,8 @@ static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
 
 	if(self->col_size != 3 || self->row_size != 3) {
 		PyErr_SetString(PyExc_TypeError,
-		                "Matrix must have 3x3 dimensions");
+		                "Matrix.rotate(): "
+		                "must have 3x3 dimensions");
 		return NULL;
 	}
 
@@ -1082,7 +1065,7 @@ static PyObject *Matrix_decompose(MatrixObject *self)
 
 	if(self->col_size != 4 || self->row_size != 4) {
 		PyErr_SetString(PyExc_TypeError,
-		                "matrix.decompose(): "
+		                "Matrix.decompose(): "
 		                "inappropriate matrix size - expects 4x4 matrix");
 		return NULL;
 	}
@@ -1125,7 +1108,7 @@ static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
 
 	if(self->row_size != mat2->row_size || self->col_size != mat2->col_size) {
 		PyErr_SetString(PyExc_ValueError,
-		                "matrix.lerp(): "
+		                "Matrix.lerp(): "
 		                "expects both matrix objects of the same dimensions");
 		return NULL;
 	}
@@ -1142,7 +1125,7 @@ static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
 	}
 	else {
 		PyErr_SetString(PyExc_ValueError,
-		                "matrix.lerp(): "
+		                "Matrix.lerp(): "
 		                "only 3x3 and 4x4 matrices supported");
 		return NULL;
 	}
@@ -1168,7 +1151,7 @@ static PyObject *Matrix_determinant(MatrixObject *self)
 
 	if(self->row_size != self->col_size){
 		PyErr_SetString(PyExc_TypeError,
-		                "matrix.determinant: "
+		                "Matrix.determinant(): "
 		                "only square matrices are supported");
 		return NULL;
 	}
@@ -1192,7 +1175,7 @@ static PyObject *Matrix_transpose(MatrixObject *self)
 
 	if(self->row_size != self->col_size){
 		PyErr_SetString(PyExc_TypeError,
-		                "matrix.transpose(d): "
+		                "Matrix.transpose(d): "
 		                "only square matrices are supported");
 		return NULL;
 	}
@@ -1261,7 +1244,7 @@ static PyObject *Matrix_identity(MatrixObject *self)
 
 	if(self->row_size != self->col_size){
 		PyErr_SetString(PyExc_TypeError,
-		                "matrix.identity: "
+		                "Matrix.identity(): "
 		                "only square matrices are supported");
 		return NULL;
 	}
@@ -1794,7 +1777,7 @@ static PyObject *Matrix_median_scale_get(MatrixObject *self, void *UNUSED(closur
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if((self->col_size < 3) || (self->row_size < 3)) {
 		PyErr_SetString(PyExc_AttributeError,
-		                "matrix.median_scale: "
+		                "Matrix.median_scale: "
 		                "inappropriate matrix size, 3x3 minimum");
 		return NULL;
 	}
@@ -1816,7 +1799,7 @@ static PyObject *Matrix_is_negative_get(MatrixObject *self, void *UNUSED(closure
 		return PyBool_FromLong(is_negative_m3((float (*)[3])self->contigPtr));
 	else {
 		PyErr_SetString(PyExc_AttributeError,
-		                "matrix.is_negative: "
+		                "Matrix.is_negative: "
 		                "inappropriate matrix size - expects 3x3 or 4x4 matrix");
 		return NULL;
 	}
@@ -1834,7 +1817,7 @@ static PyObject *Matrix_is_orthogonal_get(MatrixObject *self, void *UNUSED(closu
 		return PyBool_FromLong(is_orthogonal_m3((float (*)[3])self->contigPtr));
 	else {
 		PyErr_SetString(PyExc_AttributeError,
-		                "matrix.is_orthogonal: "
+		                "Matrix.is_orthogonal: "
 		                "inappropriate matrix size - expects 3x3 or 4x4 matrix");
 		return NULL;
 	}

@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel
+from blf import gettext as _
 
 
 class RENDER_MT_presets(Menu):
@@ -64,10 +65,10 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
         rd = context.scene.render
 
         row = layout.row()
-        row.operator("render.render", text="Image", icon='RENDER_STILL')
-        row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
+        row.operator("render.render", text=_("Image"), icon='RENDER_STILL')
+        row.operator("render.render", text=_("Animation"), icon='RENDER_ANIMATION').animation = True
 
-        layout.prop(rd, "display_mode", text="Display")
+        layout.prop(rd, "display_mode", text=_("Display"))
 
 
 class RENDER_PT_layers(RenderButtonsPanel, Panel):
@@ -97,25 +98,25 @@ class RENDER_PT_layers(RenderButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(scene, "layers", text="Scene")
+        col.prop(scene, "layers", text=_("Scene"))
         col.label(text="")
-        col.prop(rl, "light_override", text="Light")
-        col.prop(rl, "material_override", text="Material")
+        col.prop(rl, "light_override", text=_("Light"))
+        col.prop(rl, "material_override", text=_("Material"))
 
         col = split.column()
-        col.prop(rl, "layers", text="Layer")
-        col.label(text="Mask Layers:")
+        col.prop(rl, "layers", text=_("Layer"))
+        col.label(text=_("Mask Layers:"))
         col.prop(rl, "layers_zmask", text="")
 
         layout.separator()
-        layout.label(text="Include:")
+        layout.label(text=_("Include:"))
 
         split = layout.split()
 
         col = split.column()
         col.prop(rl, "use_zmask")
         row = col.row()
-        row.prop(rl, "invert_zmask", text="Negate")
+        row.prop(rl, "invert_zmask", text=_("Negate"))
         row.active = rl.use_zmask
         col.prop(rl, "use_all_z")
 
@@ -135,7 +136,7 @@ class RENDER_PT_layers(RenderButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Passes:")
+        col.label(text=_("Passes:"))
         col.prop(rl, "use_pass_combined")
         col.prop(rl, "use_pass_z")
         col.prop(rl, "use_pass_vector")
@@ -623,29 +624,29 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
 
         col = split.column()
         sub = col.column(align=True)
-        sub.label(text="Resolution:")
+        sub.label(text=_("Resolution:"))
         sub.prop(rd, "resolution_x", text="X")
         sub.prop(rd, "resolution_y", text="Y")
         sub.prop(rd, "resolution_percentage", text="")
 
-        sub.label(text="Aspect Ratio:")
+        sub.label(text=_("Aspect Ratio:"))
         sub.prop(rd, "pixel_aspect_x", text="X")
         sub.prop(rd, "pixel_aspect_y", text="Y")
 
         row = col.row()
-        row.prop(rd, "use_border", text="Border")
+        row.prop(rd, "use_border", text=_("Border"))
         sub = row.row()
         sub.active = rd.use_border
-        sub.prop(rd, "use_crop_to_border", text="Crop")
+        sub.prop(rd, "use_crop_to_border", text=_("Crop"))
 
         col = split.column()
         sub = col.column(align=True)
-        sub.label(text="Frame Range:")
-        sub.prop(scene, "frame_start", text="Start")
-        sub.prop(scene, "frame_end", text="End")
-        sub.prop(scene, "frame_step", text="Step")
+        sub.label(text=_("Frame Range:"))
+        sub.prop(scene, "frame_start")
+        sub.prop(scene, "frame_end")
+        sub.prop(scene, "frame_step")
 
-        sub.label(text="Frame Rate:")
+        sub.label(text=_("Frame Rate:"))
         if rd.fps_base == 1:
             fps_rate = round(rd.fps / rd.fps_base)
         else:
@@ -655,7 +656,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
 
         if custom_framerate == True:
-            fps_label_text = "Custom (" + str(fps_rate) + " fps)"
+            fps_label_text = _("Custom (") + str(fps_rate) + " fps)"
         else:
             fps_label_text = str(fps_rate) + " fps"
 
@@ -665,10 +666,10 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
             sub.prop(rd, "fps")
             sub.prop(rd, "fps_base", text="/")
         subrow = sub.row(align=True)
-        subrow.label(text="Time Remapping:")
+        subrow.label(text=_("Time Remapping:"))
         subrow = sub.row(align=True)
-        subrow.prop(rd, "frame_map_old", text="Old")
-        subrow.prop(rd, "frame_map_new", text="New")
+        subrow.prop(rd, "frame_map_old", text=_("Old"))
+        subrow.prop(rd, "frame_map_new", text=_("New"))
 
 
 class RENDER_PT_antialiasing(RenderButtonsPanel, Panel):
@@ -696,7 +697,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rd, "pixel_filter_type", text="")
-        col.prop(rd, "filter_size", text="Size")
+        col.prop(rd, "filter_size", text=_("Size"))
 
 
 class RENDER_PT_motion_blur(RenderButtonsPanel, Panel):
@@ -738,15 +739,15 @@ class RENDER_PT_shading(RenderButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "use_textures", text="Textures")
-        col.prop(rd, "use_shadows", text="Shadows")
-        col.prop(rd, "use_sss", text="Subsurface Scattering")
-        col.prop(rd, "use_envmaps", text="Environment Map")
+        col.prop(rd, "use_textures", text=_("Textures"))
+        col.prop(rd, "use_shadows", text=_("Shadows"))
+        col.prop(rd, "use_sss", text=_("Subsurface Scattering"))
+        col.prop(rd, "use_envmaps", text=_("Environment Map"))
 
         col = split.column()
-        col.prop(rd, "use_raytrace", text="Ray Tracing")
+        col.prop(rd, "use_raytrace", text=_("Ray Tracing"))
         col.prop(rd, "use_color_management")
-        col.prop(rd, "alpha_mode", text="Alpha")
+        col.prop(rd, "alpha_mode", text=_("Alpha"))
 
 
 class RENDER_PT_performance(RenderButtonsPanel, Panel):
@@ -762,18 +763,18 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Threads:")
+        col.label(text=_("Threads:"))
         col.row().prop(rd, "threads_mode", expand=True)
         sub = col.column()
         sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
         sub = col.column(align=True)
-        sub.label(text="Tiles:")
+        sub.label(text=_("Tiles:"))
         sub.prop(rd, "parts_x", text="X")
         sub.prop(rd, "parts_y", text="Y")
 
         col = split.column()
-        col.label(text="Memory:")
+        col.label(text=_("Memory:"))
         sub = col.column()
         sub.enabled = not (rd.use_border or rd.use_full_sample)
         sub.prop(rd, "use_save_buffers")
@@ -783,13 +784,13 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
         sub.prop(rd, "use_free_unused_nodes")
         sub = col.column()
         sub.active = rd.use_raytrace
-        sub.label(text="Acceleration structure:")
+        sub.label(text=_("Acceleration structure:"))
         sub.prop(rd, "raytrace_method", text="")
         if rd.raytrace_method == 'OCTREE':
-            sub.prop(rd, "octree_resolution", text="Resolution")
+            sub.prop(rd, "octree_resolution", text=_("Resolution"))
         else:
-            sub.prop(rd, "use_instances", text="Instances")
-        sub.prop(rd, "use_local_coords", text="Local Coordinates")
+            sub.prop(rd, "use_instances", text=_("Instances"))
+        sub.prop(rd, "use_local_coords", text=_("Local Coordinates"))
 
 
 class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
@@ -808,24 +809,24 @@ class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
         col.prop(rd, "use_compositing")
         col.prop(rd, "use_sequencer")
 
-        split.prop(rd, "dither_intensity", text="Dither", slider=True)
+        split.prop(rd, "dither_intensity", text=_("Dither"), slider=True)
 
         layout.separator()
 
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "use_fields", text="Fields")
+        col.prop(rd, "use_fields", text=_("Fields"))
         sub = col.column()
         sub.active = rd.use_fields
         sub.row().prop(rd, "field_order", expand=True)
-        sub.prop(rd, "use_fields_still", text="Still")
+        sub.prop(rd, "use_fields_still", text=_("Still"))
 
         col = split.column()
         col.prop(rd, "use_edge_enhance")
         sub = col.column()
         sub.active = rd.use_edge_enhance
-        sub.prop(rd, "edge_threshold", text="Threshold", slider=True)
+        sub.prop(rd, "edge_threshold", text=_("Threshold"), slider=True)
         sub.prop(rd, "edge_color", text="")
 
         layout.separator()
@@ -854,26 +855,26 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(rd, "use_stamp_time", text="Time")
-        col.prop(rd, "use_stamp_date", text="Date")
-        col.prop(rd, "use_stamp_render_time", text="RenderTime")
-        col.prop(rd, "use_stamp_frame", text="Frame")
-        col.prop(rd, "use_stamp_scene", text="Scene")
-        col.prop(rd, "use_stamp_camera", text="Camera")
-        col.prop(rd, "use_stamp_lens", text="Lens")
-        col.prop(rd, "use_stamp_filename", text="Filename")
-        col.prop(rd, "use_stamp_marker", text="Marker")
-        col.prop(rd, "use_stamp_sequencer_strip", text="Seq. Strip")
+        col.prop(rd, "use_stamp_time", text=_("Time"))
+        col.prop(rd, "use_stamp_date", text=_("Date"))
+        col.prop(rd, "use_stamp_render_time", text=_("RenderTime"))
+        col.prop(rd, "use_stamp_frame", text=_("Frame"))
+        col.prop(rd, "use_stamp_scene", text=_("Scene"))
+        col.prop(rd, "use_stamp_camera", text=_("Camera"))
+        col.prop(rd, "use_stamp_lens", text=_("Lens"))
+        col.prop(rd, "use_stamp_filename", text=_("Filename"))
+        col.prop(rd, "use_stamp_marker", text=_("Marker"))
+        col.prop(rd, "use_stamp_sequencer_strip", text=_("Seq. Strip"))
 
         col = split.column()
         col.active = rd.use_stamp
         col.prop(rd, "stamp_foreground", slider=True)
         col.prop(rd, "stamp_background", slider=True)
         col.separator()
-        col.prop(rd, "stamp_font_size", text="Font Size")
+        col.prop(rd, "stamp_font_size", text=_("Font Size"))
 
         row = layout.split(percentage=0.2)
-        row.prop(rd, "use_stamp_note", text="Note")
+        row.prop(rd, "use_stamp_note", text=_("Note"))
         sub = row.row()
         sub.active = rd.use_stamp_note
         sub.prop(rd, "stamp_note_text", text="")
@@ -895,7 +896,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 
         col = split.column()
         col.prop(rd, "file_format", text="")
-        col.row().prop(rd, "color_mode", text="Color", expand=True)
+        col.row().prop(rd, "color_mode", text=_("Color"), expand=True)
 
         col = split.column()
         col.prop(rd, "use_file_extension")
@@ -906,11 +907,11 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
             layout.prop(rd, "file_quality", slider=True)
 
         if file_format == 'PNG':
-            layout.prop(rd, "file_quality", slider=True, text="Compression")
+            layout.prop(rd, "file_quality", slider=True, text=_("Compression"))
 
         if file_format in {'OPEN_EXR', 'MULTILAYER'}:
             row = layout.row()
-            row.prop(rd, "exr_codec", text="Codec")
+            row.prop(rd, "exr_codec", text=_("Codec"))
 
             if file_format == 'OPEN_EXR':
                 row = layout.row()
@@ -921,7 +922,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         elif file_format == 'JPEG2000':
             split = layout.split()
             col = split.column()
-            col.label(text="Depth:")
+            col.label(text=_("Depth:"))
             col.row().prop(rd, "jpeg2k_depth", expand=True)
 
             col = split.column()
@@ -934,13 +935,13 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
             split.label("FIXME: hard coded Non-Linear, Gamma:1.0")
             '''
             col = split.column()
-            col.prop(rd, "use_cineon_log", text="Convert to Log")
+            col.prop(rd, "use_cineon_log", text=_("Convert to Log"))
 
             col = split.column(align=True)
             col.active = rd.use_cineon_log
-            col.prop(rd, "cineon_black", text="Black")
-            col.prop(rd, "cineon_white", text="White")
-            col.prop(rd, "cineon_gamma", text="Gamma")
+            col.prop(rd, "cineon_black", text=_("Black"))
+            col.prop(rd, "cineon_white", text=_("White"))
+            col.prop(rd, "cineon_gamma", text=_("Gamma"))
             '''
 
         elif file_format == 'TIFF':
@@ -952,11 +953,11 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
         elif file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
             col = split.column()
-            col.prop(rd, "quicktime_codec_type", text="Video Codec")
-            col.prop(rd, "quicktime_codec_spatial_quality", text="Quality")
+            col.prop(rd, "quicktime_codec_type", text=_("Video Codec"))
+            col.prop(rd, "quicktime_codec_spatial_quality", text=_("Quality"))
 
             # Audio
-            col.prop(rd, "quicktime_audiocodec_type", text="Audio Codec")
+            col.prop(rd, "quicktime_audiocodec_type", text=_("Audio Codec"))
             if rd.quicktime_audiocodec_type != 'No audio':
                 split = layout.split()
                 if rd.quicktime_audiocodec_type == 'LPCM':
@@ -994,7 +995,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
 
         rd = context.scene.render
 
-        layout.menu("RENDER_MT_ffmpeg_presets", text="Presets")
+        layout.menu("RENDER_MT_ffmpeg_presets", text=_("Presets"))
 
         split = layout.split()
         split.prop(rd, "ffmpeg_format")
@@ -1010,22 +1011,22 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Rate:")
-        col.prop(rd, "ffmpeg_minrate", text="Minimum")
-        col.prop(rd, "ffmpeg_maxrate", text="Maximum")
-        col.prop(rd, "ffmpeg_buffersize", text="Buffer")
+        col.label(text=_("Rate:"))
+        col.prop(rd, "ffmpeg_minrate", text=_("Minimum"))
+        col.prop(rd, "ffmpeg_maxrate", text=_("Maximum"))
+        col.prop(rd, "ffmpeg_buffersize", text=_("Buffer"))
 
         col = split.column()
         col.prop(rd, "ffmpeg_autosplit")
-        col.label(text="Mux:")
-        col.prop(rd, "ffmpeg_muxrate", text="Rate")
-        col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
+        col.label(text=_("Mux:"))
+        col.prop(rd, "ffmpeg_muxrate", text=_("Rate"))
+        col.prop(rd, "ffmpeg_packetsize", text=_("Packet Size"))
 
         layout.separator()
 
         # Audio:
         if rd.ffmpeg_format not in {'MP3'}:
-            layout.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
+            layout.prop(rd, "ffmpeg_audio_codec", text=_("Audio Codec"))
 
         row = layout.row()
         row.prop(rd, "ffmpeg_audio_bitrate")
@@ -1067,7 +1068,7 @@ class RENDER_PT_bake(RenderButtonsPanel, Panel):
             col = split.column()
             col.prop(rd, "use_bake_clear")
             col.prop(rd, "bake_margin")
-            col.prop(rd, "bake_quad_split", text="Split")
+            col.prop(rd, "bake_quad_split", text=_("Split"))
 
             col = split.column()
             col.prop(rd, "use_bake_selected_to_active")

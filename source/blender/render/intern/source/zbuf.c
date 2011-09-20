@@ -2864,7 +2864,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	float v1[3], v2[3], v3[3], v4[3], fx, fy;
 	float *rectvz, *dvz, *dimg, *dvec1, *dvec2, *dz, *dz1, *dz2, *rectz;
 	float *minvecbufrect= NULL, *rectweight, *rw, *rectmax, *rm, *ro;
-	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed, totfac;
+	float maxspeedsq= (float)nbd->maxspeed*nbd->maxspeed;
 	int y, x, step, maxspeed=nbd->maxspeed, samples= nbd->samples;
 	int tsktsk= 0;
 	static int firsttime= 1;
@@ -3038,7 +3038,6 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	}
 	
 	memset(newrect, 0, sizeof(float)*xsize*ysize*4);
-	totfac= 0.0f;
 
 	/* accumulate */
 	samples/= 2;

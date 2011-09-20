@@ -519,11 +519,11 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection.");
-	RNA_def_boolean(ot->srna, "linked_handle", 0, "Linked Handle", "Select handles next to the active strip.");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+	RNA_def_boolean(ot->srna, "linked_handle", 0, "Linked Handle", "Select handles next to the active strip");
 	/* for animation this is an enum but atm having an enum isnt useful for us */
-	RNA_def_boolean(ot->srna, "left_right", 0, "Left/Right", "select based on the frame side the cursor is on.");
-	RNA_def_boolean(ot->srna, "linked_time", 0, "Linked Time", "Select other strips at the same time.");
+	RNA_def_boolean(ot->srna, "left_right", 0, "Left/Right", "Select based on the current frame side the cursor is on");
+	RNA_def_boolean(ot->srna, "linked_time", 0, "Linked Time", "Select other strips at the same time");
 }
 
 
@@ -627,7 +627,7 @@ static int sequencer_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select less";
+	ot->name= "Select Less";
 	ot->idname= "SEQUENCER_OT_select_less";
 	ot->description="Shrink the current selection of adjacent selected strips";
 	

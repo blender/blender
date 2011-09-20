@@ -52,7 +52,7 @@ def get_platform(filename):
     platform_tokens = []
     found = False
 
-    for i, token in enumerate(tokens):
+    for token in tokens:
         if not found:
             for platform in platforms:
                 if platform in token.lower():

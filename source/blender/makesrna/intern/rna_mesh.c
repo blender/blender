@@ -90,6 +90,24 @@ void rna_Mesh_update_draw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA 
 	}
 }
 
+
+void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Mesh* me = ptr->data;
+	if ((me->editflag & ME_EDIT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_MASK)) {
+		me->editflag ^= ME_EDIT_PAINT_MASK;
+	}
+	rna_Mesh_update_draw(bmain, scene, ptr);
+}
+
+void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Mesh* me = ptr->data;
+	if ((me->editflag & ME_EDIT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_MASK)) {
+		me->editflag ^= ME_EDIT_VERT_SEL;
+	}
+	rna_Mesh_update_draw(bmain, scene, ptr);
+}
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
 	MVert *mvert= (MVert*)ptr->data;
@@ -1402,6 +1420,9 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
+	//XXX to be deleted soon -- left for now in case we need it for debug
+	//XXX it should be out before Blender 2.6 (after texface to material patch)
+
 	prop= RNA_def_property(srna, "use_image", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TEX);
 	RNA_def_property_ui_text(prop, "Tex", "Render face with texture");
@@ -1467,6 +1488,9 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, transp_items);
 	RNA_def_property_ui_text(prop, "Transparency", "Transparency blending mode");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	//XXX to be deleted soon -- left for now in case we need it for debug
+	//XXX it should be out before Blender 2.6 (after texface to material patch)
 
 	prop= RNA_def_property(srna, "select_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TF_SEL1);
@@ -1701,7 +1725,7 @@ static void rna_def_mesh_vertices(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_vertices_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
 }
 
 /* mesh.edges */
@@ -1720,7 +1744,7 @@ static void rna_def_mesh_edges(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_edges_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
 }
 
 /* mesh.faces */
@@ -1749,7 +1773,7 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_faces_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
 }
 
 /* mesh.vertex_colors */
@@ -1768,16 +1792,16 @@ static void rna_def_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	
 	func= RNA_def_function(srna, "new", "rna_Mesh_vertex_color_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh.");
-	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name.");
-	parm= RNA_def_pointer(func, "layer", "MeshColorLayer", "", "The newly created layer.");
+	RNA_def_function_ui_description(func, "Add a vertex color layer to Mesh");
+	RNA_def_string(func, "name", "Col", 0, "", "Vertex color name");
+	parm= RNA_def_pointer(func, "layer", "MeshColorLayer", "", "The newly created layer");
 	RNA_def_function_return(func, parm);
 	
 /*
 	func= RNA_def_function(srna, "remove", "rna_Mesh_vertex_color_remove");
-	RNA_def_function_ui_description(func, "Remove a vertex color layer.");
+	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove.");
+	parm= RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
@@ -1809,16 +1833,16 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	
 	func= RNA_def_function(srna, "new", "rna_Mesh_uv_texture_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Add a UV texture layer to Mesh.");
-	RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name.");
-	parm= RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer.");
+	RNA_def_function_ui_description(func, "Add a UV texture layer to Mesh");
+	RNA_def_string(func, "name", "UVTex", 0, "", "UV Texture name");
+	parm= RNA_def_pointer(func, "layer", "MeshTextureFaceLayer", "", "The newly created layer");
 	RNA_def_function_return(func, parm);
 
 /*
 	func= RNA_def_function(srna, "remove", "rna_Mesh_uv_layers_remove");
-	RNA_def_function_ui_description(func, "Remove a vertex color layer.");
+	RNA_def_function_ui_description(func, "Remove a vertex color layer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove.");
+	parm= RNA_def_pointer(func, "layer", "Layer", "", "The layer to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 */
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
@@ -2075,8 +2099,14 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_PAINT_MASK);
 	RNA_def_property_ui_text(prop, "Paint Mask", "Face selection masking for painting");
 	RNA_def_property_ui_icon(prop, ICON_FACESEL_HLT, 0);
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_facemask");
 
+	
+	prop= RNA_def_property(srna, "use_paint_mask_vertex", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_VERT_SEL);
+	RNA_def_property_ui_text(prop, "Vertex Selection", "Vertex selection masking for painting (weight paint only)");
+	RNA_def_property_ui_icon(prop, ICON_VERTEXSEL, 0);
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_vertmask");
 
 	/* readonly editmesh info - use for extrude menu */
 	prop= RNA_def_property(srna, "total_vert_sel", PROP_INT, PROP_UNSIGNED);

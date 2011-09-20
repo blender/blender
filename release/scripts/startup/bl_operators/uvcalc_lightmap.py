@@ -531,7 +531,7 @@ def unwrap(operator, context, **kwargs):
         meshes = list({me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if me.faces and me.library is None})
 
     if not meshes:
-        operator.report({'ERROR'}, "No mesh object.")
+        operator.report({'ERROR'}, "No mesh object")
         return {'CANCELLED'}
 
     lightmap_uvpack(meshes, **kwargs)

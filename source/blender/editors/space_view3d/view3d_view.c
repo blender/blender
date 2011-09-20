@@ -1667,7 +1667,7 @@ static void RestoreState(bContext *C, wmWindow *win)
 		win->queue= queue_back;
 	
 	GPU_state_init();
-	GPU_set_tpage(NULL, 0);
+	GPU_set_tpage(NULL, 0, 0);
 
 	glPopAttrib();
 }
@@ -1835,7 +1835,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 #else
 	(void)C; /* unused */
-	BKE_report(op->reports, RPT_ERROR, "Game engine is disabled in this build.");
+	BKE_report(op->reports, RPT_ERROR, "Game engine is disabled in this build");
 	return OPERATOR_CANCELLED;
 #endif
 }

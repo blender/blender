@@ -653,7 +653,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	if (ob->type!=OB_ARMATURE)
 		return OPERATOR_CANCELLED;
 	if (object_data_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature."); //error_libdata();
+		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); //error_libdata();
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -782,7 +782,7 @@ void POSE_OT_visual_transform_apply (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Apply Visual Transform to Pose";
 	ot->idname= "POSE_OT_visual_transform_apply";
-	ot->description= "Apply final constrained position of pose bones to their transform.";
+	ot->description= "Apply final constrained position of pose bones to their transform";
 	
 	/* callbacks */
 	ot->exec= pose_visual_transform_apply_exec;
@@ -1480,7 +1480,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */	
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /* **************** END Posemode stuff ********************** */
@@ -1574,7 +1574,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties s*/
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /* does bones and points */
@@ -2115,8 +2115,8 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis.");
-	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align.");
+	RNA_def_boolean(ot->srna, "axis_flip", 0, "Flip Axis", "Negate the alignment axis");
+	RNA_def_boolean(ot->srna, "axis_only", 0, "Shortest Rotation", "Ignore the axis direction, use the shortest rotation to align");
 }
 
 /* **************** undo for armatures ************** */
@@ -3196,7 +3196,7 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
 static int armature_reveal_exec(bContext *C, wmOperator *UNUSED(op))
@@ -4290,10 +4290,15 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 	
 	/* if the bone cannot be affected, don't do anything */
 	if ((nearBone) && !(nearBone->flag & BONE_UNSELECTABLE)) {
+		Object *ob_act= OBACT;
 		bArmature *arm= ob->data;
 		
-		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
-		if (!(extend) || (base != scene->basact)) {
+		/* since we do unified select, we don't shift+select a bone if the
+		 * armature object was not active yet.
+		 * note, special exception for armature mode so we can do multi-select
+		 * we could check for multi-select explicitly but think its fine to
+		 * always give pradictable behavior in weight paint mode - campbell */
+		if (!(extend) || ((ob_act && ob_act->mode & OB_MODE_WEIGHT_PAINT) == 0)) {
 			ED_pose_deselectall(ob, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 			arm->act_bone= nearBone;
@@ -4324,7 +4329,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		}
 		
 		/* in weightpaint we select the associated vertex group too */
-		if (OBACT && OBACT->mode & OB_MODE_WEIGHT_PAINT) {
+		if (ob_act && ob_act->mode & OB_MODE_WEIGHT_PAINT) {
 			if (nearBone == arm->act_bone) {
 				ED_vgroup_select_by_name(OBACT, nearBone->name);
 				DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
@@ -5061,6 +5066,10 @@ void POSE_OT_select_inverse(wmOperatorType *ot)
 static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int action = RNA_enum_get(op->ptr, "action");
+	
+	Object *ob = NULL;
+	Scene *scene= CTX_data_scene(C);
+	int multipaint = scene->toolsettings->multipaint;
 
 	if (action == SEL_TOGGLE) {
 		action= CTX_DATA_COUNT(C, selected_pose_bones) ? SEL_DESELECT : SEL_SELECT;
@@ -5091,6 +5100,11 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
 	
+	if(multipaint) {
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
@@ -5534,7 +5548,7 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with.");
+	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with");
 }
 
 

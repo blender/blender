@@ -1123,7 +1123,7 @@ static bConstraint *rna_Object_constraints_new(Object *object, int type)
 static void rna_Object_constraints_remove(Object *object, ReportList *reports, bConstraint *con)
 {
 	if(BLI_findindex(&object->constraints, con) == -1) {
-		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in object '%s'.", con->name, object->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Constraint '%s' not found in object '%s'", con->name, object->id.name+2);
 		return;
 	}
 
@@ -1177,7 +1177,7 @@ static void rna_VertexGroup_vertex_add(ID *id, bDeformGroup *def, ReportList *re
 	Object *ob = (Object *)id;
 
 	if(ED_vgroup_object_is_edit_mode(ob)) {
-		BKE_reportf(reports, RPT_ERROR, "VertexGroup.add(): Can't be called while object is in edit mode.");
+		BKE_reportf(reports, RPT_ERROR, "VertexGroup.add(): Can't be called while object is in edit mode");
 		return;
 	}
 
@@ -1192,7 +1192,7 @@ static void rna_VertexGroup_vertex_remove(ID *id, bDeformGroup *dg, ReportList *
 	Object *ob = (Object *)id;
 
 	if(ED_vgroup_object_is_edit_mode(ob)) {
-		BKE_reportf(reports, RPT_ERROR, "VertexGroup.remove(): Can't be called while object is in edit mode.");
+		BKE_reportf(reports, RPT_ERROR, "VertexGroup.remove(): Can't be called while object is in edit mode");
 		return;
 	}
 
@@ -1265,6 +1265,11 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_VertexGroup_name_set");
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA|NA_RENAME, "rna_Object_internal_update_data"); /* update data because modifiers may use [#24761] */
+	
+	prop= RNA_def_property(srna, "lock_weight", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "", "Maintain the relative weights for the group");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", 0);
+	RNA_def_property_update(prop, NC_GEOM|ND_DATA|NA_RENAME, "rna_Object_internal_update_data"); /* update data because modifiers may use [#24761] */
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1272,29 +1277,29 @@ static void rna_def_vertex_group(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex group");
 
 	func= RNA_def_function(srna, "add", "rna_VertexGroup_vertex_add");
-	RNA_def_function_ui_description(func, "Add vertices to the group.");
+	RNA_def_function_ui_description(func, "Add vertices to the group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS|FUNC_USE_SELF_ID);
 	/* TODO, see how array size of 0 works, this shouldnt be used */
-	prop= RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List.", 0, 0); 	 
+	prop= RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List", 0, 0);
 	RNA_def_property_flag(prop, PROP_DYNAMIC|PROP_REQUIRED);
-	prop= RNA_def_float(func, "weight", 0, 0.0f, 1.0f, "", "Vertex weight.", 0.0f, 1.0f);
+	prop= RNA_def_float(func, "weight", 0, 0.0f, 1.0f, "", "Vertex weight", 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop= RNA_def_enum(func, "type", assign_mode_items, 0, "", "Vertex assign mode.");
+	prop= RNA_def_enum(func, "type", assign_mode_items, 0, "", "Vertex assign mode");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "remove", "rna_VertexGroup_vertex_remove");
-	RNA_def_function_ui_description(func, "Remove a vertex from the group.");
+	RNA_def_function_ui_description(func, "Remove a vertex from the group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS|FUNC_USE_SELF_ID);
 	/* TODO, see how array size of 0 works, this shouldnt be used */
-	prop= RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List.", 0, 0); 	 
+	prop= RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "Index List", 0, 0);
 	RNA_def_property_flag(prop, PROP_DYNAMIC|PROP_REQUIRED);
 
 	func= RNA_def_function(srna, "weight", "rna_VertexGroup_weight");
-	RNA_def_function_ui_description(func, "Get a vertex weight from the group.");
+	RNA_def_function_ui_description(func, "Get a vertex weight from the group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS|FUNC_USE_SELF_ID);
-	prop=RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "The index of the vertex.", 0, INT_MAX);
+	prop=RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "The index of the vertex", 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_REQUIRED);
-	prop= RNA_def_float(func, "weight", 0, 0.0f, 1.0f, "", "Vertex weight.", 0.0f, 1.0f);
+	prop= RNA_def_float(func, "weight", 0, 0.0f, 1.0f, "", "Vertex weight", 0.0f, 1.0f);
 	RNA_def_function_return(func, prop);
 }
 
@@ -1588,17 +1593,17 @@ static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_Object_constraints_new");
 	RNA_def_function_ui_description(func, "Add a new constraint to this object");
 	/* object to add */
-	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add.");
+	parm= RNA_def_enum(func, "type", constraint_type_items, 1, "", "Constraint type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint.");
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "New constraint");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "remove", "rna_Object_constraints_remove");
-	RNA_def_function_ui_description(func, "Remove a constraint from this object.");
+	RNA_def_function_ui_description(func, "Remove a constraint from this object");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	/* constraint to remove */
-	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint.");
+	parm= RNA_def_pointer(func, "constraint", "Constraint", "", "Removed constraint");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
@@ -1631,22 +1636,22 @@ static void rna_def_object_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	/* add target */
 	func= RNA_def_function(srna, "new", "rna_Object_modifier_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Add a new modifier.");
-	parm= RNA_def_string(func, "name", "Name", 0, "", "New name for the bone.");
+	RNA_def_function_ui_description(func, "Add a new modifier");
+	parm= RNA_def_string(func, "name", "Name", 0, "", "New name for the bone");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* modifier to add */
-	parm= RNA_def_enum(func, "type", modifier_type_items, 1, "", "Modifier type to add.");
+	parm= RNA_def_enum(func, "type", modifier_type_items, 1, "", "Modifier type to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm= RNA_def_pointer(func, "modifier", "Modifier", "", "Newly created modifier.");
+	parm= RNA_def_pointer(func, "modifier", "Modifier", "", "Newly created modifier");
 	RNA_def_function_return(func, parm);
 
 	/* remove target */
 	func= RNA_def_function(srna, "remove", "rna_Object_modifier_remove");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Remove an existing modifier from the object.");
+	RNA_def_function_ui_description(func, "Remove an existing modifier from the object");
 	/* target to remove*/
-	parm= RNA_def_pointer(func, "modifier", "Modifier", "", "Modifier to remove.");
+	parm= RNA_def_pointer(func, "modifier", "Modifier", "", "Modifier to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
@@ -1709,14 +1714,14 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	
 	/* vertex groups */ // add_vertex_group
 	func= RNA_def_function(srna, "new", "rna_Object_vgroup_new");
-	RNA_def_function_ui_description(func, "Add vertex group to object.");
-	RNA_def_string(func, "name", "Group", 0, "", "Vertex group name."); /* optional */
-	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "New vertex group.");
+	RNA_def_function_ui_description(func, "Add vertex group to object");
+	RNA_def_string(func, "name", "Group", 0, "", "Vertex group name"); /* optional */
+	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "New vertex group");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "remove", "rna_Object_vgroup_remove");
-	RNA_def_function_ui_description(func, "Delete vertex group from object.");
-	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "Vertex group to remove.");
+	RNA_def_function_ui_description(func, "Delete vertex group from object");
+	parm= RNA_def_pointer(func, "group", "VertexGroup", "", "Vertex group to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
@@ -1836,7 +1841,8 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_multi_array(prop, 2, boundbox_dimsize);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_Object_boundbox_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Bound Box", "Objects bound box in object-space coordinates, all values are -1.0 when not available.");
+	RNA_def_property_ui_text(prop, "Bound Box",
+	                         "Objects bound box in object-space coordinates, all values are -1.0 when not available");
 
 	/* parent */
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
@@ -2041,7 +2047,9 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "matrix_basis", PROP_FLOAT, PROP_MATRIX);
 	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Input Matrix", "Matrix access to location, rotation and scale (including deltas), before constraints and parenting are applied.");
+	RNA_def_property_ui_text(prop, "Input Matrix",
+	                         "Matrix access to location, rotation and scale (including deltas), "
+	                         "before constraints and parenting are applied");
 	RNA_def_property_float_funcs(prop, "rna_Object_matrix_basis_get", "rna_Object_matrix_basis_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_internal_update");
 

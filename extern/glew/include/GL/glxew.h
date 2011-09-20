@@ -785,6 +785,21 @@ typedef GLboolean ( * PFNGLXSET3DFXMODEMESAPROC) (GLint mode);
 
 #endif /* GLX_MESA_set_3dfx_mode */
 
+/* ------------------------- GLX_MESA_swap_control ------------------------- */
+
+#ifndef GLX_MESA_swap_control
+#define GLX_MESA_swap_control 1
+
+typedef int ( * PFNGLXGETSWAPINTERVALMESAPROC) (void);
+typedef int ( * PFNGLXSWAPINTERVALMESAPROC) (unsigned int interval);
+
+#define glXGetSwapIntervalMESA GLXEW_GET_FUN(__glewXGetSwapIntervalMESA)
+#define glXSwapIntervalMESA GLXEW_GET_FUN(__glewXSwapIntervalMESA)
+
+#define GLXEW_MESA_swap_control GLXEW_GET_VAR(__GLXEW_MESA_swap_control)
+
+#endif /* GLX_MESA_swap_control */
+
 /* --------------------------- GLX_NV_copy_image --------------------------- */
 
 #ifndef GLX_NV_copy_image
@@ -1385,6 +1400,9 @@ extern PFNGLXRELEASEBUFFERSMESAPROC __glewXReleaseBuffersMESA;
 
 extern PFNGLXSET3DFXMODEMESAPROC __glewXSet3DfxModeMESA;
 
+extern PFNGLXGETSWAPINTERVALMESAPROC __glewXGetSwapIntervalMESA;
+extern PFNGLXSWAPINTERVALMESAPROC __glewXSwapIntervalMESA;
+
 extern PFNGLXCOPYIMAGESUBDATANVPROC __glewXCopyImageSubDataNV;
 
 extern PFNGLXBINDVIDEODEVICENVPROC __glewXBindVideoDeviceNV;
@@ -1504,6 +1522,7 @@ GLXEW_EXPORT GLboolean __GLXEW_MESA_copy_sub_buffer;
 GLXEW_EXPORT GLboolean __GLXEW_MESA_pixmap_colormap;
 GLXEW_EXPORT GLboolean __GLXEW_MESA_release_buffers;
 GLXEW_EXPORT GLboolean __GLXEW_MESA_set_3dfx_mode;
+GLXEW_EXPORT GLboolean __GLXEW_MESA_swap_control;
 GLXEW_EXPORT GLboolean __GLXEW_NV_copy_image;
 GLXEW_EXPORT GLboolean __GLXEW_NV_float_buffer;
 GLXEW_EXPORT GLboolean __GLXEW_NV_multisample_coverage;

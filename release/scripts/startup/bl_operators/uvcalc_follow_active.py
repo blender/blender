@@ -140,7 +140,7 @@ def extend(obj, operator, EXTEND_MODE):
 
     face_act = me.faces.active
     if face_act == -1:
-        operator.report({'ERROR'}, "No active face.")
+        operator.report({'ERROR'}, "No active face")
         return
 
     face_sel = [f for f in me.faces if len(f.vertices) == 4 and f.select]
@@ -152,7 +152,7 @@ def extend(obj, operator, EXTEND_MODE):
             break
 
     if face_act_local_index == -1:
-        operator.report({'ERROR'}, "Active face not selected.")
+        operator.report({'ERROR'}, "Active face not selected")
         return
 
     # Modes

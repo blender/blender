@@ -364,7 +364,7 @@ short ANIM_paste_driver (ReportList *reports, ID *id, const char rna_path[], int
 	
 	/* if the buffer is empty, cannot paste... */
 	if (channeldriver_copypaste_buf == NULL) {
-		BKE_report(reports, RPT_ERROR, "Paste Driver: No Driver to paste.");
+		BKE_report(reports, RPT_ERROR, "Paste Driver: No Driver to paste");
 		return 0;
 	}
 	
@@ -527,7 +527,7 @@ void ANIM_OT_driver_button_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Create drivers for all elements of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Create drivers for all elements of the array");
 }
 
 /* Remove Driver Button Operator ------------------------ */
@@ -579,7 +579,7 @@ void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete drivers for all elements of the array.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Delete drivers for all elements of the array");
 }
 
 /* Copy Driver Button Operator ------------------------ */

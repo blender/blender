@@ -20,10 +20,11 @@
 import bpy
 from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
+from blf import gettext as _
 
 
 class LAMP_MT_sunsky_presets(Menu):
-    bl_label = "Sun & Sky Presets"
+    bl_label = _("Sun & Sky Presets")
     preset_subdir = "sunsky"
     preset_operator = "script.execute_preset"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -93,15 +94,15 @@ class DATA_PT_lamp(DataButtonsPanel, Panel):
         sub.prop(lamp, "energy")
 
         if lamp.type in {'POINT', 'SPOT'}:
-            sub.label(text="Falloff:")
+            sub.label(text=_("Falloff:"))
             sub.prop(lamp, "falloff_type", text="")
             sub.prop(lamp, "distance")
 
             if lamp.falloff_type == 'LINEAR_QUADRATIC_WEIGHTED':
-                col.label(text="Attenuation Factors:")
+                col.label(text=_("Attenuation Factors:"))
                 sub = col.column(align=True)
-                sub.prop(lamp, "linear_attenuation", slider=True, text="Linear")
-                sub.prop(lamp, "quadratic_attenuation", slider=True, text="Quadratic")
+                sub.prop(lamp, "linear_attenuation", slider=True, text=_("Linear"))
+                sub.prop(lamp, "quadratic_attenuation", slider=True, text=_("Quadratic"))
 
             col.prop(lamp, "use_sphere")
 
@@ -111,7 +112,7 @@ class DATA_PT_lamp(DataButtonsPanel, Panel):
 
         col = split.column()
         col.prop(lamp, "use_negative")
-        col.prop(lamp, "use_own_layer", text="This Layer Only")
+        col.prop(lamp, "use_own_layer", text=_("This Layer Only"))
         col.prop(lamp, "use_specular")
         col.prop(lamp, "use_diffuse")
 
@@ -139,34 +140,34 @@ class DATA_PT_sunsky(DataButtonsPanel, Panel):
 
         row = layout.row()
         row.active = lamp.use_sky or lamp.use_atmosphere
-        row.prop(lamp, "atmosphere_turbidity", text="Turbidity")
+        row.prop(lamp, "atmosphere_turbidity", text=_("Turbidity"))
 
         split = layout.split()
 
         col = split.column()
         col.active = lamp.use_sky
-        col.label(text="Blending:")
+        col.label(text=_("Blending:"))
         sub = col.column()
         sub.prop(lamp, "sky_blend_type", text="")
-        sub.prop(lamp, "sky_blend", text="Factor")
+        sub.prop(lamp, "sky_blend", text=_("Factor"))
 
-        col.label(text="Color Space:")
+        col.label(text=_("Color Space:"))
         sub = col.column()
         sub.row().prop(lamp, "sky_color_space", expand=True)
-        sub.prop(lamp, "sky_exposure", text="Exposure")
+        sub.prop(lamp, "sky_exposure", text=_("Exposure"))
 
         col = split.column()
         col.active = lamp.use_sky
-        col.label(text="Horizon:")
+        col.label(text=_("Horizon:"))
         sub = col.column()
-        sub.prop(lamp, "horizon_brightness", text="Brightness")
-        sub.prop(lamp, "spread", text="Spread")
+        sub.prop(lamp, "horizon_brightness", text=_("Brightness"))
+        sub.prop(lamp, "spread", text=_("Spread"))
 
-        col.label(text="Sun:")
+        col.label(text=_("Sun:"))
         sub = col.column()
-        sub.prop(lamp, "sun_brightness", text="Brightness")
-        sub.prop(lamp, "sun_size", text="Size")
-        sub.prop(lamp, "backscattered_light", slider=True, text="Back Light")
+        sub.prop(lamp, "sun_brightness", text=_("Brightness"))
+        sub.prop(lamp, "sun_size", text=_("Size"))
+        sub.prop(lamp, "backscattered_light", slider=True, text=_("Back Light"))
 
         layout.separator()
 
@@ -176,16 +177,16 @@ class DATA_PT_sunsky(DataButtonsPanel, Panel):
 
         col = split.column()
         col.active = lamp.use_atmosphere
-        col.label(text="Intensity:")
-        col.prop(lamp, "sun_intensity", text="Sun")
-        col.prop(lamp, "atmosphere_distance_factor", text="Distance")
+        col.label(text=_("Intensity:"))
+        col.prop(lamp, "sun_intensity", text=_("Sun"))
+        col.prop(lamp, "atmosphere_distance_factor", text=_("Distance"))
 
         col = split.column()
         col.active = lamp.use_atmosphere
-        col.label(text="Scattering:")
+        col.label(text=_("Scattering:"))
         sub = col.column(align=True)
-        sub.prop(lamp, "atmosphere_inscattering", slider=True, text="Inscattering")
-        sub.prop(lamp, "atmosphere_extinction", slider=True, text="Extinction")
+        sub.prop(lamp, "atmosphere_inscattering", slider=True, text=_("Inscattering"))
+        sub.prop(lamp, "atmosphere_extinction", slider=True, text=_("Extinction"))
 
 
 class DATA_PT_shadow(DataButtonsPanel, Panel):
@@ -209,15 +210,15 @@ class DATA_PT_shadow(DataButtonsPanel, Panel):
             split = layout.split()
 
             col = split.column()
-            col.label(text="Form factor sampling:")
+            col.label(text=_("Form factor sampling:"))
 
             sub = col.row(align=True)
 
             if lamp.shape == 'SQUARE':
-                sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
+                sub.prop(lamp, "shadow_ray_samples_x", text=_("Samples"))
             elif lamp.shape == 'RECTANGLE':
-                sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
-                sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
+                sub.prop(lamp, "shadow_ray_samples_x", text=_("Samples X"))
+                sub.prop(lamp, "shadow_ray_samples_y", text=_("Samples Y"))
 
         if lamp.shadow_method != 'NOSHADOW':
             split = layout.split()
@@ -226,34 +227,34 @@ class DATA_PT_shadow(DataButtonsPanel, Panel):
             col.prop(lamp, "shadow_color", text="")
 
             col = split.column()
-            col.prop(lamp, "use_shadow_layer", text="This Layer Only")
+            col.prop(lamp, "use_shadow_layer", text=_("This Layer Only"))
             col.prop(lamp, "use_only_shadow")
 
         if lamp.shadow_method == 'RAY_SHADOW':
             split = layout.split()
 
             col = split.column()
-            col.label(text="Sampling:")
+            col.label(text=_("Sampling:"))
 
             if lamp.type in {'POINT', 'SUN', 'SPOT'}:
                 sub = col.row()
 
-                sub.prop(lamp, "shadow_ray_samples", text="Samples")
-                sub.prop(lamp, "shadow_soft_size", text="Soft Size")
+                sub.prop(lamp, "shadow_ray_samples", text=_("Samples"))
+                sub.prop(lamp, "shadow_soft_size", text=_("Soft Size"))
 
             elif lamp.type == 'AREA':
                 sub = col.row(align=True)
 
                 if lamp.shape == 'SQUARE':
-                    sub.prop(lamp, "shadow_ray_samples_x", text="Samples")
+                    sub.prop(lamp, "shadow_ray_samples_x", text=_("Samples"))
                 elif lamp.shape == 'RECTANGLE':
-                    sub.prop(lamp, "shadow_ray_samples_x", text="Samples X")
-                    sub.prop(lamp, "shadow_ray_samples_y", text="Samples Y")
+                    sub.prop(lamp, "shadow_ray_samples_x", text=_("Samples X"))
+                    sub.prop(lamp, "shadow_ray_samples_y", text=_("Samples Y"))
 
             col.row().prop(lamp, "shadow_ray_sample_method", expand=True)
 
             if lamp.shadow_ray_sample_method == 'ADAPTIVE_QMC':
-                layout.prop(lamp, "shadow_adaptive_threshold", text="Threshold")
+                layout.prop(lamp, "shadow_adaptive_threshold", text=_("Threshold"))
 
             if lamp.type == 'AREA' and lamp.shadow_ray_sample_method == 'CONSTANT_JITTERED':
                 row = layout.row()
@@ -263,44 +264,44 @@ class DATA_PT_shadow(DataButtonsPanel, Panel):
 
         elif lamp.shadow_method == 'BUFFER_SHADOW':
             col = layout.column()
-            col.label(text="Buffer Type:")
+            col.label(text=_("Buffer Type:"))
             col.row().prop(lamp, "shadow_buffer_type", expand=True)
 
             if lamp.shadow_buffer_type in {'REGULAR', 'HALFWAY', 'DEEP'}:
                 split = layout.split()
 
                 col = split.column()
-                col.label(text="Filter Type:")
+                col.label(text=_("Filter Type:"))
                 col.prop(lamp, "shadow_filter_type", text="")
                 sub = col.column(align=True)
-                sub.prop(lamp, "shadow_buffer_soft", text="Soft")
-                sub.prop(lamp, "shadow_buffer_bias", text="Bias")
+                sub.prop(lamp, "shadow_buffer_soft", text=_("Soft"))
+                sub.prop(lamp, "shadow_buffer_bias", text=_("Bias"))
 
                 col = split.column()
-                col.label(text="Sample Buffers:")
+                col.label(text=_("Sample Buffers:"))
                 col.prop(lamp, "shadow_sample_buffers", text="")
                 sub = col.column(align=True)
-                sub.prop(lamp, "shadow_buffer_size", text="Size")
-                sub.prop(lamp, "shadow_buffer_samples", text="Samples")
+                sub.prop(lamp, "shadow_buffer_size", text=_("Size"))
+                sub.prop(lamp, "shadow_buffer_samples", text=_("Samples"))
                 if lamp.shadow_buffer_type == 'DEEP':
                     col.prop(lamp, "compression_threshold")
 
             elif lamp.shadow_buffer_type == 'IRREGULAR':
-                layout.prop(lamp, "shadow_buffer_bias", text="Bias")
+                layout.prop(lamp, "shadow_buffer_bias", text=_("Bias"))
 
             split = layout.split()
 
             col = split.column()
-            col.prop(lamp, "use_auto_clip_start", text="Autoclip Start")
+            col.prop(lamp, "use_auto_clip_start", text=_("Autoclip Start"))
             sub = col.column()
             sub.active = not lamp.use_auto_clip_start
-            sub.prop(lamp, "shadow_buffer_clip_start", text="Clip Start")
+            sub.prop(lamp, "shadow_buffer_clip_start", text=_("Clip Start"))
 
             col = split.column()
-            col.prop(lamp, "use_auto_clip_end", text="Autoclip End")
+            col.prop(lamp, "use_auto_clip_end", text=_("Autoclip End"))
             sub = col.column()
             sub.active = not lamp.use_auto_clip_end
-            sub.prop(lamp, "shadow_buffer_clip_end", text=" Clip End")
+            sub.prop(lamp, "shadow_buffer_clip_end", text=_(" Clip End"))
 
 
 class DATA_PT_area(DataButtonsPanel, Panel):
@@ -325,8 +326,8 @@ class DATA_PT_area(DataButtonsPanel, Panel):
         if (lamp.shape == 'SQUARE'):
             sub.prop(lamp, "size")
         elif (lamp.shape == 'RECTANGLE'):
-            sub.prop(lamp, "size", text="Size X")
-            sub.prop(lamp, "size_y", text="Size Y")
+            sub.prop(lamp, "size", text=_("Size X"))
+            sub.prop(lamp, "size_y", text=_("Size Y"))
 
 
 class DATA_PT_spot(DataButtonsPanel, Panel):
@@ -348,8 +349,8 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
 
         col = split.column()
         sub = col.column()
-        sub.prop(lamp, "spot_size", text="Size")
-        sub.prop(lamp, "spot_blend", text="Blend", slider=True)
+        sub.prop(lamp, "spot_size", text=_("Size"))
+        sub.prop(lamp, "spot_blend", text=_("Blend"), slider=True)
         col.prop(lamp, "use_square")
         col.prop(lamp, "show_cone")
 
@@ -358,9 +359,9 @@ class DATA_PT_spot(DataButtonsPanel, Panel):
         col.prop(lamp, "use_halo")
         sub = col.column(align=True)
         sub.active = lamp.use_halo
-        sub.prop(lamp, "halo_intensity", text="Intensity")
+        sub.prop(lamp, "halo_intensity", text=_("Intensity"))
         if lamp.shadow_method == 'BUFFER_SHADOW':
-            sub.prop(lamp, "halo_step", text="Step")
+            sub.prop(lamp, "halo_step", text=_("Step"))
 
 
 class DATA_PT_falloff_curve(DataButtonsPanel, Panel):

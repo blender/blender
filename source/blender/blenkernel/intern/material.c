@@ -37,12 +37,16 @@
 
 #include <string.h>
 #include <math.h>
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_customdata_types.h"
+#include "DNA_ID.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -56,6 +60,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -188,6 +193,10 @@ void init_material(Material *ma)
 	ma->vol.ms_spread = 0.2f;
 	ma->vol.ms_diff = 1.f;
 	ma->vol.ms_intensity = 1.f;
+	
+	ma->game.flag=0;
+	ma->game.alpha_blend=0;
+	ma->game.face_orientation=0;
 	
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RAYBIAS|MA_TANGENT_STR|MA_ZTRANSP;
 	ma->shade_flag= MA_APPROX_OCCLUSION;
@@ -516,7 +525,7 @@ short *give_totcolp_id(ID *id)
 	return NULL;
 }
 
-static void data_delete_material_index_id(ID *id, int index)
+static void data_delete_material_index_id(ID *id, short index)
 {
 	switch(GS(id->name)) {
 	case ID_ME:
@@ -548,8 +557,9 @@ void material_append_id(ID *id, Material *ma)
 	}
 }
 
-Material *material_pop_id(ID *id, int index, int remove_material_slot)
+Material *material_pop_id(ID *id, int index_i, int remove_material_slot)
 {
+	short index= (short)index_i;
 	Material *ret= NULL;
 	Material ***matar;
 	if((matar= give_matarar_id(id))) {
@@ -592,7 +602,7 @@ Material *material_pop_id(ID *id, int index, int remove_material_slot)
 	return ret;
 }
 
-Material *give_current_material(Object *ob, int act)
+Material *give_current_material(Object *ob, short act)
 {
 	Material ***matarar, *ma;
 	short *totcolp;
@@ -630,7 +640,7 @@ Material *give_current_material(Object *ob, int act)
 	return ma;
 }
 
-ID *material_from(Object *ob, int act)
+ID *material_from(Object *ob, short act)
 {
 
 	if(ob==NULL) return NULL;
@@ -714,7 +724,7 @@ void test_object_materials(ID *id)
 	}
 }
 
-void assign_material(Object *ob, Material *ma, int act)
+void assign_material(Object *ob, Material *ma, short act)
 {
 	Material *mao, **matar, ***matarar;
 	char *matbits;
@@ -785,9 +795,10 @@ void assign_material(Object *ob, Material *ma, int act)
 }
 
 /* XXX - this calls many more update calls per object then are needed, could be optimized */
-void assign_matarar(struct Object *ob, struct Material ***matar, int totcol)
+void assign_matarar(struct Object *ob, struct Material ***matar, short totcol)
 {
-	int i, actcol_orig= ob->actcol;
+	int actcol_orig= ob->actcol;
+	short i;
 
 	while(object_remove_material_slot(ob)) {};
 
@@ -802,7 +813,7 @@ void assign_matarar(struct Object *ob, struct Material ***matar, int totcol)
 }
 
 
-int find_material_index(Object *ob, Material *ma)
+short find_material_index(Object *ob, Material *ma)
 {
 	Material ***matarar;
 	short a, *totcolp;
@@ -1054,7 +1065,7 @@ int object_remove_material_slot(Object *ob)
 	Material *mao, ***matarar;
 	Object *obt;
 	short *totcolp;
-	int a, actcol;
+	short a, actcol;
 	
 	if(ob==NULL || ob->totcol==0) return FALSE;
 	
@@ -1469,3 +1480,482 @@ void paste_matcopybuf(Material *ma)
 
 	ma->nodetree= ntreeCopyTree(matcopybuf.nodetree);
 }
+
+
+/*********************** texface to material convert functions **********************/
+/* encode all the TF information into a single int */
+static int encode_tfaceflag(MTFace *tf, int convertall)
+{
+	/* calculate the flag */
+	int flag = tf->mode;
+
+	/* options that change the material offline render */	
+	if (!convertall) {
+		flag &= ~TF_OBCOL;
+	}
+
+	/* clean flags that are not being converted */
+	flag &= ~TF_TEX;
+	flag &= ~TF_SHAREDVERT;
+	flag &= ~TF_SHAREDCOL;
+	flag &= ~TF_CONVERTED;
+
+	/* light tface flag is ignored in GLSL mode */
+	flag &= ~TF_LIGHT;
+	
+	/* 15 is how big the flag can be - hardcoded here and in decode_tfaceflag() */
+	flag |= tf->transp << 15;
+	
+	/* increase 1 so flag 0 is different than no flag yet */
+	return flag + 1;
+}
+
+/* set the material options based in the tface flag */
+static void decode_tfaceflag(Material *ma, int flag, int convertall)
+{
+	int alphablend;	
+	GameSettings *game= &ma->game;
+
+	/* flag is shifted in 1 to make 0 != no flag yet (see encode_tfaceflag) */
+	flag -= 1;
+
+	alphablend = flag >> 15; //encoded in the encode_tfaceflag function
+	(*game).flag = 0;
+	
+	/* General Material Options */
+	if ((flag & TF_DYNAMIC)==0) (*game).flag	|= GEMAT_NOPHYSICS;
+	
+	/* Material Offline Rendering Properties */
+	if (convertall) {
+		if (flag & TF_OBCOL) ma->shade_flag |= MA_OBCOLOR;
+	}
+	
+	/* Special Face Properties */
+	if ((flag & TF_TWOSIDE)==0) (*game).flag |= GEMAT_BACKCULL;
+	if (flag & TF_INVISIBLE)(*game).flag |= GEMAT_INVISIBLE;
+	if (flag & TF_BMFONT) (*game).flag |= GEMAT_TEXT;
+	
+	/* Face Orientation */
+	if (flag & TF_BILLBOARD) (*game).face_orientation |= GEMAT_HALO;
+	else if (flag & TF_BILLBOARD2) (*game).face_orientation |= GEMAT_BILLBOARD;
+	else if (flag & TF_SHADOW) (*game).face_orientation |= GEMAT_SHADOW;
+	
+	/* Alpha Blend */
+	if (flag & TF_ALPHASORT && ELEM(alphablend, TF_ALPHA, TF_ADD)) (*game).alpha_blend = GEMAT_ALPHA_SORT;
+	else if (alphablend & TF_ALPHA) (*game).alpha_blend = GEMAT_ALPHA;
+	else if (alphablend & TF_ADD) (*game).alpha_blend = GEMAT_ADD;
+	else if (alphablend & TF_CLIP) (*game).alpha_blend = GEMAT_CLIP;
+}
+
+/* boolean check to see if the mesh needs a material */
+static int check_tfaceneedmaterial(int flag)
+{
+	// check if the flags we have are not deprecated != than default material options
+	// also if only flags are visible and collision see if all objects using this mesh have this option in physics
+
+	/* flag is shifted in 1 to make 0 != no flag yet (see encode_tfaceflag) */
+	flag -=1;
+
+	// deprecated flags
+	flag &= ~TF_OBCOL;
+	flag &= ~TF_SHAREDVERT;
+	flag &= ~TF_SHAREDCOL;
+
+	/* light tface flag is ignored in GLSL mode */
+	flag &= ~TF_LIGHT;
+	
+	// automatic detected if tex image has alpha
+	flag &= ~(TF_ALPHA << 15);
+	// automatic detected if using texture
+	flag &= ~TF_TEX;
+
+	// settings for the default NoMaterial
+	if (flag == TF_DYNAMIC)
+		return 0;
+
+	else
+		return 1;
+}
+
+/* return number of digits of an integer */
+// XXX to be optmized or replaced by an equivalent blender internal function
+static int integer_getdigits(int number)
+{
+	int i=0;
+	if (number == 0) return 1;
+
+	while (number != 0){
+		number = (int)(number/10);
+		i++;
+	}
+	return i;
+}
+
+static void calculate_tface_materialname(char *matname, char *newname, int flag)
+{
+	// if flag has only light and collision and material matches those values
+	// you can do strcpy(name, mat_name);
+	// otherwise do:
+	int digits = integer_getdigits(flag);
+	/* clamp the old name, remove the MA prefix and add the .TF.flag suffix
+	e.g. matname = "MALoooooooooooooongName"; newname = "Loooooooooooooon.TF.2" */
+	sprintf(newname, "%.*s.TF.%0*d", MAX_ID_NAME-(digits+5), matname, digits, flag);
+}
+
+/* returns -1 if no match */
+static short mesh_getmaterialnumber(Mesh *me, Material *ma)
+{
+	short a;
+
+	for (a=0; a<me->totcol; a++) {
+		if (me->mat[a] == ma) {
+			return a;
+		}
+	}
+
+	return -1;
+}
+
+/* append material */
+static short mesh_addmaterial(Mesh *me, Material *ma)
+{
+	material_append_id(&me->id, NULL);
+	me->mat[me->totcol-1]= ma;
+
+	id_us_plus(&ma->id);
+
+	return me->totcol-1;
+}
+
+static void set_facetexture_flags(Material *ma, Image *image)
+{
+	if(image) {
+		ma->mode |= MA_FACETEXTURE;
+		/* we could check if the texture has alpha, but then more meshes sharing the same
+		 * material may need it. Let's make it simple. */
+		if(BKE_image_has_alpha(image))
+			ma->mode |= MA_FACETEXTURE_ALPHA;
+	}
+}
+
+/* returns material number */
+static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
+{
+	Material *ma;
+	char idname[MAX_ID_NAME];
+	short mat_nr= -1;
+	
+	/* new material, the name uses the flag*/
+	sprintf(idname, "MAMaterial.TF.%0*d", integer_getdigits(flag), flag);
+	
+	if ((ma= BLI_findstring(&main->mat, idname+2, offsetof(ID, name)+2))) {
+		mat_nr= mesh_getmaterialnumber(me, ma);
+		/* assign the material to the mesh */
+		if(mat_nr == -1) mat_nr= mesh_addmaterial(me, ma);
+
+		/* if needed set "Face Textures [Alpha]" Material options */
+		set_facetexture_flags(ma, tf->tpage);
+	}
+	/* create a new material */
+	else {
+		ma= add_material(idname+2);
+
+		if(ma){
+			printf("TexFace Convert: Material \"%s\" created.\n", idname+2);
+			mat_nr= mesh_addmaterial(me, ma);
+			
+			/* if needed set "Face Textures [Alpha]" Material options */
+			set_facetexture_flags(ma, tf->tpage);
+
+			decode_tfaceflag(ma, flag, 1);
+			// the final decoding will happen after, outside the main loop
+			// for now store the flag into the material and change light/tex/collision 
+			// store the flag as a negative number
+			ma->game.flag = -flag;
+			id_us_min((ID *)ma);	
+		}
+		else printf("Error: Unable to create Material \"%s\" for Mesh \"%s\".", idname+2, me->id.name+2);
+	}
+
+	/* set as converted, no need to go bad to this face */
+	tf->mode |= TF_CONVERTED;	
+	return mat_nr;
+}
+
+/* Function to fully convert materials */
+static void convert_tfacematerial(Main *main, Material *ma)
+{
+	Mesh *me;
+	Material *mat_new;
+	MFace *mf;
+	MTFace *tf;
+	int flag, index;
+	int a;
+	short mat_nr;
+	CustomDataLayer *cdl;
+	char idname[MAX_ID_NAME];
+
+	for(me=main->mesh.first; me; me=me->id.next){
+		/* check if this mesh uses this material */
+		for(a=0;a<me->totcol;a++)
+			if(me->mat[a] == ma) break;
+			
+		/* no material found */
+		if (a == me->totcol) continue;
+
+		/* get the active tface layer */
+		index= CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
+		cdl= (index == -1)? NULL: &me->fdata.layers[index];
+		if (!cdl) continue;
+
+		/* loop over all the faces and stop at the ones that use the material*/
+		for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
+			if(me->mat[mf->mat_nr] != ma) continue;
+
+			/* texface data for this face */
+			tf = ((MTFace*)cdl->data) + a;
+			flag = encode_tfaceflag(tf, 1);
+
+			/* the name of the new material */
+			calculate_tface_materialname(ma->id.name, (char *)&idname, flag);
+
+			if ((mat_new= BLI_findstring(&main->mat, idname+2, offsetof(ID, name)+2))) {
+				/* material already existent, see if the mesh has it */
+				mat_nr = mesh_getmaterialnumber(me, mat_new);
+				/* material is not in the mesh, add it */
+				if(mat_nr == -1) mat_nr= mesh_addmaterial(me, mat_new);
+			}
+			/* create a new material */
+			else {
+				mat_new=copy_material(ma);
+				if(mat_new){
+					/* rename the material*/
+					strcpy(mat_new->id.name, idname);
+					id_us_min((ID *)mat_new);	
+
+					mat_nr= mesh_addmaterial(me, mat_new);
+					decode_tfaceflag(mat_new, flag, 1);
+				}
+				else {
+					printf("Error: Unable to create Material \"%s\" for Mesh \"%s.", idname+2, me->id.name+2);
+					mat_nr = mf->mat_nr;
+					continue;
+				}
+			}
+			
+			/* if the material has a texture but no texture channel
+			 * set "Face Textures [Alpha]" Material options 
+			 * actually we need to run it always, because of old behavior
+			 * of using face texture if any texture channel was present (multitex) */
+			//if((!mat_new->mtex[0]) && (!mat_new->mtex[0]->tex))
+			set_facetexture_flags(mat_new, tf->tpage);
+
+			/* set the material number to the face*/
+			mf->mat_nr = mat_nr;
+		}
+		/* remove material from mesh */
+		for(a=0;a<me->totcol;)
+			if(me->mat[a] == ma) material_pop_id(&me->id, a, 1);else a++;
+	}
+}
+
+
+#define MAT_BGE_DISPUTED -99999
+
+int do_version_tface(Main *main, int fileload)
+{
+	Mesh *me;
+	Material *ma;
+	MFace *mf;
+	MTFace *tf;
+	CustomDataLayer *cdl;
+	int a;
+	int flag;
+	int index;
+
+ 	/* sometimes mesh has no materials but will need a new one. In those
+	 * cases we need to ignore the mf->mat_nr and only look at the face
+	 * mode because it can be zero as uninitialized or the 1st created material
+	 */
+	int nomaterialslots;
+
+	/* alert to user to check the console */
+	int nowarning = 1;
+
+	/* mark all the materials to conversion with a flag
+	 * if there is tface create a complete flag for that storing in flag
+	 * if there is tface and flag > 0: creates a new flag based on this face
+	 * if flags are different set flag to -1  
+	 */
+	
+	/* 1st part: marking mesh materials to update */
+	for(me=main->mesh.first; me; me=me->id.next){
+		if (me->id.lib) continue;
+
+		/* get the active tface layer */
+		index= CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
+		cdl= (index == -1)? NULL: &me->fdata.layers[index];
+		if (!cdl) continue;
+
+		nomaterialslots = (me->totcol==0?1:0);
+		
+		/* loop over all the faces*/
+		for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
+			/* texface data for this face */
+			tf = ((MTFace*)cdl->data) + a;
+
+			/* conversion should happen only once */
+			if (fileload)
+				tf->mode &= ~TF_CONVERTED;
+			else {
+				if((tf->mode & TF_CONVERTED)) continue;
+				else tf->mode |= TF_CONVERTED;
+			}
+			
+			/* no material slots */
+			if(nomaterialslots) {
+				flag = encode_tfaceflag(tf, 1);
+				
+				/* create/find a new material and assign to the face */
+				if (check_tfaceneedmaterial(flag)) {
+					mf->mat_nr= convert_tfacenomaterial(main, me, tf, flag);
+				}
+				/* else mark them as no-material to be reverted to 0 later */
+				else {
+					mf->mat_nr = -1;
+				}
+			}
+			else if(mf->mat_nr < me->totcol) {
+				ma= me->mat[mf->mat_nr];
+				
+				/* no material create one if necessary */
+				if(!ma) {
+					/* find a new material and assign to the face */
+					flag = encode_tfaceflag(tf, 1);
+
+					/* create/find a new material and assign to the face */
+					if (check_tfaceneedmaterial(flag))
+						mf->mat_nr= convert_tfacenomaterial(main, me, tf, flag);
+
+					continue;
+				}
+
+				/* we can't read from this if it comes from a library,
+				 * at doversion time: direct_link might not have happened on it,
+				 * so ma->mtex is not pointing to valid memory yet.
+				 * later we could, but it's better not */
+				else if(ma->id.lib)
+					continue;
+				
+				/* material already marked as disputed */
+				else if(ma->game.flag == MAT_BGE_DISPUTED)
+					continue;
+
+				/* found a material */
+				else {
+					flag = encode_tfaceflag(tf, ((fileload)?0:1));
+
+					/* first time changing this material */
+					if (ma->game.flag == 0)
+						ma->game.flag= -flag;
+			
+					/* mark material as disputed */
+					else if (ma->game.flag != -flag) {
+						ma->game.flag = MAT_BGE_DISPUTED;
+						continue;
+					}
+			
+					/* material ok so far */
+					else {
+						ma->game.flag = -flag;
+						
+						/* some people uses multitexture with TexFace by creating a texture
+						 * channel which not neccessarly the tf->tpage image. But the game engine
+						 * was enabling it. Now it's required to set "Face Texture [Alpha] in the
+						 * material settings. */
+						if(!fileload)
+							set_facetexture_flags(ma, tf->tpage);
+					}
+				}
+			}
+			else
+				continue;
+		}
+
+		/* if we didn't have material slot and now we do, we need to
+		 * make sure the materials are correct */
+		if(nomaterialslots) {
+			if (me->totcol>0) {
+				for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
+					if (mf->mat_nr == -1) {
+						/* texface data for this face */
+						tf = ((MTFace*)cdl->data) + a;
+						mf->mat_nr= convert_tfacenomaterial(main, me, tf, encode_tfaceflag(tf, 1));
+					}
+				}
+			}
+			else {
+				for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
+					mf->mat_nr=0;
+				}
+			}
+		}
+
+	}
+	
+	/* 2nd part - conversion */
+	/* skip library files */
+
+	/* we shouldn't loop through the materials created in the loop. make the loop stop at its original length) */
+	for (ma= main->mat.first, a=0; ma; ma= ma->id.next, a++) {
+		if (ma->id.lib) continue;
+
+		/* disputed material */
+		if (ma->game.flag == MAT_BGE_DISPUTED) {
+			ma->game.flag = 0;
+			if (fileload) {
+				printf("Warning: material \"%s\" skipped - to convert old game texface to material go to the Help menu.\n", ma->id.name+2);
+				nowarning = 0;
+			}
+			else
+				convert_tfacematerial(main, ma);
+			continue;	
+		}
+	
+		/* no conflicts in this material - 90% of cases
+		 * convert from tface system to material */
+		else if (ma->game.flag < 0) {
+			decode_tfaceflag(ma, -(ma->game.flag), 1);
+
+			/* material is good make sure all faces using
+			 * this material are set to converted */
+			if (fileload) {
+				for(me=main->mesh.first; me; me=me->id.next){
+					/* check if this mesh uses this material */
+					for(a=0;a<me->totcol;a++)
+						if(me->mat[a] == ma) break;
+						
+					/* no material found */
+					if (a == me->totcol) continue;
+			
+					/* get the active tface layer */
+					index= CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
+					cdl= (index == -1)? NULL: &me->fdata.layers[index];
+					if (!cdl) continue;
+			
+					/* loop over all the faces and stop at the ones that use the material*/
+					for (a=0, mf=me->mface; a<me->totface; a++, mf++) {
+						if (me->mat[mf->mat_nr] == ma) {
+							/* texface data for this face */
+							tf = ((MTFace*)cdl->data) + a;
+							tf->mode |= TF_CONVERTED;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return nowarning;
+}
+

@@ -376,7 +376,7 @@ float file_shorten_string(char* string, float w, int front)
 			shortened = 1;
 		}
 		if (shortened) {
-			int slen = strlen(s);			
+			int slen = strlen(s);
 			BLI_strncpy(temp+3, s, slen+1);
 			temp[slen+4] = '\0';
 			BLI_strncpy(string, temp, slen+4);
@@ -393,7 +393,7 @@ float file_shorten_string(char* string, float w, int front)
 		if (shortened) {
 			int slen = strlen(string);
 			if (slen > 3) {
-				BLI_strncpy(string+slen-3, "...", 4);				
+				BLI_strncpy(string+slen-3, "...", 4);
 			}
 		}
 	}
@@ -403,7 +403,7 @@ float file_shorten_string(char* string, float w, int front)
 
 float file_string_width(const char* str)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiStyleFontSet(&style->widget);
 	return BLF_width(style->widget.uifont_id, str);
 }
@@ -413,12 +413,12 @@ float file_font_pointsize(void)
 #if 0
 	float s;
 	char tmp[2] = "X";
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiStyleFontSet(&style->widget);
 	s = BLF_height(style->widget.uifont_id, tmp);
 	return style->widget.points;
 #else
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiStyleFontSet(&style->widget);
 	return style->widget.points * UI_DPI_FAC;
 #endif

@@ -17,34 +17,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Sergey Sharybin
  *
  * ***** END GPL LICENSE BLOCK *****
- * Are we little or big endian?  From Harbison&Steele.
- */
-#ifndef BKE_ENDIAN_H
-#define BKE_ENDIAN_H
-
-/** \file BKE_endian.h
- *  \ingroup bke
  */
 
-/**
- * BKE_ENDIANNESS(a) returns 1 if big endian and returns 0 if little endian
- */
-#define BKE_ENDIANNESS(a) {  \
-	union {  \
-		intptr_t l;  \
-		char c[sizeof (intptr_t)];  \
-	} u;  \
-	u.l = 1;  \
-	a = (u.c[sizeof (intptr_t) - 1] == 1) ? 1 : 0;  \
-}
+#ifndef RECAST_C_API_H
+#define RECAST_C_API_H
 
+#ifdef __cplusplus
+extern "C" {
 #endif
 
+int recast_buildMeshAdjacency(unsigned short* polys, const int npolys,
+			const int nverts, const int vertsPerPoly);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // RECAST_C_API_H

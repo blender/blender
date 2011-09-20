@@ -1,3 +1,32 @@
+/*
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
 /** \file blender/editors/sculpt_paint/paint_utils.c
  *  \ingroup edsculpt
  */
@@ -358,6 +387,49 @@ void PAINT_OT_face_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
+
+static int vert_select_all_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	paintvert_deselect_all_visible(ob, RNA_enum_get(op->ptr, "action"), TRUE);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+
+void PAINT_OT_vert_select_all(wmOperatorType *ot)
+{
+	ot->name= "Vertex Selection";
+	ot->description= "Change selection for all vertices";
+	ot->idname= "PAINT_OT_vert_select_all";
+
+	ot->exec= vert_select_all_exec;
+	ot->poll= vert_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
+}
+
+static int vert_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob= CTX_data_active_object(C);
+	paintvert_deselect_all_visible(ob, SEL_INVERT, TRUE);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_inverse(wmOperatorType *ot)
+{
+	ot->name= "Vertex Select Invert";
+	ot->description= "Invert selection of vertices";
+	ot->idname= "PAINT_OT_vert_select_inverse";
+
+	ot->exec= vert_select_inverse_exec;
+	ot->poll= vert_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);
@@ -399,7 +471,7 @@ void PAINT_OT_face_select_hide(wmOperatorType *ot)
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }
 
 static int face_select_reveal_exec(bContext *C, wmOperator *UNUSED(op))
@@ -421,5 +493,5 @@ void PAINT_OT_face_select_reveal(wmOperatorType *ot)
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }

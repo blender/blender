@@ -1000,7 +1000,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 	if (arm->flag & ARM_RESTPOS) {
 		if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE)==0) {
 			// XXX use transform operator reports
-			// BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled.");
+			// BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled");
 			return;
 		}
 	}
@@ -1038,7 +1038,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 
 	if(td != (t->data+t->total)) {
 		// XXX use transform operator reports
-		// BKE_report(op->reports, RPT_DEBUG, "Bone selection count error.");
+		// BKE_report(op->reports, RPT_DEBUG, "Bone selection count error");
 	}
 
 	/* initialise initial auto=ik chainlen's? */
@@ -1983,7 +1983,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	float *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	int count=0, countsel=0, a, totleft;
-	int propmode = t->flag & T_PROP_EDIT;
+	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) : 0;
 	int mirror = 0;
 	short selectmode = ts->selectmode;
 
@@ -2053,7 +2053,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	copy_m3_m4(mtx, t->obedit->obmat);
 	invert_m3_m3(smtx, mtx);
 
-	if(propmode) editmesh_set_connectivity_distance(em, mtx);
+	if(propmode & T_PROP_CONNECTED) {
+		editmesh_set_connectivity_distance(em, mtx);
+	}
 
 	/* detect CrazySpace [tm] */
 	if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
@@ -3406,7 +3408,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				const char sel3= use_handle ? bezt->f3 & SELECT : 0;
 
 				TransDataCurveHandleFlags *hdata = NULL;
-				short h1=1, h2=1;
+				/* short h1=1, h2=1; */ /* UNUSED */
 				
 				/* only include handles if selected, irrespective of the interpolation modes.
 				 * also, only treat handles specially if the center point isn't selected. 
@@ -3416,16 +3418,18 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						hdata = initTransDataCurveHandles(td, bezt);
 						bezt_to_transdata(td++, td2d++, adt, bezt, 0, 1, 1, intvals, mtx, smtx);
 					} 
-					else
-						h1= 0;
+					else {
+						/* h1= 0; */ /* UNUSED */
+					}
 					
 					if (sel3) {
 						if (hdata==NULL)
 							hdata = initTransDataCurveHandles(td, bezt);
 						bezt_to_transdata(td++, td2d++, adt, bezt, 2, 1, 1, intvals, mtx, smtx);
 					} 
-					else
-						h2= 0;
+					else {
+						/* h2= 0; */ /* UNUSED */
+					}
 				}
 				
 				/* only include main vert if selected */

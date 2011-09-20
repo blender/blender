@@ -99,6 +99,7 @@
 
 #include "UI_interface.h"
 #include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "GPU_buffers.h"
 #include "GPU_extensions.h"
@@ -142,6 +143,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BLF_lang_init();
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL, G.factory_startup);
+
+	BLF_lang_set(NULL);
 
 	/* note: there is a bug where python needs initializing before loading the
 	 * startup.blend because it may contain PyDrivers. It also needs to be after
@@ -296,6 +299,8 @@ int WM_init_game(bContext *C)
 
 		WM_operator_name_call(C, "VIEW3D_OT_game_start", WM_OP_EXEC_DEFAULT, NULL);
 
+		sound_exit();
+
 		return 1;
 	}
 	else
@@ -340,7 +345,8 @@ extern void free_fmodifiers_copybuf(void);
 extern void free_posebuf(void); 
 
 /* called in creator.c even... tsk, split this! */
-void WM_exit(bContext *C)
+/* note, doesnt run exit() call WM_exit() for that */
+void WM_exit_ext(bContext *C, const short do_python)
 {
 	wmWindow *win;
 
@@ -376,7 +382,7 @@ void WM_exit(bContext *C)
 	BIF_freeTemplates(C);
 	
 	free_ttfont(); /* bke_font.h */
-	
+
 	free_openrecent();
 	
 	BKE_freecubetable();
@@ -396,6 +402,10 @@ void WM_exit(bContext *C)
 	free_posebuf();
 
 	BLF_exit();
+
+#ifdef INTERNATIONAL
+	BLF_free_unifont();
+#endif
 	
 	ANIM_keyingset_infos_exit();
 	
@@ -406,14 +416,17 @@ void WM_exit(bContext *C)
 	
 
 #ifdef WITH_PYTHON
-	/* XXX - old note */
-	/* before free_blender so py's gc happens while library still exists */
-	/* needed at least for a rare sigsegv that can happen in pydrivers */
+	/* option not to close python so we can use 'atexit' */
+	if(do_python) {
+		/* XXX - old note */
+		/* before free_blender so py's gc happens while library still exists */
+		/* needed at least for a rare sigsegv that can happen in pydrivers */
 
-	/* Update for blender 2.5, move after free_blender because blender now holds references to PyObject's
-	 * so decref'ing them after python ends causes bad problems every time
-	 * the pyDriver bug can be fixed if it happens again we can deal with it then */
-	BPY_python_end();
+		/* Update for blender 2.5, move after free_blender because blender now holds references to PyObject's
+		 * so decref'ing them after python ends causes bad problems every time
+		 * the pyDriver bug can be fixed if it happens again we can deal with it then */
+		BPY_python_end();
+	}
 #endif
 
 	GPU_global_buffer_pool_free();
@@ -458,6 +471,10 @@ void WM_exit(bContext *C)
 		getchar();
 	}
 #endif 
-	exit(G.afbreek==1);
 }
 
+void WM_exit(bContext *C)
+{
+	WM_exit_ext(C, 1);
+	exit(G.afbreek==1);
+}
