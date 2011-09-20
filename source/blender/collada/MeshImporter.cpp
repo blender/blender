@@ -778,7 +778,7 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 								std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
 								Object *ob, const COLLADAFW::UniqueId *geom_uid, 
 								MTex **color_texture, char *layername, MTFace *texture_face,
-								std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, int mat_index)
+								std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, short mat_index)
 {
 	Mesh *me = (Mesh*)ob->data;
 	const COLLADAFW::UniqueId& ma_uid = cmaterial.getReferencedMaterial();

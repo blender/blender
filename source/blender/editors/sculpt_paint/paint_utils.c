@@ -1,5 +1,5 @@
 /*
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -387,6 +387,49 @@ void PAINT_OT_face_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
+
+static int vert_select_all_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	paintvert_deselect_all_visible(ob, RNA_enum_get(op->ptr, "action"), TRUE);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+
+void PAINT_OT_vert_select_all(wmOperatorType *ot)
+{
+	ot->name= "Vertex Selection";
+	ot->description= "Change selection for all vertices";
+	ot->idname= "PAINT_OT_vert_select_all";
+
+	ot->exec= vert_select_all_exec;
+	ot->poll= vert_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
+}
+
+static int vert_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob= CTX_data_active_object(C);
+	paintvert_deselect_all_visible(ob, SEL_INVERT, TRUE);
+	ED_region_tag_redraw(CTX_wm_region(C));
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_vert_select_inverse(wmOperatorType *ot)
+{
+	ot->name= "Vertex Select Invert";
+	ot->description= "Invert selection of vertices";
+	ot->idname= "PAINT_OT_vert_select_inverse";
+
+	ot->exec= vert_select_inverse_exec;
+	ot->poll= vert_paint_poll;
+
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
 static int face_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob= CTX_data_active_object(C);

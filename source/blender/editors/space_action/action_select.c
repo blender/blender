@@ -1139,7 +1139,7 @@ static void mouse_action_keys (bAnimContext *ac, const int mval[2], short select
 static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bAnimContext ac;
-	ARegion *ar;
+	/* ARegion *ar; */ /* UNUSED */
 	short selectmode, column;
 	
 	/* get editor data */
@@ -1147,7 +1147,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 		return OPERATOR_CANCELLED;
 		
 	/* get useful pointers from animation context data */
-	ar= ac.ar;
+	/* ar= ac.ar; */ /* UNUSED */
 
 	/* select mode is either replace (deselect all, then add) or add/extend */
 	if (RNA_boolean_get(op->ptr, "extend"))

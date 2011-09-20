@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Panel
-
+from blf import gettext as _
 
 from bl_ui.properties_physics_common import (
     point_cache_ui,
@@ -59,23 +59,23 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
                 split.enabled = not domain.point_cache.is_baked
 
                 col = split.column()
-                col.label(text="Resolution:")
-                col.prop(domain, "resolution_max", text="Divisions")
-                col.label(text="Time:")
-                col.prop(domain, "time_scale", text="Scale")
-                col.label(text="Border Collisions:")
+                col.label(text=_("Resolution:"))
+                col.prop(domain, "resolution_max", text=_("Divisions"))
+                col.label(text=_("Time:"))
+                col.prop(domain, "time_scale", text=_("Scale"))
+                col.label(text=_("Border Collisions:"))
                 col.prop(domain, "collision_extents", text="")
 
                 col = split.column()
-                col.label(text="Behavior:")
+                col.label(text=_("Behavior:"))
                 col.prop(domain, "alpha")
-                col.prop(domain, "beta", text="Temp. Diff.")
+                col.prop(domain, "beta", text=_("Temp. Diff."))
                 col.prop(domain, "vorticity")
-                col.prop(domain, "use_dissolve_smoke", text="Dissolve")
+                col.prop(domain, "use_dissolve_smoke", text=_("Dissolve"))
                 sub = col.column()
                 sub.active = domain.use_dissolve_smoke
-                sub.prop(domain, "dissolve_speed", text="Time")
-                sub.prop(domain, "use_dissolve_smoke_log", text="Slow")
+                sub.prop(domain, "dissolve_speed", text=_("Time"))
+                sub.prop(domain, "use_dissolve_smoke_log", text_("Slow"))
 
             elif md.smoke_type == 'FLOW':
 
@@ -85,20 +85,20 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
 
                 col = split.column()
                 col.prop(flow, "use_outflow")
-                col.label(text="Particle System:")
+                col.label(text=_("Particle System:"))
                 col.prop_search(flow, "particle_system", ob, "particle_systems", text="")
 
                 sub = col.column()
                 sub.active = not md.flow_settings.use_outflow
 
-                sub.prop(flow, "initial_velocity", text="Initial Velocity")
+                sub.prop(flow, "initial_velocity", text=_("Initial Velocity"))
                 sub = sub.column()
                 sub.active = flow.initial_velocity
-                sub.prop(flow, "velocity_factor", text="Multiplier")
+                sub.prop(flow, "velocity_factor", text=_("Multiplier"))
 
                 sub = split.column()
                 sub.active = not md.flow_settings.use_outflow
-                sub.label(text="Initial Values:")
+                sub.label(text=_("Initial Values:"))
                 sub.prop(flow, "use_absolute")
                 sub.prop(flow, "density")
                 sub.prop(flow, "temperature")
@@ -121,14 +121,14 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text="Flow Group:")
+        col.label(text=_("Flow Group:"))
         col.prop(group, "fluid_group", text="")
 
-        #col.label(text="Effector Group:")
+        #col.label(text=_("Effector Group:"))
         #col.prop(group, "effector_group", text="")
 
         col = split.column()
-        col.label(text="Collision Group:")
+        col.label(text=_("Collision Group:"))
         col.prop(group, "collision_group", text="")
 
 
@@ -157,12 +157,12 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
         split.enabled = not md.point_cache.is_baked
 
         col = split.column()
-        col.label(text="Resolution:")
-        col.prop(md, "amplify", text="Divisions")
+        col.label(text=_("Resolution:"))
+        col.prop(md, "amplify", text=_("Divisions"))
         col.prop(md, "smooth_emitter")
 
         col = split.column()
-        col.label(text="Noise Method:")
+        col.label(text=_("Noise Method:"))
         col.row().prop(md, "noise_type", text="")
         col.prop(md, "strength")
 
@@ -184,7 +184,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
         md = context.smoke.domain_settings
         cache = md.point_cache
 
-        layout.label(text="Compression:")
+        layout.label(text=_("Compression:"))
         layout.prop(md, "point_cache_compress_type", expand=True)
 
         point_cache_ui(self, context, cache, (cache.is_baked is False), 'SMOKE')

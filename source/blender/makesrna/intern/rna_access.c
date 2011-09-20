@@ -43,6 +43,9 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 
+#include "BLF_api.h"
+#include "BLF_translation.h"
+
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
@@ -449,8 +452,10 @@ static const char *rna_ensure_property_identifier(PropertyRNA *prop)
 
 static const char *rna_ensure_property_description(PropertyRNA *prop)
 {
+	const char *description= NULL;
+
 	if(prop->magic == RNA_MAGIC)
-		return prop->description;
+		description= prop->description;
 	else {
 		/* attempt to get the local ID values */
 		IDProperty *idp_ui= rna_idproperty_ui(prop);
@@ -458,19 +463,36 @@ static const char *rna_ensure_property_description(PropertyRNA *prop)
 		if(idp_ui) {
 			IDProperty *item= IDP_GetPropertyTypeFromGroup(idp_ui, "description", IDP_STRING);
 			if(item)
-				return IDP_String(item);
+				description= IDP_String(item);
 		}
 
-		return ((IDProperty*)prop)->name; /* XXX - not correct */
+		if(description == NULL)
+			description= ((IDProperty*)prop)->name; /* XXX - not correct */
 	}
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_TOOLTIPS))
+		description= BLF_gettext(description);
+#endif
+
+	return description;
 }
 
 static const char *rna_ensure_property_name(PropertyRNA *prop)
 {
+	const char *name;
+
 	if(prop->magic == RNA_MAGIC)
-		return prop->name;
+		name= prop->name;
 	else
-		return ((IDProperty*)prop)->name;
+		name= ((IDProperty*)prop)->name;
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
+		name= BLF_gettext(name);
+#endif
+
+	return name;
 }
 
 /* Structs */
@@ -1125,6 +1147,7 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 
 			*totitem= tot;
 		}
+
 	}
 	else {
 		*item= eprop->item;
@@ -1132,6 +1155,45 @@ void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, En
 			*totitem= eprop->totitem;
 	}
 }
+
+void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free)
+{
+	RNA_property_enum_items(C, ptr, prop, item, totitem, free);
+
+#ifdef INTERNATIONAL
+	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE)) {
+		int i;
+		EnumPropertyItem *nitem;
+
+		if(*free) {
+			nitem= *item;
+		} else {
+			int totitem= 0;
+
+			/* count */
+			for(i=0; (*item)[i].identifier; i++)
+				totitem++;
+
+			nitem= MEM_callocN(sizeof(EnumPropertyItem)*(totitem+1), "enum_items_gettexted");
+
+			for(i=0; (*item)[i].identifier; i++)
+				nitem[i]= (*item)[i];
+
+			*free= 1;
+		}
+
+		for(i=0; nitem[i].identifier; i++) {
+			if( nitem[i].name )
+				nitem[i].name = BLF_gettext(nitem[i].name);
+			if( nitem[i].description )
+				nitem[i].description = BLF_gettext(nitem[i].description);
+		}
+
+		*item= nitem;
+	}
+#endif
+}
+
 
 int RNA_property_enum_value(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const char *identifier, int *value)
 {	

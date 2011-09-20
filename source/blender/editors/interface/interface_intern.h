@@ -348,10 +348,6 @@ typedef struct uiSafetyRct {
 
 extern void ui_delete_linkline(uiLinkLine *line, uiBut *but);
 
-extern int ui_translate_buttons(void);
-extern int ui_translate_menus(void);
-extern int ui_translate_tooltips(void);
-
 void ui_fontscale(short *points, float aspect);
 
 extern void ui_block_to_window_fl(const struct ARegion *ar, uiBlock *block, float *x, float *y);

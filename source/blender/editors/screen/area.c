@@ -43,6 +43,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
@@ -1241,7 +1243,7 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 
 static const char *editortype_pup(void)
 {
-	return(
+	const char *types= N_(
 		   "Editor type:%t"
 		   "|3D View %x1"
 
@@ -1276,6 +1278,8 @@ static const char *editortype_pup(void)
 		   
 		   "|Python Console %x18"
 		   );
+
+	return UI_translate_do_iface(types);
 }
 
 static void spacefunc(struct bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
@@ -1297,8 +1301,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 						   editortype_pup(), xco, yco, UI_UNIT_X+10, UI_UNIT_Y, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-						   "Displays current editor type. "
-						   "Click for menu of available types");
+						   UI_translate_do_tooltip(N_("Displays current editor type. Click for menu of available types")));
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	
@@ -1343,10 +1346,10 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 static void region_panels_layout(const bContext *C, ARegion *ar, int vertical, const char *context, int w, int em, int *r_x, int *r_y)
 {
 	ScrArea *sa= CTX_wm_area(C);
+	uiStyle *style= UI_GetStyle();
+	uiBlock *block;
 	PanelType *pt;
 	Panel *panel;
-	uiBlock *block;
-	uiStyle *style= U.uistyles.first;
 	int x, y, miny=0, xco, yco;
 	int open, header, triangle;
 
@@ -1554,7 +1557,7 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 
 void ED_region_header(const bContext *C, ARegion *ar)
 {
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	uiBlock *block;
 	uiLayout *layout;
 	HeaderType *ht;

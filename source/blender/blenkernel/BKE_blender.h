@@ -44,7 +44,7 @@ extern "C" {
  * and keep comment above the defines.
  * Use STRINGIFY() rather than defining with quotes */
 #define BLENDER_VERSION			259
-#define BLENDER_SUBVERSION		2
+#define BLENDER_SUBVERSION		3
 
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0
@@ -53,7 +53,7 @@ extern "C" {
 		/* can be left blank, otherwise a,b,c... etc with no quotes */
 #define BLENDER_VERSION_CHAR
 		/* alpha/beta/rc/release, docs use this */
-#define BLENDER_VERSION_CYCLE	alpha
+#define BLENDER_VERSION_CYCLE	beta
 
 struct ListBase;
 struct MemFile;

@@ -94,7 +94,8 @@ typedef enum GPUBlendMode {
 	GPU_BLEND_SOLID = 0,
 	GPU_BLEND_ADD = 1,
 	GPU_BLEND_ALPHA = 2,
-	GPU_BLEND_CLIP = 4
+	GPU_BLEND_CLIP = 4,
+	GPU_BLEND_ALPHA_SORT = 8
 } GPUBlendMode;
 
 typedef struct GPUNodeStack {
@@ -122,7 +123,7 @@ int GPU_stack_link(GPUMaterial *mat, const char *name, GPUNodeStack *in, GPUNode
 void GPU_material_output_link(GPUMaterial *material, GPUNodeLink *link);
 int GPU_material_drawtype(GPUMaterial *material);
 void GPU_material_enable_alpha(GPUMaterial *material);
-GPUBlendMode GPU_material_blend_mode(GPUMaterial *material, float obcol[4]);
+GPUBlendMode GPU_material_alpha_blend(GPUMaterial *material, float obcol[4]);
 
 /* High level functions to create and use GPU materials */
 

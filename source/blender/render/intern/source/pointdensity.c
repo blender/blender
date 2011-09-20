@@ -107,7 +107,7 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	ParticleSimulationData sim= {NULL};
 	ParticleData *pa=NULL;
 	float cfra = BKE_curframe(re->scene);
-	int i, childexists;
+	int i /*, childexists*/ /* UNUSED */;
 	int total_particles, offset=0;
 	int data_used = point_data_used(pd);
 	float partco[3];
@@ -143,9 +143,11 @@ static void pointdensity_cache_psys(Render *re, PointDensity *pd, Object *ob, Pa
 	pd->totpoints = total_particles;
 	if (data_used & POINT_DATA_VEL) offset = pd->totpoints*3;
 	
+#if 0 /* UNUSED */
 	if (psys->totchild > 0 && !(psys->part->draw & PART_DRAW_PARENT))
 		childexists = 1;
-	
+#endif
+
 	for (i=0, pa=psys->particles; i < total_particles; i++, pa++) {
 
 		state.time = cfra;

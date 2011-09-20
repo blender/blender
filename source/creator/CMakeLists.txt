@@ -356,7 +356,9 @@ if(UNIX AND NOT APPLE)
 		)
 
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			DIRECTORY
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
@@ -430,7 +432,9 @@ elseif(WIN32)
 			DESTINATION ${TARGETDIR_VER}
 		)
 		install(
-			DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			DIRECTORY
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 			DESTINATION ${TARGETDIR_VER}/datafiles
 			PATTERN ".svn" EXCLUDE
 		)
@@ -449,8 +453,10 @@ elseif(WIN32)
 	endif()
 
 	install( # same as linux!, deduplicate
-		DIRECTORY ${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-		DESTINATION ${TARGETDIR_VER}/datafiles/locale
+		DIRECTORY
+			${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+		DESTINATION ${TARGETDIR_VER}/datafiles
 		PATTERN ".svn" EXCLUDE
 	)
 
@@ -670,9 +676,12 @@ elseif(APPLE)
 			DESTINATION ${TARGETDIR_VER}/datafiles
 		)
 
-		install_dir(
-			${CMAKE_SOURCE_DIR}/release/bin/.blender/locale/
-			\${TARGETDIR_VER}/datafiles/locale
+		install(
+			DIRECTORY
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
+				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
+			DESTINATION ${TARGETDIR_VER}/datafiles
+			PATTERN ".svn" EXCLUDE
 		)
 	endif()
 

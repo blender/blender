@@ -239,7 +239,6 @@ int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mesh *me, const char *name, int active_set)
 {
 	EditMesh *em;
-	MCol *mcol;
 	int layernum;
 
 	if(me->edit_mesh) {
@@ -261,8 +260,6 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 		layernum= CustomData_number_of_layers(&me->fdata, CD_MCOL);
 		if(layernum >= MAX_MCOL)
 			return 0;
-
-		mcol= me->mcol;
 
 		if(me->mcol)
 			CustomData_add_layer_named(&me->fdata, CD_MCOL, CD_DUPLICATE, me->mcol, me->totface, name);

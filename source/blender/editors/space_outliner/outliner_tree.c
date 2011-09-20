@@ -1151,7 +1151,7 @@ static int need_add_seq_dup(Sequence *seq)
 
 static void outliner_add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
 {
-	TreeElement *ch;
+	/* TreeElement *ch; */ /* UNUSED */
 	Sequence *p;
 
 	p= seq;
@@ -1162,7 +1162,7 @@ static void outliner_add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *t
 		}
 
 		if(!strcmp(p->strip->stripdata->name, seq->strip->stripdata->name))
-			ch= outliner_add_element(soops, &te->subtree, (void*)p, te, TSE_SEQUENCE, index);
+			/* ch= */ /* UNUSED */ outliner_add_element(soops, &te->subtree, (void*)p, te, TSE_SEQUENCE, index);
 		p= p->next;
 	}
 }

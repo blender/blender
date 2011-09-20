@@ -436,7 +436,7 @@ static void mixdown_draw(bContext *C, wmOperator *op)
 }
 #endif // WITH_AUDASPACE
 
-void SOUND_OT_mixdown(wmOperatorType *ot)
+static void SOUND_OT_mixdown(wmOperatorType *ot)
 {
 #ifdef WITH_AUDASPACE
 	static EnumPropertyItem format_items[] = {

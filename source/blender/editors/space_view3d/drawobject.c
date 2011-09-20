@@ -219,15 +219,12 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
 }
 
-static int check_material_alpha(Base *base, Mesh *me, int glsl)
+static int check_material_alpha(Base *base, int glsl)
 {
 	if(base->flag & OB_FROMDUPLI)
 		return 0;
 
 	if(G.f & G_PICKSEL)
-		return 0;
-			
-	if(me->edit_mesh)
 		return 0;
 	
 	return (glsl || (base->object->dtx & OB_DRAWTRANSP));
@@ -1739,6 +1736,31 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, EditVe
 	dm->release(dm);
 }
 
+/*  draw callback */
+static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+{
+	MVert *mv = &((MVert *)userData)[index];
+
+	if(!(mv->flag & ME_HIDE)) {
+		const char sel= mv->flag & SELECT;
+
+		// TODO define selected color
+		if(sel) {
+			glColor3f(1.0f, 1.0f, 0.0f);
+		}
+		else {
+			glColor3f(0.0f, 0.0f, 0.0f);
+		}
+
+		glVertex3fv(co);
+	}
+}
+
+static void drawSelectedVertices(DerivedMesh *dm, Mesh *me) {
+	glBegin(GL_POINTS);
+	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
+	glEnd();
+}
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; } *data = userData;
@@ -2922,7 +2944,16 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			bglPolygonOffset(rv3d->dist, 0.0);
 		}
 	}
-
+	
+	if(paint_vertsel_test(ob)) {
+		
+		glColor3f(0.0f, 0.0f, 0.0f);
+		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
+		
+		drawSelectedVertices(dm, ob->data);
+		
+		glPointSize(1.0f);
+	}
 	dm->release(dm);
 }
 
@@ -2962,12 +2993,16 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 											scene->customdata_mask);
 
 		if(dt>OB_WIRE) {
-			// no transp in editmode, the fancy draw over goes bad then
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+			check_alpha = check_material_alpha(base, glsl);
+
+			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
+					(check_alpha)? &do_alpha_pass: NULL);
 		}
 
-		draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
+		// transp in editmode makes the fancy draw over go bad
+		if (!do_alpha_pass)
+			draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
 
 		GPU_end_object_materials();
 
@@ -2978,7 +3013,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
 		if(me->totface<=4 || ED_view3d_boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			check_alpha = check_material_alpha(base, me, glsl);
+			check_alpha = check_material_alpha(base, glsl);
 
 			if(dt==OB_SOLID || glsl) {
 				GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
@@ -4020,7 +4055,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if(draw_as==PART_DRAW_PATH){
 		ParticleCacheKey **cache, *path;
-		float *cd2=NULL,*cdata2=NULL;
+		float /* *cd2=NULL, */ /* UNUSED */ *cdata2=NULL;
 
 		/* setup gl flags */
 		if (1) { //ob_dt > OB_WIRE) {
@@ -4088,7 +4123,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 		if(cdata2)
 			MEM_freeN(cdata2);
-		cd2=cdata2=NULL;
+		/* cd2= */ /* UNUSED */ cdata2=NULL;
 
 		glLineWidth(1.0f);
 
@@ -6516,6 +6551,32 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
+static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+{
+	struct {void* offset; MVert *mvert;} *data = userData;
+	MVert *mv = &data->mvert[index];
+	int offset = (intptr_t) data->offset;
+
+	if (!(mv->flag & ME_HIDE)) {
+		WM_set_framebuffer_index_color(offset+index);
+		bglVertex3fv(co);
+	}
+}
+
+static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
+{
+	struct {void* offset; struct MVert *mvert;} data;
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	data.mvert = mvert;
+	data.offset = (void*)(intptr_t) offset;
+	glPointSize( UI_GetThemeValuef(TH_VERTEX_SIZE) );
+	bglBegin(GL_POINTS);
+	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data);
+	bglEnd();
+	glPointSize(1.0);
+}
+
 static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	int offset = (intptr_t) userData;
@@ -6614,6 +6675,17 @@ static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *UNUS
 	}
 }
 
+// must have called WM_set_framebuffer_index_color beforehand
+static int bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index, int *UNUSED(drawSmooth_r))
+{
+	Mesh *me = userData;
+
+	if (!(me->mface[index].flag & ME_HIDE)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
 static void bbs_mesh_solid(Scene *scene, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
@@ -6672,7 +6744,21 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			EM_free_index_arrays();
 		}
 		else {
-			bbs_mesh_solid(scene, ob);
+			Mesh *me= ob->data;
+			if(me->editflag & ME_EDIT_VERT_SEL) {
+				DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
+				glColor3ub(0, 0, 0);
+
+				dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, me, 0, GPU_enable_material, NULL);
+
+				
+				bbs_obmode_mesh_verts(ob, dm, 1);
+				em_vertoffs = me->totvert+1;
+				dm->release(dm);
+			}
+			else {
+				bbs_mesh_solid(scene, ob);
+			}
 		}
 		break;
 	case OB_CURVE:

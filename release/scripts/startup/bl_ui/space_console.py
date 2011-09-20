@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Operator
 from bpy.props import StringProperty
+from blf import gettext as _
 
 
 class CONSOLE_HT_header(Header):
@@ -33,7 +34,7 @@ class CONSOLE_HT_header(Header):
         if context.area.show_menus:
             layout.menu("CONSOLE_MT_console")
 
-        layout.operator("console.autocomplete", text="Autocomplete")
+        layout.operator("console.autocomplete", text=_("Autocomplete"))
 
 
 class CONSOLE_MT_console(Menu):

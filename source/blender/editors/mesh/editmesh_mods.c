@@ -266,6 +266,7 @@ int EM_mask_init_backbuf_border(ViewContext *vc, int mcords[][2], short tot, sho
 	/* method in use for face selecting too */
 	if(vc->obedit==NULL) {
 		if(paint_facesel_test(vc->obact));
+		else if(paint_vertsel_test(vc->obact));
 		else return 0;
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
@@ -328,6 +329,7 @@ int EM_init_backbuf_circle(ViewContext *vc, short xs, short ys, short rads)
 	/* method in use for face selecting too */
 	if(vc->obedit==NULL) {
 		if(paint_facesel_test(vc->obact));
+		else if (paint_vertsel_test(vc->obact));
 		else return 0;
 	}
 	else if(vc->v3d->drawtype<OB_SOLID || (vc->v3d->flag & V3D_ZBUF_SELECT)==0) return 0;
@@ -1471,10 +1473,8 @@ static void EM_mesh_copy_face(EditMesh *em, wmOperator *op, short type)
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if (tf_act->tpage) {
 					tf->tpage = tf_act->tpage;
-					tf->mode |= TF_TEX;
 				} else {
 					tf->tpage = NULL;
-					tf->mode &= ~TF_TEX;
 				}
 				tf->tile= tf_act->tile;
 				change = 1;
@@ -1654,10 +1654,8 @@ void EM_mesh_copy_face_layer(EditMesh *em, wmOperator *op, short type)
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if (tf_from->tpage) {
 					tf->tpage = tf_from->tpage;
-					tf->mode |= TF_TEX;
 				} else {
 					tf->tpage = NULL;
-					tf->mode &= ~TF_TEX;
 				}
 				tf->tile= tf_from->tile;
 				change = 1;

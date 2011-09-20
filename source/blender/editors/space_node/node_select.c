@@ -110,7 +110,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	ARegion *ar= CTX_wm_region(C);
 	int mval[2];
 	short extend;
-	bNode *node= NULL;
+	/* bNode *node= NULL; */ /* UNUSED */
 	
 	/* get settings from RNA properties for operator */
 	mval[0] = RNA_int_get(op->ptr, "mouse_x");
@@ -119,7 +119,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 	extend = RNA_boolean_get(op->ptr, "extend");
 	
 	/* perform the select */
-	node= node_mouse_select(bmain, snode, ar, mval, extend);
+	/* node= */ /* UNUSED*/ node_mouse_select(bmain, snode, ar, mval, extend);
 	
 	/* send notifiers */
 	WM_event_add_notifier(C, NC_NODE|NA_SELECTED, NULL);

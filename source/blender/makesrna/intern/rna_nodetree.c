@@ -414,6 +414,7 @@ static void rna_NodeGroupSocket_update(Main *bmain, Scene *scene, PointerRNA *pt
 		node_update(bmain, scene, ntree, node);
 }
 
+#if 0 /* UNUSED */
 static void rna_NodeLink_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
@@ -421,6 +422,7 @@ static void rna_NodeLink_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	ntree->update |= NTREE_UPDATE_LINKS;
 	ntreeUpdateTree(ntree);
 }
+#endif
 
 static void rna_NodeSocketInt_range(PointerRNA *ptr, int *min, int *max)
 {

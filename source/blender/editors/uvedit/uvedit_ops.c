@@ -178,15 +178,12 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 			if(uvedit_face_visible(scene, previma, efa, tf)) {
 				if(ima) {
 					tf->tpage= ima;
-					tf->mode |= TF_TEX;
 					
 					if(ima->id.us==0) id_us_plus(&ima->id);
 					else id_lib_extern(&ima->id);
 				}
-				else {
+				else
 					tf->tpage= NULL;
-					tf->mode &= ~TF_TEX;
-				}
 
 				update = 1;
 			}
@@ -2573,7 +2570,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to");
+	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UVs to");
 }
 
 /* ******************** snap selection operator **************** */
@@ -2815,7 +2812,7 @@ static void UV_OT_snap_selected(wmOperatorType *ot)
 	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to");
+	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UVs to");
 }
 
 /* ******************** pin operator **************** */

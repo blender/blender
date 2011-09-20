@@ -64,6 +64,7 @@
 #include "RNA_enum_types.h"
 
 #include "BKE_DerivedMesh.h"
+#include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -390,25 +391,27 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 {
 	Mesh *me;
-	MFace *mface;
 	MDeformWeight *dw, *uw;
 	int *indexar;
-	int index, vgroup;
-	unsigned int faceverts[5]={0,0,0,0,0};
-	unsigned char i;
-	int vgroup_mirror= -1;
+	unsigned int index;
+	int vgroup, vgroup_mirror= -1;
 	int selected;
 	
+	int use_vert_sel;
+
 	me= ob->data;
 	if(me==NULL || me->totface==0 || me->dvert==NULL || !me->mface) return;
 	
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
+	
+	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	indexar= get_indexarray(me);
 
 	if(selected) {
-		for(index=0, mface=me->mface; index<me->totface; index++, mface++) {
-			if((mface->flag & ME_FACE_SEL)==0)
+		MFace *mf;
+		for(index=0, mf= me->mface; index<me->totface; index++, mf++) {
+			if((mf->flag & ME_FACE_SEL)==0)
 				indexar[index]= 0;
 			else
 				indexar[index]= index+1;
@@ -430,22 +433,25 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	
 	for(index=0; index<me->totface; index++) {
 		if(indexar[index] && indexar[index]<=me->totface) {
-			mface= me->mface + (indexar[index]-1);
-			/* just so we can loop through the verts */
-			faceverts[0]= mface->v1;
-			faceverts[1]= mface->v2;
-			faceverts[2]= mface->v3;
-			faceverts[3]= mface->v4;
-			for (i=0; i<3 || faceverts[i]; i++) {
-				if(!((me->dvert+faceverts[i])->flag)) {
-					dw= defvert_verify_index(me->dvert+faceverts[i], vgroup);
+			MFace *mf= &me->mface[indexar[index]-1];
+			unsigned int fidx= mf->v4 ? 3:2;
+
+			do {
+				unsigned int vidx= *(&mf->v1 + fidx);
+
+				if(!me->dvert[vidx].flag) {
+					if(use_vert_sel && !(me->mvert[vidx].flag & SELECT)) {
+						continue;
+					}
+
+					dw= defvert_verify_index(&me->dvert[vidx], vgroup);
 					if(dw) {
-						uw= defvert_verify_index(wp->wpaint_prev+faceverts[i], vgroup);
+						uw= defvert_verify_index(wp->wpaint_prev+vidx, vgroup);
 						uw->weight= dw->weight; /* set the undo weight */
 						dw->weight= paintweight;
-						
+
 						if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
-							int j= mesh_get_x_mirror_vert(ob, faceverts[i]);
+							int j= mesh_get_x_mirror_vert(ob, vidx);
 							if(j>=0) {
 								/* copy, not paint again */
 								if(vgroup_mirror != -1) {
@@ -460,16 +466,19 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 							}
 						}
 					}
-					(me->dvert+faceverts[i])->flag= 1;
+					me->dvert[vidx].flag= 1;
 				}
-			}
+
+
+			} while (fidx--);
 		}
 	}
-	
-	index=0;
-	while (index<me->totvert) {
-		(me->dvert+index)->flag= 0;
-		index++;
+
+	{
+		MDeformVert *dv= me->dvert;
+		for(index= me->totvert; index != 0; index--, dv++) {
+			dv->flag= 0;
+		}
 	}
 	
 	MEM_freeN(indexar);
@@ -792,7 +801,7 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc, float vpimat[][3], fl
 	return alpha;
 }
 
-static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval, int flip)
+static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval, int flip, int multipaint)
 {
 	Brush *brush = paint_brush(&wp->paint);
 	int tool = brush->vertexpaint_tool;
@@ -830,7 +839,10 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 		if (dw->weight > paintval)
 			dw->weight = paintval*alpha + dw->weight*(1.0f-alpha);
 	}
-	CLAMP(dw->weight, 0.0f, 1.0f);
+	/*  delay clamping until the end so multi-paint can function when the active group is at the limits */
+	if(multipaint == FALSE) {
+		CLAMP(dw->weight, 0.0f, 1.0f);
+	}
 	
 	/* if no spray, clip result with orig weight & orig alpha */
 	if((wp->flag & VP_SPRAY)==0) {
@@ -857,15 +869,17 @@ static void wpaint_blend(VPaint *wp, MDeformWeight *dw, MDeformWeight *uw, float
 			else
 				testw = uw->weight;
 		}
-		CLAMP(testw, 0.0f, 1.0f);
-		
-		if( testw<uw->weight ) {
-			if(dw->weight < testw) dw->weight= testw;
-			else if(dw->weight > uw->weight) dw->weight= uw->weight;
-		}
-		else {
-			if(dw->weight > testw) dw->weight= testw;
-			else if(dw->weight < uw->weight) dw->weight= uw->weight;
+
+		if(multipaint == FALSE) {
+			CLAMP(testw, 0.0f, 1.0f);
+			if( testw<uw->weight ) {
+				if(dw->weight < testw) dw->weight= testw;
+				else if(dw->weight > uw->weight) dw->weight= uw->weight;
+			}
+			else {
+				if(dw->weight > testw) dw->weight= testw;
+				else if(dw->weight < uw->weight) dw->weight= uw->weight;
+			}
 		}
 	}
 	
@@ -980,7 +994,7 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 					const int totgroup= BLI_countlist(&vc.obact->defbase);
 					if(totgroup) {
 						MFace *mf= ((MFace *)me->mface) + index-1;
-						int fidx= mf->v4 ? 3:2;
+						unsigned int fidx= mf->v4 ? 3:2;
 						int *groups= MEM_callocN(totgroup*sizeof(int), "groups");
 						int found= FALSE;
 
@@ -1062,6 +1076,7 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 }
 
 
+#if 0 /* UNUSED */
 static void do_weight_paint_auto_normalize(MDeformVert *dvert, 
 					   int paint_nr, char *map)
 {
@@ -1096,41 +1111,600 @@ static void do_weight_paint_auto_normalize(MDeformVert *dvert,
 		}
 	}
 }
+#endif
 
-static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index, 
-				   float alpha, float paintweight, int flip, 
-				   int vgroup_mirror, char *validmap)
+/* the active group should be involved in auto normalize */
+static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, char *map, char do_auto_normalize)
+{
+//	MDeformWeight *dw = dvert->dw;
+	float sum=0.0f, fac=0.0f;
+	int i, tot=0;
+
+	if (do_auto_normalize == FALSE)
+		return;
+
+	for (i=0; i<dvert->totweight; i++) {
+		if (map[dvert->dw[i].def_nr]) {
+			tot += 1;
+			sum += dvert->dw[i].weight;
+		}
+	}
+	
+	if (!tot || sum == 1.0f)
+		return;
+
+	fac = sum;
+	fac = fac==0.0f ? 1.0f : 1.0f / fac;
+
+	for (i=0; i<dvert->totweight; i++) {
+		if (map[dvert->dw[i].def_nr]) {
+			dvert->dw[i].weight *= fac;
+		}
+	}
+}
+
+/*
+See if the current deform vertex has a locked group
+*/
+static char has_locked_group(MDeformVert *dvert, const char *lock_flags)
+{
+	int i;
+	for(i = 0; i < dvert->totweight; i++) {
+		if(lock_flags[dvert->dw[i].def_nr] && dvert->dw[i].weight > 0.0f) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+/* 
+ * gen_lck_flags gets the status of "flag" for each bDeformGroup
+ *in ob->defbase and returns an array containing them
+ */
+static char *gen_lock_flags(Object* ob, int defbase_tot)
+{
+	char is_locked = FALSE;
+	int i;
+	//int defbase_tot = BLI_countlist(&ob->defbase);
+	char *lock_flags = MEM_mallocN(defbase_tot*sizeof(char), "defflags");
+	bDeformGroup *defgroup;
+
+	for(i = 0, defgroup = ob->defbase.first; i < defbase_tot && defgroup; defgroup = defgroup->next, i++) {
+		lock_flags[i] = ((defgroup->flag & DG_LOCK_WEIGHT) != 0);
+		is_locked |= lock_flags[i];
+	}
+	if(is_locked){
+		return lock_flags;
+	}
+
+	MEM_freeN(lock_flags);
+	return NULL;
+}
+
+static int has_locked_group_selected(int defbase_tot, char *defbase_sel, char *lock_flags)
+{
+	int i;
+	for(i = 0; i < defbase_tot; i++) {
+		if(defbase_sel[i] && lock_flags[i]) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
+#if 0 /* UNUSED */
+static int has_unselected_unlocked_bone_group(int defbase_tot, char *defbase_sel, int selected, char *lock_flags, char *vgroup_validmap)
+{
+	int i;
+	if(defbase_tot == selected) {
+		return FALSE;
+	}
+	for(i = 0; i < defbase_tot; i++) {
+		if(vgroup_validmap[i] && !defbase_sel[i] && !lock_flags[i]) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+#endif
+
+
+static void multipaint_selection(MDeformVert *dvert, float change, char *defbase_sel, int defbase_tot)
+{
+	int i;
+	MDeformWeight *dw;
+	float val;
+	/* make sure they are all at most 1 after the change */
+	for(i = 0; i < defbase_tot; i++) {
+		if(defbase_sel[i]) {
+			dw = defvert_find_index(dvert, i);
+			if(dw && dw->weight) {
+				val = dw->weight * change;
+				if(val > 1) {
+					/* TODO: when the change is reduced, you need to recheck
+					 * the earlier values to make sure they are not 0
+					 * (precision error) */
+					change = 1.0f/dw->weight;
+				}
+				/* the value should never reach zero while multi-painting if it
+				 * was nonzero beforehand */
+				if(val <= 0) {
+					return;
+				}
+			}
+		}
+	}
+	/* apply the valid change */
+	for(i = 0; i < defbase_tot; i++) {
+		if(defbase_sel[i]) {
+			dw = defvert_find_index(dvert, i);
+			if(dw && dw->weight) {
+				dw->weight = dw->weight * change;
+			}
+		}
+	}
+}
+
+/* move all change onto valid, unchanged groups.  If there is change left over,
+ * then return it.
+ * assumes there are valid groups to shift weight onto */
+static float redistribute_change(MDeformVert *ndv, char *change_status, int changeme, int changeto, float totchange, float total_valid, char do_auto_normalize)
+{
+	float was_change;
+	float change;
+	float oldval;
+	MDeformWeight *ndw;
+	int i;
+	do {
+		/* assume there is no change until you see one */
+		was_change = FALSE;
+		/* change each group by the same amount each time */
+		change = totchange/total_valid;
+		for(i = 0; i < ndv->totweight && total_valid && totchange; i++) {
+			ndw = (ndv->dw+i);
+			/* change only the groups with a valid status */
+			if(change_status[ndw->def_nr] == changeme) {
+				oldval = ndw->weight;
+				/* if auto normalize is active, don't worry about upper bounds */
+				if(do_auto_normalize == FALSE && ndw->weight + change > 1) {
+					totchange -= 1-ndw->weight;
+					ndw->weight = 1;
+					/* stop the changes to this group */
+					change_status[ndw->def_nr] = changeto;
+					total_valid--;
+				}
+				else if(ndw->weight + change < 0) { /* check the lower bound */
+					totchange -= ndw->weight;
+					ndw->weight = 0;
+					change_status[ndw->def_nr] = changeto;
+					total_valid--;
+				}
+				else {/* a perfectly valid change occurred to ndw->weight */
+					totchange -= change;
+					ndw->weight += change;
+				}
+				/* see if there was a change */
+				if(oldval != ndw->weight) {
+					was_change = TRUE;
+				}
+			}
+		}
+		/* don't go again if there was no change, if there is no valid group,
+		 * or there is no change left */
+	} while(was_change && total_valid && totchange);
+	/* left overs */
+	return totchange;
+}
+
+/* observe the changes made to the weights of groups.
+ * make sure all locked groups on the vertex have the same deformation
+ * by moving the changes made to groups onto other unlocked groups */
+static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
+                          const char *lock_flags, const char *vgroup_validmap, char do_auto_normalize)
+{
+	float totchange = 0.0f;
+	float totchange_allowed = 0.0f;
+	float left_over;
+
+	int total_valid = 0;
+	int total_changed = 0;
+	unsigned int i;
+	MDeformWeight *ndw;
+	MDeformWeight *odw;
+	MDeformWeight *ndw2;
+	MDeformWeight *odw2;
+	int designatedw = -1;
+	int designatedw_changed = FALSE;
+	float storedw;
+	char *change_status;
+	char new_weight_has_zero = FALSE;
+
+	if(!lock_flags || !has_locked_group(ndv, lock_flags)) {
+		return;
+	}
+	/* record if a group was changed, unlocked and not changed, or locked */
+	change_status = MEM_callocN(sizeof(char)*defbase_tot, "unlocked_unchanged");
+
+	for(i = 0; i < defbase_tot; i++) {
+		ndw = defvert_find_index(ndv, i);
+		odw = defvert_find_index(odv, i);
+		/* the weights are zero, so we can assume a lot */
+		if(!ndw || !odw) {
+			if (!lock_flags[i] && vgroup_validmap[i]){
+				defvert_verify_index(odv, i);
+				defvert_verify_index(ndv, i);
+				total_valid++;
+				change_status[i] = 1; /* can be altered while redistributing */
+			}
+			continue;
+		}
+		/* locked groups should not be changed */
+		if(lock_flags[i]) {
+			ndw->weight = odw->weight;
+		}
+		else if(ndw->weight != odw->weight) { /* changed groups are handled here */
+			totchange += ndw->weight - odw->weight;
+			change_status[i] = 2; /* was altered already */
+			total_changed++;
+			if(ndw->weight == 0) {
+				new_weight_has_zero = TRUE;
+			}
+			else if(designatedw == -1){
+				designatedw = i;
+			}
+		} /* unchanged, unlocked bone groups are handled here */
+		else if (vgroup_validmap[i]){
+			totchange_allowed += ndw->weight;
+			total_valid++;
+			change_status[i] = 1; /* can be altered while redistributing */
+		}
+	}
+	/* if there was any change, redistribute it */
+	if(total_changed) {
+		/* auto normalize will allow weights to temporarily go above 1 in redistribution */
+		if(vgroup_validmap && total_changed < 0 && total_valid) {
+			totchange_allowed = total_valid;
+		}
+		/* there needs to be change allowed, or you should not bother */
+		if(totchange_allowed) {
+			/* the way you modify the unlocked+unchanged groups is different depending
+			 * on whether or not you are painting the weight(s) up or down */
+			if(totchange < 0) {
+				totchange_allowed = total_valid - totchange_allowed;
+			}
+			else {
+				totchange_allowed *= -1;
+			}
+			left_over = 0;
+			if(fabsf(totchange_allowed) < fabsf(totchange)) {
+				/* this amount goes back onto the changed, unlocked weights */
+				left_over = fabsf(fabsf(totchange) - fabsf(totchange_allowed));
+				if(totchange > 0) {
+					left_over *= -1;
+				}
+			}
+			else {
+				/* all of the change will be permitted */
+				totchange_allowed = -totchange;
+			}
+			/* move the weight evenly between the allowed groups, move excess back onto the used groups based on the change */
+			totchange_allowed = redistribute_change(ndv, change_status, 1, -1, totchange_allowed, total_valid, do_auto_normalize);
+			left_over += totchange_allowed;
+			if(left_over) {
+				/* more than one nonzero weights were changed with the same ratio, so keep them changed that way! */
+				if(total_changed > 1 && !new_weight_has_zero && designatedw >= 0) {
+					/* this dw is special, it is used as a base to determine how to change the others */
+					ndw = defvert_find_index(ndv, designatedw);
+					odw = defvert_find_index(odv, designatedw);
+					storedw = ndw->weight;
+					for(i = 0; i < ndv->totweight; i++) {
+						if(change_status[ndw->def_nr] == 2) {
+							odw2 = &odv->dw[i];
+							ndw2 = &ndv->dw[i];
+							if(!designatedw_changed) {
+								ndw->weight = (totchange_allowed + odw->weight + odw2->weight)/(1.0f + ndw2->weight/ndw->weight);
+								designatedw_changed = TRUE;
+							}
+							ndw2->weight = ndw->weight * ndw2->weight / storedw;
+						}
+					}
+				}
+				/* a weight was changed to zero, only one weight was changed,
+				 * or designatedw is still -1 put weight back as evenly as possible */
+				else {
+					redistribute_change(ndv, change_status, 2, -2, left_over, total_changed, do_auto_normalize);
+				}
+			}
+		}
+		else {
+			/* reset the weights */
+			unsigned int i;
+			MDeformWeight *dw_old= odv->dw;
+			MDeformWeight *dw_new= ndv->dw;
+
+			for (i= odv->totweight; i != 0; i--, dw_old++, dw_new++) {
+				dw_new->weight= dw_old->weight;
+			}
+		}
+	}
+
+	MEM_freeN(change_status);
+}
+
+/* multi-paint's initial, potential change is computed here based on the user's stroke */
+static float get_mp_change(MDeformVert *odv, char *defbase_sel, float brush_change)
+{
+	float selwsum = 0.0f;
+	unsigned int i;
+	MDeformWeight *dw= odv->dw;
+
+	for (i= odv->totweight; i != 0; i--, dw++) {
+		if(defbase_sel[dw->def_nr]) {
+			selwsum += dw->weight;
+		}
+	}
+	if(selwsum && selwsum+brush_change > 0) {
+		return (selwsum+brush_change)/selwsum;
+	}
+	return 0.0f;
+}
+
+/* change the weights back to the wv's weights
+ * it assumes you already have the correct pointer index */
+static void reset_to_prev(MDeformVert *wv, MDeformVert *dvert)
+{
+	MDeformWeight *dw= dvert->dw;
+	MDeformWeight *w;
+	unsigned int i;
+	for (i= dvert->totweight; i != 0; i--, dw++) {
+		w= defvert_find_index(wv, dw->def_nr);
+		/* if there was no w when there is a d, then the old weight was 0 */
+		dw->weight = w ? w->weight : 0.0f;
+	}
+}
+
+static void clamp_weights(MDeformVert *dvert)
+{
+	MDeformWeight *dw= dvert->dw;
+	unsigned int i;
+	for (i= dvert->totweight; i != 0; i--, dw++) {
+		CLAMP(dw->weight, 0.0f, 1.0f);
+	}
+}
+
+/* struct to avoid passing many args each call to do_weight_paint_vertex()
+ * this _could_ be made a part of the operators 'WPaintData' struct, or at
+ * least a member, but for now keep its own struct, initialized on every
+ * paint stroke update - campbell */
+typedef struct WeightPaintInfo {
+
+	int defbase_tot;
+
+	/* both must add up to 'defbase_tot' */
+	int defbase_tot_sel;
+	int defbase_tot_unsel;
+
+	int vgroup_mirror; /* mirror group or -1 */
+
+	char *lock_flags;  /* boolean array for locked bones,
+						* length of defbase_tot */
+	char *defbase_sel; /* boolean array for selected bones,
+						* length of defbase_tot */
+
+	char *vgroup_validmap; /* same as WeightPaintData.vgroup_validmap,
+	                        * only added here for convenience */
+
+	char do_flip;
+	char do_multipaint;
+	char do_auto_normalize;
+} WeightPaintInfo;
+
+/* fresh start to make multi-paint and locking modular */
+/* returns TRUE if it thinks you need to reset the weights due to
+ * normalizing while multi-painting */
+static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
+                                    const unsigned int index,
+                                    MDeformWeight *dw, MDeformWeight *tdw,
+                                    float change, float oldChange,
+                                    float oldw, float neww)
+{
+	MDeformVert *dv= &me->dvert[index];
+	MDeformVert dv_test= {NULL};
+
+	dv_test.dw= MEM_dupallocN(dv->dw);
+	dv_test.flag = dv->flag;
+	dv_test.totweight = dv->totweight;
+	/* do not multi-paint if a locked group is selected or the active group is locked
+	 * !lock_flags[dw->def_nr] helps if nothing is selected, but active group is locked */
+	if(		(wpi->lock_flags == NULL) ||
+	        ((wpi->lock_flags[dw->def_nr] == FALSE) &&
+	         has_locked_group_selected(wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags) == FALSE))
+	{
+		if(wpi->do_multipaint && wpi->defbase_tot_sel > 1) {
+			if(change && change!=1) {
+				multipaint_selection(dv, change, wpi->defbase_sel, wpi->defbase_tot);
+			}
+		}
+		else { /* this lets users paint normally, but don't let them paint locked groups */
+			dw->weight = neww;
+		}
+	}
+	clamp_weights(dv);
+
+	enforce_locks(&dv_test, dv, wpi->defbase_tot, wpi->lock_flags, wpi->vgroup_validmap, wpi->do_auto_normalize);
+
+	do_weight_paint_auto_normalize_all_groups(dv, wpi->vgroup_validmap, wpi->do_auto_normalize);
+
+	if(oldChange && wpi->do_multipaint && wpi->defbase_tot_sel > 1) {
+		if(tdw->weight != oldw) {
+			if(neww > oldw) {
+				if(tdw->weight <= oldw) {
+					MEM_freeN(dv_test.dw);
+					return TRUE;
+				}
+			}
+			else {
+				if(tdw->weight >= oldw) {
+					MEM_freeN(dv_test.dw);
+					return TRUE;
+				}
+			}
+		}
+	}
+	MEM_freeN(dv_test.dw);
+	return FALSE;
+}
+
+/* within the current dvert index, get the dw that is selected and has a weight
+ * above 0, this helps multi-paint */
+static int get_first_selected_nonzero_weight(MDeformVert *dvert, char *defbase_sel)
+{
+	int i;
+	MDeformWeight *dw= dvert->dw;
+	for(i=0; i< dvert->totweight; i++, dw++) {
+		if(defbase_sel[dw->def_nr] && dw->weight > 0.0f) {
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+static char *wpaint_make_validmap(Object *ob);
+
+
+static void do_weight_paint_vertex( /* vars which remain the same for every vert */
+                                   VPaint *wp, Object *ob, const WeightPaintInfo *wpi,
+                                    /* vars which change on each stroke */
+                                   const unsigned int index, float alpha, float paintweight
+                                   )
 {
 	Mesh *me= ob->data;
+	
 	MDeformWeight *dw, *uw;
 	int vgroup= ob->actdef-1;
-	
+
 	if(wp->flag & VP_ONLYVGROUP) {
-		dw= defvert_find_index(me->dvert+index, vgroup);
+		dw= defvert_find_index(&me->dvert[index], vgroup);
 		uw= defvert_find_index(wp->wpaint_prev+index, vgroup);
 	}
 	else {
-		dw= defvert_verify_index(me->dvert+index, vgroup);
+		dw= defvert_verify_index(&me->dvert[index], vgroup);
 		uw= defvert_verify_index(wp->wpaint_prev+index, vgroup);
 	}
 	if(dw==NULL || uw==NULL)
 		return;
-	
-	wpaint_blend(wp, dw, uw, alpha, paintweight, flip);
-	do_weight_paint_auto_normalize(me->dvert+index, vgroup, validmap);
 
-	if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
-		int j= mesh_get_x_mirror_vert(ob, index);
-		if(j>=0) {
-			/* copy, not paint again */
-			if(vgroup_mirror != -1)
-				uw= defvert_verify_index(me->dvert+j, vgroup_mirror);
-			else
-				uw= defvert_verify_index(me->dvert+j, vgroup);
+	/* TODO: De-duplicate the simple weight paint - jason */
+	/* ... or not, since its <10 SLOC - campbell */
+
+	/* If there are no locks or multipaint,
+	 * then there is no need to run the more complicated checks */
+	if(		(wpi->do_multipaint == FALSE || wpi->defbase_tot_sel <= 1) &&
+	        (wpi->lock_flags == NULL || has_locked_group(&me->dvert[index], wpi->lock_flags) == FALSE))
+	{
+		wpaint_blend(wp, dw, uw, alpha, paintweight, wpi->do_flip, FALSE);
+		do_weight_paint_auto_normalize_all_groups(&me->dvert[index], wpi->vgroup_validmap, wpi->do_auto_normalize);
+
+		if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
+			int j= mesh_get_x_mirror_vert(ob, index);
+			if(j>=0) {
+				/* copy, not paint again */
+				uw= defvert_verify_index(me->dvert+j, (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : vgroup);
+					
+				uw->weight= dw->weight;
+
+				do_weight_paint_auto_normalize_all_groups(me->dvert+j, wpi->vgroup_validmap, wpi->do_auto_normalize);
+			}
+		}
+	}
+	else {
+		/* use locks and/or multipaint */
+		float oldw;
+		float neww;
+		float testw=0;
+		float change = 0;
+		float oldChange = 0;
+		int i;
+		MDeformWeight *tdw = NULL, *tuw;
+		MDeformVert dv= {NULL};
+
+		oldw = dw->weight;
+		wpaint_blend(wp, dw, uw, alpha, paintweight, wpi->do_flip, wpi->do_multipaint && wpi->defbase_tot_sel >1);
+		neww = dw->weight;
+		dw->weight = oldw;
+		
+		/* setup multi-paint */
+		if(wpi->defbase_tot_sel > 1 && wpi->do_multipaint) {
+			dv.dw= MEM_dupallocN(me->dvert[index].dw);
+			dv.flag = me->dvert[index].flag;
+			dv.totweight = me->dvert[index].totweight;
+			tdw = dw;
+			tuw = uw;
+			change = get_mp_change(wp->wpaint_prev+index, wpi->defbase_sel, neww - oldw);
+			if(change) {
+				if(!tdw->weight) {
+					i = get_first_selected_nonzero_weight(&me->dvert[index], wpi->defbase_sel);
+					if(i>=0) {
+						tdw = &(me->dvert[index].dw[i]);
+						tuw = defvert_verify_index(wp->wpaint_prev+index, tdw->def_nr);
+					}
+					else {
+						change = 0;
+					}
+				}
+				if(change && tuw->weight && tuw->weight * change) {
+					if(tdw->weight != tuw->weight) {
+						oldChange = tdw->weight/tuw->weight;
+						testw = tuw->weight*change;
+						if( testw > tuw->weight ) {
+							if(change > oldChange) {
+								/* reset the weights and use the new change */
+								reset_to_prev(wp->wpaint_prev+index, &me->dvert[index]);
+							}
+							else {
+								/* the old change was more significant, so set
+								 * the change to 0 so that it will not do another multi-paint */
+								change = 0;
+							}
+						}
+						else {
+							if(change < oldChange) {
+								reset_to_prev(wp->wpaint_prev+index, &me->dvert[index]);
+							}
+							else {
+								change = 0;
+							}
+						}
+					}
+				}
+				else {
+					change = 0;
+				}
+			}
+		}
+		
+		if(apply_mp_locks_normalize(me, wpi, index, dw, tdw, change, oldChange, oldw, neww)) {
+			reset_to_prev(&dv, &me->dvert[index]);
+			change = 0;
+			oldChange = 0;
+		}
+		if(dv.dw) {
+			MEM_freeN(dv.dw);
+		}
+		/* dvert may have been altered greatly */
+		dw = defvert_find_index(&me->dvert[index], vgroup);
+
+		if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
+			int j= mesh_get_x_mirror_vert(ob, index);
+			if(j>=0) {
+				/* copy, not paint again */
+				uw= defvert_verify_index(me->dvert+j, (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : vgroup);
 				
-			uw->weight= dw->weight;
-
-			do_weight_paint_auto_normalize(me->dvert+j, vgroup, validmap);
+				//uw->weight= dw->weight;
+				
+				apply_mp_locks_normalize(me, wpi, j, uw, tdw, change, oldChange, oldw, neww);
+			}
 		}
 	}
 }
@@ -1227,16 +1801,15 @@ struct WPaintData {
 	/*variables for auto normalize*/
 	int auto_normalize;
 	char *vgroup_validmap; /*stores if vgroups tie to deforming bones or not*/
+	char *lock_flags;
+	int defbase_tot;
 };
 
 static char *wpaint_make_validmap(Object *ob)
 {
 	bDeformGroup *dg;
 	ModifierData *md;
-	char *validmap;
-	bPose *pose;
-	bPoseChannel *chan;
-	ArmatureModifierData *amd;
+	char *vgroup_validmap;
 	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "wpaint_make_validmap gh");
 	int i = 0, step1=1;
 
@@ -1248,7 +1821,7 @@ static char *wpaint_make_validmap(Object *ob)
 	if (!i)
 		return NULL;
 
-	validmap = MEM_callocN(i, "wpaint valid map");
+	vgroup_validmap= MEM_callocN(i, "wpaint valid map");
 
 	/*now loop through the armature modifiers and identify deform bones*/
 	for (md = ob->modifiers.first; md; md= !md->next && step1 ? (step1=0), modifiers_getVirtualModifierList(ob) : md->next) {
@@ -1257,10 +1830,11 @@ static char *wpaint_make_validmap(Object *ob)
 
 		if (md->type == eModifierType_Armature) 
 		{
-			amd = (ArmatureModifierData*) md;
+			ArmatureModifierData *amd= (ArmatureModifierData*) md;
 
 			if(amd->object && amd->object->pose) {
-				pose = amd->object->pose;
+				bPose *pose= amd->object->pose;
+				bPoseChannel *chan;
 				
 				for (chan=pose->chanbase.first; chan; chan=chan->next) {
 					if (chan->bone->flag & BONE_NO_DEFORM)
@@ -1278,13 +1852,13 @@ static char *wpaint_make_validmap(Object *ob)
 	/*add all names to a hash table*/
 	for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
 		if (BLI_ghash_lookup(gh, dg->name) != NULL) {
-			validmap[i] = 1;
+			vgroup_validmap[i] = TRUE;
 		}
 	}
 
 	BLI_ghash_free(gh, NULL, NULL);
 
-	return validmap;
+	return vgroup_validmap;
 }
 
 static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
@@ -1318,7 +1892,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	/*set up auto-normalize, and generate map for detecting which
 	  vgroups affect deform bones*/
 	wpd->auto_normalize = ts->auto_normalize;
-	if (wpd->auto_normalize)
+	wpd->defbase_tot = BLI_countlist(&ob->defbase);
+	wpd->lock_flags = gen_lock_flags(ob, wpd->defbase_tot);
+	if (wpd->auto_normalize || ts->multipaint || wpd->lock_flags)
 		wpd->vgroup_validmap = wpaint_make_validmap(ob);
 	
 	//	if(qual & LR_CTRLKEY) {
@@ -1385,14 +1961,19 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float mat[4][4];
 	float paintweight;
 	int *indexar;
-	int totindex, index, totw, flip;
+	int totw;
+	unsigned int index, totindex;
 	float alpha;
 	float mval[2], pressure;
-	
+	int use_vert_sel;
+
+	/* intentionally dont initialize as NULL, make sure we initialize all members below */
+	WeightPaintInfo wpi;
+
 	/* cannot paint if there is no stroke data */
 	if (wpd == NULL) {
-		// XXX: force a redraw here, since even though we can't paint, 
-		// at least view won't freeze until stroke ends
+		/* XXX: force a redraw here, since even though we can't paint,
+		 * at least view won't freeze until stroke ends */
 		ED_region_tag_redraw(CTX_wm_region(C));
 		return;
 	}
@@ -1407,17 +1988,39 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	/* load projection matrix */
 	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
 
-	flip = RNA_boolean_get(itemptr, "pen_flip");
 	pressure = RNA_float_get(itemptr, "pressure");
 	RNA_float_get_array(itemptr, "mouse", mval);
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;
-			
+
+
+
+	/* *** setup WeightPaintInfo - pass onto do_weight_paint_vertex *** */
+	wpi.defbase_tot=        wpd->defbase_tot;
+	wpi.defbase_sel=        MEM_mallocN(wpi.defbase_tot*sizeof(char), "wpi.defbase_sel");
+	wpi.defbase_tot_sel=    get_selected_defgroups(ob, wpi.defbase_sel, wpi.defbase_tot);
+	if(wpi.defbase_tot_sel == 0 && ob->actdef) wpi.defbase_tot_sel = 1;
+	wpi.defbase_tot_unsel=  wpi.defbase_tot - wpi.defbase_tot_sel;
+	wpi.vgroup_mirror=      wpd->vgroup_mirror;
+	wpi.lock_flags=         wpd->lock_flags;
+	wpi.vgroup_validmap=    wpd->vgroup_validmap;
+	wpi.do_flip=            RNA_boolean_get(itemptr, "pen_flip");
+	wpi.do_multipaint=      (ts->multipaint != 0);
+	wpi.do_auto_normalize=	(ts->auto_normalize != 0);
+	/* *** done setting up WeightPaintInfo *** */
+
+
+
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
-			
+
+	use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+
 	/* which faces are involved */
 	if(wp->flag & VP_AREA) {
+		/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
+		me->editflag &= ~ME_EDIT_VERT_SEL;
 		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush_size(brush));
+		me->editflag |= use_vert_sel ? ME_EDIT_VERT_SEL : 0;
 	}
 	else {
 		indexar[0]= view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -1460,30 +2063,40 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	for(index=0; index<totindex; index++) {
 		if(indexar[index] && indexar[index]<=me->totface) {
 			MFace *mface= me->mface + (indexar[index]-1);
-					
-			(me->dvert+mface->v1)->flag= 1;
-			(me->dvert+mface->v2)->flag= 1;
-			(me->dvert+mface->v3)->flag= 1;
-			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
+
+			if(use_vert_sel) {
+				me->dvert[mface->v1].flag = (me->mvert[mface->v1].flag & SELECT);
+				me->dvert[mface->v2].flag = (me->mvert[mface->v2].flag & SELECT);
+				me->dvert[mface->v3].flag = (me->mvert[mface->v3].flag & SELECT);
+				if(mface->v4) me->dvert[mface->v4].flag = (me->mvert[mface->v4].flag & SELECT);
+			}
+			else {
+				me->dvert[mface->v1].flag= 1;
+				me->dvert[mface->v2].flag= 1;
+				me->dvert[mface->v3].flag= 1;
+				if(mface->v4) me->dvert[mface->v4].flag= 1;
+			}
 					
 			if(brush->vertexpaint_tool==VP_BLUR) {
 				MDeformWeight *dw, *(*dw_func)(MDeformVert *, const int);
+				unsigned int fidx= mface->v4 ? 3:2;
 						
 				if(wp->flag & VP_ONLYVGROUP)
 					dw_func= (MDeformWeight *(*)(MDeformVert *, const int))defvert_find_index;
 				else
 					dw_func= defvert_verify_index;
-						
-				dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
-				if(dw) {paintweight+= dw->weight; totw++;}
-				dw= dw_func(me->dvert+mface->v2, ob->actdef-1);
-				if(dw) {paintweight+= dw->weight; totw++;}
-				dw= dw_func(me->dvert+mface->v3, ob->actdef-1);
-				if(dw) {paintweight+= dw->weight; totw++;}
-				if(mface->v4) {
-					dw= dw_func(me->dvert+mface->v4, ob->actdef-1);
-					if(dw) {paintweight+= dw->weight; totw++;}
-				}
+
+				do {
+					unsigned int vidx= *(&mface->v1 + fidx);
+
+					dw= dw_func(me->dvert+vidx, ob->actdef-1);
+					if(dw) {
+						paintweight+= dw->weight;
+						totw++;
+					}
+
+				} while (fidx--);
+
 			}
 		}
 	}
@@ -1494,52 +2107,28 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	for(index=0; index<totindex; index++) {
 				
 		if(indexar[index] && indexar[index]<=me->totface) {
-			MFace *mface= me->mface + (indexar[index]-1);
-					
-			if((me->dvert+mface->v1)->flag) {
-				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v1, mval, pressure);
-				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v1, 
-						alpha, paintweight, flip, wpd->vgroup_mirror, 
-						wpd->vgroup_validmap);
-				}
-				(me->dvert+mface->v1)->flag= 0;
-			}
-					
-			if((me->dvert+mface->v2)->flag) {
-				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v2, mval, pressure);
-				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v2, 
-						alpha, paintweight, flip, wpd->vgroup_mirror, 
-						wpd->vgroup_validmap);
-				}
-				(me->dvert+mface->v2)->flag= 0;
-			}
-					
-			if((me->dvert+mface->v3)->flag) {
-				alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v3, mval, pressure);
-				if(alpha) {
-					do_weight_paint_vertex(wp, ob, mface->v3, 
-						alpha, paintweight, flip, wpd->vgroup_mirror, 
-						wpd->vgroup_validmap);
-				}
-				(me->dvert+mface->v3)->flag= 0;
-			}
-					
-			if((me->dvert+mface->v4)->flag) {
-				if(mface->v4) {
-					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*mface->v4, mval, pressure);
+			MFace *mf= me->mface + (indexar[index]-1);
+			unsigned int fidx= mf->v4 ? 3:2;;
+			do {
+				unsigned int vidx= *(&mf->v1 + fidx);
+
+				if(me->dvert[vidx].flag) {
+					alpha= calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos+6*vidx, mval, pressure);
 					if(alpha) {
-						do_weight_paint_vertex(wp, ob, mface->v4, 
-							alpha, paintweight, flip, wpd->vgroup_mirror,
-							wpd->vgroup_validmap);
+						do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight);
 					}
-					(me->dvert+mface->v4)->flag= 0;
+					me->dvert[vidx].flag= 0;
 				}
-			}
+			} while (fidx--);
 		}
 	}
-			
+
+
+	/* *** free wpi members */
+	MEM_freeN(wpi.defbase_sel);
+	/* *** dont freeing wpi members */
+
+
 	swap_m4m4(vc->rv3d->persmat, mat);
 			
 	DAG_id_tag_update(ob->data, 0);
@@ -1559,7 +2148,9 @@ static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 		
 		if (wpd->vgroup_validmap)
 			MEM_freeN(wpd->vgroup_validmap);
-		
+		if(wpd->lock_flags)
+			MEM_freeN(wpd->lock_flags);
+
 		MEM_freeN(wpd);
 	}
 	
@@ -1633,7 +2224,7 @@ static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obact = CTX_data_active_object(C);
 
 	wpaint_fill(scene->toolsettings->wpaint, obact, scene->toolsettings->vgroup_weight);
-	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
+	ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
 	return OPERATOR_FINISHED;
 }
 
@@ -1645,7 +2236,7 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= weight_paint_set_exec;
-	ot->poll= facemask_paint_poll;
+	ot->poll= mask_paint_poll; /* it was facemask_paint_poll */
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1781,12 +2372,12 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	return 1;
 }
 
-static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, int index, const float mval[2], float pressure, int UNUSED(flip))
+static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob, const unsigned int index, const float mval[2], float pressure, int UNUSED(flip))
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = paint_brush(&vp->paint);
 	Mesh *me = get_mesh(ob);
-	MFace *mface= ((MFace*)me->mface) + index;
+	MFace *mface= &me->mface[index];
 	unsigned int *mcol= ((unsigned int*)me->mcol) + 4*index;
 	unsigned int *mcolorig= ((unsigned int*)vp->vpaint_prev) + 4*index;
 	float alpha;

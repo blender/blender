@@ -4290,10 +4290,15 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 	
 	/* if the bone cannot be affected, don't do anything */
 	if ((nearBone) && !(nearBone->flag & BONE_UNSELECTABLE)) {
+		Object *ob_act= OBACT;
 		bArmature *arm= ob->data;
 		
-		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
-		if (!(extend) || (base != scene->basact)) {
+		/* since we do unified select, we don't shift+select a bone if the
+		 * armature object was not active yet.
+		 * note, special exception for armature mode so we can do multi-select
+		 * we could check for multi-select explicitly but think its fine to
+		 * always give pradictable behavior in weight paint mode - campbell */
+		if (!(extend) || ((ob_act && ob_act->mode & OB_MODE_WEIGHT_PAINT) == 0)) {
 			ED_pose_deselectall(ob, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 			arm->act_bone= nearBone;
@@ -4324,7 +4329,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		}
 		
 		/* in weightpaint we select the associated vertex group too */
-		if (OBACT && OBACT->mode & OB_MODE_WEIGHT_PAINT) {
+		if (ob_act && ob_act->mode & OB_MODE_WEIGHT_PAINT) {
 			if (nearBone == arm->act_bone) {
 				ED_vgroup_select_by_name(OBACT, nearBone->name);
 				DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
@@ -5061,6 +5066,10 @@ void POSE_OT_select_inverse(wmOperatorType *ot)
 static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
 	int action = RNA_enum_get(op->ptr, "action");
+	
+	Object *ob = NULL;
+	Scene *scene= CTX_data_scene(C);
+	int multipaint = scene->toolsettings->multipaint;
 
 	if (action == SEL_TOGGLE) {
 		action= CTX_DATA_COUNT(C, selected_pose_bones) ? SEL_DESELECT : SEL_SELECT;
@@ -5091,6 +5100,11 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, NULL);
 	
+	if(multipaint) {
+		ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
+
 	return OPERATOR_FINISHED;
 }
 

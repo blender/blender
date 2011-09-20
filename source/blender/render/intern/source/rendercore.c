@@ -992,7 +992,7 @@ static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
 }
 
 /* adds only alpha values */
-void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
+static void edge_enhance_tile(RenderPart *pa, float *rectf, int *rectz)
 {
 	/* use zbuffer to define edges, add it to the image */
 	int y, x, col, *rz, *rz1, *rz2, *rz3;
@@ -1133,7 +1133,7 @@ typedef struct ZbufSolidData {
 	float *edgerect;
 } ZbufSolidData;
 
-void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
+static void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 {
 	ZbufSolidData *sdata= (ZbufSolidData*)data;
 	ListBase *lb= sdata->psmlist;
@@ -1515,7 +1515,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult shr;
-	float texfac, orthoarea, nor[3], alpha, sx, sy;
+	float /* texfac,*/ /* UNUSED */ orthoarea, nor[3], alpha, sx, sy;
 
 	/* cache for shadow */
 	shi->samplenr= R.shadowsamplenr[shi->thread]++;
@@ -1578,7 +1578,7 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRe
 	VECCOPY(color, shr.combined);
 
 	/* texture blending */
-	texfac= shi->mat->sss_texfac;
+	/* texfac= shi->mat->sss_texfac; */ /* UNUSED */
 
 	alpha= shr.combined[3];
 	*area *= alpha;

@@ -1052,6 +1052,22 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 	}
 }
 
+
+
+/* note: without this, when Multi-Paint is activated/deactivated, the colors
+ * will not change right away when multiple bones are selected, this function
+ * is not for general use and only for the few cases where changing scene
+ * settings and NOT for general purpose updates, possibly this should be
+ * given its own notifier. */
+static void rna_Scene_update_active_object_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Object *ob= OBACT;
+	if(ob) {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_main_add_notifier(NC_OBJECT|ND_DRAW, &ob->id);
+	}
+}
+
 #else
 
 static void rna_def_transform_orientation(BlenderRNA *brna)
@@ -1125,9 +1141,17 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	
 	prop = RNA_def_property(srna, "use_auto_normalize", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "auto_normalize", 1);
-	RNA_def_property_ui_text(prop, "WPaint Auto-Normalize", 
-		"Ensure all bone-deforming vertex groups add up to 1.0 while "
-		 "weight painting");
+	RNA_def_property_ui_text(prop, "WPaint Auto-Normalize",
+	                         "Ensure all bone-deforming vertex groups add up "
+	                         "to 1.0 while weight painting");
+	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
+
+	prop = RNA_def_property(srna, "use_multipaint", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "multipaint", 1);
+	RNA_def_property_ui_text(prop, "WPaint Multi-Paint",
+	                         "Paint across all selected bones while "
+	                         "weight painting");
+	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
 	prop= RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");
@@ -1812,7 +1836,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem material_items[] ={
-		{GAME_MAT_TEXFACE, "TEXTURE_FACE", 0, "Texture Face", "Single texture face materials"},
+		{GAME_MAT_TEXFACE, "SINGLETEXTURE", 0, "Singletexture", "Singletexture face materials"},
 		{GAME_MAT_MULTITEX, "MULTITEXTURE", 0, "Multitexture", "Multitexture materials"},
 		{GAME_MAT_GLSL, "GLSL", 0, "GLSL", "OpenGL shading language shaders"},
 		{0, NULL, 0, NULL, NULL}};

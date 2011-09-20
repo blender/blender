@@ -28,7 +28,7 @@ BL_BlenderShader::BL_BlenderShader(KX_Scene *scene, struct Material *ma, int lig
 	mGPUMat(NULL)
 {
 	mBlenderScene = scene->GetBlenderScene();
-	mBlendMode = GPU_BLEND_SOLID;
+	mAlphaBlend = GPU_BLEND_SOLID;
 
 	ReloadMaterial();
 }
@@ -149,12 +149,12 @@ void BL_BlenderShader::Update(const RAS_MeshSlot & ms, RAS_IRasterizer* rasty )
 
 	GPU_material_bind_uniforms(gpumat, obmat, viewmat, viewinvmat, obcol);
 
-	mBlendMode = GPU_material_blend_mode(gpumat, obcol);
+	mAlphaBlend = GPU_material_alpha_blend(gpumat, obcol);
 }
 
-int BL_BlenderShader::GetBlendMode()
+int BL_BlenderShader::GetAlphaBlend()
 {
-	return mBlendMode;
+	return mAlphaBlend;
 }
 
 bool BL_BlenderShader::Equals(BL_BlenderShader *blshader)
