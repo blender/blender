@@ -1983,7 +1983,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	float *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	int count=0, countsel=0, a, totleft;
-	int propmode = t->flag & T_PROP_EDIT;
+	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) : 0;
 	int mirror = 0;
 	short selectmode = ts->selectmode;
 
@@ -2053,7 +2053,9 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	copy_m3_m4(mtx, t->obedit->obmat);
 	invert_m3_m3(smtx, mtx);
 
-	if(propmode) editmesh_set_connectivity_distance(em, mtx);
+	if(propmode & T_PROP_CONNECTED) {
+		editmesh_set_connectivity_distance(em, mtx);
+	}
 
 	/* detect CrazySpace [tm] */
 	if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
