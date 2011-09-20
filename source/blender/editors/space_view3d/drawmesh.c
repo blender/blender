@@ -518,15 +518,14 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = (Mesh*)userData;
-	Material *ma;
 
 	if (me->mface) {
-		int matnr = me->mface[index].mat_nr;
-		ma = me->mat[matnr];
-	}
+		short matnr= me->mface[index].mat_nr;
+		Material *ma= me->mat[matnr];
 
-	if ( ma && (ma->game.flag & GEMAT_INVISIBLE)) {
-		return 0;
+		if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
+			return 0;
+		}
 	}
 
 	*drawSmooth_r = 1;
