@@ -342,7 +342,8 @@ extern void free_fmodifiers_copybuf(void);
 extern void free_posebuf(void); 
 
 /* called in creator.c even... tsk, split this! */
-void WM_exit(bContext *C)
+/* note, doesnt run exit() call WM_exit() for that */
+void WM_exit_ext(bContext *C, const short do_python)
 {
 	wmWindow *win;
 
@@ -408,14 +409,17 @@ void WM_exit(bContext *C)
 	
 
 #ifdef WITH_PYTHON
-	/* XXX - old note */
-	/* before free_blender so py's gc happens while library still exists */
-	/* needed at least for a rare sigsegv that can happen in pydrivers */
+	/* option not to close python so we can use 'atexit' */
+	if(do_python) {
+		/* XXX - old note */
+		/* before free_blender so py's gc happens while library still exists */
+		/* needed at least for a rare sigsegv that can happen in pydrivers */
 
-	/* Update for blender 2.5, move after free_blender because blender now holds references to PyObject's
-	 * so decref'ing them after python ends causes bad problems every time
-	 * the pyDriver bug can be fixed if it happens again we can deal with it then */
-	BPY_python_end();
+		/* Update for blender 2.5, move after free_blender because blender now holds references to PyObject's
+		 * so decref'ing them after python ends causes bad problems every time
+		 * the pyDriver bug can be fixed if it happens again we can deal with it then */
+		BPY_python_end();
+	}
 #endif
 
 	GPU_global_buffer_pool_free();
@@ -460,6 +464,10 @@ void WM_exit(bContext *C)
 		getchar();
 	}
 #endif 
-	exit(G.afbreek==1);
 }
 
+void WM_exit(bContext *C)
+{
+	WM_exit_ext(C, 1);
+	exit(G.afbreek==1);
+}

@@ -28,3 +28,6 @@
  
 void BPy_init_modules(void);
 extern PyObject *bpy_package_py;
+
+/* bpy_interface_atexit.c */
+void BPY_atexit_init(void);
