@@ -289,8 +289,10 @@ void free_ttfont(void)
 	}
 	BLI_freelistN(&ttfdata);
 
+#ifdef INTERNATIONAL
 	if(unifont_ttf)
 		MEM_freeN(unifont_ttf);
+#endif
 }
 
 struct TmpFont *vfont_find_tmpfont(VFont *vfont)

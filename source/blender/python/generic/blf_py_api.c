@@ -381,20 +381,20 @@ PyDoc_STRVAR(py_blf_gettext_doc,
 "   :return: the localized string.\n"
 "   :rtype: string\n"
 );
-static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *args)
+static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *value)
 {
-	char* msgid;
-	const char *text;
+	if ((U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_IFACE)) {
+		const char *msgid= _PyUnicode_AsString(value);
+		if(msgid == NULL) {
+			PyErr_SetString(PyExc_TypeError, "blf.gettext expects a single string argument");
+			return NULL;
+		}
 
-	if (!PyArg_ParseTuple(args, "s:blf.gettext", &msgid))
-		return NULL;
-
-	if((U.transopts&USER_DOTRANSLATE) && (U.transopts&USER_TR_IFACE))
-		text = BLF_gettext( msgid );
-	else
-		text = msgid;
-
-	return PyUnicode_FromString( text );
+		return PyUnicode_FromString(BLF_gettext(msgid));
+	}
+	else {
+		return Py_INCREF(value), value;
+	}
 }
 
 PyDoc_STRVAR(py_blf_fake_gettext_doc,
@@ -407,15 +407,16 @@ PyDoc_STRVAR(py_blf_fake_gettext_doc,
 "   :return: the source string.\n"
 "   :rtype: string\n"
 );
-static PyObject *py_blf_fake_gettext(PyObject *UNUSED(self), PyObject *args)
+static PyObject *py_blf_fake_gettext(PyObject *UNUSED(self), PyObject *value)
 {
-	const char* msgid;
-	if (!PyArg_ParseTuple(args, "s:blf.fake_gettext", &msgid))
+	if (!PyUnicode_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "blf.fake_gettext expects a single string argument");
 		return NULL;
+	}
 
-	return PyUnicode_FromString( msgid );
+	return Py_INCREF(value), value;
 }
-#endif
+#endif /* INTERNATIONAL */
 
 /*----------------------------MODULE INIT-------------------------*/
 static PyMethodDef BLF_methods[] = {
@@ -433,8 +434,8 @@ static PyMethodDef BLF_methods[] = {
 	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
 	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
 #ifdef INTERNATIONAL
-	{"gettext", (PyCFunction) py_blf_gettext, METH_VARARGS, py_blf_gettext_doc},
-	{"fake_gettext", (PyCFunction) py_blf_fake_gettext, METH_VARARGS, py_blf_fake_gettext_doc},
+	{"gettext", (PyCFunction) py_blf_gettext, METH_O, py_blf_gettext_doc},
+	{"fake_gettext", (PyCFunction) py_blf_fake_gettext, METH_O, py_blf_fake_gettext_doc},
 #endif
 	{NULL, NULL, 0, NULL}
 };
