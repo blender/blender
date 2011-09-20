@@ -49,6 +49,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_particle_types.h"
 
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_utildefines.h"
@@ -60,6 +61,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
+#include "BKE_DerivedMesh.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -701,6 +703,10 @@ static void vgroup_normalize(Object *ob)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
+	
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -712,6 +718,11 @@ static void vgroup_normalize(Object *ob)
 		def_nr= ob->actdef-1;
 
 		for(i = 0; i < dvert_tot; i++) {
+			
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
+				continue;
+			}
+
 			dvert = dvert_array[i];
 			dw = defvert_find_index(dvert, def_nr);
 			if(dw) {
@@ -721,6 +732,11 @@ static void vgroup_normalize(Object *ob)
 
 		if(weight_max > 0.0f) {
 			for(i = 0; i < dvert_tot; i++) {
+				
+				if(use_vert_sel && !(mvert[i].flag & SELECT)) {
+					continue;
+				}
+
 				dvert = dvert_array[i];
 				dw = defvert_find_index(dvert, def_nr);
 				if(dw) {
@@ -736,6 +752,401 @@ static void vgroup_normalize(Object *ob)
 	if (dvert_array) MEM_freeN(dvert_array);
 }
 
+/* This adds the indices of vertices to a list if they are not already present
+It returns the number that it added (0-2)
+It relies on verts having -1 for unassigned indices
+*/
+static int tryToAddVerts(int *verts, int length, int a, int b) {
+	char containsA = FALSE;
+	char containsB = FALSE;
+	int added = 0;
+	int i;
+	for(i = 0; i < length && (!containsA || !containsB); i++) {
+		if(verts[i] == a) {
+			containsA = TRUE;
+		} else if(verts[i] == b) {
+			containsB = TRUE;
+		} else if(verts[i] == -1) {
+			if(!containsA) {
+				verts[i] = a;
+				containsA = TRUE;
+				added++;
+			} else if(!containsB){
+				verts[i] = b;
+				containsB = TRUE;
+				added++;
+			}
+		}
+	}
+	return added;
+}
+
+/* This finds all of the vertices connected to vert by an edge
+and returns an array of indices of size count
+
+count is an int passed by reference so it can be assigned the value of the length here.
+*/
+static int* getSurroundingVerts(Mesh *me, int vert, int *count) {
+	int length = 0;
+	int *tverts;
+	int *verts = NULL;
+	MFace *mf = me->mface;
+	int totface = me->totface;
+	int found = 0;
+	int i;
+	for(i = 0; i < totface; i++, mf++) {
+		if(vert == mf->v1 || vert == mf->v2 || vert == mf->v3 || (mf->v4 &&vert == mf->v4)) {
+			length+=2;
+		}
+	}
+	if(!length) {
+		return 0;
+	}
+	tverts = MEM_mallocN(sizeof(int)*length, "tempSurroundingVerts");
+	mf = me->mface;
+	for(i = 0; i < length; i++) {
+		tverts[i] = -1;
+	}
+	for(i = 0; i < totface; i++, mf++) {
+		int a=-1, b=-1;
+		if(mf->v1 == vert) {
+			a = mf->v2;
+			if(mf->v4) {
+				b = mf->v4;
+			} else {
+				b = mf->v3;
+			}
+		} else if(mf->v2 == vert) {
+			a = mf->v1;
+			b = mf->v3;
+		} else if(mf->v3 == vert) {
+			a = mf->v2;
+			if(mf->v4) {
+				b = mf->v4;
+			} else {
+				b = mf->v1;
+			}
+		} else if (mf->v4 && mf->v4 == vert){
+			a = mf->v1;
+			b = mf->v3;
+		} else {
+			continue;
+		}
+		found += tryToAddVerts(tverts, length, a, b);
+	}
+	if(found) {
+		verts = MEM_mallocN(sizeof(int)* found, "surroundingVerts");
+		for(i = 0; i < found; i++) {
+			verts[i] = tverts[i];
+		}
+		*count = found;
+	}
+	MEM_freeN(tverts);
+	return verts;
+}
+
+/* get a single point in space by averaging a point cloud (vectors of size 3)
+coord is the place the average is stored, points is the point cloud, count is the number of points in the cloud
+*/
+static void getSingleCoordinate(MVert *points, int count, float coord[3]) {
+	int i;
+	zero_v3(coord);
+	for(i = 0; i < count; i++) {
+		add_v3_v3(coord, points[i].co);
+	}
+	mul_v3_fl(coord, 1.0f/count);
+}
+
+/* find the closest point on a plane to another point and store it in dst */
+/* coord is a point on the plane */
+/* point is the point that you want the nearest of */
+/* norm is the plane's normal, and d is the last number in the plane equation 0 = ax + by + cz + d */
+static void getNearestPointOnPlane(const float norm[3], const float coord[3], const float point[3], float dst_r[3])
+{
+	float temp[3];
+	float dotprod;
+
+	sub_v3_v3v3(temp, point, coord);
+	dotprod= dot_v3v3(temp, norm);
+
+	dst_r[0] = point[0] - (norm[0] * dotprod);
+	dst_r[1] = point[1] - (norm[1] * dotprod);
+	dst_r[2] = point[2] - (norm[2] * dotprod);
+}
+
+/* distance of two vectors a and b of size length */
+static float distance(float* a, float *b, int length) {
+	int i;
+	float sum = 0;
+	for(i = 0; i < length; i++) {
+		sum += (b[i]-a[i])*(b[i]-a[i]);
+	}
+	return sqrt(sum);
+}
+
+/* given a plane and a start and end position,
+compute the amount of vertical distance relative to the plane and store it in dists,
+then get the horizontal and vertical change and store them in changes
+*/
+static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, float *start, float distToStart, float *end, float (*changes)[2], float *dists, int index) {
+	// A=Q-((Q-P).N)N
+	// D = (a*x0 + b*y0 +c*z0 +d)
+	float projA[3] = {0}, projB[3] = {0};
+
+	getNearestPointOnPlane(norm, coord, start, projA);
+	getNearestPointOnPlane(norm, coord, end, projB);
+	// (vertical and horizontal refer to the plane's y and xz respectively)
+	// vertical distance
+	dists[index] = norm[0]*end[0] + norm[1]*end[1] + norm[2]*end[2] + d;
+	// vertical change
+	changes[index][0] = dists[index] - distToStart;
+	//printf("vc %f %f\n", distance(end, projB, 3)-distance(start, projA, 3), changes[index][0]);
+	// horizontal change
+	changes[index][1] = distance(projA, projB, 3);
+}
+
+// I need the derived mesh to be forgotten so the positions are recalculated with weight changes (see dm_deform_recalc)
+static void dm_deform_clear(DerivedMesh *dm, Object *ob) {
+	if(ob->derivedDeform && (ob->derivedDeform)==dm) {
+		ob->derivedDeform->needsFree = 1;
+		ob->derivedDeform->release(ob->derivedDeform);
+		ob->derivedDeform = NULL;
+	}
+	else if(dm) {
+		dm->needsFree = 1;
+		dm->release(dm);
+	}
+}
+
+// recalculate the deformation
+static DerivedMesh* dm_deform_recalc(Scene *scene, Object *ob) {
+	return mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+}
+
+/* by changing nonzero weights, try to move a vertex in me->mverts with index 'index' to distToBe distance away from the provided plane
+strength can change distToBe so that it moves towards distToBe by that percentage
+cp changes how much the weights are adjusted to check the distance
+
+index is the index of the vertex being moved
+norm and d are the plane's properties for the equation: ax + by + cz + d = 0
+coord is a point on the plane
+*/
+static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float norm[3], float coord[3], float d, float distToBe, float strength, float cp) {
+	DerivedMesh *dm;
+	MDeformWeight *dw;
+	MVert m;
+	MDeformVert *dvert = me->dvert+index;
+	int totweight = dvert->totweight;
+	float oldw = 0;
+	float oldPos[3] = {0};
+	float vc, hc, dist;
+	int i, k;
+	float (*changes)[2] = MEM_mallocN(sizeof(float *)*totweight*2, "vertHorzChange");
+	float *dists = MEM_mallocN(sizeof(float)*totweight, "distance");
+	int *upDown = MEM_callocN(sizeof(int)*totweight, "upDownTracker");// track if up or down moved it closer for each bone
+	int *dwIndices = MEM_callocN(sizeof(int)*totweight, "dwIndexTracker");
+	float distToStart;
+	int bestIndex = 0;
+	char wasChange;
+	char wasUp;
+	int lastIndex = -1;
+	float originalDistToBe = distToBe;
+	do {
+		wasChange = FALSE;
+		dm = dm_deform_recalc(scene, ob);
+		dm->getVert(dm, index, &m);
+		oldPos[0] = m.co[0];
+		oldPos[1] = m.co[1];
+		oldPos[2] = m.co[2];
+		distToStart = norm[0]*oldPos[0] + norm[1]*oldPos[1] + norm[2]*oldPos[2] + d;
+
+		if(distToBe == originalDistToBe) {
+			distToBe += distToStart - distToStart*strength;
+		}
+		for(i = 0; i < totweight; i++) {
+			dwIndices[i] = i;
+			dw = (dvert->dw+i);
+			vc = hc = 0;
+			if(!dw->weight) {
+				changes[i][0] = 0;
+				changes[i][1] = 0;
+				dists[i] = distToStart;
+				continue;
+			}
+			for(k = 0; k < 2; k++) {
+				if(dm) {
+					dm_deform_clear(dm, ob); dm = NULL;
+				}
+				oldw = dw->weight;
+				if(k) {
+					dw->weight *= 1+cp;
+				} else {
+					dw->weight /= 1+cp;
+				}
+				if(dw->weight == oldw) {
+					changes[i][0] = 0;
+					changes[i][1] = 0;
+					dists[i] = distToStart;
+					break;
+				}
+				if(dw->weight > 1) {
+					dw->weight = 1;
+				}
+				dm = dm_deform_recalc(scene, ob);
+				dm->getVert(dm, index, &m);
+				getVerticalAndHorizontalChange(norm, d, coord, oldPos, distToStart, m.co, changes, dists, i);
+				dw->weight = oldw;
+				if(!k) {
+					vc = changes[i][0];
+					hc = changes[i][1];
+					dist = dists[i];
+				} else {
+					if(fabs(dist - distToBe) < fabs(dists[i] - distToBe)) {
+						upDown[i] = 0;
+						changes[i][0] = vc;
+						changes[i][1] = hc;
+						dists[i] = dist;
+					} else {
+						upDown[i] = 1;
+					}
+					if(fabs(dists[i] - distToBe) > fabs(distToStart - distToBe)) {
+						changes[i][0] = 0;
+						changes[i][1] = 0;
+						dists[i] = distToStart;
+					}
+				}
+			}
+		}
+		// sort the changes by the vertical change
+		for(k = 0; k < totweight; k++) {
+			float tf;
+			int ti;
+			bestIndex = k;
+			for(i = k+1; i < totweight; i++) {
+				dist = dists[i];
+
+				if(fabs(dist) > fabs(dists[i])) {
+					bestIndex = i;
+				}
+			}
+			// switch with k
+			if(bestIndex != k) {
+				ti = upDown[k];
+				upDown[k] = upDown[bestIndex];
+				upDown[bestIndex] = ti;
+
+				ti = dwIndices[k];
+				dwIndices[k] = dwIndices[bestIndex];
+				dwIndices[bestIndex] = ti;
+
+				tf = changes[k][0];
+				changes[k][0] = changes[bestIndex][0];
+				changes[bestIndex][0] = tf;
+
+				tf = changes[k][1];
+				changes[k][1] = changes[bestIndex][1];
+				changes[bestIndex][1] = tf;
+
+				tf = dists[k];
+				dists[k] = dists[bestIndex];
+				dists[bestIndex] = tf;
+			}
+		}
+		bestIndex = -1;
+		// find the best change with an acceptable horizontal change
+		for(i = 0; i < totweight; i++) {
+			if(fabs(changes[i][0]) > fabs(changes[i][1]*2.0f)) {
+				bestIndex = i;
+				break;
+			}
+		}
+		if(bestIndex != -1) {
+			wasChange = TRUE;
+			// it is a good place to stop if it tries to move the opposite direction
+			// (relative to the plane) of last time
+			if(lastIndex != -1) {
+				if(wasUp != upDown[bestIndex]) {
+					wasChange = FALSE;
+				}
+			}
+			lastIndex = bestIndex;
+			wasUp = upDown[bestIndex];
+			dw = (dvert->dw+dwIndices[bestIndex]);
+			oldw = dw->weight;
+			if(upDown[bestIndex]) {
+				dw->weight *= 1+cp;
+			} else {
+				dw->weight /= 1+cp;
+			}
+			if(dw->weight > 1) {
+				dw->weight = 1;
+			}
+			if(oldw == dw->weight) {
+				wasChange = FALSE;
+			}
+			if(dm) {
+				dm_deform_clear(dm, ob); dm = NULL;
+			}
+		}
+	}while(wasChange && (distToStart-distToBe)/fabs(distToStart-distToBe) == (dists[bestIndex]-distToBe)/fabs(dists[bestIndex]-distToBe));
+	MEM_freeN(upDown);
+	MEM_freeN(changes);
+	MEM_freeN(dists);
+	MEM_freeN(dwIndices);
+}
+
+/* this is used to try to smooth a surface by only adjusting the nonzero weights of a vertex 
+but it could be used to raise or lower an existing 'bump.' */
+static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength, float cp)
+{
+	int i;
+
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+	int *verts = NULL;
+	for(i = 0; i < me->totvert && mvert; i++, mvert++) {
+		
+		if(use_vert_sel && (mvert->flag & SELECT)) {
+			
+			int count=0;
+			if((verts = getSurroundingVerts(me, i, &count))) {
+				MVert m;
+				MVert *p = MEM_callocN(sizeof(MVert)*(count), "deformedPoints");
+				int k;
+
+				DerivedMesh *dm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
+				for(k = 0; k < count; k++) {
+					dm->getVert(dm, verts[k], &m);
+					p[k] = m;
+				}
+				
+				if(count >= 3) {
+					float d /*, dist */ /* UNUSED */, mag;
+					float coord[3] = {0};
+					float norm[3] = {0};
+					getSingleCoordinate(p, count, coord);
+					dm->getVert(dm, i, &m);
+					norm[0] = m.co[0]-coord[0];
+					norm[1] = m.co[1]-coord[1];
+					norm[2] = m.co[2]-coord[2];
+					mag = sqrt(norm[0]*norm[0] + norm[1]*norm[1] + norm[2]*norm[2]);
+					if(mag) {// zeros fix
+						mul_v3_fl(norm, 1.0f/mag);
+						
+						d = -norm[0]*coord[0] -norm[1]*coord[1] -norm[2]*coord[2];
+						/* dist = (norm[0]*m.co[0] + norm[1]*m.co[1] + norm[2]*m.co[2] + d); */ /* UNUSED */
+						moveCloserToDistanceFromPlane(scene, ob, me, i, norm, coord, d, distToBe, strength, cp);
+					}
+				}
+
+				MEM_freeN(verts);
+				MEM_freeN(p);
+			}
+		}
+	}
+}
+
 static void vgroup_levels(Object *ob, float offset, float gain)
 {
 	bDeformGroup *dg;
@@ -743,6 +1154,10 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
 	
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 	
 	dg = BLI_findlink(&ob->defbase, (ob->actdef-1));
@@ -751,6 +1166,11 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 		def_nr= ob->actdef-1;
 		
 		for(i = 0; i < dvert_tot; i++) {
+			
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
+				continue;
+			}
+
 			dvert = dvert_array[i];
 			dw = defvert_find_index(dvert, def_nr);
 			if(dw) {
@@ -772,6 +1192,11 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	int i, dvert_tot=0;
 	float tot_weight;
 
+	
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
+
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
 	if(dvert_array) {
@@ -781,6 +1206,10 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 			for(i = 0; i < dvert_tot; i++) {
 				float lock_iweight= 1.0f;
 				int j;
+				
+				if(use_vert_sel && !(mvert[i].flag & SELECT)) {
+					continue;
+				}
 
 				tot_weight= 0.0f;
 				dw_act= NULL;
@@ -821,6 +1250,11 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 		else {
 			for(i = 0; i < dvert_tot; i++) {
 				int j;
+				
+				if(use_vert_sel && !(mvert[i].flag & SELECT)) {
+					continue;
+				}
+
 				tot_weight= 0.0f;
 				dvert = dvert_array[i];
 
@@ -848,12 +1282,45 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 }
 
 
+static void vgroup_lock_all(Object *ob, int action)
+{
+	bDeformGroup *dg;
+
+	if(action == SEL_TOGGLE) {
+		action= SEL_SELECT;
+		for(dg= ob->defbase.first; dg; dg= dg->next) {
+			if(dg->flag & DG_LOCK_WEIGHT) {
+				action= SEL_DESELECT;
+				break;
+			}
+		}
+	}
+
+	for(dg= ob->defbase.first; dg; dg= dg->next) {
+		switch(action) {
+			case SEL_SELECT:
+				dg->flag |= DG_LOCK_WEIGHT;
+				break;
+			case SEL_DESELECT:
+				dg->flag &= ~DG_LOCK_WEIGHT;
+				break;
+			case SEL_INVERT:
+				dg->flag ^= DG_LOCK_WEIGHT;
+				break;
+		}
+	}
+}
+
 static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 {
 	bDeformGroup *dg;
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
+	
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -864,6 +1331,10 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 
 
 		for(i = 0; i < dvert_tot; i++) {
+			
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
+				continue;
+			}
 			dvert = dvert_array[i];
 
 			if(auto_assign) {
@@ -976,6 +1447,10 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, def_nr, dvert_tot=0;
+	
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
@@ -985,6 +1460,10 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 		def_nr= ob->actdef-1;
 
 		for(i = 0; i < dvert_tot; i++) {
+			
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
+				continue;
+			}
 			dvert = dvert_array[i];
 
 			dw= defvert_find_index(dvert, def_nr);
@@ -1006,12 +1485,21 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	MDeformWeight *dw;
 	MDeformVert *dvert, **dvert_array=NULL;
 	int i, dvert_tot=0;
+	
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	const int use_vert_sel= (me->editflag & ME_EDIT_VERT_SEL) != 0;
 
 	ED_vgroup_give_parray(ob->data, &dvert_array, &dvert_tot);
 
 	if(dvert_array) {
 		for(i = 0; i < dvert_tot; i++) {
 			int j;
+			
+			if(use_vert_sel && !(mvert[i].flag & SELECT)) {
+				continue;
+			}
+
 			dvert = dvert_array[i];
 			j= dvert->totweight;
 
@@ -1830,6 +2318,82 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active", "Keep the values of the active group while normalizing others");
+}
+
+static int vertex_group_fix_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	Scene *scene= CTX_data_scene(C);
+	
+	float distToBe= RNA_float_get(op->ptr, "dist");
+	float strength= RNA_float_get(op->ptr, "strength");
+	float cp= RNA_float_get(op->ptr, "accuracy");
+	ModifierData *md= ob->modifiers.first;
+
+	while(md) {
+		if(md->type == eModifierType_Mirror && (md->mode&eModifierMode_Realtime)) {
+			break;
+		}
+		md = md->next;
+	}
+	
+	if(md && md->type == eModifierType_Mirror) {
+		BKE_report(op->reports, RPT_ERROR_INVALID_CONTEXT, "This operator does not support an active mirror modifier");
+		return OPERATOR_CANCELLED;
+	}
+	vgroup_fix(scene, ob, distToBe, strength, cp);
+	
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Fix Vertex Group Deform";
+	ot->idname= "OBJECT_OT_vertex_group_fix";
+	ot->description= "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices).";
+	
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_fix_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	RNA_def_float(ot->srna, "dist", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "The distance to move to.", -10.0f, 10.0f);	
+	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength", "The distance moved can be changed by this multiplier.", -2.0f, 2.0f);
+	RNA_def_float(ot->srna, "accuracy", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower.", 0.05f, 1.f);
+}
+
+
+static int vertex_group_lock_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	int action = RNA_enum_get(op->ptr, "action");
+
+	vgroup_lock_all(ob, action);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Change the Lock On Vertex Groups";
+	ot->idname= "OBJECT_OT_vertex_group_lock";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_lock_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
 
 static int vertex_group_invert_exec(bContext *C, wmOperator *op)

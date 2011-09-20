@@ -67,7 +67,7 @@ public:
 	void operator()(Object *ob);
 
 	// powerful because it handles both cases when there is material and when there's not
-	void createPolylist(int material_index,
+	void createPolylist(short material_index,
 						bool has_uvs,
 						bool has_color,
 						Object *ob,

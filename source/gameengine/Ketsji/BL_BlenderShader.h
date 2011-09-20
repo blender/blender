@@ -63,7 +63,7 @@ private:
 	struct Scene	*mBlenderScene;
 	struct Material	*mMat;
 	int				mLightLayer;
-	int				mBlendMode;
+	int				mAlphaBlend;
 	GPUMaterial     *mGPUMat;
 
 	bool			VerifyShader() 
@@ -86,7 +86,7 @@ public:
 	void SetAttribs(class RAS_IRasterizer* ras, const BL_Material *mat);
 	void Update(const class RAS_MeshSlot & ms, class RAS_IRasterizer* rasty);
 	void ReloadMaterial();
-	int GetBlendMode();
+	int GetAlphaBlend();
 
 	void SetScene(KX_Scene *scene)
 	{

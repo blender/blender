@@ -2138,6 +2138,18 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		//uiItemR(row, itemptr, "mute", 0, "", ICON_MUTE_IPO_OFF);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
+	else if(itemptr->type == &RNA_VertexGroup) {
+		bDeformGroup *dg= (bDeformGroup *)itemptr->data;
+		uiItemL(sub, name, icon);
+		/* RNA does not allow nice lock icons, use lower level buttons */
+#if 0
+		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "lock_weight", 0, 0, 0, 0, 0,  NULL);
+#else
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		uiDefIconButBitC(block, TOG, DG_LOCK_WEIGHT, 0, (dg->flag & DG_LOCK_WEIGHT) ? ICON_LOCKED : ICON_UNLOCKED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &dg->flag, 0, 0, 0, 0, "Maintain relative weights while painting");
+		uiBlockSetEmboss(block, UI_EMBOSS);
+#endif
+	}
 	else if(itemptr->type == &RNA_KeyingSetPath) {
 		KS_Path *ksp = (KS_Path*)itemptr->data;
 		

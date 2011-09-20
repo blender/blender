@@ -238,6 +238,7 @@ typedef struct OldNewMap {
 /* local prototypes */
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 static void direct_link_modifiers(FileData *fd, ListBase *lb);
+static void convert_tface_mt(FileData *fd, Main *main);
 
 static OldNewMap *oldnewmap_new(void) 
 {
@@ -3478,6 +3479,9 @@ static void lib_link_mesh(FileData *fd, Main *main)
 		}
 		me= me->id.next;
 	}
+
+	/* convert texface options to material */
+	convert_tface_mt(fd, main);
 }
 
 static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
@@ -6358,7 +6362,7 @@ static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 	/* if we do, set alpha sort if the game engine did it before */
 	for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
 		if(mf->mat_nr < me->totcol) {
-			ma= newlibadr(fd, lib, me->mat[(int)mf->mat_nr]);
+			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
 			texalpha = 0;
 
 			/* we can't read from this if it comes from a library,
@@ -7036,6 +7040,27 @@ static void do_versions_nodetree_dynamic_sockets(bNodeTree *ntree)
 		sock->flag |= SOCK_DYNAMIC;
 	for (sock=ntree->outputs.first; sock; sock=sock->next)
 		sock->flag |= SOCK_DYNAMIC;
+}
+
+void convert_tface_mt(FileData *fd, Main *main)
+{
+	Main *gmain;
+
+	/* this is a delayed do_version (so it can create new materials) */
+	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 3)) {
+
+		//XXX hack, material.c uses G.main all over the place, instead of main
+		// temporarily set G.main to the current main
+		gmain = G.main;
+		G.main = main;
+
+		if(!(do_version_tface(main, 1))) {
+			BKE_report(fd->reports, RPT_ERROR, "Texface conversion problem. Error in console");
+		}
+
+		//XXX hack, material.c uses G.main allover the place, instead of main
+		G.main = gmain;
+	}
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)

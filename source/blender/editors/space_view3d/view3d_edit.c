@@ -2786,7 +2786,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	ot->flag= 0;
 
 	RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
-	RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active objects axis");
+	RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
 }
 
 static EnumPropertyItem prop_view_orbit_items[] = {

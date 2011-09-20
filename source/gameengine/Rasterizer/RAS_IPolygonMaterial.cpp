@@ -36,6 +36,7 @@
 
 #include "DNA_image_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_material_types.h"
 
 void  RAS_IPolyMaterial::Initialize( 
 				const STR_String& texname,
@@ -44,10 +45,12 @@ void  RAS_IPolyMaterial::Initialize(
 				int tile,
 				int tilexrep,
 				int tileyrep,
-				int mode,
-				int transp,
+				int alphablend,
 				bool alpha,
-				bool zsort)
+				bool zsort,
+				bool light,
+				bool image,
+				struct GameSettings* game)
 {
 	m_texturename = texname;
 	m_materialname = matname;
@@ -55,10 +58,10 @@ void  RAS_IPolyMaterial::Initialize(
 	m_tile = tile;
 	m_tilexrep = tilexrep;
 	m_tileyrep = tileyrep;
-	m_drawingmode = mode;
-	m_transp = transp;
+	m_alphablend = alphablend;
 	m_alpha = alpha;
 	m_zsort = zsort;
+	m_light = light;
 	m_polymatid = m_newpolymatid++;
 	m_flag = 0;
 	m_multimode = 0;
@@ -66,6 +69,7 @@ void  RAS_IPolyMaterial::Initialize(
 	m_specular.setValue(0.5,0.5,0.5);
 	m_specularity = 1.0;
 	m_diffuse.setValue(0.5,0.5,0.5);
+	m_drawingmode = ConvertFaceMode(game, image);
 }
 
 RAS_IPolyMaterial::RAS_IPolyMaterial() 
@@ -75,9 +79,10 @@ RAS_IPolyMaterial::RAS_IPolyMaterial()
 		m_tilexrep(0),
 		m_tileyrep(0),
 		m_drawingmode (0),
-		m_transp(0),
+		m_alphablend(0),
 		m_alpha(false),
 		m_zsort(false),
+		m_light(false),
 		m_materialindex(0),
 		m_polymatid(0),
 		m_flag(0),
@@ -95,8 +100,7 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 									 int tile,
 									 int tilexrep,
 									 int tileyrep,
-									 int mode,
-									 int transp,
+									 int alphablend,
 									 bool alpha,
 									 bool zsort)
 		: m_texturename(texname),
@@ -104,8 +108,7 @@ RAS_IPolyMaterial::RAS_IPolyMaterial(const STR_String& texname,
 		m_tile(tile),
 		m_tilexrep(tilexrep),
 		m_tileyrep(tileyrep),
-		m_drawingmode (mode),
-		m_transp(transp),
+		m_alphablend(alphablend),
 		m_alpha(alpha),
 		m_zsort(zsort),
 		m_materialindex(materialindex),
@@ -128,9 +131,9 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 			this->m_multimode			==		lhs.m_multimode &&
 			this->m_flag				==		lhs.m_flag		&&
 			this->m_drawingmode			==		lhs.m_drawingmode &&
-			this->m_transp				==		lhs.m_transp &&
-			this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
-			this->m_materialname.hash() ==		lhs.m_materialname.hash()
+			this->m_alphablend			==		lhs.m_alphablend &&
+			this->m_texturename.hash()		==		lhs.m_texturename.hash() &&
+			this->m_materialname.hash() 		==		lhs.m_materialname.hash()
 		);
 
 		return test;
@@ -141,9 +144,10 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 				this->m_tile		==		lhs.m_tile &&
 				this->m_tilexrep	==		lhs.m_tilexrep &&
 				this->m_tileyrep	==		lhs.m_tileyrep &&
-				this->m_transp		==		lhs.m_transp &&
+				this->m_alphablend	==		lhs.m_alphablend &&
 				this->m_alpha		==		lhs.m_alpha &&
 				this->m_zsort		==		lhs.m_zsort &&
+				this->m_light		==		lhs.m_light &&
 				this->m_drawingmode	==		lhs.m_drawingmode &&
 				this->m_texturename.hash()	==		lhs.m_texturename.hash() &&
 				this->m_materialname.hash() ==		lhs.m_materialname.hash()
@@ -151,6 +155,21 @@ bool RAS_IPolyMaterial::Equals(const RAS_IPolyMaterial& lhs) const
 	}
 }
 
+int RAS_IPolyMaterial::ConvertFaceMode(struct GameSettings *game, bool image) const
+{
+	if (!game) return (image?GEMAT_TEX:0);
+
+	int modefinal = 0;
+
+	int orimode   = game->face_orientation;
+	int alpha_blend = game->alpha_blend;
+	int flags = game->flag & (GEMAT_TEXT | GEMAT_BACKCULL);
+
+	modefinal = orimode | alpha_blend | flags;
+	modefinal |= (image ? GEMAT_TEX : 0);
+
+	return modefinal;
+}
 
 void RAS_IPolyMaterial::GetMaterialRGBAColor(unsigned char *rgba) const
 {
@@ -241,7 +260,7 @@ bool RAS_IPolyMaterial::UsesLighting(RAS_IRasterizer *rasty) const
 	else if(rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID);
 	else if(rasty->GetDrawingMode() == RAS_IRasterizer::KX_SHADOW);
 	else
-		dolights = (m_drawingmode & RAS_IRasterizer::KX_LIGHT)!=0;
+		dolights = m_light;
 	
 	return dolights;
 }

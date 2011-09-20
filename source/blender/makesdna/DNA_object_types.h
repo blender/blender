@@ -62,8 +62,13 @@ struct bGPdata;
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
 	char name[32];
+	/* need this flag for locking weights */
+	char flag, pad[7];
 } bDeformGroup;
 #define MAX_VGROUP_NAME 32
+
+/* bDeformGroup->flag */
+#define DG_LOCK_WEIGHT 1
 
 /**
  * The following illustrates the orientation of the 

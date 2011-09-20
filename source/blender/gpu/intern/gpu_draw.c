@@ -95,7 +95,7 @@ void GPU_render_text(MTFace *tface, int mode,
 	const char *textstr, int textlen, unsigned int *col,
 	float *v1, float *v2, float *v3, float *v4, int glattrib)
 {
-	if ((mode & TF_BMFONT) && (textlen>0) && tface->tpage) {
+	if ((mode & GEMAT_TEXT) && (textlen>0) && tface->tpage) {
 		Image* ima = (Image*)tface->tpage;
 		int index, character;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
@@ -245,7 +245,7 @@ static struct GPUTextureState {
 
 	int domipmap, linearmipmap;
 
-	int alphamode;
+	int alphablend;
 	float anisotropic;
 	MTFace *lasttface;
 } GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, -1, 1.f, NULL};
@@ -352,7 +352,7 @@ static void gpu_clear_tpage(void)
 	GTS.curtilemode= 0;
 	GTS.curtileXRep=0;
 	GTS.curtileYRep=0;
-	GTS.alphamode= -1;
+	GTS.alphablend= -1;
 	
 	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
@@ -361,19 +361,19 @@ static void gpu_clear_tpage(void)
 	glDisable(GL_ALPHA_TEST);
 }
 
-static void gpu_set_blend_mode(GPUBlendMode blendmode)
+static void gpu_set_alpha_blend(GPUBlendMode alphablend)
 {
-	if(blendmode == GPU_BLEND_SOLID) {
+	if(alphablend == GPU_BLEND_SOLID) {
 		glDisable(GL_BLEND);
 		glDisable(GL_ALPHA_TEST);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
-	else if(blendmode==GPU_BLEND_ADD) {
+	else if(alphablend==GPU_BLEND_ADD) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_ONE, GL_ONE);
 		glDisable(GL_ALPHA_TEST);
 	}
-	else if(blendmode==GPU_BLEND_ALPHA) {
+	else if(ELEM(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ALPHA_SORT)) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		
@@ -389,21 +389,21 @@ static void gpu_set_blend_mode(GPUBlendMode blendmode)
 			glAlphaFunc(GL_GREATER, U.glalphaclip);
 		}
 	}
-	else if(blendmode==GPU_BLEND_CLIP) {
+	else if(alphablend==GPU_BLEND_CLIP) {
 		glDisable(GL_BLEND); 
 		glEnable(GL_ALPHA_TEST);
 		glAlphaFunc(GL_GREATER, 0.5f);
 	}
 }
 
-static void gpu_verify_alpha_mode(MTFace *tface)
+static void gpu_verify_alpha_blend(int alphablend)
 {
 	/* verify alpha blending modes */
-	if(GTS.alphamode == tface->transp)
+	if(GTS.alphablend == alphablend)
 		return;
 
-	gpu_set_blend_mode(tface->transp);
-	GTS.alphamode= tface->transp;
+	gpu_set_alpha_blend(alphablend);
+	GTS.alphablend= alphablend;
 }
 
 static void gpu_verify_reflection(Image *ima)
@@ -608,7 +608,7 @@ static void gpu_verify_repeat(Image *ima)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
-int GPU_set_tpage(MTFace *tface, int mipmap)
+int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
 {
 	Image *ima;
 	
@@ -621,7 +621,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap)
 	ima= tface->tpage;
 	GTS.lasttface= tface;
 
-	gpu_verify_alpha_mode(tface);
+	gpu_verify_alpha_blend(alphablend);
 	gpu_verify_reflection(ima);
 
 	if(GPU_verify_image(ima, NULL, tface->tile, 1, mipmap)) {
@@ -945,12 +945,12 @@ static struct GPUMaterialState {
 	float (*gviewmat)[4];
 	float (*gviewinv)[4];
 
-	GPUBlendMode *blendmode;
-	GPUBlendMode blendmode_fixed[FIXEDMAT];
+	GPUBlendMode *alphablend;
+	GPUBlendMode alphablend_fixed[FIXEDMAT];
 	int alphapass;
 
 	int lastmatnr, lastretval;
-	GPUBlendMode lastblendmode;
+	GPUBlendMode lastalphablend;
 } GMS = {NULL};
 
 /* fixed function material, alpha handed by caller */
@@ -1000,7 +1000,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 {
 	Material *ma;
 	GPUMaterial *gpumat;
-	GPUBlendMode blendmode;
+	GPUBlendMode alphablend;
 	int a;
 	int gamma = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	
@@ -1008,7 +1008,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	memset(&GMS, 0, sizeof(GMS));
 	GMS.lastmatnr = -1;
 	GMS.lastretval = -1;
-	GMS.lastblendmode = GPU_BLEND_SOLID;
+	GMS.lastalphablend = GPU_BLEND_SOLID;
 
 	GMS.gob = ob;
 	GMS.gscene = scene;
@@ -1024,12 +1024,12 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	if(GMS.totmat > FIXEDMAT) {
 		GMS.matbuf= MEM_callocN(sizeof(GPUMaterialFixed)*GMS.totmat, "GMS.matbuf");
 		GMS.gmatbuf= MEM_callocN(sizeof(*GMS.gmatbuf)*GMS.totmat, "GMS.matbuf");
-		GMS.blendmode= MEM_callocN(sizeof(*GMS.blendmode)*GMS.totmat, "GMS.matbuf");
+		GMS.alphablend= MEM_callocN(sizeof(*GMS.alphablend)*GMS.totmat, "GMS.matbuf");
 	}
 	else {
 		GMS.matbuf= GMS.matbuf_fixed;
 		GMS.gmatbuf= GMS.gmatbuf_fixed;
-		GMS.blendmode= GMS.blendmode_fixed;
+		GMS.alphablend= GMS.alphablend_fixed;
 	}
 
 	/* no materials assigned? */
@@ -1044,7 +1044,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 			GPU_material_from_blender(GMS.gscene, &defmaterial);
 		}
 
-		GMS.blendmode[0]= GPU_BLEND_SOLID;
+		GMS.alphablend[0]= GPU_BLEND_SOLID;
 	}
 	
 	/* setup materials */
@@ -1060,13 +1060,13 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 		if(gpumat) {
 			/* do glsl only if creating it succeed, else fallback */
 			GMS.gmatbuf[a]= ma;
-			blendmode = GPU_material_blend_mode(gpumat, ob->col);
+			alphablend = GPU_material_alpha_blend(gpumat, ob->col);
 		}
 		else {
 			/* fixed function opengl materials */
 			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob);
 
-			blendmode = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
+			alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
 			if(do_alpha_pass && GMS.alphapass)
 				GMS.matbuf[a].diff[3]= ma->alpha;
 			else
@@ -1076,8 +1076,8 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 		/* setting do_alpha_pass = 1 indicates this object needs to be
 		 * drawn in a second alpha pass for improved blending */
 		if(do_alpha_pass) {
-			GMS.blendmode[a]= blendmode;
-			if(ELEM(blendmode, GPU_BLEND_ALPHA, GPU_BLEND_ADD) && !GMS.alphapass)
+			GMS.alphablend[a]= alphablend;
+			if(ELEM3(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ADD, GPU_BLEND_ALPHA_SORT) && !GMS.alphapass)
 				*do_alpha_pass= 1;
 		}
 	}
@@ -1090,7 +1090,7 @@ int GPU_enable_material(int nr, void *attribs)
 {
 	GPUVertexAttribs *gattribs = attribs;
 	GPUMaterial *gpumat;
-	GPUBlendMode blendmode;
+	GPUBlendMode alphablend;
 
 	/* no GPU_begin_object_materials, use default material */
 	if(!GMS.matbuf) {
@@ -1131,7 +1131,7 @@ int GPU_enable_material(int nr, void *attribs)
 
 	/* draw materials with alpha in alpha pass */
 	GMS.lastmatnr = nr;
-	GMS.lastretval = ELEM(GMS.blendmode[nr], GPU_BLEND_SOLID, GPU_BLEND_CLIP);
+	GMS.lastretval = ELEM(GMS.alphablend[nr], GPU_BLEND_SOLID, GPU_BLEND_CLIP);
 	if(GMS.alphapass)
 		GMS.lastretval = !GMS.lastretval;
 
@@ -1145,6 +1145,7 @@ int GPU_enable_material(int nr, void *attribs)
 			GPU_material_bind(gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT));
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gviewinv, GMS.gob->col);
 			GMS.gboundmat= mat;
+			alphablend= mat->game.alpha_blend;
 
 			if(GMS.alphapass) glDepthMask(1);
 		}
@@ -1153,28 +1154,29 @@ int GPU_enable_material(int nr, void *attribs)
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, GMS.matbuf[nr].diff);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, GMS.matbuf[nr].spec);
 			glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, GMS.matbuf[nr].hard);
+			alphablend= GPU_BLEND_SOLID;
 		}
 
 		/* set (alpha) blending mode */
-		blendmode = (GMS.alphapass)? GPU_BLEND_ALPHA: GPU_BLEND_SOLID;
-		GPU_set_material_blend_mode(blendmode);
+		if(!GMS.alphapass) alphablend= GPU_BLEND_SOLID;
+		GPU_set_material_alpha_blend(alphablend);
 	}
 
 	return GMS.lastretval;
 }
 
-void GPU_set_material_blend_mode(int blendmode)
+void GPU_set_material_alpha_blend(int alphablend)
 {
-	if(GMS.lastblendmode == blendmode)
+	if(GMS.lastalphablend == alphablend)
 		return;
 	
-	gpu_set_blend_mode(blendmode);
-	GMS.lastblendmode = blendmode;
+	gpu_set_alpha_blend(alphablend);
+	GMS.lastalphablend = alphablend;
 }
 
-int GPU_get_material_blend_mode(void)
+int GPU_get_material_alpha_blend(void)
 {
-	return GMS.lastblendmode;
+	return GMS.lastalphablend;
 }
 
 void GPU_disable_material(void)
@@ -1188,7 +1190,7 @@ void GPU_disable_material(void)
 		GMS.gboundmat= NULL;
 	}
 
-	GPU_set_material_blend_mode(GPU_BLEND_SOLID);
+	GPU_set_material_alpha_blend(GPU_BLEND_SOLID);
 }
 
 void GPU_end_object_materials(void)
@@ -1198,12 +1200,12 @@ void GPU_end_object_materials(void)
 	if(GMS.matbuf && GMS.matbuf != GMS.matbuf_fixed) {
 		MEM_freeN(GMS.matbuf);
 		MEM_freeN(GMS.gmatbuf);
-		MEM_freeN(GMS.blendmode);
+		MEM_freeN(GMS.alphablend);
 	}
 
 	GMS.matbuf= NULL;
 	GMS.gmatbuf= NULL;
-	GMS.blendmode= NULL;
+	GMS.alphablend= NULL;
 
 	/* resetting the texture matrix after the glScale needed for tiled textures */
 	if(GTS.tilemode)

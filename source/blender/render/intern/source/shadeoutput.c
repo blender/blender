@@ -1502,12 +1502,12 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 		LampRen *lar;
 		GroupObject *go;
 		float inpr, lv[3];
-		float *view, shadfac[4];
+		float /* *view, */ shadfac[4];
 		float ir, accum, visifac, lampdist;
 		float shaded = 0.0f, lightness = 0.0f;
 		
 
-		view= shi->view;
+		/* view= shi->view; */ /* UNUSED */
 		accum= ir= 0.0f;
 		
 		lights= get_lights(shi);

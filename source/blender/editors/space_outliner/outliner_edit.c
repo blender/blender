@@ -969,7 +969,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 	ListBase hierarchy = {NULL, NULL};
 	LinkData *ld;
 	TreeElement *tem, *temnext, *temsub;
-	TreeStoreElem *tse, *tsenext;
+	TreeStoreElem *tse /* , *tsenext */ /* UNUSED */;
 	PointerRNA *ptr, *nextptr;
 	PropertyRNA *prop;
 	char *newpath=NULL;
@@ -1018,7 +1018,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 					char buf[128], *name;
 					
 					temnext= (TreeElement*)(ld->next->data);
-					tsenext= TREESTORE(temnext);
+					/* tsenext= TREESTORE(temnext); */ /* UNUSED */
 					
 					nextptr= &temnext->rnaptr;
 					name= RNA_struct_name_get_alloc(nextptr, buf, sizeof(buf));

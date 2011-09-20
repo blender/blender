@@ -5409,6 +5409,15 @@ int facemask_paint_poll(bContext *C)
 	return paint_facesel_test(CTX_data_active_object(C));
 }
 
+int vert_paint_poll(bContext *C)
+{
+	return paint_vertsel_test(CTX_data_active_object(C));
+}
+
+int mask_paint_poll(bContext *C)
+{
+	return paint_facesel_test(CTX_data_active_object(C)) || paint_vertsel_test(CTX_data_active_object(C));
+}
 /* use project paint to re-apply an image */
 static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 {

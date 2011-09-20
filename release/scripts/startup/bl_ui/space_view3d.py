@@ -1073,6 +1073,7 @@ class VIEW3D_MT_paint_weight(Menu):
         layout.operator("object.vertex_group_invert", text=_("Invert"))
         layout.operator("object.vertex_group_clean", text=_("Clean"))
         layout.operator("object.vertex_group_levels", text=_("Levels"))
+        layout.operator("object.vertex_group_fix", text="Fix Deforms")
 
         layout.separator()
 

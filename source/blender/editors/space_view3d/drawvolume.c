@@ -183,7 +183,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 
 	float viewnormal[3];
 	int i, j, n, good_index;
-	float d, d0, dd, ds;
+	float d /*, d0 */ /* UNUSED */, dd, ds;
 	float *points = NULL;
 	int numpoints = 0;
 	float cor[3] = {1.,1.,1.};
@@ -390,7 +390,8 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3
 	// (a,b,c), the plane normal, are given by viewdir
 	// d is the parameter along the view direction. the first d is given by
 	// inserting previously found vertex into the plane equation
-	d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]);
+
+	/* d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]); */ /* UNUSED */
 	ds = (ABS(viewnormal[0])*size[0] + ABS(viewnormal[1])*size[1] + ABS(viewnormal[2])*size[2]);
 	dd = 0.05; // ds/512.0f;
 	n = 0;

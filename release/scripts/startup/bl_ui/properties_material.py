@@ -612,9 +612,37 @@ class MATERIAL_PT_flare(MaterialButtonsPanel, Panel):
         col.prop(halo, "flare_subflare_size", text=_("Subsize"))
 
 
-class MATERIAL_PT_physics(MaterialButtonsPanel, Panel):
+class MATERIAL_PT_game_settings(MaterialButtonsPanel, bpy.types.Panel):
+    bl_label = "Game Settings"
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    @classmethod
+    def poll(cls, context):
+         return context.material and (context.scene.render.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        game = context.material.game_settings  # dont use node material
+
+        row = layout.row()
+        row.prop(game, "back_culling")
+        row.prop(game, "invisible")
+        row.prop(game, "text")
+
+        row = layout.row()
+        row.label(text="Alpha Blend:")
+        row.label(text="Face Orientation:")
+        row = layout.row()
+        row.prop(game,"alpha_blend",text="")
+        row.prop(game,"face_orientation",text="")
+
+class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
+	
+    def draw_header(self, context):
+        game = context.material.game_settings
+        self.layout.prop(game, "physics", text="")
 
     @classmethod
     def poll(cls, context):
@@ -622,6 +650,7 @@ class MATERIAL_PT_physics(MaterialButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.active = context.material.game_settings.physics
 
         phys = context.material.physics  # dont use node material
 
