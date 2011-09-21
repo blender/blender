@@ -36,6 +36,7 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_array.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
@@ -248,6 +249,11 @@ void BM_Face_CopyShared(BMesh *bm, BMFace *f) {
  *
  * The edges are not required to be ordered, simply to to form
  * a single closed loop as a whole
+ *
+ * Note that while this function will work fine when the edges
+ * are already sorted, if the edges are always going to be sorted,
+ * BM_Make_Face should be considered over this function as it
+ * avoids some unnecessary work.
 */
 #define VERT_BUF_SIZE 100
 BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
@@ -258,6 +264,7 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 	BLI_array_staticdeclare(verts, VERT_BUF_SIZE);
 	BMFace *f = NULL;
 	BMEdge *e;
+	BMVert *ev1, *ev2;
 	int overlap = 0, i, /* j,*/ v1found, reverse;
 
 	/*this code is hideous, yeek.  I'll have to think about ways of
@@ -273,9 +280,18 @@ BMFace *BM_Make_Ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len,
 		bmesh_api_setflag(edges[i], _FLAG_MF);
 	}
 
-	BLI_array_append(verts, edges[0]->v1);
+	ev1 = edges[0]->v1;
+	ev2 = edges[0]->v2;
 
-	v = edges[0]->v2;
+	if (v1 == ev2) {
+		/* Swapping here improves performance and consistency of face
+		   structure in the special case that the edges are already in
+		   the correct order and winding */
+		SWAP(BMVert *, ev1, ev2);
+	}
+
+	BLI_array_append(verts, ev1);
+	v = ev2;
 	e = edges[0];
 	do {
 		BMEdge *e2 = e;
@@ -562,7 +578,7 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 
 	/*copy over edit selection history*/
 	for (ese=bmold->selected.first; ese; ese=ese->next) {
-		void *ele;
+		void *ele = NULL;
 
 		if (ese->type == BM_VERT)
 			ele = vtable[BM_GetIndex(ese->data)];
@@ -570,6 +586,9 @@ BMesh *BM_Copy_Mesh(BMesh *bmold)
 			ele = etable[BM_GetIndex(ese->data)];
 		else if (ese->type == BM_FACE) {
 			ele = ftable[BM_GetIndex(ese->data)];
+		}
+		else {
+			BLI_assert(0);
 		}
 		
 		if (ele)

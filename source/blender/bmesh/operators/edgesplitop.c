@@ -65,13 +65,14 @@ typedef struct EdgeTag {
 #define FACE_DEL	1
 #define FACE_NEW	2
 
-static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts)
+#define EDGE_BUF_SIZE 100
+static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts, BMEdge **edges)
 {
 	BMIter liter1, liter2;
 	EdgeTag *et;
 	BMFace *f2;
 	BMLoop *l, *l2;
-	BMEdge **edges = (BMEdge**) verts; /*he he, can reuse this, sneaky! ;)*/
+	BMEdge *e;
 	BMVert *lastv1, *lastv2, *v1, *v2;
 	int i;
 
@@ -81,16 +82,16 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts)
 	v1 = verts[0];
 	v2 = verts[1];
 	for (i=0; i<f->len-1; i++) {
-		edges[i] = BM_Make_Edge(bm, verts[i], verts[i+1], NULL, 1);
-
-		if (!edges[i]) {
+		e = BM_Make_Edge(bm, verts[i], verts[i+1], NULL, 1);
+		if (!e) {
 			return NULL;
 		}
+		edges[i] = e;
 	}
 
 	edges[i] = BM_Make_Edge(bm, lastv1, lastv2, NULL, 1);
 
-	f2 = BM_Make_Ngon(bm, v1, v2, edges, f->len, 0);
+	f2 = BM_Make_Face(bm, verts, edges, f->len);
 	if (!f2) {
 		return NULL;
 	}
@@ -110,8 +111,13 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts)
 			if (!et->newe1) {
 				et->newe1 = l2->e;
 			}
-			else {
+			else if (!et->newe2) {
 				et->newe2 = l2->e;
+			}
+			else {
+				/* Only two new edges should be created from each original edge
+				   for edge split operation */
+				BLI_assert(et->newe1 == l2->e || et->newe2 == l2->e);
 			}
 
 			if (BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
@@ -209,8 +215,10 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	BMFace *f, *f2;
 	BMLoop *l, *nextl, *prevl, *l2, *l3;
 	BMEdge *e, *e2;
-	BLI_array_declare(verts);
 	BMVert *v, *v2, **verts = NULL;
+	BLI_array_declare(verts);
+	BMEdge **edges = NULL;
+	BLI_array_declare(edges);
 	int i, j;
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_SEAM, BM_EDGE);
@@ -261,22 +269,20 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		BLI_array_empty(verts);
 		BLI_array_growitems(verts, f->len);
 		memset(verts, 0, sizeof(BMVert*)*f->len);
+
+		BLI_array_empty(edges);
+		BLI_array_growitems(edges, f->len);
 		
 		i = 0;
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (!BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
 				if (!verts[i]) {
 
-					/* WARNING, commented because of bug [#28581] in rip tool
-					 * I couldn't find any cases where this is needed, without
-					 * it rip tool at least works fine - campbell */
-#if 0
 					et = etags + BM_GetIndex(l->e);
 					if (ETV(et, l->v, l)) {
 						verts[i] = ETV(et, l->v, l);
 					}
 					else
-#endif
 					{
 						verts[i] = l->v;
 					}
@@ -383,7 +389,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		}
 #endif
 
-		f2 = remake_face(bm, etags, f, verts); /* clobbers 'verts', */
+		f2 = remake_face(bm, etags, f, verts, edges); /* clobbers 'verts', */
 		if (!f2) {
 			continue;
 		}
@@ -411,6 +417,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	BMO_Flag_To_Slot(bm, op, "edgeout2", EDGE_RET2, BM_EDGE);
 
 	BLI_array_free(verts);
+	BLI_array_free(edges);
 	if (etags) MEM_freeN(etags);
 }
 
