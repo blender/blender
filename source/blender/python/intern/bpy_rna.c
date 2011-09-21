@@ -73,6 +73,10 @@
 #include "../generic/IDProp.h" /* for IDprop lookups */
 #include "../generic/py_capi_utils.h"
 
+#ifdef INTERNATIONAL
+#include "UI_interface.h" /* bad level call into editors */
+#endif
+
 #define USE_PEDANTIC_WRITE
 #define USE_MATHUTILS
 #define USE_STRING_COERCE
@@ -1519,6 +1523,12 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 			}
 			else {
 				param= _PyUnicode_AsString(value);
+#ifdef INTERNATIONAL
+				if(subtype == PROP_TRANSLATE) {
+					param= UI_translate_do_iface(param);
+				}
+#endif // INTERNATIONAL
+
 			}
 #else // USE_STRING_COERCE
 			param= _PyUnicode_AsString(value);
