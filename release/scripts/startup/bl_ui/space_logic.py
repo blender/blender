@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-from blf import gettext as _
 
 
 class LOGIC_PT_properties(Panel):
@@ -38,7 +37,7 @@ class LOGIC_PT_properties(Panel):
         ob = context.active_object
         game = ob.game
 
-        layout.operator("object.game_property_new", text=_("Add Game Property"), icon='ZOOMIN')
+        layout.operator("object.game_property_new", text="Add Game Property", icon='ZOOMIN')
 
         for i, prop in enumerate(game.properties):
 
@@ -57,9 +56,9 @@ class LOGIC_MT_logicbricks_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_menu_enum("logic.sensor_add", "type", text=_("Sensor"))
-        layout.operator_menu_enum("logic.controller_add", "type", text=_("Controller"))
-        layout.operator_menu_enum("logic.actuator_add", "type", text=_("Actuator"))
+        layout.operator_menu_enum("logic.sensor_add", "type", text="Sensor")
+        layout.operator_menu_enum("logic.controller_add", "type", text="Controller")
+        layout.operator_menu_enum("logic.actuator_add", "type", text="Actuator")
 
 
 class LOGIC_HT_header(Header):

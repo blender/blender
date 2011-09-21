@@ -20,7 +20,6 @@
 import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
-from blf import gettext as _
 
 
 class WorldButtonsPanel():
@@ -116,12 +115,12 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel, Panel):
         layout.active = light.use_ambient_occlusion
 
         split = layout.split()
-        split.prop(light, "ao_factor", text=_("Factor"))
+        split.prop(light, "ao_factor", text="Factor")
         split.prop(light, "ao_blend_type", text="")
 
 
 class WORLD_PT_environment_lighting(WorldButtonsPanel, Panel):
-    bl_label = _("Environment Lighting")
+    bl_label = "Environment Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -135,7 +134,7 @@ class WORLD_PT_environment_lighting(WorldButtonsPanel, Panel):
         layout.active = light.use_environment_light
 
         split = layout.split()
-        split.prop(light, "environment_energy", text=_("Energy"))
+        split.prop(light, "environment_energy", text="Energy")
         split.prop(light, "environment_color", text="")
 
 
@@ -154,11 +153,11 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel, Panel):
         layout.active = light.use_indirect_light and light.gather_method == 'APPROXIMATE'
 
         split = layout.split()
-        split.prop(light, "indirect_factor", text=_("Factor"))
-        split.prop(light, "indirect_bounces", text=_("Bounces"))
+        split.prop(light, "indirect_factor", text="Factor")
+        split.prop(light, "indirect_bounces", text="Bounces")
 
         if light.gather_method == 'RAYTRACE':
-            layout.label(text=_("Only works with Approximate gather method"))
+            layout.label(text="Only works with Approximate gather method")
 
 
 class WORLD_PT_gather(WorldButtonsPanel, Panel):
@@ -176,18 +175,18 @@ class WORLD_PT_gather(WorldButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Attenuation:"))
+        col.label(text="Attenuation:")
         if light.gather_method == 'RAYTRACE':
             col.prop(light, "distance")
         col.prop(light, "use_falloff")
         sub = col.row()
         sub.active = light.use_falloff
-        sub.prop(light, "falloff_strength", text=_("Strength"))
+        sub.prop(light, "falloff_strength", text="Strength")
 
         if light.gather_method == 'RAYTRACE':
             col = split.column()
 
-            col.label(text=_("Sampling:"))
+            col.label(text="Sampling:")
             col.prop(light, "sample_method", text="")
 
             sub = col.column()
@@ -202,9 +201,9 @@ class WORLD_PT_gather(WorldButtonsPanel, Panel):
         if light.gather_method == 'APPROXIMATE':
             col = split.column()
 
-            col.label(text=_("Sampling:"))
+            col.label(text="Sampling:")
             col.prop(light, "passes")
-            col.prop(light, "error_threshold", text=_("Error"))
+            col.prop(light, "error_threshold", text="Error")
             col.prop(light, "use_cache")
             col.prop(light, "correction")
 
@@ -258,11 +257,11 @@ class WORLD_PT_stars(WorldButtonsPanel, Panel):
 
         col = split.column()
         col.prop(world.star_settings, "size")
-        col.prop(world.star_settings, "color_random", text=_("Colors"))
+        col.prop(world.star_settings, "color_random", text="Colors")
 
         col = split.column()
-        col.prop(world.star_settings, "distance_min", text=_("Min. Dist"))
-        col.prop(world.star_settings, "average_separation", text=_("Separation"))
+        col.prop(world.star_settings, "distance_min", text="Min. Dist")
+        col.prop(world.star_settings, "average_separation", text="Separation")
 
 
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, Panel):
