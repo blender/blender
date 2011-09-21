@@ -156,6 +156,34 @@ int SVMCompiler::stack_find_offset(ShaderSocketType type)
 	return offset;
 }
 
+void SVMCompiler::stack_backup(StackBackup& backup, set<ShaderNode*>& done)
+{
+	backup.done = done;
+	backup.stack = active_stack;
+
+	foreach(ShaderNode *node, current_graph->nodes) {
+		foreach(ShaderInput *input, node->inputs)
+			backup.offsets.push_back(input->stack_offset);
+		foreach(ShaderOutput *output, node->outputs)
+			backup.offsets.push_back(output->stack_offset);
+	}
+}
+
+void SVMCompiler::stack_restore(StackBackup& backup, set<ShaderNode*>& done)
+{
+	int i = 0;
+
+	done = backup.done;
+	active_stack = backup.stack;
+
+	foreach(ShaderNode *node, current_graph->nodes) {
+		foreach(ShaderInput *input, node->inputs)
+			input->stack_offset = backup.offsets[i++];
+		foreach(ShaderOutput *output, node->outputs)
+			output->stack_offset = backup.offsets[i++];
+	}
+}
+
 void SVMCompiler::stack_assign(ShaderInput *input)
 {
 	/* stack offset assign? */
@@ -354,13 +382,8 @@ void SVMCompiler::generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNo
 	} while(!nodes_done);
 }
 
-void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*> done, Stack stack)
+void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 {
-	/* note that done and stack are passed by value, that's intentional
-	   because different branches of the closure tree should not influence
-	   each other */
-	active_stack = stack;
-
 	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
 		ShaderInput *fin = node->input("Fac");
 		ShaderInput *cl1in = node->input("Closure1");
@@ -383,11 +406,17 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*> done, Stac
 		else
 			add_node(NODE_ADD_CLOSURE, 0, 0, 0);
 
-		/* generate code for closure 1 */
+		/* generate code for closure 1
+		   note we backup all compiler state and restore it afterwards, so one
+		   closure choice doesn't influence the other*/
 		if(cl1in->link) {
-			generate_closure(cl1in->link->parent, done, stack);
+			StackBackup backup;
+			stack_backup(backup, done);
+
+			generate_closure(cl1in->link->parent, done);
 			add_node(NODE_END, 0, 0, 0);
-			active_stack = stack;
+
+			stack_restore(backup, done);
 		}
 		else
 			add_node(NODE_END, 0, 0, 0);
@@ -396,9 +425,13 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*> done, Stac
 		int cl2_offset = svm_nodes.size();
 
 		if(cl2in->link) {
-			generate_closure(cl2in->link->parent, done, stack);
+			StackBackup backup;
+			stack_backup(backup, done);
+
+			generate_closure(cl2in->link->parent, done);
 			add_node(NODE_END, 0, 0, 0);
-			active_stack = stack;
+
+			stack_restore(backup, done);
 		}
 		else
 			add_node(NODE_END, 0, 0, 0);
@@ -530,6 +563,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 	 */
 
 	current_type = type;
+	current_graph = graph;
 
 	/* get input in output node */
 	ShaderNode *node = graph->output();
@@ -576,13 +610,10 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 		if(generate) {
 			set<ShaderNode*> done;
 
-			if(use_multi_closure) {
+			if(use_multi_closure)
 				generate_multi_closure(clin->link->parent, done, SVM_STACK_INVALID);
-			}
-			else {
-				Stack stack;
-				generate_closure(clin->link->parent, done, stack);
-			}
+			else
+				generate_closure(clin->link->parent, done);
 		}
 	}
 

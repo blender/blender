@@ -104,6 +104,15 @@ protected:
 		int users[SVM_STACK_SIZE];
 	};
 
+	struct StackBackup {
+		Stack stack;
+		vector<int> offsets;
+		set<ShaderNode*> done;
+	};
+
+	void stack_backup(StackBackup& backup, set<ShaderNode*>& done);
+	void stack_restore(StackBackup& backup, set<ShaderNode*>& done);
+
 	void stack_clear_temporary(ShaderNode *node);
 	int stack_size(ShaderSocketType type);
 	int stack_find_offset(ShaderSocketType type);
@@ -113,7 +122,7 @@ protected:
 
 	void find_dependencies(set<ShaderNode*>& dependencies, const set<ShaderNode*>& done, ShaderInput *input);
 	void generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done);
-	void generate_closure(ShaderNode *node, set<ShaderNode*> done, Stack stack);
+	void generate_closure(ShaderNode *node, set<ShaderNode*>& done);
 	void generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, uint in_offset);
 
 	void compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
@@ -121,6 +130,7 @@ protected:
 	vector<int4> svm_nodes;
 	ShaderType current_type;
 	Shader *current_shader;
+	ShaderGraph *current_graph;
 	Stack active_stack;
 	int max_stack_use;
 	uint mix_weight_offset;
