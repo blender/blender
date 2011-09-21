@@ -3179,7 +3179,7 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in 0.0-1.0 coordinates", -10.0f, 10.0f);
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in normalised (0.0-1.0) coordinates", -10.0f, 10.0f);
 }
 
 /********************** set tile operator **********************/
