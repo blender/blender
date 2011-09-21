@@ -1962,7 +1962,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
 	RNA_def_boolean(ot->srna, "relative_remap", 1, "Remap Relative", "Remap relative paths when saving in a different directory");
-	RNA_def_boolean(ot->srna, "copy", 0, "Save Copy", "Save a copy of the actual working state but does not make saved file active.");
+	RNA_def_boolean(ot->srna, "copy", 0, "Save Copy", "Save a copy of the actual working state but does not make saved file active");
 }
 
 /* *************** save file directly ******** */
@@ -3279,12 +3279,12 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* all paths relative to the context */
-	RNA_def_string(ot->srna, "data_path", "", 0, "Data Path", "Path of property to be set by the radial control.");
-	RNA_def_string(ot->srna, "rotation_path", "", 0, "Rotation Path", "Path of property used to rotate the texture display.");
-	RNA_def_string(ot->srna, "color_path", "", 0, "Color Path", "Path of property used to set the color of the control.");
-	RNA_def_string(ot->srna, "fill_color_path", "", 0, "Fill Color Path", "Path of property used to set the fill color of the control.");
-	RNA_def_string(ot->srna, "zoom_path", "", 0, "Zoom Path", "Path of property used to set the zoom level for the control.");
-	RNA_def_string(ot->srna, "image_id", "", 0, "Image ID", "Path of ID that is used to generate an image for the control.");
+	RNA_def_string(ot->srna, "data_path", "", 0, "Data Path", "Path of property to be set by the radial control");
+	RNA_def_string(ot->srna, "rotation_path", "", 0, "Rotation Path", "Path of property used to rotate the texture display");
+	RNA_def_string(ot->srna, "color_path", "", 0, "Color Path", "Path of property used to set the color of the control");
+	RNA_def_string(ot->srna, "fill_color_path", "", 0, "Fill Color Path", "Path of property used to set the fill color of the control");
+	RNA_def_string(ot->srna, "zoom_path", "", 0, "Zoom Path", "Path of property used to set the zoom level for the control");
+	RNA_def_string(ot->srna, "image_id", "", 0, "Image ID", "Path of ID that is used to generate an image for the control");
 }
 
 /* ************************** timer for testing ***************** */

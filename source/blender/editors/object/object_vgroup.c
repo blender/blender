@@ -2355,7 +2355,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Fix Vertex Group Deform";
 	ot->idname= "OBJECT_OT_vertex_group_fix";
-	ot->description= "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices).";
+	ot->description= "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)";
 	
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -2363,9 +2363,9 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	RNA_def_float(ot->srna, "dist", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "The distance to move to.", -10.0f, 10.0f);	
-	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength", "The distance moved can be changed by this multiplier.", -2.0f, 2.0f);
-	RNA_def_float(ot->srna, "accuracy", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower.", 0.05f, 1.f);
+	RNA_def_float(ot->srna, "dist", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "The distance to move to", -10.0f, 10.0f);
+	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength", "The distance moved can be changed by this multiplier", -2.0f, 2.0f);
+	RNA_def_float(ot->srna, "accuracy", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower", 0.05f, 1.f);
 }
 
 
