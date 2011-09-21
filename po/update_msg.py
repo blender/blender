@@ -34,6 +34,7 @@ FILE_NAME_MESSAGES = os.path.join(CURRENT_DIR, "messages.txt")
 
 def dump_messages_rna(messages):
     import bpy
+
     # -------------------------------------------------------------------------
     # Function definitions
 
@@ -82,16 +83,107 @@ def dump_messages_rna(messages):
     from bl_ui.space_userpref_keymap import KM_HIERARCHY
 
     walk_keymap_hierarchy(KM_HIERARCHY)
-    
+
 
     ## XXX. what is this supposed to do, we wrote the file already???
     #_walkClass(bpy.types.SpaceDopeSheetEditor)
 
 
+def dump_messages_pytext(messages):
+    """ dumps text inlined in the python user interface: eg.
+
+        layout.prop("someprop", text="My Name")
+    """
+    import ast
+
+    # -------------------------------------------------------------------------
+    # Gather function names
+
+    import bpy
+    # key: func_id
+    # val: [(arg_kw, arg_pos), (arg_kw, arg_pos), ...]
+    func_translate_args = {}
+
+    # so far only 'text' keywords, but we may want others translated later
+    translate_kw = ("text", )
+
+    for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
+        # check it has a 'text' argument
+        for (arg_pos, (arg_kw, arg)) in enumerate(func.parameters.items()):
+            if ((arg_kw in translate_kw) and
+                (arg.is_output == False) and
+                (arg.type == 'STRING')):
+
+                func_translate_args.setdefault(func_id, []).append((arg_kw,
+                                                                    arg_pos))
+    # print(func_translate_args)
+
+    # -------------------------------------------------------------------------
+    # Function definitions
+
+    def extract_strings(fp, node_container):
+        """ Recursively get strings, needed incase we have "Blah" + "Blah",
+            passed as an argument in that case it wont evaluate to a string.
+        """
+        for node in ast.walk(node_container):
+            if type(node) == ast.Str:
+                eval_str = ast.literal_eval(node)
+                if eval_str:
+                    # print("%s:%d: %s" % (fp, node.lineno, eval_str))  # testing
+                    messages.add(eval_str)
+
+    def extract_strings_from_file(fn):
+        filedata = open(fn, 'r', encoding="utf8")
+        root_node = ast.parse(filedata.read(), fn, 'exec')
+        filedata.close()
+
+        for node in ast.walk(root_node):
+            if type(node) == ast.Call:
+                # print("found function at")
+                # print("%s:%d" % (fn, node.lineno))
+
+                # lambda's
+                if type(node.func) == ast.Name:
+                    continue
+
+                # getattr(self, con.type)(context, box, con)
+                if not hasattr(node.func, "attr"):
+                    continue
+
+                translate_args = func_translate_args.get(node.func.attr, ())
+
+                # do nothing if not found
+                for arg_kw, arg_pos in translate_args:
+                    if arg_pos < len(node.args):
+                        extract_strings(fn, node.args[arg_pos])
+                    else:
+                        for kw in node.keywords:
+                            if kw.arg == arg_kw:
+                                extract_strings(fn, kw.value)
+
+    # -------------------------------------------------------------------------
+    # Dump Messages
+
+    mod_dir = os.path.join(SOURCE_DIR, "release", "scripts", "startup", "bl_ui")
+
+    files = [os.path.join(mod_dir, f)
+             for f in os.listdir(mod_dir)
+             if not f.startswith("_")
+             if f.endswith("py")
+             ]
+
+    for fn in files:
+        extract_strings_from_file(fn)
+
+
 def dump_messages():
     messages = {""}
 
+    # get strings from RNA
     dump_messages_rna(messages)
+
+    # get strings from UI layout definitions text="..." args
+    dump_messages_pytext(messages)
 
     messages.remove("")
 
@@ -100,6 +192,7 @@ def dump_messages():
     message_file.close()
 
     print("Written %d messages to: %r" % (len(messages), FILE_NAME_MESSAGES))
+
 
 def main():
 
