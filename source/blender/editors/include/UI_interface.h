@@ -610,6 +610,7 @@ void UI_remove_popup_handlers(struct ListBase *handlers, uiPopupBlockHandle *pop
 
 void UI_init(void);
 void UI_init_userdef(void);
+void UI_reinit_font(void);
 void UI_exit(void);
 
 /* Layout

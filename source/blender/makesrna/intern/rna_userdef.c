@@ -65,6 +65,8 @@
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
+#include "UI_interface.h"
+
 static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -79,7 +81,9 @@ static void rna_userdef_dpi_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_userdef_language_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
+	BLF_cache_clear();
 	BLF_lang_set(NULL);
+	UI_reinit_font();
 }
 
 static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)
