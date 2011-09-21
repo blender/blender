@@ -32,74 +32,74 @@ SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(CURRENT_DIR, "..")))
 FILE_NAME_MESSAGES = os.path.join(CURRENT_DIR, "messages.txt")
 
 
-def dump_messages():
+def dump_messages_rna(messages):
     import bpy
-
     # -------------------------------------------------------------------------
     # Function definitions
 
-    def _putMessage(messages, msg):
-        if len(msg):
-            messages[msg] = True
-
-    def _walkProperties(properties, messages):
+    def walkProperties(properties):
         import bpy
         for prop in properties:
-            _putMessage(messages, prop.name)
-            _putMessage(messages, prop.description)
+            messages.add(prop.name)
+            messages.add(prop.description)
 
             if isinstance(prop, bpy.types.EnumProperty):
                 for item in prop.enum_items:
-                    _putMessage(messages, item.name)
-                    _putMessage(messages, item.description)
+                    messages.add(item.name)
+                    messages.add(item.description)
 
-    def _walkRNA(bl_rna, messages):
+    def walkRNA(bl_rna):
         if bl_rna.name and bl_rna.name != bl_rna.identifier:
-            _putMessage(messages, bl_rna.name)
+            messages.add(bl_rna.name)
 
         if bl_rna.description:
-            _putMessage(messages, bl_rna.description)
+            messages.add(bl_rna.description)
 
-        _walkProperties(bl_rna.properties, messages)
+        walkProperties(bl_rna.properties)
 
-    def _walkClass(cls, messages):
-        _walkRNA(cls.bl_rna, messages)
+    def walkClass(cls):
+        walkRNA(cls.bl_rna)
 
-    def _walk_keymap_hierarchy(hier, messages):
+    def walk_keymap_hierarchy(hier):
         for lvl in hier:
-            _putMessage(messages, lvl[0])
+            messages.add(lvl[0])
 
             if lvl[3]:
-                _walk_keymap_hierarchy(lvl[3], messages)
+                walk_keymap_hierarchy(lvl[3])
 
     # -------------------------------------------------------------------------
     # Dump Messages
 
-    messages = {}
-
     for cls in type(bpy.context).__base__.__subclasses__():
-        _walkClass(cls, messages)
+        walkClass(cls)
 
     for cls in bpy.types.Space.__subclasses__():
-        _walkClass(cls, messages)
+        walkClass(cls)
 
     for cls in bpy.types.Operator.__subclasses__():
-        _walkClass(cls, messages)
+        walkClass(cls)
 
     from bl_ui.space_userpref_keymap import KM_HIERARCHY
 
-    _walk_keymap_hierarchy(KM_HIERARCHY, messages)
+    walk_keymap_hierarchy(KM_HIERARCHY)
+    
 
-    message_file = open(FILE_NAME_MESSAGES, 'w')
-    message_file.writelines("\n".join(messages))
+    ## XXX. what is this supposed to do, we wrote the file already???
+    #_walkClass(bpy.types.SpaceDopeSheetEditor)
+
+
+def dump_messages():
+    messages = {""}
+
+    dump_messages_rna(messages)
+
+    messages.remove("")
+
+    message_file = open(FILE_NAME_MESSAGES, 'w', encoding="utf8")
+    message_file.writelines("\n".join(sorted(messages)))
     message_file.close()
+
     print("Written %d messages to: %r" % (len(messages), FILE_NAME_MESSAGES))
-
-    # XXX. what is this supposed to do, we wrote the file already???
-    _walkClass(bpy.types.SpaceDopeSheetEditor, messages)
-
-    return {'FINISHED'}
-
 
 def main():
 
