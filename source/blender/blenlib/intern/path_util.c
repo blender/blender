@@ -1155,8 +1155,8 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check)
 
 void BLI_setenv(const char *env, const char*val)
 {
-	/* SGI or free windows */
-#if (defined(__sgi) || ((defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)))
+	/* free windows */
+#if (defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)
 	char *envstr= MEM_mallocN(sizeof(char) * (strlen(env) + strlen(val) + 2), "envstr"); /* one for = another for \0 */
 
 	sprintf(envstr, "%s=%s", env, val);

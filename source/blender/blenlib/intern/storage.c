@@ -45,7 +45,7 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#if defined (__sun__) || defined (__sun) || defined (__sgi) || defined (__NetBSD__)
+#if defined (__sun__) || defined (__sun) || defined (__NetBSD__)
 #include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
 #elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
 #include <sys/statfs.h>
@@ -165,7 +165,7 @@ double BLI_diskfree(const char *dir)
 	return (double) (freec*bytesps*sectorspc);
 #else
 
-#if defined (__sun__) || defined (__sun) || defined (__sgi) || defined (__NetBSD__)
+#if defined (__sun__) || defined (__sun) || defined (__NetBSD__)
 	struct statvfs disk;
 #else
 	struct statfs disk;
@@ -187,7 +187,7 @@ double BLI_diskfree(const char *dir)
 	if (statfs(name, &disk)) return(-1);
 #endif
 
-#if defined (__sun__) || defined (__sun) || defined (__sgi) || defined (__NetBSD__)
+#if defined (__sun__) || defined (__sun) || defined (__NetBSD__)
 	if (statvfs(name, &disk)) return(-1);	
 #elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
 	/* WARNING - This may not be supported by geeneric unix os's - Campbell */

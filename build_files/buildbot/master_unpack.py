@@ -48,7 +48,7 @@ def get_platform(filename):
     tokens = filename.split("-")
     platforms = ('osx', 'mac', 'bsd',
                  'win', 'linux', 'source',
-                 'irix', 'solaris')
+                 'solaris')
     platform_tokens = []
     found = False
 
