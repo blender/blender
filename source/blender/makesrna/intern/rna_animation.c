@@ -489,7 +489,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 		
 	/* Name */
-	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
