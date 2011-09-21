@@ -393,12 +393,12 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		if(id->lib) {
 			if(id->flag & LIB_INDIRECT) {
 				but= uiDefIconBut(block, BUT, 0, ICON_LIBRARY_DATA_INDIRECT, 0,0,UI_UNIT_X,UI_UNIT_Y, NULL, 0, 0, 0, 0,
-					"Indirect library datablock, cannot change.");
+					"Indirect library datablock, cannot change");
 				uiButSetFlag(but, UI_BUT_DISABLED);
 			}
 			else {
 				but= uiDefIconBut(block, BUT, 0, ICON_LIBRARY_DATA_DIRECT, 0,0,UI_UNIT_X,UI_UNIT_Y, NULL, 0, 0, 0, 0,
-					"Direct linked library datablock, click to make local.");
+					"Direct linked library datablock, click to make local");
 				if(!id_make_local(id, 1 /* test */) || (idfrom && idfrom->lib))
 					uiButSetFlag(but, UI_BUT_DISABLED);
 			}
@@ -411,7 +411,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 			sprintf(str, "%d", id->us);
 
-			but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X + ((id->us < 10) ? 0:10), UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+			but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X + ((id->us < 10) ? 0:10), UI_UNIT_Y, NULL, 0, 0, 0, 0, "Displays number of users of this data, click to make a single-user copy");
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib) || !editable)
@@ -855,7 +855,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 	/* verify we have valid data */
 	if(!RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
-		RNA_warning("Expected modifier on object.");
+		RNA_warning("Expected modifier on object");
 		return NULL;
 	}
 
@@ -863,7 +863,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	md= ptr->data;
 
 	if(!ob || !(GS(ob->id.name) == ID_OB)) {
-		RNA_warning("expected modifier on object.");
+		RNA_warning("Expected modifier on object");
 		return NULL;
 	}
 	
@@ -1084,7 +1084,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 
 	/* verify we have valid data */
 	if(!RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
-		RNA_warning("Expected constraint on object.");
+		RNA_warning("Expected constraint on object");
 		return NULL;
 	}
 
@@ -1092,7 +1092,7 @@ uiLayout *uiTemplateConstraint(uiLayout *layout, PointerRNA *ptr)
 	con= ptr->data;
 
 	if(!ob || !(GS(ob->id.name) == ID_OB)) {
-		RNA_warning("Expected constraint on object.");
+		RNA_warning("Expected constraint on object");
 		return NULL;
 	}
 	
@@ -1138,7 +1138,7 @@ void uiTemplatePreview(uiLayout *layout, ID *id, int show_buttons, ID *parent, M
 	PointerRNA texture_ptr;
 
 	if(id && !ELEM4(GS(id->name), ID_MA, ID_TE, ID_WO, ID_LA)) {
-		RNA_warning("expected ID of type material, texture, lamp or world.");
+		RNA_warning("Expected ID of type material, texture, lamp or world");
 		return;
 	}
 
@@ -2159,7 +2159,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 	pa= block->panel;
 
 	if(!pa) {
-		RNA_warning("only works inside a panel.");
+		RNA_warning("Only works inside a panel");
 		return;
 	}
 
@@ -2169,28 +2169,28 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 	if(ptr->data) {
 		prop= RNA_struct_find_property(ptr, propname);
 		if(!prop) {
-			RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+			RNA_warning("Property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
 			return;
 		}
 	}
 
 	activeprop= RNA_struct_find_property(activeptr, activepropname);
 	if(!activeprop) {
-		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), activepropname);
+		RNA_warning("Property not found: %s.%s", RNA_struct_identifier(ptr->type), activepropname);
 		return;
 	}
 
 	if(prop) {
 		type= RNA_property_type(prop);
 		if(type != PROP_COLLECTION) {
-			RNA_warning("uiExpected collection property.");
+			RNA_warning("uiExpected collection property");
 			return;
 		}
 	}
 
 	activetype= RNA_property_type(activeprop);
 	if(activetype != PROP_INT) {
-		RNA_warning("expected integer property.");
+		RNA_warning("Expected integer property");
 		return;
 	}
 

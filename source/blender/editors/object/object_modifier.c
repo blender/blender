@@ -98,7 +98,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 	
 	if(mti->flags&eModifierTypeFlag_Single) {
 		if(modifiers_findByType(ob, type)) {
-			BKE_report(reports, RPT_WARNING, "Only one modifier of this type allowed.");
+			BKE_report(reports, RPT_WARNING, "Only one modifier of this type allowed");
 			return NULL;
 		}
 	}
@@ -170,7 +170,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 			break;
 	
 	if(!obmd) {
-		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'.", ob->id.name, md->name);
+		BKE_reportf(reports, RPT_ERROR, "Modifier '%s' not in object '%s'", ob->id.name, md->name);
 		return 0;
 	}
 
@@ -256,7 +256,7 @@ int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md
 			ModifierTypeInfo *nmti = modifierType_getInfo(md->prev->type);
 
 			if(nmti->flags&eModifierTypeFlag_RequiresOriginalData) {
-				BKE_report(reports, RPT_WARNING, "Cannot move above a modifier requiring original data.");
+				BKE_report(reports, RPT_WARNING, "Cannot move above a modifier requiring original data");
 				return 0;
 			}
 		}
@@ -277,7 +277,7 @@ int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *
 			ModifierTypeInfo *nmti = modifierType_getInfo(md->next->type);
 
 			if(nmti->type!=eModifierTypeType_OnlyDeform) {
-				BKE_report(reports, RPT_WARNING, "Cannot move beyond a non-deforming modifier.");
+				BKE_report(reports, RPT_WARNING, "Cannot move beyond a non-deforming modifier");
 				return 0;
 			}
 		}
@@ -564,7 +564,7 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	}
 
 	if (md!=ob->modifiers.first)
-		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected.");
+		BKE_report(reports, RPT_INFO, "Applied modifier was not first, result may not be as expected");
 
 	/* allow apply of a not-realtime modifier, by first re-enabling realtime. */
 	prev_mode= md->mode;
@@ -1080,7 +1080,7 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(mmd->lvl==0) {
-		BKE_report(op->reports, RPT_ERROR, "Reshape can work only with higher levels of subdivisions.");
+		BKE_report(op->reports, RPT_ERROR, "Reshape can work only with higher levels of subdivisions");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1093,12 +1093,12 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if(!secondob) {
-		BKE_report(op->reports, RPT_ERROR, "Second selected mesh object require to copy shape from.");
+		BKE_report(op->reports, RPT_ERROR, "Second selected mesh object require to copy shape from");
 		return OPERATOR_CANCELLED;
 	}
 
 	if(!multiresModifier_reshape(scene, mmd, ob, secondob)) {
-		BKE_report(op->reports, RPT_ERROR, "Objects do not have the same number of vertices.");
+		BKE_report(op->reports, RPT_ERROR, "Objects do not have the same number of vertices");
 		return OPERATOR_CANCELLED;
 	}
 

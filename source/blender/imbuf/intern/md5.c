@@ -28,11 +28,11 @@
 
 #include "md5.h"
 
-#ifdef WORDS_BIGENDIAN
-# define SWAP(n)							\
+#ifdef __BIG_ENDIAN__
+#  define SWAP(n)							\
 	(((n) << 24) | (((n) & 0xff00) << 8) | (((n) >> 8) & 0xff00) | ((n) >> 24))
 #else
-# define SWAP(n) (n)
+#  define SWAP(n) (n)
 #endif
 
 

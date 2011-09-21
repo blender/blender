@@ -983,7 +983,7 @@ void NODE_OT_group_socket_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Group Socket";
-	ot->description = "Removed node group socket";
+	ot->description = "Remove a node group socket";
 	ot->idname = "NODE_OT_group_socket_remove";
 	
 	/* api callbacks */
@@ -3462,7 +3462,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		ima= BKE_add_image_file(path);
 
 		if(!ima) {
-			BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", path, errno ? strerror(errno) : "Unsupported image format");
+			BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s", path, errno ? strerror(errno) : "Unsupported image format");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -3473,7 +3473,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		ima= (Image *)find_id("IM", name);
 
 		if(!ima) {
-			BKE_reportf(op->reports, RPT_ERROR, "Image named \"%s\", not found.", name);
+			BKE_reportf(op->reports, RPT_ERROR, "Image named \"%s\", not found", name);
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -3491,7 +3491,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	node = node_add_node(snode, bmain, scene, &ntemp, snode->mx, snode->my);
 	
 	if (!node) {
-		BKE_report(op->reports, RPT_WARNING, "Could not add an image node.");
+		BKE_report(op->reports, RPT_WARNING, "Could not add an image node");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3534,7 +3534,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign.");
+	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign");
 }
 
 /********************** New node tree operator *********************/

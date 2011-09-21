@@ -131,7 +131,7 @@ static int material_slot_remove_exec(bContext *C, wmOperator *op)
 
 	/* Removing material slots in edit mode screws things up, see bug #21822.*/
 	if(ob == CTX_data_edit_object(C)) {
-		BKE_report(op->reports, RPT_ERROR, "Unable to remove material slot in edit mode.");
+		BKE_report(op->reports, RPT_ERROR, "Unable to remove material slot in edit mode");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -756,7 +756,7 @@ void TEXTURE_OT_envmap_save(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER; /* no undo since this doesnt modify the env-map */
 	
 	/* properties */
-	prop= RNA_def_float_array(ot->srna, "layout", 12, default_envmap_layout, 0.0f, 0.0f, "File layout", "Flat array describing the X,Y position of each cube face in the output image, where 1 is the size of a face. Order is [+Z -Z +Y -X -Y +X]. Use -1 to skip a face.", 0.0f, 0.0f);
+	prop= RNA_def_float_array(ot->srna, "layout", 12, default_envmap_layout, 0.0f, 0.0f, "File layout", "Flat array describing the X,Y position of each cube face in the output image, where 1 is the size of a face - order is [+Z -Z +Y -X -Y +X] (use -1 to skip a face)", 0.0f, 0.0f);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH);

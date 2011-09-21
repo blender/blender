@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import os
 Import ('env')
 
 sources = env.Glob('intern/*.c')
@@ -22,6 +23,8 @@ if env['WITH_BF_OPENEXR']:
 
 if env['WITH_BF_TIFF']:
     defs.append('WITH_TIFF')
+else:
+	sources.remove(os.path.join('intern', 'tiff.c'))
 
 if env['WITH_BF_DDS']:
     defs.append('WITH_DDS')
@@ -31,6 +34,8 @@ if env['WITH_BF_CINEON']:
 
 if env['WITH_BF_HDR']:
     defs.append('WITH_HDR')
+else:
+	sources.remove(os.path.join('intern', 'radiance_hdr.c'))
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
@@ -39,6 +44,8 @@ if env['WITH_BF_FFMPEG']:
 if env['WITH_BF_OPENJPEG']:
     defs.append('WITH_OPENJPEG')
     incs += ' ' + env['BF_OPENJPEG_INC']
+else:
+	sources.remove(os.path.join('intern', 'jp2.c'))
 
 if env['WITH_BF_REDCODE']:
     defs.append('WITH_REDCODE')

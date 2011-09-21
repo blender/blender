@@ -2716,7 +2716,7 @@ static PBool p_chart_abf_solve(PChart *chart)
 				break;
 
 			if (!p_abf_matrix_invert(&sys, chart)) {
-				param_warning("ABF failed to invert matrix.");
+				param_warning("ABF failed to invert matrix");
 				p_abf_free_system(&sys);
 				return P_FALSE;
 			}
@@ -2725,7 +2725,7 @@ static PBool p_chart_abf_solve(PChart *chart)
 		}
 
 		if (i == ABF_MAX_ITER) {
-			param_warning("ABF maximum iterations reached.");
+			param_warning("ABF maximum iterations reached");
 			p_abf_free_system(&sys);
 			return P_FALSE;
 		}
@@ -3833,7 +3833,7 @@ static void p_smooth(PChart *chart)
 		if (hedges) MEM_freeN(hedges);
 		if (vedges) MEM_freeN(vedges);
 
-		// printf("Not enough memory for area smoothing grid.");
+		// printf("Not enough memory for area smoothing grid");
 		return;
 	}
 
@@ -3983,7 +3983,7 @@ static void p_smooth(PChart *chart)
 		if (triangles) MEM_freeN(triangles);
 		if (tri) MEM_freeN(tri);
 
-		// printf("Not enough memory for area smoothing grid.");
+		// printf("Not enough memory for area smoothing grid");
 		return;
 	}
 

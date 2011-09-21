@@ -98,7 +98,6 @@
 Global G;
 UserDef U;
 /* ListBase = {NULL, NULL}; */
-short ENDIAN_ORDER;
 
 char versionstr[48]= "";
 
@@ -131,9 +130,6 @@ void initglobals(void)
 	G.main= MEM_callocN(sizeof(Main), "initglobals");
 
 	strcpy(G.ima, "//");
-
-	ENDIAN_ORDER= 1;
-	ENDIAN_ORDER= (((char*)&ENDIAN_ORDER)[0])? L_ENDIAN: B_ENDIAN;
 
 	if(BLENDER_SUBVERSION)
 		BLI_snprintf(versionstr, sizeof(versionstr), "blender.org %d.%d", BLENDER_VERSION, BLENDER_SUBVERSION);

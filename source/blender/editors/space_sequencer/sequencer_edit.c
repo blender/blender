@@ -1161,7 +1161,7 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Mute unselected rather than selected strips.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Mute unselected rather than selected strips");
 }
 
 
@@ -1208,7 +1208,7 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "UnMute unselected rather than selected strips.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "UnMute unselected rather than selected strips");
 }
 
 
@@ -1386,7 +1386,7 @@ void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reassign Inputs";
 	ot->idname= "SEQUENCER_OT_reassign_inputs";
-	ot->description="Reassign the inputs for the effects strip";
+	ot->description="Reassign the inputs for the effect strip";
 
 	/* api callbacks */
 	ot->exec= sequencer_reassign_inputs_exec;
@@ -1422,7 +1422,7 @@ void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Swap Inputs";
 	ot->idname= "SEQUENCER_OT_swap_inputs";
-	ot->description="Swap the first two inputs for the effects strip";
+	ot->description="Swap the first two inputs for the effect strip";
 
 	/* api callbacks */
 	ot->exec= sequencer_swap_inputs_exec;
@@ -1801,7 +1801,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Separate Images";
 	ot->idname= "SEQUENCER_OT_images_separate";
-	ot->description="On image sequences strips, it return a strip for each image";
+	ot->description="On image sequence strips, it returns a strip for each image";
 	
 	/* api callbacks */
 	ot->exec= sequencer_separate_images_exec;
@@ -2154,7 +2154,7 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 1.0f, 0.0f, FLT_MAX,
-		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out.", -FLT_MAX, FLT_MAX);
+		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 
 
@@ -2483,7 +2483,7 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Swap Strip";
 	ot->idname= "SEQUENCER_OT_swap";
-	ot->description="Swap active strip with strip to the left";
+	ot->description="Swap active strip with strip to the right or left";
 	
 	/* api callbacks */
 	ot->exec= sequencer_swap_exec;

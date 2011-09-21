@@ -527,7 +527,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 	ot->poll= ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry.");
+	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry");
 	RNA_def_float_factor(ot->srna, "blend", 0.0f, 0.0f, 1.0f, "Blend", "Blend factor between stretch minimized and original.", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "iterations", 0, 0, INT_MAX, "Iterations", "Number of iterations to run, 0 is unlimited when run interactively.", 0, 100);
 }
@@ -705,7 +705,8 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 	}
 }
 
-static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object *ob, float upangledeg, float sideangledeg, float radius)
+static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object *ob,
+                                   float upangledeg, float sideangledeg, float radius)
 {
 	float rotup[4][4], rotside[4][4], viewmatrix[4][4], rotobj[4][4];
 	float sideangle= 0.0f, upangle= 0.0f;
@@ -800,10 +801,13 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	RNA_def_enum(ot->srna, "direction", direction_items, VIEW_ON_EQUATOR, "Direction", "Direction of the sphere or cylinder.");
-	RNA_def_enum(ot->srna, "align", align_items, VIEW_ON_EQUATOR, "Align", "How to determine rotation around the pole.");
+	RNA_def_enum(ot->srna, "direction", direction_items, VIEW_ON_EQUATOR, "Direction",
+	             "Direction of the sphere or cylinder");
+	RNA_def_enum(ot->srna, "align", align_items, VIEW_ON_EQUATOR, "Align",
+	             "How to determine rotation around the pole");
 	if(radius)
-		RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, "Radius", "Radius of the sphere or cylinder.", 0.0001f, 100.0f);
+		RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, "Radius",
+		              "Radius of the sphere or cylinder.", 0.0001f, 100.0f);
 }
 
 static void correct_uv_aspect(BMEditMesh *em)
@@ -857,9 +861,12 @@ static void correct_uv_aspect(BMEditMesh *em)
 
 static void uv_map_clip_correct_properties(wmOperatorType *ot)
 {
-	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect", "Map UV's taking image aspect ratio into account.");
-	RNA_def_boolean(ot->srna, "clip_to_bounds", 0, "Clip to Bounds", "Clip UV coordinates to bounds after unwrapping.");
-	RNA_def_boolean(ot->srna, "scale_to_bounds", 0, "Scale to Bounds", "Scale UV coordinates to bounds after unwrapping.");
+	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect",
+	                "Map UV's taking image aspect ratio into account");
+	RNA_def_boolean(ot->srna, "clip_to_bounds", 0, "Clip to Bounds",
+	                "Clip UV coordinates to bounds after unwrapping");
+	RNA_def_boolean(ot->srna, "scale_to_bounds", 0, "Scale to Bounds",
+	                "Scale UV coordinates to bounds after unwrapping");
 }
 
 static void uv_map_clip_correct(BMEditMesh *em, wmOperator *op)
@@ -1006,9 +1013,12 @@ void UV_OT_unwrap(wmOperatorType *ot)
 	ot->poll= ED_operator_uvmap;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "method", method_items, 0, "Method", "Unwrapping method. Angle Based usually gives better results than Conformal, while being somewhat slower.");
-	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry.");
-	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect", "Map UV's taking image aspect ratio into account.");
+	RNA_def_enum(ot->srna, "method", method_items, 0, "Method",
+	             "Unwrapping method. Angle Based usually gives better results than Conformal, while being somewhat slower");
+	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes",
+	                "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry");
+	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect",
+	                "Map UV's taking image aspect ratio into account");
 }
 
 /**************** Project From View operator **************/
@@ -1111,7 +1121,7 @@ void UV_OT_from_view(wmOperatorType *ot)
 	ot->poll= uv_from_view_poll;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "orthographic", 0, "Orthographic", "Use orthographic projection.");
+	RNA_def_boolean(ot->srna, "orthographic", 0, "Orthographic", "Use orthographic projection");
 	uv_map_clip_correct_properties(ot);
 }
 

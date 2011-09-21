@@ -246,7 +246,7 @@ void ED_operatormacros_object(void)
 	/* XXX */
 	ot= WM_operatortype_append_macro("OBJECT_OT_add_named_cursor", "Add named object at cursor", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
-		RNA_def_string(ot->srna, "name", "Cube", 24, "Name", "Object name to add.");
+		RNA_def_string(ot->srna, "name", "Cube", 24, "Name", "Object name to add");
 
 		WM_operatortype_macro_define(ot, "VIEW3D_OT_cursor3d");
 		WM_operatortype_macro_define(ot, "OBJECT_OT_add_named");

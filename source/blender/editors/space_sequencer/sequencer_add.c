@@ -464,7 +464,7 @@ void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH|WM_FILESEL_FILES);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
+	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory");
 }
 
 /* add image operator */
@@ -647,7 +647,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		if(seq->plugin==NULL) {
 			BLI_remlink(ed->seqbasep, seq);
 			seq_free_sequence(scene, seq);
-			BKE_reportf(op->reports, RPT_ERROR, "Sequencer plugin \"%s\" could not load.", path);
+			BKE_reportf(op->reports, RPT_ERROR, "Sequencer plugin \"%s\" could not load", path);
 			return OPERATOR_CANCELLED;
 		}
 	} else if (seq->type == SEQ_COLOR) {

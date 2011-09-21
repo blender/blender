@@ -5202,7 +5202,7 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "delta", 2, NULL, -FLT_MAX, FLT_MAX, "Delta", "Delta offset of clone image in 0.0..1.0 coordinates.", -1.0f, 1.0f);
+	RNA_def_float_vector(ot->srna, "delta", 2, NULL, -FLT_MAX, FLT_MAX, "Delta", "Delta offset of clone image in 0.0..1.0 coordinates", -1.0f, 1.0f);
 }
 
 /******************** sample color operator ********************/
@@ -5283,7 +5283,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "Cursor location in region coordinates.", 0, 16384);
+	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "Cursor location in region coordinates", 0, 16384);
 }
 
 /******************** set clone cursor operator ********************/
@@ -5333,7 +5333,7 @@ void PAINT_OT_clone_cursor_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in world space coordinates.", -10000.0f, 10000.0f);
+	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in world space coordinates", -10000.0f, 10000.0f);
 }
 
 /******************** texture paint toggle operator ********************/
@@ -5358,14 +5358,14 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	if (object_data_is_libdata(ob)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata.");
+		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
 
 	me= get_mesh(ob);
 
 	if(!(ob->mode & OB_MODE_TEXTURE_PAINT) && !me) {
-		BKE_report(op->reports, RPT_ERROR, "Can only enter texture paint mode for mesh objects.");
+		BKE_report(op->reports, RPT_ERROR, "Can only enter texture paint mode for mesh objects");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -5446,12 +5446,12 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	project_state_init(C, OBACT, &ps);
 
 	if(ps.ob==NULL || ps.ob->type != OB_MESH) {
-		BKE_report(op->reports, RPT_ERROR, "No active mesh object.");
+		BKE_report(op->reports, RPT_ERROR, "No active mesh object");
 		return OPERATOR_CANCELLED;
 	}
 
 	if(image==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Image could not be found.");
+		BKE_report(op->reports, RPT_ERROR, "Image could not be found");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -5459,7 +5459,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	ps.reproject_ibuf= BKE_image_get_ibuf(image, NULL);
 
 	if(ps.reproject_ibuf==NULL || ps.reproject_ibuf->rect==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Image data could not be found.");
+		BKE_report(op->reports, RPT_ERROR, "Image data could not be found");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -5470,7 +5470,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 
 		/* type check to make sure its ok */
 		if(view_data->len != PROJ_VIEW_DATA_SIZE || view_data->subtype != IDP_FLOAT) {
-			BKE_report(op->reports, RPT_ERROR, "Image project data invalid.");
+			BKE_report(op->reports, RPT_ERROR, "Image project data invalid");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -5483,7 +5483,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 		ps.source= PROJ_SRC_IMAGE_CAM;
 
 		if(scene->camera==NULL) {
-			BKE_report(op->reports, RPT_ERROR, "No active camera set.");
+			BKE_report(op->reports, RPT_ERROR, "No active camera set");
 			return OPERATOR_CANCELLED;
 		}
 	}

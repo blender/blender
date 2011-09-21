@@ -63,9 +63,27 @@ def get_revision():
 
     return 'r' + build_rev
 
+
+# copied from: http://www.scons.org/wiki/AutoconfRecipes
+def checkEndian():
+    import struct
+    array = struct.pack('cccc', '\x01', '\x02', '\x03', '\x04')
+    i = struct.unpack('i', array)
+    # Little Endian
+    if i == struct.unpack('<i', array):
+        return "little"
+    # Big Endian
+    elif i == struct.unpack('>i', array):
+        return "big"
+    else:
+        raise Exception("cant find endian")
+
+
 # This is used in creating the local config directories
 VERSION, VERSION_DISPLAY = get_version()
 REVISION = get_revision()
+ENDIAN = checkEndian()
+
 
 def print_arguments(args, bc):
     if len(args):

@@ -1854,7 +1854,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 #else
 	(void)C; /* unused */
-	BKE_report(op->reports, RPT_ERROR, "Game engine is disabled in this build.");
+	BKE_report(op->reports, RPT_ERROR, "Game engine is disabled in this build");
 	return OPERATOR_CANCELLED;
 #endif
 }

@@ -337,6 +337,17 @@ if env['BF_NO_ELBEEM'] == 1:
     env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
     env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
+
+if btools.ENDIAN == "big":
+    env['CPPFLAGS'].append('-D__BIG_ENDIAN__')
+    env['CXXFLAGS'].append('-D__BIG_ENDIAN__')
+    env['CCFLAGS'].append('-D__BIG_ENDIAN__')
+else:
+    env['CPPFLAGS'].append('-D__LITTLE_ENDIAN__')
+    env['CXXFLAGS'].append('-D__LITTLE_ENDIAN__')
+    env['CCFLAGS'].append('-D__LITTLE_ENDIAN__')	
+
+
 # TODO, make optional
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
 env['CXXFLAGS'].append('-DWITH_AUDASPACE')

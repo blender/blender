@@ -102,6 +102,8 @@ void quat_to_axis_angle(float axis[3], float *angle, const float q[4]);
 void mat3_to_axis_angle(float axis[3], float *angle, float M[3][3]);
 void mat4_to_axis_angle(float axis[3], float *angle, float M[4][4]);
 
+void single_axis_angle_to_mat3(float R[3][3], const char axis, const float angle);
+
 /****************************** Vector/Rotation ******************************/
 /* old axis angle code                                                       */
 /* TODO: the following calls should probably be depreceated sometime         */

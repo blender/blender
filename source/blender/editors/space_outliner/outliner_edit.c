@@ -213,7 +213,7 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_outliner_active;
 	
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Close or open all items.");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Close or open all items");
 }
 
 /* Rename --------------------------------------------------- */
@@ -669,7 +669,7 @@ void OUTLINER_OT_scroll_page(wmOperatorType *ot)
 	ot->poll= ED_operator_outliner_active;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page.");
+	RNA_def_boolean(ot->srna, "up", 0, "Up", "Scroll up one page");
 }
 
 /* Search ------------------------------------------------------- */
@@ -869,7 +869,7 @@ void OUTLINER_OT_show_one_level(wmOperatorType *ot)
 	/* no undo or registry, UI option */
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep.");
+	RNA_def_boolean(ot->srna, "open", 1, "Open", "Expand all entries one level deep");
 }
 
 /* Show Hierarchy ----------------------------------------------- */

@@ -151,9 +151,18 @@ typedef struct Global {
 
 /* ENDIAN_ORDER: indicates what endianness the platform where the file was
  * written had. */
+#if !defined( __BIG_ENDIAN__ ) && !defined( __LITTLE_ENDIAN__ )
+#  error Either __BIG_ENDIAN__ or __LITTLE_ENDIAN__ must be defined.
+#endif
+
 #define L_ENDIAN	1
 #define B_ENDIAN	0
-extern short ENDIAN_ORDER;
+
+#ifdef __BIG_ENDIAN__
+#  define ENDIAN_ORDER B_ENDIAN
+#else
+#  define ENDIAN_ORDER L_ENDIAN
+#endif
 
 /* G.moving, signals drawing in (3d) window to denote transform */
 #define G_TRANSFORM_OBJ			1

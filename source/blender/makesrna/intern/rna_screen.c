@@ -147,7 +147,10 @@ static void rna_def_area(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "spaces", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "spacedata", NULL);
 	RNA_def_property_struct_type(prop, "Space");
-	RNA_def_property_ui_text(prop, "Spaces", "Spaces contained in this area, the first being the active space. NOTE: Useful for example to restore a previously used 3d view space in a certain area to get the old view orientation.");
+	RNA_def_property_ui_text(prop, "Spaces",
+	                         "Spaces contained in this area, the first being the active space. "
+	                         "NOTE: Useful for example to restore a previously used 3d view space "
+	                         "in a certain area to get the old view orientation");
 	rna_def_area_spaces(brna, prop);
 
 	prop= RNA_def_property(srna, "regions", PROP_COLLECTION, PROP_NONE);
@@ -181,7 +184,7 @@ static void rna_def_area(BlenderRNA *brna)
 
 	func= RNA_def_function(srna, "header_text_set", "ED_area_headerprint");
 	RNA_def_function_ui_description(func, "Set the header text");
-	RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text.");
+	RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text");
 }
 
 static void rna_def_region(BlenderRNA *brna)

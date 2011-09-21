@@ -64,10 +64,10 @@ GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, int size, int dpi)
 	p= (GlyphCacheBLF *)font->cache.first;
 	while (p) {
 		if (p->size == size && p->dpi == dpi)
-			return(p);
+			return p;
 		p= p->next;
 	}
-	return(NULL);
+	return NULL;
 }
 
 /* Create a new glyph cache for the current size and dpi. */
@@ -75,7 +75,7 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
 	GlyphCacheBLF *gc;
 
-	gc= (GlyphCacheBLF *)MEM_mallocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
+	gc= (GlyphCacheBLF *)MEM_callocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
 	gc->next= NULL;
 	gc->prev= NULL;
 	gc->size= font->size;
@@ -114,7 +114,7 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 	gc->p2_height= 0;
 
 	BLI_addhead(&font->cache, gc);
-	return(gc);
+	return gc;
 }
 
 void blf_glyph_cache_clear(FontBLF *font)
@@ -131,10 +131,8 @@ void blf_glyph_cache_clear(FontBLF *font)
 				blf_glyph_free(g);
 			}
 		}
-	}
 
-	if(font->glyph_cache) {
-		memset(font->glyph_cache->glyph_ascii_table, 0, sizeof(font->glyph_cache->glyph_ascii_table));
+		memset(gc->glyph_ascii_table, 0, sizeof(gc->glyph_ascii_table));
 	}
 }
 
@@ -204,10 +202,10 @@ GlyphBLF *blf_glyph_search(GlyphCacheBLF *gc, unsigned int c)
 	p= gc->bucket[key].first;
 	while (p) {
 		if (p->c == c)
-			return(p);
+			return p;
 		p= p->next;
 	}
-	return(NULL);
+	return NULL;
 }
 
 GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
@@ -222,14 +220,14 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 
 	g= blf_glyph_search(font->glyph_cache, c);
 	if (g)
-		return(g);
+		return g;
 
 	if (sharp)
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_MONO);
 	else
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP); /* Sure about NO_* flags? */
 	if (err)
-		return(NULL);
+		return NULL;
 
 	/* get the glyph. */
 	slot= font->face->glyph;
@@ -248,22 +246,13 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	}
 
 	if (err || slot->format != FT_GLYPH_FORMAT_BITMAP)
-		return(NULL);
+		return NULL;
 
-	g= (GlyphBLF *)MEM_mallocN(sizeof(GlyphBLF), "blf_glyph_add");
-	g->next= NULL;
-	g->prev= NULL;
+	g= (GlyphBLF *)MEM_callocN(sizeof(GlyphBLF), "blf_glyph_add");
 	g->c= c;
 	g->idx= (FT_UInt)index;
-	g->tex= 0;
-	g->build_tex= 0;
-	g->bitmap= NULL;
 	g->xoff= -1;
 	g->yoff= -1;
-	g->uv[0][0]= 0.0f;
-	g->uv[0][1]= 0.0f;
-	g->uv[1][0]= 0.0f;
-	g->uv[1][1]= 0.0f;
 	bitmap= slot->bitmap;
 	g->width= bitmap.width;
 	g->height= bitmap.rows;
@@ -294,7 +283,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 
 	key= blf_hash(g->c);
 	BLI_addhead(&(font->glyph_cache->bucket[key]), g);
-	return(g);
+	return g;
 }
 
 void blf_glyph_free(GlyphBLF *g)
@@ -383,7 +372,7 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	float xo, yo;
 
 	if ((!g->width) || (!g->height))
-		return(1);
+		return 1;
 
 	if (g->build_tex == 0) {
 		GlyphCacheBLF *gc= font->glyph_cache;
@@ -449,13 +438,13 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 
 	if (font->flags & BLF_CLIPPING) {
 		if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], y1 + font->pos[1]))
-			return(0);
+			return 0;
 		if (!BLI_in_rctf(&font->clip_rec, dx + font->pos[0], y2 + font->pos[1]))
-			return(0);
+			return 0;
 		if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], y2 + font->pos[1]))
-			return(0);
+			return 0;
 		if (!BLI_in_rctf(&font->clip_rec, dx1 + font->pos[0], y1 + font->pos[1]))
-			return(0);
+			return 0;
 	}
 
 	if (font->tex_bind_state != g->tex) {
@@ -500,5 +489,5 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			break;
 	}
 
-	return(1);
+	return 1;
 }

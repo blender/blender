@@ -297,7 +297,7 @@ static int return_editcurve_indexar(Object *obedit, int *tot, int **indexar, flo
 	return totvert;
 }
 
-static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
+static int object_hook_index_array(Scene *scene, Object *obedit, int *tot, int **indexar, char *name, float *cent_r)
 {
 	*indexar= NULL;
 	*tot= 0;
@@ -307,7 +307,13 @@ static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;
-			BMEditMesh *em = me->edit_btmesh;
+
+			BMEditMesh *em;
+
+			EDBM_LoadEditBMesh(scene, obedit);
+			EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
+
+			em = me->edit_btmesh;
 
 			/* check selected vertices first */
 			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
@@ -430,7 +436,7 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	int tot, ok, *indexar;
 	char name[32];
 	
-	ok = object_hook_index_array(obedit, &tot, &indexar, name, cent);
+	ok = object_hook_index_array(scene, obedit, &tot, &indexar, name, cent);
 	
 	if (!ok) return;	// XXX error("Requires selected vertices or active Vertex Group");
 	
@@ -488,7 +494,7 @@ static int object_add_hook_selob_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	if (!obsel) {
-		BKE_report(op->reports, RPT_ERROR, "Can't add hook with no other selected objects.");
+		BKE_report(op->reports, RPT_ERROR, "Can't add hook with no other selected objects");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -611,7 +617,7 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 	ot->prop= prop;
 }
@@ -678,7 +684,7 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
@@ -734,12 +740,13 @@ void OBJECT_OT_hook_recenter(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
 static int object_hook_assign_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene= CTX_data_scene(C);
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_HookModifier);
 	int num= RNA_enum_get(op->ptr, "modifier");
 	Object *ob=NULL;
@@ -763,7 +770,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 	
 	/* assign functionality */
 	
-	if(!object_hook_index_array(ob, &tot, &indexar, name, cent)) {
+	if(!object_hook_index_array(scene, ob, &tot, &indexar, name, cent)) {
 		BKE_report(op->reports, RPT_WARNING, "Requires selected vertices or active vertex group");
 		return OPERATOR_CANCELLED;
 	}
@@ -797,7 +804,7 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to assign to");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 
@@ -846,7 +853,7 @@ void OBJECT_OT_hook_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove.");
+	prop= RNA_def_enum(ot->srna, "modifier", DummyRNA_NULL_items, 0, "Modifier", "Modifier number to remove");
 	RNA_def_enum_funcs(prop, hook_mod_itemf);
 }
 

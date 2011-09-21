@@ -35,11 +35,11 @@
  */
 
 #ifndef FALSE
-#define FALSE 0
+#  define FALSE 0
 #endif
 
 #ifndef TRUE
-#define TRUE 1
+#  define TRUE 1
 #endif
 
 
@@ -94,7 +94,7 @@
 /* some math and copy defines */
 
 #ifndef SWAP
-#define SWAP(type, a, b)        { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
+#  define SWAP(type, a, b)        { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
 #endif
 
 #define ABS(a)					( (a)<0 ? (-(a)) : (a) )
