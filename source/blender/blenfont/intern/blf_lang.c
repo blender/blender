@@ -115,7 +115,7 @@ void BLF_lang_set(const char *str)
 	char *locreturn;
 	const char *short_locale;
 	int ok= 1;
-#if defined (_WIN32)
+#if defined (_WIN32) && !defined(FREE_WINDOWS)
 	char *long_locale = locales[ 2 * U.language];
 #endif
 
@@ -127,7 +127,7 @@ void BLF_lang_set(const char *str)
 	else
 		short_locale = locales[ 2 * U.language + 1];
 
-#if defined (_WIN32)
+#if defined (_WIN32) && !defined(FREE_WINDOWS)
 	if(short_locale) {
 		char *envStr;
 
