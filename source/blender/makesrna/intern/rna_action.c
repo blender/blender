@@ -524,14 +524,14 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
 	RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this F-Curve into");
 
-	parm= RNA_def_pointer(func, "fcurve", "F-Curve", "", "Newly created F-Curve");
+	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created F-Curve");
 	RNA_def_function_return(func, parm);
 
 
 	func= RNA_def_function(srna, "remove", "rna_Action_fcurve_remove");
 	RNA_def_function_ui_description(func, "Remove action group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "fcurve", "F-Curve", "", "F-Curve to remove");
+	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "F-Curve to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
