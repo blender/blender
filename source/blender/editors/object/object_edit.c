@@ -798,7 +798,7 @@ static void UNUSED_FUNCTION(special_editmenu)(Scene *scene, View3D *v3d)
 			Object *par= modifiers_isDeformedByArmature(ob);
 
 			if(par && (par->mode & OB_MODE_POSE)) {
-				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
+// XXX				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
 
 // XXX				if(nr==1 || nr==2)
 // XXX					pose_adds_vgroups(ob, (nr == 2));

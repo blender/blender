@@ -1064,7 +1064,7 @@ static void weld_align_uv(bContext *C, int tool)
 		int itmpl, jtmpl;
 		EditVert *eve;
 		int pass; /* first 2 passes find endpoints, 3rd pass moves middle points, 4th pass is fail-on-face-selected */
-		EditFace *startefa, *endefa;
+		EditFace *startefa, *endefa= NULL; /* endefa shouldnt need to be initialized but just incase */
 
 		 /* pass 3 variables */
 		float startx, starty, firstm,  firstb,  midx,      midy;

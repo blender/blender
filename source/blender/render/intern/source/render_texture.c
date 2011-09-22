@@ -747,7 +747,7 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 {
 	PluginTex *pit;
 	int rgbnor=0;
-	float result[ 8 ];
+	float result[8]= {0.0f};
 
 	texres->tin= 0.0;
 

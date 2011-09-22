@@ -2108,7 +2108,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				
 		if(indexar[index] && indexar[index]<=me->totface) {
 			MFace *mf= me->mface + (indexar[index]-1);
-			unsigned int fidx= mf->v4 ? 3:2;;
+			unsigned int fidx= mf->v4 ? 3:2;
 			do {
 				unsigned int vidx= *(&mf->v1 + fidx);
 
