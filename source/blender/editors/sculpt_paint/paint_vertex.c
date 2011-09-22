@@ -1256,12 +1256,13 @@ static char *gen_lock_flags(Object* ob, int defbase_tot)
 	if(is_locked){
 		return lock_flags;
 	}
-	// don't forget to free it if it is unneeded
+
 	MEM_freeN(lock_flags);
 	return NULL;
 }
 
-static int has_locked_group_selected(int defbase_tot, char *defbase_sel, char *lock_flags) {
+static int has_locked_group_selected(int defbase_tot, char *defbase_sel, char *lock_flags)
+{
 	int i;
 	for(i = 0; i < defbase_tot; i++) {
 		if(defbase_sel[i] && lock_flags[i]) {
@@ -1273,7 +1274,8 @@ static int has_locked_group_selected(int defbase_tot, char *defbase_sel, char *l
 
 
 #if 0 /* UNUSED */
-static int has_unselected_unlocked_bone_group(int defbase_tot, char *defbase_sel, int selected, char *lock_flags, char *vgroup_validmap) {
+static int has_unselected_unlocked_bone_group(int defbase_tot, char *defbase_sel, int selected, char *lock_flags, char *vgroup_validmap)
+{
 	int i;
 	if(defbase_tot == selected) {
 		return FALSE;
@@ -1288,28 +1290,32 @@ static int has_unselected_unlocked_bone_group(int defbase_tot, char *defbase_sel
 #endif
 
 
-static void multipaint_selection(MDeformVert *dvert, float change, char *defbase_sel, int defbase_tot) {
+static void multipaint_selection(MDeformVert *dvert, float change, char *defbase_sel, int defbase_tot)
+{
 	int i;
 	MDeformWeight *dw;
 	float val;
-	// make sure they are all at most 1 after the change
+	/* make sure they are all at most 1 after the change */
 	for(i = 0; i < defbase_tot; i++) {
 		if(defbase_sel[i]) {
 			dw = defvert_find_index(dvert, i);
 			if(dw && dw->weight) {
 				val = dw->weight * change;
 				if(val > 1) {
-					/*  TODO: when the change is reduced, you need to recheck the earlier values to make sure they are not 0 (precision error) */
+					/* TODO: when the change is reduced, you need to recheck
+					 * the earlier values to make sure they are not 0
+					 * (precision error) */
 					change = 1.0f/dw->weight;
 				}
-				// the value should never reach zero while multi-painting if it was nonzero beforehand
+				/* the value should never reach zero while multi-painting if it
+				 * was nonzero beforehand */
 				if(val <= 0) {
 					return;
 				}
 			}
 		}
 	}
-	// apply the valid change
+	/* apply the valid change */
 	for(i = 0; i < defbase_tot; i++) {
 		if(defbase_sel[i]) {
 			dw = defvert_find_index(dvert, i);
@@ -1320,56 +1326,60 @@ static void multipaint_selection(MDeformVert *dvert, float change, char *defbase
 	}
 }
 
-// move all change onto valid, unchanged groups.  If there is change left over, then return it.
-// assumes there are valid groups to shift weight onto
-static float redistribute_change(MDeformVert *ndv, char *change_status, int changeme, int changeto, const char *vgroup_validmap, float totchange, float total_valid, char do_auto_normalize) {
+/* move all change onto valid, unchanged groups.  If there is change left over,
+ * then return it.
+ * assumes there are valid groups to shift weight onto */
+static float redistribute_change(MDeformVert *ndv, char *change_status, int changeme, int changeto, float totchange, float total_valid, char do_auto_normalize)
+{
 	float was_change;
 	float change;
 	float oldval;
 	MDeformWeight *ndw;
 	int i;
 	do {
-		// assume there is no change until you see one
+		/* assume there is no change until you see one */
 		was_change = FALSE;
-		// change each group by the same amount each time
+		/* change each group by the same amount each time */
 		change = totchange/total_valid;
 		for(i = 0; i < ndv->totweight && total_valid && totchange; i++) {
 			ndw = (ndv->dw+i);
-			// change only the groups with a valid status
+			/* change only the groups with a valid status */
 			if(change_status[ndw->def_nr] == changeme) {
 				oldval = ndw->weight;
-				// if auto normalize is active, don't worry about upper bounds
+				/* if auto normalize is active, don't worry about upper bounds */
 				if(do_auto_normalize == FALSE && ndw->weight + change > 1) {
 					totchange -= 1-ndw->weight;
 					ndw->weight = 1;
-					// stop the changes to this group
+					/* stop the changes to this group */
 					change_status[ndw->def_nr] = changeto;
 					total_valid--;
-				} else if(ndw->weight + change < 0) { // check the lower bound
+				}
+				else if(ndw->weight + change < 0) { /* check the lower bound */
 					totchange -= ndw->weight;
 					ndw->weight = 0;
 					change_status[ndw->def_nr] = changeto;
 					total_valid--;
-				} else {// a perfectly valid change occurred to ndw->weight
+				}
+				else {/* a perfectly valid change occurred to ndw->weight */
 					totchange -= change;
 					ndw->weight += change;
 				}
-				// see if there was a change
+				/* see if there was a change */
 				if(oldval != ndw->weight) {
 					was_change = TRUE;
 				}
 			}
 		}
-	// don't go again if there was no change, if there is no valid group, or there is no change left
-	}while(was_change && total_valid && totchange);
-	// left overs
-	(void)vgroup_validmap;
+		/* don't go again if there was no change, if there is no valid group,
+		 * or there is no change left */
+	} while(was_change && total_valid && totchange);
+	/* left overs */
 	return totchange;
 }
 
-// observe the changes made to the weights of groups.
-// make sure all locked groups on the vertex have the same deformation
-// by moving the changes made to groups onto other unlocked groups
+/* observe the changes made to the weights of groups.
+ * make sure all locked groups on the vertex have the same deformation
+ * by moving the changes made to groups onto other unlocked groups */
 static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
                           const char *lock_flags, const char *vgroup_validmap, char do_auto_normalize)
 {
@@ -1393,29 +1403,29 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 	if(!lock_flags || !has_locked_group(ndv, lock_flags)) {
 		return;
 	}
-	// record if a group was changed, unlocked and not changed, or locked
+	/* record if a group was changed, unlocked and not changed, or locked */
 	change_status = MEM_callocN(sizeof(char)*defbase_tot, "unlocked_unchanged");
 
 	for(i = 0; i < defbase_tot; i++) {
 		ndw = defvert_find_index(ndv, i);
 		odw = defvert_find_index(odv, i);
-		// the weights are zero, so we can assume a lot
+		/* the weights are zero, so we can assume a lot */
 		if(!ndw || !odw) {
 			if (!lock_flags[i] && vgroup_validmap[i]){
 				defvert_verify_index(odv, i);
 				defvert_verify_index(ndv, i);
 				total_valid++;
-				change_status[i] = 1; // can be altered while redistributing
+				change_status[i] = 1; /* can be altered while redistributing */
 			}
 			continue;
 		}
-		// locked groups should not be changed
+		/* locked groups should not be changed */
 		if(lock_flags[i]) {
 			ndw->weight = odw->weight;
 		}
-		else if(ndw->weight != odw->weight) { // changed groups are handled here
+		else if(ndw->weight != odw->weight) { /* changed groups are handled here */
 			totchange += ndw->weight - odw->weight;
-			change_status[i] = 2; // was altered already
+			change_status[i] = 2; /* was altered already */
 			total_changed++;
 			if(ndw->weight == 0) {
 				new_weight_has_zero = TRUE;
@@ -1423,23 +1433,23 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 			else if(designatedw == -1){
 				designatedw = i;
 			}
-		} // unchanged, unlocked bone groups are handled here
+		} /* unchanged, unlocked bone groups are handled here */
 		else if (vgroup_validmap[i]){
 			totchange_allowed += ndw->weight;
 			total_valid++;
-			change_status[i] = 1; // can be altered while redistributing
+			change_status[i] = 1; /* can be altered while redistributing */
 		}
 	}
-	// if there was any change, redistribute it
+	/* if there was any change, redistribute it */
 	if(total_changed) {
-		// auto normalize will allow weights to temporarily go above 1 in redistribution
+		/* auto normalize will allow weights to temporarily go above 1 in redistribution */
 		if(vgroup_validmap && total_changed < 0 && total_valid) {
 			totchange_allowed = total_valid;
 		}
-		// there needs to be change allowed, or you should not bother
+		/* there needs to be change allowed, or you should not bother */
 		if(totchange_allowed) {
-			// the way you modify the unlocked+unchanged groups is different depending
-			// on whether or not you are painting the weight(s) up or down
+			/* the way you modify the unlocked+unchanged groups is different depending
+			 * on whether or not you are painting the weight(s) up or down */
 			if(totchange < 0) {
 				totchange_allowed = total_valid - totchange_allowed;
 			}
@@ -1448,23 +1458,23 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 			}
 			left_over = 0;
 			if(fabsf(totchange_allowed) < fabsf(totchange)) {
-				// this amount goes back onto the changed, unlocked weights
+				/* this amount goes back onto the changed, unlocked weights */
 				left_over = fabsf(fabsf(totchange) - fabsf(totchange_allowed));
 				if(totchange > 0) {
 					left_over *= -1;
 				}
 			}
 			else {
-				// all of the change will be permitted
+				/* all of the change will be permitted */
 				totchange_allowed = -totchange;
 			}
-			// move the weight evenly between the allowed groups, move excess back onto the used groups based on the change
-			totchange_allowed = redistribute_change(ndv, change_status, 1, -1, vgroup_validmap, totchange_allowed, total_valid, do_auto_normalize);
+			/* move the weight evenly between the allowed groups, move excess back onto the used groups based on the change */
+			totchange_allowed = redistribute_change(ndv, change_status, 1, -1, totchange_allowed, total_valid, do_auto_normalize);
 			left_over += totchange_allowed;
 			if(left_over) {
-				// more than one nonzero weights were changed with the same ratio, so keep them changed that way!
+				/* more than one nonzero weights were changed with the same ratio, so keep them changed that way! */
 				if(total_changed > 1 && !new_weight_has_zero && designatedw >= 0) {
-					// this dw is special, it is used as a base to determine how to change the others
+					/* this dw is special, it is used as a base to determine how to change the others */
 					ndw = defvert_find_index(ndv, designatedw);
 					odw = defvert_find_index(odv, designatedw);
 					storedw = ndw->weight;
@@ -1480,15 +1490,15 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 						}
 					}
 				}
-				// a weight was changed to zero, only one weight was changed, or designatedw is still -1
-				// put weight back as evenly as possible
+				/* a weight was changed to zero, only one weight was changed,
+				 * or designatedw is still -1 put weight back as evenly as possible */
 				else {
-					redistribute_change(ndv, change_status, 2, -2, vgroup_validmap, left_over, total_changed, do_auto_normalize);
+					redistribute_change(ndv, change_status, 2, -2, left_over, total_changed, do_auto_normalize);
 				}
 			}
 		}
 		else {
-			// reset the weights
+			/* reset the weights */
 			for(i = 0; i < ndv->totweight; i++) {
 				ndv->dw[i].weight = odv->dw[i].weight;
 			}
@@ -1498,8 +1508,9 @@ static void enforce_locks(MDeformVert *odv, MDeformVert *ndv, int defbase_tot,
 	MEM_freeN(change_status);
 }
 
-// multi-paint's initial, potential change is computed here based on the user's stroke
-static float get_mp_change(MDeformVert *odv, char *defbase_sel, float brush_change) {
+/* multi-paint's initial, potential change is computed here based on the user's stroke */
+static float get_mp_change(MDeformVert *odv, char *defbase_sel, float brush_change)
+{
 	float selwsum = 0.0f;
 	int i;
 	MDeformWeight *dw;
@@ -1514,9 +1525,10 @@ static float get_mp_change(MDeformVert *odv, char *defbase_sel, float brush_chan
 	return 0.0f;
 }
 
-// change the weights back to the wv's weights
-// it assumes you already have the correct pointer index
-static void reset_to_prev(MDeformVert *wv, MDeformVert *dv) {
+/* change the weights back to the wv's weights
+ * it assumes you already have the correct pointer index */
+static void reset_to_prev(MDeformVert *wv, MDeformVert *dv)
+{
 	int i;
 	MDeformWeight *d;
 	MDeformWeight *w;
@@ -1528,7 +1540,8 @@ static void reset_to_prev(MDeformVert *wv, MDeformVert *dv) {
 	}
 }
 
-static void clamp_weights(MDeformVert *dvert) {
+static void clamp_weights(MDeformVert *dvert)
+{
 	int i;
 	for (i = 0; i < dvert->totweight; i++) {
 		CLAMP((dvert->dw+i)->weight, 0.0f, 1.0f);
@@ -1579,7 +1592,10 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 	dv_test.totweight = dv->totweight;
 	/* do not multi-paint if a locked group is selected or the active group is locked
 	 * !lock_flags[dw->def_nr] helps if nothing is selected, but active group is locked */
-	if((wpi->lock_flags == NULL) || (wpi->lock_flags[dw->def_nr] == FALSE && has_locked_group_selected(wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags) == FALSE)) {
+	if(		(wpi->lock_flags == NULL) ||
+	        ((wpi->lock_flags[dw->def_nr] == FALSE) &&
+	         has_locked_group_selected(wpi->defbase_tot, wpi->defbase_sel, wpi->lock_flags) == FALSE))
+	{
 		if(wpi->do_multipaint && wpi->defbase_tot_sel > 1) {
 			if(change && change!=1) {
 				multipaint_selection(dv, change, wpi->defbase_sel, wpi->defbase_tot);
@@ -1617,7 +1633,8 @@ static int apply_mp_locks_normalize(Mesh *me, const WeightPaintInfo *wpi,
 
 /* within the current dvert index, get the dw that is selected and has a weight
  * above 0, this helps multi-paint */
-static int get_first_selected_nonzero_weight(MDeformVert *dvert, char *defbase_sel) {
+static int get_first_selected_nonzero_weight(MDeformVert *dvert, char *defbase_sel)
+{
 	int i;
 	MDeformWeight *dw;
 	for(i=0; i< dvert->totweight; i++) {
@@ -1660,7 +1677,9 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 
 	/* If there are no locks or multipaint,
 	 * then there is no need to run the more complicated checks */
-	if((wpi->do_multipaint == FALSE || wpi->defbase_tot_sel <= 1) && (wpi->lock_flags == NULL || has_locked_group(&me->dvert[index], wpi->lock_flags) == FALSE)) {
+	if(		(wpi->do_multipaint == FALSE || wpi->defbase_tot_sel <= 1) &&
+	        (wpi->lock_flags == NULL || has_locked_group(&me->dvert[index], wpi->lock_flags) == FALSE))
+	{
 		wpaint_blend(wp, dw, uw, alpha, paintweight, wpi->do_flip, FALSE);
 		do_weight_paint_auto_normalize_all_groups(me->dvert+index, wpi->vgroup_validmap, wpi->do_auto_normalize);
 
@@ -1692,7 +1711,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		neww = dw->weight;
 		dw->weight = oldw;
 		
-		// setup multi-paint
+		/* setup multi-paint */
 		if(wpi->defbase_tot_sel > 1 && wpi->do_multipaint) {
 			dv.dw= MEM_dupallocN((me->dvert+index)->dw);
 			dv.flag = me->dvert[index].flag;
@@ -2036,8 +2055,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	/* cannot paint if there is no stroke data */
 	if (wpd == NULL) {
-		// XXX: force a redraw here, since even though we can't paint, 
-		// at least view won't freeze until stroke ends
+		/* XXX: force a redraw here, since even though we can't paint,
+		 * at least view won't freeze until stroke ends */
 		ED_region_tag_redraw(CTX_wm_region(C));
 		return;
 	}
@@ -2081,7 +2100,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	/* which faces are involved */
 	if(wp->flag & VP_AREA) {
-		// Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell
+		/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
 		me->editflag &= ~ME_EDIT_VERT_SEL;
 		totindex= sample_backbuf_area(vc, indexar, me->totface, mval[0], mval[1], brush_size(brush));
 		me->editflag |= use_vert_sel ? ME_EDIT_VERT_SEL : 0;
@@ -2284,7 +2303,7 @@ static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obact = CTX_data_active_object(C);
 
 	wpaint_fill(scene->toolsettings->wpaint, obact, scene->toolsettings->vgroup_weight);
-	ED_region_tag_redraw(CTX_wm_region(C)); // XXX - should redraw all 3D views
+	ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
 	return OPERATOR_FINISHED;
 }
 
