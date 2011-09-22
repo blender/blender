@@ -48,8 +48,4 @@ set(SRC
 	py_capi_utils.h
 )
 
-if(WITH_INTERNATIONAL)
-        add_definitions(-DINTERNATIONAL)
-endif()
-
 blender_add_lib(bf_python_ext "${SRC}" "${INC}" "${INC_SYS}")
