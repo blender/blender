@@ -456,7 +456,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_from_original", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_OB_DUPLI_ORIG);
 	RNA_def_property_ui_text(prop, "From Original",
-	                         "Dupli's derive their object coordinates from the original objects transformation");
+	                         "Dupli's derive their object coordinates from the original object's transformation");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "use_map_color_diffuse", PROP_BOOLEAN, PROP_NONE);
@@ -555,7 +555,7 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "normal_map_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "normapspace");
 	RNA_def_property_enum_items(prop, prop_normal_map_space_items);
-	RNA_def_property_ui_text(prop, "Normal Map Space", "Sets space of normal map image");
+	RNA_def_property_ui_text(prop, "Normal Map Space", "Set space of normal map image");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_NONE);
@@ -871,7 +871,7 @@ static void rna_def_material_colors(StructRNA *srna)
 	prop= RNA_def_property(srna, "specular_ramp_blend", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rampblend_spec");
 	RNA_def_property_enum_items(prop, ramp_blend_items);
-	RNA_def_property_ui_text(prop, "Diffuse Ramp Blend", "Blending method of the ramp and the specular color");
+	RNA_def_property_ui_text(prop, "Specular Ramp Blend", "Blending method of the ramp and the specular color");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 
 	prop= RNA_def_property(srna, "diffuse_ramp_input", PROP_ENUM, PROP_NONE);
@@ -981,7 +981,7 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "reflect_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "ray_mirror");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Reflectivity", "Sets the amount mirror reflection for raytrace");
+	RNA_def_property_ui_text(prop, "Reflectivity", "Amount of mirror reflection for raytrace");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "fresnel", PROP_FLOAT, PROP_NONE);
@@ -1060,7 +1060,7 @@ static void rna_def_material_raytra(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ior", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ang");
 	RNA_def_property_range(prop, 0.25f, 4.0f);
-	RNA_def_property_ui_text(prop, "IOR", "Sets angular index of refraction for raytraced refraction");
+	RNA_def_property_ui_text(prop, "IOR", "Angular index of refraction for raytraced refraction");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "fresnel", PROP_FLOAT, PROP_NONE);
@@ -1233,7 +1233,7 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1 ,3);
 	RNA_def_property_ui_text(prop, "Scattering",
 	                         "Amount of light that gets scattered out by the volume - "
-	                         "the more out-scattering, the shallower the light will penetrate ");
+	                         "the more out-scattering, the shallower the light will penetrate");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "transmission_color", PROP_FLOAT, PROP_COLOR);
