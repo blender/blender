@@ -90,15 +90,15 @@ static int point_in_triangle(double *v1, double *v2, double *v3, double *pt)
 static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 {
 
-	float u[3],  v[3], w[3];/*, *w, v1[3], v2[3];*/
-	float n[3] = {0.0, 0.0, 0.0} /*, l, v1[3], v2[3] */;
+	float u[3], v[3], w[3];/*, *w, v1[3], v2[3];*/
+	float n[3]/*, l, v1[3], v2[3] */;
 	/* double l2; */
 	int i /*, s=0 */;
 
+	zero_v3(n);
+
 	/*this fixes some weird numerical error*/
-	verts[0][0] += 0.0001f;
-	verts[0][1] += 0.0001f;
-	verts[0][2] += 0.0001f;
+	add_v3_fl(verts[0], 0.0001f);
 
 	for(i = 0; i < nverts; i++){
 		copy_v3_v3(u, verts[i]);
@@ -137,8 +137,7 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 	}
 
 #if 0
-	l = n[0]*n[0]+n[1]*n[1]+n[2]*n[2];
-	l = sqrt(l);
+	l = len_v3(n);
 	/*fast square root, newton/babylonian method:
 	l2 = l*0.1;
 
@@ -155,13 +154,9 @@ static void compute_poly_normal(float normal[3], float (*verts)[3], int nverts)
 		return;
 	} else l = 1.0f / l;
 
-	n[0] *= l;
-	n[1] *= l;
-	n[2] *= l;
-	
-	normal[0] = (float) n[0];
-	normal[1] = (float) n[1];
-	normal[2] = (float) n[2];
+	mul_v3_fl(n, l);
+
+	copy_v3_v3(normal, n);
 #endif
 }
 
@@ -178,8 +173,8 @@ static int compute_poly_center(float center[3], float *area, float (*verts)[3], 
 {
 	int i, j;
 	float atmp = 0.0, xtmp = 0.0, ytmp = 0.0, ai;
-	
-	center[0] = center[1] = center[2] = 0.0;	
+
+	zero_v3(center);
 
 	if(nverts < 3) 
 		return 0;
@@ -266,15 +261,15 @@ int BM_Compute_Face_Center(BMesh *bm, BMFace *f, float center[3])
 void compute_poly_plane(float (*verts)[3], int nverts)
 {
 	
-	float avgc[3], norm[3], temp[3], mag, avgn[3];
+	float avgc[3], norm[3], mag, avgn[3];
 	float *v1, *v2, *v3;
 	int i;
 	
 	if(nverts < 3) 
 		return;
 
-	avgn[0] = avgn[1] = avgn[2] = 0.0;
-	avgc[0] = avgc[1] = avgc[2] = 0.0;
+	zero_v3(avgn);
+	zero_v3(avgc);
 
 	for(i = 0; i < nverts; i++){
 		v1 = verts[i];
@@ -286,7 +281,7 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 	}
 
 	/*what was this bit for?*/
-	if(avgn[0] == 0.0f && avgn[1] == 0.0f && avgn[2] == 0.0f) {
+	if (is_zero_v3(avgn)) {
 		avgn[0] = 0.0f;
 		avgn[1] = 0.0f;
 		avgn[2] = 1.0f;
@@ -301,17 +296,8 @@ void compute_poly_plane(float (*verts)[3], int nverts)
 	
 	for(i = 0; i < nverts; i++){
 		v1 = verts[i];
-		copy_v3_v3(temp, v1);
-		mag = 0.0;
-		mag += (temp[0] * avgn[0]);
-		mag += (temp[1] * avgn[1]);
-		mag += (temp[2] * avgn[2]);
-		
-		temp[0] = (avgn[0] * mag);
-		temp[1] = (avgn[1] * mag);
-		temp[2] = (avgn[2] * mag);
-
-		sub_v3_v3v3(v1, v1, temp);
+		mag = dot_v3v3(v1, avgn);
+		madd_v3_v3fl(v1, avgn, -mag);
 	}	
 }
 
@@ -433,20 +419,33 @@ void BM_Edge_UpdateNormals(BMesh *bm, BMEdge *e)
 
 void BM_Vert_UpdateNormal(BMesh *bm, BMVert *v)
 {
-	BMIter iter;
-	BMFace *f;
+	BMIter eiter, liter;
+	BMEdge *e;
+	BMLoop *l;
+	float vec1[3], vec2[3], fac;
 	int len=0;
 
-	v->no[0] = v->no[1] = v->no[2] = 0.0f;
+	zero_v3(v->no);
 
-	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
-	for (; f; f=BMIter_Step(&iter), len++) {
-		add_v3_v3v3(v->no, f->no, v->no);
+	BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, v) {
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_EDGE, e) {
+			if (l->v == v) {
+				/* Same calculation used in BM_Compute_Normals */
+				sub_v3_v3v3(vec1, l->v->co, l->prev->v->co);
+				sub_v3_v3v3(vec2, l->next->v->co, l->v->co);
+				normalize_v3(vec1);
+				normalize_v3(vec2);
+
+				fac = saacos(-dot_v3v3(vec1, vec2));
+				
+				madd_v3_v3fl(v->no, l->f->no, fac);
+			}
+		}
 	}
 
-	if (!len) return;
-
-	mul_v3_fl(v->no, 1.0f/(float)len);
+	if (len) {
+		normalize_v3(v->no);
+	}
 }
 
 void BM_Vert_UpdateAllNormals(BMesh *bm, BMVert *v)
@@ -455,7 +454,7 @@ void BM_Vert_UpdateAllNormals(BMesh *bm, BMVert *v)
 	BMFace *f;
 	int len=0;
 
-	v->no[0] = v->no[1] = v->no[2] = 0.0f;
+	zero_v3(v->no);
 
 	f = BMIter_New(&iter, bm, BM_FACES_OF_VERT, v);
 	for (; f; f=BMIter_Step(&iter), len++) {
@@ -500,9 +499,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 		normal_quad_v3( f->no,v1->co, v2->co, v3->co, v4->co);
 	}
 	else{ /*horrible, two sided face!*/
-		f->no[0] = 0.0;
-		f->no[1] = 0.0;
-		f->no[2] = 1.0;
+		zero_v3(f->no);
 	}
 
 }
@@ -518,7 +515,7 @@ void bmesh_update_face_normal(BMesh *bm, BMFace *f, float (*projectverts)[3])
 void BM_flip_normal(BMesh *bm, BMFace *f)
 {	
 	bmesh_loop_reverse(bm, f);
-	BM_Face_UpdateNormal(bm, f);
+	mul_v3_fl(f->no, -1.0f);
 }
 
 /* detects if two line segments cross each other (intersects).

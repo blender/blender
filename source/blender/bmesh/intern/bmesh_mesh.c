@@ -172,12 +172,16 @@ void BM_Compute_Normals(BMesh *bm)
 	BMVert *v;
 	BMFace *f;
 	BMLoop *l;
+	BMEdge *e;
 	BMIter verts;
 	BMIter faces;
 	BMIter loops;
+	BMIter edges;
 	unsigned int maxlength = 0;
+	int index;
 	float (*projectverts)[3];
-	
+	float (*edgevec)[3];
+
 	/*first, find out the largest face in mesh*/
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 		if (BM_TestHFlag(f, BM_HIDDEN))
@@ -188,7 +192,7 @@ void BM_Compute_Normals(BMesh *bm)
 	
 	/*make sure we actually have something to do*/
 	if(maxlength < 3) return; 
-	
+
 	/*allocate projectverts array*/
 	projectverts = MEM_callocN(sizeof(float) * maxlength * 3, "BM normal computation array");
 	
@@ -207,20 +211,57 @@ void BM_Compute_Normals(BMesh *bm)
 		if (BM_TestHFlag(v, BM_HIDDEN))
 			continue;
 
-		v->no[0] = v->no[1] = v->no[2] = 0.0;
+		zero_v3(v->no);
 	}
 
-	/*add face normals to vertices*/
+	/* compute normalized direction vectors for each edge. directions will be
+	   used below for calculating the weights of the face normals on the vertex
+	   normals */
+	index = 0;
+	edgevec = MEM_callocN(sizeof(float) * 3 * bm->totedge, "BM normal computation array");
+	BM_ITER(e, &edges, bm, BM_EDGES_OF_MESH, NULL) {
+		if (!e->l) {
+			/* the edge vector will not be needed when the edge has no radial */
+			continue;
+		}
+		BM_SetIndex(e, index);
+		sub_v3_v3v3(edgevec[index], e->v2->co, e->v1->co);
+		normalize_v3(edgevec[index]);
+		index++;
+	}
+
+	/*add weighted face normals to vertices*/
 	BM_ITER(f, &faces, bm, BM_FACES_OF_MESH, NULL) {
 
 		if (BM_TestHFlag(f, BM_HIDDEN))
 			continue;
 
-		for(l = BMIter_New(&loops, bm, BM_LOOPS_OF_FACE, f ); l; l = BMIter_Step(&loops)) 
-			add_v3_v3v3(l->v->no, l->v->no, f->no);
+		BM_ITER(l, &loops, bm, BM_LOOPS_OF_FACE, f) {
+			float *e1diff, *e2diff;
+			float dotprod;
+			float fac;
+
+			/* calculate the dot product of the two edges that
+			   meet at the loop's vertex */
+			e1diff = edgevec[BM_GetIndex(l->prev->e)];
+			e2diff = edgevec[BM_GetIndex(l->e)];
+			dotprod = dot_v3v3(e1diff, e2diff);
+
+			/* edge vectors are calculated from e->v1 to e->v2, so
+			   adjust the dot product if one but not both loops 
+			   actually runs from from e->v2 to e->v1 */
+			if ((l->prev->e->v1 == l->prev->v) ^ (l->e->v1 == l->v)) {
+				dotprod *= -1.0f;
+			}
+
+			fac = saacos(-dotprod);
+
+			/* accumulate weighted face normal into the vertex's normal */
+			madd_v3_v3fl(l->v->no, f->no, fac);
+		}
 	}
 	
-	/*average the vertex normals*/
+	/* normalize the accumulated vertex normals */
 	BM_ITER(v, &verts, bm, BM_VERTS_OF_MESH, NULL) {
 		if (BM_TestHFlag(v, BM_HIDDEN))
 			continue;
@@ -231,6 +272,7 @@ void BM_Compute_Normals(BMesh *bm)
 		}
 	}
 	
+	MEM_freeN(edgevec);
 	MEM_freeN(projectverts);
 }
 
