@@ -29,7 +29,6 @@ _modules = (
     "console",
     "image",
     "mesh",
-    "nla",
     "object_align",
     "object",
     "object_randomize_transform",

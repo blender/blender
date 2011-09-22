@@ -18,8 +18,14 @@
 
 # <pep8-80 compliant>
 
+if "bpy" in locals():
+    import imp
+    if "anim_utils" in locals():
+        imp.reload(anim_utils)
+
 import bpy
 from bpy.types import Operator
+from bpy.props import IntProperty, BoolProperty, EnumProperty
 
 
 class ANIM_OT_keying_set_export(Operator):
@@ -125,3 +131,105 @@ class ANIM_OT_keying_set_export(Operator):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
+
+
+class BakeAction(Operator):
+    '''Bake animation to an Action'''
+    bl_idname = "nla.bake"
+    bl_label = "Bake Action"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    frame_start = IntProperty(
+            name="Start Frame",
+            description="Start frame for baking",
+            min=0, max=300000,
+            default=1,
+            )
+    frame_end = IntProperty(
+            name="End Frame",
+            description="End frame for baking",
+            min=1, max=300000,
+            default=250,
+            )
+    step = IntProperty(
+            name="Frame Step",
+            description="Frame Step",
+            min=1, max=120,
+            default=1,
+            )
+    only_selected = BoolProperty(
+            name="Only Selected",
+            default=True,
+            )
+    clear_consraints = BoolProperty(
+            name="Clear Constraints",
+            default=False,
+            )
+    bake_types = EnumProperty(
+            name="Bake Data",
+            options={'ENUM_FLAG'},
+            items=(('POSE', "Pose", ""),
+                   ('OBJECT', "Object", ""),
+                   ),
+            default={'POSE'},
+            )
+
+    def execute(self, context):
+
+        from bpy_extras import anim_utils
+
+        action = anim_utils.bake_action(self.frame_start,
+                                        self.frame_end,
+                                        self.step,
+                                        self.only_selected,
+                                        'POSE' in self.bake_types,
+                                        'OBJECT' in self.bake_types,
+                                        self.clear_consraints,
+                                        True,
+                                 )
+
+        if action is None:
+            self.report({'INFO'}, "Nothing to bake")
+            return {'CANCELLED'}
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+
+class ClearUselessActions(Operator):
+    '''Mark actions with no F-Curves for deletion after save+reload of ''' \
+    '''file preserving "action libraries"'''
+    bl_idname = "anim.clear_useless_actions"
+    bl_label = "Clear Useless Actions"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    only_unused = BoolProperty(name="Only Unused",
+            description="Only unused (Fake User only) actions get considered",
+            default=True)
+
+    @classmethod
+    def poll(cls, context):
+        return len(bpy.data.actions) != 0
+
+    def execute(self, context):
+        removed = 0
+
+        for action in bpy.data.actions:
+            # if only user is "fake" user...
+            if ((self.only_unused is False) or
+                (action.use_fake_user and action.users == 1)):
+
+                # if it has F-Curves, then it's a "action library"
+                # (i.e. walk, wave, jump, etc.)
+                # and should be left alone as that's what fake users are for!
+                if not action.fcurves:
+                    # mark action for deletion
+                    action.user_clear()
+                    removed += 1
+
+        self.report({'INFO'}, "Removed %d empty and/or fake-user only Actions"
+                              % removed)
+        return {'FINISHED'}
