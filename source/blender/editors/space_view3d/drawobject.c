@@ -1745,6 +1745,31 @@ void mesh_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BMVert
 	dm->release(dm);
 }
 
+/*  draw callback */
+static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+{
+	MVert *mv = &((MVert *)userData)[index];
+
+	if(!(mv->flag & ME_HIDE)) {
+		const char sel= mv->flag & SELECT;
+
+		// TODO define selected color
+		if(sel) {
+			glColor3f(1.0f, 1.0f, 0.0f);
+		}
+		else {
+			glColor3f(0.0f, 0.0f, 0.0f);
+		}
+
+		glVertex3fv(co);
+	}
+}
+
+static void drawSelectedVertices(DerivedMesh *dm, Mesh *me) {
+	glBegin(GL_POINTS);
+	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
+	glEnd();
+}
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
 	struct { void (*func)(void *userData, BMEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; ViewContext vc; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
@@ -3012,7 +3037,16 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			bglPolygonOffset(rv3d->dist, 0.0);
 		}
 	}
-
+	
+	if(paint_vertsel_test(ob)) {
+		
+		glColor3f(0.0f, 0.0f, 0.0f);
+		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
+		
+		drawSelectedVertices(dm, ob->data);
+		
+		glPointSize(1.0f);
+	}
 	dm->release(dm);
 }
 
@@ -6604,6 +6638,32 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
+static void bbs_obmode_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
+{
+	struct {void* offset; MVert *mvert;} *data = userData;
+	MVert *mv = &data->mvert[index];
+	int offset = (intptr_t) data->offset;
+
+	if (!(mv->flag & ME_HIDE)) {
+		WM_set_framebuffer_index_color(offset+index);
+		bglVertex3fv(co);
+	}
+}
+
+static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
+{
+	struct {void* offset; struct MVert *mvert;} data;
+	Mesh *me = ob->data;
+	MVert *mvert = me->mvert;
+	data.mvert = mvert;
+	data.offset = (void*)(intptr_t) offset;
+	glPointSize( UI_GetThemeValuef(TH_VERTEX_SIZE) );
+	bglBegin(GL_POINTS);
+	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data);
+	bglEnd();
+	glPointSize(1.0);
+}
+
 static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float *UNUSED(no_f), short *UNUSED(no_s))
 {
 	void **ptrs = userData;
@@ -6712,6 +6772,17 @@ static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *UNUS
 	}
 }
 
+// must have called WM_set_framebuffer_index_color beforehand
+static int bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index, int *UNUSED(drawSmooth_r))
+{
+	Mesh *me = userData;
+
+	if (!(me->mface[index].flag & ME_HIDE)) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
 static void bbs_mesh_solid(Scene *scene, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
@@ -6770,7 +6841,21 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			EDBM_free_index_arrays(em);
 		}
 		else {
-			bbs_mesh_solid(scene, ob);
+			Mesh *me= ob->data;
+			if(me->editflag & ME_EDIT_VERT_SEL) {
+				DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
+				glColor3ub(0, 0, 0);
+
+				dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, me, 0, GPU_enable_material, NULL);
+
+				
+				bbs_obmode_mesh_verts(ob, dm, 1);
+				bm_vertoffs = me->totvert+1;
+				dm->release(dm);
+			}
+			else {
+				bbs_mesh_solid(scene, ob);
+			}
 		}
 		break;
 	case OB_CURVE:

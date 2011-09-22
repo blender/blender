@@ -56,6 +56,7 @@ struct Scene;
 struct View3D;
 struct ViewContext;
 struct wmWindow;
+struct MVert;
 
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */

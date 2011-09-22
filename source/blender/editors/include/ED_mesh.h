@@ -241,6 +241,9 @@ int paintface_minmax(struct Object *ob, float *min, float *max);
 void paintface_hide(struct Object *ob, const int unselected);
 void paintface_reveal(struct Object *ob);
 
+void paintvert_deselect_all_visible(struct Object *ob, int action, short flush_flags);
+void		paintvert_flush_flags(struct Object *ob);
+
 /* object_vgroup.c */
 
 #define WEIGHT_REPLACE 1

@@ -624,3 +624,101 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 
 	return OPERATOR_FINISHED;
 }
+
+
+/*  (similar to void paintface_flush_flags(Object *ob))
+ * copy the vertex flags, most importantly selection from the mesh to the final derived mesh,
+ * use in object mode when selecting vertices (while painting) */
+void paintvert_flush_flags(Object *ob)
+{
+	Mesh *me= get_mesh(ob);
+	DerivedMesh *dm= ob->derivedFinal;
+	MVert *dm_mvert, *dm_mv;
+	int *index_array = NULL;
+	int totvert;
+	int i;
+
+	if(me==NULL || dm==NULL)
+		return;
+
+	index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
+
+	dm_mvert = dm->getVertArray(dm);
+	totvert = dm->getNumVerts(dm);
+
+	dm_mv= dm_mvert;
+
+	if(index_array) {
+		int orig_index;
+		for (i= 0; i<totvert; i++, dm_mv++) {
+			orig_index= index_array[i];
+			if(orig_index != ORIGINDEX_NONE) {
+				dm_mv->flag= me->mvert[index_array[i]].flag;
+			}
+		}
+	}
+	else {
+		for (i= 0; i<totvert; i++, dm_mv++) {
+			dm_mv->flag= me->mvert[i].flag;
+		}
+	}
+}
+/*  note: if the caller passes FALSE to flush_flags, then they will need to run paintvert_flush_flags(ob) themselves */
+void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
+{
+	Mesh *me;
+	MVert *mvert;
+	int a;
+
+	me= get_mesh(ob);
+	if(me==NULL) return;
+	
+	if(action == SEL_INVERT) {
+		mvert= me->mvert;
+		a= me->totvert;
+		while(a--) {
+			if((mvert->flag & ME_HIDE) == 0) {
+				mvert->flag ^= SELECT;
+			}
+			mvert++;
+		}
+	}
+	else {
+		if (action == SEL_TOGGLE) {
+			action = SEL_SELECT;
+
+			mvert= me->mvert;
+			a= me->totvert;
+			while(a--) {
+				if((mvert->flag & ME_HIDE) == 0 && mvert->flag & SELECT) {
+					action = SEL_DESELECT;
+					break;
+				}
+				mvert++;
+			}
+		}
+
+		mvert= me->mvert;
+		a= me->totvert;
+		while(a--) {
+			if((mvert->flag & ME_HIDE) == 0) {
+				switch (action) {
+				case SEL_SELECT:
+					mvert->flag |= SELECT;
+					break;
+				case SEL_DESELECT:
+					mvert->flag &= ~SELECT;
+					break;
+				case SEL_INVERT:
+					mvert->flag ^= SELECT;
+					break;
+				}
+			}
+			mvert++;
+		}
+	}
+
+	if(flush_flags) {
+		paintvert_flush_flags(ob);
+	}
+}

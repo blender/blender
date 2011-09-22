@@ -40,6 +40,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h" // N_T
 
@@ -60,6 +61,7 @@
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_multires.h"
+#include "BKE_armature.h"
 #include "BKE_particle.h"
 #include "BKE_tessmesh.h"
 #include "BKE_bvhutils.h"
@@ -858,20 +860,64 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 	}
 }
 
-static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col)
+/* draw_flag's for calc_weightpaint_vert_color */
+enum {
+	CALC_WP_MULTIPAINT= (1<<0),
+	CALC_WP_AUTO_NORMALIZE= (1<<1),
+};
+
+static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col, char *dg_flags, int selected, int UNUSED(unselected), const int draw_flag)
 {
 	Mesh *me = ob->data;
 	float colf[4], input = 0.0f;
 	int i;
 
+	
+	int make_black= FALSE;
+
 	if (me->dvert) {
-		for (i=0; i<me->dvert[vert].totweight; i++)
-			if (me->dvert[vert].dw[i].def_nr==ob->actdef-1)
-				input+=me->dvert[vert].dw[i].weight;		
+		if ((selected > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
+			
+			int was_a_nonzero= FALSE;
+			for (i=0; i<me->dvert[vert].totweight; i++) {
+				/* in multipaint, get the average if auto normalize is inactive
+				 * get the sum if it is active */
+				if(dg_flags[me->dvert[vert].dw[i].def_nr]) {
+					if(me->dvert[vert].dw[i].weight) {
+						input+= me->dvert[vert].dw[i].weight;
+						was_a_nonzero= TRUE;
+					}
+				}
+			}
+
+			/* make it black if the selected groups have no weight on a vertex */
+			if(was_a_nonzero == FALSE) {
+				make_black = TRUE;
+			}
+			else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
+				input /= selected; /* get the average */
+			}
+		}
+		else {
+			/* default, non tricky behavior */
+			for (i=0; i<me->dvert[vert].totweight; i++) {
+				if (me->dvert[vert].dw[i].def_nr==ob->actdef-1) {
+					input+=me->dvert[vert].dw[i].weight;
+				}
+			}
+		}
+	}
+	
+	if (make_black) {
+		col[3] = 0;
+		col[2] = 0;
+		col[1] = 0;
+		col[0] = 255;
+		return;
 	}
 
-	CLAMP(input, 0.0f, 1.0f);
-	
+	CLAMP(input, 0.0f, 1.0f);	
+
 	if(coba)
 		do_colorband(coba, input, colf);
 	else
@@ -890,7 +936,7 @@ void vDM_ColorBand_store(ColorBand *coba)
 	stored_cb= coba;
 }
 
-static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
+static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 {
 	// Mesh *me = ob->data; // UNUSED
 	MFace *mf = dm->getTessFaceArray(dm);
@@ -902,18 +948,23 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 	BLI_array_declare(wlcol);
 	int i, j, totface=dm->getNumTessFaces(dm), totloop;
 	int *origIndex = dm->getVertDataArray(dm, CD_ORIGINDEX);
-	
+
+	int defbase_len = BLI_countlist(&ob->defbase);
+	char *defbase_sel = MEM_mallocN(defbase_len * sizeof(char), __func__);
+	int selected = get_selected_defgroups(ob, defbase_sel, defbase_len);
+	int unselected = defbase_len - selected;
+
 	wtcol = MEM_callocN (sizeof (unsigned char) * totface*4*4, "weightmap");
 	
 	/*first add colors to the tesselation faces*/
 	memset(wtcol, 0x55, sizeof (unsigned char) * totface*4*4);
 	for (i=0; i<totface; i++, mf++) {
 		/*origindex being NULL means we're operating on original mesh data*/
-		calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[mf->v1] : mf->v1, &wtcol[(i*4 + 0)*4]); 
-		calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[mf->v2] : mf->v2, &wtcol[(i*4 + 1)*4]); 
-		calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[mf->v3] : mf->v3, &wtcol[(i*4 + 2)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4], defbase_sel, selected, unselected, draw_flag);
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4], defbase_sel, selected, unselected, draw_flag);
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[mf->v4] : mf->v4, &wtcol[(i*4 + 3)*4]); 
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4], defbase_sel, selected, unselected, draw_flag);
 	}
 	
 	CustomData_add_layer(&dm->faceData, CD_WEIGHT_MCOL, CD_ASSIGN, wtcol, totface);
@@ -927,7 +978,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 			BLI_array_growone(wlcol);
 
 			calc_weightpaint_vert_color(ob, coba, origIndex ? origIndex[ml->v] : ml->v,
-										(unsigned char *)&wlcol[totloop]);
+										(unsigned char *)&wlcol[totloop], defbase_sel, selected, unselected, draw_flag);
 		}
 	}
 
@@ -1044,6 +1095,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 0);
 	int has_multires = mmd != NULL, multires_applied = 0;
 	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
+
+	int draw_flag= ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
+	                (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
 
 	if(mmd && !mmd->sculptlvl)
 		has_multires = 0;
@@ -1244,16 +1298,13 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 					DM_add_face_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 
-					orig = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numVertData; i++) *orig++= i;
-					orig = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numEdgeData; i++) *orig++= i;
-					orig = DM_get_face_data_layer(dm, CD_ORIGINDEX);
-					for(i=0; i<dm->numPolyData; i++) *orig++= i;
+					range_vni(DM_get_vert_data_layer(dm, CD_ORIGINDEX), dm->numVertData, 0);
+					range_vni(DM_get_edge_data_layer(dm, CD_ORIGINDEX), dm->numEdgeData, 0);
+					range_vni(DM_get_face_data_layer(dm, CD_ORIGINDEX), dm->numPolyData, 0);
 				}
 
 				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-					add_weight_mcol_dm(ob, dm);
+					add_weight_mcol_dm(ob, dm, draw_flag);
 
 			}
 
@@ -1348,7 +1399,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		CDDM_calc_normals(finaldm);
 
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm);
+			add_weight_mcol_dm(ob, finaldm, draw_flag);
 	} else if(dm) {
 		finaldm = dm;
 	} else {
@@ -1370,8 +1421,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			CDDM_calc_normals(finaldm);
 		
 		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
-			add_weight_mcol_dm(ob, finaldm);
-		
+			add_weight_mcol_dm(ob, finaldm, draw_flag);
 	}
 
 	/* add an orco layer if needed */
