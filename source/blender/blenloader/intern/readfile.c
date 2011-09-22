@@ -3009,6 +3009,9 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	if(tex->vd) {
 		tex->vd->dataset = NULL;
 		tex->vd->ok = 0;
+	} else {
+		if(tex->type == TEX_VOXELDATA)
+			tex->vd= MEM_callocN(sizeof(VoxelData), "direct_link_texture VoxelData");
 	}
 	
 	tex->nodetree= newdataadr(fd, tex->nodetree);

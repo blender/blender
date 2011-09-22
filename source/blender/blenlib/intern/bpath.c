@@ -244,7 +244,7 @@ static struct Tex *tex_stepdata__internal(struct Tex *tex, const int step_next, 
 		tex= tex->id.next;
 
 	while (tex) {
-		if (tex->type == TEX_VOXELDATA && tex->vd && TEX_VD_IS_SOURCE_PATH(tex->vd->file_format))
+		if (tex->type == TEX_VOXELDATA && TEX_VD_IS_SOURCE_PATH(tex->vd->file_format))
 			break;
 		/* image is not a image with a path, skip it */
 		tex= tex->id.next;
