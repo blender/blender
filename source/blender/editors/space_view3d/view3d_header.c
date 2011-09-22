@@ -285,14 +285,14 @@ static char *view3d_modeselect_pup(Scene *scene)
 {
 	Object *ob= OBACT;
 	static char string[256];
-	const char *title= N_("Mode: %%t");
+	const char *title= N_("Mode: %t");
 	char *str = string;
 
 	if(U.transopts&USER_TR_IFACE)
 		title= BLF_gettext(title);
 
-	sprintf(str, title);
-	
+	BLI_strncpy(str, title, sizeof(string));
+
 	str += modeselect_addmode(str, N_("Object Mode"), OB_MODE_OBJECT, ICON_OBJECT_DATA);
 	
 	if(ob==NULL || ob->data==NULL) return string;

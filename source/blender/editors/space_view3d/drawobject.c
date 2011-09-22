@@ -5112,6 +5112,7 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 	const float tot_inv= (1.0f / (float)CIRCLE_RESOL);
 	int a;
 	char inverse= FALSE;
+	float x, y, fac;
 
 	if (start < 0) {
 		inverse = TRUE;
@@ -5121,38 +5122,56 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 	mul_v3_v3fl(vx, tmat[0], rad);
 	mul_v3_v3fl(vy, tmat[1], rad);
 
-	copy_v3_v3(vec, cent);
+	glBegin(GL_LINE_STRIP);
 
 	if (inverse==0) {
+		copy_v3_v3(vec, cent);
+		glVertex3fv(vec);
+
 		for(a=0; a<CIRCLE_RESOL; a++) {
-			if (a+start>31)
+			if (a+start>=CIRCLE_RESOL)
 				start=-a + 1;
-			glBegin(GL_LINES);							
+
+			fac= (float)a * tot_inv;
+			x= sinval[a+start] * fac;
+			y= cosval[a+start] * fac;
+
+			vec[0]= cent[0] + (x * vx[0] + y * vy[0]);
+			vec[1]= cent[1] + (x * vx[1] + y * vy[1]);
+			vec[2]= cent[2] + (x * vx[2] + y * vy[2]);
+
 			glVertex3fv(vec);
-			vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)a * tot_inv) + cosval[a+start] * (vy[0] * (float)a * tot_inv);
-			vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)a * tot_inv) + cosval[a+start] * (vy[1] * (float)a * tot_inv);
-			vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)a * tot_inv) + cosval[a+start] * (vy[2] * (float)a * tot_inv);
-			glVertex3fv(vec);
-			glEnd();
 		}
 	}
 	else {
-		a=0;
-		vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[0] * (float)(-a+31) * tot_inv);
-		vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[1] * (float)(-a+31) * tot_inv);
-		vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[2] * (float)(-a+31) * tot_inv);
+		a= 0;
+
+		fac= (float)(CIRCLE_RESOL-1) * tot_inv;
+		x= sinval[start] * fac;
+		y= cosval[start] * fac;
+
+		vec[0]= cent[0] + (x * vx[0] + y * vy[0]);
+		vec[1]= cent[1] + (x * vx[1] + y * vy[1]);
+		vec[2]= cent[2] + (x * vx[2] + y * vy[2]);
+
+		glVertex3fv(vec);
+
 		for(a=0; a<CIRCLE_RESOL; a++) {
-			if (a+start>31)
+			if (a+start>=CIRCLE_RESOL)
 				start=-a + 1;
-			glBegin(GL_LINES);							
+
+			fac= (float)(-a+(CIRCLE_RESOL-1)) * tot_inv;
+			x= sinval[a+start] * fac;
+			y= cosval[a+start] * fac;
+
+			vec[0]= cent[0] + (x * vx[0] + y * vy[0]);
+			vec[1]= cent[1] + (x * vx[1] + y * vy[1]);
+			vec[2]= cent[2] + (x * vx[2] + y * vy[2]);
 			glVertex3fv(vec);
-			vec[0]= cent[0] + sinval[a+start] * (vx[0] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[0] * (float)(-a+31) * tot_inv);
-			vec[1]= cent[1] + sinval[a+start] * (vx[1] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[1] * (float)(-a+31) * tot_inv);
-			vec[2]= cent[2] + sinval[a+start] * (vx[2] * (float)(-a+31) * tot_inv) + cosval[a+start] * (vy[2] * (float)(-a+31) * tot_inv);
-			glVertex3fv(vec);
-			glEnd();
 		}
 	}
+
+	glEnd();
 }
 
 /* draws a circle on x-z plane given the scaling of the circle, assuming that 
