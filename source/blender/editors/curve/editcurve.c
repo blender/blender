@@ -5777,6 +5777,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 						clamp_nurb_order_u(nu);
 					}*/
 				}
+				clamp_nurb_order_u(nu);
 				nurbs_knot_calc_u(nu);
 			}
 			nu= next;
@@ -5925,7 +5926,14 @@ static int delete_exec(bContext *C, wmOperator *op)
 					MEM_freeN(nu1->bp);
 					nu1->bp= bp;
 					nu1->pntsu= a;
+					nu1->knotsu= NULL;
 					nu->pntsu= cut+1;
+
+					clamp_nurb_order_u(nu);
+					nurbs_knot_calc_u(nu);
+
+					clamp_nurb_order_u(nu1);
+					nurbs_knot_calc_u(nu1);
 				}
 			}
 		}
