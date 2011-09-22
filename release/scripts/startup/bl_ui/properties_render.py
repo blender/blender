@@ -225,7 +225,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60})
 
         if custom_framerate == True:
-            fps_label_text = _("Custom (") + str(fps_rate) + " fps)"
+            fps_label_text = "Custom (" + str(fps_rate) + " fps)"
         else:
             fps_label_text = str(fps_rate) + " fps"
 
