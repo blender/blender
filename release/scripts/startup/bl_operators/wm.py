@@ -1179,3 +1179,707 @@ class WM_OT_copy_prev_settings(Operator):
             return {'FINISHED'}
 
         return {'CANCELLED'}
+
+        
+class WM_OT_keyconfig_test(Operator):
+    "Test keyconfig for conflicts"
+    bl_idname = "wm.keyconfig_test"
+    bl_label = "Test Key Configuration for Conflicts"
+
+    def testEntry(self, kc, entry, src=None, parent=None):
+        result = False
+
+        def kmistr(kmi):
+            if km.is_modal:
+                s = ["kmi = km.keymap_items.new_modal(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
+            else:
+                s = ["kmi = km.keymap_items.new(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
+
+            if kmi.any:
+                s.append(", any=True")
+            else:
+                if kmi.shift:
+                    s.append(", shift=True")
+                if kmi.ctrl:
+                    s.append(", ctrl=True")
+                if kmi.alt:
+                    s.append(", alt=True")
+                if kmi.oskey:
+                    s.append(", oskey=True")
+            if kmi.key_modifier and kmi.key_modifier != 'NONE':
+                s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
+
+            s.append(")\n")
+
+            props = kmi.properties
+
+            if props is not None:
+                export_properties("kmi.properties", props, s)
+
+            return "".join(s).strip()
+
+        idname, spaceid, regionid, children = entry
+
+        km = kc.keymaps.find(idname, space_type=spaceid, region_type=regionid)
+
+        if km:
+            km = km.active()
+
+            if src:
+                for item in km.keymap_items:
+                    if src.compare(item):
+                        print("===========")
+                        print(parent.name)
+                        print(kmistr(src))
+                        print(km.name)
+                        print(kmistr(item))
+                        result = True
+
+                for child in children:
+                    if self.testEntry(kc, child, src, parent):
+                        result = True
+            else:
+                for i in range(len(km.keymap_items)):
+                    src = km.keymap_items[i]
+
+                    for child in children:
+                        if self.testEntry(kc, child, src, km):
+                            result = True
+
+                    for j in range(len(km.keymap_items) - i - 1):
+                        item = km.keymap_items[j + i + 1]
+                        if src.compare(item):
+                            print("===========")
+                            print(km.name)
+                            print(kmistr(src))
+                            print(kmistr(item))
+                            result = True
+
+                for child in children:
+                    if self.testEntry(kc, child):
+                        result = True
+
+        return result
+
+    def testConfig(self, kc):
+        result = False
+        for entry in KM_HIERARCHY:
+            if self.testEntry(kc, entry):
+                result = True
+        return result
+
+    def execute(self, context):
+        wm = context.window_manager
+        kc = wm.keyconfigs.default
+
+        if self.testConfig(kc):
+            print("CONFLICT")
+
+        return {'FINISHED'}
+
+
+def _string_value(value):
+    if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
+        result = repr(value)
+    elif getattr(value, '__len__', False):
+        return repr(list(value))
+    else:
+        print("Export key configuration: can't write ", value)
+
+    return result
+
+
+class WM_OT_keyconfig_import(Operator):
+    "Import key configuration from a python script"
+    bl_idname = "wm.keyconfig_import"
+    bl_label = "Import Key Configuration..."
+
+    filepath = StringProperty(
+            name="File Path",
+            description="Filepath to write file to",
+            default="keymap.py",
+            )
+    filter_folder = BoolProperty(
+            name="Filter folders",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_text = BoolProperty(
+            name="Filter text",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_python = BoolProperty(
+            name="Filter python",
+            default=True,
+            options={'HIDDEN'},
+            )
+    keep_original = BoolProperty(
+            name="Keep original",
+            description="Keep original file after copying to configuration folder",
+            default=True,
+            )
+
+    def execute(self, context):
+        from os.path import basename
+        import shutil
+
+        if not self.filepath:
+            self.report({'ERROR'}, "Filepath not set")
+            return {'CANCELLED'}
+
+        config_name = basename(self.filepath)
+
+        path = bpy.utils.user_resource('SCRIPTS', os.path.join("presets", "keyconfig"), create=True)
+        path = os.path.join(path, config_name)
+
+        try:
+            if self.keep_original:
+                shutil.copy(self.filepath, path)
+            else:
+                shutil.move(self.filepath, path)
+        except Exception as e:
+            self.report({'ERROR'}, "Installing keymap failed: %s" % e)
+            return {'CANCELLED'}
+
+        # sneaky way to check we're actually running the code.
+        bpy.utils.keyconfig_set(path)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+# This operator is also used by interaction presets saving - AddPresetBase
+
+
+class WM_OT_keyconfig_export(Operator):
+    "Export key configuration to a python script"
+    bl_idname = "wm.keyconfig_export"
+    bl_label = "Export Key Configuration..."
+
+    filepath = StringProperty(
+            name="File Path",
+            description="Filepath to write file to",
+            default="keymap.py",
+            )
+    filter_folder = BoolProperty(
+            name="Filter folders",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_text = BoolProperty(
+            name="Filter text",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_python = BoolProperty(
+            name="Filter python",
+            default=True,
+            options={'HIDDEN'},
+            )
+
+    def execute(self, context):
+        if not self.filepath:
+            raise Exception("Filepath not set")
+
+        if not self.filepath.endswith('.py'):
+            self.filepath += '.py'
+
+        f = open(self.filepath, "w")
+        if not f:
+            raise Exception("Could not open file")
+
+        wm = context.window_manager
+        kc = wm.keyconfigs.active
+
+        f.write("import bpy\n")
+        f.write("import os\n\n")
+        f.write("wm = bpy.context.window_manager\n")
+        f.write("kc = wm.keyconfigs.new(os.path.splitext(os.path.basename(__file__))[0])\n\n")  # keymap must be created by caller
+
+        # Generate a list of keymaps to export:
+        #
+        # First add all user_modified keymaps (found in keyconfigs.user.keymaps list),
+        # then add all remaining keymaps from the currently active custom keyconfig.
+        #
+        # This will create a final list of keymaps that can be used as a 'diff' against
+        # the default blender keyconfig, recreating the current setup from a fresh blender
+        # without needing to export keymaps which haven't been edited.
+
+        class FakeKeyConfig():
+            keymaps = []
+        edited_kc = FakeKeyConfig()
+        for km in wm.keyconfigs.user.keymaps:
+            if km.is_user_modified:
+                edited_kc.keymaps.append(km)
+        # merge edited keymaps with non-default keyconfig, if it exists
+        if kc != wm.keyconfigs.default:
+            export_keymaps = _merge_keymaps(edited_kc, kc)
+        else:
+            export_keymaps = _merge_keymaps(edited_kc, edited_kc)
+
+        for km, kc_x in export_keymaps:
+
+            km = km.active()
+
+            f.write("# Map %s\n" % km.name)
+            f.write("km = kc.keymaps.new('%s', space_type='%s', region_type='%s', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.is_modal))
+            for kmi in km.keymap_items:
+                if km.is_modal:
+                    f.write("kmi = km.keymap_items.new_modal('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
+                else:
+                    f.write("kmi = km.keymap_items.new('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
+                if kmi.any:
+                    f.write(", any=True")
+                else:
+                    if kmi.shift:
+                        f.write(", shift=True")
+                    if kmi.ctrl:
+                        f.write(", ctrl=True")
+                    if kmi.alt:
+                        f.write(", alt=True")
+                    if kmi.oskey:
+                        f.write(", oskey=True")
+                if kmi.key_modifier and kmi.key_modifier != 'NONE':
+                    f.write(", key_modifier='%s'" % kmi.key_modifier)
+                f.write(")\n")
+
+                props = kmi.properties
+
+                if props is not None:
+                    f.write("".join(export_properties("kmi.properties", props)))
+
+            f.write("\n")
+
+        f.close()
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class WM_OT_keymap_restore(Operator):
+    "Restore key map(s)"
+    bl_idname = "wm.keymap_restore"
+    bl_label = "Restore Key Map(s)"
+
+    all = BoolProperty(
+            name="All Keymaps",
+            description="Restore all keymaps to default",
+            )
+
+    def execute(self, context):
+        wm = context.window_manager
+
+        if self.all:
+            for km in wm.keyconfigs.user.keymaps:
+                km.restore_to_default()
+        else:
+            km = context.keymap
+            km.restore_to_default()
+
+        return {'FINISHED'}
+
+
+class WM_OT_keyitem_restore(Operator):
+    "Restore key map item"
+    bl_idname = "wm.keyitem_restore"
+    bl_label = "Restore Key Map Item"
+
+    item_id = IntProperty(
+            name="Item Identifier",
+            description="Identifier of the item to remove",
+            )
+
+    @classmethod
+    def poll(cls, context):
+        keymap = getattr(context, "keymap", None)
+        return keymap
+
+    def execute(self, context):
+        km = context.keymap
+        kmi = km.keymap_items.from_id(self.item_id)
+
+        if (not kmi.is_user_defined) and kmi.is_user_modified:
+            km.restore_item_to_default(kmi)
+
+        return {'FINISHED'}
+
+
+class WM_OT_keyitem_add(Operator):
+    "Add key map item"
+    bl_idname = "wm.keyitem_add"
+    bl_label = "Add Key Map Item"
+
+    def execute(self, context):
+        km = context.keymap
+
+        if km.is_modal:
+            km.keymap_items.new_modal("", 'A', 'PRESS')  # kmi
+        else:
+            km.keymap_items.new("none", 'A', 'PRESS')  # kmi
+
+        # clear filter and expand keymap so we can see the newly added item
+        if context.space_data.filter_text != "":
+            context.space_data.filter_text = ""
+            km.show_expanded_items = True
+            km.show_expanded_children = True
+
+        return {'FINISHED'}
+
+
+class WM_OT_keyitem_remove(Operator):
+    "Remove key map item"
+    bl_idname = "wm.keyitem_remove"
+    bl_label = "Remove Key Map Item"
+
+    item_id = IntProperty(
+            name="Item Identifier",
+            description="Identifier of the item to remove",
+            )
+
+    @classmethod
+    def poll(cls, context):
+        return hasattr(context, "keymap")
+
+    def execute(self, context):
+        km = context.keymap
+        kmi = km.keymap_items.from_id(self.item_id)
+        km.keymap_items.remove(kmi)
+        return {'FINISHED'}
+
+
+class WM_OT_keyconfig_remove(Operator):
+    "Remove key config"
+    bl_idname = "wm.keyconfig_remove"
+    bl_label = "Remove Key Config"
+
+    @classmethod
+    def poll(cls, context):
+        wm = context.window_manager
+        keyconf = wm.keyconfigs.active
+        return keyconf and keyconf.is_user_defined
+
+    def execute(self, context):
+        wm = context.window_manager
+        keyconfig = wm.keyconfigs.active
+        wm.keyconfigs.remove(keyconfig)
+        return {'FINISHED'}
+
+
+class WM_OT_operator_cheat_sheet(Operator):
+    bl_idname = "wm.operator_cheat_sheet"
+    bl_label = "Operator Cheat Sheet"
+
+    def execute(self, context):
+        op_strings = []
+        tot = 0
+        for op_module_name in dir(bpy.ops):
+            op_module = getattr(bpy.ops, op_module_name)
+            for op_submodule_name in dir(op_module):
+                op = getattr(op_module, op_submodule_name)
+                text = repr(op)
+                if text.split("\n")[-1].startswith('bpy.ops.'):
+                    op_strings.append(text)
+                    tot += 1
+
+            op_strings.append('')
+
+        textblock = bpy.data.texts.new("OperatorList.txt")
+        textblock.write('# %d Operators\n\n' % tot)
+        textblock.write('\n'.join(op_strings))
+        self.report({'INFO'}, "See OperatorList.txt textblock")
+        return {'FINISHED'}
+        
+        
+class WM_OT_addon_enable(Operator):
+    "Enable an addon"
+    bl_idname = "wm.addon_enable"
+    bl_label = "Enable Add-On"
+
+    module = StringProperty(
+            name="Module",
+            description="Module name of the addon to enable",
+            )
+
+    def execute(self, context):
+        mod = addon_utils.enable(self.module)
+
+        if mod:
+            info = addon_utils.module_bl_info(mod)
+
+            info_ver = info.get("blender", (0, 0, 0))
+
+            if info_ver > bpy.app.version:
+                self.report({'WARNING'}, ("This script was written Blender "
+                                          "version %d.%d.%d and might not "
+                                          "function (correctly), "
+                                          "though it is enabled") %
+                                         info_ver)
+            return {'FINISHED'}
+        else:
+            return {'CANCELLED'}
+
+
+class WM_OT_addon_disable(Operator):
+    "Disable an addon"
+    bl_idname = "wm.addon_disable"
+    bl_label = "Disable Add-On"
+
+    module = StringProperty(
+            name="Module",
+            description="Module name of the addon to disable",
+            )
+
+    def execute(self, context):
+        addon_utils.disable(self.module)
+        return {'FINISHED'}
+
+
+class WM_OT_addon_install(Operator):
+    "Install an addon"
+    bl_idname = "wm.addon_install"
+    bl_label = "Install Add-On..."
+
+    overwrite = BoolProperty(
+            name="Overwrite",
+            description="Remove existing addons with the same ID",
+            default=True,
+            )
+    target = EnumProperty(
+            name="Target Path",
+            items=(('DEFAULT', "Default", ""),
+                   ('PREFS', "User Prefs", "")),
+            )
+
+    filepath = StringProperty(
+            name="File Path",
+            description="File path to write file to",
+            )
+    filter_folder = BoolProperty(
+            name="Filter folders",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_python = BoolProperty(
+            name="Filter python",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_glob = StringProperty(
+            default="*.py;*.zip",
+            options={'HIDDEN'},
+            )
+
+    @staticmethod
+    def _module_remove(path_addons, module):
+        module = os.path.splitext(module)[0]
+        for f in os.listdir(path_addons):
+            f_base = os.path.splitext(f)[0]
+            if f_base == module:
+                f_full = os.path.join(path_addons, f)
+
+                if os.path.isdir(f_full):
+                    os.rmdir(f_full)
+                else:
+                    os.remove(f_full)
+
+    def execute(self, context):
+        import traceback
+        import zipfile
+        import shutil
+
+        pyfile = self.filepath
+
+        if self.target == 'DEFAULT':
+            # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.
+            path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
+        else:
+            path_addons = bpy.context.user_preferences.filepaths.script_directory
+            if path_addons:
+                path_addons = os.path.join(path_addons, "addons")
+
+        if not path_addons:
+            self.report({'ERROR'}, "Failed to get addons path")
+            return {'CANCELLED'}
+
+        # create dir is if missing.
+        if not os.path.exists(path_addons):
+            os.makedirs(path_addons)
+
+        # Check if we are installing from a target path,
+        # doing so causes 2+ addons of same name or when the same from/to
+        # location is used, removal of the file!
+        addon_path = ""
+        pyfile_dir = os.path.dirname(pyfile)
+        for addon_path in addon_utils.paths():
+            if os.path.samefile(pyfile_dir, addon_path):
+                self.report({'ERROR'}, "Source file is in the addon search path: %r" % addon_path)
+                return {'CANCELLED'}
+        del addon_path
+        del pyfile_dir
+        # done checking for exceptional case
+
+        addons_old = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)}
+
+        #check to see if the file is in compressed format (.zip)
+        if zipfile.is_zipfile(pyfile):
+            try:
+                file_to_extract = zipfile.ZipFile(pyfile, 'r')
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
+
+            if self.overwrite:
+                for f in file_to_extract.namelist():
+                    WM_OT_addon_install._module_remove(path_addons, f)
+            else:
+                for f in file_to_extract.namelist():
+                    path_dest = os.path.join(path_addons, os.path.basename(f))
+                    if os.path.exists(path_dest):
+                        self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                        return {'CANCELLED'}
+
+            try:  # extract the file to "addons"
+                file_to_extract.extractall(path_addons)
+
+                # zip files can create this dir with metadata, don't need it
+                macosx_dir = os.path.join(path_addons, '__MACOSX')
+                if os.path.isdir(macosx_dir):
+                    shutil.rmtree(macosx_dir)
+
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
+
+        else:
+            path_dest = os.path.join(path_addons, os.path.basename(pyfile))
+
+            if self.overwrite:
+                WM_OT_addon_install._module_remove(path_addons, os.path.basename(pyfile))
+            elif os.path.exists(path_dest):
+                self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                return {'CANCELLED'}
+
+            #if not compressed file just copy into the addon path
+            try:
+                shutil.copyfile(pyfile, path_dest)
+
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
+
+        addons_new = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)} - addons_old
+        addons_new.discard("modules")
+
+        # disable any addons we may have enabled previously and removed.
+        # this is unlikely but do just incase. bug [#23978]
+        for new_addon in addons_new:
+            addon_utils.disable(new_addon)
+
+        # possible the zip contains multiple addons, we could disallow this
+        # but for now just use the first
+        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
+            if mod.__name__ in addons_new:
+                info = addon_utils.module_bl_info(mod)
+
+                # show the newly installed addon.
+                context.window_manager.addon_filter = 'All'
+                context.window_manager.addon_search = info["name"]
+                break
+
+        # incase a new module path was created to install this addon.
+        bpy.utils.refresh_script_paths()
+
+        # TODO, should not be a warning.
+        # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class WM_OT_addon_remove(Operator):
+    "Disable an addon"
+    bl_idname = "wm.addon_remove"
+    bl_label = "Remove Add-On"
+
+    module = StringProperty(
+            name="Module",
+            description="Module name of the addon to remove",
+            )
+
+    @staticmethod
+    def path_from_addon(module):
+        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
+            if mod.__name__ == module:
+                filepath = mod.__file__
+                if os.path.exists(filepath):
+                    if os.path.splitext(os.path.basename(filepath))[0] == "__init__":
+                        return os.path.dirname(filepath), True
+                    else:
+                        return filepath, False
+        return None, False
+
+    def execute(self, context):
+        path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
+        if path is None:
+            self.report('WARNING', "Addon path %r could not be found" % path)
+            return {'CANCELLED'}
+
+        # incase its enabled
+        addon_utils.disable(self.module)
+
+        import shutil
+        if isdir:
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+
+        context.area.tag_redraw()
+        return {'FINISHED'}
+
+    # lame confirmation check
+    def draw(self, context):
+        self.layout.label(text="Remove Addon: %r?" % self.module)
+        path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
+        self.layout.label(text="Path: %r" % path)
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=600)
+
+
+class WM_OT_addon_expand(Operator):
+    "Display more information on this add-on"
+    bl_idname = "wm.addon_expand"
+    bl_label = ""
+
+    module = StringProperty(
+            name="Module",
+            description="Module name of the addon to expand",
+            )
+
+    def execute(self, context):
+        module_name = self.module
+
+        # unlikely to fail, module should have already been imported
+        try:
+            # mod = __import__(module_name)
+            mod = USERPREF_PT_addons.module_get(module_name)
+        except:
+            import traceback
+            traceback.print_exc()
+            return {'CANCELLED'}
+
+        info = addon_utils.module_bl_info(mod)
+        info["show_expanded"] = not info["show_expanded"]
+        return {'FINISHED'}
