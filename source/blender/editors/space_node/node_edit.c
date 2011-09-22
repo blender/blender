@@ -1805,7 +1805,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Link to Viewer Node";
-	ot->description = "Link to Viewer Node";
+	ot->description = "Link to viewer node";
 	ot->idname= "NODE_OT_link_viewer";
 	
 	/* api callbacks */
@@ -2275,7 +2275,7 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Nodes";
-	ot->description = "Duplicate the nodes";
+	ot->description = "Duplicate selected nodes";
 	ot->idname= "NODE_OT_duplicate";
 	
 	/* api callbacks */
