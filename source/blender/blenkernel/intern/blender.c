@@ -318,6 +318,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	set_scene_bg(G.main, CTX_data_scene(C));
 	
 	MEM_freeN(bfd);
+
+	(void)curscene; /* quiet warning */
 }
 
 static int handle_subversion_warning(Main *main, ReportList *reports)

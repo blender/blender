@@ -84,7 +84,7 @@ static void api_ui_item_common(FunctionRNA *func)
 {
 	PropertyRNA *prop;
 
-	prop= RNA_def_string_translate(func, "text", "", 0, "", "Override automatic text of the item");
+	RNA_def_string_translate(func, "text", "", 0, "", "Override automatic text of the item");
 
 	prop= RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, icon_items);

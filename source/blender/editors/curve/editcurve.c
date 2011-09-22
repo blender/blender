@@ -2376,7 +2376,7 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 	BezTriple *bezt;
 	BPoint *bp;
 	int a;
-	short lastsel= 0, sel=0;
+	short lastsel= 0;
 	
 	if(next==0) return;
 	
@@ -2388,13 +2388,12 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 			if(next < 0) bezt= (nu->bezt + (a-1));
 			while(a--) {
 				if(a-abs(next) < 0) break;
-				sel= 0;
 				if((lastsel==0) && (bezt->hide==0) && ((bezt->f2 & SELECT) || (selstatus==0))) {
 					bezt+=next;
 					if(!(bezt->f2 & SELECT) || (selstatus==0)) {
-						sel= select_beztriple(bezt, selstatus, 1, VISIBLE);	
+						short sel= select_beztriple(bezt, selstatus, 1, VISIBLE);
 						if((sel==1) && (cont==0)) lastsel= 1;
-					}							
+					}
 				}
 				else {
 					bezt+=next;
@@ -2410,11 +2409,10 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 			if(next < 0) bp= (nu->bp + (a-1));
 			while(a--) {
 				if(a-abs(next) < 0) break;
-				sel=0;
 				if((lastsel==0) && (bp->hide==0) && ((bp->f1 & SELECT) || (selstatus==0))) {
 					bp+=next;
 					if(!(bp->f1 & SELECT) || (selstatus==0)) {
-						sel= select_bpoint(bp, selstatus, 1, VISIBLE);
+						short sel= select_bpoint(bp, selstatus, 1, VISIBLE);
 						if((sel==1) && (cont==0)) lastsel= 1;
 					}			
 				}
@@ -2443,7 +2441,6 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 	BezTriple *bezt;
 	Curve *cu;
 	int a;
-	short sel;
 
 	if(obedit==NULL) return;
 
@@ -2451,7 +2448,6 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 	cu->lastsel= NULL;
 
 	for(nu= editnurb->first; nu; nu= nu->next) {
-		sel= 0;
 		if(nu->type == CU_BEZIER) {
 			a= nu->pntsu;
 			
@@ -2464,6 +2460,7 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 			}
 			
 			while(a--) {
+				short sel;
 				if(doswap) sel= swap_selection_beztriple(bezt);
 				else sel= select_beztriple(bezt, selstatus, 1, VISIBLE);
 				
@@ -2483,6 +2480,7 @@ void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatu
 
 			while(a--) {
 				if (bp->hide == 0) {
+					short sel;
 					if(doswap) sel= swap_selection_bpoint(bp);
 					else sel= select_bpoint(bp, selstatus, 1, VISIBLE);
 					
