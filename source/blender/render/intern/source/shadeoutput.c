@@ -726,7 +726,7 @@ static float Toon_Diff( float *n, float *l, float *UNUSED(v), float size, float 
 /* in latter case, only last multiplication uses 'nl' */
 static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough )
 {
-	float i/*, nh*/, nv, vh, realnl, h[3];
+	float i/*, nh*/, nv /*, vh */, realnl, h[3];
 	float a, b, t, A, B;
 	float Lit_A, View_A, Lit_B[3], View_B[3];
 	
@@ -745,8 +745,8 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	if(realnl<=0.0f) return 0.0f;
 	if(nl<0.0f) return 0.0f;		/* value from area light */
 	
-	vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; /* Dot product between view vector and halfway vector */
-	if(vh<=0.0f) vh= 0.0f;
+	/* vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; */ /* Dot product between view vector and halfway vector */
+	/* if(vh<=0.0f) vh= 0.0f; */
 	
 	Lit_A = saacos(realnl);
 	View_A = saacos( nv );

@@ -452,7 +452,7 @@ static void solidify_add_thickness(BMesh *bm, float dist)
 			BLI_array_growone(angles);
 		}
 
-		angle_poly_v3(angles, verts, f->len);
+		angle_poly_v3(angles, (const float **)verts, f->len);
 
 		i = 0;
 		BM_ITER(l, &loopIter, bm, BM_LOOPS_OF_FACE, f) {

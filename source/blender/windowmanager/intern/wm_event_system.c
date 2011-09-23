@@ -1917,7 +1917,7 @@ void wm_event_do_handlers(bContext *C)
 			
 			/* store last event for this window */
 			/* mousemove and timer events don't overwrite last type */
-			if (event->type != MOUSEMOVE && !ISTIMER(event->type)) {
+			if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && !ISTIMER(event->type)) {
 				if (wm_action_not_handled(action)) {
 					if (win->eventstate->prevtype == event->type) {
 						/* set click time on first click (press -> release) */

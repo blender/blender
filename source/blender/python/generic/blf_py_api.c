@@ -31,14 +31,8 @@
 #include "blf_py_api.h"
 
 #include "../../blenfont/BLF_api.h"
-#include "../../blenfont/BLF_translation.h"
 
 #include "BLI_utildefines.h"
-
-#ifdef INTERNATIONAL
-#include "DNA_userdef_types.h"	/* is it bad level? */
-#endif
-
 
 PyDoc_STRVAR(py_blf_position_doc,
 ".. function:: position(fontid, x, y, z)\n"
@@ -371,33 +365,24 @@ static PyObject *py_blf_load(PyObject *UNUSED(self), PyObject *args)
 	return PyLong_FromLong(BLF_load(filename));
 }
 
-PyDoc_STRVAR(py_blf_gettext_doc,
-".. function:: gettext(msgid)\n"
+PyDoc_STRVAR(py_blf_unload_doc,
+".. function:: unload(filename)\n"
 "\n"
-"   Get a msg in local language.\n"
+"   Unload an existing font.\n"
 "\n"
-"   :arg msgid: the source string.\n"
-"   :type msgid: string\n"
-"   :return: the localized string.\n"
-"   :rtype: string\n"
+"   :arg filename: the filename of the font.\n"
+"   :type filename: string\n"
 );
-static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *value)
+static PyObject *py_blf_unload(PyObject *UNUSED(self), PyObject *args)
 {
-#ifdef INTERNATIONAL
-	if ((U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_IFACE)) {
-		const char *msgid= _PyUnicode_AsString(value);
-		if(msgid == NULL) {
-			PyErr_SetString(PyExc_TypeError, "blf.gettext expects a single string argument");
-			return NULL;
-		}
+	char* filename;
 
-		return PyUnicode_FromString(BLF_gettext(msgid));
-	}
-	else
-#endif /* INTERNATIONAL */
-	{
-		return Py_INCREF(value), value;
-	}
+	if (!PyArg_ParseTuple(args, "s:blf.unload", &filename))
+		return NULL;
+
+	BLF_unload(filename);
+
+	Py_RETURN_NONE;
 }
 
 /*----------------------------MODULE INIT-------------------------*/
@@ -415,7 +400,7 @@ static PyMethodDef BLF_methods[] = {
 	{"shadow_offset", (PyCFunction) py_blf_shadow_offset, METH_VARARGS, py_blf_shadow_offset_doc},
 	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
 	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
-	{"gettext", (PyCFunction) py_blf_gettext, METH_O, py_blf_gettext_doc},
+	{"unload", (PyCFunction) py_blf_unload, METH_VARARGS, py_blf_unload_doc},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -24,10 +24,11 @@ if "bpy" in locals():
         _reload(val)
 _modules = (
     "add_mesh_torus",
+    "anim",
     "animsys_update",
+    "console",
     "image",
     "mesh",
-    "nla",
     "object_align",
     "object",
     "object_randomize_transform",
@@ -39,6 +40,7 @@ _modules = (
     "uvcalc_lightmap",
     "uvcalc_smart_project",
     "vertexpaint_dirt",
+    "view3d",
     "wm",
 )
 __import__(name=__name__, fromlist=_modules)

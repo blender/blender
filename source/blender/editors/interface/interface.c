@@ -1935,6 +1935,9 @@ void uiFreeBlock(const bContext *C, uiBlock *block)
 		ui_free_but(C, but);
 	}
 
+	if(block->unit)
+		MEM_freeN(block->unit);
+
 	if(block->func_argN)
 		MEM_freeN(block->func_argN);
 
@@ -2010,10 +2013,15 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 	block->active= 1;
 	block->dt= dt;
 	block->evil_C= (void*)C; // XXX
+
 	if (scn) {
 		block->color_profile= (scn->r.color_mgt_flag & R_COLOR_MANAGEMENT);
-		block->unit= &scn->unit;
+
+		/* copy to avoid crash when scene gets deleted with ui still open */
+		block->unit= MEM_mallocN(sizeof(scn->unit), "UI UnitSettings");
+		memcpy(block->unit, &scn->unit, sizeof(scn->unit));
 	}
+
 	BLI_strncpy(block->name, name, sizeof(block->name));
 
 	if(region)

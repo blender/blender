@@ -23,6 +23,10 @@
 *
 */
 
+/** \file blender/modifiers/intern/MOD_warp.c
+ *  \ingroup modifiers
+ */
+
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

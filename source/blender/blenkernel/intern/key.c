@@ -853,7 +853,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 	int a, ofs[32], *ofsp;
 	int flagdo= 15, flagflo=0, elemsize, poinsize=0;
 	char *k1, *k2, *k3, *k4, *freek1, *freek2, *freek3, *freek4;
-	char *cp, elemstr[8];;
+	char *cp, elemstr[8];
 
 	/* currently always 0, in future key_pointer_size may assign */
 	ofs[1]= 0;

@@ -193,6 +193,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
+
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
 						DerivedMesh *dm,
 						int UNUSED(useRenderParams),
@@ -531,6 +532,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	if(smd->flag & MOD_SOLIDIFY_RIM) {
+		int *origindex;
+		
 		/* bugger, need to re-calculate the normals for the new edge faces.
 		 * This could be done in many ways, but probably the quickest way is to calculate the average normals for side faces only.
 		 * Then blend them with the normals of the edge verts.
@@ -550,11 +553,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		const unsigned char crease_inner= smd->crease_inner * 255.0f;
 
 		/* add faces & edges */
+		origindex= result->getEdgeDataArray(result, CD_ORIGINDEX);
 		ed= medge + (numEdges * 2);
 		for(i=0; i<newEdges; i++, ed++) {
 			ed->v1= new_vert_arr[i];
 			ed->v2= new_vert_arr[i] + numVerts;
 			ed->flag |= ME_EDGEDRAW;
+
+			origindex[numEdges * 2 + i]= ORIGINDEX_NONE;
 
 			if(crease_rim)
 				ed->crease= crease_rim;
@@ -564,6 +570,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		edge_origIndex = CustomData_get_layer(&result->edgeData, CD_ORIGINDEX);
 		
 		mp= mpoly + (numFaces * 2);
+		origindex= result->getTessFaceDataArray(result, CD_ORIGINDEX);
 		ml = mloop + (numLoops * 2);
 		j = 0;
 		for(i=0; i<newFaces; i++, mp++) {
@@ -652,13 +659,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				edge_origIndex[ml[j-3].e] = ORIGINDEX_NONE;
 				edge_origIndex[ml[j-1].e] = ORIGINDEX_NONE;
 			}
-			
 			if(crease_outer) {
 				/* crease += crease_outer; without wrapping */
 				unsigned char *cr= (unsigned char *)&(medge[eidx].crease);
 				int tcr= *cr + crease_outer;
 				*cr= tcr > 255 ? 255 : tcr;
 			}
+
 			if(crease_inner) {
 				/* crease += crease_inner; without wrapping */
 				unsigned char *cr= (unsigned char *)&(medge[numEdges + eidx].crease);
@@ -672,6 +679,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			add_v3_v3(edge_vert_nos[ed->v1], nor);
 			add_v3_v3(edge_vert_nos[ed->v2], nor);
 #endif
+			origindex[numFaces * 2 + i]= ORIGINDEX_NONE;
 		}
 		
 #ifdef SOLIDIFY_SIDE_NORMALS

@@ -1091,6 +1091,9 @@ static void do_material_tex(GPUShadeInput *shi)
 						float ima_x, ima_y;
 						float hScale = 0.1f; // compatibility adjustment factor for all bumpspace types
 						float hScaleTex = 13.0f; // factor for scaling texspace bumps
+
+						float imag_tspace_dimension_x = 1024.0f;		// only used for texture space variant
+						float aspect = 1.0f;
 						
 						GPUNodeLink *surf_pos = GPU_builtin(GPU_VIEW_POSITION);
 						GPUNodeLink *vR1, *vR2;
@@ -1154,6 +1157,7 @@ static void do_material_tex(GPUShadeInput *shi)
 							if(ibuf) {
 								ima_x= ibuf->x;
 								ima_y= ibuf->y;
+								aspect = ((float) ima_y) / ima_x;
 							}
 						}
 						
@@ -1174,10 +1178,11 @@ static void do_material_tex(GPUShadeInput *shi)
 						
 						
 						if( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
-							
+							float imag_tspace_dimension_y = aspect*imag_tspace_dimension_x;
 							GPU_link( mat, "mtex_bump_apply_texspace",
 							          fDet, dBs, dBt, vR1, vR2, 
-							          GPU_image(tex->ima, &tex->iuser), texco, GPU_uniform(&ima_x), GPU_uniform(&ima_y), vNacc,
+							          GPU_image(tex->ima, &tex->iuser), texco,
+									  GPU_uniform(&imag_tspace_dimension_x), GPU_uniform(&imag_tspace_dimension_y), vNacc,
 							          &vNacc, &shi->vn );
 						} else
 							GPU_link( mat, "mtex_bump_apply",

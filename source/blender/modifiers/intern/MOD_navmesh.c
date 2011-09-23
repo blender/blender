@@ -25,6 +25,12 @@
 * ***** END GPL LICENSE BLOCK *****
 *
 */
+
+/** \file blender/modifiers/intern/MOD_navmesh.c
+ *  \ingroup modifiers
+ */
+
+
 #include <math.h>
 
 #include "DNA_mesh_types.h"

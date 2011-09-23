@@ -1014,9 +1014,13 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					if(!flush && compareDrawOptions) {
 						int next_orig= (index==NULL) ? next_actualFace : index[next_actualFace];
 
-						/* also compare draw options and flush buffer if they're different
-						   need for face selection highlight in edit mode */
-						flush|= compareDrawOptions(userData, orig, next_orig) == 0;
+						if(orig==ORIGINDEX_NONE || next_orig==ORIGINDEX_NONE) {
+							flush= 1;
+						} else {
+							/* also compare draw options and flush buffer if they're different
+							   need for face selection highlight in edit mode */
+							flush|= compareDrawOptions(userData, orig, next_orig) == 0;
+						}
 					}
 
 					if(flush) {

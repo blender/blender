@@ -529,6 +529,9 @@ FontBLF *blf_font_new(const char *name, const char *filename)
 	mfile= blf_dir_metrics_search(filename);
 	if (mfile) {
 		err= FT_Attach_File(font->face, mfile);
+		if(err) {
+			fprintf(stderr, "FT_Attach_File failed to load '%s' with error %d\n", filename, (int)err);
+		}
 		MEM_freeN(mfile);
 	}
 

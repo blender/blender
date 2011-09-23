@@ -503,13 +503,11 @@ static float integrate_overlap(Brush* br)
 	int i;
 	int m= 10;
 	float g = 1.0f/m;
-	float overlap;
 	float max;
 
-	overlap= 0;
 	max= 0;
 	for(i= 0; i < m; i++) {
-		overlap = overlapped_curve(br, i*g);
+		float overlap= overlapped_curve(br, i*g);
 
 		if (overlap > max)
 			max = overlap;
