@@ -1661,7 +1661,7 @@ static void UV_OT_stitch(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "use_limit", 1, "Use Limit", "Stitch UVs within a specified limit distance");
-	RNA_def_float(ot->srna, "limit", 20.0, 0.0f, FLT_MAX, "Limit", "Limit distance in image pixels.", -FLT_MAX, FLT_MAX);
+	RNA_def_float(ot->srna, "limit", 20.0, 0.0f, FLT_MAX, "Limit", "Limit distance in image pixels", -FLT_MAX, FLT_MAX);
 }
 
 /* ******************** (de)select all operator **************** */
@@ -2115,7 +2115,7 @@ static void UV_OT_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0,
 		"Extend", "Extend selection rather than clearing the existing selection");
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
 /* ******************** loop select operator **************** */
@@ -2160,7 +2160,7 @@ static void UV_OT_select_loop(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0,
 		"Extend", "Extend selection rather than clearing the existing selection");
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
 /* ******************** linked select operator **************** */
@@ -2263,7 +2263,7 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 		"Extend", "Extend selection rather than clearing the existing selection");
 
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
 /* ******************** unlink selection operator **************** */
@@ -3392,7 +3392,7 @@ static void UV_OT_tile_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int_vector(ot->srna, "tile", 2, NULL, 0, INT_MAX, "Tile", "Tile coordinate.", 0, 10);
+	RNA_def_int_vector(ot->srna, "tile", 2, NULL, 0, INT_MAX, "Tile", "Tile coordinate", 0, 10);
 }
 
 /* ************************** registration **********************************/

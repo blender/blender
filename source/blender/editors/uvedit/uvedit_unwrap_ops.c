@@ -528,8 +528,8 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes", "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry");
-	RNA_def_float_factor(ot->srna, "blend", 0.0f, 0.0f, 1.0f, "Blend", "Blend factor between stretch minimized and original.", 0.0f, 1.0f);
-	RNA_def_int(ot->srna, "iterations", 0, 0, INT_MAX, "Iterations", "Number of iterations to run, 0 is unlimited when run interactively.", 0, 100);
+	RNA_def_float_factor(ot->srna, "blend", 0.0f, 0.0f, 1.0f, "Blend", "Blend factor between stretch minimized and original", 0.0f, 1.0f);
+	RNA_def_int(ot->srna, "iterations", 0, 0, INT_MAX, "Iterations", "Number of iterations to run, 0 is unlimited when run interactively", 0, 100);
 }
 
 /* ******************** Pack Islands operator **************** */
@@ -807,7 +807,7 @@ static void uv_transform_properties(wmOperatorType *ot, int radius)
 	             "How to determine rotation around the pole");
 	if(radius)
 		RNA_def_float(ot->srna, "radius", 1.0f, 0.0f, FLT_MAX, "Radius",
-		              "Radius of the sphere or cylinder.", 0.0001f, 100.0f);
+		              "Radius of the sphere or cylinder", 0.0001f, 100.0f);
 }
 
 static void correct_uv_aspect(BMEditMesh *em)
@@ -1477,6 +1477,6 @@ void UV_OT_cube_project(wmOperatorType *ot)
 	ot->poll= ED_operator_uvmap;
 
 	/* properties */
-	RNA_def_float(ot->srna, "cube_size", 1.0f, 0.0f, FLT_MAX, "Cube Size", "Size of the cube to project on.", 0.001f, 100.0f);
+	RNA_def_float(ot->srna, "cube_size", 1.0f, 0.0f, FLT_MAX, "Cube Size", "Size of the cube to project on", 0.001f, 100.0f);
 	uv_map_clip_correct_properties(ot);
 }

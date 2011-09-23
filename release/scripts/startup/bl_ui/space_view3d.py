@@ -1479,9 +1479,9 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.subdivide", text="Subdivide")
-		"""
+        """
         layout.operator("mesh.subdivide", text="Subdivide Smooth").smoothness = 1.0
-        ""
+        """
         layout.operator("mesh.merge", text="Merge...")
         layout.operator("mesh.remove_doubles")
         layout.operator("mesh.hide", text="Hide")

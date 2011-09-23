@@ -867,7 +867,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	ot->invoke= WM_menu_invoke;
 	ot->exec= select_similar_exec;
 	ot->poll= ED_operator_editmesh;
-	ot->description= "Select similar vertices, edges or faces by property types.";
+	ot->description= "Select similar vertices, edges or faces by property types";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -962,7 +962,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= loop_multiselect;
 	ot->poll= ED_operator_editmesh;
-	ot->description= "Select a loop of connected edges by connection type.";
+	ot->description= "Select a loop of connected edges by connection type";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1050,7 +1050,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= mesh_select_loop_invoke;
 	ot->poll= ED_operator_editmesh;
-	ot->description= "Select a loop of connected edges.";
+	ot->description= "Select a loop of connected edges";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1422,7 +1422,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= mesh_shortest_path_select_invoke;
 	ot->poll= ED_operator_editmesh;
-	ot->description= "Select shortest path between two selections.";
+	ot->description= "Select shortest path between two selections";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1701,7 +1701,7 @@ void MESH_OT_select_inverse(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Inverse";
 	ot->idname= "MESH_OT_select_inverse";
-	ot->description= "Select inverse of (un)selected vertices, edges or faces.";
+	ot->description= "Select inverse of (un)selected vertices, edges or faces";
 	
 	/* api callbacks */
 	ot->exec= select_inverse_mesh_exec;
@@ -1781,7 +1781,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= select_linked_pick_invoke;
 	ot->poll= ED_operator_editmesh;
-	ot->description= "select/deselect all vertices linked to the edge under the mouse cursor.";
+	ot->description= "select/deselect all vertices linked to the edge under the mouse cursor";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1837,7 +1837,7 @@ void MESH_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_linked_exec;
 	ot->poll= ED_operator_editmesh;
-	ot->description= "Select all vertices linked to the active mesh.";
+	ot->description= "Select all vertices linked to the active mesh";
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1874,7 +1874,7 @@ void MESH_OT_select_more(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select More";
 	ot->idname= "MESH_OT_select_more";
-	ot->description= "Select more vertices, edges or faces connected to initial selection.";
+	ot->description= "Select more vertices, edges or faces connected to initial selection";
 
 	/* api callbacks */
 	ot->exec= select_more;
@@ -1911,7 +1911,7 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Less";
 	ot->idname= "MESH_OT_select_less";
-	ot->description= "Deselect vertices, edges or faces at the boundary of each selection region.";
+	ot->description= "Deselect vertices, edges or faces at the boundary of each selection region";
 
 	/* api callbacks */
 	ot->exec= select_less;
@@ -2199,7 +2199,7 @@ static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 	int nth= RNA_int_get(op->ptr, "nth");
 
 	if(EM_deselect_nth(em, nth) == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face.");
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2289,7 +2289,7 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Sharp Edges";
-	ot->description= "Marked selected edges as sharp.";
+	ot->description= "Marked selected edges as sharp";
 	ot->idname= "MESH_OT_edges_select_sharp";
 	
 	/* api callbacks */
@@ -2370,7 +2370,7 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked Flat Faces";
-	ot->description= "Select linked faces by angle.";
+	ot->description= "Select linked faces by angle";
 	ot->idname= "MESH_OT_faces_select_linked_flat";
 	
 	/* api callbacks */
@@ -2420,7 +2420,7 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Non Manifold";
-	ot->description= "Select all non-manifold vertices or edges.";
+	ot->description= "Select all non-manifold vertices or edges";
 	ot->idname= "MESH_OT_select_non_manifold";
 	
 	/* api callbacks */
@@ -2477,7 +2477,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Random";
-	ot->description= "Randomly select vertices.";
+	ot->description= "Randomly select vertices";
 	ot->idname= "MESH_OT_select_random";
 
 	/* api callbacks */
@@ -2488,8 +2488,8 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Selection", "Extend selection instead of deselecting everything first.");
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend Selection", "Extend selection instead of deselecting everything first");
 }
 
 static int select_next_loop(bContext *C, wmOperator *UNUSED(op))

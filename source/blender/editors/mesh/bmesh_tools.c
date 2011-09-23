@@ -152,7 +152,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Subdivide";
-	ot->description= "Subdivide selected edges.";
+	ot->description= "Subdivide selected edges";
 	ot->idname= "MESH_OT_subdivide";
 
 	/* api callbacks */
@@ -168,7 +168,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "quadtri", 0, "Quad/Tri Mode", "Tries to prevent ngons");
 	RNA_def_enum(ot->srna, "quadcorner", prop_mesh_cornervert_types, SUBD_STRAIGHT_CUT, "Quad Corner Type", "How to subdivide quad corners (anything other then Straight Cut will prevent ngons)");
 
-	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
 	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
 }
 
@@ -587,7 +587,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Extrude Repeat Mesh";
-	ot->description= "Extrude selected vertices, edges or faces repeatedly.";
+	ot->description= "Extrude selected vertices, edges or faces repeatedly";
 	ot->idname= "MESH_OT_extrude_repeat";
 	
 	/* api callbacks */
@@ -837,7 +837,7 @@ void MESH_OT_select_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select/Deselect All";
 	ot->idname= "MESH_OT_select_all";
-	ot->description= "(de)select all vertices, edges or faces.";
+	ot->description= "(de)select all vertices, edges or faces";
 	
 	/* api callbacks */
 	ot->exec= toggle_select_all_exec;
@@ -1018,7 +1018,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= dupli_extrude_cursor;
-	ot->description= "Duplicate and extrude selected vertices, edges or faces towards the mouse cursor.";
+	ot->description= "Duplicate and extrude selected vertices, edges or faces towards the mouse cursor";
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
@@ -1124,7 +1124,7 @@ void MESH_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
-	ot->description= "Delete selected vertices, edges or faces.";
+	ot->description= "Delete selected vertices, edges or faces";
 	ot->idname= "MESH_OT_delete";
 	
 	/* api callbacks */
@@ -1166,7 +1166,7 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Edge/Face";
-	ot->description= "Add an edge or face to selected.";
+	ot->description= "Add an edge or face to selected";
 	ot->idname= "MESH_OT_edge_face_add";
 	
 	/* api callbacks */
@@ -1216,7 +1216,7 @@ static void MESH_OT_selection_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Selection Mode";
-	ot->description= "Set the selection mode type.";
+	ot->description= "Set the selection mode type";
 	ot->idname= "MESH_OT_selection_type";
 	
 	/* api callbacks */
@@ -1277,7 +1277,7 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mark Seam";
 	ot->idname= "MESH_OT_mark_seam";
-	ot->description= "(un)mark selected edges as a seam.";
+	ot->description= "(un)mark selected edges as a seam";
 	
 	/* api callbacks */
 	ot->exec= editbmesh_mark_seam;
@@ -1332,7 +1332,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mark Sharp";
 	ot->idname= "MESH_OT_mark_sharp";
-	ot->description= "(un)mark selected edges as sharp.";
+	ot->description= "(un)mark selected edges as sharp";
 	
 	/* api callbacks */
 	ot->exec= editbmesh_mark_sharp;
@@ -1450,7 +1450,7 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate";
-	ot->description= "Duplicate selected vertices, edges or faces.";
+	ot->description= "Duplicate selected vertices, edges or faces";
 	ot->idname= "MESH_OT_duplicate";
 	
 	/* api callbacks */
@@ -1575,7 +1575,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Rotate Selected Edge";
-	ot->description= "Rotate selected edge or adjoining faces.";
+	ot->description= "Rotate selected edge or adjoining faces";
 	ot->idname= "MESH_OT_edge_rotate";
 
 	/* api callbacks */
@@ -1586,7 +1586,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around.");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around");
 }
 
 /* swap is 0 or 1, if 1 it hides not selected */
@@ -1644,13 +1644,13 @@ void MESH_OT_hide(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= hide_mesh_exec;
 	ot->poll= ED_operator_editmesh;
-	 ot->description= "Hide (un)selected vertices, edges or faces.";
+	 ot->description= "Hide (un)selected vertices, edges or faces";
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
 }
 
 
@@ -1698,7 +1698,7 @@ void MESH_OT_reveal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reveal Hidden";
 	ot->idname= "MESH_OT_reveal";
-	ot->description= "Reveal all hidden vertices, edges and faces.";
+	ot->description= "Reveal all hidden vertices, edges and faces";
 	
 	/* api callbacks */
 	ot->exec= reveal_mesh_exec;
@@ -1797,7 +1797,7 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Smooth Vertex";
-	ot->description= "Flatten angles of selected vertices.";
+	ot->description= "Flatten angles of selected vertices";
 	ot->idname= "MESH_OT_vertices_smooth";
 	
 	/* api callbacks */
@@ -1921,7 +1921,7 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Smooth";
-	 ot->description= "Display faces smooth (using vertex normals).";
+	 ot->description= "Display faces smooth (using vertex normals)";
 	ot->idname= "MESH_OT_faces_shade_smooth";
 
 	/* api callbacks */
@@ -1949,7 +1949,7 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shade Flat";
-	ot->description= "Display faces flat.";
+	ot->description= "Display faces flat";
 	ot->idname= "MESH_OT_faces_shade_flat";
 
 	/* api callbacks */
@@ -2147,7 +2147,7 @@ void MESH_OT_uvs_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate UVs around.");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate UVs around");
 }
 
 //void MESH_OT_uvs_mirror(wmOperatorType *ot)
@@ -2165,7 +2165,7 @@ void MESH_OT_uvs_reverse(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	//RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around.");
+	//RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror UVs around");
 }
 
 void MESH_OT_colors_rotate(wmOperatorType *ot)
@@ -2182,7 +2182,7 @@ void MESH_OT_colors_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around.");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate edge around");
 }
 
 void MESH_OT_colors_reverse(wmOperatorType *ot)
@@ -2199,7 +2199,7 @@ void MESH_OT_colors_reverse(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	//RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around.");
+	//RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around");
 }
 
 
@@ -2375,9 +2375,9 @@ void MESH_OT_merge(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use.");
+	ot->prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use");
 	RNA_def_enum_funcs(ot->prop, merge_type_itemf);
-	RNA_def_boolean(ot->srna, "uvs", 1, "UVs", "Move UVs according to merge.");
+	RNA_def_boolean(ot->srna, "uvs", 1, "UVs", "Move UVs according to merge");
 }
 
 
@@ -2432,7 +2432,7 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 
 	RNA_def_float(ot->srna, "mergedist", 0.0001f, 0.000001f, 50.0f, 
 		"Merge Distance", 
-		"Minimum distance between elements to merge.", 0.00001, 10.0);
+		"Minimum distance between elements to merge", 0.00001, 10.0);
 }
 
 /************************ Vertex Path Operator *************************/
@@ -2676,7 +2676,7 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, VPATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance.");
+	RNA_def_enum(ot->srna, "type", type_items, VPATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance");
 }
 /********************** Rip Operator *************************/
 
@@ -2955,7 +2955,7 @@ void MESH_OT_shape_propagate_to_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Shape Propagate";
-	ot->description= "Apply selected vertex locations to all other shape keys.";
+	ot->description= "Apply selected vertex locations to all other shape keys";
 	ot->idname= "MESH_OT_shape_propagate_to_all";
 
 	/* api callbacks */
@@ -3047,7 +3047,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Blend From Shape";
-	ot->description= "Blend in shape from a shape key.";
+	ot->description= "Blend in shape from a shape key";
 	ot->idname= "MESH_OT_blend_from_shape";
 
 	/* api callbacks */
@@ -3059,10 +3059,10 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending.");
+	prop= RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending");
 	RNA_def_enum_funcs(prop, shape_itemf);
-	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor.", -2.0f, 2.0f);
-	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather then blend between shapes.");
+	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor", -2.0f, 2.0f);
+	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather then blend between shapes");
 }
 
 /* BMESH_TODO - some way to select on an arbitrary axis */
@@ -3130,7 +3130,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select Axis";
-	ot->description= "Select all data in the mesh on a single axis.";
+	ot->description= "Select all data in the mesh on a single axis";
 	ot->idname= "MESH_OT_select_axis";
 
 	/* api callbacks */
@@ -3182,7 +3182,7 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	PropertyRNA *prop;
 	/* identifiers */
 	ot->name= "Solidify";
-	ot->description= "Create a solid skin by extruding, compensating for sharp angles.";
+	ot->description= "Create a solid skin by extruding, compensating for sharp angles";
 	ot->idname= "MESH_OT_solidify";
 
 	/* api callbacks */
@@ -3496,7 +3496,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	ot->name= "Knife Cut";
-	ot->description= "Cut selected edges and faces into parts.";
+	ot->description= "Cut selected edges and faces into parts";
 	ot->idname= "MESH_OT_knife_cut";
 	
 	ot->invoke= WM_gesture_lines_invoke;
@@ -3696,7 +3696,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Separate";
-	ot->description= "Separate selected geometry into a new mesh.";
+	ot->description= "Separate selected geometry into a new mesh";
 	ot->idname= "MESH_OT_separate";
 	
 	/* api callbacks */
@@ -4158,7 +4158,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Select by Number of Vertices";
-	ot->description= "Select vertices or faces by vertex count.";
+	ot->description= "Select vertices or faces by vertex count";
 	ot->idname= "MESH_OT_select_by_number_vertices";
 	
 	/* api callbacks */
@@ -4260,7 +4260,7 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Mirror";
-	ot->description= "Select mesh items at mirrored locations.";
+	ot->description= "Select mesh items at mirrored locations";
 	ot->idname= "MESH_OT_select_mirror";
 
 	/* api callbacks */
@@ -4494,7 +4494,7 @@ static int mesh_noise_exec(bContext *C, wmOperator *op)
 
 	ma= give_current_material(obedit, obedit->actcol);
 	if(ma==0 || ma->mtex[0]==0 || ma->mtex[0]->tex==0) {
-		BKE_report(op->reports, RPT_WARNING, "Mesh has no material or texture assigned.");
+		BKE_report(op->reports, RPT_WARNING, "Mesh has no material or texture assigned");
 		return OPERATOR_FINISHED;
 	}
 	tex= give_current_material_texture(ma);

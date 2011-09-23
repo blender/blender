@@ -1768,7 +1768,7 @@ static void rna_def_mesh_vertices(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_vertices_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
 }
 
 /* mesh.edges */
@@ -1787,7 +1787,7 @@ static void rna_def_mesh_edges(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_edges_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
 }
 
 /* mesh.faces */
@@ -1810,7 +1810,7 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_faces_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add.", 0, INT_MAX);
+	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
 }
 
 /* mesh.loops */
@@ -1836,7 +1836,7 @@ static void rna_def_mesh_loops(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_loops_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of loops to add.", 0, INT_MAX);
+	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of loops to add", 0, INT_MAX);
 }
 
 /* mesh.polygons */
@@ -1862,7 +1862,7 @@ static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "add", "ED_mesh_polys_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of polygons to add.", 0, INT_MAX);
+	parm= RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of polygons to add", 0, INT_MAX);
 }
 
 
