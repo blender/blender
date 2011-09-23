@@ -30,7 +30,7 @@
  
 /* grr, python redefines */
 #ifdef _POSIX_C_SOURCE
-#undef _POSIX_C_SOURCE
+#  undef _POSIX_C_SOURCE
 #endif
 
 #include <Python.h>
@@ -240,6 +240,8 @@ void BPY_python_start(int argc, const char **argv)
 	bpy_import_init(PyEval_GetBuiltins());
 	
 	pyrna_alloc_types();
+
+	BPY_atexit_init(); /* this can init any time */
 
 #ifndef WITH_PYTHON_MODULE
 	py_tstate= PyGILState_GetThisThreadState();

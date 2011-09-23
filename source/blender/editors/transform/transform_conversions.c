@@ -1816,7 +1816,7 @@ void flushTransParticles(TransInfo *t)
 /* ********************* mesh ****************** */
 
 /* proportional distance based on connectivity  */
-#define THRESHOLD	0.000000000000001f
+#define THRESHOLD	0.0001f
 
 /*I did this wrong, it should be a breadth-first search
   but instead it's a depth-first search, fudged

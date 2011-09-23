@@ -36,7 +36,7 @@ OS_NCASE:=$(shell uname -s | tr '[A-Z]' '[a-z]')
 BLENDER_DIR:=$(shell pwd -P)
 BUILD_DIR:=$(shell dirname $(BLENDER_DIR))/build/$(OS_NCASE)
 BUILD_TYPE:=Release
-BUILD_CMAKE_ARGS:=""
+BUILD_CMAKE_ARGS:=
 
 
 # -----------------------------------------------------------------------------
@@ -77,6 +77,16 @@ ifeq ($(OS), NetBSD)
 	NPROCS:=$(shell sysctl -a | grep "hw.ncpu " | cut -d" " -f3 )
 endif
 
+
+# -----------------------------------------------------------------------------
+# Macro for configuring cmake
+
+CMAKE_CONFIG = cmake $(BUILD_CMAKE_ARGS) \
+                     -H$(BLENDER_DIR) \
+                     -B$(BUILD_DIR) \
+                     -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE)
+
+
 # -----------------------------------------------------------------------------
 # Build Blender
 all:
@@ -84,7 +94,7 @@ all:
 	@echo Configuring Blender ...
 
 	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
-		cmake $(BUILD_CMAKE_ARGS) -H$(BLENDER_DIR) -B$(BUILD_DIR) -DCMAKE_BUILD_TYPE:STRING=$(BUILD_TYPE); \
+		$(CMAKE_CONFIG); \
 	fi
 
 	@echo
@@ -186,12 +196,15 @@ project_eclipse:
 #
 
 check_cppcheck:
+	$(CMAKE_CONFIG)
 	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py
 
 check_splint:
+	$(CMAKE_CONFIG)
 	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py
 
 check_sparse:
+	$(CMAKE_CONFIG)
 	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py
 
 
