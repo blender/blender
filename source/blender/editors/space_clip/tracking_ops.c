@@ -177,7 +177,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
-		"Location", "Location of marker on frame.", -1.f, 1.f);
+		"Location", "Location of marker on frame", -1.f, 1.f);
 }
 
 /********************** delete track operator *********************/
@@ -664,7 +664,7 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Offset", "Offset in floating point units, 1.0 is the width and height of the image.", -FLT_MAX, FLT_MAX);
+		"Offset", "Offset in floating point units, 1.0 is the width and height of the image", -FLT_MAX, FLT_MAX);
 }
 
 /********************** mouse select operator *********************/
@@ -851,9 +851,9 @@ void CLIP_OT_select(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection.");
+		"Extend", "Extend selection rather than clearing the existing selection");
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
 /********************** border select operator *********************/
@@ -2084,7 +2084,7 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float(ot->srna, "distance", 0.0f, -FLT_MAX, FLT_MAX,
-		"Distance", "Distance between selected tracks.", -100.0f, 100.0f);
+		"Distance", "Distance between selected tracks", -100.0f, 100.0f);
 }
 
 /********************** set principal center operator *********************/
@@ -2873,7 +2873,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Affect on tracks which are tracked less than specified amount of frames.", 0, INT_MAX);
-	RNA_def_float(ot->srna, "error", 0.0f, 0.f, FLT_MAX, "Reprojection Error", "Affect on tracks with have got larger reprojection error.", 0.f, 100.0f);
-	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute.");
+	RNA_def_int(ot->srna, "frames", 0, 0, INT_MAX, "Tracked Frames", "Affect on tracks which are tracked less than specified amount of frames", 0, INT_MAX);
+	RNA_def_float(ot->srna, "error", 0.0f, 0.f, FLT_MAX, "Reprojection Error", "Affect on tracks with have got larger reprojection error", 0.f, 100.0f);
+	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Cleanup action to execute");
 }

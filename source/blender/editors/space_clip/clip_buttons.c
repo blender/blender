@@ -355,7 +355,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 	if(compact) {
 		block= uiLayoutGetBlock(layout);
 
-		bt= uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_MUTE_IPO_OFF, 0, 0, 20, 20, &cb->marker_flag, 0, 0, 1, 0, "Marker is disabled for current frame.");
+		bt= uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_RESTRICT_VIEW_OFF, 0, 0, 20, 20, &cb->marker_flag, 0, 0, 1, 0, "Marker is disabled for current frame.");
 		uiButSetNFunc(bt, marker_update_cb, cb, NULL);
 	} else {
 		int width, height, step, digits;
