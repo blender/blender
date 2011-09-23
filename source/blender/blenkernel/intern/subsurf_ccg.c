@@ -1594,7 +1594,7 @@ static void cgdm_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
 	GPUVertexAttribs gattribs;
 	DMVertexAttribs attribs= {{{NULL}}};
-	MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE);
+	/* MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);

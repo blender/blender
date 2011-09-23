@@ -1983,17 +1983,18 @@ static int vertsel_vert_pick(struct bContext *C, Mesh *me, const int mval[2], un
 
 /* mouse selection in weight paint */
 /* gets called via generic mouse select operator */
-int mouse_wp_select(bContext *C, const int mval[2], short extend, Object *obact, Mesh* me)
+static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], short extend, Object *obact)
 {
+	Mesh* me= obact->data; /* already checked for NULL */
 	unsigned int index = 0;
 	MVert *mv;
 	if(vertsel_vert_pick(C, me, mval, &index, 1)) {
 		mv = me->mvert+index;
 		if(extend) {
-			mv->flag ^= 1;
+			mv->flag ^= SELECT;
 		} else {
 			paintvert_deselect_all_visible(obact, SEL_DESELECT, FALSE);
-			mv->flag |= 1;
+			mv->flag |= SELECT;
 		}
 		paintvert_flush_flags(obact);
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obact->data);
@@ -2046,12 +2047,10 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return PE_mouse_particles(C, event->mval, extend);
 	else if(obact && paint_facesel_test(obact))
 		retval = paintface_mouse_select(C, obact, event->mval, extend);
-	
-	else if (paint_vertsel_test(obact)) {
-		retval = mouse_wp_select(C, event->mval, extend, obact, obact->data);
-	} else {
+	else if (paint_vertsel_test(obact))
+		retval = mouse_weight_paint_vertex_select(C, event->mval, extend, obact);
+	else
 		retval = mouse_select(C, event->mval, extend, center, enumerate);
-	}
 
 	/* passthrough allows tweaks
 	 * FINISHED to signal one operator worked

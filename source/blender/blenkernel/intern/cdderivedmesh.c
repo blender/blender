@@ -1095,7 +1095,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	DMVertexAttribs attribs;
 	MVert *mvert = cddm->mvert;
 	MFace *mface = cddm->mface;
-	MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE);
+	/* MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
 	float (*nors)[3] = dm->getTessFaceDataArray(dm, CD_NORMAL);
 	int a, b, dodraw, matnr, new_matnr;
 	int orig, *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);

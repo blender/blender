@@ -79,6 +79,10 @@
 #include "RE_shader_ext.h"
 #include "RE_render_ext.h"
 
+/* only for forward declarations */
+#include "NOD_composite.h"
+
+
 /* *************************** operations support *************************** */
 
 /* general signal that's in output sockets, and goes over the wires */
