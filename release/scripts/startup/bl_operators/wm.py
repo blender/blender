@@ -26,9 +26,6 @@ from bpy.props import (StringProperty,
                        FloatProperty,
                        EnumProperty,
                        )
-                       
-import addon_utils
-import os
 
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
@@ -758,6 +755,7 @@ class WM_OT_path_open(Operator):
 
     def execute(self, context):
         import sys
+        import os
         import subprocess
 
         filepath = bpy.path.abspath(self.filepath)
@@ -1102,6 +1100,7 @@ class WM_OT_appconfig_default(Operator):
     bl_label = "Default Application Configuration"
 
     def execute(self, context):
+        import os
 
         context.window_manager.keyconfigs.active = context.window_manager.keyconfigs.default
 
@@ -1123,6 +1122,7 @@ class WM_OT_appconfig_activate(Operator):
             )
 
     def execute(self, context):
+        import os
         bpy.utils.keyconfig_set(self.filepath)
 
         filepath = self.filepath.replace("keyconfig", "interaction")
@@ -1150,6 +1150,7 @@ class WM_OT_copy_prev_settings(Operator):
     bl_label = "Copy Previous Settings"
 
     def execute(self, context):
+        import os
         import shutil
         ver = bpy.app.version
         ver_old = ((ver[0] * 100) + ver[1]) - 1
@@ -1608,6 +1609,8 @@ class WM_OT_addon_enable(Operator):
             )
 
     def execute(self, context):
+        import addon_utils
+
         mod = addon_utils.enable(self.module)
 
         if mod:
@@ -1637,6 +1640,8 @@ class WM_OT_addon_disable(Operator):
             )
 
     def execute(self, context):
+        import addon_utils
+
         addon_utils.disable(self.module)
         return {'FINISHED'}
 
@@ -1690,6 +1695,7 @@ class WM_OT_addon_install(Operator):
                     os.remove(f_full)
 
     def execute(self, context):
+        import addon_utils
         import traceback
         import zipfile
         import shutil
@@ -1725,7 +1731,7 @@ class WM_OT_addon_install(Operator):
         del pyfile_dir
         # done checking for exceptional case
 
-        addons_old = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)}
+        addons_old = {mod.__name__ for mod in addon_utils.modules(addon_utils.addons_fake_modules)}
 
         #check to see if the file is in compressed format (.zip)
         if zipfile.is_zipfile(pyfile):
@@ -1774,7 +1780,7 @@ class WM_OT_addon_install(Operator):
                 traceback.print_exc()
                 return {'CANCELLED'}
 
-        addons_new = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)} - addons_old
+        addons_new = {mod.__name__ for mod in addon_utils.modules(addon_utils.addons_fake_modules)} - addons_old
         addons_new.discard("modules")
 
         # disable any addons we may have enabled previously and removed.
@@ -1784,7 +1790,7 @@ class WM_OT_addon_install(Operator):
 
         # possible the zip contains multiple addons, we could disallow this
         # but for now just use the first
-        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
+        for mod in addon_utils.modules(addon_utils.addons_fake_modules):
             if mod.__name__ in addons_new:
                 info = addon_utils.module_bl_info(mod)
 
@@ -1818,7 +1824,9 @@ class WM_OT_addon_remove(Operator):
 
     @staticmethod
     def path_from_addon(module):
-        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
+        import addon_utils
+
+        for mod in addon_utils.modules(addon_utils.addons_fake_modules):
             if mod.__name__ == module:
                 filepath = mod.__file__
                 if os.path.exists(filepath):
@@ -1829,6 +1837,8 @@ class WM_OT_addon_remove(Operator):
         return None, False
 
     def execute(self, context):
+        import addon_utils
+
         path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
         if path is None:
             self.report('WARNING', "Addon path %r could not be found" % path)
@@ -1868,12 +1878,14 @@ class WM_OT_addon_expand(Operator):
             )
 
     def execute(self, context):
+        import addon_utils
+
         module_name = self.module
 
         # unlikely to fail, module should have already been imported
         try:
             # mod = __import__(module_name)
-            mod = USERPREF_PT_addons.module_get(module_name)
+            mod = addon_utils.addons_fake_modules.get(module_name)
         except:
             import traceback
             traceback.print_exc()

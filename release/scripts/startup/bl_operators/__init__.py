@@ -25,7 +25,6 @@ if "bpy" in locals():
 _modules = (
     "add_mesh_torus",
     "anim",
-    "animsys_update",
     "console",
     "image",
     "mesh",
