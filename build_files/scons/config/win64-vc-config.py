@@ -188,11 +188,6 @@ CXX_WARN = []
 
 LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
 
-if BF_DEBUG:
-	BF_NUMJOBS=1
-else:
-	BF_NUMJOBS=6
-
 PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/STACK:2097152','/OPT:NOREF','/INCREMENTAL:NO', '/NODEFAULTLIB:msvcrt.lib', '/NODEFAULTLIB:msvcmrt.lib', '/NODEFAULTLIB:msvcurt.lib', '/NODEFAULTLIB:msvcrtd.lib']
 
 BF_BUILDDIR = '..\\build\\blender25-win64-vc'

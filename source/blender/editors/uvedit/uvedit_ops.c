@@ -2755,7 +2755,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
 	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to");
+	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UVs to");
 }
 
 /* ******************** snap selection operator **************** */
@@ -2964,7 +2964,7 @@ static void UV_OT_snap_selected(wmOperatorType *ot)
 	ot->poll= ED_operator_image_active;	/* requires space image */;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UV's to");
+	RNA_def_enum(ot->srna, "target", target_items, 0, "Target", "Target to snap the selected UVs to");
 }
 
 /* ******************** pin operator **************** */

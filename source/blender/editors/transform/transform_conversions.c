@@ -2071,7 +2071,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	float *dists=NULL;
 	int count=0, countsel=0, a, totleft, *selstate = NULL;
 	BLI_array_declare(selstate);
-	int propmode = t->flag & (T_PROP_EDIT|T_PROP_CONNECTED);
+	int propmode = (t->flag & T_PROP_EDIT) ? (t->flag & (T_PROP_EDIT | T_PROP_CONNECTED)) : 0;
 	int mirror = 0;
 	short selectmode = ts->selectmode;
 
