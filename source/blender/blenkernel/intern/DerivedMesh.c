@@ -1291,7 +1291,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				 * data by using generic DM_copy_vert_data() functions.
 				 */
 				if(needMapping || (nextmask & CD_MASK_ORIGINDEX)) {
-					int i, *orig;
+					int i;
 					
 					/* calc */
 					DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
