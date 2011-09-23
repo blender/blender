@@ -1,5 +1,5 @@
 /*
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -46,24 +46,26 @@ static PyObject *bpy_atexit(PyObject *UNUSED(self), PyObject *UNUSED(args), PyOb
 }
 
 static PyMethodDef meth_bpy_atexit= {"bpy_atexit", (PyCFunction)bpy_atexit, METH_NOARGS, NULL};
+static PyObject *func_bpy_atregister= NULL; /* borrowed referebce, atexit holds */
 
-void BPY_atexit_init(void)
+static void atexit_func_call(const char *func_name, PyObject *atexit_func_arg)
 {
 	/* note - no error checking, if any of these fail we'll get a crash
 	 * this is intended, but if its problematic it could be changed
 	 * - campbell */
 
 	PyObject *atexit_mod= PyImport_ImportModuleLevel((char *)"atexit", NULL, NULL, NULL, 0);
-	PyObject *atexit_register= PyObject_GetAttrString(atexit_mod, "register");
+	PyObject *atexit_func= PyObject_GetAttrString(atexit_mod, func_name);
 	PyObject *args= PyTuple_New(1);
 	PyObject *ret;
 
-	PyTuple_SET_ITEM(args, 0, (PyObject *)PyCFunction_New(&meth_bpy_atexit, NULL));
+	PyTuple_SET_ITEM(args, 0, atexit_func_arg);
+	Py_INCREF(atexit_func_arg); /* only incref so we dont dec'ref along with 'args' */
 
-	ret= PyObject_CallObject(atexit_register, args);
+	ret= PyObject_CallObject(atexit_func, args);
 
 	Py_DECREF(atexit_mod);
-	Py_DECREF(atexit_register);
+	Py_DECREF(atexit_func);
 	Py_DECREF(args);
 
 	if(ret) {
@@ -72,5 +74,19 @@ void BPY_atexit_init(void)
 	else { /* should never happen */
 		PyErr_Print();
 	}
+}
 
+void BPY_atexit_register(void)
+{
+	/* atexit module owns this new function reference */
+	BLI_assert(func_bpy_atregister ==NULL);
+
+	func_bpy_atregister= (PyObject *)PyCFunction_New(&meth_bpy_atexit, NULL);
+	atexit_func_call("register", func_bpy_atregister);
+}
+
+void BPY_atexit_unregister(void)
+{
+	atexit_func_call("unregister", func_bpy_atregister);
+	func_bpy_atregister= NULL; /* don't really need to set but just incase */
 }

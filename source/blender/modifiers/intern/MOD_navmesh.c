@@ -27,21 +27,16 @@
 */
 #include <math.h>
 
-#ifdef WITH_GAMEENGINE
-#  include "Recast.h"
-#endif
-
-extern "C"{
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #ifdef WITH_GAMEENGINE
+#  include "recast-capi.h"
 #  include "BKE_navmesh_conversion.h"
 #  include "GL/glew.h"
 #  include "GPU_buffers.h"
 #  include "GPU_draw.h"
 #endif
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
@@ -53,12 +48,12 @@ extern "C"{
 #include "BKE_customdata.h"
 #include "MEM_guardedalloc.h"
 
-inline int bit(int a, int b)
+static int bit(int a, int b)
 {
 	return (a & (1 << b)) >> b;
 }
 
-inline void intToCol(int i, float* col)
+static void intToCol(int i, float* col)
 {
 	int	r = bit(i, 0) + bit(i, 3) * 2 + 1;
 	int	g = bit(i, 1) + bit(i, 4) * 2 + 1;
@@ -69,12 +64,12 @@ inline void intToCol(int i, float* col)
 }
 
 
-static void initData(ModifierData *md)
+static void initData(ModifierData *UNUSED(md))
 {
 	/* NavMeshModifierData *nmmd = (NavMeshModifierData*) md; */ /* UNUSED */
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(ModifierData *UNUSED(md), ModifierData *UNUSED(target))
 {
 	/* NavMeshModifierData *nmmd = (NavMeshModifierData*) md; */
 	/* NavMeshModifierData *tnmmd = (NavMeshModifierData*) target; */
@@ -94,10 +89,12 @@ static void drawNavMeshColored(DerivedMesh *dm)
 	MVert *mvert = (MVert *)CustomData_get_layer(&dm->vertData, CD_MVERT);
 	MFace *mface = (MFace *)CustomData_get_layer(&dm->faceData, CD_MFACE);
 	int* polygonIdx = (int*)CustomData_get_layer(&dm->faceData, CD_RECAST);
-	if (!polygonIdx)
-		return;
 	const float BLACK_COLOR[3] = {0.f, 0.f, 0.f};
 	float col[3];
+
+	if (!polygonIdx)
+		return;
+
 	/*
 	//UI_ThemeColor(TH_WIRE);
 	glDisable(GL_LIGHTING);
@@ -138,23 +135,34 @@ static void drawNavMeshColored(DerivedMesh *dm)
 
 static void navDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
 {
+	(void) setDrawOptions;
+
 	drawNavMeshColored(dm);
 }
 
 static void navDM_drawFacesSolid(DerivedMesh *dm,
 								float (*partial_redraw_planes)[4],
-								int fast, int (*setMaterial)(int, void *attribs))
+								int UNUSED(fast), int (*setMaterial)(int, void *attribs))
 {
+	(void) partial_redraw_planes;
+	(void) setMaterial;
+
 	//drawFacesSolid_original(dm, partial_redraw_planes, fast, setMaterial);
 	drawNavMeshColored(dm);
 }
 #endif /* WITH_GAMEENGINE */
 
-static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,DerivedMesh *dm)
+static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *UNUSED(mmd), DerivedMesh *dm)
 {
 #ifdef WITH_GAMEENGINE
 	DerivedMesh *result;
 	int maxFaces = dm->getNumFaces(dm);
+	int *recastData;
+	int vertsPerPoly=0, nverts=0, ndtris=0, npolys=0; 
+	float* verts=NULL;
+	unsigned short *dtris=NULL, *dmeshes=NULL, *polys=NULL;
+	int *dtrisToPolysMap=NULL, *dtrisToTrisMap=NULL, *trisToFacesMap=NULL;
+	int res;
 
 	result = CDDM_copy(dm);
 	if (!CustomData_has_layer(&result->faceData, CD_RECAST)) 
@@ -163,24 +171,21 @@ static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,Deriv
 		CustomData_add_layer_named(&result->faceData, CD_RECAST, CD_DUPLICATE, 
 			sourceRecastData, maxFaces, "recastData");
 	}
-	int *recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
+	recastData = (int*)CustomData_get_layer(&result->faceData, CD_RECAST);
 	result->drawFacesTex =  navDM_drawFacesTex;
 	result->drawFacesSolid = navDM_drawFacesSolid;
 	
 	
 	//process mesh
-	int vertsPerPoly=0, nverts=0, ndtris=0, npolys=0; 
-	float* verts=NULL;
-	unsigned short *dtris=NULL, *dmeshes=NULL, *polys=NULL;
-	int *dtrisToPolysMap=NULL, *dtrisToTrisMap=NULL, *trisToFacesMap=NULL;
-
-	bool res  = buildNavMeshDataByDerivedMesh(dm, vertsPerPoly, nverts, verts, ndtris, dtris,
-										npolys, dmeshes, polys, dtrisToPolysMap, dtrisToTrisMap,
-										trisToFacesMap);
+	res  = buildNavMeshDataByDerivedMesh(dm, &vertsPerPoly, &nverts, &verts, &ndtris, &dtris,
+										&npolys, &dmeshes, &polys, &dtrisToPolysMap, &dtrisToTrisMap,
+										&trisToFacesMap);
 	if (res)
 	{
+		size_t polyIdx;
+
 		//invalidate concave polygon
-		for (size_t polyIdx=0; polyIdx<(size_t)npolys; polyIdx++)
+		for (polyIdx=0; polyIdx<(size_t)npolys; polyIdx++)
 		{
 			unsigned short* poly = &polys[polyIdx*2*vertsPerPoly];
 			if (!polyIsConvex(poly, vertsPerPoly, verts))
@@ -189,7 +194,9 @@ static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,Deriv
 				unsigned short *dmesh = &dmeshes[4*polyIdx];
 				unsigned short tbase = dmesh[2];
 				unsigned short tnum = dmesh[3];
-				for (unsigned short ti=0; ti<tnum; ti++)
+				unsigned short ti;
+
+				for (ti=0; ti<tnum; ti++)
 				{
 					unsigned short triidx = dtrisToTrisMap[tbase+ti];
 					unsigned short faceidx = trisToFacesMap[triidx];
@@ -207,19 +214,19 @@ static DerivedMesh *createNavMeshForVisualization(NavMeshModifierData *mmd,Deriv
 
 	//clean up
 	if (verts!=NULL)
-		delete verts;
+		MEM_freeN(verts);
 	if (dtris!=NULL)
-		delete dtris;
+		MEM_freeN(dtris);
 	if (dmeshes!=NULL)
-		delete dmeshes;
+		MEM_freeN(dmeshes);
 	if (polys!=NULL)
-		delete polys;
+		MEM_freeN(polys);
 	if (dtrisToPolysMap!=NULL)
-		delete dtrisToPolysMap;
+		MEM_freeN(dtrisToPolysMap);
 	if (dtrisToTrisMap!=NULL)
-		delete dtrisToTrisMap;	
+		MEM_freeN(dtrisToTrisMap);
 	if (trisToFacesMap!=NULL)
-		delete trisToFacesMap;		
+		MEM_freeN(trisToFacesMap);
 
 	return result;
 #else // WITH_GAMEENGINE
@@ -237,11 +244,11 @@ static int isDisabled(ModifierData *md, int useRenderParams)
 
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
-								  int useRenderParams, int isFinalCalc)
+								  int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result = NULL;
 	NavMeshModifierData *nmmd = (NavMeshModifierData*) md;
-	bool hasRecastData = CustomData_has_layer(&derivedData->faceData, CD_RECAST)>0;
+	int hasRecastData = CustomData_has_layer(&derivedData->faceData, CD_RECAST)>0;
 	if (ob->body_type!=OB_BODY_TYPE_NAVMESH || !hasRecastData )
 	{
 		//convert to nav mesh object:
@@ -255,10 +262,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 			Mesh* obmesh = (Mesh *)ob->data;
 			if (obmesh)
 			{
+				int i;
 				int numFaces = obmesh->totface;
+				int* recastData;
 				CustomData_add_layer_named(&obmesh->fdata, CD_RECAST, CD_CALLOC, NULL, numFaces, "recastData");
-				int* recastData = (int*)CustomData_get_layer(&obmesh->fdata, CD_RECAST);
-				for (int i=0; i<numFaces; i++)
+				recastData = (int*)CustomData_get_layer(&obmesh->fdata, CD_RECAST);
+				for (i=0; i<numFaces; i++)
 				{
 					recastData[i] = i+1;
 				}
@@ -295,6 +304,4 @@ ModifierTypeInfo modifierType_NavMesh = {
 	/* dependsOnTime */     0,
 	/* foreachObjectLink */ 0,
 	/* foreachIDLink */     0,
-};
-
 };

@@ -17,18 +17,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Campbell Barton
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
+ * All rights reserved.
  *
- * ***** END GPL LICENSE BLOCK ***** */
-
-/** \file blender/python/intern/bpy.h
- *  \ingroup pythonintern
+ * Contributor(s): Sergey Sharybin
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
- 
-void BPy_init_modules(void);
-extern PyObject *bpy_package_py;
+#ifndef RECAST_C_API_H
+#define RECAST_C_API_H
 
-/* bpy_interface_atexit.c */
-void BPY_atexit_register(void);
-void BPY_atexit_unregister(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int recast_buildMeshAdjacency(unsigned short* polys, const int npolys,
+			const int nverts, const int vertsPerPoly);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // RECAST_C_API_H

@@ -26,6 +26,8 @@
 * ***** END GPL LICENSE BLOCK *****
 */
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_math_vector.h"
 #include "KX_NavMeshObject.h"
 #include "RAS_MeshObject.h"
@@ -117,8 +119,12 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 		int *dtrisToPolysMap=NULL, *dtrisToTrisMap=NULL, *trisToFacesMap=NULL;
 		int nAllVerts = 0;
 		float *allVerts = NULL;
-		buildNavMeshDataByDerivedMesh(dm, vertsPerPoly, nAllVerts, allVerts, ndtris, dtris,
-			npolys, dmeshes, polys, dtrisToPolysMap, dtrisToTrisMap, trisToFacesMap);
+		buildNavMeshDataByDerivedMesh(dm, &vertsPerPoly, &nAllVerts, &allVerts, &ndtris, &dtris,
+			&npolys, &dmeshes, &polys, &dtrisToPolysMap, &dtrisToTrisMap, &trisToFacesMap);
+
+		MEM_freeN(dtrisToPolysMap);
+		MEM_freeN(dtrisToTrisMap);
+		MEM_freeN(trisToFacesMap);
 
 		unsigned short *verticesMap = new unsigned short[nAllVerts];
 		memset(verticesMap, 0xffff, sizeof(unsigned short)*nAllVerts);
@@ -207,6 +213,8 @@ bool KX_NavMeshObject::BuildVertIndArrays(float *&vertices, int& nverts,
 				}				
 			}
 		}
+
+		MEM_freeN(allVerts);
 	}
 	else
 	{
@@ -445,7 +453,12 @@ bool KX_NavMeshObject::BuildNavMesh()
 	m_navMesh->init(data, dataSize, true);	
 
 	delete [] vertices;
-	delete [] polys;
+
+	/* navmesh conversion is using C guarded alloc for memory allocaitons */
+	MEM_freeN(polys);
+	if (dmeshes) MEM_freeN(dmeshes);
+	if (dtris) MEM_freeN(dtris);
+
 	if (dvertices)
 	{
 		delete [] dvertices;

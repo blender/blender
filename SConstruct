@@ -522,10 +522,12 @@ if env['OURPLATFORM']!='darwin':
                 dn.remove('_svn')
             
             for f in df:
+                # This files aren't used anymore
+                if f in ['.Blanguages', '.bfont.ttf']:
+                    continue
+
                 if not env['WITH_BF_INTERNATIONAL']:
                     if 'locale' in dp:
-                        continue
-                    if f == '.Blanguages':
                         continue
                 if not env['WITH_BF_FREETYPE']:
                     if f.endswith('.ttf'):

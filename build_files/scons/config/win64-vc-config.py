@@ -96,7 +96,7 @@ BF_ZLIB_INC = '${BF_ZLIB}/include'
 BF_ZLIB_LIB = 'libz'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
-WITH_BF_INTERNATIONAL = False
+WITH_BF_INTERNATIONAL = True
 
 BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
