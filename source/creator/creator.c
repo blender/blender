@@ -46,12 +46,6 @@
 #include <stddef.h>
 #include <string.h>
 
-/* for setuid / getuid */
-#ifdef __sgi
-#include <sys/types.h>
-#include <unistd.h>
-#endif
-
 /* This little block needed for linking to Blender... */
 
 #include "MEM_guardedalloc.h"
@@ -160,7 +154,7 @@ char btempdir[FILE_MAX];
 static void setCallbacks(void); 
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
-#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
+#if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
 static void fpe_handler(int UNUSED(sig))
 {
 	// printf("SIGFPE trapped\n");
@@ -373,7 +367,7 @@ static int debug_mode(int UNUSED(argc), const char **UNUSED(argv), void *data)
 
 static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
-#if defined(__sgi) || defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
+#if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
 	/* zealous but makes float issues a heck of a lot easier to find!
 	 * set breakpoints on fpe_handler */
 	signal(SIGFPE, fpe_handler);
@@ -1204,10 +1198,6 @@ int main(int argc, const char **argv)
 	setupArguments(C, ba, &syshandle);
 
 	BLI_argsParse(ba, 1, NULL, NULL);
-
-#ifdef __sgi
-	setuid(getuid()); /* end superuser */
-#endif
 
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background= 1; /* python module mode ALWAYS runs in background mode (for now) */

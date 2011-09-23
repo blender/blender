@@ -206,7 +206,7 @@ class _GenericBone:
 
     @property
     def children_recursive(self):
-        """a list of all children from this bone."""
+        """A list of all children from this bone."""
         bones_children = []
         for bone in self._other_bones:
             index = bone.parent_index(self)

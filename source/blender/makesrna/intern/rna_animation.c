@@ -188,7 +188,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, v
 		return NULL;
 	
 	if (strlen(identifier) >= sizeof(dummyksi.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering keying set info class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummyksi.idname));
+		BKE_reportf(reports, RPT_ERROR, "Registering keying set info class: '%s' is too long, maximum length is %d", identifier, (int)sizeof(dummyksi.idname));
 		return NULL;
 	}
 	
@@ -353,7 +353,7 @@ static KS_Path *rna_KeyingSet_paths_add(KeyingSet *keyingset, ReportList *report
 		keyingset->active_path= BLI_countlist(&keyingset->paths); 
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set Path could not be added.");
+		BKE_report(reports, RPT_ERROR, "Keying Set Path could not be added");
 	}
 	
 	/* return added path */
@@ -372,7 +372,7 @@ static void rna_KeyingSet_paths_remove(KeyingSet *keyingset, ReportList *reports
 		keyingset->active_path = 0;
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set Path could not be removed.");
+		BKE_report(reports, RPT_ERROR, "Keying Set Path could not be removed");
 	}
 }
 
@@ -392,7 +392,7 @@ static void rna_KeyingSet_paths_clear(KeyingSet *keyingset, ReportList *reports)
 		keyingset->active_path = 0;
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set Paths could not be removed.");
+		BKE_report(reports, RPT_ERROR, "Keying Set Paths could not be removed");
 	}
 }
 
@@ -489,7 +489,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 		
 	/* Name */
-	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
@@ -608,27 +608,31 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 	
 	/* Add Path */
 	func= RNA_def_function(srna, "add", "rna_KeyingSet_paths_add");
-	RNA_def_function_ui_description(func, "Add a new path for the Keying Set.");
+	RNA_def_function_ui_description(func, "Add a new path for the Keying Set");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 		/* return arg */
 	parm= RNA_def_pointer(func, "ksp", "KeyingSetPath", "New Path", "Path created and added to the Keying Set");
 		RNA_def_function_return(func, parm);
 		/* ID-block for target */
-	parm= RNA_def_pointer(func, "target_id", "ID", "Target ID", "ID-Datablock for the destination."); 
+	parm= RNA_def_pointer(func, "target_id", "ID", "Target ID", "ID-Datablock for the destination"); 
 		RNA_def_property_flag(parm, PROP_REQUIRED);
 		/* rna-path */
-	parm= RNA_def_string(func, "data_path", "", 256, "Data-Path", "RNA-Path to destination property."); // xxx hopefully this is long enough
+	parm= RNA_def_string(func, "data_path", "", 256, "Data-Path", "RNA-Path to destination property"); // xxx hopefully this is long enough
 		RNA_def_property_flag(parm, PROP_REQUIRED);
 		/* index (defaults to -1 for entire array) */
-	RNA_def_int(func, "index", -1, -1, INT_MAX, "Index", "The index of the destination property (i.e. axis of Location/Rotation/etc.), or -1 for the entire array.", 0, INT_MAX);
+	RNA_def_int(func, "index", -1, -1, INT_MAX, "Index",
+	            "The index of the destination property (i.e. axis of Location/Rotation/etc.), "
+	            "or -1 for the entire array", 0, INT_MAX);
 		/* grouping */
-	RNA_def_enum(func, "group_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME, "Grouping Method", "Method used to define which Group-name to use.");
-	RNA_def_string(func, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");
+	RNA_def_enum(func, "group_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME,
+	             "Grouping Method", "Method used to define which Group-name to use");
+	RNA_def_string(func, "group_name", "", 64, "Group Name",
+	               "Name of Action Group to assign destination to (only if grouping mode is to use this name)");
 
 
 	/* Remove Path */
 	func= RNA_def_function(srna, "remove", "rna_KeyingSet_paths_remove");
-	RNA_def_function_ui_description(func, "Remove the given path from the Keying Set.");
+	RNA_def_function_ui_description(func, "Remove the given path from the Keying Set");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 		/* path to remove */
 	parm= RNA_def_pointer(func, "path", "KeyingSetPath", "Path", ""); 
@@ -637,7 +641,7 @@ static void rna_def_keyingset_paths(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* Remove All Paths */
 	func= RNA_def_function(srna, "clear", "rna_KeyingSet_paths_clear");
-	RNA_def_function_ui_description(func, "Remove all the paths from the Keying Set.");
+	RNA_def_function_ui_description(func, "Remove all the paths from the Keying Set");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -713,15 +717,15 @@ static void rna_api_animdata_nla_tracks(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_NlaTrack_new");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Add a new NLA Track");
-	RNA_def_pointer(func, "prev", "NlaTrack", "", "NLA Track to add the new one after.");
+	RNA_def_pointer(func, "prev", "NlaTrack", "", "NLA Track to add the new one after");
 	/* return type */
-	parm = RNA_def_pointer(func, "track", "NlaTrack", "", "New NLA Track.");
+	parm = RNA_def_pointer(func, "track", "NlaTrack", "", "New NLA Track");
 	RNA_def_function_return(func, parm);
 	
 	func = RNA_def_function(srna, "remove", "rna_NlaTrack_remove");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	RNA_def_function_ui_description(func, "Remove a NLA Track.");
-	parm = RNA_def_pointer(func, "track", "NlaTrack", "", "NLA Track to remove.");
+	RNA_def_function_ui_description(func, "Remove a NLA Track");
+	parm = RNA_def_pointer(func, "track", "NlaTrack", "", "NLA Track to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -751,7 +755,7 @@ static void rna_api_animdata_drivers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Add a new driver given an existing one");
 	RNA_def_pointer(func, "src_driver", "FCurve", "", "Existing Driver F-Curve to use as template for a new one");
 	/* return type */
-	parm = RNA_def_pointer(func, "driver", "FCurve", "", "New Driver F-Curve.");
+	parm = RNA_def_pointer(func, "driver", "FCurve", "", "New Driver F-Curve");
 	RNA_def_function_return(func, parm);
 }
 

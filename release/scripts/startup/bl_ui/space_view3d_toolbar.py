@@ -646,6 +646,7 @@ class VIEW3D_PT_tools_brush(PaintPanel, Panel):
         elif context.weight_paint_object and brush:
             layout.prop(context.tool_settings, "vertex_group_weight", text="Weight", slider=True)
             layout.prop(context.tool_settings, "use_auto_normalize", text="Auto Normalize")
+            layout.prop(context.tool_settings, "use_multipaint", text="Multi-Paint")
 
             col = layout.column()
 
@@ -1058,6 +1059,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
         col.operator("object.vertex_group_invert", text="Invert")
         col.operator("object.vertex_group_clean", text="Clean")
         col.operator("object.vertex_group_levels", text="Levels")
+        col.operator("object.vertex_group_fix", text="Fix Deforms")
 
 
 class VIEW3D_PT_tools_weightpaint_options(View3DPanel, Panel):

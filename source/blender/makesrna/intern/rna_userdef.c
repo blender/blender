@@ -44,6 +44,7 @@
 #include "WM_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLF_translation.h"
 
 #include "BKE_sound.h"
 
@@ -64,6 +65,8 @@
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
+#include "UI_interface.h"
+
 static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -74,6 +77,13 @@ static void rna_userdef_dpi_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	U.widget_unit = (U.dpi * 20 + 36)/72;
 	WM_main_add_notifier(NC_WINDOW, NULL);		/* full redraw */
 	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);	/* refresh region sizes */
+}
+
+static void rna_userdef_language_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	BLF_cache_clear();
+	BLF_lang_set(NULL);
+	UI_reinit_font();
 }
 
 static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -2546,30 +2556,35 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 		/* hardcoded here, could become dynamic somehow */
+	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
+	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
 	static EnumPropertyItem language_items[] = {
-		{0, "ENGLISH", 0, "English", ""},
-		{1, "JAPANESE", 0, "Japanese", ""},
-		{2, "DUTCH", 0, "Dutch", ""},
-		{3, "ITALIAN", 0, "Italian", ""},
-		{4, "GERMAN", 0, "German", ""},
-		{5, "FINNISH", 0, "Finnish", ""},
-		{6, "SWEDISH", 0, "Swedish", ""},
-		{7, "FRENCH", 0, "French", ""},
-		{8, "SPANISH", 0, "Spanish", ""},
-		{9, "CATALAN", 0, "Catalan", ""},
-		{10, "CZECH", 0, "Czech", ""},
-		{11, "BRAZILIAN_PORTUGUESE", 0, "Brazilian Portuguese", ""},
-		{12, "SIMPLIFIED_CHINESE", 0, "Simplified Chinese", ""},
-		{13, "RUSSIAN", 0, "Russian", ""},
-		{14, "CROATIAN", 0, "Croatian", ""},
-		{15, "SERBIAN", 0, "Serbian", ""},
-		{16, "UKRAINIAN", 0, "Ukrainian", ""},
-		{17, "POLISH", 0, "Polish", ""},
-		{18, "ROMANIAN", 0, "Romanian", ""},
-		{19, "ARABIC", 0, "Arabic", ""},
-		{20, "BULGARIAN", 0, "Bulgarian", ""},
-		{21, "GREEK", 0, "Greek", ""},
-		{22, "KOREAN", 0, "Korean", ""},
+		{0, "DEFAULT", 0, N_("Default (Default)"), ""},
+		{1, "ENGLISH", 0, N_("English (English)"), "en_US"},
+		{2, "JAPANESE", 0, N_("Japanese (日本語)"), "ja_JP"},
+		{3, "DUTCH", 0, N_("Dutch (Nederlandse taal)"), "nl_NL"},
+		{4, "ITALIAN", 0, N_("Italian (Italiano)"), "it_IT"},
+		{5, "GERMAN", 0, N_("German (Deutsch)"), "de_DE"},
+		{6, "FINNISH", 0, N_("Finnish (Suomi)"), "fi_FI"},
+		{7, "SWEDISH", 0, N_("Swedish (Svenska)"), "sv_SE"},
+		{8, "FRENCH", 0, N_("French (Française)"), "fr_FR"},
+		{9, "SPANISH", 0, N_("Spanish (Español)"), "es_ES"},
+		{10, "CATALAN", 0, N_("Catalan (Català)"), "ca_AD"},
+		{11, "CZECH", 0, N_("Czech (Český)"), "cs_CZ"},
+		{12, "BRAZILIAN_PORTUGUESE", 0, N_("Brazilian Portuguese (Português do Brasil)"), "pt_BR"},
+		{13, "SIMPLIFIED_CHINESE", 0, N_("Simplified Chinese (简体中文)"), "zh_CN"},
+		{14, "TRADITIONAL_CHINESE", 0, N_("Traditional Chinese (繁體中文)"), "zh_TW"},
+		{15, "RUSSIAN", 0, N_("Russian (Русский)"), "ru_RU"},
+		{16, "CROATIAN", 0, N_("Croatian (Hrvatski)"), "hr_HR"},
+		{17, "SERBIAN", 0, N_("Serbian (Српском језику)"), "sr_RS"},
+		{18, "UKRAINIAN", 0, N_("Ukrainian (Український)"), "uk_UA"},
+		{19, "POLISH", 0, N_("Polish (Polski)"), "pl_PL"},
+		{20, "ROMANIAN", 0, N_("Romanian (Român)"), "ro_RO"},
+		{21, "ARABIC", 0, N_("Arabic (العربية)"), "ar_EG"},
+		{22, "BULGARIAN", 0, N_("Bulgarian (Български)"), "bg_BG"},
+		{23, "GREEK", 0, N_("Greek (Ελληνικά)"), "el_GR"},
+		{24, "KOREAN", 0, N_("Korean (한국 언어)"), "ko_KR"},
+		/*{25, "Nepali", 0, N_("Nepali (नेपाली)"), "ne_NP"},*/
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UserPreferencesSystem", NULL);
@@ -2582,7 +2597,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_international_fonts", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_DOTRANSLATE);
 	RNA_def_property_ui_text(prop, "International Fonts", "Use international fonts");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 
 	prop= RNA_def_property(srna, "dpi", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dpi");
@@ -2605,21 +2620,16 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "language", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, language_items);
 	RNA_def_property_ui_text(prop, "Language", "Language use for translation");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 
 	prop= RNA_def_property(srna, "use_translate_tooltips", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_TOOLTIPS);
 	RNA_def_property_ui_text(prop, "Translate Tooltips", "Translate Tooltips");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop= RNA_def_property(srna, "use_translate_buttons", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_BUTTONS);
-	RNA_def_property_ui_text(prop, "Translate Buttons", "Translate button labels");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop= RNA_def_property(srna, "use_translate_toolbox", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_MENUS);
-	RNA_def_property_ui_text(prop, "Translate Toolbox", "Translate toolbox menu");
+	prop= RNA_def_property(srna, "use_translate_interface", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transopts", USER_TR_IFACE);
+	RNA_def_property_ui_text(prop, "Translate Interface", "Translate Interface");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "use_textured_fonts", PROP_BOOLEAN, PROP_NONE);
@@ -3085,13 +3095,13 @@ void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_NO_SELF);
 	RNA_def_function_ui_description(func, "Add a new addon");
 	/* return type */
-	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon datablock.");
+	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon datablock");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "remove", "rna_userdef_addon_remove");
 	RNA_def_function_flag(func, FUNC_NO_SELF);
-	RNA_def_function_ui_description(func, "Remove addon.");
-	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon to remove.");
+	RNA_def_function_ui_description(func, "Remove addon");
+	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 

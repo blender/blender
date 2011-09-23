@@ -78,4 +78,8 @@ if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
 
+if(WITH_INTERNATIONAL)
+	add_definitions(-DINTERNATIONAL)
+endif()
+
 blender_add_lib_nolist(ge_player_ghost "${SRC}" "${INC}" "${INC_SYS}")

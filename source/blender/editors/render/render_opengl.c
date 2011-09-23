@@ -260,12 +260,12 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 		return 0;
 	
 	if(!is_view_context && scene->camera==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Scene has no camera.");
+		BKE_report(op->reports, RPT_ERROR, "Scene has no camera");
 		return 0;
 	}
 
 	if(!is_animation && is_write_still && BKE_imtype_is_movie(scene->r.imtype)) {
-		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected.");
+		BKE_report(op->reports, RPT_ERROR, "Can't write a single file with an animation format selected");
 		return 0;
 	}
 
@@ -611,7 +611,7 @@ void RENDER_OT_opengl(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "Render files from the animation range of this scene");
 	RNA_def_boolean(ot->srna, "write_still", 0, "Write Image", "Save rendered the image to the output path (used only when animation is disabled)");
-	RNA_def_boolean(ot->srna, "view_context", 1, "View Context", "Use the current 3D view for rendering, else use scene settings.");
+	RNA_def_boolean(ot->srna, "view_context", 1, "View Context", "Use the current 3D view for rendering, else use scene settings");
 }
 
 /* function for getting an opengl buffer from a View3D, used by sequencer */

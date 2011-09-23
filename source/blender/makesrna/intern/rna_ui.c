@@ -84,7 +84,7 @@ static ARegionType *region_type_find(ReportList *reports, int space_type, int re
 	
 	/* region type not found? abort */
 	if (art==NULL) {
-		BKE_report(reports, RPT_ERROR, "Region not found in spacetype.");
+		BKE_report(reports, RPT_ERROR, "Region not found in spacetype");
 		return NULL;
 	}
 
@@ -167,7 +167,8 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
+                                     StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	PanelType *pt, dummypt = {NULL};
@@ -184,7 +185,8 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 		return NULL;
 		
 	if(strlen(identifier) >= sizeof(dummypt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering panel class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummypt.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering panel class: '%s' is too long, maximum length is %d",
+		            identifier, (int)sizeof(dummypt.idname));
 		return NULL;
 	}
 	
@@ -280,7 +282,8 @@ static void rna_Header_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
+                                      StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	ARegionType *art;
 	HeaderType *ht, dummyht = {NULL};
@@ -297,7 +300,8 @@ static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *da
 		return NULL;
 
 	if(strlen(identifier) >= sizeof(dummyht.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering header class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummyht.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering header class: '%s' is too long, maximum length is %d",
+		            identifier, (int)sizeof(dummyht.idname));
 		return NULL;
 	}
 
@@ -397,7 +401,8 @@ static void rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
 	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
 }
 
-static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
+                                    StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
 {
 	MenuType *mt, dummymt = {NULL};
 	Menu dummymenu= {NULL};
@@ -413,7 +418,8 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 		return NULL;
 	
 	if(strlen(identifier) >= sizeof(dummymt.idname)) {
-		BKE_reportf(reports, RPT_ERROR, "registering menu class: '%s' is too long, maximum length is %d.", identifier, (int)sizeof(dummymt.idname));
+		BKE_reportf(reports, RPT_ERROR, "registering menu class: '%s' is too long, maximum length is %d",
+		            identifier, (int)sizeof(dummymt.idname));
 		return NULL;
 	}
 
@@ -571,7 +577,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_enabled_get", "rna_UILayout_enabled_set");
-	RNA_def_property_ui_text(prop, "Enabled", "When false, this (sub)layout is greyed out.");
+	RNA_def_property_ui_text(prop, "Enabled", "When false, this (sub)layout is greyed out");
 	
 	prop= RNA_def_property(srna, "alert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_alert_get", "rna_UILayout_alert_set");
@@ -587,11 +593,11 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "scale_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_x_get", "rna_UILayout_scale_x_set", NULL);
-	RNA_def_property_ui_text(prop, "Scale X", "Scale factor along the X for items in this (sub)layout.");
+	RNA_def_property_ui_text(prop, "Scale X", "Scale factor along the X for items in this (sub)layout");
 	
 	prop= RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_y_get", "rna_UILayout_scale_y_set", NULL);
-	RNA_def_property_ui_text(prop, "Scale Y", "Scale factor along the Y for items in this (sub)layout.");
+	RNA_def_property_ui_text(prop, "Scale Y", "Scale factor along the Y for items in this (sub)layout");
 	RNA_api_ui_layout(srna);
 }
 
@@ -603,8 +609,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	static EnumPropertyItem panel_flag_items[] = {
-			{PNL_DEFAULT_CLOSED, "DEFAULT_CLOSED", 0, "Default Closed", "Defines if the panel has to be open or collapsed at the time of its creation."},
-			{PNL_NO_HEADER, "HIDE_HEADER", 0, "Show Header", "If set to True, the panel shows a header, which contains a clickable arrow to collapse the panel and the label (see bl_label)."},
+			{PNL_DEFAULT_CLOSED, "DEFAULT_CLOSED", 0, "Default Closed",
+			                     "Defines if the panel has to be open or collapsed at the time of its creation"},
+			{PNL_NO_HEADER, "HIDE_HEADER", 0, "Show Header",
+			                "If set to True, the panel shows a header, which contains a clickable "
+			                "arrow to collapse the panel and the label (see bl_label)"},
 			{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Panel", NULL);
@@ -615,7 +624,7 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
-	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the panel can be drawn.");
+	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the panel can be drawn");
 	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
@@ -623,20 +632,20 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
-	RNA_def_function_ui_description(func, "Draw UI elements into the panel UI layout.");
+	RNA_def_function_ui_description(func, "Draw UI elements into the panel UI layout");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	func= RNA_def_function(srna, "draw_header", NULL);
-	RNA_def_function_ui_description(func, "Draw UI elements into the panel's header UI layout.");
+	RNA_def_function_ui_description(func, "Draw UI elements into the panel's header UI layout");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");
-	RNA_def_property_ui_text(prop, "Layout", "Defines the structure of the panel in the UI.");
+	RNA_def_property_ui_text(prop, "Layout", "Defines the structure of the panel in the UI");
 	
 	prop= RNA_def_property(srna, "text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "drawname");
@@ -646,29 +655,37 @@ static void rna_def_panel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
-	RNA_def_property_ui_text(prop, "ID Name", "If this is set, the panel gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is \"OBJECT_PT_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_PT_hello\"");
+	RNA_def_property_ui_text(prop, "ID Name",
+	                         "If this is set, the panel gets a custom ID, otherwise it takes the "
+	                         "name of the class used to define the panel. For example, if the "
+	                         "class name is \"OBJECT_PT_hello\", and bl_idname is not set by the "
+	                         "script, then bl_idname = \"OBJECT_PT_hello\"");
 	
-	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->label");
 	RNA_def_property_flag(prop, PROP_REGISTER);
-	RNA_def_property_ui_text(prop, "Label", "The panel label, shows up in the panel header at the right of the triangle used to collapse the panel.");
+	RNA_def_property_ui_text(prop, "Label",
+	                         "The panel label, shows up in the panel header at the right of the "
+	                         "triangle used to collapse the panel");
 	
 	prop= RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
-	RNA_def_property_ui_text(prop, "Space type", "The space where the panel is going to be used in.");
+	RNA_def_property_ui_text(prop, "Space type", "The space where the panel is going to be used in");
 	
 	prop= RNA_def_property(srna, "bl_region_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->region_type");
 	RNA_def_property_enum_items(prop, region_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
-	RNA_def_property_ui_text(prop, "Region Type", "The region where the panel is going to be used in.");
+	RNA_def_property_ui_text(prop, "Region Type", "The region where the panel is going to be used in");
 
 	prop= RNA_def_property(srna, "bl_context", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->context");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL); /* should this be optional? - Campbell */
-	RNA_def_property_ui_text(prop, "Context", "The context in which the panel belongs to. (TODO: explain the possible combinations bl_context/bl_region_type/bl_space_type)");
+	RNA_def_property_ui_text(prop, "Context",
+	                         "The context in which the panel belongs to. (TODO: explain the "
+	                         "possible combinations bl_context/bl_region_type/bl_space_type)");
 	
 	prop= RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
@@ -685,14 +702,14 @@ static void rna_def_header(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Header", NULL);
-	RNA_def_struct_ui_text(srna, "Header", "Editor header containing UI elements.");
+	RNA_def_struct_ui_text(srna, "Header", "Editor header containing UI elements");
 	RNA_def_struct_sdna(srna, "Header");
 	RNA_def_struct_refine_func(srna, "rna_Header_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Header_register", "rna_Header_unregister", NULL);
 
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
-	RNA_def_function_ui_description(func, "Draw UI elements into the header UI layout.");
+	RNA_def_function_ui_description(func, "Draw UI elements into the header UI layout");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -702,19 +719,23 @@ static void rna_def_header(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "layout");
 	RNA_def_property_struct_type(prop, "UILayout");
-	RNA_def_property_ui_text(prop, "Layout", "Defines the structure of the header in the UI.");
+	RNA_def_property_ui_text(prop, "Layout", "Defines the structure of the header in the UI");
 
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
-	RNA_def_property_ui_text(prop, "ID Name", "If this is set, the header gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is \"OBJECT_HT_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_HT_hello\"");
+	RNA_def_property_ui_text(prop, "ID Name",
+	                         "If this is set, the header gets a custom ID, otherwise it takes the "
+	                         "name of the class used to define the panel. For example, if the "
+	                         "class name is \"OBJECT_HT_hello\", and bl_idname is not set by the "
+	                         "script, then bl_idname = \"OBJECT_HT_hello\"");
 
 	prop= RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->space_type");
 	RNA_def_property_enum_items(prop, space_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
-	RNA_def_property_ui_text(prop, "Space type", "The space where the header is going to be used in.");
+	RNA_def_property_ui_text(prop, "Space type", "The space where the header is going to be used in");
 
 	RNA_define_verify_sdna(1);
 }
@@ -734,7 +755,7 @@ static void rna_def_menu(BlenderRNA *brna)
 
 	/* poll */
 	func= RNA_def_function(srna, "poll", NULL);
-	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the menu can be drawn.");
+	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the menu can be drawn");
 	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
@@ -742,7 +763,7 @@ static void rna_def_menu(BlenderRNA *brna)
 
 	/* draw */
 	func= RNA_def_function(srna, "draw", NULL);
-	RNA_def_function_ui_description(func, "Draw UI elements into the menu UI layout.");
+	RNA_def_function_ui_description(func, "Draw UI elements into the menu UI layout");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	parm= RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -752,15 +773,19 @@ static void rna_def_menu(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "layout");
 	RNA_def_property_struct_type(prop, "UILayout");
-	RNA_def_property_ui_text(prop, "Layout", "Defines the structure of the menu in the UI.");
+	RNA_def_property_ui_text(prop, "Layout", "Defines the structure of the menu in the UI");
 
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
-	RNA_def_property_ui_text(prop, "ID Name", "If this is set, the menu gets a custom ID, otherwise it takes the name of the class used to define the panel. For example, if the class name is \"OBJECT_MT_hello\", and bl_idname is not set by the script, then bl_idname = \"OBJECT_MT_hello\"");
+	RNA_def_property_ui_text(prop, "ID Name",
+	                         "If this is set, the menu gets a custom ID, otherwise it takes the "
+	                         "name of the class used to define the panel. For example, if the "
+	                         "class name is \"OBJECT_MT_hello\", and bl_idname is not set by the "
+	                         "script, then bl_idname = \"OBJECT_MT_hello\"");
 
-	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->label");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Label", "The menu label");

@@ -85,7 +85,7 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 
 void wm_event_add(wmWindow *win, wmEvent *event_to_add)
 {
-	wmEvent *event= MEM_callocN(sizeof(wmEvent), "event");
+	wmEvent *event= MEM_callocN(sizeof(wmEvent), "wmEvent");
 	
 	*event= *event_to_add;
 	BLI_addtail(&win->queue, event);
@@ -1917,7 +1917,7 @@ void wm_event_do_handlers(bContext *C)
 			
 			/* store last event for this window */
 			/* mousemove and timer events don't overwrite last type */
-			if (event->type != MOUSEMOVE && !ISTIMER(event->type)) {
+			if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) && !ISTIMER(event->type)) {
 				if (wm_action_not_handled(action)) {
 					if (win->eventstate->prevtype == event->type) {
 						/* set click time on first click (press -> release) */

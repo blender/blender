@@ -1408,7 +1408,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 		}
 
 		/* Interior face verts */
-		lvl = lvl1->next->next;
+		/* lvl = lvl1->next->next; */ /* UNUSED */
 		dst = 0;
 		for(j = 0; j < lvl1->totface; ++j) {
 			int sides = lvl1->faces[j].v[3] ? 4 : 3;

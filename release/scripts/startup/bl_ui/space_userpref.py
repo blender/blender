@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Header, Menu, Operator, Panel
+from bpy.types import Header, Menu, Panel
 import os
 import addon_utils
 
@@ -417,20 +417,6 @@ class USERPREF_PT_system(Panel):
         col.separator()
         col.separator()
 
-        #column = split.column()
-        #colsplit = column.split(percentage=0.85)
-
-        # No translation in 2.5 yet
-        #col.prop(system, "language")
-        #col.label(text="Translate:")
-        #col.prop(system, "use_translate_tooltips", text="Tooltips")
-        #col.prop(system, "use_translate_buttons", text="Labels")
-        #col.prop(system, "use_translate_toolbox", text="Toolbox")
-
-        #col.separator()
-
-        #col.prop(system, "use_textured_fonts")
-
         # 2. Column
         column = split.column()
         colsplit = column.split(percentage=0.85)
@@ -481,20 +467,26 @@ class USERPREF_PT_system(Panel):
         opengl_lamp_buttons(column, lamp)
 
         column.separator()
-        column.separator()
-        column.separator()
 
         column.label(text="Color Picker Type:")
         column.row().prop(system, "color_picker_type", text="")
 
-        column.separator()
-        column.separator()
         column.separator()
 
         column.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
         sub = column.column()
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
+
+        column.separator()
+
+        column.prop(system, "use_international_fonts")
+        if system.use_international_fonts:
+            column.prop(system, "language")
+            row = column.row()
+            row.label(text="Translate:")
+            row.prop(system, "use_translate_interface", text="Interface")
+            row.prop(system, "use_translate_tooltips", text="Tooltips")
 
 
 class USERPREF_PT_theme(Panel):
@@ -657,7 +649,7 @@ class USERPREF_PT_theme(Panel):
             col = split.column()
 
             for i, ui in enumerate(theme.bone_color_sets):
-                col.label(text="Color Set %d:" % (i + 1))  # i starts from 0
+                col.label(text="Color Set" + " %d:" % (i + 1))  # i starts from 0
 
                 row = col.row()
 
@@ -888,9 +880,9 @@ class USERPREF_MT_addons_dev_guides(Menu):
     # menu to open webpages with addons development guides
     def draw(self, context):
         layout = self.layout
-        layout.operator('wm.url_open', text='API Concepts', icon='URL').url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro'
-        layout.operator('wm.url_open', text='Addon Guidelines', icon='URL').url = 'http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons'
-        layout.operator('wm.url_open', text='How to share your addon', icon='URL').url = 'http://wiki.blender.org/index.php/Dev:Py/Sharing'
+        layout.operator("wm.url_open", text="API Concepts", icon='URL').url = "http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro"
+        layout.operator("wm.url_open", text="Addon Guidelines", icon='URL').url = "http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Guidelines/Addons"
+        layout.operator("wm.url_open", text="How to share your addon", icon='URL').url = "http://wiki.blender.org/index.php/Dev:Py/Sharing"
 
 
 class USERPREF_PT_addons(Panel):
@@ -1025,19 +1017,19 @@ class USERPREF_PT_addons(Panel):
                 if info["show_expanded"]:
                     if info["description"]:
                         split = colsub.row().split(percentage=0.15)
-                        split.label(text='Description:')
+                        split.label(text="Description:")
                         split.label(text=info["description"])
                     if info["location"]:
                         split = colsub.row().split(percentage=0.15)
-                        split.label(text='Location:')
+                        split.label(text="Location:")
                         split.label(text=info["location"])
                     if info["author"]:
                         split = colsub.row().split(percentage=0.15)
-                        split.label(text='Author:')
+                        split.label(text="Author:")
                         split.label(text=info["author"])
                     if info["version"]:
                         split = colsub.row().split(percentage=0.15)
-                        split.label(text='Version:')
+                        split.label(text="Version:")
                         split.label(text='.'.join(str(x) for x in info["version"]))
                     if info["warning"]:
                         split = colsub.row().split(percentage=0.15)
@@ -1081,293 +1073,6 @@ class USERPREF_PT_addons(Panel):
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name
-
-
-class WM_OT_addon_enable(Operator):
-    "Enable an addon"
-    bl_idname = "wm.addon_enable"
-    bl_label = "Enable Add-On"
-
-    module = StringProperty(
-            name="Module",
-            description="Module name of the addon to enable",
-            )
-
-    def execute(self, context):
-        mod = addon_utils.enable(self.module)
-
-        if mod:
-            info = addon_utils.module_bl_info(mod)
-
-            info_ver = info.get("blender", (0, 0, 0))
-
-            if info_ver > bpy.app.version:
-                self.report({'WARNING'}, ("This script was written Blender "
-                                          "version %d.%d.%d and might not "
-                                          "function (correctly).\n"
-                                          "The script is enabled though.") %
-                                         info_ver)
-            return {'FINISHED'}
-        else:
-            return {'CANCELLED'}
-
-
-class WM_OT_addon_disable(Operator):
-    "Disable an addon"
-    bl_idname = "wm.addon_disable"
-    bl_label = "Disable Add-On"
-
-    module = StringProperty(
-            name="Module",
-            description="Module name of the addon to disable",
-            )
-
-    def execute(self, context):
-        addon_utils.disable(self.module)
-        return {'FINISHED'}
-
-
-class WM_OT_addon_install(Operator):
-    "Install an addon"
-    bl_idname = "wm.addon_install"
-    bl_label = "Install Add-On..."
-
-    overwrite = BoolProperty(
-            name="Overwrite",
-            description="Remove existing addons with the same ID",
-            default=True,
-            )
-    target = EnumProperty(
-            name="Target Path",
-            items=(('DEFAULT', "Default", ""),
-                   ('PREFS', "User Prefs", "")),
-            )
-
-    filepath = StringProperty(
-            name="File Path",
-            description="File path to write file to",
-            )
-    filter_folder = BoolProperty(
-            name="Filter folders",
-            default=True,
-            options={'HIDDEN'},
-            )
-    filter_python = BoolProperty(
-            name="Filter python",
-            default=True,
-            options={'HIDDEN'},
-            )
-    filter_glob = StringProperty(
-            default="*.py;*.zip",
-            options={'HIDDEN'},
-            )
-
-    @staticmethod
-    def _module_remove(path_addons, module):
-        module = os.path.splitext(module)[0]
-        for f in os.listdir(path_addons):
-            f_base = os.path.splitext(f)[0]
-            if f_base == module:
-                f_full = os.path.join(path_addons, f)
-
-                if os.path.isdir(f_full):
-                    os.rmdir(f_full)
-                else:
-                    os.remove(f_full)
-
-    def execute(self, context):
-        import traceback
-        import zipfile
-        import shutil
-
-        pyfile = self.filepath
-
-        if self.target == 'DEFAULT':
-            # dont use bpy.utils.script_paths("addons") because we may not be able to write to it.
-            path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
-        else:
-            path_addons = bpy.context.user_preferences.filepaths.script_directory
-            if path_addons:
-                path_addons = os.path.join(path_addons, "addons")
-
-        if not path_addons:
-            self.report({'ERROR'}, "Failed to get addons path")
-            return {'CANCELLED'}
-
-        # create dir is if missing.
-        if not os.path.exists(path_addons):
-            os.makedirs(path_addons)
-
-        # Check if we are installing from a target path,
-        # doing so causes 2+ addons of same name or when the same from/to
-        # location is used, removal of the file!
-        addon_path = ""
-        pyfile_dir = os.path.dirname(pyfile)
-        for addon_path in addon_utils.paths():
-            if os.path.samefile(pyfile_dir, addon_path):
-                self.report({'ERROR'}, "Source file is in the addon search path: %r" % addon_path)
-                return {'CANCELLED'}
-        del addon_path
-        del pyfile_dir
-        # done checking for exceptional case
-
-        addons_old = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)}
-
-        #check to see if the file is in compressed format (.zip)
-        if zipfile.is_zipfile(pyfile):
-            try:
-                file_to_extract = zipfile.ZipFile(pyfile, 'r')
-            except:
-                traceback.print_exc()
-                return {'CANCELLED'}
-
-            if self.overwrite:
-                for f in file_to_extract.namelist():
-                    WM_OT_addon_install._module_remove(path_addons, f)
-            else:
-                for f in file_to_extract.namelist():
-                    path_dest = os.path.join(path_addons, os.path.basename(f))
-                    if os.path.exists(path_dest):
-                        self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
-                        return {'CANCELLED'}
-
-            try:  # extract the file to "addons"
-                file_to_extract.extractall(path_addons)
-
-                # zip files can create this dir with metadata, don't need it
-                macosx_dir = os.path.join(path_addons, '__MACOSX')
-                if os.path.isdir(macosx_dir):
-                    shutil.rmtree(macosx_dir)
-
-            except:
-                traceback.print_exc()
-                return {'CANCELLED'}
-
-        else:
-            path_dest = os.path.join(path_addons, os.path.basename(pyfile))
-
-            if self.overwrite:
-                WM_OT_addon_install._module_remove(path_addons, os.path.basename(pyfile))
-            elif os.path.exists(path_dest):
-                self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
-                return {'CANCELLED'}
-
-            #if not compressed file just copy into the addon path
-            try:
-                shutil.copyfile(pyfile, path_dest)
-
-            except:
-                traceback.print_exc()
-                return {'CANCELLED'}
-
-        addons_new = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)} - addons_old
-        addons_new.discard("modules")
-
-        # disable any addons we may have enabled previously and removed.
-        # this is unlikely but do just incase. bug [#23978]
-        for new_addon in addons_new:
-            addon_utils.disable(new_addon)
-
-        # possible the zip contains multiple addons, we could disallow this
-        # but for now just use the first
-        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
-            if mod.__name__ in addons_new:
-                info = addon_utils.module_bl_info(mod)
-
-                # show the newly installed addon.
-                context.window_manager.addon_filter = 'All'
-                context.window_manager.addon_search = info["name"]
-                break
-
-        # incase a new module path was created to install this addon.
-        bpy.utils.refresh_script_paths()
-
-        # TODO, should not be a warning.
-        # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-
-class WM_OT_addon_remove(Operator):
-    "Disable an addon"
-    bl_idname = "wm.addon_remove"
-    bl_label = "Remove Add-On"
-
-    module = StringProperty(
-            name="Module",
-            description="Module name of the addon to remove",
-            )
-
-    @staticmethod
-    def path_from_addon(module):
-        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
-            if mod.__name__ == module:
-                filepath = mod.__file__
-                if os.path.exists(filepath):
-                    if os.path.splitext(os.path.basename(filepath))[0] == "__init__":
-                        return os.path.dirname(filepath), True
-                    else:
-                        return filepath, False
-        return None, False
-
-    def execute(self, context):
-        path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
-        if path is None:
-            self.report('WARNING', "Addon path %r could not be found" % path)
-            return {'CANCELLED'}
-
-        # incase its enabled
-        addon_utils.disable(self.module)
-
-        import shutil
-        if isdir:
-            shutil.rmtree(path)
-        else:
-            os.remove(path)
-
-        context.area.tag_redraw()
-        return {'FINISHED'}
-
-    # lame confirmation check
-    def draw(self, context):
-        self.layout.label(text="Remove Addon: %r?" % self.module)
-        path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
-        self.layout.label(text="Path: %r" % path)
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=600)
-
-
-class WM_OT_addon_expand(Operator):
-    "Display more information on this add-on"
-    bl_idname = "wm.addon_expand"
-    bl_label = ""
-
-    module = StringProperty(
-            name="Module",
-            description="Module name of the addon to expand",
-            )
-
-    def execute(self, context):
-        module_name = self.module
-
-        # unlikely to fail, module should have already been imported
-        try:
-            # mod = __import__(module_name)
-            mod = USERPREF_PT_addons.module_get(module_name)
-        except:
-            import traceback
-            traceback.print_exc()
-            return {'CANCELLED'}
-
-        info = addon_utils.module_bl_info(mod)
-        info["show_expanded"] = not info["show_expanded"]
-        return {'FINISHED'}
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

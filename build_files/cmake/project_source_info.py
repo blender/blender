@@ -1,4 +1,4 @@
-# $Id:
+# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -27,17 +27,11 @@ __all__ = (
     )
 
 import os
-import sys
 from os.path import join, dirname, normpath, abspath
 
 SOURCE_DIR = join(dirname(__file__), "..", "..")
 SOURCE_DIR = normpath(SOURCE_DIR)
 SOURCE_DIR = abspath(SOURCE_DIR)
-
-
-def is_c_header(filename):
-    ext = os.path.splitext(filename)[1]
-    return (ext in (".h", ".hpp", ".hxx"))
 
 
 def is_c_header(filename):
@@ -79,6 +73,7 @@ def do_ignore(filepath, ignore_prefix_list):
 
 def makefile_log():
     import subprocess
+    import time
     # Check blender is not 2.5x until it supports playback again
     print("running make with --dry-run ...")
     process = subprocess.Popen(["make", "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
@@ -151,6 +146,48 @@ def build_info(use_c=True, use_cxx=True, ignore_prefix_list=None):
     print("done!")
 
     return source
+
+
+# could be moved elsewhere!, this just happens to be used by scripts that also
+# use this module.
+def queue_processes(process_funcs, job_total=-1):
+    """ Takes a list of function arg pairs, each function must return a process
+    """
+    import sys
+
+    if job_total == -1:
+        import multiprocessing
+        job_total = multiprocessing.cpu_count()
+        del multiprocessing
+
+    if job_total == 1:
+        import os
+        import sys
+        for func, args in process_funcs:
+            sys.stdout.flush()
+            sys.stderr.flush()
+
+            process = func(*args)
+            process.wait()
+    else:
+        import time
+        import subprocess
+
+        processes = []
+        for func, args in process_funcs:
+            # wait until a thread is free
+            while 1:
+                processes[:] = [p for p in processes if p.poll() is None]
+     
+                if len(processes) <= job_total:
+                    break
+                else:
+                    time.sleep(0.1)
+
+            sys.stdout.flush()
+            sys.stderr.flush()
+
+            processes.append(func(*args))
 
 
 def main():

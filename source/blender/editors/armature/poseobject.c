@@ -673,7 +673,7 @@ void POSE_OT_select_grouped (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
@@ -722,7 +722,7 @@ void POSE_OT_select_flip_active(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Flip Selected Active Bone";
 	ot->idname= "POSE_OT_select_flip_active";
-	ot->description= "Activate the bone with a flipped name.";
+	ot->description= "Activate the bone with a flipped name";
 	
 	/* api callbacks */
 	ot->exec= pose_bone_flip_active_exec;
@@ -1227,8 +1227,8 @@ void POSE_OT_paste (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
-	RNA_def_boolean(ot->srna, "selected_mask", 1, "On Selected Only", "Only paste the stored pose on to selected bones in the current pose");
+	RNA_def_boolean(ot->srna, "flipped", FALSE, "Flipped on X-Axis", "Paste the stored pose flipped on to current pose");
+	RNA_def_boolean(ot->srna, "selected_mask", FALSE, "On Selected Only", "Only paste the stored pose on to selected bones in the current pose");
 }
 
 /* ********************************************** */
@@ -1844,7 +1844,7 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	ot->prop= RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Axis tag names with.");
+	ot->prop= RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Axis tag names with");
 }
 
 /* ********************************************** */

@@ -1924,7 +1924,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 		/* flip rotation if needs be */
 		cross_v3_v3v3(cross_tmp, vec_1, vec_2);
 		normalize_v3(cross_tmp);
-		if(angle_normalized_v3v3(bevp_first->dir, cross_tmp) < 90.0f/(float)(180.0/M_PI))
+		if(angle_normalized_v3v3(bevp_first->dir, cross_tmp) < DEG2RADF(90.0f))
 			angle = -angle;
 
 		bevp2= (BevPoint *)(bl+1);

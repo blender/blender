@@ -763,7 +763,7 @@ void GRAPH_OT_paste (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
-	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merking pasted keys and existing");
+	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merging pasted keys and existing");
 }
 
 /* ******************** Duplicate Keyframes Operator ************************* */
@@ -1677,13 +1677,13 @@ static int graphkeys_euler_filter_exec (bContext *C, wmOperator *op)
 	/* updates + finishing warnings */
 	if (failed == groups) {
 		BKE_report(op->reports, RPT_ERROR, 
-			"No Euler Rotations could be corrected. Ensure each rotation has keys for all components, and that F-Curves for these are in consecutive XYZ order and selected.");
+			"No Euler Rotations could be corrected, ensure each rotation has keys for all components, and that F-Curves for these are in consecutive XYZ order and selected");
 		return OPERATOR_CANCELLED;
 	}
 	else {
 		if (failed) {
 			BKE_report(op->reports, RPT_ERROR,
-				"Some Euler Rotations couldn't be corrected due to missing/unselected/out-of-order F-Curves. Ensure each rotation has keys for all components, and that F-Curves for these are in consecutive XYZ order and selected.");
+				"Some Euler Rotations couldn't be corrected due to missing/unselected/out-of-order F-Curves, ensure each rotation has keys for all components, and that F-Curves for these are in consecutive XYZ order and selected");
 		}
 		
 		/* validate keyframes after editing */
@@ -2134,7 +2134,7 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 		if (fcm)
 			set_active_fmodifier(&fcu->modifiers, fcm);
 		else {
-			BKE_report(op->reports, RPT_ERROR, "Modifier couldn't be added. See console for details.");
+			BKE_report(op->reports, RPT_ERROR, "Modifier couldn't be added, see console for details");
 			break;
 		}
 	}
@@ -2167,7 +2167,7 @@ void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 	
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
-	RNA_def_boolean(ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve.");
+	RNA_def_boolean(ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve");
 }
 
 /* ******************** Copy F-Modifiers Operator *********************** */
@@ -2213,7 +2213,7 @@ void GRAPH_OT_fmodifier_copy (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy F-Modifiers";
 	ot->idname= "GRAPH_OT_fmodifier_copy";
-	ot->description= "Copy the F-Modifier(s) of the active F-Curve.";
+	ot->description= "Copy the F-Modifier(s) of the active F-Curve";
 	
 	/* api callbacks */
 	ot->exec= graph_fmodifier_copy_exec;

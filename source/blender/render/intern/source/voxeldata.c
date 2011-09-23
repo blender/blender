@@ -383,13 +383,13 @@ void make_voxeldata(struct Render *re)
 	
 }
 
-int voxeldatatex(struct Tex *tex, float *texvec, struct TexResult *texres)
+int voxeldatatex(struct Tex *tex, const float texvec[3], struct TexResult *texres)
 {	 
 	int retval = TEX_INT;
 	VoxelData *vd = tex->vd;	
 	float co[3], offset[3] = {0.5, 0.5, 0.5};
 
-	if ((!vd) || (vd->dataset==NULL)) {
+	if (vd->dataset==NULL) {
 		texres->tin = 0.0f;
 		return 0;
 	}

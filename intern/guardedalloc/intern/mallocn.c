@@ -124,10 +124,10 @@ static const char *check_memlist(MemHead *memh);
 /* locally used defines                                                  */
 /* --------------------------------------------------------------------- */
 
-#if defined( __sgi) || defined (__sun) || defined (__sun__) || defined (__sparc) || defined (__sparc__) || defined (__PPC__) || (defined (__APPLE__) && !defined(__LITTLE_ENDIAN__))
-#define MAKE_ID(a,b,c,d) ( (int)(a)<<24 | (int)(b)<<16 | (c)<<8 | (d) )
+#ifdef __BIG_ENDIAN__
+#  define MAKE_ID(a,b,c,d) ( (int)(a)<<24 | (int)(b)<<16 | (c)<<8 | (d) )
 #else
-#define MAKE_ID(a,b,c,d) ( (int)(d)<<24 | (int)(c)<<16 | (b)<<8 | (a) )
+#  define MAKE_ID(a,b,c,d) ( (int)(d)<<24 | (int)(c)<<16 | (b)<<8 | (a) )
 #endif
 
 #define MEMTAG1 MAKE_ID('M', 'E', 'M', 'O')
@@ -364,22 +364,9 @@ void *MEM_mapallocN(size_t len, const char *str)
 	mem_lock_thread();
 	
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
-	
-#ifdef __sgi
-	{
-#include <fcntl.h>
 
-		int fd;
-		fd = open("/dev/zero", O_RDWR);
-
-		memh= mmap(0, len+sizeof(MemHead)+sizeof(MemTail),
-				PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-		close(fd);
-	}
-#else
 	memh= mmap(NULL, len+sizeof(MemHead)+sizeof(MemTail),
 			PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANON, -1, 0);
-#endif
 
 	if(memh!=(MemHead *)-1) {
 		make_memhead_header(memh, len, str);

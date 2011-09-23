@@ -609,7 +609,7 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 
 	/* check if there's data to work with */
 	if (gpd == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data to work on.");
+		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data to work on");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -621,7 +621,7 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 			break;
 			
 		default: /* unsupoorted */
-			BKE_report(op->reports, RPT_ERROR, "Unknown conversion option.");
+			BKE_report(op->reports, RPT_ERROR, "Unknown conversion option");
 			return OPERATOR_CANCELLED;
 	}
 

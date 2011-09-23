@@ -25,7 +25,7 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC 
-		Recast/Include 
+		Recast/Include
 		Detour/Include
 )
 
@@ -34,6 +34,10 @@ set(INC_SYS
 )
 
 set(SRC 
+		recast-capi.cpp
+		recast-capi.h
+
+
 		Detour/Source/DetourCommon.cpp
 		Detour/Source/DetourNode.cpp
 		Detour/Source/DetourStatNavMesh.cpp
@@ -47,7 +51,7 @@ set(SRC
 		Detour/Include/DetourStatNavMeshBuilder.h
 		Detour/Include/DetourTileNavMesh.h
 		Detour/Include/DetourTileNavMeshBuilder.h
-			
+
 		Recast/Source/Recast.cpp
 		Recast/Source/RecastContour.cpp
 		Recast/Source/RecastFilter.cpp
@@ -57,10 +61,10 @@ set(SRC
 		Recast/Source/RecastRasterization.cpp
 		Recast/Source/RecastRegion.cpp
 		Recast/Source/RecastTimer.cpp
-		
+
 		Recast/Include/Recast.h
 		Recast/Include/RecastLog.h
-		Recast/Include/RecastTimer.h	
+		Recast/Include/RecastTimer.h
 )
 
 blender_add_lib(extern_recastnavigation "${SRC}" "${INC}" "${INC_SYS}")

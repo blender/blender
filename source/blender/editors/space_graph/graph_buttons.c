@@ -46,6 +46,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
@@ -673,7 +675,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 				
 				/* remove button */
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-					but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
+					but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable");
 					uiButSetFunc(but, driver_delete_var_cb, driver, dvar);
 				uiBlockSetEmboss(block, UI_EMBOSS);
 			
@@ -750,7 +752,8 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 		block= uiLayoutGetBlock(row);
 		
 		// XXX for now, this will be a operator button which calls a 'add modifier' operator
-		uiDefButO(block, BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, "Add Modifier", 10, 0, 150, 20, "Adds a new F-Curve Modifier for the active F-Curve");
+		uiDefButO(block, BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, UI_translate_do_iface(N_("Add Modifier")), 10, 0, 150, 20,
+				UI_translate_do_tooltip(N_("Adds a new F-Curve Modifier for the active F-Curve")));
 		
 		/* copy/paste (as sub-row)*/
 		row= uiLayoutRow(row, 1);

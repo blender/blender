@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Header, Menu, Operator
+from bpy.types import Header, Menu
 
 
 class INFO_HT_header(Header):
@@ -373,43 +373,16 @@ class INFO_MT_help(Menu):
         layout.separator()
 
         layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = bpy.types.WM_OT_doc_view._prefix
-        layout.operator("help.operator_cheat_sheet", icon='TEXT')
+        layout.operator("wm.operator_cheat_sheet", icon='TEXT')
         layout.operator("wm.sysinfo", icon='TEXT')
         layout.separator()
         if sys.platform[:3] == "win":
             layout.operator("wm.console_toggle", icon='CONSOLE')
             layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver Version fix", icon='HELP')
+        layout.operator("logic.texface_convert", text="TexFace to Material Convert", icon='GAME')
         layout.separator()
         layout.operator("wm.splash", icon='BLENDER')
-
-
-# Help operators
-
-
-class HELP_OT_operator_cheat_sheet(Operator):
-    bl_idname = "help.operator_cheat_sheet"
-    bl_label = "Operator Cheat Sheet"
-
-    def execute(self, context):
-        op_strings = []
-        tot = 0
-        for op_module_name in dir(bpy.ops):
-            op_module = getattr(bpy.ops, op_module_name)
-            for op_submodule_name in dir(op_module):
-                op = getattr(op_module, op_submodule_name)
-                text = repr(op)
-                if text.split("\n")[-1].startswith('bpy.ops.'):
-                    op_strings.append(text)
-                    tot += 1
-
-            op_strings.append('')
-
-        textblock = bpy.data.texts.new("OperatorList.txt")
-        textblock.write('# %d Operators\n\n' % tot)
-        textblock.write('\n'.join(op_strings))
-        self.report({'INFO'}, "See OperatorList.txt textblock")
-        return {'FINISHED'}
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

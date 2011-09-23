@@ -47,6 +47,7 @@ set(SRC
 	bpy_app_handlers.c
 	bpy_driver.c
 	bpy_interface.c
+	bpy_interface_atexit.c
 	bpy_intern_string.c
 	bpy_library.c
 	bpy_operator.c
@@ -92,6 +93,10 @@ endif()
 
 if(WITH_AUDASPACE)
 	add_definitions(-DWITH_AUDASPACE)
+endif()
+
+if(WITH_INTERNATIONAL)
+        add_definitions(-DINTERNATIONAL)
 endif()
 
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}")

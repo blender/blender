@@ -568,11 +568,11 @@ def AppIt(target=None, source=None, env=None):
 #    print cmd
     commands.getoutput(cmd)
     cmd = installdir + '/%s.app/Contents/MacOS/%s'%(binary,VERSION)
-    shutil.copy(bldroot + '/release/bin/.blender/.bfont.ttf', cmd)
-    shutil.copy(bldroot + '/release/bin/.blender/.Blanguages', cmd)
-    cmd = 'cp -R %s/release/bin/%s/locale %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
+    cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles'%(installdir, binary, VERSION)
     commands.getoutput(cmd)
-    cmd = 'cp -R %s/release/bin/%s/locale %s/%s.app/Contents/MacOS/%s/'%(bldroot,VERSION,installdir,binary,VERSION)
+    cmd = 'cp -R %s/release/bin/.blender/locale %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
+    commands.getoutput(cmd)
+    cmd = 'cp -R %s/release/bin/.blender/fonts %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
     commands.getoutput(cmd)
     cmd = 'cp %s/release/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
     commands.getoutput(cmd)
@@ -584,10 +584,6 @@ def AppIt(target=None, source=None, env=None):
 
     if binary == 'blender':#not copy everything for blenderplayer
         cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
-        commands.getoutput(cmd)
-        cmd = 'cp -R %s/release/ui %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
-        commands.getoutput(cmd)
-        cmd = 'cp -R %s/release/io %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
 
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(installdir,binary, binary)

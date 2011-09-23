@@ -816,7 +816,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 						double aspect = camera->getAspectRatio().getValue();
 						double xfov = aspect*yfov;
 						// xfov is in degrees, cam->lens is in millimiters
-						cam->lens = hfov_to_focallength((float)xfov*(M_PI/180.0f), cam->sensor_x);
+						cam->lens = hfov_to_focallength(DEG2RADF(xfov), cam->sensor_x);
 					}
 					break;
 			}
@@ -837,7 +837,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 					{
 						double x = camera->getXFov().getValue();
 						// x is in degrees, cam->lens is in millimiters
-						cam->lens = hfov_to_focallength((float)x*(M_PI/180.0f), cam->sensor_x);
+						cam->lens = hfov_to_focallength(DEG2RADF(x), cam->sensor_x);
 					}
 					break;
 			}
@@ -854,7 +854,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 					{
 					double yfov = camera->getYFov().getValue();
 					// yfov is in degrees, cam->lens is in millimiters
-					cam->lens = hfov_to_focallength((float)yfov*(M_PI/180.0f), cam->sensor_x);
+					cam->lens = hfov_to_focallength(DEG2RADF(yfov), cam->sensor_x);
 					}
 					break;
 			}

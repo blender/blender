@@ -48,5 +48,4 @@ set(SRC
 	py_capi_utils.h
 )
 
-
 blender_add_lib(bf_python_ext "${SRC}" "${INC}" "${INC_SYS}")

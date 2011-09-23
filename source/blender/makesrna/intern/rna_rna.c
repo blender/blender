@@ -53,6 +53,7 @@ EnumPropertyItem property_subtype_items[] = {
 	{PROP_FILEPATH, "FILEPATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIRPATH", 0, "Directory Path", ""},
 	{PROP_FILENAME, "FILENAME", 0, "File Name", ""},
+	{PROP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 
 	/* numbers */
 	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},

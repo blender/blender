@@ -1662,7 +1662,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "scopes", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "scopes");
 	RNA_def_property_struct_type(prop, "Scopes");
-	RNA_def_property_ui_text(prop, "Scopes", "Scopes to visualize image statistics.");
+	RNA_def_property_ui_text(prop, "Scopes", "Scopes to visualize image statistics");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_scopes_update");
 
 	prop= RNA_def_property(srna, "use_image_pin", PROP_BOOLEAN, PROP_NONE);

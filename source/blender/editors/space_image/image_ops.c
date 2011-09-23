@@ -303,7 +303,7 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Offset", "Offset in floating point units, 1.0 is the width and height of the image.", -FLT_MAX, FLT_MAX);
+		"Offset", "Offset in floating point units, 1.0 is the width and height of the image", -FLT_MAX, FLT_MAX);
 }
 
 /********************** view zoom operator *********************/
@@ -434,7 +434,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
-		"Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out.", -FLT_MAX, FLT_MAX);
+		"Factor", "Zoom factor, values higher than 1.0 zoom in, lower values zoom out", -FLT_MAX, FLT_MAX);
 }
 
 /********************** NDOF operator *********************/
@@ -696,7 +696,7 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_float(ot->srna, "ratio", 0.0f, 0.0f, FLT_MAX,
-		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out.", -FLT_MAX, FLT_MAX);
+		"Ratio", "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out", -FLT_MAX, FLT_MAX);
 }
 
 /**************** load/replace/save callbacks ******************/
@@ -777,7 +777,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	if(!ima) {
 		if(op->customdata) MEM_freeN(op->customdata);
-		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", str, errno ? strerror(errno) : "Unsupported image format");
+		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s", str, errno ? strerror(errno) : "Unsupported image format");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1208,7 +1208,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	/* properties */
 
 	/* format options */
-	RNA_def_enum(ot->srna, "file_format", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
+	RNA_def_enum(ot->srna, "file_format", image_file_type_items, R_PNG, "File Type", "File type to save image as");
 	RNA_def_enum(ot->srna, "color_mode", image_color_mode_items, R_PLANES24, "Channels", "Image channels to save");
 	prop= RNA_def_int(ot->srna, "file_quality", 90, 0, 100, "Quality", "", 0, 100);
 	RNA_def_property_subtype(prop, PROP_PERCENTAGE);
@@ -1234,7 +1234,7 @@ static int save_exec(bContext *C, wmOperator *op)
 		save_image_doit(C, sima, op, &simopts, FALSE);
 	}
 	else {
-		BKE_reportf(op->reports, RPT_ERROR, "Can not save image, path '%s' is not writable.", simopts.filepath);
+		BKE_reportf(op->reports, RPT_ERROR, "Can not save image, path '%s' is not writable", simopts.filepath);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1269,12 +1269,12 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(sima->image->source!=IMA_SRC_SEQUENCE) {
-		BKE_report(op->reports, RPT_ERROR, "Can only save sequence on image sequences.");
+		BKE_report(op->reports, RPT_ERROR, "Can only save sequence on image sequences");
 		return OPERATOR_CANCELLED;
 	}
 
 	if(sima->image->type==IMA_TYPE_MULTILAYER) {
-		BKE_report(op->reports, RPT_ERROR, "Can't save multilayer sequences.");
+		BKE_report(op->reports, RPT_ERROR, "Can't save multilayer sequences");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1284,7 +1284,7 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 			tot++;
 	
 	if(tot==0) {
-		BKE_report(op->reports, RPT_WARNING, "No images have been changed.");
+		BKE_report(op->reports, RPT_WARNING, "No images have been changed");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1306,7 +1306,7 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 			BLI_path_abs(name, bmain->name);
 
 			if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
-				BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s.", name);
+				BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s", name);
 				break;
 			}
 
@@ -1450,14 +1450,14 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "untitled", MAX_ID_NAME-2, "Name", "Image datablock name.");
-	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width.", 1, 16384);
-	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height.", 1, 16384);
-	prop= RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color.", 0.0f, 1.0f);
+	RNA_def_string(ot->srna, "name", "untitled", MAX_ID_NAME-2, "Name", "Image datablock name");
+	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width", 1, 16384);
+	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height", 1, 16384);
+	prop= RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
 	RNA_def_property_float_array_default(prop, default_color);
-	RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel.");
-	RNA_def_boolean(ot->srna, "uv_test_grid", 0, "UV Test Grid", "Fill the image with a grid for UV map testing.");
-	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth.");
+	RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
+	RNA_def_boolean(ot->srna, "uv_test_grid", 0, "UV Test Grid", "Fill the image with a grid for UV map testing");
+	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
 }
 
 /********************* invert operators *********************/
@@ -1558,7 +1558,7 @@ static int pack_test(bContext *C, wmOperator *op)
 		return 0;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
-		BKE_report(op->reports, RPT_ERROR, "Packing movies or image sequences not supported.");
+		BKE_report(op->reports, RPT_ERROR, "Packing movies or image sequences not supported");
 		return 0;
 	}
 
@@ -1575,7 +1575,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	if(!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
-		BKE_report(op->reports, RPT_ERROR, "Can't pack edited image from disk, only as internal PNG.");
+		BKE_report(op->reports, RPT_ERROR, "Can't pack edited image from disk, only as internal PNG");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1627,7 +1627,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "as_png", 0, "Pack As PNG", "Pack image as lossless PNG.");
+	RNA_def_boolean(ot->srna, "as_png", 0, "Pack As PNG", "Pack image as lossless PNG");
 }
 
 /********************* unpack operator *********************/
@@ -1649,12 +1649,12 @@ static int image_unpack_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
-		BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported.");
+		BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
 		return OPERATOR_CANCELLED;
 	}
 
 	if(G.fileflags & G_AUTOPACK)
-		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
+		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save");
 	
 	/* XXX unpackImage frees image buffers */
 	ED_preview_kill_jobs(C);
@@ -1677,12 +1677,12 @@ static int image_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 		return OPERATOR_CANCELLED;
 
 	if(ima->source==IMA_SRC_SEQUENCE || ima->source==IMA_SRC_MOVIE) {
-		BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported.");
+		BKE_report(op->reports, RPT_ERROR, "Unpacking movies or image sequences not supported");
 		return OPERATOR_CANCELLED;
 	}
 
 	if(G.fileflags & G_AUTOPACK)
-		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save.");
+		BKE_report(op->reports, RPT_WARNING, "AutoPack is enabled, so image will be packed again on file save");
 
 	unpack_menu(C, "IMAGE_OT_unpack", ima->id.name+2, ima->name, "textures", ima->packedfile);
 
@@ -1704,8 +1704,8 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack.");
-	RNA_def_string(ot->srna, "id", "", MAX_ID_NAME-2, "Image Name", "Image datablock name to unpack."); /* XXX, weark!, will fail with library, name collisions */
+	RNA_def_enum(ot->srna, "method", unpack_method_items, PF_USE_LOCAL, "Method", "How to unpack");
+	RNA_def_string(ot->srna, "id", "", MAX_ID_NAME-2, "Image Name", "Image datablock name to unpack"); /* XXX, weark!, will fail with library, name collisions */
 }
 
 /******************** sample image operator ********************/
@@ -2049,7 +2049,7 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 	ot->poll= space_image_main_area_poll;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "point", point_items, 0, "Point", "Set black point or white point for curves.");
+	RNA_def_enum(ot->srna, "point", point_items, 0, "Point", "Set black point or white point for curves");
 }
 
 /******************** record composite operator *********************/

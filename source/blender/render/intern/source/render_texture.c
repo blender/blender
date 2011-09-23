@@ -747,7 +747,7 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 {
 	PluginTex *pit;
 	int rgbnor=0;
-	float result[ 8 ];
+	float result[8]= {0.0f};
 
 	texres->tin= 0.0;
 
@@ -1906,6 +1906,8 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
 	float Hscale = Tnor*mtex->norfac;
 	int dimx=512, dimy=512;
+	const int imag_tspace_dimension_x = 1024;		// only used for texture space variant
+	float aspect = 1.0f;
 
 	// 2 channels for 2D texture and 3 for 3D textures.
 	const int nr_channels = (mtex->texco == TEXCO_UV)? 2 : 3;
@@ -1938,6 +1940,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		if (ibuf) {
 			dimx = ibuf->x;
 			dimy = ibuf->y;
+			aspect = ((float) dimy) / dimx;
 		}
 	}
 	
@@ -1994,7 +1997,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	else {
 		/* same as above, but doing 5 taps, increasing quality at cost of speed */
 		float STc[3], STl[3], STr[3], STd[3], STu[3];
-		float Hc, Hl, Hr, Hd, Hu;
+		float /* Hc, */ /* UNUSED */  Hl, Hr, Hd, Hu;
 
 		texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
 
@@ -2017,7 +2020,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 		// use texres for the center sample, set rgbnor
 		rgbnor = multitex_mtex(shi, mtex, STc, dxt, dyt, texres);
-		Hc = (fromrgb)? RGBTOBW(texres->tr, texres->tg, texres->tb) : texres->tin;
+		/* Hc = (fromrgb)? RGBTOBW(texres->tr, texres->tg, texres->tb) : texres->tin; */ /* UNUSED */
 
 		// use ttexr for the other taps
 		multitex_mtex(shi, mtex, STl, dxt, dyt, &ttexr);
@@ -2111,12 +2114,13 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		if(tex->ima) {
 			// crazy hack solution that gives results similar to normal mapping - part 2
 			float vec[2];
+			const float imag_tspace_dimension_y = aspect*imag_tspace_dimension_x;
 			
-			vec[0] = dimx*dxt[0];
-			vec[1] = dimy*dxt[1];
+			vec[0] = imag_tspace_dimension_x*dxt[0];
+			vec[1] = imag_tspace_dimension_y*dxt[1];
 			dHdx *= 1.0f/len_v2(vec);
-			vec[0] = dimx*dyt[0];
-			vec[1] = dimy*dyt[1];
+			vec[0] = imag_tspace_dimension_x*dyt[0];
+			vec[1] = imag_tspace_dimension_y*dyt[1];
 			dHdy *= 1.0f/len_v2(vec);
 		}
 	}

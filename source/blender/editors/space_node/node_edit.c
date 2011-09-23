@@ -757,6 +757,8 @@ void ED_node_update_hierarchy(bContext *UNUSED(C), bNodeTree *ntree)
 
 /* ***************** generic operator functions for nodes ***************** */
 
+#if 0 /* UNUSED */
+
 static int edit_node_poll(bContext *C)
 {
 	return ED_operator_node_active(C);
@@ -815,6 +817,7 @@ static void edit_node_properties_get(wmOperator *op, bNodeTree *ntree, bNode **r
 	if (rin_out)
 		*rin_out = in_out;
 }
+#endif
 
 /* ***************** Edit Group operator ************* */
 
@@ -902,7 +905,7 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 	char name[32]= "";
 	int type= SOCK_FLOAT;
 	bNodeTree *ngroup= snode->edittree;
-	bNodeSocket *sock;
+	/* bNodeSocket *sock; */ /* UNUSED */
 	
 	ED_preview_kill_jobs(C);
 	
@@ -918,7 +921,7 @@ static int node_group_socket_add_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* using placeholder subtype first */
-	sock = node_group_add_socket(ngroup, name, type, in_out);
+	/* sock = */ /* UNUSED */ node_group_add_socket(ngroup, name, type, in_out);
 	
 	ntreeUpdateTree(ngroup);
 	
@@ -983,7 +986,7 @@ void NODE_OT_group_socket_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Group Socket";
-	ot->description = "Removed node group socket";
+	ot->description = "Remove a node group socket";
 	ot->idname = "NODE_OT_group_socket_remove";
 	
 	/* api callbacks */
@@ -1802,7 +1805,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Link to Viewer Node";
-	ot->description = "Link to Viewer Node";
+	ot->description = "Link to viewer node";
 	ot->idname= "NODE_OT_link_viewer";
 	
 	/* api callbacks */
@@ -2272,7 +2275,7 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Nodes";
-	ot->description = "Duplicate the nodes";
+	ot->description = "Duplicate selected nodes";
 	ot->idname= "NODE_OT_duplicate";
 	
 	/* api callbacks */
@@ -2900,12 +2903,13 @@ static int node_read_fullsamplelayers_exec(bContext *C, wmOperator *UNUSED(op))
 	Render *re= RE_NewRender(curscene->id.name);
 
 	WM_cursor_wait(1);
-
 	RE_MergeFullSample(re, bmain, curscene, snode->nodetree);
-	snode_notify(C, snode);
-	snode_dag_update(C, snode);
-	
 	WM_cursor_wait(0);
+
+	/* note we are careful to send the right notifier, as otherwise the
+	   compositor would reexecute and overwrite the full sample result */
+	WM_event_add_notifier(C, NC_SCENE|ND_COMPO_RESULT, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -3462,7 +3466,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		ima= BKE_add_image_file(path);
 
 		if(!ima) {
-			BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", path, errno ? strerror(errno) : "Unsupported image format");
+			BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s", path, errno ? strerror(errno) : "Unsupported image format");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -3473,7 +3477,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		ima= (Image *)find_id("IM", name);
 
 		if(!ima) {
-			BKE_reportf(op->reports, RPT_ERROR, "Image named \"%s\", not found.", name);
+			BKE_reportf(op->reports, RPT_ERROR, "Image named \"%s\", not found", name);
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -3491,7 +3495,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	node = node_add_node(snode, bmain, scene, &ntemp, snode->mx, snode->my);
 	
 	if (!node) {
-		BKE_report(op->reports, RPT_WARNING, "Could not add an image node.");
+		BKE_report(op->reports, RPT_WARNING, "Could not add an image node");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3534,7 +3538,7 @@ void NODE_OT_add_file(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH);  //XXX TODO, relative_path
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign.");
+	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Datablock name to assign");
 }
 
 /********************** New node tree operator *********************/

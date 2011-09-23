@@ -378,7 +378,6 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		}
 
 		if(override_image) {
-			tface->mode = TF_TEX;
 			tface->tpage = image;
 		}
 	}

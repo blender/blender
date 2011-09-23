@@ -981,9 +981,13 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					if(!flush && compareDrawOptions) {
 						int next_orig= (index==NULL) ? next_actualFace : index[next_actualFace];
 
-						/* also compare draw options and flush buffer if they're different
-						   need for face selection highlight in edit mode */
-						flush|= compareDrawOptions(userData, orig, next_orig) == 0;
+						if(orig==ORIGINDEX_NONE || next_orig==ORIGINDEX_NONE) {
+							flush= 1;
+						} else {
+							/* also compare draw options and flush buffer if they're different
+							   need for face selection highlight in edit mode */
+							flush|= compareDrawOptions(userData, orig, next_orig) == 0;
+						}
 					}
 
 					if(flush) {
@@ -1060,18 +1064,15 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	DMVertexAttribs attribs;
 	MVert *mvert = cddm->mvert;
 	MFace *mface = cddm->mface;
-	MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE);
+	/* MTFace *tf = dm->getFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
 	float (*nors)[3] = dm->getFaceDataArray(dm, CD_NORMAL);
 	int a, b, dodraw, matnr, new_matnr;
-	int transp, new_transp, orig_transp;
 	int orig, *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 
 	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
 	dodraw = 0;
-	transp = GPU_get_material_blend_mode();
-	orig_transp = transp;
 
 	glShadeModel(GL_SMOOTH);
 
@@ -1111,22 +1112,6 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					continue;
 			}
 
-			if(tf) {
-				new_transp = tf[a].transp;
-
-				if(new_transp != transp) {
-					glEnd();
-
-					if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
-						GPU_set_material_blend_mode(orig_transp);
-					else
-						GPU_set_material_blend_mode(new_transp);
-					transp = new_transp;
-
-					glBegin(GL_QUADS);
-				}
-			}
-
 			if(!smoothnormal) {
 				if(nors) {
 					glNormal3fv(nors[a]);
@@ -1158,7 +1143,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 		GPUBuffer *buffer = NULL;
 		char *varray = NULL;
 		int numdata = 0, elementsize = 0, offset;
-		int start = 0, numfaces = 0, prevdraw = 0, curface = 0;
+		int start = 0, numfaces = 0 /* , prevdraw = 0 */ /* UNUSED */, curface = 0;
 		int i;
 
 		MFace *mf = mface;
@@ -1202,7 +1187,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					}
 					numdata = 0;
 					start = curface;
-					prevdraw = dodraw;
+					/* prevdraw = dodraw; */ /* UNUSED */
 					dodraw = setMaterial(matnr = new_matnr, &gattribs);
 					if(dodraw) {
 						DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
@@ -1250,7 +1235,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 						else {
 							/* if the buffer was set, dont use it again.
 							 * prevdraw was assumed true but didnt run so set to false - [#21036] */
-							prevdraw= 0;
+							/* prevdraw= 0; */ /* UNUSED */
 							buffer= NULL;
 						}
 					}
@@ -1259,33 +1244,6 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					continue;
 				}
 
-				if(tf) {
-					new_transp = tf[a].transp;
-
-					if(new_transp != transp) {
-						numfaces = curface - start;
-						if( numfaces > 0 ) {
-							if( dodraw ) {
-								if( numdata != 0 ) {
-									GPU_buffer_unlock(buffer);
-									GPU_interleaved_attrib_setup(buffer,datatypes,numdata);
-								}
-								glDrawArrays(GL_TRIANGLES,start*3,(curface-start)*3);
-								if( numdata != 0 ) {
-									varray = GPU_buffer_lock_stream(buffer);
-								}
-							}
-						}
-						start = curface;
-
-						if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
-							GPU_set_material_blend_mode(orig_transp);
-						else
-							GPU_set_material_blend_mode(new_transp);
-						transp = new_transp;
-					}
-				}
-				
 				if( numdata != 0 ) {
 					offset = 0;
 					if(attribs.totorco) {

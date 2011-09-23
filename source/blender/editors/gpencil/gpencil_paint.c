@@ -1506,7 +1506,7 @@ static void gpencil_draw_apply (wmOperator *op, tGPsdata *p)
 			
 			/* start a new stroke, starting from previous point */
 			gp_stroke_addpoint(p, p->mvalo, p->opressure);
-			ok= gp_stroke_addpoint(p, p->mval, p->pressure);
+			gp_stroke_addpoint(p, p->mval, p->pressure);
 		}
 		else if (ok == GP_STROKEADD_INVALID) {
 			/* the painting operation cannot continue... */
@@ -1929,7 +1929,7 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* settings for drawing */
-	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements.");
+	RNA_def_enum(ot->srna, "mode", prop_gpencil_drawmodes, 0, "Mode", "Way to intepret mouse movements");
 	
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }

@@ -62,13 +62,13 @@ static void rna_def_speaker(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "muted", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPK_MUTED);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Mute", "Mutes the speaker.");
+	RNA_def_property_ui_text(prop, "Mute", "Mutes the speaker");
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
 	/* This shouldn't be changed actually, hiding it!
 	prop= RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPK_RELATIVE);
-	RNA_def_property_ui_text(prop, "Relative", "Whether the source is relative to the camera or not.");
+	RNA_def_property_ui_text(prop, "Relative", "Whether the source is relative to the camera or not");
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");*/
 
 	prop= RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
@@ -76,7 +76,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Sound");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this speaker.");
+	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this speaker");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_sound_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
@@ -84,7 +84,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "volume_max");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Maximum Volume", "Maximum volume, no matter how near the object is.");
+	RNA_def_property_ui_text(prop, "Maximum Volume", "Maximum volume, no matter how near the object is");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_volume_max_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
@@ -92,7 +92,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "volume_min");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Minimum Volume", "Minimum volume, no matter how far away the object is.");
+	RNA_def_property_ui_text(prop, "Minimum Volume", "Minimum volume, no matter how far away the object is");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_volume_min_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
@@ -100,7 +100,8 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "distance_max");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Maximum Distance", "Maximum distance for volume calculation, no matter how far away the object is.");
+	RNA_def_property_ui_text(prop, "Maximum Distance",
+	                         "Maximum distance for volume calculation, no matter how far away the object is");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_distance_max_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
@@ -108,7 +109,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "distance_reference");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Reference Distance", "Reference distance at which volume is 100 %.");
+	RNA_def_property_ui_text(prop, "Reference Distance", "Reference distance at which volume is 100 %");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_distance_reference_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
@@ -116,7 +117,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "attenuation");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Attenuation", "How strong the distance affects volume, depending on distance model.");
+	RNA_def_property_ui_text(prop, "Attenuation", "How strong the distance affects volume, depending on distance model");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_attenuation_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
@@ -124,7 +125,9 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "cone_angle_outer");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 360.0f);
-	RNA_def_property_ui_text(prop, "Outer Cone Angle", "Outer angle of the cone in degrees, outside this cone the volume is the outer cone volume, between inner and outer cone the volume is interpolated.");
+	RNA_def_property_ui_text(prop, "Outer Cone Angle",
+	                         "Outer angle of the cone in degrees, outside this cone the volume is "
+	                         "the outer cone volume, between inner and outer cone the volume is interpolated");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_cone_angle_outer_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
@@ -132,7 +135,8 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "cone_angle_inner");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 360.0f);
-	RNA_def_property_ui_text(prop, "Inner Cone Angle", "Inner angle of the cone in degrees, inside the cone the volume is 100 %.");
+	RNA_def_property_ui_text(prop, "Inner Cone Angle",
+	                         "Inner angle of the cone in degrees, inside the cone the volume is 100 %");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_cone_angle_inner_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
@@ -140,21 +144,21 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "cone_volume_outer");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Outer Cone Volume", "Volume outside the outer cone.");
+	RNA_def_property_ui_text(prop, "Outer Cone Volume", "Volume outside the outer cone");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_cone_volume_outer_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
 	prop= RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "volume");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Volume", "How loud the sound is.");
+	RNA_def_property_ui_text(prop, "Volume", "How loud the sound is");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_volume_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 
 	prop= RNA_def_property(srna, "pitch", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pitch");
 	RNA_def_property_range(prop, 0.1f, 10.0f);
-	RNA_def_property_ui_text(prop, "Pitch", "Playback pitch of the sound.");
+	RNA_def_property_ui_text(prop, "Pitch", "Playback pitch of the sound");
 	// RNA_def_property_float_funcs(prop, NULL, "rna_Speaker_pitch_set", NULL);
 	// RNA_def_property_update(prop, 0, "rna_Speaker_update");
 

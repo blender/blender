@@ -2132,7 +2132,7 @@ static void do_transform(Scene *scene, Sequence *seq, float UNUSED(facf0), int x
 	}
 	
 	// Rotate
-	rotate_radians = ((float)M_PI*transform->rotIni)/180.0f;
+	rotate_radians = DEG2RADF(transform->rotIni);
 
 	transform_image(x,y, ibuf1, out, scale_x, scale_y, translate_x, translate_y, rotate_radians, transform->interpolation);
 }

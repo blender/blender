@@ -357,8 +357,8 @@ void FILE_OT_select(wmOperatorType *ot)
 	ot->poll= ED_operator_file_active;
 
 	/* rna */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "Select everything beginning with the last selection.");
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "fill", 0, "Fill", "Select everything beginning with the last selection");
 }
 
 static int file_select_all_exec(bContext *C, wmOperator *UNUSED(op))
@@ -749,7 +749,9 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		file_sfile_to_operator(op, sfile, filepath);
 
-		fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir,0, 1);
+		if (BLI_exist(sfile->params->dir))
+			fsmenu_insert_entry(fsmenu_get(), FS_CATEGORY_RECENT, sfile->params->dir, 0, 1);
+
 		BLI_make_file_string(G.main->name, filepath, BLI_get_folder_create(BLENDER_USER_CONFIG, NULL), BLENDER_BOOKMARK_FILE);
 		fsmenu_write_file(fsmenu_get(), filepath);
 		WM_event_fileselect_event(C, op, EVT_FILESELECT_EXEC);
@@ -770,7 +772,7 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	ot->exec= file_exec;
 	ot->poll= file_operator_poll; 
 	
-	RNA_def_boolean(ot->srna, "need_active", 0, "Need Active", "Only execute if there's an active selected file in the file list.");
+	RNA_def_boolean(ot->srna, "need_active", 0, "Need Active", "Only execute if there's an active selected file in the file list");
 }
 
 
@@ -980,7 +982,7 @@ void FILE_OT_smoothscroll(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Smooth Scroll";
 	ot->idname= "FILE_OT_smoothscroll";
-	ot->description="Smooth scroll to make editable file visible.";
+	ot->description="Smooth scroll to make editable file visible";
 	
 	/* api callbacks */
 	ot->invoke= file_smoothscroll_invoke;
@@ -1020,7 +1022,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if(!sfile->params) {
-		BKE_report(op->reports,RPT_WARNING, "No parent directory given.");
+		BKE_report(op->reports,RPT_WARNING, "No parent directory given");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1034,7 +1036,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	if (generate_name) {
 		/* create a new, non-existing folder name */
 		if (!new_folder_path(sfile->params->dir, path, name)) {
-			BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder name.");
+			BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder name");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -1043,7 +1045,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	BLI_recurdir_fileops(path);
 
 	if (!BLI_exists(path)) {
-		BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder.");
+		BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder");
 		return OPERATOR_CANCELLED;
 	} 
 

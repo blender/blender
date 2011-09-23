@@ -182,7 +182,6 @@ set(SRC
 	BKE_depsgraph.h
 	BKE_displist.h
 	BKE_effect.h
-	BKE_endian.h
 	BKE_fcurve.h
 	BKE_fluidsim.h
 	BKE_font.h
@@ -361,10 +360,10 @@ endif()
 
 if(WITH_GAMEENGINE)
 	list(APPEND INC_SYS
-        ../../../extern/recastnavigation/Recast/Include
+	../../../extern/recastnavigation
 	)
 	list(APPEND SRC
-		intern/navmesh_conversion.cpp
+		intern/navmesh_conversion.c
 		BKE_navmesh_conversion.h
 	)
 endif()

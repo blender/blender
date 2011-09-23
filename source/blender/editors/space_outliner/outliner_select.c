@@ -867,7 +867,7 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 	
 	ot->poll= ED_operator_outliner_active;
 	
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection for activation.");
+	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection for activation");
 }
 
 /* ****************************************************** */

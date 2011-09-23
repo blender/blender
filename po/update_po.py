@@ -1,7 +1,6 @@
-#!/bin/sh
-#
+#!/usr/bin/env python
+
 # $Id$
-#
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -18,17 +17,37 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
-# All rights reserved.
-#
-# The Original Code is: all of this file.
-#
-# Contributor(s): none yet.
-#
 # ***** END GPL LICENSE BLOCK *****
-#
-# OS specific stuff for the package, only to be executed by ../Makefile
-#
 
-# Add icon to package
-cp -f extra/blender.icon $DISTDIR/
+# <pep8 compliant>
+
+# update all po files in the LANGS
+
+import subprocess
+import os
+
+CURRENT_DIR = os.path.dirname(__file__)
+DOMAIN = "blender"
+
+
+def main():
+    for po in os.listdir(CURRENT_DIR):
+        if po.endswith(".po"):
+            lang = po[:-3]
+
+            # update po file
+            cmd = ("msgmerge",
+                   "--update",
+                   "--lang=%s" % lang,
+                   os.path.join(CURRENT_DIR, "%s.po" % lang),
+                   os.path.join(CURRENT_DIR, "%s.pot" % DOMAIN),
+                   )
+
+            print(" ".join(cmd))
+            process = subprocess.Popen(cmd)
+            process.wait()
+
+
+if __name__ == "__main__":
+    print("\n\n *** Running %r *** \n" % __file__)
+    main()

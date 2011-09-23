@@ -648,7 +648,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* delete button */
-		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier.");
+		but= uiDefIconBut(block, BUT, B_REDR, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete F-Curve Modifier");
 		uiButSetFunc(but, delete_fmodifier_cb, modifiers, fcm);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);

@@ -760,9 +760,10 @@ typedef struct ToolSettings {
 	short snap_flag, snap_target;
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
-	char pad[3];
+	char pad[5];
 
-	int auto_normalize; /*auto normalizing mode in wpaint*/
+	char auto_normalize; /*auto normalizing mode in wpaint*/
+	char multipaint; /* paint multiple bones in wpaint */
 
 	short sculpt_paint_settings; /* user preferences for sculpt and paint */
 	short pad1;

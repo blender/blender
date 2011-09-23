@@ -222,7 +222,7 @@ void OBJECT_OT_hide_view_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 	
 }
 
@@ -297,7 +297,7 @@ void OBJECT_OT_hide_render_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects.");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
 }
 
 /* ******************* toggle editmode operator  ***************** */
@@ -798,7 +798,7 @@ static void UNUSED_FUNCTION(special_editmenu)(Scene *scene, View3D *v3d)
 			Object *par= modifiers_isDeformedByArmature(ob);
 
 			if(par && (par->mode & OB_MODE_POSE)) {
-				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
+// XXX				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
 
 // XXX				if(nr==1 || nr==2)
 // XXX					pose_adds_vgroups(ob, (nr == 2));
@@ -2177,7 +2177,7 @@ void OBJECT_OT_logic_bricks_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Logic Bricks to Selected";
-	ot->description = "Copy logic bricks to other selected objects.";
+	ot->description = "Copy logic bricks to other selected objects";
 	ot->idname= "OBJECT_OT_logic_bricks_copy";
 
 	/* api callbacks */

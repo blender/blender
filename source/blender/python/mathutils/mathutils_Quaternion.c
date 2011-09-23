@@ -161,7 +161,7 @@ static PyObject *Quaternion_cross(QuaternionObject *self, PyObject *value)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "quaternion.cross(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.cross(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	mul_qt_qtqt(quat, self->quat, tquat);
@@ -186,7 +186,7 @@ static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "quaternion.dot(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.dot(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	return PyFloat_FromDouble(dot_qtqt(self->quat, tquat));
@@ -209,7 +209,7 @@ static PyObject *Quaternion_rotation_difference(QuaternionObject *self, PyObject
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "quaternion.difference(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.difference(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	rotation_between_quats_to_quat(quat, self->quat, tquat);
@@ -244,7 +244,7 @@ static PyObject *Quaternion_slerp(QuaternionObject *self, PyObject *args)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "quaternion.slerp(other), invalid 'other' arg") == -1)
+	if(mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.slerp(other), invalid 'other' arg") == -1)
 		return NULL;
 
 	if(fac > 1.0f || fac < 0.0f) {
@@ -275,7 +275,7 @@ static PyObject *Quaternion_rotate(QuaternionObject *self, PyObject *value)
 	if(BaseMath_ReadCallback(self) == -1)
 		return NULL;
 
-	if(mathutils_any_to_rotmat(other_rmat, value, "quaternion.rotate(value)") == -1)
+	if(mathutils_any_to_rotmat(other_rmat, value, "Quaternion.rotate(value)") == -1)
 		return NULL;
 
 	length= normalize_qt_qt(tquat, self->quat);
@@ -909,7 +909,7 @@ static int Quaternion_setAngle(QuaternionObject *self, PyObject *value, void *UN
 
 	if(angle==-1.0 && PyErr_Occurred()) { /* parsed item not a number */
 		PyErr_SetString(PyExc_TypeError,
-		                "quaternion.angle = value: float expected");
+		                "Quaternion.angle = value: float expected");
 		return -1;
 	}
 

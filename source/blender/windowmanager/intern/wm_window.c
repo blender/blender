@@ -48,6 +48,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_library.h"
@@ -72,6 +74,8 @@
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+
+#include "UI_interface.h"
 
 /* the global to talk to ghost */
 static GHOST_SystemHandle g_system= NULL;
@@ -107,14 +111,12 @@ static void wm_window_check_position(rcti *rect)
 #endif
 	
 	if(rect->xmin < 0) {
-		d= rect->xmin;
-		rect->xmax -= d;
-		rect->xmin -= d;
+		rect->xmax -= rect->xmin;
+		rect->xmin  = 0;
 	}
 	if(rect->ymin < 0) {
-		d= rect->ymin;
-		rect->ymax -= d;
-		rect->ymin -= d;
+		rect->ymax -= rect->ymin;
+		rect->ymin  = 0;
 	}
 	if(rect->xmax > width) {
 		d= rect->xmax - width;
@@ -504,11 +506,11 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	ED_screen_set(C, win->screen);
 	
 	if(sa->spacetype==SPACE_IMAGE)
-		GHOST_SetTitle(win->ghostwin, "Blender Render");
+		GHOST_SetTitle(win->ghostwin, UI_translate_do_iface(N_("Blender Render")));
 	else if(ELEM(sa->spacetype, SPACE_OUTLINER, SPACE_USERPREF))
-		GHOST_SetTitle(win->ghostwin, "Blender User Preferences");
+		GHOST_SetTitle(win->ghostwin, UI_translate_do_iface(N_("Blender User Preferences")));
 	else if(sa->spacetype==SPACE_FILE)
-		GHOST_SetTitle(win->ghostwin, "Blender File View");
+		GHOST_SetTitle(win->ghostwin, UI_translate_do_iface(N_("Blender File View")));
 	else
 		GHOST_SetTitle(win->ghostwin, "Blender");
 }

@@ -81,6 +81,7 @@ extern char btempdir[];		/* use this to store a valid temp directory */
 
 // For BLF
 #include "BLF_api.h"
+#include "BLF_translation.h"
 extern int datatoc_bfont_ttf_size;
 extern char datatoc_bfont_ttf[];
 
@@ -404,7 +405,7 @@ int main(int argc, char** argv)
 	// We don't use threads directly in the BGE, but we need to call this so things like
 	// freeing up GPU_Textures works correctly.
 	BLI_threadapi_init();
-	
+
 	RNA_init();
 
 	init_nodesystem();
@@ -420,6 +421,9 @@ int main(int argc, char** argv)
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
 	BLF_init(11, U.dpi);
 	BLF_lang_init();
+	BLF_lang_encoding("");
+	BLF_lang_set("");
+
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 
 	// Parse command line options
@@ -994,6 +998,11 @@ int main(int argc, char** argv)
 	// Cleanup
 	RNA_exit();
 	BLF_exit();
+
+#ifdef INTERNATIONAL
+	BLF_free_unifont();
+#endif
+
 	IMB_exit();
 	free_nodesystem();
 

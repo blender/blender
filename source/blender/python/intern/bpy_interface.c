@@ -30,7 +30,7 @@
  
 /* grr, python redefines */
 #ifdef _POSIX_C_SOURCE
-#undef _POSIX_C_SOURCE
+#  undef _POSIX_C_SOURCE
 #endif
 
 #include <Python.h>
@@ -241,6 +241,8 @@ void BPY_python_start(int argc, const char **argv)
 	
 	pyrna_alloc_types();
 
+	BPY_atexit_register(); /* this can init any time */
+
 #ifndef WITH_PYTHON_MODULE
 	py_tstate= PyGILState_GetThisThreadState();
 	PyEval_ReleaseThread(py_tstate);
@@ -259,6 +261,8 @@ void BPY_python_end(void)
 	/* clear all python data from structs */
 
 	bpy_intern_string_exit();
+
+	BPY_atexit_unregister(); /* without this we get recursive calls to WM_exit */
 
 	Py_Finalize();
 	

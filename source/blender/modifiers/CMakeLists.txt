@@ -65,7 +65,7 @@ set(SRC
 	intern/MOD_meshdeform.c
 	intern/MOD_mirror.c
 	intern/MOD_multires.c
-	intern/MOD_navmesh.cpp
+	intern/MOD_navmesh.c
 	intern/MOD_none.c
 	intern/MOD_particleinstance.c
 	intern/MOD_particlesystem.c
@@ -117,11 +117,11 @@ if(NOT WITH_MOD_FLUID)
 endif()
 
 if(WITH_GAMEENGINE)
-	# for MOD_navmesh.cpp
+	# for MOD_navmesh.c
 	add_definitions(-DWITH_GAMEENGINE)
 	list(APPEND INC
 		../gpu
-		../../../extern/recastnavigation/Recast/Include
+		../../../extern/recastnavigation
 	)
 endif()
 

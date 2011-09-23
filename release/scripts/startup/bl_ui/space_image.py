@@ -64,8 +64,7 @@ class IMAGE_MT_view(Menu):
         ratios = [[1, 8], [1, 4], [1, 2], [1, 1], [2, 1], [4, 1], [8, 1]]
 
         for a, b in ratios:
-            text = "Zoom %d:%d" % (a, b)
-            layout.operator("image.view_zoom_ratio", text=text).ratio = a / b
+            layout.operator("image.view_zoom_ratio", text="Zoom" + " %d:%d" % (a, b)).ratio = a / b
 
         layout.separator()
 

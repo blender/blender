@@ -25,7 +25,6 @@ import addon_utils
 
 import sys
 import os
-import imp
 
 
 def source_list(path, filename_check=None):

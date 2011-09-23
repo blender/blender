@@ -58,6 +58,21 @@ BlenderDefRNA DefRNA = {NULL, {NULL, NULL}, {NULL, NULL}, NULL, 0, 0, 0, 1};
 #define MAX2(x,y) ((x)>(y)? (x): (y))
 #endif
 
+/* pedantic check for '.', do this since its a hassle for translators */
+#ifndef NDEBUG
+#  define DESCR_CHECK(description, id1, id2)                                  \
+	if(description && (description)[0]) {                                     \
+		int i = strlen(description);                                          \
+		if((description)[i - 1] == '.') {                                     \
+			fprintf(stderr, "%s: '%s' '%s' description ends with a '.' !\n",  \
+			        __func__, id1 ? id1 : "", id2 ? id2 : "");                \
+		}                                                                     \
+	}                                                                         \
+
+#else
+#  define DESCR_CHECK(description, id1, id2)
+#endif
+
 void rna_addtail(ListBase *listbase, void *vlink)
 {
 	Link *link= vlink;
@@ -847,6 +862,8 @@ void RNA_def_struct_identifier(StructRNA *srna, const char *identifier)
 
 void RNA_def_struct_ui_text(StructRNA *srna, const char *name, const char *description)
 {
+	DESCR_CHECK(description, srna->identifier, NULL);
+
 	srna->name= name;
 	srna->description= description;
 }
@@ -1109,6 +1126,8 @@ void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, const int le
 
 void RNA_def_property_ui_text(PropertyRNA *prop, const char *name, const char *description)
 {
+	DESCR_CHECK(description, prop->identifier, NULL);
+
 	prop->name= name;
 	prop->description= description;
 }
@@ -2233,6 +2252,20 @@ PropertyRNA *RNA_def_string_file_name(StructOrFunctionRNA *cont_, const char *id
 	PropertyRNA *prop;
 	
 	prop= RNA_def_property(cont, identifier, PROP_STRING, PROP_FILENAME);
+	if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
+	if(default_value) RNA_def_property_string_default(prop, default_value);
+	RNA_def_property_ui_text(prop, ui_name, ui_description);
+
+	return prop;
+}
+
+PropertyRNA *RNA_def_string_translate(StructOrFunctionRNA *cont_, const char *identifier, const char *default_value, int maxlen,
+	const char *ui_name, const char *ui_description)
+{
+	ContainerRNA *cont= cont_;
+	PropertyRNA *prop;
+
+	prop= RNA_def_property(cont, identifier, PROP_STRING, PROP_TRANSLATE);
 	if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
 	if(default_value) RNA_def_property_string_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);

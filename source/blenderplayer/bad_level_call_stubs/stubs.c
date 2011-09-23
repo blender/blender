@@ -341,6 +341,7 @@ void uiItemS(struct uiLayout *layout){}
 void uiItemFullR(struct uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag, char *name, int icon){}
 void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct PointerRNA *ptr){}
 char *uiLayoutIntrospect(struct uiLayout *layout){return (char *)NULL;}
+void UI_reinit_font() {}
 
 /* rna template */
 void uiTemplateAnyID(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *text){}

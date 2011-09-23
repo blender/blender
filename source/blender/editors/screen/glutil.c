@@ -279,18 +279,7 @@ void setlinestyle(int nr)
 void set_inverted_drawing(int enable) 
 {
 	glLogicOp(enable?GL_INVERT:GL_COPY);
-
-	/* Use GL_BLEND_EQUATION_EXT on sgi (if we have it),
-	 * apparently GL_COLOR_LOGIC_OP doesn't work on O2?
-	 * Is this an sgi bug or our bug?
-	 */
-#if defined(__sgi) && defined(GL_BLEND_EQUATION_EXT)
-	glBlendEquationEXT(enable?GL_LOGIC_OP:GL_FUNC_ADD_EXT);
-	glToggle(GL_BLEND, enable);
-#else
 	glToggle(GL_COLOR_LOGIC_OP, enable);
-#endif
-
 	glToggle(GL_DITHER, !enable);
 }
 

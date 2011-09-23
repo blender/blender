@@ -239,6 +239,7 @@ typedef struct OldNewMap {
 /* local prototypes */
 static void *read_struct(FileData *fd, BHead *bh, const char *blockname);
 static void direct_link_modifiers(FileData *fd, ListBase *lb);
+static void convert_tface_mt(FileData *fd, Main *main);
 
 static OldNewMap *oldnewmap_new(void) 
 {
@@ -2184,7 +2185,7 @@ static void lib_verify_nodetree(Main *main, int UNUSED(open))
 			ntreetype->foreach_nodetree(main, NULL, lib_nodetree_init_types_cb);
 	}
 	for(ntree= main->nodetree.first; ntree; ntree= ntree->id.next)
-		ntreeInitTypes(ntree);
+		lib_nodetree_init_types_cb(NULL, NULL, ntree);
 	
 	{
 		int has_old_groups=0;
@@ -3050,6 +3051,9 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	if(tex->vd) {
 		tex->vd->dataset = NULL;
 		tex->vd->ok = 0;
+	} else {
+		if(tex->type == TEX_VOXELDATA)
+			tex->vd= MEM_callocN(sizeof(VoxelData), "direct_link_texture VoxelData");
 	}
 	
 	tex->nodetree= newdataadr(fd, tex->nodetree);
@@ -3520,6 +3524,9 @@ static void lib_link_mesh(FileData *fd, Main *main)
 		}
 		me= me->id.next;
 	}
+
+	/* convert texface options to material */
+	convert_tface_mt(fd, main);
 }
 
 static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
@@ -4070,8 +4077,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			FluidsimModifierData *fluidmd = (FluidsimModifierData*) md;
 			
 			fluidmd->fss= newdataadr(fd, fluidmd->fss);
-			fluidmd->fss->fmd= fluidmd;
-			fluidmd->fss->meshVelocities = NULL;
+			if(fluidmd->fss) {
+				fluidmd->fss->fmd= fluidmd;
+				fluidmd->fss->meshVelocities = NULL;
+			}
 		}
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
@@ -6466,7 +6475,7 @@ static void alphasort_version_246(FileData *fd, Library *lib, Mesh *me)
 	/* if we do, set alpha sort if the game engine did it before */
 	for(a=0, mf=me->mface; a<me->totface; a++, mf++) {
 		if(mf->mat_nr < me->totcol) {
-			ma= newlibadr(fd, lib, me->mat[(int)mf->mat_nr]);
+			ma= newlibadr(fd, lib, me->mat[mf->mat_nr]);
 			texalpha = 0;
 
 			/* we can't read from this if it comes from a library,
@@ -7144,6 +7153,27 @@ static void do_versions_nodetree_dynamic_sockets(bNodeTree *ntree)
 		sock->flag |= SOCK_DYNAMIC;
 	for (sock=ntree->outputs.first; sock; sock=sock->next)
 		sock->flag |= SOCK_DYNAMIC;
+}
+
+void convert_tface_mt(FileData *fd, Main *main)
+{
+	Main *gmain;
+
+	/* this is a delayed do_version (so it can create new materials) */
+	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 3)) {
+
+		//XXX hack, material.c uses G.main all over the place, instead of main
+		// temporarily set G.main to the current main
+		gmain = G.main;
+		G.main = main;
+
+		if(!(do_version_tface(main, 1))) {
+			BKE_report(fd->reports, RPT_ERROR, "Texface conversion problem. Error in console");
+		}
+
+		//XXX hack, material.c uses G.main allover the place, instead of main
+		G.main = gmain;
+	}
 }
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -12359,7 +12389,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	BlendFileData *bfd;
 
 	bfd= MEM_callocN(sizeof(BlendFileData), "blendfiledata");
-	bfd->main= MEM_callocN(sizeof(Main), "main");
+	bfd->main= MEM_callocN(sizeof(Main), "readfile_Main");
 	BLI_addtail(&fd->mainlist, bfd->main);
 
 	bfd->main->versionfile= fd->fileversion;

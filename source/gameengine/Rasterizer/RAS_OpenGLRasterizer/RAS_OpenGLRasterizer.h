@@ -111,7 +111,7 @@ protected:
 	TexCoGen		m_attrib[RAS_MAX_ATTRIB];
 	int				m_texco_num;
 	int				m_attrib_num;
-	//int				m_last_blendmode;
+	//int				m_last_alphablend;
 	bool			m_last_frontface;
 
 	/** Stores the caching information for the last material activated. */
@@ -312,7 +312,7 @@ public:
 			m_motionblur = newstate;
 	};
 
-	virtual void	SetBlendingMode(int blendmode);
+	virtual void	SetAlphaBlend(int alphablend);
 	virtual void	SetFrontFace(bool ccw);
 	
 	virtual void	SetAnisotropicFiltering(short level);

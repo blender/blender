@@ -2,7 +2,7 @@
 Import ('env')
 import os
 
-sources = env.Glob('intern/*.c') + env.Glob('intern/*.cpp')
+sources = env.Glob('intern/*.c')
 
 incs = '. #/intern/guardedalloc #/intern/memutil'
 incs += ' ../blenlib ../blenfont ../makesdna ../windowmanager'
@@ -92,10 +92,10 @@ if env['WITH_BF_LZMA']:
     defs.append('WITH_LZMA')
 
 if env['WITH_BF_GAMEENGINE']:
-    incs += ' #/extern/recastnavigation/Recast/Include'
+    incs += ' #/extern/recastnavigation'
     defs.append('WITH_GAMEENGINE')
 else:
-    sources.remove('intern' + os.sep + 'navmesh_conversion.cpp')
+    sources.remove('intern' + os.sep + 'navmesh_conversion.c')
 
 if env['WITH_BF_LIBMV']:
     incs += ' #/extern/libmv'

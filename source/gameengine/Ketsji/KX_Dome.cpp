@@ -561,7 +561,7 @@ void KX_Dome::CreateMeshDome180(void)
 	int i,j;
 	float uv_ratio = (float)(m_buffersize-1) / m_imagesize;
 
-	m_radangle = m_angle * M_PI/180.0;//calculates the radians angle, used for flattening
+	m_radangle = DEG2RADF(m_angle); //calculates the radians angle, used for flattening
 
 	//creating faces for the env mapcube 180deg Dome
 	// Top Face - just a triangle

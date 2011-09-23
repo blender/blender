@@ -119,8 +119,8 @@
 	} \
 	 \
 	const int Nj = mLevel[mMaxRefine].lSizey; \
-	int jstart = 0+( id * (Nj / Nthrds) ); \
-	int jend   = 0+( (id+1) * (Nj / Nthrds) ); \
+	int jstart = 0+( (id * Nj ) / Nthrds ); \
+	int jend   = 0+(((id+1) * Nj ) / Nthrds ); \
 	if( ((Nj/Nthrds) *Nthrds) != Nj) { \
 	errMsg("LbmFsgrSolver","Invalid domain size Nj="<<Nj<<" Nthrds="<<Nthrds); \
 	} \

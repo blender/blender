@@ -899,7 +899,7 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	act= BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "action"));
 	
 	if (act == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No valid Action to add.");
+		BKE_report(op->reports, RPT_ERROR, "No valid Action to add");
 		return OPERATOR_CANCELLED;
 	}
 	else if (act->idroot == 0) {

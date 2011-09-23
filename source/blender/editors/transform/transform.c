@@ -3334,6 +3334,11 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 
 void initTranslation(TransInfo *t)
 {
+	if (t->spacetype == SPACE_ACTION) {
+		/* this space uses time translate */
+		t->state = TRANS_CANCEL;
+	}
+
 	t->mode = TFM_TRANSLATION;
 	t->transform = Translation;
 
@@ -4298,7 +4303,6 @@ static int createSlideVerts(TransInfo *t)
 	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
 	GHash *vertgh;
 	TransDataSlideVert *tempsv;
-	float vertdist; // XXX, projectMat[4][4];
 	int i, j, numsel, numadded=0, timesthrough = 0, vertsel=0;
 	/* UV correction vars */
 	GHash **uvarray= NULL;
@@ -4563,7 +4567,6 @@ static int createSlideVerts(TransInfo *t)
 
 	look = vertlist;
 	nearest = NULL;
-	vertdist = -1;
 	while(look) {
 		tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
 
@@ -5601,7 +5604,7 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 
 	const short autosnap= getAnimEdit_SnapMode(t);
 
-	float deltax, val, valprev;
+	float deltax, val /* , valprev */;
 
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
 	for (i = 0 ; i < t->total; i++, td++, td2d++) {
@@ -5611,7 +5614,7 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 		 */
 		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 
-		valprev = *td->val;
+		/* valprev = *td->val; */ /* UNUSED */
 
 		/* check if any need to apply nla-mapping */
 		if (adt && t->spacetype != SPACE_SEQ) {

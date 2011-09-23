@@ -1097,7 +1097,7 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "NDOF Orbit View";
-	ot->description = "Explore every angle of an object using the 3D mouse.";
+	ot->description = "Explore every angle of an object using the 3D mouse";
 	ot->idname = "VIEW3D_OT_ndof_orbit";
 
 	/* api callbacks */
@@ -1196,7 +1196,7 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "NDOF Pan View";
-	ot->description = "Position your viewpoint with the 3D mouse.";
+	ot->description = "Position your viewpoint with the 3D mouse";
 	ot->idname = "VIEW3D_OT_ndof_pan";
 
 	/* api callbacks */
@@ -2242,7 +2242,7 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Center View to Cursor";
-	ot->description= "Centers the view so that the cursor is in the middle of the view";
+	ot->description= "Center the view so that the cursor is in the middle of the view";
 	ot->idname= "VIEW3D_OT_view_center_cursor";
 	
 	/* api callbacks */
@@ -2346,7 +2346,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Render Border";
-	ot->description = "Set the boundaries of the border render and enables border render ";
+	ot->description = "Set the boundaries of the border render and enables border render";
 	ot->idname= "VIEW3D_OT_render_border";
 
 	/* api callbacks */
@@ -2573,7 +2573,7 @@ static EnumPropertyItem prop_view_items[] = {
 	{RV3D_VIEW_RIGHT, "RIGHT", 0, "Right", "View From the Right"},
 	{RV3D_VIEW_TOP, "TOP", 0, "Top", "View From the Top"},
 	{RV3D_VIEW_BOTTOM, "BOTTOM", 0, "Bottom", "View From the Bottom"},
-	{RV3D_VIEW_CAMERA, "CAMERA", 0, "Camera", "View From the active amera"},
+	{RV3D_VIEW_CAMERA, "CAMERA", 0, "Camera", "View From the active camera"},
 	{0, NULL, 0, NULL, NULL}};
 
 
@@ -2786,7 +2786,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	ot->flag= 0;
 
 	RNA_def_enum(ot->srna, "type", prop_view_items, 0, "View", "The Type of view");
-	RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active objects axis");
+	RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
 }
 
 static EnumPropertyItem prop_view_orbit_items[] = {
@@ -3013,7 +3013,7 @@ void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 	ot->flag   = 0;
 	
 	/* properties */
-	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign.");
+	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign");
 	RNA_def_string(ot->srna, "filepath", "Path", FILE_MAX, "Filepath", "Path to image file");
 }
 

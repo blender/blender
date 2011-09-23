@@ -822,7 +822,7 @@ static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[][4], int d
 	if(obr->totvert==0) return;
 	asverts= MEM_callocN(sizeof(ASvert)*obr->totvert, "all smooth verts");
 	
-	thresh= cosf((float)M_PI*(0.5f+(float)degr)/180.0f );
+	thresh= cosf(DEG2RADF((0.5f + (float)degr)));
 	
 	/* step zero: give faces normals of original mesh, if this is provided */
 	
@@ -981,7 +981,7 @@ static void flag_render_node_material(Render *re, bNodeTree *ntree)
 	}
 }
 
-static Material *give_render_material(Render *re, Object *ob, int nr)
+static Material *give_render_material(Render *re, Object *ob, short nr)
 {
 	extern Material defmaterial;	/* material.c */
 	Material *ma;
@@ -1717,7 +1717,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 		if(part->draw & PART_DRAW_REN_ADAPT) {
 			sd.adapt = 1;
 			sd.adapt_pix = (float)part->adapt_pix;
-			sd.adapt_angle = cos((float)part->adapt_angle * (float)(M_PI / 180.0));
+			sd.adapt_angle = cosf(DEG2RADF((float)part->adapt_angle));
 		}
 
 		if(re->r.renderer==R_INTERN && part->draw&PART_DRAW_REN_STRAND) {
@@ -1728,7 +1728,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			strandbuf->winx= re->winx;
 			strandbuf->winy= re->winy;
 			strandbuf->maxdepth= 2;
-			strandbuf->adaptcos= cos((float)part->adapt_angle*(float)(M_PI/180.0));
+			strandbuf->adaptcos= cosf(DEG2RADF((float)part->adapt_angle));
 			strandbuf->overrideuv= sd.override_uv;
 			strandbuf->minwidth= ma->strand_min;
 
@@ -2688,7 +2688,8 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 	int timeoffset, float *orco, float mat[4][4])
 {
 	Object *ob= obr->ob;
-	int a, a1, end, totvert, vertofs;
+	int a, end, totvert, vertofs;
+	short mat_iter;
 	VertRen *ver;
 	VlakRen *vlr;
 	MVert *mvert = NULL;
@@ -2718,16 +2719,16 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 
 		/* faces in order of color blocks */
 		vertofs= obr->totvert - totvert;
-		for(a1=0; (a1<ob->totcol || (a1==0 && ob->totcol==0)); a1++) {
+		for(mat_iter= 0; (mat_iter < ob->totcol || (mat_iter==0 && ob->totcol==0)); mat_iter++) {
 
-			ma= give_render_material(re, ob, a1+1);
+			ma= give_render_material(re, ob, mat_iter+1);
 			end= dm->getNumFaces(dm);
 			mface= dm->getFaceArray(dm);
 
 			for(a=0; a<end; a++, mface++) {
 				int v1, v2, v3, v4, flag;
 
-				if( mface->mat_nr==a1 ) {
+				if(mface->mat_nr == mat_iter) {
 					float len;
 
 					v1= mface->v1;

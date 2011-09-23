@@ -1368,7 +1368,7 @@ void shade_samples_do_AO(ShadeSample *ssamp)
 
 		if(((shi->passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
 			|| (shi->passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
-			for(sample=0, shi= ssamp->shi; sample<ssamp->tot; shi++, sample++)
+			for(sample=0; sample<ssamp->tot; shi++, sample++)
 				if(!(shi->mode & MA_SHLESS))
 					ambient_occlusion(shi);		/* stores in shi->ao[] */
 	}

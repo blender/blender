@@ -231,7 +231,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	Base *base;
 
 	if (object_in_scene(ob, scene)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\".", ob->id.name+2, scene->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\"", ob->id.name+2, scene->id.name+2);
 		return NULL;
 	}
 
@@ -259,11 +259,11 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 {
 	Base *base= object_in_scene(ob, scene);
 	if (!base) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' is not in this scene '%s'.", ob->id.name+2, scene->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' is not in this scene '%s'", ob->id.name+2, scene->id.name+2);
 		return;
 	}
 	if (base==scene->basact && ob->mode != OB_MODE_OBJECT) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' must be in 'Object Mode' to unlink.", ob->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' must be in 'Object Mode' to unlink", ob->id.name+2);
 		return;
 	}
 	if(scene->basact==base) {
@@ -1039,7 +1039,7 @@ static KeyingSet *rna_Scene_keying_set_new(Scene *sce, ReportList *reports, cons
 		return ks;
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set could not be added.");
+		BKE_report(reports, RPT_ERROR, "Keying Set could not be added");
 		return NULL;
 	}
 }
@@ -1051,6 +1051,20 @@ static void rna_SceneCamera_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 
 	if(camera)
 		DAG_id_tag_update(&camera->id, 0);
+}
+
+/* note: without this, when Multi-Paint is activated/deactivated, the colors
+ * will not change right away when multiple bones are selected, this function
+ * is not for general use and only for the few cases where changing scene
+ * settings and NOT for general purpose updates, possibly this should be
+ * given its own notifier. */
+static void rna_Scene_update_active_object_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Object *ob= OBACT;
+	if(ob) {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_main_add_notifier(NC_OBJECT|ND_DRAW, &ob->id);
+	}
 }
 
 #else
@@ -1126,9 +1140,17 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	
 	prop = RNA_def_property(srna, "use_auto_normalize", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "auto_normalize", 1);
-	RNA_def_property_ui_text(prop, "WPaint Auto-Normalize", 
-		"Ensure all bone-deforming vertex groups add up to 1.0 while "
-		 "weight painting");
+	RNA_def_property_ui_text(prop, "WPaint Auto-Normalize",
+	                         "Ensure all bone-deforming vertex groups add up "
+	                         "to 1.0 while weight painting");
+	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
+
+	prop = RNA_def_property(srna, "use_multipaint", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "multipaint", 1);
+	RNA_def_property_ui_text(prop, "WPaint Multi-Paint",
+	                         "Paint across all selected bones while "
+	                         "weight painting");
+	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
 	prop= RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");
@@ -1813,15 +1835,15 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem material_items[] ={
-		{GAME_MAT_TEXFACE, "TEXTURE_FACE", 0, "Texture Face", "Single texture face materials"},
+		{GAME_MAT_TEXFACE, "SINGLETEXTURE", 0, "Singletexture", "Singletexture face materials"},
 		{GAME_MAT_MULTITEX, "MULTITEXTURE", 0, "Multitexture", "Multitexture materials"},
 		{GAME_MAT_GLSL, "GLSL", 0, "GLSL", "OpenGL shading language shaders"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem obstacle_simulation_items[] = {
 		{OBSTSIMULATION_NONE, "NONE", 0, "None", ""},
-		{OBSTSIMULATION_TOI_rays, "RVO (rays)", 0, "RVO (rays)", ""},
-		{OBSTSIMULATION_TOI_cells, "RVO (cells)", 0, "RVO (cells)", ""},
+		{OBSTSIMULATION_TOI_rays, "RVO_RAYS", 0, "RVO (rays)", ""},
+		{OBSTSIMULATION_TOI_cells, "RVO_CELLS", 0, "RVO (cells)", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SceneGameData", NULL);
@@ -2033,7 +2055,9 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "restrict_animation_updates", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_RESTRICT_ANIM_UPDATES);
-	RNA_def_property_ui_text(prop, "Restrict Animation Updates", "Restrict the number of animation updates to the animation FPS. This is better for performance, but can cause issues with smooth playback.");
+	RNA_def_property_ui_text(prop, "Restrict Animation Updates",
+	                         "Restrict the number of animation updates to the animation FPS. This is "
+	                         "better for performance, but can cause issues with smooth playback");
 	
 	/* materials */
 	prop= RNA_def_property(srna, "material_mode", PROP_ENUM, PROP_NONE);
@@ -3205,17 +3229,17 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Scene Objects", "Collection of scene objects");
 
 	func= RNA_def_function(srna, "link", "rna_Scene_object_link");
-	RNA_def_function_ui_description(func, "Link object to scene, run scene.update() after.");
+	RNA_def_function_ui_description(func, "Link object to scene, run scene.update() after");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add to scene.");
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add to scene");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
-	parm= RNA_def_pointer(func, "base", "ObjectBase", "", "The newly created base.");
+	parm= RNA_def_pointer(func, "base", "ObjectBase", "", "The newly created base");
 	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "unlink", "rna_Scene_object_unlink");
-	RNA_def_function_ui_description(func, "Unlink object from scene.");
+	RNA_def_function_ui_description(func, "Unlink object from scene");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene.");
+	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -3265,8 +3289,8 @@ static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Timeline Markers", "Collection of timeline markers");
 
 	func= RNA_def_function(srna, "new", "rna_TimeLine_add");
-	RNA_def_function_ui_description(func, "Add a keyframe to the curve.");
-	parm= RNA_def_string(func, "name", "Marker", 0, "", "New name for the marker (not unique).");
+	RNA_def_function_ui_description(func, "Add a keyframe to the curve");
+	parm= RNA_def_string(func, "name", "Marker", 0, "", "New name for the marker (not unique)");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Newly created timeline marker");
@@ -3274,9 +3298,9 @@ static void rna_def_timeline_markers(BlenderRNA *brna, PropertyRNA *cprop)
 
 
 	func= RNA_def_function(srna, "remove", "rna_TimeLine_remove");
-	RNA_def_function_ui_description(func, "Remove a timeline marker.");
+	RNA_def_function_ui_description(func, "Remove a timeline marker");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove.");
+	parm= RNA_def_pointer(func, "marker", "TimelineMarker", "", "Timeline marker to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
@@ -3296,13 +3320,13 @@ static void rna_def_scene_keying_sets(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* Add Keying Set */
 	func= RNA_def_function(srna, "new", "rna_Scene_keying_set_new");
-	RNA_def_function_ui_description(func, "Add a new Keying Set to Scene.");
+	RNA_def_function_ui_description(func, "Add a new Keying Set to Scene");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	/* name */
 	RNA_def_string(func, "name", "KeyingSet", 64, "Name", "Name of Keying Set");
 
 	/* returns the new KeyingSet */
-	parm= RNA_def_pointer(func, "keyingset", "KeyingSet", "", "Newly created Keying Set.");
+	parm= RNA_def_pointer(func, "keyingset", "KeyingSet", "", "Newly created Keying Set");
 	RNA_def_function_return(func, parm);
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);

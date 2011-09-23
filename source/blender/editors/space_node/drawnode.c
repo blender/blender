@@ -129,7 +129,7 @@ static uiBlock *socket_component_menu(bContext *C, ARegion *ar, void *args_v)
 	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 	
-	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y+2, args->width, NODE_DY, U.uistyles.first), 0);
+	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y+2, args->width, NODE_DY, UI_GetStyle()), 0);
 	
 	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NONE);
 	
@@ -179,6 +179,7 @@ static void node_socket_button_color(const bContext *C, uiBlock *block,
 
 /* ****************** BASE DRAW FUNCTIONS FOR NEW OPERATOR NODES ***************** */
 
+#if 0 /* UNUSED */
 static void node_draw_socket_new(bNodeSocket *sock, float size)
 {
 	float x=sock->locx, y=sock->locy;
@@ -216,6 +217,7 @@ static void node_draw_socket_new(bNodeSocket *sock, float size)
 	glDisable( GL_LINE_SMOOTH );
 	glDisable(GL_BLEND);
 }
+#endif
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
 
@@ -786,7 +788,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(TH_TEXT_HI);
 	
 		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, (short)(rect.xmin+15), (short)(rect.ymax+group_header),
-							   MIN2((int)(rect.xmax - rect.xmin-18.0f), node_group_frame+20), group_header, U.uistyles.first);
+							   MIN2((int)(rect.xmax - rect.xmin-18.0f), node_group_frame+20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext*)C, &ptr, "node_tree", NULL, NULL, NULL);
 		uiBlockLayoutResolve(gnode->block, NULL, NULL);
@@ -894,14 +896,14 @@ static void node_browse_text_cb(bContext *C, void *ntree_v, void *node_v)
 	Main *bmain= CTX_data_main(C);
 	bNodeTree *ntree= ntree_v;
 	bNode *node= node_v;
-	ID *oldid;
+	/* ID *oldid; */ /* UNUSED */
 	
 	if(node->menunr<1) return;
 	
 	if(node->id) {
 		node->id->us--;
 	}
-	oldid= node->id;
+	/* oldid= node->id; */ /* UNUSED */
 	node->id= BLI_findlink(&bmain->text, node->menunr-1);
 	id_us_plus(node->id);
 	BLI_strncpy(node->name, node->id->name+2, sizeof(node->name));

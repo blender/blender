@@ -826,11 +826,11 @@ bNodeTemplate node_forloop_template(bNode *node)
 
 void node_forloop_init(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
 {
-	bNodeSocket *sock;
+	/* bNodeSocket *sock; */ /* UNUSED */
 	
 	node->id = (ID*)ntemp->ngroup;
 	
-	sock = nodeAddInputFloat(ntree, node, "Iterations", PROP_UNSIGNED, 1, 0, 10000);
+	/* sock = */ nodeAddInputFloat(ntree, node, "Iterations", PROP_UNSIGNED, 1, 0, 10000);
 	
 	/* NB: group socket input/output roles are inverted internally!
 	 * Group "inputs" work as outputs in links and vice versa.
@@ -932,11 +932,11 @@ void node_loop_update_tree(bNodeTree *ngroup)
 
 void node_whileloop_init(bNodeTree *ntree, bNode *node, bNodeTemplate *ntemp)
 {
-	bNodeSocket *sock;
+	/* bNodeSocket *sock; */ /* UNUSED */
 	
 	node->id = (ID*)ntemp->ngroup;
 	
-	sock = nodeAddInputFloat(ntree, node, "Condition", PROP_NONE, 1, 0, 1);
+	/* sock = */ nodeAddInputFloat(ntree, node, "Condition", PROP_NONE, 1, 0, 1);
 	
 	/* max iterations */
 	node->custom1 = 10000;
