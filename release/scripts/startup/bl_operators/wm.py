@@ -26,6 +26,9 @@ from bpy.props import (StringProperty,
                        FloatProperty,
                        EnumProperty,
                        )
+                       
+import addon_utils
+import os
 
 from rna_prop_ui import rna_idprop_ui_prop_get, rna_idprop_ui_prop_clear
 
@@ -755,7 +758,6 @@ class WM_OT_path_open(Operator):
 
     def execute(self, context):
         import sys
-        import os
         import subprocess
 
         filepath = bpy.path.abspath(self.filepath)
@@ -1100,7 +1102,6 @@ class WM_OT_appconfig_default(Operator):
     bl_label = "Default Application Configuration"
 
     def execute(self, context):
-        import os
 
         context.window_manager.keyconfigs.active = context.window_manager.keyconfigs.default
 
@@ -1122,7 +1123,6 @@ class WM_OT_appconfig_activate(Operator):
             )
 
     def execute(self, context):
-        import os
         bpy.utils.keyconfig_set(self.filepath)
 
         filepath = self.filepath.replace("keyconfig", "interaction")
@@ -1150,7 +1150,6 @@ class WM_OT_copy_prev_settings(Operator):
     bl_label = "Copy Previous Settings"
 
     def execute(self, context):
-        import os
         import shutil
         ver = bpy.app.version
         ver_old = ((ver[0] * 100) + ver[1]) - 1
