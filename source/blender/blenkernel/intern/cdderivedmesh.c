@@ -647,7 +647,7 @@ static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 }
 
 static void cdDM_drawFacesTex_common(DerivedMesh *dm,
-			   int (*drawParams)(MTFace *tface, MCol *mcol, int matnr),
+			   int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
 			   int (*drawParamsMapped)(void *userData, int index),
 			   void *userData) 
 {
@@ -673,7 +673,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			unsigned char *cp = NULL;
 
 			if(drawParams) {
-				flag = drawParams(tf? &tf[i]: NULL, mcol? &mcol[i*4]: NULL, mf->mat_nr);
+				flag = drawParams(tf? &tf[i]: NULL, (mcol != NULL), mf->mat_nr);
 			}
 			else {
 				if(index) {
@@ -792,7 +792,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				int flag = 1;
 
 				if(drawParams) {
-					flag = drawParams(tf? &tf[actualFace]: NULL, mcol? &mcol[actualFace*4]: NULL, mf[actualFace].mat_nr);
+					flag = drawParams(tf? &tf[actualFace]: NULL, (mcol != NULL), mf[actualFace].mat_nr);
 				}
 				else {
 					if(index) {
@@ -835,7 +835,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 }
 
-static void cdDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+static void cdDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr))
 {
 	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
 }
