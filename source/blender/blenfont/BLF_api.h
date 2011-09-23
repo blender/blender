@@ -178,20 +178,6 @@ void BLF_buffer_col(int fontid, float r, float g, float b, float a);
  */
 void BLF_draw_buffer(int fontid, const char *str);
 
-/*
- * Search the path directory to the locale files, this try all
- * the case for Linux, Win and Mac.
- */
-void BLF_lang_init(void);
-
-/* Set the current locale. */
-void BLF_lang_set(const char *);
-
-/* Set the current encoding name. */
-void BLF_lang_encoding_name(const char *str);
-
-void BLF_lang_encoding(const char *str);
-
 /* Add a path to the font dir paths. */
 void BLF_dir_add(const char *path);
 

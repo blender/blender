@@ -37,6 +37,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -144,7 +146,7 @@ static void file_panel_bookmarks(const bContext *C, Panel *pa)
 
 	if(sfile) {
 		row= uiLayoutRow(pa->layout, 0);
-		uiItemO(row, "Add", ICON_ZOOMIN, "file.bookmark_add");
+		uiItemO(row, UI_translate_do_iface(N_("Add")), ICON_ZOOMIN, "file.bookmark_add");
 		uiItemL(row, NULL, ICON_NONE);
 
 		file_panel_category(C, pa, FS_CATEGORY_BOOKMARKS, &sfile->bookmarknr, ICON_BOOKMARKS, 1, 0);

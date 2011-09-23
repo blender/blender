@@ -31,9 +31,13 @@
 #include "blf_py_api.h"
 
 #include "../../blenfont/BLF_api.h"
+#include "../../blenfont/BLF_translation.h"
 
 #include "BLI_utildefines.h"
 
+#ifdef INTERNATIONAL
+#include "DNA_userdef_types.h"	/* is it bad level? */
+#endif
 
 
 PyDoc_STRVAR(py_blf_position_doc,
@@ -367,6 +371,34 @@ static PyObject *py_blf_load(PyObject *UNUSED(self), PyObject *args)
 	return PyLong_FromLong(BLF_load(filename));
 }
 
+#ifdef INTERNATIONAL
+PyDoc_STRVAR(py_blf_gettext_doc,
+".. function:: gettext(msgid)\n"
+"\n"
+"   Get a msg in local language.\n"
+"\n"
+"   :arg msgid: the source string.\n"
+"   :type msgid: string\n"
+"   :return: the localized string.\n"
+"   :rtype: string\n"
+);
+static PyObject *py_blf_gettext(PyObject *UNUSED(self), PyObject *value)
+{
+	if ((U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_IFACE)) {
+		const char *msgid= _PyUnicode_AsString(value);
+		if(msgid == NULL) {
+			PyErr_SetString(PyExc_TypeError, "blf.gettext expects a single string argument");
+			return NULL;
+		}
+
+		return PyUnicode_FromString(BLF_gettext(msgid));
+	}
+	else {
+		return Py_INCREF(value), value;
+	}
+}
+#endif /* INTERNATIONAL */
+
 /*----------------------------MODULE INIT-------------------------*/
 static PyMethodDef BLF_methods[] = {
 	{"aspect", (PyCFunction) py_blf_aspect, METH_VARARGS, py_blf_aspect_doc},
@@ -382,6 +414,9 @@ static PyMethodDef BLF_methods[] = {
 	{"shadow_offset", (PyCFunction) py_blf_shadow_offset, METH_VARARGS, py_blf_shadow_offset_doc},
 	{"size", (PyCFunction) py_blf_size, METH_VARARGS, py_blf_size_doc},
 	{"load", (PyCFunction) py_blf_load, METH_VARARGS, py_blf_load_doc},
+#ifdef INTERNATIONAL
+	{"gettext", (PyCFunction) py_blf_gettext, METH_O, py_blf_gettext_doc},
+#endif
 	{NULL, NULL, 0, NULL}
 };
 

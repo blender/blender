@@ -20,7 +20,7 @@
 
 import bpy
 from bpy.types import Panel
-
+from blf import gettext as _
 
 class PhysicButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -53,27 +53,27 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
         ob = context.object
 
         layout = self.layout
-        layout.label("Enable physics for:")
+        layout.label(_("Enable physics for:"))
         split = layout.split()
         col = split.column()
 
         if(context.object.field.type == 'NONE'):
-            col.operator("object.forcefield_toggle", text="Force Field", icon='FORCE_FORCE')
+            col.operator("object.forcefield_toggle", text=_("Force Field"), icon='FORCE_FORCE')
         else:
-            col.operator("object.forcefield_toggle", text="Force Field", icon='X')
+            col.operator("object.forcefield_toggle", text=_("Force Field"), icon='X')
 
         if(ob.type == 'MESH'):
-            physics_add(self, col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
-            physics_add(self, col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
+            physics_add(self, col, context.collision, _("Collision"), 'COLLISION', 'MOD_PHYSICS', False)
+            physics_add(self, col, context.cloth, _("Cloth"), 'CLOTH', 'MOD_CLOTH', True)
 
         col = split.column()
 
         if(ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE'):
-            physics_add(self, col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True)
+            physics_add(self, col, context.soft_body, _("Soft Body"), 'SOFT_BODY', 'MOD_SOFT', True)
 
         if(ob.type == 'MESH'):
-            physics_add(self, col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
-            physics_add(self, col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True)
+            physics_add(self, col, context.fluid, _("Fluid"), 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
+            physics_add(self, col, context.smoke, _("Smoke"), 'SMOKE', 'MOD_SMOKE', True)
 
 
 #cachetype can be 'PSYS' 'HAIR' 'SMOKE' etc
@@ -95,11 +95,11 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
     if cache.use_external:
         split = layout.split(percentage=0.80)
-        split.prop(cache, "name", text="File Name")
+        split.prop(cache, "name", text=_("File Name"))
         split.prop(cache, "index", text="")
 
         row = layout.row()
-        row.label(text="File Path:")
+        row.label(text=_("File Path:"))
         row.prop(cache, "use_library_path", "Use Lib Path")
 
         layout.prop(cache, "filepath", text="")
@@ -108,13 +108,13 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
     else:
         if cachetype == 'SMOKE':
             if not bpy.data.is_saved:
-                layout.label(text="Cache is disabled until the file is saved")
+                layout.label(text=_("Cache is disabled until the file is saved"))
                 layout.enabled = False
 
         if cache.use_disk_cache:
-            layout.prop(cache, "name", text="File Name")
+            layout.prop(cache, "name", text=_("File Name"))
         else:
-            layout.prop(cache, "name", text="Cache Name")
+            layout.prop(cache, "name", text=_("Cache Name"))
 
         row = layout.row(align=True)
 
@@ -142,7 +142,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             row = layout.row()
             row.enabled = enabled and bpy.data.is_saved
             row.active = cache.use_disk_cache
-            row.label(text="Compression:")
+            row.label(text=_("Compression:"))
             row.prop(cache, "compression", expand=True)
 
         layout.separator()
@@ -152,22 +152,22 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         col = split.column()
 
         if cache.is_baked == True:
-            col.operator("ptcache.free_bake", text="Free Bake")
+            col.operator("ptcache.free_bake", text=_("Free Bake"))
         else:
-            col.operator("ptcache.bake", text="Bake").bake = True
+            col.operator("ptcache.bake", text=_("Bake")).bake = True
 
         sub = col.row()
         sub.enabled = (cache.frames_skipped or cache.is_outdated) and enabled
-        sub.operator("ptcache.bake", text="Calculate To Frame").bake = False
+        sub.operator("ptcache.bake", text=_("Calculate To Frame")).bake = False
 
         sub = col.column()
         sub.enabled = enabled
-        sub.operator("ptcache.bake_from_cache", text="Current Cache to Bake")
+        sub.operator("ptcache.bake_from_cache", text=_("Current Cache to Bake"))
 
         col = split.column()
-        col.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
-        col.operator("ptcache.free_bake_all", text="Free All Bakes")
-        col.operator("ptcache.bake_all", text="Update All To Frame").bake = False
+        col.operator("ptcache.bake_all", text=_("Bake All Dynamics")).bake = True
+        col.operator("ptcache.free_bake_all", text=_("Free All Bakes"))
+        col.operator("ptcache.bake_all", text=_("Update All To Frame")).bake = False
 
 
 def effector_weights_ui(self, context, weights):
@@ -215,7 +215,7 @@ def basic_force_field_settings_ui(self, context, field):
     col = split.column()
 
     if field.type == 'DRAG':
-        col.prop(field, "linear_drag", text="Linear")
+        col.prop(field, "linear_drag", text=_("Linear"))
     else:
         col.prop(field, "strength")
 
@@ -223,12 +223,12 @@ def basic_force_field_settings_ui(self, context, field):
         col.prop(field, "size")
         col.prop(field, "flow")
     elif field.type == 'HARMONIC':
-        col.prop(field, "harmonic_damping", text="Damping")
+        col.prop(field, "harmonic_damping", text=_("Damping"))
         col.prop(field, "rest_length")
     elif field.type == 'VORTEX' and field.shape != 'POINT':
         col.prop(field, "inflow")
     elif field.type == 'DRAG':
-        col.prop(field, "quadratic_drag", text="Quadratic")
+        col.prop(field, "quadratic_drag", text=_("Quadratic"))
     else:
         col.prop(field, "flow")
 
@@ -237,19 +237,19 @@ def basic_force_field_settings_ui(self, context, field):
     sub.prop(field, "noise")
     sub.prop(field, "seed")
     if field.type == 'TURBULENCE':
-        col.prop(field, "use_global_coords", text="Global")
+        col.prop(field, "use_global_coords", text=_("Global"))
     elif field.type == 'HARMONIC':
         col.prop(field, "use_multiple_springs")
 
     split = layout.split()
 
     col = split.column()
-    col.label(text="Effect point:")
+    col.label(text=_("Effect point:"))
     col.prop(field, "apply_to_location")
     col.prop(field, "apply_to_rotation")
 
     col = split.column()
-    col.label(text="Collision:")
+    col.label(text=_("Collision:"))
     col.prop(field, "use_absorption")
 
 
@@ -265,7 +265,7 @@ def basic_force_field_falloff_ui(self, context, field):
     col.prop(field, "z_direction", text="")
 
     col = split.column()
-    col.prop(field, "falloff_power", text="Power")
+    col.prop(field, "falloff_power", text=_("Power"))
 
     split = layout.split()
     col = split.column()
@@ -273,14 +273,14 @@ def basic_force_field_falloff_ui(self, context, field):
     row.prop(field, "use_min_distance", text="")
     sub = row.row()
     sub.active = field.use_min_distance
-    sub.prop(field, "distance_min", text="Minimum")
+    sub.prop(field, "distance_min", text=_("Minimum"))
 
     col = split.column()
     row = col.row(align=True)
     row.prop(field, "use_max_distance", text="")
     sub = row.row()
     sub.active = field.use_max_distance
-    sub.prop(field, "distance_max", text="Maximum")
+    sub.prop(field, "distance_max", text=_("Maximum"))
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

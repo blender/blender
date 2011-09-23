@@ -303,7 +303,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 		
 		layout= uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-							  locx+NODE_DYS, dy, node->butr.xmax, NODE_DY, U.uistyles.first);
+							  locx+NODE_DYS, dy, node->butr.xmax, NODE_DY, UI_GetStyle());
 		
 		node->typeinfo->uifunc(layout, (bContext *)C, &ptr);
 		

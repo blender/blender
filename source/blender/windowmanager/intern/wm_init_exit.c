@@ -100,6 +100,7 @@
 
 #include "UI_interface.h"
 #include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "GPU_buffers.h"
 #include "GPU_extensions.h"
@@ -143,6 +144,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BLF_lang_init();
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL, G.factory_startup);
+
+	BLF_lang_set(NULL);
 
 	/* note: there is a bug where python needs initializing before loading the
 	 * startup.blend because it may contain PyDrivers. It also needs to be after
@@ -380,7 +383,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	BIF_freeTemplates(C);
 	
 	free_ttfont(); /* bke_font.h */
-	
+
 	free_openrecent();
 	
 	BKE_freecubetable();
@@ -400,6 +403,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	free_posebuf();
 
 	BLF_exit();
+	BLF_free_unifont();
 	
 	ANIM_keyingset_infos_exit();
 	
