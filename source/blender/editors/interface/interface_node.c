@@ -138,16 +138,19 @@ static void ui_node_sock_name(bNodeSocket *sock, char name[UI_MAX_NAME_STR])
 {
 	if(sock->link && sock->link->fromnode) {
 		bNode *node = sock->link->fromnode;
+		char node_name[UI_MAX_NAME_STR];
 
 		if(node->type == NODE_GROUP)
-			BLI_strncpy(name, node->id->name+2, UI_MAX_NAME_STR);
+			BLI_strncpy(node_name, node->id->name+2, UI_MAX_NAME_STR);
 		else
-			BLI_strncpy(name, node->typeinfo->name, UI_MAX_NAME_STR);
+			BLI_strncpy(node_name, node->typeinfo->name, UI_MAX_NAME_STR);
 
 		if(node->inputs.first == NULL &&
 		   node->outputs.first != node->outputs.last &&
 		   !(node->typeinfo->flag & NODE_OPTIONS))
-			BLI_snprintf(name, UI_MAX_NAME_STR, "%s | %s", name, sock->link->fromsock->name);
+			BLI_snprintf(name, UI_MAX_NAME_STR, "%s | %s", node_name, sock->link->fromsock->name);
+		else
+			BLI_strncpy(name, node_name, UI_MAX_NAME_STR);
 	}
 	else if(sock->type == SOCK_SHADER)
 		BLI_strncpy(name, "None", UI_MAX_NAME_STR);
