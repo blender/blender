@@ -223,15 +223,12 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
 }
 
-static int check_material_alpha(Base *base, Mesh *me, int glsl)
+static int check_material_alpha(Base *base, int glsl)
 {
 	if(base->flag & OB_FROMDUPLI)
 		return 0;
 
 	if(G.f & G_PICKSEL)
-		return 0;
-			
-	if(me->edit_btmesh)
 		return 0;
 	
 	return (glsl || (base->object->dtx & OB_DRAWTRANSP));
@@ -2150,14 +2147,11 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 	if (!BM_TestHFlag(efa, BM_HIDDEN)) {
 		if (efa == data->efa_act) {
 			glColor4ubv(data->cols[2]);
-
 			return 2; /* stipple */
 		} else {
 			col = data->cols[BM_TestHFlag(efa, BM_SELECT)?1:0];
 			if (col[3]==0) return 0;
-
 			glColor4ubv(col);
-
 			return 1;
 		}
 	}
@@ -3086,12 +3080,16 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 											scene->customdata_mask);
 
 		if(dt>OB_WIRE) {
-			// no transp in editmode, the fancy draw over goes bad then
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+			check_alpha = check_material_alpha(base, glsl);
+
+			GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,
+					(check_alpha)? &do_alpha_pass: NULL);
 		}
 
-		draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
+		// transp in editmode makes the fancy draw over go bad
+		if (!do_alpha_pass)
+			draw_em_fancy(scene, v3d, rv3d, ob, em, cageDM, finalDM, dt);
 
 		GPU_end_object_materials();
 
@@ -3102,7 +3100,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
 		if(me->totface<=4 || ED_view3d_boundbox_clip(rv3d, ob->obmat, (ob->bb)? ob->bb: me->bb)) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
-			check_alpha = check_material_alpha(base, me, glsl);
+			check_alpha = check_material_alpha(base, glsl);
 
 			if(dt==OB_SOLID || glsl) {
 				GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl,

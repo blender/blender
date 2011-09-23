@@ -274,6 +274,8 @@ typedef struct MRecast{
 #define TF_SHAREDVERT	8
 #define TF_LIGHT		16
 
+#define TF_CONVERTED 32 /* tface converted to material */
+
 #define TF_SHAREDCOL	64
 #define TF_TILES		128		/* deprecated */
 #define TF_BILLBOARD	256

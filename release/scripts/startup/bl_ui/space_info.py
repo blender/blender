@@ -382,6 +382,7 @@ class INFO_MT_help(Menu):
             layout.operator("wm.console_toggle", icon='CONSOLE')
             layout.separator()
         layout.operator("anim.update_data_paths", text="FCurve/Driver Version fix", icon='HELP')
+        layout.operator("logic.texface_convert", text="TexFace to Material Convert", icon='GAME')
         layout.separator()
         layout.operator("wm.splash", icon='BLENDER')
 

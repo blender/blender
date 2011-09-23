@@ -1014,15 +1014,11 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	BMLoop **ltri;
 	DMVertexAttribs attribs;
 	GPUVertexAttribs gattribs;
-	MTexPoly *tp;
-	int transp, new_transp, orig_transp;
+
 	int i, b, matnr, new_matnr, dodraw;
 
 	dodraw = 0;
 	matnr = -1;
-
-	transp = GPU_get_material_blend_mode();
-	orig_transp = transp;
 
 	memset(&attribs, 0, sizeof(attribs));
 
@@ -1071,19 +1067,6 @@ static void bmDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			dodraw = setMaterial(matnr = new_matnr, &gattribs);
 			if(dodraw)
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
-		}
-
-		if(attribs.tottface) {
-			tp = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
-			new_transp = tp->transp;
-
-			if(new_transp != transp) {
-				if(new_transp == GPU_BLEND_SOLID && orig_transp != GPU_BLEND_SOLID)
-					GPU_set_material_blend_mode(orig_transp);
-				else
-					GPU_set_material_blend_mode(new_transp);
-				transp = new_transp;
-			}
 		}
 
 		if(dodraw) {

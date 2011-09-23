@@ -67,6 +67,7 @@
 #include "GPU_buffers.h"
 #include "GPU_extensions.h"
 #include "GPU_draw.h"
+#include "GPU_material.h"
 
 #include "ED_mesh.h"
 
@@ -210,44 +211,71 @@ static Material *give_current_material_or_def(Object *ob, int matnr)
 	return ma?ma:&defmaterial;
 }
 
-static int set_draw_settings_cached(int clearcache, int textured, MTFace *texface, int lit, Object *litob, int litmatnr, int doublesided)
-{
-	static int c_textured;
-	static int c_lit;
-	static int c_doublesided;
-	static MTFace *c_texface;
-	static Object *c_litob;
-	static int c_litmatnr;
-	static int c_badtex;
+/* Icky globals, fix with userdata parameter */
 
+static struct TextureDrawState {
+	Object *ob;
+	int islit, istex;
+	int color_profile;
+	unsigned char obcol[4];
+} Gtexdraw = {NULL, 0, 0, 0, {0, 0, 0, 0}};
+
+static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *ma, struct TextureDrawState gtexdraw)
+{
+	static Material *c_ma;
+	static int c_textured;
+	static MTFace *c_texface;
+	static int c_backculled;
+	static int c_badtex;
+	static int c_lit;
+
+	Object *litob = NULL; //to get mode to turn off mipmap in painting mode
+	int backculled = 0;
+	int alphablend = 0;
+	int textured = 0;
+	int lit = 0;
+	
 	if (clearcache) {
-		c_textured= c_lit= c_doublesided= -1;
+		c_textured= c_lit= c_backculled= -1;
 		c_texface= (MTFace*) -1;
-		c_litob= (Object*) -1;
-		c_litmatnr= -1;
 		c_badtex= 0;
+	} else {
+		textured = gtexdraw.istex;
+		litob = gtexdraw.ob;
+	}
+
+	/* convert number of lights into boolean */
+	if (gtexdraw.islit) lit = 1;
+
+	if (ma) {
+		alphablend = ma->game.alpha_blend;
+		if (ma->mode & MA_SHLESS) lit = 0;
+		backculled = ma->game.flag & GEMAT_BACKCULL;
 	}
 
 	if (texface) {
-		lit = lit && (lit==-1 || texface->mode&TF_LIGHT);
-		textured = textured && (texface->mode&TF_TEX);
-		doublesided = texface->mode&TF_TWOSIDE;
-	} else {
-		textured = 0;
+		textured = textured && (texface->tpage);
+
+		/* no material, render alpha if texture has depth=32 */
+		if (!ma && BKE_image_has_alpha(texface->tpage))
+			alphablend = GPU_BLEND_ALPHA;
 	}
 
-	if (doublesided!=c_doublesided) {
-		if (doublesided) glDisable(GL_CULL_FACE);
-		else glEnable(GL_CULL_FACE);
+	else
+		textured = 0;
 
-		c_doublesided= doublesided;
+	if (backculled!=c_backculled) {
+		if (backculled) glEnable(GL_CULL_FACE);
+		else glDisable(GL_CULL_FACE);
+
+		c_backculled= backculled;
 	}
 
 	if (textured!=c_textured || texface!=c_texface) {
 		if (textured ) {
-			c_badtex= !GPU_set_tpage(texface, !(litob->mode & OB_MODE_TEXTURE_PAINT));
+			c_badtex= !GPU_set_tpage(texface, !(litob->mode & OB_MODE_TEXTURE_PAINT), alphablend);
 		} else {
-			GPU_set_tpage(NULL, 0);
+			GPU_set_tpage(NULL, 0, 0);
 			c_badtex= 0;
 		}
 		c_textured= textured;
@@ -255,10 +283,10 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 	}
 
 	if (c_badtex) lit= 0;
-	if (lit!=c_lit || litob!=c_litob || litmatnr!=c_litmatnr) {
+	if (lit!=c_lit || ma!=c_ma) {
 		if (lit) {
-			Material *ma= give_current_material_or_def(litob, litmatnr+1);
 			float spec[4];
+			if (!ma)ma= give_current_material_or_def(NULL, 0); //default material
 
 			spec[0]= ma->spec*ma->specr;
 			spec[1]= ma->spec*ma->specg;
@@ -276,21 +304,10 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 			glDisable(GL_COLOR_MATERIAL);
 		}
 		c_lit= lit;
-		c_litob= litob;
-		c_litmatnr= litmatnr;
 	}
 
 	return c_badtex;
 }
-
-/* Icky globals, fix with userdata parameter */
-
-static struct TextureDrawState {
-	Object *ob;
-	int islit, istex;
-	int color_profile;
-	unsigned char obcol[4];
-} Gtexdraw = {NULL, 0, 0, 0, {0, 0, 0, 0}};
 
 static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
@@ -321,14 +338,14 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.istex = istex;
 	Gtexdraw.color_profile = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
-	set_draw_settings_cached(1, 0, NULL, Gtexdraw.islit, NULL, 0, 0);
+	set_draw_settings_cached(1, NULL, NULL, Gtexdraw);
 	glShadeModel(GL_SMOOTH);
 }
 
 static void draw_textured_end(void)
 {
 	/* switch off textures */
-	GPU_set_tpage(NULL, 0);
+	GPU_set_tpage(NULL, 0, 0);
 
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
@@ -350,19 +367,22 @@ static void draw_textured_end(void)
 
 static int draw_tface__set_draw_legacy(MTFace *tface, int has_vcol, int matnr)
 {
-	if (tface && (tface->mode&TF_INVISIBLE))
-		return 0;
+	Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
+	int validtexture=0;
 
-	if (tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
+	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return 0;
+
+	validtexture = set_draw_settings_cached(0, tface, ma, Gtexdraw);
+
+	if (tface && validtexture) {
 		glColor3ub(0xFF, 0x00, 0xFF);
 		return 2; /* Don't set color */
-	} else if (tface && tface->mode&TF_OBCOL) {
+	} else if (ma && ma->shade_flag&MA_OBCOLOR) {
 		glColor3ubv(Gtexdraw.obcol);
 		return 2; /* Don't set color */
 	} else if (!has_vcol) {
 		if (tface) glColor3f(1.0, 1.0, 1.0);
 		else {
-			Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 			if(ma) {
 				float col[3];
 				if(Gtexdraw.color_profile) linearrgb_to_srgb_v3_v3(col, &ma->r);
@@ -379,9 +399,11 @@ static int draw_tface__set_draw_legacy(MTFace *tface, int has_vcol, int matnr)
 }
 static int draw_tface__set_draw(MTFace *tface, int has_vcol, int matnr)
 {
-	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
+	Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 
-	if (tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
+	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return 0;
+
+	if (tface && set_draw_settings_cached(0, tface, ma, Gtexdraw)) {
 		return 2; /* Don't set color */
 	} else if (tface && tface->mode&TF_OBCOL) {
 		return 2; /* Don't set color */
@@ -403,7 +425,9 @@ static void add_tface_color_layer(DerivedMesh *dm)
 
 	finalCol = MEM_mallocN(sizeof(MCol)*4*dm->getNumTessFaces(dm),"add_tface_color_layer");
 	for(i=0;i<dm->getNumTessFaces(dm);i++) {
-		if (tface && (tface->mode&TF_INVISIBLE)) {
+		Material *ma= give_current_material(Gtexdraw.ob, mface[i].mat_nr+1);
+
+		if (ma && (ma->game.flag&GEMAT_INVISIBLE)) {
 			if( mcol )
 				memcpy(&finalCol[i*4],&mcol[i*4],sizeof(MCol)*4);
 			else
@@ -413,7 +437,7 @@ static void add_tface_color_layer(DerivedMesh *dm)
 					finalCol[i*4+j].r = 255;
 				}
 		}
-		else if (tface && mface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, mface[i].mat_nr, TF_TWOSIDE)) {
+		else if (tface && mface && set_draw_settings_cached(0, tface, ma, Gtexdraw)) {
 			for(j=0;j<4;j++) {
 				finalCol[i*4+j].b = 255;
 				finalCol[i*4+j].g = 0;
@@ -471,6 +495,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	MTexPoly *tpoly = (me->mtpoly)? &me->mtpoly[index]: NULL;
 	MPoly *mpoly = (me->mpoly)? &me->mpoly[index]: NULL;
 	MTFace mtf;
+	int has_vcol= (me->mcol != NULL);
 	int matnr = me->mpoly[index].mat_nr;
 
 	if (mpoly && mpoly->flag&ME_HIDE) return 0;
@@ -485,7 +510,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 		mtf.unwrap = tpoly->unwrap;
 	}
 
-	return draw_tface__set_draw(&mtf, CustomData_has_layer(&me->ldata, CD_MLOOPCOL), matnr);
+	return draw_tface__set_draw(&mtf, has_vcol, matnr);
 }
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
@@ -494,7 +519,8 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 	BMFace *efa= EDBM_get_face_for_index(em, index);
 	MTexPoly *tpoly;
 	MTFace mtf;
-	int matnr, has_vcol;
+	int has_vcol;
+	int matnr;
 
 	if (efa==NULL || BM_TestHFlag(efa, BM_HIDDEN))
 		return 0;
@@ -520,10 +546,14 @@ static int draw_em_tf_mapped__set_draw(void *userData, int index)
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = (Mesh*)userData;
+	Material *ma;
 
-	if (	(me->mface && me->mface[index].flag & ME_HIDE) ||
-			(me->mtface && (me->mtface[index].mode & TF_INVISIBLE))
-	) {
+	if (me->mface) {
+		int matnr = me->mface[index].mat_nr;
+		ma = me->mat[matnr];
+	}
+
+	if ( ma && (ma->game.flag & GEMAT_INVISIBLE)) {
 		return 0;
 	}
 
@@ -556,11 +586,12 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	ddm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
 	for(a=0, mf=mface; a<totface; a++, tface++, mf++) {
-		int mode= tface->mode;
 		int matnr= mf->mat_nr;
 		int mf_smooth= mf->flag & ME_SMOOTH;
+		Material *mat = me->mat[matnr];
+		int mode= mat->game.flag;
 
-		if (!(mf->flag&ME_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
+		if (!(mode&GEMAT_INVISIBLE) && (mode&GEMAT_TEXT)) {
 			float v1[3], v2[3], v3[3], v4[3];
 			char string[MAX_PROPSTRING];
 			int characters, i, glattrib= -1, badtex= 0;
@@ -576,7 +607,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 				}
 			}
 			else {
-				badtex = set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE);
+				badtex = set_draw_settings_cached(0, tface, mat, Gtexdraw);
 				if (badtex) {
 					if (mcol) mcol+=4;
 					continue;
@@ -605,7 +636,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 				glNormal3fv(nor);
 			}
 
-			GPU_render_text(tface, tface->mode, string, characters,
+			GPU_render_text(tface, mode, string, characters,
 				(unsigned int*)mcol, v1, v2, v3, (mf->v4? v4: NULL), glattrib);
 		}
 		if (mcol) {

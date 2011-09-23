@@ -74,6 +74,14 @@ typedef struct VolumeSettings {
 	float ms_spread;
 } VolumeSettings;
 
+/* Game Engine Options (old Texface mode, transp and flag) */
+typedef struct GameSettings {
+	int flag;
+	int alpha_blend;
+	int face_orientation;
+	int pad1;
+} GameSettings;
+
 typedef struct Material {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -90,6 +98,7 @@ typedef struct Material {
 	/* end synced with render_types.h */
 	
 	struct VolumeSettings vol;
+	struct GameSettings game;
 
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
@@ -165,6 +174,32 @@ typedef struct Material {
 
 	ListBase gpumaterial;		/* runtime */
 } Material;
+
+
+/* **************** GAME PROPERTIES ********************* */
+// Blend Transparency Options - alpha_blend /* match GPU_material::GPUBlendMode */
+#define GEMAT_SOLID		0 /* GPU_BLEND_SOLID */
+#define GEMAT_ADD		1 /* GPU_BLEND_ADD */
+#define	GEMAT_ALPHA		2 /* GPU_BLEND_ALPHA */
+#define GEMAT_CLIP		4 /* GPU_BLEND_CLIP */
+#define	GEMAT_ALPHA_SORT	8 /* GPU_BLEND_ALPHA_SORT */
+
+// Game Options - flag
+#define GEMAT_BACKCULL 		16 /* KX_BACKCULL */
+#define GEMAT_SHADED		32 /* KX_LIGHT */
+#define GEMAT_TEXT		64 /* RAS_RENDER_3DPOLYGON_TEXT */
+#define	GEMAT_NOPHYSICS		128
+#define GEMAT_INVISIBLE 	256
+
+// Face Orientation Options - face_orientation
+#define GEMAT_NORMAL		0
+#define GEMAT_HALO		512  /* BILLBOARD_SCREENALIGNED  */
+#define GEMAT_BILLBOARD		1024 /* BILLBOARD_AXISALIGNED */
+#define GEMAT_SHADOW		2048 /* SHADOW */
+
+// Use Textures - not defined directly in the UI
+#define GEMAT_TEX		4096 /* KX_TEX */
+
 
 /* **************** MATERIAL ********************* */
 

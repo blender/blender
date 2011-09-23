@@ -52,12 +52,11 @@ void BL_Material::Initialize()
 	speccolor[0] = 1.f;
 	speccolor[1] = 1.f;
 	speccolor[2] = 1.f;
-	transp = 0;
+	alphablend = 0;
 	hard = 50.f;
 	spec_f = 0.5f;
 	alpha = 1.f;
 	emit = 0.f;
-	mode = 0;
 	material = 0;
 	tface = 0;
 	materialindex = 0;

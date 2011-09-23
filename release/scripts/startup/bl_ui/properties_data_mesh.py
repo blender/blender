@@ -289,53 +289,6 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
             layout.prop(lay, "name")
 
 
-class DATA_PT_texface(MeshButtonsPanel, Panel):
-    bl_label = "Texture Face"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    @classmethod
-    def poll(cls, context):
-        obj = context.object
-        return (context.mode == 'EDIT_MESH') and obj and obj.type == 'MESH'
-
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
-
-        me = context.mesh
-
-        tf = me.faces.active_tface
-
-        if tf:
-            if context.scene.render.engine != 'BLENDER_GAME':
-                col.label(text="Options only supported in Game Engine")
-
-            split = layout.split()
-            col = split.column()
-
-            col.prop(tf, "use_image")
-            col.prop(tf, "use_light")
-            col.prop(tf, "hide")
-            col.prop(tf, "use_collision")
-
-            col.prop(tf, "use_blend_shared")
-            col.prop(tf, "use_twoside")
-            col.prop(tf, "use_object_color")
-
-            col = split.column()
-
-            col.prop(tf, "use_halo")
-            col.prop(tf, "use_billboard")
-            col.prop(tf, "use_shadow_cast")
-            col.prop(tf, "use_bitmap_text")
-            col.prop(tf, "use_alpha_sort")
-
-            col = layout.column()
-            col.prop(tf, "blend_type")
-        else:
-            col.label(text="No UV Texture")
-
-
 class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
     bl_label = "Vertex Colors"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}

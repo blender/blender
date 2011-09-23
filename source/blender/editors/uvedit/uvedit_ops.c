@@ -135,14 +135,12 @@ void ED_uvedit_assign_image(Scene *scene, Object *obedit, Image *ima, Image *pre
 		if(uvedit_face_visible(scene, previma, efa, tf)) {
 			if(ima) {
 				tf->tpage= ima;
-				tf->mode |= TF_TEX;
 				
 				if(ima->id.us==0) id_us_plus(&ima->id);
 				else id_lib_extern(&ima->id);
 			}
 			else {
 				tf->tpage= NULL;
-				tf->mode &= ~TF_TEX;
 			}
 
 			update = 1;
