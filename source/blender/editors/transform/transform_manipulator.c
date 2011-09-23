@@ -438,13 +438,13 @@ int calc_manipulator_stats(const bContext *C)
 		}
 		else if(obedit->type==OB_MBALL) {
 			MetaBall *mb = (MetaBall*)obedit->data;
-			MetaElem *ml, *ml_sel=NULL;
+			MetaElem *ml /* , *ml_sel=NULL */ /* UNUSED */;
 
 			ml= mb->editelems->first;
 			while(ml) {
 				if(ml->flag & SELECT) {
 					calc_tw_center(scene, &ml->x);
-					ml_sel = ml;
+					/* ml_sel = ml; */ /* UNUSED */
 					totsel++;
 				}
 				ml= ml->next;

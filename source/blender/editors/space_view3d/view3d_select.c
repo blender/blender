@@ -2163,12 +2163,12 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 {
 	Object *ob= vc->obact;
 	Mesh *me = ob?ob->data:NULL;
-	int bbsel;
+	/* int bbsel; */ /* UNUSED */
 
 	if (me) {
 		bm_vertoffs= me->totpoly+1;	/* max index array */
 
-		bbsel= EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
+		/* bbsel= */ /* UNUSED */ EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0));
 		EDBM_backbuf_checkAndSelectTFaces(me, select==LEFTMOUSE);
 		EDBM_free_backbuf();
 	}
@@ -2179,12 +2179,12 @@ static void paint_vertsel_circle_select(ViewContext *vc, int select, const int m
 {
 	Object *ob= vc->obact;
 	Mesh *me = ob?ob->data:NULL;
-	int bbsel;
+	/* int bbsel; */ /* UNUSED */
 	/* struct {ViewContext *vc; short select; int mval[2]; float radius; } data = {NULL}; */ /* UNUSED */
 	if (me) {
 		bm_vertoffs= me->totvert+1;	/* max index array */
 
-		bbsel= EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
+		/* bbsel= */ /* UNUSED */ EDBM_init_backbuf_circle(vc, mval[0], mval[1], (short)(rad+1.0f));
 		EDBM_backbuf_checkAndSelectVerts_obmode(me, select==LEFTMOUSE);
 		EDBM_free_backbuf();
 

@@ -285,7 +285,6 @@ int ED_mesh_uv_texture_remove(bContext *C, Object *ob, Mesh *me)
 int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mesh *me, const char *name, int active_set)
 {
 	BMEditMesh *em;
-	/* MLoopCol *mcol; */ /* UNUSED */
 	int layernum;
 
 	if(me->edit_btmesh) {
@@ -308,8 +307,6 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 		layernum= CustomData_number_of_layers(&me->ldata, CD_MLOOPCOL);
 		if(layernum >= CD_MLOOPCOL)
 			return 0;
-
-		/* mcol= me->mloopcol; */ /* UNUSED */
 
 		if(me->mloopcol)
 			CustomData_add_layer_named(&me->ldata, CD_MLOOPCOL, CD_DUPLICATE, me->mloopcol, me->totloop, name);

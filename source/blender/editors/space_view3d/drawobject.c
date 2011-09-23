@@ -4142,7 +4142,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	if(draw_as==PART_DRAW_PATH){
 		ParticleCacheKey **cache, *path;
-		float *cd2=NULL,*cdata2=NULL;
+		float /* *cd2=NULL, */ /* UNUSED */ *cdata2=NULL;
 
 		/* setup gl flags */
 		if (1) { //ob_dt > OB_WIRE) {
@@ -4210,7 +4210,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 		if(cdata2)
 			MEM_freeN(cdata2);
-		cd2=cdata2=NULL;
+		/* cd2= */ /* UNUSED */ cdata2=NULL;
 
 		glLineWidth(1.0f);
 

@@ -1816,7 +1816,7 @@ void flushTransParticles(TransInfo *t)
 /* ********************* mesh ****************** */
 
 /* proportional distance based on connectivity  */
-#define THRESHOLD	0.0001f
+#define THRESHOLD	0.000000000000001f
 
 /*I did this wrong, it should be a breadth-first search
   but instead it's a depth-first search, fudged
@@ -3539,7 +3539,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				const char sel3= use_handle ? bezt->f3 & SELECT : 0;
 
 				TransDataCurveHandleFlags *hdata = NULL;
-				short h1=1, h2=1;
+				/* short h1=1, h2=1; */ /* UNUSED */
 				
 				/* only include handles if selected, irrespective of the interpolation modes.
 				 * also, only treat handles specially if the center point isn't selected. 
@@ -3549,16 +3549,18 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 						hdata = initTransDataCurveHandles(td, bezt);
 						bezt_to_transdata(td++, td2d++, adt, bezt, 0, 1, 1, intvals, mtx, smtx);
 					} 
-					else
-						h1= 0;
+					else {
+						/* h1= 0; */ /* UNUSED */
+					}
 					
 					if (sel3) {
 						if (hdata==NULL)
 							hdata = initTransDataCurveHandles(td, bezt);
 						bezt_to_transdata(td++, td2d++, adt, bezt, 2, 1, 1, intvals, mtx, smtx);
 					} 
-					else
-						h2= 0;
+					else {
+						/* h2= 0; */ /* UNUSED */
+					}
 				}
 				
 				/* only include main vert if selected */

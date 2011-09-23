@@ -192,7 +192,7 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 	/* Originally based on the information from the book "The Art and Science of Digital Composition" and
 	 * discussions from vfxtalk.com .*/
 	CompBuf *cbuf;
-	CompBuf *mask;
+	/* CompBuf *mask; */ /* UNUSED */
 	CompBuf *rgbbuf;
 	CompBuf *spillmap;
 	NodeColorspill *ncs;
@@ -204,7 +204,7 @@ static void node_composit_exec_color_spill(void *UNUSED(data), bNode *node, bNod
 	if(in[0]->data==NULL) return;
 	
 	cbuf=typecheck_compbuf(in[0]->data, CB_RGBA);
-	mask=typecheck_compbuf(in[1]->data, CB_VAL);
+	/* mask= */ /* UNUSED */ typecheck_compbuf(in[1]->data, CB_VAL);
 	spillmap=alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
 	rgbbuf=dupalloc_compbuf(cbuf);
 

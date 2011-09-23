@@ -232,7 +232,7 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 static void draw_filled_lasso(wmGesture *gt)
 {
 	EditVert *v=NULL, *lastv=NULL, *firstv=NULL;
-	EditEdge *e;
+	/* EditEdge *e; */ /* UNUSED */
 	EditFace *efa;
 	short *lasso= (short *)gt->customdata;
 	int i;
@@ -247,7 +247,7 @@ static void draw_filled_lasso(wmGesture *gt)
 
 		v = BLI_addfillvert(co);
 		if (lastv)
-			e = BLI_addfilledge(lastv, v);
+			/* e = */ /* UNUSED */ BLI_addfilledge(lastv, v);
 		lastv = v;
 		if (firstv==NULL) firstv = v;
 	}

@@ -500,7 +500,7 @@ static int read_undosave(bContext *C, UndoElem *uel)
 void BKE_write_undo(bContext *C, const char *name)
 {
 	uintptr_t maxmem, totmem, memused;
-	int nr, success;
+	int nr /*, success */ /* UNUSED */;
 	UndoElem *uel;
 	
 	if( (U.uiflag & USER_GLOBALUNDO)==0) return;
@@ -552,7 +552,7 @@ void BKE_write_undo(bContext *C, const char *name)
 		BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
 		BLI_make_file_string("/", filepath, btempdir, numstr);
 	
-		success= BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);
+		/* success= */ /* UNUSED */ BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);
 		
 		BLI_strncpy(curundo->str, filepath, sizeof(curundo->str));
 	}
@@ -562,7 +562,7 @@ void BKE_write_undo(bContext *C, const char *name)
 		if(curundo->prev) prevfile= &(curundo->prev->memfile);
 		
 		memused= MEM_get_memory_in_use();
-		success= BLO_write_file_mem(CTX_data_main(C), prevfile, &curundo->memfile, G.fileflags);
+		/* success= */ /* UNUSED */ BLO_write_file_mem(CTX_data_main(C), prevfile, &curundo->memfile, G.fileflags);
 		curundo->undosize= MEM_get_memory_in_use() - memused;
 	}
 

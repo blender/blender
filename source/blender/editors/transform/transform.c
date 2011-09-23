@@ -5449,7 +5449,7 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 
 	const short autosnap= getAnimEdit_SnapMode(t);
 
-	float deltax, val, valprev;
+	float deltax, val /* , valprev */;
 
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
 	for (i = 0 ; i < t->total; i++, td++, td2d++) {
@@ -5459,7 +5459,7 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 		 */
 		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 
-		valprev = *td->val;
+		/* valprev = *td->val; */ /* UNUSED */
 
 		/* check if any need to apply nla-mapping */
 		if (adt && t->spacetype != SPACE_SEQ) {

@@ -1174,7 +1174,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 		GPUBuffer *buffer = NULL;
 		char *varray = NULL;
 		int numdata = 0, elementsize = 0, offset;
-		int start = 0, numfaces = 0, prevdraw = 0, curface = 0;
+		int start = 0, numfaces = 0 /* , prevdraw = 0 */ /* UNUSED */, curface = 0;
 		int i;
 
 		MFace *mf = mface;
@@ -1218,7 +1218,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					}
 					numdata = 0;
 					start = curface;
-					prevdraw = dodraw;
+					/* prevdraw = dodraw; */ /* UNUSED */
 					dodraw = setMaterial(matnr = new_matnr, &gattribs);
 					if(dodraw) {
 						DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
@@ -1266,7 +1266,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 						else {
 							/* if the buffer was set, dont use it again.
 							 * prevdraw was assumed true but didnt run so set to false - [#21036] */
-							prevdraw= 0;
+							/* prevdraw= 0; */ /* UNUSED */
 							buffer= NULL;
 						}
 					}

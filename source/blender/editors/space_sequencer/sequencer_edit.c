@@ -1483,9 +1483,13 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 		sort_seq(scene);
 	}
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
-	
-	return OPERATOR_FINISHED;
+	if(changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 
