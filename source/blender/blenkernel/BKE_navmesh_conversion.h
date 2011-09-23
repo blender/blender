@@ -61,4 +61,5 @@ int polyIsConvex(const unsigned short* p, const int vertsPerPoly, const float* v
 int polyFindVertex(const unsigned short* p, const int vertsPerPoly, unsigned short vertexIdx);
 float distPointToSegmentSq(const float* point, const float* a, const float* b);
 
+
 #endif //NAVMESH_CONVERSION_H

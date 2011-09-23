@@ -22,6 +22,7 @@ from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
+
 def active_node_mat(mat):
     # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
     # which settings from node-materials are used
@@ -618,7 +619,7 @@ class MATERIAL_PT_game_settings(MaterialButtonsPanel, bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-         return context.material and (context.scene.render.engine in cls.COMPAT_ENGINES)
+        return context.material and (context.scene.render.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -633,13 +634,14 @@ class MATERIAL_PT_game_settings(MaterialButtonsPanel, bpy.types.Panel):
         row.label(text="Alpha Blend:")
         row.label(text="Face Orientation:")
         row = layout.row()
-        row.prop(game,"alpha_blend",text="")
-        row.prop(game,"face_orientation",text="")
+        row.prop(game, "alpha_blend", text="")
+        row.prop(game, "face_orientation", text="")
+
 
 class MATERIAL_PT_physics(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Physics"
     COMPAT_ENGINES = {'BLENDER_GAME'}
-	
+
     def draw_header(self, context):
         game = context.material.game_settings
         self.layout.prop(game, "physics", text="")

@@ -21,6 +21,7 @@ import bpy
 from bpy.types import Panel
 from blf import gettext as _
 
+
 class PhysicButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -58,7 +59,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
                 layout.active = fluid.use
 
             if fluid.type == 'DOMAIN':
-                layout.operator("fluid.bake", text=_("Bake (Req. Memory:")+" %s)" % fluid.memory_estimate, icon='MOD_FLUIDSIM')
+                layout.operator("fluid.bake", text=_("Bake (Req. Memory:") + " %s)" % fluid.memory_estimate, icon='MOD_FLUIDSIM')
                 split = layout.split()
 
                 col = split.column()

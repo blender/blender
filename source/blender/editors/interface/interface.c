@@ -3552,6 +3552,11 @@ void UI_init_userdef(void)
 	uiStyleInit();
 }
 
+void UI_reinit_font()
+{
+	uiStyleInit();
+}
+
 void UI_exit(void)
 {
 	ui_resources_free();

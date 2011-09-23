@@ -2278,7 +2278,7 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
 	dm->getMinMax(dm, min, max);
 
 	if(!ob->bb)
-		ob->bb= MEM_callocN(sizeof(BoundBox), "bb");
+		ob->bb= MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
 
 	boundbox_set_from_min_max(ob->bb, min, max);
 }

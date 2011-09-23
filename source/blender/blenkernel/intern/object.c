@@ -2363,7 +2363,7 @@ BoundBox *unit_boundbox(void)
 	BoundBox *bb;
 	float min[3] = {-1.0f,-1.0f,-1.0f}, max[3] = {-1.0f,-1.0f,-1.0f};
 
-	bb= MEM_callocN(sizeof(BoundBox), "bb");
+	bb= MEM_callocN(sizeof(BoundBox), "OB-BoundBox");
 	boundbox_set_from_min_max(bb, min, max);
 	
 	return bb;

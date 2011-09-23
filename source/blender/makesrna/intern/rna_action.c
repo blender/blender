@@ -98,13 +98,13 @@ static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const ch
 	if(group && group[0]=='\0') group= NULL;
 
 	if(data_path[0] == '\0') {
-		BKE_report(reports, RPT_ERROR, "FCurve data path empty, invalid argument");
+		BKE_report(reports, RPT_ERROR, "F-Curve data path empty, invalid argument");
 		return NULL;
 	}
 
 	/* annoying, check if this exists */
 	if(verify_fcurve(act, group, data_path, index, 0)) {
-		BKE_reportf(reports, RPT_ERROR, "FCurve '%s[%d]' already exists in action '%s'", data_path, index, act->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "F-Curve '%s[%d]' already exists in action '%s'", data_path, index, act->id.name+2);
 		return NULL;
 	}
 	return verify_fcurve(act, group, data_path, index, 1);
@@ -114,7 +114,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 {
 	if (fcu->grp) {
 		if (BLI_findindex(&act->groups, fcu->grp) == -1) {
-			BKE_reportf(reports, RPT_ERROR, "FCurve's ActionGroup '%s' not found in action '%s'", fcu->grp->name, act->id.name+2);
+			BKE_reportf(reports, RPT_ERROR, "F-Curve's ActionGroup '%s' not found in action '%s'", fcu->grp->name, act->id.name+2);
 			return;
 		}
 		
@@ -123,7 +123,7 @@ static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *
 	}
 	else {
 		if (BLI_findindex(&act->curves, fcu) == -1) {
-			BKE_reportf(reports, RPT_ERROR, "FCurve not found in action '%s'", act->id.name+2);
+			BKE_reportf(reports, RPT_ERROR, "F-Curve not found in action '%s'", act->id.name+2);
 			return;
 		}
 		
@@ -309,20 +309,20 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	/* NLA Specific Settings */
 	prop= RNA_def_property(srna, "show_missing_nla", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NLA_NOACT);
-	RNA_def_property_ui_text(prop, "Include Missing NLA", "Include Animation Data blocks with no NLA data. (NLA Editor only)");
+	RNA_def_property_ui_text(prop, "Include Missing NLA", "Include Animation Data blocks with no NLA data (NLA Editor only)");
 	RNA_def_property_ui_icon(prop, ICON_ACTION, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	/* Summary Settings (DopeSheet editors only) */
 	prop= RNA_def_property(srna, "show_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_SUMMARY);
-	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line. (DopeSheet Editors only)");
+	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line (DopeSheet Editors only)");
 	RNA_def_property_ui_icon(prop, ICON_BORDERMOVE, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	prop= RNA_def_property(srna, "show_expanded_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ADS_FLAG_SUMMARY_COLLAPSED);
-	RNA_def_property_ui_text(prop, "Collapse Summary", "Collapse summary when shown, so all other channels get hidden. (DopeSheet Editors Only)");
+	RNA_def_property_ui_text(prop, "Collapse Summary", "Collapse summary when shown, so all other channels get hidden (DopeSheet Editors Only)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN|NA_EDITED, NULL);
 	
 	
@@ -514,24 +514,24 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "ActionFCurves");
 	srna= RNA_def_struct(brna, "ActionFCurves", NULL);
 	RNA_def_struct_sdna(srna, "bAction");
-	RNA_def_struct_ui_text(srna, "Action FCurves", "Collection of action fcurves");
+	RNA_def_struct_ui_text(srna, "Action F-Curves", "Collection of action F-Curves");
 
 	func= RNA_def_function(srna, "new", "rna_Action_fcurve_new");
-	RNA_def_function_ui_description(func, "Add a keyframe to the curve");
+	RNA_def_function_ui_description(func, "Add a keyframe to the F-Curve");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_string(func, "data_path", "", 0, "Data Path", "FCurve data path to use");
+	parm= RNA_def_string(func, "data_path", "", 0, "Data Path", "F-Curve data path to use");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
-	RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this fcurve into");
+	RNA_def_string(func, "action_group", "", 0, "Action Group", "Acton group to add this F-Curve into");
 
-	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created fcurve");
+	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "Newly created F-Curve");
 	RNA_def_function_return(func, parm);
 
 
 	func= RNA_def_function(srna, "remove", "rna_Action_fcurve_remove");
 	RNA_def_function_ui_description(func, "Remove action group");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "FCurve to remove");
+	parm= RNA_def_pointer(func, "fcurve", "FCurve", "", "F-Curve to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
@@ -605,7 +605,7 @@ static void rna_def_action(BlenderRNA *brna)
 	rna_def_action_pose_markers(brna, prop);
 	
 	/* properties */
-	prop= RNA_def_float_vector(srna, "frame_range" , 2 , NULL , 0, 0, "Frame Range" , "The final frame range of all fcurves within this action" , 0 , 0);
+	prop= RNA_def_float_vector(srna, "frame_range" , 2 , NULL , 0, 0, "Frame Range" , "The final frame range of all F-Curves within this action" , 0 , 0);
 	RNA_def_property_float_funcs(prop, "rna_Action_frame_range_get" , NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	

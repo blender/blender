@@ -58,9 +58,9 @@ CHECKER_ARGS = [
     # re-definitions, rna causes most of these
     "-redef",
     "-syntax",
-    
+
     # dummy, witjout this splint complains with:
-    #  /usr/include/bits/confname.h:31:27: *** Internal Bug at cscannerHelp.c:2428: Unexpanded macro not function or constant: int _PC_MAX_CANON 
+    #  /usr/include/bits/confname.h:31:27: *** Internal Bug at cscannerHelp.c:2428: Unexpanded macro not function or constant: int _PC_MAX_CANON
     "-D_PC_MAX_CANON=0",
     ]
 

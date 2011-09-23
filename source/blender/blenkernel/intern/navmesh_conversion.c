@@ -37,16 +37,17 @@
 #include "BKE_navmesh_conversion.h"
 #include "BKE_cdderivedmesh.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_math.h"
 
 #include "recast-capi.h"
 
-inline float area2(const float* a, const float* b, const float* c)
+BM_INLINE float area2(const float* a, const float* b, const float* c)
 {
 	return (b[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (b[2] - a[2]);
 }
 
-inline int left(const float* a, const float* b, const float* c)
+BM_INLINE int left(const float* a, const float* b, const float* c)
 {
 	return area2(a, b, c) < 0;
 }

@@ -57,16 +57,6 @@
 #include <X11/XF86keysym.h>
 #endif
 
-#ifdef __sgi
-
-#if defined(_SGI_EXTRA_PREDEFINES) && !defined(NO_FAST_ATOMS)
-#include <X11/SGIFastAtom.h>
-#else
-#define XSGIFastInternAtom(dpy,string,fast_name,how) XInternAtom(dpy,string,how)
-#endif
-
-#endif
-
 // For timing
 
 #include <sys/time.h>
@@ -98,16 +88,9 @@ GHOST_SystemX11(
 		std::cerr << "Unable to open a display" << std::endl;
 		abort(); //was return before, but this would just mean it will crash later
 	}
-	
-#ifdef __sgi
-	m_delete_window_atom 
-	  = XSGIFastInternAtom(m_display,
-			       "WM_DELETE_WINDOW", 
-			       SGI_XA_WM_DELETE_WINDOW, False);
-#else
+
 	m_delete_window_atom 
 	  = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
-#endif
 
 	m_wm_protocols= XInternAtom(m_display, "WM_PROTOCOLS", False);
 	m_wm_take_focus= XInternAtom(m_display, "WM_TAKE_FOCUS", False);
@@ -630,7 +613,6 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		{
 			XClientMessageEvent & xcme = xe->xclient;
 
-#ifndef __sgi			
 			if (((Atom)xcme.data.l[0]) == m_delete_window_atom) {
 				g_event = new 
 				GHOST_Event(	
@@ -638,10 +620,8 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					GHOST_kEventWindowClose,
 					window
 				);
-			} else 
-#endif
-
-			if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+			}
+			else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
 				XWindowAttributes attr;
 				Window fwin;
 				int revert_to;

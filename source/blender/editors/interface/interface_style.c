@@ -323,13 +323,28 @@ void uiStyleInit(void)
 		
 		if(font->uifont_id==UIFONT_DEFAULT) {
 #ifdef INTERNATIONAL
-			int unifont_size;
-			unsigned char *unifont_ttf= BLF_get_unifont(&unifont_size);
+			int font_size= datatoc_bfont_ttf_size;
+			unsigned char *font_ttf= (unsigned char*)datatoc_bfont_ttf;
+			static int last_font_size = 0;
 
-			if(unifont_ttf)
-				font->blf_id= BLF_load_mem_unique("default", unifont_ttf, unifont_size);
-			else
-				font->blf_id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
+			/* use unicode font for translation */
+			if(U.transopts & USER_DOTRANSLATE) {
+				font_ttf= BLF_get_unifont(&font_size);
+
+				if(!font_ttf) {
+					/* fall back if not found */
+					font_size= datatoc_bfont_ttf_size;
+					font_ttf= (unsigned char*)datatoc_bfont_ttf;
+				}
+			}
+
+			/* relload only if needed */
+			if(last_font_size != font_size) {
+				BLF_unload("default");
+				last_font_size = font_size;
+			}
+
+			font->blf_id= BLF_load_mem("default", font_ttf, font_size);
 #else
 			font->blf_id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 #endif

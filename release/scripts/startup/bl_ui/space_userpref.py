@@ -650,7 +650,7 @@ class USERPREF_PT_theme(Panel):
             col = split.column()
 
             for i, ui in enumerate(theme.bone_color_sets):
-                col.label(text=_("Color Set")+" %d:" % (i + 1))  # i starts from 0
+                col.label(text=_("Color Set") + " %d:" % (i + 1))  # i starts from 0
 
                 row = col.row()
 

@@ -22,6 +22,7 @@ from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
 from blf import gettext as _
 
+
 class LAMP_MT_sunsky_presets(Menu):
     bl_label = _("Sun & Sky Presets")
     preset_subdir = "sunsky"

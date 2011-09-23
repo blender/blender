@@ -2488,7 +2488,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 	uiLayout *ui_abs;
 	uiBlock *block;
 	uiBut *but;
-	uiStyle *style= U.uistyles.first;
+	uiStyle *style= UI_GetStyle();
 	int width;
 	int icon=0;
 	

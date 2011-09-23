@@ -372,13 +372,13 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
 
         col = layout.column(align=True)
         row = col.row()
-        row.label(text=_("Final Length")+": %s" % bpy.utils.smpte_from_frame(strip.frame_final_duration))
+        row.label(text=_("Final Length") + ": %s" % bpy.utils.smpte_from_frame(strip.frame_final_duration))
         row = col.row()
         row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_duration)
-        row.label(text=_("Playhead")+": %d" % (frame_current - strip.frame_start))
+        row.label(text=_("Playhead") + ": %d" % (frame_current - strip.frame_start))
 
-        col.label(text=_("Frame Offset")+" %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
-        col.label(text=_("Frame Still")+" %d:%d" % (strip.frame_still_start, strip.frame_still_end))
+        col.label(text=_("Frame Offset") + " %d:%d" % (strip.frame_offset_start, strip.frame_offset_end))
+        col.label(text=_("Frame Still") + " %d:%d" % (strip.frame_still_start, strip.frame_still_end))
 
         elem = False
 
@@ -388,7 +388,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
             elem = strip.elements[0]
 
         if elem and elem.orig_width > 0 and elem.orig_height > 0:
-            col.label(text=_("Orig Dim")+": %dx%d" % (elem.orig_width, elem.orig_height))
+            col.label(text=_("Orig Dim") + ": %dx%d" % (elem.orig_width, elem.orig_height))
         else:
             col.label(text=_("Orig Dim: None"))
 
@@ -690,7 +690,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         if scene:
             sta = scene.frame_start
             end = scene.frame_end
-            layout.label(text=_("Original frame range")+": %d-%d (%d)" % (sta, end, end - sta + 1))
+            layout.label(text=_("Original frame range") + ": %d-%d (%d)" % (sta, end, end - sta + 1))
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):

@@ -12290,7 +12290,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	BlendFileData *bfd;
 
 	bfd= MEM_callocN(sizeof(BlendFileData), "blendfiledata");
-	bfd->main= MEM_callocN(sizeof(Main), "main");
+	bfd->main= MEM_callocN(sizeof(Main), "readfile_Main");
 	BLI_addtail(&fd->mainlist, bfd->main);
 
 	bfd->main->versionfile= fd->fileversion;

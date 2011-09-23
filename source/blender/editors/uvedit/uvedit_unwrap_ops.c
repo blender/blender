@@ -862,7 +862,7 @@ static void correct_uv_aspect(BMEditMesh *em)
 static void uv_map_clip_correct_properties(wmOperatorType *ot)
 {
 	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect",
-	                "Map UV's taking image aspect ratio into account");
+	                "Map UVs taking image aspect ratio into account");
 	RNA_def_boolean(ot->srna, "clip_to_bounds", 0, "Clip to Bounds",
 	                "Clip UV coordinates to bounds after unwrapping");
 	RNA_def_boolean(ot->srna, "scale_to_bounds", 0, "Scale to Bounds",
@@ -1014,11 +1014,11 @@ void UV_OT_unwrap(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "method", method_items, 0, "Method",
-	             "Unwrapping method. Angle Based usually gives better results than Conformal, while being somewhat slower");
+	             "Unwrapping method (Angle Based usually gives better results than Conformal, while being somewhat slower)");
 	RNA_def_boolean(ot->srna, "fill_holes", 1, "Fill Holes",
 	                "Virtual fill holes in mesh before unwrapping, to better avoid overlaps and preserve symmetry");
 	RNA_def_boolean(ot->srna, "correct_aspect", 1, "Correct Aspect",
-	                "Map UV's taking image aspect ratio into account");
+	                "Map UVs taking image aspect ratio into account");
 }
 
 /**************** Project From View operator **************/

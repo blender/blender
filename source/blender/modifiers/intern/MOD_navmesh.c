@@ -48,12 +48,12 @@
 #include "BKE_customdata.h"
 #include "MEM_guardedalloc.h"
 
-static int bit(int a, int b)
+BM_INLINE int bit(int a, int b)
 {
 	return (a & (1 << b)) >> b;
 }
 
-static void intToCol(int i, float* col)
+BM_INLINE void intToCol(int i, float* col)
 {
 	int	r = bit(i, 0) + bit(i, 3) * 2 + 1;
 	int	g = bit(i, 1) + bit(i, 4) * 2 + 1;
