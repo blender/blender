@@ -270,14 +270,14 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "adjframes");
 	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_ui_text(prop, "Adjust Frames", "Automatically re-adjust marker position using position on each N frames. 0 means only keyframed position is sued.");
+	RNA_def_property_ui_text(prop, "Adjust Frames", "Automatically re-adjust marker position using position on each N frames. 0 means only keyframed position is sued");
 
 	/* margin */
 	prop= RNA_def_property(srna, "margin", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "margin");
 	RNA_def_property_range(prop, 0, 300);
-	RNA_def_property_ui_text(prop, "Margin", "Margin for markers from image boundary.");
+	RNA_def_property_ui_text(prop, "Margin", "Margin for markers from image boundary");
 
 	/* keyframe1 */
 	prop= RNA_def_property(srna, "keyframe1", PROP_INT, PROP_NONE);
@@ -560,10 +560,10 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	/* ** api ** */
 
 	func= RNA_def_function(srna, "get_marker", "rna_trackingTrack_marker_get");
-	RNA_def_function_ui_description(func, "Get marker for specified frame.");
-	parm= RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "type for the new spline.", MINFRAME, MAXFRAME);
+	RNA_def_function_ui_description(func, "Get marker for specified frame");
+	parm= RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "type for the new spline", MINFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Marker for specified frame.");
+	parm= RNA_def_pointer(func, "marker", "MovieTrackingMarker", "", "Marker for specified frame");
 	RNA_def_function_return(func, parm);
 }
 
@@ -698,7 +698,7 @@ static void rna_def_trackingTracks(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Movie Tracks", "Collection of movie tracking tracks");
 
 	func= RNA_def_function(srna, "add", "rna_tracking_tracks_add");
-	RNA_def_function_ui_description(func, "Add a number of tracks to this movie clip.");
+	RNA_def_function_ui_description(func, "Add a number of tracks to this movie clip");
 	RNA_def_int(func, "framenr", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add tracks on", MINFRAME, MAXFRAME);
 	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of tracks to add to the movie clip", 0, INT_MAX);
 }

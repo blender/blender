@@ -87,12 +87,12 @@ static int sequence_guess_offset(const char *full_name, int head_len, int numlen
 	return atoi(num);
 }
 
-static int rendersize_to_proxy(MovieClip *clip, int flag)
+static int rendersize_to_proxy(MovieClipUser *user, int flag)
 {
 	if((flag&MCLIP_USE_PROXY)==0)
 		return IMB_PROXY_NONE;
 
-	switch(clip->render_size) {
+	switch(user->render_size) {
 		case MCLIP_PROXY_RENDER_SIZE_25:
 			return IMB_PROXY_25;
 
@@ -101,6 +101,9 @@ static int rendersize_to_proxy(MovieClip *clip, int flag)
 
 		case MCLIP_PROXY_RENDER_SIZE_75:
 			return IMB_PROXY_75;
+
+		case MCLIP_PROXY_RENDER_SIZE_100:
+			return IMB_PROXY_100;
 
 		case MCLIP_PROXY_RENDER_SIZE_FULL:
 			return IMB_PROXY_NONE;
@@ -120,6 +123,9 @@ static int rendersize_to_number(int render_size)
 
 		case MCLIP_PROXY_RENDER_SIZE_75:
 			return 75;
+
+		case MCLIP_PROXY_RENDER_SIZE_100:
+			return 100;
 
 		case MCLIP_PROXY_RENDER_SIZE_FULL:
 			return 100;
@@ -159,13 +165,12 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 }
 
 /* supposed to work with sequences only */
-static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int framenr, char *name)
+static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistorted, int framenr, char *name)
 {
 	int size= rendersize_to_number(proxy_render_size);
-	char dir[FILE_MAX], curname[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
+	char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
 
-	get_sequence_fname(clip, framenr, curname);
-	BLI_split_dirfile(curname, clipdir, clipfile);
+	BLI_split_dirfile(clip->name, clipdir, clipfile);
 
 	if(clip->flag&MCLIP_USE_PROXY_CUSTOM_DIR) {
 		strcpy(dir, clip->proxy.dir);
@@ -173,7 +178,10 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int framenr,
 		BLI_snprintf(dir, FILE_MAX, "%s/BL_proxy", clipdir);
 	}
 
-	BLI_snprintf(name, FILE_MAX, "%s/images/%d/%s_proxy", dir, size,  clipfile);
+	if(undistorted)
+		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d_undistorted/%08d", dir, clipfile, size, framenr);
+	else
+		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d/%08d", dir, clipfile, size, framenr);
 
 	BLI_path_abs(name, G.main->name);
 	BLI_path_frame(name, 1, 0);
@@ -181,16 +189,20 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int framenr,
 	strcat(name, ".jpg");
 }
 
-static ImBuf *movieclip_load_sequence_file(MovieClip *clip, int framenr, int flag)
+static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user, int framenr, int flag)
 {
 	struct ImBuf *ibuf;
 	char name[FILE_MAX];
-	int loadflag, size;
+	int loadflag, size, undistort;
 
-	size= rendersize_to_number(clip->render_size);
+	size= rendersize_to_number(user->render_size);
 
-	if(flag&MCLIP_USE_PROXY && size!=100) get_proxy_fname(clip, clip->render_size, framenr, name);
-	else get_sequence_fname(clip, framenr, name);
+	undistort= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
+
+	if((flag&MCLIP_USE_PROXY) && user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL)
+		get_proxy_fname(clip, user->render_size, undistort, framenr, name);
+	else
+		get_sequence_fname(clip, framenr, name);
 
 	loadflag= IB_rect|IB_multilayer;
 
@@ -200,11 +212,11 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, int framenr, int fla
 	return ibuf;
 }
 
-static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr, int flag)
+static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, int framenr, int flag)
 {
 	ImBuf *ibuf= NULL;
 	int tc= get_timecode(clip, flag);
-	int proxy= rendersize_to_proxy(clip, flag);
+	int proxy= rendersize_to_proxy(user, flag);
 	char str[FILE_MAX];
 
 	if(!clip->anim) {
@@ -229,7 +241,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, int framenr, int flag)
 	}
 
 	if(clip->anim) {
-		int dur= IMB_anim_get_duration(clip->anim, tc);
+		int dur;
 		int fra= framenr-1;
 
 		dur= IMB_anim_get_duration(clip->anim, tc);
@@ -257,11 +269,14 @@ typedef struct MovieClipCache {
 	int stable_framenr;
 	float stable_loc[2], stable_scale, stable_angle;
 	ImBuf *stableibuf;
+	int proxy;
+	short render_flag;
 } MovieClipCache;
 
 typedef struct MovieClipImBufCacheKey {
 	int framenr;
 	int proxy;
+	short render_flag;
 } MovieClipImBufCacheKey;
 
 static void moviecache_keydata(void *userkey, int *framenr, int *proxy)
@@ -291,6 +306,9 @@ static int moviecache_hashcmp(const void *av, const void *bv)
 	if(a->proxy<b->proxy) return -1;
 	else if(a->proxy>b->proxy) return 1;
 
+	if(a->render_flag<b->render_flag) return -1;
+	else if(a->render_flag>b->render_flag) return 1;
+
 	return 0;
 }
 
@@ -301,8 +319,14 @@ static ImBuf *get_imbuf_cache(MovieClip *clip, MovieClipUser *user, int flag)
 
 		key.framenr= user?user->framenr:clip->lastframe;
 
-		if(flag&MCLIP_USE_PROXY) key.proxy= rendersize_to_proxy(clip, flag);
-		else key.proxy= IMB_PROXY_NONE;
+		if(flag&MCLIP_USE_PROXY) {
+			key.proxy= rendersize_to_proxy(user, flag);
+			key.render_flag= user->render_flag;
+		}
+		else {
+			key.proxy= IMB_PROXY_NONE;
+			key.render_flag= 0;
+		}
 
 		return BKE_moviecache_get(clip->cache->moviecache, &key);
 	}
@@ -323,8 +347,14 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 
 	key.framenr= user?user->framenr:clip->lastframe;
 
-	if(flag&MCLIP_USE_PROXY) key.proxy= rendersize_to_proxy(clip, flag);
-	else key.proxy= IMB_PROXY_NONE;
+	if(flag&MCLIP_USE_PROXY) {
+		key.proxy= rendersize_to_proxy(user, flag);
+		key.render_flag= user->render_flag;
+	}
+	else {
+		key.proxy= IMB_PROXY_NONE;
+		key.render_flag= 0;
+	}
 
 	BKE_moviecache_put(clip->cache->moviecache, &key, ibuf);
 }
@@ -356,10 +386,9 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->tracking.stabilization.rotinf= 1.f;
 	clip->tracking.stabilization.maxscale= 2.f;
 
-	clip->proxy.build_size_flags= IMB_PROXY_25;
-	clip->proxy.build_tc_flags= IMB_TC_RECORD_RUN|IMB_TC_FREE_RUN|IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
+	clip->proxy.build_size_flag= IMB_PROXY_25;
+	clip->proxy.build_tc_flag= IMB_TC_RECORD_RUN|IMB_TC_FREE_RUN|IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN;
 	clip->proxy.quality= 90;
-	clip->render_size= MCLIP_PROXY_RENDER_SIZE_FULL;
 
 	return clip;
 }
@@ -423,13 +452,13 @@ MovieClip *BKE_add_movieclip_file(const char *name)
 	return clip;
 }
 
-static void real_ibuf_size(MovieClip *clip, ImBuf *ibuf, int *width, int *height)
+static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int *width, int *height)
 {
 	*width= ibuf->x;
 	*height= ibuf->y;
 
 	if(clip->flag&MCLIP_USE_PROXY) {
-		switch(clip->render_size) {
+		switch(user->render_size) {
 			case MCLIP_PROXY_RENDER_SIZE_25:
 				(*width)*= 4;
 				(*height)*= 4;
@@ -444,8 +473,8 @@ static void real_ibuf_size(MovieClip *clip, ImBuf *ibuf, int *width, int *height
 				*width= ((float)*width)*4.f/3.f;
 				*height= ((float)*height)*4.f/3.f;
 				break;
-               }
-       }
+		}
+	}
 }
 
 ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
@@ -461,10 +490,16 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 	ibuf= get_imbuf_cache(clip, user, clip->flag);
 
 	if(!ibuf) {
-		if(clip->source==MCLIP_SRC_SEQUENCE)
-			ibuf= movieclip_load_sequence_file(clip, framenr, clip->flag);
+		int use_sequence= 1;
+
+		/* undistorted proxies for movies should be read as image sequence */
+		use_sequence&= user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT;
+		use_sequence&= user->render_size!=MCLIP_PROXY_RENDER_SIZE_FULL;
+
+		if(clip->source==MCLIP_SRC_SEQUENCE || use_sequence)
+			ibuf= movieclip_load_sequence_file(clip, user, framenr, clip->flag);
 		else {
-			ibuf= movieclip_load_movie_file(clip, framenr, clip->flag);
+			ibuf= movieclip_load_movie_file(clip, user, framenr, clip->flag);
 		}
 
 		if(ibuf)
@@ -474,7 +509,7 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 	if(ibuf) {
 		clip->lastframe= framenr;
 
-		real_ibuf_size(clip, ibuf, &clip->lastsize[0], &clip->lastsize[1]);
+		real_ibuf_size(clip, user, ibuf, &clip->lastsize[0], &clip->lastsize[1]);
 	}
 
 	BLI_unlock_thread(LOCK_MOVIECLIP);
@@ -496,9 +531,9 @@ ImBuf *BKE_movieclip_acquire_ibuf_flag(MovieClip *clip, MovieClipUser *user, int
 
 	if(!ibuf) {
 		if(clip->source==MCLIP_SRC_SEQUENCE) {
-			ibuf= movieclip_load_sequence_file(clip, framenr, flag);
+			ibuf= movieclip_load_sequence_file(clip, user, framenr, flag);
 		} else {
-			ibuf= movieclip_load_movie_file(clip, framenr, flag);
+			ibuf= movieclip_load_movie_file(clip, user, framenr, flag);
 		}
 
 		if(ibuf) {
@@ -521,16 +556,28 @@ ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, f
 
 	ibuf= BKE_movieclip_acquire_ibuf(clip, user);
 
+	if(!ibuf)
+		return NULL;
+
 	if(clip->tracking.stabilization.flag&TRACKING_2D_STABILIZATION) {
 		float tloc[2], tscale, tangle;
+		short proxy= IMB_PROXY_NONE;
+		int render_flag= 0;
 
-		if(clip->cache->stableibuf && clip->cache->stable_framenr==framenr) {
-			stableibuf= clip->cache->stableibuf;
+		if(clip->flag&MCLIP_USE_PROXY) {
+			proxy= rendersize_to_proxy(user, clip->flag);
+			render_flag= user->render_flag;
+		}
 
-			BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
+		if(clip->cache->render_flag==render_flag && clip->cache->proxy==proxy) {
+			if(clip->cache->stableibuf && clip->cache->stable_framenr==framenr) {
+				stableibuf= clip->cache->stableibuf;
 
-			if(!equals_v2v2(tloc, clip->cache->stable_loc) || tscale!=clip->cache->stable_scale || tangle!=clip->cache->stable_angle) {
-				stableibuf= NULL;
+				BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
+
+				if(!equals_v2v2(tloc, clip->cache->stable_loc) || tscale!=clip->cache->stable_scale || tangle!=clip->cache->stable_angle) {
+					stableibuf= NULL;
+				}
 			}
 		}
 
@@ -545,6 +592,8 @@ ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, f
 			clip->cache->stable_angle= tangle;
 			clip->cache->stable_framenr= framenr;
 			clip->cache->stableibuf= stableibuf;
+			clip->cache->proxy= proxy;
+			clip->cache->render_flag= render_flag;
 		}
 
 		IMB_refImBuf(stableibuf);
@@ -590,7 +639,7 @@ void BKE_movieclip_acquire_size(MovieClip *clip, MovieClipUser *user, int *width
 		ImBuf *ibuf= BKE_movieclip_acquire_ibuf(clip, user);
 
 		if(ibuf && ibuf->x && ibuf->y) {
-			real_ibuf_size(clip, ibuf, width, height);
+			real_ibuf_size(clip, user, ibuf, width, height);
 		} else {
 			*width= 0;
 			*height= 0;
@@ -610,13 +659,13 @@ void BKE_movieclip_aspect(MovieClip *clip, float *aspx, float *aspy)
 }
 
 /* get segments of cached frames. useful for debugging cache policies */
-void BKE_movieclip_get_cache_segments(MovieClip *clip, int *totseg_r, int **points_r)
+void BKE_movieclip_get_cache_segments(MovieClip *clip, MovieClipUser *user, int *totseg_r, int **points_r)
 {
 	*totseg_r= 0;
 	*points_r= NULL;
 
 	if(clip->cache) {
-		int proxy= rendersize_to_proxy(clip, clip->flag);
+		int proxy= rendersize_to_proxy(user, clip->flag);
 
 		BKE_moviecache_get_cache_segments(clip->cache->moviecache, proxy, totseg_r, points_r);
 	}
@@ -740,50 +789,87 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 	scopes->ok= 1;
 }
 
-void BKE_movieclip_build_proxy_frame(MovieClip *clip, int cfra, int proxy_render_size)
+static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, int proxy_render_size, int undistorted)
 {
 	char name[FILE_MAXFILE+FILE_MAXDIR];
-	int quality, rectx, recty, size;
+	int quality, rectx, recty;
+	int size= size= rendersize_to_number(proxy_render_size);
+	ImBuf *scaleibuf;
+
+	get_proxy_fname(clip, proxy_render_size, undistorted, cfra, name);
+
+	rectx= ibuf->x*size/100.f;
+	recty= ibuf->y*size/100.f;
+
+	scaleibuf= IMB_dupImBuf(ibuf);
+
+	IMB_scaleImBuf(scaleibuf, (short)rectx, (short)recty);
+
+	quality= clip->proxy.quality;
+	scaleibuf->ftype= JPG | quality;
+
+	/* unsupported feature only confuses other s/w */
+	if(scaleibuf->depth==32)
+		scaleibuf->depth= 24;
+
+	BLI_lock_thread(LOCK_MOVIECLIP);
+
+	BLI_make_existing_file(name);
+	if(IMB_saveiff(scaleibuf, name, IB_rect)==0)
+		perror(name);
+
+	BLI_unlock_thread(LOCK_MOVIECLIP);
+
+	IMB_freeImBuf(scaleibuf);
+}
+
+void BKE_movieclip_build_proxy_frame(MovieClip *clip, int cfra, int *build_sizes, int build_count, int undistorted)
+{
 	ImBuf *ibuf;
 	MovieClipUser user;
 
-	size= rendersize_to_number(proxy_render_size);
 	user.framenr= cfra;
-
-	get_proxy_fname(clip, proxy_render_size, cfra, name);
 
 	ibuf= BKE_movieclip_acquire_ibuf_flag(clip, &user, 0);
 
 	if(ibuf) {
-		ImBuf *scaleibuf= ibuf;
+		ImBuf *tmpibuf= ibuf;
+		int i;
 
-		rectx= ibuf->x*size/100.f;
-		recty= ibuf->y*size/100.f;
+		if(undistorted) {
+			ImBuf *aspectibuf= ibuf;
+			float aspy= 1.f/clip->tracking.camera.pixel_aspect;
 
-		if (ibuf->x != rectx || ibuf->y != recty) {
-			if(ibuf->refcounter)	/* means buffer came from cache and shouldn't be modified */
-				scaleibuf= IMB_dupImBuf(ibuf);
+			if(aspectibuf->y*aspy!=aspectibuf->y) {
+				/* not very nice, but distortion coefficients were adjusted exactly for such aspect ratio */
+				aspectibuf= IMB_dupImBuf(aspectibuf);
+				IMB_scaleImBuf(aspectibuf, aspectibuf->x, aspectibuf->y*aspy);
+			}
 
-			IMB_scalefastImBuf(scaleibuf, (short)rectx, (short)recty);
+			/* XXX: because of #27997 do not use float buffers to undistort,
+			        otherwise, undistorted proxy can be darker than it should */
+			imb_freerectfloatImBuf(aspectibuf);
+
+			tmpibuf= BKE_tracking_undistort(&clip->tracking, aspectibuf);
+
+			if(tmpibuf->userflags|= IB_RECT_INVALID) {
+				ibuf->userflags&= ~IB_RECT_INVALID;
+				IMB_rect_from_float(tmpibuf);
+			}
+
+			IMB_scaleImBuf(tmpibuf, ibuf->x, ibuf->y);
+
+			if(aspectibuf!=ibuf)
+				IMB_freeImBuf(aspectibuf);
 		}
 
-		quality= clip->proxy.quality;
-		scaleibuf->ftype= JPG | quality;
-
-		/* unsupported feature only confuses other s/w */
-		if(scaleibuf->depth==32)
-			scaleibuf->depth= 24;
-
-		BLI_lock_thread(LOCK_MOVIECLIP);
-
-		BLI_make_existing_file(name);
-		if(IMB_saveiff(scaleibuf, name, IB_rect)==0)
-			perror(name);
-
-		BLI_unlock_thread(LOCK_MOVIECLIP);
+		for(i= 0; i<build_count; i++)
+			movieclip_build_proxy_ibuf(clip, tmpibuf, cfra, build_sizes[i], undistorted);
 
 		IMB_freeImBuf(ibuf);
-		if(scaleibuf!=ibuf) IMB_freeImBuf(scaleibuf);
+
+		if(tmpibuf!=ibuf)
+			IMB_freeImBuf(tmpibuf);
 	}
 }
 

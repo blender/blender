@@ -12212,9 +12212,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 
 			/* XXX: a bit hacky, probably include imbuf and use real constants are nicer */
-			clip->proxy.build_tc_flags= 7;
-			if(clip->proxy.build_size_flags==0)
-				clip->proxy.build_size_flags= 1;
+			clip->proxy.build_tc_flag= 7;
+			if(clip->proxy.build_size_flag==0)
+				clip->proxy.build_size_flag= 1;
 
 			if(clip->proxy.quality==0)
 				clip->proxy.quality= 90;

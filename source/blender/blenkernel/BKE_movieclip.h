@@ -60,9 +60,9 @@ void BKE_movieclip_deselect_track(struct MovieClip *clip, struct MovieTrackingTr
 
 void BKE_movieclip_update_scopes(struct MovieClip *clip, struct MovieClipUser *user, struct MovieClipScopes *scopes);
 
-void BKE_movieclip_get_cache_segments(struct MovieClip *clip, int *totseg_r, int **points_r);
+void BKE_movieclip_get_cache_segments(struct MovieClip *clip, struct MovieClipUser *user, int *totseg_r, int **points_r);
 
-void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, int cfra, int proxy_render_size);
+void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, int cfra, int *build_sizes, int build_count, int undistorted);
 
 #define TRACK_CLEAR_UPTO		0
 #define TRACK_CLEAR_REMAINED	1

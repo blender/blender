@@ -336,10 +336,6 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "backwards", 1);
 	RNA_boolean_set(kmi->ptr, "sequence", 1);
 
-	/* ******** Hotkeys avalaible for main region only ******** */
-
-	keymap= WM_keymap_find(keyconf, "Clip Editor", SPACE_CLIP, 0);
-
 	/* mode */
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "mode", SC_MODE_RECONSTRUCTION);
@@ -348,6 +344,10 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "CLIP_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", SC_MODE_DISTORTION);
 	RNA_boolean_set(kmi->ptr, "toggle", 1);
+
+	/* ******** Hotkeys avalaible for main region only ******** */
+
+	keymap= WM_keymap_find(keyconf, "Clip Editor", SPACE_CLIP, 0);
 
 	/* ** View/navigation ** */
 

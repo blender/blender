@@ -49,7 +49,7 @@ struct MovieTrackingMarker;
 
 typedef struct MovieClipUser {
 	int framenr;	/* current frame number */
-	int pad;
+	short render_size, render_flag;		/* proxy render size */
 } MovieClipUser;
 
 typedef struct MovieClipProxy {
@@ -57,8 +57,10 @@ typedef struct MovieClipProxy {
 
 	short tc;				/* time code in use */
 	short quality;			/* proxy build quality */
-	short build_size_flags;	/* size flags (see below) of all proxies to build */
-	short build_tc_flags;	/* time code flags (see below) of all tc indices to build */
+	short build_size_flag;	/* size flags (see below) of all proxies to build */
+	short build_tc_flag;	/* time code flags (see below) of all tc indices to build */
+	short build_flag, pad;	/* other build flags */
+	char pad2[4];
 } MovieClipProxy;
 
 typedef struct MovieClip {
@@ -82,8 +84,7 @@ typedef struct MovieClip {
 										   in SpaceClip clip user */
 
 	struct MovieClipProxy proxy;		/* proxy to clip data */
-	short render_size, pad;				/* proxy render size */
-	int flag;
+	int flag, pad;
 } MovieClip;
 
 typedef struct MovieClipScopes {
@@ -99,6 +100,9 @@ typedef struct MovieClipScopes {
 	float slide_scale[2];			/* scale used for sliding from previewe area */
 } MovieClipScopes;
 
+/* MovieClipProxy->build_flag */
+#define MCLIP_PROXY_BUILD_UNDISTORT	1	/* build undistorted proxies as well */
+
 /* MovieClip->source */
 #define MCLIP_SRC_SEQUENCE	1
 #define MCLIP_SRC_MOVIE		2
@@ -112,9 +116,13 @@ typedef struct MovieClipScopes {
 #define MCLIP_USE_PROXY_CUSTOM_DIR		(1<<1)
 
 /* MovieClip->render_size */
-#define MCLIP_PROXY_RENDER_SIZE_25        0
-#define MCLIP_PROXY_RENDER_SIZE_50        1
-#define MCLIP_PROXY_RENDER_SIZE_75        2
-#define MCLIP_PROXY_RENDER_SIZE_FULL      3
+#define MCLIP_PROXY_RENDER_SIZE_FULL	0
+#define MCLIP_PROXY_RENDER_SIZE_25		1
+#define MCLIP_PROXY_RENDER_SIZE_50		2
+#define MCLIP_PROXY_RENDER_SIZE_75		3
+#define MCLIP_PROXY_RENDER_SIZE_100		4
+
+/* MovieClip->render_flag */
+#define MCLIP_PROXY_RENDER_UNDISTORT	1
 
 #endif

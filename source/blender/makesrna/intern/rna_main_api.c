@@ -1350,17 +1350,17 @@ void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "remove", "rna_Main_movieclips_remove");
 	RNA_def_function_ui_description(func, "Remove a movie clip from the current blendfile.");
-	parm= RNA_def_pointer(func, "clip", "MovieClip", "", "Movie clip to remove.");
+	parm= RNA_def_pointer(func, "clip", "MovieClip", "", "Movie clip to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 
 	/* load func */
 	func= RNA_def_function(srna, "load", "rna_Main_movieclip_load");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new movie clip to the main database from a file");
-	parm= RNA_def_string_file_path(func, "filepath", "Path", FILE_MAXDIR + FILE_MAXFILE, "", "path for the datablock.");
+	parm= RNA_def_string_file_path(func, "filepath", "Path", FILE_MAXDIR + FILE_MAXFILE, "", "path for the datablock");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm= RNA_def_pointer(func, "clip", "MovieClip", "", "New movie clip datablock.");
+	parm= RNA_def_pointer(func, "clip", "MovieClip", "", "New movie clip datablock");
 	RNA_def_function_return(func, parm);
 }
 

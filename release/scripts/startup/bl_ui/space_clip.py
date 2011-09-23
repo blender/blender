@@ -18,86 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Operator, Panel, Header, Menu
-
-
-class CLIP_OT_track_to_empty(Operator):
-    bl_idname = "clip.track_to_empty"
-    bl_label = "2D Track to Empty"
-    bl_options = {'UNDO', 'REGISTER'}
-
-    @classmethod
-    def poll(cls, context):
-        if context.space_data.type != 'CLIP_EDITOR':
-            return False
-
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip and clip.tracking.active_track
-
-    def execute(self, context):
-        sc = context.space_data
-        clip = sc.clip
-        track = clip.tracking.active_track
-        constraint = None
-        ob = None
-
-        if track.name in bpy.data.objects:
-            if bpy.data.objects[track.name].type == 'Empty':
-                ob = bpy.data.objects[track.name]
-
-        if  not ob:
-            ob = bpy.data.objects.new(name=track.name, object_data=None)
-            ob.select = True
-            bpy.context.scene.objects.link(ob)
-            bpy.context.scene.objects.active = ob
-
-        for con in ob.constraints:
-            if con.type == 'FOLLOW_TRACK':
-                constraint = con
-                break
-
-        if constraint is None:
-            constraint = ob.constraints.new(type='FOLLOW_TRACK')
-
-        constraint.clip = sc.clip
-        constraint.track = track.name
-        constraint.reference = 'TRACK'
-
-        return {'FINISHED'}
-
-
-class CLIP_OT_bundles_to_mesh(Operator):
-    bl_idname = "clip.bundles_to_mesh"
-    bl_label = "Bundles to Mesh"
-    bl_options = {'UNDO', 'REGISTER'}
-
-    @classmethod
-    def poll(cls, context):
-        if context.space_data.type != 'CLIP_EDITOR':
-            return False
-
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip
-
-    def execute(self, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        mesh = bpy.data.meshes.new(name="Bundles")
-        for track in clip.tracking.tracks:
-            if track.has_bundle:
-                mesh.vertices.add(1)
-                mesh.vertices[-1].co = track.bundle
-
-        ob = bpy.data.objects.new(name="Bundles", object_data=mesh)
-
-        bpy.context.scene.objects.link(ob)
-
-        return {'FINISHED'}
+from bpy.types import Panel, Header, Menu
 
 
 class CLIP_HT_header(Header):
@@ -120,6 +41,7 @@ class CLIP_HT_header(Header):
             if clip:
                 sub.menu("CLIP_MT_select")
                 sub.menu("CLIP_MT_track")
+                sub.menu("CLIP_MT_reconstruction")
 
         if clip:
             layout.prop(sc, "mode", text="")
@@ -641,10 +563,16 @@ class CLIP_PT_proxy(Panel):
         layout.active = clip.use_proxy
 
         layout.label(text="Build Sizes:")
+
         row = layout.row()
         row.prop(clip.proxy, "build_25")
         row.prop(clip.proxy, "build_50")
+
+        row = layout.row()
         row.prop(clip.proxy, "build_75")
+        row.prop(clip.proxy, "build_100")
+
+        layout.prop(clip.proxy, "build_undistorted")
 
         layout.prop(clip.proxy, "quality")
 
@@ -662,7 +590,11 @@ class CLIP_PT_proxy(Panel):
 
         col = layout.column()
         col.label(text="Proxy render size:")
-        col.prop(clip, "proxy_render_size", text="")
+
+        col.prop(sc.clip_user, "proxy_render_size", text="")
+        row = col.row()
+        row.active = sc.clip_user.proxy_render_size != 'FULL'
+        row.prop(sc.clip_user, "use_render_undistorted")
 
 
 class CLIP_PT_footage(Panel):
@@ -728,10 +660,25 @@ class CLIP_MT_clip(Menu):
         sc = context.space_data
         clip = sc.clip
 
+        layout.menu("CLIP_MT_proxy")
+
         if clip:
             layout.operator("clip.reload")
 
         layout.operator("clip.open")
+
+
+class CLIP_MT_proxy(Menu):
+    bl_label = "Proxy"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+        clip = sc.clip
+
+        layout.operator("clip.rebuild_proxy")
+        layout.operator("clip.delete_proxy")
 
 
 class CLIP_MT_track(Menu):
@@ -740,24 +687,24 @@ class CLIP_MT_track(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("clip.set_origin")
-
-        layout.separator()
-        layout.operator("clip.clear_reconstruction")
+        layout.operator("clip.clear_solution")
         layout.operator("clip.solve_camera")
 
         layout.separator()
-        op = layout.operator("clip.clear_track_path", \
-             text="Clear Remained Path")
+        op = layout.operator("clip.clear_track_path", text="Clear After")
         op.action = 'REMAINED'
 
-        op = layout.operator("clip.clear_track_path", \
-             text="Clear Path Up To")
+        op = layout.operator("clip.clear_track_path", text="Clear Before")
         op.action = 'UPTO'
 
-        op = layout.operator("clip.clear_track_path", \
-             text="Clear Track Path")
+        op = layout.operator("clip.clear_track_path", text="Clear Track Path")
         op.action = 'ALL'
+
+        layout.separator()
+        layout.operator("clip.join_tracks")
+
+        layout.separator()
+        layout.operator("clip.clean_tracks")
 
         layout.separator()
         op = layout.operator("clip.track_markers", \
@@ -782,6 +729,26 @@ class CLIP_MT_track(Menu):
         layout.separator()
         layout.menu("CLIP_MT_track_visibility")
         layout.menu("CLIP_MT_track_transform")
+
+
+class CLIP_MT_reconstruction(Menu):
+    bl_label = "Reconstruction"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("clip.set_origin")
+        layout.operator("clip.set_floor")
+
+        layout.operator("clip.set_axis", text="Set X Asix").axis = "X"
+        layout.operator("clip.set_axis", text="Set Y Asix").axis = "Y"
+
+        layout.operator("clip.set_scale")
+
+        layout.separator()
+
+        layout.operator("clip.track_to_empty")
+        layout.operator("clip.bundles_to_mesh")
 
 
 class CLIP_MT_track_visibility(Menu):

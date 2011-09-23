@@ -88,7 +88,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	glRecti(0, 0, ar->winx, 8);
 
 	/* cached segments -- could be usefu lto debug caching strategies */
-	BKE_movieclip_get_cache_segments(clip, &totseg, &points);
+	BKE_movieclip_get_cache_segments(clip, &sc->user, &totseg, &points);
 	if(totseg) {
 		glColor4ub(128, 128, 255, 128);
 

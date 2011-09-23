@@ -2276,6 +2276,9 @@ class VIEW3D_PT_background_image(Panel):
                     if bg.clip:
                         box.template_movieclip(bg, "clip", compact=True)
                         hasbg = True
+                        if bg.clip.use_proxy:
+                            box.prop(bg.clip_user, "proxy_render_size", text="")
+                            box.prop(bg.clip_user, "use_render_undistorted")
 
                 if hasbg:
                     box.prop(bg, "opacity", slider=True)

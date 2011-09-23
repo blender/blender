@@ -862,35 +862,47 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	ProxyJob *pj= pjv;
 	Scene *scene=pj->scene;
 	MovieClip *clip= pj->clip;
-	int cfra, tc_flags, size_flags, quality;
+	int cfra, undistort;
+	short tc_flag, size_flag, quality, build_flag;
+	int sfra= SFRA, efra= EFRA;
+	int build_sizes[4], build_count= 0;
 
-	tc_flags= clip->proxy.build_tc_flags;
-	size_flags= clip->proxy.build_size_flags;
+	tc_flag= clip->proxy.build_tc_flag;
+	size_flag= clip->proxy.build_size_flag;
 	quality= clip->proxy.quality;
+	build_flag= clip->proxy.build_flag;
+	undistort= build_flag&MCLIP_PROXY_RENDER_UNDISTORT;
 
-	if (clip->source == MCLIP_SRC_MOVIE) {
-		if (clip->anim)
-			IMB_anim_index_rebuild(clip->anim, tc_flags, size_flags, quality, stop, do_update, progress);
+	if(clip->source == MCLIP_SRC_MOVIE) {
+		if(clip->anim)
+			IMB_anim_index_rebuild(clip->anim, tc_flag, size_flag, quality, stop, do_update, progress);
 
-		return;
+		if(!undistort) {
+			return;
+		}
+		else {
+			sfra= 1;
+			efra= IMB_anim_get_duration(clip->anim, IMB_TC_NONE);
+		}
 	}
 
-	for(cfra= SFRA; cfra<=EFRA; cfra++) {
-		if (size_flags & IMB_PROXY_25) {
-			BKE_movieclip_build_proxy_frame(clip, cfra, MCLIP_PROXY_RENDER_SIZE_25);
-		}
-		if (size_flags & IMB_PROXY_50) {
-			BKE_movieclip_build_proxy_frame(clip, cfra, MCLIP_PROXY_RENDER_SIZE_50);
-		}
-		if (size_flags & IMB_PROXY_75) {
-			BKE_movieclip_build_proxy_frame(clip, cfra, MCLIP_PROXY_RENDER_SIZE_75);
-		}
+	if(size_flag&IMB_PROXY_25) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_25;
+	if(size_flag&IMB_PROXY_50) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_50;
+	if(size_flag&IMB_PROXY_75) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_75;
+	if(size_flag&IMB_PROXY_100) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_100;
+
+	for(cfra= sfra; cfra<=efra; cfra++) {
+		if(clip->source != MCLIP_SRC_MOVIE)
+			BKE_movieclip_build_proxy_frame(clip, cfra, build_sizes, build_count, 0);
+
+		if(undistort)
+			BKE_movieclip_build_proxy_frame(clip, cfra, build_sizes, build_count, 1);
 
 		if(*stop || G.afbreek)
 			break;
 
 		*do_update= 1;
-		*progress= ((float)cfra)/(EFRA-SFRA);
+		*progress= ((float)cfra)/(efra-sfra);
 	}
 }
 
