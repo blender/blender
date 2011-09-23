@@ -20,7 +20,6 @@
 import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
-from blf import gettext as _
 
 
 class CurveButtonsPanel():
@@ -68,7 +67,7 @@ class DATA_PT_context_curve(CurveButtonsPanel, Panel):
 
 
 class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
-    bl_label = _("Shape")
+    bl_label = "Shape"
 
     def draw(self, context):
         layout = self.layout
@@ -86,17 +85,17 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Resolution:"))
+        col.label(text="Resolution:")
         sub = col.column(align=True)
-        sub.prop(curve, "resolution_u", text=_("Preview U"))
-        sub.prop(curve, "render_resolution_u", text=_("Render U"))
+        sub.prop(curve, "resolution_u", text="Preview U")
+        sub.prop(curve, "render_resolution_u", text="Render U")
         if is_curve:
-            col.label(text=_("Twisting:"))
+            col.label(text="Twisting:")
             col.prop(curve, "twist_mode", text="")
-            col.prop(curve, "twist_smooth", text=_("Smooth"))
+            col.prop(curve, "twist_smooth", text="Smooth")
         if is_text:
-            col.label(text=_("Display:"))
-            col.prop(curve, "use_fast_edit", text=_("Fast Editing"))
+            col.label(text="Display:")
+            col.prop(curve, "use_fast_edit", text="Fast Editing")
 
         col = split.column()
 
@@ -104,15 +103,15 @@ class DATA_PT_shape_curve(CurveButtonsPanel, Panel):
             sub = col.column()
             sub.label(text="")
             sub = col.column(align=True)
-            sub.prop(curve, "resolution_v", text=_("Preview V"))
-            sub.prop(curve, "render_resolution_v", text=_("Render V"))
+            sub.prop(curve, "resolution_v", text="Preview V")
+            sub.prop(curve, "render_resolution_v", text="Render V")
 
         if (is_curve or is_text):
-            col.label(text=_("Fill:"))
+            col.label(text="Fill:")
             sub = col.column()
             sub.active = (curve.dimensions == '2D' or (curve.bevel_object is None and curve.dimensions == '3D'))
             sub.prop(curve, "fill_mode", text="")
-            col.prop(curve, "use_fill_deform", text=_("Fill Deformed"))
+            col.prop(curve, "use_fill_deform", text="Fill Deformed")
 
 
 class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
@@ -130,8 +129,8 @@ class DATA_PT_curve_texture_space(CurveButtonsPanel, Panel):
         row.prop(curve, "use_uv_as_generated")
 
         row = layout.row()
-        row.column().prop(curve, "texspace_location", text=_("Location"))
-        row.column().prop(curve, "texspace_size", text=_("Size"))
+        row.column().prop(curve, "texspace_location", text="Location")
+        row.column().prop(curve, "texspace_size", text="Size")
 
 
 class DATA_PT_geometry_curve(CurveButtonsPanel, Panel):
@@ -153,17 +152,17 @@ class DATA_PT_geometry_curve(CurveButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Modification:"))
+        col.label(text="Modification:")
         col.prop(curve, "offset")
         col.prop(curve, "extrude")
-        col.label(text=_("Taper Object:"))
+        col.label(text="Taper Object:")
         col.prop(curve, "taper_object", text="")
 
         col = split.column()
-        col.label(text=_("Bevel:"))
-        col.prop(curve, "bevel_depth", text=_("Depth"))
-        col.prop(curve, "bevel_resolution", text=_("Resolution"))
-        col.label(text=_("Bevel Object:"))
+        col.label(text="Bevel:")
+        col.prop(curve, "bevel_depth", text="Depth")
+        col.prop(curve, "bevel_resolution", text="Resolution")
+        col.label(text="Bevel Object:")
         col.prop(curve, "bevel_object", text="")
 
 
@@ -183,7 +182,7 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
         layout.active = curve.use_path
 
         col = layout.column()
-        layout.prop(curve, "path_duration", text=_("Frames"))
+        layout.prop(curve, "path_duration", text="Frames")
         layout.prop(curve, "eval_time")
 
         split = layout.split()
@@ -195,7 +194,7 @@ class DATA_PT_pathanim(CurveButtonsPanelCurve, Panel):
 
         col = split.column()
         col.prop(curve, "use_radius")
-        col.prop(curve, "use_time_offset", text=_("Offset Children"))
+        col.prop(curve, "use_time_offset", text="Offset Children")
 
 
 class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
@@ -216,20 +215,20 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
             # These settings are below but its easier to have
             # poly's set aside since they use so few settings
             col = split.column()
-            col.label(text=_("Cyclic:"))
+            col.label(text="Cyclic:")
             col.prop(act_spline, "use_smooth")
             col = split.column()
             col.prop(act_spline, "use_cyclic_u", text="U")
 
         else:
             col = split.column()
-            col.label(text=_("Cyclic:"))
+            col.label(text="Cyclic:")
             if act_spline.type == 'NURBS':
-                col.label(text=_("Bezier:"))
-                col.label(text=_("Endpoint:"))
-                col.label(text=_("Order:"))
+                col.label(text="Bezier:")
+                col.label(text="Endpoint:")
+                col.label(text="Order:")
 
-            col.label(text=_("Resolution:"))
+            col.label(text="Resolution:")
 
             col = split.column()
             col.prop(act_spline, "use_cyclic_u", text="U")
@@ -262,9 +261,9 @@ class DATA_PT_active_spline(CurveButtonsPanelActive, Panel):
                 col = split.column()
                 col.active = (curve.dimensions == '3D')
 
-                col.label(text=_("Interpolation:"))
-                col.prop(act_spline, "tilt_interpolation", text=_("Tilt"))
-                col.prop(act_spline, "radius_interpolation", text=_("Radius"))
+                col.label(text="Interpolation:")
+                col.prop(act_spline, "tilt_interpolation", text="Tilt")
+                col.prop(act_spline, "radius_interpolation", text="Radius")
 
             layout.prop(act_spline, "use_smooth")
 
@@ -283,16 +282,16 @@ class DATA_PT_font(CurveButtonsPanel, Panel):
         char = context.curve.edit_format
 
         row = layout.split(percentage=0.25)
-        row.label(text=_("Regular"))
+        row.label(text="Regular")
         row.template_ID(text, "font", open="font.open", unlink="font.unlink")
         row = layout.split(percentage=0.25)
-        row.label(text=_("Bold"))
+        row.label(text="Bold")
         row.template_ID(text, "font_bold", open="font.open", unlink="font.unlink")
         row = layout.split(percentage=0.25)
-        row.label(text=_("Italic"))
+        row.label(text="Italic")
         row.template_ID(text, "font_italic", open="font.open", unlink="font.unlink")
         row = layout.split(percentage=0.25)
-        row.label(text=_("Bold & Italic"))
+        row.label(text="Bold & Italic")
         row.template_ID(text, "font_bold_italic", open="font.open", unlink="font.unlink")
 
         #layout.prop(text, "font")
@@ -300,36 +299,36 @@ class DATA_PT_font(CurveButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(text, "size", text=_("Size"))
+        col.prop(text, "size", text="Size")
         col = split.column()
         col.prop(text, "shear")
 
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Object Font:"))
+        col.label(text="Object Font:")
         col.prop(text, "family", text="")
 
         col = split.column()
-        col.label(text=_("Text on Curve:"))
+        col.label(text="Text on Curve:")
         col.prop(text, "follow_curve", text="")
 
         split = layout.split()
 
         col = split.column()
         colsub = col.column(align=True)
-        colsub.label(text=_("Underline:"))
-        colsub.prop(text, "underline_position", text=_("Position"))
-        colsub.prop(text, "underline_height", text=_("Thickness"))
+        colsub.label(text="Underline:")
+        colsub.prop(text, "underline_position", text="Position")
+        colsub.prop(text, "underline_height", text="Thickness")
 
         col = split.column()
-        col.label(text=_("Character:"))
+        col.label(text="Character:")
         col.prop(char, "use_bold")
         col.prop(char, "use_italic")
         col.prop(char, "use_underline")
 
         row = layout.row()
-        row.prop(text, "small_caps_scale", text=_("Small Caps"))
+        row.prop(text, "small_caps_scale", text="Small Caps")
         row.prop(char, "use_small_caps")
 
 
@@ -345,19 +344,19 @@ class DATA_PT_paragraph(CurveButtonsPanel, Panel):
 
         text = context.curve
 
-        layout.label(text=_("Align:"))
+        layout.label(text="Align:")
         layout.prop(text, "align", expand=True)
 
         split = layout.split()
 
         col = split.column(align=True)
-        col.label(text=_("Spacing:"))
-        col.prop(text, "space_character", text=_("Character"))
-        col.prop(text, "space_word", text=_("Word"))
-        col.prop(text, "space_line", text=_("Line"))
+        col.label(text="Spacing:")
+        col.prop(text, "space_character", text="Character")
+        col.prop(text, "space_word", text="Word")
+        col.prop(text, "space_line", text="Line")
 
         col = split.column(align=True)
-        col.label(text=_("Offset:"))
+        col.label(text="Offset:")
         col.prop(text, "offset_x", text="X")
         col.prop(text, "offset_y", text="Y")
 
@@ -389,13 +388,13 @@ class DATA_PT_text_boxes(CurveButtonsPanel, Panel):
 
             col = split.column(align=True)
 
-            col.label(text=_("Dimensions:"))
-            col.prop(box, "width", text=_("Width"))
-            col.prop(box, "height", text=_("Height"))
+            col.label(text="Dimensions:")
+            col.prop(box, "width", text="Width")
+            col.prop(box, "height", text="Height")
 
             col = split.column(align=True)
 
-            col.label(text=_("Offset:"))
+            col.label(text="Offset:")
             col.prop(box, "x", text="X")
             col.prop(box, "y", text="Y")
 
