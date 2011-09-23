@@ -222,7 +222,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			
 			if(me->totvert) {
 				/* Add this object's materials to the base one's if they don't exist already (but only if limits not exceeded yet) */
-				if(totcol < MAXMAT-1) {
+				if(totcol < MAXMAT) {
 					for(a=1; a<=base->object->totcol; a++) {
 						ma= give_current_material(base->object, a);
 
@@ -236,7 +236,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 							}
 							totcol++;
 						}
-						if(totcol>=MAXMAT-1) 
+						if(totcol >= MAXMAT)
 							break;
 					}
 				}

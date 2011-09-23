@@ -585,7 +585,7 @@ static void draw_mesh_text(Scene *scene, Object *ob, int glsl)
 	ddm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 
 	for(a=0, mf=mface; a<totface; a++, tface++, mf++) {
-		int matnr= mf->mat_nr;
+		short matnr= mf->mat_nr;
 		int mf_smooth= mf->flag & ME_SMOOTH;
 		Material *mat = me->mat[matnr];
 		int mode= mat->game.flag;

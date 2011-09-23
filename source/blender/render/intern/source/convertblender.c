@@ -981,7 +981,7 @@ static void flag_render_node_material(Render *re, bNodeTree *ntree)
 	}
 }
 
-static Material *give_render_material(Render *re, Object *ob, int nr)
+static Material *give_render_material(Render *re, Object *ob, short nr)
 {
 	extern Material defmaterial;	/* material.c */
 	Material *ma;
@@ -2688,7 +2688,8 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 	int timeoffset, float *orco, float mat[4][4])
 {
 	Object *ob= obr->ob;
-	int a, a1, end, totvert, vertofs;
+	int a, end, totvert, vertofs;
+	short mat_iter;
 	VertRen *ver;
 	VlakRen *vlr;
 	MVert *mvert = NULL;
@@ -2718,16 +2719,16 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 
 		/* faces in order of color blocks */
 		vertofs= obr->totvert - totvert;
-		for(a1=0; (a1<ob->totcol || (a1==0 && ob->totcol==0)); a1++) {
+		for(mat_iter= 0; (mat_iter < ob->totcol || (mat_iter==0 && ob->totcol==0)); mat_iter++) {
 
-			ma= give_render_material(re, ob, a1+1);
+			ma= give_render_material(re, ob, mat_iter+1);
 			end= dm->getNumTessFaces(dm);
 			mface= dm->getTessFaceArray(dm);
 
 			for(a=0; a<end; a++, mface++) {
 				int v1, v2, v3, v4, flag;
 
-				if( mface->mat_nr==a1 ) {
+				if(mface->mat_nr == mat_iter) {
 					float len;
 
 					v1= mface->v1;

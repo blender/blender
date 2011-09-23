@@ -69,19 +69,19 @@ short *give_totcolp(struct Object *ob);
 struct Material ***give_matarar_id(struct ID *id); /* same but for ID's */
 short *give_totcolp_id(struct ID *id);
 
-struct Material *give_current_material(struct Object *ob, int act);
-struct ID *material_from(struct Object *ob, int act);
-void assign_material(struct Object *ob, struct Material *ma, int act);
-void assign_matarar(struct Object *ob, struct Material ***matar, int totcol);
+struct Material *give_current_material(struct Object *ob, short act);
+struct ID *material_from(struct Object *ob, short act);
+void assign_material(struct Object *ob, struct Material *ma, short act);
+void assign_matarar(struct Object *ob, struct Material ***matar, short totcol);
 
-int find_material_index(struct Object *ob, struct Material *ma);
+short find_material_index(struct Object *ob, struct Material *ma);
 
 int object_add_material_slot(struct Object *ob);
 int object_remove_material_slot(struct Object *ob);
 
 /* rna api */
 void material_append_id(struct ID *id, struct Material *ma);
-struct Material *material_pop_id(struct ID *id, int index, int remove_material_slot);
+struct Material *material_pop_id(struct ID *id, int index, int remove_material_slot); /* index is an int because of RNA */
 
 /* rendering */
 

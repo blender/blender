@@ -1074,8 +1074,9 @@ static void ccgDM_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)
 	for(index = 0; index < totface; index++) {
 		CCGFace *f = cgdm->faceMap[index].face;
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
-		int flag = (faceFlags)? faceFlags[index*2]: ME_SMOOTH;
-		int mat_nr = (faceFlags)? faceFlags[index*2+1]: 0;
+		/* keep types in sync with MFace, avoid many conversions */
+		char flag = (faceFlags)? faceFlags[index*2]: ME_SMOOTH;
+		short mat_nr = (faceFlags)? faceFlags[index*2+1]: 0;
 
 		for(S = 0; S < numVerts; S++) {
 			for(y = 0; y < gridSize - 1; y++) {

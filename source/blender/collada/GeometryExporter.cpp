@@ -129,7 +129,7 @@ void GeometryExporter::operator()(Object *ob)
 }
 
 // powerful because it handles both cases when there is material and when there's not
-void GeometryExporter::createPolylist(int material_index,
+void GeometryExporter::createPolylist(short material_index,
 					bool has_uvs,
 					bool has_color,
 					Object *ob,
