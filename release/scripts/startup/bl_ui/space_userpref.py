@@ -926,7 +926,7 @@ class USERPREF_PT_addons(Panel):
         used_ext = {ext.module for ext in userpref.addons}
 
         # collect the categories that can be filtered on
-        addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(addon_utils._addons_fake_modules)]
+        addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(addon_utils.addons_fake_modules)]
 
         split = layout.split(percentage=0.2)
         col = split.column()
