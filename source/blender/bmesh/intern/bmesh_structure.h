@@ -50,6 +50,9 @@ int bmesh_cycle_remove(void *h, void *remn);
 int bmesh_cycle_validate(int len, void *h);
 int bmesh_cycle_length(void *h);
 
+/* LOOP CYCLE MANAGEMENT */
+int bmesh_loop_validate(BMFace *f);
+
 /*DISK CYCLE MANAGMENT*/
 int bmesh_disk_append_edge(struct BMEdge *e, struct BMVert *v);
 void bmesh_disk_remove_edge(struct BMEdge *e, struct BMVert *v);
@@ -94,7 +97,7 @@ int bmesh_jekv(struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv);
 int bmesh_loop_reverse(struct BMesh *bm, struct BMFace *f);
 struct BMFace *bmesh_jfke(struct BMesh *bm, struct BMFace *f1, struct BMFace *f2, struct BMEdge *e);
 
-struct BMVert *bmesh_urmv(struct BMesh *bm, struct BMFace *sf, struct BMVert *sv);
+//struct BMVert *bmesh_urmv(struct BMesh *bm, struct BMFace *sf, struct BMVert *sv);
 //int *bmesh_grkv(struct BMesh *bm, struct BMFace *sf, struct BMVert *kv);
 
 #endif

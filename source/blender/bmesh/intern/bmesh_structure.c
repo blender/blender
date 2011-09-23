@@ -217,6 +217,22 @@ static BMEdge *bmesh_disk_prevedge(BMEdge *e, BMVert *v)
 	return NULL;
 }
 
+BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2)
+{
+	BMEdge *curedge, *startedge;
+	
+	if(v1->e) {
+		startedge = v1->e;
+		curedge = startedge;
+		do {
+			if (bmesh_verts_in_edge(v1,v2,curedge)) return curedge;
+			curedge = bmesh_disk_nextedge(curedge, v1);
+		} while (curedge != startedge);
+	}
+	
+	return NULL;
+}
+
 int bmesh_disk_count(struct BMVert *v)
 {
 	BMEdge *e = v->e;
@@ -468,8 +484,36 @@ int bmesh_radial_count_facevert(BMLoop *l, BMVert *v)
 	return count;
 }
 
+/*****loop cycle functions, e.g. loops surrounding a face******/
+int bmesh_loop_validate(BMFace *f)
+{
+	int i;
+	int len = f->len;
+	BMLoop *curloop, *head;
+	head = bm_firstfaceloop(f);
+	
+	if (head == NULL)
+		return 0;
+
+	/* Validate that the face loop cycle is the length specified by f->len */
+	for(i = 1, curloop = head->next; i < len; i++, curloop = curloop->next) {
+		if (curloop->f != f) return 0;
+		if (curloop == head) return 0;
+	}
+	if(curloop != head) return 0;
+	
+	/* Validate the loop->prev links also form a cycle of length f->len */
+	for(i = 1, curloop = head->prev; i < len; i++, curloop = curloop->prev) {
+		if (curloop == head) return 0;
+	}
+	if(curloop != head) return 0;
+	
+	return 1;
+}
+
+
 #if 0
- void bmesh_cycle_append(void *h, void *nt)
+void bmesh_cycle_append(void *h, void *nt)
 {
 	BMNode *oldtail, *head, *newtail;
 	
@@ -784,7 +828,6 @@ BMEdge *bmesh_disk_existedge(BMVert *v1, BMVert *v2){
 }
 
 /*end disk cycle routines*/
-
 BMLoop *bmesh_radial_nextloop(BMLoop *l){
 	return l->radial_next;
 }

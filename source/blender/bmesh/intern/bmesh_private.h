@@ -72,6 +72,8 @@ int bmesh_get_filter_argtype(int type);
 #define bmesh_api_setflag(element, f) (((BMHeader*)(element))->flags[0].pflag |= (f))
 #define bmesh_api_getflag(element, f) (((BMHeader*)(element))->flags[0].pflag & (f))
 #define bmesh_api_clearflag(element, f) (((BMHeader*)(element))->flags[0].pflag &= ~(f))
+#define bmesh_api_setindex(element, i) (((BMHeader*)(element))->flags[0].index = (i))
+#define bmesh_api_getindex(element) (((BMHeader*)(element))->flags[0].index + 0)
 
 /*Polygon Utilities ? FIXME... where do these each go?*/
 /*newedgeflag sets a flag layer flag, obviously not the header flag.*/

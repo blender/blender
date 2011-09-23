@@ -1035,16 +1035,16 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re){
 	BMLoop *nextl;
 	BMEdge *ne;
 	BMVert *nv, *ov;
-	int i, edok, valance1=0, valance2=0;
+	int i, edok, valence1=0, valence2=0;
 
 	if(bmesh_vert_in_edge(e,tv) == 0) return NULL;
 	ov = bmesh_edge_getothervert(e,tv);
 
-	/*count valance of v1*/
-	valance1 = bmesh_disk_count(ov);
+	/*count valence of v1*/
+	valence1 = bmesh_disk_count(ov);
 
-	/*count valance of v2*/
-	valance2 = bmesh_disk_count(tv);
+	/*count valence of v2*/
+	valence2 = bmesh_disk_count(tv);
 
 	nv = BM_Make_Vert(bm, tv->co, tv);
 	ne = BM_Make_Edge(bm, nv, tv, e, 0);
@@ -1068,9 +1068,9 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re){
 	bmesh_disk_append_edge(ne, tv);
 
 	/*verify disk cycles*/
-	edok = bmesh_disk_validate(valance1, ov->e, ov);
+	edok = bmesh_disk_validate(valence1, ov->e, ov);
 	if(!edok) bmesh_error();
-	edok = bmesh_disk_validate(valance2, tv->e, tv);
+	edok = bmesh_disk_validate(valence2, tv->e, tv);
 	if(!edok) bmesh_error();
 	edok = bmesh_disk_validate(2, nv->e, nv);
 	if(!edok) bmesh_error();
@@ -1178,9 +1178,296 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **re){
 
 	CHECK_ELEMENT(bm, ne);
 	CHECK_ELEMENT(bm, nv);
+	CHECK_ELEMENT(bm, ov);
 	CHECK_ELEMENT(bm, e);
 	CHECK_ELEMENT(bm, tv);
 
 	if(re) *re = ne;
 	return nv;
+}
+
+/**
+ *			bmesh_JEKV
+ *
+ *	JOIN EDGE KILL VERT:
+ *	Takes a an edge and pointer to one of its vertices and collapses
+ *	the edge on that vertex.
+ *	
+ *	Before:    OE      KE
+ *             	 ------- -------
+ *               |     ||      |
+ *		OV     KV      TV
+ *
+ *
+ *   After:             OE      
+ *             	 ---------------
+ *               |             |
+ *		OV             TV
+ *
+ *
+ *	Restrictions:
+ *	KV is a vertex that must have a valance of exactly two. Furthermore
+ *  both edges in KV's disk cycle (OE and KE) must be unique (no double
+ *  edges).
+ *
+ *	It should also be noted that this euler has the possibility of creating
+ *	faces with just 2 edges. It is up to the caller to decide what to do with
+ *  these faces.
+ *
+ *  Returns -
+ *	1 for success, 0 for failure.
+ */
+int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
+{
+	BMEdge *oe;
+	BMVert *ov, *tv;
+	BMLoop *killoop, *l;
+	int len,radlen=0, halt = 0, i, valence1, valence2,edok;
+	BMLoop **loops = NULL;
+	BLI_array_staticdeclare(loops, 256);
+
+	if(bmesh_vert_in_edge(ke,kv) == 0) return 0;
+	len = bmesh_disk_count(kv);
+	
+	if(len == 2){
+		oe = bmesh_disk_nextedge(ke, kv);
+		tv = bmesh_edge_getothervert(ke, kv);
+		ov = bmesh_edge_getothervert(oe, kv);		
+		halt = bmesh_verts_in_edge(kv, tv, oe); /*check for double edges*/
+		
+		if(halt) return 0;
+		else{
+			/*For verification later, count valence of ov and tv*/
+			valence1 = bmesh_disk_count(ov);
+			valence2 = bmesh_disk_count(tv);
+			
+			/*remove oe from kv's disk cycle*/
+			bmesh_disk_remove_edge(oe,kv);
+			/*relink oe->kv to be oe->tv*/
+			bmesh_edge_swapverts(oe, kv, tv);
+			/*append oe to tv's disk cycle*/
+			bmesh_disk_append_edge(oe, tv);
+			/*remove ke from tv's disk cycle*/
+			bmesh_disk_remove_edge(ke, tv);
+		
+			/*deal with radial cycle of ke*/
+			radlen = bmesh_radial_length(ke->l);
+			if(ke->l){
+				/*first step, fix the neighboring loops of all loops in ke's radial cycle*/
+				for(i=0,killoop = ke->l; i<radlen; i++, killoop = bmesh_radial_nextloop(killoop)){
+					/*relink loops and fix vertex pointer*/
+					if( killoop->next->v == kv ) killoop->next->v = tv;
+
+					killoop->next->prev = killoop->prev;
+					killoop->prev->next = killoop->next;
+					if (bm_firstfaceloop(killoop->f) == killoop)
+						bm_firstfaceloop(killoop->f) = killoop->next;
+					killoop->next = NULL;
+					killoop->prev = NULL;
+
+					/*fix len attribute of face*/
+					killoop->f->len--;
+				}
+				/*second step, remove all the hanging loops attached to ke*/
+				killoop = ke->l;
+				radlen = bmesh_radial_length(ke->l);
+				/*this should be wrapped into a bme_free_radial function to be used by bmesh_KF as well...*/
+				for (i=0;i<radlen;i++) {
+					BLI_array_growone(loops);
+					loops[BLI_array_count(loops)-1] = killoop;
+					killoop = bmesh_radial_nextloop(killoop);
+				}
+				for (i=0;i<radlen;i++) {
+					bm->totloop--;
+					BLI_mempool_free(bm->lpool, loops[i]);
+				}
+				/*Validate radial cycle of oe*/
+				edok = bmesh_radial_validate(radlen,oe->l);
+				if(!edok) bmesh_error();
+			}
+
+			/*deallocate edge*/
+			BM_remove_selection(bm, ke);
+			BLI_mempool_free(bm->toolflagpool, ke->head.flags);
+			BLI_mempool_free(bm->epool, ke);
+			bm->totedge--;
+			/*deallocate vertex*/
+			BM_remove_selection(bm, kv);
+			BLI_mempool_free(bm->toolflagpool, kv->head.flags);
+			BLI_mempool_free(bm->vpool, kv);
+			bm->totvert--;
+
+			/*Validate disk cycle lengths of ov,tv are unchanged*/
+			edok = bmesh_disk_validate(valence1, ov->e, ov);
+			if(!edok) bmesh_error();
+			edok = bmesh_disk_validate(valence2, tv->e, tv);
+			if(!edok) bmesh_error();
+
+			/*Validate loop cycle of all faces attached to oe*/
+			for(i=0,l = oe->l; i<radlen; i++, l = bmesh_radial_nextloop(l)){
+				if(l->e != oe) bmesh_error();
+				edok = bmesh_verts_in_edge(l->v, l->next->v, oe);
+				if(!edok) bmesh_error();
+				edok = bmesh_loop_validate(l->f);
+				if(!edok) bmesh_error();
+
+				CHECK_ELEMENT(bm, l);
+				CHECK_ELEMENT(bm, l->v);
+				CHECK_ELEMENT(bm, l->e);
+				CHECK_ELEMENT(bm, l->f);
+			}
+
+			CHECK_ELEMENT(bm, ov);
+			CHECK_ELEMENT(bm, tv);
+			CHECK_ELEMENT(bm, oe);
+
+			return 1;
+		}
+	}
+	return 0;
+}
+
+/**
+ *			bmesh_JFKE
+ *
+ *	JOIN FACE KILL EDGE:
+ *	
+ *	Takes two faces joined by a single 2-manifold edge and fuses them togather.
+ *	The edge shared by the faces must not be connected to any other edges which have
+ *	Both faces in its radial cycle
+ *
+ *	Examples:
+ *	
+ *        A                   B
+ *	 ----------           ----------
+ *	 |		  |           |        | 
+ *	 |   f1   |           |   f1   |
+ *	v1========v2 = Ok!    v1==V2==v3 == Wrong!
+ *	 |   f2   |           |   f2   |
+ *	 |        |           |        |
+ *	 ----------           ---------- 
+ *
+ *	In the example A, faces f1 and f2 are joined by a single edge, and the euler can safely be used.
+ *	In example B however, f1 and f2 are joined by multiple edges and will produce an error. The caller
+ *	in this case should call bmesh_JEKV on the extra edges before attempting to fuse f1 and f2.
+ *
+ *	Also note that the order of arguments decides whether or not certain per-face attributes are present
+ *	in the resultant face. For instance vertex winding, material index, smooth flags, ect are inherited
+ *	from f1, not f2.
+ *
+ *  Returns -
+ *	A BMFace pointer
+*/
+BMFace *bmesh_jfke(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e)
+{
+	BMLoop *curloop, *f1loop=NULL, *f2loop=NULL;
+	int loopok = 0, newlen = 0,i, f1len=0, f2len=0, radlen=0, edok, shared;
+	BMIter iter;
+
+	/*can't join a face to itself*/
+	if(f1 == f2) return NULL;
+	/*verify that e is in both f1 and f2*/
+	f1len = f1->len;
+	f2len = f2->len;
+	BM_ITER(curloop, &iter, bm, BM_LOOPS_OF_FACE, f1) {
+		if(curloop->e == e){ 
+			f1loop = curloop;
+			break;
+		}
+	}
+	BM_ITER(curloop, &iter, bm, BM_LOOPS_OF_FACE, f2) {
+		if(curloop->e == e){
+			f2loop = curloop;
+			break;
+		}
+	}
+	if (!(f1loop && f2loop)) return NULL;
+	
+	/*validate that edge is 2-manifold edge*/
+	radlen = bmesh_radial_length(f1loop);
+	if(radlen != 2) return NULL;
+
+	/*validate direction of f2's loop cycle is compatible.*/
+	if(f1loop->v == f2loop->v) return NULL;
+	
+	/*
+		validate that for each face, each vertex has another edge in its disk cycle that is 
+		not e, and not shared.
+	*/
+	if(bmesh_radial_find_face(f1loop->next->e,f2)) return NULL;
+	if(bmesh_radial_find_face(f1loop->prev->e,f2)) return NULL;
+	if(bmesh_radial_find_face(f2loop->next->e,f1)) return NULL;
+	if(bmesh_radial_find_face(f2loop->prev->e,f1)) return NULL;
+	
+	/*validate only one shared edge*/
+	shared = BM_Face_Sharededges(f1,f2);
+	if(shared > 1) return NULL;
+
+	/*validate no internal joins*/
+	for(i=0, curloop = bm_firstfaceloop(f1); i < f1len; i++, curloop = curloop->next)
+		bmesh_api_setindex(curloop->v, 0);
+	for(i=0, curloop = bm_firstfaceloop(f2); i < f2len; i++, curloop = curloop->next)
+		bmesh_api_setindex(curloop->v, 0);
+
+	for(i=0, curloop = bm_firstfaceloop(f1); i < f1len; i++, curloop = curloop->next) {
+		if (curloop != f1loop)
+			bmesh_api_setindex(curloop->v, bmesh_api_getindex(curloop->v) + 1);
+	}
+	for(i=0, curloop = bm_firstfaceloop(f2); i < f2len; i++, curloop = curloop->next) {
+		if (curloop != f2loop)
+			bmesh_api_setindex(curloop->v, bmesh_api_getindex(curloop->v) + 1);
+	}
+
+	for(i=0, curloop = bm_firstfaceloop(f1); i < f1len; i++, curloop = curloop->next) {
+		if (bmesh_api_getindex(curloop->v) > 1)
+			return NULL;
+	}
+	
+	for(i=0, curloop = bm_firstfaceloop(f2); i < f2len; i++, curloop = curloop->next) {
+		if (bmesh_api_getindex(curloop->v) > 1)
+			return NULL;
+	}
+
+	/*join the two loops*/
+	f1loop->prev->next = f2loop->next;
+	f2loop->next->prev = f1loop->prev;
+	
+	f1loop->next->prev = f2loop->prev;
+	f2loop->prev->next = f1loop->next;
+	
+	/*if f1loop was baseloop, make f1loop->next the base.*/
+	if(bm_firstfaceloop(f1) == f1loop)
+		bm_firstfaceloop(f1) = f1loop->next;
+
+	/*increase length of f1*/
+	f1->len += (f2->len - 2);
+
+	/*make sure each loop points to the proper face*/
+	newlen = f1->len;
+	for(i = 0, curloop = bm_firstfaceloop(f1); i < newlen; i++, curloop = curloop->next)
+		curloop->f = f1;
+	
+	/*remove edge from the disk cycle of its two vertices.*/
+	bmesh_disk_remove_edge(f1loop->e, f1loop->e->v1);
+	bmesh_disk_remove_edge(f1loop->e, f1loop->e->v2);
+	
+	/*deallocate edge and its two loops as well as f2*/
+	BLI_mempool_free(bm->toolflagpool, f1loop->e->head.flags);
+	BLI_mempool_free(bm->epool, f1loop->e);
+	bm->totedge--;
+	BLI_mempool_free(bm->lpool, f1loop);
+	bm->totloop--;
+	BLI_mempool_free(bm->lpool, f2loop);
+	bm->totloop--;
+	BLI_mempool_free(bm->toolflagpool, f2->head.flags);
+	BLI_mempool_free(bm->fpool, f2);
+	bm->totface--;
+
+	CHECK_ELEMENT(bm, f1);
+
+	/*validate the new loop cycle*/
+	edok = bmesh_loop_validate(f1);
+	if(!edok) bmesh_error();
+	
+	return f1;
 }
