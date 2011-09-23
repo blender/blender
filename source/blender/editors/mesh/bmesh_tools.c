@@ -3145,31 +3145,35 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "axis", axis_items_xyz, 0, "Axis", "Select the axis to compare each vertex on");
 }
 
-static int solidify_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
+static int solidify_exec(bContext *C, wmOperator *op)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	float nor[3] = {0,0,1};
+	Mesh *me = obedit->data;
+	BMEditMesh *em = me->edit_btmesh;
+	BMesh *bm = em->bm;
+	BMOperator bmop;
 
 	float thickness= RNA_float_get(op->ptr, "thickness");
 
-	extrudeflag(obedit, em, SELECT, nor, 1);
-	EM_make_hq_normals(em);
-	EM_solidify(em, thickness);
+	BMO_InitOpf(bm, &bmop, "solidify geom=%hf thickness=%f", BM_SELECT, thickness);
 
+	/* deselect only the faces in the region to be solidified (leave wire
+	   edges and loose verts selected, as there will be no corresponding
+	   geometry selected below) */
+	BMO_UnHeaderFlag_Buffer(bm, &bmop, "geom", BM_SELECT, BM_FACE);
 
-	/* update vertex normals too */
-	recalc_editnormals(em);
+	/* run the solidify operator */
+	BMO_Exec_Op(bm, &bmop);
 
-	BKE_mesh_end_editmesh(obedit->data, em);
+	/* select the newly generated faces */
+	BMO_HeaderFlag_Buffer(bm, &bmop, "geomout", BM_SELECT, BM_FACE);
+
+	BMO_Finish_Op(bm, &bmop);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
 	return OPERATOR_FINISHED;
-#endif
-	return OPERATOR_CANCELLED;
 }
 
 

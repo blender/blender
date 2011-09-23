@@ -593,6 +593,7 @@ static BMOpDefine def_extrudefaceregion = {
 	"extrudefaceregion",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "edgefacein"},
 	{BMOP_OPSLOT_MAPPING, "exclude"},
+	{BMOP_OPSLOT_INT, "alwayskeeporig"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
 	{0} /*null-terminating sentinel*/},
 	extrude_edge_context_exec,
@@ -1021,6 +1022,21 @@ static BMOpDefine def_triangle_fill = {
 	BMOP_UNTAN_MULTIRES
 };
 
+/*
+  Solidify
+
+  Turns a mesh into a shell with thickness
+*/
+static BMOpDefine def_solidify = {
+	"solidify",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "geom"},
+	{BMOP_OPSLOT_FLT, "thickness"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"},
+	{0}},
+	bmesh_solidify_face_region_exec,
+	0
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_spinop,
@@ -1086,6 +1102,7 @@ BMOpDefine *opdefines[] = {
 	&def_beautify_fill,
 	&def_triangle_fill,
 	&def_bridge_loops,
+	&def_solidify,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));
