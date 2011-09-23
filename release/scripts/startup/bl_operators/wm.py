@@ -1725,7 +1725,7 @@ class WM_OT_addon_install(Operator):
         del pyfile_dir
         # done checking for exceptional case
 
-        addons_old = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)}
+        addons_old = {mod.__name__ for mod in addon_utils.modules(addon_utils._addons_fake_modules)}
 
         #check to see if the file is in compressed format (.zip)
         if zipfile.is_zipfile(pyfile):
@@ -1774,7 +1774,7 @@ class WM_OT_addon_install(Operator):
                 traceback.print_exc()
                 return {'CANCELLED'}
 
-        addons_new = {mod.__name__ for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)} - addons_old
+        addons_new = {mod.__name__ for mod in addon_utils.modules(addon_utils._addons_fake_modules)} - addons_old
         addons_new.discard("modules")
 
         # disable any addons we may have enabled previously and removed.
@@ -1784,7 +1784,7 @@ class WM_OT_addon_install(Operator):
 
         # possible the zip contains multiple addons, we could disallow this
         # but for now just use the first
-        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
+        for mod in addon_utils.modules(addon_utils._addons_fake_modules):
             if mod.__name__ in addons_new:
                 info = addon_utils.module_bl_info(mod)
 
@@ -1818,7 +1818,7 @@ class WM_OT_addon_remove(Operator):
 
     @staticmethod
     def path_from_addon(module):
-        for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules):
+        for mod in addon_utils.modules(addon_utils._addons_fake_modules):
             if mod.__name__ == module:
                 filepath = mod.__file__
                 if os.path.exists(filepath):
@@ -1873,7 +1873,7 @@ class WM_OT_addon_expand(Operator):
         # unlikely to fail, module should have already been imported
         try:
             # mod = __import__(module_name)
-            mod = USERPREF_PT_addons.module_get(module_name)
+            mod = addon_utils.module_get(module_name)
         except:
             import traceback
             traceback.print_exc()

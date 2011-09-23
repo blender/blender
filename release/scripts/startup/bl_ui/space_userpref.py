@@ -891,16 +891,10 @@ class USERPREF_PT_addons(Panel):
     bl_region_type = 'WINDOW'
     bl_options = {'HIDE_HEADER'}
 
-    _addons_fake_modules = {}
-
     @classmethod
     def poll(cls, context):
         userpref = context.user_preferences
         return (userpref.active_section == 'ADDONS')
-
-    @staticmethod
-    def module_get(mod_name):
-        return USERPREF_PT_addons._addons_fake_modules[mod_name]
 
     @staticmethod
     def is_user_addon(mod, user_addon_paths):
@@ -932,7 +926,7 @@ class USERPREF_PT_addons(Panel):
         used_ext = {ext.module for ext in userpref.addons}
 
         # collect the categories that can be filtered on
-        addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(USERPREF_PT_addons._addons_fake_modules)]
+        addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(addon_utils._addons_fake_modules)]
 
         split = layout.split(percentage=0.2)
         col = split.column()

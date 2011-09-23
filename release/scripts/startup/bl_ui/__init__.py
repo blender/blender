@@ -77,6 +77,7 @@ del _namespace
 
 
 import bpy
+import addon_utils
 
 
 def register():
@@ -96,7 +97,7 @@ def register():
 
         items_unique = set()
 
-        for mod in addon_utils.modules(space_userpref.USERPREF_PT_addons._addons_fake_modules):
+        for mod in addon_utils.modules(addon_utils._addons_fake_modules):
             info = addon_utils.module_bl_info(mod)
             items_unique.add(info["category"])
 

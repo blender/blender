@@ -34,6 +34,11 @@ import bpy as _bpy
 error_duplicates = False
 error_encoding = False
 
+_addons_fake_modules = {}
+
+def module_get(mod_name):
+    return _addons_fake_modules[mod_name]
+
 
 def paths():
     # RELEASE SCRIPTS: official scripts distributed in Blender releases
