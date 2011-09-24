@@ -39,6 +39,9 @@ python doc/python_api/sphinx_changelog_gen.py \
         --api_to blender_api_2_57.py \
         --api_out changes.rst
 
+# Save the latest API dump in this folder, renaming it with its revision.
+# This way the next person updating it doesn't need to build an old Blender only for that
+
 """
 
 # format
