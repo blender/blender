@@ -152,7 +152,7 @@ static ListBase               melem__lb= {NULL, NULL};
 
 static void *mem_element_new(int size)
 {
-	BLI_assert(size>10000 || size==0); /* this is invalid use! */
+	BLI_assert(!(size>10000 || size==0)); /* this is invalid use! */
 
 	size = (size + 3 ) & ~3; 	/* allocate in units of 4 */
 	
