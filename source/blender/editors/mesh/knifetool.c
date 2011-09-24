@@ -1551,7 +1551,7 @@ static void knifenet_fill_faces(knifetool_opdata *kcd)
 		
 		f2 = faces[BM_GetIndex(f)];
 		if (BM_GetIndex(f) < 0 || BM_GetIndex(f) >= totface) {
-			printf("eek!!\n");
+			fprintf(stderr, "%s: face index out of range! (bmesh internal error)\n", __func__);
 		}
 
 		BM_Copy_Attributes(bm, bm, f2, f);

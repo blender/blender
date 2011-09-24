@@ -492,7 +492,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 				s1 = STRAIGHT(vec1, vec2); s2 = STRAIGHT(vec2, vec3); s3 = STRAIGHT(vec1, vec3);
 								
 				if (s1 || s2 || s3) {
-					printf("yeek! s1: %d, s2: %d, s3: %dx\n", s1, s2, s3);
+					fprintf(stderr, "%s: s1: %d, s2: %d, s3: %dx (bmesh internal error)\n", __func__, s1, s2, s3);
 				}
 				if (dot_v3v3(n1, n2) < 0.0f) {
 					if (dot_v3v3(n1, n3) >= 0.0f + FLT_EPSILON*10) {

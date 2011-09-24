@@ -145,7 +145,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			BMEdge *e2, *e3;
 			
 			if (c > 2) {
-				printf("eek! more than two edge loops!\n");
+				fprintf(stderr, "%s: more than two edge loops! (bmesh internal error)\n", __func__);
 				break;
 			}
 			
@@ -264,7 +264,7 @@ void bmesh_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				
 			f = BM_Make_QuadTri(bm, vv1[(i + starti)%lenv1], vv2[i], vv2[(i+1)%lenv2], vv1[(i+1 + starti)%lenv1], NULL, 1);
 			if (!f || f->len != 4) {
-				printf("eek in bridge!\n");
+				fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
 			}
 			
 			j++;

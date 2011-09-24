@@ -65,8 +65,7 @@ typedef struct EdgeTag {
 #define FACE_DEL	1
 #define FACE_NEW	2
 
-#define EDGE_BUF_SIZE 100
-static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts, BMEdge **edges)
+static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts, BMEdge **edges_tmp)
 {
 	BMIter liter1, liter2;
 	EdgeTag *et;
@@ -86,12 +85,12 @@ static BMFace *remake_face(BMesh *bm, EdgeTag *etags, BMFace *f, BMVert **verts,
 		if (!e) {
 			return NULL;
 		}
-		edges[i] = e;
+		edges_tmp[i] = e;
 	}
 
-	edges[i] = BM_Make_Edge(bm, lastv1, lastv2, NULL, 1);
+	edges_tmp[i] = BM_Make_Edge(bm, lastv1, lastv2, NULL, 1);
 
-	f2 = BM_Make_Face(bm, verts, edges, f->len);
+	f2 = BM_Make_Face(bm, verts, edges_tmp, f->len);
 	if (!f2) {
 		return NULL;
 	}
@@ -217,8 +216,8 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e, *e2;
 	BMVert *v, *v2, **verts = NULL;
 	BLI_array_declare(verts);
-	BMEdge **edges = NULL;
-	BLI_array_declare(edges);
+	BMEdge **edges_tmp = NULL;
+	BLI_array_declare(edges_tmp);
 	int i, j;
 
 	BMO_Flag_Buffer(bm, op, "edges", EDGE_SEAM, BM_EDGE);
@@ -270,9 +269,11 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		BLI_array_growitems(verts, f->len);
 		memset(verts, 0, sizeof(BMVert*)*f->len);
 
-		BLI_array_empty(edges);
-		BLI_array_growitems(edges, f->len);
-		
+		/* this is passed onto remake_face() so it doesnt need to allocate
+		 * a new array on each call. */
+		BLI_array_empty(edges_tmp);
+		BLI_array_growitems(edges_tmp, f->len);
+
 		i = 0;
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
 			if (!BMO_TestFlag(bm, l->e, EDGE_SEAM)) {
@@ -389,7 +390,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 		}
 #endif
 
-		f2 = remake_face(bm, etags, f, verts, edges); /* clobbers 'verts', */
+		f2 = remake_face(bm, etags, f, verts, edges_tmp);
 		if (!f2) {
 			continue;
 		}
@@ -417,7 +418,7 @@ void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op)
 	BMO_Flag_To_Slot(bm, op, "edgeout2", EDGE_RET2, BM_EDGE);
 
 	BLI_array_free(verts);
-	BLI_array_free(edges);
+	BLI_array_free(edges_tmp);
 	if (etags) MEM_freeN(etags);
 }
 

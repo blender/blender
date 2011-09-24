@@ -282,7 +282,7 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, int type) {
 		if (l->v->head.type !=  BM_VERT)
 			err |= 1024;
 		if (!BM_Vert_In_Edge(l->e, l->v)) {
-			printf("eek!! fatal bmesh error! evil!\n");
+			fprintf(stderr, "%s: fatal bmesh error (vert not in edge)! (bmesh internal error)\n", __func__);
 			err |= 2048;
 		}
 
@@ -321,7 +321,7 @@ int bmesh_check_element(BMesh *UNUSED(bm), void *element, int type) {
 		l = bm_firstfaceloop(f);
 		do {
 			if (l->f != f) {
-				printf("yeek!! loop inside one face points to another!\n");
+				fprintf(stderr, "%s: loop inside one face points to another! (bmesh internal error)\n", __func__);
 				err |= (1<<17);
 			}
 

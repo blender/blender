@@ -1038,7 +1038,7 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 			
 			kb->totelem = dm->numVertData;
 			kb->data = MEM_callocN(sizeof(float)*3*kb->totelem, "kb->data derivedmesh.c");
-			printf("eek! lost a shapekey layer!\n");
+			fprintf(stderr, "%s: lost a shapekey layer! (bmesh internal error)\n", __func__);
 		}
 	}
 }

@@ -602,7 +602,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 			
 			if (k1 == mpoly[fidx].totloop) {
-				printf("eek in solidify!!!!\n");
+				fprintf(stderr, "%s: solidify bad k1==totloop (bmesh internal error)\n", __func__);
 			}
 			
 			if (ed->v2 == mloop[mpoly[fidx].loopstart+k1].v) {
@@ -611,7 +611,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			} else if (ed->v1 == mloop[mpoly[fidx].loopstart+k1].v) {
 				k2 = (k1+1)%mp->totloop;
 			} else {
-				printf("eek in solidify!!!\n");
+				fprintf(stderr, "%s: solidify bad edge/vert\n", __func__);
 				k2 = k1;
 			}
 			

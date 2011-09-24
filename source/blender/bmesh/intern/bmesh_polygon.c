@@ -786,7 +786,7 @@ void BM_Triangulate_Face(BMesh *bm, BMFace *f, float (*projectverts)[3],
 			copy_v3_v3(f->no, l->f->no);
 
 			if (!f) {
-				printf("yeek! triangulator failed to split face!\n");
+				fprintf(stderr, "%s: triangulator failed to split face! (bmesh internal error)\n", __func__);
 				break;
 			}
 

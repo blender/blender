@@ -268,7 +268,7 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *UNUSED(scene), Object *ob)
 	BMesh *bm;
 
 	if (!me->mpoly && me->totface) {
-		printf("yeek!! bmesh conversion issue! may lose lots of geometry!\n");
+		fprintf(stderr, "%s: bmesh conversion issue! may lose lots of geometry! (bmesh internal error)\n", __func__);
 		
 		/*BMESH_TODO need to write smarter code here*/
 		bm = BKE_mesh_to_bmesh(me, ob);

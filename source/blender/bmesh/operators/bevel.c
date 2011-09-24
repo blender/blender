@@ -541,7 +541,7 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 				}
 
 				if (!f) {
-					printf("eek!\n");
+					fprintf(stderr, "%s: face index out of range! (bmesh internal error)\n", __func__);
 					continue;
 				}
 				
@@ -716,9 +716,10 @@ void bmesh_bevel_exec(BMesh *bm, BMOperator *op)
 			
 			f = BM_Make_Ngon(bm, lastv, vstart, edges, BLI_array_count(edges), 0);
 			if (!f) {
-				printf("eek! in bevel vert fill!\n");
-			} else 
+				fprintf(stderr, "%s: in bevel vert fill! (bmesh internal error)\n", __func__);
+			} else {
 				BMO_SetFlag(bm, f, FACE_NEW|FACE_HOLE);
+			}
 		}
 		BLI_smallhash_release(&tmphash);
 	}

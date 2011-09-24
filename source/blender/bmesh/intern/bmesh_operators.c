@@ -291,7 +291,7 @@ void BMO_Set_Mat(struct BMOperator *op, const char *slotname, float *mat, int si
 	} else if (size == 3) {
 		copy_m4_m3(slot->data.p, (float (*)[3])mat);
 	} else {
-		printf("yeek! invalid size in BMO_Set_Mat!\n");
+		fprintf(stderr, "%s: invalid size argument %d (bmesh internal error)\n", __func__, size);
 
 		memset(slot->data.p, 0, sizeof(float)*4*4);
 		return;
@@ -1069,8 +1069,8 @@ static int bmesh_name_to_slotcode(BMOpDefine *def, const char *name)
 	for (i=0; def->slottypes[i].type; i++) {
 		if (!strcmp(name, def->slottypes[i].name)) return i;
 	}
-	
-	printf("yeek! could not find bmesh slot for name %s!\n", name);
+
+	fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, name);
 	return 0;
 }
 
@@ -1082,7 +1082,7 @@ static int bmesh_name_to_slotcode_check(BMOpDefine *def, const char *name)
 		if (!strcmp(name, def->slottypes[i].name)) return i;
 	}
 
-	printf("yeek! could not find bmesh slot for name %s!\n", name);
+	fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, name);
 	return -1;
 }
 
@@ -1094,7 +1094,7 @@ static int bmesh_opname_to_opcode(const char *opname) {
 	}
 	
 	if (i == bmesh_total_ops) {
-		printf("yeek!! invalid op name %s!\n", opname);
+		fprintf(stderr, "%s: ! could not find bmesh slot for name %s! (bmesh internal error)\n", __func__, opname);
 		return 0;
 	}
 
