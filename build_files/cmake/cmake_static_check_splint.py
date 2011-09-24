@@ -84,15 +84,21 @@ def main():
 
         check_commands.append((c, cmd))
 
-    for i, (c, cmd) in enumerate(check_commands):
+    def my_process(i, c, cmd):
         percent = 100.0 * (i / (len(check_commands) - 1))
         percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
 
         sys.stdout.write("%s %s\n" % (percent_str, c))
         sys.stdout.flush()
 
-        process = subprocess.Popen(cmd)
-        process.wait()
+        return subprocess.Popen(cmd)
+
+    process_functions = []
+    for i, (c, cmd) in enumerate(check_commands):
+        process_functions.append((my_process, (i, c, cmd)))
+
+    project_source_info.queue_processes(process_functions)
+
 
 if __name__ == "__main__":
     main()

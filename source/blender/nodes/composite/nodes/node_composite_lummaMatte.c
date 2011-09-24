@@ -52,8 +52,6 @@ static void do_luma_matte(bNode *node, float *out, float *in)
 	NodeChroma *c=(NodeChroma *)node->storage;
 	float alpha;
 
-	alpha=0.0;
-
 	/* test range*/
 	if(in[0]>c->t1) {
 		alpha=1.0;

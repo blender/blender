@@ -110,6 +110,7 @@ typedef enum PropertySubType {
 	PROP_FILEPATH = 1,
 	PROP_DIRPATH = 2,
 	PROP_FILENAME = 3,
+	PROP_TRANSLATE = 4, /* a string which should be translated */
 
 	/* numbers */
 	PROP_UNSIGNED = 13,

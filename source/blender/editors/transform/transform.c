@@ -3296,6 +3296,11 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 
 void initTranslation(TransInfo *t)
 {
+	if (t->spacetype == SPACE_ACTION) {
+		/* this space uses time translate */
+		t->state = TRANS_CANCEL;
+	}
+
 	t->mode = TFM_TRANSLATION;
 	t->transform = Translation;
 

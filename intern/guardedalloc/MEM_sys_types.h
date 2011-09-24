@@ -25,6 +25,11 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file MEM_sys_types.h
+ *  \ingroup MEM
+ *
  * A platform-independent definition of [u]intXX_t
  * Plus the accompanying header include for htonl/ntohl
  *
@@ -44,10 +49,6 @@
 // doxygen would get a conflict
 */
 
-/** \file MEM_sys_types.h
- *  \ingroup MEM
- */
-
 #ifndef MEM_SYS_TYPES_H
 #define MEM_SYS_TYPES_H
 
@@ -59,6 +60,7 @@ extern "C" {
 
 /* The __intXX are built-in types of the visual complier! So we don't
  * need to include anything else here. */
+
 
 typedef signed __int8  int8_t;
 typedef signed __int16 int16_t;
@@ -104,10 +106,11 @@ unsigned long __attribute__((__stdcall__)) htonl(unsigned long);
 
 #else
 
-	/* FreeBSD, Irix, Solaris */
+	/* FreeBSD, Solaris */
 #include <sys/types.h>
 
 #endif /* ifdef platform for types */
+
 
 #ifdef _WIN32
 #ifndef FREE_WINDOWS
@@ -122,7 +125,7 @@ unsigned long __attribute__((__stdcall__)) htonl(unsigned long);
 #include <sys/param.h>
 #elif defined (__APPLE__)
 #include <sys/types.h>
-#else  /* irix sun linux */
+#else  /* sun linux */
 #include <netinet/in.h>
 #endif /* ifdef platform for htonl/ntohl */
 

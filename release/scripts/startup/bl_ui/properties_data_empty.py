@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Panel
-from blf import gettext as _
 
 
 class DataButtonsPanel():
@@ -40,17 +39,17 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
 
         ob = context.object
 
-        layout.prop(ob, "empty_draw_type", text=_("Display"))
+        layout.prop(ob, "empty_draw_type", text="Display")
 
         if ob.empty_draw_type == 'IMAGE':
             layout.template_ID(ob, "data", open="image.open", unlink="image.unlink")
 
-            layout.prop(ob, "color", text=_("Transparency"), index=3, slider=True)
+            layout.prop(ob, "color", text="Transparency", index=3, slider=True)
             row = layout.row(align=True)
-            row.prop(ob, "empty_image_offset", text=_("Offset X"), index=0)
-            row.prop(ob, "empty_image_offset", text=_("Offset Y"), index=1)
+            row.prop(ob, "empty_image_offset", text="Offset X", index=0)
+            row.prop(ob, "empty_image_offset", text="Offset Y", index=1)
 
-        layout.prop(ob, "empty_draw_size", text=_("Size"))
+        layout.prop(ob, "empty_draw_size", text="Size")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

@@ -286,7 +286,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 
-	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 

@@ -111,14 +111,12 @@ static void wm_window_check_position(rcti *rect)
 #endif
 	
 	if(rect->xmin < 0) {
-		d= rect->xmin;
-		rect->xmax -= d;
-		rect->xmin -= d;
+		rect->xmax -= rect->xmin;
+		rect->xmin  = 0;
 	}
 	if(rect->ymin < 0) {
-		d= rect->ymin;
-		rect->ymax -= d;
-		rect->ymin -= d;
+		rect->ymax -= rect->ymin;
+		rect->ymin  = 0;
 	}
 	if(rect->xmax > width) {
 		d= rect->xmax - width;

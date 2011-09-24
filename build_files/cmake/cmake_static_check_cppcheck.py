@@ -37,7 +37,7 @@ CHECKER_BIN = "cppcheck"
 
 CHECKER_ARGS = [
     # not sure why this is needed, but it is.
-    "-I" + os.path.join(project_source_info.SOURCE_DIR, "extern/glew/include"),
+    "-I" + os.path.join(project_source_info.SOURCE_DIR, "extern", "glew", "include"),
 
     #  "--check-config", # when includes are missing
     #  "--enable=all",  # if you want sixty hundred pedantic suggestions
@@ -58,19 +58,21 @@ def main():
 
         check_commands.append((c, cmd))
 
-    for i, (c, cmd) in enumerate(check_commands):
+
+    process_functions = []
+    def my_process(i, c, cmd):
         percent = 100.0 * (i / (len(check_commands) - 1))
         percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
 
-        # if percent < 27.9:
-        #    continue
-
-        # let cppcheck finish the line off...
+        sys.stdout.flush()
         sys.stdout.write("%s " % percent_str)
 
-        sys.stdout.flush()
-        process = subprocess.Popen(cmd)
-        process.wait()
+        return subprocess.Popen(cmd)
+
+    for i, (c, cmd) in enumerate(check_commands):
+        process_functions.append((my_process, (i, c, cmd)))
+
+    project_source_info.queue_processes(process_functions)
 
 
 if __name__ == "__main__":

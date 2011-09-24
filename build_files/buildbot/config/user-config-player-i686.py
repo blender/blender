@@ -5,7 +5,7 @@ BF_NUMJOBS = 2
 # Python configuration
 BF_PYTHON_VERSION = '3.2'
 BF_PYTHON_ABI_FLAGS = 'mu'
-BF_PYTHON = '/opt/python3.2'
+BF_PYTHON = '/opt/python3'
 
 WITH_BF_STATICPYTHON = True
 

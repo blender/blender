@@ -955,10 +955,8 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 		wasChange = FALSE;
 		dm = dm_deform_recalc(scene, ob);
 		dm->getVert(dm, index, &m);
-		oldPos[0] = m.co[0];
-		oldPos[1] = m.co[1];
-		oldPos[2] = m.co[2];
-		distToStart = norm[0]*oldPos[0] + norm[1]*oldPos[1] + norm[2]*oldPos[2] + d;
+		copy_v3_v3(oldPos, m.co);
+		distToStart = dot_v3v3(norm, oldPos) + d;
 
 		if(distToBe == originalDistToBe) {
 			distToBe += distToStart - distToStart*strength;
@@ -1123,18 +1121,14 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 				
 				if(count >= 3) {
 					float d /*, dist */ /* UNUSED */, mag;
-					float coord[3] = {0};
-					float norm[3] = {0};
+					float coord[3];
+					float norm[3];
 					getSingleCoordinate(p, count, coord);
 					dm->getVert(dm, i, &m);
-					norm[0] = m.co[0]-coord[0];
-					norm[1] = m.co[1]-coord[1];
-					norm[2] = m.co[2]-coord[2];
-					mag = sqrt(norm[0]*norm[0] + norm[1]*norm[1] + norm[2]*norm[2]);
-					if(mag) {// zeros fix
-						mul_v3_fl(norm, 1.0f/mag);
-						
-						d = -norm[0]*coord[0] -norm[1]*coord[1] -norm[2]*coord[2];
+					sub_v3_v3v3(norm, m.co, coord);
+					mag= normalize_v3(norm);
+					if(mag) { /* zeros fix */
+						d = -dot_v3v3(norm, coord);
 						/* dist = (norm[0]*m.co[0] + norm[1]*m.co[1] + norm[2]*m.co[2] + d); */ /* UNUSED */
 						moveCloserToDistanceFromPlane(scene, ob, me, i, norm, coord, d, distToBe, strength, cp);
 					}
@@ -2355,7 +2349,7 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Fix Vertex Group Deform";
 	ot->idname= "OBJECT_OT_vertex_group_fix";
-	ot->description= "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices).";
+	ot->description= "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)";
 	
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -2363,9 +2357,9 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	RNA_def_float(ot->srna, "dist", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "The distance to move to.", -10.0f, 10.0f);	
-	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength", "The distance moved can be changed by this multiplier.", -2.0f, 2.0f);
-	RNA_def_float(ot->srna, "accuracy", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower.", 0.05f, 1.f);
+	RNA_def_float(ot->srna, "dist", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "The distance to move to", -10.0f, 10.0f);
+	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength", "The distance moved can be changed by this multiplier", -2.0f, 2.0f);
+	RNA_def_float(ot->srna, "accuracy", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower", 0.05f, 1.f);
 }
 
 

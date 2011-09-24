@@ -114,109 +114,6 @@
 #endif
 #endif
 
-/****/
-
-#ifdef __sgi
-
-#include <dmedia/moviefile.h>
-
-static void movie_printerror(char * str) {
-	const char * errstr = mvGetErrorStr(mvGetErrno());
-
-	if (str) {
-		if (errstr) printf("%s: %s\n", str, errstr);
-		else printf("%s: returned error\n", str);
-	} else printf("%s\n", errstr);
-}
-
-static int startmovie(struct anim * anim) {
-	if (anim == 0) return(-1);
-
-	if ( mvOpenFile (anim->name, O_BINARY|O_RDONLY, &anim->movie ) != DM_SUCCESS ) {
-		printf("Can't open movie: %s\n", anim->name);
-		return(-1);
-	}
-	if ( mvFindTrackByMedium (anim->movie, DM_IMAGE, &anim->track) != DM_SUCCESS ) {
-		printf("No image track in movie: %s\n", anim->name);
-		mvClose(anim->movie);
-		return(-1);
-	}
-
-	anim->duration = mvGetTrackLength (anim->track);
-	anim->params = mvGetParams( anim->track );
-
-	anim->x = dmParamsGetInt( anim->params, DM_IMAGE_WIDTH);
-	anim->y = dmParamsGetInt( anim->params, DM_IMAGE_HEIGHT);
-	anim->interlacing = dmParamsGetEnum (anim->params, DM_IMAGE_INTERLACING);
-	anim->orientation = dmParamsGetEnum (anim->params, DM_IMAGE_ORIENTATION);
-	anim->framesize = dmImageFrameSize(anim->params);
-
-	anim->curposition = 0;
-	anim->preseek = 0;
-
-	/*printf("x:%d y:%d size:%d interl:%d dur:%d\n", anim->x, anim->y, anim->framesize, anim->interlacing, anim->duration);*/
-	return (0);
-}
-
-static ImBuf * movie_fetchibuf(struct anim * anim, int position) {
-	ImBuf * ibuf;
-/*  	extern rectcpy(); */
-	int size;
-	unsigned int *rect1, *rect2;
-
-	if (anim == 0) return (0);
-
-	ibuf = IMB_allocImBuf(anim->x, anim->y, 24, IB_rect);
-
-	if ( mvReadFrames(anim->track, position, 1, ibuf->x * ibuf->y * 
-		sizeof(int), ibuf->rect ) != DM_SUCCESS ) {
-		movie_printerror("mvReadFrames");
-		IMB_freeImBuf(ibuf);
-		return(0);
-	}
-
-/*
-	if (anim->interlacing == DM_IMAGE_INTERLACED_EVEN) {
-		rect1 = ibuf->rect + (ibuf->x * ibuf->y) - 1;
-		rect2 = rect1 - ibuf->x;
-
-		for (size = ibuf->x * (ibuf->y - 1); size > 0; size--){
-			*rect1-- = *rect2--;
-		}
-	}
-*/
-
-	if (anim->interlacing == DM_IMAGE_INTERLACED_EVEN)
-	{
-		rect1 = ibuf->rect;
-		rect2 = rect1 + ibuf->x;
-
-		for (size = ibuf->x * (ibuf->y - 1); size > 0; size--){
-			*rect1++ = *rect2++;
-		}
-	}
-	/*if (anim->orientation == DM_TOP_TO_BOTTOM) IMB_flipy(ibuf);*/
-
-
-	return(ibuf);
-}
-
-static void free_anim_movie(struct anim * anim) {
-	if (anim == NULL) return;
-
-	if (anim->movie) {
-		mvClose(anim->movie);
-		anim->movie = NULL;
-	}
-	anim->duration = 0;
-}
-
-int ismovie(char *name) {
-	return (mvIsMovieFile(name) == DM_TRUE);
-}
-
-#else
-
 int ismovie(const char *UNUSED(name)) {
 	return 0;
 }
@@ -226,7 +123,6 @@ static int startmovie(struct anim *UNUSED(anim)) { return 1; }
 static ImBuf * movie_fetchibuf(struct anim *UNUSED(anim), int UNUSED(position)) { return NULL; }
 static void free_anim_movie(struct anim *UNUSED(anim)) { ; }
 
-#endif
 
 #if defined(_WIN32)
 # define PATHSEPERATOR '\\'

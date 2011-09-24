@@ -5304,11 +5304,13 @@ static void calculate_speedvector(const float vectors[2], int step, float winsq,
 
 static float *calculate_strandsurface_speedvectors(Render *re, ObjectInstanceRen *obi, StrandSurface *mesh)
 {
-	float winsq= (float)re->winx*(float)re->winy, winroot= sqrt(winsq), (*winspeed)[4];  /* int's can wrap on large images */
-	float ho[4], prevho[4], nextho[4], winmat[4][4], vec[2];
-	int a;
-
 	if(mesh->co && mesh->prevco && mesh->nextco) {
+		float winsq= (float)re->winx*(float)re->winy; /* int's can wrap on large images */
+		float winroot= sqrt(winsq);
+		float (*winspeed)[4];
+		float ho[4], prevho[4], nextho[4], winmat[4][4], vec[2];
+		int a;
+
 		if(obi->flag & R_TRANSFORMED)
 			mul_m4_m4m4(winmat, obi->mat, re->winmat);
 		else

@@ -18,9 +18,6 @@ defs = []
 if is_debug:
     defs.append('_DEBUG')
 
-if env['WITH_BF_INTERNATIONAL']:
-    defs.append('INTERNATIONAL')
-
 sources = env.Glob('generic/*.c')
 env.BlenderLib( libname = 'bf_python_ext', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [363,165]) # ketsji is 360
 
@@ -43,6 +40,9 @@ if env['WITH_BF_PYTHON_SAFETY']:
 
 if env['BF_BUILDINFO']:
     defs.append('BUILD_DATE')
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('INTERNATIONAL')
 
 sources = env.Glob('intern/*.c')
 env.BlenderLib( libname = 'bf_python', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core'], priority = [361])

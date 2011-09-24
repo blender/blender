@@ -148,6 +148,48 @@ def build_info(use_c=True, use_cxx=True, ignore_prefix_list=None):
     return source
 
 
+# could be moved elsewhere!, this just happens to be used by scripts that also
+# use this module.
+def queue_processes(process_funcs, job_total=-1):
+    """ Takes a list of function arg pairs, each function must return a process
+    """
+    import sys
+
+    if job_total == -1:
+        import multiprocessing
+        job_total = multiprocessing.cpu_count()
+        del multiprocessing
+
+    if job_total == 1:
+        import os
+        import sys
+        for func, args in process_funcs:
+            sys.stdout.flush()
+            sys.stderr.flush()
+
+            process = func(*args)
+            process.wait()
+    else:
+        import time
+        import subprocess
+
+        processes = []
+        for func, args in process_funcs:
+            # wait until a thread is free
+            while 1:
+                processes[:] = [p for p in processes if p.poll() is None]
+     
+                if len(processes) <= job_total:
+                    break
+                else:
+                    time.sleep(0.1)
+
+            sys.stdout.flush()
+            sys.stderr.flush()
+
+            processes.append(func(*args))
+
+
 def main():
     if not os.path.exists(join(CMAKE_DIR, "CMakeCache.txt")):
         print("This script must run from the cmake build dir")

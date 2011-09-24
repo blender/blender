@@ -524,7 +524,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	if(smd->flag & MOD_SOLIDIFY_RIM) {
-
+		int *origindex;
 		
 		/* bugger, need to re-calculate the normals for the new edge faces.
 		 * This could be done in many ways, but probably the quickest way is to calculate the average normals for side faces only.
@@ -551,11 +551,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				{0, 3, 3, 0}};
 
 		/* add faces & edges */
+		origindex= result->getEdgeDataArray(result, CD_ORIGINDEX);
 		ed= medge + (numEdges * 2);
 		for(i=0; i<newEdges; i++, ed++) {
 			ed->v1= new_vert_arr[i];
 			ed->v2= new_vert_arr[i] + numVerts;
 			ed->flag |= ME_EDGEDRAW;
+
+			origindex[numEdges * 2 + i]= ORIGINDEX_NONE;
 
 			if(crease_rim)
 				ed->crease= crease_rim;
@@ -563,6 +566,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		/* faces */
 		mf= mface + (numFaces * 2);
+		origindex= result->getFaceDataArray(result, CD_ORIGINDEX);
 		for(i=0; i<newFaces; i++, mf++) {
 			int eidx= new_edge_arr[i];
 			int fidx= edge_users[eidx];
@@ -623,6 +627,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			add_v3_v3(edge_vert_nos[ed->v1], nor);
 			add_v3_v3(edge_vert_nos[ed->v2], nor);
 #endif
+			origindex[numFaces * 2 + i]= ORIGINDEX_NONE;
 		}
 		
 #ifdef SOLIDIFY_SIDE_NORMALS

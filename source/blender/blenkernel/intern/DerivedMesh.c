@@ -799,7 +799,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 }
 
 static void emDM_drawFacesTex_common(DerivedMesh *dm,
-			   int (*drawParams)(MTFace *tface, MCol *mcol, int matnr),
+			   int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
 			   int (*drawParamsMapped)(void *userData, int index),
 			   void *userData) 
 {
@@ -827,7 +827,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 			int flag;
 
 			if(drawParams)
-				flag= drawParams(tf, mcol, efa->mat_nr);
+				flag= drawParams(tf, (mcol != NULL), efa->mat_nr);
 			else if(drawParamsMapped)
 				flag= drawParamsMapped(userData, i);
 			else
@@ -900,7 +900,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 			int flag;
 
 			if(drawParams)
-				flag= drawParams(tf, mcol, efa->mat_nr);
+				flag= drawParams(tf, (mcol != NULL), efa->mat_nr);
 			else if(drawParamsMapped)
 				flag= drawParamsMapped(userData, i);
 			else
@@ -966,7 +966,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 }
 
-static void emDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+static void emDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr))
 {
 	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
 }
