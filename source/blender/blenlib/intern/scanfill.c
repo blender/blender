@@ -145,63 +145,58 @@ struct mem_elements {
    only to be used within loops, and not by one function at a time
    free in the end, with argument '-1'
 */
+#define MEM_ELEM_BLOCKSIZE 16384
+static struct mem_elements *  melem__cur= 0;
+static int                    melem__offs= 0; /* the current free address */
+static ListBase               melem__lb= {NULL, NULL};
 
-static void *new_mem_element(int size)
+static void *mem_element_new(int size)
 {
-	int blocksize= 16384;
-	static int offs= 0;		/* the current free address */
-	static struct mem_elements *cur= 0, *first;
-	static ListBase lb= {0, 0};
-	void *adr;
+	BLI_assert(size>10000 || size==0); /* this is invalid use! */
+
+	size = (size + 3 ) & ~3; 	/* allocate in units of 4 */
 	
-	if(size>10000 || size==0) {
-		printf("incorrect use of new_mem_element\n");
+	if(melem__cur && (size + melem__offs < MEM_ELEM_BLOCKSIZE)) {
+		void *adr= (void *) (melem__cur->data+melem__offs);
+		 melem__offs+= size;
+		return adr;
 	}
-	else if(size== -1) {
-		/*BMESH_TODO: keep the first block, gives memory leak on exit with 'newmem' */
+	else {
+		melem__cur= MEM_callocN( sizeof(struct mem_elements), "newmem");
+		melem__cur->data= MEM_callocN(MEM_ELEM_BLOCKSIZE, "newmem");
+		BLI_addtail(&melem__lb, melem__cur);
 
-		if((first= lb.first)) { /* can be false if first fill fails */
-			BLI_remlink(&lb, first);
+		melem__offs= size;
+		return melem__cur->data;
+	}
+}
+static void mem_element_reset(void)
+{
+	struct mem_elements *first;
+	/*BMESH_TODO: keep the first block, gives memory leak on exit with 'newmem' */
 
-			cur= lb.first;
-			while(cur) {
-				MEM_freeN(cur->data);
-				cur= cur->next;
-			}
-			BLI_freelistN(&lb);
+	if((first= melem__lb.first)) { /* can be false if first fill fails */
+		BLI_remlink(&melem__lb, first);
 
-			/*reset the block we're keeping*/
-			BLI_addtail(&lb, first);
-			memset(first->data, 0, blocksize);
+		melem__cur= melem__lb.first;
+		while(melem__cur) {
+			MEM_freeN(melem__cur->data);
+			melem__cur= melem__cur->next;
 		}
+		BLI_freelistN(&melem__lb);
 
-		cur= first;
-		offs= 0;
+		/*reset the block we're keeping*/
+		BLI_addtail(&melem__lb, first);
+		memset(first->data, 0, MEM_ELEM_BLOCKSIZE);
+	}
 
-		return NULL;	
-	}
-	
-	size= 4*( (size+3)/4 );
-	
-	if(cur) {
-		if(size+offs < blocksize) {
-			adr= (void *) (cur->data+offs);
-			 offs+= size;
-			return adr;
-		}
-	}
-	
-	cur= MEM_callocN( sizeof(struct mem_elements), "newmem");
-	cur->data= MEM_callocN(blocksize, "newmem");
-	BLI_addtail(&lb, cur);
-	
-	offs= size;
-	return cur->data;
+	melem__cur= first;
+	melem__offs= 0;
 }
 
 void BLI_end_edgefill(void)
 {
-	new_mem_element(-1);
+	mem_element_reset();
 	
 	fillvertbase.first= fillvertbase.last= 0;
 	filledgebase.first= filledgebase.last= 0;
@@ -216,7 +211,7 @@ EditVert *BLI_addfillvert(float *vec)
 {
 	EditVert *eve;
 	
-	eve= new_mem_element(sizeof(EditVert));
+	eve= mem_element_new(sizeof(EditVert));
 	BLI_addtail(&fillvertbase, eve);
 	
 	eve->co[0] = vec[0];
@@ -230,7 +225,7 @@ EditEdge *BLI_addfilledge(EditVert *v1, EditVert *v2)
 {
 	EditEdge *newed;
 
-	newed= new_mem_element(sizeof(EditEdge));
+	newed= mem_element_new(sizeof(EditEdge));
 	BLI_addtail(&filledgebase, newed);
 	
 	newed->v1= v1;
@@ -244,7 +239,7 @@ static void addfillface(EditVert *v1, EditVert *v2, EditVert *v3, short mat_nr)
 	/* does not make edges */
 	EditFace *evl;
 
-	evl= new_mem_element(sizeof(EditFace));
+	evl= mem_element_new(sizeof(EditFace));
 	BLI_addtail(&fillfacebase, evl);
 	
 	evl->v1= v1;
