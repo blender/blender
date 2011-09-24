@@ -1042,26 +1042,6 @@ Added
 
 * :class:`bpy.types.Texture.evaluate`
 
-bpy.types.MeshTextureFace
--------------------------
-
-Removed
-^^^^^^^
-
-* **blend_type**
-* **hide**
-* **use_alpha_sort**
-* **use_billboard**
-* **use_bitmap_text**
-* **use_blend_shared**
-* **use_collision**
-* **use_halo**
-* **use_image**
-* **use_light**
-* **use_object_color**
-* **use_shadow_cast**
-* **use_twoside**
-
 bpy.types.ToolSettings
 ----------------------
 
@@ -1399,4 +1379,28 @@ Added
 * :class:`bpy.types.SceneGameData.recast_data`
 * :class:`bpy.types.SceneGameData.restrict_animation_updates`
 * :class:`bpy.types.SceneGameData.show_obstacle_simulation`
+
+bpy.types.MeshTextureFace
+-------------------------
+
+Removed
+^^^^^^^
+
+* **use_image**
+* **use_object_color**
+* **use_blend_shared**
+
+Moved
+^^^^^
+
+* **hide** -> :class:`bpy.types.Material.game_settings.invisible`
+* **use_collision** -> :class:`bpy.types.Material.game_settings.physics`
+* **use_light** -> :class:`bpy.types.Material.game_settings.use_shadeless`
+* **use_twoside** -> :class:`bpy.types.Material.game_settings.back_culling`
+* **use_bitmap_text** -> :class:`bpy.types.Material.game_settings.text`
+* **blend_type** -> :class:`bpy.types.Material.game_settings.alpha_blend`
+* **use_alpha_sort** -> :class:`bpy.types.Material.game_settings.alpha_blend`
+* **use_billboard** -> :class:`bpy.types.Material.game_settings.face_orientation`
+* **use_halo** -> :class:`bpy.types.Material.game_settings.face_orientation`
+* **use_shadow_cast** -> :class:`bpy.types.Material.game_settings.face_orientation`
 

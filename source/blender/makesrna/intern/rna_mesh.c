@@ -1366,12 +1366,6 @@ static void rna_def_mtface(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static const EnumPropertyItem transp_items[]= {
-		{TF_SOLID, "OPAQUE", 0, "Opaque", "Render color of textured face as color"},
-		{TF_ADD, "ADD", 0, "Add", "Render face transparent and add color of face"},
-		{TF_ALPHA, "ALPHA", 0, "Alpha", "Render polygon transparent, depending on alpha channel of the texture"},
-		{TF_CLIP, "CLIPALPHA", 0, "Clip Alpha", "Use the images alpha values clipped with no blending (binary alpha)"},
-		{0, NULL, 0, NULL, NULL}};
 	const int uv_dim[]= {4, 2};
 
 	srna= RNA_def_struct(brna, "MeshTextureFaceLayer", NULL);
