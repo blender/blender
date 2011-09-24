@@ -1355,16 +1355,14 @@ void shade_sample_initialize(ShadeSample *ssamp, RenderPart *pa, RenderLayer *rl
 /* Do AO or (future) GI */
 void shade_samples_do_AO(ShadeSample *ssamp)
 {
-	ShadeInput *shi;
-	int sample;
-	
 	if(!(R.r.mode & R_SHADOW))
 		return;
 	if(!(R.r.mode & R_RAYTRACE) && !(R.wrld.ao_gather_method == WO_AOGATHER_APPROX))
 		return;
 	
 	if(R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) {
-		shi= &ssamp->shi[0];
+		ShadeInput *shi= &ssamp->shi[0];
+		int sample;
 
 		if(((shi->passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
 			|| (shi->passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
