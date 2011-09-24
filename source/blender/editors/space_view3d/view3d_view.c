@@ -716,10 +716,9 @@ void ED_view3d_project_float(ARegion *ar, const float vec[3], float adr[2], floa
 {
 	float vec4[4];
 	
-	VECCOPY(vec4, vec);
-	adr[0]= IS_CLIPPED;
 	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
+	adr[0]= IS_CLIPPED;
 	
 	mul_m4_v4(mat, vec4);
 	
@@ -736,9 +735,9 @@ void ED_view3d_project_float_v3(ARegion *ar, float *vec, float *adr, float mat[4
 {
 	float vec4[4];
 	
-	VECCOPY(vec4, vec);
-	adr[0]= IS_CLIPPED;
+	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
+	adr[0]= IS_CLIPPED;
 	
 	mul_m4_v4(mat, vec4);
 	
@@ -822,9 +821,9 @@ void project_int(ARegion *ar, const float vec[3], int adr[2])
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
 	
-	adr[0]= (int)2140000000.0f;
 	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
+	adr[0]= (int)2140000000.0f;
 	
 	mul_m4_v4(rv3d->persmat, vec4);
 	
@@ -870,9 +869,9 @@ void project_short_noclip(ARegion *ar, const float vec[3], short adr[2])
 	RegionView3D *rv3d= ar->regiondata;
 	float fx, fy, vec4[4];
 	
-	adr[0]= IS_CLIPPED;
 	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
+	adr[0]= IS_CLIPPED;
 	
 	mul_m4_v4(rv3d->persmat, vec4);
 	
@@ -896,9 +895,9 @@ void project_float(ARegion *ar, const float vec[3], float adr[2])
 	RegionView3D *rv3d= ar->regiondata;
 	float vec4[4];
 	
-	adr[0]= IS_CLIPPED;
 	copy_v3_v3(vec4, vec);
 	vec4[3]= 1.0;
+	adr[0]= IS_CLIPPED;
 	
 	mul_m4_v4(rv3d->persmat, vec4);
 	
