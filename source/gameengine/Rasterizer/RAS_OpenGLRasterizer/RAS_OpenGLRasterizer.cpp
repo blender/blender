@@ -829,7 +829,7 @@ static int CheckTexfaceDM(void *mcol, int index)
 }
 */
 
-static int CheckTexDM(MTFace *tface, int has_vcol, int matnr)
+static int CheckTexDM(MTFace *tface, int has_mcol, int matnr)
 {
 
 	// index is the original face index, retrieve the polygon
@@ -844,7 +844,7 @@ static int CheckTexDM(MTFace *tface, int has_vcol, int matnr)
 			// don't use mcol
 			return 2;
 		}
-		if (!has_vcol) {
+		if (!has_mcol) {
 			// we have to set the color from the material
 			unsigned char rgba[4];
 			current_polymat->GetMaterialRGBAColor(rgba);

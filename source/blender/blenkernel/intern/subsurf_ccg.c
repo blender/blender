@@ -1803,7 +1803,7 @@ static void cgdm_drawFacesColored(DerivedMesh *dm, int UNUSED(useTwoSided), unsi
 }
 
 static void cgdm_drawFacesTex_common(DerivedMesh *dm,
-	int (*drawParams)(MTFace *tface, int has_vcol, int matnr),
+	int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
 	int (*drawParamsMapped)(void *userData, int index),
 	void *userData) 
 {
@@ -1839,7 +1839,7 @@ static void cgdm_drawFacesTex_common(DerivedMesh *dm,
 		}
 
 		if(drawParams)
-			flag = drawParams(tf, mcol!=NULL, mat_nr);
+			flag = drawParams(tf, (mcol != NULL), mat_nr);
 		else if (index != ORIGINDEX_NONE)
 			flag= (drawParamsMapped)? drawParamsMapped(userData, index): 1;
 		else
@@ -3088,8 +3088,8 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 				result->freeSS = 1;
 		}
 	}
-	
-	return (DerivedMesh *)result;
+
+	return (DerivedMesh*)result;
 }
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 

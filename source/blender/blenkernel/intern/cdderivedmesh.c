@@ -678,9 +678,9 @@ static void cdDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 }
 
 static void cdDM_drawFacesTex_common(DerivedMesh *dm,
-               int (*drawParams)(MTFace *tface, int has_vcol, int matnr),
-               int (*drawParamsMapped)(void *userData, int index),
-               void *userData) 
+			   int (*drawParams)(MTFace *tface, int has_mcol, int matnr),
+			   int (*drawParamsMapped)(void *userData, int index),
+			   void *userData) 
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mv = cddm->mvert;
@@ -704,7 +704,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			unsigned char *cp = NULL;
 
 			if(drawParams) {
-				flag = drawParams(tf? &tf[i]: NULL, mcol!=NULL, mf->mat_nr);
+				flag = drawParams(tf? &tf[i]: NULL, (mcol != NULL), mf->mat_nr);
 			}
 			else {
 				if(index) {
@@ -823,7 +823,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				int flag = 1;
 
 				if(drawParams) {
-					flag = drawParams(tf? &tf[actualFace]: NULL, mcol!=NULL, mf[actualFace].mat_nr);
+					flag = drawParams(tf? &tf[actualFace]: NULL, (mcol != NULL), mf[actualFace].mat_nr);
 				}
 				else {
 					if(index) {
@@ -866,7 +866,7 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	}
 }
 
-static void cdDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr))
+static void cdDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr))
 {
 	cdDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
 }
@@ -1046,7 +1046,6 @@ static void cdDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void 
 	cdDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
 }
 
-
 static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int a, int index, int vert, int smoothnormal)
 {
 	int b;
@@ -1086,11 +1085,10 @@ static void cddm_draw_attrib_vertex(DMVertexAttribs *attribs, MVert *mvert, int 
 	/* vertex normal */
 	if(smoothnormal)
 		glNormal3sv(mvert[index].no);
-
+	
 	/* vertex coordinate */
 	glVertex3fv(mvert[index].co);
 }
-
 
 static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, void *attribs), int (*setDrawOptions)(void *userData, int index), void *userData)
 {
@@ -1166,11 +1164,11 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v1, 0, smoothnormal);
 			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v2, 1, smoothnormal);
 			cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v3, 2, smoothnormal);
+
 			if(mface->v4)
 				cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v4, 3, smoothnormal);
 			else
 				cddm_draw_attrib_vertex(&attribs, mvert, a, mface->v3, 2, smoothnormal);
-
 		}
 		glEnd();
 	}
@@ -1474,7 +1472,8 @@ static void cdDM_foreachMappedFaceCenter(
 		if (index) {
 			orig = *index++;
 			if(orig == ORIGINDEX_NONE) continue;
-		} else
+		}
+		else
 			orig = i;
 		
 		ml = &cddm->mloop[mf->loopstart];
@@ -1489,8 +1488,7 @@ static void cdDM_foreachMappedFaceCenter(
 			normal_quad_v3(no, mv[ml->v].co, mv[(ml+1)->v].co,
 				       mv[(ml+2)->v].co, mv[(ml+3)->v].co);
 		} else {
-			normal_tri_v3(no, mv[ml->v].co, mv[(ml+1)->v].co,
-				       mv[(ml+2)->v].co);
+			normal_tri_v3(no, mv[ml->v].co, mv[(ml+1)->v].co, mv[(ml+2)->v].co);
 		}
 
 		func(userData, orig, cent, no);

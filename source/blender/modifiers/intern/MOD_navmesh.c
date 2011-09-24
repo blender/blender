@@ -139,7 +139,7 @@ static void drawNavMeshColored(DerivedMesh *dm)
 	glEnable(GL_LIGHTING);
 }
 
-static void navDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+static void navDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr))
 {
 	(void) setDrawOptions;
 

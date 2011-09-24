@@ -365,7 +365,7 @@ static void draw_textured_end(void)
 	glPopMatrix();
 }
 
-static int draw_tface__set_draw_legacy(MTFace *tface, int has_vcol, int matnr)
+static int draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
 {
 	Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 	int validtexture=0;
@@ -380,7 +380,7 @@ static int draw_tface__set_draw_legacy(MTFace *tface, int has_vcol, int matnr)
 	} else if (ma && ma->shade_flag&MA_OBCOLOR) {
 		glColor3ubv(Gtexdraw.obcol);
 		return 2; /* Don't set color */
-	} else if (!has_vcol) {
+	} else if (!has_mcol) {
 		if (tface) glColor3f(1.0, 1.0, 1.0);
 		else {
 			if(ma) {
@@ -397,7 +397,7 @@ static int draw_tface__set_draw_legacy(MTFace *tface, int has_vcol, int matnr)
 		return 1; /* Set color from mcol */
 	}
 }
-static int draw_tface__set_draw(MTFace *tface, int has_vcol, int matnr)
+static int draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
 {
 	Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 
@@ -407,7 +407,7 @@ static int draw_tface__set_draw(MTFace *tface, int has_vcol, int matnr)
 		return 2; /* Don't set color */
 	} else if (tface && tface->mode&TF_OBCOL) {
 		return 2; /* Don't set color */
-	} else if (!has_vcol) {
+	} else if (!has_mcol) {
 		return 1; /* Don't set color */
 	} else {
 		return 1; /* Set color from mcol */
@@ -495,7 +495,6 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	MTexPoly *tpoly = (me->mtpoly)? &me->mtpoly[index]: NULL;
 	MPoly *mpoly = (me->mpoly)? &me->mpoly[index]: NULL;
 	MTFace mtf;
-	int has_vcol= (me->mcol != NULL);
 	int matnr = me->mpoly[index].mat_nr;
 
 	if (mpoly && mpoly->flag&ME_HIDE) return 0;
@@ -510,37 +509,35 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 		mtf.unwrap = tpoly->unwrap;
 	}
 
-	return draw_tface__set_draw(&mtf, has_vcol, matnr);
+	return draw_tface__set_draw(&mtf, (me->mcol != NULL), matnr);
 }
 
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
-	BMEditMesh *em = userData;
+	struct {BMEditMesh *em; short has_mcol; short has_mtface;} *data = userData;
+	BMEditMesh *em = data->em;
 	BMFace *efa= EDBM_get_face_for_index(em, index);
-	MTexPoly *tpoly;
-	MTFace mtf;
-	int has_vcol;
-	int matnr;
 
-	if (efa==NULL || BM_TestHFlag(efa, BM_HIDDEN))
+	if (efa==NULL || BM_TestHFlag(efa, BM_HIDDEN)) {
 		return 0;
-
-	tpoly = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
-	has_vcol = CustomData_has_layer(&em->bm->ldata, CD_MLOOPCOL);
-	matnr = efa->mat_nr;
-
-	memset(&mtf, 0, sizeof(mtf));
-
-	if (tpoly) {
-		mtf.flag = tpoly->flag;
-		mtf.tpage = tpoly->tpage;
-		mtf.transp = tpoly->transp;
-		mtf.mode = tpoly->mode;
-		mtf.tile = tpoly->tile;
-		mtf.unwrap = tpoly->unwrap;
 	}
+	else {
+		MTFace mtf= {{{0}}};
+		int matnr = efa->mat_nr;
 
-	return draw_tface__set_draw_legacy(&mtf, has_vcol, matnr);
+		if (data->has_mtface) {
+			MTexPoly *tpoly = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			mtf.flag = tpoly->flag;
+			mtf.tpage = tpoly->tpage;
+			mtf.transp = tpoly->transp;
+			mtf.mode = tpoly->mode;
+			mtf.tile = tpoly->tile;
+			mtf.unwrap = tpoly->unwrap;
+
+		}
+
+		return draw_tface__set_draw_legacy(&mtf, data->has_mcol, matnr);
+	}
 }
 
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
@@ -660,7 +657,13 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 	glColor4f(1.0f,1.0f,1.0f,1.0f);
 
 	if(ob->mode & OB_MODE_EDIT) {
-		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, me->edit_btmesh);
+		struct {BMEditMesh *em; short has_mcol; short has_mtface;} data;
+
+		data.em= me->edit_btmesh;
+		data.has_mcol= CustomData_has_layer(&me->edit_btmesh->bm->ldata, CD_MLOOPCOL);
+		data.has_mtface= CustomData_has_layer(&me->edit_btmesh->bm->pdata, CD_MTEXPOLY);
+
+		dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, &data);
 	}
 	else if(faceselect) {
 		if(ob->mode & OB_MODE_WEIGHT_PAINT)
