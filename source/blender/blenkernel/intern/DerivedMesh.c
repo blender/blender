@@ -982,6 +982,8 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm, int const draw_flag)
 		}
 	}
 
+	MEM_freeN(defbase_sel);
+
 	CustomData_add_layer(&dm->loopData, CD_WEIGHT_MLOOPCOL, CD_ASSIGN, wlcol, totloop);
 }
 
