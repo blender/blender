@@ -465,8 +465,7 @@ class PerlinNoise1DShader(StrokeShader):
         it = stroke.strokeVerticesBegin()
         while not it.isEnd():
             v = it.getObject()
-            i = v.getProjectedX() + v.getProjectedY()
-            nres = self.__noise.turbulence1(i, self.__freq, self.__amp, self.__oct)
+            nres = self.__noise.turbulence1(v.u(), self.__freq, self.__amp, self.__oct)
             v.setPoint(v.getPoint() + nres * self.__dir)
             it.increment()
 
