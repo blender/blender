@@ -1524,7 +1524,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "bsoft");
 	RNA_def_property_ui_text(prop, "Soft Body Settings", "Settings for Bullet soft body simulation");
 
-	prop= RNA_def_property(srna, "create_obstacle", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_obstacle_create", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_HASOBSTACLE);
 	RNA_def_property_ui_text(prop, "Create obstacle", "Create representation for obstacle simulation");
 

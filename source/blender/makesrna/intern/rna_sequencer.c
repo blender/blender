@@ -1421,7 +1421,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "MPEG Preseek", "For MPEG movies, preseek this many frames");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	prop= RNA_def_property(srna, "streamindex", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "stream_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "streamindex");
 	RNA_def_property_range(prop, 0, 20);
 	RNA_def_property_ui_text(prop, "Streamindex", "For files with several movie streams, use the stream with the given index");
