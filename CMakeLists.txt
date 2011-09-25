@@ -1009,7 +1009,7 @@ elseif(APPLE)
 	mark_as_advanced(SYSTEMSTUBS_LIBRARY)
 	if(SYSTEMSTUBS_LIBRARY)
 		set(PLATFORM_LINKLIBS stdc++ SystemStubs)
- 	else()
+	else()
 		set(PLATFORM_LINKLIBS stdc++)
 	endif()
 

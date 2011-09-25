@@ -5560,7 +5560,7 @@ void createTransData(bContext *C, TransInfo *t)
 		t->ext = NULL;
 		if (t->obedit->type == OB_MESH) {
 			createTransEditVerts(C, t);
-		   }
+		}
 		else if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 			createTransCurveVerts(C, t);
 		}
@@ -5573,7 +5573,7 @@ void createTransData(bContext *C, TransInfo *t)
 		else if (t->obedit->type==OB_ARMATURE) {
 			t->flag &= ~T_PROP_EDIT;
 			createTransArmatureVerts(t);
-		  }
+		}
 		else {
 			printf("edit type not implemented!\n");
 		}

@@ -46,6 +46,7 @@
 
 AviError AVI_set_compress_option (AviMovie *movie, int option_type, int stream, AviOption option, void *opt_data) {
 	int i;
+	int useconds;
 
 	(void)stream; /* unused */
 	
@@ -100,8 +101,9 @@ AviError AVI_set_compress_option (AviMovie *movie, int option_type, int stream, 
 			break;
 
 		case AVI_OPTION_FRAMERATE:
-			if (1000000/(*((double *) opt_data)))
-				movie->header->MicroSecPerFrame = 1000000/(*((double *) opt_data));
+			useconds = (int)(1000000/(*((double *) opt_data)));
+			if (useconds)
+				movie->header->MicroSecPerFrame = useconds;
 
 			for (i=0; i < movie->header->Streams; i++) {
 				if (avi_get_format_type(movie->streams[i].format) == FCC("vids")) {

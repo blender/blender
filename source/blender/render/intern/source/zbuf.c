@@ -1747,13 +1747,14 @@ static void zbuf_project_cache_clear(ZbufProjectCache *cache, int size)
 
 static int zbuf_shadow_project(ZbufProjectCache *cache, int index, float winmat[][4], float *co, float *ho)
 {
-	int clipflag, cindex= index & 255;
+	int cindex= index & 255;
 
 	if(cache[cindex].index == index) {
 		QUATCOPY(ho, cache[cindex].ho);
 		return cache[cindex].clip;
 	}
 	else {
+		int clipflag;
 		projectvert(co, winmat, ho);
 		clipflag= testclip(ho);
 
@@ -1775,14 +1776,16 @@ static void zbuffer_part_bounds(int winx, int winy, RenderPart *pa, float *bound
 
 static int zbuf_part_project(ZbufProjectCache *cache, int index, float winmat[][4], float *bounds, float *co, float *ho)
 {
-	float vec[3], wco;
-	int clipflag= 0, cindex= index & 255;
+	float vec[3];
+	int cindex= index & 255;
 
 	if(cache[cindex].index == index) {
 		QUATCOPY(ho, cache[cindex].ho);
 		return cache[cindex].clip;
 	}
 	else {
+		float wco;
+		int clipflag= 0;
 		VECCOPY(vec, co)
 		projectvert(co, winmat, ho);
 

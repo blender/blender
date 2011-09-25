@@ -1349,7 +1349,7 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 	int totsplit = bb->uv_split * bb->uv_split;
 	int tile, x, y;
 	/* Tile offsets */
- 	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
+	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
 
 	vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 	vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
@@ -5304,11 +5304,13 @@ static void calculate_speedvector(const float vectors[2], int step, float winsq,
 
 static float *calculate_strandsurface_speedvectors(Render *re, ObjectInstanceRen *obi, StrandSurface *mesh)
 {
-	float winsq= (float)re->winx*(float)re->winy, winroot= sqrt(winsq), (*winspeed)[4];  /* int's can wrap on large images */
-	float ho[4], prevho[4], nextho[4], winmat[4][4], vec[2];
-	int a;
-
 	if(mesh->co && mesh->prevco && mesh->nextco) {
+		float winsq= (float)re->winx*(float)re->winy; /* int's can wrap on large images */
+		float winroot= sqrt(winsq);
+		float (*winspeed)[4];
+		float ho[4], prevho[4], nextho[4], winmat[4][4], vec[2];
+		int a;
+
 		if(obi->flag & R_TRANSFORMED)
 			mul_m4_m4m4(winmat, obi->mat, re->winmat);
 		else

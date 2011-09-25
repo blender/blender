@@ -717,7 +717,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 			}
 			else {
 				/* Do partial drawing. 'buffer' holds only the changed part. Needed for color corrected result */
- 				float *buffer = (float *)MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
+				float *buffer = (float *)MEM_mallocN(w*h*sizeof(float)*4, "temp_texpaint_float_buf");
 				IMB_partial_rect_from_float(ibuf, buffer, x, y, w, h);
 				glBindTexture(GL_TEXTURE_2D, ima->bindcode);
 				glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,

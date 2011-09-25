@@ -466,7 +466,7 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //T
 
 		if (has_normals && mp->getPositionIndices().getCount() != mp->getNormalIndices().getCount()) {
 			fprintf(stderr, "Warning: Number of normals is different from the number of vertcies, skipping normals\n");
-	 		has_normals = false;
+			has_normals = false;
 		}
 
 		unsigned int j, k;

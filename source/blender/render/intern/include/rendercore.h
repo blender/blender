@@ -76,12 +76,12 @@ typedef struct PixStrMain
 
 
 void	calc_view_vector(float *view, float x, float y);
-float   mistfactor(float zcor, float *co);	/* dist and height, return alpha */
+float   mistfactor(float zcor, const float co[3]); /* dist and height, return alpha */
 
-void	renderspothalo(struct ShadeInput *shi, float *col, float alpha);
+void	renderspothalo(struct ShadeInput *shi, float col[4], float alpha);
 void	add_halo_flare(Render *re);
 
-void calc_renderco_zbuf(float co[3], float *view, int z);
+void calc_renderco_zbuf(float co[3], const float view[3], int z);
 void calc_renderco_ortho(float co[3], float x, float y, int z);
 
 int count_mask(unsigned short mask);
@@ -103,9 +103,9 @@ extern void freeraytree(Render *re);
 extern void makeraytree(Render *re);
 struct RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi);
 
-extern void ray_shadow(ShadeInput *, LampRen *, float *);
-extern void ray_trace(ShadeInput *, ShadeResult *);
-extern void ray_ao(ShadeInput *, float *, float *);
+extern void ray_shadow(ShadeInput *shi, LampRen *lar, float shadfac[4]);
+extern void ray_trace(ShadeInput *shi, ShadeResult *);
+extern void ray_ao(ShadeInput *shi, float ao[3], float env[3]);
 extern void init_jitter_plane(LampRen *lar);
 extern void init_ao_sphere(struct World *wrld);
 extern void init_render_qmcsampler(Render *re);

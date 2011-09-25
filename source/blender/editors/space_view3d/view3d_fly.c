@@ -62,49 +62,57 @@
 #include "view3d_intern.h"	// own include
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
-#define FLY_MODAL_CANCEL			1
-#define FLY_MODAL_CONFIRM			2
-#define FLY_MODAL_ACCELERATE 		3
-#define FLY_MODAL_DECELERATE		4
-#define FLY_MODAL_PAN_ENABLE		5
-#define FLY_MODAL_PAN_DISABLE		6
-#define FLY_MODAL_DIR_FORWARD		7
-#define FLY_MODAL_DIR_BACKWARD		8
-#define FLY_MODAL_DIR_LEFT			9
-#define FLY_MODAL_DIR_RIGHT			10
-#define FLY_MODAL_DIR_UP			11
-#define FLY_MODAL_DIR_DOWN			12
-#define FLY_MODAL_AXIS_LOCK_X		13
-#define FLY_MODAL_AXIS_LOCK_Z		14
-#define FLY_MODAL_PRECISION_ENABLE	15
-#define FLY_MODAL_PRECISION_DISABLE	16
+enum {
+	FLY_MODAL_CANCEL= 1,
+	FLY_MODAL_CONFIRM,
+	FLY_MODAL_ACCELERATE,
+	FLY_MODAL_DECELERATE,
+	FLY_MODAL_PAN_ENABLE,
+	FLY_MODAL_PAN_DISABLE,
+	FLY_MODAL_DIR_FORWARD,
+	FLY_MODAL_DIR_BACKWARD,
+	FLY_MODAL_DIR_LEFT,
+	FLY_MODAL_DIR_RIGHT,
+	FLY_MODAL_DIR_UP,
+	FLY_MODAL_DIR_DOWN,
+	FLY_MODAL_AXIS_LOCK_X,
+	FLY_MODAL_AXIS_LOCK_Z,
+	FLY_MODAL_PRECISION_ENABLE,
+	FLY_MODAL_PRECISION_DISABLE,
+	FLY_MODAL_FREELOOK_ENABLE,
+	FLY_MODAL_FREELOOK_DISABLE
+
+};
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
 void fly_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{FLY_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
-	{FLY_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
-	{FLY_MODAL_ACCELERATE, "ACCELERATE", 0, "Accelerate", ""},
-	{FLY_MODAL_DECELERATE, "DECELERATE", 0, "Decelerate", ""},
+	    {FLY_MODAL_CANCEL,	"CANCEL", 0, "Cancel", ""},
+	    {FLY_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
+	    {FLY_MODAL_ACCELERATE, "ACCELERATE", 0, "Accelerate", ""},
+	    {FLY_MODAL_DECELERATE, "DECELERATE", 0, "Decelerate", ""},
 
-	{FLY_MODAL_PAN_ENABLE,	"PAN_ENABLE", 0, "Pan Enable", ""},
-	{FLY_MODAL_PAN_DISABLE,	"PAN_DISABLE", 0, "Pan Disable", ""},
+	    {FLY_MODAL_PAN_ENABLE,	"PAN_ENABLE", 0, "Pan Enable", ""},
+	    {FLY_MODAL_PAN_DISABLE,	"PAN_DISABLE", 0, "Pan Disable", ""},
 
-	{FLY_MODAL_DIR_FORWARD,	"FORWARD", 0, "Fly Forward", ""},
-	{FLY_MODAL_DIR_BACKWARD,"BACKWARD", 0, "Fly Backward", ""},
-	{FLY_MODAL_DIR_LEFT,	"LEFT", 0, "Fly Left", ""},
-	{FLY_MODAL_DIR_RIGHT,	"RIGHT", 0, "Fly Right", ""},
-	{FLY_MODAL_DIR_UP,		"UP", 0, "Fly Up", ""},
-	{FLY_MODAL_DIR_DOWN,	"DOWN", 0, "Fly Down", ""},
+	    {FLY_MODAL_DIR_FORWARD,	"FORWARD", 0, "Fly Forward", ""},
+	    {FLY_MODAL_DIR_BACKWARD,"BACKWARD", 0, "Fly Backward", ""},
+	    {FLY_MODAL_DIR_LEFT,	"LEFT", 0, "Fly Left", ""},
+	    {FLY_MODAL_DIR_RIGHT,	"RIGHT", 0, "Fly Right", ""},
+	    {FLY_MODAL_DIR_UP,		"UP", 0, "Fly Up", ""},
+	    {FLY_MODAL_DIR_DOWN,	"DOWN", 0, "Fly Down", ""},
 
-	{FLY_MODAL_AXIS_LOCK_X,	"AXIS_LOCK_X", 0, "X Axis Correction", "X axis correction (toggle)"},
-	{FLY_MODAL_AXIS_LOCK_Z,	"AXIS_LOCK_Z", 0, "X Axis Correction", "Z axis correction (toggle)"},
+	    {FLY_MODAL_AXIS_LOCK_X,	"AXIS_LOCK_X", 0, "X Axis Correction", "X axis correction (toggle)"},
+	    {FLY_MODAL_AXIS_LOCK_Z,	"AXIS_LOCK_Z", 0, "X Axis Correction", "Z axis correction (toggle)"},
 
-	{FLY_MODAL_PRECISION_ENABLE,	"PRECISION_ENABLE", 0, "Precision Enable", ""},
-	{FLY_MODAL_PRECISION_DISABLE,	"PRECISION_DISABLE", 0, "Precision Disable", ""},
+	    {FLY_MODAL_PRECISION_ENABLE,	"PRECISION_ENABLE", 0, "Precision Enable", ""},
+	    {FLY_MODAL_PRECISION_DISABLE,	"PRECISION_DISABLE", 0, "Precision Disable", ""},
 
-	{0, NULL, 0, NULL, NULL}};
+	    {FLY_MODAL_FREELOOK_ENABLE, 	"FREELOOK_ENABLE", 0, "Rotation Enable", ""},
+	    {FLY_MODAL_FREELOOK_DISABLE,	"FREELOOK_DISABLE", 0, "Rotation Disable", ""},
+
+	    {0, NULL, 0, NULL, NULL}};
 
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Fly Modal");
 
@@ -122,10 +130,10 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, SPACEKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, PADENTER, KM_PRESS, KM_ANY, 0, FLY_MODAL_CONFIRM);
 
-	WM_modalkeymap_add_item(keymap, PADPLUSKEY, KM_PRESS, 0, 0, FLY_MODAL_ACCELERATE);
-	WM_modalkeymap_add_item(keymap, PADMINUS, KM_PRESS, 0, 0, FLY_MODAL_DECELERATE);
-	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, FLY_MODAL_ACCELERATE);
-	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, FLY_MODAL_DECELERATE);
+	WM_modalkeymap_add_item(keymap, PADPLUSKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_ACCELERATE);
+	WM_modalkeymap_add_item(keymap, PADMINUS, KM_PRESS, KM_ANY, 0, FLY_MODAL_DECELERATE);
+	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, KM_ANY, 0, FLY_MODAL_ACCELERATE);
+	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_ANY, 0, FLY_MODAL_DECELERATE);
 
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, KM_ANY, 0, FLY_MODAL_PAN_ENABLE);
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, FLY_MODAL_PAN_DISABLE); /* XXX - Bug in the event system, middle mouse release doesnt work */
@@ -144,6 +152,9 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_PRECISION_ENABLE);
 	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, FLY_MODAL_PRECISION_DISABLE);
 
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, FLY_MODAL_FREELOOK_ENABLE);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, FLY_MODAL_FREELOOK_DISABLE);
+
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_fly");
 }
@@ -158,8 +169,9 @@ typedef struct FlyInfo {
 	wmTimer *timer; /* needed for redraws */
 
 	short state;
-	short use_precision;
 	short redraw;
+	unsigned char use_precision;
+	unsigned char use_freelook; /* if the user presses shift they can look about without movinf the direction there looking */
 
 	int mval[2]; /* latest 2D mouse values */
 	wmNDOFMotionData* ndof; /* latest 3D mouse values */
@@ -289,7 +301,8 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	fly->xlock_momentum=0.0f;
 	fly->zlock_momentum=0.0f;
 	fly->grid= 1.0f;
-	fly->use_precision= 0;
+	fly->use_precision= FALSE;
+	fly->use_freelook= FALSE;
 
 #ifdef NDOF_FLY_DRAW_TOOMUCH
 	fly->redraw= 1;
@@ -516,10 +529,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 					fly->speed= 0.0f;
 				}
 				else {
-					if (event->shift)
-						fly->speed += fly->grid*time_wheel * 0.1f;
-					else
-						fly->speed += fly->grid*time_wheel;
+					fly->speed += fly->grid*time_wheel * (fly->use_precision ? 0.1f : 1.0f);
 				}
 				break;
 			}
@@ -537,10 +547,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 					fly->speed=0;
 				}
 				else {
-					if (event->shift)
-						fly->speed-= fly->grid*time_wheel * 0.1f;
-					else
-						fly->speed-= fly->grid*time_wheel;
+					fly->speed-= fly->grid*time_wheel * (fly->use_precision ? 0.1f : 1.0f);
 				}
 				break;
 			}
@@ -604,6 +611,13 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				break;
 			case FLY_MODAL_PRECISION_DISABLE:
 				fly->use_precision= FALSE;
+				break;
+
+			case FLY_MODAL_FREELOOK_ENABLE:
+				fly->use_freelook= TRUE;
+				break;
+			case FLY_MODAL_FREELOOK_DISABLE:
+				fly->use_freelook= FALSE;
 				break;
 		}
 	}
@@ -704,8 +718,6 @@ static int flyApply(bContext *C, FlyInfo *fly)
 //	cent_orig[2], /* view center */
 //XXX- can avoid using // 	cent[2], /* view center modified */
 	xmargin, ymargin; /* x and y margin are define the safe area where the mouses movement wont rotate the view */
-	unsigned char
-	apply_rotation= 1; /* if the user presses shift they can look about without movinf the direction there looking*/
 
 #ifdef NDOF_FLY_DEBUG
 	static unsigned int iteration = 1;
@@ -888,7 +900,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 				}
 
 
-				if (apply_rotation) {
+				if (!fly->use_freelook) {
 					/* Normal operation */
 					/* define dvec, view direction vector */
 					dvec_tmp[0]= dvec_tmp[1]= dvec_tmp[2]= 0.0f;
@@ -896,9 +908,15 @@ static int flyApply(bContext *C, FlyInfo *fly)
 					dvec_tmp[fly->axis]= 1.0f;
 
 					mul_m3_v3(mat, dvec_tmp);
-
-					mul_v3_fl(dvec_tmp, fly->speed * time_redraw * 0.25f);
 				}
+				else {
+					normalize_v3_v3(dvec_tmp, fly->dvec_prev);
+					if(fly->speed < 0.0f) {
+						negate_v3(dvec_tmp);
+					}
+				}
+
+				mul_v3_fl(dvec_tmp, fly->speed * time_redraw * 0.25f);
 			}
 
 			/* impose a directional lag */
@@ -967,11 +985,9 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 		float speed = 10.f; /* blender units per second */
 		/* ^^ this is ok for default cube scene, but should scale with.. something */
 
-		float trans[3] = {
-			lateral_sensitivity * ndof->tvec[0],
-			vertical_sensitivity * ndof->tvec[1],
-			forward_sensitivity * ndof->tvec[2]
-			};
+		float trans[3] = {lateral_sensitivity  * ndof->tvec[0],
+		                  vertical_sensitivity * ndof->tvec[1],
+		                  forward_sensitivity  * ndof->tvec[2]};
 
 		if (fly->use_precision)
 			speed *= 0.2f;

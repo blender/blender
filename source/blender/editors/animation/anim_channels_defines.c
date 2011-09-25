@@ -3051,7 +3051,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 /* Draw a widget for some setting */
 static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChannelType *acf, uiBlock *block, int xpos, int ypos, int setting)
 {
-	short negflag, ptrsize, enabled, butType;
+	short negflag, ptrsize /* , enabled */ /* UNUSED */, butType;
 	int flag, icon;
 	void *ptr;
 	const char *tooltip;
@@ -3060,7 +3060,7 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 	/* get the flag and the pointer to that flag */
 	flag= acf->setting_flag(ac, setting, &negflag);
 	ptr= acf->setting_ptr(ale, setting, &ptrsize);
-	enabled= ANIM_channel_setting_get(ac, ale, setting);
+	/* enabled= ANIM_channel_setting_get(ac, ale, setting); */ /* UNUSED */
 	
 	/* get the base icon for the setting */
 	switch (setting) {

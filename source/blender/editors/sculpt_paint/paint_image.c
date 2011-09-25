@@ -3702,7 +3702,7 @@ static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, flo
 		if(use_color_correction){
 			srgb_to_linearrgb_v3_v3(rgba, ps->brush->rgb);
 		}
- 		else {
+		else {
 			VECCOPY(rgba, ps->brush->rgb);
 		}
 		rgba[3] = 1.0;

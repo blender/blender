@@ -765,12 +765,12 @@ else
 				m_logger->StartLog(tc_scenegraph, m_kxsystem->GetTimeInSeconds(), true);
 				SG_SetActiveStage(SG_STAGE_ACTUATOR);
 				scene->UpdateParents(m_clockTime);
-				 
- 				scene->setSuspendedTime(0.0);
+
+				scene->setSuspendedTime(0.0);
 			} // suspended
- 			else
- 				if(scene->getSuspendedTime()==0.0)
- 					scene->setSuspendedTime(m_clockTime);
+			else
+				if(scene->getSuspendedTime()==0.0)
+					scene->setSuspendedTime(m_clockTime);
 
 			m_logger->StartLog(tc_services, m_kxsystem->GetTimeInSeconds(), true);
 		}

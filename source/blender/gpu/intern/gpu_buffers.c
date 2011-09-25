@@ -629,7 +629,7 @@ static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, i
 		if(smoothnormal) {
 			/* copy vertex normal */
 			normal_short_to_float_v3(&varray[start], mvert[f->v1].no);
- 			normal_short_to_float_v3(&varray[start+3], mvert[f->v2].no);
+			normal_short_to_float_v3(&varray[start+3], mvert[f->v2].no);
 			normal_short_to_float_v3(&varray[start+6], mvert[f->v3].no);
 
 			if(f->v4) {

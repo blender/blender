@@ -1827,7 +1827,7 @@ int cloth_calc_helper_forces(Object *UNUSED(ob), ClothModifierData * clmd, float
 	return 1;
 }
 int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
-{ 	 	
+{
 	unsigned int i=0;
 	float step=0.0f, tf=clmd->sim_parms->timescale;
 	Cloth *cloth = clmd->clothObject;
@@ -1981,7 +1981,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 }
 
 void implicit_set_positions (ClothModifierData *clmd)
-{ 	 	
+{
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
 	unsigned int numverts = cloth->numverts, i;

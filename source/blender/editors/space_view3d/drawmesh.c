@@ -517,10 +517,8 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 {
 	Mesh *me = (Mesh*)userData;
 
-	if (me->mface) {
-		short matnr= me->mface[index].mat_nr;
-		Material *ma= me->mat[matnr];
-
+	if (me->mat && me->mface) {
+		Material *ma= me->mat[me->mface[index].mat_nr];
 		if (ma && (ma->game.flag & GEMAT_INVISIBLE)) {
 			return 0;
 		}
