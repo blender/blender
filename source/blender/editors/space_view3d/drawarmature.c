@@ -697,13 +697,9 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 			vec[0]= - *(si+a) * dirvec[0] + *(co+a) * norvec[0];
 			vec[1]= - *(si+a) * dirvec[1] + *(co+a) * norvec[1];
 			vec[2]= - *(si+a) * dirvec[2] + *(co+a) * norvec[2];
-			
-			vec1[0]= headvec[0] + head*vec[0];
-			vec1[1]= headvec[1] + head*vec[1];
-			vec1[2]= headvec[2] + head*vec[2];
-			vec2[0]= headvec[0] + (head+dist)*vec[0];
-			vec2[1]= headvec[1] + (head+dist)*vec[1];
-			vec2[2]= headvec[2] + (head+dist)*vec[2];
+
+			madd_v3_v3v3fl(vec1, headvec, vec, head);
+			madd_v3_v3v3fl(vec2, headvec, vec, head + dist);
 			
 			glColor4ub(255, 255, 255, 50);
 			glVertex3fv(vec1);
@@ -715,13 +711,9 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 			vec[0]= *(si+a) * dirvec[0] + *(co+a) * norvec[0];
 			vec[1]= *(si+a) * dirvec[1] + *(co+a) * norvec[1];
 			vec[2]= *(si+a) * dirvec[2] + *(co+a) * norvec[2];
-			
-			vec1[0]= tailvec[0] + tail*vec[0];
-			vec1[1]= tailvec[1] + tail*vec[1];
-			vec1[2]= tailvec[2] + tail*vec[2];
-			vec2[0]= tailvec[0] + (tail+dist)*vec[0];
-			vec2[1]= tailvec[1] + (tail+dist)*vec[1];
-			vec2[2]= tailvec[2] + (tail+dist)*vec[2];
+
+			madd_v3_v3v3fl(vec1, tailvec, vec, tail);
+			madd_v3_v3v3fl(vec2, tailvec, vec, tail + dist);
 			
 			//glColor4ub(255, 255, 255, 50);
 			glVertex3fv(vec1);
@@ -733,14 +725,10 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 		vec[0]= - *(si) * dirvec[0] + *(co) * norvec[0];
 		vec[1]= - *(si) * dirvec[1] + *(co) * norvec[1];
 		vec[2]= - *(si) * dirvec[2] + *(co) * norvec[2];
-		
-		vec1[0]= headvec[0] + head*vec[0];
-		vec1[1]= headvec[1] + head*vec[1];
-		vec1[2]= headvec[2] + head*vec[2];
-		vec2[0]= headvec[0] + (head+dist)*vec[0];
-		vec2[1]= headvec[1] + (head+dist)*vec[1];
-		vec2[2]= headvec[2] + (head+dist)*vec[2];
-		
+
+		madd_v3_v3v3fl(vec1, headvec, vec, head);
+		madd_v3_v3v3fl(vec2, headvec, vec, head + dist);
+
 		//glColor4ub(255, 255, 255, 50);
 		glVertex3fv(vec1);
 		//glColor4ub(255, 255, 255, 0);
@@ -839,21 +827,17 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 			glLoadName(id | BONESEL_BONE);
 		
 		glBegin(GL_LINES);
-		vec[0]= headvec[0] + norvech[0];
-		vec[1]= headvec[1] + norvech[1];
-		vec[2]= headvec[2] + norvech[2];
+
+		add_v3_v3v3(vec, headvec, norvech);
 		glVertex3fv(vec);
-		vec[0]= tailvec[0] + norvect[0];
-		vec[1]= tailvec[1] + norvect[1];
-		vec[2]= tailvec[2] + norvect[2];
+
+		add_v3_v3v3(vec, tailvec, norvect);
 		glVertex3fv(vec);
-		vec[0]= headvec[0] - norvech[0];
-		vec[1]= headvec[1] - norvech[1];
-		vec[2]= headvec[2] - norvech[2];
+
+		sub_v3_v3v3(vec, headvec, norvech);
 		glVertex3fv(vec);
-		vec[0]= tailvec[0] - norvect[0];
-		vec[1]= tailvec[1] - norvect[1];
-		vec[2]= tailvec[2] - norvect[2];
+
+		sub_v3_v3v3(vec, tailvec, norvect);
 		glVertex3fv(vec);
 		
 		glEnd();
