@@ -12066,7 +12066,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 
 	{
-
+		{
+			/* Adaptive time step for particle systems */
+			ParticleSettings *part;
+			for (part = main->particle.first; part; part = part->id.next) {
+				part->courant_target = 0.2;
+				part->time_flag &= ~PART_TIME_AUTOSF;
+			}
+		}
 	}
 
 	//set defaults for obstacle avoidance, recast data
