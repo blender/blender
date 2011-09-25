@@ -12070,7 +12070,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* Adaptive time step for particle systems */
 			ParticleSettings *part;
 			for (part = main->particle.first; part; part = part->id.next) {
-				part->courant_target = 0.2;
+				part->courant_target = 0.2f;
 				part->time_flag &= ~PART_TIME_AUTOSF;
 			}
 		}
@@ -12089,7 +12089,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(sce->gm.recastData.cellheight == 0.0f)
 				sce->gm.recastData.cellheight = 0.2f;
 			if(sce->gm.recastData.agentmaxslope == 0.0f)
-				sce->gm.recastData.agentmaxslope = M_PI/4;
+				sce->gm.recastData.agentmaxslope = (float)M_PI/4;
 			if(sce->gm.recastData.agentmaxclimb == 0.0f)
 				sce->gm.recastData.agentmaxclimb = 0.9f;
 			if(sce->gm.recastData.agentheight == 0.0f)

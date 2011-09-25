@@ -132,7 +132,7 @@ protected:
 	uint32 mixBits( const uint32& u, const uint32& v ) const
 		{ return hiBit(u) | loBits(v); }
 	uint32 twist( const uint32& m, const uint32& s0, const uint32& s1 ) const
-		{ return m ^ (mixBits(s0,s1)>>1) ^ (-loBit(s1) & 0x9908b0dfUL); }
+		{ return m ^ (mixBits(s0,s1)>>1) ^ ((~loBit(s1) + 1) & 0x9908b0dfUL); }
 	static uint32 hash( time_t t, clock_t c );
 };
 
