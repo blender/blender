@@ -1392,7 +1392,7 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem rotation_units[] = {
-		{0, "DEGREES", 0, "Degrees", "Use degrees for measuring rotation"},
+		{0, "DEGREES", 0, "Degrees", "Use degrees for measuring angles and rotations"},
 		{USER_UNIT_ROT_RADIANS, "RADIANS", 0, "Radians", ""},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -1506,7 +1506,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 
 	prop= RNA_def_property(srna, "use_ztransp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_ZTRA);
-	RNA_def_property_ui_text(prop, "ZTransp", "Render Z-Transparent faces in this Layer (On top of Solid and Halos)");
+	RNA_def_property_ui_text(prop, "ZTransp", "Render Z-Transparent faces in this Layer (on top of Solid and Halos)");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -2380,7 +2380,9 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
 	RNA_def_property_enum_items(prop, image_color_mode_items);
-	RNA_def_property_ui_text(prop, "Color Mode", "Choose BW for saving greyscale images, RGB for saving red, green and blue channels, AND RGBA for saving red, green, blue + alpha channels");
+	RNA_def_property_ui_text(prop, "Color Mode",
+	                         "Choose BW for saving greyscale images, RGB for saving red, green and blue channels, "
+	                         "and RGBA for saving red, green, blue and alpha channels");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
@@ -2431,7 +2433,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "file_quality", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
 	RNA_def_property_range(prop, 0, 100); /* 0 is needed for compression. */
-	RNA_def_property_ui_text(prop, "Quality", "Quality of JPEG images, AVI Jpeg and SGI movies, Compression for PNG's");
+	RNA_def_property_ui_text(prop, "Quality", "Quality of JPEG images, AVI Jpeg and SGI movies, compression for PNG's");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	/* Tiff */
@@ -2590,19 +2592,19 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "ffmpeg_video_bitrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.video_bitrate");
 	RNA_def_property_range(prop, 1, 14000);
-	RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate(kb/s)");
+	RNA_def_property_ui_text(prop, "Bitrate", "Video bitrate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "ffmpeg_minrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.rc_min_rate");
 	RNA_def_property_range(prop, 0, 9000);
-	RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate(kb/s)");
+	RNA_def_property_ui_text(prop, "Min Rate", "Rate control: min rate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "ffmpeg_maxrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.rc_max_rate");
 	RNA_def_property_range(prop, 1, 14000);
-	RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate(kb/s)");
+	RNA_def_property_ui_text(prop, "Max Rate", "Rate control: max rate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "ffmpeg_muxrate", PROP_INT, PROP_NONE);
@@ -2646,7 +2648,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.audio_bitrate");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 32, 384);
-	RNA_def_property_ui_text(prop, "Bitrate", "Audio bitrate(kb/s)");
+	RNA_def_property_ui_text(prop, "Bitrate", "Audio bitrate (kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "ffmpeg_audio_volume", PROP_FLOAT, PROP_NONE);
@@ -2669,7 +2671,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "ffcodecdata.audio_channels");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, audio_channel_items);
-	RNA_def_property_ui_text(prop, "Audio Channels", "Sets the audio channel count");
+	RNA_def_property_ui_text(prop, "Audio Channels", "Audio channel count");
 
 	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frs_sec");

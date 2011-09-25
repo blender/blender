@@ -1049,18 +1049,21 @@ static void rna_def_field(BlenderRNA *brna)
 	
 	static EnumPropertyItem field_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", "Gives a radial field toward the center of object"},
-		{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", "Gives a constant force along the force objects local Z axis"},
-		{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", "Gives a spiraling force that twists the force objects local Z axis"},
+		{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", "Radial field toward the center of object"},
+		{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", "Constant force along the force object's local Z axis"},
+		{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", "Spiraling force that twists the force object's local Z axis"},
 		{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", "Forcefield depends on the speed of the particles"},
-		{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic", "The source of this force field is the zero point of a harmonic oscillator"},
-		{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge", "Spherical forcefield based on the charge of particles, only influences other charge force fields"},
-		{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones", "Forcefield based on the Lennard-Jones potential"},
+		{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic",
+		                  "The source of this force field is the zero point of a harmonic oscillator"},
+		{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge",
+		                "Spherical forcefield based on the charge of particles, only influences other charge force fields"},
+		{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones",
+		                  "Forcefield based on the Lennard-Jones potential"},
 		{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", "Forcefield based on a texture"},
-		{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, "Curve Guide", "Creates a force along a curve object"},
+		{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, "Curve Guide", "Create a force along a curve object"},
 		{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
-		{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", "Creates turbulence with a noise field"},
-		{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", "Creates a force that dampens motion"},
+		{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", "Create turbulence with a noise field"},
+		{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", "Create a force that dampens motion"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem falloff_items[] = {
