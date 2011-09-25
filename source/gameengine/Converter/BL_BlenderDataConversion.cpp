@@ -642,7 +642,7 @@ bool ConvertMaterial(
 	if(validmat && (mat->mode & MA_TRANSP) && (mat->mode & MA_ZTRANSP) && (material->alphablend == GEMAT_SOLID))
 		material->alphablend = GEMAT_ALPHA;
 
-  	// always zsort alpha + add
+	// always zsort alpha + add
 	if((ELEM3(material->alphablend, GEMAT_ALPHA, GEMAT_ALPHA_SORT, GEMAT_ADD) || texalpha) && (material->alphablend != GEMAT_CLIP )) {
 		material->ras_mode |= ALPHA;
 		material->ras_mode |= (mat && (mat->game.alpha_blend & GEMAT_ALPHA_SORT))? ZSORT: 0;

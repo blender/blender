@@ -9985,7 +9985,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->toolsettings->skgen_resolution = 250;
 			sce->toolsettings->skgen_threshold_internal 	= 0.1f;
 			sce->toolsettings->skgen_threshold_external 	= 0.1f;
-			sce->toolsettings->skgen_angle_limit	 		= 30.0f;
+			sce->toolsettings->skgen_angle_limit			= 30.0f;
 			sce->toolsettings->skgen_length_ratio			= 1.3f;
 			sce->toolsettings->skgen_length_limit			= 1.5f;
 			sce->toolsettings->skgen_correlation_limit		= 0.98f;

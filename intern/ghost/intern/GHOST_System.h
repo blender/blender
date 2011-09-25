@@ -250,7 +250,7 @@ public:
 	virtual inline GHOST_WindowManager* getWindowManager() const;
 
 #ifdef WITH_INPUT_NDOF
- 	/**
+	/**
 	 * Returns a pointer to our n-degree of freedeom manager.
 	 * @return A pointer to our n-degree of freedeom manager.
 	 */

@@ -483,7 +483,7 @@ static int no_joystick(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	SYS_SystemHandle *syshandle = data;
 
 	/**
-	 	don't initialize joysticks if user doesn't want to use joysticks
+		don't initialize joysticks if user doesn't want to use joysticks
 		failed joystick initialization delays over 5 seconds, before game engine start
 	*/
 	SYS_WriteCommandLineInt(*syshandle, "nojoystick",1);

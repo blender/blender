@@ -551,8 +551,8 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 	}
 	
 	/* delete the group instance. this also removes old input links! */
- 	nodeFreeNode(ntree, gnode);
- 	
+	nodeFreeNode(ntree, gnode);
+
 	/* free the group tree (takes care of user count) */
 	free_libblock(&G.main->nodetree, wgroup);
 	

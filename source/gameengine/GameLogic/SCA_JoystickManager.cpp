@@ -83,8 +83,8 @@ void SCA_JoystickManager::NextFrame(double curtime,double deltatime)
 
 SCA_Joystick *SCA_JoystickManager::GetJoystickDevice( short int joyindex)
 {
-	/* 
-	 *Return the instance of SCA_Joystick for use 
- 	 */
+	/*
+	 *Return the instance of SCA_Joystick for use
+	 */
 	return m_joystick[joyindex];
 }

@@ -100,7 +100,7 @@ class KX_ObjectActuator : public SCA_IActuator
 	// used in servo control
 	MT_Vector3		m_previous_error;
 	MT_Vector3		m_error_accumulator;
-  	KX_LocalFlags	m_bitLocalFlag;
+	KX_LocalFlags	m_bitLocalFlag;
 	KX_GameObject*  m_reference;
 	// A hack bool -- oh no sorry everyone
 	// This bool is used to check if we have informed 

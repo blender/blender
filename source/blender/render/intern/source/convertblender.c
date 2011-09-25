@@ -1349,7 +1349,7 @@ static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Particl
 	int totsplit = bb->uv_split * bb->uv_split;
 	int tile, x, y;
 	/* Tile offsets */
- 	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
+	float uvx = 0.0f, uvy = 0.0f, uvdx = 1.0f, uvdy = 1.0f, time = 0.0f;
 
 	vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 	vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
