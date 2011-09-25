@@ -146,7 +146,7 @@ static void cp_shade_color3ub (unsigned char cp[3], const int offset)
 }
 
 /* This function sets the gl-color for coloring a certain bone (based on bcolor) */
-static short set_pchan_glColor (short colCode, int boneflag, int constflag)
+static short set_pchan_glColor (short colCode, int boneflag, short constflag)
 {
 	switch (colCode) {
 	case PCHAN_COLOR_NORMAL:
@@ -752,7 +752,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 
 
 /* smat, imat = mat & imat to draw screenaligned */
-static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
 {
 	float head, tail /*, length*/;
 	float *headvec, *tailvec, dirvec[3];
@@ -861,7 +861,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 }
 
 /* does wire only for outline selecting */
-static void draw_sphere_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_sphere_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
 {
 	GLUquadricObj	*qobj;
 	float head, tail, length;
@@ -991,7 +991,7 @@ static GLubyte bm_dot5[]= {0x0, 0x0, 0x10, 0x38, 0x7c, 0x38, 0x10, 0x0};
 static GLubyte bm_dot7[]= {0x0, 0x38, 0x7C, 0xFE, 0xFE, 0xFE, 0x7C, 0x38}; 
 
 
-static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
 {
 	float length;
 	
@@ -1125,7 +1125,7 @@ static void draw_b_bone_boxes(int dt, bPoseChannel *pchan, float xwidth, float l
 	}
 }
 
-static void draw_b_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_b_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
 {
 	float xwidth, length, zwidth;
 	
@@ -1238,7 +1238,7 @@ static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float len
 	}
 }
 
-static void draw_wire_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+static void draw_wire_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
 {
 	Mat4 *bbones = NULL;
 	int segments = 0;
@@ -1288,7 +1288,7 @@ static void draw_wire_bone(int dt, int armflag, int boneflag, int constflag, uns
 	draw_wire_bone_segments(pchan, bbones, length, segments);
 }
 
-static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id, float length)
+static void draw_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, float length)
 {
 	
 	/*	Draw a 3d octahedral bone, we use normalized space based on length,
@@ -1659,7 +1659,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 	float smat[4][4], imat[4][4], bmat[4][4];
 	int index= -1;
 	short do_dashed= 3, draw_wire= 0;
-	short flag, constflag;
+	int flag;
 	
 	/* being set below */
 	arm->layer_used= 0;
@@ -1880,6 +1880,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 				 ((G.f & G_PICKSEL)==0 || (bone->flag & BONE_UNSELECTABLE)==0) ) 
 			{
 				if (bone->layer & arm->layer) {
+					const short constflag= pchan->constflag;
 					if ((do_dashed & 1) && (pchan->parent)) {
 						/* Draw a line from our root to the parent's tip 
 						 *	- only if V3D_HIDE_HELPLINES is enabled...
@@ -1901,16 +1902,16 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 						 * 	- only if temporary chain (i.e. "autoik")
 						 */
 						if (arm->flag & ARM_POSEMODE) {
-							if (pchan->constflag & PCHAN_HAS_IK) {
+							if (constflag & PCHAN_HAS_IK) {
 								if (bone->flag & BONE_SELECTED) {
-									if (pchan->constflag & PCHAN_HAS_TARGET) glColor3ub(200, 120, 0);
+									if (constflag & PCHAN_HAS_TARGET) glColor3ub(200, 120, 0);
 									else glColor3ub(200, 200, 50);	// add theme!
 									
 									glLoadName(index & 0xFFFF);
 									pchan_draw_IK_root_lines(pchan, !(do_dashed & 2));
 								}
 							}
-							else if (pchan->constflag & PCHAN_HAS_SPLINEIK) {
+							else if (constflag & PCHAN_HAS_SPLINEIK) {
 								if (bone->flag & BONE_SELECTED) {
 									glColor3ub(150, 200, 50);	// add theme!
 									
@@ -1935,7 +1936,6 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 						flag |= BONE_DRAW_ACTIVE;
 					
 					/* extra draw service for pose mode */
-					constflag= pchan->constflag;
 
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
