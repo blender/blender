@@ -145,33 +145,38 @@ static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr, ParticleSy
 	*psmd_pt= NULL;
 	*pa_pt= NULL;
 
-	/* weak, what about multiple particle systems? */
-	for (md = ob->modifiers.first; md; md=md->next) {
-		if (md->type == eModifierType_ParticleSystem)
-			psmd= (ParticleSystemModifierData*) md;
+	/* given the pointer HairKey *hkey, we iterate over all particles in all
+	 * particle systems in the object "ob" in order to find
+	 *- the ParticleSystemData to which the HairKey (and hence the particle)
+	 *  belongs (will be stored in psmd_pt)
+	 *- the ParticleData to which the HairKey belongs (will be stored in pa_pt)
+	 *
+	 * not a very efficient way of getting hair key location data,
+	 * but it's the best we've got at the present
+	 *
+	 * IDEAS: include additional information in pointerRNA beforehand,
+	 * for example a pointer to the ParticleStstemModifierData to which the
+	 * hairkey belongs.
+	 */
+
+	for (md= ob->modifiers.first; md; md=md->next) {
+		if (md->type == eModifierType_ParticleSystem) {
+			psmd= (ParticleSystemModifierData *) md;
+			if (psmd && psmd->dm && psmd->psys) {
+				psys = psmd->psys;
+				for(i= 0, pa= psys->particles; i < psys->totpart; i++, pa++) {
+					/* hairkeys are stored sequentially in memory, so we can
+					 * find if it's the same particle by comparing pointers,
+					 * without having to iterate over them all */
+					if ((hkey >= pa->hair) && (hkey < pa->hair + pa->totkey)) {
+						*psmd_pt = psmd;
+						*pa_pt = pa;
+						return;
+					}
+				}
+			}
+		}
 	}
-
-	if (!psmd || !psmd->dm || !psmd->psys) {
-		return;
-	}
-
-	psys= psmd->psys;
-
-	/* not a very efficient way of getting hair key location data,
-	 * but it's the best we've got at the present */
-
-	/* find the particle that corresponds with this HairKey */
-	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++) {
-
-		/* hairkeys are stored sequentially in memory, so we can find if
-		 * it's the same particle by comparing pointers, without having
-		 * to iterate over them all */
-		if ((hkey >= pa->hair) && (hkey < pa->hair + pa->totkey))
-			break;
-	}
-
-	*psmd_pt= psmd;
-	*pa_pt= pa;
 }
 
 static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *values)
