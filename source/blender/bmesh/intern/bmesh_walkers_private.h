@@ -32,44 +32,56 @@
 extern BMWalker *bm_walker_types[];
 extern int bm_totwalkers;
 
+
+/* Pointer hiding*/
+typedef struct bmesh_walkerGeneric{
+	Link link;
+	int depth;
+} bmesh_walkerGeneric;
+
+
 typedef struct shellWalker{
-	struct shellWalker *prev;
-	BMVert *base;			
-	BMEdge *curedge, *current;
+	bmesh_walkerGeneric header;
+	BMEdge *curedge;
 } shellWalker;
 
 typedef struct islandboundWalker {
-	struct islandboundWalker *prev;
+	bmesh_walkerGeneric header;
 	BMLoop *base;
 	BMVert *lastv;
 	BMLoop *curloop;
 } islandboundWalker;
 
 typedef struct islandWalker {
-	struct islandWalker * prev;
+	bmesh_walkerGeneric header;
 	BMFace *cur;
 } islandWalker;
 
 typedef struct loopWalker {
-	struct loopWalker * prev;
+	bmesh_walkerGeneric header;
 	BMEdge *cur, *start;
 	BMVert *lastv, *startv;
 	int startrad, stage2;
 } loopWalker;
 
 typedef struct faceloopWalker {
-	struct faceloopWalker * prev;
+	bmesh_walkerGeneric header;
 	BMLoop *l;
 	int nocalc;
 } faceloopWalker;
 
 typedef struct edgeringWalker {
-	struct edgeringWalker * prev;
+	bmesh_walkerGeneric header;
 	BMLoop *l;
 	BMEdge *wireedge;
 } edgeringWalker;
 
 typedef struct uvedgeWalker {
-	struct uvedgeWalker *prev;
+	bmesh_walkerGeneric header;
 	BMLoop *l;
 } uvedgeWalker;
+
+typedef struct connectedVertexWalker {
+	bmesh_walkerGeneric header;
+	BMVert *curvert;
+} connectedVertexWalker;
