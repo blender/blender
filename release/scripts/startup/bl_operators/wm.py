@@ -1186,107 +1186,16 @@ class WM_OT_keyconfig_test(Operator):
     bl_idname = "wm.keyconfig_test"
     bl_label = "Test Key Configuration for Conflicts"
 
-    def testEntry(self, kc, entry, src=None, parent=None):
-        result = False
-
-        def kmistr(kmi):
-            if km.is_modal:
-                s = ["kmi = km.keymap_items.new_modal(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
-            else:
-                s = ["kmi = km.keymap_items.new(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
-
-            if kmi.any:
-                s.append(", any=True")
-            else:
-                if kmi.shift:
-                    s.append(", shift=True")
-                if kmi.ctrl:
-                    s.append(", ctrl=True")
-                if kmi.alt:
-                    s.append(", alt=True")
-                if kmi.oskey:
-                    s.append(", oskey=True")
-            if kmi.key_modifier and kmi.key_modifier != 'NONE':
-                s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
-
-            s.append(")\n")
-
-            props = kmi.properties
-
-            if props is not None:
-                export_properties("kmi.properties", props, s)
-
-            return "".join(s).strip()
-
-        idname, spaceid, regionid, children = entry
-
-        km = kc.keymaps.find(idname, space_type=spaceid, region_type=regionid)
-
-        if km:
-            km = km.active()
-
-            if src:
-                for item in km.keymap_items:
-                    if src.compare(item):
-                        print("===========")
-                        print(parent.name)
-                        print(kmistr(src))
-                        print(km.name)
-                        print(kmistr(item))
-                        result = True
-
-                for child in children:
-                    if self.testEntry(kc, child, src, parent):
-                        result = True
-            else:
-                for i in range(len(km.keymap_items)):
-                    src = km.keymap_items[i]
-
-                    for child in children:
-                        if self.testEntry(kc, child, src, km):
-                            result = True
-
-                    for j in range(len(km.keymap_items) - i - 1):
-                        item = km.keymap_items[j + i + 1]
-                        if src.compare(item):
-                            print("===========")
-                            print(km.name)
-                            print(kmistr(src))
-                            print(kmistr(item))
-                            result = True
-
-                for child in children:
-                    if self.testEntry(kc, child):
-                        result = True
-
-        return result
-
-    def testConfig(self, kc):
-        result = False
-        for entry in KM_HIERARCHY:
-            if self.testEntry(kc, entry):
-                result = True
-        return result
-
     def execute(self, context):
+        from bpy_extras import keyconfig_utils
+
         wm = context.window_manager
         kc = wm.keyconfigs.default
 
-        if self.testConfig(kc):
+        if keyconfig_utils.keyconfig_test(kc):
             print("CONFLICT")
 
         return {'FINISHED'}
-
-
-def _string_value(value):
-    if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
-        result = repr(value)
-    elif getattr(value, '__len__', False):
-        return repr(list(value))
-    else:
-        print("Export key configuration: can't write ", value)
-
-    return result
 
 
 class WM_OT_keyconfig_import(Operator):
@@ -1383,79 +1292,20 @@ class WM_OT_keyconfig_export(Operator):
             )
 
     def execute(self, context):
+        from bpy_extras import keyconfig_utils
+
         if not self.filepath:
             raise Exception("Filepath not set")
 
         if not self.filepath.endswith('.py'):
             self.filepath += '.py'
 
-        f = open(self.filepath, "w")
-        if not f:
-            raise Exception("Could not open file")
-
         wm = context.window_manager
-        kc = wm.keyconfigs.active
 
-        f.write("import bpy\n")
-        f.write("import os\n\n")
-        f.write("wm = bpy.context.window_manager\n")
-        f.write("kc = wm.keyconfigs.new(os.path.splitext(os.path.basename(__file__))[0])\n\n")  # keymap must be created by caller
-
-        # Generate a list of keymaps to export:
-        #
-        # First add all user_modified keymaps (found in keyconfigs.user.keymaps list),
-        # then add all remaining keymaps from the currently active custom keyconfig.
-        #
-        # This will create a final list of keymaps that can be used as a 'diff' against
-        # the default blender keyconfig, recreating the current setup from a fresh blender
-        # without needing to export keymaps which haven't been edited.
-
-        class FakeKeyConfig():
-            keymaps = []
-        edited_kc = FakeKeyConfig()
-        for km in wm.keyconfigs.user.keymaps:
-            if km.is_user_modified:
-                edited_kc.keymaps.append(km)
-        # merge edited keymaps with non-default keyconfig, if it exists
-        if kc != wm.keyconfigs.default:
-            export_keymaps = _merge_keymaps(edited_kc, kc)
-        else:
-            export_keymaps = _merge_keymaps(edited_kc, edited_kc)
-
-        for km, kc_x in export_keymaps:
-
-            km = km.active()
-
-            f.write("# Map %s\n" % km.name)
-            f.write("km = kc.keymaps.new('%s', space_type='%s', region_type='%s', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.is_modal))
-            for kmi in km.keymap_items:
-                if km.is_modal:
-                    f.write("kmi = km.keymap_items.new_modal('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
-                else:
-                    f.write("kmi = km.keymap_items.new('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
-                if kmi.any:
-                    f.write(", any=True")
-                else:
-                    if kmi.shift:
-                        f.write(", shift=True")
-                    if kmi.ctrl:
-                        f.write(", ctrl=True")
-                    if kmi.alt:
-                        f.write(", alt=True")
-                    if kmi.oskey:
-                        f.write(", oskey=True")
-                if kmi.key_modifier and kmi.key_modifier != 'NONE':
-                    f.write(", key_modifier='%s'" % kmi.key_modifier)
-                f.write(")\n")
-
-                props = kmi.properties
-
-                if props is not None:
-                    f.write("".join(export_properties("kmi.properties", props)))
-
-            f.write("\n")
-
-        f.close()
+        keyconfig_utils.keyconfig_export(wm,
+                                         wm.keyconfigs.active,
+                                         self.filepath,
+                                         )
 
         return {'FINISHED'}
 
@@ -1842,6 +1692,7 @@ class WM_OT_addon_remove(Operator):
 
     def execute(self, context):
         import addon_utils
+        import os
 
         path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
         if path is None:
