@@ -5227,6 +5227,11 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 	SpaceNode *snode= t->sa->spacedata.first;
 	bNode *node;
 
+	if(!snode->edittree) {
+		t->total= 0;
+		return;
+	}
+
 	/* set transform flags on nodes */
 	for (node=snode->edittree->nodes.first; node; node=node->next) {
 		if ((node->flag & NODE_SELECT) || (node->parent && (node->parent->flag & NODE_TRANSFORM)))
