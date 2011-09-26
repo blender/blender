@@ -7,3 +7,4 @@ levenberg_marquardt.patch
 function_derivative.patch
 high_distortion_crash_fix.patch
 mingw.patch
+msvc2010.patch

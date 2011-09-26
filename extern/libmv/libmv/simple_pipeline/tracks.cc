@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <iterator>
 
 #include "libmv/numeric/numeric.h"
 #include "libmv/simple_pipeline/tracks.h"
