@@ -2459,7 +2459,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d,
 		BMFace *f;
 		int n;
 
-#define DRAW_EM_MEASURE_STATS_FACEAREA(void)\
+#define DRAW_EM_MEASURE_STATS_FACEAREA()\
 		if (BM_TestHFlag(f, BM_SELECT)) {\
 			mul_v3_fl(vmid, 1.0/n);\
 			if(unit->system)\

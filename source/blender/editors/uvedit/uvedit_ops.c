@@ -2351,7 +2351,7 @@ static void uv_faces_do_sticky(bContext *C, SpaceImage *sima, Scene *scene, Obje
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
+	/* MTexPoly *tf; */
 	
 	if((ts->uv_flag & UV_SYNC_SELECTION)==0 && sima->sticky == SI_STICKY_VERTEX) {
 		/* Tag all verts as untouched, then touch the ones that have a face center

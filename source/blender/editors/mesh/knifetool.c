@@ -799,7 +799,7 @@ static BMEdgeHit *knife_edge_tri_isect(knifetool_opdata *kcd, BMBVHTree *bmtree,
 			BMLoop *l1 = ls[j];
 			BMFace *hitf;
 			ListBase *lst = knife_get_face_kedges(kcd, l1->f);
-			Ref *ref, *ref2;
+			Ref *ref;
 			
 			for (ref=lst->first; ref; ref=ref->next) {			
 				KnifeEdge *kfe = ref->ref;

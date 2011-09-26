@@ -147,7 +147,6 @@ static int uvedit_have_selection(Scene *scene, BMEditMesh *em, short implicit)
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
-	MTexPoly *tf;
 	MLoopUV *luv;
 	
 	/* verify if we have any selected uv's before unwrapping,

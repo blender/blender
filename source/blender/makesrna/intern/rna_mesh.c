@@ -1818,10 +1818,10 @@ static void rna_def_mesh_loops(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 
-	PropertyRNA *prop;
+	/*PropertyRNA *prop;*/
 
 	FunctionRNA *func;
-//	PropertyRNA *parm;
+	/*PropertyRNA *parm;*/
 
 	RNA_def_property_srna(cprop, "MeshLoops");
 	srna= RNA_def_struct(brna, "MeshLoops", NULL);
