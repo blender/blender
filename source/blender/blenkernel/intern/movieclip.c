@@ -489,9 +489,11 @@ static int need_undistorted_cache(MovieClipUser *user, int flag)
 		return 0;
 
 	/* only full undistorted render can be used as on-fly undistorting image */
-	if(flag&MCLIP_USE_PROXY)
+	if(flag&MCLIP_USE_PROXY) {
 		if(user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL || (user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT)==0)
 			return 0;
+	}
+	else return 0;
 
 	return 1;
 }
