@@ -1083,7 +1083,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip, int wid
 									sub_v2_v2v2(dpos, npos, pos);
 									mul_v2_fl(dpos, 1.f/steps);
 
-									for(j= 0; j<steps; j++) {
+									for(j= 0; j<=steps; j++) {
 										BKE_tracking_apply_intrinsics(tracking, pos, tpos);
 										glVertex2f(tpos[0]/width, tpos[1]/(height*aspy));
 
@@ -1130,14 +1130,24 @@ void draw_clip_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
 	if(sc->flag&SC_SHOW_STABLE) {
+		float smat[4][4], ismat[4][4];
+
 		ibuf= ED_space_clip_acquire_stable_buffer(sc, sc->loc, &sc->scale, &sc->angle);
 		BKE_tracking_stabdata_to_mat4(width, height, sc->loc, sc->scale, sc->angle, sc->stabmat);
+
+		unit_m4(smat);
+		smat[0][0]= 1.f/width;
+		smat[1][1]= 1.f/height;
+		invert_m4_m4(ismat, smat);
+
+		mul_serie_m4(sc->unistabmat, smat, sc->stabmat, ismat, NULL, NULL, NULL, NULL, NULL);
 	} else {
 		ibuf= ED_space_clip_acquire_buffer(sc);
 
 		zero_v2(sc->loc);
 		sc->scale= 1.f;
 		unit_m4(sc->stabmat);
+		unit_m4(sc->unistabmat);
 	}
 
 	if(ibuf) {
@@ -1168,9 +1178,12 @@ void draw_clip_grease_pencil(bContext *C, int onlyv2d)
 			ibuf= ED_space_clip_acquire_buffer(sc);
 
 			if(ibuf) {
+				glPushMatrix();
+				glMultMatrixf(sc->unistabmat);
 				draw_gpencil_2dimage(C, ibuf);
 
 				IMB_freeImBuf(ibuf);
+				glPopMatrix();
 			}
 		}
 	} else {

@@ -636,7 +636,11 @@ static void clip_props_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_VIEW3D)
+			if(wmn->data == ND_SPACE_CLIP)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SCREEN:
+			if(wmn->data == ND_GPENCIL)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -726,6 +730,7 @@ void ED_spacetype_clip(void)
 	art->regionid= RGN_TYPE_TOOLS;
 	art->prefsizex= UI_COMPACT_PANEL_WIDTH;
 	art->keymapflag= ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
+	art->listener= clip_props_area_listener;
 	art->init= clip_tools_area_init;
 	art->draw= clip_tools_area_draw;
 

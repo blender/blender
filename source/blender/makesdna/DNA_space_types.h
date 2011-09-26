@@ -585,8 +585,8 @@ typedef struct SpaceClip {
 	/* current stabilization data */
 	float loc[2], scale, angle;	/* pre-composed stabilization data */
 	int pad;
-	float stabmat[4][4];		/* current stabilization matrix, defined when drawing
-							   and used for mouse position calculation */
+	float stabmat[4][4], unistabmat[4][4];		/* current stabilization matrix and the same matrix in unified space,
+												   defined when drawing and used for mouse position calculation */
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */

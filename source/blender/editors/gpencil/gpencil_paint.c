@@ -103,6 +103,8 @@ typedef struct tGPsdata {
 	
 	short radius;		/* radius of influence for eraser */
 	short flags;		/* flags that can get set during runtime */
+
+	float imat[4][4];
 } tGPsdata;
 
 /* values for tGPsdata->status */
@@ -277,6 +279,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, const int mval[2], float out[3
 	/* 2d - on 'canvas' (assume that p->v2d is set) */
 	else if ((gpd->sbuffer_sflag & GP_STROKE_2DSPACE) && (p->v2d)) {
 		UI_view2d_region_to_view(p->v2d, mval[0], mval[1], &out[0], &out[1]);
+		mul_v3_m4v3(out, p->imat, out);
 	}
 	
 #if 0
@@ -995,6 +998,8 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 	/* pass on current scene and window */
 	p->scene= CTX_data_scene(C);
 	p->win= CTX_wm_window(C);
+
+	unit_m4(p->imat);
 	
 	switch (curarea->spacetype) {
 		/* supported views first */
@@ -1098,13 +1103,15 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 		case SPACE_CLIP:
 		{
 			SpaceClip *sc= curarea->spacedata.first;
-			
+
 			/* set the current area */
 			p->sa= curarea;
 			p->ar= ar;
 			p->v2d= &ar->v2d;
 			//p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-			
+
+			invert_m4_m4(p->imat, sc->unistabmat);
+
 			/* check that gpencil data is allowed to be drawn */
 			if ((sc->flag & SC_SHOW_GPENCIL)==0) {
 				p->status= GP_STATUS_ERROR;
@@ -1114,7 +1121,7 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 			}
 		}
 			break;
-			
+
 		/* unsupported views */
 		default:
 		{
