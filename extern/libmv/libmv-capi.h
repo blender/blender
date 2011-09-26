@@ -37,6 +37,7 @@ struct libmv_RegionTracker;
 struct libmv_Tracks;
 struct libmv_Reconstruction;
 struct libmv_Features;
+struct libmv_CameraIntrinsics;
 
 /* Logging */
 void libmv_initLogging(const char *argv0);
@@ -76,6 +77,27 @@ struct libmv_Features *libmv_detectFeatures(unsigned char *data, int width, int 
 int libmv_countFeatures(struct libmv_Features *libmv_features);
 void libmv_getFeature(struct libmv_Features *libmv_features, int number, double *x, double *y, double *score, double *size);
 void libmv_destroyFeatures(struct libmv_Features *libmv_features);
+
+/* camera intrinsics */
+struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(double focal_length, double principal_x, double principal_y,
+			double k1, double k2, double k3);
+
+void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmvIntrinsics);
+
+void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmvIntrinsics, double focal_length,
+			double principal_x, double principal_y, double k1, double k2, double k3);
+
+void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
+			unsigned char *src, unsigned char *dst, int width, int height, int channels);
+
+void libmv_CameraIntrinsicsUndistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
+			float *src, float *dst, int width, int height, int channels);
+
+void libmv_CameraIntrinsicsDistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
+			unsigned char *src, unsigned char *dst, int width, int height, int channels);
+
+void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
+			float *src, float *dst, int width, int height, int channels);
 
 /* dsitortion */
 void libmv_undistortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,

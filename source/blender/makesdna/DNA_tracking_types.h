@@ -55,6 +55,8 @@ typedef struct MovieReconstructedCamera {
 } MovieReconstructedCamera;
 
 typedef struct MovieTrackingCamera {
+	void *intrinsics;	/* intrinsics handle */
+
 	float sensor_width;	/* width of CCD sensor */
 	float pixel_aspect;	/* pixel aspect ratio */
 	float pad2;

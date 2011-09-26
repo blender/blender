@@ -1259,6 +1259,9 @@ void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain)
 	for(;clip; clip= clip->id.next) {
 		if(clip->cache)
 			oldnewmap_insert(fd->movieclipmap, clip->cache, clip->cache, 0);
+
+		if(clip->tracking.camera.intrinsics)
+			oldnewmap_insert(fd->movieclipmap, clip->tracking.camera.intrinsics, clip->tracking.camera.intrinsics, 0);
 	}
 }
 
@@ -1278,6 +1281,7 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 
 	for(;clip; clip= clip->id.next) {
 		clip->cache= newmclipadr(fd, clip->cache);
+		clip->tracking.camera.intrinsics= newmclipadr(fd, clip->tracking.camera.intrinsics);
 	}
 }
 
@@ -5802,6 +5806,9 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 
 	if(fd->movieclipmap) clip->cache= newmclipadr(fd, clip->cache);
 	else clip->cache= NULL;
+
+	if(fd->movieclipmap) clip->tracking.camera.intrinsics= newmclipadr(fd, clip->tracking.camera.intrinsics);
+	else clip->tracking.camera.intrinsics= NULL;
 
 	tracking->reconstruction.cameras= newdataadr(fd, tracking->reconstruction.cameras);
 

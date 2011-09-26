@@ -463,6 +463,11 @@ void BKE_tracking_free(MovieTracking *tracking)
 
 	if(tracking->stabilization.scaleibuf)
 		IMB_freeImBuf(tracking->stabilization.scaleibuf);
+
+#ifdef WITH_LIBMV
+	if(tracking->camera.intrinsics)
+		libmv_CameraIntrinsicsDestroy(tracking->camera.intrinsics);
+#endif
 }
 
 /*********************** tracking *************************/
@@ -1898,18 +1903,32 @@ ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf)
 
 	resibuf= IMB_dupImBuf(ibuf);
 
+#ifdef WITH_LIBMV
+	if(camera->intrinsics == NULL) {
+		camera->intrinsics= libmv_CameraIntrinsicsNew(camera->focal,
+				camera->principal[0], camera->principal[1] * aspy,
+				camera->k1, camera->k2, camera->k3);
+	} else {
+		libmv_CameraIntrinsicsUpdate(camera->intrinsics, camera->focal,
+				camera->principal[0], camera->principal[1] * aspy,
+				camera->k1, camera->k2, camera->k3);
+	}
+#endif
+
 	if(ibuf->rect_float) {
-		libmv_undistortFloat(camera->focal,
-		                     camera->principal[0], camera->principal[1] * aspy,
-		                     camera->k1, camera->k2, camera->k3,
-		                     ibuf->rect_float, resibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels);
+#ifdef WITH_LIBMV
+		libmv_CameraIntrinsicsUndistortFloat(camera->intrinsics,
+					ibuf->rect_float, resibuf->rect_float,
+					ibuf->x, ibuf->y, ibuf->channels);
+#endif
 
 		ibuf->userflags|= IB_RECT_INVALID;
 	} else {
-		libmv_undistortByte(camera->focal,
-		                    camera->principal[0], camera->principal[1] * aspy,
-		                    camera->k1, camera->k2, camera->k3,
-		                    (unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect, ibuf->x, ibuf->y, ibuf->channels);
+#ifdef WITH_LIBMV
+		libmv_CameraIntrinsicsUndistortByte(camera->intrinsics,
+					(unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect,
+					ibuf->x, ibuf->y, ibuf->channels);
+#endif
 	}
 
 	return resibuf;
@@ -1923,18 +1942,32 @@ ImBuf *BKE_tracking_distort(MovieTracking *tracking, ImBuf *ibuf)
 
 	resibuf= IMB_dupImBuf(ibuf);
 
+#ifdef WITH_LIBMV
+	if(camera->intrinsics == NULL) {
+		camera->intrinsics= libmv_CameraIntrinsicsNew(camera->focal,
+				camera->principal[0], camera->principal[1] * aspy,
+				camera->k1, camera->k2, camera->k3);
+	} else {
+		libmv_CameraIntrinsicsUpdate(camera->intrinsics, camera->focal,
+				camera->principal[0], camera->principal[1] * aspy,
+				camera->k1, camera->k2, camera->k3);
+	}
+#endif
+
 	if(ibuf->rect_float) {
-		libmv_distortFloat(camera->focal,
-		                   camera->principal[0], camera->principal[1] * aspy,
-		                   camera->k1, camera->k2, camera->k3,
-		                   ibuf->rect_float, resibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels);
+#ifdef WITH_LIBMV
+		libmv_CameraIntrinsicsDistortFloat(camera->intrinsics,
+				ibuf->rect_float, resibuf->rect_float,
+				ibuf->x, ibuf->y, ibuf->channels);
+#endif
 
 		ibuf->userflags|= IB_RECT_INVALID;
 	} else {
-		libmv_distortByte(camera->focal,
-		                  camera->principal[0], camera->principal[1] * aspy,
-		                  camera->k1, camera->k2, camera->k3,
-		                  (unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect, ibuf->x, ibuf->y, ibuf->channels);
+#ifdef WITH_LIBMV
+		libmv_CameraIntrinsicsDistortByte(camera->intrinsics,
+					(unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect,
+					ibuf->x, ibuf->y, ibuf->channels);
+#endif
 	}
 
 	return resibuf;

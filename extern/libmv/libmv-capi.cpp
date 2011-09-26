@@ -543,6 +543,86 @@ void libmv_destroyFeatures(struct libmv_Features *libmv_features)
 	delete (libmv::Feature *)libmv_features;
 }
 
+/* ************ camera intrinsics ************ */
+
+struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(double focal_length, double principal_x, double principal_y,
+			double k1, double k2, double k3)
+{
+	libmv::CameraIntrinsics *intrinsics= new libmv::CameraIntrinsics();
+
+	intrinsics->SetFocalLength(focal_length, focal_length);
+	intrinsics->SetPrincipalPoint(principal_x, principal_y);
+	intrinsics->SetRadialDistortion(k1, k2, k3);
+
+	return (struct libmv_CameraIntrinsics *) intrinsics;
+}
+
+void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmvIntrinsics)
+{
+	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
+
+	delete intrinsics;
+}
+
+void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmvIntrinsics, double focal_length,
+			double principal_x, double principal_y, double k1, double k2, double k3)
+{
+	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
+
+	if (intrinsics->focal_length() != focal_length)
+		intrinsics->SetFocalLength(focal_length, focal_length);
+
+	if (intrinsics->principal_point_x() != principal_x || intrinsics->principal_point_y() != principal_y)
+		intrinsics->SetFocalLength(focal_length, focal_length);
+
+	if (intrinsics->k1() != k1 || intrinsics->k2() != k2 || intrinsics->k3() != k3)
+		intrinsics->SetRadialDistortion(k1, k2, k3);
+}
+
+void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
+			unsigned char *src, unsigned char *dst, int width, int height, int channels)
+{
+	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
+
+	if (intrinsics->image_width() != width || intrinsics->image_height() != height)
+		intrinsics->SetImageSize(width, height);
+
+	intrinsics->Undistort(src, dst, width, height, channels);
+}
+
+void libmv_CameraIntrinsicsUndistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
+			float *src, float *dst, int width, int height, int channels)
+{
+	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
+
+	if (intrinsics->image_width() != width || intrinsics->image_height() != height)
+		intrinsics->SetImageSize(width, height);
+
+	intrinsics->Undistort(src, dst, width, height, channels);
+}
+
+void libmv_CameraIntrinsicsDistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
+			unsigned char *src, unsigned char *dst, int width, int height, int channels)
+{
+	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
+
+	if (intrinsics->image_width() != width || intrinsics->image_height() != height)
+		intrinsics->SetImageSize(width, height);
+
+	intrinsics->Distort(src, dst, width, height, channels);
+}
+
+void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
+			float *src, float *dst, int width, int height, int channels)
+{
+	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
+
+	if (intrinsics->image_width() != width || intrinsics->image_height() != height)
+		intrinsics->SetImageSize(width, height);
+
+	intrinsics->Distort(src, dst, width, height, channels);
+}
+
 /* ************ distortion ************ */
 
 void libmv_undistortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
