@@ -1321,6 +1321,7 @@ class WM_OT_keyconfig_import(Operator):
             )
 
     def execute(self, context):
+        import os
         from os.path import basename
         import shutil
 
@@ -1826,6 +1827,7 @@ class WM_OT_addon_remove(Operator):
 
     @staticmethod
     def path_from_addon(module):
+        import os
         import addon_utils
 
         for mod in addon_utils.modules(addon_utils.addons_fake_modules):

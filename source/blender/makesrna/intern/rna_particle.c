@@ -2068,7 +2068,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "courant_target", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 10);
 	RNA_def_property_float_default(prop, 0.2);
-	RNA_def_property_ui_text(prop, "Adaptive Subframe Threshold", "The relative distance a particle can move before requiring more subframes (target Courant number). 0.1-0.3 is the recommended range.");
+	RNA_def_property_ui_text(prop, "Adaptive Subframe Threshold", "The relative distance a particle can move before requiring more subframes (target Courant number). 0.1-0.3 is the recommended range");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "jitter_factor", PROP_FLOAT, PROP_NONE);
@@ -2881,7 +2881,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	 * ParticleSettings.courant_target instead. */
 	prop= RNA_def_property(srna, "dt_frac", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 1.0f/101.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Timestep", "The current simulation time step size, as a fraction of a frame.");
+	RNA_def_property_ui_text(prop, "Timestep", "The current simulation time step size, as a fraction of a frame");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	RNA_def_struct_path_func(srna, "rna_ParticleSystem_path");
@@ -2903,4 +2903,3 @@ void RNA_def_particle(BlenderRNA *brna)
 }
 
 #endif
-
