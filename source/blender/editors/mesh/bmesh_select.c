@@ -890,9 +890,8 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	BMW_Init(&walker, bm, walkercode, 0, 0);
 	h = BMW_Begin(&walker, start);
 	for (; h; h=BMW_Step(&walker)) {
-		if (!select) {
+		if (!select)
 			BM_remove_selection(bm, h);
-		}
 		BM_Select(bm, h, select);
 	}
 	BMW_End(&walker);
@@ -983,7 +982,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 	BMEditMesh *em;
 	BMEdge *eed;
 	int select= 1;
-	int dist= 50;
+	int dist = 50;
 	
 	em_setup_viewcontext(C, &vc);
 	vc.mval[0]= mval[0];
@@ -993,12 +992,16 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 	/* no afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad */
 	view3d_validate_backbuf(&vc);
 
-	eed= EDBM_findnearestedge(&vc, &dist);
-	if(eed) {
+	eed = EDBM_findnearestedge(&vc, &dist);
+	if (eed) {
 		if(extend==0) EDBM_clear_flag_all(em, BM_SELECT);
 	
-		if(BM_TestHFlag(eed, BM_SELECT)==0) select=1;
-		else if(extend) select=0;
+		if (BM_TestHFlag(eed, BM_SELECT)==0) {
+			select=1;
+		}
+		else if (extend) {
+			select=0;
+		}
 
 		if(em->selectmode & SCE_SELECT_FACE) {
 			walker_select(em, BMW_FACELOOP, eed, select);
@@ -1012,6 +1015,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 		else if(em->selectmode & SCE_SELECT_VERTEX) {
 			if(ring)
 				walker_select(em, BMW_EDGERING, eed, select);
+
 			else
 				walker_select(em, BMW_LOOP, eed, select);
 		}
@@ -1020,8 +1024,19 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 //			if (EM_texFaceCheck())
 		
 		/* sets as active, useful for other tools */
-		if(select && em->selectmode & SCE_SELECT_EDGE) {
-			EDBM_store_selection(em, eed);
+		if (select) {
+			if (em->selectmode & SCE_SELECT_VERTEX) {
+				/* TODO: would be nice if the edge vertex chosen here
+				   was the one closer to the selection pointer, instead
+				   of arbitrarily selecting the first one */
+				EDBM_store_selection(em, eed->v1);
+			}
+			else if(em->selectmode & SCE_SELECT_EDGE) {
+				EDBM_store_selection(em, eed);
+			}
+			/* TODO: would be nice if the nearest face that
+			   belongs to the selected edge could be set to
+			   active here in face select mode */
 		}
 
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit);
@@ -1921,197 +1936,66 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/* not that optimal!, should be nicer with bmesh */
-static void tag_face_edges(BMesh* bm, BMFace *f)
+/* Walk all reachable elements of the same type as h_act in breadth-first
+   order, starting from h_act. Deselects elements if the depth when they
+   are reached is not a multiple of "nth". */
+static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h_act)
 {
-	BMLoop *l;
-	BMIter iter;
-
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-		BM_SetIndex(l->e, 1);
-	}
-}
-static int tag_face_edges_test(BMesh* bm, BMFace *f)
-{
-	BMLoop *l;
-	BMIter iter;
-
-	BM_ITER(l, &iter, bm, BM_LOOPS_OF_FACE, f) {
-		if(BM_GetIndex(l->e) != 0)
-			return 1;
-	}
-
-	return 0;
-}
-
-static void em_deselect_nth_face(BMEditMesh *em, int nth, BMFace *f_act)
-{
-	BMFace *f;
-	BMEdge *e;
-	BMIter iter;
+	BMHeader *h;
 	BMesh *bm = em->bm;
-	int index;
-	int ok= 1;
+	BMWalker walker;
+	BMIter iter;
+	int walktype = 0, itertype = 0, flushtype = 0;
 
-	if(f_act==NULL) {
+	/* No active element from which to start - nothing to do */
+	if(h_act==NULL) {
 		return;
 	}
 
-	/* to detect loose edges, we put f2 flag on 1 */
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, 0);
+	/* Determine which type of iter, walker, and select flush to use
+	   based on type of the elements being deselected */
+	switch (h_act->type) {
+	case BM_VERT:
+		itertype = BM_VERTS_OF_MESH;
+		walktype = BMW_CONNECTED_VERTEX;
+		flushtype = SCE_SELECT_VERTEX;
+		break;
+	case BM_EDGE:
+		itertype = BM_EDGES_OF_MESH;
+		walktype = BMW_SHELL;
+		flushtype = SCE_SELECT_EDGE;
+		break;
+	case BM_FACE:
+		itertype = BM_FACES_OF_MESH;
+		walktype = BMW_ISLAND;
+		flushtype = SCE_SELECT_FACE;
+		break;
 	}
 
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		BM_SetIndex(f, 0);
-	}
-
-	BM_SetIndex(f_act, 1);
-
-	while(ok) {
-		ok = 0;
-
-		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			index= BM_GetIndex(f);
-			if(index==1) { /* initialize */
-				tag_face_edges(bm, f);
-			}
-
-			if (index)
-				BM_SetIndex(f, index+1);
-		}
-
-		BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-			if(BM_GetIndex(f)==0 && tag_face_edges_test(bm, f)) {
-				BM_SetIndex(f, 1);
-				ok= 1; /* keep looping */
-			}
+	/* Walker restrictions uses BMO flags, not header flags,
+	   so transfer BM_SELECT from HFlags onto a BMO flag layer. */
+	BMO_push(bm, NULL);
+	BM_ITER(h, &iter, bm, itertype, NULL) {
+		if (BM_TestHFlag(h, BM_SELECT)) {
+			BMO_SetFlag(bm, h, BM_SELECT);
 		}
 	}
 
-	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		index= BM_GetIndex(f);
-		if(index > 0 && index % nth) {
-			BM_Select(bm, f, 0);
+	/* Walk over selected elements starting at active */
+	BMW_Init(&walker, bm, walktype, BM_SELECT, 0);
+	BLI_assert(walker.order == BMW_BREADTH_FIRST);
+	for (h = BMW_Begin(&walker, h_act); h != NULL; h = BMW_Step(&walker)) {
+		/* Deselect elements that aren't at "nth" depth from active */
+		if ((offset + BMW_CurrentDepth(&walker)) % nth) {
+			BM_Select(bm, h, 0);
 		}
 	}
+	BMW_End(&walker);
 
-	EDBM_select_flush(em, SCE_SELECT_FACE);
-}
+	BMO_pop(bm);
 
-/* not that optimal!, should be nicer with bmesh */
-static void tag_edge_verts(BMEdge *e)
-{
-	BM_SetIndex(e->v1, 1);
-	BM_SetIndex(e->v2, 1);
-}
-static int tag_edge_verts_test(BMEdge *e)
-{
-	return (BM_GetIndex(e->v1) || BM_GetIndex(e->v2)) ? 1:0;
-}
-
-static void em_deselect_nth_edge(BMEditMesh *em, int nth, BMEdge *e_act)
-{
-	BMEdge *e;
-	BMVert *v;
-	BMIter iter;
-	BMesh *bm = em->bm;
-	int index;
-	int ok= 1;
-
-	if(e_act==NULL) {
-		return;
-	}
-
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, 0);
-	}
-
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		BM_SetIndex(e, 0);
-	}
-
-	BM_SetIndex(e_act, 1);
-
-	while(ok) {
-		ok = 0;
-
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			index= BM_GetIndex(e);
-			if (index==1) { /* initialize */
-				tag_edge_verts(e);
-			}
-
-			if (index)
-				BM_SetIndex(e, index+1);
-		}
-
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			if (BM_GetIndex(e)==0 && tag_edge_verts_test(e)) {
-				BM_SetIndex(e, 1);
-				ok = 1; /* keep looping */
-			}
-		}
-	}
-
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-		index= BM_GetIndex(e);
-		if (index > 0 && index % nth)
-			BM_Select(bm, e, 0);
-	}
-
-	EDBM_select_flush(em, SCE_SELECT_EDGE);
-}
-
-static void em_deselect_nth_vert(BMEditMesh *em, int nth, BMVert *v_act)
-{
-	BMEdge *e;
-	BMVert *v;
-	BMIter iter;
-	BMesh *bm = em->bm;
-	int ok= 1;
-
-	if(v_act==NULL) {
-		return;
-	}
-
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		BM_SetIndex(v, 0);
-	}
-	
-	BM_SetIndex(v_act, 1);
-
-	while(ok) {
-		ok = 0;
-
-		BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-			int index = BM_GetIndex(v);
-			if (index != 0)
-				BM_SetIndex(v, index+1);
-		}
-
-		BM_ITER(e, &iter, bm, BM_EDGES_OF_MESH, NULL) {
-			int indexv1= BM_GetIndex(e->v1);
-			int indexv2= BM_GetIndex(e->v2);
-			if (indexv1 == 2 && indexv2 == 0) {
-				BM_SetIndex(e->v2, 1);
-				ok = 1; /* keep looping */
-			}
-			else if (indexv2 == 2 && indexv1 == 0) {
-				BM_SetIndex(e->v1, 1);
-				ok = 1; /* keep looping */
-			}
-		}
-	}
-
-	BM_ITER(v, &iter, bm, BM_VERTS_OF_MESH, NULL) {
-		int index= BM_GetIndex(v);
-		if(index && index % nth) {
-			BM_Select(bm, v, 0);
-		}
-	}
-
-	EDBM_select_flush(em, SCE_SELECT_VERTEX);
+	/* Flush selection up */
+	EDBM_select_flush(em, flushtype);
 }
 
 static void deselect_nth_active(BMEditMesh *em, BMVert **v_p, BMEdge **e_p, BMFace **f_p)
@@ -2168,7 +2052,7 @@ static void deselect_nth_active(BMEditMesh *em, BMVert **v_p, BMEdge **e_p, BMFa
 	}
 }
 
-static int EM_deselect_nth(BMEditMesh *em, int nth)
+static int EM_deselect_nth(BMEditMesh *em, int nth, int offset)
 {
 	BMVert *v;
 	BMEdge *e;
@@ -2176,16 +2060,16 @@ static int EM_deselect_nth(BMEditMesh *em, int nth)
 
 	deselect_nth_active(em, &v, &e, &f);
 
-	if(v) {
-		em_deselect_nth_vert(em, nth, v);
+	if (v) {
+		walker_deselect_nth(em, nth, offset, v);
 		return 1;
 	}
 	else if(e) {
-		em_deselect_nth_edge(em, nth, e);
+		walker_deselect_nth(em, nth, offset, e);
 		return 1;
 	}
 	else if(f) {
-		em_deselect_nth_face(em, nth, f);
+		walker_deselect_nth(em, nth, offset, f);
 		return 1;
 	}
 
@@ -2197,8 +2081,11 @@ static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	int nth= RNA_int_get(op->ptr, "nth");
+	int offset= RNA_int_get(op->ptr, "offset");
 
-	if(EM_deselect_nth(em, nth) == 0) {
+	offset = MIN2(nth, offset);
+
+	if(EM_deselect_nth(em, nth, offset) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face");
 		return OPERATOR_CANCELLED;
 	}
@@ -2225,6 +2112,7 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "offset", 0, 0, 100, "Offset", "", 0, INT_MAX);
 }
 
 void em_setup_viewcontext(bContext *C, ViewContext *vc)

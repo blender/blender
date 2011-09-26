@@ -59,6 +59,7 @@ void BME_error(void);
 /*bmesh_error stub*/
 void bmesh_error(void)
 {
+	BLI_assert(0);
 	printf("BM modelling error!");
 }
 

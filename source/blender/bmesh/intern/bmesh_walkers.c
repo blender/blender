@@ -51,14 +51,14 @@
  design notes:
 
  original desing: walkers directly emulation recursive functions.
- functions save their state onto a stack, and also push new states
+ functions save their state onto a worklist, and also add new states
  to implement recursive or looping behaviour.  generally only one
  state push per call with a specific state is desired.
 
  basic design pattern: the walker step function goes through it's
  list of possible choices for recursion, and recurses (by pushing a new state)
  using the first non-visited one.  this choise is the flagged as visited using
- the ghash.  each step may push multiple new states onto the stack at once.
+ the ghash.  each step may push multiple new states onto the worklist at once.
 
  * walkers use tool flags, not header flags
  * walkers now use ghash for storing visited elements, 
@@ -68,17 +68,10 @@
    for if walkers fail.
 */
 
-
-/* Pointer hiding*/
-typedef struct bmesh_walkerGeneric{
-	struct bmesh_walkerGeneric *prev;
-} bmesh_walkerGeneric;
-
-
 void *BMW_Begin(BMWalker *walker, void *start) {
 	walker->begin(walker, start);
 	
-	return walker->currentstate ? walker->step(walker) : NULL;
+	return BMW_currentstate(walker) ? walker->step(walker) : NULL;
 }
 
 /*
@@ -109,22 +102,23 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask, int flag)
 		walker->yield = bm_walker_types[type]->yield;
 		walker->step = bm_walker_types[type]->step;
 		walker->structsize = bm_walker_types[type]->structsize;
+		walker->order = bm_walker_types[type]->order;
 	}
 	
-	walker->stack = BLI_mempool_create(walker->structsize, 100, 100, 1, 0);
-	walker->currentstate = NULL;
+	walker->worklist = BLI_mempool_create(walker->structsize, 100, 100, 1, 0);
+	walker->states.first = walker->states.last = NULL;
 }
 
 /*
  * BMW_End
  *
- * Frees a walker's stack.
+ * Frees a walker's worklist.
  *
 */
 
 void BMW_End(BMWalker *walker)
 {
-	BLI_mempool_destroy(walker->stack);
+	BLI_mempool_destroy(walker->worklist);
 	BLI_ghash_free(walker->visithash, NULL, NULL);
 }
 
@@ -144,6 +138,18 @@ void *BMW_Step(BMWalker *walker)
 }
 
 /*
+ * BMW_CurrentDepth
+ *
+ * Returns the current depth of the walker.
+ *
+*/
+
+int BMW_CurrentDepth(BMWalker *walker)
+{
+	return walker->depth;
+}
+
+/*
  * BMW_WALK
  *
  * Steps a mesh walker forward by one element
@@ -157,7 +163,7 @@ void *BMW_walk(BMWalker *walker)
 {
 	void *current = NULL;
 
-	while(walker->currentstate){
+	while(BMW_currentstate(walker)){
 		current = walker->step(walker);
 		if(current) return current;
 	}
@@ -165,40 +171,93 @@ void *BMW_walk(BMWalker *walker)
 }
 
 /*
- * BMW_popstate
+ * BMW_currentstate
  *
- * Pops the current walker state off the stack
- * and makes the previous state current
+ * Returns the first state from the walker state
+ * worklist. This state is the the next in the
+ * worklist for processing.
  *
 */
 
-void BMW_popstate(BMWalker *walker)
+void* BMW_currentstate(BMWalker *walker)
 {
-	void *oldstate;
-	oldstate = walker->currentstate;
-	walker->currentstate 
-		= ((bmesh_walkerGeneric*)walker->currentstate)->prev;
-	BLI_mempool_free(walker->stack, oldstate);
+	bmesh_walkerGeneric *currentstate = walker->states.first;
+	if (currentstate) {
+		/* Automatic update of depth. For most walkers that
+		   follow the standard "Step" pattern of:
+		    - read current state
+		    - remove current state
+		    - push new states
+		    - return walk result from just-removed current state
+		   this simple automatic update should keep track of depth
+		   just fine. Walkers that deviate from that pattern may
+		   need to manually update the depth if they care about
+		   keeping it correct. */
+		walker->depth = currentstate->depth + 1;
+	}
+	return currentstate;
 }
 
 /*
- * BMW_pushstate
+ * BMW_removestate
  *
- * Pushes the current state down the stack and allocates
- * a new one.
+ * Remove and free an item from the end of the walker state
+ * worklist.
  *
 */
 
-void BMW_pushstate(BMWalker *walker)
+void BMW_removestate(BMWalker *walker)
 {
-	bmesh_walkerGeneric *newstate;
-	newstate = BLI_mempool_alloc(walker->stack);
-	newstate->prev = walker->currentstate;
-	walker->currentstate = newstate;
+	void *oldstate;
+	oldstate = BMW_currentstate(walker);
+	BLI_remlink(&walker->states, oldstate);
+	BLI_mempool_free(walker->worklist, oldstate);
 }
 
+/*
+ * BMW_newstate
+ *
+ * Allocate a new empty state and put it on the worklist.
+ * A pointer to the new state is returned so that the caller
+ * can fill in the state data. The new state will be inserted
+ * at the front for depth-first walks, and at the end for
+ * breadth-first walks.
+ *
+*/
+
+void* BMW_addstate(BMWalker *walker)
+{
+	bmesh_walkerGeneric *newstate;
+	newstate = BLI_mempool_alloc(walker->worklist);
+	newstate->depth = walker->depth;
+	switch (walker->order)
+	{
+	case BMW_DEPTH_FIRST:
+		BLI_addhead(&walker->states, newstate);
+		break;
+	case BMW_BREADTH_FIRST:
+		BLI_addtail(&walker->states, newstate);
+		break;
+	default:
+		BLI_assert(0);
+		break;
+	}		
+	return newstate;
+}
+
+/*
+ * BMW_reset
+ *
+ * Frees all states from the worklist, resetting the walker
+ * for reuse in a new walk.
+ *
+*/
+
 void BMW_reset(BMWalker *walker) {
-	while (walker->currentstate) {
-		BMW_popstate(walker);
+	while (BMW_currentstate(walker)) {
+		BMW_removestate(walker);
 	}
+	walker->depth = 0;
+	BLI_ghash_free(walker->visithash, NULL, NULL);
+	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 1");
 }

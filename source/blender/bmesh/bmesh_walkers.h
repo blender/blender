@@ -7,19 +7,26 @@
   NOTE: do NOT modify topology while walking a mesh!
 */
 
+typedef enum {
+	BMW_DEPTH_FIRST,
+	BMW_BREADTH_FIRST,
+} BMWOrder;
+
 /*Walkers*/
 typedef struct BMWalker {
 	void (*begin) (struct BMWalker *walker, void *start);
 	void *(*step) (struct BMWalker *walker);
 	void *(*yield)(struct BMWalker *walker);
 	int structsize;
+	BMWOrder order;
 	int flag;
 
 	BMesh *bm;
-	BLI_mempool *stack;
-	void *currentstate;
+	BLI_mempool *worklist;
+	ListBase states;
 	int restrictflag;
 	GHash *visithash;
+	int depth;
 } BMWalker;
 
 /*initialize a walker.  searchmask restricts some (not all) walkers to
@@ -28,10 +35,12 @@ void BMW_Init(struct BMWalker *walker, BMesh *bm, int type, int searchmask, int 
 void *BMW_Begin(BMWalker *walker, void *start);
 void *BMW_Step(struct BMWalker *walker);
 void BMW_End(struct BMWalker *walker);
+int BMW_CurrentDepth(BMWalker *walker);
 
 /*these are used by custom walkers*/
-void BMW_pushstate(BMWalker *walker);
-void BMW_popstate(BMWalker *walker);
+void *BMW_currentstate(BMWalker *walker);
+void *BMW_addstate(BMWalker *walker);
+void BMW_removestate(BMWalker *walker);
 void *BMW_walk(BMWalker *walker);
 void BMW_reset(BMWalker *walker);
 
@@ -75,6 +84,8 @@ enum {
 	BMW_ISLANDBOUND,
 	/*walk over all faces in an island of tool flagged faces.*/
 	BMW_ISLAND,
+	/*walk from a vertex to all connected vertices.*/
+	BMW_CONNECTED_VERTEX,
 	/*do not intitialze function pointers and struct size in BMW_Init*/
 	BMW_CUSTOM,
 	BMW_MAXWALKERS
