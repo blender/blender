@@ -889,7 +889,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 	}
 	
-	if(but->flag & UI_ICON_SUBMENU) {
+	if((but->flag & UI_ICON_SUBMENU) && (but->dt == UI_EMBOSSP)) {
 		xs= rect->xmax-17;
 		ys= (rect->ymin+rect->ymax- height)/2;
 		
