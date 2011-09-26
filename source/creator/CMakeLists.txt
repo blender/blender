@@ -711,6 +711,7 @@ elseif(APPLE)
 	endif()
 
 	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
+	# note we are using OSX Bundle as base and copying Blender dummy bundle on top of it
 	if(WITH_GAMEENGINE AND WITH_PLAYER)
 		set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blenderplayer.app)
 		set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
@@ -718,6 +719,11 @@ elseif(APPLE)
 
 		# setup Info.plist
 		execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BLENDER_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+		set_target_properties(blender PROPERTIES
+			MACOSX_BUNDLE_INFO_PLIST ${SOURCEINFO}
+			MACOSX_BUNDLE_SHORT_VERSION_STRING ${BLENDER_VERSION}
+			MACOSX_BUNDLE_LONG_VERSION_STRING "${BLENDER_VERSION} ${BLENDER_DATE}")
 
 		# important to make a clean install each time else old scripts get loaded.
 		install(
@@ -756,14 +762,6 @@ elseif(APPLE)
 				\${TARGETDIR_VER}
 			)
 		endif()
-
-		# This is a hack. Blender is linked to the right place (inside the .app)
-		# blenderplayer not ... that also means blenderplayer is in the right place
-		# only when we do make install. XXX to be fixed.
-		install(
-			CODE
-			"file(RENAME ${TARGETDIR}/blenderplayer ${TARGETDIR}/blenderplayer.app/Contents/MacOS/blenderplayer)"
-		)
 	
 	endif()
 endif()
