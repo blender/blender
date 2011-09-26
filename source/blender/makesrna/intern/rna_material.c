@@ -767,7 +767,7 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Game Settings", "Game Engine settings for a Material datablock");
 	
-	prop= RNA_def_property(srna, "backface_culling", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_backface_culling", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GEMAT_BACKCULL); /* use bitflags */
 	RNA_def_property_ui_text(prop, "Backface Culling", "Hide Back of the face in Game Engine ");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");

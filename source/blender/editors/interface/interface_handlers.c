@@ -631,7 +631,7 @@ static void ui_apply_but_IDPOIN(bContext *C, uiBut *but, uiHandleButtonData *dat
 	data->applied= 1;
 }
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 static void ui_apply_but_CHARTAB(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	ui_apply_but_func(C, but);
@@ -1023,7 +1023,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case IDPOIN:
 			ui_apply_but_IDPOIN(C, but, data);
 			break;
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 		case CHARTAB:
 			ui_apply_but_CHARTAB(C, but, data);
 			break;
@@ -3924,7 +3924,7 @@ static int ui_do_but_VECTORSCOPE(bContext *C, uiBlock *block, uiBut *but, uiHand
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 static int ui_do_but_CHARTAB(bContext *UNUSED(C), uiBlock *UNUSED(block), uiBut *UNUSED(but), uiHandleButtonData *UNUSED(data), wmEvent *UNUSED(event))
 {
 	/* XXX 2.50 bad global and state access */
@@ -4584,7 +4584,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case HSVCIRCLE:
 		retval= ui_do_but_HSVCIRCLE(C, block, but, data, event);
 		break;
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	case CHARTAB:
 		retval= ui_do_but_CHARTAB(C, block, but, data, event);
 		break;

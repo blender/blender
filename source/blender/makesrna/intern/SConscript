@@ -99,7 +99,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
 if env['WITH_BF_INTERNATIONAL']:
-    defs.append('INTERNATIONAL')
+    defs.append('WITH_INTERNATIONAL')
 
 makesrna_tool.Append(CPPDEFINES=defs)
 

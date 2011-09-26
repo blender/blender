@@ -639,7 +639,7 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 	if(!name) {
 		name= ot->name;
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 		name= UI_translate_do_iface(name);
 #endif
 	}
@@ -1432,7 +1432,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	if(!name) {
 		name= mt->label;
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 		name= UI_translate_do_iface(name);
 #endif
 	}
