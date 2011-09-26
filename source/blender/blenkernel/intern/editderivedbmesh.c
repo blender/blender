@@ -1371,12 +1371,10 @@ static void bmDM_copyLoopArray(DerivedMesh *dm, MLoop *loop_r)
 		BM_SetIndex(e, i++);
 	}
 
-	i = 0;
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
 		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, f) {
-			loop_r[i].v = BM_GetIndex(l->v);
-			loop_r[i].e = BM_GetIndex(l->e);
-			i++;
+			loop_r->v = BM_GetIndex(l->v);
+			loop_r->e = BM_GetIndex(l->e);
 			loop_r++;
 		}
 	}
@@ -1388,18 +1386,17 @@ static void bmDM_copyPolyArray(DerivedMesh *dm, MPoly *poly_r)
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
 	BMIter iter;
 	BMFace *f;
-	int i, j;
+	int i;
 
-	i = j = 0;
+	i = 0;
 	BM_ITER(f, &iter, bm, BM_FACES_OF_MESH, NULL) {
-		poly_r[i].flag = BMFlags_To_MEFlags(f);
-		poly_r[i].loopstart = j;
-		poly_r[i].totloop = f->len;
-		poly_r[i].mat_nr = f->mat_nr;
+		poly_r->flag = BMFlags_To_MEFlags(f);
+		poly_r->loopstart = i;
+		poly_r->totloop = f->len;
+		poly_r->mat_nr = f->mat_nr;
 
-		i++;
 		poly_r++;
-		j += f->len;
+		i += f->len;
 	}
 }
 

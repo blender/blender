@@ -22,7 +22,7 @@
  * BME_MODS.C
  *
  * This file contains functions for locally modifying
- * the topology of existing mesh data. (split, join, flip ect).
+ * the topology of existing mesh data. (split, join, flip etc).
  *
 */
 
@@ -124,8 +124,8 @@ int BM_Dissolve_Disk(BMesh *bm, BMVert *v) {
 
 		/*handle two-valence*/
 		f = e->l->f;
-		f = e->l->radial_next->f;
-		
+		f2 = e->l->radial_next->f;
+
 		if (f != f2 && !BM_Join_TwoFaces(bm, f, f2, NULL))
 			return 0;
 
@@ -219,6 +219,9 @@ void BM_Dissolve_Disk(BMesh *bm, BMVert *v){
  *  of faces share multiple edges, the pair of faces will be joined at
  *  every edge (not just edge e). This part of the functionality might need
  *  to be reconsidered.
+ *
+ *  If the windings do not match the winding of the new face will follow
+ *  f1's winding (i.e. f2 will be reversed before the join).
  *
  * Returns:
  *	 pointer to the combined face
@@ -483,7 +486,7 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 		BM_Kill_Vert(bm, kv);
 	} else {
 		BMVert *tv2;
-		BMEdge *e2, *ne;
+		BMEdge *e2;
 
 		/*ok, no faces, means we have a wire edge*/
 		e2 = bmesh_disk_nextedge(ke, kv);
