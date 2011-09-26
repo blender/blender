@@ -6,3 +6,4 @@ config_mac.patch
 levenberg_marquardt.patch
 function_derivative.patch
 high_distortion_crash_fix.patch
+mingw.patch

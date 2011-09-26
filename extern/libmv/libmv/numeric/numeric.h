@@ -40,7 +40,7 @@
   }
 #endif //_WIN32 || __APPLE__
 
-#if _WIN32
+#if (defined(WIN32) || defined(WIN64)) && !defined(__MINGW32__)
   inline long lround(double d) {
     return (long)(d>0 ? d+0.5 : ceil(d-0.5));
   }
