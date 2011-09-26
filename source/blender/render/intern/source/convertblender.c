@@ -4852,8 +4852,13 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 	 * NULL is just for init */
 	set_dupli_tex_mat(NULL, NULL, NULL);
 
-	for(SETLOOPER(re->scene, sce_iter, base)) {
-		ob= base->object;
+	/* loop over all objects rather then using SETLOOPER because we may
+	 * reference an mtex-mapped object which isnt rendered or is an
+	 * empty in a dupli group. We could scan all render material/lamp/world
+	 * mtex's for mapto objects but its easier just to set the
+	 * 'imat' / 'imat_ren' on all and unlikely to be a performance hit
+	* See bug: [#28744] - campbell */
+	for(ob= re->main->object.first; ob; ob= ob->id.next) {
 		/* imat objects has to be done here, since displace can have texture using Object map-input */
 		mul_m4_m4m4(mat, ob->obmat, re->viewmat);
 		invert_m4_m4(ob->imat_ren, mat);
