@@ -279,17 +279,17 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 300);
 	RNA_def_property_ui_text(prop, "Margin", "Margin for markers from image boundary");
 
-	/* keyframe1 */
-	prop= RNA_def_property(srna, "keyframe1", PROP_INT, PROP_NONE);
+	/* keyframe_a */
+	prop= RNA_def_property(srna, "keyframe_a", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "keyframe1");
-	RNA_def_property_ui_text(prop, "Keyframe 1", "First keyframe used for reconstruction initialization");
+	RNA_def_property_ui_text(prop, "Keyframe A", "First keyframe used for reconstruction initialization");
 
-	/* keyframe2 */
-	prop= RNA_def_property(srna, "keyframe2", PROP_INT, PROP_NONE);
+	/* keyframe_b */
+	prop= RNA_def_property(srna, "keyframe_b", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "keyframe2");
-	RNA_def_property_ui_text(prop, "Keyframe 2", "Second keyframe used for reconstruction initialization");
+	RNA_def_property_ui_text(prop, "Keyframe B", "Second keyframe used for reconstruction initialization");
 
 	/* minmal correlation */
 	prop= RNA_def_property(srna, "min_correlation", PROP_FLOAT, PROP_NONE);

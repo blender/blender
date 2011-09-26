@@ -157,8 +157,8 @@ class CLIP_PT_tools_solving(Panel):
         settings = clip.tracking.settings
 
         col = layout.column(align=True)
-        col.prop(settings, "keyframe1")
-        col.prop(settings, "keyframe2")
+        col.prop(settings, "keyframe_a")
+        col.prop(settings, "keyframe_b")
 
         col = layout.column(align=True)
         col.operator("clip.solve_camera")
