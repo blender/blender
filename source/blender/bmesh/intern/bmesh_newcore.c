@@ -702,8 +702,17 @@ static int disk_is_flagged(BMVert *v, int flag)
 
 /* Midlevel Topology Manipulation Functions */
 
-/*joins a collected group of faces into one.  only restriction on
-  the input data is that the faces must be connected to each other.*/
+/*
+ * BM_Join_Faces
+ *
+ * Joins a collected group of faces into one. Only restriction on
+ * the input data is that the faces must be connected to each other.
+ *
+ * If a pair of faces share multiple edges, the pair of
+ * faces will be joined at every edge.
+ *
+ * Returns a pointer to the combined face.
+ */
 BMFace *BM_Join_Faces(BMesh *bm, BMFace **faces, int totface)
 {
 	BMFace *f, *newf;
@@ -902,7 +911,7 @@ static BMFace *bmesh_addpolylist(BMesh *bm, BMFace *UNUSED(example)) {
  *
  *     Before:               After:
  *	 ----------           ----------
- *	 |		  |           |        |
+ *	 |        |           |        |
  *	 |        |           |   f1   |
  *	v1   f1   v2          v1======v2
  *	 |        |           |   f2   |
@@ -1340,7 +1349,7 @@ int bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv)
  *	
  *        A                   B
  *	 ----------           ----------
- *	 |		  |           |        | 
+ *	 |        |           |        | 
  *	 |   f1   |           |   f1   |
  *	v1========v2 = Ok!    v1==V2==v3 == Wrong!
  *	 |   f2   |           |   f2   |
