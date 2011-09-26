@@ -1103,7 +1103,7 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
 				agrp->flag = AGRP_SELECTED;
 				if (muteipo) agrp->flag |= AGRP_MUTED;
 				
-				strncpy(agrp->name, grpname, sizeof(agrp->name));
+				BLI_strncpy(agrp->name, grpname, sizeof(agrp->name));
 				
 				BLI_addtail(&tmp_act.groups, agrp);
 				BLI_uniquename(&tmp_act.groups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));

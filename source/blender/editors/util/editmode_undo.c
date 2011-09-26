@@ -142,7 +142,7 @@ void undo_editmode_push(bContext *C, const char *name,
 	
 	/* make new */
 	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo editmode");
-	strncpy(uel->name, name, MAXUNDONAME-1);
+	BLI_strncpy(uel->name, name, sizeof(uel->name));
 	BLI_addtail(&undobase, uel);
 	
 	uel->getdata= getdata;

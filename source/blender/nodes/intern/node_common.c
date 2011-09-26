@@ -567,7 +567,7 @@ bNodeSocket *node_group_add_socket(bNodeTree *ngroup, const char *name, int type
 	bNodeSocketType *stype = ntreeGetSocketType(type);
 	bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
 	
-	strncpy(gsock->name, name, sizeof(gsock->name));
+	BLI_strncpy(gsock->name, name, sizeof(gsock->name));
 	gsock->type = type;
 	/* group sockets are dynamically added */
 	gsock->flag |= SOCK_DYNAMIC;

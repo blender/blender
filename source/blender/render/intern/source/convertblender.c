@@ -5026,7 +5026,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	/* per second, per object, stats print this */
 	re->i.infostr= "Preparing Scene data";
 	re->i.cfra= scene->r.cfra;
-	strncpy(re->i.scenename, scene->id.name+2, 20);
+	BLI_strncpy(re->i.scenename, scene->id.name+2, sizeof(re->i.scenename));
 	
 	/* XXX add test if dbase was filled already? */
 	
