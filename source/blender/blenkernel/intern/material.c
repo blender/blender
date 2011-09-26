@@ -193,7 +193,7 @@ void init_material(Material *ma)
 	ma->vol.ms_diff = 1.f;
 	ma->vol.ms_intensity = 1.f;
 	
-	ma->game.flag=0;
+	ma->game.flag = GEMAT_BACKCULL;
 	ma->game.alpha_blend=0;
 	ma->game.face_orientation=0;
 	

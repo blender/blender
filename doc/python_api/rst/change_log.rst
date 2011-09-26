@@ -1396,7 +1396,7 @@ Moved
 * **hide** -> :class:`bpy.types.Material.game_settings.invisible`
 * **use_collision** -> :class:`bpy.types.Material.game_settings.physics`
 * **use_light** -> :class:`bpy.types.Material.game_settings.use_shadeless`
-* **use_twoside** -> :class:`bpy.types.Material.game_settings.back_culling`
+* **use_twoside** -> :class:`bpy.types.Material.game_settings.backface_culling`
 * **use_bitmap_text** -> :class:`bpy.types.Material.game_settings.text`
 * **blend_type** -> :class:`bpy.types.Material.game_settings.alpha_blend`
 * **use_alpha_sort** -> :class:`bpy.types.Material.game_settings.alpha_blend`
