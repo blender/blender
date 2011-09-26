@@ -96,7 +96,7 @@ static void ui_free_but(const bContext *C, uiBut *but);
 
 int UI_translate_iface(void)
 {
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_IFACE);
 #else
 	return 0;
@@ -105,7 +105,7 @@ int UI_translate_iface(void)
 
 int UI_translate_tooltips(void)
 {
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_TOOLTIPS);
 #else
 	return 0;
@@ -114,7 +114,7 @@ int UI_translate_tooltips(void)
 
 const char *UI_translate_do_iface(const char *msgid)
 {
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	if(UI_translate_iface())
 		return BLF_gettext(msgid);
 	else
@@ -126,7 +126,7 @@ const char *UI_translate_do_iface(const char *msgid)
 
 const char *UI_translate_do_tooltip(const char *msgid)
 {
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	if(UI_translate_tooltips())
 		return BLF_gettext(msgid);
 	else
@@ -2741,7 +2741,7 @@ static uiBut *ui_def_but_operator(uiBlock *block, int type, const char *opname, 
 	if ((!tip || tip[0]=='\0') && ot && ot->description) {
 		tip= ot->description;
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 		if(UI_translate_tooltips())
 			tip= BLF_gettext(tip);
 #endif

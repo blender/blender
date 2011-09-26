@@ -63,6 +63,8 @@ if(WIN32 AND NOT UNIX)
 	endif()
 
 	add_executable(blenderplayer ${EXETYPE} ${CMAKE_CURRENT_BINARY_DIR}/dna.c ../icons/winblender.rc)
+elseif(APPLE)
+	add_executable(blenderplayer MACOSX_BUNDLE ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
 else()
 	add_executable(blenderplayer ${CMAKE_CURRENT_BINARY_DIR}/dna.c)
 endif()

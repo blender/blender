@@ -322,7 +322,7 @@ void uiStyleInit(void)
 	for(font= U.uifonts.first; font; font= font->next) {
 		
 		if(font->uifont_id==UIFONT_DEFAULT) {
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 			int font_size= datatoc_bfont_ttf_size;
 			unsigned char *font_ttf= (unsigned char*)datatoc_bfont_ttf;
 			static int last_font_size = 0;

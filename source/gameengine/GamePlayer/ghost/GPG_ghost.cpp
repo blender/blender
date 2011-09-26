@@ -999,7 +999,7 @@ int main(int argc, char** argv)
 	RNA_exit();
 	BLF_exit();
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();
 #endif
 

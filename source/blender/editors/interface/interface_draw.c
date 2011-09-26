@@ -501,7 +501,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 }
 
 #if 0
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 static void ui_draw_but_CHARTAB(uiBut *but)
 {
 	/* XXX 2.50 bad global access */
@@ -671,7 +671,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	}
 }
 
-#endif // INTERNATIONAL
+#endif // WITH_INTERNATIONAL
 #endif
 
 static void draw_scope_end(rctf *rect, GLint *scissor)

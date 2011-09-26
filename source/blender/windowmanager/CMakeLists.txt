@@ -82,7 +82,7 @@ set(SRC
 add_definitions(-DGLEW_STATIC)
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DINTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_OPENCOLLADA)

@@ -353,7 +353,7 @@ void BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td, EditMesh *em) {
 	
 	BME_TransData *vtd;
 
-	EditVert *eve1, *eve2, *eve3, *eve4, **evlist;
+	EditVert *eve1, /* *eve2, *eve3, *eve4, */ /* UNUSED */ **evlist;
 	EditEdge *eed;
 	EditFace *efa;
 
@@ -410,14 +410,14 @@ void BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td, EditMesh *em) {
 		len = BME_cycle_length(f->loopbase);
 		if (len==3 || len==4) {
 			eve1= evlist[f->loopbase->v->tflag1];
-			eve2= evlist[f->loopbase->next->v->tflag1];
-			eve3= evlist[f->loopbase->next->next->v->tflag1];
-			if (len == 4) {
+			/* eve2= evlist[f->loopbase->next->v->tflag1]; */ /* UNUSED */
+			/* eve3= evlist[f->loopbase->next->next->v->tflag1]; */ /* UNUSED */
+			/* if (len == 4) {
 				eve4= evlist[f->loopbase->prev->v->tflag1];
 			}
 			else {
 				eve4= NULL;
-			}
+			} */ /* UNUSED */
 
 			efa = NULL; //XXX addfacelist(eve1, eve2, eve3, eve4, NULL, NULL);
 			efa->mat_nr = (unsigned char)f->mat_nr;
@@ -539,7 +539,7 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	MEdge *medge, *me;
 	MVert *mvert, *mv;
 	int *origindex;
-	int totface,totedge,totvert,i,bmeshok,len, numTex, numCol;
+	int totface, totedge, totvert, i, /* bmeshok, */ /* UNUSED */ len, numTex, numCol;
 
 	BME_Vert *v1=NULL;
 	BME_Edge *e=NULL, *oe=NULL;
@@ -567,7 +567,7 @@ DerivedMesh *BME_bmesh_to_derivedmesh(BME_Mesh *bm, DerivedMesh *dm)
 	
 	/*count quads and tris*/
 	totface = 0;
-	bmeshok = 1;
+	/* bmeshok = 1; */ /* UNUSED */
 	for(f=bm->polys.first;f;f=f->next){
 		len = BME_cycle_length(f->loopbase);
 		if(len == 3 || len == 4) totface++;
