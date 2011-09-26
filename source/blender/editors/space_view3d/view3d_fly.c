@@ -35,6 +35,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_camera_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -199,6 +200,10 @@ typedef struct FlyInfo {
 	float rot_backup[4]; /* backup the views quat incase the user cancels flying in non camera mode. (quat for view, eul for camera) */
 	short persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
 
+	short is_ortho_cam; /* are we flying an ortho camera in perspective view,
+						 * which was originall in ortho view?
+						 * could probably figure it out but better be explicit */
+
 	void *obtfm; /* backup the objects transform */
 
 	/* compare between last state */
@@ -330,6 +335,17 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 
 	fly->persp_backup= fly->rv3d->persp;
 	fly->dist_backup= fly->rv3d->dist;
+
+	/* check for flying ortho camera - which we cant support well
+	 * we _could_ also check for an ortho camera but this is easier */
+	if(     (fly->rv3d->persp == RV3D_CAMOB) &&
+	        (fly->v3d->camera != NULL) &&
+	        (fly->rv3d->is_persp == FALSE))
+	{
+		((Camera *)fly->v3d->camera->data)->type= CAM_PERSP;
+		fly->is_ortho_cam= TRUE;
+	}
+
 	if (fly->rv3d->persp==RV3D_CAMOB) {
 		Object *ob_back;
 		if ((U.uiflag & USER_CAM_LOCK_NO_PARENT)==0 && (fly->root_parent=fly->v3d->camera->parent)) {
@@ -431,6 +447,10 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 		mul_m3_v3(mat, upvec);
 		add_v3_v3(rv3d->ofs, upvec);
 		/*Done with correcting for the dist */
+	}
+
+	if(fly->is_ortho_cam) {
+		((Camera *)fly->v3d->camera->data)->type= CAM_ORTHO;
 	}
 
 	rv3d->rflag &= ~RV3D_NAVIGATING;
