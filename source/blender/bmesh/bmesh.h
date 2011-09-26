@@ -181,7 +181,7 @@ struct BMFace *BM_Split_Face ( struct BMesh *bm, struct BMFace *f,
                                            struct BMLoop **nl, struct BMEdge *example );
 
 /*dissolves a vert shared only by two edges*/
-BMEdge* BM_Collapse_Vert ( struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv,
+void BM_Collapse_Vert ( struct BMesh *bm, struct BMEdge *ke, struct BMVert *kv,
                         float fac );
 
 /*splits an edge.  ne is set to the new edge created.*/
