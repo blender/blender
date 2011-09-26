@@ -59,7 +59,7 @@ def bake_action(frame_start,
     :arg action: An action to bake the data into, or None for a new action
        to be created.
     :type action: :class:`bpy.types.Action` or None
-    
+
     :return: an action or None
     :rtype: :class:`bpy.types.Action`
     """
@@ -114,7 +114,6 @@ def bake_action(frame_start,
             binfo["matrix_key"] = rest_matrix.inverted() * matrix
 
         return info
-
 
     def obj_frame_info(obj):
         info = {}
@@ -183,7 +182,8 @@ def bake_action(frame_start,
                 pbone.constraints.remove(pbone.constraints[0])
 
         for f in frame_range:
-            matrix = pose_info[(f - frame_start) // frame_step][name]["matrix_key"]
+            f_step = (f - frame_start) // frame_step
+            matrix = pose_info[f_step][name]["matrix_key"]
 
             # pbone.location = matrix.to_translation()
             # pbone.rotation_quaternion = matrix.to_quaternion()

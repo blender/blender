@@ -161,8 +161,6 @@ def queue_processes(process_funcs, job_total=-1):
         del multiprocessing
 
     if job_total == 1:
-        import os
-        import sys
         for func, args in process_funcs:
             sys.stdout.flush()
             sys.stderr.flush()
@@ -171,14 +169,13 @@ def queue_processes(process_funcs, job_total=-1):
             process.wait()
     else:
         import time
-        import subprocess
 
         processes = []
         for func, args in process_funcs:
             # wait until a thread is free
             while 1:
                 processes[:] = [p for p in processes if p.poll() is None]
-     
+
                 if len(processes) <= job_total:
                     break
                 else:

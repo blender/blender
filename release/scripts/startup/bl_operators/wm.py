@@ -1180,7 +1180,7 @@ class WM_OT_copy_prev_settings(Operator):
 
         return {'CANCELLED'}
 
-        
+
 class WM_OT_keyconfig_test(Operator):
     "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
@@ -1447,8 +1447,8 @@ class WM_OT_operator_cheat_sheet(Operator):
         textblock.write('\n'.join(op_strings))
         self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
-        
-        
+
+
 class WM_OT_addon_enable(Operator):
     "Enable an addon"
     bl_idname = "wm.addon_enable"
