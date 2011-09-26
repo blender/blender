@@ -84,7 +84,7 @@ typedef struct MenuEntry {
 } MenuEntry;
 
 typedef struct MenuData {
-	char *instr;
+	const char *instr;
 	const char *title;
 	int titleicon;
 	
@@ -92,7 +92,7 @@ typedef struct MenuData {
 	int nitems, itemssize;
 } MenuData;
 
-static MenuData *menudata_new(char *instr)
+static MenuData *menudata_new(const char *instr)
 {
 	MenuData *md= MEM_mallocN(sizeof(*md), "MenuData");
 
@@ -137,7 +137,7 @@ static void menudata_add_item(MenuData *md, const char *str, int retval, int ico
 
 static void menudata_free(MenuData *md)
 {
-	MEM_freeN(md->instr);
+	MEM_freeN((void *)md->instr);
 	if (md->items)
 		MEM_freeN(md->items);
 	MEM_freeN(md);
@@ -156,7 +156,7 @@ static void menudata_free(MenuData *md)
 	 * @param str String to be parsed.
 	 * @retval new menudata structure, free with menudata_free()
 	 */
-static MenuData *decompose_menu_string(char *str) 
+static MenuData *decompose_menu_string(const char *str)
 {
 	char *instr= BLI_strdup(str);
 	MenuData *md= menudata_new(instr);
@@ -1613,7 +1613,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	uiBut *bt;
 	MenuData *md;
 	MenuEntry *entry;
-	char *instr= arg_str;
+	const char *instr= arg_str;
 	int columns, rows, a, b;
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
@@ -2154,7 +2154,7 @@ static int ui_popup_string_hash(char *str)
 	return hash;
 }
 
-static int ui_popup_menu_hash(char *str)
+static int ui_popup_menu_hash(const char *str)
 {
 	return BLI_ghashutil_strhash(str);
 }
@@ -2204,8 +2204,6 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 {
 	uiBlock *block;
 	uiBut *bt;
-	ScrArea *sa;
-	ARegion *ar;
 	uiPopupMenu *pup= arg_pup;
 	int offset[2], direction, minwidth, width, height, flip;
 
@@ -2277,10 +2275,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	else {
 		/* for a header menu we set the direction automatic */
 		if(!pup->slideout && flip) {
-			sa= CTX_wm_area(C);
-			ar= CTX_wm_region(C);
-
+			ScrArea *sa= CTX_wm_area(C);
 			if(sa && sa->headertype==HEADERDOWN) {
+				ARegion *ar= CTX_wm_region(C);
 				if(ar && ar->regiontype == RGN_TYPE_HEADER) {
 					uiBlockSetDirection(block, UI_TOP);
 					uiBlockFlipOrder(block);

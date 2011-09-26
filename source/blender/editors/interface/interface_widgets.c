@@ -574,7 +574,7 @@ static void widget_check_trias(uiWidgetTrias *tria, rcti *rect)
 
 
 /* prepares shade colors */
-static void shadecolors4(char *coltop, char *coldown, const char *color, short shadetop, short shadedown)
+static void shadecolors4(char coltop[4], char *coldown, const char *color, short shadetop, short shadedown)
 {
 	
 	coltop[0]= CLAMPIS(color[0]+shadetop, 0, 255);
@@ -1493,7 +1493,7 @@ void ui_widget_color_init(ThemeUI *tui)
 
 /* ************ button callbacks, state ***************** */
 
-static void widget_state_blend(char *cp, const char *cpstate, const float fac)
+static void widget_state_blend(char cp[3], const char cpstate[3], const float fac)
 {
 	if(fac != 0.0f) {
 		cp[0]= (int)((1.0f-fac)*cp[0] + fac*cpstate[0]);
