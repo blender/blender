@@ -104,7 +104,10 @@ typedef struct tGPsdata {
 	short radius;		/* radius of influence for eraser */
 	short flags;		/* flags that can get set during runtime */
 
-	float imat[4][4];
+	float imat[4][4];	/* inverted transformation matrix applying when converting coords from screen-space
+						   to region space */
+
+	float custom_color[3];	/* custom color for  */
 } tGPsdata;
 
 /* values for tGPsdata->status */
@@ -1112,6 +1115,12 @@ static int gp_session_initdata (bContext *C, tGPsdata *p)
 
 			invert_m4_m4(p->imat, sc->unistabmat);
 
+			/* custom color for new layer */
+			p->custom_color[0]= 1.0f;
+			p->custom_color[1]= 0.0f;
+			p->custom_color[2]= 0.5f;
+			p->custom_color[3]= 0.9f;
+
 			/* check that gpencil data is allowed to be drawn */
 			if ((sc->flag & SC_SHOW_GPENCIL)==0) {
 				p->status= GP_STATUS_ERROR;
@@ -1206,8 +1215,12 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 {	
 	/* get active layer (or add a new one if non-existent) */
 	p->gpl= gpencil_layer_getactive(p->gpd);
-	if (p->gpl == NULL)
+	if (p->gpl == NULL) {
 		p->gpl= gpencil_layer_addnew(p->gpd);
+
+		if(p->custom_color[3])
+			copy_v3_v3(p->gpl->color, p->custom_color);
+	}
 	if (p->gpl->flag & GP_LAYER_LOCKED) {
 		p->status= GP_STATUS_ERROR;
 		if (G.f & G_DEBUG)
