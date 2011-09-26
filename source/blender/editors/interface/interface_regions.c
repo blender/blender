@@ -230,9 +230,11 @@ void ui_set_name_menu(uiBut *but, int value)
 	int i;
 	
 	md= decompose_menu_string(but->str);
-	for (i=0; i<md->nitems; i++)
-		if (md->items[i].retval==value)
-			strcpy(but->drawstr, md->items[i].str);
+	for (i=0; i<md->nitems; i++) {
+		if (md->items[i].retval==value) {
+			BLI_strncpy(but->drawstr, md->items[i].str, sizeof(but->drawstr));
+		}
+	}
 	
 	menudata_free(md);
 }
@@ -1798,7 +1800,7 @@ static void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 			if (rgb_gamma[1] > 1.0f) rgb_gamma[1] = modf(rgb_gamma[1], &intpart);
 			if (rgb_gamma[2] > 1.0f) rgb_gamma[2] = modf(rgb_gamma[2], &intpart);
 
-			sprintf(col, "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
+			BLI_snprintf(col, sizeof(col), "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 			
 			strcpy(bt->poin, col);
 		}
@@ -1986,10 +1988,10 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	
 	/* existence of profile means storage is in linear color space, with display correction */
 	if (block->color_profile == BLI_PR_NONE) {
-		sprintf(tip, "Value in Display Color Space");
+		BLI_strncpy(tip, "Value in Display Color Space", sizeof(tip));
 		copy_v3_v3(rgb_gamma, rgb);
 	} else {
-		sprintf(tip, "Value in Linear RGB Color Space");
+		BLI_strncpy(tip, "Value in Linear RGB Color Space", sizeof(tip));
 		/* make an sRGB version, for Hex code */
 		linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
 	}
@@ -2058,7 +2060,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 		rgb[3]= 1.0f;
 	}
 
-	sprintf(hexcol, "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
+	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 
 	bt= uiDefBut(block, TEX, 0, "Hex: ", 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
@@ -2369,7 +2371,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 		char titlestr[256];
 		
 		if(icon) {
-			sprintf(titlestr, " %s", title);
+			BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
 			uiDefIconTextBut(pup->block, LABEL, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		}
 		else {
@@ -2467,7 +2469,7 @@ void uiPupMenuOkee(bContext *C, const char *opname, const char *str, ...)
 	va_list ap;
 	char titlestr[256];
 
-	sprintf(titlestr, "OK? %%i%d", ICON_QUESTION);
+	BLI_snprintf(titlestr, sizeof(titlestr), "OK? %%i%d", ICON_QUESTION);
 
 	va_start(ap, str);
 	vconfirm_opname(C, opname, titlestr, str, ap);
@@ -2507,9 +2509,9 @@ void uiPupMenuError(bContext *C, const char *str, ...)
 	char nfmt[256];
 	char titlestr[256];
 
-	sprintf(titlestr, "Error %%i%d", ICON_ERROR);
+	BLI_snprintf(titlestr, sizeof(titlestr), "Error %%i%d", ICON_ERROR);
 
-	sprintf(nfmt, "%s", str);
+	BLI_strncpy(nfmt, str, sizeof(nfmt));
 
 	va_start(ap, str);
 	vconfirm_opname(C, NULL, titlestr, nfmt, ap);

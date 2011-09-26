@@ -2143,8 +2143,8 @@ void ui_check_but(uiBut *but)
 		UI_GET_BUT_VALUE_INIT(but, value)
 
 		if(ui_is_but_float(but)) {
-			if(value == (double) FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
-			else if(value == (double) -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
+			if(value == (double) FLT_MAX) BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
+			else if(value == (double) -FLT_MAX) BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
 			/* support length type buttons */
 			else if(ui_is_but_unit(but)) {
 				char new_str[sizeof(but->drawstr)];
@@ -2157,7 +2157,7 @@ void ui_check_but(uiBut *but)
 			}
 		}
 		else {
-			sprintf(but->drawstr, "%s%d", but->str, (int)value);
+			BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%d", but->str, (int)value);
 		}
 			
 		if(but->rnaprop) {
