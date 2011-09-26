@@ -176,8 +176,6 @@ IF(WIN32)
 			string(REPLACE "${FLAG}" "Od" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
 		endforeach()
 	ENDIF(MSVC)
-
-	add_definitions(-DEIGEN_DONT_ALIGN_STATICALLY)
 ELSE(WIN32)
 	list(APPEND SRC
 ${third_glog_sources}
@@ -234,8 +232,6 @@ ${win_src}
             cflags_libmv = Split(env['REL_CFLAGS'])
             ccflags_libmv = Split(env['REL_CCFLAGS'])
             cxxflags_libmv = Split(env['REL_CXXFLAGS'])
-
-    defs.append('EIGEN_DONT_ALIGN_STATICALLY')
 else:
     src += env.Glob("third_party/glog/src/*.cc")
     incs += ' ./third_party/glog/src'

@@ -271,6 +271,12 @@ typedef struct MovieClipCache {
 	ImBuf *stableibuf;
 	int proxy;
 	short render_flag;
+
+	/* cache for undistorted shot */
+	int undist_framenr;
+	float principal[2];
+	float k1, k2, k3;
+	ImBuf *undistibuf;
 } MovieClipCache;
 
 typedef struct MovieClipImBufCacheKey {
@@ -477,17 +483,119 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 	}
 }
 
+static int need_undistorted_cache(MovieClipUser *user, int flag)
+{
+	if (!user)
+		return 0;
+
+	/* only full undistorted render can be used as on-fly undistorting image */
+	if(flag&MCLIP_USE_PROXY)
+		if(user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL || (user->render_flag&MCLIP_PROXY_RENDER_UNDISTORT)==0)
+			return 0;
+
+	return 1;
+}
+
+static ImBuf *get_undistorted_cache(MovieClip *clip, MovieClipUser *user)
+{
+	MovieClipCache *cache= clip->cache;
+	MovieTrackingCamera *camera= &clip->tracking.camera;
+	int framenr= user?user->framenr:clip->lastframe;
+
+	/* no cache or no cached undistorted image */
+	if(!clip->cache || !clip->cache->undistibuf)
+		return NULL;
+
+	/* undistortion happened for other frame */
+	if(cache->undist_framenr!=framenr)
+		return NULL;
+
+	/* check for distortion model changes */
+	if(!equals_v2v2(camera->principal, cache->principal))
+		return NULL;
+
+	if(!equals_v3v3(&camera->k1, &cache->k1))
+		return NULL;
+
+	IMB_refImBuf(cache->undistibuf);
+
+	return cache->undistibuf;
+}
+
+static ImBuf *get_undistorted_ibuf(MovieClip *clip, ImBuf *ibuf)
+{
+	ImBuf *aspectibuf= ibuf, *undistibuf;
+	float aspy= 1.f/clip->tracking.camera.pixel_aspect;
+
+	if(aspectibuf->y*aspy!=aspectibuf->y) {
+		/* XXX: not nice, but distortion coefficients were adjusted exactly for such aspect ratio */
+		aspectibuf= IMB_dupImBuf(aspectibuf);
+		IMB_scaleImBuf(aspectibuf, aspectibuf->x, aspectibuf->y*aspy);
+	}
+
+	/* XXX: because of #27997 do not use float buffers to undistort,
+	        otherwise, undistorted proxy can be darker than it should */
+	imb_freerectfloatImBuf(aspectibuf);
+
+	undistibuf= BKE_tracking_undistort(&clip->tracking, aspectibuf);
+
+	if(undistibuf->userflags|= IB_RECT_INVALID) {
+		ibuf->userflags&= ~IB_RECT_INVALID;
+		IMB_rect_from_float(undistibuf);
+	}
+
+	IMB_scaleImBuf(undistibuf, ibuf->x, ibuf->y);
+
+	if(aspectibuf!=ibuf)
+			IMB_freeImBuf(aspectibuf);
+
+	return undistibuf;
+}
+
+static ImBuf *put_undistorted_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf)
+{
+	MovieClipCache *cache= clip->cache;
+	MovieTrackingCamera *camera= &clip->tracking.camera;
+
+	copy_v2_v2(cache->principal, camera->principal);
+	copy_v3_v3(&cache->k1, &camera->k1);
+	cache->undist_framenr= user?user->framenr:clip->lastframe;
+
+	if(cache->undistibuf)
+		IMB_freeImBuf(cache->undistibuf);
+
+	cache->undistibuf= get_undistorted_ibuf(clip, ibuf);
+
+	if(cache->stableibuf) {
+		/* force stable buffer be re-calculated */
+		IMB_freeImBuf(cache->stableibuf);
+		cache->stableibuf= NULL;
+	}
+
+	IMB_refImBuf(cache->undistibuf);
+
+	return cache->undistibuf;
+}
+
 ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 {
 	ImBuf *ibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
+	int cache_undistorted= 0;
 
 	/* cache isn't threadsafe itself and also loading of movies
 	   can't happen from concurent threads that's why we use lock here */
 	BLI_lock_thread(LOCK_MOVIECLIP);
 
-	/* cache is supposed to be threadsafe */
-	ibuf= get_imbuf_cache(clip, user, clip->flag);
+	/* try to obtain cached undistorted image first */
+	if(need_undistorted_cache(user, clip->flag)) {
+		ibuf= get_undistorted_cache(clip, user);
+		if(!ibuf)
+			cache_undistorted= 1;
+	}
+
+	if(!ibuf)
+		ibuf= get_imbuf_cache(clip, user, clip->flag);
 
 	if(!ibuf) {
 		int use_sequence= 1;
@@ -510,6 +618,13 @@ ImBuf *BKE_movieclip_acquire_ibuf(MovieClip *clip, MovieClipUser *user)
 		clip->lastframe= framenr;
 
 		real_ibuf_size(clip, user, ibuf, &clip->lastsize[0], &clip->lastsize[1]);
+
+		/* put undistorted frame to cache */
+		if(cache_undistorted) {
+			ImBuf *tmpibuf= ibuf;
+			ibuf= put_undistorted_cache(clip, user, tmpibuf);
+			IMB_freeImBuf(tmpibuf);
+		}
 	}
 
 	BLI_unlock_thread(LOCK_MOVIECLIP);
@@ -521,10 +636,18 @@ ImBuf *BKE_movieclip_acquire_ibuf_flag(MovieClip *clip, MovieClipUser *user, int
 {
 	ImBuf *ibuf= NULL;
 	int framenr= user?user->framenr:clip->lastframe;
+	int cache_undistorted= 0;
 
 	/* cache isn't threadsafe itself and also loading of movies
 	   can't happen from concurent threads that's why we use lock here */
 	BLI_lock_thread(LOCK_MOVIECLIP);
+
+	/* try to obtain cached undistorted image first */
+	if(need_undistorted_cache(user, clip->flag)) {
+		ibuf= get_undistorted_cache(clip, user);
+		if(!ibuf)
+			cache_undistorted= 1;
+	}
 
 	/* cache is supposed to be threadsafe */
 	ibuf= get_imbuf_cache(clip, user, flag);
@@ -542,6 +665,13 @@ ImBuf *BKE_movieclip_acquire_ibuf_flag(MovieClip *clip, MovieClipUser *user, int
 			if((flag&bits)==(clip->flag&bits))
 				put_imbuf_cache(clip, user, ibuf, clip->flag);
 		}
+	}
+
+	/* put undistorted frame to cache */
+	if(ibuf && cache_undistorted) {
+		ImBuf *tmpibuf= ibuf;
+		ibuf= put_undistorted_cache(clip, user, tmpibuf);
+		IMB_freeImBuf(tmpibuf);
 	}
 
 	BLI_unlock_thread(LOCK_MOVIECLIP);
@@ -569,12 +699,13 @@ ImBuf *BKE_movieclip_acquire_stable_ibuf(MovieClip *clip, MovieClipUser *user, f
 			render_flag= user->render_flag;
 		}
 
-		if(clip->cache->render_flag==render_flag && clip->cache->proxy==proxy) {
-			if(clip->cache->stableibuf && clip->cache->stable_framenr==framenr) {
+		if(clip->cache->stableibuf && clip->cache->stable_framenr==framenr) {	/* there's cached ibuf */
+			if(clip->cache->render_flag==render_flag && clip->cache->proxy==proxy) {	/* cached ibuf used the same proxy settings */
 				stableibuf= clip->cache->stableibuf;
 
 				BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
 
+				/* check for stabilization parameters */
 				if(!equals_v2v2(tloc, clip->cache->stable_loc) || tscale!=clip->cache->stable_scale || tangle!=clip->cache->stable_angle) {
 					stableibuf= NULL;
 				}
@@ -685,6 +816,9 @@ static void free_buffers(MovieClip *clip)
 
 		if(clip->cache->stableibuf)
 			IMB_freeImBuf(clip->cache->stableibuf);
+
+		if(clip->cache->undistibuf)
+			IMB_freeImBuf(clip->cache->undistibuf);
 
 		MEM_freeN(clip->cache);
 		clip->cache= NULL;
@@ -836,32 +970,8 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int cfra, int *build_sizes
 		ImBuf *tmpibuf= ibuf;
 		int i;
 
-		if(undistorted) {
-			ImBuf *aspectibuf= ibuf;
-			float aspy= 1.f/clip->tracking.camera.pixel_aspect;
-
-			if(aspectibuf->y*aspy!=aspectibuf->y) {
-				/* not very nice, but distortion coefficients were adjusted exactly for such aspect ratio */
-				aspectibuf= IMB_dupImBuf(aspectibuf);
-				IMB_scaleImBuf(aspectibuf, aspectibuf->x, aspectibuf->y*aspy);
-			}
-
-			/* XXX: because of #27997 do not use float buffers to undistort,
-			        otherwise, undistorted proxy can be darker than it should */
-			imb_freerectfloatImBuf(aspectibuf);
-
-			tmpibuf= BKE_tracking_undistort(&clip->tracking, aspectibuf);
-
-			if(tmpibuf->userflags|= IB_RECT_INVALID) {
-				ibuf->userflags&= ~IB_RECT_INVALID;
-				IMB_rect_from_float(tmpibuf);
-			}
-
-			IMB_scaleImBuf(tmpibuf, ibuf->x, ibuf->y);
-
-			if(aspectibuf!=ibuf)
-				IMB_freeImBuf(aspectibuf);
-		}
+		if(undistorted)
+			tmpibuf= get_undistorted_ibuf(clip, ibuf);
 
 		for(i= 0; i<build_count; i++)
 			movieclip_build_proxy_ibuf(clip, tmpibuf, cfra, build_sizes[i], undistorted);

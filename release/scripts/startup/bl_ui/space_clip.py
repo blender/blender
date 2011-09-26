@@ -592,9 +592,7 @@ class CLIP_PT_proxy(Panel):
         col.label(text="Proxy render size:")
 
         col.prop(sc.clip_user, "proxy_render_size", text="")
-        row = col.row()
-        row.active = sc.clip_user.proxy_render_size != 'FULL'
-        row.prop(sc.clip_user, "use_render_undistorted")
+        col.prop(sc.clip_user, "use_render_undistorted")
 
 
 class CLIP_PT_footage(Panel):

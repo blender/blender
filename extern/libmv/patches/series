@@ -3,3 +3,6 @@ snrptinf_fix.patch
 bundle_tweaks.patch
 fast.patch
 config_mac.patch
+levenberg_marquardt.patch
+function_derivative.patch
+high_distortion_crash_fix.patch
