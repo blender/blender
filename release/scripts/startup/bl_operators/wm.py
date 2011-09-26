@@ -1683,6 +1683,7 @@ class WM_OT_addon_install(Operator):
 
     @staticmethod
     def _module_remove(path_addons, module):
+        import os
         module = os.path.splitext(module)[0]
         for f in os.listdir(path_addons):
             f_base = os.path.splitext(f)[0]
@@ -1699,6 +1700,7 @@ class WM_OT_addon_install(Operator):
         import traceback
         import zipfile
         import shutil
+        import os
 
         pyfile = self.filepath
 
