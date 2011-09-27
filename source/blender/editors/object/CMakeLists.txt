@@ -60,11 +60,11 @@ set(SRC
 
 if(WITH_GAMEENGINE)
 	list(APPEND INC
-		../../../../extern/recastnavigation/Recast/Include
+		../../../../extern/recastnavigation
 	)
 
 	list(APPEND SRC
-		object_navmesh.cpp
+		object_navmesh.c
 	)
 endif()
 
