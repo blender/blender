@@ -428,7 +428,6 @@ BMEdge* BM_Collapse_Vert(BMesh *bm, BMEdge *ke, BMVert *kv, float fac){
 		}
 	} else if (faces && BLI_array_count(faces) == 1) {
 		BMLoop **loops = NULL;
-		BMEdge *e;
 		BMVert **verts = NULL;
 		BMEdge **edges = NULL;
 		BMFace *f2;
