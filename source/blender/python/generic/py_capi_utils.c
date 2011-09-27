@@ -363,12 +363,15 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 		 * chars since blender doesnt limit this */
 		return result;
 	}
-	else if(PyBytes_Check(py_str)) {
-		PyErr_Clear();
-		return PyBytes_AS_STRING(py_str);
-	}
 	else {
-		return PyBytes_AS_STRING((*coerce= PyUnicode_EncodeFSDefault(py_str)));
+		PyErr_Clear();
+
+		if(PyBytes_Check(py_str)) {
+			return PyBytes_AS_STRING(py_str);
+		}
+		else {
+			return PyBytes_AS_STRING((*coerce= PyUnicode_EncodeFSDefault(py_str)));
+		}
 	}
 }
 
