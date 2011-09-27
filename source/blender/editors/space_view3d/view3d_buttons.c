@@ -1224,7 +1224,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	Object *ob= OBACT;
 	// TransformProperties *tfp; // UNUSED
 	PointerRNA obptr;
-	uiLayout *col, *row;
+	uiLayout *col /* , *row */ /* UNUSED */;
 	float lim;
 	
 	if(ob==NULL) return;
@@ -1252,7 +1252,7 @@ static void view3d_panel_object(const bContext *C, Panel *pa)
 	uiBlockSetHandleFunc(block, do_view3d_region_buttons, NULL);
 
 	col= uiLayoutColumn(pa->layout, 0);
-	row= uiLayoutRow(col, 0);
+	/* row= uiLayoutRow(col, 0); */ /* UNUSED */
 	RNA_id_pointer_create(&ob->id, &obptr);
 
 	if(ob==obedit) {
