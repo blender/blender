@@ -54,20 +54,15 @@
 
 #include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_screen.h"
 
 #include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "mesh_intern.h"
 #include "recast-capi.h"
-
-/*mesh/mesh_intern.h */
-extern struct EditVert *addvertlist(EditMesh *em, float *vec, struct EditVert *example);
-extern struct EditFace *addfacelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
-extern void free_vertlist(EditMesh *em, ListBase *edve);
-extern void free_edgelist(EditMesh *em, ListBase *lb);
-extern void free_facelist(EditMesh *em, ListBase *lb);
 
 static void createVertsTrisData(bContext *C, LinkNode* obs, int *nverts_r, float **verts_r, int *ntris_r, int **tris_r)
 {
@@ -108,8 +103,8 @@ static void createVertsTrisData(bContext *C, LinkNode* obs, int *nverts_r, float
 	}
 
 	//create data
-	verts = MEM_mallocN(sizeof(float)*3*nverts, "verts");
-	tris = MEM_mallocN(sizeof(int)*3*ntris, "faces");
+	verts = MEM_mallocN(sizeof(float)*3*nverts, "createVertsTrisData verts");
+	tris = MEM_mallocN(sizeof(int)*3*ntris, "createVertsTrisData faces");
 
 	basenverts = 0;
 	tri = tris;
@@ -253,7 +248,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	}
 
 	// Allocate array that can hold triangle flags.
-	triflags = MEM_callocN(sizeof(unsigned char)*ntris, "triflags");
+	triflags = MEM_callocN(sizeof(unsigned char)*ntris, "buildNavMesh triflags");
 
 	// Find triangles which are walkable based on their slope and rasterize them.
 	recast_markWalkableTriangles(RAD2DEG(recastParams->agentmaxslope), verts, nverts, tris, ntris, triflags);
@@ -520,29 +515,24 @@ static int create_navmesh_exec(bContext *C, wmOperator *UNUSED(op))
 	buildNavMesh(&scene->gm.recastData, nverts, verts, ntris, tris, &pmesh, &dmesh);
 	createRepresentation(C, pmesh, dmesh, navmeshBase);
 
+	MEM_freeN(verts);
+	MEM_freeN(tris);
+
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_create_navmesh(wmOperatorType *ot)
+void MESH_OT_create_navmesh(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Create navigation mesh";
 	ot->description= "Create navigation mesh for selected objects";
-	ot->idname= "OBJECT_OT_create_navmesh";
+	ot->idname= "MESH_OT_create_navmesh";
 
 	/* api callbacks */
 	ot->exec= create_navmesh_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int assign_navpolygon_poll(bContext *C)
-{
-	Object *ob= (Object *)CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
-	if (!ob || !ob->data)
-		return 0;
-	return (((Mesh*)ob->data)->edit_mesh != NULL);
 }
 
 static int assign_navpolygon_exec(bContext *C, wmOperator *UNUSED(op))
@@ -584,15 +574,15 @@ static int assign_navpolygon_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_assign_navpolygon(struct wmOperatorType *ot)
+void MESH_OT_assign_navpolygon(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Assign polygon index";
 	ot->description= "Assign polygon index to face by active face";
-	ot->idname= "OBJECT_OT_assign_navpolygon";
+	ot->idname= "MESH_OT_assign_navpolygon";
 
 	/* api callbacks */
-	ot->poll = assign_navpolygon_poll;
+	ot->poll= ED_operator_editmesh;
 	ot->exec= assign_navpolygon_exec;
 
 	/* flags */
@@ -668,15 +658,15 @@ static int assign_new_navpolygon_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_assign_new_navpolygon(struct wmOperatorType *ot)
+void MESH_OT_assign_new_navpolygon(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Assign new polygon index";
 	ot->description= "Assign new polygon index to face";
-	ot->idname= "OBJECT_OT_assign_new_navpolygon";
+	ot->idname= "MESH_OT_assign_new_navpolygon";
 
 	/* api callbacks */
-	ot->poll = assign_navpolygon_poll;
+	ot->poll= ED_operator_editmesh;
 	ot->exec= assign_new_navpolygon_exec;
 
 	/* flags */

@@ -58,16 +58,6 @@ set(SRC
 	object_intern.h
 )
 
-if(WITH_GAMEENGINE)
-	list(APPEND INC
-		../../../../extern/recastnavigation
-	)
-
-	list(APPEND SRC
-		object_navmesh.c
-	)
-endif()
-
 if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()

@@ -214,12 +214,6 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_bake_image);
 	WM_operatortype_append(OBJECT_OT_drop_named_material);
-
-#ifdef WITH_GAMEENGINE
-	WM_operatortype_append(OBJECT_OT_create_navmesh);
-	WM_operatortype_append(OBJECT_OT_assign_navpolygon);
-	WM_operatortype_append(OBJECT_OT_assign_new_navpolygon);
-#endif
 }
 
 

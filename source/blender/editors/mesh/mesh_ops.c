@@ -151,6 +151,12 @@ void ED_operatortypes_mesh(void)
 
 	WM_operatortype_append(MESH_OT_solidify);
 	WM_operatortype_append(MESH_OT_select_nth);
+
+#ifdef WITH_GAMEENGINE
+	WM_operatortype_append(MESH_OT_create_navmesh);
+	WM_operatortype_append(MESH_OT_assign_navpolygon);
+	WM_operatortype_append(MESH_OT_assign_new_navpolygon);
+#endif
 }
 
 #if 0 /* UNUSED, remove? */
