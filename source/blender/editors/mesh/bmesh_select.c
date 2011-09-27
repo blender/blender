@@ -2061,15 +2061,15 @@ static int EM_deselect_nth(BMEditMesh *em, int nth, int offset)
 	deselect_nth_active(em, &v, &e, &f);
 
 	if (v) {
-		walker_deselect_nth(em, nth, offset, v);
+		walker_deselect_nth(em, nth, offset, &v->head);
 		return 1;
 	}
 	else if(e) {
-		walker_deselect_nth(em, nth, offset, e);
+		walker_deselect_nth(em, nth, offset, &e->head);
 		return 1;
 	}
 	else if(f) {
-		walker_deselect_nth(em, nth, offset, f);
+		walker_deselect_nth(em, nth, offset, &f->head);
 		return 1;
 	}
 
