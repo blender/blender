@@ -518,7 +518,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *filepat
 	BLI_addtail(mainlist, m);
 
 	lib= alloc_libblock(&m->library, ID_LI, "lib");
-	strncpy(lib->name, filepath, sizeof(lib->name)-1);
+	BLI_strncpy(lib->name, filepath, sizeof(lib->name));
 	BLI_strncpy(lib->filepath, name1, sizeof(lib->filepath));
 	
 	m->curlib= lib;
@@ -5680,7 +5680,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 			 * link into an unsaved blend file. See [#27405].
 			 * The remap relative option will make it relative again on save - campbell */
 			if (strncmp(lib->name, "//", 2)==0) {
-				strncpy(lib->name, lib->filepath, sizeof(lib->name));
+				BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
 			}
 		}
 	}
@@ -5689,7 +5689,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 			/* Libraries store both relative and abs paths, recreate relative paths,
 			 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
 			if (strncmp(lib->name, "//", 2)==0) { /* if this is relative to begin with? */
-				strncpy(lib->name, lib->filepath, sizeof(lib->name));
+				BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
 				BLI_path_rel(lib->name, basepath);
 			}
 		}
@@ -10051,7 +10051,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->toolsettings->skgen_resolution = 250;
 			sce->toolsettings->skgen_threshold_internal 	= 0.1f;
 			sce->toolsettings->skgen_threshold_external 	= 0.1f;
-			sce->toolsettings->skgen_angle_limit	 		= 30.0f;
+			sce->toolsettings->skgen_angle_limit			= 30.0f;
 			sce->toolsettings->skgen_length_ratio			= 1.3f;
 			sce->toolsettings->skgen_length_limit			= 1.5f;
 			sce->toolsettings->skgen_correlation_limit		= 0.98f;
@@ -12132,7 +12132,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put compatibility code here until next subversion bump */
 
 	{
-
+		{
+			/* Adaptive time step for particle systems */
+			ParticleSettings *part;
+			for (part = main->particle.first; part; part = part->id.next) {
+				part->courant_target = 0.2f;
+				part->time_flag &= ~PART_TIME_AUTOSF;
+			}
+		}
 	}
 
 	//set defaults for obstacle avoidance, recast data
@@ -12148,7 +12155,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(sce->gm.recastData.cellheight == 0.0f)
 				sce->gm.recastData.cellheight = 0.2f;
 			if(sce->gm.recastData.agentmaxslope == 0.0f)
-				sce->gm.recastData.agentmaxslope = M_PI/4;
+				sce->gm.recastData.agentmaxslope = (float)M_PI/4;
 			if(sce->gm.recastData.agentmaxclimb == 0.0f)
 				sce->gm.recastData.agentmaxclimb = 0.9f;
 			if(sce->gm.recastData.agentheight == 0.0f)
@@ -12299,7 +12306,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	bfd->main->versionfile= fd->fileversion;
 	
 	bfd->type= BLENFILETYPE_BLEND;
-	strncpy(bfd->main->name, filepath, sizeof(bfd->main->name)-1);
+	BLI_strncpy(bfd->main->name, filepath, sizeof(bfd->main->name));
 
 	while(bhead) {
 		switch(bhead->code) {

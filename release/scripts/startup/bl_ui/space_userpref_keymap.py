@@ -22,109 +22,6 @@ from bpy.types import Menu, OperatorProperties
 import os
 
 
-KM_HIERARCHY = [
-    ('Window', 'EMPTY', 'WINDOW', []),  # file save, window change, exit
-    ('Screen', 'EMPTY', 'WINDOW', [     # full screen, undo, screenshot
-        ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
-        ]),
-
-    ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)
-    ('View2D Buttons List', 'EMPTY', 'WINDOW', []),  # view 2d with buttons navigation
-    ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
-    ('Grease Pencil', 'EMPTY', 'WINDOW', []),  # grease pencil stuff (per region)
-
-    ('3D View', 'VIEW_3D', 'WINDOW', [  # view 3d navigation and generic stuff (select, transform)
-        ('Object Mode', 'EMPTY', 'WINDOW', []),
-        ('Mesh', 'EMPTY', 'WINDOW', []),
-        ('Curve', 'EMPTY', 'WINDOW', []),
-        ('Armature', 'EMPTY', 'WINDOW', []),
-        ('Metaball', 'EMPTY', 'WINDOW', []),
-        ('Lattice', 'EMPTY', 'WINDOW', []),
-        ('Font', 'EMPTY', 'WINDOW', []),
-
-        ('Pose', 'EMPTY', 'WINDOW', []),
-
-        ('Vertex Paint', 'EMPTY', 'WINDOW', []),
-        ('Weight Paint', 'EMPTY', 'WINDOW', []),
-        ('Face Mask', 'EMPTY', 'WINDOW', []),
-        ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
-        ('Sculpt', 'EMPTY', 'WINDOW', []),
-
-        ('Armature Sketch', 'EMPTY', 'WINDOW', []),
-        ('Particle', 'EMPTY', 'WINDOW', []),
-
-        ('Object Non-modal', 'EMPTY', 'WINDOW', []),  # mode change
-
-        ('3D View Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
-        ]),
-
-    ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
-    ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
-    ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
-    ('Animation Channels', 'EMPTY', 'WINDOW', []),
-    ('Graph Editor', 'GRAPH_EDITOR', 'WINDOW', [
-        ('Graph Editor Generic', 'GRAPH_EDITOR', 'WINDOW', [])
-        ]),
-    ('Dopesheet', 'DOPESHEET_EDITOR', 'WINDOW', []),
-    ('NLA Editor', 'NLA_EDITOR', 'WINDOW', [
-        ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
-        ('NLA Generic', 'NLA_EDITOR', 'WINDOW', [])
-        ]),
-
-    ('Image', 'IMAGE_EDITOR', 'WINDOW', [
-        ('UV Editor', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image
-        ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
-        ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
-        ]),
-
-    ('Timeline', 'TIMELINE', 'WINDOW', []),
-    ('Outliner', 'OUTLINER', 'WINDOW', []),
-
-    ('Node Editor', 'NODE_EDITOR', 'WINDOW', [
-        ('Node Generic', 'NODE_EDITOR', 'WINDOW', [])
-        ]),
-    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
-    ('Logic Editor', 'LOGIC_EDITOR', 'WINDOW', []),
-
-    ('File Browser', 'FILE_BROWSER', 'WINDOW', [
-        ('File Browser Main', 'FILE_BROWSER', 'WINDOW', []),
-        ('File Browser Buttons', 'FILE_BROWSER', 'WINDOW', [])
-        ]),
-
-    ('Property Editor', 'PROPERTIES', 'WINDOW', []),  # align context menu
-
-    ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
-    ('Text', 'TEXT_EDITOR', 'WINDOW', []),
-    ('Console', 'CONSOLE', 'WINDOW', []),
-
-    ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
-    ('Gesture Border', 'EMPTY', 'WINDOW', []),
-    ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
-    ('Transform Modal Map', 'EMPTY', 'WINDOW', []),
-    ('View3D Fly Modal', 'EMPTY', 'WINDOW', []),
-    ('View3D Rotate Modal', 'EMPTY', 'WINDOW', []),
-    ('View3D Move Modal', 'EMPTY', 'WINDOW', []),
-    ('View3D Zoom Modal', 'EMPTY', 'WINDOW', []),
-    ]
-
-
-def _km_exists_in(km, export_keymaps):
-    for km2, kc in export_keymaps:
-        if km2.name == km.name:
-            return True
-    return False
-
-
-def _merge_keymaps(kc1, kc2):
-    """ note: kc1 takes priority over kc2
-    """
-    merged_keymaps = [(km, kc1) for km in kc1.keymaps]
-    if kc1 != kc2:
-        merged_keymaps.extend((km, kc2) for km in kc2.keymaps if not _km_exists_in(km, merged_keymaps))
-
-    return merged_keymaps
-
-
 class USERPREF_MT_keyconfigs(Menu):
     bl_label = "KeyPresets"
     preset_subdir = "keyconfig"
@@ -363,10 +260,13 @@ class InputKeyMapPanel:
                 subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
     def draw_hierarchy(self, display_keymaps, layout):
-        for entry in KM_HIERARCHY:
+        from bpy_extras import keyconfig_utils
+        for entry in keyconfig_utils.KM_HIERARCHY:
             self.draw_entry(display_keymaps, entry, layout)
 
     def draw_keymaps(self, context, layout):
+        from bpy_extras import keyconfig_utils
+
         wm = context.window_manager
         kc = wm.keyconfigs.user
 
@@ -393,28 +293,13 @@ class InputKeyMapPanel:
 
         col.separator()
 
-        display_keymaps = _merge_keymaps(kc, kc)
+        display_keymaps = keyconfig_utils.keyconfig_merge(kc, kc)
         if context.space_data.filter_text != "":
             filter_text = context.space_data.filter_text.lower()
             self.draw_filtered(display_keymaps, filter_text, col)
         else:
             self.draw_hierarchy(display_keymaps, col)
 
-
-def export_properties(prefix, properties, lines=None):
-    if lines is None:
-        lines = []
-
-    for pname in properties.bl_rna.properties.keys():
-        if pname != "rna_type" and not properties.is_property_hidden(pname):
-            value = getattr(properties, pname)
-            if isinstance(value, OperatorProperties):
-                export_properties(prefix + "." + pname, value, lines)
-            elif properties.is_property_set(pname):
-                value = _string_value(value)
-                if value != "":
-                    lines.append("%s.%s = %s\n" % (prefix, pname, value))
-    return lines
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

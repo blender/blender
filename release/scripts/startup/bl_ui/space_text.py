@@ -66,9 +66,11 @@ class TEXT_HT_header(Header):
             row = layout.row()
             if text.filepath:
                 if text.is_dirty:
-                    row.label(text="File" + ": *%r " % text.filepath + "(unsaved)")
+                    row.label(text="File" + ": *%r " %
+                              text.filepath + "(unsaved)")
                 else:
-                    row.label(text="File" + ": %r" % text.filepath)
+                    row.label(text="File" + ": %r" %
+                              text.filepath)
             else:
                 row.label(text="Text: External"
                           if text.library

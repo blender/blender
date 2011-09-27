@@ -404,7 +404,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 
 	BLF_exit();
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();
 #endif
 	

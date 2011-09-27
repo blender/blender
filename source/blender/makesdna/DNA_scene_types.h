@@ -236,8 +236,8 @@ typedef struct RenderData {
 	short stereomode;	/* standalone player stereo settings */  //  XXX deprecated since 2.5
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
- 	
-	 short filtertype;	/* filter is box, tent, gauss, mitch, etc */
+
+	short filtertype;	/* filter is box, tent, gauss, mitch, etc */
 
 	short size, maximsize;	/* size in %, max in Kb */
 	/* from buttons: */
@@ -479,8 +479,8 @@ typedef struct GameData {
 } GameData;
 
 #define STEREO_NOSTEREO		1
-#define STEREO_ENABLED 		2
-#define STEREO_DOME	 		3
+#define STEREO_ENABLED		2
+#define STEREO_DOME			3
 
 //#define STEREO_NOSTEREO		 1
 #define STEREO_QUADBUFFERED 2
@@ -838,7 +838,7 @@ typedef struct Scene {
 	void *sound_scrub_handle;
 	void *speaker_handles;
 	
-	void *fps_info;	 				/* (runtime) info/cache used for presenting playback framerate info to the user */
+	void *fps_info;					/* (runtime) info/cache used for presenting playback framerate info to the user */
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;

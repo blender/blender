@@ -84,7 +84,7 @@ typedef struct MenuEntry {
 } MenuEntry;
 
 typedef struct MenuData {
-	char *instr;
+	const char *instr;
 	const char *title;
 	int titleicon;
 	
@@ -92,7 +92,7 @@ typedef struct MenuData {
 	int nitems, itemssize;
 } MenuData;
 
-static MenuData *menudata_new(char *instr)
+static MenuData *menudata_new(const char *instr)
 {
 	MenuData *md= MEM_mallocN(sizeof(*md), "MenuData");
 
@@ -137,7 +137,7 @@ static void menudata_add_item(MenuData *md, const char *str, int retval, int ico
 
 static void menudata_free(MenuData *md)
 {
-	MEM_freeN(md->instr);
+	MEM_freeN((void *)md->instr);
 	if (md->items)
 		MEM_freeN(md->items);
 	MEM_freeN(md);
@@ -156,7 +156,7 @@ static void menudata_free(MenuData *md)
 	 * @param str String to be parsed.
 	 * @retval new menudata structure, free with menudata_free()
 	 */
-static MenuData *decompose_menu_string(char *str) 
+static MenuData *decompose_menu_string(const char *str)
 {
 	char *instr= BLI_strdup(str);
 	MenuData *md= menudata_new(instr);
@@ -230,9 +230,11 @@ void ui_set_name_menu(uiBut *but, int value)
 	int i;
 	
 	md= decompose_menu_string(but->str);
-	for (i=0; i<md->nitems; i++)
-		if (md->items[i].retval==value)
-			strcpy(but->drawstr, md->items[i].str);
+	for (i=0; i<md->nitems; i++) {
+		if (md->items[i].retval==value) {
+			BLI_strncpy(but->drawstr, md->items[i].str, sizeof(but->drawstr));
+		}
+	}
 	
 	menudata_free(md);
 }
@@ -1611,7 +1613,7 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	uiBut *bt;
 	MenuData *md;
 	MenuEntry *entry;
-	char *instr= arg_str;
+	const char *instr= arg_str;
 	int columns, rows, a, b;
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
@@ -1798,7 +1800,7 @@ static void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 			if (rgb_gamma[1] > 1.0f) rgb_gamma[1] = modf(rgb_gamma[1], &intpart);
 			if (rgb_gamma[2] > 1.0f) rgb_gamma[2] = modf(rgb_gamma[2], &intpart);
 
-			sprintf(col, "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
+			BLI_snprintf(col, sizeof(col), "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 			
 			strcpy(bt->poin, col);
 		}
@@ -1986,10 +1988,10 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	
 	/* existence of profile means storage is in linear color space, with display correction */
 	if (block->color_profile == BLI_PR_NONE) {
-		sprintf(tip, "Value in Display Color Space");
+		BLI_strncpy(tip, "Value in Display Color Space", sizeof(tip));
 		copy_v3_v3(rgb_gamma, rgb);
 	} else {
-		sprintf(tip, "Value in Linear RGB Color Space");
+		BLI_strncpy(tip, "Value in Linear RGB Color Space", sizeof(tip));
 		/* make an sRGB version, for Hex code */
 		linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
 	}
@@ -2058,7 +2060,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 		rgb[3]= 1.0f;
 	}
 
-	sprintf(hexcol, "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
+	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 
 	bt= uiDefBut(block, TEX, 0, "Hex: ", 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
@@ -2152,7 +2154,7 @@ static int ui_popup_string_hash(char *str)
 	return hash;
 }
 
-static int ui_popup_menu_hash(char *str)
+static int ui_popup_menu_hash(const char *str)
 {
 	return BLI_ghashutil_strhash(str);
 }
@@ -2202,8 +2204,6 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 {
 	uiBlock *block;
 	uiBut *bt;
-	ScrArea *sa;
-	ARegion *ar;
 	uiPopupMenu *pup= arg_pup;
 	int offset[2], direction, minwidth, width, height, flip;
 
@@ -2275,10 +2275,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	else {
 		/* for a header menu we set the direction automatic */
 		if(!pup->slideout && flip) {
-			sa= CTX_wm_area(C);
-			ar= CTX_wm_region(C);
-
+			ScrArea *sa= CTX_wm_area(C);
 			if(sa && sa->headertype==HEADERDOWN) {
+				ARegion *ar= CTX_wm_region(C);
 				if(ar && ar->regiontype == RGN_TYPE_HEADER) {
 					uiBlockSetDirection(block, UI_TOP);
 					uiBlockFlipOrder(block);
@@ -2369,7 +2368,7 @@ uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 		char titlestr[256];
 		
 		if(icon) {
-			sprintf(titlestr, " %s", title);
+			BLI_snprintf(titlestr, sizeof(titlestr), " %s", title);
 			uiDefIconTextBut(pup->block, LABEL, 0, icon, titlestr, 0, 0, 200, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 		}
 		else {
@@ -2467,7 +2466,7 @@ void uiPupMenuOkee(bContext *C, const char *opname, const char *str, ...)
 	va_list ap;
 	char titlestr[256];
 
-	sprintf(titlestr, "OK? %%i%d", ICON_QUESTION);
+	BLI_snprintf(titlestr, sizeof(titlestr), "OK? %%i%d", ICON_QUESTION);
 
 	va_start(ap, str);
 	vconfirm_opname(C, opname, titlestr, str, ap);
@@ -2507,9 +2506,9 @@ void uiPupMenuError(bContext *C, const char *str, ...)
 	char nfmt[256];
 	char titlestr[256];
 
-	sprintf(titlestr, "Error %%i%d", ICON_ERROR);
+	BLI_snprintf(titlestr, sizeof(titlestr), "Error %%i%d", ICON_ERROR);
 
-	sprintf(nfmt, "%s", str);
+	BLI_strncpy(nfmt, str, sizeof(nfmt));
 
 	va_start(ap, str);
 	vconfirm_opname(C, NULL, titlestr, nfmt, ap);

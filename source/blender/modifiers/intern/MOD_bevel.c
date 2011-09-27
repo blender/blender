@@ -72,7 +72,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tbmd->lim_flags = bmd->lim_flags;
 	tbmd->e_flags = bmd->e_flags;
 	tbmd->bevel_angle = bmd->bevel_angle;
-	strncpy(tbmd->defgrp_name, bmd->defgrp_name, 32);
+	BLI_strncpy(tbmd->defgrp_name, bmd->defgrp_name, 32);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

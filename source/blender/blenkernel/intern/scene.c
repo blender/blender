@@ -428,7 +428,7 @@ Scene *add_scene(const char *name)
 	sce->toolsettings->skgen_resolution = 100;
 	sce->toolsettings->skgen_threshold_internal 	= 0.01f;
 	sce->toolsettings->skgen_threshold_external 	= 0.01f;
-	sce->toolsettings->skgen_angle_limit	 		= 45.0f;
+	sce->toolsettings->skgen_angle_limit			= 45.0f;
 	sce->toolsettings->skgen_length_ratio			= 1.3f;
 	sce->toolsettings->skgen_length_limit			= 1.5f;
 	sce->toolsettings->skgen_correlation_limit		= 0.98f;

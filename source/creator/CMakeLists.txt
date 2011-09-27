@@ -709,6 +709,61 @@ elseif(APPLE)
 			\${TARGETDIR_VER}
 		)
 	endif()
+
+	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
+	# note we are using OSX Bundle as base and copying Blender dummy bundle on top of it
+	if(WITH_GAMEENGINE AND WITH_PLAYER)
+		set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blenderplayer.app)
+		set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
+		set(TARGETDIR_VER ${TARGETDIR}/blenderplayer.app/Contents/MacOS/${BLENDER_VERSION})
+
+		# setup Info.plist
+		execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BLENDER_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+		set_target_properties(blender PROPERTIES
+			MACOSX_BUNDLE_INFO_PLIST ${SOURCEINFO}
+			MACOSX_BUNDLE_SHORT_VERSION_STRING ${BLENDER_VERSION}
+			MACOSX_BUNDLE_LONG_VERSION_STRING "${BLENDER_VERSION} ${BLENDER_DATE}")
+
+		# important to make a clean install each time else old scripts get loaded.
+		install(
+			CODE
+			"file(REMOVE_RECURSE ${TARGETDIR_VER})"
+		)
+	
+		# message after building.
+		add_custom_command(
+			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
+			COMMAND ${CMAKE_COMMAND} -E echo 'now run: \"make install\" to copy runtime files & scripts to ${TARGETDIR_VER}'
+		)
+	
+		install(
+			FILES ${SOURCEDIR}/Contents/PkgInfo
+			DESTINATION ${TARGETDIR}/blenderplayer.app/Contents
+		)
+
+		install_dir(
+			${SOURCEDIR}/Contents/Resources
+			\${TARGETDIR}/blenderplayer.app/Contents/
+		)
+
+		# python
+		if(WITH_PYTHON)
+			add_custom_command(
+				OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/python
+				COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}/python/
+				COMMAND mkdir ${CMAKE_CURRENT_BINARY_DIR}/python/
+				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${CMAKE_CURRENT_BINARY_DIR}/python/
+				DEPENDS ${LIBDIR}/release/${PYTHON_ZIP})
+	
+			# copy extracted python files
+			install_dir(
+				${CMAKE_CURRENT_BINARY_DIR}/python
+				\${TARGETDIR_VER}
+			)
+		endif()
+	
+	endif()
 endif()
 
 unset(BLENDER_TEXT_FILES)

@@ -56,7 +56,7 @@ typedef struct IpoDriver {
 	short blocktype, adrcode;	/* sub-channel to use */
 	
 	short type, flag;			/* driver settings */
-	char name[128];	 			/* bone, or python expression here */
+	char name[128];				/* bone, or python expression here */
 } IpoDriver;
 
 /* --- IPO Curve --- */

@@ -41,6 +41,7 @@
 
 #include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -177,7 +178,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 				MEM_freeN(info);
 
 				cp= BLI_dynlib_find_symbol(pis->handle, "seqname");
-				if(cp) strncpy(cp, seqname, 21);
+				if(cp) BLI_strncpy(cp, seqname, 21);
 			} else {
 				printf ("Plugin returned unrecognized version number\n");
 				return;
@@ -203,7 +204,7 @@ static PluginSeq *add_plugin_seq(const char *str, const char *seqname)
 
 	pis= MEM_callocN(sizeof(PluginSeq), "PluginSeq");
 
-	strncpy(pis->name, str, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_strncpy(pis->name, str, FILE_MAX);
 	open_plugin_seq(pis, seqname);
 
 	if(pis->doit==NULL) {

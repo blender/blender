@@ -478,17 +478,17 @@ LinkNode *BLI_read_file_as_lines(const char *name)
 	FILE *fp= fopen(name, "r");
 	LinkNode *lines= NULL;
 	char *buf;
-	int64_t size;
+	size_t size;
 
 	if (!fp) return NULL;
 		
 	fseek(fp, 0, SEEK_END);
-	size= ftell(fp);
+	size= (size_t)ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
 	buf= MEM_mallocN(size, "file_as_lines");
 	if (buf) {
-		int i, last= 0;
+		size_t i, last= 0;
 		
 			/* 
 			 * size = because on win32 reading

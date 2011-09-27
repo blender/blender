@@ -1417,12 +1417,6 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static const EnumPropertyItem transp_items[]= {
-		{TF_SOLID, "OPAQUE", 0, "Opaque", "Render color of textured face as color"},
-		{TF_ADD, "ADD", 0, "Add", "Render face transparent and add color of face"},
-		{TF_ALPHA, "ALPHA", 0, "Alpha", "Render polygon transparent, depending on alpha channel of the texture"},
-		{TF_CLIP, "CLIPALPHA", 0, "Clip Alpha", "Use the images alpha values clipped with no blending (binary alpha)"},
-		{0, NULL, 0, NULL, NULL}};
 #if 0  /* BMESH_TODO: needed later when do another todo */
 	int uv_dim[]= {4, 2};
 #endif
@@ -1473,78 +1467,6 @@ static void rna_def_mtexpoly(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	//XXX to be deleted soon -- left for now in case we need it for debug
-	//XXX it should be out before Blender 2.6 (after texface to material patch)
-
-	prop= RNA_def_property(srna, "use_image", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TEX);
-	RNA_def_property_ui_text(prop, "Tex", "Render face with texture");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_light", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_LIGHT);
-	RNA_def_property_ui_text(prop, "Light", "Use light for face");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_INVISIBLE);
-	RNA_def_property_ui_text(prop, "Invisible", "Make face invisible");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_collision", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_DYNAMIC);
-	RNA_def_property_ui_text(prop, "Collision", "Use face for collision and ray-sensor detection");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_blend_shared", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_SHAREDCOL);
-	RNA_def_property_ui_text(prop, "Shared", "Blend vertex colors across face when vertices are shared");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_twoside", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_TWOSIDE);
-	RNA_def_property_ui_text(prop, "Two-side", "Render face two-sided");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_object_color", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_OBCOL);
-	RNA_def_property_ui_text(prop, "Object Color", "Use ObColor instead of vertex colors");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_halo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_BILLBOARD);
-	RNA_def_property_ui_text(prop, "Halo", "Screen aligned billboard");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_billboard", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_BILLBOARD2);
-	RNA_def_property_ui_text(prop, "Billboard", "Billboard with Z-axis constraint");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_shadow_cast", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_SHADOW);
-	RNA_def_property_ui_text(prop, "Shadow", "Face is used for shadow");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_bitmap_text", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_BMFONT);
-	RNA_def_property_ui_text(prop, "Text", "Enable bitmap text on face");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "use_alpha_sort", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_ALPHASORT);
-	RNA_def_property_ui_text(prop, "Alpha Sort", "Enable sorting of faces for correct alpha drawing (slow, use Clip Alpha instead when possible)");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	prop= RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "transp");
-	RNA_def_property_enum_items(prop, transp_items);
-	RNA_def_property_ui_text(prop, "Transparency", "Transparency blending mode");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-
-	//XXX to be deleted soon -- left for now in case we need it for debug
-	//XXX it should be out before Blender 2.6 (after texface to material patch)
 
 	prop= RNA_def_property(srna, "select_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TF_SEL1);

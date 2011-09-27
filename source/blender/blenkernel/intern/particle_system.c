@@ -26,6 +26,9 @@
  *
  * Contributor(s): Raul Fernandez Hernandez (Farsthary), Stephen Swhitehorn.
  *
+ * Adaptive time step
+ * Copyright 2011 AutoCRC
+ *
  * ***** END GPL LICENSE BLOCK *****
  */
 
@@ -2321,6 +2324,10 @@ typedef struct SPHRangeData
 
 	float massfac;
 	int use_size;
+
+	/* Same as SPHData::element_size */
+	float element_size;
+	float flow[3];
 } SPHRangeData;
 typedef struct SPHData {
 	ParticleSystem *psys[10];
@@ -2328,12 +2335,17 @@ typedef struct SPHData {
 	float mass;
 	EdgeHash *eh;
 	float *gravity;
+	/* Average distance to neighbours (other particles in the support domain),
+	   for calculating the Courant number (adaptive time step). */
+	float element_size;
+	float flow[3];
 }SPHData;
 static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 {
 	SPHRangeData *pfr = (SPHRangeData *)userdata;
 	ParticleData *npa = pfr->npsys->particles + index;
 	float q;
+	float dist;
 
 	if(npa == pfr->pa || squared_dist < FLT_EPSILON)
 		return;
@@ -2344,12 +2356,16 @@ static void sph_density_accum_cb(void *userdata, int index, float squared_dist)
 	 */
 	if(pfr->tot_neighbors >= 128)
 		return;
-	
+
 	pfr->neighbors[pfr->tot_neighbors].index = index;
 	pfr->neighbors[pfr->tot_neighbors].psys = pfr->npsys;
 	pfr->tot_neighbors++;
 
-	q = (1.f - sqrtf(squared_dist)/pfr->h) * pfr->massfac;
+	dist = sqrtf(squared_dist);
+	q = (1.f - dist/pfr->h) * pfr->massfac;
+
+	add_v3_v3(pfr->flow, npa->state.vel);
+	pfr->element_size += dist;
 
 	if(pfr->use_size)
 		q *= npa->size;
@@ -2397,6 +2413,8 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	pfr.density = pfr.near_density = 0.f;
 	pfr.h = h;
 	pfr.pa = pa;
+	pfr.element_size = fluid->radius;
+	pfr.flow[0] = pfr.flow[1] = pfr.flow[2] = 0.0f;
 
 	for(i=0; i<10 && psys[i]; i++) {
 		pfr.npsys = psys[i];
@@ -2405,6 +2423,14 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 
 		BLI_bvhtree_range_query(psys[i]->bvhtree, state->co, h, sph_density_accum_cb, &pfr);
 	}
+	if (pfr.tot_neighbors > 0) {
+		pfr.element_size /= pfr.tot_neighbors;
+		mul_v3_fl(pfr.flow, 1.0f / pfr.tot_neighbors);
+	} else {
+		pfr.element_size = MAXFLOAT;
+	}
+	sphdata->element_size = pfr.element_size;
+	VECCOPY(sphdata->flow, pfr.flow);
 
 	pressure =  stiffness * (pfr.density - rest_density);
 	near_pressure = stiffness_near_fac * pfr.near_density;
@@ -2471,7 +2497,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 		madd_v3_v3fl(force, gravity, fluid->buoyancy * (pfr.density-rest_density));
 }
 
-static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float dfra, float *gravity, EdgeHash *springhash){
+static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float dfra, float *gravity, EdgeHash *springhash, float *element_size, float flow[3]) {
 	ParticleTarget *pt;
 	int i;
 
@@ -2491,6 +2517,7 @@ static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float d
 	sphdata.gravity = gravity;
 	sphdata.mass = pa_mass;
 	sphdata.eh = springhash;
+	//sphdata.element_size and sphdata.flow are set in the callback.
 
 	/* restore previous state and treat gravity & effectors as external acceleration*/
 	sub_v3_v3v3(effector_acceleration, pa->state.vel, pa->prev_state.vel);
@@ -2499,6 +2526,8 @@ static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float d
 	copy_particle_key(&pa->state, &pa->prev_state, 0);
 
 	integrate_particle(part, pa, dtime, effector_acceleration, sph_force_cb, &sphdata);
+	*element_size = sphdata.element_size;
+	VECCOPY(flow, sphdata.flow);
 }
 
 /************************************************/
@@ -3582,6 +3611,49 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra)){
 			root->co[0] = root->co[1] = root->co[2] = 0.0f;
 	}
 }
+
+/* Code for an adaptive time step based on the Courant-Friedrichs-Lewy
+   condition. */
+#define MIN_TIMESTEP 1.0f / 101.0f
+/* Tolerance of 1.5 means the last subframe neither favours growing nor
+   shrinking (e.g if it were 1.3, the last subframe would tend to be too
+   small). */
+#define TIMESTEP_EXPANSION_TOLERANCE 1.5f
+
+/* Calculate the speed of the particle relative to the local scale of the
+   simulation. This should be called once per particle during a simulation
+   step, after the velocity has been updated. element_size defines the scale of
+   the simulation, and is typically the distance to neighbourning particles. */
+void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
+	float dtime, float element_size, float flow[3])
+{
+	float relative_vel[3];
+	float speed;
+
+	sub_v3_v3v3(relative_vel, pa->state.vel, flow);
+	speed = len_v3(relative_vel);
+	if (sim->courant_num < speed * dtime / element_size)
+		sim->courant_num = speed * dtime / element_size;
+}
+/* Update time step size to suit current conditions. */
+float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim,
+	float t_frac)
+{
+	if (sim->courant_num == 0.0f)
+		psys->dt_frac = 1.0f;
+	else
+		psys->dt_frac *= (psys->part->courant_target / sim->courant_num);
+	CLAMP(psys->dt_frac, MIN_TIMESTEP, 1.0f);
+
+	/* Sync with frame end if it's close. */
+	if (t_frac == 1.0f)
+		return psys->dt_frac;
+	else if (t_frac + (psys->dt_frac * TIMESTEP_EXPANSION_TOLERANCE) >= 1.0f)
+		return 1.0f - t_frac;
+	else
+		return psys->dt_frac;
+}
+
 /************************************************/
 /*			System Core							*/
 /************************************************/
@@ -3597,7 +3669,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 	/* frame & time changes */
 	float dfra, dtime;
 	float birthtime, dietime;
-	
+
 	/* where have we gone in time since last time */
 	dfra= cfra - psys->cfra;
 
@@ -3735,6 +3807,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 		{
 			EdgeHash *springhash = sph_springhash_build(psys);
 			float *gravity = NULL;
+			float element_size, flow[3];
 
 			if(psys_uses_gravity(sim))
 				gravity = sim->scene->physics_settings.gravity;
@@ -3744,13 +3817,17 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				basic_integrate(sim, p, pa->state.time, cfra);
 
 				/* actual fluids calculations */
-				sph_integrate(sim, pa, pa->state.time, gravity, springhash);
+				sph_integrate(sim, pa, pa->state.time, gravity, springhash,
+					&element_size, flow);
 
 				if(sim->colliders)
 					collision_check(sim, p, pa->state.time, cfra);
 				
 				/* SPH particles are not physical particles, just interpolation particles,  thus rotation has not a direct sense for them */	
 				basic_rotate(part, pa, pa->state.time, timestep);  
+
+				if (part->time_flag & PART_TIME_AUTOSF)
+					update_courant_num(sim, pa, dtime, element_size, flow);
 			}
 
 			sph_springs_modify(psys, timestep);
@@ -3952,6 +4029,7 @@ static int emit_particles(ParticleSimulationData *sim, PTCacheID *pid, float UNU
 
 	return totpart - oldtotpart;
 }
+
 /* Calculates the next state for all particles of the system
  * In particles code most fra-ending are frames, time-ending are fra*timestep (seconds)
  * 1. Emit particles
@@ -4057,23 +4135,39 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	}
 
 	if(psys->totpart) {
-		int dframe, subframe = 0, totframesback = 0, totsubframe = part->subframes+1;
-		float fraction;
-		
+		int dframe, totframesback = 0;
+		float t_frac, dt_frac;
+
 		/* handle negative frame start at the first frame by doing
 		 * all the steps before the first frame */
 		if((int)cfra == startframe && part->sta < startframe)
 			totframesback = (startframe - (int)part->sta);
-		
+
+		if (!(part->time_flag & PART_TIME_AUTOSF)) {
+			/* Constant time step */
+			psys->dt_frac = 1.0f / (float) (part->subframes + 1);
+		} else if ((int)cfra == startframe) {
+			/* Variable time step; use a very conservative value at the start.
+			 * If it doesn't need to be so small, it will quickly grow. */
+			psys->dt_frac = 1.0;
+		} else if (psys->dt_frac < MIN_TIMESTEP) {
+			psys->dt_frac = MIN_TIMESTEP;
+		}
+
 		for(dframe=-totframesback; dframe<=0; dframe++) {
-			/* ok now we're all set so let's go */
-			for (subframe = 1; subframe <= totsubframe; subframe++) {
-				fraction = (float)subframe/(float)totsubframe;
-				dynamics_step(sim, cfra+dframe+fraction - 1.f);
-				psys->cfra = cfra+dframe+fraction - 1.f;
+			/* simulate each subframe */
+			dt_frac = psys->dt_frac;
+			for (t_frac = dt_frac; t_frac <= 1.0f; t_frac += dt_frac) {
+				sim->courant_num = 0.0f;
+				dynamics_step(sim, cfra+dframe+t_frac - 1.f);
+				psys->cfra = cfra+dframe+t_frac - 1.f;
+#if 0
+				printf("%f,%f,%f,%f\n", cfra+dframe+t_frac - 1.f, t_frac, dt_frac, sim->courant_num);
+#endif
+				if (part->time_flag & PART_TIME_AUTOSF)
+					dt_frac = update_timestep(psys, sim, t_frac);
 			}
 		}
-		
 	}
 	
 /* 4. only write cache starting from second frame */

@@ -19,6 +19,9 @@
  *
  * Contributor(s): Blender Foundation (2008).
  *
+ * Adaptive time step
+ * Copyright 2011 AutoCRC
+ *
  * ***** END GPL LICENSE BLOCK *****
  */
 
@@ -145,33 +148,38 @@ static void rna_ParticleHairKey_location_object_info(PointerRNA *ptr, ParticleSy
 	*psmd_pt= NULL;
 	*pa_pt= NULL;
 
-	/* weak, what about multiple particle systems? */
-	for (md = ob->modifiers.first; md; md=md->next) {
-		if (md->type == eModifierType_ParticleSystem)
-			psmd= (ParticleSystemModifierData*) md;
+	/* given the pointer HairKey *hkey, we iterate over all particles in all
+	 * particle systems in the object "ob" in order to find
+	 *- the ParticleSystemData to which the HairKey (and hence the particle)
+	 *  belongs (will be stored in psmd_pt)
+	 *- the ParticleData to which the HairKey belongs (will be stored in pa_pt)
+	 *
+	 * not a very efficient way of getting hair key location data,
+	 * but it's the best we've got at the present
+	 *
+	 * IDEAS: include additional information in pointerRNA beforehand,
+	 * for example a pointer to the ParticleStstemModifierData to which the
+	 * hairkey belongs.
+	 */
+
+	for (md= ob->modifiers.first; md; md=md->next) {
+		if (md->type == eModifierType_ParticleSystem) {
+			psmd= (ParticleSystemModifierData *) md;
+			if (psmd && psmd->dm && psmd->psys) {
+				psys = psmd->psys;
+				for(i= 0, pa= psys->particles; i < psys->totpart; i++, pa++) {
+					/* hairkeys are stored sequentially in memory, so we can
+					 * find if it's the same particle by comparing pointers,
+					 * without having to iterate over them all */
+					if ((hkey >= pa->hair) && (hkey < pa->hair + pa->totkey)) {
+						*psmd_pt = psmd;
+						*pa_pt = pa;
+						return;
+					}
+				}
+			}
+		}
 	}
-
-	if (!psmd || !psmd->dm || !psmd->psys) {
-		return;
-	}
-
-	psys= psmd->psys;
-
-	/* not a very efficient way of getting hair key location data,
-	 * but it's the best we've got at the present */
-
-	/* find the particle that corresponds with this HairKey */
-	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++) {
-
-		/* hairkeys are stored sequentially in memory, so we can find if
-		 * it's the same particle by comparing pointers, without having
-		 * to iterate over them all */
-		if ((hkey >= pa->hair) && (hkey < pa->hair + pa->totkey))
-			break;
-	}
-
-	*psmd_pt= psmd;
-	*pa_pt= pa;
 }
 
 static void rna_ParticleHairKey_location_object_get(PointerRNA *ptr, float *values)
@@ -2044,12 +2052,23 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_PartSettings_timestep_get", "rna_PartSetings_timestep_set", NULL);
 	RNA_def_property_range(prop, 0.0001, 100.0);
 	RNA_def_property_ui_range(prop, 0.01, 10, 1, 3);
-	RNA_def_property_ui_text(prop, "Timestep", "The simulation timestep per frame (in seconds)");
+	RNA_def_property_ui_text(prop, "Timestep", "The simulation timestep per frame (seconds per frame)");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-	
+
+	prop= RNA_def_property(srna, "adaptive_subframes", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "time_flag", PART_TIME_AUTOSF);
+	RNA_def_property_ui_text(prop, "Automatic Subframes", "Automatically set the number of subframes");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
 	prop= RNA_def_property(srna, "subframes", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 1000);	
-	RNA_def_property_ui_text(prop, "Subframes", "Subframes to simulate for improved stability and finer granularity simulations");
+	RNA_def_property_ui_text(prop, "Subframes", "Subframes to simulate for improved stability and finer granularity simulations (dt = timestep / (subframes + 1))");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+	prop= RNA_def_property(srna, "courant_target", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 0.01, 10);
+	RNA_def_property_float_default(prop, 0.2);
+	RNA_def_property_ui_text(prop, "Adaptive Subframe Threshold", "The relative distance a particle can move before requiring more subframes (target Courant number). 0.1-0.3 is the recommended range");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "jitter_factor", PROP_FLOAT, PROP_NONE);
@@ -2857,6 +2876,13 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Edited", "Particle system has been edited in particle mode");
 
+	/* Read-only: this is calculated internally. Changing it would only affect
+	 * the next time-step. The user should change ParticlSettings.subframes or
+	 * ParticleSettings.courant_target instead. */
+	prop= RNA_def_property(srna, "dt_frac", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, 1.0f/101.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Timestep", "The current simulation time step size, as a fraction of a frame");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	RNA_def_struct_path_func(srna, "rna_ParticleSystem_path");
 }
@@ -2877,4 +2903,3 @@ void RNA_def_particle(BlenderRNA *brna)
 }
 
 #endif
-

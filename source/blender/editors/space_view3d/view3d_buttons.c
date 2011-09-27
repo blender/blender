@@ -999,6 +999,7 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 	uiItemR(col, &eboneptr, "tail_radius", 0, "Radius", ICON_NONE);
 	
 	uiItemR(col, &eboneptr, "roll", 0, "Roll", ICON_NONE);
+	uiItemR(col, &eboneptr, "envelope_distance", 0, "Envelope", ICON_NONE);
 }
 
 static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)

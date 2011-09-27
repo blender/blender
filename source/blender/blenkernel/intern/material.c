@@ -193,7 +193,7 @@ void init_material(Material *ma)
 	ma->vol.ms_diff = 1.f;
 	ma->vol.ms_intensity = 1.f;
 	
-	ma->game.flag=0;
+	ma->game.flag = GEMAT_BACKCULL;
 	ma->game.alpha_blend=0;
 	ma->game.face_orientation=0;
 	
@@ -1283,7 +1283,7 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, const float c
 					*g=1.0f;
 				else
 					*g = tmp;
-			        	
+
 					tmp = facm + fac*col[2];
 					if(tmp <= 0.0f)
 					*b = 0.0f;
@@ -1772,7 +1772,7 @@ int do_version_tface(Main *main, int fileload)
 	int flag;
 	int index;
 
- 	/* sometimes mesh has no materials but will need a new one. In those
+	/* sometimes mesh has no materials but will need a new one. In those
 	 * cases we need to ignore the mf->mat_nr and only look at the face
 	 * mode because it can be zero as uninitialized or the 1st created material
 	 */

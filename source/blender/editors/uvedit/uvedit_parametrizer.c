@@ -2626,7 +2626,7 @@ static PBool p_chart_abf_solve(PChart *chart)
 	PEdge *e, *e1, *e2, *e3;
 	PAbfSystem sys;
 	int i;
-	float lastnorm, limit = (chart->nfaces > 100)? 1.0f: 0.001f;
+	float /* lastnorm, */ /* UNUSED */ limit = (chart->nfaces > 100)? 1.0f: 0.001f;
 
 	/* setup id's */
 	sys.ninterior = sys.nfaces = sys.nangles = 0;
@@ -2705,12 +2705,12 @@ static PBool p_chart_abf_solve(PChart *chart)
 		p_abf_compute_sines(&sys);
 
 		/* iteration */
-		lastnorm = 1e10;
+		/* lastnorm = 1e10; */ /* UNUSED */
 
 		for (i = 0; i < ABF_MAX_ITER; i++) {
 			float norm = p_abf_compute_gradient(&sys, chart);
 
-			lastnorm = norm;
+			/* lastnorm = norm; */ /* UNUSED */
 
 			if (norm < limit)
 				break;
@@ -3611,7 +3611,7 @@ static SmoothNode *p_node_new(MemArena *arena, SmoothTriangle **tri, int ntri, f
 {
 	SmoothNode *node = BLI_memarena_alloc(arena, sizeof *node);
 	int axis, i, t1size = 0, t2size = 0;
-	float split, mi, mx;
+	float split, /* mi, */ /* UNUSED */ mx;
 	SmoothTriangle **t1, **t2, *t;
 
 	node->tri = tri;
@@ -3652,7 +3652,7 @@ static SmoothNode *p_node_new(MemArena *arena, SmoothTriangle **tri, int ntri, f
 	node->axis = axis;
 	node->split = split;
 
-	mi = bmin[axis];
+	/* mi = bmin[axis]; */ /* UNUSED */
 	mx = bmax[axis];
 	bmax[axis] = split;
 	node->c1 = p_node_new(arena, t1, t1size, bmin, bmax, depth+1);

@@ -3653,7 +3653,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	calc_sequence_disp(scene, seq);
 
 	/* last active name */
-	strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR-1);
+	BLI_strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR);
 
 	seq_load_apply(scene, seq, seq_load);
 

@@ -3919,7 +3919,7 @@ void PE_undo_push(Scene *scene, const char *str)
 
 	/* make new */
 	edit->curundo= undo= MEM_callocN(sizeof(PTCacheUndo), "particle undo file");
-	strncpy(undo->name, str, 64-1);
+	BLI_strncpy(undo->name, str, sizeof(undo->name));
 	BLI_addtail(&edit->undo, undo);
 	
 	/* and limit amount to the maximum */

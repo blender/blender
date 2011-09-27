@@ -3490,6 +3490,7 @@ static void default_particle_settings(ParticleSettings *part)
 	part->totpart= 1000;
 	part->grid_res= 10;
 	part->timetweak= 1.0;
+	part->courant_target = 0.2;
 	
 	part->integrator= PART_INT_MIDPOINT;
 	part->phystype= PART_PHYS_NEWTON;

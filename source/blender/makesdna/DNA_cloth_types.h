@@ -93,7 +93,7 @@ typedef struct ClothCollSettings
 {
 	struct	LinkNode *collision_list; /* e.g. pointer to temp memory for collisions */
 	float	epsilon;		/* min distance for collisions.		*/
-	float	self_friction;		/* Fiction/damping with self contact.		 	*/
+	float	self_friction;		/* Fiction/damping with self contact. */
 	float	friction;		/* Friction/damping applied on contact with other object.*/
 	float 	selfepsilon; 		/* for selfcollision */
 	float repel_force, distance_repel;

@@ -39,6 +39,7 @@
 
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
@@ -500,7 +501,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 }
 
 #if 0
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 static void ui_draw_but_CHARTAB(uiBut *but)
 {
 	/* XXX 2.50 bad global access */
@@ -670,7 +671,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	}
 }
 
-#endif // INTERNATIONAL
+#endif // WITH_INTERNATIONAL
 #endif
 
 static void draw_scope_end(rctf *rect, GLint *scissor)
@@ -835,7 +836,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	/* draw grid lines here */
 	for (i=0; i<6; i++) {
 		char str[4];
-		sprintf(str,"%-3d",i*20);
+		BLI_snprintf(str, sizeof(str), "%-3d",i*20);
 		str[3]='\0';
 		fdrawline(rect.xmin+22, yofs+(i/5.f)*h, rect.xmax+1, yofs+(i/5.f)*h);
 		BLF_draw_default(rect.xmin+1, yofs-5+(i/5.f)*h, 0, str, sizeof(str)-1);

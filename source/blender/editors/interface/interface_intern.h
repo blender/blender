@@ -364,8 +364,8 @@ extern void ui_set_but_vectorf(uiBut *but, float *vec);
 
 extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
 
-extern void ui_get_but_string(uiBut *but, char *str, int maxlen);
-extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, int maxlen);
+extern void ui_get_but_string(uiBut *but, char *str, size_t maxlen);
+extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen);
 extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern int ui_get_but_string_max_length(uiBut *but);
 
@@ -517,7 +517,7 @@ void ui_but_anim_copy_driver(struct bContext *C);
 void ui_but_anim_paste_driver(struct bContext *C);
 void ui_but_anim_add_keyingset(struct bContext *C);
 void ui_but_anim_remove_keyingset(struct bContext *C);
-int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen);
+int ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen);
 int ui_but_anim_expression_set(uiBut *but, const char *str);
 int ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);

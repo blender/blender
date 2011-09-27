@@ -867,7 +867,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 
-	prop= RNA_def_property(srna, "vert_deformer", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "deform_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gevertdeformer");
 	RNA_def_property_enum_items(prop, prop_vdeformer);
 	RNA_def_property_ui_text(prop, "Vertex Deformer", "");

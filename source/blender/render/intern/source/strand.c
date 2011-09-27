@@ -92,7 +92,7 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	Material *ma;
 	StrandBuffer *strandbuf;
 	float *simplify;
-	float p[4][3], data[4], cross[3], crosslen, w, dx, dy, t;
+	float p[4][3], data[4], cross[3], w, dx, dy, t;
 	int type;
 
 	strandbuf= sseg->buffer;
@@ -164,7 +164,7 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 
 	if(w > 0.0f) {
 		if(strandbuf->flag & R_STRAND_B_UNITS) {
-			crosslen= len_v3(cross);
+			const float crosslen= len_v3(cross);
 			w= 2.0f*crosslen*strandbuf->minwidth/w;
 
 			if(spoint->width < w) {

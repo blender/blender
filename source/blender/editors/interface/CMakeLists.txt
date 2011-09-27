@@ -60,7 +60,7 @@ set(SRC
 )
 
 if(WITH_INTERNATIONAL)
-	add_definitions(-DINTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
 if(WITH_HEADLESS)

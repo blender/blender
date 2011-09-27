@@ -993,7 +993,7 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 				memcpy(&tempstr[index+1], &pld->searchstr[index], 64-index);
 			}
 			else {
-				strncpy(tempstr, pld->searchstr, 64);
+				BLI_strncpy(tempstr, pld->searchstr, sizeof(tempstr));
 			}
 			
 			/* get marker name */

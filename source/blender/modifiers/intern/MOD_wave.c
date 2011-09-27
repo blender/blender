@@ -42,6 +42,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 
 #include "BKE_DerivedMesh.h"
@@ -98,7 +99,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	twmd->texture = wmd->texture;
 	twmd->map_object = wmd->map_object;
 	twmd->texmapping = wmd->texmapping;
-	strncpy(twmd->defgrp_name, wmd->defgrp_name, 32);
+	BLI_strncpy(twmd->defgrp_name, wmd->defgrp_name, 32);
 }
 
 static int dependsOnTime(ModifierData *UNUSED(md))

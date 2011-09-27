@@ -5358,6 +5358,11 @@ static void createTransNodeData(bContext *C, TransInfo *t)
 	SpaceNode *snode= t->sa->spacedata.first;
 	bNode *node;
 
+	if(!snode->edittree) {
+		t->total= 0;
+		return;
+	}
+
 	/* set transform flags on nodes */
 	for (node=snode->edittree->nodes.first; node; node=node->next) {
 		if ((node->flag & NODE_SELECT) || (node->parent && (node->parent->flag & NODE_TRANSFORM)))
@@ -5445,7 +5450,7 @@ void createTransData(bContext *C, TransInfo *t)
 		t->ext = NULL;
 		if (t->obedit->type == OB_MESH) {
 			createTransEditVerts(C, t);
-		   }
+		}
 		else if ELEM(t->obedit->type, OB_CURVE, OB_SURF) {
 			createTransCurveVerts(C, t);
 		}
@@ -5458,7 +5463,7 @@ void createTransData(bContext *C, TransInfo *t)
 		else if (t->obedit->type==OB_ARMATURE) {
 			t->flag &= ~T_PROP_EDIT;
 			createTransArmatureVerts(t);
-		  }
+		}
 		else {
 			printf("edit type not implemented!\n");
 		}

@@ -584,7 +584,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
             col = split.column()
             col.prop(strip, "filepath", text="")
             col.prop(strip, "mpeg_preseek", text="MPEG Preseek")
-            col.prop(strip, "streamindex", text="Stream Index")
+            col.prop(strip, "stream_index", text="Stream Index")
 
         # TODO, sound???
         # end drawing filename

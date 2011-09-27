@@ -1354,11 +1354,11 @@ static int joinSubgraphsEnds(ReebGraph *rg, float threshold, int nb_subgraphs)
 		
 		if (end_node && start_node)
 		{
-			ReebArc *start_arc, *end_arc;
+			ReebArc *start_arc /* , *end_arc */ /* UNUSED */;
 			int merging = 0;
 			
 			start_arc = start_node->arcs[0];
-			end_arc = end_node->arcs[0];
+			/* end_arc = end_node->arcs[0]; */ /* UNUSED */
 			
 			if (start_arc->tail == start_node)
 			{

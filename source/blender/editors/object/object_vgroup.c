@@ -941,7 +941,7 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 	int totweight = dvert->totweight;
 	float oldw = 0;
 	float oldPos[3] = {0};
-	float vc, hc, dist;
+	float vc, hc, dist = 0.0f /* Not necessary, but quites down gcc warnings! */;
 	int i, k;
 	float (*changes)[2] = MEM_mallocN(sizeof(float *)*totweight*2, "vertHorzChange");
 	float *dists = MEM_mallocN(sizeof(float)*totweight, "distance");

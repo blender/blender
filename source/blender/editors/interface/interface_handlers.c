@@ -631,7 +631,7 @@ static void ui_apply_but_IDPOIN(bContext *C, uiBut *but, uiHandleButtonData *dat
 	data->applied= 1;
 }
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 static void ui_apply_but_CHARTAB(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	ui_apply_but_func(C, but);
@@ -1023,7 +1023,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case IDPOIN:
 			ui_apply_but_IDPOIN(C, but, data);
 			break;
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 		case CHARTAB:
 			ui_apply_but_CHARTAB(C, but, data);
 			break;
@@ -1113,9 +1113,9 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		if(but->poin==NULL && but->rnapoin.data==NULL);
 		else if(mode=='c') {
 			if(ui_is_but_float(but))
-				sprintf(buf, "%f", ui_get_but_val(but));
+				BLI_snprintf(buf, sizeof(buf), "%f", ui_get_but_val(but));
 			else
-				sprintf(buf, "%d", (int)ui_get_but_val(but));
+				BLI_snprintf(buf, sizeof(buf), "%d", (int)ui_get_but_val(but));
 
 			WM_clipboard_text_set(buf, 0);
 		}
@@ -1136,7 +1136,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		else if(mode=='c') {
 
 			ui_get_but_vectorf(but, rgb);
-			sprintf(buf, "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
+			BLI_snprintf(buf, sizeof(buf), "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
 			WM_clipboard_text_set(buf, 0);
 			
 		}
@@ -3924,7 +3924,7 @@ static int ui_do_but_VECTORSCOPE(bContext *C, uiBlock *block, uiBut *but, uiHand
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 static int ui_do_but_CHARTAB(bContext *UNUSED(C), uiBlock *UNUSED(block), uiBut *UNUSED(but), uiHandleButtonData *UNUSED(data), wmEvent *UNUSED(event))
 {
 	/* XXX 2.50 bad global and state access */
@@ -4367,7 +4367,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		PointerRNA ptr_props;
 
 		if(but->rnapoin.data && but->rnaprop) {
-			sprintf(buf, "%s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+			BLI_snprintf(buf, sizeof(buf), "%s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
 			RNA_string_set(&ptr_props, "doc_id", buf);
@@ -4584,7 +4584,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case HSVCIRCLE:
 		retval= ui_do_but_HSVCIRCLE(C, block, but, data, event);
 		break;
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	case CHARTAB:
 		retval= ui_do_but_CHARTAB(C, block, but, data, event);
 		break;

@@ -204,19 +204,19 @@ class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel, Panel):
     def poll(cls, context):
         game = context.object.game
         rd = context.scene.render
-        return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC'))  and (rd.engine in cls.COMPAT_ENGINES)
+        return (game.physics_type in {'DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC'}) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         game = context.active_object.game
 
-        self.layout.prop(game, "create_obstacle", text="")
+        self.layout.prop(game, "use_obstacle_create", text="")
 
     def draw(self, context):
         layout = self.layout
 
         game = context.active_object.game
 
-        layout.active = game.create_obstacle
+        layout.active = game.use_obstacle_create
 
         row = layout.row()
         row.prop(game, "obstacle_radius", text="Radius")

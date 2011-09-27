@@ -40,6 +40,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 
 #include "BKE_cdderivedmesh.h"
@@ -75,11 +76,11 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tdmd->texture = dmd->texture;
 	tdmd->strength = dmd->strength;
 	tdmd->direction = dmd->direction;
-	strncpy(tdmd->defgrp_name, dmd->defgrp_name, 32);
+	BLI_strncpy(tdmd->defgrp_name, dmd->defgrp_name, 32);
 	tdmd->midlevel = dmd->midlevel;
 	tdmd->texmapping = dmd->texmapping;
 	tdmd->map_object = dmd->map_object;
-	strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, 32);
+	BLI_strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, 32);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

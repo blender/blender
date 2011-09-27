@@ -625,7 +625,7 @@ class MATERIAL_PT_game_settings(MaterialButtonsPanel, bpy.types.Panel):
         game = context.material.game_settings  # dont use node material
 
         row = layout.row()
-        row.prop(game, "back_culling")
+        row.prop(game, "use_backface_culling")
         row.prop(game, "invisible")
         row.prop(game, "text")
 

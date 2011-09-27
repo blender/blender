@@ -603,7 +603,7 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 		for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
 			FCurve * fcu = *iter;
 			BLI_addtail(AnimCurves, fcu);	
-		}	 			
+		}
 	}
 
 
@@ -621,16 +621,16 @@ void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& list
 		//all the curves belonging to the current binding
 		std::vector<FCurve*> animcurves;
 		for (unsigned int j = 0; j < bindings.getCount(); j++) {
-			 animcurves = curve_map[bindings[j].animation];
-		
-			 BLI_strncpy(rna_path, anim_type , sizeof(rna_path));
-			 modify_fcurve(&animcurves, rna_path, 0 );
-			 std::vector<FCurve*>::iterator iter;
-				//Add the curves of the current animation to the object
-				for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
-					FCurve * fcu = *iter;
-					BLI_addtail(AnimCurves, fcu);	
-				}	 			
+			animcurves = curve_map[bindings[j].animation];
+
+			BLI_strncpy(rna_path, anim_type , sizeof(rna_path));
+			modify_fcurve(&animcurves, rna_path, 0 );
+			std::vector<FCurve*>::iterator iter;
+			//Add the curves of the current animation to the object
+			for (iter = animcurves.begin(); iter != animcurves.end(); iter++) {
+				FCurve * fcu = *iter;
+				BLI_addtail(AnimCurves, fcu);
+			}
 		}
 	}
 	

@@ -1006,7 +1006,7 @@ elseif(APPLE)
 	mark_as_advanced(SYSTEMSTUBS_LIBRARY)
 	if(SYSTEMSTUBS_LIBRARY)
 		set(PLATFORM_LINKLIBS stdc++ SystemStubs)
- 	else()
+	else()
 		set(PLATFORM_LINKLIBS stdc++)
 	endif()
 
@@ -1153,14 +1153,19 @@ endif()
 
 
 # set the endian define
-include(TestBigEndian)
-test_big_endian(_SYSTEM_BIG_ENDIAN)
-if(_SYSTEM_BIG_ENDIAN)
-	add_definitions(-D__BIG_ENDIAN__)
-else()
+if(MSVC)
+	# for some reason this fails on msvc
 	add_definitions(-D__LITTLE_ENDIAN__)
+else()
+	include(TestBigEndian)
+	test_big_endian(_SYSTEM_BIG_ENDIAN)
+	if(_SYSTEM_BIG_ENDIAN)
+		add_definitions(-D__BIG_ENDIAN__)
+	else()
+		add_definitions(-D__LITTLE_ENDIAN__)
+	endif()
+	unset(_SYSTEM_BIG_ENDIAN)
 endif()
-unset(_SYSTEM_BIG_ENDIAN)
 
 
 if(WITH_IMAGE_OPENJPEG)
@@ -1269,7 +1274,10 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_POINTER_ARITH -Wpointer-arith)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_WRITE_STRINGS -Wwrite-strings)
-	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEFINED -Wundef)
+
+	# # this causes too many warnings, disable
+	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_UNDEFINED -Wundef)
+
 	# disable because it gives warnings for printf() & friends.
 	# ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_DOUBLE_PROMOTION -Wdouble-promotion -Wno-error=double-promotion)
 	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
@@ -1277,7 +1285,9 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_ALL -Wall)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
-	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
+
+	# # this causes too many warnings, disable
+	# ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_UNDEFINED -Wundef)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 

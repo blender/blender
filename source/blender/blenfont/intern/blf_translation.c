@@ -32,7 +32,7 @@
 
 #include <stdlib.h>
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 #include <libintl.h>
 #endif
 
@@ -45,7 +45,7 @@
 
 #include "BLF_translation.h"
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 const char unifont_filename[]="droidsans.ttf.gz";
 static unsigned char *unifont_ttf= NULL;
 static int unifont_size= 0;
@@ -76,7 +76,7 @@ void BLF_free_unifont(void)
 
 const char* BLF_gettext(const char *msgid)
 {
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	if( msgid[0] )
 		return gettext( msgid );
 	return "";

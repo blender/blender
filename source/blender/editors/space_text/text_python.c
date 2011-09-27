@@ -51,7 +51,7 @@
 
 int text_do_suggest_select(SpaceText *st, ARegion *ar)
 {
-	SuggItem *item, *first, *last, *sel;
+	SuggItem *item, *first, *last /* , *sel */ /* UNUSED */;
 	TextLine *tmp;
 	int l, x, y, w, h, i;
 	int tgti, *top;
@@ -62,7 +62,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 
 	first = texttool_suggest_first();
 	last = texttool_suggest_last();
-	sel = texttool_suggest_selected();
+	/* sel = texttool_suggest_selected(); */ /* UNUSED */
 	top = texttool_suggest_top();
 
 	if(!last || !first)

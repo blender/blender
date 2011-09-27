@@ -36,7 +36,7 @@
 
 #include "BLF_api.h"
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 
 #include <locale.h>
 
@@ -158,7 +158,7 @@ void BLF_lang_set(const char *str)
 				char *s;
 
 				/* store defaul locale */
-				strncpy(default_locale, env_language, sizeof(default_locale));
+				BLI_strncpy(default_locale, env_language, sizeof(default_locale));
 
 				/* use first language as default */
 				s= strchr(default_locale, ':');
@@ -209,7 +209,7 @@ void BLF_lang_encoding(const char *str)
 	/* bind_textdomain_codeset(DOMAIN_NAME, encoding_name); */
 }
 
-#else /* ! INTERNATIONAL */
+#else /* ! WITH_INTERNATIONAL */
 
 void BLF_lang_init(void)
 {
@@ -228,4 +228,4 @@ void BLF_lang_set(const char *str)
 	return;
 }
 
-#endif /* INTERNATIONAL */
+#endif /* WITH_INTERNATIONAL */

@@ -41,6 +41,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "BKE_action.h"
 #include "BKE_cdderivedmesh.h"
@@ -72,8 +73,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	thmd->totindex = hmd->totindex;
 	thmd->indexar = MEM_dupallocN(hmd->indexar);
 	memcpy(thmd->parentinv, hmd->parentinv, sizeof(hmd->parentinv));
-	strncpy(thmd->name, hmd->name, 32);
-	strncpy(thmd->subtarget, hmd->subtarget, 32);
+	BLI_strncpy(thmd->name, hmd->name, 32);
+	BLI_strncpy(thmd->subtarget, hmd->subtarget, 32);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
