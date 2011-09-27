@@ -2686,37 +2686,40 @@ void CLIP_OT_stabilize_2d_set_rotation(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/********************** select un-clean operator *********************/
+/********************** clean tracks operator *********************/
 
 static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 {
 	int ok= 1, a, prev= -1, count= 0;
-	MovieTrackingMarker *new_markers= NULL;
+	MovieTrackingMarker *markers= track->markers, *new_markers= NULL;
 	int start_disabled= 0;
+	int markersnr= track->markersnr;
 
 	if(del)
-		new_markers= MEM_callocN(track->markersnr*sizeof(MovieTrackingMarker), "track cleaned markers");
+		new_markers= MEM_callocN(markersnr*sizeof(MovieTrackingMarker), "track cleaned markers");
 
-	for(a= 0; a<track->markersnr; a++) {
+	for(a= 0; a<markersnr; a++) {
 		int end= 0;
 
 		if(prev==-1) {
-			if((track->markers[a].flag&MARKER_DISABLED)==0)
+			if((markers[a].flag&MARKER_DISABLED)==0)
 				prev= a;
+			else
+				start_disabled= 1;
 		}
 
 		if(prev >= 0) {
-			end=  a == track->markersnr-1;
-			end|= (a < track->markersnr-1) && (track->markers[a].framenr != track->markers[a+1].framenr-1 ||
-			                                   track->markers[a].flag&MARKER_DISABLED);
+			end=  a == markersnr-1;
+			end|= (a < markersnr-1) && (markers[a].framenr != markers[a+1].framenr-1 ||
+			                            markers[a].flag&MARKER_DISABLED);
 		}
 
 		if(end) {
 			int segok= 1, len= 0;
 
-			if(a != prev && track->markers[a].framenr != track->markers[a-1].framenr+1)
+			if(a != prev && markers[a].framenr != markers[a-1].framenr+1)
 				len= a-prev;
-			else if(track->markers[a].flag&MARKER_DISABLED)
+			else if(markers[a].flag&MARKER_DISABLED)
 				len= a-prev;
 			else len= a-prev+1;
 
@@ -2734,12 +2737,12 @@ static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 				if(segok) {
 					int t= len;
 
-					if(track->markers[a].flag&MARKER_DISABLED)
+					if(markers[a].flag&MARKER_DISABLED)
 						t++;
 
 					/* place disabled marker in front of current segment */
 					if(start_disabled) {
-						memcpy(new_markers+count, track->markers+prev, sizeof(MovieTrackingMarker));
+						memcpy(new_markers+count, markers+prev, sizeof(MovieTrackingMarker));
 						new_markers[count].framenr--;
 						new_markers[count].flag|= MARKER_DISABLED;
 
@@ -2747,18 +2750,17 @@ static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 						start_disabled= 0;
 					}
 
-					memcpy(new_markers+count, track->markers+prev, t*sizeof(MovieTrackingMarker));
+					memcpy(new_markers+count, markers+prev, t*sizeof(MovieTrackingMarker));
 					count+= t;
 				}
-				else if(track->markers[a].flag&MARKER_DISABLED) {
+				else if(markers[a].flag&MARKER_DISABLED) {
 					/* current segment which would be deleted was finished by disabled marker,
 					   so next segment should be started from disabled marker */
 					start_disabled= 1;
 				}
 			}
 
-			if(track->markers[a].flag&MARKER_DISABLED) prev= -1;
-			else prev= a;
+			prev= -1;
 		}
 	}
 
