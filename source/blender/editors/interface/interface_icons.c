@@ -953,7 +953,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
 	IconImage *iimg;
-	float fdraw_size= UI_DPI_ICON_FAC*draw_size;
+	float fdraw_size= is_preview ? draw_size : (draw_size * UI_DPI_ICON_FAC);
 	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
