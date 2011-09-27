@@ -750,19 +750,24 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 /* **************************************************** */
 
-static void bundle_midpoint(Scene *scene, float vec[3])
+static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 {
 	MovieTrackingTrack *track;
+	MovieClip *clip= object_get_movieclip(scene, ob);
 	int ok= 0;
 	float min[3], max[3], mat[4][4], pos[3];
 
-	BKE_get_tracking_mat(scene, mat);
+	if(!clip)
+		return;
+
+	BKE_get_tracking_mat(scene, ob, mat);
 
 	INIT_MINMAX(min, max);
 
-	track= scene->clip->tracking.tracks.first;
+	track= clip->tracking.tracks.first;
 	while(track) {
-		if(track->flag&TRACK_HAS_BUNDLE && TRACK_SELECTED(track)) {
+		int selected= (track->flag&SELECT) || (track->pat_flag&SELECT) || (track->search_flag&SELECT);
+		if((track->flag&TRACK_HAS_BUNDLE) && selected) {
 			ok= 1;
 			mul_v3_m4v3(pos, mat, track->bundle_pos);
 			DO_MINMAX(pos, min, max);
@@ -842,10 +847,10 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 				VECCOPY(vec, ob->obmat[3]);
 
 				/* special case for camera -- snap to bundles */
-				if(obact->type==OB_CAMERA) {
+				if(ob->type==OB_CAMERA) {
 					/* snap to bundles should happen only when bundles are visible */
-					if(scene->clip && v3d->flag2&V3D_SHOW_RECONSTRUCTION) {
-						bundle_midpoint(scene, vec);
+					if(v3d->flag2&V3D_SHOW_RECONSTRUCTION) {
+						bundle_midpoint(scene, ob, vec);
 					}
 				}
 

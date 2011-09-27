@@ -64,6 +64,7 @@
 #include "BKE_paint.h"
 #include "BKE_armature.h"
 #include "BKE_movieclip.h"
+#include "BKE_object.h"
 #include "BKE_tracking.h"
 
 
@@ -1405,10 +1406,14 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 							/* index of bundle is 1<<16-based. if there's no "bone" index
 							   in hight word, this buffer value belongs to camera,. not to bundle */
 							if(buffer[4*i+3] & 0xFFFF0000) {
-								track= BKE_tracking_indexed_bundle(&scene->clip->tracking, hitresult >> 16);
+								MovieClip *clip= object_get_movieclip(scene, basact->object);
+								int selected;
+								track= BKE_tracking_indexed_bundle(&clip->tracking, hitresult >> 16);
 
-								if(TRACK_SELECTED(track) && extend) BKE_movieclip_deselect_track(scene->clip, track, TRACK_AREA_ALL);
-								else BKE_movieclip_select_track(scene->clip, track, TRACK_AREA_ALL, extend);
+								selected= (track->flag&SELECT) || (track->pat_flag&SELECT) || (track->search_flag&SELECT);
+
+								if(selected && extend) BKE_movieclip_deselect_track(clip, track, TRACK_AREA_ALL);
+								else BKE_movieclip_select_track(clip, track, TRACK_AREA_ALL, extend);
 
 								basact->flag|= SELECT;
 								basact->object->flag= basact->flag;

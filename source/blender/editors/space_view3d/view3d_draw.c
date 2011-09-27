@@ -1487,9 +1487,16 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 				BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
 				ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
 			} else {
-				clip= bgpic->clip;
+				if(bgpic->flag&V3D_BGPIC_CAMERACLIP) {
+					if(!scene->camera)
+						scene->camera= scene_find_camera(scene);
+
+					clip= object_get_movieclip(scene, scene->camera);
+				} else clip= bgpic->clip;
+
 				if(clip==NULL)
 					continue;
+
 				BKE_movieclip_user_set_frame(&bgpic->cuser, CFRA);
 				ibuf= BKE_movieclip_acquire_ibuf(clip, &bgpic->cuser);
 

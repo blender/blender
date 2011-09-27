@@ -3975,7 +3975,7 @@ static void followtrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase
 
 			copy_m4_m4(obmat, cob->matrix);
 
-			BKE_get_tracking_mat(cob->scene, mat);
+			BKE_get_tracking_mat(cob->scene, NULL, mat);
 			mul_v3_m4v3(pos, mat, track->bundle_pos);
 
 			cob->matrix[3][0]+= pos[0];

@@ -1759,7 +1759,7 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 		track= track->next;
 	}
 
-	BKE_get_tracking_mat(scene, mat);
+	BKE_get_tracking_mat(scene, NULL, mat);
 	mul_v3_m4v3(vec, mat, track->bundle_pos);
 
 	sub_v3_v3(parent->loc, vec);
@@ -1794,7 +1794,7 @@ static void set_axis(Scene *scene,  Object *ob, MovieTrackingTrack *track, char 
 {
 	float mat[4][4], vec[3], obmat[4][4];
 
-	BKE_get_tracking_mat(scene, mat);
+	BKE_get_tracking_mat(scene, NULL, mat);
 	mul_v3_m4v3(vec, mat, track->bundle_pos);
 
 	if(len_v2(vec)<1e-3)
@@ -1860,7 +1860,7 @@ static int set_floor_exec(bContext *C, wmOperator *op)
 	if(scene->camera->parent)
 		parent= scene->camera->parent;
 
-	BKE_get_tracking_mat(scene, mat);
+	BKE_get_tracking_mat(scene, NULL, mat);
 
 	/* get 3 bundles to use as reference */
 	track= clip->tracking.tracks.first;
@@ -2025,7 +2025,7 @@ static int set_scale_exec(bContext *C, wmOperator *op)
 	if(scene->camera->parent)
 		parent= scene->camera->parent;
 
-	BKE_get_tracking_mat(scene, mat);
+	BKE_get_tracking_mat(scene, NULL, mat);
 
 	track= clip->tracking.tracks.first;
 	while(track) {

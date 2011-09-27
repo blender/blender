@@ -51,6 +51,7 @@
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -3285,4 +3286,27 @@ void object_relink(Object *ob)
 
 	ID_NEW(ob->proxy);
 	ID_NEW(ob->proxy_group);
+}
+
+MovieClip *object_get_movieclip(Scene *scene, Object *ob)
+{
+	MovieClip *clip= scene->clip;
+	bConstraint *con= ob->constraints.first, *scon= NULL;
+
+	while(con){
+		if(con->type==CONSTRAINT_TYPE_CAMERASOLVER){
+			if(scon==NULL || (scon->flag&CONSTRAINT_OFF))
+				scon= con;
+		}
+
+		con= con->next;
+	}
+
+	if(scon) {
+		bCameraSolverConstraint *solver= scon->data;
+		if((solver->flag&CAMERASOLVER_DEFAULTCLIP)==0)
+			clip= solver->clip;
+	}
+
+	return clip;
 }

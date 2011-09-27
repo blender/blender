@@ -2270,15 +2270,23 @@ class VIEW3D_PT_background_image(Panel):
                         hasbg = True
 
                 elif bg.source == 'MOVIE':
-                    row = box.row()
-                    row.template_ID(bg, "clip", open="clip.open")
+                    has_clip = False
+                    box.prop(bg, 'use_camera_clip')
+
+                    column = box.column()
+                    column.active = not bg.use_camera_clip
+                    column.template_ID(bg, "clip", open="clip.open")
 
                     if bg.clip:
-                        box.template_movieclip(bg, "clip", compact=True)
+                        column.template_movieclip(bg, "clip", compact=True)
+
+                    if bg.use_camera_clip or bg.clip:
                         hasbg = True
-                        if bg.clip.use_proxy:
-                            box.prop(bg.clip_user, "proxy_render_size", text="")
-                            box.prop(bg.clip_user, "use_render_undistorted")
+
+                    column = box.column()
+                    column.active = hasbg
+                    column.prop(bg.clip_user, "proxy_render_size", text="")
+                    column.prop(bg.clip_user, "use_render_undistorted")
 
                 if hasbg:
                     box.prop(bg, "opacity", slider=True)

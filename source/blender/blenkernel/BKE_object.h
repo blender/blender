@@ -50,6 +50,7 @@ struct Group;
 struct bAction;
 struct RenderData;
 struct rctf;
+struct MovieClip;
 
 void clear_workob(struct Object *workob);
 void what_does_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
@@ -148,6 +149,8 @@ void object_camera_matrix(
 		float *viewdx, float *viewdy);
 
 void object_relink(struct Object *ob);
+
+struct MovieClip *object_get_movieclip(struct Scene *scene, struct Object *ob);
 
 #ifdef __cplusplus
 }

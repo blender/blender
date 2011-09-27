@@ -1408,13 +1408,15 @@ void BKE_tracking_get_interpolated_camera(MovieTracking *tracking, int framenr, 
 	}
 }
 
-void BKE_get_tracking_mat(Scene *scene, float mat[4][4])
+void BKE_get_tracking_mat(Scene *scene, Object *ob, float mat[4][4])
 {
-	if(!scene->camera)
-		scene->camera= scene_find_camera(scene);
+	if(!ob) {
+		if(!scene->camera) ob= scene->camera;
+		else ob= scene_find_camera(scene);
+	}
 
-	if(scene->camera)
-		where_is_object_mat(scene, scene->camera, mat);
+	if(ob)
+		where_is_object_mat(scene, ob, mat);
 	else
 		unit_m4(mat);
 }

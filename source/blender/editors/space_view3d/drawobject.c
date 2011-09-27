@@ -1450,7 +1450,7 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	UI_GetThemeColor4ubv(TH_TEXT, col);
 	UI_GetThemeColor4ubv(TH_SELECT, scol);
 
-	BKE_get_tracking_mat(scene, mat);
+	BKE_get_tracking_mat(scene, base->object, mat);
 
 	glEnable(GL_LIGHTING);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
@@ -1597,14 +1597,15 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	int i;
 	float drawsize;
 	const short is_view= (rv3d->persp==RV3D_CAMOB && ob==v3d->camera);
+	MovieClip *clip= object_get_movieclip(scene, base->object);
 
 	const float scax= 1.0f / len_v3(ob->obmat[0]);
 	const float scay= 1.0f / len_v3(ob->obmat[1]);
 	const float scaz= 1.0f / len_v3(ob->obmat[2]);
 
 	/* draw data for movie clip set as active for scene */
-	if(scene->clip)
-		draw_viewport_reconstruction(scene, base, v3d, scene->clip, flag);
+	if(clip)
+		draw_viewport_reconstruction(scene, base, v3d, clip, flag);
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 	if(is_view && !(G.f & G_PICKSEL)) {

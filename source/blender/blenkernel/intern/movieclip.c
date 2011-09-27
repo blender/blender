@@ -71,7 +71,6 @@
 #include "BKE_moviecache.h"
 #include "BKE_image.h"	/* openanim */
 #include "BKE_tracking.h"
-#include "BKE_animsys.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
