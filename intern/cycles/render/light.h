@@ -19,6 +19,8 @@
 #ifndef __LIGHT_H__
 #define __LIGHT_H__
 
+#include "kernel_types.h"
+
 #include "util_types.h"
 #include "util_vector.h"
 
@@ -33,8 +35,19 @@ class Light {
 public:
 	Light();
 
+	LightType type;
 	float3 co;
-	float radius; /* not implemented yet */
+
+	float3 dir;
+	float size;
+
+	float3 axisu;
+	float sizeu;
+	float3 axisv;
+	float sizev;
+
+	bool cast_shadow;
+
 	int shader;
 
 	void tag_update(Scene *scene);

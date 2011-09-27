@@ -90,6 +90,7 @@ __device float3 svm_bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, con
 			case CLOSURE_BSDF_DIFFUSE_ID:
 				eval = bsdf_diffuse_eval_reflect(sd, sc, sd->I, omega_in, pdf);
 				break;
+#ifdef __SVM__
 			case CLOSURE_BSDF_TRANSLUCENT_ID:
 				eval = bsdf_translucent_eval_reflect(sd, sc, sd->I, omega_in, pdf);
 				break;
@@ -124,6 +125,7 @@ __device float3 svm_bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, con
 			case CLOSURE_BSDF_WESTIN_SHEEN_ID:
 				eval = bsdf_westin_sheen_eval_reflect(sd, sc, sd->I, omega_in, pdf);
 				break;
+#endif
 			default:
 				eval = make_float3(0.0f, 0.0f, 0.0f);
 				break;
@@ -134,6 +136,7 @@ __device float3 svm_bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, con
 			case CLOSURE_BSDF_DIFFUSE_ID:
 				eval = bsdf_diffuse_eval_transmit(sd, sc, sd->I, omega_in, pdf);
 				break;
+#ifdef __SVM__
 			case CLOSURE_BSDF_TRANSLUCENT_ID:
 				eval = bsdf_translucent_eval_transmit(sd, sc, sd->I, omega_in, pdf);
 				break;
@@ -168,6 +171,7 @@ __device float3 svm_bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, con
 			case CLOSURE_BSDF_WESTIN_SHEEN_ID:
 				eval = bsdf_westin_sheen_eval_transmit(sd, sc, sd->I, omega_in, pdf);
 				break;
+#endif
 			default:
 				eval = make_float3(0.0f, 0.0f, 0.0f);
 				break;
@@ -183,6 +187,7 @@ __device void svm_bsdf_blur(ShaderClosure *sc, float roughness)
 		case CLOSURE_BSDF_DIFFUSE_ID:
 			bsdf_diffuse_blur(sc, roughness);
 			break;
+#ifdef __SVM__
 		case CLOSURE_BSDF_TRANSLUCENT_ID:
 			bsdf_translucent_blur(sc, roughness);
 			break;
@@ -217,6 +222,7 @@ __device void svm_bsdf_blur(ShaderClosure *sc, float roughness)
 		case CLOSURE_BSDF_WESTIN_SHEEN_ID:
 			bsdf_westin_sheen_blur(sc, roughness);
 			break;
+#endif
 		default:
 			break;
 	}

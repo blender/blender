@@ -780,6 +780,19 @@ __device_inline float triangle_area(const float3 v1, const float3 v2, const floa
 
 #endif
 
+/* Orthonormal vectors */
+
+__device_inline void make_orthonormals(const float3 N, float3 *a, float3 *b)
+{
+	if(N.x != N.y || N.x != N.z)
+		*a = make_float3(N.z-N.y, N.x-N.z, N.y-N.x);  //(1,1,1)x N
+	else
+		*a = make_float3(N.z-N.y, N.x+N.z, -N.y-N.x);  //(-1,1,1)x N
+
+	*a = normalize(*a);
+	*b = cross(N, *a);
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MATH_H__ */

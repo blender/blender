@@ -66,7 +66,7 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 		assert(shader->graph);
 
-		if(shader->has_surface_emission)
+		if(shader->sample_as_light && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 
 		SVMCompiler compiler(scene->shader_manager, scene->image_manager,
@@ -86,11 +86,15 @@ void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		shader->need_update = false;
 	}
 
+	device_update_common(device, dscene, scene, progress);
+
 	need_update = false;
 }
 
 void SVMShaderManager::device_free(Device *device, DeviceScene *dscene)
 {
+	device_free_common(device, dscene);
+
 	device->tex_free(dscene->svm_nodes);
 	dscene->svm_nodes.clear();
 }
@@ -461,6 +465,8 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 
 		if(node->name == ustring("emission"))
 			current_shader->has_surface_emission = true;
+		if(node->name == ustring("transparent"))
+			current_shader->has_surface_transparent = true;
 
 		/* end node is added outside of this */
 	}
@@ -538,6 +544,8 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 
 		if(node->name == ustring("emission"))
 			current_shader->has_surface_emission = true;
+		if(node->name == ustring("transparent"))
+			current_shader->has_surface_transparent = true;
 
 		/* end node is added outside of this */
 	}
@@ -641,6 +649,7 @@ void SVMCompiler::compile(Shader *shader, vector<int4>& global_svm_nodes, int in
 
 	shader->has_surface = false;
 	shader->has_surface_emission = false;
+	shader->has_surface_transparent = false;
 	shader->has_volume = false;
 	shader->has_displacement = false;
 

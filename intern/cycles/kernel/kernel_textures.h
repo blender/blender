@@ -32,10 +32,11 @@ KERNEL_TEX(float4, texture_float4, __attributes_float3)
 
 /* lights */
 KERNEL_TEX(float4, texture_float4, __light_distribution)
-KERNEL_TEX(float4, texture_float4, __light_point)
+KERNEL_TEX(float4, texture_float4, __light_data)
 
 /* shaders */
 KERNEL_TEX(uint4, texture_uint4, __svm_nodes)
+KERNEL_TEX(uint, texture_uint, __shader_flag)
 
 /* camera/film */
 KERNEL_TEX(float, texture_float, __filter_table)

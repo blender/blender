@@ -152,7 +152,7 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 {
 	float stack[SVM_STACK_SIZE];
 	float closure_weight = 1.0f;
-	int offset = sd->shader;
+	int offset = sd->shader & SHADER_MASK;
 
 #ifdef __MULTI_CLOSURE__
 	sd->num_closure = 0;

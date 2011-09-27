@@ -1214,6 +1214,7 @@ void TranslucentBsdfNode::compile(OSLCompiler& compiler)
 
 TransparentBsdfNode::TransparentBsdfNode()
 {
+	name = "transparent";
 	closure = CLOSURE_BSDF_TRANSPARENT_ID;
 }
 

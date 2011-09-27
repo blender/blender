@@ -116,10 +116,22 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
         bpy.types.Material.cycles = PointerProperty(type=cls, name="Cycles Material Settings", description="Cycles material settings")
+        cls.sample_as_light = BoolProperty(name="Sample as Light", description="Use direct light sampling, to reduce noise for small or strong emitting materials", default=False)
+        cls.homogeneous_volume = BoolProperty(name="Homogeneous Volume", description="When using volume rendering, assume volume has the same density everywhere, for faster rendering", default=False)
 
     @classmethod
     def unregister(cls):
         del bpy.types.Material.cycles
+
+class CyclesLampSettings(bpy.types.PropertyGroup):
+    @classmethod
+    def register(cls):
+        bpy.types.Lamp.cycles = PointerProperty(type=cls, name="Cycles Lamp Settings", description="Cycles lamp settings")
+        cls.cast_shadow = BoolProperty(name="Cast Shadow", description="Lamp casts shadows", default=True)
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.Lamp.cycles
 
 class CyclesWorldSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -168,6 +180,7 @@ def register():
     bpy.utils.register_class(CyclesRenderSettings)
     bpy.utils.register_class(CyclesCameraSettings)
     bpy.utils.register_class(CyclesMaterialSettings)
+    bpy.utils.register_class(CyclesLampSettings)
     bpy.utils.register_class(CyclesWorldSettings)
     bpy.utils.register_class(CyclesVisibilitySettings)
     bpy.utils.register_class(CyclesMeshSettings)
@@ -176,6 +189,7 @@ def unregister():
     bpy.utils.unregister_class(CyclesRenderSettings)
     bpy.utils.unregister_class(CyclesCameraSettings)
     bpy.utils.unregister_class(CyclesMaterialSettings)
+    bpy.utils.unregister_class(CyclesLampSettings)
     bpy.utils.unregister_class(CyclesWorldSettings)
     bpy.utils.unregister_class(CyclesMeshSettings)
     bpy.utils.unregister_class(CyclesVisibilitySettings)

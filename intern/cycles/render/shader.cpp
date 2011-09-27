@@ -39,7 +39,11 @@ Shader::Shader()
 	graph = NULL;
 	graph_bump = NULL;
 
+	sample_as_light = true;
+	homogeneous_volume = false;
+
 	has_surface = false;
+	has_surface_transparent = false;
 	has_surface_emission = false;
 	has_volume = false;
 	has_displacement = false;
@@ -72,7 +76,7 @@ void Shader::tag_update(Scene *scene)
 	/* if the shader previously was emissive, update light distribution,
 	 * if the new shader is emissive, a light manager update tag will be
 	 * done in the shader manager device update. */
-	if(has_surface_emission)
+	if(sample_as_light && has_surface_emission)
 		scene->light_manager->need_update = true;
 
 	/* get requested attributes. this could be optimized by pruning unused
@@ -146,11 +150,50 @@ int ShaderManager::get_shader_id(uint shader, Mesh *mesh, bool smooth)
 	/* index depends bump since this setting is not in the shader */
 	if(mesh && mesh->displacement_method != Mesh::DISPLACE_TRUE)
 		id += 1;
-	/* stuff in smooth flag too */
+	/* smooth flag */
 	if(smooth)
-		id= -id;
+		id |= SHADER_SMOOTH_NORMAL;
+	
+	/* default flags */
+	id |= SHADER_CAST_SHADOW|SHADER_AREA_LIGHT;
 	
 	return id;
+}
+
+void ShaderManager::device_update_common(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+{
+	device_free_common(device, dscene);
+
+	if(scene->shaders.size() == 0)
+		return;
+
+	uint shader_flag_size = scene->shaders.size()*2;
+	uint *shader_flag = dscene->shader_flag.resize(shader_flag_size);
+	uint i = 0;
+
+	foreach(Shader *shader, scene->shaders) {
+		uint flag = 0;
+
+		if(shader->sample_as_light)
+			flag |= SD_SAMPLE_AS_LIGHT;
+		if(shader->has_surface_transparent)
+			flag |= SD_HAS_SURFACE_TRANSPARENT;
+		if(shader->has_volume)
+			flag |= SD_HAS_VOLUME;
+		if(shader->homogeneous_volume)
+			flag |= SD_HOMOGENEOUS_VOLUME;
+
+		shader_flag[i++] = flag;
+		shader_flag[i++] = flag;
+	}
+
+	device->tex_alloc("__shader_flag", dscene->shader_flag);
+}
+
+void ShaderManager::device_free_common(Device *device, DeviceScene *dscene)
+{
+	device->tex_free(dscene->shader_flag);
+	dscene->shader_flag.clear();
 }
 
 void ShaderManager::add_default(Scene *scene)

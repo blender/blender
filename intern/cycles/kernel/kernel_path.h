@@ -162,19 +162,6 @@ __device_inline float path_state_terminate_probability(KernelGlobals *kg, PathSt
 	return average(throughput);
 }
 
-#ifdef __TRANSPARENT_SHADOWS__
-__device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
-{
-	int prim = kernel_tex_fetch(__prim_index, isect->prim);
-	float4 Ns = kernel_tex_fetch(__tri_normal, prim);
-	int shader = __float_as_int(Ns.w);
-
-	/* todo: add shader flag to check this */
-
-	return true;
-}
-#endif
-
 __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ray, Intersection *isect, float3 *light_L)
 {
 	if(ray->t == 0.0f)
@@ -229,12 +216,10 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 				throughput *= shader_bsdf_transparency(kg, &sd);
 
 				ray->P = ray_offset(sd.P, -sd.Ng);
-				ray->t = len(Pend - ray->P);
+				ray->t = (ray->t == FLT_MAX)? FLT_MAX: len(Pend - ray->P);
 
 				bounce++;
 			}
-
-			return true;
 		}
 	}
 #endif
@@ -298,10 +283,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 #ifdef __EMISSION__
 		/* emission */
-		if(kernel_data.integrator.use_emission) {
-			if(sd.flag & SD_EMISSION)
-				L += throughput*indirect_emission(kg, &sd, isect.t, state.flag, ray_pdf);
-		}
+		if(sd.flag & SD_EMISSION)
+			L += throughput*indirect_emission(kg, &sd, isect.t, state.flag, ray_pdf);
 #endif
 
 		/* path termination. this is a strange place to put the termination, it's
@@ -316,7 +299,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 		throughput /= probability;
 
 #ifdef __EMISSION__
-		if(kernel_data.integrator.use_emission) {
+		if(kernel_data.integrator.use_direct_light) {
 			/* sample illumination from lights to find path contribution */
 			if(sd.flag & SD_BSDF_HAS_EVAL) {
 				float light_t = path_rng(kg, rng, sample, rng_offset + PRNG_LIGHT);

@@ -587,6 +587,11 @@ void BlenderSync::sync_materials()
 				graph->connect(closure->output("BSDF"), out->input("Surface"));
 			}
 
+			/* settings */
+			PointerRNA cmat = RNA_pointer_get(&b_mat->ptr, "cycles");
+			//shader->sample_as_light = get_boolean(cmat, "sample_as_light");
+			shader->homogeneous_volume = get_boolean(cmat, "homogeneous_volume");
+
 			shader->set_graph(graph);
 			shader->tag_update(scene);
 		}

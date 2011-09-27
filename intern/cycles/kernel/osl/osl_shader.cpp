@@ -216,8 +216,10 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 	shaderdata_to_shaderglobals(kg, sd, path_flag, globals);
 
 	/* execute shader for this point */
-	if(kg->osl.surface_state[sd->shader])
-		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.surface_state[sd->shader]), *globals);
+	int shader = sd->shader & SHADER_MASK;
+
+	if(kg->osl.surface_state[shader])
+		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.surface_state[shader]), *globals);
 
 	/* flatten closure tree */
 	sd->num_closure = 0;
@@ -351,7 +353,10 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 	shaderdata_to_shaderglobals(kg, sd, path_flag, globals);
 
 	/* execute shader */
-	ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.volume_state[sd->shader]), *globals);
+	int shader = sd->shader & SHADER_MASK;
+
+	if(kg->osl.volume_state[shader])
+		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.volume_state[shader]), *globals);
 
 	/* retrieve resulting closures */
 	sd->osl_closure.volume_sample_sum = 0.0f;
@@ -377,7 +382,10 @@ void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
 	shaderdata_to_shaderglobals(kg, sd, 0, globals);
 
 	/* execute shader */
-	ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.displacement_state[sd->shader]), *globals);
+	int shader = sd->shader & SHADER_MASK;
+
+	if(kg->osl.displacement_state[shader])
+		ctx->execute(OSL::pvt::ShadUseSurface, *(kg->osl.displacement_state[shader]), *globals);
 
 	/* get back position */
 	sd->P = TO_FLOAT3(globals->P);

@@ -63,15 +63,11 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 		light_sample(kg, randt, randu, randv, sd->P, &ls);
 	}
 
-	/* compute incoming direction and distance */
-	float t;
-	float3 omega_in = normalize_len(ls.P - sd->P, &t);
-
 	/* compute pdf */
-	float pdf = light_sample_pdf(kg, &ls, -omega_in, t);
+	float pdf = light_sample_pdf(kg, &ls, -ls.D, ls.t);
 
 	/* evaluate closure */
-	*eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -omega_in);
+	*eval = direct_emissive_eval(kg, rando, &ls, randu, randv, -ls.D);
 
 	if(is_zero(*eval) || pdf == 0.0f)
 		return false;
@@ -80,7 +76,7 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 
 	/* evaluate BSDF at shading point */
 	float bsdf_pdf;
-	float3 bsdf_eval = shader_bsdf_eval(kg, sd, omega_in, &bsdf_pdf);
+	float3 bsdf_eval = shader_bsdf_eval(kg, sd, ls.D, &bsdf_pdf);
 
 	*eval *= bsdf_eval/pdf;
 
@@ -92,29 +88,34 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 		float mis_weight = power_heuristic(pdf, bsdf_pdf);
 		*eval *= mis_weight;
 	}
-	else {
+	else if(!(ls.shader & SHADER_AREA_LIGHT)) {
 		/* ensure point light works in Watts, this should be handled
 		 * elsewhere but for now together with the diffuse emission
 		 * closure it works out to the right value */
 		*eval *= 0.25f;
+
+		/* XXX verify with other light types */
 	}
 
-#if 0
-	/* todo: implement this in light */
-	bool no_shadow = true;
-
-	if(no_shadow) {
-		ray->t = 0.0f;
-	}
-	else {
-#endif
+	if(ls.shader & SHADER_CAST_SHADOW) {
 		/* setup ray */
 		ray->P = ray_offset(sd->P, sd->Ng);
-		ray->D = ray_offset(ls.P, ls.Ng) - ray->P;
-		ray->D = normalize_len(ray->D, &ray->t);
-#if 0
+
+		if(ls.t == FLT_MAX) {
+			/* distant light */
+			ray->D = ls.D;
+			ray->t = ls.t;
+		}
+		else {
+			/* other lights, avoid self-intersection */
+			ray->D = ray_offset(ls.P, ls.Ng) - ray->P;
+			ray->D = normalize_len(ray->D, &ray->t);
+		}
 	}
-#endif
+	else {
+		/* signal to not cast shadow ray */
+		ray->t = 0.0f;
+	}
 
 	return true;
 }
@@ -126,7 +127,7 @@ __device float3 indirect_emission(KernelGlobals *kg, ShaderData *sd, float t, in
 	/* evaluate emissive closure */
 	float3 L = shader_emissive_eval(kg, sd);
 
-	if(!(path_flag & PATH_RAY_SINGULAR)) {
+	if(!(path_flag & PATH_RAY_SINGULAR) && (sd->flag & SD_SAMPLE_AS_LIGHT)) {
 		/* multiple importance sampling */
 		float pdf = triangle_light_pdf(kg, sd->Ng, sd->I, t);
 		float mis_weight = power_heuristic(bsdf_pdf, pdf);

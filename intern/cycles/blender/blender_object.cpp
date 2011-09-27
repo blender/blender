@@ -87,12 +87,58 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 
 	if(!light_map.sync(&light, b_ob, b_parent, key))
 		return;
+	
+	BL::Lamp b_lamp(b_ob.data());
+
+	/* type */
+#if 0
+	switch(b_lamp.type()) {
+		case BL::Lamp::type_POINT: {
+			BL::PointLamp b_point_lamp(b_lamp);
+			light->size = b_point_lamp.shadow_soft_size();
+#endif
+			light->type = LIGHT_POINT;
+#if 0
+			break;
+		}
+		case BL::Lamp::type_SPOT: {
+			BL::SpotLamp b_spot_lamp(b_lamp);
+			light->size = b_spot_lamp.shadow_soft_size();
+			light->type = LIGHT_POINT;
+			break;
+		}
+		case BL::Lamp::type_HEMI: {
+			light->type = LIGHT_DISTANT;
+			light->size = 0.0f;
+			break;
+		}
+		case BL::Lamp::type_SUN: {
+			BL::SunLamp b_sun_lamp(b_lamp);
+			light->size = b_sun_lamp.shadow_soft_size();
+			light->type = LIGHT_DISTANT;
+			break;
+		}
+		case BL::Lamp::type_AREA: {
+			BL::AreaLamp b_area_lamp(b_lamp);
+			light->size = 1.0f;
+			light->axisu = make_float3(tfm.x.x, tfm.y.x, tfm.z.x);
+			light->axisv = make_float3(tfm.x.y, tfm.y.y, tfm.z.y);
+			light->sizeu = b_area_lamp.size();
+			if(b_area_lamp.shape() == BL::AreaLamp::shape_RECTANGLE)
+				light->sizev = b_area_lamp.size_y();
+			else
+				light->sizev = light->sizeu;
+			light->type = LIGHT_AREA;
+			break;
+		}
+	}
+#endif
 
 	/* location */
 	light->co = make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
+	light->dir = make_float3(tfm.x.z, tfm.y.z, tfm.z.z);
 
 	/* shader */
-	BL::Lamp b_lamp(b_ob.data());
 	vector<uint> used_shaders;
 
 	find_shader(b_lamp, used_shaders);
@@ -101,6 +147,10 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 		used_shaders.push_back(scene->default_light);
 
 	light->shader = used_shaders[0];
+
+	/* shadow */
+	//PointerRNA clamp = RNA_pointer_get(&b_lamp.ptr, "cycles");
+	//light->cast_shadow = get_boolean(clamp, "cast_shadow");
 
 	/* tag */
 	light->tag_update(scene);

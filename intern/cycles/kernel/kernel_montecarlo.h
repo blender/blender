@@ -67,17 +67,6 @@ __device void to_unit_disk(float *x, float *y)
 	*y = r * sinf(phi);
 }
 
-__device_inline void make_orthonormals(const float3 N, float3 *a, float3 *b)
-{
-	if(N.x != N.y || N.x != N.z)
-		*a = make_float3(N.z-N.y, N.x-N.z, N.y-N.x);  //(1,1,1)x N
-	else
-		*a = make_float3(N.z-N.y, N.x+N.z, -N.y-N.x);  //(-1,1,1)x N
-
-	*a = normalize(*a);
-	*b = cross(N, *a);
-}
-
 __device void make_orthonormals_tangent(const float3 N, const float3 T, float3 *a, float3 *b)
 {
 	*b = cross(N, T);

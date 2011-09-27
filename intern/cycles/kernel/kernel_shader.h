@@ -60,7 +60,6 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	sd->N = Ng;
 	sd->I = -ray->D;
 	sd->shader = shader;
-	sd->flag = 0;
 
 	/* triangle */
 #ifdef __INSTANCING__
@@ -73,10 +72,10 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 #endif
 
 	/* smooth normal */
-	if(sd->shader < 0) {
+	if(sd->shader & SHADER_SMOOTH_NORMAL)
 		sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
-		sd->shader = -sd->shader;
-	}
+
+	sd->flag = kernel_tex_fetch(__shader_flag, sd->shader & SHADER_MASK);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
@@ -103,7 +102,7 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	bool backfacing = (dot(sd->Ng, sd->I) < 0.0f);
 
 	if(backfacing) {
-		sd->flag = SD_BACKFACING;
+		sd->flag |= SD_BACKFACING;
 		sd->Ng = -sd->Ng;
 		sd->N = -sd->N;
 #ifdef __DPDU__
@@ -132,7 +131,6 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	sd->Ng = Ng;
 	sd->I = I;
 	sd->shader = shader;
-	sd->flag = 0;
 
 	/* primitive */
 #ifdef __INSTANCING__
@@ -159,15 +157,16 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 #endif
 
 	/* smooth normal */
-	if(sd->shader < 0) {
+	if(sd->shader & SHADER_SMOOTH_NORMAL) {
 		sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
-		sd->shader = -sd->shader;
 
 #ifdef __INSTANCING__
 		if(instanced)
 			object_normal_transform(kg, sd->object, &sd->N);
 #endif
 	}
+
+	sd->flag = kernel_tex_fetch(__shader_flag, sd->shader & SHADER_MASK);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */
@@ -192,7 +191,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 		bool backfacing = (dot(sd->Ng, sd->I) < 0.0f);
 
 		if(backfacing) {
-			sd->flag = SD_BACKFACING;
+			sd->flag |= SD_BACKFACING;
 			sd->Ng = -sd->Ng;
 			sd->N = -sd->N;
 #ifdef __DPDU__
@@ -245,7 +244,7 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 	sd->Ng = -sd->P;
 	sd->I = -sd->P;
 	sd->shader = kernel_data.background.shader;
-	sd->flag = 0;
+	sd->flag = kernel_tex_fetch(__shader_flag, sd->shader & SHADER_MASK);
 
 #ifdef __INSTANCING__
 	sd->object = ~0;
@@ -410,7 +409,7 @@ __device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
 	for(int i = 0; i< sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
 
-		if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID) // XXX osl
+		if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID) // todo: make this work for osl
 			eval += sc->weight;
 	}
 
@@ -428,8 +427,9 @@ __device float3 shader_bsdf_transparency(KernelGlobals *kg, ShaderData *sd)
 
 __device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 {
+	float3 eval;
 #ifdef __MULTI_CLOSURE__
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
+	eval = make_float3(0.0f, 0.0f, 0.0f);
 
 	for(int i = 0; i < sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
@@ -442,11 +442,11 @@ __device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 #endif
 		}
 	}
+#else
+	eval = svm_emissive_eval(sd, &sd->closure)*sd->closure.weight;
+#endif
 
 	return eval;
-#else
-	return svm_emissive_eval(sd, &sd->closure)*sd->closure.weight;
-#endif
 }
 
 /* Holdout */
@@ -580,6 +580,20 @@ __device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd)
 #endif
 #endif
 }
+
+/* Transparent Shadows */
+
+#ifdef __TRANSPARENT_SHADOWS__
+__device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
+{
+	int prim = kernel_tex_fetch(__prim_index, isect->prim);
+	float4 Ns = kernel_tex_fetch(__tri_normal, prim);
+	int shader = __float_as_int(Ns.w);
+	int flag = kernel_tex_fetch(__shader_flag, shader & SHADER_MASK);
+
+	return (flag & SD_HAS_SURFACE_TRANSPARENT) != 0;
+}
+#endif
 
 /* Free ShaderData */
 

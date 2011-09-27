@@ -83,11 +83,16 @@ bool BlenderSync::sync_recalc()
 			object_map.set_recalc(*b_ob);
 			light_map.set_recalc(*b_ob);
 		}
+
 		if(object_is_mesh(*b_ob)) {
 			if(b_ob->recalc_data() || b_ob->data().recalc()) {
 				BL::ID key = object_is_modified(*b_ob)? *b_ob: b_ob->data();
 				mesh_map.set_recalc(key);
 			}
+		}
+		else if(object_is_light(*b_ob)) {
+			if(b_ob->recalc_data() || b_ob->data().recalc())
+				light_map.set_recalc(*b_ob);
 		}
 	}
 

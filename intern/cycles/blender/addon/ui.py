@@ -360,7 +360,48 @@ def panel_node_draw(layout, id, output_type, input_name):
         layout.template_node_view(ntree, node, input);
 
 class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
-    bl_label = "Surface"
+    bl_label = "Lamp"
+    bl_context = "data"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return False
+        #return context.lamp and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        lamp = context.lamp
+        clamp = lamp.cycles
+
+        layout.prop(lamp, "type", expand=True)
+
+        split = layout.split()
+        col = split.column(align=True)
+
+        if lamp.type in ('POINT', 'SUN', 'SPOT'):
+            col.prop(lamp, "shadow_soft_size", text="Size")
+        elif lamp.type == 'AREA':
+            col.prop(lamp, "shape", text="")
+            sub = col.column(align=True)
+
+            if lamp.shape == 'SQUARE':
+                sub.prop(lamp, "size")
+            elif lamp.shape == 'RECTANGLE':
+                sub.prop(lamp, "size", text="Size X")
+                sub.prop(lamp, "size_y", text="Size Y")
+
+        col = split.column()
+        col.prop(clamp, "cast_shadow")
+
+        if lamp.type == 'SPOT':
+            layout.label(text="Not supported, interpreted as point lamp.")
+        elif lamp.type == 'HEMI':
+            layout.label(text="Not supported, interpreted as sun lamp.")
+   
+class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
+    bl_label = "Nodes"
     bl_context = "data"
 
     @classmethod
@@ -399,8 +440,8 @@ class CyclesWorld_PT_volume(CyclesButtonsPanel, Panel):
         layout = self.layout
         layout.active = False
 
-        mat = context.world
-        panel_node_draw(layout, mat, 'OUTPUT_WORLD', 'Volume')
+        world = context.world
+        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
 
 class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
@@ -429,7 +470,11 @@ class CyclesMaterial_PT_volume(CyclesButtonsPanel, Panel):
         layout.active = False
 
         mat = context.material
+        cmat = mat.cycles
+
         panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Volume')
+
+        layout.prop(cmat, "homogeneous_volume")
 
 class CyclesMaterial_PT_displacement(CyclesButtonsPanel, Panel):
     bl_label = "Displacement"
@@ -452,17 +497,22 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        # return context.material and CyclesButtonsPanel.poll(context)
         return False
+        #return context.material and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
 
         mat = context.material
+        cmat = mat.cycles
+
+        split = layout.split()
     
-        row = layout.row()
-        row.label(text="Light Group:")
-        row.prop(mat, "light_group", text="")
+        col = split.column()
+        col.prop(cmat, "sample_as_light")
+
+        col = split.column()
+        col.prop(cmat, "homogeneous_volume")
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
     bl_label = ""

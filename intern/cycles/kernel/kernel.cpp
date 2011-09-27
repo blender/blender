@@ -73,82 +73,17 @@ void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t s
 
 void kernel_tex_copy(KernelGlobals *kg, const char *name, device_ptr mem, size_t width, size_t height)
 {
-	if(strcmp(name, "__bvh_nodes") == 0) {
-		kg->__bvh_nodes.data = (float4*)mem;
-		kg->__bvh_nodes.width = width;
+	if(0) {
 	}
-	else if(strcmp(name, "__objects") == 0) {
-		kg->__objects.data = (float4*)mem;
-		kg->__objects.width = width;
+
+#define KERNEL_TEX(type, ttype, tname) \
+	else if(strcmp(name, #tname) == 0) { \
+		kg->tname.data = (type*)mem; \
+		kg->tname.width = width; \
 	}
-	else if(strcmp(name, "__tri_normal") == 0) {
-		kg->__tri_normal.data = (float4*)mem;
-		kg->__tri_normal.width = width;
-	}
-	else if(strcmp(name, "__tri_woop") == 0) {
-		kg->__tri_woop.data = (float4*)mem;
-		kg->__tri_woop.width = width;
-	}
-	else if(strcmp(name, "__prim_visibility") == 0) {
-		kg->__prim_visibility.data = (uint*)mem;
-		kg->__prim_visibility.width = width;
-	}
-	else if(strcmp(name, "__prim_index") == 0) {
-		kg->__prim_index.data = (uint*)mem;
-		kg->__prim_index.width = width;
-	}
-	else if(strcmp(name, "__prim_object") == 0) {
-		kg->__prim_object.data = (uint*)mem;
-		kg->__prim_object.width = width;
-	}
-	else if(strcmp(name, "__object_node") == 0) {
-		kg->__object_node.data = (uint*)mem;
-		kg->__object_node.width = width;
-	}
-	else if(strcmp(name, "__tri_vnormal") == 0) {
-		kg->__tri_vnormal.data = (float4*)mem;
-		kg->__tri_vnormal.width = width;
-	}
-	else if(strcmp(name, "__tri_vindex") == 0) {
-		kg->__tri_vindex.data = (float4*)mem;
-		kg->__tri_vindex.width = width;
-	}
-	else if(strcmp(name, "__tri_verts") == 0) {
-		kg->__tri_verts.data = (float4*)mem;
-		kg->__tri_verts.width = width;
-	}
-	else if(strcmp(name, "__light_distribution") == 0) {
-		kg->__light_distribution.data = (float4*)mem;
-		kg->__light_distribution.width = width;
-	}
-	else if(strcmp(name, "__light_point") == 0) {
-		kg->__light_point.data = (float4*)mem;
-		kg->__light_point.width = width;
-	}
-	else if(strcmp(name, "__svm_nodes") == 0) {
-		kg->__svm_nodes.data = (uint4*)mem;
-		kg->__svm_nodes.width = width;
-	}
-	else if(strcmp(name, "__filter_table") == 0) {
-		kg->__filter_table.data = (float*)mem;
-		kg->__filter_table.width = width;
-	}
-	else if(strcmp(name, "__sobol_directions") == 0) {
-		kg->__sobol_directions.data = (uint*)mem;
-		kg->__sobol_directions.width = width;
-	}
-	else if(strcmp(name, "__attributes_map") == 0) {
-		kg->__attributes_map.data = (uint4*)mem;
-		kg->__attributes_map.width = width;
-	}
-	else if(strcmp(name, "__attributes_float") == 0) {
-		kg->__attributes_float.data = (float*)mem;
-		kg->__attributes_float.width = width;
-	}
-	else if(strcmp(name, "__attributes_float3") == 0) {
-		kg->__attributes_float3.data = (float4*)mem;
-		kg->__attributes_float3.width = width;
-	}
+#define KERNEL_IMAGE_TEX(type, ttype, tname)
+#include "kernel_textures.h"
+
 	else if(strstr(name, "__tex_image")) {
 		texture_image_uchar4 *tex = NULL;
 		int id = atoi(name + strlen("__tex_image_"));

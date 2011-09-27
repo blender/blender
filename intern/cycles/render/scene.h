@@ -77,10 +77,11 @@ public:
 
 	/* lights */
 	device_vector<float4> light_distribution;
-	device_vector<float4> light_point;
+	device_vector<float4> light_data;
 
 	/* shaders */
 	device_vector<uint4> svm_nodes;
+	device_vector<uint> shader_flag;
 
 	/* filter */
 	device_vector<float> filter_table;

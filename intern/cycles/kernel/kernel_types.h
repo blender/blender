@@ -26,6 +26,7 @@
 CCL_NAMESPACE_BEGIN
 
 #define OBJECT_SIZE 16
+#define LIGHT_SIZE	4
 
 #define __SOBOL__
 #define __INSTANCING__
@@ -43,12 +44,12 @@ CCL_NAMESPACE_BEGIN
 #define __EMISSION__
 #define __TEXTURES__
 #define __HOLDOUT__
+//#define __MULTI_CLOSURE__
+//#define __TRANSPARENT_SHADOWS__
+//#define __MULTI_LIGHT__
 #endif
 
 #ifdef __KERNEL_CPU__
-//#define __MULTI_CLOSURE__
-//#define __MULTI_LIGHT__
-//#define __TRANSPARENT_SHADOWS__
 //#define __OSL__
 #endif
 
@@ -79,6 +80,7 @@ enum PathTraceDimension {
 /* these flag values correspond exactly to OSL defaults, so be careful not to
  * change this, or if you do, set the "raytypes" shading system attribute with
  * your own new ray types and bitflag values */
+
 enum PathRayFlag {
 	PATH_RAY_CAMERA = 1,
 	PATH_RAY_SHADOW = 2,
@@ -90,28 +92,6 @@ enum PathRayFlag {
 	PATH_RAY_TRANSPARENT = 128,
 
 	PATH_RAY_ALL = (1|2|4|8|16|32|64|128)
-};
-
-/* Bidirectional Path Tracing */
-
-enum BidirTraceDimension {
-	BRNG_FILTER_U = 0,
-	BRNG_FILTER_V = 1,
-	BRNG_LENS_U = 2,
-	BRNG_LENS_V = 3,
-	BRNG_LIGHT_U = 4,
-	BRNG_LIGHT_V = 5,
-	BRNG_LIGHT = 6,
-	BRNG_LIGHT_F = 7,
-	BRNG_EMISSIVE_U = 8,
-	BRNG_EMISSIVE_V = 9,
-	BRNG_BASE_NUM = 10,
-
-	BRNG_BSDF_U = 0,
-	BRNG_BSDF_V = 1,
-	BRNG_BSDF = 2,
-	BRNG_TERMINATE = 3,
-	BRNG_BOUNCE_NUM = 4
 };
 
 /* Closure Label */
@@ -132,16 +112,23 @@ typedef enum ClosureLabel {
 	LABEL_STOP = 2048
 } ClosureLabel;
 
-/* Ray Type */
+/* Shader Flag */
 
-typedef enum RayType {
-	RayTypeCamera = 1,
-	RayTypeShadow = 2,
-	RayTypeReflection = 4,
-	RayTypeRefraction = 8,
-	RayTypeDiffuse = 16,
-	RayTypeGlossy = 32
-} RayType;
+typedef enum ShaderFlag {
+	SHADER_SMOOTH_NORMAL = (1 << 31),
+	SHADER_CAST_SHADOW = (1 << 30),
+	SHADER_AREA_LIGHT = (1 << 29),
+
+	SHADER_MASK = ~(SHADER_SMOOTH_NORMAL|SHADER_CAST_SHADOW|SHADER_AREA_LIGHT)
+} ShaderFlag;
+
+/* Light Type */
+
+typedef enum LightType {
+	LIGHT_POINT,
+	LIGHT_DISTANT,
+	LIGHT_AREA
+} LightType;
 
 /* Differential */
 
@@ -213,13 +200,20 @@ typedef struct ShaderClosure {
  * are in world space. */
 
 enum ShaderDataFlag {
+	/* runtime flags */
 	SD_BACKFACING = 1,		/* backside of surface? */
 	SD_EMISSION = 2,		/* have emissive closure? */
 	SD_BSDF = 4,			/* have bsdf closure? */
 	SD_BSDF_HAS_EVAL = 8,	/* have non-singular bsdf closure? */
 	SD_BSDF_GLOSSY = 16,	/* have glossy bsdf */
 	SD_HOLDOUT = 32,		/* have holdout closure? */
-	SD_VOLUME = 64			/* have volume closure? */
+	SD_VOLUME = 64,			/* have volume closure? */
+
+	/* shader flags */
+	SD_SAMPLE_AS_LIGHT = 128,			/* direct light sample */
+	SD_HAS_SURFACE_TRANSPARENT = 256,	/* has surface transparency */
+	SD_HAS_VOLUME = 512,				/* has volume shader */
+	SD_HOMOGENEOUS_VOLUME = 1024		/* has homogeneous volume */
 };
 
 typedef struct ShaderData {
@@ -351,7 +345,7 @@ typedef struct KernelSunSky {
 
 typedef struct KernelIntegrator {
 	/* emission */
-	int use_emission;
+	int use_direct_light;
 	int num_distribution;
 	int num_all_lights;
 	float pdf_triangles;

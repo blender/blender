@@ -20,30 +20,112 @@ CCL_NAMESPACE_BEGIN
 
 typedef struct LightSample {
 	float3 P;
+	float3 D;
 	float3 Ng;
+	float t;
 	int object;
 	int prim;
 	int shader;
-	float weight;
 } LightSample;
 
-/* Point Light */
+/* Regular Light */
 
-__device void point_light_sample(KernelGlobals *kg, int point,
+__device float3 disk_light_sample(float3 v, float randu, float randv)
+{
+	float3 ru, rv;
+
+	make_orthonormals(v, &ru, &rv);
+	to_unit_disk(&randu, &randv);
+
+	return ru*randu + rv*randv;
+}
+
+__device float3 distant_light_sample(float3 D, float size, float randu, float randv)
+{
+	return normalize(D + disk_light_sample(D, randu, randv)*size);
+}
+
+__device float3 sphere_light_sample(float3 P, float3 center, float size, float randu, float randv)
+{
+	return disk_light_sample(normalize(P - center), randu, randv)*size;
+}
+
+__device float3 area_light_sample(float3 axisu, float3 axisv, float randu, float randv)
+{
+	randu = randu - 0.5f;
+	randv = randv - 0.5f;
+
+	return axisu*randu + axisv*randv;
+}
+
+__device void regular_light_sample(KernelGlobals *kg, int point,
 	float randu, float randv, float3 P, LightSample *ls)
 {
-	float4 f = kernel_tex_fetch(__light_point, point);
+	float4 data0 = kernel_tex_fetch(__light_data, point*LIGHT_SIZE + 0);
+	float4 data1 = kernel_tex_fetch(__light_data, point*LIGHT_SIZE + 1);
 
-	ls->P = make_float3(f.x, f.y, f.z);
-	ls->Ng = normalize(ls->P - P);
-	ls->shader = __float_as_int(f.w);
+	LightType type = (LightType)__float_as_int(data0.x);
+
+	if(type == LIGHT_DISTANT) {
+		/* distant light */
+		float3 D = make_float3(data0.y, data0.z, data0.w);
+		float size = data1.y;
+
+		if(size > 0.0f)
+			D = distant_light_sample(D, size, randu, randv);
+
+		ls->P = D;
+		ls->Ng = -D;
+		ls->D = D;
+		ls->t = FLT_MAX;
+	}
+	else {
+		ls->P = make_float3(data0.y, data0.z, data0.w);
+
+		if(type == LIGHT_POINT) {
+			float size = data1.y;
+
+			/* sphere light */
+			if(size > 0.0f)
+				ls->P += sphere_light_sample(P, ls->P, size, randu, randv);
+
+			ls->Ng = normalize(P - ls->P);
+		}
+		else {
+			/* area light */
+			float4 data2 = kernel_tex_fetch(__light_data, point*LIGHT_SIZE + 2);
+			float4 data3 = kernel_tex_fetch(__light_data, point*LIGHT_SIZE + 3);
+
+			float3 axisu = make_float3(data1.y, data1.z, data2.w);
+			float3 axisv = make_float3(data2.y, data2.z, data2.w);
+			float3 D = make_float3(data3.y, data3.z, data3.w);
+
+			ls->P += area_light_sample(axisu, axisv, randu, randv);
+			ls->Ng = D;
+		}
+
+		ls->t = 0.0f;
+	}
+
+	ls->shader = __float_as_int(data1.x);
 	ls->object = ~0;
 	ls->prim = ~0;
 }
 
-__device float point_light_pdf(KernelGlobals *kg, float t)
+__device float regular_light_pdf(KernelGlobals *kg,
+	const float3 Ng, const float3 I, float t)
 {
-	return t*t*kernel_data.integrator.pdf_lights;
+	float pdf = kernel_data.integrator.pdf_lights;
+
+	if(t == FLT_MAX)
+		return pdf;
+
+	float cos_pi = fabsf(dot(Ng, I));
+
+	if(cos_pi == 0.0f)
+		return 0.0f;
+
+	return t*t*pdf/cos_pi;
 }
 
 /* Triangle Light */
@@ -56,6 +138,7 @@ __device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	ls->Ng = triangle_normal_MT(kg, prim, &ls->shader);
 	ls->object = object;
 	ls->prim = prim;
+	ls->t = 0.0f;
 
 #ifdef __INSTANCING__
 	/* instance transform */
@@ -117,7 +200,6 @@ __device void light_sample(KernelGlobals *kg, float randt, float randu, float ra
 	/* fetch light data */
 	float4 l = kernel_tex_fetch(__light_distribution, index);
 	int prim = __float_as_int(l.y);
-	ls->weight = l.z;
 
 	if(prim >= 0) {
 		int object = __float_as_int(l.w);
@@ -125,8 +207,12 @@ __device void light_sample(KernelGlobals *kg, float randt, float randu, float ra
 	}
 	else {
 		int point = -prim-1;
-		point_light_sample(kg, point, randu, randv, P, ls);
+		regular_light_sample(kg, point, randu, randv, P, ls);
 	}
+
+	/* compute incoming direction and distance */
+	if(ls->t != FLT_MAX)
+		ls->D = normalize_len(ls->P - P, &ls->t);
 }
 
 __device float light_sample_pdf(KernelGlobals *kg, LightSample *ls, float3 I, float t)
@@ -136,19 +222,19 @@ __device float light_sample_pdf(KernelGlobals *kg, LightSample *ls, float3 I, fl
 	if(ls->prim != ~0)
 		pdf = triangle_light_pdf(kg, ls->Ng, I, t);
 	else
-		pdf = point_light_pdf(kg, t);
+		pdf = regular_light_pdf(kg, ls->Ng, I, t);
 	
 	return pdf;
 }
 
 __device void light_select(KernelGlobals *kg, int index, float randu, float randv, float3 P, LightSample *ls)
 {
-	point_light_sample(kg, index, randu, randv, P, ls);
+	regular_light_sample(kg, index, randu, randv, P, ls);
 }
 
 __device float light_select_pdf(KernelGlobals *kg, LightSample *ls, float3 I, float t)
 {
-	return point_light_pdf(kg, t);
+	return regular_light_pdf(kg, ls->Ng, I, t);
 }
 
 CCL_NAMESPACE_END

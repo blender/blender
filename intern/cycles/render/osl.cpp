@@ -91,7 +91,7 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 
 		if(progress.get_cancel()) return;
 
-		if(shader->has_surface_emission)
+		if(shader->sample_as_light && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 
 		OSLCompiler compiler((void*)ss);
@@ -112,11 +112,15 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	
 	/* set texture system */
 	scene->image_manager->set_osl_texture_system((void*)ts);
+
+	device_update_common(device, dscene, scene, progress);
 }
 
 void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
 {
 	OSLGlobals *og = (OSLGlobals*)device->osl_memory();
+
+	device_free_common(device, dscene);
 
 	/* clear shader engine */
 	og->use = false;
@@ -340,6 +344,8 @@ void OSLCompiler::generate_nodes(const set<ShaderNode*>& nodes)
 
 					if(node->name == ustring("emission"))
 						current_shader->has_surface_emission = true;
+					if(node->name == ustring("transparent"))
+						current_shader->has_surface_transparent = true;
 				}
 				else
 					nodes_done = false;
@@ -403,6 +409,7 @@ void OSLCompiler::compile(OSLGlobals *og, Shader *shader)
 
 	shader->has_surface = false;
 	shader->has_surface_emission = false;
+	shader->has_surface_transparent = false;
 	shader->has_volume = false;
 	shader->has_displacement = false;
 

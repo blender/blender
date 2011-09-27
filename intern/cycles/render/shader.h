@@ -56,6 +56,10 @@ public:
 	   level setting, so we need to handle both */
 	ShaderGraph *graph_bump;
 
+	/* sampling */
+	bool sample_as_light;
+	bool homogeneous_volume;
+
 	/* synchronization */
 	bool need_update;
 	bool need_update_attributes;
@@ -63,6 +67,7 @@ public:
 	/* information about shader after compiling */
 	bool has_surface;
 	bool has_surface_emission;
+	bool has_surface_transparent;
 	bool has_volume;
 	bool has_displacement;
 
@@ -91,6 +96,9 @@ public:
 	/* device update */
 	virtual void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress) = 0;
 	virtual void device_free(Device *device, DeviceScene *dscene) = 0;
+
+	void device_update_common(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
+	void device_free_common(Device *device, DeviceScene *dscene);
 
 	/* get globally unique id for a type of attribute */
 	uint get_attribute_id(ustring name);
