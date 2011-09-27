@@ -699,7 +699,7 @@ class BlenderEnvironment(SConsEnvironment):
         SConsEnvironment.Default(self, res)
         resources.append(res)
 
-    def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None, cc_compileflags=None, cxx_compileflags=None):
+    def BlenderLib(self=None, libname=None, sources=None, includes=[], defines=[], libtype='common', priority = 100, compileflags=None, cc_compileflags=None, cxx_compileflags=None, cc_compilerchange=None, cxx_compilerchange=None):
         global vcp
         if not self or not libname or not sources:
             print bc.FAIL+'Cannot continue. Missing argument for BuildBlenderLib '+libname+bc.ENDC
@@ -737,6 +737,10 @@ class BlenderEnvironment(SConsEnvironment):
                 lenv.Replace(CCFLAGS = cc_compileflags)
             if cxx_compileflags:
                 lenv.Replace(CXXFLAGS = cxx_compileflags)
+            if cc_compilerchange:
+                lenv.Replace(CC = cc_compilerchange)
+            if cxx_compilerchange:
+                lenv.Replace(CXX = cxx_compilerchange)
             lenv.Append(CFLAGS = lenv['C_WARN'])
             lenv.Append(CCFLAGS = lenv['CC_WARN'])
             lenv.Append(CXXFLAGS = lenv['CXX_WARN'])
