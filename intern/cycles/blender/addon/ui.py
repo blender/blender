@@ -64,7 +64,7 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "preview_samples", text="Preview")
 
         sub = col.column(align=True)
-        sub.label("Tranparency:")
+        sub.label("Transparency:")
         sub.prop(cscene, "transparent_max_bounces", text="Max")
         sub.prop(cscene, "transparent_min_bounces", text="Min")
         sub.prop(cscene, "no_caustics")
