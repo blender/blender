@@ -257,7 +257,11 @@ int frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 	struct timeval tv;
 	struct sockaddr_in      addr;
 	int len, rval;
+#ifdef FREE_WINDOWS
+	int socklen;
+#else
 	unsigned int socklen;
+#endif
 	char buf[4096];
 
 	if (connsock != -1) {

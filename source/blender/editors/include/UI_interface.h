@@ -34,6 +34,7 @@
 #ifndef UI_INTERFACE_H
 #define UI_INTERFACE_H
 
+#include "BLO_sys_types.h" /* size_t */
 #include "RNA_types.h"
 #include "DNA_userdef_types.h"
 

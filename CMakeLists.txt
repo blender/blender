@@ -1153,14 +1153,19 @@ endif()
 
 
 # set the endian define
-include(TestBigEndian)
-test_big_endian(_SYSTEM_BIG_ENDIAN)
-if(_SYSTEM_BIG_ENDIAN)
-	add_definitions(-D__BIG_ENDIAN__)
-else()
+if(MSVC)
+	# for some reason this fails on msvc
 	add_definitions(-D__LITTLE_ENDIAN__)
+else()
+	include(TestBigEndian)
+	test_big_endian(_SYSTEM_BIG_ENDIAN)
+	if(_SYSTEM_BIG_ENDIAN)
+		add_definitions(-D__BIG_ENDIAN__)
+	else()
+		add_definitions(-D__LITTLE_ENDIAN__)
+	endif()
+	unset(_SYSTEM_BIG_ENDIAN)
 endif()
-unset(_SYSTEM_BIG_ENDIAN)
 
 
 if(WITH_IMAGE_OPENJPEG)
