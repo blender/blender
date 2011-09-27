@@ -92,8 +92,9 @@ KM_HIERARCHY = [
     ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
     ('Text', 'TEXT_EDITOR', 'WINDOW', []),
     ('Console', 'CONSOLE', 'WINDOW', []),
-    ('Clip Editor', 'CLIP_EDITOR', 'WINDOW', []),
-    ('Clip Globals', 'CLIP_EDITOR', 'WINDOW', []),
+    ('Clip', 'CLIP_EDITOR', 'WINDOW', [
+        ('Clip Editor', 'CLIP_EDITOR', 'WINDOW', []),
+        ]),
 
     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
     ('Gesture Border', 'EMPTY', 'WINDOW', []),

@@ -319,7 +319,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	/* ******** Global hotkeys avalaible for all regions ******** */
 
-	keymap= WM_keymap_find(keyconf, "Clip Globals", SPACE_CLIP, 0);
+	keymap= WM_keymap_find(keyconf, "Clip", SPACE_CLIP, 0);
 
 	WM_keymap_add_item(keymap, "CLIP_OT_open", OKEY, KM_PRESS, KM_ALT, 0);
 
@@ -533,7 +533,7 @@ static void clip_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Clip Globals", SPACE_CLIP, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	keymap= WM_keymap_find(wm->defaultconf, "Clip Editor", SPACE_CLIP, 0);
@@ -655,7 +655,7 @@ static void clip_properties_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_find(wm->defaultconf, "Clip Globals", SPACE_CLIP, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
