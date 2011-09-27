@@ -52,4 +52,16 @@ set(SRC
 	mesh_intern.h
 )
 
+if(WITH_GAMEENGINE)
+	add_definitions(-DWITH_GAMEENGINE)
+
+	list(APPEND INC
+		../../../../extern/recastnavigation
+	)
+
+	list(APPEND SRC
+		mesh_navmesh.c
+	)
+endif()
+
 blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}")

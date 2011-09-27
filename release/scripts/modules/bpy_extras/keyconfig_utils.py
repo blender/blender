@@ -220,7 +220,7 @@ def keyconfig_export(wm, kc, filepath):
 
 def keyconfig_test(kc):
 
-    def testEntry(self, kc, entry, src=None, parent=None):
+    def testEntry(kc, entry, src=None, parent=None):
         result = False
 
         def kmistr(kmi):

@@ -40,6 +40,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 
 #include "BKE_cdderivedmesh.h"
@@ -57,7 +58,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	LatticeModifierData *tlmd = (LatticeModifierData*) target;
 
 	tlmd->object = lmd->object;
-	strncpy(tlmd->name, lmd->name, 32);
+	BLI_strncpy(tlmd->name, lmd->name, 32);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)

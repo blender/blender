@@ -488,7 +488,7 @@ LinkNode *BLI_read_file_as_lines(const char *name)
 
 	buf= MEM_mallocN(size, "file_as_lines");
 	if (buf) {
-		int i, last= 0;
+		size_t i, last= 0;
 		
 			/* 
 			 * size = because on win32 reading

@@ -1391,6 +1391,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	int proportional = 0;
 	PropertyRNA *prop;
 
+	// Save back mode in case we're in the generic operator
+	if ((prop= RNA_struct_find_property(op->ptr, "mode"))) {
+		RNA_property_enum_set(op->ptr, prop, t->mode);
+	}
+
 	if ((prop= RNA_struct_find_property(op->ptr, "value"))) {
 		float *values= (t->flag & T_AUTOVALUES) ? t->auto_values : t->values;
 		if (RNA_property_array_check(prop)) {

@@ -1528,7 +1528,7 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 }
 
 /* str will be overwritten */
-void ui_convert_to_unit_alt_name(uiBut *but, char *str, int maxlen)
+void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen)
 {
 	if(ui_is_but_unit(but)) {
 		UnitSettings *unit= but->block->unit;
@@ -1576,7 +1576,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 }
 
 
-void ui_get_but_string(uiBut *but, char *str, int maxlen)
+void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 {
 	if(but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		PropertyType type;
@@ -2143,8 +2143,8 @@ void ui_check_but(uiBut *but)
 		UI_GET_BUT_VALUE_INIT(but, value)
 
 		if(ui_is_but_float(but)) {
-			if(value == (double) FLT_MAX) sprintf(but->drawstr, "%sinf", but->str);
-			else if(value == (double) -FLT_MAX) sprintf(but->drawstr, "%s-inf", but->str);
+			if(value == (double) FLT_MAX) BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%sinf", but->str);
+			else if(value == (double) -FLT_MAX) BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s-inf", but->str);
 			/* support length type buttons */
 			else if(ui_is_but_unit(but)) {
 				char new_str[sizeof(but->drawstr)];
@@ -2157,7 +2157,7 @@ void ui_check_but(uiBut *but)
 			}
 		}
 		else {
-			sprintf(but->drawstr, "%s%d", but->str, (int)value);
+			BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%d", but->str, (int)value);
 		}
 			
 		if(but->rnaprop) {
@@ -2176,7 +2176,7 @@ void ui_check_but(uiBut *but)
 			BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%.*f", but->str, prec, value);
 		}
 		else {
-			strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+			BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		}
 		
 		break;
@@ -2194,7 +2194,7 @@ void ui_check_but(uiBut *but)
 		break;
 	
 	case KEYEVT:
-		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+		BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		if (but->flag & UI_SELECT) {
 			strcat(but->drawstr, "Press a key");
 		}
@@ -2226,15 +2226,15 @@ void ui_check_but(uiBut *but)
 				strcat(but->drawstr, "Press a key  ");
 		}
 		else
-			strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+			BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 
 		break;
 		
 	case BUT_TOGDUAL:
 		/* trying to get the dual-icon to left of text... not very nice */
 		if(but->str[0]) {
-			strncpy(but->drawstr, "  ", UI_MAX_DRAW_STR);
-			strncpy(but->drawstr+2, but->str, UI_MAX_DRAW_STR-2);
+			BLI_strncpy(but->drawstr, "  ", UI_MAX_DRAW_STR);
+			BLI_strncpy(but->drawstr+2, but->str, UI_MAX_DRAW_STR-2);
 		}
 		break;
 
@@ -2242,13 +2242,13 @@ void ui_check_but(uiBut *but)
 	case HSVCIRCLE:
 		break;
 	default:
-		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
+		BLI_strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		
 	}
 
 	/* if we are doing text editing, this will override the drawstr */
 	if(but->editstr)
-		strncpy(but->drawstr, but->editstr, UI_MAX_DRAW_STR);
+		BLI_strncpy(but->drawstr, but->editstr, UI_MAX_DRAW_STR);
 	
 	/* text clipping moved to widget drawing code itself */
 }
@@ -2822,12 +2822,12 @@ static int findBitIndex(unsigned int x) {
 
 /* autocomplete helper functions */
 struct AutoComplete {
-	int maxlen;
+	size_t maxlen;
 	char *truncate;
 	const char *startname;
 };
 
-AutoComplete *autocomplete_begin(const char *startname, int maxlen)
+AutoComplete *autocomplete_begin(const char *startname, size_t maxlen)
 {
 	AutoComplete *autocpl;
 	

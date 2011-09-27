@@ -1718,7 +1718,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 		}
 		case PROP_COLLECTION:
 		{
-			int seq_len, i;
+			Py_ssize_t seq_len, i;
 			PyObject *item;
 			PointerRNA itemptr;
 			ListBase *lb;
@@ -1736,7 +1736,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 			}
 
 			seq_len= PySequence_Size(value);
-			for(i=0; i<seq_len; i++) {
+			for(i=0; i < seq_len; i++) {
 				item= PySequence_GetItem(value, i);
 
 				if(item==NULL) {

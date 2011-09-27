@@ -1124,9 +1124,9 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		if(but->poin==NULL && but->rnapoin.data==NULL);
 		else if(mode=='c') {
 			if(ui_is_but_float(but))
-				sprintf(buf, "%f", ui_get_but_val(but));
+				BLI_snprintf(buf, sizeof(buf), "%f", ui_get_but_val(but));
 			else
-				sprintf(buf, "%d", (int)ui_get_but_val(but));
+				BLI_snprintf(buf, sizeof(buf), "%d", (int)ui_get_but_val(but));
 
 			WM_clipboard_text_set(buf, 0);
 		}
@@ -1147,7 +1147,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		else if(mode=='c') {
 
 			ui_get_but_vectorf(but, rgb);
-			sprintf(buf, "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
+			BLI_snprintf(buf, sizeof(buf), "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
 			WM_clipboard_text_set(buf, 0);
 			
 		}
@@ -4460,7 +4460,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		PointerRNA ptr_props;
 
 		if(but->rnapoin.data && but->rnaprop) {
-			sprintf(buf, "%s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+			BLI_snprintf(buf, sizeof(buf), "%s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
 			RNA_string_set(&ptr_props, "doc_id", buf);

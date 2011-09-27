@@ -34,6 +34,7 @@
 #ifndef UI_INTERFACE_H
 #define UI_INTERFACE_H
 
+#include "BLO_sys_types.h" /* size_t */
 #include "RNA_types.h"
 #include "DNA_userdef_types.h"
 
@@ -577,7 +578,7 @@ void uiButSetFocusOnEnter	(struct wmWindow *win, uiBut *but);
 
 typedef struct AutoComplete AutoComplete;
 
-AutoComplete *autocomplete_begin(const char *startname, int maxlen);
+AutoComplete *autocomplete_begin(const char *startname, size_t maxlen);
 void autocomplete_do_name(AutoComplete *autocpl, const char *name);
 void autocomplete_end(AutoComplete *autocpl, char *autoname);
 

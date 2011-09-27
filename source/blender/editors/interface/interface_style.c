@@ -315,7 +315,7 @@ void uiStyleInit(void)
 		font= MEM_callocN(sizeof(uiFont), "ui font");
 		BLI_addtail(&U.uifonts, font);
 		
-		strcpy(font->filename, "default");
+		BLI_strncpy(font->filename, "default", sizeof(font->filename));
 		font->uifont_id= UIFONT_DEFAULT;
 	}
 	

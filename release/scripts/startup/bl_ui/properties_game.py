@@ -204,7 +204,7 @@ class PHYSICS_PT_game_obstacles(PhysicsButtonsPanel, Panel):
     def poll(cls, context):
         game = context.object.game
         rd = context.scene.render
-        return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC'))  and (rd.engine in cls.COMPAT_ENGINES)
+        return (game.physics_type in {'DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC'}) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         game = context.active_object.game
@@ -412,7 +412,7 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, bpy.types.Panel):
 
         rd = context.scene.game_settings.recast_data
 
-        layout.operator("object.create_navmesh", text='Build navigation mesh')
+        layout.operator("mesh.create_navmesh", text='Build navigation mesh')
 
         col = layout.column()
         col.label(text="Rasterization:")

@@ -40,6 +40,7 @@
 
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_colortools.h"
@@ -836,7 +837,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	/* draw grid lines here */
 	for (i=0; i<6; i++) {
 		char str[4];
-		sprintf(str,"%-3d",i*20);
+		BLI_snprintf(str, sizeof(str), "%-3d",i*20);
 		str[3]='\0';
 		fdrawline(rect.xmin+22, yofs+(i/5.f)*h, rect.xmax+1, yofs+(i/5.f)*h);
 		BLF_draw_default(rect.xmin+1, yofs-5+(i/5.f)*h, 0, str, sizeof(str)-1);

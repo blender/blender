@@ -412,7 +412,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		if(id->us > 1) {
 			char str[32];
 
-			sprintf(str, "%d", id->us);
+			BLI_snprintf(str, sizeof(str), "%d", id->us);
 
 			but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X + ((id->us < 10) ? 0:10), UI_UNIT_Y, NULL, 0, 0, 0, 0,
 						UI_translate_do_tooltip(_("Displays number of users of this data. Click to make a single-user copy")));
@@ -724,7 +724,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 		block= uiLayoutGetBlock(row);
 		/* VIRTUAL MODIFIER */
 		// XXX this is not used now, since these cannot be accessed via RNA
-		sprintf(str, "%s parent deform", md->name);
+		BLI_snprintf(str, sizeof(str), "%s parent deform", md->name);
 		uiDefBut(block, LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
 		
 		but = uiDefBut(block, BUT, 0, UI_translate_do_iface(N_("Make Real")), 0, 0, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0,
@@ -959,13 +959,10 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	cti= constraint_get_typeinfo(con);
 	if (cti == NULL) {
 		/* exception for 'Null' constraint - it doesn't have constraint typeinfo! */
-		if (con->type == CONSTRAINT_TYPE_NULL)
-			strcpy(typestr, "Null");
-		else
-			strcpy(typestr, "Unknown");
+		BLI_strncpy(typestr, (con->type == CONSTRAINT_TYPE_NULL) ? "Null" : "Unknown", sizeof(typestr));
 	}
 	else
-		strcpy(typestr, cti->name);
+		BLI_strncpy(typestr, cti->name, sizeof(typestr));
 		
 	/* determine whether constraint is proxy protected or not */
 	if (proxylocked_constraints_owner(ob, pchan))
@@ -2112,7 +2109,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			manode= give_node_material(ma);
 			if(manode) {
 				char str[MAX_ID_NAME + 12];
-				sprintf(str, "Node %s", manode->id.name+2);
+				BLI_snprintf(str, sizeof(str), "Node %s", manode->id.name+2);
 				uiItemL(sub, str, ui_id_icon_get(C, &manode->id, 1));
 			}
 			else if(ma->use_nodes) {
@@ -2281,7 +2278,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 			uiItemL(row, "", ICON_NONE);
 
 		/* next/prev button */
-		sprintf(str, "%d :", i);
+		BLI_snprintf(str, sizeof(str), "%d :", i);
 		but= uiDefIconTextButR_prop(block, NUM, 0, 0, str, 0,0,UI_UNIT_X*5,UI_UNIT_Y, activeptr, activeprop, 0, 0, 0, 0, 0, "");
 		if(i == 0)
 			uiButSetFlag(but, UI_BUT_DISABLED);

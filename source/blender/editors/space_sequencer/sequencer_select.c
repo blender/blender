@@ -169,11 +169,11 @@ static void UNUSED_FUNCTION(select_single_seq)(Scene *scene, Sequence *seq, int 
 
 	if((seq->type==SEQ_IMAGE) || (seq->type==SEQ_MOVIE)) {
 		if(seq->strip)
-			strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR-1);
+			BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
 	}
 	else if(seq->type==SEQ_SOUND) {
 		if(seq->strip)
-			strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR-1);
+			BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
 	}
 	seq->flag|= SELECT;
 	recurs_sel_seq(seq);
@@ -389,12 +389,12 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 			if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
 				if(seq->strip) {
-					strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR-1);
+					BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
 				}
 			} else
 			if (seq->type == SEQ_SOUND) {
 				if(seq->strip) {
-					strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR-1);
+					BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
 				}
 			}
 	

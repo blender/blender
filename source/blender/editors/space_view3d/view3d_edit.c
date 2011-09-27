@@ -3226,7 +3226,7 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 	else
 		WM_event_add_notifier(C, NC_SCENE|NA_EDITED, scene);
 
-	return OPERATOR_FINISHED;
+	return OPERATOR_PASS_THROUGH;
 }
 
 void VIEW3D_OT_cursor3d(wmOperatorType *ot)

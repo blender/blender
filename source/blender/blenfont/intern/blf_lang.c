@@ -158,7 +158,7 @@ void BLF_lang_set(const char *str)
 				char *s;
 
 				/* store defaul locale */
-				strncpy(default_locale, env_language, sizeof(default_locale));
+				BLI_strncpy(default_locale, env_language, sizeof(default_locale));
 
 				/* use first language as default */
 				s= strchr(default_locale, ':');

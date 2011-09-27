@@ -269,7 +269,7 @@ static int idp_sequence_type(PyObject *seq)
 	PyObject *item;
 	int type= IDP_INT;
 
-	int i, len = PySequence_Size(seq);
+	Py_ssize_t i, len = PySequence_Size(seq);
 	for (i=0; i < len; i++) {
 		item = PySequence_GetItem(seq, i);
 		if (PyFloat_Check(item)) {
