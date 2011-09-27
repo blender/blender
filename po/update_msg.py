@@ -80,7 +80,7 @@ def dump_messages_rna(messages):
     for cls in bpy.types.Operator.__subclasses__():
         walkClass(cls)
 
-    from bl_ui.space_userpref_keymap import KM_HIERARCHY
+    from bpy_extras.keyconfig_utils import KM_HIERARCHY
 
     walk_keymap_hierarchy(KM_HIERARCHY)
 
