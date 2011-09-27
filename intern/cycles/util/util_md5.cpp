@@ -313,8 +313,10 @@ bool MD5Hash::append_file(const string& filepath)
 {
 	FILE *f = fopen(filepath.c_str(), "rb");
 
-	if(!f)
+	if(!f) {
+		fprintf(stderr, "MD5: failed to open file %s\n", filepath.c_str());
 		return false;
+	}
 
 	const size_t buffer_size = 1024;
 	uint8_t buffer[buffer_size];

@@ -85,17 +85,14 @@ bool path_exists(const string& path)
 	return boost::filesystem::exists(path);
 }
 
-string path_files_md5_hash(const string& dir)
+static void path_files_md5_hash_recursive(MD5Hash& hash, const string& dir)
 {
-	/* computes md5 hash of all files in the directory */
-	MD5Hash hash;
-
 	if(boost::filesystem::exists(dir)) {
 		boost::filesystem::directory_iterator it(dir), it_end;
 
 		for(; it != it_end; it++) {
 			if(boost::filesystem::is_directory(it->status())) {
-				path_files_md5_hash(it->path().string());
+				path_files_md5_hash_recursive(hash, it->path().string());
 			}
 			else {
 				string filepath = it->path().string();
@@ -105,6 +102,14 @@ string path_files_md5_hash(const string& dir)
 			}
 		}
 	}
+}
+
+string path_files_md5_hash(const string& dir)
+{
+	/* computes md5 hash of all files in the directory */
+	MD5Hash hash;
+
+	path_files_md5_hash_recursive(hash, dir);
 
 	return hash.get_hex();
 }
