@@ -1312,6 +1312,88 @@ void HoldoutNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_holdout");
 }
 
+/* Volume Closure */
+
+VolumeNode::VolumeNode()
+: ShaderNode("volume")
+{
+	closure = ccl::CLOSURE_VOLUME_ISOTROPIC_ID;
+
+	add_input("Color", SHADER_SOCKET_COLOR, make_float3(0.8f, 0.8f, 0.8f));
+	add_input("Density", SHADER_SOCKET_FLOAT, 1.0f);
+
+	add_output("Volume", SHADER_SOCKET_CLOSURE);
+}
+
+void VolumeNode::compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2)
+{
+	ShaderInput *color_in = input("Color");
+
+	if(color_in->link) {
+		compiler.stack_assign(color_in);
+		compiler.add_node(NODE_CLOSURE_WEIGHT, color_in->stack_offset);
+	}
+	else
+		compiler.add_node(NODE_CLOSURE_SET_WEIGHT, color_in->value);
+	
+	if(param1)
+		compiler.stack_assign(param1);
+	if(param2)
+		compiler.stack_assign(param2);
+
+	compiler.add_node(NODE_CLOSURE_VOLUME,
+		compiler.encode_uchar4(closure,
+			(param1)? param1->stack_offset: SVM_STACK_INVALID,
+			(param2)? param2->stack_offset: SVM_STACK_INVALID,
+			compiler.closure_mix_weight_offset()),
+		__float_as_int((param1)? param1->value.x: 0.0f),
+		__float_as_int((param2)? param2->value.x: 0.0f));
+}
+
+void VolumeNode::compile(SVMCompiler& compiler)
+{
+	compile(compiler, NULL, NULL);
+}
+
+void VolumeNode::compile(OSLCompiler& compiler)
+{
+	assert(0);
+}
+
+/* Transparent Volume Closure */
+
+TransparentVolumeNode::TransparentVolumeNode()
+{
+	closure = CLOSURE_VOLUME_TRANSPARENT_ID;
+}
+
+void TransparentVolumeNode::compile(SVMCompiler& compiler)
+{
+	VolumeNode::compile(compiler, input("Density"), NULL);
+}
+
+void TransparentVolumeNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_isotropic_volume");
+}
+
+/* Isotropic Volume Closure */
+
+IsotropicVolumeNode::IsotropicVolumeNode()
+{
+	closure = CLOSURE_VOLUME_ISOTROPIC_ID;
+}
+
+void IsotropicVolumeNode::compile(SVMCompiler& compiler)
+{
+	VolumeNode::compile(compiler, input("Density"), NULL);
+}
+
+void IsotropicVolumeNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_isotropic_volume");
+}
+
 /* Geometry */
 
 GeometryNode::GeometryNode()

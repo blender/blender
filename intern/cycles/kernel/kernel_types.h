@@ -218,7 +218,8 @@ enum ShaderDataFlag {
 	SD_BSDF = 4,			/* have bsdf closure? */
 	SD_BSDF_HAS_EVAL = 8,	/* have non-singular bsdf closure? */
 	SD_BSDF_GLOSSY = 16,	/* have glossy bsdf */
-	SD_HOLDOUT = 32			/* have holdout closure? */
+	SD_HOLDOUT = 32,		/* have holdout closure? */
+	SD_VOLUME = 64			/* have volume closure? */
 };
 
 typedef struct ShaderData {

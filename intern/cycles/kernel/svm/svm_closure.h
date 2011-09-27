@@ -192,6 +192,47 @@ __device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *st
 	}
 }
 
+__device void svm_node_closure_volume(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int path_flag)
+{
+	uint type, param1_offset, param2_offset;
+
+#ifdef __MULTI_CLOSURE__
+	uint mix_weight_offset;
+	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, &mix_weight_offset);
+	float mix_weight = (stack_valid(mix_weight_offset)? stack_load_float(stack, mix_weight_offset): 1.0f);
+
+	if(mix_weight == 0.0f)
+		return;
+#else
+	decode_node_uchar4(node.y, &type, &param1_offset, &param2_offset, NULL);
+	float mix_weight = 1.0f;
+#endif
+
+	float param1 = (stack_valid(param1_offset))? stack_load_float(stack, param1_offset): __int_as_float(node.z);
+	//float param2 = (stack_valid(param2_offset))? stack_load_float(stack, param2_offset): __int_as_float(node.w);
+
+	switch(type) {
+		case CLOSURE_VOLUME_TRANSPARENT_ID: {
+			ShaderClosure *sc = svm_node_closure_get(sd);
+			svm_node_closure_set_mix_weight(sc, mix_weight);
+
+			float density = param1;
+			volume_transparent_setup(sd, sc, density);
+			break;
+		}
+		case CLOSURE_VOLUME_ISOTROPIC_ID: {
+			ShaderClosure *sc = svm_node_closure_get(sd);
+			svm_node_closure_set_mix_weight(sc, mix_weight);
+
+			float density = param1;
+			volume_isotropic_setup(sd, sc, density);
+			break;
+		}
+		default:
+			break;
+	}
+}
+
 __device void svm_node_closure_emission(ShaderData *sd, float *stack, uint4 node)
 {
 #ifdef __MULTI_CLOSURE__

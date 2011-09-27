@@ -275,6 +275,14 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Node *
 			node = new EmissionNode();
 			break;
 		}
+		case BL::ShaderNode::type_VOLUME_ISOTROPIC: {
+			node = new IsotropicVolumeNode();
+			break;
+		}
+		case BL::ShaderNode::type_VOLUME_TRANSPARENT: {
+			node = new TransparentVolumeNode();
+			break;
+		}
 		case BL::ShaderNode::type_GEOMETRY: {
 			node = new GeometryNode();
 			break;

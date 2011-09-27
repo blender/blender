@@ -262,6 +262,25 @@ public:
 	SHADER_NODE_CLASS(HoldoutNode)
 };
 
+class VolumeNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(VolumeNode)
+
+	void compile(SVMCompiler& compiler, ShaderInput *param1, ShaderInput *param2);
+
+	ClosureType closure;
+};
+
+class TransparentVolumeNode : public VolumeNode {
+public:
+	SHADER_NODE_CLASS(TransparentVolumeNode)
+};
+
+class IsotropicVolumeNode : public VolumeNode {
+public:
+	SHADER_NODE_CLASS(IsotropicVolumeNode)
+};
+
 class GeometryNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(GeometryNode)

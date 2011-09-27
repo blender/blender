@@ -75,6 +75,8 @@ void register_node_type_sh_bsdf_transparent(ListBase *lb);
 void register_node_type_sh_bsdf_velvet(ListBase *lb);
 void register_node_type_sh_emission(ListBase *lb);
 void register_node_type_sh_holdout(ListBase *lb);
+void register_node_type_sh_volume_transparent(ListBase *lb);
+void register_node_type_sh_volume_isotropic(ListBase *lb);
 void register_node_type_sh_mix_shader(ListBase *lb);
 void register_node_type_sh_add_shader(ListBase *lb);
 

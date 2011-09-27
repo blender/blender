@@ -138,6 +138,8 @@ set(SRC
 	shader/nodes/node_shader_blend_weight.c
 	shader/nodes/node_shader_geometry.c
 	shader/nodes/node_shader_holdout.c
+	shader/nodes/node_shader_volume_transparent.c
+	shader/nodes/node_shader_volume_isotropic.c
 	shader/nodes/node_shader_light_path.c
 	shader/nodes/node_shader_mix_shader.c
 	shader/nodes/node_shader_add_shader.c

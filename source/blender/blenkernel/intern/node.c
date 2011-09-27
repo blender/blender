@@ -1886,9 +1886,11 @@ static void registerShaderNodes(ListBase *ntypelist)
 	register_node_type_sh_bsdf_transparent(ntypelist);
 	register_node_type_sh_bsdf_velvet(ntypelist);
 	register_node_type_sh_emission(ntypelist);
+	register_node_type_sh_volume_transparent(ntypelist);
+	register_node_type_sh_volume_isotropic(ntypelist);
+	register_node_type_sh_holdout(ntypelist);
 	register_node_type_sh_mix_shader(ntypelist);
 	register_node_type_sh_add_shader(ntypelist);
-	register_node_type_sh_holdout(ntypelist);
 
 	register_node_type_sh_output_lamp(ntypelist);
 	register_node_type_sh_output_material(ntypelist);

@@ -184,6 +184,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_CLOSURE_HOLDOUT:
 				svm_node_closure_holdout(sd, stack, node);
 				break;
+			case NODE_CLOSURE_VOLUME:
+				svm_node_closure_volume(kg, sd, stack, node, path_flag);
+				break;
 			case NODE_CLOSURE_SET_WEIGHT:
 				svm_node_closure_set_weight(sd, node.y, node.z, node.w);
 				break;
