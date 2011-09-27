@@ -839,8 +839,13 @@ elseif(WIN32)
 		if(WITH_BOOST)
 			set(BOOST ${LIBDIR}/boost)
 			set(BOOST_INCLUDE_DIR ${BOOST}/include)
-			set(BOOST_POSTFIX "vc90-mt-s-1_46_1.lib")
-			set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_46_1.lib")
+			if(CMAKE_CL_64)
+				set(BOOST_POSTFIX "vc90-mt-s-1_45.lib")
+				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_45.lib")
+			else()
+				set(BOOST_POSTFIX "vc90-mt-s-1_46_1.lib")
+				set(BOOST_DEBUG_POSTFIX "vc90-mt-sgd-1_46_1.lib")
+			endif()
 			set(BOOST_LIBRARIES
 				optimized libboost_date_time-${BOOST_POSTFIX} libboost_filesystem-${BOOST_POSTFIX}
 				libboost_regex-${BOOST_POSTFIX} libboost_system-${BOOST_POSTFIX} libboost_thread-${BOOST_POSTFIX}
