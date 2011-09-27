@@ -723,24 +723,6 @@ elseif(APPLE)
 			CODE
 			"file(REMOVE_RECURSE ${PLAYER_TARGETDIR_VER})"
 		)
-	
-
-		# handy install macro to exclude files, we use \$ escape for the "to"
-		# argument when calling so ${BUILD_TYPE} does not get expanded
-		macro(install_dir from to)
-			install(
-				DIRECTORY ${from}
-				DESTINATION ${to}
-				PATTERN ".svn" EXCLUDE
-				PATTERN "*.pyc" EXCLUDE
-				PATTERN "*.pyo" EXCLUDE
-				PATTERN "*.orig" EXCLUDE
-				PATTERN "*.rej" EXCLUDE
-				PATTERN "__pycache__" EXCLUDE
-				PATTERN "__MACOSX" EXCLUDE
-				PATTERN ".DS_Store" EXCLUDE
-			)
-		endmacro()
 
 		install(
 			FILES ${PLAYER_SOURCEDIR}/Contents/PkgInfo
@@ -751,27 +733,6 @@ elseif(APPLE)
 			${PLAYER_SOURCEDIR}/Contents/Resources
 			\${TARGETDIR}/blenderplayer.app/Contents/
 		)
-
-		install(
-			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.bfont.ttf
-			DESTINATION ${PLAYER_TARGETDIR_VER}
-		)
-
-		# localization
-		if(WITH_INTERNATIONAL)
-		install(
-				FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-				DESTINATION ${PLAYER_TARGETDIR_VER}/datafiles
-			)
-
-			install(
-			DIRECTORY
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
-					${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
-				DESTINATION ${PLAYER_TARGETDIR_VER}/datafiles
-				PATTERN ".svn" EXCLUDE
-			)
-		endif()
 
 		# python
 		if(WITH_PYTHON)
