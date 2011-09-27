@@ -213,11 +213,13 @@ static MenuData *decompose_menu_string(const char *str)
 				nicon= 0;
 			}
 			
-			if (c=='\0')
+			if (c=='\0') {
 				break;
-		} else if (!nitem)
+			}
+		} else if (!nitem) {
 			nitem= s;
-		
+		}
+
 		s++;
 	}
 	
@@ -233,6 +235,7 @@ void ui_set_name_menu(uiBut *but, int value)
 	for (i=0; i<md->nitems; i++) {
 		if (md->items[i].retval==value) {
 			BLI_strncpy(but->drawstr, md->items[i].str, sizeof(but->drawstr));
+			break;
 		}
 	}
 	
@@ -1647,11 +1650,12 @@ static void ui_block_func_MENUSTR(bContext *UNUSED(C), uiLayout *layout, void *a
 	}
 
 	/* inconsistent, but menus with labels do not look good flipped */
-	for(a=0, b=0; a<md->nitems; a++, b++) {
-		entry= &md->items[a];
-
-		if(entry->sepr && entry->str[0])
+	entry= md->items;
+	for(a=0; a<md->nitems; a++, entry++) {
+		if(entry->sepr && entry->str[0]) {
 			block->flag |= UI_BLOCK_NO_FLIP;
+			break;
+		}
 	}
 
 	/* create items */
@@ -2555,7 +2559,7 @@ void uiPupMenuInvoke(bContext *C, const char *idname)
 	MenuType *mt= WM_menutype_find(idname, TRUE);
 
 	if(mt==NULL) {
-		printf("uiPupMenuInvoke: named menu \"%s\" not found\n", idname);
+		printf("%s: named menu \"%s\" not found\n", __func__, idname);
 		return;
 	}
 

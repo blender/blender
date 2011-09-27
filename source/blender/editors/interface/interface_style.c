@@ -357,7 +357,7 @@ void uiStyleInit(void)
 
 		if (font->blf_id == -1) {
 			if (G.f & G_DEBUG)
-				printf("uiStyleInit error, no fonts available\n");
+				printf("%s: error, no fonts available\n", __func__);
 		}
 		else {
 			/* ? just for speed to initialize?
