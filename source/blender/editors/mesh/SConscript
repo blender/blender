@@ -3,6 +3,8 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
+defs = []
+
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../gpu ../../blenloader'
@@ -21,4 +23,4 @@ if env['WITH_BF_GAMEENGINE']:
 else:
     sources.remove('mesh_navmesh.c')
 
-env.BlenderLib ( 'bf_editors_mesh', sources, Split(incs), [], libtype=['core'], priority=[45] )
+env.BlenderLib ( 'bf_editors_mesh', sources, Split(incs), defs, libtype=['core'], priority=[45] )
