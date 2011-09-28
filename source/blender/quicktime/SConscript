@@ -35,5 +35,7 @@ defs=['WITH_QUICKTIME']
 
 if env['WITH_GHOST_COCOA']:
     defs.append('GHOST_COCOA')
-
-env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities)
+if env['WITH_GHOST_COCOA'] and env['CC'].endswith('4.6.1'):
+    env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities, cc_compilerchange='/usr/bin/gcc-4.2', cxx_compilerchange='/usr/bin/gcc-4.2')
+else:
+    env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=defs, libtype=types, priority=priorities)
