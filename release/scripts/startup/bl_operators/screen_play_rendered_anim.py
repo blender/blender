@@ -136,7 +136,7 @@ class PlayRenderedAnim(Operator):
             del process
             # -----------------------------------------------------------------
 
-            opts = ["-a", "-f", str(rd.fps), str(rd.fps_base), file]
+            opts = ["-a", "-f", str(rd.fps), str(rd.fps_base), "-j", str(scene.frame_step), file]
             cmd.extend(opts)
         elif preset == 'DJV':
             opts = [file, "-playback_speed", "%d" % int(rd.fps / rd.fps_base)]
