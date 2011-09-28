@@ -226,13 +226,16 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			oldwm= oldwmlist->first;
 			wm= G.main->wm.first;
 
-			/* move addon key configuration to new wm, to preserve their keymaps */
-			if(oldwm->addonconf) {
-				wm->addonconf= oldwm->addonconf;
-				BLI_remlink(&oldwm->keyconfigs, oldwm->addonconf);
-				oldwm->addonconf= NULL;
-				BLI_addtail(&wm->keyconfigs, wm->addonconf);
-			}
+			/* preserve key configurations in new wm, to preserve their keymaps */
+			wm->keyconfigs= oldwm->keyconfigs;
+			wm->addonconf= oldwm->addonconf;
+			wm->defaultconf= oldwm->defaultconf;
+			wm->userconf= oldwm->userconf;
+
+			oldwm->keyconfigs.first= oldwm->keyconfigs.last= NULL;
+			oldwm->addonconf= NULL;
+			oldwm->defaultconf= NULL;
+			oldwm->userconf= NULL;
 
 			/* ensure making new keymaps and set space types */
 			wm->initialized= 0;
