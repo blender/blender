@@ -56,7 +56,8 @@ static unsigned long bitstream_get_bits(indexer_dv_bitstream * This, int num)
 	return rval;
 }
 
-static int parse_num(indexer_dv_bitstream * b, int numbits) {
+static int parse_num(indexer_dv_bitstream * b, int numbits)
+{
 	return bitstream_get_bits(b, numbits);
 }
 

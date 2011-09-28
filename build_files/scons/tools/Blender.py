@@ -565,25 +565,26 @@ def AppIt(target=None, source=None, env=None):
     cmd = 'cp %s/%s %s/%s.app/Contents/MacOS/%s'%(builddir, binary,installdir, binary, binary)
     commands.getoutput(cmd)
     cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/'%(installdir, binary, VERSION)
-#    print cmd
     commands.getoutput(cmd)
     cmd = installdir + '/%s.app/Contents/MacOS/%s'%(binary,VERSION)
-    cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles'%(installdir, binary, VERSION)
-    commands.getoutput(cmd)
-    cmd = 'cp -R %s/release/bin/.blender/locale %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
-    commands.getoutput(cmd)
-    cmd = 'cp -R %s/release/bin/.blender/fonts %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
-    commands.getoutput(cmd)
-    cmd = 'cp %s/release/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
-    commands.getoutput(cmd)
+
+    # blenderplayer doesn't need all the files
+    if binary == 'blender':
+        cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/datafiles'%(installdir, binary, VERSION)
+        commands.getoutput(cmd)
+        cmd = 'cp -R %s/release/bin/.blender/locale %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+        cmd = 'cp -R %s/release/bin/.blender/fonts %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+        cmd = 'cp %s/release/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
+        commands.getoutput(cmd)
+        cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
+        commands.getoutput(cmd)
+
     if env['WITH_OSX_STATICPYTHON']:
         cmd = 'mkdir %s/%s.app/Contents/MacOS/%s/python/'%(installdir,binary, VERSION)
         commands.getoutput(cmd)
         cmd = 'unzip -q %s/release/%s -d %s/%s.app/Contents/MacOS/%s/python/'%(libdir,python_zip,installdir,binary,VERSION)
-        commands.getoutput(cmd) 
-
-    if binary == 'blender':#not copy everything for blenderplayer
-        cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
 
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(installdir,binary, binary)

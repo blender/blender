@@ -240,7 +240,8 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 	return names;
 }		
 
-void BLO_blendhandle_close(BlendHandle *bh) {
+void BLO_blendhandle_close(BlendHandle *bh)
+{
 	FileData *fd= (FileData*) bh;
 	
 	blo_freefiledata(fd);

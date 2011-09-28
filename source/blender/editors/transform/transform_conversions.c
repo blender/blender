@@ -2201,6 +2201,12 @@ void flushTransNodes(TransInfo *t)
 }
 
 /* *** SEQUENCE EDITOR *** */
+
+/* commented _only_ because the meta may have animaion data which
+ * needs moving too [#28158] */
+
+#define SEQ_TX_NESTED_METAS
+
 void flushTransSeq(TransInfo *t)
 {
 	ListBase *seqbasep= seq_give_editing(t->scene, FALSE)->seqbasep; /* Editing null check already done */
@@ -2226,9 +2232,13 @@ void flushTransSeq(TransInfo *t)
 
 		switch (tdsq->sel_flag) {
 		case SELECT:
+#ifdef SEQ_TX_NESTED_METAS
+			if ((seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
+				seq->start= new_frame - tdsq->start_offset;
+#else
 			if (seq->type != SEQ_META && (seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
 				seq->start= new_frame - tdsq->start_offset;
-
+#endif
 			if (seq->depth==0) {
 				seq->machine= (int)floor(td2d->loc[1] + 0.5f);
 				CLAMP(seq->machine, 1, MAXSEQ);
@@ -2283,7 +2293,7 @@ void flushTransSeq(TransInfo *t)
 		seq_prev= seq;
 	}
 
-	if (t->mode == TFM_TIME_TRANSLATE) { /* originally TFM_TIME_EXTEND, transform changes */
+	if (t->mode == TFM_SEQ_SLIDE) { /* originally TFM_TIME_EXTEND, transform changes */
 		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
 		seq= seqbasep->first;
 
@@ -3835,6 +3845,11 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 		else {
 			/* Nested, different rules apply */
 
+#ifdef SEQ_TX_NESTED_METAS
+			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+			*count= 1; /* ignore the selection for nested */
+			*recursive = (seq->type == SEQ_META	);
+#else
 			if (seq->type == SEQ_META) {
 				/* Meta's can only directly be moved between channels since they
 				 * dont have their start and length set directly (children affect that)
@@ -3849,6 +3864,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 				*count= 1; /* ignore the selection for nested */
 				*recursive = 0;
 			}
+#endif
 		}
 	}
 }

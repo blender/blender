@@ -2792,7 +2792,8 @@ int setcurr_tab_spaces (Text *text, int space)
 /*********************************/
 
 /* Creates and adds a marker to the list maintaining sorted order */
-void txt_add_marker(Text *text, TextLine *line, int start, int end, const unsigned char color[4], int group, int flags) {
+void txt_add_marker(Text *text, TextLine *line, int start, int end, const unsigned char color[4], int group, int flags)
+{
 	TextMarker *tmp, *marker;
 
 	marker= MEM_mallocN(sizeof(TextMarker), "text_marker");
@@ -2841,7 +2842,8 @@ TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int en
 /* Clears all markers on the specified line between two points. If the group or
    flags fields are non-zero the returned flag must be in the specified group
    and have at least the specified flags set. */
-short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags) {
+short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, int group, int flags)
+{
 	TextMarker *marker, *next;
 	int lineno= txt_get_span(text->lines.first, line);
 	short cleared= 0;
@@ -2866,7 +2868,8 @@ short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, in
 /* Clears all markers in the specified group (if given) with at least the
    specified flags set. Useful for clearing temporary markers (group=0,
    flags=TMARK_TEMP) */
-short txt_clear_markers(Text *text, int group, int flags) {
+short txt_clear_markers(Text *text, int group, int flags)
+{
 	TextMarker *marker, *next;
 	short cleared= 0;
 	

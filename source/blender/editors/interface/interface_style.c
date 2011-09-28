@@ -42,6 +42,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_global.h"
 
@@ -357,7 +358,7 @@ void uiStyleInit(void)
 
 		if (font->blf_id == -1) {
 			if (G.f & G_DEBUG)
-				printf("uiStyleInit error, no fonts available\n");
+				printf("%s: error, no fonts available\n", __func__);
 		}
 		else {
 			/* ? just for speed to initialize?

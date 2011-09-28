@@ -4140,8 +4140,8 @@ static PyObject *pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *
 
 /* only needed for subtyping, so a new class gets a valid BPy_StructRNA
  * todo - also accept useful args */
-static PyObject *pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED(kwds)) {
-
+static PyObject *pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED(kwds))
+{
 	BPy_PropertyRNA *base;
 
 	if (!PyArg_ParseTuple(args, "O!:bpy_prop.__new__", &pyrna_prop_Type, &base))

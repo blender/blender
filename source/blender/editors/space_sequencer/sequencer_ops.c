@@ -165,7 +165,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_toggle", TABKEY, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_make", GKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_make", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_separate", GKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);

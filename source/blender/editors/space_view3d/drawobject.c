@@ -1985,7 +1985,8 @@ static void drawSelectedVertices__mapFunc(void *userData, int index, float *co, 
 	}
 }
 
-static void drawSelectedVertices(DerivedMesh *dm, Mesh *me) {
+static void drawSelectedVertices(DerivedMesh *dm, Mesh *me)
+{
 	glBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, drawSelectedVertices__mapFunc, me->mvert);
 	glEnd();

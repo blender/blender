@@ -407,7 +407,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         return strip.type in {'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
-                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'SPEED',
                               'MULTICAM', 'ADJUSTMENT'}
 
     def draw(self, context):

@@ -426,7 +426,7 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 
 
 //sets the rna_path and array index to curve
-void AnimationImporter::modify_fcurve(std::vector<FCurve*>* curves , char* rna_path , int array_index )
+void AnimationImporter::modify_fcurve(std::vector<FCurve*>* curves , const char* rna_path , int array_index )
 {
 	std::vector<FCurve*>::iterator it;
 	int i;

@@ -422,11 +422,11 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 static int create_navmesh_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene* scene= CTX_data_scene(C);
-	int nverts, ntris;
-	float* verts;
-	int* tris;
-	struct recast_polyMesh *pmesh;
-	struct recast_polyMeshDetail *dmesh;
+	int nverts= 0, ntris= 0;
+	float *verts= NULL;
+	int *tris= 0;
+	struct recast_polyMesh *pmesh= NULL;
+	struct recast_polyMeshDetail *dmesh= NULL;
 	LinkNode* obs= NULL;
 	Base* navmeshBase= NULL;
 

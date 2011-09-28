@@ -267,6 +267,18 @@ static int bpy_prop_callback_assign(struct PropertyRNA *prop, PyObject *update_c
 	return 0;
 }
 
+/* utility function we need for parsing int's in an if statement */
+static int py_long_as_int(PyObject *py_long, int *r_int)
+{
+	if(PyLong_CheckExact(py_long)) {
+		*r_int= (int)PyLong_AS_LONG(py_long);
+		return 0;
+	}
+	else {
+		return -1;
+	}
+}
+
 /* this define runs at the start of each function and deals with 
  * returning a deferred property (to be registered later) */
 #define BPY_PROPDEF_HEAD(_func)	\
@@ -914,6 +926,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 	for(i=0; i<seq_len; i++) {
 		EnumPropertyItem tmp= {0, "", 0, "", ""};
+		Py_ssize_t item_size;
 		Py_ssize_t id_str_size;
 		Py_ssize_t name_str_size;
 		Py_ssize_t desc_str_size;
@@ -921,13 +934,17 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		item= PySequence_Fast_GET_ITEM(seq_fast, i);
 
 		if(		(PyTuple_CheckExact(item)) &&
-		        (PyTuple_GET_SIZE(item) == 3) &&
+		        (item_size= PyTuple_GET_SIZE(item)) &&
+		        (item_size == 3 || item_size == 4) &&
 		        (tmp.identifier=  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
 		        (tmp.name=        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
-		        (tmp.description= _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size))
+		        (tmp.description= _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
+		        (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1) /* TODO, number isnt ensured to be unique from the script author */
 		) {
 			if(is_enum_flag) {
-				tmp.value= 1<<i;
+				if(item_size < 4) {
+					tmp.value= 1<<i;
+				}
 
 				if(def && PySet_Contains(def, PyTuple_GET_ITEM(item, 0))) {
 					*defvalue |= tmp.value;
@@ -935,7 +952,9 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 				}
 			}
 			else {
-				tmp.value= i;
+				if(item_size < 4) {
+					tmp.value= i;
+				}
 
 				if(def && def_used == 0 && strcmp(def_cmp, tmp.identifier)==0) {
 					*defvalue= tmp.value;
@@ -950,7 +969,10 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		}
 		else {
 			MEM_freeN(items);
-			PyErr_SetString(PyExc_TypeError, "EnumProperty(...): expected an tuple containing (identifier, name description)");
+			PyErr_SetString(PyExc_TypeError,
+			                "EnumProperty(...): expected an tuple containing "
+			                "(identifier, name description) and optionally a "
+			                "unique number");
 			return NULL;
 		}
 
@@ -973,7 +995,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 			PyErr_Format(PyExc_TypeError,
 			             "EnumProperty(..., default=\'%s\'): not found in enum members",
-			             def);
+			             def_cmp);
 			return NULL;
 		}
 	}
@@ -1081,8 +1103,9 @@ BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'ENUM_FLAG'].\n"
 "   :type options: set\n"
 "   :arg items: sequence of enum items formatted:\n"
-"      [(identifier, name, description), ...] where the identifier is used\n"
+"      [(identifier, name, description, number), ...] where the identifier is used\n"
 "      for python access and other values are used for the interface.\n"
+"      Note the item is optional.\n"
 "      For dynamic values a callback can be passed which returns a list in\n"
 "      the same format as the static list.\n"
 "      This function must take 2 arguments (self, context)\n"

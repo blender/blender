@@ -908,7 +908,8 @@ static int apply_boid_rule(BoidBrainData *bbd, BoidRule *rule, BoidValues *val, 
 	else
 		return 0;
 }
-static BoidState *get_boid_state(BoidSettings *boids, ParticleData *pa) {
+static BoidState *get_boid_state(BoidSettings *boids, ParticleData *pa)
+{
 	BoidState *state = boids->states.first;
 	BoidParticle *bpa = pa->boid;
 
