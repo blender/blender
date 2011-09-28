@@ -102,7 +102,7 @@ if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-v
 if window_system in ('win32-vc', 'win64-vc'):
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15]) #, cc_compileflags=env['CCFLAGS'].append('/WX') )
 
-elif env['OURPLATFORM'] == 'darwin' and env['CC'].endswith('4.6.1'):	 # compile ghost always with apple-gcc to keep objectiveC compatibility
+elif env['OURPLATFORM'] == 'darwin':	 # compile ghost always with apple-gcc to keep objectiveC compatibility
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compilerchange='/usr/bin/gcc-4.2', cxx_compilerchange='/usr/bin/gcc-4.2' ) #, cc_compileflags=env['CXXFLAGS'].append('-fobjc-exceptions')
     print "GHOST COCOA WILL BE COMPILED WITH APPLE GCC"
 
