@@ -289,7 +289,8 @@ static void wm_init_userdef(bContext *C)
 		if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
 		else											  G.f &= ~G_SCRIPT_AUTOEXEC;
 	}
-	if(U.tempdir[0]) BLI_where_is_temp(btempdir, FILE_MAX, 1);
+	/* update tempdir from user preferences */
+	BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
 
@@ -853,14 +854,14 @@ void wm_autosave_location(char *filepath)
 	 * BLI_make_file_string will create string that has it most likely on C:\
 	 * through get_default_root().
 	 * If there is no C:\tmp autosave fails. */
-	if (!BLI_exists(U.tempdir)) {
+	if (!BLI_exists(btempdir)) {
 		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
 		BLI_make_file_string("/", filepath, savedir, pidstr);
 		return;
 	}
 #endif
-	
-	BLI_make_file_string("/", filepath, U.tempdir, pidstr);
+
+	BLI_make_file_string("/", filepath, btempdir, pidstr);
 }
 
 void WM_autosave_init(wmWindowManager *wm)
@@ -918,7 +919,7 @@ void wm_autosave_delete(void)
 
 	if(BLI_exists(filename)) {
 		char str[FILE_MAXDIR+FILE_MAXFILE];
-		BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+		BLI_make_file_string("/", str, btempdir, "quit.blend");
 
 		/* if global undo; remove tempsave, otherwise rename */
 		if(U.uiflag & USER_GLOBALUNDO) BLI_delete(filename, 0, 0);
