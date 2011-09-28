@@ -145,6 +145,7 @@ class SEQUENCER_MT_select(Menu):
         layout.operator("sequencer.select_handles", text="Left Handle").side = 'LEFT'
         layout.operator("sequencer.select_handles", text="Right Handle").side = 'RIGHT'
         layout.separator()
+        layout.operator_menu_enum("object.select_grouped", "type", text="Grouped")
         layout.operator("sequencer.select_linked")
         layout.operator("sequencer.select_all_toggle")
         layout.operator("sequencer.select_inverse")

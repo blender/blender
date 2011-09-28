@@ -134,7 +134,7 @@ void SEQUENCER_OT_select_handles(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_active_side(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_border(struct wmOperatorType *ot);
 void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot);
-
+void SEQUENCER_OT_select_grouped(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot);
