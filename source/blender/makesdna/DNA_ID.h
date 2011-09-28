@@ -204,6 +204,8 @@ typedef struct PreviewImage {
 
 #define ID_REAL_USERS(id) (((ID *)id)->us - ((((ID *)id)->flag & LIB_FAKEUSER) ? 1:0))
 
+#define ID_CHECK_UNDO(id) ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM))
+
 #ifdef GS
 #undef GS
 #endif

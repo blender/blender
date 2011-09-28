@@ -295,10 +295,31 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 		if(RNA_property_reset(&ptr, prop, (all)? -1: index)) {
 			/* perform updates required for this property */
 			RNA_property_update(C, &ptr, prop);
+
+			/* as if we pressed the button */
+			uiContextActivePropertyHandle(C);
+
 			success= 1;
 		}
 	}
-	
+
+	/* Since we dont want to undo _all_ edits to settings, eg window
+	 * edits on the screen or on operator settings.
+	 * it might be better to move undo's inline - campbell */
+	/* Note that buttons already account for this, it might be better to
+	 * have a way to edit the buttons rather than set the rna since block
+	 * callbacks also fail to run. */
+	if(success) {
+		ID *id= ptr.id.data;
+		if(id && ID_CHECK_UNDO(id)) {
+			/* do nothing, go ahead with undo */
+		}
+		else {
+			return OPERATOR_CANCELLED;
+		}
+	}
+	/* end hack */
+
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
@@ -314,7 +335,7 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
 	ot->exec= reset_default_button_exec;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");

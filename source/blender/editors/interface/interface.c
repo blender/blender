@@ -746,7 +746,7 @@ static int ui_but_is_rna_undo(uiBut *but)
 		 * unforseen conciquences, so best check for ID's we _know_ are not
 		 * handled by undo - campbell */
 		ID *id= but->rnapoin.id.data;
-		if(ELEM(GS(id->name), ID_SCR, ID_WM)) {
+		if(ID_CHECK_UNDO(id) == FALSE) {
 			return FALSE;
 		}
 		else {
