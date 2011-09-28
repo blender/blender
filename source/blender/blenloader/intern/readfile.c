@@ -7058,7 +7058,7 @@ void convert_tface_mt(FileData *fd, Main *main)
 		G.main = main;
 
 		if(!(do_version_tface(main, 1))) {
-			BKE_report(fd->reports, RPT_ERROR, "Texface conversion problem. Error in console");
+			BKE_report(fd->reports, RPT_WARNING, "Texface conversion problem. Error in console");
 		}
 
 		//XXX hack, material.c uses G.main allover the place, instead of main
