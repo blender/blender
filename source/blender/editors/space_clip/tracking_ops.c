@@ -1487,7 +1487,7 @@ static int check_solve_track_count(MovieTracking *tracking)
 		track= track->next;
 	}
 
-	return tot>=10;
+	return tot>=8;
 }
 
 static int solve_camera_exec(bContext *C, wmOperator *op)
