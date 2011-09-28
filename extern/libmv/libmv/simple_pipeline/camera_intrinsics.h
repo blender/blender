@@ -26,6 +26,8 @@ typedef Eigen::Matrix<double, 3, 3> Mat3;
 
 namespace libmv {
 
+struct Grid;
+
 class CameraIntrinsics {
  public:
   CameraIntrinsics();
