@@ -559,7 +559,8 @@ static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
+	if(ed)
+		free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
 }
 
 static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
