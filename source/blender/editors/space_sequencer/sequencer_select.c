@@ -889,11 +889,13 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 	{1, "TYPE", 0, "Type", "Shared strip type"},
 	{2, "TYPE_BASIC", 0, "Global Type", "All strips of same basic type (Graphical or Sound)"},
-	{3, "TYPE_EFFECT", 0, "Effect Type", "Shared strip effect type (if active strip is not an effect one, select all non-effect strips)"},
+	{3, "TYPE_EFFECT", 0, "Effect Type",
+	    "Shared strip effect type (if active strip is not an effect one, select all non-effect strips)"},
 	{4, "DATA", 0, "Data", "Shared data (scene, image, sound, etc.)"},
 	{5, "EFFECT", 0, "Effect", "Shared effects"},
-	{6, "EFFECT_LINK", 0, "Effect/Linked", "Other strips affected by the active one (sharing some time, and below or effect-assigned)"},
-    {7, "OVERLAP", 0, "Overlap", "Overlapping time"},
+	{6, "EFFECT_LINK", 0, "Effect/Linked",
+	    "Other strips affected by the active one (sharing some time, and below or effect-assigned)"},
+	{7, "OVERLAP", 0, "Overlap", "Overlapping time"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1033,7 +1035,7 @@ static short select_grouped_time_overlap(Editing *ed, Sequence *actseq)
 
 static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 {
-	Sequence *seq;
+	Sequence *seq = NULL;
 	short changed = FALSE;
 	short is_audio = ((actseq->type == SEQ_META) || SEQ_IS_SOUND(actseq));
 	int startdisp = actseq->startdisp;

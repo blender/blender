@@ -903,7 +903,7 @@ static void do_material_tex(GPUShadeInput *shi)
 	/*char *lastuvname = NULL;*/ /*UNUSED*/
 	float one = 1.0f, norfac, ofs[3];
 	int tex_nr, rgbnor, talpha;
-	int init_done = 0, iBumpSpacePrev;
+	int init_done = 0, iBumpSpacePrev = 0; /* Not necessary, quiting gcc warning. */
 	GPUNodeLink *vNorg, *vNacc, *fPrevMagnitude;
 	int iFirstTimeNMap=1;
 	int found_deriv_map = 0;
