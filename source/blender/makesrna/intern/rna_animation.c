@@ -272,7 +272,7 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 	if (ksp->rna_path)
 		MEM_freeN(ksp->rna_path);
 	
-	if (strlen(value))
+	if (value[0])
 		ksp->rna_path= BLI_strdup(value);
 	else 
 		ksp->rna_path= NULL;

@@ -236,7 +236,7 @@ static void rna_DriverTarget_RnaPath_set(PointerRNA *ptr, const char *value)
 	if (dtar->rna_path)
 		MEM_freeN(dtar->rna_path);
 	
-	if (strlen(value))
+	if (value[0])
 		dtar->rna_path= BLI_strdup(value);
 	else 
 		dtar->rna_path= NULL;
@@ -329,7 +329,7 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 	if (fcu->rna_path)
 		MEM_freeN(fcu->rna_path);
 	
-	if (strlen(value)) {
+	if (value[0]) {
 		fcu->rna_path= BLI_strdup(value);
 		fcu->flag &= ~FCURVE_DISABLED;
 	}
