@@ -1,0 +1,215 @@
+diff --git a/src/libmv/simple_pipeline/camera_intrinsics.cc b/src/libmv/simple_pipeline/camera_intrinsics.cc
+index f9888ff..e1e6117 100644
+--- a/src/libmv/simple_pipeline/camera_intrinsics.cc
++++ b/src/libmv/simple_pipeline/camera_intrinsics.cc
+@@ -24,6 +24,7 @@
+ namespace libmv {
+ 
+ struct Offset { signed char ix,iy; unsigned char fx,fy; };
++struct Grid { struct Offset *offset; int width, height; };
+ 
+ CameraIntrinsics::CameraIntrinsics()
+     : K_(Mat3::Identity()),
+@@ -38,8 +39,7 @@ CameraIntrinsics::CameraIntrinsics()
+       undistort_(0) {}
+ 
+ CameraIntrinsics::~CameraIntrinsics() {
+-  if(distort_) delete[] distort_;
+-  if(undistort_) delete[] undistort_;
++  FreeLookupGrid();
+ }
+ 
+ /// Set the entire calibration matrix at once.
+@@ -146,11 +146,17 @@ void CameraIntrinsics::InvertIntrinsics(double image_x,
+ 
+ // TODO(MatthiasF): downsample lookup
+ template<typename WarpFunction>
+-void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
++void CameraIntrinsics::ComputeLookupGrid(Grid* grid, int width, int height) {
++  double aspx = (double)width / image_width_;
++  double aspy = (double)height / image_height_;
++
+   for (int y = 0; y < height; y++) {
+     for (int x = 0; x < width; x++) {
++      double src_x = x / aspx, src_y = y / aspy;
+       double warp_x, warp_y;
+-      WarpFunction(this,x,y,&warp_x,&warp_y);
++      WarpFunction(this,src_x,src_y,&warp_x,&warp_y);
++      warp_x *= aspx;
++      warp_y *= aspy;
+       int ix = int(warp_x), iy = int(warp_y);
+       int fx = round((warp_x-ix)*256), fy = round((warp_y-iy)*256);
+       if(fx == 256) { fx=0; ix++; }
+@@ -162,10 +168,10 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
+       if( iy >= height-2 ) iy = height-2;
+       if ( ix-x > -128 && ix-x < 128 && iy-y > -128 && iy-y < 128 ) {
+         Offset offset = { ix-x, iy-y, fx, fy };
+-        grid[y*width+x] = offset;
++        grid->offset[y*width+x] = offset;
+       } else {
+         Offset offset = { 0, 0, 0, 0 };
+-        grid[y*width+x] = offset;
++        grid->offset[y*width+x] = offset;
+       }
+     }
+   }
+@@ -173,11 +179,11 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
+ 
+ // TODO(MatthiasF): cubic B-Spline image sampling, bilinear lookup
+ template<typename T,int N>
+-static void Warp(const Offset* grid, const T* src, T* dst,
++static void Warp(const Grid* grid, const T* src, T* dst,
+                  int width, int height) {
+   for (int y = 0; y < height; y++) {
+     for (int x = 0; x < width; x++) {
+-      Offset offset = grid[y*width+x];
++      Offset offset = grid->offset[y*width+x];
+       const T* s = &src[((y+offset.iy)*width+(x+offset.ix))*N];
+       for (int i = 0; i < N; i++) {
+         dst[(y*width+x)*N+i] = ((s[        i] * (256-offset.fx) + s[        N+i] * offset.fx) * (256-offset.fy)
+@@ -188,8 +194,17 @@ static void Warp(const Offset* grid, const T* src, T* dst,
+ }
+ 
+ void CameraIntrinsics::FreeLookupGrid() {
+-  if(distort_) delete distort_, distort_=0;
+-  if(undistort_) delete undistort_, undistort_=0;
++  if(distort_) {
++    delete distort_;
++    delete distort_->offset;
++    distort_ = NULL;
++  }
++
++  if(undistort_) {
++    delete undistort_;
++    delete undistort_->offset;
++    undistort_ = NULL;
++  }
+ }
+ 
+ // FIXME: C++ templates limitations makes thing complicated, but maybe there is a simpler method.
+@@ -211,11 +226,50 @@ struct InvertIntrinsicsFunction {
+   }
+ };
+ 
+-void CameraIntrinsics::Distort(const float* src, float* dst, int width, int height, int channels) {
+-  if(!distort_) {
+-    distort_ = new Offset[width*height];
+-    ComputeLookupGrid<InvertIntrinsicsFunction>(distort_,width,height);
++void CameraIntrinsics::CheckDistortLookupGrid(int width, int height)
++{
++  if(distort_) {
++    if(distort_->width != width || distort_->height != height) {
++      delete [] distort_->offset;
++      distort_->offset = NULL;
++    }
++  } else {
++    distort_ = new Grid;
++    distort_->offset = NULL;
++  }
++
++  if(!distort_->offset) {
++      distort_->offset = new Offset[width*height];
++      ComputeLookupGrid<InvertIntrinsicsFunction>(distort_,width,height);
+   }
++
++  distort_->width = width;
++  distort_->height = height;
++}
++
++void CameraIntrinsics::CheckUndistortLookupGrid(int width, int height)
++{
++  if(undistort_) {
++    if(undistort_->width != width || undistort_->height != height) {
++      delete [] undistort_->offset;
++      undistort_->offset = NULL;
++    }
++  } else {
++    undistort_ = new Grid;
++    undistort_->offset = NULL;
++  }
++
++  if(!undistort_->offset) {
++      undistort_->offset = new Offset[width*height];
++      ComputeLookupGrid<ApplyIntrinsicsFunction>(undistort_,width,height);
++  }
++
++  undistort_->width = width;
++  undistort_->height = height;
++}
++
++void CameraIntrinsics::Distort(const float* src, float* dst, int width, int height, int channels) {
++  CheckDistortLookupGrid(width, height);
+        if(channels==1) Warp<float,1>(distort_,src,dst,width,height);
+   else if(channels==2) Warp<float,2>(distort_,src,dst,width,height);
+   else if(channels==3) Warp<float,3>(distort_,src,dst,width,height);
+@@ -224,10 +278,7 @@ void CameraIntrinsics::Distort(const float* src, float* dst, int width, int heig
+ }
+ 
+ void CameraIntrinsics::Distort(const unsigned char* src, unsigned char* dst, int width, int height, int channels) {
+-  if(!distort_) {
+-    distort_ = new Offset[width*height];
+-    ComputeLookupGrid<InvertIntrinsicsFunction>(distort_,width,height);
+-  }
++  CheckDistortLookupGrid(width, height);
+        if(channels==1) Warp<unsigned char,1>(distort_,src,dst,width,height);
+   else if(channels==2) Warp<unsigned char,2>(distort_,src,dst,width,height);
+   else if(channels==3) Warp<unsigned char,3>(distort_,src,dst,width,height);
+@@ -236,10 +287,7 @@ void CameraIntrinsics::Distort(const unsigned char* src, unsigned char* dst, int
+ }
+ 
+ void CameraIntrinsics::Undistort(const float* src, float* dst, int width, int height, int channels) {
+-  if(!undistort_) {
+-    undistort_ = new Offset[width*height];
+-    ComputeLookupGrid<ApplyIntrinsicsFunction>(undistort_,width,height);
+-  }
++  CheckUndistortLookupGrid(width, height);
+        if(channels==1) Warp<float,1>(undistort_,src,dst,width,height);
+   else if(channels==2) Warp<float,2>(undistort_,src,dst,width,height);
+   else if(channels==3) Warp<float,3>(undistort_,src,dst,width,height);
+@@ -248,10 +296,7 @@ void CameraIntrinsics::Undistort(const float* src, float* dst, int width, int he
+ }
+ 
+ void CameraIntrinsics::Undistort(const unsigned char* src, unsigned char* dst, int width, int height, int channels) {
+-  if(!undistort_) {
+-    undistort_ = new Offset[width*height];
+-    ComputeLookupGrid<ApplyIntrinsicsFunction>(undistort_,width,height);
+-  }
++  CheckUndistortLookupGrid(width, height);
+        if(channels==1) Warp<unsigned char,1>(undistort_,src,dst,width,height);
+   else if(channels==2) Warp<unsigned char,2>(undistort_,src,dst,width,height);
+   else if(channels==3) Warp<unsigned char,3>(undistort_,src,dst,width,height);
+diff --git a/src/libmv/simple_pipeline/camera_intrinsics.h b/src/libmv/simple_pipeline/camera_intrinsics.h
+index 29bc8a1..99141c6 100644
+--- a/src/libmv/simple_pipeline/camera_intrinsics.h
++++ b/src/libmv/simple_pipeline/camera_intrinsics.h
+@@ -26,8 +26,6 @@ typedef Eigen::Matrix<double, 3, 3> Mat3;
+ 
+ namespace libmv {
+ 
+-struct Offset;
+-
+ class CameraIntrinsics {
+  public:
+   CameraIntrinsics();
+@@ -123,7 +121,9 @@ class CameraIntrinsics {
+                  int width, int height, int channels);
+ 
+  private:
+-  template<typename WarpFunction> void ComputeLookupGrid(Offset* grid, int width, int height);
++  template<typename WarpFunction> void ComputeLookupGrid(struct Grid* grid, int width, int height);
++  void CheckUndistortLookupGrid(int width, int height);
++  void CheckDistortLookupGrid(int width, int height);
+   void FreeLookupGrid();
+ 
+   // The traditional intrinsics matrix from x = K[R|t]X.
+@@ -140,8 +140,8 @@ class CameraIntrinsics {
+   // independent of image size.
+   double k1_, k2_, k3_, p1_, p2_;
+ 
+-  Offset* distort_;
+-  Offset* undistort_;
++  struct Grid *distort_;
++  struct Grid *undistort_;
+ };
+ 
+ }  // namespace libmv

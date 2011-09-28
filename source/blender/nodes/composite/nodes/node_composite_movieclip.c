@@ -158,8 +158,13 @@ static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **U
 static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	MovieClipUser *user= MEM_callocN(sizeof(MovieClipUser), "node movie clip user");
+
 	node->storage= user;
 	user->framenr= 1;
+
+	if(G.main->movieclip.first == G.main->movieclip.last) {
+		node->id= G.main->movieclip.first;
+	}
 }
 
 void register_node_type_cmp_movieclip(ListBase *lb)

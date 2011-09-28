@@ -26,8 +26,6 @@ typedef Eigen::Matrix<double, 3, 3> Mat3;
 
 namespace libmv {
 
-struct Offset;
-
 class CameraIntrinsics {
  public:
   CameraIntrinsics();
@@ -123,7 +121,9 @@ class CameraIntrinsics {
                  int width, int height, int channels);
 
  private:
-  template<typename WarpFunction> void ComputeLookupGrid(Offset* grid, int width, int height);
+  template<typename WarpFunction> void ComputeLookupGrid(struct Grid* grid, int width, int height);
+  void CheckUndistortLookupGrid(int width, int height);
+  void CheckDistortLookupGrid(int width, int height);
   void FreeLookupGrid();
 
   // The traditional intrinsics matrix from x = K[R|t]X.
@@ -140,8 +140,8 @@ class CameraIntrinsics {
   // independent of image size.
   double k1_, k2_, k3_, p1_, p2_;
 
-  Offset* distort_;
-  Offset* undistort_;
+  struct Grid *distort_;
+  struct Grid *undistort_;
 };
 
 }  // namespace libmv

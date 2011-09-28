@@ -2447,9 +2447,14 @@ static void def_cmp_stabilize2d(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_movieundistort(StructRNA *srna)
+static void def_cmp_moviedistortion(StructRNA *srna)
 {
 	PropertyRNA *prop;
+
+	static EnumPropertyItem distortion_type_items[] = {
+		{0, "UNDISTORT",   0, "Undistort",   ""},
+		{1, "DISTORT", 0, "Distort", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
@@ -2457,17 +2462,11 @@ static void def_cmp_movieundistort(StructRNA *srna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Movie Clip", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-}
 
-static void def_cmp_moviedistort(StructRNA *srna)
-{
-	PropertyRNA *prop;
-
-	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "id");
-	RNA_def_property_struct_type(prop, "MovieClip");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Movie Clip", "");
+	prop = RNA_def_property(srna, "distortion_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, distortion_type_items);
+	RNA_def_property_ui_text(prop, "Distortion", "Distoriton to use to filter image");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 

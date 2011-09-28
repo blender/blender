@@ -525,20 +525,13 @@ static ImBuf *get_undistorted_cache(MovieClip *clip, MovieClipUser *user)
 
 static ImBuf *get_undistorted_ibuf(MovieClip *clip, ImBuf *ibuf)
 {
-	ImBuf *aspectibuf= ibuf, *undistibuf;
-	float aspy= 1.f/clip->tracking.camera.pixel_aspect;
-
-	if(aspectibuf->y*aspy!=aspectibuf->y) {
-		/* XXX: not nice, but distortion coefficients were adjusted exactly for such aspect ratio */
-		aspectibuf= IMB_dupImBuf(aspectibuf);
-		IMB_scaleImBuf(aspectibuf, aspectibuf->x, aspectibuf->y*aspy);
-	}
+	ImBuf *undistibuf;
 
 	/* XXX: because of #27997 do not use float buffers to undistort,
 	        otherwise, undistorted proxy can be darker than it should */
-	imb_freerectfloatImBuf(aspectibuf);
+	imb_freerectfloatImBuf(ibuf);
 
-	undistibuf= BKE_tracking_undistort(&clip->tracking, aspectibuf);
+	undistibuf= BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y);
 
 	if(undistibuf->userflags|= IB_RECT_INVALID) {
 		ibuf->userflags&= ~IB_RECT_INVALID;
@@ -546,9 +539,6 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, ImBuf *ibuf)
 	}
 
 	IMB_scaleImBuf(undistibuf, ibuf->x, ibuf->y);
-
-	if(aspectibuf!=ibuf)
-			IMB_freeImBuf(aspectibuf);
 
 	return undistibuf;
 }

@@ -80,12 +80,12 @@ void libmv_destroyFeatures(struct libmv_Features *libmv_features);
 
 /* camera intrinsics */
 struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(double focal_length, double principal_x, double principal_y,
-			double k1, double k2, double k3);
+			double k1, double k2, double k3, int width, int height);
 
 void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmvIntrinsics);
 
 void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmvIntrinsics, double focal_length,
-			double principal_x, double principal_y, double k1, double k2, double k3);
+			double principal_x, double principal_y, double k1, double k2, double k3, int width, int height);
 
 void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
 			unsigned char *src, unsigned char *dst, int width, int height, int channels);

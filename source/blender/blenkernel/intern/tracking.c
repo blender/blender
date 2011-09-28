@@ -1897,7 +1897,7 @@ void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float sc
 	mul_serie_m4(mat, lmat, smat, cmat, rmat, icmat, NULL, NULL, NULL);
 }
 
-ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf)
+ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf, int width, int height)
 {
 	ImBuf *resibuf;
 	MovieTrackingCamera *camera= &tracking->camera;
@@ -1909,11 +1909,11 @@ ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf)
 	if(camera->intrinsics == NULL) {
 		camera->intrinsics= libmv_CameraIntrinsicsNew(camera->focal,
 				camera->principal[0], camera->principal[1] * aspy,
-				camera->k1, camera->k2, camera->k3);
+				camera->k1, camera->k2, camera->k3, width, height * aspy);
 	} else {
 		libmv_CameraIntrinsicsUpdate(camera->intrinsics, camera->focal,
 				camera->principal[0], camera->principal[1] * aspy,
-				camera->k1, camera->k2, camera->k3);
+				camera->k1, camera->k2, camera->k3, width, height * aspy);
 	}
 #endif
 
@@ -1936,7 +1936,7 @@ ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf)
 	return resibuf;
 }
 
-ImBuf *BKE_tracking_distort(MovieTracking *tracking, ImBuf *ibuf)
+ImBuf *BKE_tracking_distort(MovieTracking *tracking, ImBuf *ibuf, int width, int height)
 {
 	ImBuf *resibuf;
 	MovieTrackingCamera *camera= &tracking->camera;
@@ -1948,11 +1948,11 @@ ImBuf *BKE_tracking_distort(MovieTracking *tracking, ImBuf *ibuf)
 	if(camera->intrinsics == NULL) {
 		camera->intrinsics= libmv_CameraIntrinsicsNew(camera->focal,
 				camera->principal[0], camera->principal[1] * aspy,
-				camera->k1, camera->k2, camera->k3);
+				camera->k1, camera->k2, camera->k3, width, height * aspy);
 	} else {
 		libmv_CameraIntrinsicsUpdate(camera->intrinsics, camera->focal,
 				camera->principal[0], camera->principal[1] * aspy,
-				camera->k1, camera->k2, camera->k3);
+				camera->k1, camera->k2, camera->k3, width, height * aspy);
 	}
 #endif
 

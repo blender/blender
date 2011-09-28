@@ -1697,15 +1697,16 @@ static void node_composit_buts_transform(uiLayout *layout, bContext *UNUSED(C), 
 	uiItemR(layout, ptr, "filter_type", 0, "", 0);
 }
 
-static void node_composit_buts_movieundistort(uiLayout *layout, bContext *C, PointerRNA *ptr)
+static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+	bNode *node= ptr->data;
+
 	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
 
-}
+	if(!node->id)
+		return;
 
-static void node_composit_buts_moviedistort(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-	uiTemplateID(layout, C, ptr, "clip", NULL, "CLIP_OT_open", NULL);
+	uiItemR(layout, ptr, "distortion_type", 0, "", 0);
 }
 
 /* only once called */
@@ -1867,11 +1868,8 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_TRANSFORM:
 			ntype->uifunc= node_composit_buts_transform;
 			break;
-		case CMP_NODE_MOVIEUNDISTORT:
-			ntype->uifunc= node_composit_buts_movieundistort;
-			break;
-		case CMP_NODE_MOVIEDISTORT:
-			ntype->uifunc= node_composit_buts_moviedistort;
+		case CMP_NODE_MOVIEDISTORTION:
+			ntype->uifunc= node_composit_buts_moviedistortion;
 			break;
 		default:
 			ntype->uifunc= NULL;

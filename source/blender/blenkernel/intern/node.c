@@ -1849,8 +1849,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	register_node_type_cmp_lensdist(ntypelist);
 	register_node_type_cmp_transform(ntypelist);
 	register_node_type_cmp_stabilize2d(ntypelist);
-	register_node_type_cmp_moviedistort(ntypelist);
-	register_node_type_cmp_movieundistort(ntypelist);
+	register_node_type_cmp_moviedistortion(ntypelist);
 }
 
 static void registerShaderNodes(ListBase *ntypelist) 

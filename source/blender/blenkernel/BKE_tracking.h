@@ -94,8 +94,8 @@ void BKE_tracking_stabilization_data(struct MovieTracking *tracking, int framenr
 struct ImBuf *BKE_tracking_stabilize(struct MovieTracking *tracking, int framenr, struct ImBuf *ibuf, float loc[2], float *scale, float *angle);
 void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float scale, float angle, float mat[4][4]);
 
-struct ImBuf *BKE_tracking_undistort(struct MovieTracking *tracking, struct ImBuf *ibuf);
-struct ImBuf *BKE_tracking_distort(struct MovieTracking *tracking, struct ImBuf *ibuf);
+struct ImBuf *BKE_tracking_undistort(struct MovieTracking *tracking, struct ImBuf *ibuf, int width, int height);
+struct ImBuf *BKE_tracking_distort(struct MovieTracking *tracking, struct ImBuf *ibuf, int width, int height);
 
 #define TRACK_SELECTED(track)				((((track)->flag&TRACK_HIDDEN)==0) && ((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT))
 #define TRACK_AREA_SELECTED(track, area)	((((track)->flag&TRACK_HIDDEN)==0) && ((area)==TRACK_AREA_POINT?(track)->flag&SELECT : ((area)==TRACK_AREA_PAT?(track)->pat_flag&SELECT:(track)->search_flag&SELECT)))
