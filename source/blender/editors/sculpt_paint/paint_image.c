@@ -1857,11 +1857,13 @@ static int IsectPT2Df_limit(float pt[2], float v1[2], float v2[2], float v3[2], 
 /* Clip the face by a bucket and set the uv-space bucket_bounds_uv
  * so we have the clipped UV's to do pixel intersection tests with 
  * */
-static int float_z_sort_flip(const void *p1, const void *p2) {
+static int float_z_sort_flip(const void *p1, const void *p2)
+{
 	return (((float *)p1)[2] < ((float *)p2)[2] ? 1:-1);
 }
 
-static int float_z_sort(const void *p1, const void *p2) {
+static int float_z_sort(const void *p1, const void *p2)
+{
 	return (((float *)p1)[2] < ((float *)p2)[2] ?-1:1);
 }
 
@@ -3686,7 +3688,8 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float
 	}
 }
 
-static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, int use_color_correction) {
+static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, int use_color_correction)
+{
 	if (ps->is_texbrush) {
 		/* rgba already holds a texture result here from higher level function */
 		float rgba_br[3];

@@ -1058,7 +1058,8 @@ void GPU_uvedge_setup(DerivedMesh *dm)
 	GLStates |= GPU_BUFFER_VERTEX_STATE;
 }
 
-static int GPU_typesize(int type) {
+static int GPU_typesize(int type)
+{
 	switch(type) {
 	case GL_FLOAT:
 		return sizeof(float);
@@ -1075,7 +1076,8 @@ static int GPU_typesize(int type) {
 	}
 }
 
-int GPU_attrib_element_size(GPUAttrib data[], int numdata) {
+int GPU_attrib_element_size(GPUAttrib data[], int numdata)
+{
 	int i, elementsize = 0;
 
 	for(i = 0; i < numdata; i++) {
@@ -1086,7 +1088,8 @@ int GPU_attrib_element_size(GPUAttrib data[], int numdata) {
 	return elementsize;
 }
 
-void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numdata) {
+void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numdata)
+{
 	int i;
 	int elementsize;
 	intptr_t offset = 0;

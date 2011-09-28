@@ -1270,7 +1270,8 @@ void applyTransObjects(TransInfo *t)
 	recalcData(t);
 }
 
-static void restoreElement(TransData *td) {
+static void restoreElement(TransData *td)
+{
 	/* TransData for crease has no loc */
 	if (td->loc) {
 		copy_v3_v3(td->loc, td->iloc);

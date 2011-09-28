@@ -863,7 +863,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 		RNA_def_boolean(ot->srna, "relative_path", (U.flag & USER_RELPATHS) ? 1:0, "Relative Path", "Select the file relative to the blend file");
 }
 
-void WM_operator_properties_select_all(wmOperatorType *ot) {
+void WM_operator_properties_select_all(wmOperatorType *ot)
+{
 	static EnumPropertyItem select_all_actions[] = {
 			{SEL_TOGGLE, "TOGGLE", 0, N_("Toggle"), "Toggle selection for all elements"},
 			{SEL_SELECT, "SELECT", 0, N_("Select"), "Select all elements"},

@@ -107,7 +107,8 @@ int PyC_AsArray(void *array, PyObject *value, const int length, const PyTypeObje
 
 
 /* for debugging */
-void PyC_ObSpit(const char *name, PyObject *var) {
+void PyC_ObSpit(const char *name, PyObject *var)
+{
 	fprintf(stderr, "<%s> : ", name);
 	if (var==NULL) {
 		fprintf(stderr, "<NIL>");
@@ -126,7 +127,8 @@ void PyC_ObSpit(const char *name, PyObject *var) {
 	fprintf(stderr, "\n");
 }
 
-void PyC_LineSpit(void) {
+void PyC_LineSpit(void)
+{
 
 	const char *filename;
 	int lineno;

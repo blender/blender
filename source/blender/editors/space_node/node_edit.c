@@ -3266,7 +3266,8 @@ void NODE_OT_delete(wmOperatorType *ot)
 }
 
 /* ****************** Delete with reconnect ******************* */
-static int is_connected_to_input_socket(bNode* node, bNodeLink* link) {
+static int is_connected_to_input_socket(bNode* node, bNodeLink* link)
+{
 	bNodeSocket *sock;
 	if (link->tonode == node) {
 		for(sock= node->inputs.first; sock; sock= sock->next) {

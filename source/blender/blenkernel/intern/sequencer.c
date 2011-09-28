@@ -2852,7 +2852,8 @@ void update_changed_seq_and_deps(Scene *scene, Sequence *changed_seq, int len_ch
  left and right are the bounds at which the sequence is rendered,
 start and end are from the start and fixed length of the sequence.
 */
-int seq_tx_get_start(Sequence *seq) {
+int seq_tx_get_start(Sequence *seq)
+{
 	return seq->start;
 }
 int seq_tx_get_end(Sequence *seq)
