@@ -91,7 +91,7 @@ LIBDIR = '${LCGDIR}'
 #############################################################################
 
 #Defaults openMP to true if compiler handles it
-if CC == 'gcc-4.2' or CC == 'llvm-gcc-4.2':
+if CC.endswith('4.6.1'):
     WITH_BF_OPENMP = True  # multithreading for fluids, cloth and smoke
 else:
     WITH_BF_OPENMP = False
