@@ -343,20 +343,23 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
  *	   channel can be kept around). No need to clear channels-flag in order to 
  *	   keep expander channels with no sub-data out, as those cases should get
  *	   dealt with by the recursive detection idiom in place.
- */
-/* XXX Commented most of that macro, since it seems that _doSubChannels var is never used...
- *     mont29.
+ *
+ * Implementation Note:
+ * 	YES the _doSubChannels variable is NOT read anywhere. BUT, this is NOT an excuse
+ * 	to go steamrolling the logic into a single-line expression as from experience,
+ * 	those are notoriously difficult to read + debug when extending later on. The code
+ * 	below is purposefully laid out so that each case noted above corresponds clearly to
+ * 	one case below.
  */
 #define BEGIN_ANIMFILTER_SUBCHANNELS(expanded_check) \
 	{ \
 		int _filter = filter_mode; \
-/*		short _doSubChannels = 0; \*/ \
-/*		if (!(filter_mode & ANIMFILTER_LIST_VISIBLE) || (expanded_check)) \*/ \
-/*			_doSubChannels=1; \*/ \
-/*		else if (!(filter_mode & ANIMFILTER_LIST_CHANNELS)) \*/ \
-/*			_doSubChannels=2; \*/ \
-/*		else {\*/ \
-		if (!(!(filter_mode & ANIMFILTER_LIST_VISIBLE) || (expanded_check) || !(filter_mode & ANIMFILTER_LIST_CHANNELS))) { \
+		short _doSubChannels = 0; \
+		if (!(filter_mode & ANIMFILTER_LIST_VISIBLE) || (expanded_check)) \
+			_doSubChannels=1; \
+		else if (!(filter_mode & ANIMFILTER_LIST_CHANNELS)) \
+			_doSubChannels=2; \
+		else {\
 			filter_mode |= ANIMFILTER_TMP_PEEK; \
 		}
 		/* ... standard sub-channel filtering can go on here now ... */
