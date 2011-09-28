@@ -174,7 +174,7 @@ static MenuData *decompose_menu_string(const char *str)
 				*s= '\0';
 				s++;
 			} else if (s[1]=='t') {
-				nitem_is_title= (s[2] != '|'); /* check for empty title */
+				nitem_is_title= (s != instr); /* check for empty title */
 
 				*s= '\0';
 				s++;
