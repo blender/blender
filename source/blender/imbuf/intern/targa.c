@@ -338,7 +338,8 @@ static int checktarga(TARGA *tga, unsigned char *mem)
 	return(1);
 }
 
-int imb_is_a_targa(unsigned char *buf) {
+int imb_is_a_targa(unsigned char *buf)
+{
 	TARGA tga;
 	
 	return checktarga(&tga, buf);

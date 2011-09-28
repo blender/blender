@@ -786,7 +786,8 @@ void BLI_getlastdir(const char* dir, char *last, const size_t maxlen)
 /* This is now only used to really get the user's default document folder */
 /* On Windows I chose the 'Users/<MyUserName>/Documents' since it's used
    as default location to save documents */
-const char *BLI_getDefaultDocumentFolder(void) {
+const char *BLI_getDefaultDocumentFolder(void)
+{
 	#if !defined(WIN32)
 		return getenv("HOME");
 
@@ -1207,7 +1208,8 @@ void BLI_char_switch(char *string, char from, char to)
 	}
 }
 
-void BLI_make_exist(char *dir) {
+void BLI_make_exist(char *dir)
+{
 	int a;
 
 	BLI_char_switch(dir, ALTSEP, SEP);
@@ -1551,7 +1553,8 @@ int BKE_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	return 1;
 }
 
-char *BLI_first_slash(char *string) {
+char *BLI_first_slash(char *string)
+{
 	char *ffslash, *fbslash;
 	
 	ffslash= strchr(string, '/');	
@@ -1564,7 +1567,8 @@ char *BLI_first_slash(char *string) {
 	else return fbslash;
 }
 
-char *BLI_last_slash(const char *string) {
+char *BLI_last_slash(const char *string)
+{
 	char *lfslash, *lbslash;
 	
 	lfslash= strrchr(string, '/');	
@@ -1578,7 +1582,8 @@ char *BLI_last_slash(const char *string) {
 }
 
 /* adds a slash if there isnt one there already */
-int BLI_add_slash(char *string) {
+int BLI_add_slash(char *string)
+{
 	int len = strlen(string);
 #ifdef WIN32
 	if (len==0 || string[len-1]!='\\') {
@@ -1597,7 +1602,8 @@ int BLI_add_slash(char *string) {
 }
 
 /* removes a slash if there is one */
-void BLI_del_slash(char *string) {
+void BLI_del_slash(char *string)
+{
 	int len = strlen(string);
 	while (len) {
 #ifdef WIN32

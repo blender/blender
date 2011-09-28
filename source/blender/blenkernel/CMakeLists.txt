@@ -365,8 +365,9 @@ if(WITH_GAMEENGINE)
 	)
 endif()
 
-if(MSVC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
-endif()
+## Warnings as errors, this is too strict!
+#if(MSVC)
+#	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX")
+#endif()
 
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}")

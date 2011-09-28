@@ -973,7 +973,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 			PyErr_Format(PyExc_TypeError,
 			             "EnumProperty(..., default=\'%s\'): not found in enum members",
-			             def);
+			             def_cmp);
 			return NULL;
 		}
 	}

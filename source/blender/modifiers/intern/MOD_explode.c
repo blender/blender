@@ -543,7 +543,8 @@ static void remap_uvs_23(DerivedMesh *dm, DerivedMesh *split, int numlayer, int 
 	}
 }
 
-static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm){
+static DerivedMesh * cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
+{
 	DerivedMesh *splitdm;
 	MFace *mf=NULL,*df1=NULL;
 	MFace *mface=dm->getTessFaceArray(dm);

@@ -350,7 +350,8 @@ static void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 //after a call to this function you can expect one of:
 //      every node to left of a[n] are smaller or equal to it
 //      every node to the right of a[n] are greater or equal to it
-static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis){
+static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis)
+{
 	int begin = _begin, end = _end, cut;
 	while(end-begin > 3)
 	{

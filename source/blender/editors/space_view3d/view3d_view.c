@@ -1787,7 +1787,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 {
 #ifdef WITH_GAMEENGINE
 	Scene *startscene = CTX_data_scene(C);
-	ScrArea *sa, *prevsa= CTX_wm_area(C);
+	ScrArea /* *sa, */ /* UNUSED */ *prevsa= CTX_wm_area(C);
 	ARegion *ar, *prevar= CTX_wm_region(C);
 	wmWindow *prevwin= CTX_wm_window(C);
 	RegionView3D *rv3d;
@@ -1800,7 +1800,7 @@ static int game_engine_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	rv3d= CTX_wm_region_view3d(C);
-	sa= CTX_wm_area(C);
+	/* sa= CTX_wm_area(C); */ /* UNUSED */
 	ar= CTX_wm_region(C);
 
 	view3d_operator_needs_opengl(C);

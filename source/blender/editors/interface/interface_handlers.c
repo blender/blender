@@ -1684,7 +1684,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 			/* not a file?, strip non utf-8 chars */
 			if(strip) {
 				/* wont happen often so isnt that annoying to keep it here for a while */
-				printf("invalid utf8 - stripped chars %d\n", strip);
+				printf("%s: invalid utf8 - stripped chars %d\n", __func__, strip);
 			}
 		}
 		
@@ -5914,7 +5914,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
 								}
 								else {
-									printf("Error, but->menu_key type: %d\n", but->type);
+									printf("%s: error, but->menu_key type: %d\n", __func__, but->type);
 								}
 
 								break;

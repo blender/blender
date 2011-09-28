@@ -56,6 +56,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_callbacks.h"
 
 #include "BKE_anim.h"
 #include "BKE_animsys.h"
@@ -1022,6 +1023,9 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	float ctime = BKE_curframe(sce);
 	Scene *sce_iter;
 
+	/* keep this first */
+	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_FRAME_CHANGE_PRE);
+
 	sound_set_cfra(sce->r.cfra);
 	
 	/* clear animation overrides */
@@ -1048,6 +1052,9 @@ void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 
 	/* object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);
+
+	/* keep this last */
+	BLI_exec_cb(bmain, (ID *)sce, BLI_CB_EVT_FRAME_CHANGE_POST);
 }
 
 /* return default layer, also used to patch old files */

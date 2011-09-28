@@ -1408,7 +1408,8 @@ void makeDispListCurveTypes_forOrco(struct Scene *scene, struct Object *ob, stru
 }
 
 /* add Orco layer to the displist object which has got derived mesh and return orco */
-float *makeOrcoDispList(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int forRender) {
+float *makeOrcoDispList(Scene *scene, Object *ob, DerivedMesh *derivedFinal, int forRender)
+{
 	float *orco;
 
 	if (derivedFinal == NULL)

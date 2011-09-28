@@ -808,7 +808,8 @@ void flush_ffmpeg(void)
    ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-void filepath_ffmpeg(char* string, RenderData* rd) {
+void filepath_ffmpeg(char* string, RenderData* rd)
+{
 	char autosplit[20];
 
 	const char ** exts = get_file_extensions(rd->ffcodecdata.type);

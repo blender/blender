@@ -758,7 +758,8 @@ static void vgroup_normalize(Object *ob)
 It returns the number that it added (0-2)
 It relies on verts having -1 for unassigned indices
 */
-static int tryToAddVerts(int *verts, int length, int a, int b) {
+static int tryToAddVerts(int *verts, int length, int a, int b)
+{
 	char containsA = FALSE;
 	char containsB = FALSE;
 	int added = 0;
@@ -788,7 +789,8 @@ and returns an array of indices of size count
 
 count is an int passed by reference so it can be assigned the value of the length here.
 */
-static int* getSurroundingVerts(Mesh *me, int vert, int *count) {
+static int* getSurroundingVerts(Mesh *me, int vert, int *count)
+{
 	int length = 0;
 	int *tverts;
 	int *verts = NULL;
@@ -850,7 +852,8 @@ static int* getSurroundingVerts(Mesh *me, int vert, int *count) {
 /* get a single point in space by averaging a point cloud (vectors of size 3)
 coord is the place the average is stored, points is the point cloud, count is the number of points in the cloud
 */
-static void getSingleCoordinate(MVert *points, int count, float coord[3]) {
+static void getSingleCoordinate(MVert *points, int count, float coord[3])
+{
 	int i;
 	zero_v3(coord);
 	for(i = 0; i < count; i++) {
@@ -877,7 +880,8 @@ static void getNearestPointOnPlane(const float norm[3], const float coord[3], co
 }
 
 /* distance of two vectors a and b of size length */
-static float distance(float* a, float *b, int length) {
+static float distance(float* a, float *b, int length)
+{
 	int i;
 	float sum = 0;
 	for(i = 0; i < length; i++) {
@@ -890,7 +894,8 @@ static float distance(float* a, float *b, int length) {
 compute the amount of vertical distance relative to the plane and store it in dists,
 then get the horizontal and vertical change and store them in changes
 */
-static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, float *start, float distToStart, float *end, float (*changes)[2], float *dists, int index) {
+static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, float *start, float distToStart, float *end, float (*changes)[2], float *dists, int index)
+{
 	// A=Q-((Q-P).N)N
 	// D = (a*x0 + b*y0 +c*z0 +d)
 	float projA[3] = {0}, projB[3] = {0};
@@ -908,7 +913,8 @@ static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, f
 }
 
 // I need the derived mesh to be forgotten so the positions are recalculated with weight changes (see dm_deform_recalc)
-static void dm_deform_clear(DerivedMesh *dm, Object *ob) {
+static void dm_deform_clear(DerivedMesh *dm, Object *ob)
+{
 	if(ob->derivedDeform && (ob->derivedDeform)==dm) {
 		ob->derivedDeform->needsFree = 1;
 		ob->derivedDeform->release(ob->derivedDeform);
@@ -921,7 +927,8 @@ static void dm_deform_clear(DerivedMesh *dm, Object *ob) {
 }
 
 // recalculate the deformation
-static DerivedMesh* dm_deform_recalc(Scene *scene, Object *ob) {
+static DerivedMesh* dm_deform_recalc(Scene *scene, Object *ob)
+{
 	return mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 }
 
@@ -933,7 +940,8 @@ index is the index of the vertex being moved
 norm and d are the plane's properties for the equation: ax + by + cz + d = 0
 coord is a point on the plane
 */
-static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float norm[3], float coord[3], float d, float distToBe, float strength, float cp) {
+static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float norm[3], float coord[3], float d, float distToBe, float strength, float cp)
+{
 	DerivedMesh *dm;
 	MDeformWeight *dw;
 	MVert m;

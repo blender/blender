@@ -109,7 +109,8 @@ int BKE_idcode_is_valid(int code)
 	return idtype_from_code(code)?1:0;
 }
 
-int BKE_idcode_is_linkable(int code) {
+int BKE_idcode_is_linkable(int code)
+{
 	IDType *idt= idtype_from_code(code);
 	return idt?(idt->flags&IDTYPE_FLAGS_ISLINKABLE):0;
 }

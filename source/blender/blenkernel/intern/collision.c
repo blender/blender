@@ -1375,7 +1375,8 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTree
 	return collpair;
 }
 
-static void machine_epsilon_offset(Cloth *cloth) {
+static void machine_epsilon_offset(Cloth *cloth)
+{
 	ClothVertex *cv;
 	int i, j;
 	

@@ -713,37 +713,24 @@ elseif(APPLE)
 	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
 	# note we are using OSX Bundle as base and copying Blender dummy bundle on top of it
 	if(WITH_GAMEENGINE AND WITH_PLAYER)
-		set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blenderplayer.app)
-		set(SOURCEINFO ${SOURCEDIR}/Contents/Info.plist)
-		set(TARGETDIR_VER ${TARGETDIR}/blenderplayer.app/Contents/MacOS/${BLENDER_VERSION})
+		set(PLAYER_SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blenderplayer.app)
+		set(PLAYER_SOURCEINFO ${PLAYER_SOURCEDIR}/Contents/Info.plist)
+		set(PLAYER_TARGETDIR_VER ${TARGETDIR}/blenderplayer.app/Contents/MacOS/${BLENDER_VERSION})
 
-		# setup Info.plist
-		execute_process(COMMAND date "+%Y-%m-%d" OUTPUT_VARIABLE BLENDER_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-		set_target_properties(blender PROPERTIES
-			MACOSX_BUNDLE_INFO_PLIST ${SOURCEINFO}
-			MACOSX_BUNDLE_SHORT_VERSION_STRING ${BLENDER_VERSION}
-			MACOSX_BUNDLE_LONG_VERSION_STRING "${BLENDER_VERSION} ${BLENDER_DATE}")
-
-		# important to make a clean install each time else old scripts get loaded.
+		# important to make a clean  install each time else old scripts get loaded.
 		install(
 			CODE
-			"file(REMOVE_RECURSE ${TARGETDIR_VER})"
-		)
-	
-		# message after building.
-		add_custom_command(
-			TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-			COMMAND ${CMAKE_COMMAND} -E echo 'now run: \"make install\" to copy runtime files & scripts to ${TARGETDIR_VER}'
-		)
-	
-		install(
-			FILES ${SOURCEDIR}/Contents/PkgInfo
-			DESTINATION ${TARGETDIR}/blenderplayer.app/Contents
+			"file(REMOVE_RECURSE ${PLAYER_TARGETDIR_VER})"
 		)
 
+		install(
+			FILES ${PLAYER_SOURCEDIR}/Contents/PkgInfo
+			DESTINATION ${TARGETDIR}/blenderplayer.app/Contents
+		)
+	
 		install_dir(
-			${SOURCEDIR}/Contents/Resources
+			${PLAYER_SOURCEDIR}/Contents/Resources
 			\${TARGETDIR}/blenderplayer.app/Contents/
 		)
 
@@ -759,10 +746,10 @@ elseif(APPLE)
 			# copy extracted python files
 			install_dir(
 				${CMAKE_CURRENT_BINARY_DIR}/python
-				\${TARGETDIR_VER}
+				\${PLAYER_TARGETDIR_VER}
 			)
 		endif()
-	
+
 	endif()
 endif()
 

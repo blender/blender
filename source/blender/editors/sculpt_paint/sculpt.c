@@ -154,7 +154,7 @@ static int sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 
 	if(mmd) return 0;
 
-	/* non-locked shaoe keys could be handled in the same way as deformed mesh */
+	/* non-locked shape keys could be handled in the same way as deformed mesh */
 	if((ob->shapeflag&OB_SHAPE_LOCK)==0 && me->key && ob->shapenr)
 		return 1;
 

@@ -1718,7 +1718,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 		}
 		case PROP_COLLECTION:
 		{
-			int seq_len, i;
+			Py_ssize_t seq_len, i;
 			PyObject *item;
 			PointerRNA itemptr;
 			ListBase *lb;
@@ -1736,7 +1736,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 			}
 
 			seq_len= PySequence_Size(value);
-			for(i=0; i<seq_len; i++) {
+			for(i=0; i < seq_len; i++) {
 				item= PySequence_GetItem(value, i);
 
 				if(item==NULL) {
@@ -4140,8 +4140,8 @@ static PyObject *pyrna_struct_new(PyTypeObject *type, PyObject *args, PyObject *
 
 /* only needed for subtyping, so a new class gets a valid BPy_StructRNA
  * todo - also accept useful args */
-static PyObject *pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED(kwds)) {
-
+static PyObject *pyrna_prop_new(PyTypeObject *type, PyObject *args, PyObject *UNUSED(kwds))
+{
 	BPy_PropertyRNA *base;
 
 	if (!PyArg_ParseTuple(args, "O!:bpy_prop.__new__", &pyrna_prop_Type, &base))

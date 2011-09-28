@@ -504,16 +504,16 @@ void BME_disk_remove_edge(BME_Edge *e, BME_Vert *v)
 
 BME_Edge *BME_disk_next_edgeflag(BME_Edge *e, BME_Vert *v, int eflag, int tflag){
 	
-	BME_CycleNode *diskbase;
+	/* BME_CycleNode *diskbase; */ /* UNUSED */
 	BME_Edge *curedge;
-	int len, ok;
+	int /* len, */ /* UNUSED */ ok;
 	
 	if(eflag && tflag) return NULL;
 	
 	ok = BME_vert_in_edge(e,v);
 	if(ok){
-		diskbase = BME_disk_getpointer(e, v);
-		len = BME_cycle_length(diskbase);
+		/* diskbase = BME_disk_getpointer(e, v); */ /* UNUSED */
+		/* len = BME_cycle_length(diskbase); */ /* UNUSED */
 		curedge = BME_disk_nextedge(e,v);
 		while(curedge != e){
 			if(tflag){

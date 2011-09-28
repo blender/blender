@@ -2839,7 +2839,8 @@ void object_sculpt_modifiers_changed(Object *ob)
 	}
 }
 
-float give_timeoffset(Object *ob) {
+float give_timeoffset(Object *ob)
+{
 	if ((ob->ipoflag & OB_OFFS_PARENTADD) && ob->parent) {
 		return ob->sf + give_timeoffset(ob->parent);
 	} else {
@@ -2847,7 +2848,8 @@ float give_timeoffset(Object *ob) {
 	}
 }
 
-int give_obdata_texspace(Object *ob, short **texflag, float **loc, float **size, float **rot) {
+int give_obdata_texspace(Object *ob, short **texflag, float **loc, float **size, float **rot)
+{
 	
 	if (ob->data==NULL)
 		return 0;

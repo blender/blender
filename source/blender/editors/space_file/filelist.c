@@ -244,7 +244,8 @@ static int compare_size(const void *a1, const void *a2)
 	else return BLI_natstrcmp(entry1->relname,entry2->relname);
 }
 
-static int compare_extension(const void *a1, const void *a2) {
+static int compare_extension(const void *a1, const void *a2)
+{
 	const struct direntry *entry1=a1, *entry2=a2;
 	const char *sufix1, *sufix2;
 	const char *nil="";

@@ -848,6 +848,8 @@ Factory_filter(Factory* self, PyObject* args)
 {
 	PyObject* py_b;
 	PyObject* py_a = NULL;
+	Py_ssize_t py_a_len;
+	Py_ssize_t py_b_len;
 
 	if(!PyArg_ParseTuple(args, "O|O:filter", &py_b, &py_a))
 		return NULL;
@@ -858,7 +860,10 @@ Factory_filter(Factory* self, PyObject* args)
 		return NULL;
 	}
 
-	if(!PySequence_Size(py_b) || (py_a != NULL && !PySequence_Size(py_a)))
+	py_a_len= py_a ? PySequence_Size(py_a) : 0;
+	py_b_len= PySequence_Size(py_b);
+
+	if(!py_b_len || ((py_a != NULL) && !py_b_len))
 	{
 		PyErr_SetString(PyExc_ValueError, "The sequence has to contain at least one value!");
 		return NULL;
@@ -867,30 +872,31 @@ Factory_filter(Factory* self, PyObject* args)
 	std::vector<float> a, b;
 	PyObject* py_value;
 	float value;
-	int result;
 
-	for(int i = 0; i < PySequence_Size(py_b); i++)
+	for(Py_ssize_t i = 0; i < py_b_len; i++)
 	{
 		py_value = PySequence_GetItem(py_b, i);
-		result = PyArg_Parse(py_value, "f:filter", &value);
+		value= (float)PyFloat_AsDouble(py_value);
 		Py_DECREF(py_value);
 
-		if(!result)
+		if (value==-1.0f && PyErr_Occurred()) {
 			return NULL;
+		}
 
 		b.push_back(value);
 	}
 
 	if(py_a)
 	{
-		for(int i = 0; i < PySequence_Size(py_a); i++)
+		for(Py_ssize_t i = 0; i < py_a_len; i++)
 		{
 			py_value = PySequence_GetItem(py_a, i);
-			result = PyArg_Parse(py_value, "f:filter", &value);
+			value= (float)PyFloat_AsDouble(py_value);
 			Py_DECREF(py_value);
 
-			if(!result)
+			if (value==-1.0f && PyErr_Occurred()) {
 				return NULL;
+			}
 
 			a.push_back(value);
 		}

@@ -412,7 +412,7 @@ class SCENE_PT_game_navmesh(SceneButtonsPanel, bpy.types.Panel):
 
         rd = context.scene.game_settings.recast_data
 
-        layout.operator("object.create_navmesh", text='Build navigation mesh')
+        layout.operator("mesh.create_navmesh", text='Build navigation mesh')
 
         col = layout.column()
         col.label(text="Rasterization:")

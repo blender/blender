@@ -6537,8 +6537,8 @@ Nurb *add_nurbs_primitive(bContext *C, float mat[4][4], int type, int newob)
 	return nu;
 }
 
-static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf) {
-	
+static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
+{
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb;
 	Nurb *nu;
@@ -6607,11 +6607,13 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 	return OPERATOR_FINISHED;
 }
 
-static int curve_prim_add(bContext *C, wmOperator *op, int type) {
+static int curve_prim_add(bContext *C, wmOperator *op, int type)
+{
 	return curvesurf_prim_add(C, op, type, 0);
 }
 
-static int surf_prim_add(bContext *C, wmOperator *op, int type) {
+static int surf_prim_add(bContext *C, wmOperator *op, int type)
+{
 	return curvesurf_prim_add(C, op, type, 1);
 }
 
