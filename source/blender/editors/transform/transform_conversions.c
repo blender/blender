@@ -2275,7 +2275,7 @@ void flushTransSeq(TransInfo *t)
 		seq_prev= seq;
 	}
 
-	if (t->mode == TFM_TIME_TRANSLATE) { /* originally TFM_TIME_EXTEND, transform changes */
+	if (t->mode == TFM_SEQ_SLIDE) { /* originally TFM_TIME_EXTEND, transform changes */
 		/* Special annoying case here, need to calc metas with TFM_TIME_EXTEND only */
 		seq= seqbasep->first;
 
