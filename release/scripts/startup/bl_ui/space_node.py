@@ -47,10 +47,8 @@ class NODE_HT_header(Header):
             row.prop(snode, "shader_type", text="", expand=True)
 
             if snode.shader_type == 'OBJECT':
-                ob = snode.id_from
-                snode_id = snode.id
-                if ob:
-                    layout.template_ID(ob, "active_material", new="material.new")
+                if id_from:
+                    layout.template_ID(id_from, "active_material", new="material.new")
                 if snode_id:
                     layout.prop(snode_id, "use_nodes")
 
