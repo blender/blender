@@ -2890,12 +2890,11 @@ static int count_fcurve_keys(FCurve *fcu, char side, float cfra)
 	/* only include points that occur on the right side of cfra */
 	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		if (bezt->f2 & SELECT) {
-			/* fully select the other two keys */
-			bezt->f1 |= SELECT;
-			bezt->f3 |= SELECT;
-
-			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra))
+			/* no need to adjust the handle selection since they are assumed
+			 * selected (like graph editor with SIPO_NOHANDLES) */
+			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
 				count += 1;
+			}
 		}
 	}
 

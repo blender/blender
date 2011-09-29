@@ -306,9 +306,6 @@ static int reset_default_button_exec(bContext *C, wmOperator *op)
 	/* Since we dont want to undo _all_ edits to settings, eg window
 	 * edits on the screen or on operator settings.
 	 * it might be better to move undo's inline - campbell */
-	/* Note that buttons already account for this, it might be better to
-	 * have a way to edit the buttons rather than set the rna since block
-	 * callbacks also fail to run. */
 	if(success) {
 		ID *id= ptr.id.data;
 		if(id && ID_CHECK_UNDO(id)) {
