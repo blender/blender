@@ -6242,7 +6242,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
 	/* annoying!, need to check if the screen gets set to NULL which is a
 	 * hint that the file was actually re-loaded. */
-	const char is_valid_wm= (CTX_wm_manager(C) != NULL);
+	char is_valid_wm;
 
 	PropertyRNA *pret_single= NULL;
 	void *retdata_single= NULL;
@@ -6268,6 +6268,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	 * this should be supported at some point but at the moment its not! */
 	if(C==NULL)
 		C= BPy_GetContext();
+
+	is_valid_wm= (CTX_wm_manager(C) != NULL);
 
 	bpy_context_set(C, &gilstate);
 
@@ -6505,7 +6507,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 		if (    (!is_static) &&
 		        (ptr->data) &&
 		        (RNA_struct_is_a(ptr->type, &RNA_Operator)) &&
-		        is_valid_wm == (CTX_wm_manager(C) != NULL))
+		        (is_valid_wm == (CTX_wm_manager(C) != NULL)))
 		{
 			wmOperator *op= ptr->data;
 			reports= op->reports;
