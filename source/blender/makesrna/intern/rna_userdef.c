@@ -2629,7 +2629,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_tabs_as_spaces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_TXT_TABSTOSPACES_DISABLE);
 	RNA_def_property_ui_text(prop, "Tabs as Spaces",
-	                         "Automatically converts all new tabs into spaces for new and loaded text files");
+	                         "Automatically convert all new tabs into spaces for new and loaded text files");
 
 	prop= RNA_def_property(srna, "prefetch_frames", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "prefetchframes");
@@ -2673,7 +2673,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, anisotropic_items);
 	RNA_def_property_enum_default(prop, 1);
 	RNA_def_property_ui_text(prop, "Anisotropic Filter",
-	                         "The quality of the anisotropic filtering (values greater than 1.0 enable anisotropic filtering)");
+	                         "Quality of the anisotropic filtering (values greater than 1.0 enable anisotropic filtering)");
 	RNA_def_property_update(prop, 0, "rna_userdef_anisotropic_update");
 	
 	prop= RNA_def_property(srna, "gl_texture_limit", PROP_ENUM, PROP_NONE);
@@ -2704,31 +2704,31 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "audio_mixing_buffer", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mixbufsize");
 	RNA_def_property_enum_items(prop, audio_mixing_samples_items);
-	RNA_def_property_ui_text(prop, "Audio Mixing Buffer", "Sets the number of samples used by the audio mixing buffer");
+	RNA_def_property_ui_text(prop, "Audio Mixing Buffer", "Number of samples used by the audio mixing buffer");
 	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
 	prop= RNA_def_property(srna, "audio_device", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "audiodevice");
 	RNA_def_property_enum_items(prop, audio_device_items);
-	RNA_def_property_ui_text(prop, "Audio Device", "Sets the audio output device");
+	RNA_def_property_ui_text(prop, "Audio Device", "Audio output device");
 	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
 	prop= RNA_def_property(srna, "audio_sample_rate", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "audiorate");
 	RNA_def_property_enum_items(prop, audio_rate_items);
-	RNA_def_property_ui_text(prop, "Audio Sample Rate", "Sets the audio sample rate");
+	RNA_def_property_ui_text(prop, "Audio Sample Rate", "Audio sample rate");
 	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
 	prop= RNA_def_property(srna, "audio_sample_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "audioformat");
 	RNA_def_property_enum_items(prop, audio_format_items);
-	RNA_def_property_ui_text(prop, "Audio Sample Format", "Sets the audio sample format");
+	RNA_def_property_ui_text(prop, "Audio Sample Format", "Audio sample format");
 	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
 	prop= RNA_def_property(srna, "audio_channels", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "audiochannels");
 	RNA_def_property_enum_items(prop, audio_channel_items);
-	RNA_def_property_ui_text(prop, "Audio Channels", "Sets the audio channel count");
+	RNA_def_property_ui_text(prop, "Audio Channels", "Audio channel count");
 	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
 	prop= RNA_def_property(srna, "screencast_fps", PROP_INT, PROP_NONE);
@@ -2749,11 +2749,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 #if 0
 	prop= RNA_def_property(srna, "verse_master", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "versemaster");
-	RNA_def_property_ui_text(prop, "Verse Master", "The Verse Master-server IP");
+	RNA_def_property_ui_text(prop, "Verse Master", "Verse Master-server IP");
 
 	prop= RNA_def_property(srna, "verse_username", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "verseuser");
-	RNA_def_property_ui_text(prop, "Verse Username", "The Verse user name");
+	RNA_def_property_ui_text(prop, "Verse Username", "Verse user name");
 #endif
 }
 
@@ -2774,13 +2774,13 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 		
 	static EnumPropertyItem view_zoom_styles[] = {
 		{USER_ZOOM_CONT, "CONTINUE", 0, "Continue", "Old style zoom, continues while moving mouse up or down"},
-		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zooms in and out based on vertical mouse movement"},
-		{USER_ZOOM_SCALE, "SCALE", 0, "Scale", "Zooms in and out like scaling the view, mouse movements relative to center"},
+		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zoom in and out based on vertical mouse movement"},
+		{USER_ZOOM_SCALE, "SCALE", 0, "Scale", "Zoom in and out like scaling the view, mouse movements relative to center"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem view_zoom_axes[] = {
-		{0, "VERTICAL", 0, "Vertical", "Zooms in and out based on vertical mouse movement"},
-		{USER_ZOOM_HORIZ, "HORIZONTAL", 0, "Horizontal", "Zooms in and out based on horizontal mouse movement"},
+		{0, "VERTICAL", 0, "Vertical", "Zoom in and out based on vertical mouse movement"},
+		{USER_ZOOM_HORIZ, "HORIZONTAL", 0, "Horizontal", "Zoom in and out based on horizontal mouse movement"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "UserPreferencesInput", NULL);
@@ -2792,7 +2792,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, select_mouse_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_userdef_select_mouse_set", NULL);
-	RNA_def_property_ui_text(prop, "Select Mouse", "The mouse button used for selection");
+	RNA_def_property_ui_text(prop, "Select Mouse", "Mouse button used for selection");
 	
 	prop= RNA_def_property(srna, "view_zoom_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "viewzoom");
@@ -2893,16 +2893,16 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "mouse_double_click_time", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "dbl_click_time");
 	RNA_def_property_range(prop, 1, 1000);
-	RNA_def_property_ui_text(prop, "Double Click Timeout", "The time (in ms) for a double click");
+	RNA_def_property_ui_text(prop, "Double Click Timeout", "Time/delay (in ms) for a double click");
 
 	prop= RNA_def_property(srna, "use_mouse_emulate_3_button", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TWOBUTTONMOUSE);
 	RNA_def_property_ui_text(prop, "Emulate 3 Button Mouse",
-	                         "Emulates Middle Mouse with Alt+Left Mouse (doesn't work with Left Mouse Select option)");
+	                         "Emulate Middle Mouse with Alt+Left Mouse (doesn't work with Left Mouse Select option)");
 
 	prop= RNA_def_property(srna, "use_emulate_numpad", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_NONUMPAD);
-	RNA_def_property_ui_text(prop, "Emulate Numpad", "Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
+	RNA_def_property_ui_text(prop, "Emulate Numpad", "Main 1 to 0 keys act as the numpad ones (useful for laptops)");
 	
 	/* middle mouse button */
 	prop= RNA_def_property(srna, "use_mouse_mmb_paste", PROP_BOOLEAN, PROP_NONE);
@@ -2916,7 +2916,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "wheel_scroll_lines", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "wheellinescroll");
 	RNA_def_property_range(prop, 0, 32);
-	RNA_def_property_ui_text(prop, "Wheel Scroll Lines", "The number of lines scrolled at a time with the mouse wheel");
+	RNA_def_property_ui_text(prop, "Wheel Scroll Lines", "Number of lines scrolled at a time with the mouse wheel");
 	
 	prop= RNA_def_property(srna, "active_keyconfig", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "keyconfigstr");
@@ -2945,7 +2945,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "show_hidden_files_datablocks", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_HIDE_DOT);
-	RNA_def_property_ui_text(prop, "Hide Dot Files/Datablocks", "Hide files/datablocks that start with a dot(.*)");
+	RNA_def_property_ui_text(prop, "Hide Dot Files/Datablocks", "Hide files/datablocks that start with a dot (.*)");
 	
 	prop= RNA_def_property(srna, "use_filter_files", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_FILTERFILEEXTS);

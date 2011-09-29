@@ -668,7 +668,7 @@ static void rna_def_environment_map(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_range(prop, 0, 5);
-	RNA_def_property_ui_text(prop, "Depth", "Number of times a map will be rendered recursively (mirror effects.)");
+	RNA_def_property_ui_text(prop, "Depth", "Number of times a map will be rendered recursively (mirror effects)");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, 0);

@@ -719,7 +719,7 @@ static void rna_def_header(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "layout");
 	RNA_def_property_struct_type(prop, "UILayout");
-	RNA_def_property_ui_text(prop, "Layout", "Defines the structure of the header in the UI");
+	RNA_def_property_ui_text(prop, "Layout", "Structure of the header in the UI");
 
 	/* registration */
 	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
@@ -727,7 +727,7 @@ static void rna_def_header(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name",
 	                         "If this is set, the header gets a custom ID, otherwise it takes the "
-	                         "name of the class used to define the panel. For example, if the "
+	                         "name of the class used to define the panel; for example, if the "
 	                         "class name is \"OBJECT_HT_hello\", and bl_idname is not set by the "
 	                         "script, then bl_idname = \"OBJECT_HT_hello\"");
 
