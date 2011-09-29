@@ -31,6 +31,7 @@ GETTEXT_XGETTEXT_EXECUTABLE = "xgettext"
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(CURRENT_DIR, "..")))
 DOMAIN = "blender"
+COMMENT_PREFIX = "#~ "  # from update_msg.py
 
 FILE_NAME_POT = os.path.join(CURRENT_DIR, "blender.pot")
 FILE_NAME_MESSAGES = os.path.join(CURRENT_DIR, "messages.txt")
@@ -76,6 +77,7 @@ def main():
     # add messages collected automatically from RNA
     with open(FILE_NAME_POT, "a", "utf-8") as pot_handle:
         with open(FILE_NAME_MESSAGES, 'r', "utf-8") as handle:
+            msgsrc_ls = []
             while True:
                 line = handle.readline()
 
@@ -83,13 +85,20 @@ def main():
                     break
 
                 line = stripeol(line)
-                line = line.replace("\\", "\\\\")
-                line = line.replace("\"", "\\\"")
 
-                if not pot_messages.get(line):
-                    pot_handle.write("\n#: Automatically collected from RNA\n")
-                    pot_handle.write("msgid \"%s\"\n" % (line))
-                    pot_handle.write("msgstr \"\"\n")
+                # COMMENT_PREFIX
+                if line.startswith(COMMENT_PREFIX):
+                    msgsrc_ls.append(line[len(COMMENT_PREFIX):].strip())
+                else:
+                    line = line.replace("\\", "\\\\")
+                    line = line.replace("\"", "\\\"")
+
+                    if not pot_messages.get(line):
+                        for msgsrc in msgsrc_ls:
+                            pot_handle.write("#: %s\n" % msgsrc)
+                        pot_handle.write("msgid \"%s\"\n" % line)
+                        pot_handle.write("msgstr \"\"\n\n")
+                    msgsrc_ls[:] = []
 
 
 if __name__ == "__main__":
