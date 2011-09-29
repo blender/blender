@@ -2785,7 +2785,7 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 /* Called during special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
  */
-static void posttrans_fcurve_clean (FCurve *fcu)
+static void posttrans_fcurve_clean (FCurve *fcu, const short use_handle)
 {
 	float *selcache;	/* cache for frame numbers of selected frames (fcu->totvert*sizeof(float)) */
 	int len, index, i;	/* number of frames in cache, item index */
@@ -2834,7 +2834,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 			}
 		}
 		
-		testhandles_fcurve(fcu);
+		testhandles_fcurve(fcu, use_handle);
 	}
 
 	/* free cache */
@@ -2865,11 +2865,11 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
-			posttrans_fcurve_clean(ale->key_data);
+			posttrans_fcurve_clean(ale->key_data, FALSE); /* only use handles in graph editor */
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else
-			posttrans_fcurve_clean(ale->key_data);
+			posttrans_fcurve_clean(ale->key_data, FALSE); /* only use handles in graph editor */
 	}
 
 	/* free temp data */
@@ -3320,9 +3320,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-				const char sel1= use_handle ? bezt->f1 & SELECT : 0;
 				const char sel2= bezt->f2 & SELECT;
-				const char sel3= use_handle ? bezt->f3 & SELECT : 0;
+				const char sel1= use_handle ? bezt->f1 & SELECT : sel2;
+				const char sel3= use_handle ? bezt->f3 & SELECT : sel2;
 
 				if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
 					/* for 'normal' pivots - just include anything that is selected.
@@ -3413,9 +3413,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i=0, bezt= fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
-				const char sel1= use_handle ? bezt->f1 & SELECT : 0;
 				const char sel2= bezt->f2 & SELECT;
-				const char sel3= use_handle ? bezt->f3 & SELECT : 0;
+				const char sel1= use_handle ? bezt->f1 & SELECT : sel2;
+				const char sel3= use_handle ? bezt->f3 & SELECT : sel2;
 
 				TransDataCurveHandleFlags *hdata = NULL;
 				/* short h1=1, h2=1; */ /* UNUSED */
@@ -3475,7 +3475,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		}
 		
 		/* Sets handles based on the selection */
-		testhandles_fcurve(fcu);
+		testhandles_fcurve(fcu, use_handle);
 	}
 	
 	/* cleanup temp list */
@@ -3679,7 +3679,7 @@ void remake_graph_transdata (TransInfo *t, ListBase *anim_data)
 			sort_time_fcurve(fcu);
 			
 			/* make sure handles are all set correctly */
-			testhandles_fcurve(fcu);
+			testhandles_fcurve(fcu, use_handle);
 		}
 	}
 }
@@ -4832,11 +4832,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				{
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
-						posttrans_fcurve_clean(fcu);
+						posttrans_fcurve_clean(fcu, FALSE); /* only use handles in graph editor */
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
 					}
 					else
-						posttrans_fcurve_clean(fcu);
+						posttrans_fcurve_clean(fcu, FALSE); /* only use handles in graph editor */
 				}
 			}
 			
@@ -4916,6 +4916,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if (t->spacetype == SPACE_IPO) {
 		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
 		bAnimContext ac;
+		const short use_handle = !(sipo->flag & SIPO_NOHANDLES);
 		
 		/* initialise relevant anim-context 'context' data */
 		if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -4944,11 +4945,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				{
 					if (adt) {
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
-						posttrans_fcurve_clean(fcu);
+						posttrans_fcurve_clean(fcu, use_handle);
 						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
 					}
 					else
-						posttrans_fcurve_clean(fcu);
+						posttrans_fcurve_clean(fcu, use_handle);
 				}
 			}
 			

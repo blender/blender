@@ -818,7 +818,7 @@ void calchandles_fcurve (FCurve *fcu)
  * 		-> Vector handles: become 'nothing' when (one half selected AND other not)
  *  - PHASE 2: recalculate handles
 */
-void testhandles_fcurve (FCurve *fcu)
+void testhandles_fcurve (FCurve *fcu, const short use_handle)
 {
 	BezTriple *bezt;
 	unsigned int a;
@@ -834,9 +834,16 @@ void testhandles_fcurve (FCurve *fcu)
 		/* flag is initialised as selection status
 		 * of beztriple control-points (labelled 0,1,2)
 		 */
-		if (bezt->f1 & SELECT) flag |= (1<<0); // == 1
 		if (bezt->f2 & SELECT) flag |= (1<<1); // == 2
-		if (bezt->f3 & SELECT) flag |= (1<<2); // == 4
+		if(use_handle == FALSE) {
+			if(flag & 2) {
+				flag |= (1<<0) | (1<<2);
+			}
+		}
+		else {
+			if (bezt->f1 & SELECT) flag |= (1<<0); // == 1
+			if (bezt->f3 & SELECT) flag |= (1<<2); // == 4
+		}
 		
 		/* one or two handles selected only */
 		if (ELEM(flag, 0, 7)==0) {

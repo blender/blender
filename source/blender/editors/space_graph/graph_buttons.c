@@ -245,13 +245,15 @@ static short get_active_fcurve_keyframe_edit(FCurve *fcu, BezTriple **bezt, BezT
 }
 
 /* update callback for active keyframe properties - base updates stuff */
-static void graphedit_activekey_update_cb(bContext *UNUSED(C), void *fcu_ptr, void *UNUSED(bezt_ptr))
+static void graphedit_activekey_update_cb(bContext *C, void *fcu_ptr, void *UNUSED(bezt_ptr))
 {
+	SpaceIpo *sipo= CTX_wm_space_graph(C);
+	const short use_handle = !(sipo->flag & SIPO_NOHANDLES);
 	FCurve *fcu = (FCurve *)fcu_ptr;
 	
 	/* make sure F-Curve and its handles are still valid after this editing */
 	sort_time_fcurve(fcu);
-	testhandles_fcurve(fcu);
+	testhandles_fcurve(fcu, use_handle);
 }
 
 /* update callback for active keyframe properties - handle-editing wrapper */
