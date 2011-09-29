@@ -230,6 +230,7 @@ void WM_keymap_init(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 
+	/* create standard key configs */
 	if(!wm->defaultconf)
 		wm->defaultconf= WM_keyconfig_new(wm, "Blender");
 	if(!wm->addonconf)
@@ -237,10 +238,17 @@ void WM_keymap_init(bContext *C)
 	if(!wm->userconf)
 		wm->userconf= WM_keyconfig_new(wm, "Blender User");
 	
+	/* initialize only after python init is done, for keymaps that
+	   use python operators */
 	if(CTX_py_init_get(C) && (wm->initialized & WM_INIT_KEYMAP) == 0) {
-		/* create default key config */
-		wm_window_keymap(wm->defaultconf);
-		ED_spacetypes_keymap(wm->defaultconf);
+		/* create default key config, only initialize once,
+		   it's persistent across sessions */
+		if(!(wm->defaultconf->flag & KEYCONF_INIT_DEFAULT)) {
+			wm_window_keymap(wm->defaultconf);
+			ED_spacetypes_keymap(wm->defaultconf);
+
+			wm->defaultconf->flag |= KEYCONF_INIT_DEFAULT;
+		}
 
 		WM_keyconfig_update_tag(NULL, NULL);
 		WM_keyconfig_update(wm);
