@@ -26,7 +26,7 @@
 
 import os
 
-CURRENT_DIR = os.path.dirname(__file__)
+CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(CURRENT_DIR, "..")))
 
 FILE_NAME_MESSAGES = os.path.join(CURRENT_DIR, "messages.txt")

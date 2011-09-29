@@ -25,9 +25,10 @@
 
 import subprocess
 import os
+from codecs import open
 
 GETTEXT_XGETTEXT_EXECUTABLE = "xgettext"
-CURRENT_DIR = os.path.dirname(__file__)
+CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(CURRENT_DIR, "..")))
 DOMAIN = "blender"
 
@@ -55,7 +56,7 @@ def main():
     pot_messages = {}
     reading_message = False
     message = ""
-    with open(FILE_NAME_POT, 'r') as handle:
+    with open(FILE_NAME_POT, 'r', "utf-8") as handle:
         while True:
             line = handle.readline()
 
@@ -73,8 +74,8 @@ def main():
                 message += line[1:-1]
 
     # add messages collected automatically from RNA
-    with open(FILE_NAME_POT, "a") as pot_handle:
-        with open(FILE_NAME_MESSAGES, 'r') as handle:
+    with open(FILE_NAME_POT, "a", "utf-8") as pot_handle:
+        with open(FILE_NAME_MESSAGES, 'r', "utf-8") as handle:
             while True:
                 line = handle.readline()
 

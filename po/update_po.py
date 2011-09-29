@@ -27,7 +27,8 @@ import subprocess
 import os
 import sys
 
-CURRENT_DIR = os.path.dirname(__file__)
+GETTEXT_MSGMERGE_EXECUTABLE = "msgmerge"
+CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 DOMAIN = "blender"
 
 
@@ -35,7 +36,7 @@ def process_po(po):
     lang = os.path.basename(po)[:-3]
 
     # update po file
-    cmd = ("msgmerge",
+    cmd = (GETTEXT_MSGMERGE_EXECUTABLE,
            "--update",
            "--lang=%s" % lang,
            os.path.join(CURRENT_DIR, "%s.po" % lang),
