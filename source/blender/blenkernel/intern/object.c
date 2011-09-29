@@ -3122,7 +3122,7 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 	r_vec[3][0]= r_shift[0] - facx; r_vec[3][1]= r_shift[1] + facy; r_vec[3][2]= depth;
 }
 
-void camera_frame(Scene *scene, Camera *camera, float r_vec[4][3])
+void camera_view_frame(Scene *scene, Camera *camera, float r_vec[4][3])
 {
 	float dummy_asp[2];
 	float dummy_shift[2];
