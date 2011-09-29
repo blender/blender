@@ -16,7 +16,7 @@ This means when string "some message id" is used as operator name, tooltip, menu
 and so it'll be displayed on the screen as "translation for this message".
 Pretty simple.
 
-This source files are pre-compiled into ../relese/dbin/.blender/locale/<language>/LC_MESSAGES/blender.mo,
+This source files are pre-compiled into ../relese/bin/.blender/locale/<language>/LC_MESSAGES/blender.mo,
 so they aren't getting compiled every time Blender is compiling to same some time and prevent
 failure on systems which doesn't have needed tools for compiling .po files.
 
