@@ -1134,7 +1134,7 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Grouped";
-	ot->description = "Select all strips grouped by various properties.";
+	ot->description = "Select all strips grouped by various properties";
 	ot->idname = "SEQUENCER_OT_select_grouped";
 	
 	/* api callbacks */
@@ -1146,7 +1146,7 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 	ot->prop = RNA_def_enum(ot->srna, "type", sequencer_prop_select_grouped_types, 0, "Type", "");
 }
 
