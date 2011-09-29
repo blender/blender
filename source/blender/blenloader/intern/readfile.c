@@ -12101,7 +12101,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(sce->gm.recastData.edgemaxerror == 0.0f)
 				sce->gm.recastData.edgemaxerror = 1.3f;
 			if(sce->gm.recastData.regionminsize == 0.0f)
-				sce->gm.recastData.regionminsize = 50.f;
+				sce->gm.recastData.regionminsize = 8.f;
 			if(sce->gm.recastData.regionmergesize == 0.0f)
 				sce->gm.recastData.regionmergesize = 20.f;
 			if(sce->gm.recastData.vertsperpoly<3)

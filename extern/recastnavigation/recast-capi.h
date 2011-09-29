@@ -28,6 +28,9 @@
 #ifndef RECAST_C_API_H
 #define RECAST_C_API_H
 
+// for size_t
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -69,16 +72,20 @@ void recast_filterLedgeSpans(const int walkableHeight, const int walkableClimb,
 
 void recast_filterWalkableLowHeightSpans(int walkableHeight, struct recast_heightfield *solid);
 
+void recast_filterLowHangingWalkableObstacles(const int walkableClimb, struct recast_heightfield *solid);
+
 struct recast_compactHeightfield *recast_newCompactHeightfield(void);
 
 void recast_destroyCompactHeightfield(struct recast_compactHeightfield *compactHeightfield);
 
 int recast_buildCompactHeightfield(const int walkableHeight, const int walkableClimb,
-			unsigned char flags, struct recast_heightfield *hf, struct recast_compactHeightfield *chf);
+			struct recast_heightfield *hf, struct recast_compactHeightfield *chf);
+
+int recast_erodeWalkableArea(int radius, struct recast_compactHeightfield *chf);
 
 int recast_buildDistanceField(struct recast_compactHeightfield *chf);
 
-int recast_buildRegions(struct recast_compactHeightfield *chf, int walkableRadius, int borderSize,
+int recast_buildRegions(struct recast_compactHeightfield *chf, int borderSize,
 	int minRegionSize, int mergeRegionSize);
 
 /* Contour set */
@@ -119,7 +126,12 @@ float *recast_polyMeshDetailGetVerts(struct recast_polyMeshDetail *mesh, int *nv
 
 unsigned char *recast_polyMeshDetailGetTris(struct recast_polyMeshDetail *mesh, int *ntris);
 
-unsigned short *recast_polyMeshDetailGetMeshes(struct recast_polyMeshDetail *mesh, int *nmeshes);
+unsigned int *recast_polyMeshDetailGetMeshes(struct recast_polyMeshDetail *mesh, int *nmeshes);
+
+/* utility function: quick sort reentrant */
+typedef int	recast_cmp_t(void *ctx, const void *a, const void *b);
+
+void recast_qsort(void *a, size_t n, size_t es, void *thunk, recast_cmp_t *cmp);
 
 #ifdef __cplusplus
 }

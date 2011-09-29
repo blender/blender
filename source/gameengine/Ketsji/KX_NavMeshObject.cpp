@@ -518,7 +518,7 @@ void KX_NavMeshObject::DrawNavMesh(NavMeshRenderMode renderMode)
 					else
 						v =  m_navMesh->getDetailVertex(pd->vbase+(t[k]-p->nv));
 					float pos[3];
-					vcopy(pos, v);
+					rcVcopy(pos, v);
 					flipAxes(pos);
 					tri[k].setValue(pos);
 				}
