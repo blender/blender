@@ -233,7 +233,8 @@ static void get_keyframe_extents (bAnimContext *ac, float *min, float *max, cons
 	
 	/* get data to filter, from Action or Dopesheet */
 	// XXX: what is sel doing here?!
-	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
+	//      Commented it, was breaking things (eg. the "auto preview range" tool).
+	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_SEL *//*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* set large values to try to override */
