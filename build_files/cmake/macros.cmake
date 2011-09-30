@@ -280,6 +280,11 @@ macro(setup_liblinks
 		target_link_libraries(${target} ${OPENJPEG_LIBRARIES})
 	endif()
 	if(WITH_CODEC_FFMPEG)
+
+		# Strange!, without this ffmpeg gives linking errors (on linux)
+		# even though its linked above
+		target_link_libraries(${target} ${OPENGL_glu_LIBRARY})
+
 		target_link_libraries(${target} ${FFMPEG_LIBRARIES})
 	endif()
 	if(WITH_OPENCOLLADA)
