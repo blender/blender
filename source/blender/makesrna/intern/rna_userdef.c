@@ -3058,7 +3058,7 @@ void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "Addons");
 	srna= RNA_def_struct(brna, "Addons", NULL);
-	RNA_def_struct_ui_text(srna, "User Add-Ons", "Collection of add-ons");
+	RNA_def_struct_ui_text(srna, "User Addons", "Collection of addons");
 
 	func= RNA_def_function(srna, "new", "rna_userdef_addon_new");
 	RNA_def_function_flag(func, FUNC_NO_SELF);
@@ -3083,7 +3083,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 		{USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
 		{USER_SECTION_EDIT, "EDITING", 0, "Editing", ""},
 		{USER_SECTION_INPUT, "INPUT", 0, "Input", ""},
-		{USER_SECTION_ADDONS, "ADDONS", 0, "Add-Ons", ""},
+		{USER_SECTION_ADDONS, "ADDONS", 0, "Addons", ""},
 		{USER_SECTION_THEME, "THEMES", 0, "Themes", ""},
 		{USER_SECTION_FILE, "FILES", 0, "File", ""},
 		{USER_SECTION_SYSTEM, "SYSTEM", 0, "System", ""},

@@ -752,7 +752,7 @@ static void rna_def_armature_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_pointer_sdna(prop, NULL, "act_bone");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active Bone", "Armatures active bone");
+	RNA_def_property_ui_text(prop, "Active Bone", "Armature's active bone");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Armature_act_bone_set", NULL, NULL);
 
 	/* todo, redraw */
