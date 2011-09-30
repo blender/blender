@@ -2467,7 +2467,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	but->pointype= type & BUTPOIN;
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
-	but->icon = 0;
+	but->icon = ICON_NONE;
 	but->iconadd=0;
 
 	but->retval= retval;
