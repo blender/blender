@@ -328,6 +328,10 @@ macro(TEST_SSE_SUPPORT)
 		set(CMAKE_REQUIRED_FLAGS "-msse -msse2")
 	elseif(MSVC)
 		set(CMAKE_REQUIRED_FLAGS "/arch:SSE2") # TODO, SSE 1 ?
+	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
+		set(CMAKE_REQUIRED_FLAGS "-xSSE2")
+	else()
+		message(STATUS "Compiler: '${CMAKE_C_COMPILER_ID}' has no SSE flags defiend for it!")
 	endif()
 
 	if(NOT DEFINED ${SUPPORT_SSE_BUILD})
