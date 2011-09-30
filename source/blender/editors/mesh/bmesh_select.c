@@ -2581,12 +2581,20 @@ static int loop_find_regions(BMEditMesh *em, int selbigger)
 				continue;
 						
 			c = loop_find_region(em, l, BM_SELECT, &visithash, &r);
-			
+
 			if (!region || (selbigger ? c >= tot : c < tot)) {
+				/* this region is the best seen so far */
 				tot = c;
-				if (region) 
+				if (region) {
+					/* free the previous best */
 					MEM_freeN(region);
+				}
+				/* track the current region as the new best */
 				region = r;
+			}
+			else {
+				/* this region is not as good as best so far, just free it */
+				MEM_freeN(r);
 			}
 		}
 		
