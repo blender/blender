@@ -678,6 +678,11 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 					SWAP(void *, oldbut->func_argN, but->func_argN)
 				}
 				
+				/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
+				   when scrolling without moving mouse (see [#28432]) */
+				if(ELEM(oldbut->type, ROW, LISTROW))
+					oldbut->hardmax= but->hardmax;
+				
 				ui_but_update_linklines(block, oldbut, but);
 				
 				BLI_remlink(&block->buttons, but);
