@@ -2297,6 +2297,39 @@ void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
 	}
 }
 
+/* Add weighted face normal component into normals of the face vertices.
+   Caller must pass pre-allocated vdiffs of nverts length. */
+#define VERT_BUF_SIZE 100
+void accumulate_vertex_normals_poly(float **vertnos, float polyno[3],
+	float **vertcos, float vdiffs[][3], int nverts)
+{
+	int i;
+
+	/* calculate normalized edge directions for each edge in the poly */
+	for (i = 0; i < nverts; i++) {
+		sub_v3_v3v3(vdiffs[i], vertcos[(i+1) % nverts], vertcos[i]);
+		normalize_v3(vdiffs[i]);
+	}
+
+	/* accumulate angle weighted face normal */
+	{
+		const float *prev_edge = vdiffs[nverts-1];
+		int i;
+
+		for(i=0; i<nverts; i++) {
+			const float *cur_edge = vdiffs[i];
+			
+			/* calculate angle between the two poly edges incident on
+			   this vertex */
+			const float fac= saacos(-dot_v3v3(cur_edge, prev_edge));
+
+			/* accumulate */
+			madd_v3_v3fl(vertnos[i], polyno, fac);
+			prev_edge = cur_edge;
+		}
+	}
+}
+
 /********************************* Tangents **********************************/
 
 /* For normal map tangents we need to detect uv boundaries, and only average

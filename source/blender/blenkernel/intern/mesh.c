@@ -1718,40 +1718,50 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 	int *origIndexFace, float (*faceNors_r)[3])
 {
 	float (*pnors)[3] = polyNors_r, (*fnors)[3] = faceNors_r;
-	float (*tnorms)[3] = NULL;
-	int i, j;
+	float (*tnorms)[3], (*edgevecbuf)[3];
+	float **vertcos = NULL, **vertnos = NULL;
+	BLI_array_declare(vertcos);
+	BLI_array_declare(vertnos);
+	int i, j, maxPolyVerts = 0;
 	MFace *mf;
 	MPoly *mp;
 	MLoop *ml;
-	
-	if(numPolys == 0) return;
-	
+
+	if (numPolys == 0) {
+		return;
+	}
+
+	mp = mpolys;
+	for (i=0; i<numPolys; i++, mp++) {
+		maxPolyVerts = MAX2(mp->totloop, maxPolyVerts);
+	}
+
+	if (maxPolyVerts == 0) {
+		return;
+	}
+
 	/*first go through and calculate normals for all the polys*/
-	tnorms = MEM_callocN(sizeof(float)*3*numVerts, "tnorms cdderivedmesh.c");
+	edgevecbuf = MEM_callocN(sizeof(float)*3*maxPolyVerts, "edgevecbuf mesh.c");
+	tnorms = MEM_callocN(sizeof(float)*3*numVerts, "tnorms mesh.c");
 	if (!pnors) 
-		pnors = MEM_callocN(sizeof(float)*3*numPolys, "poly_nors cdderivedmesh.c");
+		pnors = MEM_callocN(sizeof(float)*3*numPolys, "poly_nors mesh.c");
 	if (!fnors)
-		fnors = MEM_callocN(sizeof(float)*3*numFaces, "face nors cdderivedmesh.c");
+		fnors = MEM_callocN(sizeof(float)*3*numFaces, "face nors mesh.c");
 	
 	mp = mpolys;
 	for (i=0; i<numPolys; i++, mp++) {
 		mesh_calc_poly_normal(mp, mloop+mp->loopstart, mverts, pnors[i]);
-		
 		ml = mloop + mp->loopstart;
-		/*this is kindof hackish, probably need to calculate quads around face center for
-		  ngons, not this weird quad-fitting thing I've got going here*/
-		for (j=0; j<mp->totloop; j += 4, ml += 4) {
-			int v1, v2, v3, v4;
-			
-			v1 = ml->v; 
-			v2 = mloop[mp->loopstart+(j+1)%mp->totloop].v;
-			v3 = mloop[mp->loopstart+(j+2)%mp->totloop].v;
-			v4 = mloop[mp->loopstart+(j+3)%mp->totloop].v;
-					
-			accumulate_vertex_normals(tnorms[v1], tnorms[v2], tnorms[v3], v4 != v1 ? tnorms[v4] : NULL,
-									  pnors[i], mverts[v1].co, mverts[v2].co, mverts[v3].co, v4!=v1 ? mverts[v4].co : NULL);
-			
+
+		BLI_array_empty(vertcos);
+		BLI_array_empty(vertnos);
+		for (j=0; j<mp->totloop; j++) {
+			int vindex = ml[j].v;
+			BLI_array_append(vertcos, mverts[vindex].co);
+			BLI_array_append(vertnos, tnorms[vindex]);
 		}
+
+		accumulate_vertex_normals_poly(vertnos, pnors[i], vertcos, edgevecbuf, mp->totloop);
 	}
 	
 	/* following Mesh convention; we use vertex coordinate itself for normal in this case */
@@ -1776,7 +1786,10 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MLoop *mloop, MPoly *mpolys,
 			}
 		}
 	}
-	
+
+	BLI_array_free(vertcos);
+	BLI_array_free(vertnos);
+	MEM_freeN(edgevecbuf);
 	MEM_freeN(tnorms);
 	if (fnors != faceNors_r)
 		MEM_freeN(fnors);

@@ -202,6 +202,9 @@ void accumulate_vertex_normals(float n1[3], float n2[3], float n3[3],
 	float n4[3], const float f_no[3], const float co1[3], const float co2[3],
 	const float co3[3], const float co4[3]);
 
+void accumulate_vertex_normals_poly(float **vertnos, float polyno[3],
+	float **vertcos, float vdiffs[][3], int nverts);
+
 /********************************* Tangents **********************************/
 
 typedef struct VertexTangent {
