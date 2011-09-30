@@ -678,8 +678,9 @@ void BMO_HeaderFlag_Buffer(BMesh *bm, BMOperator *op, const char *slotname, int 
 		if (!(type & data[i]->type))
 			continue;
 
-		if (flag & BM_SELECT)
+		if (flag & BM_SELECT) {
 			BM_Select(bm, data[i], 1);
+		}
 		BM_SetHFlag(data[i], flag);
 	}
 }

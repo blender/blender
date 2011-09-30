@@ -1141,11 +1141,11 @@ void BM_esubdivideflag(Object *UNUSED(obedit), BMesh *bm, int flag, float smooth
 				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, ele) {
 					if (!BM_TestHFlag(e, BM_SELECT) && BM_TestHFlag(e->v1, BM_SELECT) 
 													&& BM_TestHFlag(e->v2, BM_SELECT)) {
-						BM_SetHFlag(e, BM_SELECT);
+						BM_Select(bm, e, 1);
 						bm->totedgesel += 1;
 					} else if (BM_TestHFlag(e, BM_SELECT) && (!BM_TestHFlag(e->v1, BM_SELECT) 
 														  || !BM_TestHFlag(e->v2, BM_SELECT))) {
-						BM_ClearHFlag(e, BM_SELECT);
+						BM_Select(bm, e, 0);
 						bm->totedgesel -= 1;		
 					}
 				}

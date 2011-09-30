@@ -521,18 +521,20 @@ static short EDBM_Extrude_vert(Object *obedit, BMEditMesh *em, short flag, float
 		eed = BMIter_New(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
 		for ( ; eed; eed=BMIter_Step(&iter)) {
 			if (BM_TestHFlag(eed, flag)) {
-				if (flag != BM_SELECT) {
-					BM_SetHFlag(eed->v1, flag);
-					BM_SetHFlag(eed->v2, flag);
-				} else {
+				if (flag & BM_SELECT) {
 					BM_Select(em->bm, eed->v1, 1);
 					BM_Select(em->bm, eed->v2, 1);
 				}
+
+				BM_SetHFlag(eed->v1, flag & ~BM_SELECT);
+				BM_SetHFlag(eed->v2, flag & ~BM_SELECT);
 			} else {
 				if (BM_TestHFlag(eed->v1, flag) && BM_TestHFlag(eed->v2, flag)) {
-					if (flag != BM_SELECT)
-						BM_SetHFlag(eed, flag);
-					else BM_Select(em->bm, eed, 1);
+					if (flag & BM_SELECT) {
+						BM_Select(em->bm, eed, 1);
+					}
+
+					BM_SetHFlag(eed, flag & ~BM_SELECT);
 				}
 			}
 		}
@@ -1659,20 +1661,31 @@ void EDBM_reveal_mesh(BMEditMesh *em)
 	BMIter iter;
 	BMHeader *ele;
 	int i, types[3] = {BM_VERTS_OF_MESH, BM_EDGES_OF_MESH, BM_FACES_OF_MESH};
-	int sels[3] = {1, !(em->selectmode & SCE_SELECT_VERTEX), !(em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE))};
+	int sels[3] = {
+		(em->selectmode & SCE_SELECT_VERTEX),
+		(em->selectmode & SCE_SELECT_EDGE),
+		(em->selectmode & SCE_SELECT_FACE),
+	};
 
-	/*Reveal all hidden elements. Handle the reveal in order of faces,
-	  edges, and finally vertices. This is important because revealing
-	  edges may reveal faces, and revealing verts may reveal edges and
-	  faces. Revealing edges or faces in an earlier pass would keep them
-	  from getting selected in the later passes.*/
-	for (i=2; i>=0; i--) {
+	/* Use index field to remember what was hidden before all is revealed. */
+	for (i=0; i<3; i++) {
 		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
-			if (BM_TestHFlag(ele, BM_HIDDEN)) {
-				BM_Hide(em->bm, ele, 0);
+			BM_SetIndex(ele, BM_TestHFlag(ele, BM_HIDDEN) ? 1 : 0);
+		}
+	}
 
-				if (sels[i])
-					BM_Select(em->bm, ele, 1);
+	/* Reveal everything */
+	EDBM_clear_flag_all(em, BM_HIDDEN);
+
+	/* Select relevant just-revealed elements */
+	for (i=0; i<3; i++) {
+		if (!sels[i]) {
+			continue;
+		}
+
+		BM_ITER(ele, &iter, em->bm, types[i], NULL) {
+			if (BM_GetIndex(ele)) {
+				BM_Select(em->bm, ele, 1);
 			}
 		}
 	}
@@ -2755,17 +2768,17 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 
 			BM_SetIndex(e, 1);
-			BM_SetHFlag(e, BM_SELECT);
+			BM_Select(em->bm, e, 1);
 		} else if (BM_Edge_FaceCount(e2) == 2) {
 			l = e2->l;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BM_SetIndex(e, 1);
-			BM_SetHFlag(e, BM_SELECT);
+			BM_Select(em->bm, e, 1);
 			
 			l = e2->l->radial_next;
 			e = BM_OtherFaceLoop(e2, l->f, v)->e;
 			BM_SetIndex(e, 1);
-			BM_SetHFlag(e, BM_SELECT);
+			BM_Select(em->bm, e, 1);
 		}
 
 		dist = FLT_MAX;

@@ -502,8 +502,11 @@ void EDBM_set_flag_all(BMEditMesh *em, int flag)
 		
 		ele = BMIter_New(&iter, em->bm, type, NULL);
 		for ( ; ele; ele=BMIter_Step(&iter)) {
-			if (flag & BM_SELECT) BM_Select(em->bm, ele, 1);
-			BM_SetHFlag(ele, flag);
+			if (flag & BM_SELECT) {
+				BM_Select(em->bm, ele, 1);
+			}
+
+			BM_SetHFlag(ele, flag & ~BM_SELECT);
 		}
 	}
 }
