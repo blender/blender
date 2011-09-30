@@ -71,3 +71,11 @@ For example in update_pot.py:
 -GETTEXT_XGETTEXT_EXECUTABLE = "xgettext"
 +GETTEXT_XGETTEXT_EXECUTABLE = "C:\\Blender\\lib\\\windows\\\binaries\\\gettext\\xgettext.exe"
 
+4. Other scripts
+----------------
+
+- check_po.py: this script checks if all messages declared in blender.pot exists in.po files
+               and that no extra messages are declared in .po files
+- clean_po.py: this script removes all commented messages which aren't required by .pot file anymore.
+- merge_po.py: this scripts accepts two files as arguments and copies translations from second file
+               into first file.

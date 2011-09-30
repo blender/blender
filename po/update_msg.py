@@ -78,6 +78,9 @@ def dump_messages_rna(messages):
         if bl_rna.description:
             messages.setdefault(bl_rna.description, []).append(msgsrc)
 
+        if hasattr(bl_rna, 'bl_label') and  bl_rna.bl_label:
+            messages.setdefault(bl_rna.bl_label, []).append(msgsrc)
+
         walkProperties(bl_rna)
 
     def walkClass(cls):
@@ -119,13 +122,19 @@ def dump_messages_rna(messages):
     for cls in cls_list:
         walkClass(cls)
 
+    cls_list = bpy.types.OperatorProperties.__subclasses__()
+    cls_list.sort(key=full_class_id)
+    for cls in cls_list:
+        walkClass(cls)
+
+    cls_list = bpy.types.Menu.__subclasses__()
+    cls_list.sort(key=full_class_id)
+    for cls in cls_list:
+        walkClass(cls)
+
     from bpy_extras.keyconfig_utils import KM_HIERARCHY
 
     walk_keymap_hierarchy(KM_HIERARCHY, "KM_HIERARCHY")
-
-
-    ## XXX. what is this supposed to do, we wrote the file already???
-    #_walkClass(bpy.types.SpaceDopeSheetEditor)
 
 
 def dump_messages_pytext(messages):

@@ -92,6 +92,7 @@ def main():
                 else:
                     line = line.replace("\\", "\\\\")
                     line = line.replace("\"", "\\\"")
+                    line = line.replace("\t", "\\t")
 
                     if not pot_messages.get(line):
                         for msgsrc in msgsrc_ls:
