@@ -37,9 +37,10 @@ When translation was updated, remove line with '#, fuzzy' and it'll work.
 
 If there's no message in .po file you want to translate, probably .po file should be updated.
 Use the following steps for this:
-- With newly compiled blender run `blender --background --python update_msg.py` to update
-  messages.txt file (this file contains strings collected automatically from RNA system and
-  python UI scripts)
+- With newly compiled blender run:
+  `blender --background --factory-startup --python update_msg.py`
+  to update messages.txt file (this file contains strings collected
+  automatically from RNA system and python UI scripts)
 - Run update_pot.py script which will update blender.pot file. This file contains all
   strings which should be transated.
 - Run update_po.py script to merge all .po files with blender.pot (so all .po files
