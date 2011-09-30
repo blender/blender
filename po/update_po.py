@@ -38,6 +38,7 @@ def process_po(po):
     # update po file
     cmd = (GETTEXT_MSGMERGE_EXECUTABLE,
            "--update",
+           "--backup=none",
            "--lang=%s" % lang,
            os.path.join(CURRENT_DIR, "%s.po" % lang),
            os.path.join(CURRENT_DIR, "%s.pot" % DOMAIN),

@@ -59,3 +59,14 @@ using GNUMakefile:
 make -f GNUMakefile translations
 
 NOTE: Blender has to be compiled using GNUMakefile first.
+
+
+3. Note for Windows users
+-------------------------
+You can find compiled builds of gettext in the lib folder under "binaries\gettext\" for both windows and win64.
+In order to run the scripts you will need to replace the location of the GETTEXT_..._EXeCUTABLE.
+
+For example in update_pot.py:
+-GETTEXT_XGETTEXT_EXECUTABLE = "xgettext"
++GETTEXT_XGETTEXT_EXECUTABLE = "C:\\Blender\\lib\\\windows\\\binaries\\\gettext\\xgettext.exe"
+
