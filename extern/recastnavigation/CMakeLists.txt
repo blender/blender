@@ -55,7 +55,7 @@ set(SRC
 		Recast/Source/Recast.cpp
 		Recast/Source/RecastAlloc.cpp
 		Recast/Source/RecastArea.cpp
-        Recast/Source/RecastContour.cpp
+		Recast/Source/RecastContour.cpp
 		Recast/Source/RecastFilter.cpp
 		Recast/Source/RecastLayers.cpp
 		Recast/Source/RecastMesh.cpp
@@ -65,7 +65,7 @@ set(SRC
 
 		Recast/Include/Recast.h
 		Recast/Include/RecastAlloc.h
-		Recast/Include/RecastAssert.h	
+		Recast/Include/RecastAssert.h
 )
 
 blender_add_lib(extern_recastnavigation "${SRC}" "${INC}" "${INC_SYS}")
