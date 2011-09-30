@@ -335,14 +335,14 @@ macro(TEST_SSE_SUPPORT)
 			#include <xmmintrin.h>
 			int main() { __m128 v = _mm_setzero_ps(); return 0; }"
 		SUPPORT_SSE_BUILD)
-		
+
 		if(SUPPORT_SSE_BUILD)
 			message(STATUS "SSE Support: detected.")
 		else()
 			message(STATUS "SSE Support: missing.")
 		endif()
 		set(${SUPPORT_SSE_BUILD} ${SUPPORT_SSE_BUILD} CACHE INTERNAL "SSE Test")
-	endif()	
+	endif()
 
 	if(NOT DEFINED ${SUPPORT_SSE2_BUILD})
 		check_c_source_runs("
@@ -354,7 +354,7 @@ macro(TEST_SSE_SUPPORT)
 			message(STATUS "SSE2 Support: detected.")
 		else()
 			message(STATUS "SSE2 Support: missing.")
-		endif()	
+		endif()
 		set(${SUPPORT_SSE2_BUILD} ${SUPPORT_SSE2_BUILD} CACHE INTERNAL "SSE2 Test")
 	endif()
 
@@ -493,7 +493,7 @@ endmacro()
 
 
 # hacks to override initial project settings
-# these macros must be called directly before/after project(Blender) 
+# these macros must be called directly before/after project(Blender)
 macro(blender_project_hack_pre)
 	# ----------------
 	# MINGW HACK START
@@ -535,8 +535,10 @@ macro(blender_project_hack_post)
 		# have libs we define and that cmake & scons builds match.
 		set(CMAKE_C_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
 		set(CMAKE_CXX_STANDARD_LIBRARIES "" CACHE STRING "" FORCE)
-		mark_as_advanced(CMAKE_C_STANDARD_LIBRARIES)
-		mark_as_advanced(CMAKE_CXX_STANDARD_LIBRARIES)
+		mark_as_advanced(
+			CMAKE_C_STANDARD_LIBRARIES
+			CMAKE_CXX_STANDARD_LIBRARIES
+		)
 	endif()
 	unset(_reset_standard_libraries)
 
