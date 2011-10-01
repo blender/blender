@@ -4706,7 +4706,7 @@ PyTypeObject pyrna_struct_meta_idprop_Type= {
 	NULL,                       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	NULL,                       /* struct PyGetSetDef *tp_getset; */
-#ifdef FREE_WINDOWS
+#if defined(_MSC_VER) || defined(FREE_WINDOWS)
 	NULL, /* defer assignment */
 #else
 	&PyType_Type,                       /* struct _typeobject *tp_base; */
@@ -5281,7 +5281,7 @@ PyTypeObject pyrna_prop_collection_iter_Type= {
 	NULL,                       /* reprfunc tp_str; */
 
 	/* will only use these if this is a subtype of a py class */
-#ifdef FREE_WINDOWS
+#if defined(_MSC_VER) || defined(FREE_WINDOWS)
 	NULL, /* defer assignment */
 #else
 	PyObject_GenericGetAttr,    /* getattrofunc tp_getattro; */
@@ -5314,7 +5314,7 @@ PyTypeObject pyrna_prop_collection_iter_Type= {
 #endif
   /*** Added in release 2.2 ***/
 	/*   Iterators */
-#ifdef FREE_WINDOWS
+#if defined(_MSC_VER) || defined(FREE_WINDOWS)
 	NULL, /* defer assignment */
 #else
 	PyObject_SelfIter,          /* getiterfunc tp_iter; */
@@ -5705,7 +5705,7 @@ void BPY_rna_init(void)
 #endif
 
 	/* for some reason MSVC complains of these */
-#ifdef FREE_WINDOWS
+#if defined(_MSC_VER) || defined(FREE_WINDOWS)
 	pyrna_struct_meta_idprop_Type.tp_base= &PyType_Type;
 
 	pyrna_prop_collection_iter_Type.tp_iter= PyObject_SelfIter;
