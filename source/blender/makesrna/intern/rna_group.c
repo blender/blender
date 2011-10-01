@@ -132,7 +132,7 @@ void RNA_def_group(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_Group_objects_get", NULL, NULL, NULL, NULL);
 
 	rna_def_group_objects(brna, prop);
 

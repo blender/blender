@@ -689,7 +689,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
-			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", NULL, NULL, "rna_builtin_properties_lookup_string");
+			RNA_def_property_collection_funcs(prop, "rna_builtin_properties_begin", "rna_builtin_properties_next", "rna_iterator_listbase_end", "rna_builtin_properties_get", NULL, NULL, "rna_builtin_properties_lookup_string", NULL);
 		}
 		else {
 #ifdef RNA_RUNTIME
@@ -2047,7 +2047,7 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 	}
 }
 
-void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring)
+void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring, const char *assignint)
 {
 	StructRNA *srna= DefRNA.laststruct;
 
@@ -2067,6 +2067,7 @@ void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, con
 			if(length) cprop->length= (PropCollectionLengthFunc)length;
 			if(lookupint) cprop->lookupint= (PropCollectionLookupIntFunc)lookupint;
 			if(lookupstring) cprop->lookupstring= (PropCollectionLookupStringFunc)lookupstring;
+			if(assignint) cprop->assignint= (PropCollectionAssignIntFunc)assignint;
 			break;
 		}
 		default:

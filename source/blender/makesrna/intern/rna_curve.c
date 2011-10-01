@@ -1262,7 +1262,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "nurb", NULL);
 #else
 	/* this way we get editmode nurbs too, keyframe in editmode */
-	RNA_def_property_collection_funcs(prop, "rna_Curve_splines_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Curve_splines_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 #endif
 	RNA_def_property_struct_type(prop, "Spline");
 	RNA_def_property_ui_text(prop, "Splines", "Collection of splines in this curve data object");
@@ -1450,7 +1450,7 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bp", NULL);
 	RNA_def_property_struct_type(prop, "SplinePoint");
-	RNA_def_property_collection_funcs(prop, "rna_BPoint_array_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_Nurb_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_BPoint_array_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_Nurb_length", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Points", "Collection of points that make up this poly or nurbs spline");
 	rna_def_curve_spline_points(brna, prop);
 

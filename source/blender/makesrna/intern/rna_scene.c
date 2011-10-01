@@ -3480,14 +3480,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "ObjectBase");
 	RNA_def_property_ui_text(prop, "Bases", "");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, "rna_Scene_object_bases_lookup_string");
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, "rna_Scene_object_bases_lookup_string", NULL);
 	rna_def_scene_bases(brna, prop);
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_Scene_objects_get", NULL, NULL, NULL, NULL);
 	rna_def_scene_objects(brna, prop);
 
 	/* Layers */
@@ -3617,8 +3617,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	rna_def_scene_keying_sets(brna, prop);
 	
 	prop= RNA_def_property(srna, "keying_sets_all", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_Scene_all_keyingsets_begin", "rna_Scene_all_keyingsets_next",
-	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Scene_all_keyingsets_begin", "rna_Scene_all_keyingsets_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "KeyingSet");
 	RNA_def_property_ui_text(prop, "All Keying Sets",
 	                         "All Keying Sets available for use (Builtins and Absolute Keying Sets for this Scene)");

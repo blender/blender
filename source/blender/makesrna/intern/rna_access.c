@@ -2864,6 +2864,21 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 	}
 }
 
+/* zero return is an assignment error */
+int RNA_property_collection_assign_int(PointerRNA *ptr, PropertyRNA *prop, const int key, PointerRNA *assign_ptr)
+{
+	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)rna_ensure_property(prop);
+
+	BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
+
+	if(cprop->assignint) {
+		/* we have a callback defined, use it */
+		return cprop->assignint(ptr, key, assign_ptr);
+	}
+
+	return 0;
+}
+
 int RNA_property_collection_type_get(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
 	BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);

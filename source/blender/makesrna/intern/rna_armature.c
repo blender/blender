@@ -841,7 +841,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	/* Collections */
 	prop= RNA_def_property(srna, "bones", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bonebase", NULL);
-	RNA_def_property_collection_funcs(prop, 0, "rna_Armature_bones_next", 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, "rna_Armature_bones_next", NULL, NULL, NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "Bone");
 	RNA_def_property_ui_text(prop, "Bones", "");
 	rna_def_armature_bones(brna, prop);
