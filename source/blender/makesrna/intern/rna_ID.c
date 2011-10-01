@@ -314,6 +314,14 @@ static int rna_IDPArray_length(PointerRNA *ptr)
 	return prop->len;
 }
 
+int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, PointerRNA *assign_ptr)
+{
+	ID *id=           ptr->id.data;
+	Material *mat_id= assign_ptr->id.data;
+	assign_material_id(id, mat_id, key + 1);
+	return 1;
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)

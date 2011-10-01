@@ -1095,6 +1095,9 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 		if(cprop->item_type)
 			return cprop->item_type;
 	}
+	else {
+		BLI_assert(0);
+	}
 
 	return &RNA_UnknownType;
 }
@@ -2865,7 +2868,7 @@ int RNA_property_collection_lookup_string(PointerRNA *ptr, PropertyRNA *prop, co
 }
 
 /* zero return is an assignment error */
-int RNA_property_collection_assign_int(PointerRNA *ptr, PropertyRNA *prop, const int key, PointerRNA *assign_ptr)
+int RNA_property_collection_assign_int(PointerRNA *ptr, PropertyRNA *prop, const int key, const PointerRNA *assign_ptr)
 {
 	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)rna_ensure_property(prop);
 
