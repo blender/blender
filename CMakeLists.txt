@@ -273,7 +273,7 @@ if(WITH_PYTHON_MODULE)
 	set(WITH_HEADLESS ON)
 endif()
 
-TEST_SSE_SUPPORT()
+TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
 
 # don't store paths to libs for portable distrobution
 if(WITH_INSTALL_PORTABLE)
@@ -1128,34 +1128,17 @@ endif()
 # See TEST_SSE_SUPPORT() for how this is defined.
 
 if(WITH_RAYOPTIMIZATION)
-	if(CMAKE_COMPILER_IS_GNUCC)
-		set(_sse "-msse")
-		set(_sse2 "-msse2")
-	elseif(MSVC)
-		set(_sse "/arch:SSE")
-		set(_sse2 "/arch:SSE2")
-	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
-		set(_sse)  # icc only has sse2
-		set(_sse2 "-xSSE2")		
-	else()
-		message(WARNING "SSE flags for this compiler: '${CMAKE_C_COMPILER_ID}' not known")
-		set(_sse)
-		set(_sse2)
-	endif()
-
 	if(SUPPORT_SSE_BUILD)
-		set(PLATFORM_CFLAGS " ${_sse} ${PLATFORM_CFLAGS}")
+		set(PLATFORM_CFLAGS " ${COMPILER_SSE_FLAG} ${PLATFORM_CFLAGS}")
 		add_definitions(-D__SSE__ -D__MMX__)
 	endif()
 	if(SUPPORT_SSE2_BUILD)
-		set(PLATFORM_CFLAGS " ${_sse2} ${PLATFORM_CFLAGS}")
+		set(PLATFORM_CFLAGS " ${COMPILER_SSE2_FLAG} ${PLATFORM_CFLAGS}")
 		add_definitions(-D__SSE2__)
 		if(NOT SUPPORT_SSE_BUILD) # dont double up
 			add_definitions(-D__MMX__)
 		endif()
 	endif()
-	unset(_sse)
-	unset(_sse2)
 endif()
 
 

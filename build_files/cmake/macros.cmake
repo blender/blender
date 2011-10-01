@@ -325,18 +325,30 @@ macro(setup_liblinks
 	endif()
 endmacro()
 
-macro(TEST_SSE_SUPPORT)
+macro(TEST_SSE_SUPPORT
+	_sse_flags
+	_sse2_flags)
+
 	include(CheckCSourceRuns)
 
 	# message(STATUS "Detecting SSE support")
-	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_REQUIRED_FLAGS "-msse -msse2")
+	if(CMAKE_COMPILER_IS_GNUCC)
+		set(${_sse_flags} "-msse")
+		set(${_sse2_flags} "-msse2")
 	elseif(MSVC)
-		set(CMAKE_REQUIRED_FLAGS "/arch:SSE2") # TODO, SSE 1 ?
+		set(${_sse_flags} "/arch:SSE")
+		set(${_sse2_flags} "/arch:SSE2")
 	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
-		set(CMAKE_REQUIRED_FLAGS "-xSSE2")
+		set(${_sse_flags})  # icc only has sse2
+		set(${_sse2_flags} "-xSSE2")		
 	else()
-		message(STATUS "Compiler: '${CMAKE_C_COMPILER_ID}' has no SSE flags defiend for it!")
+		message(WARNING "SSE flags for this compiler: '${CMAKE_C_COMPILER_ID}' not known")
+		set(_sse_flags)
+		set(_sse2_flags)
+	endif()
+
+	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+		set(CMAKE_REQUIRED_FLAGS ${_sse_flags} ${_sse2_flags})
 	endif()
 
 	if(NOT DEFINED ${SUPPORT_SSE_BUILD})
