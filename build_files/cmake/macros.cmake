@@ -235,7 +235,7 @@ macro(setup_liblinks
 	endif()
 
 	if(WITH_INTERNATIONAL)
-		target_link_libraries(${target} ${GETTEXT_LIB})
+		target_link_libraries(${target} ${GETTEXT_LIBRARIES})
 
 		if(WIN32 AND NOT UNIX)
 			target_link_libraries(${target} ${ICONV_LIBRARIES})
@@ -343,18 +343,17 @@ macro(TEST_SSE_SUPPORT
 		set(${_sse2_flags} "-xSSE2")		
 	else()
 		message(WARNING "SSE flags for this compiler: '${CMAKE_C_COMPILER_ID}' not known")
-		set(_sse_flags)
-		set(_sse2_flags)
+		set(${_sse_flags})
+		set(${_sse2_flags})
 	endif()
 
-	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_REQUIRED_FLAGS ${_sse_flags} ${_sse2_flags})
-	endif()
+	set(CMAKE_REQUIRED_FLAGS "${${_sse_flags}} ${${_sse2_flags}}")
 
-	if(NOT DEFINED ${SUPPORT_SSE_BUILD})
+	if(NOT DEFINED SUPPORT_SSE_BUILD)
+		# result cached
 		check_c_source_runs("
 			#include <xmmintrin.h>
-			int main() { __m128 v = _mm_setzero_ps(); return 0; }"
+			int main(void) { __m128 v = _mm_setzero_ps(); return 0; }"
 		SUPPORT_SSE_BUILD)
 
 		if(SUPPORT_SSE_BUILD)
@@ -362,13 +361,13 @@ macro(TEST_SSE_SUPPORT
 		else()
 			message(STATUS "SSE Support: missing.")
 		endif()
-		set(${SUPPORT_SSE_BUILD} ${SUPPORT_SSE_BUILD} CACHE INTERNAL "SSE Test")
 	endif()
 
-	if(NOT DEFINED ${SUPPORT_SSE2_BUILD})
+	if(NOT DEFINED SUPPORT_SSE2_BUILD)
+		# result cached
 		check_c_source_runs("
 			#include <emmintrin.h>
-			int main() { __m128d v = _mm_setzero_pd(); return 0; }"
+			int main(void) { __m128d v = _mm_setzero_pd(); return 0; }"
 		SUPPORT_SSE2_BUILD)
 
 		if(SUPPORT_SSE2_BUILD)
@@ -376,9 +375,9 @@ macro(TEST_SSE_SUPPORT
 		else()
 			message(STATUS "SSE2 Support: missing.")
 		endif()
-		set(${SUPPORT_SSE2_BUILD} ${SUPPORT_SSE2_BUILD} CACHE INTERNAL "SSE2 Test")
 	endif()
 
+	unset(CMAKE_REQUIRED_FLAGS)
 endmacro()
 
 # when we have warnings as errors applied globally this

@@ -287,7 +287,7 @@ endif()
 set(WITH_BINRELOC OFF)
 
 # MAXOSX only, set to avoid uninitialized
-set(EXETYPE)
+set(EXETYPE "")
 
 # C/C++ flags
 set(PLATFORM_CFLAGS)
@@ -298,13 +298,13 @@ set(CXX_WARNINGS)
 
 # libraries to link the binary with passed to target_link_libraries()
 # known as LLIBS to scons
-set(PLATFORM_LINKLIBS)
+set(PLATFORM_LINKLIBS "")
 
 # Added to linker flags in setup_liblinks
 # - CMAKE_EXE_LINKER_FLAGS
 # - CMAKE_EXE_LINKER_FLAGS_DEBUG
-set(PLATFORM_LINKFLAGS)
-set(PLATFORM_LINKFLAGS_DEBUG)
+set(PLATFORM_LINKFLAGS "")
+set(PLATFORM_LINKFLAGS_DEBUG "")
 
 
 # disabled for now, not supported
@@ -436,7 +436,7 @@ if(UNIX AND NOT APPLE)
 		)
 
 		if(INTL_LIBRARY AND ICONV_LIBRARY)
-			set(GETTEXT_LIB ${INTL_LIBRARY} ${ICONV_LIBRARY})
+			set(GETTEXT_LIBRARIES ${INTL_LIBRARY} ${ICONV_LIBRARY})
 		endif()
 	endif()
 
@@ -645,9 +645,9 @@ elseif(WIN32)
 
 		if(WITH_INTERNATIONAL)
 			set(GETTEXT ${LIBDIR}/gettext)
-			set(GETTEXT_INC ${GETTEXT}/include)
+			set(GETTEXT_INCLUDE_DIRS ${GETTEXT}/include)
 			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
-			set(GETTEXT_LIB gnu_gettext)
+			set(GETTEXT_LIBRARIES gnu_gettext)
 		endif()
 
 		if(CMAKE_CL_64)
@@ -745,7 +745,7 @@ elseif(WIN32)
 			set(OPENEXR_INCUDE ${OPENEXR}/include${MSVC_INC})
 			set(OPENEXR_INCLUDE_DIRS
 				${OPENEXR_INCUDE}
-			        ${OPENEXR_INCUDE}/IlmImf
+				${OPENEXR_INCUDE}/IlmImf
 				${OPENEXR_INCUDE}/Iex
 				${OPENEXR_INCUDE}/Imath
 			)
@@ -804,9 +804,9 @@ elseif(WIN32)
 
 		if(WITH_INTERNATIONAL)
 			set(GETTEXT ${LIBDIR}/gcc/gettext)
-			set(GETTEXT_INC ${GETTEXT}/include)
+			set(GETTEXT_INCLUDE_DIRS ${GETTEXT}/include)
 			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
-			set(GETTEXT_LIB intl)
+			set(GETTEXT_LIBRARIES intl)
 		endif()
 
 		set(JPEG_LIBRARIES libjpeg)
@@ -956,8 +956,8 @@ elseif(APPLE)
 
 	if(WITH_INTERNATIONAL)
 		set(GETTEXT ${LIBDIR}/gettext)
-		set(GETTEXT_INC "${GETTEXT}/include")
-		set(GETTEXT_LIB intl iconv)
+		set(GETTEXT_INCLUDE_DIRS "${GETTEXT}/include")
+		set(GETTEXT_LIBRARIES intl iconv)
 		set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 	endif()
 
