@@ -1293,6 +1293,10 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
 
+	# disable numbered, false positives
+	set(C_WARNINGS "${C_WARNINGS} -wd188,186,144,913,556")
+	set(CXX_WARNINGS "${CXX_WARNINGS} -wd188,186,144,913,556")
+
 endif()
 
 # MSVC2010 fails to links C++ libs right

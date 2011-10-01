@@ -383,7 +383,7 @@ struct MTex *rna_mtex_texture_slots_create(struct ID *self, struct bContext *C, 
 void rna_mtex_texture_slots_clear(struct ID *self, struct bContext *C, struct ReportList *reports, int index);
 
 
-int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, struct PointerRNA *assign_ptr);
+int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
 
 #endif /* RNA_INTERNAL_H */
 

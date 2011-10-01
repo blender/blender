@@ -2308,7 +2308,6 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 	uiStyle *style= UI_GetStyle();
 	uiPopupBlockHandle *handle;
 	uiPopupMenu *pup;
-	
 	pup= MEM_callocN(sizeof(uiPopupMenu), "menu dummy");
 	pup->block= uiBeginBlock(C, NULL, "ui_button_menu_create", UI_EMBOSSP);
 	pup->layout= uiBlockLayout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_MENU, 0, 0, 200, 0, style);
@@ -2322,6 +2321,14 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 		pup->my= window->eventstate->y;
 		pup->popup= 1;
 		pup->block->flag |= UI_BLOCK_NO_FLIP;
+	}
+	else {
+		/* if this is an rna button then we can assume its an enum
+		 * flipping enums is generally not good since the order can be
+		 * important [#28786] */
+		if(but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
+			pup->block->flag |= UI_BLOCK_NO_FLIP;
+		}
 	}
 
 	if(str) {

@@ -314,7 +314,7 @@ static int rna_IDPArray_length(PointerRNA *ptr)
 	return prop->len;
 }
 
-int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, PointerRNA *assign_ptr)
+int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr)
 {
 	ID *id=           ptr->id.data;
 	Material *mat_id= assign_ptr->id.data;
