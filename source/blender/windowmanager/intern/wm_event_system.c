@@ -1278,6 +1278,10 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 	}
 	/* Finished and pass through flag as handled */
 
+	/* Finished and pass through flag as handled */
+	if(retval == (OPERATOR_FINISHED|OPERATOR_PASS_THROUGH))
+		return WM_HANDLER_HANDLED;
+
 	/* Modal unhandled, break */
 	if(retval == (OPERATOR_PASS_THROUGH|OPERATOR_RUNNING_MODAL))
 		return (WM_HANDLER_BREAK|WM_HANDLER_MODAL);
