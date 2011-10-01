@@ -4706,7 +4706,11 @@ PyTypeObject pyrna_struct_meta_idprop_Type= {
 	NULL,                       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	NULL,                       /* struct PyGetSetDef *tp_getset; */
-	NULL,                       /* struct _typeobject *tp_base; */
+#ifdef FREE_WINDOWS
+	NULL, /* defer assignment */
+#else
+	&PyType_Type,                       /* struct _typeobject *tp_base; */
+#endif
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
 	NULL,                       /* descrsetfunc tp_descr_set; */
@@ -5277,7 +5281,11 @@ PyTypeObject pyrna_prop_collection_iter_Type= {
 	NULL,                       /* reprfunc tp_str; */
 
 	/* will only use these if this is a subtype of a py class */
+#ifdef FREE_WINDOWS
+	NULL, /* defer assignment */
+#else
 	PyObject_GenericGetAttr,    /* getattrofunc tp_getattro; */
+#endif
 	NULL,                       /* setattrofunc tp_setattro; */
 
 	/* Functions to access object as input/output buffer */
@@ -5306,7 +5314,11 @@ PyTypeObject pyrna_prop_collection_iter_Type= {
 #endif
   /*** Added in release 2.2 ***/
 	/*   Iterators */
+#ifdef FREE_WINDOWS
+	NULL, /* defer assignment */
+#else
 	PyObject_SelfIter,          /* getiterfunc tp_iter; */
+#endif
 	(iternextfunc) pyrna_prop_collection_iter_next, /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
@@ -5692,8 +5704,15 @@ void BPY_rna_init(void)
 	mathutils_rna_matrix_cb_index= Mathutils_RegisterCallback(&mathutils_rna_matrix_cb);
 #endif
 
-	/* metaclass */
+	/* for some reason MSVC complains of these */
+#ifdef FREE_WINDOWS
 	pyrna_struct_meta_idprop_Type.tp_base= &PyType_Type;
+
+	pyrna_prop_collection_iter_Type.tp_iter= PyObject_SelfIter;
+	pyrna_prop_collection_iter_Type.tp_getattro= PyObject_GenericGetAttr;
+#endif
+
+	/* metaclass */
 	if(PyType_Ready(&pyrna_struct_meta_idprop_Type) < 0)
 		return;
 
