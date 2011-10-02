@@ -2611,8 +2611,8 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 			copy_v3_v3(center, td->center);
 		}
 		else if (t->flag & T_EDIT) {
-			
-			if(t->around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
+
+			if(t->settings->selectmode & SCE_SELECT_FACE) {
 				copy_v3_v3(center, td->center);
 			}
 			else {
@@ -2899,19 +2899,17 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 	float vec[3], totmat[3][3], smat[3][3];
 	float eul[3], fmat[3][3], quat[4];
 	float *center = t->center;
-	
+
 	/* local constraint shouldn't alter center */
 	if (around == V3D_LOCAL) {
 		if (t->flag & (T_OBJECT|T_POSE)) {
 			center = td->center;
 		}
-		else {
-			if(around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
-				center = td->center;
-			}
+		else if (t->settings->selectmode & SCE_SELECT_FACE) {
+			center = td->center;
 		}
 	}
-	
+
 	if (t->flag & T_POINTS) {
 		mul_m3_m3m3(totmat, mat, td->mtx);
 		mul_m3_m3m3(smat, td->smtx, totmat);
