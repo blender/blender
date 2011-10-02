@@ -333,8 +333,8 @@ macro(TEST_SSE_SUPPORT
 		set(${_sse_flags} "/arch:SSE")
 		set(${_sse2_flags} "/arch:SSE2")
 	elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
-		set(${_sse_flags})  # icc only has sse2
-		set(${_sse2_flags} "-xSSE2")		
+		set(${_sse_flags} "")  # icc defaults to -msse
+		set(${_sse2_flags} "-msse2")
 	else()
 		message(WARNING "SSE flags for this compiler: '${CMAKE_C_COMPILER_ID}' not known")
 		set(${_sse_flags})
