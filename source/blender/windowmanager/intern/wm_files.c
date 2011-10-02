@@ -412,6 +412,10 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		BPY_app_handlers_reset();
 		BPY_modules_load_user(C);
 #endif
+
+		/* important to do before NULL'ing the context */
+		BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
+
 		CTX_wm_window_set(C, NULL); /* exits queues */
 
 #if 0	/* gives popups on windows but not linux, bug in report API but disable for now to stop users getting annoyed  */
@@ -429,8 +433,6 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		// XXX		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo(C, "original");	/* save current state */
-
-		BLI_exec_cb(CTX_data_main(C), NULL, BLI_CB_EVT_LOAD_POST);
 	}
 	else if(retval == BKE_READ_EXOTIC_OK_OTHER)
 		BKE_write_undo(C, "Import file");
