@@ -119,13 +119,16 @@ def keyconfig_merge(kc1, kc2):
     """
     merged_keymaps = [(km, kc1) for km in kc1.keymaps]
     if kc1 != kc2:
-        merged_keymaps.extend((km, kc2) for km in kc2.keymaps if not _km_exists_in(km, merged_keymaps))
+        merged_keymaps.extend((km, kc2) for km in kc2.keymaps if not km_exists_in(km, merged_keymaps))
 
     return merged_keymaps
 
 
-def keyconfig_export(wm, kc, filepath):
+def _export_properties(prefix, properties, lines=None):
     from bpy.types import OperatorProperties
+
+    if lines is None:
+        lines = []
 
     def string_value(value):
         if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
@@ -137,20 +140,19 @@ def keyconfig_export(wm, kc, filepath):
 
         return result
 
-    def export_properties(prefix, properties, lines=None):
-        if lines is None:
-            lines = []
+    for pname in properties.bl_rna.properties.keys():
+        if pname != "rna_type" and not properties.is_property_hidden(pname):
+            value = getattr(properties, pname)
+            if isinstance(value, OperatorProperties):
+                _export_properties(prefix + "." + pname, value, lines)
+            elif properties.is_property_set(pname):
+                value = string_value(value)
+                if value != "":
+                    lines.append("%s.%s = %s\n" % (prefix, pname, value))
+    return lines
 
-        for pname in properties.bl_rna.properties.keys():
-            if pname != "rna_type" and not properties.is_property_hidden(pname):
-                value = getattr(properties, pname)
-                if isinstance(value, OperatorProperties):
-                    export_properties(prefix + "." + pname, value, lines)
-                elif properties.is_property_set(pname):
-                    value = string_value(value)
-                    if value != "":
-                        lines.append("%s.%s = %s\n" % (prefix, pname, value))
-        return lines
+
+def keyconfig_export(wm, kc, filepath):
 
     f = open(filepath, "w")
 
@@ -209,7 +211,7 @@ def keyconfig_export(wm, kc, filepath):
             props = kmi.properties
 
             if props is not None:
-                f.write("".join(export_properties("kmi.properties", props)))
+                f.write("".join(_export_properties("kmi.properties", props)))
 
         f.write("\n")
 
@@ -246,7 +248,7 @@ def keyconfig_test(kc):
             props = kmi.properties
 
             if props is not None:
-                export_properties("kmi.properties", props, s)
+                _export_properties("kmi.properties", props, s)
 
             return "".join(s).strip()
 

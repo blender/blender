@@ -133,12 +133,12 @@ def do_clean(po, pot_messages):
         if pot_messages.get(msgid):
             t = po_messages.get(msgid)
             if not t:
-                print(('Reusing full item from commented ' + \
-                       'lines for msgid \'%s\'') % (msgid))
+                print("Reusing full item from commented "
+                       "lines for msgid '%s'" % msgid)
                 po_messages[msgid] = commented_messages[msgid]
             elif not t['translation']:
-                print(('Reusing translation from commented ' + \
-                       'lines for msgid \'%s\'') % (msgid))
+                print("Reusing translation from commented "
+                       "lines for msgid '%s'" % msgid)
                 m = commented_messages[msgid]
                 t['translation'] = m['translation']
                 t['translation_lines'] = m['translation_lines']
@@ -153,17 +153,17 @@ def do_clean(po, pot_messages):
             first = True
             for x in item['message_lines']:
                 if first:
-                    handle.write("msgid \"%s\"\n" % (x))
+                    handle.write("msgid \"%s\"\n" % x)
                 else:
-                    handle.write("\"%s\"\n" % (x))
+                    handle.write("\"%s\"\n" % x)
                 first = False
 
             first = True
             for x in item['translation_lines']:
                 if first:
-                    handle.write("msgstr \"%s\"\n" % (x))
+                    handle.write("msgstr \"%s\"\n" % x)
                 else:
-                    handle.write("\"%s\"\n" % (x))
+                    handle.write("\"%s\"\n" % x)
                 first = False
 
             handle.write("\n")
