@@ -99,7 +99,6 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 	        (size= QuaternionObject_Check(value) ? 4 : 0) ||
 	        (size= ColorObject_Check(value)      ? 3 : 0))
 	{
-		printf("siez %d\n", size);
 		if(BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
 		}
