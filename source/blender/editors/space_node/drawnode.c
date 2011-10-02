@@ -1538,6 +1538,7 @@ static void node_composit_buts_map_uv(uiLayout *layout, bContext *UNUSED(C), Poi
 static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "index", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "smooth_mask", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

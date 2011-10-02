@@ -1874,6 +1874,11 @@ static void def_cmp_id_mask(StructRNA *srna)
 	RNA_def_property_range(prop, 0, 10000);
 	RNA_def_property_ui_text(prop, "Index", "Pass index number to convert to alpha");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "smooth_mask", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 0);
+	RNA_def_property_ui_text(prop, "Smooth Mask", "Apply an anti-aliasing filter to the mask");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_map_uv(StructRNA *srna)
