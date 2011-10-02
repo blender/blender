@@ -262,20 +262,6 @@ if(WITH_CODEC_SNDFILE)
 	)
 endif()
 
-if(WITH_SAMPLERATE)
-	add_definitions(-DWITH_SAMPLERATE)
-	list(APPEND INC_SYS
-		${SAMPLERATE_INCLUDE_DIRS}
-	)
-	list(APPEND SRC
-		SRC/AUD_SRCResampleFactory.cpp
-		SRC/AUD_SRCResampleReader.cpp
-
-		SRC/AUD_SRCResampleFactory.h
-		SRC/AUD_SRCResampleReader.h
-	)
-endif()
-
 if(WITH_FFTW3 AND FALSE)
 	add_definitions(-DWITH_FFTW3)
 	list(APPEND INC

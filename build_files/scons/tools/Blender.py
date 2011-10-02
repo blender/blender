@@ -131,7 +131,6 @@ def setup_staticlibs(lenv):
         lenv['BF_JPEG_LIBPATH'],
         lenv['BF_ZLIB_LIBPATH'],
         lenv['BF_PNG_LIBPATH'],
-        lenv['BF_LIBSAMPLERATE_LIBPATH'],
         lenv['BF_ICONV_LIBPATH']
         ])
 
@@ -193,9 +192,6 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_OPENMP']:
         if lenv['OURPLATFORM'] == 'linuxcross':
             libincs += Split(lenv['BF_OPENMP_LIBPATH'])
-
-    if lenv['WITH_BF_STATICLIBSAMPLERATE']:
-        statlibs += Split(lenv['BF_LIBSAMPLERATE_LIB_STATIC'])
 
     # setting this last so any overriding of manually libs could be handled
     if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
@@ -269,9 +265,6 @@ def setup_syslibs(lenv):
         else:
             syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])
         syslibs.append(lenv['BF_EXPAT_LIB'])
-
-    if not lenv['WITH_BF_STATICLIBSAMPLERATE']:
-        syslibs += Split(lenv['BF_LIBSAMPLERATE_LIB'])
 
     if lenv['WITH_BF_JEMALLOC']:
         if not lenv['WITH_BF_STATICJEMALLOC']:

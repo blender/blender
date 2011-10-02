@@ -25,7 +25,7 @@ arch=('i686' 'x86_64')
 url="www.blender.org"
 license=('GPL')
 groups=()
-depends=('libjpeg' 'libpng' 'openjpeg' 'libtiff' 'openexr'  'python>=3.2' 'gettext' 'libxi' 'libxmu' 'mesa' 'freetype2' 'openal' 'sdl' 'libsndfile' 'libsamplerate' 'ffmpeg')
+depends=('libjpeg' 'libpng' 'openjpeg' 'libtiff' 'openexr'  'python>=3.2' 'gettext' 'libxi' 'libxmu' 'mesa' 'freetype2' 'openal' 'sdl' 'libsndfile' 'ffmpeg')
 makedepends=('cmake' 'svn')
 optdepends=()
 provides=()

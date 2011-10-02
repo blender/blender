@@ -189,7 +189,6 @@ option(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org
 option(WITH_SDL           "Enable SDL for sound and joystick support" ON)
 option(WITH_OPENAL        "Enable OpenAL Support (http://www.openal.org)" ON)
 option(WITH_JACK          "Enable Jack Support (http://www.jackaudio.org)" OFF)
-option(WITH_SAMPLERATE    "Enable samplerate conversion" ON)
 
 # Compression
 option(WITH_LZO           "Enable fast LZO compression (used for pointcache)" ON)
@@ -447,13 +446,6 @@ if(UNIX AND NOT APPLE)
 		endif()
 	endif()
 
-	if(WITH_SAMPLERATE)
-		find_package(Samplerate)
-		if(NOT SAMPLERATE_FOUND)
-			set(WITH_SAMPLERATE OFF)
-		endif()
-	endif()
-
 	if(WITH_OPENCOLLADA)
 		find_package(OpenCOLLADA)
 		if(OPENCOLLADA_FOUND)
@@ -563,13 +555,6 @@ elseif(WIN32)
 		set(ICONV_INCLUDE_DIRS ${ICONV}/include)
 		set(ICONV_LIBRARIES iconv)
 		set(ICONV_LIBPATH ${ICONV}/lib)
-	endif()
-
-	if(WITH_SAMPLERATE)
-		set(SAMPLERATE ${LIBDIR}/samplerate)
-		set(SAMPLERATE_INCLUDE_DIRS ${SAMPLERATE}/include)
-		set(SAMPLERATE_LIBRARIES libsamplerate)
-		set(SAMPLERATE_LIBPATH ${SAMPLERATE}/lib)
 	endif()
 
 	set(PNG "${LIBDIR}/png")
@@ -993,13 +978,6 @@ elseif(APPLE)
 		set(FFMPEG_LIBRARIES avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
-	endif()
-
-	if(WITH_SAMPLERATE)
-		set(SAMPLERATE ${LIBDIR}/samplerate)
-		set(SAMPLERATE_INCLUDE_DIRS ${SAMPLERATE}/include)
-		set(SAMPLERATE_LIBRARIES samplerate)
-		set(SAMPLERATE_LIBPATH ${SAMPLERATE}/lib)
 	endif()
 
 	find_library(SYSTEMSTUBS_LIBRARY
@@ -1436,7 +1414,6 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_JACK)
 	info_cfg_option(WITH_CODEC_FFMPEG)
 	info_cfg_option(WITH_CODEC_SNDFILE)
-	info_cfg_option(WITH_SAMPLERATE)
 
 	info_cfg_text("Compression:")
 	info_cfg_option(WITH_LZMA)
