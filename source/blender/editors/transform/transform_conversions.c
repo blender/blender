@@ -1194,7 +1194,7 @@ static void createTransArmatureVerts(TransInfo *t)
 				if (ebo->flag & BONE_TIPSEL)
 				{
 					copy_v3_v3(td->iloc, ebo->tail);
-					copy_v3_v3(td->center, td->iloc);
+					copy_v3_v3(td->center, (t->around==V3D_LOCAL) ? ebo->head : td->iloc);
 					td->loc= ebo->tail;
 					td->flag= TD_SELECTED;
 					if (ebo->flag & BONE_EDITMODE_LOCKED)
