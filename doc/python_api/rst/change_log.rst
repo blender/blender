@@ -919,7 +919,7 @@ bpy.types.Scene
 Function Arguments
 ^^^^^^^^^^^^^^^^^^
 
-* :class:`bpy.types.Scene.fh_damping` (filepath, selected), *was (filepath)*
+* :class:`bpy.types.Scene.collada_export` (filepath, selected), *was (filepath)*
 
 bpy.types.MultiresModifier
 --------------------------
@@ -985,7 +985,7 @@ bpy.types.IDMaterials
 Function Arguments
 ^^^^^^^^^^^^^^^^^^
 
-* :class:`bpy.types.IDMaterials.ndof_rotate_speed` (index, update_data), *was (index)*
+* :class:`bpy.types.IDMaterials.pop` (index, update_data), *was (index)*
 
 bpy.types.Material
 ------------------
