@@ -565,8 +565,6 @@ def AppIt(target=None, source=None, env=None):
         commands.getoutput(cmd)
         cmd = 'cp -R %s/release/bin/.blender/fonts %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
-        cmd = 'cp %s/release/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
-        commands.getoutput(cmd)
         cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
 
