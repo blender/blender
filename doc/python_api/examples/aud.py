@@ -11,10 +11,10 @@ device = aud.device()
 factory = aud.Factory('music.ogg')
 
 # play the audio, this return a handle to control play/pause
-handle = device.play(sound)
+handle = device.play(factory)
 # if the audio is not too big and will be used often you can buffer it
-factory_buffered = aud.Factory.buffer(sound)
-handle_buffered = device.play(buffered)
+factory_buffered = aud.Factory.buffer(factory)
+handle_buffered = device.play(factory_buffered)
 
 # stop the sounds (otherwise they play until their ends)
 handle.stop()
