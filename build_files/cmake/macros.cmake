@@ -332,7 +332,7 @@ macro(TEST_SSE_SUPPORT
 	include(CheckCSourceRuns)
 
 	# message(STATUS "Detecting SSE support")
-	if(CMAKE_COMPILER_IS_GNUCC)
+	if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
 		set(${_sse_flags} "-msse")
 		set(${_sse2_flags} "-msse2")
 	elseif(MSVC)
