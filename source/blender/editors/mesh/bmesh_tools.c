@@ -4402,6 +4402,183 @@ void MESH_OT_vertices_sort(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ********************** SORT FACES ******************* */
+
+static void permutate(void *list, int num, int size, int *index)
+{
+	void *buf;
+	int len;
+	int i;
+
+	len = num * size;
+
+	buf = MEM_mallocN(len, "permutate");
+	memcpy(buf, list, len);
+	
+	for (i = 0; i < num; i++) {
+		memcpy((char *)list + (i * size), (char *)buf + (index[i] * size), size);
+	}
+	MEM_freeN(buf);
+}
+
+/* sort faces on view axis */
+static float *face_sort_floats;
+static int float_sort(const void *v1, const void *v2)
+{
+	float x1, x2;
+	
+	x1 = face_sort_floats[((int *) v1)[0]];
+	x2 = face_sort_floats[((int *) v2)[0]];
+	
+	if( x1 > x2 ) return 1;
+	else if( x1 < x2 ) return -1;
+	return 0;
+}
+
+static int sort_faces_exec(bContext *C, wmOperator *op)
+{
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+	View3D *v3d= CTX_wm_view3d(C);
+	Object *ob= CTX_data_edit_object(C);
+	Scene *scene= CTX_data_scene(C);
+	Mesh *me;
+	CustomDataLayer *layer;
+	int i, j, *index;
+	int event;
+	float reverse = 1;
+	// XXX int ctrl= 0;
+	
+	if (!v3d) return OPERATOR_CANCELLED;
+
+	/* This operator work in Object Mode, not in edit mode.
+	 * After talk with Campbell we agree that there is no point to port this to EditMesh right now.
+	 * so for now, we just exit_editmode and enter_editmode at the end of this function.
+	 */
+	ED_object_exit_editmode(C, EM_FREEDATA);
+
+	me= ob->data;
+	if(me->totpoly==0) {
+		ED_object_enter_editmode(C, 0);
+		return OPERATOR_FINISHED;
+	}
+
+	event= RNA_enum_get(op->ptr, "type");
+
+	// XXX
+	//if(ctrl)
+	//	reverse = -1;
+	
+	/* create index list */
+	index= (int *)MEM_mallocN(sizeof(int) * me->totpoly, "sort faces");
+	for (i = 0; i < me->totpoly; i++) {
+		index[i] = i;
+	}
+	
+	face_sort_floats = (float *) MEM_mallocN(sizeof(float) * me->totpoly, "sort faces float");
+
+	/* sort index list instead of faces itself 
+	 * and apply this permutation to all face layers
+	 */
+	if (event == 5) {
+		/* Random */
+		for(i=0; i<me->totpoly; i++) {
+			face_sort_floats[i] = BLI_frand();
+		}
+		qsort(index, me->totpoly, sizeof(int), float_sort);		
+	} else {
+		MPoly *mp;
+		MLoop *ml;
+		MVert *mv;
+		float vec[3];
+		float mat[4][4];
+		float cur[3];
+		
+		if (event == 1)
+			mul_m4_m4m4(mat, OBACT->obmat, rv3d->viewmat); /* apply the view matrix to the object matrix */
+		else if (event == 2) { /* sort from cursor */
+			if( v3d && v3d->localvd ) {
+				VECCOPY(cur, v3d->cursor);
+			} else {
+				VECCOPY(cur, scene->cursor);
+			}
+			invert_m4_m4(mat, OBACT->obmat);
+			mul_m4_v3(mat, cur);
+		}
+		
+		mp= me->mpoly;
+
+		for(i=0; i<me->totpoly; i++, mp++) {
+			if (event==3) {
+				face_sort_floats[i] = ((float)mp->mat_nr)*reverse;
+			} else if (event==4) {
+				/*selected first*/
+				if (mp->flag & ME_FACE_SEL)
+					face_sort_floats[i] = 0.0;
+				else
+					face_sort_floats[i] = reverse;
+			} else {
+				/* find the face's center */
+				ml = me->mloop+mp->loopstart;
+				zero_v3(vec);
+				for (j = 0; j < mp->totloop; j++, ml++) {
+					mv = me->mvert+ml->v;
+					add_v3_v3(vec, mv->co);
+				}
+				mul_v3_fl(vec, 1.0f / (float)mp->totloop);
+				
+				if (event == 1) { /* sort on view axis */
+					mul_m4_v3(mat, vec);
+					face_sort_floats[i] = vec[2] * reverse;
+				} else if(event == 2) { /* distance from cursor*/
+					face_sort_floats[i] = len_v3v3(cur, vec) * reverse; /* back to front */
+				}
+			}
+		}
+		qsort(index, me->totpoly, sizeof(int), float_sort);
+	}
+	
+	MEM_freeN(face_sort_floats);
+	for(i = 0; i < me->pdata.totlayer; i++) {
+		layer = &me->pdata.layers[i];
+		permutate(layer->data, me->totpoly, CustomData_sizeof(layer->type), index);
+	}
+
+	MEM_freeN(index);
+	DAG_id_tag_update(ob->data, 0);
+
+	/* Return to editmode. */
+	ED_object_enter_editmode(C, 0);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_sort_faces(wmOperatorType *ot)
+{
+	static EnumPropertyItem type_items[]= {
+		{ 1, "VIEW_AXIS", 0, "View Axis", "" },
+		{ 2, "CURSOR_DISTANCE", 0, "Cursor Distance", "" },
+		{ 3, "MATERIAL", 0, "Material", "" },
+		{ 4, "SELECTED", 0, "Selected", "" },
+		{ 5, "RANDOMIZE", 0, "Randomize", "" },
+		{ 0, NULL, 0, NULL, NULL }};
+
+	/* identifiers */
+	ot->name= "Sort Faces"; // XXX (Ctrl to reverse)%t|
+	ot->description= "The faces of the active Mesh Object are sorted, based on the current view";
+	ot->idname= "MESH_OT_sort_faces";
+
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= sort_faces_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+}
+
 #if 0
 /* called from buttons */
 static void hashvert_flag(EditMesh *em, int flag)
