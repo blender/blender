@@ -5157,7 +5157,9 @@ void uiContextActivePropertyHandle(bContext *C)
 		 * currently this is mainly so reset defaults works for the
 		 * operator redo panel - campbell */
 		uiBlock *block= activebut->block;
-		block->handle_func(C, block->handle_func_arg, 0);
+		if (block->handle_func) {
+			block->handle_func(C, block->handle_func_arg, 0);
+		}
 	}
 }
 
