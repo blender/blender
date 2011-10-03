@@ -360,6 +360,9 @@ typedef struct UndoImageTile {
 
 	void *rect;
 	int x, y;
+
+	short source;
+	char gen_type;
 } UndoImageTile;
 
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
@@ -390,8 +393,9 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 	int allocsize;
 
 	for(tile=lb->first; tile; tile=tile->next)
-		if(tile->x == x_tile && tile->y == y_tile && strcmp(tile->idname, ima->id.name)==0 && strcmp(tile->ibufname, ibuf->name)==0)
-			return tile->rect;
+		if(tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type && ima->source == tile->source)
+			if(strcmp(tile->idname, ima->id.name)==0 && strcmp(tile->ibufname, ibuf->name)==0)
+				return tile->rect;
 	
 	if (*tmpibuf==NULL)
 		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect);
@@ -406,6 +410,9 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 	tile->rect= MEM_mapallocN(allocsize, "UndeImageTile.rect");
 
 	strcpy(tile->ibufname, ibuf->name);
+
+	tile->gen_type= ima->gen_type;
+	tile->source= ima->source;
 
 	undo_copy_tile(tile, *tmpibuf, ibuf, 0);
 	undo_paint_push_count_alloc(UNDO_PAINT_IMAGE, allocsize);
@@ -436,7 +443,7 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 
 		ibuf= BKE_image_get_ibuf(ima, NULL);
 
-		if(ima && strcmp(tile->ibufname, ibuf->name)!=0) {
+		if(ima && ibuf && strcmp(tile->ibufname, ibuf->name)!=0) {
 			/* current ImBuf filename was changed, probably current frame
 			   was changed when paiting on image sequence, rather than storing
 			   full image user (which isn't so obvious, btw) try to find ImBuf with
@@ -446,6 +453,9 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 		}
 
 		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
+			continue;
+
+		if (ima->gen_type != tile->gen_type || ima->source != tile->source)
 			continue;
 
 		undo_copy_tile(tile, tmpibuf, ibuf, 1);
