@@ -314,11 +314,11 @@ void BVH::pack_instances(size_t nodes_size)
 	pack.nodes.resize(nodes_size);
 	pack.object_node.resize(objects.size());
 
-	int *pack_prim_index = &pack.prim_index[0];
-	int *pack_prim_object = &pack.prim_object[0];
-	uint *pack_prim_visibility = &pack.prim_visibility[0];
-	float4 *pack_tri_woop = &pack.tri_woop[0];
-	int4 *pack_nodes = &pack.nodes[0];
+	int *pack_prim_index = (pack.prim_index.size())? &pack.prim_index[0]: NULL;
+	int *pack_prim_object = (pack.prim_object.size())? &pack.prim_object[0]: NULL;
+	uint *pack_prim_visibility = (pack.prim_visibility.size())? &pack.prim_visibility[0]: NULL;
+	float4 *pack_tri_woop = (pack.tri_woop.size())? &pack.tri_woop[0]: NULL;
+	int4 *pack_nodes = (pack.nodes.size())? &pack.nodes[0]: NULL;
 
 	/* merge */
 	foreach(Object *ob, objects) {
@@ -355,7 +355,7 @@ void BVH::pack_instances(size_t nodes_size)
 		mesh_map[mesh] = pack.object_node[object_offset-1];
 
 		/* merge primitive and object indexes */
-		{
+		if(bvh->pack.prim_index.size()) {
 			size_t bvh_prim_index_size = bvh->pack.prim_index.size();
 			int *bvh_prim_index = &bvh->pack.prim_index[0];
 			uint *bvh_prim_visibility = &bvh->pack.prim_visibility[0];
@@ -369,14 +369,14 @@ void BVH::pack_instances(size_t nodes_size)
 		}
 
 		/* merge triangle intersection data */
-		{
+		if(bvh->pack.tri_woop.size()) {
 			memcpy(pack_tri_woop+pack_tri_woop_offset, &bvh->pack.tri_woop[0],
 				bvh->pack.tri_woop.size()*sizeof(float4));
 			pack_tri_woop_offset += bvh->pack.tri_woop.size();
 		}
 
 		/* merge nodes */
-		{
+		if( bvh->pack.nodes.size()) {
 			size_t nsize_bbox = (use_qbvh)? nsize-2: nsize-1;
 			int4 *bvh_nodes = &bvh->pack.nodes[0];
 			size_t bvh_nodes_size = bvh->pack.nodes.size(); 

@@ -125,7 +125,7 @@ typedef struct RPCReceive {
 				size_t len = boost::asio::read(socket, boost::asio::buffer(data));
 
 				if(len == data_size) {
-					archive_str = string(&data[0], data.size());
+					archive_str = (data.size())? string(&data[0], data.size()): string("");
 					/*istringstream archive_stream(archive_str);
 					boost::archive::text_iarchive archive(archive_stream);*/
 					archive_stream = new istringstream(archive_str);

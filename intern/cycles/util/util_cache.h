@@ -57,20 +57,26 @@ public:
 
 	template<typename T> void add(const vector<T>& data)
 	{
-		CacheBuffer buffer(&data[0], data.size()*sizeof(T));
-		buffers.push_back(buffer);
+		if(data.size()) {
+			CacheBuffer buffer(&data[0], data.size()*sizeof(T));
+			buffers.push_back(buffer);
+		}
 	}
 
 	template<typename T> void add(const array<T>& data)
 	{
-		CacheBuffer buffer(&data[0], data.size()*sizeof(T));
-		buffers.push_back(buffer);
+		if(data.size()) {
+			CacheBuffer buffer(&data[0], data.size()*sizeof(T));
+			buffers.push_back(buffer);
+		}
 	}
 
 	void add(void *data, size_t size)
 	{
-		CacheBuffer buffer(data, size);
-		buffers.push_back(buffer);
+		if(size) {
+			CacheBuffer buffer(data, size);
+			buffers.push_back(buffer);
+		}
 	}
 
 	void add(int& data)
@@ -93,6 +99,9 @@ public:
 			fprintf(stderr, "Failed to read vector size from cache.\n");
 			return;
 		}
+
+		if(!size)
+			return;
 
 		data.resize(size/sizeof(T));
 

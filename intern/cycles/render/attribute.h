@@ -73,13 +73,13 @@ public:
 	size_t element_size(int numverts, int numfaces);
 	size_t buffer_size(int numverts, int numfaces);
 
-	char *data() { return &buffer[0]; };
-	float3 *data_float3() { return (float3*)&buffer[0]; }
-	float *data_float() { return (float*)&buffer[0]; }
+	char *data() { return (buffer.size())? &buffer[0]: NULL; };
+	float3 *data_float3() { return (float3*)data(); }
+	float *data_float() { return (float*)data(); }
 
-	const char *data() const { return &buffer[0]; }
-	const float3 *data_float3() const { return (float3*)&buffer[0]; }
-	const float *data_float() const { return (float*)&buffer[0]; }
+	const char *data() const { return (buffer.size())? &buffer[0]: NULL; }
+	const float3 *data_float3() const { return (float3*)data(); }
+	const float *data_float() const { return (float*)data(); }
 
 	static bool same_storage(TypeDesc a, TypeDesc b);
 	static ustring standard_name(Attribute::Standard std);

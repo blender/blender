@@ -115,17 +115,20 @@ void Mesh::add_face_normals()
 	float3 *fN = attr_fN->data_float3();
 
 	/* compute face normals */
-	float3 *verts_ptr = &verts[0];
 	size_t triangles_size = triangles.size();
-	Triangle *triangles_ptr = &triangles[0];
 
-	for(size_t i = 0; i < triangles_size; i++) {
-		Triangle t = triangles_ptr[i];
-		float3 v0 = verts_ptr[t.v[0]];
-		float3 v1 = verts_ptr[t.v[1]];
-		float3 v2 = verts_ptr[t.v[2]];
+	if(triangles_size) {
+		float3 *verts_ptr = &verts[0];
+		Triangle *triangles_ptr = &triangles[0];
 
-		fN[i] = normalize(cross(v1 - v0, v2 - v0));
+		for(size_t i = 0; i < triangles_size; i++) {
+			Triangle t = triangles_ptr[i];
+			float3 v0 = verts_ptr[t.v[0]];
+			float3 v1 = verts_ptr[t.v[1]];
+			float3 v2 = verts_ptr[t.v[2]];
+
+			fN[i] = normalize(cross(v1 - v0, v2 - v0));
+		}
 	}
 }
 
@@ -143,15 +146,18 @@ void Mesh::add_vertex_normals()
 	float3 *vN = attr_vN->data_float3();
 
 	/* compute vertex normals */
-	memset(&vN[0], 0, verts.size()*sizeof(float3));
+	memset(vN, 0, verts.size()*sizeof(float3));
 
 	size_t verts_size = verts.size();
 	size_t triangles_size = triangles.size();
-	Triangle *triangles_ptr = &triangles[0];
 
-	for(size_t i = 0; i < triangles_size; i++)
-		for(size_t j = 0; j < 3; j++)
-			vN[triangles_ptr[i].v[j]] += fN[i];
+	if(triangles_size) {
+		Triangle *triangles_ptr = &triangles[0];
+
+		for(size_t i = 0; i < triangles_size; i++)
+			for(size_t j = 0; j < 3; j++)
+				vN[triangles_ptr[i].v[j]] += fN[i];
+	}
 
 	for(size_t i = 0; i < verts_size; i++)
 		vN[i] = normalize(vN[i]);
@@ -169,7 +175,7 @@ void Mesh::pack_normals(Scene *scene, float4 *normal, float4 *vnormal)
 	bool last_smooth = false;
 
 	size_t triangles_size = triangles.size();
-	uint *shader_ptr = &shader[0];
+	uint *shader_ptr = (shader.size())? &shader[0]: NULL;
 
 	for(size_t i = 0; i < triangles_size; i++) {
 		normal[i].x = fN[i].x;
@@ -195,24 +201,30 @@ void Mesh::pack_normals(Scene *scene, float4 *normal, float4 *vnormal)
 void Mesh::pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset)
 {
 	size_t verts_size = verts.size();
-	float3 *verts_ptr = &verts[0];
 
-	for(size_t i = 0; i < verts_size; i++) {
-		float3 p = verts_ptr[i];
-		tri_verts[i] = make_float4(p.x, p.y, p.z, 0.0f);
+	if(verts_size) {
+		float3 *verts_ptr = &verts[0];
+
+		for(size_t i = 0; i < verts_size; i++) {
+			float3 p = verts_ptr[i];
+			tri_verts[i] = make_float4(p.x, p.y, p.z, 0.0f);
+		}
 	}
 
 	size_t triangles_size = triangles.size();
-	Triangle *triangles_ptr = &triangles[0];
 
-	for(size_t i = 0; i < triangles_size; i++) {
-		Triangle t = triangles_ptr[i];
+	if(triangles_size) {
+		Triangle *triangles_ptr = &triangles[0];
 
-		tri_vindex[i] = make_float4(
-			__int_as_float(t.v[0] + vert_offset),
-			__int_as_float(t.v[1] + vert_offset),
-			__int_as_float(t.v[2] + vert_offset),
-			0);
+		for(size_t i = 0; i < triangles_size; i++) {
+			Triangle t = triangles_ptr[i];
+
+			tri_vindex[i] = make_float4(
+				__int_as_float(t.v[0] + vert_offset),
+				__int_as_float(t.v[1] + vert_offset),
+				__int_as_float(t.v[2] + vert_offset),
+				0);
+		}
 	}
 }
 
@@ -428,7 +440,8 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 			/* todo: get rid of this exception */
 			if(!mattr && req.std == Attribute::STD_GENERATED) {
 				mattr = mesh->attributes.add(Attribute::STD_GENERATED);
-				memcpy(mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
+				if(mesh->verts.size())
+					memcpy(mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
 			}
 
 			/* attribute not found */

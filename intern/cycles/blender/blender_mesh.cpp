@@ -268,9 +268,10 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
 
+
 	mesh->clear();
 	mesh->used_shaders = used_shaders;
-	mesh->name = ustring(b_ob_data.name());
+	mesh->name = ustring(b_ob_data.name().c_str());
 
 	if(b_mesh) {
 		if(cmesh.data && RNA_boolean_get(&cmesh, "use_subdivision"))
@@ -299,8 +300,10 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 
 	if(oldtriangle.size() != mesh->triangles.size())
 		rebuild = true;
-	else if(memcmp(&oldtriangle[0], &mesh->triangles[0], sizeof(Mesh::Triangle)*oldtriangle.size()) != 0)
-		rebuild = true;
+	else if(oldtriangle.size()) {
+		if(memcmp(&oldtriangle[0], &mesh->triangles[0], sizeof(Mesh::Triangle)*oldtriangle.size()) != 0)
+			rebuild = true;
+	}
 	
 	mesh->tag_update(scene, rebuild);
 
