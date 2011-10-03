@@ -427,11 +427,11 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 	
 	for(tile=lb->first; tile; tile=tile->next) {
 		/* find image based on name, pointer becomes invalid with global undo */
-		if(ima && strcmp(tile->idname, ima->id.name)==0);
+		if(ima && strcmp(tile->idname, ima->id.name)==0) {
+			/* ima is valid */
+		}
 		else {
-			for(ima=bmain->image.first; ima; ima=ima->id.next)
-				if(strcmp(tile->idname, ima->id.name)==0)
-					break;
+			ima= BLI_findstring(&bmain->image, tile->idname, offsetof(ID, name));
 		}
 
 		ibuf= BKE_image_get_ibuf(ima, NULL);
@@ -442,13 +442,7 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 			   full image user (which isn't so obvious, btw) try to find ImBuf with
 			   matched file name in list of already loaded images */
 
-			ibuf= ima->ibufs.first;
-			while(ibuf) {
-				if(strcmp(tile->ibufname, ibuf->name)==0)
-					break;
-
-				ibuf= ibuf->next;
-			}
+			ibuf= BLI_findstring(&ima->ibufs, tile->ibufname, offsetof(ImBuf, name));
 		}
 
 		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))

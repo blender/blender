@@ -1095,9 +1095,7 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop)
 		if(cprop->item_type)
 			return cprop->item_type;
 	}
-	else {
-		BLI_assert(0);
-	}
+	/* ignore other types, RNA_struct_find_nested calls with unchecked props */
 
 	return &RNA_UnknownType;
 }
