@@ -721,8 +721,12 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		if(ptr) {
 			Object *ob= ptr->data;
 
-			if(ob && ob->type && (ob->type<OB_LAMP) && ob->totcol)
-				CTX_data_pointer_set(result, &ob->id, &RNA_MaterialSlot, ob->mat+ob->actcol-1);
+			if(ob && ob->type && (ob->type<OB_LAMP) && ob->totcol) {
+				/* a valid actcol isn't ensured [#27526] */
+				int matnr= ob->actcol-1;
+				if(matnr < 0) matnr= 0;
+				CTX_data_pointer_set(result, &ob->id, &RNA_MaterialSlot, &ob->mat[matnr]);
+			}
 		}
 
 		return 1;
