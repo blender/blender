@@ -177,7 +177,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 
 	/* object sync */
 	if(object_map.sync(&object, b_ob, b_parent, key)) {
-		object->name = b_ob.name();
+		object->name = b_ob.name().c_str();
 		object->tfm = tfm;
 		
 		object->visibility = object_ray_visibility(b_ob) & visibility;

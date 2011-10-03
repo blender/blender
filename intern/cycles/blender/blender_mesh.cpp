@@ -110,11 +110,11 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		BL::Mesh::vertex_colors_iterator l;
 
 		for(b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l) {
-			if(!mesh_need_attribute(scene, mesh, ustring(l->name())))
+			if(!mesh_need_attribute(scene, mesh, ustring(l->name().c_str())))
 				continue;
 
 			Attribute *attr = mesh->attributes.add(
-				ustring(l->name()), TypeDesc::TypeColor, Attribute::CORNER);
+				ustring(l->name().c_str()), TypeDesc::TypeColor, Attribute::CORNER);
 
 			BL::MeshColorLayer::data_iterator c;
 			float3 *fdata = attr->data_float3();
@@ -142,7 +142,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 
 		for(b_mesh.uv_textures.begin(l); l != b_mesh.uv_textures.end(); ++l) {
 			Attribute::Standard std = (l->active_render())? Attribute::STD_UV: Attribute::STD_NONE;
-			ustring name = ustring(l->name());
+			ustring name = ustring(l->name().c_str());
 
 			if(!(mesh_need_attribute(scene, mesh, name) || mesh_need_attribute(scene, mesh, std)))
 				continue;

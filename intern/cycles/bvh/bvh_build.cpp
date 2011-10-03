@@ -270,7 +270,8 @@ BVHNode* BVHBuild::create_leaf_node(const NodeSpec& spec)
 	/* while there may be multiple triangles in a leaf, for object primitives
 	 * we want them to be the only one, so we  */
 	int ob_num = spec.num - num;
-	BVHNode *oleaf = create_object_leaf_nodes(&references.back() - (ob_num - 1), ob_num);
+	const Reference *ref = (ob_num)? &references.back() - (ob_num - 1): NULL;
+	BVHNode *oleaf = create_object_leaf_nodes(ref, ob_num);
 	for(int i = 0; i < ob_num; i++)
 		references.pop_back();
 	

@@ -568,7 +568,7 @@ void BlenderSync::sync_materials()
 		if(shader_map.sync(&shader, *b_mat)) {
 			ShaderGraph *graph = new ShaderGraph();
 
-			shader->name = b_mat->name();
+			shader->name = b_mat->name().c_str();
 
 			/* create nodes */
 			if(b_mat->use_nodes() && b_mat->node_tree()) {
@@ -660,7 +660,7 @@ void BlenderSync::sync_lamps()
 
 			/* create nodes */
 			if(b_lamp->use_nodes() && b_lamp->node_tree()) {
-				shader->name = b_lamp->name();
+				shader->name = b_lamp->name().c_str();
 
 				PtrSockMap sock_to_node;
 				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
