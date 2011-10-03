@@ -1649,7 +1649,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	if(ob->matbits) MEM_freeN(ob->matbits);
 	ob->mat = NULL;
 	ob->matbits= NULL;
-	if ((target->totcol) && (target->mat) && ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) { //XXX OB_SUPPORT_MATERIAL
+	if ((target->totcol) && (target->mat) && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
 		int i;
 		ob->colbits = target->colbits;
 		

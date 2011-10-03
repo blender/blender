@@ -895,8 +895,11 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 	
 	if (ptr->type == &RNA_Object) {
 		Object *ob = ptr->data;
-		if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+		/* dimensions and material support just happen to be the same checks
+		 * later we may want to add dimensions for lattice, armature etc too */
+		if (OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
 			uiItemR(layout, ptr, "dimensions", 0, "Dimensions", ICON_NONE);
+		}
 	}
 }
 

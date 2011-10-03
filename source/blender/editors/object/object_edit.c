@@ -1368,7 +1368,7 @@ static void UNUSED_FUNCTION(copy_attr_menu)(Main *bmain, Scene *scene, View3D *v
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");
 	
-// XXX	if (OB_SUPPORT_MATERIAL(ob)) {
+// XXX	if (OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
 //		strcat(str, "|Texture Space%x17");
 //	}	
 	

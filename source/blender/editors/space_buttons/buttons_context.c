@@ -234,7 +234,7 @@ static int buttons_context_path_material(ButsContextPath *path, int for_texture)
 	else if(buttons_context_path_object(path)) {
 		ob= path->ptr[path->len-1].data;
 
-		if(ob && ob->type && (ob->type<OB_LAMP)) {
+		if(ob && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
 			ma= give_current_material(ob, ob->actcol);
 			RNA_id_pointer_create(&ma->id, &path->ptr[path->len]);
 			path->len++;
@@ -721,7 +721,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		if(ptr) {
 			Object *ob= ptr->data;
 
-			if(ob && ob->type && (ob->type<OB_LAMP) && ob->totcol) {
+			if(ob && OB_TYPE_SUPPORT_MATERIAL(ob->type) && ob->totcol) {
 				/* a valid actcol isn't ensured [#27526] */
 				int matnr= ob->actcol-1;
 				if(matnr < 0) matnr= 0;
