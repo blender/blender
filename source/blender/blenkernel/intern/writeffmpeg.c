@@ -489,6 +489,12 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		c->qmax=51;
 	}
 	
+	// Keep lossless encodes in the RGB domain.
+	if (codec_id == CODEC_ID_HUFFYUV || codec_id == CODEC_ID_FFV1) {
+		/* HUFFYUV was PIX_FMT_YUV422P before */
+		c->pix_fmt = PIX_FMT_RGB32;
+	}
+
 	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
 //		|| !strcmp(of->oformat->name, "mp4")
 //	    || !strcmp(of->oformat->name, "mov")
@@ -518,8 +524,8 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		return NULL;
 	}
 
-	video_buffersize = 2000000;
-	video_buffer = (uint8_t*)MEM_mallocN(video_buffersize, 
+	video_buffersize = avpicture_get_size(c->pix_fmt, c->width, c->height);
+	video_buffer = (uint8_t*)MEM_mallocN(video_buffersize*sizeof(uint8_t),
 						 "FFMPEG video buffer");
 	
 	current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
