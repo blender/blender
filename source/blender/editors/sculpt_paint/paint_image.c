@@ -356,6 +356,7 @@ typedef struct UndoImageTile {
 	struct UndoImageTile *next, *prev;
 
 	char idname[MAX_ID_NAME];	/* name instead of pointer*/
+	char ibufname[IB_FILENAME_SIZE];
 
 	void *rect;
 	int x, y;
@@ -389,7 +390,7 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 	int allocsize;
 
 	for(tile=lb->first; tile; tile=tile->next)
-		if(tile->x == x_tile && tile->y == y_tile && strcmp(tile->idname, ima->id.name)==0)
+		if(tile->x == x_tile && tile->y == y_tile && strcmp(tile->idname, ima->id.name)==0 && strcmp(tile->ibufname, ibuf->name)==0)
 			return tile->rect;
 	
 	if (*tmpibuf==NULL)
@@ -403,6 +404,8 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 	allocsize= IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE*4;
 	allocsize *= (ibuf->rect_float)? sizeof(float): sizeof(char);
 	tile->rect= MEM_mapallocN(allocsize, "UndeImageTile.rect");
+
+	strcpy(tile->ibufname, ibuf->name);
 
 	undo_copy_tile(tile, *tmpibuf, ibuf, 0);
 	undo_paint_push_count_alloc(UNDO_PAINT_IMAGE, allocsize);
@@ -432,6 +435,21 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 		}
 
 		ibuf= BKE_image_get_ibuf(ima, NULL);
+
+		if(ima && strcmp(tile->ibufname, ibuf->name)!=0) {
+			/* current ImBuf filename was changed, probably current frame
+			   was changed when paiting on image sequence, rather than storing
+			   full image user (which isn't so obvious, btw) try to find ImBuf with
+			   matched file name in list of already loaded images */
+
+			ibuf= ima->ibufs.first;
+			while(ibuf) {
+				if(strcmp(tile->ibufname, ibuf->name)==0)
+					break;
+
+				ibuf= ibuf->next;
+			}
+		}
 
 		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
 			continue;
