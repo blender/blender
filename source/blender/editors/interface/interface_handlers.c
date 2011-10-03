@@ -4681,7 +4681,7 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 	/* check if the mouse is in the region */
 	if(!BLI_in_rcti(&ar->winrct, x, y)) {
 		for(block=ar->uiblocks.first; block; block=block->next)
-			block->auto_open= 0;
+			block->auto_open= FALSE;
 		
 		return 0;
 	}
@@ -4868,8 +4868,8 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 			if(data->used_mouse && !data->autoopentimer) {
 				int time;
 
-				if(but->block->auto_open==2) time= 1;    // test for toolbox
-				else if((but->block->flag & UI_BLOCK_LOOP && but->type != BLOCK) || but->block->auto_open) time= 5*U.menuthreshold2;
+				if(but->block->auto_open==TRUE) time= 1;    // test for toolbox
+				else if((but->block->flag & UI_BLOCK_LOOP && but->type != BLOCK) || but->block->auto_open==TRUE) time= 5*U.menuthreshold2;
 				else if(U.uiflag & USER_MENUOPENAUTO) time= 5*U.menuthreshold1;
 				else time= -1;
 
@@ -4967,9 +4967,9 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	/* we disable auto_open in the block after a threshold, because we still
 	 * want to allow auto opening adjacent menus even if no button is activated
 	 * in between going over to the other button, but only for a short while */
-	if(type == BUTTON_ACTIVATE_OVER && but->block->auto_open)
+	if(type == BUTTON_ACTIVATE_OVER && but->block->auto_open==TRUE)
 		if(but->block->auto_open_last+BUTTON_AUTO_OPEN_THRESH < PIL_check_seconds_timer())
-			but->block->auto_open= 0;
+			but->block->auto_open= FALSE;
 
 	if(type == BUTTON_ACTIVATE_OVER) {
 		data->used_mouse= 1;

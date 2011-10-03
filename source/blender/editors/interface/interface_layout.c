@@ -2432,7 +2432,7 @@ static void ui_item_estimate(uiItem *item)
 	}
 }
 
-static void ui_item_align(uiLayout *litem, int nr)
+static void ui_item_align(uiLayout *litem, short nr)
 {
 	uiItem *item;
 	uiButtonItem *bitem;

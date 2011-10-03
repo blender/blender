@@ -308,7 +308,8 @@ struct uiBlock {
 	int flag;
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
-	short auto_open;
+	char pad;
+	char auto_open;
 	double auto_open_last;
 
 	const char *lockstr;

@@ -2049,7 +2049,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 		wm_subwindow_getsize(window, window->screen->mainwin, &getsizex, &getsizey);
 
 		block->aspect= 2.0/fabs(getsizex*block->winmat[0][0]);
-		block->auto_open= 2;
+		block->auto_open= TRUE;
 		block->flag |= UI_BLOCK_LOOP; /* tag as menu */
 	}
 
@@ -2291,7 +2291,7 @@ int ui_but_can_align(uiBut *but)
 	return !ELEM3(but->type, LABEL, OPTION, OPTIONN);
 }
 
-static void ui_block_do_align_but(uiBut *first, int nr)
+static void ui_block_do_align_but(uiBut *first, short nr)
 {
 	uiBut *prev, *but=NULL, *next;
 	int flag= 0, cols=0, rows=0;
@@ -2428,7 +2428,7 @@ static void ui_block_do_align_but(uiBut *first, int nr)
 void ui_block_do_align(uiBlock *block)
 {
 	uiBut *but;
-	int nr;
+	short nr;
 
 	/* align buttons with same align nr */
 	for(but=block->buttons.first; but;) {
