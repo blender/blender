@@ -520,8 +520,13 @@ static void file_ui_area_draw(const bContext *C, ARegion *ar)
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	/* scrolling here is just annoying, disable it */
+	ar->v2d.cur.ymax= ar->v2d.cur.ymax - ar->v2d.cur.ymin;
+	ar->v2d.cur.ymin= 0;
+
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(&ar->v2d);
+
 
 	file_draw_buttons(C, ar);
 
