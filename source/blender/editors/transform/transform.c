@@ -2606,29 +2606,18 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	}
 	
 	/* local constraint shouldn't alter center */
-	if (t->around == V3D_LOCAL) {
-		if (t->flag & T_OBJECT) {
-			copy_v3_v3(center, td->center);
-		}
-		else if (t->flag & T_EDIT) {
-
-			if(     (t->settings->selectmode & SCE_SELECT_FACE) ||
-			        (t->obedit && t->obedit->type == OB_ARMATURE))
-			{
-				copy_v3_v3(center, td->center);
-			}
-			else {
-				copy_v3_v3(center, t->center);
-			}
-		}
-		else {
-			copy_v3_v3(center, t->center);
-		}
+	if ((t->around == V3D_LOCAL) &&
+	        (   (t->flag & (T_OBJECT|T_POSE)) ||
+	            ((t->flag & T_EDIT) && (t->settings->selectmode & SCE_SELECT_FACE)) ||
+	            (t->obedit && t->obedit->type == OB_ARMATURE))
+	        )
+	{
+		copy_v3_v3(center, td->center);
 	}
 	else {
 		copy_v3_v3(center, t->center);
 	}
-	
+
 	if (td->ext) {
 		float fsize[3];
 		
