@@ -1639,8 +1639,6 @@ float hyp3,hyp4,b4,b5
 	if(wipezone->flip) x = xo - x;
 	angle = wipezone->angle;
 
-	posy = facf0 * yo;
-
 	if(wipe->forward){
 		posx = facf0 * xo;
 		posy = facf0 * yo;
@@ -2320,7 +2318,7 @@ static void RVBlurBitmap2_byte ( unsigned char* map, int width,int height,
 
 
 	/*	Swap buffers */
-	swap=temp;temp=map;map=swap;
+	swap=temp;temp=map; /* map=swap; */ /* UNUSED */
 
 	/*	Tidy up	 */
 	MEM_freeN (filter);
@@ -2490,7 +2488,7 @@ static void RVBlurBitmap2_float ( float* map, int width,int height,
 
 
 	/*	Swap buffers */
-	swap=temp;temp=map;map=swap;
+	swap=temp;temp=map; /* map=swap; */ /* UNUSED */
 
 	/*	Tidy up	 */
 	MEM_freeN (filter);

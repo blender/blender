@@ -626,9 +626,9 @@ def UnixPyBundle(target=None, source=None, env=None):
     run("rm -rf '%s/lib2to3'" % py_target)
     run("rm -rf '%s/config'" % py_target)
 
-    for x in os.listdir(py_target):
-        if os.path.basename(x).startswith('config-'):
-            run("rm -rf '%s/%s'" % (py_target, x))
+    for f in os.listdir(py_target):
+        if f.startswith("config-"):
+            run("rm -rf '%s/%s'" % (py_target, f))
 
     run("rm -rf '%s/site-packages'" % py_target)
     run("mkdir '%s/site-packages'" % py_target)    # python needs it.'

@@ -2690,9 +2690,7 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 			tf = ps->dm_mtface+face_index;
 			if (tpage_last != tf->tpage) {
 				tpage_last = tf->tpage;
-				
-				image_index = -1; /* sanity check */
-				
+
 				for (image_index=0; image_index < ps->image_tot; image_index++) {
 					if (ps->projImages[image_index].ima == tpage_last) {
 						ibuf = ps->projImages[image_index].ibuf;
@@ -4900,7 +4898,6 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	time= PIL_check_seconds_timer();
 
 	tablet= 0;
-	pressure= 0;
 	pop->s.blend= pop->s.brush->blend;
 
 	if(event->custom == EVT_DATA_TABLET) {
@@ -4911,8 +4908,9 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		if(wmtab->Active == EVT_TABLET_ERASER)
 			pop->s.blend= IMB_BLEND_ERASE_ALPHA;
 	}
-	else /* otherwise airbrush becomes 1.0 pressure instantly */
+	else { /* otherwise airbrush becomes 1.0 pressure instantly */
 		pressure= pop->prev_pressure ? pop->prev_pressure : 1.0f;
+	}
 
 	if(pop->first) {
 		pop->prevmouse[0]= event->mval[0];
