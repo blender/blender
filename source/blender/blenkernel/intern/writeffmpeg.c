@@ -571,6 +571,10 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 		return NULL;
 	}
 
+	/* need to prevent floating point exception when using vorbis audio codec,
+	   initialize this value in the same way as it's done in FFmpeg iteslf (sergey) */
+	st->codec->time_base = (AVRational){1, st->codec->sample_rate};
+
 	audio_outbuf_size = FF_MIN_BUFFER_SIZE;
 
 	if((c->codec_id >= CODEC_ID_PCM_S16LE) && (c->codec_id <= CODEC_ID_PCM_DVD))
@@ -743,7 +747,11 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 		}
 	}
 
-	av_write_header(of);
+	if (av_write_header(of) < 0) {
+		BKE_report(reports, RPT_ERROR, "Could not initialize streams. Probably unsupported codec combination.");
+		return 0;
+	}
+
 	outfile = of;
 	av_dump_format(of, 0, name, 1);
 
