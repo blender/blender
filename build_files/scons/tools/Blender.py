@@ -625,7 +625,11 @@ def UnixPyBundle(target=None, source=None, env=None):
     run("rm -rf '%s/distutils'" % py_target)
     run("rm -rf '%s/lib2to3'" % py_target)
     run("rm -rf '%s/config'" % py_target)
-    run("rm -rf '%s/config-*'" % py_target)
+
+    for x in os.listdir(py_target):
+        if os.path.basename(x).startswith('config-'):
+            run("rm -rf '%s/%s'" % (py_target, x))
+
     run("rm -rf '%s/site-packages'" % py_target)
     run("mkdir '%s/site-packages'" % py_target)    # python needs it.'
     run("rm -rf '%s/idlelib'" % py_target)
