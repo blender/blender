@@ -395,9 +395,9 @@ static int draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
 	}
 }
 
-static int draw_mcol__set_draw_legacy(MTFace *tface, MCol *mcol, int matnr)
+static int draw_mcol__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
 {
-	if (mcol) return 1;
+	if (has_mcol) return 1;
 	else return 2;
 }
 
