@@ -1187,6 +1187,12 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->options |= CTX_NO_PET;
 	}
 	
+	// Mirror is not supported with PET, turn it off.
+	if (t->flag & T_PROP_EDIT)
+	{
+		t->flag &= ~T_MIRROR;
+	}
+
 	setTransformViewMatrices(t);
 	initNumInput(&t->num);
 	
