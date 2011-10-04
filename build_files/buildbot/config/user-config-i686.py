@@ -89,6 +89,9 @@ BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib32'
 WITH_BF_FFTW3 = True
 WITH_BF_STATICFFTW3 = True
 
+# JACK
+WITH_BF_JACK = True
+
 # Compilation and optimization
 BF_DEBUG = False
 REL_CFLAGS = ['-O2']
