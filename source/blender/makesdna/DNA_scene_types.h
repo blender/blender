@@ -470,7 +470,8 @@ typedef struct GameData {
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
 	*/
-	short mode, flag, matmode, pad[2];
+	int flag;
+	short mode, matmode, pad;
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
 	short ticrate, maxlogicstep, physubstep, maxphystep;
@@ -520,9 +521,9 @@ typedef struct GameData {
 #define GAME_IGNORE_DEPRECATION_WARNINGS	(1 << 12)
 #define GAME_ENABLE_ANIMATION_RECORD		(1 << 13)
 #define GAME_SHOW_MOUSE						(1 << 14)
-#define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 15)
 #define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
-/* Note: GameData.flag is a short (max 16 flags). To add more flags, GameData.flag needs to be an int */
+#define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 16)
+/* Note: GameData.flag is now an int (max 32 flags). A short could only take 16 flags */
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0
