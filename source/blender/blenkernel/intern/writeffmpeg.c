@@ -573,7 +573,8 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	/* need to prevent floating point exception when using vorbis audio codec,
 	   initialize this value in the same way as it's done in FFmpeg iteslf (sergey) */
-	st->codec->time_base = (AVRational){1, st->codec->sample_rate};
+	st->codec->time_base.num= 1;
+	st->codec->time_base.den= st->codec->sample_rate;
 
 	audio_outbuf_size = FF_MIN_BUFFER_SIZE;
 
