@@ -103,7 +103,8 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_select_handles);
 	WM_operatortype_append(SEQUENCER_OT_select_active_side);
 	WM_operatortype_append(SEQUENCER_OT_select_border);
-	
+	WM_operatortype_append(SEQUENCER_OT_select_grouped);
+
 	/* sequencer_add.c */
 	WM_operatortype_append(SEQUENCER_OT_scene_strip_add);
 	WM_operatortype_append(SEQUENCER_OT_movie_strip_add);
@@ -165,7 +166,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_toggle", TABKEY, KM_PRESS, 0, 0);
 
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_make", GKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_make", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_meta_separate", GKEY, KM_PRESS, KM_ALT, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
@@ -246,6 +247,8 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_border", BKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_menu(keymap, "SEQUENCER_MT_add", AKEY, KM_PRESS, KM_SHIFT, 0);
 

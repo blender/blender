@@ -272,7 +272,7 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 	if (ksp->rna_path)
 		MEM_freeN(ksp->rna_path);
 	
-	if (strlen(value))
+	if (value[0])
 		ksp->rna_path= BLI_strdup(value);
 	else 
 		ksp->rna_path= NULL;
@@ -489,7 +489,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 		
 	/* Name */
-	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);

@@ -909,3 +909,176 @@ Added
 
 * :class:`bpy.types.SceneGameData.use_glsl_color_management`
 
+
+2.58 to 2.59
+============
+
+bpy.types.Scene
+---------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.Scene.collada_export` (filepath, selected), *was (filepath)*
+
+bpy.types.MultiresModifier
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MultiresModifier.use_subsurf_uv`
+
+bpy.types.KeyMap
+----------------
+
+Removed
+^^^^^^^
+
+* **copy_to_user**
+
+Renamed
+^^^^^^^
+
+* **is_user_defined** -> :class:`bpy.types.KeyMap.is_user_modified`
+
+bpy.types.SceneRenderLayer
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SceneRenderLayer.use_pass_material_index`
+
+bpy.types.ToolSettings
+----------------------
+
+Renamed
+^^^^^^^
+
+* **use_snap_project_self** -> :class:`bpy.types.ToolSettings.use_snap_self`
+
+bpy.types.UserPreferencesInput
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesInput.ndof_fly_helicopter`
+* :class:`bpy.types.UserPreferencesInput.ndof_lock_horizon`
+* :class:`bpy.types.UserPreferencesInput.ndof_orbit_invert_axes`
+* :class:`bpy.types.UserPreferencesInput.ndof_sensitivity`
+* :class:`bpy.types.UserPreferencesInput.ndof_show_guide`
+* :class:`bpy.types.UserPreferencesInput.ndof_zoom_invert`
+* :class:`bpy.types.UserPreferencesInput.ndof_zoom_updown`
+
+Removed
+^^^^^^^
+
+* **edited_keymaps**
+* **ndof_pan_speed**
+* **ndof_rotate_speed**
+
+bpy.types.IDMaterials
+---------------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.IDMaterials.pop` (index, update_data), *was (index)*
+
+bpy.types.Material
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Material.pass_index`
+
+bpy.types.RenderLayer
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderLayer.use_pass_material_index`
+
+bpy.types.Object
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Object.closest_point_on_mesh`
+
+bpy.types.ThemeNodeEditor
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeNodeEditor.noodle_curving`
+
+bpy.types.ChildOfConstraint
+---------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ChildOfConstraint.inverse_matrix`
+
+bpy.types.KeyConfigurations
+---------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.KeyConfigurations.addon`
+* :class:`bpy.types.KeyConfigurations.user`
+
+bpy.types.Image
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Image.use_generated_float`
+
+bpy.types.KeyMapItem
+--------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.KeyMapItem.is_user_modified`
+
+
+2.59 to 2.60
+============
+
+.. These have been manually added wait until RC to do final changelog!
+
+bpy.types.MeshTextureFace
+-------------------------
+
+Removed
+^^^^^^^
+
+* **use_image**
+* **use_object_color**
+* **use_blend_shared**
+
+Moved
+^^^^^
+
+* **hide** -> :class:`bpy.types.Material.game_settings.invisible`
+* **use_collision** -> :class:`bpy.types.Material.game_settings.physics`
+* **use_light** -> :class:`bpy.types.Material.game_settings.use_shadeless`
+* **use_twoside** -> :class:`bpy.types.Material.game_settings.backface_culling`
+* **use_bitmap_text** -> :class:`bpy.types.Material.game_settings.text`
+* **blend_type** -> :class:`bpy.types.Material.game_settings.alpha_blend`
+* **use_alpha_sort** -> :class:`bpy.types.Material.game_settings.alpha_blend`
+* **use_billboard** -> :class:`bpy.types.Material.game_settings.face_orientation`
+* **use_halo** -> :class:`bpy.types.Material.game_settings.face_orientation`
+* **use_shadow_cast** -> :class:`bpy.types.Material.game_settings.face_orientation`
+

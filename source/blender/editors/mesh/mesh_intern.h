@@ -40,6 +40,7 @@
 struct bContext;
 struct wmOperatorType;
 struct wmOperator;
+struct ViewContext;
 
 /* ******************** editface.c */
 
@@ -64,7 +65,7 @@ extern struct EditEdge *addedgelist(EditMesh *em, struct EditVert *v1, struct Ed
 extern struct EditFace *addfacelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2, struct EditVert *v3, struct EditVert *v4, struct EditFace *example, struct EditFace *exampleEdges);
 extern struct EditEdge *findedgelist(EditMesh *em, struct EditVert *v1, struct EditVert *v2);
 
-void em_setup_viewcontext(struct bContext *C, ViewContext *vc);
+void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);
 
 void MESH_OT_separate(struct wmOperatorType *ot);
 
@@ -169,7 +170,7 @@ void MESH_OT_solidify(struct wmOperatorType *ot);
 void MESH_OT_select_nth(struct wmOperatorType *ot);
 
 
-extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
+extern EditEdge *findnearestedge(struct ViewContext *vc, int *dist);
 void editmesh_select_by_material(EditMesh *em, int index);
 void EM_recalc_normal_direction(EditMesh *em, int inside, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);
@@ -185,7 +186,7 @@ void faceloop_select(EditMesh *em, EditEdge *startedge, int select);
  * 		if 0, unselected vertice are given the bias
  * strict: if 1, the vertice corresponding to the sel parameter are ignored and not just biased 
  */
-extern EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short strict);
+extern EditVert *findnearestvert(struct ViewContext *vc, int *dist, short sel, short strict);
 
 
 /* ******************* editmesh_tools.c */
@@ -255,6 +256,11 @@ void MESH_OT_drop_named_image(struct wmOperatorType *ot);
 
 void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);
+
+/* ******************* mesh_navmesh.c */
+void MESH_OT_create_navmesh(struct wmOperatorType *ot);
+void MESH_OT_assign_navpolygon(struct wmOperatorType *ot);
+void MESH_OT_assign_new_navpolygon(struct wmOperatorType *ot);
 
 #endif // MESH_INTERN_H
 

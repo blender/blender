@@ -318,6 +318,8 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	set_scene_bg(G.main, CTX_data_scene(C));
 	
 	MEM_freeN(bfd);
+
+	(void)curscene; /* quiet warning */
 }
 
 static int handle_subversion_warning(Main *main, ReportList *reports)
@@ -516,7 +518,7 @@ void BKE_write_undo(bContext *C, const char *name)
 	
 	/* make new */
 	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo file");
-	strncpy(uel->name, name, MAXUNDONAME-1);
+	BLI_strncpy(uel->name, name, sizeof(uel->name));
 	BLI_addtail(&undobase, uel);
 	
 	/* and limit amount to the maximum */

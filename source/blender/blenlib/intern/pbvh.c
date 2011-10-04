@@ -346,7 +346,7 @@ static int map_insert_vert(PBVH *bvh, GHash *map,
 
 	if(!BLI_ghash_haskey(map, key)) {
 		if(BLI_bitmap_get(bvh->vert_bitmap, vertex)) {
-			value = SET_INT_IN_POINTER(-(*face_verts) - 1);
+			value = SET_INT_IN_POINTER(~(*face_verts));
 			++(*face_verts);
 		}
 		else {

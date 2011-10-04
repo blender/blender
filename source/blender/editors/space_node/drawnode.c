@@ -129,7 +129,7 @@ static uiBlock *socket_component_menu(bContext *C, ARegion *ar, void *args_v)
 	block= uiBeginBlock(C, ar, "socket menu", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 	
-	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y+2, args->width, NODE_DY, U.uistyles.first), 0);
+	layout= uiLayoutColumn(uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, args->x, args->y+2, args->width, NODE_DY, UI_GetStyle()), 0);
 	
 	uiItemR(layout, &args->ptr, "default_value", UI_ITEM_R_EXPAND, "", ICON_NONE);
 	
@@ -788,7 +788,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_ThemeColor(TH_TEXT_HI);
 	
 		layout = uiBlockLayout(gnode->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, (short)(rect.xmin+15), (short)(rect.ymax+group_header),
-							   MIN2((int)(rect.xmax - rect.xmin-18.0f), node_group_frame+20), group_header, U.uistyles.first);
+							   MIN2((int)(rect.xmax - rect.xmin-18.0f), node_group_frame+20), group_header, UI_GetStyle());
 		RNA_pointer_create(&ntree->id, &RNA_Node, gnode, &ptr);
 		uiTemplateIDBrowse(layout, (bContext*)C, &ptr, "node_tree", NULL, NULL, NULL);
 		uiBlockLayoutResolve(gnode->block, NULL, NULL);
@@ -1538,6 +1538,7 @@ static void node_composit_buts_map_uv(uiLayout *layout, bContext *UNUSED(C), Poi
 static void node_composit_buts_id_mask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "index", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_smooth_mask", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_file_output(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

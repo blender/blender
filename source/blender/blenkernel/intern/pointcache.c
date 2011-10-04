@@ -2697,7 +2697,8 @@ static void ptcache_dt_to_str(char *str, double dtime)
 		sprintf(str, "%is", ((int)dtime) % 60);
 }
 
-static void *ptcache_bake_thread(void *ptr) {
+static void *ptcache_bake_thread(void *ptr)
+{
 	int usetimer = 0, sfra, efra;
 	double stime, ptime, ctime, fetd;
 	char run[32], cur[32], etd[32];

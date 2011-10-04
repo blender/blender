@@ -43,14 +43,16 @@
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
 
-char *BLI_strdupn(const char *str, const size_t len) {
+char *BLI_strdupn(const char *str, const size_t len)
+{
 	char *n= MEM_mallocN(len+1, "strdup");
 	memcpy(n, str, len);
 	n[len]= '\0';
 	
 	return n;
 }
-char *BLI_strdup(const char *str) {
+char *BLI_strdup(const char *str)
+{
 	return BLI_strdupn(str, strlen(str));
 }
 
@@ -67,7 +69,8 @@ char *BLI_strdupcat(const char *str1, const char *str2)
 	return n;
 }
 
-char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy) {
+char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy)
+{
 	size_t srclen= strlen(src);
 	size_t cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
 	
@@ -87,7 +90,8 @@ size_t BLI_snprintf(char *buffer, size_t count, const char *format, ...)
 	
 	if (n != -1 && n < count) {
 		buffer[n] = '\0';
-	} else {
+	}
+	else {
 		buffer[count-1] = '\0';
 	}
 	
@@ -280,7 +284,8 @@ char *BLI_strcasestr(const char *s, const char *find)
 }
 
 
-int BLI_strcasecmp(const char *s1, const char *s2) {
+int BLI_strcasecmp(const char *s1, const char *s2)
+{
 	int i;
 
 	for (i=0; ; i++) {
@@ -299,7 +304,8 @@ int BLI_strcasecmp(const char *s1, const char *s2) {
 	return 0;
 }
 
-int BLI_strncasecmp(const char *s1, const char *s2, size_t len) {
+int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
+{
 	int i;
 
 	for (i=0; i<len; i++) {

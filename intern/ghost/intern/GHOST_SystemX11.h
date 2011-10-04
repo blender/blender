@@ -285,7 +285,7 @@ private :
 		void
 	processEvent(
 		XEvent *xe
- 	);
+	);
 
 		Time
 	lastEventTime(
@@ -294,7 +294,7 @@ private :
 
 		bool
 	generateWindowExposeEvents(
- 	);
+	);
 };
 
 #endif

@@ -45,7 +45,7 @@
 #include <time.h>
 #include <sys/stat.h>
 
-#if defined (__sun__) || defined (__sun) || defined (__sgi) || defined (__NetBSD__)
+#if defined (__sun__) || defined (__sun) || defined (__NetBSD__)
 #include <sys/statvfs.h> /* Other modern unix os's should probably use this also */
 #elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
 #include <sys/statfs.h>
@@ -165,7 +165,7 @@ double BLI_diskfree(const char *dir)
 	return (double) (freec*bytesps*sectorspc);
 #else
 
-#if defined (__sun__) || defined (__sun) || defined (__sgi) || defined (__NetBSD__)
+#if defined (__sun__) || defined (__sun) || defined (__NetBSD__)
 	struct statvfs disk;
 #else
 	struct statfs disk;
@@ -187,7 +187,7 @@ double BLI_diskfree(const char *dir)
 	if (statfs(name, &disk)) return(-1);
 #endif
 
-#if defined (__sun__) || defined (__sun) || defined (__sgi) || defined (__NetBSD__)
+#if defined (__sun__) || defined (__sun) || defined (__NetBSD__)
 	if (statvfs(name, &disk)) return(-1);	
 #elif !defined(__FreeBSD__) && !defined(linux) && (defined(__sparc) || defined(__sparc__))
 	/* WARNING - This may not be supported by geeneric unix os's - Campbell */
@@ -469,7 +469,8 @@ int BLI_exist(const char *name)
 }
 
 /* would be better in fileops.c except that it needs stat.h so add here */
-int BLI_is_dir(const char *file) {
+int BLI_is_dir(const char *file)
+{
 	return S_ISDIR(BLI_exist(file));
 }
 
@@ -478,17 +479,17 @@ LinkNode *BLI_read_file_as_lines(const char *name)
 	FILE *fp= fopen(name, "r");
 	LinkNode *lines= NULL;
 	char *buf;
-	int64_t size;
+	size_t size;
 
 	if (!fp) return NULL;
 		
 	fseek(fp, 0, SEEK_END);
-	size= ftell(fp);
+	size= (size_t)ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
 	buf= MEM_mallocN(size, "file_as_lines");
 	if (buf) {
-		int i, last= 0;
+		size_t i, last= 0;
 		
 			/* 
 			 * size = because on win32 reading

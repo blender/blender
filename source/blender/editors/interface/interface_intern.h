@@ -136,19 +136,10 @@ typedef enum {
 /* for scope resize zone */
 #define SCOPE_RESIZE_PAD	9
 
-typedef struct {
-	short xim, yim;
-	unsigned int *rect;
-	short xofs, yofs;
-} uiIconImage;
-
-
 typedef struct uiLinkLine {				/* only for draw/edit */
 	struct uiLinkLine *next, *prev;
-
+	struct uiBut *from, *to;
 	short flag, pad;
-	
-	struct uiBut *from, *to;	
 } uiLinkLine;
 
 typedef struct {
@@ -164,10 +155,10 @@ typedef struct {
 
 struct uiBut {
 	struct uiBut *next, *prev;
-	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend;
-	short alignnr;
 	int flag;
-	
+	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
+	short pad1;
+
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
 	char drawstr[UI_MAX_DRAW_STR];
@@ -282,7 +273,7 @@ struct uiBlock {
 	float minx, miny, maxx, maxy;
 	float aspect;
 
-	short alignnr;
+	int puphash;				// popup menu hash for memory
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -306,9 +297,12 @@ struct uiBlock {
 	void *drawextra_arg2;
 
 	int flag;
+	short alignnr;
+
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
-	short auto_open;
+	char auto_open;
+	char _pad[7];
 	double auto_open_last;
 
 	const char *lockstr;
@@ -326,15 +320,12 @@ struct uiBlock {
 	ListBase saferct;			// uiSafetyRct list
 
 	uiPopupBlockHandle *handle;	// handle
-
-	int puphash;				// popup menu hash for memory
 	
 	void *evil_C;				// XXX hack for dynamic operator enums
 
+	struct UnitSettings *unit;	// unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
 	float _hsv[3];				// XXX, only access via ui_block_hsv_get()
 	char color_profile;			// color profile for correcting linear colors for display
-	struct UnitSettings *unit;	// unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
-
 };
 
 typedef struct uiSafetyRct {
@@ -364,8 +355,8 @@ extern void ui_set_but_vectorf(uiBut *but, float *vec);
 
 extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float mx, float my);
 
-extern void ui_get_but_string(uiBut *but, char *str, int maxlen);
-extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, int maxlen);
+extern void ui_get_but_string(uiBut *but, char *str, size_t maxlen);
+extern void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen);
 extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern int ui_get_but_string_max_length(uiBut *but);
 
@@ -400,9 +391,9 @@ struct uiPopupBlockHandle {
 
 	/* for operator popups */
 	struct wmOperatorType *optype;
-	int opcontext;
 	ScrArea *ctx_area;
 	ARegion *ctx_region;
+	int opcontext;
 	
 	/* return values */
 	int butretval;
@@ -517,7 +508,7 @@ void ui_but_anim_copy_driver(struct bContext *C);
 void ui_but_anim_paste_driver(struct bContext *C);
 void ui_but_anim_add_keyingset(struct bContext *C);
 void ui_but_anim_remove_keyingset(struct bContext *C);
-int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen);
+int ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen);
 int ui_but_anim_expression_set(uiBut *but, const char *str);
 int ui_but_anim_expression_create(uiBut *but, const char *str);
 void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);

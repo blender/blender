@@ -328,14 +328,10 @@ struct SortContext
 	const int* trisToFacesMap;
 };
 
-/* XXX: not thread-safe, but it's called only from modifiers stack
-        which isn't threaded. Anyway, better to avoid this in the future */
-static struct SortContext *_qsort_context;
-
-static int compareByData(const void * a, const void * b)
+static int compareByData(void *ctx, const void * a, const void * b)
 {
-	return ( _qsort_context->recastData[_qsort_context->trisToFacesMap[*(int*)a]] -
-			_qsort_context->recastData[_qsort_context->trisToFacesMap[*(int*)b]] );
+	return (((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int*)a]] -
+			((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int*)b]] );
 }
 
 int buildNavMeshData(const int nverts, const float* verts, 
@@ -367,8 +363,7 @@ int buildNavMeshData(const int nverts, const float* verts,
 		trisMapping[i]=i;
 	context.recastData = recastData;
 	context.trisToFacesMap = trisToFacesMap;
-	_qsort_context = &context;
-	qsort(trisMapping, ntris, sizeof(int), compareByData);
+	recast_qsort(trisMapping, ntris, sizeof(int), &context, compareByData);
 
 	//search first valid triangle - triangle of convex polygon
 	validTriStart = -1;

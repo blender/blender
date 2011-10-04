@@ -1250,7 +1250,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		if ( (SEARCHING_OUTLINER(soops) || (soops->outlinevis==SO_DATABLOCKS && soops->search_string[0]!=0)) && 
 			 (tselem->flag & TSE_SEARCHMATCH)) 
 		{
-			/* TODO - add search highlight colour to theme? */
+			/* TODO - add search highlight color to theme? */
 			glColor4f(0.2f, 0.5f, 0.2f, 0.3f);
 			glRecti(startx, *starty+1, ar->v2d.cur.xmax, *starty+UI_UNIT_Y-1);
 		}

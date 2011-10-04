@@ -5,7 +5,7 @@ BF_NUMJOBS = 2
 # Python configuration
 BF_PYTHON_VERSION = '3.2'
 BF_PYTHON_ABI_FLAGS = 'mu'
-BF_PYTHON = '/opt/python3.2'
+BF_PYTHON = '/opt/python3'
 
 WITH_BF_STATICPYTHON = True
 
@@ -51,8 +51,6 @@ BF_JPEG_LIBPATH = '/home/sources/staticlibs/lib64'
 WITH_BF_PNG = True
 BF_PNG_LIB = 'libpng'
 BF_PNG_LIBPATH = '/home/sources/staticlibs/lib64'
-
-WITH_BF_STATICLIBSAMPLERATE = True
 
 WITH_BF_ZLIB = True
 WITH_BF_STATICZLIB = True

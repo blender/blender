@@ -23,7 +23,6 @@
 set(INC
 	.
 	FX
-	SRC
 	intern
 	../ffmpeg
 )
@@ -67,6 +66,7 @@ set(SRC
 	FX/AUD_SuperposeFactory.cpp
 	FX/AUD_SuperposeReader.cpp
 	FX/AUD_VolumeFactory.cpp
+
 	intern/AUD_3DMath.h
 	intern/AUD_AnimateableProperty.cpp
 	intern/AUD_AnimateableProperty.h
@@ -99,6 +99,7 @@ set(SRC
 	intern/AUD_IWriter.h
 	intern/AUD_JOSResampleFactory.cpp
 	intern/AUD_JOSResampleFactory.h
+	intern/AUD_JOSResampleReaderCoeff.cpp
 	intern/AUD_JOSResampleReader.cpp
 	intern/AUD_JOSResampleReader.h
 	intern/AUD_LinearResampleFactory.cpp
@@ -257,20 +258,6 @@ if(WITH_CODEC_SNDFILE)
 		sndfile/AUD_SndFileFactory.h
 		sndfile/AUD_SndFileReader.h
 		sndfile/AUD_SndFileWriter.h
-	)
-endif()
-
-if(WITH_SAMPLERATE)
-	add_definitions(-DWITH_SAMPLERATE)
-	list(APPEND INC_SYS
-		${SAMPLERATE_INCLUDE_DIRS}
-	)
-	list(APPEND SRC
-		SRC/AUD_SRCResampleFactory.cpp
-		SRC/AUD_SRCResampleReader.cpp
-
-		SRC/AUD_SRCResampleFactory.h
-		SRC/AUD_SRCResampleReader.h
 	)
 endif()
 

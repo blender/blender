@@ -25,6 +25,12 @@
 * ***** END GPL LICENSE BLOCK *****
 *
 */
+
+/** \file blender/modifiers/intern/MOD_navmesh.c
+ *  \ingroup modifiers
+ */
+
+
 #include <math.h>
 
 #include "DNA_mesh_types.h"
@@ -133,7 +139,7 @@ static void drawNavMeshColored(DerivedMesh *dm)
 	glEnable(GL_LIGHTING);
 }
 
-static void navDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+static void navDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, int has_mcol, int matnr))
 {
 	(void) setDrawOptions;
 

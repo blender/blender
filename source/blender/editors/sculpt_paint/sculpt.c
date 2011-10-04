@@ -154,7 +154,7 @@ static int sculpt_modifiers_active(Scene *scene, Sculpt *sd, Object *ob)
 
 	if(mmd) return 0;
 
-	/* non-locked shaoe keys could be handled in the same way as deformed mesh */
+	/* non-locked shape keys could be handled in the same way as deformed mesh */
 	if((ob->shapeflag&OB_SHAPE_LOCK)==0 && me->key && ob->shapenr)
 		return 1;
 
@@ -484,13 +484,11 @@ static float integrate_overlap(Brush* br)
 	int i;
 	int m= 10;
 	float g = 1.0f/m;
-	float overlap;
 	float max;
 
-	overlap= 0;
 	max= 0;
 	for(i= 0; i < m; i++) {
-		overlap = overlapped_curve(br, i*g);
+		float overlap= overlapped_curve(br, i*g);
 
 		if (overlap > max)
 			max = overlap;

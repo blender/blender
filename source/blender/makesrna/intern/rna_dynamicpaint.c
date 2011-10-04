@@ -660,7 +660,7 @@ static void rna_def_dynamic_paint_canvas_settings(BlenderRNA *brna)
 	*	Surface Slots
 	*/
 	prop= RNA_def_property(srna, "canvas_surfaces", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_DynamicPaint_surfaces_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_DynamicPaint_surfaces_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "DynamicPaintSurface");
 	RNA_def_property_ui_text(prop, "Paint Surface List", "Paint surface list");
 	rna_def_canvas_surfaces(brna, prop);

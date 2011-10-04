@@ -1584,7 +1584,8 @@ static int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, flo
 	return retval;
 }
 
-static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, float mval[2], int *dist, float *loc, float *no, SnapMode mode) {
+static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, float mval[2], int *dist, float *loc, float *no, SnapMode mode)
+{
 	Base *base;
 	float depth = FLT_MAX;
 	int retval = 0;
@@ -1914,7 +1915,8 @@ int peelObjectsContext(bContext *C, ListBase *depth_peels, float mval[2])
 static void applyGrid(TransInfo *t, float *val, int max_index, float fac[3], GearsType action);
 
 
-void snapGridAction(TransInfo *t, float *val, GearsType action) {
+void snapGridAction(TransInfo *t, float *val, GearsType action)
+{
 	float fac[3];
 
 	fac[NO_GEARS]    = t->snap[0];
@@ -1925,7 +1927,8 @@ void snapGridAction(TransInfo *t, float *val, GearsType action) {
 }
 
 
-void snapGrid(TransInfo *t, float *val) {
+void snapGrid(TransInfo *t, float *val)
+{
 	GearsType action;
 
 	// Only do something if using Snap to Grid

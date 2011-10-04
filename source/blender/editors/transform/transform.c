@@ -1358,6 +1358,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	int proportional = 0;
 	PropertyRNA *prop;
 
+	// Save back mode in case we're in the generic operator
+	if ((prop= RNA_struct_find_property(op->ptr, "mode"))) {
+		RNA_property_enum_set(op->ptr, prop, t->mode);
+	}
+
 	if ((prop= RNA_struct_find_property(op->ptr, "value"))) {
 		float *values= (t->flag & T_AUTOVALUES) ? t->auto_values : t->values;
 		if (RNA_property_array_check(prop)) {
@@ -2601,27 +2606,18 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	}
 	
 	/* local constraint shouldn't alter center */
-	if (t->around == V3D_LOCAL) {
-		if (t->flag & T_OBJECT) {
-			copy_v3_v3(center, td->center);
-		}
-		else if (t->flag & T_EDIT) {
-			
-			if(t->around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
-				copy_v3_v3(center, td->center);
-			}
-			else {
-				copy_v3_v3(center, t->center);
-			}
-		}
-		else {
-			copy_v3_v3(center, t->center);
-		}
+	if ((t->around == V3D_LOCAL) &&
+	        (   (t->flag & (T_OBJECT|T_POSE)) ||
+	            ((t->flag & T_EDIT) && (t->settings->selectmode & SCE_SELECT_FACE)) ||
+	            (t->obedit && t->obedit->type == OB_ARMATURE))
+	        )
+	{
+		copy_v3_v3(center, td->center);
 	}
 	else {
 		copy_v3_v3(center, t->center);
 	}
-	
+
 	if (td->ext) {
 		float fsize[3];
 		
@@ -2894,19 +2890,17 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 	float vec[3], totmat[3][3], smat[3][3];
 	float eul[3], fmat[3][3], quat[4];
 	float *center = t->center;
-	
+
 	/* local constraint shouldn't alter center */
 	if (around == V3D_LOCAL) {
-		if (t->flag & (T_OBJECT|T_POSE)) {
+		if (    (t->flag & (T_OBJECT|T_POSE)) ||
+		        (t->settings->selectmode & SCE_SELECT_FACE) ||
+		        (t->obedit && t->obedit->type == OB_ARMATURE))
+		{
 			center = td->center;
 		}
-		else {
-			if(around==V3D_LOCAL && (t->settings->selectmode & SCE_SELECT_FACE)) {
-				center = td->center;
-			}
-		}
 	}
-	
+
 	if (t->flag & T_POINTS) {
 		mul_m3_m3m3(totmat, mat, td->mtx);
 		mul_m3_m3m3(smat, td->smtx, totmat);
@@ -3296,6 +3290,11 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 
 void initTranslation(TransInfo *t)
 {
+	if (t->spacetype == SPACE_ACTION) {
+		/* this space uses time translate */
+		t->state = TRANS_CANCEL;
+	}
+
 	t->mode = TFM_TRANSLATION;
 	t->transform = Translation;
 

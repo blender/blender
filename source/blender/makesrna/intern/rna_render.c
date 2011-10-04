@@ -286,7 +286,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 
-	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
@@ -329,8 +329,7 @@ static void rna_def_render_result(BlenderRNA *brna)
 
 	parm= RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(parm, "RenderLayer");
-	RNA_def_property_collection_funcs(parm, "rna_RenderResult_layers_begin", "rna_iterator_listbase_next",
-	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(parm, "rna_RenderResult_layers_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 
 	RNA_define_verify_sdna(1);
 }
@@ -361,8 +360,7 @@ static void rna_def_render_layer(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "passes", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "RenderPass");
-	RNA_def_property_collection_funcs(prop, "rna_RenderLayer_passes_begin", "rna_iterator_listbase_next",
-	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_RenderLayer_passes_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 
 	prop= RNA_def_property(srna, "rect", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);

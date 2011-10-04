@@ -255,7 +255,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "smooth_emitter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_HIGH_SMOOTH);
-	RNA_def_property_ui_text(prop, "Smooth Emitter", "Smoothens emitted smoke to avoid blockiness");
+	RNA_def_property_ui_text(prop, "Smooth Emitter", "Smoothen emitted smoke to avoid blockiness");
 	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER, "rna_Smoke_reset");
 
 	prop= RNA_def_property(srna, "time_scale", PROP_FLOAT, PROP_NONE);
@@ -305,11 +305,11 @@ static void rna_def_smoke_flow_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_outflow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type", MOD_SMOKE_FLOW_TYPE_OUTFLOW);
-	RNA_def_property_ui_text(prop, "Outflow", "Deletes smoke from simulation");
+	RNA_def_property_ui_text(prop, "Outflow", "Delete smoke from simulation");
 
 	prop= RNA_def_property(srna, "use_absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_FLOW_ABSOLUTE);
-	RNA_def_property_ui_text(prop, "Absolute Density", "Only allows given density value in emitter area");
+	RNA_def_property_ui_text(prop, "Absolute Density", "Only allow given density value in emitter area");
 
 	prop= RNA_def_property(srna, "initial_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_FLOW_INITVELOCITY);

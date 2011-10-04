@@ -61,12 +61,12 @@ typedef void (*RNA_SetIndexFunc)(PointerRNA *, PropertyRNA *, int index, void *)
 static int validate_array_type(PyObject *seq, int dim, int totdim, int dimsize[],
 							   ItemTypeCheckFunc check_item_type, const char *item_type_str, const char *error_prefix)
 {
-	int i;
+	Py_ssize_t i;
 
 	/* not the last dimension */
 	if (dim + 1 < totdim) {
 		/* check that a sequence contains dimsize[dim] items */
-		const int seq_size= PySequence_Size(seq);
+		const Py_ssize_t seq_size= PySequence_Size(seq);
 		if(seq_size == -1) {
 			PyErr_Format(PyExc_ValueError, "%s sequence expected at dimension %d, not '%s'",
 			             error_prefix, (int)dim + 1, Py_TYPE(seq)->tp_name);
@@ -147,8 +147,8 @@ static int count_items(PyObject *seq, int dim)
 	int totitem= 0;
 
 	if(dim > 1) {
-		const int seq_size= PySequence_Size(seq);
-		int i;
+		const Py_ssize_t seq_size= PySequence_Size(seq);
+		Py_ssize_t i;
 		for (i= 0; i < seq_size; i++) {
 			PyObject *item= PySequence_GetItem(seq, i);
 			if(item) {
@@ -281,9 +281,9 @@ static char *copy_value_single(PyObject *item, PointerRNA *ptr, PropertyRNA *pro
 
 static char *copy_values(PyObject *seq, PointerRNA *ptr, PropertyRNA *prop, int dim, char *data, unsigned int item_size, int *index, ItemConvertFunc convert_item, RNA_SetIndexFunc rna_set_index)
 {
-	unsigned int i;
 	int totdim= RNA_property_array_dimension(ptr, prop, NULL);
-	const int seq_size= PySequence_Size(seq);
+	const Py_ssize_t seq_size= PySequence_Size(seq);
+	Py_ssize_t i;
 
 	/* Regarding PySequence_GetItem() failing.
 	 *

@@ -1,6 +1,5 @@
 release/scripts/modules/rna_prop_ui.py
 
-release/scripts/startup/bl_operators/animsys_update.py
 release/scripts/startup/bl_operators/object.py
 release/scripts/startup/bl_operators/object_align.py
 release/scripts/startup/bl_operators/object_quick_effects.py

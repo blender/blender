@@ -226,10 +226,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			break;
 	}
 
-	// Continue only really makes sense for play stop and flipper. All other modes go until they are complete.
-	if (m_flag & ACT_FLAG_CONTINUE &&
-		(m_playtype == ACT_ACTION_LOOP_STOP ||
-		m_playtype == ACT_ACTION_FLIPPER))
+	if (m_flag & ACT_FLAG_CONTINUE)
 		bUseContinue = true;
 	
 	
@@ -243,12 +240,6 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 
 	if (m_flag & ACT_FLAG_ATTEMPT_PLAY)
 		SetLocalTime(curtime);
-
-	if (bUseContinue && (m_flag & ACT_FLAG_ACTIVE))
-	{
-		m_localtime = obj->GetActionFrame(m_layer);
-		ResetStartTime(curtime);
-	}
 
 	// Handle a frame property if it's defined
 	if ((m_flag & ACT_FLAG_ACTIVE) && m_framepropname[0] != 0)
@@ -264,22 +255,25 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 	}
 
 	// Handle a finished animation
-	if ((m_flag & ACT_FLAG_PLAY_END) && obj->IsActionDone(m_layer))
+	if ((m_flag & ACT_FLAG_PLAY_END) && (m_flag & ACT_FLAG_ACTIVE) && obj->IsActionDone(m_layer))
 	{
 		m_flag &= ~ACT_FLAG_ACTIVE;
 		m_flag &= ~ACT_FLAG_ATTEMPT_PLAY;
-		obj->StopAction(m_layer);
 		return false;
 	}
 	
 	// If a different action is playing, we've been overruled and are no longer active
-	if (obj->GetCurrentAction(m_layer) != m_action)
+	if (obj->GetCurrentAction(m_layer) != m_action && !obj->IsActionDone(m_layer))
 		m_flag &= ~ACT_FLAG_ACTIVE;
 
 	if (bPositiveEvent || (m_flag & ACT_FLAG_ATTEMPT_PLAY && !(m_flag & ACT_FLAG_ACTIVE)))
 	{
 		if (bPositiveEvent)
+		{
+			if (obj->IsActionDone(m_layer))
+				m_localtime = start;
 			ResetStartTime(curtime);
+		}
 
 		if (obj->PlayAction(m_action->id.name+2, start, end, m_layer, m_priority, m_blendin, playtype, m_layer_weight, m_ipo_flags))
 		{
@@ -306,11 +300,6 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			m_flag &= ~ACT_FLAG_ACTIVE;
 			return false;
 		}
-
-		
-		m_localtime = obj->GetActionFrame(m_layer);
-		if (m_localtime < min(m_startframe, m_endframe) || m_localtime > max(m_startframe, m_endframe))
-			m_localtime = m_startframe;
 
 		switch(m_playtype)
 		{
@@ -339,6 +328,12 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				m_flag |= ACT_FLAG_PLAY_END;
 				break;
 		}
+	}
+	
+	if (bUseContinue && (m_flag & ACT_FLAG_ACTIVE))
+	{
+		m_localtime = obj->GetActionFrame(m_layer);
+		ResetStartTime(curtime);
 	}
 
 	return true;

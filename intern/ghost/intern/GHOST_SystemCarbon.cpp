@@ -394,7 +394,7 @@ GHOST_TUns8 GHOST_SystemCarbon::getNumDisplays() const
 void GHOST_SystemCarbon::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const
 {
 	BitMap screenBits;
-    Rect bnds = GetQDGlobalsScreenBits(&screenBits)->bounds;
+	Rect bnds = GetQDGlobalsScreenBits(&screenBits)->bounds;
 	width = bnds.right - bnds.left;
 	height = bnds.bottom - bnds.top;
 }
@@ -413,28 +413,28 @@ GHOST_IWindow* GHOST_SystemCarbon::createWindow(
 	const GHOST_TEmbedderWindowID parentWindow
 )
 {
-    GHOST_IWindow* window = 0;
+	GHOST_IWindow* window = 0;
 
 	window = new GHOST_WindowCarbon (title, left, top, width, height, state, type);
 
-    if (window) {
-        if (window->getValid()) {
-            // Store the pointer to the window 
-            GHOST_ASSERT(m_windowManager, "m_windowManager not initialized");
-            m_windowManager->addWindow(window);
-            m_windowManager->setActiveWindow(window);
-            pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
-        }
-        else {
+	if (window) {
+		if (window->getValid()) {
+			// Store the pointer to the window
+			GHOST_ASSERT(m_windowManager, "m_windowManager not initialized");
+			m_windowManager->addWindow(window);
+			m_windowManager->setActiveWindow(window);
+			pushEvent(new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window));
+		}
+		else {
 			GHOST_PRINT("GHOST_SystemCarbon::createWindow(): window invalid\n");
-            delete window;
-            window = 0;
-        }
-    }
+			delete window;
+			window = 0;
+		}
+	}
 	else {
 		GHOST_PRINT("GHOST_SystemCarbon::createWindow(): could not create window\n");
 	}
-    return window;
+	return window;
 }
 
 GHOST_TSuccess GHOST_SystemCarbon::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window, const bool stereoVisual)
@@ -522,19 +522,19 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 		}
 	} while (waitForEvent && !anyProcessed);
 	
-    return anyProcessed;
+	return anyProcessed;
 }
 	
 
 GHOST_TSuccess GHOST_SystemCarbon::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
-    Point mouseLoc;
-    // Get the position of the mouse in the active port
-    ::GetGlobalMouse(&mouseLoc);
-    // Convert the coordinates to screen coordinates
-    x = (GHOST_TInt32)mouseLoc.h;
-    y = (GHOST_TInt32)mouseLoc.v;
-    return GHOST_kSuccess;
+	Point mouseLoc;
+	// Get the position of the mouse in the active port
+	::GetGlobalMouse(&mouseLoc);
+	// Convert the coordinates to screen coordinates
+	x = (GHOST_TInt32)mouseLoc.h;
+	y = (GHOST_TInt32)mouseLoc.v;
+	return GHOST_kSuccess;
 }
 
 
@@ -552,29 +552,29 @@ GHOST_TSuccess GHOST_SystemCarbon::setCursorPosition(GHOST_TInt32 x, GHOST_TInt3
 	// this call below sends event, but empties other events (like shift)
 	// CGPostMouseEvent(CGPointMake(xf, yf), TRUE, 1, FALSE, 0);
 
-    return GHOST_kSuccess;
+	return GHOST_kSuccess;
 }
 
 
 GHOST_TSuccess GHOST_SystemCarbon::getModifierKeys(GHOST_ModifierKeys& keys) const
 {
-    UInt32 modifiers = ::GetCurrentKeyModifiers();
+	UInt32 modifiers = ::GetCurrentKeyModifiers();
 
-    keys.set(GHOST_kModifierKeyOS, (modifiers & cmdKey) ? true : false);
-    keys.set(GHOST_kModifierKeyLeftAlt, (modifiers & optionKey) ? true : false);
-    keys.set(GHOST_kModifierKeyLeftShift, (modifiers & shiftKey) ? true : false);
-    keys.set(GHOST_kModifierKeyLeftControl, (modifiers & controlKey) ? true : false);
+	keys.set(GHOST_kModifierKeyOS, (modifiers & cmdKey) ? true : false);
+	keys.set(GHOST_kModifierKeyLeftAlt, (modifiers & optionKey) ? true : false);
+	keys.set(GHOST_kModifierKeyLeftShift, (modifiers & shiftKey) ? true : false);
+	keys.set(GHOST_kModifierKeyLeftControl, (modifiers & controlKey) ? true : false);
 	
-    return GHOST_kSuccess;
+	return GHOST_kSuccess;
 }
 
-	/* XXX, incorrect for multibutton mice */
+/* XXX, incorrect for multibutton mice */
 GHOST_TSuccess GHOST_SystemCarbon::getButtons(GHOST_Buttons& buttons) const
 {
-    Boolean theOnlyButtonIsDown = ::Button();
-    buttons.clear();
-    buttons.set(GHOST_kButtonMaskLeft, theOnlyButtonIsDown);
-    return GHOST_kSuccess;
+	Boolean theOnlyButtonIsDown = ::Button();
+	buttons.clear();
+	buttons.set(GHOST_kButtonMaskLeft, theOnlyButtonIsDown);
+	return GHOST_kSuccess;
 }
 
 #define FIRSTFILEBUFLG 512
@@ -659,35 +659,35 @@ OSErr GHOST_SystemCarbon::sAEHandlerQuit(const AppleEvent *event, AppleEvent *re
 
 GHOST_TSuccess GHOST_SystemCarbon::init()
 {
- 
-    GHOST_TSuccess success = GHOST_System::init();
-    if (success) {
+
+	GHOST_TSuccess success = GHOST_System::init();
+	if (success) {
 		/*
-         * Initialize the cursor to the standard arrow shape (so that we can change it later on).
-         * This initializes the cursor's visibility counter to 0.
-         */
-        ::InitCursor();
+		 * Initialize the cursor to the standard arrow shape (so that we can change it later on).
+		 * This initializes the cursor's visibility counter to 0.
+		 */
+		::InitCursor();
 
 		MenuRef windMenu;
 		::CreateStandardWindowMenu(0, &windMenu);
 		::InsertMenu(windMenu, 0);
 		::DrawMenuBar();
 
-        ::InstallApplicationEventHandler(sEventHandlerProc, GetEventTypeCount(kEvents), kEvents, this, &m_handler);
+		::InstallApplicationEventHandler(sEventHandlerProc, GetEventTypeCount(kEvents), kEvents, this, &m_handler);
 		
 		::AEInstallEventHandler(kCoreEventClass, kAEOpenApplication, sAEHandlerLaunch, (SInt32) this, false);
 		::AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments, sAEHandlerOpenDocs, (SInt32) this, false);
 		::AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments, sAEHandlerPrintDocs, (SInt32) this, false);
 		::AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, sAEHandlerQuit, (SInt32) this, false);
 		
-    }
-    return success;
+	}
+	return success;
 }
 
 
 GHOST_TSuccess GHOST_SystemCarbon::exit()
 {
-    return GHOST_System::exit();
+	return GHOST_System::exit();
 }
 
 
@@ -847,11 +847,11 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 					err = noErr;
 				}
 			}
-            break;
+			break;
 			
 		case kEventMouseMoved:
 		case kEventMouseDragged: {
- 			Point mousePos;
+			Point mousePos;
 
 			if (window) {
 				//handle any tablet events that may have come with the mouse event (optional)
@@ -860,7 +860,7 @@ OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
 				::GetEventParameter(event, kEventParamMouseLocation, typeQDPoint, NULL, sizeof(Point), NULL, &mousePos);
 				pushEvent(new GHOST_EventCursor(getMilliSeconds(), GHOST_kEventCursorMove, window, mousePos.h, mousePos.v));
 				err = noErr;
- 			}
+			}
 			break;
 		}
 		case kEventMouseWheelMoved:
@@ -1094,38 +1094,38 @@ bool GHOST_SystemCarbon::handleMenuCommand(GHOST_TInt32 menuResult)
 	}
 
 	::HiliteMenu(0);
-    return handled;
+	return handled;
 }
 
 
 OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData)
 {
 	GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) userData;
-    OSStatus err = eventNotHandledErr;
+	OSStatus err = eventNotHandledErr;
 	GHOST_IWindow* window;
 #ifdef WITH_INPUT_NDOF
 	GHOST_TEventNDOFData data;
 #endif
 	UInt32 kind;
 	
-    switch (::GetEventClass(event))
-    {
+	switch (::GetEventClass(event))
+	{
 		case kEventClassAppleEvent:
 			EventRecord eventrec;
 			if (ConvertEventRefToEventRecord(event, &eventrec)) {
 				err = AEProcessAppleEvent(&eventrec);
 			}
 			break;
-        case kEventClassMouse:
-            err = sys->handleMouseEvent(event);
-            break;
+		case kEventClassMouse:
+			err = sys->handleMouseEvent(event);
+			break;
 		case kEventClassWindow:
 			err = sys->handleWindowEvent(event);
 			break;
 		case kEventClassKeyboard:
 			err = sys->handleKeyEvent(event);
 			break;
- 		case kEventClassBlender :
+		case kEventClassBlender :
 #ifdef WITH_INPUT_NDOF
 			window = sys->m_windowManager->getActiveWindow();
 			sys->m_ndofManager->GHOST_NDOFGetDatas(data);
@@ -1146,11 +1146,11 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
 			err = noErr;
 			break;
 		default : 
- 			;
+			;
 			break;
-   }
+	}
 
-    return err;
+	return err;
 }
 
 GHOST_TUns8* GHOST_SystemCarbon::getClipboard(bool selection) const

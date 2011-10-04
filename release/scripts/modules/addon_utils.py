@@ -33,6 +33,7 @@ import bpy as _bpy
 
 error_duplicates = False
 error_encoding = False
+addons_fake_modules = {}
 
 
 def paths():

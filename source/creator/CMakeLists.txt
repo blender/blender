@@ -125,7 +125,7 @@ if(WIN32 AND NOT UNIX)
 			-DBLEN_VER_RC_4=0
 		)
 	endif()
-	
+
 
 	list(APPEND SRC
 		../icons/winblender.rc
@@ -198,16 +198,16 @@ if(WITH_PYTHON_MODULE)
 			LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 			RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin  # only needed on windows
 	)
-	
+
 	if(WIN32)
 		# python modules use this
 		set_target_properties(
 			blender
 			PROPERTIES
 			SUFFIX ".pyd"
-		)	
+		)
 	endif()
-	
+
 else()
 	add_executable(blender ${EXETYPE} ${SRC})
 endif()
@@ -351,11 +351,6 @@ if(UNIX AND NOT APPLE)
 
 	if(WITH_INTERNATIONAL)
 		install(
-			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-			DESTINATION ${TARGETDIR_VER}
-		)
-
-		install(
 			DIRECTORY
 				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
 				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
@@ -427,10 +422,6 @@ elseif(WIN32)
 	)
 
 	if(WITH_INTERNATIONAL) # same as linux!, deduplicate
-		install(
-			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-			DESTINATION ${TARGETDIR_VER}
-		)
 		install(
 			DIRECTORY
 				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
@@ -664,11 +655,6 @@ elseif(APPLE)
 	# localization
 	if(WITH_INTERNATIONAL)
 		install(
-			FILES ${CMAKE_SOURCE_DIR}/release/bin/.blender/.Blanguages
-			DESTINATION ${TARGETDIR_VER}/datafiles
-		)
-
-		install(
 			DIRECTORY
 				${CMAKE_SOURCE_DIR}/release/bin/.blender/fonts
 				${CMAKE_SOURCE_DIR}/release/bin/.blender/locale
@@ -687,14 +673,14 @@ elseif(APPLE)
 			DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/python)
 
 		set(PYTHON_ZIP "python_${CMAKE_OSX_ARCHITECTURES}.zip")
-			
+
 		add_custom_command(
 			OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/python
 			COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}/python/
 			COMMAND mkdir ${CMAKE_CURRENT_BINARY_DIR}/python/
 			COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${CMAKE_CURRENT_BINARY_DIR}/python/
 			DEPENDS ${LIBDIR}/release/${PYTHON_ZIP})
-		
+
 		add_dependencies(blender extractpyzip)
 
 		# copy extracted python files
@@ -708,6 +694,48 @@ elseif(APPLE)
 			${CMAKE_SOURCE_DIR}/release/scripts
 			\${TARGETDIR_VER}
 		)
+	endif()
+
+	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
+	# note we are using OSX Bundle as base and copying Blender dummy bundle on top of it
+	if(WITH_GAMEENGINE AND WITH_PLAYER)
+		set(PLAYER_SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blenderplayer.app)
+		set(PLAYER_SOURCEINFO ${PLAYER_SOURCEDIR}/Contents/Info.plist)
+		set(PLAYER_TARGETDIR_VER ${TARGETDIR}/blenderplayer.app/Contents/MacOS/${BLENDER_VERSION})
+
+
+		# important to make a clean  install each time else old scripts get loaded.
+		install(
+			CODE
+			"file(REMOVE_RECURSE ${PLAYER_TARGETDIR_VER})"
+		)
+
+		install(
+			FILES ${PLAYER_SOURCEDIR}/Contents/PkgInfo
+			DESTINATION ${TARGETDIR}/blenderplayer.app/Contents
+		)
+
+		install_dir(
+			${PLAYER_SOURCEDIR}/Contents/Resources
+			\${TARGETDIR}/blenderplayer.app/Contents/
+		)
+
+		# python
+		if(WITH_PYTHON)
+			add_custom_command(
+				OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/python
+				COMMAND rm -rf ${CMAKE_CURRENT_BINARY_DIR}/python/
+				COMMAND mkdir ${CMAKE_CURRENT_BINARY_DIR}/python/
+				COMMAND unzip -q ${LIBDIR}/release/${PYTHON_ZIP} -d ${CMAKE_CURRENT_BINARY_DIR}/python/
+				DEPENDS ${LIBDIR}/release/${PYTHON_ZIP})
+
+			# copy extracted python files
+			install_dir(
+				${CMAKE_CURRENT_BINARY_DIR}/python
+				\${PLAYER_TARGETDIR_VER}
+			)
+		endif()
+
 	endif()
 endif()
 
@@ -875,12 +903,12 @@ endif()
 		message(STATUS "Blender Skipping: (${REM_MSG})")
 	endif()
 	target_link_libraries(blender ${BLENDER_SORTED_LIBS})
-	
+
 	unset(SEARCHLIB)
 	unset(SORTLIB)
 	unset(REMLIB)
 	unset(REM_MSG)
-	
+
 #else()
 #	target_link_libraries(blender ${BLENDER_LINK_LIBS})
 #endif()

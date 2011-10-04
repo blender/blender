@@ -39,6 +39,9 @@ python doc/python_api/sphinx_changelog_gen.py \
         --api_to blender_api_2_57.py \
         --api_out changes.rst
 
+# Save the latest API dump in this folder, renaming it with its revision.
+# This way the next person updating it doesn't need to build an old Blender only for that
+
 """
 
 # format
@@ -299,7 +302,7 @@ def api_changelog(api_from, api_to, api_out):
             for func_id, args_old, args_new in func_args:
                 args_new = ", ".join(args_new)
                 args_old = ", ".join(args_old)
-                fw("* :class:`%s.%s.%s` (%s), *was (%s)*\n" % (mod_id, class_name, prop_id, args_new, args_old))
+                fw("* :class:`%s.%s.%s` (%s), *was (%s)*\n" % (mod_id, class_name, func_id, args_new, args_old))
             fw("\n")
 
     fout.close()

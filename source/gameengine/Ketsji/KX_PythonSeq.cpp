@@ -375,9 +375,9 @@ static PyObject *KX_PythonSeq_getIter(KX_PythonSeq *self)
 		return (PyObject *)self;
 	} else {
 		return KX_PythonSeq_CreatePyObject(self->base, self->type);
- 	}
- }
- 
+	}
+}
+
 
 /*
  * Return next KX_PythonSeq iter.

@@ -23,7 +23,7 @@
 # NOTE:
 # The specialised panel types are derived in their respective UI modules
 # dont register these classes since they are only helpers.
-from blf import gettext as _
+
 
 class MotionPathButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -43,23 +43,23 @@ class MotionPathButtonsPanel():
         col = split.column()
         sub = col.column(align=True)
         if (mps.type == 'CURRENT_FRAME'):
-            sub.prop(mps, "frame_before", text=_("Before"))
-            sub.prop(mps, "frame_after", text=_("After"))
+            sub.prop(mps, "frame_before", text="Before")
+            sub.prop(mps, "frame_after", text="After")
         elif (mps.type == 'RANGE'):
-            sub.prop(mps, "frame_start", text=_("Start"))
-            sub.prop(mps, "frame_end", text=_("End"))
+            sub.prop(mps, "frame_start", text="Start")
+            sub.prop(mps, "frame_end", text="End")
 
-        sub.prop(mps, "frame_step", text=_("Step"))
+        sub.prop(mps, "frame_step", text="Step")
         if bones:
             col.row().prop(mps, "bake_location", expand=True)
 
         col = split.column()
-        col.label(text=_("Display:"))
-        col.prop(mps, "show_frame_numbers", text=_("Frame Numbers"))
-        col.prop(mps, "show_keyframe_highlight", text=_("Keyframes"))
+        col.label(text="Display:")
+        col.prop(mps, "show_frame_numbers", text="Frame Numbers")
+        col.prop(mps, "show_keyframe_highlight", text="Keyframes")
         if bones:
-            col.prop(mps, "show_keyframe_action_all", text=_("+ Non-Grouped Keyframes"))
-        col.prop(mps, "show_keyframe_numbers", text=_("Keyframe Numbers"))
+            col.prop(mps, "show_keyframe_action_all", text="+ Non-Grouped Keyframes")
+        col.prop(mps, "show_keyframe_numbers", text="Keyframe Numbers")
 
 
 # FIXME: this panel still needs to be ported so that it will work correctly with animviz
@@ -82,16 +82,16 @@ class OnionSkinButtonsPanel():
 
         sub = col.column(align=True)
         if arm.ghost_type == 'RANGE':
-            sub.prop(arm, "ghost_frame_start", text=_("Start"))
-            sub.prop(arm, "ghost_frame_end", text=_("End"))
-            sub.prop(arm, "ghost_size", text=_("Step"))
+            sub.prop(arm, "ghost_frame_start", text="Start")
+            sub.prop(arm, "ghost_frame_end", text="End")
+            sub.prop(arm, "ghost_size", text="Step")
         elif arm.ghost_type == 'CURRENT_FRAME':
-            sub.prop(arm, "ghost_step", text=_("Range"))
-            sub.prop(arm, "ghost_size", text=_("Step"))
+            sub.prop(arm, "ghost_step", text="Range")
+            sub.prop(arm, "ghost_size", text="Step")
 
         col = split.column()
-        col.label(text=_("Display:"))
-        col.prop(arm, "show_only_ghost_selected", text=_("Selected Only"))
+        col.label(text="Display:")
+        col.prop(arm, "show_only_ghost_selected", text="Selected Only")
 
 if __name__ == "__main__":  # only for live edit.
     import bpy

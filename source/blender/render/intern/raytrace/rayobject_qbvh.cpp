@@ -116,8 +116,8 @@ void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *min, float *max)
 {
 	//TODO renable hint support
 	{
-	 	hint->size = 0;
-	 	hint->stack[hint->size++] = (RayObject*)tree->root;
+		hint->size = 0;
+		hint->stack[hint->size++] = (RayObject*)tree->root;
 	}
 }
 /* the cast to pointer function is needed to workarround gcc bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=11407 */

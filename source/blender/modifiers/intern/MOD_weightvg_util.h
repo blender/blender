@@ -26,7 +26,7 @@
  *
  */
 
-/** \file blender/modifiers/intern/MOD_util.h
+/** \file blender/modifiers/intern/MOD_weightvg_util.h
  *  \ingroup modifiers
  */
 

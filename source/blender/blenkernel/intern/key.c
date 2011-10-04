@@ -807,7 +807,7 @@ static void do_key(const int start, int end, const int tot, char *poin, Key *key
 	int a, ofs[32], *ofsp;
 	int flagdo= 15, flagflo=0, elemsize, poinsize=0;
 	char *k1, *k2, *k3, *k4, *freek1, *freek2, *freek3, *freek4;
-	char *cp, elemstr[8];;
+	char *cp, elemstr[8];
 
 	/* currently always 0, in future key_pointer_size may assign */
 	ofs[1]= 0;
@@ -1445,10 +1445,10 @@ KeyBlock *add_keyblock(Key *key, const char *name)
 	
 	tot= BLI_countlist(&key->block);
 	if(name) {
-		strncpy(kb->name, name, sizeof(kb->name));
+		BLI_strncpy(kb->name, name, sizeof(kb->name));
 	} else {
-		if(tot==1) strcpy(kb->name, "Basis");
-		else sprintf(kb->name, "Key %d", tot-1);
+		if(tot==1) BLI_strncpy(kb->name, "Basis", sizeof(kb->name));
+		else BLI_snprintf(kb->name, sizeof(kb->name), "Key %d", tot-1);
 	}
 
 	BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), sizeof(kb->name));

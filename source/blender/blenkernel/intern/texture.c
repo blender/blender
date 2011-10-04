@@ -640,7 +640,11 @@ void default_mtex(MTex *mtex)
 	mtex->size[1]= 1.0;
 	mtex->size[2]= 1.0;
 	mtex->tex= NULL;
-	mtex->texflag= MTEX_3TAP_BUMP | MTEX_BUMP_OBJECTSPACE;
+
+	/* MTEX_BUMP_FLIPPED is temporary before 2.61 release to prevent flipping normals
+	   when creating file in 2.60, opening it in 2.59, saving and opening in 2.60 again */
+	mtex->texflag= MTEX_3TAP_BUMP | MTEX_BUMP_OBJECTSPACE | MTEX_BUMP_FLIPPED;
+
 	mtex->colormodel= 0;
 	mtex->r= 1.0;
 	mtex->g= 0.0;

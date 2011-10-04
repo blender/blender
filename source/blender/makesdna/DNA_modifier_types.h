@@ -808,7 +808,7 @@ typedef struct WeightVGEditModifierData {
 	/* Mapping stuff. */
 	struct CurveMapping *cmap_curve;  /* The custom mapping curve! */
 
- 	/* The add/remove vertices weight thresholds. */
+	/* The add/remove vertices weight thresholds. */
 	float	add_threshold, rem_threshold;
 
 	/* Masking options. */

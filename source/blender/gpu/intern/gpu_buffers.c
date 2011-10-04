@@ -629,7 +629,7 @@ static void GPU_buffer_copy_normal(DerivedMesh *dm, float *varray, int *index, i
 		if(smoothnormal) {
 			/* copy vertex normal */
 			normal_short_to_float_v3(&varray[start], mvert[f->v1].no);
- 			normal_short_to_float_v3(&varray[start+3], mvert[f->v2].no);
+			normal_short_to_float_v3(&varray[start+3], mvert[f->v2].no);
 			normal_short_to_float_v3(&varray[start+6], mvert[f->v3].no);
 
 			if(f->v4) {
@@ -1058,7 +1058,8 @@ void GPU_uvedge_setup(DerivedMesh *dm)
 	GLStates |= GPU_BUFFER_VERTEX_STATE;
 }
 
-static int GPU_typesize(int type) {
+static int GPU_typesize(int type)
+{
 	switch(type) {
 	case GL_FLOAT:
 		return sizeof(float);
@@ -1075,7 +1076,8 @@ static int GPU_typesize(int type) {
 	}
 }
 
-int GPU_attrib_element_size(GPUAttrib data[], int numdata) {
+int GPU_attrib_element_size(GPUAttrib data[], int numdata)
+{
 	int i, elementsize = 0;
 
 	for(i = 0; i < numdata; i++) {
@@ -1086,7 +1088,8 @@ int GPU_attrib_element_size(GPUAttrib data[], int numdata) {
 	return elementsize;
 }
 
-void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numdata) {
+void GPU_interleaved_attrib_setup(GPUBuffer *buffer, GPUAttrib data[], int numdata)
+{
 	int i;
 	int elementsize;
 	intptr_t offset = 0;

@@ -90,9 +90,10 @@ LIBDIR = '${LCGDIR}'
 ###################          Dependency settings           ##################
 #############################################################################
 
-#Defaults openMP to true if compiler handles it
-if CC == 'gcc-4.2' or CC == 'llvm-gcc-4.2':
-    WITH_BF_OPENMP = True  # multithreading for fluids, cloth and smoke
+#Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
+# if your compiler does not have accurate suffix you may have to enable it by hand !
+if CC.endswith('4.6.1'):
+    WITH_BF_OPENMP = True  # multithreading for fluids, cloth, sculpt and smoke
 else:
     WITH_BF_OPENMP = False
 
@@ -146,11 +147,6 @@ BF_OPENAL_INC = '${BF_OPENAL}/include' # only headers from libdir needed for pro
 BF_CXX = '/usr'
 WITH_BF_STATICCXX = False
 BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
-
-BF_LIBSAMPLERATE = LIBDIR + '/samplerate'
-BF_LIBSAMPLERATE_INC = '${BF_LIBSAMPLERATE}/include'
-BF_LIBSAMPLERATE_LIB = 'samplerate'
-BF_LIBSAMPLERATE_LIBPATH = '${BF_LIBSAMPLERATE}/lib'
 
 # TODO - set proper paths here (add precompiled to lib/ ? )
 WITH_BF_JACK = False

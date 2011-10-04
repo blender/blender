@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# $Id:
+# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -25,28 +25,43 @@
 
 import subprocess
 import os
+import sys
 
-CURRENT_DIR = os.path.dirname(__file__)
+GETTEXT_MSGMERGE_EXECUTABLE = "msgmerge"
+CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 DOMAIN = "blender"
 
 
+def process_po(po):
+    lang = os.path.basename(po)[:-3]
+
+    # update po file
+    cmd = (GETTEXT_MSGMERGE_EXECUTABLE,
+           "--update",
+           "--backup=none",
+           "--lang=%s" % lang,
+           os.path.join(CURRENT_DIR, "%s.po" % lang),
+           os.path.join(CURRENT_DIR, "%s.pot" % DOMAIN),
+           )
+
+    print(" ".join(cmd))
+    process = subprocess.Popen(cmd)
+    process.wait()
+
+
 def main():
-    for po in os.listdir(CURRENT_DIR):
-        if po.endswith(".po"):
-            lang = po[:-3]
+    if len(sys.argv) > 1:
+        for lang in sys.argv[1:]:
+            po = os.path.join(CURRENT_DIR, lang + '.po')
 
-            # update po file
-            cmd = ("msgmerge",
-                   "--update",
-                   "--lang=%s" % lang,
-                   os.path.join(CURRENT_DIR, "%s.po" % lang),
-                   os.path.join(CURRENT_DIR, "%s.pot" % DOMAIN),
-                   )
-
-            print(" ".join(cmd))
-            process = subprocess.Popen(cmd)
-            process.wait()
+            if os.path.exists(po):
+                process_po(po)
+    else:
+        for po in os.listdir(CURRENT_DIR):
+            if po.endswith(".po"):
+                process_po(po)
 
 
 if __name__ == "__main__":
+    print("\n\n *** Running %r *** \n" % __file__)
     main()

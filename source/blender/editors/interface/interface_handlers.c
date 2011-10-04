@@ -631,7 +631,7 @@ static void ui_apply_but_IDPOIN(bContext *C, uiBut *but, uiHandleButtonData *dat
 	data->applied= 1;
 }
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 static void ui_apply_but_CHARTAB(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	ui_apply_but_func(C, but);
@@ -1023,7 +1023,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 		case IDPOIN:
 			ui_apply_but_IDPOIN(C, but, data);
 			break;
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 		case CHARTAB:
 			ui_apply_but_CHARTAB(C, but, data);
 			break;
@@ -1113,9 +1113,9 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		if(but->poin==NULL && but->rnapoin.data==NULL);
 		else if(mode=='c') {
 			if(ui_is_but_float(but))
-				sprintf(buf, "%f", ui_get_but_val(but));
+				BLI_snprintf(buf, sizeof(buf), "%f", ui_get_but_val(but));
 			else
-				sprintf(buf, "%d", (int)ui_get_but_val(but));
+				BLI_snprintf(buf, sizeof(buf), "%d", (int)ui_get_but_val(but));
 
 			WM_clipboard_text_set(buf, 0);
 		}
@@ -1136,7 +1136,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		else if(mode=='c') {
 
 			ui_get_but_vectorf(but, rgb);
-			sprintf(buf, "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
+			BLI_snprintf(buf, sizeof(buf), "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
 			WM_clipboard_text_set(buf, 0);
 			
 		}
@@ -1684,7 +1684,7 @@ static void ui_textedit_end(bContext *C, uiBut *but, uiHandleButtonData *data)
 			/* not a file?, strip non utf-8 chars */
 			if(strip) {
 				/* wont happen often so isnt that annoying to keep it here for a while */
-				printf("invalid utf8 - stripped chars %d\n", strip);
+				printf("%s: invalid utf8 - stripped chars %d\n", __func__, strip);
 			}
 		}
 		
@@ -3924,7 +3924,7 @@ static int ui_do_but_VECTORSCOPE(bContext *C, uiBlock *block, uiBut *but, uiHand
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 static int ui_do_but_CHARTAB(bContext *UNUSED(C), uiBlock *UNUSED(block), uiBut *UNUSED(but), uiHandleButtonData *UNUSED(data), wmEvent *UNUSED(event))
 {
 	/* XXX 2.50 bad global and state access */
@@ -4367,7 +4367,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		PointerRNA ptr_props;
 
 		if(but->rnapoin.data && but->rnaprop) {
-			sprintf(buf, "%s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+			BLI_snprintf(buf, sizeof(buf), "%s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
 			RNA_string_set(&ptr_props, "doc_id", buf);
@@ -4584,7 +4584,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case HSVCIRCLE:
 		retval= ui_do_but_HSVCIRCLE(C, block, but, data, event);
 		break;
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 	case CHARTAB:
 		retval= ui_do_but_CHARTAB(C, block, but, data, event);
 		break;
@@ -4681,7 +4681,7 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 	/* check if the mouse is in the region */
 	if(!BLI_in_rcti(&ar->winrct, x, y)) {
 		for(block=ar->uiblocks.first; block; block=block->next)
-			block->auto_open= 0;
+			block->auto_open= FALSE;
 		
 		return 0;
 	}
@@ -4868,8 +4868,8 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 			if(data->used_mouse && !data->autoopentimer) {
 				int time;
 
-				if(but->block->auto_open==2) time= 1;    // test for toolbox
-				else if((but->block->flag & UI_BLOCK_LOOP && but->type != BLOCK) || but->block->auto_open) time= 5*U.menuthreshold2;
+				if(but->block->auto_open==TRUE) time= 1;    // test for toolbox
+				else if((but->block->flag & UI_BLOCK_LOOP && but->type != BLOCK) || but->block->auto_open==TRUE) time= 5*U.menuthreshold2;
 				else if(U.uiflag & USER_MENUOPENAUTO) time= 5*U.menuthreshold1;
 				else time= -1;
 
@@ -4967,9 +4967,9 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	/* we disable auto_open in the block after a threshold, because we still
 	 * want to allow auto opening adjacent menus even if no button is activated
 	 * in between going over to the other button, but only for a short while */
-	if(type == BUTTON_ACTIVATE_OVER && but->block->auto_open)
+	if(type == BUTTON_ACTIVATE_OVER && but->block->auto_open==TRUE)
 		if(but->block->auto_open_last+BUTTON_AUTO_OPEN_THRESH < PIL_check_seconds_timer())
-			but->block->auto_open= 0;
+			but->block->auto_open= FALSE;
 
 	if(type == BUTTON_ACTIVATE_OVER) {
 		data->used_mouse= 1;
@@ -5089,19 +5089,16 @@ void ui_button_active_free(const bContext *C, uiBut *but)
 	}
 }
 
-/* helper function for insert keyframe, reset to default, etc operators */
-void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index)
+static uiBut *ui_context_rna_button_active(const bContext *C)
 {
-	ARegion *ar= CTX_wm_region(C);
+	uiBut *rnabut= NULL;
 
-	memset(ptr, 0, sizeof(*ptr));
-	*prop= NULL;
-	*index= 0;
+	ARegion *ar= CTX_wm_region(C);
 
 	while(ar) {
 		uiBlock *block;
 		uiBut *but, *activebut= NULL;
-	
+
 		/* find active button */
 		for(block=ar->uiblocks.first; block; block=block->next) {
 			for(but=block->buttons.first; but; but= but->next) {
@@ -5115,22 +5112,53 @@ void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct P
 		if(activebut && activebut->rnapoin.data) {
 			uiHandleButtonData *data= activebut->active;
 
-			/* found RNA button */
-			*ptr= activebut->rnapoin;
-			*prop= activebut->rnaprop;
-			*index= activebut->rnaindex;
+			rnabut= activebut;
 
 			/* recurse into opened menu, like colorpicker case */
 			if(data && data->menu && (ar != data->menu->region)) {
 				ar = data->menu->region;
 			}
 			else {
-				return;
+				return rnabut;
 			}
 		}
 		else {
 			/* no active button */
-			return;
+			return rnabut;
+		}
+	}
+
+	return rnabut;
+}
+
+/* helper function for insert keyframe, reset to default, etc operators */
+void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index)
+{
+	uiBut *activebut= ui_context_rna_button_active(C);
+
+	memset(ptr, 0, sizeof(*ptr));
+
+	if(activebut && activebut->rnapoin.data) {
+		*ptr= activebut->rnapoin;
+		*prop= activebut->rnaprop;
+		*index= activebut->rnaindex;
+	}
+	else {
+		*prop= NULL;
+		*index= 0;
+	}
+}
+
+void uiContextActivePropertyHandle(bContext *C)
+{
+	uiBut *activebut= ui_context_rna_button_active(C);
+	if(activebut) {
+		/* TODO, look into a better way to handle the button change
+		 * currently this is mainly so reset defaults works for the
+		 * operator redo panel - campbell */
+		uiBlock *block= activebut->block;
+		if (block->handle_func) {
+			block->handle_func(C, block->handle_func_arg, 0);
 		}
 	}
 }
@@ -5914,7 +5942,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 									ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE);
 								}
 								else {
-									printf("Error, but->menu_key type: %d\n", but->type);
+									printf("%s: error, but->menu_key type: %d\n", __func__, but->type);
 								}
 
 								break;

@@ -1478,7 +1478,7 @@ static void gpencil_draw_apply (wmOperator *op, tGPsdata *p)
 			
 			/* start a new stroke, starting from previous point */
 			gp_stroke_addpoint(p, p->mvalo, p->opressure);
-			ok= gp_stroke_addpoint(p, p->mval, p->pressure);
+			gp_stroke_addpoint(p, p->mval, p->pressure);
 		}
 		else if (ok == GP_STROKEADD_INVALID) {
 			/* the painting operation cannot continue... */

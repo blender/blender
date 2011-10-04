@@ -1374,7 +1374,8 @@ static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, BVHTree
 	return collpair;
 }
 
-static void machine_epsilon_offset(Cloth *cloth) {
+static void machine_epsilon_offset(Cloth *cloth)
+{
 	ClothVertex *cv;
 	int i, j;
 	
@@ -2363,7 +2364,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 {
 	Cloth *cloth= clmd->clothObject;
 	BVHTree *cloth_bvh= cloth->bvhtree;
-	unsigned int i=0, numfaces = 0, numverts = 0, k, l, j;
+	unsigned int i=0, /* numfaces = 0, */ /* UNUSED */ numverts = 0, k, l, j;
 	int rounds = 0; // result counts applied collisions; ic is for debug output;
 	ClothVertex *verts = NULL;
 	int ret = 0, ret2 = 0;
@@ -2374,7 +2375,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 		return 0;
 	
 	verts = cloth->verts;
-	numfaces = cloth->numfaces;
+	/* numfaces = cloth->numfaces; */ /* UNUSED */
 	numverts = cloth->numverts;
 
 	////////////////////////////////////////////////////////////
@@ -2476,7 +2477,7 @@ int cloth_bvh_objcollision (Object *ob, ClothModifierData * clmd, float step, fl
 				// collisions = 1;
 				verts = cloth->verts; // needed for openMP
 	
-				numfaces = cloth->numfaces;
+				/* numfaces = cloth->numfaces; */ /* UNUSED */
 				numverts = cloth->numverts;
 	
 				verts = cloth->verts;

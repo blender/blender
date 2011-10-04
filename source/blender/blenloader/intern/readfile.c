@@ -517,7 +517,7 @@ static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *filepat
 	BLI_addtail(mainlist, m);
 
 	lib= alloc_libblock(&m->library, ID_LI, "lib");
-	strncpy(lib->name, filepath, sizeof(lib->name)-1);
+	BLI_strncpy(lib->name, filepath, sizeof(lib->name));
 	BLI_strncpy(lib->filepath, name1, sizeof(lib->filepath));
 	
 	m->curlib= lib;
@@ -3010,6 +3010,9 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	if(tex->vd) {
 		tex->vd->dataset = NULL;
 		tex->vd->ok = 0;
+	} else {
+		if(tex->type == TEX_VOXELDATA)
+			tex->vd= MEM_callocN(sizeof(VoxelData), "direct_link_texture VoxelData");
 	}
 	
 	tex->nodetree= newdataadr(fd, tex->nodetree);
@@ -5649,7 +5652,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 			 * link into an unsaved blend file. See [#27405].
 			 * The remap relative option will make it relative again on save - campbell */
 			if (strncmp(lib->name, "//", 2)==0) {
-				strncpy(lib->name, lib->filepath, sizeof(lib->name));
+				BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
 			}
 		}
 	}
@@ -5658,7 +5661,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 			/* Libraries store both relative and abs paths, recreate relative paths,
 			 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
 			if (strncmp(lib->name, "//", 2)==0) { /* if this is relative to begin with? */
-				strncpy(lib->name, lib->filepath, sizeof(lib->name));
+				BLI_strncpy(lib->name, lib->filepath, sizeof(lib->name));
 				BLI_path_rel(lib->name, basepath);
 			}
 		}
@@ -7093,7 +7096,7 @@ void convert_tface_mt(FileData *fd, Main *main)
 		G.main = main;
 
 		if(!(do_version_tface(main, 1))) {
-			BKE_report(fd->reports, RPT_ERROR, "Texface conversion problem. Error in console");
+			BKE_report(fd->reports, RPT_WARNING, "Texface conversion problem. Error in console");
 		}
 
 		//XXX hack, material.c uses G.main allover the place, instead of main
@@ -10020,7 +10023,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->toolsettings->skgen_resolution = 250;
 			sce->toolsettings->skgen_threshold_internal 	= 0.1f;
 			sce->toolsettings->skgen_threshold_external 	= 0.1f;
-			sce->toolsettings->skgen_angle_limit	 		= 30.0f;
+			sce->toolsettings->skgen_angle_limit			= 30.0f;
 			sce->toolsettings->skgen_length_ratio			= 1.3f;
 			sce->toolsettings->skgen_length_limit			= 1.5f;
 			sce->toolsettings->skgen_correlation_limit		= 0.98f;
@@ -12098,49 +12101,81 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
-
-	{
-
-	}
-
-	//set defaults for obstacle avoidance, recast data
-	{
-		Scene *sce;
-		for(sce = main->scene.first; sce; sce = sce->id.next)
+	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 4)){
 		{
-			if (sce->gm.levelHeight == 0.f)
-				sce->gm.levelHeight = 2.f;
+			/* Adaptive time step for particle systems */
+			ParticleSettings *part;
+			for (part = main->particle.first; part; part = part->id.next) {
+				part->courant_target = 0.2f;
+				part->time_flag &= ~PART_TIME_AUTOSF;
+			}
+		}
 
-			if(sce->gm.recastData.cellsize == 0.0f)
-				sce->gm.recastData.cellsize = 0.3f;
-			if(sce->gm.recastData.cellheight == 0.0f)
-				sce->gm.recastData.cellheight = 0.2f;
-			if(sce->gm.recastData.agentmaxslope == 0.0f)
-				sce->gm.recastData.agentmaxslope = M_PI/4;
-			if(sce->gm.recastData.agentmaxclimb == 0.0f)
-				sce->gm.recastData.agentmaxclimb = 0.9f;
-			if(sce->gm.recastData.agentheight == 0.0f)
-				sce->gm.recastData.agentheight = 2.0f;
-			if(sce->gm.recastData.agentradius == 0.0f)
-				sce->gm.recastData.agentradius = 0.6f;
-			if(sce->gm.recastData.edgemaxlen == 0.0f)
-				sce->gm.recastData.edgemaxlen = 12.0f;
-			if(sce->gm.recastData.edgemaxerror == 0.0f)
-				sce->gm.recastData.edgemaxerror = 1.3f;
-			if(sce->gm.recastData.regionminsize == 0.0f)
-				sce->gm.recastData.regionminsize = 50.f;
-			if(sce->gm.recastData.regionmergesize == 0.0f)
-				sce->gm.recastData.regionmergesize = 20.f;
-			if(sce->gm.recastData.vertsperpoly<3)
-				sce->gm.recastData.vertsperpoly = 6;
-			if(sce->gm.recastData.detailsampledist == 0.0f)
-				sce->gm.recastData.detailsampledist = 6.0f;
-			if(sce->gm.recastData.detailsamplemaxerror == 0.0f)
-				sce->gm.recastData.detailsamplemaxerror = 1.0f;
-		}			
+		{
+			/* set defaults for obstacle avoidance, recast data */
+			Scene *sce;
+			for(sce = main->scene.first; sce; sce = sce->id.next)
+			{
+				if (sce->gm.levelHeight == 0.f)
+					sce->gm.levelHeight = 2.f;
+
+				if(sce->gm.recastData.cellsize == 0.0f)
+					sce->gm.recastData.cellsize = 0.3f;
+				if(sce->gm.recastData.cellheight == 0.0f)
+					sce->gm.recastData.cellheight = 0.2f;
+				if(sce->gm.recastData.agentmaxslope == 0.0f)
+					sce->gm.recastData.agentmaxslope = (float)M_PI/4;
+				if(sce->gm.recastData.agentmaxclimb == 0.0f)
+					sce->gm.recastData.agentmaxclimb = 0.9f;
+				if(sce->gm.recastData.agentheight == 0.0f)
+					sce->gm.recastData.agentheight = 2.0f;
+				if(sce->gm.recastData.agentradius == 0.0f)
+					sce->gm.recastData.agentradius = 0.6f;
+				if(sce->gm.recastData.edgemaxlen == 0.0f)
+					sce->gm.recastData.edgemaxlen = 12.0f;
+				if(sce->gm.recastData.edgemaxerror == 0.0f)
+					sce->gm.recastData.edgemaxerror = 1.3f;
+				if(sce->gm.recastData.regionminsize == 0.0f)
+					sce->gm.recastData.regionminsize = 8.f;
+				if(sce->gm.recastData.regionmergesize == 0.0f)
+					sce->gm.recastData.regionmergesize = 20.f;
+				if(sce->gm.recastData.vertsperpoly<3)
+					sce->gm.recastData.vertsperpoly = 6;
+				if(sce->gm.recastData.detailsampledist == 0.0f)
+					sce->gm.recastData.detailsampledist = 6.0f;
+				if(sce->gm.recastData.detailsamplemaxerror == 0.0f)
+					sce->gm.recastData.detailsamplemaxerror = 1.0f;
+			}
+		}
+
+		{
+			/* flip normals */
+			Material *ma= main->mat.first;
+			while(ma) {
+				int a;
+				for(a= 0; a<MAX_MTEX; a++) {
+					MTex *mtex= ma->mtex[a];
+
+					if(mtex) {
+						if((mtex->texflag&MTEX_BUMP_FLIPPED)==0) {
+							if((mtex->mapto&MAP_NORM) && mtex->texflag&(MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
+								mtex->norfac= -mtex->norfac;
+								mtex->texflag|= MTEX_BUMP_FLIPPED;
+							}
+						}
+					}
+				}
+
+				ma= ma->id.next;
+			}
+		}
+
 	}
-	
+
+	/* put compatibility code here until next subversion bump */
+	{
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
@@ -12268,7 +12303,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	bfd->main->versionfile= fd->fileversion;
 	
 	bfd->type= BLENFILETYPE_BLEND;
-	strncpy(bfd->main->name, filepath, sizeof(bfd->main->name)-1);
+	BLI_strncpy(bfd->main->name, filepath, sizeof(bfd->main->name));
 
 	while(bhead) {
 		switch(bhead->code) {

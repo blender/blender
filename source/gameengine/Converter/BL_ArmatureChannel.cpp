@@ -279,19 +279,19 @@ PyObject* BL_ArmatureChannel::py_attr_get_joint_rotation(void *self_v, const str
 		if (sa > FLT_EPSILON) {
 			norm = atan2(sa,ca)/sa;
 		} else {
-		   if (ca < 0.0) {
-			   norm = M_PI;
-			   mul_v3_fl(joints,0.f);
-			   if (joint_mat[0][0] > 0.f) {
-				   joints[0] = 1.0f;
-			   } else if (joint_mat[1][1] > 0.f) {
-				   joints[1] = 1.0f;
-			   } else {
-				   joints[2] = 1.0f;
-			   }
-		   } else {
-			   norm = 0.0;
-		   }
+			if (ca < 0.0) {
+				norm = M_PI;
+				mul_v3_fl(joints,0.f);
+				if (joint_mat[0][0] > 0.f) {
+					joints[0] = 1.0f;
+				} else if (joint_mat[1][1] > 0.f) {
+					joints[1] = 1.0f;
+				} else {
+					joints[2] = 1.0f;
+				}
+			} else {
+				norm = 0.0;
+			}
 		}
 		mul_v3_fl(joints,norm);
 		break;

@@ -639,7 +639,7 @@ PointerRNA uiItemFullO(uiLayout *layout, const char *opname, const char *name, i
 	if(!name) {
 		name= ot->name;
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 		name= UI_translate_do_iface(name);
 #endif
 	}
@@ -1219,7 +1219,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, const char *s
 #if 0		/* this name is used for a string comparison and can't be modified, TODO */
 			name_uiprefix_id(name_ui, id);
 #else
-			strcpy(name_ui, id->name+2);
+			BLI_strncpy(name_ui, id->name+2, sizeof(name_ui));
 #endif
 			name= BLI_strdup(name_ui);
 			iconid= ui_id_icon_get((bContext*)C, id, 1);
@@ -1432,7 +1432,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 	if(!name) {
 		name= mt->label;
 
-#ifdef INTERNATIONAL
+#ifdef WITH_INTERNATIONAL
 		name= UI_translate_do_iface(name);
 #endif
 	}
@@ -2432,7 +2432,7 @@ static void ui_item_estimate(uiItem *item)
 	}
 }
 
-static void ui_item_align(uiLayout *litem, int nr)
+static void ui_item_align(uiLayout *litem, short nr)
 {
 	uiItem *item;
 	uiButtonItem *bitem;

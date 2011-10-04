@@ -112,7 +112,7 @@ static void delete_fmodifier_cb (bContext *C, void *fmods_v, void *fcm_v)
 static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
 	FMod_Generator *data= (FMod_Generator *)fcm->data;
-	uiLayout *col, *row;
+	uiLayout /* *col, */ /* UNUSED */ *row;
 	uiBlock *block;
 	uiBut *but;
 	PointerRNA ptr;
@@ -121,7 +121,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
 	
 	/* basic settings (backdrop + mode selector + some padding) */
-	col= uiLayoutColumn(layout, 1);
+	/* col= uiLayoutColumn(layout, 1); */ /* UNUSED */
 	block= uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
 		but= uiDefButR(block, MENU, B_FMODIFIER_REDRAW, NULL, 0, 0, width-30, UI_UNIT_Y, &ptr, "mode", -1, 0, 0, -1, -1, NULL);
@@ -521,7 +521,7 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 /* draw settings for limits modifier */
 static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, short UNUSED(width))
 {
-	uiLayout *split, *col, *row;
+	uiLayout *split, *col /* , *row */ /* UNUSED */;
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
@@ -529,7 +529,7 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 	
 	/* row 1: minimum */
 	{
-		row= uiLayoutRow(layout, 0);
+		/* row= uiLayoutRow(layout, 0); */ /* UNUSED */
 		
 		/* split into 2 columns */
 		split= uiLayoutSplit(layout, 0.5f, 0);
@@ -547,7 +547,7 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 	
 	/* row 2: maximum */
 	{
-		row= uiLayoutRow(layout, 0);
+		/* row= uiLayoutRow(layout, 0); */ /* UNUSED */
 		
 		/* split into 2 columns */
 		split= uiLayoutSplit(layout, 0.5f, 0);

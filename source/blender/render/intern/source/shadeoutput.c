@@ -119,7 +119,7 @@ static void fogcolor(float *colf, float *rco, float *view)
 #endif
 
 /* zcor is distance, co the 3d coordinate in eye space, return alpha */
-float mistfactor(float zcor, float *co)	
+float mistfactor(float zcor, float const co[3])
 {
 	float fac, hi;
 	
@@ -162,8 +162,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	double t0, t1 = 0.0f, t2= 0.0f, t3;
 	float p1[3], p2[3], ladist, maxz = 0.0f, maxy = 0.0f, haint;
 	int snijp, doclip=1, use_yco=0;
-	int ok1=0, ok2=0;
-	
+
 	*intens= 0.0f;
 	haint= lar->haint;
 	
@@ -243,6 +242,8 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		}
 	}
 	if(snijp==2) {
+		int ok1=0, ok2=0;
+
 		/* sort */
 		if(t1>t2) {
 			a= t1; t1= t2; t2= a;
@@ -345,7 +346,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	}
 }
 
-void renderspothalo(ShadeInput *shi, float *col, float alpha)
+void renderspothalo(ShadeInput *shi, float col[4], float alpha)
 {
 	ListBase *lights;
 	GroupObject *go;
@@ -726,7 +727,7 @@ static float Toon_Diff( float *n, float *l, float *UNUSED(v), float size, float 
 /* in latter case, only last multiplication uses 'nl' */
 static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough )
 {
-	float i/*, nh*/, nv, vh, realnl, h[3];
+	float i/*, nh*/, nv /*, vh */, realnl, h[3];
 	float a, b, t, A, B;
 	float Lit_A, View_A, Lit_B[3], View_B[3];
 	
@@ -745,8 +746,8 @@ static float OrenNayar_Diff(float nl, float *n, float *l, float *v, float rough 
 	if(realnl<=0.0f) return 0.0f;
 	if(nl<0.0f) return 0.0f;		/* value from area light */
 	
-	vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; /* Dot product between view vector and halfway vector */
-	if(vh<=0.0f) vh= 0.0f;
+	/* vh= v[0]*h[0]+v[1]*h[1]+v[2]*h[2]; */ /* Dot product between view vector and halfway vector */
+	/* if(vh<=0.0f) vh= 0.0f; */
 	
 	Lit_A = saacos(realnl);
 	View_A = saacos( nv );
@@ -897,12 +898,11 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 static void ramp_diffuse_result(float *diff, ShadeInput *shi)
 {
 	Material *ma= shi->mat;
-	float col[4], fac=0;
+	float col[4];
 
 	if(ma->ramp_col) {
 		if(ma->rampin_col==MA_RAMP_IN_RESULT) {
-			
-			fac= 0.3f*diff[0] + 0.58f*diff[1] + 0.12f*diff[2];
+			float fac= 0.3f*diff[0] + 0.58f*diff[1] + 0.12f*diff[2];
 			do_colorband(ma->ramp_col, fac, col);
 			
 			/* blending method */
@@ -917,8 +917,7 @@ static void ramp_diffuse_result(float *diff, ShadeInput *shi)
 static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b)
 {
 	Material *ma= shi->mat;
-	float col[4], colt[3], fac=0;
-	
+
 	if(ma->ramp_col && (ma->mode & MA_RAMP_COL)) {
 		
 		/* MA_RAMP_IN_RESULT is exceptional */
@@ -929,6 +928,9 @@ static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, floa
 			diff[2] += b * shi->b;
 		}
 		else {
+			float colt[3], col[4];
+			float fac;
+
 			/* input */
 			switch(ma->rampin_col) {
 			case MA_RAMP_IN_ENERGY:
@@ -939,6 +941,9 @@ static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, floa
 				break;
 			case MA_RAMP_IN_NOR:
 				fac= shi->view[0]*shi->vn[0] + shi->view[1]*shi->vn[1] + shi->view[2]*shi->vn[2];
+				break;
+			default:
+				fac= 0.0f;
 				break;
 			}
 	
@@ -968,11 +973,11 @@ static void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, floa
 static void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
 {
 	Material *ma= shi->mat;
-	float col[4];
-	float fac;
-	
+
 	if(ma->ramp_spec && (ma->rampin_spec==MA_RAMP_IN_RESULT)) {
-		fac= 0.3f*(*specr) + 0.58f*(*specg) + 0.12f*(*specb);
+		float col[4];
+		float fac= 0.3f*(*specr) + 0.58f*(*specg) + 0.12f*(*specb);
+
 		do_colorband(ma->ramp_spec, fac, col);
 		
 		/* blending method */
@@ -984,19 +989,19 @@ static void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInpu
 }
 
 /* is = dot product shade, t = spec energy */
-static void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
+static void do_specular_ramp(ShadeInput *shi, float is, float t, float spec[3])
 {
 	Material *ma= shi->mat;
-	float col[4];
-	float fac=0.0f;
-	
+
 	spec[0]= shi->specr;
 	spec[1]= shi->specg;
 	spec[2]= shi->specb;
 
 	/* MA_RAMP_IN_RESULT is exception */
 	if(ma->ramp_spec && (ma->rampin_spec!=MA_RAMP_IN_RESULT)) {
-		
+		float fac;
+		float col[4];
+
 		/* input */
 		switch(ma->rampin_spec) {
 		case MA_RAMP_IN_ENERGY:
@@ -1007,6 +1012,9 @@ static void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec)
 			break;
 		case MA_RAMP_IN_NOR:
 			fac= shi->view[0]*shi->vn[0] + shi->view[1]*shi->vn[1] + shi->view[2]*shi->vn[2];
+			break;
+		default:
+			fac= 0.0f;
 			break;
 		}
 		
@@ -1092,7 +1100,7 @@ static void indirect_lighting_apply(ShadeInput *shi, ShadeResult *shr)
 }
 
 /* result written in shadfac */
-void lamp_get_shadow(LampRen *lar, ShadeInput *shi, float inp, float *shadfac, int do_real)
+void lamp_get_shadow(LampRen *lar, ShadeInput *shi, float inp, float shadfac[4], int do_real)
 {
 	LampShadowSubSample *lss= &(lar->shadsamp[shi->thread].s[shi->sample]);
 	
@@ -1121,7 +1129,7 @@ void lamp_get_shadow(LampRen *lar, ShadeInput *shi, float inp, float *shadfac, i
 }
 
 /* lampdistance and spot angle, writes in lv and dist */
-float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
+float lamp_get_visibility(LampRen *lar, const float co[3], float lv[3], float *dist)
 {
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 		*dist= 1.0f;
@@ -1627,7 +1635,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 }
 
 /* let's map negative light as if it mirrors positive light, otherwise negative values disappear */
-static void wrld_exposure_correct(float *diff)
+static void wrld_exposure_correct(float diff[3])
 {
 	
 	diff[0]= R.wrld.linfac*(1.0f-exp( diff[0]*R.wrld.logfac) );

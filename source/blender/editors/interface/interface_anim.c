@@ -83,7 +83,7 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 	}
 }
 
-int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen)
+int ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 {
 	FCurve *fcu;
 	ChannelDriver *driver;

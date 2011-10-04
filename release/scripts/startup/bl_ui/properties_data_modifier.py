@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Panel
-from blf import gettext as _
+
 
 class ModifierButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -51,14 +51,14 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Object:"))
+        col.label(text="Object:")
         col.prop(md, "object", text="")
         col.prop(md, "use_deform_preserve_volume")
 
         col = split.column()
-        col.label(text=_("Bind To:"))
-        col.prop(md, "use_vertex_groups", text=_("Vertex Groups"))
-        col.prop(md, "use_bone_envelopes", text=_("Bone Envelopes"))
+        col.label(text="Bind To:")
+        col.prop(md, "use_vertex_groups", text="Vertex Groups")
+        col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
 
         layout.separator()
 
@@ -92,11 +92,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col.separator()
 
-        col.prop(md, "use_merge_vertices", text=_("Merge"))
+        col.prop(md, "use_merge_vertices", text="Merge")
         sub = col.column()
         sub.active = md.use_merge_vertices
-        sub.prop(md, "use_merge_vertices_cap", text=_("First Last"))
-        sub.prop(md, "merge_threshold", text=_("Distance"))
+        sub.prop(md, "use_merge_vertices_cap", text="First Last")
+        sub.prop(md, "merge_threshold", text="Distance")
 
         col = split.column()
         col.prop(md, "use_relative_offset")
@@ -122,7 +122,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split.prop(md, "width")
         split.prop(md, "use_only_vertices")
 
-        layout.label(text=_("Limit Method:"))
+        layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
         if md.limit_method == 'ANGLE':
             layout.prop(md, "angle_limit")
@@ -133,11 +133,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Operation:"))
+        col.label(text="Operation:")
         col.prop(md, "operation", text="")
 
         col = split.column()
-        col.label(text=_("Object:"))
+        col.label(text="Object:")
         col.prop(md, "object", text="")
 
     def BUILD(self, layout, ob, md):
@@ -156,7 +156,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def CAST(self, layout, ob, md):
         split = layout.split(percentage=0.25)
 
-        split.label(text=_("Cast Type:"))
+        split.label(text="Cast Type:")
         split.prop(md, "cast_type", text="")
 
         split = layout.split(percentage=0.25)
@@ -175,52 +175,52 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Vertex Group:"))
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         col = split.column()
-        col.label(text=_("Control Object:"))
+        col.label(text="Control Object:")
         col.prop(md, "object", text="")
         if md.object:
             col.prop(md, "use_transform")
 
     def CLOTH(self, layout, ob, md):
-        layout.label(text=_("Settings can be found inside the Physics context"))
+        layout.label(text="Settings can be found inside the Physics context")
 
     def COLLISION(self, layout, ob, md):
-        layout.label(text=_("Settings can be found inside the Physics context"))
+        layout.label(text="Settings can be found inside the Physics context")
 
     def CURVE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Object:"))
+        col.label(text="Object:")
         col.prop(md, "object", text="")
         col = split.column()
-        col.label(text=_("Vertex Group:"))
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        layout.label(text=_("Deformation Axis:"))
+        layout.label(text="Deformation Axis:")
         layout.row().prop(md, "deform_axis", expand=True)
 
     def DECIMATE(self, layout, ob, md):
         layout.prop(md, "ratio")
-        layout.label(text=_("Face Count")+": %s" % str(md.face_count))
+        layout.label(text="Face Count" + ": %d" % md.face_count)
 
     def DISPLACE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Texture:"))
+        col.label(text="Texture:")
         col.template_ID(md, "texture", new="texture.new")
-        col.label(text=_("Vertex Group:"))
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         col = split.column()
-        col.label(text=_("Direction:"))
+        col.label(text="Direction:")
         col.prop(md, "direction", text="")
-        col.label(text=_("Texture Coordinates:"))
+        col.label(text="Texture Coordinates:")
         col.prop(md, "texture_coords", text="")
         if md.texture_coords == 'OBJECT':
-            layout.prop(md, "texture_coords_object", text=_("Object"))
+            layout.prop(md, "texture_coords_object", text="Object")
         elif md.texture_coords == 'UV' and ob.type == 'MESH':
             layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
 
@@ -237,23 +237,23 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(md, "use_edge_angle", text=_("Edge Angle"))
+        col.prop(md, "use_edge_angle", text="Edge Angle")
         sub = col.column()
         sub.active = md.use_edge_angle
         sub.prop(md, "split_angle")
 
-        split.prop(md, "use_edge_sharp", text=_("Sharp Edges"))
+        split.prop(md, "use_edge_sharp", text="Sharp Edges")
 
     def EXPLODE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Vertex group:"))
+        col.label(text="Vertex group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = col.column()
         sub.active = bool(md.vertex_group)
         sub.prop(md, "protect")
-        col.label(text=_("Particle UV"))
+        col.label(text="Particle UV")
         col.prop_search(md, "particle_uv", ob.data, "uv_textures", text="")
 
         col = split.column()
@@ -263,22 +263,22 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "show_dead")
         col.prop(md, "use_size")
 
-        layout.operator("object.explode_refresh", text=_("Refresh"))
+        layout.operator("object.explode_refresh", text="Refresh")
 
     def FLUID_SIMULATION(self, layout, ob, md):
-        layout.label(text=_("Settings can be found inside the Physics context"))
+        layout.label(text="Settings can be found inside the Physics context")
 
     def HOOK(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Object:"))
+        col.label(text="Object:")
         col.prop(md, "object", text="")
         if md.object and md.object.type == 'ARMATURE':
-            col.label(text=_("Bone:"))
+            col.label(text="Bone:")
             col.prop_search(md, "subtarget", md.object.data, "bones", text="")
         col = split.column()
-        col.label(text=_("Vertex Group:"))
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         layout.separator()
@@ -290,38 +290,38 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "force", slider=True)
 
         col = split.column()
-        col.operator("object.hook_reset", text=_("Reset"))
-        col.operator("object.hook_recenter", text=_("Recenter"))
+        col.operator("object.hook_reset", text="Reset")
+        col.operator("object.hook_recenter", text="Recenter")
 
         if ob.mode == 'EDIT':
             layout.separator()
             row = layout.row()
-            row.operator("object.hook_select", text=_("Select"))
-            row.operator("object.hook_assign", text=_("Assign"))
+            row.operator("object.hook_select", text="Select")
+            row.operator("object.hook_assign", text="Assign")
 
     def LATTICE(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Object:"))
+        col.label(text="Object:")
         col.prop(md, "object", text="")
 
         col = split.column()
-        col.label(text=_("Vertex Group:"))
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
     def MASK(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Mode:"))
+        col.label(text="Mode:")
         col.prop(md, "mode", text="")
         col = split.column()
         if md.mode == 'ARMATURE':
-            col.label(text=_("Armature:"))
+            col.label(text="Armature:")
             col.prop(md, "armature", text="")
         elif md.mode == 'VERTEX_GROUP':
-            col.label(text=_("Vertex Group:"))
+            col.label(text="Vertex Group:")
             col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
@@ -333,11 +333,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         sub = col.column()
-        sub.label(text=_("Object:"))
+        sub.label(text="Object:")
         sub.prop(md, "object", text="")
         sub.active = not md.is_bound
         col = split.column()
-        col.label(text=_("Vertex Group:"))
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
@@ -347,9 +347,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.separator()
 
         if md.is_bound:
-            layout.operator("object.meshdeform_bind", text=_("Unbind"))
+            layout.operator("object.meshdeform_bind", text="Unbind")
         else:
-            layout.operator("object.meshdeform_bind", text=_("Bind"))
+            layout.operator("object.meshdeform_bind", text="Bind")
 
             row = layout.row()
             row.prop(md, "precision")
@@ -359,19 +359,19 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split(percentage=0.25)
 
         col = split.column()
-        col.label(text=_("Axis:"))
+        col.label(text="Axis:")
         col.prop(md, "use_x")
         col.prop(md, "use_y")
         col.prop(md, "use_z")
 
         col = split.column()
-        col.label(text=_("Options:"))
-        col.prop(md, "use_mirror_merge", text=_("Merge"))
-        col.prop(md, "use_clip", text=_("Clipping"))
-        col.prop(md, "use_mirror_vertex_groups", text=_("Vertex Groups"))
+        col.label(text="Options:")
+        col.prop(md, "use_mirror_merge", text="Merge")
+        col.prop(md, "use_clip", text="Clipping")
+        col.prop(md, "use_mirror_vertex_groups", text="Vertex Groups")
 
         col = split.column()
-        col.label(text=_("Textures:"))
+        col.label(text="Textures:")
         col.prop(md, "use_mirror_u", text="U")
         col.prop(md, "use_mirror_v", text="V")
 
@@ -379,29 +379,29 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         if md.use_mirror_merge == True:
             col.prop(md, "merge_threshold")
-        col.label(text=_("Mirror Object:"))
+        col.label(text="Mirror Object:")
         col.prop(md, "mirror_object", text="")
 
     def NAVMESH(self, layout, ob, md):
-        layout.operator("object.assign_navpolygon")
-        layout.operator("object.assign_new_navpolygon")
+        layout.operator("mesh.assign_navpolygon")
+        layout.operator("mesh.assign_new_navpolygon")
 
     def MULTIRES(self, layout, ob, md):
         layout.row().prop(md, "subdivision_type", expand=True)
 
         split = layout.split()
         col = split.column()
-        col.prop(md, "levels", text=_("Preview"))
-        col.prop(md, "sculpt_levels", text=_("Sculpt"))
-        col.prop(md, "render_levels", text=_("Render"))
+        col.prop(md, "levels", text="Preview")
+        col.prop(md, "sculpt_levels", text="Sculpt")
+        col.prop(md, "render_levels", text="Render")
 
         col = split.column()
 
         col.enabled = ob.mode != 'EDIT'
-        col.operator("object.multires_subdivide", text=_("Subdivide"))
-        col.operator("object.multires_higher_levels_delete", text=_("Delete Higher"))
-        col.operator("object.multires_reshape", text=_("Reshape"))
-        col.operator("object.multires_base_apply", text=_("Apply Base"))
+        col.operator("object.multires_subdivide", text="Subdivide")
+        col.operator("object.multires_higher_levels_delete", text="Delete Higher")
+        col.operator("object.multires_reshape", text="Reshape")
+        col.operator("object.multires_base_apply", text="Apply Base")
         col.prop(md, "use_subsurf_uv")
         col.prop(md, "show_only_control_edges")
 
@@ -410,34 +410,34 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = layout.column()
         row = col.row()
         if md.is_external:
-            row.operator("object.multires_external_pack", text=_("Pack External"))
+            row.operator("object.multires_external_pack", text="Pack External")
             row.label()
             row = col.row()
             row.prop(md, "filepath", text="")
         else:
-            row.operator("object.multires_external_save", text=_("Save External..."))
+            row.operator("object.multires_external_save", text="Save External...")
             row.label()
 
     def PARTICLE_INSTANCE(self, layout, ob, md):
         layout.prop(md, "object")
-        layout.prop(md, "particle_system_index", text=_("Particle System"))
+        layout.prop(md, "particle_system_index", text="Particle System")
 
         split = layout.split()
         col = split.column()
-        col.label(text=_("Create From:"))
+        col.label(text="Create From:")
         col.prop(md, "use_normal")
         col.prop(md, "use_children")
         col.prop(md, "use_size")
 
         col = split.column()
-        col.label(text=_("Show Particles When:"))
+        col.label(text="Show Particles When:")
         col.prop(md, "show_alive")
         col.prop(md, "show_unborn")
         col.prop(md, "show_dead")
 
         layout.separator()
 
-        layout.prop(md, "use_path", text=_("Create Along Paths"))
+        layout.prop(md, "use_path", text="Create Along Paths")
 
         split = layout.split()
         split.active = md.use_path
@@ -447,17 +447,17 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.prop(md, "position", slider=True)
-        col.prop(md, "random_position", text=_("Random"), slider=True)
+        col.prop(md, "random_position", text="Random", slider=True)
 
     def PARTICLE_SYSTEM(self, layout, ob, md):
-        layout.label(text=_("Settings can be found inside the Particle context"))
+        layout.label(text="Settings can be found inside the Particle context")
 
     def SCREW(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
         col.prop(md, "axis")
-        col.prop(md, "object", text=_("AxisOb"))
+        col.prop(md, "object", text="AxisOb")
         col.prop(md, "angle")
         col.prop(md, "steps")
         col.prop(md, "render_steps")
@@ -476,10 +476,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def SHRINKWRAP(self, layout, ob, md):
         split = layout.split()
         col = split.column()
-        col.label(text=_("Target:"))
+        col.label(text="Target:")
         col.prop(md, "target", text="")
         col = split.column()
-        col.label(text=_("Vertex Group:"))
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         split = layout.split()
@@ -489,28 +489,28 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "subsurf_levels")
 
         col = split.column()
-        col.label(text=_("Mode:"))
+        col.label(text="Mode:")
         col.prop(md, "wrap_method", text="")
 
         if md.wrap_method == 'PROJECT':
             split = layout.split(percentage=0.25)
 
             col = split.column()
-            col.label(text=_("Axis:"))
+            col.label(text="Axis:")
             col.prop(md, "use_project_x")
             col.prop(md, "use_project_y")
             col.prop(md, "use_project_z")
 
             col = split.column()
-            col.label(text=_("Direction:"))
+            col.label(text="Direction:")
             col.prop(md, "use_negative_direction")
             col.prop(md, "use_positive_direction")
 
             col = split.column()
-            col.label(text=_("Cull Faces:"))
+            col.label(text="Cull Faces:")
             col.prop(md, "cull_face", expand=True)
 
-            layout.label(text=_("Auxiliary Target:"))
+            layout.label(text="Auxiliary Target:")
             layout.prop(md, "auxiliary_target", text="")
 
         elif md.wrap_method == 'NEAREST_SURFACEPOINT':
@@ -520,24 +520,24 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Mode:"))
+        col.label(text="Mode:")
         col.prop(md, "deform_method", text="")
 
         col = split.column()
-        col.label(text=_("Vertex Group:"))
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Origin:"))
+        col.label(text="Origin:")
         col.prop(md, "origin", text="")
         sub = col.column()
         sub.active = (md.origin is not None)
         sub.prop(md, "use_relative")
 
         col = split.column()
-        col.label(text=_("Deform:"))
+        col.label(text="Deform:")
         col.prop(md, "factor")
         col.prop(md, "limits", slider=True)
         if md.deform_method in {'TAPER', 'STRETCH'}:
@@ -545,13 +545,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.prop(md, "lock_y")
 
     def SMOKE(self, layout, ob, md):
-        layout.label(text=_("Settings can be found inside the Physics context"))
+        layout.label(text="Settings can be found inside the Physics context")
 
     def SMOOTH(self, layout, ob, md):
         split = layout.split(percentage=0.25)
 
         col = split.column()
-        col.label(text=_("Axis:"))
+        col.label(text="Axis:")
         col.prop(md, "use_x")
         col.prop(md, "use_y")
         col.prop(md, "use_z")
@@ -559,11 +559,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.prop(md, "factor")
         col.prop(md, "iterations")
-        col.label(text=_("Vertex Group:"))
+        col.label(text="Vertex Group:")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
     def SOFT_BODY(self, layout, ob, md):
-        layout.label(text=_("Settings can be found inside the Physics context"))
+        layout.label(text="Settings can be found inside the Physics context")
 
     def SOLIDIFY(self, layout, ob, md):
         split = layout.split()
@@ -572,19 +572,19 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "thickness")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
-        col.label(text=_("Crease:"))
-        col.prop(md, "edge_crease_inner", text=_("Inner"))
-        col.prop(md, "edge_crease_outer", text=_("Outer"))
-        col.prop(md, "edge_crease_rim", text=_("Rim"))
-        col.label(text=_("Material Index Offset:"))
+        col.label(text="Crease:")
+        col.prop(md, "edge_crease_inner", text="Inner")
+        col.prop(md, "edge_crease_outer", text="Outer")
+        col.prop(md, "edge_crease_rim", text="Rim")
+        col.label(text="Material Index Offset:")
 
         col = split.column()
 
         col.prop(md, "offset")
         sub = col.column()
         sub.active = bool(md.vertex_group)
-        sub.prop(md, "invert_vertex_group", text=_("Invert"))
-        sub.prop(md, "thickness_vertex_group", text=_("Factor"))
+        sub.prop(md, "invert_vertex_group", text="Invert")
+        sub.prop(md, "thickness_vertex_group", text="Factor")
 
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
@@ -595,64 +595,64 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "material_offset", text="")
         row = row.row()
         row.active = md.use_rim
-        row.prop(md, "material_offset_rim", text=_("Rim"))
+        row.prop(md, "material_offset_rim", text="Rim")
 
     def SUBSURF(self, layout, ob, md):
         layout.row().prop(md, "subdivision_type", expand=True)
 
         split = layout.split()
         col = split.column()
-        col.label(text=_("Subdivisions:"))
-        col.prop(md, "levels", text=_("View"))
-        col.prop(md, "render_levels", text=_("Render"))
+        col.label(text="Subdivisions:")
+        col.prop(md, "levels", text="View")
+        col.prop(md, "render_levels", text="Render")
 
         col = split.column()
-        col.label(text=_("Options:"))
+        col.label(text="Options:")
         col.prop(md, "use_subsurf_uv")
         col.prop(md, "show_only_control_edges")
 
     def SURFACE(self, layout, ob, md):
-        layout.label(text=_("Settings can be found inside the Physics context"))
+        layout.label(text="Settings can be found inside the Physics context")
 
     def UV_PROJECT(self, layout, ob, md):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Image:"))
+        col.label(text="Image:")
         col.prop(md, "image", text="")
 
         col = split.column()
-        col.label(text=_("UV Layer:"))
+        col.label(text="UV Layer:")
         col.prop_search(md, "uv_layer", ob.data, "uv_textures", text="")
 
         split = layout.split()
         col = split.column()
         col.prop(md, "use_image_override")
-        col.prop(md, "projector_count", text=_("Projectors"))
+        col.prop(md, "projector_count", text="Projectors")
         for proj in md.projectors:
             col.prop(proj, "object", text="")
 
         col = split.column()
         sub = col.column(align=True)
-        sub.prop(md, "aspect_x", text=_("Aspect X"))
-        sub.prop(md, "aspect_y", text=_("Aspect Y"))
+        sub.prop(md, "aspect_x", text="Aspect X")
+        sub.prop(md, "aspect_y", text="Aspect Y")
 
         sub = col.column(align=True)
-        sub.prop(md, "scale_x", text=_("Scale X"))
-        sub.prop(md, "scale_y", text=_("Scale Y"))
+        sub.prop(md, "scale_x", text="Scale X")
+        sub.prop(md, "scale_y", text="Scale Y")
 
     def WARP(self, layout, ob, md):
         use_falloff = (md.falloff_type != 'NONE')
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("From:"))
+        col.label(text="From:")
         col.prop(md, "object_from", text="")
 
         col.prop(md, "use_volume_preserve")
 
         col = split.column()
-        col.label(text=_("To:"))
+        col.label(text="To:")
         col.prop(md, "object_to", text="")
         col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
@@ -671,15 +671,15 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         # 2 new columns
         split = layout.split()
         col = split.column()
-        col.label(text=_("Texture:"))
+        col.label(text="Texture:")
         col.prop(md, "texture", text="")
 
         col = split.column()
-        col.label(text=_("Texture Coordinates:"))
+        col.label(text="Texture Coordinates:")
         col.prop(md, "texture_coords", text="")
 
         if md.texture_coords == 'OBJECT':
-            layout.prop(md, "texture_coords_object", text=_("Object"))
+            layout.prop(md, "texture_coords_object", text="Object")
         elif md.texture_coords == 'UV' and ob.type == 'MESH':
             layout.prop_search(md, "uv_layer", ob.data, "uv_textures")
 
@@ -687,7 +687,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Motion:"))
+        col.label(text="Motion:")
         col.prop(md, "use_x")
         col.prop(md, "use_y")
         col.prop(md, "use_cyclic")
@@ -703,18 +703,18 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.label(text=_("Time:"))
+        col.label(text="Time:")
         sub = col.column(align=True)
-        sub.prop(md, "time_offset", text=_("Offset"))
-        sub.prop(md, "lifetime", text=_("Life"))
-        col.prop(md, "damping_time", text=_("Damping"))
+        sub.prop(md, "time_offset", text="Offset")
+        sub.prop(md, "lifetime", text="Life")
+        col.prop(md, "damping_time", text="Damping")
 
         col = split.column()
-        col.label(text=_("Position:"))
+        col.label(text="Position:")
         sub = col.column(align=True)
         sub.prop(md, "start_position_x", text="X")
         sub.prop(md, "start_position_y", text="Y")
-        col.prop(md, "falloff_radius", text=_("Falloff"))
+        col.prop(md, "falloff_radius", text="Falloff")
 
         layout.separator()
 
@@ -722,7 +722,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.prop_search(md, "vertex_group", ob, "vertex_groups")
         split = layout.split(percentage=0.33)
         col = split.column()
-        col.label(text=_("Texture"))
+        col.label(text="Texture")
         col = split.column()
         col.template_ID(md, "texture", new="texture.new")
         layout.prop(md, "texture_coords")
