@@ -113,6 +113,7 @@ Controller::Controller()
 
   _inter = new PythonInterpreter();
   _EnableQI = true;
+  _EnableFaceSmoothness = false;
   _ComputeRidges = true;
   _ComputeSteerableViewMap = false;
   _ComputeSuggestive = true;
