@@ -338,7 +338,7 @@ if env['BF_NO_ELBEEM'] == 1:
     env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
 
-if btools.ENDIAN == "big" and not env['OURPLATFORM']=='darwin':
+if btools.ENDIAN == "big":
     env['CPPFLAGS'].append('-D__BIG_ENDIAN__')
     env['CXXFLAGS'].append('-D__BIG_ENDIAN__')
     env['CCFLAGS'].append('-D__BIG_ENDIAN__')
