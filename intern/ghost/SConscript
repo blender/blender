@@ -103,7 +103,7 @@ if window_system in ('win32-vc', 'win64-vc'):
     env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15]) #, cc_compileflags=env['CCFLAGS'].append('/WX') )
 
 elif env['WITH_GHOST_COCOA']:	 # always use Apple-gcc-4.2 for objC language, for gnu-compilers do not support it fully yet
-    env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compilerchange='/usr/bin/gcc-4.2', cxx_compilerchange='/usr/bin/gcc-4.2' )
+    env.BlenderLib ('bf_intern_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15], cc_compilerchange='/usr/bin/gcc-4.2', cxx_compilerchange='/usr/bin/g++-4.2' )
     print "GHOST COCOA WILL BE COMPILED WITH APPLE GCC"
 
 else:
