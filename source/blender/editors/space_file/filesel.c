@@ -246,6 +246,11 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		sfile->folders_prev = folderlist_new();
 	folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
+	/* switching thumbnails needs to recalc layout [#28809] */
+	if (sfile->layout) {
+		sfile->layout->dirty= 1;
+	}
+
 	return 1;
 }
 
