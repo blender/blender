@@ -5906,7 +5906,11 @@ PyObject *BPY_rna_module(void)
 
 void BPY_update_rna_module(void)
 {
+#if 0
 	RNA_main_pointer_create(G.main, rna_module_ptr);
+#else
+	rna_module_ptr->data= G.main; /* just set data is enough */
+#endif
 }
 
 #if 0
