@@ -116,7 +116,6 @@ void BM_Data_Facevert_Edgeinterp(BMesh *bm, BMVert *v1, BMVert *UNUSED(v2), BMVe
 			v1loop = l->next;
 			vloop = l;
 			v2loop = l->prev;
-			
 		}
 		
 		if (!v1loop || !v2loop)
@@ -381,6 +380,7 @@ static int compute_mdisp_quad(BMLoop *l, double v1[3], double v2[3], double v3[3
 	do {
 		cent[0] += (double)l2->v->co[0];
 		cent[1] += (double)l2->v->co[1];
+		cent[2] += (double)l2->v->co[2];
 		l2 = l2->next;
 	} while (l2 != bm_firstfaceloop(l->f));
 	
