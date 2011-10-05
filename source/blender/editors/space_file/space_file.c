@@ -154,7 +154,7 @@ static void file_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
 	//printf("file_init\n");
 
-	if(sfile->layout) sfile->layout->dirty= 1;
+	if(sfile->layout) sfile->layout->dirty= TRUE;
 }
 
 
@@ -242,7 +242,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));
 		params->renamefile[0] = '\0';
 	}
-	if (sfile->layout) sfile->layout->dirty= 1;
+	if (sfile->layout) sfile->layout->dirty= TRUE;
 
 }
 
