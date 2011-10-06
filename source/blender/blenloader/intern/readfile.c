@@ -10384,7 +10384,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->mode |= MA_TRANSP;
 			}
 			else {
-				ma->mode |= MA_ZTRANSP;
+				/* ma->mode |= MA_ZTRANSP; */ /* leave ztransp as is even if its not used [#28113] */
 				ma->mode &= ~MA_TRANSP;
 			}
 
@@ -11755,7 +11755,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if(!mat->mtex[tex_nr]) continue;
 					if(mat->mtex[tex_nr]->mapto & MAP_ALPHA) transp_tex= 1;
 				}
-				
+
+				/* weak! material alpha could be animated */
 				if(mat->alpha < 1.0f || mat->fresnel_tra > 0.0f || transp_tex){
 					mat->mode |= MA_TRANSP;
 					mat->mode &= ~(MA_ZTRANSP|MA_RAYTRANSP);
