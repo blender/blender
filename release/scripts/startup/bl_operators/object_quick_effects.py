@@ -462,10 +462,10 @@ class QuickFluid(Operator):
 
             if self.style == 'INFLOW':
                 mod.settings.type = 'INFLOW'
-                mod.settings.inflow_velocity = self.initial_velocity.copy()
+                mod.settings.inflow_velocity = self.initial_velocity
             else:
                 mod.settings.type = 'FLUID'
-                mod.settings.initial_velocity = self.initial_velocity.copy()
+                mod.settings.initial_velocity = self.initial_velocity
 
             obj.hide_render = not self.show_flows
             if not self.show_flows:
