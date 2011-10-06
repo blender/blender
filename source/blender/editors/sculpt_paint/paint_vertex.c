@@ -1813,7 +1813,7 @@ static char *wpaint_make_validmap(Object *ob)
 	ModifierData *md;
 	char *vgroup_validmap;
 	GHash *gh;
-	int i = 0, step1=1;
+	int i, step1=1;
 
 	if(ob->defbase.first == NULL) {
 		return NULL;
@@ -1826,7 +1826,7 @@ static char *wpaint_make_validmap(Object *ob)
 		BLI_ghash_insert(gh, dg->name, NULL);
 	}
 
-	vgroup_validmap= MEM_callocN(i, "wpaint valid map");
+	vgroup_validmap= MEM_callocN(BLI_ghash_size(gh), "wpaint valid map");
 
 	/*now loop through the armature modifiers and identify deform bones*/
 	for (md = ob->modifiers.first; md; md= !md->next && step1 ? (step1=0), modifiers_getVirtualModifierList(ob) : md->next) {
@@ -1898,18 +1898,10 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	wpd->auto_normalize = ts->auto_normalize;
 	wpd->defbase_tot = BLI_countlist(&ob->defbase);
 	wpd->lock_flags = gen_lock_flags(ob, wpd->defbase_tot);
-	if (wpd->auto_normalize || ts->multipaint || wpd->lock_flags)
+	if (wpd->auto_normalize || ts->multipaint || wpd->lock_flags) {
 		wpd->vgroup_validmap = wpaint_make_validmap(ob);
-	
-	//	if(qual & LR_CTRLKEY) {
-	//		sample_wpaint(scene, ar, v3d, 0);
-	//		return;
-	//	}
-	//	if(qual & LR_SHIFTKEY) {
-	//		sample_wpaint(scene, ar, v3d, 1);
-	//		return;
-	//	}
-	
+	}
+
 	/* ALLOCATIONS! no return after this line */
 	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
 	wpd->vertexcosnos= mesh_get_mapped_verts_nors(scene, ob);
@@ -1937,9 +1929,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	if(ob->defbase.first==NULL) {
 		ED_vgroup_add(ob);
 	}
-	
-	//	if(ob->lay & v3d->lay); else error("Active object is not in this layer");
-	
+
 	/* imat for normals */
 	mul_m4_m4m4(mat, ob->obmat, wpd->vc.rv3d->viewmat);
 	invert_m4_m4(imat, mat);
