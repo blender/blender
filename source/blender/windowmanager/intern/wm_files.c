@@ -226,13 +226,16 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 			oldwm= oldwmlist->first;
 			wm= G.main->wm.first;
 
-			/* move addon key configuration to new wm, to preserve their keymaps */
-			if(oldwm->addonconf) {
-				wm->addonconf= oldwm->addonconf;
-				BLI_remlink(&oldwm->keyconfigs, oldwm->addonconf);
-				oldwm->addonconf= NULL;
-				BLI_addtail(&wm->keyconfigs, wm->addonconf);
-			}
+			/* preserve key configurations in new wm, to preserve their keymaps */
+			wm->keyconfigs= oldwm->keyconfigs;
+			wm->addonconf= oldwm->addonconf;
+			wm->defaultconf= oldwm->defaultconf;
+			wm->userconf= oldwm->userconf;
+
+			oldwm->keyconfigs.first= oldwm->keyconfigs.last= NULL;
+			oldwm->addonconf= NULL;
+			oldwm->defaultconf= NULL;
+			oldwm->userconf= NULL;
 
 			/* ensure making new keymaps and set space types */
 			wm->initialized= 0;
@@ -286,7 +289,8 @@ static void wm_init_userdef(bContext *C)
 		if ((U.flag & USER_SCRIPT_AUTOEXEC_DISABLE) == 0) G.f |=  G_SCRIPT_AUTOEXEC;
 		else											  G.f &= ~G_SCRIPT_AUTOEXEC;
 	}
-	if(U.tempdir[0]) BLI_where_is_temp(btempdir, FILE_MAX, 1);
+	/* update tempdir from user preferences */
+	BLI_where_is_temp(btempdir, FILE_MAX, 1);
 }
 
 
@@ -850,14 +854,14 @@ void wm_autosave_location(char *filepath)
 	 * BLI_make_file_string will create string that has it most likely on C:\
 	 * through get_default_root().
 	 * If there is no C:\tmp autosave fails. */
-	if (!BLI_exists(U.tempdir)) {
+	if (!BLI_exists(btempdir)) {
 		savedir = BLI_get_folder_create(BLENDER_USER_AUTOSAVE, NULL);
 		BLI_make_file_string("/", filepath, savedir, pidstr);
 		return;
 	}
 #endif
-	
-	BLI_make_file_string("/", filepath, U.tempdir, pidstr);
+
+	BLI_make_file_string("/", filepath, btempdir, pidstr);
 }
 
 void WM_autosave_init(wmWindowManager *wm)
@@ -915,7 +919,7 @@ void wm_autosave_delete(void)
 
 	if(BLI_exists(filename)) {
 		char str[FILE_MAXDIR+FILE_MAXFILE];
-		BLI_make_file_string("/", str, U.tempdir, "quit.blend");
+		BLI_make_file_string("/", str, btempdir, "quit.blend");
 
 		/* if global undo; remove tempsave, otherwise rename */
 		if(U.uiflag & USER_GLOBALUNDO) BLI_delete(filename, 0, 0);

@@ -90,9 +90,10 @@ LIBDIR = '${LCGDIR}'
 ###################          Dependency settings           ##################
 #############################################################################
 
-#Defaults openMP to true if compiler handles it
-if CC == 'gcc-4.2' or CC == 'llvm-gcc-4.2':
-    WITH_BF_OPENMP = True  # multithreading for fluids, cloth and smoke
+#Defaults openMP to true if compiler handles it ( only gcc 4.6.1 and newer )
+# if your compiler does not have accurate suffix you may have to enable it by hand !
+if CC.endswith('4.6.1'):
+    WITH_BF_OPENMP = True  # multithreading for fluids, cloth, sculpt and smoke
 else:
     WITH_BF_OPENMP = False
 

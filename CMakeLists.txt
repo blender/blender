@@ -488,17 +488,17 @@ if(UNIX AND NOT APPLE)
 		find_path(X11_XF86keysym_INCLUDE_PATH X11/XF86keysym.h ${X11_INC_SEARCH_PATH})
 		mark_as_advanced(X11_XF86keysym_INCLUDE_PATH)
 
-		list(APPEND PLATFORM_LINKLIBS ${X11_X11_LIB})
+		set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_X11_LIB}")
 
 		if(WITH_X11_XINPUT)
-			list(APPEND PLATFORM_LINKLIBS ${X11_Xinput_LIB})
+			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_Xinput_LIB}")
 		endif()
 	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		if(NOT WITH_PYTHON_MODULE)
 			# BSD's dont use libdl.so
-			list(APPEND PLATFORM_LINKLIBS -ldl)
+		set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -ldl")
 			# binreloc is linux only
 			set(BINRELOC_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/extern/binreloc/include)
 			set(WITH_BINRELOC ON)

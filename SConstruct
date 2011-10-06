@@ -277,7 +277,7 @@ if env['OURPLATFORM']=='darwin':
             print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
             env['WITH_BF_3DMOUSE'] = 0
         else:
-            env.Append(LINKFLAGS=['-weak_framework','3DconnexionClient'])
+            env.Append(LINKFLAGS=['-Xlinker','-weak_framework','-Xlinker','3DconnexionClient'])
 
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):

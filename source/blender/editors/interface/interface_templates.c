@@ -415,7 +415,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			BLI_snprintf(str, sizeof(str), "%d", id->us);
 
 			but= uiDefBut(block, BUT, 0, str, 0,0,UI_UNIT_X + ((id->us < 10) ? 0:10), UI_UNIT_Y, NULL, 0, 0, 0, 0,
-						UI_translate_do_tooltip(_("Displays number of users of this data. Click to make a single-user copy")));
+			              UI_translate_do_tooltip(_("Display number of users of this data (click to make a single-user copy)")));
 
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ALONE));
 			if(!id_copy(id, NULL, 1 /* test only */) || (idfrom && idfrom->lib) || !editable)

@@ -1018,9 +1018,9 @@ static void ui_id_icon_render(bContext *C, ID *id, int big)
 		{
 			/* create the rect if necessary */				
 			
-			icon_set_image(C, id, pi, 0);		/* icon size */
+			icon_set_image(C, id, pi, ICON_SIZE_ICON);		/* icon size */
 			if (big)
-				icon_set_image(C, id, pi, 1);	/* bigger preview size */
+				icon_set_image(C, id, pi, ICON_SIZE_PREVIEW);	/* bigger preview size */
 			
 			pi->changed[0] = 0;
 		}
@@ -1030,7 +1030,7 @@ static void ui_id_icon_render(bContext *C, ID *id, int big)
 static void ui_id_brush_render(bContext *C, ID *id)
 {
 	PreviewImage *pi = BKE_previewimg_get(id); 
-	int i;
+	enum eIconSizes i;
 	
 	if(!pi)
 		return;

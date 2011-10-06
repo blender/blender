@@ -51,6 +51,7 @@
 #include "DNA_node_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
 #include "BKE_fcurve.h"
@@ -386,6 +387,9 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
+	/* when not in graph view, don't use handles */
+	SpaceIpo *sipo= (ac->spacetype == SPACE_IPO) ? (SpaceIpo *)ac->sl : NULL;
+	const short use_handle = sipo ? !(sipo->flag & SIPO_NOHANDLES) : FALSE;
 	
 	/* filter animation data */
 	filter= ANIMFILTER_DATA_VISIBLE; 
@@ -397,7 +401,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 		
 		/* make sure keyframes in F-Curve are all in order, and handles are in valid positions */
 		sort_time_fcurve(fcu);
-		testhandles_fcurve(fcu);
+		testhandles_fcurve(fcu, use_handle);
 	}
 	
 	/* free temp data */

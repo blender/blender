@@ -5089,19 +5089,16 @@ void ui_button_active_free(const bContext *C, uiBut *but)
 	}
 }
 
-/* helper function for insert keyframe, reset to default, etc operators */
-void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index)
+static uiBut *ui_context_rna_button_active(const bContext *C)
 {
-	ARegion *ar= CTX_wm_region(C);
+	uiBut *rnabut= NULL;
 
-	memset(ptr, 0, sizeof(*ptr));
-	*prop= NULL;
-	*index= 0;
+	ARegion *ar= CTX_wm_region(C);
 
 	while(ar) {
 		uiBlock *block;
 		uiBut *but, *activebut= NULL;
-	
+
 		/* find active button */
 		for(block=ar->uiblocks.first; block; block=block->next) {
 			for(but=block->buttons.first; but; but= but->next) {
@@ -5115,23 +5112,52 @@ void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct P
 		if(activebut && activebut->rnapoin.data) {
 			uiHandleButtonData *data= activebut->active;
 
-			/* found RNA button */
-			*ptr= activebut->rnapoin;
-			*prop= activebut->rnaprop;
-			*index= activebut->rnaindex;
+			rnabut= activebut;
 
 			/* recurse into opened menu, like colorpicker case */
 			if(data && data->menu && (ar != data->menu->region)) {
 				ar = data->menu->region;
 			}
 			else {
-				return;
+				return rnabut;
 			}
 		}
 		else {
 			/* no active button */
-			return;
+			return rnabut;
 		}
+	}
+
+	return rnabut;
+}
+
+/* helper function for insert keyframe, reset to default, etc operators */
+void uiContextActiveProperty(const bContext *C, struct PointerRNA *ptr, struct PropertyRNA **prop, int *index)
+{
+	uiBut *activebut= ui_context_rna_button_active(C);
+
+	memset(ptr, 0, sizeof(*ptr));
+
+	if(activebut && activebut->rnapoin.data) {
+		*ptr= activebut->rnapoin;
+		*prop= activebut->rnaprop;
+		*index= activebut->rnaindex;
+	}
+	else {
+		*prop= NULL;
+		*index= 0;
+	}
+}
+
+void uiContextActivePropertyHandle(bContext *C)
+{
+	uiBut *activebut= ui_context_rna_button_active(C);
+	if(activebut) {
+		/* TODO, look into a better way to handle the button change
+		 * currently this is mainly so reset defaults works for the
+		 * operator redo panel - campbell */
+		uiBlock *block= activebut->block;
+		block->handle_func(C, block->handle_func_arg, 0);
 	}
 }
 

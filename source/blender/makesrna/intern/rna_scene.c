@@ -1242,7 +1242,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "use_snap_self", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_flag", SCE_SNAP_NO_SELF);
-	RNA_def_property_ui_text(prop, "Project to Self", "Snap onto its self (editmode)");
+	RNA_def_property_ui_text(prop, "Project to Self", "Snap onto itself (editmode)");
 	RNA_def_property_ui_icon(prop, ICON_ORTHO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 	
@@ -1874,19 +1874,19 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "depth");
 	RNA_def_property_range(prop, 8, 32);
-	RNA_def_property_ui_text(prop, "Bits", "Displays bit depth of full screen display");
+	RNA_def_property_ui_text(prop, "Bits", "Display bit depth of full screen display");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	// Do we need it here ? (since we already have it in World
 	prop= RNA_def_property(srna, "frequency", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "freqplay");
 	RNA_def_property_range(prop, 4, 2000);
-	RNA_def_property_ui_text(prop, "Freq", "Displays clock frequency of fullscreen display");
+	RNA_def_property_ui_text(prop, "Freq", "Display clock frequency of fullscreen display");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	prop= RNA_def_property(srna, "show_fullscreen", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "fullscreen", 1.0);
-	RNA_def_property_ui_text(prop, "Fullscreen", "Starts player in a new fullscreen display");
+	RNA_def_property_ui_text(prop, "Fullscreen", "Start player in a new fullscreen display");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* Framing */

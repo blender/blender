@@ -213,6 +213,7 @@ macro(setup_liblinks
 			${JPEG_LIBRARIES}
 			${PNG_LIBRARIES}
 			${ZLIB_LIBRARIES}
+			${FREETYPE_LIBRARY}
 			${PLATFORM_LINKLIBS})
 
 	# since we are using the local libs for python when compiling msvc projects, we need to add _d when compiling debug versions
@@ -232,13 +233,6 @@ macro(setup_liblinks
 	if(NOT WITH_BUILTIN_GLEW)
 		target_link_libraries(${target} ${GLEW_LIBRARY})
 	endif()
-
-	target_link_libraries(${target}
-			${OPENGL_glu_LIBRARY}
-			${JPEG_LIBRARIES}
-			${PNG_LIBRARIES}
-			${ZLIB_LIBRARIES}
-			${FREETYPE_LIBRARY})
 
 	if(WITH_INTERNATIONAL)
 		target_link_libraries(${target} ${GETTEXT_LIB})

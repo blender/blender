@@ -6238,7 +6238,11 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	ParameterIterator iter;
 	PointerRNA funcptr;
 	int err= 0, i, flag, ret_len=0;
-	int is_static= RNA_function_flag(func) & FUNC_NO_SELF;
+	const char is_static= (RNA_function_flag(func) & FUNC_NO_SELF) != 0;
+
+	/* annoying!, need to check if the screen gets set to NULL which is a
+	 * hint that the file was actually re-loaded. */
+	char is_valid_wm;
 
 	PropertyRNA *pret_single= NULL;
 	void *retdata_single= NULL;
@@ -6264,6 +6268,8 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	 * this should be supported at some point but at the moment its not! */
 	if(C==NULL)
 		C= BPy_GetContext();
+
+	is_valid_wm= (CTX_wm_manager(C) != NULL);
 
 	bpy_context_set(C, &gilstate);
 
@@ -6498,7 +6504,11 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	if(err != 0) {
 		ReportList *reports;
 		/* alert the user, else they wont know unless they see the console. */
-		if (!is_static && ptr->data && RNA_struct_is_a(ptr->type, &RNA_Operator)) {
+		if (    (!is_static) &&
+		        (ptr->data) &&
+		        (RNA_struct_is_a(ptr->type, &RNA_Operator)) &&
+		        (is_valid_wm == (CTX_wm_manager(C) != NULL)))
+		{
 			wmOperator *op= ptr->data;
 			reports= op->reports;
 		}

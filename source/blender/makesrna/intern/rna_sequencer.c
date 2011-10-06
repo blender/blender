@@ -559,7 +559,8 @@ static void rna_Sequence_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
+	if(ed)
+		free_imbuf_seq(scene, &ed->seqbase, FALSE, TRUE);
 }
 
 static void rna_Sequence_update_reopen_files(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
@@ -820,16 +821,14 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem seq_tc_items[]= {
-		{SEQ_PROXY_TC_NONE, "NONE", 0, "No TC in use", ""}, 
+		{SEQ_PROXY_TC_NONE, "NONE", 0, "No TC in use", ""},
 		{SEQ_PROXY_TC_RECORD_RUN, "RECORD_RUN", 0, "Record Run",
-		 "use images in the order as they are recorded"}, 
-		{SEQ_PROXY_TC_FREE_RUN, "FREE_RUN", 0, "Free Run", 
-		 "use global timestamp written by recording device"}, 
-		{SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 
-		 0, "Free Run (rec date)", 
-		 "interpolate a global timestamp using the "
-		 "record date and time written by recording "
-		 "device"}, 
+		                          "Use images in the order as they are recorded"},
+		{SEQ_PROXY_TC_FREE_RUN, "FREE_RUN", 0, "Free Run",
+		                        "Use global timestamp written by recording device"},
+		{SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 0, "Free Run (rec date)",
+		                                        "Interpolate a global timestamp using the "
+		                                        "record date and time written by recording device"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "SequenceProxy", NULL);

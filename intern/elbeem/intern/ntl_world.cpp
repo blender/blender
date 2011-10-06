@@ -216,7 +216,6 @@ void ntlWorld::finishWorldInit()
 			}
 			long stopTime = getTime();
 
-			mSimulationTime += (*mpSims)[mFirstSim]->getStartTime();
 			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Time for start-sims:"<< getTimeString(stopTime-startTime) , 1);
 #ifndef NOGUI
 			guiResetSimulationTimeRange( mSimulationTime );

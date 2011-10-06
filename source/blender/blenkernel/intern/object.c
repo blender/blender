@@ -3067,6 +3067,82 @@ void object_camera_matrix(
 
 }
 
+void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const short do_clip, const float scale[3],
+                          float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3])
+{
+	float aspx, aspy;
+	float facx, facy;
+	float depth;
+
+	/* aspect correcton */
+	if (scene) {
+		aspx= (float) scene->r.xsch*scene->r.xasp;
+		aspy= (float) scene->r.ysch*scene->r.yasp;
+
+		if(aspx < aspy) {
+			r_asp[0]= aspx / aspy;
+			r_asp[1]= 1.0;
+		}
+		else {
+			r_asp[0]= 1.0;
+			r_asp[1]= aspy / aspx;
+		}
+	}
+	else {
+		aspx= 1.0f;
+		aspy= 1.0f;
+		r_asp[0]= 1.0f;
+		r_asp[1]= 1.0f;
+	}
+
+	if(camera->type==CAM_ORTHO) {
+		facx= 0.5f * camera->ortho_scale * r_asp[0] * scale[0];
+		facy= 0.5f * camera->ortho_scale * r_asp[1] * scale[1];
+		r_shift[0]= camera->shiftx * camera->ortho_scale * scale[0];
+		r_shift[1]= camera->shifty * camera->ortho_scale * scale[1];
+		depth= do_clip ? -((camera->clipsta * scale[2]) + 0.1f) : - drawsize * camera->ortho_scale * scale[2];
+
+		*r_drawsize= 0.5f * camera->ortho_scale;
+	}
+	else {
+		/* that way it's always visible - clipsta+0.1 */
+		float fac;
+		*r_drawsize= drawsize / ((scale[0] + scale[1] + scale[2]) / 3.0f);
+
+		if(do_clip) {
+			/* fixed depth, variable size (avoids exceeding clipping range) */
+			depth = -(camera->clipsta + 0.1f);
+			fac = depth / (camera->lens/-16.0f * scale[2]);
+		}
+		else {
+			/* fixed size, variable depth (stays a reasonable size in the 3D view) */
+			depth= *r_drawsize * camera->lens/-16.0f * scale[2];
+			fac= *r_drawsize;
+		}
+
+		facx= fac * r_asp[0] * scale[0];
+		facy= fac * r_asp[1] * scale[1];
+		r_shift[0]= camera->shiftx*fac*2 * scale[0];
+		r_shift[1]= camera->shifty*fac*2 * scale[1];
+	}
+
+	r_vec[0][0]= r_shift[0] + facx; r_vec[0][1]= r_shift[1] + facy; r_vec[0][2]= depth;
+	r_vec[1][0]= r_shift[0] + facx; r_vec[1][1]= r_shift[1] - facy; r_vec[1][2]= depth;
+	r_vec[2][0]= r_shift[0] - facx; r_vec[2][1]= r_shift[1] - facy; r_vec[2][2]= depth;
+	r_vec[3][0]= r_shift[0] - facx; r_vec[3][1]= r_shift[1] + facy; r_vec[3][2]= depth;
+}
+
+void camera_view_frame(Scene *scene, Camera *camera, float r_vec[4][3])
+{
+	float dummy_asp[2];
+	float dummy_shift[2];
+	float dummy_drawsize;
+	const float dummy_scale[3]= {1.0f, 1.0f, 1.0f};
+
+	camera_view_frame_ex(scene, camera, FALSE, 1.0, dummy_scale,
+	                     dummy_asp, dummy_shift, &dummy_drawsize, r_vec);
+}
+
 #if 0
 static int pc_findindex(ListBase *listbase, int index)
 {

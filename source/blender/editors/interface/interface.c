@@ -678,6 +678,11 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 					SWAP(void *, oldbut->func_argN, but->func_argN)
 				}
 				
+				/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
+				   when scrolling without moving mouse (see [#28432]) */
+				if(ELEM(oldbut->type, ROW, LISTROW))
+					oldbut->hardmax= but->hardmax;
+				
 				ui_but_update_linklines(block, oldbut, but);
 				
 				BLI_remlink(&block->buttons, but);
@@ -746,7 +751,7 @@ static int ui_but_is_rna_undo(uiBut *but)
 		 * unforseen conciquences, so best check for ID's we _know_ are not
 		 * handled by undo - campbell */
 		ID *id= but->rnapoin.id.data;
-		if(ELEM(GS(id->name), ID_SCR, ID_WM)) {
+		if(ID_CHECK_UNDO(id) == FALSE) {
 			return FALSE;
 		}
 		else {
@@ -2467,7 +2472,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	but->pointype= type & BUTPOIN;
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
-	but->icon = 0;
+	but->icon = ICON_NONE;
 	but->iconadd=0;
 
 	but->retval= retval;

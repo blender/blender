@@ -174,7 +174,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	struct recast_compactHeightfield* chf;
 	struct recast_contourSet *cset;
 	int width, height, walkableHeight, walkableClimb, walkableRadius;
-	int minRegionSize, mergeRegionSize, maxEdgeLen;
+	int minRegionArea, mergeRegionArea, maxEdgeLen;
 	float detailSampleDist, detailSampleMaxError;
 
 	recast_calcBounds(verts, nverts, bmin, bmax);
@@ -183,8 +183,8 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	walkableHeight= (int)ceilf(recastParams->agentheight/ recastParams->cellheight);
 	walkableClimb= (int)floorf(recastParams->agentmaxclimb / recastParams->cellheight);
 	walkableRadius= (int)ceilf(recastParams->agentradius / recastParams->cellsize);
-	minRegionSize= (int)(recastParams->regionminsize * recastParams->regionminsize);
-	mergeRegionSize= (int)(recastParams->regionmergesize * recastParams->regionmergesize);
+	minRegionArea= (int)(recastParams->regionminsize * recastParams->regionminsize);
+	mergeRegionArea= (int)(recastParams->regionmergesize * recastParams->regionmergesize);
 	maxEdgeLen= (int)(recastParams->edgemaxlen/recastParams->cellsize);
 	detailSampleDist= recastParams->detailsampledist< 0.9f ? 0 :
 			recastParams->cellsize * recastParams->detailsampledist;
@@ -212,13 +212,14 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	MEM_freeN(triflags);
 
 	/* ** Step 3: Filter walkables surfaces ** */
+	recast_filterLowHangingWalkableObstacles(walkableClimb, solid);
 	recast_filterLedgeSpans(walkableHeight, walkableClimb, solid);
 	recast_filterWalkableLowHeightSpans(walkableHeight, solid);
 
 	/* ** Step 4: Partition walkable surface to simple regions ** */
 
 	chf= recast_newCompactHeightfield();
-	if(!recast_buildCompactHeightfield(walkableHeight, walkableClimb, RECAST_WALKABLE, solid, chf)) {
+	if(!recast_buildCompactHeightfield(walkableHeight, walkableClimb, solid, chf)) {
 		recast_destroyHeightfield(solid);
 		recast_destroyCompactHeightfield(chf);
 
@@ -226,6 +227,13 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	}
 
 	recast_destroyHeightfield(solid);
+	solid = NULL;
+
+	if (!recast_erodeWalkableArea(walkableRadius, chf)) {
+		recast_destroyCompactHeightfield(chf);
+
+		return 0;
+	}
 
 	/* Prepare for region partitioning, by calculating distance field along the walkable surface */
 	if(!recast_buildDistanceField(chf)) {
@@ -235,7 +243,7 @@ static int buildNavMesh(const RecastData *recastParams, int nverts, float *verts
 	}
 
 	/* Partition the walkable surface into simple regions without holes */
-	if(!recast_buildRegions(chf, walkableRadius, 0, minRegionSize, mergeRegionSize)) {
+	if(!recast_buildRegions(chf, 0, minRegionArea, mergeRegionArea)) {
 		recast_destroyCompactHeightfield(chf);
 
 		return 0;
@@ -293,7 +301,8 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	Object* obedit;
 	int createob= base==NULL;
 	int nverts, nmeshes, nvp;
-	unsigned short *verts, *meshes, *polys;
+	unsigned short *verts, *polys;
+	unsigned int *meshes;
 	float bmin[3], cs, ch, *dverts;
 	unsigned char *tris;
 	ModifierData *md;
@@ -348,7 +357,7 @@ static Object* createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 
 	for(i= 0; i<nmeshes; i++) {
 		int uniquevbase= em->totvert;
-		unsigned short vbase= meshes[4*i+0];
+		unsigned int vbase= meshes[4*i+0];
 		unsigned short ndv= meshes[4*i+1];
 		unsigned short tribase= meshes[4*i+2];
 		unsigned short trinum= meshes[4*i+3];

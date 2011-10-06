@@ -526,7 +526,7 @@ Scene *add_scene(const char *name)
 	sce->gm.recastData.agentradius = 0.6f;
 	sce->gm.recastData.edgemaxlen = 12.0f;
 	sce->gm.recastData.edgemaxerror = 1.3f;
-	sce->gm.recastData.regionminsize = 50.f;
+	sce->gm.recastData.regionminsize = 8.f;
 	sce->gm.recastData.regionmergesize = 20.f;
 	sce->gm.recastData.vertsperpoly = 6;
 	sce->gm.recastData.detailsampledist = 6.0f;

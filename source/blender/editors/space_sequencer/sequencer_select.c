@@ -47,6 +47,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_report.h"
 #include "BKE_sequencer.h"
 
 #include "WM_api.h"
@@ -882,3 +883,270 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
 }
+
+/* ****** Selected Grouped ****** */
+
+static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
+	{1, "TYPE", 0, "Type", "Shared strip type"},
+	{2, "TYPE_BASIC", 0, "Global Type", "All strips of same basic type (Graphical or Sound)"},
+	{3, "TYPE_EFFECT", 0, "Effect Type",
+	    "Shared strip effect type (if active strip is not an effect one, select all non-effect strips)"},
+	{4, "DATA", 0, "Data", "Shared data (scene, image, sound, etc.)"},
+	{5, "EFFECT", 0, "Effect", "Shared effects"},
+	{6, "EFFECT_LINK", 0, "Effect/Linked",
+	    "Other strips affected by the active one (sharing some time, and below or effect-assigned)"},
+	{7, "OVERLAP", 0, "Overlap", "Overlapping time"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+#define SEQ_IS_SOUND(_seq) ((_seq->type & SEQ_SOUND) && !(_seq->type & SEQ_EFFECT))
+
+#define SEQ_IS_EFFECT(_seq) (_seq->type & SEQ_EFFECT)
+
+#define SEQ_USE_DATA(_seq) (_seq->type == SEQ_SCENE || SEQ_HAS_PATH(_seq))
+
+static short select_grouped_type(Editing *ed, Sequence *actseq)
+{
+	Sequence *seq;
+	short changed = FALSE;
+
+	SEQP_BEGIN(ed, seq) {
+		if (seq->type == actseq->type) {
+			seq->flag |= SELECT;
+			changed = TRUE;
+		}
+	}
+	SEQ_END;
+
+	return changed;
+}
+
+static short select_grouped_type_basic(Editing *ed, Sequence *actseq)
+{
+	Sequence *seq;
+	short changed = FALSE;
+	short is_sound = SEQ_IS_SOUND(actseq);
+
+	SEQP_BEGIN(ed, seq) {
+		if (is_sound ? SEQ_IS_SOUND(seq) : !SEQ_IS_SOUND(seq)) {
+			seq->flag |= SELECT;
+			changed = TRUE;
+		}
+	}
+	SEQ_END;
+
+	return changed;
+}
+
+static short select_grouped_type_effect(Editing *ed, Sequence *actseq)
+{
+	Sequence *seq;
+	short changed = FALSE;
+	short is_effect = SEQ_IS_EFFECT(actseq);
+
+	SEQP_BEGIN(ed, seq) {
+		if (is_effect ? SEQ_IS_EFFECT(seq) : !SEQ_IS_EFFECT(seq)) {
+			seq->flag |= SELECT;
+			changed = TRUE;
+		}
+	}
+	SEQ_END;
+
+	return changed;
+}
+
+static short select_grouped_data(Editing *ed, Sequence *actseq)
+{
+	Sequence *seq;
+	short changed = FALSE;
+	Scene *sce = actseq->scene;
+	char *dir = actseq->strip ? actseq->strip->dir : NULL;
+
+	if (!SEQ_USE_DATA(actseq))
+		return changed;
+
+	if (SEQ_HAS_PATH(actseq) && dir) {
+		SEQP_BEGIN(ed, seq) {
+			if (SEQ_HAS_PATH(seq) && seq->strip && strcmp(seq->strip->dir, dir) == 0) {
+				seq->flag |= SELECT;
+				changed = TRUE;
+			}
+		}
+		SEQ_END;
+	}
+	else {
+		SEQP_BEGIN(ed, seq) {
+			if (seq->type == SEQ_SCENE && seq->scene == sce) {
+				seq->flag |= SELECT;
+				changed = TRUE;
+			}
+		}
+		SEQ_END;
+	}
+
+	return changed;
+}
+
+static short select_grouped_effect(Editing *ed, Sequence *actseq)
+{
+	Sequence *seq;
+	short changed = FALSE;
+	short effects[SEQ_EFFECT_MAX+1];
+	int i;
+
+	for (i = 0; i <= SEQ_EFFECT_MAX; i++)
+		effects[i] = FALSE;
+
+	SEQP_BEGIN(ed, seq) {
+		if (ELEM3(actseq, seq->seq1, seq->seq2, seq->seq3)) {
+			effects[seq->type] = TRUE;
+		}
+	}
+	SEQ_END;
+
+	SEQP_BEGIN(ed, seq) {
+		if (effects[seq->type]) {
+			if(seq->seq1) seq->seq1->flag |= SELECT;
+			if(seq->seq2) seq->seq2->flag |= SELECT;
+			if(seq->seq3) seq->seq3->flag |= SELECT;
+			changed = TRUE;
+		}
+	}
+	SEQ_END;
+
+	return changed;
+}
+
+static short select_grouped_time_overlap(Editing *ed, Sequence *actseq)
+{
+	Sequence *seq;
+	short changed = FALSE;
+
+	SEQP_BEGIN(ed, seq) {
+		if (!((seq->startdisp >= actseq->enddisp) || (seq->enddisp < actseq->startdisp))) {
+			seq->flag |= SELECT;
+			changed = TRUE;
+		}
+	}
+	SEQ_END;
+
+	return changed;
+}
+
+static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
+{
+	Sequence *seq = NULL;
+	short changed = FALSE;
+	short is_audio = ((actseq->type == SEQ_META) || SEQ_IS_SOUND(actseq));
+	int startdisp = actseq->startdisp;
+	int enddisp   = actseq->enddisp;
+	int machine   = actseq->machine;
+	SeqIterator iter;
+
+	SEQP_BEGIN(ed, seq) {
+		seq->tmp= NULL;
+	}
+	SEQ_END;
+
+	seq->tmp= SET_INT_IN_POINTER(TRUE);
+
+	for(seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) {
+		seq = iter.seq;
+
+		/* Ignore all seqs already selected! */
+		/* Ignore all seqs not sharing some time with active one. */
+		/* Ignore all seqs of incompatible types (audio vs video). */
+		if ((seq->flag & SELECT) || (seq->startdisp >= enddisp) || (seq->enddisp < startdisp)
+		    || (!is_audio && SEQ_IS_SOUND(seq))
+		    || (is_audio && !((seq->type == SEQ_META) || SEQ_IS_SOUND(seq))))
+			continue;
+
+		/* If the seq is an effect one, we need extra cheking! */
+		if (SEQ_IS_EFFECT(seq) && ((seq->seq1 && seq->seq1->tmp) ||
+		                           (seq->seq2 && seq->seq2->tmp) ||
+		                           (seq->seq3 && seq->seq3->tmp)))
+		{
+			if (startdisp > seq->startdisp) startdisp = seq->startdisp;
+			if (enddisp < seq->enddisp) enddisp = seq->enddisp;
+			if (machine < seq->machine) machine = seq->machine;
+
+			seq->tmp= SET_INT_IN_POINTER(TRUE);
+
+			seq->flag |= SELECT;
+			changed = TRUE;
+
+			/* Unfortunately, we must restart checks from the begining. */
+			seq_end(&iter);
+			seq_begin(ed, &iter, 1);
+		}
+
+		/* Video strips bellow active one, or any strip for audio (order do no matters here!). */
+		else if (seq->machine < machine || is_audio) {
+			seq->flag |= SELECT;
+			changed = TRUE;
+		}
+	}
+	seq_end(&iter);
+
+	return changed;
+}
+
+static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene  = CTX_data_scene(C);
+	Editing *ed   = seq_give_editing(scene, 0);
+	Sequence *seq, *actseq = seq_active_get(scene);
+	int type = RNA_enum_get(op->ptr, "type");
+	short changed = 0, extend;
+
+	extend = RNA_boolean_get(op->ptr, "extend");
+
+	if (actseq == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No Active Sequence!");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (extend == 0) {
+		SEQP_BEGIN(ed, seq) {
+			seq->flag &= ~SELECT;
+			changed = TRUE;
+		}
+		SEQ_END;
+	}
+
+	if(type==1)      changed |= select_grouped_type(ed, actseq);
+	else if(type==2) changed |= select_grouped_type_basic(ed, actseq);
+	else if(type==3) changed |= select_grouped_type_effect(ed, actseq);
+	else if(type==4) changed |= select_grouped_data(ed, actseq);
+	else if(type==5) changed |= select_grouped_effect(ed, actseq);
+	else if(type==6) changed |= select_grouped_effect_link(ed, actseq);
+	else if(type==7) changed |= select_grouped_time_overlap(ed, actseq);
+
+	if (changed) {
+		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER|NA_SELECTED, scene);
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void SEQUENCER_OT_select_grouped(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Grouped";
+	ot->description = "Select all strips grouped by various properties";
+	ot->idname = "SEQUENCER_OT_select_grouped";
+	
+	/* api callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = sequencer_select_grouped_exec;
+	ot->poll = sequencer_edit_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
+	ot->prop = RNA_def_enum(ot->srna, "type", sequencer_prop_select_grouped_types, 0, "Type", "");
+}
+

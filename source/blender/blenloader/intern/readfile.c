@@ -7124,7 +7124,7 @@ void convert_tface_mt(FileData *fd, Main *main)
 		G.main = main;
 
 		if(!(do_version_tface(main, 1))) {
-			BKE_report(fd->reports, RPT_ERROR, "Texface conversion problem. Error in console");
+			BKE_report(fd->reports, RPT_WARNING, "Texface conversion problem. Error in console");
 		}
 
 		//XXX hack, material.c uses G.main allover the place, instead of main
@@ -12129,9 +12129,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
-
-	{
+	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 4)){
 		{
 			/* Adaptive time step for particle systems */
 			ParticleSettings *part;
@@ -12140,45 +12138,72 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				part->time_flag &= ~PART_TIME_AUTOSF;
 			}
 		}
-	}
 
-	//set defaults for obstacle avoidance, recast data
-	{
-		Scene *sce;
-		for(sce = main->scene.first; sce; sce = sce->id.next)
 		{
-			if (sce->gm.levelHeight == 0.f)
-				sce->gm.levelHeight = 2.f;
+			/* set defaults for obstacle avoidance, recast data */
+			Scene *sce;
+			for(sce = main->scene.first; sce; sce = sce->id.next)
+			{
+				if (sce->gm.levelHeight == 0.f)
+					sce->gm.levelHeight = 2.f;
 
-			if(sce->gm.recastData.cellsize == 0.0f)
-				sce->gm.recastData.cellsize = 0.3f;
-			if(sce->gm.recastData.cellheight == 0.0f)
-				sce->gm.recastData.cellheight = 0.2f;
-			if(sce->gm.recastData.agentmaxslope == 0.0f)
-				sce->gm.recastData.agentmaxslope = (float)M_PI/4;
-			if(sce->gm.recastData.agentmaxclimb == 0.0f)
-				sce->gm.recastData.agentmaxclimb = 0.9f;
-			if(sce->gm.recastData.agentheight == 0.0f)
-				sce->gm.recastData.agentheight = 2.0f;
-			if(sce->gm.recastData.agentradius == 0.0f)
-				sce->gm.recastData.agentradius = 0.6f;
-			if(sce->gm.recastData.edgemaxlen == 0.0f)
-				sce->gm.recastData.edgemaxlen = 12.0f;
-			if(sce->gm.recastData.edgemaxerror == 0.0f)
-				sce->gm.recastData.edgemaxerror = 1.3f;
-			if(sce->gm.recastData.regionminsize == 0.0f)
-				sce->gm.recastData.regionminsize = 50.f;
-			if(sce->gm.recastData.regionmergesize == 0.0f)
-				sce->gm.recastData.regionmergesize = 20.f;
-			if(sce->gm.recastData.vertsperpoly<3)
-				sce->gm.recastData.vertsperpoly = 6;
-			if(sce->gm.recastData.detailsampledist == 0.0f)
-				sce->gm.recastData.detailsampledist = 6.0f;
-			if(sce->gm.recastData.detailsamplemaxerror == 0.0f)
-				sce->gm.recastData.detailsamplemaxerror = 1.0f;
-		}			
+				if(sce->gm.recastData.cellsize == 0.0f)
+					sce->gm.recastData.cellsize = 0.3f;
+				if(sce->gm.recastData.cellheight == 0.0f)
+					sce->gm.recastData.cellheight = 0.2f;
+				if(sce->gm.recastData.agentmaxslope == 0.0f)
+					sce->gm.recastData.agentmaxslope = (float)M_PI/4;
+				if(sce->gm.recastData.agentmaxclimb == 0.0f)
+					sce->gm.recastData.agentmaxclimb = 0.9f;
+				if(sce->gm.recastData.agentheight == 0.0f)
+					sce->gm.recastData.agentheight = 2.0f;
+				if(sce->gm.recastData.agentradius == 0.0f)
+					sce->gm.recastData.agentradius = 0.6f;
+				if(sce->gm.recastData.edgemaxlen == 0.0f)
+					sce->gm.recastData.edgemaxlen = 12.0f;
+				if(sce->gm.recastData.edgemaxerror == 0.0f)
+					sce->gm.recastData.edgemaxerror = 1.3f;
+				if(sce->gm.recastData.regionminsize == 0.0f)
+					sce->gm.recastData.regionminsize = 8.f;
+				if(sce->gm.recastData.regionmergesize == 0.0f)
+					sce->gm.recastData.regionmergesize = 20.f;
+				if(sce->gm.recastData.vertsperpoly<3)
+					sce->gm.recastData.vertsperpoly = 6;
+				if(sce->gm.recastData.detailsampledist == 0.0f)
+					sce->gm.recastData.detailsampledist = 6.0f;
+				if(sce->gm.recastData.detailsamplemaxerror == 0.0f)
+					sce->gm.recastData.detailsamplemaxerror = 1.0f;
+			}
+		}
+
+		{
+			/* flip normals */
+			Material *ma= main->mat.first;
+			while(ma) {
+				int a;
+				for(a= 0; a<MAX_MTEX; a++) {
+					MTex *mtex= ma->mtex[a];
+
+					if(mtex) {
+						if((mtex->texflag&MTEX_BUMP_FLIPPED)==0) {
+							if((mtex->mapto&MAP_NORM) && mtex->texflag&(MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
+								mtex->norfac= -mtex->norfac;
+								mtex->texflag|= MTEX_BUMP_FLIPPED;
+							}
+						}
+					}
+				}
+
+				ma= ma->id.next;
+			}
+		}
+
 	}
-	
+
+	/* put compatibility code here until next subversion bump */
+	{
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

@@ -57,20 +57,23 @@ EnumPropertyItem texture_filter_items[] = {
 
 EnumPropertyItem texture_type_items[] = {
 	{0, "NONE", 0, "None", ""},
-	{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", "Procedural - Creates a ramp texture"},
-	{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", "Procedural - Creates a cloud-like fractal noise texture"},
-	{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", "Procedural - Noise texture distorted by two noise algorithms"},
-	{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", "Creates a render of the environment mapped to a texture"},
-	{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", "Allows for images or movies to be used as textures"},
+	{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", "Procedural - create a ramp texture"},
+	{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", "Procedural - create a cloud-like fractal noise texture"},
+	{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE,
+	                "Distorted Noise", "Procedural - Noise texture distorted by two noise algorithms"},
+	{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA,
+	             "Environment Map", "Create a render of the environment mapped to a texture"},
+	{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", "Allow for images or movies to be used as textures"},
 	{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", "Procedural - Color texture based on trigonometric functions"},
 	{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", "Procedural - Marble-like noise texture with wave generated bands"},
 	{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", "Procedural - Highly flexible fractal noise texture"},
-	{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", "Procedural - Random noise, gives a different result every time, for every frame, for every pixel"},
+	{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise",
+	            "Procedural - Random noise, gives a different result every time, for every frame, for every pixel"},
 	//{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""}, /* Nothing yet */
 	{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
-	{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", "Procedural - Creates a fractal noise texture"},
-	{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", "Procedural - Creates cell-like patterns based on Worley noise"},
-	{TEX_VOXELDATA, "VOXEL_DATA", ICON_TEXTURE, "Voxel Data", "Creates a 3d texture based on volumetric data"},
+	{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", "Procedural - Create a fractal noise texture"},
+	{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", "Procedural - Create cell-like patterns based on Worley noise"},
+	{TEX_VOXELDATA, "VOXEL_DATA", ICON_TEXTURE, "Voxel Data", "Create a 3d texture based on volumetric data"},
 	{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", "Procedural - Wave generated bands or rings, with optional noise"},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -493,25 +496,26 @@ static void rna_def_mtex(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "ofs");
 	RNA_def_property_ui_range(prop, -10, 10, 10, 2);
-	RNA_def_property_ui_text(prop, "Offset", "Fine tunes texture mapping X, Y and Z locations");
+	RNA_def_property_ui_text(prop, "Offset", "Fine tune of the texture mapping X, Y and Z locations");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_range(prop, -100, 100, 10, 2);
-	RNA_def_property_ui_text(prop, "Size", "Sets scaling for the texture's X, Y and Z sizes");
+	RNA_def_property_ui_text(prop, "Size", "Set scaling for the texture's X, Y and Z sizes");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Color", "The default color for textures that don't return RGB or when RGB to intensity is enabled");
+	RNA_def_property_ui_text(prop, "Color",
+	                         "Default color for textures that don't return RGB or when RGB to intensity is enabled");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "blendtype");
 	RNA_def_property_enum_items(prop, prop_blend_type_items);
-	RNA_def_property_ui_text(prop, "Blend Type", "The mode used to apply the texture");
+	RNA_def_property_ui_text(prop, "Blend Type", "Mode used to apply the texture");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "use_stencil", PROP_BOOLEAN, PROP_NONE);
@@ -521,12 +525,12 @@ static void rna_def_mtex(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_NEGATIVE);
-	RNA_def_property_ui_text(prop, "Negate", "Inverts the values of the texture to reverse its effect");
+	RNA_def_property_ui_text(prop, "Negate", "Invert the values of the texture to reverse its effect");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "use_rgb_to_intensity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", MTEX_RGBTOINT);
-	RNA_def_property_ui_text(prop, "RGB to Intensity", "Converts texture RGB values to intensity (gray) values");
+	RNA_def_property_ui_text(prop, "RGB to Intensity", "Convert texture RGB values to intensity (gray) values");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 
 	prop= RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
@@ -567,13 +571,15 @@ static void rna_def_filter_common(StructRNA *srna)
 	prop= RNA_def_property(srna, "filter_probes", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "afmax");
 	RNA_def_property_range(prop, 1, 256);
-	RNA_def_property_ui_text(prop, "Filter Probes", "Maximum number of samples. Higher gives less blur at distant/oblique angles, but is also slower");
+	RNA_def_property_ui_text(prop, "Filter Probes",
+	                         "Maximum number of samples. Higher gives less blur at distant/oblique angles, but is also slower");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "filter_eccentricity", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "afmax");
 	RNA_def_property_range(prop, 1, 256);
-	RNA_def_property_ui_text(prop, "Filter Eccentricity", "Maximum eccentricity. Higher gives less blur at distant/oblique angles, but is also slower");
+	RNA_def_property_ui_text(prop, "Filter Eccentricity",
+	                         "Maximum eccentricity. Higher gives less blur at distant/oblique angles, but is also slower");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "use_filter_size_min", PROP_BOOLEAN, PROP_NONE);
@@ -662,7 +668,7 @@ static void rna_def_environment_map(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_range(prop, 0, 5);
-	RNA_def_property_ui_text(prop, "Depth", "Number of times a map will be rendered recursively (mirror effects.)");
+	RNA_def_property_ui_text(prop, "Depth", "Number of times a map will be rendered recursively (mirror effects)");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "is_valid", PROP_BOOLEAN, 0);
@@ -926,13 +932,13 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_blend_progression[] = {
-		{TEX_LIN, "LINEAR", 0, "Linear", "Creates a linear progression"},
-		{TEX_QUAD, "QUADRATIC", 0, "Quadratic", "Creates a quadratic progression"},
-		{TEX_EASE, "EASING", 0, "Easing", "Creates a progression easing from one step to the next"},
-		{TEX_DIAG, "DIAGONAL", 0, "Diagonal", "Creates a diagonal progression"},
-		{TEX_SPHERE, "SPHERICAL", 0, "Spherical", "Creates a spherical progression"},
-		{TEX_HALO, "QUADRATIC_SPHERE", 0, "Quadratic sphere", "Creates a quadratic progression in the shape of a sphere"},
-		{TEX_RAD, "RADIAL", 0, "Radial", "Creates a radial progression"},
+		{TEX_LIN, "LINEAR", 0, "Linear", "Create a linear progression"},
+		{TEX_QUAD, "QUADRATIC", 0, "Quadratic", "Create a quadratic progression"},
+		{TEX_EASE, "EASING", 0, "Easing", "Create a progression easing from one step to the next"},
+		{TEX_DIAG, "DIAGONAL", 0, "Diagonal", "Create a diagonal progression"},
+		{TEX_SPHERE, "SPHERICAL", 0, "Spherical", "Create a spherical progression"},
+		{TEX_HALO, "QUADRATIC_SPHERE", 0, "Quadratic sphere", "Create a quadratic progression in the shape of a sphere"},
+		{TEX_RAD, "RADIAL", 0, "Radial", "Create a radial progression"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem prop_flip_axis_items[]= {
@@ -1021,11 +1027,12 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_image_extension[] = {
-		{TEX_EXTEND, "EXTEND", 0, "Extend", "Extends by repeating edge pixels of the image"},
-		{TEX_CLIP, "CLIP", 0, "Clip", "Clips to image size and sets exterior pixels as transparent"},
-		{TEX_CLIPCUBE, "CLIP_CUBE", 0, "Clip Cube", "Clips to cubic-shaped area around the image and sets exterior pixels as transparent"},
-		{TEX_REPEAT, "REPEAT", 0, "Repeat", "Causes the image to repeat horizontally and vertically"},
-		{TEX_CHECKER, "CHECKER", 0, "Checker", "Causes the image to repeat in checker board pattern"},
+		{TEX_EXTEND, "EXTEND", 0, "Extend", "Extend by repeating edge pixels of the image"},
+		{TEX_CLIP, "CLIP", 0, "Clip", "Clip to image size and sets exterior pixels as transparent"},
+		{TEX_CLIPCUBE, "CLIP_CUBE", 0, "Clip Cube",
+		               "Clip to cubic-shaped area around the image and sets exterior pixels as transparent"},
+		{TEX_REPEAT, "REPEAT", 0, "Repeat", "Cause the image to repeat horizontally and vertically"},
+		{TEX_CHECKER, "CHECKER", 0, "Checker", "Cause the image to repeat in checker board pattern"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ImageTexture", "Texture");
@@ -1219,11 +1226,15 @@ static void rna_def_texture_musgrave(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_musgrave_type[] = {
-		{TEX_MFRACTAL, "MULTIFRACTAL", 0, "Multifractal", "Fractal noise algorithm. Multifractal: Uses Perlin noise as a basis"},
-		{TEX_RIDGEDMF, "RIDGED_MULTIFRACTAL", 0, "Ridged Multifractal", "Fractal noise algorithm. Ridged Multifractal: Uses Perlin noise with inflection as a basis"},
-		{TEX_HYBRIDMF, "HYBRID_MULTIFRACTAL", 0, "Hybrid Multifractal", "Fractal noise algorithm.Hybrid Multifractal: Uses Perlin noise as a basis, with extended controls"},
+		{TEX_MFRACTAL, "MULTIFRACTAL", 0, "Multifractal",
+		               "Fractal noise algorithm. Multifractal: Uses Perlin noise as a basis"},
+		{TEX_RIDGEDMF, "RIDGED_MULTIFRACTAL", 0, "Ridged Multifractal",
+		               "Fractal noise algorithm. Ridged Multifractal: Uses Perlin noise with inflection as a basis"},
+		{TEX_HYBRIDMF, "HYBRID_MULTIFRACTAL", 0, "Hybrid Multifractal",
+		               "Fractal noise algorithm.Hybrid Multifractal: Uses Perlin noise as a basis, with extended controls"},
 		{TEX_FBM, "FBM", 0, "fBM", "Fractal noise algorithm. Fractal Brownian Motion: Uses Brownian noise as a basis"},
-		{TEX_HTERRAIN, "HETERO_TERRAIN", 0, "Hetero Terrain", "Fractal noise algorithm. Hetero Terrain: similar to multifractal"},
+		{TEX_HTERRAIN, "HETERO_TERRAIN", 0, "Hetero Terrain",
+		               "Fractal noise algorithm. Hetero Terrain: similar to multifractal"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MusgraveTexture", "Texture");
@@ -1298,13 +1309,28 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_distance_metric_items[] = {
-		{TEX_DISTANCE, "DISTANCE", 0, "Actual Distance", "Algorithm used to calculate distance of sample points to feature points. Actual Distance: sqrt(x*x+y*y+z*z)"},
-		{TEX_DISTANCE_SQUARED, "DISTANCE_SQUARED", 0, "Distance Squared", "Algorithm used to calculate distance of sample points to feature points. Distance squared: (x*x+y*y+z*z)"},
-		{TEX_MANHATTAN, "MANHATTAN", 0, "Manhattan", "Algorithm used to calculate distance of sample points to feature points. Manhattan: The length of the distance in axial directions"},
-		{TEX_CHEBYCHEV, "CHEBYCHEV", 0, "Chebychev", "Algorithm used to calculate distance of sample points to feature points. Chebychev: The length of the longest Axial journey"},
-		{TEX_MINKOVSKY_HALF, "MINKOVSKY_HALF", 0, "Minkovsky 1/2", "Algorithm used to calculate distance of sample points to feature points. Minovsky 1/2: Sets Minkovsky variable to 0.5"},
-		{TEX_MINKOVSKY_FOUR, "MINKOVSKY_FOUR", 0, "Minkovsky 4", "Algorithm used to calculate distance of sample points to feature points. Minkovsky 4: Sets Minkovsky variable to 4"},
-		{TEX_MINKOVSKY, "MINKOVSKY", 0, "Minkovsky", "Algorithm used to calculate distance of sample points to feature points. Minkovsky: Uses the Minkowsky function to calculate distance. Exponent value determines the shape of the boundaries"},
+		{TEX_DISTANCE, "DISTANCE", 0, "Actual Distance",
+		               "Algorithm used to calculate distance of sample points to feature points; "
+		               "Actual Distance: sqrt(x*x+y*y+z*z)"},
+		{TEX_DISTANCE_SQUARED, "DISTANCE_SQUARED", 0, "Distance Squared",
+		                       "Algorithm used to calculate distance of sample points to feature points; "
+		                       "Distance squared: (x*x+y*y+z*z)"},
+		{TEX_MANHATTAN, "MANHATTAN", 0, "Manhattan",
+		                "Algorithm used to calculate distance of sample points to feature points; "
+		                "Manhattan: The length of the distance in axial directions"},
+		{TEX_CHEBYCHEV, "CHEBYCHEV", 0, "Chebychev",
+		                "Algorithm used to calculate distance of sample points to feature points; "
+		                "Chebychev: The length of the longest Axial journey"},
+		{TEX_MINKOVSKY_HALF, "MINKOVSKY_HALF", 0, "Minkovsky 1/2",
+		                     "Algorithm used to calculate distance of sample points to feature points; "
+		                     "Minovsky 1/2: Sets Minkovsky variable to 0.5"},
+		{TEX_MINKOVSKY_FOUR, "MINKOVSKY_FOUR", 0, "Minkovsky 4",
+		                     "Algorithm used to calculate distance of sample points to feature points; "
+		                     "Minkovsky 4: Sets Minkovsky variable to 4"},
+		{TEX_MINKOVSKY, "MINKOVSKY", 0, "Minkovsky",
+		                "Algorithm used to calculate distance of sample points to feature points; "
+		                "Minkovsky: Uses the Minkowsky function to calculate distance "
+		                "(exponent value determines the shape of the boundaries)"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_coloring_items[] = {
@@ -1312,7 +1338,8 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 		{TEX_INTENSITY, "INTENSITY", 0, "Intensity", "Only calculate intensity"},
 		{TEX_COL1, "POSITION", 0, "Position", "Color cells by position"},
 		{TEX_COL2, "POSITION_OUTLINE", 0, "Position and Outline", "Use position plus an outline based on F2-F.1"},
-		{TEX_COL3, "POSITION_OUTLINE_INTENSITY", 0, "Position, Outline, and Intensity", "Multiply position and outline by intensity"},
+		{TEX_COL3, "POSITION_OUTLINE_INTENSITY", 0, "Position, Outline, and Intensity",
+		           "Multiply position and outline by intensity"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "VoronoiTexture", "Texture");
@@ -1458,14 +1485,16 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	static EnumPropertyItem color_source_items[] = {
 		{TEX_PD_COLOR_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		{TEX_PD_COLOR_PARTAGE, "PARTICLE_AGE", 0, "Particle Age", "Lifetime mapped as 0.0 - 1.0 intensity"},
-		{TEX_PD_COLOR_PARTSPEED, "PARTICLE_SPEED", 0, "Particle Speed", "Particle speed (absolute magnitude of velocity) mapped as 0.0-1.0 intensity"},
+		{TEX_PD_COLOR_PARTSPEED, "PARTICLE_SPEED", 0, "Particle Speed",
+		                         "Particle speed (absolute magnitude of velocity) mapped as 0.0-1.0 intensity"},
 		{TEX_PD_COLOR_PARTVEL, "PARTICLE_VELOCITY", 0, "Particle Velocity", "XYZ velocity mapped to RGB colors"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem turbulence_influence_items[] = {
 		{TEX_PD_NOISE_STATIC, "STATIC", 0, "Static", "Noise patterns will remain unchanged, faster and suitable for stills"},
 		{TEX_PD_NOISE_VEL, "PARTICLE_VELOCITY", 0, "Particle Velocity", "Turbulent noise driven by particle velocity"},
-		{TEX_PD_NOISE_AGE, "PARTICLE_AGE", 0, "Particle Age", "Turbulent noise driven by the particle's age between birth and death"},
+		{TEX_PD_NOISE_AGE, "PARTICLE_AGE", 0, "Particle Age",
+		                   "Turbulent noise driven by the particle's age between birth and death"},
 		{TEX_PD_NOISE_TIME, "GLOBAL_TIME", 0, "Global Time", "Turbulent noise driven by the global current frame"},
 		{0, NULL, 0, NULL, NULL}};
 	
@@ -1760,17 +1789,17 @@ static void rna_def_texture(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bright");
 	RNA_def_property_range(prop, 0, 2);
-	RNA_def_property_ui_text(prop, "Brightness", "Adjusts the brightness of the texture");
+	RNA_def_property_ui_text(prop, "Brightness", "Adjust the brightness of the texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.01, 5);
-	RNA_def_property_ui_text(prop, "Contrast", "Adjusts the contrast of the texture");
+	RNA_def_property_ui_text(prop, "Contrast", "Adjust the contrast of the texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "saturation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 2);
-	RNA_def_property_ui_text(prop, "Saturation", "Adjusts the saturation of colors in the texture");
+	RNA_def_property_ui_text(prop, "Saturation", "Adjust the saturation of colors in the texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	/* RGB Factor */

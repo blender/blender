@@ -325,9 +325,9 @@ inline float vdot2(const float* a, const float* b)
 static bool barDistSqPointToTri(const float* p, const float* a, const float* b, const float* c)
 {
 	float v0[3], v1[3], v2[3];
-	vsub(v0, c,a);
-	vsub(v1, b,a);
-	vsub(v2, p,a);
+	rcVsub(v0, c,a);
+	rcVsub(v1, b,a);
+	rcVsub(v2, p,a);
 
 	const float dot00 = vdot2(v0, v0);
 	const float dot01 = vdot2(v0, v1);

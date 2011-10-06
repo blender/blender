@@ -428,6 +428,8 @@ void WM_exit_ext(bContext *C, const short do_python)
 		 * the pyDriver bug can be fixed if it happens again we can deal with it then */
 		BPY_python_end();
 	}
+#else
+	(void)do_python;
 #endif
 
 	GPU_global_buffer_pool_free();
