@@ -143,9 +143,17 @@ static void make_prim_init(bContext *C, float *dia, float mat[][4],
 
 static void make_prim_finish(bContext *C, int *state, int enter_editmode)
 {
-	Object *obedit = CTX_data_edit_object(C);
+	Object *obedit;
+	Mesh *me;
+	BMEditMesh *em;
 
-	EDBM_selectmode_flush(((Mesh*)obedit->data)->edit_btmesh);
+	obedit = CTX_data_edit_object(C);
+	me = obedit->data;
+	em = me->edit_btmesh;
+
+	/* Primitive has all verts selected, use vert select flush
+	   to push this up to edges & faces. */
+	EDBM_select_flush(em, SCE_SELECT_VERTEX);
 
 	DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
