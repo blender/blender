@@ -34,7 +34,12 @@ elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'f
             sources.remove('intern' + os.sep + f + 'SDL.cpp')
         except ValueError:
             pass
-    defs += ['PREFIX=\\"/usr/local/\\"']  # XXX, make an option
+    ## removing because scons does not support system installation
+    ## if this is used for blender.org builds it means our distrobution
+    ## will find any locally installed blender and double up its script path.
+    ## So until this is supported properly as with CMake,
+    ## just dont use the PREFIX.
+    # defs += ['PREFIX=\\"/usr/local/\\"']  # XXX, make an option
     defs += ['WITH_X11_XINPUT']  # XXX, make an option
 
 elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
