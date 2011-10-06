@@ -290,7 +290,7 @@ static void make_vertexcol(Object *ob)	/* single ob */
 }
 
 /* mirror_vgroup is set to -1 when invalid */
-static void wpaint_mirror_vgroup_ensure(Object *ob, int *vgroup_mirror)
+static int wpaint_mirror_vgroup_ensure(Object *ob)
 {
 	bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef - 1);
 
@@ -317,13 +317,12 @@ static void wpaint_mirror_vgroup_ensure(Object *ob, int *vgroup_mirror)
 			/* curdef should never be NULL unless this is
 			 * a  lamp and ED_vgroup_add_name fails */
 			if(curdef) {
-				*vgroup_mirror= mirrdef;
-				return;
+				return mirrdef;
 			}
 		}
 	}
 
-	*vgroup_mirror= -1;
+	return -1;
 }
 
 static void copy_vpaint_prev(VPaint *vp, unsigned int *mcol, int tot)
@@ -424,9 +423,9 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	
 	vgroup= ob->actdef-1;
 
-	/* if mirror painting, find the other group */		
+	/* if mirror painting, find the other group */
 	if(me->editflag & ME_EDIT_MIRROR_X) {
-		wpaint_mirror_vgroup_ensure(ob, &vgroup_mirror);
+		vgroup_mirror= wpaint_mirror_vgroup_ensure(ob);
 	}
 	
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
@@ -1806,7 +1805,6 @@ struct WPaintData {
 	float wpimat[3][3];
 	
 	/*variables for auto normalize*/
-	int auto_normalize;
 	char *vgroup_validmap; /*stores if vgroups tie to deforming bones or not*/
 	char *lock_flags;
 	int defbase_tot;
@@ -1830,8 +1828,6 @@ static char *wpaint_make_validmap(Object *ob)
 	for (dg=ob->defbase.first; dg; dg=dg->next) {
 		BLI_ghash_insert(gh, dg->name, NULL);
 	}
-
-	vgroup_validmap= MEM_callocN(BLI_ghash_size(gh), "wpaint valid map");
 
 	/*now loop through the armature modifiers and identify deform bones*/
 	for (md = ob->modifiers.first; md; md= !md->next && step1 ? (step1=0), modifiers_getVirtualModifierList(ob) : md->next) {
@@ -1857,12 +1853,12 @@ static char *wpaint_make_validmap(Object *ob)
 			}
 		}
 	}
-	
+
+	vgroup_validmap= MEM_mallocN(BLI_ghash_size(gh), "wpaint valid map");
+
 	/*add all names to a hash table*/
 	for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
-		if (BLI_ghash_lookup(gh, dg->name) != NULL) {
-			vgroup_validmap[i] = TRUE;
-		}
+		vgroup_validmap[i]= (BLI_ghash_lookup(gh, dg->name) != NULL);
 	}
 
 	BLI_ghash_free(gh, NULL, NULL);
@@ -1900,10 +1896,9 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	
 	/*set up auto-normalize, and generate map for detecting which
 	  vgroups affect deform bones*/
-	wpd->auto_normalize = ts->auto_normalize;
 	wpd->defbase_tot = BLI_countlist(&ob->defbase);
 	wpd->lock_flags = gen_lock_flags(ob, wpd->defbase_tot);
-	if (wpd->auto_normalize || ts->multipaint || wpd->lock_flags) {
+	if (ts->auto_normalize || ts->multipaint || wpd->lock_flags) {
 		wpd->vgroup_validmap = wpaint_make_validmap(ob);
 	}
 
@@ -1942,7 +1937,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 	
 	/* if mirror painting, find the other group */
 	if(me->editflag & ME_EDIT_MIRROR_X) {
-		wpaint_mirror_vgroup_ensure(ob, &wpd->vgroup_mirror);
+		wpd->vgroup_mirror= wpaint_mirror_vgroup_ensure(ob);
 	}
 	
 	return 1;
