@@ -1618,9 +1618,14 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 				/* copy, not paint again */
 				uw= defvert_verify_index(dv_mirr, (wpi->vgroup_mirror != -1) ? wpi->vgroup_mirror : vgroup);
 				uw->weight= dw->weight;
-				do_weight_paint_auto_normalize_all_groups(dv_mirr, wpi->vgroup_validmap, wpi->do_auto_normalize);
 			}
 		}
+
+		/* important to normalize after mirror, otherwise mirror gets wight
+		 * which has already been scaled down in relation to other weights,
+		 * then scales a second time [#26193]. Tricky multi-paint code doesn't
+		 * suffer from this problem - campbell */
+		do_weight_paint_auto_normalize_all_groups(dv_mirr, wpi->vgroup_validmap, wpi->do_auto_normalize);
 	}
 	else {
 		/* use locks and/or multipaint */
