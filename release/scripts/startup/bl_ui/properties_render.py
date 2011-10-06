@@ -224,58 +224,6 @@ class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
                 subsub.operator("scene.freestyle_lineset_move", icon='TRIA_UP', text="").direction = 'UP'
                 subsub.operator("scene.freestyle_lineset_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-            if lineset:
-                col.prop(lineset, "name")
-
-                col.prop(lineset, "select_by_visibility")
-                if lineset.select_by_visibility:
-                    sub = col.row(align=True)
-                    sub.prop(lineset, "visibility", expand=True)
-                    if lineset.visibility == "RANGE":
-                        sub = col.row(align=True)
-                        sub.prop(lineset, "qi_start")
-                        sub.prop(lineset, "qi_end")
-                    col.separator() # XXX
-
-                col.prop(lineset, "select_by_edge_types")
-                if lineset.select_by_edge_types:
-                    row = col.row()
-                    row.prop(lineset, "edge_type_negation", expand=True)
-                    row = col.row()
-                    row.prop(lineset, "edge_type_combination", expand=True)
-
-                    row = col.row()
-                    sub = row.column()
-                    sub.prop(lineset, "select_silhouette")
-                    sub.prop(lineset, "select_border")
-                    sub.prop(lineset, "select_crease")
-                    sub.prop(lineset, "select_ridge")
-                    sub.prop(lineset, "select_valley")
-                    sub.prop(lineset, "select_suggestive_contour")
-                    sub.prop(lineset, "select_material_boundary")
-                    sub.prop(lineset, "select_edge_mark")
-                    sub = row.column()
-                    sub.prop(lineset, "select_contour")
-                    sub.prop(lineset, "select_external_contour")
-                    col.separator() # XXX
-
-                col.prop(lineset, "select_by_face_marks")
-                if lineset.select_by_face_marks:
-                    row = col.row()
-                    row.prop(lineset, "face_mark_negation", expand=True)
-                    row = col.row()
-                    row.prop(lineset, "face_mark_condition", expand=True)
-                    col.separator() # XXX
-
-                col.prop(lineset, "select_by_group")
-                if lineset.select_by_group:
-                    col.prop(lineset, "group")
-                    row = col.row()
-                    row.prop(lineset, "group_negation", expand=True)
-                    col.separator() # XXX
-
-                col.prop(lineset, "select_by_image_border")
-
         else: # freestyle.mode == "SCRIPT"
 
             col.prop(freestyle, "use_smoothness")
@@ -298,6 +246,82 @@ class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
                 row.operator("scene.freestyle_module_remove", icon='X', text="")
                 row.operator("scene.freestyle_module_move", icon='TRIA_UP', text="").direction = 'UP'
                 row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+
+class RENDER_PT_freestyle_lineset(RenderButtonsPanel, Panel):
+    bl_label = "Freestyle: Line Set"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        rl = rd.layers.active
+        if rl and rl.use_freestyle:
+            freestyle = rl.freestyle_settings
+            return freestyle.mode == "EDITOR" and freestyle.linesets.active
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+        rl = rd.layers.active
+        freestyle = rl.freestyle_settings
+        lineset = freestyle.linesets.active
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(lineset, "name")
+
+        col.prop(lineset, "select_by_visibility")
+        if lineset.select_by_visibility:
+            sub = col.row(align=True)
+            sub.prop(lineset, "visibility", expand=True)
+            if lineset.visibility == "RANGE":
+                sub = col.row(align=True)
+                sub.prop(lineset, "qi_start")
+                sub.prop(lineset, "qi_end")
+            col.separator() # XXX
+
+        col.prop(lineset, "select_by_edge_types")
+        if lineset.select_by_edge_types:
+            row = col.row()
+            row.prop(lineset, "edge_type_negation", expand=True)
+            row = col.row()
+            row.prop(lineset, "edge_type_combination", expand=True)
+
+            row = col.row()
+            sub = row.column()
+            sub.prop(lineset, "select_silhouette")
+            sub.prop(lineset, "select_border")
+            sub.prop(lineset, "select_crease")
+            sub.prop(lineset, "select_ridge")
+            sub.prop(lineset, "select_valley")
+            sub.prop(lineset, "select_suggestive_contour")
+            sub.prop(lineset, "select_material_boundary")
+            sub.prop(lineset, "select_edge_mark")
+            sub = row.column()
+            sub.prop(lineset, "select_contour")
+            sub.prop(lineset, "select_external_contour")
+            col.separator() # XXX
+
+        col.prop(lineset, "select_by_face_marks")
+        if lineset.select_by_face_marks:
+            row = col.row()
+            row.prop(lineset, "face_mark_negation", expand=True)
+            row = col.row()
+            row.prop(lineset, "face_mark_condition", expand=True)
+            col.separator() # XXX
+
+        col.prop(lineset, "select_by_group")
+        if lineset.select_by_group:
+            col.prop(lineset, "group")
+            row = col.row()
+            row.prop(lineset, "group_negation", expand=True)
+            col.separator() # XXX
+
+        col.prop(lineset, "select_by_image_border")
 
 
 class RENDER_PT_freestyle_linestyle(RenderButtonsPanel, Panel):
