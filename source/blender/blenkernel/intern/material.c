@@ -1995,6 +1995,11 @@ int do_version_tface(Main *main, int fileload)
 				}
 			}
 		}
+		/* material is not used by faces with texface
+		 * set the default flag - do it only once */
+		else
+			 if (fileload)
+					ma->game.flag = GEMAT_BACKCULL;
 	}
 
 	return nowarning;
