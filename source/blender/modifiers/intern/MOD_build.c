@@ -86,7 +86,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	DerivedMesh *result;
 	BuildModifierData *bmd = (BuildModifierData*) md;
 	int i, j, k;
-	int numFaces, numEdges, numLoops;
+	int numFaces, numEdges, numLoops = 0;
 	int *vertMap, *edgeMap, *faceMap;
 	float frac;
 	MPoly *mpolys, *mpolyd;
@@ -141,7 +141,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* get the set of all vert indices that will be in the final mesh,
 		* mapped to the new indices
 		*/
-		numLoops = 0;
 		mpoly = CDDM_get_polys(dm);
 		mloop = CDDM_get_loops(dm);
 		for(i = 0; i < numFaces; ++i) {
@@ -175,7 +174,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	} else if(numEdges) {
 		MEdge *medge, *me;
-		
+
 		if(bmd->randomize)
 			BLI_array_randomize(edgeMap, sizeof(*edgeMap),
 						maxEdges, bmd->seed);
@@ -207,7 +206,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	} else {
 		int numVerts = dm->getNumVerts(dm) * frac;
-		numLoops= 0;
 
 		if(bmd->randomize)
 			BLI_array_randomize(vertMap, sizeof(*vertMap),

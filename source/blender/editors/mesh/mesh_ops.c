@@ -119,7 +119,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_edge_flip);
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
 	WM_operatortype_append(MESH_OT_faces_shade_flat);
-	//WM_operatortype_append(MESH_OT_sort_faces);
+	WM_operatortype_append(MESH_OT_sort_faces);
 
 	WM_operatortype_append(MESH_OT_delete);
 
