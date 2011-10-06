@@ -204,6 +204,7 @@ typedef struct MRecast{
 #define ME_LOOSEEDGE		(1<<7)
 #define ME_SEAM_LAST		(1<<8)
 #define ME_SHARP			(1<<9)
+#define ME_FREESTYLE_EDGE	(1<<10)
 
 /* puno = vertexnormal (mface) */
 /* render assumes flips to be ordered like this */
@@ -225,6 +226,7 @@ typedef struct MRecast{
 /* flag (mface) */
 #define ME_SMOOTH			1
 #define ME_FACE_SEL			2
+#define ME_FREESTYLE_FACE	4
 						/* flag ME_HIDE==16 is used here too */ 
 /* mselect->type */
 #define ME_VSEl	0

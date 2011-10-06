@@ -372,6 +372,7 @@ protected:
   WOEdge *_paOEdge; // first oriented edge
   WOEdge *_pbOEdge; // second oriented edge
   int _nOEdges;     // number of oriented edges associated with this edge. (1 means border edge)
+  bool _Mark;		// user-specified edge mark for feature edge detection
   int    _Id;       // Identifier for the edge
   
 public:
@@ -448,6 +449,7 @@ public:
   inline WOEdge * GetaOEdge() {return _paOEdge;}
   inline WOEdge * GetbOEdge() {return _pbOEdge;}
   inline int GetNumberOfOEdges() {return _nOEdges;}
+  inline bool GetMark() {return _Mark;}
   inline int    GetId()    {return _Id;}
   inline WVertex * GetaVertex() {return _paOEdge->GetaVertex();}
   inline WVertex * GetbVertex() {return _paOEdge->GetbVertex();}
@@ -480,6 +482,7 @@ public:
     }
   }
   inline void setNumberOfOEdges(int n) {_nOEdges = n;}
+  inline void setMark(bool mark) {_Mark = mark;}
   inline void setId(int id) {_Id = id;}
   virtual void ResetUserData() {userdata = 0;}
 };
@@ -505,6 +508,7 @@ protected:
 
   int   _Id;
   unsigned _FrsMaterialIndex;
+  bool _Mark; // Freestyle face mark (if true, feature edges on this face are ignored)
 
 public:
   void *userdata;
@@ -520,6 +524,7 @@ public:
   inline Vec3r& GetNormal() {return _Normal;}
   inline int    GetId()     {return _Id;}
   inline unsigned frs_materialIndex() const {return _FrsMaterialIndex;}
+  inline bool GetMark() const {return _Mark;}
   const FrsMaterial& frs_material()  ;
 
   /*! The vertex of index i corresponds to the a vertex 
@@ -663,6 +668,7 @@ public:
   inline void setTexCoordsList(const vector<Vec2r>& iTexCoordsList) {_VerticesTexCoords = iTexCoordsList;}
   inline void setId(int id) {_Id = id;}
   inline void setFrsMaterialIndex(unsigned iMaterialIndex) {_FrsMaterialIndex = iMaterialIndex;}
+  inline void setMark(bool iMark) {_Mark = iMark;}
 
   /*! designed to build a specialized WEdge 
    *  for use in MakeEdge
@@ -791,7 +797,7 @@ public:
    *   iMaterialIndex
    *      The material index for this face 
    */
-  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterialIndex);
+  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
 
   /*! adds a new face to the shape. The difference with 
    *  the previous method is that this one is designed 
@@ -814,7 +820,7 @@ public:
    *     The list of tex coords, iTexCoordsList[i] corresponding to the 
    *     normal of the vertex iVertexList[i] for that face.
    */
-  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, unsigned iMaterialIndex);
+  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
 
   inline void AddEdge(WEdge *iEdge) {_EdgeList.push_back(iEdge);}
   inline void AddFace(WFace* iFace) {_FaceList.push_back(iFace);}
@@ -892,7 +898,7 @@ protected:
    *    face
    *      The Face that is filled in
    */
-  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterialIndex, WFace *face);
+  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex, WFace *face);
 };
 
 

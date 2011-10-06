@@ -51,12 +51,15 @@ struct FreestyleLineStyle;
 #define FREESTYLE_LINESET_FE_NOT   4
 #define FREESTYLE_LINESET_FE_AND   8
 #define FREESTYLE_LINESET_GR_NOT   16
+#define FREESTYLE_LINESET_FM_NOT   32
+#define FREESTYLE_LINESET_FM_BOTH  64
 
 /* FreestyleLineSet::selection */
 #define FREESTYLE_SEL_VISIBILITY    1
 #define FREESTYLE_SEL_EDGE_TYPES    2
 #define FREESTYLE_SEL_GROUP         4
 #define FREESTYLE_SEL_IMAGE_BORDER  8
+#define FREESTYLE_SEL_FACE_MARK     16
 
 /* FreestyleLineSet::fedge_types */
 #define FREESTYLE_FE_SILHOUETTE          1
@@ -68,6 +71,7 @@ struct FreestyleLineStyle;
 #define FREESTYLE_FE_MATERIAL_BOUNDARY   64
 #define FREESTYLE_FE_CONTOUR             128
 #define FREESTYLE_FE_EXTERNAL_CONTOUR    512
+#define FREESTYLE_FE_EDGE_MARK           1024
 
 /* FreestyleLineSet::qi */
 #define FREESTYLE_QI_VISIBLE  1

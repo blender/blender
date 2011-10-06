@@ -78,7 +78,8 @@ static char Nature___doc__[] =
 "* Nature.RIDGE: True for ridges.\n"
 "* Nature.VALLEY: True for valleys.\n"
 "* Nature.SUGGESTIVE_CONTOUR: True for suggestive contours.\n"
-"* Nature.MATERIAL_BOUNDARY: True for edges at material boundaries.\n";
+"* Nature.MATERIAL_BOUNDARY: True for edges at material boundaries.\n"
+"* Nature.EDGE_MARK: True for edges having user-defined edge marks.\n";
 
 /*-----------------------BPy_Nature type definition ------------------------------*/
 
@@ -181,6 +182,10 @@ static PyLongObject _Nature_MATERIAL_BOUNDARY = {
 	PyVarObject_HEAD_INIT(&Nature_Type, 1)
 	{ Nature::MATERIAL_BOUNDARY }
 };
+static PyLongObject _Nature_EDGE_MARK = {
+	PyVarObject_HEAD_INIT(&Nature_Type, 1)
+	{ Nature::EDGE_MARK }
+};
 
 #define BPy_Nature_POINT               ((PyObject *)&_Nature_POINT)
 #define BPy_Nature_S_VERTEX            ((PyObject *)&_Nature_S_VERTEX)
@@ -196,6 +201,7 @@ static PyLongObject _Nature_MATERIAL_BOUNDARY = {
 #define BPy_Nature_VALLEY              ((PyObject *)&_Nature_VALLEY)
 #define BPy_Nature_SUGGESTIVE_CONTOUR  ((PyObject *)&_Nature_SUGGESTIVE_CONTOUR)
 #define BPy_Nature_MATERIAL_BOUNDARY   ((PyObject *)&_Nature_MATERIAL_BOUNDARY)
+#define BPy_Nature_EDGE_MARK           ((PyObject *)&_Nature_EDGE_MARK)
 
 //-------------------MODULE INITIALIZATION--------------------------------
 int Nature_Init( PyObject *module )
@@ -225,6 +231,7 @@ int Nature_Init( PyObject *module )
 	PyDict_SetItemString( Nature_Type.tp_dict, "VALLEY", BPy_Nature_VALLEY );
 	PyDict_SetItemString( Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", BPy_Nature_SUGGESTIVE_CONTOUR );
 	PyDict_SetItemString( Nature_Type.tp_dict, "MATERIAL_BOUNDARY", BPy_Nature_MATERIAL_BOUNDARY );
+	PyDict_SetItemString( Nature_Type.tp_dict, "EDGE_MARK", BPy_Nature_EDGE_MARK );
 
 	return 0;
 }

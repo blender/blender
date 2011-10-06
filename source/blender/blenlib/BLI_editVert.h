@@ -102,7 +102,7 @@ typedef struct EditEdge
 		float			fp;
 	} tmp;
 	short f1, f2;	/* short, f1 is (ab)used in subdiv */
-	unsigned char f, h, dir, seam, sharp;
+	unsigned char f, h, dir, seam, sharp, freestyle;
 	float crease;
 	float bweight;
 	short fast; 		/* only 0 or 1, for editmesh_fastmalloc */

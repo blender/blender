@@ -253,9 +253,18 @@ class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
                     sub.prop(lineset, "select_valley")
                     sub.prop(lineset, "select_suggestive_contour")
                     sub.prop(lineset, "select_material_boundary")
+                    sub.prop(lineset, "select_edge_mark")
                     sub = row.column()
                     sub.prop(lineset, "select_contour")
                     sub.prop(lineset, "select_external_contour")
+                    col.separator() # XXX
+
+                col.prop(lineset, "select_by_face_marks")
+                if lineset.select_by_face_marks:
+                    row = col.row()
+                    row.prop(lineset, "face_mark_negation", expand=True)
+                    row = col.row()
+                    row.prop(lineset, "face_mark_condition", expand=True)
                     col.separator() # XXX
 
                 col.prop(lineset, "select_by_group")

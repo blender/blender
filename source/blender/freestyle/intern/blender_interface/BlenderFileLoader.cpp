@@ -125,37 +125,47 @@ void BlenderFileLoader::clipLine(float v1[3], float v2[3], float c[3], float z)
 // obtain a set of vertices after the clipping.  The number of vertices
 // is at most 5.
 void BlenderFileLoader::clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3],
-									 float triNormals[][3], float n1[3], float n2[3], float n3[3], int clip[3])
+									 float triNormals[][3], float n1[3], float n2[3], float n3[3],
+									 bool edgeMarks[], bool em1, bool em2, bool em3, int clip[3])
 {
 	float *v[3], *n[3];
+	bool em[3];
 	int i, j, k;
 
 	v[0] = v1; n[0] = n1;
 	v[1] = v2; n[1] = n2;
 	v[2] = v3; n[2] = n3;
+	em[0] = em1; /* edge mark of the edge between v1 and v2 */
+	em[1] = em2; /* edge mark of the edge between v2 and v3 */
+	em[2] = em3; /* edge mark of the edge between v3 and v1 */
 	k = 0;
 	for (i = 0; i < 3; i++) {
 		j = (i + 1) % 3;
 		if (clip[i] == NOT_CLIPPED) {
 			copy_v3_v3(triCoords[k], v[i]);
 			copy_v3_v3(triNormals[k], n[i]);
+			edgeMarks[k] = em[i];
 			k++;
 			if (clip[j] != NOT_CLIPPED) {
 				clipLine(v[i], v[j], triCoords[k], (clip[j] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
 				copy_v3_v3(triNormals[k], n[j]);
+				edgeMarks[k] = false;
 				k++;
 			}
 		} else if (clip[i] != clip[j]) {
 			if (clip[j] == NOT_CLIPPED) {
 				clipLine(v[i], v[j], triCoords[k], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
 				copy_v3_v3(triNormals[k], n[i]);
+				edgeMarks[k] = em[i];
 				k++;
 			} else {
 				clipLine(v[i], v[j], triCoords[k], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
 				copy_v3_v3(triNormals[k], n[i]);
+				edgeMarks[k] = em[i];
 				k++;
 				clipLine(v[i], v[j], triCoords[k], (clip[j] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
 				copy_v3_v3(triNormals[k], n[j]);
+				edgeMarks[k] = false;
 				k++;
 			}
 		}
@@ -164,10 +174,12 @@ void BlenderFileLoader::clipTriangle(int numTris, float triCoords[][3], float v1
 }
 
 void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3],
-									float n1[3], float n2[3], float n3[3])
+									float n1[3], float n2[3], float n3[3],
+									bool fm, bool em1, bool em2, bool em3)
 {
 	float *fv[3], *fn[3], len;
 	unsigned i, j;
+	IndexedFaceSet::FaceEdgeMark marks = 0;
 
 	// initialize the bounding box by the first vertex
 	if (ls->currentIndex == 0) {
@@ -209,6 +221,11 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 		ls->pni++;
 		ls->pmi++;
 	}
+	if (fm) marks |= IndexedFaceSet::FACE_MARK;
+	if (em1) marks |= IndexedFaceSet::EDGE_MARK_V1V2;
+	if (em2) marks |= IndexedFaceSet::EDGE_MARK_V2V3;
+	if (em3) marks |= IndexedFaceSet::EDGE_MARK_V3V1;
+	*ls->pm++ = marks;
 }
 
 void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
@@ -272,6 +289,8 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	  faceStyle[i] = IndexedFaceSet::TRIANGLES;
 	  numVertexPerFaces[i] = 3;
 	}
+
+	IndexedFaceSet::FaceEdgeMark *faceEdgeMarks = new IndexedFaceSet::FaceEdgeMark[numFaces];
 	
 	unsigned viSize = 3*numFaces;
 	unsigned *VIndices = new unsigned[viSize];
@@ -282,6 +301,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	struct LoaderState ls;
 	ls.pv = vertices;
 	ls.pn = normals;
+	ls.pm = faceEdgeMarks;
 	ls.pvi = VIndices;
 	ls.pni = NIndices;
 	ls.pmi = MIndices;
@@ -339,6 +359,17 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			numTris_2 = (vlr->v4) ? countClippedFaces(v1, v3, v4, clip_2) : 0;
 			if (numTris_1 == 0 && numTris_2 == 0)
 				continue;
+			bool fm, em1, em2, em3, em4;
+			fm = (vlr->flag & ME_FREESTYLE_FACE) != 0;
+			em1= (vlr->freestyle_edge_mark & R_EDGE_V1V2) != 0;
+			em2= (vlr->freestyle_edge_mark & R_EDGE_V2V3) != 0;
+			if (!vlr->v4) {
+				em3= (vlr->freestyle_edge_mark & R_EDGE_V3V1) != 0;
+				em4= false;
+			} else {
+				em3= (vlr->freestyle_edge_mark & R_EDGE_V3V4) != 0;
+				em4= (vlr->freestyle_edge_mark & R_EDGE_V4V1) != 0;
+			}
 
 			Material *mat = vlr->mat;
 	
@@ -379,21 +410,28 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	  		}
 
 			float triCoords[5][3], triNormals[5][3];
+			bool edgeMarks[5]; // edgeMarks[i] is for the edge between i-th and (i+1)-th vertices
 
 			if (numTris_1 > 0) {
-				clipTriangle(numTris_1, triCoords, v1, v2, v3, triNormals, n1, n2, n3, clip_1);
+				clipTriangle(numTris_1, triCoords, v1, v2, v3, triNormals, n1, n2, n3,
+					edgeMarks, em1, em2, (!vlr->v4) ? em3 : false, clip_1);
 				for (i = 0; i < numTris_1; i++) {
 					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
-						triNormals[0], triNormals[i+1], triNormals[i+2]);
+						triNormals[0], triNormals[i+1], triNormals[i+2],
+						fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i+1],
+						(i == numTris_1 - 1) ? edgeMarks[i+2] : false);
 					_numFacesRead++;
 				}
 			}
 
 			if (numTris_2 > 0) {
-				clipTriangle(numTris_2, triCoords, v1, v3, v4, triNormals, n1, n3, n4, clip_2);
+				clipTriangle(numTris_2, triCoords, v1, v3, v4, triNormals, n1, n3, n4,
+					edgeMarks, false, em3, em4, clip_2);
 				for (i = 0; i < numTris_2; i++) {
 					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
-						triNormals[0], triNormals[i+1], triNormals[i+2]);
+						triNormals[0], triNormals[i+1], triNormals[i+2],
+						fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i+1],
+						(i == numTris_2 - 1) ? edgeMarks[i+2] : false);
 					_numFacesRead++;
 				}
 			}
@@ -444,6 +482,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	                         marray, meshFrsMaterials.size(),
 	                         0, 0,
 	                         numFaces, numVertexPerFaces, faceStyle,
+							 faceEdgeMarks,
 	                         cleanVIndices, viSize,
 	                         cleanNIndices, niSize,
 	                         MIndices, viSize,

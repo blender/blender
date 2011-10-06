@@ -344,6 +344,10 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				cp= ts->handle_sel_vect; break;
 			case TH_HANDLE_SEL_ALIGN:
 				cp= ts->handle_sel_align; break;
+			case TH_FREESTYLE_EDGE_MARK:
+				cp= ts->freestyle_edge_mark; break;
+			case TH_FREESTYLE_FACE_MARK:
+				cp= ts->freestyle_face_mark; break;
 		
 			case TH_SYNTAX_B:
 				cp= ts->syntaxb; break;
@@ -621,6 +625,8 @@ void ui_theme_init_default(void)
 	SETCOL(btheme->tv3d.button_text_hi, 255, 255, 255, 255);
 	SETCOL(btheme->tv3d.button_title, 0, 0, 0, 255);
 	SETCOL(btheme->tv3d.title, 0, 0, 0, 255);
+	SETCOL(btheme->tv3d.freestyle_edge_mark, 0x7f, 0xff, 0x7f, 255);
+	SETCOL(btheme->tv3d.freestyle_face_mark, 0x7f, 0xff, 0x7f, 51);
 
 	btheme->tv3d.facedot_size= 4;
 
@@ -1610,6 +1616,19 @@ void init_userdef_do_versions(void)
 
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			btheme->tv3d.speaker[3] = 255;
+		}
+	}
+
+	/* Freestyle color settings */
+	{
+		bTheme *btheme;
+
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->tv3d.freestyle_edge_mark[3]==0) {
+				SETCOL(btheme->tv3d.freestyle_edge_mark, 0x7f, 0xff, 0x7f, 255);
+				SETCOL(btheme->tv3d.freestyle_face_mark, 0x7f, 0xff, 0x7f, 51);
+			}
 		}
 	}
 

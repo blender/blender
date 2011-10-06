@@ -751,7 +751,7 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 
 		edgeFlag = (ccgdm->edgeFlags)? &ccgdm->edgeFlags[i]: NULL;
 		if(edgeFlag)
-			flags |= (*edgeFlag & (ME_SEAM | ME_SHARP))
+			flags |= (*edgeFlag & (ME_SEAM | ME_SHARP | ME_FREESTYLE_EDGE))
 					 | ME_EDGEDRAW | ME_EDGERENDER;
 		else
 			flags |= ME_EDGEDRAW | ME_EDGERENDER;
@@ -936,7 +936,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 
 		if(edgeFlags) {
 			if(edgeIdx != -1) {
-				flags |= (edgeFlags[index] & (ME_SEAM | ME_SHARP))
+				flags |= (edgeFlags[index] & (ME_SEAM | ME_SHARP | ME_FREESTYLE_EDGE))
 						 | ME_EDGEDRAW | ME_EDGERENDER;
 			}
 		} else {

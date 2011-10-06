@@ -702,6 +702,7 @@ static int unified_findnearest(ViewContext *vc, EditVert **eve, EditEdge **eed, 
 #define SIMEDGE_SEAM		106
 #define SIMEDGE_SHARP		107
 #define SIMEDGE_TOT			108
+#define SIMEDGE_FREESTYLE	109
 
 /* FACE GROUP */
 
@@ -724,6 +725,7 @@ static EnumPropertyItem prop_similar_types[] = {
 	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
 	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
 	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
+	{SIMEDGE_FREESTYLE, "FREESTYLE", 0, "Freestyle Edge Mark", ""},
 	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
 	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
 	{SIMFACE_AREA, "AREA", 0, "Area", ""},
@@ -1068,6 +1070,20 @@ static int similar_edge_select__internal(EditMesh *em, int mode, float thresh)
 						!(eed->f & SELECT) &&
 						!eed->h &&
 						(eed->sharp == base_eed->sharp)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
+			} else if (mode==SIMEDGE_FREESTYLE) { /* Freestyle edge mark */
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						(eed->freestyle == base_eed->freestyle)
 					) {
 						EM_select_edge(eed, 1);
 						selcount++;
@@ -2219,6 +2235,9 @@ static void mouse_mesh_shortest_path(bContext *C, const int mval[2])
 				break;
 			case EDGE_MODE_TAG_BEVEL:
 				me->drawflag |= ME_DRAWBWEIGHTS;
+				break;
+			case EDGE_MODE_TAG_FREESTYLE:
+				me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
 				break;
 		}
 
@@ -3858,6 +3877,58 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
+	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+}
+
+static int editmesh_mark_freestyle_edge(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	Mesh *me= ((Mesh *)obedit->data);
+	int clear = RNA_boolean_get(op->ptr, "clear");
+	EditEdge *eed;
+
+	/* auto-enable Freestyle edge mark drawing */
+	if(!clear) {
+		me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
+	}
+
+	if(!clear) {
+		eed= em->edges.first;
+		while(eed) {
+			if(!eed->h && (eed->f & SELECT)) eed->freestyle = 1;
+			eed = eed->next;
+		}
+	} else {
+		eed= em->edges.first;
+		while(eed) {
+			if(!eed->h && (eed->f & SELECT)) eed->freestyle = 0;
+			eed = eed->next;
+		}
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_tag_update(obedit->data, 0);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mark Freestyle Edge";
+	ot->description= "(un)mark selected edges as Freestyle feature edges";
+	ot->idname= "MESH_OT_mark_freestyle_edge";
+
+	/* api callbacks */
+	ot->exec= editmesh_mark_freestyle_edge;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
 

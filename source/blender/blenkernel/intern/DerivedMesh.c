@@ -1199,6 +1199,7 @@ static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
 	if (ee->seam) edge_r->flag |= ME_SEAM;
 	if (ee->sharp) edge_r->flag |= ME_SHARP;
+	if (ee->freestyle) edge_r->flag |= ME_FREESTYLE_EDGE;
 #if 0
 	/* this needs setup of f2 field */
 	if (!ee->f2) edge_r->flag |= ME_LOOSEEDGE;
@@ -1299,6 +1300,7 @@ static void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 		edge_r->flag = ME_EDGEDRAW|ME_EDGERENDER;
 		if (ee->seam) edge_r->flag |= ME_SEAM;
 		if (ee->sharp) edge_r->flag |= ME_SHARP;
+		if (ee->freestyle) edge_r->flag |= ME_FREESTYLE_EDGE;
 #if 0
 		/* this needs setup of f2 field */
 		if (!ee->f2) edge_r->flag |= ME_LOOSEEDGE;

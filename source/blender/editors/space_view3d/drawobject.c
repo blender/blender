@@ -2098,21 +2098,32 @@ static void draw_dm_edges_sharp(DerivedMesh *dm)
 	dm->drawMappedEdges(dm, draw_dm_edges_sharp__setDrawOptions, NULL);
 }
 
+	/* Draw only Freestyle feature edges */
+static int draw_dm_edges_freestyle__setDrawOptions(void *UNUSED(userData), int index)
+{
+	EditEdge *eed = EM_get_edge_for_index(index);
+
+	return (eed->h==0 && eed->freestyle);
+}
+static void draw_dm_edges_freestyle(DerivedMesh *dm)
+{
+	dm->drawMappedEdges(dm, draw_dm_edges_freestyle__setDrawOptions, NULL);
+}
 
 	/* Draw faces with color set based on selection
 	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNUSED(drawSmooth_r))
 {
-	struct { unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
+	struct { unsigned char *cols[4]; EditFace *efa_act; } * data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	unsigned char *col;
 	
 	if (efa->h==0) {
 		if (efa == data->efa_act) {
-			glColor4ubv(data->cols[2]);
+			glColor4ubv(data->cols[3]);
 			return 2; /* stipple */
 		} else {
-			col = data->cols[(efa->f&SELECT)?1:0];
+			col = data->cols[(efa->f & SELECT) ? 1 : (efa->flag & ME_FREESTYLE_FACE) ? 2 : 0];
 			if (col[3]==0) return 0;
 			glColor4ubv(col);
 			return 1;
@@ -2123,7 +2134,7 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *UNU
 
 static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int next_index)
 {
-	struct { unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
+	struct { unsigned char *cols[4]; EditFace *efa_act; } * data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	EditFace *next_efa = EM_get_face_for_index(next_index);
 	unsigned char *col, *next_col;
@@ -2134,8 +2145,8 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 	if(efa == data->efa_act || next_efa == data->efa_act)
 		return 0;
 
-	col = data->cols[(efa->f&SELECT)?1:0];
-	next_col = data->cols[(next_efa->f&SELECT)?1:0];
+	col = data->cols[(efa->f & SELECT) ? 1 : (efa->flag & ME_FREESTYLE_FACE) ? 2 : 0];
+	next_col = data->cols[(next_efa->f & SELECT) ? 1 : (next_efa->flag & ME_FREESTYLE_FACE) ? 2 : 0];
 
 	if(col[3]==0 || next_col[3]==0)
 		return 0;
@@ -2144,12 +2155,13 @@ static int draw_dm_faces_sel__compareDrawOptions(void *userData, int index, int 
 }
 
 /* also draws the active face */
-static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditFace *efa_act) 
+static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *markCol, unsigned char *actCol, EditFace *efa_act) 
 {
-	struct { unsigned char *cols[3]; EditFace *efa_act; } data;
+	struct { unsigned char *cols[4]; EditFace *efa_act; } data;
 	data.cols[0] = baseCol;
 	data.cols[1] = selCol;
-	data.cols[2] = actCol;
+	data.cols[2] = markCol;
+	data.cols[3] = actCol;
 	data.efa_act = efa_act;
 
 	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0, GPU_enable_material, draw_dm_faces_sel__compareDrawOptions);
@@ -2583,11 +2595,12 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 	}
 	
 	if(me->drawflag & ME_DRAWFACES) {	/* transp faces */
-		unsigned char col1[4], col2[4], col3[4];
+		unsigned char col1[4], col2[4], col3[4], col4[4];
 			
 		UI_GetThemeColor4ubv(TH_FACE, col1);
 		UI_GetThemeColor4ubv(TH_FACE_SELECT, col2);
-		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
+		UI_GetThemeColor4ubv(TH_FREESTYLE_FACE_MARK, col3);
+		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col4);
 		
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
@@ -2596,7 +2609,10 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		if CHECK_OB_DRAWTEXTURE(v3d, dt)
 			col1[3] = 0;
 		
-		draw_dm_faces_sel(cageDM, col1, col2, col3, efa_act);
+		if (!(me->drawflag & ME_DRAW_FREESTYLE_FACE))
+			col3[3] = 0;
+
+		draw_dm_faces_sel(cageDM, col1, col2, col3, col4, efa_act);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer
@@ -2604,14 +2620,14 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		/* even if draw faces is off it would be nice to draw the stipple face
 		 * Make all other faces zero alpha except for the active
 		 * */
-		unsigned char col1[4], col2[4], col3[4];
-		col1[3] = col2[3] = 0; /* dont draw */
-		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col3);
+		unsigned char col1[4], col2[4], col3[4], col4[4];
+		col1[3] = col2[3] = col3[3] = 0; /* dont draw */
+		UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, col4);
 		
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
-		draw_dm_faces_sel(cageDM, col1, col2, col3, efa_act);
+		draw_dm_faces_sel(cageDM, col1, col2, col3, col4, efa_act);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer
@@ -2641,6 +2657,16 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			glLineWidth(2);
 	
 			draw_dm_edges_sharp(cageDM);
+	
+			glColor3ub(0,0,0);
+			glLineWidth(1);
+		}
+	
+		if(me->drawflag & ME_DRAW_FREESTYLE_EDGE) {
+			UI_ThemeColor(TH_FREESTYLE_EDGE_MARK);
+			glLineWidth(2);
+	
+			draw_dm_edges_freestyle(cageDM);
 	
 			glColor3ub(0,0,0);
 			glLineWidth(1);

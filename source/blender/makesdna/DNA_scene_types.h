@@ -1241,6 +1241,7 @@ typedef enum SculptFlags {
 #define EDGE_MODE_TAG_SHARP				2
 #define EDGE_MODE_TAG_CREASE			3
 #define EDGE_MODE_TAG_BEVEL				4
+#define EDGE_MODE_TAG_FREESTYLE			5
 
 /* toolsettings->gpencil_flags */
 #define GP_TOOL_FLAG_PAINTSESSIONS_ON	(1<<0)

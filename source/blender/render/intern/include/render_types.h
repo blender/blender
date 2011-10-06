@@ -385,6 +385,7 @@ typedef struct VlakRen {
 	struct Material *mat;
 	char puno;
 	char flag, ec;
+	char freestyle_edge_mark;
 	int index;
 } VlakRen;
 
@@ -619,6 +620,13 @@ typedef struct LampRen {
 /* vertex normals are tangent or view-corrected vector, for hair strands */
 #define R_TANGENT		64		
 #define R_TRACEBLE		128
+
+/* vlakren->freestyle_edge_mark */
+#define R_EDGE_V1V2		1
+#define R_EDGE_V2V3		2
+#define R_EDGE_V3V4		4
+#define R_EDGE_V3V1		4
+#define R_EDGE_V4V1		8
 
 /* strandbuffer->flag */
 #define R_STRAND_BSPLINE	1

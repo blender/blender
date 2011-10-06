@@ -499,7 +499,7 @@ public:
   *      determines the face's edges orientation and (so) the 
   *      face orientation.
   */
-  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterialIndex);
+  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
 
   /*! adds a new face to the shape. The difference with 
    *  the previous method is that this one is designed 
@@ -520,7 +520,7 @@ public:
    *     The list of tex coords, iTexCoordsList[i] corresponding to the 
    *     normal of the vertex iVertexList[i] for that face.
    */
-  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, unsigned iMaterialIndex);
+  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
 
   /*! Reset all edges and vertices flags (which might
    *  have been set up on a previous pass)

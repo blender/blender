@@ -798,6 +798,8 @@ protected:
   Vec3r _bNormal; // When following the edge, normal of the left face
   unsigned _aFrsMaterialIndex;
   unsigned _bFrsMaterialIndex;
+  bool _aFaceMark;
+  bool _bFaceMark;
   
 public:
   /*! Returns the string "FEdgeSharp" . */
@@ -807,10 +809,12 @@ public:
   /*! Default constructor. */
   inline FEdgeSharp() : FEdge(){
     _aFrsMaterialIndex = _bFrsMaterialIndex = 0;
+	_aFaceMark = _bFaceMark = false;
   }
   /*! Builds an FEdgeSharp going from vA to vB. */ 
   inline FEdgeSharp(SVertex *vA, SVertex *vB) : FEdge(vA, vB){
     _aFrsMaterialIndex = _bFrsMaterialIndex = 0;
+	_aFaceMark = _bFaceMark = false;
   }
   /*! Copy constructor. */
   inline FEdgeSharp(FEdgeSharp& iBrother) : FEdge(iBrother){
@@ -818,6 +822,9 @@ public:
     _bNormal = iBrother._bNormal;
     _aFrsMaterialIndex = iBrother._aFrsMaterialIndex;
     _bFrsMaterialIndex = iBrother._bFrsMaterialIndex;
+	_aFaceMark = iBrother._aFaceMark;
+	_bFaceMark = iBrother._bFaceMark;
+
   }
   /*! Destructor. */
   virtual ~FEdgeSharp() {}
@@ -853,6 +860,12 @@ public:
    *  left of the FEdge.
    */
   const FrsMaterial& bFrsMaterial() const ;
+  /*! Returns the face mark of the face lying on the right of the FEdge.
+   *  If this FEdge is a border, it has no Face on its right and thus
+   *  false is returned. */
+  inline bool aFaceMark() const {return _aFaceMark;}
+  /*! Returns the face mark of the face lying on the left of the FEdge. */
+  inline bool bFaceMark() const {return _bFaceMark;}
 
   /*! Sets the normal to the face lying on the right of the FEdge. */
   inline void setNormalA(const Vec3r& iNormal) {_aNormal = iNormal;}
@@ -862,6 +875,10 @@ public:
   inline void setaFrsMaterialIndex(unsigned i) {_aFrsMaterialIndex = i;}
   /*! Sets the index of the material lying on the left of the FEdge.*/
   inline void setbFrsMaterialIndex(unsigned i) {_bFrsMaterialIndex = i;}
+  /*! Sets the face mark of the face lying on the right of the FEdge. */
+  inline void setaFaceMark(bool iFaceMark) {_aFaceMark = iFaceMark;}
+  /*! Sets the face mark of the face lying on the left of the FEdge. */
+  inline void setbFaceMark(bool iFaceMark) {_bFaceMark = iFaceMark;}
   
 };
 
@@ -879,6 +896,7 @@ protected:
   //  Vec3r _VisibilityPointB;  // using its 2 extremity points A and B
   void * _Face; // In case of exact silhouette, Face is the WFace crossed by Fedge 
                // NON GERE PAR LE COPY CONSTRUCTEUR
+  bool _FaceMark;
 public:
   /*! Returns the string "FEdgeSmooth" . */
   virtual string getExactTypeName() const {
@@ -887,12 +905,14 @@ public:
   /*! Default constructor. */
   inline FEdgeSmooth() : FEdge(){
     _Face=0;
+	_FaceMark = false;
     _FrsMaterialIndex = 0;
     _isSmooth = true;
   }
   /*! Builds an FEdgeSmooth going from vA to vB. */  
   inline FEdgeSmooth(SVertex *vA, SVertex *vB) : FEdge(vA, vB){
     _Face=0;
+	_FaceMark = false;
     _FrsMaterialIndex = 0;
     _isSmooth = true;
 
@@ -901,6 +921,7 @@ public:
   inline FEdgeSmooth(FEdgeSmooth& iBrother) : FEdge(iBrother){
     _Normal = iBrother._Normal;
     _Face = iBrother._Face;
+	_FaceMark = iBrother._FaceMark;
     _FrsMaterialIndex = iBrother._FrsMaterialIndex;
     _isSmooth = true;
   }
@@ -913,6 +934,8 @@ public:
   }
 
   inline void * face() const {return _Face;}
+  /*! Returns the face mark of the face it is running across. */
+  inline bool faceMark() const {return _FaceMark;}
   /*! Returns the normal to the Face it is running accross. */
   inline const Vec3r& normal() {return _Normal;}
   /*! Returns the index of the material of the face it is running accross. */
@@ -921,6 +944,8 @@ public:
   const FrsMaterial& frs_material() const ;
 
   inline void setFace(void * iFace) {_Face = iFace;}
+  /*! Sets the face mark of the face it is running across. */
+  inline void setFaceMark(bool iFaceMark) {_FaceMark = iFaceMark;}
   /*! Sets the normal to the Face it is running accross. */
   inline void setNormal(const Vec3r& iNormal) {_Normal = iNormal;}
   /*! Sets the index of the material of the face it is running accross. */

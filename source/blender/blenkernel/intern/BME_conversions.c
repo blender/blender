@@ -303,6 +303,7 @@ BME_Mesh *BME_editmesh_to_bmesh(EditMesh *em) {
 		e->flag = eed->f & SELECT;
 		if(eed->sharp) e->flag |= ME_SHARP;
 		if(eed->seam) e->flag |= ME_SEAM;
+		if(eed->freestyle) e->flag |= ME_FREESTYLE_EDGE;
 		//XXX if(eed->h & EM_FGON) e->flag |= ME_FGON;
 		if(eed->h & 1) e->flag |= ME_HIDE;
 		eed->tmp.e = (EditEdge*)e;
@@ -395,6 +396,7 @@ void BME_bmesh_to_editmesh(BME_Mesh *bm, BME_TransData_Head *td, EditMesh *em) {
 			eed->bweight = e->bweight;
 			if(e->flag & ME_SEAM) eed->seam = 1;
 			if(e->flag & ME_SHARP) eed->sharp = 1;
+			if(e->flag & ME_FREESTYLE_EDGE) eed->freestyle = 1;
 			if(e->flag & SELECT) eed->f |= SELECT;
 			//XXX if(e->flag & ME_FGON) eed->h= EM_FGON; // 2 different defines!
 			if(e->flag & ME_HIDE) eed->h |= 1;

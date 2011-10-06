@@ -248,7 +248,10 @@ enum {
 	TH_DRAWEXTRA_FACEAREA,
 	TH_DRAWEXTRA_FACEANG,
 
-	TH_NODE_CURVING
+	TH_NODE_CURVING,
+
+	TH_FREESTYLE_EDGE_MARK,
+	TH_FREESTYLE_FACE_MARK
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

@@ -127,6 +127,10 @@ public:
   virtual void processMaterialBoundaryShape(WXShape* iWShape);
   virtual void ProcessMaterialBoundaryEdge(WXEdge *iEdge);
 
+  // EDGE MARKS
+  virtual void processEdgeMarksShape(WXShape* iShape);
+  virtual void ProcessEdgeMarks(WXEdge *iEdge);
+
   // EVERYBODY
   virtual void buildSmoothEdges(WXShape* iShape);
 
@@ -139,6 +143,12 @@ public:
   inline void enableFaceSmoothness(bool b) {
     if (b != _faceSmoothness) {
 	  _faceSmoothness = b;
+      _changes=true;
+    }
+  }
+  inline void enableFaceMarks(bool b) {
+    if (b != _faceMarks) {
+	  _faceMarks = b;
       _changes=true;
     }
   }
@@ -175,6 +185,7 @@ protected:
   bool _computeSuggestiveContours;
   bool _computeMaterialBoundaries;
   bool _faceSmoothness;
+  bool _faceMarks;
   real _sphereRadius; // expressed as a ratio of the mean edge size
   real _creaseAngle; // [-1, 1] compared with the inner product of face normals
   bool _changes;

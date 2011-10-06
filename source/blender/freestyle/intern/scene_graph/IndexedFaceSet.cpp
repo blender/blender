@@ -28,6 +28,7 @@ IndexedFaceSet::IndexedFaceSet()
   _Normals = NULL;
   _FrsMaterials = 0;
   _TexCoords = 0;
+  _FaceEdgeMarks = 0;
   _VSize = 0;
   _NSize = 0;
   _MSize = 0;
@@ -51,6 +52,7 @@ IndexedFaceSet::IndexedFaceSet( real *iVertices, unsigned iVSize,
                                 FrsMaterial **iMaterials, unsigned iMSize,
                                 real *iTexCoords, unsigned iTSize,
                                 unsigned iNumFaces, unsigned *iNumVertexPerFace, TRIANGLES_STYLE *iFaceStyle,
+								FaceEdgeMark *iFaceEdgeMarks,
                                 unsigned *iVIndices, unsigned iVISize,
                                 unsigned *iNIndices, unsigned iNISize,
                                 unsigned *iMIndices, unsigned iMISize,
@@ -88,6 +90,9 @@ IndexedFaceSet::IndexedFaceSet( real *iVertices, unsigned iVSize,
 
     _FaceStyle = new TRIANGLES_STYLE[_NumFaces];
     memcpy(_FaceStyle, iFaceStyle, _NumFaces*sizeof(TRIANGLES_STYLE));
+
+    _FaceEdgeMarks = new FaceEdgeMark[_NumFaces];
+    memcpy(_FaceEdgeMarks, iFaceEdgeMarks, _NumFaces*sizeof(FaceEdgeMark));
 
     _VISize = iVISize;
     _VIndices = new unsigned[_VISize];
@@ -129,6 +134,7 @@ IndexedFaceSet::IndexedFaceSet( real *iVertices, unsigned iVSize,
     _NumFaces = iNumFaces;
     _NumVertexPerFace = iNumVertexPerFace;
     _FaceStyle = iFaceStyle;
+    _FaceEdgeMarks = iFaceEdgeMarks;
 
     _VISize = iVISize;
     _VIndices = iVIndices;
@@ -182,6 +188,9 @@ IndexedFaceSet::IndexedFaceSet( const IndexedFaceSet& iBrother)
   
   _FaceStyle = new TRIANGLES_STYLE[_NumFaces];
   memcpy(_FaceStyle, iBrother.trianglesStyle(), _NumFaces*sizeof(TRIANGLES_STYLE));
+
+  _FaceEdgeMarks = new FaceEdgeMark[_NumFaces];
+  memcpy(_FaceEdgeMarks, iBrother.faceEdgeMarks(), _NumFaces*sizeof(FaceEdgeMark));
   
   _VISize = iBrother.visize();
   _VIndices = new unsigned[_VISize];
@@ -247,6 +256,12 @@ IndexedFaceSet::~IndexedFaceSet()
   {
     delete [] _FaceStyle;
     _FaceStyle = NULL;
+  }
+
+  if(NULL != _FaceEdgeMarks)
+  {
+    delete [] _FaceEdgeMarks;
+    _FaceEdgeMarks = NULL;
   }
 
   if(NULL != _VIndices)

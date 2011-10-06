@@ -258,6 +258,7 @@ WFace::WFace(WFace& iBrother)
   _VerticesTexCoords = iBrother._VerticesTexCoords;
   _Id = iBrother.GetId();
   _FrsMaterialIndex = iBrother._FrsMaterialIndex;
+  _Mark = iBrother._Mark;
   userdata = NULL;
   iBrother.userdata = new facedata;
   ((facedata*)(iBrother.userdata))->_copy = this;
@@ -624,12 +625,12 @@ WShape::WShape(WShape& iBrother)
   }
 }
 
-WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial)
+WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterial)
 {
   // allocate the new face
   WFace *face = instanciateFace();
 
-  WFace *result = MakeFace(iVertexList, iMaterial, face);
+  WFace *result = MakeFace(iVertexList, iFaceEdgeMarksList, iMaterial, face);
   if (0 == result) {
     delete face;
     return 0;
@@ -637,10 +638,10 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial)
   return result;
 }
 
-WFace * WShape::MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, unsigned iMaterial)
+WFace * WShape::MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterial)
 {
   // allocate the new face
-  WFace *face = MakeFace(iVertexList, iMaterial);
+  WFace *face = MakeFace(iVertexList, iFaceEdgeMarksList, iMaterial);
 
   if(0 == face)
 
@@ -654,7 +655,7 @@ WFace * WShape::MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsL
   return face;
 }
 
-WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial, WFace *face)
+WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterial, WFace *face)
 {
 
   int id = _FaceList.size();
@@ -702,6 +703,10 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial, WFace
   normal.normalize();
   face->setNormal(normal);
 
+  vector<bool>::iterator mit = iFaceEdgeMarksList.begin();
+  face->setMark(*mit);
+  mit++;
+
   // vertex pointers used to build each edge
   vector<WVertex*>::iterator va, vb;
 
@@ -734,6 +739,9 @@ WFace* WShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterial, WFace
       // compute the mean edge value:
       _meanEdgeSize += edge->GetaOEdge()->GetVec().norm();
     }
+
+	edge->setMark(*mit);
+	mit++;
   }
 
   // Add the face to the shape's faces list:

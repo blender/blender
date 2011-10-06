@@ -102,6 +102,8 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
   //  else if(_current_frs_material)
   //    shape.setFrsMaterial(*_current_frs_material);
 
+  const IndexedFaceSet::FaceEdgeMark *faceEdgeMarks = ifs.faceEdgeMarks();
+
   // sets the current WShape to shape
   _current_wshape = &shape;
 
@@ -128,6 +130,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
 			 new_normals,
        frs_materials,
        texCoords,
+	   faceEdgeMarks,
 			 vindices,
 			 nindices,
        mindices,
@@ -139,6 +142,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
 		       new_normals,
            frs_materials, 
            texCoords,
+		   faceEdgeMarks,
 		       vindices,
 		       nindices,
            mindices,
@@ -150,6 +154,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
 		     new_normals,
          frs_materials,
          texCoords,
+		 faceEdgeMarks,
 		     vindices,
 		     nindices,
          mindices,
@@ -163,6 +168,7 @@ void WingedEdgeBuilder::buildWShape(WShape& shape, IndexedFaceSet& ifs) {
 			mindices += numVertexPerFace[index];
     if(tindices)
         tindices += numVertexPerFace[index];
+	faceEdgeMarks++;
   }
 
   delete[] new_vertices;
@@ -219,6 +225,7 @@ void WingedEdgeBuilder::buildTriangleStrip( const real *vertices,
 			                                      const real *normals, 
                                            vector<FrsMaterial>& iMaterials, 
                                            const real *texCoords, 
+										   const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
 			                                      const unsigned *vindices, 
 			                                      const unsigned *nindices,
                                             const unsigned *mindices,
@@ -232,6 +239,7 @@ void WingedEdgeBuilder::buildTriangleStrip( const real *vertices,
   vector<WVertex *> triangleVertices;
   vector<Vec3r> triangleNormals;
   vector<Vec2r> triangleTexCoords;
+  vector<bool> triangleFaceEdgeMarks;
 
   while(nDoneVertices < nvertices)
   { 
@@ -270,10 +278,14 @@ void WingedEdgeBuilder::buildTriangleStrip( const real *vertices,
           triangleTexCoords.push_back(Vec2r(texCoords[tindices[nTriangle+1]], texCoords[tindices[nTriangle+1]+1]));
       }
     }
+	triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[nTriangle/3] & IndexedFaceSet::FACE_MARK) != 0);
+	triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[nTriangle/3] & IndexedFaceSet::EDGE_MARK_V1V2) != 0);
+	triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[nTriangle/3] & IndexedFaceSet::EDGE_MARK_V2V3) != 0);
+	triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[nTriangle/3] & IndexedFaceSet::EDGE_MARK_V3V1) != 0);
 		if(mindices)
-			currentShape->MakeFace(triangleVertices, triangleNormals, triangleTexCoords, mindices[nTriangle/3]);
+			currentShape->MakeFace(triangleVertices, triangleNormals, triangleTexCoords, triangleFaceEdgeMarks, mindices[nTriangle/3]);
 		else
-			currentShape->MakeFace(triangleVertices, triangleNormals, triangleTexCoords, 0);
+			currentShape->MakeFace(triangleVertices, triangleNormals, triangleTexCoords, triangleFaceEdgeMarks, 0);
     nDoneVertices++; // with a strip, each triangle is one vertex more
     nTriangle++;
   }
@@ -283,6 +295,7 @@ void WingedEdgeBuilder::buildTriangleFan( const real *vertices,
 			                                      const real *normals, 
                                             vector<FrsMaterial>&  iMaterials, 
                                             const real *texCoords, 
+											const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
 			                                      const unsigned *vindices, 
 			                                      const unsigned *nindices,
                                             const unsigned *mindices,
@@ -295,6 +308,7 @@ void WingedEdgeBuilder::buildTriangles(const real *vertices,
 			                                      const real *normals, 
                                             vector<FrsMaterial>&  iMaterials, 
                                             const real *texCoords, 
+											const IndexedFaceSet::FaceEdgeMark *iFaceEdgeMarks,
 			                                      const unsigned *vindices, 
 			                                      const unsigned *nindices,
                                             const unsigned *mindices,
@@ -304,6 +318,7 @@ void WingedEdgeBuilder::buildTriangles(const real *vertices,
   vector<WVertex *> triangleVertices;
   vector<Vec3r> triangleNormals;
   vector<Vec2r> triangleTexCoords;
+  vector<bool> triangleFaceEdgeMarks;
 
   // Each triplet of vertices is considered as an independent triangle
   for(unsigned i = 0; i < nvertices / 3; i++)
@@ -321,11 +336,16 @@ void WingedEdgeBuilder::buildTriangles(const real *vertices,
         triangleTexCoords.push_back(Vec2r(texCoords[tindices[3*i+1]],texCoords[tindices[3*i+1]+1]));
         triangleTexCoords.push_back(Vec2r(texCoords[tindices[3*i+2]], texCoords[tindices[3*i+2]+1]));
     }
+
+	triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[i] & IndexedFaceSet::FACE_MARK) != 0);
+	triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[i] & IndexedFaceSet::EDGE_MARK_V1V2) != 0);
+	triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[i] & IndexedFaceSet::EDGE_MARK_V2V3) != 0);
+	triangleFaceEdgeMarks.push_back((iFaceEdgeMarks[i] & IndexedFaceSet::EDGE_MARK_V3V1) != 0);
   }
 	if(mindices)
-		currentShape->MakeFace(triangleVertices, triangleNormals, triangleTexCoords, mindices[0]);
+		currentShape->MakeFace(triangleVertices, triangleNormals, triangleTexCoords, triangleFaceEdgeMarks, mindices[0]);
 	else
-		currentShape->MakeFace(triangleVertices, triangleNormals, triangleTexCoords,0);
+		currentShape->MakeFace(triangleVertices, triangleNormals, triangleTexCoords, triangleFaceEdgeMarks, 0);
   
 }
 

@@ -258,9 +258,9 @@ void WXFace::ComputeCenter()
                   /**********************************/
 
 
-WFace* WXShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterialIndex)
+WFace* WXShape::MakeFace(vector<WVertex*>& iVertexList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex)
 {
-  WFace *face = WShape::MakeFace(iVertexList, iMaterialIndex);
+  WFace *face = WShape::MakeFace(iVertexList, iFaceEdgeMarksList, iMaterialIndex);
   if(0 == face)
     return 0;
   
@@ -277,9 +277,9 @@ WFace* WXShape::MakeFace(vector<WVertex*>& iVertexList, unsigned iMaterialIndex)
   return face;
 }
 
-WFace * WXShape::MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, unsigned iMaterialIndex)
+WFace * WXShape::MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex)
 {
-  WFace *face = WShape::MakeFace(iVertexList, iNormalsList, iTexCoordsList, iMaterialIndex);
+  WFace *face = WShape::MakeFace(iVertexList, iNormalsList, iTexCoordsList, iFaceEdgeMarksList, iMaterialIndex);
   
   //  Vec3r center;
   //  for(vector<WVertex*>::iterator wv=iVertexList.begin(),wvend=iVertexList.end();

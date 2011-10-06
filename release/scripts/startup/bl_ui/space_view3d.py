@@ -1605,6 +1605,11 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
+        layout.operator("mesh.mark_freestyle_edge")
+        layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
+
+        layout.separator()
+
         layout.operator("mesh.edge_rotate", text="Rotate Edge CW").direction = 'CW'
         layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").direction = 'CCW'
 
@@ -1644,6 +1649,11 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.operator("mesh.fgon_make")
         layout.operator("mesh.fgon_clear")
+
+        layout.separator()
+
+        layout.operator("mesh.mark_freestyle_face")
+        layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
 
         layout.separator()
 
@@ -2170,6 +2180,8 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         col.prop(mesh, "show_edge_bevel_weight", text="Bevel Weights")
         col.prop(mesh, "show_edge_seams", text="Seams")
         col.prop(mesh, "show_edge_sharp", text="Sharp")
+        col.prop(mesh, "show_freestyle_edge_marks", text="Freestyle Edge Marks")
+        col.prop(mesh, "show_freestyle_face_marks", text="Freestyle Face Marks")
 
         col.separator()
         col.label(text="Normals:")

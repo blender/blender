@@ -1284,6 +1284,11 @@ static void rna_def_medge(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sharp", "Sharp edge for the EdgeSplit modifier");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
+	prop= RNA_def_property(srna, "use_freestyle_edge_mark", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FREESTYLE_EDGE);
+	RNA_def_property_ui_text(prop, "Freestyle Edge Mark", "Edge mark for Freestyle feature edge detection");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
 	prop= RNA_def_property(srna, "is_loose", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_LOOSEEDGE);
 	RNA_def_property_ui_text(prop, "Loose", "Loose edge");
@@ -1344,6 +1349,11 @@ static void rna_def_mface(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Smooth", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 	
+	prop= RNA_def_property(srna, "use_freestyle_face_mark", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ME_FREESTYLE_FACE);
+	RNA_def_property_ui_text(prop, "Freestyle Face Mark", "Face mark for Freestyle feature edge detection");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
 	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -1.0f, 1.0f);
@@ -2078,6 +2088,16 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_edge_sharp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWSHARP);
 	RNA_def_property_ui_text(prop, "Draw Sharp", "Display sharp edges, used with the EdgeSplit modifier");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+	prop= RNA_def_property(srna, "show_freestyle_edge_marks", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_FREESTYLE_EDGE);
+	RNA_def_property_ui_text(prop, "Draw Freestyle Edge Marks", "Display Freestyle edge marks, used with the Freestyle renderer");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+	prop= RNA_def_property(srna, "show_freestyle_face_marks", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_FREESTYLE_FACE);
+	RNA_def_property_ui_text(prop, "Draw Freestyle Face Marks", "Display Freestyle face marks, used with the Freestyle renderer");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
 	prop= RNA_def_property(srna, "show_extra_edge_length", PROP_BOOLEAN, PROP_NONE);

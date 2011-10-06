@@ -3775,6 +3775,7 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 			srchedge->h = eed->h;
 			srchedge->dir = eed->dir;
 			srchedge->seam = eed->seam;
+			srchedge->freestyle = eed->freestyle;
 			srchedge->crease = eed->crease;
 			srchedge->bweight = eed->bweight;
 		}
@@ -7604,3 +7605,54 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "axis", axis_items_xyz, 0, "Axis", "Select the axis to compare each vertex on");
 }
 
+/********************** Freestyle Face Mark Operator *************************/
+
+static int mesh_mark_freestyle_face_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	Mesh *me= ((Mesh *)obedit->data);
+	int clear = RNA_boolean_get(op->ptr, "clear");
+	EditFace *efa;
+
+	/* auto-enable Freestyle face mark drawing */
+	if(!clear) {
+		me->drawflag |= ME_DRAW_FREESTYLE_FACE;
+	}
+
+	if(!clear) {
+		for(efa= em->faces.first; efa; efa=efa->next) {
+			if(efa->f & SELECT)
+				efa->flag |= ME_FREESTYLE_FACE;
+		}
+	} else {
+		for(efa= em->faces.first; efa; efa=efa->next) {
+			if(efa->f & SELECT)
+				efa->flag &= ~ME_FREESTYLE_FACE;
+		}
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_tag_update(obedit->data, 0);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mark Freestyle Face";
+	ot->description= "(un)mark selected faces for exclusion from Freestyle feature edge detection";
+	ot->idname= "MESH_OT_mark_freestyle_face";
+
+	/* api callbacks */
+	ot->exec= mesh_mark_freestyle_face_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
+}

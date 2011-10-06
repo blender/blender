@@ -1651,6 +1651,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *UNUSED(me))
 		
 		if(eed->seam) med->flag |= ME_SEAM;
 		if(eed->sharp) med->flag |= ME_SHARP;
+		if(eed->freestyle) med->flag |= ME_FREESTYLE_EDGE;
 		if(!eed->f2) med->flag |= ME_LOOSEEDGE;
 
 		*index = i;

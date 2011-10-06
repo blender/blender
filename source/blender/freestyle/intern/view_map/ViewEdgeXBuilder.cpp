@@ -472,6 +472,7 @@ FEdge * ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer
   fe->setId(_currentFId);
   fe->setFrsMaterialIndex(ifl.fl->getFace()->frs_materialIndex());
   fe->setFace(ifl.fl->getFace());
+  fe->setFaceMark(ifl.fl->getFace()->GetMark());
   fe->setNormal(normal);
   fe->setPreviousEdge(feprevious);
   if(feprevious)
@@ -585,19 +586,24 @@ FEdge * ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge& iwe)
   // get the faces normals and the material indices
   Vec3r normalA, normalB;
   unsigned matA(0), matB(0);
+  bool faceMarkA = false, faceMarkB = false;
   if(iwe.order){
     normalB = (iwe.e->GetbFace()->GetNormal());
     matB    = (iwe.e->GetbFace()->frs_materialIndex());
+    faceMarkB = (iwe.e->GetbFace()->GetMark());
     if(!(iwe.e->nature() & Nature::BORDER)) {  
       normalA = (iwe.e->GetaFace()->GetNormal());
       matA    = (iwe.e->GetaFace()->frs_materialIndex());
+      faceMarkA = (iwe.e->GetaFace()->GetMark());
     }
   }else{
     normalA = (iwe.e->GetbFace()->GetNormal());
     matA    = (iwe.e->GetbFace()->frs_materialIndex());
+    faceMarkA = (iwe.e->GetbFace()->GetMark());
     if(!(iwe.e->nature() & Nature::BORDER)) { 
       normalB = (iwe.e->GetaFace()->GetNormal());
       matB    = (iwe.e->GetaFace()->frs_materialIndex());
+      faceMarkB = (iwe.e->GetaFace()->GetMark());
     }
   }
   // Creates the corresponding feature edge
@@ -607,6 +613,8 @@ FEdge * ViewEdgeXBuilder::BuildSharpFEdge(FEdge *feprevious, const OWXEdge& iwe)
   fe->setId(_currentFId);
   fe->setaFrsMaterialIndex(matA);
   fe->setbFrsMaterialIndex(matB);
+  fe->setaFaceMark(faceMarkA);
+  fe->setbFaceMark(faceMarkB);
   fe->setNormalA(normalA);
   fe->setNormalB(normalB);
   fe->setPreviousEdge(feprevious);

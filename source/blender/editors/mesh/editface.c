@@ -502,6 +502,10 @@ void edgetag_context_set(Scene *scene, EditEdge *eed, int val)
 		if (val)		{eed->bweight = 1.0f;}
 		else			{eed->bweight = 0.0f;}
 		break;
+	case EDGE_MODE_TAG_FREESTYLE:
+		if (val)		{eed->freestyle = 1;}
+		else			{eed->freestyle = 0;}
+		break;				
 	}
 }
 
@@ -518,6 +522,8 @@ int edgetag_context_check(Scene *scene, EditEdge *eed)
 		return eed->crease ? 1 : 0;
 	case EDGE_MODE_TAG_BEVEL:
 		return eed->bweight ? 1 : 0;
+	case EDGE_MODE_TAG_FREESTYLE:
+		return eed->freestyle ? 1 : 0;
 	}
 	return 0;
 }

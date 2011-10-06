@@ -72,6 +72,7 @@ void FEdgeXDetector::processShapes(WingedEdge& we) {
     if(_computeSuggestiveContours)
       processSuggestiveContourShape(wxs);
     processSilhouetteShape(wxs);
+    processEdgeMarksShape(wxs);
     if (progressBarDisplay)
       _pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
 
@@ -705,6 +706,26 @@ void FEdgeXDetector::ProcessMaterialBoundaryEdge(WXEdge *iEdge)
   WFace *bFace = iEdge->GetbFace();
   if(aFace && bFace && aFace->frs_materialIndex() != bFace->frs_materialIndex()){
     iEdge->AddNature(Nature::MATERIAL_BOUNDARY);
+  }
+}
+
+// EDGE MARKS
+/////////////
+  
+void FEdgeXDetector::processEdgeMarksShape(WXShape* iShape) {
+  // Make a pass on the edges to detect material boundaries
+  vector<WEdge*>::iterator we, weend;
+  vector<WEdge*> &wedges = iShape->getEdgeList();
+  for(we=wedges.begin(), weend=wedges.end();
+  we!=weend;
+  ++we){
+    ProcessEdgeMarks((WXEdge*)(*we));
+  }
+}
+
+void FEdgeXDetector::ProcessEdgeMarks(WXEdge *iEdge) {
+  if (iEdge->GetMark()) {
+    iEdge->AddNature(Nature::EDGE_MARK);
   }
 }
 

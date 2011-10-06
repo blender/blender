@@ -71,6 +71,8 @@ namespace Nature {
   static const EdgeNature SUGGESTIVE_CONTOUR	= (1 << 5);	// 32
   /*! true for material boundaries */
   static const EdgeNature MATERIAL_BOUNDARY		= (1 << 6);	// 64
+  /*! true for user-defined edge marks */
+  static const EdgeNature EDGE_MARK		= (1 << 7);	// 128
 
 } // end of namespace Nature
 

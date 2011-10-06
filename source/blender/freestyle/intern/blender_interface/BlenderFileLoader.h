@@ -18,6 +18,7 @@ extern "C" {
 #endif
 
 	#include "DNA_material_types.h"
+	#include "DNA_meshdata_types.h"
 	#include "DNA_scene_types.h"
 	#include "render_types.h"
 	#include "renderdatabase.h"
@@ -36,6 +37,7 @@ class NodeGroup;
 struct LoaderState {
 	float *pv;
 	float *pn;
+	IndexedFaceSet::FaceEdgeMark *pm;
 	unsigned *pvi;
 	unsigned *pni;
 	unsigned *pmi;
@@ -66,9 +68,10 @@ protected:
 	int countClippedFaces(float v1[3], float v2[3], float v3[3], int clip[3]);
 	void clipLine(float v1[3], float v2[3], float c[3], float z);
 	void clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3],
-		float triNormals[][3], float n1[3], float n2[3], float n3[3], int clip[3]);
+		float triNormals[][3], float n1[3], float n2[3], float n3[3],
+		bool edgeMarks[5], bool em1, bool em2, bool em3, int clip[3]);
 	void addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3],
-		float n1[3], float n2[3], float n3[3]);
+		float n1[3], float n2[3], float n3[3], bool fm, bool em1, bool em2, bool em3);
 
 protected:
 	Render* _re;

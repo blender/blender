@@ -45,6 +45,13 @@ public:
   /*! Triangles description style:*/
   enum TRIANGLES_STYLE{TRIANGLE_STRIP, TRIANGLE_FAN, TRIANGLES};
 
+  /*! User-specified face and edge marks for feature edge detection */
+  typedef unsigned char FaceEdgeMark;
+  static const FaceEdgeMark FACE_MARK = 1;
+  static const FaceEdgeMark EDGE_MARK_V1V2 = 2;
+  static const FaceEdgeMark EDGE_MARK_V2V3 = 4;
+  static const FaceEdgeMark EDGE_MARK_V3V1 = 8;
+
   /*! Builds an empty indexed face set 
   */
   IndexedFaceSet();
@@ -109,6 +116,7 @@ public:
                   FrsMaterial **iMaterials, unsigned iMSize,
                   real *iTexCoords, unsigned iTSize,
 		  unsigned iNumFaces, unsigned *iNumVertexPerFace, TRIANGLES_STYLE *iFaceStyle,
+		  FaceEdgeMark *iFaceEdgeMarks,
 		  unsigned *iVIndices, unsigned iVISize,
 		  unsigned *iNIndices, unsigned iNISize,
                   unsigned *iMIndices, unsigned iMISize,
@@ -124,6 +132,7 @@ public:
 		std::swap(_Normals, ioOther._Normals);
 		std::swap(_FrsMaterials, ioOther._FrsMaterials);
         std::swap(_TexCoords, ioOther._TexCoords);
+		std::swap(_FaceEdgeMarks, ioOther._FaceEdgeMarks);
 
 		std::swap(_VSize, ioOther._VSize);
 		std::swap(_NSize, ioOther._NSize);
@@ -180,6 +189,7 @@ public:
   virtual const unsigned numFaces() const {return _NumFaces;}
   virtual const unsigned * numVertexPerFaces() const {return _NumVertexPerFace;}
   virtual const TRIANGLES_STYLE * trianglesStyle() const {return _FaceStyle;}
+  virtual const unsigned char * faceEdgeMarks() const {return _FaceEdgeMarks;}
   virtual const unsigned* vindices() const {return _VIndices;}
   virtual const unsigned* nindices() const {return _NIndices;}
   virtual const unsigned* mindices() const {return _MIndices;}
@@ -204,6 +214,7 @@ protected:
   unsigned _NumFaces;
   unsigned *_NumVertexPerFace;
   TRIANGLES_STYLE *_FaceStyle;
+  FaceEdgeMark *_FaceEdgeMarks;
 
   unsigned *_VIndices;
   unsigned *_NIndices;

@@ -154,6 +154,32 @@ static PyObject * FEdgeSharp_bMaterial( BPy_FEdgeSharp *self ) {
 	return BPy_FrsMaterial_from_FrsMaterial(m);
 }
 
+static char FEdgeSharp_aFaceMark___doc__[] =
+".. method:: aFaceMark()\n"
+"\n"
+"   Returns the face mark of the face lying on the right of the FEdge.\n"
+"   If this FEdge is a border, it has no face on the right, and thus\n"
+"   false is returned.\n"
+"\n"
+"   :return: The face mark of the face lying on the right of the FEdge.\n"
+"   :rtype: bool\n";
+
+static PyObject * FEdgeSharp_aFaceMark( BPy_FEdgeSharp *self ) {
+	return PyBool_from_bool( self->fes->aFaceMark() );
+}
+
+static char FEdgeSharp_bFaceMark___doc__[] =
+".. method:: bFaceMark()\n"
+"\n"
+"   Returns the face mark of the face lying on the left of the FEdge.\n"
+"\n"
+"   :return: The face mark of the face lying on the left of the FEdge.\n"
+"   :rtype: bool\n";
+
+static PyObject * FEdgeSharp_bFaceMark( BPy_FEdgeSharp *self ) {
+	return PyBool_from_bool( self->fes->bFaceMark() );
+}
+
 static char FEdgeSharp_setNormalA___doc__[] =
 ".. method:: setNormalA(iNormal)\n"
 "\n"
@@ -240,6 +266,44 @@ static PyObject * FEdgeSharp_setbMaterialIndex( BPy_FEdgeSharp *self, PyObject *
 	Py_RETURN_NONE;
 }
 
+static char FEdgeSharp_setaFaceMark___doc__[] =
+".. method:: setaFaceMark(i)\n"
+"\n"
+"   Sets the face mark of the face lying on the right of the FEdge.\n"
+"\n"
+"   :arg i: A face mark.\n"
+"   :type i: bool\n";
+
+static PyObject * FEdgeSharp_setaFaceMark( BPy_FEdgeSharp *self, PyObject *args ) {
+	PyObject *obj;
+
+	if(!( PyArg_ParseTuple(args, "O", &obj) ))
+		return NULL;
+	
+	self->fes->setaFaceMark( bool_from_PyBool(obj) );
+
+	Py_RETURN_NONE;
+}
+
+static char FEdgeSharp_setbFaceMark___doc__[] =
+".. method:: setbFaceMark(i)\n"
+"\n"
+"   Sets the face mark of the face lying on the left of the FEdge.\n"
+"\n"
+"   :arg i: A face mark.\n"
+"   :type i: bool\n";
+
+static PyObject * FEdgeSharp_setbFaceMark( BPy_FEdgeSharp *self, PyObject *args ) {
+	PyObject *obj;
+
+	if(!( PyArg_ParseTuple(args, "O", &obj) ))
+		return NULL;
+	
+	self->fes->setbFaceMark( bool_from_PyBool(obj) );
+
+	Py_RETURN_NONE;
+}
+
 /*----------------------FEdgeSharp instance definitions ----------------------------*/
 static PyMethodDef BPy_FEdgeSharp_methods[] = {	
 	{"normalA", ( PyCFunction ) FEdgeSharp_normalA, METH_NOARGS, FEdgeSharp_normalA___doc__},
@@ -248,10 +312,14 @@ static PyMethodDef BPy_FEdgeSharp_methods[] = {
 	{"bMaterialIndex", ( PyCFunction ) FEdgeSharp_bMaterialIndex, METH_NOARGS, FEdgeSharp_bMaterialIndex___doc__},
 	{"aMaterial", ( PyCFunction ) FEdgeSharp_aMaterial, METH_NOARGS, FEdgeSharp_aMaterial___doc__},
 	{"bMaterial", ( PyCFunction ) FEdgeSharp_bMaterial, METH_NOARGS, FEdgeSharp_bMaterial___doc__},
+	{"aFaceMark", ( PyCFunction ) FEdgeSharp_aFaceMark, METH_NOARGS, FEdgeSharp_aFaceMark___doc__},
+	{"bFaceMark", ( PyCFunction ) FEdgeSharp_bFaceMark, METH_NOARGS, FEdgeSharp_bFaceMark___doc__},
 	{"setNormalA", ( PyCFunction ) FEdgeSharp_setNormalA, METH_VARARGS, FEdgeSharp_setNormalA___doc__},
 	{"setNormalB", ( PyCFunction ) FEdgeSharp_setNormalB, METH_VARARGS, FEdgeSharp_setNormalB___doc__},
 	{"setaMaterialIndex", ( PyCFunction ) FEdgeSharp_setaMaterialIndex, METH_VARARGS, FEdgeSharp_setaMaterialIndex___doc__},
 	{"setbMaterialIndex", ( PyCFunction ) FEdgeSharp_setbMaterialIndex, METH_VARARGS, FEdgeSharp_setbMaterialIndex___doc__},
+	{"setaFaceMark", ( PyCFunction ) FEdgeSharp_setaFaceMark, METH_NOARGS, FEdgeSharp_setaFaceMark___doc__},
+	{"setbFaceMark", ( PyCFunction ) FEdgeSharp_setbFaceMark, METH_NOARGS, FEdgeSharp_setbFaceMark___doc__},
 	{NULL, NULL, 0, NULL}
 };
 

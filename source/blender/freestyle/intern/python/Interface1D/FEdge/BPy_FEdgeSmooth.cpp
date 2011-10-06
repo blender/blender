@@ -104,6 +104,18 @@ static PyObject * FEdgeSmooth_material( BPy_FEdgeSmooth *self ) {
 	return BPy_FrsMaterial_from_FrsMaterial(m);
 }
 
+static char FEdgeSmooth_faceMark___doc__[] =
+".. method:: faceMark()\n"
+"\n"
+"   Returns the face mark of the face it is running across.\n"
+"\n"
+"   :return: The face mark of the face it is running across.\n"
+"   :rtype: bool\n";
+
+static PyObject * FEdgeSmooth_faceMark( BPy_FEdgeSmooth *self ) {
+	return PyBool_from_bool( self->fes->faceMark() );
+}
+
 static char FEdgeSmooth_setNormal___doc__[] =
 ".. method:: setNormal(iNormal)\n"
 "\n"
@@ -147,13 +159,34 @@ static PyObject * FEdgeSmooth_setMaterialIndex( BPy_FEdgeSmooth *self, PyObject 
 	Py_RETURN_NONE;
 }
 
+static char FEdgeSmooth_setFaceMark___doc__[] =
+".. method:: setFaceMark(i)\n"
+"\n"
+"   Sets the face mark of the face it is running across.\n"
+"\n"
+"   :arg i: A face mark.\n"
+"   :type i: bool\n";
+
+static PyObject * FEdgeSmooth_setFaceMark( BPy_FEdgeSmooth *self, PyObject *args ) {
+	PyObject *obj;
+
+	if(!( PyArg_ParseTuple(args, "O", &obj) ))
+		return NULL;
+	
+	self->fes->setFaceMark( bool_from_PyBool(obj) );
+
+	Py_RETURN_NONE;
+}
+
 /*----------------------FEdgeSmooth instance definitions ----------------------------*/
 static PyMethodDef BPy_FEdgeSmooth_methods[] = {	
 	{"normal", ( PyCFunction ) FEdgeSmooth_normal, METH_NOARGS, FEdgeSmooth_normal___doc__},
 	{"materialIndex", ( PyCFunction ) FEdgeSmooth_materialIndex, METH_NOARGS, FEdgeSmooth_materialIndex___doc__},
 	{"material", ( PyCFunction ) FEdgeSmooth_material, METH_NOARGS, FEdgeSmooth_material___doc__},
+	{"faceMark", ( PyCFunction ) FEdgeSmooth_faceMark, METH_NOARGS, FEdgeSmooth_faceMark___doc__},
 	{"setNormal", ( PyCFunction ) FEdgeSmooth_setNormal, METH_VARARGS, FEdgeSmooth_setNormal___doc__},
 	{"setMaterialIndex", ( PyCFunction ) FEdgeSmooth_setMaterialIndex, METH_VARARGS, FEdgeSmooth_setMaterialIndex___doc__},
+	{"setFaceMark", ( PyCFunction ) FEdgeSmooth_setFaceMark, METH_VARARGS, FEdgeSmooth_setFaceMark___doc__},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -259,6 +259,7 @@ EditEdge *addedgelist(EditMesh *em, EditVert *v1, EditVert *v2, EditEdge *exampl
 		if(example) {
 			eed->crease= example->crease;
 			eed->bweight= example->bweight;
+			eed->freestyle = example->freestyle;
 			eed->sharp = example->sharp;
 			eed->seam = example->seam;
 			eed->h |= (example->h & EM_FGON);
@@ -828,6 +829,7 @@ void make_editMesh(Scene *scene, Object *ob)
 				
 				if(medge->flag & ME_SEAM) eed->seam= 1;
 				if(medge->flag & ME_SHARP) eed->sharp = 1;
+				if(medge->flag & ME_FREESTYLE_EDGE) eed->freestyle = 1;
 				if(medge->flag & SELECT) eed->f |= SELECT;
 				if(medge->flag & ME_FGON) eed->h= EM_FGON;	// 2 different defines!
 				if(medge->flag & ME_HIDE) eed->h |= 1;
@@ -1023,6 +1025,7 @@ void load_editMesh(Scene *scene, Object *obedit)
 		if(eed->f2==0) medge->flag |= ME_LOOSEEDGE;
 		if(eed->sharp) medge->flag |= ME_SHARP;
 		if(eed->seam) medge->flag |= ME_SEAM;
+		if(eed->freestyle) medge->flag |= ME_FREESTYLE_EDGE;
 		if(eed->h & EM_FGON) medge->flag |= ME_FGON;	// different defines yes
 		if(eed->h & 1) medge->flag |= ME_HIDE;
 		
@@ -1578,7 +1581,7 @@ typedef struct EditVertC
 typedef struct EditEdgeC
 {
 	int v1, v2;
-	unsigned char f, h, seam, sharp, pad;
+	unsigned char f, h, seam, sharp, freestyle;
 	short crease, bweight, fgoni;
 } EditEdgeC;
 
@@ -1680,6 +1683,7 @@ static void *editMesh_to_undoMesh(void *emv)
 		eedc->h= eed->h;
 		eedc->seam= eed->seam;
 		eedc->sharp= eed->sharp;
+		eedc->freestyle= eed->freestyle;
 		eedc->crease= (short)(eed->crease*255.0f);
 		eedc->bweight= (short)(eed->bweight*255.0f);
 		eedc->fgoni= eed->fgoni;
@@ -1778,6 +1782,7 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 		eed->h= eedc->h;
 		eed->seam= eedc->seam;
 		eed->sharp= eedc->sharp;
+		eed->freestyle= eedc->freestyle;
 		eed->fgoni= eedc->fgoni;
 		eed->crease= ((float)eedc->crease)/255.0f;
 		eed->bweight= ((float)eedc->bweight)/255.0f;

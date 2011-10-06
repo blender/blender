@@ -752,6 +752,32 @@ class LengthThresholdUP1D(UnaryPredicate1D):
             return False
         return True
 
+class FaceMarkBothUP1D(UnaryPredicate1D):
+    def __call__(self, inter): # ViewEdge
+        fe = inter.fedgeA()
+        while fe is not None:
+            if fe.isSmooth():
+                if fe.faceMark():
+                    return True
+            else:
+                if fe.aFaceMark() and fe.bFaceMark():
+                    return True
+            fe = fe.nextEdge()
+        return False
+
+class FaceMarkOneUP1D(UnaryPredicate1D):
+    def __call__(self, inter): # ViewEdge
+        fe = inter.fedgeA()
+        while fe is not None:
+            if fe.isSmooth():
+                if fe.faceMark():
+                    return True
+            else:
+                if fe.aFaceMark() or fe.bFaceMark():
+                    return True
+            fe = fe.nextEdge()
+        return False
+
 # predicates for splitting
 
 class MaterialBoundaryUP0D(UnaryPredicate0D):
@@ -825,6 +851,8 @@ def process(layer_name, lineset_name):
                 flags |= Nature.SUGGESTIVE_CONTOUR
             if lineset.select_material_boundary:
                 flags |= Nature.MATERIAL_BOUNDARY
+            if lineset.select_edge_mark:
+                flags |= Nature.EDGE_MARK
             if flags != Nature.NO_FEATURE:
                 edge_type_criteria.append(pyNatureUP1D(flags))
         else:
@@ -842,6 +870,8 @@ def process(layer_name, lineset_name):
                 edge_type_criteria.append(pyNatureUP1D(Nature.SUGGESTIVE_CONTOUR))
             if lineset.select_material_boundary:
                 edge_type_criteria.append(pyNatureUP1D(Nature.MATERIAL_BOUNDARY))
+            if lineset.select_edge_mark:
+                edge_type_criteria.append(pyNatureUP1D(Nature.EDGE_MARK))
         if lineset.select_contour:
             edge_type_criteria.append(ContourUP1D())
         if lineset.select_external_contour:
@@ -854,6 +884,15 @@ def process(layer_name, lineset_name):
             if lineset.edge_type_negation == "EXCLUSIVE":
                 upred = NotUP1D(upred)
             selection_criteria.append(upred)
+    # prepare selection criteria by face marks
+    if lineset.select_by_face_marks:
+        if lineset.face_mark_condition == "BOTH":
+            upred = FaceMarkBothUP1D()
+        else:
+            upred = FaceMarkOneUP1D()
+        if lineset.face_mark_negation == "EXCLUSIVE":
+            upred = NotUP1D(upred)
+        selection_criteria.append(upred)
     # prepare selection criteria by group of objects
     if lineset.select_by_group:
         if lineset.group is not None and len(lineset.group.objects) > 0:
