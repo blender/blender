@@ -1939,7 +1939,7 @@ static void node_texture_buts_output(uiLayout *layout, bContext *UNUSED(C), Poin
 /* only once called */
 static void node_texture_set_butfunc(bNodeType *ntype)
 {
-    ntype->uifuncbut = NULL;
+	ntype->uifuncbut = NULL;
 	if( ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX ) {
 		ntype->uifunc = node_texture_buts_proc;
 	}
