@@ -1812,16 +1812,19 @@ static char *wpaint_make_validmap(Object *ob)
 	bDeformGroup *dg;
 	ModifierData *md;
 	char *vgroup_validmap;
-	GHash *gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "wpaint_make_validmap gh");
+	GHash *gh;
 	int i = 0, step1=1;
 
-	/*add all names to a hash table*/
-	for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
-		BLI_ghash_insert(gh, dg->name, NULL);
+	if(ob->defbase.first == NULL) {
+		return NULL;
 	}
 
-	if (!i)
-		return NULL;
+	gh= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "wpaint_make_validmap gh");
+
+	/*add all names to a hash table*/
+	for (dg=ob->defbase.first; dg; dg=dg->next) {
+		BLI_ghash_insert(gh, dg->name, NULL);
+	}
 
 	vgroup_validmap= MEM_callocN(i, "wpaint valid map");
 
