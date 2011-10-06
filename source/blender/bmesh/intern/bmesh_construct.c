@@ -430,22 +430,26 @@ void BM_remove_tagged_verts(BMesh *bm, int flag)
 static void bm_copy_vert_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMVert *source_vertex, BMVert *target_vertex)
 {
 	copy_v3_v3(target_vertex->no, source_vertex->no);
+	CustomData_bmesh_free_block(&target_mesh->vdata, &target_vertex->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->vdata, &target_mesh->vdata, source_vertex->head.data, &target_vertex->head.data);	
 }
 
 static void bm_copy_edge_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMEdge *source_edge, BMEdge *target_edge)
 {
+	CustomData_bmesh_free_block(&target_mesh->edata, &target_edge->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->edata, &target_mesh->edata, source_edge->head.data, &target_edge->head.data);
 }
 
 static void bm_copy_loop_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMLoop *source_loop, BMLoop *target_loop)
 {
+	CustomData_bmesh_free_block(&target_mesh->ldata, &target_loop->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->ldata, &target_mesh->ldata, source_loop->head.data, &target_loop->head.data);
 }
 
 static void bm_copy_face_attributes(BMesh *source_mesh, BMesh *target_mesh, const BMFace *source_face, BMFace *target_face)
 {
 	copy_v3_v3(target_face->no, source_face->no);
+	CustomData_bmesh_free_block(&target_mesh->pdata, &target_face->head.data);
 	CustomData_bmesh_copy_data(&source_mesh->pdata, &target_mesh->pdata, source_face->head.data, &target_face->head.data);	
 	target_face->mat_nr = source_face->mat_nr;
 }
@@ -625,13 +629,13 @@ int BMFlags_To_MEFlags(void *element) {
 		if (src_flag & BM_SELECT)        dst_flag |= ME_FACE_SEL;
 		if (src_flag & BM_SMOOTH)        dst_flag |= ME_SMOOTH;
 	} else if (src_type == BM_EDGE) {
-		if (src_flag & BM_SELECT)        dst_flag |= BM_SELECT;
+		if (src_flag & BM_SELECT)        dst_flag |= SELECT;
 		if (src_flag & BM_SEAM)          dst_flag |= ME_SEAM;
 		if (src_flag & BM_SHARP)         dst_flag |= ME_SHARP;
 		if (BM_Wire_Edge(NULL, element)) dst_flag |= ME_LOOSEEDGE;
 		dst_flag |= ME_EDGEDRAW;
 	} else if (src_type == BM_VERT) {
-		if (src_flag & BM_SELECT)        dst_flag |= BM_SELECT;
+		if (src_flag & BM_SELECT)        dst_flag |= SELECT;
 	}
 
 	return dst_flag;
