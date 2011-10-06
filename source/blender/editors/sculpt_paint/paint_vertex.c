@@ -1114,31 +1114,33 @@ static void do_weight_paint_auto_normalize(MDeformVert *dvert,
 #endif
 
 /* the active group should be involved in auto normalize */
-static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, char *map, char do_auto_normalize)
+static void do_weight_paint_auto_normalize_all_groups(MDeformVert *dvert, const char *vgroup_validmap, char do_auto_normalize)
 {
-//	MDeformWeight *dw = dvert->dw;
-	float sum=0.0f, fac=0.0f;
-	int i, tot=0;
-
-	if (do_auto_normalize == FALSE)
+	if (do_auto_normalize == FALSE) {
 		return;
-
-	for (i=0; i<dvert->totweight; i++) {
-		if (map[dvert->dw[i].def_nr]) {
-			tot += 1;
-			sum += dvert->dw[i].weight;
-		}
 	}
-	
-	if (!tot || sum == 1.0f)
-		return;
+	else {
+		float sum= 0.0f, fac;
+		unsigned int i, tot=0;
+		MDeformWeight *dw;
 
-	fac = sum;
-	fac = fac==0.0f ? 1.0f : 1.0f / fac;
+		for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
+			if (vgroup_validmap[dw->def_nr]) {
+				tot++;
+				sum += dw->weight;
+			}
+		}
 
-	for (i=0; i<dvert->totweight; i++) {
-		if (map[dvert->dw[i].def_nr]) {
-			dvert->dw[i].weight *= fac;
+		if ((tot == 0) || (sum == 1.0f) || (sum == 0.0f)) {
+			return;
+		}
+
+		fac= 1.0f / sum;
+
+		for (i= dvert->totweight, dw= dvert->dw; i != 0; i--, dw++) {
+			if (vgroup_validmap[dw->def_nr]) {
+				dw->weight *= fac;
+			}
 		}
 	}
 }
@@ -1828,8 +1830,7 @@ static char *wpaint_make_validmap(Object *ob)
 		if (!(md->mode & (eModifierMode_Realtime|eModifierMode_Virtual)))
 			continue;
 
-		if (md->type == eModifierType_Armature) 
-		{
+		if (md->type == eModifierType_Armature) {
 			ArmatureModifierData *amd= (ArmatureModifierData*) md;
 
 			if(amd->object && amd->object->pose) {
@@ -2006,7 +2007,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	wpi.vgroup_validmap=    wpd->vgroup_validmap;
 	wpi.do_flip=            RNA_boolean_get(itemptr, "pen_flip");
 	wpi.do_multipaint=      (ts->multipaint != 0);
-	wpi.do_auto_normalize=	(ts->auto_normalize != 0);
+	wpi.do_auto_normalize=	((ts->auto_normalize != 0) && (wpi.vgroup_validmap != NULL));
 	/* *** done setting up WeightPaintInfo *** */
 
 
