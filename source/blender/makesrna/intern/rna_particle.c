@@ -691,14 +691,13 @@ static void rna_ParticleDupliWeight_active_index_set(struct PointerRNA *ptr, int
 	}
 }
 
+static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str);
+
 static int rna_ParticleDupliWeight_name_length(PointerRNA *ptr)
 {
-	ParticleDupliWeight *dw= ptr->data;
-
-	if(dw->ob)
-		return strlen(dw->ob->id.name+2) + 7;
-	else
-		return 9 + 7;
+	char tstr[32];
+	rna_ParticleDupliWeight_name_get(ptr, tstr);
+	return strlen(tstr);
 }
 
 static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
