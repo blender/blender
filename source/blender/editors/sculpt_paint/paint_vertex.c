@@ -1609,7 +1609,6 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 	        (wpi->lock_flags == NULL || has_locked_group(dv, wpi->lock_flags) == FALSE))
 	{
 		wpaint_blend(wp, dw, uw, alpha, paintweight, wpi->do_flip, FALSE);
-		do_weight_paint_auto_normalize_all_groups(dv, wpi->vgroup_validmap, wpi->do_auto_normalize);
 
 		if(me->editflag & ME_EDIT_MIRROR_X) {	/* x mirror painting */
 			int index_mirr= mesh_get_x_mirror_vert(ob, index);
@@ -1625,7 +1624,7 @@ static void do_weight_paint_vertex( /* vars which remain the same for every vert
 		 * which has already been scaled down in relation to other weights,
 		 * then scales a second time [#26193]. Tricky multi-paint code doesn't
 		 * suffer from this problem - campbell */
-		do_weight_paint_auto_normalize_all_groups(dv_mirr, wpi->vgroup_validmap, wpi->do_auto_normalize);
+		do_weight_paint_auto_normalize_all_groups(dv, wpi->vgroup_validmap, wpi->do_auto_normalize);
 	}
 	else {
 		/* use locks and/or multipaint */
