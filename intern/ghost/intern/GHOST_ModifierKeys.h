@@ -44,10 +44,10 @@
  */
 struct GHOST_ModifierKeys
 {
-    /**
-     * Constructor.
-     */
-    GHOST_ModifierKeys();
+	/**
+	 * Constructor.
+	 */
+	GHOST_ModifierKeys();
 
 	virtual ~GHOST_ModifierKeys();
 
@@ -58,25 +58,25 @@ struct GHOST_ModifierKeys
 	 */
 	static GHOST_TKey getModifierKeyCode(GHOST_TModifierKeyMask mask);
 
-    
-    /**
-     * Returns the state of a single modifier key.
-     * @param mask. Key state to return.
-     * @return The state of the key (pressed == true).
-     */
-    virtual bool get(GHOST_TModifierKeyMask mask) const;
-    
-    /**
-     * Updates the state of a single modifier key.
-     * @param mask. Key state to update.
-     * @param down. The new state of the key.
-     */
-    virtual void set(GHOST_TModifierKeyMask mask, bool down);
-    
-    /**
-     * Sets the state of all modifier keys to up.
-     */
-    virtual void clear();
+
+	/**
+	 * Returns the state of a single modifier key.
+	 * @param mask. Key state to return.
+	 * @return The state of the key (pressed == true).
+	 */
+	virtual bool get(GHOST_TModifierKeyMask mask) const;
+
+	/**
+	 * Updates the state of a single modifier key.
+	 * @param mask. Key state to update.
+	 * @param down. The new state of the key.
+	 */
+	virtual void set(GHOST_TModifierKeyMask mask, bool down);
+
+	/**
+	 * Sets the state of all modifier keys to up.
+	 */
+	virtual void clear();
 
 	/**
 	 * Determines whether to modifier key states are equal.
@@ -84,21 +84,21 @@ struct GHOST_ModifierKeys
 	 * @return Indication of equality.
 	 */
 	virtual bool equals(const GHOST_ModifierKeys& keys) const;
-    
-    /** Bitfield that stores the appropriate key state. */
-    GHOST_TUns8 m_LeftShift : 1;
-    /** Bitfield that stores the appropriate key state. */
-    GHOST_TUns8 m_RightShift : 1;
-    /** Bitfield that stores the appropriate key state. */
-    GHOST_TUns8 m_LeftAlt : 1;
-    /** Bitfield that stores the appropriate key state. */
-    GHOST_TUns8 m_RightAlt : 1;
-    /** Bitfield that stores the appropriate key state. */
-    GHOST_TUns8 m_LeftControl : 1;
-    /** Bitfield that stores the appropriate key state. */
-    GHOST_TUns8 m_RightControl : 1;
-    /** Bitfield that stores the appropriate key state. */
-    GHOST_TUns8 m_OS : 1;
+
+	/** Bitfield that stores the appropriate key state. */
+	GHOST_TUns8 m_LeftShift : 1;
+	/** Bitfield that stores the appropriate key state. */
+	GHOST_TUns8 m_RightShift : 1;
+	/** Bitfield that stores the appropriate key state. */
+	GHOST_TUns8 m_LeftAlt : 1;
+	/** Bitfield that stores the appropriate key state. */
+	GHOST_TUns8 m_RightAlt : 1;
+	/** Bitfield that stores the appropriate key state. */
+	GHOST_TUns8 m_LeftControl : 1;
+	/** Bitfield that stores the appropriate key state. */
+	GHOST_TUns8 m_RightControl : 1;
+	/** Bitfield that stores the appropriate key state. */
+	GHOST_TUns8 m_OS : 1;
 };
 
 #endif // _GHOST_MODIFIER_KEYS_H_
