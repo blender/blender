@@ -43,7 +43,8 @@ def dump_messages_rna(messages):
                                "BlendData",
                                # registerable classes
                                "Panel", "Menu", "Header", "RenderEngine",
-                               "Operator", "OperatorMacro", "UnknownType"
+                               "Operator", "OperatorMacro", "Macro",
+                               "KeyingSetInfo", "UnknownType",
                                # window classes
                                "WindowManager", "Window"
                                ]
