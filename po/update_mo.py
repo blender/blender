@@ -27,7 +27,8 @@ import subprocess
 import os
 import sys
 
-CURRENT_DIR = os.path.dirname(__file__)
+GETTEXT_MSGFMT_EXECUTABLE = "msgfmt"
+CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.join(CURRENT_DIR, "..")))
 LOCALE_DIR = os.path.join(SOURCE_DIR, "release", "bin", ".blender", "locale")
 
@@ -38,7 +39,7 @@ def process_po(po):
     lang = os.path.basename(po)[:-3]
 
     # show stats
-    cmd = ("msgfmt",
+    cmd = (GETTEXT_MSGFMT_EXECUTABLE,
         "--statistics",
         os.path.join(CURRENT_DIR, "%s.po" % lang),
         "-o",

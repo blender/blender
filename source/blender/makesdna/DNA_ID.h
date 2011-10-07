@@ -125,7 +125,7 @@ typedef struct Library {
 
 enum eIconSizes {
 	ICON_SIZE_ICON,
-	ICON_SIZE_PREVIEW,
+	ICON_SIZE_PREVIEW
 };
 #define NUM_ICON_SIZES (ICON_SIZE_PREVIEW + 1)
 
@@ -204,6 +204,8 @@ typedef struct PreviewImage {
 #define ID_FLUIDSIM	MAKE_ID2('F', 'S')
 
 #define ID_REAL_USERS(id) (((ID *)id)->us - ((((ID *)id)->flag & LIB_FAKEUSER) ? 1:0))
+
+#define ID_CHECK_UNDO(id) ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM))
 
 #ifdef GS
 #undef GS

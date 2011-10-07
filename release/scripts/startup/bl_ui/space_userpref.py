@@ -22,8 +22,6 @@ from bpy.types import Header, Menu, Panel
 import os
 import addon_utils
 
-from bpy.props import StringProperty, BoolProperty, EnumProperty
-
 
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)

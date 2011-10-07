@@ -40,7 +40,7 @@ void bpy_app_generic_callback(struct Main *main, struct ID *id, void *arg);
 static PyTypeObject BlenderAppCbType;
 
 static PyStructSequence_Field app_cb_info_fields[]= {
-    {(char *)"frame_change_pre", NULL},
+	{(char *)"frame_change_pre", NULL},
 	{(char *)"frame_change_post", NULL},
 	{(char *)"render_pre", NULL},
 	{(char *)"render_post", NULL},

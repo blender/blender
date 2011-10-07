@@ -900,8 +900,8 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 	long long st_time; 
 	struct anim_index * tc_index = 0;
 	AVStream * v_st;
-	int new_frame_index;
-	int old_frame_index;
+	int new_frame_index = 0; /* To quite gcc barking... */
+	int old_frame_index = 0; /* To quite gcc barking... */
 
 	if (anim == 0) return (0);
 

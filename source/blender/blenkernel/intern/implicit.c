@@ -913,7 +913,7 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 {
 	// Solves for unknown X in equation AX=B
 	unsigned int conjgrad_loopcount=0, conjgrad_looplimit=100;
-	float conjgrad_epsilon=0.0001f, conjgrad_lasterror=0;
+	float conjgrad_epsilon=0.0001f /* , conjgrad_lasterror=0 */ /* UNUSED */;
 	lfVector *q, *d, *tmp, *r; 
 	float s, starget, a, s_prev;
 	unsigned int numverts = lA[0].vcount;
@@ -964,7 +964,7 @@ static int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z
 
 		conjgrad_loopcount++;
 	}
-	conjgrad_lasterror = s;
+	/* conjgrad_lasterror = s; */ /* UNUSED */
 
 	del_lfvector(q);
 	del_lfvector(d);
@@ -1777,7 +1777,7 @@ int cloth_calc_helper_forces(Object *UNUSED(ob), ClothModifierData * clmd, float
 	steps = 55;
 	for (i=0; i<steps; i++) {
 		for (node=cloth->springs; node; node=node->next) {
-			ClothVertex *cv1, *cv2;
+			/* ClothVertex *cv1, *cv2; */ /* UNUSED */
 			int v1, v2;
 			float len, c, l, vec[3];
 			
@@ -1786,8 +1786,8 @@ int cloth_calc_helper_forces(Object *UNUSED(ob), ClothModifierData * clmd, float
 				continue;
 			
 			v1 = spring->ij; v2 = spring->kl;
-			cv1 = cloth->verts + v1;
-			cv2 = cloth->verts + v2;
+			/* cv1 = cloth->verts + v1; */ /* UNUSED */
+			/* cv2 = cloth->verts + v2; */ /* UNUSED */
 			len = len_v3v3(cos[v1], cos[v2]);
 			
 			sub_v3_v3v3(vec, cos[v1], cos[v2]);

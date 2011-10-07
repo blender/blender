@@ -236,6 +236,7 @@ char *rna_TextureSlot_path(struct PointerRNA *ptr);
 void RNA_api_action(StructRNA *srna);
 void RNA_api_armature_edit_bone(StructRNA *srna);
 void RNA_api_bone(StructRNA *srna);
+void RNA_api_camera(StructRNA *srna);
 void RNA_api_drivers(StructRNA *srna);
 void RNA_api_image(struct StructRNA *srna);
 void RNA_api_operator(struct StructRNA *srna);
@@ -383,6 +384,9 @@ int rna_parameter_size_alloc(struct PropertyRNA *parm);
 struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct bContext *C, struct ReportList *reports);
 struct MTex *rna_mtex_texture_slots_create(struct ID *self, struct bContext *C, struct ReportList *reports, int index);
 void rna_mtex_texture_slots_clear(struct ID *self, struct bContext *C, struct ReportList *reports, int index);
+
+
+int rna_IDMaterials_assign_int(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
 
 #endif /* RNA_INTERNAL_H */
 

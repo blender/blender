@@ -302,7 +302,7 @@ def api_changelog(api_from, api_to, api_out):
             for func_id, args_old, args_new in func_args:
                 args_new = ", ".join(args_new)
                 args_old = ", ".join(args_old)
-                fw("* :class:`%s.%s.%s` (%s), *was (%s)*\n" % (mod_id, class_name, prop_id, args_new, args_old))
+                fw("* :class:`%s.%s.%s` (%s), *was (%s)*\n" % (mod_id, class_name, func_id, args_new, args_old))
             fw("\n")
 
     fout.close()

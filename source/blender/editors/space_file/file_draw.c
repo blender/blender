@@ -111,8 +111,8 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 {
 	/* Button layout. */
 	const int max_x      = ar->winx - 10;
-	const int line1_y    = IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN*2;
-	const int line2_y    = IMASEL_BUTTONS_MARGIN;
+	const int line1_y    = ar->winy - (IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN);
+	const int line2_y    = line1_y - (IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN);
 	const int input_minw = 20;
 	const int btn_h      = UI_UNIT_Y;
 	const int btn_fn_w   = UI_UNIT_X;

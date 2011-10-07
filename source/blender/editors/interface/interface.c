@@ -678,6 +678,11 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 					SWAP(void *, oldbut->func_argN, but->func_argN)
 				}
 				
+				/* copy hardmin for list rows to prevent 'sticking' highlight to mouse position
+				   when scrolling without moving mouse (see [#28432]) */
+				if(ELEM(oldbut->type, ROW, LISTROW))
+					oldbut->hardmax= but->hardmax;
+				
 				ui_but_update_linklines(block, oldbut, but);
 				
 				BLI_remlink(&block->buttons, but);
@@ -746,7 +751,7 @@ static int ui_but_is_rna_undo(uiBut *but)
 		 * unforseen conciquences, so best check for ID's we _know_ are not
 		 * handled by undo - campbell */
 		ID *id= but->rnapoin.id.data;
-		if(ELEM(GS(id->name), ID_SCR, ID_WM)) {
+		if(ID_CHECK_UNDO(id) == FALSE) {
 			return FALSE;
 		}
 		else {
@@ -2044,7 +2049,7 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 		wm_subwindow_getsize(window, window->screen->mainwin, &getsizex, &getsizey);
 
 		block->aspect= 2.0/fabs(getsizex*block->winmat[0][0]);
-		block->auto_open= 2;
+		block->auto_open= TRUE;
 		block->flag |= UI_BLOCK_LOOP; /* tag as menu */
 	}
 
@@ -2286,7 +2291,7 @@ int ui_but_can_align(uiBut *but)
 	return !ELEM3(but->type, LABEL, OPTION, OPTIONN);
 }
 
-static void ui_block_do_align_but(uiBut *first, int nr)
+static void ui_block_do_align_but(uiBut *first, short nr)
 {
 	uiBut *prev, *but=NULL, *next;
 	int flag= 0, cols=0, rows=0;
@@ -2423,7 +2428,7 @@ static void ui_block_do_align_but(uiBut *first, int nr)
 void ui_block_do_align(uiBlock *block)
 {
 	uiBut *but;
-	int nr;
+	short nr;
 
 	/* align buttons with same align nr */
 	for(but=block->buttons.first; but;) {
@@ -2467,7 +2472,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	but->pointype= type & BUTPOIN;
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
-	but->icon = 0;
+	but->icon = ICON_NONE;
 	but->iconadd=0;
 
 	but->retval= retval;
@@ -2514,7 +2519,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str, 
 	but->pos= -1;	/* cursor invisible */
 
 	if(ELEM4(but->type, NUM, NUMABS, NUMSLI, HSVSLI)) {	/* add a space to name */
-		slen= strlen(but->str);
+		/* slen remains unchanged from previous assignment, ensure this stays true */
 		if(slen>0 && slen<UI_MAX_NAME_STR-2) {
 			if(but->str[slen-1]!=' ') {
 				but->str[slen]= ' ';

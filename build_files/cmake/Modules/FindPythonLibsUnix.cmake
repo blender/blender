@@ -34,67 +34,71 @@ IF(NOT PYTHON_ROOT_DIR AND NOT $ENV{PYTHON_ROOT_DIR} STREQUAL "")
   SET(PYTHON_ROOT_DIR $ENV{PYTHON_ROOT_DIR})
 ENDIF()
 
-IF(DEFINED PYTHON_VERSION)
-  SET(PYTHON_VERSION "${PYTHON_VERSION}" CACHE STRING "")
-ELSE()
-  SET(PYTHON_VERSION 3.2 CACHE STRING "")
-ENDIF()
+SET(PYTHON_VERSION 3.2 CACHE STRING "Python Version (major and minor only)")
 MARK_AS_ADVANCED(PYTHON_VERSION)
 
-SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic")
+
+# See: http://docs.python.org/extending/embedding.html#linking-requirements
+#      for why this is needed
+SET(PYTHON_LINKFLAGS "-Xlinker -export-dynamic" CACHE STRING "Linker flags for python")
 MARK_AS_ADVANCED(PYTHON_LINKFLAGS)
 
-SET(_python_ABI_FLAGS
-  "m;mu;u; "  # release
-  "md;mud;ud;d" # debug
-)
 
-STRING(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
+# only search for the dirs if we havn't already
+IF((NOT DEFINED PYTHON_INCLUDE_DIR) OR (NOT DEFINED PYTHON_LIBRARY))
 
-SET(_python_SEARCH_DIRS
-  ${PYTHON_ROOT_DIR}
-  "$ENV{HOME}/py${_PYTHON_VERSION_NO_DOTS}"
-  "/opt/py${_PYTHON_VERSION_NO_DOTS}"
-)
-
-FOREACH(_CURRENT_ABI_FLAGS ${_python_ABI_FLAGS})
-  #IF(CMAKE_BUILD_TYPE STREQUAL Debug)
-  #  SET(_CURRENT_ABI_FLAGS "d${_CURRENT_ABI_FLAGS}")
-  #ENDIF()
-  STRING(REPLACE " " "" _CURRENT_ABI_FLAGS ${_CURRENT_ABI_FLAGS})
-
-  FIND_PATH(PYTHON_INCLUDE_DIR
-    NAMES
-      Python.h
-    HINTS
-      ${_python_SEARCH_DIRS}
-    PATH_SUFFIXES
-      include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+  SET(_python_ABI_FLAGS
+    "m;mu;u; "    # release
+    "md;mud;ud;d" # debug
   )
 
-  FIND_LIBRARY(PYTHON_LIBRARY
-    NAMES
-      "python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}"
-    HINTS
-      ${_python_SEARCH_DIRS}
-    PATH_SUFFIXES
-      lib64 lib
+  STRING(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
+
+  SET(_python_SEARCH_DIRS
+    ${PYTHON_ROOT_DIR}
+    "$ENV{HOME}/py${_PYTHON_VERSION_NO_DOTS}"
+    "/opt/py${_PYTHON_VERSION_NO_DOTS}"
   )
 
-  IF(PYTHON_LIBRARY AND PYTHON_INCLUDE_DIR)
-    break()
-  ELSE()
-    # ensure we dont find values from 2 different ABI versions
-    UNSET(PYTHON_INCLUDE_DIR CACHE)
-    UNSET(PYTHON_LIBRARY CACHE)
-  ENDIF()
-ENDFOREACH()
+  FOREACH(_CURRENT_ABI_FLAGS ${_python_ABI_FLAGS})
+    #IF(CMAKE_BUILD_TYPE STREQUAL Debug)
+    #  SET(_CURRENT_ABI_FLAGS "d${_CURRENT_ABI_FLAGS}")
+    #ENDIF()
+    STRING(REPLACE " " "" _CURRENT_ABI_FLAGS ${_CURRENT_ABI_FLAGS})
 
-UNSET(_CURRENT_ABI_FLAGS)
-UNSET(_CURRENT_PATH)
+    FIND_PATH(PYTHON_INCLUDE_DIR
+      NAMES
+        Python.h
+      HINTS
+        ${_python_SEARCH_DIRS}
+      PATH_SUFFIXES
+        include/python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}
+    )
 
-UNSET(_python_ABI_FLAGS)
-UNSET(_python_SEARCH_DIRS)
+    FIND_LIBRARY(PYTHON_LIBRARY
+      NAMES
+        "python${PYTHON_VERSION}${_CURRENT_ABI_FLAGS}"
+      HINTS
+        ${_python_SEARCH_DIRS}
+      PATH_SUFFIXES
+        lib64 lib
+    )
+
+    IF(PYTHON_LIBRARY AND PYTHON_INCLUDE_DIR)
+      break()
+    ELSE()
+      # ensure we dont find values from 2 different ABI versions
+      UNSET(PYTHON_INCLUDE_DIR CACHE)
+      UNSET(PYTHON_LIBRARY CACHE)
+    ENDIF()
+  ENDFOREACH()
+
+  UNSET(_CURRENT_ABI_FLAGS)
+  UNSET(_CURRENT_PATH)
+
+  UNSET(_python_ABI_FLAGS)
+  UNSET(_python_SEARCH_DIRS)
+ENDIF()
 
 # handle the QUIETLY and REQUIRED arguments and SET PYTHONLIBSUNIX_FOUND to TRUE IF 
 # all listed variables are TRUE

@@ -723,6 +723,48 @@ void test_object_materials(ID *id)
 	}
 }
 
+void assign_material_id(ID *id, Material *ma, short act)
+{
+	Material *mao, **matar, ***matarar;
+	short *totcolp;
+
+	if(act>MAXMAT) return;
+	if(act<1) act= 1;
+
+	/* prevent crashing when using accidentally */
+	BLI_assert(id->lib == NULL);
+	if(id->lib) return;
+
+	/* test arraylens */
+
+	totcolp= give_totcolp_id(id);
+	matarar= give_matarar_id(id);
+
+	if(totcolp==NULL || matarar==NULL) return;
+
+	if(act > *totcolp) {
+		matar= MEM_callocN(sizeof(void *)*act, "matarray1");
+
+		if(*totcolp) {
+			memcpy(matar, *matarar, sizeof(void *)*(*totcolp));
+			MEM_freeN(*matarar);
+		}
+
+		*matarar= matar;
+		*totcolp= act;
+	}
+
+	/* in data */
+	mao= (*matarar)[act-1];
+	if(mao) mao->id.us--;
+	(*matarar)[act-1]= ma;
+
+	if(ma)
+		id_us_plus((ID *)ma);
+
+	test_object_materials(id);
+}
+
 void assign_material(Object *ob, Material *ma, short act)
 {
 	Material *mao, **matar, ***matarar;
@@ -1953,6 +1995,11 @@ int do_version_tface(Main *main, int fileload)
 				}
 			}
 		}
+		/* material is not used by faces with texface
+		 * set the default flag - do it only once */
+		else
+			 if (fileload)
+					ma->game.flag = GEMAT_BACKCULL;
 	}
 
 	return nowarning;

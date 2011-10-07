@@ -451,7 +451,7 @@ static void rna_def_action_group(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "channels", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "channels", NULL);
 	RNA_def_property_struct_type(prop, "FCurve");
-	RNA_def_property_collection_funcs(prop, 0, "rna_ActionGroup_channels_next", 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, 0, "rna_ActionGroup_channels_next", NULL, NULL, NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Channels", "F-Curves in this group");
 	
 	prop= RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);

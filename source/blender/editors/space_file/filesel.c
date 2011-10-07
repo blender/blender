@@ -246,6 +246,11 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		sfile->folders_prev = folderlist_new();
 	folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
+	/* switching thumbnails needs to recalc layout [#28809] */
+	if (sfile->layout) {
+		sfile->layout->dirty= TRUE;
+	}
+
 	return 1;
 }
 
@@ -466,12 +471,13 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 	int maxlen = 0;
 	int numfiles;
 	int textheight;
+
 	if (sfile->layout == NULL) {
 		sfile->layout = MEM_callocN(sizeof(struct FileLayout), "file_layout");
-		sfile->layout->dirty = 1;
-	} 
-
-	if (!sfile->layout->dirty) return;
+		sfile->layout->dirty = TRUE;
+	} else if (sfile->layout->dirty == FALSE) {
+		return;
+	}
 
 	numfiles = filelist_numfiles(sfile->files);
 	textheight = (int)file_font_pointsize();
@@ -538,7 +544,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar)
 		layout->width = sfile->layout->columns * (layout->tile_w + 2*layout->tile_border_x) + layout->tile_border_x*2;
 		layout->flag = FILE_LAYOUT_HOR;
 	}
-	layout->dirty= 0;
+	layout->dirty= FALSE;
 }
 
 FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar)

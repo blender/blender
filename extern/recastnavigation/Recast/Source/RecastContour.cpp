@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2009 Mikko Mononen memon@inside.org
+// Copyright (c) 2009-2010 Mikko Mononen memon@inside.org
 //
 // This software is provided 'as-is', without any express or implied
 // warranty.  In no event will the authors be held liable for any damages
@@ -21,8 +21,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "Recast.h"
-#include "RecastLog.h"
-#include "RecastTimer.h"
+#include "RecastAlloc.h"
+#include "RecastAssert.h"
 
 
 static int getCornerHeight(int x, int y, int i, int dir,
@@ -33,44 +33,46 @@ static int getCornerHeight(int x, int y, int i, int dir,
 	int ch = (int)s.y;
 	int dirp = (dir+1) & 0x3;
 	
-	unsigned short regs[4] = {0,0,0,0};
+	unsigned int regs[4] = {0,0,0,0};
 	
-	regs[0] = s.reg;
+	// Combine region and area codes in order to prevent
+	// border vertices which are in between two areas to be removed. 
+	regs[0] = chf.spans[i].reg | (chf.areas[i] << 16);
 	
-	if (rcGetCon(s, dir) != 0xf)
+	if (rcGetCon(s, dir) != RC_NOT_CONNECTED)
 	{
 		const int ax = x + rcGetDirOffsetX(dir);
 		const int ay = y + rcGetDirOffsetY(dir);
 		const int ai = (int)chf.cells[ax+ay*chf.width].index + rcGetCon(s, dir);
 		const rcCompactSpan& as = chf.spans[ai];
 		ch = rcMax(ch, (int)as.y);
-		regs[1] = as.reg;
-		if (rcGetCon(as, dirp) != 0xf)
+		regs[1] = chf.spans[ai].reg | (chf.areas[ai] << 16);
+		if (rcGetCon(as, dirp) != RC_NOT_CONNECTED)
 		{
 			const int ax2 = ax + rcGetDirOffsetX(dirp);
 			const int ay2 = ay + rcGetDirOffsetY(dirp);
 			const int ai2 = (int)chf.cells[ax2+ay2*chf.width].index + rcGetCon(as, dirp);
 			const rcCompactSpan& as2 = chf.spans[ai2];
 			ch = rcMax(ch, (int)as2.y);
-			regs[2] = as2.reg;
+			regs[2] = chf.spans[ai2].reg | (chf.areas[ai2] << 16);
 		}
 	}
-	if (rcGetCon(s, dirp) != 0xf)
+	if (rcGetCon(s, dirp) != RC_NOT_CONNECTED)
 	{
 		const int ax = x + rcGetDirOffsetX(dirp);
 		const int ay = y + rcGetDirOffsetY(dirp);
 		const int ai = (int)chf.cells[ax+ay*chf.width].index + rcGetCon(s, dirp);
 		const rcCompactSpan& as = chf.spans[ai];
 		ch = rcMax(ch, (int)as.y);
-		regs[3] = as.reg;
-		if (rcGetCon(as, dir) != 0xf)
+		regs[3] = chf.spans[ai].reg | (chf.areas[ai] << 16);
+		if (rcGetCon(as, dir) != RC_NOT_CONNECTED)
 		{
 			const int ax2 = ax + rcGetDirOffsetX(dir);
 			const int ay2 = ay + rcGetDirOffsetY(dir);
 			const int ai2 = (int)chf.cells[ax2+ay2*chf.width].index + rcGetCon(as, dir);
 			const rcCompactSpan& as2 = chf.spans[ai2];
 			ch = rcMax(ch, (int)as2.y);
-			regs[2] = as2.reg;
+			regs[2] = chf.spans[ai2].reg | (chf.areas[ai2] << 16);
 		}
 	}
 
@@ -86,8 +88,9 @@ static int getCornerHeight(int x, int y, int i, int dir,
 		// followed by two interior cells and none of the regions are out of bounds.
 		const bool twoSameExts = (regs[a] & regs[b] & RC_BORDER_REG) != 0 && regs[a] == regs[b];
 		const bool twoInts = ((regs[c] | regs[d]) & RC_BORDER_REG) == 0;
+		const bool intsSameArea = (regs[c]>>16) == (regs[d]>>16);
 		const bool noZeros = regs[a] != 0 && regs[b] != 0 && regs[c] != 0 && regs[d] != 0;
-		if (twoSameExts && twoInts && noZeros)
+		if (twoSameExts && twoInts && intsSameArea && noZeros)
 		{
 			isBorderVertex = true;
 			break;
@@ -109,6 +112,8 @@ static void walkContour(int x, int y, int i,
 	unsigned char startDir = dir;
 	int starti = i;
 	
+	const unsigned char area = chf.areas[i];
+	
 	int iter = 0;
 	while (++iter < 40000)
 	{
@@ -116,6 +121,7 @@ static void walkContour(int x, int y, int i,
 		{
 			// Choose the edge corner
 			bool isBorderVertex = false;
+			bool isAreaBorder = false;
 			int px = x;
 			int py = getCornerHeight(x, y, i, dir, chf, isBorderVertex);
 			int pz = y;
@@ -127,16 +133,19 @@ static void walkContour(int x, int y, int i,
 			}
 			int r = 0;
 			const rcCompactSpan& s = chf.spans[i];
-			if (rcGetCon(s, dir) != 0xf)
+			if (rcGetCon(s, dir) != RC_NOT_CONNECTED)
 			{
 				const int ax = x + rcGetDirOffsetX(dir);
 				const int ay = y + rcGetDirOffsetY(dir);
 				const int ai = (int)chf.cells[ax+ay*chf.width].index + rcGetCon(s, dir);
-				const rcCompactSpan& as = chf.spans[ai];
-				r = (int)as.reg;
+				r = (int)chf.spans[ai].reg;
+				if (area != chf.areas[ai])
+					isAreaBorder = true;
 			}
 			if (isBorderVertex)
 				r |= RC_BORDER_VERTEX;
+			if (isAreaBorder)
+				r |= RC_AREA_BORDER;
 			points.push(px);
 			points.push(py);
 			points.push(pz);
@@ -151,7 +160,7 @@ static void walkContour(int x, int y, int i,
 			const int nx = x + rcGetDirOffsetX(dir);
 			const int ny = y + rcGetDirOffsetY(dir);
 			const rcCompactSpan& s = chf.spans[i];
-			if (rcGetCon(s, dir) != 0xf)
+			if (rcGetCon(s, dir) != RC_NOT_CONNECTED)
 			{
 				const rcCompactCell& nc = chf.cells[nx+ny*chf.width];
 				ni = (int)nc.index + rcGetCon(s, dir);
@@ -174,9 +183,9 @@ static void walkContour(int x, int y, int i,
 	}
 }
 
-static float distancePtSeg(int x, int y, int z,
-						   int px, int py, int pz,
-						   int qx, int qy, int qz)
+static float distancePtSeg(const int x, const int z,
+						   const int px, const int pz,
+						   const int qx, const int qz)
 {
 /*	float pqx = (float)(qx - px);
 	float pqy = (float)(qy - py);
@@ -218,20 +227,40 @@ static float distancePtSeg(int x, int y, int z,
 	return dx*dx + dz*dz;
 }
 
-static void simplifyContour(rcIntArray& points, rcIntArray& simplified, float maxError, int maxEdgeLen)
+static void simplifyContour(rcIntArray& points, rcIntArray& simplified,
+							const float maxError, const int maxEdgeLen, const int buildFlags)
 {
 	// Add initial points.
-	bool noConnections = true;
+	bool hasConnections = false;
 	for (int i = 0; i < points.size(); i += 4)
 	{
-		if ((points[i+3] & 0xffff) != 0)
+		if ((points[i+3] & RC_CONTOUR_REG_MASK) != 0)
 		{
-			noConnections = false;
+			hasConnections = true;
 			break;
 		}
 	}
 	
-	if (noConnections)
+	if (hasConnections)
+	{
+		// The contour has some portals to other regions.
+		// Add a new point to every location where the region changes.
+		for (int i = 0, ni = points.size()/4; i < ni; ++i)
+		{
+			int ii = (i+1) % ni;
+			const bool differentRegs = (points[i*4+3] & RC_CONTOUR_REG_MASK) != (points[ii*4+3] & RC_CONTOUR_REG_MASK);
+			const bool areaBorders = (points[i*4+3] & RC_AREA_BORDER) != (points[ii*4+3] & RC_AREA_BORDER);
+			if (differentRegs || areaBorders)
+			{
+				simplified.push(points[i*4+0]);
+				simplified.push(points[i*4+1]);
+				simplified.push(points[i*4+2]);
+				simplified.push(i);
+			}
+		}       
+	}
+	
+	if (simplified.size() == 0)
 	{
 		// If there is no connections at all,
 		// create some initial points for the simplification process. 
@@ -256,7 +285,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified, float ma
 				llz = z;
 				lli = i/4;
 			}
-			if (x >= urx || (x == urx && z > urz))
+			if (x > urx || (x == urx && z > urz))
 			{
 				urx = x;
 				ury = y;
@@ -274,22 +303,6 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified, float ma
 		simplified.push(urz);
 		simplified.push(uri);
 	}
-	else
-	{
-		// The contour has some portals to other regions.
-		// Add a new point to every location where the region changes.
-		for (int i = 0, ni = points.size()/4; i < ni; ++i)
-		{
-			int ii = (i+1) % ni;
-			if ((points[i*4+3] & 0xffff) != (points[ii*4+3] & 0xffff))
-			{
-				simplified.push(points[i*4+0]);
-				simplified.push(points[i*4+1]);
-				simplified.push(points[i*4+2]);
-				simplified.push(i);
-			}
-		}	
-	}
 	
 	// Add points until all raw points are within
 	// error tolerance to the simplified shape.
@@ -298,34 +311,48 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified, float ma
 	{
 		int ii = (i+1) % (simplified.size()/4);
 		
-		int ax = simplified[i*4+0];
-		int ay = simplified[i*4+1];
-		int az = simplified[i*4+2];
-		int ai = simplified[i*4+3];
+		const int ax = simplified[i*4+0];
+		const int az = simplified[i*4+2];
+		const int ai = simplified[i*4+3];
 		
-		int bx = simplified[ii*4+0];
-		int by = simplified[ii*4+1];
-		int bz = simplified[ii*4+2];
-		int bi = simplified[ii*4+3];
-		
+		const int bx = simplified[ii*4+0];
+		const int bz = simplified[ii*4+2];
+		const int bi = simplified[ii*4+3];
+
 		// Find maximum deviation from the segment.
 		float maxd = 0;
 		int maxi = -1;
-		int ci = (ai+1) % pn;
+		int ci, cinc, endi;
 		
-		// Tesselate only outer edges.
-		if ((points[ci*4+3] & 0xffff) == 0)
+		// Traverse the segment in lexilogical order so that the
+		// max deviation is calculated similarly when traversing
+		// opposite segments.
+		if (bx > ax || (bx == ax && bz > az))
 		{
-			while (ci != bi)
+			cinc = 1;
+			ci = (ai+cinc) % pn;
+			endi = bi;
+		}
+		else
+		{
+			cinc = pn-1;
+			ci = (bi+cinc) % pn;
+			endi = ai;
+		}
+		
+		// Tessellate only outer edges or edges between areas.
+		if ((points[ci*4+3] & RC_CONTOUR_REG_MASK) == 0 ||
+			(points[ci*4+3] & RC_AREA_BORDER))
+		{
+			while (ci != endi)
 			{
-				float d = distancePtSeg(points[ci*4+0], points[ci*4+1]/4, points[ci*4+2],
-										ax, ay/4, az, bx, by/4, bz);
+				float d = distancePtSeg(points[ci*4+0], points[ci*4+2], ax, az, bx, bz);
 				if (d > maxd)
 				{
 					maxd = d;
 					maxi = ci;
 				}
-				ci = (ci+1) % pn;
+				ci = (ci+cinc) % pn;
 			}
 		}
 		
@@ -336,7 +363,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified, float ma
 		{
 			// Add space for the new point.
 			simplified.resize(simplified.size()+4);
-			int n = simplified.size()/4;
+			const int n = simplified.size()/4;
 			for (int j = n-1; j > i; --j)
 			{
 				simplified[j*4+0] = simplified[(j-1)*4+0];
@@ -357,33 +384,52 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified, float ma
 	}
 	
 	// Split too long edges.
-	if (maxEdgeLen > 0)
+	if (maxEdgeLen > 0 && (buildFlags & (RC_CONTOUR_TESS_WALL_EDGES|RC_CONTOUR_TESS_AREA_EDGES)) != 0)
 	{
 		for (int i = 0; i < simplified.size()/4; )
 		{
-			int ii = (i+1) % (simplified.size()/4);
+			const int ii = (i+1) % (simplified.size()/4);
 			
-			int ax = simplified[i*4+0];
-			int az = simplified[i*4+2];
-			int ai = simplified[i*4+3];
+			const int ax = simplified[i*4+0];
+			const int az = simplified[i*4+2];
+			const int ai = simplified[i*4+3];
 			
-			int bx = simplified[ii*4+0];
-			int bz = simplified[ii*4+2];
-			int bi = simplified[ii*4+3];
-			
+			const int bx = simplified[ii*4+0];
+			const int bz = simplified[ii*4+2];
+			const int bi = simplified[ii*4+3];
+
 			// Find maximum deviation from the segment.
 			int maxi = -1;
 			int ci = (ai+1) % pn;
+
+			// Tessellate only outer edges or edges between areas.
+			bool tess = false;
+			// Wall edges.
+			if ((buildFlags & RC_CONTOUR_TESS_WALL_EDGES) && (points[ci*4+3] & RC_CONTOUR_REG_MASK) == 0)
+				tess = true;
+			// Edges between areas.
+			if ((buildFlags & RC_CONTOUR_TESS_AREA_EDGES) && (points[ci*4+3] & RC_AREA_BORDER))
+				tess = true;
 			
-			// Tesselate only outer edges.
-			if ((points[ci*4+3] & 0xffff) == 0)
+			if (tess)
 			{
 				int dx = bx - ax;
 				int dz = bz - az;
 				if (dx*dx + dz*dz > maxEdgeLen*maxEdgeLen)
 				{
-					int n = bi < ai ? (bi+pn - ai) : (bi - ai);
-					maxi = (ai + n/2) % pn;
+					// Round based on the segments in lexilogical order so that the
+					// max tesselation is consistent regardles in which direction
+					// segments are traversed.
+					if (bx > ax || (bx == ax && bz > az))
+					{
+						const int n = bi < ai ? (bi+pn - ai) : (bi - ai);
+						maxi = (ai + n/2) % pn;
+					}
+					else
+					{
+						const int n = bi < ai ? (bi+pn - ai) : (bi - ai);
+						maxi = (ai + (n+1)/2) % pn;
+					}
 				}
 			}
 			
@@ -393,7 +439,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified, float ma
 			{
 				// Add space for the new point.
 				simplified.resize(simplified.size()+4);
-				int n = simplified.size()/4;
+				const int n = simplified.size()/4;
 				for (int j = n-1; j > i; --j)
 				{
 					simplified[j*4+0] = simplified[(j-1)*4+0];
@@ -420,7 +466,7 @@ static void simplifyContour(rcIntArray& points, rcIntArray& simplified, float ma
 		// and the neighbour region is take from the next raw point.
 		const int ai = (simplified[i*4+3]+1) % pn;
 		const int bi = simplified[i*4+3];
-		simplified[i*4+3] = (points[ai*4+3] & 0xffff) | (points[bi*4+3] & RC_BORDER_VERTEX);
+		simplified[i*4+3] = (points[ai*4+3] & RC_CONTOUR_REG_MASK) | (points[bi*4+3] & RC_BORDER_VERTEX);
 	}
 	
 }
@@ -446,7 +492,7 @@ static void removeDegenerateSegments(rcIntArray& simplified)
 				simplified[j*4+2] = simplified[(j+1)*4+2];
 				simplified[j*4+3] = simplified[(j+1)*4+3];
 			}
-			simplified.pop();
+			simplified.resize(simplified.size()-4);
 		}
 	}
 }
@@ -463,25 +509,40 @@ static int calcAreaOfPolygon2D(const int* verts, const int nverts)
 	return (area+1) / 2;
 }
 
+inline bool ileft(const int* a, const int* b, const int* c)
+{
+	return (b[0] - a[0]) * (c[2] - a[2]) - (c[0] - a[0]) * (b[2] - a[2]) <= 0;
+}
+
 static void getClosestIndices(const int* vertsa, const int nvertsa,
 							  const int* vertsb, const int nvertsb,
 							  int& ia, int& ib)
 {
 	int closestDist = 0xfffffff;
+	ia = -1, ib = -1;
 	for (int i = 0; i < nvertsa; ++i)
 	{
+		const int in = (i+1) % nvertsa;
+		const int ip = (i+nvertsa-1) % nvertsa;
 		const int* va = &vertsa[i*4];
+		const int* van = &vertsa[in*4];
+		const int* vap = &vertsa[ip*4];
+		
 		for (int j = 0; j < nvertsb; ++j)
 		{
 			const int* vb = &vertsb[j*4];
-			const int dx = vb[0] - va[0];
-			const int dz = vb[2] - va[2];
-			const int d = dx*dx + dz*dz;
-			if (d < closestDist)
+			// vb must be "infront" of va.
+			if (ileft(vap,va,vb) && ileft(va,van,vb))
 			{
-				ia = i;
-				ib = j;
-				closestDist = d;
+				const int dx = vb[0] - va[0];
+				const int dz = vb[2] - va[2];
+				const int d = dx*dx + dz*dz;
+				if (d < closestDist)
+				{
+					ia = i;
+					ib = j;
+					closestDist = d;
+				}
 			}
 		}
 	}
@@ -490,7 +551,7 @@ static void getClosestIndices(const int* vertsa, const int nvertsa,
 static bool mergeContours(rcContour& ca, rcContour& cb, int ia, int ib)
 {
 	const int maxVerts = ca.nverts + cb.nverts + 2;
-	int* verts = new int[maxVerts*4];
+	int* verts = (int*)rcAlloc(sizeof(int)*maxVerts*4, RC_ALLOC_PERM);
 	if (!verts)
 		return false;
 
@@ -520,47 +581,73 @@ static bool mergeContours(rcContour& ca, rcContour& cb, int ia, int ib)
 		nv++;
 	}
 	
-	delete [] ca.verts;
+	rcFree(ca.verts);
 	ca.verts = verts;
 	ca.nverts = nv;
 
-	delete [] cb.verts;
+	rcFree(cb.verts);
 	cb.verts = 0;
 	cb.nverts = 0;
 	
 	return true;
 }
 
-bool rcBuildContours(rcCompactHeightfield& chf,
+/// @par
+///
+/// The raw contours will match the region outlines exactly. The @p maxError and @p maxEdgeLen
+/// parameters control how closely the simplified contours will match the raw contours.
+///
+/// Simplified contours are generated such that the vertices for portals between areas match up. 
+/// (They are considered mandatory vertices.)
+///
+/// Setting @p maxEdgeLength to zero will disabled the edge length feature.
+/// 
+/// See the #rcConfig documentation for more information on the configuration parameters.
+/// 
+/// @see rcAllocContourSet, rcCompactHeightfield, rcContourSet, rcConfig
+bool rcBuildContours(rcContext* ctx, rcCompactHeightfield& chf,
 					 const float maxError, const int maxEdgeLen,
-					 rcContourSet& cset)
+					 rcContourSet& cset, const int buildFlags)
 {
+	rcAssert(ctx);
+	
 	const int w = chf.width;
 	const int h = chf.height;
+	const int borderSize = chf.borderSize;
 	
-	rcTimeVal startTime = rcGetPerformanceTimer();
+	ctx->startTimer(RC_TIMER_BUILD_CONTOURS);
 	
-	vcopy(cset.bmin, chf.bmin);
-	vcopy(cset.bmax, chf.bmax);
+	rcVcopy(cset.bmin, chf.bmin);
+	rcVcopy(cset.bmax, chf.bmax);
+	if (borderSize > 0)
+	{
+		// If the heightfield was build with bordersize, remove the offset.
+		const float pad = borderSize*chf.cs;
+		cset.bmin[0] += pad;
+		cset.bmin[2] += pad;
+		cset.bmax[0] -= pad;
+		cset.bmax[2] -= pad;
+	}
 	cset.cs = chf.cs;
 	cset.ch = chf.ch;
+	cset.width = chf.width - chf.borderSize*2;
+	cset.height = chf.height - chf.borderSize*2;
+	cset.borderSize = chf.borderSize;
 	
-	const int maxContours = chf.maxRegions*2;
-	cset.conts = new rcContour[maxContours];
+	int maxContours = rcMax((int)chf.maxRegions, 8);
+	cset.conts = (rcContour*)rcAlloc(sizeof(rcContour)*maxContours, RC_ALLOC_PERM);
 	if (!cset.conts)
 		return false;
 	cset.nconts = 0;
 	
-	unsigned char* flags = new unsigned char[chf.spanCount];
+	rcScopedDelete<unsigned char> flags = (unsigned char*)rcAlloc(sizeof(unsigned char)*chf.spanCount, RC_ALLOC_TEMP);
 	if (!flags)
 	{
-		if (rcGetLog())
-			rcGetLog()->log(RC_LOG_ERROR, "rcBuildContours: Out of memory 'flags'.");
+		ctx->log(RC_LOG_ERROR, "rcBuildContours: Out of memory 'flags' (%d).", chf.spanCount);
 		return false;
 	}
 	
-	rcTimeVal traceStartTime = rcGetPerformanceTimer();
-					
+	ctx->startTimer(RC_TIMER_BUILD_CONTOURS_TRACE);
 	
 	// Mark boundaries.
 	for (int y = 0; y < h; ++y)
@@ -572,7 +659,7 @@ bool rcBuildContours(rcCompactHeightfield& chf,
 			{
 				unsigned char res = 0;
 				const rcCompactSpan& s = chf.spans[i];
-				if (!s.reg || (s.reg & RC_BORDER_REG))
+				if (!chf.spans[i].reg || (chf.spans[i].reg & RC_BORDER_REG))
 				{
 					flags[i] = 0;
 					continue;
@@ -580,15 +667,14 @@ bool rcBuildContours(rcCompactHeightfield& chf,
 				for (int dir = 0; dir < 4; ++dir)
 				{
 					unsigned short r = 0;
-					if (rcGetCon(s, dir) != 0xf)
+					if (rcGetCon(s, dir) != RC_NOT_CONNECTED)
 					{
 						const int ax = x + rcGetDirOffsetX(dir);
 						const int ay = y + rcGetDirOffsetY(dir);
 						const int ai = (int)chf.cells[ax+ay*w].index + rcGetCon(s, dir);
-						const rcCompactSpan& as = chf.spans[ai];
-						r = as.reg;
+						r = chf.spans[ai].reg;
 					}
-					if (r == s.reg)
+					if (r == chf.spans[i].reg)
 						res |= (1 << dir);
 				}
 				flags[i] = res ^ 0xf; // Inverse, mark non connected edges.
@@ -596,9 +682,7 @@ bool rcBuildContours(rcCompactHeightfield& chf,
 		}
 	}
 	
-	rcTimeVal traceEndTime = rcGetPerformanceTimer();
-	
-	rcTimeVal simplifyStartTime = rcGetPerformanceTimer();
+	ctx->stopTimer(RC_TIMER_BUILD_CONTOURS_TRACE);
 	
 	rcIntArray verts(256);
 	rcIntArray simplified(64);
@@ -615,36 +699,87 @@ bool rcBuildContours(rcCompactHeightfield& chf,
 					flags[i] = 0;
 					continue;
 				}
-				unsigned short reg = chf.spans[i].reg;
+				const unsigned short reg = chf.spans[i].reg;
 				if (!reg || (reg & RC_BORDER_REG))
 					continue;
+				const unsigned char area = chf.areas[i];
 				
 				verts.resize(0);
 				simplified.resize(0);
+
+				ctx->startTimer(RC_TIMER_BUILD_CONTOURS_TRACE);
 				walkContour(x, y, i, chf, flags, verts);
-				simplifyContour(verts, simplified, maxError, maxEdgeLen);
+				ctx->stopTimer(RC_TIMER_BUILD_CONTOURS_TRACE);
+
+				ctx->startTimer(RC_TIMER_BUILD_CONTOURS_SIMPLIFY);
+				simplifyContour(verts, simplified, maxError, maxEdgeLen, buildFlags);
 				removeDegenerateSegments(simplified);
+				ctx->stopTimer(RC_TIMER_BUILD_CONTOURS_SIMPLIFY);
 				
+
 				// Store region->contour remap info.
 				// Create contour.
 				if (simplified.size()/4 >= 3)
 				{
 					if (cset.nconts >= maxContours)
 					{
-						if (rcGetLog())
-							rcGetLog()->log(RC_LOG_ERROR, "rcBuildContours: Too many contours %d, max %d.", cset.nconts, maxContours);
-						return false;
+						// Allocate more contours.
+						// This can happen when there are tiny holes in the heightfield.
+						const int oldMax = maxContours;
+						maxContours *= 2;
+						rcContour* newConts = (rcContour*)rcAlloc(sizeof(rcContour)*maxContours, RC_ALLOC_PERM);
+						for (int j = 0; j < cset.nconts; ++j)
+						{
+							newConts[j] = cset.conts[j];
+							// Reset source pointers to prevent data deletion.
+							cset.conts[j].verts = 0;
+							cset.conts[j].rverts = 0;
+						}
+						rcFree(cset.conts);
+						cset.conts = newConts;
+					
+						ctx->log(RC_LOG_WARNING, "rcBuildContours: Expanding max contours from %d to %d.", oldMax, maxContours);
 					}
 						
 					rcContour* cont = &cset.conts[cset.nconts++];
 					
 					cont->nverts = simplified.size()/4;
-					cont->verts = new int[cont->nverts*4];
+					cont->verts = (int*)rcAlloc(sizeof(int)*cont->nverts*4, RC_ALLOC_PERM);
+					if (!cont->verts)
+					{
+						ctx->log(RC_LOG_ERROR, "rcBuildContours: Out of memory 'verts' (%d).", cont->nverts);
+						return false;
+					}
 					memcpy(cont->verts, &simplified[0], sizeof(int)*cont->nverts*4);
+					if (borderSize > 0)
+					{
+						// If the heightfield was build with bordersize, remove the offset.
+						for (int i = 0; i < cont->nverts; ++i)
+						{
+							int* v = &cont->verts[i*4];
+							v[0] -= borderSize;
+							v[2] -= borderSize;
+						}
+					}
 					
 					cont->nrverts = verts.size()/4;
-					cont->rverts = new int[cont->nrverts*4];
+					cont->rverts = (int*)rcAlloc(sizeof(int)*cont->nrverts*4, RC_ALLOC_PERM);
+					if (!cont->rverts)
+					{
+						ctx->log(RC_LOG_ERROR, "rcBuildContours: Out of memory 'rverts' (%d).", cont->nrverts);
+						return false;
+					}
 					memcpy(cont->rverts, &verts[0], sizeof(int)*cont->nrverts*4);
+					if (borderSize > 0)
+					{
+						// If the heightfield was build with bordersize, remove the offset.
+						for (int i = 0; i < cont->nrverts; ++i)
+						{
+							int* v = &cont->rverts[i*4];
+							v[0] -= borderSize;
+							v[2] -= borderSize;
+						}
+					}
 					
 /*					cont->cx = cont->cy = cont->cz = 0;
 					for (int i = 0; i < cont->nverts; ++i)
@@ -658,13 +793,14 @@ bool rcBuildContours(rcCompactHeightfield& chf,
 					cont->cz /= cont->nverts;*/
 					
 					cont->reg = reg;
+					cont->area = area;
 				}
 			}
 		}
 	}
 	
 	// Check and merge droppings.
-	// Sometimes the previous algorithms can fail and create several countours
+	// Sometimes the previous algorithms can fail and create several contours
 	// per area. This pass will try to merge the holes into the main region.
 	for (int i = 0; i < cset.nconts; ++i)
 	{
@@ -689,44 +825,29 @@ bool rcBuildContours(rcCompactHeightfield& chf,
 			}
 			if (mergeIdx == -1)
 			{
-				if (rcGetLog())
-					rcGetLog()->log(RC_LOG_WARNING, "rcBuildContours: Could not find merge target for bad contour %d.", i);
+				ctx->log(RC_LOG_WARNING, "rcBuildContours: Could not find merge target for bad contour %d.", i);
 			}
 			else
 			{
 				rcContour& mcont = cset.conts[mergeIdx];
 				// Merge by closest points.
-				int ia, ib;
+				int ia = 0, ib = 0;
 				getClosestIndices(mcont.verts, mcont.nverts, cont.verts, cont.nverts, ia, ib);
+				if (ia == -1 || ib == -1)
+				{
+					ctx->log(RC_LOG_WARNING, "rcBuildContours: Failed to find merge points for %d and %d.", i, mergeIdx);
+					continue;
+				}
 				if (!mergeContours(mcont, cont, ia, ib))
 				{
-					if (rcGetLog())
-						rcGetLog()->log(RC_LOG_WARNING, "rcBuildContours: Failed to merge contours %d and %d.", i, mergeIdx);
+					ctx->log(RC_LOG_WARNING, "rcBuildContours: Failed to merge contours %d and %d.", i, mergeIdx);
+					continue;
 				}
 			}
 		}
 	}
 	
-		
-	delete [] flags;
-	
-	rcTimeVal simplifyEndTime = rcGetPerformanceTimer();
-	
-	rcTimeVal endTime = rcGetPerformanceTimer();
-	
-//	if (rcGetLog())
-//	{
-//		rcGetLog()->log(RC_LOG_PROGRESS, "Create contours: %.3f ms", rcGetDeltaTimeUsec(startTime, endTime)/1000.0f);
-//		rcGetLog()->log(RC_LOG_PROGRESS, " - boundary: %.3f ms", rcGetDeltaTimeUsec(boundaryStartTime, boundaryEndTime)/1000.0f);
-//		rcGetLog()->log(RC_LOG_PROGRESS, " - contour: %.3f ms", rcGetDeltaTimeUsec(contourStartTime, contourEndTime)/1000.0f);
-//	}
-
-	if (rcGetBuildTimes())
-	{
-		rcGetBuildTimes()->buildContours += rcGetDeltaTimeUsec(startTime, endTime);
-		rcGetBuildTimes()->buildContoursTrace += rcGetDeltaTimeUsec(traceStartTime, traceEndTime);
-		rcGetBuildTimes()->buildContoursSimplify += rcGetDeltaTimeUsec(simplifyStartTime, simplifyEndTime);
-	}
+	ctx->stopTimer(RC_TIMER_BUILD_CONTOURS);
 	
 	return true;
 }

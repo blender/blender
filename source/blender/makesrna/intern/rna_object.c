@@ -250,16 +250,20 @@ void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Object_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_OB);
-	DAG_scene_sort(bmain, scene);
+	if (scene) {
+		DAG_scene_sort(bmain, scene);
+	}
 	WM_main_add_notifier(NC_OBJECT|ND_PARENT, ptr->id.data);
 }
 
 /* when changing the selection flag the scene needs updating */
 static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
-	Object *ob= (Object*)ptr->id.data;
-	short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
-	ED_base_object_select(object_in_scene(ob, scene), mode);
+	if (scene) {
+		Object *ob= (Object*)ptr->id.data;
+		short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
+		ED_base_object_select(object_in_scene(ob, scene), mode);
+	}
 }
 
 static void rna_Base_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -1915,7 +1919,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "material_slots", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "MaterialSlot");
-	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", NULL, NULL, NULL); /* don't dereference pointer! */
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", NULL, NULL, NULL, NULL); /* don't dereference pointer! */
 	RNA_def_property_ui_text(prop, "Material Slots", "Material slots in the object");
 
 	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);

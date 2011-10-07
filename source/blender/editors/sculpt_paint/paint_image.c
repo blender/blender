@@ -356,9 +356,13 @@ typedef struct UndoImageTile {
 	struct UndoImageTile *next, *prev;
 
 	char idname[MAX_ID_NAME];	/* name instead of pointer*/
+	char ibufname[IB_FILENAME_SIZE];
 
 	void *rect;
 	int x, y;
+
+	short source;
+	char gen_type;
 } UndoImageTile;
 
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
@@ -389,8 +393,9 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 	int allocsize;
 
 	for(tile=lb->first; tile; tile=tile->next)
-		if(tile->x == x_tile && tile->y == y_tile && strcmp(tile->idname, ima->id.name)==0)
-			return tile->rect;
+		if(tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type && ima->source == tile->source)
+			if(strcmp(tile->idname, ima->id.name)==0 && strcmp(tile->ibufname, ibuf->name)==0)
+				return tile->rect;
 	
 	if (*tmpibuf==NULL)
 		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect);
@@ -403,6 +408,11 @@ static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int 
 	allocsize= IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE*4;
 	allocsize *= (ibuf->rect_float)? sizeof(float): sizeof(char);
 	tile->rect= MEM_mapallocN(allocsize, "UndeImageTile.rect");
+
+	strcpy(tile->ibufname, ibuf->name);
+
+	tile->gen_type= ima->gen_type;
+	tile->source= ima->source;
 
 	undo_copy_tile(tile, *tmpibuf, ibuf, 0);
 	undo_paint_push_count_alloc(UNDO_PAINT_IMAGE, allocsize);
@@ -424,16 +434,28 @@ static void image_undo_restore(bContext *C, ListBase *lb)
 	
 	for(tile=lb->first; tile; tile=tile->next) {
 		/* find image based on name, pointer becomes invalid with global undo */
-		if(ima && strcmp(tile->idname, ima->id.name)==0);
+		if(ima && strcmp(tile->idname, ima->id.name)==0) {
+			/* ima is valid */
+		}
 		else {
-			for(ima=bmain->image.first; ima; ima=ima->id.next)
-				if(strcmp(tile->idname, ima->id.name)==0)
-					break;
+			ima= BLI_findstring(&bmain->image, tile->idname, offsetof(ID, name));
 		}
 
 		ibuf= BKE_image_get_ibuf(ima, NULL);
 
+		if(ima && ibuf && strcmp(tile->ibufname, ibuf->name)!=0) {
+			/* current ImBuf filename was changed, probably current frame
+			   was changed when paiting on image sequence, rather than storing
+			   full image user (which isn't so obvious, btw) try to find ImBuf with
+			   matched file name in list of already loaded images */
+
+			ibuf= BLI_findstring(&ima->ibufs, tile->ibufname, offsetof(ImBuf, name));
+		}
+
 		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
+			continue;
+
+		if (ima->gen_type != tile->gen_type || ima->source != tile->source)
 			continue;
 
 		undo_copy_tile(tile, tmpibuf, ibuf, 1);
@@ -2668,9 +2690,7 @@ static void project_bucket_init(const ProjPaintState *ps, const int thread_index
 			tf = ps->dm_mtface+face_index;
 			if (tpage_last != tf->tpage) {
 				tpage_last = tf->tpage;
-				
-				image_index = -1; /* sanity check */
-				
+
 				for (image_index=0; image_index < ps->image_tot; image_index++) {
 					if (ps->projImages[image_index].ima == tpage_last) {
 						ibuf = ps->projImages[image_index].ibuf;
@@ -4878,7 +4898,6 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	time= PIL_check_seconds_timer();
 
 	tablet= 0;
-	pressure= 0;
 	pop->s.blend= pop->s.brush->blend;
 
 	if(event->custom == EVT_DATA_TABLET) {
@@ -4889,8 +4908,9 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		if(wmtab->Active == EVT_TABLET_ERASER)
 			pop->s.blend= IMB_BLEND_ERASE_ALPHA;
 	}
-	else /* otherwise airbrush becomes 1.0 pressure instantly */
+	else { /* otherwise airbrush becomes 1.0 pressure instantly */
 		pressure= pop->prev_pressure ? pop->prev_pressure : 1.0f;
+	}
 
 	if(pop->first) {
 		pop->prevmouse[0]= event->mval[0];

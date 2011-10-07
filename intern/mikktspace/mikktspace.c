@@ -166,13 +166,13 @@ typedef struct
 	tbool bOrient;
 } STSpace;
 
-int GenerateInitialVerticesIndexList(STriInfo pTriInfos[], int piTriList_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn);
-void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn);
-void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn);
-int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupTrianglesBuffer[], const int piTriListIn[], const int iNrTrianglesIn);
-tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], const SGroup pGroups[],
-					 const int iNrActiveGroups, const int piTriListIn[], const float fThresCos,
-					 const SMikkTSpaceContext * pContext);
+static int GenerateInitialVerticesIndexList(STriInfo pTriInfos[], int piTriList_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn);
+static void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn);
+static void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn);
+static int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupTrianglesBuffer[], const int piTriListIn[], const int iNrTrianglesIn);
+static tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], const SGroup pGroups[],
+                             const int iNrActiveGroups, const int piTriListIn[], const float fThresCos,
+                             const SMikkTSpaceContext * pContext);
 
 static int MakeIndex(const int iFace, const int iVert)
 {
@@ -216,14 +216,14 @@ static STSpace AvgTSpace(const STSpace * pTS0, const STSpace * pTS1)
 
 
 
-SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index);
-SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index);
-SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index);
+static SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index);
+static SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index);
+static SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index);
 
 
 // degen triangles
-void DegenPrologue(STriInfo pTriInfos[], int piTriList_out[], const int iNrTrianglesIn, const int iTotTris);
-void DegenEpilogue(STSpace psTspace[], STriInfo pTriInfos[], int piTriListIn[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn, const int iTotTris);
+static void DegenPrologue(STriInfo pTriInfos[], int piTriList_out[], const int iNrTrianglesIn, const int iTotTris);
+static void DegenEpilogue(STSpace psTspace[], STriInfo pTriInfos[], int piTriListIn[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn, const int iTotTris);
 
 
 tbool genTangSpaceDefault(const SMikkTSpaceContext * pContext)
@@ -450,11 +450,11 @@ NOINLINE int FindGridCell(const float fMin, const float fMax, const float fVal)
 	return iIndex<g_iCells?iIndex:(g_iCells-1);
 }
 
-void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext * pContext, const int iL_in, const int iR_in);
-void MergeVertsSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int pTable[], const int iEntries);
-void GenerateSharedVerticesIndexListSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn);
+static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext * pContext, const int iL_in, const int iR_in);
+static void MergeVertsSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int pTable[], const int iEntries);
+static void GenerateSharedVerticesIndexListSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn);
 
-void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn)
+static void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn)
 {
 
 	// Generate bounding box
@@ -579,7 +579,7 @@ void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SMikkTSpa
 	free(piHashOffsets);
 }
 
-void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext * pContext, const int iL_in, const int iR_in)
+static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikkTSpaceContext * pContext, const int iL_in, const int iR_in)
 {
 	// make bbox
 	int c=0, l=0, channel=0;
@@ -689,7 +689,7 @@ void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], const SMikk
 	}
 }
 
-void MergeVertsSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int pTable[], const int iEntries)
+static void MergeVertsSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int pTable[], const int iEntries)
 {
 	// this can be optimized further using a tree structure or more hashing.
 	int e=0;
@@ -724,7 +724,7 @@ void MergeVertsSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pCont
 	}
 }
 
-void GenerateSharedVerticesIndexListSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn)
+static void GenerateSharedVerticesIndexListSlow(int piTriList_in_and_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn)
 {
 	int iNumUniqueVerts = 0, t=0, i=0;
 	for(t=0; t<iNrTrianglesIn; t++)
@@ -767,7 +767,7 @@ void GenerateSharedVerticesIndexListSlow(int piTriList_in_and_out[], const SMikk
 	}
 }
 
-int GenerateInitialVerticesIndexList(STriInfo pTriInfos[], int piTriList_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn)
+static int GenerateInitialVerticesIndexList(STriInfo pTriInfos[], int piTriList_out[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn)
 {
 	int iTSpacesOffs = 0, f=0, t=0;
 	int iDstTriIndex = 0;
@@ -878,7 +878,7 @@ int GenerateInitialVerticesIndexList(STriInfo pTriInfos[], int piTriList_out[], 
 	return iTSpacesOffs;
 }
 
-SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index)
+static SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index)
 {
 	int iF, iI;
 	SVec3 res; float pos[3];
@@ -888,7 +888,7 @@ SVec3 GetPosition(const SMikkTSpaceContext * pContext, const int index)
 	return res;
 }
 
-SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index)
+static SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index)
 {
 	int iF, iI;
 	SVec3 res; float norm[3];
@@ -898,7 +898,7 @@ SVec3 GetNormal(const SMikkTSpaceContext * pContext, const int index)
 	return res;
 }
 
-SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index)
+static SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index)
 {
 	int iF, iI;
 	SVec3 res; float texc[2];
@@ -920,8 +920,8 @@ typedef union
 	int array[3];
 } SEdge;
 
-void BuildNeighborsFast(STriInfo pTriInfos[], SEdge * pEdges, const int piTriListIn[], const int iNrTrianglesIn);
-void BuildNeighborsSlow(STriInfo pTriInfos[], const int piTriListIn[], const int iNrTrianglesIn);
+static void BuildNeighborsFast(STriInfo pTriInfos[], SEdge * pEdges, const int piTriListIn[], const int iNrTrianglesIn);
+static void BuildNeighborsSlow(STriInfo pTriInfos[], const int piTriListIn[], const int iNrTrianglesIn);
 
 // returns the texture area times 2
 static float CalcTexArea(const SMikkTSpaceContext * pContext, const int indices[])
@@ -940,7 +940,7 @@ static float CalcTexArea(const SMikkTSpaceContext * pContext, const int indices[
 	return fSignedAreaSTx2<0 ? (-fSignedAreaSTx2) : fSignedAreaSTx2;
 }
 
-void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn)
+static void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn)
 {
 	int f=0, i=0, t=0;
 	// pTriInfos[f].iFlag is cleared in GenerateInitialVerticesIndexList() which is called before this function.
@@ -1062,10 +1062,10 @@ void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMikkTSpac
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-tbool AssignRecur(const int piTriListIn[], STriInfo psTriInfos[], const int iMyTriIndex, SGroup * pGroup);
-void AddTriToGroup(SGroup * pGroup, const int iTriIndex);
+static tbool AssignRecur(const int piTriListIn[], STriInfo psTriInfos[], const int iMyTriIndex, SGroup * pGroup);
+static void AddTriToGroup(SGroup * pGroup, const int iTriIndex);
 
-int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupTrianglesBuffer[], const int piTriListIn[], const int iNrTrianglesIn)
+static int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupTrianglesBuffer[], const int piTriListIn[], const int iNrTrianglesIn)
 {
 	const int iNrMaxGroups = iNrTrianglesIn*3;
 	int iNrActiveGroups = 0;
@@ -1126,13 +1126,13 @@ int Build4RuleGroups(STriInfo pTriInfos[], SGroup pGroups[], int piGroupTriangle
 	return iNrActiveGroups;
 }
 
-void AddTriToGroup(SGroup * pGroup, const int iTriIndex)
+static void AddTriToGroup(SGroup * pGroup, const int iTriIndex)
 {
 	pGroup->pFaceIndices[pGroup->iNrFaces] = iTriIndex;
 	++pGroup->iNrFaces;
 }
 
-tbool AssignRecur(const int piTriListIn[], STriInfo psTriInfos[],
+static tbool AssignRecur(const int piTriListIn[], STriInfo psTriInfos[],
 				 const int iMyTriIndex, SGroup * pGroup)
 {
 	STriInfo * pMyTriInfo = &psTriInfos[iMyTriIndex];
@@ -1187,13 +1187,13 @@ tbool AssignRecur(const int piTriListIn[], STriInfo psTriInfos[],
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-tbool CompareSubGroups(const SSubGroup * pg1, const SSubGroup * pg2);
-void QuickSort(int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed);
-STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriListIn[], const STriInfo pTriInfos[], const SMikkTSpaceContext * pContext, const int iVertexRepresentitive);
+static tbool CompareSubGroups(const SSubGroup * pg1, const SSubGroup * pg2);
+static void QuickSort(int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed);
+static STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriListIn[], const STriInfo pTriInfos[], const SMikkTSpaceContext * pContext, const int iVertexRepresentitive);
 
-tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], const SGroup pGroups[],
-					 const int iNrActiveGroups, const int piTriListIn[], const float fThresCos,
-					 const SMikkTSpaceContext * pContext)
+static tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], const SGroup pGroups[],
+                             const int iNrActiveGroups, const int piTriListIn[], const float fThresCos,
+                             const SMikkTSpaceContext * pContext)
 {
 	STSpace * pSubGroupTspace = NULL;
 	SSubGroup * pUniSubGroups = NULL;
@@ -1361,8 +1361,8 @@ tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], const SGro
 	return TTRUE;
 }
 
-STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriListIn[], const STriInfo pTriInfos[],
-				   const SMikkTSpaceContext * pContext, const int iVertexRepresentitive)
+static STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriListIn[], const STriInfo pTriInfos[],
+                          const SMikkTSpaceContext * pContext, const int iVertexRepresentitive)
 {
 	STSpace res;
 	float fAngleSum = 0;
@@ -1435,7 +1435,7 @@ STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriListIn[]
 	return res;
 }
 
-tbool CompareSubGroups(const SSubGroup * pg1, const SSubGroup * pg2)
+static tbool CompareSubGroups(const SSubGroup * pg1, const SSubGroup * pg2)
 {
 	tbool bStillSame=TTRUE;
 	int i=0;
@@ -1448,7 +1448,7 @@ tbool CompareSubGroups(const SSubGroup * pg1, const SSubGroup * pg2)
 	return bStillSame;
 }
 
-void QuickSort(int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed)
+static void QuickSort(int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed)
 {
 	int iL, iR, n, index, iMid, iTmp;
 
@@ -1492,10 +1492,10 @@ void QuickSort(int* pSortBuffer, int iLeft, int iRight, unsigned int uSeed)
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int channel, unsigned int uSeed);
-void GetEdge(int * i0_out, int * i1_out, int * edgenum_out, const int indices[], const int i0_in, const int i1_in);
+static void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int channel, unsigned int uSeed);
+static void GetEdge(int * i0_out, int * i1_out, int * edgenum_out, const int indices[], const int i0_in, const int i1_in);
 
-void BuildNeighborsFast(STriInfo pTriInfos[], SEdge * pEdges, const int piTriListIn[], const int iNrTrianglesIn)
+static void BuildNeighborsFast(STriInfo pTriInfos[], SEdge * pEdges, const int piTriListIn[], const int iNrTrianglesIn)
 {
 	// build array of edges
 	unsigned int uSeed = INTERNAL_RND_SORT_SEED;				// could replace with a random seed?
@@ -1590,7 +1590,7 @@ void BuildNeighborsFast(STriInfo pTriInfos[], SEdge * pEdges, const int piTriLis
 	}
 }
 
-void BuildNeighborsSlow(STriInfo pTriInfos[], const int piTriListIn[], const int iNrTrianglesIn)
+static void BuildNeighborsSlow(STriInfo pTriInfos[], const int piTriListIn[], const int iNrTrianglesIn)
 {
 	int f=0, i=0;
 	for(f=0; f<iNrTrianglesIn; f++)
@@ -1639,7 +1639,7 @@ void BuildNeighborsSlow(STriInfo pTriInfos[], const int piTriListIn[], const int
 	}
 }
 
-void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int channel, unsigned int uSeed)
+static void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int channel, unsigned int uSeed)
 {
 	unsigned int t;
 	int iL, iR, n, index, iMid;
@@ -1696,7 +1696,7 @@ void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int channe
 }
 
 // resolve ordering and edge number
-void GetEdge(int * i0_out, int * i1_out, int * edgenum_out, const int indices[], const int i0_in, const int i1_in)
+static void GetEdge(int * i0_out, int * i1_out, int * edgenum_out, const int indices[], const int i0_in, const int i1_in)
 {
 	*edgenum_out = -1;
 	
@@ -1730,7 +1730,7 @@ void GetEdge(int * i0_out, int * i1_out, int * edgenum_out, const int indices[],
 /////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////// Degenerate triangles ////////////////////////////////////
 
-void DegenPrologue(STriInfo pTriInfos[], int piTriList_out[], const int iNrTrianglesIn, const int iTotTris)
+static void DegenPrologue(STriInfo pTriInfos[], int piTriList_out[], const int iNrTrianglesIn, const int iTotTris)
 {
 	int iNextGoodTriangleSearchIndex=-1;
 	tbool bStillFindingGoodOnes;
@@ -1813,7 +1813,7 @@ void DegenPrologue(STriInfo pTriInfos[], int piTriList_out[], const int iNrTrian
 	assert(iNrTrianglesIn == t);
 }
 
-void DegenEpilogue(STSpace psTspace[], STriInfo pTriInfos[], int piTriListIn[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn, const int iTotTris)
+static void DegenEpilogue(STSpace psTspace[], STriInfo pTriInfos[], int piTriListIn[], const SMikkTSpaceContext * pContext, const int iNrTrianglesIn, const int iTotTris)
 {
 	int t=0, i=0;
 	// deal with degenerate triangles

@@ -467,6 +467,7 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 {
 #ifdef WITH_HEADLESS
 	(void)rect;
+	(void)but;
 #else
 	ImBuf *ibuf= (ImBuf *)but->poin;
 	//GLint scissor[4];

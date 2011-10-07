@@ -145,6 +145,7 @@ class SEQUENCER_MT_select(Menu):
         layout.operator("sequencer.select_handles", text="Left Handle").side = 'LEFT'
         layout.operator("sequencer.select_handles", text="Right Handle").side = 'RIGHT'
         layout.separator()
+        layout.operator_menu_enum("object.select_grouped", "type", text="Grouped")
         layout.operator("sequencer.select_linked")
         layout.operator("sequencer.select_all_toggle")
         layout.operator("sequencer.select_inverse")
@@ -407,7 +408,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         return strip.type in {'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
-                              'WIPE', 'GLOW', 'TRANSFORM', 'SPEED',
+                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR', 'SPEED',
                               'MULTICAM', 'ADJUSTMENT'}
 
     def draw(self, context):
@@ -546,7 +547,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
                               'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
                               'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
                               'PLUGIN',
-                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+                              'WIPE', 'GLOW', 'TRANSFORM',
                               'MULTICAM', 'SPEED', 'ADJUSTMENT'}
 
     def draw(self, context):

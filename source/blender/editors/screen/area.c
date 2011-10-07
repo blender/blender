@@ -831,6 +831,9 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	prefsizex= ar->sizex?ar->sizex:ar->type->prefsizex;
 	if(ar->regiontype==RGN_TYPE_HEADER)
 		prefsizey= ar->type->prefsizey;
+	else if(ar->regiontype==RGN_TYPE_UI && sa->spacetype == SPACE_FILE) {
+		prefsizey= UI_UNIT_Y * 2 + (UI_UNIT_Y/2);
+	}
 	else
 		prefsizey= ar->sizey?ar->sizey:ar->type->prefsizey;
 	

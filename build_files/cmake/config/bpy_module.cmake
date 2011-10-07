@@ -18,7 +18,6 @@ set(WITH_GAMEENGINE          OFF CACHE FORCE BOOL)
 # disable audio, its possible some devs may want this but for now disable
 # so the python module doesnt hold the audio device and loads quickly.
 set(WITH_AUDASPACE           OFF CACHE FORCE BOOL)
-set(WITH_SAMPLERATE          OFF CACHE FORCE BOOL)
 set(WITH_FFTW3               OFF CACHE FORCE BOOL)
 set(WITH_JACK                OFF CACHE FORCE BOOL)
 set(WITH_SDL                 OFF CACHE FORCE BOOL)

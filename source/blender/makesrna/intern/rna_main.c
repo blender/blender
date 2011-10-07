@@ -344,7 +344,7 @@ void RNA_def_main(BlenderRNA *brna)
 	{
 		prop= RNA_def_property(srna, lists[i].identifier, PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_struct_type(prop, lists[i].type);
-		RNA_def_property_collection_funcs(prop, lists[i].iter_begin, "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+		RNA_def_property_collection_funcs(prop, lists[i].iter_begin, "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 		RNA_def_property_ui_text(prop, lists[i].name, lists[i].description);
 
 		/* collection functions */

@@ -245,10 +245,10 @@ public:
 		}
 	}
 	virtual ~SG_DListHead() {}
-    T* Remove()
-    {
+	T* Remove()
+	{
 		return static_cast<T*>(SG_DList::Remove());
-    }
+	}
 
 };
 

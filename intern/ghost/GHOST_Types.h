@@ -96,14 +96,14 @@ typedef enum {
 } GHOST_TFireTimeConstant;
 
 typedef enum {
-    GHOST_kModifierKeyLeftShift = 0,
-    GHOST_kModifierKeyRightShift,
-    GHOST_kModifierKeyLeftAlt,
-    GHOST_kModifierKeyRightAlt,
-    GHOST_kModifierKeyLeftControl,
-    GHOST_kModifierKeyRightControl,
-    GHOST_kModifierKeyOS,
-    GHOST_kModifierKeyNumMasks
+	GHOST_kModifierKeyLeftShift = 0,
+	GHOST_kModifierKeyRightShift,
+	GHOST_kModifierKeyLeftAlt,
+	GHOST_kModifierKeyRightAlt,
+	GHOST_kModifierKeyLeftControl,
+	GHOST_kModifierKeyRightControl,
+	GHOST_kModifierKeyOS,
+	GHOST_kModifierKeyNumMasks
 } GHOST_TModifierKeyMask;
 
 

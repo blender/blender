@@ -821,16 +821,14 @@ static void rna_def_strip_proxy(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem seq_tc_items[]= {
-		{SEQ_PROXY_TC_NONE, "NONE", 0, "No TC in use", ""}, 
+		{SEQ_PROXY_TC_NONE, "NONE", 0, "No TC in use", ""},
 		{SEQ_PROXY_TC_RECORD_RUN, "RECORD_RUN", 0, "Record Run",
-		 "use images in the order as they are recorded"}, 
-		{SEQ_PROXY_TC_FREE_RUN, "FREE_RUN", 0, "Free Run", 
-		 "use global timestamp written by recording device"}, 
-		{SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 
-		 0, "Free Run (rec date)", 
-		 "interpolate a global timestamp using the "
-		 "record date and time written by recording "
-		 "device"}, 
+		                          "Use images in the order as they are recorded"},
+		{SEQ_PROXY_TC_FREE_RUN, "FREE_RUN", 0, "Free Run",
+		                        "Use global timestamp written by recording device"},
+		{SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN, "FREE_RUN_REC_DATE", 0, "Free Run (rec date)",
+		                                        "Interpolate a global timestamp using the "
+		                                        "record date and time written by recording device"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "SequenceProxy", NULL);
@@ -1176,13 +1174,13 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Sequences", "");
-	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_sequences_all_begin", "rna_SequenceEditor_sequences_all_next", 0, 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_sequences_all_begin", "rna_SequenceEditor_sequences_all_next", NULL, NULL, NULL, NULL, NULL, NULL);
 
 	prop= RNA_def_property(srna, "meta_stack", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "metastack", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Meta Stack", "Meta strip stack, last is currently edited meta strip");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_SequenceEditor_meta_stack_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_SequenceEditor_meta_stack_get", NULL, NULL, NULL, NULL);
 	
 	prop= RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
@@ -1352,7 +1350,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", NULL);
 	RNA_def_property_struct_type(prop, "SequenceElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
-	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", NULL, NULL, NULL);
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
@@ -1428,7 +1426,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "strip->stripdata", NULL);
 	RNA_def_property_struct_type(prop, "SequenceElement");
 	RNA_def_property_ui_text(prop, "Elements", "");
-	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", "rna_SequenceEditor_elements_length", NULL, NULL, NULL);
 
 	prop= RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "File", "");

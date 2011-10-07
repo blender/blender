@@ -1415,7 +1415,7 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_pivot_point_align", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ALIGN);
-	RNA_def_property_ui_text(prop, "Align", "Manipulate object centers only");
+	RNA_def_property_ui_text(prop, "Align", "Manipulate center points (object and pose mode only)");
 	RNA_def_property_ui_icon(prop, ICON_ALIGN, 0);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_SpaceView3D_pivot_update");
 
@@ -1828,7 +1828,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_marker_sync", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MARKER_TRANS);
-	RNA_def_property_ui_text(prop, "Transform Markers", "Transform markers as well as strips");
+	RNA_def_property_ui_text(prop, "Sync Markers", "Transform markers as well as strips");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 	
 	prop= RNA_def_property(srna, "show_separate_color", PROP_BOOLEAN, PROP_NONE);
@@ -2145,7 +2145,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_beauty_drawing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_BEAUTYDRAW_OFF);
 	RNA_def_property_ui_text(prop, "Use High Quality Drawing",
-	                         "Draw F-Curves using Anti-Aliasing and other fancy effects. Disable for better performance");
+	                         "Draw F-Curves using Anti-Aliasing and other fancy effects (disable for better performance)");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
 	/* editing */
@@ -2221,7 +2221,7 @@ static void rna_def_space_nla(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "show_strip_curves", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SNLA_NOSTRIPCURVES);
-	RNA_def_property_ui_text(prop, "Show Control Curves", "Show influence curves on strips");
+	RNA_def_property_ui_text(prop, "Show Control F-Curves", "Show influence F-Curves on strips");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NLA, NULL);
 	
 	/* editing */
@@ -2593,7 +2593,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "use_auto_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_AUTO_RENDER);
-	RNA_def_property_ui_text(prop, "Auto Render", "Re-render and composite changed layer on 3D edits");
+	RNA_def_property_ui_text(prop, "Auto Render", "Re-render and composite changed layers on 3D edits");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NODE_VIEW, NULL);
 	
 	prop= RNA_def_property(srna, "backdrop_zoom", PROP_FLOAT, PROP_NONE);

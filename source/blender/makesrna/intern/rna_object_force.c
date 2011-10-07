@@ -827,8 +827,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT, "rna_Cache_idname_change");
 
 	prop= RNA_def_property(srna, "point_caches", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next",
-	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Cache_list_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "PointCache");
 	RNA_def_property_ui_text(prop, "Point Cache List", "Point cache list");
 	rna_def_ptcache_point_caches(brna, prop);
@@ -1680,7 +1679,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_estimate_matrix", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "solverflags", SBSO_ESTIMATEIPO);
-	RNA_def_property_ui_text(prop, "Estimate matrix", "estimate matrix .. split to COM , ROT ,SCALE ");
+	RNA_def_property_ui_text(prop, "Estimate matrix", "Estimate matrix... split to COM, ROT, SCALE");
 
 
 	/***********************************************************************************/
@@ -1722,7 +1721,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_stiff_quads", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_stiff_quads_get", "rna_SoftBodySettings_stiff_quads_set");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Stiff Quads", "Adds diagonal springs on 4-gons");
+	RNA_def_property_ui_text(prop, "Stiff Quads", "Add diagonal springs on 4-gons");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "use_edge_collision", PROP_BOOLEAN, PROP_NONE);

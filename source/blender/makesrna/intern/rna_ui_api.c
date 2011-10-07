@@ -447,6 +447,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_reports_banner", "uiTemplateReportsBanner");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
+	func= RNA_def_function(srna, "template_keymap_item_properties", "uiTemplateKeymapItemProperties");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+
 	func= RNA_def_function(srna, "introspect", "uiLayoutIntrospect");
 	parm= RNA_def_string(func, "string", "", 1024*1024, "Descr", "DESCR");
 	RNA_def_function_return(func, parm);

@@ -903,7 +903,7 @@ static void do_material_tex(GPUShadeInput *shi)
 	/*char *lastuvname = NULL;*/ /*UNUSED*/
 	float one = 1.0f, norfac, ofs[3];
 	int tex_nr, rgbnor, talpha;
-	int init_done = 0, iBumpSpacePrev;
+	int init_done = 0, iBumpSpacePrev = 0; /* Not necessary, quiting gcc warning. */
 	GPUNodeLink *vNorg, *vNacc, *fPrevMagnitude;
 	int iFirstTimeNMap=1;
 	int found_deriv_map = 0;
@@ -1101,7 +1101,12 @@ static void do_material_tex(GPUShadeInput *shi)
 						
 						if( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
 							hScale = hScaleTex;
-						norfac = hScale * mtex->norfac;
+
+						// The negate on norfac is done because the
+						// normal in the renderer points inward which corresponds
+						// to inverting the bump map. Should this ever change
+						// this negate must be removed.
+						norfac = -hScale * mtex->norfac;
 						tnorfac = GPU_uniform(&norfac);
 						
 						if(GPU_link_changed(stencil))

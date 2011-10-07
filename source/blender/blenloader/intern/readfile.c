@@ -7175,7 +7175,7 @@ void convert_tface_mt(FileData *fd, Main *main)
 		G.main = main;
 
 		if(!(do_version_tface(main, 1))) {
-			BKE_report(fd->reports, RPT_ERROR, "Texface conversion problem. Error in console");
+			BKE_report(fd->reports, RPT_WARNING, "Texface conversion problem. Error in console");
 		}
 
 		//XXX hack, material.c uses G.main allover the place, instead of main
@@ -10501,7 +10501,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->mode |= MA_TRANSP;
 			}
 			else {
-				ma->mode |= MA_ZTRANSP;
+				/* ma->mode |= MA_ZTRANSP; */ /* leave ztransp as is even if its not used [#28113] */
 				ma->mode &= ~MA_TRANSP;
 			}
 
@@ -11872,7 +11872,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if(!mat->mtex[tex_nr]) continue;
 					if(mat->mtex[tex_nr]->mapto & MAP_ALPHA) transp_tex= 1;
 				}
-				
+
+				/* weak! material alpha could be animated */
 				if(mat->alpha < 1.0f || mat->fresnel_tra > 0.0f || transp_tex){
 					mat->mode |= MA_TRANSP;
 					mat->mode &= ~(MA_ZTRANSP|MA_RAYTRANSP);
@@ -12180,13 +12181,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put compatibility code here until next subversion bump */
-
-	{
-		bScreen *sc;
-		Camera *cam;
-		MovieClip *clip;
-
+	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 4)){
 		{
 			/* Adaptive time step for particle systems */
 			ParticleSettings *part;
@@ -12196,93 +12191,128 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
-		for (sc= main->screen.first; sc; sc= sc->id.next) {
-			ScrArea *sa;
-			for (sa= sc->areabase.first; sa; sa= sa->next) {
-				SpaceLink *sl;
-				for (sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->spacetype==SPACE_VIEW3D) {
-						View3D *v3d= (View3D *)sl;
+		{
+			/* set defaults for obstacle avoidance, recast data */
+			Scene *sce;
+			for(sce = main->scene.first; sce; sce = sce->id.next)
+			{
+				if (sce->gm.levelHeight == 0.f)
+					sce->gm.levelHeight = 2.f;
 
-						if(v3d->bundle_size==0.0f) {
-							v3d->bundle_size= 0.1f;
-							v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
+				if(sce->gm.recastData.cellsize == 0.0f)
+					sce->gm.recastData.cellsize = 0.3f;
+				if(sce->gm.recastData.cellheight == 0.0f)
+					sce->gm.recastData.cellheight = 0.2f;
+				if(sce->gm.recastData.agentmaxslope == 0.0f)
+					sce->gm.recastData.agentmaxslope = (float)M_PI/4;
+				if(sce->gm.recastData.agentmaxclimb == 0.0f)
+					sce->gm.recastData.agentmaxclimb = 0.9f;
+				if(sce->gm.recastData.agentheight == 0.0f)
+					sce->gm.recastData.agentheight = 2.0f;
+				if(sce->gm.recastData.agentradius == 0.0f)
+					sce->gm.recastData.agentradius = 0.6f;
+				if(sce->gm.recastData.edgemaxlen == 0.0f)
+					sce->gm.recastData.edgemaxlen = 12.0f;
+				if(sce->gm.recastData.edgemaxerror == 0.0f)
+					sce->gm.recastData.edgemaxerror = 1.3f;
+				if(sce->gm.recastData.regionminsize == 0.0f)
+					sce->gm.recastData.regionminsize = 8.f;
+				if(sce->gm.recastData.regionmergesize == 0.0f)
+					sce->gm.recastData.regionmergesize = 20.f;
+				if(sce->gm.recastData.vertsperpoly<3)
+					sce->gm.recastData.vertsperpoly = 6;
+				if(sce->gm.recastData.detailsampledist == 0.0f)
+					sce->gm.recastData.detailsampledist = 6.0f;
+				if(sce->gm.recastData.detailsamplemaxerror == 0.0f)
+					sce->gm.recastData.detailsamplemaxerror = 1.0f;
+			}
+		}
+
+		{
+			/* flip normals */
+			Material *ma= main->mat.first;
+			while(ma) {
+				int a;
+				for(a= 0; a<MAX_MTEX; a++) {
+					MTex *mtex= ma->mtex[a];
+
+					if(mtex) {
+						if((mtex->texflag&MTEX_BUMP_FLIPPED)==0) {
+							if((mtex->mapto&MAP_NORM) && mtex->texflag&(MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
+								Tex *tex= newlibadr(fd, lib, mtex->tex);
+
+								if(!tex || (tex->imaflag&TEX_NORMALMAP)==0) {
+									mtex->norfac= -mtex->norfac;
+									mtex->texflag|= MTEX_BUMP_FLIPPED;
+								}
+							}
 						}
-
-						if(v3d->bundle_drawtype==0)
-							v3d->bundle_drawtype= OB_EMPTY_SPHERE;
-					}
-					else if(sl->spacetype==SPACE_CLIP) {
-						SpaceClip *sclip= (SpaceClip *)sl;
-						if(sclip->scopes.track_preview_height==0)
-							sclip->scopes.track_preview_height= 120;
 					}
 				}
-			}
-		}
 
-		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
-			if(clip->aspx<1.0f) {
-				clip->aspx= 1.0f;
-				clip->aspy= 1.0f;
-			}
-
-			/* XXX: a bit hacky, probably include imbuf and use real constants are nicer */
-			clip->proxy.build_tc_flag= 7;
-			if(clip->proxy.build_size_flag==0)
-				clip->proxy.build_size_flag= 1;
-
-			if(clip->proxy.quality==0)
-				clip->proxy.quality= 90;
-
-			if(clip->tracking.camera.pixel_aspect<0.01f)
-				clip->tracking.camera.pixel_aspect= 1.f;
-		}
-
-		for(cam= main->camera.first; cam; cam= cam->id.next) {
-			if (cam->sensor_x < 0.01f) {
-				cam->sensor_x = 32.f;
+				ma= ma->id.next;
 			}
 		}
 	}
 
-	//set defaults for obstacle avoidance, recast data
+	/* put compatibility code here until next subversion bump */
 	{
-		Scene *sce;
-		for(sce = main->scene.first; sce; sce = sce->id.next)
 		{
-			if (sce->gm.levelHeight == 0.f)
-				sce->gm.levelHeight = 2.f;
+			bScreen *sc;
+			Camera *cam;
+			MovieClip *clip;
 
-			if(sce->gm.recastData.cellsize == 0.0f)
-				sce->gm.recastData.cellsize = 0.3f;
-			if(sce->gm.recastData.cellheight == 0.0f)
-				sce->gm.recastData.cellheight = 0.2f;
-			if(sce->gm.recastData.agentmaxslope == 0.0f)
-				sce->gm.recastData.agentmaxslope = (float)M_PI/4;
-			if(sce->gm.recastData.agentmaxclimb == 0.0f)
-				sce->gm.recastData.agentmaxclimb = 0.9f;
-			if(sce->gm.recastData.agentheight == 0.0f)
-				sce->gm.recastData.agentheight = 2.0f;
-			if(sce->gm.recastData.agentradius == 0.0f)
-				sce->gm.recastData.agentradius = 0.6f;
-			if(sce->gm.recastData.edgemaxlen == 0.0f)
-				sce->gm.recastData.edgemaxlen = 12.0f;
-			if(sce->gm.recastData.edgemaxerror == 0.0f)
-				sce->gm.recastData.edgemaxerror = 1.3f;
-			if(sce->gm.recastData.regionminsize == 0.0f)
-				sce->gm.recastData.regionminsize = 50.f;
-			if(sce->gm.recastData.regionmergesize == 0.0f)
-				sce->gm.recastData.regionmergesize = 20.f;
-			if(sce->gm.recastData.vertsperpoly<3)
-				sce->gm.recastData.vertsperpoly = 6;
-			if(sce->gm.recastData.detailsampledist == 0.0f)
-				sce->gm.recastData.detailsampledist = 6.0f;
-			if(sce->gm.recastData.detailsamplemaxerror == 0.0f)
-				sce->gm.recastData.detailsamplemaxerror = 1.0f;
-		}			
+			for (sc= main->screen.first; sc; sc= sc->id.next) {
+				ScrArea *sa;
+				for (sa= sc->areabase.first; sa; sa= sa->next) {
+					SpaceLink *sl;
+					for (sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_VIEW3D) {
+							View3D *v3d= (View3D *)sl;
+							if(v3d->bundle_size==0.0f) {
+								v3d->bundle_size= 0.1f;
+								v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
+							}
+
+							if(v3d->bundle_drawtype==0)
+								v3d->bundle_drawtype= OB_EMPTY_SPHERE;
+						}
+						else if(sl->spacetype==SPACE_CLIP) {
+							SpaceClip *sc= (SpaceClip *)sl;
+							if(sc->scopes.track_preview_height==0)
+								sc->scopes.track_preview_height= 120;
+						}
+					}
+				}
+
+			}
+
+			for(cam= main->camera.first; cam; cam= cam->id.next) {
+				if (cam->sensor_x < 0.01) {
+					cam->sensor_x = 32.f;
+				}
+			}
+
+			for (clip= main->movieclip.first; clip; clip= clip->id.next) {
+				if(clip->aspx<1.0f) {
+					clip->aspx= 1.0f;
+					clip->aspy= 1.0f;
+				}
+
+				/* XXX: a bit hacky, probably include imbuf and use real constants are nicer */
+				clip->proxy.build_tc_flag= 7;
+				if(clip->proxy.build_size_flag==0)
+					clip->proxy.build_size_flag= 1;
+
+				if(clip->proxy.quality==0)
+					clip->proxy.quality= 90;
+
+				if(clip->tracking.camera.pixel_aspect<0.01f)
+					clip->tracking.camera.pixel_aspect= 1.f;
+			}
+		}
 	}
-	
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

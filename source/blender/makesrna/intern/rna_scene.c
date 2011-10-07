@@ -1247,7 +1247,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop= RNA_def_property(srna, "use_snap_self", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "snap_flag", SCE_SNAP_NO_SELF);
-	RNA_def_property_ui_text(prop, "Project to Self", "Snap onto its self (editmode)");
+	RNA_def_property_ui_text(prop, "Project to Self", "Snap onto itself (editmode)");
 	RNA_def_property_ui_icon(prop, ICON_ORTHO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 	
@@ -1879,19 +1879,19 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "depth");
 	RNA_def_property_range(prop, 8, 32);
-	RNA_def_property_ui_text(prop, "Bits", "Displays bit depth of full screen display");
+	RNA_def_property_ui_text(prop, "Bits", "Display bit depth of full screen display");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	// Do we need it here ? (since we already have it in World
 	prop= RNA_def_property(srna, "frequency", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "freqplay");
 	RNA_def_property_range(prop, 4, 2000);
-	RNA_def_property_ui_text(prop, "Freq", "Displays clock frequency of fullscreen display");
+	RNA_def_property_ui_text(prop, "Freq", "Display clock frequency of fullscreen display");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	prop= RNA_def_property(srna, "show_fullscreen", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "fullscreen", 1.0);
-	RNA_def_property_ui_text(prop, "Fullscreen", "Starts player in a new fullscreen display");
+	RNA_def_property_ui_text(prop, "Fullscreen", "Start player in a new fullscreen display");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* Framing */
@@ -3487,14 +3487,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "ObjectBase");
 	RNA_def_property_ui_text(prop, "Bases", "");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, "rna_Scene_object_bases_lookup_string");
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, "rna_Scene_object_bases_lookup_string", NULL);
 	rna_def_scene_bases(brna, prop);
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "base", NULL);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Objects", "");
-	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Scene_objects_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_Scene_objects_get", NULL, NULL, NULL, NULL);
 	rna_def_scene_objects(brna, prop);
 
 	/* Layers */
@@ -3624,8 +3624,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	rna_def_scene_keying_sets(brna, prop);
 	
 	prop= RNA_def_property(srna, "keying_sets_all", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_Scene_all_keyingsets_begin", "rna_Scene_all_keyingsets_next",
-	                                  "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_Scene_all_keyingsets_begin", "rna_Scene_all_keyingsets_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "KeyingSet");
 	RNA_def_property_ui_text(prop, "All Keying Sets",
 	                         "All Keying Sets available for use (Builtins and Absolute Keying Sets for this Scene)");

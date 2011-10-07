@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, OperatorProperties
-import os
 
 
 class USERPREF_MT_keyconfigs(Menu):
@@ -122,19 +121,6 @@ class InputKeyMapPanel:
                 for entry in children:
                     self.draw_entry(display_keymaps, entry, col, level + 1)
 
-    @staticmethod
-    def draw_kmi_properties(box, properties, title=None):
-        box.separator()
-        if title:
-            box.label(text=title)
-        flow = box.column_flow(columns=2)
-        for pname, value in properties.bl_rna.properties.items():
-            if pname != "rna_type" and not properties.is_property_hidden(pname):
-                if isinstance(value, OperatorProperties):
-                    InputKeyMapPanel.draw_kmi_properties(box, value, title=pname)
-                else:
-                    flow.prop(properties, pname)
-
     def draw_kmi(self, display_keymaps, kc, km, kmi, layout, level):
         map_type = kmi.map_type
 
@@ -219,9 +205,7 @@ class InputKeyMapPanel:
                 subrow.prop(kmi, "key_modifier", text="", event=True)
 
             # Operator properties
-            props = kmi.properties
-            if props is not None:
-                InputKeyMapPanel.draw_kmi_properties(box, props)
+            box.template_keymap_item_properties(kmi)
 
             # Modal key maps attached to this operator
             if not km.is_modal:

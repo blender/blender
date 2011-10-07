@@ -16,7 +16,7 @@ This means when string "some message id" is used as operator name, tooltip, menu
 and so it'll be displayed on the screen as "translation for this message".
 Pretty simple.
 
-This source files are pre-compiled into ../relese/dbin/.blender/locale/<language>/LC_MESSAGES/blender.mo,
+This source files are pre-compiled into ../relese/bin/.blender/locale/<language>/LC_MESSAGES/blender.mo,
 so they aren't getting compiled every time Blender is compiling to same some time and prevent
 failure on systems which doesn't have needed tools for compiling .po files.
 
@@ -37,9 +37,10 @@ When translation was updated, remove line with '#, fuzzy' and it'll work.
 
 If there's no message in .po file you want to translate, probably .po file should be updated.
 Use the following steps for this:
-- With newly compiled blender run `blender --background --python update_msg.py` to update
-  messages.txt file (this file contains strings collected automatically from RNA system and
-  python UI scripts)
+- With newly compiled blender run:
+  `blender --background --factory-startup --python update_msg.py`
+  to update messages.txt file (this file contains strings collected
+  automatically from RNA system and python UI scripts)
 - Run update_pot.py script which will update blender.pot file. This file contains all
   strings which should be transated.
 - Run update_po.py script to merge all .po files with blender.pot (so all .po files
@@ -59,3 +60,22 @@ using GNUMakefile:
 make -f GNUMakefile translations
 
 NOTE: Blender has to be compiled using GNUMakefile first.
+
+
+3. Note for Windows users
+-------------------------
+You can find compiled builds of gettext in the lib folder under "binaries\gettext\" for both windows and win64.
+In order to run the scripts you will need to replace the location of the GETTEXT_..._EXeCUTABLE.
+
+For example in update_pot.py:
+-GETTEXT_XGETTEXT_EXECUTABLE = "xgettext"
++GETTEXT_XGETTEXT_EXECUTABLE = "C:\\Blender\\lib\\\windows\\\binaries\\\gettext\\xgettext.exe"
+
+4. Other scripts
+----------------
+
+- check_po.py: this script checks if all messages declared in blender.pot exists in.po files
+               and that no extra messages are declared in .po files
+- clean_po.py: this script removes all commented messages which aren't required by .pot file anymore.
+- merge_po.py: this scripts accepts two files as arguments and copies translations from second file
+               into first file.

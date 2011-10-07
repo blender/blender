@@ -1208,9 +1208,6 @@ static int wm_resource_check_prev(void)
 
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
-	extern char datatoc_splash_png[];
-	extern int datatoc_splash_png_size;
-
 	uiBlock *block;
 	uiBut *but;
 	uiLayout *layout, *split, *col;
@@ -1219,9 +1216,17 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	int i;
 	MenuType *mt= WM_menutype_find("USERPREF_MT_splash", TRUE);
 	char url[96];
-	/* hardcoded to splash, loading and freeing every draw, eek! */
+
+#ifndef WITH_HEADLESS
+	extern char datatoc_splash_png[];
+	extern int datatoc_splash_png_size;
+
 	ImBuf *ibuf= IMB_ibImageFromMemory((unsigned char*)datatoc_splash_png, datatoc_splash_png_size, IB_rect);
-	
+#else
+	ImBuf *ibuf= NULL;
+#endif
+
+
 #ifdef WITH_BUILDINFO
 	int ver_width, rev_width;
 	char *version_str = NULL;
@@ -1275,7 +1280,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemL(col, "Links", ICON_NONE);
 	uiItemStringO(col, UI_translate_do_iface(N_("Donations")), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment");
 	uiItemStringO(col, UI_translate_do_iface(N_("Credits")), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/credits");
-	uiItemStringO(col, UI_translate_do_iface(N_("Release Log")), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-259");
+	uiItemStringO(col, UI_translate_do_iface(N_("Release Log")), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-260");
 	uiItemStringO(col, UI_translate_do_iface(N_("Manual")), ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.5/Manual");
 	uiItemStringO(col, UI_translate_do_iface(N_("Blender Website")), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
 	uiItemStringO(col, UI_translate_do_iface(N_("User Community")), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community");

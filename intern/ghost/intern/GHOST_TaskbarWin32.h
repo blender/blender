@@ -21,25 +21,25 @@
 #define __ITaskbarList_INTERFACE_DEFINED__
 	extern "C" {const GUID CLSID_TaskbarList = {0x56FDF344, 0xFD6D, 0x11D0, {0x95, 0x8A, 0x00, 0x60, 0x97, 0xC9, 0xA0, 0x90} };
 				const GUID IID_ITaskbarList  = {0x56FDF342, 0xFD6D, 0x11D0, {0x95, 0x8A, 0x00, 0x60, 0x97, 0xC9, 0xA0, 0x90} }; }
-    class ITaskbarList : public IUnknown
-    {
-    public:
-        virtual HRESULT STDMETHODCALLTYPE HrInit		(void) = 0;
-        virtual HRESULT STDMETHODCALLTYPE AddTab		(HWND hwnd) = 0;
-        virtual HRESULT STDMETHODCALLTYPE DeleteTab		(HWND hwnd) = 0;
-        virtual HRESULT STDMETHODCALLTYPE ActivateTab	(HWND hwnd) = 0;
-        virtual HRESULT STDMETHODCALLTYPE SetActiveAlt	(HWND hwnd) = 0;   
-    };
+	class ITaskbarList : public IUnknown
+	{
+	public:
+		virtual HRESULT STDMETHODCALLTYPE HrInit		(void) = 0;
+		virtual HRESULT STDMETHODCALLTYPE AddTab		(HWND hwnd) = 0;
+		virtual HRESULT STDMETHODCALLTYPE DeleteTab		(HWND hwnd) = 0;
+		virtual HRESULT STDMETHODCALLTYPE ActivateTab	(HWND hwnd) = 0;
+		virtual HRESULT STDMETHODCALLTYPE SetActiveAlt	(HWND hwnd) = 0;
+	};
 #endif 	/* ITaskbarList */
 
 #ifndef __ITaskbarList2_INTERFACE_DEFINED__
 #define __ITaskbarList2_INTERFACE_DEFINED__
 	extern "C" {const GUID IID_ITaskbarList2 = {0x602D4995, 0xB13A, 0x429b, {0xA6, 0x6E, 0x19, 0x35, 0xE4, 0x4F, 0x43, 0x17} }; }
-    class ITaskbarList2 : public ITaskbarList
-    {
-    public:
-        virtual HRESULT STDMETHODCALLTYPE MarkFullscreenWindow(HWND hwnd, BOOL fFullscreen) = 0;    
-    };
+	class ITaskbarList2 : public ITaskbarList
+	{
+	public:
+		virtual HRESULT STDMETHODCALLTYPE MarkFullscreenWindow(HWND hwnd, BOOL fFullscreen) = 0;
+	};
 #endif 	/* ITaskbarList2 */
 
 #ifndef __ITaskbarList3_INTERFACE_DEFINED__
@@ -51,9 +51,9 @@ typedef enum TBPFLAG  {TBPF_NOPROGRESS = 0, TBPF_INDETERMINATE = 0x1, TBPF_NORMA
 #define THBN_CLICKED  0x1800	
 	extern "C" {const GUID IID_ITaskList3 = { 0xEA1AFB91, 0x9E28, 0x4B86, {0x90, 0xE9, 0x9E, 0x9F, 0x8A, 0x5E, 0xEF, 0xAF} };}
 
-    class ITaskbarList3 : public ITaskbarList2
-    {
-    public:
+	class ITaskbarList3 : public ITaskbarList2
+	{
+	public:
 		virtual HRESULT STDMETHODCALLTYPE SetProgressValue		(HWND hwnd, ULONGLONG ullCompleted, ULONGLONG ullTotal) = 0;
 		virtual HRESULT STDMETHODCALLTYPE SetProgressState		(HWND hwnd, TBPFLAG tbpFlags) = 0;
 		virtual HRESULT STDMETHODCALLTYPE RegisterTab			(HWND hwndTab, HWND hwndMDI) = 0;
@@ -62,11 +62,11 @@ typedef enum TBPFLAG  {TBPF_NOPROGRESS = 0, TBPF_INDETERMINATE = 0x1, TBPF_NORMA
 		virtual HRESULT STDMETHODCALLTYPE SetTabActive			(HWND hwndTab,  HWND hwndMDI, DWORD dwReserved) = 0;
 		virtual HRESULT STDMETHODCALLTYPE ThumbBarAddButtons	(HWND hwnd, UINT cButtons, THUMBBUTTON * pButton) = 0;
 		virtual HRESULT STDMETHODCALLTYPE ThumbBarUpdateButtons	(HWND hwnd, UINT cButtons, THUMBBUTTON * pButton) = 0;
-		virtual HRESULT STDMETHODCALLTYPE ThumbBarSetImageList	(HWND hwnd, HIMAGELIST himl) = 0; 
+		virtual HRESULT STDMETHODCALLTYPE ThumbBarSetImageList	(HWND hwnd, HIMAGELIST himl) = 0;
 		virtual HRESULT STDMETHODCALLTYPE SetOverlayIcon		(HWND hwnd, HICON hIcon, LPCWSTR pszDescription) = 0;
 		virtual HRESULT STDMETHODCALLTYPE SetThumbnailTooltip	(HWND hwnd, LPCWSTR pszTip) = 0;
 		virtual HRESULT STDMETHODCALLTYPE SetThumbnailClip		(HWND hwnd, RECT *prcClip) = 0;
-    };
+	};
 #endif 	/* ITaskbarList3 */
 
 #endif /*GHOST_TASKBARWIN32_H_*/
