@@ -2595,12 +2595,10 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 	}
 
 	if(bezt->h1==HD_VECT) {	/* vector */
-		mul_v3_fl(dvec_a, 1.0f/3.0f);
-		sub_v3_v3v3(p2-3, p2, dvec_a);
+		madd_v3_v3v3fl(p2-3, p2, dvec_a, -1.0f/3.0f);
 	}
 	if(bezt->h2==HD_VECT) {
-		mul_v3_fl(dvec_b, 1.0f/3.0f);
-		sub_v3_v3v3(p2+3, p2, dvec_b);
+		madd_v3_v3v3fl(p2+3, p2, dvec_b,  1.0f/3.0f);
 	}
 
 	len_b= len_v3v3(p2, p2+3);
