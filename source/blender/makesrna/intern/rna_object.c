@@ -250,16 +250,20 @@ void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Object_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_OB);
-	DAG_scene_sort(bmain, scene);
+	if (scene) {
+		DAG_scene_sort(bmain, scene);
+	}
 	WM_main_add_notifier(NC_OBJECT|ND_PARENT, ptr->id.data);
 }
 
 /* when changing the selection flag the scene needs updating */
 static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 {
-	Object *ob= (Object*)ptr->id.data;
-	short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
-	ED_base_object_select(object_in_scene(ob, scene), mode);
+	if (scene) {
+		Object *ob= (Object*)ptr->id.data;
+		short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
+		ED_base_object_select(object_in_scene(ob, scene), mode);
+	}
 }
 
 static void rna_Base_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
