@@ -426,8 +426,7 @@ typedef struct GameFraming {
 #define SCE_GAMEFRAMING_EXTEND 1
 #define SCE_GAMEFRAMING_SCALE  2
 
-typedef struct RecastData
-{
+typedef struct RecastData {
 	float cellsize;
 	float cellheight;
 	float agentmaxslope;
@@ -441,6 +440,7 @@ typedef struct RecastData
 	int vertsperpoly;
 	float detailsampledist;
 	float detailsamplemaxerror;
+	short pad1, pad2;
 } RecastData;
 
 typedef struct GameData {
@@ -453,8 +453,7 @@ typedef struct GameData {
 	/* stereo/dome mode */
 	struct GameDome dome;
 	short stereoflag, stereomode;
-	short pad2, pad3;
-	float eyeseparation, pad1;
+	float eyeseparation;
 	RecastData recastData;
 
 
@@ -471,11 +470,12 @@ typedef struct GameData {
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustrum culling
 	*/
 	int flag;
-	short mode, matmode, pad;
+	short mode, matmode;
 	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
 	short physicsEngine;
+	short pad[2];
 	short ticrate, maxlogicstep, physubstep, maxphystep;
-	short obstacleSimulation;
+	short obstacleSimulation, pad1;
 	float levelHeight;
 } GameData;
 
