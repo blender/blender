@@ -558,6 +558,14 @@ struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(double focal_length, do
 	return (struct libmv_CameraIntrinsics *) intrinsics;
 }
 
+struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsCopy(struct libmv_CameraIntrinsics *libmvIntrinsics)
+{
+	libmv::CameraIntrinsics *orig_intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
+	libmv::CameraIntrinsics *new_intrinsics= new libmv::CameraIntrinsics(*orig_intrinsics);
+
+	return (struct libmv_CameraIntrinsics *) new_intrinsics;
+}
+
 void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmvIntrinsics)
 {
 	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;

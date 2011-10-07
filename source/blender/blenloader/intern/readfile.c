@@ -1253,6 +1253,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain)
 {
 	MovieClip *clip= oldmain->movieclip.first;
+	Scene *sce= oldmain->scene.first;
 
 	fd->movieclipmap= oldnewmap_new();
 
@@ -1263,6 +1264,15 @@ void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain)
 		if(clip->tracking.camera.intrinsics)
 			oldnewmap_insert(fd->movieclipmap, clip->tracking.camera.intrinsics, clip->tracking.camera.intrinsics, 0);
 	}
+
+	for(; sce; sce= sce->id.next) {
+		if(sce->nodetree) {
+			bNode *node;
+			for(node= sce->nodetree->nodes.first; node; node= node->next)
+				if(node->type==CMP_NODE_MOVIEDISTORTION)
+					oldnewmap_insert(fd->movieclipmap, node->storage, node->storage, 0);
+		}
+	}
 }
 
 /* set old main movie clips caches to zero if it has been restored */
@@ -1271,6 +1281,7 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 {
 	OldNew *entry= fd->movieclipmap->entries;
 	MovieClip *clip= oldmain->movieclip.first;
+	Scene *sce= oldmain->scene.first;
 	int i;
 
 	/* used entries were restored, so we put them to zero */
@@ -1282,6 +1293,15 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 	for(;clip; clip= clip->id.next) {
 		clip->cache= newmclipadr(fd, clip->cache);
 		clip->tracking.camera.intrinsics= newmclipadr(fd, clip->tracking.camera.intrinsics);
+	}
+
+	for(; sce; sce= sce->id.next) {
+		if(sce->nodetree) {
+			bNode *node;
+			for(node= sce->nodetree->nodes.first; node; node= node->next)
+				if(node->type==CMP_NODE_MOVIEDISTORTION)
+					node->storage= newmclipadr(fd, node->storage);
+		}
 	}
 }
 
@@ -2271,7 +2291,11 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		link_list(fd, &node->inputs);
 		link_list(fd, &node->outputs);
 		
-		node->storage= newdataadr(fd, node->storage);
+		if(node->type == CMP_NODE_MOVIEDISTORTION) {
+			node->storage= newmclipadr(fd, node->storage);
+		} else
+			node->storage= newdataadr(fd, node->storage);
+
 		if(node->storage) {
 			/* could be handlerized at some point */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))

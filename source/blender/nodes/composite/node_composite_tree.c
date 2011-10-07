@@ -47,6 +47,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
+#include "BKE_tracking.h"
 #include "BKE_utildefines.h"
 
 #include "node_exec.h"
@@ -168,6 +169,17 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 				if(lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
 					/* image_merge does sanity check for pointers */
 					BKE_image_merge((Image *)lnode->new_node->id, (Image *)lnode->id);
+				}
+			}
+			else if(lnode->type==CMP_NODE_MOVIEDISTORTION) {
+				/* special case for distortion node: distortion context is allocating in exec function
+				   and to achive much better performance on further calls this context should be
+				   copied back to original node */
+				if(lnode->storage) {
+					if(lnode->new_node->storage)
+						BKE_tracking_distortion_destroy(lnode->new_node->storage);
+
+					lnode->new_node->storage= BKE_tracking_distortion_copy(lnode->storage);
 				}
 			}
 			

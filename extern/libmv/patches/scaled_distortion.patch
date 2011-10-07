@@ -1,18 +1,59 @@
 diff --git a/src/libmv/simple_pipeline/camera_intrinsics.cc b/src/libmv/simple_pipeline/camera_intrinsics.cc
-index f9888ff..e1e6117 100644
+index f9888ff..110a16d 100644
 --- a/src/libmv/simple_pipeline/camera_intrinsics.cc
 +++ b/src/libmv/simple_pipeline/camera_intrinsics.cc
-@@ -24,6 +24,7 @@
+@@ -23,7 +23,32 @@
+ 
  namespace libmv {
  
- struct Offset { signed char ix,iy; unsigned char fx,fy; };
-+struct Grid { struct Offset *offset; int width, height; };
+-struct Offset { signed char ix,iy; unsigned char fx,fy; };
++struct Offset {
++  signed char ix, iy;
++  unsigned char fx,fy;
++};
++
++struct Grid {
++  struct Offset *offset;
++  int width, height;
++};
++
++static struct Grid *copyGrid(struct Grid *from)
++{
++  struct Grid *to = NULL;
++
++  if (from) {
++    to = new Grid;
++
++    to->width = from->width;
++    to->height = from->height;
++
++    to->offset = new Offset[to->width*to->height];
++    memcpy(to->offset, from->offset, sizeof(struct Offset)*to->width*to->height);
++  }
++
++  return to;
++}
  
  CameraIntrinsics::CameraIntrinsics()
      : K_(Mat3::Identity()),
-@@ -38,8 +39,7 @@ CameraIntrinsics::CameraIntrinsics()
+@@ -37,9 +62,22 @@ CameraIntrinsics::CameraIntrinsics()
+       distort_(0),
        undistort_(0) {}
  
++CameraIntrinsics::CameraIntrinsics(const CameraIntrinsics &from)
++    : K_(from.K_),
++      image_width_(from.image_width_),
++      image_height_(from.image_height_),
++      k1_(from.k1_),
++      k2_(from.k2_),
++      k3_(from.k3_),
++      p1_(from.p1_),
++      p2_(from.p2_)
++{
++  distort_ = copyGrid(from.distort_);
++  undistort_ = copyGrid(from.undistort_);
++}
++
  CameraIntrinsics::~CameraIntrinsics() {
 -  if(distort_) delete[] distort_;
 -  if(undistort_) delete[] undistort_;
@@ -20,7 +61,7 @@ index f9888ff..e1e6117 100644
  }
  
  /// Set the entire calibration matrix at once.
-@@ -146,11 +146,17 @@ void CameraIntrinsics::InvertIntrinsics(double image_x,
+@@ -146,11 +184,17 @@ void CameraIntrinsics::InvertIntrinsics(double image_x,
  
  // TODO(MatthiasF): downsample lookup
  template<typename WarpFunction>
@@ -35,12 +76,12 @@ index f9888ff..e1e6117 100644
        double warp_x, warp_y;
 -      WarpFunction(this,x,y,&warp_x,&warp_y);
 +      WarpFunction(this,src_x,src_y,&warp_x,&warp_y);
-+      warp_x *= aspx;
-+      warp_y *= aspy;
++      warp_x = warp_x*aspx;
++      warp_y = warp_y*aspy;
        int ix = int(warp_x), iy = int(warp_y);
        int fx = round((warp_x-ix)*256), fy = round((warp_y-iy)*256);
        if(fx == 256) { fx=0; ix++; }
-@@ -162,10 +168,10 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
+@@ -162,10 +206,10 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
        if( iy >= height-2 ) iy = height-2;
        if ( ix-x > -128 && ix-x < 128 && iy-y > -128 && iy-y < 128 ) {
          Offset offset = { ix-x, iy-y, fx, fy };
@@ -53,7 +94,7 @@ index f9888ff..e1e6117 100644
        }
      }
    }
-@@ -173,11 +179,11 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
+@@ -173,11 +217,11 @@ void CameraIntrinsics::ComputeLookupGrid(Offset* grid, int width, int height) {
  
  // TODO(MatthiasF): cubic B-Spline image sampling, bilinear lookup
  template<typename T,int N>
@@ -67,27 +108,27 @@ index f9888ff..e1e6117 100644
        const T* s = &src[((y+offset.iy)*width+(x+offset.ix))*N];
        for (int i = 0; i < N; i++) {
          dst[(y*width+x)*N+i] = ((s[        i] * (256-offset.fx) + s[        N+i] * offset.fx) * (256-offset.fy)
-@@ -188,8 +194,17 @@ static void Warp(const Offset* grid, const T* src, T* dst,
+@@ -188,8 +232,17 @@ static void Warp(const Offset* grid, const T* src, T* dst,
  }
  
  void CameraIntrinsics::FreeLookupGrid() {
 -  if(distort_) delete distort_, distort_=0;
 -  if(undistort_) delete undistort_, undistort_=0;
 +  if(distort_) {
-+    delete distort_;
 +    delete distort_->offset;
++    delete distort_;
 +    distort_ = NULL;
 +  }
 +
 +  if(undistort_) {
-+    delete undistort_;
 +    delete undistort_->offset;
++    delete undistort_;
 +    undistort_ = NULL;
 +  }
  }
  
  // FIXME: C++ templates limitations makes thing complicated, but maybe there is a simpler method.
-@@ -211,11 +226,50 @@ struct InvertIntrinsicsFunction {
+@@ -211,11 +264,50 @@ struct InvertIntrinsicsFunction {
    }
  };
  
@@ -142,7 +183,7 @@ index f9888ff..e1e6117 100644
         if(channels==1) Warp<float,1>(distort_,src,dst,width,height);
    else if(channels==2) Warp<float,2>(distort_,src,dst,width,height);
    else if(channels==3) Warp<float,3>(distort_,src,dst,width,height);
-@@ -224,10 +278,7 @@ void CameraIntrinsics::Distort(const float* src, float* dst, int width, int heig
+@@ -224,10 +316,7 @@ void CameraIntrinsics::Distort(const float* src, float* dst, int width, int heig
  }
  
  void CameraIntrinsics::Distort(const unsigned char* src, unsigned char* dst, int width, int height, int channels) {
@@ -154,7 +195,7 @@ index f9888ff..e1e6117 100644
         if(channels==1) Warp<unsigned char,1>(distort_,src,dst,width,height);
    else if(channels==2) Warp<unsigned char,2>(distort_,src,dst,width,height);
    else if(channels==3) Warp<unsigned char,3>(distort_,src,dst,width,height);
-@@ -236,10 +287,7 @@ void CameraIntrinsics::Distort(const unsigned char* src, unsigned char* dst, int
+@@ -236,10 +325,7 @@ void CameraIntrinsics::Distort(const unsigned char* src, unsigned char* dst, int
  }
  
  void CameraIntrinsics::Undistort(const float* src, float* dst, int width, int height, int channels) {
@@ -166,7 +207,7 @@ index f9888ff..e1e6117 100644
         if(channels==1) Warp<float,1>(undistort_,src,dst,width,height);
    else if(channels==2) Warp<float,2>(undistort_,src,dst,width,height);
    else if(channels==3) Warp<float,3>(undistort_,src,dst,width,height);
-@@ -248,10 +296,7 @@ void CameraIntrinsics::Undistort(const float* src, float* dst, int width, int he
+@@ -248,10 +334,7 @@ void CameraIntrinsics::Undistort(const float* src, float* dst, int width, int he
  }
  
  void CameraIntrinsics::Undistort(const unsigned char* src, unsigned char* dst, int width, int height, int channels) {
@@ -179,10 +220,10 @@ index f9888ff..e1e6117 100644
    else if(channels==2) Warp<unsigned char,2>(undistort_,src,dst,width,height);
    else if(channels==3) Warp<unsigned char,3>(undistort_,src,dst,width,height);
 diff --git a/src/libmv/simple_pipeline/camera_intrinsics.h b/src/libmv/simple_pipeline/camera_intrinsics.h
-index 29bc8a1..c89832f 100644
+index 29bc8a1..f525571 100644
 --- a/src/libmv/simple_pipeline/camera_intrinsics.h
 +++ b/src/libmv/simple_pipeline/camera_intrinsics.h
-@@ -26,7 +26,7 @@ typedef Eigen::Matrix<double, 3, 3> Mat3;
+@@ -26,11 +26,12 @@ typedef Eigen::Matrix<double, 3, 3> Mat3;
  
  namespace libmv {
  
@@ -191,7 +232,12 @@ index 29bc8a1..c89832f 100644
  
  class CameraIntrinsics {
   public:
-@@ -123,7 +123,9 @@ class CameraIntrinsics {
+   CameraIntrinsics();
++  CameraIntrinsics(const CameraIntrinsics &from);
+   ~CameraIntrinsics();
+ 
+   const Mat3 &K()                 const { return K_;            }
+@@ -123,7 +124,9 @@ class CameraIntrinsics {
                   int width, int height, int channels);
  
   private:
@@ -202,7 +248,7 @@ index 29bc8a1..c89832f 100644
    void FreeLookupGrid();
  
    // The traditional intrinsics matrix from x = K[R|t]X.
-@@ -140,8 +142,8 @@ class CameraIntrinsics {
+@@ -140,8 +143,8 @@ class CameraIntrinsics {
    // independent of image size.
    double k1_, k2_, k3_, p1_, p2_;
  

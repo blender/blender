@@ -40,6 +40,7 @@ struct MovieTrackingMarker;
 struct MovieTracking;
 struct MovieTrackingContext;
 struct MovieClipUser;
+struct MovieDistortion;
 struct Scene;
 struct Object;
 
@@ -93,6 +94,13 @@ struct MovieTrackingTrack *BKE_tracking_indexed_bundle(struct MovieTracking *tra
 void BKE_tracking_stabilization_data(struct MovieTracking *tracking, int framenr, int width, int height, float loc[2], float *scale, float *angle);
 struct ImBuf *BKE_tracking_stabilize(struct MovieTracking *tracking, int framenr, struct ImBuf *ibuf, float loc[2], float *scale, float *angle);
 void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float scale, float angle, float mat[4][4]);
+
+/* Distoriton/Undistortion */
+struct MovieDistortion *BKE_tracking_distortion_create(void);
+struct MovieDistortion *BKE_tracking_distortion_copy(struct MovieDistortion *distortion);
+struct ImBuf *BKE_tracking_distortion_exec(struct MovieDistortion *distortion, struct MovieTracking *tracking,
+			struct ImBuf *ibuf, int width, int height, int undistort);
+void BKE_tracking_distortion_destroy(struct MovieDistortion *distortion);
 
 struct ImBuf *BKE_tracking_undistort(struct MovieTracking *tracking, struct ImBuf *ibuf, int width, int height);
 struct ImBuf *BKE_tracking_distort(struct MovieTracking *tracking, struct ImBuf *ibuf, int width, int height);

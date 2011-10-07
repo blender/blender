@@ -13,7 +13,8 @@ tmp=`mktemp -d`
 
 git clone $repo $tmp/libmv
 
-git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log --since="1 month ago" > ChangeLog
+#git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log --since="1 month ago" > ChangeLog
+git --git-dir $tmp/libmv/.git --work-tree $tmp/libmv log -n 50 > ChangeLog
 
 for p in `cat ./patches/series`; do
   echo "Applying patch $p..."

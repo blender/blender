@@ -31,6 +31,7 @@ struct Grid;
 class CameraIntrinsics {
  public:
   CameraIntrinsics();
+  CameraIntrinsics(const CameraIntrinsics &from);
   ~CameraIntrinsics();
 
   const Mat3 &K()                 const { return K_;            }

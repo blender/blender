@@ -60,17 +60,20 @@ static void exec(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **
 
 			if(ibuf) {
 				ImBuf *obuf;
-				MovieClipUser *user= (MovieClipUser *)node->storage;
+				MovieTracking *tracking= &clip->tracking;
 				int width, height;
 
 				ibuf->rect_float= cbuf->rect;
 
-				BKE_movieclip_acquire_size(clip, user, &width, &height);
+				BKE_movieclip_acquire_size(clip, NULL, &width, &height);
+
+				if(!node->storage)
+					node->storage= BKE_tracking_distortion_create();
 
 				if(node->custom1==0)
-					obuf= BKE_tracking_undistort(&clip->tracking, ibuf, width, height);
+					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, 1);
 				else
-					obuf= BKE_tracking_distort(&clip->tracking, ibuf, width, height);
+					obuf= BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, 0);
 
 				stackbuf->rect= obuf->rect_float;
 				stackbuf->malloc= 1;
@@ -111,6 +114,20 @@ static const char *label(bNode *node)
 		return "Distortion";
 }
 
+static void storage_free(bNode *node)
+{
+	if(node->storage)
+		BKE_tracking_distortion_destroy(node->storage);
+
+	node->storage= NULL;
+}
+
+void storage_copy(bNode *orig_node, bNode *new_node)
+{
+	if(orig_node->storage)
+		new_node->storage= BKE_tracking_distortion_copy(orig_node->storage);
+}
+
 void register_node_type_cmp_moviedistortion(ListBase *lb)
 {
 	static bNodeType ntype;
@@ -121,6 +138,7 @@ void register_node_type_cmp_moviedistortion(ListBase *lb)
 	node_type_init(&ntype, init);
 	node_type_label(&ntype, label);
 	node_type_exec(&ntype, exec);
+	node_type_storage(&ntype, NULL, storage_free, storage_copy);
 
 	nodeRegisterType(lb, &ntype);
 }

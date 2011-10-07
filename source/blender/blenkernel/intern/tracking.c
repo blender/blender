@@ -59,6 +59,10 @@
 #include "libmv-capi.h"
 #endif
 
+typedef struct MovieDistortion {
+	struct libmv_CameraIntrinsics *intrinsics;
+} MovieDistortion;
+
 /*********************** common functions *************************/
 
 void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
@@ -464,10 +468,8 @@ void BKE_tracking_free(MovieTracking *tracking)
 	if(tracking->stabilization.scaleibuf)
 		IMB_freeImBuf(tracking->stabilization.scaleibuf);
 
-#ifdef WITH_LIBMV
 	if(tracking->camera.intrinsics)
-		libmv_CameraIntrinsicsDestroy(tracking->camera.intrinsics);
-#endif
+		BKE_tracking_distortion_destroy(tracking->camera.intrinsics);
 }
 
 /*********************** tracking *************************/
@@ -1897,80 +1899,111 @@ void BKE_tracking_stabdata_to_mat4(int width, int height, float loc[2], float sc
 	mul_serie_m4(mat, lmat, smat, cmat, rmat, icmat, NULL, NULL, NULL);
 }
 
-ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf, int width, int height)
+MovieDistortion *BKE_tracking_distortion_create(void)
 {
-	ImBuf *resibuf;
+	MovieDistortion *distortion;
+
+	distortion= MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
+
+	return distortion;
+}
+
+MovieDistortion *BKE_tracking_distortion_copy(MovieDistortion *distortion)
+{
+	MovieDistortion *new_distortion;
+
+	new_distortion= MEM_callocN(sizeof(MovieDistortion), "BKE_tracking_distortion_create");
+
+#ifdef WITH_LIBMV
+	new_distortion->intrinsics= libmv_CameraIntrinsicsCopy(distortion->intrinsics);
+#endif
+
+	return new_distortion;
+}
+
+void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *tracking, int width, int height)
+{
 	MovieTrackingCamera *camera= &tracking->camera;
 	float aspy= 1.f/tracking->camera.pixel_aspect;
 
-	resibuf= IMB_dupImBuf(ibuf);
-
 #ifdef WITH_LIBMV
-	if(camera->intrinsics == NULL) {
-		camera->intrinsics= libmv_CameraIntrinsicsNew(camera->focal,
+	if(!distortion->intrinsics) {
+		distortion->intrinsics= libmv_CameraIntrinsicsNew(camera->focal,
 				camera->principal[0], camera->principal[1] * aspy,
 				camera->k1, camera->k2, camera->k3, width, height * aspy);
 	} else {
-		libmv_CameraIntrinsicsUpdate(camera->intrinsics, camera->focal,
+		libmv_CameraIntrinsicsUpdate(distortion->intrinsics, camera->focal,
 				camera->principal[0], camera->principal[1] * aspy,
 				camera->k1, camera->k2, camera->k3, width, height * aspy);
 	}
 #endif
+}
+
+ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *tracking,
+			ImBuf *ibuf, int width, int height, int undistort)
+{
+	ImBuf *resibuf;
+
+	BKE_tracking_distortion_update(distortion, tracking, width, height);
+
+	resibuf= IMB_dupImBuf(ibuf);
 
 	if(ibuf->rect_float) {
 #ifdef WITH_LIBMV
-		libmv_CameraIntrinsicsUndistortFloat(camera->intrinsics,
-					ibuf->rect_float, resibuf->rect_float,
-					ibuf->x, ibuf->y, ibuf->channels);
+		if(undistort) {
+			libmv_CameraIntrinsicsUndistortFloat(distortion->intrinsics,
+						ibuf->rect_float, resibuf->rect_float,
+						ibuf->x, ibuf->y, ibuf->channels);
+		} else {
+			libmv_CameraIntrinsicsDistortFloat(distortion->intrinsics,
+						ibuf->rect_float, resibuf->rect_float,
+						ibuf->x, ibuf->y, ibuf->channels);
+		}
 #endif
 
 		ibuf->userflags|= IB_RECT_INVALID;
 	} else {
 #ifdef WITH_LIBMV
-		libmv_CameraIntrinsicsUndistortByte(camera->intrinsics,
-					(unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect,
-					ibuf->x, ibuf->y, ibuf->channels);
+		if(undistort) {
+				libmv_CameraIntrinsicsUndistortByte(distortion->intrinsics,
+							(unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect,
+							ibuf->x, ibuf->y, ibuf->channels);
+		} else {
+			libmv_CameraIntrinsicsDistortByte(distortion->intrinsics,
+						(unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect,
+						ibuf->x, ibuf->y, ibuf->channels);
+		}
 #endif
 	}
 
 	return resibuf;
 }
 
+void BKE_tracking_distortion_destroy(MovieDistortion *distortion)
+{
+#ifdef WITH_LIBMV
+	libmv_CameraIntrinsicsDestroy(distortion->intrinsics);
+#endif
+
+	MEM_freeN(distortion);
+}
+
+ImBuf *BKE_tracking_undistort(MovieTracking *tracking, ImBuf *ibuf, int width, int height)
+{
+	MovieTrackingCamera *camera= &tracking->camera;
+
+	if(camera->intrinsics == NULL)
+		camera->intrinsics= BKE_tracking_distortion_create();
+
+	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, width, height, 1);
+}
+
 ImBuf *BKE_tracking_distort(MovieTracking *tracking, ImBuf *ibuf, int width, int height)
 {
-	ImBuf *resibuf;
 	MovieTrackingCamera *camera= &tracking->camera;
-	float aspy= 1.f/tracking->camera.pixel_aspect;
 
-	resibuf= IMB_dupImBuf(ibuf);
+	if(camera->intrinsics == NULL)
+		camera->intrinsics= BKE_tracking_distortion_create();
 
-#ifdef WITH_LIBMV
-	if(camera->intrinsics == NULL) {
-		camera->intrinsics= libmv_CameraIntrinsicsNew(camera->focal,
-				camera->principal[0], camera->principal[1] * aspy,
-				camera->k1, camera->k2, camera->k3, width, height * aspy);
-	} else {
-		libmv_CameraIntrinsicsUpdate(camera->intrinsics, camera->focal,
-				camera->principal[0], camera->principal[1] * aspy,
-				camera->k1, camera->k2, camera->k3, width, height * aspy);
-	}
-#endif
-
-	if(ibuf->rect_float) {
-#ifdef WITH_LIBMV
-		libmv_CameraIntrinsicsDistortFloat(camera->intrinsics,
-				ibuf->rect_float, resibuf->rect_float,
-				ibuf->x, ibuf->y, ibuf->channels);
-#endif
-
-		ibuf->userflags|= IB_RECT_INVALID;
-	} else {
-#ifdef WITH_LIBMV
-		libmv_CameraIntrinsicsDistortByte(camera->intrinsics,
-					(unsigned char*)ibuf->rect, (unsigned char*)resibuf->rect,
-					ibuf->x, ibuf->y, ibuf->channels);
-#endif
-	}
-
-	return resibuf;
+	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, width, height, 0);
 }

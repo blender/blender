@@ -23,8 +23,32 @@
 
 namespace libmv {
 
-struct Offset { signed char ix,iy; unsigned char fx,fy; };
-struct Grid { struct Offset *offset; int width, height; };
+struct Offset {
+  signed char ix, iy;
+  unsigned char fx,fy;
+};
+
+struct Grid {
+  struct Offset *offset;
+  int width, height;
+};
+
+static struct Grid *copyGrid(struct Grid *from)
+{
+  struct Grid *to = NULL;
+
+  if (from) {
+    to = new Grid;
+
+    to->width = from->width;
+    to->height = from->height;
+
+    to->offset = new Offset[to->width*to->height];
+    memcpy(to->offset, from->offset, sizeof(struct Offset)*to->width*to->height);
+  }
+
+  return to;
+}
 
 CameraIntrinsics::CameraIntrinsics()
     : K_(Mat3::Identity()),
@@ -37,6 +61,20 @@ CameraIntrinsics::CameraIntrinsics()
       p2_(0),
       distort_(0),
       undistort_(0) {}
+
+CameraIntrinsics::CameraIntrinsics(const CameraIntrinsics &from)
+    : K_(from.K_),
+      image_width_(from.image_width_),
+      image_height_(from.image_height_),
+      k1_(from.k1_),
+      k2_(from.k2_),
+      k3_(from.k3_),
+      p1_(from.p1_),
+      p2_(from.p2_)
+{
+  distort_ = copyGrid(from.distort_);
+  undistort_ = copyGrid(from.undistort_);
+}
 
 CameraIntrinsics::~CameraIntrinsics() {
   FreeLookupGrid();
@@ -155,8 +193,8 @@ void CameraIntrinsics::ComputeLookupGrid(Grid* grid, int width, int height) {
       double src_x = x / aspx, src_y = y / aspy;
       double warp_x, warp_y;
       WarpFunction(this,src_x,src_y,&warp_x,&warp_y);
-      warp_x *= aspx;
-      warp_y *= aspy;
+      warp_x = warp_x*aspx;
+      warp_y = warp_y*aspy;
       int ix = int(warp_x), iy = int(warp_y);
       int fx = round((warp_x-ix)*256), fy = round((warp_y-iy)*256);
       if(fx == 256) { fx=0; ix++; }
@@ -195,14 +233,14 @@ static void Warp(const Grid* grid, const T* src, T* dst,
 
 void CameraIntrinsics::FreeLookupGrid() {
   if(distort_) {
-    delete distort_;
     delete distort_->offset;
+    delete distort_;
     distort_ = NULL;
   }
 
   if(undistort_) {
-    delete undistort_;
     delete undistort_->offset;
+    delete undistort_;
     undistort_ = NULL;
   }
 }

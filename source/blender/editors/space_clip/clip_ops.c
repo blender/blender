@@ -44,6 +44,7 @@
 #include "BKE_library.h"
 #include "BKE_movieclip.h"
 #include "BKE_sound.h"
+#include "BKE_tracking.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -862,6 +863,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	ProxyJob *pj= pjv;
 	Scene *scene=pj->scene;
 	MovieClip *clip= pj->clip;
+	struct MovieDistortion *distortion= NULL;
 	int cfra, undistort;
 	short tc_flag, size_flag, quality, build_flag;
 	int sfra= SFRA, efra= EFRA;
@@ -891,12 +893,15 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	if(size_flag&IMB_PROXY_75) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_75;
 	if(size_flag&IMB_PROXY_100) build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_100;
 
+	if(undistort)
+		distortion= BKE_tracking_distortion_create();
+
 	for(cfra= sfra; cfra<=efra; cfra++) {
 		if(clip->source != MCLIP_SRC_MOVIE)
-			BKE_movieclip_build_proxy_frame(clip, cfra, build_sizes, build_count, 0);
+			BKE_movieclip_build_proxy_frame(clip, NULL, cfra, build_sizes, build_count, 0);
 
 		if(undistort)
-			BKE_movieclip_build_proxy_frame(clip, cfra, build_sizes, build_count, 1);
+			BKE_movieclip_build_proxy_frame(clip, distortion, cfra, build_sizes, build_count, 1);
 
 		if(*stop || G.afbreek)
 			break;
@@ -904,6 +909,9 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 		*do_update= 1;
 		*progress= ((float)cfra)/(efra-sfra);
 	}
+
+	if(distortion)
+		BKE_tracking_distortion_destroy(distortion);
 }
 
 static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))

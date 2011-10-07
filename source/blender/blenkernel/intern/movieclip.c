@@ -523,7 +523,7 @@ static ImBuf *get_undistorted_cache(MovieClip *clip, MovieClipUser *user)
 	return cache->undistibuf;
 }
 
-static ImBuf *get_undistorted_ibuf(MovieClip *clip, ImBuf *ibuf)
+static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *distoriton, ImBuf *ibuf)
 {
 	ImBuf *undistibuf;
 
@@ -531,7 +531,10 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, ImBuf *ibuf)
 	        otherwise, undistorted proxy can be darker than it should */
 	imb_freerectfloatImBuf(ibuf);
 
-	undistibuf= BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y);
+	if(distoriton)
+		undistibuf= BKE_tracking_distortion_exec(distoriton, &clip->tracking, ibuf, ibuf->x, ibuf->y, 1);
+	else
+		undistibuf= BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y);
 
 	if(undistibuf->userflags|= IB_RECT_INVALID) {
 		ibuf->userflags&= ~IB_RECT_INVALID;
@@ -555,7 +558,7 @@ static ImBuf *put_undistorted_cache(MovieClip *clip, MovieClipUser *user, ImBuf 
 	if(cache->undistibuf)
 		IMB_freeImBuf(cache->undistibuf);
 
-	cache->undistibuf= get_undistorted_ibuf(clip, ibuf);
+	cache->undistibuf= get_undistorted_ibuf(clip, NULL, ibuf);
 
 	if(cache->stableibuf) {
 		/* force stable buffer be re-calculated */
@@ -948,7 +951,8 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 	IMB_freeImBuf(scaleibuf);
 }
 
-void BKE_movieclip_build_proxy_frame(MovieClip *clip, int cfra, int *build_sizes, int build_count, int undistorted)
+void BKE_movieclip_build_proxy_frame(MovieClip *clip, struct MovieDistortion *distortion,
+			int cfra, int *build_sizes, int build_count, int undistorted)
 {
 	ImBuf *ibuf;
 	MovieClipUser user;
@@ -962,7 +966,7 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int cfra, int *build_sizes
 		int i;
 
 		if(undistorted)
-			tmpibuf= get_undistorted_ibuf(clip, ibuf);
+			tmpibuf= get_undistorted_ibuf(clip, distortion, ibuf);
 
 		for(i= 0; i<build_count; i++)
 			movieclip_build_proxy_ibuf(clip, tmpibuf, cfra, build_sizes[i], undistorted);

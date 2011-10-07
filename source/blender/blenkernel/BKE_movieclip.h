@@ -40,6 +40,7 @@ struct MovieClip;
 struct MovieClipScopes;
 struct MovieClipUser;
 struct MovieTrackingTrack;
+struct MovieDistortion;
 
 void free_movieclip(struct MovieClip *clip);
 void unlink_movieclip(struct Main *bmain, struct MovieClip *clip);
@@ -62,7 +63,8 @@ void BKE_movieclip_update_scopes(struct MovieClip *clip, struct MovieClipUser *u
 
 void BKE_movieclip_get_cache_segments(struct MovieClip *clip, struct MovieClipUser *user, int *totseg_r, int **points_r);
 
-void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, int cfra, int *build_sizes, int build_count, int undistorted);
+void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, struct MovieDistortion *distortion,
+			int cfra, int *build_sizes, int build_count, int undistorted);
 
 #define TRACK_CLEAR_UPTO		0
 #define TRACK_CLEAR_REMAINED	1
