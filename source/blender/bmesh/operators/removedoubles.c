@@ -182,8 +182,8 @@ void bmesh_weldverts_exec(BMesh *bm, BMOperator *op)
 		if (BMO_TestFlag(bm, v2, ELE_DEL)) 
 			v2 = BMO_Get_MapPointer(bm, op, "targetmap", v2);
 		
-		f2 = BM_Make_Ngon(bm, v, v2, edges, a, 0);
-		if (f2) {
+		f2 = BM_Make_Ngon(bm, v, v2, edges, a, 1);
+		if (f2 != f) {
 			BM_Copy_Attributes(bm, bm, f, f2);
 
 			a = 0;
