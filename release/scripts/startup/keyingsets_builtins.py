@@ -360,7 +360,12 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
                 continue
 
             # for now, just add all of 'em
-            ksi.addProp(ks, bone, '["%s"]' % (prop))
+            prop_rna = type(bone).bl_rna.properties.get(prop, None)
+            if prop_rna is None:
+                ksi.addProp(ks, bone, '["%s"]' % prop)
+            elif prop_rna.is_animatable:
+                ksi.addProp(ks, bone, prop)
+
 
 ###############################
 

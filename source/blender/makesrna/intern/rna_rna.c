@@ -506,6 +506,13 @@ static int rna_Property_readonly_get(PointerRNA *ptr)
 	return prop->flag & PROP_EDITABLE ? 0:1;
 }
 
+static int rna_Property_animatable_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop= (PropertyRNA*)ptr->data;
+
+	return (prop->flag & PROP_ANIMATABLE) != 0;
+}
+
 static int rna_Property_use_output_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
@@ -1065,6 +1072,11 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_readonly_get", NULL);
 	RNA_def_property_ui_text(prop, "Read Only", "Property is editable through RNA");
+
+	prop= RNA_def_property(srna, "is_animatable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_animatable_get", NULL);
+	RNA_def_property_ui_text(prop, "Animatable", "Property is animatable through RNA");
 
 	prop= RNA_def_property(srna, "is_required", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
