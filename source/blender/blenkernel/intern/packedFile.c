@@ -168,7 +168,7 @@ PackedFile *newPackedFileMemory(void *mem, int memlen)
 	return pf;
 }
 
-PackedFile *newPackedFile(ReportList *reports, const char *filename)
+PackedFile *newPackedFile(ReportList *reports, const char *filename, const char *basepath)
 {
 	PackedFile *pf = NULL;
 	int file, filelen;
@@ -185,7 +185,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename)
 	// convert relative filenames to absolute filenames
 	
 	strcpy(name, filename);
-	BLI_path_abs(name, G.main->name);
+	BLI_path_abs(name, basepath);
 	
 	// open the file
 	// and create a PackedFile structure
@@ -224,7 +224,7 @@ void packAll(Main *bmain, ReportList *reports)
 	for(ima=bmain->image.first; ima; ima=ima->id.next) {
 		if(ima->packedfile == NULL && ima->id.lib==NULL) { 
 			if(ima->source==IMA_SRC_FILE) {
-				ima->packedfile = newPackedFile(reports, ima->name);
+				ima->packedfile = newPackedFile(reports, ima->name, ID_BLEND_PATH(bmain, &ima->id));
 			}
 			else if(ELEM(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
 				BKE_reportf(reports, RPT_WARNING, "Image '%s' skipped, movies and image sequences not supported.", ima->id.name+2);
@@ -234,11 +234,11 @@ void packAll(Main *bmain, ReportList *reports)
 
 	for(vf=bmain->vfont.first; vf; vf=vf->id.next)
 		if(vf->packedfile == NULL && vf->id.lib==NULL && strcmp(vf->name, FO_BUILTIN_NAME) != 0)
-			vf->packedfile = newPackedFile(reports, vf->name);
+			vf->packedfile = newPackedFile(reports, vf->name, bmain->name);
 
 	for(sound=bmain->sound.first; sound; sound=sound->id.next)
 		if(sound->packedfile == NULL && sound->id.lib==NULL)
-			sound->packedfile = newPackedFile(reports, sound->name);
+			sound->packedfile = newPackedFile(reports, sound->name, bmain->name);
 }
 
 

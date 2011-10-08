@@ -142,7 +142,7 @@ static void rna_Image_pack(Image *image, ReportList *reports, int as_png)
 			BKE_image_memorypack(image);
 		}
 		else {
-			image->packedfile= newPackedFile(reports, image->name);
+			image->packedfile= newPackedFile(reports, image->name, ID_BLEND_PATH(G.main, &image->id));
 		}
 	}
 }
