@@ -1370,47 +1370,24 @@ static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char asc
 
 static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, int jump)
 {
-	char *str;
-	int len;
+	const char *str= data->str;
+	const int len= strlen(str);
+	const int pos_prev= but->pos;
+	const int has_sel= (but->selend - but->selsta) > 0;
 
-	str= data->str;
-	len= strlen(str);
-
-	if(direction) { /* right*/
-		/* if there's a selection */
-		if ((but->selend - but->selsta) > 0) {
-			/* extend the selection based on the first direction taken */
-			if(select) {
-				if (!data->selextend) {
-					data->selextend = EXTEND_RIGHT;
-				}
-				if (data->selextend == EXTEND_RIGHT) {
-					but->selend++;
-					if (but->selend > len) but->selend = len;
-				} else if (data->selextend == EXTEND_LEFT) {
-					but->selsta++;
-					/* if the selection start has gone past the end,
-					* flip them so they're in sync again */
-					if (but->selsta == but->selend) {
-						but->pos = but->selsta;
-						data->selextend = EXTEND_RIGHT;
-					}
-				}
-			} else {
-				but->selsta = but->pos = but->selend;
-				data->selextend = 0;
-			}
-		} else {
-			if(select) {
-				/* make a selection, starting from the cursor position */
-				int tlen;
-				but->selsta = but->pos;
-				
-				but->pos++;
-				if(but->pos > (tlen= strlen(str))) but->pos= tlen;
-				
-				but->selend = but->pos;
-			} else if(jump) {
+	/* special case, quit selection and set cursor */
+	if (has_sel && !select) {
+		if (direction) {
+			but->selsta = but->pos = but->selend;
+		}
+		else {
+			but->pos = but->selend = but->selsta;
+		}
+		data->selextend = 0;
+	}
+	else {
+		if(direction) { /* right*/
+			if(jump) {
 				/* jump betweenn special characters (/,\,_,-, etc.),
 				 * look at function test_special_char() for complete
 				 * list of special character, ctr -> */
@@ -1418,47 +1395,14 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 					but->pos++;
 					if(test_special_char(str[but->pos])) break;
 				}
-			} else {
-				int tlen;
+			}
+			else {
 				but->pos++;
-				if(but->pos > (tlen= strlen(str))) but->pos= tlen;
+				if(but->pos > len) but->pos= len;
 			}
 		}
-	}
-	else { /* left */
-		/* if there's a selection */
-		if ((but->selend - but->selsta) > 0) {
-			/* extend the selection based on the first direction taken */
-			if(select) {
-				if (!data->selextend) {
-					data->selextend = EXTEND_LEFT;
-				}
-				if (data->selextend == EXTEND_LEFT) {
-					but->selsta--;
-					if (but->selsta < 0) but->selsta = 0;
-				} else if (data->selextend == EXTEND_RIGHT) {
-					but->selend--;
-					/* if the selection start has gone past the end,
-					* flip them so they're in sync again */
-					if (but->selsta == but->selend) {
-						but->pos = but->selsta;
-						data->selextend = EXTEND_LEFT;
-					}
-				}
-			} else {
-				but->pos = but->selend = but->selsta;
-				data->selextend = 0;
-			}
-		} else {
-			if(select) {
-				/* make a selection, starting from the cursor position */
-				but->selend = but->pos;
-				
-				but->pos--;
-				if(but->pos<0) but->pos= 0;
-				
-				but->selsta = but->pos;
-			} else if(jump) {
+		else { /* left */
+			if(jump) {
 				/* jump betweenn special characters (/,\,_,-, etc.),
 				 * look at function test_special_char() for complete
 				 * list of special character, ctr -> */
@@ -1466,8 +1410,55 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 					but->pos--;
 					if(test_special_char(str[but->pos])) break;
 				}
-			} else {
+			}
+			else {
 				if(but->pos>0) but->pos--;
+			}
+		}
+
+
+		if(select) {
+			/* existing selection */
+			if (has_sel) {
+
+				if(data->selextend == 0) {
+					data->selextend= EXTEND_RIGHT;
+				}
+
+				if (direction) {
+					if (data->selextend == EXTEND_RIGHT) {
+						but->selend= but->pos;
+					}
+					else {
+						but->selsta= but->pos;
+					}
+				}
+				else {
+					if (data->selextend == EXTEND_LEFT) {
+						but->selsta= but->pos;
+					}
+					else {
+						but->selend= but->pos;
+					}
+				}
+
+				if (but->selend < but->selsta) {
+					SWAP(short, but->selsta, but->selend);
+					data->selextend= (data->selextend == EXTEND_RIGHT) ? EXTEND_LEFT : EXTEND_RIGHT;
+				}
+
+			} /* new selection */
+			else {
+				if (direction) {
+					data->selextend= EXTEND_RIGHT;
+					but->selend= but->pos;
+					but->selsta= pos_prev;
+				}
+				else {
+					data->selextend= EXTEND_LEFT;
+					but->selend= pos_prev;
+					but->selsta= but->pos;
+				}
 			}
 		}
 	}
@@ -1475,9 +1466,7 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 
 static void ui_textedit_move_end(uiBut *but, uiHandleButtonData *data, int direction, int select)
 {
-	char *str;
-
-	str= data->str;
+	const char *str= data->str;
 
 	if(direction) { /* right */
 		if(select) {
