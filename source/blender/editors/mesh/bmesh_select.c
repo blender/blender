@@ -130,7 +130,7 @@ void EDBM_automerge(Scene *scene, Object *obedit, int update)
 		if (!em)
 			return;
 
-		BMO_CallOpf(em->bm, "automerge verts=%av dist=%f", scene->toolsettings->doublimit);
+		BMO_CallOpf(em->bm, "automerge verts=%hv dist=%f", BM_SELECT, scene->toolsettings->doublimit);
 		if (update) {
 			DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
 		}
