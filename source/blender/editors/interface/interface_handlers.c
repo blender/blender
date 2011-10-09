@@ -1393,7 +1393,7 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 	else {
 		if(direction) { /* right*/
 			if(jump) {
-				/* jump betweenn special characters (/,\,_,-, etc.),
+				/* jump between special characters (/,\,_,-, etc.),
 				 * look at function test_special_char() for complete
 				 * list of special character, ctr -> */
 				while(but->pos < len) {
@@ -1408,13 +1408,25 @@ static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction
 		}
 		else { /* left */
 			if(jump) {
-				/* jump betweenn special characters (/,\,_,-, etc.),
+
+				/* left only: compensate for index/change in direction */
+				if(but->pos > 0) {
+					but->pos--;
+				}
+
+				/* jump between special characters (/,\,_,-, etc.),
 				 * look at function test_special_char() for complete
 				 * list of special character, ctr -> */
 				while(but->pos > 0){
 					but->pos--;
 					if(!jump_all && test_special_char(str[but->pos])) break;
 				}
+
+				/* left only: compensate for index/change in direction */
+				if((but->pos != 0) && ABS(pos_prev - but->pos) > 1) {
+					but->pos++;
+				}
+
 			}
 			else {
 				if(but->pos>0) but->pos--;
