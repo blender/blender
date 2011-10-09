@@ -519,6 +519,7 @@ static int sound_poll(bContext *C)
 
 static int pack_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain= CTX_data_main(C);
 	Editing* ed = CTX_data_scene(C)->ed;
 	bSound* sound;
 
@@ -530,7 +531,7 @@ static int pack_exec(bContext *C, wmOperator *op)
 	if(!sound || sound->packedfile)
 		return OPERATOR_CANCELLED;
 
-	sound->packedfile= newPackedFile(op->reports, sound->name);
+	sound->packedfile= newPackedFile(op->reports, sound->name, ID_BLEND_PATH(bmain, &sound->id));
 	sound_load(CTX_data_main(C), sound);
 
 	return OPERATOR_FINISHED;

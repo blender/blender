@@ -1284,16 +1284,16 @@ void BKE_nlastrip_validate_name (AnimData *adt, NlaStrip *strip)
 	if (strip->name[0]==0) {
 		switch (strip->type) {
 			case NLASTRIP_TYPE_CLIP: /* act-clip */
-				sprintf(strip->name, "%s", (strip->act)?(strip->act->id.name+2):("<No Action>"));
+				BLI_strncpy(strip->name, (strip->act)?(strip->act->id.name+2):("<No Action>"), sizeof(strip->name));
 				break;
 			case NLASTRIP_TYPE_TRANSITION: /* transition */
-				sprintf(strip->name, "Transition");
+				BLI_strncpy(strip->name, "Transition", sizeof(strip->name));
 				break;
 			case NLASTRIP_TYPE_META: /* meta */
-				sprintf(strip->name, "Meta");
+				BLI_strncpy(strip->name, "Meta", sizeof(strip->name));
 				break;
 			default:
-				sprintf(strip->name, "NLA Strip");
+				BLI_strncpy(strip->name, "NLA Strip", sizeof(strip->name));
 				break;
 		}
 	}

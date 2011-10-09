@@ -56,12 +56,12 @@ class KX_SteeringActuator : public SCA_IActuator
 	int	m_mode;
 	float m_distance;
 	float m_velocity;
-	float m_acceleration;									
+	float m_acceleration;
 	float m_turnspeed;
 	KX_ObstacleSimulation* m_simulation;
 	
-	KX_Obstacle* m_obstacle;
 	double m_updateTime;
+	KX_Obstacle* m_obstacle;
 	bool m_isActive;
 	bool m_isSelfTerminated;
 	bool m_enableVisualization;

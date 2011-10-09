@@ -63,9 +63,9 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 		return icon;
 	else if ELEM3(NULL, id, fcu, fcu->rna_path) {
 		if (fcu == NULL)
-			sprintf(name, "<invalid>");
+			strcpy(name, "<invalid>");
 		else if (fcu->rna_path == NULL)
-			sprintf(name, "<no path>");
+			strcpy(name, "<no path>");
 		else /* id == NULL */
 			BLI_snprintf(name, 256, "%s[%d]", fcu->rna_path, fcu->array_index);
 	}

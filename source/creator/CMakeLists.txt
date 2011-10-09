@@ -587,12 +587,12 @@ elseif(WIN32)
 			FILES ${LIBDIR}/thumbhandler/lib/BlendThumb.dll
 			DESTINATION ${TARGETDIR}
 		)
-	else()
-		install(
-			FILES ${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
-			DESTINATION ${TARGETDIR}
-		)
 	endif()
+		
+	install( # x86 builds can run on x64 Windows, so this is required at all times
+		FILES ${LIBDIR}/thumbhandler/lib/BlendThumb64.dll
+		DESTINATION ${TARGETDIR}
+	)	
 
 elseif(APPLE)
 	set(SOURCEDIR ${CMAKE_SOURCE_DIR}/source/darwin/blender.app)

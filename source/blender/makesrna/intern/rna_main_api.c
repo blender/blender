@@ -346,12 +346,12 @@ void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall
 		            mb->id.name+2, ID_REAL_USERS(mb));
 }
 
-VFont *rna_Main_fonts_load(Main *UNUSED(bmain), ReportList *reports, const char *filepath)
+VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	VFont *font;
 
 	errno= 0;
-	font= load_vfont(filepath);
+	font= load_vfont(bmain, filepath);
 
 	if(!font)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
