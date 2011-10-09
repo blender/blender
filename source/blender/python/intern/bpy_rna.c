@@ -84,6 +84,11 @@
 static PyObject* pyrna_struct_Subtype(PointerRNA *ptr);
 static PyObject *pyrna_prop_collection_values(BPy_PropertyRNA *self);
 
+#define BPY_DOC_ID_PROP_TYPE_NOTE \
+"   .. note:: Only :class:`bpy.types.ID`, :class:`bpy.types.Bone` and \n" \
+"      :class:`bpy.types.PoseBone` classes support custom properties.\n"
+
+
 int pyrna_struct_validity_check(BPy_StructRNA *pysrna)
 {
 	if(pysrna->ptr.type)
@@ -2746,8 +2751,7 @@ PyDoc_STRVAR(pyrna_struct_keys_doc,
 "   :return: custom property keys.\n"
 "   :rtype: list of strings\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone` classes\n"
-"      support custom properties.\n"
+BPY_DOC_ID_PROP_TYPE_NOTE
 );
 static PyObject *pyrna_struct_keys(BPy_PropertyRNA *self)
 {
@@ -2775,8 +2779,7 @@ PyDoc_STRVAR(pyrna_struct_items_doc,
 "   :return: custom property key, value pairs.\n"
 "   :rtype: list of key, value tuples\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone`\n"
-"      classes support custom properties.\n"
+BPY_DOC_ID_PROP_TYPE_NOTE
 );
 static PyObject *pyrna_struct_items(BPy_PropertyRNA *self)
 {
@@ -2804,8 +2807,7 @@ PyDoc_STRVAR(pyrna_struct_values_doc,
 "   :return: custom property values.\n"
 "   :rtype: list\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone`\n"
-"      classes support custom properties.\n"
+BPY_DOC_ID_PROP_TYPE_NOTE
 );
 static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 {
@@ -3669,14 +3671,14 @@ static PyObject *pyrna_struct_get_rna_type(BPy_PropertyRNA *self)
 /*****************************************************************************/
 
 static PyGetSetDef pyrna_prop_getseters[]= {
-	{(char *)"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, (char *)"The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
+	{(char *)"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, (char *)"The :class:`bpy.types.ID` object this datablock is from or None, (not available for all data types)", NULL},
 	{(char *)"rna_type", (getter)pyrna_struct_get_rna_type, (setter)NULL, (char *)"The property type for introspection", NULL},
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
 
 static PyGetSetDef pyrna_struct_getseters[]= {
-	{(char *)"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, (char *)"The :class:`ID` object this datablock is from or None, (not available for all data types)", NULL},
+	{(char *)"id_data", (getter)pyrna_struct_get_id_data, (setter)NULL, (char *)"The :class:`bpy.types.ID` object this datablock is from or None, (not available for all data types)", NULL},
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -3783,8 +3785,7 @@ PyDoc_STRVAR(pyrna_struct_get_doc,
 "      *key* is not found.\n"
 "   :type default: Undefined\n"
 "\n"
-"   .. note:: Only :class:`ID`, :class:`Bone` and :class:`PoseBone`\n"
-"      classes support custom properties.\n"
+BPY_DOC_ID_PROP_TYPE_NOTE
 );
 static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 {
