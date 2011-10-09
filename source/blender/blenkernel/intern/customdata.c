@@ -2850,10 +2850,8 @@ int CustomData_verify_versions(struct CustomData *data, int index)
 
 static void customdata_external_filename(char filename[FILE_MAX], ID *id, CustomDataExternal *external)
 {
-	char *path = (id->lib)? id->lib->filepath: G.main->name;
-
 	BLI_strncpy(filename, external->filename, FILE_MAX);
-	BLI_path_abs(filename, path);
+	BLI_path_abs(filename, ID_BLEND_PATH(G.main, id));
 }
 
 void CustomData_external_reload(CustomData *data, ID *UNUSED(id), CustomDataMask mask, int totelem)

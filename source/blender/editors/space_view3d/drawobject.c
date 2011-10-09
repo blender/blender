@@ -5188,8 +5188,6 @@ static void drawspiral(const float cent[3], float rad, float tmat[][4], int star
 		}
 	}
 	else {
-		a= 0;
-
 		fac= (float)(CIRCLE_RESOL-1) * tot_inv;
 		x= sinval[start] * fac;
 		y= cosval[start] * fac;

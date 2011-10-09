@@ -387,6 +387,7 @@ void uiTemplateHistogram(struct uiLayout *layout, struct PointerRNA *ptr, char *
 void uiTemplateReportsBanner(struct uiLayout *layout, struct bContext *C, struct wmOperator *op){}
 void uiTemplateWaveform(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand){}
 void uiTemplateVectorscope(struct uiLayout *_self, struct PointerRNA *data, char* property, int expand){}
+void uiTemplateKeymapItemProperties(struct uiLayout *layout, struct PointerRNA *ptr){}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}

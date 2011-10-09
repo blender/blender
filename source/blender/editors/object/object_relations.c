@@ -1243,9 +1243,11 @@ static int allow_make_links_data(int ev, Object *ob, Object *obt)
 				return 1;
 			break;
 		case MAKE_LINKS_MATERIALS:
-			if (ELEM5(ob->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL) &&
-				ELEM5(obt->type, OB_MESH, OB_CURVE, OB_FONT, OB_SURF, OB_MBALL))
+			if (OB_TYPE_SUPPORT_MATERIAL(ob->type) &&
+				OB_TYPE_SUPPORT_MATERIAL(obt->type))
+			{
 				return 1;
+			}
 			break;
 		case MAKE_LINKS_ANIMDATA:
 		case MAKE_LINKS_DUPLIGROUP:

@@ -52,16 +52,16 @@ class GHOST_WindowCocoa;
 
 class GHOST_SystemCocoa : public GHOST_System {
 public:
-    /**
-     * Constructor.
-     */
-    GHOST_SystemCocoa();
-    
-    /** 
-     * Destructor.
-     */
-    ~GHOST_SystemCocoa();
-    
+	/**
+	 * Constructor.
+	 */
+	GHOST_SystemCocoa();
+
+	/**
+	 * Destructor.
+	 */
+	~GHOST_SystemCocoa();
+
 	/***************************************************************************************
 	 ** Time(r) functionality
 	 ***************************************************************************************/
@@ -92,7 +92,7 @@ public:
 	
 	/**
 	 * Create a new window.
-	 * The new window is added to the list of windows managed. 
+	 * The new window is added to the list of windows managed.
 	 * Never explicitly delete the window, use disposeWindow() instead.
 	 * @param	title			The name of the window (displayed in the title bar of the window if the OS supports it).
 	 * @param	left			The coordinate of the left edge of the window.
@@ -107,17 +107,17 @@ public:
 	 * @return	The new window (or 0 if creation failed).
 	 */
 	virtual GHOST_IWindow* createWindow(
-		const STR_String& title,
-		GHOST_TInt32 left,
-		GHOST_TInt32 top,
-		GHOST_TUns32 width,
-		GHOST_TUns32 height,
-		GHOST_TWindowState state,
-		GHOST_TDrawingContextType type,
-		const bool stereoVisual = false,
-		const GHOST_TUns16 numOfAASamples = 0,
-		const GHOST_TEmbedderWindowID parentWindow = 0 
-	);
+	        const STR_String& title,
+	        GHOST_TInt32 left,
+	        GHOST_TInt32 top,
+	        GHOST_TUns32 width,
+	        GHOST_TUns32 height,
+	        GHOST_TWindowState state,
+	        GHOST_TDrawingContextType type,
+	        const bool stereoVisual = false,
+	        const GHOST_TUns16 numOfAASamples = 0,
+	        const GHOST_TEmbedderWindowID parentWindow = 0
+	        );
 	
 	/***************************************************************************************
 	 ** Event management functionality
@@ -140,19 +140,19 @@ public:
 	 * Handle Cocoa openFile event
 	 * Display confirmation request panel if changes performed since last save
 	 */
-	bool handleOpenDocumentRequest(void *filepathStr);	
+	bool handleOpenDocumentRequest(void *filepathStr);
 	
 	/**
-     * Handles a drag'n'drop destination event. Called by GHOST_WindowCocoa window subclass
-     * @param eventType The type of drag'n'drop event
+	 * Handles a drag'n'drop destination event. Called by GHOST_WindowCocoa window subclass
+	 * @param eventType The type of drag'n'drop event
 	 * @param draggedObjectType The type object concerned (currently array of file names, string, TIFF image)
 	 * @param mouseX x mouse coordinate (in cocoa base window coordinates)
 	 * @param mouseY y mouse coordinate
 	 * @param window The window on which the event occurred
-     * @return Indication whether the event was handled. 
-     */
+	 * @return Indication whether the event was handled.
+	 */
 	GHOST_TSuccess handleDraggingEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,
-									   GHOST_WindowCocoa* window, int mouseX, int mouseY, void* data);
+	                                   GHOST_WindowCocoa* window, int mouseX, int mouseY, void* data);
 	
 	/***************************************************************************************
 	 ** Cursor management functionality
@@ -207,18 +207,18 @@ public:
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 	/**
-     * Handles a window event. Called by GHOST_WindowCocoa window delegate
-     * @param eventType The type of window event
+	 * Handles a window event. Called by GHOST_WindowCocoa window delegate
+	 * @param eventType The type of window event
 	 * @param window The window on which the event occurred
-     * @return Indication whether the event was handled. 
-     */
-    GHOST_TSuccess handleWindowEvent(GHOST_TEventType eventType, GHOST_WindowCocoa* window);
+	 * @return Indication whether the event was handled.
+	 */
+	GHOST_TSuccess handleWindowEvent(GHOST_TEventType eventType, GHOST_WindowCocoa* window);
 	
 	/**
-     * Handles the Cocoa event telling the application has become active (again)
-     * @return Indication whether the event was handled. 
-     */
-    GHOST_TSuccess handleApplicationBecomeActiveEvent();
+	 * Handles the Cocoa event telling the application has become active (again)
+	 * @return Indication whether the event was handled.
+	 */
+	GHOST_TSuccess handleApplicationBecomeActiveEvent();
 
 	/**
 	 * External objects should call this when they send an event outside processEvents.
@@ -239,28 +239,28 @@ protected:
 	 */
 	virtual GHOST_TSuccess init();
 
-    /**
-     * Handles a tablet event.
-     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
-	 * @param eventType The type of the event. It needs to be passed separately as it can be either directly in the event type, or as a subtype if combined with a mouse button event
-     * @return Indication whether the event was handled. 
-     */
-    GHOST_TSuccess handleTabletEvent(void *eventPtr, short eventType);
-    
 	/**
-     * Handles a mouse event.
-     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
-     * @return Indication whether the event was handled. 
-     */
-    GHOST_TSuccess handleMouseEvent(void *eventPtr);
+	 * Handles a tablet event.
+	 * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
+	 * @param eventType The type of the event. It needs to be passed separately as it can be either directly in the event type, or as a subtype if combined with a mouse button event
+	 * @return Indication whether the event was handled.
+	 */
+	GHOST_TSuccess handleTabletEvent(void *eventPtr, short eventType);
 
-    /**
-     * Handles a key event.
-     * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
-     * @return Indication whether the event was handled. 
-     */
-    GHOST_TSuccess handleKeyEvent(void *eventPtr);
-    
+	/**
+	 * Handles a mouse event.
+	 * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
+	 * @return Indication whether the event was handled.
+	 */
+	GHOST_TSuccess handleMouseEvent(void *eventPtr);
+
+	/**
+	 * Handles a key event.
+	 * @param eventPtr	An NSEvent pointer (casted to void* to enable compilation in standard C++)
+	 * @return Indication whether the event was handled.
+	 */
+	GHOST_TSuccess handleKeyEvent(void *eventPtr);
+
 	/**
 	 * Performs the actual cursor position update (location in screen coordinates).
 	 * @param x			The x-coordinate of the cursor.
@@ -281,11 +281,11 @@ protected:
 	/** Mouse buttons state */
 	GHOST_TUns32 m_pressedMouseButtons;
 	
-    /** State of the modifiers. */
-    GHOST_TUns32 m_modifierMask;
+	/** State of the modifiers. */
+	GHOST_TUns32 m_modifierMask;
 
-    /** Ignores window size messages (when window is dragged). */
-    bool m_ignoreWindowSizedMessages;   
+	/** Ignores window size messages (when window is dragged). */
+	bool m_ignoreWindowSizedMessages;
 	
 	/** Stores the mouse cursor delta due to setting a new cursor position
 	 * Needed because cocoa event delta cursor move takes setCursorPosition changes too.

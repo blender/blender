@@ -171,7 +171,7 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 	pup= uiPupMenuBegin(C, "Unpack file", ICON_NONE);
 	layout= uiPupMenuLayout(pup);
 
-	sprintf(line, "Remove Pack");
+	strcpy(line, "Remove Pack");
 	props_ptr= uiItemFullO(layout, opname, line, ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&props_ptr, "method", PF_REMOVE);
 	RNA_string_set(&props_ptr, "id", id_name);

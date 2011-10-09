@@ -781,9 +781,9 @@ static void rna_def_menu(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name",
 	                         "If this is set, the menu gets a custom ID, otherwise it takes the "
-	                         "name of the class used to define the panel. For example, if the "
+	                         "name of the class used to define the menu (for example, if the "
 	                         "class name is \"OBJECT_MT_hello\", and bl_idname is not set by the "
-	                         "script, then bl_idname = \"OBJECT_MT_hello\"");
+	                         "script, then bl_idname = \"OBJECT_MT_hello\")");
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->label");

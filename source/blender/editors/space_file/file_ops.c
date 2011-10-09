@@ -1176,7 +1176,9 @@ int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
  * until this is properly supported just disable it. */
 static int file_directory_poll(bContext *C)
 {
-	return ED_operator_file_active(C) && filelist_lib(CTX_wm_space_file(C)->files) == NULL;
+	/* sfile->files can be NULL on file load */
+	SpaceFile *sfile= CTX_wm_space_file(C);
+	return ED_operator_file_active(C) && (sfile->files==NULL || filelist_lib(sfile->files)==NULL);
 }
 
 void FILE_OT_directory(struct wmOperatorType *ot)

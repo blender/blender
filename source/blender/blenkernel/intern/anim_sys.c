@@ -1160,6 +1160,8 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 					return 0;
 			}
 			
+			/* RNA property update disabled for now - [#28525] [#28690] [#28774] [#28777] */
+#if 0
 			/* buffer property update for later flushing */
 			if (RNA_property_update_check(prop)) {
 				short skip_updates_hack = 0;
@@ -1176,6 +1178,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 				if (skip_updates_hack == 0)
 					RNA_property_update_cache_add(&new_ptr, prop);
 			}
+#endif
 		}
 		
 		/* successful */

@@ -339,11 +339,11 @@ protected:
 	
 	/** Number of samples used in anti-aliasing, set to 0 if no AA **/
 	GHOST_TUns16 m_numOfAASamples;
-    
-    /** Full-screen width */
-    GHOST_TUns32 m_fullScreenWidth;
-    /** Full-screen height */
-    GHOST_TUns32 m_fullScreenHeight;
+
+	/** Full-screen width */
+	GHOST_TUns32 m_fullScreenWidth;
+	/** Full-screen height */
+	GHOST_TUns32 m_fullScreenHeight;
 };
 
 

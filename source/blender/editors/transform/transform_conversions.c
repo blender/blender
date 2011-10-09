@@ -1203,7 +1203,7 @@ static void createTransArmatureVerts(TransInfo *t)
 				if (ebo->flag & BONE_TIPSEL)
 				{
 					copy_v3_v3(td->iloc, ebo->tail);
-					copy_v3_v3(td->center, td->iloc);
+					copy_v3_v3(td->center, (t->around==V3D_LOCAL) ? ebo->head : td->iloc);
 					td->loc= ebo->tail;
 					td->flag= TD_SELECTED;
 					if (ebo->flag & BONE_EDITMODE_LOCKED)
@@ -4911,10 +4911,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			if(t->mode == TFM_SEQ_SLIDE) {
 				if(t->frame_side == 'B')
-					ED_markers_post_apply_transform(&t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->vec[0], t->frame_side);
+					ED_markers_post_apply_transform(&t->scene->markers, t->scene, TFM_TIME_TRANSLATE, t->values[0], t->frame_side);
 			}
 			else if (ELEM(t->frame_side, 'L', 'R')) {
-				ED_markers_post_apply_transform(&t->scene->markers, t->scene, TFM_TIME_EXTEND, t->vec[0], t->frame_side);
+				ED_markers_post_apply_transform(&t->scene->markers, t->scene, TFM_TIME_EXTEND, t->values[0], t->frame_side);
 			}
 		}
 
@@ -5023,16 +5023,16 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 #if 0
 				if (ELEM(t->frame_side, 'L', 'R')) { /* TFM_TIME_EXTEND */
 					/* same as below */
-					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
+					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
 				}
 				else /* TFM_TIME_TRANSLATE */
 #endif
 				{
-					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
+					ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
 				}
 			}
 			else if (t->mode == TFM_TIME_SCALE) {
-				ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->vec[0], t->frame_side);
+				ED_markers_post_apply_transform(ED_context_get_markers(C), t->scene, t->mode, t->values[0], t->frame_side);
 			}
 		}
 		

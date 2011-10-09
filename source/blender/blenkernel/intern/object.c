@@ -1650,7 +1650,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	if(ob->matbits) MEM_freeN(ob->matbits);
 	ob->mat = NULL;
 	ob->matbits= NULL;
-	if ((target->totcol) && (target->mat) && ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) { //XXX OB_SUPPORT_MATERIAL
+	if ((target->totcol) && (target->mat) && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
 		int i;
 		ob->colbits = target->colbits;
 		
@@ -3070,14 +3070,13 @@ void object_camera_matrix(
 void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const short do_clip, const float scale[3],
                           float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3])
 {
-	float aspx, aspy;
 	float facx, facy;
 	float depth;
 
 	/* aspect correcton */
 	if (scene) {
-		aspx= (float) scene->r.xsch*scene->r.xasp;
-		aspy= (float) scene->r.ysch*scene->r.yasp;
+		float aspx= (float) scene->r.xsch*scene->r.xasp;
+		float aspy= (float) scene->r.ysch*scene->r.yasp;
 
 		if(aspx < aspy) {
 			r_asp[0]= aspx / aspy;
@@ -3089,8 +3088,6 @@ void camera_view_frame_ex(Scene *scene, Camera *camera, float drawsize, const sh
 		}
 	}
 	else {
-		aspx= 1.0f;
-		aspy= 1.0f;
 		r_asp[0]= 1.0f;
 		r_asp[1]= 1.0f;
 	}

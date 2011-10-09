@@ -1307,12 +1307,12 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	}
 	/* mouse inside the widget */
 	else if (x >= startx) {
-		float aspect= (but->block->aspect);
+		const float aspect_sqrt= sqrtf(but->block->aspect);
 		
 		but->pos= strlen(origstr)-but->ofs;
 		
 		/* XXX does not take zoom level into account */
-		while (startx + aspect*BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
+		while (startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr+but->ofs) > x) {
 			if (but->pos <= 0) break;
 			but->pos--;
 			origstr[but->pos+but->ofs] = 0;
@@ -1368,133 +1368,115 @@ static int ui_textedit_type_ascii(uiBut *but, uiHandleButtonData *data, char asc
 	return changed;
 }
 
-static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, int jump)
+static void ui_textedit_move(uiBut *but, uiHandleButtonData *data, int direction, int select, int jump, int jump_all)
 {
-	char *str;
-	int len;
+	const char *str= data->str;
+	const int len= strlen(str);
+	const int pos_prev= but->pos;
+	const int has_sel= (but->selend - but->selsta) > 0;
 
-	str= data->str;
-	len= strlen(str);
-
-	if(direction) { /* right*/
-		/* if there's a selection */
-		if ((but->selend - but->selsta) > 0) {
-			/* extend the selection based on the first direction taken */
-			if(select) {
-				if (!data->selextend) {
-					data->selextend = EXTEND_RIGHT;
-				}
-				if (data->selextend == EXTEND_RIGHT) {
-					but->selend++;
-					if (but->selend > len) but->selend = len;
-				} else if (data->selextend == EXTEND_LEFT) {
-					but->selsta++;
-					/* if the selection start has gone past the end,
-					* flip them so they're in sync again */
-					if (but->selsta == but->selend) {
-						but->pos = but->selsta;
-						data->selextend = EXTEND_RIGHT;
-					}
-				}
-			} else {
+	/* special case, quit selection and set cursor */
+	if (has_sel && !select) {
+		if (jump_all) {
+			but->selsta = but->selend= but->pos = direction ? len : 0;
+		}
+		else {
+			if (direction) {
 				but->selsta = but->pos = but->selend;
-				data->selextend = 0;
 			}
-		} else {
-			if(select) {
-				/* make a selection, starting from the cursor position */
-				int tlen;
-				but->selsta = but->pos;
-				
-				but->pos++;
-				if(but->pos > (tlen= strlen(str))) but->pos= tlen;
-				
-				but->selend = but->pos;
-			} else if(jump) {
-				/* jump betweenn special characters (/,\,_,-, etc.),
+			else {
+				but->pos = but->selend = but->selsta;
+			}
+		}
+		data->selextend = 0;
+	}
+	else {
+		if(direction) { /* right*/
+			if(jump) {
+				/* jump between special characters (/,\,_,-, etc.),
 				 * look at function test_special_char() for complete
 				 * list of special character, ctr -> */
 				while(but->pos < len) {
 					but->pos++;
-					if(test_special_char(str[but->pos])) break;
+					if(!jump_all && test_special_char(str[but->pos])) break;
 				}
-			} else {
-				int tlen;
+			}
+			else {
 				but->pos++;
-				if(but->pos > (tlen= strlen(str))) but->pos= tlen;
+				if(but->pos > len) but->pos= len;
 			}
 		}
-	}
-	else { /* left */
-		/* if there's a selection */
-		if ((but->selend - but->selsta) > 0) {
-			/* extend the selection based on the first direction taken */
-			if(select) {
-				if (!data->selextend) {
-					data->selextend = EXTEND_LEFT;
+		else { /* left */
+			if(jump) {
+
+				/* left only: compensate for index/change in direction */
+				if(but->pos > 0) {
+					but->pos--;
 				}
-				if (data->selextend == EXTEND_LEFT) {
-					but->selsta--;
-					if (but->selsta < 0) but->selsta = 0;
-				} else if (data->selextend == EXTEND_RIGHT) {
-					but->selend--;
-					/* if the selection start has gone past the end,
-					* flip them so they're in sync again */
-					if (but->selsta == but->selend) {
-						but->pos = but->selsta;
-						data->selextend = EXTEND_LEFT;
-					}
-				}
-			} else {
-				but->pos = but->selend = but->selsta;
-				data->selextend = 0;
-			}
-		} else {
-			if(select) {
-				/* make a selection, starting from the cursor position */
-				but->selend = but->pos;
-				
-				but->pos--;
-				if(but->pos<0) but->pos= 0;
-				
-				but->selsta = but->pos;
-			} else if(jump) {
-				/* jump betweenn special characters (/,\,_,-, etc.),
+
+				/* jump between special characters (/,\,_,-, etc.),
 				 * look at function test_special_char() for complete
 				 * list of special character, ctr -> */
 				while(but->pos > 0){
 					but->pos--;
-					if(test_special_char(str[but->pos])) break;
+					if(!jump_all && test_special_char(str[but->pos])) break;
 				}
-			} else {
+
+				/* left only: compensate for index/change in direction */
+				if((but->pos != 0) && ABS(pos_prev - but->pos) > 1) {
+					but->pos++;
+				}
+
+			}
+			else {
 				if(but->pos>0) but->pos--;
 			}
 		}
-	}
-}
 
-static void ui_textedit_move_end(uiBut *but, uiHandleButtonData *data, int direction, int select)
-{
-	char *str;
 
-	str= data->str;
-
-	if(direction) { /* right */
 		if(select) {
-			but->selsta = but->pos;
-			but->selend = strlen(str);
-			data->selextend = EXTEND_RIGHT;
-		} else {
-			but->selsta = but->selend = but->pos= strlen(str);
-		}
-	}
-	else { /* left */
-		if(select) {
-			but->selend = but->pos;
-			but->selsta = 0;
-			data->selextend = EXTEND_LEFT;
-		} else {
-			but->selsta = but->selend = but->pos= 0;
+			/* existing selection */
+			if (has_sel) {
+
+				if(data->selextend == 0) {
+					data->selextend= EXTEND_RIGHT;
+				}
+
+				if (direction) {
+					if (data->selextend == EXTEND_RIGHT) {
+						but->selend= but->pos;
+					}
+					else {
+						but->selsta= but->pos;
+					}
+				}
+				else {
+					if (data->selextend == EXTEND_LEFT) {
+						but->selsta= but->pos;
+					}
+					else {
+						but->selend= but->pos;
+					}
+				}
+
+				if (but->selend < but->selsta) {
+					SWAP(short, but->selsta, but->selend);
+					data->selextend= (data->selextend == EXTEND_RIGHT) ? EXTEND_LEFT : EXTEND_RIGHT;
+				}
+
+			} /* new selection */
+			else {
+				if (direction) {
+					data->selextend= EXTEND_RIGHT;
+					but->selend= but->pos;
+					but->selsta= pos_prev;
+				}
+				else {
+					data->selextend= EXTEND_LEFT;
+					but->selend= pos_prev;
+					but->selsta= but->pos;
+				}
+			}
 		}
 	}
 }
@@ -1831,11 +1813,11 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				break;
 			case RIGHTARROWKEY:
-				ui_textedit_move(but, data, 1, event->shift, event->ctrl);
+				ui_textedit_move(but, data, 1, event->shift, event->ctrl, FALSE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case LEFTARROWKEY:
-				ui_textedit_move(but, data, 0, event->shift, event->ctrl);
+				ui_textedit_move(but, data, 0, event->shift, event->ctrl, FALSE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case DOWNARROWKEY:
@@ -1845,7 +1827,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				/* pass on purposedly */
 			case ENDKEY:
-				ui_textedit_move_end(but, data, 1, event->shift);
+				ui_textedit_move(but, data, 1, event->shift, TRUE, TRUE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case UPARROWKEY:
@@ -1855,7 +1837,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				}
 				/* pass on purposedly */
 			case HOMEKEY:
-				ui_textedit_move_end(but, data, 0, event->shift);
+				ui_textedit_move(but, data, 0, event->shift, TRUE, TRUE);
 				retval= WM_UI_HANDLER_BREAK;
 				break;
 			case PADENTER:
@@ -4681,7 +4663,7 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 	/* check if the mouse is in the region */
 	if(!BLI_in_rcti(&ar->winrct, x, y)) {
 		for(block=ar->uiblocks.first; block; block=block->next)
-			block->auto_open= 0;
+			block->auto_open= FALSE;
 		
 		return 0;
 	}
@@ -4868,8 +4850,8 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 			if(data->used_mouse && !data->autoopentimer) {
 				int time;
 
-				if(but->block->auto_open==2) time= 1;    // test for toolbox
-				else if((but->block->flag & UI_BLOCK_LOOP && but->type != BLOCK) || but->block->auto_open) time= 5*U.menuthreshold2;
+				if(but->block->auto_open==TRUE) time= 1;    // test for toolbox
+				else if((but->block->flag & UI_BLOCK_LOOP && but->type != BLOCK) || but->block->auto_open==TRUE) time= 5*U.menuthreshold2;
 				else if(U.uiflag & USER_MENUOPENAUTO) time= 5*U.menuthreshold1;
 				else time= -1;
 
@@ -4967,9 +4949,9 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	/* we disable auto_open in the block after a threshold, because we still
 	 * want to allow auto opening adjacent menus even if no button is activated
 	 * in between going over to the other button, but only for a short while */
-	if(type == BUTTON_ACTIVATE_OVER && but->block->auto_open)
+	if(type == BUTTON_ACTIVATE_OVER && but->block->auto_open==TRUE)
 		if(but->block->auto_open_last+BUTTON_AUTO_OPEN_THRESH < PIL_check_seconds_timer())
-			but->block->auto_open= 0;
+			but->block->auto_open= FALSE;
 
 	if(type == BUTTON_ACTIVATE_OVER) {
 		data->used_mouse= 1;
@@ -5157,7 +5139,9 @@ void uiContextActivePropertyHandle(bContext *C)
 		 * currently this is mainly so reset defaults works for the
 		 * operator redo panel - campbell */
 		uiBlock *block= activebut->block;
-		block->handle_func(C, block->handle_func_arg, 0);
+		if (block->handle_func) {
+			block->handle_func(C, block->handle_func_arg, 0);
+		}
 	}
 }
 

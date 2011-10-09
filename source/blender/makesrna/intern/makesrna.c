@@ -2279,7 +2279,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 			 }
 			case PROP_COLLECTION: {
 				CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop;
-				fprintf(f, "\t%s, %s, %s, %s, %s, %s, %s, ", rna_function_string(cprop->begin), rna_function_string(cprop->next), rna_function_string(cprop->end), rna_function_string(cprop->get), rna_function_string(cprop->length), rna_function_string(cprop->lookupint), rna_function_string(cprop->lookupstring));
+				fprintf(f, "\t%s, %s, %s, %s, %s, %s, %s, %s, ", rna_function_string(cprop->begin), rna_function_string(cprop->next), rna_function_string(cprop->end), rna_function_string(cprop->get), rna_function_string(cprop->length), rna_function_string(cprop->lookupint), rna_function_string(cprop->lookupstring), rna_function_string(cprop->assignint));
 				if(cprop->item_type) fprintf(f, "&RNA_%s\n", (char*)cprop->item_type);
 				else fprintf(f, "NULL\n");
 				break;

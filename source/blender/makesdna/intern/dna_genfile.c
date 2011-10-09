@@ -43,6 +43,7 @@
 #include "MEM_guardedalloc.h" // for MEM_freeN MEM_mallocN MEM_callocN
 
 #ifdef WITH_DNA_GHASH
+#  include "BLI_utildefines.h"
 #  include "BLI_ghash.h"
 #endif
 

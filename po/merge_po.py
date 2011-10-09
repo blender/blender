@@ -23,7 +23,6 @@
 
 # update the pot file according the POTFILES.in
 
-import os
 import sys
 import collections
 
@@ -145,17 +144,17 @@ def main():
                 first = True
                 for x in item['message_lines']:
                     if first:
-                        handle.write("msgid \"%s\"\n" % (x))
+                        handle.write("msgid \"%s\"\n" % x)
                     else:
-                        handle.write("\"%s\"\n" % (x))
+                        handle.write("\"%s\"\n" % x)
                     first = False
 
                 first = True
                 for x in item['translation_lines']:
                     if first:
-                        handle.write("msgstr \"%s\"\n" % (x))
+                        handle.write("msgstr \"%s\"\n" % x)
                     else:
-                        handle.write("\"%s\"\n" % (x))
+                        handle.write("\"%s\"\n" % x)
                     first = False
 
                 handle.write("\n")

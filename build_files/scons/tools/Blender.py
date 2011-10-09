@@ -131,7 +131,6 @@ def setup_staticlibs(lenv):
         lenv['BF_JPEG_LIBPATH'],
         lenv['BF_ZLIB_LIBPATH'],
         lenv['BF_PNG_LIBPATH'],
-        lenv['BF_LIBSAMPLERATE_LIBPATH'],
         lenv['BF_ICONV_LIBPATH']
         ])
 
@@ -193,9 +192,6 @@ def setup_staticlibs(lenv):
     if lenv['WITH_BF_OPENMP']:
         if lenv['OURPLATFORM'] == 'linuxcross':
             libincs += Split(lenv['BF_OPENMP_LIBPATH'])
-
-    if lenv['WITH_BF_STATICLIBSAMPLERATE']:
-        statlibs += Split(lenv['BF_LIBSAMPLERATE_LIB_STATIC'])
 
     # setting this last so any overriding of manually libs could be handled
     if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
@@ -269,9 +265,6 @@ def setup_syslibs(lenv):
         else:
             syslibs += Split(lenv['BF_OPENCOLLADA_LIB'])
         syslibs.append(lenv['BF_EXPAT_LIB'])
-
-    if not lenv['WITH_BF_STATICLIBSAMPLERATE']:
-        syslibs += Split(lenv['BF_LIBSAMPLERATE_LIB'])
 
     if lenv['WITH_BF_JEMALLOC']:
         if not lenv['WITH_BF_STATICJEMALLOC']:
@@ -572,8 +565,6 @@ def AppIt(target=None, source=None, env=None):
         commands.getoutput(cmd)
         cmd = 'cp -R %s/release/bin/.blender/fonts %s/%s.app/Contents/MacOS/%s/datafiles/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
-        cmd = 'cp %s/release/bin/%s/.Blanguages %s/%s.app/Contents/Resources/'%(bldroot,VERSION,installdir,binary)
-        commands.getoutput(cmd)
         cmd = 'cp -R %s/release/scripts %s/%s.app/Contents/MacOS/%s/'%(bldroot,installdir,binary,VERSION)
         commands.getoutput(cmd)
 
@@ -634,7 +625,11 @@ def UnixPyBundle(target=None, source=None, env=None):
     run("rm -rf '%s/distutils'" % py_target)
     run("rm -rf '%s/lib2to3'" % py_target)
     run("rm -rf '%s/config'" % py_target)
-    run("rm -rf '%s/config-*'" % py_target)
+
+    for f in os.listdir(py_target):
+        if f.startswith("config-"):
+            run("rm -rf '%s/%s'" % (py_target, f))
+
     run("rm -rf '%s/site-packages'" % py_target)
     run("mkdir '%s/site-packages'" % py_target)    # python needs it.'
     run("rm -rf '%s/idlelib'" % py_target)

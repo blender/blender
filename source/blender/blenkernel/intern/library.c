@@ -941,9 +941,9 @@ static void get_flags_for_id(ID *id, char *buf)
 		isnode= ((Tex *)id)->use_nodes;
 	
 	if (id->us<0)
-		sprintf(buf, "-1W ");
+		strcpy(buf, "-1W ");
 	else if (!id->lib && !isfake && id->us && !isnode)
-		sprintf(buf, "     ");
+		strcpy(buf, "     ");
 	else if(isnode)
 		sprintf(buf, "%c%cN%c ", id->lib?'L':' ', isfake?'F':' ', (id->us==0)?'O':' ');
 	else

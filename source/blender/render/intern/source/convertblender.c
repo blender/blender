@@ -4359,9 +4359,9 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 /* Database																	 */
 /* ------------------------------------------------------------------------- */
 
-static int render_object_type(int type) 
+static int render_object_type(short type)
 {
-	return ELEM5(type, OB_FONT, OB_CURVE, OB_SURF, OB_MESH, OB_MBALL);
+	return OB_TYPE_SUPPORT_MATERIAL(type);
 }
 
 static void find_dupli_instances(Render *re, ObjectRen *obr)

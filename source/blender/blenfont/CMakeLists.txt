@@ -53,7 +53,7 @@ set(SRC
 
 if(WITH_INTERNATIONAL)
 	list(APPEND INC_SYS
-		${GETTEXT_INC}
+		${GETTEXT_INCLUDE_DIRS}
 	)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()

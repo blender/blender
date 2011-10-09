@@ -559,7 +559,7 @@ static void rna_def_filter_common(StructRNA *srna)
 	
 	prop= RNA_def_property(srna, "use_mipmap_gauss", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_GAUSS_MIP);
-	RNA_def_property_ui_text(prop, "MIP Map Gaussian filter", "Uses Gauss filter to sample down MIP maps");
+	RNA_def_property_ui_text(prop, "MIP Map Gaussian filter", "Use Gauss filter to sample down MIP maps");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
@@ -591,7 +591,7 @@ static void rna_def_filter_common(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "filtersize");
 	RNA_def_property_range(prop, 0.1, 50.0);
 	RNA_def_property_ui_range(prop, 0.1, 50.0, 1, 0.2);
-	RNA_def_property_ui_text(prop, "Filter Size", "Multiplies the filter size used by MIP Map and Interpolation");
+	RNA_def_property_ui_text(prop, "Filter Size", "Multiply the filter size used by MIP Map and Interpolation");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
@@ -601,9 +601,9 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_source_items[] = {
-		{ENV_STATIC, "STATIC", 0, "Static", "Calculates environment map only once"},
-		{ENV_ANIM, "ANIMATED", 0, "Animated", "Calculates environment map at each rendering"},
-		{ENV_LOAD, "IMAGE_FILE", 0, "Image File", "Loads a saved environment map image from disk"},
+		{ENV_STATIC, "STATIC", 0, "Static", "Calculate environment map only once"},
+		{ENV_ANIM, "ANIMATED", 0, "Animated", "Calculate environment map at each rendering"},
+		{ENV_LOAD, "IMAGE_FILE", 0, "Image File", "Load a saved environment map image from disk"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem prop_mapping_items[] = {

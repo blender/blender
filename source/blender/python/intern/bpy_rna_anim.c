@@ -273,7 +273,7 @@ char pyrna_struct_driver_add_doc[] =
 "   :arg index: array index of the property drive. Defaults to -1 for all indices or a single channel if the property is not an array.\n"
 "   :type index: int\n"
 "   :return: The driver(s) added.\n"
-"   :rtype: :class:`FCurve` or list if index is -1 with an array property.\n"
+"   :rtype: :class:`bpy.types.FCurve` or list if index is -1 with an array property.\n"
 ;
 PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 {

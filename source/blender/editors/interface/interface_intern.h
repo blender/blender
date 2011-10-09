@@ -136,19 +136,10 @@ typedef enum {
 /* for scope resize zone */
 #define SCOPE_RESIZE_PAD	9
 
-typedef struct {
-	short xim, yim;
-	unsigned int *rect;
-	short xofs, yofs;
-} uiIconImage;
-
-
 typedef struct uiLinkLine {				/* only for draw/edit */
 	struct uiLinkLine *next, *prev;
-
+	struct uiBut *from, *to;
 	short flag, pad;
-	
-	struct uiBut *from, *to;	
 } uiLinkLine;
 
 typedef struct {
@@ -164,10 +155,10 @@ typedef struct {
 
 struct uiBut {
 	struct uiBut *next, *prev;
-	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend;
-	short alignnr;
 	int flag;
-	
+	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
+	short pad1;
+
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
 	char drawstr[UI_MAX_DRAW_STR];
@@ -282,7 +273,7 @@ struct uiBlock {
 	float minx, miny, maxx, maxy;
 	float aspect;
 
-	short alignnr;
+	int puphash;				// popup menu hash for memory
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -306,9 +297,12 @@ struct uiBlock {
 	void *drawextra_arg2;
 
 	int flag;
+	short alignnr;
+
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSSN ... etc, copied to buttons */
-	short auto_open;
+	char auto_open;
+	char _pad[7];
 	double auto_open_last;
 
 	const char *lockstr;
@@ -326,15 +320,12 @@ struct uiBlock {
 	ListBase saferct;			// uiSafetyRct list
 
 	uiPopupBlockHandle *handle;	// handle
-
-	int puphash;				// popup menu hash for memory
 	
 	void *evil_C;				// XXX hack for dynamic operator enums
 
+	struct UnitSettings *unit;	// unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
 	float _hsv[3];				// XXX, only access via ui_block_hsv_get()
 	char color_profile;			// color profile for correcting linear colors for display
-	struct UnitSettings *unit;	// unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
-
 };
 
 typedef struct uiSafetyRct {
@@ -400,9 +391,9 @@ struct uiPopupBlockHandle {
 
 	/* for operator popups */
 	struct wmOperatorType *optype;
-	int opcontext;
 	ScrArea *ctx_area;
 	ARegion *ctx_region;
+	int opcontext;
 	
 	/* return values */
 	int butretval;

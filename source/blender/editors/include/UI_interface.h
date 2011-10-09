@@ -749,6 +749,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
+void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *activeptr, const char *activeprop, int rows, int maxrows, int type);
 

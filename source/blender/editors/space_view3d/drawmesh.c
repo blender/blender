@@ -312,16 +312,24 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	unsigned char obcol[4];
-	int istex, solidtex= 0;
+	int istex, solidtex;
 
 	// XXX scene->obedit warning
-	if(v3d->drawtype==OB_SOLID || ((ob->mode & OB_MODE_EDIT) && v3d->drawtype!=OB_TEXTURE)) {
+
+	/* texture draw is abused for mask selection mode, do this so wire draw
+	 * with face selection in weight paint is not lit. */
+	if((v3d->drawtype <= OB_WIRE) && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
+		solidtex= FALSE;
+		Gtexdraw.islit= 0;
+	}
+	else if(v3d->drawtype==OB_SOLID || ((ob->mode & OB_MODE_EDIT) && v3d->drawtype!=OB_TEXTURE)) {
 		/* draw with default lights in solid draw mode and edit mode */
-		solidtex= 1;
+		solidtex= TRUE;
 		Gtexdraw.islit= -1;
 	}
 	else {
 		/* draw with lights in the scene otherwise */
+		solidtex= FALSE;
 		Gtexdraw.islit= GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, !rv3d->is_persp);
 	}
 	

@@ -340,20 +340,13 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 #endif
 		{
 			char fullpath[FILE_MAX];
-			char *path;
 
 			/* load sound */
 			PackedFile* pf = sound->packedfile;
 
 			/* dont modify soundact->sound->name, only change a copy */
 			BLI_strncpy(fullpath, sound->name, sizeof(fullpath));
-
-			if(sound->id.lib)
-				path = sound->id.lib->filepath;
-			else
-				path = bmain->name;
-
-			BLI_path_abs(fullpath, path);
+			BLI_path_abs(fullpath, ID_BLEND_PATH(bmain, &sound->id));
 
 			/* but we need a packed file then */
 			if (pf)

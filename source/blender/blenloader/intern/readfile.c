@@ -10450,7 +10450,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->mode |= MA_TRANSP;
 			}
 			else {
-				ma->mode |= MA_ZTRANSP;
+				/* ma->mode |= MA_ZTRANSP; */ /* leave ztransp as is even if its not used [#28113] */
 				ma->mode &= ~MA_TRANSP;
 			}
 
@@ -11821,7 +11821,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if(!mat->mtex[tex_nr]) continue;
 					if(mat->mtex[tex_nr]->mapto & MAP_ALPHA) transp_tex= 1;
 				}
-				
+
+				/* weak! material alpha could be animated */
 				if(mat->alpha < 1.0f || mat->fresnel_tra > 0.0f || transp_tex){
 					mat->mode |= MA_TRANSP;
 					mat->mode &= ~(MA_ZTRANSP|MA_RAYTRANSP);
@@ -12187,8 +12188,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if(mtex) {
 						if((mtex->texflag&MTEX_BUMP_FLIPPED)==0) {
 							if((mtex->mapto&MAP_NORM) && mtex->texflag&(MTEX_COMPAT_BUMP|MTEX_3TAP_BUMP|MTEX_5TAP_BUMP)) {
-								mtex->norfac= -mtex->norfac;
-								mtex->texflag|= MTEX_BUMP_FLIPPED;
+								Tex *tex= newlibadr(fd, lib, mtex->tex);
+
+								if(!tex || (tex->imaflag&TEX_NORMALMAP)==0) {
+									mtex->norfac= -mtex->norfac;
+									mtex->texflag|= MTEX_BUMP_FLIPPED;
+								}
 							}
 						}
 					}

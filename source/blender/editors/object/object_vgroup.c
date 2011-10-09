@@ -894,7 +894,8 @@ static float distance(float* a, float *b, int length)
 compute the amount of vertical distance relative to the plane and store it in dists,
 then get the horizontal and vertical change and store them in changes
 */
-static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, float *start, float distToStart, float *end, float (*changes)[2], float *dists, int index)
+static void getVerticalAndHorizontalChange(float *norm, float d, float *coord, float *start, float distToStart,
+                                           float *end, float (*changes)[2], float *dists, int index)
 {
 	// A=Q-((Q-P).N)N
 	// D = (a*x0 + b*y0 +c*z0 +d)
@@ -932,15 +933,17 @@ static DerivedMesh* dm_deform_recalc(Scene *scene, Object *ob)
 	return mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 }
 
-/* by changing nonzero weights, try to move a vertex in me->mverts with index 'index' to distToBe distance away from the provided plane
-strength can change distToBe so that it moves towards distToBe by that percentage
-cp changes how much the weights are adjusted to check the distance
+/* by changing nonzero weights, try to move a vertex in me->mverts with index 'index' to
+distToBe distance away from the provided plane strength can change distToBe so that it moves
+towards distToBe by that percentage cp changes how much the weights are adjusted
+to check the distance
 
 index is the index of the vertex being moved
 norm and d are the plane's properties for the equation: ax + by + cz + d = 0
 coord is a point on the plane
 */
-static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float norm[3], float coord[3], float d, float distToBe, float strength, float cp)
+static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, int index, float norm[3],
+                                          float coord[3], float d, float distToBe, float strength, float cp)
 {
 	DerivedMesh *dm;
 	MDeformWeight *dw;
@@ -1096,7 +1099,8 @@ static void moveCloserToDistanceFromPlane(Scene *scene, Object *ob, Mesh *me, in
 				dm_deform_clear(dm, ob); dm = NULL;
 			}
 		}
-	}while(wasChange && (distToStart-distToBe)/fabs(distToStart-distToBe) == (dists[bestIndex]-distToBe)/fabs(dists[bestIndex]-distToBe));
+	} while(wasChange && (distToStart-distToBe)/fabs(distToStart-distToBe) ==
+	                     (dists[bestIndex]-distToBe)/fabs(dists[bestIndex]-distToBe));
 	MEM_freeN(upDown);
 	MEM_freeN(changes);
 	MEM_freeN(dists);
@@ -2331,7 +2335,8 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active", "Keep the values of the active group while normalizing others");
+	RNA_def_boolean(ot->srna, "lock_active", TRUE, "Lock Active",
+	                "Keep the values of the active group while normalizing others");
 }
 
 static int vertex_group_fix_exec(bContext *C, wmOperator *op)
@@ -2369,7 +2374,8 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Fix Vertex Group Deform";
 	ot->idname= "OBJECT_OT_vertex_group_fix";
-	ot->description= "Modify the position of selected vertices by changing only their respective groups' weights (this tool may be slow for many vertices)";
+	ot->description= "Modify the position of selected vertices by changing only their respective "
+	                 "groups' weights (this tool may be slow for many vertices)";
 	
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -2378,8 +2384,10 @@ void OBJECT_OT_vertex_group_fix(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	RNA_def_float(ot->srna, "dist", 0.0f, -FLT_MAX, FLT_MAX, "Distance", "The distance to move to", -10.0f, 10.0f);
-	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength", "The distance moved can be changed by this multiplier", -2.0f, 2.0f);
-	RNA_def_float(ot->srna, "accuracy", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity", "Changes the amount weights are altered with each iteration: lower values are slower", 0.05f, 1.f);
+	RNA_def_float(ot->srna, "strength", 1.f, -2.0f, FLT_MAX, "Strength",
+	              "The distance moved can be changed by this multiplier", -2.0f, 2.0f);
+	RNA_def_float(ot->srna, "accuracy", 1.0f, 0.05f, FLT_MAX, "Change Sensitivity",
+	              "Change the amount weights are altered with each iteration: lower values are slower", 0.05f, 1.f);
 }
 
 
@@ -2437,8 +2445,10 @@ void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "auto_assign", TRUE, "Add Weights", "Add verts from groups that have zero weight before inverting");
-	RNA_def_boolean(ot->srna, "auto_remove", TRUE, "Remove Weights", "Remove verts from groups that have zero weight after inverting");
+	RNA_def_boolean(ot->srna, "auto_assign", TRUE, "Add Weights",
+	                "Add verts from groups that have zero weight before inverting");
+	RNA_def_boolean(ot->srna, "auto_remove", TRUE, "Remove Weights",
+	                "Remove verts from groups that have zero weight after inverting");
 }
 
 
@@ -2527,7 +2537,8 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mirror Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_mirror";
-	ot->description= "Mirror all vertex groups, flip weights and/or names, editing only selected vertices, flipping when both sides are selected otherwise copy from unselected";
+	ot->description= "Mirror all vertex groups, flip weights and/or names, editing only selected vertices, "
+	                 "flipping when both sides are selected otherwise copy from unselected";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll_edit;
@@ -2599,7 +2610,9 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if((change == 0 && fail == 0) || fail) {
-		BKE_reportf(op->reports, RPT_ERROR, "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indicies", change, fail);
+		BKE_reportf(op->reports, RPT_ERROR,
+		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indicies",
+		            change, fail);
 	}
 
 	return OPERATOR_FINISHED;

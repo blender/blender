@@ -768,7 +768,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 				if(properties) {
 					PointerRNA tptr;
 
-					WM_operator_properties_create(&tptr, opname);
+					WM_operator_properties_create_ptr(&tptr, ot);
 					if(tptr.data) {
 						IDP_FreeProperty(tptr.data);
 						MEM_freeN(tptr.data);
@@ -2432,7 +2432,7 @@ static void ui_item_estimate(uiItem *item)
 	}
 }
 
-static void ui_item_align(uiLayout *litem, int nr)
+static void ui_item_align(uiLayout *litem, short nr)
 {
 	uiItem *item;
 	uiButtonItem *bitem;

@@ -259,6 +259,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
 
 static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int recalc, int mode)
 {
+	struct Main *bmain= CTX_data_main(C);
 	Curve *cu= obedit->data;
 	EditFont *ef= cu->editfont;
 	cu->curinfo = ef->textbufinfo[cu->pos?cu->pos-1:0];
@@ -269,7 +270,7 @@ static void text_update_edited(bContext *C, Scene *scene, Object *obedit, int re
 	if(mode == FO_EDIT)
 		update_string(cu);
 
-	BKE_text_to_curve(scene, obedit, mode);
+	BKE_text_to_curve(bmain, scene, obedit, mode);
 
 	if(recalc)
 		DAG_id_tag_update(obedit->data, 0);
@@ -928,9 +929,10 @@ static int move_cursor(bContext *C, int type, int select)
 
 	if(select == 0) {
 		if(cu->selstart) {
+			struct Main *bmain= CTX_data_main(C);
 			cu->selstart = cu->selend = 0;
 			update_string(cu);
-			BKE_text_to_curve(scene, obedit, FO_SELCHANGE);
+			BKE_text_to_curve(bmain, scene, obedit, FO_SELCHANGE);
 		}
 	}
 
@@ -1644,13 +1646,14 @@ static int open_cancel(bContext *UNUSED(C), wmOperator *op)
 
 static int open_exec(bContext *C, wmOperator *op)
 {
+	struct Main *bmain= CTX_data_main(C);
 	VFont *font;
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	char filepath[FILE_MAX];
 	RNA_string_get(op->ptr, "filepath", filepath);
 
-	font= load_vfont(filepath);
+	font= load_vfont(bmain, filepath);
 
 	if(!font) {
 		if(op->customdata) MEM_freeN(op->customdata);
